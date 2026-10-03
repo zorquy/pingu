@@ -25224,3 +25224,133 @@ pinta encima no se deduce leyendo el CSS.**
 Se queda lo que sirve —que una carta sin escaneo se distinga de las que no
 tienes— con un marco verde fino y el nombre a plena luz. El relleno entero
 era un cartel que además tapaba el único dato que hay.
+
+---
+
+## Tanda 471 — el catálogo japonés y los dos chinos, que nunca se llenaron
+
+PINGU: «todavía seguimos con los problemas del chino y del japonés. No
+están las cartas, no están los logos. ¿De dónde estamos cogiendo? TCGdex
+supuestamente tiene todo el catálogo de cartas… no hay nada, o
+prácticamente nada. Hay alguna colección que sí la tiene, pero la única
+que veo es [una] que viene con logo y viene con las cartas, y no veo
+ninguna otra».
+
+De dónde se coge: **de TCGdex, y sí lo tiene todo**. El agujero era
+nuestro, estaba escrito en dos sitios y era el mismo visto dos veces.
+
+### 1. Las cartas solo entraban por una pestaña del navegador
+
+La única forma de meter las cartas de un mercado era «Importar los que
+faltan» en /admin, que es un bucle en el NAVEGADOR: una petición a TCGdex
+por set, ~550 sets entre el japonés, el chino simplificado y el
+tradicional. Eso es más de un cuarto de hora con la pestaña abierta y sin
+tocar nada, y nadie lo ha terminado nunca.
+
+Y el que lo deja a medias no deja ninguna señal: los sets están ahí, con
+su nombre y su fila, y lo que falta son las cartas. Desde la web se ve
+igual que un catálogo que TCGdex no tuviera.
+
+### 2. Y los logos los curaba una función que solo mira el occidental
+
+`netlify/functions/cartas-detalle.mjs` lleva `const MERCADO = 'WEST'`
+desde el primer día, con un comentario que lo justificaba: «los asiáticos
+son catálogos APARTE y engordarlos multiplicaría por cuatro las
+peticiones **sin que hoy los vea nadie**». Era verdad cuando se escribió,
+y dejó de serlo en la **tanda 437**, cuando el selector de catálogo puso
+el japonés y el chino delante de la gente. Nadie volvió a leer ese
+comentario.
+
+Su fase de cura de sets es la que rellena `serie_id`, `logo_path`,
+`symbol_url`, `release_date` y las dos `card_count_*` — y lo hace solo
+para `WEST`. Así que los sets asiáticos **nunca han tenido serie**, y
+eso es peor de lo que parece:
+
+- **Sin serie no hay respaldo de imagen.** Cuando a un set le falta el
+  fichero en el manifiesto de TCGdex, la cadena monta la dirección a mano
+  (`serie/set/logo`), y esa ruta empieza por la serie: sin serie
+  `urlDeLogoPorPartes` devuelve `null` y el eslabón no existe. En los
+  catálogos asiáticos el manifiesto trae menos ficheros, así que el
+  respaldo es justo el que trabaja.
+- **Sin `card_count_*` la estantería mide «0 de 0».** Es el mismo síntoma
+  que la 30th Classic Collection en la tanda 380: las cartas estaban, lo
+  que faltaba era el número.
+- **Sin fecha, una era entera se va al fondo** (la lección de la 451).
+
+O sea: «no hay logos japoneses» y «no hay cartas japonesas» eran **el
+mismo agujero**, y el remedio de los dos es el mismo — pedirle a TCGdex
+el set COMPLETO, que trae sus cartas, su serie, su logo, sus cuentas y su
+fecha de una vez.
+
+### La función: `netlify/functions/catalogo-asia.mjs`
+
+Programada cada seis minutos. Dos fases:
+
+1. **El listado de un mercado**, por turnos (el turno sale del reloj, no
+   del azar, así que tres pasadas seguidas repasan los tres catálogos).
+   Una petición. Sirve para que un set NUEVO aparezca solo, sin que nadie
+   entre en /admin. **Solo INSERTA lo que no tenemos: no es un upsert.**
+   Un `merge-duplicates` con lo que da el listado escribiría NULL encima
+   del logo, la serie, la fecha y las cuentas que la visita acaba de
+   curar —el listado es un «SetResume» y no trae ninguna de las cuatro—,
+   y pisar lo bueno con lo que no se sabe no daría ningún error: dejaría
+   la estantería como el primer día.
+2. **La visita a un set**: una petición, dos trabajos. Las cartas (con
+   `cardToRow`, sin duplicados, en lotes de 200) y lo que le falte a la
+   fila del set (`loQueFaltaDeUnSet`, que nunca escribe null encima de
+   algo bueno). Las cartas y su `imported_at` van en el MISMO PATCH que
+   la cura: si fueran dos sentencias, un corte entre ellas dejaría el set
+   con las cartas puestas y sin marcar.
+
+Un set se visita si **no tiene cartas** o si **no se le ha visitado
+nunca**. Los que no tienen ni una carta van primero: un set vacío es una
+pantalla vacía, y un set sin serie es un logo que no sale — lo primero
+molesta más.
+
+Con ~550 sets y ~15 por pasada, los tres catálogos asiáticos se llenan en
+unas cuatro horas y después esto cuesta una consulta que devuelve una
+lista corta.
+
+### Lo que NO hace, y por qué
+
+**No reimporta las cartas de un set ya importado.** Un set que TCGdex
+declara con más cartas de las que publica volvería en cada pasada para
+siempre: es exactamente el cerrojo de la **tanda 333**, el que dejó el
+engorde de cartas sin arrancar jamás. Rellenar un set corto sigue siendo
+el botón «Importar los cortos» del panel, que es una decisión y no una
+tarea. Y además un `merge-duplicates` sobre un set ya importado
+escribiría `image_path: null` encima de las imágenes que el engorde haya
+encontrado.
+
+**No engorda las cartas asiáticas** (rareza, tipos, ilustrador, PS). Eso
+es una petición POR CARTA y son ~20.000 más; `cartas-detalle` sigue en
+`WEST`. Consecuencia honesta: en el catálogo japonés los filtros de
+rareza y de tipo del álbum no tienen con qué filtrar todavía.
+
+**Y la Pokédex japonesa sigue vacía.** `cartas-pokedex` deduce la especie
+del NOMBRE de la carta, y «フシギダネ» no casa con ninguna lista inglesa.
+No es un fallo de pantalla: el dato no existe. Sacarlo exige el detalle
+de cada carta, o sea la misma petición por carta de arriba.
+
+### Y de paso: las copias a mano, fuera
+
+Para que el servidor pudiera usar `setToRow`, `cardToRow`,
+`sinDuplicados`, `fechaDeSet` y `codigoLiveDeSet` sin copiarlas, las
+cinco se mudaron a **`js/catalogo-tcgdex.js`**, que no importa nada del
+navegador. `js/tcgdex.js` las reexporta y `netlify/lib/carta-detalle.mjs`
+las importa.
+
+Con eso desaparecen las tres copias vigiladas que quedaban:
+`IDIOMA_POR_MERCADO` (que ahora **es** `MERCADOS`, importado de
+`js/mercados.js`), `fechaDeSet` y `codigoLiveDeSet`.
+
+Y la guarda cambia de pregunta. Era «¿dicen lo mismo?» —que se puede
+contestar bien por casualidad, y de hecho una de las dos llevaba desde la
+**438** comparando contra un objeto vacío porque el original se había
+mudado—. Ahora es **«¿es LA MISMA?»**: identidad, no parecido. Más la
+otra mitad, que la identidad no puede ver: que nadie haya vuelto a
+ESCRIBIR una copia con otro nombre, comprobado leyendo los dos ficheros
+como texto.
+
+La conclusión, que va al CLAUDE.md: una copia vigilada es mejor que una
+copia a secas, pero **no copiar es mejor que las dos**.

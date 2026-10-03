@@ -89,129 +89,22 @@ export function fetchSet(setId, market = MERCADO_POR_DEFECTO) {
   return pedir(`sets/${encodeURIComponent(setId)}`, idiomaDeMercado(market))
 }
 
-// Quita filas repetidas por su clave, dejando la PRIMERA.
+// ── Los mapeos PUROS, en su propio fichero (tanda 471) ──
 //
-// Hace falta porque el catálogo de TCGdex trae repetidos. El chino
-// simplificado devuelve 57 sets con 56 identificadores distintos: uno
-// viene dos veces. Con los dos en la misma sentencia, Postgres corta con
-// «ON CONFLICT DO UPDATE command cannot affect row a second time», que es
-// su forma de decir que no sabe cuál de los dos debe ganar.
+// `setToRow`, `cardToRow`, `fechaDeSet`, `codigoLiveDeSet` y
+// `sinDuplicados` no tocan ni red ni base: son de la respuesta de
+// TCGdex a una fila de la tabla. Viven en `js/catalogo-tcgdex.js`
+// porque los necesita también el servidor —la función programada que
+// completa el catálogo asiático— y este fichero importa
+// `./supabase.js`, que es del navegador y no se puede arrastrar a
+// Netlify. Hasta la 471 la salida era una COPIA A MANO vigilada por una
+// prueba, y esa prueba se separó ella sola (se vio en la 447).
 //
-// No se puede dar por hecho que sea sólo ese: el catálogo lo mantiene
-// gente y cambia. Así que se limpia siempre, y se dice cuántos se han
-// caído para que no pase desapercibido.
-export function sinDuplicados(filas, claves) {
-  const vistas = new Set()
-  const limpias = []
-  let repetidas = 0
-  for (const f of filas) {
-    const clave = claves.map((c) => f[c]).join('\u0000')
-    if (vistas.has(clave)) {
-      repetidas++
-      continue
-    }
-    vistas.add(clave)
-    limpias.push(f)
-  }
-  return { filas: limpias, repetidas }
-}
+// Aquí va un `export … from` y no el import+reexport de los otros: ya
+// no se usa ninguna de las cinco por dentro, así que no hace falta el
+// enlace local —y pedirlo sería decir que sí se usa—.
+export { setToRow, cardToRow, fechaDeSet, codigoLiveDeSet, sinDuplicados } from './catalogo-tcgdex.js'
 
-function fecha(valor) {
-  // TCGdex las da como "2020-08-14"; algunas antiguas vienen vacías o a
-  // medias y Postgres rechazaría la fila entera.
-  return /^\d{4}-\d{2}-\d{2}$/.test(valor || '') ? valor : null
-}
-
-// La fecha de salida de un set, validada.
-//
-// Va aparte y exportada por el MISMO motivo que `codigoLiveDeSet`: sólo
-// viene en el set COMPLETO (`sets/<id>`), no en el listado — el listado
-// devuelve un SetResume y ese campo no está. Quien importa las cartas de
-// un set ya tiene el set completo en la mano, así que es el único sitio
-// donde se puede guardar sin pedir nada de más.
-//
-// Esto se descubrió en la tanda 322: `release_date` estaba a null en
-// TODOS los sets, porque `setToRow` corre sobre el listado y allí la
-// fecha nunca llega. No daba error: simplemente la columna existía
-// vacía, y con ella no se puede ordenar el catálogo ni decir en una
-// ficha cuándo salió la colección.
-export function fechaDeSet(set) {
-  return fecha(set?.releaseDate)
-}
-
-export function setToRow(set, market = MERCADO_POR_DEFECTO) {
-  const fila = {
-    id: set.id,
-    market,
-    name: set.name || set.id,
-    // La SERIE no va aquí: `setToRow` corre sobre el LISTADO y allí no
-    // está (es un «SetResume»). Escribirla desde aquí ponía null en los
-    // 210 sets y, al reimportar, BORRARÍA la que la tarea programada
-    // acaba de curar. Se pone abajo, y solo si llega.
-    logo_path: imagePathFromUrl(set.logo),
-    symbol_url: set.symbol || null,
-    release_date: fecha(set.releaseDate),
-    card_count_total: set.cardCount?.total ?? null,
-    card_count_official: set.cardCount?.official ?? null,
-  }
-  // El código de TCG Live («TWM»), que es lo que traduce una línea de
-  // decklist a una carta con imagen (tanda 233).
-  //
-  // OJO: solo viene en el Set COMPLETO (`sets/<id>`), no en el listado
-  // — el listado devuelve un SetResume y ese campo no lo tiene. Por eso
-  // se pone solo si llega: escribir `null` desde el listado borraría el
-  // código que la importación de cartas acababa de guardar.
-  const codigo = codigoLiveDeSet(set)
-  if (codigo) fila.tcg_online_code = codigo
-  // Lo mismo con la serie y con la fecha: solo si vienen. Los tres son
-  // del set COMPLETO, y los tres se escriben cuando se importan las
-  // cartas de un set (que es cuando se tiene el completo en la mano) o
-  // los cura la tarea programada.
-  if (set.serie?.id) fila.serie_id = set.serie.id
-  if (set.serie?.name) fila.serie_name = set.serie.name
-  return fila
-}
-
-// El código de TCG Live de un set, normalizado. Vive aquí (y no en el
-// panel) porque lo usan la importación y la pantalla de códigos.
-//
-// Comprobado contra los tipos del SDK oficial de TCGdex (@tcgdex/sdk):
-// `Set.tcgOnline?: string`. Está en el Set completo, no en SetResume.
-// OJO CON EL NOMBRE DEL CAMPO (tanda 345). `tcgOnline` es el código de
-// Pokémon TCG **Online**, la plataforma vieja, que cerró en 2023 — y
-// TCGdex dejó de rellenarlo entonces. Para todo lo posterior viene
-// vacío, así que esta función devuelve null y NO es un fallo suyo: el
-// dato no existe arriba.
-//
-// Los códigos de TCG **Live** (PBL, SSP, TWM…) no los da ninguna API que
-// usemos: salen de una lista curada a mano —la misma idea que `SETS_LIVE`
-// en js/torneos/comun.js— y se siembran con
-// supabase-migration-codigos-live.sql. Un set nuevo se añade desde /admin
-// sin desplegar.
-export function codigoLiveDeSet(set) {
-  const bruto = set?.tcgOnline
-  if (typeof bruto !== 'string') return null
-  const limpio = bruto.trim().toUpperCase()
-  // Los códigos son de dos a seis letras o números. Cualquier otra cosa
-  // no es un código y no se guarda: un valor raro aquí traduce una
-  // decklist a la carta equivocada.
-  return /^[A-Z0-9]{2,6}$/.test(limpio) ? limpio : null
-}
-
-// El listado de cartas de un set trae poco: id, localId, name e image.
-// Basta para el buscador del editor. Los campos de tipo/rareza se
-// quedan a null a propósito — los necesitará el álbum, y traerlos exige
-// una petición POR CARTA (23.000 en vez de 220).
-export function cardToRow(card, setId, market = MERCADO_POR_DEFECTO) {
-  return {
-    id: card.id,
-    set_id: setId,
-    market,
-    local_id: String(card.localId ?? ''),
-    name: card.name || card.id,
-    image_path: imagePathFromUrl(card.image),
-  }
-}
 
 // ── El detalle de UNA carta (tanda 322) ──
 //

@@ -230,13 +230,44 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   no solo a esas páginas. Antes de generar una página por fila de una
   tabla, contesta qué tiene esa página que no tenga la de al lado — y si
   la respuesta no existe todavía, esa página nace en `noindex`.
-- **Una constante copiada se vigila con una prueba** (tanda 322).
-  `IDIOMA_POR_MERCADO` en `netlify/lib/carta-detalle.mjs` es copia de
-  `MERCADOS` en `js/tcgdex.js`, porque ese fichero importa
-  `./supabase.js` y no se puede arrastrar a una función de Netlify.
-  Copiar siete líneas es más barato que partir el fichero, pero una copia
-  sin vigilar se separa y no da error: la prueba lee el original como
-  TEXTO —importarlo arrastraría el navegador— y compara los dos mapas.
+- **Una constante copiada se vigila con una prueba** (tanda 322), y la
+  regla sigue valiendo — pero esa copia concreta YA NO EXISTE: en la 471
+  `IDIOMA_POR_MERCADO` pasó a SER `MERCADOS`, importado de
+  `js/mercados.js`. Ver la norma de abajo, que es la lección completa.
+- **No copiar es mejor que una copia vigilada** (tanda 471). La norma de
+  la 322 decía «una constante copiada se vigila con una prueba», y era
+  poco: la guarda de `IDIOMA_POR_MERCADO` llevaba desde la **438**
+  leyendo `js/tcgdex.js` en busca de un mapa que se había mudado a
+  `js/mercados.js` —encontraba CERO claves y comparaba contra un objeto
+  vacío—, o sea que la guarda contra las copias que se separan se separó
+  ella. La causa de TODAS esas copias es la misma: `js/tcgdex.js` importa
+  `./supabase.js` y no se puede arrastrar a una función de Netlify. El
+  remedio no es copiar y vigilar, es **mudar lo puro a un fichero sin
+  dependencias** y que lo importen los dos lados: así nació
+  `js/mercados.js` (438), `js/texto.js` (447) y ahora
+  `js/catalogo-tcgdex.js`, con `setToRow`, `cardToRow`, `sinDuplicados`,
+  `fechaDeSet` y `codigoLiveDeSet`. Y si por lo que sea tiene que haber
+  copia, la guarda pregunta **«¿es LA MISMA?»** (identidad) y no «¿dicen
+  lo mismo?», que es una pregunta que se contesta bien por casualidad.
+- **Un comentario que justifica un atajo caduca, y nadie vuelve a
+  leerlo** (tanda 471). `cartas-detalle` lleva `const MERCADO = 'WEST'`
+  con su porqué al lado: «los asiáticos son catálogos aparte y
+  engordarlos multiplicaría por cuatro las peticiones **sin que hoy los
+  vea nadie**». Era verdad el día que se escribió y dejó de serlo en la
+  **437**, cuando el selector de catálogo puso el japonés y el chino
+  delante de la gente — y con él se quedaron sin curar la serie, el logo,
+  las cuentas y la fecha de sus 550 sets. Si un `if` o una constante se
+  justifica con «hoy esto no lo ve nadie», el día que alguien lo vea hay
+  que ir a buscarla: no va a avisar.
+- **El catálogo asiático se llena SOLO, no desde /admin** (tanda 471).
+  «Importar los que faltan» es un bucle en una pestaña del navegador: con
+  los ~550 sets del japonés y los dos chinos son más de quince minutos sin
+  tocar nada, y quien lo deja a medias **no deja ninguna señal** —los sets
+  siguen ahí con su nombre y lo que falta son las cartas—. Lo hace la
+  función programada `catalogo-asia`, cada seis minutos y reanudándose
+  sola. Lo que NO hace, a propósito: reimportar un set ya importado. Un
+  set que TCGdex declara más largo de lo que publica volvería en cada
+  pasada para siempre, que es el cerrojo de la 333.
 - **Un respaldo que vive en el mismo sitio no es un respaldo** (tanda
   321). El 2026-09-20 se cayó `r2.limitlesstcg.net` entera y todos los
   minisprites del sitio se apagaron a la vez: la red que había —de una

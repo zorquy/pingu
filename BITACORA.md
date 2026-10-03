@@ -35,6 +35,63 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 471 — el catálogo japonés y los dos chinos, que se llenan solos)
+
+**Hecho**: contestado el «¿de dónde estamos cogiendo?» de PINGU — de
+TCGdex, y sí lo tiene todo; el agujero era nuestro y estaba en dos sitios
+que nadie había juntado. (1) Las CARTAS de un mercado solo entraban por
+«Importar los que faltan» de /admin, que es un bucle en una pestaña del
+navegador: ~550 sets entre el japonés y los dos chinos, más de un cuarto
+de hora sin tocar nada, y nadie lo ha terminado nunca — y el que lo deja a
+medias no deja señal, porque los sets están ahí con su nombre. (2) Los
+LOGOS los cura `cartas-detalle`, que lleva `const MERCADO = 'WEST'` desde
+el primer día con un comentario que lo justificaba y que dejó de ser
+verdad en la **437**, cuando el selector de catálogo puso el japonés
+delante de la gente. Sin esa cura los sets asiáticos no tienen `serie_id`,
+y **sin serie no hay respaldo de imagen** (`urlDeLogoPorPartes` devuelve
+null), ni `card_count_*` (la estantería medía «0 de 0»), ni fecha (la era
+entera al fondo). O sea que «no hay logos» y «no hay cartas» eran el MISMO
+agujero visto dos veces, y el remedio es el mismo: pedir el set COMPLETO,
+que trae las cartas, la serie, el logo, las cuentas y la fecha de una vez.
+Nueva función programada **`catalogo-asia.mjs`**, cada seis minutos, dos
+fases (el listado de un mercado por turnos —solo INSERTA lo que no
+tenemos, un upsert pisaría con null lo que la cura acaba de rellenar— y la
+visita a un set, que hace los dos trabajos con una sola petición). ~15 sets
+por pasada: los tres catálogos llenos en unas cuatro horas, y de vida
+corta. Y de paso, fuera las TRES copias a mano que quedaban: `setToRow`,
+`cardToRow`, `sinDuplicados`, `fechaDeSet` y `codigoLiveDeSet` se mudan a
+**`js/catalogo-tcgdex.js`** (sin dependencias), `js/tcgdex.js` las
+reexporta y la función de Netlify las importa; `IDIOMA_POR_MERCADO` ahora
+**es** `MERCADOS`. La guarda cambia de pregunta: de «¿dicen lo mismo?» a
+«¿es LA MISMA?», más un barrido de texto para que nadie vuelva a escribir
+una copia con otro nombre.
+
+**Ficheros**: `js/catalogo-tcgdex.js` (NUEVO),
+`netlify/functions/catalogo-asia.mjs` (NUEVO), `js/tcgdex.js`,
+`netlify/lib/carta-detalle.mjs`, `admin/index.html`, `SCHEMA.md`,
+`BITACORA.md`. En la rama `pruebas`: `test-tanda-471.mjs` (NUEVO, 51
+comprobaciones, sin red y sin base) y repintadas `test-tanda-322.mjs`
+(las guardas de copia, ahora de identidad), `test-tanda-329.mjs` y
+`test-tanda-345.mjs` (leían `js/tcgdex.js` como texto buscando lo que se
+ha mudado — y la de la 329 pasaba VACÍA, que es el «un barrido que no
+llega no dice nada» de la 307 otra vez).
+
+**En curso / pendiente**: nada a medias. **NO HACE FALTA NINGUNA
+MIGRACIÓN**: todas las columnas existen. Lo que queda dicho en el SCHEMA
+y es honesto decirlo: las cartas asiáticas **no se engordan** (rareza,
+tipos, ilustrador — una petición por carta, ~20.000 más), así que en el
+catálogo japonés los filtros de rareza y tipo del álbum no tienen con qué
+filtrar todavía; y **la Pokédex japonesa sigue vacía** porque
+`cartas-pokedex` deduce la especie del NOMBRE y 「フシギダネ」 no casa con
+ninguna lista inglesa. De la cola de PINGU siguen pendientes, en este
+orden: el IDIOMA AL AÑADIR debe seguir al selector de catálogo (lo
+siguiente, y lo llamó «totalmente necesario»), la barra de una expansión
+al estilo de Dex (buscador · Vista · UN botón Agrupar/Dividir ·
+«Filtros» en un panel), quitar los dos «volver» por migas de pan, los
+cuatro iconos de cabecera tras un ⋮, la Pokédex con los datos
+deslizables como las expansiones, y las carpetas con subcarpetas.
+Rigores pendientes desde la 443. Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 470 — la carta en negro, y la culpa era de `position`)
 
 **Hecho**: lo de PINGU por tercera vez, y esta vez con el mecanismo. La

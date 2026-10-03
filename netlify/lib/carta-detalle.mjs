@@ -10,20 +10,18 @@
 
 const API = 'https://api.tcgdex.net/v2'
 
-// El idioma de cada mercado. Es una COPIA de `MERCADOS` en
-// `js/tcgdex.js`, y las copias se separan: por eso hay una prueba que
-// compara las dos y se pone roja si alguien toca una y no la otra.
-// Copiarlo es más barato que partir aquel fichero en dos por un objeto
-// de siete líneas, pero solo si la copia está vigilada.
-export const IDIOMA_POR_MERCADO = {
-  WEST: 'en',
-  JP: 'ja',
-  CN: 'zh-cn',
-  TW: 'zh-tw',
-  KO: 'ko',
-  ID: 'id',
-  TH: 'th',
-}
+// El idioma de cada mercado. Aquí había una COPIA A MANO de `MERCADOS`
+// vigilada por una prueba, y la prueba se separó ella sola: desde la
+// tanda 438 el mapa vive en `js/mercados.js` y la guarda seguía leyendo
+// `js/tcgdex.js`, donde ya no estaba —encontraba CERO claves y comparaba
+// contra un objeto vacío—. Se vio en la 447.
+//
+// Ya no hay copia (tanda 471): `js/mercados.js` no importa NADA a
+// propósito, así que se puede arrastrar a una función de Netlify tal
+// cual. El nombre viejo se mantiene para no tocar los cinco sitios que
+// lo piden.
+import { MERCADOS } from '../../js/mercados.js'
+export const IDIOMA_POR_MERCADO = MERCADOS
 
 export function urlDeCarta(cardId, market = 'WEST') {
   const idioma = IDIOMA_POR_MERCADO[market] || IDIOMA_POR_MERCADO.WEST
@@ -38,13 +36,17 @@ export function urlDeSet(setId, market = 'WEST') {
   return `${API}/${idioma}/sets/${encodeURIComponent(setId)}`
 }
 
-// Vale como fecha de Postgres, o null. Misma criba que `fecha()` en
-// js/tcgdex.js: las cartas antiguas la traen vacía o a medias, y una
-// cadena rara tumbaría la fila entera.
-export function fechaDeSet(set) {
-  const v = set?.releaseDate
-  return /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null
-}
+// La fecha de salida, el código de TCG Live y los dos mapeos a fila
+// (`setToRow`, `cardToRow`) eran COPIAS de `js/tcgdex.js`, por lo de
+// siempre: aquel fichero importa `./supabase.js` y no se puede arrastrar
+// aquí. Desde la tanda 471 no hay copia — las cinco funciones son puras
+// y viven en `js/catalogo-tcgdex.js`, que no importa nada del navegador.
+//
+// Se importan Y se reexportan: un `export … from` no crea el enlace
+// local, y `fechaDeSet` y `codigoLiveDeSet` se usan aquí dentro, en
+// `loQueFaltaDeUnSet`.
+import { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados } from '../../js/catalogo-tcgdex.js'
+export { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados }
 
 // El mapeo de la respuesta y el idioma de la ficha se mudaron a
 // `js/carta-detalle.js` en la tanda 331: los necesita también el
@@ -76,17 +78,6 @@ export function serieDeSet(set) {
     serie_id: typeof id === 'string' && id.trim() ? id.trim() : null,
     serie_name: typeof nombre === 'string' && nombre.trim() ? nombre.trim() : null,
   }
-}
-
-// El código de TCG Live («TWM», «30C»), normalizado. Es COPIA de
-// `codigoLiveDeSet` en js/tcgdex.js, vigilada por la misma prueba que
-// vigila el mapa de idiomas: aquel fichero importa `./supabase.js` y no
-// se puede arrastrar a una función de servidor.
-export function codigoLiveDeSet(set) {
-  const bruto = set?.tcgOnline
-  if (typeof bruto !== 'string') return null
-  const limpio = bruto.trim().toUpperCase()
-  return /^[A-Z0-9]{2,6}$/.test(limpio) ? limpio : null
 }
 
 // Lo que le falta a una fila de `tcg_sets`, mirando el set completo.

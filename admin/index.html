@@ -509,6 +509,16 @@
           <button class="btn-outline" id="btnDiagnosticar">Diagnosticar catálogos</button>
         </div>
         <p class="admin-note" id="cardsImportNote"></p>
+        <!-- Para que nadie vuelva a intentar importar el japón a mano
+             (tanda 471): son ~550 sets entre los tres catálogos
+             asiáticos, o sea un cuarto de hora con esta pestaña abierta
+             y sin tocar nada. Lo hace sola la función programada
+             `catalogo-asia`, cada seis minutos y reanudándose, y
+             «Qué hay de cada mercado» dice por dónde va. -->
+        <p class="admin-note">El catálogo japonés y los dos chinos se
+          llenan solos cada seis minutos, cartas y logos incluidos: no
+          hace falta importarlos a mano. Dale a «Qué hay de cada
+          mercado» para ver por dónde va.</p>
         <div class="cards-progress hidden" id="cardsProgress"><span class="fill" id="cardsProgressFill"></span></div>
         <textarea id="cardsDiagnostico" class="admin-search hidden" rows="16" readonly
           style="font-family: monospace; font-size: 12px; white-space: pre; width: 100%;"></textarea>
