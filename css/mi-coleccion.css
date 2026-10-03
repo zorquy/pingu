@@ -636,8 +636,7 @@
    lista volverá a desalinearse, así que la lista es la regla. */
 .mc-mandos .mc-chapa-select,
 .mc-mandos .mc-chip-mando,
-.mc-mandos .mc-chip-filtro,
-.mc-mandos .mc-chip-vista {
+.mc-mandos .mc-chip-filtro {
   min-height: 36px;
   padding: 0 var(--e-md);
   font-size: var(--t-sm);
@@ -662,8 +661,7 @@
 @media (pointer: coarse) {
   .mc-mandos .mc-chapa-select,
   .mc-mandos .mc-chip-mando,
-  .mc-mandos .mc-chip-filtro,
-  .mc-mandos .mc-chip-vista {
+  .mc-mandos .mc-chip-filtro {
     min-height: 44px;
   }
 }
@@ -3538,12 +3536,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   align-items: center;
 }
 
-/* El grupo de «juntar / separar» lleva su propio margen de abajo porque
-   fuera de la tira es una fila entera; dentro, descuadraría a los demás. */
-.mc-mandos .mc-vista-variantes {
-  margin-bottom: 0;
-}
-
 /* Las acciones (el ajuste de «al añadir» y los dos botones) NO van en la
    tira: despliegan un panel y una tira recorta lo que se sale de ella. */
 /* Volver, en su fila y como chapa (tanda 459). */
@@ -3693,32 +3685,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* ── Una por carta / una por versión ── */
-.mc-vista-variantes {
-  display: flex;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-}
-
-.mc-chip-vista {
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mc-chip-vista.activo {
-  border-color: var(--navy);
-  background: var(--navy-solid);
-  /* Blanco FIJO: `--white` es la superficie de la página y en oscuro
-     vale #182430, así que dejaría letra oscura sobre azul (tanda 315). */
-  color: var(--blanco-fijo);
-}
+/* Aquí vivían `.mc-vista-variantes` y `.mc-chip-vista`, el grupo de dos
+   chapas de «juntar / separar» (fuera en la tanda 473). Ahora es UN botón
+   y es un `.mc-chip-mando` como los demás de la barra, así que no necesita
+   piezas propias: una de las dos chapas estaba siempre de adorno y encima
+   obligaba a una familia de estilo para ella sola. */
 
 /* El nombre de la versión, bajo su casilla. Solo sale en «una por
    versión»: ahí es lo único que distingue dos huecos con el mismo
@@ -3745,6 +3716,25 @@ input.mc-alb-titulo:not([readonly]):focus {
   border-left: 1px solid var(--border);
   background: var(--white);
   color: var(--text);
+}
+
+/* COLUMNA FLEXIBLE, Y SOLO CUANDO ESTÁ ABIERTO (tanda 473).
+   El pie va `position: sticky; bottom: 0`, y un sticky solo se pega cuando
+   hay algo que desplazar: con pocos filtros dentro —la expansión tiene
+   cuatro— se quedaba pegado al último grupo y debajo colgaba media pantalla
+   en blanco. Con la columna, el cuerpo se come el hueco y «Ver resultados»
+   cae al fondo del cajón.
+
+   EL `[open]` NO ES ADORNO, y casi me cuesta cuatro paneles. Lo que
+   esconde un `<dialog>` cerrado es una regla del NAVEGADOR
+   —`dialog:not([open]) { display: none }`—, así que un `display: flex`
+   suelto la pisa y el panel se queda a la vista SIEMPRE. No da ningún
+   error, y en una captura ni se nota si cae fuera del encuadre: lo cantó
+   la prueba, comprobando que al cerrar deja de verse. Vale para cualquier
+   `display` que se le ponga a un `<dialog>`. */
+.mc-panel-filtros[open] {
+  display: flex;
+  flex-direction: column;
 }
 
 .mc-panel-filtros::backdrop {
@@ -3780,8 +3770,14 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-panel-cuerpo {
-  /* El alto que queda entre la cabecera y el pie, los dos pegados. */
-  max-height: calc(100vh - 150px);
+  /* Se come TODO el hueco que quede entre la cabecera y el pie (tanda 473).
+     Antes era un `max-height` a ojo —150 px de cabecera y pie— y eso solo
+     acierta cuando el contenido sobra; con poco contenido no estiraba nada.
+     El `min-height: 0` no es de adorno: un hijo de flex no baja de su
+     tamaño de contenido por defecto, así que sin él el `overflow-y` no
+     llega a desplazar y el pie se sale por abajo. */
+  flex: 1;
+  min-height: 0;
   padding: var(--e-lg);
   overflow-y: auto;
 }

@@ -35,6 +35,48 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-03 — PINGU-Claude (tanda 473 — la barra de una expansión, como la de «Cartas»)
+
+**Hecho**: lo que PINGU pidió mirando Dex. Dentro de una expansión había
+CINCO controles sueltos en la tira —orden, «solo las que me faltan»,
+rareza, categoría y los dos de variantes— y en el móvil había que
+deslizarla para ver la mitad; la pestaña «Cartas» resolvió esto en la 449
+y la 450 y ésta era la última pantalla de la sección sin hacerlo. Ahora la
+barra son DOS chapas: «Filtros» (con su cuenta) y el de variantes, más una
+✕ que sale cuando hay algo puesto y que borra también lo escrito. El
+reparto es el de la 441: fuera lo que se toca cada dos por tres (juntar o
+separar variantes), dentro lo que se pone una vez (orden, rareza,
+categoría, «solo las que me faltan»). Y el de variantes es UN botón que
+dice el ESTADO —«Variantes juntas» / «Variantes separadas»— y no lo que
+pasa al pulsarlo: eran dos chapas y una siempre estaba de adorno. Se van
+con ellas `.mc-vista-variantes` y `.mc-chip-vista`.
+
+**Y dos arreglos de la hoja que valen para los CUATRO paneles de la
+sección**: (1) el pie va `sticky; bottom: 0`, y un sticky solo se pega
+cuando hay algo que desplazar — con pocos filtros dentro se quedaba pegado
+al último grupo y debajo colgaba media pantalla en blanco; ahora el cajón
+es una columna flexible con el cuerpo a `flex: 1` (y `min-height: 0`, sin
+el cual un hijo de flex no baja de su contenido y el pie se sale). (2) **Y
+el `[open]`, que casi cuesta los cuatro**: poner `display: flex` en el
+`<dialog>` a secas pisa la regla del navegador que esconde un diálogo
+cerrado, así que el panel se queda A LA VISTA SIEMPRE. No da error y en mis
+capturas ni se notó; lo cantó la prueba, comprobando que al cerrar deja de
+verse — el atributo `open` sí pasaba a false.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`, `BITACORA.md`, `CLAUDE.md`. En la
+rama `pruebas`: `test-tanda-473.mjs` (NUEVO, 35 comprobaciones).
+
+**En curso / pendiente**: nada a medias. **Sigue sin ejecutar
+`supabase-migration-idioma-chino.sql`** (tanda 472): hasta entonces no se
+puede guardar una carta china. De la cola de PINGU quedan: quitar los dos
+«volver» por migas de pan al estilo de Dex, los cuatro iconos de cabecera
+tras un ⋮, la Pokédex con los datos deslizables como las expansiones, y
+las carpetas con subcarpetas. Lo que NO entra en la 473 y PINGU mencionó:
+el botón de VISTA (cuadrícula / lista / archivador), que es una pantalla
+nueva y no un reordenado de la barra. Rigores pendientes desde la 443.
+Portada a 169,9 de 170 KB.
+
 ## 2026-10-03 — PINGU-Claude (tanda 472 — el idioma con el que añades lo manda el catálogo)
 
 **Hecho**: lo que PINGU llamó «totalmente necesario». El idioma de una

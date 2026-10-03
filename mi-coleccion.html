@@ -442,36 +442,90 @@
                Los que ABREN algo (el «Al añadir», que cuelga de su chapa)
                no pueden ir aquí: la tira recorta lo que se sale, así que
                esos se quedan en la fila de acciones de abajo. -->
+          <!-- LA BARRA DE UNA EXPANSIÓN, COMO LA DE «Cartas» (tanda 473).
+               PINGU, enseñando Dex: «el botón de juntar variantes y separar
+               variantes que sea solamente uno… yo quiero que los filtros
+               estén en un botón que sea filtros… mira un poquito mejor cómo
+               están los espaciados entre los filtros».
+
+               Aquí había CINCO controles sueltos en la tira —orden, «solo
+               las que me faltan», rareza, categoría y los dos de variantes—
+               y había que deslizarla para ver la mitad. La pestaña «Cartas»
+               resolvió esto mismo en la 449 y la 450: buscador, un botón
+               «Filtros» con su cuenta y lo demás dentro de un panel. Era la
+               última pantalla de la sección que no lo tenía.
+
+               Lo que SE QUEDA fuera del panel es lo que se toca cada dos
+               por tres: juntar o separar variantes. Lo que se pone una vez
+               y se olvida —el orden, la rareza, la categoría, «solo las que
+               me faltan»— se va dentro. Es el reparto de la 441, dicho
+               para esta pantalla. -->
           <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
-            <!-- Cómo se ordena (tanda 427). Una expansión se mira de
-                 cuatro maneras según lo que vayas a hacer: por número
-                 cuando la repasas en la mano, por nombre cuando buscas
-                 una, por rareza cuando miras lo que vale, y «lo que te
-                 falta» cuando vas a comprar o a cambiar. Las opciones las
-                 pone el JavaScript desde `orden.js`, que es quien sabe
-                 ordenar: dos listas iguales en dos sitios se separan. -->
-            <select id="mcAlbumOrden" class="mc-chapa-select" aria-label="Cómo se ordenan las cartas"></select>
-            <!-- CHAPA Y NO CASILLA (tanda 459). Era un `<label>` con su
-                 `<input type="checkbox">` en una fila donde todo lo demás
-                 son chapas, y en la tira de mandos desentonaba. Es el mismo
-                 control que «Solo las empezadas» de la estantería, así que
-                 ahora es la misma pieza. -->
-            <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
-            <select id="mcAlbumRareza" class="mc-chapa-select" aria-label="Filtrar por rareza"></select>
-            <select id="mcAlbumTipo" class="mc-chapa-select" aria-label="Filtrar por categoría"></select>
-            <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
-                 «split» un reverse holo y su normal son dos huecos, que es
-                 como se colecciona un set maestro. -->
-            <div class="mc-vista-variantes" role="group" aria-label="Cómo se cuentan las versiones">
-              <!-- «Juntar» y «separar» y no «una por carta / una por versión»
-                   (tanda 418). PINGU: «así queda más claro». Lo que se hace
-                   es juntar las versiones de una carta en un hueco o
-                   darle uno a cada una; el nombre viejo decía el
-                   RESULTADO y había que pensarlo. -->
-              <button type="button" class="mc-chip-vista activo" id="mcVistaStack" aria-pressed="true">Juntar variantes</button>
-              <button type="button" class="mc-chip-vista" id="mcVistaSplit" aria-pressed="false">Separar variantes</button>
-            </div>
+            <button type="button" class="mc-chip-mando" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcAlbumFiltrosCuenta"></span>
+            </button>
+            <!-- UN SOLO BOTÓN, Y DICE EL ESTADO (tanda 473). Eran dos chapas
+                 en un grupo, «Juntar variantes» y «Separar variantes», y una
+                 de las dos siempre estaba de adorno. El rótulo dice cómo
+                 están AHORA y no lo que pasa al pulsarlo — un control que
+                 guarda un estado tiene que decir el estado, o hay que
+                 pulsarlo para saber qué tenías puesto (la lección de la
+                 449). Y se queda el vocabulario de la 418, que es el que
+                 PINGU pidió: juntas / separadas, no «una por carta». -->
+            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="layers">
+              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
+            </button>
+            <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcAlbumQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
           </div>
+
+          <!-- EL PANEL. Mismo molde que los otros tres de la sección
+               (Cartas, Pokédex y Buscar): sube desde abajo en el móvil y
+               sale centrado en el ordenador, con «Limpiar» y «Ver
+               resultados» en el pie. -->
+          <dialog class="mc-panel-filtros" id="mcAlbumPanelFiltros" aria-labelledby="mcAlbumFiltrosTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcAlbumFiltrosTitulo">Filtros</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <!-- Cómo se ordena (tanda 427). Una expansión se mira de
+                   cuatro maneras según lo que vayas a hacer: por número
+                   cuando la repasas en la mano, por nombre cuando buscas
+                   una, por rareza cuando miras lo que vale, y «lo que te
+                   falta» cuando vas a comprar o a cambiar. Las opciones las
+                   pone el JavaScript desde `orden.js`, que es quien sabe
+                   ordenar: dos listas iguales en dos sitios se separan. -->
+              <div class="mc-grupo-filtro">
+                <h3>Ordenar por</h3>
+                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+              </div>
+              <!-- Las opciones salen de las cartas que hay DE VERDAD en esta
+                   colección, no de una lista escrita a mano: un set con una
+                   rareza nueva la trae solo (la lección de la 323). Y si la
+                   colección todavía no tiene rarezas guardadas —el engorde
+                   no ha llegado— el grupo entero se esconde, en vez de
+                   ofrecer un desplegable de una sola opción. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoRareza">
+                <h3>Rareza</h3>
+                <select id="mcAlbumRareza" aria-label="Filtrar por rareza"></select>
+              </div>
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoTipo">
+                <h3>Categoría</h3>
+                <select id="mcAlbumTipo" aria-label="Filtrar por categoría"></select>
+              </div>
+              <div class="mc-grupo-filtro">
+                <h3>Qué cartas</h3>
+                <!-- CHAPA Y NO CASILLA (tanda 459). Es el mismo control que
+                     «Solo las empezadas» de la estantería, así que es la
+                     misma pieza. -->
+                <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
+              </div>
+            </div>
+            <div class="mc-panel-pie">
+              <button type="button" class="mc-chip-mando" id="mcAlbumFiltrosLimpiar">Limpiar</button>
+              <button type="button" class="btn-primary" id="mcAlbumFiltrosVer">Ver resultados</button>
+            </div>
+          </dialog>
           <!-- AQUÍ ESTABA LA FILA DE ACCIONES (fuera en la tanda 461).
                Llevaba tres cosas y las tres se han ido a donde se buscan:
                «Marcar varias» y «Copiar lo que me falta» son los dos

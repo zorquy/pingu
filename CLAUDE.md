@@ -234,6 +234,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   regla sigue valiendo — pero esa copia concreta YA NO EXISTE: en la 471
   `IDIOMA_POR_MERCADO` pasó a SER `MERCADOS`, importado de
   `js/mercados.js`. Ver la norma de abajo, que es la lección completa.
+- **Un `display` suelto en un `<dialog>` lo deja A LA VISTA SIEMPRE**
+  (tanda 473). Lo que esconde un diálogo cerrado es una regla del
+  NAVEGADOR —`dialog:not([open]) { display: none }`—, así que un
+  `display: flex` en el selector a secas la pisa y el panel no se cierra
+  nunca. No da ningún error y en una captura puede no notarse. Va siempre
+  en `[open]`, y lo prueba una comprobación de que al cerrar deja de
+  verse — no de que el atributo `open` sea false, que sí lo era.
 - **Un `<select>` cuyo valor no está entre sus opciones se queda con la
   PRIMERA** (tanda 472), y al guardar escribe esa. No da ningún error. Pasó
   con el idioma de una carta: desde la 472 el catálogo japonés solo ofrece

@@ -1788,12 +1788,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = set?.name || ''
   pintarEstrella()
-  // La chapa de «solo las que me faltan» se pone a lo que DIGA el estado y
-  // no al revés (tanda 459). Cambiar de catálogo vacía `album` entero, así
-  // que el filtro se apaga sin que nadie toque la chapa: si no se pintara
-  // aquí, se quedaría encendida enseñando la colección completa.
-  $('mcAlbumSoloFaltan').classList.toggle('activo', album.soloFaltan)
-  $('mcAlbumSoloFaltan').setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
+  pintarSoloFaltan()
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
     album.cartas = (await datos.cartasDeSet(setId, mercado)).sort(porNumero)
@@ -1991,10 +1986,12 @@ function pintarFiltrosDeAlbum() {
     tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
     rareza.dataset.set = album.set
     // Y si la colección no tiene ni rarezas ni categorías guardadas —el
-    // engorde todavía no ha llegado— el filtro se esconde en vez de
-    // ofrecer un desplegable con una sola opción que no hace nada.
-    rareza.classList.toggle('hidden', rareza.options.length <= 1)
-    tipo.classList.toggle('hidden', tipo.options.length <= 1)
+    // engorde todavía no ha llegado— se esconde el GRUPO ENTERO y no solo
+    // el desplegable (tanda 473): desde que viven dentro del panel cada uno
+    // lleva su rótulo encima, y esconder el desplegable dejaba un «Rareza»
+    // suelto sobre nada.
+    $('mcAlbumGrupoRareza')?.classList.toggle('hidden', rareza.options.length <= 1)
+    $('mcAlbumGrupoTipo')?.classList.toggle('hidden', tipo.options.length <= 1)
   }
 }
 
@@ -2018,19 +2015,75 @@ function cartasDelAlbumFiltradas() {
   return ordenar(encajan, $('mcAlbumOrden')?.value || 'numero', { tengo: tengoDe, nombre: nombreDe })
 }
 
-// Cuál de los dos está puesto. `aria-pressed` además de la clase: para
-// quien no ve el color, la clase no dice nada.
+// Cómo están las variantes, en UN solo botón (tanda 473).
+//
+// Eran dos chapas y una de las dos estaba siempre de adorno. PINGU: «el
+// botón de juntar variantes y separar variantes que sea solamente uno».
+//
+// El rótulo dice cómo están AHORA, no lo que pasa al pulsarlo: un control
+// que guarda un estado tiene que decir el estado, o hay que pulsarlo para
+// saber qué tenías puesto (la lección de la 449 con el botón de ordenar).
+// Y `aria-pressed` además de la clase, porque para quien no ve el color la
+// clase no dice nada.
 function pintarVistaVariantes() {
-  for (const [id, split] of [['mcVistaStack', false], ['mcVistaSplit', true]]) {
-    const b = $(id)
-    if (!b) continue
-    b.classList.toggle('activo', album.split === split)
-    b.setAttribute('aria-pressed', album.split === split ? 'true' : 'false')
-  }
+  const b = $('mcVistaVariantes')
+  if (!b) return
+  b.classList.toggle('activo', album.split)
+  b.setAttribute('aria-pressed', album.split ? 'true' : 'false')
+  const rotulo = $('mcVistaVariantesRotulo')
+  if (rotulo) rotulo.textContent = album.split ? 'Variantes separadas' : 'Variantes juntas'
+}
+
+// ── La cuenta del botón «Filtros» (tanda 473) ──
+//
+// Sin ella, un filtro olvidado parece una colección que ha encogido — y
+// dentro de un panel que hay que abrir para mirar, eso pasa el doble.
+// Misma pieza que la de la pestaña «Cartas» (`cuantosFiltros`).
+function cuantosFiltrosDeAlbum() {
+  return ($('mcAlbumRareza')?.value ? 1 : 0) +
+    ($('mcAlbumTipo')?.value ? 1 : 0) +
+    (album.soloFaltan ? 1 : 0) +
+    // El orden cuenta solo si NO es el de siempre: «por número» es como
+    // viene una expansión, y marcarlo como filtro puesto diría que has
+    // tocado algo cuando no.
+    ($('mcAlbumOrden')?.value && $('mcAlbumOrden').value !== 'numero' ? 1 : 0)
+}
+
+function pintarCuentaDeFiltrosDeAlbum() {
+  const chapa = $('mcAlbumFiltrosCuenta')
+  if (!chapa) return
+  const n = cuantosFiltrosDeAlbum()
+  chapa.textContent = n ? String(n) : ''
+  chapa.classList.toggle('hidden', n === 0)
+  // La chapa de quitarlo todo cuenta también el texto buscado: para quien
+  // mira, «lo que estoy filtrando» incluye lo que ha escrito.
+  $('mcAlbumQuitar')?.classList.toggle('hidden', n === 0 && !$('mcAlbumBuscar')?.value)
+}
+
+function limpiarFiltrosDeAlbum() {
+  if ($('mcAlbumRareza')) $('mcAlbumRareza').value = ''
+  if ($('mcAlbumTipo')) $('mcAlbumTipo').value = ''
+  if ($('mcAlbumOrden')) $('mcAlbumOrden').value = 'numero'
+  album.soloFaltan = false
+  album.pagina = 0
+  pintarSoloFaltan()
+  pintarAlbum()
+}
+
+// La chapa de «solo las que me faltan» se pone a lo que DIGA el estado y
+// no al revés (tanda 459). Cambiar de catálogo vacía `album` entero, así
+// que el filtro se apaga sin que nadie toque la chapa: si no se pintara,
+// se quedaría encendida enseñando la colección completa.
+function pintarSoloFaltan() {
+  const b = $('mcAlbumSoloFaltan')
+  if (!b) return
+  b.classList.toggle('activo', album.soloFaltan)
+  b.setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
 }
 
 function pintarAlbum() {
   pintarFiltrosDeAlbum()
+  pintarCuentaDeFiltrosDeAlbum()
   const lista = cartasDelAlbumFiltradas()
   const total = album.cartas.length
   // El progreso es SIEMPRE el de la colección entera, filtres lo que
@@ -4110,10 +4163,32 @@ function enganchar() {
   }
   $('mcAlbumSoloFaltan').addEventListener('click', () => {
     album.soloFaltan = !album.soloFaltan
-    $('mcAlbumSoloFaltan').classList.toggle('activo', album.soloFaltan)
-    $('mcAlbumSoloFaltan').setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
+    pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
+  })
+
+  // ── El panel de filtros de una expansión (tanda 473) ──
+  //
+  // Mismo enganche que los otros tres de la sección. El clic en el FONDO
+  // cierra: es lo que espera quien abre una hoja desde abajo en el móvil, y
+  // se distingue del clic de dentro porque `e.target` es el propio
+  // `<dialog>` — su caja ocupa toda la pantalla y el contenido va en hijos.
+  $('mcAlbumAbrirFiltros')?.addEventListener('click', () => {
+    pintarFiltrosDeAlbum()
+    $('mcAlbumPanelFiltros').showModal()
+  })
+  $('mcAlbumFiltrosCerrar')?.addEventListener('click', () => $('mcAlbumPanelFiltros').close())
+  $('mcAlbumFiltrosVer')?.addEventListener('click', () => $('mcAlbumPanelFiltros').close())
+  $('mcAlbumPanelFiltros')?.addEventListener('click', (e) => {
+    if (e.target === $('mcAlbumPanelFiltros')) $('mcAlbumPanelFiltros').close()
+  })
+  $('mcAlbumFiltrosLimpiar')?.addEventListener('click', limpiarFiltrosDeAlbum)
+  // Y el ✕ de la barra, que quita TAMBIÉN lo escrito: para quien mira, «lo
+  // que estoy filtrando» incluye la búsqueda.
+  $('mcAlbumQuitar')?.addEventListener('click', () => {
+    if ($('mcAlbumBuscar')) $('mcAlbumBuscar').value = ''
+    limpiarFiltrosDeAlbum()
   })
   // ── El color de la tapa (tanda 371) ──
   //
@@ -4233,17 +4308,17 @@ function enganchar() {
     const version = e.target.closest('button[data-variante]')
     if (version) return void alternarVariante(version.dataset.carta, version.dataset.variante)
   })
-  // Stack / Split. Se recuerda, porque quien colecciona set maestro lo
-  // quiere SIEMPRE y volver a pulsarlo en cada set sería un peaje.
-  for (const [id, split] of [['mcVistaStack', false], ['mcVistaSplit', true]]) {
-    $(id).addEventListener('click', () => {
-      album.split = split
-      album.pagina = 0
-      try { localStorage.setItem('mc-split', split ? '1' : '0') } catch {}
-      pintarVistaVariantes()
-      pintarAlbum()
-    })
-  }
+  // Juntas / separadas, en un solo botón (tanda 473). Se recuerda, porque
+  // quien colecciona set maestro lo quiere SIEMPRE y volver a pulsarlo en
+  // cada set sería un peaje. La clave de `localStorage` no cambia: lo que
+  // se guarda es el estado, y el estado es el mismo que antes.
+  $('mcVistaVariantes')?.addEventListener('click', () => {
+    album.split = !album.split
+    album.pagina = 0
+    try { localStorage.setItem('mc-split', album.split ? '1' : '0') } catch {}
+    pintarVistaVariantes()
+    pintarAlbum()
+  })
   try { album.split = localStorage.getItem('mc-split') === '1' } catch {}
   pintarVistaVariantes()
 

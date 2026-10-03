@@ -25470,3 +25470,73 @@ Ahora la unidad no es una ventana de caracteres sino **la función que hace
 el upsert**, y se le pegan los cuerpos de los mapeadores puros a los que
 ESA función llama. Con eso vuelve a morder: quitarle el `name` a
 `cardToRow` la pone roja.
+
+---
+
+## Tanda 473 — la barra de una expansión, como la de «Cartas»
+
+PINGU, enseñando Dex: «el botón de juntar variantes y separar variantes
+que sea solamente uno… yo quiero que los filtros estén en un botón que sea
+filtros… mira un poquito mejor cómo están los espaciados entre los
+filtros».
+
+Dentro de una expansión había **cinco controles sueltos** en la tira
+—orden, «solo las que me faltan», rareza, categoría y los dos de
+variantes— y en un móvil había que deslizarla para ver la mitad. La
+pestaña «Cartas» resolvió esto mismo en las tandas 449 y 450; ésta era la
+última pantalla de la sección que no lo había hecho.
+
+Ahora la barra son **dos chapas**: «Filtros» (con su cuenta) y el de
+variantes. Y una ✕ que aparece cuando hay algo puesto.
+
+### El reparto: qué se queda fuera y qué entra en el panel
+
+Es el de la tanda 441, dicho para esta pantalla: **fuera lo que se toca
+cada dos por tres, dentro lo que se pone una vez y se olvida.** Juntar o
+separar variantes se cambia constantemente —es cómo miras el set—; el
+orden, la rareza, la categoría y «solo las que me faltan» no.
+
+(En la pestaña «Cartas» el orden va FUERA, y no es una contradicción: ahí
+se ordena por precio, por fecha de entrada o por rareza según lo que vayas
+a hacer. Una expansión se mira por número salvo que estés haciendo otra
+cosa.)
+
+### Un botón, y dice el ESTADO
+
+Eran dos chapas en un grupo y una de las dos estaba siempre de adorno.
+Ahora es una sola que dice **«Variantes juntas» / «Variantes separadas»**:
+el rótulo cuenta cómo están AHORA, no lo que pasa al pulsarlo. Un control
+que guarda un estado tiene que decir el estado, o hay que pulsarlo para
+saber qué tenías puesto (la lección de la 449 con el botón de ordenar). Se
+queda el vocabulario que PINGU pidió en la 418 —juntar/separar, no «una
+por carta»— y la clave de `localStorage` no cambia, porque lo que se
+guarda es el estado y el estado es el mismo.
+
+Con esto se van `.mc-vista-variantes` y `.mc-chip-vista`: el botón nuevo es
+un `.mc-chip-mando` como los demás de la barra, así que no necesita una
+familia de estilo para él solo.
+
+### El pie del panel, pegado al fondo
+
+El pie de los cuatro paneles de la sección va `position: sticky; bottom: 0`,
+y **un sticky solo se pega cuando hay algo que desplazar**. Con pocos
+filtros dentro —la expansión tiene cuatro— se quedaba pegado al último
+grupo y debajo colgaba media pantalla en blanco. Lo arregla que el cajón
+sea una columna flexible con el cuerpo a `flex: 1`.
+
+Y el `min-height: 0` del cuerpo no es de adorno: un hijo de flex no baja de
+su tamaño de contenido por defecto, así que sin él el `overflow-y` no llega
+a desplazar y el pie se sale por abajo.
+
+### ⚠️ El `[open]`, que casi cuesta los cuatro paneles
+
+Poner `display: flex` en el `<dialog>` a secas **lo deja a la vista
+siempre**. Lo que esconde un `<dialog>` cerrado es una regla del NAVEGADOR
+(`dialog:not([open]) { display: none }`), y cualquier `display` que le
+pongas la pisa.
+
+No da ningún error, y en una captura ni se nota si el panel cae fuera del
+encuadre — las mías salieron bien. Lo cantó la prueba, que comprueba que al
+cerrarlo deja de verse: `open` pasaba a `false` y el panel seguía
+visible. Por eso la regla va en `.mc-panel-filtros[open]`, y vale para
+cualquier `display` que se le ponga a un `<dialog>`.
