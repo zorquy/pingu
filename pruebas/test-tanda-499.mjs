@@ -8,7 +8,7 @@
 // Dos cosas de esa integración son puras y son las que pueden hundirla en
 // silencio, así que se prueban antes de escribir una sola petición.
 import {
-  esRelleno, HUELLAS_DE_RELLENO, clave, huellaDeSet, casan, emparejarSets,
+  esRelleno, HUELLAS_DE_RELLENO, clave, huellaDeSet, casan, emparejarSets, CAMPOS_SUYOS,
 } from '/home/user/pingu/netlify/lib/scrydex.mjs'
 
 let fails = 0
@@ -159,6 +159,61 @@ console.log('\n── 6. Y no se rompe con lo vacío ──')
   check('sin nada', emparejarSets(null, null).pares.length === 0)
   check('sin suyos, todo suelto', emparejarSets([{ id: 'A', release_date: '2020-01-01', card_count_official: 1 }], []).sueltos.length === 1)
   check('clave() aguanta cualquier cosa', clave(null) === '' && clave('Pokémon — ¡Ja!') === 'pokemonja')
+}
+
+console.log('\n── 7. SU respuesta de verdad, tal cual la devolvió la sonda ──')
+//
+// Esto es lo que contestó `en/expansions?page_size=1` el 2026-10-04, byte
+// por byte. Está aquí porque el fixture que escribí ANTES de verla usaba
+// fechas con guiones —me las imaginé— y su fecha viene con BARRAS. Con la
+// primera versión, TODOS sus sets salían sin fecha y el emparejamiento no
+// casaba NI UNO: todo «suelto», y sin un solo error.
+const RESPUESTA_REAL = JSON.parse(`{"data":[{"id":"me55c","name":"30th Celebration: Classic Collection","series":"Mega Evolution","code":"30C","total":30,"printed_total":null,"language":"English","language_code":"EN","release_date":"2026/09/16","is_online_only":false,"logo":"https://images.scrydex.com/pokemon/me55c-logo/logo","symbol":"https://images.scrydex.com/pokemon/me55c-symbol/symbol"}],"page":1,"page_size":1,"count":1,"total_count":224}`)
+{
+  const suyo = RESPUESTA_REAL.data[0]
+  const h = huellaDeSet(suyo, CAMPOS_SUYOS)
+  check('su fecha CON BARRAS se entiende', h.fecha === '2026-09-16', JSON.stringify(h.fecha))
+  check('  …y queda como la escribe Postgres', /^\d{4}-\d{2}-\d{2}$/.test(h.fecha || ''))
+  check('`total` es la cuenta total', h.total === 30, String(h.total))
+  check('`printed_total` a null no se inventa', h.oficial === null, String(h.oficial))
+  check('`code` se recoge', h.codigo === '30C', String(h.codigo))
+  // Y el nuestro, con nuestros nombres de campo, casa con el suyo.
+  const nuestro = { id: '30th', name: '30th Anniversary Classic Collection', release_date: '2026-09-16', card_count_total: 30, tcg_online_code: '30c' }
+  check('casa con el nuestro pese a llamarse distinto', casan(huellaDeSet(nuestro), h))
+  const r = emparejarSets([nuestro], [suyo], { suyos: CAMPOS_SUYOS })
+  check('  …y se empareja', r.pares.length === 1 && r.pares[0].suyo.id === 'me55c', JSON.stringify(r.sueltos))
+}
+{
+  // El formato de fecha, por los dos lados y con basura.
+  check('con guiones también vale', huellaDeSet({ release_date: '2024-01-26' }).fecha === '2024-01-26')
+  check('con hora detrás, se recorta', huellaDeSet({ release_date: '2024/01/26T10:00:00' }).fecha === '2024-01-26')
+  check('una fecha a medias no cuela', huellaDeSet({ release_date: '2024/01' }).fecha === null)
+  check('ni una frase', huellaDeSet({ release_date: 'enero de 2024' }).fecha === null)
+}
+
+console.log('\n── 8. El CÓDIGO desempata antes que el nombre ──')
+//
+// `30C`, `PBL`: un identificador corto, no una cadena que se PAREZCA. Si
+// los dos lo tienen y coincide, no hay duda. Pero no se empareja solo por
+// él: el nuestro está vacío en los sets viejos, porque viene del set
+// completo de TCGdex y de 2023 para atrás ni existe (la 345).
+{
+  const nuestros = [{ id: 'A', name: 'No se parece en nada', release_date: '2020-01-01', card_count_total: 30, tcg_online_code: 'AAA' }]
+  const suyos = [
+    { id: 'x', name: 'Otra cosa', release_date: '2020/01/01', total: 30, code: 'BBB' },
+    { id: 'y', name: 'Tampoco',   release_date: '2020/01/01', total: 30, code: 'AAA' },
+  ]
+  const r = emparejarSets(nuestros, suyos, { suyos: CAMPOS_SUYOS })
+  check('con nombres que no ayudan, manda el código', r.pares[0]?.suyo.id === 'y', JSON.stringify(r))
+  check('  …y lo dice', r.pares[0]?.por === 'fecha+cuenta+código', r.pares[0]?.por)
+  // Si NINGUNO de los dos tiene código, no se inventa: sigue el nombre y,
+  // si tampoco, ambiguo.
+  const sinCodigo = emparejarSets(
+    [{ id: 'A', name: 'Nada', release_date: '2020-01-01', card_count_total: 30 }],
+    [{ id: 'x', name: 'Uno', release_date: '2020/01/01', total: 30 }, { id: 'y', name: 'Dos', release_date: '2020/01/01', total: 30 }],
+    { suyos: CAMPOS_SUYOS }
+  )
+  check('sin código ni nombre que ayude, AMBIGUO', sinCodigo.ambiguos.length === 1 && sinCodigo.pares.length === 0)
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
