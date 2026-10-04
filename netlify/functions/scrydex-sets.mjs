@@ -103,7 +103,7 @@ export async function procesar({
   const guardar = escribirImpl || ((filas) => rest('tcg_sets', clave, { method: 'POST', body: JSON.stringify(filas) }))
 
   const COLS = 'id,market,name,serie_id,release_date,card_count_official,card_count_total,'
-    + 'tcg_online_code,logo_path,logo_scrydex,symbol_scrydex'
+    + 'tcg_online_code,logo_path,logo_scrydex,symbol_scrydex,scrydex_id,scrydex_por'
   let nuestros
   try {
     nuestros = await pedir(`tcg_sets?select=${COLS}&market=eq.${mercado}&limit=400`)
@@ -112,7 +112,7 @@ export async function procesar({
     // dice. Mejor eso que un «no se ha podido» que no explica nada.
     const m = String(e?.message || e)
     if (/column|42703/i.test(m)) {
-      return { estado: 409, cuerpo: { error: 'Falta la migración `supabase-migration-scrydex.sql`. Ejecútala en el SQL Editor y vuelve.', detalle: m.slice(0, 200) } }
+      return { estado: 409, cuerpo: { error: 'Falta una migración: `supabase-migration-scrydex.sql` o `supabase-migration-scrydex-cartas.sql`. Ejecútalas en el SQL Editor y vuelve.', detalle: m.slice(0, 200) } }
     }
     throw e
   }
@@ -187,7 +187,7 @@ export async function procesar({
   const filas = []
   const cambios = []
   for (const par of confirmados) {
-    const fila = filaDeSetConScrydex(par.nuestro, par.suyo)
+    const fila = filaDeSetConScrydex(par.nuestro, par.suyo, par.por)
     const c = loQueCambia(par.nuestro, fila)
     if (!Object.keys(c).length) continue
     filas.push(fila)

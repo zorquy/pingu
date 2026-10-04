@@ -723,7 +723,7 @@ export function cuentaDelInforme(verificadas, casillas) {
 // misma sentencia, y una escritura que repite el valor que ya estaba no
 // hace nada. Así se respeta «no pisar» sin partir el upsert en diez
 // sentencias distintas.
-export function filaDeSetConScrydex(nuestro, suyo) {
+export function filaDeSetConScrydex(nuestro, suyo, por = null) {
   const suLogo = typeof suyo?.logo === 'string' && /^https:\/\//.test(suyo.logo) ? suyo.logo : null
   const suSimbolo = typeof suyo?.symbol === 'string' && /^https:\/\//.test(suyo.symbol) ? suyo.symbol : null
   const suFecha = fecha(suyo?.release_date)
@@ -749,6 +749,13 @@ export function filaDeSetConScrydex(nuestro, suyo) {
       nuestro.card_count_official,
       Number.isFinite(oficial) && oficial > 0 ? oficial : null,
     ),
+    // EL EMPAREJAMIENTO, GUARDADO (tanda 509). La 507 lo verificaba y lo
+    // tiraba, así que cada pasada de las cartas tendría que volver a
+    // pedir sus 224 expansiones y a verificar los 210 pares — y podría
+    // emparejar DISTINTO que la vez anterior sin que nada lo dijera. Un
+    // emparejamiento verificado es un dato, no un cálculo que se repite.
+    scrydex_id: suyo?.id ?? nuestro.scrydex_id ?? null,
+    scrydex_por: por ?? nuestro.scrydex_por ?? null,
   }
 }
 
@@ -765,4 +772,68 @@ export function loQueCambia(antes, despues) {
     if (String(a) !== String(b)) cambios[k] = { de: a, a: b }
   }
   return cambios
+}
+
+// ── Una carta suya pasada a nuestras columnas (tanda 509) ──
+//
+// PINGU: «quiero que me rellenes todas las cartas posibles […] y las
+// rarezas tienen que ser muy exactas», con el caso que lo demuestra: en
+// Lost Thunder las arcoíris salen como «Rara Híper» y **no lo son**.
+//
+// El motivo es que TCGdex COLAPSA esa rareza —le llama «Hyper rare» a la
+// arcoíris y a la dorada— y Scrydex las distingue. Así que su inglés va a
+// `rarity_en` y `rarity` se queda en español, que es lo que pintan los
+// filtros: lo mismo que `name` y `name_es` (tanda 335).
+//
+// ── LO QUE NO SE TOCA, Y POR QUÉ ──
+//
+// `rarity`, `types` y `category` NO se escriben. Lo nuestro viene de
+// TCGdex **en español** («Rara Doble», «Pokémon») y lo suyo en inglés.
+// Sobrescribir mezclaría los dos idiomas dentro del MISMO filtro, y los
+// desplegables de /mi-coleccion saldrían partidos por la mitad sin dar
+// ningún error — que es exactamente la lección de la tanda 455.
+//
+// Y las claves son SIEMPRE las mismas, con el valor nuestro cuando lo hay:
+// PostgREST exige claves uniformes en todos los objetos de una sentencia.
+export function filaDeCartaConScrydex(nuestra, suya, ahora = new Date()) {
+  const foto = imagenDeCarta(suya)
+  // Su URL viene con la calidad pegada (`…/sm10-1/small`). Se guarda SIN
+  // ella, porque quien pinta elige el tamaño — y guardar «small» dejaría
+  // la ficha grande pintando una miniatura para siempre.
+  const base = typeof foto === 'string' ? foto.replace(/\/(small|medium|large)$/, '') : null
+  const dex = Array.isArray(suya?.national_pokedex_numbers)
+    ? suya.national_pokedex_numbers.map(Number).filter(Number.isFinite)
+    : null
+  const ps = Number(String(suya?.hp ?? '').trim())
+  return {
+    id: nuestra.id,
+    market: nuestra.market || 'WEST',
+    set_id: nuestra.set_id,
+    image_scrydex: base || nuestra.image_scrydex || null,
+    rarity_en: rellenarTexto(nuestra.rarity_en, suya?.rarity),
+    rarity_code: rellenarTexto(nuestra.rarity_code, suya?.rarity_code),
+    illustrator: rellenarTexto(nuestra.illustrator, suya?.artist),
+    dex_ids: (Array.isArray(nuestra.dex_ids) && nuestra.dex_ids.length) ? nuestra.dex_ids : (dex?.length ? dex : null),
+    hp: rellenarNumero(nuestra.hp, Number.isFinite(ps) && ps > 0 ? ps : null),
+    scrydex_at: ahora.toISOString(),
+  }
+}
+
+// ── El nombre inglés, pero SOLO donde se puede demostrar que el nuestro
+//    está en español (tanda 509) ──
+//
+// Es el arreglo del hallazgo de la 505: ~1.890 cartas occidentales llevan
+// el español metido en `name`, que es la CLAVE con la que se cruzan
+// `tcg_card_play`, el resolutor de decklists y la huella de las
+// reimpresiones (tandas 334 y 335). No casan con nada, sin dar error.
+//
+// Y se arregla con cuidado, porque `name` se PISA: solo cuando nuestra
+// fila demuestra que lleva el español —`name` vale lo mismo que
+// `name_es`— y además el suyo dice otra cosa. Si no, no se toca.
+export function nombreQueHayQueArreglar(nuestra, suya) {
+  const suyo = typeof suya?.name === 'string' ? suya.name.trim() : ''
+  if (!suyo) return null
+  if (culpaDeLaDiscrepancia({ name: nuestra?.name, nameEs: nuestra?.name_es }).culpa !== 'nuestra') return null
+  if (clave(nuestra?.name) === clave(suyo)) return null
+  return suyo
 }
