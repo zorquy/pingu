@@ -821,7 +821,7 @@ function diapoDelBalance() {
   const b = balanceDeCompra(lineasTodo.length ? lineasTodo : lineas, (l) => valorDeLinea(l, precioDe(l)))
   if (!b.hayBalance) {
     return diapoHtml('Lo que te costó', `
-      <p class="subtext">Apunta lo que pagaste por una carta —en su ficha, «Precio de compra»— y aquí te decimos si vas ganando.</p>`)
+      <p class="subtext">Apunta lo que pagaste por una carta —al editarla, «Lo que pagaste»— y aquí te decimos si vas ganando.</p>`)
   }
   // Redondeado a céntimos ANTES de decidir el signo: una diferencia de
   // 0,004 € es «ni ganas ni pierdes», y un «+0,00 €» con el signo puesto
@@ -976,7 +976,7 @@ function vistazoDeCambios() {
   const doy = loQueDoy().length
   const dentro = doy
     ? `<p class="subtext"><strong>${doy}</strong> ${doy === 1 ? 'carta tuya está' : 'cartas tuyas están'} para cambiar. Mira quién las busca y qué te falta a ti.</p>`
-    : '<p class="empty-state">Marca una carta como «la doy» y aquí verás con quién encajas.</p>'
+    : '<p class="empty-state">Pon en una carta repetida cuántas copias das —«De esas, doy», al editarla— y aquí verás con quién encajas.</p>'
   return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
 }
 
@@ -3808,7 +3808,7 @@ async function pintarCambios() {
         // Sin nada apuntado no se enseñan dos tablones vacíos: se enseña
         // CÓMO funciona, que es lo que hace falta la primera vez.
         ? `<ol class="mc-cambio-pasos">
-             <li><span class="mc-cambio-paso">1</span><div><strong>Marca lo que das</strong><p class="subtext">En «Cartas», abre una repetida y pon cuántas copias das.</p></div></li>
+             <li><span class="mc-cambio-paso">1</span><div><strong>Marca lo que das</strong><p class="subtext">Abre una repetida y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.</p></div></li>
              <li><span class="mc-cambio-paso">2</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Aquí abajo, con el buscador.</p></div></li>
              <li><span class="mc-cambio-paso">3</span><div><strong>Te decimos quién encaja</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
            </ol>`
@@ -3819,7 +3819,7 @@ async function pintarCambios() {
       ${doy.length
         ? `<ul class="mc-lista-cartas">${doy.map((l) => filaDeCartaHtml(cartas.get(l.card_id), `das <strong>${l.cambio}</strong> de ${l.cantidad}`)).join('')}</ul>
            <p class="subtext">Se cambia en cada carta, con «Editar» → «De esas, doy».</p>`
-        : `<p class="subtext">Todavía no das ninguna. Abre una carta repetida en la pestaña «Cartas», dale a «Editar» y pon cuántas copias das.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'} — mira el <button type="button" class="link-btn" data-ir-resumen>resumen</button>.` : ''}</p>`}
+        : `<p class="subtext">Todavía no das ninguna. Abre una carta repetida, dale a «Editar» y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'} — mira el <button type="button" class="link-btn" data-ir-resumen>resumen</button>.` : ''}</p>`}
     </section>
     <section class="mc-cambio-bloque">
       <h3>Lo que buscas</h3>
@@ -3918,6 +3918,15 @@ function engancharCambios() {
 
     const alResumen = e.target.closest('[data-ir-resumen]')
     if (alResumen) return cambiarPestania('resumen')
+
+    // UN CAMINO ESCRITO EN PROSA ES UN ENLACE QUE NADIE COMPRUEBA (tanda
+    // 524, y es la tercera vez). Estos dos textos decían «en la pestaña
+    // “Cartas”», y esa pestaña SALIÓ DEL MENÚ en la 447 — la pantalla
+    // sigue, pero se llega por el panel. O sea que llevaba desde entonces
+    // mandando a buscar una pestaña que no está, en la primera pantalla de
+    // Cambios. Un botón se rompe si su destino se borra; una frase, no.
+    const aCartas = e.target.closest('[data-ir-cartas]')
+    if (aCartas) return cambiarPestania('cartas')
 
     const desear = e.target.closest('[data-desear]')
     if (desear) {

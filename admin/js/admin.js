@@ -3518,7 +3518,7 @@ async function sondearMercado() {
     lineas.push('CÓMO SE LEE ESTO:')
     lineas.push('  · Si en la muestra las cartas con imagen rondan el 100 % y nuestra tabla')
     lineas.push('    dice 30 %, el fallo es NUESTRO: o no hemos importado esos sets todavía,')
-    lineas.push('    o los importamos sin la imagen. Lo primero se ve en «Contar mercados».')
+    lineas.push('    o los importamos sin la imagen. Lo primero se ve en «Qué hay de cada mercado».')
     lineas.push('  · Si en la muestra ya rondan el 30 %, entonces es la COBERTURA de TCGdex')
     lineas.push('    y no hay nada que arreglar aquí: lo que no existe arriba no se baja.')
     lineas.push('  · Mira la columna de la FECHA: si los que no tienen imagen son los viejos')

@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 07:40) — PINGU-Claude (524 — los caminos escritos en prosa, y van TRES)
+
+**Hecho**: la 510 encontró el estado vacío de /mi-coleccion mandando a
+«Añadir cartas», una pestaña que borró la 408. Esta tanda es la misma cosa
+otras cuatro veces, encontradas a propósito y no de casualidad:
+
+- Dos frases de la pestaña **Cambios** mandaban a la pestaña «Cartas»… que
+  **salió del menú en la 447**. La pantalla sigue —se llega por el panel—,
+  así que la indicación era correcta y el sitio donde te decía que mirases
+  no estaba. Ahora las dos son BOTONES que van.
+- El panel de balance decía «en su ficha, "Precio de compra"». Ese campo se
+  llama **«Lo que pagaste (€)»** y «Precio de compra» no existe en ninguna
+  pantalla de la web.
+- El vistazo de Cambios decía «marca una carta como "la doy"». Se llama
+  **«De esas, doy»**.
+- Y en /admin, el informe de mercados mandaba a un botón «Contar mercados»
+  que se rotula **«Qué hay de cada mercado»**.
+
+**Lo que vale de la tanda no son los cuatro arreglos, es la guarda**: un
+barrido recorre las 250 páginas y módulos, saca cada nombre entre comillas
+angulares de un texto de interfaz y exige que ESE nombre exista en alguna
+otra pantalla. Con dos detalles que son la tanda entera:
+
+1. **Un destino nombrado en un comentario no es un destino.** `mi-coleccion.html`
+   explica en tres comentarios por qué «Cartas» salió del menú, así que un
+   barrido que no los quitara habría dado por bueno justo el fallo que
+   busca. Se quitan antes de mirar — respetando los saltos de línea, que si
+   se colapsan el informe manda a mirar a otra línea (me pasó).
+2. **Lo que no es un destino va declarado uno por uno** (`NO_SON_CONTROLES`,
+   13 frases con su motivo): un ejemplo de aviso, un mazo de ejemplo, los
+   veredictos del informe de Scrydex… Una lista corta y explicada se
+   mantiene; un barrido que perdona por su cuenta no vigila nada.
+
+**Rigor**: 9 mutaciones. La buena es la última y es la FORMA del fallo: no
+se toca la frase —sigue diciendo «De esas, doy»— sino que se le cambia el
+NOMBRE AL CAMPO. Así es como pasó de verdad las tres veces: el texto se
+queda quieto y lo que se mueve es la pantalla.
+
+**Ficheros**: `js/mi-coleccion.js`, `admin/js/admin.js`. En `pruebas`:
+`pruebas/test-tanda-524.mjs`, `rigor/rigor-tanda-524.py`.
+
 ## 2026-10-04 (madrugada, 07:05) — PINGU-Claude (523 — la rareza exacta estaba en la base y no llegaba a NINGUNA pantalla)
 
 **Hecho**: la 509 trajo el inglés exacto de Scrydex a `rarity_en` y la 510

@@ -158,6 +158,19 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   hay nada** (raro, pero es una respuesta) y **hay pero el filtro no deja
   pasar ninguna** (un fallo del filtro). Juntarlos en un `return` convierte
   los tres en «la página está en blanco y no sabrás por qué».
+- **Y la guarda de eso mira los NOMBRES, no los enlaces** (tanda 524, que
+  es la misma lección por tercera vez). Un barrido recorre las páginas y los
+  módulos, saca cada nombre entre comillas angulares de un texto de interfaz
+  y exige que exista en otra pantalla. Encontró cuatro más: dos frases de
+  Cambios mandando a la pestaña «Cartas» —fuera del menú desde la 447—,
+  «Precio de compra» cuando el campo se llama «Lo que pagaste (€)», «la doy»
+  cuando es «De esas, doy», y en /admin un «Contar mercados» que se rotula
+  «Qué hay de cada mercado». Dos cosas que hacen que el barrido sirva:
+  **un destino nombrado en un COMENTARIO no es un destino** (mi-coleccion.html
+  explica en tres comentarios por qué «Cartas» salió del menú, y sin
+  quitarlos el barrido da por bueno el fallo que busca), y **lo que no es un
+  destino va declarado uno por uno** con su motivo — un ejemplo de aviso, un
+  mazo de ejemplo, el veredicto de un informe.
 - **Una frase que nombra una pestaña afirma que esa pestaña existe** (tanda
   510, y es la de la 447 con el tiempo en contra). El estado vacío de
   /mi-coleccion decía «añádelas desde “Añadir cartas”»… y esa pestaña **la
