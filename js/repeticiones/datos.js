@@ -215,11 +215,31 @@ export async function quitarDeTorneo(partidaId, replayId) {
 }
 
 // Las repeticiones adjuntas a unas partidas: las que la base te deje ver
-// (las de tus mesas, o todas si llevas o arbitras el torneo).
+// (las de tus mesas, o todas si llevas o arbitras el torneo; y desde la
+// tanda 555, las DE MESA que añade un juez, que ve cualquiera).
+export const FICHERO_DE_MESA = 'supabase-migration-torneos-repeticiones-de-mesa.sql'
 export async function repeticionesDePartidas(partidaIds) {
   if (!partidaIds?.length) return []
-  const { data, error } = await supabase.from('tournament_match_replays').select('match_id,user_id,replay_id,created_at').in('match_id', partidaIds).order('created_at')
+  const pedir = (cols) => supabase.from('tournament_match_replays').select(cols).in('match_id', partidaIds).order('created_at')
+  let { data, error } = await pedir('match_id,user_id,replay_id,created_at,publica')
+  // Sin la migración de la 555 no hay columna `publica`: las de antes son
+  // todas de jugador, y la lista lo dice (`sinDeMesa`) para no ofrecer a
+  // los jueces un botón que la base no tiene.
+  if (error && migracionVieja(error)) {
+    ;({ data, error } = await pedir('match_id,user_id,replay_id,created_at'))
+    if (!error) return Object.assign((data || []).map((r) => ({ ...r, publica: false })), { sinDeMesa: true })
+  }
   if (error) return []
   return data || []
+}
+
+// La de una MESA, por un juez o quien lleva el torneo (tanda 555).
+export async function adjuntarDeMesa(partidaId, replayId) {
+  const { error } = await supabase.rpc('torneos_juez_adjuntar_repeticion', { p_partida: partidaId, p_repeticion: replayId })
+  if (error) throw faltaLaMigracion(error) ? new Error(`Para esto falta poner ${FICHERO_DE_MESA} en la base.`) : new Error(error.message || 'No se ha podido añadir.')
+}
+export async function quitarDeMesa(partidaId, replayId) {
+  const { error } = await supabase.rpc('torneos_juez_quitar_repeticion', { p_partida: partidaId, p_repeticion: replayId })
+  if (error) throw faltaLaMigracion(error) ? new Error(`Para esto falta poner ${FICHERO_DE_MESA} en la base.`) : new Error(error.message || 'No se ha podido quitar.')
 }
 

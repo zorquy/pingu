@@ -3362,3 +3362,23 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 @media (pointer: coarse) {
   .torneo-reparto-quien .link-btn { min-height: 44px; }
 }
+
+/* ── La repetición de una mesa, la que añade un juez (tanda 555) ── */
+.torneo-rep-mesa a {
+  color: var(--navy);
+}
+.torneo-rep-form {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.torneo-rep-form-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.torneo-rep-form-botones .btn-primary { min-height: 44px; }
+.torneo-rep-aviso {
+  margin: 0 0 8px;
+  color: var(--danger);
+}

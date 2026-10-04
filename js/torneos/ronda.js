@@ -32,7 +32,7 @@ import { TERMINALES, progresoDeMesas } from './mesas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
-import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones, guardar as guardarRepeticion } from '../repeticiones/datos.js'
+import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones, guardar as guardarRepeticion, adjuntarDeMesa, quitarDeMesa } from '../repeticiones/datos.js'
 import { ICONOS_REPETICION } from '../repeticiones/iconos.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
@@ -120,15 +120,16 @@ async function cargarCiclo() {
     const necesitaReportes = Boolean(
       mando() || ctx.esJuez || (mi && partidas.some((m) => m.player_a_id === mi || m.player_b_id === mi))
     )
-    // Las repeticiones de las mesas (tanda 496), por lo mismo que los
-    // reportes: solo le sirven a quien juega, lleva o arbitra, y la base
-    // no le enseña ninguna a nadie más. Van en la misma tanda de consultas.
+    // Las repeticiones de las mesas: las de los jugadores (tanda 496) solo
+    // las ve quien juega, lleva o arbitra; las DE MESA que añade un juez
+    // (tanda 555), cualquiera, así que se piden para todo el mundo — la
+    // base decide qué filas devuelve a cada uno.
     const [{ data: reps }, { data: ress }, adjuntas] = await Promise.all([
       necesitaReportes
         ? supabase.from('match_reports').select('*').in('match_id', idsPartidas)
         : Promise.resolve({ data: [] }),
       supabase.from('match_results').select('*').in('match_id', idsPartidas),
-      necesitaReportes ? repeticionesDePartidas(idsPartidas) : Promise.resolve([]),
+      repeticionesDePartidas(idsPartidas),
     ])
     reportes = reps || []
     resultados = ress || []
@@ -1250,7 +1251,7 @@ function pintarMesas(ronda) {
         ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
         ${resolver}
         ${enfrentados}
-        ${repeticionesDeMesaHtml(m)}
+        ${repeticionesDeMesaHtml(m, { enRondas: true })}
       </div>`
     })
     .join('')
@@ -1529,15 +1530,20 @@ async function marcarPremioDado(boton) {
 // reportes no casan. Quién la ve lo decide la base, no este `if`.
 const sinMayusculas = (x) => String(x || '').trim().toLowerCase()
 
-function repeticionesDeMesaHtml(m) {
+// `enRondas`: la tabla de «Rondas», que es donde un juez añade la de mesa
+// (en «Tu partida» solo se enlaza: el mismo formulario dos veces en la
+// página serían dos campos con el mismo id).
+function repeticionesDeMesaHtml(m, { enRondas = false } = {}) {
   const yo = miId()
   const esMia = Boolean(yo && (m.player_a_id === yo || m.player_b_id === yo))
-  const reps = repeticionesMesas.filter((r) => r.match_id === m.id)
+  const todas = repeticionesMesas.filter((r) => r.match_id === m.id)
+  const reps = todas.filter((r) => !r.publica)
   // Una mesa pendiente o un bye no tienen partida que ver.
   const hayPartida = m.status !== 'pending' && m.status !== 'bye' && m.player_a_id && m.player_b_id
   const mias = reps.filter((r) => r.user_id === yo).length
   const puedeAdjuntar = esMia && hayPartida && mias < 3
-  if (!reps.length && !puedeAdjuntar) return ''
+  const deMesa = deMesaHtml(m, todas.filter((r) => r.publica), hayPartida && enRondas)
+  if (!reps.length && !puedeAdjuntar) return deMesa
   const enlaces = reps.map((r) => {
     const delMismo = reps.filter((x) => x.user_id === r.user_id)
     const n = delMismo.length > 1 ? ` (${delMismo.indexOf(r) + 1})` : ''
@@ -1549,12 +1555,145 @@ function repeticionesDeMesaHtml(m) {
   const adjuntar = puedeAdjuntar
     ? `<button type="button" class="link-btn" data-adjuntar-rep="${m.id}">${mias ? 'Adjuntar otra repetición' : 'Adjuntar la repetición'}</button>`
     : ''
-  return `<div class="torneo-mesa-reps">${enlaces.join('')}${adjuntar}</div>`
+  return `${deMesa}<div class="torneo-mesa-reps">${enlaces.join('')}${adjuntar}</div>`
+}
+
+// ── La repetición DE MESA (tanda 555) ──
+//
+// La añade un juez —o quien lleva el torneo— con el registro que le pasa
+// un jugador, y la ve todo el mundo en «Rondas». No es obligatoria: una
+// mesa puede tener una, hasta tres (un BO3), o ninguna. El formulario vive
+// fuera del DOM por lo mismo que el registro de «Tu partida»: la tabla de
+// mesas se repinta con cada evento del torneo, y lo pegado no se pierde.
+let formDeMesa = null // { matchId, texto, aviso }
+
+function deMesaHtml(m, publicas, hayPartida) {
+  const juez = Boolean(mando() || ctx.esJuez)
+  const puedeAnadir = juez && hayPartida && publicas.length < 3 && !repeticionesMesas.sinDeMesa
+  const enlaces = publicas.map(
+    (r, k) =>
+      `<span class="torneo-rep torneo-rep-mesa"><a href="/repeticiones?r=${encodeURIComponent(r.replay_id)}">${ICONOS_REPETICION.reproducir(14)} ${publicas.length > 1 ? `Repetición de la mesa (${k + 1})` : 'Repetición de la mesa'}</a>${
+        juez ? ` <button type="button" class="link-btn" data-quitar-de-mesa="${m.id}" data-rep="${escapeHtml(r.replay_id)}">Quitar</button>` : ''
+      }</span>`
+  )
+  let formulario = ''
+  if (puedeAnadir && formDeMesa?.matchId === m.id) {
+    formulario = `<div class="torneo-rep-form">
+        <label class="sr-only" for="torneoDeMesaTexto">Registro de TCG Live de la mesa ${m.table_number}</label>
+        <textarea id="torneoDeMesaTexto" class="torneo-registro-texto" rows="4" spellcheck="false" placeholder="Pega aquí el registro de TCG Live que te ha pasado un jugador de la mesa ${m.table_number}…"></textarea>
+        ${formDeMesa.aviso ? `<p class="torneo-rep-aviso" role="alert">${escapeHtml(formDeMesa.aviso)}</p>` : ''}
+        <div class="torneo-rep-form-botones">
+          <button type="button" class="btn-primary" data-guardar-de-mesa="${m.id}">${formDeMesa.aviso ? 'Añadirla igual' : 'Añadir a la mesa'}</button>
+          <button type="button" class="link-btn" data-cancelar-de-mesa>Cancelar</button>
+        </div>
+        <p class="subtext">La verá todo el mundo en «Rondas», con la mesa.</p>
+      </div>`
+  } else if (puedeAnadir) {
+    formulario = `<button type="button" class="link-btn" data-anadir-de-mesa="${m.id}">${publicas.length ? 'Añadir otra repetición de la mesa' : 'Añadir la repetición de la mesa'}</button>`
+  }
+  if (!enlaces.length && !formulario) return ''
+  return `<div class="torneo-mesa-reps torneo-mesa-reps-publicas">${enlaces.join('')}${formulario}</div>`
+}
+
+async function guardarDeMesa(boton) {
+  const m = partidas.find((x) => x.id === boton.dataset.guardarDeMesa)
+  const texto = document.getElementById('torneoDeMesaTexto')?.value || formDeMesa?.texto || ''
+  if (!m || !texto.trim()) return showToast('Pega primero el registro de la partida.', 'error')
+  formDeMesa = { ...formDeMesa, texto }
+  boton.disabled = true
+  try {
+    const { leerRegistro } = await import('../repeticiones/registro.js')
+    const lectura = leerRegistro(texto)
+    if (lectura.error) throw new Error(lectura.error)
+    // ¿Es la partida de ESTA mesa? Los nombres del registro contra los de
+    // TCG Live de la inscripción. Si no casan, se avisa una vez: puede ser
+    // que alguien se inscribiera sin poner su nombre de TCG Live.
+    const deLaMesa = [m.player_a_id, m.player_b_id].map((id) => String(ctx.inscripciones.find((i) => i.user_id === id)?.tcg_live_username || '').trim())
+    const casan = lectura.jugadores.slice(0, 2).every((j) => deLaMesa.some((x) => sinMayusculas(x) === sinMayusculas(j)))
+    if (!casan && !formDeMesa.aviso) {
+      formDeMesa = {
+        ...formDeMesa,
+        aviso: `Los jugadores del registro (${lectura.jugadores.slice(0, 2).join(' y ')}) no son los nombres de TCG Live de esta mesa (${deLaMesa.map((x) => x || 'sin nombre de TCG Live').join(' y ')}). ¿Es la partida de la mesa ${m.table_number}?`,
+      }
+      boton.disabled = false
+      pintarRondas()
+      return
+    }
+    const ronda = rondas.find((r) => r.id === m.round_id)
+    const yaHay = repeticionesMesas.filter((r) => r.match_id === m.id && r.publica).length
+    const titulo = [ctx.torneo.name, ronda ? `Ronda ${ronda.round_number}` : '', `Mesa ${m.table_number}`, yaHay ? `${yaHay + 1}.ª partida` : '']
+      .filter(Boolean)
+      .join(' · ')
+      .slice(0, 120)
+    const fin = finDelRegistro(lectura)
+    const fila = await guardarRepeticion({
+      registro: texto,
+      titulo,
+      jugadores: lectura.jugadores.slice(0, 2),
+      ganador: fin?.ganador || null,
+      turnos: lectura.eventos.filter((e) => e.tipo === 'turno').length,
+      compartida: true,
+    })
+    await adjuntarDeMesa(m.id, fila.id)
+    formDeMesa = null
+    showToast(`Repetición añadida a la mesa ${m.table_number}: la ve todo el mundo en «Rondas».`, 'success')
+    await ctx.recargarFicha()
+  } catch (err) {
+    showToast(err.message || 'No se ha podido añadir.', 'error')
+    boton.disabled = false
+  }
+}
+
+async function quitarDeLaMesa(boton) {
+  boton.disabled = true
+  try {
+    await quitarDeMesa(boton.dataset.quitarDeMesa, boton.dataset.rep)
+    showToast('Quitada de la mesa. La repetición sigue en tus repeticiones.', 'success')
+    await ctx.recargarFicha()
+  } catch (err) {
+    showToast(err.message, 'error')
+    boton.disabled = false
+  }
 }
 
 function engancharRepeticiones(caja) {
   caja.querySelectorAll('[data-adjuntar-rep]').forEach((b) => b.addEventListener('click', () => elegirRepeticion(b)))
   caja.querySelectorAll('[data-quitar-rep]').forEach((b) => b.addEventListener('click', () => quitarRepeticion(b)))
+  // Las de mesa (tanda 555).
+  caja.querySelectorAll('[data-anadir-de-mesa]').forEach((b) =>
+    b.addEventListener('click', () => {
+      formDeMesa = { matchId: b.dataset.anadirDeMesa, texto: '', aviso: '' }
+      pintarRondas()
+      document.getElementById('torneoDeMesaTexto')?.focus()
+    })
+  )
+  caja.querySelectorAll('[data-cancelar-de-mesa]').forEach((b) =>
+    b.addEventListener('click', () => {
+      formDeMesa = null
+      pintarRondas()
+    })
+  )
+  caja.querySelectorAll('[data-guardar-de-mesa]').forEach((b) => b.addEventListener('click', () => guardarDeMesa(b)))
+  caja.querySelectorAll('[data-quitar-de-mesa]').forEach((b) => b.addEventListener('click', () => quitarDeLaMesa(b)))
+  // Lo pegado se guarda fuera del DOM (y vuelve a su sitio si la tabla se
+  // repinta: el HTML no lo lleva, para no repintar en cada tecla).
+  const area = caja.querySelector('#torneoDeMesaTexto')
+  if (area && formDeMesa) {
+    area.value = formDeMesa.texto || ''
+    area.addEventListener('input', () => {
+      formDeMesa.texto = area.value
+      // Otro registro: el aviso de antes ya no es de este.
+      if (formDeMesa.aviso) {
+        formDeMesa.aviso = ''
+        caja.querySelector('.torneo-rep-aviso')?.remove()
+        const b = caja.querySelector('[data-guardar-de-mesa]')
+        if (b) b.textContent = 'Añadir a la mesa'
+        // El DOM ya no es el HTML de la última pasada: sin olvidar su
+        // firma, el mismo aviso otra vez se creería pintado y no saldría.
+        olvidarPintado('mesas')
+      }
+    })
+  }
 }
 
 // El botón se vuelve un desplegable con TUS repeticiones guardadas, las

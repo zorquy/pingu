@@ -398,11 +398,17 @@ begin
   );
   create index if not exists tmr_por_jugador on public.tournament_match_replays (match_id, user_id);
   alter table public.tournament_match_replays enable row level security;
+  -- Leer, también sin cuenta: sin cuenta no se ve ninguna de jugador (su
+  -- política es solo para `authenticated`), y desde la tanda 555 sí las de
+  -- MESA. Y la política, solo con cuenta, A PROPÓSITO: las dos funciones de
+  -- dentro no se pueden ejecutar sin cuenta, y Postgres evalúa todas las
+  -- políticas de una tabla — con esta para todo el mundo, una consulta sin
+  -- cuenta fallaba ENTERA («permission denied for function»).
   revoke all on table public.tournament_match_replays from anon, authenticated;
-  grant select on table public.tournament_match_replays to authenticated;
+  grant select on table public.tournament_match_replays to anon, authenticated;
 
   drop policy if exists tmr_ver on public.tournament_match_replays;
-  create policy tmr_ver on public.tournament_match_replays for select using (
+  create policy tmr_ver on public.tournament_match_replays for select to authenticated using (
     exists (
       select 1
         from public.tournament_matches m
