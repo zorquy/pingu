@@ -55,6 +55,8 @@ const CLAVE_ESTADO = 'cartas-west'
 // no he podido probarla ni una vez—. Pararse por educación cuesta unos
 // segundos; que te corten cuesta la noche.
 const MS_ENTRE_PETICIONES = 250
+// Cuántas veces se reintenta la MISMA página antes de pasar de largo.
+const FALLOS_PARA_SALTAR = 5
 const respirar = (ms) => new Promise((r) => setTimeout(r, ms))
 // ── EL FRENO, que es lo que impide que esto se coma el plan ──
 //
@@ -196,8 +198,39 @@ export async function procesar({
     if (paginasHechas > 0) await respirar(MS_ENTRE_PETICIONES)
     const res = await fetchImpl(urlDeSonda(`${IDIOMA}/cards`, { page: pagina, page_size: PAGINA }), { headers: cabeceras })
     if (!res.ok) {
-      await guardarEstado({ pagina, total, barridos, error: `Scrydex ${res.status}`, cuando: new Date().toISOString() })
-      return { estado: 502, cuerpo: { error: `Scrydex ${res.status} en la página ${pagina}`, pagina } }
+      // ── UNA PÁGINA QUE FALLA SIEMPRE NO PUEDE BLOQUEAR EL BARRIDO ──
+      //
+      // Guardar la página y salir es lo correcto para un fallo pasajero:
+      // la pasada siguiente la reintenta. Pero si falla SIEMPRE —un id
+      // raro, un 500 suyo que no se arregla—, se reintenta cada cinco
+      // minutos **para siempre**: un crédito cada vez, 288 al día, y el
+      // catálogo se queda a medias en la página 40 sin que nadie se
+      // entere. Es el mismo bicho que el barrido infinito, por el otro
+      // lado.
+      //
+      // A la quinta se pasa de largo y se deja dicho cuál se saltó. Una
+      // página perdida son 250 cartas que se quedan sin marcar; un barrido
+      // parado para siempre son 21.476.
+      const fallos = (Number(estado?.fallos) || 0) + 1
+      const seSalta = fallos >= FALLOS_PARA_SALTAR
+      await guardarEstado({
+        pagina: seSalta ? pagina + 1 : pagina,
+        total,
+        barridos,
+        fallos: seSalta ? 0 : fallos,
+        ...(seSalta ? { saltadas: [...(estado?.saltadas || []), pagina].slice(-20) } : {}),
+        error: `Scrydex ${res.status}`,
+        cuando: new Date().toISOString(),
+      })
+      return {
+        estado: 502,
+        cuerpo: {
+          error: `Scrydex ${res.status} en la página ${pagina}`,
+          pagina,
+          intentos: fallos,
+          ...(seSalta ? { AVISO: `Esa página ha fallado ${fallos} veces: se salta y se sigue. Quedan ~250 cartas sin marcar.` } : {}),
+        },
+      }
     }
     const j = await res.json()
     const lote = Array.isArray(j?.data) ? j.data : []
@@ -255,7 +288,9 @@ export async function procesar({
       await guardarEstado({ pagina: 1, total, barridos: barridos + 1, completadoEn: new Date().toISOString() })
       break
     }
-    await guardarEstado({ pagina, total, barridos, cuando: new Date().toISOString() })
+    // Los fallos se cuentan SEGUIDOS, no en total: cinco tropiezos
+    // sueltos a lo largo de un barrido no deben saltarse una página sana.
+    await guardarEstado({ pagina, total, barridos, fallos: 0, cuando: new Date().toISOString() })
   }
 
   return {
