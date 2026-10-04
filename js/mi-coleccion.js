@@ -4339,6 +4339,13 @@ function enganchar() {
     if (nueva) abrirEditor(nueva)
   })
 
+  // Quitar desde la ficha (tanda 574): es el cero del contador, con su
+  // pregunta. Un camino que ya existía, con un nombre.
+  $('mcEdQuitar')?.addEventListener('click', () => {
+    $('mcEdCantidad').value = '0'
+    guardarEditor()
+  })
+
   $('mcEdNotaAbrir').addEventListener('click', () => {
     pintarNota($('mcEdNotas').value, true)
     $('mcEdNotas').focus()

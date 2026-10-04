@@ -143,6 +143,10 @@ export const GRUPOS_FILTRO = [
   // Aquí SÍ hay dos cajones de verdad y no un «no se sabe»: una nota la
   // escribes tú, así que «sin nota» es un hecho y no una laguna.
   { id: 'notas', nombre: 'Notas', de: (l) => [String(l.notas || '').trim() ? 'Con nota' : 'Sin nota'] },
+  // El ilustrador (tanda 574). PINGU: «poder filtrar por artista». Es un
+  // dato de DETALLE —solo lo tienen las cartas engordadas—, así que el
+  // grupo aparece cuando hay al menos dos ilustradores en tu colección.
+  { id: 'ilustrador', nombre: 'Ilustrador', de: (l, c) => (c?.illustrator ? [String(c.illustrator).trim()] : []) },
   // Por casa, no por nota (tanda 564). «Mis PSA» es la pregunta que se
   // hace; «mis PSA 10» ya la contesta mirar los cuatro que salen. Y antes
   // de la 563 esto no se podía ni plantear: el gradeo era texto libre, así

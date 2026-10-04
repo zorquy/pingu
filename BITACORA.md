@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 09:00) — PINGU-Claude (574 — tres pequeñas de la lista)
+
+**Hecho**: la imagen de la colección a 560 px en escritorio; «Quitar de mi
+colección» en la ficha (el cero del contador, con nombre); filtro por
+ilustrador en Cartas.
+
+**Sin migración.**
+
+**Ficheros**: `css/mi-coleccion.css`, `mi-coleccion.html`,
+`js/mi-coleccion.js`, `js/mi-coleccion/filtros.js`, `SCHEMA.md`. En
+`pruebas`: `test-tanda-574.mjs` (nueva) y `test-tanda-449.mjs` (nueve grupos).
+
 ## 2026-10-06 (mañana, 08:20) — PINGU-Claude (573 — ¿Qué carta es?, feedback del primer día)
 
 **Hecho**: «Adivinar» justo debajo de la carta; el diálogo centrado en

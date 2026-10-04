@@ -5814,3 +5814,27 @@ input.mc-alb-titulo:not([readonly]):focus {
     min-height: 44px;
   }
 }
+
+/* Mi colección en una imagen, más grande en escritorio (tanda 574).
+   PINGU: «en ordenador podría ser más grande; en móvil está bien». A un
+   tercio del tamaño real no se leía; a 560 px sí, y cabe en la bandeja. */
+@media (min-width: 700px) {
+  .mc-imagen-dialogo {
+    /* `width` además de `max-width`: la bandeja de escritorio fija el
+       ANCHO, y un máximo mayor no estira lo que ya está fijado. */
+    width: min(100% - var(--e-lg) * 2, 640px);
+    max-width: 640px;
+  }
+
+  .mc-imagen-cuerpo canvas {
+    max-width: 560px;
+  }
+}
+
+/* El «Quitar de mi colección» de la ficha (tanda 574): al final del
+   bloque de tu copia, pequeño y en rojo. */
+.mc-editor-quitar {
+  grid-column: 1 / -1;
+  margin: var(--e-xs) 0 0;
+  text-align: center;
+}
