@@ -111,9 +111,13 @@ console.log('── 4. Y una regla que se quede vieja se CANTA ──')
 {
   // Una lista de identificadores a mano se queda vieja sin avisar: el set
   // vuelve a salir suelto y nadie se entera (la lección de la 323).
+  // El fixture son doce sets, no el catálogo entero, así que las reglas de
+  // los sets que no están AQUÍ se señalan y es correcto. Lo que se
+  // comprueba es lo que importa: que de los que SÍ están no sobre ninguna.
   const sueltas = reglasQueNoCasan(CATALOGO)
-  check('con el catálogo de verdad, solo sobra el 30 aniversario (no está en el trozo exportado)',
-    sueltas.length === 1 && /30th/.test(sueltas[0]), JSON.stringify(sueltas))
+  const deLosQueEstan = sueltas.filter((x) => CATALOGO.some((s) => x.includes(`«${s.id}»`)))
+  check('ninguna regla sobra de los sets que sí están', deLosQueEstan.length === 0, JSON.stringify(deLosQueEstan))
+  check('  …y las de los que no están sí se señalan', sueltas.some((x) => /30th/.test(x)), JSON.stringify(sueltas.slice(0, 3)))
   const faltaUno = reglasQueNoCasan(CATALOGO.filter((s) => s.id !== 'rc'))
   check('si desaparece un hijo, se dice cuál', faltaUno.some((x) => /«rc»/.test(x)), JSON.stringify(faltaUno))
   // Y con un catálogo vacío no se canta nada: «no ha llegado nada» no es
