@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 08:10) — PINGU-Claude (525 — la marca que se perdía justo al ganar precisión)
+
+**Hecho**: la 523 hizo que mandara `rarity_en`, y con eso la ficha de una
+carta **GX se quedó sin su marca de rareza**. El motivo: la tabla de marcas
+es la de la web oficial en español, o sea la de las rarezas DE AHORA, y el
+vocabulario de Scrydex trae además las de antes —«Rare Holo GX», «Rare Holo
+V», «Rare Holo EX», «Rare BREAK», «Rare Prime»—, que no están en ella. Son
+miles de cartas de Sol y Luna y de Espada y Escudo enteras, y **no da ningún
+error**: el dibujo deja de salir y la fila se queda con el nombre a secas.
+
+Lo encontré leyendo `js/rarezas.js` después de la 523, no probando: la 523
+está en verde y lo seguiría estando, porque sus pruebas miran la arcoíris,
+que sí tiene marca.
+
+**El arreglo es un respaldo que no pierde lo que distingue** (la norma de la
+511): `marcaDeCartaHtml(carta)` pide la marca de la rareza precisa y, si esa
+no tiene, la de la gruesa. Lo que se gana con Scrydex es el NOMBRE —«Rara
+Holo GX» en vez de «Rara Ultra»— y el nombre se queda preciso; lo único que
+baja un peldaño es el dibujo, que en esas dos rarezas es el mismo de todas
+formas. Y **no se inventa ninguna marca nueva**: lo que de verdad lleva
+impresa una GX en la esquina no lo sé, y una marca inventada es la versión
+dibujada de una traducción inventada.
+
+Queda una inconsistencia pequeña y a propósito: el CHIP de rareza (en los
+filtros) sale de un rótulo y no de una carta, así que ahí no hay de dónde
+caerse y un «Rara Holo GX» se queda sin icono. Un chip sin icono con el
+nombre bueno me parece mejor trato que un icono con el nombre gordo.
+
+**Rigor**: 5 mutaciones, las 5 detectadas. La que más me gusta es la del
+ORDEN: poner la gruesa primero y la precisa de respaldo deja todo
+funcionando… y devuelve a la arcoíris el diamante de la híper, que es
+exactamente el fallo de la 523 otra vez.
+
+**Ficheros**: `js/rarezas.js`, `js/carta-traducciones.js`,
+`js/carta-nucleo.js`, `js/mi-coleccion.js`. En `pruebas`:
+`pruebas/test-tanda-525.mjs`, `rigor/rigor-tanda-525.py`.
+
 ## 2026-10-04 (madrugada, 07:40) — PINGU-Claude (524 — los caminos escritos en prosa, y van TRES)
 
 **Hecho**: la 510 encontró el estado vacío de /mi-coleccion mandando a

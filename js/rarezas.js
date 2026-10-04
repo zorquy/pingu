@@ -66,5 +66,24 @@ export function marcaDeRarezaHtml(valor, { clase = 'rareza-marca' } = {}) {
   )
 }
 
+// ── LA MARCA DE UNA CARTA, QUE NO ES LA DE UNA CADENA (tanda 525) ──
+//
+// La tabla de arriba es la de la web oficial en español, o sea la de las
+// rarezas DE AHORA. El vocabulario de Scrydex trae además las de antes
+// —«Rare Holo GX», «Rare Holo V», «Rare Holo EX», «Rare BREAK», «Rare
+// Prime»—, y esas no están: así que al preferir `rarity_en` (la 523) una
+// carta GX pasaba de tener su marca a NO tener ninguna. Son miles de
+// cartas de Sol y Luna y de Espada y Escudo, y no da ningún error: el
+// dibujo simplemente deja de salir.
+//
+// El respaldo es la rareza GRUESA, y aquí sí se puede caer sin perder lo
+// que distingue (la norma de la 511): lo que se gana con Scrydex es el
+// NOMBRE —«Rara Arcoíris» en vez de «Rara Híper»—, y el nombre se queda
+// preciso. Lo único que baja un peldaño es el dibujo, que en estas dos
+// rarezas es el mismo de todas formas.
+export function marcaDeCartaHtml(carta, opciones) {
+  return marcaDeRarezaHtml(carta?.rarity_en, opciones) || marcaDeRarezaHtml(carta?.rarity, opciones)
+}
+
 // Para pruebas y para quien quiera recorrerlas.
 export { OTRAS_FORMAS, MARCAS }

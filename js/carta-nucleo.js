@@ -61,6 +61,7 @@ import {
   rarezaDeCarta,
   rarezaCrudaDeCarta,
   marcaDeRarezaHtml,
+  marcaDeCartaHtml,
   entrenadorEs,
   familiaDeBrillo,
 } from './carta-traducciones.js'
@@ -302,7 +303,7 @@ function bloqueFicha(carta, set) {
   // Híper»— y seguía leyendo la columna gruesa de TCGdex con la precisa de
   // Scrydex al lado.
   const cruda = rarezaCrudaDeCarta(carta)
-  if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeRarezaHtml(cruda)])
+  if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeCartaHtml(carta)])
   if (carta?.regulation_mark) filas.push(['Marca de regulación', carta.regulation_mark])
   if (carta?.illustrator) filas.push(['Ilustración', carta.illustrator])
   if (set?.release_date) filas.push(['Salió', fechaLarga(set.release_date)])

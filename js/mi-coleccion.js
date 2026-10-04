@@ -24,7 +24,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
+import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -1524,7 +1524,7 @@ function tablaDeCarta(c) {
       // La rareza lleva su marca impresa delante: es la que trae la carta
       // en la esquina de abajo, así que con ella la ficha se compara con
       // lo que tienes en la mano sin leer nada.
-      const marca = k === 'Rareza' ? marcaDeRarezaHtml(c.rarity_en || c.rarity) : ''
+      const marca = k === 'Rareza' ? marcaDeCartaHtml(c) : ''
       return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${escapeHtml(String(v))}</dd></div>`
     })
     .join('')
