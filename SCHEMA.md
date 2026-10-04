@@ -29107,3 +29107,40 @@ Hasta que no casó una, no se pudo ver la siguiente. Es el argumento de
 siempre a favor de decir en pantalla lo que se ha leído: con el aviso de la
 558b puesto desde el principio, las cuatro se habrían visto en una tarde en
 vez de en cuatro idas y venidas.
+
+## Tanda 560 — «He leído: 19:054 Card Trader 111 5G» (oct. 2026)
+
+Eso es lo que dijo el aviso de la 558b cuando PINGU escaneó. Y es
+exactamente lo que había delante del objetivo: el **reloj**, el nombre de
+la **app** y la **cobertura** — el marco pilló la PANTALLA del móvil que
+tenía delante, no la carta que se veía dentro.
+
+No es un fallo del OCR (leyó perfectamente lo que había) ni de la búsqueda.
+Es que la foto no era de una carta. **Lo que estaba mal era la respuesta**:
+se cerraba el escáner, se saltaba a Buscar y salía «no encuentro ninguna
+carta así» — la MISMA pantalla que cuando la carta no está en el catálogo.
+Dos cosas muy distintas con la misma cara, y la que tocaba era «vuelve a
+encuadrar».
+
+Dos señales, las dos seguras:
+
+· **Un reloj.** Ningún nombre de carta lleva «19:05» dentro y toda pantalla
+  de móvil lo lleva arriba. (Sin borde de palabra al final: el OCR pega lo
+  siguiente —«19:054» era el reloj con el «4» de «4G»—.)
+· **Escanear en japonés o chino y no leer ni un carácter de esos
+  alfabetos.** El nombre de una carta japonesa es kana y kanji siempre; si
+  no hay ninguno, o no era una carta o el idioma elegido no es el suyo.
+
+Y nada más: una lista de palabras de barra de estado («Wi-Fi», «batería»…)
+sería una lista curada que se queda vieja y que además puede casar con el
+nombre de una carta.
+
+**El escáner se queda ABIERTO**, que es la otra mitad: volver a abrirlo
+para repetir el tiro es la parte que convierte un fallo de encuadre en
+abandonar.
+
+**Y la lección que vale para todo lo demás**: el aviso de «lo que he leído»
+de la 558b convirtió esto en cinco minutos. Sin él, lo único que se veía
+era una pantalla vacía, idéntica a los otros tres fallos de esta serie.
+Cuando algo falla por lo que una máquina ha leído, **enseña lo que ha
+leído**.

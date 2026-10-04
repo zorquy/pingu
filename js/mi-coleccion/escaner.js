@@ -228,6 +228,45 @@ export function nombreDeLaFranja(texto) {
   return limpio || String(texto || '').trim()
 }
 
+// ── ¿ESTO PUEDE SER EL NOMBRE DE UNA CARTA? (tanda 560) ──
+//
+// PINGU escaneó y el aviso dijo: «He leído: 19:054 Card Trader 111 5G».
+// O sea el RELOJ, el nombre de la app y la cobertura: el marco pilló la
+// pantalla del móvil que tenía delante, no la carta de dentro.
+//
+// Eso no es un fallo del OCR —leyó perfectamente lo que había— ni de la
+// búsqueda. Es que la foto no era de una carta. Y hasta ahora la web
+// contestaba a eso cerrando el escáner, saltando a Buscar y enseñando «no
+// encuentro ninguna carta así», que es la MISMA pantalla que sale cuando
+// la carta no está en el catálogo. Dos cosas muy distintas con la misma
+// cara, y la que toca es «vuelve a encuadrar», no «esa carta no está».
+//
+// Dos señales, las dos seguras:
+//
+//   · Un RELOJ. Ningún nombre de carta lleva «19:05» dentro, y toda
+//     pantalla de móvil lo lleva arriba.
+//   · Si se está escaneando en japonés o en chino y NO ha salido ni un
+//     carácter de esos alfabetos. El nombre de una carta japonesa es kana
+//     y kanji siempre; si no hay ninguno, o no era una carta o el idioma
+//     elegido no es el de la carta.
+//
+// Lo que NO se hace: inventarse más reglas. Una lista de palabras de
+// barra de estado («Wi-Fi», «batería»…) sería una lista curada que se
+// queda vieja y que además puede casar con el nombre de una carta.
+// Sin `\b` al final a propósito: el OCR pega lo siguiente al reloj
+// —«19:054» era «19:05» y el «4» de «4G»— y con el borde de palabra no
+// casaba. Un nombre de carta no lleva dos puntos entre cifras.
+const RELOJ = /\b\d{1,2}\s*:\s*\d{2}/
+const IDIOMAS_CJK = ['ja', 'zh']
+
+export function pareceNombreDeCarta(nombre, idioma = 'es') {
+  const t = String(nombre || '').trim()
+  if (!t) return { vale: false, porque: 'vacio' }
+  if (RELOJ.test(t)) return { vale: false, porque: 'pantalla' }
+  if (IDIOMAS_CJK.includes(String(idioma)) && !tieneCJK(t)) return { vale: false, porque: 'sin-cjk' }
+  return { vale: true }
+}
+
 // El número impreso de la franja de ABAJO, que viene como «22/99» o
 // «22/99 · Ilus. Shizurow». Se queda con lo de delante de la barra: el 99
 // es cuántas tiene el set, no la carta.

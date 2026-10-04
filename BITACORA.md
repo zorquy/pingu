@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 19:25) — PINGU-Claude (560 — el marco pilló la pantalla del móvil)
+
+**De dónde sale**: el aviso de la 558b dijo «He leído: 19:054 Card Trader
+111 5G». O sea el reloj, el nombre de la app y la cobertura: el marco pilló
+la PANTALLA del móvil que tenía delante, no la carta de dentro.
+
+**No era un fallo del OCR ni de la búsqueda**: la foto no era de una carta.
+Lo que estaba mal era la RESPUESTA — se cerraba el escáner, se saltaba a
+Buscar y salía «no encuentro ninguna carta así», que es la misma pantalla
+que cuando la carta no está en el catálogo.
+
+**Hecho**: antes de buscar se juzga si eso puede ser el nombre de una carta
+(`pareceNombreDeCarta`), con dos señales seguras: un reloj, y escanear en
+japonés/chino sin leer ni un carácter de esos alfabetos. Si no cuela, el
+escáner **se queda abierto** y dice qué ha leído y qué hacer.
+
+**La lección**: el aviso de la 558b convirtió esto en cinco minutos. Sin
+él, lo único visible era una pantalla vacía idéntica a los otros tres
+fallos de la serie. Cuando algo falla por lo que una máquina ha leído,
+enseña lo que ha leído.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion/escaner.js`, `js/mi-coleccion.js`,
+`SCHEMA.md`. En `pruebas`: `pruebas/test-tanda-560.mjs`.
+
+**Pasado**: 560, 559, 558, 557, 447, 450, 451 y `test-imports.mjs`.
+
 ## 2026-10-05 (tarde, 19:10) — PINGU-Claude (559 — el «ex» estilizado se pega al nombre)
 
 **De dónde sale**: PINGU escaneó la リザードンex 134/108 SAR y quedó

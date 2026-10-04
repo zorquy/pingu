@@ -3173,6 +3173,28 @@ async function dispararEscaner() {
       if (ayuda) ayuda.textContent = 'No he reconocido el nombre. Acerca más la carta.'
       return
     }
+    // ── SI ESO NO PUEDE SER UNA CARTA, SE DICE AQUÍ (tanda 560) ──
+    //
+    // PINGU escaneó y el aviso dijo «He leído: 19:054 Card Trader 111 5G»:
+    // el reloj, el nombre de la app y la cobertura. El marco pilló la
+    // PANTALLA del móvil que tenía delante, no la carta de dentro.
+    //
+    // Hasta ahora eso cerraba el escáner, saltaba a Buscar y enseñaba «no
+    // encuentro ninguna carta así» — la MISMA pantalla que cuando la carta
+    // no está en el catálogo. Dos cosas muy distintas con la misma cara, y
+    // la que toca es «vuelve a encuadrar». Así que el escáner se queda
+    // ABIERTO y lo dice: volver a abrirlo para repetir el tiro es la parte
+    // que convierte un fallo de encuadre en abandonar.
+    const idiomaCarta = $('mcEscanerIdioma')?.value || 'es'
+    const juicio = escaner.pareceNombreDeCarta(nombreLeido, idiomaCarta)
+    if (!juicio.vale) {
+      if (ayuda) {
+        ayuda.textContent = juicio.porque === 'pantalla'
+          ? `He leído «${nombreLeido}»: eso es una pantalla, no una carta. Encuadra solo la carta dentro del marco.`
+          : `He leído «${nombreLeido}», que no parece el nombre de una carta japonesa. Encuadra solo la carta, o cambia el idioma si no es japonesa.`
+      }
+      return
+    }
     // El número impreso viene como «22/99»: lo de delante de la barra es
     // la carta, lo de detrás cuántas tiene el set.
     const numero = escaner.numeroDeLaFranja(datos?.textos?.codigo)
