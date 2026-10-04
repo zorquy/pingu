@@ -67,6 +67,7 @@ console.log('── 2. La función: elige una vez y la deja en la base ──')
   llamadas.length = 0
   const r2 = await elegirCartaDelDia({ dia: hoy, pedir, guardar })
   check('la segunda NO vuelve a elegir ni a contar', guardadas.length === 1 && !llamadas.some((l) => /count/.test(l)), llamadas.join(' | '))
+  check('  …y trae la de ayer si la hay', r2.ayer === null || typeof r2.ayer === 'object')
   check('  …y devuelve la misma', r2.carta?.id === 'sv8-25')
   // Sin cartas elegibles no se inventa nada.
   const vacio = await elegirCartaDelDia({ dia: hoy, pedir: async (ruta, o = {}) => (ruta.startsWith('carta_del_dia') ? { datos: [] } : o.cabeceras ? { datos: [], total: 0 } : { datos: [] }), guardar })
@@ -86,7 +87,7 @@ console.log('── 3. En el navegador ──')
   const pedidas = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   page.on('request', (r) => pedidas.push(r.url()))
-  await page.route('**/.netlify/functions/carta-del-dia**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: numeroDelDia(hoy), carta: RESPUESTA }) }))
+  await page.route('**/.netlify/functions/carta-del-dia**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: numeroDelDia(hoy), carta: RESPUESTA, ayer: { id: 'sv8-9', name: 'Gastly', name_es: 'Gastly', local_id: '9', tcg_sets: { name: 'Surging Sparks' } } }) }))
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA }))
   await page.route('**/limitlesstcg.nyc3.cdn.digitaloceanspaces.com/**', (r) => r.abort())
   await page.route('**/images.pokemontcg.io/**', (r) => r.abort())
@@ -109,11 +110,12 @@ console.log('── 3. En el navegador ──')
   check('  …y el número no es negativo ni cero', numeroDelDia(hoy) >= 1, String(numeroDelDia(hoy)))
   check('seis huecos de intento', (await page.locator('.cd-intento').count()) === 6)
   check('las cinco pistas, cerradas', (await page.locator('.cd-pista-cerrada').count()) === 5)
-  // La foto GRANDE se ha pedido para el recorte. No se puede mirar el
-  // píxel: el lienzo es de pintar y la foto es de otro dominio, así que
-  // está «sucio» a propósito (no se exporta) y `getImageData` revienta —
-  // que es justo lo que explica por qué este canvas no necesita CORS.
-  check('se ha pedido la foto grande para el recorte', pedidas.some((u) => /assets\.tcgdex\.net.*high/.test(u)), pedidas.filter((u) => /tcgdex/.test(u)).slice(0, 2).join(' | '))
+  // La carta entera, borrosa (572): la foto grande se pide y el
+  // desenfoque del primer intento es el más fuerte.
+  check('se ha pedido la foto grande', pedidas.some((u) => /assets\.tcgdex\.net.*high/.test(u)), pedidas.filter((u) => /tcgdex/.test(u)).slice(0, 2).join(' | '))
+  const desenfoque = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('cdFoto')).filter.replace(/[^\d.]/g, '')))
+  check('empieza muy borrosa (28 px)', (await desenfoque()) === 28, String(await desenfoque()))
+  check('y dice la de ayer', /Ayer era Gastly/.test(await page.locator('#cdAyer').innerText()), await page.locator('#cdAyer').innerText())
 
   const intentar = async (texto, id) => {
     await page.locator('#cdAdivinar').click()
@@ -125,6 +127,7 @@ console.log('── 3. En el navegador ──')
   }
   await intentar('lapras', 'sv8-1')
   check('un fallo abre la primera pista (la era)', /Escarlata y Púrpura/.test(await page.locator('.cd-pista').first().innerText()), await page.locator('.cd-pista').first().innerText())
+  check('  …y afloja el desenfoque (20 px)', (await desenfoque()) === 20, String(await desenfoque()))
   check('  …y la fila dice qué casa: era sí, lo demás no', (await page.$$eval('.cd-intento:not(.cd-intento-vacio) .cd-casilla', (cs) => cs.map((c) => (c.classList.contains('bien') ? 1 : 0)).join(''))) === '0100')
   await intentar('raichu', 'sv8-2')
   check('segundo fallo: era, tipo y rareza casan', (await page.$$eval('.cd-intento:not(.cd-intento-vacio)', (is) => is.map((i) => [...i.querySelectorAll('.cd-casilla')].map((c) => (c.classList.contains('bien') ? 1 : 0)).join('')).join(' '))) === '0100 0111')
@@ -137,6 +140,7 @@ console.log('── 3. En el navegador ──')
   check('acertar el nombre acaba la partida', !(await page.locator('#cdFinal').evaluate((e) => e.classList.contains('hidden'))))
   check('  …y dice cuál era', /Pikachu ex/.test(await page.locator('.cd-final-titulo').innerText()))
   check('  …con todas las pistas abiertas', (await page.locator('.cd-pista-cerrada').count()) === 0)
+  check('  …y la carta nítida', (await desenfoque()) === 0 || Number.isNaN(await desenfoque()), String(await desenfoque()))
   await page.locator('#cdCompartir').click()
   await page.waitForTimeout(400)
   const texto = (await page.evaluate(() => window.__compartido))?.text || ''
