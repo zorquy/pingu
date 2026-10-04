@@ -480,6 +480,40 @@ function abrirEditor(id) {
   })
 }
 
+// ── VOLVER AL ORDEN DEL CATÁLOGO (tanda 552) ──
+//
+// PINGU: «recolócame todas las eras por orden de Scrydex, porque no sé qué
+// he hecho aquí, he hecho un lío». Y eso no puede ser algo que haya que
+// pedirme: colocar a mano se entiende probando, y probando se lía uno.
+//
+// No inventa un orden: QUITA el de a mano para que vuelva a mandar el del
+// catálogo —cada era vale lo que su set más nuevo, y dentro de cada era
+// mandan las fechas—. Los NOMBRES que se les hayan puesto a las eras se
+// quedan, y los sets movidos de era también: eso son decisiones, no el
+// lío.
+async function volverAlOrdenDelCatalogo() {
+  const colocados = sets.filter((s) => s.orden !== null && s.orden !== undefined)
+  const erasColocadas = [...eras.entries()].filter(([, e]) => Number(e.orden) !== 0)
+  if (!colocados.length && !erasColocadas.length) return showToast('No hay nada colocado a mano en este catálogo.')
+  const dicho = window.confirm(
+    `Se va a quitar el orden puesto a mano en ${colocados.length} colecciones`
+    + (erasColocadas.length ? ` y ${erasColocadas.length} eras` : '')
+    + ' de este catálogo.\n\nVuelve a mandar el orden del catálogo: cada era en el sitio de su colección más nueva, '
+    + 'y dentro de cada era las fechas, lo más nuevo arriba.\n\n'
+    + 'Los nombres que les hayas puesto a las eras NO se pierden, y las colecciones que hayas movido de era se quedan donde están.'
+  )
+  if (!dicho) return
+  const btn = $('coleccionesReordenar')
+  if (btn) btn.disabled = true
+  let n = 0
+  for (const s of colocados) if (await guardarSet(s.id, { orden: null })) n++
+  for (const [id] of erasColocadas) await guardarEra(id, { orden: 0 })
+  if (btn) btn.disabled = false
+  await cargar()
+  pintarColecciones()
+  showToast(`Hecho: ${n} ${n === 1 ? 'colección vuelve' : 'colecciones vuelven'} al orden del catálogo`)
+}
+
 // ── La hoja lateral ──
 function abrirHoja(html) {
   const hoja = $('coleccionesHoja')
@@ -509,6 +543,7 @@ export async function iniciarColecciones() {
   }
   $('coleccionesFiltro')?.addEventListener('input', (e) => { filtro = e.target.value.trim(); pintarColecciones() })
   $('coleccionesRecargar')?.addEventListener('click', async () => { await cargar(); pintarColecciones(); showToast('Recargado') })
+  $('coleccionesReordenar')?.addEventListener('click', volverAlOrdenDelCatalogo)
   await cargar()
   pintarColecciones()
 }

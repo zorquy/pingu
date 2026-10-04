@@ -28791,3 +28791,28 @@ entrado, y un cubo nuevo pediría otra migración y otras políticas para
 guardar lo mismo. Lo subido **rellena la caja de la dirección** en vez de
 guardarse por su cuenta: así solo hay un sitio del que sale el logo y se
 puede cancelar la edición sin haber cambiado nada.
+
+## Tanda 552 — volver al orden del catálogo (oct. 2026)
+
+PINGU: «recolócame todas las eras por orden de Scrydex, porque no sé qué he
+hecho aquí, he hecho un lío».
+
+**Qué es «el orden de Scrydex».** Su catálogo **no publica un número de
+orden de las eras**: publica el nombre de la serie de cada expansión y su
+fecha de salida. El orden que se veía antes de tocar nada sale de ahí —cada
+era vale lo que su set más nuevo, y dentro de cada era mandan las fechas—,
+así que volver a él no es inventar un orden: es QUITAR el de a mano para
+que vuelva a mandar el del catálogo. Conviene tenerlo escrito para no
+prometer un orden que ellos no dan (la lección de la 484).
+
+**Lo que NO se pierde**, que es lo que de verdad vigila la prueba: los
+nombres que se les hayan puesto a las eras y las colecciones movidas de era
+son decisiones, no el lío. Un «deshacer» que se lleva por delante lo que
+estaba bien es peor que no tenerlo. Perder también los nombres se puede, y
+está escrito en la migración como una línea comentada: es otra decisión.
+
+**Y un botón en /admin** —«Volver al orden del catálogo»— que hace lo mismo
+que la migración. Colocar a mano se entiende probando, y probando se lía
+uno: que deshacerlo dependa de pedírmelo es un callejón sin salida. Si no
+hay nada colocado lo dice, en vez de escribir 231 filas con el valor que ya
+tienen.

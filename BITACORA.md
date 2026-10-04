@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (madrugada, 01:20) — PINGU-Claude (552 — volver al orden del catálogo)
+
+**De dónde sale**: PINGU: «recolócame todas las eras por orden de Scrydex,
+que he hecho un lío».
+
+**Hecho**: una migración que quita el orden puesto a mano —`tcg_sets.orden`
+a null en los dos mercados y `tcg_eras.orden` a 0— y un botón en /admin que
+hace lo mismo, para que no haya que pedírmelo. Que deshacer dependa de mí
+es un callejón sin salida: colocar a mano se entiende probando.
+
+**Lo que NO se pierde**: los nombres puestos a las eras y las colecciones
+movidas de era. Eso son decisiones, no el lío. Perder también los nombres
+está escrito en la migración como una línea comentada.
+
+**Y una cosa que conviene no prometer**: Scrydex **no publica un orden de
+las eras**. Publica el nombre de la serie de cada expansión y su fecha, y
+el orden que se veía antes de tocar nada sale de ahí —cada era vale lo que
+su set más nuevo—. Volver a «el orden de Scrydex» es quitar el de a mano.
+
+**PENDIENTE DE PINGU**: `supabase-migration-eras-recolocar.sql`. Las dos
+primeras consultas solo leen y enseñan lo que hay colocado.
+
+**Ficheros**: `supabase-migration-eras-recolocar.sql` (nuevo),
+`admin/js/colecciones.js`, `admin/index.html`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-552.mjs`.
+
+**Pasado**: 550, 551 y 552 en verde.
+
 ## 2026-10-05 (madrugada, 00:40) — PINGU-Claude (551 — colocar arrastrando, y subir el logo)
 
 **De dónde sale**: PINGU, con el editor de la 550 delante: «no quiero meter
