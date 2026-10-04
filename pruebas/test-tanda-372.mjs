@@ -93,6 +93,39 @@ console.log('\n── 2. La estantería, con su progreso ──')
   check('la tarjeta de sv1 dice cuánto llevas', /9 de 20/.test((await tarjetaSv1.textContent()) || ''),
     (await tarjetaSv1.textContent())?.replace(/\s+/g, ' '))
 
+  // ── «NO HAY NINGUNA» Y «TUS FILTROS LAS ESCONDEN» SON DOS COSAS (510) ──
+  //
+  // Compartían frase, y el «todavía» mentía en el segundo caso: decía
+  // «espera y se llenará» cuando lo que había que hacer era quitar un
+  // filtro. Es la misma familia que el `return` mudo de /cartas.
+  // Se ponen LOS DOS filtros que hay, no solo uno: «quitar los filtros»
+  // tiene que quitarlos todos, y con uno solo puesto la comprobación se
+  // aprobaba sin ejercitar la mitad del botón.
+  await page.click('#mcEstanteriaEmpezadas')
+  await page.waitForTimeout(400)
+  await page.fill('#mcEstanteriaBuscar', 'zzzzz-no-existe')
+  await page.waitForTimeout(600)
+  const estados = await page.evaluate(() => ({
+    vacio: !document.getElementById('mcAlbumVacio')?.classList.contains('hidden'),
+    filtrado: !document.getElementById('mcAlbumFiltrado')?.classList.contains('hidden'),
+    texto: document.getElementById('mcAlbumFiltradoCuantas')?.textContent || '',
+  }))
+  check('con filtros que no dejan pasar nada, NO dice «no hay ninguna todavía»', estados.vacio === false, JSON.stringify(estados))
+  check('  …dice que son los filtros', estados.filtrado === true, JSON.stringify(estados))
+  check('  …y cuántas te está escondiendo', /4 colecciones/.test(estados.texto), estados.texto)
+  // Y el botón las QUITA de verdad: dejar uno puesto sería dejar la
+  // pantalla igual de vacía y el botón pareciendo roto.
+  await page.click('#mcEstanteriaLimpiar')
+  await page.waitForTimeout(800)
+  check('«quitar los filtros» devuelve las cuatro',
+    (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 4,
+    String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
+  check('  …y deja la caja de búsqueda limpia',
+    (await page.inputValue('#mcEstanteriaBuscar')) === '', await page.inputValue('#mcEstanteriaBuscar'))
+  check('  …y suelta también «solo las empezadas»',
+    (await page.getAttribute('#mcEstanteriaEmpezadas', 'aria-pressed')) === 'false',
+    await page.getAttribute('#mcEstanteriaEmpezadas', 'aria-pressed'))
+
   // Desde la tanda 409 el orden NO es «las tuyas primero»: PINGU lo quitó
   // («arriba solo si la pones como favorito; si no, se van a agrupar
   // arriba y no tiene sentido»). Los rótulos son las ERAS, y una
