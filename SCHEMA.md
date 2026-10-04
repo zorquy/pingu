@@ -29382,3 +29382,75 @@ podía ni plantear: con el gradeo en texto libre los chips habrían sido
 cartas sin normal se corrigen una a una desde la ficha (el desplegable
 ofrece la buena y la que tiene); no se tocan en bloque porque no se puede
 distinguir cuáles son del fallo y cuáles las puso alguien a propósito.
+
+## Tanda 566 — «Mis 9 cartas», el minijuego para compartir (oct. 2026)
+
+PINGU: «un minijuego de elegir tus nueve cartas preferidas de Pokémon TCG.
+Nueve huecos con un más; le das y sale un buscador —occidental y japonés,
+que hay promos japonesas exclusivas—; cuando lo rellenas, un botón que
+genere una imagen con pokedoc.es, para compartir en Twitter o Instagram.
+Entrará gente a hacerlo y se quedará. Quiero compartirlo ya».
+
+### Lo que es
+
+`/nueve`: nueve huecos en 3×3 y dos botones. Tocar un hueco abre un
+diálogo con un buscador (nombre, catálogo, expansión) sobre `tcg_cards`;
+tocar uno lleno da cambiar, mover o quitar. Con las nueve, se pinta la
+imagen y se enciende «Compartir». Nada más en la página, a propósito.
+
+**Se juega sin cuenta.** Lo elegido vive en `localStorage`
+(`pokedoc-nueve`). Si para empezar hubiera que registrarse, nadie
+empezaría. Con cuenta, la imagen lleva «de @usuario». Lo que NO hay en
+esta tanda, y es la siguiente: guardarlo en la base y una página pública
+por persona (`/nueve/usuario`) con la imagen como previsualización, que es
+lo que hace que un enlace en X enseñe la foto. Para «compartirlo ya» no
+hace falta: lo que se comparte es la IMAGEN, no el enlace, y la imagen
+lleva la dirección escrita.
+
+### La imagen
+
+1080 × 1350 (el retrato de Instagram; en X se ve entero), pintada en un
+`<canvas>` en el navegador: título, las nueve con la proporción de una
+carta, y `pokedoc.es/nueve` abajo. Los colores van a pelo en el JS porque
+no es la página: es una imagen que se ve en Instagram, donde no hay tema
+claro ni oscuro. **La primera que generé tenía la tercera fila encima del
+pie** (270 px de ancho por carta acababan en 1367, y el lienzo mide 1350);
+a 252 acaban en 1292. Se vio mirando la imagen, no la página — la página
+no la enseñaba mal.
+
+**El canvas y el CORS**, que era el único riesgo técnico: una imagen de
+otro dominio dibujada en un canvas sin permiso lo deja «sucio» y
+`toBlob()` revienta. Cada foto se carga con `crossOrigin` y se prueba
+directa; si el navegador la rechaza, se pide a `imagen-carta`, una función
+nuestra que la sirve con el permiso puesto —misma idea que `/sprite` y
+`/escaneo`—. No es un proxy abierto: solo las tres CDN de donde ya salen
+las fotos, y solo `https`. Y no se sabe desde aquí si TCGdex o Scrydex dan
+permiso (la red está cerrada): si lo dan, la función no se llama y no
+cuesta nada; si no, se llama y funciona igual. **La prueba no puede
+simular «sin permiso» con `route.fulfill`**: una respuesta servida por
+Playwright pasa el CORS aunque no lleve la cabecera (el píxel salía
+pintado). Se simula abortando la foto grande, que para el código es el
+mismo `onerror`.
+
+**Compartir**: en el móvil, el menú del sistema con el fichero (Instagram,
+WhatsApp, X); sin menú (escritorio), se descarga y se abre X con el texto
+puesto.
+
+### La entrada
+
+Un renglón bajo el hero de la portada, enlace a `/nueve`. La portada
+queda en **168,8 KB** (quedan 1,2). Temporal como pidió PINGU: cuando se
+cierre, se quita ese bloque y la página sigue para quien tenga las suyas.
+
+### Lo que vigilan las pruebas
+
+`test-tanda-566.mjs`: nueve huecos; elegir llena y cierra; sobrevive a
+recargar (la prueba tuvo que limpiar el `localStorage` UNA vez por pestaña
+y no en cada carga, que si no se llevaba por delante justo lo que
+comprobaba); la japonesa se encuentra por su nombre inglés; con las nueve
+el canvas **se exporta** y mide 1080 × 1350; con la foto rechazada se pide
+por `imagen-carta`; quitar y mover; y la función en Node, que no deja
+pasar otro sitio ni lo que no es imagen. La 312 cuenta ahora 33 páginas
+con pie.
+
+**Sin migración.**

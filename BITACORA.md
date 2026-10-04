@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 02:10) — PINGU-Claude (566 — «Mis 9 cartas»)
+
+**De dónde sale**: PINGU, «un minijuego de elegir tus nueve cartas
+preferidas, con un buscador en los dos catálogos y una imagen con
+pokedoc.es para compartir. Quiero compartirlo ya».
+
+**Hecho**: `/nueve` (`nueve.html`, `css/nueve.css`, `js/nueve.js`): nueve
+huecos, buscador en diálogo (nombre + catálogo WEST/JP + expansión),
+cambiar/mover/quitar, y la imagen 1080×1350 pintada en un canvas con
+«Compartir» (menú del sistema con el fichero; en escritorio descarga + X).
+Se juega **sin cuenta** (localStorage); con cuenta la imagen lleva tu
+nombre. Función `netlify/functions/imagen-carta.mjs` para servir con CORS
+las fotos que el navegador rechace en el canvas (solo las tres CDN de las
+cartas). Banner de un renglón en la portada (168,8 KB; quedan 1,2).
+
+**Pendiente (tanda siguiente)**: guardar en la base y página pública por
+persona con la imagen como previsualización.
+
+**Sin migración.**
+
+**Ficheros**: `nueve.html` (nueva), `css/nueve.css` (nueva), `js/nueve.js`
+(nuevo), `netlify/functions/imagen-carta.mjs` (nueva), `index.html`,
+`css/portada.css`, `SCHEMA.md`. En `pruebas`: `test-tanda-566.mjs` (nueva)
+y `test-tanda-312.mjs` (33 páginas con pie).
+
+**Pasado**: 566, 299, 305, 310, 311, 312, 313, 315, 316, 441, 524 y
+`test-imports.mjs`.
+
 ## 2026-10-06 (madrugada, 00:30) — PINGU-Claude (565 — la casilla es la carta)
 
 **De dónde sale**: revisión visual de /mi-coleccion con capturas a 390 y

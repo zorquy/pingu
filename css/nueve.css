@@ -1,0 +1,297 @@
+/* Mis 9 cartas (tanda 566). Solo la carga nueve.html. El porqué largo, en
+   SCHEMA.md. */
+
+.nv-pagina {
+  max-width: 720px;
+}
+
+.nv-cabecera {
+  margin-bottom: var(--e-lg);
+  text-align: center;
+}
+
+.nv-cabecera h1 {
+  margin-bottom: var(--e-xs);
+}
+
+/* Tres por tres, y cada hueco con la proporción de una carta: el hueco
+   vacío tiene que medir lo que medirá la carta, que si no la rejilla salta
+   al llenarse. */
+.nv-rejilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+
+.nv-hueco {
+  display: grid;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text-mid);
+  cursor: pointer;
+  font: inherit;
+  place-items: center;
+}
+
+.nv-hueco.lleno {
+  border-style: solid;
+  border-color: var(--border);
+  background: var(--white);
+}
+
+/* La foto CUBRE el hueco y el nombre queda debajo, para cuando no hay
+   foto: el mismo truco que las casillas del álbum. Sin el `absolute`, la
+   rejilla del hueco apilaba el nombre encima de la foto. */
+.nv-hueco img {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* El más: grande, que es lo que se pulsa. */
+.nv-hueco-mas {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  line-height: 1;
+  place-items: center;
+}
+
+.nv-hueco-num {
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: rgb(20 24 32 / 72%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* La carta sin foto: su nombre en el hueco, como en el resto del sitio. */
+.nv-hueco-nombre {
+  padding: var(--e-sm);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+.nv-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+  margin-top: var(--e-lg);
+}
+
+.nv-aviso {
+  width: 100%;
+  text-align: center;
+}
+
+.nv-vista {
+  margin-top: var(--e-xl);
+}
+
+.nv-vista-titulo {
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-md);
+  text-align: center;
+}
+
+.nv-vista canvas {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
+}
+
+/* El diálogo del buscador: a pantalla completa en el móvil, una hoja
+   centrada en escritorio. Las reglas de abrir y cerrar van en `[open]`
+   (la lección de la 473). */
+.nv-dialogo {
+  width: min(100%, 720px);
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.nv-dialogo[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.nv-dialogo::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.nv-dialogo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.nv-dialogo-cabecera h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.nv-cerrar {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--t-lg);
+}
+
+.nv-buscador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+}
+
+.nv-buscador input[type='search'] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+
+.nv-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+
+.nv-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.nv-filtros select {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+
+.nv-resultados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--e-sm);
+  padding: 0 var(--e-lg) var(--e-lg);
+  overflow-y: auto;
+}
+
+.nv-resultado {
+  display: block;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+  font: inherit;
+}
+
+.nv-resultado img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nv-resultado-pie {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2px var(--e-xs);
+  background: rgb(20 24 32 / 78%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nv-resultados .subtext {
+  grid-column: 1 / -1;
+  padding: var(--e-lg) 0;
+  text-align: center;
+}
+
+/* El menú de un hueco lleno: cuatro botones en columna. */
+.nv-hueco-menu {
+  width: min(100% - var(--e-lg) * 2, 360px);
+}
+
+.nv-hueco-menu form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-lg);
+}
+
+.nv-hueco-menu .btn-secondary {
+  width: 100%;
+}
+
+.nv-peligro {
+  color: var(--danger);
+}
+
+@media (max-width: 600px) {
+  .nv-dialogo {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+  }
+}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis 9 cartas de Pokémon TCG — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="Elige tus nueve cartas favoritas de Pokémon TCG, de cualquier expansión occidental o japonesa, y comparte la imagen. Un minijuego de PokeDoc." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/nueve" />
+  <meta property="og:url" content="https://pokedoc.es/nueve" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Mis 9 cartas de Pokémon TCG" />
+  <meta property="og:description" content="Elige tus nueve favoritas y comparte la imagen. ¿Cuáles son las tuyas?" />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mis 9 cartas de Pokémon TCG" />
+  <meta name="twitter:description" content="Elige tus nueve favoritas y comparte la imagen. ¿Cuáles son las tuyas?" />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/nueve.css" />
+</head>
+<body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="/noticias">Noticias</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/curso.html?reto=hoy">Reto de hoy</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Cartas</button>
+          <div class="nav-sub">
+            <a href="/cartas">Catálogo de cartas</a>
+            <a href="/lanzamientos.html">Lanzamientos</a>
+            <a href="/mi-coleccion">Mi colección</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/meta">Mazos del meta</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+            <a href="/repeticiones">Repeticiones</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="/index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+        <a href="/guardados.html">Guardados</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Cartas</summary>
+        <a href="/cartas">Catálogo de cartas</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/repeticiones">Repeticiones</a>
+      </details>
+    </div>
+  </nav>
+
+    <main id="contenido" class="page-content container nv-pagina">
+    <!-- MIS 9 CARTAS (tanda 566). PINGU: «un minijuego de elegir tus nueve
+         cartas preferidas: nueve huecos con un más, un buscador en pop-up
+         con los dos catálogos, y un botón que te genere una imagen con
+         pokedoc.es para compartir en Twitter o Instagram. Entrará gente a
+         hacerlo y se quedará». Sin filtros ni nada más: la página es los
+         nueve huecos y dos botones. -->
+    <header class="nv-cabecera">
+      <h1>Mis 9 cartas</h1>
+      <p class="subtext">Elige tus nueve cartas favoritas de Pokémon TCG —de cualquier expansión, occidental o japonesa— y comparte la imagen.</p>
+    </header>
+
+    <section class="nv-rejilla" id="nvRejilla" aria-label="Tus nueve huecos"></section>
+
+    <div class="nv-acciones">
+      <button type="button" class="btn-primary" id="nvCompartir" disabled>Compartir la imagen</button>
+      <button type="button" class="btn-secondary" id="nvDescargar" disabled>Descargar</button>
+      <p class="subtext nv-aviso" id="nvAviso">Toca un hueco para elegir una carta. Se guardan en este navegador.</p>
+    </div>
+
+    <!-- La previsualización de la imagen, que es lo que se comparte. Se
+         pinta en un canvas y se enseña aquí para que se vea ANTES de
+         compartirla: una imagen que no has visto no la compartes. -->
+    <section class="nv-vista" id="nvVista" hidden>
+      <h2 class="nv-vista-titulo">Así queda</h2>
+      <canvas id="nvLienzo" width="1080" height="1350" aria-label="Tu imagen de Mis 9 cartas"></canvas>
+    </section>
+
+    <!-- El buscador, en un diálogo. Nombre, catálogo (occidental o
+         japonés) y expansión: lo justo para dar con la carta. -->
+    <dialog class="nv-dialogo" id="nvElegir" aria-labelledby="nvElegirTitulo">
+      <form method="dialog" class="nv-dialogo-cabecera">
+        <h2 id="nvElegirTitulo">Elige una carta</h2>
+        <button type="submit" class="nv-cerrar" aria-label="Cerrar">✕</button>
+      </form>
+      <div class="nv-buscador">
+        <label class="sr-only" for="nvBuscar">Nombre de la carta</label>
+        <input type="search" id="nvBuscar" placeholder="Busca por nombre…" autocomplete="off" />
+        <div class="nv-filtros">
+          <label>Catálogo <select id="nvMercado"></select></label>
+          <label>Expansión <select id="nvSet"><option value="">Todas</option></select></label>
+        </div>
+      </div>
+      <div class="nv-resultados" id="nvResultados" aria-live="polite"></div>
+    </dialog>
+
+    <!-- Qué hacer con un hueco lleno: cambiar, mover o quitar. -->
+    <dialog class="nv-dialogo nv-hueco-menu" id="nvHuecoMenu" aria-label="Este hueco">
+      <form method="dialog">
+        <button type="submit" value="cambiar" class="btn-secondary">Cambiar la carta</button>
+        <button type="submit" value="izquierda" class="btn-secondary">Mover a la izquierda</button>
+        <button type="submit" value="derecha" class="btn-secondary">Mover a la derecha</button>
+        <button type="submit" value="quitar" class="btn-secondary nv-peligro">Quitar</button>
+        <button type="submit" value="" class="link-btn">Cancelar</button>
+      </form>
+    </dialog>
+  </main>
+
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/curso.html?reto=hoy">Reto de hoy</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/nueve.js"></script>
+</body>
+</html>
