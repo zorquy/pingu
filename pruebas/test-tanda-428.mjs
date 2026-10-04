@@ -169,7 +169,11 @@ const limpio = async (loc) => (await loc.textContent()).replace(/\s+/g, ' ').tri
   const { page } = await abrir([linea('l1', 'sv1-101', 1, { valor_manual: 25 })])
   const t = await limpio(diapo(page))
   check('sin nada apuntado no sale un 0 €', !/0,00/.test(t), t.slice(0, 160))
-  check('  …sino que se explica dónde se apunta', /Precio de compra/.test(t), t.slice(0, 160))
+  // DECÍA «Precio de compra» Y ESE CAMPO NO EXISTE (lo cambió la 524): se
+  // llama «Lo que pagaste (€)». O sea que esta comprobación llevaba desde
+  // la 428 congelando un nombre equivocado — una prueba puede sujetar un
+  // fallo igual que lo sujeta el código.
+  check('  …sino que se explica dónde se apunta', /Lo que pagaste/.test(t), t.slice(0, 160))
   await page.close()
 }
 {
