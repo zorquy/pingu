@@ -185,7 +185,7 @@ let esperaBusqueda = null
 async function buscar() {
   let data
   try {
-    data = await buscarEnCatalogo({ mercado: 'WEST', set: $('nvSet').value, texto: $('nvBuscar').value })
+    data = await buscarEnCatalogo({ mercado: 'WEST', set: $('nvSet').value, texto: $('nvBuscar').value, soloTCG: true })
   } catch (error) {
     $('nvResultados').innerHTML = `<p class="subtext">No se ha podido buscar: ${escapeHtml(error.message)}</p>`
     return
@@ -256,6 +256,15 @@ async function init() {
   })
   $('nvElegir').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.close()
+  })
+  // Escape CIERRA el diálogo también con el cursor en el buscador (tanda
+  // 573). Un `<input type="search">` se queda la tecla para borrar el
+  // texto, y el diálogo no se enteraba: la gente pulsaba Escape y se
+  // quedaba dentro con la caja vacía.
+  $('nvElegir').addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return
+    e.preventDefault()
+    e.currentTarget.close()
   })
 }
 

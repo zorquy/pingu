@@ -7,7 +7,13 @@
    centrada en escritorio. Las reglas de abrir y cerrar van en `[open]`
    (la lección de la 473). */
 .nv-dialogo {
+  /* `margin: auto` + `inset: 0`, escrito: en escritorio salía pegado
+     arriba a la izquierda (tanda 573). El estilo del navegador centra un
+     diálogo con `margin: auto`, pero alguna regla de la casa lo pisaba y
+     con `display: flex` en `[open]` no hay más defensa que decirlo. */
+  inset: 0;
   width: min(100%, 720px);
+  margin: auto;
   max-height: 100dvh;
   padding: 0;
   border: 0;
@@ -94,7 +100,9 @@
 
 .nv-resultados {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  /* 120 y no 104 (tanda 573): a 104 las cartas salían «amontonadas», y
+     con el nombre debajo no se leía. Tres por fila en el móvil igual. */
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: var(--e-sm);
   padding: 0 var(--e-lg) var(--e-lg);
   overflow-y: auto;

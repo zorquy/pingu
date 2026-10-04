@@ -5755,3 +5755,62 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-vistazo-imagen .subtext {
   margin: 0;
 }
+
+/* ── LOS MANDOS DEL BOLSILLO DE UN ÁLBUM SOÑADO (restaurados en la 573) ──
+   La 565 los quitó creyéndolos muertos: quitó los botones de las casillas
+   de una EXPANSIÓN y barrió las clases en js/mi-coleccion.js… pero no en
+   js/mi-coleccion/*.js, y `albumes.js` pinta `.mc-bolsillo-editar` y
+   `.mc-bolsillo-controles` en «Ordenar y quitar». Un día sin estilo en
+   producción. El barrido de la 299 no lo caza: mira clases de una hoja
+   que la página no carga, no clases pintadas sin regla. */
+.mc-album-marcando .mc-bolsillo-controles {
+  display: none;
+}
+
+.mc-bolsillo-editar {
+  cursor: default;
+}
+
+.mc-bolsillo-controles {
+  position: absolute;
+  right: var(--e-xs);
+  bottom: var(--e-xs);
+  left: var(--e-xs);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-xs);
+}
+
+.mc-bolsillo-controles button {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-bolsillo-controles button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mc-bolsillo-controles [data-quitar] {
+  color: var(--danger);
+}
+
+.mc-bolsillo-editar .mc-bolsillo-num {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .mc-bolsillo-controles button {
+    min-height: 44px;
+  }
+}

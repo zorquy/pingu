@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 08:20) — PINGU-Claude (573 — ¿Qué carta es?, feedback del primer día)
+
+**Hecho**: «Adivinar» justo debajo de la carta; el diálogo centrado en
+escritorio (salía arriba a la izquierda); sin TCG Pocket en el buscador,
+en las expansiones y en la carta del día (regex sobre `set_id`, y el doble
+aprende `imatch`); Escape cierra el buscador aunque el cursor esté en el
+campo (en los dos juegos); resultados más grandes; solo catálogo
+occidental.
+
+**Regresión de la 565, arreglada**: los mandos de «Ordenar y quitar» de un
+álbum soñado (`.mc-bolsillo-editar`, `.mc-bolsillo-controles`) se habían
+quedado sin CSS. Restaurados.
+
+**Ficheros**: `carta-del-dia.html`, `css/elegir-carta.css`,
+`js/catalogo-buscar.js`, `js/carta-del-dia-juego.js`, `js/nueve.js`,
+`netlify/functions/carta-del-dia.mjs`, `css/mi-coleccion.css`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-570.mjs` y `herramientas/stub-supabase.js`.
+
+**Pendiente de la lista de PINGU**: imagen de la colección más grande en
+escritorio, «Quitar de mi colección» en la ficha, filtro por ilustrador,
+«las que faltan» + idioma en Expansiones y Pokédex, arrastrar cartas en
+los álbumes soñados y su repaso visual, otro nombre para «Carpetas».
+
 ## 2026-10-06 (mañana, 07:10) — PINGU-Claude (572 — la carta entera, borrosa)
 
 **De dónde sale**: PINGU enseñó Pokédle (carta entera desenfocada que se

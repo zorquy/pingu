@@ -267,6 +267,15 @@ async function init() {
   $('nvElegir').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.close()
   })
+  // Escape CIERRA el diálogo también con el cursor en el buscador (tanda
+  // 573). Un `<input type="search">` se queda la tecla para borrar el
+  // texto, y el diálogo no se enteraba: la gente pulsaba Escape y se
+  // quedaba dentro con la caja vacía.
+  $('nvElegir').addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return
+    e.preventDefault()
+    e.currentTarget.close()
+  })
   $('nvCompartir').addEventListener('click', compartir)
   $('nvDescargar').addEventListener('click', descargar)
 

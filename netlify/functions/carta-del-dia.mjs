@@ -11,13 +11,16 @@
 // las pruebas por un doble, y lo que se prueba es la elección y el orden
 // de las llamadas.
 import { indiceDelDia, numeroDelDia } from '../../js/carta-del-dia.js'
+import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
 // Las que pueden salir: occidentales, Pokémon (no entrenadores ni
 // energías: no hay nada que adivinar en un Caramelo Raro), con foto y con
 // rareza. Ordenadas por id para que «la número N» sea siempre la misma.
-export const FILTRO_ELEGIBLES = 'market=eq.WEST&category=eq.Pokemon&rarity=not.is.null&or=(image_path.not.is.null,image_scrydex.not.is.null)'
+// Y SIN TCG Pocket (tanda 573): sus sets son A1, A2b, B1… y la carta del
+// día tiene que ser del TCG de verdad. La misma regla que `esDelTCG`.
+export const FILTRO_ELEGIBLES = `market=eq.WEST&category=eq.Pokemon&rarity=not.is.null&or=(image_path.not.is.null,image_scrydex.not.is.null)&set_id=not.imatch.${encodeURIComponent(ID_DE_POCKET.source)}`
 // Con `rarity_en` al lado de `rarity`, que es la regla de la 523.
 export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,types,illustrator,hp,tcg_sets(name,name_en,tcg_online_code,serie_id,release_date)'
 

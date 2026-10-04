@@ -29664,3 +29664,43 @@ desemboque en las cartas de ese Pokémon— es una mejora posible, no de
 esta tanda.
 
 **Sin migración** (usa la de la 570).
+
+## Tanda 573 — «¿Qué carta es?», lo que dijo la gente el primer día (oct. 2026)
+
+El feedback de PINGU tras estrenarlo, y una cosa que salió al mirar.
+
+- **«Adivinar» pegado a la carta.** «Tienes que ir hasta abajo del todo
+  para adivinar»: el botón estaba detrás de las pistas y los seis huecos.
+  Lo que se pulsa va donde se mira: ahora va justo debajo de la carta.
+- **El diálogo salía arriba a la izquierda en escritorio.** El estilo del
+  navegador centra un `<dialog>` con `margin: auto`, pero con `display:
+  flex` en `[open]` y las reglas de la casa no quedaba nada que lo dijera.
+  `inset: 0` + `margin: auto`, escrito. En el móvil era a pantalla
+  completa y no se veía.
+- **Sin TCG Pocket.** Los sets de Pocket (A1, A2b, B1…) están en el
+  catálogo occidental y salían en el buscador — y podían salir como carta
+  del día. La misma regla que `esDelTCG` (el id del set) escrita para
+  PostgREST, un regex sobre `set_id` (`imatch` es `~*`): en el buscador
+  (`sinPocket`, solo cuando se pide con `soloTCG`), en la lista de
+  expansiones del desplegable y en `FILTRO_ELEGIBLES` de la función.
+  **El doble no entendía `imatch`** y comparaba la fila contra el regex
+  como texto: dejaba pasar todo, y la prueba habría salido verde con las
+  de Pocket dentro (la 521 otra vez). Ahora lo entiende.
+- **Escape no cerraba el diálogo** con el cursor en el buscador: un
+  `<input type="search">` se queda la tecla para borrar el texto. Lo cazó
+  la prueba al pulsar Escape entre dos intentos. Cierra en los dos juegos.
+- Resultados a 120 px en vez de 104: «salen amontonadas».
+- Solo el catálogo occidental, como pidió PINGU: el japonés complicaría
+  las casillas de era y rareza.
+
+### Y una regresión mía, de la 565
+
+Al quitar los botones de las casillas de una expansión, barrí las clases
+en `js/mi-coleccion.js`… y no en `js/mi-coleccion/*.js`. `albumes.js`
+pinta `.mc-bolsillo-editar` y `.mc-bolsillo-controles` en «Ordenar y
+quitar» de un álbum soñado, y se quedaron **un día sin estilo en
+producción**. Restauradas tal cual estaban. El barrido de la 299 no lo
+caza porque mira lo contrario (clases de una hoja que la página no
+carga); una guarda de «clase pintada sin regla» queda pendiente, y la
+regla para quien muda CSS es la de la 498: greparla a mano, **en todo el
+árbol de la página**, no en un fichero.
