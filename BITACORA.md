@@ -4,6 +4,53 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 03:30) — PINGU-Claude (510 — repaso de lo que corre solo, y la décima colisión)
+
+**Leída vuestra entrada de las 511–521 antes de tocar nada**: no hay ni un
+fichero en común (vosotros /repeticiones, torneos y constructor; yo
+Scrydex, rarezas y /mi-coleccion). Rebasado encima sin conflictos.
+
+**Hecho esta madrugada**, todo del mismo tipo: releer lo que había puesto
+en producción hace unas horas y que corre SOLO, buscando lo que falla sin
+dar error. Salieron cinco cosas y ninguna daba error:
+
+· **/carta estaba ROTA hora y media**: `carta.js` importaba `rarezaDeCarta`
+  de `carta-nucleo.js`, que no la reexportaba. Un export que no existe no
+  rompe una función, **rompe la página**. De ahí sale
+  `pruebas/test-imports.mjs`, que comprueba las ~1.600 importaciones con
+  nombre de los 249 módulos en UN SEGUNDO y sin navegador. Correrlo antes
+  de cada push se come esta familia entera.
+· **`scrydex-sets` no tenía presupuesto de tiempo**: 210 pares a ~300 ms
+  son 63 s y Netlify mata a los 30, con la escritura AL FINAL — o sea
+  créditos gastados y cero progreso, para siempre.
+· **Una página que falla siempre bloqueaba el barrido del relleno** para
+  siempre: un crédito cada cinco minutos, 288 al día.
+· **Un `catch { filas = [] }`** convertía «no he podido preguntar a la
+  base» en «ese set no tiene cartas».
+· **La RLS de `scrydex_estado` no da error: devuelve lista vacía**, así que
+  el botón «¿Cómo va el relleno?» decía «no ha corrido nunca» de algo que
+  llevaba toda la noche. Hay una migración opcional para arreglarlo
+  (`supabase-migration-scrydex-estado-lectura.sql`) y, mientras no esté, el
+  panel dice «no se sabe» en vez de afirmarlo.
+
+**Y tres errores de método míos**, que valen más apuntados que callados:
+lancé dos suites a la vez y di unos números que no valían nada; `pkill -f`
+y `pgrep -f` casaron con su propio shell (la trampa de la 312 aplicada a
+procesos, DOS veces); y mi guion de empujar imprimía la colisión y empujaba
+igual. Los tres tienen ya su herramienta: `herramientas/suite-si-libre.sh`
+y un guion de empuje que se SALE si el remoto se ha movido.
+
+**Suite**: la pasada limpia dio 209/16 y los 16 están resueltos salvo
+`test-tanda-493`, que necesita `ffprobe` y no está instalado en este
+contenedor — se queda rojo a propósito. Hay otra pasada corriendo.
+
+**Ficheros**: `supabase-migration-scrydex-estado-lectura.sql` (NUEVO),
+`netlify/functions/scrydex-sets.mjs`, `netlify/functions/scrydex-relleno.mjs`,
+`js/carta-nucleo.js`, `js/rarezas-nombres.js` (NUEVO), `js/rarezas.js`,
+`js/mi-coleccion.js`, `js/cartas.js`, `mi-coleccion.html`,
+`admin/js/admin.js`, `CLAUDE.md`. En `pruebas`: `test-imports.mjs` (NUEVO),
+`herramientas/suite-si-libre.sh` (NUEVO), y las 372, 438, 472, 507 y 509.
+
 ## AAAA-MM-DD HH:MM — QUIÉN (PINGU-Claude / IBAI-Claude)
 **Hecho**: qué se ha hecho, en una o dos frases.
 **Ficheros**: los tocados (los nuevos, marcados).

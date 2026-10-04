@@ -88,6 +88,22 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   trampa de la 312 aplicada a procesos, y ya picó una vez). Pararla es
   seguro —no muta ficheros, no es un rigor— pero hay que pasar
   `comprobar-arbol.sh` igual.
+- **Un aviso que no PARA no es un aviso** (tanda 510, y es la colisión
+  número DIEZ). Mi guion de empujar hacía `git fetch` + `git log
+  HEAD..origin`, imprimía los commits del otro… y empujaba igual. O sea que
+  la colisión me pilló con el aviso delante, escrito por mí, diciéndomelo.
+  La norma de la casa dice «mira el remoto justo antes del push» y yo lo
+  miraba: lo que faltaba era **salirse** si hay algo. Si una comprobación no
+  puede impedir lo que comprueba, es decoración.
+- **La RLS no da error: devuelve una lista VACÍA** (tanda 510). La tabla de
+  estado del relleno nació con RLS y sin políticas, que para escribir está
+  bien —la escribe una función con la clave de servicio, que se la salta—
+  pero el navegador leía cero filas, así que el panel decía «todavía no ha
+  corrido ninguna vez» de algo que llevaba toda la noche corriendo. Es la
+  familia de siempre: un vacío que se lee como una respuesta cuando en
+  realidad es «no tienes permiso». Al añadir una tabla que vaya a leer el
+  panel, la política de SELECT va en la misma migración — y mientras no
+  esté, lo que se enseña es «no se sabe», no «no hay».
 - **Una función programada que vuelve a empezar es una FACTURA** (tanda
   509). El relleno de Scrydex barría el catálogo —101 páginas, 101
   créditos— y al acabar volvía a la página 1. Cada cinco minutos. Eso son
