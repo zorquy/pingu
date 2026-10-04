@@ -4666,6 +4666,20 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-md);
 }
 
+/* TRES POR FILA EN EL MÓVIL (tanda 550). PINGU: «en las expansiones salen
+   de 2 en 2 y son demasiado grandes; me gustaría 3 para que quepan más
+   cartas por página sin tener que scrollear tanto».
+   Con el mínimo en 120 px no caben tres en un teléfono —3×120 + 2 huecos
+   de 16 son 392 y la pantalla útil son ~330—, así que salían dos. Aquí se
+   PIDEN tres y se achica el hueco: 104 px por carta, que es exactamente lo
+   que mide una carta de la Pokédex, donde los mandos ya se usan bien. */
+@media (max-width: 560px) {
+  .mc-album-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+}
+
 /* ── LOS DATOS DE UNA EXPANSIÓN: UNA TIRA QUE SE DESLIZA (tanda 467) ──
  *
  * PINGU, con Dex al lado: «las estadísticas, en deslizables, ¿ves que se

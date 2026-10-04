@@ -4,6 +4,55 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (noche, 23:15) — PINGU-Claude (550 — colecciones editables, panel limpio y tres por fila)
+
+**Hecho**, todo lo que pidió PINGU en un mensaje:
+
+1. **/admin → Colecciones**: las colecciones tal como se ven en la
+   biblioteca, con sus eras y su orden, y cada cosa editable donde está.
+   Número para colocar, renombrar la era, mover un set a otra era (o a una
+   NUEVA: se escribe el identificador y ya), logo a mano, esconder y
+   borrar. La regla que lo hace usable: **colocar una cosa no obliga a
+   colocarlas todas** — lo puesto a mano va primero y lo demás sigue
+   ordenándose como siempre.
+2. **Esconder antes que borrar**: borrar un set se lleva sus cartas por
+   `on delete cascade`. «Esconder» se deshace; «Borrar» cuenta las cartas y
+   pide escribir el identificador.
+3. **`scrydex_manda` por set**, para el 30 Classic Collection: es
+   occidental, así que el catálogo sigue siendo de TCGdex y la excepción va
+   en la fila del set.
+4. **Panel limpio**: fuera los siete botones de sondeo de una sola vez, sus
+   463 líneas y `cuentas-mercado.js`. Se quedan «¿Cómo va el relleno?» y
+   «Traer los logos de Scrydex». Con ellos se retira `test-tanda-482.mjs` y
+   la 486 se queda con su sexta sección, que vigila algo vivo.
+5. **Tres cartas por fila en el móvil** en el álbum de una expansión.
+
+**PENDIENTE DE PINGU**: `supabase-migration-colecciones-editables.sql`. **No
+borra nada**: tres columnas con su valor por defecto y una tabla nueva
+vacía. Mientras no se toque /admin, la web se comporta igual que hoy.
+
+**Y una respuesta que no es un arreglo**: el desplegable de eras del
+catálogo japonés **está bien**. Los nombres que salen —Scarlet & Violet,
+Sword & Shield, PCG, ADV, Vending, VS, Web— son las eras JAPONESAS, que
+Scrydex nombra en inglés; las occidentales nuestras vienen de TCGdex y
+están en ESPAÑOL («Escarlata y Púrpura»). Si salieran las occidentales,
+estarían en español. Y PCG, ADV, Vending, VS y Web no existen en
+Occidente. Con el editor nuevo se pueden renombrar.
+
+**Ficheros**: `supabase-migration-colecciones-editables.sql` (nuevo),
+`admin/js/colecciones.js` (nuevo), `admin/index.html`, `admin/js/admin.js`,
+`admin/css/admin.css`, `admin/js/cuentas-mercado.js` (borrado),
+`js/mi-coleccion.js`, `js/mi-coleccion/estanteria.js`,
+`netlify/functions/scrydex-relleno.mjs`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En `pruebas`: `pruebas/test-tanda-550.mjs`,
+`pruebas/test-tanda-486.mjs` (recortada), `pruebas/test-tanda-482.mjs`
+(borrada).
+
+**Pasado**: la 550 entera en verde —incluida la medida de las tres cartas
+por fila en un móvil de 390 px—, más 299, 312, 417, 467, 541, 547.
+`test-imports.mjs` limpio. El barrido de la 299 cazó de paso un token de
+color que me inventé (`--bg-soft`).
+
 ## 2026-10-04 (noche, 21:30) — PINGU-Claude (549 — el botón del curso llevaba a «Guía no encontrada»)
 
 **De dónde sale**: PINGU pasó la captura. Y **la 548 no era esto**: esa guía

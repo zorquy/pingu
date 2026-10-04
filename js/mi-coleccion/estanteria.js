@@ -78,7 +78,14 @@ const porFecha = (a, b) => cuando(b) - cuando(a)
 //
 // `favoritos` es un Set de identificadores. Si no hay ninguno, no hay
 // grupo de favoritos: un rótulo encima de nada es ruido.
-export function gruposDeEstanteria(sets, favoritos = new Set()) {
+// ── Y DESDE LA 550, LO QUE DIGA PINGU MANDA ──
+//
+// `eras` es el mapa de `tcg_eras`: `serie_id → { nombre, orden }`. Lo que
+// hay ahí se respeta tal cual; lo que no esté sigue como siempre —ordenado
+// por su set más nuevo y rotulado con el nombre del catálogo—. Una era a
+// medio configurar no rompe nada: las puestas a mano van primero, en su
+// orden, y las demás detrás con el suyo de siempre.
+export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   const grupos = []
   const favs = sets.filter((s) => favoritos.has(s.id)).sort(porFecha)
   if (favs.length) grupos.push({ id: 'favoritos', titulo: 'Tus favoritas', sets: favs })
@@ -93,13 +100,32 @@ export function gruposDeEstanteria(sets, favoritos = new Set()) {
   const porEra = new Map()
   for (const s of normales) {
     const clave = s.serie_id || ''
-    if (!porEra.has(clave)) porEra.set(clave, { id: clave, titulo: eraDeSet(s) || s.serie_id || 'Sin serie', sets: [] })
+    if (!porEra.has(clave)) {
+      const aMano = eras?.get?.(clave) || null
+      porEra.set(clave, {
+        id: clave,
+        titulo: aMano?.nombre || eraDeSet(s) || s.serie_id || 'Sin serie',
+        orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
+        sets: [],
+      })
+    }
     porEra.get(clave).sets.push(s)
   }
-  const eras = [...porEra.values()]
+  const listaDeEras = [...porEra.values()]
   // Los promos de la era, al fondo; el resto por fecha, lo nuevo arriba.
-  for (const e of eras) {
-    e.sets.sort((a, b) => (esPromoDeEra(a) ? 1 : 0) - (esPromoDeEra(b) ? 1 : 0) || porFecha(a, b))
+  for (const e of listaDeEras) {
+    // El orden a mano gana, y solo entre los que lo tienen: un set con
+    // número va antes que uno sin él, y los que no tienen ninguno siguen
+    // ordenándose como siempre. Así se puede colocar UNO sin tener que
+    // numerar los doscientos.
+    e.sets.sort((a, b) => {
+      const oa = Number.isFinite(Number(a.orden)) ? Number(a.orden) : null
+      const ob = Number.isFinite(Number(b.orden)) ? Number(b.orden) : null
+      if (oa !== null && ob !== null && oa !== ob) return oa - ob
+      if (oa !== null && ob === null) return -1
+      if (oa === null && ob !== null) return 1
+      return (esPromoDeEra(a) ? 1 : 0) - (esPromoDeEra(b) ? 1 : 0) || porFecha(a, b)
+    })
   }
   // Una era vale lo que vale su set más nuevo: así «Mega Evolución» sale
   // antes que «Escarlata y Púrpura» sin tener que saberse el orden de las
@@ -120,7 +146,13 @@ export function gruposDeEstanteria(sets, favoritos = new Set()) {
   // precisamente las que pueden estar enteras sin fecha, y caen al fondo.
   // Mientras no tengan fecha no hay forma de saber cuál es más nueva, pero
   // sí se puede dejar un orden ESTABLE en vez de uno al azar.
-  eras.sort((a, b) => {
+  listaDeEras.sort((a, b) => {
+    // Una era colocada a mano va delante de todas las que no lo están: si
+    // compitiera por fecha con las demás, poner una en su sitio obligaría
+    // a colocarlas TODAS.
+    if (a.orden !== null && b.orden !== null && a.orden !== b.orden) return a.orden - b.orden
+    if (a.orden !== null && b.orden === null) return -1
+    if (a.orden === null && b.orden !== null) return 1
     const na = masNuevo(a.sets)
     const nb = masNuevo(b.sets)
     if (Number.isFinite(na) && Number.isFinite(nb)) return nb - na
@@ -128,7 +160,7 @@ export function gruposDeEstanteria(sets, favoritos = new Set()) {
     if (Number.isFinite(nb)) return 1
     return String(a.id).localeCompare(String(b.id))
   })
-  grupos.push(...eras)
+  grupos.push(...listaDeEras)
 
   if (especiales.length) {
     grupos.push({ id: 'especiales', titulo: 'Sets especiales', sets: especiales })

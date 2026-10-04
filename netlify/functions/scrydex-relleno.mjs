@@ -164,9 +164,31 @@ export async function procesar({
   // Un set sin `scrydex_id` no está verificado y NO se toca: un par falso
   // metería las cartas de otro set dentro del nuestro sin dar error, que
   // es lo que costaron las tandas 504 y 505.
-  const sets = await pedir(`tcg_sets?select=id,scrydex_id&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
+  // `scrydex_manda` puede no existir todavía (su migración es de la 550):
+  // PostgREST contesta 400 con el nombre de la columna dentro, y entonces
+  // se vuelve a pedir sin ella. Una pasada que se cae entera porque falta
+  // una columna opcional es una noche sin rellenar nada.
+  const COLS = 'id,scrydex_id,scrydex_manda'
+  let sets
+  try {
+    sets = await pedir(`tcg_sets?select=${COLS}&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
+  } catch (e) {
+    if (!/column|42703/i.test(String(e?.message || e))) throw e
+    sets = await pedir(`tcg_sets?select=id,scrydex_id&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
+  }
   const nuestroSetDe = new Map()
-  for (const s of sets || []) nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
+  // ── Y LOS SETS QUE MANDA SCRYDEX UNO A UNO (tanda 550) ──
+  //
+  // PINGU: «el 30 Classic Collection lo estamos trayendo de TCGdex;
+  // tráelo de Scrydex, porque esas 30 cartas parece que no cargan ni la
+  // imagen ni el logo». Es un set OCCIDENTAL, así que el catálogo entero
+  // sigue siendo de TCGdex —eso alimenta «Jugar»— y la excepción se marca
+  // en la fila del set, desde /admin, uno por uno.
+  const mandaScrydex = new Set()
+  for (const s of sets || []) {
+    nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
+    if (s.scrydex_manda) mandaScrydex.add(s.id)
+  }
   if (!nuestroSetDe.size) {
     return { estado: 409, cuerpo: { error: 'Ningún set tiene `scrydex_id`: pasa antes «Traer los logos de Scrydex» en /admin.' } }
   }
@@ -366,7 +388,7 @@ export async function procesar({
         // esto metería miles de cartas suyas en el catálogo que alimenta
         // «Jugar», y ahí manda TCGdex — que es lo que PINGU pidió
         // expresamente: «esto solo para mi colección, que no afecte».
-        if (!calcamos) continue
+        if (!calcamos && !mandaScrydex.has(nuestroSet)) continue
         const fila = filaDeCartaSuya(suya, { setId: nuestroSet, market: MERCADO, idioma: IDIOMA })
         // Dos veces la misma clave en una sentencia y Postgres corta con
         // «ON CONFLICT DO UPDATE command cannot affect row a second
@@ -452,6 +474,7 @@ export async function procesar({
       // y en la biblioteca se veía como una colección vacía.
       insertadas,
       calcamosSuCatalogo: calcamos,
+      setsQueMandaScrydex: mandaScrydex.size,
       conNombreOccidental,
       // EL ARREGLO DEL HALLAZGO DE LA 505: ~1.890 cartas occidentales
       // llevan el español en `name`, que es la clave con la que se cruzan

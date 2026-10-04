@@ -1692,6 +1692,20 @@ const CLAVE_VISTA_ALBUM = 'mc-album-vista'
 // objeto `album` porque no es del álbum abierto, es de la estantería.
 let soloEmpezadas = false
 let todosLosSets = null
+// Las eras colocadas a mano desde /admin (tanda 550). `null` = todavía no
+// se han pedido; un mapa vacío = se han pedido y no hay ninguna, que es lo
+// normal hasta que PINGU coloque la primera.
+let erasAMano = null
+
+// Lo que PINGU haya decidido de las eras de ESTE catálogo. Si la consulta
+// falla se sigue sin ellas: la biblioteca se ordena como siempre, que es
+// mejor que no pintar nada (y la RLS no da error, devuelve lista vacía).
+async function cargarEras() {
+  if (erasAMano) return erasAMano
+  const { data } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado)
+  erasAMano = new Map((data || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden }]))
+  return erasAMano
+}
 
 async function cargarSets() {
   if (todosLosSets) return todosLosSets
@@ -1700,7 +1714,9 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
+    // `orden` y `oculto` son de la 550: una columna que no se pide llega
+    // `undefined` y el orden a mano no se usaría, sin dar error (la 523).
+    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     // Y un desempate (tanda 510): un `order` por fecha a secas deja los
@@ -1711,7 +1727,10 @@ async function cargarSets() {
     // es ESTABLE, que es lo que hace que la lista no baile.
     .order('id')
     .limit(1000)
-  todosLosSets = (data || []).filter((s) => esDelTCG(s))
+  // Un set ESCONDIDO no sale en la biblioteca (tanda 550). Es lo que se
+  // usa en vez de borrar: un borrado se lleva por delante las cartas, y
+  // con ellas las de la colección de quien las tuviera.
+  todosLosSets = (data || []).filter((s) => esDelTCG(s) && !s.oculto)
   return todosLosSets
 }
 
@@ -1741,11 +1760,13 @@ function tengoDe(cardId, variante = null) {
 // EL RÓTULO SALE DE `eraDeSet` (tanda 541): con `serie_name` a secas, una
 // era japonesa salía en japonés —o vacía, porque los sets que vienen de
 // Scrydex no traen `serie_name`, traen `serie_name_en`—.
-function montarDesplegableDeEras(sets, mercado) {
+function montarDesplegableDeEras(sets, mercado, eras = null) {
   const sel = $('mcEstanteriaSerie')
   if (!sel) return
-  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, eraDeSet(s) || s.serie_id])).entries()]
-  const firma = `${mercado}|${series.map(([id]) => id).join(',')}`
+  // El rótulo que haya puesto PINGU manda sobre el del catálogo (tanda 550).
+  const series = [...new Map(sets.filter((s) => s.serie_id)
+    .map((s) => [s.serie_id, eras?.get?.(s.serie_id)?.nombre || eraDeSet(s) || s.serie_id])).entries()]
+  const firma = `${mercado}|${series.map(([id, n]) => `${id}:${n}`).join(',')}`
   if (sel.dataset.firma === firma) return
   // Lo elegido se conserva si en el catálogo nuevo existe; si no, se vuelve
   // a «todas». Dejar el valor viejo puesto es el fallo de la 472 al revés:
@@ -1799,7 +1820,8 @@ async function pintarEstanteria() {
   // vieja —que en el catálogo nuevo no casa con nada— y el desplegable que
   // se ve ya dice «Todas las series». Dos cosas distintas en pantalla a la
   // vez, y ninguna es la verdad.
-  montarDesplegableDeEras(sets, mercado)
+  const eras = await cargarEras()
+  montarDesplegableDeEras(sets, mercado, eras)
   const texto = normalizeSearch($('mcEstanteriaBuscar')?.value || '').trim()
   const serie = $('mcEstanteriaSerie')?.value || ''
   const cumple = (s) =>
@@ -1815,7 +1837,7 @@ async function pintarEstanteria() {
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
   // igual de larga pero sin fechas. Ahora arriba va solo lo que marcas.
   const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
-  const grupos = gruposDeEstanteria(visibles, favoritos || new Set())
+  const grupos = gruposDeEstanteria(visibles, favoritos || new Set(), eras)
 
   $('mcEstanteriaRejilla').innerHTML = grupos
     .map((g) => `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>
@@ -5107,6 +5129,9 @@ async function cambiarVista(nuevo) {
   // blanco. El orden ES la corrección.
   if (mercado === antes) return repintar()
   todosLosSets = null
+  // Las eras son POR MERCADO: quedarse con las del anterior rotularía la
+  // biblioteca japonesa con los nombres que PINGU puso a las occidentales.
+  erasAMano = null
   album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
   pokedex = null
   pokedexCargada = false

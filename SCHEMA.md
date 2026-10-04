@@ -28696,3 +28696,63 @@ verdad desde `/guia/<slug>`** y mira dónde se acaba.
 Once enlaces estaban mal: seis en `js/guia.js`, dos en `js/curso.js`, dos en
 `js/home.js`, uno en `js/tarjeta-guia-ancha.js` y una navegación en
 `js/perfil.js`.
+
+## Tanda 550 — las colecciones, colocadas a mano; y tres cartas por fila (oct. 2026)
+
+PINGU: «me gustaría que los sets en el panel de admin fuesen editables. Ya
+sea para ordenar yo manualmente los sets por eras, añadir una era nueva…
+imagínate, los sets especiales en Occidental están todos mezclados: pues en
+vez de pedírtelo todo a ti, que yo pudiese crear una era, por ejemplo
+McDonald's, y ahí incluir todas las expansiones del McDonald's. Lo mismo
+para POP Series. Los sets que sobren los borro y los que estén mal los
+puedo corregir yo. También para meterle el logo o no, y para mover el
+orden».
+
+**No añade nada que la web no supiera hacer.** La era de un set YA es su
+`serie_id` y el nombre que se enseña YA sale de `serie_name`. Lo que
+faltaba era poder DECIDIRLO: hasta ahora lo decidía el catálogo de origen y
+el orden se deducía (una era valía lo que su set más nuevo, que es un apaño
+razonable y no es una decisión).
+
+**La regla que lo hace usable: colocar UNA cosa no obliga a colocarlas
+TODAS.** Lo puesto a mano va primero y en su orden; lo que no esté sigue
+ordenándose como siempre. Si fuera al revés, mover la primera era mandaría
+las otras veinte al fondo de golpe y habría que numerarlas todas antes de
+que la pantalla volviera a tener sentido.
+
+**`tcg_eras` no es una tabla de la que cuelguen los sets.** Es solo lo que
+se quiere DECIR de una era —cómo se llama y dónde va—, y por eso no hay
+clave ajena: obligaría a crear la fila antes de poder usar la era, y los
+~40 `serie_id` que ya vienen de los catálogos no tienen ninguna. Crear una
+era es escribirle un identificador a un set.
+
+**Esconder antes que borrar.** Borrar un set se lleva sus cartas por
+`on delete cascade`, y con ellas las de la colección de quien las tuviera.
+Así que el botón normal es «Esconder» —que se deshace— y «Borrar» cuenta
+cuántas cartas se lleva y pide escribir el identificador. Un borrado que no
+enseña su impacto es un borrado a ciegas (tanda 543).
+
+**Y `scrydex_manda`, por set.** PINGU: «el 30 Classic Collection lo estamos
+trayendo de TCGdex; tráelo de Scrydex, porque esas 30 cartas no cargan ni
+la imagen ni el logo». Es un set OCCIDENTAL y el catálogo occidental sigue
+siendo de TCGdex —eso alimenta «Jugar»—, así que la excepción se marca en
+la fila del set y no en la política del mercado.
+
+**La limpieza del panel**, que es la otra mitad de lo que pidió: fuera los
+siete botones que fueron una pregunta de una sola vez —«Qué contesta TCGdex
+de un set», «Sondear un catálogo entero», «Preguntar a Scrydex», «¿Tapa
+Scrydex el hueco del inglés?», «¿Son de verdad los emparejamientos?», «Qué
+hay de cada mercado», «Diagnosticar catálogos»— con sus 463 líneas de
+código y el módulo `cuentas-mercado.js`, que solo usaban ellos. Lo que
+contestaron está escrito en SCHEMA.md y en CLAUDE.md, que es donde sirve.
+Se quedan los que se usan: «¿Cómo va el relleno?» y «Traer los logos de
+Scrydex». Con ellos se retiró `test-tanda-482.mjs` y la 486 se quedó solo
+con su sexta sección, que vigilaba algo vivo.
+
+**Y tres cartas por fila en el móvil.** Con el mínimo de la rejilla en
+120 px no caben tres en un teléfono —3×120 más dos huecos de 16 son 392 y
+la pantalla útil son ~330—, así que salían dos. Ahora se PIDEN tres y se
+achica el hueco: 104 px por carta, que es exactamente lo que mide una carta
+de la Pokédex, donde los mandos ya se usan bien. La prueba lo mide en las
+posiciones de verdad y no en la regla de CSS, y comprueba además que no
+aparezca barra horizontal.

@@ -55,6 +55,7 @@
         <button class="admin-nav-item" data-section="categories"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Categorías</button>
         <button class="admin-nav-item" data-section="achievements"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Logros</button>
         <button class="admin-nav-item" data-section="cards"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="16" rx="2"></rect><path d="M8 2h12a2 2 0 0 1 2 2v12"></path></svg> Cartas</button>
+        <button class="admin-nav-item" data-section="colecciones"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg> Colecciones</button>
         <button class="admin-nav-item" data-section="archetypes"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"></rect><rect x="14" y="4" width="7" height="16" rx="1"></rect></svg> Arquetipos</button>
         <span class="admin-nav-grupo">Comunidad</span>
         <button class="admin-nav-item" data-section="users"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuarios</button>
@@ -378,6 +379,27 @@
         <div id="arquetiposLista"></div>
       </section>
 
+      <section class="admin-section" id="section-colecciones">
+        <h1>Colecciones</h1>
+        <p class="admin-note">Las colecciones tal como se ven en la biblioteca, con sus eras y su orden. Lo que cambies aquí sale en vivo.</p>
+
+        <div class="admin-card">
+          <div class="col-barra">
+            <select id="coleccionesMercado" aria-label="Catálogo"></select>
+            <input type="search" id="coleccionesFiltro" placeholder="Buscar por nombre, id o código…" aria-label="Buscar una colección">
+            <button class="btn-secondary btn-small" id="coleccionesRecargar">Recargar</button>
+            <span class="col-resumen" id="coleccionesResumen"></span>
+          </div>
+          <p class="admin-note">
+            El número de la izquierda coloca: menor, más arriba. Vacío, manda la fecha de salida.
+            Para juntar colecciones en una era nueva —McDonald&rsquo;s, POP Series— edita cada una y escríbele el mismo identificador de era.
+            <strong>Esconder</strong> la quita de la biblioteca y se deshace; <strong>borrar</strong> se lleva sus cartas por delante.
+          </p>
+          <div id="coleccionesLista" class="col-lista"></div>
+        </div>
+        <div id="coleccionesHoja" class="col-hoja hidden"></div>
+      </section>
+
       <section class="admin-section" id="section-cards">
         <h1>Cartas</h1>
         <p class="admin-note">
@@ -502,11 +524,9 @@
                causas que desde la web se ven igual —que el catálogo
                japonés no se haya importado nunca, o que algo del camino
                esté roto— y sin este número hay que adivinar cuál es. -->
-          <button class="btn-secondary" id="btnContarMercados">Qué hay de cada mercado</button>
           <!-- No importa nada: sólo pregunta a TCGdex qué catálogos hay.
                Hace falta para decidir cómo se meten las japonesas y las
                chinas sin pisar las que ya están. -->
-          <button class="btn-outline" id="btnDiagnosticar">Diagnosticar catálogos</button>
           <!-- MIRAR LO QUE CONTESTA TCGDEX, CRUDO (tanda 484).
                PINGU: «me has dicho que TCGdex no guarda las imágenes de los
                sets japoneses y los logos, pero sí lo hace. Revisa bien la
@@ -518,7 +538,6 @@
                navegador (que es el único sitio del proyecto con salida a
                su API) y enseña los campos TAL CUAL, al lado de lo que
                tenemos guardado. -->
-          <button class="btn-outline" id="btnMirarSet">Qué contesta TCGdex de un set</button>
           <!-- Y EL CATÁLOGO ENTERO, POR MUESTRA (tanda 486). El de un set
                solo no contesta la pregunta del 30 %: PINGU sondeó SV1a (JP)
                y sus 103 cartas vienen con imagen YA en el listado, el 100 %
@@ -531,25 +550,21 @@
                los sets viejos o si lo perdemos nosotros. Y enseña los
                identificadores de verdad, que es lo que faltaba cuando
                `cs1a CN` dio 404: el chino los nombra de otra forma. -->
-          <button class="btn-outline" id="btnSondearMercado">Sondear un catálogo entero</button>
           <!-- SCRYDEX, LA API DE PAGO (tanda 500). Pregunta desde el
                SERVIDOR, que es donde viven las claves: en el JS de esta
                página serían claves publicadas. Lo primero que hay que
                medir con ella es el INGLÉS —1.351 escaneos y 63 logos que
                nos faltan—, que es lo único que la evaluación no midió. -->
-          <button class="btn-outline" id="btnSondearScrydex">Preguntar a Scrydex</button>
           <!-- LA MEDICIÓN QUE DECIDE SI LOS 29 $ VALEN (tanda 503): ¿tapa
                Scrydex nuestros huecos OCCIDENTALES? 1.351 cartas sin foto y
                63 sets sin logo. Cuesta tres créditos, porque lo único que
                se le pide a la API es su lista de expansiones: las imágenes
                no gastan y su dirección se deriva. -->
-          <button class="btn-outline" id="btnMedirIngles">¿Tapa Scrydex el hueco del inglés?</button>
           <!-- ANTES DE ESCRIBIR NADA (tanda 504): el emparejamiento de
                sets casa por fecha y cuenta, y en la medida de la 503 salió
                `ex5.5 → wb1`, que no es el mismo set. Esto lo comprueba
                set a set con el NOMBRE de una carta. No escribe nada;
                cuesta un crédito por set. -->
-          <button class="btn-outline" id="btnVerificarScrydex">¿Son de verdad los emparejamientos?</button>
           <!-- LA PRIMERA ESCRITURA DESDE SCRYDEX (tanda 507): logos,
                símbolos y las tres columnas que la 322 encontró vacías.
                Hace ENSAYO EN SECO primero y enseña fila a fila lo que
