@@ -25,7 +25,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, plegarHermanos } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -1774,7 +1774,10 @@ async function pintarEstanteria() {
   const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
   const grupos = gruposDeEstanteria(visibles, favoritos || new Set())
 
-  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, s.serie_name || s.serie_id])).entries()]
+  // EL RÓTULO SALE DE `eraDeSet` (tanda 541): con `serie_name` a secas,
+  // una era japonesa salía en japonés —o vacía, porque los sets que vienen
+  // de Scrydex no traen `serie_name`, traen `serie_name_en`—.
+  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, eraDeSet(s) || s.serie_id])).entries()]
   const sel = $('mcEstanteriaSerie')
   if (sel && !sel.dataset.montado) {
     sel.dataset.montado = '1'

@@ -68,6 +68,21 @@ async function rest(ruta, clave_, opciones = null) {
 // `name` es `not null` y es el nombre JAPONÉS: ese es el nombre de verdad
 // del set y es con lo que se cruza. El occidental va al lado, en `name_en`,
 // y es el que se ENSEÑA (tanda 532).
+// La ERA, que ellos dan por NOMBRE y nosotros agrupamos por
+// IDENTIFICADOR: el desplegable de eras y el agrupado de la estantería
+// miran `serie_id`, así que un set sin él se cae de los dos —y eso fue
+// justo lo que pasó con los primeros importados—.
+//
+// El identificador sale del nombre, en minúsculas y con guiones. No es
+// inventarse un dato: es la MISMA serie escrita de forma comparable, y
+// dos sets de «Mega Evolution» caen en la misma caja porque su nombre es
+// el mismo. El nombre que se ENSEÑA sigue siendo el suyo (`serie_name_en`).
+export function serieDeSuSet(suyo) {
+  const s = String(suyo?.series || '').trim().toLowerCase()
+  if (!s) return null
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || null
+}
+
 export function filaDeSetSuyo(suyo) {
   const n = String(suyo?.name || '').trim()
   return {
@@ -75,6 +90,7 @@ export function filaDeSetSuyo(suyo) {
     market: MERCADO,
     name: n || suyo.id,
     name_en: suyo?.translation?.en?.name || null,
+    serie_id: serieDeSuSet(suyo),
     serie_name_en: suyo?.series || null,
     logo_scrydex: typeof suyo?.logo === 'string' && /^https:\/\//.test(suyo.logo) ? suyo.logo : null,
     symbol_scrydex: typeof suyo?.symbol === 'string' && /^https:\/\//.test(suyo.symbol) ? suyo.symbol : null,

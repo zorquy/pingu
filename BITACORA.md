@@ -4,6 +4,48 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 14:45) — PINGU-Claude (541 — el filtro de expansiones, y un cabo suelto de mi propio importador)
+
+**Hecho**: PINGU: «el filtro de todas las expansiones parece que solo está
+cogiendo las de un idioma; tendría que depender del idioma que escojas —
+inglés y español son lo mismo, pero el japonés no».
+
+Y tenía razón por un sitio que no era el que yo miraba. La consulta SÍ
+filtra por mercado (`.eq('market', mercado)`) y la caché SÍ se tira al
+cambiar de catálogo. Lo que pasaba es más tonto y es **mío de hace media
+hora**: los sets que la 540 trae de Scrydex **no llevaban `serie_id`**, y
+tanto el desplegable de eras como el agrupado de la estantería miran esa
+columna. Así que los recién importados no salían en el desplegable y caían
+todos juntos en un grupo sin nombre.
+
+El identificador de serie sale de SU nombre de serie, en minúsculas y con
+guiones (`Mega Evolution` → `mega-evolution`). No es inventarse un dato: es
+la misma serie escrita de forma comparable, y lo que se ENSEÑA sigue siendo
+el nombre suyo (`serie_name_en`).
+
+**Y el desplegable rotulaba con `serie_name`**, que en un set importado
+viene vacío y en uno japonés de TCGdex viene en japonés. Ahora rotula con
+`eraDeSet`, igual que el título de cada grupo desde la 532.
+
+**Por qué los nombres japoneses siguen en japonés** (que es lo otro que
+preguntó): porque son sets de TCGdex y TCGdex los nombra en japonés. El
+nombre occidental lo pone Scrydex y solo puede ponerlo donde hay
+emparejamiento — y de nuestros 186, **68 no tienen ni una carta**, así que
+no hay señal que comparar y no se pueden emparejar nunca. Son filas vacías:
+sin cartas, sin logo y en kanji. Desde la 540 su equivalente de Scrydex
+entra solo, con logo, símbolo y nombre occidental, o sea que la fila vieja
+solo estorba al lado de la nueva.
+
+**PENDIENTE DE PINGU**: `supabase-migration-japones-limpiar-huecos.sql`.
+BORRA, así que va con el impacto delante: la primera consulta enseña qué se
+va a borrar y **la segunda tiene que dar CERO cartas de usuarios
+afectadas** —por construcción, porque solo se borra lo que no tiene ni una
+carta—. Si no da cero, no se ejecuta.
+
+**Ficheros**: `netlify/functions/scrydex-importar-jp.mjs`,
+`js/mi-coleccion.js`, `supabase-migration-japones-limpiar-huecos.sql`
+(nuevo). En `pruebas`: `pruebas/test-tanda-541.mjs`.
+
 ## 2026-10-04 (tarde, 14:10) — PINGU-Claude (540 — traer SUS sets japoneses, no retocar los nuestros)
 
 **Hecho**: PINGU, con dos capturas de Scrydex delante: «quiero que calques
