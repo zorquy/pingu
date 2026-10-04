@@ -173,9 +173,16 @@ console.log('\n── 7. El curso ──')
   const curso = {
     id: 'c-1', slug: 'mi-curso', title: 'Practica tu primera partida', kind: 'course',
     review_status: 'published', published_at: '2026-08-01T10:00:00Z', category_id: 'cat-1',
+    // Y UNA PREGUNTA, que desde la 548 es lo que hace que un curso sea un
+    // curso: con solo teoría (hook + concept) la página contesta «todavía
+    // no está disponible», porque no hay nada que jugar. Este fixture
+    // afirmaba lo contrario desde la 308, y lo que ha cambiado es la
+    // regla, no la página: lo pidió PINGU después de que alguien se
+    // encontrara el botón «Hacer el curso» en una guía sin curso.
     blocks: [
       { type: 'hook', headline: '¿Listo para jugar?', subtext: 'Vamos con tu primera partida.' },
       { type: 'concept', title: 'El turno', body: 'Robas, juegas y atacas.' },
+      { type: 'quiz', question: '¿Cuántas cartas robas?', options: ['5', '7'], answer: 1 },
     ],
   }
   const { page, errores } = await abrir('/curso?slug=mi-curso', { semillas: { __FAKE_GUIAS__: [curso] } })
