@@ -1,4 +1,5 @@
 import { escapeHtml } from './app.js'
+import { nombreDeSet } from './catalogo-series.js'
 import {
   searchCards, cardImageUrl, refCarta,
   MERCADOS_VISIBLES, MERCADO_POR_DEFECTO, NOMBRE_MERCADO,
@@ -20,7 +21,7 @@ let contadorPeticion = 0
 
 function resultadoHtml(carta, elegida) {
   const src = cardImageUrl(carta.image_path, 'low', carta.market)
-  const setName = carta.tcg_sets?.name || carta.set_id
+  const setName = nombreDeSet(carta.tcg_sets) || carta.set_id
   // Lo que se guarda es la REFERENCIA, no el id: `CS1a-1` existe en
   // occidental y en chino tradicional, y son dos cartas distintas.
   return `

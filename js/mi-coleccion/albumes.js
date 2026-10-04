@@ -28,6 +28,7 @@ const MAX_CARTAS = 1080
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, POR_PAGINA } from './archivador.js'
 import { burbujaHtml } from './adorno.js'
 import { abrirDialogoAdorno } from './dialogo-adorno.js'
+import { nombreDeSet } from '../catalogo-series.js'
 const $ = (id) => document.getElementById(id)
 const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
 
@@ -335,7 +336,7 @@ async function buscar() {
     $('mcAlbResultados').innerHTML = ''
     return
   }
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,tcg_sets(id,name,serie_id,release_date)').eq('market', 'WEST')
+  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date)').eq('market', 'WEST')
   for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(48)
   if (mio !== turnoBusqueda) return
@@ -352,7 +353,7 @@ async function buscar() {
           return `<button type="button" class="mc-resultado" data-carta="${escapeHtml(c.id)}" title="Añadir al álbum">
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
             <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}${tengo(c.id) ? ' <span class="mc-chip">La tienes</span>' : ''}</span>
-            <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
+            <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
           </button>`
         })
         .join('')

@@ -3,6 +3,7 @@ import { cardsByIds, cardImageUrl, refCarta, parseRefCarta, MERCADO_POR_DEFECTO 
 import { rutaDeCarta } from './carta-ruta.js'
 // La cadena de escaneos, compartida con el catálogo (tanda 370).
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
+import { nombreDeSet } from './catalogo-series.js'
 
 // Una lista de cartas dentro de una guía.
 //
@@ -49,7 +50,7 @@ function cartaHtml(carta) {
     cadenaDeEscaneo(carta, null, 'low', (ruta, calidad) => cardImageUrl(ruta, calidad, carta.market)),
     "this.replaceWith(Object.assign(document.createElement('span'),{className:'deck-card-noimg',textContent:this.alt}))"
   )
-  const setName = carta.tcg_sets?.name || carta.set_id
+  const setName = nombreDeSet(carta.tcg_sets) || carta.set_id
   const pie = `${carta.name} · ${setName} #${carta.local_id}`
   // Aquí ponía que «el catálogo es inglés y tiene escaneo de todas las
   // cartas». No lo tiene: es un catálogo comunitario y los sets viejos

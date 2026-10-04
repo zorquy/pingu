@@ -25,7 +25,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet, nombreDeSet } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -647,7 +647,7 @@ function filaDeCartaHtml(c, derecha) {
   return `<li class="mc-fila-carta">
     <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">
       <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-      <span class="mc-fila-nombre">${escapeHtml(nombreDe(c))}<small>${escapeHtml(c?.tcg_sets?.name || '')}</small></span>
+      <span class="mc-fila-nombre">${escapeHtml(nombreDe(c))}<small>${escapeHtml(nombreDeSet(c?.tcg_sets))}</small></span>
     </a>
     <span class="mc-fila-dato">${derecha}</span>
   </li>`
@@ -781,7 +781,7 @@ function pintarResumenPanel() {
         </section>
         <section class="mc-resumen-caja">
           <h3>Por colección</h3>
-          ${barrasHtml(repartoPor((c) => c?.tcg_sets?.name, ls, clave, busca).slice(0, 10)) || '<p class="subtext">—</p>'}
+          ${barrasHtml(repartoPor((c) => nombreDeSet(c?.tcg_sets), ls, clave, busca).slice(0, 10)) || '<p class="subtext">—</p>'}
         </section>
         <section class="mc-resumen-caja">
           <h3>Por rareza</h3>
@@ -1113,7 +1113,7 @@ function lineaHtml(l) {
   const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
   // La etiqueta la lee quien no ve la carta, así que lleva lo que la
   // imagen dice sin palabras: qué es, de dónde y cuántas.
-  const etiqueta = `${nombreDe(c)}${c?.tcg_sets?.name ? `, ${c.tcg_sets.name}` : ''}${
+  const etiqueta = `${nombreDe(c)}${nombreDeSet(c?.tcg_sets) ? `, ${nombreDeSet(c.tcg_sets)}` : ''}${
     variante ? `, ${variante}` : ''
   }${l.cantidad > 1 ? `, ${l.cantidad} copias` : ''}`
   return `
@@ -1268,7 +1268,7 @@ function lineasFiltradas() {
     const c = cartas.get(l.card_id)
     if (set && c?.set_id !== set) return false
     if (idioma && l.idioma !== idioma) return false
-    if (texto && !normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.tcg_sets?.name || ''}`).includes(texto)) return false
+    if (texto && !normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)) return false
     return pasaLosFiltros(l, c, filtros, AYUDAS)
   })
   // El orden vive en `js/mi-coleccion/filtros.js`, sin DOM, para poder
@@ -1307,7 +1307,7 @@ function pintarFiltros() {
   const sets = new Map()
   for (const l of lineas) {
     const c = cartas.get(l.card_id)
-    if (c?.set_id) sets.set(c.set_id, c.tcg_sets?.name || c.set_id)
+    if (c?.set_id) sets.set(c.set_id, nombreDeSet(c.tcg_sets) || c.set_id)
   }
   const actual = $('mcFiltroSet').value
   $('mcFiltroSet').innerHTML = '<option value="">Todas las colecciones</option>' + [...sets].sort((a, b) => a[1].localeCompare(b[1], 'es')).map(([id, n]) => `<option value="${escapeHtml(id)}"${id === actual ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('')
@@ -1437,7 +1437,7 @@ function abrirEditor(l) {
   // El set va ARRIBA del nombre y el número con él, como una miga de pan:
   // «de dónde es» antes que «cómo se llama» (tanda 393).
   $('mcEdSet').textContent = c
-    ? `${c.tcg_sets?.name || ''}${c.local_id ? ` · ${c.local_id}` : ''}`
+    ? `${nombreDeSet(c.tcg_sets)}${c.local_id ? ` · ${c.local_id}` : ''}`
     : l.card_id
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
@@ -2941,7 +2941,7 @@ async function buscarEnTodo() {
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
           </span>
           <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
-          <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
+          <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
         </a>`
       }).join('')
     : '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
@@ -3182,7 +3182,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
@@ -3280,7 +3280,7 @@ async function buscar() {
           return `<button type="button" class="mc-resultado" data-carta="${escapeHtml(c.id)}">
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
             <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
-            <span class="mc-resultado-set">${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}</span>
+            <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
           </button>`
         })
         .join('')
@@ -3294,7 +3294,7 @@ async function elegir(cardId) {
   seleccion = c
   const escaneoElegida = atributosDeEscaneo(cadenaDeEscaneo(c))
   $('mcAnadirElegida').innerHTML = `${escaneoElegida ? `<img ${escaneoElegida} alt="" width="245" height="342" loading="lazy" />` : ''}
-    <div><strong>${escapeHtml(nombreDe(c))}</strong><p class="subtext">${escapeHtml(c.tcg_sets?.name || '')} · ${escapeHtml(c.local_id)}</p><p class="subtext" id="mcAnadirPrecio">Buscando precio…</p></div>`
+    <div><strong>${escapeHtml(nombreDe(c))}</strong><p class="subtext">${escapeHtml(nombreDeSet(c.tcg_sets))} · ${escapeHtml(c.local_id)}</p><p class="subtext" id="mcAnadirPrecio">Buscando precio…</p></div>`
   $('mcAnadirForm').classList.remove('hidden')
   $('mcAnadirForm').scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   const v = await datos.preciosEnVivo(c.id)
@@ -3579,7 +3579,7 @@ function pintarCartasDeCarpetaFiltradas() {
   const dentro = texto
     ? lineasDeLaCarpeta.filter((l) => {
         const c = cartas.get(l.card_id)
-        return normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.local_id || ''} ${c?.tcg_sets?.name || ''}`).includes(texto)
+        return normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.local_id || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)
       })
     : lineasDeLaCarpeta
   hueco.innerHTML = dentro.length
@@ -3677,7 +3677,7 @@ function pintarEspecieFiltrada() {
     // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
     // ya están todas cargadas; allí va en la consulta porque son 21.000.
     if (!texto) return true
-    return normalizeSearch(`${c.name || ''} ${c.name_es || ''} ${c.local_id || ''} ${c.illustrator || ''} ${c.tcg_sets?.name || ''}`).includes(texto)
+    return normalizeSearch(`${c.name || ''} ${c.name_es || ''} ${c.local_id || ''} ${c.illustrator || ''} ${nombreDeSet(c.tcg_sets)}`).includes(texto)
   })
   // Los chips viven en el panel, que está FUERA de la caja que se repinta:
   // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
@@ -3898,7 +3898,7 @@ async function buscarParaDesear() {
           return `<button type="button" class="mc-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''}>
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
             <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
-            <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.tcg_sets?.name || c.set_id)} · ${escapeHtml(c.local_id)}`}</span>
+            <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}`}</span>
           </button>`
         })
         .join('')

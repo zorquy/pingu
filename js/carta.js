@@ -22,6 +22,7 @@ import { logClientError } from './error-log.js'
 // El precio de Cardmarket y «Añadir a mi colección» (tanda 365).
 import { pintarMercado } from './carta-mercado.js'
 import { escapeHtml } from './app.js'
+import { nombreDeSet } from './catalogo-series.js'
 import {
   candidatosDeRuta,
   clavesDeJuego,
@@ -47,7 +48,7 @@ const COLUMNAS =
   'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,category,rarity,rarity_en,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,' +
-  'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,tcg_online_code)'
+  'tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code)'
 
 const $ = (id) => document.getElementById(id)
 
@@ -298,7 +299,7 @@ async function versiones(carta) {
 
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
+    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,name_en,serie_id,serie_name_en)')
     .eq('market', MERCADO)
     .eq('name', carta.name)
     .neq('id', carta.id)
@@ -331,7 +332,7 @@ async function versiones(carta) {
           ? `<img src="${escapeHtml(img)}" alt="" width="245" height="337" loading="lazy" decoding="async">`
           : '<span class="carta-version-vacia"></span>') +
         `<span class="carta-version-pie">${escapeHtml(pie)}</span>` +
-        `<span class="carta-version-set">${escapeHtml(v.tcg_sets?.name || '')}</span>` +
+        `<span class="carta-version-set">${escapeHtml(nombreDeSet(v.tcg_sets))}</span>` +
         '</a>'
       )
     })

@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 15:05) — PINGU-Claude (542 — el nombre del set AL LADO DE CADA CARTA seguía en kanji)
+
+**Hecho**: lo cazó el barrido que escribí en la 532, y es un hueco de
+verdad. La 532 puso `nombreDeSet()` en las pantallas de colecciones, pero
+el nombre del set que sale **al lado de cada carta** —debajo del nombre, en
+la etiqueta de accesibilidad, en los resultados del buscador, en la
+Pokédex, en los álbumes, en el bloque de cartas de una guía— sale de un set
+EMBEBIDO en la consulta de cartas (`tcg_sets(...)`), y esa consulta no
+pedía `name_en`. Catorce sitios en siete ficheros, todos en kanji.
+
+Dos cosas, las dos imprescindibles:
+
+1. **Las siete consultas embebidas piden `name_en` y `serie_name_en`.** Una
+   columna que no se pide llega `undefined` (la 523, otra vez).
+2. **Y los catorce sitios pintan con `nombreDeSet()`**, no con
+   `tcg_sets?.name`. Quedan CERO lecturas crudas en el repo.
+
+De paso entran las BÚSQUEDAS por texto: quien escribe «Mega Evolution» en
+el catálogo japonés busca por lo que VE, no por el kanji que no sabe
+escribir.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/carta.js`, `js/cards-block.js`,
+`js/card-picker.js`, `js/mi-coleccion/filtros.js`,
+`js/mi-coleccion/pokedex.js`, `js/mi-coleccion/albumes.js`,
+`js/mi-coleccion/datos.js`, `js/tcgdex.js`.
+
+**Y la lección, que es la misma de esta mañana con otra cara**: el barrido
+de la 532 solo miraba los ficheros que IMPORTAN `nombreDeSet`. Como estos
+siete no lo importaban todavía, no los miraba — hasta que `js/mi-coleccion.js`
+empezó a importarlo por otra cosa y entonces sí entró en el barrido y cantó.
+Una guarda que solo mira a quien ya hace lo correcto no encuentra a quien no
+lo hace.
+
 ## 2026-10-04 (tarde, 14:45) — PINGU-Claude (541 — el filtro de expansiones, y un cabo suelto de mi propio importador)
 
 **Hecho**: PINGU: «el filtro de todas las expansiones parece que solo está

@@ -8,6 +8,7 @@
 // rótulo: si el filtro mira una columna y la ficha otra, el chip dice una
 // rareza y la carta de al lado dice otra.
 import { rarezaCrudaDeCarta } from '../rarezas-nombres.js'
+import { nombreDeSet } from '../catalogo-series.js'
 //
 // PINGU, con Dex delante: «ordenado por fecha de salida, nombre,
 // ilustrador, número de la Pokédex, precio, cuántas tienes y tipo de
@@ -76,7 +77,7 @@ function claveDe(orden, linea, ayudas) {
     case 'energia': return Array.isArray(c?.types) && c.types.length ? c.types[0] : null
     case 'rareza': return rango(rarezaCrudaDeCarta(c))
     case 'salida': return c?.tcg_sets?.release_date || null
-    case 'coleccion': return c?.tcg_sets?.name || c?.set_id || null
+    case 'coleccion': return nombreDeSet(c?.tcg_sets) || c?.set_id || null
     default: return null
   }
 }

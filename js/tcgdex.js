@@ -160,7 +160,7 @@ export async function searchCards(
 
   let q = supabase
     .from('tcg_cards')
-    .select('id, market, set_id, local_id, name, image_path,image_scrydex, regulation_mark, tcg_sets(name, release_date)', { count: 'exact' })
+    .select('id, market, set_id, local_id, name, image_path,image_scrydex, regulation_mark, tcg_sets(name, name_en, release_date)', { count: 'exact' })
     .eq('market', market)
   // Encadenar varios `like` los une con AND, que es lo que se quiere:
   // todas las palabras presentes.
@@ -214,7 +214,7 @@ export async function cardsByIds(refs) {
         // Y `tcg_online_code` desde la tanda 370: es lo que necesita el
         // segundo sitio donde buscar un escaneo cuando TCGdex no tiene
         // el de esa carta (ver js/escaneo-carta.js).
-        .select('id, market, set_id, local_id, name, name_es, name_en, image_path,image_scrydex, tcg_sets(name, tcg_online_code)')
+        .select('id, market, set_id, local_id, name, name_es, name_en, image_path,image_scrydex, tcg_sets(name, name_en, tcg_online_code)')
         .eq('market', market)
         .in('id', ids)
     )

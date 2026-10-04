@@ -282,7 +282,7 @@ export async function borrar(id) {
 // ellos; como son datos de DETALLE, las cartas que `cartas-detalle`
 // todavía no ha engordado los traen a null, y el grupo de chips
 // sencillamente no las ofrece.
-const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,variants,illustrator,types,dex_ids,trainer_type,energy_type,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
+const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,variants,illustrator,types,dex_ids,trainer_type,energy_type,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids, mercado = 'WEST') {
   const unicos = [...new Set(ids.filter(Boolean))]
