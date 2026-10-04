@@ -981,6 +981,22 @@
   accent-color: var(--navy);
 }
 
+/* Quién eres al guardar (tanda 553): el mazo de cada uno, y quién ganó. */
+.rep-quien-mazo {
+  min-width: 0;
+  color: var(--text-mid);
+}
+
+.rep-quien-gana {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin-left: auto;
+  color: var(--navy);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* El trozo del vídeo (tanda 493): «desde» y «hasta», uno al lado del otro
    si caben. */
 .rep-tramo {
@@ -1962,33 +1978,6 @@
   .rep-stream-ayuda {
     transition: none;
   }
-}
-
-/* ── Importar varias a la vez (tanda 518) ── */
-.rep-varias-lista {
-  display: grid;
-  gap: var(--e-xs);
-  max-height: 40vh;
-  margin: var(--e-sm) 0;
-  padding-left: var(--e-lg);
-  overflow-y: auto;
-}
-
-.rep-varias-lista li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-xs) var(--e-sm);
-}
-
-.rep-varias-estado {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.rep-varias-mala {
-  color: var(--danger);
-  font-size: var(--t-sm);
 }
 
 /* La escena recibe el foco en el modo stream (para que el Espacio no pulse

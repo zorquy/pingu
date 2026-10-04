@@ -208,6 +208,10 @@ function frases(J) {
     [new RegExp(`^${P} ha ganado`), (m) => ({ tipo: 'fin', ganador: m[1] })],
     [new RegExp(`^(?:Opponent conceded|.*conceded)\\.? ${P} wins`), (m) => ({ tipo: 'fin', ganador: m[1], porque: 'rendicion' })],
     [new RegExp(`${P} wins$`), (m) => ({ tipo: 'fin', ganador: m[1] })],
+    // Cualquier otra razón delante (tanda 553): «El rival no tiene Pokémon
+    // en juego. Rojo ha ganado.» Sin esto, una partida que acaba así no dice
+    // quién ganó y no se puede apuntar sin preguntar.
+    [new RegExp(`\\. ${P} ha ganado(?: la partida)?$`), (m) => ({ tipo: 'fin', ganador: m[1] })],
   ]
 }
 

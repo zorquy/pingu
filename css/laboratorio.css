@@ -3036,3 +3036,99 @@ button.lab-carta.lab-no-vale:hover {
 .lab-dialogo-cuerpo > .lab-btn {
   min-height: 44px;
 }
+
+/* ── Encontrar una carta (tanda 554): la pestaña del panel y la ventana de
+   una repetición (el porqué, en SCHEMA.md) ── */
+.lab-caminos-elegir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0;
+}
+
+.lab-caminos-campo {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.lab-caminos-campo select {
+  min-height: 44px;
+  font-size: var(--t-sm);
+}
+
+.lab-caminos-datos,
+.lab-caminos-vacio,
+.lab-caminos-calculando {
+  margin: var(--e-sm) 0;
+  font-size: var(--t-sm);
+}
+
+.lab-caminos {
+  display: grid;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lab-camino {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.lab-camino:first-child {
+  border-color: var(--navy);
+}
+
+.lab-camino-p {
+  flex: 0 0 auto;
+  min-width: 48px;
+  color: var(--navy);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-camino-pasos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.lab-paso {
+  font-weight: 600;
+}
+
+.lab-paso-si,
+.lab-camino-flecha,
+.lab-camino-nota {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.lab-camino-nota {
+  flex-basis: 100%;
+}
+
+.lab-caminos-otros summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}

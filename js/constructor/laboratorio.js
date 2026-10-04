@@ -35,6 +35,7 @@ import {
   unidadesDeEnergia, premiosQueDa, ponerEstado, claveDeEfecto,
 } from './partida.js'
 import { EFECTOS, textoDeCarta, estaAutomatizada } from './efectos.js'
+import { resultadoDeCaminosHtml } from './caminos-html.js'
 import { rasgosDeCarta } from './textos.js'
 
 const PREFS = 'pokedoc-laboratorio'
@@ -65,6 +66,9 @@ const L = {
   rivalAbierto: false,
   nRobos: 3,
   seleccion: new Set(),
+  // «¿Cómo la encuentro?» (tanda 554): la carta elegida y lo último que se
+  // calculó, con la firma de la mesa en la que se calculó.
+  caminos: { clave: null, nombre: '', resultado: null, calculando: false, firma: '', de: null },
   ocupado: false,
   cacheHtml: new WeakMap(),
   focoPrevio: null,
@@ -88,7 +92,7 @@ function leerPrefs() {
       Object.assign(L.opciones, p.opciones || {})
       if (typeof p.panelAbierto === 'boolean') L.panelAbierto = p.panelAbierto
       else if (typeof p.probAbierta === 'boolean' && p.probAbierta) L.panelAbierto = true
-      if (['ahora', 'mazo', 'registro'].includes(p.panelPestania)) L.panelPestania = p.panelPestania
+      if (['ahora', 'mazo', 'registro', 'caminos'].includes(p.panelPestania)) L.panelPestania = p.panelPestania
       if (Number.isInteger(p.nRobos)) L.nRobos = Math.max(1, Math.min(20, p.nRobos))
     }
   } catch {}
@@ -488,7 +492,7 @@ function deshacer() {
 // por uno nuevo: el foco se caía al `body`, y con él el teclado (Escape,
 // Ctrl+Z, «v», «p»). Se apunta QUÉ era —su carta, su Pokémon, su botón—
 // y se le devuelve a su equivalente después de pintar.
-const ATRIBUTOS_DE_FOCO = ['data-uid', 'data-slot-carta', 'data-rival-carta', 'data-mas', 'data-premio', 'data-accion', 'data-modo', 'data-primero', 'data-empieza', 'data-panel-pestania', 'data-marca', 'data-robos', 'data-rival-ajuste']
+const ATRIBUTOS_DE_FOCO = ['data-uid', 'data-slot-carta', 'data-rival-carta', 'data-mas', 'data-premio', 'data-accion', 'data-modo', 'data-primero', 'data-empieza', 'data-panel-pestania', 'data-marca', 'data-robos', 'data-rival-ajuste', 'data-caminos']
 function marcaDelFoco() {
   const a = document.activeElement
   if (!L.raiz || !a || a === L.raiz || !L.raiz.contains(a)) return null
@@ -976,13 +980,13 @@ function pintarPanel() {
   const tab = (id, texto) => `<button type="button" role="tab" class="lab-pestania${pest === id ? ' activa' : ''}" aria-selected="${pest === id}" data-panel-pestania="${id}">${texto}</button>`
   const cab = `
     <div class="lab-panel-cab">
-      <h3 id="labPanelTitulo">${pest === 'registro' ? 'Registro' : `Probabilidades${L.mesa ? ` · ${escapeHtml(p.nombreJugador)}` : ''}`}</h3>
+      <h3 id="labPanelTitulo">${pest === 'registro' ? 'Registro' : pest === 'caminos' ? `Encontrar una carta${L.mesa ? ` · ${escapeHtml(p.nombreJugador)}` : ''}` : `Probabilidades${L.mesa ? ` · ${escapeHtml(p.nombreJugador)}` : ''}`}</h3>
       <button type="button" class="lab-cerrar lab-panel-cerrar" data-accion="panel" aria-label="Cerrar el panel">×</button>
     </div>
     <div class="lab-pestanias" role="tablist" aria-label="Qué enseña el panel">
-      ${tab('ahora', 'Esta partida')}${tab('mazo', 'El mazo')}${tab('registro', 'Registro')}
+      ${tab('ahora', 'Esta partida')}${tab('caminos', 'Encontrar')}${tab('mazo', 'El mazo')}${tab('registro', 'Registro')}
     </div>`
-  const cuerpo = pest === 'registro' ? registroHtml() : pest === 'mazo' ? tablaMazo() : tablaAhora()
+  const cuerpo = pest === 'registro' ? registroHtml() : pest === 'mazo' ? tablaMazo() : pest === 'caminos' ? caminosHtml() : tablaAhora()
   poner(el, `${cab}<div class="lab-panel-cuerpo" id="labPanelCuerpo">${cuerpo}</div>`)
   if (pest === 'registro') {
     const lista = $('#labRegistro')
@@ -1067,6 +1071,69 @@ function tablaAhora() {
       </table>
     </div>
     <p class="subtext lab-prob-nota">Calculado con lo que <strong>tú</strong> sabes en la mesa, no con el orden real del mazo: lo que no has visto está repartido al azar entre el mazo y los premios boca abajo. Marca varias cartas para ver la probabilidad de robar cualquiera de ellas.</p>`
+}
+
+// ── «¿Cómo la encuentro?» (tanda 554) ──
+//
+// Eliges una carta y se juegan, en cientos de repartos de lo que no sabes,
+// todos los caminos que tienes AHORA (constructor/caminos.js). El cálculo
+// cambia el estado de la partida mientras dura cada tanda, así que la mesa
+// queda `ocupada` hasta que acaba (lo de tocar está bloqueado).
+const firmaDeMesa = (p) => JSON.stringify([p.s.turno, p.s.fase, p.s.mano, p.s.mazo.length, p.s.descarte.length, p.s.premios.length, p.enJuego.map((x) => [x.id, x.cartas.length]), p.s.flags.partidario, p.s.flags.usos])
+
+function caminosHtml() {
+  const p = L.partida
+  if (!p || p.s.fase !== 'turno') return '<p class="subtext">Los caminos se buscan en tu turno, que es cuando puedes jugar cartas y usar habilidades.</p>'
+  const secciones = gruposDelMazo(mazoDe(p).entradas)
+  const todas = secciones.flatMap((x) => x.grupos)
+  const elegida = todas.some((g) => g.clave === L.caminos.clave) ? L.caminos.clave : todas[0]?.clave
+  const opciones = secciones
+    .map((x) => `<optgroup label="${escapeHtml(x.titulo)}">${x.grupos.map((g) => `<option value="${escapeHtml(g.clave)}"${g.clave === elegida ? ' selected' : ''}>${escapeHtml(nombreVisible(g.carta))}</option>`).join('')}</optgroup>`)
+    .join('')
+  const c = L.caminos
+  let resultado = ''
+  if (c.calculando) resultado = `<p class="lab-caminos-calculando">Jugando los caminos con ${escapeHtml(c.nombre)}…</p>`
+  else if (c.resultado && c.de === p && c.firma === firmaDeMesa(p)) resultado = resultadoDeCaminosHtml(c.resultado, c.nombre)
+  else if (c.resultado) resultado = `<p class="lab-caminos-vacio">La mesa ha cambiado desde que buscaste ${escapeHtml(c.nombre)}: vuelve a buscar.</p>`
+  return `
+    <p class="subtext lab-caminos-intro">Elige la carta que quieres encontrar y te digo cada camino que tienes ahora —objetos, partidarios y habilidades— con la probabilidad de traerla.</p>
+    <div class="lab-caminos-elegir">
+      <label class="lab-caminos-campo"><span>La carta</span><select id="labCaminosCarta">${opciones}</select></label>
+      <button type="button" class="btn-primary lab-btn" data-caminos${c.calculando ? ' disabled' : ''}>${icons.search(16)} Buscar caminos</button>
+    </div>
+    <div class="lab-caminos-resultado" role="status">${resultado}</div>`
+}
+
+async function buscarCaminosAhora() {
+  const p = L.partida
+  if (L.ocupado || !p || p.s.fase !== 'turno') return
+  const clave = $('#labCaminosCarta')?.value || L.caminos.clave
+  const grupo = gruposDelMazo(mazoDe(p).entradas)
+    .flatMap((x) => x.grupos)
+    .find((g) => g.clave === clave)
+  if (!grupo) return
+  L.ocupado = true
+  L.caminos = { clave, nombre: nombreVisible(grupo.carta), resultado: null, calculando: true, firma: firmaDeMesa(p), de: p }
+  repintarPanel()
+  try {
+    const { buscarCaminos } = await import('./caminos.js')
+    const resultado = await buscarCaminos({
+      partida: p,
+      objetivo: (c) => claveDeNombre(c) === clave,
+      muestras: 400,
+      // Entre tanda y tanda la página respira (con el estado de verdad
+      // puesto: el cálculo lo devuelve antes de ceder).
+      ceder: () => new Promise((r) => setTimeout(r, 0)),
+    })
+    L.caminos = { ...L.caminos, resultado, calculando: false }
+  } catch (err) {
+    console.error(err)
+    L.caminos = { ...L.caminos, calculando: false }
+    showToast(`No se han podido calcular los caminos: ${err?.message || err}`, 'error')
+  } finally {
+    L.ocupado = false
+    repintarPanel()
+  }
 }
 
 function tablaMazo() {
@@ -2294,6 +2361,7 @@ function enganchar() {
       guardarPrefs()
       return repintarPanel()
     }
+    if (e.target.closest('[data-caminos]')) return buscarCaminosAhora()
     const pest = e.target.closest('[data-panel-pestania]')
     if (pest) {
       L.panelPestania = pest.dataset.panelPestania
@@ -2342,6 +2410,10 @@ function enganchar() {
   })
 
   raiz.addEventListener('change', (e) => {
+    if (e.target.id === 'labCaminosCarta') {
+      L.caminos.clave = e.target.value
+      return
+    }
     const marca = e.target.closest('[data-marca]')
     if (marca) {
       if (marca.checked) L.seleccion.add(marca.dataset.marca)
