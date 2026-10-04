@@ -29309,3 +29309,76 @@ Se repintan al guardar. No se había visto en seis tandas porque hasta ahora
 lo que se tocaba —las copias— no tenía chapa.
 
 **Sin migración.**
+
+## Tanda 564 — añadir una carta decidía por ti la versión, y la ponía mal (oct. 2026)
+
+PINGU, con un Spinarak delante: «puedo añadir con el + o quitar con el −,
+y si le doy a N o a RH añade esa variante, vale. Pero abro el pop-up y
+dice “todavía no tienes esta carta / añadir a mi colección”: me la va a
+poner en español Near Mint, pero ¿qué versión? ¿Un pop-up extra para
+elegir? ¿Añadir y que corrija después? ¿O que salgan todas las
+posibilidades?».
+
+### Lo que había debajo era peor que la pregunta
+
+La versión era **`'normal'` escrita a mano**, en cuatro sitios: el botón
+del pop-up, el «+» de la casilla del álbum que no tiene casillas por
+versión, la clave del marcado en bloque y la ficha de una carta que no
+tienes. El Spinarak tiene normal y reverse, así que acertaba de
+casualidad. **Una ultra rara, una full art o una secreta solo existen en
+holo**, y a esas el «+» del álbum las guardaba como NORMALES. Sin error y
+sin que se note: la chapa de versión solo sale cuando no es la normal, así
+que la casilla quedaba igual que una bien puesta.
+
+Y el fallo se escondió seis tandas por su propia forma: las casillas POR
+VERSIÓN llevan la suya en el `data-var` y nunca pasaron por el valor a
+pelo. **Justo las cartas de las que se ofrecen varias versiones eran las
+que lo hacían bien; las que no ofrecen ninguna, las que lo hacían mal.**
+Se vio con un sondeo: un Lapras solo holo, pulsar «+», abrir la ficha —
+«ES NM» sin chapa de versión, y el desplegable ofreciendo «holo» y
+«normal», la segunda solo porque la línea la tenía.
+
+Ahora hay UNA respuesta, `varianteDeCarta(carta)` en `variantes.js`: la
+primera versión real de la carta, y normal solo cuando no se sabe. El
+«+» la lleva en su `data-var`, la marca en bloque también, y la ficha de
+una carta que no tienes abre con ella (y con `ESTADO_POR_DEFECTO`, que es
+Near Mint: `ESTADOS[0]` es Mint, y era lo que la ficha enseñaba sin ser
+lo que iba a guardar).
+
+**El «−» NO lleva versión, a propósito.** La cuenta de al lado suma todas
+las versiones, así que el «−» tiene que poder quitar lo que esa cuenta
+cuenta. Y quedan por ahí líneas de las que esta tanda viene a evitar
+—guardadas como «normal» en cartas que no la tienen—: con la versión
+puesta, el «−» no las encontraría y el botón no haría nada.
+
+### La respuesta a la pregunta: un botón por versión, y que diga con qué
+
+De las tres opciones de PINGU, ninguna de las dos primeras. Un diálogo
+extra mete un paso en lo que más se hace; «añadir y que lo corrijas»
+escribe algo que no has dicho y depende de que te des cuenta, que es la
+familia de fallos de media bitácora. La tercera, pero sin que cueste: la
+ficha de una carta que no tienes enseña **un botón por versión real**
+(«Añadir normal», «Añadir reverse holo»), y cuando solo hay una —que es
+casi siempre— sigue siendo UN botón que dice «Añadir a mi colección», sin
+nombrar la versión: «Añadir holo» en el 90 % de las cartas sería un
+detalle que no distingue nada.
+
+Y las otras dos decisiones mudas se dicen: «Entrará en español y en Near
+Mint. Lo puedes cambiar aquí mismo al añadirla.» El idioma y el estado
+salen de los dos desplegables del ÁLBUM, que desde la Pokédex o desde
+Buscar ni se ven — decirlo es la diferencia entre elegir y que elijan por
+ti. Y la ficha se queda abierta ya como tuya, así que cambiarlo es tocar
+el desplegable de al lado.
+
+### Y un filtro que la 563 hizo posible
+
+Grupo «Gradeo» en los filtros de tu colección, **por casa** (PSA, Beckett,
+CGC…, «Otra casa», «Sin gradear»). «Mis PSA» es la pregunta que se hace;
+«mis PSA 10» la contesta mirar los cuatro que salen. Antes de la 563 no se
+podía ni plantear: con el gradeo en texto libre los chips habrían sido
+«CGC 10», «cgc10» y «Beckett 9'5» como tres cosas distintas.
+
+**Sin migración.** Las líneas que ya estén guardadas como «normal» en
+cartas sin normal se corrigen una a una desde la ficha (el desplegable
+ofrece la buena y la que tiene); no se tocan en bloque porque no se puede
+distinguir cuáles son del fallo y cuáles las puso alguien a propósito.

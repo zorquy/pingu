@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 22:40) — PINGU-Claude (564 — añadir decidía la versión por ti, y mal)
+
+**De dónde sale**: PINGU, «abro el pop-up de una carta que no tengo y
+“añadir a mi colección” me la pone en español NM, pero ¿qué versión?».
+
+**Lo gordo, debajo**: la versión era `'normal'` a pelo en cuatro sitios, y
+**una ultra rara, una full art o una secreta solo existen en holo**: el «+»
+del álbum las guardaba como normales, sin error y sin chapa que lo cante.
+Las casillas por versión llevan la suya en `data-var` y por eso lo hacían
+bien — justo las cartas con varias versiones eran las que acertaban.
+
+**Hecho**: `varianteDeCarta()` en `variantes.js` (la primera real; normal
+solo si no se sabe) y la usan el «+», el marcado en bloque y la ficha de
+una carta que no tienes. En esa ficha, **un botón por versión real** (uno
+solo, sin nombrarla, cuando solo hay una) y un renglón que dice en qué
+idioma y estado entra. El «−» NO lleva versión a propósito (SCHEMA). Y
+grupo **«Gradeo» por casa** en los filtros, que la 563 hizo posible.
+
+**Sin migración.** Las líneas mal guardadas de antes se corrigen desde la
+ficha; no se tocan en bloque (no se distinguen de las puestas a mano).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/variantes.js`,
+`js/mi-coleccion/filtros.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-564.mjs` (nueva), `test-tanda-418.mjs`
+(el botón nuevo) y `test-tanda-449.mjs` (ocho grupos).
+
+**Pasado**: 564, 299, 305, 310, 311, 312, 313, 315, 383, 418, 447, 449,
+472, 485, 524, 541, 547, 562, 563 y `test-imports.mjs`.
+
 ## 2026-10-05 (noche, 21:30) — PINGU-Claude (563 — versión, gradeo, cambio y de quién es el precio)
 
 **De dónde sale**: cuatro peticiones de PINGU sobre la ficha de una carta

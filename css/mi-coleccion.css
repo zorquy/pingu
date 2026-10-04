@@ -1123,6 +1123,16 @@
   color: var(--blanco-fijo);
 }
 
+/* Los botones de añadir, uno por versión (tanda 564). En columna y no en
+   fila: con dos o tres versiones, los nombres son largos («Reverse holo»)
+   y en el móvil una fila los partiría por la mitad. */
+.mc-anadir-versiones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-xs);
+}
+
 /* La chapa del gradeo, con el color de la casa (tanda 563). El porqué de
    que no sean los logos, en SCHEMA.md. Sin casa reconocida se queda con
    el hielo de las demás, que es lo que había. */

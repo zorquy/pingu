@@ -73,3 +73,23 @@ export function tieneVarias(carta) {
 export function nombreDeVariante(id) {
   return EQUIVALE.find((e) => e.nuestro === id)?.nombre || 'Normal'
 }
+
+// En qué versión se añade una carta cuando NADIE ha dicho cuál (tanda
+// 564).
+//
+// Era la cadena `'normal'`, escrita a mano en cuatro sitios, y estaba mal
+// en todas las cartas que no tienen normal — que son muchísimas: una
+// ultra rara, una full art y una secreta solo existen en holo. El «+» del
+// álbum las guardaba como NORMALES, sin dar ningún error y sin que se
+// note: la chapa de versión solo sale cuando no es la normal, así que la
+// casilla se quedaba igual que una bien puesta.
+//
+// Las casillas por versión nunca pasaron por aquí —llevan la suya en el
+// `data-var`—, y por eso el fallo se escondió: justo las cartas de las
+// que se ofrecen varias versiones son las que lo hacían bien.
+//
+// Lo que NO se sabe sigue siendo normal: una carta sin engordar no dice
+// nada de sus versiones, y la normal es la que existe casi siempre.
+export function varianteDeCarta(carta) {
+  return variantesDeCarta(carta)[0]?.nuestro || VARIANTE_POR_DEFECTO
+}

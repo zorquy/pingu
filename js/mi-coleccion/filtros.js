@@ -8,6 +8,9 @@
 // rótulo: si el filtro mira una columna y la ficha otra, el chip dice una
 // rareza y la carta de al lado dice otra.
 import { rarezaCrudaDeCarta } from '../rarezas-nombres.js'
+// Y `gradeo.js`, por lo mismo: no importa nada, así que esto se sigue
+// probando en Node (tanda 564).
+import { casaDe, leerGradeo, OTRA } from './gradeo.js'
 import { nombreDeSet } from '../catalogo-series.js'
 //
 // PINGU, con Dex delante: «ordenado por fecha de salida, nombre,
@@ -140,6 +143,21 @@ export const GRUPOS_FILTRO = [
   // Aquí SÍ hay dos cajones de verdad y no un «no se sabe»: una nota la
   // escribes tú, así que «sin nota» es un hecho y no una laguna.
   { id: 'notas', nombre: 'Notas', de: (l) => [String(l.notas || '').trim() ? 'Con nota' : 'Sin nota'] },
+  // Por casa, no por nota (tanda 564). «Mis PSA» es la pregunta que se
+  // hace; «mis PSA 10» ya la contesta mirar los cuatro que salen. Y antes
+  // de la 563 esto no se podía ni plantear: el gradeo era texto libre, así
+  // que los chips habrían sido «CGC 10», «cgc10» y «Beckett 9'5» como tres
+  // cosas distintas. Como las notas, aquí «Sin gradear» es un HECHO y no
+  // una laguna: el gradeo lo escribes tú.
+  {
+    id: 'gradeo',
+    nombre: 'Gradeo',
+    de: (l) => {
+      if (!String(l.gradeo || '').trim()) return ['Sin gradear']
+      const { casa } = leerGradeo(l.gradeo)
+      return [casa === OTRA || !casa ? 'Otra casa' : casaDe(casa).nombre]
+    },
+  },
 ]
 
 export function pasaLosFiltros(linea, carta, filtros, ayudas) {

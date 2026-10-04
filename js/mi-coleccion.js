@@ -58,7 +58,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { especiePorDex } from './pokedex-especies.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
@@ -306,6 +306,27 @@ function idiomaDeLaVista() {
 // abrir una carta apuntada como «1.ª edición» de un set que TCGdex dice
 // que no las tiene se la habría cambiado a «normal» sin que nadie lo
 // pidiera. Y lo que no se sabe se ofrece entero: ver `variantes.js`.
+// Los botones de añadir una carta que no tienes (tanda 564): uno por
+// versión de ESA carta, y debajo con qué idioma y en qué estado va a
+// entrar. Las tres cosas las decidía la pantalla sin decirlo.
+function pintarAnadirVersiones(cardId, carta) {
+  const caja = $('mcEdAnadirVersiones')
+  if (!caja) return
+  const vs = variantesDeCarta(carta, TODAS_LAS_VARIANTES)
+  // Con una sola versión no se nombra: «Añadir a mi colección» dice todo
+  // lo que hay que decir, y poner «Añadir normal» en el 90 % de las
+  // cartas sería un detalle que no distingue nada.
+  caja.innerHTML = vs
+    .map((v) => `<button type="button" class="btn-primary" data-anadir-ficha="${escapeHtml(cardId)}" data-var="${escapeHtml(v.nuestro)}">${vs.length === 1 ? 'Añadir a mi colección' : `Añadir ${escapeHtml(v.nombre.toLowerCase())}`}</button>`)
+    .join('')
+  // Y con qué. El idioma y el estado salen de los dos desplegables del
+  // álbum, que desde la Pokédex o desde Buscar no se ven: decirlo es la
+  // diferencia entre elegir y que elijan por ti. Se puede cambiar justo
+  // después, porque la ficha se queda abierta ya como tuya.
+  const con = $('mcEdAnadirCon')
+  if (con) con.textContent = `Entrará en ${idiomaDe($('mcTocarIdioma')?.value || idiomaDeLaVista()).nombre.toLowerCase()} y en ${estadoDe($('mcTocarEstado')?.value || ESTADO_POR_DEFECTO).nombre}. Lo puedes cambiar aquí mismo al añadirla.`
+}
+
 function variantesParaEditar(carta, variante) {
   const hay = variantesDeCarta(carta, TODAS_LAS_VARIANTES).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
   if (!variante || hay.some((v) => v.id === variante)) return hay
@@ -1449,7 +1470,11 @@ function abrirCarta(cardId, carta = null) {
   // El idioma de una carta NUEVA sale del catálogo que miras, no de la
   // primera opción de la lista (tanda 472): en el catálogo japonés
   // `IDIOMAS[0]` es el español, y una carta japonesa en español no existe.
-  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: idiomaDeLaVista(), estado: ESTADOS[0]?.id, variante: 'normal' })
+  // La versión y el estado, los de VERDAD (tanda 564): `ESTADOS[0]` es
+  // Mint, no Near Mint, así que la ficha de una carta que no tienes
+  // enseñaba un estado que no es con el que se iba a añadir; y la versión
+  // era «normal» aunque la carta solo exista en holo.
+  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: idiomaDeLaVista(), estado: ESTADO_POR_DEFECTO, variante: varianteDeCarta(encontrada) })
 }
 
 function abrirEditor(l) {
@@ -1460,7 +1485,7 @@ function abrirEditor(l) {
   const tuya = Boolean(l.id)
   $('mcEdCopiaBloque')?.classList.toggle('hidden', !tuya)
   $('mcEdAnadirBloque')?.classList.toggle('hidden', tuya || !esMia)
-  $('mcEdAnadirCarta')?.setAttribute('data-carta', l.card_id)
+  if (!tuya && esMia) pintarAnadirVersiones(l.card_id, c)
   // La carta, a la vista (tanda 369): el escaneo, el nombre y de qué
   // colección es. Antes la ventana solo decía el nombre en un título, y
   // con dos impresiones de la misma carta en la colección no había forma
@@ -2300,7 +2325,10 @@ function bolsilloHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id)}>${dentro}</a>`
+  // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
+  // 564): de esta clave sale lo que `guardarMarcadas` escribe en la base,
+  // así que marcar veinte ultra raras las guardaba las veinte en «normal».
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, varianteDeCarta(c))}>${dentro}</a>`
   if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
   // El número de copias vive DENTRO del mando y no suelto en una
   // esquina: así lo que dice cuántas tienes está pegado a lo que lo
@@ -2320,11 +2348,17 @@ function bolsilloHtml(c) {
         })
         .join('')}</span>`
     : ''
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id)} mc-bolsillo-con-mando">${enlace}${versiones}
+  // El «+» lleva la versión DE LA CARTA (tanda 564) y el «−» no lleva
+  // ninguna, a propósito: la cuenta de al lado suma todas las versiones,
+  // así que el «−» tiene que poder quitar lo que esa cuenta cuenta. Y
+  // además quedan por ahí líneas de las que la 564 viene a evitar
+  // —guardadas como «normal» en cartas que no tienen normal—: con la
+  // versión puesta, el «−» no las encontraría y no haría nada.
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, varianteDeCarta(c))} mc-bolsillo-con-mando">${enlace}${versiones}
     <span class="mc-bolsillo-controles mc-bolsillo-mando">
       <button type="button" data-quitar="${escapeHtml(c.id)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}">−</button>
       <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
-      <button type="button" data-anadir="${escapeHtml(c.id)}" aria-label="Añadir una copia de ${escapeHtml(nombre)}">+</button>
+      <button type="button" data-anadir="${escapeHtml(c.id)}" data-var="${escapeHtml(varianteDeCarta(c))}" aria-label="Añadir una copia de ${escapeHtml(nombre)}">+</button>
     </span></div>`
 }
 
@@ -4307,10 +4341,12 @@ function enganchar() {
   }
 
   // ── La nota, plegada (tanda 405) ──
-  $('mcEdAnadirCarta').addEventListener('click', async () => {
-    const id = $('mcEdAnadirCarta').dataset.carta
+  $('mcEdAnadirVersiones').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-anadir-ficha]')
+    if (!b) return
+    const id = b.dataset.anadirFicha
     if (!id) return
-    await tocarBolsillo(id)
+    await tocarBolsillo(id, b.dataset.var)
     // Y la ficha se queda abierta, ya como TUYA: lo que se acaba de
     // hacer es tener la carta, no cerrar una ventana.
     const nueva = lineas.find((x) => x.card_id === id)
