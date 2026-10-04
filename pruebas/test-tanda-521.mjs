@@ -155,7 +155,7 @@ const conPuzle = (quien = 'user-2', extra = {}) =>
   await page.waitForSelector('#repPuzle .rep-puzle-solucion', { timeout: 5000 }).catch(() => null)
   const sol = (await page.textContent('#repPuzle')).replace(/\s+/g, ' ')
   check('al elegir mal: lo dice, cuál era la buena y por qué', /No: la buena era «Jugar Órdenes de Jefes»/.test(sol) && /Con Jefes se cogen los dos últimos premios/.test(sol), sol.slice(0, 300))
-  check('  …y qué eligió la gente (con tu respuesta ya contada)', /1 respuesta/.test(sol) && /Atacar\s*100 %/.test(sol), sol.slice(0, 400))
+  check('  …y qué eligió la gente (con tu respuesta ya contada)', /1 respuesta/.test(sol) && /Atacar \(la tuya\)\s*100 %/.test(sol), sol.slice(0, 400))
   const rpc = await page.evaluate(() => window.__RPCS__.find((r) => r.nombre === 'puzles_responder')?.args)
   check('  …contestado por la función', rpc?.p_puzle === PUZLE.id && rpc.p_opcion === 1)
   await page.click('#repPuzle [data-accion="verComoSiguio"]')

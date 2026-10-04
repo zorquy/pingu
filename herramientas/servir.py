@@ -19,7 +19,23 @@ REESCRITURAS = [
     (re.compile(r'^/guia/[^/]+$'), '/guia.html'),
 ]
 
+# Y las REDIRECCIONES (302) de netlify.toml (tanda 591): los enlaces cortos.
+REDIRECCIONES = [
+    (re.compile(r'^/rep/([^/?#]+)$'), '/repeticiones?r={}'),
+    (re.compile(r'^/lab/([^/?#]+)$'), '/constructor?pos={}'),
+]
+
 class H(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        limpio = self.path.split('?')[0].split('#')[0]
+        for patron, destino in REDIRECCIONES:
+            m = patron.match(limpio)
+            if m:
+                self.send_response(302)
+                self.send_header('Location', destino.format(m.group(1)))
+                self.end_headers()
+                return
+        return super().do_GET()
     def translate_path(self, path):
         limpio = path.split('?')[0].split('#')[0]
         for patron, destino in REESCRITURAS:

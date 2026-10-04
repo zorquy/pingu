@@ -257,7 +257,9 @@ const irA = (page, f) =>
   const premio = lectura.eventos.find((e, k) => k > ko && e.tipo === 'premio')
   await irA(page, ko + 1)
   await page.click('[data-accion="jugar"]')
-  const pide = await page.waitForFunction((j) => new RegExp(`${j}: coge 1 premio`).test(document.getElementById('labDialogo')?.textContent || ''), premio.jugador, { timeout: 10000 }).then(() => true).catch(() => false)
+  // Desde la 594 los premios se cogen tocándolos en la mesa: lo pide la
+  // barra de abajo, y no una ventana.
+  const pide = await page.waitForFunction((j) => new RegExp(`${j}: coge 1 premio`).test(document.querySelector('#labApuntar.lab-elegir-barra:not(.hidden)')?.textContent || ''), premio.jugador, { timeout: 10000 }).then(() => true).catch(() => false)
   check('desde la jugada de un KO, la mesa pide coger sus premios', pide)
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()

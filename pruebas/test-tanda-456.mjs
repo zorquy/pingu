@@ -606,28 +606,30 @@ const slotsPropios = (page) => page.locator('#labLadoPropio [data-slot-carta]').
   check('  …y se queda con su energía', (await page.locator(`#labLadoPropio [data-slot="${cual}"] .lab-energia`).count()) === 1)
   check('  …y el Drakloak sale de la mano', (await cuantas(page, 'Drakloak')) === drakAntes - 1)
 
-  // Una ventana que HAY que contestar (quién sube de activo, coger un
+  // Una elección que HAY que contestar (quién sube de activo, coger un
   // premio) no se va con Escape ni tocando fuera: se quedaba la jugada a
-  // medias y la mesa entera bloqueada.
+  // medias y la mesa entera bloqueada. Desde la tanda 594 se contesta en
+  // la mesa, con la barra de abajo, y no en una ventana.
   await page.locator('#labLadoPropio .lab-zona-activo [data-slot-carta]').click()
   await page.locator('#labMenu [data-op]', { hasText: 'Poner o quitar daño' }).click()
   await page.locator('#labDialogo input[type="number"]').fill('990')
   await page.click('#labDialogo [data-dlg="ok"]')
   await page.waitForTimeout(250)
-  const obligada = await page.locator('#labDialogoTitulo').innerText()
+  const barra = page.locator('#labApuntar.lab-elegir-barra:not(.hidden)')
+  const obligada = await barra.locator('.lab-elegir-titulo').innerText().catch(() => '')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(150)
-  check('una ventana que hay que contestar no se va con Escape', (await page.locator('#labVelo:not(.hidden)').count()) === 1 && (await page.locator('#labDialogoTitulo').innerText()) === obligada, obligada)
-  await page.locator('#labVelo').click({ position: { x: 4, y: 4 } })
+  check('una elección que hay que contestar no se va con Escape', (await barra.count()) === 1 && (await barra.locator('.lab-elegir-titulo').innerText()) === obligada && !!obligada, obligada)
+  await page.locator('#labCentro').click({ position: { x: 4, y: 4 } })
   await page.waitForTimeout(150)
-  check('  …ni tocando fuera', (await page.locator('#labVelo:not(.hidden)').count()) === 1)
-  for (let k = 0; k < 4 && (await page.locator('#labVelo:not(.hidden)').count()); k++) {
-    await page.locator('#labDialogo [data-elige]').first().click()
+  check('  …ni tocando fuera', (await barra.count()) === 1)
+  for (let k = 0; k < 4 && (await barra.count()); k++) {
+    await page.locator('[data-elegir]').first().click()
     await page.waitForTimeout(100)
-    if (await page.locator('#labVelo:not(.hidden) #labDialogo [data-dlg="ok"]:not([disabled])').count()) await page.click('#labDialogo [data-dlg="ok"]')
+    if (await page.locator('[data-elegir-accion="ok"]:not([disabled])').count()) await page.click('[data-elegir-accion="ok"]')
     await page.waitForTimeout(200)
   }
-  check('  …y contestada, la mesa sigue: el otro ha cogido su premio', (await page.locator('#labVelo.hidden').count()) === 1 && /5 premios/.test(await page.locator('#labLadoRival .lab-zona-premios').innerText()))
+  check('  …y contestada, la mesa sigue: el otro ha cogido su premio', (await barra.count()) === 0 && /5 premios/.test(await page.locator('#labLadoRival .lab-zona-premios').innerText()))
   await page.click('[data-accion="pasar"]')
   await page.waitForTimeout(250)
   check('  …y se puede terminar el turno', /Jugador 2/.test(await turno(page)))

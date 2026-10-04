@@ -258,10 +258,15 @@ let enlaceLargo = null
   check('mirar NO manda la partida a ninguna parte (ni guarda, ni escribe)', (await rpcs(page, 'repeticiones_guardar')) === 0 && escritas === 0)
   check('«Tus repeticiones» invita a entrar', /Entra en tu cuenta para guardar/.test(await page.textContent('#repGuardadasCuerpo')))
   await page.click('[data-accion="compartir"]')
-  enlaceLargo = await enlaceDelDialogo(page)
-  check('sin cuenta, compartir da el enlace que LLEVA la partida', /\/repeticiones#p=[A-Za-z0-9_-]+$/.test(enlaceLargo), enlaceLargo.slice(0, 60))
-  check('  …y lo dice, y ofrece entrar para que salga corto', /lleva la partida DENTRO/.test(await page.textContent('#repCompartirNota')) && (await page.locator('#repDialogo a[href^="/auth.html"]').count()) === 2)
-  check('  …sin guardar nada', (await rpcs(page, 'repeticiones_guardar')) === 0)
+  // Desde la 591, sin cuenta sale CORTO (la partida comprimida se guarda
+  // en enlaces_cortos), y el largo de siempre queda a un botón.
+  const cortoSinCuenta = await enlaceDelDialogo(page)
+  check('sin cuenta, compartir da un enlace CORTO (/rep/ y ocho letras)', /\/rep\/[a-z2-9]{8}$/.test(cortoSinCuenta), cortoSinCuenta)
+  check('  …y lo dice, y ofrece entrar', /se guarda en PokeDoc \(sin ningún dato tuyo\)/.test(await page.textContent('#repCompartirNota')) && (await page.locator('#repDialogo a[href^="/auth.html"]').count()) === 2)
+  await page.click('[data-dlg="largo"]')
+  enlaceLargo = await page.inputValue('#repEnlace')
+  check('«Usar el enlace largo» da el que LLEVA la partida', /\/repeticiones#p=[A-Za-z0-9_-]+$/.test(enlaceLargo) && /lleva la partida DENTRO/.test(await page.textContent('#repCompartirNota')), enlaceLargo.slice(0, 60))
+  check('  …sin guardar nada en las repeticiones', (await rpcs(page, 'repeticiones_guardar')) === 0)
   await page.click('[data-dlg="copiar"]')
   await page.waitForTimeout(200)
   check('«Copiar» lo deja en el portapapeles', (await page.evaluate(() => navigator.clipboard.readText())) === enlaceLargo)
@@ -337,7 +342,7 @@ let idGuardada = null
   // Compartir con cuenta: el enlace corto.
   await page.click('[data-accion="compartir"]')
   const corto = await enlaceDelDialogo(page)
-  check('con cuenta, compartir da el enlace CORTO', corto.endsWith(`/repeticiones?r=${idGuardada}`), corto)
+  check('con cuenta, compartir da el enlace CORTO (/rep/, tanda 591)', corto.endsWith(`/rep/${idGuardada}`), corto)
   check('  …y la marca como compartida (cabecera y lista)', (await page.textContent('#repNombre')).includes('Compartida') && /Compartida/.test(await page.textContent('.rep-item')))
   await page.click('[data-dlg="dejar"]')
   await cerrado(page)
@@ -346,7 +351,7 @@ let idGuardada = null
   // Desde la lista: «Compartir» la comparte y copia el enlace.
   await page.click('.rep-item [data-copiar]')
   await page.waitForTimeout(400)
-  check('«Compartir» en la lista la comparte y copia su enlace', (await page.evaluate(() => navigator.clipboard.readText())).endsWith(`/repeticiones?r=${idGuardada}`) && /Compartida/.test(await page.textContent('.rep-item')))
+  check('«Compartir» en la lista la comparte y copia su enlace', (await page.evaluate(() => navigator.clipboard.readText())).endsWith(`/rep/${idGuardada}`) && /Compartida/.test(await page.textContent('.rep-item')))
   // Borrar: dos toques.
   await page.click('.rep-item [data-borrar]')
   check('borrar pide un segundo toque', /Seguro/.test(await page.textContent('.rep-item [data-borrar]')) && (await page.locator('.rep-item').count()) === 1)
@@ -363,7 +368,7 @@ let idGuardada = null
   check('el enlace corto abre la partida a quien no es su dueño', await sala(page))
   check('  …con su título, y «Guardar» (para quedarse una copia)', (await page.textContent('#repNombre')).includes('La final del barrio') && (await page.textContent('[data-accion="guardar"]')).trim() === 'Guardar')
   await page.click('[data-accion="compartir"]')
-  check('compartirla otra vez da EL MISMO enlace, sin guardar nada', (await enlaceDelDialogo(page)).endsWith('/repeticiones?r=1a2b3c4d5e') && (await rpcs(page, 'repeticiones_guardar')) === 0)
+  check('compartirla otra vez da EL MISMO enlace, sin guardar nada', (await enlaceDelDialogo(page)).endsWith('/rep/1a2b3c4d5e') && (await rpcs(page, 'repeticiones_guardar')) === 0)
   await ctx.close()
   const privada = await pagina({ url: '/repeticiones.html?r=1a2b3c4d5e', antes: { __FAKE_REPETICIONES__: [{ ...fila, compartida: false }] } })
   await privada.page.waitForTimeout(800)
@@ -375,7 +380,7 @@ let idGuardada = null
 }
 {
   // Sin la migración puesta: guardar lo dice; compartir da el largo.
-  const { page, ctx } = await pagina({ quien: 'user-1', antes: { __SIN_RPC__: ['repeticiones_guardar', 'repeticiones_leer'], __SIN_TABLAS__: ['replays'] } })
+  const { page, ctx } = await pagina({ quien: 'user-1', antes: { __SIN_RPC__: ['repeticiones_guardar', 'repeticiones_leer', 'enlace_corto_crear'], __SIN_TABLAS__: ['replays'] } })
   await sala(page)
   await page.click('[data-accion="guardar"]')
   await page.click('#repFormGuardar [type=submit]')

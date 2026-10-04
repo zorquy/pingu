@@ -385,9 +385,10 @@ console.log('\n── 10. Los detalles ──')
   await page.locator('#labDialogo input[type="number"]').fill('990')
   await page.click('#labDialogo [data-dlg="ok"]')
   await page.waitForTimeout(300)
-  for (let k = 0; k < 3 && (await page.locator('#labVelo:not(.hidden) [data-elige]').count()); k++) {
-    await page.locator('#labDialogo [data-elige]').first().click()
-    if (await page.locator('#labDialogo [data-dlg="ok"]:not([disabled])').count()) await page.click('#labDialogo [data-dlg="ok"]')
+  // Los premios se cogen tocándolos en la mesa (tanda 594).
+  for (let k = 0; k < 3 && (await page.locator('[data-elegir]').count()); k++) {
+    await page.locator('[data-elegir]').first().click()
+    if (await page.locator('[data-elegir-accion="ok"]:not([disabled])').count()) await page.click('[data-elegir-accion="ok"]')
     await page.waitForTimeout(200)
   }
   check('al ganar, la ventana del final lleva su copa', (await page.locator('#labFin:not(.hidden) .lab-fin-icono svg').count()) === 1 && /Victoria/.test(await page.locator('#labFin').innerText()))

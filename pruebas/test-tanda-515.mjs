@@ -164,6 +164,10 @@ async function pagina(url, { cartas = catalogo, sets = [{ id: 'fk', name: 'FK', 
     // no, una consulta que NO pide una columna la recibe igual y aquí no se
     // nota que falta (el tipo de entrenador, por ejemplo).
     window.__PROYECTAR__ = ['tcg_cards']
+    // El enlace LARGO (lo que prueba esta tanda): el corto de la 591 se
+    // guarda en la base del doble, que es de cada pestaña, y abrirlo en
+    // otra no lo encontraría. El corto lo prueba la 591.
+    window.__SIN_RPC__ = ['enlace_corto_crear']
     if (prefs) localStorage.setItem('pokedoc-laboratorio', JSON.stringify(prefs))
   }, { cartas, sets, prefs })
   await page.goto(`${BASE}${url}`, { waitUntil: 'domcontentloaded' })

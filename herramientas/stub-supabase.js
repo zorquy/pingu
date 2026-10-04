@@ -82,8 +82,13 @@ const T = {
   // el doble no los tenía y la ficha salía siempre «Mazo no encontrado».
   meta_arquetipos: [],
   meta_guias: [],
+  // Las cartas de las listas del meta, sumadas por día: de ahí sale qué
+  // impresión de un Pokémon se juega de verdad en una repetición.
+  meta_cartas_dia: [],
   // Los puzles (tanda 521) y sus respuestas.
   replay_puzzles: [],
+  // Los enlaces cortos (tanda 591): solo por sus dos funciones.
+  enlaces_cortos: [],
   replay_puzzle_answers: [],
   match_log: [],
   match_log_torneos: [],
@@ -679,6 +684,25 @@ sembrar('__FAKE_PUZLES__', 'replay_puzzles', (i) => ({
   correcta: 0,
   explicacion: 'Porque sí.',
   created_at: new Date(Date.now() - (i + 1) * 60e3).toISOString(),
+}))
+
+sembrar('__FAKE_ENLACES_CORTOS__', 'enlaces_cortos', (i) => ({
+  id: `corto${String(i + 1).padStart(3, '0')}`,
+  tipo: 'repeticion',
+  carga: 'p=AAAA',
+  creado_at: new Date().toISOString(),
+}))
+
+sembrar('__FAKE_META_CARTAS__', 'meta_cartas_dia', (i) => ({
+  dia: new Date(Date.now() - i * 864e5).toISOString().slice(0, 10),
+  arquetipo: 'arq-1',
+  seccion: 'pokemon',
+  clave: `carta-${i + 1}`,
+  nombre: `Carta ${i + 1}`,
+  set_codigo: 'SET',
+  numero: String(i + 1),
+  mazos: 1,
+  copias: 1,
 }))
 
 sembrar('__FAKE_META_ARQUETIPOS__', 'meta_arquetipos', (i) => ({
@@ -1288,6 +1312,10 @@ export const supabase = {
     // la base dice que no es justo lo que una prueba de «éxito» nunca ve.
     const fallos = (typeof window !== 'undefined' && window.__RPC_ERRORES__) || {}
     if (nombre in fallos) return { data: null, error: fallos[nombre] }
+    // Hacer TARDAR una función (tanda 596): lo que llega tarde a una
+    // ventana que ya no es la suya solo se ve si algo llega tarde.
+    const retraso = (typeof window !== 'undefined' && window.__RPC_RETRASO__?.[nombre]) || 0
+    if (retraso) await new Promise((ok) => setTimeout(ok, retraso))
     // Los resultados de una encuesta se CALCULAN de las tablas, como en
     // Postgres. Devolverlos a mano desde cada prueba haría que «no se
     // enseñan los resultados antes de votar» comprobara la semilla y no
@@ -1651,6 +1679,27 @@ export const supabase = {
 
     // La repetición DE MESA (tanda 555): la añade y la quita quien lleva el
     // torneo o un juez aprobado, con las mismas puertas que la función.
+    // Los enlaces cortos (tanda 591), con las puertas de las funciones de
+    // verdad: la forma, el tamaño y la misma carga, el mismo id.
+    if (nombre === 'enlace_corto_crear') {
+      const tipo = args.p_tipo
+      const carga = String(args.p_carga || '')
+      const no = (message) => ({ data: null, error: { code: '22023', message } })
+      if (!['repeticion', 'posicion'].includes(tipo)) return no('Ese tipo de enlace no existe.')
+      if (carga.length < 8 || carga.length > 60000) return no('Eso no cabe en un enlace corto: usa el largo.')
+      if ((tipo === 'repeticion' && !/^(p|t)=[A-Za-z0-9_-]+$/.test(carga)) || (tipo === 'posicion' && !/^pos=[A-Za-z0-9_-]+$/.test(carga))) return no('Eso no es un enlace de PokeDoc.')
+      const ya = T.enlaces_cortos.find((e) => e.tipo === tipo && e.carga === carga)
+      if (ya) return { data: ya.id, error: null }
+      const letras = 'abcdefghjkmnpqrstuvwxyz23456789'
+      const id = Array.from({ length: 8 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')
+      T.enlaces_cortos.push({ id, tipo, carga, creado_at: new Date().toISOString() })
+      return { data: id, error: null }
+    }
+    if (nombre === 'enlace_corto_leer') {
+      const e = T.enlaces_cortos.find((x) => x.id === args.p_id)
+      return { data: e ? [{ tipo: e.tipo, carga: e.carga }] : [], error: null }
+    }
+
     if (nombre === 'torneos_juez_adjuntar_repeticion' || nombre === 'torneos_juez_quitar_repeticion') {
       const yo = sesion?.user?.id
       const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
