@@ -144,7 +144,22 @@ export default async () => {
     if (clave) await guardarInforme(clave, resumen)
     return new Response(JSON.stringify(resumen), { status: r.estado, headers: { 'content-type': 'application/json' } })
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e?.message || e) }), { status: 500, headers: { 'content-type': 'application/json' } })
+    // ── UN FALLO QUE NO DEJA RASTRO ES UN SILENCIO (tanda 531) ──
+    //
+    // Esto se vio en el panel de PINGU: la fila `sets-jp` no estaba, y eso
+    // puede querer decir tres cosas distintas —todavía no ha corrido, ha
+    // corrido y ha fallado, o ha corrido y no ha podido escribir el
+    // informe— que desde fuera se ven EXACTAMENTE IGUAL. Es la familia de
+    // la 510 otra vez: un hueco que se lee como una respuesta.
+    //
+    // Así que el fallo también se apunta, con su hora. Y va con
+    // `cuando` como todos, lo que además hace que el freno de las veinte
+    // horas cuente igual para un fallo: una pasada que revienta siempre no
+    // puede volver a intentarlo cada diez minutos.
+    const fallo = String(e?.message || e)
+    const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (clave) await guardarInforme(clave, { error: fallo.slice(0, 300), cuando: new Date().toISOString() })
+    return new Response(JSON.stringify({ error: fallo }), { status: 500, headers: { 'content-type': 'application/json' } })
   }
 }
 

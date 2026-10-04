@@ -4,6 +4,45 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 10:05) — PINGU-Claude (531 — una fila que no está puede querer decir tres cosas)
+
+**Hecho**: en el panel de PINGU, a los diez minutos de empujar el
+emparejamiento japonés, la fila `sets-jp` **no estaba**. Y eso, desde fuera,
+es idéntico en tres casos que no se parecen en nada: todavía no ha corrido,
+ha corrido y ha reventado, o ha corrido bien y no ha podido escribir el
+informe.
+
+La causa era tonta y la tenía escrita en tres normas: el `catch` devolvía el
+error **en la respuesta HTTP**, y la respuesta HTTP de una función PROGRAMADA
+no la lee nadie — va a los registros de Netlify, que es tanto como no
+tenerla. Ahora el fallo se apunta en `scrydex_estado` con su hora, igual que
+el éxito.
+
+Y la hora no es decoración: es la que frena la pasada siguiente. Sin ella,
+una pasada que revienta siempre lo reintentaría **cada diez minutos**.
+
+**El occidental tenía el mismo agujero**: lleva desde anoche con 24 sets sin
+emparejar y ninguna forma de ver por qué sin entrar en los registros. Ahora
+deja su informe en `sets-west`, con los EJEMPLOS, que es lo único que se
+puede arreglar: «sin emparejar: 24» no dice nada, «svp — ninguno suyo con
+esa fecha y esa cuenta» sí.
+
+**Y el doble de la prueba se inventó un fallo**: contestaba lo mismo a
+nuestra base y a la suya, y la función reventaba con «(filas || []).find is
+not a function» — un error que en producción no puede pasar, guardado en el
+informe como si fuera real. Nuestra base contesta LISTAS y la suya OBJETOS.
+Es la lección de la 437 con una vuelta de tuerca: un doble más simple no
+solo esconde fallos, también se los inventa.
+
+**Ficheros**: `netlify/functions/scrydex-logos.mjs`,
+`netlify/functions/scrydex-logos-jp.mjs`. En `pruebas`:
+`pruebas/test-tanda-531.mjs`.
+
+**Estado del relleno occidental**: TERMINADO a las 09:46 (`barridos: 1`).
+**18.689 de 21.476 cartas visitadas, 87%**. Las ~2.800 que faltan son de los
+24 sets que no están emparejados y de cartas nuestras que su catálogo no
+tiene; el informe de `sets-west` dirá cuáles en la próxima pasada.
+
 ## 2026-10-04 (mañana, 10:00) — PINGU-Claude (529 y 530 — tres rarezas más, y los LOGOS JAPONESES)
 
 **529, las rarezas**: el informe sacó tres con cartas detrás —32, 5 y 1— y

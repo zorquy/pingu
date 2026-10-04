@@ -58,6 +58,30 @@ async function quedaAlgoPorEmparejar(clave) {
 //
 // El emparejamiento inicial (167 sets) ya se hizo la noche del 2026-10-04.
 
+// El INFORME de la pasada, donde lo lee el panel (tanda 531). Sin esto, el
+// occidental lleva desde anoche con 24 sets sin emparejar y ninguna forma
+// de saber por qué sin entrar en los registros de Netlify — que es tanto
+// como no tenerla.
+const CLAVE_ESTADO = 'sets-west'
+
+async function guardarInforme(clave, valor) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/scrydex_estado`, {
+      method: 'POST',
+      headers: {
+        apikey: clave,
+        authorization: `Bearer ${clave}`,
+        'content-type': 'application/json',
+        prefer: 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify([{ clave: CLAVE_ESTADO, valor, updated_at: new Date().toISOString() }]),
+    })
+  } catch {
+    // Que no se pueda apuntar el informe no tira la pasada: el trabajo ya
+    // está hecho y escrito donde importa.
+  }
+}
+
 export default async () => {
   try {
     // Si no queda ni un set sin emparejar, ni se le pregunta a Scrydex.
@@ -70,17 +94,28 @@ export default async () => {
       })
     }
     const r = await procesarSets({ mercado: 'WEST', idioma: 'en', escribir: true })
-    return new Response(JSON.stringify({
+    const resumen = {
       escritas: r.cuerpo?.escritas,
       confirmados: r.cuerpo?.confirmados,
       porQueSeConfirman: r.cuerpo?.porQueSeConfirman,
       sinEmparejar: r.cuerpo?.sinEmparejar,
       porQueNoSeEmparejan: r.cuerpo?.porQueNoSeEmparejan,
+      // LOS EJEMPLOS SON LO ÚNICO QUE SE PUEDE ARREGLAR: «sin emparejar:
+      // 24» no dice nada; «svp — ninguno suyo con esa fecha y esa cuenta»
+      // dice por dónde se empieza.
+      ejemplosSinEmparejar: r.cuerpo?.ejemplosSinEmparejar,
       rechazados: r.cuerpo?.rechazados,
       sinConfirmar: r.cuerpo?.sinConfirmar,
-    }), { status: r.estado, headers: { 'content-type': 'application/json' } })
+      cuadraLaCuenta: r.cuerpo?.cuadraLaCuenta,
+      cuando: new Date().toISOString(),
+    }
+    if (clave) await guardarInforme(clave, resumen)
+    return new Response(JSON.stringify(resumen), { status: r.estado, headers: { 'content-type': 'application/json' } })
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e?.message || e) }), { status: 500, headers: { 'content-type': 'application/json' } })
+    const fallo = String(e?.message || e)
+    const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (clave) await guardarInforme(clave, { error: fallo.slice(0, 300), cuando: new Date().toISOString() })
+    return new Response(JSON.stringify({ error: fallo }), { status: 500, headers: { 'content-type': 'application/json' } })
   }
 }
 
