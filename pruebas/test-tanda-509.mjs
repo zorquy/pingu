@@ -280,7 +280,7 @@ console.log('\n── 4. Y que de verdad trabaje SOLA ──')
   const logos = readFileSync('/home/user/pingu/netlify/functions/scrydex-logos.mjs', 'utf8')
   // SIN ESTO NO PASA NADA DE NOCHE, que es el motivo entero de la tanda.
   check('el relleno está PROGRAMADO', /export const config = \{ schedule: '\*\/5 \* \* \* \*' \}/.test(relleno))
-  check('los logos también', /export const config = \{ schedule: '7 \* \* \* \*' \}/.test(logos))
+  check('los logos también están programados', /export const config = \{ schedule: '7 7 \* \* \*' \}/.test(logos), (logos.match(/schedule:.*/) || [''])[0])
   check('la clave no está escrita en el código', !/SCRYDEX_API_KEY\s*=\s*['"]/.test(relleno))
   // No inserta: solo escribe filas que ya existen (todas llevan la clave
   // primaria entera y salen de una consulta nuestra).
@@ -291,6 +291,13 @@ console.log('\n── 4. Y que de verdad trabaje SOLA ──')
   check('el relleno tiene tope de barridos', /BARRIDOS_MAXIMOS/.test(relleno))
   check('  …y pregunta antes si queda algo', /quedanPendientes/.test(relleno))
   check('los logos también frenan', /quedaAlgoPorEmparejar/.test(logos))
+  // Y FRENAN DE VERDAD (tanda 510): estaban cada HORA con un freno que
+  // pregunta «¿queda algún set sin emparejar?», y eso es verdad para
+  // siempre —las promos no se pueden emparejar nunca—, así que no frenaba:
+  // 3 créditos × 24 × 30 = 2.160 al mes de 5.000, para no cambiar nada.
+  // Un freno que pregunta «¿queda trabajo?» no frena si parte del trabajo
+  // es IMPOSIBLE; aquí se arregla bajando la frecuencia a diaria.
+  check('  …UNA VEZ AL DÍA y no cada hora', /schedule: '7 7 \* \* \*'/.test(logos), (logos.match(/schedule:.*/) || [''])[0])
 }
 {
   // El emparejamiento se GUARDA, que es lo que permite que el relleno no
