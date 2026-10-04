@@ -96,7 +96,13 @@ const doble = () => {
       // 2. Sin código nuestro: empareja por fecha+cuenta y se confirma
       //    con una CARTA. Y su logo es el RELLENO, así que el logo no se
       //    escribe pero el resto sí.
-      { id: 'promos', market: 'WEST', name: 'Promos', tcg_online_code: null, release_date: '2023-01-01', card_count_total: 60, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null },
+      // NUESTRO NOMBRE Y EL SUYO TIENEN QUE SER DISTINTOS AQUÍ (tanda
+      // 530), y es lo realista: el nuestro viene de TCGdex en español y el
+      // suyo está en inglés. Con los dos iguales, el par se confirma
+      // GRATIS por el nombre del set y ya no se pide la carta — que es
+      // una mejora, pero deja sin probar el camino de la Pokédex, que es
+      // justo lo que estas dos comprobaciones miran.
+      { id: 'promos', market: 'WEST', name: 'Promos del sello negro', tcg_online_code: null, release_date: '2023-01-01', card_count_total: 60, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null },
       // 3. Un par FALSO: empareja por fecha+cuenta y el código NO cuadra.
       //    No se escribe NADA de él.
       { id: 'ex5.5', market: 'WEST', name: 'Creadores de Leyendas', tcg_online_code: 'LM', release_date: '2006-02-13', card_count_total: 93, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null },
