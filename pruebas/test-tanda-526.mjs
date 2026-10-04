@@ -61,15 +61,22 @@ console.log('── 1. Qué exige la tabla ──')
 
 console.log('── 2. La fila del relleno las lleva TODAS ──')
 {
-  const nuestra = { id: 'sv10-001', market: 'WEST', set_id: 'sv10', local_id: '001', name: 'Pikachu', name_es: 'Pikachu' }
-  const suya = { id: 'sv10-1', name: 'Pikachu', number: '1', rarity: 'Rare', artist: 'A', hp: '60', national_pokedex_numbers: [25], expansion: { id: 'sv10', code: 'SV10' } }
+  // LOS DOS VALORES TIENEN QUE SER DISTINTOS o esto no prueba nada: con
+  // «Pikachu» a los dos lados, mandar el suyo y mandar el nuestro dan el
+  // mismo resultado y el rigor lo canta como «sin detectar». Y la
+  // diferencia importa de verdad: `name` es la CLAVE con la que se cruzan
+  // las decklists (tandas 334 y 335), y pisarla con la suya en TODAS las
+  // cartas —no solo en las ~1.890 que llevan el español mal metido— es
+  // justo lo que la 509 se cuidó de no hacer.
+  const nuestra = { id: 'sv10-001', market: 'WEST', set_id: 'sv10', local_id: '001', name: "Boss's Orders", name_es: 'Órdenes del Jefe' }
+  const suya = { id: 'sv10-1', name: 'Jefe mal traducido', number: '0001', rarity: 'Rare', artist: 'A', hp: '60', national_pokedex_numbers: [25], expansion: { id: 'sv10', code: 'SV10' } }
   const f = filaDeCartaConScrydex(nuestra, suya)
   const faltan = OBLIGATORIAS.filter((c) => f[c] === undefined || f[c] === null)
   check('ninguna columna obligatoria va vacía', faltan.length === 0, `faltan: ${faltan.join(', ')}`)
   // Y no son valores nuevos: son los que la fila YA tiene, repetidos para
   // que Postgres pueda formarla.
   check('`local_id` es el nuestro, no el suyo', f.local_id === '001', f.local_id)
-  check('`name` es el nuestro, no el suyo', f.name === 'Pikachu', f.name)
+  check('`name` es el nuestro, no el suyo', f.name === "Boss's Orders", f.name)
 }
 
 console.log('── 3. Y TODAS las sentencias que se mandan, no solo esa ──')
