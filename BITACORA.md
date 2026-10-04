@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (madrugada, 02:30) — PINGU-Claude (556 — por qué el japonés no traía NI UNA carta)
+
+**De dónde sale**: PINGU: «los sets japoneses los tenemos en orden y con
+los logos; el único problema es que no hay ninguna carta. Eso es
+importante. Y las eras están mal: la de Megaevolución se llama ME».
+
+**EL GORDO, y es mío**: `quedanPendientes` pregunta «¿queda alguna carta
+NUESTRA sin marcar?». Valía cuando el trabajo era enriquecer lo que ya
+teníamos. Desde la 547 el japonés se CALCA, y después del borrón había cero
+cartas japonesas: la respuesta fue «no queda ninguna por marcar» y la
+pasada se volvió a dormir **sin gastar un crédito y sin traer una sola
+carta, cada cinco minutos**, con el panel diciendo «hecho». En un catálogo
+que se calca, «no tenemos ninguna» significa que está TODO por traer. El
+freno de verdad sigue siendo el de los barridos y el repaso semanal.
+
+**Las eras**: el rótulo sale de `serie_name` y los sets occidentales no lo
+tienen —la 329 ya lo midió— así que caía al `serie_id`. Donde peor se veía
+no era el filtro: en /cartas, la página PÚBLICA, se agrupa por el nombre de
+la era, así que todo el catálogo occidental caía en «Sin clasificar».
+
+**PENDIENTE DE PINGU**: `supabase-migration-eras-nombres.sql`. Solo escribe
+en `tcg_eras` y acaba diciendo qué eras se han quedado sin nombre —la lista
+la escribí a mano—. Cualquiera se renombra desde /admin → Colecciones.
+
+**Ficheros**: `netlify/functions/scrydex-relleno.mjs`, `js/cartas.js`,
+`supabase-migration-eras-nombres.sql` (nuevo), `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-556.mjs`, `pruebas/test-tanda-541.mjs` (su guarda
+congelaba el texto exacto de una línea que la 550 cambió: ahora mira qué
+usa para rotular) y el doble, que ya conoce `tcg_eras`.
 ## 2026-10-04 (tarde, después de la 552) — PINGU-Claude (553 a 555 — guardar eligiendo quién eres, «¿cómo encuentro esta carta?» y la repetición de cada mesa)
 
 **Leídas vuestras 545 a 552 antes de subir**: no tocan nada de lo mío
@@ -98,7 +127,6 @@ mercado — CN», «de los tres catálogos asiáticos»—, y desde vuestra 547 
 japonés se calca de Scrydex) y la **545** (la vuestra: «y NO se escribe
 `types`», «no se escribe nada»). Ninguna toca un fichero mío; os las dejo
 apuntadas para que no se acumulen.
-
 ## 2026-10-05 (madrugada, 01:20) — PINGU-Claude (552 — volver al orden del catálogo)
 
 **De dónde sale**: PINGU: «recolócame todas las eras por orden de Scrydex,

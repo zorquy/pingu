@@ -223,7 +223,23 @@ export async function procesar({
   // Se pregunta ANTES de gastar un crédito, y la respuesta sale de
   // nuestra propia base, que es gratis. Si no queda nada por marcar, o si
   // ya se han dado los barridos que tocaban y no toca repaso, se calla.
-  const pendientes = await quedanPendientes(pedir, MERCADO)
+  // ── «NO TENEMOS NINGUNA CARTA» NO ES «NO HAY NADA QUE HACER» (553) ──
+  //
+  // `quedanPendientes` pregunta si queda alguna carta NUESTRA sin marcar, y
+  // esa pregunta valía cuando el único trabajo era enriquecer lo que ya
+  // teníamos. Desde la 547 el japonés se CALCA, y después del borrón había
+  // cero cartas japonesas: la respuesta fue «no queda ninguna por marcar» y
+  // la pasada se volvió a dormir **sin gastar un crédito y sin traer una
+  // sola carta**, cada cinco minutos, con el panel diciendo «hecho».
+  //
+  // O sea que en un catálogo que calcamos la misma respuesta significa lo
+  // contrario: si no tenemos ninguna carta, está TODO por traer. Es la
+  // familia del freno que no frena, pero al revés — uno que frena siempre.
+  //
+  // El freno de verdad sigue estando y es el de los barridos:
+  // `barridos >= BARRIDOS_MAXIMOS` corta igual, y el repaso semanal lo
+  // vuelve a abrir. Lo que se quita es la pregunta que ya no mide nada.
+  const pendientes = calcamos ? true : await quedanPendientes(pedir, MERCADO)
   const enMitadDeUnBarrido = pagina > 1
   const diasDesdeElUltimo = estado?.completadoEn
     ? (Date.now() - Date.parse(estado.completadoEn)) / 86_400_000

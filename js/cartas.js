@@ -83,7 +83,13 @@ async function colecciones() {
   const soloTCG = plegarHermanos(data.filter(esDelTCG))
   if (!soloTCG.length) return aviso('No hay ninguna colección del juego de cartas que enseñar.')
 
-  const series = agruparEnSeries(soloTCG)
+  // Los nombres de era puestos a mano (tanda 553). Si la consulta falla se
+  // sigue sin ellos: la página se agrupa como antes, que es mejor que no
+  // pintar nada — y la RLS no da error, devuelve una lista vacía.
+  const { data: filas } = await supabase.from('tcg_eras').select('id,nombre').eq('market', 'WEST')
+  const eras = new Map((filas || []).map((e) => [e.id, { nombre: e.nombre }]))
+
+  const series = agruparEnSeries(soloTCG, eras)
 
   $('listaColecciones').innerHTML = series
     .map(
@@ -124,15 +130,23 @@ export const SIN_CLASIFICAR = 'Sin clasificar'
 // La era a la que va se busca EN LOS DATOS —la serie de los sets `me*`—
 // en vez de escribir aquí su nombre: el nombre lo pone TCGdex y puede
 // cambiar, los identificadores no.
-export function serieDeLaEraMega(sets) {
-  const me = sets.find((s) => /^me/i.test(String(s?.id || '')) && eraDeSet(s))
-  return me ? eraDeSet(me) : null
+export function serieDeLaEraMega(sets, eras = null) {
+  const nombre = (s) => eras?.get?.(s?.serie_id)?.nombre || eraDeSet(s)
+  const me = sets.find((s) => /^me/i.test(String(s?.id || '')) && nombre(s))
+  return me ? nombre(me) : null
 }
 
-export function claveDeSerie(set, serieMega = null) {
-  const pista = `${set?.id || ''} ${set?.serie_id || ''} ${eraDeSet(set)} ${nombreDeSet(set)}`
+// `eras` es lo que se haya puesto a mano en /admin (tanda 553). Manda sobre
+// el nombre del catálogo por un motivo que se vio en producción: los sets
+// OCCIDENTALES no tienen `serie_name` —el listado de TCGdex es un resumen y
+// la serie solo viene en el set completo, la lección de la 329—, así que
+// `eraDeSet` devolvía vacío y TODO el catálogo occidental caía en «Sin
+// clasificar».
+export function claveDeSerie(set, serieMega = null, eras = null) {
+  const puesto = eras?.get?.(set?.serie_id)?.nombre || ''
+  const pista = `${set?.id || ''} ${set?.serie_id || ''} ${puesto} ${eraDeSet(set)} ${nombreDeSet(set)}`
   if (/30th/i.test(pista) && serieMega) return serieMega
-  return eraDeSet(set) || SIN_CLASIFICAR
+  return puesto || eraDeSet(set) || SIN_CLASIFICAR
 }
 
 // ── Y dentro de una era: las expansiones, y abajo las energías y las
@@ -173,15 +187,15 @@ export function ordenDentroDeUnaSerie(a, b) {
   return fb.localeCompare(fa)
 }
 
-export function agruparEnSeries(sets) {
+export function agruparEnSeries(sets, eras = null) {
   // El orden de llegada YA es de lo más nuevo a lo más viejo, así que la
   // primera vez que aparece una serie es por su set más reciente. Se
   // conserva, y así no hay una segunda ordenación que pudiera decir
   // otra cosa.
   const porSerie = new Map()
-  const serieMega = serieDeLaEraMega(sets)
+  const serieMega = serieDeLaEraMega(sets, eras)
   for (const s of sets) {
-    const clave = claveDeSerie(s, serieMega)
+    const clave = claveDeSerie(s, serieMega, eras)
     if (!porSerie.has(clave)) porSerie.set(clave, [])
     porSerie.get(clave).push(s)
   }

@@ -28925,3 +28925,45 @@ tengan repetición o puede que no, no es obligatorio».
 `supabase-migration-repeticiones.sql` y de los torneos. Se puede repetir.
 Sin ella no se rompe nada: los jueces no ven el botón (la columna `publica`
 no está) y las repeticiones de los jugadores siguen como estaban.
+
+## Tanda 556 — las eras se llamaban «ME», y el japonés se quedó sin cartas (oct. 2026)
+
+PINGU: «las eras están mal. La era de Megaevolución se llama ME, Scarlet
+and Violet sale SV, Sword and Shield sale SWSH… revisa el nombre, ponmelo
+bonito, porque luego en el filtro se ve eso. Y los sets japoneses los
+tenemos en orden y con los logos; **el único problema es que no hay ninguna
+carta**. Eso es importante».
+
+Dos fallos, y los dos son lo mismo: **algo que dejó de significar lo que
+significaba**.
+
+**1. El gordo: un freno que preguntaba lo que ya no medía nada.**
+`quedanPendientes` pregunta si queda alguna carta NUESTRA sin marcar
+(`scrydex_at is null`), y esa pregunta valía cuando el único trabajo era
+enriquecer lo que ya teníamos. Desde la 547 el japonés **se calca**, y
+después del borrón había CERO cartas japonesas: la respuesta fue «no queda
+ninguna por marcar», la pasada se volvió a dormir sin gastar un crédito y
+sin traer una sola carta, **cada cinco minutos**, y el panel decía «hecho».
+Un vacío leído como una respuesta, otra vez, y esta vez con el freno del
+lado contrario: uno que frena siempre.
+
+En un catálogo que se calca, «no tenemos ninguna carta» significa que está
+TODO por traer. El freno de verdad sigue siendo el de los barridos
+(`barridos >= BARRIDOS_MAXIMOS`) y el repaso semanal, que son los que
+acotan el gasto; lo que se quita es la pregunta que ya no mide.
+
+**2. Las eras sin nombre.** El rótulo de una era sale de `serie_name`, y
+los sets OCCIDENTALES no lo tienen: la tanda 329 ya lo midió —«los 210 sets
+tienen serie_id y serie_name a NULL»— porque el listado de TCGdex es un
+resumen y la serie solo viene en el set completo. Así que caía al
+`serie_id`: «me», «sv», «swsh». No se vio en tres años porque hasta el
+filtro de la 546 esos nombres no habían estado juntos en una lista.
+
+Y donde se veía peor no era el filtro: en **/cartas**, la página pública
+del catálogo, `claveDeSerie` agrupa por el NOMBRE de la era, así que sin
+nombre todo el catálogo occidental caía en «Sin clasificar».
+
+Los nombres van en `tcg_eras`, que es para lo que nació en la 550, así que
+**se pueden cambiar desde /admin sin otra migración**. La lista la escribí a
+mano, y por eso la migración acaba diciendo qué `serie_id` se han quedado
+fuera en vez de dar por hecho que están todos (la lección de la 484).
