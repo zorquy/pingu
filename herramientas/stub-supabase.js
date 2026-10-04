@@ -200,7 +200,9 @@ function generadas(tabla, fila) {
   // la web.
   return {
     ...fila,
-    name_search: normalizeSearch(`${fila.name || ''} ${fila.name_es || ''}`),
+    // Y `name_en` desde la 546: el buscador tiene que encontrar una carta
+    // japonesa por el nombre que la pantalla enseña.
+    name_search: normalizeSearch(`${fila.name || ''} ${fila.name_es || ''} ${fila.name_en || ''}`),
     name_key: normalizeSearch(fila.name || ''),
   }
 }

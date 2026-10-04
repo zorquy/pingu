@@ -14,9 +14,11 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 import {
-  nombreDeCarta, claveDeJuego, rutaDeCarta, esLaMismaCarta,
+  claveDeJuego, rutaDeCarta, esLaMismaCarta,
   legalidadEstandar, nucleoDeCarta,
 } from '/home/user/pingu/js/carta-nucleo.js'
+// El nombre que se enseña vive en `catalogo-series.js` desde la 546.
+import { nombreDeCarta } from '/home/user/pingu/js/catalogo-series.js'
 import { esEnergiaBasica, canonizarCarta } from '/home/user/pingu/js/carta-detalle.js'
 import { nombresPorArreglar } from '/home/user/pingu/netlify/lib/carta-detalle.mjs'
 

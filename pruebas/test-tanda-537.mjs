@@ -13,7 +13,8 @@
 import { readFileSync } from 'node:fs'
 import { procesar } from '/home/user/pingu/netlify/functions/scrydex-relleno.mjs'
 import { filaDeCartaConScrydex } from '/home/user/pingu/netlify/lib/scrydex.mjs'
-import { nombreDeCarta } from '/home/user/pingu/js/carta-nucleo.js'
+// Vive en `catalogo-series.js` desde la 546, al lado del nombre de un set.
+import { nombreDeCarta } from '/home/user/pingu/js/catalogo-series.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {

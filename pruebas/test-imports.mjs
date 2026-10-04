@@ -20,6 +20,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { join, resolve, dirname } from 'node:path'
 
 const RAIZ = '/home/user/pingu'
+// Donde viven las pruebas, que también importan del repo (tanda 546).
+const AQUI = dirname(new URL(import.meta.url).pathname)
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -108,6 +110,34 @@ for (const f of todos) {
       revisados++
       if (!tiene.has(nombre)) {
         rotos.push(`${f.replace(RAIZ + '/', '')} importa «${nombre}» de ${m[2]}, que NO lo exporta`)
+      }
+    }
+  }
+}
+
+// ── Y LAS PRUEBAS TAMBIÉN IMPORTAN DEL REPO (tanda 546) ──
+//
+// Esta guarda recorría los módulos del repo y no las pruebas, que importan
+// con ruta ABSOLUTA (`/home/user/pingu/js/…`). Así que al mudar
+// `nombreDeCarta` de `carta-nucleo.js` a `catalogo-series.js` el repo quedó
+// perfecto y `test-tanda-537.mjs` se cayó al arrancar con un `SyntaxError`
+// — que en la suite se lee como un ROJO de la web y no como una prueba que
+// hay que tocar. Un segundo más de barrido y se caza antes de empujar.
+for (const f of readdirSync(AQUI).filter((n) => /^test-.*\.mjs$/.test(n)).map((n) => `${AQUI}/${n}`)) {
+  const s = readFileSync(f, 'utf8')
+  for (const m of s.matchAll(/import\s*\{([^}]*)\}\s*from\s*['"](\/home\/user\/pingu\/[^'"]+)['"]/g)) {
+    const destino = m[2]
+    if (!existsSync(destino)) {
+      rotos.push(`${f.replace(AQUI + '/', '')} importa de «${destino}», que NO EXISTE`)
+      continue
+    }
+    const tiene = exp(destino)
+    for (const trozo of m[1].split(',')) {
+      const nombre = trozo.trim().split(/\s+as\s+/)[0].trim()
+      if (!nombre) continue
+      revisados++
+      if (!tiene.has(nombre)) {
+        rotos.push(`${f.replace(AQUI + '/', '')} importa «${nombre}» de ${destino.replace(RAIZ + '/', '')}, que NO lo exporta`)
       }
     }
   }
