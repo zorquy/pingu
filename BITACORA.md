@@ -4,6 +4,52 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mediodía, 13:00) — PINGU-Claude (538 — 62 sets japoneses esperando una semana por el freno)
+
+**Hecho**: la primera pasada japonesa de verdad dejó el informe que hacía
+falta para ver esto. De sus 231 expansiones: **120 emparejadas, 44
+confirmadas y escritas, 28 sin emparejar, 13 sin confirmar, 1 RECHAZADA** —
+y las cuentas cuadran, así que faltan **62: las que se quedaron SIN TIEMPO**.
+
+Una función de Netlify se muere a los 30 segundos y confirmar un par cuesta
+una petición, así que 120 pares no caben en una pasada. Eso no es un fallo
+—la siguiente los coge— salvo por una cosa: el freno que puse en la 530 era
+«no volver a mirar en veinte horas». O sea que esos 62 se habrían repartido
+**a lo largo de una semana**.
+
+**El freno pasa a ser «¿avanzó?» en vez de «¿cuánto hace?»**: mientras la
+última pasada escriba algo o deje pares sin tiempo, se vuelve a pasar a los
+diez minutos. Cuando una pasada no escribe nada y no deja nada a medias, el
+trabajo está hecho y ahí sí duerme un día. Y para poder decidirlo, el
+informe guarda `sinTiempo`, que no lo copiaba: «44 escritas de 120» sin ese
+número parece que 76 no se han podido, y la verdad es que 62 ni se
+intentaron.
+
+**Lo que enseña el informe y conviene tener apuntado**:
+
+- **Lo que confirma en japonés**: el nombre del set 19 veces y la Pokédex
+  25. La apuesta de la 530 —que el nombre japonés confirmaría gratis porque
+  los dos catálogos lo publican en japonés— funciona, pero menos de lo que
+  dije: en 19 de 44, no en todos.
+- **La única RECHAZADA es una buena noticia**: `SM7a → sm7b_ja`, «nuestro
+  127 contra su 114» de Pokédex. Es un par FALSO que la fecha y la cuenta
+  propusieron y la Pokédex tumbó. Emparejar propone, verificar dispone
+  (tanda 508), funcionando en vivo.
+- **Diez de las trece sin confirmar dicen «no tenemos ninguna carta de ese
+  set»**, y eso no es cosa de Scrydex: son los 68 sets japoneses que TCGdex
+  tiene sin una sola carta. Sin cartas no hay señal que comparar, así que
+  esos logos no se pueden confirmar por ahora. Se quedan sin escribir a
+  propósito: un logo sin confirmar es el logo de otro set.
+- **Su listado trae los 231 logos** (`suListadoTraeLogos: 231 de 231`), que
+  era la pregunta de las tandas 484 y 486. Confirmado con datos, no
+  deducido.
+
+**Y el relleno de cartas japonés va**: `cartas-jp` por la página 57 de
+~22.272 cartas suyas, cero fallos.
+
+**Ficheros**: `netlify/functions/scrydex-logos-jp.mjs`. En `pruebas`:
+`pruebas/test-tanda-531.mjs` (una comprobación más).
+
 ## 2026-10-04 (mediodía, 12:15) — PINGU-Claude (537 — el relleno JAPONÉS, que es lo que de verdad faltaba)
 
 **Hecho**: PINGU: «vete con lo japonés, rellename todos los logos y las

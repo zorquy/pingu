@@ -60,10 +60,25 @@ async function informeReciente(clave) {
       { headers: { apikey: clave, authorization: `Bearer ${clave}` } },
     )
     if (!res.ok) return null
-    const cuando = (await res.json())?.[0]?.valor?.cuando
+    const valor = (await res.json())?.[0]?.valor
+    const cuando = valor?.cuando
     if (!cuando) return null
     const horas = (Date.now() - Date.parse(cuando)) / 3_600_000
-    return Number.isFinite(horas) && horas < HORAS_ENTRE_PASADAS ? { cuando, horas } : null
+    if (!Number.isFinite(horas) || horas >= HORAS_ENTRE_PASADAS) return null
+    // ── UNA PASADA QUE AVANZÓ NO ESPERA VEINTE HORAS (tanda 538) ──
+    //
+    // La primera pasada de verdad emparejó 120 sets, confirmó 44… y dejó
+    // **62 sin tiempo**: una función de Netlify se muere a los 30 segundos
+    // y confirmar un par cuesta una petición. Esos 62 no son un fallo, son
+    // trabajo a medias — y con el freno de veinte horas se habrían ido
+    // repartiendo a lo largo de UNA SEMANA.
+    //
+    // Así que el freno no es «cuánto hace», es «¿avanzó?»: mientras la
+    // última pasada escribiera algo o se quedara sin tiempo, se sigue.
+    // Cuando una pasada no escribe nada y no deja nada a medias, el
+    // trabajo está hecho y ahí sí se duerme un día.
+    const avanzo = Number(valor?.escritas) > 0 || Number(valor?.sinTiempo) > 0
+    return avanzo ? null : { cuando, horas }
   } catch {
     // Si no se puede preguntar, se deja pasar: el trabajo de una pasada
     // son 3 créditos, y quedarse sin hacerlo por un fallo de red sería
@@ -133,6 +148,11 @@ export default async () => {
       porQueNoSeEmparejan: r.cuerpo?.porQueNoSeEmparejan,
       rechazados: r.cuerpo?.rechazados,
       sinConfirmar: r.cuerpo?.sinConfirmar,
+      // LO QUE QUEDÓ A MEDIAS, que es lo que decide si se vuelve a pasar
+      // ya o dentro de un día (tanda 538). Sin este número, el informe
+      // enseña 44 escritas de 120 emparejadas y no dice que falten 62 por
+      // tiempo — que es información distinta de «no se han podido».
+      sinTiempo: r.cuerpo?.sinTiempo,
       susExpansiones: r.cuerpo?.susExpansiones,
       suListadoTraeLogos: r.cuerpo?.suListadoTraeLogos,
       emparejados: r.cuerpo?.emparejados,
