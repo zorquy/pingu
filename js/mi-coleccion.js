@@ -3187,6 +3187,15 @@ async function dispararEscaner() {
     const campo = $('mcBuscarTodo')
     campo.value = numero ? `${nombreLeido} ${numero}` : nombreLeido
     await buscarEnTodo()
+    // ── LO QUE SE HA LEÍDO, DICHO (tanda 558b) ──
+    //
+    // Sin esto, «no he podido leer el número» y «lo he leído y no casaba»
+    // se ven EXACTAMENTE IGUAL: una lista larga de cartas parecidas. Es la
+    // familia de siempre —un vacío que se lee como una respuesta— y aquí
+    // además deja a quien lo usa sin saber si acercar más la carta o si es
+    // que esa carta no está. PINGU vio 23 Charizards y tuvo que
+    // adivinar cuál de las dos cosas era.
+    let aflojado = numero ? '' : ' · no he podido leer el número'
     if (numero && !$('mcBuscarResultados').querySelector('.mc-resultado')) {
       // Y al aflojar, el número SE TIRA. Aquí vivía `afinarPorNumero`, que
       // lo usaba para subir la carta probable; se quitó al ver que en este
@@ -3196,6 +3205,7 @@ async function dispararEscaner() {
       // haría es poner PRIMERA una carta equivocada: peor que no ordenar.
       campo.value = nombreLeido
       await buscarEnTodo()
+      aflojado = ` · el nº ${numero} no casaba con ninguna`
     }
     // ── Y UN ÚLTIMO INTENTO CON UNA SOLA PALABRA (tanda 558) ──
     //
@@ -3216,8 +3226,10 @@ async function dispararEscaner() {
       if (masLarga) {
         campo.value = masLarga
         await buscarEnTodo()
+        aflojado += ' · he buscado solo por la palabra más larga'
       }
     }
+    showToast(`He leído: ${nombreLeido}${aflojado}`)
   } catch {
     if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
   } finally {

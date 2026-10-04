@@ -214,7 +214,19 @@ export function nombreDeLaFranja(texto) {
 // «22/99 · Ilus. Shizurow». Se queda con lo de delante de la barra: el 99
 // es cuántas tiene el set, no la carta.
 export function numeroDeLaFranja(texto) {
-  const t = String(texto || '')
+  // ── A ANCHO COMPLETO NO ES UN NÚMERO PARA UNA EXPRESIÓN REGULAR (558b) ──
+  //
+  // El OCR japonés devuelve las cifras y la barra como las imprime una
+  // carta japonesa: «０６６／１０８», a ancho completo. Y `\d` no casa con
+  // ０, ni `\/` con ／. O sea que de una carta japonesa salía NULL, la
+  // búsqueda se quedaba solo con el nombre y PINGU veía los 23 Charizards
+  // en vez del suyo.
+  //
+  // Aquí NFKC sí es lo que toca —y es lo contrario que en `normalizeSearch`
+  // (tanda 557), donde habría roto la comparación—: esto no compara contra
+  // la base, EXTRAE un número de un texto leído por una máquina. Pasar
+  // ０→0 y ／→/ es exactamente lo que hace falta.
+  const t = String(texto || '').normalize('NFKC')
   const conBarra = t.match(/\b(\d{1,3})\s*\/\s*\d{1,3}\b/)
   if (conBarra) return conBarra[1]
   const suelto = t.match(/\b(\d{1,3})\b/)

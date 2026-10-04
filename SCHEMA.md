@@ -29049,3 +29049,29 @@ puede ir antes es la fase, que ya se ha quitado.
 no sale nada, se prueba con la más larga. Mismo criterio que con el número
 —lo preciso primero y se afloja si no hay nada—, y por el mismo motivo:
 nunca acabar en una pantalla vacía por culpa de una lectura.
+
+## Tanda 558b — el número venía A ANCHO COMPLETO (oct. 2026)
+
+PINGU, con la búsqueda ya arreglada: «ahora funciona la búsqueda pero salen
+demasiados Charizards, no sale el exacto. No coge el número, supongo».
+
+Y no lo cogía. El OCR japonés devuelve las cifras y la barra **como las
+imprime una carta japonesa**: «０６６／１０８», a ancho completo. Y `\d` no
+casa con ０, ni `\/` con ／. De una carta japonesa salía NULL, la búsqueda
+se quedaba solo con el nombre, y 23 Charizards.
+
+**Aquí NFKC sí, y es lo CONTRARIO que en la 557**, que es lo que hace que
+merezca la pena escribirlo: `normalizeSearch` no puede usar NFKC porque
+compara contra lo que guarda Postgres y la base no normaliza la anchura —
+usar NFKC allí rompería la comparación por el otro lado. Esto no compara
+nada: **extrae** un número de un texto leído por una máquina, y ahí pasar
+０→0 y ／→/ es exactamente lo que hace falta. La misma herramienta, bien en
+un sitio y mal en el otro, y la diferencia es si el resultado va a
+compararse con algo que no la lleva.
+
+**Y se dice lo que se ha leído.** Sin eso, «no he podido leer el número» y
+«lo he leído y no casaba» se ven exactamente igual: una lista larga de
+cartas parecidas. Es la familia de siempre —un vacío que se lee como una
+respuesta— y aquí además deja a quien escanea sin saber si acercar más la
+carta o si es que esa carta no está. Ahora un aviso dice qué nombre se leyó
+y, si se aflojó la búsqueda, por qué.

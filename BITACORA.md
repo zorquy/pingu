@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (mañana, 11:05) — PINGU-Claude (558b — el número venía a ancho completo)
+
+**De dónde sale**: PINGU: «ahora funciona la búsqueda pero salen demasiados
+Charizards, no sale el exacto. No coge el número, supongo». Y no lo cogía.
+
+**La causa**: el OCR japonés devuelve las cifras y la barra como las imprime
+una carta japonesa —«０６６／１０８», a ancho completo— y `\d` no casa con ０
+ni `\/` con ／. Salía NULL y la búsqueda se quedaba solo con el nombre.
+
+**Hecho**: `NFKC` antes de leer el número. Y conviene fijarse en que es lo
+CONTRARIO que en la 557: allí NFKC habría roto la comparación contra la
+base, porque Postgres no normaliza la anchura. Aquí no se compara nada, se
+EXTRAE de un texto leído por una máquina. La misma herramienta, bien en un
+sitio y mal en el otro.
+
+**Y se dice lo que se ha leído**: sin eso, «no he podido leer el número» y
+«lo he leído y no casaba» se ven igual — una lista larga de cartas
+parecidas. Ahora un aviso dice el nombre leído y por qué se aflojó.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion/escaner.js`, `js/mi-coleccion.js`,
+`SCHEMA.md`. En `pruebas`: `pruebas/test-tanda-558.mjs` (ampliada).
+
+**Pasado**: 558, 447, 450, 451 y 557.
+
 ## 2026-10-05 (mañana, 10:30) — PINGU-Claude (558 — la franja japonesa lleva cuatro cosas más)
 
 **De dónde sale**: PINGU escaneó una リザードンex y en el buscador quedó
