@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { rutaDeArticulo, fechaLarga, fechaMaquina, slugDeArticuloEnLaUrl } from './articulos.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle, guideHasCourse } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle } from './app.js'
+import { guideHasCourse } from './guia-contenido.js'
 import { renderReferenceBlocksHtml } from './bloques-lectura.js'
 import { hydrateDecks } from './cards-block.js'
 import { hydrateVideos } from './video-youtube.js'
@@ -332,7 +333,10 @@ async function init() {
             //
             // `guia-ir-al-curso` ya no lleva estilo propio —el tamaño lo
             // da el grupo—, pero la clase se queda: es el asidero por el
-            // que encuentra este botón test-guia-curso.mjs.
+            // que encuentra este botón `test-tanda-548.mjs`. (Antes esta
+            // línea nombraba `test-guia-curso.mjs`, que NO EXISTE: se
+            // perdió con el contenedor el 2026-08-28 y el comentario se
+            // quedó afirmando una red que no había.)
             hayCurso
               ? `<a class="btn-secondary guia-ir-al-curso" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
               : ''

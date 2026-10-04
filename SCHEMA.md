@@ -28546,3 +28546,112 @@ falta una migración: `name_search` es una columna GENERADA a partir de
 `name` y `name_es` (`supabase-migration-cartas-buscar-en.sql`). `name_key`
 no se toca: esa es la clave con la que se cruzan las decklists y meterle un
 nombre más la rompería igual que la rompió el español en su día.
+
+## Tanda 547 — el catálogo japonés se CALCA de Scrydex (oct. 2026)
+
+PINGU: «no hay nadie con colecciones… el único que está probándolo soy yo.
+Podríamos hacer un borrón y cuenta nueva y así no pasa nada. Entonces todo
+el catálogo japonés lo traemos directamente de Scrydex. Lo montamos así y ya
+está. Esto solo para mi colección, que no afecte, porque TCGdex está muy
+bien para los sets actuales, para la parte de jugar».
+
+**Por qué era lo correcto y no un capricho**: lo de antes era «el catálogo de
+TCGdex con Scrydex retocándolo por encima», y eso llega a medias POR
+CONSTRUCCIÓN. Cada set hay que EMPAREJARLO —adivinar cuál suyo es cuál
+nuestro, por fecha y cuenta de cartas— y cada emparejamiento es una apuesta:
+de 118 sets japoneses, 36 salían mal y se quedaban en kanji y sin cartas.
+Las tandas 544 y 546 fueron arreglar apuestas falladas. Calcar su catálogo
+quita el emparejamiento entero: no hay nada que adivinar.
+
+**Y se puede porque su respuesta de cartas trae la ficha COMPLETA.** Eso no
+es una suposición: está pegada byte a byte en `test-tanda-502.mjs`, de una
+petición de verdad, y lleva `subtypes`, `types`, `hp`, `evolves_from`,
+`abilities`, `attacks` con su texto y su daño, `weaknesses`, `resistances`,
+`converted_retreat_cost`, `rules`, `regulation_mark` y `variants`. O sea que
+para el japonés TCGdex no hace falta ni para el detalle —que es lo que en el
+occidental cuesta UNA PETICIÓN POR CARTA (`cartas-detalle`)—.
+
+**La política tiene nombre y vive en un sitio**: `MERCADOS_DE_SCRYDEX` en
+`js/mercados.js`. Un mercado de esa lista significa tres cosas:
+
+· sus sets y sus cartas se INSERTAN desde Scrydex, enteras;
+· los importadores de TCGdex no lo tocan (`catalogo-asia`, `escaneos-asia`),
+  que si no volverían a meter sus 186 sets al lado de los 231 buenos cada
+  seis minutos — la misma colección dos veces en la biblioteca;
+· las fotos salen de Scrydex, y las de TCGdex se pierden para ese mercado.
+  No por capricho: su dirección se monta con SUS identificadores de serie y
+  de set, que después de calcar ya no tenemos.
+
+**El occidental NO entra, y eso es la mitad del asunto.** Es el que alimenta
+«Jugar» —decklists, torneos, el constructor—, y el relleno sale por un
+`if (!calcamos) continue` antes de insertar nada: sin eso, la siguiente
+pasada occidental habría metido miles de cartas suyas en el catálogo que
+cruza contra TCG Live.
+
+**Los enums se traducen y lo que no se reconoce se CUENTA.** Sus nombres son
+parecidos a los nuestros pero no iguales: «Pokémon» con tilde, «Stage 1» con
+espacio, «Pokémon Tool» por «Tool». Un valor que no esté en las tablas se
+queda a null y sale en el informe (`susSupertiposSinLeer`,
+`susSubtiposSinLeer`), porque doy por hecho que sus enums japoneses vienen en
+inglés y **no lo he visto** —la red de este contenedor no llega a su API—, y
+esa es la familia de las dos afirmaciones falsas de la 484.
+
+Y `basic` significa DOS cosas: la fase de un Pokémon y el tipo de una
+energía. Escribirlo en la columna equivocada haría que una Energía Básica no
+contara como básica, y una energía básica siempre está dentro de formato.
+
+**El cerrojo contra duplicar una carta ya no es el SET, es el NÚMERO.** La
+545 solo insertaba en los sets que venían enteros de su catálogo, y eso
+dejaba sin rellenar los 82 emparejados —que es justo lo que PINGU estaba
+viendo—. Lo que hay que impedir es duplicar, y eso se pregunta por el
+número: el índice de nuestras cartas está hecho con `numeroComparable`, así
+que llegar al caso «no la tenemos» ya significa que de ese set no hay
+ninguna con ese número en ninguna de sus formas (`001` y `1` son la misma
+clave).
+
+**La migración** (`supabase-migration-japones-de-cero.sql`) vacía las cuatro
+tablas de la gente —colección, buscadas, álbumes soñados e histórico de
+valor, que hablan de lo mismo— y borra el catálogo japonés entero. Y el paso
+que se olvida: **reiniciar el progreso guardado de las pasadas**. El barrido
+de cartas iba por la página 57 de ~190 y se reanuda donde se quedó, así que
+sin borrar esas tres filas de `scrydex_estado` las 56 primeras páginas de su
+catálogo no se insertarían hasta el barrido siguiente, con el panel diciendo
+que avanza.
+
+## Tanda 548 — el botón «Hacer el curso» en guías que no tienen curso (oct. 2026)
+
+Lo contó una persona que lee la web y PINGU lo trajo: «hay algunas guías que
+ha leído y hay un botón de hacer curso, pero justo son guías que no tienen un
+curso enlazado. Si se van a curso le sale vacío».
+
+`guideHasCourse` decía que una guía tiene curso si `blocks` trae ALGO. Y los
+bloques de un curso son de dos clases: los que SE JUEGAN (quiz, truefalse,
+match… catorce tipos) y la teoría que se lee y se pasa (hook, concept, tip).
+Una guía con solo teoría —o con bloques que el curso no sabe pintar— pasaba
+la comprobación: salía el botón y detrás no había ni una pregunta.
+
+No daba ningún error. Es un botón que cumple su promesa a medias, que es la
+lección de la 447 —una frase de la interfaz es una AFIRMACIÓN sobre lo que
+hace el código— con un botón en vez de una frase.
+
+Ahora «tiene curso» es «hay algo que jugar», y la misma función decide las
+CINCO cosas que dependen de esto: el botón de arriba de la guía, la llamada
+de abajo, la chapa «Con curso» de las tarjetas, las cuentas de /aprender y
+el estado vacío de la propia página del curso. Si fueran cinco reglas, hoy
+estarían diciendo cosas distintas — y de hecho la página del curso ya decía
+otra: aceptaba cualquier `blocks` no vacío.
+
+**Dónde vive la regla, que es parte del arreglo**: `js/guia-contenido.js`,
+un módulo puro con `PRACTICE_TYPES`, `esPractica`, `guideHasCourse` y
+`guideHasReference`. Estaban en `js/app.js`, que lo baja todo el mundo y que
+al cargarse monta la barra de arriba — así que **en Node no se puede
+importar**, y la regla que decide si sale un botón no tenía prueba sin
+navegador. Mudarla cuesta 0,5 KB en la portada (168,3 de 170) y con ella
+`app.js` adelgaza.
+
+Y el comentario de `js/guia.js` decía que ese botón lo cubría
+`test-guia-curso.mjs`. **Ese fichero no existe**: se perdió con el
+contenedor el 2026-08-28 y el comentario se quedó afirmando una red que no
+había. Ahora lo cubre `test-tanda-548.mjs`, que comprueba las dos caras —con
+teoría sola no sale, con una pregunta sí— y que la página del curso contesta
+lo mismo que el botón.

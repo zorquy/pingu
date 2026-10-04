@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, guideHasCourse } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
+import { guideHasCourse } from './guia-contenido.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { renderGuideCardHtml } from './tarjeta-guia-ancha.js'
 import { inlineIconHtml } from './content-icon.js'

@@ -6,7 +6,8 @@
 // franja de color de la portada y de /aprender. Son dos formas distintas
 // a propósito: en una categoría puede haber decenas de guías y se leen
 // mejor en filas anchas.
-import { escapeHtml, borderRarityClass, guideHasCourse, guideHasReference } from './app.js'
+import { escapeHtml, borderRarityClass } from './app.js'
+import { guideHasCourse, guideHasReference } from './guia-contenido.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'

@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getSession, burstConfetti, guideHasReference } from './app.js'
+import { escapeHtml, getSession, burstConfetti } from './app.js'
+import { guideHasReference, guideHasCourse } from './guia-contenido.js'
 import { markCourseStarted, markCourseCompleted, addXP, incrementQuizCorrect } from './gamification.js'
 import { parseBBCode } from './bbcode.js'
 import { showToast } from './toast.js'
@@ -1760,7 +1761,13 @@ async function loadCourse() {
     .eq('slug', slug)
     .single()
 
-  if (error || !data || !Array.isArray(data.blocks) || data.blocks.length === 0) {
+  // LA MISMA REGLA QUE EL BOTÓN (tanda 548). Esto aceptaba cualquier
+  // `blocks` no vacío, así que una guía con solo teoría abría un curso de
+  // CERO preguntas: se pasaban las diapositivas y se acababa. Ahora las dos
+  // puertas preguntan lo mismo —`guideHasCourse`—, que es lo que hace que
+  // no puedan discrepar; y quien llegue por la dirección a pelo ve el aviso
+  // honesto en vez de un curso que no es un curso.
+  if (error || !data || !guideHasCourse(data)) {
     stage.innerHTML = `<p class="empty-state">Este curso todavía no está disponible.</p>`
     btnContinue.style.display = 'none'
     return

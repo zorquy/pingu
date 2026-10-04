@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
-import { escapeHtml, getInitial, getSession, profileUrl, guideHasReference, avatarStyle } from './app.js'
+import { escapeHtml, getInitial, getSession, profileUrl, avatarStyle } from './app.js'
+import { guideHasReference } from './guia-contenido.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { calculateLevel, levelBadgeHtml } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'

@@ -6,11 +6,13 @@
 
 // Los bloques que se juegan. El resto (hook, concept, tip…) son teoría:
 // se leen y se pasa.
-export const PRACTICE_TYPES = ['quiz', 'truefalse', 'fillblank', 'match', 'order', 'cartaquiz', 'zonas', 'ordenprecio', 'clasifica', 'intruso', 'desliza', 'memoria', 'escribe', 'diferencias']
-
-export function esPractica(block) {
-  return !!block && PRACTICE_TYPES.includes(block.type)
-}
+//
+// Viven en `js/curso-tipos.js` desde la 548 porque los necesita también
+// `guideHasCourse` de `js/app.js`, que lo baja todo el mundo. Se importan Y
+// se reexportan: un `export … from` no crea el enlace local y `esPractica`
+// se usa aquí dentro.
+import { PRACTICE_TYPES, esPractica } from './guia-contenido.js'
+export { PRACTICE_TYPES, esPractica }
 
 // ── Puntuación ──
 //

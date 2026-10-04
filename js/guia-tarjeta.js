@@ -11,7 +11,8 @@
 // portada aportaba: quién la escribió y el botón de guardar. Esos dos
 // van FUERA del enlace, en un pie: un <button> dentro de un <a> no
 // existe en HTML y el navegador lo escupe fuera, descolocando la caja.
-import { escapeHtml, guideHasCourse, arteDe } from './app.js'
+import { escapeHtml, arteDe } from './app.js'
+import { guideHasCourse } from './guia-contenido.js'
 
 export const NIVELES = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' }
 export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }

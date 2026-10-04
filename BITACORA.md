@@ -4,6 +4,85 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (noche, 20:10) — PINGU-Claude (547 y 548)
+
+### 547 — el catálogo japonés se CALCA de Scrydex
+
+**De dónde sale**: PINGU: «no hay nadie con colecciones, el único que está
+probándolo soy yo. Podríamos hacer un borrón y cuenta nueva. Todo el
+catálogo japonés lo traemos directamente de Scrydex. Esto solo para mi
+colección, que no afecte, porque TCGdex está muy bien para la parte de
+jugar».
+
+Y es lo correcto: lo de antes era el catálogo de TCGdex con Scrydex
+retocándolo por encima, y eso llega a medias POR CONSTRUCCIÓN — cada set
+hay que emparejarlo y cada emparejamiento es una apuesta. De 118, 36
+salían mal. Las tandas 544 y 546 fueron arreglar apuestas falladas.
+
+**Hecho**:
+- `MERCADOS_DE_SCRYDEX` en `js/mercados.js`: la política, con nombre y en
+  un sitio. Un mercado de esa lista se inserta desde Scrydex, los
+  importadores de TCGdex no lo tocan y sus fotos salen de Scrydex.
+- `detalleDeCartaSuya`: su respuesta de cartas trae la ficha COMPLETA
+  —ataques con texto y daño, habilidades, debilidades, fase, retirada,
+  versiones— así que para el japonés TCGdex no hace falta ni para el
+  detalle. Los enums se traducen a nuestra forma canónica y **lo que no se
+  reconoce se queda a null y se CUENTA en el informe**: doy por hecho que
+  sus enums japoneses vienen en inglés y no lo he visto (la 484 otra vez).
+- El cerrojo contra duplicar ya no es el SET sino el NÚMERO, que es lo que
+  dejaba sin rellenar los 82 sets emparejados.
+- `catalogo-asia` y `escaneos-asia` se saltan el japonés, que si no
+  volverían a meter sus 186 sets al lado de los 231 buenos cada seis
+  minutos.
+- El occidental NO entra: sale por un `if (!calcamos) continue` antes de
+  insertar nada.
+
+**PENDIENTE DE PINGU**: `supabase-migration-japones-de-cero.sql`. **BORRA
+DATOS.** Los dos primeros pasos solo leen y el segundo enseña exactamente
+lo que se va a borrar. Vacía las cuatro tablas de la gente (colección,
+buscadas, álbumes soñados e histórico de valor) y borra el catálogo
+japonés entero. Y reinicia el progreso guardado de las tres pasadas de
+Scrydex — sin eso el barrido se reanudaría en la página 57 de ~190 y las
+56 primeras no se insertarían hasta el barrido siguiente.
+
+### 548 — el botón «Hacer el curso» en guías sin curso
+
+**De dónde sale**: un lector se lo encontró. `guideHasCourse` decía «tiene
+curso» si `blocks` trae algo, y los bloques son de dos clases: los que se
+JUEGAN y la teoría que se lee y se pasa. Una guía de solo teoría enseñaba
+el botón y detrás no había ni una pregunta.
+
+**Hecho**: «tiene curso» es «hay algo que jugar», y la misma función decide
+las cinco cosas que dependen de eso —el botón de arriba, la llamada de
+abajo, la chapa «Con curso» de las tarjetas, las cuentas de /aprender y el
+estado vacío de la página del curso, que ya decía otra cosa—. La regla se
+muda a `js/guia-contenido.js`, un módulo PURO: en `js/app.js` no la podía
+importar una prueba de Node (ese fichero monta la barra al cargarse), así
+que la regla que decide si sale un botón no tenía red sin navegador.
+
+**Y dos verdades que había escritas y eran falsas**: el comentario de
+`js/guia.js` decía que ese botón lo cubría `test-guia-curso.mjs`, que **no
+existe** —se perdió con el contenedor el 2026-08-28—; y el fixture de
+`test-ficha-guia.mjs` afirmaba desde la 308 que un curso de solo teoría
+arranca. Lo que ha cambiado es la regla, no la página, así que el fixture
+lleva ahora una pregunta.
+
+**Ficheros**: `js/mercados.js`, `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-relleno.mjs`,
+`netlify/functions/catalogo-asia.mjs`,
+`netlify/functions/escaneos-asia.mjs`,
+`supabase-migration-japones-de-cero.sql` (nuevo), `js/guia-contenido.js`
+(nuevo), `js/app.js`, `js/curso.js`, `js/curso-juego.js`, `js/guia.js`,
+`js/aprender.js`, `js/categoria.js`, `js/guia-tarjeta.js`,
+`js/tarjeta-guia-ancha.js`, `js/guardados.js`, `js/usuarios.js`,
+`SCHEMA.md`. En `pruebas`: `pruebas/test-tanda-547.mjs`,
+`pruebas/test-tanda-548.mjs` y `pruebas/test-ficha-guia.mjs`.
+
+**Pasado**: 547 y 548 en verde, más 299, 305, 308, 316 y ficha-guia.
+`test-imports.mjs` limpio. Portada en 168,5 KB de 170. La suite completa
+iba por 71 verdes y 0 rojos (hasta la tanda 308) cuando la paré por PID
+para poder tocar el repo; se vuelve a lanzar entera ahora.
+
 ## 2026-10-04 (tarde, 18:40) — PINGU-Claude (546 — la biblioteca seguía en kanji, y el filtro de eras no cambiaba de catálogo)
 
 **De dónde sale**: PINGU: «¿y los nombres en inglés qué? siguen saliendo los

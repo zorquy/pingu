@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, guideHasReference } from './app.js'
+import { escapeHtml, requireAuth } from './app.js'
+import { guideHasReference } from './guia-contenido.js'
 import { decorateGuideCards } from './guide-card.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'

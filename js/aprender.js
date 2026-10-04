@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, guideHasCourse } from './app.js'
+import { escapeHtml, getSession } from './app.js'
+import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
