@@ -66,6 +66,28 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **Un export que no existe no rompe una función: rompe LA PÁGINA** (tanda
+  510). Añadí `rarezaDeCarta` a la lista de importación de `js/carta.js`
+  dando por hecho que venía de `carta-traducciones.js` —que es de donde la
+  coge `mi-coleccion.js`—, pero carta.js la pide por `carta-nucleo.js`, que
+  no la reexportaba. Eso es un `SyntaxError` AL RESOLVER EL MÓDULO, así que
+  /carta se quedó **sin una sola línea de JavaScript** y estuvo así en
+  producción hora y media. Lo cazó la suite completa con seis rojos, todos
+  el mismo error — y es otra vez la lección de la 447: había corrido las
+  pruebas de rarezas y de /mi-coleccion, que son «las que tocaban», y
+  /carta no estaba entre ellas. Desde ahora lo caza `test-imports.mjs` en
+  un segundo y sin navegador: recorre los 249 módulos del repo y comprueba
+  que cada una de las ~1.600 importaciones con nombre apunta a algo que de
+  verdad se exporta. **Correrla antes de cada push cuesta un segundo y se
+  come esta familia entera de fallos.**
+- **No lances una suite mientras corre otra** (tanda 510). Las dos escriben
+  en el mismo `suite.log` y las dos mueven el navegador, así que los
+  números salen mezclados y no valen para nada — di «22 verdes, 0 rojos» de
+  un log que estaban escribiendo dos pasadas a la vez. Y para pararla, por
+  PID y nunca con `pkill -f`, que casa con el propio shell que lo lanza (la
+  trampa de la 312 aplicada a procesos, y ya picó una vez). Pararla es
+  seguro —no muta ficheros, no es un rigor— pero hay que pasar
+  `comprobar-arbol.sh` igual.
 - **Una función programada que vuelve a empezar es una FACTURA** (tanda
   509). El relleno de Scrydex barría el catálogo —101 páginas, 101
   créditos— y al acabar volvía a la página 1. Cada cinco minutos. Eso son

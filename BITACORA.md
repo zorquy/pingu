@@ -35,6 +35,62 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 (madrugada) — PINGU-Claude (510 — /carta rota en producción, y la guarda que lo caza en un segundo)
+
+**Hecho**: la suite completa cantó seis rojos y todos eran el mismo error
+mío: `js/carta.js` importaba `rarezaDeCarta` de `carta-nucleo.js`, que no
+la reexportaba. **Un export que no existe no rompe una función: rompe la
+página entera** —es un `SyntaxError` al resolver el módulo—, así que
+/carta estuvo HORA Y MEDIA en producción sin una línea de JavaScript.
+Arreglado y empujado.
+
+Y de ahí sale lo mejor de la madrugada: **`pruebas/test-imports.mjs`**, que
+recorre los 249 módulos del repo y comprueba que cada una de las ~1.600
+importaciones con nombre apunta a algo que de verdad se exporta. Un
+segundo, sin navegador, nombrando fichero y símbolo. Comprobado que muerde.
+Su parser se arregló con su propio aviso: marcó el `createClient` del
+bundle de Supabase, que viene minificado y escribe `export{hn as
+createClient}` a mitad de una línea de 60 KB — el roto era el parser, que
+es lo que tenía que pasar.
+
+**Otros dos arreglos del repaso a ciegas del relleno**:
+· Una página que falla SIEMPRE bloqueaba el barrido para siempre: un
+  crédito cada cinco minutos, 288 al día, y el catálogo parado sin que
+  nadie se entere. A la quinta se salta y se deja apuntado cuál.
+· Un respiro de 250 ms entre peticiones, porque la primera pasada real es a
+  ciegas y 60 peticiones en doce segundos se ganan un 429.
+
+**Y tres rojos más de la suite, resueltos**:
+· **299** era mío: importar el módulo de rarezas en /admin arrastró las
+  clases que PINTA, que viven en una hoja que /admin no carga (la trampa de
+  la 316). Separado lo puro del pintor (`js/rarezas-nombres.js`, patrón de
+  la 471). Y seguía rojo porque al explicarlo escribí el nombre de las
+  clases CON SU ATRIBUTO dentro del comentario y el barrido lo encontró
+  ahí: el comentario recreaba la dependencia que la mudanza quitaba.
+· **472** elegía el catálogo chino, que la 509 escondió. Garantía
+  actualizada, no aflojada: ahora vigila que NO se pueda llegar.
+· **493** no es nuestro: necesita `ffprobe` y no está instalado en este
+  contenedor. Se deja rojo a propósito.
+
+**Un error de método, para que no se repita**: lancé una segunda suite
+mientras la primera corría. Las dos escriben el mismo log y mueven el mismo
+navegador, así que los «22 verdes, 0 rojos» que di no valían nada. Paradas
+por PID (nunca `pkill -f`, que casa con el propio shell) y repetida una
+sola, limpia.
+
+**Sobre el `Unseen Forces Unown Collection`**: no hay que arreglarlo.
+Nuestro set existe aparte y en Scrydex esos Unown viven DENTRO de Unseen
+Forces con letras por número; un emparejamiento 1:1 no puede expresarlo.
+Pero eso no deja el set en blanco: Scrydex no le añade nada y lo sigue
+sirviendo TCGdex por la cadena de respaldo, que es lo que PINGU pidió.
+Forzar el emparejamiento le metería las cartas de otro set.
+
+**Ficheros**: `js/carta-nucleo.js`, `js/rarezas.js`,
+`js/rarezas-nombres.js` (NUEVO), `admin/js/admin.js`,
+`netlify/functions/scrydex-relleno.mjs`, `CLAUDE.md`, `BITACORA.md`. En
+`pruebas`: `test-imports.mjs` (NUEVO), `test-tanda-472.mjs` y
+`test-tanda-509.mjs`.
+
 ## 2026-10-04 (noche) — PINGU-Claude (tandas 509 y 510 — el relleno nocturno, su freno, y lo que se vio mirando la pantalla)
 
 **Hecho**: PINGU se fue a la cama pidiendo «todas las cartas, todos los
