@@ -2146,6 +2146,16 @@
   font-weight: 700;
 }
 
+.rep-puzle-recuento .rep-puzle-tuya {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.rep-puzle-marca {
+  color: var(--text-mid);
+  font-weight: 400;
+}
+
 .rep-puzle-opcion-campo {
   display: flex;
   align-items: center;

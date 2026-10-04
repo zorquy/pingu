@@ -95,6 +95,20 @@
   to = "/auth.html?r=:username"
   status = 302
 
+# Los enlaces cortos de lo que se comparte (tanda 591): /rep/<id> es una
+# repetición —guardada (diez cifras) o de un enlace corto sin cuenta (ocho
+# letras)— y /lab/<id>, una posición del laboratorio. Son redirecciones
+# (302) y no reescrituras: la página lee el id de su `?r=` / `?pos=`.
+[[redirects]]
+  from = "/rep/:id"
+  to = "/repeticiones?r=:id"
+  status = 302
+
+[[redirects]]
+  from = "/lab/:id"
+  to = "/constructor?pos=:id"
+  status = 302
+
 # La insignia dinámica para firmas de otros foros: una imagen SVG con el
 # nivel y el rango de cada cual (netlify/functions/insignia.mjs). URL
 # corta a propósito: se pega en firmas ajenas.

@@ -18,6 +18,7 @@
 import { plano, categoriaDe, esBasico, esEnergiaBasica, letraDeCartaDeEnergia, claveDeNombre, nombreVisible, subtipoDeEntrenador, esAsTactico } from './nucleo.js'
 import { INGLES_DE } from './nombres.js'
 import { lecturaDeAtaque, rasgosDeCarta, normalizarTexto } from './textos.js'
+import { fotoDeMesa, lineasDeLaJugada, lineasDePreparacion, lineasDeColocar, lineaDelFinal, nombresParaElRegistro, nombreEnElRegistro } from './diario.js'
 
 // ════════════════════════════════════════════════════════════════════
 // Qué es cada carta, a efectos de jugarla
@@ -111,6 +112,25 @@ export function esDe(c, dueno) {
   if (claveDeEfecto(c).startsWith(`${d}'s `)) return true
   const n = normalizarNombre(c?.name)
   return (DUENO_EN_ESPANOL[d] || []).some((f) => n.endsWith(` ${f}`) || n.includes(` ${f} `))
+}
+
+// «Por cada uno de tus Pokémon X en juego»: X es un dueño («Team Rocket's»,
+// «Erika's»), un tipo («{G}»), o una fase («basic», «evolution», «stage 1»).
+// Antes todo se leía como dueño, así que «tus Pokémon {G}» contaba CERO.
+export function esDeLaClase(c, clase) {
+  const k = normalizarNombre(clase)
+  // «Evolution {R}»: las dos condiciones a la vez.
+  const doble = k.match(/^(basic|evolution|stage [12]) ({[a-z]})$/)
+  if (doble) return esDeLaClase(c, doble[1]) && esDeLaClase(c, doble[2])
+  // Los Pokémon «del futuro» son los Ferro- (Iron …): la marca no la guarda
+  // el espejo, pero el nombre la lleva.
+  if (k === 'future') return /^iron /.test(claveDeEfecto(c))
+  const tipo = k.match(/^{([a-z])}$/)
+  if (tipo) return esDeTipo(c, tipo[1].toUpperCase())
+  if (k === 'basic') return esPokemon(c) && faseDe(c) === 0
+  if (k === 'evolution') return esPokemon(c) && esEvolucion(c)
+  if (k === 'stage 1' || k === 'stage 2') return esPokemon(c) && faseDe(c) === Number(k.slice(-1))
+  return esDe(c, k.replace(/'s$/, ''))
 }
 
 // El nombre de la carta de la que evoluciona, en plano. Puede venir en
@@ -1040,6 +1060,7 @@ export class Partida {
     const no = def.puede?.(this, p)
     if (no && no !== true) return
     if (await ui.confirmar({ titulo: def.nombre, texto: `¿Usar ${def.nombre}? ${def.texto}` })) {
+      this.mesa?.anotar(this, { k: 'habilidad', uid: p.cartas[p.cartas.length - 1], nombre: def.nombre })
       this.contarUso(def, p)
       await def.usar(this, ui, p)
     }
@@ -1068,6 +1089,7 @@ export class Partida {
     const no = def.puede?.(this, p)
     if (no && no !== true) return
     if (await ui.confirmar({ titulo: def.nombre, texto: `¿Usar ${def.nombre}? ${def.texto}` })) {
+      this.mesa?.anotar(this, { k: 'habilidad', uid: p.cartas[p.cartas.length - 1], nombre: def.nombre })
       this.contarUso(def, p)
       await def.usar(this, ui, p)
     }
@@ -1120,6 +1142,7 @@ export class Partida {
       throw new NoSePuede(no)
     }
     this.quitarDeMano(uid)
+    this.mesa?.anotar(this, { k: 'jugar', uid })
     const ef = this.efectoDe(c)
     const ctx = { uid, carta: c }
     this.log(`Juegas ${nombreVisible(c)}.`)
@@ -1227,6 +1250,7 @@ export class Partida {
     const no = this.motivoNoHabilidad(slot)
     if (no) throw new NoSePuede(no)
     this.log(`${nombreVisible(this.cartaDe(slot))} usa ${def.nombre}.`)
+    this.mesa?.anotar(this, { k: 'habilidad', uid: slot.cartas[slot.cartas.length - 1], nombre: def.nombre })
     this.contarUso(def, slot)
     await def.usar(this, ui, slot)
     this.retirarKOPropios()
@@ -1277,6 +1301,7 @@ export class Partida {
     const s = this.s
     const no = this.motivoNoRetirar()
     if (no) throw new NoSePuede(no)
+    this.mesa?.anotar(this, { k: 'retirar', uid: s.activo.cartas[s.activo.cartas.length - 1] })
     const coste = this.costeDeRetirada(s.activo)
     if (coste > 0 && s.activo.energias.length) {
       // Se elige qué energías pagan. Una que da dos cuenta por dos.
@@ -1348,6 +1373,7 @@ export class Partida {
   ponerDanio(slot, cantidad, { motivo = '' } = {}) {
     if (!slot || cantidad <= 0) return
     slot.danio += cantidad
+    this.mesa?.golpe(this, slot, cantidad, { de: null })
     this.log(`${nombreVisible(this.cartaDe(slot))} recibe ${cantidad} de daño${motivo ? ` (${motivo})` : ''}.`)
   }
 
@@ -1434,6 +1460,7 @@ export class Partida {
       }
     }
     objetivo.danio += cantidad
+    if (this.oponente) this.mesa?.golpe(this.oponente, objetivo, cantidad, { de: this, contadores })
     const r = this.rival
     const donde = this.oponente
       ? `${objetivo === r.activo ? 'activo' : 'Pokémon de la banca'} de ${this.oponente.nombreJugador} (${nombreVisible(this.oponente.cartaDe(objetivo))})`
@@ -1532,7 +1559,9 @@ export class Partida {
       // último turno de su rival» (Estampa Injusta, Fezandipiti…).
       if (this.enTurno) {
         op.s.koUltimoTurnoRival = true
-        op.s.koUltimo = [...(op.s.koUltimo || []), claveDeEfecto(c)]
+        // La CARTA y no su nombre: «si alguno de tus Pokémon {F} quedó
+        // fuera de combate» pregunta por el tipo, y el nombre no lo dice.
+        op.s.koUltimo = [...(op.s.koUltimo || []), { name: c.name, name_es: c.name_es, types: c.types, stage: c.stage, evolve_from: c.evolve_from, category: c.category }]
       }
       this.log(`${nombreVisible(c)} de ${op.nombreJugador} queda fuera de combate: ${this.nombreJugador} coge ${n} ${n === 1 ? 'premio' : 'premios'}${porQue.length ? ` (uno menos: ${porQue.join(', ')})` : ''}.`)
       await this.cogerPremios(n, ui)
@@ -1908,8 +1937,11 @@ export class Partida {
     // del texto (las que ya tenían su línea arriba, no se cuentan dos veces).
     for (const { r, c: dueno } of this.rasgosEnJuego('bono')) {
       if (BONOS_CON_NOMBRE.has(claveDeEfecto(dueno))) continue
-      if (r.salvo && claveDeEfecto(c) === normalizarNombre(r.salvo)) continue
-      const vale = r.de === 'future' ? /^iron /.test(claveDeEfecto(c)) : /'s$/.test(r.de) ? esDe(c, r.de.replace(/'s$/, '')) : false
+      // «excepto los de Ferrotesta ex»: el nombre puede venir en español.
+      if (r.salvo && claveDeEfecto(c) === claveDeEfecto({ name: r.salvo })) continue
+      // «{G} Pokémon and {R}»: cualquiera de las dos clases. Antes solo se
+      // entendían «future» y los dueños, y «tus Pokémon {F}» no sumaba nada.
+      const vale = r.de.split(/ pokémon and /).some((k) => esDeLaClase(c, k))
       if (vale) suma(r.n, r.habilidad)
     }
     return { extra, razones }
@@ -1998,6 +2030,7 @@ export class Partida {
   async ejecutarAtaque(slot, c, ataque, ui) {
     const s = this.s
     this.log(`${nombreVisible(this.cartaDe(slot))} ataca con ${ataque.name}.`)
+    this.mesa?.anotar(this, { k: 'ataque', uid: slot.cartas[slot.cartas.length - 1], ataque: ataque.name, objetivo: this.oponente?.s.activo?.id || null })
     s.flags.atacante = slot.id
     s.flags.enAtaque = true
     const def = this.defDeAtaque(c, ataque)
@@ -2080,10 +2113,24 @@ export class Partida {
         case 'porManoPropia': porCada(s.mano.length, p.n); break
         case 'porRetiradaRival': sinDummy('el coste de retirada'); porCada(op && ra ? op.costeDeRetirada(ra) : 0, p.n); break
         case 'porBanca': porCada(p.de === 'propia' ? s.banca.length : p.de === 'rival' ? r.banca.length : s.banca.length + r.banca.length, p.n); break
-        case 'porEnJuegoDe': porCada(this.enJuego.filter((x) => esDe(this.cartaDe(x), p.dueno.replace(/'s$/, ''))).length, p.n); break
+        case 'porEnJuegoDe': porCada(this.enJuego.filter((x) => esDeLaClase(this.cartaDe(x), p.dueno)).length, p.n); break
         case 'porEnergiaDescarteRival': sinDummy('el descarte'); porCada(op ? op.s.descarte.filter((u) => esEnergiaBasica(op.carta(u))).length : 0, p.n); break
         case 'porDescartePropio': porCada(s.descarte.filter((u) => cartaDeClase(this.carta(u), p.clase) && (!p.contiene || normalizarNombre(this.carta(u)?.name).includes(normalizarNombre(p.contiene)))).length, p.n); break
-        case 'siRivalEx': if (ra?.ex) out.danio += p.n; break
+        case 'siRivalEx': if (ra?.ex || (p.v && / (v|vmax|vstar)$/.test(normalizarNombre(cr?.name)))) out.danio += p.n; break
+        // Los premios que lleva cogidos cada uno: se empieza con seis.
+        case 'porPremios': porCada(Math.max(0, 6 - (p.de === 'propio' ? s.premios.length : r.premios)), p.n); break
+        case 'menosPorContadoresPropio': out.danio -= p.n * Math.floor(slot.danio / 10); break
+        case 'quitarHerramientasRival': {
+          // «Antes de hacer daño»: la Capa de Héroe se va ANTES de contar
+          // los PS, que es para lo que existe este ataque.
+          if (!op) { if (ra?.herramienta) this.log(`(${ataque.name}: el maniquí no lleva herramientas de verdad.)`); break }
+          if (!ra?.herramienta || op.previeneEfectosEn(ra)) break
+          const u = ra.herramienta
+          ra.herramienta = null
+          op.alDescarteDeSuDueno([u])
+          this.log(`Se descarta ${op.nombre(u)} de ${nombreVisible(cr)} (${ataque.name}).`)
+          break
+        }
         case 'siRivalFase': if (op ? faseDe(cr) === p.fase : p.fase === 0) out.danio += p.n; break
         case 'siRivalTipo': if (cr && esDeTipo(cr, p.letra)) out.danio += p.n; break
         case 'siRivalDanado': if (ra?.danio > 0) out.danio += p.n; break
@@ -2092,13 +2139,18 @@ export class Partida {
         case 'siBancaDanada': if (s.banca.some((x) => x.danio > 0)) out.danio += p.n; break
         case 'siSubioEsteTurno': if (slot.subioTurno === s.turno) out.danio += p.n; break
         case 'siEnergiaExtra': if (this.unidadesDe(slot).length >= this.costeDeAtaque(slot, ataque).length + p.extra) out.danio += p.n; break
-        case 'siTieneEnergia': if (slot.energias.some((u) => claveDeEfecto(this.carta(u)) === normalizarNombre(p.nombre))) out.danio += p.n; break
+        case 'siTieneEnergia': if (this.tieneEnergiaDe(slot, p.nombre)) out.danio += p.n; break
         case 'siEstadio': if (s.estadio) out.danio += p.n; break
         case 'nadaSinEstadio': if (!s.estadio) { out.nada = true; out.danio = 0 } break
-        case 'nadaSinEnBanca': if (!s.banca.some((x) => normalizarNombre(this.cartaDe(x)?.name).includes(normalizarNombre(p.nombre)) || claveDeEfecto(this.cartaDe(x)).includes(normalizarNombre(p.nombre)))) { out.nada = true; out.danio = 0 } break
+        case 'nadaSinEnBanca': {
+          // «Uxie and Azelf» son DOS: hacen falta los dos en la banca.
+          const enBanca = (nombre) => s.banca.some((x) => normalizarNombre(this.cartaDe(x)?.name).includes(nombre) || claveDeEfecto(this.cartaDe(x)).includes(nombre))
+          if (!normalizarNombre(p.nombre).split(/ and | y /).every(enBanca)) { out.nada = true; out.danio = 0 }
+          break
+        }
         case 'nadaSalvoPremios': if (!p.premios.includes(r.premios)) { out.nada = true; out.danio = 0 } break
         case 'siDescarteConHabilidad': if (cuentaConHabilidad(this, p.habilidad) >= p.cuantos) out.danio += p.n; break
-        case 'siKOUltimoTurno': if (s.koUltimoTurnoRival && (!p.dueno || (s.koUltimo || []).some((k) => k.startsWith(normalizarNombre(p.dueno))))) out.danio += p.n; break
+        case 'siKOUltimoTurno': if (s.koUltimoTurnoRival && (!p.dueno || (s.koUltimo || []).some((k) => esDeLaClase(k, p.dueno)))) out.danio += p.n; break
         case 'sinDR': out.mods.sinDR = true; break
         case 'sinDebilidad': out.mods.sinDebilidad = true; break
         case 'sinResistencia': out.mods.sinResistencia = true; break
@@ -2152,6 +2204,18 @@ export class Partida {
     return out
   }
 
+  // «Si este Pokémon tiene alguna Energía {R} / especial / del Team Rocket
+  // unida». La de tipo es la que PAGA ese tipo (una Fuego básica, o una
+  // especial que dé Fuego), no la que se llame así: el nombre de la carta
+  // es «Fire Energy» y la frase dice «{r} energy».
+  tieneEnergiaDe(slot, nombre) {
+    const k = normalizarNombre(nombre)
+    const tipo = k.match(/^{([a-z])} energy$/)
+    if (tipo) return this.unidadesDe(slot).some((u) => u.includes(tipo[1].toUpperCase()))
+    if (k === 'special energy') return slot.energias.some((u) => !esEnergiaBasica(this.carta(u)))
+    return slot.energias.some((u) => claveDeEfecto(this.carta(u)) === k)
+  }
+
   descartarEnergiasDe(slot, uids, porque = '') {
     if (!uids.length) return
     slot.energias = slot.energias.filter((u) => !uids.includes(u))
@@ -2193,6 +2257,8 @@ export class Partida {
           break
         }
         case 'descartarEstadio': {
+          if (!s.estadio) break
+          if (p.opcional && !(await ui.confirmar({ titulo: ataque.name, texto: `¿Descartas ${this.nombre(s.estadio)}?` }))) break
           const fuera = this.quitarEstadio()
           if (fuera) this.log(`${this.nombre(fuera)} se descarta (${ataque.name}).`)
           break
@@ -2249,27 +2315,29 @@ export class Partida {
           break
         }
         case 'descartarEnergiaRival': {
-          if (!op) { alManiqui('descarta una energía del activo rival'); break }
-          if (!ra?.energias.length || prevenido(ra)) break
-          const [u] = ra.energias.length === 1 ? ra.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía del activo rival se descarta?`, opciones: [...ra.energias], min: 1, max: 1 })
+          if (!op) { alManiqui(`descarta una energía${p.especial ? ' especial' : ''} del activo rival`); break }
+          const vale = (ra?.energias || []).filter((u) => !p.especial || !esEnergiaBasica(op.carta(u)))
+          if (!vale.length || prevenido(ra)) break
+          const [u] = vale.length === 1 ? vale : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía del activo rival se descarta?`, opciones: vale, min: 1, max: 1 })
           op.descartarEnergiasDe(ra, [u], ataque.name)
           break
         }
         case 'moverEnergiaABanca': {
           if (!slot.energias.length || !s.banca.length) break
-          const [u] = slot.energias.length === 1 ? slot.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía mueves?`, opciones: [...slot.energias], min: 1, max: 1 })
+          const mueven = p.todas || slot.energias.length === 1 ? [...slot.energias] : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía mueves?`, opciones: [...slot.energias], min: 1, max: 1 })
           const [d] = await elegir(s.banca, '¿A qué Pokémon de tu banca?')
-          slot.energias = slot.energias.filter((x) => x !== u)
-          d.energias.push(u)
-          this.log(`${this.nombre(u)} pasa a ${nombreVisible(this.cartaDe(d))}.`)
+          slot.energias = slot.energias.filter((x) => !mueven.includes(x))
+          d.energias.push(...mueven)
+          this.log(`${mueven.map((u) => this.nombre(u)).join(', ')} ${mueven.length === 1 ? 'pasa' : 'pasan'} a ${nombreVisible(this.cartaDe(d))}.`)
           break
         }
         case 'energiaPropiaAMano': {
           if (!slot.energias.length) break
-          const [u] = slot.energias.length === 1 ? slot.energias : await ui.cartas({ titulo: `${ataque.name}: ¿qué energía vuelve a la mano?`, opciones: [...slot.energias], min: 1, max: 1 })
-          slot.energias = slot.energias.filter((x) => x !== u)
-          s.mano.push(u)
-          this.log(`${this.nombre(u)} vuelve a la mano.`)
+          const n = Math.min(p.n || 1, slot.energias.length)
+          const vuelven = n >= slot.energias.length ? [...slot.energias] : await ui.cartas({ titulo: `${ataque.name}: ¿qué ${n === 1 ? 'energía vuelve' : `${n} energías vuelven`} a la mano?`, opciones: [...slot.energias], min: n, max: n })
+          slot.energias = slot.energias.filter((x) => !vuelven.includes(x))
+          s.mano.push(...vuelven)
+          this.log(`${vuelven.map((u) => this.nombre(u)).join(', ')} ${vuelven.length === 1 ? 'vuelve' : 'vuelven'} a la mano.`)
           break
         }
         case 'moverEnergiaRival': {
@@ -2291,6 +2359,63 @@ export class Partida {
           break
         }
         case 'robar': this.robar(p.n, { motivo: ataque.name }); break
+        case 'robarHasta':
+          if (s.mano.length >= p.n) break
+          if (p.opcional && !(await ui.confirmar({ titulo: ataque.name, texto: `¿Robas hasta tener ${p.n} cartas en la mano?` }))) break
+          this.robarHasta(p.n, { motivo: ataque.name })
+          break
+        case 'manoAlMazo': {
+          const n = this.manoAlMazo()
+          if (n) this.log(`${ataque.name}: ${n === 1 ? 'la carta de la mano vuelve' : `las ${n} cartas de la mano vuelven`} al mazo, barajado.`)
+          break
+        }
+        case 'descartarMano': this.descartar([...s.mano]); break
+        case 'molerPropio': {
+          const fuera = s.mazo.slice(0, p.n)
+          for (const u of fuera) {
+            this.sacarDelMazo(u)
+            s.descarte.push(u)
+          }
+          if (fuera.length) this.log(`De tu mazo al descarte: ${fuera.map((u) => this.nombre(u)).join(', ')}.`)
+          break
+        }
+        case 'descartarAlAzarRival': {
+          if (!op) { alManiqui('descarta una carta al azar de la mano rival'); break }
+          if (!op.s.mano.length) break
+          const u = op.s.mano[Math.floor(this.azar() * op.s.mano.length)]
+          op.descartar([u])
+          break
+        }
+        case 'rivalDescarta': {
+          if (!op) { alManiqui(`el rival descarta ${p.n} de su mano`); break }
+          const n = Math.min(p.n, op.s.mano.length)
+          if (!n) break
+          // Las elige el RIVAL: se le pregunta a él (en «tú contra ti» es
+          // la otra mitad de la mesa).
+          const el = n >= op.s.mano.length ? [...op.s.mano] : await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${n === 1 ? '1 carta' : `${n} cartas`} de tu mano`, opciones: [...op.s.mano], min: n, max: n, zona: 'mano', partida: op, sinCancelar: true })
+          op.descartar(el)
+          break
+        }
+        case 'koActivoRival':
+          if (!ra || prevenido(ra)) break
+          ra.danio = Math.max(ra.danio, op ? op.psDe(ra) : ra.ps)
+          this.log(`El activo rival queda fuera de combate (${ataque.name}).`)
+          break
+        case 'alMazoPropio': {
+          const cartas = this.cartasDelSlot(slot)
+          this.quitarDelJuego(slot)
+          this.alMazo(cartas.filter((u) => this.uidsPropios.has(u) || !this.oponente), 'barajar')
+          this.log(`${nombreVisible(c)} y todo lo unido vuelven al mazo, barajado.`)
+          break
+        }
+        case 'buscarClase': {
+          const DE_CLASE = { supporter: esPartidario, item: esObjeto, stadium: esEstadio, 'pokémon tool': esHerramienta, 'basic energy': esEnergiaBasica, 'pokémon': esPokemon }
+          const NOMBRE = { supporter: 'partidario', item: 'objeto', stadium: 'estadio', 'pokémon tool': 'herramienta', 'basic energy': 'energía básica', 'pokémon': 'Pokémon' }
+          const filtro = DE_CLASE[p.clase]
+          if (!filtro) break
+          await this.buscarEnMazo(ui, { titulo: `${ataque.name}: ${p.n === 1 ? '1' : `hasta ${p.n}`} ${NOMBRE[p.clase]}`, filtro: (x) => filtro(x), max: p.n })
+          break
+        }
         case 'molerRival': {
           if (!op) { alManiqui(`descarta ${p.n} del mazo rival`); break }
           const fuera = op.s.mazo.slice(0, p.n)
@@ -2611,6 +2736,8 @@ export function crearRival({ plantilla = 'ex', banca = 2 } = {}) {
   return r
 }
 
+const nombreEnElRegistroDe = (mesa, u) => nombreEnElRegistro(mesa.cartas.get(u))
+
 // ════════════════════════════════════════════════════════════════════
 // La mesa: tú contra ti, con dos mazos (tanda 456)
 // ════════════════════════════════════════════════════════════════════
@@ -2663,8 +2790,54 @@ export class Mesa {
       pendientes: [],
       resultado: null,
       monedaInicial: empieza === 'azar',
+      // La partida como la escribe TCG Live (constructor/diario.js): las
+      // líneas, para copiarla y verla en /repeticiones.
+      diario: [],
     }
+    this.nombresDiario = nombresParaElRegistro(this.jugadores.map((j) => j.nombreJugador))
+    // Lo que se va apuntando de la jugada en curso (solo dentro de
+    // `accion`: lo que el motor hace fuera —buscar caminos, probar— no se
+    // escribe en el registro).
+    this.tramo = null
     if (empieza === 'azar') this.log(null, `Moneda: empieza ${this.jugadores[primero].nombreJugador}.`)
+  }
+
+  // ── El registro de TCG Live (tanda 592) ──
+  anotar(partida, cabecera) {
+    if (this.tramo) this.tramo.cabs.push({ ...cabecera, i: this.indice(partida) })
+  }
+  golpe(dueno, slot, cantidad, { de = null, contadores = false } = {}) {
+    if (!this.tramo || !slot) return
+    this.tramo.golpes.push({ a: this.indice(dueno), de: de ? this.indice(de) : null, slot: slot.id, uid: slot.cartas[slot.cartas.length - 1], cantidad, contadores })
+  }
+  // Escribe lo que ha pasado desde la última vez (y `extra` detrás), y
+  // vuelve a empezar a contar desde aquí.
+  cortar(extra = []) {
+    if (!this.tramo) return
+    if (!this.m.diario) this.m.diario = []
+    // En la preparación no se escribe nada: lo que cada uno pone en juego
+    // lo escribe Mesa.empezar, de una vez y en el orden de TCG Live.
+    if (this.m.fase === 'mulligan' || this.m.fase === 'preparacion') {
+      this.tramo = { base: fotoDeMesa(this), cabs: [], golpes: [] }
+      return
+    }
+    const despues = fotoDeMesa(this)
+    const lineas = lineasDeLaJugada(this.tramo.base, despues, {
+      nombres: this.nombresDiario,
+      carta: (u) => this.cartas.get(u),
+      cabeceras: this.tramo.cabs,
+      golpes: this.tramo.golpes,
+    })
+    this.m.diario.push(...lineas, ...extra)
+    if (this.m.finPendiente) {
+      this.m.diario.push(this.m.finPendiente)
+      this.m.finPendiente = null
+    }
+    this.tramo = { base: despues, cabs: [], golpes: [] }
+  }
+  // El registro entero, listo para pegarlo en /repeticiones.
+  get registroLive() {
+    return (this.m.diario || []).join('\n').replace(/\n{3,}/g, '\n\n').trim()
   }
 
   // ── Lo que se ve desde fuera ──
@@ -2719,13 +2892,18 @@ export class Mesa {
   // no es un ataque (una habilidad que pone contadores).
   async accion(fn, ui) {
     this.foto()
+    const fuera = this.tramo
+    this.tramo = { base: fotoDeMesa(this), cabs: [], golpes: [] }
     try {
       const r = await fn()
       await this.resolver(ui)
+      this.cortar()
       return r
     } catch (err) {
       this.restaurar(this.historia.pop())
       throw err
+    } finally {
+      this.tramo = fuera
     }
   }
 
@@ -2797,6 +2975,10 @@ export class Mesa {
   }
 
   async empezar(ui) {
+    const N = this.nombresDiario
+    // El registro de TCG Live: la moneda y las manos, antes de que los
+    // premios y las cartas de más las cambien.
+    const diario = lineasDePreparacion(this, N)
     for (const j of this.jugadores) j.empezar({ arrancar: false })
     this.m.fase = 'juego'
     // Por cada mulligan del otro, puedes robar una carta de más (si
@@ -2805,10 +2987,21 @@ export class Mesa {
       const n = j.oponente.s.mulligans
       if (!n) continue
       const cuantas = ui?.numero ? await ui.numero({ titulo: `${j.nombreJugador}: ${j.oponente.nombreJugador} hizo ${n} ${n === 1 ? 'mulligan' : 'mulligans'}`, texto: '¿Cuántas cartas robas de más? (Hasta una por mulligan.)', min: 0, max: n, valor: n }) : n
-      if (cuantas > 0) j.robar(cuantas, { motivo: 'Por los mulligans del rival' })
+      if (cuantas > 0) {
+        const robadas = j.robar(cuantas, { motivo: 'Por los mulligans del rival' })
+        const J = N[this.indice(j)]
+        const nom = (u) => nombreEnElRegistroDe(this, u)
+        diario.push(`${J} ha robado ${robadas.length === 1 ? 'una carta' : `${robadas.length} cartas`} más porque ${N[1 - this.indice(j)]} ha declarado al menos un mulligan.`)
+        if (robadas.length === 1) diario.push(`- ${J} ha robado ${nom(robadas[0])}.`)
+        else if (robadas.length) diario.push(`- ${J} ha robado ${robadas.length} cartas.`, `   • ${robadas.map(nom).join(', ')}`)
+      }
     }
     this.m.turnoDe = this.m.primero
     const p = this.jugadores[this.m.primero]
+    if (!this.m.diario) this.m.diario = []
+    this.m.diario.push(...diario, ...lineasDeColocar(this, N), '', `Turno de ${N[this.m.primero]}`)
+    // Lo de hasta aquí ya está escrito: el robo del primer turno, no.
+    if (this.tramo) this.tramo = { base: fotoDeMesa(this), cabs: [], golpes: [] }
     p.s.fase = 'turno'
     p.empezarTurno()
     this.comprobarFin()
@@ -2838,6 +3031,7 @@ export class Mesa {
     j.s.koUltimo = []
     j.s.fase = 'espera'
     this.m.turnoDe = this.indice(op)
+    this.cortar([`${this.nombresDiario[this.indice(j)]} ha terminado su turno.`, '', `Turno de ${this.nombresDiario[this.indice(op)]}`])
     op.s.fase = 'turno'
     op.empezarTurno()
     this.comprobarFin()
@@ -2863,6 +3057,7 @@ export class Mesa {
     this.m.fase = 'fin'
     this.m.pendientes = []
     this.m.resultado = { ganador: this.indice(ganador), texto: r.texto || 'Fin de la partida.', turno: this.m.turnoGlobal }
+    this.m.finPendiente = lineaDelFinal(this, this.nombresDiario)
     for (const j of this.jugadores) {
       if (j.s.fase !== 'fin') {
         j.s.fase = 'fin'

@@ -4,6 +4,70 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada) — PINGU-Claude (590 a 596 — la impresión del meta, enlaces cortos, el registro de «tú contra ti», efectos en español, elegir sin ventanas, caminos combinados y un repaso de fallos)
+
+**Leídas vuestras 566 a 579 antes de subir** (y la 578 del álbum, que
+entró mientras pasaba la suite): no tocan nada de lo mío (repeticiones,
+laboratorio, constructor). Coincidimos en `netlify.toml` (vuestra `/reto`,
+mis `/rep/` y `/lab/`: reglas distintas, se juntan solas). Mis números van
+de la 590 a la 596: la 575 y la 576 no las uso por si son vuestras, y de la
+580 a la 589 os las dejo libres por si seguís.
+
+**De dónde sale**: PINGU, de una vez: la impresión de Shaymin en la
+repetición de Zoroark, los enlaces muchísimo más cortos, copiar el log de
+«tú contra ti», menos modales en «tú contra ti» (resaltando en la mesa; las
+búsquedas, en ventana), la manera más óptima de encontrar una carta con
+todo combinado, los efectos de ataque que se cumplan solos (Budew), y un
+repaso de errores.
+
+· **590** — la impresión que se juega: la que más mazos llevan en el meta
+  (`meta_cartas_dia`), y después la huella de la 481.
+· **591** — enlaces cortos: `/rep/<id>` y `/lab/<id>`, con la carga
+  guardada en `enlaces_cortos`. **MIGRACIÓN** (abajo).
+· **592** — «tú contra ti» escribe la partida como TCG Live
+  (`js/constructor/diario.js`): «Copiar el registro» y «Verla como
+  repetición». Comprobado jugada a jugada en 40 partidas.
+· **593** — los efectos de ataque se leían SOLO en inglés y las cartas de
+  verdad están en español (desde la 330): el Budew real no vetaba nada.
+  `textos-es.js` traduce la plantilla y lo vigilan 1.300 pares de TCGdex.
+  Más seis efectos que contaban cero y veinte efectos nuevos.
+· **594** — elegir en la mesa: cartas de la mano, energías, Pokémon,
+  premios y sí/no sin ventana; buscar sigue en ventana.
+· **595** — caminos: los pasos que PREPARAN (barajar antes de mirar con
+  Drakloak) y las evoluciones con habilidad como puente; «Lo mejor» arriba.
+· **596** — el repaso: diez fallos (ver SCHEMA), entre ellos el puzle que
+  enseñaba la solución en la dirección y la ventana que pisaba a otra.
+
+**LO QUE HAY QUE EJECUTAR** en el SQL Editor:
+`supabase-migration-enlaces-cortos.sql` (se puede repetir). Sin ella no se
+rompe nada: los enlaces salen largos, como hasta ahora.
+
+**Ficheros**: `js/repeticiones.js`, `js/repeticiones/{datos,estado,
+impresion,registro}.js`, `css/repeticiones.css`; **nuevos**
+`js/enlace-corto.js`, `js/constructor/diario.js`,
+`js/constructor/textos-es.js` y `supabase-migration-enlaces-cortos.sql`;
+`js/constructor.js`, `js/constructor/{laboratorio,partida,textos,caminos,
+caminos-html}.js`, `css/laboratorio.css`, `css/constructor.css`,
+`auth.html`, `reset-password.html`, `netlify.toml`, `SCHEMA.md`,
+`CLAUDE.md` (dos lecciones). Nada de la portada. En `pruebas`:
+`test-tanda-590…596.mjs` con sus rigores (todas las mutaciones detectadas),
+`sql-enlaces-cortos.sql`, `textos-tcgdex.json` (los pares de TCGdex), al
+día la 456, 457, 480, 515 y 521, y el doble: `meta_cartas_dia`,
+`enlaces_cortos` con sus dos funciones, y `__RPC_RETRASO__` para hacer
+tardar una función.
+
+**Suite entera pasada.** Lo mío, en verde (y al día la 497 —los premios
+se cogen en la mesa— y la 554 —«Lo mejor» delante del primer camino—).
+**Rojos que NO son de estas tandas**, por si os toca: /mi-coleccion y el
+catálogo asiático (422, 426, 461, 469, 471, 385, 392, 398 — la 398 busca el
+«+» del bolsillo que quitó la 565, la 392 casa dos `.mc-contador-btn`), el
+panel limpio de la 550 que se llevó botones que miran 484, 500, 503, 504,
+505 y 506, más 488 y 545, y la 470, que pide una captura del scratch de una
+sesión vieja. La 326 contaba 32 páginas con pie y ya son 35 (la 312 sí se
+actualizó): esa la he puesto al día en `pruebas`.
+
+**Pendiente**: nada de esto.
+
 ## 2026-10-06 (mañana, 11:10) — PINGU-Claude (578 — arrastrar cartas en un álbum soñado)
 
 **Hecho**: la carta se arrastra a otro hueco (ratón siempre; dedo en
@@ -18,6 +82,7 @@ redondo y línea de ayuda al ordenar.
 **Ficheros**: `js/mi-coleccion/arrastre.js` (nuevo),
 `js/mi-coleccion/albumes.js`, `css/mi-coleccion.css`, `mi-coleccion.html`,
 `SCHEMA.md`. En `pruebas`: `test-tanda-578.mjs` (nueva).
+
 
 ## 2026-10-06 (mañana, 10:20) — PINGU-Claude (579 — «Carpetas» pasa a «Álbumes»)
 

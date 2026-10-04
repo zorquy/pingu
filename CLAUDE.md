@@ -477,6 +477,23 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `api.tcgdex.net`—, así que lo pregunta el navegador del panel: /admin →
   Cartas tiene **«Qué contesta TCGdex de un set»** y **«Sondear un
   catálogo entero»**.
+- **Una ficha de pruebas en otro IDIOMA que producción prueba otra web**
+  (tanda 593). Los efectos de los ataques se leían de plantillas inglesas
+  porque «el espejo guarda el texto en inglés» — y desde la 330 el engorde
+  lo guarda en ESPAÑOL siempre que TCGdex lo tiene. La ficha de pruebas
+  estaba en inglés, así que la 462 salió verde con el Budew vetando objetos
+  mientras el Budew de verdad no vetaba nada, sin un error. Antes de afirmar
+  en qué idioma (o forma) llega un dato, mira quién lo escribe HOY; y si la
+  prueba usa una ficha, que sea de la forma de producción — aquí, los
+  ~1.300 pares (inglés, español) de tcgdex/cards-database, donde cada
+  ataque que se lee en inglés tiene que dar los mismos pasos en español.
+- **`closest('[data-x]')` sube hasta la raíz si la raíz lleva `data-x`**
+  (tanda 594). Para el CSS de «elegir en la mesa» la raíz llevaba
+  `data-elegir="cartas"`, y lo que se toca lleva `data-elegir="<id>"`:
+  pulsar «Confirmar» en la barra encontraba la RAÍZ, lo tomaba por una carta
+  llamada «cartas» y no hacía nada, sin error. Un atributo de estado en un
+  contenedor no puede llamarse como el de los elementos que se buscan con
+  `closest()` dentro de él (`data-eligiendo` en la raíz).
 - **La API de TCGdex y su servidor de FICHEROS son dos sitios, y la API
   se calla fotos que el servidor sí tiene** (medido por la sesión de
   COWORK el 2026-10-03, con un HEAD por carta a las 20.442 asiáticas):

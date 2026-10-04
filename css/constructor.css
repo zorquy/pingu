@@ -271,6 +271,14 @@
   flex-direction: row;
   align-items: center;
   gap: var(--e-sm);
+  max-width: 100%;
+}
+
+/* El desplegable mide su opción más larga («Libre (sin reglas de
+   formato)»): a 360 px se salía de la pantalla. Que pueda encogerse. */
+.cm-ajustes .cm-campo select {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .cm-campo {

@@ -233,7 +233,7 @@ function ponerFoto(p, f, { copiar = true } = {}) {
 // `ceder()`: se llama entre tandas para no congelar la página; durante la
 // tanda el estado de verdad está cambiado, así que NO puede haber nada más
 // tocando la partida mientras tanto (quien llama tiene la ventana delante).
-export async function buscarCaminos({ partida: p, objetivo, muestras = 300, profundidad = 3, anchura = 6, semilla = 0x5eed, alProgresar = null, ceder = null }) {
+export async function buscarCaminos({ partida: p, objetivo, muestras = 300, profundidad = 4, anchura = 6, preparar = 3, semilla = 0x5eed, alProgresar = null, ceder = null }) {
   const real = fotoDe(p)
   const inicial = cuantasTienes(p, objetivo)
   const robo = probabilidadDeGrupo(p, objetivo, 1)
@@ -244,7 +244,7 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   // Los repartos, los mismos para todos los caminos.
   const azar = azarDe(semilla)
   const raices = []
-  const mRaiz = p.mesa ? { ...structuredClone({ ...p.mesa.m, registro: [] }) } : null
+  const mRaiz = p.mesa ? { ...structuredClone({ ...p.mesa.m, registro: [], diario: [] }) } : null
   for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar), op: real.op, m: mRaiz })
 
   const puentes = new Map()
@@ -268,7 +268,12 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
         const clave = claveDeEfecto(c)
         if (vistas.has(clave) || puentes.has(clave)) continue
         vistas.add(clave)
-        const util = esEntrenador(c) ? !esHerramienta(c) && (p.efectoDe(c)?.usar || p.efectoDe(c)?.alPoner) : esPokemon(c) && p.efectos?.habilidades?.[clave]?.cuando === 'bajar' && esBasicoEnJuego(c)
+        const def = esPokemon(c) ? p.efectos?.habilidades?.[clave] : null
+        // Una evolución con habilidad de las que se usan (Drakloak, Kadabra…)
+        // también es un puente: Ultra Ball la trae, evoluciona y la usas. Sin
+        // esto la búsqueda no sabía que coger a Drakloak servía de algo.
+        const evoluciona = !!def && esEvolucion(c) && !def.cuando && !def.pasiva
+        const util = esEntrenador(c) ? !esHerramienta(c) && (p.efectoDe(c)?.usar || p.efectoDe(c)?.alPoner) : (def?.cuando === 'bajar' && esBasicoEnJuego(c)) || evoluciona
         if (!util) continue
         let sirve = 0
         for (const st of tanda) {
@@ -280,8 +285,9 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
           p.sacarDelMazo(copia)
           p.s.mano.push(copia)
           const antes = cuantasTienes(p, trae) - (trae(c) ? 1 : 0)
-          const accion = { tipo: esEntrenador(c) ? 'carta' : 'banca', clave }
-          if ((await hacer(p, accion, ui)) && cuantasTienes(p, trae) > antes) sirve++
+          const accion = { tipo: esEntrenador(c) ? 'carta' : evoluciona ? 'evolucion' : 'banca', clave }
+          const dado = (await hacer(p, accion, ui)) && (!evoluciona || (await hacer(p, { tipo: 'habilidad', clave }, ui)))
+          if (dado && cuantasTienes(p, trae) > antes) sirve++
         }
         if (sirve) nuevas.push([clave, sirve / tanda.length])
       }
@@ -306,6 +312,10 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
     let encontradas = 0
     let pudo = 0
     let intentos = 0
+    // En cuántos repartos el paso ha MOVIDO el mazo (barajarlo, mandar una
+    // abajo, sacar cartas): lo que hace que un paso que no trae nada sí
+    // cambie lo que trae el siguiente.
+    let mueve = 0
     try {
       for (let i = 0; i < nodo.estados.length; i++) {
         const st = nodo.estados[i]
@@ -316,9 +326,11 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
         }
         intentos++
         ponerFoto(p, st)
+        const mazoAntes = p.s.mazo.join()
         const dado = await hacer(p, accion, ui)
         hechos++
         if (dado) pudo++
+        if (dado && p.s.mazo.join() !== mazoAntes) mueve++
         if (cuantasTienes(p, objetivo) > inicial) {
           estados.push(null)
           encontradas++
@@ -331,7 +343,7 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
     } finally {
       ponerFoto(p, real, { copiar: false })
     }
-    return { pasos: [...nodo.pasos, accion], estados, encontradas, dados: [...nodo.dados, intentos ? pudo / intentos : 0], padre: nodo }
+    return { pasos: [...nodo.pasos, accion], estados, encontradas, dados: [...nodo.dados, intentos ? pudo / intentos : 0], mueve: intentos ? mueve / intentos : 0, padre: nodo }
   }
 
   // Lo que se puede hacer después de un nodo: lo que esté disponible en
@@ -373,10 +385,19 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
       }
     }
     for (const h of hijos) if (h.gana > 0.005) todos.push(h)
-    frontera = hijos
+    const ganan = hijos
       .filter((h) => h.gana > 0.005 || h.abre)
       .sort((a, b) => b.p - a.p)
       .slice(0, anchura)
+    // Los pasos que PREPARAN (tanda 595). No traen la carta, así que antes
+    // se tiraban, y con ellos los caminos en los que sí cuentan: barajar
+    // con un Poffin un mazo cuyas dos de arriba ya sabes que no son, y LUEGO
+    // mirar las dos de arriba con Drakloak. Pasan unos pocos al nivel
+    // siguiente: los que mueven el mazo en la mayoría de los repartos (un
+    // Martillo o un estadio no cambian lo que viene, y ocuparían el sitio).
+    // Si después nada gana, no se enseñan.
+    const preparan = hijos.filter((h) => !ganan.includes(h) && h.mueve > 0.5).slice(0, preparar)
+    frontera = [...ganan, ...preparan]
   }
 
   // Los mismos pasos en otro orden: se queda el mejor orden.

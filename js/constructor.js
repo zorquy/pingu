@@ -233,7 +233,10 @@ function pintarMazo() {
     sello.textContent = `${v.problemas.length} ${v.problemas.length === 1 ? 'cosa por revisar' : 'cosas por revisar'}`
     sello.className = 'cm-sello cm-sello-mal'
   }
-  // El sello es el botón que abre los avisos; sin avisos no abre nada.
+  // El sello es el botón que abre los avisos; sin avisos no abre nada. Y
+  // con el mazo vacío no hay nada que sellar: un botón sin texto se leía
+  // como «botón» a secas.
+  sello.classList.toggle('hidden', !entradas.length)
   sello.disabled = !hayAvisos
   if (!hayAvisos) estado.avisosAbiertos = false
   sello.setAttribute('aria-expanded', String(!!estado.avisosAbiertos))
@@ -447,8 +450,12 @@ function pintarCartaAbierta() {
   const t = Math.max(total(), 60)
   // Lo que más se pregunta al ajustar un mazo: con estas copias, ¿cuántas
   // veces la tengo en la mano inicial?
+  // La cifra cuenta TODAS las copias del nombre (dos de SVI y dos de PAF son
+  // cuatro para robarla), así que la frase dice esas y no las de esta
+  // impresión: «con 2 copias, el 40 %» era la cifra de cuatro.
+  const delNombre = copiasDelNombre(cartaAbierta)
   $('cmCartaProbabilidad').textContent = n
-    ? `Con ${n} ${n === 1 ? 'copia' : 'copias'}, la tienes en la mano inicial el ${Math.round(probabilidadEnMano(copiasDelNombre(cartaAbierta), t) * 100)} % de las veces.`
+    ? `Con ${delNombre} ${delNombre === 1 ? 'copia' : 'copias'}${delNombre > n ? ` (contando las otras impresiones)` : ''}, la tienes en la mano inicial el ${Math.round(probabilidadEnMano(delNombre, t) * 100)} % de las veces.`
     : `Con 1 copia la tendrías en la mano inicial el ${Math.round(probabilidadEnMano(1, t) * 100)} % de las veces; con 4, el ${Math.round(probabilidadEnMano(4, t) * 100)} %.`
   // «Usar de portada» (tanda 413): solo con la carta en el mazo, y si ya
   // lo es, lo dice en vez de ofrecerlo.
@@ -678,9 +685,19 @@ function aplicarImportacion(piezas) {
 // /constructor#pos=…: la mesa viene entera detrás del `#` (constructor/
 // posicion-compartida.js). Las cartas se piden al catálogo por su id; las
 // que ya no estén se juegan con el nombre y el tipo que trae el enlace.
-async function abrirPosicionDelEnlace() {
+async function abrirPosicionDelEnlace(id = null) {
   const P = await import('./constructor/posicion-compartida.js')
-  const x = await P.desempaquetarPosicion(location.hash)
+  let hash = location.hash
+  // Un enlace corto (/lab/<id>, tanda 591): la carga es la de detrás del
+  // `#` de siempre, guardada en la base.
+  if (id) {
+    const { leerCorto } = await import('./enlace-corto.js')
+    const fila = await leerCorto(id)
+    if (!fila) return showToast('Este enlace no existe: ¿se copió entero?', 'error')
+    if (fila.tipo !== 'posicion') return location.replace(`/repeticiones#${fila.carga}`)
+    hash = `#${fila.carga}`
+  }
+  const x = await P.desempaquetarPosicion(hash)
   if (!x) return showToast('El enlace de la posición está roto o incompleto: ¿se cortó al copiarlo?', 'error')
   const catalogo = await cartasPorIds(P.idsDelCatalogo(x)).catch(() => new Map())
   const { abrirPosicionCompartida } = await import('./constructor/laboratorio.js')
@@ -811,7 +828,12 @@ function empezarNuevo() {
 }
 
 // ── Guardar ──
+// Mientras se guarda, no se vuelve a guardar: mantener Ctrl+S (o pulsarlo
+// con el clic aún en marcha) metía el mismo mazo nuevo varias veces, porque
+// el id no llega hasta que contesta la base.
+let guardando = false
 async function guardar() {
+  if (guardando) return
   if (!lista().length) return showToast('Añade alguna carta antes de guardar.', 'error')
   if (!estado.sesion) {
     guardarBorrador()
@@ -822,6 +844,7 @@ async function guardar() {
   }
   const boton = $('cmGuardar')
   boton.disabled = true
+  guardando = true
   try {
     const copia = estado.soloLectura
     const datos = {
@@ -857,6 +880,7 @@ async function guardar() {
   } catch (err) {
     showToast(err.message || 'No se ha podido guardar.', 'error')
   } finally {
+    guardando = false
     boton.disabled = false
   }
 }
@@ -1117,7 +1141,7 @@ function enganchar() {
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
       e.preventDefault()
-      guardar()
+      if (!e.repeat) guardar()
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/input|textarea/i.test(document.activeElement?.tagName || '')) {
       e.preventDefault()
       deshacer()
@@ -1364,8 +1388,11 @@ async function iniciar() {
 
   // «Probar en el laboratorio» desde /meta: el mazo llega por la
   // dirección y el laboratorio se abre solo.
+  const posCorta = new URLSearchParams(location.search).get('pos')
   if (new URLSearchParams(location.search).has('lab') && lista().length) abrirLab()
-  else if (location.hash.startsWith('#pos=')) {
+  else if (posCorta) {
+    abrirPosicionDelEnlace(posCorta).catch((err) => showToast(`No se ha podido abrir la posición: ${err.message || 'error de red'}.`, 'error'))
+  } else if (location.hash.startsWith('#pos=')) {
     abrirPosicionDelEnlace().catch((err) => showToast(`No se ha podido abrir la posición: ${err.message || 'error de red'}.`, 'error'))
   }
 }

@@ -29815,3 +29815,232 @@ de página con la carta en la mano; las carpetas escondidas y de vuelta;
 y con el dedo, sin ordenar no coge (y `touch-action` lo deja desplazar) y
 ordenando sí, con los mandos a 44 px.
 
+## Tanda 590 — la impresión que se juega de verdad: la del meta (oct. 2026)
+
+PINGU, con el registro de Zoroark de ejemplo: «el rival saca un Shaymin y
+ese Shaymin no es el que se juega realmente. El que se está jugando es el
+de Rivales Predestinados. Y en la repetición se ve otro».
+
+La 481 arreglaba la impresión de una carta por su HUELLA: lo que se le ve
+atacar o usar en el registro («usando Ráfaga Espejismo»). Shaymin no deja
+huella —su habilidad es pasiva, no ataca—, así que el resolutor por
+nombre se quedaba con la impresión legal más NUEVA, que no tiene por qué
+ser la que lleva nadie.
+
+La pista que queda es **qué impresión LLEVAN los mazos de verdad**:
+`meta_cartas_dia` cuenta los Pokémon de las listas de Limitless por nombre
++ colección + número. De cada nombre se suma por impresión y gana la que
+más mazos lleva (`masJugadas` en `js/repeticiones/impresion.js`). Una sola
+consulta para todos los Pokémon de la partida (`impresionesDelMeta` en
+`datos.js`, los últimos 60 días), y solo DESPUÉS la huella de la 481, que
+manda cuando la hay: si la carta ataca con algo que la del meta no tiene,
+es otra.
+
+Solo Pokémon: un entrenador o una energía se pintan igual en todas sus
+impresiones, y pedirlos sería gastar la consulta.
+
+## Tanda 591 — enlaces cortos (oct. 2026)
+
+PINGU: «los enlaces, hacerlos muchísimo más cortos». Una repetición sin
+cuenta y una posición del laboratorio llevaban la partida ENTERA dentro
+del enlace, comprimida detrás de un `#`: 3.000–6.000 caracteres, que en
+Discord no caben en un mensaje.
+
+Ahora esa misma carga —ya comprimida en el navegador; la base no la abre—
+se guarda en `enlaces_cortos` (supabase-migration-enlaces-cortos.sql) y el
+enlace es `pokedoc.es/rep/<8 letras>` o `pokedoc.es/lab/<8 letras>`. Las
+guardadas, que ya tenían fila, van por `/rep/<id>` también (diez cifras).
+Las dos rutas son redirecciones 302 de `netlify.toml`: la página lee el id
+de su `?r=` / `?pos=` y no hay que tocar cómo carga.
+
+Lo puede hacer cualquiera, con cuenta o sin ella, así que lleva topes, y
+cada uno se dice: la carga con la forma exacta que hace la web
+(`p=…`, `t=…`, `pos=…`) y no más de 60.000 caracteres; la misma carga dos
+veces es el mismo enlace (`huella` única); 30 por hora por conexión (la IP
+resumida con md5, y sin cabeceras no hay tope por conexión: `null` no casa
+con `null`) y 3.000 al día entre todos. La tabla no se lee ni se escribe
+directamente: `enlace_corto_crear` y `enlace_corto_leer`, que pide el id
+exacto. No se puede listar.
+
+Al llegar a un tope (o sin la migración) la web hace el enlace LARGO de
+siempre, que sigue funcionando, y el corto ofrece «Usar el enlace largo, con
+la partida dentro» para quien prefiera no guardar nada. Abrir uno tiene
+tres finales y los tres se dicen: no se ha podido preguntar, no existe
+(«¿se copió entero?») o es una posición (que se va al laboratorio).
+
+## Tanda 592 — «tú contra ti», escrita como TCG Live (oct. 2026)
+
+PINGU: «estaría muy bien poder copiar el log de una partida que juegues tú
+contra ti mismo: que al final te deje copiar el log para guardar la
+repetición».
+
+`js/constructor/diario.js` escribe la partida de la mesa con las frases del
+registro de TCG Live en español —las que entiende `repeticiones/registro.js`,
+que es la prueba—. Cómo: la mesa hace una FOTO de dónde está cada carta al
+empezar cada jugada y al acabarla compara. Lo que se ha movido sale de la
+comparación (así un efecto nuevo queda contado sin tocar el diario); lo
+que la comparación no puede saber —qué carta se JUGÓ, qué ataque, cuánto
+daño hizo a uno que ya no está— lo apunta el motor al pasar (`anotar`,
+`golpe`). Las dos manos se escriben enteras: son tuyas las dos.
+
+Al acabar la partida, y en la pestaña «Registro» del panel: «Copiar el
+registro» y «Verla como repetición» (la abre en otra pestaña, ya pegada).
+Deshacer deshace también sus líneas, y buscar caminos (que juega miles de
+jugadas de mentira) no escribe nada.
+
+Para que se lea igual que se juega, el lector aprendió tres cosas que el
+de TCG Live no escribe pero tampoco contradice: `◦ lugar 2` (cuál de dos
+Pokémon que se llaman igual), `◦ de la baraja` (la energía que une un
+efecto sale del mazo aunque haya una igual en el descarte) y «se ha curado
+N puntos de daño». La prueba juega 40 partidas al azar y en CADA jugada
+compara la mesa del laboratorio con la de la repetición: mismas cartas en
+cada sitio, mismo activo, mismo daño, mismos premios.
+
+## Tanda 593 — los efectos de los ataques, también en español (oct. 2026)
+
+PINGU: «efectos de ataques, como el del Budew, que deja sin objetos: que si
+se usa un Budew no te deje utilizar objetos. Y muchos más ataques que
+tienen sus efectos, que se cumplan y no los tengas que hacer a mano».
+
+**El veto de Budew existía desde la 462… leyendo el texto en INGLÉS.** Y
+desde la 330 el engorde guarda el texto en español siempre que TCGdex lo
+tiene: el Budew de verdad dice «Durante el próximo turno de tu rival, este
+no puede jugar ninguna carta de Objeto de su mano», que no casaba con
+ninguna plantilla. Sin error: el ataque se quedaba «a mano». En la ficha de
+pruebas todo estaba en inglés, así que la prueba de la 462 salía verde.
+
+`js/constructor/textos-es.js` convierte cada frase española en SU frase
+inglesa y la lee el mismo lector (`alIngles`, y `alInglesHabilidad` para
+las habilidades pasivas). Un solo lector es una sola forma de entender cada
+efecto: si el español escribiera sus propios pasos, los dos acabarían
+diciendo cosas distintas. Lo vigila una prueba con los ~1.300 pares
+(inglés, español) de los ataques de Escarlata y Púrpura y Megaevolución
+sacados de tcgdex/cards-database (`pruebas/textos-tcgdex.json`): donde el
+inglés se lee entero, el español da EXACTAMENTE los mismos pasos (2.777
+cartas), y las 105 habilidades, igual. Los nombres propios (de un ataque,
+de una habilidad) se quedan en el idioma de la carta, que es contra lo que
+se comparan.
+
+**Efectos que se leían y contaban CERO**, en los dos idiomas: «por cada uno
+de tus Pokémon {G} en juego» buscaba un DUEÑO llamado «{g}» (ahora
+`esDeLaClase`: dueño, tipo, básico, evolución, fase); «si tiene alguna
+Energía {R}» comparaba el NOMBRE de la carta con «{r} energy» (ahora
+`tieneEnergiaDe`: la que paga ese tipo, o cualquier especial); «si no tienes
+a Uxie y Azelf» buscaba un Pokémon llamado «uxie and azelf»; «si alguno de
+tus Pokémon {F} quedó KO» guardaba solo el nombre del caído, que no dice
+el tipo; el bono de una habilidad para «tus Pokémon {F}» solo valía para
+dueños y «del futuro»; y «este Pokémon no puede usar ataques» se leía como
+un ataque llamado «attacks» y bloqueaba solo el que se usó.
+
+**Efectos nuevos**: por premios cogidos (tuyos o del rival), menos daño por
+contadores propios, descartar las herramientas del activo ANTES del daño (la
+Capa de Héroe se va antes de contar los PS), el rival descarta N (y las
+elige él: se le pregunta a su mitad de la mesa), descarte al azar de la mano
+rival, robar hasta N (opcional cuando lo dice), barajar la mano, descartar
+la mano y robar, descartar las de arriba de tu mazo, descartar un estadio
+(opcional), dejar KO al activo, barajarse con lo unido, mover TODAS las
+energías, devolver N energías a la mano, una energía ESPECIAL del rival,
+buscar un básico a la banca y buscar una carta por clase (partidario,
+objeto, estadio, herramienta, energía básica, Pokémon). «Del pasado» y
+«del futuro» como CLASE para contar no se leen: el espejo no guarda esa
+marca, y contar cero sería inventarse el daño.
+
+## Tanda 594 — elegir en la mesa, sin ventanas (oct. 2026)
+
+PINGU: «en el tú contra ti salen modales todo el rato, y encima se ven mal
+poniendo la imagen de la carta. Que el chequeo sea resaltando las cartas que
+tienes que elegir o descartar. Para búsquedas sí está bien».
+
+El `ui` del laboratorio decide dónde se pregunta: lo que se elige y YA ESTÁ
+EN LA MESA —cartas de tu mano, energías y herramientas unidas (de los dos
+lados con mesa), un Pokémon (también el muñeco), los premios— se elige
+tocándolo ahí. Brilla lo que vale (`data-elegir`, con su `aria-pressed`),
+se apaga lo demás, y una barra abajo dice qué se pide, cuántas llevas y deja
+confirmar o cancelar. Un Pokémon entre varios y los premios se eligen al
+tocar, sin confirmar; los premios boca abajo, como en la mesa de verdad. Un
+«sí o no» va en la misma barra.
+
+Un solo criterio para las cartas: que TODAS las que valen estén a la vista
+(`seVeEnLaMesa`). El mazo, el descarte o la mano del otro no lo están, y eso
+ya las manda a la ventana, que se queda para buscar, para un número, un
+reparto o una lista de opciones. Mirar también la zona habría sido una
+segunda guarda tapando a la primera.
+
+Mientras se elige solo cuentan lo que brilla, la barra, el panel de
+probabilidades y cerrar el laboratorio; lo demás no hace nada (la jugada
+está a medias). Escape cancela lo que se puede cancelar —y el motor deshace
+la jugada— y no cierra el laboratorio; lo obligatorio (quién sube de
+activo, coger premios) no se va ni con Escape ni tocando fuera. Cerrar a
+medias cancela lo cancelable; lo obligatorio sigue ahí al volver.
+
+**La trampa del atributo**: la raíz llevaba `data-elegir` con el TIPO de
+elección, para el CSS… y `closest('[data-elegir]')` desde la barra subía
+hasta la raíz, así que «Confirmar» se tomaba por una carta llamada
+«cartas» y no hacía nada. La raíz lleva `data-eligiendo`.
+
+## Tanda 595 — «¿cómo la encuentro?», con todo combinado (oct. 2026)
+
+PINGU: «que te diga siempre la manera más óptima de buscar X carta,
+combinando todas las cosas posibles […] ¿Qué tienes que hacer primero? La
+habilidad de Drakloak primero, una Ultra Ball primero… o usar una carta de
+búsqueda para remover el mazo y luego Drakloak».
+
+La 554 jugaba los caminos con el motor en cientos de repartos de lo que no
+sabes, pero tiraba todo paso que POR SÍ SOLO no traía la carta, y con él los
+caminos en los que ese paso es lo que hace que el siguiente funcione. El
+caso de PINGU: con las dos de arriba ya vistas (y que no son), Drakloak no
+trae nada; barajar con un Poffin y LUEGO mirar con Drakloak, sí. Ahora unos
+pocos pasos que **preparan** pasan al nivel siguiente: los que MUEVEN el
+mazo en la mayoría de los repartos (`mueve`, contado al jugar cada paso).
+Un Martillo o recuperar del descarte no cambian lo que viene y ocuparían el
+sitio. Si después nada gana, no se enseñan. Y se mira un paso más hondo
+(cuatro).
+
+Y una evolución con habilidad (Drakloak, Kadabra…) es un **puente**: la
+Ultra Ball no sabía que traer a Drakloak servía de algo. Ahora se prueba
+evolucionando y usando la habilidad.
+
+El primer camino dice «Lo mejor» —«Lo mejor, en este orden» si tiene más de
+un paso—: es la respuesta a la pregunta.
+
+## Tanda 596 — el repaso de fallos (oct. 2026)
+
+PINGU: «busca errores que pueda haber en la web: de interfaz, estilos,
+funcionalidades… detalles pequeños, y soluciónalos». Lo que salió, de leer
+el código de las repeticiones, el laboratorio y el constructor, y de un
+barrido de las 36 páginas en dos anchos, dos temas y con y sin sesión
+(errores de JS, desbordes, botones sin nombre, el `<h1>`):
+
+- **Una ventana que espera escribía en la que estuviera abierta al volver**
+  (/repeticiones): abrir «Guardar» mientras «Compartir» esperaba su enlace,
+  o mientras «¿Cómo encuentro…?» esperaba las cartas, acababa con lo de la
+  otra dentro (y a veces un TypeError). Cada ventana es una VEZ
+  (`vezDialogo`), y lo que llega tarde mira `sigueLaVentana(vez)` antes de
+  escribir. Lo mismo en «Compartir» del laboratorio.
+- **Abrir un puzle reescribía la dirección a `?r=` de la repetición
+  entera**: al recargar o copiar el enlace salía la solución. Se conserva.
+- **Al contestar un puzle no se veía cuál habías elegido tú**: «(la tuya)»
+  y «(la buena)» con palabras, y «la tuya» subrayada.
+- **«Pokémon noqueados» no contaba un KO que solo se deduce de la vida**:
+  los números se contaban al cargar, sin PS, y no se recontaban al llegar.
+- **Un registro en inglés pedía las fichas a TCGdex en español** (hasta
+  catorce peticiones por Pokémon que no podían casar).
+- **«Cópialo a mano: ya está seleccionado» sin nada seleccionado** (desde
+  «Tus repeticiones», y en Safari siempre): si no hay un campo con ESE
+  enlace a la vista, el aviso enseña el enlace.
+- **Publicar sin cambiar los nombres una repetición tuya le cambiaba el
+  título** (la base no guarda dos veces el mismo texto: «guardar la copia»
+  era renombrar la tuya). Se publica la tuya tal cual. Y con los nombres
+  cambiados, las notas iban con los de verdad: ahora también se cambian
+  (como palabra entera).
+- **El constructor**: Ctrl+S mantenido (o pulsado con el clic aún en
+  marcha) guardaba el mismo mazo nuevo varias veces; «Con 2 copias, el 40 %»
+  era la cifra de las 4 (dos impresiones del mismo nombre); a 360 px el
+  desplegable de formato se salía de la pantalla; y con el mazo vacío había
+  un botón «sello» sin texto.
+- **El laboratorio**: «Daño en N&#39;s Zorua» (el nombre, escapado dos
+  veces).
+- **/auth y /reset-password no tenían `<h1>`** (los pasos son `<h2>`): uno
+  para quien no ve la pantalla.
+- El vídeo de una repetición ya no se queda en memoria toda la visita (se
+  suelta el anterior), y si su módulo no llega, los controles vuelven.

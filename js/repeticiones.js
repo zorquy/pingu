@@ -24,7 +24,7 @@ import { resolverLineas, cargarSets, cartasPorIds, misMazos } from './constructo
 import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano, codificarMazo, leerLista } from './constructor/nucleo.js'
 import { mazoConLista, sinVerEnLaFoto, premiosCogidos, probabilidadDeRobar } from './repeticiones/lista.js'
 import { leerRegistro } from './repeticiones/registro.js'
-import { usosPorCarta, usosDe, impresionQueCasa } from './repeticiones/impresion.js'
+import { usosPorCarta, usosDe, impresionQueCasa, masJugadas, esLaImpresion } from './repeticiones/impresion.js'
 import { momentosDe, numerosDe, siguienteKo } from './repeticiones/numeros.js'
 import { pintarCarrera } from './repeticiones/carrera.js'
 import { cartasVistas, listaParaArquetipo, entradasDelConstructor, totalVisto } from './repeticiones/mazos.js'
@@ -35,6 +35,7 @@ import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import * as datos from './repeticiones/datos.js'
 import { empaquetar, desempaquetar, esEnlaceDeRepeticion } from './repeticiones/enlace.js'
+import { acortar, leerCorto, esIdCorto, enlaceCorto as enlaceCortoDe } from './enlace-corto.js'
 
 const $ = (id) => document.getElementById(id)
 const menosMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -159,7 +160,7 @@ async function resolverCartas(nombres, vez) {
     /* sin códigos se pinta igual: la cadena de escaneo tiene más sitios */
   }
   const pendientes = nombres.filter((n) => !R.cartas.has(plano(n)) && !R.pedidas.has(plano(n)))
-  const porAfinar = []
+  const resueltos = []
   for (let k = 0; k < pendientes.length; k += 6) {
     const tanda = pendientes.slice(k, k + 6)
     tanda.forEach((n) => R.pedidas.add(plano(n)))
@@ -167,7 +168,7 @@ async function resolverCartas(nombres, vez) {
       const { resueltas } = await resolverLineas(tanda.map((nombre) => ({ n: 1, nombre })))
       for (const r of resueltas) {
         R.cartas.set(plano(r.linea.nombre), r.carta)
-        if (usosDe(R.usos, r.linea.nombre).size) porAfinar.push([r.linea.nombre, r.carta])
+        resueltos.push(r.linea.nombre)
       }
     } catch {
       /* esa tanda se queda con el nombre: la mesa se entiende igual */
@@ -175,6 +176,11 @@ async function resolverCartas(nombres, vez) {
     if (vez !== R.vez) return
     rehacerFotos()
   }
+  // La impresión que llevan los mazos de verdad, ANTES de afinar por lo
+  // que se le ve hacer: así lo de abajo comprueba esa y no la más nueva.
+  if (await preferirLasDelMeta(resueltos, vez)) rehacerFotos()
+  if (vez !== R.vez) return
+  const porAfinar = resueltos.filter((n) => usosDe(R.usos, n).size && R.cartas.get(plano(n))).map((n) => [n, R.cartas.get(plano(n))])
   // Con las cartas encontradas, los mazos se leen bien: el tipo de cada
   // una y su nombre inglés, que es con el que se cruza el arquetipo.
   pintarMazos()
@@ -182,6 +188,40 @@ async function resolverCartas(nombres, vez) {
   // cartas estén (Juega desde aquí) no tiene por qué esperar también a
   // esto, que son peticiones de una en una.
   afinarTodas(porAfinar, vez)
+}
+
+// De cada Pokémon resuelto por su nombre, la impresión que más mazos del
+// meta llevan (repeticiones/impresion.js, `masJugadas`), si no es ya la
+// elegida. Una consulta para todos, y una más para traer las que cambian.
+async function preferirLasDelMeta(nombres, vez) {
+  const pokemon = nombres.map((n) => [n, R.cartas.get(plano(n))]).filter(([, c]) => c && c.category === 'Pokemon' && c.name)
+  if (!pokemon.length) return false
+  let mejor
+  try {
+    mejor = masJugadas(await datos.impresionesDelMeta(pokemon.map(([, c]) => c.name)))
+  } catch {
+    return false
+  }
+  const lineas = []
+  for (const [nombre, c] of pokemon) {
+    const buena = mejor.get(plano(c.name))
+    if (!buena || esLaImpresion(R.codigoDeSet?.(c.set_id), c.local_id, buena)) continue
+    lineas.push({ n: 1, nombre, set: buena.set, numero: buena.numero })
+  }
+  if (!lineas.length || vez !== R.vez) return false
+  let cambia = false
+  try {
+    const { resueltas } = await resolverLineas(lineas)
+    if (vez !== R.vez) return false
+    for (const r of resueltas) {
+      if (!r.exacta) continue
+      R.cartas.set(plano(r.linea.nombre), r.carta)
+      cambia = true
+    }
+  } catch {
+    /* sin ella se queda la que había */
+  }
+  return cambia
 }
 
 async function afinarTodas(porAfinar, vez) {
@@ -202,7 +242,14 @@ async function afinarTodas(porAfinar, vez) {
 // deduce de la vida): se rehacen, que es barato.
 function rehacerFotos() {
   R.fotos = sacarFotos(R.lectura, { psDe })
+  // Y con ellas los números y los momentos: un KO que solo se deduce de la
+  // vida no estaba cuando se contaron al cargar, y la tabla decía «0
+  // noqueados» con el Pokémon ya en el descarte.
+  R.momentos = momentosDe(R.lectura, R.fotos)
+  R.numeros = numerosDe(R.lectura, R.fotos)
   R.cacheHtml = new WeakMap()
+  pintarMomentos()
+  pintarNumeros()
   pintar()
 }
 
@@ -210,7 +257,10 @@ function rehacerFotos() {
 // que atacó no es de la elegida, se busca la que sí (impresion.js) y se
 // trae por su colección y su número, como una línea con código.
 async function afinarImpresion(nombre, carta, vez) {
-  const buena = await impresionQueCasa(nombre, usosDe(R.usos, nombre), carta)
+  // El registro en inglés empieza por «Setup»; el de TCG Live en español, por
+  // «Preparación».
+  const idioma = /^\s*Setup\s*$/m.test(R.texto) ? 'en' : 'es'
+  const buena = await impresionQueCasa(nombre, usosDe(R.usos, nombre), carta, { idioma })
   if (!buena || vez !== R.vez) return false
   let nueva = null
   try {
@@ -897,6 +947,7 @@ async function dialogoCaminos() {
   const f = R.fotos[i]
   const quien = f.deQuien
   const cuerpo = abrirDialogo('¿Cómo encuentro una carta?', `<p class="rep-dialogo-texto">Preparando la mesa de la jugada ${i}…</p>`)
+  const vez = vezDialogo
   if (!manoEnteraDe(f, quien)) {
     cuerpo.innerHTML = `<p class="rep-dialogo-texto">Juega ${chapaJugador(quien, true)}, y su mano no se ve entera en el registro (solo se ve la de quien lo copió): sin saber qué tiene, no hay caminos que calcular.</p>`
     return
@@ -906,6 +957,7 @@ async function dialogoCaminos() {
     const orden = R.fotos[0].orden
     const mazos = mazosParaLaMesa(orden, cartasVistas(R.fotos, cartaDe))
     const [{ Mesa }, { EFECTOS }, nucleo] = await Promise.all([import('./constructor/partida.js'), import('./constructor/efectos.js'), import('./constructor/nucleo.js')])
+    if (!sigueLaVentana(vez)) return
     const mesa = new Mesa({ mazos: mazos.map((m) => m.entradas), nombres: orden, efectos: EFECTOS, semilla: 0x51e7 + i })
     colocarPosicion(mesa, { lectura: R.lectura, fotos: R.fotos, i, idDe: Object.fromEntries(orden.map((n, k) => [n, mazos[k].idDe])), cartaDe })
     const k = orden.indexOf(quien)
@@ -931,7 +983,7 @@ async function dialogoCaminos() {
       </div>
       <div class="lab-caminos-resultado" id="repCaminosResultado" role="status"></div>`
   } catch (err) {
-    cuerpo.innerHTML = `<p class="rep-dialogo-texto">No se ha podido montar la mesa: ${escapeHtml(err.message)}</p>`
+    if (sigueLaVentana(vez)) cuerpo.innerHTML = `<p class="rep-dialogo-texto">No se ha podido montar la mesa: ${escapeHtml(err.message)}</p>`
   }
 }
 
@@ -1198,7 +1250,16 @@ const tituloPorDefecto = () => `${R.abajo} contra ${elOtro(R.abajo)}`
 // Las ventanas: guardar, compartir, el vídeo
 // ════════════════════════════════════════════════════════════════════
 
+// Cada ventana que se abre es una VEZ nueva. Las que esperan algo (los
+// mazos, la base, el vídeo) miran al volver si siguen siendo la que está
+// abierta: si no, lo que traen es de otra, y escribirlo pisaría la de
+// ahora (abrir «Guardar» mientras «¿Cómo encuentro…?» esperaba las cartas
+// acababa con los caminos dentro de la ventana de guardar).
+let vezDialogo = 0
+const sigueLaVentana = (vez) => vez === vezDialogo && $('repDialogo').open
+
 function abrirDialogo(titulo, html) {
+  vezDialogo++
   $('repDialogoTitulo').textContent = titulo
   $('repDialogoCuerpo').innerHTML = html
   // Lo que escuchaba la ventana de antes (los turnos del vídeo) no es de esta.
@@ -1463,6 +1524,7 @@ async function dialogoCompartir() {
     <div class="rep-dialogo-botones" id="repCompartirMas"></div>
     <p class="rep-dialogo-estado" role="status"></p>`
   )
+  const vez = vezDialogo
   const nota = cuerpo.querySelector('#repCompartirNota')
   const o = R.origen
   let url = null
@@ -1493,19 +1555,33 @@ async function dialogoCompartir() {
       mas = '<button type="button" class="link-btn" data-dlg="dejar">Dejar de compartirla</button>'
     }
   } catch (err) {
-    // Sin la migración (o sin red), el enlace largo, que no necesita base.
+    // Sin la migración (o sin red), el enlace corto sin guardar, o el largo.
     url = null
-    texto = err.falta ? '' : `No se ha podido hacer el enlace corto (${err.message}). Este otro funciona igual: `
+    texto = err.falta ? '' : `No se ha podido guardar para compartir (${err.message}). `
   }
   if (!url) {
-    url = `${location.origin}/repeticiones#${await empaquetar(R.texto)}`
-    texto += 'Este enlace lleva la partida DENTRO: no se guarda en ningún sitio, y quien lo abra la ve igual.'
-    if (!R.sesion) {
-      texto += ' Con una cuenta sale corto, y la tienes en «Tus repeticiones».'
-      mas = enlacesDeEntrar()
+    // Sin cuenta (tanda 591): la partida, comprimida, se guarda en PokeDoc
+    // sin ningún dato de quien la manda, y el enlace lleva ocho letras. Si
+    // eso no se puede, el largo de siempre, que no guarda nada en ningún
+    // sitio. Y quien prefiere ese, lo tiene a un botón.
+    const carga = await empaquetar(R.texto)
+    const largo = `${location.origin}/repeticiones#${carga}`
+    try {
+      url = enlaceCortoDe('repeticion', await acortar('repeticion', carga))
+      texto += 'Enlace corto: la partida se guarda en PokeDoc (sin ningún dato tuyo) para que quepa en un mensaje, y quien lo abra la ve igual.'
+      mas = '<button type="button" class="link-btn" data-dlg="largo">Usar el enlace largo, con la partida dentro</button>'
+      cuerpo.dataset.largo = largo
+    } catch {
+      url = largo
+      texto += 'Este enlace lleva la partida DENTRO: no se guarda en ningún sitio, y quien lo abra la ve igual.'
+      if (url.length > 2000) texto += ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.`
     }
-    if (url.length > 2000) texto += ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.`
+    if (!R.sesion) {
+      texto += ' Con una cuenta, además, la tienes en «Tus repeticiones».'
+      mas += enlacesDeEntrar()
+    }
   }
+  if (!sigueLaVentana(vez)) return
   nota.textContent = texto
   cuerpo.querySelector('#repEnlace').value = url
   cuerpo.querySelector('#repEnlaceCaja').classList.remove('hidden')
@@ -1525,17 +1601,21 @@ async function copiarEnlace(url, boton = null) {
     }
   } catch {
     // Sin permiso para el portapapeles: se deja seleccionado para copiarlo
-    // a mano.
-    const campo = $('repEnlace')
+    // a mano… si el campo con ESE enlace está a la vista. Desde la lista o
+    // desde un puzle no lo está (o es el de otra ventana ya cerrada), y
+    // decir «ya está seleccionado» sería mentira: entonces se enseña.
+    const campo = [...document.querySelectorAll('#repEnlace, #repPuzleEnlace')].find((x) => x.value === url && x.getClientRects().length)
     if (campo) {
       campo.focus()
       campo.select()
-    }
-    showToast('Cópialo a mano: ya está seleccionado.', 'info')
+      showToast('Cópialo a mano: ya está seleccionado.', 'info')
+    } else showToast(`No se ha podido copiar solo. El enlace: ${url}`, 'info')
   }
 }
 
 // ── El vídeo ──
+
+let urlVideo = null
 
 const formatoTiempo = (seg) => {
   const s = Math.round(seg)
@@ -1560,8 +1640,17 @@ function tramoElegido(cuerpo) {
 let videoEnMarcha = null
 async function dialogoVideo() {
   const cuerpo = abrirDialogo('Descargar en vídeo', '<p class="rep-dialogo-texto">Mirando qué sabe hacer tu navegador…</p>')
-  const V = await import('./repeticiones/video.js')
-  const codec = await V.codecDisponible()
+  const vez = vezDialogo
+  let V
+  let codec
+  try {
+    V = await import('./repeticiones/video.js')
+    codec = await V.codecDisponible()
+  } catch (err) {
+    if (sigueLaVentana(vez)) cuerpo.innerHTML = `<p class="rep-dialogo-texto">No se ha podido preparar el vídeo: ${escapeHtml(err.message)}</p>`
+    return
+  }
+  if (!sigueLaVentana(vez)) return
   const grabadora = codec ? null : V.grabadoraDisponible()
   if (!codec && !grabadora) {
     cuerpo.innerHTML = '<p class="rep-dialogo-texto">Este navegador no sabe hacer vídeos. Prueba con Chrome, Edge o Safari al día.</p>'
@@ -1652,8 +1741,10 @@ async function hacerVideo() {
   const senal = { cancelado: false }
   videoEnMarcha = senal
   parar()
-  const V = await import('./repeticiones/video.js')
   try {
+    // Dentro del try: si el módulo no llega, los controles vuelven y la
+    // barra se va, en vez de quedarse todo desactivado.
+    const V = await import('./repeticiones/video.js')
     const r = await V.hacerVideo({
       fotos: R.fotos,
       ritmo,
@@ -1674,7 +1765,10 @@ async function hacerVideo() {
         estadoDialogo(fase === 'imagenes' ? 'Preparando las cartas…' : `Haciendo el vídeo… ${pct} %`)
       },
     })
-    const url = URL.createObjectURL(r.blob)
+    // El vídeo anterior se suelta: son varios megas que, si no, se quedan
+    // en memoria toda la visita.
+    if (urlVideo) URL.revokeObjectURL(urlVideo)
+    const url = (urlVideo = URL.createObjectURL(r.blob))
     const fichero = `${nombreDeFichero({ formato, tramo: tramo.nombre })}.${r.extension}`
     const mb = (r.blob.size / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 })
     progreso.classList.add('hidden')
@@ -1721,9 +1815,11 @@ async function dialogoImagen() {
     </div>
     <p class="rep-dialogo-estado" role="status">Preparando la imagen…</p>`
   )
+  const vezD = vezDialogo
   // Los mazos se deducen por detrás al abrir la partida: si la ventana llega
   // antes, se esperan, que «Mazo sin identificar» tiene que ser verdad.
   if (!R.mazos) await pintarMazos()
+  if (!sigueLaVentana(vezD)) return
   const pintarla = async () => {
     const vez = ++vezImagen
     const botones = cuerpo.querySelectorAll('[data-dlg="bajar-imagen"], [data-dlg="compartir-imagen"]')
@@ -1742,7 +1838,7 @@ async function dialogoImagen() {
       })
       if (!d) throw new Error('A esta partida le faltan los dos jugadores.')
       const blob = await m.blobDe(await m.dibujarResumen(d))
-      if (vez !== vezImagen || !$('repDialogo').open) return
+      if (vez !== vezImagen || !sigueLaVentana(vezD)) return
       soltarImagen()
       imagenResumen = { blob, url: URL.createObjectURL(blob), fichero: m.nombreDeFichero(d.titulo) }
       const vista = cuerpo.querySelector('#repResumenVista')
@@ -1754,7 +1850,7 @@ async function dialogoImagen() {
       botones.forEach((b) => (b.disabled = false))
       estadoDialogo('')
     } catch (err) {
-      if (vez === vezImagen) estadoDialogo(`No se ha podido hacer la imagen: ${err.message}`, 'error')
+      if (vez === vezImagen && sigueLaVentana(vezD)) estadoDialogo(`No se ha podido hacer la imagen: ${err.message}`, 'error')
     }
   }
   cuerpo.onchange = (e) => {
@@ -1978,7 +2074,9 @@ async function dialogoPublicar() {
     return
   }
   const cuerpo = abrirDialogo('Publicar como partida de ejemplo', '<p class="rep-dialogo-texto">Mirando sus mazos…</p>')
+  const vez = vezDialogo
   if (!R.mazos) await pintarMazos()
+  if (!sigueLaVentana(vez)) return
   const orden = R.fotos[0].orden
   const arqs = orden.map((n) => R.mazos?.[n]?.arq || null)
   // Solo los del catálogo tienen ficha en /meta: los que se deducen de las
@@ -1989,11 +2087,14 @@ async function dialogoPublicar() {
     return
   }
   // Antes de guardar la copia: sin la migración se quedaría sin publicar.
-  if (!(await datos.galeriaPuesta())) {
+  const puesta = await datos.galeriaPuesta()
+  if (!sigueLaVentana(vez)) return
+  if (!puesta) {
     cuerpo.innerHTML = `<p class="rep-dialogo-texto">${escapeHtml(datos.SIN_GALERIA)}</p>`
     return
   }
   const { anonimizar } = await import('./repeticiones/anonimizar.js')
+  if (!sigueLaVentana(vez)) return
   const anon = anonimizar(R.texto, R.fotos[0].protagonista)
   publicando = { anon, ids: delMeta.map((a) => a.id), nombres: delMeta.map((a) => a.nombre) }
   const fichas = delMeta.map((a) => `<a href="/meta/${encodeURIComponent(a.id)}">${escapeHtml(a.nombre)}</a>`).join(' y en la de ')
@@ -2021,19 +2122,32 @@ async function publicar(boton) {
     const nombre = (n) => (anonima ? p.anon.de[n] : n)
     const mazos = orden.map((n) => R.mazos?.[n]?.arq?.nombre || '')
     const ganador = ganadorDeLaPartida()
-    const fila = await datos.guardar({
-      registro: anonima ? p.anon.texto : R.texto,
-      titulo: `${mazos[0] || nombre(orden[0])} contra ${mazos[1] || nombre(orden[1])}`.slice(0, 120),
-      jugadores: orden.map(nombre),
-      ganador: ganador ? nombre(ganador) : null,
-      turnos: R.turnos.length,
-      compartida: true,
-      mazos,
-    })
+    // Sin cambiar los nombres, la «copia» de una repetición tuya ES la tuya
+    // (la base no guarda dos veces el mismo texto): guardarla otra vez solo
+    // le cambiaba el título. Se publica tal cual, con su título y sus notas.
+    const propia = !anonima && R.origen?.mia && R.origen.id
+    const fila = propia
+      ? { id: R.origen.id }
+      : await datos.guardar({
+          registro: anonima ? p.anon.texto : R.texto,
+          titulo: `${mazos[0] || nombre(orden[0])} contra ${mazos[1] || nombre(orden[1])}`.slice(0, 120),
+          jugadores: orden.map(nombre),
+          ganador: ganador ? nombre(ganador) : null,
+          turnos: R.turnos.length,
+          compartida: true,
+          mazos,
+        })
     // Las notas son de las líneas del registro, y cambiar los nombres no
-    // cambia cuántas hay: valen tal cual en la copia.
-    if (R.origen?.mia && R.origen.notas?.length) await datos.guardarNotas(fila.id, R.origen.notas)
+    // cambia cuántas hay: valen en la copia… con los nombres cambiados
+    // también en su texto, que el «Rojo y Azul» lo promete la casilla.
+    if (!propia && R.origen?.mia && R.origen.notas?.length) {
+      // Como palabra entera: el nombre «Ana» no se cambia dentro de «Banana».
+      const palabra = (n) => new RegExp(`(?<![\\p{L}\\p{N}_])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'gu')
+      const cambiar = (t) => (anonima ? Object.entries(p.anon.de).reduce((x, [real, alias]) => x.replace(palabra(real), alias), String(t ?? '')) : t)
+      await datos.guardarNotas(fila.id, R.origen.notas.map((n) => ({ ...n, texto: cambiar(n.texto) })))
+    }
     await datos.publicar(fila.id, true, p.ids)
+    if (propia) R.origen = { ...R.origen, compartida: true }
     $('repDialogo').close()
     showToast(`Publicada: sale en la ficha de ${p.nombres.join(' y en la de ')} en /meta.`, 'success')
     cargarGuardadas()
@@ -2135,7 +2249,9 @@ async function abrirPuzle(id) {
     return mostrarError(err.message)
   }
   if (!puzle) return mostrarError('Este puzle no existe o ya no se comparte.')
-  await abrirGuardada(puzle.replay_id)
+  // Sin tocar la dirección: con «?r=» quien recargara (o copiara el enlace)
+  // abriría la partida ENTERA, que es la solución del puzle.
+  await abrirGuardada(puzle.replay_id, { conservarDireccion: true })
   if ($('repSala').classList.contains('hidden')) return
   P.activo = true
   P.puzle = puzle
@@ -2162,7 +2278,10 @@ function pintarPuzle(solucion = null) {
   const fila = (o, k) => {
     const n = solucion.recuento[k] || 0
     const pctDe = total ? Math.round((n / total) * 100) : 0
-    return `<li class="${k === solucion.correcta ? 'rep-puzle-buena' : ''}${k === solucion.elegida ? ' rep-puzle-tuya' : ''}"><span>${escapeHtml(o)}</span><span class="rep-prob-barra" aria-hidden="true"><span style="--pct: ${pctDe}%"></span></span><span class="rep-prob-cifra">${pctDe} %</span></li>`
+    // Cuál es la buena y cuál elegiste tú, dicho con palabras (no solo con
+    // la negrita, que en la lista no distinguía «la tuya» de las demás).
+    const marcas = [k === solucion.correcta ? 'la buena' : '', k === solucion.elegida ? 'la tuya' : ''].filter(Boolean)
+    return `<li class="${k === solucion.correcta ? 'rep-puzle-buena' : ''}${k === solucion.elegida ? ' rep-puzle-tuya' : ''}"><span>${escapeHtml(o)}${marcas.length ? ` <span class="rep-puzle-marca">(${marcas.join(' y ')})</span>` : ''}</span><span class="rep-prob-barra" aria-hidden="true"><span style="--pct: ${pctDe}%"></span></span><span class="rep-prob-cifra">${pctDe} %</span></li>`
   }
   caja.innerHTML = `<h2 class="rep-puzle-pregunta">${escapeHtml(pz.pregunta)}</h2>
     <div class="rep-puzle-solucion" role="status">
@@ -2388,7 +2507,7 @@ function itemHtml(r) {
     </li>`
 }
 
-async function abrirGuardada(id) {
+async function abrirGuardada(id, { conservarDireccion = false } = {}) {
   mostrarError('')
   try {
     const fila = await datos.leer(id)
@@ -2399,11 +2518,43 @@ async function abrirGuardada(id) {
     }
     cargar(fila.registro, {
       origen: { id, titulo: fila.titulo, mia: Boolean(fila.mia), compartida: Boolean(fila.compartida), notas: fila.notas || [], mazos: [fila.mazo_a || null, fila.mazo_b || null] },
+      conservarDireccion,
     })
   } catch (err) {
     mostrarError(err.falta ? 'Esta repetición no se puede abrir todavía: la parte de guardar no está puesta en la base.' : `No se ha podido abrir la repetición: ${err.message}`)
     volverAPegar()
   }
+}
+
+// Un enlace corto (tanda 591). Tres finales distintos y cada uno se dice:
+// no se ha podido preguntar, no existe, o es de una POSICIÓN (que se abre
+// en el laboratorio, que es lo suyo).
+async function abrirCorto(id) {
+  let fila
+  try {
+    fila = await leerCorto(id)
+  } catch (err) {
+    mostrarError(err.message)
+    volverAPegar()
+    return false
+  }
+  if (!fila) {
+    mostrarError('Este enlace no existe: ¿se copió entero?')
+    volverAPegar()
+    return false
+  }
+  if (fila.tipo === 'posicion') {
+    location.replace(`/constructor#${fila.carga}`)
+    return false
+  }
+  const texto = await desempaquetar(fila.carga)
+  if (!texto) {
+    mostrarError('El enlace de esta repetición está roto o incompleto.')
+    volverAPegar()
+    return false
+  }
+  cargar(texto, { conservarDireccion: true })
+  return true
 }
 
 async function accionDeLista(e) {
@@ -2501,6 +2652,18 @@ function iniciar() {
     if (!b) return
     const url = $('repDialogoCuerpo').dataset.url
     if (b.dataset.dlg === 'copiar') return copiarEnlace(url, b)
+    if (b.dataset.dlg === 'largo') {
+      // El de siempre, con la partida dentro. (El corto ya está hecho y no
+      // se borra: por eso el botón no promete que no se guarde nada.)
+      const cuerpo = $('repDialogoCuerpo')
+      const largo = cuerpo.dataset.largo
+      if (!largo) return
+      cuerpo.dataset.url = largo
+      cuerpo.querySelector('#repEnlace').value = largo
+      cuerpo.querySelector('#repCompartirNota').textContent = `Este enlace lleva la partida DENTRO: no hace falta PokeDoc para guardarla, y quien lo abra la ve igual.${largo.length > 2000 ? ` Es largo (${largo.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.` : ''}`
+      b.remove()
+      return
+    }
     if (b.dataset.dlg === 'nativo') {
       try {
         await navigator.share({ title: `Repetición: ${tituloPorDefecto()}`, text: 'Mira esta partida de Pokémon TCG Live, jugada a jugada:', url })
@@ -2702,6 +2865,13 @@ async function arrancar() {
   const stream = q.has('stream') ? { fondo: q.get('fondo') === 'verde' ? 'verde' : 'mesa' } : null
   cargarPuzles()
   if (q.get('puzle')) return abrirPuzle(q.get('puzle'))
+  if (q.get('r') && esIdCorto(q.get('r'))) {
+    // Un enlace corto de los de sin cuenta (tanda 591): la carga es la de
+    // detrás del `#` de siempre.
+    mostrarError('')
+    if (await abrirCorto(q.get('r')) && stream) entrarStream(stream)
+    return
+  }
   if (q.get('r')) {
     mostrarError('')
     $('repError').classList.add('hidden')

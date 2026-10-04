@@ -21,10 +21,13 @@ export function pasoHtml(paso) {
   return `<span class="lab-paso${paso.partidario ? ' lab-paso-partidario' : ''}">${texto}${si}</span>`
 }
 
-function caminoHtml(c, puedeFallar) {
+function caminoHtml(c, puedeFallar, { mejor = false } = {}) {
   const partidario = c.pasos.some((x) => x.partidario) ? '<span class="sr-only">. </span><span class="lab-camino-nota">Usa tu partidario del turno</span>' : ''
-  return `<li class="lab-camino">
-      <span class="lab-camino-p">${pctDeCamino(c.p, puedeFallar)}</span>
+  // El primero es LA respuesta a «¿cómo la encuentro?» (tanda 595): se dice
+  // con palabras, y que el orden de los pasos es parte de ella.
+  const etiqueta = mejor ? `<span class="lab-camino-mejor">${c.pasos.length > 1 ? 'Lo mejor, en este orden' : 'Lo mejor'}</span><span class="sr-only">: </span>` : ''
+  return `<li class="lab-camino${mejor ? ' lab-camino-es-mejor' : ''}">
+      ${etiqueta}<span class="lab-camino-p">${pctDeCamino(c.p, puedeFallar)}</span>
       <span class="lab-camino-pasos">${c.pasos.map(pasoHtml).join('<span class="lab-camino-flecha" aria-hidden="true">→</span><span class="sr-only">, después </span>')}${partidario}</span>
     </li>`
 }
@@ -42,7 +45,7 @@ export function resultadoDeCaminosHtml(r, nombre) {
     return `${datos}<p class="lab-caminos-vacio">Con lo que tienes ahora (mano, habilidades y lo que te dejan jugar las reglas) no hay ningún camino que traiga ${n} este turno.</p>`
   }
   return `${datos}
-    <ol class="lab-caminos">${buenos.map((c) => caminoHtml(c, puedeFallar)).join('')}</ol>
+    <ol class="lab-caminos">${buenos.map((c, i) => caminoHtml(c, puedeFallar, { mejor: i === 0 })).join('')}</ol>
     ${
       otros.length
         ? `<details class="lab-caminos-otros"><summary>${otros.length === 1 ? 'Otro camino' : `Otros ${otros.length} caminos`} (uno más corto llega igual o mejor)</summary><ol class="lab-caminos">${otros.map((c) => caminoHtml(c, puedeFallar)).join('')}</ol></details>`

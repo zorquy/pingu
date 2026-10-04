@@ -19,7 +19,10 @@
 // impresión elegida, para ver que casa), y solo si NO casa, la lista de
 // las que se llaman igual y la ficha de cada una hasta dar con la buena.
 
-const API = 'https://api.tcgdex.net/v2/es'
+// En el idioma DEL REGISTRO: uno en inglés dice «using Mirage Barrage», y
+// contra las fichas en español no casaría nunca (catorce peticiones por
+// Pokémon para nada).
+const API = (idioma) => `https://api.tcgdex.net/v2/${idioma === 'en' ? 'en' : 'es'}`
 const plano = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, ' ').trim()
 
 // Nombre de carta (plano) → nombres de lo que se le ha visto usar (planos).
@@ -55,16 +58,16 @@ function casa(ficha, usos) {
 
 // La impresión que casa con lo que se jugó, o null si la elegida ya vale
 // (o no se puede saber). `pedir` es `fetch` (inyectable para las pruebas).
-export async function impresionQueCasa(nombre, usos, elegida, { pedir = fetch, tope = 12 } = {}) {
+export async function impresionQueCasa(nombre, usos, elegida, { pedir = fetch, tope = 12, idioma = 'es' } = {}) {
   if (!usos?.size || !elegida?.id) return null
   const ficha = (id) =>
-    pedir(`${API}/cards/${encodeURIComponent(id)}`, { headers: { Accept: 'application/json' } })
+    pedir(`${API(idioma)}/cards/${encodeURIComponent(id)}`, { headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null)
   if (casa(await ficha(elegida.id), usos)) return null
   let lista = []
   try {
-    const r = await pedir(`${API}/cards?name=${encodeURIComponent(nombre)}`, { headers: { Accept: 'application/json' } })
+    const r = await pedir(`${API(idioma)}/cards?name=${encodeURIComponent(nombre)}`, { headers: { Accept: 'application/json' } })
     lista = r.ok ? await r.json() : []
   } catch {
     return null
@@ -77,3 +80,41 @@ export async function impresionQueCasa(nombre, usos, elegida, { pedir = fetch, t
   }
   return null
 }
+
+// ── La que se juega en el meta ──
+//
+// Lo de arriba solo sirve si la carta HACE algo en la partida. Un Pokémon
+// que no ataca ni usa nada —el Shaymin de Rivales Predestinados, cuya
+// habilidad es pasiva— no deja huella en el registro, y el resolutor por
+// nombre se quedaba con la impresión legal más NUEVA, que no tiene por qué
+// ser la que lleva nadie. PINGU: «ese Shaymin no es el que se juega
+// realmente; el que se está jugando es el de Rivales Predestinados».
+//
+// La pista que queda es qué impresión LLEVAN los mazos de verdad:
+// `meta_cartas_dia` cuenta los Pokémon de las listas de Limitless por
+// nombre + colección + número. De cada nombre, la que más mazos suma.
+// `filas`: [{ nombre, set_codigo, numero, mazos }] (el nombre, el inglés).
+const numeroPlano = (n) => String(n ?? '').trim().toLowerCase().replace(/^0+(?=\w)/, '')
+
+export function masJugadas(filas) {
+  const suma = new Map()
+  for (const f of filas || []) {
+    const set = String(f?.set_codigo || '').trim().toUpperCase()
+    const numero = numeroPlano(f?.numero)
+    if (!f?.nombre || !set || !numero) continue
+    const clave = `${plano(f.nombre)}|${set}|${numero}`
+    const x = suma.get(clave) || { nombre: plano(f.nombre), set, numero: String(f.numero).trim(), mazos: 0 }
+    x.mazos += Number(f.mazos) || 0
+    suma.set(clave, x)
+  }
+  const mejor = new Map()
+  for (const x of suma.values()) {
+    const ya = mejor.get(x.nombre)
+    if (!ya || x.mazos > ya.mazos) mejor.set(x.nombre, x)
+  }
+  return mejor
+}
+
+// ¿Es esta carta (su código de colección y su número) ESA impresión?
+export const esLaImpresion = (codigo, numero, buena) =>
+  Boolean(codigo && buena) && String(codigo).toUpperCase() === buena.set && numeroPlano(numero) === numeroPlano(buena.numero)

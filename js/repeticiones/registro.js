@@ -148,6 +148,9 @@ function frases(J) {
     // si el rival del que los pone tiene uno que se llame así, es suyo.
     [new RegExp(`^El (.+) de ${P} ha recibido (\\d+|un|una) contador(?:es)? de daño de ${P}$`), (m) => ({ tipo: 'contadores', jugador: m[4], n: num(m[3]), pokemon: nombreDeCarta(m[1]), dice: m[2] })],
     [new RegExp(`^El (.+) de ${P} ha recibido (\\d+) puntos? de daño$`), (m) => ({ tipo: 'danio', jugador: m[2], pokemon: nombreDeCarta(m[1]), danio: +m[3] })],
+    // Curarse (tanda 592: lo escribe el laboratorio; sin esto, el daño de una
+    // repetición solo podía subir).
+    [new RegExp(`^El (.+) de ${P} se ha curado (\\d+) puntos? de daño$`), (m) => ({ tipo: 'curar', jugador: m[2], pokemon: nombreDeCarta(m[1]), danio: +m[3] })],
 
     // — Energía y cartas que se van —
     [/^Se ha activado (.+)$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
@@ -229,6 +232,16 @@ export function leerRegistro(texto) {
   for (const [fila, cruda] of limpias.entries()) {
     const t = cruda.trim()
     if (!t) continue
+    // «   ◦ lugar 2» y «   ◦ de la baraja» (tanda 592): lo que un registro
+    // hecho por el laboratorio sabe y TCG Live no escribe —CUÁL de los que se
+    // llaman igual, y de DÓNDE sale una energía que une un efecto—. TCG Live
+    // no escribe nunca «◦»: el suyo se sigue leyendo como siempre.
+    const pista = t.match(/^◦\s*(?:lugar\s+(\d+)|(de la baraja|del descarte))$/)
+    if (pista) {
+      if (ultimo && pista[1]) ultimo.lugar = Number(pista[1])
+      if (ultimo && pista[2]) ultimo.desde = pista[2] === 'de la baraja' ? 'mazo' : 'descarte'
+      continue
+    }
     // «   • Erin, Dunsparce, …»: la lista de cartas de la línea de antes.
     if (/^[•·]/.test(t)) {
       if (ultimo?.tipo === 'resumen') {
@@ -273,7 +286,9 @@ export function leerRegistro(texto) {
     if (sub && padre) ev.padre = { tipo: padre.tipo, jugador: padre.jugador || null, carta: padre.carta || padre.que || null }
     // La carta de más por el mulligan se nombra en la sublínea siguiente:
     // es la MISMA, no una segunda.
-    if (sub && ev.tipo === 'robar' && ultimo?.seNombraDespues && ultimo.jugador === ev.jugador && ev.cartas?.length) {
+    // Con más de una (dos mulligans del otro), la sublínea dice «ha robado
+    // 2 cartas» y los nombres van en la lista de debajo: también es la misma.
+    if (sub && ev.tipo === 'robar' && ultimo?.seNombraDespues && ultimo.jugador === ev.jugador && (ev.cartas?.length || ev.n === ultimo.n)) {
       ev.tipo = 'nombrar'
       ultimo.seNombraDespues = false
     }

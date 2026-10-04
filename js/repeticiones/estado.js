@@ -53,6 +53,10 @@ function buscar(p, nombre, donde = null) {
   return casa(p.activo) ? p.activo : p.banca.find(casa) || null
 }
 const todosLosQueSeLlaman = (p, nombre) => enJuego(p).filter((s) => igual(arriba(s), nombre))
+// El N-ésimo de los que se llaman así, si la línea lo dice (`◦ lugar N`, los
+// registros del laboratorio: tanda 592). Si no lo dice o no cuadra, null y
+// manda la regla de siempre.
+const elDeLugar = (p, nombre, lugar) => (lugar ? todosLosQueSeLlaman(p, nombre)[lugar - 1] || null : null)
 
 // El que cae, con gemelos (tanda 481). «¡El Zorua de N de Rojo ha
 // quedado Fuera de Combate!» dos veces seguidas: el activo, y el de la
@@ -251,7 +255,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // Una herramienta, con dos que se llaman igual, al que no lleva otra:
       // nadie puede llevar dos.
       const libre = !energia && enJuego(p).find((x) => igual(arriba(x), e.a) && !x.herramienta && (e.donde !== 'activo' || x === p.activo) && (e.donde !== 'banca' || x !== p.activo))
-      const slot = libre || buscar(p, e.a, e.donde)
+      const slot = elDeLugar(p, e.a, e.lugar) || libre || buscar(p, e.a, e.donde)
       if (!slot) break
       // De dónde sale una energía unida en una SUBLÍNEA depende de qué
       // cuelga. Bajo lo que hace el rival (el Pequeño Cambio de Elgyem, que
@@ -264,7 +268,9 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       const deEfecto = e.sub && e.padre && e.padre.tipo !== 'ataque' && e.padre.jugador === e.jugador
       let deOtro = null
       if (e.sub && !deEfecto) deOtro = enJuego(p).find((x) => x !== slot && x.energias.some((c) => igual(c, e.carta)))
-      const enDescarte = deEfecto ? p.descarte.findIndex((c) => igual(c, e.carta)) : -1
+      // Si la línea dice de dónde (los registros del laboratorio), eso.
+      if (e.desde === 'mazo') deOtro = null
+      const enDescarte = e.desde === 'mazo' ? -1 : deEfecto || e.desde === 'descarte' ? p.descarte.findIndex((c) => igual(c, e.carta)) : -1
       if (deOtro) deOtro.energias.splice(deOtro.energias.findIndex((c) => igual(c, e.carta)), 1)
       else if (enDescarte >= 0) p.descarte.splice(enDescarte, 1)
       else if (!e.sub || (!deEfecto && p.manoConocida.some((c) => igual(c, e.carta)))) quitarDeMano(p, e.carta)
@@ -276,7 +282,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       break
     }
     case 'evolucionar': {
-      const slot = buscar(p, e.de, e.donde)
+      const slot = elDeLugar(p, e.de, e.lugar) || buscar(p, e.de, e.donde)
       if (!slot) break
       slot.cartas.push(e.a)
       quitarDeMano(p, e.a)
@@ -320,12 +326,18 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // «- El Zorua de N de Rojo ha recibido 120 puntos de daño»: el
       // segundo golpe de un ataque que pega a dos (Ráfaga Espejismo).
       const golpeados = s.golpeados || []
-      const obj = aQuienLeCae(p, e.pokemon, golpeados)
+      const obj = elDeLugar(p, e.pokemon, e.lugar) || aQuienLeCae(p, e.pokemon, golpeados)
       if (obj) {
         obj.danio += e.danio
         s.golpeados = [...golpeados, obj.id]
       }
       s.foco = { tipo: 'danio', jugador: e.jugador, slot: obj?.id, danio: e.danio }
+      break
+    }
+    case 'curar': {
+      const obj = elDeLugar(p, e.pokemon, e.lugar) || [...todosLosQueSeLlaman(p, e.pokemon)].sort((a, b) => b.danio - a.danio)[0]
+      if (obj) obj.danio = Math.max(0, obj.danio - e.danio)
+      s.foco = { tipo: 'curar', jugador: e.jugador, slot: obj?.id, danio: e.danio }
       break
     }
     case 'retirar': {
@@ -353,7 +365,8 @@ export function aplicar(estado, e, { psDe = null } = {}) {
         s.foco = { tipo: 'sube', jugador: e.jugador, slot: p.activo.id }
         break
       }
-      const nuevo = p.banca.find((x) => casa(x) && x.id !== s.retirado) || p.banca.find(casa)
+      const marcado = elDeLugar(p, e.pokemon, e.lugar)
+      const nuevo = (marcado && marcado !== p.activo ? marcado : null) || p.banca.find((x) => casa(x) && x.id !== s.retirado) || p.banca.find(casa)
       if (!nuevo) break
       const viejo = p.activo
       p.banca = p.banca.filter((x) => x !== nuevo)
@@ -370,7 +383,8 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       break
     }
     case 'intercambio': {
-      const sube = p.banca.find((x) => igual(arriba(x), e.sube))
+      const marcado = elDeLugar(p, e.sube, e.lugar)
+      const sube = (marcado && marcado !== p.activo ? marcado : null) || p.banca.find((x) => igual(arriba(x), e.sube))
       if (!sube) break
       const baja = p.activo
       p.banca = p.banca.filter((x) => x !== sube)
@@ -381,7 +395,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       break
     }
     case 'ko': {
-      const slot = elQueCae(p, e.pokemon, psDe)
+      const slot = elDeLugar(p, e.pokemon, e.lugar) || elQueCae(p, e.pokemon, psDe)
       if (!slot) break
       slot.ko = true
       // Fuera ya: el que sube lo dirá la línea siguiente.
@@ -479,7 +493,8 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // De los que se llaman así, el que TIENE esa carta (y si acaba de
       // retirarse uno, ese).
       const tiene = (x) => igual(arriba(x), e.pokemon) && (x.energias.some((c) => igual(c, e.carta)) || igual(x.herramienta, e.carta))
-      const slot = enJuego(p).find((x) => x.id === s.retirado && tiene(x)) || enJuego(p).find(tiene)
+      const marcado = elDeLugar(p, e.pokemon, e.lugar)
+      const slot = (marcado && tiene(marcado) ? marcado : null) || enJuego(p).find((x) => x.id === s.retirado && tiene(x)) || enJuego(p).find(tiene)
       if (!slot) break
       const i = slot.energias.findIndex((c) => igual(c, e.carta))
       if (i >= 0) slot.energias.splice(i, 1)

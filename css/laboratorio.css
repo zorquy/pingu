@@ -1078,6 +1078,106 @@ button.lab-carta:focus-visible {
   flex-shrink: 0;
 }
 
+/* ── Elegir en la mesa, sin ventana (tanda 594; el porqué, en SCHEMA.md) ── */
+.lab-a-elegir {
+  position: relative;
+  outline: 2px solid var(--lab-brillo);
+  outline-offset: 2px;
+  cursor: pointer;
+}
+
+button.lab-carta.lab-a-elegir,
+.lab-maniqui.lab-a-elegir {
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--lab-brillo) 35%, transparent);
+}
+
+/* Elegida: se marca con un círculo y cambia el anillo (no es solo color:
+   lleva la marca). No sube: en la mano se montaba sobre el rótulo. */
+button.lab-carta.lab-a-elegir[aria-pressed='true'] {
+  outline-color: var(--blanco-fijo);
+  box-shadow: 0 0 0 6px var(--navy-solid);
+}
+
+button.lab-carta.lab-a-elegir[aria-pressed='true']::after,
+.lab-maniqui.lab-a-elegir[aria-pressed='true']::after {
+  content: '✓';
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-weight: 800;
+  font-size: var(--t-sm);
+}
+
+.lab-energia.lab-a-elegir,
+.lab-chapa.lab-a-elegir {
+  font: inherit;
+}
+
+.lab-energia.lab-a-elegir[aria-pressed='true'],
+.lab-chapa.lab-a-elegir[aria-pressed='true'],
+.lab-maniqui.lab-a-elegir[aria-pressed='true'] {
+  outline-color: var(--blanco-fijo);
+  box-shadow: 0 0 0 4px var(--navy-solid);
+}
+
+@media (pointer: coarse) {
+  .lab-energia.lab-a-elegir,
+  .lab-chapa.lab-a-elegir {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+.lab-modo-elegir[data-eligiendo='cartas'] .lab-mano-carta:not(.lab-elegible-mano),
+.lab-modo-elegir:not([data-eligiendo='cartas']) .lab-mano-carta,
+.lab-modo-elegir[data-eligiendo='pokemon'] .lab-slot:not(.lab-slot-elegible),
+.lab-modo-elegir[data-eligiendo='pokemon'] .lab-maniqui:not(.lab-a-elegir) {
+  opacity: 0.45;
+}
+
+/* El «⋯» de cada carta de la mano no hace nada a mitad de una jugada. */
+.lab-modo-elegir .lab-mas {
+  visibility: hidden;
+}
+
+.lab-elegir-barra {
+  max-width: min(760px, calc(100vw - 32px));
+}
+
+.lab-elegir-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.lab-elegir-sub,
+.lab-elegir-cuenta {
+  font-size: var(--t-sm);
+  font-weight: 400;
+}
+
+.lab-elegir-error {
+  color: var(--lab-brillo);
+  font-size: var(--t-sm);
+}
+
+.lab-elegir-botones {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--e-sm);
+  margin-left: auto;
+}
+
 @media (pointer: coarse) {
   .lab-apuntar kbd {
     display: none;
@@ -2946,7 +3046,8 @@ button.lab-carta.lab-no-vale:hover {
     display: none;
   }
 
-  .lab-modo-apuntar .lab-mesa {
+  .lab-modo-apuntar .lab-mesa,
+  .lab-modo-elegir .lab-mesa {
     padding-bottom: 160px;
     scroll-padding-bottom: 160px;
   }
@@ -3091,6 +3192,21 @@ button.lab-carta.lab-no-vale:hover {
   border-color: var(--navy);
 }
 
+/* «Lo mejor» (tanda 595): su propia fila encima del porcentaje. */
+.lab-camino-es-mejor {
+  flex-wrap: wrap;
+  border-width: 2px;
+}
+
+.lab-camino-mejor {
+  flex-basis: 100%;
+  color: var(--navy);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .lab-camino-p {
   flex: 0 0 auto;
   min-width: 48px;
@@ -3131,4 +3247,20 @@ button.lab-carta.lab-no-vale:hover {
   color: var(--text-mid);
   font-size: var(--t-sm);
   cursor: pointer;
+}
+
+/* ── El registro de TCG Live de «tú contra ti» (tanda 592) ── */
+.lab-registro-live {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0;
+}
+
+.lab-registro-texto {
+  width: 100%;
+  min-height: 12rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-xs);
 }

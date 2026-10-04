@@ -16,6 +16,11 @@
 //
 // Sin DOM y sin importar la partida (es ella la que importa esto): así se
 // prueba en Node, frase por frase.
+//
+// Y en ESPAÑOL (tanda 593): desde la 330 el engorde guarda el texto en
+// español siempre que TCGdex lo tiene, así que las frases pasan antes por
+// textos-es.js, que las convierte en su plantilla inglesa.
+import { alIngles, alInglesHabilidad } from './textos-es.js'
 
 // ── Normalizar ──
 //
@@ -24,8 +29,12 @@
 // son recordatorios («(Don't apply Weakness and Resistance for Benched
 // Pokémon.)», «(after applying Weakness and Resistance)») y no cambian lo
 // que hace la carta.
+// El símbolo de energía a veces llega como el HTML de TCGdex
+// («<span class="energy-symbol fire" title="fuego">fire</span>»).
+const LETRA_DE_TIPO = { grass: 'g', fire: 'r', water: 'w', lightning: 'l', psychic: 'p', fighting: 'f', darkness: 'd', metal: 'm', colorless: 'c', fairy: 'y', dragon: 'n' }
 export function normalizarTexto(t) {
   return String(t || '')
+    .replace(/<span[^>]*class="energy-symbol (\w+)"[^>]*>[^<]*<\/span>/gi, (x, tipo) => (LETRA_DE_TIPO[tipo.toLowerCase()] ? `{${LETRA_DE_TIPO[tipo.toLowerCase()]}}` : x))
     .replace(/[’‘`´]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/\([^)]*\)/g, ' ')
@@ -70,14 +79,20 @@ const FRASES_ATAQUE = [
   [/^this attack does (\d+) (?:more )?damage for each of your benched pokémon$/, (m) => ({ t: 'porBanca', n: +m[1], de: 'propia', calc: true })],
   [/^this attack does (\d+) (?:more )?damage for each of your opponent's benched pokémon$/, (m) => ({ t: 'porBanca', n: +m[1], de: 'rival', calc: true })],
   [/^this attack does (\d+) (?:more )?damage for each benched pokémon$/, (m) => ({ t: 'porBanca', n: +m[1], de: 'ambas', calc: true })],
-  [/^this attack does (\d+) (?:more )?damage for each of your (.+?) pokémon in play$/, (m) => ({ t: 'porEnJuegoDe', n: +m[1], dueno: m[2], calc: true })],
+  // «Ancient»/«Future» son marcas que el espejo no guarda: no se sabe
+  // contarlas, y contar cero sería inventarse el daño.
+  [/^this attack does (\d+) (?:more )?damage for each of your (.+?) pokémon in play$/, (m) => (/^(ancient|future)$/.test(m[2]) ? null : { t: 'porEnJuegoDe', n: +m[1], dueno: m[2], calc: true })],
   [/^this attack does (\d+) (?:more )?damage for each basic energy card in your opponent's discard pile$/, (m) => ({ t: 'porEnergiaDescarteRival', n: +m[1], calc: true })],
   [/^this attack does (\d+) (?:more )?damage for each (supporter|item|pokémon|energy) card that has "(.+?)" in its name in your discard pile$/, (m) => ({ t: 'porDescartePropio', n: +m[1], clase: m[2], contiene: m[3], calc: true })],
   [/^this attack does (\d+) (?:more )?damage for each (pokémon|supporter|item|energy) (?:card )?in your discard pile$/, (m) => ({ t: 'porDescartePropio', n: +m[1], clase: m[2], calc: true })],
   [/^if your opponent's active pokémon is a pokémon ex, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalEx', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon is a pokémon ex or pokémon v, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalEx', n: +m[1], v: true, calc: true })],
+  [/^this attack does (\d+) (more )?damage for each prize card (your opponent has|you have) taken$/, (m) => ({ t: 'porPremios', n: +m[1], de: m[3] === 'you have' ? 'propio' : 'rival', calc: true })],
+  [/^this attack does (\d+) less damage for each damage counter on this pokémon$/, (m) => ({ t: 'menosPorContadoresPropio', n: +m[1], calc: true })],
+  [/^before doing damage, discard all pokémon tools from your opponent's active pokémon$/, () => ({ t: 'quitarHerramientasRival', calc: true })],
   [/^if your opponent's active pokémon is a (basic|stage 1|stage 2) pokémon, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalFase', fase: m[1] === 'basic' ? 0 : +m[1].slice(-1), n: +m[2], calc: true })],
   [/^if your opponent's active pokémon is an? {([a-z])} pokémon, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalTipo', letra: LETRA(m[1]), n: +m[2], calc: true })],
-  [/^if your opponent's active pokémon has any damage counters on it, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalDanado', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon (?:already )?has any damage counters on it, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalDanado', n: +m[1], calc: true })],
   [/^if this pokémon has any damage counters on it, this attack does (\d+) more damage$/, (m) => ({ t: 'siPropioDanado', n: +m[1], calc: true })],
   [/^if your opponent's active pokémon is (asleep|burned|confused|paralyzed|poisoned), this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalEstado', estado: ESTADO[m[1]], n: +m[2], calc: true })],
   [/^if your opponent's active pokémon is affected by a special condition, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalEstado', estado: null, n: +m[1], calc: true })],
@@ -108,7 +123,7 @@ const FRASES_ATAQUE = [
   [/^you can use this attack only if you go second, and only during your first turn$/, () => ({ t: 'soloSegundoPrimerTurno', puede: true })],
 
   // — Estados —
-  [/^your opponent's active pokémon is now (asleep|burned|confused|paralyzed|poisoned)(?:,? and (asleep|burned|confused|paralyzed|poisoned))?$/, (m) => ({ t: 'estadoRival', estados: [ESTADO[m[1]], ESTADO[m[2]]].filter(Boolean) })],
+  [/^your opponent's active pokémon is now (asleep|burned|confused|paralyzed|poisoned)(?:,? and (asleep|burned|confused|paralyzed|poisoned))?$/, (m) => ({ t: 'estadoRival', estados: [ESTADO[m[1]], ESTADO[m[2]]].filter(Boolean).sort() })],
   [/^this pokémon is now (asleep|burned|confused|paralyzed|poisoned)$/, (m) => ({ t: 'estadoPropio', estado: ESTADO[m[1]] })],
   [/^this pokémon recovers from all special conditions$/, () => ({ t: 'curarEstadosPropio' })],
 
@@ -132,17 +147,31 @@ const FRASES_ATAQUE = [
   [/^discard (all|an?|\d+|one|two) (?:{([a-z])} )?energy from this pokémon$/, (m) => ({ t: 'descartarEnergiaPropia', cuantas: m[1] === 'all' ? 'todas' : num(m[1]), letra: LETRA(m[2]) })],
   [/^discard an energy from your opponent's active pokémon$/, () => ({ t: 'descartarEnergiaRival' })],
   [/^move an energy from this pokémon to 1 of your benched pokémon$/, () => ({ t: 'moverEnergiaABanca' })],
-  [/^put an energy attached to this pokémon into your hand$/, () => ({ t: 'energiaPropiaAMano' })],
+  [/^put (an?|\d+) energy attached to this pokémon into your hand$/, (m) => ({ t: 'energiaPropiaAMano', ...(num(m[1]) > 1 ? { n: num(m[1]) } : {}) })],
+  [/^move all energy from this pokémon to 1 of your benched pokémon$/, () => ({ t: 'moverEnergiaABanca', todas: true })],
+  [/^discard a special energy from your opponent's active pokémon$/, () => ({ t: 'descartarEnergiaRival', especial: true })],
   [/^move an energy from 1 of your opponent's pokémon to another of their pokémon$/, () => ({ t: 'moverEnergiaRival' })],
   [/^attach (a|an|up to \d+) basic {([a-z])} energy cards? from your discard pile to this pokémon$/, (m) => ({ t: 'unirDescarte', letra: LETRA(m[2]), n: num(m[1]) ?? Number(m[1].replace(/\D/g, '')) })],
 
   // — Cartas —
-  [/^draw (a|an|one|two|three|\d+) cards?$/, (m) => ({ t: 'robar', n: num(m[1]) })],
+  [/^(?:then, )?draw (a|an|one|two|three|\d+) cards?$/, (m) => ({ t: 'robar', n: num(m[1]) })],
+  [/^(you may )?draw cards until you have (\d+) cards in your hand$/, (m) => ({ t: 'robarHasta', n: +m[2], opcional: !!m[1] })],
+  [/^shuffle your hand into your deck$/, () => ({ t: 'manoAlMazo' })],
+  [/^discard your hand and draw (\d+) cards$/, (m) => [{ t: 'descartarMano' }, { t: 'robar', n: +m[1] }]],
+  [/^discard the top (a|one|two|three|\d+) cards? of your deck$/, (m) => ({ t: 'molerPropio', n: num(m[1]) })],
+  [/^discard the top card of your deck$/, () => ({ t: 'molerPropio', n: 1 })],
+  [/^discard a random card from your opponent's hand$/, () => ({ t: 'descartarAlAzarRival' })],
+  [/^your opponent discards (a|an|one|two|\d+) cards? from their hand$/, (m) => ({ t: 'rivalDescarta', n: num(m[1]) })],
+  [/^(you may )?discard a stadium in play$/, (m) => ({ t: 'descartarEstadio', opcional: !!m[1] })],
+  [/^knock out your opponent's active pokémon$/, () => ({ t: 'koActivoRival' })],
+  [/^shuffle this pokémon and all attached cards into your deck$/, () => ({ t: 'alMazoPropio' })],
   [/^discard the top (a|one|two|three|\d+) cards? of your opponent's deck$/, (m) => ({ t: 'molerRival', n: num(m[1]) })],
   [/^discard the top card of your opponent's deck$/, () => ({ t: 'molerRival', n: 1 })],
   [/^your opponent reveals their hand, and you discard a card you find there$/, () => ({ t: 'descartarDeManoRival' })],
   [/^put this pokémon and all attached cards into your hand$/, () => ({ t: 'aLaMano' })],
   [/^search your deck for up to (\d+|a|one|two|three) basic pokémon and put them onto your bench$/, (m) => ({ t: 'buscarBasicosBanca', n: num(m[1]) })],
+  [/^search your deck for a basic pokémon and put it onto your bench$/, () => ({ t: 'buscarBasicosBanca', n: 1 })],
+  [/^search your deck for (?:up to (\d+|two|three)|an?) (supporter|item|stadium|pokémon tool|basic energy|pokémon)(?: cards?)?, reveal (?:it|them), and put (?:it|them) into your hand$/, (m) => ({ t: 'buscarClase', clase: m[2], n: m[1] ? num(m[1]) : 1 }) ],
   [/^search your deck for (?:up to )?(\d+|a|an|one|two|three) cards? and put (?:it|them) into your hand$/, (m) => ({ t: 'buscarCartas', n: num(m[1]) })],
   [/^then, shuffle your deck$/, () => ({ t: 'ruido' })],
 
@@ -158,15 +187,18 @@ const FRASES_ATAQUE = [
   [/^during your opponent's next turn, they can't play any supporter cards from their hand$/, () => ({ t: 'veto', que: 'partidarios' })],
   [/^during your opponent's next turn, they can't play any pokémon from their hand to evolve their pokémon$/, () => ({ t: 'veto', que: 'evolucionar' })],
   [/^during your opponent's next turn, (?:the defending pokémon|that pokémon) can't retreat$/, () => ({ t: 'rivalNoRetira' })],
-  [/^during your opponent's next turn, the defending pokémon can't attack$/, () => ({ t: 'rivalNoAtaca' })],
+  [/^during your opponent's next turn, the defending pokémon can't (?:attack|use attacks)$/, () => ({ t: 'rivalNoAtaca' })],
   [/^choose 1 of your opponent's active pokémon's attacks\s*during your opponent's next turn, that pokémon can't use that attack$/, () => ({ t: 'rivalNoUsa' })],
-  [/^during your opponent's next turn, attacks used by the defending pokémon do (\d+) less damage$/, (m) => ({ t: 'rivalDebil', n: +m[1] })],
+  [/^during your opponent's next turn, (?:attacks used by the defending pokémon|the defending pokémon's attacks) do (\d+) less damage$/, (m) => ({ t: 'rivalDebil', n: +m[1] })],
   [/^during your opponent's next turn, this pokémon takes (\d+) less damage from attacks$/, (m) => ({ t: 'escudo', tipo: 'menos', n: +m[1] })],
   [/^during your opponent's next turn, prevent all damage from and effects of attacks done to this pokémon$/, () => ({ t: 'escudo', tipo: 'todoYEfectos' })],
   [/^during your opponent's next turn, prevent all damage done to this pokémon by attacks$/, () => ({ t: 'escudo', tipo: 'todo' })],
   [/^during your opponent's next turn, prevent all damage done to this pokémon by attacks from (basic|evolution) pokémon$/, (m) => ({ t: 'escudo', tipo: m[1] === 'basic' ? 'desdeBasicos' : 'desdeEvolucion' })],
   [/^during your opponent's next turn, prevent all damage done to this pokémon by attacks from pokémon ex$/, () => ({ t: 'escudo', tipo: 'desdeEx' })],
-  [/^during your next turn, this pokémon can't attack$/, () => ({ t: 'noAtacaSiguiente' })],
+  // «can't use attacks» es no atacar: sin esta línea, la de abajo lo leía
+  // como un ataque que se llama «attacks» y solo bloqueaba el que se usó.
+  [/^during your next turn, this pokémon can't (?:attack|use attacks)$/, () => ({ t: 'noAtacaSiguiente' })],
+  [/^this pokémon can't (?:attack|use attacks) during your next turn$/, () => ({ t: 'noAtacaSiguiente' })],
   [/^during your next turn, this pokémon can't use (.+)$/, (m) => ({ t: 'noUsaSiguiente', nombre: m[1] })],
   [/^during your next turn, the defending pokémon takes (\d+) more damage from attacks$/, (m) => ({ t: 'marcaRival', n: +m[1] })],
 ]
@@ -189,7 +221,7 @@ function leerFrase(f) {
 // Leer un ataque entero. Devuelve `{ pasos, completo }`; `completo` es la
 // regla del todo o nada.
 export function leerAtaque(texto) {
-  const fs = frases(texto)
+  const fs = frases(texto).map((f) => alIngles(f) ?? f)
   if (!fs.length) return { pasos: [], completo: true, vacio: true }
   // Pegar las parejas que van juntas.
   for (let i = 0; i < fs.length - 1; i++) {
@@ -290,7 +322,7 @@ const cacheHabilidad = new Map()
 export function leerHabilidad(texto) {
   const clave = String(texto || '')
   if (cacheHabilidad.has(clave)) return cacheHabilidad.get(clave)
-  const fs = frases(clave)
+  const fs = frases(clave).map((f) => alInglesHabilidad(f) ?? f)
   for (let i = 0; i < fs.length - 1; i++) if (PEGAR_HABILIDAD.some((re) => re.test(fs[i]))) fs.splice(i, 2, `${fs[i]} ${fs[i + 1]}`)
   // «Patrat»: el texto dice «(both yours and your opponent's)» en medio;
   // los paréntesis ya se han ido y queda un doble espacio.
