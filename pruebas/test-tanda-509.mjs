@@ -209,6 +209,27 @@ const doble = ({ totalCount = 2, suTam = null, pendientes = true, estadoInicial 
   check('  …y el contador vuelve a cero para la siguiente', d.estados.at(-1)?.fallos === 0, JSON.stringify(d.estados.at(-1)))
 }
 {
+  // ── UN FALLO DE NUESTRA BASE TAMBIÉN ES UN TROPIEZO (tanda 510) ──
+  //
+  // La petición a Scrydex va ANTES de hablar con Supabase, así que si
+  // Supabase falla **el crédito ya está gastado**, la página no avanza y
+  // se reintenta cada cinco minutos para siempre: 288 créditos al día. El
+  // guardarraíl estaba escrito solo para un fallo de SU API.
+  // La página 1 es la única que trae datos en el doble, así que el fallo
+  // tiene que caer AHÍ: con una página vacía el bucle sale antes de llegar
+  // a la base y la comprobación no ejercita nada.
+  const d = doble({ totalCount: 99999, estadoInicial: { pagina: 1, barridos: 0, fallos: 4 } })
+  const nuestraBaseRota = async (ruta) => {
+    if (/tcg_cards/.test(ruta)) throw new Error('Supabase 503: upstream')
+    return d.restImpl(ruta)
+  }
+  const r = await procesar({ env: ENV, ...d, restImpl: nuestraBaseRota })
+  check('si falla NUESTRA base, también cuenta como tropiezo (y a la quinta salta)',
+    d.estados.at(-1)?.pagina === 2, JSON.stringify(d.estados.at(-1)))
+  check('  …y se dice de quién fue el fallo', /Nuestra base/.test(JSON.stringify(r.cuerpo)), JSON.stringify(r.cuerpo).slice(0, 160))
+  check('  …y no se escribe nada', d.escrito.length === 0, JSON.stringify(d.escrito))
+}
+{
   // Y los fallos se cuentan SEGUIDOS: cinco tropiezos sueltos a lo largo
   // de un barrido no pueden saltarse una página sana.
   // El catálogo tiene que ser largo para que la pasada NO lo cierre: al
