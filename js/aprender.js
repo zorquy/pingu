@@ -113,9 +113,18 @@ async function loadCategories(session) {
     const q = supabase.from('guides').select(COLUMNAS).not('published_at', 'is', null).order('published_at', { ascending: false })
     return filtrar ? q.eq('kind', 'guide') : q
   }
-  const { data: publicadas } = await conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false))
+  // EL `error` NO SE TIRA (tanda 510). Destructurando solo `data`, una
+  // consulta que falla deja `publicadas` en undefined y la página decía
+  // «todavía no hay ninguna guía publicada» — o sea, presentaba un fallo
+  // nuestro como un dato sobre el catálogo, en la página principal de
+  // aprender. Es el mismo silencio que tenía /cartas.
+  const { data: publicadas, error } = await conVueltaAtrasDeTipo(() => pedirGuias(true), () => pedirGuias(false))
   const guias = publicadas || []
 
+  if (error) {
+    list.innerHTML = '<p class="empty-state">No se han podido cargar las guías. Vuelve a intentarlo en un momento.</p>'
+    return
+  }
   if (!guias.length) {
     list.innerHTML = `<p class="empty-state">Todavía no hay ninguna guía publicada.</p>`
     return

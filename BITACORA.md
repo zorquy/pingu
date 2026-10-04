@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 05:00) — PINGU-Claude (510 — el barrido de vacíos)
+
+**Hecho**: barrido con Playwright de ocho pantallas buscando el patrón de
+la noche: vacíos que no dicen de qué son, textos que nombran cosas que ya
+no existen, y páginas sin salida. Salieron seis, y **no todos necesitaban
+arreglo** —poner un botón en cada vacío habría sido su propio error—. Dos
+sí, y los dos eran fallos de verdad:
+
+· **`/aprender` tiraba el `error` de la consulta.** Destructuraba solo
+  `data`, así que una consulta caída dejaba `publicadas` en undefined y la
+  página decía «todavía no hay ninguna guía publicada»: un fallo nuestro
+  presentado como un dato sobre el catálogo, en la página principal de
+  aprender.
+· **`/torneos` nombraba un botón que se esconde sin sesión.** El vacío
+  decía siempre «crea el primero con el botón de arriba», y
+  `btnNuevoTorneo` lleva `classList.toggle('hidden', !session)`. O sea que
+  quien llega sin cuenta —y esta sección es el escaparate abierto desde la
+  252— leía que pulsara algo que no está en su pantalla. Y tiraba el
+  `error` igual que /aprender.
+
+**Y una falsa alarma que conviene apuntar**: mi detector de «cajas
+invisibles» marcó 2 en /torneos y 6 en /mis-partidas. Son `<img>` vacíos de
+**0×0**, sin `src`. El fallo de la 441 era una imagen que OCUPA y no
+dibuja; estas no ocupan nada. El detector marcaba de más.
+
+**Rigor**: dos mutaciones. La de «no distinguir el error del vacío» salió
+«sin detectar» porque la prueba nunca hacía fallar la consulta — y se
+arregló **sin tocar el doble**: `__SIN_TABLAS__` ya sabía hacerlo.
+
+**Ficheros**: `js/aprender.js`, `js/torneos/torneos.js`. En `pruebas`:
+`test-tanda-252.mjs`.
+
 ## 2026-10-04 (madrugada, 04:30) — PINGU-Claude (510 — los callejones sin salida)
 
 **Hecho**: repaso visual de las pantallas que PINGU quiere enseñar por la

@@ -325,7 +325,7 @@ const recargarLista = () => cargarLista(quienMira.session, quienMira.perfil)
 async function cargarLista(session, perfil = null) {
   quienMira = { session, perfil }
   const vacio = $('torneosVacio')
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('tournaments')
     .select('*')
     .order('start_at', { ascending: false })
@@ -384,7 +384,22 @@ async function cargarLista(session, perfil = null) {
     creadoresOficiales = new Set((perfiles || []).filter((p) => p.is_admin).map((p) => p.id))
   }
 
+  // ── EL VACÍO DICE DE QUÉ ES, Y NO NOMBRA UN BOTÓN QUE NO ESTÁ (510) ──
+  //
+  // Decía siempre «crea el primero con el botón de arriba». Pero ese
+  // botón se ESCONDE sin sesión (`btnNuevoTorneo`, unas líneas más
+  // abajo), así que quien llega sin cuenta —y /torneos es el escaparate
+  // abierto, por la tanda 252— leía que pulsara un botón que no existe en
+  // su pantalla. Y si la consulta FALLA, también decía «no hay ningún
+  // torneo»: un fallo nuestro presentado como un dato.
   vacio.classList.toggle('hidden', torneos.length > 0)
+  if (!torneos.length) {
+    vacio.textContent = error
+      ? 'No se han podido cargar los torneos. Vuelve a intentarlo en un momento.'
+      : session
+        ? 'Todavía no hay ningún torneo. Crea el primero con el botón de arriba.'
+        : 'Todavía no hay ningún torneo. Entra con tu cuenta para crear el primero.'
+  }
 
   const tarjeta = (t) =>
     tarjetaHtml(t, {
