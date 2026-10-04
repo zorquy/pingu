@@ -101,7 +101,7 @@ const doble = () => {
       //    No se escribe NADA de él.
       { id: 'ex5.5', market: 'WEST', name: 'Creadores de Leyendas', tcg_online_code: 'LM', release_date: '2006-02-13', card_count_total: 93, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null },
       // 4. Ya completo: no hay nada que cambiar y no entra en el upsert.
-      { id: 'base1', market: 'WEST', name: 'Base', tcg_online_code: 'BS', release_date: '1999-01-09', card_count_total: 102, card_count_official: 102, logo_path: 'base/base1/logo', logo_scrydex: LOGO_BUENO, symbol_scrydex: 'https://images.scrydex.com/pokemon/base1-symbol/symbol' },
+      { id: 'base1', market: 'WEST', name: 'Base', tcg_online_code: 'BS', release_date: '1999-01-09', card_count_total: 102, card_count_official: 102, logo_path: 'base/base1/logo', logo_scrydex: LOGO_BUENO, symbol_scrydex: 'https://images.scrydex.com/pokemon/base1-symbol/symbol', scrydex_id: 'base1', scrydex_por: 'el código del set' },
       // 5. NI FECHA NI CÓDIGO: no hay con qué emparejarlo, y se DICE.
       //    Esto se queda en TCGdex, que es lo que PINGU pidió: «si falta
       //    algo en Scrydex, cógelo de las otras cosas».
@@ -208,6 +208,11 @@ const huellaDePrueba = (buf) => (
   const claves = d.escrito.map((f) => JSON.stringify(Object.keys(f).sort()))
   check('todas las filas llevan las mismas claves', new Set(claves).size === 1, JSON.stringify([...new Set(claves)]))
   check('y todas llevan la clave primaria entera (id + market)', d.escrito.every((f) => f.id && f.market), JSON.stringify(d.escrito.map((f) => [f.id, f.market])))
+  // EL EMPAREJAMIENTO SE GUARDA (tanda 509): sin esto, cada pasada de las
+  // cartas tendría que volver a verificar los 210 pares, y podría
+  // emparejar distinto que la vez anterior sin que nada lo dijera.
+  check('se guarda CON QUIÉN casa cada set', d.escrito.every((f) => f.scrydex_id), JSON.stringify(d.escrito.map((f) => [f.id, f.scrydex_id])))
+  check('  …y con qué señal se confirmó', d.escrito.every((f) => f.scrydex_por), JSON.stringify(d.escrito.map((f) => f.scrydex_por)))
   check('y NO se escribe la URL del relleno en ninguna fila',
     !d.escrito.some((f) => f.logo_scrydex === LOGO_RELLENO), JSON.stringify(d.escrito.map((f) => [f.id, f.logo_scrydex])))
 }
@@ -252,7 +257,10 @@ const huellaDePrueba = (buf) => (
     return [...filas, { id: 'otro', market: 'WEST', name: 'Otro', tcg_online_code: 'DRI', release_date: null, card_count_total: 1, card_count_official: null, logo_path: null, logo_scrydex: null, symbol_scrydex: null }]
   }
   const r = await procesar({ env: ENV, fetchImpl: d.fetchImpl, restImpl: dosNuestros, escribirImpl: d.escribirImpl, huellaImpl: huellaDePrueba, escribir: true })
-  const suyos = d.escrito.map((f) => f.logo_scrydex).filter(Boolean)
+  // Se comprueba con `scrydex_id`, que ES el emparejamiento. La primera
+  // versión miraba el logo —tres sets distintos pueden compartir la misma
+  // URL en un fixture— y daba un rojo que no era: un proxy no es el dato.
+  const suyos = d.escrito.map((f) => f.scrydex_id).filter(Boolean)
   check('ningún set suyo se reparte a DOS nuestros',
     suyos.length === new Set(suyos).size, JSON.stringify(suyos))
 }
