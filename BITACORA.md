@@ -41,6 +41,15 @@ exactamente el fallo de la 523 otra vez.
 `js/carta-nucleo.js`, `js/mi-coleccion.js`. En `pruebas`:
 `pruebas/test-tanda-525.mjs`, `rigor/rigor-tanda-525.py`.
 
+**SUITE de las tres tandas (523, 524 y 525) a las 09:00: 237 verdes, 3
+rojos.** De los tres, DOS son `test-tanda-493` y `test-tanda-514`, que
+piden `ffprobe` y en este contenedor no está instalado (no son de la web).
+El tercero era de verdad y era bueno: `test-tanda-428` exigía que el estado
+vacío del balance dijera «Precio de compra»… o sea que **la prueba llevaba
+desde la 428 congelando el nombre equivocado**, el que arregló la 524. Una
+prueba puede sujetar un fallo igual que lo sujeta el código. Corregida a
+«Lo que pagaste» y en verde. Las tres tandas están empujadas.
+
 ## 2026-10-04 (madrugada, 07:40) — PINGU-Claude (524 — los caminos escritos en prosa, y van TRES)
 
 **Hecho**: la 510 encontró el estado vacío de /mi-coleccion mandando a
