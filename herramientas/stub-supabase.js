@@ -74,6 +74,15 @@ const T = {
   // ve lo decide la política (los dos jugadores, quien lleva el torneo y
   // sus jueces), y nadie escribe en la tabla: se adjunta por función.
   tournament_match_replays: [],
+  // Los premios ya dados (tanda 516): una fila por jugador y torneo.
+  tournament_prize_deliveries: [],
+  // Los mazos del meta (tanda 520, para la ficha de /meta/:arquetipo):
+  // el doble no los tenía y la ficha salía siempre «Mazo no encontrado».
+  meta_arquetipos: [],
+  meta_guias: [],
+  // Los puzles (tanda 521) y sus respuestas.
+  replay_puzzles: [],
+  replay_puzzle_answers: [],
   match_log: [],
   match_log_torneos: [],
   guides: [],
@@ -500,6 +509,10 @@ sembrar('__FAKE_REPETICIONES__', 'replays', (i) => ({
   mazo_a: null,
   mazo_b: null,
   notas: [],
+  // La galería (tanda 520), con sus valores por defecto de la base.
+  publica: false,
+  arquetipos: null,
+  publicada_at: null,
   created_at: new Date(Date.now() - (i + 1) * 86400e3).toISOString(),
   updated_at: new Date(Date.now() - (i + 1) * 3600e3).toISOString(),
 }))
@@ -638,6 +651,32 @@ sembrar('__FAKE_REPETICIONES_MESA__', 'tournament_match_replays', (i) => ({
   user_id: 'user-1',
   replay_id: `rep${String(i + 1).padStart(7, '0')}`,
   created_at: new Date(Date.now() - (10 - i) * 60e3).toISOString(),
+}))
+
+sembrar('__FAKE_ENTREGAS__', 'tournament_prize_deliveries', (i) => ({
+  tournament_id: 'torneo-1',
+  user_id: `user-${i + 1}`,
+  delivered_at: new Date(Date.now() - 3600e3).toISOString(),
+  delivered_by: 'admin-1',
+}))
+
+sembrar('__FAKE_PUZLES__', 'replay_puzzles', (i) => ({
+  id: `pz${String(i + 1).padStart(8, '0')}`,
+  replay_id: 'rep0000001',
+  user_id: 'user-1',
+  foto: 10,
+  pregunta: '¿Qué jugarías aquí?',
+  opciones: ['A', 'B'],
+  correcta: 0,
+  explicacion: 'Porque sí.',
+  created_at: new Date(Date.now() - (i + 1) * 60e3).toISOString(),
+}))
+
+sembrar('__FAKE_META_ARQUETIPOS__', 'meta_arquetipos', (i) => ({
+  id: `arq-${i + 1}`,
+  nombre: `Mazo ${i + 1}`,
+  iconos: [],
+  visto_at: new Date().toISOString(),
 }))
 
 sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
@@ -858,6 +897,14 @@ function consulta(tabla, estado = {}) {
     // esto, una pantalla que pidiera las repeticiones SIN filtrar por su
     // dueño vería aquí las de todo el mundo, y en la base ninguna ajena.
     if (tabla === 'replays') filas = filas.filter((f) => f.user_id === (sesion?.user?.id ?? '¬'))
+    // Los puzles (tanda 521): el tuyo, o el de una repetición compartida —
+    // y nunca con la buena ni la explicación, que en la base no tienen
+    // permiso de lectura (salen al contestar).
+    if (tabla === 'replay_puzzles') {
+      filas = filas.filter((f) => f.user_id === (sesion?.user?.id ?? '¬') || T.replays.some((r) => r.id === f.replay_id && r.compartida))
+      // Solo al LEER (un borrado tiene que encontrar la fila de verdad).
+      if (!st.op) filas = filas.map(({ correcta, explicacion, ...resto }) => resto)
+    }
     // La de `tournament_match_replays` (tanda 496): las de una mesa las
     // ven sus dos jugadores, quien lleva el torneo y un juez APROBADO.
     if (tabla === 'tournament_match_replays') {
@@ -911,6 +958,17 @@ function consulta(tabla, estado = {}) {
     const sinPermiso = (typeof window !== 'undefined' && window.__SIN_PERMISO__) || []
     if (['insert', 'upsert', 'update', 'delete'].includes(st.op) && sinPermiso.includes(tabla)) {
       return { data: st.unico ? null : [], error: null }
+    }
+    // La buena y la explicación de un puzle no tienen permiso de lectura:
+    // el permiso es por COLUMNAS (tanda 521), y en Postgres pedirlas —o
+    // pedir `*`, que las incluye— hace fallar la consulta ENTERA con 42501.
+    // Quitarlas en silencio, que es lo que hacía el doble, daba por buena
+    // una consulta que en la base no devuelve nada.
+    if (!st.op && tabla === 'replay_puzzles') {
+      const pide = String(st.columnas || '*').split(',').map((c) => c.trim().split(':').pop())
+      if (pide.some((c) => c === '*' || c === 'correcta' || c === 'explicacion')) {
+        return { data: null, error: { code: '42501', message: 'permission denied for table replay_puzzles' } }
+      }
     }
     // Escrituras
     if (st.op === 'insert' || st.op === 'upsert') {
@@ -969,6 +1027,12 @@ function consulta(tabla, estado = {}) {
       ;(CONSULTAS.columnas[tabla] = CONSULTAS.columnas[tabla] || []).push(
         cols === undefined ? '*' : String(cols)
       )
+      // Pedir por su nombre una columna que falta (`__SIN_COLUMNAS__`)
+      // falla entera, como en la base (tanda 520: así se sabe si una
+      // migración está puesta sin tocar nada).
+      const faltan = (typeof window !== 'undefined' && window.__SIN_COLUMNAS__?.[tabla]) || []
+      const falta = String(cols ?? '*').split(',').map((c) => c.trim().split(':').pop()).find((c) => faltan.includes(c))
+      if (falta) return cadenaRota(tabla, falta)
       return consulta(tabla, {
         ...st,
         columnas: cols === undefined ? '*' : String(cols),
@@ -1202,6 +1266,10 @@ export const supabase = {
   // el contador de la ficha se comporte como en la web de verdad.
   rpc: async (nombre, args = {}) => {
     RPCS.push({ nombre, args })
+    // Hacer fallar una función a propósito (tanda 512): lo que pasa cuando
+    // la base dice que no es justo lo que una prueba de «éxito» nunca ve.
+    const fallos = (typeof window !== 'undefined' && window.__RPC_ERRORES__) || {}
+    if (nombre in fallos) return { data: null, error: fallos[nombre] }
     // Los resultados de una encuesta se CALCULAN de las tablas, como en
     // Postgres. Devolverlos a mano desde cada prueba haría que «no se
     // enseñan los resultados antes de votar» comprobara la semilla y no
@@ -1451,6 +1519,9 @@ export const supabase = {
         mazo_a: mazo(0),
         mazo_b: mazo(1),
         notas: [],
+        publica: false,
+        arquetipos: null,
+        publicada_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -1463,6 +1534,79 @@ export const supabase = {
       if (!r) return { data: [], error: null }
       if (nombre === 'repeticiones_resumen') return { data: [{ titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos }], error: null }
       return { data: [{ registro: r.registro, titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, turnos: r.turnos, created_at: r.created_at, mia: r.user_id === yo, compartida: r.compartida, notas: r.notas || [], mazo_a: r.mazo_a ?? null, mazo_b: r.mazo_b ?? null }], error: null }
+    }
+    // Los puzles (tanda 521), con las puertas de las funciones de verdad.
+    if (nombre === 'puzles_crear') {
+      const yo = sesion?.user?.id
+      const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
+      if (!yo) return no('Hace falta iniciar sesión.', '28000')
+      const r = T.replays.find((x) => x.id === args.p_repeticion && x.user_id === yo)
+      if (!r) return no('Solo se hacen puzles de repeticiones tuyas: guárdala primero.', '42501')
+      const opciones = (args.p_opciones || []).map((o) => String(o ?? '').trim()).filter(Boolean)
+      if (opciones.length < 2 || opciones.length > 4) return no('Hacen falta de 2 a 4 opciones.', '22023')
+      if (!(args.p_correcta >= 0 && args.p_correcta < opciones.length)) return no('new row violates check constraint "replay_puzzles_correcta"', '23514')
+      const fila = { id: Math.random().toString(16).slice(2, 12).padEnd(10, '0'), replay_id: r.id, user_id: yo, foto: args.p_foto, pregunta: String(args.p_pregunta).trim(), opciones, correcta: args.p_correcta, explicacion: String(args.p_explicacion).trim(), created_at: new Date().toISOString() }
+      T.replay_puzzles.push(fila)
+      r.compartida = true
+      return { data: fila.id, error: null }
+    }
+    if (nombre === 'puzles_responder') {
+      const yo = sesion?.user?.id
+      const pz = T.replay_puzzles.find((x) => x.id === args.p_puzle && (x.user_id === yo || T.replays.some((r) => r.id === x.replay_id && r.compartida)))
+      if (!pz) return { data: null, error: { code: 'P0002', message: 'Ese puzle no existe o ya no se comparte.' } }
+      if (!(args.p_opcion >= 0 && args.p_opcion < pz.opciones.length)) return { data: null, error: { code: '22023', message: 'Esa opción no es de este puzle.' } }
+      if (yo && !T.replay_puzzle_answers.some((a) => a.puzzle_id === pz.id && a.user_id === yo)) T.replay_puzzle_answers.push({ puzzle_id: pz.id, user_id: yo, opcion: args.p_opcion })
+      const recuento = pz.opciones.map((_, k) => T.replay_puzzle_answers.filter((a) => a.puzzle_id === pz.id && a.opcion === k).length)
+      const tuya = yo ? (T.replay_puzzle_answers.find((a) => a.puzzle_id === pz.id && a.user_id === yo)?.opcion ?? null) : null
+      return { data: [{ correcta: pz.correcta, explicacion: pz.explicacion, recuento, tuya }], error: null }
+    }
+    if (nombre === 'puzles_lista') {
+      const autor = (id) => {
+        const p = T.user_profiles.find((x) => x.id === id)
+        return p ? p.display_name || p.username : null
+      }
+      const filas = T.replay_puzzles
+        .filter((pz) => T.replays.some((r) => r.id === pz.replay_id && r.compartida))
+        .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+        .slice(0, Math.min(Math.max(args.p_limite || 20, 1), 50))
+        .map((pz) => {
+          const resp = T.replay_puzzle_answers.filter((a) => a.puzzle_id === pz.id)
+          return { id: pz.id, pregunta: pz.pregunta, created_at: pz.created_at, autor: autor(pz.user_id), respuestas: resp.length, aciertos: resp.filter((a) => a.opcion === pz.correcta).length }
+        })
+      return { data: filas, error: null }
+    }
+    // Publicar como partida de ejemplo y la lista de un mazo (tanda 520),
+    // con las puertas de las funciones de verdad.
+    if (nombre === 'repeticiones_publicar') {
+      const yo = sesion?.user?.id
+      const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
+      if (!yo) return no('Hace falta iniciar sesión.', '28000')
+      const r = T.replays.find((x) => x.id === args.p_id)
+      if (!r) return no('Esa repetición no existe.', 'P0002')
+      const admin = T.user_profiles.find((p) => p.id === yo)?.is_admin
+      if (!args.p_publica) {
+        if (r.user_id !== yo && !admin) return no('Solo quien la publicó puede quitarla de la lista.', '42501')
+        Object.assign(r, { publica: false, publicada_at: null })
+        return { data: false, error: null }
+      }
+      if (r.user_id !== yo) return no('Solo quien la guardó puede publicarla.', '42501')
+      const ids = [...new Set((args.p_arquetipos || []).filter((x) => /^[a-z0-9][a-z0-9-]{0,79}$/.test(x || '')))].slice(0, 2)
+      if (!ids.length) return no('Ninguno de los dos mazos es de los del meta: no saldría en ninguna ficha.')
+      if (T.replays.filter((x) => x.user_id === yo && x.publica && x.compartida && x.id !== r.id).length >= 30) return no('Caben 30 partidas publicadas por persona: quita alguna antes.')
+      Object.assign(r, { publica: true, compartida: true, arquetipos: ids, publicada_at: r.publicada_at || new Date().toISOString() })
+      return { data: true, error: null }
+    }
+    if (nombre === 'repeticiones_publicas') {
+      const autor = (id) => {
+        const p = T.user_profiles.find((x) => x.id === id)
+        return p ? p.display_name || p.username : null
+      }
+      const filas = T.replays
+        .filter((r) => r.publica && r.compartida && (r.arquetipos || []).includes(args.p_arquetipo))
+        .sort((a, b) => String(b.publicada_at).localeCompare(String(a.publicada_at)))
+        .slice(0, Math.min(Math.max(args.p_limite || 12, 1), 50))
+        .map((r) => ({ id: r.id, titulo: r.titulo, jugador_a: r.jugador_a, jugador_b: r.jugador_b, ganador: r.ganador, turnos: r.turnos, mazo_a: r.mazo_a, mazo_b: r.mazo_b, publicada_at: r.publicada_at, autor: autor(r.user_id) }))
+      return { data: filas, error: null }
     }
     // Adjuntar y quitar la repetición de una mesa (tanda 496), con las
     // mismas puertas que las funciones de verdad: solo un jugador de esa
@@ -1485,6 +1629,23 @@ export const supabase = {
       r.compartida = true
       T.tournament_match_replays.push({ match_id: m.id, user_id: yo, replay_id: r.id, created_at: new Date().toISOString() })
       return { data: true, error: null }
+    }
+
+    // Marcar un premio como dado (tanda 516), con las puertas de la función
+    // de verdad: quien lleva el torneo, terminado, y a quien lo jugó.
+    if (nombre === 'torneos_premio_entregado') {
+      const yo = sesion?.user?.id
+      const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
+      const t = T.tournaments.find((x) => x.id === args.p_torneo)
+      const perfil = T.user_profiles.find((p) => p.id === yo)
+      if (!yo) return no('Hace falta iniciar sesión.', '28000')
+      if (!t || !(t.admin_id === yo || perfil?.is_admin || perfil?.is_tournament_admin)) return no('Solo quien lleva el torneo apunta los premios dados.', '42501')
+      if (t.status !== 'finished') return no('Los premios se dan con el torneo terminado.')
+      if (!T.tournament_registrations.some((r) => r.tournament_id === t.id && r.user_id === args.p_usuario)) return no('Esa persona no jugó este torneo.')
+      const esta = (f) => f.tournament_id === t.id && f.user_id === args.p_usuario
+      if (!args.p_entregado) T.tournament_prize_deliveries = T.tournament_prize_deliveries.filter((f) => !esta(f))
+      else if (!T.tournament_prize_deliveries.some(esta)) T.tournament_prize_deliveries.push({ tournament_id: t.id, user_id: args.p_usuario, delivered_at: new Date().toISOString(), delivered_by: yo })
+      return { data: Boolean(args.p_entregado), error: null }
     }
 
     // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de

@@ -195,6 +195,9 @@ async function abrir({ sesion = 'admin-1', torneo = {}, sprite = 'magenta', resp
     const dibujar = CanvasRenderingContext2D.prototype.drawImage
     CanvasRenderingContext2D.prototype.drawImage = function (img, ...a) {
       if (a.length === 4) window.__dibujos.push({ src: img.src || '', x: a[0], y: a[1], w: a[2], h: a[3] })
+      // Desde la tanda 511 un sprite se pinta recortado a lo que ocupa
+      // (drawImage de nueve): el destino son los cuatro últimos.
+      if (a.length === 8) window.__dibujos.push({ src: img.src || '', x: a[4], y: a[5], w: a[6], h: a[7] })
       return dibujar.call(this, img, ...a)
     }
   }, [sesion, semillas(torneo)])

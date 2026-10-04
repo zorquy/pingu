@@ -75,8 +75,14 @@ console.log('\n── 1. Todo sprite tiene a dónde caer, y acaba fuera de Limit
   // Una mega baja primero a su especie base DENTRO de Limitless (se
   // conserva el estilo) y solo después cambia de origen. Si se salta ese
   // peldaño, una mega que la CDN aún no tiene pierde calidad sin motivo.
+  //
+  // Desde la tanda 511 (PINGU: «salen los pokemons normales» en la imagen
+  // del meta) el primer peldaño de una mega es SU dibujo en PokeAPI: se
+  // pierde el estilo antes que la forma. La especie en Limitless sigue en
+  // la cadena, justo después, y antes que la especie en PokeAPI.
   const mega = cadenaDeRespaldos(urlDeSprite(dexDeCarta('Mega Lopunny ex')))
-  check('una mega prueba antes su especie base', mega[0] === 'https://r2.limitlesstcg.net/pokemon/gen9/lopunny.png', mega[0])
+  const enLimitless = mega.indexOf('https://r2.limitlesstcg.net/pokemon/gen9/lopunny.png')
+  check('una mega prueba antes SU dibujo en PokeAPI, y luego su especie en Limitless', /\/10088\.png$/.test(mega[0]) && enLimitless > 0 && mega.findIndex((u) => /\/428\.png$/.test(u)) > enLimitless, mega.join(' → '))
 
   // Los dos peldaños de salida son EL MISMO fichero por dos puertas
   // distintas (jsDelivr sirve el repo de GitHub), así que tienen que
