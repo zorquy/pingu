@@ -4,7 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
-<<<<<<< HEAD
+## 2026-10-06 (noche, 01:30) — PINGU-Claude (580–585, PRIMERA MITAD: ficheros nuevos, SIN cablear)
+
+**Hecho**: solo ficheros NUEVOS que nada importa todavía (la suite entera
+corre en mi contenedor y no toco lo existente hasta que acabe):
+`js/mi-coleccion/importar-csv.js` + `importar.js` (580, importar/exportar
+CSV), `netlify/lib/pokemontcg.mjs` + `supabase-migration-precios-url.sql`
+(585, precio y enlace exacto a Cardmarket; lo pidió PINGU esta noche),
+`js/mas-caro.js` + `js/mas-caro-juego.js` + `mas-caro.html` +
+`css/mas-caro.css` + `netlify/functions/mas-caro.mjs` +
+`supabase-migration-mas-caro.sql` (583, tercer reto; la página no está
+enlazada aún), `js/reto-imagen.js` (583, imagen del resultado).
+
+**Migraciones NUEVAS, pendientes de ejecutar**: `supabase-migration-precios-url.sql`
+y `supabase-migration-mas-caro.sql`. Las funciones aguantan sin ellas.
+
+**En curso (segunda mitad, esta misma noche)**: cablear 580, 581
+(bienvenida), 582, 583 y 585 en `mi-coleccion.js/html/css`,
+`cardmarket.js`, `carta-mercado.js`, `precios-coleccion.mjs`,
+`onboarding.*`, `retos.html`. En `pruebas`: tests 580, 583, 585 (nuevos) y
+el doble siembra `tcg_card_prices`.
+
 ## 2026-10-06 (madrugada) — PINGU-Claude (590 a 596 — la impresión del meta, enlaces cortos, el registro de «tú contra ti», efectos en español, elegir sin ventanas, caminos combinados y un repaso de fallos)
 
 **Leídas vuestras 566 a 579 antes de subir** (y la 578 del álbum, que
@@ -68,28 +88,6 @@ sesión vieja. La 326 contaba 32 páginas con pie y ya son 35 (la 312 sí se
 actualizó): esa la he puesto al día en `pruebas`.
 
 **Pendiente**: nada de esto.
-=======
-## 2026-10-06 (noche, 01:30) — PINGU-Claude (580–585, PRIMERA MITAD: ficheros nuevos, SIN cablear)
-
-**Hecho**: solo ficheros NUEVOS que nada importa todavía (la suite entera
-corre en mi contenedor y no toco lo existente hasta que acabe):
-`js/mi-coleccion/importar-csv.js` + `importar.js` (580, importar/exportar
-CSV), `netlify/lib/pokemontcg.mjs` + `supabase-migration-precios-url.sql`
-(585, precio y enlace exacto a Cardmarket; lo pidió PINGU esta noche),
-`js/mas-caro.js` + `js/mas-caro-juego.js` + `mas-caro.html` +
-`css/mas-caro.css` + `netlify/functions/mas-caro.mjs` +
-`supabase-migration-mas-caro.sql` (583, tercer reto; la página no está
-enlazada aún), `js/reto-imagen.js` (583, imagen del resultado).
-
-**Migraciones NUEVAS, pendientes de ejecutar**: `supabase-migration-precios-url.sql`
-y `supabase-migration-mas-caro.sql`. Las funciones aguantan sin ellas.
-
-**En curso (segunda mitad, esta misma noche)**: cablear 580, 581
-(bienvenida), 582, 583 y 585 en `mi-coleccion.js/html/css`,
-`cardmarket.js`, `carta-mercado.js`, `precios-coleccion.mjs`,
-`onboarding.*`, `retos.html`. En `pruebas`: tests 580, 583, 585 (nuevos) y
-el doble siembra `tcg_card_prices`.
->>>>>>> f60314e (580–585 (primera mitad): ficheros nuevos, sin cablear todavía)
 
 ## 2026-10-06 (mañana, 11:10) — PINGU-Claude (578 — arrastrar cartas en un álbum soñado)
 
