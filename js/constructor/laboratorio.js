@@ -183,6 +183,103 @@ export async function abrirLaboratorioEnPosicion({ mazos, nombres, colocar, avis
   return resumen
 }
 
+// Abrir una posición que llega por un enlace (tanda 515): con mesa, por el
+// mismo camino que la de una repetición; contra el muñeco, su partida tal
+// cual. `posicion` es la de posicion-compartida.js ya con sus cartas.
+export async function abrirPosicionCompartida({ posicion, codigoDeSet = () => null, userId = null }) {
+  const aviso = 'Posición que te han pasado con un enlace: se sigue jugando desde aquí.'
+  if (posicion.tipo === 'mesa') {
+    return abrirLaboratorioEnPosicion({ mazos: posicion.mazos, nombres: posicion.nombres, colocar: (mesa) => mesa.restaurar(structuredClone(posicion.estado)), aviso, codigoDeSet, userId })
+  }
+  leerPrefs()
+  L.codigoDeSet = codigoDeSet
+  L.userId = userId
+  montar()
+  L.focoPrevio = document.activeElement
+  L.raiz.hidden = false
+  document.documentElement.classList.add('lab-abierto')
+  $('#labTitulo').focus()
+  $('#labCuerpo').innerHTML = '<p class="lab-cargando">Preparando la mesa…</p>'
+  const [m] = posicion.mazos
+  const preparadas = await prepararEntradas(m.entradas).catch(() => m.entradas.map((e) => ({ ...e })))
+  L.mazoConstructor = { nombre: m.nombre || 'Mazo', entradas: preparadas, odds: oddsDelMazo(preparadas), mismo: true }
+  L.mazos = [L.mazoConstructor, null]
+  // La firma no se toca: el enlace solo se lee al cargar la página, así que
+  // aún no hay ninguna que pudiera confundirse con la de este mazo.
+  L.mesa = null
+  L.seleccion = new Set()
+  L.ocupado = false
+  L.nuevas = new Set()
+  L.apuntar = null
+  L.cacheHtml = new WeakMap()
+  $('#labCuerpo').innerHTML = cuerpoHtml()
+  L.partida = new Partida({ entradas: preparadas, efectos: EFECTOS, semilla: 1, estricta: posicion.estado.estricta !== false })
+  L.partida.s = structuredClone(posicion.estado)
+  L.partida.log(aviso)
+  pintar()
+}
+
+// ── Compartir la posición (tanda 515) ──
+function posicionActual() {
+  if (L.mesa) {
+    const [a, b] = L.mesa.jugadores
+    return { tipo: 'mesa', nombres: [a.nombreJugador, b.nombreJugador], mazos: L.mazos, estado: structuredClone({ a: a.s, b: b.s, m: L.mesa.m }) }
+  }
+  return { tipo: 'muneco', mazos: [L.mazoConstructor], estado: structuredClone(L.partida.s) }
+}
+
+async function dialogoCompartir() {
+  if (!L.partida || L.ocupado) return
+  const posicion = posicionActual()
+  const caja = abrirDialogo(
+    `<h3 id="labDialogoTitulo">Compartir esta posición</h3>
+     <div class="lab-dialogo-cuerpo"><p class="subtext" id="labCompartirNota">Preparando el enlace…</p></div>
+     <div class="lab-dialogo-botones"><button type="button" class="btn-secondary lab-btn" data-dlg="cancelar">Cerrar</button></div>`
+  )
+  caja.onclick = async (e) => {
+    const b = e.target.closest('[data-dlg]')
+    if (!b) return
+    if (b.dataset.dlg === 'cancelar') return cerrarDialogo()
+    const url = caja.querySelector('#labEnlace')?.value
+    if (!url) return
+    if (b.dataset.dlg === 'copiar') {
+      try {
+        await navigator.clipboard.writeText(url)
+        showToast('Enlace copiado.', 'success')
+      } catch {
+        // Sin permiso para el portapapeles, se deja seleccionado.
+        caja.querySelector('#labEnlace').select()
+        showToast('Cópialo con Ctrl+C: ya está seleccionado.')
+      }
+    }
+    if (b.dataset.dlg === 'nativo') navigator.share({ title: 'Una posición del laboratorio de PokeDoc', url }).catch(() => {})
+  }
+  let url
+  try {
+    const { empaquetarPosicion } = await import('./posicion-compartida.js')
+    url = `${location.origin}/constructor#${await empaquetarPosicion(posicion)}`
+  } catch (err) {
+    const nota = caja.querySelector('#labCompartirNota')
+    if (nota) nota.textContent = `No se ha podido hacer el enlace: ${err.message}`
+    return
+  }
+  const cuerpo = caja.querySelector('.lab-dialogo-cuerpo')
+  if (!cuerpo) return
+  // Lo que se lleva el enlace, dicho entero: con tu mano y tu mazo EN SU
+  // ORDEN, quien lo abra roba lo mismo que robarías tú.
+  const quien = L.mesa ? 'los dos mazos y las dos manos' : 'tu mazo, tu mano y el muñeco'
+  cuerpo.innerHTML = `
+    <p class="subtext">Quien lo abra sigue jugando desde aquí, con ${quien} tal cual están ahora, y el mazo en su orden: robará lo mismo que robarías tú. El enlace lleva la mesa dentro; no se guarda en ningún sitio.${
+      url.length > 2000 ? ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.` : ''
+    }</p>
+    <div class="lab-enlace">
+      <label class="sr-only" for="labEnlace">Enlace de la posición</label>
+      <input type="text" id="labEnlace" readonly value="${escapeHtml(url)}" />
+      <button type="button" class="btn-primary lab-btn" data-dlg="copiar">${icons.link(16)} Copiar</button>
+    </div>
+    ${navigator.share ? `<button type="button" class="btn-secondary lab-btn" data-dlg="nativo">${icons.share(16)} Compartir en…</button>` : ''}`
+}
+
 function cerrar() {
   if (!L.raiz) return
   cerrarMenu()
@@ -233,6 +330,7 @@ function montar() {
         <button type="button" class="btn-secondary lab-btn" data-accion="deshacer" title="Deshacer (Ctrl+Z)">${icons.refreshCw(16)}<span class="lab-btn-texto">Deshacer</span></button>
         <button type="button" class="btn-secondary lab-btn" data-accion="nueva" title="Nueva partida">${icons.cards(16)}<span class="lab-btn-texto">Nueva partida</span></button>
         <button type="button" class="btn-secondary lab-btn lab-btn-panel" data-accion="panel" aria-pressed="false" aria-controls="labPanel" title="Probabilidades (P)">${icons.barChart(16)}<span class="lab-btn-texto">Probabilidades</span></button>
+        <button type="button" class="btn-secondary lab-btn" data-accion="compartir" title="Compartir esta posición">${icons.share(16)}<span class="lab-btn-texto">Compartir</span></button>
       </div>
       <button type="button" class="lab-cerrar lab-cerrar-lab" data-accion="cerrar" aria-label="Cerrar el laboratorio">×</button>
     </header>
@@ -2372,6 +2470,8 @@ function accionDeBarra(accion, boton) {
       return nuevaPartida()
     case 'deshacer':
       return deshacer()
+    case 'compartir':
+      return dialogoCompartir()
     case 'panel': {
       L.panelAbierto = !panelVisible()
       guardarPrefs()

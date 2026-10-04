@@ -164,9 +164,13 @@ html.lab-abierto {
 }
 
 /* Entre el móvil y el ancho, el turno no cabe en una línea al lado de los
-   modos: va en dos, más pequeño (cabe en el alto de los botones). */
+   modos: va en dos, más pequeño (cabe en el alto de los botones), y en dos
+   SE QUEDA: uno largo («— Dragapult ex usa…») pedía tres y engordaba la barra. */
 @media (min-width: 761px) and (max-width: 1099px) {
   .lab-turno {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     font-size: var(--t-sm);
     line-height: 1.25;
     white-space: normal;
@@ -187,11 +191,12 @@ html.lab-abierto {
   }
 }
 
-/* Sin sitio para la barra en una línea, los tres botones se quedan con
-   su icono: el nombre sigue para el lector y en el `title`. El corte está
+/* Sin sitio para la barra en una línea, los botones se quedan con su
+   icono: el nombre sigue para el lector y en el `title`. El corte está
    MEDIDO con dos mazos y el turno más largo («Turno N · Jugador 1 (va
-   primero) — te toca»): con los nombres enteros hacen falta 1.300 px. */
-@media (max-width: 1299px) {
+   primero) — te toca»): con los tres nombres hacían falta 1.300 px, y con
+   «Compartir» (tanda 515) 1.390; el resto, para un turno de dos cifras. */
+@media (max-width: 1399px) {
   .lab-barra-botones .lab-btn {
     min-width: 44px;
     padding: var(--e-xs) var(--e-sm);
@@ -3011,4 +3016,23 @@ button.lab-carta.lab-no-vale:hover {
   .lab-cambio {
     animation: none;
   }
+}
+
+/* ── Compartir la posición (tanda 515) ── */
+.lab-enlace {
+  display: flex;
+  gap: var(--e-sm);
+  margin: var(--e-md) 0 var(--e-sm);
+}
+
+.lab-enlace input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-size: var(--t-sm);
+}
+
+.lab-enlace .lab-btn,
+.lab-dialogo-cuerpo > .lab-btn {
+  min-height: 44px;
 }

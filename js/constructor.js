@@ -673,6 +673,20 @@ function aplicarImportacion(piezas) {
   marcarCambio()
 }
 
+// ── Una posición del laboratorio que llega por un enlace (tanda 515) ──
+//
+// /constructor#pos=…: la mesa viene entera detrás del `#` (constructor/
+// posicion-compartida.js). Las cartas se piden al catálogo por su id; las
+// que ya no estén se juegan con el nombre y el tipo que trae el enlace.
+async function abrirPosicionDelEnlace() {
+  const P = await import('./constructor/posicion-compartida.js')
+  const x = await P.desempaquetarPosicion(location.hash)
+  if (!x) return showToast('El enlace de la posición está roto o incompleto: ¿se cortó al copiarlo?', 'error')
+  const catalogo = await cartasPorIds(P.idsDelCatalogo(x)).catch(() => new Map())
+  const { abrirPosicionCompartida } = await import('./constructor/laboratorio.js')
+  await abrirPosicionCompartida({ posicion: P.expandir(x, catalogo), codigoDeSet, userId: estado.sesion?.user?.id || null })
+}
+
 // ── El laboratorio de pruebas (tanda 384) ──
 //
 // Sustituye a la «mano de prueba» de la 354: aquella robaba siete cartas
@@ -1351,6 +1365,9 @@ async function iniciar() {
   // «Probar en el laboratorio» desde /meta: el mazo llega por la
   // dirección y el laboratorio se abre solo.
   if (new URLSearchParams(location.search).has('lab') && lista().length) abrirLab()
+  else if (location.hash.startsWith('#pos=')) {
+    abrirPosicionDelEnlace().catch((err) => showToast(`No se ha podido abrir la posición: ${err.message || 'error de red'}.`, 'error'))
+  }
 }
 
 iniciar()
