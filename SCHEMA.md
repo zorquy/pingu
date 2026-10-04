@@ -27900,3 +27900,120 @@ por `name_es=not.is.null` y se quedó a medias.
 `test-tanda-506.mjs` actualizadas con el caso `ex7` dentro. Doce mutaciones;
 cinco salieron «sin detectar» a la primera —dos equivalentes y **tres huecos
 de verdad**— y las tres están cubiertas.
+
+## Tandas 509 y 510 — el relleno nocturno, su freno, y lo que se vio mirando la pantalla
+
+PINGU se fue a la cama pidiendo «todas las cartas, todos los logos, las
+rarezas exactas, el chino oculto» para por la mañana — y, en el último
+mensaje, «gástame los créditos mínimos».
+
+### Funciones PROGRAMADAS, no botones
+
+Un botón necesita a alguien delante. `scrydex-relleno` (cada 5 min) baja el
+catálogo inglés; `scrydex-logos` (cada hora) termina los sets.
+
+Y el catálogo **no cuesta 21.476 peticiones**: su listado trae la carta
+COMPLETA —imagen, ilustrador, Pokédex, PS, rareza y la expansión entera
+anidada—, así que son ~101 páginas de 250. Es lo contrario de TCGdex, donde
+el listado de un set es un «SetResume» y engordar cuesta una petición por
+carta (tandas 233 y 322). Dos costes que no se parecen en nada.
+
+### El fallo que más importaba, y no salió de probar sino de releer
+
+El relleno, al terminar un barrido, volvía a la página 1. Cada cinco
+minutos:
+
+```
+101 páginas = 101 créditos por barrido
+48 barridos en una noche  =  4.848 créditos
+presupuesto del plan      =  5.000 AL MES
+```
+
+Se habría comido el plan entero antes de que nadie se despertara, y encima
+reescribiendo exactamente las mismas filas.
+
+**Frenarlo pide DOS cosas, y una sola no basta:**
+
+1. Preguntar antes si queda algo por hacer. La pregunta se le hace a
+   NUESTRA base, que es gratis.
+2. Y un **tope de barridos**, porque lo primero no basta: hay cartas
+   nuestras que su catálogo no tiene —ellos 25.209, nosotros 21.476, y no
+   son el mismo conjunto—, así que esas no se marcan nunca y «quedan
+   pendientes» sería verdad para siempre. Sin el tope, el primer freno no
+   frena.
+
+El tope quedó en **UNO**: cada carta suya sale exactamente una vez en la
+paginación, así que un barrido las ve todas, y un barrido que se muere a
+medias se reanuda por la página guardada en vez de volver a empezar. Un
+barrido a medias **sí** se termina siempre: pararse en la página 40 dejaría
+el catálogo medio lleno para siempre.
+
+> **Antes de poner un `schedule`, multiplica: coste por pasada × pasadas al
+> día × 30. Si no cabe en el presupuesto, el `schedule` está mal.**
+
+### Las rarezas exactas
+
+TCGdex **colapsa** la rareza: le llama «Hyper rare» a la arcoíris y a la
+dorada, que se distinguen a un metro. Scrydex las separa. Su inglés va a
+`rarity_en` con su `rarity_code`, y `rarity` se queda en español porque es
+lo que pintan los filtros — lo mismo que `name` y `name_es` (tanda 335).
+
+`rarezaDeCarta()` prefiere `rarity_en` y deja `rarity` de respaldo, así que
+mientras la función programada rellena la pantalla gana precisión sola y
+una carta sin `rarity_en` se ve exactamente como antes.
+
+Y el diccionario nuevo solo lleva lo que se sabe con seguridad: **lo que no
+esté sale en inglés tal cual**. Una rareza nueva es un dato; una traducción
+inventada es una etiqueta que miente, y eso es peor que el inglés. La
+función apunta las que va viendo, así que la lista se completa con lo que de
+verdad existe y no con lo que me imagino (la norma de la 501).
+
+### El chino: escondido, no borrado
+
+Se queda la fila entera de la vista con una marca `oculta`. Las cartas
+chinas que alguien tenga siguen resolviendo su mercado, `catalogo-asia`
+sigue engordándolo, y volver a enseñarlo es borrar una palabra.
+
+Y `MERCADOS_A_IMPORTAR` hacía **dos trabajos** —qué se importa y qué se
+ofrece— mientras coincidieron, que es la forma exacta del fallo de la 335.
+Ahora son dos listas.
+
+### Lo que se vio mirando la pantalla con ojos de quien llega
+
+**El estado vacío de /mi-coleccion mandaba a una pestaña borrada.** Decía
+«añádelas desde "Añadir cartas"», y esa pestaña **la borró la tanda 408**
+al juntar los dos buscadores en uno. Llevaba desde entonces mandando a la
+gente a un sitio que no existe, en la primera pantalla que ve quien se
+acaba de registrar.
+
+> Un texto no se rompe cuando su destino desaparece; un **botón** sí. Por
+> eso los tres caminos son ahora botones que van. **Un camino escrito en
+> prosa es un enlace que nadie comprueba.**
+
+**`/cartas` se quedaba en blanco sin decir nada.** Tenía
+`if (error || !data?.length) return`: si la consulta fallaba, la página
+mostraba el título «Colecciones» y un hueco debajo. Son tres estados y cada
+uno dice una cosa distinta —no se ha podido preguntar, no hay nada, o el
+filtro no deja pasar ninguna— y juntarlos en un `return` los convierte en
+«la página está en blanco y no sabrás por qué». Es la página PÚBLICA del
+catálogo.
+
+**Y el orden de los sets** era `release_date` a secas, así que los del mismo
+día salían en el orden que quisiera Postgres y podían cambiar entre dos
+cargas. Salen el mismo día más de los que parece: un set y su galería de
+entrenador, un set y sus promos. Desempata `id`: no es el orden ideal, pero
+es ESTABLE, que es lo que hace que la lista no baile.
+
+### Lo que no se ha podido hacer
+
+Desde el contenedor la red cierra `api.scrydex.com` **y también Supabase**,
+así que no se ha probado ni una vez contra la API de verdad ni se ha podido
+comprobar que el relleno escriba. Todo está probado con dobles y escrito
+para fallar hacia el lado bueno —no inserta, no pisa lo nuestro, no toca un
+set sin emparejamiento verificado, y si su API falla se para y apunta dónde
+iba— pero **la primera pasada real es a ciegas**.
+
+De ahí **«¿Cómo va el relleno?»** en /admin → Cartas: una función programada
+que falla lo hace EN SILENCIO, porque nadie ve su respuesta. El botón cuenta
+cartas, sets, por dónde va la pasada y **las rarezas que de verdad hay**,
+marcando las que salen sin traducir. No gasta ni un crédito.

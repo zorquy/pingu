@@ -46,10 +46,25 @@ async function colecciones() {
     // entrenador, o un set y sus promos. `id` no es el orden ideal, pero
     // es ESTABLE, que es lo que hace que la lista no baile.
     .order('id')
-  if (error || !data?.length) return
+  // ── TRES COSAS DISTINTAS NO SON UN SOLO `return` (tanda 510) ──
+  //
+  // Esto era `if (error || !data?.length) return`, y era un silencio: si
+  // la consulta fallaba, la página se quedaba con el título «Colecciones»
+  // y un hueco debajo, sin un solo aviso y sin forma de saber que había
+  // pasado algo. Y es la página PÚBLICA del catálogo, o sea la primera que
+  // ve quien llega de fuera.
+  //
+  // Son tres estados y cada uno dice una cosa: no se ha podido preguntar
+  // (nuestro, y se puede reintentar), no hay nada (raro, pero es una
+  // respuesta), y hay pero no sale ninguna (un fallo del filtro).
+  const aviso = (texto) => {
+    $('listaColecciones').innerHTML = `<p class="empty-state">${escapeHtml(texto)}</p>`
+  }
+  if (error) return aviso('No se han podido cargar las colecciones. Vuelve a intentarlo en un momento.')
+  if (!data?.length) return aviso('Todavía no hay ninguna colección en el catálogo.')
 
   const soloTCG = plegarHermanos(data.filter(esDelTCG))
-  if (!soloTCG.length) return
+  if (!soloTCG.length) return aviso('No hay ninguna colección del juego de cartas que enseñar.')
 
   const series = agruparEnSeries(soloTCG)
 
@@ -252,7 +267,15 @@ async function buscar(texto) {
   // Una respuesta que llega tarde no puede pisar a una más nueva: se
   // teclea más rápido de lo que contesta la red.
   if (mio !== ultimaBusqueda) return
-  if (error) return
+  // Lo mismo aquí: una búsqueda que falla no puede quedarse callada.
+  // Quien escribe y no ve nada da por hecho que no hay esa carta, y lo
+  // que ha pasado es que no se ha podido preguntar.
+  if (error) {
+    $('resultados').innerHTML = '<p class="empty-state">No se ha podido buscar. Vuelve a intentarlo en un momento.</p>'
+    $('sinResultados').classList.add('hidden')
+    $('seccionColecciones').classList.add('hidden')
+    return
+  }
 
   const lista = data || []
   $('resultados').innerHTML = rejillaDeCartas(lista)

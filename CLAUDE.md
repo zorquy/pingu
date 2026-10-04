@@ -66,6 +66,36 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   falta en una guarda: un falso negativo es CSS sin su hoja, un falso
   positivo solo es una clase que no se puede mudar. Pero la regla para
   quien muda es la de arriba: **greparla a mano en el JS**.
+- **Una función programada que vuelve a empezar es una FACTURA** (tanda
+  509). El relleno de Scrydex barría el catálogo —101 páginas, 101
+  créditos— y al acabar volvía a la página 1. Cada cinco minutos. Eso son
+  **48 barridos en una noche = 4.848 créditos, con 5.000 al MES**: se
+  habría comido el plan entero antes de que nadie se despertara, y encima
+  reescribiendo lo mismo. Lo cacé releyendo lo que acababa de poner en
+  producción, no probándolo. Y frenarlo pide DOS cosas, porque una sola no
+  basta: preguntar antes si queda algo por hacer —a nuestra base, que es
+  gratis— **y** un tope de barridos, porque hay cartas nuestras que su
+  catálogo no tiene y «quedan pendientes» sería verdad para siempre. Antes
+  de poner un `schedule`, multiplica: coste por pasada × pasadas al día ×
+  30. Si el resultado no cabe en el presupuesto, el `schedule` está mal.
+- **Un `return` que esconde tres finales distintos es un SILENCIO** (tanda
+  510). `/cartas` tenía `if (error || !data?.length) return`, así que si la
+  consulta fallaba la página se quedaba con el título «Colecciones» y un
+  hueco debajo, sin un solo aviso — y es la página PÚBLICA del catálogo, la
+  primera que ve quien llega de fuera. Son tres estados y cada uno dice una
+  cosa distinta: **no se ha podido preguntar** (nuestro, se reintenta), **no
+  hay nada** (raro, pero es una respuesta) y **hay pero el filtro no deja
+  pasar ninguna** (un fallo del filtro). Juntarlos en un `return` convierte
+  los tres en «la página está en blanco y no sabrás por qué».
+- **Una frase que nombra una pestaña afirma que esa pestaña existe** (tanda
+  510, y es la de la 447 con el tiempo en contra). El estado vacío de
+  /mi-coleccion decía «añádelas desde “Añadir cartas”»… y esa pestaña **la
+  borró la tanda 408**, que juntó los dos buscadores en uno. O sea que
+  llevaba desde entonces mandando a la gente a un sitio que no existe, en
+  la primera pantalla que ve quien se acaba de registrar. El texto no se
+  rompe cuando su destino desaparece; un BOTÓN sí. Por eso los tres caminos
+  son ahora botones que van: si el destino se borra, el botón se rompe y se
+  ve. **Un camino escrito en prosa es un enlace que nadie comprueba.**
 - **Una señal que no depende del IDIOMA puede seguir dependiendo del
   FABRICANTE** (tanda 508, y es el remate de la serie 504-508). La 506 puso
   el código del set a decidir, y en la primera escritura de verdad rechazó

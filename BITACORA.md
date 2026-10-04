@@ -35,6 +35,75 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 (noche) — PINGU-Claude (tandas 509 y 510 — el relleno nocturno, su freno, y lo que se vio mirando la pantalla)
+
+**Hecho**: PINGU se fue a la cama pidiendo «todas las cartas, todos los
+logos, las rarezas exactas, el chino oculto» para por la mañana, y
+«gástame los créditos mínimos».
+
+**LO QUE TRABAJA SOLO** (funciones PROGRAMADAS, no botones: un botón
+necesita a alguien delante):
+
+· `scrydex-relleno`, cada 5 min — fotos, ilustrador, Pokédex, PS y rarezas
+  del catálogo inglés. Su listado trae la carta COMPLETA, así que el
+  catálogo son ~101 páginas y no 21.476 peticiones: lo contrario del coste
+  de TCGdex.
+· `scrydex-logos`, cada hora — los 43 sets que faltaban.
+
+**EL FALLO QUE MÁS IMPORTABA DE LA NOCHE, y lo cacé releyendo lo que
+acababa de subir, no probándolo**: el relleno, al acabar un barrido, volvía
+a la página 1. Cada cinco minutos. **48 barridos en una noche = 4.848
+créditos, con 5.000 AL MES.** Se habría comido el plan entero antes de que
+PINGU se despertara. Frena por dos sitios, y hacen falta los dos: preguntar
+antes si queda algo (gratis, es nuestra base) y un tope de barridos —porque
+hay cartas nuestras que su catálogo no tiene, así que «quedan pendientes»
+sería verdad para siempre y el primer freno no frenaría—. El tope quedó en
+**UNO**: cada carta suya sale exactamente una vez en la paginación, así que
+un barrido las ve todas. Coste de la noche: ~104 créditos.
+
+**LO DEMÁS**:
+
+· **Las rarezas exactas**: TCGdex colapsa «Rare Rainbow» en «Hyper rare» y
+  Scrydex las separa. `rarity_en` guarda su inglés y `rarity` se queda en
+  español. `rarezaDeCarta()` prefiere el primero, así que la pantalla gana
+  precisión sola mientras se rellena. Lo que no esté en el diccionario sale
+  **en inglés**: una traducción inventada es una etiqueta que miente.
+· **El chino, escondido y no borrado** — se queda la fila con una marca.
+  Y `MERCADOS_A_IMPORTAR` hacía dos trabajos (qué se importa y qué se
+  ofrece): ahora son dos listas.
+· **«¿Cómo va el relleno?»** en /admin → Cartas, que es LO PRIMERO que hay
+  que mirar por la mañana: una función programada que falla lo hace en
+  silencio, y la base no se puede mirar desde fuera del navegador.
+· **El estado vacío de /mi-coleccion mandaba a una pestaña borrada en la
+  408.** Dos años mandando a la gente a un sitio que no existe, en la
+  primera pantalla que ve quien se registra. Ahora son tres botones que van.
+· **`/cartas` se quedaba en blanco sin decir nada** si la consulta fallaba.
+· **El orden de los sets** no tenía desempate, así que los del mismo día
+  bailaban entre dos cargas.
+
+**Ficheros**: `supabase-migration-scrydex-cartas.sql` (NUEVO, ya
+ejecutada), `netlify/functions/scrydex-relleno.mjs` y `scrydex-logos.mjs`
+(NUEVOS), `netlify/lib/scrydex.mjs`, `js/rarezas.js`, `js/mercados.js`,
+`js/escaneo-carta.js`, `js/carta-ruta.js`, `js/mi-coleccion.js`,
+`js/cartas.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`admin/index.html`, `admin/js/admin.js`, y `image_scrydex` añadido a las
+listas de columnas de diez ficheros. En `pruebas`:
+`test-tanda-509.mjs` (NUEVO).
+
+**Lo que NO he podido hacer, y conviene saberlo**: desde este contenedor la
+red cierra `api.scrydex.com` **y también Supabase**, así que no he podido
+probar ni una sola vez contra la API de verdad ni comprobar que el relleno
+esté escribiendo. Todo está probado con dobles y escrito para fallar hacia
+el lado bueno —no inserta, no pisa lo nuestro, no toca un set sin
+emparejamiento verificado, y si su API falla se para y apunta dónde iba—,
+pero **la primera pasada real es a ciegas**. De ahí el botón de «¿cómo va».
+
+**En curso / pendiente**: mirar el botón por la mañana. Las rarezas que
+salgan en inglés hay que añadirlas a `js/rarezas.js` con lo que de verdad
+haya, no con lo que me imagine. Y sigue abierto el `Unseen Forces Unown
+Collection`, que es un set nuestro que en Scrydex vive DENTRO de Unseen
+Forces con letras por número: el emparejamiento 1:1 no puede expresarlo.
+
 ## 2026-10-04 — PINGU-Claude (tanda 508 — lo que enseñó la primera escritura de verdad)
 
 **Hecho**: PINGU pasó el botón de la 507 contra producción. **167 sets
