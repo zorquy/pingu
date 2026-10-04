@@ -1,0 +1,155 @@
+/* ¿Más caro o más barato? (tanda 583). Solo la carga mas-caro.html. */
+
+.mcr-pagina {
+  max-width: 640px;
+}
+
+.mcr-cabecera {
+  margin-bottom: var(--e-md);
+  text-align: center;
+}
+
+.mcr-sobre {
+  margin: 0 0 var(--e-xs);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mcr-cabecera h1 {
+  margin-bottom: var(--e-xs);
+}
+
+.mcr-tablero {
+  display: grid;
+  gap: var(--e-md);
+}
+
+/* Las dos cartas, lado a lado también en el móvil: la pregunta es una
+   comparación y se compara con las dos a la vista. */
+.mcr-par {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+}
+
+.mcr-carta {
+  display: grid;
+  gap: var(--e-xs);
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  text-align: center;
+}
+
+.mcr-foto {
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.mcr-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mcr-nombre {
+  overflow: hidden;
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mcr-set {
+  overflow: hidden;
+  margin: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mcr-precio {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+}
+
+/* La carta B, con el precio destapado: verde si acertaste, rojo si no. */
+.mcr-carta.bien .mcr-precio {
+  color: var(--success);
+}
+
+.mcr-carta.mal .mcr-precio {
+  color: var(--danger);
+}
+
+.mcr-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+}
+
+.mcr-acciones button {
+  min-height: 44px;
+}
+
+/* La tira de cinco: la misma forma que la del reto. */
+.mcr-tira {
+  display: flex;
+  justify-content: center;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mcr-tira li {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.mcr-tira li.bien {
+  border-color: transparent;
+  background: var(--success);
+}
+
+.mcr-tira li.mal {
+  border-color: transparent;
+  background: var(--danger-solid);
+}
+
+.mcr-final {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  text-align: center;
+}
+
+.mcr-final-titulo {
+  margin: 0;
+  font-size: var(--t-xl);
+  font-weight: 700;
+}
+
+.mcr-final-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+.mcr-leyenda {
+  margin: 0;
+  text-align: center;
+}

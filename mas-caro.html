@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Más caro o más barato? — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="Dos cartas de Pokémon TCG: ¿cuál vale más en Cardmarket? Cinco preguntas al día con precios reales, las mismas para todo el mundo. Un reto diario de PokeDoc." />
+  <!-- meta-social:inicio -->
+  <link rel="canonical" href="https://pokedoc.es/mas-caro" />
+  <meta property="og:url" content="https://pokedoc.es/mas-caro" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="¿Más caro o más barato? — el reto diario de PokeDoc" />
+  <meta property="og:description" content="Dos cartas, ¿cuál vale más? Cinco preguntas al día con precios reales de Cardmarket." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="¿Más caro o más barato? — el reto diario de PokeDoc" />
+  <meta name="twitter:description" content="Dos cartas, ¿cuál vale más? Cinco preguntas al día con precios reales de Cardmarket." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/mas-caro.css" />
+</head>
+<body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="/noticias">Noticias</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/retos">Retos diarios</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Cartas</button>
+          <div class="nav-sub">
+            <a href="/cartas">Catálogo de cartas</a>
+            <a href="/lanzamientos.html">Lanzamientos</a>
+            <a href="/mi-coleccion">Mi colección</a>
+          </div>
+        </div>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/meta">Mazos del meta</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+            <a href="/repeticiones">Repeticiones</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="/index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/retos">Retos diarios</a>
+        <a href="/guardados.html">Guardados</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Cartas</summary>
+        <a href="/cartas">Catálogo de cartas</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+      </details>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/repeticiones">Repeticiones</a>
+      </details>
+    </div>
+  </nav>
+
+    <main id="contenido" class="page-content container mcr-pagina">
+    <!-- ¿MÁS CARO O MÁS BARATO? (tanda 583). Seis cartas al día con su
+         precio de Cardmarket, las mismas para todo el mundo. Se enseña
+         una con precio y la siguiente sin él: ¿vale más o menos? Cinco
+         preguntas, tira y racha como los otros dos retos. El porqué, en
+         SCHEMA.md. -->
+    <header class="mcr-cabecera">
+      <p class="mcr-sobre"><a href="/retos">Retos diarios</a></p>
+      <h1>¿Más caro o más barato?</h1>
+      <p class="subtext" id="mcrSub">Dos cartas. ¿La segunda vale más o menos que la primera en Cardmarket?</p>
+    </header>
+
+    <section class="mcr-tablero">
+      <div class="mcr-par">
+        <article class="mcr-carta" id="mcrA" aria-live="polite">
+          <div class="mcr-foto"></div>
+          <p class="mcr-nombre"></p>
+          <p class="mcr-set subtext"></p>
+          <p class="mcr-precio"></p>
+        </article>
+        <article class="mcr-carta mcr-carta-b" id="mcrB" aria-live="polite">
+          <div class="mcr-foto"></div>
+          <p class="mcr-nombre"></p>
+          <p class="mcr-set subtext"></p>
+          <p class="mcr-precio">¿?</p>
+        </article>
+      </div>
+      <!-- Los dos botones, pegados a las cartas: lo que se pulsa va donde
+           se mira (la lección de la 573). -->
+      <div class="mcr-acciones" id="mcrAcciones">
+        <button type="button" class="btn-primary" data-respuesta="mas">Vale más</button>
+        <button type="button" class="btn-secondary" data-respuesta="menos">Vale menos</button>
+      </div>
+      <ol class="mcr-tira" id="mcrTira" aria-label="Tus respuestas"></ol>
+      <div class="mcr-final hidden" id="mcrFinal"></div>
+      <p class="mcr-leyenda subtext">Los precios son la tendencia de Cardmarket de cartas que tiene la gente de PokeDoc. Cambian cada día.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/retos">Retos diarios</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/mas-caro-juego.js"></script>
+</body>
+</html>
