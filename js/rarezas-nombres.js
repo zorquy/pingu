@@ -137,6 +137,22 @@ const RAREZAS_SCRYDEX = {
   'Rare Holo LV.X': 'Rara Holo LV.X',
   'Rare BREAK': 'Rara BREAK',
   'Rare Prime': 'Rara Prime',
+  // ── LAS TRES DE LA PRIMERA PASADA GRANDE (tanda 529) ──
+  //
+  // Salieron del informe con 32, 5 y 1 cartas detrás. Las tres son
+  // MECANISMOS con nombre oficial en español, no inventos míos:
+  //
+  // · «Prism Star» se publicó en España como **Prisma Estelar** (va
+  //   impreso en la propia carta, debajo del nombre).
+  // · La «Trainer Gallery» de Espada y Escudo se rotuló **Galería de
+  //   Entrenadores** en los sets españoles.
+  // · «Rare ACE» es la rareza de los ACE SPEC de Negro y Blanco, el mismo
+  //   mecanismo que hoy se llama «ACE SPEC Rare». Va al mismo sitio para
+  //   que las dos épocas se filtren juntas, que es lo que espera quien
+  //   busca sus AS TÁCTICO.
+  'Rare Prism Star': 'Rara Prisma Estelar',
+  'Trainer Gallery Rare Holo': 'Rara Holo Galería de Entrenadores',
+  'Rare ACE': 'Rara ACE SPEC',
 }
 
 // De cualquier forma escrita a la canónica, en un solo mapa.

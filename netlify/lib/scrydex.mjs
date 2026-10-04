@@ -147,10 +147,23 @@ export function casan(a, b) {
 // Esto solo PROPONE. Quien escribe vuelve a confirmar el par con una señal
 // que el idioma no puede engañar, así que una propuesta mala no llega a la
 // base: emparejar propone, verificar dispone.
+// ── SU ID JAPONÉS LLEVA EL IDIOMA PEGADO (tanda 530) ──
+//
+// Lo enseñó su primera respuesta japonesa de verdad: `"id": "mf_ja"`, con
+// `"code": "MF"`. O sea que su id ES el nuestro con el idioma detrás, y sin
+// quitarlo el rescate por id no casaría NI UNO de los 231 sets japoneses —
+// sin dar ningún error, porque «no casa» es una respuesta válida.
+//
+// Se quita solo el sufijo de idioma y nada más: un `_` en medio no se toca,
+// que es la diferencia entre normalizar y recortar a ciegas.
+export function idSinIdioma(id) {
+  return String(id || '').replace(/_(ja|jp|en|es|fr|de|it|pt|ko|zh|tw|cn)$/i, '')
+}
+
 function rescate(nuestro, h, deEllos, yaUsados) {
   const libres = deEllos.filter((c) => !yaUsados.has(c.set))
   const miId = clave(nuestro?.id)
-  const porId = miId ? libres.filter((c) => clave(c.set?.id) === miId) : []
+  const porId = miId ? libres.filter((c) => clave(idSinIdioma(c.set?.id)) === miId) : []
   if (porId.length === 1) return { suyo: porId[0].set, por: 'id idéntico' }
   const porCodigo = h.codigo ? libres.filter((c) => c.h.codigo && c.h.codigo === h.codigo) : []
   if (porCodigo.length === 1) return { suyo: porCodigo[0].set, por: 'código' }
@@ -648,6 +661,18 @@ export function senalesDelPar({ nuestra = {}, nuestroSet = {}, suya = {} }) {
     { que: 'el ilustrador', nuestro: nuestra.illustrator, suyo: suya.artist },
     { que: 'los PS', nuestro: nuestra.hp, suyo: suya.hp },
     { que: 'el nombre', nuestro: nuestra.name, suyo: suya.name },
+    // ── EL NOMBRE DEL SET (tanda 530) ──
+    //
+    // En el catálogo japonés esta señal es gratis y fuerte: los DOS lo
+    // publican en japonés, así que comparar no cruza idiomas —que es lo
+    // que estropeaba el nombre de la carta en el occidental, donde el
+    // nuestro está en español y el suyo en inglés (tanda 505)—.
+    //
+    // Confirma y no rechaza, como todas las de aquí: dos catálogos pueden
+    // rotular el mismo set de maneras distintas, y un nombre que NO
+    // coincide no concluye nada. Sin ella, confirmar un set japonés
+    // costaría una petición por set: 231 créditos en vez de cero.
+    { que: 'el nombre del set', nuestro: nuestroSet.name, suyo: exp.name },
   ].map((s) => ({
     ...s,
     decide: false,

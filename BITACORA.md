@@ -4,6 +4,57 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 10:00) — PINGU-Claude (529 y 530 — tres rarezas más, y los LOGOS JAPONESES)
+
+**529, las rarezas**: el informe sacó tres con cartas detrás —32, 5 y 1— y
+las tres son MECANISMOS con nombre oficial en español, no inventos: «Prism
+Star» se publicó aquí como **Prisma Estelar** (va impreso en la carta), la
+«Trainer Gallery» de Espada y Escudo se rotuló **Galería de Entrenadores**, y
+«Rare ACE» es la rareza de los ACE SPEC de Negro y Blanco, o sea el mismo
+mecanismo que hoy llaman «ACE SPEC Rare» — va al mismo sitio para que las
+dos épocas se filtren juntas. Con eso, **las 24 rarezas que hay en la base
+están todas traducidas**.
+
+**530, los logos japoneses, que es lo gordo**: la sonda de la 528 contestó
+que Scrydex tiene **231 expansiones japonesas con logo y símbolo**. De los
+341 sets asiáticos, TCGdex tiene UN logo. Dos cosas de su respuesta real
+cambian el emparejamiento:
+
+- **Su id lleva el idioma pegado**: `mf_ja` es nuestro `mf`. Sin quitar ese
+  sufijo, el rescate por id no habría casado NI UNO de los 231 — y sin dar
+  ningún error, porque «no casa» es una respuesta válida. `idSinIdioma()`
+  quita solo el sufijo: un `_` en medio no se toca.
+- **El nombre del set lo publican los DOS en japonés**, así que confirmar un
+  par sale gratis. En el occidental esa señal no servía porque el nuestro
+  está en español y el suyo en inglés (la 505); aquí no cruza idiomas. Sin
+  ella, confirmar 231 sets costaría 231 créditos. Confirma y no rechaza,
+  como todas las de su clase.
+
+`scrydex-logos-jp.mjs` hace la pasada: sus 231 expansiones son **3
+créditos**, y el emparejamiento no gasta nada más. Escribe `logo_scrydex` y
+`symbol_scrydex` solo de los pares CONFIRMADOS, no pisa nada nuestro, y de
+paso rellena `release_date` y `tcg_online_code` de los sets japoneses, que
+estaban vacíos desde la 322.
+
+**El freno es el TIEMPO y no «¿queda algo?»** —siempre quedará algo: 68 de
+los 186 sets japoneses de TCGdex no tienen ni una carta—. Pero un `schedule`
+diario tenía un problema el primer día: si la hora ya pasó, lo que PINGU
+espera ahora llega mañana. Así que va cada diez minutos y se frena sola por
+su propio informe: si hay uno de hace menos de veinte horas, cero créditos.
+**La primera pasada entra hoy; a partir de ahí, una al día.**
+
+**Y una prueba que sujetaba un fixture poco realista**: en `test-tanda-507`
+nuestro set de promos se llamaba «Promos» igual que el suyo, así que con la
+señal nueva el par se confirmaba gratis y dejaba sin ejercitar el camino de
+la Pokédex. En el occidental lo realista es que NO coincidan —el nuestro en
+español, el suyo en inglés—, así que ahora se llama «Promos del sello
+negro» y las dos comprobaciones vuelven a probar lo que dicen.
+
+**Ficheros**: `js/rarezas-nombres.js`, `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-logos-jp.mjs` (nuevo). En `pruebas`:
+`pruebas/test-tanda-529.mjs`, `pruebas/test-tanda-530.mjs`, y el fixture de
+`pruebas/test-tanda-507.mjs`.
+
 ## 2026-10-04 (mañana, 09:35) — PINGU-Claude (528 — la pregunta japonesa la hace el servidor, no PINGU)
 
 **Hecho**: PINGU, esta mañana: «ya te dije anoche que trajeses todas las
