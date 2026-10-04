@@ -29,6 +29,9 @@ const T = {
   user_wants: [],
   // La foto diaria del valor de una coleccion (tanda 377).
   user_collection_value: [],
+  // Los precios guardados de Cardmarket (tanda 585): `cm_url` es el
+  // enlace exacto que trae pokemontcg.io cuando TCGdex no tiene precio.
+  tcg_card_prices: [],
   // Las CARPETAS (tandas 402 y 411), que el doble no tenia hasta la 477:
   // `listarCarpetas` daba un 42P01, el cliente lo lee como «falta la
   // migracion» y la pestaña salia vacia en TODAS las pruebas. O sea que
@@ -252,6 +255,17 @@ sembrar('__FAKE_ALBUMES__', 'user_albums', (i) => ({
   cartas: [],
   is_public: false,
   updated_at: new Date().toISOString(),
+}))
+
+// Los precios guardados (tanda 585). Solo lo que se siembre: una fila que
+// no está es «todavía no se ha mirado», como en la base.
+sembrar('__FAKE_PRECIOS__', 'tcg_card_prices', (i) => ({
+  card_id: `set1-${i + 1}`,
+  cm_id_product: null,
+  cm_low: null, cm_trend: null, cm_avg30: null, cm_avg7: null,
+  cm_low_holo: null, cm_trend_holo: null, cm_avg30_holo: null,
+  cm_updated: null, cm_url: null, origen: null,
+  checked_at: new Date().toISOString(),
 }))
 
 // Mi colección (tanda 365) y los álbumes a mano (366).
