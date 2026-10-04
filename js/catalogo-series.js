@@ -178,3 +178,32 @@ export function eraDeSet(set) {
   if (set?.serie_name_en && (tieneCJK(propia) || !propia)) return set.serie_name_en
   return propia || ''
 }
+
+// ── Los que son el mismo set, en una sola fila ──
+//
+// Vive aquí desde la 535 y no en `js/cartas.js`: lo necesita también la
+// ESTANTERÍA de /mi-coleccion, y arrastrar un módulo que monta una página
+// entera por una función de doce líneas es justo lo que la 471 dice que no
+// se hace.
+//
+// «30th Celebration y la Classics son el mismo set» (PINGU). El hijo no
+// desaparece: sus cartas se cuentan en la fila del padre, que es lo que
+// dice la lista, y su página lleva al padre.
+export function plegarHermanos(sets) {
+  const porId = new Map(sets.map((s) => [String(s.id).toLowerCase(), s]))
+  const fuera = []
+  for (const s of sets) {
+    const padre = padreDeColeccion(s.id)
+    const suyo = padre ? porId.get(padre) : null
+    if (!suyo) {
+      fuera.push(s)
+      continue
+    }
+    // Si el padre no está importado, el hijo se queda como está: vale
+    // más una fila de más que una colección que desaparece.
+    suyo.card_count_official = (suyo.card_count_official || 0) + (s.card_count_official || 0)
+    suyo.card_count_total = (suyo.card_count_total || 0) + (s.card_count_total || 0)
+  }
+  return fuera
+}
+

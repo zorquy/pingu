@@ -8,7 +8,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, nombreDeSet, eraDeSet, reglasQueNoCasan } from './catalogo-series.js'
+import { esDelTCG, nombreDeSet, eraDeSet, reglasQueNoCasan, plegarHermanos } from './catalogo-series.js'
 import { logClientError } from './error-log.js'
 
 const MERCADO = 'WEST'
@@ -119,29 +119,6 @@ export const SIN_CLASIFICAR = 'Sin clasificar'
 
 export function esUnaEra(sets) {
   return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
-}
-
-// ── Los que son el mismo set, en una sola fila ──
-//
-// «30th Celebration y la Classics son el mismo set» (PINGU). El hijo no
-// desaparece: sus cartas se cuentan en la fila del padre, que es lo que
-// dice la lista, y su página lleva al padre.
-export function plegarHermanos(sets) {
-  const porId = new Map(sets.map((s) => [String(s.id).toLowerCase(), s]))
-  const fuera = []
-  for (const s of sets) {
-    const padre = padreDeColeccion(s.id)
-    const suyo = padre ? porId.get(padre) : null
-    if (!suyo) {
-      fuera.push(s)
-      continue
-    }
-    // Si el padre no está importado, el hijo se queda como está: vale
-    // más una fila de más que una colección que desaparece.
-    suyo.card_count_official = (suyo.card_count_official || 0) + (s.card_count_official || 0)
-    suyo.card_count_total = (suyo.card_count_total || 0) + (s.card_count_total || 0)
-  }
-  return fuera
 }
 
 // ── El 30 aniversario NO es una era aparte ──

@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 11:25) — PINGU-Claude (535 — la estantería no plegaba NADA, y ahí estaba el 30 aniversario)
+
+**Hecho**: con los identificadores de verdad delante (`30th` y `30th-c`), la
+regla de la 347 **sí casa**: el Classic se pliega dentro del Celebration en
+/cartas desde entonces. Lo que PINGU estaba mirando era OTRA pantalla.
+
+**La estantería de /mi-coleccion no plegaba nada.** Las trece colecciones
+que son parte de otra salían sueltas, sin logo y con el progreso partido en
+dos barras. Es el mismo fallo que la 316 con las tarjetas de guía: dos
+pantallas que enseñan lo mismo por caminos distintos, y una se queda atrás.
+
+**Y plegar ahí son DOS cosas, no una**: la fila se va, y lo que TIENES de
+ella se suma a la del padre. Con solo lo primero, las cartas del hijo
+desaparecen del recuento y el álbum dice que tienes menos de las que tienes
+— sin dar ningún error, que es lo de siempre. Van los dos sitios que
+cuentan: la estantería y el vistazo del panel.
+
+**Mudanza**: `plegarHermanos` se va de `js/cartas.js` a
+`js/catalogo-series.js`. Lo necesitaba /mi-coleccion, y arrastrar un módulo
+que monta una página entera por una función de doce líneas es justo lo que
+dice la 471 que no se hace.
+
+**Una prueba que no se me habría ocurrido sin mirar el código**: plegar dos
+veces la MISMA lista sumaría las cuentas dos veces, porque `plegarHermanos`
+escribe en el objeto del padre. La estantería se repinta en cada filtro, así
+que pliega sobre una copia. La comprobación lo fija.
+
+**Ficheros**: `js/catalogo-series.js`, `js/cartas.js`, `js/mi-coleccion.js`.
+En `pruebas`: `pruebas/test-tanda-535.mjs`.
+
+**Lo que sigue sin resolverse del 30 aniversario**: no tiene logo. Ni el
+Celebration ni el Classic tienen `logo_path` —TCGdex no lo publica— así que
+tiene que venir de Scrydex, y ahí sí está (su `me55c` trae logo y símbolo).
+Depende de que el emparejamiento occidental case esos dos sets; el informe
+de `sets-west` dirá por qué no lo ha hecho todavía.
+
 ## 2026-10-04 (mañana, 11:05) — PINGU-Claude (534 — ocho filas más, leyendo la exportación entera)
 
 **Hecho**: PINGU mandó la cola del catálogo para el 30 aniversario, y

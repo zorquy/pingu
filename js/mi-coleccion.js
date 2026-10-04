@@ -25,7 +25,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, plegarHermanos } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -928,7 +928,9 @@ function vistazoDeCartas() {
 function vistazoDeSets(sets) {
   const conAlgo = (sets || [])
     .map((s) => {
-      const suyas = [...cartas.values()].filter((c) => c?.set_id === s.id)
+      // Las de sus hijos cuentan como suyas: si no, el vistazo diría que
+      // de una colección plegada tienes menos de las que tienes.
+      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
       const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
       return { set: s, tengo }
     })
@@ -1735,10 +1737,25 @@ async function pintarEstanteria() {
   // Cuántas DISTINTAS tienes de cada colección. Distintas y no copias:
   // el progreso de un álbum es cuántos bolsillos has llenado, y tres
   // Charizards llenan uno.
+  // ── LA ESTANTERÍA PLIEGA IGUAL QUE EL CATÁLOGO (tanda 535) ──
+  //
+  // PINGU: «el 30 Classic Collection no tiene logo y debería ir después
+  // del 30 Celebration». Y en /cartas ya salía plegado desde la 347 — lo
+  // que estaba viendo era ESTA pantalla, que no plegaba nada: las trece
+  // colecciones que son parte de otra salían sueltas, sin logo y con el
+  // progreso partido en dos barras.
+  //
+  // Y plegar aquí son DOS cosas, no una: la fila se va, y lo que TIENES de
+  // ella tiene que sumarse a la del padre. Si solo se hiciera lo primero,
+  // las cartas del hijo desaparecerían del recuento y el álbum diría que
+  // tienes menos de las que tienes.
   const cuantas = new Map()
   for (const id of new Set(lineas.map((l) => l.card_id))) {
     const s = cartas.get(id)?.set_id
-    if (s) cuantas.set(s, (cuantas.get(s) || 0) + 1)
+    if (s) {
+      const suyo = padreDeColeccion(s) || s
+      cuantas.set(suyo, (cuantas.get(suyo) || 0) + 1)
+    }
   }
   const texto = normalizeSearch($('mcEstanteriaBuscar')?.value || '').trim()
   const serie = $('mcEstanteriaSerie')?.value || ''
@@ -1754,7 +1771,7 @@ async function pintarEstanteria() {
   // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
   // igual de larga pero sin fechas. Ahora arriba va solo lo que marcas.
-  const visibles = sets.filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
+  const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
   const grupos = gruposDeEstanteria(visibles, favoritos || new Set())
 
   const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, s.serie_name || s.serie_id])).entries()]
