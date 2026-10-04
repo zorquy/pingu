@@ -3197,6 +3197,27 @@ async function dispararEscaner() {
       campo.value = nombreLeido
       await buscarEnTodo()
     }
+    // ── Y UN ÚLTIMO INTENTO CON UNA SOLA PALABRA (tanda 558) ──
+    //
+    // La búsqueda exige TODAS las palabras: un `like` por cada una. Así
+    // que basta con que el OCR cuele una basura para que no case nada
+    // aunque el nombre esté perfecto — que es exactamente lo que le pasó a
+    // PINGU con una リザードンex: en el buscador quedó «己進化 リザードン ex
+    // シダードか テ テキス…» y cero resultados.
+    //
+    // La limpieza de la franja ya quita lo que SE SABE que no es el
+    // nombre; esto es la red de debajo, para lo que no se sabe. Se queda
+    // con la palabra más larga, que es la que más se parece a un nombre, y
+    // afloja todo lo demás. Es el mismo criterio que con el número: lo
+    // preciso primero, y si no hay nada, menos exigente.
+    if (!$('mcBuscarResultados').querySelector('.mc-resultado')) {
+      const palabras = nombreLeido.split(/\s+/).filter((p) => p.length >= 2)
+      const masLarga = palabras.length > 1 ? palabras.reduce((a, b) => (b.length > a.length ? b : a)) : null
+      if (masLarga) {
+        campo.value = masLarga
+        await buscarEnTodo()
+      }
+    }
   } catch {
     if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
   } finally {

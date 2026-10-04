@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (mañana, 10:30) — PINGU-Claude (558 — la franja japonesa lleva cuatro cosas más)
+
+**De dónde sale**: PINGU escaneó una リザードンex y en el buscador quedó
+«己進化 リザードン ex シダードか テ テキス…» con cero resultados. La 557 era
+la mitad (el `NFD`); esto es la otra: **el OCR lee bien, pero lee además lo
+que hay alrededor del nombre** — la fase mal leída (el «2» de 2進化 sale
+como 己), el nombre, un trozo de «リザードから進化» y el principio del texto
+de la habilidad.
+
+**Y eso es CERO y no «un poco peor»** porque la búsqueda exige TODAS las
+palabras: un `like` por cada una. Una basura y no casa nada aunque el
+nombre esté perfecto. En occidental la franja solo lleva fase + nombre +
+PS, y por eso colaba.
+
+**Hecho**: si la franja lleva kanji, se quita «◯◯から進化» entero, la fase
+(cualquier cosa de hasta dos caracteres pegada a 進化) y las etiquetas de
+mecánica; y de lo que quede, **el PRIMER trozo, no el más largo** —el más
+largo fue mi primer intento y pierde contra la frase de la habilidad—. Más
+una red debajo: si con todas las palabras no sale nada, se prueba con la
+más larga.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion/escaner.js`, `js/mi-coleccion.js`,
+`SCHEMA.md`. En `pruebas`: `pruebas/test-tanda-558.mjs`.
+
+**Pasado**: 558 (con la franja de la captura, tal cual), 447, 450, 451 y
+557.
+
 ## 2026-10-05 (mañana, 09:40) — PINGU-Claude (557 — el escáner no reconocía el japonés: era `NFD`)
 
 **De dónde sale**: PINGU, con la web ya abierta al público: «el escáner de

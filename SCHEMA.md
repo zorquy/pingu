@@ -29011,3 +29011,41 @@ resultados con la carta delante.
 queda», y es falso — `unaccent()` la convierte en «n», así que
 `name_search` guarda «manana» y la consulta tiene que decir lo mismo. La
 regla no es qué me parece a mí una tilde: es qué hace Postgres.
+
+## Tanda 558 — la franja de una carta japonesa lleva cuatro cosas más (oct. 2026)
+
+PINGU, con la captura: escaneó una リザードンex y en el buscador quedó
+«己進化 リザードン ex シダードか テ テキス…» y cero resultados.
+
+La 557 arregló que el japonés no casara por culpa de `NFD`. Esto es lo
+OTRO, y es de la franja: **el OCR lee bien, pero lee además lo que hay
+alrededor del nombre**. En orden, eso que quedó es la FASE mal leída (el
+«2» de 2進化 sale como 己, que es la confusión más común del OCR con ese
+glifo), el NOMBRE, un trozo de «リザードから進化» —de quién evoluciona, en
+una línea debajo— y el principio del texto de la habilidad.
+
+**Por qué eso es CERO y no «un poco peor»**: la búsqueda exige TODAS las
+palabras, un `like` por cada una. Basta con que el OCR cuele una basura
+para que no case nada aunque el nombre esté perfecto. En occidental la
+franja solo lleva fase + nombre + PS, y por eso colaba.
+
+Tres reglas, de la más segura a la menos, y solo si la franja lleva kanji:
+
+1. **«◯◯から進化» se va entero.** Es literal y no puede ser parte de un
+   nombre: «から進化» solo aparece en esa línea.
+2. **La fase**: cualquier cosa de hasta dos caracteres pegada a 進化 al
+   principio, así da igual si el OCR lee 2, 己, 乙 o Z.
+3. **Las etiquetas de mecánica** que van en la misma franja (テラスタル…).
+
+Y de lo que quede, **el PRIMER trozo con kanji, no el más largo**. Lo del
+más largo fue mi primer intento y está mal: si la franja pilla el principio
+del texto de la habilidad —y lo pilla, porque el recorte es generoso a
+propósito—, esa frase es más larga que el nombre y gana
+(«このポケモンは、ベンチにいるかぎり» mide 17 y «リザードン» mide 5). El
+nombre es lo primero que se lee: va arriba a la izquierda, y lo único que
+puede ir antes es la fase, que ya se ha quitado.
+
+**Y la red de debajo**, para lo que no se sabe: si con todas las palabras
+no sale nada, se prueba con la más larga. Mismo criterio que con el número
+—lo preciso primero y se afloja si no hay nada—, y por el mismo motivo:
+nunca acabar en una pantalla vacía por culpa de una lectura.

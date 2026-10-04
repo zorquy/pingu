@@ -19,6 +19,10 @@
 // nada y además le quitan al OCR todo el ruido del dibujo de la carta, que
 // es donde se inventa texto.
 
+// `tieneCJK` vive en `js/texto.js`, que no importa nada: la misma pregunta
+// la hacen el navegador y las funciones de servidor (tanda 532).
+import { tieneCJK } from '../texto.js'
+
 // Dónde caen las dos franjas DENTRO del marco, en tanto por uno. Salen de
 // la proporción de una carta de Pokémon (63 × 88 mm): el nombre vive en el
 // 12 % de arriba y el código con el ilustrador en el 10 % de abajo. Se
@@ -123,6 +127,34 @@ const FASE = new RegExp(
 // error: deja el nombre sin limpiar y la búsqueda sin resultados.
 const FASE_CJK = /(たね|[12１２]進化|基[础礎]|[一二]階|[一二]阶)/g
 
+// ── LA FRANJA DE UNA CARTA JAPONESA LLEVA CUATRO COSAS MÁS (tanda 558) ──
+//
+// PINGU escaneó una リザードンex y en el buscador quedó esto:
+//
+//   «己進化 リザードン ex シダードか テ テキス…»
+//
+// Que es, en orden: la FASE mal leída (el «2» de 2進化 sale como 己 —es la
+// confusión más común del OCR con ese glifo—), el NOMBRE, un trozo de
+// «リザードから進化» (de quién evoluciona, que va en una línea debajo del
+// nombre) y el principio del texto de la habilidad.
+//
+// Y aquí está lo que lo convierte en CERO resultados: la búsqueda exige
+// TODAS las palabras (un `like` por cada una). Basta con que el OCR meta
+// una basura para que no case nada, aunque el nombre esté perfecto. En
+// occidental la franja solo lleva fase + nombre + PS y por eso colaba.
+//
+// Tres reglas, de la más segura a la menos:
+//
+//   1. «◯◯から進化» se va ENTERO. Es literal y no puede ser parte de un
+//      nombre: «から進化» solo aparece en esa línea.
+//   2. La fase: cualquier cosa de hasta dos caracteres pegada a 進化 al
+//      principio. Así da igual si el OCR lee 2, 己, 乙 o Z.
+//   3. Las etiquetas de mecánica que van en la misma franja y no son el
+//      nombre de nadie.
+const EVOLUCIONA_DE = /\S*から進化/g
+const FASE_CJK_SUELTA = /(^|\s)\S{0,2}進化/g
+const MECANICA_CJK = /(テラスタル|ポケモンex|かがやく)/g
+
 // Lo que el símbolo de energía y el canto de la carta dejan al leerse como
 // si fueran letras.
 const BASURA = /[·•|¦×✕*_~^<>«»"'`´¨=+\\/•·]/g
@@ -140,6 +172,36 @@ export function nombreDeLaFranja(texto) {
   t = t.replace(FASE, ' ')
   t = t.replace(FASE_CJK, ' ')
   t = t.replace(VIDA_SUELTA, ' ')
+  // ── Y si la franja está en japonés, lo suyo (tanda 558) ──
+  //
+  // Se mira el TEXTO y no el idioma elegido en el escáner: si lo que ha
+  // vuelto lleva kanji, las reglas del kanji aplican, haya puesto lo que
+  // haya puesto nadie en un desplegable.
+  if (tieneCJK(t)) {
+    t = t.replace(EVOLUCIONA_DE, ' ')
+    t = t.replace(FASE_CJK_SUELTA, ' ')
+    t = t.replace(MECANICA_CJK, ' ')
+    // Y DE LO QUE QUEDE, EL PRIMER TROZO CON KANJI.
+    //
+    // EL PRIMERO Y NO EL MÁS LARGO, que fue mi primer intento y está mal:
+    // si la franja pilla el principio del texto de la habilidad —y la
+    // pilla, porque el recorte es generoso a propósito—, esa frase es MÁS
+    // LARGA que el nombre y gana. «このポケモンは、ベンチにいるかぎり» mide
+    // 17 y «リザードン» mide 5.
+    //
+    // El nombre es lo PRIMERO que se lee: va en la línea de arriba y a la
+    // izquierda, y lo único que puede ir antes es la fase, que ya se ha
+    // quitado. Y antes de elegir se corta por el primer signo japonés
+    // (、。「」), que un nombre no lleva nunca y una frase sí — así una
+    // frase larga no puede colarse entera ni aunque el corte falle.
+    //
+    // Un trozo de más no es un trozo de menos: cada palabra es un `like`
+    // que hay que cumplir, así que vale más quedarse con uno solo y que el
+    // número afine.
+    const piezas = t.split(/[、。「」（）]/)[0].split(/\s+/).filter(Boolean).filter(tieneCJK)
+    const primera = piezas.find((p) => p.length >= 2)
+    if (primera) return primera
+  }
   // Lo que queda, con los espacios recogidos. Y si no queda NADA, se
   // devuelve lo de antes sin tocar: un limpiador que se lleva por delante
   // el nombre entero es peor que no limpiar — mejor buscar de más que no
