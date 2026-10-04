@@ -132,3 +132,80 @@ const CJK = /[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef\
 export function tieneCJK(texto) {
   return CJK.test(String(texto || ''))
 }
+
+// ── LAS MARCAS QUE EL OCR SE COME (tanda 561) ──
+//
+// PINGU escaneó una リザードン y el aviso dijo «He leído: リサードン»: el
+// OCR se comió el DAKUTEN —las dos comillitas de ザ—, y con un carácter
+// cambiado el `like` se va a cero. Es el error más común leyendo japonés:
+// el dakuten y el handakuten son dos marcas de dos píxeles encima de un
+// kana, y a 300 ppp en una foto a pulso se pierden o se inventan.
+//
+// Así que de un nombre leído se sacan sus VARIANTES: la misma cadena con
+// una sola marca puesta o quitada. Una sola, porque dos errores en el
+// mismo nombre ya no es un nombre parecido — y porque las combinaciones
+// crecen rápido y cada una es una consulta.
+//
+// POR QUÉ ESTO Y NO UNA BÚSQUEDA POR PARECIDO: `pg_trgm` está instalado y
+// sería lo natural… pero los trigramas de «リサードン» y «リザードン»
+// comparten UNO de tres, así que el parecido sale en 0,2 y habría que
+// bajar el listón hasta donde entra ruido. Esto es exacto: modela el error
+// que de verdad comete el OCR —pierde marcas, no inventa otros kana— en
+// vez de medir un parecido genérico.
+const MARCAS = [
+  ['か', 'が'], ['き', 'ぎ'], ['く', 'ぐ'], ['け', 'げ'], ['こ', 'ご'],
+  ['さ', 'ざ'], ['し', 'じ'], ['す', 'ず'], ['せ', 'ぜ'], ['そ', 'ぞ'],
+  ['た', 'だ'], ['ち', 'ぢ'], ['つ', 'づ'], ['て', 'で'], ['と', 'ど'],
+  ['は', 'ば'], ['ひ', 'び'], ['ふ', 'ぶ'], ['へ', 'べ'], ['ほ', 'ぼ'],
+  ['は', 'ぱ'], ['ひ', 'ぴ'], ['ふ', 'ぷ'], ['へ', 'ぺ'], ['ほ', 'ぽ'],
+  ['カ', 'ガ'], ['キ', 'ギ'], ['ク', 'グ'], ['ケ', 'ゲ'], ['コ', 'ゴ'],
+  ['サ', 'ザ'], ['シ', 'ジ'], ['ス', 'ズ'], ['セ', 'ゼ'], ['ソ', 'ゾ'],
+  ['タ', 'ダ'], ['チ', 'ヂ'], ['ツ', 'ヅ'], ['テ', 'デ'], ['ト', 'ド'],
+  ['ハ', 'バ'], ['ヒ', 'ビ'], ['フ', 'ブ'], ['ヘ', 'ベ'], ['ホ', 'ボ'],
+  ['ハ', 'パ'], ['ヒ', 'ピ'], ['フ', 'プ'], ['ヘ', 'ペ'], ['ホ', 'ポ'],
+  ['ウ', 'ヴ'],
+]
+
+// De cada kana, a qué se puede cambiar. Un `ハ` puede ser `バ` o `パ`, así
+// que es una lista y no un valor.
+const CAMBIOS = new Map()
+for (const [sin, con] of MARCAS) {
+  if (!CAMBIOS.has(sin)) CAMBIOS.set(sin, [])
+  if (!CAMBIOS.has(con)) CAMBIOS.set(con, [])
+  CAMBIOS.get(sin).push(con)
+  CAMBIOS.get(con).push(sin)
+}
+
+// El original PRIMERO y luego las variantes, en orden de aparición. El
+// orden importa: quien las prueba se queda con la primera que encuentre
+// algo, y lo más probable es que lo leído esté bien.
+export function variantesDeMarcas(texto, tope = 12) {
+  const t = String(texto || '')
+  const unaMarca = (cadena) => {
+    const salida = []
+    for (let i = 0; i < cadena.length; i++) {
+      for (const otro of CAMBIOS.get(cadena[i]) || []) {
+        salida.push({ texto: cadena.slice(0, i) + otro + cadena.slice(i + 1), desde: i })
+      }
+    }
+    return salida
+  }
+  const fuera = [t]
+  const mete = (v) => {
+    if (fuera.length <= tope && !fuera.includes(v)) fuera.push(v)
+  }
+  // Primero las de UNA marca, que es el error normal.
+  const primeras = unaMarca(t)
+  for (const v of primeras) mete(v.texto)
+  // Y después las de DOS, que también pasan —«フシギダネ» leído «フシキタネ»
+  // tiene dos dakuten perdidos— pero son menos probables, así que van
+  // detrás: quien las prueba se queda con la primera que encuentre algo.
+  // Solo se cambia hacia la DERECHA de la primera, que si no sale dos
+  // veces cada pareja.
+  for (const v of primeras) {
+    for (const w of unaMarca(v.texto)) {
+      if (w.desde > v.desde) mete(w.texto)
+    }
+  }
+  return fuera.slice(0, tope + 1)
+}

@@ -29144,3 +29144,37 @@ de la 558b convirtió esto en cinco minutos. Sin él, lo único que se veía
 era una pantalla vacía, idéntica a los otros tres fallos de esta serie.
 Cuando algo falla por lo que una máquina ha leído, **enseña lo que ha
 leído**.
+
+## Tanda 561 — el OCR se come el dakuten (oct. 2026)
+
+El aviso de la 558b, otra vez haciendo su trabajo: «He leído: リサードン ·
+el nº 2 no casaba con ninguna». Un carácter cambiado —サ por ザ— y el
+`like` se va a cero.
+
+Es **el** error más común leyendo japonés: el dakuten (las dos comillitas) y
+el handakuten (el circulito) son dos marcas minúsculas encima de un kana, y
+en una foto a pulso se pierden o se inventan. Y hasta aquí eso se veía como
+«esa carta no está en el catálogo», que es otra cosa.
+
+**Qué se hace**: si no ha casado nada y el nombre es japonés, se prueban sus
+variantes —la misma cadena con una marca puesta o quitada— **todas en UNA
+consulta** (`or` de `like`). En un bucle serían hasta trece idas y vueltas,
+y esto corre en el móvil de quien acaba de hacer una foto.
+
+**Por qué esto y no una búsqueda por parecido**: `pg_trgm` está instalado y
+sería lo natural. Pero los trigramas de «リサードン» y «リザードン»
+comparten UNO de tres: el parecido sale en torno a 0,2 y habría que bajar
+el listón hasta donde entra ruido. Esto es exacto — modela el error que el
+OCR comete de verdad (pierde marcas, no inventa otros kana) en vez de medir
+un parecido genérico.
+
+Se generan las de UNA marca primero y las de DOS después, porque dos
+también pasa («フシギダネ» leído «フシキタネ») pero es menos probable, y
+quien las prueba se queda con la primera que encuentre algo. El original va
+el primero de todos: lo más probable es que lo leído esté bien.
+
+**Y va al final de la cadena**, que a estas alturas tiene cinco escalones:
+nombre + número → sin número → solo la palabra más larga → variantes de
+marcas. Cada uno afloja un poco más, y ninguno se pregunta si el anterior
+encontró algo. Lo que se afloja se DICE en el aviso, que es lo que ha hecho
+posible arreglar los cinco fallos de esta serie sin adivinar ni una vez.

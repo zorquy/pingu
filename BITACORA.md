@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 19:40) — PINGU-Claude (561 — el OCR se come el dakuten)
+
+**De dónde sale**: el aviso dijo «He leído: リサードン · el nº 2 no casaba
+con ninguna». サ por ザ: el OCR se comió el dakuten, las dos comillitas. Un
+carácter cambiado y el `like` se va a cero.
+
+**Hecho**: si no ha casado nada y el nombre es japonés, se prueban las
+variantes del nombre con una marca puesta o quitada —y las de dos, detrás—,
+**todas en UNA consulta** (`or` de `like`). En un bucle serían hasta trece
+idas y vueltas en el móvil de quien acaba de hacer la foto.
+
+**Por qué no `pg_trgm`**, que está instalado y sería lo natural: los
+trigramas de «リサードン» y «リザードン» comparten uno de tres, el parecido
+sale en 0,2 y habría que bajar el listón hasta donde entra ruido. Esto
+modela el error que el OCR comete DE VERDAD: pierde marcas, no inventa
+otros kana.
+
+**La cadena del escáner ya tiene cinco escalones**: nombre + número → sin
+número → solo la palabra más larga → variantes de marcas. Y lo que se
+afloja se DICE en el aviso — que es lo que ha hecho posible arreglar los
+cinco fallos de esta serie (557, 558, 558b, 559, 560 y 561) sin adivinar
+ni una vez.
+
+**Sin migración.**
+
+**Ficheros**: `js/texto.js`, `js/mi-coleccion.js`, `SCHEMA.md`. En
+`pruebas`: `pruebas/test-tanda-561.mjs`.
+
+**Pasado**: 561, 560, 559, 558, 557, 447, 450, 451 y `test-imports.mjs`.
+
 ## 2026-10-05 (tarde, 19:25) — PINGU-Claude (560 — el marco pilló la pantalla del móvil)
 
 **De dónde sale**: el aviso de la 558b dijo «He leído: 19:054 Card Trader

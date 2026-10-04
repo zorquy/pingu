@@ -15,6 +15,9 @@ import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './tcgdex.js'
+// Del módulo puro: `tcgdex.js` lo reexporta, pero esto no necesita nada de
+// aquel y pedírselo arrastraría el cliente de Supabase a quien lo importe.
+import { tieneCJK, variantesDeMarcas } from './texto.js'
 import { rutaDeCarta, urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): TCGdex no tiene imagen de
 // muchas cartas viejas, y sin esto el bolsillo se quedaba en blanco.
@@ -2932,7 +2935,7 @@ function pintarBandejaCatalogo() {
   if (flecha) flecha.textContent = sentidoCatalogo === 'desc' ? '↓' : '↑'
 }
 
-async function buscarEnTodo() {
+async function buscarEnTodo({ variantes = null } = {}) {
   const campo = $('mcBuscarTodo')
   if (!campo) return
   const texto = normalizeSearch(campo.value)
@@ -2956,7 +2959,7 @@ async function buscarEnTodo() {
   let lista
   let porIlustrador = false
   try {
-    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo })
+    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo, variantes })
     // Si por nombre no sale nada, se prueba por ILUSTRADOR. La pasada cara
     // solo ocurre cuando ya no hay nada que perder.
     if (!lista.length) {
@@ -3251,6 +3254,27 @@ async function dispararEscaner() {
         aflojado += ' · he buscado solo por la palabra más larga'
       }
     }
+    // ── Y LO ÚLTIMO: LAS MARCAS QUE EL OCR SE COME (tanda 561) ──
+    //
+    // PINGU escaneó una リザードン y el aviso dijo «He leído: リサードン»:
+    // el dakuten de ザ —dos comillitas de dos píxeles— se perdió en la
+    // foto. Con un carácter cambiado el `like` se va a cero, y hasta aquí
+    // eso se veía como «esa carta no está».
+    //
+    // Es el error más común leyendo japonés, así que se prueban las
+    // variantes del nombre con una marca puesta o quitada, todas en UNA
+    // consulta. Va al final porque es lo más flojo que se hace: si algo
+    // casó antes, esto ni se pregunta.
+    if (!$('mcBuscarResultados').querySelector('.mc-resultado') && tieneCJK(nombreLeido)) {
+      const variantes = variantesDeMarcas(nombreLeido)
+      if (variantes.length > 1) {
+        campo.value = nombreLeido
+        await buscarEnTodo({ variantes })
+        if ($('mcBuscarResultados').querySelector('.mc-resultado')) {
+          aflojado += ' · puede que se perdiera algún dakuten, he probado las variantes'
+        }
+      }
+    }
     showToast(`He leído: ${nombreLeido}${aflojado}`)
   } catch {
     if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
@@ -3322,10 +3346,25 @@ function variantesDeNumero(n) {
   return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
 }
 
-async function buscarCartas(texto, limite = 60, { filtros: fcat = null } = {}) {
+async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null } = {}) {
   const { nombre, numero } = partirBusqueda(texto)
   let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
-  for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+  if (variantes?.length) {
+    // ── UNA SOLA CONSULTA PARA TODAS LAS VARIANTES (tanda 561) ──
+    //
+    // Cuando el escáner se come una marca, lo que hay que preguntar es
+    // «¿alguno de estos nombres?». En un `or` es UNA ida y vuelta; en un
+    // bucle serían hasta trece, y esto corre en el móvil de quien acaba de
+    // hacer una foto.
+    //
+    // La coma y el paréntesis se quitan porque son la sintaxis del propio
+    // `or` de PostgREST: un nombre con una coma partiría la condición en
+    // dos y la segunda mitad no querría decir nada.
+    const limpias = variantes.map((x) => String(x).replace(/[%_*,()]/g, '')).filter(Boolean)
+    if (limpias.length) q = q.or(limpias.map((x) => `name_search.like.*${x}*`).join(','))
+  } else {
+    for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+  }
   if (numero) {
     const comoLocal = variantesDeNumero(numero).map((v) => `local_id.eq.${v}`)
     q = q.or([...comoLocal, `dex_ids.cs.{${Number(numero)}}`].join(','))
