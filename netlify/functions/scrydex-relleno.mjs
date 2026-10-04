@@ -1,6 +1,6 @@
 import {
   cabecerasDe, urlDeSonda, filaDeCartaConScrydex, nombreQueHayQueArreglar,
-  numeroComparable, laCarta,
+  numeroComparable, laCarta, filaDeCartaSuya,
 } from '../lib/scrydex.mjs'
 
 // Rellenar el catálogo occidental con Scrydex, SOLA y toda la noche (509).
@@ -161,9 +161,22 @@ export async function procesar({
   // Un set sin `scrydex_id` no está verificado y NO se toca: un par falso
   // metería las cartas de otro set dentro del nuestro sin dar error, que
   // es lo que costaron las tandas 504 y 505.
-  const sets = await pedir(`tcg_sets?select=id,scrydex_id&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
+  const sets = await pedir(`tcg_sets?select=id,scrydex_id,scrydex_por&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
   const nuestroSetDe = new Map()
-  for (const s of sets || []) nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
+  // ── QUÉ SETS SON ENTEROS SUYOS (tanda 545) ──
+  //
+  // En un set que viene de TCGdex, una carta suya que no tenemos se queda
+  // fuera: su número y el nuestro se escriben distinto (`001` contra `1`),
+  // así que insertarla podría dejar la MISMA carta dos veces con dos
+  // identificadores, y eso sale en la cara de la biblioteca.
+  //
+  // En un set que trajimos de su catálogo no hay con qué chocar —no tiene
+  // ni una carta de nadie más—, y es justo donde hoy no hay NINGUNA.
+  const sonSuyos = new Set()
+  for (const s of sets || []) {
+    nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
+    if (/importado de Scrydex/i.test(String(s.scrydex_por || ''))) sonSuyos.add(s.id)
+  }
   if (!nuestroSetDe.size) {
     return { estado: 409, cuerpo: { error: 'Ningún set tiene `scrydex_id`: pasa antes «Traer los logos de Scrydex» en /admin.' } }
   }
@@ -222,6 +235,7 @@ export async function procesar({
 
   let vistas = 0
   let escritas = 0
+  let insertadas = 0
   let nombresArreglados = 0
   let sinSetNuestro = 0
   let sinCartaNuestra = 0
@@ -330,13 +344,27 @@ export async function procesar({
 
     const filas = []
     const nombres = []
+    const nuevas = []
+    const yaEnLaSentencia = new Set()
     for (const suya of lote) {
       vistas++
       if (suya?.rarity) rarezas.set(suya.rarity, (rarezas.get(suya.rarity) || 0) + 1)
       const nuestroSet = nuestroSetDe.get(String(suya?.expansion?.id || '').toLowerCase())
       if (!nuestroSet) { sinSetNuestro++; continue }
       const nuestra = porClave.get(`${nuestroSet}|${numeroComparable(suya?.number)}`)
-      if (!nuestra) { sinCartaNuestra++; continue }
+      if (!nuestra) {
+        sinCartaNuestra++
+        // Y si el set es entero suyo, la carta se TRAE (tanda 545). No
+        // cuesta un crédito más: esta página ya está pagada.
+        if (sonSuyos.has(nuestroSet)) {
+          const fila = filaDeCartaSuya(suya, { setId: nuestroSet, market: MERCADO })
+          // Dos veces la misma clave en una sentencia y Postgres corta con
+          // «ON CONFLICT DO UPDATE command cannot affect row a second
+          // time» (la lección del catálogo chino, tanda 333).
+          if (fila && !yaEnLaSentencia.has(fila.id)) { yaEnLaSentencia.add(fila.id); nuevas.push(fila) }
+        }
+        continue
+      }
       filas.push(filaDeCartaConScrydex(nuestra, suya))
       // ¿TRAEN SUS CARTAS EL NOMBRE OCCIDENTAL? (tanda 539)
       //
@@ -357,6 +385,10 @@ export async function procesar({
     }
 
     if (filas.length) { await guardar('tcg_cards', filas); escritas += filas.length }
+    // Las suyas van en SU PROPIA sentencia: PostgREST exige las mismas
+    // claves en todos los objetos de una, y una fila nueva trae columnas
+    // que el enriquecido no manda.
+    if (nuevas.length) { await guardar('tcg_cards', nuevas); insertadas += nuevas.length }
     // El nombre va en SU PROPIA sentencia: es la única columna que PISA
     // algo, y lleva claves distintas de las de arriba —PostgREST las
     // exige uniformes dentro de una misma sentencia—.
@@ -380,7 +412,7 @@ export async function procesar({
       // acaba en 0 con miles escritas, es que sus cartas no lo traen —y
       // entonces el japonés se queda en japonés por su catálogo, no por
       // nuestro código.
-      conNombreOccidental, escritas,
+      conNombreOccidental, escritas, insertadas,
     })
   }
 
@@ -395,6 +427,10 @@ export async function procesar({
       susCartas: total,
       vistas,
       escritas,
+      // Las que NO teníamos y se han traído enteras, de los sets que son
+      // suyos (tanda 545). Un set importado de su catálogo tenía 0 cartas
+      // y en la biblioteca se veía como una colección vacía.
+      insertadas,
       conNombreOccidental,
       // EL ARREGLO DEL HALLAZGO DE LA 505: ~1.890 cartas occidentales
       // llevan el español en `name`, que es la clave con la que se cruzan
@@ -403,7 +439,9 @@ export async function procesar({
       nombresArreglados,
       ejemplosDeNombre,
       // Cartas suyas de sets que no tenemos emparejados o que no tenemos.
-      // Se dicen, no se insertan.
+      // Se dicen, no se insertan: de un set que viene de TCGdex, su número
+      // y el nuestro se escriben distinto (`001` contra `1`) y la misma
+      // carta podría acabar dos veces con dos identificadores.
       sinSetNuestro,
       sinCartaNuestra,
       // Su vocabulario de rarezas, aprendido de los datos: es como se

@@ -972,6 +972,59 @@ export function filaDeCartaConScrydex(nuestra, suya, ahora = new Date()) {
   }
 }
 
+// ── UNA CARTA SUYA QUE NO TENEMOS: LA FILA ENTERA (tanda 545) ──
+//
+// El relleno solo ENRIQUECE: `if (!nuestra) continue`. O sea que de los
+// sets que trajimos de su catálogo —los que TCGdex no tiene— no se escribe
+// NI UNA CARTA, y una colección vacía en la biblioteca es exactamente el
+// hueco que acabamos de borrar 68 veces.
+//
+// Y no cuesta un crédito más: el barrido ya está pagando esas páginas y
+// esas cartas van dentro. Lo único que hacía falta era dejar de tirarlas.
+//
+// `category` sale de su `supertype`, traducido a lo que la web espera.
+// NO se escribe `types`: en su respuesta japonesa no he visto ese campo,
+// y escribir en una columna que filtra algo que no sé en qué idioma viene
+// es peor que dejarla vacía (la lección de la 484 — de Scrydex se afirma
+// lo que Scrydex ha contestado).
+export const CATEGORIA_DE_SUPERTIPO = {
+  pokémon: 'Pokemon', pokemon: 'Pokemon', trainer: 'Trainer', energy: 'Energy',
+}
+
+export function filaDeCartaSuya(suya, { setId, market, ahora = new Date() } = {}) {
+  const numero = String(suya?.number ?? '').trim()
+  // `local_id` y `name` son `not null`: una carta suya sin número no deja
+  // formar la fila, y aquí no se inventa un número (la lección de la 526,
+  // que costó una noche a cero).
+  if (!suya?.id || !setId || !numero) return null
+  const nombre = String(suya?.name || suya?.translation?.en?.name || '').trim()
+  if (!nombre) return null
+  const foto = imagenDeCarta(suya)
+  const base = typeof foto === 'string' ? foto.replace(/\/(small|medium|large)$/, '') : null
+  const dex = Array.isArray(suya?.national_pokedex_numbers)
+    ? suya.national_pokedex_numbers.map(Number).filter(Number.isFinite)
+    : null
+  const ps = Number(String(suya?.hp ?? '').trim())
+  return {
+    // SU identificador, tal cual. Es lo que pidió PINGU —«calca su base»—
+    // y además es lo único que garantiza que no choque con uno nuestro.
+    id: suya.id,
+    market: market || 'JP',
+    set_id: setId,
+    local_id: numero,
+    name: nombre,
+    name_en: suya?.translation?.en?.name || null,
+    image_scrydex: base,
+    rarity_en: suya?.rarity || null,
+    rarity_code: suya?.rarity_code || null,
+    illustrator: suya?.artist || null,
+    dex_ids: dex?.length ? dex : null,
+    hp: Number.isFinite(ps) && ps > 0 ? ps : null,
+    category: CATEGORIA_DE_SUPERTIPO[String(suya?.supertype || '').trim().toLowerCase()] || null,
+    scrydex_at: ahora.toISOString(),
+  }
+}
+
 // ── El nombre inglés, pero SOLO donde se puede demostrar que el nuestro
 //    está en español (tanda 509) ──
 //

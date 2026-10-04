@@ -28442,3 +28442,45 @@ rellenan sin gastar un crédito porque el par ya está guardado.
 Lo vigila `test-tanda-544.mjs`, y la comprobación que más vale es la del
 punto 3 en sus **tres** formas (socket cortado, 503, 404): un 404 sí es
 suyo, y una guarda que solo se prueba cuando no salta no se está probando.
+
+## Tanda 545 — sus cartas de los sets que solo tiene él (oct. 2026)
+
+La 540 trae sus SETS japoneses, y los trae bien: nombre occidental, logo,
+símbolo, fecha, era. Lo que no trae es una sola CARTA, y eso no se ve en
+ningún informe — se ve en la biblioteca, como una colección vacía.
+
+El motivo está en una línea del relleno: `if (!nuestra) { sinCartaNuestra++;
+continue }`. El relleno ENRIQUECE cartas nuestras cruzándolas por
+`set_id|número`; una carta suya que no tenemos se cuenta y se tira. Para los
+210 sets occidentales eso es lo correcto —son cartas que su catálogo tiene y
+el nuestro no, y meterlas sueltas mezclaría convenios de numeración—, pero
+para un set que vino ENTERO de su catálogo significa cero cartas para
+siempre.
+
+Y **no cuesta un crédito más**: el barrido ya está pagando esas páginas y
+esas cartas vienen dentro de la misma respuesta. Lo único que hacía falta
+era dejar de tirarlas (`filaDeCartaSuya`).
+
+**Dónde sí y dónde no.** Solo en los sets cuyo `scrydex_por` dice
+«importado de Scrydex». En un set que viene de TCGdex, su número y el
+nuestro se escriben distinto —`001` contra `1`— y `numeroComparable` los
+cruza bien para COMPARAR pero no para INSERTAR: una carta que el cruce no
+encuentre por cualquier otro motivo entraría como segunda fila de la misma
+carta, con otro identificador. Duplicar una carta es el único error de aquí
+que sale en la cara de la biblioteca y no da ningún aviso, así que el
+permiso se da por set y por procedencia.
+
+**Lo que se escribe y lo que no.** Van `id` (el SUYO, tal cual), `set_id`,
+`local_id` (el número impreso, con sus ceros), `name` (el japonés, que es el
+de verdad), `name_en`, `image_scrydex`, `rarity_en`, `rarity_code`,
+`illustrator`, `dex_ids`, `hp` y `category` —traducida de su `supertype`,
+que viene «Pokémon» con acento donde la web compara «Pokemon»—. **No va
+`types`**: en su respuesta japonesa no se ha visto ese campo, y llenar una
+columna que FILTRA con algo cuyo idioma no se conoce es peor que dejarla
+vacía (la lección de la 484: de Scrydex se afirma lo que Scrydex ha
+contestado).
+
+Las cuatro primeras son `not null`, así que una carta suya sin número o sin
+nombre de ninguna clase **no se inserta**: un upsert forma la fila antes de
+ver que ya existe, y una fila que no se puede formar se lleva la sentencia
+entera con 23502 (la lección de la 526).

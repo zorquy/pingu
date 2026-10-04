@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 17:20) — PINGU-Claude (545 — sus cartas de los sets que solo tiene él)
+
+**Hecho**: el relleno solo ENRIQUECÍA. `if (!nuestra) { sinCartaNuestra++;
+continue }`, así que los sets que la 540 trae de su catálogo —los que TCGdex
+no tiene— se quedaban con CERO cartas: una colección vacía en la
+biblioteca, que es el mismo hueco del que acabamos de borrar 68. Ahora, en
+esos sets y solo en esos, la carta que falta se trae entera
+(`filaDeCartaSuya`). **No cuesta un crédito más**: el barrido ya está
+pagando esas páginas y esas cartas vienen dentro.
+
+**Dónde NO**: en un set que viene de TCGdex. Su número y el nuestro se
+escriben distinto (`001` contra `1`), así que una carta que el cruce no
+encuentre por cualquier motivo entraría como segunda fila de la misma carta
+con otro identificador — y duplicar una carta es el único error de aquí que
+sale en la cara de la biblioteca sin dar ningún aviso. El permiso se da por
+set, mirando `scrydex_por`.
+
+**No se escribe `types`**: en su respuesta japonesa no he visto ese campo, y
+llenar una columna que FILTRA con algo cuyo idioma no conozco es peor que
+dejarla vacía (la lección de la 484).
+
+**Ficheros**: `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-relleno.mjs`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-545.mjs`.
+
+**Pasado**: la 545 en verde (33 comprobaciones), la 544 y las de Scrydex
+(502, 507, 509, 526, 537) en verde, `test-imports.mjs` y
+`comprobar-arbol.sh` limpios. Sin migración: las columnas ya existen.
+
+**Qué queda**: el panel dirá `insertadas` en la fila `cartas-jp`. Y sigue
+pendiente la suite completa (537→545) y las parejas a mano de los sets
+japoneses que el id no recupere.
+
 ## 2026-10-04 (tarde, 16:40) — PINGU-Claude (544 — por qué 36 sets japoneses se quedaron en kanji, y 21 sin chapa)
 
 **De dónde sale**: PINGU ejecutó la limpieza de huecos y pegó la cuenta del
