@@ -35,6 +35,85 @@ así que lo mío pasa a ser la **422**. Van 384, 394, 413 y 420. Lo que
 funciona no es releer la bitácora al empezar: es **mirar el remoto justo
 antes del commit**, que es lo que lo cazó esta vez.
 
+## 2026-10-04 (de madrugada, después de la 510) — PINGU-Claude (tandas 511 a 521 — diez ideas de la lista y las megas de la imagen del meta)
+
+**Hecho**: PINGU pidió de la lista de ideas la 1, 3, 4, 5, 6, 7, 8, 9, 10 y
+11, y «arreglar al exportar la imagen los sprites de las megas no salen
+bien, salen los pokemons normales». Una tanda por cosa, cada una con su
+prueba y su rigor (todas las mutaciones detectadas):
+
+· **511 — las megas de la imagen del meta.** `/sprite` daba 404 a TODO en
+  producción (medido desde el navegador), y el respaldo de una forma era la
+  especie base. Ahora una mega prueba antes SU dibujo en PokeAPI (96 de 97
+  comprobados) que la especie en Limitless; los de PokeAPI se recortan a lo
+  que ocupan; y `/sprite` y `/escaneo` piden con un `user-agent` propio y
+  dicen por qué fallan en `x-motivo`. **Por la mañana**: un
+  `curl -I "https://pokedoc.es/sprite?n=gardevoir-mega"` dice si el 404 era
+  el antibots (y si sigue, el motivo).
+· **512 — reportar en un torneo con el registro de TCG Live** (idea 8):
+  propone el resultado (lo confirmas tú), guarda la repetición y la deja
+  adjunta a la mesa. Todo por las RPC de siempre.
+· **513 — la imagen resumen para redes** (idea 3), 1080×1350, **sin
+  sprites ni arte de cartas**.
+· **514 — las notas y los momentos dentro del vídeo** (idea 4).
+· **515 — compartir una posición del laboratorio** (idea 10): el enlace
+  lleva la mesa dentro, detrás de `#pos=`.
+· **516 — quién se lleva cada premio** de un torneo terminado, y «dado»
+  para quien lo lleva (idea 9, con migración).
+· **517 — el modo stream para OBS** (idea 5): la mesa sola, escalada,
+  fondo de mesa o verde de croma, todo con el teclado, y
+  `?r=…&stream&fondo=verde` para la fuente de navegador.
+· **518 — importar varias partidas a la vez** (idea 6).
+· **519 — tu lista entera asociada a una repetición** (idea 1):
+  probabilidades reales de robar, lo que salió de tus premios y «Jugar
+  desde aquí» sin «Carta sin ver».
+· **520 — publicar una repetición como partida de ejemplo** de su mazo en
+  /meta (idea 7, con migración), con los nombres cambiados por Rojo y Azul.
+· **521 — puzles «¿Qué jugarías?»** (idea 11, con migración): la buena y la
+  explicación no se pueden leer de la tabla (permiso por columnas).
+
+El detalle de cada una, en SCHEMA.md.
+
+**LO QUE HAY QUE EJECUTAR** en el SQL Editor (las tres se pueden repetir):
+`supabase-migration-torneos-premios-entrega.sql`,
+`supabase-migration-repeticiones-galeria.sql` y
+`supabase-migration-repeticiones-puzles.sql` (estas dos, después de
+`supabase-migration-repeticiones.sql`). Sin ellas no se rompe nada: cada
+pantalla dice qué falta o no enseña la sección.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js`, `js/torneos/meta-imagen.js`,
+`netlify/functions/sprite.mjs`, `netlify/functions/escaneo.mjs` (511);
+`js/torneos/ronda.js`, `js/torneos/comun.js`, `css/torneos.css` (512 y
+516); `js/repeticiones.js`, `repeticiones.html`, `css/repeticiones.css`,
+`js/repeticiones/video.js`, `js/repeticiones/datos.js` (513, 514, 517–521);
+**nuevos** `js/repeticiones/resumen-imagen.js`, `varias.js`, `lista.js`,
+`anonimizar.js`; `js/constructor/laboratorio.js`, `js/constructor.js`,
+`css/laboratorio.css` y **nuevo** `js/constructor/posicion-compartida.js`
+(515); `js/meta-mazo.js`, `js/meta/datos.js`, `mazo-meta.html`,
+`css/meta.css` (520); **nuevas** las tres migraciones. Nada de la portada
+(167,8 KB). En `pruebas`: `test-tanda-511…521.mjs`, sus rigores,
+`sql-premios-entrega.sql`, `sql-galeria.sql`, `sql-puzles.sql`, la 321 y
+la 425 al día con la nueva cadena de las megas, y el doble: las tablas y
+funciones nuevas, `__RPC_ERRORES__` para hacer fallar una función a
+propósito, y `replay_puzzles` que **falla con 42501** si se le piden la
+buena, la explicación o `*` — como la base, en vez de quitarlas en
+silencio—; y `__SIN_COLUMNAS__` vale ya también al PEDIR una columna (antes
+solo al filtrar por ella).
+
+**La suite entera**, con todo esto encima: tres rojos eran MÍOS y están
+arreglados —la **456** (un cuarto botón en la barra del laboratorio no
+cabía donde cabían tres), la **310** (una transición de 0,2 s y una imagen
+sin carga diferida) y la **462** (un enlace a /repeticiones en el texto de
+/meta que la prueba contaba como del menú)—. Lo demás, verde, salvo la
+**470** de siempre (le falta `visual/carta-real.png`). La 368, 370, 372 y
+438 salieron rojas por la 510b, y con la 510g y vuestras pruebas al día
+vuelven a verde (comprobado después de traerlas).
+
+**En curso / pendiente**: nada a medias. Lo único que no se ha podido ver
+desde aquí es si el 404 de `/sprite` en producción era el `user-agent`: el
+arreglo de las megas no depende de eso (cae en PokeAPI), pero si `/sprite`
+vuelve a contestar, los sprites salen con el estilo de Limitless.
+
 ## 2026-10-04 (madrugada) — PINGU-Claude (510 — /carta rota en producción, y la guarda que lo caza en un segundo)
 
 **Hecho**: la suite completa cantó seis rojos y todos eran el mismo error

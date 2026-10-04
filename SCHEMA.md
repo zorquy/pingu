@@ -28017,3 +28017,272 @@ De ahí **«¿Cómo va el relleno?»** en /admin → Cartas: una función progra
 que falla lo hace EN SILENCIO, porque nadie ve su respuesta. El botón cuenta
 cartas, sets, por dónde va la pasada y **las rarezas que de verdad hay**,
 marcando las que salen sin traducir. No gasta ni un crédito.
+
+## Tanda 511 — las megas de la imagen del meta salían como la especie normal (oct. 2026)
+
+PINGU: «al exportar la imagen los sprites de las megas no salen bien, salen
+los pokemons normales».
+
+- **Lo que pasaba**: un lienzo no puede pintar el sprite de Limitless (su
+  CDN no da CORS), así que la imagen del meta lo pide a `/sprite`, que lo
+  trae desde el servidor. Medido desde el navegador el 2026-10-04,
+  `/sprite` daba **404 a TODO** —megas y no megas— mientras la CDN
+  contestaba al navegador. La cadena de respaldo caía entonces en su
+  siguiente peldaño, que para una forma era **la especie base**: Gardevoir
+  a secas en un mazo de Mega Gardevoir, que es OTRO mazo.
+- **La cadena ahora pierde el estilo antes que la forma**: Limitless → la
+  MISMA mega en PokeAPI → la especie en Limitless → la especie en PokeAPI.
+  PokeAPI tiene las megas como Pokémon aparte, con el mismo nombre que usa
+  Limitless (`gardevoir-mega`, `charizard-mega-x`) y número propio
+  (10033…10326). `MEGAS_POKEAPI` (en `sprites-pokemon.js`) es su
+  `pokemon.csv`, con cada fichero comprobado en su repo de sprites: 96 de
+  97 (el de `zygarde-mega` no existe y por eso no está). Las formas que no
+  son megas (Ogerpon, Ursaluna Luna Carmesí) ya llevaban el número de
+  PokeAPI como `dex` y ese mismo sirve.
+- **`cajaVisible(img)`** en `meta-imagen.js`: los de PokeAPI son de 96×96
+  con el Pokémon en medio, y pintados a su tamaño salían a un tercio. Se
+  pinta solo la caja que no es transparente (`drawImage` de nueve). Una
+  imagen sin permiso de lectura no se puede medir: entonces, entera.
+- **`/sprite` y `/escaneo` dicen quién piden y por qué fallan**: piden con
+  un `user-agent` propio (`PokeDoc/1.0 (+https://pokedoc.es)`) —sin él,
+  una CDN detrás de un antibots contesta a un servidor lo que no contesta
+  a un navegador— y el 404 lleva `x-motivo` (`origen 403`, `tiempo`,
+  `red`, `tipo text/html`, `nombre`). Sin esa cabecera un 404 de ahí no
+  distingue «la CDN dice que no» de «no contesta» de «nos ha mandado una
+  página», y eso es justo lo que hizo falta saber. **Por la mañana**: un
+  `curl -I https://pokedoc.es/sprite?n=gardevoir-mega` dice cuál es.
+
+## Tanda 512 — reportar el resultado con el registro de TCG Live (oct. 2026)
+
+PINGU, de la lista de ideas: «pegar el registro de la partida en la ficha
+del torneo: que proponga el resultado y deje la repetición adjunta».
+
+- En «Tu partida», un desplegable «Reportar con el registro de TCG Live»
+  (o «Adjuntar el registro», si ya no hay nada que reportar). El registro
+  se lee EN EL NAVEGADOR con el lector de /repeticiones y se dice quién
+  ganó según su última línea (`finDelRegistro`, el último `fin`).
+- **Quién eras tú** sale de tu nombre de TCG Live en la inscripción
+  (`quienEresEnElRegistro`, sin mayúsculas); si no casa con ninguno de los
+  dos, se pregunta. Que el del rival no case no importa: el resultado es
+  desde ti.
+- **El botón no se pulsa solo**: el veredicto propone «Has ganado» o «Has
+  perdido» y lo confirmas tú. Al confirmar: se guarda la repetición, se
+  adjunta a la mesa (`torneos_adjuntar_repeticion`, la de la 496, que la
+  comparte) y se reporta por `torneos_reportar` — el camino de siempre,
+  sin escribir en ninguna tabla del torneo. Si falla cualquiera de los
+  tres pasos, el texto pegado se queda donde estaba.
+- En un BO3 reporta la siguiente partida sin jugar (`juegoPorReportar`).
+  El estado vive FUERA del DOM (`registroMesa`): «Tu partida» se repinta
+  entera cada vez que el rival hace algo, y perder un registro pegado a
+  mitad de leerlo sería tirar el trabajo de alguien.
+
+## Tanda 513 — la imagen resumen de una partida para redes (oct. 2026)
+
+PINGU, de la lista de ideas: «una imagen 1080×1350 para redes: quién ganó,
+los mazos, la carrera de premios, sin sprites ni arte de cartas».
+
+- `js/repeticiones/resumen-imagen.js`, en dos mitades como
+  `meta-imagen.js`: `datosDelResumen` decide qué se cuenta (sin DOM, se
+  prueba en Node) y `dibujarResumen` lo pinta. Se baja al pulsar
+  «Imagen para redes», junto al título de «La partida en números».
+- **Sin sprites ni dibujos de cartas A PROPÓSITO**: el arte es de sus
+  ilustradores y de The Pokémon Company, y una imagen hecha para circular
+  por redes es justo donde no puede ir. Lo que se dibuja es nuestro:
+  nombres, cifras y el gráfico de premios.
+- Los colores de cada jugador son los de la mesa y del vídeo (`--lab-j1`,
+  `--lab-j2`). Se descarga como PNG, o se comparte con `navigator.share`
+  donde exista (en el móvil va directa a la red).
+
+## Tanda 514 — las notas y los momentos dentro del vídeo (oct. 2026)
+
+PINGU, de la lista de ideas: «que el vídeo lleve las notas como
+subtítulos, y que se vea por dónde va».
+
+- **La nota del dueño** (tanda 495) sale como un rótulo en su jugada, y la
+  jugada dura lo que se tarda en leerla — fuera del ritmo, como en la
+  página: a 4× va más deprisa la partida, no quien lee (`extraDe` en
+  `lineaDeTiempo`). Sin notas, la casilla no sale.
+- **La barra de momentos** abajo: por dónde va, una raya en cada turno y
+  un punto en cada KO.
+- El cartel del turno lleva su número («Turno 5 de Rojo»: en un vídeo no
+  hay deslizador que mirar) y un KO tiene el suyo («KO · Pikachu ex»).
+
+## Tanda 515 — compartir una posición del laboratorio con un enlace (oct. 2026)
+
+PINGU, de la lista de ideas: «un enlace que lleve la mesa tal cual, y quien
+lo abre sigue jugando desde ahí».
+
+- `js/constructor/posicion-compartida.js`. El enlace **lleva la posición
+  dentro**, comprimida detrás de `#pos=` como el de las repeticiones sin
+  cuenta: no se guarda en ningún sitio y no llega a nuestro servidor.
+- Viaja: los mazos carta a carta y **en su orden** (el motor numera cada
+  copia física por el orden de las entradas y el estado guarda esos
+  números: otro orden sería otra mesa); de cada carta su id, nombre y tipo
+  (si el catálogo ya no la tiene, o es la «Carta sin ver» de una
+  repetición, se juega con eso); y el estado del motor tal cual, **sin los
+  registros**, que es lo que más pesa y no hace falta para seguir.
+- Botón «Compartir» en la barra del laboratorio; `/constructor#pos=…` abre
+  el laboratorio en esa posición. **El enlace lleva tu mano y el mazo en su
+  orden** (quien lo abre robará lo mismo que tú), y la ventana lo dice
+  antes de copiarlo. Un enlace roto lo dice y no abre nada.
+- Un cuarto botón en la barra no cabía donde cabían tres (lo cantó la
+  456): los nombres de los botones salen ahora desde **1.400 px**
+  (medido: 1.390 con «Turno 1 · Jugador 1 (va primero) — te toca», y el
+  resto para un turno de dos cifras) y por debajo solo el icono; y el
+  turno, entre 761 y 1.099 px, se queda en dos líneas como mucho.
+
+## Tanda 516 — quién se lleva cada premio de un torneo, y si ya se le dio (oct. 2026)
+
+PINGU, de la lista de ideas: «en un torneo terminado, cada premio con
+quién se lo lleva, y que quien organiza apunte que ya se lo ha dado».
+
+- `puestosDelPremio(texto)` en `js/torneos/comun.js` lee el puesto de la
+  lista de premios, que es de texto libre a propósito (tanda 352): «1.º»,
+  «3.º-4.º», «del 5 al 8», «Top 8», «Finalista», «Semifinalistas»,
+  «Todos». **Lo que no se entiende («Mejor lista», «Sorteo») no se le
+  asigna a nadie**: se enseña el premio sin nombre, que es la verdad. Y no
+  se decide si los premios se suman: cada uno dice a quién le toca.
+- Se cruza con la **clasificación final**: con top cut, manda el corte
+  (no las suizas).
+- Tabla `tournament_prize_deliveries (tournament_id, user_id,
+  delivered_at, delivered_by)`: la leen todos (como la clasificación), la
+  escribe solo quien lleva el torneo (`torneos_mando`), por
+  `torneos_premio_entregado(torneo, jugador, dado)`, solo con el torneo
+  TERMINADO y a quien jugó en él. El que mira ve su fila marcada.
+- Sin la migración, el reparto sale igual (es cuenta del cliente) y sin el
+  botón de «dado».
+
+## Tanda 517 — el modo stream de /repeticiones, para OBS (oct. 2026)
+
+PINGU, de la lista de ideas: «un modo para OBS: la mesa a pantalla
+completa, fondo plano y todo con el teclado».
+
+- La mesa sola, **escalada a la ventana** (una captura de OBS es de
+  1920×1080 y la mesa de la página mide la mitad) y centrada, sobre el
+  fondo de la mesa o **verde de croma** (`#00b140`, el estándar). Se
+  vuelve a encajar con un `ResizeObserver` sobre la escena y la mesa: el
+  `resize` de la ventana no se entera de una fuente de OBS que cambia de
+  tamaño.
+- **Los controles no salen en la captura**: la ayuda y «Salir» asoman al
+  mover el ratón y se van a los 3 s; con el foco dentro, se quedan (si no,
+  quien usa el teclado se queda en un sitio invisible).
+- Teclas: espacio, flechas, N (siguiente KO), G (girar la mesa), B
+  (fondo), F (pantalla completa), Esc (salir). Al entrar, el foco va a la
+  escena (si se quedara en el botón, el espacio lo pulsaría otra vez) y al
+  salir vuelve al botón.
+- **Para OBS**: `/repeticiones?r=…&stream` (y `&fondo=verde`) como «fuente
+  de navegador». La ayuda enseña esa dirección cuando la repetición está
+  compartida (sin compartir, OBS no la podría abrir).
+
+## Tanda 518 — importar varias partidas a la vez (oct. 2026)
+
+PINGU, de la lista de ideas: «pegar varios registros de golpe (o elegir los
+ficheros) y que se guarden y se apunten en Mis partidas».
+
+- `js/repeticiones/varias.js` (sin DOM). `partirRegistros` corta por la
+  línea de «Preparación» («Setup» en inglés), que es con la que empieza
+  cada registro; lo de antes de la primera no es partida, y la misma
+  pegada dos veces es una.
+- **Quién eres**: el nombre que este navegador recuerda si juega alguna; si
+  no, el que sale en más partidas —quien importa las suyas sale en
+  todas—, y solo si sale en dos o más y sin empate. Si no se sabe, se
+  pregunta, y sin decirlo no se deja apuntar en Mis partidas (ganada o
+  perdida es desde ti).
+- Cada una se guarda **sin compartir** en «Tus repeticiones», titulada
+  desde ti, con sus mazos (los que se vieron, como la 494), y si tiene
+  ganador se apunta en Mis partidas con su repetición. De una en una,
+  porque cada partida busca sus cartas.
+
+## Tanda 519 — tu lista entera, asociada a una repetición (oct. 2026)
+
+PINGU, de la lista de ideas: «asociar tu lista de /mazos a la partida: las
+probabilidades reales en cada jugada, qué tenías en los premios, y "Jugar
+desde aquí" sin "Carta sin ver"».
+
+- `js/repeticiones/lista.js` (sin DOM). El registro solo enseña lo que
+  pasa por la mesa; con la lista se sabe además lo que NO ha salido.
+  `sinVerEnLaFoto` resta de la lista lo visto en esa jugada (mesa,
+  energías y herramientas unidas, descarte, la mano que se conoce, el
+  estadio): lo que queda está en el mazo o en los premios, y **cuentan
+  igual** (se barajaron juntos), así que `probabilidadDeRobar` es esa
+  cuenta entre ese total.
+- `premiosCogidos`: lo que salió de TUS premios, de las líneas que lo
+  enseñan; los de «una carta» se cuentan como ocultos.
+- **«Jugar desde aquí» con la lista** (`mazoConLista`): el mazo es la lista
+  entera, y si en la partida se vio algo que la lista no tiene (o más
+  copias) se añade y **se cuenta en `fuera`**, que es como uno se entera
+  de que esa no era la lista de esa partida.
+- Se recuerda **en este navegador**, por partida (una huella del registro),
+  no en la base: es una ayuda para mirar, no un dato de la repetición.
+
+## Tanda 520 — publicar una repetición como partida de ejemplo de su mazo (oct. 2026)
+
+PINGU, de la lista de ideas: «una galería pública por arquetipo: publicar
+(si quieres) una repetición y que salga en /meta como partida de ejemplo».
+
+- **Se publica una COPIA con los nombres cambiados por Rojo y Azul**
+  (`js/repeticiones/anonimizar.js`): el rival no ha dicho que quiera salir
+  en una galería. La casilla viene marcada; desmarcarla es decisión tuya.
+  El nombre se cambia **solo como palabra entera** («Ban» no toca «la
+  Banca»), en dos pasos con una marca intermedia para que «Rojo» ↔ «Azul»
+  no se pisen, y **se comprueba leyéndolo**: los mismos jugadores nuevos,
+  las mismas jugadas, las mismas cartas. Si el nombre es parte de una
+  carta («Zorua»), no se toca nada y se dice; si es una palabra del propio
+  registro («mano»: «de la mano inicial»), la lectura cambia y tampoco.
+- Sale en la ficha de **su mazo del meta**: solo los arquetipos del
+  catálogo tienen ficha; un mazo deducido de las cartas no tiene dónde
+  salir, y entonces no se ofrece publicar.
+- Base: `replays.publica`, `arquetipos` (1 o 2 ids, con forma de id del
+  catálogo) y `publicada_at`. Publicar y quitar, por
+  `repeticiones_publicar` (publicar, solo su dueño, y la deja compartida;
+  quitar, su dueño o la administración). 30 publicadas por persona.
+  `repeticiones_publicas(arquetipo)` da las publicadas **y compartidas**:
+  hacerla privada la saca de la galería sin despublicarla.
+- En la ficha del mazo, «Partidas de ejemplo»: los dos mazos, quién ganó
+  (por su mazo), los turnos y quién la subió. Sin la migración, la sección
+  no sale.
+- **Sin la migración, «Publicar como ejemplo» lo dice ANTES de guardar
+  nada** (`galeriaPuesta()`: pide la columna `publica`, que viene en la
+  misma transacción que la función). Publicar es guardar una copia y luego
+  publicarla, y sin la función la copia se quedaría huérfana en «Tus
+  repeticiones».
+
+## Tanda 521 — puzles «¿Qué jugarías?» sacados de una repetición (oct. 2026)
+
+PINGU, de la lista de ideas: «una posición de una repetición, la pregunta
+"¿qué jugarías?", unas opciones y la solución explicada».
+
+- Desde una repetición **tuya y guardada**, en la jugada que miras:
+  «Hacer un puzle aquí» (en Momentos). Pregunta, de 2 a 4 opciones (las
+  vacías se quitan y la buena se cuenta entre las que quedan) y por qué.
+  Delante, lo que se jugó después, para escribir las opciones con ello a
+  la vista. Hacerlo **comparte** la repetición: sin el registro no hay mesa.
+- `/repeticiones?puzle=…`: la mesa en esa jugada y **nada de lo que viene
+  después** —ni registro, ni momentos, ni controles, ni números, ni mazos,
+  ni la cabecera (imagen y vídeo dicen cómo acaba)—, y las teclas no la
+  mueven. Al elegir: si acertaste, cuál era la buena, por qué y qué eligió
+  la gente. «Ver cómo siguió» devuelve la repetición entera desde ahí.
+- **La buena y la explicación no se pueden leer de la tabla**: el permiso
+  de lectura es por COLUMNAS y esas dos no están (pedir `*` falla entero,
+  con 42501 — el doble lo finge igual desde esta tanda). Salen de
+  `puzles_responder`, que apunta tu PRIMERA respuesta (cambiarla sabiendo
+  la solución sería trampa a la estadística). Sin cuenta también se
+  contesta, sin apuntarse.
+- La lista «Puzles de la comunidad» va encima de «Tus repeticiones», y la
+  ve cualquiera. Si el
+  dueño deja de compartir la repetición, el puzle deja de verse.
+
+### Lo que hay que ejecutar (tandas 516, 520 y 521)
+
+En el SQL Editor, en este orden (las tres se pueden repetir enteras):
+
+1. `supabase-migration-torneos-premios-entrega.sql` — la tabla de premios
+   dados y su función. Va después de la de torneos.
+2. `supabase-migration-repeticiones-galeria.sql` — publicar como partida
+   de ejemplo. Va después de `supabase-migration-repeticiones.sql`.
+3. `supabase-migration-repeticiones-puzles.sql` — los puzles. También
+   después de `supabase-migration-repeticiones.sql`.
+
+Sin ellas no se rompe nada: el reparto de premios sale sin el botón de
+«dado», «Publicar como ejemplo» dice qué falta, las partidas de ejemplo de
+/meta no salen, y los puzles dicen qué falta al hacer uno.

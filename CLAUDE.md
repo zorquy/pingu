@@ -551,6 +551,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (Limitless → jsDelivr → GitHub a pelo → esconder). Si añades una
   imagen de un tercero, pregúntate qué se ve el día que ese tercero no
   conteste — y que la respuesta no sea «nada, sin dar error».
+- **Un respaldo tiene que conservar lo que DISTINGUE** (tanda 511). El
+  siguiente paso de una mega era su especie base, «que para reconocer un
+  mazo sirve igual»… salvo que Mega Gardevoir y Gardevoir son DOS mazos, y
+  la imagen del meta acabó pintando el que no era cuando `/sprite` empezó a
+  dar 404. Una cadena de respaldo va de menos a más pérdida, y hay que
+  decidir QUÉ es la pérdida: aquí se pierde antes el estilo (Limitless →
+  la misma mega en PokeAPI) que la forma.
 - **Un hijo de flex CEDE antes de desbordar** (tanda 320), y por eso una
   barra que no cabe no da ningún síntoma que cante: `.nav-logo` se
   encogía de 126 px a 44 y «PokeDoc» se amontonaba encima de su icono.
@@ -681,6 +688,21 @@ web. Y al copiar una restricción, cópiale también **el valor por defecto**:
 `market` es `not null default 'WEST'`, así que una fila de fixture que no
 diga nada ES occidental — comparar `null` contra `'WEST'` dejaba sin set a
 casi todas las cartas de las pruebas viejas.
+
+Y su pariente de la 521: **un doble que QUITA lo que la base RECHAZA da
+por buena una consulta que en producción falla entera.** La buena y la
+explicación de un puzle no tienen permiso de lectura (permiso por
+COLUMNAS), y el doble las quitaba en silencio de lo que devolvía. En
+Postgres no se quitan: pedirlas —o pedir `*`, que las incluye— hace fallar
+la consulta ENTERA con 42501. Un `.select('*')` en esa tabla habría salido
+verde aquí y vacío en la web. Si la base dice que no, el doble dice que no.
+
+**Una prueba que ORDENA lo que recibe no prueba el orden de quien se lo
+da** (tanda 520). La de la galería comprobaba «la más nueva primero» con
+`array_agg(id order by publicada_at desc)` sobre lo que devolvía la
+función: el rigor le dio la vuelta al `order by` de la función y la prueba
+siguió en verde, porque el orden lo ponía ella. El orden de quien contesta
+se lee tal cual llega (`with ordinality`).
 
 **Pasar «las pruebas que tocan» no es pasar la suite** (tanda 447). Al
 correrla entera salieron ONCE rojos, y ninguno era de la tanda: la guarda
