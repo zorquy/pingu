@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 15:30) — PINGU-Claude (543 — una tabla INVENTADA en una migración, y era la comprobación de un borrado)
+
+**Hecho**: escribí `public.user_cards` en la migración de limpieza del
+japonés. Esa tabla **no existe**: las de la casa son `user_collection` y
+`user_wants`. Me inventé el nombre en vez de mirarlo —que es exactamente lo
+que la casa tiene escrito que no se hace— y PINGU se comió el error en el
+SQL Editor: `42P01: relation "public.user_cards" does not exist`.
+
+**Y lo que asusta no es el error, es dónde estaba**: esa consulta era **la
+comprobación de seguridad de un BORRADO** —«¿hay cartas de alguien en estos
+sets?»—. Postgres cantó porque el nombre no existía; **si el nombre
+inventado hubiera existido con otro contenido, habría contestado CERO por el
+motivo equivocado** y yo habría dado el borrado por seguro. Es la familia de
+siempre —un vacío que se lee como una respuesta— metida justo en la guarda.
+
+**El barrido**: toda tabla que una migración NOMBRA (`from`, `join`,
+`update`, `insert into`, `delete from`) tiene que estar CREADA en alguna
+migración del repo. 142 migraciones, 333 menciones, y tres detalles que lo
+hacen útil en vez de ruidoso:
+
+- **Sin comentarios**: esta misma migración EXPLICA el fallo nombrando
+  `user_cards`, y un nombre citado no es una consulta (la 524).
+- **Una FUNCIÓN no es una tabla**: `from public.pokedex_resumen(...)` es una
+  llamada, y se distingue por el paréntesis.
+- **Lo que existe sin que ninguna migración lo cree va DECLARADO** con su
+  motivo: `auth.users` y el `storage` son de Supabase; `user_profiles`,
+  `guides` y `achievement_definitions` son más viejas que los ficheros de
+  migración —nacieron en el editor cuando el repo no llevaba su esquema—.
+  Si mañana alguien crea una tabla a mano y la usa, el barrido la canta: la
+  lista crece a propósito y no por descuido.
+
+**Ficheros**: `supabase-migration-japones-limpiar-huecos.sql` (corregida).
+En `pruebas`: `pruebas/test-tanda-543.mjs`.
+
 ## 2026-10-04 (tarde, 15:05) — PINGU-Claude (542 — el nombre del set AL LADO DE CADA CARTA seguía en kanji)
 
 **Hecho**: lo cazó el barrido que escribí en la 532, y es un hueco de
