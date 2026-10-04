@@ -25,7 +25,7 @@ export { cadenaDeEscaneo, atributosDeEscaneo }
 // pintar, para que las 2.811 ya guardadas se vean bien sin tener que
 // reengordarlas (tanda 334).
 import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
-import { nombreDeSet, eraDeSet } from './catalogo-series.js'
+import { nombreDeSet, eraDeSet, nombreDeCarta } from './catalogo-series.js'
 import { tieneCJK } from './texto.js'
 
 export {
@@ -143,24 +143,10 @@ export function esLaMismaCarta(a, b) {
   return Boolean(ha) && ha === huellaDeCarta(b, conNombres)
 }
 
-// El nombre que se ENSEÑA: el español si lo tenemos, y el inglés si no
-// (tanda 335).
-//
-// `name` se queda SIEMPRE en inglés porque es la clave con la que se
-// cruzan las decklists, el agregado de torneos y la huella. Esta función
-// es la única puerta por la que sale el nombre a la pantalla.
-export function nombreDeCarta(carta) {
-  const es = typeof carta?.name_es === 'string' ? carta.name_es.trim() : ''
-  if (es) return es
-  // EL JAPONÉS SE ENSEÑA EN OCCIDENTAL SI LO HAY (tanda 537), misma regla
-  // que con el nombre de los sets: se traduce lo que NO SE PUEDE LEER. Una
-  // carta occidental no cambia porque exista `name_en` — ahí `name` ya
-  // está en un alfabeto que se lee.
-  const propio = typeof carta?.name === 'string' ? carta.name : ''
-  const en = typeof carta?.name_en === 'string' ? carta.name_en.trim() : ''
-  if (en && tieneCJK(propio)) return en
-  return propio || en || ''
-}
+// El nombre que se ENSEÑA vive en `js/catalogo-series.js` desde la 546, al
+// lado del de los sets: aquí dentro no lo podía importar nadie más sin
+// traerse media web, y de ahí salieron las cinco copias que dejaron la
+// biblioteca en kanji.
 
 // ── El subtítulo ──
 //
@@ -611,7 +597,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
     "this.replaceWith(Object.assign(document.createElement('div'),{className:'carta-scan-vacio',textContent:'Sin imagen'}))"
   )
   const sub = subtituloDeCarta(carta)
-  const alt = `Carta de ${nombreDeCarta(carta)}${set?.name ? ` (${set.name})` : ''}`
+  const alt = `Carta de ${nombreDeCarta(carta)}${set?.name ? ` (${nombreDeSet(set)})` : ''}`
   return (
     '<div class="carta-cabecera">' +
     `<h1>${escapeHtml(nombreDeCarta(carta) || 'Carta')}</h1>` +

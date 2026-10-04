@@ -6,6 +6,10 @@
 //
 // Una «entrada» del mazo es { carta, n }: la fila de `tcg_cards` y las
 // copias. Todo lo de aquí trabaja sobre esa forma.
+//
+// `catalogo-series.js` no pinta nada y no importa más que `texto.js`, así
+// que entra sin romper lo de arriba (tanda 546).
+import { nombreDeCarta } from '../catalogo-series.js'
 
 // ── Qué es cada carta ──
 //
@@ -182,12 +186,17 @@ export function claveDeNombre(carta) {
 }
 
 // El nombre que se ENSEÑA. Desde la tanda 335 `name` es el inglés (la
-// clave con la que se cruzan las impresiones y lo que entiende TCG Live)
-// y el traducido va en `name_es`. Es la misma regla que `nombreDeCarta`
-// de carta-nucleo.js, copiada en una línea porque importar aquel módulo
-// —que pinta HTML— haría que esta página «usara» sus clases (prueba 299).
+// clave con la que se cruzan las impresiones y lo que entiende TCG Live) y
+// el traducido va en `name_es`.
+//
+// ESTO ERA UNA COPIA DE UNA LÍNEA, con su motivo al lado: importar
+// `carta-nucleo.js` —que pinta HTML— haría que esta página «usara» sus
+// clases y el barrido de la 299 se pondría rojo. El motivo era bueno y
+// desde la 546 ya no existe: la regla vive en `catalogo-series.js`, que no
+// pinta nada. Y mientras existía, esta copia no sabía del nombre
+// occidental, como las otras cinco.
 export function nombreVisible(carta) {
-  return String(carta?.name_es || carta?.name || '')
+  return nombreDeCarta(carta)
 }
 
 // ── Las reglas del mazo ──

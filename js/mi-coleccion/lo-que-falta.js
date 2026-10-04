@@ -13,6 +13,11 @@
 // orden de la tanda 427 y el «separar variantes» ya han hecho su trabajo
 // antes de llegar aquí.
 
+// El nombre sale por la puerta de siempre (tanda 546): aquí había otra
+// copia del «español o inglés» que no sabía del nombre occidental, y una
+// lista para pegar en un chat con los kanji dentro no la puede usar nadie.
+import { nombreDeCarta } from '../catalogo-series.js'
+
 // Y si hay filtros puestos, el texto lo DICE. Sin eso, quien filtró por
 // «ultra raras» pega una lista de cinco cartas y la otra persona entiende
 // que le faltan cinco del set entero: una lista que miente sobre su
@@ -42,7 +47,7 @@ export function textoDeLoQueFalta(faltan, { nombreDelSet, codigo, total, filtran
 // los que llevan los nombres («Ho-Oh», «Porygon-Z»).
 function lineaDeCarta(c) {
   const numero = c.local_id ? String(c.local_id) : '—'
-  const nombre = c.name_es || c.name || 'Carta'
+  const nombre = nombreDeCarta(c) || 'Carta'
   // En «separar variantes» cada hueco es una VERSIÓN, así que decir solo
   // el número pediría la carta equivocada: quien te la busca no sabe si
   // quieres la normal o el reverse holo.

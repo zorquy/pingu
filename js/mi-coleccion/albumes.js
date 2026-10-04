@@ -28,9 +28,9 @@ const MAX_CARTAS = 1080
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, POR_PAGINA } from './archivador.js'
 import { burbujaHtml } from './adorno.js'
 import { abrirDialogoAdorno } from './dialogo-adorno.js'
-import { nombreDeSet } from '../catalogo-series.js'
+import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 const $ = (id) => document.getElementById(id)
-const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
+const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
 
 function traducir(error) {
   if (!error) return null
@@ -336,7 +336,7 @@ async function buscar() {
     $('mcAlbResultados').innerHTML = ''
     return
   }
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date)').eq('market', 'WEST')
+  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date)').eq('market', 'WEST')
   for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(48)
   if (mio !== turnoBusqueda) return
@@ -385,7 +385,7 @@ export function iniciarAlbumes(contexto) {
   ctx = contexto
   $('mcAlbNuevoAbrir')?.addEventListener('click', async () => {
     const sets = await ctx.sets()
-    $('mcAlbSet').innerHTML = sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('')
+    $('mcAlbSet').innerHTML = sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(nombreDeSet(s) || s.id)}</option>`).join('')
     abrirDialogoAdorno({
       titulo: 'Nuevo álbum soñado',
       boton: 'Crear álbum',

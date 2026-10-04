@@ -22,12 +22,11 @@ import { logClientError } from './error-log.js'
 // El precio de Cardmarket y «Añadir a mi colección» (tanda 365).
 import { pintarMercado } from './carta-mercado.js'
 import { escapeHtml } from './app.js'
-import { nombreDeSet } from './catalogo-series.js'
+import { nombreDeSet, nombreDeCarta } from './catalogo-series.js'
 import {
   candidatosDeRuta,
   clavesDeJuego,
   unirJuego,
-  nombreDeCarta,
   esLaMismaCarta,
   huellaDeCarta,
   idiomaDeFicha,
@@ -178,11 +177,11 @@ async function conDetalleDeTCGdex(carta, idiomas = undefined) {
 }
 
 function pintar(carta, set, play = null, legalidad = null, repintarIgual = false) {
-  document.title = `${nombreDeCarta(carta)} — ${set?.name || 'Pokémon TCG'} — PokeDoc`
+  document.title = `${nombreDeCarta(carta)} — ${nombreDeSet(set) || 'Pokémon TCG'} — PokeDoc`
 
   const miga = $('migaColeccion')
   if (miga && set?.name) {
-    miga.outerHTML = `<a id="migaColeccion" href="${escapeHtml(rutaDeColeccion(set))}">${escapeHtml(set.name)}</a>`
+    miga.outerHTML = `<a id="migaColeccion" href="${escapeHtml(rutaDeColeccion(set))}">${escapeHtml(nombreDeSet(set))}</a>`
   }
 
   const caja = $('cartaNucleo')

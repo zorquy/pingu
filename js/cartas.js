@@ -151,7 +151,9 @@ const ES_PROMO = /\bpromos?\b/i
 const ES_ENERGIA = /\benerg(y|ies|ia|ías|ía)\b/i
 
 export function rangoDeSet(set) {
-  const nombre = String(set?.name || '')
+  // Los dos nombres, por lo mismo que en la estantería (tanda 546): las
+  // palabras que busca son inglesas.
+  const nombre = `${set?.name || ''} ${set?.name_en || ''}`
   if (ES_PROMO.test(nombre)) return 2
   if (ES_ENERGIA.test(nombre)) return 1
   return 0

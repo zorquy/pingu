@@ -25,7 +25,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet, nombreDeSet } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -337,7 +337,11 @@ let especieAbierta = null
 // (tanda 438). El inglés es además la CLAVE con la que se cruzan las
 // decklists y las reimpresiones, así que `name` nunca se toca: lo que
 // cambia es cuál de los dos se ENSEÑA.
-const nombreDe = (c) => (laVista().enEspanol ? c?.name_es || c?.name : c?.name || c?.name_es) || 'Carta'
+// Desde la 546 es `nombreDeCarta` quien decide, que es la ÚNICA puerta por
+// la que sale un nombre a la pantalla: esta línea no sabía que desde la 537
+// hay un nombre occidental, así que la biblioteca japonesa seguía en kanji
+// con el dato bueno guardado al lado.
+const nombreDe = (c) => nombreDeCarta(c, { enEspanol: laVista().enEspanol }) || 'Carta'
 
 // `porNumero` vive en `mi-coleccion/orden.js` desde la 427, con los otros
 // tres órdenes. Estaba aquí, y una constante copiada se separa sin que
@@ -1268,7 +1272,7 @@ function lineasFiltradas() {
     const c = cartas.get(l.card_id)
     if (set && c?.set_id !== set) return false
     if (idioma && l.idioma !== idioma) return false
-    if (texto && !normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)) return false
+    if (texto && !normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)) return false
     return pasaLosFiltros(l, c, filtros, AYUDAS)
   })
   // El orden vive en `js/mi-coleccion/filtros.js`, sin DOM, para poder
@@ -1732,6 +1736,28 @@ function tengoDe(cardId, variante = null) {
 //
 // Dos estados, como en los álbumes soñados: la estantería y el
 // archivador abierto. Se parecen a propósito — son la misma idea.
+// Las eras que hay en ESTE catálogo, en el desplegable.
+//
+// EL RÓTULO SALE DE `eraDeSet` (tanda 541): con `serie_name` a secas, una
+// era japonesa salía en japonés —o vacía, porque los sets que vienen de
+// Scrydex no traen `serie_name`, traen `serie_name_en`—.
+function montarDesplegableDeEras(sets, mercado) {
+  const sel = $('mcEstanteriaSerie')
+  if (!sel) return
+  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, eraDeSet(s) || s.serie_id])).entries()]
+  const firma = `${mercado}|${series.map(([id]) => id).join(',')}`
+  if (sel.dataset.firma === firma) return
+  // Lo elegido se conserva si en el catálogo nuevo existe; si no, se vuelve
+  // a «todas». Dejar el valor viejo puesto es el fallo de la 472 al revés:
+  // un `<select>` cuyo valor no está entre sus opciones se queda con la
+  // PRIMERA, y entonces la pantalla dice una cosa y el filtro hace otra.
+  const antes = sel.value
+  sel.dataset.firma = firma
+  sel.innerHTML = '<option value="">Todas las series</option>'
+    + series.map(([id, n]) => `<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join('')
+  sel.value = series.some(([id]) => id === antes) ? antes : ''
+}
+
 async function pintarEstanteria() {
   const sets = await cargarSets()
   // Cuántas DISTINTAS tienes de cada colección. Distintas y no copias:
@@ -1757,11 +1783,28 @@ async function pintarEstanteria() {
       cuantas.set(suyo, (cuantas.get(suyo) || 0) + 1)
     }
   }
+  // ── EL DESPLEGABLE DE ERAS SE REHACE AL CAMBIAR DE CATÁLOGO (tanda 546) ──
+  //
+  // PINGU: «el filtro está fatal, debería cambiar al escoger otro idioma;
+  // se queda con el español/inglés y al cambiar a japonés el filtro está
+  // mal». Y estaba literalmente escrito: `if (sel && !sel.dataset.montado)`
+  // montaba las opciones UNA VEZ y no volvía a mirar. Así que en el
+  // catálogo japonés el desplegable seguía ofreciendo «Escarlata y Púrpura»
+  // y «Espada y Escudo» —eras que ahí no existen—, y elegir una dejaba la
+  // estantería vacía sin decir por qué.
+  //
+  // La firma es el mercado y las eras que hay: cuando cambia, se rehace.
+  // Y va ANTES de leer el valor a propósito, que es la otra mitad del
+  // fallo: si se rehace después, esta pasada filtra todavía por la era
+  // vieja —que en el catálogo nuevo no casa con nada— y el desplegable que
+  // se ve ya dice «Todas las series». Dos cosas distintas en pantalla a la
+  // vez, y ninguna es la verdad.
+  montarDesplegableDeEras(sets, mercado)
   const texto = normalizeSearch($('mcEstanteriaBuscar')?.value || '').trim()
   const serie = $('mcEstanteriaSerie')?.value || ''
   const cumple = (s) =>
     (!serie || s.serie_id === serie) &&
-    (!texto || normalizeSearch(`${s.name} ${s.id}`).includes(texto)) &&
+    (!texto || normalizeSearch(`${s.name} ${nombreDeSet(s)} ${s.id}`).includes(texto)) &&
     // Y la de la 443: con 206 colecciones, de casi todas no tienes
     // ninguna. Esto QUITA esas, que es distinto de ordenarlas —la 409
     // probó a subirlas arriba y con cien empezadas la lista seguía
@@ -1773,16 +1816,6 @@ async function pintarEstanteria() {
   // igual de larga pero sin fechas. Ahora arriba va solo lo que marcas.
   const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
   const grupos = gruposDeEstanteria(visibles, favoritos || new Set())
-
-  // EL RÓTULO SALE DE `eraDeSet` (tanda 541): con `serie_name` a secas,
-  // una era japonesa salía en japonés —o vacía, porque los sets que vienen
-  // de Scrydex no traen `serie_name`, traen `serie_name_en`—.
-  const series = [...new Map(sets.filter((s) => s.serie_id).map((s) => [s.serie_id, eraDeSet(s) || s.serie_id])).entries()]
-  const sel = $('mcEstanteriaSerie')
-  if (sel && !sel.dataset.montado) {
-    sel.dataset.montado = '1'
-    sel.innerHTML = '<option value="">Todas las series</option>' + series.map(([id, n]) => `<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join('')
-  }
 
   $('mcEstanteriaRejilla').innerHTML = grupos
     .map((g) => `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>
@@ -1908,7 +1941,7 @@ function tarjetaDeSet(set, tengo) {
         <!-- El código arriba a la derecha y en línea con el nombre, como en
              Dex: es una etiqueta de la colección, no un dato más del pie. -->
         <span class="mc-set-titulo">
-          <span class="mc-set-nombre">${escapeHtml(set.name || set.id)}</span>
+          <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
           ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
         </span>
         ${fecha ? `<span class="mc-set-sub">${escapeHtml(fecha)}</span>` : ''}
@@ -2017,7 +2050,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   $('mcEstanteriaZona').classList.add('hidden')
   $('mcArchivadorZona').classList.remove('hidden')
   const set = (todosLosSets || []).find((s) => s.id === setId)
-  $('mcAlbumTitulo').textContent = set?.name || ''
+  $('mcAlbumTitulo').textContent = nombreDeSet(set) || ''
   pintarEstrella()
   pintarSoloFaltan()
   // La miga se pinta aquí y no una vez al arrancar: su botón vive dentro
@@ -2731,7 +2764,7 @@ async function tocarBolsillo(cardId, variante = 'normal') {
     const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 }, mercado)
     const c = album.cartas.find((x) => x.id === cardId)
     const set = (todosLosSets || []).find((s) => s.id === album.set)
-    meterLinea(nueva, c ? { ...c, tcg_sets: set ? { id: set.id, name: set.name, release_date: set.release_date } : null } : null)
+    meterLinea(nueva, c ? { ...c, tcg_sets: set ? { id: set.id, name: set.name, name_en: set.name_en || null, release_date: set.release_date } : null } : null)
     pintarAlbum()
     pintarResumen()
   } catch (err) {
@@ -3579,7 +3612,7 @@ function pintarCartasDeCarpetaFiltradas() {
   const dentro = texto
     ? lineasDeLaCarpeta.filter((l) => {
         const c = cartas.get(l.card_id)
-        return normalizeSearch(`${c?.name || ''} ${c?.name_es || ''} ${c?.local_id || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)
+        return normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${c?.local_id || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)
       })
     : lineasDeLaCarpeta
   hueco.innerHTML = dentro.length
@@ -3677,7 +3710,7 @@ function pintarEspecieFiltrada() {
     // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
     // ya están todas cargadas; allí va en la consulta porque son 21.000.
     if (!texto) return true
-    return normalizeSearch(`${c.name || ''} ${c.name_es || ''} ${c.local_id || ''} ${c.illustrator || ''} ${nombreDeSet(c.tcg_sets)}`).includes(texto)
+    return normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${c.local_id || ''} ${c.illustrator || ''} ${nombreDeSet(c.tcg_sets)}`).includes(texto)
   })
   // Los chips viven en el panel, que está FUERA de la caja que se repinta:
   // si se pintaran dentro, abrir el panel después de filtrar enseñaría los

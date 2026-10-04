@@ -27,9 +27,9 @@ import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { especiesDeCarta, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
 import { urlDeSprite, atributosDeRespaldo } from '../torneos/sprites-pokemon.js'
-import { nombreDeSet } from '../catalogo-series.js'
+import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 
-const nombreDe = (c) => c?.name_es || c?.name || 'Carta'
+const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
 
 // ── Lo que tienes, por especie ──
 //

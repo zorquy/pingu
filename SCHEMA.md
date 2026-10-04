@@ -28484,3 +28484,65 @@ Las cuatro primeras son `not null`, así que una carta suya sin número o sin
 nombre de ninguna clase **no se inserta**: un upsert forma la fila antes de
 ver que ya existe, y una fila que no se puede formar se lleva la sentencia
 entera con 23502 (la lección de la 526).
+
+## Tanda 546 — la biblioteca seguía en kanji, y el filtro de eras no cambiaba de catálogo (oct. 2026)
+
+PINGU: «¿y los nombres en inglés qué? siguen saliendo los kanjis… y lo del
+filtro está fatal, debería cambiar al escoger otro idioma, porque se
+mantiene con el español/inglés y al cambiar a japo el filtro está mal».
+
+Las dos cosas tenían la misma forma: algo escrito DOS VECES con una sola
+copia enterada.
+
+**1. CINCO copias de «cuál de los dos nombres se enseña».** La 537 puso
+`name_en` y la 542 lo llevó a los nombres de set, y la biblioteca siguió en
+japonés — porque `nombreDeCarta` vivía en `js/carta-nucleo.js`, que es el
+módulo de la FICHA y arrastra `carta-detalle`, `escaneo-carta` y el HTML.
+Importarlo desde /mi-coleccion habría hecho que esa página «usara» sus
+clases de CSS y el barrido de la 299 se habría puesto rojo. Así que cada
+pantalla se escribió su propia línea: `js/mi-coleccion.js`,
+`mi-coleccion/albumes.js`, `mi-coleccion/pokedex.js`,
+`mi-coleccion/tablon.js` y `mi-coleccion/lo-que-falta.js`. **Cinco, y
+ninguna sabía de `name_en`.**
+
+Es la lección de la 471 por tercera vez: **no copiar es mejor que una copia
+vigilada**, y para no copiar hay que mudar lo puro a un módulo que se pueda
+importar desde todos lados. `nombreDeCarta` vive ahora en
+`js/catalogo-series.js`, al lado de `nombreDeSet` —que es esta misma regla
+aplicada a la otra tabla— y con un `enEspanol` para el selector de catálogo.
+Y al mudarla **caducó el motivo de una sexta copia**: `nombreVisible` del
+constructor llevaba su porqué escrito al lado («importar aquel módulo haría
+que esta página usara sus clases»), y ese porqué ya no es verdad.
+
+La guarda que lo impide volver a hacer no es una prueba de pantalla: es un
+**barrido** que recorre `js/` y no deja que ningún módulo escriba
+`name_es || name`. Lo que no es elegir un nombre para la pantalla va
+declarado uno por uno con su motivo —las claves de juego, el slug de la
+dirección, la comparación contra las energías básicas, la serialización de
+una posición compartida—, y la primera pasada encontró **cuatro sitios más**
+que yo no había mirado.
+
+**2. El desplegable de eras se montaba UNA vez.** Literalmente:
+`if (sel && !sel.dataset.montado)`. Así que en el catálogo japonés seguía
+ofreciendo «Escarlata y Púrpura» y «Espada y Escudo», eras que ahí no
+existen, y elegir una dejaba la estantería vacía sin decir por qué. Ahora la
+firma es el mercado más las eras que hay, y cuando cambia se rehace. Dos
+detalles que son la mitad del arreglo:
+
+· **Va ANTES de leer el valor.** Si se rehiciera después, esa pasada
+  filtraría por la era vieja —que en el catálogo nuevo no casa con nada—
+  mientras el desplegable ya dice «Todas las series»: dos cosas distintas en
+  pantalla a la vez, y ninguna es la verdad.
+· **Lo elegido se conserva solo si existe en el catálogo nuevo.** Es la 472
+  por el otro lado: un `<select>` cuyo valor no está entre sus opciones se
+  queda con la PRIMERA, y entonces la pantalla dice una cosa y el filtro hace
+  otra.
+
+**3. Y la otra mitad del nombre: buscarlo.** Los tres filtros de la
+biblioteca cruzaban contra `name` y `name_es` y no contra `name_en`, así que
+se leía «Eevee» en la tarjeta y escribir «Eevee» no encontraba nada. Eso se
+arregla en el cliente con `nombresDeCartaParaBuscar`… y en la BASE hace
+falta una migración: `name_search` es una columna GENERADA a partir de
+`name` y `name_es` (`supabase-migration-cartas-buscar-en.sql`). `name_key`
+no se toca: esa es la clave con la que se cruzan las decklists y meterle un
+nombre más la rompería igual que la rompió el español en su día.

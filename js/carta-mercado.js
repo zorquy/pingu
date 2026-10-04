@@ -10,7 +10,7 @@
 import { escapeHtml, getSession, getInitial, avatarStyle, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
-import { nombreDeCarta } from './carta-nucleo.js'
+import { nombreDeCarta } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,

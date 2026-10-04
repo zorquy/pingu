@@ -48,7 +48,9 @@ const NOMBRES_ESPECIALES =
 
 export function esEspecial(set) {
   if (SERIES_ESPECIALES.includes(String(set?.serie_id || '').toLowerCase())) return true
-  return NOMBRES_ESPECIALES.test(String(set?.name || ''))
+  // LOS DOS NOMBRES (tanda 546): estas palabras son inglesas y el nombre
+  // de un set japonés está en kanji, así que sin `name_en` no casa ni una.
+  return NOMBRES_ESPECIALES.test(`${set?.name || ''} ${set?.name_en || ''}`)
 }
 
 // Los PROMOS de una era no son especiales: son de su era (PINGU, al ver
@@ -60,7 +62,7 @@ export function esEspecial(set) {
 const ES_PROMO = /\bpromos?\b/i
 
 export function esPromoDeEra(set) {
-  return !esEspecial(set) && ES_PROMO.test(String(set?.name || ''))
+  return !esEspecial(set) && ES_PROMO.test(`${set?.name || ''} ${set?.name_en || ''}`)
 }
 
 // El año de un set, para ordenar. Sin fecha no se inventa uno: se va al

@@ -18,8 +18,9 @@ import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { porPersona } from './cambios.js'
 import { atributosDeRango } from '../rangos.js'
+import { nombreDeCarta } from '../catalogo-series.js'
 
-const nombreDe = (c) => c?.name_es || c?.name || '—'
+const nombreDe = (c) => nombreDeCarta(c) || '—'
 
 // Lo que distingue una copia de otra, en una línea: «español · Near
 // Mint · Reverse holo». La versión solo se dice si NO es la normal —

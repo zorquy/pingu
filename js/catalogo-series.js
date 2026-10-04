@@ -185,6 +185,46 @@ export function nombreDeSet(set) {
   return propio || set?.name_en || ''
 }
 
+// ── Y EL DE UNA CARTA, QUE ES LA MISMA REGLA (tanda 546) ──
+//
+// Vivía en `js/carta-nucleo.js`, que es el módulo de la FICHA y arrastra
+// media web (`carta-detalle`, `escaneo-carta`, `html`…). Por eso
+// /mi-coleccion no lo usaba: tenía su propio `nombreDe` de una línea, y
+// otro en `albumes.js`, y otro en `pokedex.js`, y otro en `tablon.js`, y
+// otro en `lo-que-falta.js`. CINCO copias, ninguna enterada de que desde la
+// 537 hay un nombre occidental — así que la 537 y la 542 arreglaron la
+// ficha de una carta y la biblioteca entera siguió en kanji.
+//
+// Es la lección de la 471 otra vez: **no copiar es mejor que una copia
+// vigilada**, y para no copiar hay que mudar lo puro a un módulo que se
+// pueda importar desde todos los lados. Aquí al lado de `nombreDeSet`, que
+// es esta misma regla aplicada a la otra tabla.
+//
+// `enEspanol` existe porque /mi-coleccion tiene un selector de catálogo: en
+// el inglés, el nombre español no manda (y un `name_es` no se tira, se deja
+// de preferir). En el japonés manda lo que SE PUEDE LEER, que es lo que
+// hace la regla de abajo.
+export function nombreDeCarta(carta, { enEspanol = true } = {}) {
+  const es = typeof carta?.name_es === 'string' ? carta.name_es.trim() : ''
+  if (es && enEspanol) return es
+  // EL JAPONÉS SE ENSEÑA EN OCCIDENTAL SI LO HAY (tanda 537), misma regla
+  // que con el nombre de los sets: se traduce lo que NO SE PUEDE LEER. Una
+  // carta occidental no cambia porque exista `name_en` — ahí `name` ya
+  // está en un alfabeto que se lee.
+  const propio = typeof carta?.name === 'string' ? carta.name : ''
+  const en = typeof carta?.name_en === 'string' ? carta.name_en.trim() : ''
+  if (en && tieneCJK(propio)) return en
+  return propio || en || es || ''
+}
+
+// TODO lo que se busca de una carta, en una cadena. Existe por lo mismo que
+// la función de arriba: el buscador de la biblioteca cruzaba contra `name` y
+// `name_es` y NO contra `name_en`, así que de una carta japonesa se veía
+// «Eevee» en la pantalla y escribir «Eevee» no la encontraba.
+export function nombresDeCartaParaBuscar(carta) {
+  return [carta?.name, carta?.name_es, carta?.name_en].filter(Boolean).join(' ')
+}
+
 // Lo mismo con la ERA, que en los sets japoneses de TCGdex viene vacía o
 // en japonés y en Scrydex viene en inglés («Mega Evolution»).
 export function eraDeSet(set) {

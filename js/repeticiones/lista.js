@@ -8,6 +8,7 @@
 // premios. Sin DOM: se prueba en Node.
 import { plano } from '../constructor/nucleo.js'
 import { SIN_VER } from './posicion.js'
+import { nombreDeCarta } from '../catalogo-series.js'
 
 const nombresDe = (c) => [c?.name_es, c?.name].filter(Boolean).map(plano)
 
@@ -49,7 +50,7 @@ export function sinVerEnLaFoto(lista, s, jugador) {
   const cuenta = new Map()
   const porNombre = new Map()
   for (const e of lista) {
-    const fila = { carta: e.carta, nombre: e.carta.name_es || e.carta.name, n: e.n }
+    const fila = { carta: e.carta, nombre: nombreDeCarta(e.carta), n: e.n }
     cuenta.set(e.carta.id, fila)
     for (const n of nombresDe(e.carta)) if (!porNombre.has(n)) porNombre.set(n, fila)
   }

@@ -4,6 +4,65 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 18:40) — PINGU-Claude (546 — la biblioteca seguía en kanji, y el filtro de eras no cambiaba de catálogo)
+
+**De dónde sale**: PINGU: «¿y los nombres en inglés qué? siguen saliendo los
+kanjis… y lo del filtro está fatal, debería cambiar al escoger otro idioma,
+porque se mantiene con el español/inglés y al cambiar a japo el filtro está
+mal». Las dos cosas, con la misma forma: algo escrito DOS VECES con una sola
+copia enterada.
+
+**1. CINCO copias del nombre que se enseña.** `nombreDeCarta` vivía en
+`js/carta-nucleo.js` —el módulo de la ficha, que arrastra media web y pinta
+HTML—, así que /mi-coleccion no lo podía importar sin que el barrido de la
+299 se pusiera rojo. Resultado: una línea propia en `mi-coleccion.js`, otra
+en `albumes.js`, otra en `pokedex.js`, otra en `tablon.js` y otra en
+`lo-que-falta.js`, **y ninguna sabía de `name_en`**. De ahí que la 537 y la
+542 arreglaran la ficha de una carta y la biblioteca entera siguiera en
+japonés. Ahora la regla vive en `js/catalogo-series.js`, al lado de
+`nombreDeSet`, con un `enEspanol` para el selector de catálogo. Y al mudarla
+**caducó el motivo de una sexta copia**, la del constructor, que llevaba su
+porqué escrito al lado.
+
+**Lo vigila un BARRIDO**, no una prueba de pantalla: ningún módulo de `js/`
+puede escribir `name_es || name`, y lo que no es elegir un nombre para la
+pantalla va declarado uno por uno con su motivo. La primera pasada encontró
+**cuatro sitios más** que no había mirado (`coleccion.js`,
+`constructor/nucleo.js`, `repeticiones/lista.js` y
+`constructor/posicion-compartida.js`, que es el único legítimo: serializa
+los dos nombres en un enlace).
+
+**2. El desplegable de eras se montaba UNA vez** —`if
+(!sel.dataset.montado)`—, así que en japonés seguía ofreciendo «Escarlata y
+Púrpura». Ahora se rehace cuando cambia la firma (mercado + eras), **antes**
+de leer el valor, y lo elegido solo sobrevive si existe en el catálogo nuevo
+(la 472 por el otro lado).
+
+**3. Y buscar por ese nombre.** Los tres filtros cruzaban contra `name` y
+`name_es`: se leía «Eevee» y escribir «Eevee» no daba nada.
+
+**PENDIENTE DE PINGU**: `supabase-migration-cartas-buscar-en.sql`. El
+buscador del catálogo cruza contra `name_search`, que es una columna
+GENERADA a partir de `name` y `name_es` — hay que tirarla y rehacerla con
+`name_en` dentro (una generada no se altera en su sitio). No borra datos:
+solo redefine esa columna y sus dos índices. `name_key` no se toca.
+
+**Ficheros**: `js/catalogo-series.js`, `js/carta-nucleo.js`, `js/carta.js`,
+`js/carta-mercado.js`, `js/cartas.js`, `js/coleccion.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`,
+`js/mi-coleccion/pokedex.js`, `js/mi-coleccion/tablon.js`,
+`js/mi-coleccion/lo-que-falta.js`, `js/mi-coleccion/estanteria.js`,
+`js/constructor/nucleo.js`, `js/repeticiones/lista.js`,
+`netlify/edge-functions/meta-social.js`,
+`supabase-migration-cartas-buscar-en.sql` (nuevo), `SCHEMA.md`. En
+`pruebas`: `pruebas/test-tanda-546.mjs` y el doble (genera `name_search` con
+los tres nombres, que si no la prueba habla de otra base).
+
+**Pasado**: la 546 entera en verde —incluida la parte de navegador, que
+cambia de catálogo y comprueba las opciones del desplegable—, más 299, 372,
+406, 415, 428, 443, 447 y las de Scrydex. `test-imports.mjs` limpio y la
+portada en 167,8 KB (no la toca). Suite completa, en marcha.
+
 ## 2026-10-04 (tarde, 17:20) — PINGU-Claude (545 — sus cartas de los sets que solo tiene él)
 
 **Hecho**: el relleno solo ENRIQUECÍA. `if (!nuestra) { sinCartaNuestra++;

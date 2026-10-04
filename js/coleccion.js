@@ -17,7 +17,7 @@ import {
   TIPOS_ES,
 } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion, idsDeColeccion, nombreDeSet } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, idsDeColeccion, nombreDeSet, nombresDeCartaParaBuscar } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -197,7 +197,7 @@ function montarFiltros() {
 function cumple(carta, texto, tipo) {
   if (tipo && !(carta.types || []).includes(tipo)) return false
   if (!texto) return true
-  const busca = normalizeSearch(`${carta.name_es || ''} ${carta.name || ''} ${carta.local_id || ''}`)
+  const busca = normalizeSearch(`${nombresDeCartaParaBuscar(carta)} ${carta.local_id || ''}`)
   return busca.includes(texto)
 }
 

@@ -38,7 +38,6 @@ import {
   nucleoDeCarta,
   rutaDeCarta,
   subtituloDeCarta,
-  nombreDeCarta,
   urlDeImagen,
   clavesDeJuego,
   unirJuego,
@@ -50,7 +49,7 @@ import {
   rejillaDeCartas,
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion } from '../../js/catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La clave publicable, la misma que ya viaja en js/supabase.js y que
@@ -928,10 +927,10 @@ async function metaDeTorneo(url) {
 // eso pinta el núcleo entero en el servidor y por eso decide aquí si la
 // página merece salir en Google.
 const COLUMNAS_CARTA =
-  'id,set_id,local_id,name,name_es,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
-  'tcg_sets(id,name,release_date,card_count_official,card_count_total,tcg_online_code)'
+  'tcg_sets(id,name,name_en,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code)'
 
 // Lo que `nucleoDeCarta` necesita para decir si una carta se puede
 // jugar: las marcas legales de la temporada y si hay una reimpresión
@@ -1104,7 +1103,7 @@ async function metaDeColeccion(url) {
     : `set_id=eq.${encodeURIComponent(set.id)}`
   const cartas = await pedirVarias(
     `tcg_cards?${deQuien}&market=eq.WEST` +
-      `&select=id,name,name_es,local_id,image_path&order=${prefijo ? 'set_id.asc,' : ''}local_id.asc` +
+      `&select=id,name,name_es,name_en,local_id,image_path&order=${prefijo ? 'set_id.asc,' : ''}local_id.asc` +
       `&limit=${CARTAS_EN_EL_DOCUMENTO}`
   )
 
