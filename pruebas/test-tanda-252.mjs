@@ -175,6 +175,52 @@ console.log('\n── 6. Las DOS formas de reconocer «no existe esa función» 
   }
 }
 
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── El vacío no nombra un botón que no está (tanda 510) ──')
+//
+// /torneos VACÍO decía siempre «crea el primero con el botón de arriba».
+// Pero ese botón se ESCONDE sin sesión, y esta sección es el escaparate
+// abierto —ese es justo el sentido de la tanda 252—, así que quien llega
+// sin cuenta leía que pulsara algo que no está en su pantalla.
+//
+// Se comprueba la COHERENCIA entre las dos cosas, no el texto: lo que no
+// puede pasar es que la frase nombre el botón cuando el botón no se ve.
+for (const [etiqueta, semillas] of [
+  ['sin sesión', { __FAKE_SESSION__: 'none', __FAKE_TORNEOS__: [] }],
+  ['con sesión', { __FAKE_TORNEOS__: [] }],
+]) {
+  const { page } = await abrir('/torneos', semillas)
+  await page.waitForTimeout(1200)
+  const r = await page.evaluate(() => ({
+    texto: document.getElementById('torneosVacio')?.textContent?.trim() || '',
+    seVeElBoton: !document.getElementById('btnNuevoTorneo')?.classList.contains('hidden'),
+  }))
+  check(`${etiqueta}: el vacío se ve y dice algo`, r.texto.length > 10, r.texto)
+  check(`  …y NO nombra el botón si el botón no está`,
+    !(/botón de arriba/.test(r.texto) && !r.seVeElBoton), JSON.stringify(r))
+  // Y sin sesión tiene que llevar a algún sitio igualmente: decir «no hay
+  // nada» y nada más es el callejón sin salida de toda la noche.
+  if (etiqueta === 'sin sesión') {
+    check('  …sino que te dice que entres', /[Ee]ntra con tu cuenta/.test(r.texto), r.texto)
+  }
+  await page.close()
+}
+
+{
+  // Y UN FALLO NO ES UN VACÍO. Si la consulta se cae, decir «todavía no
+  // hay ningún torneo» presenta un fallo nuestro como un dato sobre la
+  // sección — y quien lo lee se va pensando que esto está muerto.
+  //
+  // Se ejercita con `__SIN_TABLAS__`, que ya existía: no hizo falta
+  // enseñarle al doble a fallar de otra manera.
+  const { page } = await abrir('/torneos', { __SIN_TABLAS__: ['tournaments'] })
+  await page.waitForTimeout(1200)
+  const texto = (await page.locator('#torneosVacio').textContent())?.trim() || ''
+  check('si la consulta falla, se dice que es un fallo', /No se han podido cargar/.test(texto), texto)
+  check('  …y NO se dice que no hay torneos', !/no hay ningún torneo/.test(texto), texto)
+  await page.close()
+}
+
 await browser.close()
 console.log(`\n${fails === 0 ? '✅ TODO BIEN' : `❌ ${fails} FALLOS`}`)
 process.exit(fails ? 1 : 0)
