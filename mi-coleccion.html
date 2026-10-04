@@ -643,7 +643,21 @@
              22 páginas para mirar un set de 200. -->
         <div id="mcAlbum"></div>
         </div>
+        <!-- DOS SITUACIONES MUY DISTINTAS (tanda 510), y antes compartían
+             frase: que no haya NINGUNA colección, o que TUS FILTROS no
+             dejen pasar ninguna de las doscientas. El «todavía» de la
+             frase vieja además mentía en el segundo caso —decía «espera y
+             se llenará» cuando lo que había que hacer era quitar un
+             filtro—. Es la misma familia que el `return` mudo de /cartas:
+             un vacío que no dice de qué es. -->
         <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
+        <div class="mc-vacio hidden" id="mcAlbumFiltrado">
+          <p class="mc-vacio-titulo"><strong>Ninguna colección encaja con estos filtros.</strong></p>
+          <p class="mc-vacio-texto" id="mcAlbumFiltradoCuantas"></p>
+          <div class="mc-vacio-acciones">
+            <button type="button" class="btn-primary" id="mcEstanteriaLimpiar">Quitar los filtros</button>
+          </div>
+        </div>
       </section>
 
       <!-- EL RESUMEN (tanda 374). Las cuatro cifras de arriba dicen

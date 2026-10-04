@@ -1768,11 +1768,21 @@ async function pintarEstanteria() {
     .map((g) => `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>
       <div class="mc-estanteria">${g.sets.map((x) => tarjetaDeSet(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
-  $('mcAlbumVacio').classList.toggle('hidden', visibles.length > 0)
+  // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:
+  // sin nada en el catálogo es un estado; con doscientas y cero visibles
+  // es que has filtrado de más, y eso se arregla con un botón.
+  const totalSinFiltrar = sets.filter((s) => esMia || cuantas.has(s.id)).length
+  const filtrado = visibles.length === 0 && totalSinFiltrar > 0
+  $('mcAlbumVacio').classList.toggle('hidden', visibles.length > 0 || filtrado)
+  $('mcAlbumFiltrado')?.classList.toggle('hidden', !filtrado)
+  if (filtrado) {
+    $('mcAlbumFiltradoCuantas').textContent =
+      `Tienes ${totalSinFiltrar.toLocaleString('es-ES')} ${totalSinFiltrar === 1 ? 'colección' : 'colecciones'} que mirar; estos filtros las esconden todas.`
+  }
   // Cuántas estás viendo de cuántas hay. `cumple` ya lleva el filtro
   // dentro, así que el total se cuenta aparte: es el del catálogo, no el
   // de lo que queda después de filtrar.
-  const hay = sets.filter((s) => esMia || cuantas.has(s.id)).length
+  const hay = totalSinFiltrar
   const caja = $('mcEstanteriaCuantas')
   if (caja) {
     caja.textContent = !hay
@@ -4444,6 +4454,19 @@ function enganchar() {
     soloEmpezadas = !soloEmpezadas
     $('mcEstanteriaEmpezadas').classList.toggle('activo', soloEmpezadas)
     $('mcEstanteriaEmpezadas').setAttribute('aria-pressed', soloEmpezadas ? 'true' : 'false')
+    void pintarEstanteria()
+  })
+  // Quitar los filtros los quita LOS TRES, que es lo que espera quien
+  // pulsa «quitar los filtros»: dejar uno puesto sería dejar la pantalla
+  // igual de vacía y el botón pareciendo roto.
+  $('mcEstanteriaLimpiar')?.addEventListener('click', () => {
+    const buscar = $('mcEstanteriaBuscar')
+    if (buscar) buscar.value = ''
+    const serie = $('mcEstanteriaSerie')
+    if (serie) serie.value = ''
+    soloEmpezadas = false
+    $('mcEstanteriaEmpezadas')?.classList.remove('activo')
+    $('mcEstanteriaEmpezadas')?.setAttribute('aria-pressed', 'false')
     void pintarEstanteria()
   })
   $('mcEstanteriaRejilla').addEventListener('click', (e) => {
