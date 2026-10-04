@@ -4,6 +4,55 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 09:25) — PINGU-Claude (526 — la noche entera escribiendo CERO cartas)
+
+**Hecho**: PINGU se despertó con el panel diciendo «0 de 21.476» en las tres
+barras y, en la fila de la pasada, un `23502` —`not_null_violation`— con la
+fila que fallaba: `(sv10-001, sv10, null, null,`.
+
+**La causa**: `tcg_cards` tiene `local_id` y `name` a `not null`, y el
+relleno hace un UPSERT. PostgREST manda `insert … on conflict do update`, y
+**Postgres FORMA la fila que insertaría antes de ver que ya existe**: una
+fila sin `local_id` no se puede formar. Resultado, 23502 y la sentencia
+rechazada ENTERA —las 250 cartas de la página— aunque las 250 existieran ya
+y aquello fuera a ser un update. Las dos columnas no se querían cambiar: hay
+que REPETIRLAS, con el valor que la fila ya tiene, para que se pueda formar.
+
+**La segunda mitad, que es la que lo hizo caro y es mía de anoche**: la 522
+juntó el fallo suyo y el nuestro en el mismo manejador. Saltarse la página a
+la quinta vale cuando la mala es LA PÁGINA; si el que falla es nuestro
+Supabase, la página no tiene nada que ver y saltarla es **pagar un crédito
+por página para no escribir nada**: cinco intentos × 101 páginas = 505
+créditos por un barrido en blanco. Y el panel enseñando «página 42» como si
+eso fuera progreso. Ahora lo nuestro **PARA**: lo deja escrito en el estado
+y la pasada siguiente se sale ANTES de pedirle nada a Scrydex. Lo quita un
+humano a propósito — si se quitara solo, volvería a gastar sin que nadie
+haya mirado por qué fallaba.
+
+**La guarda que importa** no es «lleva local_id»: es que **las columnas
+obligatorias se leen de la migración** (`supabase-migration-cartas.sql`) y
+se exigen en TODAS las sentencias que se mandan, no solo en el ayudante
+puro. La de los nombres se arma a mano dentro de la función y tenía el mismo
+agujero — una prueba que mirara solo `filaDeCartaConScrydex` habría salido
+verde con producción cayéndose igual. Y así, el día que alguien añada otra
+`not null`, la prueba lo canta sin que haya que acordarse.
+
+**PENDIENTE DE PINGU**: ejecutar `supabase-migration-scrydex-reiniciar-relleno.sql`
+(una fila de control, no toca ninguna carta). El estado se quedó en la
+página 42 con el barrido dado por empezado; esto lo devuelve al 1.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-relleno.mjs`,
+`supabase-migration-scrydex-reiniciar-relleno.sql`, `CLAUDE.md`, `SCHEMA.md`.
+En `pruebas`: `pruebas/test-tanda-526.mjs`, y DOS comprobaciones de
+`test-tanda-509.mjs` que sujetaban lo de anoche (la del nombre en su propia
+sentencia y la del fallo nuestro que saltaba).
+
+**Suite**: se empuja con las pruebas de Scrydex y `test-imports` en verde,
+sin esperar a la suite entera, porque la función corre cada cinco minutos y
+cada pasada gastaba un crédito para no escribir nada. La suite completa va
+inmediatamente después y el resultado se anota aquí.
+
 ## 2026-10-04 (madrugada, 08:10) — PINGU-Claude (525 — la marca que se perdía justo al ganar precisión)
 
 **Hecho**: la 523 hizo que mandara `rarity_en`, y con eso la ficha de una

@@ -809,6 +809,21 @@ export function filaDeCartaConScrydex(nuestra, suya, ahora = new Date()) {
     id: nuestra.id,
     market: nuestra.market || 'WEST',
     set_id: nuestra.set_id,
+    // ── LAS TRES COLUMNAS QUE NO SE ESCRIBEN: SE REPITEN (tanda 526) ──
+    //
+    // `local_id` y `name` son `not null` en `tcg_cards`, y esto es un
+    // UPSERT: PostgREST manda `insert … on conflict do update`, así que
+    // Postgres FORMA la fila que insertaría antes de ver que ya existe —
+    // y una fila con `local_id` nulo no se puede formar. **Da 23502 y
+    // rechaza la sentencia ENTERA**, las 250 cartas de la página, aunque
+    // todas esas filas existieran ya y aquello fuera a ser un update.
+    //
+    // O sea que el relleno de la noche del 2026-10-03 corrió entero sin
+    // escribir ni una carta: 0 de 21.476, con el panel diciendo que iba
+    // por la página 42. No es un valor que se quiera cambiar — es el que
+    // ya tiene la fila, repetido para que la fila se pueda formar.
+    local_id: nuestra.local_id,
+    name: nuestra.name,
     image_scrydex: base || nuestra.image_scrydex || null,
     rarity_en: rellenarTexto(nuestra.rarity_en, suya?.rarity),
     rarity_code: rellenarTexto(nuestra.rarity_code, suya?.rarity_code),

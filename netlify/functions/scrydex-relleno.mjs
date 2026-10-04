@@ -158,6 +158,26 @@ export async function procesar({
   let total = Number(estado?.total) || 0
   const barridos = Number(estado?.barridos) || 0
 
+  // ── PARADO: ni un crédito más (tanda 526) ──
+  //
+  // Se mira ANTES de pedirle nada a Scrydex y después de leer el estado,
+  // que sale de nuestra base y es gratis. Lo pone `tropiezo` cuando el
+  // que falla cinco veces seguidas somos nosotros, y lo quita un humano
+  // —`supabase-migration-scrydex-reiniciar-relleno.sql`—, a propósito: si
+  // se quitara solo, volvería a gastar sin que nadie haya mirado por qué
+  // fallaba.
+  if (estado?.parado) {
+    return {
+      estado: 200,
+      cuerpo: {
+        PARADO: estado.parado,
+        creditos: 0,
+        pagina,
+        porque: 'falló nuestra base cinco veces seguidas. No se gasta nada hasta que alguien lo mire y lo reanude.',
+      },
+    }
+  }
+
   // ── ¿Hay algo que hacer? ──
   //
   // Se pregunta ANTES de gastar un crédito, y la respuesta sale de
@@ -202,15 +222,33 @@ export async function procesar({
   // página no avanza, y se reintenta cada cinco minutos para siempre — 288
   // créditos al día. Es la cuarta vez esta noche con la misma forma, y las
   // tres anteriores me las había mirado sin ver esta.
-  const tropiezo = async (porque, codigo) => {
+  // ── Y SALTAR NO VALE PARA LOS DOS LADOS (tanda 526) ──
+  //
+  // Anoche junté los dos fallos en este mismo manejador y la mitad quedó
+  // mal: saltarse la página es lo correcto cuando **esa página** es la
+  // mala —un 500 suyo, un id raro—, porque el problema se queda atrás. Si
+  // el que falla es NUESTRO Supabase, la página no tiene nada que ver, y
+  // saltarla es pagar un crédito por página para no escribir nada: cinco
+  // intentos × 101 páginas = **505 créditos para un barrido en blanco**.
+  // Es exactamente lo que pasó: el panel decía «página 42» y las cartas
+  // escritas eran CERO.
+  //
+  // Así que lo nuestro PARA, y para de verdad: queda escrito en el estado
+  // y la pasada siguiente se sale antes de pedirle nada a Scrydex. Un
+  // fallo que se repite en nuestro lado no se arregla reintentando, se
+  // arregla mirándolo — y mientras tanto no se paga.
+  const tropiezo = async (porque, codigo, { nuestro = false } = {}) => {
     const fallos = (Number(estado?.fallos) || 0) + 1
-    const seSalta = fallos >= FALLOS_PARA_SALTAR
+    const seRinde = fallos >= FALLOS_PARA_SALTAR
+    const seSalta = seRinde && !nuestro
+    const separa = seRinde && nuestro
     await guardarEstado({
       pagina: seSalta ? pagina + 1 : pagina,
       total,
       barridos,
       fallos: seSalta ? 0 : fallos,
       ...(seSalta ? { saltadas: [...(estado?.saltadas || []), pagina].slice(-20) } : {}),
+      ...(separa ? { parado: porque } : {}),
       error: porque,
       cuando: new Date().toISOString(),
     })
@@ -221,6 +259,7 @@ export async function procesar({
         pagina,
         intentos: fallos,
         ...(seSalta ? { AVISO: `Esa página ha fallado ${fallos} veces: se salta y se sigue. Quedan ~250 cartas sin marcar.` } : {}),
+        ...(separa ? { PARADO: `Ha fallado ${fallos} veces seguidas y el fallo es NUESTRO, así que no se salta la página: se para. No se gastará ni un crédito más hasta que alguien lo mire.` } : {}),
       },
     }
   }
@@ -285,7 +324,10 @@ export async function procesar({
       filas.push(filaDeCartaConScrydex(nuestra, suya))
       const bueno = nombreQueHayQueArreglar(nuestra, suya)
       if (bueno) {
-        nombres.push({ id: nuestra.id, market: nuestra.market || MERCADO, set_id: nuestra.set_id, name: bueno })
+        // `local_id` va aquí por lo mismo que en `filaDeCartaConScrydex`:
+        // es `not null` y esto es un upsert, así que sin él la sentencia
+        // entera se cae con 23502 (tanda 526).
+        nombres.push({ id: nuestra.id, market: nuestra.market || MERCADO, set_id: nuestra.set_id, local_id: nuestra.local_id, name: bueno })
         if (ejemplosDeNombre.length < 15) ejemplosDeNombre.push(`${nuestra.id}: «${nuestra.name}» → «${bueno}»`)
       }
     }
@@ -298,7 +340,7 @@ export async function procesar({
     } catch (e) {
       // Lo nuestro también cuenta como tropiezo: si no, un Supabase que
       // falla siempre quema un crédito cada cinco minutos para siempre.
-      return tropiezo(`Nuestra base: ${String(e?.message || e).slice(0, 90)}`, 500)
+      return tropiezo(`Nuestra base: ${String(e?.message || e).slice(0, 90)}`, 500, { nuestro: true })
     }
 
     pagina++

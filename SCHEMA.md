@@ -27968,6 +27968,27 @@ inventada es una etiqueta que miente, y eso es peor que el inglés. La
 función apunta las que va viendo, así que la lista se completa con lo que de
 verdad existe y no con lo que me imagino (la norma de la 501).
 
+### La noche a cero: un upsert que no podía formar su fila (tanda 526)
+
+El relleno corrió toda la noche y escribió **cero cartas**. El estado decía
+`23502` —`not_null_violation`— con la fila `(sv10-001, sv10, null, null,`.
+
+`tcg_cards` tiene `local_id` y `name` a `not null`, y esto es un upsert:
+PostgREST manda `insert … on conflict do update`, así que **Postgres forma
+la fila que insertaría antes de saber que ya existe**. Sin `local_id` no hay
+fila que formar, y la sentencia se rechaza ENTERA —las 250 cartas de la
+página— aunque las 250 fueran a ser updates. Las dos columnas viajan ahora
+con el valor que la fila ya tiene: no se quieren cambiar, se repiten para
+que la fila exista.
+
+Y el freno de la 522 estaba mal por la mitad: saltarse la página a la quinta
+vale para un fallo SUYO, porque el problema se queda en esa página. Para un
+fallo nuestro es pagar un crédito por página sin escribir nada —505 por
+barrido— y enseñar «página 42» como si fuera progreso. Desde la 526 un fallo
+nuestro repetido deja `parado` en el estado y la pasada siguiente se sale
+antes de gastar; lo reanuda un humano con
+`supabase-migration-scrydex-reiniciar-relleno.sql`.
+
 ### Y la precisión no llegaba a ninguna pantalla (tanda 523)
 
 Lo de arriba estaba todo bien y el resultado era **cero**: ninguna consulta

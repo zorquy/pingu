@@ -139,6 +139,29 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y son todos los `select`, que de la rareza había OCHO. Lo vigila
   `test-tanda-523.mjs`: cualquier lista de columnas que nombre `rarity`
   tiene que nombrar `rarity_en`.
+- **Un UPSERT tiene que poder FORMAR la fila que insertaría, aunque vaya a
+  ser un update** (tanda 526, y costó una noche entera a cero). PostgREST
+  manda `insert … on conflict do update`, y Postgres comprueba los
+  `not null` sobre la fila que propone ANTES de ver que ya existe. El
+  relleno mandaba `id`, `market`, `set_id` y las columnas de Scrydex, y
+  `tcg_cards` tiene `local_id` y `name` a `not null`: **23502, y la
+  sentencia rechazada ENTERA**, las 250 cartas de la página, aunque las 250
+  fueran updates. Las dos columnas se REPITEN con el valor que la fila ya
+  tiene; no es que se quieran cambiar, es que sin ellas no hay fila. Y la
+  guarda no se escribe a mano: las obligatorias **se leen de la migración**
+  y se exigen en TODAS las sentencias que se mandan —la de los nombres se
+  arma a mano dentro de la función y tenía el mismo agujero, así que una
+  prueba que mirara solo el ayudante puro habría salido verde—.
+- **SALTAR vale para el fallo del OTRO; para el tuyo, PARAR** (tanda 526, y
+  es la 522 corregida). Saltarse la página a la quinta es lo correcto cuando
+  la mala es LA PÁGINA —un 500 suyo, un id raro—: el problema se queda
+  atrás. Si el que falla es NUESTRO Supabase, la página no tiene nada que
+  ver, y saltarla es pagar un crédito por página para no escribir nada:
+  cinco intentos × 101 páginas = **505 créditos por un barrido en blanco**,
+  con el panel enseñando «página 42» como si fuera progreso. Lo nuestro
+  queda `parado` en el estado y la pasada siguiente **se sale antes de
+  pedirle nada a la API de pago**. Y lo quita un humano: si se quitara solo,
+  volvería a gastar sin que nadie haya mirado por qué fallaba.
 - **Cuando una pasada GASTA antes de poder fallar, todo lo que venga
   después cuenta como intento** (tanda 522, y es la cuarta vez esta noche que
   un freno frena solo la mitad). `scrydex-relleno` pedía la página a Scrydex
