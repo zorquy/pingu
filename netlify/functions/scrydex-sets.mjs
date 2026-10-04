@@ -45,6 +45,18 @@ const TOPE_DE_ESCRITURA = 260
 // Bastan para distinguir el relleno de un dibujo de verdad, y evitan
 // bajarse 160 logos enteros para mirar diez bytes de cada uno.
 const BYTES = 1500
+// ── PRESUPUESTO DE TIEMPO (tanda 510) ──
+//
+// No lo tenía, y es un fallo serio en algo que corre solo cada hora: cada
+// par cuyo código no cuadra pide una carta, y 210 pares a ~300 ms son 63
+// segundos. **Netlify mata a los 30**, y como la escritura va AL FINAL, una
+// pasada matada a mitad gasta los créditos y no escribe NADA — y la
+// siguiente vuelve a empezar igual, para siempre.
+//
+// Con presupuesto, se confirma lo que dé tiempo y se escribe. Lo que
+// quede sigue sin `scrydex_id`, así que la pasada siguiente lo coge: el
+// progreso vive en los datos (la lección de la 322).
+const MS_DE_MARGEN = 18_000
 
 // ── El relleno (tanda 499), que aquí es OBLIGATORIO ──
 //
@@ -93,12 +105,15 @@ async function enTandas(cosas, cuantas, hacer) {
 
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, escribirImpl = null,
-  huellaImpl = huellaSha1, mercado = 'WEST', idioma = 'en', escribir = false,
+  huellaImpl = huellaSha1, reloj = () => Date.now(),
+  mercado = 'WEST', idioma = 'en', escribir = false,
 } = {}) {
   const { cabeceras, faltan } = cabecerasDe(env)
   if (faltan) return { estado: 500, cuerpo: { error: `Faltan en Netlify: ${faltan.join(' y ')}.` } }
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { estado: 500, cuerpo: { error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' } }
+  const arranque = reloj()
+  const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = escribirImpl || ((filas) => rest('tcg_sets', clave, { method: 'POST', body: JSON.stringify(filas) }))
 
@@ -138,19 +153,29 @@ export async function procesar({
   const confirmados = []
   const rechazados = []
   const sinConfirmar = []
+  let sinTiempo = 0
   await enTandas(pares, A_LA_VEZ, async (par) => {
     // Gratis: si los dos códigos coinciden, no hay nada que preguntar.
     const v0 = veredictoDelPar({ nuestra: {}, nuestroSet: par.nuestro, suya: { expansion: par.suyo } })
     if (v0.veredicto === 'confirmado') return confirmados.push({ ...par, por: v0.por })
     if (v0.veredicto === 'rechazado') return rechazados.push({ ...par, porque: v0.porque })
+    // Lo que sigue cuesta una petición a su API, así que si no queda
+    // tiempo se deja para la pasada siguiente en vez de gastarla y morir.
+    if (!quedaTiempo()) { sinTiempo++; return }
     // Y si nuestro código está vacío, una carta lo zanja por un crédito.
     let filas = []
+    let falloAlPedir = null
     try {
       filas = await pedir(
         `tcg_cards?select=local_id,name,dex_ids,illustrator,hp&market=eq.${mercado}`
         + `&set_id=eq.${encodeURIComponent(par.nuestro.id)}&order=local_id.asc&limit=${CANDIDATAS}`,
       )
-    } catch { filas = [] }
+    } catch (e) { falloAlPedir = String(e?.message || e).slice(0, 80) }
+    // «No tenemos cartas» y «no he podido preguntar» NO son lo mismo: lo
+    // primero es un dato del catálogo, lo segundo un fallo nuestro. El
+    // `catch { filas = [] }` que había los juntaba, y un tropiezo de la
+    // base se leía como un set vacío.
+    if (falloAlPedir) return sinConfirmar.push({ par: `${par.nuestro.id} → ${par.suyo.id}`, porque: `no se ha podido preguntar a la base: ${falloAlPedir}` })
     const nuestra = (filas || []).find((c) => numeroComparable(c.local_id))
     if (!nuestra) return sinConfirmar.push({ par: `${par.nuestro.id} → ${par.suyo.id}`, porque: 'no tenemos ninguna carta de ese set' })
     for (const suId of formasDeId(par.suyo.id, nuestra.local_id)) {
@@ -204,7 +229,7 @@ export async function procesar({
     escritas = filas.length
   }
 
-  const cuenta = cuentaDelInforme(pares.length, [confirmados, rechazados, sinConfirmar])
+  const cuenta = cuentaDelInforme(pares.length, [confirmados, rechazados, sinConfirmar, sinTiempo])
   return {
     estado: 200,
     cuerpo: {
@@ -227,6 +252,9 @@ export async function procesar({
       porQueNoSeEmparejan: sueltos.reduce((m, x) => ({ ...m, [x.porque]: (m[x.porque] || 0) + 1 }), {}),
       ejemplosSinEmparejar: sueltos.slice(0, 12).map((x) => `${x.nuestro.id} — ${x.porque}`),
       confirmados: confirmados.length,
+      // Los que se quedaron sin tiempo NO son un fallo: siguen sin
+      // `scrydex_id`, así que la pasada de la hora siguiente los coge.
+      sinTiempo,
       porQueSeConfirman: confirmados.reduce((m, c) => ({ ...m, [c.por]: (m[c.por] || 0) + 1 }), {}),
       rechazados: rechazados.map((r) => ({ par: `${r.nuestro.id} → ${r.suyo.id}`, porque: r.porque })),
       sinConfirmar,
