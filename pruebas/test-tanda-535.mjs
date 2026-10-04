@@ -22,17 +22,24 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 
-// Los sets del 30 aniversario, tal como los exportó PINGU del SQL Editor.
+// EL EJEMPLO ERA EL 30 ANIVERSARIO Y YA NO LO ES (tanda 536): PINGU lo
+// quiere en dos filas. Lo que esta tanda arregló —que la estantería
+// PLIEGUE— sigue valiendo igual, así que el ejemplo pasa a ser uno de los
+// cinco que él sí pidió: la Radiant Collection dentro de Legendary
+// Treasures.
 const ANIVERSARIO = [
-  { id: '30th', name: '30th Celebration', serie_id: 'me', serie_name: 'Mega Evolution', release_date: '2026-09-16', card_count_total: 161 },
-  { id: '30th-c', name: '30th Classic Collection', serie_id: 'me', serie_name: 'Mega Evolution', release_date: '2026-09-16', card_count_total: 30 },
-  { id: 'me05', name: 'Pitch Black', serie_id: 'me', serie_name: 'Mega Evolution', release_date: '2026-07-17', card_count_total: 120 },
+  { id: 'bw11', name: 'Legendary Treasures', serie_id: 'bw', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 140 },
+  { id: 'rc', name: 'Radiant Collection', serie_id: 'bw', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 25 },
+  { id: 'me05', name: 'Pitch Black', serie_id: 'bw', serie_name: 'Black & White', release_date: '2013-08-14', card_count_total: 120 },
 ]
 
 console.log('── 1. Sus identificadores de verdad casan por prefijo ──')
 {
-  check('«30th-c» va dentro de «30th»', padreDeColeccion('30th-c') === '30th', padreDeColeccion('30th-c'))
-  check('  …y el padre no va dentro de nadie', padreDeColeccion('30th') === null)
+  check('«rc» va dentro de «bw11»', padreDeColeccion('rc') === 'bw11', padreDeColeccion('rc'))
+  check('  …y el padre no va dentro de nadie', padreDeColeccion('bw11') === null)
+  // Y el 30 aniversario, que era el ejemplo de esta prueba, ahora son dos
+  // filas a propósito (tanda 536).
+  check('el Classic del 30 NO se pliega', padreDeColeccion('30th-c') === null, padreDeColeccion('30th-c'))
 }
 
 console.log('── 2. En la estantería: una fila, no dos ──')
@@ -40,12 +47,12 @@ console.log('── 2. En la estantería: una fila, no dos ──')
   const plegados = plegarHermanos(ANIVERSARIO.map((s) => ({ ...s })))
   const grupos = gruposDeEstanteria(plegados)
   const ids = grupos.flatMap((g) => g.sets.map((s) => s.id))
-  check('el Classic ya no es una fila suelta', !ids.includes('30th-c'), JSON.stringify(ids))
-  check('  …y el Celebration sigue', ids.includes('30th'), JSON.stringify(ids))
-  const padre = plegados.find((s) => s.id === '30th')
-  check('  …con las cartas de los dos', padre.card_count_total === 161 + 30, padre.card_count_total)
+  check('la Radiant ya no es una fila suelta', !ids.includes('rc'), JSON.stringify(ids))
+  check('  …y Legendary Treasures sigue', ids.includes('bw11'), JSON.stringify(ids))
+  const padre = plegados.find((s) => s.id === 'bw11')
+  check('  …con las cartas de los dos', padre.card_count_total === 140 + 25, padre.card_count_total)
   // Y el orden de la era no se toca: lo más nuevo arriba.
-  check('el 30 aniversario sale antes que Pitch Black', ids.indexOf('30th') < ids.indexOf('me05'), JSON.stringify(ids))
+  check('Legendary Treasures sale antes que lo de agosto', ids.indexOf('bw11') < ids.indexOf('me05'), JSON.stringify(ids))
 }
 
 console.log('── 3. Y LO QUE TIENES SE SUMA, que es la otra mitad ──')
@@ -66,8 +73,8 @@ console.log('── 3. Y LO QUE TIENES SE SUMA, que es la otra mitad ──')
   const unaVez = plegarHermanos(ANIVERSARIO.map((s) => ({ ...s })))
   const otraVez = plegarHermanos(ANIVERSARIO.map((s) => ({ ...s })))
   check('plegar dos veces no suma dos veces',
-    unaVez.find((s) => s.id === '30th').card_count_total === otraVez.find((s) => s.id === '30th').card_count_total,
-    `${unaVez.find((s) => s.id === '30th').card_count_total} / ${otraVez.find((s) => s.id === '30th').card_count_total}`)
+    unaVez.find((s) => s.id === 'bw11').card_count_total === otraVez.find((s) => s.id === 'bw11').card_count_total,
+    `${unaVez.find((s) => s.id === 'bw11').card_count_total} / ${otraVez.find((s) => s.id === 'bw11').card_count_total}`)
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')

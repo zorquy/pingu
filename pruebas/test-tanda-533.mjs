@@ -51,9 +51,11 @@ console.log('── 1. Las cinco parejas ──')
   // Y un set normal no se pliega en nadie.
   check('un set normal no tiene padre', padreDeColeccion('bw1') === null, padreDeColeccion('bw1'))
   check('ni el padre en sí mismo', padreDeColeccion('bw11') === null, padreDeColeccion('bw11'))
-  // El 30 aniversario sigue yendo por PREFIJO, que es lo correcto cuando
-  // no se sabe cómo se va a llamar la siguiente entrega (tanda 347).
-  check('el 30 aniversario sigue por prefijo', padreDeColeccion('30thc') === '30th' && prefijoDeColeccion('30th') === '30th')
+  // EL 30 ANIVERSARIO YA NO SE PLIEGA (tanda 536): PINGU lo pidió plegado
+  // en la 347 y lo pidió separado esta mañana, y manda lo último. Queda
+  // comprobado que NO se pliega, que es lo que ahora tiene que pasar.
+  check('el Classic del 30 es su propia colección', padreDeColeccion('30th-c') === null, padreDeColeccion('30th-c'))
+  check('  …y ya no hay regla de prefijo que lo recoja', prefijoDeColeccion('30th') === null, prefijoDeColeccion('30th'))
 }
 
 console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan en el padre ──')
@@ -117,7 +119,7 @@ console.log('── 4. Y una regla que se quede vieja se CANTA ──')
   const sueltas = reglasQueNoCasan(CATALOGO)
   const deLosQueEstan = sueltas.filter((x) => CATALOGO.some((s) => x.includes(`«${s.id}»`)))
   check('ninguna regla sobra de los sets que sí están', deLosQueEstan.length === 0, JSON.stringify(deLosQueEstan))
-  check('  …y las de los que no están sí se señalan', sueltas.some((x) => /30th/.test(x)), JSON.stringify(sueltas.slice(0, 3)))
+  check('  …y las de los que no están sí se señalan', sueltas.some((x) => /swsh/.test(x)), JSON.stringify(sueltas.slice(0, 3)))
   const faltaUno = reglasQueNoCasan(CATALOGO.filter((s) => s.id !== 'rc'))
   check('si desaparece un hijo, se dice cuál', faltaUno.some((x) => /«rc»/.test(x)), JSON.stringify(faltaUno))
   // Y con un catálogo vacío no se canta nada: «no ha llegado nada» no es
