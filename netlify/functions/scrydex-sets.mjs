@@ -68,17 +68,32 @@ const MS_DE_MARGEN = 18_000
 // error. Sería una colección con el logo equivocado y sin un solo aviso.
 const huellaSha1 = (buf) => createHash('sha1').update(buf.subarray(0, BYTES)).digest('hex')
 
+// ── Y TRES RESPUESTAS, NO DOS (tanda 544) ──
+//
+// Esto devolvía `vale: false` tanto para el relleno como para un fallo de
+// red, y las dos cosas NO son lo mismo: «es el relleno» es un dato suyo y
+// definitivo, «no he podido mirarlo» es un tropiezo nuestro que la pasada
+// siguiente puede desmentir. Juntarlas se midió en el catálogo japonés:
+// **82 sets emparejados y solo 61 con logo**, con su listado trayendo los
+// 231. Veintiún sets sin chapa por un rato malo de su servidor de
+// imágenes — y para siempre, porque al quedar ya emparejados nadie volvía
+// a mirarlos.
+//
+// `vale: false, suyo: true` → no lo tienen, no hay nada más que hacer.
+// `vale: false, suyo: false` → no se sabe; no se escribe, y se vuelve.
 async function dibujoDeVerdad(url, tipo, fetchImpl, huellaImpl = huellaSha1) {
-  if (!url) return { vale: false, porque: 'no la tienen' }
+  if (!url) return { vale: false, suyo: true, porque: 'no la tienen' }
   try {
     const res = await fetchImpl(url, { headers: { range: `bytes=0-${BYTES - 1}` } })
-    if (!res.ok && res.status !== 206) return { vale: false, porque: `HTTP ${res.status}` }
+    // Un 4xx es suyo —esa imagen no existe—; un 5xx es su servidor
+    // teniendo un mal día, que es otra cosa.
+    if (!res.ok && res.status !== 206) return { vale: false, suyo: res.status < 500, porque: `HTTP ${res.status}` }
     const buf = Buffer.from(await res.arrayBuffer())
     const huella = huellaImpl(buf)
-    if (esRelleno(huella, tipo)) return { vale: false, porque: 'es la imagen de RELLENO' }
+    if (esRelleno(huella, tipo)) return { vale: false, suyo: true, porque: 'es la imagen de RELLENO' }
     return { vale: true }
   } catch (e) {
-    return { vale: false, porque: String(e?.message || e).slice(0, 60) }
+    return { vale: false, suyo: false, porque: String(e?.message || e).slice(0, 60) }
   }
 }
 
@@ -158,6 +173,9 @@ export async function procesar({
   const sinConfirmar = []
   let sinTiempo = 0
   await enTandas(pares, A_LA_VEZ, async (par) => {
+    // Un par que ya está guardado se confirmó cuando se guardó: entra sin
+    // preguntar nada (tanda 544).
+    if (par.guardado) return confirmados.push(par)
     // Gratis: si los dos códigos coinciden, no hay nada que preguntar.
     const v0 = veredictoDelPar({ nuestra: {}, nuestroSet: par.nuestro, suya: { expansion: par.suyo } })
     if (v0.veredicto === 'confirmado') return confirmados.push({ ...par, por: v0.por })
@@ -199,14 +217,17 @@ export async function procesar({
   // contesta 200 con un relleno para cualquier id (ver `dibujoDeVerdad`).
   // Las imágenes no gastan créditos y solo se bajan 1.500 bytes.
   const rellenos = []
+  const sinMirar = []
   await enTandas(confirmados, A_LA_VEZ, async (par) => {
     for (const [campo, tipo] of [['logo', 'logo'], ['symbol', 'logo']]) {
       const url = par.suyo?.[campo]
       if (!url) continue
       const r = await dibujoDeVerdad(url, tipo, fetchImpl, huellaImpl)
       if (!r.vale) {
-        rellenos.push({ set: par.nuestro.id, campo, porque: r.porque })
-        // Se tacha para que `filaDeSetConScrydex` no lo escriba.
+        // Se tacha igual en los dos casos —no se escribe una URL que no se
+        // ha visto—, pero se APUNTA distinto: lo que no se ha podido mirar
+        // es trabajo pendiente, y el freno de la pasada lo mira.
+        ;(r.suyo ? rellenos : sinMirar).push({ set: par.nuestro.id, campo, porque: r.porque })
         par.suyo = { ...par.suyo, [campo]: null }
       }
     }
@@ -239,7 +260,8 @@ export async function procesar({
       ensayoEnSeco: !escribir,
       ...(escribir ? {} : { COMO_ESCRIBIR: 'Vuelve a darle con «escribir» puesto. Esto de ahora no ha tocado la base.' }),
       mercado,
-      creditos: `${Math.ceil(suyas.length / 100)} de sus expansiones + ${pares.length - confirmados.filter((c) => c.por === 'el código del set').length} de las cartas (como mucho)`,
+      creditos: `${Math.ceil(suyas.length / 100)} de sus expansiones + ${pares.length - confirmados.filter((c) => c.guardado || c.por === 'el código del set').length} de las cartas (como mucho)`,
+      yaEstabanGuardados: pares.filter((p) => p.guardado).length,
       susExpansiones: suyas.length,
       // LO PRIMERO QUE HAY QUE MIRAR: si su listado trae los logos. Si
       // sale 0, no es que no los tengan: es que no vienen en el LISTADO.
@@ -288,6 +310,11 @@ export async function procesar({
       // distingue de un logo (tanda 499).
       descartadosPorRelleno: rellenos.length,
       ejemplosDeRelleno: rellenos.slice(0, 10),
+      // Lo que no se ha podido MIRAR, que no es lo mismo que no tenerlo
+      // (tanda 544). Si esto sale alto, hay logos esperando a la pasada
+      // siguiente y no sets sin chapa.
+      noSeHaPodidoMirar: sinMirar.length,
+      ejemplosSinMirar: sinMirar.slice(0, 10),
       sinNadaQueCambiar: confirmados.length - filas.length,
       aEscribir: filas.length,
       escritas,

@@ -28394,3 +28394,51 @@ vez. **Un vacío que no dice de qué es, es un vacío que no se puede
 arreglar** — y la forma de que no vuelva a pasar no es revisar los textos,
 es que los caminos sean botones: si el destino se borra, el botón se rompe
 y se ve.
+
+## Tanda 544 — por qué 36 sets japoneses se quedaron en kanji y 21 sin chapa (oct. 2026)
+
+Los números de PINGU después de limpiar los huecos de TCGdex, que son los
+que empiezan esta tanda:
+
+| sets JP | con nombre occidental | con logo | emparejados |
+|---|---|---|---|
+| 118 | 82 | 61 | 82 |
+
+Con **231 expansiones suyas enfrente** y su propio listado trayendo los
+231 logos. O sea que ni los 36 sin nombre ni los 21 emparejados sin chapa
+son «Scrydex no lo tiene»: son dos fallos nuestros, de la misma familia
+—algo que se lee como una respuesta cuando no lo es— y ninguno da error.
+
+**1. El emparejamiento por ID corría DEMASIADO TARDE.** El rescate por id
+existe desde la 508, pero detrás de la fecha y la cuenta. Y en Japón salen
+tres o cuatro sets el MISMO DÍA con la misma cuenta —un set y sus dos mazos
+de ejemplo—, así que el primero de los nuestros que pasa por el bucle se
+lleva por fecha+cuenta un set suyo que por id era de otro; cuando le toca
+al dueño del id, su pareja ya está en `yaUsados` y se queda SUELTO. Un id
+que coincide no puede perder contra una fecha que comparten cuatro sets:
+ahora se reparte primero (`parejasPorId`), y solo si es único en los dos
+lados —marcar de menos cuesta un set sin emparejar, marcar de más escribe
+el logo de otro set—.
+
+**2. Un par ya guardado se volvía a calcular, y a PAGAR.** `scrydex_id`
+guarda el emparejamiento confirmado desde la 509 y el emparejamiento no lo
+leía: cada pasada deducía los 82 pares otra vez y los confirmaba otra vez,
+a una petición por par. Eso gasta créditos ya gastados y —peor— se come el
+presupuesto de 30 segundos de Netlify, así que los pares NUEVOS se quedaban
+detrás de los viejos y salían como «sin tiempo» pasada tras pasada
+(`parejasGuardadas`, que entran confirmados y gratis).
+
+**3. Y un fallo de red se leía como «no tienen logo».** `dibujoDeVerdad`
+devolvía lo mismo para la imagen de RELLENO —un dato suyo, definitivo— que
+para un socket cortado o un 503 suyo, que es un tropiezo que la pasada
+siguiente desmiente. Lo que no se ha visto no se escribe en los dos casos
+(escribir un cuadro de «no image» es peor que un hueco), pero se APUNTA
+distinto: `noSeHaPodidoMirar` contra `descartadosPorRelleno`. Y hacía falta
+la otra mitad, porque el set quedaba **emparejado**: la pregunta «¿queda
+algo que hacer?» miraba solo `scrydex_id`, así que esos 21 sets no volvían
+a mirarse NUNCA. Ahora cuenta también los emparejados sin logo, que se
+rellenan sin gastar un crédito porque el par ya está guardado.
+
+Lo vigila `test-tanda-544.mjs`, y la comprobación que más vale es la del
+punto 3 en sus **tres** formas (socket cortado, 503, 404): un 404 sí es
+suyo, y una guarda que solo se prueba cuando no salta no se está probando.

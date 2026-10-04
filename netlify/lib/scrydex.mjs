@@ -175,14 +175,103 @@ function rescate(nuestro, h, deEllos, yaUsados) {
   return null
 }
 
+// ── UN PAR YA GUARDADO NO SE VUELVE A CALCULAR (tanda 544) ──
+//
+// `scrydex_id` guarda el emparejamiento CONFIRMADO desde la 509, y el
+// comentario de entonces decía por qué: «un emparejamiento verificado es
+// un dato, no un cálculo que se repite». Pero el emparejamiento no lo
+// leía: cada pasada volvía a deducir los 82 pares japoneses desde la
+// fecha y la cuenta, y a confirmarlos otra vez A UNA PETICIÓN POR PAR.
+//
+// Eso cuesta dos cosas. Créditos —82 confirmaciones que ya estaban
+// hechas—, y TIEMPO: Netlify mata a los 30 segundos, así que los pares
+// nuevos se quedaban detrás de los viejos en la cola y salían como «sin
+// tiempo» pasada tras pasada. Un par guardado entra confirmado, gratis, y
+// deja el presupuesto entero para los que faltan.
+export function parejasGuardadas(nuestros, deEllos) {
+  const suyosPorId = new Map()
+  for (const c of deEllos || []) {
+    const k = clave(c?.set?.id)
+    if (k) suyosPorId.set(k, c.set)
+  }
+  const salida = []
+  for (const nuestro of nuestros || []) {
+    const k = clave(nuestro?.scrydex_id)
+    if (!k) continue
+    const suyo = suyosPorId.get(k)
+    // Un `scrydex_id` que ya no está en su catálogo no se da por bueno:
+    // se deja caer al emparejamiento normal, que es quien sabe decir
+    // «suelto».
+    if (suyo) salida.push({ nuestro, suyo })
+  }
+  return salida
+}
+
+// ── UN ID IDÉNTICO SE REPARTE PRIMERO (tanda 544) ──
+//
+// El rescate por id existía desde la 508, pero corría DESPUÉS de la fecha
+// y la cuenta — y en japonés eso lo deja sin nada que rescatar. En Japón
+// salen tres o cuatro sets el mismo día con la misma cuenta (un set y sus
+// dos mazos de ejemplo), así que el primero de los nuestros que pasa por
+// el bucle se lleva por fecha+cuenta un set suyo que por ID era de otro.
+// Cuando le toca al dueño del id, su pareja ya está en `yaUsados` y se
+// queda SUELTO: sin nombre occidental y sin logo, en kanji para siempre.
+//
+// Y eso es exactamente lo que se midió después de limpiar los huecos: 118
+// sets japoneses, **82 emparejados y 36 sueltos**, con sus 231 expansiones
+// enfrente —o sea que la pareja existe casi siempre—. Un id que coincide
+// no puede perder contra una fecha compartida por cuatro sets.
+//
+// Solo reparte un id que sea ÚNICO EN LOS DOS LADOS. Si dos de los
+// nuestros se llaman igual una vez quitado el idioma, o dos de los suyos
+// quedan en el mismo, no hay pareja que valga: eso se deja para la fecha y
+// la cuenta, que es donde se desempata. Marcar de menos aquí solo cuesta
+// un set sin emparejar; marcar de más escribe el logo de otro set.
+export function parejasPorId(nuestros, deEllos) {
+  const unicos = (cosas, llaveDe) => {
+    const m = new Map()
+    for (const c of cosas) {
+      const k = llaveDe(c)
+      if (!k) continue
+      // El segundo que repite la llave la ENVENENA: queda a null y ya no
+      // la reclama nadie.
+      m.set(k, m.has(k) ? null : c)
+    }
+    return m
+  }
+  const mios = unicos(nuestros || [], (n) => clave(n?.id))
+  const suyos = unicos(deEllos || [], (c) => clave(idSinIdioma(c?.set?.id)))
+  const salida = []
+  for (const [k, nuestro] of mios) {
+    const suyo = nuestro ? suyos.get(k) : null
+    if (suyo) salida.push({ nuestro, suyo: suyo.set })
+  }
+  return salida
+}
+
 export function emparejarSets(nuestros, suyos, campos = {}) {
   const deEllos = (suyos || []).map((s) => ({ set: s, h: huellaDeSet(s, campos.suyos) }))
   const pares = []
   const ambiguos = []
   const sueltos = []
   const yaUsados = new Set()
+  const yaPareados = new Set()
+
+  for (const { nuestro, suyo } of parejasGuardadas(nuestros, deEllos)) {
+    yaUsados.add(suyo)
+    yaPareados.add(nuestro)
+    pares.push({ nuestro, suyo, por: nuestro.scrydex_por || 'ya estaba guardado', guardado: true })
+  }
+
+  const sueltosAun = (nuestros || []).filter((n) => !yaPareados.has(n))
+  for (const { nuestro, suyo } of parejasPorId(sueltosAun, deEllos.filter((c) => !yaUsados.has(c.set)))) {
+    yaUsados.add(suyo)
+    yaPareados.add(nuestro)
+    pares.push({ nuestro, suyo, por: 'id idéntico' })
+  }
 
   for (const nuestro of nuestros || []) {
+    if (yaPareados.has(nuestro)) continue
     const h = huellaDeSet(nuestro, campos.nuestros)
     if (!h.fecha) {
       // SIN NUESTRA FECHA QUEDA EL CÓDIGO (tanda 507), y es una llave

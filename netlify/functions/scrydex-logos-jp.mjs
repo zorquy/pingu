@@ -87,10 +87,24 @@ async function informeReciente(clave) {
   }
 }
 
+// ── Y «EMPAREJADO» NO ES «TERMINADO» (tanda 544) ──
+//
+// Esto preguntaba solo por `scrydex_id`, así que un set emparejado al que
+// le faltaba el logo quedaba fuera de la pregunta PARA SIEMPRE: el día
+// que su servidor de imágenes tuvo un rato malo, 21 sets japoneses se
+// quedaron con pareja y sin chapa y nadie volvió a mirarlos. Ahora cuenta
+// también los emparejados sin logo, que son los que una pasada más puede
+// rellenar sin gastar un crédito (el par ya está guardado).
+//
+// Esto NO es el freno —un set del que de verdad no tengan logo haría que
+// la respuesta fuera «sí» para siempre, que es justo el fallo de la 538—:
+// el freno sigue siendo el informe de hace menos de veinte horas que no
+// avanzó. Esto solo adelanta la pasada cuando queda algo que hacer.
 async function quedaAlgoPorEmparejar(clave) {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tcg_sets?select=id&market=eq.${MERCADO}&scrydex_id=is.null&limit=1`,
+      `${SUPABASE_URL}/rest/v1/tcg_sets?select=id&market=eq.${MERCADO}`
+      + `&or=(scrydex_id.is.null,logo_scrydex.is.null)&limit=1`,
       { headers: { apikey: clave, authorization: `Bearer ${clave}` } },
     )
     if (!res.ok) return true

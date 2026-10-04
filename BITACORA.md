@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 16:40) — PINGU-Claude (544 — por qué 36 sets japoneses se quedaron en kanji, y 21 sin chapa)
+
+**De dónde sale**: PINGU ejecutó la limpieza de huecos y pegó la cuenta del
+catálogo japonés: **118 sets, 82 con nombre occidental, 61 con logo, 82
+emparejados**. Con 231 expansiones suyas enfrente y su listado trayendo los
+231 logos, eso no es «Scrydex no lo tiene»: son dos fallos nuestros.
+
+**Hecho**: tres cosas, en `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-sets.mjs` y las dos pasadas de logos.
+
+1. **El id se reparte PRIMERO** (`parejasPorId`). El rescate por id existía
+   desde la 508 pero corría detrás de la fecha y la cuenta — y en Japón
+   salen tres o cuatro sets el mismo día con la misma cuenta, así que el
+   primero del bucle se llevaba por fecha+cuenta el set suyo que por ID era
+   de otro, y el dueño del id se quedaba SUELTO. Solo reparte un id único
+   en los dos lados.
+2. **Un par guardado entra confirmado y gratis** (`parejasGuardadas`).
+   `scrydex_id` guarda el par confirmado desde la 509 y nadie lo leía: se
+   deducían y se re-confirmaban los 82 pares en cada pasada, a una petición
+   por par, comiéndose los 30 segundos de Netlify — así que los pares
+   NUEVOS salían «sin tiempo» una y otra vez.
+3. **Un fallo de red no es «no tienen logo»**. `dibujoDeVerdad` contestaba
+   lo mismo para la imagen de RELLENO (dato suyo, definitivo) que para un
+   socket cortado o un 503 (tropiezo nuestro). Ahora son tres respuestas, y
+   la pregunta «¿queda algo?» de las dos pasadas de logos cuenta también
+   los **emparejados sin logo** — antes esos 21 sets no volvían a mirarse
+   nunca, porque ya tenían `scrydex_id`.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-sets.mjs`, `netlify/functions/scrydex-logos.mjs`,
+`netlify/functions/scrydex-logos-jp.mjs`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-544.mjs`.
+
+**Pasado**: la 544 en verde, las 18 pruebas de Scrydex (499→541) en verde y
+`test-imports.mjs` (258 módulos, 1.650 importaciones). `comprobar-arbol.sh`
+limpio. Sin migración: no toca el esquema.
+
+**Qué queda**: la pasada de `scrydex-logos-jp` dirá en `porQueSeEmparejan`
+cuántos de los 36 los recupera el id; los que sigan sueltos salen enteros en
+`sinEmparejarTodos` con los `suyosLibres` al lado, que es lo que hace falta
+para escribir las parejas a mano. Pendiente también una suite completa
+(537→544) y traer sus CARTAS de los sets que solo tiene él.
+
 ## 2026-10-04 (tarde, 15:30) — PINGU-Claude (543 — una tabla INVENTADA en una migración, y era la comprobación de un borrado)
 
 **Hecho**: escribí `public.user_cards` en la migración de limpieza del

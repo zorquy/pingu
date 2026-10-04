@@ -15,7 +15,11 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 async function quedaAlgoPorEmparejar(clave) {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tcg_sets?select=id&market=eq.WEST&scrydex_id=is.null&limit=1`,
+      // «Emparejado» no es «terminado»: un set con pareja y sin logo es
+      // trabajo que una pasada más rellena sin gastar un crédito, porque
+      // el par ya está guardado (tanda 544).
+      `${SUPABASE_URL}/rest/v1/tcg_sets?select=id&market=eq.WEST`
+      + `&or=(scrydex_id.is.null,logo_scrydex.is.null)&limit=1`,
       { headers: { apikey: clave, authorization: `Bearer ${clave}` } },
     )
     if (!res.ok) return true
