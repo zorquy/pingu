@@ -44,7 +44,7 @@ const MERCADO = 'WEST'
 // propósito: `*` traería también `name_search` y `dex_ids`, que no pinta
 // nadie, en TODAS las visitas.
 const COLUMNAS =
-  'id,set_id,local_id,name,name_es,image_path,image_scrydex,category,rarity,rarity_en,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,category,rarity,rarity_en,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,' +
   'tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,tcg_online_code)'
@@ -298,7 +298,7 @@ async function versiones(carta) {
 
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,name_es,local_id,image_path,image_scrydex,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
+    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,serie_id)')
     .eq('market', MERCADO)
     .eq('name', carta.name)
     .neq('id', carta.id)

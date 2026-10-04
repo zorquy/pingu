@@ -4,6 +4,53 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mediodía, 12:15) — PINGU-Claude (537 — el relleno JAPONÉS, que es lo que de verdad faltaba)
+
+**Hecho**: PINGU: «vete con lo japonés, rellename todos los logos y las
+imágenes de cartas. No sé por qué esto te está costando tanto, lo tenemos
+todo en Scrydex, simplemente tráelo». Y tenía razón en lo que faltaba:
+
+**`scrydex-relleno` llevaba `MERCADO = 'WEST'` e `IDIOMA = 'en'` A FUEGO**,
+con un comentario al lado que lo justificaba —«el japonés no está
+emparejado»— que **dejó de ser verdad en cuanto la 530 trajo sus 231
+expansiones**. Es exactamente la trampa que dejó escrita la 471: una
+constante justificada con «hoy esto no hace falta» no avisa el día que hace
+falta. Van ya tres veces con esa misma forma.
+
+Ahora el mercado, el idioma y la clave de estado son PARÁMETROS, y
+`scrydex-relleno-jp.mjs` es una llamada con otros tres valores — **no una
+copia del fichero**: dos copias de un bucle con frenos se separan, y
+entonces el freno que arreglas en una sigue roto en la otra. Cada una se
+reanuda por su propia clave (`cartas-west`, `cartas-jp`), así que no se
+pisan la página por la que iban.
+
+**Y el NOMBRE OCCIDENTAL de cada carta** (`translation.en.name`), que es la
+otra mitad de lo que pidió: «además de los kanji, ponme los nombres que
+tiene Scrydex». Va a `tcg_cards.name_en` —columna nueva— y se enseña con la
+misma regla que los sets: **se traduce lo que NO SE PUEDE LEER**. Una carta
+occidental no cambia porque exista `name_en`, y el español sigue mandando
+donde lo hay.
+
+Lo que trae la pasada japonesa: foto de Scrydex, rareza exacta, ilustrador,
+PS, Pokédex y nombre occidental. Un crédito por página de su catálogo, un
+barrido y a dormir una semana — los mismos frenos que el occidental, porque
+es la misma función.
+
+**Y las ocho consultas que pintan un nombre de carta piden `name_en`**, con
+su barrido que lo exige: la lección de la 523 ya no se me escapa dos veces.
+
+**Ficheros**: `netlify/functions/scrydex-relleno.mjs` (parametrizada),
+`netlify/functions/scrydex-relleno-jp.mjs` (nueva), `netlify/lib/scrydex.mjs`,
+`js/carta-nucleo.js`, `js/carta.js`, `js/cartas.js`, `js/coleccion.js`,
+`js/tcgdex.js`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`supabase-migration-cartas-nombre-en.sql` (nuevo). En `pruebas`:
+`pruebas/test-tanda-537.mjs`.
+
+**PENDIENTE DE PINGU, Y NO SE EMPUJA SIN ESO**: ejecutar
+`supabase-migration-cartas-nombre-en.sql`. Las consultas piden ya `name_en`
+y PostgREST da **400 por una columna que no existe** — o sea que empujar
+antes deja /carta, /cartas, /coleccion y /mi-coleccion sin cargar.
+
 ## 2026-10-04 (mediodía, 11:50) — PINGU-Claude (536 — tres correcciones suyas, y dos eran cosa mía)
 
 **1. Las POP son una ERA.** PINGU: «es como si fuese una era, todas las

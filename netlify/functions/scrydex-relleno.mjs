@@ -41,13 +41,24 @@ import {
 // · No toca un set cuyo emparejamiento no esté verificado.
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
-const MERCADO = 'WEST'
-const IDIOMA = 'en'
+// ── UN MERCADO POR PASADA, Y POR PARÁMETRO (tanda 537) ──
+//
+// Esto llevaba `WEST` y `en` a fuego, con su porqué al lado, y el porqué
+// era que el japonés no estaba emparejado. Ya lo está (la 530 trajo sus 231
+// expansiones), así que lo que faltaba era que esta función supiera
+// trabajar para los dos.
+//
+// Y va por PARÁMETRO y no copiando el fichero: dos copias de un bucle con
+// frenos se separan sin que nadie se entere, y entonces el freno que
+// arreglas en una sigue roto en la otra (la lección de la 471, que costó
+// una guarda mirando a un fichero vacío durante tres tandas).
+const MERCADO_POR_DEFECTO = 'WEST'
+const IDIOMA_POR_DEFECTO = 'en'
 const PAGINA = 250
 // Presupuesto de tiempo: Netlify mata a los 30 s. Se para en 20 para que
 // dé tiempo a escribir lo que lleve y a guardar por dónde iba.
 const MS_DE_MARGEN = 20_000
-const CLAVE_ESTADO = 'cartas-west'
+const CLAVE_POR_DEFECTO = 'cartas-west'
 // Un respiro entre peticiones, como en `cartas-detalle` (tanda 233). Sin
 // él son 60 peticiones seguidas en doce segundos contra una API de pago
 // que no conozco: un 429 pararía la pasada entera, y la primera pasada de
@@ -109,7 +120,7 @@ async function rest(ruta, clave, opciones = null) {
 // un `count` sobre 21.476. Si la consulta falla se contesta que SÍ: el
 // tope de barridos protege igual, y pararse por un fallo de red sería
 // dejar el trabajo a medias por el motivo equivocado.
-async function quedanPendientes(pedir) {
+async function quedanPendientes(pedir, MERCADO) {
   try {
     const r = await pedir(`tcg_cards?select=id&market=eq.${MERCADO}&scrydex_at=is.null&limit=1`)
     return Array.isArray(r) ? r.length > 0 : true
@@ -122,7 +133,11 @@ export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, escribirImpl = null,
   estadoImpl = null, guardarEstadoImpl = null, reloj = () => Date.now(),
   paginas = 60,
+  mercado = MERCADO_POR_DEFECTO, idioma = IDIOMA_POR_DEFECTO, claveEstado = CLAVE_POR_DEFECTO,
 } = {}) {
+  const MERCADO = mercado
+  const IDIOMA = idioma
+  const CLAVE_ESTADO = claveEstado
   const { cabeceras, faltan } = cabecerasDe(env)
   if (faltan) return { estado: 500, cuerpo: { error: `Faltan en Netlify: ${faltan.join(' y ')}.` } }
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -183,7 +198,7 @@ export async function procesar({
   // Se pregunta ANTES de gastar un crédito, y la respuesta sale de
   // nuestra propia base, que es gratis. Si no queda nada por marcar, o si
   // ya se han dado los barridos que tocaban y no toca repaso, se calla.
-  const pendientes = await quedanPendientes(pedir)
+  const pendientes = await quedanPendientes(pedir, MERCADO)
   const enMitadDeUnBarrido = pagina > 1
   const diasDesdeElUltimo = estado?.completadoEn
     ? (Date.now() - Date.parse(estado.completadoEn)) / 86_400_000
@@ -305,7 +320,7 @@ export async function procesar({
       .filter((id) => id && !/[,()"\s]/.test(id))
     const nuestras = nuestrosIds.length
       ? await pedir(
-        'tcg_cards?select=id,market,set_id,local_id,name,name_es,image_scrydex,rarity_en,rarity_code,illustrator,dex_ids,hp'
+        'tcg_cards?select=id,market,set_id,local_id,name,name_es,name_en,image_scrydex,rarity_en,rarity_code,illustrator,dex_ids,hp'
         + `&market=eq.${MERCADO}&set_id=in.(${nuestrosIds.map(encodeURIComponent).join(',')})&limit=20000`,
       )
       : []

@@ -26,6 +26,7 @@ export { cadenaDeEscaneo, atributosDeEscaneo }
 // reengordarlas (tanda 334).
 import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
 import { nombreDeSet, eraDeSet } from './catalogo-series.js'
+import { tieneCJK } from './texto.js'
 
 export {
   aSlug,
@@ -150,7 +151,15 @@ export function esLaMismaCarta(a, b) {
 // es la única puerta por la que sale el nombre a la pantalla.
 export function nombreDeCarta(carta) {
   const es = typeof carta?.name_es === 'string' ? carta.name_es.trim() : ''
-  return es || carta?.name || ''
+  if (es) return es
+  // EL JAPONÉS SE ENSEÑA EN OCCIDENTAL SI LO HAY (tanda 537), misma regla
+  // que con el nombre de los sets: se traduce lo que NO SE PUEDE LEER. Una
+  // carta occidental no cambia porque exista `name_en` — ahí `name` ya
+  // está en un alfabeto que se lee.
+  const propio = typeof carta?.name === 'string' ? carta.name : ''
+  const en = typeof carta?.name_en === 'string' ? carta.name_en.trim() : ''
+  if (en && tieneCJK(propio)) return en
+  return propio || en || ''
 }
 
 // ── El subtítulo ──

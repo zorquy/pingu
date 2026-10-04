@@ -246,7 +246,7 @@ async function buscar(texto) {
     // falta para el segundo sitio donde buscar el escaneo cuando TCGdex
     // no tiene el de esta carta. Aquí se mezclan sets, así que va POR
     // CARTA y no una vez.
-    .select('id,name,name_es,local_id,image_path,image_scrydex,tcg_sets(tcg_online_code)')
+    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,tcg_sets(tcg_online_code)')
     .eq('market', MERCADO)
   if (q.length >= 3) consulta = consulta.ilike('name_search', `%${q}%`)
   // `types` es un array: `contains` pregunta si lleva ESE tipo dentro, y

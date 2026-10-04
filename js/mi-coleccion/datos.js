@@ -282,7 +282,7 @@ export async function borrar(id) {
 // ellos; como son datos de DETALLE, las cartas que `cartas-detalle`
 // todavía no ha engordado los traen a null, y el grupo de chips
 // sencillamente no las ofrece.
-const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,category,variants,illustrator,types,dex_ids,trainer_type,energy_type,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
+const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,variants,illustrator,types,dex_ids,trainer_type,energy_type,tcg_sets(id,name,serie_id,release_date,card_count_official,card_count_total,logo_path,tcg_online_code)'
 
 export async function cartasPorIds(ids, mercado = 'WEST') {
   const unicos = [...new Set(ids.filter(Boolean))]
@@ -303,7 +303,7 @@ export async function cartasDeSet(setId, mercado = 'WEST') {
     // daría ningún error, que es lo de siempre.
     // `serie_id` desde la 434: hace falta para montar a mano la ruta del
     // asset de TCGdex cuando `image_path` está a null.
-    .select('id,market,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,category,variants,tcg_sets(tcg_online_code,serie_id)')
+    .select('id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,variants,tcg_sets(tcg_online_code,serie_id)')
     .eq('market', mercado)
     .eq('set_id', setId)
     .limit(1000)

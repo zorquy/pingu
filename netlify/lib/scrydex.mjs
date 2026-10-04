@@ -864,6 +864,12 @@ export function filaDeCartaConScrydex(nuestra, suya, ahora = new Date()) {
     // ya tiene la fila, repetido para que la fila se pueda formar.
     local_id: nuestra.local_id,
     name: nuestra.name,
+    // EL NOMBRE OCCIDENTAL DE LA CARTA (tanda 537), que es lo que PINGU
+    // pidió para el catálogo japonés: «además de los kanji, ponme los
+    // nombres que tiene Scrydex». Viene donde en las expansiones, así que
+    // si en las cartas no viniera, esto se queda a null y la pantalla
+    // sigue enseñando el japonés — que es lo que hay hoy, no una pérdida.
+    name_en: rellenarTexto(nuestra.name_en, suya?.translation?.en?.name),
     image_scrydex: base || nuestra.image_scrydex || null,
     rarity_en: rellenarTexto(nuestra.rarity_en, suya?.rarity),
     rarity_code: rellenarTexto(nuestra.rarity_code, suya?.rarity_code),
