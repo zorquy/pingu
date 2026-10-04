@@ -29513,3 +29513,24 @@ Y `/reto`, una dirección que cabe en un tuit (reescritura en
 Todo sale de lo que ya se guardaba (`daily_challenge_results`: día,
 aciertos, total). La tira no se guarda: es de la partida de hoy y se
 comparte hoy.
+
+## Tanda 569 — «Retos diarios», el índice (oct. 2026)
+
+PINGU: «en Aprender, en vez de que te lleve al reto de hoy, una página que
+sea un índice de los minijuegos que tenemos, que se llamen retos
+diarios». Es la casa de lo que la 568 empezó y de lo que viene (570).
+
+`/retos` (`retos.html`, `css/retos.css`, `js/retos.js`): una tarjeta por
+juego con su estado de HOY. El reto de hoy enseña el número del día, los
+cinco puntos (acertados o no), tu marca si ya lo has jugado, la racha de
+días si la hay, y el botón que toca: crear cuenta (sin sesión), jugar
+(`/reto`) o ver la liga (ya jugado). «¿Qué carta es?» está como «muy
+pronto», apagada, para que se vea la forma del índice y lo que viene.
+
+**La entrada del menú y del pie cambia en las 34 páginas a la vez**:
+«Reto de hoy» → «Retos diarios» (`/retos`). Un menú que dice una cosa en
+una página y otra en la de al lado es dos menús; la prueba recorre todas
+las que tienen barra. La portada SIGUE llevando directo al reto desde su
+tarjeta — eso no es el menú, es el juego. Y el sitemap lista `/retos`.
+
+**Sin migración.**

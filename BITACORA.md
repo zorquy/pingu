@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 04:00) — PINGU-Claude (569 — «Retos diarios», el índice)
+
+**Hecho**: `/retos`, el índice de los minijuegos con el estado de hoy de
+cada uno (número del día, puntos, marca, racha, el botón que toca), y
+«¿Qué carta es?» como «muy pronto». La entrada del menú y del pie pasa a
+«Retos diarios» en las 34 páginas; la portada sigue con su botón directo
+al reto. Sitemap con `/retos`.
+
+**Sin migración.**
+
+**Ficheros**: `retos.html` (nueva), `css/retos.css` (nueva), `js/retos.js`
+(nuevo), las 34 páginas (el enlace), `netlify/functions/sitemap.mjs`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-569.mjs` (nueva) y
+`test-tanda-312.mjs` (34 páginas con pie).
+
+**Pasado**: 569, 568, 299, 312, 313, 524, imports y la portada (168,5).
+
 ## 2026-10-06 (madrugada, 03:30) — PINGU-Claude (568 — el reto diario, compartido como Wordle)
 
 **De dónde sale**: PINGU, «haz las tres» (reto compartible, adivina la

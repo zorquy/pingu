@@ -4,30 +4,26 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mis 9 cartas de Pokémon TCG — PokeDoc</title>
+  <title>Retos diarios de Pokémon TCG — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <!-- ESCONDIDA (tanda 567). PINGU, al ver «My 9 Cards» de PTCGenius en
-       los timelines: «copiar esto sería una troleada; ocúltalo por ahora».
-       La página se queda —de aquí saldrá «Mi colección en una imagen»—,
-       pero sin enlace desde ningún sitio y sin indexar. -->
-  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Los minijuegos diarios de PokeDoc: el reto de cinco preguntas de Pokémon TCG, con liga semanal y rachas, y los que vienen. Los mismos para todo el mundo, cada día." />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/nueve" />
-  <meta property="og:url" content="https://pokedoc.es/nueve" />
+  <link rel="canonical" href="https://pokedoc.es/retos" />
+  <meta property="og:url" content="https://pokedoc.es/retos" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Mis 9 cartas de Pokémon TCG" />
-  <meta property="og:description" content="Elige tus nueve favoritas y comparte la imagen. ¿Cuáles son las tuyas?" />
+  <meta property="og:title" content="Retos diarios de Pokémon TCG" />
+  <meta property="og:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Mis 9 cartas de Pokémon TCG" />
-  <meta name="twitter:description" content="Elige tus nueve favoritas y comparte la imagen. ¿Cuáles son las tuyas?" />
+  <meta name="twitter:title" content="Retos diarios de Pokémon TCG" />
+  <meta name="twitter:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -40,7 +36,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/nueve.css" />
+  <link rel="stylesheet" href="css/retos.css" />
 </head>
 <body>
   <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
@@ -124,62 +120,34 @@
     </div>
   </nav>
 
-    <main id="contenido" class="page-content container nv-pagina">
-    <!-- MIS 9 CARTAS (tanda 566). PINGU: «un minijuego de elegir tus nueve
-         cartas preferidas: nueve huecos con un más, un buscador en pop-up
-         con los dos catálogos, y un botón que te genere una imagen con
-         pokedoc.es para compartir en Twitter o Instagram. Entrará gente a
-         hacerlo y se quedará». Sin filtros ni nada más: la página es los
-         nueve huecos y dos botones. -->
-    <header class="nv-cabecera">
-      <h1>Mis 9 cartas</h1>
-      <p class="subtext">Elige tus nueve cartas favoritas de Pokémon TCG —de cualquier expansión, occidental o japonesa— y comparte la imagen.</p>
+    <main id="contenido" class="page-content container rt-pagina">
+    <!-- RETOS DIARIOS (tanda 569). PINGU: «en Aprender, en vez de ir al
+         reto de hoy, una página que sea un índice de los minijuegos que
+         tenemos, que se llamen retos diarios». Una tarjeta por juego, con
+         su estado de HOY —jugado o no, tu marca, tu racha— y el botón.
+         Lo que cambia cada día se pinta desde js/retos.js; lo que no, va
+         aquí para que esté aunque el JS no llegue. -->
+    <header class="rt-cabecera">
+      <h1>Retos diarios</h1>
+      <p class="subtext">Cada día, los mismos para todo el mundo. Juega, presume del resultado y vuelve mañana.</p>
     </header>
 
-    <section class="nv-rejilla" id="nvRejilla" aria-label="Tus nueve huecos"></section>
-
-    <div class="nv-acciones">
-      <button type="button" class="btn-primary" id="nvCompartir" disabled>Compartir la imagen</button>
-      <button type="button" class="btn-secondary" id="nvDescargar" disabled>Descargar</button>
-      <p class="subtext nv-aviso" id="nvAviso">Toca un hueco para elegir una carta. Se guardan en este navegador.</p>
-    </div>
-
-    <!-- La previsualización de la imagen, que es lo que se comparte. Se
-         pinta en un canvas y se enseña aquí para que se vea ANTES de
-         compartirla: una imagen que no has visto no la compartes. -->
-    <section class="nv-vista" id="nvVista" hidden>
-      <h2 class="nv-vista-titulo">Así queda</h2>
-      <canvas id="nvLienzo" width="1080" height="1350" aria-label="Tu imagen de Mis 9 cartas"></canvas>
-    </section>
-
-    <!-- El buscador, en un diálogo. Nombre, catálogo (occidental o
-         japonés) y expansión: lo justo para dar con la carta. -->
-    <dialog class="nv-dialogo" id="nvElegir" aria-labelledby="nvElegirTitulo">
-      <form method="dialog" class="nv-dialogo-cabecera">
-        <h2 id="nvElegirTitulo">Elige una carta</h2>
-        <button type="submit" class="nv-cerrar" aria-label="Cerrar">✕</button>
-      </form>
-      <div class="nv-buscador">
-        <label class="sr-only" for="nvBuscar">Nombre de la carta</label>
-        <input type="search" id="nvBuscar" placeholder="Busca por nombre…" autocomplete="off" />
-        <div class="nv-filtros">
-          <label>Catálogo <select id="nvMercado"></select></label>
-          <label>Expansión <select id="nvSet"><option value="">Todas</option></select></label>
+    <section class="rt-lista" id="rtLista" aria-label="Los retos">
+      <article class="rt-reto" id="rtHoy">
+        <div class="rt-reto-cabecera">
+          <h2>El reto de hoy</h2>
+          <p class="subtext">Cinco preguntas sacadas de los cursos. Liga semanal y rachas.</p>
         </div>
-      </div>
-      <div class="nv-resultados" id="nvResultados" aria-live="polite"></div>
-    </dialog>
-
-    <!-- Qué hacer con un hueco lleno: cambiar, mover o quitar. -->
-    <dialog class="nv-dialogo nv-hueco-menu" id="nvHuecoMenu" aria-label="Este hueco">
-      <form method="dialog">
-        <button type="submit" value="cambiar" class="btn-secondary">Cambiar la carta</button>
-        <button type="submit" value="izquierda" class="btn-secondary">Mover a la izquierda</button>
-        <button type="submit" value="derecha" class="btn-secondary">Mover a la derecha</button>
-        <button type="submit" value="quitar" class="btn-secondary nv-peligro">Quitar</button>
-        <button type="submit" value="" class="link-btn">Cancelar</button>
-      </form>
-    </dialog>
+        <div class="rt-reto-estado" id="rtHoyEstado"><span class="skeleton" style="display:block;height:44px"></span></div>
+      </article>
+      <article class="rt-reto rt-reto-pronto" id="rtCarta">
+        <div class="rt-reto-cabecera">
+          <h2>¿Qué carta es?</h2>
+          <p class="subtext">Un recorte de una carta al día. Adivínala en seis intentos.</p>
+        </div>
+        <div class="rt-reto-estado"><span class="rt-chip">Muy pronto</span></div>
+      </article>
+    </section>
   </main>
 
   <footer class="footer">
@@ -220,6 +188,6 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/nueve.js"></script>
+  <script type="module" src="js/retos.js"></script>
 </body>
 </html>

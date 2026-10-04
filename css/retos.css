@@ -1,0 +1,90 @@
+/* Retos diarios (tanda 569). Solo la carga retos.html. */
+
+.rt-pagina {
+  max-width: 720px;
+}
+
+.rt-cabecera {
+  margin-bottom: var(--e-lg);
+  text-align: center;
+}
+
+.rt-cabecera h1 {
+  margin-bottom: var(--e-xs);
+}
+
+.rt-lista {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.rt-reto {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rt-reto h2 {
+  margin: 0 0 var(--e-xs);
+  font-size: var(--t-lg);
+}
+
+.rt-reto-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.rt-reto-estado .subtext {
+  width: 100%;
+}
+
+.rt-reto-num {
+  margin: 0;
+  width: 100%;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+/* El que todavía no se puede jugar: apagado, pero se ve que viene. */
+.rt-reto-pronto {
+  opacity: 0.7;
+}
+
+.rt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.rt-chip-racha {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+/* Los cinco puntos del reto, como en la portada. */
+.rt-puntos {
+  display: inline-flex;
+  gap: var(--e-xs);
+}
+
+.rt-punto {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+}
+
+.rt-punto.acertado {
+  background: var(--success);
+}

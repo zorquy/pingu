@@ -39,6 +39,9 @@ const ESTATICAS = [
   // que un buscador vuelva a mirar.
   ['/noticias', '0.9'],
   ['/aprender.html', '0.9'],
+  // Los retos diarios (tanda 569): el índice de los minijuegos, que es a
+  // lo que apunta el texto que la gente comparte.
+  ['/retos', '0.7'],
   // El índice del catálogo: es la puerta a las colecciones y, por ellas,
   // a las fichas de carta.
   ['/cartas', '0.8'],
