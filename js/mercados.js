@@ -60,6 +60,38 @@ export const MERCADOS_A_IMPORTAR = ['WEST', 'JP', 'CN', 'TW']
 // chinas no se quedan viejas— y simplemente no se ofrece.
 export const MERCADOS_VISIBLES = ['WEST', 'JP']
 
+// ── DE QUIÉN ES CADA CATÁLOGO (tanda 547) ──
+//
+// PINGU, después de dos tandas arreglando emparejamientos fallados: «todo
+// el catálogo japonés lo traemos directamente de Scrydex. Lo montamos así y
+// ya está. Esto solo para mi colección, que no afecte, porque TCGdex está
+// muy bien para los sets actuales, para la parte de jugar».
+//
+// Lo de ahora era «el catálogo de TCGdex con Scrydex retocándolo por
+// encima», y eso llega a medias POR CONSTRUCCIÓN: cada set hay que
+// EMPAREJARLO —adivinar cuál suyo es cuál nuestro— y cada emparejamiento es
+// una apuesta. De 118 sets japoneses, 36 salían mal. Calcar su catálogo
+// quita el emparejamiento entero: no hay nada que adivinar.
+//
+// Un mercado de esta lista significa TRES cosas, y conviene que estén
+// juntas en un sitio con nombre en vez de repartidas en tres `if`:
+//
+//   · Sus sets y sus cartas se INSERTAN desde Scrydex, enteras.
+//   · Los importadores de TCGdex NO lo tocan (`catalogo-asia`,
+//     `escaneos-asia`), que si no volverían a meter sus filas al lado de
+//     las nuestras cada seis minutos.
+//   · Las fotos salen de Scrydex. Las de TCGdex se pierden para este
+//     mercado, y no por capricho: su dirección se monta con SUS
+//     identificadores de serie y de set, que aquí ya no tenemos.
+//
+// El occidental NO entra y no debe entrar: es el que alimenta «Jugar»
+// —decklists, torneos, el constructor— y ahí TCGdex manda.
+export const MERCADOS_DE_SCRYDEX = ['JP']
+
+export function esDeScrydex(market) {
+  return MERCADOS_DE_SCRYDEX.includes(String(market || '').toUpperCase())
+}
+
 export const MERCADO_POR_DEFECTO = 'WEST'
 
 // Cómo se llama cada mercado en pantalla. El idioma va entre paréntesis

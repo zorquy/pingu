@@ -1,7 +1,8 @@
 import {
   cabecerasDe, urlDeSonda, filaDeCartaConScrydex, nombreQueHayQueArreglar,
-  numeroComparable, laCarta, filaDeCartaSuya,
+  numeroComparable, laCarta, filaDeCartaSuya, deSubtipos,
 } from '../lib/scrydex.mjs'
+import { esDeScrydex } from '../../js/mercados.js'
 
 // Rellenar el catálogo occidental con Scrydex, SOLA y toda la noche (509).
 //
@@ -145,6 +146,8 @@ export async function procesar({
   const arranque = reloj()
   const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
 
+  // ¿Este catálogo lo calcamos entero o solo lo retocamos? (tanda 547)
+  const calcamos = esDeScrydex(MERCADO)
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = escribirImpl || ((tabla, filas) => rest(tabla, clave, { method: 'POST', body: JSON.stringify(filas) }))
   const leerEstado = estadoImpl || (async () => {
@@ -161,22 +164,9 @@ export async function procesar({
   // Un set sin `scrydex_id` no está verificado y NO se toca: un par falso
   // metería las cartas de otro set dentro del nuestro sin dar error, que
   // es lo que costaron las tandas 504 y 505.
-  const sets = await pedir(`tcg_sets?select=id,scrydex_id,scrydex_por&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
+  const sets = await pedir(`tcg_sets?select=id,scrydex_id&market=eq.${MERCADO}&scrydex_id=not.is.null&limit=400`)
   const nuestroSetDe = new Map()
-  // ── QUÉ SETS SON ENTEROS SUYOS (tanda 545) ──
-  //
-  // En un set que viene de TCGdex, una carta suya que no tenemos se queda
-  // fuera: su número y el nuestro se escriben distinto (`001` contra `1`),
-  // así que insertarla podría dejar la MISMA carta dos veces con dos
-  // identificadores, y eso sale en la cara de la biblioteca.
-  //
-  // En un set que trajimos de su catálogo no hay con qué chocar —no tiene
-  // ni una carta de nadie más—, y es justo donde hoy no hay NINGUNA.
-  const sonSuyos = new Set()
-  for (const s of sets || []) {
-    nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
-    if (/importado de Scrydex/i.test(String(s.scrydex_por || ''))) sonSuyos.add(s.id)
-  }
+  for (const s of sets || []) nuestroSetDe.set(String(s.scrydex_id).toLowerCase(), s.id)
   if (!nuestroSetDe.size) {
     return { estado: 409, cuerpo: { error: 'Ningún set tiene `scrydex_id`: pasa antes «Traer los logos de Scrydex» en /admin.' } }
   }
@@ -242,6 +232,8 @@ export async function procesar({
   let paginasHechas = 0
   let conNombreOccidental = 0
   const rarezas = new Map()
+  const sinLeerSupertipo = new Map()
+  const sinLeerSubtipo = new Map()
   const ejemplosDeNombre = []
 
   // ── UN TROPIEZO ES UN TROPIEZO, VENGA DE DONDE VENGA (tanda 510) ──
@@ -354,15 +346,32 @@ export async function procesar({
       const nuestra = porClave.get(`${nuestroSet}|${numeroComparable(suya?.number)}`)
       if (!nuestra) {
         sinCartaNuestra++
-        // Y si el set es entero suyo, la carta se TRAE (tanda 545). No
-        // cuesta un crédito más: esta página ya está pagada.
-        if (sonSuyos.has(nuestroSet)) {
-          const fila = filaDeCartaSuya(suya, { setId: nuestroSet, market: MERCADO })
-          // Dos veces la misma clave en una sentencia y Postgres corta con
-          // «ON CONFLICT DO UPDATE command cannot affect row a second
-          // time» (la lección del catálogo chino, tanda 333).
-          if (fila && !yaEnLaSentencia.has(fila.id)) { yaEnLaSentencia.add(fila.id); nuevas.push(fila) }
-        }
+        // ── LA CARTA QUE NO TENEMOS SE TRAE, Y EL CERROJO ES EL NÚMERO ──
+        //
+        // La 545 lo cerró POR SET —solo los que vinieron enteros de su
+        // catálogo—, y ese cerrojo es demasiado tosco: dejaba sin rellenar
+        // los 82 sets emparejados, que es justo lo que PINGU estaba viendo
+        // («un montón de sets no se han rellenado con cartas»).
+        //
+        // Lo que de verdad hay que impedir es DUPLICAR una carta, y eso se
+        // pregunta por el número: `porClave` está indexado por
+        // `numeroComparable`, así que si llegamos aquí es que de ese set no
+        // tenemos ninguna carta con ese número en NINGUNA de sus formas
+        // (`001` y `1` son la misma clave). Entonces no hay con qué
+        // chocar, venga el set de donde venga.
+        //
+        // Y no cuesta un crédito más: esta página ya está pagada.
+        //
+        // PERO SOLO EN LOS MERCADOS QUE CALCA SCRYDEX. En el occidental
+        // esto metería miles de cartas suyas en el catálogo que alimenta
+        // «Jugar», y ahí manda TCGdex — que es lo que PINGU pidió
+        // expresamente: «esto solo para mi colección, que no afecte».
+        if (!calcamos) continue
+        const fila = filaDeCartaSuya(suya, { setId: nuestroSet, market: MERCADO, idioma: IDIOMA })
+        // Dos veces la misma clave en una sentencia y Postgres corta con
+        // «ON CONFLICT DO UPDATE command cannot affect row a second
+        // time» (la lección del catálogo chino, tanda 333).
+        if (fila && !yaEnLaSentencia.has(fila.id)) { yaEnLaSentencia.add(fila.id); nuevas.push(fila) }
         continue
       }
       filas.push(filaDeCartaConScrydex(nuestra, suya))
@@ -374,6 +383,17 @@ export async function procesar({
       // hacer: deducir de una muestra de otra cosa. Así que se CUENTA, y
       // el panel lo dirá sin que nadie pregunte ni gaste un crédito.
       if (suya?.translation?.en?.name) conNombreOccidental++
+      // ── LO QUE NO SABEMOS LEER DE SUS ENUMS, CONTADO (tanda 547) ──
+      //
+      // Doy por hecho que sus `supertype` y `subtypes` vienen en inglés
+      // también en el catálogo japonés, y **no lo he visto**: la red de
+      // este contenedor no llega a su API. Un enum que no se reconoce se
+      // queda a null, así que el fallo sería silencioso — una ficha sin
+      // fase ni tipo de entrenador y ni un error. El contador es la única
+      // forma honesta de enterarse (la lección de la 484).
+      const sub = deSubtipos(suya)
+      if (sub.supertipoRaro) sinLeerSupertipo.set(sub.supertipoRaro, (sinLeerSupertipo.get(sub.supertipoRaro) || 0) + 1)
+      for (const r of sub.raros) sinLeerSubtipo.set(r, (sinLeerSubtipo.get(r) || 0) + 1)
       const bueno = nombreQueHayQueArreglar(nuestra, suya)
       if (bueno) {
         // `local_id` va aquí por lo mismo que en `filaDeCartaConScrydex`:
@@ -431,6 +451,7 @@ export async function procesar({
       // suyos (tanda 545). Un set importado de su catálogo tenía 0 cartas
       // y en la biblioteca se veía como una colección vacía.
       insertadas,
+      calcamosSuCatalogo: calcamos,
       conNombreOccidental,
       // EL ARREGLO DEL HALLAZGO DE LA 505: ~1.890 cartas occidentales
       // llevan el español en `name`, que es la clave con la que se cruzan
@@ -444,6 +465,10 @@ export async function procesar({
       // carta podría acabar dos veces con dos identificadores.
       sinSetNuestro,
       sinCartaNuestra,
+      // Si esto sale con algo dentro, sus enums japoneses NO vienen en
+      // inglés y hay columnas quedándose a null en silencio.
+      susSupertiposSinLeer: Object.fromEntries(sinLeerSupertipo),
+      susSubtiposSinLeer: Object.fromEntries([...sinLeerSubtipo].sort((a, b) => b[1] - a[1]).slice(0, 20)),
       // Su vocabulario de rarezas, aprendido de los datos: es como se
       // sabe qué hay que traducir sin inventarse la lista.
       rarezasVistas: Object.fromEntries([...rarezas.entries()].sort((a, b) => b[1] - a[1])),

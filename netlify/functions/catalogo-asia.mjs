@@ -1,4 +1,4 @@
-import { MERCADOS_A_IMPORTAR, idiomaDeMercado } from '../../js/mercados.js'
+import { MERCADOS_A_IMPORTAR, idiomaDeMercado, esDeScrydex } from '../../js/mercados.js'
 import { esDelTCG } from '../../js/catalogo-series.js'
 import {
   setToRow, cardToRow, sinDuplicados, porImagen,
@@ -64,7 +64,13 @@ const API = 'https://api.tcgdex.net/v2'
 // Los asiáticos son los de la lista de importación menos el occidental.
 // Se calcula y no se escribe: añadir el coreano a `MERCADOS_A_IMPORTAR`
 // tiene que bastar, sin acordarse de este fichero.
-const MERCADOS = MERCADOS_A_IMPORTAR.filter((m) => m !== 'WEST')
+// Y fuera los que calca Scrydex (tanda 547): el japonés lo trae entero
+// `scrydex-importar-jp` + `scrydex-relleno-jp`, con SUS identificadores.
+// Si esto siguiera importando el japonés de TCGdex, cada seis minutos
+// volverían a aparecer sus 186 sets al lado de los 231 buenos — la misma
+// colección dos veces en la biblioteca, que es el único error de aquí que
+// se ve en la cara.
+const MERCADOS = MERCADOS_A_IMPORTAR.filter((m) => m !== 'WEST' && !esDeScrydex(m))
 
 // Netlify mata una función programada a los 30 segundos, sin avisar y
 // sin dejar terminar la petición en curso. Parar por nuestra cuenta

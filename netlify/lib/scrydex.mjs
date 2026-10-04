@@ -991,7 +991,135 @@ export const CATEGORIA_DE_SUPERTIPO = {
   pokémon: 'Pokemon', pokemon: 'Pokemon', trainer: 'Trainer', energy: 'Energy',
 }
 
-export function filaDeCartaSuya(suya, { setId, market, ahora = new Date() } = {}) {
+// ── EL DETALLE ENTERO DE UNA CARTA SUYA (tanda 547) ──
+//
+// PINGU: «todo el catálogo japonés lo traemos directamente de Scrydex. Lo
+// montamos así y ya está».
+//
+// Y se puede, porque su respuesta de cartas trae la ficha COMPLETA. Esto no
+// es una suposición: está pegada byte a byte en `test-tanda-502.mjs`, de una
+// petición de verdad, y lleva `subtypes`, `types`, `hp`, `evolves_from`,
+// `abilities`, `attacks` con su texto y su daño, `weaknesses`,
+// `resistances`, `converted_retreat_cost`, `rules`, `flavor_text`,
+// `regulation_mark` y `variants`. O sea que para el japonés TCGdex no hace
+// falta ni para el detalle.
+//
+// ── LOS ENUMS SE TRADUCEN A LO NUESTRO, Y LO QUE NO SE RECONOCE SE DEJA ──
+//
+// Nuestras columnas guardan la forma canónica inglesa (`Pokemon`, `Stage1`,
+// `Supporter`), que es con la que compara todo el código desde la 334. Sus
+// nombres son parecidos pero no iguales: «Pokémon» con tilde, «Stage 1» con
+// espacio, «Pokémon Tool» por «Tool».
+//
+// Un valor que no esté en estas tablas **se queda a null**, y se CUENTA en
+// el informe. No se inventa y no se escribe tal cual: una columna que
+// decide si una carta es un Pokémon o un Entrenador, rellenada con algo que
+// nadie reconoce, es una ficha rota sin un solo error. Y como el japonés no
+// lo he visto contestar desde aquí —la red de este contenedor no llega a su
+// API—, el contador es la única forma honesta de saber si sus enums vienen
+// en inglés también en japonés, que es lo que doy por hecho.
+export const FASE_DE_SUBTIPO = {
+  basic: 'Basic', 'stage 1': 'Stage1', 'stage 2': 'Stage2', mega: 'MEGA',
+  vmax: 'VMAX', vstar: 'VSTAR', restored: 'Restored', 'level-up': 'LEVEL-UP',
+  'baby': 'Basic',
+}
+export const ENTRENADOR_DE_SUBTIPO = {
+  supporter: 'Supporter', item: 'Item', stadium: 'Stadium',
+  'pokémon tool': 'Tool', 'pokemon tool': 'Tool', tool: 'Tool',
+}
+// `Normal` y `Special` son los canónicos (ver `A_ENERGIA` en
+// js/carta-detalle.js): una energía básica es la que vale `Normal`.
+export const ENERGIA_DE_SUBTIPO = { basic: 'Normal', special: 'Special' }
+export const VARIANTE_DE_SUYA = {
+  normal: 'normal', holofoil: 'holo', 'reverse holofoil': 'reverse',
+  'first edition': 'firstEdition', '1st edition': 'firstEdition',
+}
+
+const minus = (x) => String(x ?? '').trim().toLowerCase()
+
+// Lo que de sus `subtypes` sabemos leer. Devuelve también los que NO, para
+// que el informe los diga en vez de que se pierdan.
+export function deSubtipos(suya) {
+  const subtipos = Array.isArray(suya?.subtypes) ? suya.subtypes.map(minus).filter(Boolean) : []
+  const cat = CATEGORIA_DE_SUPERTIPO[minus(suya?.supertype)] || null
+  const fase = subtipos.map((x) => FASE_DE_SUBTIPO[x]).find(Boolean) || null
+  const entrenador = subtipos.map((x) => ENTRENADOR_DE_SUBTIPO[x]).find(Boolean) || null
+  const energia = subtipos.map((x) => ENERGIA_DE_SUBTIPO[x]).find(Boolean) || null
+  // Un subtipo es «raro» solo si no lo reconoce NINGUNA de las tres tablas:
+  // «ex», «Tera» o «Ancient» son etiquetas de verdad que no van a ninguna
+  // de nuestras columnas, así que no cuentan como sorpresa… pero `basic` sí
+  // significa dos cosas distintas según el supertipo, y de eso se encarga
+  // la columna que se escribe más abajo.
+  const raros = subtipos.filter((x) => !FASE_DE_SUBTIPO[x] && !ENTRENADOR_DE_SUBTIPO[x] && !ENERGIA_DE_SUBTIPO[x])
+  return {
+    category: cat,
+    // La FASE es solo de un Pokémon, y el tipo de energía solo de una
+    // energía: `basic` vale para los dos y escribirlo en la columna
+    // equivocada haría que una Energía Básica saliera como «Básico».
+    stage: cat === 'Pokemon' ? fase : null,
+    trainer_type: cat === 'Trainer' ? entrenador : null,
+    energy_type: cat === 'Energy' ? energia : null,
+    raros,
+    // Y si el supertipo no se reconoce, se dice: es el que decide las
+    // otras tres.
+    supertipoRaro: suya?.supertype && !cat ? String(suya.supertype) : null,
+  }
+}
+
+const lista = (x) => (Array.isArray(x) && x.length ? x : null)
+
+export function detalleDeCartaSuya(suya, { idioma = 'ja' } = {}) {
+  const { category, stage, trainer_type, energy_type } = deSubtipos(suya)
+  const ps = Number(String(suya?.hp ?? '').trim())
+  const retirada = Number(suya?.converted_retreat_cost)
+  // `evolves_from` es una LISTA en su respuesta («evolves_from": []») y
+  // nuestra columna es un texto: se coge el primero, que es lo que hay.
+  const deQuien = Array.isArray(suya?.evolves_from) ? suya.evolves_from.filter(Boolean)[0] : suya?.evolves_from
+  // Su `text` es nuestro `effect`: el pintor lee `a.effect`, así que
+  // guardarlo con su nombre dejaría los ataques SIN TEXTO y sin dar error.
+  const ataques = (Array.isArray(suya?.attacks) ? suya.attacks : []).map((a) => ({
+    name: a?.name || '', cost: Array.isArray(a?.cost) ? a.cost : [],
+    damage: a?.damage ?? null, effect: a?.text ?? null,
+  }))
+  const habilidades = (Array.isArray(suya?.abilities) ? suya.abilities : []).map((h) => ({
+    name: h?.name || '', type: h?.type || 'Habilidad', effect: h?.text ?? null,
+  }))
+  // Las versiones: de su lista de nombres a nuestro objeto de banderas. Lo
+  // que no se reconoce no se marca — una versión inventada es un bolsillo
+  // de álbum que no existe.
+  const variantes = {}
+  for (const v of Array.isArray(suya?.variants) ? suya.variants : []) {
+    const k = VARIANTE_DE_SUYA[minus(v?.name)]
+    if (k) variantes[k] = true
+  }
+  return {
+    category,
+    stage,
+    trainer_type,
+    energy_type,
+    types: lista(Array.isArray(suya?.types) ? suya.types.filter(Boolean) : null),
+    hp: Number.isFinite(ps) && ps > 0 ? ps : null,
+    evolve_from: deQuien || null,
+    retreat: Number.isFinite(retirada) ? retirada : null,
+    attacks: lista(ataques),
+    abilities: lista(habilidades),
+    weaknesses: lista(suya?.weaknesses),
+    resistances: lista(suya?.resistances),
+    // El texto de debajo: un Entrenador lleva sus `rules` y un Pokémon su
+    // texto de sabor. Son dos campos suyos y una sola columna nuestra.
+    description: (Array.isArray(suya?.rules) && suya.rules.length ? suya.rules.join('\n\n') : null)
+      || suya?.flavor_text || null,
+    regulation_mark: suya?.regulation_mark || null,
+    variants: Object.keys(variantes).length ? variantes : null,
+    // DE QUÉ IDIOMA ES LA FICHA, que decide si una reimpresión puede
+    // comparar los nombres de los ataques (tanda 333). Sin esto, una carta
+    // japonesa compararía «かみつく» con «Gnaw» y no casaría nunca.
+    detalle_lang: idioma,
+    detalle_at: new Date().toISOString(),
+  }
+}
+
+export function filaDeCartaSuya(suya, { setId, market, idioma = 'ja', ahora = new Date() } = {}) {
   const numero = String(suya?.number ?? '').trim()
   // `local_id` y `name` son `not null`: una carta suya sin número no deja
   // formar la fila, y aquí no se inventa un número (la lección de la 526,
@@ -1004,7 +1132,6 @@ export function filaDeCartaSuya(suya, { setId, market, ahora = new Date() } = {}
   const dex = Array.isArray(suya?.national_pokedex_numbers)
     ? suya.national_pokedex_numbers.map(Number).filter(Number.isFinite)
     : null
-  const ps = Number(String(suya?.hp ?? '').trim())
   return {
     // SU identificador, tal cual. Es lo que pidió PINGU —«calca su base»—
     // y además es lo único que garantiza que no choque con uno nuestro.
@@ -1019,8 +1146,17 @@ export function filaDeCartaSuya(suya, { setId, market, ahora = new Date() } = {}
     rarity_code: suya?.rarity_code || null,
     illustrator: suya?.artist || null,
     dex_ids: dex?.length ? dex : null,
-    hp: Number.isFinite(ps) && ps > 0 ? ps : null,
-    category: CATEGORIA_DE_SUPERTIPO[String(suya?.supertype || '').trim().toLowerCase()] || null,
+    // Y la ficha ENTERA (tanda 547): ataques, habilidades, debilidades,
+    // fase, retirada, versiones. Su respuesta de cartas la trae toda, así
+    // que una carta importada de aquí nace completa y no hay que volver a
+    // pedirla — que es lo que `cartas-detalle` hace con las occidentales a
+    // una petición por carta.
+    ...detalleDeCartaSuya(suya, { idioma }),
+    // La rareza va en las DOS columnas: `rarity_en` es la suya exacta
+    // (tanda 509) y `rarity` es la que se enseña — en un catálogo que
+    // viene entero de Scrydex son la misma, y el traductor de rarezas la
+    // pinta en español al leerla.
+    rarity: suya?.rarity || null,
     scrydex_at: ahora.toISOString(),
   }
 }
