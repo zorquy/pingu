@@ -72,7 +72,11 @@ const doble = ({ pendientes = null, romper = null } = {}) => {
   // Se pide SOLO lo que falta, y de los mercados asiáticos.
   const consulta = d.llamadas.find((l) => l.ruta?.startsWith('tcg_cards?select='))?.ruta
   check('pide las que no tienen detalle', /detalle_at=is\.null/.test(consulta), consulta)
-  check('  …de los tres catálogos asiáticos', /market=in\.\(JP,CN,TW\)/.test(consulta), consulta)
+  // Los DOS chinos y no tres (desde la 547): el japonés se calca entero de
+  // Scrydex y `catalogo-asia` lo deja fuera con `esDeScrydex`. Esta prueba
+  // se quedó pidiendo los tres hasta que la suite entera la cazó.
+  check('  …de los catálogos asiáticos que van por TCGdex (CN y TW)', /market=in\.\(CN,TW\)/.test(consulta), consulta)
+  check('  …y sin el japonés, que va por Scrydex desde la 547', !/JP/.test(consulta), consulta)
   check('  …y sin el occidental, que ya lo hace `cartas-detalle`', !/WEST/.test(consulta), consulta)
 
   // CADA CARTA EN SU IDIOMA: pedir la japonesa a la carpeta inglesa es un
