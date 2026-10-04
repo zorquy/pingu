@@ -169,10 +169,12 @@ console.log('\n── 6. Quien SOLO MIRA no pide lo que no puede ver ──')
   check('NO pide los reportes de las mesas', !tablas.includes('match_reports'), tablas.join(', '))
   check('NO pide una decklist que no tiene', !tablas.includes('tournament_decklists'), tablas.join(', '))
   // Y sí pide lo que hace falta para enseñar el torneo.
-  for (const t of ['tournament_registrations', 'rounds', 'tournament_matches', 'match_results']) {
+  // Desde la 555 también las repeticiones de las mesas: las DE MESA que
+  // añade un juez las ve todo el mundo (y la base no le da las de jugador).
+  for (const t of ['tournament_registrations', 'rounds', 'tournament_matches', 'match_results', 'tournament_match_replays']) {
     check(`sí pide ${t}`, tablas.includes(t), tablas.join(', '))
   }
-  check('en total, seis consultas', tablas.length === 6, `${tablas.length}: ${tablas.join(', ')}`)
+  check('en total, siete consultas', tablas.length === 7, `${tablas.length}: ${tablas.join(', ')}`)
   await page.close()
 }
 

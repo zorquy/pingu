@@ -653,6 +653,8 @@ sembrar('__FAKE_REPETICIONES_MESA__', 'tournament_match_replays', (i) => ({
   user_id: 'user-1',
   replay_id: `rep${String(i + 1).padStart(7, '0')}`,
   created_at: new Date(Date.now() - (10 - i) * 60e3).toISOString(),
+  // Las DE MESA que añade un juez (tanda 555) llevan `publica`.
+  publica: false,
 }))
 
 sembrar('__FAKE_ENTREGAS__', 'tournament_prize_deliveries', (i) => ({
@@ -915,6 +917,8 @@ function consulta(tabla, estado = {}) {
       filas = filas.filter((f) => {
         const m = T.tournament_matches.find((x) => x.id === f.match_id)
         if (!m) return false
+        // Las de mesa (tanda 555): cualquiera que vea la mesa.
+        if (f.publica) return true
         if (m.player_a_id === yo || m.player_b_id === yo) return true
         const t = T.rounds.find((r) => r.id === m.round_id)?.tournament_id
         if (perfil.is_admin || perfil.is_tournament_admin || T.tournaments.find((x) => x.id === t)?.admin_id === yo) return true
@@ -1630,6 +1634,35 @@ export const supabase = {
       if (T.tournament_match_replays.filter((x) => x.match_id === m.id && x.user_id === yo).length >= 3) return no('Caben tres repeticiones tuyas por partida (una por juego de un BO3): quita una antes.')
       r.compartida = true
       T.tournament_match_replays.push({ match_id: m.id, user_id: yo, replay_id: r.id, created_at: new Date().toISOString() })
+      return { data: true, error: null }
+    }
+
+    // La repetición DE MESA (tanda 555): la añade y la quita quien lleva el
+    // torneo o un juez aprobado, con las mismas puertas que la función.
+    if (nombre === 'torneos_juez_adjuntar_repeticion' || nombre === 'torneos_juez_quitar_repeticion') {
+      const yo = sesion?.user?.id
+      const no = (message, code = 'P0001') => ({ data: null, error: { code, message } })
+      if (!yo) return no('Hace falta iniciar sesión.', '28000')
+      const m = T.tournament_matches.find((x) => x.id === args.p_partida)
+      const t = m && T.rounds.find((r) => r.id === m.round_id)?.tournament_id
+      const perfil = T.user_profiles.find((x) => x.id === yo) || {}
+      const manda = Boolean(perfil.is_admin || perfil.is_tournament_admin || T.tournaments.find((x) => x.id === t)?.admin_id === yo)
+      const juez = T.judge_applications.some((j) => j.tournament_id === t && j.user_id === yo && j.status === 'approved')
+      if (!m) return no('Esa mesa no existe.', 'P0002')
+      if (!manda && !juez) return no('Solo quien lleva el torneo y sus jueces añaden la repetición de una mesa.', '42501')
+      if (nombre === 'torneos_juez_quitar_repeticion') {
+        const antes = T.tournament_match_replays.length
+        T.tournament_match_replays = T.tournament_match_replays.filter((x) => !(x.match_id === m.id && x.replay_id === args.p_repeticion && x.publica))
+        return { data: T.tournament_match_replays.length < antes, error: null }
+      }
+      if (['pending', 'bye'].includes(m.status) || !m.player_b_id) return no('Esa mesa no tiene partida que ver (sin empezar, o un bye).')
+      const r = T.replays.find((x) => x.id === args.p_repeticion && x.user_id === yo)
+      if (!r) return no('Esa repetición no es tuya: guárdala primero.', '42501')
+      if (T.tournament_match_replays.filter((x) => x.match_id === m.id && x.publica && x.replay_id !== r.id).length >= 3) return no('Caben tres repeticiones por mesa (una por partida de un BO3): quita una antes.')
+      r.compartida = true
+      const ya = T.tournament_match_replays.find((x) => x.match_id === m.id && x.replay_id === r.id)
+      if (ya) ya.publica = true
+      else T.tournament_match_replays.push({ match_id: m.id, user_id: yo, replay_id: r.id, created_at: new Date().toISOString(), publica: true })
       return { data: true, error: null }
     }
 

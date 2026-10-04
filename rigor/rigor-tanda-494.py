@@ -29,7 +29,7 @@ MUTACIONES = [
     (REP, 'el enlace del constructor no dice de dónde viene',
      ", de: 'repeticion' })}", ' })}'),
     (REP, 'la partida se apunta siempre como ganada',
-     "    resultado: ganadorDeLaPartida() === yo ? 'win' : 'loss',", "    resultado: 'win',"),
+     "!yo || !ganador ? null : ganador === yo ? 'win' : 'loss')", "!yo || !ganador ? null : 'win')"),
     (REP, 'el mazo apuntado no lleva la clave del torneo',
      "  const clave = (arq) => (arq && mazosCargados ? mazosCargados.claveDeArquetipo(arq) : 'sin-mazo')",
      "  const clave = (arq) => (arq ? `d:${arq.nombre}` : 'sin-mazo')"),

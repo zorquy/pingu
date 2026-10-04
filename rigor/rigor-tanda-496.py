@@ -12,9 +12,8 @@ RON = 'js/torneos/ronda.js'
 DAT = 'js/repeticiones/datos.js'
 
 MUTACIONES = [
-    (RON, 'se le pregunta a la base también sin cuenta',
-     '      necesitaReportes ? repeticionesDePartidas(idsPartidas) : Promise.resolve([]),',
-     '      repeticionesDePartidas(idsPartidas),'),
+    # (La de «se le pregunta a la base también sin cuenta» ya no es una
+    # mutación: desde la 555 se le pregunta a propósito, por las de MESA.)
     (RON, 'se ofrece una cuarta repetición',
      '  const puedeAdjuntar = esMia && hayPartida && mias < 3', '  const puedeAdjuntar = esMia && hayPartida'),
     (RON, 'una mesa pendiente ofrece adjuntar',

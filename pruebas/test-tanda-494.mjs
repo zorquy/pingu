@@ -185,12 +185,13 @@ let partidaApuntada = null
   await pegar(page)
   await mazosListos(page)
   await page.click('[data-accion="guardar"]')
+  await page.waitForSelector('#repQuien', { timeout: 8000 })
   const opciones = await page.$$eval('#repQuien input', (xs) => xs.map((x) => `${x.value}:${x.checked}`))
   check('«¿Cuál de los dos eres tú?»: sin nombre recordado, el del registro (que es quien lo copió)', opciones.join() === 'Rojo:true,Azul:false,:false', opciones.join())
   const texto = async () => (await page.textContent('#repApuntarTexto')).trim()
-  check('  …y apuntarla dice cómo: ganada, con qué y contra qué', (await texto()) === "Apuntarla en «Mis partidas» como ganada: N's Zoroark contra Mega Greninja ex Dragapult ex", await texto())
+  check('  …y apuntarla dice cómo: ganada, con qué y contra qué', (await texto()) === "Apuntarla en tus partidas sueltas de «Mis partidas» como ganada: N's Zoroark contra Mega Greninja ex Dragapult ex", await texto())
   await page.click('#repQuien input[value="Azul"]')
-  check('  …siendo Azul, perdida y al revés', (await texto()) === "Apuntarla en «Mis partidas» como perdida: Mega Greninja ex Dragapult ex contra N's Zoroark", await texto())
+  check('  …siendo Azul, perdida y al revés', (await texto()) === "Apuntarla en tus partidas sueltas de «Mis partidas» como perdida: Mega Greninja ex Dragapult ex contra N's Zoroark", await texto())
   await page.click('#repQuien input[value=""]')
   check('  …y sin ser ninguno, no hay nada que apuntar', await page.isDisabled('#repApuntar') && !(await page.isChecked('#repApuntar')))
   await page.click('#repQuien input[value="Rojo"]')
@@ -207,7 +208,7 @@ let partidaApuntada = null
   check('  …se recuerda quién eres (tu nombre de TCG Live)', (await page.evaluate(() => localStorage.getItem('pokedoc-repeticion-yo'))) === 'Rojo')
   // Otra vez la misma: ya está apuntada, y se dice.
   await page.click('[data-accion="guardar"]')
-  check('abrirla otra vez dice que ya está apuntada, con el enlace', await page.waitForFunction(() => /Ya está apuntada en Mis partidas/.test(document.getElementById('repDialogoCuerpo').textContent), null, { timeout: 4000 }).then(() => true).catch(() => false))
+  check('abrirla otra vez dice que ya está apuntada, con el enlace', await page.waitForFunction(() => /Ya está apuntada en tus partidas sueltas de Mis partidas/.test(document.getElementById('repDialogoCuerpo').textContent), null, { timeout: 4000 }).then(() => true).catch(() => false))
   check('  …y ya no pregunta quién eres', (await page.locator('#repQuien').count()) === 0 && (await page.locator('#repDialogoCuerpo a[href="/mis-partidas"]').count()) === 1)
   await page.keyboard.press('Escape')
   check('sin errores', !errores.length, errores.join(' | '))
@@ -220,6 +221,7 @@ let partidaApuntada = null
   await page.evaluate(() => localStorage.setItem('pokedoc-repeticion-yo', 'Ash'))
   await pegar(page)
   await page.click('[data-accion="guardar"]')
+  await page.waitForSelector('#repQuien', { timeout: 8000 })
   check('con otro nombre recordado, «Ninguno» marcado y nada que apuntar', (await page.isChecked('#repQuien input[value=""]')) && (await page.isDisabled('#repApuntar')))
   await page.keyboard.press('Escape')
   // Y una partida sin final no se puede apuntar: no se sabe quién ganó.
@@ -228,7 +230,9 @@ let partidaApuntada = null
   await page.click('#repFormulario button[type=submit]')
   await page.waitForSelector('#repSala:not(.hidden)')
   await page.click('[data-accion="guardar"]')
-  check('un registro sin final no ofrece apuntarla (y dice por qué)', (await page.locator('#repQuien').count()) === 0 && /no dice quién ganó/.test(await page.textContent('#repDialogoCuerpo')))
+  // Desde la 553 no se rinde: pregunta cómo acabó (lo prueba la 553 entera).
+  await page.waitForSelector('#repQuien', { timeout: 8000 })
+  check('un registro sin final pregunta cómo acabó (y dice por qué)', (await page.locator('#repResultado').count()) === 1 && /no dice quién ganó/.test(await page.textContent('#repDialogoCuerpo')))
   await ctx.close()
 }
 {

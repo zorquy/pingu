@@ -33,7 +33,9 @@ const hace = (min) => new Date(Date.now() - min * 60000).toISOString()
 console.log('\n── 1. La base, contra PostgreSQL ──')
 {
   const SQL = leer('supabase-migration-repeticiones.sql')
-  check('nadie escribe en la tabla: solo se lee (y lo que deja la política)', /grant select on table public\.tournament_match_replays to authenticated/.test(SQL) && !/grant (insert|update|delete)[^;]*tournament_match_replays/.test(SQL))
+  // Desde la 555 también sin cuenta (para las de MESA): la política de las
+  // de jugador va a `authenticated`, así que sin cuenta no ve ninguna.
+  check('nadie escribe en la tabla: solo se lee (y lo que deja la política)', /grant select on table public\.tournament_match_replays to anon, authenticated/.test(SQL) && /create policy tmr_ver on public\.tournament_match_replays for select to authenticated/.test(SQL) && !/grant (insert|update|delete)[^;]*tournament_match_replays/.test(SQL))
   check('la política: los dos jugadores, quien lleva el torneo (torneos_mando) y sus jueces', /m\.player_a_id = auth\.uid\(\)\s+or m\.player_b_id = auth\.uid\(\)\s+or public\.torneos_mando\(r\.tournament_id\)\s+or public\.repeticiones_juez_de\(r\.tournament_id\)/.test(SQL))
   check('adjuntar la COMPARTE (si no, los demás no la abrirían)', /update public\.replays set compartida = true where id = p_repeticion/.test(SQL))
   const ruta = join(AQUI, 'sql-repeticiones.sql')
@@ -174,16 +176,17 @@ for (const [quien, texto] of [['admin-1', 'quien lleva el torneo'], ['mod-1', 'l
   await page.close()
 }
 {
+  // Desde la 555 sin cuenta SÍ se pregunta (por las de mesa, que ve todo
+  // el mundo), y la base no le da ninguna de jugador.
   const { page } = await abrir({ sesion: 'none', extra: ADJUNTA })
-  const veces = await page.evaluate(() => window.__CONSULTAS__.porTabla.tournament_match_replays || 0)
-  check('sin cuenta ni se pregunta a la base (como los reportes)', veces === 0 && (await page.locator('.torneo-rep').count()) === 0, veces)
+  check('sin cuenta no la ve (la base no se la da)', (await page.locator('.torneo-rep').count()) === 0)
   await page.close()
 }
 
 console.log('\n── 4. Lo estático ──')
 {
   const JS = leer('js/torneos/ronda.js')
-  check('se pide con los reportes, solo para quien juega, lleva o arbitra', /necesitaReportes \? repeticionesDePartidas\(idsPartidas\) : Promise\.resolve\(\[\]\)/.test(JS))
+  check('se pide con los reportes (desde la 555, para todo el mundo: la base decide)', /\n\s+repeticionesDePartidas\(idsPartidas\),\n/.test(JS))
   check('ninguna escritura directa en la tabla (por función)', !/from\('tournament_match_replays'\)\.(insert|upsert|update|delete)/.test(JS + leer('js/repeticiones/datos.js')))
 }
 
