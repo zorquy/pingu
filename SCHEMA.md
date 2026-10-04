@@ -28967,3 +28967,47 @@ Los nombres van en `tcg_eras`, que es para lo que nació en la 550, así que
 **se pueden cambiar desde /admin sin otra migración**. La lista la escribí a
 mano, y por eso la migración acaba diciendo qué `serie_id` se han quedado
 fuera en vez de dar por hecho que están todos (la lección de la 484).
+
+## Tanda 557 — el escáner no reconocía el japonés: era `NFD` (oct. 2026)
+
+PINGU, con la web ya abierta al público: «el escáner de cartas no reconoce
+el japonés, pero los occidentales parece que sí».
+
+**Y no era el escáner: era `normalizeSearch`**, o sea toda la búsqueda
+japonesa, tecleada o escaneada. El escáner es solo donde se notó, porque
+mete el nombre leído en el buscador.
+
+`normalizeSearch` hace `NFD` para separar «letra + tilde» y poder tirar la
+tilde — sin eso, quien escribe «pomez» no encuentra «Piedra Pómez», y hay
+1.159 cartas acentuadas. Pero **NFD también descompone el kana**: ギ se
+parte en キ + ゙ (U+3099) y ダ en タ + ゙, y **ese signo no está en el rango
+`̀-ͯ` que se tira**, así que se queda. La consulta salía con
+siete puntos de código donde la base tiene cinco.
+
+Y la base no descompone nada: `unaccent()` no toca el kana, así que
+`name_search` guarda la forma compuesta tal como la manda el catálogo. Un
+`like '%フシギダネ%'` descompuesto contra «フシギダネ» compuesto **no casa
+jamás** — y no da error, da cero resultados. Como casi todos los nombres
+japoneses llevan alguna sonora (ギ, ダ, ピ, ベ, ゾ…), no se encontraba
+prácticamente ninguno.
+
+Se arregla recomponiendo al final (`.normalize('NFC')`), que es exactamente
+la forma que tiene la base. **NFC y no NFKC**: esta función tiene que hacer
+lo mismo que Postgres y nada más, y NFKC cambiaría además la anchura media,
+los números en círculo y las ligaduras, que la base no cambia — y entonces
+la consulta dejaría de casar por el otro lado.
+
+**Cómo se sabe que la base guarda la forma compuesta** sin poder mirarla
+desde aquí: si guardara la descompuesta, la búsqueda habría funcionado
+ANTES de este arreglo (cliente descompuesto = base descompuesta) y no
+habría ningún fallo que contar. El propio aviso es la prueba.
+
+Y la prueba de la vuelta entera —se escribe el nombre japonés y sale la
+carta— vale porque el doble genera `name_search` con esta misma función,
+igual que Postgres: si las dos no acaban en la misma forma, salen cero
+resultados con la carta delante.
+
+**Una lección de la propia prueba**: escribí que «la ñ no es una tilde y se
+queda», y es falso — `unaccent()` la convierte en «n», así que
+`name_search` guarda «manana» y la consulta tiene que decir lo mismo. La
+regla no es qué me parece a mí una tilde: es qué hace Postgres.

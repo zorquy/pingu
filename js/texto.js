@@ -90,6 +90,26 @@ export function normalizeSearch(texto) {
     .replace(/\u00df/g, 'ss')
     .replace(/\u00bf/g, '?').replace(/\u00a1/g, '!')
     .replace(/[\u00f8\u00d8]/g, 'o')
+    // ── Y SE VUELVE A COMPONER (tanda 557) ──
+    //
+    // El `NFD` de arriba está para separar «letra + tilde» y poder tirar la
+    // tilde. Pero NFD **también descompone el kana**: ギ se parte en キ +
+    // ゙ (U+3099) y ダ en タ + ゙ — y ese signo NO está en el rango
+    // \u0300-\u036f, así que no se tira: se queda. O sea que una búsqueda
+    // japonesa salía con DOS puntos de código donde la base tiene UNO.
+    //
+    // Y la base no descompone nada: `unaccent()` no toca el kana, así que
+    // `name_search` guarda la forma compuesta tal como la manda el
+    // catálogo. Un `like '%フシギダネ%'` contra «フシギダネ» no casa JAMÁS
+    // — y no da error, da cero resultados. Como casi todos los nombres
+    // japoneses llevan alguna sonora (ギ, ダ, ピ, ベ…), **la búsqueda
+    // japonesa entera no encontraba nada**, ni tecleada ni por el escáner.
+    //
+    // NFC y no NFKC a propósito: esto tiene que hacer LO MISMO que Postgres
+    // y nada más. NFKC cambiaría además la anchura media, los números en
+    // círculo y las ligaduras, que la base no cambia — y entonces la
+    // consulta dejaría de casar por el otro lado.
+    .normalize('NFC')
     .toLowerCase()
     .trim()
 }

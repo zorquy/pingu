@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (mañana, 09:40) — PINGU-Claude (557 — el escáner no reconocía el japonés: era `NFD`)
+
+**De dónde sale**: PINGU, con la web ya abierta al público: «el escáner de
+cartas no reconoce el japonés, pero los occidentales parece que sí».
+
+**Y no era el escáner**: era `normalizeSearch`, o sea TODA la búsqueda
+japonesa, tecleada o escaneada. `NFD` descompone el kana —ギ se parte en
+キ + ゙ (U+3099)— y ese signo **no está en el rango `\u0300-\u036f` que se
+tira**, así que se queda: la consulta salía con siete puntos de código
+donde la base tiene cinco. `unaccent()` no toca el kana, así que
+`name_search` guarda la forma compuesta y el `like` no casaba JAMÁS. Sin
+error: cero resultados. Y como casi todos los nombres japoneses llevan
+alguna sonora, no se encontraba prácticamente ninguno.
+
+**Hecho**: `.normalize('NFC')` al final. NFC y no NFKC: esta función tiene
+que hacer lo mismo que Postgres y nada más.
+
+**Sin migración**: la base ya guarda la forma buena; lo que estaba mal era
+lo que se le preguntaba.
+
+**Ficheros**: `js/texto.js`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-557.mjs`.
+
+**Pasado**: 557 entera —incluida la vuelta completa en el navegador: se
+escribe «フシギダネ» y sale la carta— más 335, 447, 450, 451, 523, 546 y
+556. Ojo IBAI: el doble genera `name_search` con esta misma función, así
+que si tocas la búsqueda, las dos mitades van juntas.
+
 ## 2026-10-05 (madrugada, 02:30) — PINGU-Claude (556 — por qué el japonés no traía NI UNA carta)
 
 **De dónde sale**: PINGU: «los sets japoneses los tenemos en orden y con
