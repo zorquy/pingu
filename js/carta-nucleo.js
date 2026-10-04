@@ -58,6 +58,7 @@ import {
   faseEs,
   categoriaEs,
   rarezaEs,
+  rarezaDeCarta,
   marcaDeRarezaHtml,
   entrenadorEs,
   familiaDeBrillo,
@@ -72,6 +73,7 @@ export {
   faseEs,
   categoriaEs,
   rarezaEs,
+  rarezaDeCarta,
   entrenadorEs,
   familiaDeBrillo,
 }
