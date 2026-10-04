@@ -14,7 +14,7 @@ import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
-import { rarezaEs } from '../../js/rarezas-nombres.js'
+import { rarezaEs, rarezaConocida } from '../../js/rarezas-nombres.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { avisosDeMercados, lineaDeMercado, muestraDeSets } from './cuentas-mercado.js'
@@ -3098,7 +3098,10 @@ async function comoVaScrydex() {
       .from('tcg_cards').select('rarity_en').eq('market', 'WEST').not('rarity_en', 'is', null).limit(5000)
     const porRareza = new Map()
     for (const c of rar || []) porRareza.set(c.rarity_en, (porRareza.get(c.rarity_en) || 0) + 1)
-    const sinTraducir = [...porRareza.keys()].filter((r) => rarezaEs(r) === r)
+    // «Se traduce a sí misma» NO es «no la conocemos» (tanda 527): la
+    // traducción de «Promo» es «Promo», y señalarla enseñaba a no mirar
+    // esta lista. Lo que hay que mirar es lo que NO está en el diccionario.
+    const sinTraducir = [...porRareza.keys()].filter((r) => !rarezaConocida(r))
 
     const barra = (n, t) => {
       const pct = t ? Math.round((Number(n) / Number(t)) * 100) : 0

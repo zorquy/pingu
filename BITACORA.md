@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 09:45) — PINGU-Claude (527 — lo que dijeron los datos en la primera pasada de verdad)
+
+**Hecho**: con el relleno ya escribiendo (3.224 cartas, página 89 de 101,
+cero fallos), el informe de rarezas de /admin hizo su trabajo y dijo dos
+cosas. Una verdadera y una falsa, y **la falsa importa más**:
+
+- **«Shiny Rare»** no estaba, con 10 cartas detrás. Añadida como «Rara
+  Brillante». Y el detalle que no me habría inventado: ya teníamos
+  `Rare Shiny`, o sea que su catálogo usa **las dos formas, con las
+  palabras al revés**. Se quedan las dos.
+- **«Promo» era un falso positivo MÍO.** La pregunta estaba escrita como
+  «¿se traduce a sí misma?», y la traducción de «Promo» al español ES
+  «Promo». Un informe que señala lo que ya está bien **enseña a no
+  mirarlo**, y entonces el día que aparezca una rareza de verdad estará en
+  una lista que nadie lee. La pregunta buena no es «¿cambia la palabra?»
+  sino «¿está en el vocabulario?» — `rarezaConocida()`, en el módulo puro,
+  que es de donde la toman el informe y la web.
+
+**Rigor**: 5 mutaciones, las 5 cazadas. La que importa es la del informe:
+si vuelve a comparar la traducción consigo misma, la prueba se pone roja.
+
+**Ficheros**: `js/rarezas-nombres.js`, `js/rarezas.js`, `admin/js/admin.js`.
+En `pruebas`: `pruebas/test-tanda-527.mjs`, `rigor/rigor-tanda-527.py`.
+
+**Apuntado para cuando haya respuesta**: PINGU pregunta por los sets
+JAPONESES. Hoy el japonés viene de TCGdex (13.006 cartas) y de Scrydex **no
+se sabe** si sirve japonés — se sale de dudas con un crédito, /admin →
+«Sondear Scrydex» → opción 2 (`ja/expansions`). Si contestara que sí, haría
+falta una FASE japonesa aparte: `scrydex-relleno` lleva `MERCADO = 'WEST'` e
+`IDIOMA = 'en'` a fuego, y la respuesta por defecto a «¿quién rellena los
+otros catálogos?» es NADIE (la lección de la 483).
+
 ## 2026-10-04 (mañana, 09:25) — PINGU-Claude (526 — la noche entera escribiendo CERO cartas)
 
 **Hecho**: PINGU se despertó con el panel diciendo «0 de 21.476» en las tres

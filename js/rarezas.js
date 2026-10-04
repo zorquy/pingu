@@ -4,9 +4,9 @@
 // porque quien solo quiere traducir no debe arrastrar las clases que este
 // fichero pinta (ver la cabecera de allí). Se reexportan aquí para que
 // nada de lo que ya los importaba de este sitio se entere.
-import { rarezaEs, OTRAS_FORMAS, RAREZAS_ES, RAREZAS_SCRYDEX, rarezaDeCarta, rarezaCrudaDeCarta, formasDeRareza } from './rarezas-nombres.js'
+import { rarezaEs, rarezaConocida, OTRAS_FORMAS, RAREZAS_ES, RAREZAS_SCRYDEX, rarezaDeCarta, rarezaCrudaDeCarta, formasDeRareza } from './rarezas-nombres.js'
 
-export { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, formasDeRareza, RAREZAS_ES, RAREZAS_SCRYDEX }
+export { rarezaEs, rarezaConocida, rarezaDeCarta, rarezaCrudaDeCarta, formasDeRareza, RAREZAS_ES, RAREZAS_SCRYDEX }
 
 // ── LAS MARCAS ──
 //

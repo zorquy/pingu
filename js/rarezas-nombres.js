@@ -114,6 +114,11 @@ const RAREZAS_SCRYDEX = {
   'Rare Rainbow': 'Rara Arcoíris',
   'Rare Secret': 'Rara Secreta',
   'Rare Shiny': 'Rara Brillante',
+  // Y «Shiny Rare», con las dos palabras al revés (tanda 527). No es una
+  // suposición: salió en el informe de /admin con 10 cartas detrás, que es
+  // justo para lo que existe ese informe. Las dos formas conviven en su
+  // catálogo, así que se quedan las dos.
+  'Shiny Rare': 'Rara Brillante',
   'Rare Ultra': 'Rara Ultra',
   'Double Rare': 'Rara Doble',
   'Illustration Rare': 'Rara Ilustración',
@@ -144,6 +149,18 @@ for (const [en, es] of Object.entries(RAREZAS_ES)) if (!CANONICA.has(en)) CANONI
 // Las de Scrydex PISAN a las de TCGdex cuando chocan, y ese es el motivo
 // de la tanda: TCGdex mete la arcoíris dentro de «Hyper rare».
 for (const [en, es] of Object.entries(RAREZAS_SCRYDEX)) CANONICA.set(en, es)
+
+// ── ¿LA CONOCEMOS? (tanda 527) ──
+//
+// El informe de /admin marcaba como «sin traducir» todo lo que se tradujera
+// a sí mismo, y así señaló «Promo» — que está en el diccionario desde
+// siempre y cuya traducción al español ES «Promo». Un informe que señala lo
+// que ya está bien enseña a no mirarlo, que es lo contrario de para lo que
+// se hizo. La pregunta buena no es «¿cambia la palabra?» sino «¿está en el
+// vocabulario?».
+export function rarezaConocida(valor) {
+  return !!valor && CANONICA.has(String(valor))
+}
 
 // El nombre oficial en español de una rareza, venga como venga escrita.
 // Lo que no conocemos se devuelve TAL CUAL y no como «Sin rareza»: una
