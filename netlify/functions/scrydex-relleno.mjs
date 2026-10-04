@@ -64,7 +64,16 @@ const CLAVE_ESTADO = 'cartas-west'
 //      25.209 y nosotros 21.476, pero no son el mismo conjunto—, así que
 //      esas no se marcan nunca y «quedan pendientes» sería verdad para
 //      siempre. Sin el tope, el freno de arriba no frena.
-const BARRIDOS_MAXIMOS = 2
+// UNO, no dos. Cada carta suya sale EXACTAMENTE UNA VEZ en la
+// paginación, así que un barrido completo las ve todas: el segundo
+// reescribiría las mismas 21.476 filas por 101 créditos más. Y si una
+// pasada se muere a medias no se pierde nada, porque se reanuda por la
+// página guardada y no volviendo a empezar.
+//
+// PINGU: «gástame los créditos mínimos, que acabo de pagar el plan y
+// seguramente tengamos que hacer más peticiones estos días para corregir
+// cosas». Con esto el catálogo entero cuesta ~101 de los 5.000.
+const BARRIDOS_MAXIMOS = 1
 // Pasado ese tope se vuelve a mirar de vez en cuando, porque salen cartas
 // nuevas: una vez por semana, que son 101 créditos y no 4.848.
 const DIAS_ENTRE_REPASOS = 7

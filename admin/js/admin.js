@@ -14,6 +14,7 @@ import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, diagnosticarCatalogos, diagnosticoComoTexto, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
+import { rarezaEs } from '../../js/rarezas.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { avisosDeMercados, lineaDeMercado, muestraDeSets } from './cuentas-mercado.js'
@@ -3046,6 +3047,93 @@ const SONDAS_SCRYDEX = [
 //
 // Cuesta TRES créditos, no trescientos: lo único que se le pide a la API es
 // su lista de expansiones; las imágenes no gastan y su dirección se deriva.
+// Cómo va el relleno de Scrydex (tanda 510).
+//
+// Las dos funciones programadas trabajan solas y de noche. Sin esto no hay
+// forma de saber si están haciendo algo: la base no se puede mirar desde
+// fuera del navegador, y una función programada que falla lo hace EN
+// SILENCIO —nadie ve su respuesta—. Esto es lo primero que hay que mirar
+// por la mañana.
+//
+// No gasta ni un crédito: son cuentas de nuestra propia base.
+async function comoVaScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnComoVaScrydex')
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Contando…'
+  // `head: true` trae SOLO el número y ni una fila: contar 21.476 cartas
+  // bajándolas sería medir el progreso rompiendo la página.
+  const cuenta = async (tabla, filtro) => {
+    let q = supabase.from(tabla).select('*', { count: 'exact', head: true }).eq('market', 'WEST')
+    if (filtro) q = filtro(q)
+    const { count, error } = await q
+    return error ? `(error: ${error.message})` : count
+  }
+  try {
+    const [
+      cartas, conFoto, conFotoScrydex, conRarezaEn, tocadas,
+      sets, conLogoScrydex, emparejados, enEspanol,
+    ] = await Promise.all([
+      cuenta('tcg_cards'),
+      cuenta('tcg_cards', (q) => q.not('image_path', 'is', null)),
+      cuenta('tcg_cards', (q) => q.not('image_scrydex', 'is', null)),
+      cuenta('tcg_cards', (q) => q.not('rarity_en', 'is', null)),
+      cuenta('tcg_cards', (q) => q.not('scrydex_at', 'is', null)),
+      cuenta('tcg_sets'),
+      cuenta('tcg_sets', (q) => q.not('logo_scrydex', 'is', null)),
+      cuenta('tcg_sets', (q) => q.not('scrydex_id', 'is', null)),
+      cuenta('tcg_cards', (q) => q.is('image_scrydex', null).not('image_path', 'is', null)),
+    ])
+    // El estado de la pasada: por dónde iba y cuántos barridos lleva.
+    const { data: est } = await supabase.from('scrydex_estado').select('clave,valor,updated_at')
+    // Las rarezas que de verdad hay, que es lo que dice qué falta traducir.
+    const { data: rar } = await supabase
+      .from('tcg_cards').select('rarity_en').eq('market', 'WEST').not('rarity_en', 'is', null).limit(5000)
+    const porRareza = new Map()
+    for (const c of rar || []) porRareza.set(c.rarity_en, (porRareza.get(c.rarity_en) || 0) + 1)
+    const sinTraducir = [...porRareza.keys()].filter((r) => rarezaEs(r) === r)
+
+    const barra = (n, t) => {
+      const pct = t ? Math.round((Number(n) / Number(t)) * 100) : 0
+      return `${String(n).padStart(6)} de ${t}  ${'█'.repeat(Math.round(pct / 5)).padEnd(20, '·')} ${pct}%`
+    }
+    caja.value = [
+      '── CARTAS (occidental) ──',
+      `  con foto de Scrydex   ${barra(conFotoScrydex, cartas)}`,
+      `  con rareza exacta     ${barra(conRarezaEn, cartas)}`,
+      `  visitadas por Scrydex ${barra(tocadas, cartas)}`,
+      `  (con foto de TCGdex   ${barra(conFoto, cartas)})`,
+      '',
+      '── SETS ──',
+      `  con logo de Scrydex   ${barra(conLogoScrydex, sets)}`,
+      `  emparejados           ${barra(emparejados, sets)}`,
+      '',
+      '── LA PASADA ──',
+      ...(est || []).map((e) => `  ${e.clave}: ${JSON.stringify(e.valor)}  (${e.updated_at})`),
+      (est || []).length ? '' : '  (todavía no ha corrido ninguna vez)',
+      '',
+      `── RAREZAS QUE HAY: ${porRareza.size} ──`,
+      ...[...porRareza.entries()].sort((a, b) => b[1] - a[1]).map(([r, n]) => `  ${String(n).padStart(6)}  ${r}  →  ${rarezaEs(r)}`),
+      '',
+      // LO QUE HAY QUE MIRAR: una rareza que se traduce a sí misma es una
+      // que no está en el diccionario y se está enseñando en inglés. Es a
+      // propósito —una traducción inventada miente— pero hay que
+      // completarla con lo que de verdad existe, no con lo que me imagino.
+      sinTraducir.length
+        ? `SIN TRADUCIR (salen en inglés, hay que añadirlas a js/rarezas.js):\n  ${sinTraducir.join('\n  ')}`
+        : 'Todas las rarezas tienen traducción.',
+      '',
+      `Cartas con foto de TCGdex y sin la de Scrydex: ${enEspanol}`,
+    ].filter((l) => l !== '').join('\n')
+    cardsNota('Contado. No ha gastado ningún crédito de Scrydex.')
+  } catch (err) {
+    caja.value = `No se ha podido: ${err.message}`
+    cardsNota(`Ha fallado: ${err.message}`, true)
+  }
+  boton.disabled = false
+}
+
 // Traer de Scrydex lo que falta de nuestros SETS (tanda 507).
 //
 // Es la primera escritura desde Scrydex, así que va en dos pasos: ENSAYO
@@ -3709,6 +3797,7 @@ function initCardsSection() {
   document.getElementById('btnMedirIngles')?.addEventListener('click', medirInglesScrydex)
   document.getElementById('btnVerificarScrydex')?.addEventListener('click', verificarScrydex)
   document.getElementById('btnSetsScrydex')?.addEventListener('click', setsScrydex)
+  document.getElementById('btnComoVaScrydex')?.addEventListener('click', comoVaScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
