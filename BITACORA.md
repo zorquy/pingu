@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 09:35) — PINGU-Claude (528 — la pregunta japonesa la hace el servidor, no PINGU)
+
+**Hecho**: PINGU, esta mañana: «ya te dije anoche que trajeses todas las
+cartas japonesas y todas las occidentales». Y lo que yo le contesté fue que
+pulsara un botón de /admin para averiguar si Scrydex sirve japonés. **Eso
+está mal planteado**, por dos motivos: ese botón lo tiene que pulsar una
+persona, y una persona no está delante a las cuatro de la mañana —que es
+exactamente el motivo por el que el relleno es una función programada y no
+un botón—; y la pregunta cuesta UNA petición, así que pedírsela a él es
+pedirle que haga mi trabajo.
+
+`netlify/functions/scrydex-japones.mjs` la hace sola: pide
+`ja/expansions?page_size=1`, guarda la respuesta ENTERA en `scrydex_estado`
+bajo la clave `japones` y se calla. Sale en el panel al lado del relleno,
+porque «¿Cómo va el relleno?» vuelca todas las filas de esa tabla.
+
+**Lo que NO hace, y es la mitad de la tanda: emparejar ni escribir.** Eso
+sería inventarme su respuesta, y la 501 ya costó un emparejamiento entero
+escrito contra un formato de fecha que yo supuse (las suyas venían con
+barras y no habría casado ni un set, sin un solo error). Por eso lo que
+guarda es su PRIMERA EXPANSIÓN TAL CUAL: es el fixture con el que se
+escribirá el emparejamiento japonés, en cuanto exista.
+
+**Tres respuestas, no dos**: «sí hay» (200 con expansiones), «no hay» (un
+404 **o un 200 con la lista vacía**, que es una respuesta y no un error) y
+«todavía no se ha preguntado». Un 200 vacío tomado por un sí dejaría el
+emparejamiento de mañana corriendo contra cero sets sin dar error.
+
+**El freno**: en cuanto hay respuesta —la que sea, incluido un «no»— no se
+vuelve a preguntar. Un crédito, una vez. Y frena también con el «no»: si
+solo frenara con el sí, un 404 se repreguntaría cada cinco minutos para
+siempre, que es el bicho de la 510 por tercera vez.
+
+**Ficheros**: `netlify/functions/scrydex-japones.mjs` (nuevo). En `pruebas`:
+`pruebas/test-tanda-528.mjs`.
+
+**Lo que viene detrás, con la respuesta delante**: si sirve japonés, hay que
+emparejar sus sets con los nuestros y darle al relleno una FASE japonesa
+—lleva `MERCADO = 'WEST'` e `IDIOMA = 'en'` a fuego, y la respuesta por
+defecto a «¿quién rellena los otros catálogos?» es NADIE (la 483)—. Si no lo
+sirve, el japonés se queda en TCGdex y lo que tiene sentido es montar a mano
+las 3.483 fotos que su servidor de ficheros tiene y su API se calla,
+comprobando cada una con un HEAD antes de guardarla.
+
 ## 2026-10-04 (mañana, 09:45) — PINGU-Claude (527 — lo que dijeron los datos en la primera pasada de verdad)
 
 **Hecho**: con el relleno ya escribiendo (3.224 cartas, página 89 de 101,
