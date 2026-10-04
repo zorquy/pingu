@@ -283,6 +283,34 @@ const huellaDePrueba = (buf) => (
     /ni el id ni el código/.test(JSON.stringify(r.cuerpo.porQueNoSeEmparejan)), JSON.stringify(r.cuerpo.porQueNoSeEmparejan))
 }
 {
+  // ── PRESUPUESTO DE TIEMPO (tanda 510) ──
+  //
+  // Cada par cuyo código no cuadra pide una carta a su API, y 210 pares a
+  // ~300 ms son 63 segundos. Netlify mata a los 30, y como la escritura va
+  // AL FINAL, una pasada matada a mitad gasta los créditos y NO ESCRIBE
+  // NADA — y la siguiente vuelve a empezar igual, para siempre.
+  const d = doble()
+  let t = 0
+  const r = await procesar({ env: ENV, ...d, huellaImpl: huellaDePrueba, escribir: true, reloj: () => (t += 12000) })
+  check('se para antes de que Netlify lo mate', r.cuerpo.sinTiempo > 0, JSON.stringify(r.cuerpo.sinTiempo))
+  check('  …y aun así ESCRIBE lo que confirmó', d.escrito.length > 0, JSON.stringify(d.escrito.map((f) => f.id)))
+  check('  …y la cuenta sigue cuadrando', r.cuerpo.cuadraLaCuenta === true, JSON.stringify(r.cuerpo))
+}
+{
+  // «No tenemos cartas» y «no he podido preguntar» NO son lo mismo: lo
+  // primero es un dato del catálogo, lo segundo un fallo nuestro. El
+  // `catch { filas = [] }` que había los juntaba, y un tropiezo de la base
+  // se leía como un set vacío — y un set vacío no se vuelve a mirar igual.
+  const d = doble()
+  const rota = async (ruta) => {
+    if (/tcg_cards/.test(ruta)) throw new Error('Supabase 503: upstream')
+    return d.restImpl(ruta)
+  }
+  const r = await procesar({ env: ENV, ...d, restImpl: rota, huellaImpl: huellaDePrueba })
+  check('un fallo de la base NO se cuenta como «no tenemos cartas»',
+    r.cuerpo.sinConfirmar.some((x) => /no se ha podido preguntar/.test(x.porque)), JSON.stringify(r.cuerpo.sinConfirmar))
+}
+{
   // Si falta la migración, se dice QUÉ hay que ejecutar — no un «no se
   // ha podido» que no explica nada.
   const d = doble()
