@@ -9,6 +9,7 @@ import { showToast } from './toast.js'
 import { cadenaDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { setsDelMercado, buscarEnCatalogo } from './catalogo-buscar.js'
+import { fotoParaElLienzo, dibujarCarta, descargarLienzo, compartirLienzo } from './imagen-compartir.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO, MERCADO_POR_DEFECTO } from './mercados.js'
 
 const $ = (id) => document.getElementById(id)
@@ -172,42 +173,6 @@ function menuDeHueco(i) {
 const ANCHO = 1080
 const ALTO = 1350
 
-function cargarImagen(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('no carga'))
-    img.src = url
-  })
-}
-
-async function fotoParaElLienzo(c) {
-  for (const url of fotos(c, 'high')) {
-    try {
-      return await cargarImagen(url)
-    } catch {
-      // sin permiso o sin foto: por nuestra función
-    }
-    try {
-      return await cargarImagen(`/.netlify/functions/imagen-carta?u=${encodeURIComponent(url)}`)
-    } catch {
-      // la siguiente de la cadena
-    }
-  }
-  return null
-}
-
-function redondeado(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.arcTo(x + w, y, x + w, y + h, r)
-  ctx.arcTo(x + w, y + h, x, y + h, r)
-  ctx.arcTo(x, y + h, x, y, r)
-  ctx.arcTo(x, y, x + w, y, r)
-  ctx.closePath()
-}
-
 let pintando = null
 async function pintarImagen() {
   const lienzo = $('nvLienzo')
@@ -240,24 +205,12 @@ async function pintarImagen() {
     const hueco = 30
     const x0 = (ANCHO - (cw * 3 + hueco * 2)) / 2
     const y0 = 176
-    const imagenes = await Promise.all(mias.map((c) => (c ? fotoParaElLienzo(c) : null)))
+    const imagenes = await Promise.all(mias.map((c) => (c ? fotoParaElLienzo(fotos(c, 'high')) : null)))
     if (pintando !== tarea) return
     mias.forEach((c, i) => {
       const x = x0 + (i % 3) * (cw + hueco)
       const y = y0 + Math.floor(i / 3) * (ch + hueco)
-      ctx.save()
-      redondeado(ctx, x, y, cw, ch, 14)
-      ctx.clip()
-      if (imagenes[i]) {
-        ctx.drawImage(imagenes[i], x, y, cw, ch)
-      } else {
-        ctx.fillStyle = '#2a3a4c'
-        ctx.fillRect(x, y, cw, ch)
-        ctx.fillStyle = '#ffffff'
-        ctx.font = '700 26px Inter, sans-serif'
-        ctx.fillText(c ? nombreDeCarta(c) : '', x + cw / 2, y + ch / 2)
-      }
-      ctx.restore()
+      dibujarCarta(ctx, imagenes[i], { x, y, w: cw, h: ch, nombre: c ? nombreDeCarta(c) : '' })
     })
     ctx.fillStyle = 'rgba(255,255,255,0.9)'
     ctx.font = '700 34px Fredoka, Inter, sans-serif'
@@ -271,46 +224,15 @@ function nombreDelFichero() {
   return `mis-9-cartas${yo?.username ? `-${yo.username}` : ''}.png`
 }
 
-function comoBlob() {
-  return new Promise((resolve, reject) => {
-    try {
-      $('nvLienzo').toBlob((b) => (b ? resolve(b) : reject(new Error('sin imagen'))), 'image/png')
-    } catch (err) {
-      reject(err)
-    }
+function descargar() {
+  return descargarLienzo($('nvLienzo'), nombreDelFichero())
+}
+
+function compartir() {
+  return compartirLienzo($('nvLienzo'), {
+    nombreFichero: nombreDelFichero(),
+    texto: 'Mis 9 cartas favoritas de Pokémon TCG. ¿Cuáles son las tuyas? pokedoc.es/nueve',
   })
-}
-
-async function descargar() {
-  try {
-    const blob = await comoBlob()
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = nombreDelFichero()
-    a.click()
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000)
-  } catch {
-    showToast('No se ha podido generar la imagen. Prueba a cambiar alguna carta.', 'error')
-  }
-}
-
-async function compartir() {
-  try {
-    const blob = await comoBlob()
-    const fichero = new File([blob], nombreDelFichero(), { type: 'image/png' })
-    const texto = 'Mis 9 cartas favoritas de Pokémon TCG. ¿Cuáles son las tuyas? pokedoc.es/nueve'
-    if (navigator.canShare?.({ files: [fichero] })) {
-      await navigator.share({ files: [fichero], text: texto })
-      return
-    }
-    // Sin menú de compartir (escritorio): se descarga y se abre X con el
-    // texto puesto, que es lo más cerca que se puede llegar.
-    await descargar()
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(texto)}`, '_blank', 'noopener')
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-    showToast('No se ha podido compartir. Prueba a descargar la imagen.', 'error')
-  }
 }
 
 // ── Arranque ──

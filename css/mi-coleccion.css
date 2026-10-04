@@ -5726,3 +5726,32 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-album-fila.tengo .mc-album-fila-cuenta {
   color: var(--success);
 }
+
+/* Mi colección en una imagen (tanda 571): la previsualización y sus dos
+   botones. El lienzo mide 1080 × 1350 y se enseña a un tercio. */
+.mc-imagen-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+  justify-items: center;
+}
+
+.mc-imagen-cuerpo canvas {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
+}
+
+.mc-imagen-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+/* La tarjeta del Panel que la abre. */
+.mc-vistazo-imagen .subtext {
+  margin: 0;
+}

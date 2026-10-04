@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 06:30) — PINGU-Claude (571 — «Mi colección en una imagen»)
+
+**Hecho**: en el Panel de /mi-coleccion, tarjeta «Mi colección en una
+imagen» → diálogo con la imagen 1080×1350 (las cuatro cifras de la
+cabecera, las tres que más valen con foto, la expansión más completa con
+su barra, desde cuándo, pokedoc.es/mi-coleccion) y Compartir/Descargar.
+La máquina de la imagen sale de /nueve a `js/imagen-compartir.js`; el
+dibujo, en `js/mi-coleccion/imagen.js`, se baja al pulsar.
+
+**Sin migración.** Con esto están las tres que pidió PINGU (568, 570, 571)
+y el índice (569).
+
+**Ficheros**: `js/imagen-compartir.js`, `js/mi-coleccion/imagen.js`
+(nuevos); `js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`js/nueve.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-571.mjs` (nueva).
+
+**Pasado**: 571, 299, 305, 310, 311, 312, 313, 410, 440, 451, 485, 524,
+562–566, imports y la portada.
+
 ## 2026-10-06 (mañana, 05:30) — PINGU-Claude (570 — «¿Qué carta es?»)
 
 **Hecho**: `/carta-del-dia`, un recorte de una carta al día (la misma para

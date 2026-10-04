@@ -70,6 +70,8 @@ const params = new URLSearchParams(location.search)
 // ── Estado de la página ──
 let sesion = null
 let dueno = null // { id, username, display_name, coleccion_publica }
+// Las cuatro cifras de la cabecera, tal como se pintaron (tanda 571).
+let resumenHero = null
 let esMia = false
 let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
@@ -546,6 +548,9 @@ function pintarResumen() {
     const c = buscaTodo(l)
     return c?.set_id ? `${c.set_id}|${c.market || l.market || ''}` : null
   }).filter(Boolean)).size
+  // Y a mano, para «Mi colección en una imagen» (tanda 571): la imagen
+  // dice LAS MISMAS cifras que la cabecera, no otras calculadas aparte.
+  resumenHero = { copias, distintas, sets, valor: euros(valor) }
   $('mcResumen').innerHTML = `
     <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
@@ -1070,6 +1075,18 @@ async function pintarVistazos() {
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
   // esto, una pantalla que existe deja de tener puerta.
   caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
+  // MI COLECCIÓN EN UNA IMAGEN (tanda 571): lo que solo puede hacer quien
+  // tiene tu colección. Una tarjeta con su botón; el dibujo se baja al
+  // pulsar (import dinámico), que casi nadie lo pulsa a diario.
+  if (lineasTodo.length || lineas.length) {
+    caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo mc-vistazo-imagen">
+      <div class="mc-vistazo-cabecera">
+        <h2 class="mc-subtitulo">Mi colección en una imagen</h2>
+        <button type="button" class="link-btn" id="mcImagenCrear">Crear</button>
+      </div>
+      <p class="subtext">Tus cifras, las tres que más valen y tu expansión más completa, en una imagen para compartir.</p>
+    </section>`)
+  }
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
@@ -4258,6 +4275,56 @@ function enganchar() {
       esperaCatalogo = setTimeout(buscar, 250)
     })
   }
+
+  // ── Mi colección en una imagen (tanda 571) ──
+  document.addEventListener('click', async (e) => {
+    if (!e.target.closest('#mcImagenCrear')) return
+    const d = $('mcImagenDialogo')
+    if (!d || !resumenHero) return
+    const [ls, clave, busca] = pTodo()
+    // Las tres que más valen, con la cadena de fotos de cada una.
+    const valiosas = masValiosas(3, ls, clave, busca).map((v) => ({
+      nombre: nombreDe(v.carta),
+      cadena: cadenaDeEscaneo(v.carta, v.carta?.tcg_sets?.tcg_online_code || null, 'high'),
+      valor: euros(v.valor),
+    }))
+    // La expansión más completa: la misma cuenta que el vistazo de
+    // Expansiones, y el total oficial del set.
+    const sets = await cargarSets().catch(() => null)
+    let mejorSet = null
+    for (const s of sets || []) {
+      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
+      const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
+      const total = Number(s.card_count_official) || Number(s.card_count_total) || suyas.length
+      if (!tengo || !total) continue
+      const pct = tengo / total
+      if (!mejorSet || pct > mejorSet.pct) mejorSet = { nombre: nombreDeSet(s) || s.id, tengo, total, pct }
+    }
+    const datos = {
+      quien: dueno?.username || null,
+      ...resumenHero,
+      valiosas,
+      mejorSet: mejorSet ? { nombre: mejorSet.nombre, tengo: mejorSet.tengo, total: mejorSet.total } : null,
+      desde: $('mcHeroDesde')?.textContent?.trim() || '',
+    }
+    // A mano, para la prueba y para depurar: lo que se le dio al dibujo.
+    window.__mcImagenDatos = datos
+    d.showModal()
+    const { pintarImagenDeColeccion } = await import('./mi-coleccion/imagen.js')
+    await pintarImagenDeColeccion($('mcImagenLienzo'), datos)
+  })
+  $('mcImagenCerrar')?.addEventListener('click', () => $('mcImagenDialogo').close())
+  $('mcImagenCompartir')?.addEventListener('click', async () => {
+    const { compartirLienzo } = await import('./imagen-compartir.js')
+    compartirLienzo($('mcImagenLienzo'), {
+      nombreFichero: `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}.png`,
+      texto: 'Mi colección de Pokémon TCG en PokeDoc. pokedoc.es/mi-coleccion',
+    })
+  })
+  $('mcImagenDescargar')?.addEventListener('click', async () => {
+    const { descargarLienzo } = await import('./imagen-compartir.js')
+    descargarLienzo($('mcImagenLienzo'), `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}.png`)
+  })
 
   // ── La nota, plegada (tanda 405) ──
   $('mcEdAnadirVersiones').addEventListener('click', async (e) => {

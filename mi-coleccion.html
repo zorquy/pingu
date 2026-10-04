@@ -691,6 +691,23 @@
              se queda arriba; lo que son listas, aquí abajo y plegado. -->
         <div id="mcMasEstadisticas"></div>
 
+        <!-- MI COLECCIÓN EN UNA IMAGEN (tanda 571). Lo que PTCGenius y
+             TCGdex no pueden hacer: no tienen tu colección. Se pinta en un
+             canvas al pulsar y se enseña ANTES de compartir. -->
+        <dialog class="mc-bandeja mc-imagen-dialogo" id="mcImagenDialogo" aria-labelledby="mcImagenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcImagenTitulo">Mi colección en una imagen</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcImagenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo mc-imagen-cuerpo">
+            <canvas id="mcImagenLienzo" width="1080" height="1350" aria-label="Tu colección en una imagen"></canvas>
+            <div class="mc-imagen-botones">
+              <button type="button" class="btn-primary" id="mcImagenCompartir">Compartir la imagen</button>
+              <button type="button" class="btn-secondary" id="mcImagenDescargar">Descargar</button>
+            </div>
+          </div>
+        </dialog>
+
       </section>
 
       <!-- LOS CAMBIOS, EN SU PROPIA PANTALLA (tanda 451). Estuvieron al

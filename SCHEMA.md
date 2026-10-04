@@ -29595,3 +29595,40 @@ los dos juegos piden lo mismo para escribir la respuesta.
 `carta-traducciones.js`, que la reexporta sin el holo. Es la lección de
 la 316 —una página «usa» una clase por importar el módulo que la pinta—
 en su forma más silenciosa.
+
+## Tanda 571 — «Mi colección en una imagen» (oct. 2026)
+
+La tercera de las tres, y la única que **solo puede hacer quien tiene tu
+colección**: ni PTCGenius ni TCGdex pueden. Desde el Panel de
+/mi-coleccion, una tarjeta con «Crear» abre un diálogo con la imagen
+(1080 × 1350) y «Compartir» / «Descargar».
+
+### Qué lleva, y de dónde sale cada cosa
+
+- **Las cuatro cifras de la cabecera**, tal como se pintaron
+  (`resumenHero`, que `pintarResumen` deja a mano): la imagen dice LAS
+  MISMAS cifras que la página, no otras calculadas aparte. Es la lección
+  de la 506 —dos cuentas de lo mismo se separan— aplicada antes de que
+  pase.
+- **Las tres que más valen**, con su foto (`masValiosas(3)` sobre toda la
+  colección, `pTodo()`), y lo que vale cada una.
+- **La expansión más completa**: la misma cuenta que el vistazo de
+  Expansiones (las de los hijos cuentan como del padre) sobre el total
+  oficial del set, y la barra.
+- **Desde cuándo coleccionas**: el texto de la cabecera, tal cual.
+- `pokedoc.es/mi-coleccion` abajo.
+
+### La máquina, compartida
+
+Cargar fotos con permiso (directa → `imagen-carta`), dibujar una carta
+con esquinas, exportar, descargar y compartir salen de `js/nueve.js` a
+**`js/imagen-compartir.js`**, y /nueve lo usa también. El dibujo de esta
+imagen vive en `js/mi-coleccion/imagen.js` y se baja con `import()` al
+pulsar: casi nadie la hace a diario, y /mi-coleccion ya pesa lo que pesa.
+
+Lo que se le da al dibujo queda en `window.__mcImagenDatos`, a mano:
+la prueba lee de ahí que las cifras son las de verdad (4 copias, 3
+distintas, 125 € — el valor manual es POR COPIA, y la prueba lo aprendió
+al esperar 75), en vez de mirar píxeles.
+
+**Sin migración.**
