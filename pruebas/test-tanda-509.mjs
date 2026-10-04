@@ -143,8 +143,15 @@ const doble = ({ totalCount = 2, suTam = null, pendientes = true, estadoInicial 
   // EL ARREGLO DE LA 505, en su propia sentencia porque es la única
   // columna que PISA y lleva claves distintas.
   check('el nombre en español se arregla', r.cuerpo.nombresArreglados === 1, String(r.cuerpo.nombresArreglados))
-  const deNombre = d.escrito.find((e) => e.filas.some((f) => 'name' in f))
-  check('  …en su PROPIA sentencia', !!deNombre && deNombre.filas.every((f) => !('image_scrydex' in f)), JSON.stringify(deNombre?.filas))
+  // DESDE LA 526 LAS DOS SENTENCIAS LLEVAN `name`, porque es `not null` y
+  // esto es un upsert: sin él, Postgres no puede ni formar la fila que
+  // insertaría y rechaza la sentencia entera (23502). Así que la del
+  // nombre ya no se reconoce por llevarlo —se reconoce por lo que NO
+  // lleva: las columnas de Scrydex— y lo que la distingue de verdad es
+  // que es la única que PISA `name` con el inglés.
+  const deNombre = d.escrito.find((e) => e.filas.every((f) => !('image_scrydex' in f)))
+  check('  …en su PROPIA sentencia', !!deNombre && deNombre.filas.every((f) => 'name' in f), JSON.stringify(deNombre?.filas))
+  check('  …y es la que lleva el inglés', deNombre?.filas?.[0]?.name === 'Pheromosa & Buzzwole-GX', JSON.stringify(deNombre?.filas?.[0]))
   check('  …y con un ejemplo que se puede leer', /Pheromosa/.test(JSON.stringify(r.cuerpo.ejemplosDeNombre)), JSON.stringify(r.cuerpo.ejemplosDeNombre))
   // Las rarezas se APRENDEN de los datos, que es como se sabe qué hay que
   // traducir sin inventarse la lista (la norma de la 501).
@@ -224,8 +231,14 @@ const doble = ({ totalCount = 2, suTam = null, pendientes = true, estadoInicial 
     return d.restImpl(ruta)
   }
   const r = await procesar({ env: ENV, ...d, restImpl: nuestraBaseRota })
-  check('si falla NUESTRA base, también cuenta como tropiezo (y a la quinta salta)',
-    d.estados.at(-1)?.pagina === 2, JSON.stringify(d.estados.at(-1)))
+  // LA 526 LE DIO LA VUELTA A ESTO, y con un motivo que costó dinero:
+  // saltarse la página vale cuando la mala es LA PÁGINA. Si el que falla
+  // es nuestro Supabase, la página no tiene nada que ver y saltarla es
+  // pagar un crédito por página para no escribir nada —505 por barrido—.
+  // Lo nuestro PARA. Lo prueba entera `test-tanda-526.mjs`; aquí se
+  // comprueba lo que esta tanda trajo: que un fallo nuestro CUENTA.
+  check('si falla NUESTRA base, también cuenta como tropiezo (y a la quinta, para)',
+    d.estados.at(-1)?.pagina === 1 && !!d.estados.at(-1)?.parado, JSON.stringify(d.estados.at(-1)))
   check('  …y se dice de quién fue el fallo', /Nuestra base/.test(JSON.stringify(r.cuerpo)), JSON.stringify(r.cuerpo).slice(0, 160))
   check('  …y no se escribe nada', d.escrito.length === 0, JSON.stringify(d.escrito))
 }
