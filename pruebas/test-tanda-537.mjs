@@ -105,7 +105,40 @@ console.log('── 3. El nombre occidental de la carta ──')
   check('  …y sin traducción, el japonés tal cual', nombreDeCarta({ name: 'フシギダネ' }) === 'フシギダネ')
 }
 
-console.log('── 4. QUIEN LO PINTA, LO PIDE ──')
+console.log('── 4. ¿Traen sus cartas el nombre occidental? Que lo diga el panel ──')
+{
+  // En sus EXPANSIONES viene; en sus CARTAS lo escribí dando por hecho que
+  // también. Eso es deducir de una muestra de otra cosa, que es lo que me
+  // enseñaron a no hacer las tandas 484 y 486. Así que se CUENTA y el panel
+  // lo dice: si acaba en 0 con miles escritas, el japonés se queda en
+  // japonés por SU catálogo y no por nuestro código.
+  const estados = []
+  const correr = async (suya) => {
+    estados.length = 0
+    const r = await procesar({
+      env: ENV, paginas: 1, mercado: 'JP', idioma: 'ja', claveEstado: 'cartas-jp',
+      restImpl: async (ruta) => {
+        if (/scrydex_estado/.test(ruta)) return [{ valor: { pagina: 1 } }]
+        if (/scrydex_at=is\.null/.test(ruta)) return [{ id: 'x' }]
+        if (/tcg_sets/.test(ruta)) return [{ id: 'SV1a', scrydex_id: 'sv1a_ja' }]
+        return [{ id: 'SV1a-001', market: 'JP', set_id: 'SV1a', local_id: '001', name: 'フシギダネ' }]
+      },
+      fetchImpl: async () => ({ ok: true, json: async () => ({ data: [suya], page: 1, page_size: 250, total_count: 9999 }) }),
+      escribirImpl: async () => {},
+      guardarEstadoImpl: async (v) => { estados.push(v) },
+    })
+    return r
+  }
+  const conNombre = await correr(SUYA_JP)
+  check('cuenta las que lo traen', conNombre.cuerpo.conNombreOccidental === 1, conNombre.cuerpo.conNombreOccidental)
+  check('  …y lo deja en el estado, que es lo que se ve en el panel',
+    estados.at(-1)?.conNombreOccidental === 1, JSON.stringify(estados.at(-1)))
+  const sinNombre = await correr({ ...SUYA_JP, translation: undefined })
+  check('si no lo traen, cuenta CERO', sinNombre.cuerpo.conNombreOccidental === 0, sinNombre.cuerpo.conNombreOccidental)
+  check('  …y aun así la carta se escribe', sinNombre.cuerpo.escritas === 1, sinNombre.cuerpo.escritas)
+}
+
+console.log('── 5. QUIEN LO PINTA, LO PIDE ──')
 {
   // La lección de la 523: una columna que la base rellena y ninguna
   // consulta pide llega `undefined`, y la pantalla se queda igual que
