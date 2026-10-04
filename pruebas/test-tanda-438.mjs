@@ -74,20 +74,27 @@ console.log('\n── 1. El Panel va el PRIMERO ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 2. El selector: cuatro banderas y nada más ──')
+console.log('\n── 2. El selector: TRES banderas y nada más (tanda 509) ──')
+//
+// Eran cuatro. PINGU, con Scrydex de por medio: «el chino no lo borres,
+// pero ocúltamelo, porque Scrydex no tiene chino, vamos por ahora a obviar
+// las colecciones chinas». Así que la garantía cambia —tres— pero no se
+// afloja: lo que hay que vigilar es que sigan EXACTAMENTE esas tres y que
+// el chino no se cuele por ningún lado.
 {
   const { page, errores } = await abrir()
   const ops = await suyo(page).evaluate((n) => [...n.options].map((o) => ({ v: o.value, t: o.textContent, ti: o.title })))
-  check('son cuatro', ops.length === 4, JSON.stringify(ops))
-  check('  …español, inglés, japonés y chino',
-    ops.map((o) => o.v).join(',') === 'es,en,ja,zh', ops.map((o) => o.v).join(','))
+  check('son tres', ops.length === 3, JSON.stringify(ops))
+  check('  …español, inglés y japonés',
+    ops.map((o) => o.v).join(',') === 'es,en,ja', ops.map((o) => o.v).join(','))
+  check('  …y el chino NO está', !ops.some((o) => o.v === 'zh'), ops.map((o) => o.v).join(','))
   // PINGU: «no metas contexto, mete el emoji de la bandera que toca».
   check('  …solo la bandera, sin una letra',
     ops.every((o) => !/[a-zA-ZÁÉÍÓÚáéíóúñ]/.test(o.t)), ops.map((o) => o.t).join(' '))
   // Pero el nombre NO se pierde: una bandera a secas no se puede leer en
   // voz alta, así que va en el `title` y en el `aria-label`.
   check('  …con su nombre para quien no ve la bandera',
-    ops.map((o) => o.ti).join(',') === 'Español,Inglés,Japonés,Chino', ops.map((o) => o.ti).join(','))
+    ops.map((o) => o.ti).join(',') === 'Español,Inglés,Japonés', ops.map((o) => o.ti).join(','))
   check('  …y el desplegable dice cuál está puesto',
     /Español/.test(await suyo(page).getAttribute('aria-label')), await suyo(page).getAttribute('aria-label'))
   check('empieza en español', (await suyo(page).inputValue()) === 'es')

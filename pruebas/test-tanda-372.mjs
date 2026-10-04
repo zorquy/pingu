@@ -83,7 +83,15 @@ console.log('\n── 2. La estantería, con su progreso ──')
   check('salen las cuatro colecciones', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 4,
     String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
   const texto = (n) => page.locator('#mcPanelAlbum .mc-set-tarjeta').nth(n).textContent()
-  check('la primera dice cuánto llevas', /9 de 20/.test((await texto(0)) || ''), (await texto(0))?.replace(/\s+/g, ' '))
+  // Se comprueba LA TARJETA DE SV1, no «la primera» (tanda 510). Lo que
+  // esta línea vigila es que el progreso salga, y atarlo a la posición 0
+  // mezclaba eso con el orden de la estantería: al darle a la 510 un
+  // desempate estable a los sets del mismo día, el fixture reordenó y la
+  // prueba se puso roja sin que el progreso tuviera nada de malo. El
+  // orden tiene su propia comprobación unas líneas más abajo.
+  const tarjetaSv1 = page.locator('#mcPanelAlbum .mc-set-tarjeta[data-set="sv1"]')
+  check('la tarjeta de sv1 dice cuánto llevas', /9 de 20/.test((await tarjetaSv1.textContent()) || ''),
+    (await tarjetaSv1.textContent())?.replace(/\s+/g, ' '))
 
   // Desde la tanda 409 el orden NO es «las tuyas primero»: PINGU lo quitó
   // («arriba solo si la pones como favorito; si no, se van a agrupar
