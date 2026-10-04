@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 20:05) — PINGU-Claude (562 — en el Panel, una carta abre la ficha)
+
+**De dónde sale**: PINGU, «desde el panel cuando le das a una carta deberia
+salir el popup y no llevarte a la ficha completa».
+
+**Era una incoherencia en la misma pantalla**: el Álbum y la Pokédex del
+Panel ya abrían el diálogo; la tira de «Tus cartas» y las listas de «lo que
+te sobra» / «las que más valen» se iban a `/carta/…` y perdían el sitio.
+
+**Hecho**: `data-carta` en los dos moldes (`vistazoDeCartas` y
+`filaDeCartaHtml`) y `engancharFicha('mcPanelResumen', '.mc-vistazo-carta,
+.mc-fila-carta a')`. Lo que faltaba era el ATRIBUTO, no el enganche: sin él,
+enganchar el selector no habría hecho nada. El `href` se queda (regla de la
+418: Ctrl/⌘/botón del medio siguen abriendo la página entera).
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-562.mjs`.
+
+**Pasado**: 562, 410, 418, 440, 451, 485, 537.
+
 ## 2026-10-05 (tarde, 19:40) — PINGU-Claude (561 — el OCR se come el dakuten)
 
 **De dónde sale**: el aviso dijo «He leído: リサードン · el nº 2 no casaba

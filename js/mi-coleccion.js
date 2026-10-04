@@ -652,7 +652,7 @@ function barrasHtml(filas) {
 function filaDeCartaHtml(c, derecha) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   return `<li class="mc-fila-carta">
-    <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">
+    <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
       <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
       <span class="mc-fila-nombre">${escapeHtml(nombreDe(c))}<small>${escapeHtml(nombreDeSet(c?.tcg_sets))}</small></span>
     </a>
@@ -908,7 +908,10 @@ function vistazoDeCartas() {
     const c = busca(l)
     const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
     const nombre = nombreDe(c)
-    return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}" aria-label="${escapeHtml(nombre)}">${
+    // `data-carta` es lo que hace que se abra la ficha EN LA MISMA PÁGINA
+    // (tanda 562): el `href` se queda para el Ctrl+clic, para el «abrir en
+    // otra pestaña» del móvil y para cuando no hay JavaScript.
+    return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${
       escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }</a>`
@@ -4820,6 +4823,19 @@ function enganchar() {
   }
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
   engancharFicha('mcPanelPokedex', '.pdx-carta')
+  // ── EL PANEL TAMBIÉN (tanda 562) ──
+  //
+  // PINGU: «desde el panel, cuando le das a una carta debería salir el
+  // popup y no llevarte a la ficha completa». Y es lo coherente: en el
+  // álbum, en la Pokédex y en el buscador una carta se abre AQUÍ —con su
+  // cantidad, su idioma y su estado, que es lo que se va a tocar—, y solo
+  // en el Panel te sacaba de la página. Irse de /mi-coleccion para ver una
+  // carta tuya y tener que volver es justo la fricción que esta pantalla
+  // lleva seis tandas quitando.
+  //
+  // Son los dos sitios donde el Panel enseña cartas: la tira de «Tus
+  // cartas» y las listas de «te sobran» y «las más valiosas».
+  engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a')
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
   })

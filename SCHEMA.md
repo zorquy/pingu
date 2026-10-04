@@ -29178,3 +29178,36 @@ nombre + número → sin número → solo la palabra más larga → variantes de
 marcas. Cada uno afloja un poco más, y ninguno se pregunta si el anterior
 encontró algo. Lo que se afloja se DICE en el aviso, que es lo que ha hecho
 posible arreglar los cinco fallos de esta serie sin adivinar ni una vez.
+
+## Tanda 562 — desde el Panel, una carta abre la ficha (oct. 2026)
+
+PINGU: «desde el panel cuando le das a una carta deberia salir el popup y
+no llevarte a la ficha completa».
+
+Tenía razón y era una incoherencia en la MISMA pantalla: el Álbum y la
+Pokédex del Panel ya abrían el diálogo de la carta (`engancharFicha`), pero
+la tira de «Tus cartas» y las listas de «lo que te sobra» y «las que más
+valen» se iban a `/carta/…`. O sea que en el Panel una carta hacía dos
+cosas distintas según de qué montón salía, y la que se va de la página
+pierde el sitio donde estabas: volver es el botón de atrás y el Panel se
+repinta desde arriba.
+
+**Lo que faltaba no era el enganche, era el `data-carta`.** `engancharFicha`
+identifica la carta por ese atributo; la tira y las filas no lo llevaban,
+así que enganchar el selector no habría hecho nada —y habría salido verde
+en una prueba que solo mirase que se llama a la función (la trampa de la
+313)—. Se añade en los dos moldes (`vistazoDeCartas` y `filaDeCartaHtml`) y
+se engancha `'.mc-vistazo-carta, .mc-fila-carta a'` en `mcPanelResumen`.
+
+**El `href` se queda**, que es la regla de la 418: `abreLaPagina(e)` deja
+pasar el Ctrl/⌘/botón del medio, así que quien quiera la ficha entera en
+otra pestaña la sigue teniendo. Un `<a href>` que se intercepta sigue
+siendo un enlace; un `<span>` con un `onclick` no.
+
+**Y la prueba tuvo que abrir «Ver todas» primero**: las listas largas viven
+detrás de ese botón desde la 440, así que las filas ESTÁN en el DOM y no se
+ven — el `click` se queda esperando treinta segundos con el elemento
+resuelto delante. Es la lección de la 447 otra vez: encontrar un elemento no
+es verlo.
+
+**Sin migración.**
