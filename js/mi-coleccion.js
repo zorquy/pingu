@@ -313,12 +313,16 @@ function pintarAnadirVersiones(cardId, carta) {
   const caja = $('mcEdAnadirVersiones')
   if (!caja) return
   const vs = variantesDeCarta(carta, TODAS_LAS_VARIANTES)
-  // Con una sola versión no se nombra: «Añadir a mi colección» dice todo
-  // lo que hay que decir, y poner «Añadir normal» en el 90 % de las
-  // cartas sería un detalle que no distingue nada.
-  caja.innerHTML = vs
-    .map((v) => `<button type="button" class="btn-primary" data-anadir-ficha="${escapeHtml(cardId)}" data-var="${escapeHtml(v.nuestro)}">${vs.length === 1 ? 'Añadir a mi colección' : `Añadir ${escapeHtml(v.nombre.toLowerCase())}`}</button>`)
-    .join('')
+  // Como en Dex (tanda 565): la versión en un DESPLEGABLE y un solo botón.
+  // La 564 puso un botón por versión, y PINGU enseñó cómo lo hace Dex —un
+  // desplegable con todas y un «+»—, que además escala: una carta con
+  // cinco versiones son cinco botones apilados o un desplegable. Con una
+  // sola versión el desplegable sobra y no se enseña: la chapa de arriba
+  // ya la dice.
+  const sel = $('mcEdAnadirVariante')
+  sel.innerHTML = opciones(vs.map((v) => ({ id: v.nuestro, nombre: v.nombre })), vs[0]?.nuestro)
+  sel.closest('label').classList.toggle('hidden', vs.length < 2)
+  caja.innerHTML = `<button type="button" class="btn-primary" data-anadir-ficha="${escapeHtml(cardId)}">Añadir a mi colección</button>`
   // Y con qué. El idioma y el estado salen de los dos desplegables del
   // álbum, que desde la Pokédex o desde Buscar no se ven: decirlo es la
   // diferencia entre elegir y que elijan por ti. Se puede cambiar justo
@@ -2296,15 +2300,16 @@ function bolsilloDeVariante(c, v) {
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     ${veloDeVariante(v.nuestro)}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
+    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
     ${chapaDeVarianteHtml(v.nuestro)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
-  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, v.nuestro)} mc-bolsillo-con-mando">${enlace}
-    <span class="mc-bolsillo-controles mc-bolsillo-mando">
-      <button type="button" data-quitar="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">−</button>
-      <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
-      <button type="button" data-anadir="${escapeHtml(c.id)}" data-var="${escapeHtml(v.nuestro)}" aria-label="Añadir una copia de ${escapeHtml(nombre)}, ${escapeHtml(v.nombre)}">+</button>
-    </span></div>`
+  // SIN MANDO (tanda 565). PINGU, con Dex delante: «Dex no tiene botón de
+  // agregar desde ahí: le das a una, te sale la ficha, y ahí eliges la
+  // versión y sumas». La casilla era más botones que carta —dos filas de
+  // 44 px en una casilla de 154—, y la carta es justo lo único que se
+  // reconoce de un vistazo. Ahora la casilla es la carta, su cuenta y su
+  // versión; tocarla abre la ficha, que ya tiene la versión y el contador.
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${esMia ? claseMarcada(c.id, v.nuestro) : ''}">${enlace}</div>`
 }
 
 function bolsilloHtml(c) {
@@ -2324,42 +2329,27 @@ function bolsilloHtml(c) {
   const dentro = `
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>`
+    <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
+    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}`
   // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
   // 564): de esta clave sale lo que `guardarMarcadas` escribe en la base,
   // así que marcar veinte ultra raras las guardaba las veinte en «normal».
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, varianteDeCarta(c))}>${dentro}</a>`
-  if (!esMia) return `<div class="mc-bolsillo${n ? ' tengo' : ''}">${enlace}</div>`
   // El número de copias vive DENTRO del mando y no suelto en una
   // esquina: así lo que dice cuántas tienes está pegado a lo que lo
   // cambia, y de paso no hay dos chapas peleándose por el mismo sitio.
-  // ── Las versiones, cada una por su lado (tanda 383) ──
+  // ── Las versiones ya no van en la casilla (tanda 565) ──
+  // Iban aquí como botones N / RH desde la 383; ahora se eligen en la
+  // ficha, que es donde Dex las pone y donde ya estaban también. La
+  // casilla de «juntas» enseña la carta y cuántas tienes de todas sus
+  // versiones; la de «separadas» (arriba) lleva la chapa de la suya.
   //
   // Solo si la carta tiene MÁS DE UNA: con una sola sería una casilla
   // que solo se puede marcar de una manera. Y las que se enseñan son
   // las que existen de verdad (`tcg_cards.variants`), no las cuatro
   // siempre: ofrecer «1.ª edición» en una carta de 2024 invita a
   // apuntar algo que no se ha impreso nunca.
-  const versiones = tieneVarias(c)
-    ? `<span class="mc-bolsillo-controles mc-variantes">${variantesDeCarta(c)
-        .map((v) => {
-          const tengo = tengoDe(c.id, v.nuestro)
-          return `<button type="button" class="mc-variante${tengo ? ' tengo' : ''}" data-variante="${escapeHtml(v.nuestro)}" data-carta="${escapeHtml(c.id)}" title="${escapeHtml(v.nombre)}" aria-pressed="${tengo ? 'true' : 'false'}" aria-label="${escapeHtml(v.nombre)} de ${escapeHtml(nombre)}${tengo ? `, tienes ${tengo}` : ', te falta'}">${escapeHtml(v.corto)}</button>`
-        })
-        .join('')}</span>`
-    : ''
-  // El «+» lleva la versión DE LA CARTA (tanda 564) y el «−» no lleva
-  // ninguna, a propósito: la cuenta de al lado suma todas las versiones,
-  // así que el «−» tiene que poder quitar lo que esa cuenta cuenta. Y
-  // además quedan por ahí líneas de las que la 564 viene a evitar
-  // —guardadas como «normal» en cartas que no tienen normal—: con la
-  // versión puesta, el «−» no las encontraría y no haría nada.
-  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${claseMarcada(c.id, varianteDeCarta(c))} mc-bolsillo-con-mando">${enlace}${versiones}
-    <span class="mc-bolsillo-controles mc-bolsillo-mando">
-      <button type="button" data-quitar="${escapeHtml(c.id)}" ${n ? '' : 'disabled'} aria-label="Quitar una copia de ${escapeHtml(nombre)}">−</button>
-      <span class="mc-bolsillo-cuenta" aria-hidden="true">${n}</span>
-      <button type="button" data-anadir="${escapeHtml(c.id)}" data-var="${escapeHtml(varianteDeCarta(c))}" aria-label="Añadir una copia de ${escapeHtml(nombre)}">+</button>
-    </span></div>`
+  return `<div class="mc-bolsillo${n ? ' tengo' : ''}${esMia ? claseMarcada(c.id, varianteDeCarta(c)) : ''}">${enlace}</div>`
 }
 
 // Las opciones de los dos filtros salen de las cartas que hay DE VERDAD
@@ -2907,78 +2897,7 @@ async function tocarBolsillo(cardId, variante = 'normal') {
   }
 }
 
-// ── Quitar una copia desde el bolsillo (tanda 368) ──
-//
-// De qué línea se quita, que es lo único que tiene enjundia: de la MÁS
-// NUEVA. Una misma carta puede estar en la colección varias veces —una
-// española en NM y otra inglesa en played son dos líneas distintas— y el
-// botón no pregunta cuál. La más nueva es la que acabas de meter, que es
-// lo que quiere deshacer quien pulsa «−» justo después de pulsar «+».
-// Para quitar una concreta está el editor de la pestaña «Mi colección»,
-// que sí enseña las líneas una a una.
-async function quitarDelBolsillo(cardId, variante = null) {
-  // Sin versión, la más reciente de cualquiera; con versión, solo de esa
-  // — si no, el «−» de la casilla del reverse holo te quitaría la normal.
-  const suyas = lineas.filter((l) => l.card_id === cardId && (!variante || l.variante === variante))
-  if (!suyas.length) return
-  const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
-  try {
-    if ((Number(l.cantidad) || 1) > 1) {
-      const nueva = await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 })
-      lineas[lineas.indexOf(l)] = nueva
-    } else {
-      await datos.borrar(l.id)
-      lineas.splice(lineas.indexOf(l), 1)
-    }
-    pintarAlbum()
-    pintarResumen()
-    pintarCartas()
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-}
 
-// Marcar o desmarcar UNA versión (tanda 383).
-//
-// Es un interruptor, no un contador: el `+`/`−` de al lado sigue siendo
-// el que cuenta copias. Aquí la pregunta es «¿la tienes en reverse?», y
-// esa se contesta sí o no.
-//
-// Al desmarcar se quita UNA copia y no la línea entera: si tenías tres
-// reverse y te desprendes de una, lo que querías era eso y no borrarlas
-// las tres de golpe. Cuando llega a cero, la línea desaparece sola.
-async function alternarVariante(cardId, variante) {
-  const suyas = lineas.filter((l) => l.card_id === cardId && (l.variante || 'normal') === variante)
-  try {
-    if (!suyas.length) {
-      const nueva = await datos.anadir(sesion.user.id, {
-        card_id: cardId,
-        idioma: $('mcTocarIdioma').value,
-        estado: $('mcTocarEstado').value,
-        variante,
-        cantidad: 1,
-      }, mercado)
-      // La carta puede no estar en el mapa: el álbum se pinta con las
-      // del set, no con las tuyas (mismo caso que `tocarBolsillo`).
-      const c = album.cartas.find((x) => x.id === cardId)
-      const elSetDeAqui = (todosLosSets || []).find((x) => x.id === album.set)
-      meterLinea(nueva, c ? { ...c, tcg_sets: elSetDeAqui ? { id: elSetDeAqui.id, name: elSetDeAqui.name, release_date: elSetDeAqui.release_date } : null } : null)
-    } else {
-      const l = suyas.reduce((a, b) => (String(a.created_at || '') >= String(b.created_at || '') ? a : b))
-      if ((Number(l.cantidad) || 1) > 1) {
-        lineas[lineas.indexOf(l)] = await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 })
-      } else {
-        await datos.borrar(l.id)
-        lineas.splice(lineas.indexOf(l), 1)
-      }
-    }
-    pintarAlbum()
-    pintarResumen()
-    pintarCartas()
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-}
 
 // ══════════════════════════════════════════════════════════════════
 // BUSCAR EN TODO EL CATÁLOGO (tanda 447)
@@ -4346,7 +4265,7 @@ function enganchar() {
     if (!b) return
     const id = b.dataset.anadirFicha
     if (!id) return
-    await tocarBolsillo(id, b.dataset.var)
+    await tocarBolsillo(id, $('mcEdAnadirVariante').value)
     // Y la ficha se queda abierta, ya como TUYA: lo que se acaba de
     // hacer es tener la carta, no cerrar una ventana.
     const nueva = lineas.find((x) => x.card_id === id)
@@ -5011,14 +4930,6 @@ function enganchar() {
   // destino es un botón disfrazado.
   engancharFicha('mcBuscarResultados', '.mc-resultado')
 
-  $('mcAlbum').addEventListener('click', (e) => {
-    const mas = e.target.closest('button[data-anadir]')
-    if (mas) return void tocarBolsillo(mas.dataset.anadir, mas.dataset.var || 'normal')
-    const menos = e.target.closest('button[data-quitar]')
-    if (menos) return void quitarDelBolsillo(menos.dataset.quitar, menos.dataset.var || null)
-    const version = e.target.closest('button[data-variante]')
-    if (version) return void alternarVariante(version.dataset.carta, version.dataset.variante)
-  })
   // ── El menú de la VISTA (tanda 478) ──
   //
   // Se pinta una vez y se marca la puesta con `aria-checked`: es un

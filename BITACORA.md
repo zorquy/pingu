@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 00:30) — PINGU-Claude (565 — la casilla es la carta)
+
+**De dónde sale**: revisión visual de /mi-coleccion con capturas a 390 y
+1280 px, y PINGU enseñando cómo lo hace Dex.
+
+**Hecho**:
+1. **La casilla del álbum sin botones**: ni N/RH ni −/+. Es la carta, su
+   número, ×copias y la chapa de versión; tocarla abre la ficha. La ficha
+   de una carta que no tienes va como en Dex: desplegable con las versiones
+   de ESA carta (escondido si solo hay una) y «Añadir a mi colección». Se
+   fue el oyente del álbum, `quitarDelBolsillo`, `alternarVariante` y ~120
+   líneas de CSS del mando.
+2. Ficha en escritorio: la carta **arriba y fija**, alineada con el título.
+3. Barra de abajo del móvil **con palabra** bajo cada icono.
+4. Chapa de versión en casilla estrecha: **solo la marca** (`@container`).
+5. Tope del 55 % del alto para la carta de la ficha en pantallas bajas (en
+   un móvil normal no cambia nada; está dicho en SCHEMA).
+
+**Y la 346**: estaba ROJA desde la 536 (afirmaba el 30 aniversario
+plegado); reescrita a lo que hace la web.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`SCHEMA.md`. En `pruebas`: 368, 383, 478, 485, 564 (al camino nuevo) y 346.
+
+**Pasado**: 299, 305, 310, 311, 312, 313, 315, 316, 346, 368, 383, 418,
+441, 473, 478, 485, 524, 562, 563, 564 y `test-imports.mjs`. Suite entera
+en marcha otra vez al acabar.
+
 ## 2026-10-05 (noche, 22:40) — PINGU-Claude (564 — añadir decidía la versión por ti, y mal)
 
 **De dónde sale**: PINGU, «abro el pop-up de una carta que no tengo y

@@ -391,25 +391,23 @@
      es lo que lee en voz alta un lector de pantalla, y un menú de cinco
      dibujos sin nombre no se puede usar sin ver. `display: none` lo sacaría
      también del árbol de accesibilidad. */
+  /* Con su palabra debajo (tanda 565). Eran cinco dibujos sin nombre —y
+     «capas» o «carné» no dicen Expansiones ni Pokédex a quien llega
+     nuevo—. El escalón más bajo de la escala, y cabe: la barra mide 60. */
   .mc-menu-texto {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    font-size: var(--t-2xs);
+    line-height: 1;
   }
 
-  /* 52 de ancho Y de alto. El ancho se le pide porque aquí SÍ es un icono
-     y nada más (la regla de la tanda 312): sin él, el hueco pulsable sería
-     el del dibujo, 24 px, y fallarías la mitad de las veces. */
+  /* 52 de alto, el icono encima de la palabra. El ANCHO ya no se le pide:
+     con texto, un control mide lo que mide su palabra (la regla de la
+     312), y el mínimo lo pone la palabra más corta, «Panel». */
   .mc-pestania {
-    gap: 0;
-    min-width: 52px;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 44px;
     min-height: 52px;
-    padding: 0;
+    padding: 0 var(--e-xs);
     border-radius: var(--radius-pill);
   }
 
@@ -971,12 +969,20 @@
   text-overflow: ellipsis;
 }
 
-/* Y si el bolsillo lleva mando de copias, la chapa se sube por encima: el
-   mando vive pegado abajo (32 px de alto más su aire), y dos cosas en el
-   mismo borde se tapan. No es un paso de la escala, es una MEDIDA — la
-   altura de otra pieza — así que solo se le pide la retícula de 4. */
-.mc-bolsillo-con-mando .mc-chapa-variante {
-  bottom: 40px;
+/* Y en una casilla ESTRECHA el nombre no se recorta: se quita (tanda 565).
+   «RH Rever…» no es un nombre, es un trozo; la marca sola —RH, H, N— es lo
+   que se reconoce de lejos. Se mide la casilla y no la ventana (la regla
+   de la 316): en escritorio a siete por fila la casilla es tan estrecha
+   como en el móvil a tres. */
+.mc-bolsillo,
+.mc-carta-foto {
+  container-type: inline-size;
+}
+
+@container (max-width: 150px) {
+  .mc-chapa-variante > span {
+    display: none;
+  }
 }
 
 /* El código corto, en su redondel: es lo que se reconoce de lejos cuando
@@ -1958,14 +1964,6 @@
   text-decoration: none;
 }
 
-/* Con mando, el número de la carta se va ARRIBA: abajo está el mando y
-   si no se pisarían. */
-.mc-bolsillo-con-mando .mc-bolsillo-num {
-  top: var(--e-xs);
-  right: var(--e-xs);
-  bottom: auto;
-}
-
 .mc-bolsillo-num {
   position: absolute;
   right: var(--e-xs);
@@ -1984,7 +1982,7 @@
    y en un archivador el número de bolsillo es justo por donde te guías.
    Si desapareciera en las que tienes, la cuadrícula quedaría con huecos
    numerados y otros no, que se lee peor que con todos. */
-.mc-bolsillo.tengo:not(.mc-bolsillo-con-mando) .mc-bolsillo-num {
+.mc-bolsillo.tengo .mc-bolsillo-num {
   display: none;
 }
 
@@ -2350,12 +2348,6 @@
   }
 }
 
-/* Con el modo puesto, el − y el + se van: así cada casilla tiene UN
-   destino y, de paso, salen del tabulador. */
-.mc-album-marcando .mc-bolsillo-controles {
-  display: none;
-}
-
 .mc-album-marcando .mc-bolsillo-enlace {
   cursor: pointer;
 }
@@ -2480,8 +2472,8 @@
   display: grid;
   grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
   gap: var(--e-xl);
-  /* `stretch` y no `start`: es lo que hace que la columna de la carta
-     tenga el alto de la otra y pueda centrarse dentro. */
+  /* `stretch` para que la columna de la carta tenga el alto de la otra y
+     la carta pueda quedarse PEGADA (sticky) mientras la otra se desliza. */
   align-items: stretch;
 }
 
@@ -2494,13 +2486,18 @@
    paneles— y la izquierda se quedaba con un socavón debajo de la carta.
    Centrada, el hueco se reparte arriba y abajo y deja de leerse como un
    olvido. */
+/* Arriba y pegada, no a media columna (tanda 565): centrada en vertical
+   la carta flotaba con 300 px vacíos encima mientras el título empezaba
+   arriba, y se leía torcido. Alineada con el título y fija al deslizar,
+   que es lo que se mira mientras tocas los desplegables de al lado. */
 .mc-ficha-carta {
   display: flex;
   position: sticky;
   top: 0;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  min-height: 100%;
+  align-self: start;
+  padding-top: var(--e-md);
 }
 
 /* El aviso de «Guardado», que sustituye a los tres botones. Aparece y se
@@ -2544,8 +2541,14 @@
   .mc-ficha-carta {
     position: static;
     width: 100%;
-    max-width: 260px;
+    /* Y como mucho el 55 % del alto (tanda 565): a 260 px de ancho la
+       carta medía 363 de alto y era la primera pantalla ENTERA — el
+       nombre, las chapas y el precio quedaban debajo del borde. El ancho
+       sale del alto por la proporción de una carta, para que no se
+       deforme. */
+    max-width: min(260px, calc(55vh * 245 / 342));
     margin: 0 auto;
+    padding-top: 0;
   }
 
   /* En el móvil la carta manda y lo que la acompaña se centra debajo,
@@ -2849,108 +2852,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-.mc-bolsillo-editar {
-  cursor: default;
-}
 
-.mc-bolsillo-controles {
-  position: absolute;
-  right: var(--e-xs);
-  bottom: var(--e-xs);
-  left: var(--e-xs);
-  display: flex;
-  justify-content: space-between;
-  gap: var(--e-xs);
-}
-
-.mc-bolsillo-controles button {
-  flex: 1;
-  min-width: 0;
-  min-height: 32px;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-@media (pointer: coarse) {
-  .mc-bolsillo-controles button {
-    min-height: 44px;
-  }
-}
-
-.mc-bolsillo-controles button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.mc-bolsillo-controles [data-quitar] {
-  color: var(--danger);
-}
-
-/* ── El mando de cada bolsillo (tanda 368) ──
-   Va SIEMPRE a la vista y no solo al pasar por encima: en una pantalla
-   táctil no hay «pasar por encima», y en el archivador el mando no es un
-   extra, es a lo que se viene. Encima del enlace, que ocupa el bolsillo
-   entero. */
-.mc-bolsillo-mando {
-  z-index: 1;
-  align-items: center;
-  padding: 2px;
-  border-radius: var(--radius-pill);
-  /* Un velo en vez del blanco a secas: por debajo se sigue viendo la
-     carta y el mando no parece una etiqueta pegada. */
-  background: color-mix(in srgb, var(--white) 88%, transparent);
-  box-shadow: var(--shadow-sm);
-}
-
-.mc-bolsillo-mando button {
-  flex: 0 0 auto;
-  min-width: 32px;
-  min-height: 32px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  font-size: var(--t-md);
-  line-height: 1;
-}
-
-.mc-bolsillo-mando button:hover:not(:disabled) {
-  background: var(--bg);
-}
-
-/* La cuenta se lleva el hueco de en medio: así los dos botones quedan en
-   los extremos y el número justo entre lo que lo sube y lo que lo baja. */
-.mc-bolsillo-cuenta {
-  flex: 1;
-  min-width: 0;
-  color: var(--text);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  text-align: center;
-}
-
-/* Sin ninguna copia el número no dice nada («0» es ruido): se calla y
-   deja el − apagado, que ya cuenta lo mismo. */
-.mc-bolsillo:not(.tengo) .mc-bolsillo-cuenta {
-  visibility: hidden;
-}
-
-@media (pointer: coarse) {
-  .mc-bolsillo-mando button {
-    min-width: 44px;
-    min-height: 44px;
-  }
-}
-
-.mc-bolsillo-editar .mc-bolsillo-num {
-  display: none;
-}
 
 .mc-alb-borrar-zona {
   margin-top: var(--e-xl);
@@ -3547,53 +3449,9 @@ input.mc-alb-titulo:not([readonly]):focus {
   align-items: center;
 }
 
-/* Las acciones (el ajuste de «al añadir» y los dos botones) NO van en la
-   tira: despliegan un panel y una tira recorta lo que se sale de ella. */
-/* ── Las versiones de una carta, en su bolsillo (tanda 383) ──
-   Arriba del bolsillo y no abajo: abajo está el mando de copias, y dos
-   controles pegados en el mismo borde se pulsan mal. */
-.mc-variantes {
-  /* `bottom: auto` porque `.mc-bolsillo-controles` —la clase que
-     comparte con el mando— lo fija abajo: sin esto la fila se estiraría
-     del borde de arriba al de abajo y taparía la carta entera. */
-  top: var(--e-xs);
-  bottom: auto;
-  left: var(--e-xs);
-  right: var(--e-xs);
-  display: flex;
-  gap: 2px;
-}
-
-.mc-variante {
-  flex: 1 1 0;
-  min-height: 20px;
-  padding: 1px 2px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--text-mid);
-  cursor: pointer;
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-/* La que tienes, en el verde de completar: es el mismo idioma que el
-   resto de la página («esto ya está»). */
-.mc-variante.tengo {
-  border-color: var(--success);
-  background: var(--success);
-  color: var(--blanco-fijo);
-}
-
 /* Con el dedo, 44 px de alto. El ANCHO no se le pide: son dos o tres en
    una fila que ya se reparte el bolsillo entero, y estirarlas sacaría
    la fila fuera (regla de la 312). */
-@media (pointer: coarse) {
-  .mc-variante {
-    min-height: 44px;
-  }
-}
 
 /* ── El contador de copias (tanda 396) ── */
 .mc-contador-mando {
