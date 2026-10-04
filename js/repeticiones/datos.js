@@ -15,6 +15,11 @@ export const FICHERO_MIGRACION = 'supabase-migration-repeticiones.sql'
 // las tiene, y la lista no puede romperse por eso (se piden sin ellas).
 const COLUMNAS_BASE = 'id,titulo,jugador_a,jugador_b,ganador,turnos,compartida,created_at'
 const COLUMNAS_LISTA = `${COLUMNAS_BASE},mazo_a,mazo_b`
+// Y si está publicada como partida de ejemplo (tanda 520), que es otra
+// migración (supabase-migration-repeticiones-galeria.sql).
+const COLUMNAS_GALERIA = `${COLUMNAS_LISTA},publica`
+export const FICHERO_GALERIA = 'supabase-migration-repeticiones-galeria.sql'
+export const SIN_GALERIA = `Publicar aún no está disponible: falta poner ${FICHERO_GALERIA} en la base.`
 
 // La migración de antes: le falta una COLUMNA o un ARGUMENTO que vino
 // después (42703 en Postgres, PGRST204 y PGRST202 en PostgREST).
@@ -74,7 +79,8 @@ export async function leer(id) {
 
 export async function misRepeticiones(userId) {
   const pedir = (columnas) => supabase.from('replays').select(columnas).eq('user_id', userId).order('created_at', { ascending: false }).limit(500)
-  let { data, error } = await pedir(COLUMNAS_LISTA)
+  let { data, error } = await pedir(COLUMNAS_GALERIA)
+  if (error && migracionVieja(error)) ({ data, error } = await pedir(COLUMNAS_LISTA))
   if (error && migracionVieja(error)) ({ data, error } = await pedir(COLUMNAS_BASE))
   if (error) throw traducir(error)
   return data || []
@@ -96,6 +102,61 @@ export const renombrar = (id, titulo) => cambiar(id, { titulo: String(titulo || 
 // Las notas del dueño (tanda 495): [{ fila, texto }], ordenadas por la línea
 // del registro a la que van (ver notasEnFotos en repeticiones.js).
 export const guardarNotas = (id, notas) => cambiar(id, { notas })
+
+// Publicar como partida de ejemplo, o quitarla (tanda 520): por función,
+// nunca escribiendo en la tabla. `arquetipos`: los ids del catálogo de los
+// mazos de la partida (los del meta).
+export async function publicar(id, si, arquetipos = null) {
+  const { error } = await supabase.rpc('repeticiones_publicar', { p_id: id, p_publica: Boolean(si), p_arquetipos: arquetipos })
+  if (error) throw faltaLaMigracion(error) ? new Error(SIN_GALERIA) : new Error(error.message || 'No se ha podido publicar.')
+}
+
+// ¿Está puesta la migración de la galería? Se pregunta ANTES de guardar
+// nada: publicar es guardar una copia y después publicarla, y sin la
+// función la copia se quedaría en «Tus repeticiones» sin publicar. La
+// columna y la función vienen en la misma migración, que es una sola
+// transacción: si está la una, está la otra.
+export async function galeriaPuesta() {
+  const { error } = await supabase.from('replays').select('publica').limit(1)
+  return !(error && migracionVieja(error))
+}
+
+// ── Los puzles «¿Qué jugarías?» (tanda 521) ──
+//
+// supabase-migration-repeticiones-puzles.sql. Se crean y se contestan por
+// función; la buena y la explicación no se leen de la tabla, salen al
+// contestar.
+export const FICHERO_PUZLES = 'supabase-migration-repeticiones-puzles.sql'
+const sinPuzles = (error) => (faltaLaMigracion(error) ? new Error(`Los puzles aún no están disponibles: falta poner ${FICHERO_PUZLES} en la base.`) : new Error(error.message || 'No se ha podido hablar con la base.'))
+
+export async function crearPuzle({ repeticion, foto, pregunta, opciones, correcta, explicacion }) {
+  const { data, error } = await supabase.rpc('puzles_crear', { p_repeticion: repeticion, p_foto: foto, p_pregunta: pregunta, p_opciones: opciones, p_correcta: correcta, p_explicacion: explicacion })
+  if (error) throw sinPuzles(error)
+  if (!data) throw new Error('La base no ha devuelto el puzle.')
+  return data
+}
+
+// El puzle (sin su solución), o null si no existe o no se puede ver.
+export async function leerPuzle(id) {
+  const { data, error } = await supabase.from('replay_puzzles').select('id,replay_id,foto,pregunta,opciones').eq('id', id).limit(1)
+  if (error) throw sinPuzles(error)
+  return data?.[0] || null
+}
+
+export async function responderPuzle(id, opcion) {
+  const { data, error } = await supabase.rpc('puzles_responder', { p_puzle: id, p_opcion: opcion })
+  if (error) throw sinPuzles(error)
+  const fila = Array.isArray(data) ? data[0] : data
+  if (!fila) throw new Error('La base no ha devuelto la solución.')
+  return fila
+}
+
+// Los recientes de todo el mundo; null sin la migración (la sección no sale).
+export async function listaDePuzles(limite = 12) {
+  const { data, error } = await supabase.rpc('puzles_lista', { p_limite: limite })
+  if (error) return null
+  return data || []
+}
 
 export async function borrar(id) {
   const { data, error } = await supabase.from('replays').delete().eq('id', id).select('id')

@@ -420,6 +420,28 @@ async function cargar() {
   }
 }
 
+// ── Partidas de ejemplo (tanda 520) ──
+//
+// Las repeticiones publicadas de este mazo. Se publican con los nombres
+// cambiados por Rojo y Azul, así que lo que identifica cada partida son sus
+// MAZOS: se dice cuál ganó por su mazo, no por el nombre.
+async function pintarPartidas() {
+  const filas = await datos.partidasDeEjemplo(ID)
+  // Sin la migración (null), la sección no sale: no hay nada que ofrecer.
+  if (!filas) return
+  $('mmPartidas').classList.remove('hidden')
+  $('mmPartidasVacio').classList.toggle('hidden', filas.length > 0)
+  $('mmPartidasLista').innerHTML = filas
+    .map((f) => {
+      const a = f.mazo_a || f.jugador_a || 'Sin identificar'
+      const b = f.mazo_b || f.jugador_b || 'Sin identificar'
+      const gana = f.ganador && f.ganador === f.jugador_a ? a : f.ganador && f.ganador === f.jugador_b ? b : null
+      const sub = [gana ? `gana ${gana}` : '', f.turnos != null ? `${f.turnos} ${f.turnos === 1 ? 'turno' : 'turnos'}` : '', f.autor ? `subida por ${f.autor}` : ''].filter(Boolean).join(' · ')
+      return `<li class="meta-partida"><a href="/repeticiones?r=${encodeURIComponent(f.id)}"><strong>${escapeHtml(a)}</strong> contra <strong>${escapeHtml(b)}</strong></a>${sub ? `<span class="meta-sub">${escapeHtml(sub)}</span>` : ''}</li>`
+    })
+    .join('')
+}
+
 async function iniciar() {
   if (!ID) {
     location.replace('/meta')
@@ -443,6 +465,7 @@ async function iniciar() {
   if (sesion) perfil = await getProfile(sesion.user.id).catch(() => null)
   const filas = await pintarGuias()
   await prepararVincular(filas)
+  await pintarPartidas()
   await carga
 }
 

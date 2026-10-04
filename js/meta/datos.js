@@ -91,3 +91,12 @@ export async function desvincularGuia(arquetipoId, guideId) {
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No puedes quitar esta guía: solo quien la vinculó, su autor o un admin.')
 }
+
+// Las partidas de ejemplo de un mazo (tanda 520): repeticiones que la gente
+// ha publicado (supabase-migration-repeticiones-galeria.sql). Sin esa
+// migración, null: la ficha no enseña la sección en vez de un error.
+export async function partidasDeEjemplo(arquetipo, limite = 6) {
+  const { data, error } = await supabase.rpc('repeticiones_publicas', { p_arquetipo: arquetipo, p_limite: limite })
+  if (error) return null
+  return data || []
+}

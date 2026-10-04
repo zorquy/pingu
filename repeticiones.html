@@ -136,6 +136,7 @@ Azul ha ganado el lanzamiento de moneda.
         <div class="rep-pegar-botones">
           <button type="submit" class="btn-primary">Ver la repetición</button>
           <button type="button" class="btn-secondary" id="repEjemplo">Probar con un ejemplo</button>
+          <button type="button" class="link-btn" id="repVarias">Importar varias a la vez</button>
         </div>
         <p class="rep-error hidden" id="repError" role="alert"></p>
       </form>
@@ -156,7 +157,9 @@ Azul ha ganado el lanzamiento de moneda.
             <button type="button" class="btn-secondary rep-btn" data-accion="video"><span class="rep-btn-icono" data-icono="descargar"></span><span class="rep-btn-texto">Vídeo</span></button>
           </div>
           <div class="rep-cab-extra">
-            <button type="button" class="link-btn" data-accion="girar">Girar la mesa</button>
+            <button type="button" class="link-btn" data-accion="girar" aria-keyshortcuts="G" title="Girar la mesa (G)">Girar la mesa</button>
+            <button type="button" class="link-btn" data-accion="stream" title="La mesa sola a pantalla completa, para OBS">Modo stream</button>
+            <button type="button" class="link-btn" data-accion="publicar">Publicar como ejemplo</button>
             <button type="button" class="link-btn" data-accion="otra">Pegar otra partida</button>
           </div>
         </div>
@@ -202,11 +205,14 @@ Azul ha ganado el lanzamiento de moneda.
               <div class="rep-momentos-botones">
                 <button type="button" class="link-btn" data-accion="jugar">Jugar desde aquí</button>
                 <button type="button" class="link-btn hidden" data-accion="nota">Añadir una nota aquí</button>
-                <button type="button" class="link-btn" data-accion="siguienteKo">Siguiente KO</button>
+                <button type="button" class="link-btn hidden" data-accion="puzle">Hacer un puzle aquí</button>
+                <button type="button" class="link-btn" data-accion="siguienteKo" aria-keyshortcuts="N" title="Siguiente KO (N)">Siguiente KO</button>
               </div>
             </div>
             <ol class="rep-momentos-lista" id="repMomentosLista"></ol>
           </div>
+          <section class="rep-prob hidden" id="repProb" aria-label="Probabilidades de robo"></section>
+          <section class="rep-puzle-caja hidden" id="repPuzle" aria-label="El puzle"></section>
         </div>
         <aside class="rep-registro" aria-labelledby="repRegistroTitulo">
           <h2 class="rep-registro-titulo" id="repRegistroTitulo">Registro</h2>
@@ -214,7 +220,10 @@ Azul ha ganado el lanzamiento de moneda.
         </aside>
       </div>
       <section class="rep-numeros" id="repNumeros" aria-labelledby="repNumerosTitulo">
-        <h2 class="rep-numeros-titulo" id="repNumerosTitulo">La partida en números</h2>
+        <div class="rep-numeros-cab">
+          <h2 class="rep-numeros-titulo" id="repNumerosTitulo">La partida en números</h2>
+          <button type="button" class="btn-secondary rep-numeros-imagen" data-accion="imagen">Imagen para redes</button>
+        </div>
         <div class="rep-numeros-cuerpo" id="repNumerosCuerpo"></div>
       </section>
       <section class="rep-mazos hidden" id="repMazos" aria-labelledby="repMazosTitulo">
@@ -223,6 +232,12 @@ Azul ha ganado el lanzamiento de moneda.
         <div class="rep-mazos-cuerpo" id="repMazosCuerpo"></div>
       </section>
       <p class="sr-only" id="repAnuncio" aria-live="polite"></p>
+    </section>
+
+    <section class="rep-puzles hidden" id="repPuzles" aria-labelledby="repPuzlesTitulo">
+      <h2 id="repPuzlesTitulo">Puzles de la comunidad</h2>
+      <p class="rep-pegar-ayuda">Una jugada de una partida de verdad, la pregunta «¿qué jugarías?» y la solución explicada por quien la jugó.</p>
+      <ol class="rep-puzles-lista"></ol>
     </section>
 
     <section class="rep-guardadas" id="repGuardadas" aria-labelledby="repGuardadasTitulo">

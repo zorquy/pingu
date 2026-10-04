@@ -1336,9 +1336,38 @@
 }
 
 .rep-numeros-titulo {
-  margin: 0 0 var(--e-md);
+  margin: 0;
   font-family: var(--font-display);
   font-size: var(--t-xl);
+}
+
+/* La imagen para redes (tanda 513): el botón va junto al título porque es
+   ESTA sección hecha imagen. */
+.rep-numeros-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-md);
+}
+
+.rep-numeros-imagen {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font-size: var(--t-sm);
+}
+
+.rep-resumen-vista {
+  display: block;
+  /* El ANCHO manda y el alto sale de la proporción: limitar los dos a la
+     vez la deforma en cuanto el móvil corta uno. 41,6vh es 52vh de alto. */
+  width: min(100%, 352px, 41.6vh);
+  height: auto;
+  aspect-ratio: 1080 / 1350;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  background: var(--navy-solid-dark);
 }
 
 .rep-numeros-rejilla {
@@ -1841,4 +1870,332 @@
   .rep-barra-video span {
     transition: none;
   }
+}
+
+/* ── El modo stream (tanda 517): la mesa sola, para OBS (el porqué, en SCHEMA.md) ── */
+.rep-stream body {
+  overflow: hidden;
+}
+
+.rep-stream .rep-sala {
+  --lab-c-activo: 120px;
+  --lab-c-banca: 80px;
+  --lab-c-premio: 36px;
+  --lab-c-pila: 60px;
+}
+
+.rep-stream .rep-escena {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: block;
+  background: var(--navy-solid-dark);
+}
+
+.rep-stream[data-fondo-stream='verde'] .rep-escena {
+  background: #00b140;
+}
+
+.rep-stream .rep-juego {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  transform-origin: 0 0;
+  transform: translate(var(--x), var(--y)) scale(var(--k));
+}
+
+.rep-stream .rep-registro,
+.rep-stream .rep-momentos,
+.rep-stream .rep-prob,
+.rep-stream .rep-controles > :not(.rep-nota) {
+  display: none;
+}
+
+.rep-stream .rep-controles {
+  position: absolute;
+  right: var(--e-md);
+  bottom: var(--e-md);
+  left: var(--e-md);
+}
+
+.rep-stream-ayuda {
+  position: fixed;
+  top: var(--e-md);
+  right: var(--e-md);
+  left: var(--e-md);
+  z-index: 1001;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--navy-solid-dark) 92%, transparent);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s var(--ease);
+}
+
+.rep-stream-ayuda p {
+  flex: 1 1 480px;
+  margin: 0;
+}
+
+.rep-stream-obs code {
+  word-break: break-all;
+}
+
+.rep-stream-raton .rep-stream-ayuda,
+.rep-stream-ayuda:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rep-stream-salir {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rep-stream-ayuda {
+    transition: none;
+  }
+}
+
+/* ── Importar varias a la vez (tanda 518) ── */
+.rep-varias-lista {
+  display: grid;
+  gap: var(--e-xs);
+  max-height: 40vh;
+  margin: var(--e-sm) 0;
+  padding-left: var(--e-lg);
+  overflow-y: auto;
+}
+
+.rep-varias-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-sm);
+}
+
+.rep-varias-estado {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-varias-mala {
+  color: var(--danger);
+  font-size: var(--t-sm);
+}
+
+/* La escena recibe el foco en el modo stream (para que el Espacio no pulse
+   el botón de debajo): sin anillo, que saldría en la captura. */
+.rep-stream .rep-escena:focus {
+  outline: none;
+}
+
+/* ── Tu lista, asociada a la partida (tanda 519) ── */
+.rep-milista-boton {
+  align-self: flex-start;
+  margin-top: var(--e-sm);
+}
+
+.rep-milista {
+  margin-top: var(--e-sm);
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--border);
+  font-size: var(--t-sm);
+}
+
+.rep-milista p {
+  margin: 0 0 var(--e-xs);
+}
+
+.rep-milista-aviso {
+  color: var(--danger);
+}
+
+.rep-milista-mazos {
+  display: grid;
+  gap: var(--e-xs);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.rep-milista-mazo {
+  justify-content: space-between;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font-size: var(--t-sm);
+}
+
+.rep-prob {
+  margin-top: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.rep-prob-texto {
+  margin: var(--e-xs) 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rep-prob-lista {
+  display: grid;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-sm);
+}
+
+.rep-prob-lista li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px auto;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.rep-prob-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rep-prob-barra {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.rep-prob-barra > span {
+  display: block;
+  width: var(--pct);
+  height: 100%;
+  background: var(--navy);
+}
+
+.rep-prob-cifra {
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-prob-mas summary {
+  min-height: 32px;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .rep-prob-mas summary {
+    min-height: 44px;
+  }
+}
+
+/* ── Puzles «¿Qué jugarías?» (tanda 521) ──
+   Mientras se piensa, nada de lo que viene después: ni registro, ni
+   momentos, ni controles, ni números, ni mazos. */
+.rep-puzle .rep-registro,
+.rep-puzle .rep-momentos,
+.rep-puzle .rep-controles > :not(.rep-nota),
+.rep-puzle .rep-numeros,
+.rep-puzle .rep-mazos,
+.rep-puzle .rep-prob,
+.rep-puzle .rep-cab-botones {
+  display: none;
+}
+
+.rep-puzle-caja {
+  margin-top: var(--e-sm);
+  padding: var(--e-md);
+  border: 2px solid var(--navy);
+  border-radius: var(--radius-md);
+}
+
+.rep-puzle-pregunta {
+  margin: 0 0 var(--e-xs);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rep-puzle-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
+}
+
+.rep-puzle-opcion {
+  min-height: 44px;
+  white-space: normal;
+  text-align: left;
+}
+
+.rep-puzle-solucion p {
+  margin: 0 0 var(--e-sm);
+}
+
+.rep-puzle-veredicto[data-acierto='si'] {
+  color: var(--success);
+}
+
+.rep-puzle-veredicto[data-acierto='no'] {
+  color: var(--danger);
+}
+
+.rep-puzle-recuento {
+  margin-bottom: var(--e-md);
+}
+
+.rep-puzle-recuento .rep-puzle-buena {
+  font-weight: 700;
+}
+
+.rep-puzle-opcion-campo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xs);
+}
+
+.rep-puzle-opcion-campo input[type='radio'] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.rep-puzle-opcion-campo input[type='text'] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+}
+
+.rep-puzles {
+  margin-top: var(--e-xl);
+}
+
+.rep-puzles-lista {
+  display: grid;
+  gap: var(--e-sm);
+  padding-left: var(--e-lg);
+}
+
+.rep-puzle-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-xs) var(--e-sm);
+}
+
+.rep-puzle-item a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
 }

@@ -282,7 +282,9 @@ function barraDeVida(ctx, C, x, y, w, vida, ps) {
 // vida y sus energías, las pilas, la jugada del centro, la carta en
 // grande, la mano, la firma y el cartel. Lo que cambia es dónde va cada
 // una; una pieza arreglada en una se arregla en las dos.
-function dibujarFoto(ctx, C, s, t, M) {
+// `donde`: { i, tiempo } — la foto dentro del trozo y el segundo del vídeo
+// en que empieza este fotograma (para la nota y la barra de momentos).
+function dibujarFoto(ctx, C, s, t, M, donde = { i: 0, tiempo: 0 }) {
   const { abajo, imagenes, psDe, letraDe, colorDe } = M
   const K = {
     ctx,
@@ -296,6 +298,9 @@ function dibujarFoto(ctx, C, s, t, M) {
     psDe,
     letraDe,
     colorDe,
+    nota: M.notas?.get(donde.i) || null,
+    barra: M.barra || null,
+    tiempo: donde.tiempo,
   }
   if (M.formato === 'vertical') dibujarVertical(K)
   else dibujarHorizontal(K)
@@ -599,9 +604,20 @@ function pintarFirma(K, x, y, alinear = 'right') {
 }
 
 // El cartel del cambio de turno, y el del final, centrado en (cx, cy).
+// Desde la tanda 514 el del turno lleva su NÚMERO («Turno 5 de Rojo»): en
+// un vídeo no hay deslizador que mirar para saber por dónde va. Y un KO
+// tiene el suyo, en el color del brillo, que es lo que se busca al
+// recortar un trozo para enseñarlo.
 function pintarCartel(K, cx, cy) {
   const { ctx, C, s, f, t, colorDe } = K
-  const cartel = f?.tipo === 'turno' && /^Turn|^Turno/.test(s.linea || '') ? `Turno de ${s.deQuien}` : f?.tipo === 'fin' ? `Gana ${s.fin?.ganador}` : null
+  const cartel =
+    f?.tipo === 'turno' && /^Turn|^Turno/.test(s.linea || '')
+      ? `Turno ${s.turno} de ${s.deQuien}`
+      : f?.tipo === 'fin'
+        ? `Gana ${s.fin?.ganador}`
+        : f?.tipo === 'ko' && f.carta
+          ? `KO · ${f.carta}`
+          : null
   if (cartel && (f.tipo === 'fin' || t < 1.1)) {
     const a = f.tipo === 'fin' ? Math.min(1, t / 0.3) : t < 0.2 ? t / 0.2 : t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.3) : 1
     ctx.save()
@@ -612,7 +628,7 @@ function pintarCartel(K, cx, cy) {
     ctx.fillStyle = C.oscuro
     ctx.fill()
     ctx.lineWidth = 3
-    ctx.strokeStyle = f.tipo === 'fin' ? C.brillo : C.j[colorDe(s.deQuien)]
+    ctx.strokeStyle = f.tipo === 'turno' ? C.j[colorDe(s.deQuien)] : C.brillo
     ctx.stroke()
     ctx.fillStyle = C.blanco
     ctx.textAlign = 'center'
@@ -620,6 +636,58 @@ function pintarCartel(K, cx, cy) {
     ctx.fillText(cartel, cx, cy + 1)
     ctx.restore()
   }
+}
+
+// La nota del dueño en su jugada (tanda 514): un rótulo como un subtítulo,
+// que entra con la foto y se queda lo que dura (la línea de tiempo le da
+// lo que se tarda en LEERLA). `y` es su borde de arriba.
+function pintarNota(K, cx, y, ancho) {
+  const { ctx, C, nota, t } = K
+  if (!nota) return
+  ctx.save()
+  ctx.globalAlpha = Math.min(1, t / 0.25)
+  ctx.font = '500 20px Inter, sans-serif'
+  const lineas = renglones(ctx, nota, ancho - 48, 3)
+  const alto = 52 + lineas.length * 26
+  redondo(ctx, cx - ancho / 2, y, ancho, alto, 16)
+  ctx.fillStyle = 'rgba(8, 24, 38, 0.92)'
+  ctx.fill()
+  ctx.lineWidth = 2
+  ctx.strokeStyle = C.brillo
+  ctx.stroke()
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = C.brillo
+  ctx.font = '700 14px Inter, sans-serif'
+  ctx.fillText('NOTA', cx - ancho / 2 + 24, y + 30)
+  ctx.fillStyle = C.blanco
+  ctx.font = '500 20px Inter, sans-serif'
+  lineas.forEach((l, k) => ctx.fillText(l, cx - ancho / 2 + 24, y + 58 + k * 26))
+  ctx.restore()
+}
+
+// La barra de momentos (tanda 514): por dónde va el vídeo, con una raya
+// fina en cada turno y una marca en cada KO. Es la misma idea que las
+// marcas del deslizador de la página.
+function pintarBarra(K, x, y, ancho) {
+  const { ctx, C, barra, tiempo } = K
+  if (!barra?.total) return
+  const pos = (s) => x + Math.min(1, s / barra.total) * ancho
+  ctx.save()
+  redondo(ctx, x, y, ancho, 6, 3)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.16)'
+  ctx.fill()
+  redondo(ctx, x, y, Math.max(6, pos(tiempo) - x), 6, 3)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.72)'
+  ctx.fill()
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+  for (const s of barra.turnos) ctx.fillRect(pos(s) - 1, y - 4, 2, 14)
+  ctx.fillStyle = C.brillo
+  for (const s of barra.kos) {
+    ctx.beginPath()
+    ctx.arc(pos(s), y + 3, 6, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.restore()
 }
 
 // ── La horizontal (1280×720), la de siempre ──
@@ -642,6 +710,10 @@ function dibujarHorizontal(K) {
   pintarMano(K, 24, 604, 616, 1000)
   pintarFirma(K, ANCHO - 24, 680)
   pintarCartel(K, ANCHO / 2, 293)
+  // Sobre la mano, que es lo que menos se mira mientras se lee.
+  pintarNota(K, 512, 560, 976)
+  // Hasta donde empieza la firma, que va en la esquina de abajo.
+  pintarBarra(K, 24, 704, 976)
 }
 
 // ── La vertical (720×1280), para el móvil ──
@@ -685,6 +757,11 @@ function dibujarVertical(K) {
   pintarFirma(K, cx, V.alto - 56, 'center')
   pintarCartaGrande(K, cx - 100, yC + 84, 200)
   pintarCartel(K, cx, yC + 84)
+  // La nota, sobre la banca de arriba: dentro de lo que las redes no tapan
+  // (de 120 a 1030) y lejos de la jugada del centro. La barra, justo
+  // encima del nombre de abajo, que también queda dentro.
+  pintarNota(K, cx, 128, V.ancho - 48)
+  pintarBarra(K, 24, yN - 14, V.ancho - 48)
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -760,11 +837,15 @@ function nombresDeLasFotos(fotos) {
 //
 // `cierre`: segundos de más en la ÚLTIMA foto (tanda 493). Un trozo
 // recortado que no acaba en el final de la partida se cortaba en seco.
-export function lineaDeTiempo(fotos, esperaDe, ritmo, { cierre = 0 } = {}) {
+//
+// `extraDe(i)`: milisegundos de más en la foto i que NO van con el ritmo
+// (tanda 514): lo que se tarda en leer una nota no va más deprisa a 4×,
+// igual que en el reproductor de la página.
+export function lineaDeTiempo(fotos, esperaDe, ritmo, { cierre = 0, extraDe = null } = {}) {
   const out = []
   fotos.forEach((s, i) => {
-    const total = Math.max(0.25, esperaDe(s) / 1000 / ritmo) + (s.foco?.tipo === 'fin' ? 2.5 : i === fotos.length - 1 ? cierre : 0)
-    const anima = ['ataque', 'danio', 'turno', 'jugar', 'evoluciona', 'fin', 'entra', 'sube', 'unir', 'habilidad'].includes(s.foco?.tipo)
+    const total = Math.max(0.25, esperaDe(s) / 1000 / ritmo) + (s.foco?.tipo === 'fin' ? 2.5 : i === fotos.length - 1 ? cierre : 0) + (extraDe ? extraDe(i) / 1000 : 0)
+    const anima = ['ataque', 'danio', 'turno', 'jugar', 'evoluciona', 'fin', 'entra', 'sube', 'unir', 'habilidad', 'ko'].includes(s.foco?.tipo)
     // El cartel del turno dura algo más que el resto.
     const tAnim = anima ? Math.min(total, s.foco?.tipo === 'turno' || s.foco?.tipo === 'fin' ? 1.2 : ANIMACION) : 0
     const n = Math.floor(tAnim * FPS)
@@ -795,11 +876,28 @@ export function lineaDeTiempo(fotos, esperaDe, ritmo, { cierre = 0 } = {}) {
 export function tramoDe(fotos, desde = 0, hasta = fotos.length - 1) {
   const a = Math.max(0, Math.min(desde, fotos.length - 1))
   const b = Math.max(a, Math.min(hasta, fotos.length - 1))
-  return { fotos: fotos.slice(a, b + 1), cierre: b < fotos.length - 1 ? 1 : 0 }
+  return { fotos: fotos.slice(a, b + 1), cierre: b < fotos.length - 1 ? 1 : 0, desde: a }
 }
 
-export async function hacerVideo({ fotos: todas, M, ritmo = 2, alAvanzar = () => {}, senal = {}, formato = 'horizontal', desde = 0, hasta = todas.length - 1 }) {
-  const { fotos, cierre } = tramoDe(todas, desde, hasta)
+// Cuándo empieza cada foto en el vídeo, y con eso, dónde caen los turnos y
+// los KO en la barra.
+export function barraDeMomentos(fotos, linea) {
+  const inicio = new Map()
+  let tiempo = 0
+  for (const fr of linea) {
+    if (!inicio.has(fr.foto)) inicio.set(fr.foto, tiempo)
+    tiempo += fr.duracion
+  }
+  const cuando = (tipo) => fotos.flatMap((s, i) => (s.foco?.tipo === tipo && inicio.has(i) ? [inicio.get(i)] : []))
+  return { total: tiempo, turnos: cuando('turno'), kos: cuando('ko') }
+}
+
+// `notas`: Map de la foto (en la partida ENTERA) a su texto, o null; cada
+// una sale como rótulo y alarga su foto lo que se tarda en leerla
+// (`esperaDeNota(texto)`, en ms). `barra`: si va la barra de momentos.
+export async function hacerVideo({ fotos: todas, M, ritmo = 2, alAvanzar = () => {}, senal = {}, formato = 'horizontal', desde = 0, hasta = todas.length - 1, notas = null, esperaDeNota = () => 0, barra = false }) {
+  const { fotos, cierre, desde: a } = tramoDe(todas, desde, hasta)
+  const notasDelTramo = new Map([...(notas || [])].filter(([i]) => i >= a && i < a + fotos.length).map(([i, texto]) => [i - a, texto]))
   const { ancho, alto } = medidasDe(formato)
   if (document.fonts?.load) {
     await Promise.all(['500 16px Inter', '700 16px Inter', '700 34px Fredoka'].map((f) => document.fonts.load(f).catch(() => null)))
@@ -811,8 +909,8 @@ export async function hacerVideo({ fotos: todas, M, ritmo = 2, alAvanzar = () =>
   lienzo.width = ancho
   lienzo.height = alto
   const ctx = lienzo.getContext('2d')
-  const dibujo = { ...M, imagenes, formato }
-  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo, { cierre })
+  const linea = lineaDeTiempo(fotos, M.esperaDe, ritmo, { cierre, extraDe: (i) => (notasDelTramo.has(i) ? esperaDeNota(notasDelTramo.get(i)) : 0) })
+  const dibujo = { ...M, imagenes, formato, notas: notasDelTramo, barra: barra ? barraDeMomentos(fotos, linea) : null }
 
   const codec = await codecDisponible(formato)
   if (codec) return { ...(await conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAvanzar, senal, formato })), tiempoReal: false }
@@ -847,7 +945,7 @@ async function conWebCodecs({ codec, lienzo, ctx, C, fotos, linea, dibujo, alAva
       if (senal.cancelado) throw cancelar()
       if (fallo) throw fallo
       const fr = linea[k]
-      dibujarFoto(ctx, C, fotos[fr.foto], fr.t, dibujo)
+      dibujarFoto(ctx, C, fotos[fr.foto], fr.t, dibujo, { i: fr.foto, tiempo: us / 1e6 })
       const duracion = Math.round(fr.duracion * 1e6)
       const frame = new VideoFrame(lienzo, { timestamp: us, duration: duracion })
       // Una clave cada dos segundos como poco: se puede saltar a
@@ -901,7 +999,7 @@ async function conGrabadora({ grabadora, lienzo, ctx, C, fotos, linea, dibujo, a
   try {
     for (const fr of linea) {
       if (senal.cancelado) throw cancelar()
-      dibujarFoto(ctx, C, fotos[fr.foto], fr.t, dibujo)
+      dibujarFoto(ctx, C, fotos[fr.foto], fr.t, dibujo, { i: fr.foto, tiempo: hecho })
       await new Promise((r) => setTimeout(r, fr.duracion * 1000))
       hecho += fr.duracion
       alAvanzar('video', hecho / total)
@@ -915,12 +1013,12 @@ async function conGrabadora({ grabadora, lienzo, ctx, C, fotos, linea, dibujo, a
 }
 
 // Para las pruebas y para la vista previa: dibujar una foto suelta.
-export async function dibujarUna({ foto, M, t = 0, formato = 'horizontal' }) {
+export async function dibujarUna({ foto, M, t = 0, formato = 'horizontal', nota = null, barra = null, tiempo = 0 }) {
   const imagenes = await cargarImagenes(nombresDeLasFotos([foto]), M.fuentesDe)
   const { ancho, alto } = medidasDe(formato)
   const lienzo = document.createElement('canvas')
   lienzo.width = ancho
   lienzo.height = alto
-  dibujarFoto(lienzo.getContext('2d'), leerColores(), foto, t, { ...M, imagenes, formato })
+  dibujarFoto(lienzo.getContext('2d'), leerColores(), foto, t, { ...M, imagenes, formato, notas: nota ? new Map([[0, nota]]) : null, barra }, { i: 0, tiempo })
   return lienzo
 }

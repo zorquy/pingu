@@ -649,3 +649,29 @@
     transition: none;
   }
 }
+
+/* ── Partidas de ejemplo (tanda 520) ── */
+.meta-partidas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meta-partida {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-xs) var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.meta-partida a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
