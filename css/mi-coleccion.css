@@ -1123,6 +1123,19 @@
   color: var(--blanco-fijo);
 }
 
+/* La chapa del gradeo, con el color de la casa (tanda 563). El porqué de
+   que no sean los logos, en SCHEMA.md. Sin casa reconocida se queda con
+   el hielo de las demás, que es lo que había. */
+.mc-chip-gradeo[data-casa] {
+  background: var(--casa, var(--navy-solid));
+  color: var(--blanco-fijo);
+}
+.mc-chip-gradeo[data-casa='PSA'] { --casa: #c8102e; }
+.mc-chip-gradeo[data-casa='BGS'] { --casa: #1b3f94; }
+.mc-chip-gradeo[data-casa='CGC'] { --casa: #0b3b63; }
+.mc-chip-gradeo[data-casa='SGC'] { --casa: #2b2b2b; }
+.mc-chip-gradeo[data-casa='ACE'] { --casa: #0f6b4f; }
+
 .mc-carta-valor {
   margin-top: auto;
   font-size: var(--t-lg);

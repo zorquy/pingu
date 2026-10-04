@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 21:30) — PINGU-Claude (563 — versión, gradeo, cambio y de quién es el precio)
+
+**De dónde sale**: cuatro peticiones de PINGU sobre la ficha de una carta
+en /mi-coleccion.
+
+**Hecho**:
+1. «De esas, doy» → **«Para cambio»**, y con los dos botones como las
+   copias. Los botones del contador leían `mcEdCantidad` escrito a pelo, así
+   que con dos contadores en la ficha los de abajo movían el de arriba:
+   ahora cada botón busca el campo de SU mando.
+2. **El gradeo, en dos desplegables** (`js/mi-coleccion/gradeo.js`, nuevo y
+   puro): la casa (PSA, Beckett, CGC, SGC, ACE) y la nota, y **la escala la
+   pone cada casa** — PSA en enteros con un solo 1.5, Beckett de medio en
+   medio con la Black Label, CGC hasta el 0.5 con la Perfect 10. Se sigue
+   guardando UN texto en la misma columna, así que **sin migración**, y lo
+   que haya escrito a mano de antes vuelve como «Otra» intacto.
+3. **La versión, la de ESA carta**: `variantesDeCarta()` existía desde la
+   383 y el editor no la usaba. También en el formulario de añadir.
+4. **El precio dice de quién es**: Cardmarket publica una cifra por producto
+   con todos los idiomas juntos, así que no hay un precio «en español» que
+   coger. Se dice en un renglón y el enlace sigue llevando tu idioma
+   filtrado.
+
+**Y una que salió al probar**: las chapas de arriba de la ficha se quedaban
+con lo que había AL ABRIR, desde la 393. Se repintan al guardar.
+
+**Lo de los logos de las casas no se puede**: un `<option>` no admite
+imágenes y los logos son marcas de otros. La chapa va con el color de la
+casa, declarado como paleta de identidad en `test-tanda-311.mjs`.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/gradeo.js` (nuevo),
+`mi-coleccion.html`, `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-563.mjs` y `pruebas/test-tanda-311.mjs` (la excepción).
+
+**Pasado**: 563, 299, 305, 310, 311, 312, 313, 315, 375, 418, 447, 472,
+485, 524, 541, 547, 562 y `test-imports.mjs`. La 311 y la 524 salieron
+ROJAS y las dos tenían razón: un «De esas, doy» que me había dejado en un
+texto, y el rojo de PSA sin declarar.
+
 ## 2026-10-05 (noche, 20:05) — PINGU-Claude (562 — en el Panel, una carta abre la ficha)
 
 **De dónde sale**: PINGU, «desde el panel cuando le das a una carta deberia

@@ -29211,3 +29211,101 @@ resuelto delante. Es la lección de la 447 otra vez: encontrar un elemento no
 es verlo.
 
 **Sin migración.**
+
+## Tanda 563 — la ficha de una carta: versión, gradeo, cambio y de quién es el precio (oct. 2026)
+
+Cuatro cosas de la misma pantalla, pedidas por PINGU en el mismo mensaje.
+
+### 1. «De esas, doy» pasa a llamarse «Para cambio», y con sus dos botones
+
+«De esas, doy no es muy reconocible, es mejor para cambio». Y de paso es un
+contador como el de copias: se pone con el «+» y no seleccionando y
+tecleando. Eso obligó a arreglar algo que estaba escondido — los dos
+botones del contador leían `mcEdCantidad` **escrito a pelo**, así que en
+cuanto hubo un segundo contador en la ficha los de abajo movían el de
+arriba. Ahora cada botón busca el campo de SU mando.
+
+El nombre vive en tres sitios más: el estado vacío de Cambios, el texto del
+propio Cambios y la prueba de la 524, que barre los nombres entre comillas
+angulares y exige que existan. **La cazó ella**: me había dejado uno.
+
+### 2. El gradeo son dos desplegables, y la escala la pone cada casa
+
+Era un campo de texto de 20 caracteres con «CGC 10» de ejemplo, así que
+dentro había lo que a cada uno le pareciera —«psa10», «Beckett 9'5»— y eso
+no se puede ni contar ni filtrar. Ahora: la casa (PSA, Beckett, CGC, SGC,
+ACE) y la nota, en `js/mi-coleccion/gradeo.js`.
+
+**Las escalas NO son la misma con otro nombre**, y por eso cada casa tiene
+su lista: PSA va en enteros del 1 al 10 con UNA sola media nota, el 1.5
+(más «Authentic»); Beckett va de medio en medio y por encima del 10 tiene
+la Black Label; CGC va de medio en medio y baja hasta el 0.5, con la
+«Perfect 10» arriba; SGC y ACE de medio en medio. Ofrecer un «PSA 9.5»
+sería lo mismo que ofrecer una versión que de esa carta no se ha impreso
+—la lección de `variantes.js`—: la colección acabaría diciendo que tienes
+algo que no existe.
+
+**Se sigue guardando UN texto** en la misma columna. Dos columnas pedían
+migración y, sobre todo, dejaban sin sentido lo que ya hay escrito ahí. Lo
+que no se entiende vuelve como «Otra» **con su texto intacto**: un `<select>`
+cuyo valor no está entre sus opciones se queda con la primera y al guardar
+escribe ESA (tanda 472), así que sin el escape un «grado 9 propio» se
+habría convertido en «BGS 10 Black Label» al abrir la ficha.
+
+Y al cambiar de casa **la nota se vacía**: de PSA a Beckett, un 1.5 que
+existía en las dos se habría quedado puesto por casualidad, y un 10 de PSA
+se habría convertido en el 10 Black Label de Beckett, que es otra cosa.
+
+**Por qué no hay logos**, que es lo que PINGU pidió: un `<option>` no admite
+imágenes —no es un fallo de ganas, es lo que el navegador pinta— y los
+logos de PSA, Beckett o CGC son marcas de otros que habría que alojar. Lo
+que sí se puede es que la chapa se reconozca de un vistazo en una lista de
+300: va con el color de la casa. Son cinco colores de IDENTIDAD, así que
+**no se aclaran en el tema oscuro** y entran en la lista de excepciones de
+`test-tanda-311.mjs` junto a `--rt-*`, `--tipo-energia` y `COLORES_AVATAR`.
+Los cinco pasan de 5,8 de contraste con el blanco encima.
+
+### 3. La versión, la de ESA carta
+
+PINGU: «este Lapras exactamente solo tiene una versión, la holográfica;
+en el desplegable no debería salir primera edición». El desplegable ofrecía
+las cuatro siempre, y `variantesDeCarta()` existía desde la 383 para esto —
+solo que el editor no la usaba. Ahora la usan el editor Y el formulario de
+añadir, que tenía el mismo fallo.
+
+Con la línea abierta se añade **la versión que ya tiene** aunque la carta no
+la declare, por lo mismo que arriba: si no, abrir una carta apuntada como
+«1.ª edición» se la habría cambiado a otra sin que nadie lo pidiera. Y lo
+que **no se sabe** (una carta sin engordar, `variants` a null) sigue
+ofreciendo las cuatro: ahí la carta la tienes tú en la mano.
+
+### 4. El precio dice de quién es
+
+PINGU: «esta carta la he añadido en español y ahí pone un precio; no sé si
+está cogiendo los precios en español. ¿Qué es mejor, dejarlo vacío, coger
+el inglés?».
+
+**Ni lo uno ni lo otro, porque no hay dos cifras entre las que elegir.**
+Cardmarket publica UNA por producto, con todos los idiomas y todos los
+estados juntos; lo único que viene separado es el reverso holográfico. El
+mínimo por idioma lo tiene su API de vendedores y su propia página, que no
+se deja leer desde fuera. O sea que no estábamos cogiendo el inglés: no
+existe un número «en español» que coger.
+
+Dejarlo vacío tira la única referencia que hay. Enseñarlo sin decir nada
+—que es lo que hacía— deja que se lea como el tuyo. Así que se dice, en un
+renglón, y el enlace sigue yendo a Cardmarket con **tu** idioma y **tu**
+estado ya filtrados, que es donde está el mínimo de verdad. Es la norma de
+siempre: un número sin decir de qué es se lee como el que quien mira
+esperaba.
+
+### Y una que salió al probar
+
+Las chapas de arriba de la ficha —idioma, estado, versión, gradeo— **se
+quedaban con lo que había al abrir**, desde la 393. Existen «para no tener
+que leer los desplegables», así que una que dice «PSA 10» mientras el
+desplegable de al lado dice Beckett es lo contrario de para lo que están.
+Se repintan al guardar. No se había visto en seis tandas porque hasta ahora
+lo que se tocaba —las copias— no tenía chapa.
+
+**Sin migración.**

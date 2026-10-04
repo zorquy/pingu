@@ -58,7 +58,8 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { especiePorDex } from './pokedex-especies.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
@@ -297,6 +298,44 @@ function idiomaDeLaVista() {
 // `<select>` cuyo valor no está entre sus opciones se queda con la
 // primera— y al guardar le cambiaría el idioma SIN QUE NADIE LO PIDIERA.
 // No daría ningún error: diría que tu carta francesa es española.
+// Las versiones que se le ofrecen a ESTA línea (tanda 563).
+//
+// Las de la carta, y encima la que la línea YA tiene aunque la carta no
+// la declare: un `<select>` cuyo valor no está entre sus opciones se
+// queda con la primera y al guardar escribe esa (tanda 472), así que
+// abrir una carta apuntada como «1.ª edición» de un set que TCGdex dice
+// que no las tiene se la habría cambiado a «normal» sin que nadie lo
+// pidiera. Y lo que no se sabe se ofrece entero: ver `variantes.js`.
+function variantesParaEditar(carta, variante) {
+  const hay = variantesDeCarta(carta, TODAS_LAS_VARIANTES).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
+  if (!variante || hay.some((v) => v.id === variante)) return hay
+  return [...hay, ...VARIANTES.filter((v) => v.id === variante)]
+}
+
+// El gradeo son dos desplegables y un escape (tanda 563). El escape no
+// es un adorno: la columna llevaba texto libre desde la 365 y lo que
+// haya escrito ahí no se puede tirar ni «corregir» — vuelve tal cual.
+function pintarGradeo(guardado) {
+  const { casa, nota, libre } = leerGradeo(guardado)
+  $('mcEdGradeoCasa').innerHTML = opciones(
+    [{ id: '', nombre: 'Sin gradear' }, ...CASAS.map((c) => ({ id: c.id, nombre: c.nombre })), { id: OTRA, nombre: 'Otra' }],
+    casa
+  )
+  $('mcEdGradeo').value = libre
+  pintarNotaDeGradeo(casa, nota)
+}
+
+// La nota depende de la casa, así que se repinta cada vez que la casa
+// cambia. Y el desplegable de notas y el campo libre no son dos maneras
+// de lo mismo: solo se enseña UNO, el que la casa elegida pide.
+function pintarNotaDeGradeo(casa, nota = '') {
+  const notas = notasDeCasa(casa)
+  const sel = $('mcEdGradeoNota')
+  sel.innerHTML = opciones([{ id: '', nombre: 'Sin nota' }, ...notas.map((n) => ({ id: n, nombre: n }))], nota)
+  $('mcEdGradeoNotaLabel').classList.toggle('hidden', !notas.length)
+  $('mcEdGradeoLibreLabel').classList.toggle('hidden', casa !== OTRA)
+}
+
 function idiomasParaEditar(idioma) {
   const lista = idiomasDeLaVista()
   if (!idioma || lista.some((i) => i.id === idioma)) return lista
@@ -988,7 +1027,7 @@ function vistazoDeCambios() {
   const doy = loQueDoy().length
   const dentro = doy
     ? `<p class="subtext"><strong>${doy}</strong> ${doy === 1 ? 'carta tuya está' : 'cartas tuyas están'} para cambiar. Mira quién las busca y qué te falta a ti.</p>`
-    : '<p class="empty-state">Pon en una carta repetida cuántas copias das —«De esas, doy», al editarla— y aquí verás con quién encajas.</p>'
+    : '<p class="empty-state">Pon en una carta repetida cuántas copias das —«Para cambio», al editarla— y aquí verás con quién encajas.</p>'
   return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
 }
 
@@ -1072,8 +1111,15 @@ function engancharRangosDelValor() {
 function chipsDe(l) {
   const chips = [idiomaDe(l.idioma).id.toUpperCase(), estadoDe(l.estado).id]
   if (l.variante !== 'normal') chips.push(varianteDe(l.variante).nombre)
-  if (l.gradeo) chips.push(l.gradeo)
-  const base = chips.map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')
+  let base = chips.map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')
+  // La del gradeo va con el COLOR de la casa (tanda 563). PINGU pidió los
+  // logos, y un `<option>` no admite imágenes y los logos de PSA, Beckett
+  // o CGC son marcas de otros que habría que alojar: lo que sí se puede
+  // es que la chapa se reconozca de un vistazo en una lista de 300.
+  if (l.gradeo) {
+    const casa = leerGradeo(l.gradeo).casa
+    base += `<span class="mc-chip mc-chip-gradeo"${casa && casa !== OTRA ? ` data-casa="${escapeHtml(casa)}"` : ''}>${escapeHtml(l.gradeo)}</span>`
+  }
   // Y si la das, se ve AQUÍ (tanda 376). El dato se pone en el editor,
   // pero un dato que solo se ve abriendo el editor es un dato que se te
   // olvida que pusiste: en una lista de 300 cartas no sabrías cuáles
@@ -1468,14 +1514,21 @@ function abrirEditor(l) {
   // el idioma a la carta sin que nadie lo pidiera (tanda 472).
   $('mcEdIdioma').innerHTML = opciones(idiomasParaEditar(l.idioma), l.idioma)
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
-  $('mcEdVariante').innerHTML = opciones(VARIANTES, l.variante)
+  // Las versiones de ESTA carta y no las cuatro (tanda 563). PINGU:
+  // «este Lapras exactamente solo tiene una versión, la holográfica;
+  // en el desplegable no debería salir primera edición». Ofrecer una
+  // versión que no se ha impreso invita a apuntar una carta que no
+  // existe. Cuando no se sabe —la carta sin engordar— se ofrecen todas,
+  // que es lo que ya hacía la ficha: ahí la carta la tienes tú en la
+  // mano y sabes mejor que nosotros en qué versión está.
+  $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, l.variante), l.variante)
   $('mcEdCantidad').value = l.cantidad
   // `?? 0` y no `|| 0`: son lo mismo hoy, pero el día que la columna no
   // esté (la migración sin ejecutar) `undefined || 0` y `undefined ?? 0`
   // siguen dando 0 — lo que no vale es un `l.cambio` a pelo, que
   // dejaría el campo con «undefined» escrito dentro.
   $('mcEdCambio').value = Number(l.cambio) || 0
-  $('mcEdGradeo').value = l.gradeo || ''
+  pintarGradeo(l.gradeo)
   $('mcEdValor').value = l.valor_manual ?? ''
   $('mcEdCompra').value = l.precio_compra ?? ''
   $('mcEdNotas').value = l.notas || ''
@@ -1486,6 +1539,19 @@ function abrirEditor(l) {
   $('mcEdPrecio').textContent = datos.tieneCifras(precio)
     ? `Desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}${precio.prestado ? ' (de la versión normal: Cardmarket no publica el del reverso)' : ''}`
     : 'Sin precio de Cardmarket.'
+  // Y de QUIÉN es ese precio (tanda 563). Cardmarket publica una cifra
+  // por producto con todos los idiomas juntos, así que no es el de tu
+  // español ni el del inglés: es el de la carta. Dejarlo vacío sería
+  // tirar la única referencia que hay, y enseñarlo sin decirlo deja que
+  // se lea como el tuyo — de ahí el renglón, y de ahí que el enlace vaya
+  // con tu idioma ya filtrado, que es donde está el mínimo de verdad.
+  const pie = $('mcEdPrecioPie')
+  if (pie) {
+    pie.textContent = datos.tieneCifras(precio)
+      ? `Es el precio de Cardmarket para esta carta en cualquier idioma. Para verlo${idiomaDe(l.idioma).cm ? ` solo en ${idiomaDe(l.idioma).nombre.toLowerCase()}` : ''}, entra en Cardmarket.`
+      : ''
+    pie.classList.toggle('hidden', !pie.textContent)
+  }
   // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
   // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
   const cm = $('mcEdCardmarket')
@@ -1581,7 +1647,7 @@ function leerEditor() {
     estado: $('mcEdEstado').value,
     variante: $('mcEdVariante').value,
     cantidad,
-    gradeo: $('mcEdGradeo').value.trim().slice(0, 20) || null,
+    gradeo: escribirGradeo($('mcEdGradeoCasa').value, $('mcEdGradeoCasa').value === OTRA ? $('mcEdGradeo').value : $('mcEdGradeoNota').value),
     // No se pueden dar más copias de las que tienes: el tope se recorta
     // aquí Y en la base (`user_collection_cambio`). Aquí para que no dé
     // un error feo; allí porque la API está abierta.
@@ -1652,6 +1718,13 @@ async function guardarEditor({ retardo = 0 } = {}) {
       clearTimeout(aviso.dataset.reloj)
       aviso.dataset.reloj = setTimeout(() => aviso.classList.remove('visible'), 1600)
     }
+    // Y las chapas de ARRIBA de esta misma ficha (tanda 563). Existen
+    // «para no tener que leer los desplegables», así que una que dice
+    // «PSA 10» mientras el desplegable de al lado dice Beckett es lo
+    // contrario de para lo que están. Se quedaban con lo que había al
+    // abrir desde la 393, y con el gradeo en dos desplegables se ve: lo
+    // que acabas de poner es justo lo que la chapa no decía.
+    $('mcEdChapas').innerHTML = chipsDe(nueva)
     // Y la rejilla de detrás, al día: si cambias la versión o las
     // copias, la casilla lo dice.
     repintar()
@@ -3447,6 +3520,12 @@ async function elegir(cardId) {
   const escaneoElegida = atributosDeEscaneo(cadenaDeEscaneo(c))
   $('mcAnadirElegida').innerHTML = `${escaneoElegida ? `<img ${escaneoElegida} alt="" width="245" height="342" loading="lazy" />` : ''}
     <div><strong>${escapeHtml(nombreDe(c))}</strong><p class="subtext">${escapeHtml(nombreDeSet(c.tcg_sets))} · ${escapeHtml(c.local_id)}</p><p class="subtext" id="mcAnadirPrecio">Buscando precio…</p></div>`
+  // Las versiones de la carta ELEGIDA (tanda 563). Aquí ya se sabe cuál
+  // es, así que ofrecer las cuatro es el mismo fallo que en el editor: se
+  // apunta una versión que de esta carta no se ha impreso. Se pinta
+  // ANTES de enseñar el formulario para que no se vea el cambio.
+  const vs = variantesParaEditar(c, null)
+  $('mcAnadirVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
   $('mcAnadirForm').classList.remove('hidden')
   $('mcAnadirForm').scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   const v = await datos.preciosEnVivo(c.id)
@@ -3990,7 +4069,7 @@ async function pintarCambios() {
       <h3>Lo que das</h3>
       ${doy.length
         ? `<ul class="mc-lista-cartas">${doy.map((l) => filaDeCartaHtml(cartas.get(l.card_id), `das <strong>${l.cambio}</strong> de ${l.cantidad}`)).join('')}</ul>
-           <p class="subtext">Se cambia en cada carta, con «Editar» → «De esas, doy».</p>`
+           <p class="subtext">Se cambia en cada carta, con «Editar» → «Para cambio».</p>`
         : `<p class="subtext">Todavía no das ninguna. Abre una carta repetida, dale a «Editar» y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'} — mira el <button type="button" class="link-btn" data-ir-resumen>resumen</button>.` : ''}</p>`}
     </section>
     <section class="mc-cambio-bloque">
@@ -4522,7 +4601,11 @@ function enganchar() {
   // quitándola de la colección, no poniendo un cero.
   for (const b of document.querySelectorAll('.mc-contador-btn')) {
     b.addEventListener('click', () => {
-      const campo = $('mcEdCantidad')
+      // El campo es el de SU mando y no uno escrito aquí: desde la 563
+      // hay dos contadores en la ficha —copias y «Para cambio»— y con el
+      // id a pelo los dos botones de abajo movían el de arriba.
+      const campo = b.closest('.mc-contador-mando')?.querySelector('input')
+      if (!campo) return
       const n = Math.round(Number(campo.value) || 0) + Number(b.dataset.paso)
       // `Number(campo.min) || 1` estaba mal desde que el mínimo es CERO:
       // el 0 es falsy, así que el `||` lo convertía en 1 y el «−» nunca
@@ -4537,9 +4620,17 @@ function enganchar() {
   // Cada campo se guarda solo (tanda 397). Los desplegables y el
   // contador, al soltar; lo que se escribe, con medio segundo de
   // retardo, que si no sale una petición por tecla.
-  for (const id of ['mcEdIdioma', 'mcEdEstado', 'mcEdVariante']) {
+  for (const id of ['mcEdIdioma', 'mcEdEstado', 'mcEdVariante', 'mcEdGradeoNota']) {
     $(id).addEventListener('change', () => guardarEditor())
   }
+  // La casa repinta las notas ANTES de guardar: cambiar de PSA a Beckett
+  // deja una nota que la casa nueva no da, y guardar eso escribiría un
+  // «BGS 1.5» de un «PSA 1.5» que sí existía. Al cambiar de casa la nota
+  // se vacía y se vuelve a elegir, que es lo que de verdad ha pasado.
+  $('mcEdGradeoCasa').addEventListener('change', (e) => {
+    pintarNotaDeGradeo(e.target.value)
+    guardarEditor()
+  })
   for (const id of ['mcEdCantidad', 'mcEdCambio']) {
     $(id).addEventListener('change', () => guardarEditor())
   }
