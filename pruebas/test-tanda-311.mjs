@@ -148,6 +148,10 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //    identificador de cada persona y no puede cambiar al cambiar de
   //    tema. Aquí llegó a colarse `var(--danger)`, que en oscuro vuelve
   //    el rojo rosado y deja la inicial blanca encima en 2,4.
+  //  · --casa (css/mi-coleccion.css, tanda 563): el color de cada casa de
+  //    gradeo. El rojo de PSA es EL rojo de PSA —es su marca, no un
+  //    aviso— y aclararlo en oscuro dejaría de nombrarla, que es su
+  //    único trabajo. Paleta cerrada y con blanco encima, como las otras.
   //
   // Los rgba() translúcidos no entran: un tinte al 10% se lee igual sobre
   // los dos fondos a propósito, y eso está comentado donde toca.
@@ -163,7 +167,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   const aMano = []
   for (const hoja of HOJAS) {
     for (const m of sinComentarios(leer(hoja)).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
-      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia') continue
+      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa') continue
       for (const h of m[2].matchAll(/#[0-9a-f]{6}/gi)) {
         if (esRojo(h[0]) && !/^--danger/.test(m[1])) aMano.push(`${hoja}: ${m[1]}: ${h[0]}`)
       }
