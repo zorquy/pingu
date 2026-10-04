@@ -158,6 +158,11 @@ export default async () => {
       emparejados: r.cuerpo?.emparejados,
       porQueSeEmparejan: r.cuerpo?.porQueSeEmparejan,
       ejemplosSinEmparejar: r.cuerpo?.ejemplosSinEmparejar,
+      // Las dos listas enteras (tanda 539), que son lo que hace falta para
+      // escribir las parejas a mano: sin los SUYOS, escribir una regla es
+      // adivinar el id del otro lado.
+      sinEmparejarTodos: r.cuerpo?.sinEmparejarTodos,
+      suyosLibres: r.cuerpo?.suyosLibres,
       cuadraLaCuenta: r.cuerpo?.cuadraLaCuenta,
       cuando: new Date().toISOString(),
     }

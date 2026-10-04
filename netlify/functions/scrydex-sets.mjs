@@ -254,6 +254,26 @@ export async function procesar({
       // su código» sí: esos salen del curador de TCGdex, no de aquí.
       porQueNoSeEmparejan: sueltos.reduce((m, x) => ({ ...m, [x.porque]: (m[x.porque] || 0) + 1 }), {}),
       ejemplosSinEmparejar: sueltos.slice(0, 12).map((x) => `${x.nuestro.id} — ${x.porque}`),
+      // ── LAS DOS LISTAS, PARA PODER ESCRIBIR LAS REGLAS A MANO (tanda 539) ──
+      //
+      // PINGU: «haz la regla a mano para esos 28». Y para eso hacen falta
+      // LOS DOS LADOS: los nuestros que se quedan sueltos y los SUYOS que
+      // quedan libres. Hasta ahora el informe solo daba doce ejemplos de los
+      // nuestros, así que escribir una pareja era adivinar el id del otro —
+      // y un id inventado no da error: la regla no casa con nada y el set
+      // sigue suelto (la lección de la 323, por tercera vez).
+      //
+      // No cuesta ni un crédito: las expansiones ya están pedidas y los
+      // sueltos ya están calculados. Lo único que faltaba era enseñarlos.
+      sinEmparejarTodos: sueltos.map((x) => ({
+        id: x.nuestro.id,
+        name: x.nuestro.name,
+        fecha: x.nuestro.release_date || null,
+        cartas: x.nuestro.card_count_total ?? x.nuestro.card_count_official ?? null,
+      })),
+      suyosLibres: suyas
+        .filter((s) => !pares.some((par) => par.suyo === s))
+        .map((s) => ({ id: s.id, name: s.name, en: s.translation?.en?.name || null, code: s.code || null, fecha: s.release_date || null, cartas: s.total ?? s.printed_total ?? null })),
       confirmados: confirmados.length,
       // Los que se quedaron sin tiempo NO son un fallo: siguen sin
       // `scrydex_id`, así que la pasada de la hora siguiente los coge.

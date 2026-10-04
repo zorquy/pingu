@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mediodía, 13:40) — PINGU-Claude (539 — las dos listas para emparejar a mano, y que el panel conteste solo)
+
+**Hecho**: PINGU, dos cosas. «Haz la regla a mano para esos 28» y «los
+nombres de los sets y cartas japo siguen en japo, ¿por qué no te traes todo
+de Scrydex de una vez?».
+
+**1. Para escribir 28 parejas a mano hacen falta LAS DOS LISTAS.** El
+informe daba doce ejemplos de los NUESTROS y ninguno de los SUYOS, así que
+escribir una pareja era adivinar el id del otro lado — y un id inventado no
+da error: la regla no casa con nada y el set sigue suelto. Es la lección de
+la 323 por tercera vez. Ahora el informe trae `sinEmparejarTodos` (los 28
+con nombre, fecha y cuenta) y `suyosLibres` (los suyos que quedaron libres,
+con su id, su nombre japonés, su nombre inglés, su código, su fecha y su
+cuenta). **No cuesta ni un crédito**: las expansiones ya estaban pedidas y
+los sueltos ya estaban calculados; lo único que faltaba era enseñarlos.
+
+**2. Por qué los nombres siguen en japonés, que son DOS causas distintas y
+ninguna es «no me lo he traído»:**
+
+- **Los SETS**: la pasada que escribió los 44 corrió a las 10:01, y la
+  columna `name_en` se añadió a las 10:30. O sea que se escribieron bien…
+  sin el campo que todavía no existía. Y el freno de veinte horas impidió
+  que se reescribieran — eso lo arregló la 538 hace un rato, así que la
+  próxima pasada los rellena.
+- **Las CARTAS**: van por la página 57 de ~190. Lo que se escribe desde la
+  537 lleva su nombre occidental; lo que todavía no se ha visitado, no.
+
+**Y una pregunta que yo no tenía contestada**: en sus EXPANSIONES viene
+`translation.en.name` —lo vimos en la sonda de la 528— pero en sus CARTAS lo
+escribí **dando por hecho que también**. Eso es deducir de una muestra de
+otra cosa, que es exactamente lo que me enseñaron las tandas 484 y 486. Así
+que ahora se CUENTA: el estado guarda `conNombreOccidental` junto a
+`escritas`. Si acaba en 0 con miles escritas, el japonés se queda en japonés
+**por su catálogo y no por nuestro código** — y lo dirá el panel sin que
+nadie pregunte ni gaste un crédito.
+
+**Ficheros**: `netlify/functions/scrydex-sets.mjs`,
+`netlify/functions/scrydex-logos-jp.mjs`,
+`netlify/functions/scrydex-relleno.mjs`. En `pruebas`:
+`pruebas/test-tanda-537.mjs` (un bloque más).
+
 ## 2026-10-04 (mediodía, 13:00) — PINGU-Claude (538 — 62 sets japoneses esperando una semana por el freno)
 
 **Hecho**: la primera pasada japonesa de verdad dejó el informe que hacía

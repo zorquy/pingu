@@ -226,6 +226,7 @@ export async function procesar({
   let sinSetNuestro = 0
   let sinCartaNuestra = 0
   let paginasHechas = 0
+  let conNombreOccidental = 0
   const rarezas = new Map()
   const ejemplosDeNombre = []
 
@@ -337,6 +338,14 @@ export async function procesar({
       const nuestra = porClave.get(`${nuestroSet}|${numeroComparable(suya?.number)}`)
       if (!nuestra) { sinCartaNuestra++; continue }
       filas.push(filaDeCartaConScrydex(nuestra, suya))
+      // ¿TRAEN SUS CARTAS EL NOMBRE OCCIDENTAL? (tanda 539)
+      //
+      // En sus EXPANSIONES viene (`translation.en.name`, lo vimos en la
+      // sonda de la 528). En sus CARTAS lo escribí dando por hecho que
+      // también, y eso es justo lo que la 484 y la 486 me enseñaron a no
+      // hacer: deducir de una muestra de otra cosa. Así que se CUENTA, y
+      // el panel lo dirá sin que nadie pregunte ni gaste un crédito.
+      if (suya?.translation?.en?.name) conNombreOccidental++
       const bueno = nombreQueHayQueArreglar(nuestra, suya)
       if (bueno) {
         // `local_id` va aquí por lo mismo que en `filaDeCartaConScrydex`:
@@ -365,7 +374,14 @@ export async function procesar({
     }
     // Los fallos se cuentan SEGUIDOS, no en total: cinco tropiezos
     // sueltos a lo largo de un barrido no deben saltarse una página sana.
-    await guardarEstado({ pagina, total, barridos, fallos: 0, cuando: new Date().toISOString() })
+    await guardarEstado({
+      pagina, total, barridos, fallos: 0, cuando: new Date().toISOString(),
+      // Cuántas de las que se han escrito traían nombre occidental. Si
+      // acaba en 0 con miles escritas, es que sus cartas no lo traen —y
+      // entonces el japonés se queda en japonés por su catálogo, no por
+      // nuestro código.
+      conNombreOccidental, escritas,
+    })
   }
 
   return {
@@ -379,6 +395,7 @@ export async function procesar({
       susCartas: total,
       vistas,
       escritas,
+      conNombreOccidental,
       // EL ARREGLO DEL HALLAZGO DE LA 505: ~1.890 cartas occidentales
       // llevan el español en `name`, que es la clave con la que se cruzan
       // `tcg_card_play`, el resolutor de decklists y la huella de las
