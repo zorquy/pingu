@@ -115,7 +115,9 @@ console.log('── 4. Y con una pregunta, sí ──')
   check('sale el botón de arriba', (await page.locator('.guia-ir-al-curso').count()) === 1)
   check('y la llamada de abajo', (await page.locator('.guia-cta-curso').count()) === 1)
   const href = await page.locator('.guia-ir-al-curso').getAttribute('href')
-  check('  …apuntando al curso de ESA guía', href === 'curso.html?slug=mi-guia', href)
+  // En ABSOLUTO desde la 549: en relativo, servida en `/guia/<slug>`, esto
+  // apuntaba a `/guia/curso.html` y acababa en «Guía no encontrada».
+  check('  …apuntando al curso de ESA guía, en absoluto', href === '/curso.html?slug=mi-guia', href)
   await page.close()
 }
 
