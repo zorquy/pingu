@@ -80,7 +80,10 @@ export function clave(texto) {
 // por fecha— no habría casado NI UNO. Todo «suelto», y sin un solo error.
 // No se vio hasta tener delante una respuesta de verdad: el fixture lo
 // había escrito yo con guiones porque me lo imaginé.
-const fecha = (v) => {
+// Se exporta desde la 540: la importación de sets japoneses necesita la
+// MISMA conversión, y copiarla sería tener dos reglas para las fechas con
+// barras — que es justo lo que costó la 501.
+export const fecha = (v) => {
   const s = String(v || '').trim().slice(0, 10).replace(/\//g, '-')
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null
 }

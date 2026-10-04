@@ -4,6 +4,58 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, 14:10) — PINGU-Claude (540 — traer SUS sets japoneses, no retocar los nuestros)
+
+**Hecho**: PINGU, con dos capturas de Scrydex delante: «quiero que calques
+toda la base de datos de sets y de cartas de Scrydex y mostremos eso.
+Estamos pagando Scrydex y Scrydex es lo mandante».
+
+**Y el diagnóstico es correcto**, así que queda escrito: el catálogo japonés
+era el de TCGdex con Scrydex retocándolo por encima, y eso llega a medias
+POR CONSTRUCCIÓN —
+
+- 186 sets nuestros contra **231 suyos**.
+- **68 de los nuestros no tienen ni una carta** (agujero de TCGdex, medido
+  en la 486).
+- El retoque solo toca lo que EMPAREJA: lo que no empareja se queda en
+  kanji y sin logo para siempre, por bien que funcione el relleno.
+
+De paso, sus capturas contestan lo que yo tenía como duda abierta: **sus
+cartas japonesas traen el nombre en inglés** («Tropius», «Cherubi»), no solo
+sus expansiones. Eso ya no hay que medirlo.
+
+`scrydex-importar-jp.mjs` **inserta** las expansiones suyas que no tiene
+nadie, con su id (`mf_ja`), su logo, su símbolo, su nombre japonés, su
+nombre occidental, su era, su fecha y sus dos cuentas. 3 créditos la pasada.
+
+**LO QUE NO HACE, Y ES LA MITAD DE LA TANDA**:
+
+- **No borra nada.** Ni un set ni una carta. Retirar el catálogo japonés
+  viejo es una decisión de PINGU y no mía: puede haber gente con cartas
+  japonesas guardadas apuntando a esos identificadores, y eso no se
+  deshace. Lo vigila una comprobación que lee el fichero y exige que no
+  haya un solo DELETE.
+- **No inserta un set suyo que ya esté emparejado con uno nuestro**, ni uno
+  cuyo id sin el idioma sea el de uno nuestro (`SV1a` ↔ `sv1a_ja`, sin
+  distinguir mayúsculas — la lección de la 486). **Duplicar una colección
+  es el único error que aquí se paga caro**: sale en la cara de la
+  biblioteca y no da ningún error.
+
+**Y una guarda que ya ha pagado la suscripción**: `test-imports.mjs` cazó en
+un segundo que `fecha` no estaba exportada de `netlify/lib/scrydex.mjs`.
+Eso, en producción, es un módulo que no resuelve — o sea la función entera
+muerta.
+
+**Ficheros**: `netlify/functions/scrydex-importar-jp.mjs` (nuevo),
+`netlify/lib/scrydex.mjs` (exporta `fecha`). En `pruebas`:
+`pruebas/test-tanda-540.mjs`, y la comprobación de las POP de la 415, que
+sujetaba lo que la 536 cambió a petición de PINGU.
+
+**Lo que viene detrás**: las CARTAS de esos sets. El barrido `cartas-jp` ya
+recorre su catálogo entero, así que insertar las que falten no cuesta ni un
+crédito más — pero hay que decidir con qué id se insertan y qué pasa con las
+nuestras, y eso se escribe con el informe de esta pasada delante.
+
 ## 2026-10-04 (mediodía, 13:40) — PINGU-Claude (539 — las dos listas para emparejar a mano, y que el panel conteste solo)
 
 **Hecho**: PINGU, dos cosas. «Haz la regla a mano para esos 28» y «los
