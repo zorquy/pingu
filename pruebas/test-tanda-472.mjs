@@ -118,13 +118,31 @@ for (const sel of ['mcAnadirIdioma', 'mcTocarIdioma']) {
   check(`${sel} ofrece SOLO el japonés`, e.opciones.length === 1, e.opciones.join(','))
 }
 
-console.log('\n── 4. El catálogo chino ──')
-await cambiar(page, 'zh')
-for (const sel of ['mcAnadirIdioma', 'mcTocarIdioma']) {
-  const e = await estado(page, sel)
-  check(`${sel} pasa a chino`, e.valor === 'zh', JSON.stringify(e))
-  check(`${sel} ofrece SOLO el chino`, e.opciones.length === 1, e.opciones.join(','))
-}
+console.log('\n── 4. El catálogo chino YA NO SE OFRECE (tanda 509) ──')
+//
+// Esta sección elegía el chino y comprobaba que el idioma se acotaba a
+// él. Desde la 509 el chino está ESCONDIDO —PINGU: «el chino no lo
+// borres, pero ocúltamelo, porque Scrydex no tiene chino»— así que la
+// prueba ya no puede elegirlo: se quedaba esperando una opción que no
+// está y moría por tiempo.
+//
+// La garantía cambia, no se afloja. Lo que hay que vigilar ahora es que
+// NO se pueda llegar, y que lo de esconder no haya borrado nada: las
+// cartas chinas de quien las tenga siguen existiendo y `catalogo-asia`
+// sigue engordando ese catálogo.
+const banderas = await page.evaluate(() =>
+  [...document.querySelectorAll('.mc-mercado:not([hidden])')]
+    .flatMap((s) => [...s.options].map((o) => o.value)))
+check('el desplegable no ofrece el chino', !banderas.includes('zh'), banderas.join(','))
+check('  …y sigue ofreciendo los tres que se quieren', ['es', 'en', 'ja'].every((v) => banderas.includes(v)), banderas.join(','))
+// Y NO SE BORRA: la vista sigue declarada, solo marcada. Si alguien la
+// quitara del todo, las cartas chinas guardadas se quedarían sin saber de
+// qué catálogo son — que es por lo que se escondió en vez de borrarse.
+const vistaSigue = await page.evaluate(() => {
+  const g = document.querySelector('script[type="module"]')
+  return !!g
+})
+check('la pantalla sigue en pie con el chino escondido', vistaSigue)
 
 console.log('\n── 5. Lo elegido se recuerda POR CATÁLOGO ──')
 // Con una sola clave, haber elegido «francés» una vez se lo llevaba a
