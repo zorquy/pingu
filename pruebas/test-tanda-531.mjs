@@ -94,7 +94,7 @@ console.log('── 2. Y SI REVIENTA, también ──')
   restaurar()
 }
 
-console.log('── 3. Si ya se miró hace poco, no se gasta nada ──')
+console.log('── 3. Si ya se miró hace poco Y NO AVANZÓ, no se gasta nada ──')
 {
   process.env.SCRYDEX_API_KEY = 'k'
   process.env.SCRYDEX_TEAM_ID = 't'
@@ -103,7 +103,8 @@ console.log('── 3. Si ya se miró hace poco, no se gasta nada ──')
   globalThis.fetch = async (url, o = {}) => {
     const u = String(url)
     if (/scrydex_estado/.test(u) && o.method !== 'POST') {
-      return { ok: true, status: 200, json: async () => [{ valor: { cuando: new Date().toISOString(), emparejados: 180 } }] }
+      // Sin nada escrito y sin nada a medias: el trabajo está hecho.
+      return { ok: true, status: 200, json: async () => [{ valor: { cuando: new Date().toISOString(), emparejados: 180, escritas: 0, sinTiempo: 0 } }] }
     }
     if (/scrydex\.com/.test(u)) aSuApi++
     return { ok: true, status: 200, json: async () => ({ data: [] }), text: async () => '' }
@@ -114,6 +115,41 @@ console.log('── 3. Si ya se miró hace poco, no se gasta nada ──')
   check('  …y ni una petición a su API', aSuApi === 0, aSuApi)
   check('  …diciendo cuándo fue la última', !!cuerpo.ultimaPasada, JSON.stringify(cuerpo))
   restaurar()
+}
+
+console.log('── 3b. PERO SI QUEDÓ TRABAJO A MEDIAS, SE SIGUE ──')
+{
+  // La primera pasada japonesa de verdad emparejó 120 sets y dejó 62 SIN
+  // TIEMPO: una función de Netlify se muere a los 30 segundos. Con el
+  // freno de las veinte horas, esos 62 se habrían repartido a lo largo de
+  // una semana. El freno es «¿avanzó?», no «¿cuánto hace?».
+  process.env.SCRYDEX_API_KEY = 'k'
+  process.env.SCRYDEX_TEAM_ID = 't'
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 's'
+  for (const [etiqueta, valor] of [
+    ['quedaron pares sin tiempo', { cuando: new Date().toISOString(), escritas: 0, sinTiempo: 62 }],
+    ['o se escribió algo', { cuando: new Date().toISOString(), escritas: 44, sinTiempo: 0 }],
+  ]) {
+    const escrituras = []
+    globalThis.fetch = async (url, o = {}) => {
+      const u = String(url)
+      const cuerpo = o.body ? JSON.parse(o.body) : null
+      if (/scrydex_estado/.test(u) && o.method === 'POST') { escrituras.push(cuerpo[0]); return { ok: true, status: 200, json: async () => ({}), text: async () => '' } }
+      if (/scrydex_estado/.test(u)) return { ok: true, status: 200, json: async () => [{ valor }] }
+      if (/tcg_sets/.test(u) && /scrydex_id=is\.null/.test(u)) return { ok: true, status: 200, json: async () => [{ id: 'mf' }] }
+      if (/tcg_sets/.test(u)) return { ok: true, status: 200, json: async () => [{ id: 'mf', market: 'JP', name: 'セット' }] }
+      if (/tcg_cards/.test(u)) return { ok: true, status: 200, json: async () => [] }
+      return {
+        ok: true, status: 200,
+        json: async () => ({ data: [{ id: 'mf_ja', name: 'セット', code: 'MF', logo: 'https://x/l', release_date: '2026/09/16', total: 49, printed_total: 40 }], total_count: 1 }),
+        text: async () => '',
+      }
+    }
+    const { default: handler } = await import('/home/user/pingu/netlify/functions/scrydex-logos-jp.mjs')
+    const cuerpo = await (await handler()).json()
+    check(`si ${etiqueta}, se vuelve a pasar`, cuerpo.creditos !== 0 && !cuerpo.ultimaPasada, JSON.stringify(cuerpo).slice(0, 120))
+    restaurar()
+  }
 }
 
 console.log('── 4. El occidental, lo mismo ──')
