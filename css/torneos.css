@@ -3295,3 +3295,70 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-premio { flex-direction: column; gap: 4px; }
   .torneo-premio-puesto { min-width: 0; }
 }
+
+/* ── Reportar con el registro de TCG Live (tanda 512) ── */
+.torneo-registro {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--t-sm);
+}
+.torneo-registro summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy);
+}
+.torneo-registro p { margin: 8px 0; }
+.torneo-registro-texto {
+  width: 100%;
+  min-height: 96px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--t-xs);
+  resize: vertical;
+}
+.torneo-registro-leer,
+.torneo-registro-confirmar,
+.torneo-registro-botones .btn-outline { min-height: 44px; }
+.torneo-registro-veredicto:not(:empty) {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.torneo-registro-botones { display: flex; flex-wrap: wrap; gap: 8px; }
+.torneo-registro-aviso { color: var(--danger); }
+.torneo-registro-casilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.torneo-registro-casilla input { width: 20px; height: 20px; }
+
+/* ── Quién se lleva cada premio (tanda 516) ── */
+.torneo-reparto {
+  margin: var(--e-md) 0 var(--e-lg);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-reparto .torneo-mesas-titulo { display: flex; align-items: center; gap: var(--e-sm); margin-top: 0; }
+.torneo-reparto-lista { display: grid; gap: var(--e-md); margin: 0 0 var(--e-sm); padding: 0; list-style: none; }
+.torneo-reparto-premio > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-sm) var(--e-md); }
+.torneo-reparto-quien { display: grid; gap: var(--e-xs); margin: var(--e-xs) 0 0; padding: 0; list-style: none; font-size: var(--t-sm); }
+.torneo-reparto-quien li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-md); }
+.torneo-reparto-quien .link-btn { min-height: 32px; }
+.torneo-reparto-quien li.torneo-fila-yo { background: var(--ice); }
+.torneo-premio-dado { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--success); font-weight: 600; }
+@media (pointer: coarse) {
+  .torneo-reparto-quien .link-btn { min-height: 44px; }
+}

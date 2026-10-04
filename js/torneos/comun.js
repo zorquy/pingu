@@ -299,3 +299,49 @@ export function premiosParaGuardar(filas) {
   // dicha de dos maneras, y dos maneras es una de más para preguntar.
   return limpias.length ? limpias : null
 }
+
+// ── Quién se lleva cada premio (tanda 516) ──
+//
+// La lista de premios es de texto libre a propósito (tanda 352: «Top 8»,
+// «Mejor lista»…). Para cruzarla con la clasificación final hay que leer
+// el puesto: «1.º», «3.º-4.º», «del 5 al 8», «Top 8», «Finalista»,
+// «Todos». Lo que no se entiende («Mejor lista», «Sorteo») no se le
+// asigna a nadie: se enseña el premio sin nombre, que es la verdad.
+//
+// Y no se decide si los premios se SUMAN («1.º» y «Top 8», ¿el primero se
+// lleva los dos?): cada premio dice a quién le toca, tal cual está escrito.
+const ORDINALES = { primero: 1, primer: 1, segundo: 2, tercero: 3, tercer: 3, cuarto: 4, quinto: 5, sexto: 6, septimo: 7, octavo: 8 }
+const POR_NOMBRE = { campeon: [1, 1], campeona: [1, 1], ganador: [1, 1], ganadora: [1, 1], finalista: [2, 2], subcampeon: [2, 2], subcampeona: [2, 2], semifinalista: [3, 4], semifinalistas: [3, 4] }
+
+export function puestosDelPremio(texto) {
+  const t = String(texto || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[ºª°.]/g, '')
+    .replace(/\b(puestos?|plazas?|clasificados?|lugar(es)?)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!t) return null
+  if (/^(todos|todas|todo el mundo|cada participante|participantes?|participacion|por participar)\b/.test(t) || /^todos los (participantes|jugadores)$/.test(t)) return { todos: true }
+  const n = (x) => (/^\d+$/.test(x) ? Number(x) : ORDINALES[x] ?? null)
+  let m = t.match(/^top (\d+)$/)
+  if (m) return { desde: 1, hasta: Number(m[1]) }
+  if (POR_NOMBRE[t]) return { desde: POR_NOMBRE[t][0], hasta: POR_NOMBRE[t][1] }
+  m = t.match(/^(?:del? )?(\w+) ?(?:-|–|a|al|y) ?(\w+)$/)
+  if (m && n(m[1]) && n(m[2]) && n(m[2]) >= n(m[1])) return { desde: n(m[1]), hasta: n(m[2]) }
+  if (n(t)) return { desde: n(t), hasta: n(t) }
+  return null
+}
+
+// Cada premio con quién se lo lleva: `orden` es la clasificación FINAL
+// (con corte, manda el corte), una lista de ids. Un puesto que nadie
+// alcanzó (un «Top 8» con seis jugadores) se queda con los que hay.
+export function quienSeLleva(premios, orden) {
+  return premios.map((p) => {
+    const r = puestosDelPremio(p.puesto)
+    if (!r) return { ...p, jugadores: null }
+    if (r.todos) return { ...p, jugadores: [...orden], todos: true }
+    return { ...p, jugadores: orden.slice(r.desde - 1, r.hasta) }
+  })
+}

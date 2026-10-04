@@ -5,7 +5,7 @@
 // el refresco es por sondeo — decisiones fijadas en CLAUDE.md.
 //
 // torneo.js monta este módulo con montarCiclo(ctx) en cada recarga.
-import { faltaLaRpc, avisoDeMigracion, puedeLlevar, colorDeNombre } from './comun.js'
+import { faltaLaRpc, avisoDeMigracion, puedeLlevar, colorDeNombre, premiosDeTorneo, quienSeLleva } from './comun.js'
 import { supabase } from '../supabase.js'
 import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
@@ -32,7 +32,7 @@ import { TERMINALES, progresoDeMesas } from './mesas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
-import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones } from '../repeticiones/datos.js'
+import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones, guardar as guardarRepeticion } from '../repeticiones/datos.js'
 import { ICONOS_REPETICION } from '../repeticiones/iconos.js'
 
 let ctx = null // { torneo, session, perfil, inscripciones, recargarFicha }
@@ -53,6 +53,9 @@ let catalogoArquetipos = null // el catálogo curado, una vez por página
 // replay_id }. Las que la base deja ver: las de tus mesas, o todas si
 // llevas o arbitras el torneo.
 let repeticionesMesas = []
+// Los premios ya dados (tanda 516): userId → fecha. null = la tabla aún no
+// existe (falta la migración) y no se sabe; undefined = sin pedir todavía.
+let entregasPremios
 
 const $ = (id) => document.getElementById(id)
 // Quién mira. Puede ser NULL: desde la tanda 229 la ficha se abre
@@ -147,6 +150,10 @@ async function cargarCiclo() {
   // necesita para no señalar a quien ya ha reportado — y a ellos solo se
   // les cargan si son jueces u organizador, que es justo quien la ve.
   ctx.ciclo = { rondas, partidas, reportes }
+
+  // Una vez por página y no en cada refresco: solo cambian cuando quien
+  // lleva el torneo marca una, y entonces se vuelven a pedir.
+  if (entregasPremios === undefined && ctx.torneo.status === 'finished' && premiosDeTorneo(ctx.torneo).length) await cargarEntregas()
 
   await cargarArquetipos()
   await conciliarPendientes()
@@ -790,7 +797,7 @@ async function reportar(partida, resultado, juego = 0) {
       mio.result === resultado ? 'Ese resultado ya estaba reportado.' : 'Ya reportaste un resultado distinto: llama al organizador.',
       mio.result === resultado ? 'info' : 'error'
     )
-    return
+    return false
   }
   // Por la RPC: reporta, concilia con lo del rival y cierra la mesa, todo
   // en el servidor y con la fila bajo candado. Desde el navegador eran
@@ -803,12 +810,12 @@ async function reportar(partida, resultado, juego = 0) {
     // 252): el camino viejo de aquí abajo no apuntaba nada y lo hacía EN
     // SILENCIO, con un «Reportado» en verde. Se dice lo que falta.
     showToast(avisoDeMigracion('supabase-migration-torneos-bo3.sql'), 'error')
-    return
+    return false
   }
   if (res.error) {
     const texto = String(res.error.message || '')
     showToast(texto.length < 120 ? texto : 'No se ha podido reportar.', 'error')
-    return
+    return false
   }
 
   const AVISOS = {
@@ -824,6 +831,7 @@ async function reportar(partida, resultado, juego = 0) {
   // Ficha entera: una disputa nueva tiene que asomar también en la cola
   // del juez, que pinta otro módulo.
   await ctx.recargarFicha()
+  return true
 }
 
 // La conciliación del segundo reporte (SPEC §6.5): win+loss y draw+draw
@@ -1446,6 +1454,73 @@ function pintarRondasResto(actual) {
   void rellenarChapasArquetipo(caja)
 }
 
+// ── Quién se lleva cada premio (tanda 516) ──
+//
+// Los premios que apuntó quien organiza (tanda 352), cruzados con la
+// clasificación FINAL —con corte, manda el corte—: cada premio con quién
+// se lo lleva. Y quien lleva el torneo apunta a quién se lo ha dado ya, que
+// es lo que pregunta el que ganó y lo que se olvida en un torneo de treinta.
+async function cargarEntregas() {
+  const { data, error } = await supabase.from('tournament_prize_deliveries').select('user_id,delivered_at').eq('tournament_id', ctx.torneo.id)
+  entregasPremios = error ? null : new Map((data || []).map((f) => [f.user_id, f.delivered_at]))
+}
+
+const fechaCorta = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+
+function repartoDePremiosHtml() {
+  if (ctx.torneo.status !== 'finished') return ''
+  const premios = premiosDeTorneo(ctx.torneo)
+  if (!premios.length) return ''
+  const reparto = quienSeLleva(premios, clasificacionFinal().map((e) => e.playerId))
+  const lleva = mando()
+  const persona = (id) => {
+    const dado = entregasPremios?.get(id)
+    let estado = ''
+    if (entregasPremios && dado) {
+      estado = `<span class="torneo-premio-dado">${icons.checkCircle(14)} Dado el ${fechaCorta(dado)}</span>${
+        lleva ? ` <button type="button" class="link-btn" data-premio-dado="${escapeHtml(id)}" data-si="0">Deshacer</button>` : ''
+      }`
+    } else if (entregasPremios && lleva) {
+      estado = `<button type="button" class="link-btn" data-premio-dado="${escapeHtml(id)}" data-si="1">Marcar como dado</button>`
+    } else if (entregasPremios) {
+      estado = '<span class="subtext">Pendiente</span>'
+    }
+    return `<li class="${id === miId() ? 'torneo-fila-yo' : ''}"><span>${escapeHtml(nombreDe(id))}</span> ${estado}</li>`
+  }
+  const filas = reparto
+    .map((p) => {
+      let quienes
+      if (!p.jugadores) quienes = '<p class="subtext">Lo reparte quien organiza: no sale de la clasificación.</p>'
+      else if (p.todos) quienes = `<p class="subtext">Para los ${p.jugadores.length} participantes.</p>`
+      else if (!p.jugadores.length) quienes = '<p class="subtext">Nadie llegó a ese puesto.</p>'
+      else quienes = `<ul class="torneo-reparto-quien">${p.jugadores.map(persona).join('')}</ul>`
+      return `<li class="torneo-reparto-premio">
+          <div><span class="torneo-premio-puesto">${escapeHtml(p.puesto)}</span> <span class="torneo-premio-que">${escapeHtml(p.premio)}</span></div>
+          ${quienes}
+        </li>`
+    })
+    .join('')
+  const falta = entregasPremios === null && lleva ? `<p class="subtext">${escapeHtml(avisoDeMigracion('supabase-migration-torneos-premios-entrega.sql'))}</p>` : ''
+  return `<section class="torneo-reparto" aria-labelledby="torneoRepartoTitulo">
+      <h3 class="torneo-mesas-titulo" id="torneoRepartoTitulo">${icons.trophy(16)} Quién se lleva cada premio</h3>
+      <ul class="torneo-reparto-lista">${filas}</ul>
+      <p class="subtext">Los premios los da quien organiza el torneo. PokeDoc no cobra ni paga nada.</p>
+      ${falta}
+    </section>`
+}
+
+async function marcarPremioDado(boton) {
+  boton.disabled = true
+  const { error } = await supabase.rpc('torneos_premio_entregado', { p_torneo: ctx.torneo.id, p_usuario: boton.dataset.premioDado, p_entregado: boton.dataset.si === '1' })
+  if (error) {
+    showToast(faltaLaRpc(error) ? avisoDeMigracion('supabase-migration-torneos-premios-entrega.sql') : error.message || 'No se ha podido apuntar.', 'error')
+    boton.disabled = false
+    return
+  }
+  await cargarEntregas()
+  pintarClasificacion()
+}
+
 // ── La repetición de una partida (tanda 496) ──
 //
 // Un jugador adjunta la repetición de SU partida, guardada antes en
@@ -1543,6 +1618,226 @@ async function quitarRepeticion(boton) {
     showToast(err.message, 'error')
     boton.disabled = false
   }
+}
+
+// ── Reportar con el registro de TCG Live (tanda 512) ──
+//
+// Al acabar, TCG Live ya sabe quién ganó: lo dice la última línea del
+// registro. Pegarlo aquí sirve para dos cosas a la vez: proponer el
+// resultado (que confirmas TÚ: el botón no se pulsa solo) y dejar la
+// repetición adjunta a la mesa, que es lo que mira un juez si los reportes
+// no casan. Quién eras en el registro sale de tu nombre de TCG Live en la
+// inscripción; si no casa, se pregunta.
+//
+// El estado vive fuera del DOM porque «Tu partida» se repinta entera cuando
+// cambia algo (el rival hace check-in, reporta…), y perder el registro
+// pegado a mitad de leerlo sería tirar el trabajo de alguien.
+let registroMesa = null // { matchId, texto, abierto, lectura, yo, adjuntar }
+
+// El ganador del «fin» es siempre uno de los dos: el lector solo reconoce
+// la frase con uno de sus nombres dentro (registro.js).
+const finDelRegistro = (lectura) => lectura?.eventos?.findLast((e) => e.tipo === 'fin') || null
+
+// Qué partida se reportaría: la única abierta (en un BO3, la siguiente sin
+// jugar) y solo si no la has reportado ya. null = nada que reportar.
+function juegoPorReportar(mia, bo) {
+  if (bo !== 3) {
+    const ya = reportes.some((r) => r.match_id === mia.id && r.reporter_id === miId() && (r.game_number ?? 0) === 0)
+    return ya ? null : 0
+  }
+  const { mios, confirmados } = juegosDeMesa(mia)
+  const n = serieBo3(confirmados).siguiente
+  return n && juegoAbierto(confirmados, n) && !mios[n] ? n : null
+}
+
+const puedoAdjuntarA = (m) => repeticionesMesas.filter((r) => r.match_id === m.id && r.user_id === miId()).length < 3
+
+function registroHtml(juego, adjuntable) {
+  if (juego === null && !adjuntable) return ''
+  const titulo = juego === null ? 'Adjuntar el registro de TCG Live' : 'Reportar con el registro de TCG Live'
+  return `<details class="torneo-registro" id="torneoRegistro">
+      <summary>${titulo}</summary>
+      <p class="subtext">Copia el registro de la partida en TCG Live y pégalo aquí. Lo leemos en tu navegador y te decimos quién ganó según el registro; el resultado lo confirmas tú.</p>
+      <label class="sr-only" for="torneoRegistroTexto">Registro de la partida</label>
+      <textarea id="torneoRegistroTexto" class="torneo-registro-texto" rows="4" spellcheck="false" placeholder="Pega aquí el registro de la partida…"></textarea>
+      <button type="button" class="btn-secondary torneo-registro-leer" data-leer-registro>Leer el registro</button>
+      <div class="torneo-registro-veredicto" id="torneoRegistroVeredicto" role="status"></div>
+    </details>`
+}
+
+// Quién eras tú en el registro: tu nombre de TCG Live; si no está, el que
+// NO es tu rival. Si no casa ninguno de los dos, null y se pregunta.
+function quienEresEnElRegistro(lectura, mia) {
+  if (registroMesa?.yo && lectura.jugadores.includes(registroMesa.yo)) return registroMesa.yo
+  const tcgDe = (id) => sinMayusculas(ctx.inscripciones.find((i) => i.user_id === id)?.tcg_live_username)
+  const rivalId = mia.player_a_id === miId() ? mia.player_b_id : mia.player_a_id
+  const [mio, suyo] = [tcgDe(miId()), tcgDe(rivalId)]
+  const yo = mio && lectura.jugadores.find((j) => sinMayusculas(j) === mio)
+  if (yo) return yo
+  const el = suyo && lectura.jugadores.find((j) => sinMayusculas(j) === suyo)
+  return el ? lectura.jugadores.find((j) => j !== el) : null
+}
+
+function veredictoHtml(mia, juego, adjuntable, bo) {
+  const lectura = registroMesa?.lectura
+  if (!lectura) return ''
+  if (lectura.error) return `<p class="torneo-registro-aviso">${escapeHtml(lectura.error)}</p>`
+  const [a, b] = lectura.jugadores
+  const yo = quienEresEnElRegistro(lectura, mia)
+  if (!yo) {
+    const mio = ctx.inscripciones.find((i) => i.user_id === miId())?.tcg_live_username
+    const porque = mio
+      ? `ninguno es «${escapeHtml(mio)}», el nombre de TCG Live de tu inscripción`
+      : 'tu inscripción no tiene nombre de TCG Live para saberlo'
+    return `<p>En el registro juegan <strong>${escapeHtml(a)}</strong> y <strong>${escapeHtml(b)}</strong>, y ${porque}. ¿Cuál de los dos eras tú?</p>
+      <div class="torneo-registro-botones">
+        <button type="button" class="btn-outline" data-registro-yo="${escapeHtml(a)}">${escapeHtml(a)}</button>
+        <button type="button" class="btn-outline" data-registro-yo="${escapeHtml(b)}">${escapeHtml(b)}</button>
+      </div>`
+  }
+  const rivalEnLog = yo === a ? b : a
+  const rivalId = mia.player_a_id === miId() ? mia.player_b_id : mia.player_a_id
+  const suTcg = ctx.inscripciones.find((i) => i.user_id === rivalId)?.tcg_live_username
+  // No bloquea —puede haberse cambiado el nombre—, pero lo dice: es la
+  // forma de pegar por error el registro de OTRA partida.
+  const otraMesa =
+    suTcg && sinMayusculas(suTcg) !== sinMayusculas(rivalEnLog)
+      ? `<p class="torneo-registro-aviso">Ojo: tu rival en esta mesa es «${escapeHtml(suTcg)}» en TCG Live, y en el registro juegas contra «${escapeHtml(rivalEnLog)}». ¿Es el registro de esta partida?</p>`
+      : ''
+  const fin = finDelRegistro(lectura)
+  const turnos = lectura.eventos.filter((e) => e.tipo === 'turno').length
+  const enTurnos = turnos ? `, en ${turnos} ${turnos === 1 ? 'turno' : 'turnos'}` : ''
+  const como = { premios: ' por premios', rendicion: ' por rendición' }[fin?.porque] || ''
+  const gane = fin?.ganador === yo
+  const frase = fin
+    ? `<p>Según el registro, <strong>${gane ? 'ganaste tú' : 'ganó tu rival'}</strong>${como}${enTurnos}. En el registro eras <strong>${escapeHtml(yo)}</strong>${
+        registroMesa.yo ? '' : ` <button type="button" class="link-btn" data-registro-yo="${escapeHtml(rivalEnLog)}">No, era ${escapeHtml(rivalEnLog)}</button>`
+      }.</p>`
+    : `<p class="torneo-registro-aviso">El registro no dice quién ganó: ¿está entero? ${juego === null ? '' : 'El resultado márcalo con los botones de arriba; '}la repetición sí se puede adjuntar.</p>`
+  const reporta = fin && juego !== null
+  if (!reporta && !adjuntable) return `${otraMesa}${frase}`
+  const casilla =
+    adjuntable && reporta
+      ? `<label class="torneo-registro-casilla"><input type="checkbox" id="torneoRegistroAdjuntar"${registroMesa.adjuntar ? ' checked' : ''}> Guardar la repetición y adjuntarla a la mesa</label>`
+      : ''
+  const etiqueta = reporta
+    ? `Reportar ${gane ? 'Victoria' : 'Derrota'}${bo === 3 ? ` en la ${juego}.ª partida` : ''}`
+    : 'Guardar y adjuntar la repetición'
+  const quienLaVe = adjuntable
+    ? '<p class="subtext">Una vez adjunta, la ven tu rival y quien lleva o arbitra el torneo, y queda compartida: la abre cualquiera con su enlace.</p>'
+    : ''
+  return `${otraMesa}${frase}${casilla}${quienLaVe}
+    <button type="button" class="btn-primary torneo-registro-confirmar" data-registro-confirmar>${etiqueta}</button>`
+}
+
+function engancharRegistro(caja, mia, juego, adjuntable, bo) {
+  const det = caja.querySelector('#torneoRegistro')
+  if (!det) return
+  if (registroMesa?.matchId !== mia.id) registroMesa = { matchId: mia.id, texto: '', abierto: false, lectura: null, yo: null, adjuntar: true }
+  const area = det.querySelector('#torneoRegistroTexto')
+  const veredicto = det.querySelector('#torneoRegistroVeredicto')
+  const repintar = () => {
+    veredicto.innerHTML = veredictoHtml(mia, juego, adjuntable, bo)
+  }
+  det.open = registroMesa.abierto
+  area.value = registroMesa.texto
+  repintar()
+  det.addEventListener('toggle', () => {
+    registroMesa.abierto = det.open
+  })
+  area.addEventListener('input', () => {
+    registroMesa.texto = area.value
+    // Lo leído era de OTRO texto: proponer su resultado sería mentir.
+    if (registroMesa.lectura) {
+      registroMesa.lectura = null
+      registroMesa.yo = null
+      repintar()
+    }
+  })
+  det.querySelector('[data-leer-registro]').addEventListener('click', async (ev) => {
+    const boton = ev.currentTarget
+    if (!area.value.trim()) {
+      area.focus()
+      return
+    }
+    boton.disabled = true
+    try {
+      // Bajo demanda: el lector de registros no lo necesita quien solo mira.
+      const { leerRegistro } = await import('../repeticiones/registro.js')
+      registroMesa.texto = area.value
+      registroMesa.lectura = leerRegistro(area.value)
+      registroMesa.yo = null
+      repintar()
+    } catch (err) {
+      showToast(err.message || 'No se ha podido leer el registro.', 'error')
+    } finally {
+      boton.disabled = false
+    }
+  })
+  veredicto.addEventListener('change', (ev) => {
+    if (ev.target.id === 'torneoRegistroAdjuntar') registroMesa.adjuntar = ev.target.checked
+  })
+  veredicto.addEventListener('click', (ev) => {
+    const yo = ev.target.closest('[data-registro-yo]')
+    if (yo) {
+      registroMesa.yo = yo.dataset.registroYo
+      repintar()
+      return
+    }
+    const ok = ev.target.closest('[data-registro-confirmar]')
+    if (ok) void confirmarRegistro(mia, juego, adjuntable, ok)
+  })
+}
+
+async function confirmarRegistro(mia, juego, adjuntable, boton) {
+  const { lectura, texto } = registroMesa
+  const yo = quienEresEnElRegistro(lectura, mia)
+  const fin = finDelRegistro(lectura)
+  const reporta = Boolean(fin && yo && juego !== null)
+  const adjuntar = adjuntable && (!reporta || registroMesa.adjuntar)
+  boton.disabled = true
+  // Primero la repetición y luego el reporte: si los reportes no casan, la
+  // mesa entra en disputa, y es justo entonces cuando el juez la necesita
+  // puesta. Si adjuntar falla, el reporte sigue: es lo que se vino a hacer.
+  let fallo = null
+  if (adjuntar) {
+    try {
+      const actual = rondas.find((r) => r.id === mia.round_id)
+      const titulo = [ctx.torneo.name, actual ? `Ronda ${actual.round_number}` : '', `Mesa ${mia.table_number}`, juego ? `${juego}.ª partida` : '']
+        .filter(Boolean)
+        .join(' · ')
+        .slice(0, 120)
+      const fila = await guardarRepeticion({
+        registro: texto,
+        titulo,
+        jugadores: lectura.jugadores.slice(0, 2),
+        ganador: fin?.ganador || null,
+        turnos: lectura.eventos.filter((e) => e.tipo === 'turno').length,
+      })
+      await adjuntarATorneo(mia.id, fila.id)
+    } catch (err) {
+      fallo = err.message || 'No se ha podido adjuntar.'
+    }
+  }
+  if (fallo && !reporta) {
+    showToast(fallo, 'error')
+    boton.disabled = false
+    return
+  }
+  // Se suelta ANTES de reportar porque reportar repinta la ficha, y lo
+  // repintado tiene que nacer vacío; si el reporte no entra, se recupera.
+  const pegado = registroMesa
+  registroMesa = null
+  if (reporta) {
+    if (!(await reportar(mia, fin.ganador === yo ? 'win' : 'loss', juego))) {
+      registroMesa = pegado
+      boton.disabled = false
+    }
+  } else {
+    showToast('Adjuntada a la mesa.', 'success')
+    await ctx.recargarFicha()
+  }
+  if (fallo) showToast(`El resultado va, pero la repetición no se ha adjuntado: ${fallo}`, 'error')
 }
 
 function pintarMiPartida() {
@@ -1676,10 +1971,13 @@ function pintarMiPartida() {
       </div>`
   // Aquí es donde más duele repintar de más: debajo están los botones de
   // Victoria y Derrota. Si el HTML es el mismo, no se toca nada.
-  const html = `${cabecera}${reloj}${checkin}${botones}${repeticionesDeMesaHtml(mia)}`
+  const juego = juegoPorReportar(mia, bo)
+  const adjuntable = puedoAdjuntarA(mia)
+  const html = `${cabecera}${reloj}${checkin}${botones}${registroHtml(juego, adjuntable)}${repeticionesDeMesaHtml(mia)}`
   if (yaEstaPintado('miPartida', html)) return
   contenido.innerHTML = html
   engancharRepeticiones(contenido)
+  engancharRegistro(contenido, mia, juego, adjuntable, bo)
   void rellenarChapasArquetipo(contenido)
   if ($('btnCheckin')) $('btnCheckin').addEventListener('click', () => marcarListo(mia))
   contenido.querySelectorAll('[data-reporte]').forEach((b) => {
@@ -2050,6 +2348,7 @@ function pintarClasificacion() {
       : ''
   const htmlClasif = `
     ${banner}
+    ${general ? repartoDePremiosHtml() : ''}
     ${general ? bracketHtml() : ''}
     ${chips}
     ${general ? '' : `<p class="subtext">Solo cuentan las mesas de la jornada ${vistaClasificacion}.</p>`}
@@ -2101,6 +2400,7 @@ function pintarClasificacion() {
   document.querySelectorAll('[data-historial]').forEach((b) =>
     b.addEventListener('click', () => abrirHistorialJugador(b.dataset.historial))
   )
+  document.querySelectorAll('[data-premio-dado]').forEach((b) => b.addEventListener('click', () => marcarPremioDado(b)))
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)
