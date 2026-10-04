@@ -13,7 +13,7 @@
 // puede convertir en botón va en botón, y lo que tiene que seguir siendo
 // una frase —el nombre de un campo, que no es un sitio al que ir— lo
 // vigila el barrido de abajo.
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -45,6 +45,9 @@ const NO_SON_CONTROLES = new Set([
   'listas nunca públicas',
   // Dos nombres de sección escritos como pregunta, en su propia página.
   '¿qué jugarías?', '¿esta carta es falsa?',
+  // Un ejemplo de lo que se puede escribir en el puesto de un premio,
+  // que es texto libre: «1º», «Top 8», «Todos los participantes».
+  'Todos los participantes',
 ])
 
 const ficheros = []
@@ -75,6 +78,19 @@ const sinComentarios = (txt) => txt
 const limpios = new Map()
 for (const f of ficheros) limpios.set(f, sinComentarios(readFileSync(f, 'utf8')))
 
+// Y UN SEGUNDO JUEGO, SIN LAS PROPIAS CITAS. Un nombre existe cuando está
+// escrito en una PANTALLA —el rótulo de un campo, el texto de un botón—,
+// no cuando lo cita otra frase. Si vale cualquier mención, dos frases que
+// nombran lo mismo se dan la razón entre ellas y el barrido no puede ver
+// que el campo se llame ya de otra manera: le pasó al escribirlo, porque
+// «De esas, doy» está citado DOS veces en la misma pantalla.
+//
+// Es la trampa de la 314 otra vez, y aquí la parte buena es que la
+// distinción es exacta: una cita va entre comillas angulares y un rótulo
+// no.
+const sinCitas = new Map()
+for (const [f, txt] of limpios) sinCitas.set(f, txt.replace(/«[^»]*»/g, ' '))
+
 console.log('── El barrido llega ──')
 check('se recorren las páginas y los módulos', ficheros.length > 150, ficheros.length)
 check('y los comentarios se quitan de verdad',
@@ -95,12 +111,8 @@ console.log('── Cada nombre de control entre comillas existe en alguna panta
         mirados++
         // ¿Sale en algún OTRO sitio, que no sea esta misma línea?
         let fuera = false
-        for (const [g, otro] of limpios) {
-          for (const [j, ol] of otro.split('\n').entries()) {
-            if (g === f && j === i) continue
-            if (ol.includes(frase)) { fuera = true; break }
-          }
-          if (fuera) break
+        for (const [, otro] of sinCitas) {
+          if (otro.includes(frase)) { fuera = true; break }
         }
         if (!fuera) huerfanas.push(`${f.replace(RAIZ, '.')}:${i + 1} «${frase}»`)
       }
@@ -128,6 +140,52 @@ console.log('── Y los dos caminos de Cambios son BOTONES, no indicaciones �
   // importa es dónde.
   check('ya no se manda a buscar una pestaña que no está',
     !limpios.get(`${RAIZ}/js/mi-coleccion.js`).includes('pestaña «Cartas»'))
+}
+
+console.log('── Y lo mismo con las RUTAS: un href es una promesa ──')
+{
+  // Un nombre de control que no existe manda a buscar; una ruta que no
+  // existe manda al 404, que es la misma cosa un paso más allá. Sale
+  // gratis mirarlo aquí, que es donde ya están todos los ficheros
+  // abiertos.
+  //
+  // Una ruta puede existir de tres maneras: el fichero, su `.html`, o una
+  // REDIRECCIÓN de `netlify.toml` — /rss.xml es una función y no un
+  // fichero, así que sin leer las redirecciones este barrido la cantaría
+  // como rota y habría que acallarlo a mano, que es como empiezan los
+  // barridos que ya no dicen nada.
+  const toml = readFileSync(`${RAIZ}/netlify.toml`, 'utf8')
+  const redirigidas = [...toml.matchAll(/from = "([^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((r) => r.startsWith('/'))
+  const escapar = (s) => s.split('').map((ch) => ('.*+?^${}()|[]\\'.includes(ch) ? '\\' + ch : ch)).join('')
+  const cubreRedireccion = (ruta) => redirigidas.some((r) => {
+    if (r === ruta) return true
+    // Las dos formas de comodín de Netlify: /carta/* y /foro/:slug.
+    const re = new RegExp('^' + escapar(r).split('\\*').join('.*').replace(/:[a-z]+/gi, '[^/]+') + '$')
+    return re.test(ruta)
+  })
+  const existe = (ruta) => {
+    const limpia = ruta.split('?')[0].split('#')[0].replace(/\/$/, '')
+    if (!limpia || limpia === '/') return true
+    const base = limpia.replace(/^\//, '')
+    return existsSync(`${RAIZ}/${base}`) || existsSync(`${RAIZ}/${base}.html`) ||
+      existsSync(`${RAIZ}/${base}/index.html`) || cubreRedireccion(limpia)
+  }
+  const rotas = new Set()
+  let mirados = 0
+  for (const [f, txt] of limpios) {
+    for (const l of txt.split('\n')) {
+      for (const m of l.matchAll(/href="(\/[^"'`${}\s]*)"/g)) {
+        const r = m[1]
+        if (r.startsWith('//')) continue
+        mirados++
+        if (!existe(r)) rotas.add(`${f.replace(RAIZ, '.')} → ${r}`)
+      }
+    }
+  }
+  check('se han mirado rutas de verdad', mirados > 100, mirados)
+  check('ninguna lleva a una página que no existe', rotas.size === 0, [...rotas].join(' | '))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
