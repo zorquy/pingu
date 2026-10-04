@@ -104,6 +104,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   realidad es «no tienes permiso». Al añadir una tabla que vaya a leer el
   panel, la política de SELECT va en la misma migración — y mientras no
   esté, lo que se enseña es «no se sabe», no «no hay».
+- **Un freno que pregunta «¿queda trabajo?» no frena si parte del trabajo
+  es IMPOSIBLE** (tanda 510, y es la tercera vez en una noche con la misma
+  forma). `scrydex-logos` iba cada hora con un freno que preguntaba «¿queda
+  algún set sin emparejar?» — y **siempre quedan**, porque las promos no las
+  cuenta igual ningún catálogo, así que la respuesta es «sí» para siempre y
+  el freno no corta nunca: 3 créditos × 24 × 30 = **2.160 al mes, de 5.000**,
+  para no cambiar nada. Pasó lo mismo con el barrido de las cartas (ahí hizo
+  falta un tope de barridos) y con la página que falla siempre (ahí, saltarla
+  a la quinta). La regla: cuando el trabajo pendiente nunca llega a cero, el
+  freno no puede ser «¿queda algo?» — tiene que ser **cuántas veces se ha
+  intentado** o **cada cuánto se vuelve a mirar**.
 - **Una función programada que vuelve a empezar es una FACTURA** (tanda
   509). El relleno de Scrydex barría el catálogo —101 páginas, 101
   créditos— y al acabar volvía a la página 1. Cada cinco minutos. Eso son

@@ -41,16 +41,30 @@ async function quedaAlgoPorEmparejar(clave) {
 // CONFIRMADO, no pisa ninguna columna nuestra, y lo de TCGdex se queda
 // detrás como respaldo.
 //
-// Cada hora y no cada cinco minutos: cuando no queda nada por emparejar
-// gasta 3 créditos por pasada y no cambia nada.
+// ── UNA VEZ AL DÍA, Y EL PORQUÉ IMPORTA (tanda 510) ──
+//
+// Estaba cada hora con un freno que preguntaba «¿queda algún set sin
+// emparejar?». Y ese freno NO FRENA NUNCA, por el mismo motivo que el del
+// relleno: **siempre quedan sets que no se pueden emparejar** —las promos,
+// que ningún catálogo cuenta igual—, así que la respuesta es «sí» para
+// siempre. 3 créditos por hora × 24 × 30 = **2.160 al mes**, de 5.000, para
+// no cambiar nada.
+//
+// Es la tercera vez esta noche con la misma forma: un freno que pregunta
+// «¿queda trabajo?» no frena si parte del trabajo es IMPOSIBLE. O se cuenta
+// cuántas veces se ha intentado, o se baja la frecuencia. Aquí basta con lo
+// segundo: los sets nuevos salen cada pocas semanas, así que mirarlo una vez
+// al día sobra — 90 créditos al mes en vez de 2.160.
+//
+// El emparejamiento inicial (167 sets) ya se hizo la noche del 2026-10-04.
 
 export default async () => {
   try {
+    // Si no queda ni un set sin emparejar, ni se le pregunta a Scrydex.
+    // Es gratis comprobarlo —es nuestra base— y evita la pasada entera el
+    // día que todo esté hecho.
     const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
-    // A la hora en punto del repaso diario se mira igual, por si hay un
-    // set nuevo. El resto de las horas, solo si falta algo.
-    const esElRepaso = new Date().getUTCHours() === 7
-    if (clave && !esElRepaso && !(await quedaAlgoPorEmparejar(clave))) {
+    if (clave && !(await quedaAlgoPorEmparejar(clave))) {
       return new Response(JSON.stringify({ hecho: true, creditos: 0, porque: 'no queda ningún set sin emparejar' }), {
         status: 200, headers: { 'content-type': 'application/json' },
       })
@@ -70,4 +84,4 @@ export default async () => {
   }
 }
 
-export const config = { schedule: '7 * * * *' }
+export const config = { schedule: '7 7 * * *' }

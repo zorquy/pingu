@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 05:20) — PINGU-Claude (510 — el tercer freno que no frenaba)
+
+**Hecho**: releyendo `scrydex-logos` sale **el mismo bug del freno, por
+tercera vez en una noche**. Iba cada hora con un freno que pregunta «¿queda
+algún set sin emparejar?», y la respuesta es **sí para siempre**: las promos
+no las cuenta igual ningún catálogo, así que nunca se emparejan. O sea que
+el freno no cortaba nunca — **2.160 créditos al mes de 5.000** para no
+cambiar nada.
+
+Pasa a ser **una vez al día**: 90 al mes. Los sets nuevos salen cada pocas
+semanas, así que mirarlo cada hora no aportaba nada, y el emparejamiento
+inicial (167 sets) ya se hizo esta noche.
+
+La regla, que ya va por tres casos: **cuando el trabajo pendiente nunca
+llega a cero, el freno no puede ser «¿queda algo?»** — tiene que ser cuántas
+veces se ha intentado (el tope de barridos del relleno), o saltarlo a la
+enésima (la página que falla siempre), o cada cuánto se vuelve a mirar
+(esto).
+
+**Rigor**: una mutación, cazada. Y una comprobación VIEJA de la misma prueba
+se puso roja al cambiar el horario, que es exactamente lo que tenía que
+hacer.
+
+**Ficheros**: `netlify/functions/scrydex-logos.mjs`, `CLAUDE.md`. En
+`pruebas`: `test-tanda-509.mjs`.
+
 ## 2026-10-04 (madrugada, 05:00) — PINGU-Claude (510 — el barrido de vacíos)
 
 **Hecho**: barrido con Playwright de ocho pantallas buscando el patrón de
