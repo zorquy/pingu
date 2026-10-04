@@ -81,6 +81,27 @@ export const COLECCIONES_JUNTAS = [
   { padre: 'bw11', hijos: ['rc'] },
   // Y las «Yellow A Alternate» son promos de XY.
   { padre: 'xyp', hijos: ['xya'] },
+
+  // ── LO MISMO, ENCONTRADO EN LA EXPORTACIÓN (tanda 534) ──
+  //
+  // Son subconjuntos con numeración propia DENTRO de su set: las TG01-TG30
+  // de la Trainer Gallery, las SV01-SV94 de la Shiny Vault, las GG01-GG70
+  // de la Galarian Gallery. La misma decisión que PINGU ya tomó dos veces
+  // con la Radiant Collection y la Unown.
+  //
+  // Y las Trainer Gallery traen además un fallo de TCGdex que se ve a
+  // simple vista en la exportación: **están DOS VECES**, con dos
+  // identificadores, el mismo nombre, la misma fecha y las mismas 30
+  // cartas (`swsh9tg` y `swsh9.5tg`). Plegar las dos en el set padre
+  // arregla el duplicado de paso.
+  { padre: 'swsh9', hijos: ['swsh9tg', 'swsh9.5tg'] },
+  { padre: 'swsh10', hijos: ['swsh10tg', 'swsh10.5tg'] },
+  { padre: 'swsh11', hijos: ['swsh11tg', 'swsh11.5tg'] },
+  { padre: 'swsh12', hijos: ['swsh12tg', 'swsh12.5tg'] },
+  { padre: 'sm115', hijos: ['sma'] },
+  { padre: 'swsh4.5', hijos: ['swsh4.5sv'] },
+  { padre: 'swsh12.5', hijos: ['swsh12.5gg'] },
+  { padre: 'cel25', hijos: ['cel25cc'] },
 ]
 
 // Si este set es parte de otro, cuál. `null` si es él mismo.

@@ -4,6 +4,45 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 11:05) — PINGU-Claude (534 — ocho filas más, leyendo la exportación entera)
+
+**Hecho**: PINGU mandó la cola del catálogo para el 30 aniversario, y
+leyéndola entera salieron OCHO filas más de la misma familia que las cinco
+suyas —subconjuntos con numeración propia dentro de su set— y **un fallo de
+TCGdex que se ve a simple vista**:
+
+- **Las cuatro Trainer Gallery están DUPLICADAS**: `swsh9tg` y `swsh9.5tg`,
+  mismo nombre, misma fecha y las mismas 30 cartas. Igual las de Astral
+  Radiance, Lost Origin y Silver Tempest. Plegar las dos en su set padre
+  arregla el duplicado de paso.
+- Las Shiny Vault de Hidden Fates (`sma`) y de Shining Fates
+  (`swsh4.5sv`), la Galarian Gallery de Crown Zenith (`swsh12.5gg`) y la
+  Classic Collection de Celebrations (`cel25cc`) van dentro de su set: son
+  las TG01-TG30, las SV01-SV94, las GG01-GG70.
+
+**LO QUE PODÍA SALIR MAL Y ES LO QUE MÁS VIGILA LA PRUEBA**: que un PADRE
+acabe siendo hijo de otro. `swsh12` es Silver Tempest y `swsh12.5` es Crown
+Zenith — dos sets distintos con identificadores que se parecen muchísimo, y
+una regla escrita a ojo se traga Crown Zenith (160 cartas) dentro de Silver
+Tempest **sin dar ningún error**: la colección desaparece de la lista y ya
+está. Hay una comprobación que recorre todos los padres y exige que ninguno
+tenga padre, y tres más una a una (Crown Zenith, Pokémon GO y 151, que son
+los tres que más se parecen a un hijo).
+
+**Lo que NO se ha tocado**: el `sp` «Sample» de e-Card, que PINGU dijo dejar
+por ahora.
+
+**Ficheros**: `js/catalogo-series.js`. En `pruebas`:
+`pruebas/test-tanda-534.mjs`, y una comprobación de la 533 que daba por
+hecho que la lista tenía cinco reglas.
+
+**SIGUE PENDIENTE el 30 aniversario**: la segunda exportación también se
+cortó (acaba en `sv09`, marzo de 2025) y los sets del 30 son de 2026. Hace
+falta la cola de verdad para saber sus identificadores: hoy el plegado va
+por el prefijo `30th`, y si sus ids no empiezan por ahí, la regla no casa
+con nada — que es justo lo que PINGU está viendo cuando dice que el Classic
+le sale suelto y sin logo.
+
 ## 2026-10-04 (mañana, 10:45) — PINGU-Claude (533 — cinco sets que son en realidad parte de otro)
 
 **Hecho**: PINGU repasó el catálogo set por set y encontró cinco filas que
