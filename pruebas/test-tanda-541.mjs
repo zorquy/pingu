@@ -50,7 +50,13 @@ console.log('── 2. Y se agrupa y se rotula en occidental ──')
   // Y el desplegable: su rótulo sale de `eraDeSet`, no de `serie_name` —
   // que en un set importado viene VACÍO.
   const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
-  check('el desplegable rotula con `eraDeSet`', /\[s\.serie_id, eraDeSet\(s\) \|\| s\.serie_id\]/.test(mc))
+  // Se mira QUÉ usa para rotular, no cómo está escrita la línea: desde la
+  // 550 antepone el nombre puesto a mano y la expresión cambió, así que
+  // congelar el texto exacto solo decía que nadie la había tocado.
+  const montaje = mc.split('function montarDesplegableDeEras')[1]?.split('\n}')[0] || ''
+  check('el desplegable rotula con `eraDeSet`', /eraDeSet\(s\)/.test(montaje), montaje.slice(0, 160))
+  check('  …y antes con el nombre puesto a mano (tanda 550)', /nombre \|\| eraDeSet/.test(montaje), montaje.slice(0, 160))
+  check('  …y nunca se queda sin rótulo', /\|\| s\.serie_id/.test(montaje))
 }
 
 console.log('── 3. La caché de sets es POR MERCADO ──')

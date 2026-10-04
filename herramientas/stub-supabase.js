@@ -63,6 +63,8 @@ const T = {
   tcg_cards: [],
   tcg_archetypes: [],
   tcg_sets: [],
+  // Los nombres y el orden que se les pone a las eras desde /admin (550).
+  tcg_eras: [],
   tcg_card_play: [],
   // Los mazos del constructor (tanda 361).
   user_decks: [],
@@ -470,6 +472,9 @@ sembrar('__FAKE_CARPETA_CARTAS__', 'collection_folder_cards', (i) => ({
 
 sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
   id: `set-${i}`, name: `Set ${i}`, market: 'WEST',
+}))
+sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
+  market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,
 }))
 sembrar('__FAKE_CARTAS__', 'tcg_cards', (i) => ({
   id: `carta-${i}`, set_id: 'set-0', market: 'WEST', local_id: String(i), name: `Carta ${i}`, image_path: `x/y/${i}`,
