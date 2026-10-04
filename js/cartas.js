@@ -39,6 +39,13 @@ async function colecciones() {
     // funciona `nullslast`: es una columna PROPIA de la tabla, no una
     // embebida — que es donde PostgREST se lo come sin avisar.
     .order('release_date', { ascending: false, nullsFirst: false })
+    // Y un desempate (tanda 510): un `order` por fecha a secas deja los
+    // sets del MISMO día en el orden que quiera Postgres, que además
+    // puede cambiar entre dos cargas de la misma página. Y salen el mismo
+    // día más de los que parece: un set principal y su galería de
+    // entrenador, o un set y sus promos. `id` no es el orden ideal, pero
+    // es ESTABLE, que es lo que hace que la lista no baile.
+    .order('id')
   if (error || !data?.length) return
 
   const soloTCG = plegarHermanos(data.filter(esDelTCG))

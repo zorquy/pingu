@@ -1697,6 +1697,13 @@ async function cargarSets() {
     .select('id,market,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
+    // Y un desempate (tanda 510): un `order` por fecha a secas deja los
+    // sets del MISMO día en el orden que quiera Postgres, que además
+    // puede cambiar entre dos cargas de la misma página. Y salen el mismo
+    // día más de los que parece: un set principal y su galería de
+    // entrenador, o un set y sus promos. `id` no es el orden ideal, pero
+    // es ESTABLE, que es lo que hace que la lista no baile.
+    .order('id')
     .limit(1000)
   todosLosSets = (data || []).filter((s) => esDelTCG(s))
   return todosLosSets

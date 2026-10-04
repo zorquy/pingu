@@ -1207,11 +1207,43 @@
   }
 }
 
+/* El estado vacío LLEVA a algún sitio (tanda 510); el porqué, en SCHEMA. */
 .mc-vacio {
-  padding: var(--e-xl);
+  padding: var(--e-2xl) var(--e-xl);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
   text-align: center;
+}
+
+.mc-vacio-titulo {
+  font-size: var(--t-lg);
+}
+
+.mc-vacio-texto {
+  margin: var(--e-sm) auto 0;
+  max-width: 44ch;
+  color: var(--text-mid);
+}
+
+.mc-vacio-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-md);
+  margin-top: var(--e-xl);
+}
+
+.mc-vacio-acciones > * {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-vacio-pie {
+  margin-top: var(--e-lg);
+  font-size: var(--t-sm);
+  color: var(--text-mid);
 }
 
 /* ── El álbum ── */

@@ -287,9 +287,23 @@
           </div>
         </dialog>
         <div class="mc-cartas" id="mcCartas"></div>
+        <!-- EL ESTADO VACÍO ES LO PRIMERO QUE VE QUIEN LLEGA (tanda 510),
+             así que tiene que LLEVAR a algún sitio y no solo nombrarlo.
+             Decía «añádelas desde “Añadir cartas”» y esa pestaña LA BORRÓ
+             LA TANDA 408, que juntó los dos buscadores en uno: mandaba a
+             un sitio que no existe desde entonces. Es la norma de la 447
+             —una frase de la interfaz es una afirmación sobre lo que hace
+             el código— y la forma de que no vuelva a pasar es que los tres
+             caminos sean BOTONES que van, no palabras que describen. -->
         <div class="mc-vacio hidden" id="mcCartasVacio">
-          <p><strong>Todavía no hay cartas aquí.</strong></p>
-          <p>Añádelas desde «Añadir cartas», desde el álbum de una colección o con el botón de la ficha de cualquier carta.</p>
+          <p class="mc-vacio-titulo"><strong>Todavía no hay cartas aquí.</strong></p>
+          <p class="mc-vacio-texto">Hay tres formas de empezar, y la más rápida es buscar la carta por su nombre.</p>
+          <div class="mc-vacio-acciones">
+            <button type="button" class="btn-primary" data-pestania="buscar">Buscar una carta</button>
+            <button type="button" class="btn-outline" data-pestania="album">Abrir una colección</button>
+            <a class="btn-outline" href="/cartas">Ver el catálogo</a>
+          </div>
+          <p class="mc-vacio-pie">También puedes añadirlas desde el botón de la ficha de cualquier carta.</p>
         </div>
         <p class="subtext hidden" id="mcSinResultados">Ninguna carta de tu colección encaja con esos filtros.</p>
 
