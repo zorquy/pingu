@@ -41,6 +41,7 @@ console.log('── 1. Lo puro ──')
   check('la racha cuenta hasta hoy', rachaDeDias([hoy, '2000-01-01'], hoy) === 1)
   check('la caché muere a medianoche UTC', segundosHastaManana(new Date('2026-10-06T23:59:00Z')) === 60 && segundosHastaManana(new Date('2026-10-06T00:00:00Z')) === 86400)
   check('solo Pokémon, con foto y con rareza', /category=eq\.Pokemon/.test(FILTRO_ELEGIBLES) && /rarity=not\.is\.null/.test(FILTRO_ELEGIBLES) && /image_path\.not\.is\.null/.test(FILTRO_ELEGIBLES))
+  check('  …y sin TCG Pocket (regex sobre set_id)', /set_id=not\.imatch\./.test(FILTRO_ELEGIBLES) && new RegExp(decodeURIComponent(FILTRO_ELEGIBLES.split('set_id=not.imatch.')[1])).test('A2b') && !new RegExp(decodeURIComponent(FILTRO_ELEGIBLES.split('set_id=not.imatch.')[1])).test('sv8'), FILTRO_ELEGIBLES)
 }
 
 console.log('── 2. La función: elige una vez y la deja en la base ──')
@@ -80,7 +81,10 @@ console.log('── 3. En el navegador ──')
   const SETS = [{ id: 'sv8', name: 'Surging Sparks', market: 'WEST', serie_id: 'sv', release_date: '2024-11-08', card_count_official: 191, tcg_online_code: 'SSP' }]
   const base = (id, n, extra = {}) => ({ id, market: 'WEST', set_id: 'sv8', local_id: String(n), name: extra.name || `C${n}`, name_es: extra.name || `C${n}`, image_path: `sv/sv8/${n}`, category: 'Pokemon', rarity: 'Rare', rarity_en: extra.rarity_en || 'Rare', types: extra.types || ['Water'], tcg_sets: { name: 'Surging Sparks', tcg_online_code: 'SSP', serie_id: 'sv' } })
   const RESPUESTA = base('sv8-25', 25, { name: 'Pikachu ex', rarity_en: 'Double Rare', types: ['Lightning'] })
-  const CARTAS = [RESPUESTA, base('sv8-1', 1, { name: 'Lapras', types: ['Water'] }), base('sv8-2', 2, { name: 'Raichu', rarity_en: 'Double Rare', types: ['Lightning'] }), base('sv8-3', 3, { name: 'Pikachu ex', rarity_en: 'Illustration Rare', types: ['Lightning'] })]
+  const CARTAS = [RESPUESTA, base('sv8-1', 1, { name: 'Lapras', types: ['Water'] }), base('sv8-2', 2, { name: 'Raichu', rarity_en: 'Double Rare', types: ['Lightning'] }), base('sv8-3', 3, { name: 'Pikachu ex', rarity_en: 'Illustration Rare', types: ['Lightning'] }),
+    // Una de TCG Pocket (set A1): está en el catálogo occidental y NO
+    // puede salir en el buscador (tanda 573).
+    { ...base('A1-25', 25, { name: 'Pikachu ex', types: ['Lightning'] }), set_id: 'A1', tcg_sets: { name: 'Genetic Apex', serie_id: 'tcgp' } }]
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1000, height: 1100 } })
   const errores = []
@@ -106,9 +110,18 @@ console.log('── 3. En el navegador ──')
   await page.goto(`${BASE}/carta-del-dia.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   check('sin errores', errores.length === 0, errores.join(' | '))
+  // La foto, cargada antes de tocar nada: mientras llega, Playwright ve
+  // la página «moverse» y se niega a pulsar.
+  await page.waitForFunction(() => document.getElementById('cdFoto')?.complete, null, { timeout: 5000 }).catch(() => {})
   check('dice el número del día y el intento', (await page.locator('#cdSub').innerText()).includes(`Carta #${numeroDelDia(hoy)} · intento 1 de 6`), await page.locator('#cdSub').innerText())
   check('  …y el número no es negativo ni cero', numeroDelDia(hoy) >= 1, String(numeroDelDia(hoy)))
   check('seis huecos de intento', (await page.locator('.cd-intento').count()) === 6)
+  // El botón, pegado a la carta y no al final (573).
+  check('«Adivinar» va justo debajo de la carta', await page.evaluate(() => {
+    const carta = document.getElementById('cdRecorte')
+    const boton = document.getElementById('cdAcciones')
+    return Boolean(carta.compareDocumentPosition(boton) & Node.DOCUMENT_POSITION_FOLLOWING) && carta.nextElementSibling === boton
+  }))
   check('las cinco pistas, cerradas', (await page.locator('.cd-pista-cerrada').count()) === 5)
   // La carta entera, borrosa (572): la foto grande se pide y el
   // desenfoque del primer intento es el más fuerte.
@@ -125,6 +138,22 @@ console.log('── 3. En el navegador ──')
     await page.locator(`[data-elegir="${id}"]`).click()
     await page.waitForTimeout(500)
   }
+  // El diálogo se abre CENTRADO en escritorio (573): salía arriba a la
+  // izquierda. Y el buscador no enseña la de Pocket.
+  await page.locator('#cdAdivinar').click()
+  await page.waitForTimeout(300)
+  const caja = await page.locator('#nvElegir').boundingBox()
+  check('el diálogo está centrado', caja && Math.abs(caja.x + caja.width / 2 - 500) < 40, JSON.stringify(caja))
+  await page.fill('#nvBuscar', 'pikachu')
+  await page.waitForTimeout(800)
+  const ids = await page.$$eval('[data-elegir]', (bs) => bs.map((b) => b.dataset.elegir))
+  check('«pikachu» encuentra las del TCG', ids.includes('sv8-25') && ids.includes('sv8-3'), ids.join(','))
+  check('  …y NO la de TCG Pocket', !ids.includes('A1-25'), ids.join(','))
+  // Escape cierra el diálogo aunque el cursor esté en el buscador (573):
+  // un <input type="search"> se quedaba la tecla para borrar el texto.
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+  check('Escape cierra el buscador', !(await page.evaluate(() => document.getElementById('nvElegir').open)))
   await intentar('lapras', 'sv8-1')
   check('un fallo abre la primera pista (la era)', /Escarlata y Púrpura/.test(await page.locator('.cd-pista').first().innerText()), await page.locator('.cd-pista').first().innerText())
   check('  …y afloja el desenfoque (20 px)', (await desenfoque()) === 20, String(await desenfoque()))

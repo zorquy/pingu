@@ -1200,6 +1200,13 @@ function consulta(tabla, estado = {}) {
             const lista = String(val).replace(/^\(|\)$/g, '').split(',').map((s) => s.trim())
             return !lista.includes(String(f[col]))
           }
+          // `.not(col, 'imatch', regex)` es `!~*` de Postgres (tanda 573):
+          // lo usa el buscador para echar a TCG Pocket. Sin esto, el doble
+          // comparaba la fila contra el regex como texto y dejaba pasar
+          // TODO — un verde que en producción no puede pasar (la 521).
+          if (op === 'imatch' || op === 'match') {
+            return !new RegExp(String(val), op === 'imatch' ? 'i' : '').test(String(f[col] ?? ''))
+          }
           return val === null ? f[col] !== null && f[col] !== undefined : f[col] !== val
         }],
       }),
