@@ -4009,6 +4009,10 @@ function enganchar() {
     sel.addEventListener('change', () => void cambiarVista(sel.value))
   }
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
+  // Los ATAJOS a una pestaña (los del estado vacío) llevan su propio
+  // gancho: hacen lo mismo que la barra, pero no SON la barra, y mezclar
+  // los dos deja `[data-pestania]` sin identificar a nadie.
+  for (const b of document.querySelectorAll('[data-ir-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.irPestania))
   // AQUÍ VIVÍA el observador que apartaba la barra flotante al llegar al
   // pie (tanda 406). Se fue en la 419 y el motivo merece quedar escrito:
   // en una página CORTA el pie se ve desde el primer momento, así que la
