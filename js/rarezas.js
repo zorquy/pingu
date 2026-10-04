@@ -1,159 +1,12 @@
-// Las rarezas, con el nombre OFICIAL en español y su marca (tanda 463).
+// Las marcas de rareza: el DIBUJO, que es lo que arrastra CSS.
 //
-// PINGU mandó la tabla de rarezas de la web oficial de Pokémon en español,
-// con sus dibujos: «te voy a pasar las imágenes de la web oficial para que
-// lo veas, y con sus iconos».
-//
-// ── DOS COSAS QUE ARREGLA, Y UNA NO ES COSMÉTICA ──
-//
-// 1. El NOMBRE. Nosotros decíamos «Doble rara», «Ultra rara», «Ilustración
-//    rara»; el oficial es «Rara Doble», «Rara Ultra», «Rara Ilustración».
-//    No es gusto: **es el mismo nombre que devuelve TCGdex cuando se le
-//    pide en español**, que es como está guardada media base. Mientras no
-//    coincidieran, un filtro de rareza mandaba a la consulta la clave
-//    inglesa y NUESTRA palabra, y las filas guardadas con la palabra de
-//    TCGdex se quedaban fuera — el filtro enseñaba la mitad sin que nada
-//    lo dijera. Coincidir arregla el filtro, no solo el rótulo.
-//
-// 2. La MARCA. Una rareza se reconoce por su dibujo antes que por su
-//    nombre: un círculo, un diamante, una estrella, dos estrellas. Y es lo
-//    que lleva impreso la carta en la esquina, así que es la forma de
-//    comprobar que lo que dice la web es lo que tienes en la mano.
-//
-// Sin DOM y sin Supabase: se prueba en Node.
+// Los nombres viven en `js/rarezas-nombres.js`, sin una sola etiqueta,
+// porque quien solo quiere traducir no debe arrastrar las clases que este
+// fichero pinta (ver la cabecera de allí). Se reexportan aquí para que
+// nada de lo que ya los importaba de este sitio se entere.
+import { rarezaEs, OTRAS_FORMAS, RAREZAS_ES, RAREZAS_SCRYDEX, rarezaDeCarta, formasDeRareza } from './rarezas-nombres.js'
 
-// De cómo lo llama TCGdex EN INGLÉS a cómo se llama en español oficial.
-export const RAREZAS_ES = {
-  Common: 'Común',
-  Uncommon: 'Infrecuente',
-  Rare: 'Rara',
-  'Rare Holo': 'Rara Holo',
-  'Double rare': 'Rara Doble',
-  'Ultra Rare': 'Rara Ultra',
-  'Illustration rare': 'Rara Ilustración',
-  'Special illustration rare': 'Rara Ilustración Especial',
-  'Hyper rare': 'Rara Híper',
-  'Shiny rare': 'Rara Brillante',
-  'Shiny Ultra Rare': 'Rara Brillante Ultra',
-  'Amazing Rare': 'Rara Asombrosa',
-  'Radiant Rare': 'Rara Radiante',
-  'ACE SPEC Rare': 'Rara ACE SPEC',
-  'Mega attack rare': 'Rara Ataque Mega',
-  'Mega hyper rare': 'Rara Híper Mega',
-  Promo: 'Promo',
-  None: 'Sin rareza',
-}
-
-// ── LO MISMO, ESCRITO DE OTRA MANERA ──
-//
-// El catálogo se ha importado en varios idiomas y la misma rareza está
-// guardada con la palabra de cada uno. Aquí van TODAS las formas que se
-// han visto, y la primera de cada lista es la canónica.
-//
-// Esto NO es una lista de cortesía: es lo que se manda a la consulta. Un
-// filtro que solo mande una de las formas enseña la mitad de las cartas y
-// **no da ningún error** — la lección de la tanda 455, que es cuando
-// salieron «Ninguno» y «None» como dos chips distintos.
-const OTRAS_FORMAS = {
-  Común: ['Common'],
-  Infrecuente: ['Uncommon', 'Poco común', 'Poco Común'],
-  Rara: ['Rare'],
-  'Rara Holo': ['Rare Holo', 'Rara holo'],
-  'Rara Doble': ['Double rare', 'Doble rara'],
-  'Rara Ultra': ['Ultra Rare', 'Ultra rara'],
-  'Rara Ilustración': ['Illustration rare', 'Ilustración rara'],
-  'Rara Ilustración Especial': ['Special illustration rare', 'Ilustración especial rara'],
-  'Rara Híper': ['Hyper rare', 'Hiperrara', 'Rara Secreta'],
-  'Rara Brillante': ['Shiny rare', 'Variocolor rara'],
-  'Rara Asombrosa': ['Amazing Rare'],
-  'Rara Radiante': ['Radiant Rare'],
-  'Rara ACE SPEC': ['ACE SPEC Rare', 'ACE SPEC'],
-  'Rara Brillante Ultra': ['Shiny Ultra Rare'],
-  // Las dos de Megaevolución, de la tabla oficial que mandó PINGU: la
-  // Híper Mega es un diamante dorado y la Ataque Mega, dos estrellas rosa
-  // y verde. Las trae el catálogo desde los sets de 2026.
-  'Rara Ataque Mega': ['Mega attack rare'],
-  'Rara Híper Mega': ['Mega hyper rare'],
-  'Sin rareza': ['None', 'Ninguno'],
-}
-
-// ── EL VOCABULARIO DE SCRYDEX (tanda 509) ──
-//
-// PINGU, mirando Lost Thunder: «las Rainbow se guardan como híper rara,
-// pero realmente no. Esa rareza es Rare Rainbow. Necesitamos que las
-// rarezas sean muy exactas».
-//
-// Y tiene razón: **TCGdex COLAPSA esa rareza**. Le llama «Hyper rare» a la
-// arcoíris y a la dorada, que son dos cosas distintas y se distinguen a un
-// metro. Scrydex las separa, y por eso su inglés va a `rarity_en`.
-//
-// Aquí solo están las que se saben con seguridad. Lo que no esté se enseña
-// **en inglés tal cual**, que es lo que ya hace `rarezaEs` — y es a
-// propósito: una rareza nueva es un dato, pero una traducción inventada es
-// una etiqueta que miente, y eso es peor que el inglés. La función
-// programada apunta las que va viendo (`rarezasVistas`), así que la lista
-// se completa con lo que de verdad hay y no con lo que me imagino.
-const RAREZAS_SCRYDEX = {
-  'Rare Rainbow': 'Rara Arcoíris',
-  'Rare Secret': 'Rara Secreta',
-  'Rare Shiny': 'Rara Brillante',
-  'Rare Ultra': 'Rara Ultra',
-  'Double Rare': 'Rara Doble',
-  'Illustration Rare': 'Rara Ilustración',
-  'Special Illustration Rare': 'Rara Ilustración Especial',
-  'Hyper Rare': 'Rara Híper',
-  'Amazing Rare': 'Rara Asombrosa',
-  'Radiant Rare': 'Rara Radiante',
-  'ACE SPEC Rare': 'Rara ACE SPEC',
-  // El sufijo es el nombre del mecanismo y no se traduce en español
-  // tampoco, así que estas son transparentes y no hay nada que inventar.
-  'Rare Holo EX': 'Rara Holo EX',
-  'Rare Holo GX': 'Rara Holo GX',
-  'Rare Holo V': 'Rara Holo V',
-  'Rare Holo VMAX': 'Rara Holo VMAX',
-  'Rare Holo VSTAR': 'Rara Holo VSTAR',
-  'Rare Holo LV.X': 'Rara Holo LV.X',
-  'Rare BREAK': 'Rara BREAK',
-  'Rare Prime': 'Rara Prime',
-}
-
-// De cualquier forma escrita a la canónica, en un solo mapa.
-const CANONICA = new Map()
-for (const [es, otras] of Object.entries(OTRAS_FORMAS)) {
-  CANONICA.set(es, es)
-  for (const o of otras) CANONICA.set(o, es)
-}
-for (const [en, es] of Object.entries(RAREZAS_ES)) if (!CANONICA.has(en)) CANONICA.set(en, es)
-// Las de Scrydex PISAN a las de TCGdex cuando chocan, y ese es el motivo
-// de la tanda: TCGdex mete la arcoíris dentro de «Hyper rare».
-for (const [en, es] of Object.entries(RAREZAS_SCRYDEX)) CANONICA.set(en, es)
-
-// El nombre oficial en español de una rareza, venga como venga escrita.
-// Lo que no conocemos se devuelve TAL CUAL y no como «Sin rareza»: una
-// rareza nueva es un dato, no un hueco.
-export function rarezaEs(valor) {
-  if (!valor) return null
-  return CANONICA.get(valor) || String(valor)
-}
-
-// ── La rareza de una CARTA, que no es lo mismo que la de una cadena ──
-//
-// Manda `rarity_en`, que es el inglés canónico de Scrydex, y `rarity` es
-// el respaldo. Mientras la función programada rellena, las dos conviven y
-// la pantalla va ganando precisión sola; una carta sin `rarity_en` se
-// sigue viendo exactamente como antes.
-export function rarezaDeCarta(carta) {
-  return rarezaEs(carta?.rarity_en || carta?.rarity)
-}
-
-// Todas las formas con las que esa rareza puede estar guardada, para
-// mandárselas a la consulta. Entra cualquiera de ellas.
-export function formasDeRareza(valor) {
-  const es = rarezaEs(valor)
-  if (!es) return []
-  const todas = new Set([String(valor), es, ...(OTRAS_FORMAS[es] || [])])
-  return [...todas]
-}
+export { rarezaEs, rarezaDeCarta, formasDeRareza, RAREZAS_ES, RAREZAS_SCRYDEX }
 
 // ── LAS MARCAS ──
 //
@@ -214,4 +67,4 @@ export function marcaDeRarezaHtml(valor, { clase = 'rareza-marca' } = {}) {
 }
 
 // Para pruebas y para quien quiera recorrerlas.
-export { OTRAS_FORMAS, MARCAS, RAREZAS_SCRYDEX }
+export { OTRAS_FORMAS, MARCAS }
