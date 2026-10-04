@@ -25,6 +25,7 @@ export { cadenaDeEscaneo, atributosDeEscaneo }
 // pintar, para que las 2.811 ya guardadas se vean bien sin tener que
 // reengordarlas (tanda 334).
 import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
+import { nombreDeSet, eraDeSet } from './catalogo-series.js'
 
 export {
   aSlug,
@@ -293,7 +294,7 @@ function bloqueFicha(carta, set) {
   if (carta?.local_id) {
     filas.push(['Número', total ? `${carta.local_id} / ${total}` : String(carta.local_id)])
   }
-  if (set?.name) filas.push(['Colección', set.name])
+  if (set?.name) filas.push(['Colección', nombreDeSet(set)])
   // La RAREZA con su marca impresa delante (tanda 463): el círculo, el
   // diamante o las estrellas que la carta lleva en la esquina de abajo.
   // Con ella la ficha se compara con lo que tienes en la mano sin leer.
@@ -720,7 +721,7 @@ export function cabeceraDeColeccion(set, cuantasHay = null) {
   // Scrydex primero y TCGdex detrás (tanda 507): su URL va entera.
   const logo = set.logo_scrydex || urlDeLogo(set.logo_path)
   const datos = []
-  if (set.serie_name) datos.push(set.serie_name)
+  if (eraDeSet(set)) datos.push(eraDeSet(set))
   if (set.release_date) datos.push(fechaLarga(set.release_date))
   const total = set.card_count_official || set.card_count_total
   if (total) datos.push(`${total} cartas`)
@@ -736,9 +737,9 @@ export function cabeceraDeColeccion(set, cuantasHay = null) {
       // esconde a la vista y sigue ahí para Google y para quien navega
       // con lector de pantalla. Sin logo, se ve — que es el caso de la
       // mitad del catálogo viejo.
-      ? `<img class="coleccion-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(set.name || '')}" loading="eager" decoding="async">`
+      ? `<img class="coleccion-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(nombreDeSet(set))}" loading="eager" decoding="async">`
       : '') +
-    `<h1${logo ? ' class="sr-only"' : ''}>${escapeHtml(set.name || 'Colección')}</h1>` +
+    `<h1${logo ? ' class="sr-only"' : ''}>${escapeHtml(nombreDeSet(set) || 'Colección')}</h1>` +
     (datos.length ? `<p class="coleccion-datos">${escapeHtml(datos.join(' · '))}</p>` : '') +
     '</div>'
   )

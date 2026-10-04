@@ -93,3 +93,22 @@ export function normalizeSearch(texto) {
     .toLowerCase()
     .trim()
 }
+
+// ── ¿Está escrito en japonés, chino o coreano? (tanda 532) ──
+//
+// Vive AQUÍ y no en cada sitio que la necesita porque la necesitan dos
+// lados que no se pueden importar entre sí: el navegador —para saber si el
+// nombre de un set hay que enseñarlo traducido— y `netlify/lib/scrydex.mjs`,
+// que la usa para no comparar nombres de alfabetos distintos (tanda 505).
+// Dos copias de una misma regla se separan sin que nadie se entere, y la
+// 471 ya costó una guarda que llevaba tres tandas mirando a un fichero
+// vacío.
+//
+// El rango incluye kana, kanji, hangul y la puntuación de ancho completo:
+// no hace falta afinar más, porque la pregunta es «¿puede leer esto quien
+// lee español?» y la respuesta es la misma para los tres.
+const CJK = /[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef\uac00-\ud7af]/
+
+export function tieneCJK(texto) {
+  return CJK.test(String(texto || ''))
+}

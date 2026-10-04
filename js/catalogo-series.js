@@ -1,3 +1,5 @@
+import { tieneCJK } from './texto.js'
+
 // Qué sets del catálogo son el juego de cartas DE VERDAD (tanda 328).
 //
 // TCGdex sirve en la misma API el TCG de toda la vida y **Pokémon TCG
@@ -64,4 +66,33 @@ export function padreDeColeccion(id) {
 export function prefijoDeColeccion(id) {
   const x = String(id ?? '').toLowerCase()
   return COLECCIONES_JUNTAS.find((c) => c.padre === x)?.prefijo || null
+}
+
+// ── EL NOMBRE QUE SE ENSEÑA DE UN SET (tanda 532) ──
+//
+// PINGU, con la biblioteca japonesa delante y los logos ya puestos:
+// «Scrydex guarda el nombre de los sets japoneses en occidental, y las eras
+// también, así que tráete ese nombre en vez de los kanjis, porque no se
+// sabe leer esto».
+//
+// Y la regla es exactamente esa, ni una pizca más: **se traduce lo que no
+// se puede leer**. Si nuestro nombre lleva kanji y hay uno occidental, se
+// enseña el occidental; si no, el nuestro. Un set español NO se enseña en
+// inglés porque exista `name_en` — eso cambiaría el catálogo entero por un
+// dato que se trajo para otra cosa.
+//
+// El japonés no se tira: se queda en `name`, que es el nombre de verdad del
+// set, y es lo que se guarda y con lo que se cruza (tandas 334 y 335).
+export function nombreDeSet(set) {
+  const propio = String(set?.name || '')
+  if (set?.name_en && tieneCJK(propio)) return set.name_en
+  return propio || set?.name_en || ''
+}
+
+// Lo mismo con la ERA, que en los sets japoneses de TCGdex viene vacía o
+// en japonés y en Scrydex viene en inglés («Mega Evolution»).
+export function eraDeSet(set) {
+  const propia = String(set?.serie_name || '')
+  if (set?.serie_name_en && (tieneCJK(propia) || !propia)) return set.serie_name_en
+  return propia || ''
 }

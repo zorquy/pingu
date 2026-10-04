@@ -4,6 +4,55 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 10:25) — PINGU-Claude (532 — los sets japoneses, con nombre que se pueda leer)
+
+**Hecho**: PINGU, revisando la biblioteca japonesa ya con logos: «Scrydex
+guarda el nombre de los sets japoneses en occidental, y las eras también,
+así que tráete ese nombre en vez de los kanjis, porque no se sabe leer
+esto». Y viene GRATIS, en la misma respuesta que el logo:
+`translation.en.name` y `series`.
+
+Dos columnas nuevas (`name_en`, `serie_name_en`,
+`supabase-migration-sets-nombre-en.sql`) y **el japonés no se tira**: se
+queda en `name`, que es el nombre de verdad del set y con lo que se cruza.
+Lo que se GUARDA es canónico; lo que se ENSEÑA va traducido (tandas 334 y
+335).
+
+**La regla de cuándo se traduce es la mitad de la tanda**: se traduce lo que
+NO SE PUEDE LEER. Si nuestro nombre lleva kanji y hay uno occidental, se
+enseña el occidental; si no, el nuestro. **Un set español no se enseña en
+inglés porque exista `name_en`** — eso cambiaría el catálogo entero por un
+dato que se trajo para otra cosa, y es justo el tipo de cambio en bloque que
+ya costó dos sustos (tandas 310 y 311).
+
+**Y la prueba del alfabeto pasa a ser UNA.** `netlify/lib/scrydex.mjs` tenía
+su propia copia de la expresión del CJK; ahora las dos mitades importan
+`tieneCJK` de `js/texto.js`, que es el fichero sin dependencias que existe
+para esto (tandas 447 y 471). Una copia se separa sin que nadie se entere, y
+esa guarda ya llevaba tres tandas mirando a un fichero vacío una vez.
+
+**Ficheros**: `js/texto.js`, `js/catalogo-series.js`, `js/cartas.js`,
+`js/coleccion.js`, `js/carta-nucleo.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/estanteria.js`, `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-sets.mjs`,
+`supabase-migration-sets-nombre-en.sql` (nuevo). En `pruebas`:
+`pruebas/test-tanda-532.mjs`.
+
+**PENDIENTE DE PINGU**: ejecutar `supabase-migration-sets-nombre-en.sql`.
+Hasta que esté, la consulta de sets pedirá dos columnas que no existen y
+**/cartas y /coleccion se quedarán sin cargar** — PostgREST da un 400 por
+una columna que no existe, no la ignora.
+
+**Y LO QUE QUEDA, que PINGU revisó set por set** (anotado para la siguiente
+tanda; hace falta saber los ids exactos y esos solo se ven desde el panel):
+el 30th Classic Collection sin logo y que debería ir DETRÁS del 30th
+Celebration (el Celebration es el set base); «Yellow A Alternate» va dentro
+de XY Black Star Promos; la Radiant Collection (25 cartas) dentro de
+Legendary Treasures; la Unown Collection dentro de Unseen Forces; un set
+«sample» en la era e-Card que no se sabe qué es; «V promotional» y el
+Ancient Mew dentro de Wizards Black Star Promos; y las POP Series, que SÍ
+deben ser colección propia pero colocadas debajo del Base Set.
+
 ## 2026-10-04 (mañana, 10:05) — PINGU-Claude (531 — una fila que no está puede querer decir tres cosas)
 
 **Hecho**: en el panel de PINGU, a los diez minutos de empujar el

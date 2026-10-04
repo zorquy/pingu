@@ -1,3 +1,5 @@
+import { tieneCJK } from '../../js/texto.js'
+
 // Scrydex: emparejar su catálogo con el nuestro, y no tragarse un relleno.
 //
 // Todo lo PURO de la integración. Sin red y sin base: se prueba en Node con
@@ -486,7 +488,10 @@ export function conclusion({ pedidas, conEscaneo, relleno, fallos }) {
 // y eso sí se parece a un RECHAZO. Sería un rechazo inventado por el
 // alfabeto. Así que si los dos nombres no están en el mismo alfabeto, el
 // veredicto es «no se puede» y se dice por qué.
-const TIENE_CJK = /[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef\uac00-\ud7af]/
+// La prueba del alfabeto vive en `js/texto.js` desde la 532, que es el
+// fichero sin dependencias que comparten las dos mitades. Aquí había una
+// copia, y una copia se separa sin avisar (tanda 471).
+const TIENE_CJK = { test: (s) => tieneCJK(s) }
 
 export function verificarPar({ nuestroNombre, suyoNombre }) {
   const na = String(nuestroNombre ?? '').trim()
@@ -760,6 +765,16 @@ export function filaDeSetConScrydex(nuestro, suyo, por = null) {
     // nombre de un set es lo que lee la gente y el nuestro está en
     // español a propósito.
     name: nuestro.name,
+    // ── EL NOMBRE OCCIDENTAL (tanda 532) ──
+    //
+    // Viene en la MISMA respuesta que el logo, gratis: `translation.en.name`
+    // y `series`. Para un set japonés es lo que se enseña —los kanji no los
+    // lee quien lee español— y el japonés se queda en `name`, que es el
+    // nombre de verdad del set.
+    //
+    // Con `rellenarTexto`, o sea sin pisar: si ya hay uno, se queda.
+    name_en: rellenarTexto(nuestro.name_en, suyo?.translation?.en?.name),
+    serie_name_en: rellenarTexto(nuestro.serie_name_en, suyo?.series),
     logo_scrydex: suLogo || nuestro.logo_scrydex || null,
     symbol_scrydex: suSimbolo || nuestro.symbol_scrydex || null,
     // `??` Y NO `||` (tanda 508). Lo escribí con `||` y en la primera

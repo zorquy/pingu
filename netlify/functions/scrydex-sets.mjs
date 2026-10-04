@@ -117,7 +117,10 @@ export async function procesar({
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = escribirImpl || ((filas) => rest('tcg_sets', clave, { method: 'POST', body: JSON.stringify(filas) }))
 
-  const COLS = 'id,market,name,serie_id,release_date,card_count_official,card_count_total,'
+  // `name_en` y `serie_name_en` se PIDEN, que si no `rellenarTexto` las
+  // compara contra `undefined` y las reescribe en cada pasada — la lección
+  // de la 523 por el otro lado.
+  const COLS = 'id,market,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,'
     + 'tcg_online_code,logo_path,logo_scrydex,symbol_scrydex,scrydex_id,scrydex_por'
   let nuestros
   try {

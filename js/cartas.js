@@ -8,7 +8,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, nombreDeSet, eraDeSet } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 const $ = (id) => document.getElementById(id)
@@ -33,7 +33,7 @@ function insignia(set) {
 async function colecciones() {
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,tcg_online_code,release_date,card_count_official,card_count_total')
+    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,tcg_online_code,release_date,card_count_official,card_count_total')
     .eq('market', MERCADO)
     // Lo más nuevo primero, y las que no tienen fecha al final. Aquí sí
     // funciona `nullslast`: es una columna PROPIA de la tabla, no una
@@ -137,13 +137,14 @@ export function plegarHermanos(sets) {
 // en vez de escribir aquí su nombre: el nombre lo pone TCGdex y puede
 // cambiar, los identificadores no.
 export function serieDeLaEraMega(sets) {
-  return sets.find((s) => /^me/i.test(String(s?.id || '')) && s?.serie_name)?.serie_name || null
+  const me = sets.find((s) => /^me/i.test(String(s?.id || '')) && eraDeSet(s))
+  return me ? eraDeSet(me) : null
 }
 
 export function claveDeSerie(set, serieMega = null) {
-  const pista = `${set?.id || ''} ${set?.serie_id || ''} ${set?.serie_name || ''} ${set?.name || ''}`
+  const pista = `${set?.id || ''} ${set?.serie_id || ''} ${eraDeSet(set)} ${nombreDeSet(set)}`
   if (/30th/i.test(pista) && serieMega) return serieMega
-  return set?.serie_name || SIN_CLASIFICAR
+  return eraDeSet(set) || SIN_CLASIFICAR
 }
 
 // ── Y dentro de una era: las expansiones, y abajo las energías y las
@@ -211,7 +212,7 @@ function filaDeColeccion(s) {
   return (
     `<li><a class="serie-fila" href="${escapeHtml(rutaDeColeccion(s))}">` +
     `<span class="serie-codigo">${escapeHtml(insignia(s))}</span>` +
-    `<span class="serie-nombre">${escapeHtml(s.name)}</span>` +
+    `<span class="serie-nombre">${escapeHtml(nombreDeSet(s))}</span>` +
     `<span class="serie-fecha">${escapeHtml(s.release_date ? fechaCorta(s.release_date) : '—')}</span>` +
     `<span class="serie-cuantas">${total ? escapeHtml(`${total} cartas`) : ''}</span>` +
     '</a></li>'

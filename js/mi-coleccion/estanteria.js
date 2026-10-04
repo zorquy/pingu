@@ -1,3 +1,4 @@
+import { eraDeSet } from '../catalogo-series.js'
 // Cómo se ordenan las 220 expansiones (tanda 409).
 //
 // PINGU, mirando la estantería al lado de la app: «deberían estar
@@ -86,7 +87,7 @@ export function gruposDeEstanteria(sets, favoritos = new Set()) {
   const porEra = new Map()
   for (const s of normales) {
     const clave = s.serie_id || ''
-    if (!porEra.has(clave)) porEra.set(clave, { id: clave, titulo: s.serie_name || s.serie_id || 'Sin serie', sets: [] })
+    if (!porEra.has(clave)) porEra.set(clave, { id: clave, titulo: eraDeSet(s) || s.serie_id || 'Sin serie', sets: [] })
     porEra.get(clave).sets.push(s)
   }
   const eras = [...porEra.values()]

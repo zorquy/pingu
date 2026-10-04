@@ -17,7 +17,7 @@ import {
   TIPOS_ES,
 } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeSet } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -56,7 +56,7 @@ async function cargar() {
   // fuera y los que ya indexó Google tienen que seguir llegando.
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', MERCADO)
     .or(filtroDeColeccion(clave))
     .limit(1)
@@ -71,7 +71,7 @@ async function cargar() {
   if (padre) {
     const { data: suyo } = await supabase
       .from('tcg_sets')
-      .select('id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+      .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
       .eq('market', MERCADO)
       .eq('id', padre)
       .limit(1)
@@ -85,9 +85,9 @@ async function cargar() {
   const buena = rutaDeColeccion(set)
   if (location.pathname !== buena) history.replaceState(null, '', buena + location.search)
 
-  document.title = `${set.name} — Cartas de Pokémon TCG — PokeDoc`
+  document.title = `${nombreDeSet(set)} — Cartas de Pokémon TCG — PokeDoc`
   const miga = $('migaColeccion')
-  if (miga) miga.textContent = set.name
+  if (miga) miga.textContent = nombreDeSet(set)
 
   const caja = $('coleccionCabecera')
   if (caja && caja.dataset.servidor !== '1') caja.innerHTML = cabeceraDeColeccion(set)

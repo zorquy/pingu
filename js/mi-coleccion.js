@@ -1694,7 +1694,7 @@ async function cargarSets() {
     // El logo y la serie viajan desde la tanda 372: la estantería se ve
     // por los logos, y agrupar por serie es lo que hace navegable una
     // lista de 220 colecciones.
-    .select('id,market,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     // Y un desempate (tanda 510): un `order` por fecha a secas deja los
