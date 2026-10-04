@@ -137,11 +137,13 @@
     </header>
 
     <section class="cd-tablero">
-      <!-- El recorte: un canvas de PINTAR, no de exportar, así que la
-           foto de otro dominio se dibuja sin permiso CORS. -->
+      <!-- La carta entera, BORROSA (tanda 572): un <img> con filtro CSS
+           que se afloja con cada intento. Sin canvas: una foto de otro
+           dominio se desenfoca igual, y funciona en todos los móviles. -->
       <div class="cd-recorte" id="cdRecorte">
-        <canvas id="cdLienzo" width="480" height="480" aria-label="Recorte de la carta del día"></canvas>
+        <img id="cdFoto" alt="La carta del día, borrosa" width="245" height="342" />
       </div>
+      <p class="subtext cd-ayer" id="cdAyer" hidden></p>
       <ol class="cd-pistas" id="cdPistas" aria-label="Pistas"></ol>
       <ol class="cd-intentos" id="cdIntentos" aria-label="Tus intentos"></ol>
       <div class="cd-acciones" id="cdAcciones">

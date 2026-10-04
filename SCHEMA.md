@@ -29632,3 +29632,35 @@ distintas, 125 € — el valor manual es POR COPIA, y la prueba lo aprendió
 al esperar 75), en vez de mirar píxeles.
 
 **Sin migración.**
+
+## Tanda 572 — la carta entera, borrosa (oct. 2026)
+
+PINGU enseñó Pokédle: la carta ENTERA desenfocada, que se va aclarando con
+cada intento. La 570 tenía un recorte con zoom, y lo de Pokédle es mejor
+mecánica por una razón concreta: **lo que se reconoce de una carta son los
+colores y la composición**, no un trozo de cielo a 5×. Un Charizard
+borroso es naranja y rojo con una silueta; un recorte de su esquina puede
+ser cualquier cosa.
+
+Y es más simple: un `<img>` con `filter: blur()` que el JS afloja por
+intento (`DESENFOQUES`, de 28 px a 5), sin canvas. El último paso **no es
+cero**: a 5 px el arte se ve y el nombre impreso sigue sin leerse, que es
+lo que hace que el sexto intento siga siendo un intento. Al acabar, nítida.
+`scale(1.08)` tapa el borde transparente que deja el desenfoque.
+
+Lo que se queda de la 570 y Pokédle no tiene: las cuatro casillas por
+intento (nombre, era, tipo, rareza) y las pistas en orden — es lo que da
+la fila 🟩🟥 que se comparte.
+
+**Y «Ayer era Gastly»**, que es lo que hace volver a quien no jugó ayer:
+la función devuelve también la de ayer (`ayer`, por su nombre) leyendo
+`carta_del_dia` del día anterior. Sin fila, nada.
+
+Lo que NO se copia, a propósito: el buscador de Pokédle es por ESPECIE
+(escribes «Bu» y salen Bulbasaur y Butterfree con su sprite). El nuestro
+es por carta, porque las casillas comparan era, tipo y rareza, y eso es
+de una carta. Un buscador por especie con sprites como atajo —que
+desemboque en las cartas de ese Pokémon— es una mejora posible, no de
+esta tanda.
+
+**Sin migración** (usa la de la 570).

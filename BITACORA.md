@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 07:10) — PINGU-Claude (572 — la carta entera, borrosa)
+
+**De dónde sale**: PINGU enseñó Pokédle (carta entera desenfocada que se
+aclara por intento). Es mejor que el recorte con zoom de la 570.
+
+**Hecho**: `<img>` con `filter: blur()` de 28 px a 5 por intento, nítida
+al acabar; sin canvas. Y «Ayer era X»: la función devuelve también la
+carta de ayer. Se quedan las casillas y las pistas.
+
+**Sin migración.**
+
+**Ficheros**: `carta-del-dia.html`, `css/carta-del-dia.css`,
+`js/carta-del-dia.js`, `js/carta-del-dia-juego.js`,
+`netlify/functions/carta-del-dia.mjs`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-570.mjs` (adaptada).
+
+**Pasado**: 570, 569, 299, 313 e imports.
+
 ## 2026-10-06 (mañana, 06:30) — PINGU-Claude (571 — «Mi colección en una imagen»)
 
 **Hecho**: en el Panel de /mi-coleccion, tarjeta «Mi colección en una

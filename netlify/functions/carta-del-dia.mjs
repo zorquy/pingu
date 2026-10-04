@@ -68,7 +68,21 @@ export async function elegirCartaDelDia({ dia, pedir, guardar }) {
   }
   const carta = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&id=eq.${encodeURIComponent(cardId)}&market=eq.WEST&limit=1`)).datos?.[0]
   if (!carta) return { error: 'La carta del día no está en el catálogo.' }
-  return { dia, numero: numeroDelDia(dia), carta }
+  // Y la de AYER, por su nombre (tanda 572): «ayer era Gastly» es lo que
+  // hace que quien no jugó ayer vuelva mañana. Si no la hay, nada.
+  let ayer = null
+  try {
+    const [y, m, d] = dia.split('-').map(Number)
+    const diaAyer = new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)
+    const fila = (await pedir(`carta_del_dia?select=card_id&day=eq.${diaAyer}&limit=1`)).datos?.[0]
+    if (fila?.card_id) {
+      const c = (await pedir(`tcg_cards?select=id,name,name_es,local_id,tcg_sets(name,name_en)&id=eq.${encodeURIComponent(fila.card_id)}&market=eq.WEST&limit=1`)).datos?.[0]
+      if (c) ayer = { id: c.id, name: c.name, name_es: c.name_es, local_id: c.local_id, tcg_sets: c.tcg_sets }
+    }
+  } catch {
+    // sin ayer
+  }
+  return { dia, numero: numeroDelDia(dia), carta, ayer }
 }
 
 export default async () => {

@@ -40,12 +40,14 @@ export function indiceDelDia(dia, total) {
   return Math.floor(azarDelDia(dia) * total) % total
 }
 
-// Dónde se centra el recorte, en fracción del arte (0.2–0.8 para no caer
-// en un borde), y los zooms de cada intento: de muy cerca a casi entera.
-export function focoDelDia(dia) {
-  return { x: 0.2 + azarDelDia(dia, 1) * 0.6, y: 0.2 + azarDelDia(dia, 2) * 0.6 }
-}
-export const ZOOMS = [5, 4, 3, 2.2, 1.6, 1.2]
+// El DESENFOQUE de cada intento, en píxeles sobre una carta de ~320 de
+// ancho (tanda 572): de una mancha de colores a casi nítida. Era un
+// recorte con zoom (570); PINGU enseñó Pokédle y su carta entera
+// borrosa, y es mejor mecánica: lo que se reconoce de una carta son los
+// colores y la composición, no un trozo de cielo a 5×. Y el último paso
+// NO es cero: con 5 px el arte se ve y el nombre impreso sigue sin
+// leerse, que es lo que hace que el sexto intento siga siendo un intento.
+export const DESENFOQUES = [28, 20, 14, 10, 7, 5]
 
 // El nombre que se compara: en minúsculas, sin tildes, y sin la coletilla
 // de la mecánica («Pikachu ex» y «Pikachu» son dos cartas distintas, así

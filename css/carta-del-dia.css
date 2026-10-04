@@ -26,17 +26,38 @@
   gap: var(--e-md);
 }
 
-/* El recorte, cuadrado y a todo el ancho de la columna. */
+/* La carta borrosa (tanda 572). El `scale` tapa el borde que el
+   desenfoque deja transparente; `--cd-desenfoque` lo pone el JS por
+   intento. Sin transición si hay «menos movimiento». */
 .cd-recorte {
+  width: min(100%, 320px);
+  margin: 0 auto;
+  aspect-ratio: 245 / 342;
   overflow: hidden;
   border-radius: var(--radius-lg);
+  background: var(--bg);
   box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
 }
 
-.cd-recorte canvas {
+.cd-recorte img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  filter: blur(var(--cd-desenfoque, 28px));
+  transition: filter 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-recorte img {
+    transition: none;
+  }
+}
+
+.cd-ayer {
+  margin: 0;
+  text-align: center;
 }
 
 .cd-pistas,

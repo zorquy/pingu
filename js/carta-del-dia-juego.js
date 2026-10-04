@@ -13,7 +13,7 @@ import { tipoEs, rarezaDeCarta } from './carta-traducciones.js'
 import { setsDelMercado, buscarEnCatalogo } from './catalogo-buscar.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import {
-  INTENTOS, ZOOMS, PISTAS, ORDEN_CASILLAS, compararIntento, focoDelDia, textoParaCompartir, rachaDeDias, numeroDelDia,
+  INTENTOS, DESENFOQUES, PISTAS, ORDEN_CASILLAS, compararIntento, textoParaCompartir, rachaDeDias, numeroDelDia,
 } from './carta-del-dia.js'
 
 const $ = (id) => document.getElementById(id)
@@ -22,6 +22,7 @@ const CLAVE_DIAS = 'pokedoc-carta-del-dia-acertados'
 
 let dia = null
 let respuesta = null
+let ayer = null
 let eras = new Map()
 // El estado de HOY: los intentos (la carta que dijiste y sus casillas) y
 // si se ha acabado. Vive en el navegador: se juega sin cuenta.
@@ -59,58 +60,26 @@ function apuntarAcierto() {
 
 const terminado = () => estado.acertada || estado.intentos.length >= INTENTOS
 
-// ── El recorte ──
+// ── La carta, borrosa ──
 //
-// Un canvas para PINTAR: la foto de otro dominio se dibuja sin permiso
-// CORS porque no se exporta. Cuanto más intentos, menos zoom; al acabar,
-// la carta entera.
-let foto = null
-function cargarFoto() {
-  return new Promise((resolve) => {
-    const cadena = cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high')
-    const prueba = (i) => {
-      if (i >= cadena.length) return resolve(null)
-      const img = new Image()
-      img.onload = () => resolve(img)
-      img.onerror = () => prueba(i + 1)
-      img.src = cadena[i]
+// Un <img> con `filter: blur()` que se afloja con cada intento (tanda
+// 572). Sin canvas: una foto de otro dominio se desenfoca igual, y no hay
+// nada que exportar. Al acabar, nítida.
+function pintarFoto() {
+  const img = $('cdFoto')
+  const cadena = cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high')
+  if (!img.dataset.puesta) {
+    img.dataset.puesta = '1'
+    let i = 0
+    img.onerror = () => {
+      i++
+      if (i < cadena.length) img.src = cadena[i]
+      else img.remove()
     }
-    prueba(0)
-  })
-}
-
-function pintarRecorte() {
-  const lienzo = $('cdLienzo')
-  const ctx = lienzo.getContext('2d')
-  const L = lienzo.width
-  ctx.fillStyle = '#2a3a4c'
-  ctx.fillRect(0, 0, L, L)
-  if (!foto) {
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '700 22px Inter, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('Sin foto hoy: juega con las pistas', L / 2, L / 2)
-    return
+    img.src = cadena[0] || ''
   }
-  const zoom = terminado() ? 1 : ZOOMS[Math.min(estado.intentos.length, ZOOMS.length - 1)]
-  const w = foto.naturalWidth
-  const h = foto.naturalHeight
-  if (zoom === 1) {
-    // Entera, centrada y con su proporción.
-    const escala = Math.min(L / w, L / h)
-    const dw = w * escala
-    const dh = h * escala
-    ctx.drawImage(foto, (L - dw) / 2, (L - dh) / 2, dw, dh)
-    return
-  }
-  // El ARTE ocupa más o menos el tercio alto de una carta: el foco se
-  // mueve dentro de esa franja, que es lo que hay que reconocer.
-  const foco = focoDelDia(dia)
-  const lado = Math.min(w, h) / zoom
-  const sx = Math.max(0, Math.min(w - lado, foco.x * w - lado / 2))
-  const sy = Math.max(0, Math.min(h - lado, (0.1 + foco.y * 0.35) * h - lado / 2))
-  ctx.imageSmoothingEnabled = true
-  ctx.drawImage(foto, sx, sy, lado, lado, 0, 0, L, L)
+  const px = terminado() ? 0 : DESENFOQUES[Math.min(estado.intentos.length, DESENFOQUES.length - 1)]
+  $('cdRecorte').style.setProperty('--cd-desenfoque', `${px}px`)
 }
 
 // ── Las pistas ──
@@ -168,7 +137,7 @@ function pintarFinal() {
 }
 
 function pintarTodo() {
-  pintarRecorte()
+  pintarFoto()
   pintarPistas()
   pintarIntentos()
   pintarFinal()
@@ -253,13 +222,18 @@ async function init() {
   }
   dia = r.dia
   respuesta = r.carta
+  ayer = r.ayer || null
   cargarEstado()
+  // «Ayer era X»: lo que hace volver a quien no jugó ayer.
+  if (ayer?.name) {
+    $('cdAyer').textContent = `Ayer era ${nombreDeCarta(ayer)}${ayer.tcg_sets ? ` (${nombreDeSet(ayer.tcg_sets)})` : ''}.`
+    $('cdAyer').hidden = false
+  }
   // Los nombres de las eras, para la pista: sin ellos saldría «sv».
   try {
     const { data } = await supabase.from('tcg_eras').select('id,nombre').eq('market', 'WEST')
     eras = new Map((data || []).map((e) => [String(e.id).toLowerCase(), e.nombre]))
   } catch {}
-  foto = await cargarFoto()
   pintarTodo()
   // Las expansiones del buscador, de fondo.
   setsDelMercado('WEST').then((sets) => {
