@@ -106,8 +106,10 @@ console.log('\n── 2. Los filtros, en Node ──')
     varianteDe: (v) => ({ nombre: v || 'Normal' }), estadoDe: (v) => ({ nombre: v || 'Sin estado' }),
   }
   const grupo = (id) => GRUPOS_FILTRO.find((g) => g.id === id)
-  const pide = ['tipo', 'energia', 'entrenador', 'rareza', 'variante', 'estado', 'notas']
-  ok(GRUPOS_FILTRO.map((g) => g.id).join(',') === pide.join(','), 'están los siete grupos que pidió PINGU', GRUPOS_FILTRO.map((g) => g.id).join(','))
+  // Los siete de la 449 y el de gradeo de la 564, que hasta que el gradeo
+  // dejó de ser texto libre (563) no se podía ni plantear.
+  const pide = ['tipo', 'energia', 'entrenador', 'rareza', 'variante', 'estado', 'notas', 'gradeo']
+  ok(GRUPOS_FILTRO.map((g) => g.id).join(',') === pide.join(','), 'están los siete grupos que pidió PINGU, y el de gradeo', GRUPOS_FILTRO.map((g) => g.id).join(','))
 
   ok(grupo('entrenador').de({}, { trainer_type: 'Supporter' }, A).join() === 'Partidario', 'el tipo de entrenador sale traducido')
   // Un dato de DETALLE que todavía no se ha curado no es un cajón: es una

@@ -78,7 +78,10 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   // ventana salía con el nombre y el enlace de OTRA carta.
   check('  …con SU nombre', ajena.titulo === 'Carta 9', ajena.titulo)
   check('  …y con SU enlace a la página entera', /sv1-9/.test(ajena.ficha || ''), ajena.ficha)
-  await page.locator('#mcEdAnadirCarta').click()
+  // Desde la 564 el bloque lleva un botón POR VERSIÓN de la carta (y uno
+  // solo cuando solo hay una): se pulsa el primero, que es el caso de la
+  // de aquí.
+  await page.locator('#mcEdAnadirVersiones button').first().click()
   await page.waitForTimeout(900)
   const tras = await page.evaluate(() => ({
     copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
