@@ -39,8 +39,12 @@ const SERIES_ESPECIALES = ['tk', 'pop', 'np']
 // —el día que salga otra colaboración se colará en medio—, pero el error
 // por ese lado es que una colección rara aparezca entre las buenas, no
 // que una ERA entera caiga al fondo.
+// «POP SERIES» SE SALE DE AQUÍ (tanda 536). Estaba en la lista desde que
+// se escribió, y por eso las diez colecciones de POP salían al fondo
+// sueltas en vez de juntas: PINGU las quiere como una era, que es lo que
+// son —diez entregas numeradas de la misma línea—.
 const NOMBRES_ESPECIALES =
-  /\btrainer kit\b|\bpop series\b|\bprerelease\b|\bmcdonald'?s\b|\bfutsal\b|\bbattle academy\b|\btrick or trade\b|\bmy first battle\b|\bholiday calendar\b|\btheme deck\b/i
+  /\btrainer kit\b|\bprerelease\b|\bmcdonald'?s\b|\bfutsal\b|\bbattle academy\b|\btrick or trade\b|\bmy first battle\b|\bholiday calendar\b|\btheme deck\b/i
 
 export function esEspecial(set) {
   if (SERIES_ESPECIALES.includes(String(set?.serie_id || '').toLowerCase())) return true

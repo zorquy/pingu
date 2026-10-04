@@ -4,6 +4,56 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mediodía, 11:50) — PINGU-Claude (536 — tres correcciones suyas, y dos eran cosa mía)
+
+**1. Las POP son una ERA.** PINGU: «es como si fuese una era, todas las
+expansiones de POP pueden ir juntas». Caían fuera por DOS sitios distintos
+—por eso no bastaba con tocar uno—: en /cartas una era se reconoce por tener
+un set de 100 cartas o más, y las POP son diez de 17; y en la ESTANTERÍA
+estaban metidas en `NOMBRES_ESPECIALES`, la lista de «esto no es un set de
+verdad», junto a los trainer kits y McDonald's. Ahora hay
+`SERIES_QUE_SON_ERA` y el nombre sale de esa lista.
+
+Es una lista a mano y lo será siempre, **porque esto no se deduce de los
+datos**: nada en la fila dice «esto es una línea». Lo que sí se puede es
+avisar cuando deje de casar, y `reglasQueNoCasan` las mira también.
+
+**2. El 30 aniversario vuelve a ser dos filas.** La 347 lo plegó porque él
+dijo «son el mismo set, no me lo separes», y esta mañana dijo lo contrario:
+«el Classic debería ir DESPUÉS del Celebration». Manda lo último. Lo que
+pasó es que el Classic **llevaba plegado en /cartas desde la 347** y no se
+notaba porque la estantería no plegaba; en cuanto la 535 la puso a plegar,
+desapareció de donde él lo estaba mirando y preguntó por qué. Ya salen las
+dos, y en el orden que pidió sin tocar nada: misma fecha, y `30th` desempata
+antes que `30th-c`.
+
+**3. Las Trainer Gallery vuelven, y esa es mi lección del día.** Las plegué
+dentro de su set en la 534 **por mi cuenta: nadie lo había pedido**. PINGU:
+«¿qué has hecho con las Trainer Gallery?». Son una colección que la gente
+sigue aparte, como la Shiny Vault o la Galarian Gallery, y lo mismo vale
+para las otras cuatro que me llevé por delante (`sma`, `swsh4.5sv`,
+`swsh12.5gg`, `cel25cc`). Todas vuelven.
+
+**Lo único que sí arreglo solo es el DUPLICADO**, que no es una opinión:
+`swsh9tg` y `swsh9.5tg` son la misma colección con dos identificadores,
+mismo nombre, misma fecha y las mismas 30 cartas. Se pliega la copia en la
+buena y la colección sigue existiendo.
+
+> **Plegar una colección no es un detalle técnico, es una decisión de quien
+> manda el catálogo.** Lo que yo puedo decidir solo es que algo está DOS
+> VECES; que algo «sobre», no.
+
+**Mudanza**: `esUnaEra` y `CARTAS_DE_UNA_EXPANSION` se van a
+`js/catalogo-series.js`. Es aritmética y vivía en un módulo que monta una
+página, así que no se podía probar sin navegador (igual que `plegarHermanos`
+en la 535).
+
+**Ficheros**: `js/catalogo-series.js`, `js/cartas.js`,
+`js/mi-coleccion/estanteria.js`. En `pruebas`: `pruebas/test-tanda-536.mjs`,
+arreglos en la 533 y la 535, y **se borra `test-tanda-534.mjs`**: su tanda
+entera queda deshecha, y una prueba que sujeta una decisión revocada es peor
+que no tenerla.
+
 ## 2026-10-04 (mañana, 11:25) — PINGU-Claude (535 — la estantería no plegaba NADA, y ahí estaba el 30 aniversario)
 
 **Hecho**: con los identificadores de verdad delante (`30th` y `30th-c`), la

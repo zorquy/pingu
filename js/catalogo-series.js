@@ -70,8 +70,19 @@ export function esDelTCG(set) {
 // si mañana TCGdex renombra uno de estos ids, la regla deja de casar y el
 // set vuelve a salir suelto sin que nada dé error. Por eso /cartas
 // comprueba al cargar que cada regla casa con algo y lo canta si no.
+// ── EL 30 ANIVERSARIO VUELVE A SER DOS FILAS (tanda 536) ──
+//
+// La 347 lo plegó porque PINGU dijo «son el mismo set, no me lo separes»,
+// y hoy, al empezar a plegar también la estantería, el Classic desapareció
+// de donde él lo estaba mirando: «he visto que me han sacado el Classic
+// Collection del 30 aniversario, ¿por qué?».
+//
+// Manda lo último que ha dicho, que además es lo que dijo esta misma
+// mañana: «el Classic debería ir DESPUÉS del Celebration, porque el
+// Celebration es el set base y el otro son las cartas especiales». Eso son
+// dos filas, no una. Y ya salen en ese orden sin hacer nada: misma fecha,
+// y `30th` va antes que `30th-c` al desempatar por identificador.
 export const COLECCIONES_JUNTAS = [
-  { padre: '30th', prefijo: '30th' },
   // Las promos de Wizards: «W Promotional» y el Ancient Mew, que TCGdex
   // tiene en un cajón llamado «Miscellaneous Promos» con una sola carta.
   { padre: 'basep', hijos: ['wp', 'miscp'] },
@@ -82,26 +93,21 @@ export const COLECCIONES_JUNTAS = [
   // Y las «Yellow A Alternate» son promos de XY.
   { padre: 'xyp', hijos: ['xya'] },
 
-  // ── LO MISMO, ENCONTRADO EN LA EXPORTACIÓN (tanda 534) ──
+  // ── LAS TRAINER GALLERY ESTÁN DOS VECES (tandas 534 y 536) ──
   //
-  // Son subconjuntos con numeración propia DENTRO de su set: las TG01-TG30
-  // de la Trainer Gallery, las SV01-SV94 de la Shiny Vault, las GG01-GG70
-  // de la Galarian Gallery. La misma decisión que PINGU ya tomó dos veces
-  // con la Radiant Collection y la Unown.
+  // En la exportación de PINGU salen con DOS identificadores, el mismo
+  // nombre, la misma fecha y las mismas 30 cartas: `swsh9tg` y
+  // `swsh9.5tg`. Eso es un duplicado de TCGdex, y una de las dos sobra.
   //
-  // Y las Trainer Gallery traen además un fallo de TCGdex que se ve a
-  // simple vista en la exportación: **están DOS VECES**, con dos
-  // identificadores, el mismo nombre, la misma fecha y las mismas 30
-  // cartas (`swsh9tg` y `swsh9.5tg`). Plegar las dos en el set padre
-  // arregla el duplicado de paso.
-  { padre: 'swsh9', hijos: ['swsh9tg', 'swsh9.5tg'] },
-  { padre: 'swsh10', hijos: ['swsh10tg', 'swsh10.5tg'] },
-  { padre: 'swsh11', hijos: ['swsh11tg', 'swsh11.5tg'] },
-  { padre: 'swsh12', hijos: ['swsh12tg', 'swsh12.5tg'] },
-  { padre: 'sm115', hijos: ['sma'] },
-  { padre: 'swsh4.5', hijos: ['swsh4.5sv'] },
-  { padre: 'swsh12.5', hijos: ['swsh12.5gg'] },
-  { padre: 'cel25', hijos: ['cel25cc'] },
+  // Lo que NO se hace es meterlas dentro de su set: la 534 las plegó en
+  // `swsh9` por mi cuenta —nadie lo había pedido— y PINGU preguntó «¿qué
+  // has hecho con las Trainer Gallery?». Son una colección que la gente
+  // sigue aparte, como la Shiny Vault o la Galarian Gallery. Así que se
+  // quedan, y lo único que se quita es la copia.
+  { padre: 'swsh9tg', hijos: ['swsh9.5tg'] },
+  { padre: 'swsh10tg', hijos: ['swsh10.5tg'] },
+  { padre: 'swsh11tg', hijos: ['swsh11.5tg'] },
+  { padre: 'swsh12tg', hijos: ['swsh12.5tg'] },
 ]
 
 // Si este set es parte de otro, cuál. `null` si es él mismo.
@@ -141,6 +147,14 @@ export function reglasQueNoCasan(sets) {
   const hay = new Set((sets || []).map((s) => String(s?.id ?? '').toLowerCase()))
   if (!hay.size) return []
   const sueltas = []
+  // Una serie declarada que no tiene ni un set es una regla vieja: el día
+  // que TCGdex renombre la serie, las POP volverían al fondo sueltas y
+  // nadie se enteraría.
+  for (const serie of SERIES_QUE_SON_ERA) {
+    if (!(sets || []).some((s) => esEraDeclarada(s) && esDeLaSerie(s, serie))) {
+      sueltas.push(`la serie «${serie}» no tiene ningún set`)
+    }
+  }
   for (const { padre, hijos } of COLECCIONES_JUNTAS) {
     if (!hay.has(padre)) sueltas.push(`el padre «${padre}» no existe`)
     for (const h of hijos || []) {
@@ -207,3 +221,44 @@ export function plegarHermanos(sets) {
   return fuera
 }
 
+
+// ── LAS SERIES QUE SON UNA ERA AUNQUE NO LO PAREZCAN (tanda 536) ──
+//
+// PINGU: «las POP Series tienen que ir en una era. Es como si fuese una
+// era: todas las expansiones de POP pueden ir juntas».
+//
+// Una era se reconoce por tener algún set grande (100 cartas o más), y las
+// POP son diez colecciones de 17 — así que caían en el cajón de «esto no
+// es una era» y salían sueltas al fondo. Pero son una LÍNEA: diez entregas
+// numeradas de lo mismo, repartidas en los torneos de la época. Que sus
+// sets sean pequeños no las hace menos línea.
+//
+// Es una lista a mano y lo será siempre, porque esto no se deduce de los
+// datos: nada en la fila dice «esto es una línea». Lo que sí se puede es
+// avisar cuando deje de casar — `reglasQueNoCasan` las mira también.
+export const SERIES_QUE_SON_ERA = ['pop']
+
+function esDeLaSerie(set, serie) {
+  return String(set?.serie_id || '').toLowerCase() === serie
+    || String(set?.serie_name || '').toLowerCase() === serie
+}
+
+export function esEraDeclarada(set) {
+  const id = String(set?.serie_id || '').toLowerCase()
+  const nombre = String(set?.serie_name || '').toLowerCase()
+  return SERIES_QUE_SON_ERA.some((x) => x === id || x === nombre)
+}
+
+// ── Qué cuenta como una ERA (aquí desde la 536) ──
+//
+// Vivía en `js/cartas.js`, que monta una página y por tanto no se puede
+// probar sin navegador. Es aritmética: se muda al módulo puro, como se
+// mudó `plegarHermanos` en la 535.
+export const CARTAS_DE_UNA_EXPANSION = 100
+
+export function esUnaEra(sets) {
+  // Una línea declarada es una era aunque sus sets sean pequeños: las POP
+  // Series son diez entregas de 17 cartas y son una línea (tanda 536).
+  if (sets.some(esEraDeclarada)) return true
+  return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
+}

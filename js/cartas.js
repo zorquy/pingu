@@ -8,7 +8,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, nombreDeSet, eraDeSet, reglasQueNoCasan, plegarHermanos } from './catalogo-series.js'
+import { esDelTCG, nombreDeSet, eraDeSet, reglasQueNoCasan, plegarHermanos, esUnaEra, CARTAS_DE_UNA_EXPANSION } from './catalogo-series.js'
 import { logClientError } from './error-log.js'
 
 const MERCADO = 'WEST'
@@ -113,13 +113,7 @@ async function colecciones() {
 // Las eras van primero, de la más nueva a la más vieja. Detrás, todo lo
 // demás —promos, colecciones sueltas y lo que aún no tiene serie—, con
 // el mismo orden entre ellas.
-export const CARTAS_DE_UNA_EXPANSION = 100
-
 export const SIN_CLASIFICAR = 'Sin clasificar'
-
-export function esUnaEra(sets) {
-  return sets.some((s) => (s.card_count_official || s.card_count_total || 0) >= CARTAS_DE_UNA_EXPANSION)
-}
 
 // ── El 30 aniversario NO es una era aparte ──
 //
@@ -297,3 +291,6 @@ if (selTipo) {
 }
 
 colecciones().catch(() => {})
+
+// Se reexportan desde aquí porque vivían aquí hasta la 536.
+export { esUnaEra, CARTAS_DE_UNA_EXPANSION }
