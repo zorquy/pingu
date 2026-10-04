@@ -4,20 +4,16 @@
 // Se juega SIN cuenta: lo elegido vive en el navegador. Si para empezar
 // hubiera que registrarse, nadie empezaría — la cuenta se pide al final,
 // cuando ya tienes algo que querrías conservar.
-import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile } from './app.js'
 import { showToast } from './toast.js'
 import { cadenaDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
-import { normalizeSearch } from './texto.js'
+import { setsDelMercado, buscarEnCatalogo } from './catalogo-buscar.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO, MERCADO_POR_DEFECTO } from './mercados.js'
 
 const $ = (id) => document.getElementById(id)
 const CLAVE = 'pokedoc-nueve'
 const HUECOS = 9
-// Lo justo para pintar un hueco, un resultado y la imagen. Sin `rarity`:
-// no se enseña, y pedirla obliga a pedir también `rarity_en` (tanda 523).
-const COLUMNAS = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,tcg_sets(name,name_en,tcg_online_code)'
 
 // ── Lo elegido ──
 let huecos = Array(HUECOS).fill(null)
@@ -88,51 +84,30 @@ function pintarHuecos() {
 
 // ── El buscador ──
 let esperaBusqueda = null
-let setsPorMercado = new Map()
-
-async function setsDe(mercado) {
-  if (setsPorMercado.has(mercado)) return setsPorMercado.get(mercado)
-  const { data, error } = await supabase
-    .from('tcg_sets')
-    .select('id,name,name_en,release_date')
-    .eq('market', mercado)
-    .order('release_date', { ascending: false, nullsFirst: false })
-    .limit(600)
-  if (error) {
-    showToast(error.message, 'error')
-    return []
-  }
-  setsPorMercado.set(mercado, data || [])
-  return data || []
-}
 
 async function pintarSets() {
   const mercado = $('nvMercado').value
-  const sets = await setsDe(mercado)
+  const sets = await setsDelMercado(mercado).catch((e) => {
+    showToast(e.message, 'error')
+    return []
+  })
   $('nvSet').innerHTML =
     '<option value="">Todas</option>' + sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(nombreDeSet(s) || s.id)}</option>`).join('')
 }
 
 async function buscar() {
-  const mercado = $('nvMercado').value
-  const set = $('nvSet').value
-  // NFC después de normalizar (tanda 557): sin él, una búsqueda en
-  // japonés con dakuten no casa con lo que guarda Postgres.
-  const texto = normalizeSearch($('nvBuscar').value).normalize('NFC').trim()
-  const palabras = texto.split(/\s+/).filter(Boolean).slice(0, 4)
-  if (!palabras.length && !set) {
-    $('nvResultados').innerHTML = '<p class="subtext">Escribe un nombre o elige una expansión.</p>'
-    return
-  }
-  let q = supabase.from('tcg_cards').select(COLUMNAS).eq('market', mercado)
-  if (set) q = q.eq('set_id', set)
-  for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(60)
-  if (error) {
+  let data
+  try {
+    data = await buscarEnCatalogo({ mercado: $('nvMercado').value, set: $('nvSet').value, texto: $('nvBuscar').value })
+  } catch (error) {
     $('nvResultados').innerHTML = `<p class="subtext">No se ha podido buscar: ${escapeHtml(error.message)}</p>`
     return
   }
-  if (!data?.length) {
+  if (data === null) {
+    $('nvResultados').innerHTML = '<p class="subtext">Escribe un nombre o elige una expansión.</p>'
+    return
+  }
+  if (!data.length) {
     $('nvResultados').innerHTML = '<p class="subtext">No encuentro ninguna carta así.</p>'
     return
   }

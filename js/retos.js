@@ -4,6 +4,7 @@ import { escapeHtml, getSession } from './app.js'
 import { icons } from './icons.js'
 import { yaJugadoHoy, diasJugados, hoyISO, PREGUNTAS_POR_RETO } from './reto-diario.js'
 import { rachaDeDias, numeroDelDia } from './reto-compartir.js'
+import { numeroDelDia as numeroDelDiaCarta, INTENTOS as INTENTOS_CARTA } from './carta-del-dia.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -45,6 +46,29 @@ async function pintarHoy() {
       ${rachaHtml}
       <a class="btn-primary" href="/reto">Jugar el reto de hoy →</a>`
 }
+
+// «¿Qué carta es?» guarda su partida en el navegador (se juega sin
+// cuenta), así que su estado de hoy se lee de ahí: resuelto o no, y en
+// cuántos intentos.
+function pintarCartaDelDia() {
+  const caja = $('rtCartaEstado')
+  if (!caja) return
+  let g = null
+  try {
+    g = JSON.parse(localStorage.getItem('pokedoc-carta-del-dia') || 'null')
+  } catch {}
+  const hoy = hoyISO()
+  const numero = numeroDelDiaCarta(hoy)
+  if (!g || g.dia !== hoy || !g.intentos?.length) {
+    caja.innerHTML = `<p class="rt-reto-num">Carta #${numero}</p><a class="btn-primary" href="/carta-del-dia">Jugar →</a>`
+    return
+  }
+  const acabada = g.acertada || g.intentos.length >= INTENTOS_CARTA
+  caja.innerHTML = `
+    <p class="rt-reto-num">Carta #${numero} · <strong>${g.acertada ? `acertada en ${g.intentos.length}` : acabada ? 'no acertada' : `${g.intentos.length} de ${INTENTOS_CARTA} intentos`}</strong></p>
+    <a class="${acabada ? 'btn-secondary' : 'btn-primary'}" href="/carta-del-dia">${acabada ? 'Ver la carta →' : 'Seguir →'}</a>`
+}
+pintarCartaDelDia()
 
 pintarHoy().catch(() => {
   const caja = $('rtHoyEstado')

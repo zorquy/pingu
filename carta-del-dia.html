@@ -4,26 +4,26 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Retos diarios de Pokémon TCG — PokeDoc</title>
+  <title>¿Qué carta es? — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Los minijuegos diarios de PokeDoc: el reto de cinco preguntas de Pokémon TCG, con liga semanal y rachas, y los que vienen. Los mismos para todo el mundo, cada día." />
+  <meta name="description" content="Un recorte de una carta de Pokémon TCG al día. Adivina cuál es en seis intentos, con pistas que se van abriendo, y comparte el resultado. Un reto diario de PokeDoc." />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/retos" />
-  <meta property="og:url" content="https://pokedoc.es/retos" />
+  <link rel="canonical" href="https://pokedoc.es/carta-del-dia" />
+  <meta property="og:url" content="https://pokedoc.es/carta-del-dia" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Retos diarios de Pokémon TCG" />
-  <meta property="og:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
+  <meta property="og:title" content="¿Qué carta es? — el reto diario de PokeDoc" />
+  <meta property="og:description" content="Un recorte de una carta al día. ¿La adivinas en seis intentos?" />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Retos diarios de Pokémon TCG" />
-  <meta name="twitter:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
+  <meta name="twitter:title" content="¿Qué carta es? — el reto diario de PokeDoc" />
+  <meta name="twitter:description" content="Un recorte de una carta al día. ¿La adivinas en seis intentos?" />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -36,7 +36,12 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/retos.css" />
+  <!-- carta-holo.css va porque la marca de rareza (rarezas.js, por
+       carta-traducciones.js) pinta clases que viven ahí; sin la hoja, el
+       barrido de la 299 canta una clase huérfana — y tiene razón. -->
+  <link rel="stylesheet" href="css/carta-holo.css" />
+  <link rel="stylesheet" href="css/elegir-carta.css" />
+  <link rel="stylesheet" href="css/carta-del-dia.css" />
 </head>
 <body>
   <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
@@ -120,34 +125,46 @@
     </div>
   </nav>
 
-    <main id="contenido" class="page-content container rt-pagina">
-    <!-- RETOS DIARIOS (tanda 569). PINGU: «en Aprender, en vez de ir al
-         reto de hoy, una página que sea un índice de los minijuegos que
-         tenemos, que se llamen retos diarios». Una tarjeta por juego, con
-         su estado de HOY —jugado o no, tu marca, tu racha— y el botón.
-         Lo que cambia cada día se pinta desde js/retos.js; lo que no, va
-         aquí para que esté aunque el JS no llegue. -->
-    <header class="rt-cabecera">
-      <h1>Retos diarios</h1>
-      <p class="subtext">Cada día, los mismos para todo el mundo. Juega, presume del resultado y vuelve mañana.</p>
+    <main id="contenido" class="page-content container cd-pagina">
+    <!-- ¿QUÉ CARTA ES? (tanda 570). Un recorte de una carta al día —la
+         misma para todo el mundo— y seis intentos para adivinar cuál.
+         Cada intento compara cuatro cosas (nombre, era, tipo, rareza) y
+         abre una pista. El porqué, en SCHEMA.md. -->
+    <header class="cd-cabecera">
+      <p class="cd-sobre"><a href="/retos">Retos diarios</a></p>
+      <h1>¿Qué carta es?</h1>
+      <p class="subtext" id="cdSub">Un recorte de una carta de Pokémon TCG. Adivínala en seis intentos.</p>
     </header>
 
-    <section class="rt-lista" id="rtLista" aria-label="Los retos">
-      <article class="rt-reto" id="rtHoy">
-        <div class="rt-reto-cabecera">
-          <h2>El reto de hoy</h2>
-          <p class="subtext">Cinco preguntas sacadas de los cursos. Liga semanal y rachas.</p>
-        </div>
-        <div class="rt-reto-estado" id="rtHoyEstado"><span class="skeleton" style="display:block;height:44px"></span></div>
-      </article>
-      <article class="rt-reto" id="rtCarta">
-        <div class="rt-reto-cabecera">
-          <h2>¿Qué carta es?</h2>
-          <p class="subtext">Un recorte de una carta al día. Adivínala en seis intentos, con pistas.</p>
-        </div>
-        <div class="rt-reto-estado" id="rtCartaEstado"><a class="btn-primary" href="/carta-del-dia">Jugar →</a></div>
-      </article>
+    <section class="cd-tablero">
+      <!-- El recorte: un canvas de PINTAR, no de exportar, así que la
+           foto de otro dominio se dibuja sin permiso CORS. -->
+      <div class="cd-recorte" id="cdRecorte">
+        <canvas id="cdLienzo" width="480" height="480" aria-label="Recorte de la carta del día"></canvas>
+      </div>
+      <ol class="cd-pistas" id="cdPistas" aria-label="Pistas"></ol>
+      <ol class="cd-intentos" id="cdIntentos" aria-label="Tus intentos"></ol>
+      <div class="cd-acciones" id="cdAcciones">
+        <button type="button" class="btn-primary" id="cdAdivinar">Adivinar</button>
+      </div>
+      <div class="cd-final hidden" id="cdFinal"></div>
+      <p class="cd-leyenda subtext">Cada intento dice si aciertas el <strong>nombre</strong>, la <strong>era</strong>, el <strong>tipo</strong> y la <strong>rareza</strong>.</p>
     </section>
+
+    <dialog class="nv-dialogo" id="nvElegir" aria-labelledby="nvElegirTitulo">
+      <form method="dialog" class="nv-dialogo-cabecera">
+        <h2 id="nvElegirTitulo">¿Qué carta crees que es?</h2>
+        <button type="submit" class="nv-cerrar" aria-label="Cerrar">✕</button>
+      </form>
+      <div class="nv-buscador">
+        <label class="sr-only" for="nvBuscar">Nombre de la carta</label>
+        <input type="search" id="nvBuscar" placeholder="Busca por nombre…" autocomplete="off" />
+        <div class="nv-filtros">
+          <label>Expansión <select id="nvSet"><option value="">Todas</option></select></label>
+        </div>
+      </div>
+      <div class="nv-resultados" id="nvResultados" aria-live="polite"></div>
+    </dialog>
   </main>
 
   <footer class="footer">
@@ -188,6 +205,6 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/retos.js"></script>
+  <script type="module" src="js/carta-del-dia-juego.js"></script>
 </body>
 </html>

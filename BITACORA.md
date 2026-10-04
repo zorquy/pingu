@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 05:30) — PINGU-Claude (570 — «¿Qué carta es?»)
+
+**Hecho**: `/carta-del-dia`, un recorte de una carta al día (la misma para
+todos: la elige la función `carta-del-dia` y la guarda en
+`carta_del_dia`) y seis intentos. Cada intento compara nombre, era, tipo
+y rareza —las cuatro casillas que se comparten como filas 🟩🟥— y abre
+una pista; el zoom baja con cada fallo. Se juega sin cuenta. La tarjeta
+del índice ya lleva al juego. El buscador de /nueve sale a
+`js/catalogo-buscar.js` y `css/elegir-carta.css` para compartirlo.
+
+**MIGRACIÓN**: `supabase-migration-carta-del-dia.sql` (tabla
+`carta_del_dia`). **Hasta que no se ejecute, la página dice «hoy no se ha
+podido traer la carta»**: la función no puede guardar.
+
+**Ficheros**: `carta-del-dia.html`, `css/carta-del-dia.css`,
+`js/carta-del-dia.js`, `js/carta-del-dia-juego.js`, `js/catalogo-buscar.js`,
+`css/elegir-carta.css`, `netlify/functions/carta-del-dia.mjs`,
+`supabase-migration-carta-del-dia.sql` (nuevos); `js/nueve.js`,
+`nueve.html`, `css/nueve.css`, `retos.html`, `js/retos.js`,
+`netlify/functions/sitemap.mjs`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-570.mjs` (nueva), 569 y 312.
+
+**Pasado**: 570, 569, 566, 299, 312, 313, 524, imports y la portada.
+
 ## 2026-10-06 (madrugada, 04:00) — PINGU-Claude (569 — «Retos diarios», el índice)
 
 **Hecho**: `/retos`, el índice de los minijuegos con el estado de hoy de

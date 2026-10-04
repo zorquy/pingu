@@ -29534,3 +29534,64 @@ las que tienen barra. La portada SIGUE llevando directo al reto desde su
 tarjeta — eso no es el menú, es el juego. Y el sitemap lista `/retos`.
 
 **Sin migración.**
+
+## Tanda 570 — «¿Qué carta es?», el segundo reto diario (oct. 2026)
+
+Un recorte de una carta de nuestro catálogo al día, la misma para todo el
+mundo, y seis intentos para adivinar cuál. Pokédle existe para los
+Pokémon; para las CARTAS no había nada, y nosotros tenemos 23.000 con
+foto. `/carta-del-dia` (`carta-del-dia.html`, `css/carta-del-dia.css`,
+`js/carta-del-dia-juego.js`), lo puro en `js/carta-del-dia.js` y la
+función `netlify/functions/carta-del-dia.mjs`.
+
+### Por qué la carta la elige el servidor y la guarda
+
+«La misma para todos» es el juego entero, y el catálogo **crece cada
+hora** (Scrydex, TCGdex): elegir en el navegador con una semilla sobre
+«cuántas cartas hay» daría una carta distinta a cada uno según el
+momento. La función elige la primera vez que alguien la pide ese día —
+índice determinista de la fecha (mulberry32, como el reto) sobre las
+elegibles ordenadas por id— y la deja en `carta_del_dia` con `on conflict
+do nothing`: dos servidores a la vez eligen la misma y queda una fila.
+La respuesta se cachea hasta la medianoche UTC. **Migración**:
+`supabase-migration-carta-del-dia.sql`.
+
+Elegibles: occidentales, Pokémon (en un Caramelo Raro no hay nada que
+adivinar), con foto y con rareza.
+
+### El juego
+
+Cada intento compara **cuatro cosas** de la carta que dices contra la del
+día —nombre, era, tipo y rareza— y esas cuatro casillas son la fila 🟩🟥
+que luego se comparte, como los cuadrados de Wordle: enseña cómo has
+llegado sin desvelar la carta. **Acertar el nombre acaba la partida aunque
+sea otra impresión** («Pikachu ex» de otra expansión vale); la coletilla
+cuenta («Pikachu» no es «Pikachu ex»: son dos cartas). Cada fallo abre
+una pista en orden: era, tipo, rareza, ilustrador, inicial. Y el zoom
+baja con cada intento (5× → 1,2×); al acabar, la carta entera.
+
+**El recorte es un canvas de PINTAR, no de exportar**, y por eso no
+necesita CORS: una foto de otro dominio se dibuja igual; lo que no se
+puede es leer sus píxeles — y la prueba lo aprendió a golpes:
+`getImageData` revienta con «canvas tainted». Se comprueba que se pidió
+la foto grande, no el píxel.
+
+El foco del recorte se mueve dentro del tercio alto de la carta, que es
+donde está el arte: un recorte del texto del ataque no lo reconoce nadie.
+
+**Se juega sin cuenta**: la partida de hoy y los días acertados viven en
+el navegador. El texto que se comparte lleva el número, `3/6` (o `X/6`),
+las filas, la racha de días acertados y `pokedoc.es/carta-del-dia`.
+
+### Lo compartido con /nueve
+
+El buscador de cartas salió de `js/nueve.js` a `js/catalogo-buscar.js` y
+su CSS a `css/elegir-carta.css` (prefijo `nv-`, que es de donde viene):
+los dos juegos piden lo mismo para escribir la respuesta.
+
+**Y el barrido de la 299 cazó una**: `rarezaDeCarta` importada por
+`rarezas-nombres.js` arrastra `carta-holo.js` y sus clases de
+`carta-holo.css`, que esta página no carga. Va por
+`carta-traducciones.js`, que la reexporta sin el holo. Es la lección de
+la 316 —una página «usa» una clase por importar el módulo que la pinta—
+en su forma más silenciosa.

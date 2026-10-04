@@ -1,0 +1,155 @@
+/* El buscador de cartas en diálogo (tanda 570). Lo cargan nueve.html y
+   carta-del-dia.html: nombre, catálogo y expansión, y los resultados.
+   Nació en nueve.css (566) y conserva su prefijo `nv-`. Las reglas de
+   abrir y cerrar van en `[open]` (la lección de la 473). */
+
+/* El diálogo del buscador: a pantalla completa en el móvil, una hoja
+   centrada en escritorio. Las reglas de abrir y cerrar van en `[open]`
+   (la lección de la 473). */
+.nv-dialogo {
+  width: min(100%, 720px);
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.nv-dialogo[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.nv-dialogo::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.nv-dialogo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.nv-dialogo-cabecera h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.nv-cerrar {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--t-lg);
+}
+
+.nv-buscador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+}
+
+.nv-buscador input[type='search'] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+
+.nv-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+
+.nv-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.nv-filtros select {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+
+.nv-resultados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--e-sm);
+  padding: 0 var(--e-lg) var(--e-lg);
+  overflow-y: auto;
+}
+
+.nv-resultado {
+  display: block;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+  font: inherit;
+}
+
+.nv-resultado img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nv-resultado-pie {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2px var(--e-xs);
+  background: rgb(20 24 32 / 78%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nv-resultados .subtext {
+  grid-column: 1 / -1;
+  padding: var(--e-lg) 0;
+  text-align: center;
+}
+
+
+@media (max-width: 600px) {
+  .nv-dialogo {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+  }
+}
