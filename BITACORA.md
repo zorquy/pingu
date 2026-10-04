@@ -4,6 +4,101 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (tarde, después de la 552) — PINGU-Claude (553 a 555 — guardar eligiendo quién eres, «¿cómo encuentro esta carta?» y la repetición de cada mesa)
+
+**Leídas vuestras 545 a 552 antes de subir**: no tocan nada de lo mío
+(repeticiones, laboratorio, rondas). Lo mío va detrás, de la 553 a la 555
+(se ha renumerado dos veces mientras subíais).
+
+**De dónde sale**: PINGU, verbatim: «lo de importar varias a la vez no lo
+veo, mejor haz que en las repeticiones que se guarden tú puedas elegir cuál
+de los dos jugadores eres y luego se guarde el resultado y los arquetipos
+en tu perfil en partidas sueltas. También me gustaría añadir en el
+laboratorio y en las repeticiones el poder parar y preguntar a la app cuál
+es el mejor camino de habilidades, entrenadores y objetos […] para
+encontrar X carta […] con la probabilidad de cada uno. Y además que los
+jueces puedan asociar repeticiones a cada mesa de cada ronda […] en el
+apartado de rondas. No es obligatorio».
+
+· **553 — fuera «Importar varias» (la 518) y al guardar eliges quién eres.**
+  La ventana de guardar enseña los dos jugadores con su mazo y quién ganó;
+  elegido, «Apuntarla en Mis partidas» la apunta desde tu lado (tu mazo, el
+  del rival, el resultado). Si el registro no dice quién ganó, pregunta
+  cómo acabó. Y el lector entiende ya «… ha ganado.» detrás de cualquier
+  frase (antes solo la de los premios).
+· **554 — «¿Cómo encuentro esta carta?»** en el laboratorio (pestaña
+  «Encontrar» del panel) y en las repeticiones (en la jugada que miras, con
+  la mano entera de quien juega). Juega cada camino de verdad con el motor
+  del laboratorio en los mismos 300–400 repartos de lo que no sabes, sin
+  mirar el orden de verdad del mazo, con un jugador que elige a favor de la
+  carta y sus puentes (Pokégear → Dawn → la carta). Las cifras casan con las
+  exactas donde se pueden hacer a mano (Ultra Ball, Determinación de
+  Lillie).
+· **555 — la repetición de una MESA**: un juez (o quien lleva el torneo)
+  pega en «Rondas» el registro que le pasa un jugador, y la ve todo el
+  mundo —también sin cuenta— bajo esa mesa, en cualquier ronda. Hasta tres
+  por mesa. Si los nombres no son los de la mesa, avisa una vez.
+
+**DOS fallos cazados por las pruebas, y los dos eran de verdad:**
+
+1. **Sin cuenta, la consulta se caía ENTERA.** La política de la 496 iba
+   para todo el mundo y llama a `repeticiones_juez_de`, que sin cuenta no se
+   puede ejecutar; Postgres evalúa todas las políticas, así que al abrir la
+   tabla a `anon` daba «permission denied for function» y la página se
+   quedaba sin ninguna, sin un aviso. La de jugador va ahora `to
+   authenticated` (en las dos migraciones: ejecutar la de la 496 otra vez
+   después no lo deshace, y la prueba lo comprueba en ese orden). Lo cazó
+   `sql-repeticiones-de-mesa.sql` contra PostgreSQL; el doble no podía.
+2. **El aviso de «nombres que no casan» no salía la segunda vez**: al
+   escribir se quita a mano (repintar se llevaría el foco), y `yaEstaPintado`
+   seguía con la firma del HTML CON aviso. Se olvida la firma.
+
+**Y un susto MÍO, que conviene contar**: para comprobar las anclas de los
+rigores ejecuté cada `rigor-tanda-*.py` con un `rigor_comun` de mentira…
+pero los de antes de la 299 (230, 255, 291, 293, 296, 297, 298) NO usan
+`rigor_comun`: mutan y prueban ellos solos. Mi `timeout` los cortó a mitad
+y dejaron CINCO ficheros mutados (`home.js`, `comun.js`, `motor.js`,
+`torneo.js`, `torneos.js`) y tres trozos de `ronda.js` (uno con un error de
+sintaxis). **`comprobar-arbol.sh` decía «sin mutaciones a medias»**, porque
+solo sabe de las de `rigor_comun`. Lo vi en un `git diff --stat` con
+ficheros que no eran míos; restaurados y revisado hunk a hunk. Nada de eso
+ha llegado a subir.
+
+**LO QUE HAY QUE EJECUTAR** en el SQL Editor:
+`supabase-migration-torneos-repeticiones-de-mesa.sql` (después de
+`supabase-migration-repeticiones.sql`; se puede repetir). Sin ella no se
+rompe nada: los jueces no ven el botón y lo demás sigue igual.
+
+**Ficheros**: `js/repeticiones.js`, `repeticiones.html`,
+`css/repeticiones.css`, `js/repeticiones/registro.js`, fuera
+`js/repeticiones/varias.js` (553); **nuevos** `js/constructor/caminos.js` y
+`js/constructor/caminos-html.js`, `js/constructor/laboratorio.js`,
+`css/laboratorio.css`, `js/repeticiones.js` (554);
+`js/torneos/ronda.js`, `js/repeticiones/datos.js`, `css/torneos.css`,
+`supabase-migration-repeticiones.sql` (la política, `to authenticated`) y
+**nueva** `supabase-migration-torneos-repeticiones-de-mesa.sql` (555);
+`SCHEMA.md`, `CLAUDE.md` (dos lecciones). Nada de la portada. En `pruebas`:
+`test-tanda-553/554/555.mjs` y sus rigores (todas las mutaciones detectadas),
+`sql-repeticiones-de-mesa.sql` (nueva, base `prueba_de_mesa`), fuera la 518
+y su rigor, al día la 255 (siete consultas), la 494 y la 496 (y sus
+rigores, y el de la 519), y el doble: `publica`, las dos funciones de los jueces y su visibilidad.
+
+**Pendiente**: nada de lo mío.
+
+**La suite entera** (sobre la 549; después, otra vez lo mío y lo que toca
+—553, 554, 555, 255, 494, 496, 519— sobre la 552): un rojo era MÍO y está
+arreglado — la **255** contaba seis consultas para quien solo mira, y desde
+la 555 son siete a propósito (las repeticiones de mesa las ve todo el
+mundo). La **480** se cayó por tiempo con tres navegadores a la vez y sola
+sale verde; la **470**, la de siempre (le falta `visual/carta-real.png`).
+**Y cinco que NO son míos, para la sesión de las cartas**: la **346** (el
+orden de las colecciones de /cartas), la **471**, la **483** y la **488**
+(`catalogo-asia`: esperan el japonés en TCGdex — «el set nuevo lleva su
+mercado — CN», «de los tres catálogos asiáticos»—, y desde vuestra 547 el
+japonés se calca de Scrydex) y la **545** (la vuestra: «y NO se escribe
+`types`», «no se escribe nada»). Ninguna toca un fichero mío; os las dejo
+apuntadas para que no se acumulen.
+
 ## 2026-10-05 (madrugada, 01:20) — PINGU-Claude (552 — volver al orden del catálogo)
 
 **De dónde sale**: PINGU: «recolócame todas las eras por orden de Scrydex,

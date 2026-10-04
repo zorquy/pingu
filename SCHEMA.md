@@ -28231,6 +28231,11 @@ completa, fondo plano y todo con el teclado».
 
 ## Tanda 518 — importar varias partidas a la vez (oct. 2026)
 
+> **Quitada en la tanda 553** («lo de importar varias a la vez no lo veo»):
+> ya no está ni el botón ni `js/repeticiones/varias.js`. Lo que sigue se
+> queda como historia; quién eres al guardar se pregunta ahora en la
+> ventana de guardar de UNA repetición (ver la 553).
+
 PINGU, de la lista de ideas: «pegar varios registros de golpe (o elegir los
 ficheros) y que se guarden y se apunten en Mis partidas».
 
@@ -28816,3 +28821,107 @@ que la migración. Colocar a mano se entiende probando, y probando se lía
 uno: que deshacerlo dependa de pedírmelo es un callejón sin salida. Si no
 hay nada colocado lo dice, en vez de escribir 231 filas con el valor que ya
 tienen.
+
+## Tanda 553 — fuera «Importar varias», y al guardar eliges quién eres (oct. 2026)
+
+PINGU: «lo de importar varias a la vez no lo veo, mejor haz que en las
+repeticiones que se guarden tú puedas elegir cuál de los dos jugadores eres
+y luego se guarde el resultado y los arquetipos en tu perfil en partidas
+sueltas».
+
+- **«Importar varias» (tanda 518) ya no está**: ni el botón, ni
+  `js/repeticiones/varias.js`, ni sus estilos, ni su prueba y su rigor.
+- **Guardar pregunta quién eres**: los dos jugadores del registro, cada uno
+  con el mazo que se le vio y quién ganó. Elegido, la casilla «Apuntarla en
+  Mis partidas» apunta la partida **desde tu lado**: tu mazo, el del rival
+  y el resultado (`resultadoDesde(yo, ganador)`: el que dice el registro).
+  Si el registro no dice quién ganó (abandono, se cortó), se pregunta cómo
+  acabó —victoria, derrota o empate— y no se inventa. Los mazos se esperan
+  (se deducen de las cartas al cargar) antes de abrir la ventana: con
+  «sin-mazo» la fila de Mis partidas no serviría para la matriz.
+- `registro.js` lee también «… ha ganado.» detrás de cualquier otra frase
+  («El rival no tiene Pokémon en juego. Rojo ha ganado.»): antes solo la de
+  los premios, y una partida ganada así salía como «sin ganador».
+
+## Tanda 554 — «¿Cómo encuentro esta carta?» en el laboratorio y en las repeticiones (oct. 2026)
+
+PINGU: «poder parar y preguntar a la app cuál es el mejor camino de
+habilidades, entrenadores y objetos que tienes que usar para que te
+favorezca al máximo la probabilidad de encontrar X carta. Que te pregunte
+qué carta es la que quieres buscar y te diga todos los posibles caminos con
+la probabilidad de cada uno».
+
+- **El motor** (`js/constructor/caminos.js`, sin DOM) juega de verdad con
+  el motor del laboratorio: cada camino (hasta 3 pasos: objetos, partidario,
+  habilidades y bajar un Pokémon con habilidad al bajarlo) se juega en **los
+  mismos N repartos** de lo que no sabes (números aleatorios comunes: la
+  diferencia entre dos caminos es del camino, no del azar).
+- **No hace trampa**: el reparto baraja lo que NO sabes —mazo y premios
+  boca abajo juntos— y respeta lo que sí sabes (`conocimiento`: lo que
+  viste arriba o abajo del mazo, y las cartas confirmadas en el mazo, que no
+  pueden caer en premios). El orden de verdad del mazo no se mira nunca.
+- Las elecciones dentro de un efecto (qué buscar con Ultra Ball, qué
+  descartar) las hace un jugador A FAVOR de la carta: la coge si puede, y si
+  no, coge un **puente** (Pokégear → Dawn → la carta). Los puentes se
+  descubren probando cada carta del mazo puesta en la mano.
+- Respeta las reglas del turno (un partidario, y ninguno el primer turno de
+  quien empieza). Un paso que no sube la probabilidad no se enseña, pero se
+  sigue mirando si ABRE algo (Caramelo Raro → Pidgeot ex). Un camino más
+  largo que no gana a uno más corto sale marcado como peor.
+- **Cómo se enseña**: «100 %» solo si no puede fallar; si puede, «>99 %».
+  Cada paso dice si siempre se puede dar o «si la tienes: 45 %». Y cuántas
+  quedan entre el mazo y los premios, y con cuántos repartos se ha medido.
+- **Deja la partida EXACTAMENTE como estaba** (la de los dos, con mesa): se
+  prueba comparando el estado entero antes y después.
+- **Laboratorio**: pestaña «Encontrar» del panel. Si la mesa cambia, el
+  resultado viejo no se enseña («vuelve a buscar»).
+- **Repeticiones**: «¿Cómo encuentro una carta?» en la jugada que miras,
+  montando la mesa de esa jugada (la de «Jugar desde aquí»). Solo con la
+  mano ENTERA de quien juega (en un registro de TCG Live, la de quien lo
+  copió): sin saber qué tiene no hay caminos. Sin su lista asociada lo
+  dice — las copias que no llegaron a salir no cuentan.
+
+## Tanda 555 — la repetición de una MESA, la añade un juez y la ve todo el mundo (oct. 2026)
+
+PINGU: «que los jueces puedan asociar repeticiones a cada mesa de cada
+ronda para que los jugadores puedan ver la repetición de las mesas […] que
+quieran pasar su log para que los jueces añadan la repetición de su
+partida, y que se quede en el apartado de rondas en los torneos. Puede que
+tengan repetición o puede que no, no es obligatorio».
+
+- **Dos clases en `tournament_match_replays`**: las de JUGADOR (tanda 496,
+  privadas: los dos de la mesa, quien lleva el torneo y sus jueces) y las
+  DE MESA (`publica = true`): las añade un juez aprobado o quien lleva el
+  torneo, y las ve **cualquiera que vea la mesa, con cuenta o sin ella**.
+- Se añade y se quita por función (`torneos_juez_adjuntar_repeticion`,
+  `torneos_juez_quitar_repeticion`): con una repetición del propio juez
+  (la acaba de guardar con el registro que le pasaron), solo a una mesa con
+  partida (ni pendiente ni bye), hasta tres por mesa (un BO3); añadir la
+  COMPARTE. Quitar solo quita las de mesa: las de los jugadores son suyas.
+- En **«Rondas»**, bajo cada mesa de cada ronda: el enlace «Repetición de la
+  mesa» para todo el mundo, y para el juez «Añadir la repetición de la mesa»
+  (pegar el registro y listo) y «Quitar». En «Tu partida» solo se enlaza.
+- **Si los nombres del registro no son los de TCG Live de la mesa**, avisa
+  una vez («¿Es la partida de la mesa 2?») y deja «Añadirla igual»: puede
+  que alguien se inscribiera sin su nombre de TCG Live.
+- **La política de la 496 iba para todo el mundo y llamaba a dos funciones
+  que sin cuenta no se pueden ejecutar.** Postgres evalúa TODAS las
+  políticas de una tabla, así que con una política nueva para `anon` la
+  consulta sin cuenta fallaba ENTERA («permission denied for function
+  repeticiones_juez_de») y la página se quedaba sin ninguna, sin un aviso.
+  Ahora la de jugador es `to authenticated` (en la migración nueva con un
+  `alter policy`, y en la de la 496 también, para que ejecutarla otra vez
+  después no lo deshaga). Lo cazó la prueba contra PostgreSQL de verdad; el
+  doble devuelve lo que puede y no lo habría visto.
+- **Un DOM tocado a mano después de pintar deja mintiendo a
+  `yaEstaPintado`**: al escribir en el registro se quita el aviso a mano
+  (repintar se llevaría el foco), y la firma de la última pasada seguía
+  siendo la del HTML CON aviso — así que el mismo aviso la segunda vez se
+  creía pintado y no salía. Se olvida la firma (`olvidarPintado('mesas')`).
+
+### Lo que hay que ejecutar (tanda 555)
+
+`supabase-migration-torneos-repeticiones-de-mesa.sql`, después de
+`supabase-migration-repeticiones.sql` y de los torneos. Se puede repetir.
+Sin ella no se rompe nada: los jueces no ven el botón (la columna `publica`
+no está) y las repeticiones de los jugadores siguen como estaban.

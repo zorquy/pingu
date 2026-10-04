@@ -782,6 +782,16 @@ Postgres no se quitan: pedirlas —o pedir `*`, que las incluye— hace fallar
 la consulta ENTERA con 42501. Un `.select('*')` en esa tabla habría salido
 verde aquí y vacío en la web. Si la base dice que no, el doble dice que no.
 
+Y el de la 555, que es la misma familia por el lado de las POLÍTICAS:
+**Postgres evalúa TODAS las políticas de una tabla, así que una función
+que tu rol no puede ejecutar tumba la consulta entera** aunque esa política
+nunca te fuera a dejar pasar. Abrir `tournament_match_replays` a `anon`
+(las repeticiones de mesa las ve todo el mundo) hizo que sin cuenta fallara
+con «permission denied for function repeticiones_juez_de»: la política de
+las de JUGADOR iba para todo el mundo y llama a funciones de
+`authenticated`. Una política que llama a funciones de un rol va `to` ese
+rol. Lo cazó la prueba contra PostgreSQL; el doble devuelve lo que puede.
+
 **Una prueba que ORDENA lo que recibe no prueba el orden de quien se lo
 da** (tanda 520). La de la galería comprobaba «la más nueva primero» con
 `array_agg(id order by publicada_at desc)` sobre lo que devolvía la
@@ -835,6 +845,15 @@ sitio a la suite y pilló una mutación puesta —`foro.html` se quedó sin el
 enlace de salto—. El salvavidas lo arregló (`rigor_comun.rescatar()`),
 pero solo porque `comprobar-arbol.sh` lo cantó. Si hay que parar uno,
 espera a que acabe la mutación en curso o rescata justo después.
+
+Y **un rigor de antes de la 299 no se «lee» ejecutándolo** (tanda 555):
+los `rigor-tanda-2xx.py` viejos NO usan `rigor_comun` —mutan, prueban y
+restauran ellos solos—, así que correrlos para comprobar sus anclas los
+corre DE VERDAD, y cortarlos con un `timeout` dejó cinco ficheros de
+torneos mutados y tres trozos de `ronda.js` (uno sin compilar).
+**`comprobar-arbol.sh` dijo «sin mutaciones a medias»**: solo sabe de las
+copias de `rigor_comun`. Lo cantó un `git diff --stat` con ficheros que no
+eran míos — si ves uno así, es esto.
 
 **Una captura con los datos a medias no es la pantalla: es OTRA pantalla**
 (tanda 441). Todo el repaso visual de las tandas 439 y 440 se hizo sobre
