@@ -57,7 +57,8 @@ console.log('── 2. Sin cuenta ──')
   const boton = page.locator('#rtHoyEstado a')
   check('el de hoy manda a crear cuenta', /auth\.html/.test((await boton.getAttribute('href')) || ''), await boton.getAttribute('href'))
   check('  …y dice el número del día', (await page.locator('#rtHoyEstado').innerText()).includes(`Reto #${numeroDelDia(hoy)}`))
-  check('«¿Qué carta es?» está, como «muy pronto»', /Muy pronto/.test(await page.locator('#rtCarta').innerText()))
+  // Desde la 570 se juega: su tarjeta lleva al juego.
+  check('«¿Qué carta es?» lleva al juego', (await page.locator('#rtCartaEstado a').getAttribute('href')) === '/carta-del-dia')
   await page.close()
 }
 
