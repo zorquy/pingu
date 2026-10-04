@@ -28655,3 +28655,44 @@ contenedor el 2026-08-28 y el comentario se quedó afirmando una red que no
 había. Ahora lo cubre `test-tanda-548.mjs`, que comprueba las dos caras —con
 teoría sola no sale, con una pregunta sí— y que la página del curso contesta
 lo mismo que el botón.
+
+## Tanda 549 — «Hacer el curso» llevaba a «Guía no encontrada» (oct. 2026)
+
+PINGU, con la captura: «te he pasado el botón de una guía… y si le das, te
+sale lo de guía no encontrada. Ese es el problema».
+
+**Y la 548 no era esto.** Esa guía SÍ tiene curso —la llamada dice
+«preguntas, racha y medalla, se tarda 8 minutos»—: lo que estaba roto era el
+ENLACE. La 548 arregla un caso real y distinto (una guía de solo teoría
+ofrecía curso), y por eso no quitó el botón de esta.
+
+Una guía se sirve en `/guia/<slug>` desde la tanda 353, y el botón apuntaba
+a `curso.html?slug=…` **en relativo**. Desde `/guia/mi-guia` el navegador lo
+resuelve a `/guia/curso.html`, que casa con la reescritura `/guia/:slug` y
+devuelve la página de la GUÍA buscando una con el slug «curso.html». De ahí
+el mensaje.
+
+Es la trampa de la 327 otra vez —la que dejó `/coleccion/tr` sin CSS porque
+el navegador pedía `/coleccion/css/style.css`— y `netlify.toml` la lleva
+escrita desde la 269: «por eso guia.html pasó a enlazar todo con rutas
+absolutas». Lo que nunca se enteró fue **el JavaScript que pinta los
+enlaces**, y ahí estaban los seis de esa página: los dos del curso, los tres
+de editar la guía (o sea que el botón de EDITAR del admin llevaba al mismo
+callejón) y el de iniciar sesión.
+
+**Por qué no lo veía ninguna prueba**: todas abren las guías por
+`/guia.html?slug=…`, y ahí un enlace relativo funciona perfectamente. La
+dirección bonita es la que usa la gente.
+
+**La regla, que ahora es comprobable**: ningún enlace a una página nuestra
+se escribe en relativo, ni en el HTML ni pintado desde JavaScript. No es
+solo por las guías: hay OCHO direcciones que sirven una página desde un
+nivel más abajo (`/guia/`, `/noticias/`, `/usuario/`, `/foro/`, `/tema/`,
+`/meta/`, `/carta/`, `/coleccion/`), y como un módulo compartido puede
+acabar pintando en cualquiera, la regla vale para todos. `test-tanda-549.mjs`
+barre `js/` y las siete páginas profundas, y además **pulsa el botón de
+verdad desde `/guia/<slug>`** y mira dónde se acaba.
+
+Once enlaces estaban mal: seis en `js/guia.js`, dos en `js/curso.js`, dos en
+`js/home.js`, uno en `js/tarjeta-guia-ancha.js` y una navegación en
+`js/perfil.js`.

@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (noche, 21:30) — PINGU-Claude (549 — el botón del curso llevaba a «Guía no encontrada»)
+
+**De dónde sale**: PINGU pasó la captura. Y **la 548 no era esto**: esa guía
+SÍ tiene curso (la llamada dice «se tarda 8 minutos»). Lo roto era el
+ENLACE.
+
+**La causa**: una guía se sirve en `/guia/<slug>` y el botón apuntaba a
+`curso.html?slug=…` **en relativo**. El navegador lo resuelve a
+`/guia/curso.html`, que casa con la reescritura `/guia/:slug` y devuelve la
+página de la guía buscando una con el slug «curso.html».
+
+Es la trampa de la 327 —la que dejó /coleccion/tr sin CSS— y `netlify.toml`
+la lleva escrita desde la 269: «por eso guia.html pasó a enlazar todo con
+rutas absolutas». El que no se enteró fue el JAVASCRIPT que pinta los
+enlaces. **Eran once**, y dos de ellos peores que el del curso: los TRES de
+editar la guía llevaban al mismo callejón, o sea que el botón de editar del
+admin estaba roto en todas las guías, y el de iniciar sesión también.
+
+**Por qué no lo veía ninguna prueba**: todas abren las guías por
+`/guia.html?slug=…`, donde el relativo funciona. La dirección bonita es la
+que usa la gente.
+
+**Hecho**: los once a ruta absoluta, y una guarda que barre `js/` y las
+siete páginas que se sirven desde un nivel más abajo. La prueba además
+PULSA el botón desde `/guia/<slug>` y mira dónde acaba — probada al revés
+(volviendo a poner el relativo) y salen seis rojos, incluido el camino
+entero: `http://localhost:8892/guia/curso.html?slug=mi-guia`.
+
+**Ficheros**: `js/guia.js`, `js/curso.js`, `js/home.js`,
+`js/tarjeta-guia-ancha.js`, `js/perfil.js`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-549.mjs` y `pruebas/test-tanda-548.mjs` (su enlace
+esperado ahora es el absoluto).
+
 ## 2026-10-04 (noche, 20:10) — PINGU-Claude (547 y 548)
 
 ### 547 — el catálogo japonés se CALCA de Scrydex

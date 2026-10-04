@@ -227,7 +227,7 @@ async function init() {
       <div class="empty-state pro-paywall">
         <span style="display:flex; justify-content:center;">${icons.star(32)}</span>
         <p style="margin-top: 8px;">Este contenido es exclusivo para usuarios Pro: ejemplos, consejos y trucos avanzados aparte de la documentación gratuita.</p>
-        ${session ? '' : `<a href="auth.html" class="btn-primary" style="margin-top:12px;">Inicia sesión</a>`}
+        ${session ? '' : `<a href="/auth.html" class="btn-primary" style="margin-top:12px;">Inicia sesión</a>`}
       </div>`
     : ''
 
@@ -252,7 +252,7 @@ async function init() {
               estadoDeGuia(guide).texto
             )}</strong> — esto no lo ve nadie más que tú y el equipo. No sale en la web ni en los buscadores.</span>${
               esMia
-                ? `<a class="btn-secondary guia-seguir-editando" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
+                ? `<a class="btn-secondary guia-seguir-editando" href="/editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
                 : ''
             }</p>`
           : ''
@@ -266,7 +266,7 @@ async function init() {
               // relee lo que lleva escrito, así que es donde tiene que
               // estar el botón — no escondido en su perfil.
               esMia
-                ? `<a class="btn-secondary guia-seguir-editando" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
+                ? `<a class="btn-secondary guia-seguir-editando" href="/editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Seguir editando</a>`
                 : ''
             }</p>`
           : ''
@@ -322,7 +322,7 @@ async function init() {
             // en una lista de su perfil. La pendiente ya tiene su propio
             // "Seguir editando" arriba, dentro del aviso de revisión.
             esMia && guide.review_status === 'approved'
-              ? `<a class="btn-secondary guia-editar-mia" href="editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Editar</a>`
+              ? `<a class="btn-secondary guia-editar-mia" href="/editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Editar</a>`
               : ''
           }
           ${
@@ -338,7 +338,7 @@ async function init() {
             // perdió con el contenedor el 2026-08-28 y el comentario se
             // quedó afirmando una red que no había.)
             hayCurso
-              ? `<a class="btn-secondary guia-ir-al-curso" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
+              ? `<a class="btn-secondary guia-ir-al-curso" href="/curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
               : ''
           }
         </div>
@@ -367,7 +367,7 @@ async function init() {
         <h2>¿Te ha servido? Ponlo a prueba</h2>
         <p class="subtext">Esta guía tiene curso: preguntas, racha y medalla. Se tarda ${guide.estimated_mins || 5} minutos.</p>
       </div>
-      <a class="btn-primary" href="curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(15)} Hacer el curso</a>
+      <a class="btn-primary" href="/curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(15)} Hacer el curso</a>
     </div>`
         : ''
     }

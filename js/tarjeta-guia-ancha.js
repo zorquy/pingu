@@ -16,7 +16,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
   const courseLabel = statusBadge === 'completed' ? 'Repasar' : `${icons.graduationCap(15)} Curso`
   const hasCourse = guideHasCourse(guide)
   const courseBtn = hasCourse
-    ? `<a href="curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
+    ? `<a href="/curso.html?slug=${encodeURIComponent(guide.slug)}" class="btn-course" onclick="event.stopPropagation()">${courseLabel}</a>`
     : `<span class="btn-course" style="opacity:.4; cursor:not-allowed;">${icons.graduationCap(15)} Curso</span>`
   const hasGuide = guideHasReference(guide)
   const guideBtn = hasGuide

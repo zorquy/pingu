@@ -487,7 +487,7 @@ async function loadMyGuides(session) {
   }
 
   container.querySelectorAll('[data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.edit}`))
+    btn.addEventListener('click', () => (window.location.href = `/editor-guia.html?id=${btn.dataset.edit}`))
   )
   container.querySelectorAll('[data-delete]').forEach((btn) =>
     btn.addEventListener('click', async () => {

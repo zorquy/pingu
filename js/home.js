@@ -539,7 +539,7 @@ async function cargarBienvenida(session) {
         ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
         ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
         ${levelBadgeHtml(calculateLevel(profile.total_xp || 0))}
-        <a class="btn-secondary bienvenida-perfil" href="perfil.html">Tu perfil →</a>
+        <a class="btn-secondary bienvenida-perfil" href="/perfil.html">Tu perfil →</a>
       </div>`
     // El hero se esconde SOLO cuando la bienvenida está lista: si algo
     // de arriba fallara, la portada de siempre sigue entera. La clase
@@ -709,7 +709,7 @@ async function cargarReto() {
       titular: 'Cinco preguntas al día',
       puntos: puntosHtml(0, 5),
       sub: 'Las mismas para todo el mundo. Se juega en un minuto y suma XP.',
-      boton: '<a class="btn-primary reto-hoy-boton" href="auth.html">Crear cuenta y jugar →</a>',
+      boton: '<a class="btn-primary reto-hoy-boton" href="/auth.html">Crear cuenta y jugar →</a>',
     })
     seccion.style.display = ''
     return

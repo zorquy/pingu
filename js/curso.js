@@ -578,7 +578,7 @@ function renderReward(b) {
             ? `<a href="/guia/${encodeURIComponent(guide.slug)}" class="btn-secondary">${icons.bookOpen(15)} Repasar la teoría</a>`
             : ''
         }
-        <a href="aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>
+        <a href="/aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>
       </div>
     </div>`
 }
@@ -1685,7 +1685,7 @@ function pantallaVacia(titulo, texto) {
       <h2 class="block-title">${escapeHtml(titulo)}</h2>
       <p class="block-body">${escapeHtml(texto)}</p>
       <div class="reward-actions" style="justify-content:center;">
-        <a href="aprender.html" class="btn-primary">Ir a los cursos →</a>
+        <a href="/aprender.html" class="btn-primary">Ir a los cursos →</a>
       </div>
     </div>`
   btnContinue.style.display = 'none'
