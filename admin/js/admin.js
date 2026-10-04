@@ -3086,7 +3086,13 @@ async function comoVaScrydex() {
       cuenta('tcg_cards', (q) => q.is('image_scrydex', null).not('image_path', 'is', null)),
     ])
     // El estado de la pasada: por dónde iba y cuántos barridos lleva.
-    const { data: est } = await supabase.from('scrydex_estado').select('clave,valor,updated_at')
+    // OJO AL VACÍO: `scrydex_estado` lleva RLS, y la RLS **no da error,
+    // devuelve una lista vacía**. Sin su política de lectura, esto
+    // contestaba cero filas y el panel decía «todavía no ha corrido
+    // ninguna vez» aunque llevara toda la noche corriendo — una mentira
+    // en lo primero que se mira por la mañana. Mientras no esté la
+    // migración, se dice que no se sabe, que es la verdad.
+    const { data: est, error: errEst } = await supabase.from('scrydex_estado').select('clave,valor,updated_at')
     // Las rarezas que de verdad hay, que es lo que dice qué falta traducir.
     const { data: rar } = await supabase
       .from('tcg_cards').select('rarity_en').eq('market', 'WEST').not('rarity_en', 'is', null).limit(5000)
@@ -3111,7 +3117,12 @@ async function comoVaScrydex() {
       '',
       '── LA PASADA ──',
       ...(est || []).map((e) => `  ${e.clave}: ${JSON.stringify(e.valor)}  (${e.updated_at})`),
-      (est || []).length ? '' : '  (todavía no ha corrido ninguna vez)',
+      (est || []).length
+        ? ''
+        : (errEst
+          ? `  (no se ha podido leer: ${errEst.message})`
+          : '  (no se sabe: o no ha corrido todavía, o falta por ejecutar'
+            + ' `supabase-migration-scrydex-estado-lectura.sql`, que es lo que deja al panel leer esta tabla)'),
       '',
       `── RAREZAS QUE HAY: ${porRareza.size} ──`,
       ...[...porRareza.entries()].sort((a, b) => b[1] - a[1]).map(([r, n]) => `  ${String(n).padStart(6)}  ${r}  →  ${rarezaEs(r)}`),
