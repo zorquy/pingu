@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 06:10) — PINGU-Claude (522 — el cuarto freno que no frenaba: si falla NUESTRA base, la petición ya está pagada)
+
+**Hecho**: en `scrydex-relleno` el orden era «pido la página a Scrydex →
+pregunto a nuestra base a qué cartas corresponde». Si nuestra base fallaba
+—una caída, un cambio de política, un 42501—, el `throw` se escapaba de la
+función: **el crédito ya estaba gastado**, la página NO avanzaba, y a los
+cinco minutos lo mismo. Eso son **288 créditos al día** sin escribir una
+sola carta, y de 5.000 al mes no queda nada en un par de días.
+
+Es el cuarto caso de la misma familia esta noche, y el que faltaba por
+cerrar: la página que falla siempre ya se saltaba a la quinta, pero **solo
+si el fallo era SUYO**. Un fallo nuestro no contaba como tropiezo.
+
+Ahora hay un solo `tropiezo(porque, codigo)` que hace lo mismo para los dos
+lados: suma un fallo, lo guarda, y a la quinta salta la página y sigue. El
+cuerpo de la página va envuelto en `try/catch`, así que un error de nuestra
+base entra por ahí con su propio texto («Nuestra base: …») y se puede
+distinguir en el panel.
+
+La regla: **cuando una pasada gasta dinero antes de poder fallar, TODO lo
+que pase después tiene que contar como intento.** Si solo cuentas los
+fallos del tercero, el freno existe para la mitad de los fallos posibles.
+
+**Rigor**: una mutación, cazada (dejar escapar el fallo de nuestra base).
+Y la prueba picó primero con un fixture mal puesto: la había sembrado en
+`pagina: 3`, y en el doble solo la página 1 trae datos, así que el bucle
+salía por «fin del catálogo» **antes de llegar a la base** y la
+comprobación no ejercitaba nada. Es la lección de siempre con otra cara:
+una prueba en verde que no llega a tocar lo que dice probar.
+
+**Ficheros**: `netlify/functions/scrydex-relleno.mjs`. En `pruebas`:
+`pruebas/test-tanda-509.mjs` (una comprobación más).
+
+**Queda pendiente**: nada en curso. Sigue sin ejecutar la migración
+OPCIONAL `supabase-migration-scrydex-estado-lectura.sql` (es la política de
+SELECT de `scrydex_relleno_estado`: mientras no esté, /admin → Cartas →
+«¿Cómo va el relleno?» dirá «no se sabe» en vez de los números).
+
 ## 2026-10-04 (madrugada, 05:20) — PINGU-Claude (510 — el tercer freno que no frenaba)
 
 **Hecho**: releyendo `scrydex-logos` sale **el mismo bug del freno, por

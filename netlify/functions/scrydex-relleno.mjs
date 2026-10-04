@@ -194,6 +194,37 @@ export async function procesar({
   const rarezas = new Map()
   const ejemplosDeNombre = []
 
+  // ── UN TROPIEZO ES UN TROPIEZO, VENGA DE DONDE VENGA (tanda 510) ──
+  //
+  // Esto estaba escrito SOLO para un fallo de su API, y por debajo se
+  // colaba el nuestro: la petición a Scrydex va ANTES de hablar con
+  // Supabase, así que si Supabase falla **el crédito ya está gastado**, la
+  // página no avanza, y se reintenta cada cinco minutos para siempre — 288
+  // créditos al día. Es la cuarta vez esta noche con la misma forma, y las
+  // tres anteriores me las había mirado sin ver esta.
+  const tropiezo = async (porque, codigo) => {
+    const fallos = (Number(estado?.fallos) || 0) + 1
+    const seSalta = fallos >= FALLOS_PARA_SALTAR
+    await guardarEstado({
+      pagina: seSalta ? pagina + 1 : pagina,
+      total,
+      barridos,
+      fallos: seSalta ? 0 : fallos,
+      ...(seSalta ? { saltadas: [...(estado?.saltadas || []), pagina].slice(-20) } : {}),
+      error: porque,
+      cuando: new Date().toISOString(),
+    })
+    return {
+      estado: codigo,
+      cuerpo: {
+        error: `${porque} en la página ${pagina}`,
+        pagina,
+        intentos: fallos,
+        ...(seSalta ? { AVISO: `Esa página ha fallado ${fallos} veces: se salta y se sigue. Quedan ~250 cartas sin marcar.` } : {}),
+      },
+    }
+  }
+
   while (paginasHechas < paginas && quedaTiempo()) {
     if (paginasHechas > 0) await respirar(MS_ENTRE_PETICIONES)
     const res = await fetchImpl(urlDeSonda(`${IDIOMA}/cards`, { page: pagina, page_size: PAGINA }), { headers: cabeceras })
@@ -211,26 +242,7 @@ export async function procesar({
       // A la quinta se pasa de largo y se deja dicho cuál se saltó. Una
       // página perdida son 250 cartas que se quedan sin marcar; un barrido
       // parado para siempre son 21.476.
-      const fallos = (Number(estado?.fallos) || 0) + 1
-      const seSalta = fallos >= FALLOS_PARA_SALTAR
-      await guardarEstado({
-        pagina: seSalta ? pagina + 1 : pagina,
-        total,
-        barridos,
-        fallos: seSalta ? 0 : fallos,
-        ...(seSalta ? { saltadas: [...(estado?.saltadas || []), pagina].slice(-20) } : {}),
-        error: `Scrydex ${res.status}`,
-        cuando: new Date().toISOString(),
-      })
-      return {
-        estado: 502,
-        cuerpo: {
-          error: `Scrydex ${res.status} en la página ${pagina}`,
-          pagina,
-          intentos: fallos,
-          ...(seSalta ? { AVISO: `Esa página ha fallado ${fallos} veces: se salta y se sigue. Quedan ~250 cartas sin marcar.` } : {}),
-        },
-      }
+      return tropiezo(`Scrydex ${res.status}`, 502)
     }
     const j = await res.json()
     const lote = Array.isArray(j?.data) ? j.data : []
@@ -246,6 +258,7 @@ export async function procesar({
       break
     }
 
+    try {
     // Las cartas NUESTRAS de los sets que salen en esta página.
     const susSets = [...new Set(lote.map((c) => String(c?.expansion?.id || '').toLowerCase()).filter(Boolean))]
     const nuestrosIds = susSets
@@ -282,6 +295,11 @@ export async function procesar({
     // algo, y lleva claves distintas de las de arriba —PostgREST las
     // exige uniformes dentro de una misma sentencia—.
     if (nombres.length) { await guardar('tcg_cards', nombres); nombresArreglados += nombres.length }
+    } catch (e) {
+      // Lo nuestro también cuenta como tropiezo: si no, un Supabase que
+      // falla siempre quema un crédito cada cinco minutos para siempre.
+      return tropiezo(`Nuestra base: ${String(e?.message || e).slice(0, 90)}`, 500)
+    }
 
     pagina++
     if (total && (pagina - 1) * suTam >= total) {

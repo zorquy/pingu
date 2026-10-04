@@ -127,6 +127,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   catálogo no tiene y «quedan pendientes» sería verdad para siempre. Antes
   de poner un `schedule`, multiplica: coste por pasada × pasadas al día ×
   30. Si el resultado no cabe en el presupuesto, el `schedule` está mal.
+- **Cuando una pasada GASTA antes de poder fallar, todo lo que venga
+  después cuenta como intento** (tanda 522, y es la cuarta vez esta noche que
+  un freno frena solo la mitad). `scrydex-relleno` pedía la página a Scrydex
+  —crédito gastado— y luego preguntaba a nuestra base. El salto a la quinta
+  página fallida existía, pero solo contaba los fallos SUYOS: si el que
+  fallaba era nuestro Supabase, el error se escapaba de la función, la página
+  no avanzaba y a los cinco minutos otra vez — **288 créditos al día sin
+  escribir una carta**. El cuerpo entero va en `try/catch` y los dos lados
+  pasan por el mismo `tropiezo()`. Antes de poner un freno, mira **dónde se
+  paga** y cuenta desde ahí.
 - **Un `return` que esconde tres finales distintos es un SILENCIO** (tanda
   510). `/cartas` tenía `if (error || !data?.length) return`, así que si la
   consulta fallaba la página se quedaba con el título «Colecciones» y un
