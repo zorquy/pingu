@@ -4,6 +4,15 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 10:20) — PINGU-Claude (579 — «Carpetas» pasa a «Álbumes»)
+
+**Hecho**: la pestaña, el panel, la tarjeta del Panel y la miga dicen
+«Álbumes» (dentro siguen las carpetas y los álbumes soñados). Los ids y
+`?ver=carpetas` no cambian.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`, `SCHEMA.md`. En
+`pruebas`: 447 y 477 (el nombre).
+
 ## 2026-10-06 (mañana, 09:50) — PINGU-Claude (577 — «las que faltan» y el idioma)
 
 **Hecho**: en una expansión, desplegable «Contar solo las que tengo en…»

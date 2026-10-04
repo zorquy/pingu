@@ -29729,3 +29729,22 @@ la compra de quien colecciona en uno.
   vacían al abrir otra especie, como sus filtros.
 
 **Sin migración.**
+
+## Tanda 579 — la pestaña «Carpetas» se llama «Álbumes» (oct. 2026)
+
+PINGU: «en Carpetas no son solo carpetas: son carpetas y álbumes. Pero
+poner “carpetas y álbumes” me parece muy largo; busca otra palabra».
+
+**«Álbumes».** Es como la gente llama a cualquier manera de juntar cartas
+—«me he hecho un álbum de Eevees»—, y dentro siguen las dos formas que
+hay: las carpetas (con subcarpetas, para ordenar lo que TIENES) y los
+álbumes soñados (lo que QUIERES tener, en orden, como un archivador).
+Las otras palabras que se miraron y por qué no: «Colecciones» ya nombra a
+las expansiones en /cartas; «Archivador» es la vista de bolsillos de una
+expansión; «Guardados» es una página del sitio.
+
+Cambia el rótulo de la pestaña, el `aria-label` del panel, la tarjeta del
+Panel y la miga («Álbumes ›»). Los identificadores (`mcPanelCarpetas`,
+`data-pestania="carpetas"`, `?ver=carpetas`) **no** cambian: un enlace
+guardado tiene que seguir llegando, y renombrar ids por un rótulo es
+cambiar cien líneas para que la pantalla diga lo mismo.

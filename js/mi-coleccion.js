@@ -1093,7 +1093,7 @@ async function pintarVistazos() {
     </section>`)
   }
   if (carpetasLista.length) {
-    caja.insertAdjacentHTML('beforeend', vistazoHtml('Carpetas', 'carpetas',
+    caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
   }
 }
@@ -3758,7 +3758,7 @@ function pintarCarpetas() {
     // La miga, en su forma CORTA desde la tanda 477: el nombre lo dice el
     // título grande de debajo, como en una expansión, y repetirlo en la
     // miga era decir dos veces lo mismo en dos renglónes seguidos.
-    migas.innerHTML = migasHtml([{ texto: 'Carpetas', id: 'mcCarpetaVolver' }])
+    migas.innerHTML = migasHtml([{ texto: 'Álbumes', id: 'mcCarpetaVolver' }])
     $('mcCarpetaTitulo').textContent = c.nombre
     barra.classList.remove('hidden')
     buscador.classList.remove('hidden')
