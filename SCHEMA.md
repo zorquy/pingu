@@ -28286,3 +28286,56 @@ En el SQL Editor, en este orden (las tres se pueden repetir enteras):
 Sin ellas no se rompe nada: el reparto de premios sale sin el botón de
 «dado», «Publicar como ejemplo» dice qué falta, las partidas de ejemplo de
 /meta no salen, y los puzles dicen qué falta al hacer uno.
+
+## Tanda 510 (madrugada) — los callejones sin salida
+
+Repaso visual de las pantallas que PINGU quiere enseñar, hecho con
+Playwright contra el entorno de pruebas y **llenando las imágenes antes de
+mirar** (la lección de la 441: una captura con las cartas en blanco es otra
+pantalla). Salió tres veces el mismo patrón, en tres sitios distintos:
+
+### 1. El estado vacío de /mi-coleccion mandaba a una pestaña borrada
+
+Decía «añádelas desde "Añadir cartas"». Esa pestaña **la borró la tanda
+408** al juntar los dos buscadores en uno. Llevaba desde entonces mandando
+a la gente a un sitio que no existe, en la primera pantalla que ve quien se
+acaba de registrar.
+
+> Un texto no se rompe cuando su destino desaparece; un **botón** sí. **Un
+> camino escrito en prosa es un enlace que nadie comprueba.**
+
+### 2. El álbum juntaba dos vacíos distintos
+
+«No hay ninguna colección que enseñar todavía» salía igual si no había
+ninguna que si **tus filtros** escondían las doscientas — y el «todavía»
+mentía en el segundo caso, porque decía «espera y se llenará» cuando lo que
+había que hacer era quitar un filtro. El dato que las distingue
+(`totalSinFiltrar`) se calculaba dos líneas más abajo.
+
+Ahora dice cuántas te está escondiendo y hay un botón que las quita. Y las
+quita **todas**: dejar un filtro puesto sería dejar la pantalla igual de
+vacía con el botón pareciendo roto.
+
+### 3. El 404 de una carta explicaba el problema y no ofrecía salida
+
+Es la página a la que llega quien sigue un enlace viejo o escribe mal una
+dirección, y era un callejón sin salida. Ahora lleva al catálogo.
+
+Con dos detalles que importan:
+
+· **Las clases son de `css/carta.css`, no las de /mi-coleccion.** Ni
+  `carta.html` ni `coleccion.html` cargan esa hoja, así que reutilizar sus
+  clases habría sido la trampa de la 299 — una pantalla pintando con CSS
+  que no se descarga.
+· **Un solo botón.** Puse dos y los dos iban al MISMO sitio con rótulos
+  distintos: prometer dos cosas y dar una. Lo de buscar se cuenta en el
+  texto, que es donde no engaña.
+
+### Lo que une a los tres
+
+Ninguno daba error, ninguno salía en una prueba, y los tres se ven en
+cuanto alguien mira la pantalla con los ojos de quien llega por primera
+vez. **Un vacío que no dice de qué es, es un vacío que no se puede
+arreglar** — y la forma de que no vuelva a pasar no es revisar los textos,
+es que los caminos sean botones: si el destino se borra, el botón se rompe
+y se ve.

@@ -156,7 +156,18 @@
       <!-- carta:fin -->
     </article>
 
-    <p id="cartaError" class="empty-state hidden">No encuentro esa carta. Puede que la dirección esté mal escrita o que la carta todavía no esté en el catálogo.</p>
+    <div id="cartaError" class="no-encontrado hidden">
+      <p class="no-encontrado-titulo"><strong>No encuentro esa carta.</strong></p>
+      <p class="no-encontrado-texto">Puede que la dirección esté mal escrita o que la carta todavía no esté en el catálogo. En el catálogo puedes buscarla por su nombre.</p>
+      <!-- UN solo botón: los dos que había iban al MISMO sitio con dos
+           rótulos distintos, o sea prometiendo dos cosas y dando una. Y la
+           casa ya tiene esa norma escrita para los objetivos táctiles —un
+           enlace que repite un destino que ya cubre otro—. Lo de buscar se
+           cuenta en el texto, que es donde no engaña. -->
+      <div class="no-encontrado-acciones">
+        <a class="btn-primary" href="/cartas">Ir al catálogo</a>
+      </div>
+    </div>
 
     <!-- Precio de Cardmarket y «Añadir a mi colección» (tanda 365). Lo
          pinta js/carta-mercado.js con el precio que pide a TCGdex en el

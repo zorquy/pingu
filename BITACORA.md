@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 04:30) — PINGU-Claude (510 — los callejones sin salida)
+
+**Hecho**: repaso visual de las pantallas que PINGU quiere enseñar por la
+mañana, con Playwright y llenando las imágenes antes de mirar (lección de
+la 441). El mismo patrón tres veces y ninguna daba error:
+
+· **El estado vacío de /mi-coleccion** mandaba a la pestaña «Añadir
+  cartas», que **borró la tanda 408**. Dos años mandando a la gente a un
+  sitio que no existe, en la primera pantalla que ve quien se registra.
+· **El álbum** juntaba «no hay ninguna colección» con «tus filtros las
+  esconden todas», y el «todavía» mentía en el segundo caso. Ahora dice
+  cuántas te esconde y hay un botón que quita los filtros — todos.
+· **El 404 de una carta y el de una colección** explicaban el problema y no
+  ofrecían ninguna salida. Ahora llevan al catálogo.
+
+Y dos cosas que casi se me cuelan al arreglarlo: las clases nuevas del 404
+las puse primero en las de /mi-coleccion, y **ni carta.html ni
+coleccion.html cargan esa hoja** (trampa de la 299, cazada antes de
+subirlo); y puse DOS botones que iban al mismo sitio con rótulos distintos.
+
+**Suite**: 225 verdes, 1 rojo — y el rojo es `test-tanda-493`, que necesita
+`ffprobe` y no está instalado en este contenedor. Se queda rojo a propósito.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `carta.html`, `coleccion.html`, `css/carta.css`,
+`js/cartas.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-372.mjs`.
+
+**Pendiente para PINGU al despertar**: el botón «¿Cómo va el relleno?» de
+/admin → Cartas, que es lo primero que hay que mirar. Y, si quiere ver por
+dónde va la pasada, ejecutar `supabase-migration-scrydex-estado-lectura.sql`
+(opcional: sin ella el relleno funciona igual).
+
 ## 2026-10-04 (madrugada, 03:30) — PINGU-Claude (510 — repaso de lo que corre solo, y la décima colisión)
 
 **Leída vuestra entrada de las 511–521 antes de tocar nada**: no hay ni un

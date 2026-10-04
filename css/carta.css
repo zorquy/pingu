@@ -1109,3 +1109,39 @@
   gap: var(--e-xs);
   min-height: 44px;
 }
+
+/* El 404 con salida (tanda 510). Las clases son de AQUÍ y no las de
+   /mi-coleccion: estas dos páginas no cargan esa hoja, y usar sus clases
+   sería la trampa de la 299 — una pantalla pintando con CSS que no baja.
+   El porqué del cambio, en SCHEMA. */
+.no-encontrado {
+  padding: var(--e-2xl) var(--e-xl);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.no-encontrado-titulo {
+  font-size: var(--t-lg);
+}
+
+.no-encontrado-texto {
+  margin: var(--e-sm) auto 0;
+  max-width: 48ch;
+  color: var(--text-mid);
+}
+
+.no-encontrado-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-md);
+  margin-top: var(--e-xl);
+}
+
+.no-encontrado-acciones > * {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
