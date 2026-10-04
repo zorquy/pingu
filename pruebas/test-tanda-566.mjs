@@ -192,10 +192,16 @@ console.log('── 5. Un hueco lleno: quitar y mover ──')
   await page.close()
 }
 
-console.log('── 6. La entrada desde la portada ──')
+console.log('── 6. Escondida, por ahora (tanda 567) ──')
 {
-  check('la portada enlaza a /nueve', /href="\/nueve"/.test(leer('index.html')))
-  check('nueve.html carga su hoja y su módulo', /css\/nueve\.css/.test(leer('nueve.html')) && /js\/nueve\.js/.test(leer('nueve.html')))
+  // PTCGenius sacó «My 9 Cards» la misma semana y PINGU no quiso parecer
+  // la copia: la página se queda para reaprovecharla, pero sin entrada
+  // desde la portada y sin indexar. Si algún día vuelve, estas dos
+  // comprobaciones se dan la vuelta.
+  check('la portada NO enlaza a /nueve', !/href="\/nueve"/.test(leer('index.html')))
+  check('  …ni el pie de ninguna página', !/href="\/nueve"/.test(leer('lanzamientos.html')))
+  check('nueve.html va en noindex', /name="robots"[^>]*noindex/.test(leer('nueve.html')))
+  check('  …y sigue cargando su hoja y su módulo', /css\/nueve\.css/.test(leer('nueve.html')) && /js\/nueve\.js/.test(leer('nueve.html')))
 }
 
 await browser.close()
