@@ -257,7 +257,7 @@ export function rejillaHtml(filas, orden = 'dex') {
 // no veintiún mil: «un Bulbasaur de Pokémon GO» se encuentra antes
 // escribiendo que mirando treinta dibujos, y PINGU lo dijo — «quizá aquí
 // puedes quitarla, pero yo igualmente la mantendría».
-function barraDeEspecie(grupos, cuantos, texto) {
+function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '', idiomas = [] } = {}) {
   return `<div class="mc-filtros">
     <div class="mc-buscador">
       <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
@@ -267,6 +267,13 @@ function barraDeEspecie(grupos, cuantos, texto) {
       ${grupos.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
         <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${cuantos ? '' : ' hidden'}">${cuantos || ''}</span>
       </button>` : ''}
+      <!-- Solo las que me faltan, y en qué idioma cuentan mis copias
+           (tanda 577): lo mismo que en una expansión. -->
+      <button type="button" class="mc-chip-filtro mc-chip-mando${soloFaltan ? ' activo' : ''}" id="pdxSoloFaltan" aria-pressed="${soloFaltan ? 'true' : 'false'}">Solo las que me faltan</button>
+      <select class="mc-chapa-select" id="pdxIdioma" aria-label="En qué idioma cuentan tus copias">
+        <option value=""${idioma ? '' : ' selected'}>Cualquier idioma</option>
+        ${idiomas.map((i) => `<option value="${escapeHtml(i.id)}"${i.id === idioma ? ' selected' : ''}>Tengo en ${escapeHtml(i.nombre.toLowerCase())}</option>`).join('')}
+      </select>
       <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
     </div>
   </div>`
@@ -285,7 +292,7 @@ export function gruposDeEspecieHtml(grupos, puestos) {
     .join('')
 }
 
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '' }) {
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [] }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
@@ -344,7 +351,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto)}
+    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { soloFaltan, idioma, idiomas })}
     ${cuerpo}`
 }
 

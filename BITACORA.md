@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 09:50) — PINGU-Claude (577 — «las que faltan» y el idioma)
+
+**Hecho**: en una expansión, desplegable «Contar solo las que tengo en…»
+(cambia qué cuenta como «la tengo»: bolsillos, faltan, progreso); en la
+Pokédex de un Pokémon, chip «Solo las que me faltan» y el mismo
+desplegable. `tengoDe(cardId, variante, idioma)`; el álbum cuenta con
+`tengoEnAlbum`.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`mi-coleccion.html`, `SCHEMA.md`. En `pruebas`: `test-tanda-577.mjs`.
+
 ## 2026-10-06 (mañana, 09:00) — PINGU-Claude (574 — tres pequeñas de la lista)
 
 **Hecho**: la imagen de la colección a 560 px en escritorio; «Quitar de mi

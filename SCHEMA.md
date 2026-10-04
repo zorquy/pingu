@@ -29704,3 +29704,28 @@ caza porque mira lo contrario (clases de una hoja que la página no
 carga); una guarda de «clase pintada sin regla» queda pendiente, y la
 regla para quien muda CSS es la de la 498: greparla a mano, **en todo el
 árbol de la página**, no en un fichero.
+
+## Tanda 577 — «las que faltan» y el idioma, en una expansión y en la Pokédex (oct. 2026)
+
+PINGU: «en la Pokédex y en las expansiones, filtrar por las que faltan y
+también por el idioma». Lo que cambia no es un filtro más: es **qué cuenta
+como «la tengo»**. Con «español» puesto, una carta que solo tienes en
+inglés te falta — y «Solo las que me faltan» con ese idioma es la lista de
+la compra de quien colecciona en uno.
+
+- **En una expansión**: un desplegable «Contar solo las que tengo en…» en
+  la hoja de filtros (los idiomas del catálogo que se mira, y «cualquiera»
+  el primero). `tengoDe()` admite un idioma, y el álbum cuenta con
+  `tengoEnAlbum()`, que le pasa el suyo — una función aparte y no un
+  parámetro por defecto, para que el filtro del álbum no se cuele en el
+  Panel ni en la Pokédex, que cuentan con la de siempre. Afecta a los
+  bolsillos, a «solo las que me faltan», al marcado en bloque y al
+  progreso de arriba («1 de 3» en español), que es lo que se quiere: la
+  colección en un idioma, entera.
+- **En la Pokédex de un Pokémon**: un chip «Solo las que me faltan» (hoy
+  solo había «Solo los que tengo», que es de la lista de especies) y el
+  mismo desplegable de idioma en la barra de la especie. Los dos viven en
+  delegación, como el buscador, porque la cabecera se repinta entera; y se
+  vacían al abrir otra especie, como sus filtros.
+
+**Sin migración.**

@@ -399,6 +399,11 @@ let tablonBusca = []
 let pokedex = null
 let totalesPokedex = new Map()
 let pdxSoloMios = false
+// Dentro de una especie (tanda 577): solo las que me faltan, y en qué
+// idioma cuentan mis copias. Se vacían al abrir otra especie, como sus
+// filtros.
+let pdxSoloFaltan = false
+let pdxIdioma = ''
 let pokedexCargada = false
 let especieAbierta = null
 
@@ -1787,7 +1792,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
 //
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false, vista: 'archivador' }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false, vista: 'archivador', idioma: '' }
 
 // ── LAS TRES FORMAS DE VER UNA EXPANSIÓN (tanda 478) ──
 //
@@ -1863,11 +1868,17 @@ async function cargarSets() {
 // esa versión (tanda 383); sin ella, todas — que es lo que mide el
 // progreso de una colección, porque un álbum se llena por BOLSILLOS y
 // un bolsillo lo llena cualquier versión.
-function tengoDe(cardId, variante = null) {
+function tengoDe(cardId, variante = null, idioma = null) {
   return lineas
-    .filter((l) => l.card_id === cardId && (!variante || (l.variante || 'normal') === variante))
+    .filter((l) => l.card_id === cardId && (!variante || (l.variante || 'normal') === variante) && (!idioma || l.idioma === idioma))
     .reduce((s, l) => s + l.cantidad, 0)
 }
+
+// Lo que el ÁLBUM cuenta como «la tengo» (tanda 577): en el idioma que
+// diga su filtro, o en cualquiera. Es una función aparte y no un
+// parámetro por defecto en `tengoDe` para que el filtro del álbum no se
+// cuele en el Panel ni en la Pokédex, que cuentan con la de siempre.
+const tengoEnAlbum = (cardId, variante = null) => tengoDe(cardId, variante, album.idioma || null)
 
 // ── La estantería (tanda 372) ──
 //
@@ -2292,7 +2303,7 @@ function veloDeVariante(id) {
 }
 
 function bolsilloDeVariante(c, v) {
-  const n = tengoDe(c.id, v.nuestro)
+  const n = tengoEnAlbum(c.id, v.nuestro)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ', te falta'}`
@@ -2335,7 +2346,7 @@ function bolsilloHtml(c) {
   // enseñarían el mismo número y marcarían todas a la vez — cuatro
   // huecos que no se distinguen no son cuatro huecos.
   if (c.__variante) return bolsilloDeVariante(c, c.__variante)
-  const n = tengoDe(c.id)
+  const n = tengoEnAlbum(c.id)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
@@ -2391,6 +2402,14 @@ function pintarFiltrosDeAlbum() {
   if (orden && !orden.options.length) {
     orden.innerHTML = ORDENES.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
   }
+  // El idioma en que cuentan tus copias (tanda 577). Los del catálogo que
+  // se mira, y «cualquiera» el primero. Se rellena una vez por catálogo.
+  const idioma = $('mcAlbumIdioma')
+  if (idioma && idioma.dataset.vista !== vista) {
+    idioma.innerHTML = '<option value="">Cualquier idioma</option>' + opciones(idiomasDeLaVista(), '')
+    idioma.dataset.vista = vista
+    album.idioma = ''
+  }
   if (rareza.dataset.set !== album.set) {
     rareza.innerHTML = opcionesDe((c) => rarezaDeCarta(c), 'Cualquier rareza')
     tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
@@ -2406,6 +2425,9 @@ function pintarFiltrosDeAlbum() {
 }
 
 function cartasDelAlbumFiltradas() {
+  // El idioma en que cuentan tus copias se lee AQUÍ, al filtrar, y no en
+  // un oyente aparte: así `tengoEnAlbum` lo ve en cuanto cambia (577).
+  album.idioma = $('mcAlbumIdioma')?.value || ''
   const rareza = $('mcAlbumRareza').value
   const tipo = $('mcAlbumTipo').value
   // Por nombre O por número (tanda 417): en Dex se busca «por nombre de
@@ -2413,7 +2435,7 @@ function cartasDelAlbumFiltradas() {
   // dentro de un set — «la 102» —, que es justo lo que no se podía.
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
   const encajan = album.cartas.filter((c) => {
-    if (album.soloFaltan && tengoDe(c.id)) return false
+    if (album.soloFaltan && tengoEnAlbum(c.id)) return false
     if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
@@ -2469,6 +2491,7 @@ function cuantosFiltrosDeAlbum() {
   return ($('mcAlbumRareza')?.value ? 1 : 0) +
     ($('mcAlbumTipo')?.value ? 1 : 0) +
     (album.soloFaltan ? 1 : 0) +
+    (album.idioma ? 1 : 0) +
     // El orden cuenta solo si NO es el de siempre: «por número» es como
     // viene una expansión, y marcarlo como filtro puesto diría que has
     // tocado algo cuando no.
@@ -2490,6 +2513,8 @@ function limpiarFiltrosDeAlbum() {
   if ($('mcAlbumRareza')) $('mcAlbumRareza').value = ''
   if ($('mcAlbumTipo')) $('mcAlbumTipo').value = ''
   if ($('mcAlbumOrden')) $('mcAlbumOrden').value = 'numero'
+  if ($('mcAlbumIdioma')) $('mcAlbumIdioma').value = ''
+  album.idioma = ''
   album.soloFaltan = false
   album.pagina = 0
   pintarSoloFaltan()
@@ -2514,7 +2539,7 @@ function pintarSoloFaltan() {
 // y una carta con su nombre escrito se lee como una carta).
 function celdaDeCuadriculaHtml(c) {
   const v = c.__variante || null
-  const n = tengoDe(c.id, v?.nuestro || null)
+  const n = tengoEnAlbum(c.id, v?.nuestro || null)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id})${v ? ` — ${v.nombre}` : ''}${n ? `, tienes ${n}` : ', te falta'}`
@@ -2530,7 +2555,7 @@ function celdaDeCuadriculaHtml(c) {
 // se recorre con el ojo sin leer.
 function filaDeAlbumHtml(c) {
   const v = c.__variante || null
-  const n = tengoDe(c.id, v?.nuestro || null)
+  const n = tengoEnAlbum(c.id, v?.nuestro || null)
   const nombre = nombreDe(c)
   return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
     <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
@@ -2601,7 +2626,7 @@ function pintarAlbum() {
 // SOBRA, que es lo que puedes ofrecer, y lo que te falta había que ir
 // leyéndolo de la rejilla hueco por hueco.
 function loQueFaltaAhora() {
-  return (album.aLaVista || []).filter((c) => !tengoDe(c.id, c.__variante?.nuestro || null))
+  return (album.aLaVista || []).filter((c) => !tengoEnAlbum(c.id, c.__variante?.nuestro || null))
 }
 
 function pintarBotonDeFaltan(filtrando) {
@@ -2655,7 +2680,7 @@ async function copiarLoQueFalta() {
 function pintarTiraDeSet(elSet) {
   const caja = $('mcAlbumProgreso')
   if (!caja) return
-  const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoDe }))
+  const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoEnAlbum }))
   const completo = barras.find((b) => b.id === 'completo') || barras[0]
   const pct = completo ? porcentaje(completo) ?? 0 : 0
   // Lo que valen TUS copias de esta colección, que es lo que se puede
@@ -3866,13 +3891,15 @@ let textoEspecie = ''
 function pintarEspecieFiltrada() {
   const caja = $('mcPokedexPanel')
   if (!caja || especieAbierta == null) return
-  const tuyas = new Set(lineas.map((l) => l.card_id))
+  // «La tengo» en el idioma elegido, o en cualquiera (577).
+  const tuyas = new Set(lineas.filter((l) => !pdxIdioma || l.idioma === pdxIdioma).map((l) => l.card_id))
   const grupos = valoresDeCartas(cartasDeLaEspecie, AYUDAS)
   // Se compara por el RÓTULO traducido y no por el valor crudo: la columna
   // tiene las dos formas mezcladas porque TCGdex traduce los enums y el
   // catálogo se ha importado en varios idiomas (tanda 455).
   const texto = normalizeSearch(textoEspecie).trim()
   const lista = cartasDeLaEspecie.filter((c) => {
+    if (pdxSoloFaltan && tuyas.has(c.id)) return false
     if (!pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS)) return false
     // Por nombre, número o ilustrador, igual que el buscador de Buscar
     // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
@@ -3894,6 +3921,9 @@ function pintarEspecieFiltrada() {
     puestos: filtrosEspecie,
     deCuantas: cartasDeLaEspecie.length,
     texto: textoEspecie,
+    soloFaltan: pdxSoloFaltan,
+    idioma: pdxIdioma,
+    idiomas: idiomasDeLaVista(),
   })
   // El selector de catálogo se repinta porque la cabecera entera es HTML
   // nuevo: sus `<option>` los pone `pintarVistas`, y sin esta llamada
@@ -3931,6 +3961,9 @@ async function pintarEspecie(dex, { push = true } = {}) {
   cartasDeLaEspecie = lista
   for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
   textoEspecie = ''
+  // Y los de la 577, por lo mismo: una especie no hereda lo de otra.
+  pdxSoloFaltan = false
+  pdxIdioma = ''
   pintarEspecieFiltrada()
 }
 
@@ -4844,7 +4877,7 @@ function enganchar() {
       pintarPokedex()
     }
   })
-  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden']) {
+  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden', 'mcAlbumIdioma']) {
     $(id).addEventListener('change', () => {
       // Al filtrar se vuelve a la primera página: seguir en la 7 de una
       // lista que ahora tiene 2 deja el archivador en blanco.
@@ -4958,6 +4991,17 @@ function enganchar() {
   engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a')
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
+    if (e.target.closest('#pdxSoloFaltan')) {
+      pdxSoloFaltan = !pdxSoloFaltan
+      pintarEspecieFiltrada()
+    }
+  })
+  // El idioma de la especie, en delegación por lo mismo que el buscador:
+  // la cabecera se repinta entera.
+  $('mcPokedexPanel')?.addEventListener('change', (e) => {
+    if (e.target.id !== 'pdxIdioma') return
+    pdxIdioma = e.target.value
+    pintarEspecieFiltrada()
   })
   // En DELEGACIÓN, no en el campo: la cabecera de la especie se vuelve a
   // pintar entera con cada tecla, así que un oyente puesto sobre el
