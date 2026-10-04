@@ -108,8 +108,11 @@ console.log('\n── 2. Los filtros, en Node ──')
   const grupo = (id) => GRUPOS_FILTRO.find((g) => g.id === id)
   // Los siete de la 449 y el de gradeo de la 564, que hasta que el gradeo
   // dejó de ser texto libre (563) no se podía ni plantear.
-  const pide = ['tipo', 'energia', 'entrenador', 'rareza', 'variante', 'estado', 'notas', 'gradeo']
-  ok(GRUPOS_FILTRO.map((g) => g.id).join(',') === pide.join(','), 'están los siete grupos que pidió PINGU, y el de gradeo', GRUPOS_FILTRO.map((g) => g.id).join(','))
+  // …el de gradeo (564) y el de ilustrador (574).
+  const pide = ['tipo', 'energia', 'entrenador', 'rareza', 'variante', 'estado', 'notas', 'ilustrador', 'gradeo']
+  ok(GRUPOS_FILTRO.map((g) => g.id).join(',') === pide.join(','), 'están los siete grupos que pidió PINGU, el de ilustrador y el de gradeo', GRUPOS_FILTRO.map((g) => g.id).join(','))
+  ok(grupo('ilustrador').de({}, { illustrator: 'Mitsuhiro Arita' }, A).join() === 'Mitsuhiro Arita', 'el ilustrador sale tal cual')
+  ok(grupo('ilustrador').de({}, {}, A).length === 0, '  …y sin ilustrador, nada (no es «sin ilustrador»)')
 
   ok(grupo('entrenador').de({}, { trainer_type: 'Supporter' }, A).join() === 'Partidario', 'el tipo de entrenador sale traducido')
   // Un dato de DETALLE que todavía no se ha curado no es un cajón: es una
