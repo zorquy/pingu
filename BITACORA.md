@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 11:10) — PINGU-Claude (578 — arrastrar cartas en un álbum soñado)
+
+**Hecho**: la carta se arrastra a otro hueco (ratón siempre; dedo en
+«Ordenar y quitar»), intercambiando; a un hueco vacío va al final; sobre
+una flecha de pliego pasa de página. La foto y el enlace ya no se
+arrastran solos (lo de «te da para descargar la imagen»). Dentro de un
+álbum se esconden las carpetas de encima; la descripción sin caja; ✕
+redondo y línea de ayuda al ordenar.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion/arrastre.js` (nuevo),
+`js/mi-coleccion/albumes.js`, `css/mi-coleccion.css`, `mi-coleccion.html`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-578.mjs` (nueva).
+
 ## 2026-10-06 (mañana, 10:20) — PINGU-Claude (579 — «Carpetas» pasa a «Álbumes»)
 
 **Hecho**: la pestaña, el panel, la tarjeta del Panel y la miga dicen

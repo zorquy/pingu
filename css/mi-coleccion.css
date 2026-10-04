@@ -1879,6 +1879,10 @@
   font: inherit;
   text-decoration: none;
   cursor: pointer;
+  /* Ni se selecciona ni, con el dedo apretado, ofrece guardar la foto:
+     ese gesto es el que arrastra (tanda 578, SCHEMA). */
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* ── Lo que te falta (tanda 371) ──
@@ -1923,6 +1927,7 @@
   object-fit: cover;
   filter: saturate(0.12) brightness(1.35) contrast(0.7);
   opacity: 0.55;
+  -webkit-user-drag: none;
 }
 
 /* El bolsillo vacío: el plástico, con su sombra dentro. */
@@ -2796,14 +2801,20 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-alb-descripcion {
   width: 100%;
-  margin: var(--e-xs) 0 var(--e-md);
-  resize: vertical;
-}
-
-.mc-alb-descripcion[readonly] {
-  border-color: transparent;
+  margin: 0 0 var(--e-md);
+  padding: var(--e-xs) 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background: transparent;
   resize: none;
+  field-sizing: content;
+  min-height: 0;
+}
+
+.mc-alb-descripcion:not([readonly]):hover,
+.mc-alb-descripcion:not([readonly]):focus {
+  border-color: var(--border-strong);
+  background: var(--white);
 }
 
 .mc-alb-barra {
@@ -5756,19 +5767,24 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: 0;
 }
 
-/* ── LOS MANDOS DEL BOLSILLO DE UN ÁLBUM SOÑADO (restaurados en la 573) ──
-   La 565 los quitó creyéndolos muertos: quitó los botones de las casillas
-   de una EXPANSIÓN y barrió las clases en js/mi-coleccion.js… pero no en
-   js/mi-coleccion/*.js, y `albumes.js` pinta `.mc-bolsillo-editar` y
-   `.mc-bolsillo-controles` en «Ordenar y quitar». Un día sin estilo en
-   producción. El barrido de la 299 no lo caza: mira clases de una hoja
-   que la página no carga, no clases pintadas sin regla. */
-.mc-album-marcando .mc-bolsillo-controles {
+/* ── LOS MANDOS DEL BOLSILLO DE UN ÁLBUM SOÑADO (578; restaurados en la 573) ──
+   Los pinta `albumes.js` en «Ordenar y quitar»: el barrido de la 299 no
+   los caza (clases pintadas sin regla) y la 565 los borró un día entero.
+   Desde la 578 la carta se ARRASTRA (js/mi-coleccion/arrastre.js); las
+   flechas se quedan para el teclado. */
+.mc-album-marcando .mc-bolsillo-controles,
+.mc-album-marcando .mc-bolsillo-quitar {
   display: none;
 }
 
 .mc-bolsillo-editar {
-  cursor: default;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mc-arrastrando-carta,
+.mc-arrastrando-carta .mc-bolsillo-editar {
+  cursor: grabbing;
 }
 
 .mc-bolsillo-controles {
@@ -5781,18 +5797,19 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-xs);
 }
 
-.mc-bolsillo-controles button {
-  flex: 1;
-  min-width: 0;
+.mc-bolsillo-controles button,
+.mc-bolsillo-quitar {
+  min-width: 32px;
   min-height: 32px;
   padding: 0;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text);
   font: inherit;
   font-size: var(--t-sm);
   font-weight: 700;
+  box-shadow: var(--shadow-xs);
   cursor: pointer;
 }
 
@@ -5801,7 +5818,10 @@ input.mc-alb-titulo:not([readonly]):focus {
   cursor: default;
 }
 
-.mc-bolsillo-controles [data-quitar] {
+.mc-bolsillo-quitar {
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
   color: var(--danger);
 }
 
@@ -5809,10 +5829,49 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: none;
 }
 
+/* La carta que llevas en la mano, el hueco de debajo y el que dejas. */
+.mc-arrastre {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 300;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  transform-origin: center;
+  rotate: 3deg;
+  scale: 1.05;
+}
+
+.mc-arrastre img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-bolsillo.mc-arrastrando {
+  opacity: 0.35;
+}
+
+.mc-bolsillo.mc-destino {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
 @media (pointer: coarse) {
-  .mc-bolsillo-controles button {
+  .mc-bolsillo-controles button,
+  .mc-bolsillo-quitar {
+    min-width: 44px;
     min-height: 44px;
   }
+}
+
+/* Dentro de un álbum, las carpetas de encima no se ven (578). */
+.mc-album-abierto > :not(.mc-bloque-albumes),
+.mc-album-abierto .mc-bloque-albumes > .mc-subtitulo {
+  display: none;
 }
 
 /* Mi colección en una imagen, más grande en escritorio (tanda 574).

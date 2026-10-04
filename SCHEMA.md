@@ -29748,3 +29748,70 @@ Panel y la miga («Álbumes ›»). Los identificadores (`mcPanelCarpetas`,
 `data-pestania="carpetas"`, `?ver=carpetas`) **no** cambian: un enlace
 guardado tiene que seguir llegando, y renombrar ids por un rótulo es
 cambiar cien líneas para que la pantalla diga lo mismo.
+
+## Tanda 578 — en un álbum soñado, la carta se arrastra a otro hueco (oct. 2026)
+
+PINGU: «deberías poder coger una carta y arrastrarla al hueco de al lado
+o a cualquier hueco. Pero claro, si la clicas te da como para descargar
+la imagen. Y hay que currarse un poquito más el apartado visual de los
+álbumes».
+
+**Lo de «descargar la imagen» era el navegador.** Una `<img>` y un `<a>`
+se arrastran SOLOS, y lo que se arrastra es la foto: al soltarla fuera se
+descarga, y con el dedo apretado iOS ofrece «Guardar imagen». Se apaga en
+los dos sitios donde nace: `draggable="false"` en la foto y en el enlace
+del bolsillo, `-webkit-user-drag: none` en la foto, `user-select: none` y
+`-webkit-touch-callout: none` en `.mc-bolsillo`, y un `dragstart`
+cancelado en el archivador por si se escapa alguno.
+
+**El arrastre de verdad vive en `js/mi-coleccion/arrastre.js`** y va con
+Pointer Events, no con la API de drag-and-drop de HTML, que con el dedo
+no funciona en ningún móvil. `activarArrastre(zona, { elemento, huecos,
+bordes, puede, alSoltar, alBorde })` no sabe qué es un álbum: recibe
+índices y los devuelve.
+
+- **Clic y arrastre empiezan igual** (un `pointerdown` sobre el mismo
+  bolsillo), así que se decide al MOVER: hasta 8 px es un clic —abre la
+  página de la carta, o pulsa el botón que hubiera debajo—; a partir de
+  ahí es un arrastre, y el clic que el navegador dispara DESPUÉS de soltar
+  se traga en captura (si no, soltar encima de otra abriría la ficha de la
+  soltada). La marca de tragar se quita en un `setTimeout(0)`: si no
+  viniera clic (un puntero cancelado) no puede quedarse puesta para el
+  siguiente de verdad.
+- **Con el ratón se arrastra siempre** que el álbum sea tuyo, sin entrar
+  en «Ordenar y quitar». **Con el dedo, solo ordenando**: arrastrar y
+  desplazar son el mismo gesto, y quien decide es `touch-action` — en
+  `.mc-bolsillo-editar` vale `none` y el dedo arrastra; fuera, el
+  navegador se queda el gesto, manda `pointercancel` y aquí solo se
+  limpia. `puede(e)` lo dice `albumes.js`: `esMio() && (editando ||
+  e.pointerType === 'mouse')`.
+- **Intercambio, no inserción**, a propósito: un álbum son huecos, no una
+  lista. Si meter una carta en el hueco 5 corriera las cuarenta de detrás,
+  cada arrastre desharía el orden ya puesto en el resto del pliego. Es lo
+  mismo que hacen las flechas (`moverCarta(de, a)`, que ahora usan las
+  dos cosas). Soltar en un bolsillo VACÍO manda la carta al final.
+- **Quedarse 600 ms sobre una flecha de pliego pasa de página** con la
+  carta en la mano: sin eso, «cualquier hueco» era mentira en un álbum de
+  más de nueve cartas. Las flechas viven FUERA de `#mcAlbArchivador`, así
+  que `elementFromPoint` no se limita a la zona; el destino sí.
+- Mientras se arrastra: una copia de la foto (`.mc-arrastre`, `position:
+  fixed`, `pointer-events: none` para que `elementFromPoint` vea lo de
+  debajo), el origen atenuado (`.mc-arrastrando`) y el destino con
+  contorno (`.mc-destino`).
+
+**Lo visual.** Dentro de un álbum se esconden las carpetas de encima
+(`mcPanelCarpetas.mc-album-abierto`): «Nueva carpeta» y su aviso de vacío
+no pintaban nada ahí. La descripción se escribe como el título —sin caja
+hasta que la tocas, `field-sizing: content` donde exista—. En «Ordenar y
+quitar» el ✕ es una chapa redonda arriba a la izquierda y las flechas
+quedan abajo, para el teclado; y aparece una línea (`#mcAlbAyuda`) que
+dice cómo se ordena, porque un gesto que nadie anuncia no existe.
+
+**Guarda `test-tanda-578.mjs`**: lo que el navegador arrastraba solo,
+apagado; el arrastre con ratón sin ordenar (fantasma, origen, destino,
+intercambio, guardado en el doble, sin irse a la ficha); el clic de 3 px
+sigue llegando al enlace sin cancelar; al vacío → al final; la flecha pasa
+de página con la carta en la mano; las carpetas escondidas y de vuelta;
+y con el dedo, sin ordenar no coge (y `touch-action` lo deja desplazar) y
+ordenando sí, con los mandos a 44 px.
+

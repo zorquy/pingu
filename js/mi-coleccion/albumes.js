@@ -26,6 +26,7 @@ const MAX_CARTAS = 1080
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, POR_PAGINA } from './archivador.js'
+import { activarArrastre } from './arrastre.js'
 import { burbujaHtml } from './adorno.js'
 import { abrirDialogoAdorno } from './dialogo-adorno.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
@@ -112,6 +113,7 @@ function tarjetaHtml(a) {
 async function pintarLista() {
   $('mcAlbumesDetalle').classList.add('hidden')
   $('mcAlbumesLista').classList.remove('hidden')
+  $('mcPanelCarpetas')?.classList.remove('mc-album-abierto')
   try {
     albumes = await misAlbumes(ctx.sesion.user.id)
   } catch (err) {
@@ -174,6 +176,9 @@ export async function abrir(id, { soloVer = false } = {}) {
 
   $('mcAlbumesLista').classList.add('hidden')
   $('mcAlbumesDetalle').classList.remove('hidden')
+  // Dentro de un álbum, las carpetas de encima se esconden (tanda 578):
+  // «Nueva carpeta» y su aviso de vacío no pintan nada ahí.
+  $('mcPanelCarpetas')?.classList.add('mc-album-abierto')
   const mio = esMio() && !soloVer
   // La miga se pinta aquí porque su botón no existe hasta ahora (tanda
   // 474), y solo si el álbum es TUYO: a quien llega de fuera a ver un
@@ -211,18 +216,21 @@ function bolsilloHtml(item, indice) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const clase = `mc-bolsillo${!marcar || mia ? ' tengo' : ''}`
   const dentro = `
-    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" draggable="false" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
     ${marcar && mia ? '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}`
+  // `draggable="false"` en la foto y en el enlace, y `data-indice` en los
+  // dos modos: la carta se arrastra con el ratón también sin entrar en
+  // «Ordenar y quitar» (tanda 578, js/mi-coleccion/arrastre.js).
   if (editando) {
     return `<div class="${clase} mc-bolsillo-editar" data-indice="${indice}" aria-label="${escapeHtml(nombreDe(c))}">${dentro}
+      <button type="button" class="mc-bolsillo-quitar" data-quitar aria-label="Quitar del álbum">✕</button>
       <span class="mc-bolsillo-controles">
         <button type="button" data-mover="-1" aria-label="Mover antes" ${indice === 0 ? 'disabled' : ''}>←</button>
-        <button type="button" data-quitar aria-label="Quitar del álbum">✕</button>
         <button type="button" data-mover="1" aria-label="Mover después" ${indice === actual.cartas.length - 1 ? 'disabled' : ''}>→</button>
       </span></div>`
   }
-  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" aria-label="${escapeHtml(`${nombreDe(c)}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
+  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
 }
 
 function pintarDetalle() {
@@ -274,6 +282,26 @@ function pintarDetalle() {
   }
   $('mcAlbAnterior').dataset.paso = String(deUnaVez)
   $('mcAlbEditar').textContent = editando ? 'Hecho' : 'Ordenar y quitar'
+  $('mcAlbEditar').setAttribute('aria-pressed', String(editando))
+  $('mcAlbAyuda')?.classList.toggle('hidden', !editando)
+  $('mcAlbArchivador').classList.toggle('mc-ordenando', editando)
+}
+
+// Intercambiar dos bolsillos, o mandar una carta al final (tanda 578).
+//
+// INTERCAMBIO y no inserción, a propósito: un álbum son huecos, no una
+// lista. Si meter una carta en el hueco 5 corriera las cuarenta de detrás,
+// cada arrastre desharía el orden que ya tenías puesto en el resto del
+// pliego. Es lo mismo que hacen las flechas.
+function moverCarta(de, a) {
+  const cartas = [...actual.cartas]
+  if (de < 0 || de >= cartas.length) return
+  if (a === null) cartas.push(...cartas.splice(de, 1))
+  else if (a < 0 || a >= cartas.length) return
+  else [cartas[de], cartas[a]] = [cartas[a], cartas[de]]
+  guardarLuego({ cartas })
+  pintarDetalle()
+  calcularLoQueFalta()
 }
 
 // Cuánto costaría completarlo: la tendencia de Cardmarket de cada carta
@@ -462,18 +490,30 @@ export function iniciarAlbumes(contexto) {
     const caja = e.target.closest('[data-indice]')
     if (!caja || !editando) return
     const i = Number(caja.dataset.indice)
-    const cartas = [...actual.cartas]
     if (e.target.closest('[data-quitar]')) {
+      const cartas = [...actual.cartas]
       cartas.splice(i, 1)
+      guardarLuego({ cartas })
+      pintarDetalle()
+      calcularLoQueFalta()
     } else if (e.target.closest('[data-mover]')) {
-      const j = i + Number(e.target.closest('[data-mover]').dataset.mover)
-      if (j < 0 || j >= cartas.length) return
-      ;[cartas[i], cartas[j]] = [cartas[j], cartas[i]]
-    } else return
-    guardarLuego({ cartas })
-    pintarDetalle()
-    calcularLoQueFalta()
+      moverCarta(i, i + Number(e.target.closest('[data-mover]').dataset.mover))
+    }
   })
+  // Con el ratón se arrastra siempre que el álbum sea tuyo; con el dedo,
+  // solo en «Ordenar y quitar», que es donde los bolsillos llevan
+  // `touch-action: none` — fuera de ahí el dedo tiene que poder
+  // desplazar la página (el porqué entero, en arrastre.js).
+  if ($('mcAlbArchivador')) {
+    activarArrastre($('mcAlbArchivador'), {
+      elemento: '.mc-bolsillo[data-indice]',
+      huecos: '.mc-bolsillo-vacio',
+      bordes: '#mcAlbAnterior, #mcAlbSiguiente',
+      puede: (e) => esMio() && (editando || e.pointerType === 'mouse'),
+      alSoltar: moverCarta,
+      alBorde: (flecha) => !flecha.hidden && flecha.click(),
+    })
+  }
   let espera = null
   $('mcAlbBuscar')?.addEventListener('input', () => {
     clearTimeout(espera)
