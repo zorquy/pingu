@@ -28756,3 +28756,38 @@ achica el hueco: 104 px por carta, que es exactamente lo que mide una carta
 de la Pokédex, donde los mandos ya se usan bien. La prueba lo mide en las
 posiciones de verdad y no en la regla de CSS, y comprueba además que no
 aparezca barra horizontal.
+
+## Tanda 551 — colocar arrastrando, y subir el logo (oct. 2026)
+
+PINGU, con el editor de la 550 delante: «no me gusta la forma de ordenar,
+no quiero meter números; quiero simplemente arrastrar una colección arriba
+o abajo, que sean arrastrables. Y al editar el logo, que también pueda
+cargar yo una imagen, no solamente poner un enlace».
+
+**Un número es cómo se GUARDA el orden, no cómo se decide.** Para mover una
+colección tres puestos había que mirar qué número tenían las de alrededor y
+calcular uno en medio: eso es pedirle a una persona que haga de base de
+datos. Lo que se guarda sigue siendo un número y se recalcula al soltar.
+
+**De diez en diez y no de uno en uno.** Así una colocación suelta escribe
+solo las filas que de verdad se movieron (`loQueCambia`): con 231
+colecciones, renumerar la lista entera en cada arrastre serían 231
+peticiones por gesto.
+
+**Arrastrar una colección a OTRA era la mueve de era**, que es lo que
+espera quien la suelta ahí — y es la forma cómoda de armar la era
+«McDonald's» que pidió la 550.
+
+**El asa es un `<button>` de verdad**, no un adorno: arrastrar no se puede
+hacer con el teclado, así que con el asa enfocada las flechas ↑ ↓ mueven. Y
+las reglas puras viven en `admin/js/orden-arrastrable.js` por lo de
+siempre: `colecciones.js` importa `js/app.js`, que al cargarse monta la
+barra y en Node revienta, así que lo que viva allí no lo puede probar nadie
+sin navegador.
+
+**El logo sube al mismo cubo que las imágenes de las guías**
+(`guide-images`): es público y ya tiene permiso de subida para quien ha
+entrado, y un cubo nuevo pediría otra migración y otras políticas para
+guardar lo mismo. Lo subido **rellena la caja de la dirección** en vez de
+guardarse por su cuenta: así solo hay un sitio del que sale el logo y se
+puede cancelar la edición sin haber cambiado nada.

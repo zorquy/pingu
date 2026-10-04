@@ -664,7 +664,26 @@ body {
 .col-era-cab { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-sm); background: var(--bg); }
 .col-era-cab h3 { margin: 0; font-size: var(--t-sm); flex: 1; min-width: 0; }
 .col-era-cuenta { color: var(--text-mid); font-size: var(--t-2xs); }
-.col-orden { width: 56px; min-height: 32px; text-align: center; }
+/* El asa de arrastre: la fila entera se arrastra, pero el asa es lo que lo
+   DICE — y es un botón de verdad para poder moverla con las flechas. */
+.col-asa {
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: grab;
+  font-size: var(--t-md);
+  line-height: 1;
+}
+.col-asa:hover, .col-asa:focus-visible { background: var(--bg); color: var(--text); }
+.col-arrastrando { opacity: 0.45; }
+.col-era[draggable="true"], .col-set[draggable="true"] { cursor: default; }
+.col-logo-caja { display: flex; align-items: center; gap: var(--e-sm); margin: 4px 0; }
+.col-logo-ver { width: 72px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.col-logo-ver img { max-width: 72px; max-height: 32px; object-fit: contain; }
 .col-sets { list-style: none; margin: 0; padding: 0; }
 .col-set { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) var(--e-sm); border-top: 1px solid var(--border); }
 .col-set-oculto { opacity: 0.55; }

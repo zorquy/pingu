@@ -21,10 +21,11 @@
 // hacerlo. Un borrado que no enseña su impacto es un borrado a ciegas, y
 // de eso ya se aprendió en la 543.
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml } from '../../js/app.js'
+import { escapeHtml, validateImageFile, uploadGuideImage } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
 import { nombreDeSet, eraDeSet } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
+import { moverEnLista, loQueCambia, dondeCae } from './orden-arrastrable.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -119,10 +120,12 @@ function logoDe(s) {
 function filaDeSet(s) {
   const logo = logoDe(s)
   const cartas = s.card_count_official || s.card_count_total || 0
-  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}" data-set="${escapeHtml(s.id)}">
-    <span class="col-set-tira" title="Orden dentro de la era">
-      <input type="number" class="col-orden" data-orden="${escapeHtml(s.id)}" value="${s.orden ?? ''}" placeholder="—" aria-label="Orden de ${escapeHtml(nombreDeSet(s))}">
-    </span>
+  // EL ASA, QUE ES UN BOTÓN DE VERDAD (tanda 551). PINGU: «no quiero meter
+  // números, quiero simplemente arrastrar una colección arriba o abajo».
+  // Es un `<button>` y no un adorno porque arrastrar no se puede hacer con
+  // el teclado: con el asa enfocada, las flechas mueven la colección.
+  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}" data-set="${escapeHtml(s.id)}" draggable="true">
+    <button class="col-asa" data-asa="${escapeHtml(s.id)}" aria-label="Mover ${escapeHtml(nombreDeSet(s) || s.id)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
     <span class="col-set-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
     <span class="col-set-nombre">
       <strong>${escapeHtml(nombreDeSet(s) || s.id)}</strong>
@@ -155,9 +158,9 @@ export function pintarColecciones() {
     .map((g) => {
       const visibles = g.sets.filter(casa)
       if (!visibles.length) return ''
-      return `<section class="col-era" data-era="${escapeHtml(g.id)}">
+      return `<section class="col-era" data-era="${escapeHtml(g.id)}" draggable="true">
         <header class="col-era-cab">
-          <input type="number" class="col-orden col-orden-era" data-orden-era="${escapeHtml(g.id)}" value="${g.orden ?? ''}" placeholder="—" aria-label="Orden de la era ${escapeHtml(g.nombre)}">
+          <button class="col-asa" data-asa-era="${escapeHtml(g.id)}" aria-label="Mover la era ${escapeHtml(g.nombre)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
           <h3>${escapeHtml(g.nombre)}</h3>
           <span class="col-era-cuenta">${g.sets.length}</span>
           <button class="btn-outline btn-small" data-era-editar="${escapeHtml(g.id)}">Renombrar</button>
@@ -186,18 +189,134 @@ async function guardarSet(id, campos) {
   return true
 }
 
+// ── COLOCAR ARRASTRANDO (tanda 551) ──
+//
+// PINGU: «no me gusta la forma de ordenar, no quiero meter números; quiero
+// simplemente arrastrar una colección arriba o abajo».
+//
+// Y tenía razón: un número es cómo se GUARDA el orden, no cómo se decide.
+// Para mover una colección tres puestos había que mirar qué número tenían
+// las de alrededor y calcular uno en medio, que es pedirle a una persona
+// que haga de base de datos.
+//
+// Lo que se guarda sigue siendo el número, y se recalcula de diez en diez
+// al soltar (10, 20, 30…). De diez y no de uno por una razón: así una
+// colocación suelta —arrastrar UNA— solo tiene que escribir las filas que
+// de verdad se movieron, y no renumerar las doscientas.
+
+// Escribe el orden nuevo de una lista, y SOLO lo que cambia. Devuelve
+// cuántas filas se han tocado, que es lo que se dice por pantalla.
+async function guardarOrden(ids, enLaEra = null) {
+  const antes = new Map(sets.map((s) => [s.id, s.orden]))
+  const cambios = new Map(loQueCambia(antes, ids).map((c) => [c.id, c.orden]))
+  let tocadas = 0
+  for (const id of ids) {
+    const s = sets.find((x) => x.id === id)
+    if (!s) continue
+    const campos = {}
+    if (cambios.has(id)) campos.orden = cambios.get(id)
+    // Arrastrar una colección a otra era la MUEVE de era, que es lo que
+    // espera quien la suelta ahí.
+    if (enLaEra !== null && s.serie_id !== enLaEra) campos.serie_id = enLaEra
+    if (!Object.keys(campos).length) continue
+    if (await guardarSet(s.id, campos)) tocadas++
+  }
+  return tocadas
+}
+
+// El que se está arrastrando. Uno a la vez, así que una variable basta.
+let arrastrando = null
+
+// Lo de arriba traducido a elementos: el módulo puro habla de cajas y aquí
+// se le dan las de verdad.
+function filaDondeCae(contenedor, y) {
+  const hijos = [...contenedor.querySelectorAll(':scope > [data-set], :scope > [data-era]')]
+  const cajas = hijos.map((h, i) => {
+    const c = h.getBoundingClientRect()
+    return { id: i, top: c.top, alto: c.height }
+  })
+  const i = dondeCae(cajas, y)
+  return i === null ? null : hijos[i]
+}
+
+function escucharArrastre() {
+  const lista = $('coleccionesLista')
+  if (!lista || lista.dataset.arrastre) return
+  lista.dataset.arrastre = '1'
+
+  lista.addEventListener('dragstart', (e) => {
+    const fila = e.target.closest('[data-set], [data-era]')
+    if (!fila) return
+    arrastrando = fila
+    fila.classList.add('col-arrastrando')
+    // Firefox no empieza a arrastrar si no se pone algo en el paquete.
+    e.dataTransfer.effectAllowed = 'move'
+    try { e.dataTransfer.setData('text/plain', fila.dataset.set || fila.dataset.era || '') } catch { /* da igual */ }
+  })
+
+  lista.addEventListener('dragover', (e) => {
+    if (!arrastrando) return
+    const esSet = !!arrastrando.dataset.set
+    // Un set se suelta en la lista de sets de CUALQUIER era —que es como
+    // se mueve de era arrastrando— y una era entre las eras.
+    const destino = esSet ? e.target.closest('.col-sets') : lista
+    if (!destino) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    const antes = filaDondeCae(destino, e.clientY)
+    if (antes === arrastrando) return
+    if (antes) destino.insertBefore(arrastrando, antes)
+    else destino.appendChild(arrastrando)
+  })
+
+  lista.addEventListener('dragend', async () => {
+    if (!arrastrando) return
+    const fila = arrastrando
+    arrastrando = null
+    fila.classList.remove('col-arrastrando')
+    await guardarLoQueSeVe(fila)
+  })
+}
+
+// Lo que hay en pantalla ES el orden. Se lee del DOM y se guarda.
+async function guardarLoQueSeVe(fila) {
+  if (fila.dataset.set) {
+    const ul = fila.closest('.col-sets')
+    const era = ul?.closest('.col-era')?.dataset.era ?? null
+    const ids = [...ul.querySelectorAll(':scope > [data-set]')].map((x) => x.dataset.set)
+    const n = await guardarOrden(ids, era === '' ? null : era)
+    if (n) showToast(n === 1 ? 'Colocada' : `Colocadas ${n}`)
+  } else {
+    const ids = [...$('coleccionesLista').querySelectorAll(':scope > [data-era]')].map((x) => x.dataset.era)
+    for (let i = 0; i < ids.length; i++) await guardarEra(ids[i], { orden: (i + 1) * 10 })
+    showToast('Eras colocadas')
+  }
+  await cargar()
+  pintarColecciones()
+}
+
 function escuchar() {
-  document.querySelectorAll('[data-orden]').forEach((inp) =>
-    inp.addEventListener('change', async () => {
-      const v = inp.value.trim()
-      if (await guardarSet(inp.dataset.orden, { orden: v === '' ? null : Number(v) })) pintarColecciones()
-    })
-  )
-  document.querySelectorAll('[data-orden-era]').forEach((inp) =>
-    inp.addEventListener('change', async () => {
-      const v = inp.value.trim()
-      await guardarEra(inp.dataset.ordenEra, { orden: v === '' ? 0 : Number(v) })
-      pintarColecciones()
+  escucharArrastre()
+  // Con el asa enfocada, las flechas mueven: arrastrar no se puede hacer
+  // con el teclado, y esta pantalla la usa PINGU pero no solo un ratón.
+  document.querySelectorAll('[data-asa], [data-asa-era]').forEach((b) =>
+    b.addEventListener('keydown', async (e) => {
+      const paso = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0
+      if (!paso) return
+      e.preventDefault()
+      const fila = b.closest('[data-set], [data-era]')
+      const contenedor = fila.dataset.set ? fila.closest('.col-sets') : $('coleccionesLista')
+      const sel = fila.dataset.set ? ':scope > [data-set]' : ':scope > [data-era]'
+      const ids = [...contenedor.querySelectorAll(sel)].map((x) => x.dataset.set || x.dataset.era)
+      const movida = moverEnLista(ids, fila.dataset.set || fila.dataset.era, paso)
+      if (movida.join() === ids.join()) return
+      const refs = new Map([...contenedor.querySelectorAll(sel)].map((x) => [x.dataset.set || x.dataset.era, x]))
+      for (const id of movida) contenedor.appendChild(refs.get(id))
+      await guardarLoQueSeVe(fila)
+      // El foco se va con el repintado: se devuelve a la misma asa, que si
+      // no hay que volver a buscarla para dar el segundo paso.
+      const atributo = fila.dataset.set ? 'data-asa' : 'data-asa-era'
+      document.querySelector(`[${atributo}="${CSS.escape(fila.dataset.set || fila.dataset.era)}"]`)?.focus()
     })
   )
   document.querySelectorAll('[data-ocultar]').forEach((b) =>
@@ -271,8 +390,12 @@ function abrirEditor(id) {
       <input id="colEraNombreNuevo" type="text" maxlength="80" placeholder="McDonald's"></label>
     <label>Orden dentro de la era <small>(vacío = por fecha)</small>
       <input id="colOrden" type="number" value="${s.orden ?? ''}"></label>
-    <label>Logo <small>(dirección de imagen; vacío = el que traiga el catálogo)</small>
-      <input id="colLogo" type="url" value="${escapeHtml(s.logo_scrydex || '')}" placeholder="https://images.scrydex.com/…"></label>
+    <label>Logo <small>(vacío = el que traiga el catálogo)</small>
+      <span class="col-logo-caja">
+        <span class="col-logo-ver" id="colLogoVer">${logoDe(s) ? `<img src="${escapeHtml(logoDe(s))}" alt="">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
+        <input type="file" id="colLogoFichero" accept="image/*" aria-label="Subir un logo">
+      </span>
+      <input id="colLogo" type="url" value="${escapeHtml(s.logo_scrydex || '')}" placeholder="…o pega una dirección"></label>
     <label class="col-check"><input id="colScrydexManda" type="checkbox"${s.scrydex_manda ? ' checked' : ''}> Rellenar este set desde Scrydex aunque sea occidental</label>
     <label class="col-check"><input id="colOculto" type="checkbox"${s.oculto ? ' checked' : ''}> Escondido de la biblioteca</label>
     <div class="col-hoja-pie">
@@ -281,6 +404,40 @@ function abrirEditor(id) {
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colGuardar">Guardar</button>
     </div>`)
+
+  // ── SUBIR EL LOGO, no solo pegar un enlace (tanda 551) ──
+  //
+  // PINGU: «al editar el logo, que también pueda cargar yo una imagen, no
+  // solamente poner un enlace».
+  //
+  // Va al mismo sitio que las imágenes de las guías (`guide-images`), que
+  // es un cubo PÚBLICO y con permiso de subida para quien ha entrado. Un
+  // cubo nuevo pediría otra migración y otras políticas para guardar lo
+  // mismo: una imagen que se va a enseñar a todo el mundo.
+  //
+  // Lo que se sube RELLENA la caja de la dirección en vez de guardarse por
+  // su cuenta: así solo hay un sitio del que sale el logo y se puede
+  // cancelar sin haber cambiado nada.
+  $('colLogoFichero')?.addEventListener('change', async (e) => {
+    const fichero = e.target.files?.[0]
+    if (!fichero) return
+    const ver = $('colLogoVer')
+    try {
+      validateImageFile(fichero)
+      if (ver) ver.innerHTML = '<span class="col-set-sinlogo">subiendo…</span>'
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      if (!session) throw new Error('Hay que entrar para subir una imagen.')
+      const url = await uploadGuideImage(session.user.id, fichero)
+      $('colLogo').value = url
+      if (ver) ver.innerHTML = `<img src="${escapeHtml(url)}" alt="">`
+      showToast('Logo subido. Dale a Guardar para dejarlo puesto.')
+    } catch (err) {
+      if (ver) ver.innerHTML = '<span class="col-set-sinlogo">sin logo</span>'
+      showToast(String(err?.message || err).slice(0, 140), 'error')
+    } finally {
+      e.target.value = ''
+    }
+  })
 
   $('colGuardar').addEventListener('click', async () => {
     const era = $('colEra').value.trim().toLowerCase()

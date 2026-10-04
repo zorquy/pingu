@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (madrugada, 00:40) — PINGU-Claude (551 — colocar arrastrando, y subir el logo)
+
+**De dónde sale**: PINGU, con el editor de la 550 delante: «no quiero meter
+números, quiero simplemente arrastrar una colección arriba o abajo. Y al
+editar el logo, que también pueda cargar yo una imagen».
+
+**Hecho**: las colecciones y las eras se arrastran por su asa. Lo que se
+guarda sigue siendo un número —se recalcula al soltar, de diez en diez— y
+**solo se escriben las filas que de verdad se movieron**: con 231
+colecciones, renumerar la lista entera en cada arrastre serían 231
+peticiones por gesto. Arrastrar una colección a otra era la MUEVE de era,
+que es la forma cómoda de armar la era «McDonald's» de la 550.
+
+El asa es un `<button>`: arrastrar no se puede hacer con el teclado, así
+que con ella enfocada las flechas ↑ ↓ mueven. Las reglas puras van a
+`admin/js/orden-arrastrable.js` porque `colecciones.js` importa `js/app.js`
+y eso en Node revienta —lo mismo que pasó en la 548—.
+
+Y el logo se sube al cubo de las imágenes de guías, que ya es público y
+tiene permiso para quien ha entrado. Lo subido **rellena la caja de la
+dirección** en vez de guardarse por su cuenta: un solo sitio del que sale
+el logo, y se puede cancelar sin haber cambiado nada.
+
+**Sin migración**: la de la 550 ya trae todo lo que hace falta.
+
+**Ficheros**: `admin/js/colecciones.js`, `admin/js/orden-arrastrable.js`
+(nuevo), `admin/index.html`, `admin/css/admin.css`, `SCHEMA.md`. En
+`pruebas`: `pruebas/test-tanda-551.mjs`.
+
+**Pendiente**: la suite completa lleva tres intentos parados a media
+pasada para poder tocar el repo (28, 32 y 4 verdes, 0 rojos en los tres).
+La próxima vez que no entre trabajo encima, se corre entera.
+
 ## 2026-10-04 (noche, 23:15) — PINGU-Claude (550 — colecciones editables, panel limpio y tres por fila)
 
 **Hecho**, todo lo que pidió PINGU en un mensaje:
