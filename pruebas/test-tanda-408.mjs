@@ -78,8 +78,11 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
       seVe: [...b.querySelectorAll('.mc-menu-texto')].some((t) => t.getBoundingClientRect().width > 5),
       icono: b.querySelectorAll('svg').length,
     })))
-  check('  …sin letra a la vista, que es la burbuja de Dex',
-    estado.every((b) => !b.seVe), JSON.stringify(estado.filter((b) => b.seVe)))
+  // CON su palabra a la vista desde la 565: eran cinco dibujos sin nombre
+  // y «capas» o «carné» no dicen Expansiones ni Pokédex a quien llega
+  // nuevo. Esta prueba afirmó lo de la 452 hasta que la suite la cazó.
+  check('  …con la palabra a la vista bajo cada icono (565)',
+    estado.every((b) => b.seVe), JSON.stringify(estado.filter((b) => !b.seVe)))
   check('  …pero con su nombre para quien no ve',
     estado.every((b) => b.nombre.length > 2), JSON.stringify(estado.map((b) => b.nombre)))
   check('  …y cada uno con su icono', estado.every((b) => b.icono === 1), JSON.stringify(estado.map((b) => b.icono)))

@@ -62,8 +62,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   await p.waitForTimeout(2500)
   const pestanas = await p.$$eval('#mcMenu [role="tab"]', (ns) => ns.map((n) => n.textContent.trim()))
   ok(
-    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Carpetas', 'Buscar']),
-    'el menú es Panel · Expansiones · Pokédex · Carpetas · Buscar',
+    // «Álbumes» desde la 579: dentro hay carpetas y álbumes soñados.
+    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Álbumes', 'Buscar']),
+    'el menú es Panel · Expansiones · Pokédex · Álbumes · Buscar',
     JSON.stringify(pestanas),
   )
   // «Mi colección» solo en el Panel: en las demás pestañas ese hueco está

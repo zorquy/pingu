@@ -83,7 +83,7 @@ check('  …y cuenta también las cartas de dentro', /3 cartas/.test(pieVintage)
 console.log('\n── 2. Dentro se ve como una expansión ──')
 await page.click('#mcCarpetasPanel [data-abrir="f1"]')
 await page.waitForTimeout(1000)
-check('la miga dice de dónde vienes', (await page.locator('#mcCarpetaVolver').textContent()).trim() === 'Carpetas')
+check('la miga dice de dónde vienes', (await page.locator('#mcCarpetaVolver').textContent()).trim() === 'Álbumes')
 // Forma CORTA: el nombre lo dice el título grande de debajo, y repetirlo
 // en la miga era decir lo mismo dos veces en dos renglones seguidos.
 check('  …y no repite el nombre', (await page.locator('#mcCarpetaMigas .mc-miga-aqui').count()) === 0)
