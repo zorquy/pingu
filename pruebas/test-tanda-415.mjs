@@ -18,10 +18,16 @@ const browser = await chromium.launch()
 
 console.log('\n── 1. Lo que no es un set de su era ──')
 {
+  // LAS POP SALIERON DE AQUÍ EN LA 536. Estaban en esta lista desde la
+  // 415, y PINGU pidió lo contrario el 2026-10-04: «las POP Series tienen
+  // que ir en una era, es como si fuese una era, todas juntas». Son diez
+  // entregas numeradas de la misma línea, no un producto suelto como un
+  // trainer kit o un McDonald's — que esos sí siguen aquí.
   for (const n of ["McDonald's Collection 2021", 'Pokémon Futsal Collection', 'Battle Academy',
-    'Trick or Trade BOOster Bundle', 'My First Battle', 'XY Trainer Kit: Latias', 'POP Series 5']) {
+    'Trick or Trade BOOster Bundle', 'My First Battle', 'XY Trainer Kit: Latias']) {
     check(`«${n}» va al fondo`, esEspecial({ name: n }))
   }
+  check('«POP Series 5» YA NO va al fondo (tanda 536)', !esEspecial({ name: 'POP Series 5' }))
   for (const n of ['Sword & Shield', 'Celebrations', '30th Classic Collection', 'SVP Black Star Promos']) {
     check(`  …y «${n}» se queda`, !esEspecial({ name: n }))
   }
