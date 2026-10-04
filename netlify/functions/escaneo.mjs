@@ -21,18 +21,32 @@ import { imagenDeLimitless } from '../../js/escaneo-carta.js'
 // petición por carta y no una por cada imagen que se exporta.
 const CACHE = 'public, max-age=31536000, immutable'
 
-export async function traerEscaneo(set, numero, { fetchImpl = fetch } = {}) {
+// Lo mismo que /sprite (tanda 511): quién pide, sin disfrazarse, y por qué
+// no ha salido, en la cabecera `x-motivo` del 404.
+const CABECERAS_ORIGEN = { 'user-agent': 'PokeDoc/1.0 (+https://pokedoc.es)', accept: 'image/png,image/*;q=0.8' }
+
+export async function traerEscaneo(set, numero, { fetchImpl = fetch, alFallar = () => {} } = {}) {
   const url = imagenDeLimitless(set, numero)
-  if (!url) return null
+  if (!url) {
+    alFallar('carta')
+    return null
+  }
   try {
-    const res = await fetchImpl(url, { signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return null
+    const res = await fetchImpl(url, { headers: CABECERAS_ORIGEN, signal: AbortSignal.timeout(6000) })
+    if (!res.ok) {
+      alFallar(`origen ${res.status}`)
+      return null
+    }
     const tipo = res.headers.get('content-type') || ''
     // Solo imágenes: si la CDN devolviera una página de error con un 200,
     // no se la pasamos al lienzo.
-    if (!/^image\//.test(tipo)) return null
+    if (!/^image\//.test(tipo)) {
+      alFallar(`tipo ${tipo || 'ninguno'}`)
+      return null
+    }
     return { datos: await res.arrayBuffer(), tipo }
-  } catch {
+  } catch (err) {
+    alFallar(err?.name === 'TimeoutError' ? 'tiempo' : 'red')
     return null
   }
 }
@@ -40,9 +54,10 @@ export async function traerEscaneo(set, numero, { fetchImpl = fetch } = {}) {
 export default async (request) => {
   // /escaneo/<SET>/<NÚMERO>, que netlify.toml reescribe a ?set=&n=.
   const p = new URL(request.url).searchParams
-  const escaneo = await traerEscaneo(p.get('set'), p.get('n'))
+  let motivo = 'desconocido'
+  const escaneo = await traerEscaneo(p.get('set'), p.get('n'), { alFallar: (m) => (motivo = m) })
   if (!escaneo) {
-    return new Response('Sin escaneo', { status: 404, headers: { 'cache-control': 'public, max-age=3600' } })
+    return new Response('Sin escaneo', { status: 404, headers: { 'cache-control': 'public, max-age=3600', 'x-motivo': motivo } })
   }
   return new Response(escaneo.datos, { headers: { 'content-type': escaneo.tipo, 'cache-control': CACHE } })
 }

@@ -372,10 +372,7 @@ function dexDeClave(clave) {
   DEX_POR_NOMBRE.set(clave, dex)
   BASE_DE_FORMA.set(dex, base)
   SLUG_POR_DEX.set(dex, slugLimitless(especie) + '-mega')
-  RESPALDO_POR_URL.set(
-    `${CDN_SPRITES}/${slugLimitless(especie)}-mega.png`,
-    `${CDN_SPRITES}/${slugLimitless(especie)}.png`
-  )
+  respaldoDeForma(`${slugLimitless(especie)}-mega`, slugLimitless(especie))
   return dex
 }
 
@@ -447,22 +444,6 @@ export function urlDeSprite(dex) {
   return slug ? `${CDN_SPRITES}/${slug}.png` : null
 }
 
-// ── El respaldo: la especie base cuando el sprite de la forma no está ──
-//
-// El sprite de una forma o una mega puede no existir en la CDN (pasó
-// con slowking-mega, y pasará con la primera mega de cada temporada
-// hasta que Limitless la suba). En vez de un hueco o un icono roto, se
-// enseña el sprite de la ESPECIE BASE — el Pokémon sustituto — que
-// para reconocer un mazo de un vistazo sirve igual.
-const RESPALDO_POR_URL = new Map()
-for (const f of FORMAS_TCG) {
-  if (!f.slug || !f.base || f.dex === f.base) continue
-  const slugBase = slugLimitless(POKEMON_POR_DEX[f.base - 1])
-  if (slugBase && slugBase !== f.slug) {
-    RESPALDO_POR_URL.set(`${CDN_SPRITES}/${f.slug}.png`, `${CDN_SPRITES}/${slugBase}.png`)
-  }
-}
-
 // ── El segundo ORIGEN: cuando la CDN entera no contesta ──
 //
 // El 2026-09-20 r2.limitlesstcg.net dejó de responder (no un 404: un
@@ -478,12 +459,94 @@ for (const f of FORMAS_TCG) {
 // GitHub a pelo, por si el que se cae es jsDelivr: son el mismo repo,
 // así que es un cambio de puerta, no de contenido.
 //
-// Lo que se pierde al caer aquí es la FORMA: PokeAPI no tiene
-// «ogerpon-wellspring», así que una forma acaba enseñando su especie
-// base — exactamente el mismo apaño que ya se hacía con las megas
-// recién salidas, y para reconocer un mazo de un vistazo sirve igual.
+// Lo que se perdía al caer aquí era la FORMA. Desde la tanda 511 una
+// forma prueba antes SU sprite en PokeAPI (ver respaldoDeForma, abajo).
 const CDN_RESPALDO = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon'
 const CDN_RESPALDO_2 = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+
+// ── El respaldo de una FORMA: la misma forma en el otro origen, y luego
+//    la especie base ──
+//
+// El sprite de una forma o una mega puede no existir en la CDN (pasó con
+// slowking-mega, y pasará con la primera mega de cada temporada hasta que
+// Limitless la suba). Hasta la tanda 511 el siguiente paso era el sprite
+// de la ESPECIE BASE, que para reconocer un mazo de un vistazo sirve… salvo
+// cuando lo que distingue el mazo ES la mega: «Mega Lucario» y «Lucario»
+// son dos mazos. Y donde se notaba de verdad era la IMAGEN del meta de un
+// torneo: un lienzo no puede pintar el sprite de Limitless (no da CORS), su
+// /sprite devolvía 404 en producción (medido el 2026-10-04 desde el
+// navegador: TODOS, megas y no megas, mientras la CDN sí contestaba), y la
+// cadena caía en la especie base — PINGU: «los sprites de las megas no
+// salen bien, salen los pokemons normales».
+//
+// PokeAPI tiene las megas como Pokémon aparte, con el MISMO nombre que usa
+// Limitless (`gardevoir-mega`, `charizard-mega-x`) y un número propio
+// (10051…). La tabla es la de su `pokemon.csv`, y cada número tiene su
+// fichero comprobado en su repo de sprites (2026-10-04: 96 de 97; el de
+// zygarde-mega no está y por eso no sale). Así una mega pierde el ESTILO
+// antes que la FORMA: Limitless → la mega en PokeAPI → la especie en
+// Limitless → la especie en PokeAPI.
+const MEGAS_POKEAPI = new Map(
+  (
+  'venusaur-mega:10033 charizard-mega-x:10034 charizard-mega-y:10035 ' +
+  'blastoise-mega:10036 alakazam-mega:10037 gengar-mega:10038 ' +
+  'kangaskhan-mega:10039 pinsir-mega:10040 gyarados-mega:10041 ' +
+  'aerodactyl-mega:10042 mewtwo-mega-x:10043 mewtwo-mega-y:10044 ' +
+  'ampharos-mega:10045 scizor-mega:10046 heracross-mega:10047 ' +
+  'houndoom-mega:10048 tyranitar-mega:10049 blaziken-mega:10050 ' +
+  'gardevoir-mega:10051 mawile-mega:10052 aggron-mega:10053 ' +
+  'medicham-mega:10054 manectric-mega:10055 banette-mega:10056 ' +
+  'absol-mega:10057 garchomp-mega:10058 lucario-mega:10059 ' +
+  'abomasnow-mega:10060 latias-mega:10062 latios-mega:10063 ' +
+  'swampert-mega:10064 sceptile-mega:10065 sableye-mega:10066 ' +
+  'altaria-mega:10067 gallade-mega:10068 audino-mega:10069 ' +
+  'sharpedo-mega:10070 slowbro-mega:10071 steelix-mega:10072 ' +
+  'pidgeot-mega:10073 glalie-mega:10074 diancie-mega:10075 ' +
+  'metagross-mega:10076 rayquaza-mega:10079 camerupt-mega:10087 ' +
+  'lopunny-mega:10088 salamence-mega:10089 beedrill-mega:10090 ' +
+  'clefable-mega:10278 victreebel-mega:10279 starmie-mega:10280 ' +
+  'dragonite-mega:10281 meganium-mega:10282 feraligatr-mega:10283 ' +
+  'skarmory-mega:10284 froslass-mega:10285 emboar-mega:10286 ' +
+  'excadrill-mega:10287 scolipede-mega:10288 scrafty-mega:10289 ' +
+  'eelektross-mega:10290 chandelure-mega:10291 chesnaught-mega:10292 ' +
+  'delphox-mega:10293 greninja-mega:10294 pyroar-mega:10295 ' +
+  'floette-mega:10296 malamar-mega:10297 barbaracle-mega:10298 ' +
+  'dragalge-mega:10299 hawlucha-mega:10300 drampa-mega:10302 ' +
+  'falinks-mega:10303 raichu-mega-x:10304 raichu-mega-y:10305 ' +
+  'chimecho-mega:10306 absol-mega-z:10307 staraptor-mega:10308 ' +
+  'garchomp-mega-z:10309 lucario-mega-z:10310 heatran-mega:10311 ' +
+  'darkrai-mega:10312 golurk-mega:10313 meowstic-male-mega:10314 ' +
+  'crabominable-mega:10315 golisopod-mega:10316 magearna-mega:10317 ' +
+  'magearna-original-mega:10318 zeraora-mega:10319 scovillain-mega:10320 ' +
+  'glimmora-mega:10321 tatsugiri-curly-mega:10322 ' +
+  'tatsugiri-droopy-mega:10323 tatsugiri-stretchy-mega:10324 ' +
+  'baxcalibur-mega:10325 meowstic-female-mega:10326'
+  )
+    .split(' ')
+    .map((x) => x.split(':'))
+    .map(([slug, id]) => [slug, Number(id)])
+)
+
+const RESPALDO_POR_URL = new Map()
+// Lo que va DESPUÉS del último sitio de una mega en PokeAPI: la especie
+// base en Limitless, que sigue siendo mejor que nada.
+const DESPUES_DE_POKEAPI = new Map()
+// Las formas de FORMAS_TCG que no son megas (Ogerpon, Ursaluna Luna
+// Carmesí) ya llevan de número EL DE POKEAPI (10272–10275, comprobados con
+// su fichero): ese mismo vale de respaldo.
+function respaldoDeForma(slugForma, slugBase, idPokeapi = null) {
+  const forma = `${CDN_SPRITES}/${slugForma}.png`
+  const base = `${CDN_SPRITES}/${slugBase}.png`
+  const id = MEGAS_POKEAPI.get(slugForma) || idPokeapi
+  if (!id) return RESPALDO_POR_URL.set(forma, base)
+  RESPALDO_POR_URL.set(forma, `${CDN_RESPALDO}/${id}.png`)
+  DESPUES_DE_POKEAPI.set(`${CDN_RESPALDO_2}/${id}.png`, base)
+}
+for (const f of FORMAS_TCG) {
+  if (!f.slug || !f.base || f.dex === f.base) continue
+  const slugBase = slugLimitless(POKEMON_POR_DEX[f.base - 1])
+  if (slugBase && slugBase !== f.slug) respaldoDeForma(f.slug, slugBase, f.dex >= 10000 && f.dex < 20000 ? f.dex : null)
+}
 
 // De una URL de Limitless a su número de Pokédex, que es lo que pide el
 // segundo origen. Solo ESPECIES, y no es un olvido: una forma nunca
@@ -502,9 +565,10 @@ for (let i = 0; i < POKEMON_POR_DEX.length; i++) {
 // El SIGUIENTE sitio donde probar este sprite, o null si ya no quedan.
 // Es una cadena y se recorre llamando otra vez con lo que devuelve, que
 // es justo lo que hacen los manejadores de `error`: cada fallo da un
-// paso más. El orden es de menos a más pérdida — primero la especie
-// base en la CDN de siempre (se conserva el estilo), y solo después el
-// salto de origen.
+// paso más. El orden es de menos a más pérdida, y desde la tanda 511 lo
+// que más se pierde es la FORMA, no el estilo: una mega prueba antes su
+// propio dibujo en PokeAPI que la especie base de Limitless, porque un
+// Gardevoir a secas en un mazo de Mega Gardevoir dice otro mazo.
 export function respaldoDeSprite(url) {
   const u = String(url ?? '')
   const base = RESPALDO_POR_URL.get(u)
@@ -512,7 +576,7 @@ export function respaldoDeSprite(url) {
   const dex = DEX_POR_URL.get(u)
   if (dex) return `${CDN_RESPALDO}/${dex}.png`
   if (u.startsWith(`${CDN_RESPALDO}/`)) return `${CDN_RESPALDO_2}/${u.slice(CDN_RESPALDO.length + 1)}`
-  return null
+  return DESPUES_DE_POKEAPI.get(u) || null
 }
 
 // La cadena entera de una vez, para quien no puede ir pidiéndola paso a
@@ -524,7 +588,9 @@ export function respaldoDeSprite(url) {
 export function cadenaDeRespaldos(url) {
   const cadena = []
   let u = String(url ?? '')
-  for (let i = 0; i < 4; i++) {
+  // Seis: la cadena más larga es la de una mega (su sitio en PokeAPI por
+  // las dos puertas, y luego la especie por las tres).
+  for (let i = 0; i < 6; i++) {
     const siguiente = respaldoDeSprite(u)
     if (!siguiente) break
     cadena.push(siguiente)

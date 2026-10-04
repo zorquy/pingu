@@ -18,25 +18,45 @@ const CACHE = 'public, max-age=31536000, immutable'
 
 export const NOMBRE_VALIDO = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-export async function traerSprite(nombre, { fetchImpl = fetch } = {}) {
+// Quiénes somos, sin disfrazarnos: un servidor que pide un dibujo. Va desde
+// la tanda 511, cuando se midió que /sprite daba 404 a TODO en producción
+// mientras la CDN contestaba al navegador.
+export const CABECERAS_ORIGEN = { 'user-agent': 'PokeDoc/1.0 (+https://pokedoc.es)', accept: 'image/png,image/*;q=0.8' }
+
+// `alFallar(motivo)`: por qué no ha salido, para la cabecera `x-motivo` del
+// 404. Sin ella un 404 de aquí no distingue «la CDN dice que no» de «la CDN
+// no contesta» de «nos ha mandado una página», y eso es lo que hizo falta
+// saber cuando dejó de funcionar.
+export async function traerSprite(nombre, { fetchImpl = fetch, alFallar = () => {} } = {}) {
   const n = String(nombre ?? '')
-  if (n.length > 40 || !NOMBRE_VALIDO.test(n)) return null
+  if (n.length > 40 || !NOMBRE_VALIDO.test(n)) {
+    alFallar('nombre')
+    return null
+  }
   try {
-    const res = await fetchImpl(`${CDN_SPRITES}/${n}.png`, { signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return null
+    const res = await fetchImpl(`${CDN_SPRITES}/${n}.png`, { headers: CABECERAS_ORIGEN, signal: AbortSignal.timeout(6000) })
+    if (!res.ok) {
+      alFallar(`origen ${res.status}`)
+      return null
+    }
     const tipo = res.headers.get('content-type') || ''
-    if (!/^image\//.test(tipo)) return null
+    if (!/^image\//.test(tipo)) {
+      alFallar(`tipo ${tipo || 'ninguno'}`)
+      return null
+    }
     return { datos: await res.arrayBuffer(), tipo }
-  } catch {
+  } catch (err) {
+    alFallar(err?.name === 'TimeoutError' ? 'tiempo' : 'red')
     return null
   }
 }
 
 export default async (request) => {
   // /sprite/<NOMBRE>, que netlify.toml reescribe a ?n=.
-  const sprite = await traerSprite(new URL(request.url).searchParams.get('n'))
+  let motivo = 'desconocido'
+  const sprite = await traerSprite(new URL(request.url).searchParams.get('n'), { alFallar: (m) => (motivo = m) })
   if (!sprite) {
-    return new Response('Sin sprite', { status: 404, headers: { 'cache-control': 'public, max-age=3600' } })
+    return new Response('Sin sprite', { status: 404, headers: { 'cache-control': 'public, max-age=3600', 'x-motivo': motivo } })
   }
   return new Response(sprite.datos, { headers: { 'content-type': sprite.tipo, 'cache-control': CACHE } })
 }

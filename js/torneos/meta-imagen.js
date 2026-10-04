@@ -102,7 +102,8 @@ async function imagenDeIcono(icono) {
   const cadena = icono.sprite ? [icono.url, ...cadenaDeRespaldos(icono.url)].map(fuenteDeSprite) : [icono.url]
   for (const u of [...new Set(cadena)]) {
     const img = await cargar(u)
-    if (img) return { img, sprite: icono.sprite }
+    // La caja se mide una vez por icono, no cada vez que se pinta.
+    if (img) return { img, sprite: icono.sprite, caja: icono.sprite ? cajaVisible(img) : null }
   }
   return null
 }
@@ -131,20 +132,55 @@ function recortar(ctx, texto, ancho) {
   return `${t}…`
 }
 
+// Lo que ocupa DE VERDAD un sprite: sin el marco transparente. Los de
+// Limitless vienen recortados, pero los de PokeAPI (el respaldo, y desde la
+// tanda 511 el sitio de las megas cuando /sprite no contesta) son de 96×96
+// con el Pokémon en medio, y sin esto salían a un tercio de tamaño. Una
+// imagen sin permiso no se puede leer: entonces, entera.
+export function cajaVisible(img) {
+  const entera = { x: 0, y: 0, w: img.width, h: img.height }
+  try {
+    const c = document.createElement('canvas')
+    c.width = img.width
+    c.height = img.height
+    const k = c.getContext('2d')
+    k.drawImage(img, 0, 0)
+    const { data } = k.getImageData(0, 0, c.width, c.height)
+    let x0 = c.width
+    let y0 = c.height
+    let x1 = -1
+    let y1 = -1
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (data[(y * c.width + x) * 4 + 3] > 8) {
+          if (x < x0) x0 = x
+          if (x > x1) x1 = x
+          if (y < y0) y0 = y
+          if (y > y1) y1 = y
+        }
+      }
+    }
+    return x1 < 0 ? entera : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 }
+  } catch {
+    return entera
+  }
+}
+
 // Un icono dentro de una caja de `lado`: el sprite entero y nítido (es
 // pixel art); la carta, recortada a su ilustración en un cuadrado.
 function pintarIcono(ctx, icono, cx, cy, lado) {
   const { img, sprite } = icono
   ctx.save()
   if (sprite) {
-    const k = lado / Math.max(img.width, img.height)
-    const w = img.width * k
-    const h = img.height * k
+    const v = icono.caja || cajaVisible(img)
+    const k = lado / Math.max(v.w, v.h)
+    const w = v.w * k
+    const h = v.h * k
     ctx.imageSmoothingEnabled = false
     ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
     ctx.shadowBlur = 6
     ctx.shadowOffsetY = 2
-    ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h)
+    ctx.drawImage(img, v.x, v.y, v.w, v.h, cx - w / 2, cy - h / 2, w, h)
   } else {
     const l = lado * 0.8
     redondo(ctx, cx - l / 2, cy - l / 2, l, l, l * 0.2)
