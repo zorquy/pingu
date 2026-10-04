@@ -85,13 +85,15 @@ console.log('\n── 2. El nombre en español: SOLO donde se puede demostrar �
 }
 
 console.log('\n── 3. La pasada entera, con un doble ──')
-const doble = ({ totalCount = 2, suTam = null } = {}) => {
+const doble = ({ totalCount = 2, suTam = null, pendientes = true, estadoInicial = { pagina: 1 } } = {}) => {
   const escrito = []
   const estados = []
   const llamadas = []
   const restImpl = async (ruta) => {
     llamadas.push(ruta)
-    if (/scrydex_estado/.test(ruta)) return [{ valor: { pagina: 1 } }]
+    if (/scrydex_estado/.test(ruta)) return [{ valor: estadoInicial }]
+    // «¿Queda alguna carta sin tocar?», que es el freno de la 509b.
+    if (/scrydex_at=is\.null/.test(ruta)) return pendientes ? [{ id: 'x' }] : []
     if (/tcg_sets/.test(ruta)) {
       // `sm10` verificado; `otro` NO (sin `scrydex_id`), así que la
       // consulta lleva `scrydex_id=not.is.null` y no lo devuelve.
@@ -154,8 +156,8 @@ const doble = ({ totalCount = 2, suTam = null } = {}) => {
   }
   // Se guarda por dónde iba: es lo ÚNICO que no se puede sacar de los datos.
   check('guarda por dónde iba', d.estados.length > 0 && d.estados.every((e) => Number(e.pagina) >= 1), JSON.stringify(d.estados))
-  check('  …y al acabar vuelve a la 1, porque sacan cartas nuevas',
-    d.estados.at(-1).pagina === 1 && d.estados.at(-1).vuelta === 1, JSON.stringify(d.estados.at(-1)))
+  check('  …y al acabar vuelve a la 1 y cuenta el barrido',
+    d.estados.at(-1).pagina === 1 && d.estados.at(-1).barridos === 1, JSON.stringify(d.estados.at(-1)))
 }
 {
   // SU `page_size` MANDA, no el que pedí: la respuesta dice el que de
@@ -195,6 +197,55 @@ const doble = ({ totalCount = 2, suTam = null } = {}) => {
   check('sin las variables, se dice cuáles faltan', r.estado === 500 && /SCRYDEX_TEAM_ID/.test(r.cuerpo.error), r.cuerpo.error)
 }
 
+console.log('\n── 3b. EL FRENO: sin él se come el plan en una noche ──')
+//
+// Un barrido completo son 101 páginas = 101 créditos. A 60 páginas por
+// pasada y cada cinco minutos, son **48 barridos en una noche = 4.848
+// créditos**, con 5.000 al MES. Se habría comido el plan entero antes de
+// que nadie se despertara, y encima para reescribir lo mismo.
+{
+  // 1. Si no queda ninguna carta por marcar, NO SE GASTA NI UN CRÉDITO.
+  const d = doble({ pendientes: false })
+  const r = await procesar({ env: ENV, ...d })
+  check('sin nada pendiente, no pide NADA a Scrydex',
+    !d.llamadas.some((l) => String(l.url || '').includes('api.scrydex')), JSON.stringify(d.llamadas.filter((l) => l.url)))
+  check('  …y lo dice con el crédito a cero', r.cuerpo.hecho === true && r.cuerpo.creditos === 0, JSON.stringify(r.cuerpo))
+}
+{
+  // 2. Y EL TOPE DE BARRIDOS, porque lo anterior NO BASTA: hay cartas
+  //    nuestras que su catálogo no tiene —ellos 25.209, nosotros 21.476,
+  //    y no son el mismo conjunto—, así que esas no se marcan NUNCA y
+  //    «quedan pendientes» sería verdad para siempre. Sin el tope, el
+  //    freno de arriba no frena.
+  const d = doble({ pendientes: true, estadoInicial: { pagina: 1, barridos: 2, completadoEn: new Date().toISOString() } })
+  const r = await procesar({ env: ENV, ...d })
+  check('con los barridos dados, tampoco pide nada aunque queden pendientes',
+    !d.llamadas.some((l) => String(l.url || '').includes('api.scrydex')), JSON.stringify(d.llamadas.filter((l) => l.url)))
+  check('  …y explica que lo que queda no lo tienen', /su catálogo no tiene/.test(r.cuerpo.porque || ''), r.cuerpo.porque)
+}
+{
+  // 3. Pero un barrido A MEDIAS se termina, pase lo que pase: pararse en
+  //    la página 40 dejaría el catálogo medio lleno para siempre.
+  const d = doble({ pendientes: false, estadoInicial: { pagina: 40, barridos: 9 } })
+  const r = await procesar({ env: ENV, ...d, paginas: 1 })
+  check('un barrido a medias SÍ se termina', d.llamadas.some((l) => String(l.url || '').includes('api.scrydex')), String(r.cuerpo.paginasHechas))
+}
+{
+  // 4. Y pasada una semana se vuelve a mirar, porque salen cartas nuevas.
+  const hace8dias = new Date(Date.now() - 8 * 86400000).toISOString()
+  const d = doble({ pendientes: false, estadoInicial: { pagina: 1, barridos: 9, completadoEn: hace8dias } })
+  await procesar({ env: ENV, ...d, paginas: 1 })
+  check('a la semana se repasa', d.llamadas.some((l) => String(l.url || '').includes('api.scrydex')))
+}
+{
+  // 5. Y al cerrar un barrido se APUNTA, que es lo que hace que el freno
+  //    frene la próxima vez.
+  const d = doble({ totalCount: 2 })
+  await procesar({ env: ENV, ...d, paginas: 3 })
+  check('al cerrar un barrido se cuenta', d.estados.at(-1).barridos === 1, JSON.stringify(d.estados.at(-1)))
+  check('  …con la fecha, para el repaso semanal', !!d.estados.at(-1).completadoEn, JSON.stringify(d.estados.at(-1)))
+}
+
 console.log('\n── 4. Y que de verdad trabaje SOLA ──')
 {
   const relleno = readFileSync('/home/user/pingu/netlify/functions/scrydex-relleno.mjs', 'utf8')
@@ -207,6 +258,11 @@ console.log('\n── 4. Y que de verdad trabaje SOLA ──')
   // primaria entera y salen de una consulta nuestra).
   check('no hay ningún DELETE ni ningún PATCH a ciegas', !/method:\s*'(DELETE|PUT)'/.test(relleno))
   check('y el emparejamiento se exige verificado', /scrydex_id=not\.is\.null/.test(relleno))
+  // EL FRENO, en los dos: sin él son 4.848 créditos en una noche y 2.160
+  // al mes respectivamente, con 5.000 de presupuesto MENSUAL.
+  check('el relleno tiene tope de barridos', /BARRIDOS_MAXIMOS/.test(relleno))
+  check('  …y pregunta antes si queda algo', /quedanPendientes/.test(relleno))
+  check('los logos también frenan', /quedaAlgoPorEmparejar/.test(logos))
 }
 {
   // El emparejamiento se GUARDA, que es lo que permite que el relleno no
