@@ -48,6 +48,14 @@ const PAGINA = 250
 // dé tiempo a escribir lo que lleve y a guardar por dónde iba.
 const MS_DE_MARGEN = 20_000
 const CLAVE_ESTADO = 'cartas-west'
+// Un respiro entre peticiones, como en `cartas-detalle` (tanda 233). Sin
+// él son 60 peticiones seguidas en doce segundos contra una API de pago
+// que no conozco: un 429 pararía la pasada entera, y la primera pasada de
+// verdad es A CIEGAS —desde este contenedor su red está cerrada, así que
+// no he podido probarla ni una vez—. Pararse por educación cuesta unos
+// segundos; que te corten cuesta la noche.
+const MS_ENTRE_PETICIONES = 250
+const respirar = (ms) => new Promise((r) => setTimeout(r, ms))
 // ── EL FRENO, que es lo que impide que esto se coma el plan ──
 //
 // Sin él: un barrido completo son 101 páginas = 101 créditos, y a 60
@@ -185,6 +193,7 @@ export async function procesar({
   const ejemplosDeNombre = []
 
   while (paginasHechas < paginas && quedaTiempo()) {
+    if (paginasHechas > 0) await respirar(MS_ENTRE_PETICIONES)
     const res = await fetchImpl(urlDeSonda(`${IDIOMA}/cards`, { page: pagina, page_size: PAGINA }), { headers: cabeceras })
     if (!res.ok) {
       await guardarEstado({ pagina, total, barridos, error: `Scrydex ${res.status}`, cuando: new Date().toISOString() })
@@ -206,7 +215,9 @@ export async function procesar({
 
     // Las cartas NUESTRAS de los sets que salen en esta página.
     const susSets = [...new Set(lote.map((c) => String(c?.expansion?.id || '').toLowerCase()).filter(Boolean))]
-    const nuestrosIds = susSets.map((s) => nuestroSetDe.get(s)).filter(Boolean)
+    const nuestrosIds = susSets
+      .map((s) => nuestroSetDe.get(s))
+      .filter((id) => id && !/[,()"\s]/.test(id))
     const nuestras = nuestrosIds.length
       ? await pedir(
         'tcg_cards?select=id,market,set_id,local_id,name,name_es,image_scrydex,rarity_en,rarity_code,illustrator,dex_ids,hp'
