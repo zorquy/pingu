@@ -200,7 +200,25 @@ export function nombreDeLaFranja(texto) {
     // número afine.
     const piezas = t.split(/[、。「」（）]/)[0].split(/\s+/).filter(Boolean).filter(tieneCJK)
     const primera = piezas.find((p) => p.length >= 2)
-    if (primera) return primera
+    // ── Y DEL TROZO ELEGIDO, SOLO LO QUE ES JAPONÉS (tanda 559) ──
+    //
+    // PINGU volvió a escanear la misma Charizard y en el buscador quedó
+    // «リザードンCKT»: el OCR leyó el logo de «ex» —que va estilizado, en
+    // relieve y a dos colores— como «CKT» y se lo pegó al nombre sin
+    // espacio. Y una palabra pegada es UNA palabra: el `like` buscaba
+    // «%リザードンCKT%» y no casaba con nada.
+    //
+    // El nombre japonés de una carta es kana y kanji; lo latino que se le
+    // pega es o el sufijo (ex, V, GX) o basura del OCR. Las dos cosas
+    // sobran: con «リザードン» la base ya encuentra «リザードンex», porque
+    // el `like` va por dentro. Se busca la RACHA japonesa más larga del
+    // trozo, y así da igual si la basura se pega delante o detrás.
+    if (primera) {
+      const rachas = primera.split(/[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー々]+/u).filter(Boolean)
+      const mejor = rachas.length ? rachas.reduce((a, b) => (b.length > a.length ? b : a)) : ''
+      if (mejor.length >= 2) return mejor
+      return primera
+    }
   }
   // Lo que queda, con los espacios recogidos. Y si no queda NADA, se
   // devuelve lo de antes sin tocar: un limpiador que se lleva por delante

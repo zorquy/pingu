@@ -29075,3 +29075,35 @@ cartas parecidas. Es la familia de siempre —un vacío que se lee como una
 respuesta— y aquí además deja a quien escanea sin saber si acercar más la
 carta o si es que esa carta no está. Ahora un aviso dice qué nombre se leyó
 y, si se aflojó la búsqueda, por qué.
+
+## Tanda 559 — el OCR lee el logo de «ex» y lo pega al nombre (oct. 2026)
+
+PINGU volvió a escanear una リザードンex —esta vez la 134/108 SAR, con el
+número bien visible— y en el buscador quedó «リザードンCKT». Cero
+resultados.
+
+El «ex» de una carta japonesa va estilizado: en relieve, a dos colores y
+**pegado al nombre sin espacio**. El OCR lo lee como le parece —«CKT» esta
+vez, «ex» la anterior— y, como va pegado, el resultado es UNA palabra. El
+`like` buscaba «%リザードンCKT%» y no casaba con nada.
+
+**La regla**: el nombre japonés de una carta es kana y kanji; lo latino que
+se le pega es o el sufijo (ex, V, GX) o basura del OCR, y las dos cosas
+sobran. Con «リザードン» la base ya encuentra «リザードンex», porque el
+`like` va por dentro. Se busca la **racha japonesa más larga** del trozo,
+así que da igual si la basura se pega delante o detrás. Buscar MENOS es lo
+correcto aquí: lo que afina es el número.
+
+**Y conviene ver las cuatro capas juntas**, porque cada una tapaba a la
+siguiente y por eso hicieron falta cuatro pasadas:
+
+1. **557** — la consulta descomponía el kana (`NFD`) y no casaba NUNCA.
+2. **558** — la franja de arriba lleva fase, línea de evolución y el
+   principio de la habilidad, además del nombre.
+3. **558b** — el número venía a ancho completo (`０６６／１０８`).
+4. **559** — y el sufijo estilizado se pega al nombre.
+
+Hasta que no casó una, no se pudo ver la siguiente. Es el argumento de
+siempre a favor de decir en pantalla lo que se ha leído: con el aviso de la
+558b puesto desde el principio, las cuatro se habrían visto en una tarde en
+vez de en cuatro idas y venidas.

@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 19:10) — PINGU-Claude (559 — el «ex» estilizado se pega al nombre)
+
+**De dónde sale**: PINGU escaneó la リザードンex 134/108 SAR y quedó
+«リザードンCKT». El «ex» japonés va estilizado y PEGADO al nombre sin
+espacio, así que el OCR lo lee como le parece —«CKT» esta vez— y el
+resultado es UNA palabra: el `like` no casa con nada.
+
+**Hecho**: del trozo elegido se busca la RACHA japonesa más larga, así que
+da igual si la basura se pega delante o detrás. Con «リザードン» la base ya
+encuentra «リザードンex» —el `like` va por dentro— y lo que afina es el
+número.
+
+**Las cuatro capas, juntas**: 557 (el `NFD` descomponía el kana), 558 (la
+franja lleva fase + evolución + habilidad), 558b (el número a ancho
+completo) y 559 (el sufijo pegado). Cada una tapaba a la siguiente. Con el
+aviso de «lo que he leído» puesto desde el principio se habrían visto las
+cuatro de una vez.
+
+**Sin migración.**
+
+**Ficheros**: `js/mi-coleccion/escaner.js`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-559.mjs`.
+
+**Pasado**: 559, 558, 557, 447, 450, 451 y `test-imports.mjs`.
+
 ## 2026-10-05 (mañana, 11:05) — PINGU-Claude (558b — el número venía a ancho completo)
 
 **De dónde sale**: PINGU: «ahora funciona la búsqueda pero salen demasiados
