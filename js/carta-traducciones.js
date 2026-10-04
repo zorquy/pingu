@@ -53,7 +53,7 @@ export const CATEGORIAS_ES = { Pokemon: 'Pokémon', Trainer: 'Entrenador', Energ
 // OFICIAL en español y su marca impresa. Se re-exportan desde aquí para no
 // mover los seis sitios que las importan — y porque es verdad: siguen
 // siendo el español del catálogo, solo que con dibujo.
-export { RAREZAS_ES, rarezaEs, rarezaDeCarta, formasDeRareza, marcaDeRarezaHtml } from './rarezas.js'
+export { RAREZAS_ES, rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, formasDeRareza, marcaDeRarezaHtml } from './rarezas.js'
 import { rarezaEs as rarezaEsImpl } from './rarezas.js'
 
 // AQUÍ ESTABA `ALIAS_TCGDEX` (tanda 455, fuera en la 463). TCGdex traduce
@@ -113,6 +113,11 @@ const BRILLO_POR_RAREZA = {
   'Rara Brillante': 'radiante',
   'Rara Brillante Ultra': 'arcoiris',
   'Rara Ilustración Especial': 'arcoiris',
+  // La arcoíris y la dorada eran la misma entrada porque TCGdex las
+  // llama a las dos «Hyper rare» (tanda 523). Scrydex las separa, y se
+  // distinguen a un metro: una lleva el foil en arcoíris y la otra en oro.
+  'Rara Arcoíris': 'arcoiris',
+  'Rara Secreta': 'dorada',
   'Rara Híper': 'dorada',
   'Rara Híper Mega': 'dorada',
   'Rara Ataque Mega': 'arcoiris',
@@ -130,7 +135,7 @@ export function familiaDeBrillo(rareza) {
   const clave = Object.keys(BRILLO_POR_RAREZA).find((k) => k.toLowerCase() === String(canonica).toLowerCase())
   if (clave) return BRILLO_POR_RAREZA[clave]
   const r = String(rareza).toLowerCase()
-  if (/hyper|hiperrara|rainbow|arco/.test(r)) return 'dorada'
+  if (/hyper|hiperrara/.test(r)) return 'dorada'
   if (/special illustration|ilustraci[oó]n especial/.test(r)) return 'arcoiris'
   if (/radiant|radiante|shiny|variocolor|amazing|asombrosa/.test(r)) return 'radiante'
   if (/ultra|illustration|ilustraci[oó]n/.test(r)) return 'cosmos'

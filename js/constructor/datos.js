@@ -25,7 +25,7 @@ export { marcasLegales }
 
 // `name` es el inglés y `name_es` el que se enseña (tanda 335).
 export const COLUMNAS =
-  'id,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,regulation_mark,hp,types'
+  'id,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types'
 
 const MERCADO = 'WEST'
 
@@ -249,7 +249,7 @@ export async function cartasPorIds(ids) {
 // abrirse, UNA consulta por el mazo entero (de 100 en 100 como arriba).
 // Las cartas que el engorde aún no ha visitado vuelven con esos campos a
 // null, y el laboratorio lo dice al ver la carta en vez de inventárselos.
-const COLUMNAS_DE_JUEGO = 'id,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity'
+const COLUMNAS_DE_JUEGO = 'id,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity,rarity_en'
 
 export async function detallesDeJuego(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]

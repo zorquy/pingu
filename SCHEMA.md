@@ -27968,6 +27968,40 @@ inventada es una etiqueta que miente, y eso es peor que el inglés. La
 función apunta las que va viendo, así que la lista se completa con lo que de
 verdad existe y no con lo que me imagino (la norma de la 501).
 
+### Y la precisión no llegaba a ninguna pantalla (tanda 523)
+
+Lo de arriba estaba todo bien y el resultado era **cero**: ninguna consulta
+del cliente pedía `rarity_en`. Así que `rarezaDeCarta()` caía al respaldo
+SIEMPRE, y la Rainbow de Lost Thunder —la queja literal— seguía rotulada
+«Rara Híper» con el dato bueno en la base.
+
+**Una columna que no se pide llega `undefined`, y `undefined || otra` es una
+expresión perfectamente válida.** No hay error que mirar: hay una pantalla
+que dice lo de antes. Las ocho consultas que nombran `rarity` piden ahora
+las dos columnas, y lo vigila un barrido (`test-tanda-523.mjs`) que exige
+que cualquier lista de columnas con `rarity` lleve `rarity_en` — es la
+guarda que hace falta, porque lo que se olvida es siempre el `select`.
+
+De paso salieron tres cosas más que la rareza gruesa tapaba:
+
+· **El brillo**: la arcoíris llevaba el foil DORADO, porque la entrada del
+  mapa era la misma para las dos. Ahora `Rara Arcoíris → arcoiris` y
+  `Rara Secreta → dorada`. Y el respaldo por palabras dejó de reclamarlas:
+  tener el mapa Y el respaldo diciendo lo mismo es la trampa de la 314 —dos
+  guardas que se cubren una a otra no se pueden observar ninguna, y el
+  rigor lo cantó con dos «sin detectar».
+· **La escala de orden**: «Rare Rainbow» no casaba con ninguna palabra
+  menos `rare`, así que la carta más buscada del set se ordenaba por
+  debajo de una holo. `rainbow` y `secret` entran arriba.
+· **Las reglas de MAZO**: el AS táctico y el radiante son uno por mazo y se
+  reconocen por la rareza. Ahí la rareza no decide lo que se lee, decide lo
+  que se PUEDE — y una carta cuya rareza española no esté curada se
+  escapaba del límite sin dar ningún error. Mira las dos columnas.
+
+Y /coleccion pedía `rarity` **sin usarla en ninguna línea**: fuera. Una
+columna que viaja y nadie lee son bytes en cada página de set y una pista
+falsa para quien lea la consulta después.
+
 ### El chino: escondido, no borrado
 
 Se queda la fila entera de la vista con una marca `oculta`. Las cartas

@@ -151,13 +151,20 @@ export function esBasico(carta) {
 
 // AS TÁCTICO (ACE SPEC): una por mazo, entre todas. El espejo lo dice en
 // la rareza («Rara AS TÁCTICO», «ACE SPEC Rare»).
+//
+// Las DOS columnas de rareza (tanda 523): el inglés exacto de Scrydex y la
+// rareza de TCGdex. Aquí la rareza no es un rótulo, es una REGLA de mazo —
+// una carta cuya rareza española no esté curada se escaparía del límite de
+// una por mazo, y eso no da ningún error: deja pasar un mazo ilegal.
+const rarezasDe = (carta) => `${carta?.rarity_en || ''} ${carta?.rarity || ''}`
+
 export function esAsTactico(carta) {
-  return /ace\s*spec|as\s+tactico/.test(plano(carta?.rarity))
+  return /ace\s*spec|as\s+tactico/.test(plano(rarezasDe(carta)))
 }
 
 // Pokémon Radiante: uno por mazo, entre todos.
 export function esRadiante(carta) {
-  return /^radiant\b|\bradiante\b/.test(plano(carta?.name)) || /\bradiante\b/.test(plano(carta?.name_es)) || /radiante|radiant/.test(plano(carta?.rarity))
+  return /^radiant\b|\bradiante\b/.test(plano(carta?.name)) || /\bradiante\b/.test(plano(carta?.name_es)) || /radiante|radiant/.test(plano(rarezasDe(carta)))
 }
 
 // La regla de las 4 copias va por NOMBRE, no por impresión: cuatro

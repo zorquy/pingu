@@ -60,6 +60,11 @@ const ESCALA = {
 // 313 —al barrer texto, todo lo que CONTIENE la cadena cuenta— aplicada a
 // un nombre de rareza.
 const POR_PALABRAS = [
+  // La arcoíris y la secreta van ARRIBA y antes que nada (tanda 523):
+  // sin ellas «Rare Rainbow» no casaba con ninguna palabra menos `rare` y
+  // una de las cartas más buscadas del set se ordenaba como una común.
+  [/\b(rainbow|arco[ií]ris)\b/i, 11],
+  [/\b(secret|secreta)\b/i, 11],
   [/\bhyper\b/i, 11],
   [/\bspecial\s+illustration\b/i, 10],
   [/\b(shiny|variocolor)\b/i, 9],

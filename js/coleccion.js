@@ -122,7 +122,7 @@ async function masCartas(cuantas) {
   const prefijo = prefijoDeColeccion(setId)
   let consulta = supabase
     .from('tcg_cards')
-    .select('id,name,name_es,local_id,image_path,image_scrydex,types,category,rarity')
+    .select('id,name,name_es,local_id,image_path,image_scrydex,types,category')
     .eq('market', MERCADO)
   consulta = prefijo ? consulta.like('set_id', `${prefijo}%`) : consulta.eq('set_id', setId)
   // Y si son dos mitades, PRIMERO la del set y después la otra: los dos

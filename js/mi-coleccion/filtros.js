@@ -1,5 +1,14 @@
 // Ordenar y filtrar TU colección (tanda 449).
 //
+// La ÚNICA importación de este fichero es `rarezas-nombres.js` (tanda
+// 523), y entra porque ese módulo no importa NADA: ni DOM, ni Supabase, ni
+// una clase de CSS —de eso se trataba al sacarlo de `rarezas.js` en la
+// 510—, así que esto se sigue probando en Node tal cual. Lo que trae es la
+// cadena de columnas de la rareza, y tiene que ser LA MISMA que usa el
+// rótulo: si el filtro mira una columna y la ficha otra, el chip dice una
+// rareza y la carta de al lado dice otra.
+import { rarezaCrudaDeCarta } from '../rarezas-nombres.js'
+//
 // PINGU, con Dex delante: «ordenado por fecha de salida, nombre,
 // ilustrador, número de la Pokédex, precio, cuántas tienes y tipo de
 // energía; y filtrar por estado, notas, tipo de carta, tipo de energía,
@@ -65,7 +74,7 @@ function claveDe(orden, linea, ayudas) {
     case 'ilustrador': return c?.illustrator || null
     case 'dex': return Array.isArray(c?.dex_ids) && c.dex_ids.length ? Math.min(...c.dex_ids) : null
     case 'energia': return Array.isArray(c?.types) && c.types.length ? c.types[0] : null
-    case 'rareza': return rango(c?.rarity)
+    case 'rareza': return rango(rarezaCrudaDeCarta(c))
     case 'salida': return c?.tcg_sets?.release_date || null
     case 'coleccion': return c?.tcg_sets?.name || c?.set_id || null
     default: return null
@@ -121,7 +130,10 @@ export const GRUPOS_FILTRO = [
   // que solo lo tienen las cartas que `cartas-detalle` ya ha engordado —
   // y por eso el grupo aparece y desaparece según lo que lleve curado.
   { id: 'entrenador', nombre: 'Tipo de entrenador', de: (l, c, a) => (c?.trainer_type ? [a.entrenadorEs(c.trainer_type)] : []) },
-  { id: 'rareza', nombre: 'Rareza', de: (l, c, a) => (c?.rarity ? [a.rarezaEs(c.rarity)] : []) },
+  // La rareza sale de `rarity_en` cuando la hay (tanda 523), igual que el
+  // rótulo y la marca: si no, el chip dice «Rara Híper» de una carta que
+  // la ficha de al lado rotula «Rara Arcoíris».
+  { id: 'rareza', nombre: 'Rareza', de: (l, c, a) => (rarezaCrudaDeCarta(c) ? [a.rarezaEs(rarezaCrudaDeCarta(c))] : []) },
   { id: 'variante', nombre: 'Versión', de: (l, c, a) => [a.varianteDe(l.variante).nombre] },
   { id: 'estado', nombre: 'Estado', de: (l, c, a) => [a.estadoDe(l.estado).nombre] },
   // Aquí SÍ hay dos cajones de verdad y no un «no se sabe»: una nota la
@@ -173,7 +185,12 @@ export const FILTROS_CATALOGO = [
   { id: 'category', nombre: 'Tipo de carta', columna: 'category', mapa: 'CATEGORIAS_ES' },
   { id: 'types', nombre: 'Tipo de energía', columna: 'types', mapa: 'TIPOS_ES', array: true },
   { id: 'trainer_type', nombre: 'Tipo de entrenador', columna: 'trainer_type', mapa: 'ENTRENADORES_ES' },
-  { id: 'rarity', nombre: 'Rareza', columna: 'rarity', mapa: 'RAREZAS_ES' },
+  // `prefiere` es la columna que manda cuando la hay (tanda 523):
+  // `rarity_en` es el inglés exacto de Scrydex y `rarity` la rareza gruesa
+  // de TCGdex. La columna que se CONSULTA sigue siendo `rarity`, porque
+  // los chips de Buscar salen del mapa de TCGdex y la consulta filtra por
+  // esa; `prefiere` solo lo miran los dos caminos EN MEMORIA.
+  { id: 'rarity', nombre: 'Rareza', columna: 'rarity', prefiere: 'rarity_en', mapa: 'RAREZAS_ES' },
 ]
 
 export function filtrosCatalogoVacios() {
@@ -246,12 +263,22 @@ export const MAPA_DE_GRUPO = { category: 'categoriaEs', types: 'tipoEs', trainer
 // no hay chips repetidos, y pulsar «Común» encuentra también las que están
 // guardadas como `Common`, que antes se quedaban fuera sin que nada lo
 // dijera.
+// Los valores crudos de una carta para un grupo, en UN solo sitio: la
+// columna preferida si la trae y la de siempre si no. Lo usan los dos
+// caminos en memoria —montar los chips y filtrar con ellos—, y tienen que
+// usar el mismo o un chip que existe no encuentra sus cartas.
+export function crudosDeGrupo(carta, g) {
+  if (g.array) return Array.isArray(carta?.[g.columna]) ? carta[g.columna] : []
+  const preferido = g.prefiere ? carta?.[g.prefiere] : null
+  return [preferido || carta?.[g.columna]]
+}
+
 export function valoresDeCartas(cartas, ayudas) {
   return FILTROS_CATALOGO.map((g) => {
     const traducir = ayudas[MAPA_DE_GRUPO[g.id]] || ((v) => v)
     const porRotulo = new Map()
     for (const c of cartas) {
-      const crudos = g.array ? (Array.isArray(c?.[g.columna]) ? c[g.columna] : []) : [c?.[g.columna]]
+      const crudos = crudosDeGrupo(c, g)
       // Un campo a null no es un cajón: es que `cartas-detalle` todavía no
       // ha llegado a esa carta. Meterla en un «sin rareza» la mezclaría
       // con las que de verdad no llevan.
@@ -278,7 +305,7 @@ export function pasaFiltrosDeCarta(carta, puestos, ayudas = {}) {
     const elegidos = puestos?.[g.id]
     if (elegidos && elegidos.size) {
       const traducir = ayudas[MAPA_DE_GRUPO[g.id]] || ((v) => v)
-      const suyos = g.array ? (Array.isArray(carta?.[g.columna]) ? carta[g.columna] : []) : [carta?.[g.columna]]
+      const suyos = crudosDeGrupo(carta, g)
       if (!suyos.some((v) => v && elegidos.has(traducir(v)))) return false
     }
   }

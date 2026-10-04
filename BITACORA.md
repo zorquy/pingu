@@ -4,6 +4,62 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (madrugada, 07:05) — PINGU-Claude (523 — la rareza exacta estaba en la base y no llegaba a NINGUNA pantalla)
+
+**Hecho**: la 509 trajo el inglés exacto de Scrydex a `rarity_en` y la 510
+le puso traductor (`rarezaDeCarta`, que prefiere `rarity_en` y cae a
+`rarity`). Las dos tandas bien, el resultado **cero**: ninguna consulta del
+cliente pedía esa columna. O sea que el respaldo se usaba SIEMPRE y la
+Rainbow de Lost Thunder —la queja literal de PINGU— seguía rotulada «Rara
+Híper» con el dato bueno guardado.
+
+**Una columna que no se pide llega `undefined`, y `undefined || otra` es una
+expresión perfectamente válida**: no hay error que mirar, hay una pantalla
+que dice lo de antes. Las ocho consultas que nombran `rarity` piden ahora
+las dos, y lo vigila un barrido que exige que cualquier lista de columnas
+con `rarity` lleve `rarity_en`.
+
+Tres cosas más que la rareza gruesa tapaba:
+
+- **El brillo**: la arcoíris llevaba el foil DORADO (el mapa tenía la misma
+  entrada para las dos). Ahora arcoíris → arcoíris y secreta → oro.
+- **La escala de orden**: «Rare Rainbow» solo casaba con `rare`, así que la
+  carta más buscada del set se ordenaba por debajo de una holo.
+- **Las reglas de MAZO**: el AS táctico y el radiante son uno por mazo y se
+  reconocen por la rareza. Ahí la rareza no decide lo que se LEE sino lo que
+  se PUEDE, y una carta sin la rareza española curada se escapaba del límite
+  sin dar error.
+
+Y /coleccion pedía `rarity` **sin usarla en ninguna línea**: fuera.
+
+**Rigor**: 14 mutaciones, las 14 detectadas — pero las dos primeras pasadas
+salieron con cuatro «sin detectar» y las cuatro enseñaron algo. Dos eran la
+trampa de la 314 en estado puro: el mapa de brillo Y el respaldo por
+palabras decían los dos que la arcoíris es arcoíris, así que quitar
+cualquiera de los dos no cambiaba nada. Decide el mapa y punto. Otra era que
+la prueba llamaba a `rangoDeRareza` a pelo en vez de ordenar de verdad, y la
+cuarta que no pintaba la ficha de /carta — que era LA pantalla de la queja.
+
+**Ficheros**: `js/rarezas-nombres.js`, `js/rarezas.js`,
+`js/carta-traducciones.js`, `js/carta-nucleo.js`, `js/carta.js`,
+`js/coleccion.js`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion/filtros.js`,
+`js/mi-coleccion/orden.js`, `js/constructor/datos.js`,
+`js/constructor/nucleo.js`, `SCHEMA.md`. En `pruebas`:
+`pruebas/test-tanda-523.mjs`, `rigor/rigor-tanda-523.py`.
+
+**Portada**: 167,8 KB (nada de esto la toca). **Suite**: la pasada de las
+06:15 dio **235 verdes / 2 rojos**, y los dos rojos son `test-tanda-493` y
+`test-tanda-514`, que piden `ffprobe` y aquí no está instalado — no son de
+la web. La pasada con la 523 dentro está corriendo.
+
+**Queda pendiente**: la consulta de «Buscar» filtra por `rarity` (la columna
+gruesa) porque sus chips salen del mapa de TCGdex. Mientras se rellene,
+pulsar «Rara Híper» ahí seguirá trayendo las arcoíris, rotuladas bien. Para
+cerrarlo hace falta que el filtro consulte las dos columnas con un `or`, y
+eso NO se puede probar desde este contenedor (la red a Supabase está
+cerrada): lo dejo escrito y no a medio hacer.
+
 ## 2026-10-04 (madrugada, 06:10) — PINGU-Claude (522 — el cuarto freno que no frenaba: si falla NUESTRA base, la petición ya está pagada)
 
 **Hecho**: en `scrydex-relleno` el orden era «pido la página a Scrydex →

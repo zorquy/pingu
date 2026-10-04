@@ -127,6 +127,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   catálogo no tiene y «quedan pendientes» sería verdad para siempre. Antes
   de poner un `schedule`, multiplica: coste por pasada × pasadas al día ×
   30. Si el resultado no cabe en el presupuesto, el `schedule` está mal.
+- **Una columna que la base RELLENA y ninguna consulta PIDE no existe para
+  la web** (tanda 523). La 509 puso el inglés exacto de Scrydex en
+  `rarity_en` y la 510 le dio un traductor que la prefiere y cae a
+  `rarity`. Las dos bien, y el resultado CERO: ningún `select` del cliente
+  la pedía, así que el respaldo se usaba siempre y la Rainbow seguía
+  rotulada «Rara Híper» con el dato bueno guardado. **Una columna que no se
+  pide llega `undefined`, y `undefined || otra` es una expresión
+  perfectamente válida**: no hay error que mirar, hay una pantalla que dice
+  lo de antes. Al añadir una columna, el paso que se olvida es el `select` —
+  y son todos los `select`, que de la rareza había OCHO. Lo vigila
+  `test-tanda-523.mjs`: cualquier lista de columnas que nombre `rarity`
+  tiene que nombrar `rarity_en`.
 - **Cuando una pasada GASTA antes de poder fallar, todo lo que venga
   después cuenta como intento** (tanda 522, y es la cuarta vez esta noche que
   un freno frena solo la mitad). `scrydex-relleno` pedía la página a Scrydex

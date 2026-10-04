@@ -24,7 +24,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, rarezaDeCarta, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
+import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -1108,7 +1108,7 @@ function lineaHtml(l) {
   // la chapa de encima (tanda 461), que sale siempre. Aquí se calla cuando
   // es la normal porque decir «Pikachu, Normal» en voz alta no añade nada.
   const variante = l.variante !== 'normal' ? varianteDe(l.variante).nombre : ''
-  const brillo = c ? familiaDeBrillo(c.rarity) : null
+  const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
   // La etiqueta la lee quien no ve la carta, así que lleva lo que la
   // imagen dice sin palabras: qué es, de dónde y cuántas.
   const etiqueta = `${nombreDe(c)}${c?.tcg_sets?.name ? `, ${c.tcg_sets.name}` : ''}${
@@ -1422,7 +1422,7 @@ function abrirEditor(l) {
   // retrasar lo único que has pedido. Es la misma excepción que el
   // lightbox, y va escrita en el atributo para que se lea aquí.
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
-  const brillo = c ? familiaDeBrillo(c.rarity) : null
+  const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
   $('mcEdFoto').innerHTML = escaneo
     ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" /></span>`
     : ''
@@ -3162,7 +3162,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,

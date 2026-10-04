@@ -159,8 +159,19 @@ export function rarezaEs(valor) {
 // el respaldo. Mientras la función programada rellena, las dos conviven y
 // la pantalla va ganando precisión sola; una carta sin `rarity_en` se
 // sigue viendo exactamente como antes.
+//
+// Y la elección de columna va en SU PROPIA función exportada (tanda 523)
+// porque no solo la necesita el rótulo: también la marca de la esquina, la
+// familia de brillo, el escalón de la escala y los chips de filtro. Cada
+// uno de esos sitios tenía escrito `rarity_en || rarity` a mano o —peor—
+// solo `rarity`, y un sitio que se olvide no da ningún error: enseña la
+// rareza GRUESA de TCGdex con la precisa delante.
+export function rarezaCrudaDeCarta(carta) {
+  return carta?.rarity_en || carta?.rarity || null
+}
+
 export function rarezaDeCarta(carta) {
-  return rarezaEs(carta?.rarity_en || carta?.rarity)
+  return rarezaEs(rarezaCrudaDeCarta(carta))
 }
 
 // Todas las formas con las que esa rareza puede estar guardada, para

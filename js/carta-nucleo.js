@@ -59,6 +59,7 @@ import {
   categoriaEs,
   rarezaEs,
   rarezaDeCarta,
+  rarezaCrudaDeCarta,
   marcaDeRarezaHtml,
   entrenadorEs,
   familiaDeBrillo,
@@ -74,6 +75,7 @@ export {
   categoriaEs,
   rarezaEs,
   rarezaDeCarta,
+  rarezaCrudaDeCarta,
   entrenadorEs,
   familiaDeBrillo,
 }
@@ -294,7 +296,13 @@ function bloqueFicha(carta, set) {
   // La RAREZA con su marca impresa delante (tanda 463): el círculo, el
   // diamante o las estrellas que la carta lleva en la esquina de abajo.
   // Con ella la ficha se compara con lo que tienes en la mano sin leer.
-  if (carta?.rarity) filas.push(['Rareza', rarezaEs(carta.rarity), marcaDeRarezaHtml(carta.rarity)])
+  //
+  // Y sale de `rarezaCrudaDeCarta` y no de `rarity` (tanda 523): esta era
+  // LA pantalla de la queja —una Rainbow de Lost Thunder rotulada «Rara
+  // Híper»— y seguía leyendo la columna gruesa de TCGdex con la precisa de
+  // Scrydex al lado.
+  const cruda = rarezaCrudaDeCarta(carta)
+  if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeRarezaHtml(cruda)])
   if (carta?.regulation_mark) filas.push(['Marca de regulación', carta.regulation_mark])
   if (carta?.illustrator) filas.push(['Ilustración', carta.illustrator])
   if (set?.release_date) filas.push(['Salió', fechaLarga(set.release_date)])
@@ -586,7 +594,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
   // el HTML y no lo pone el JavaScript del giro: así lo lleva también la
   // página que pinta la función del borde, y la lámina está ahí desde el
   // primer pintado aunque el resto no llegue.
-  const brillo = familiaDeBrillo(carta?.rarity)
+  const brillo = familiaDeBrillo(rarezaCrudaDeCarta(carta))
   const escaneo = atributosDeEscaneo(
     cadenaDeEscaneo(carta, set?.tcg_online_code, 'high'),
     "this.replaceWith(Object.assign(document.createElement('div'),{className:'carta-scan-vacio',textContent:'Sin imagen'}))"
