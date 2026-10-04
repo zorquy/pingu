@@ -183,6 +183,10 @@ export function nuevaPartida(totalPreguntas) {
     // Preguntas ya respondidas por primera vez, por clave. Lo que
     // impide que ir y volver con "Anterior" cuente dos veces.
     respondidas: new Set(),
+    // La tira de la partida (tanda 568): acierto o fallo de cada
+    // pregunta, EN ORDEN. Es lo que se comparte como los cuadrados de
+    // Wordle — enseña cómo te ha ido sin desvelar las preguntas.
+    tira: [],
   }
 }
 
@@ -202,6 +206,7 @@ export function anotarRespuesta(partida, { clave, acierto, esRepesca = false }) 
   // "Anterior"): ni puntúa ni cuenta.
   if (clave && partida.respondidas.has(clave)) return 0
   if (clave) partida.respondidas.add(clave)
+  partida.tira.push(Boolean(acierto))
 
   if (!acierto) {
     partida.racha = 0
@@ -228,5 +233,6 @@ export function cerrarPartida(partida) {
     medal: medallaDe(partida.aciertos, partida.total),
     perfecto,
     mejorRacha: partida.mejorRacha,
+    tira: partida.tira.slice(),
   }
 }

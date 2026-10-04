@@ -25,9 +25,12 @@ import {
   preguntasDeRepaso,
   yaJugadoHoy,
   guardarReto,
+  diasJugados,
+  hoyISO,
   XP_RETO_DIARIO,
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
+import { textoParaCompartir, numeroDelDia, rachaDeDias } from './reto-compartir.js'
 import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
 import { clasificacionSemanal } from './liga.js'
 import { puestoDe, textoSaltoLiga } from './liga-salto.js'
@@ -61,6 +64,8 @@ let mejorAnterior = null
 // porque `cerrarPartida()` suma el bonus de partida perfecta, y llamarla
 // dos veces lo sumaría dos veces.
 let ultimoResumen = null
+// Días seguidos de reto, contando hoy (tanda 568). Cero hasta que se guarda.
+let rachaDeHoy = 0
 // 'curso' | 'diario' | 'repaso'. El reto diario y el repaso son la misma
 // partida que un curso —marcador, racha, medalla— pero con las preguntas
 // sacadas de otro sitio y guardadas en otra tabla. Todo lo demás del
@@ -538,6 +543,15 @@ function renderReward(b) {
         <span class="tcg-card c3"></span>
       </div>
       ${medallaHtml(resumen.medal)}
+      ${
+        // La tira de Wordle (tanda 568): un cuadrado por pregunta, en
+        // orden. Solo en el reto del día, que es el que se comparte y el
+        // que todo el mundo juega igual; en un curso no dice nada.
+        modo === 'diario' && resumen.tira?.length
+          ? `<div class="reward-tira" role="img" aria-label="${resumen.tira.map((ok) => (ok ? 'acierto' : 'fallo')).join(', ')}">${resumen.tira.map((ok) => `<span class="${ok ? 'bien' : 'mal'}"></span>`).join('')}</div>
+             <p class="reward-tira-num">Reto #${numeroDelDia(hoyISO())}</p>`
+          : ''
+      }
       <div class="xp-display"><span id="xpCounter">0</span> pts</div>
       <ul class="reward-desglose">
         <li><span>Aciertos</span><strong>${resumen.correct} de ${resumen.total}</strong></li>
@@ -1485,6 +1499,11 @@ async function cerrarYGuardarReto(resumen) {
     } catch {}
     const guardado = await guardarReto(session.user.id, resumen)
     if (guardado) {
+      // La racha de DÍAS de reto, para el texto que se comparte (tanda
+      // 568). Se cuenta después de guardar: hoy tiene que estar.
+      diasJugados(session.user.id).then((dias) => {
+        rachaDeHoy = rachaDeDias(dias, hoyISO())
+      }).catch(() => {})
       pintarSaltoLiga(ligaAntes).catch(() => {})
       try {
         await addXP(session.user.id, XP_RETO_DIARIO)
@@ -1588,10 +1607,10 @@ async function setupBlockLogic(block) {
     // hoja de compartir del sistema; sin ella, va al portapapeles.
     const btnPresumir = document.getElementById('btnPresumir')
     if (btnPresumir && ultimoResumen) {
-      const MEDALLA_EMOJI = { oro: '🥇', plata: '🥈', bronce: '🥉' }
-      const emoji = MEDALLA_EMOJI[ultimoResumen.medal] || '🎯'
-      const texto = `🎴 Reto Pokémon TCG de hoy en PokeDoc: ${ultimoResumen.correct}/${ultimoResumen.total} ${emoji}\n¿Puedes superarlo? ${window.location.origin}/curso.html?reto=hoy`
       btnPresumir.addEventListener('click', async () => {
+        // El texto se arma AL PULSAR y no al pintar: la racha llega por
+        // su cuenta después de guardar, y armarlo antes la dejaría fuera.
+        const texto = textoParaCompartir({ dia: hoyISO(), tira: ultimoResumen.tira, correct: ultimoResumen.correct, total: ultimoResumen.total, medal: ultimoResumen.medal, rachaDias: rachaDeHoy })
         try {
           if (navigator.share) {
             await navigator.share({ text: texto })

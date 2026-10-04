@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 03:30) — PINGU-Claude (568 — el reto diario, compartido como Wordle)
+
+**De dónde sale**: PINGU, «haz las tres» (reto compartible, adivina la
+carta, mi colección en una imagen) y un índice «Retos diarios». Esta es
+la primera.
+
+**Hecho**: el texto de «Presumir de resultado» lleva ahora el **número
+del día**, la **tira** 🟩🟥 de la partida en orden y la **racha de días**,
+con `pokedoc.es/reto` (reescritura nueva). La tira la graba la partida
+(`curso-juego.js`) y se dibuja con CSS en el resultado; la racha sale de
+`daily_challenge_results` tras guardar. Módulo puro `js/reto-compartir.js`.
+
+**Sin migración.**
+
+**Ficheros**: `js/curso.js`, `js/curso-juego.js`, `js/reto-diario.js`,
+`js/reto-compartir.js` (nuevo), `css/curso.css`, `netlify.toml`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-568.mjs` (nueva; juega el reto
+entero con la repesca y lee el texto que se le da a `navigator.share`).
+
+**Pasado**: 568, 299, 305, 310, 311, 312, 313, 524 e `test-imports.mjs`.
+
+**Siguen**: 569 (índice /retos y la entrada del menú), 570 (¿Qué carta
+es?), 571 (Mi colección en una imagen).
+
 ## 2026-10-06 (madrugada, 02:40) — PINGU-Claude (567 — «Mis 9 cartas», escondida)
 
 **De dónde sale**: PTCGenius ya tiene «My 9 Cards» en los timelines de X.

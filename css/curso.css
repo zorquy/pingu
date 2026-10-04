@@ -1586,3 +1586,31 @@
     animation: none;
   }
 }
+
+/* La tira del reto (tanda 568): un cuadrado por pregunta, acierto o
+   fallo, como los de Wordle. Dibujada con CSS aquí; en el texto que se
+   comparte van los emojis, que es donde no hay otra cosa. */
+.reward-tira {
+  display: flex;
+  justify-content: center;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0 0;
+}
+
+.reward-tira span {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-solid);
+}
+
+.reward-tira span.bien {
+  background: var(--success);
+}
+
+.reward-tira-num {
+  margin: var(--e-xs) 0 0;
+  color: var(--ice);
+  font-size: var(--t-xs);
+  text-align: center;
+}

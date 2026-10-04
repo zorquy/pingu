@@ -111,6 +111,14 @@
   to = "/usuario.html?u=:username"
   status = 200
 
+# El reto de hoy, con una dirección que cabe en un tuit (tanda 568): es la
+# que va en el texto que la gente comparte, así que corta y sin
+# interrogación.
+[[redirects]]
+  from = "/reto"
+  to = "/curso.html?reto=hoy"
+  status = 200
+
 # Lo mismo en el foro: /foro/<slug-del-foro> y /tema/<id>. `/foro` a secas
 # no necesita regla, porque Netlify sirve foro.html antes de llegar al
 # catch-all; estas dos sí, porque no existe ningún fichero con ese nombre.

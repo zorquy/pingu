@@ -103,6 +103,27 @@ export async function yaJugadoHoy(userId, dia = hoyISO()) {
   }
 }
 
+// Los días que ha jugado alguien, para la racha del texto que se comparte
+// (tanda 568). Se piden los últimos 60: una racha más larga se cuenta
+// igual, y 60 filas es lo que cuesta no traerse el historial entero.
+export async function diasJugados(userId, dia = hoyISO()) {
+  if (!userId) return []
+  try {
+    const [y, m, d] = dia.split('-').map(Number)
+    const desde = new Date(Date.UTC(y, m - 1, d - 60)).toISOString().slice(0, 10)
+    const { data, error } = await supabase
+      .from('daily_challenge_results')
+      .select('day')
+      .eq('user_id', userId)
+      .gte('day', desde)
+      .limit(100)
+    if (error) return []
+    return (data || []).map((f) => f.day)
+  } catch {
+    return []
+  }
+}
+
 export async function guardarReto(userId, resumen, dia = hoyISO()) {
   if (!userId) return false
   try {

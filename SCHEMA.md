@@ -29468,3 +29468,48 @@ MÁQUINA es lo que vale —el canvas de 1080×1350, el compartir con fichero y
 la función `imagen-carta`— y es de donde saldrá «Mi colección en una
 imagen», que sí es solo nuestro. La prueba de la 566 comprueba ahora lo
 contrario que antes: que NO hay entrada y que va en `noindex`.
+
+## Tanda 568 — el reto diario se comparte como Wordle (oct. 2026)
+
+PINGU pidió cosas que se encadenen, «como las nueve cartas pero nuestras».
+La más barata y la más nuestra ya existía a medias: el reto de hoy, con
+su liga y sus rachas, tenía botón de «presumir» — pero el texto era
+«4/5 🥈 ¿puedes superarlo?», y eso no se encadena.
+
+### Lo que encadena Wordle, y lo que faltaba
+
+Tres cosas, y son las tres que ahora lleva el texto:
+
+```
+Reto PokeDoc #67 · 4/5 🥈
+🟩🟩🟥🟩🟩
+🔥 12 días seguidos
+pokedoc.es/reto
+```
+
+- **El número del día.** Todo el mundo juega el mismo reto el mismo día, y
+  el número es lo que dice «el mismo que tú». Se cuenta desde `DIA_UNO`
+  (`js/reto-compartir.js`, 2026-08-01): la fecha exacta del estreno no
+  quedó apuntada, así que se fija esta y **de ahí no se mueve** —
+  cambiarla renumeraría todos los retos que la gente ya ha publicado.
+- **La tira.** Acierto o fallo de cada pregunta, EN ORDEN. Enseña cómo te
+  ha ido sin desvelar ni una pregunta, que es lo que permite publicarlo
+  antes de que el de al lado lo juegue. La graba la partida
+  (`partida.tira`, en `curso-juego.js`): ni volver con «Anterior» ni la
+  repesca la alargan, igual que no cuentan para la nota. En la pantalla
+  del resultado va dibujada con CSS (`.reward-tira`); los emojis son
+  solo para el texto, que se pega en WhatsApp o en X y allí no hay otra
+  cosa — es la única excepción deliberada a «iconos SVG, no emojis».
+- **La racha de días.** Días seguidos con reto jugado, contando hoy. Se
+  calcula DESPUÉS de guardar el de hoy (`diasJugados`, los últimos 60) y
+  el texto se arma AL PULSAR, no al pintar: la racha llega por su cuenta y
+  armarlo antes la dejaría fuera. Con un solo día no se presume.
+
+Y `/reto`, una dirección que cabe en un tuit (reescritura en
+`netlify.toml` a `/curso.html?reto=hoy`).
+
+### Sin migración
+
+Todo sale de lo que ya se guardaba (`daily_challenge_results`: día,
+aciertos, total). La tira no se guarda: es de la partida de hoy y se
+comparte hoy.
