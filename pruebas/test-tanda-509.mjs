@@ -191,6 +191,34 @@ const doble = ({ totalCount = 2, suTam = null, pendientes = true, estadoInicial 
   const r = await procesar({ env: ENV, ...d, fetchImpl: roto })
   check('si su API falla, se dice y se guarda el sitio', r.estado === 502 && d.estados.at(-1)?.pagina === 1, JSON.stringify([r.cuerpo, d.estados]))
   check('  …y no se escribe nada', d.escrito.length === 0)
+  check('  …y se cuenta el intento', d.estados.at(-1)?.fallos === 1, JSON.stringify(d.estados.at(-1)))
+}
+{
+  // ── UNA PÁGINA QUE FALLA SIEMPRE NO PUEDE BLOQUEAR EL BARRIDO ──
+  //
+  // Reintentarla es correcto para un fallo pasajero. Pero si falla
+  // SIEMPRE se reintenta cada cinco minutos para siempre: un crédito cada
+  // vez, 288 al día, y el catálogo se queda parado en esa página sin que
+  // nadie se entere. Es el bicho del barrido infinito por el otro lado.
+  const d = doble({ estadoInicial: { pagina: 7, barridos: 0, fallos: 4 } })
+  const roto = async (url, o) => (/\/cards/.test(url) ? { ok: false, status: 500 } : d.fetchImpl(url, o))
+  const r = await procesar({ env: ENV, ...d, fetchImpl: roto })
+  check('a la quinta, la página que falla siempre SE SALTA', d.estados.at(-1)?.pagina === 8, JSON.stringify(d.estados.at(-1)))
+  check('  …y queda apuntada cuál se saltó', (d.estados.at(-1)?.saltadas || []).includes(7), JSON.stringify(d.estados.at(-1)))
+  check('  …diciéndolo, no en silencio', /se salta/.test(r.cuerpo.AVISO || ''), JSON.stringify(r.cuerpo))
+  check('  …y el contador vuelve a cero para la siguiente', d.estados.at(-1)?.fallos === 0, JSON.stringify(d.estados.at(-1)))
+}
+{
+  // Y los fallos se cuentan SEGUIDOS: cinco tropiezos sueltos a lo largo
+  // de un barrido no pueden saltarse una página sana.
+  // El catálogo tiene que ser largo para que la pasada NO lo cierre: al
+  // cerrar un barrido el estado se reinicia entero y el contador se iría
+  // a cero de todas formas, así que esa versión de la prueba se aprobaba
+  // sola sin ejercitar la línea.
+  const d = doble({ totalCount: 99999, estadoInicial: { pagina: 1, barridos: 0, fallos: 4 } })
+  await procesar({ env: ENV, ...d, paginas: 1 })
+  check('una página buena pone el contador a cero',
+    d.estados.at(-1)?.fallos === 0 && d.estados.at(-1)?.pagina === 2, JSON.stringify(d.estados.at(-1)))
 }
 {
   const r = await procesar({ env: { SCRYDEX_API_KEY: 'k' } })
