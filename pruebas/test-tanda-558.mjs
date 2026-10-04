@@ -78,11 +78,48 @@ console.log('── 4. Y el occidental NO cambia ──')
   check('y una franja vacía no rompe', nombreDeLaFranja('') === '' && nombreDeLaFranja(null) === '')
 }
 
-console.log('── 5. El número de abajo sigue saliendo ──')
+console.log('── 5. El número, Y A ANCHO COMPLETO ──')
 {
-  // La carta de la captura es la 066/108.
+  // La segunda captura de PINGU: la búsqueda ya funcionaba pero salían 23
+  // Charizards. «No coge el número, supongo».
+  //
+  // Y no lo cogía: el OCR japonés devuelve las cifras y la barra como las
+  // IMPRIME una carta japonesa —«０６６／１０８», a ancho completo— y `\d` no
+  // casa con ０ ni `\/` con ／. De una carta japonesa salía NULL.
   check('«066/108» → 066', numeroDeLaFranja('066/108 R') === '066', numeroDeLaFranja('066/108 R'))
+  check('A ANCHO COMPLETO también', numeroDeLaFranja('０６６／１０８ R') === '066', String(numeroDeLaFranja('０６６／１０８ R')))
+  check('  …y con la barra sola a ancho completo', numeroDeLaFranja('066／108') === '066', String(numeroDeLaFranja('066／108')))
+  check('  …y con el código del set delante', numeroDeLaFranja('SV3 ０６６／１０８') === '066', String(numeroDeLaFranja('SV3 ０６６／１０８')))
   check('con el ilustrador al lado', numeroDeLaFranja('22/99 · Illus. Shizurow') === '22', numeroDeLaFranja('22/99 · Illus. Shizurow'))
+  // El copyright lleva un año de CUATRO cifras y no se confunde con el
+  // número de la carta.
+  check('el año del copyright no cuela', numeroDeLaFranja('©2023 Pokémon 066/108') === '066', String(numeroDeLaFranja('©2023 Pokémon 066/108')))
+  check('y si no hay número, se dice que no hay', numeroDeLaFranja('Illus. Akira Egawa') === null)
+  // NFKC aquí SÍ y en `normalizeSearch` NO, y la diferencia importa: esto
+  // no compara contra la base, EXTRAE un número de un texto leído por una
+  // máquina (la 557 explica por qué allí lo rompería).
+  const fuente = readFileSync('/home/user/pingu/js/mi-coleccion/escaner.js', 'utf8')
+  check('se normaliza a ancho normal antes de leer', /normalize\('NFKC'\)/.test(fuente))
+  // SIN LOS COMENTARIOS: `js/texto.js` explica en un comentario POR QUÉ no
+  // usa NFKC, y buscar la cadena a pelo daba la guarda por rota. Al barrer
+  // código, todo lo que CONTIENE la cadena cuenta, no solo lo que ES (la
+  // trampa de la 312, que ya ha picado tres veces).
+  const sinComentarios = readFileSync('/home/user/pingu/js/texto.js', 'utf8')
+    .replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+  check('  …y `normalizeSearch` sigue SIN NFKC', !/NFKC/.test(sinComentarios))
+  check('  …con NFC, que es lo que hace la base', /normalize\('NFC'\)/.test(sinComentarios))
+}
+
+console.log('── 5b. Y se DICE lo que se ha leído ──')
+{
+  // Sin esto, «no he podido leer el número» y «lo he leído y no casaba» se
+  // ven exactamente igual: una lista larga de cartas parecidas. PINGU vio
+  // 23 Charizards y tuvo que adivinar cuál de las dos cosas era.
+  const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const trozo = mc.split('async function dispararEscaner')[1]?.split('\n}')[0] || ''
+  check('se enseña lo leído', /He leído/.test(trozo))
+  check('  …y dice si no se pudo leer el número', /no he podido leer el número/.test(trozo))
+  check('  …y si el número no casaba', /no casaba con ninguna/.test(trozo))
 }
 
 console.log('── 6. La red de debajo: una sola palabra ──')
