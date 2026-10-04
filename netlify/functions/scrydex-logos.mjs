@@ -1,5 +1,30 @@
 import { procesar as procesarSets } from './scrydex-sets.mjs'
 
+const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
+
+// ── EL FRENO ──
+//
+// Sin él esto son 3 créditos por hora = 2.160 al mes para no cambiar
+// nada, con 5.000 de presupuesto. Así que primero se pregunta a NUESTRA
+// base —que es gratis— si queda algún set sin emparejar; si no queda, no
+// se le pregunta nada a Scrydex.
+//
+// Y los que no se emparejan nunca (promos que su catálogo no tiene) no
+// bloquean: el repaso se hace de todas formas una vez al día, que son 3
+// créditos, por si sale un set nuevo.
+async function quedaAlgoPorEmparejar(clave) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tcg_sets?select=id&market=eq.WEST&scrydex_id=is.null&limit=1`,
+      { headers: { apikey: clave, authorization: `Bearer ${clave}` } },
+    )
+    if (!res.ok) return true
+    return (await res.json()).length > 0
+  } catch {
+    return true
+  }
+}
+
 // Los logos que falten, SOLOS y cada hora (tanda 509).
 //
 // La 507 dejó el trabajo hecho pero detrás de un botón, y un botón
@@ -21,6 +46,15 @@ import { procesar as procesarSets } from './scrydex-sets.mjs'
 
 export default async () => {
   try {
+    const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
+    // A la hora en punto del repaso diario se mira igual, por si hay un
+    // set nuevo. El resto de las horas, solo si falta algo.
+    const esElRepaso = new Date().getUTCHours() === 7
+    if (clave && !esElRepaso && !(await quedaAlgoPorEmparejar(clave))) {
+      return new Response(JSON.stringify({ hecho: true, creditos: 0, porque: 'no queda ningún set sin emparejar' }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      })
+    }
     const r = await procesarSets({ mercado: 'WEST', idioma: 'en', escribir: true })
     return new Response(JSON.stringify({
       escritas: r.cuerpo?.escritas,

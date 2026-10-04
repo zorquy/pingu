@@ -48,6 +48,26 @@ const PAGINA = 250
 // dé tiempo a escribir lo que lleve y a guardar por dónde iba.
 const MS_DE_MARGEN = 20_000
 const CLAVE_ESTADO = 'cartas-west'
+// ── EL FRENO, que es lo que impide que esto se coma el plan ──
+//
+// Sin él: un barrido completo son 101 páginas = 101 créditos, y a 60
+// páginas por pasada cada cinco minutos son **48 barridos en una noche =
+// 4.848 créditos**, con 5.000 al MES. Se habría comido el plan entero
+// antes de que nadie se despertara, y encima para reescribir lo mismo.
+//
+// Así que para por DOS sitios, y hacen falta los dos:
+//
+//   1. **Si no queda ninguna carta por marcar, no gasta ni un crédito.**
+//      El trabajo está hecho y la función se calla sola.
+//   2. **Y un tope de barridos completos**, porque lo primero no basta:
+//      hay cartas nuestras que NO EXISTEN en su catálogo —ellos tienen
+//      25.209 y nosotros 21.476, pero no son el mismo conjunto—, así que
+//      esas no se marcan nunca y «quedan pendientes» sería verdad para
+//      siempre. Sin el tope, el freno de arriba no frena.
+const BARRIDOS_MAXIMOS = 2
+// Pasado ese tope se vuelve a mirar de vez en cuando, porque salen cartas
+// nuevas: una vez por semana, que son 101 créditos y no 4.848.
+const DIAS_ENTRE_REPASOS = 7
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -61,6 +81,22 @@ async function rest(ruta, clave, opciones = null) {
   })
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 200)}`)
   return opciones ? null : res.json()
+}
+
+// Cuántas cartas nuestras no ha tocado todavía Scrydex. Sale de un
+// `count` de PostgREST, que no baja ni una fila.
+// ¿Queda alguna carta nuestra sin tocar por Scrydex? No hace falta el
+// número exacto —la decisión es «sí o no»— y una fila es más barato que
+// un `count` sobre 21.476. Si la consulta falla se contesta que SÍ: el
+// tope de barridos protege igual, y pararse por un fallo de red sería
+// dejar el trabajo a medias por el motivo equivocado.
+async function quedanPendientes(pedir) {
+  try {
+    const r = await pedir(`tcg_cards?select=id&market=eq.${MERCADO}&scrydex_at=is.null&limit=1`)
+    return Array.isArray(r) ? r.length > 0 : true
+  } catch {
+    return true
+  }
 }
 
 export async function procesar({
@@ -101,6 +137,34 @@ export async function procesar({
   const estado = await leerEstado()
   let pagina = Number(estado?.pagina) > 0 ? Number(estado.pagina) : 1
   let total = Number(estado?.total) || 0
+  const barridos = Number(estado?.barridos) || 0
+
+  // ── ¿Hay algo que hacer? ──
+  //
+  // Se pregunta ANTES de gastar un crédito, y la respuesta sale de
+  // nuestra propia base, que es gratis. Si no queda nada por marcar, o si
+  // ya se han dado los barridos que tocaban y no toca repaso, se calla.
+  const pendientes = await quedanPendientes(pedir)
+  const enMitadDeUnBarrido = pagina > 1
+  const diasDesdeElUltimo = estado?.completadoEn
+    ? (Date.now() - Date.parse(estado.completadoEn)) / 86_400_000
+    : Infinity
+  const tocaRepaso = barridos >= BARRIDOS_MAXIMOS && diasDesdeElUltimo >= DIAS_ENTRE_REPASOS
+  if (!enMitadDeUnBarrido && !tocaRepaso && (!pendientes || barridos >= BARRIDOS_MAXIMOS)) {
+    return {
+      estado: 200,
+      cuerpo: {
+        hecho: true,
+        creditos: 0,
+        porque: !pendientes
+          ? 'no queda ninguna carta por marcar'
+          : `ya se han dado ${barridos} barridos completos; lo que queda son cartas que su catálogo no tiene`,
+        quedanPendientes: pendientes,
+        barridos,
+        proximoRepasoEnDias: Math.max(0, Math.ceil(DIAS_ENTRE_REPASOS - diasDesdeElUltimo)),
+      },
+    }
+  }
 
   let vistas = 0
   let escritas = 0
@@ -114,7 +178,7 @@ export async function procesar({
   while (paginasHechas < paginas && quedaTiempo()) {
     const res = await fetchImpl(urlDeSonda(`${IDIOMA}/cards`, { page: pagina, page_size: PAGINA }), { headers: cabeceras })
     if (!res.ok) {
-      await guardarEstado({ pagina, total, error: `Scrydex ${res.status}`, cuando: new Date().toISOString() })
+      await guardarEstado({ pagina, total, barridos, error: `Scrydex ${res.status}`, cuando: new Date().toISOString() })
       return { estado: 502, cuerpo: { error: `Scrydex ${res.status} en la página ${pagina}`, pagina } }
     }
     const j = await res.json()
@@ -127,7 +191,7 @@ export async function procesar({
     paginasHechas++
     if (!lote.length) {
       // Fin del catálogo: se vuelve a empezar, porque sacan cartas nuevas.
-      await guardarEstado({ pagina: 1, total, vuelta: (Number(estado?.vuelta) || 0) + 1, cuando: new Date().toISOString() })
+      await guardarEstado({ pagina: 1, total, barridos: barridos + 1, completadoEn: new Date().toISOString() })
       break
     }
 
@@ -168,16 +232,19 @@ export async function procesar({
 
     pagina++
     if (total && (pagina - 1) * suTam >= total) {
-      await guardarEstado({ pagina: 1, total, vuelta: (Number(estado?.vuelta) || 0) + 1, cuando: new Date().toISOString() })
+      await guardarEstado({ pagina: 1, total, barridos: barridos + 1, completadoEn: new Date().toISOString() })
       break
     }
-    await guardarEstado({ pagina, total, cuando: new Date().toISOString() })
+    await guardarEstado({ pagina, total, barridos, cuando: new Date().toISOString() })
   }
 
   return {
     estado: 200,
     cuerpo: {
       paginasHechas,
+      creditos: paginasHechas,
+      barridos,
+      quedabanPendientes: pendientes,
       siguientePagina: pagina,
       susCartas: total,
       vistas,
