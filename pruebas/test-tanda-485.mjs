@@ -158,9 +158,13 @@ console.log('\n── 6. Lo que se añade entra en LAS DOS memorias ──')
   // Se abre la estantería japonesa y se marca una carta que no tienes.
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
-  const bolsillo = page.locator('.mc-bolsillo:not(.tengo) [data-anadir]').first()
+  // Desde la 565 se apunta desde la FICHA: se abre el bolsillo vacío y se
+  // pulsa «Añadir a mi colección».
+  const bolsillo = page.locator('.mc-bolsillo:not(.tengo) .mc-bolsillo-enlace').first()
   if (await bolsillo.count()) {
     await bolsillo.click()
+    await page.waitForTimeout(900)
+    await page.locator('#mcEdAnadirVersiones button').click()
     await page.waitForTimeout(1600)
     const despues = await cifras()
     check('la cabecera sube al marcar una carta', Number(despues.Cartas) > Number(antes.Cartas),

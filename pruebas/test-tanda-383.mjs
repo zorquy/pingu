@@ -87,63 +87,58 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
-  // Solo las que tienen MÁS DE UNA versión llevan tira.
-  check('solo dos bolsillos tienen versiones', (await page.locator('.mc-variantes').count()) === 2,
-    String(await page.locator('.mc-variantes').count()))
-  check('  …y son las que las tienen',
-    (await page.locator('.mc-variante[data-carta="sv1-1"]').count()) === 2 &&
-      (await page.locator('.mc-variante[data-carta="sv1-4"]').count()) === 4 &&
-      (await page.locator('.mc-variante[data-carta="sv1-2"]').count()) === 0)
+  // LAS VERSIONES YA NO VAN EN LA CASILLA (tanda 565): se eligen en la
+  // ficha, en un desplegable, como en Dex. Lo que esta prueba mira sigue
+  // siendo lo mismo —que se ofrecen las que EXISTEN de esa carta—, pero
+  // donde se ofrecen ahora.
+  check('ninguna casilla lleva botones de versión', (await page.locator('.mc-variante, .mc-variantes').count()) === 0)
+  const abrirFicha = async (id) => {
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+    await page.locator(`.mc-bolsillo-enlace[data-carta="${id}"]`).click()
+    await page.waitForTimeout(900)
+    return page.$$eval('#mcEdAnadirVariante option', (os) => os.map((o) => o.value))
+  }
+  check('una común de hoy ofrece normal y reverse', (await abrirFicha('sv1-1')).join(',') === 'normal,reverse')
+  check('  …y el desplegable se ve', (await page.isVisible('#mcEdAnadirVariante')) === true)
+  check('una ultra rara no ofrece nada que elegir', (await abrirFicha('sv1-2')).join(',') === 'holo')
+  check('  …y el desplegable se esconde', (await page.isVisible('#mcEdAnadirVariante')) === false)
+  check('una de la que no se sabe ofrece las cuatro', (await abrirFicha('sv1-3')).length === 4)
+  check('y la que las tiene todas, las cuatro', (await abrirFicha('sv1-4')).length === 4)
 
-  const chip = () => page.locator('.mc-variante[data-carta="sv1-1"][data-variante="reverse"]')
-  check('empieza sin marcar', (await chip().getAttribute('aria-pressed')) === 'false')
-  await chip().click()
-  await page.waitForTimeout(900)
-  check('al pulsarla se marca', (await chip().getAttribute('aria-pressed')) === 'true')
-  check('  …y el bolsillo cuenta una copia',
-    (await page.locator('.mc-bolsillo').first().locator('.mc-bolsillo-cuenta').textContent()) === '1')
-  // La OTRA versión de la misma carta sigue sin marcar: esa es toda la
-  // idea. Si marcar reverse marcara también normal, no serviría de nada.
-  check('  …pero la normal sigue sin marcar',
-    (await page.locator('.mc-variante[data-carta="sv1-1"][data-variante="normal"]').getAttribute('aria-pressed')) === 'false')
-
+  // Elegir reverse y añadir guarda REVERSE, no la primera opción: esa es
+  // toda la idea. Si marcar reverse marcara la normal, no serviría de nada.
+  await abrirFicha('sv1-1')
+  await page.selectOption('#mcEdAnadirVariante', 'reverse')
+  await page.locator('#mcEdAnadirVersiones button').click()
+  await page.waitForTimeout(1200)
+  check('al añadir en reverse, la línea es reverse', (await page.inputValue('#mcEdVariante')) === 'reverse', await page.inputValue('#mcEdVariante'))
+  check('  …y el bolsillo pasa a «la tengo»', (await page.locator('.mc-bolsillo').first().getAttribute('class'))?.includes('tengo'))
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(400)
   // Y el progreso del álbum NO se mueve por versiones: un bolsillo lo
-  // llena cualquiera de ellas.
-  // Desde la 398 son TRES barras; la de «completo» es la que cuenta
-  // bolsillos, que es lo que mira esta comprobación.
+  // llena cualquiera de ellas. «Conjunto completo» desde la 417.
   check('el progreso cuenta bolsillos, no versiones',
-    // «Conjunto completo» desde la 417, que es como se llama la primera
-    // tarjeta de la tira de una colección.
     /Conjunto completo 1 de 4/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
-
-  await chip().click()
-  await page.waitForTimeout(900)
-  check('y al volver a pulsarla se desmarca', (await chip().getAttribute('aria-pressed')) === 'false')
-  check('  …y el bolsillo vuelve a cero',
-    (await page.locator('.mc-bolsillo').first().locator('.mc-bolsillo-cuenta').textContent()) === '0')
   await page.close()
 }
 
-console.log('\n── 3. La tira no se come el bolsillo ──')
+console.log('\n── 3. La casilla es la carta ──')
 {
+  // Sin botones dentro, la carta ocupa la casilla entera: era lo que la
+  // tira y el mando se comían (dos filas de 44 px en 154).
   const { page } = await abrir()
   const m = await page.evaluate(() => {
     const b = document.querySelector('.mc-bolsillo').getBoundingClientRect()
-    const v = document.querySelector('.mc-variantes').getBoundingClientRect()
-    const mando = document.querySelector('.mc-bolsillo-mando').getBoundingClientRect()
-    return { bolsillo: Math.round(b.height), tira: Math.round(v.height),
-             seTocan: v.bottom > mando.top }
+    const e = document.querySelector('.mc-bolsillo .mc-bolsillo-enlace').getBoundingClientRect()
+    return { bolsillo: Math.round(b.height), enlace: Math.round(e.height) }
   })
-  // `.mc-variantes` comparte clase con el mando, que va pegado ABAJO:
-  // sin `bottom: auto` la tira se estiraría de borde a borde y taparía
-  // la carta entera.
-  check('la tira ocupa una franja, no el bolsillo', m.tira < m.bolsillo / 3, JSON.stringify(m))
-  check('  …y no se pisa con el mando de copias', !m.seTocan, JSON.stringify(m))
+  check('el enlace ocupa el bolsillo entero', m.enlace >= m.bolsillo - 2, JSON.stringify(m))
   await page.close()
 }
 
-console.log('\n── 4. Con el dedo, 44 px ──')
+console.log('\n── 4. Con el dedo, nada se sale ──')
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 900 }, hasTouch: true, isMobile: true })
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA }))
@@ -160,10 +155,8 @@ console.log('\n── 4. Con el dedo, 44 px ──')
   await page.waitForTimeout(2600)
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
-  const alto = await page.locator('.mc-variante').first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
-  check('con el dedo miden 44 de alto', alto >= 44, `${alto}px`)
-  // El ANCHO no se le pide: son dos en una fila que ya se reparte el
-  // bolsillo, y estirarlas sacaría la fila fuera (regla de la 312).
+  const alto = await page.locator('.mc-bolsillo-enlace').first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
+  check('la casilla entera se pulsa y mide de sobra', alto >= 44, `${alto}px`)
   const desborda = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)
   check('  …y nada se sale de la pantalla', !desborda)
   await page.close()

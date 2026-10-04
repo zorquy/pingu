@@ -109,10 +109,15 @@ console.log('\n── 2. El archivador: la vista de APUNTAR ──')
   const r = await page.evaluate(() => ({
     caja: Boolean(document.querySelector('.mc-album-rejilla')),
     huecos: document.querySelectorAll('.mc-album-rejilla .mc-bolsillo').length,
+    // Sin mando desde la 565: la casilla es la carta, y se apunta desde
+    // la ficha. Lo que sí tiene que llevar cada bolsillo es su enlace,
+    // que es lo que la abre.
     mandos: document.querySelectorAll('.mc-album-rejilla [data-anadir]').length,
+    enlaces: document.querySelectorAll('.mc-album-rejilla .mc-bolsillo-enlace[data-carta]').length,
   }))
   check('son bolsillos', r.caja && r.huecos === 12, JSON.stringify(r))
-  check('  …y cada uno con su + para apuntar', r.mandos === 12, JSON.stringify(r))
+  check('  …sin mando (se apunta desde la ficha, tanda 565)', r.mandos === 0, JSON.stringify(r))
+  check('  …y cada uno abre su ficha', r.enlaces === 12, JSON.stringify(r))
 }
 
 console.log('\n── 3. La cuadrícula: la vista de MIRAR ──')

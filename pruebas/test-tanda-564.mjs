@@ -64,17 +64,16 @@ console.log('── 1. El «+» del álbum guarda la versión DE LA CARTA ──
   await page.locator('[data-set="sv8"]').click()
   await page.waitForTimeout(1300)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  // El Lapras solo existe en holo, así que no tiene casillas por versión:
-  // es justo el bolsillo que no llevaba `data-var`.
-  const mas = page.locator('[data-anadir="sv8-1"]')
-  check('el «+» del Lapras existe', (await mas.count()) === 1)
-  check('  …y ahora dice en qué versión añade', (await mas.getAttribute('data-var')) === 'holo', await mas.getAttribute('data-var'))
-  await mas.click()
-  await page.waitForTimeout(1400)
-  // Lo que importa no es el atributo: es lo que acaba en la línea. Se lee
-  // de la ficha, que es donde se ve.
-  await page.locator('.mc-bolsillo-enlace').first().click()
+  // El Lapras solo existe en holo. Desde la 565 la casilla no lleva «+»:
+  // se abre la ficha y se añade desde ahí, y la versión que entra es la
+  // que la ficha propone — que tiene que ser la de la carta.
+  await page.locator('.mc-bolsillo-enlace[data-carta="sv8-1"]').click()
   await page.waitForTimeout(900)
+  check('la casilla no lleva mando', (await page.locator('[data-anadir]').count()) === 0)
+  check('  …y la ficha propone la versión de la carta', (await page.inputValue('#mcEdAnadirVariante')) === 'holo', await page.inputValue('#mcEdAnadirVariante'))
+  await page.locator('#mcEdAnadirVersiones button').click()
+  await page.waitForTimeout(1400)
+  // Lo que importa no es lo propuesto: es lo que acaba en la línea.
   check('la copia guardada es la HOLO', (await page.inputValue('#mcEdVariante')) === 'holo', await page.inputValue('#mcEdVariante'))
   check('  …y la chapa lo dice', /Holo/.test(await page.locator('#mcEdChapas').innerText()), (await page.locator('#mcEdChapas').innerText()).replace(/\n/g, ' '))
   // Y no se cuela la «normal» como opción: no hay ninguna línea vieja que
@@ -84,7 +83,7 @@ console.log('── 1. El «+» del álbum guarda la versión DE LA CARTA ──
   await page.close()
 }
 
-console.log('── 2. La ficha de una que no tienes: un botón por versión ──')
+console.log('── 2. La ficha de una que no tienes: la versión en un desplegable ──')
 {
   const { page } = await abrir()
   await page.locator('[data-set="sv8"]').click()
@@ -92,15 +91,18 @@ console.log('── 2. La ficha de una que no tienes: un botón por versión ─
   // El Spinarak, que tiene dos.
   await page.locator('.mc-bolsillo-enlace[data-carta="sv8-2"]').click()
   await page.waitForTimeout(900)
+  // Como en Dex (565): un desplegable con las versiones y UN botón.
+  const vs = await page.$$eval('#mcEdAnadirVariante option', (os) => os.map((o) => o.value))
+  check('dos versiones, un desplegable con las dos', vs.join(',') === 'normal,reverse', vs.join(','))
+  check('  …a la vista', (await page.isVisible('#mcEdAnadirVariante')) === true)
   const botones = page.locator('#mcEdAnadirVersiones button')
-  check('dos versiones, dos botones', (await botones.count()) === 2, String(await botones.count()))
-  const rotulos = await botones.allInnerTexts()
-  check('  …y cada uno dice cuál', /normal/i.test(rotulos.join(' ')) && /reverse/i.test(rotulos.join(' ')), rotulos.join(' | '))
+  check('  …y un solo botón', (await botones.count()) === 1, String(await botones.count()))
   // Y lo que PINGU no veía: con qué idioma y en qué estado entra.
   const con = await page.locator('#mcEdAnadirCon').innerText()
   check('dice con qué idioma y estado entra', /español/i.test(con) && /Near Mint/i.test(con), con)
-  // Pulsar el de reverse guarda reverse, no la primera opción.
-  await botones.nth(1).click()
+  // Elegir reverse y pulsar guarda reverse, no la primera opción.
+  await page.selectOption('#mcEdAnadirVariante', 'reverse')
+  await botones.first().click()
   await page.waitForTimeout(1500)
   check('al pulsar «reverse holo» entra en reverse', (await page.inputValue('#mcEdVariante')) === 'reverse', await page.inputValue('#mcEdVariante'))
   await page.close()
@@ -115,8 +117,9 @@ console.log('── 3. Con una sola versión sigue siendo un botón y un toque �
   await page.waitForTimeout(900)
   const botones = page.locator('#mcEdAnadirVersiones button')
   check('una sola versión, un solo botón', (await botones.count()) === 1, String(await botones.count()))
-  // Y sin nombrarla: «Añadir holo» en el 90 % de las cartas sería un
-  // detalle que no distingue nada.
+  // Y sin desplegable: con una sola versión no hay nada que elegir, y la
+  // chapa de arriba ya la dice.
+  check('  …y sin desplegable', (await page.isVisible('#mcEdAnadirVariante')) === false)
   check('  …y no nombra la versión', (await botones.first().innerText()).trim() === 'Añadir a mi colección', await botones.first().innerText())
   await botones.first().click()
   await page.waitForTimeout(1500)

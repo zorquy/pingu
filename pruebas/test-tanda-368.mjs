@@ -161,8 +161,10 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('todos los bolsillos llevan mando', (await page.locator('.mc-bolsillo-mando').count()) === 9,
-    String(await page.locator('.mc-bolsillo-mando').count()))
+  // SIN MANDO desde la 565: la casilla es la carta, y las copias se suman
+  // y se quitan desde la ficha, que se abre tocándola (como en Dex).
+  check('ningún bolsillo lleva mando', (await page.locator('.mc-bolsillo-mando, [data-anadir], [data-quitar]').count()) === 0,
+    String(await page.locator('.mc-bolsillo-mando, [data-anadir], [data-quitar]').count()))
   // Y el bolsillo SIGUE llevando a la ficha: es la mitad que se perdía
   // con el interruptor puesto.
   check('y siguen llevando a su carta',
@@ -170,26 +172,35 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
     await page.locator('.mc-bolsillo-enlace').first().getAttribute('href'))
 
   const bolsillo = (n) => page.locator('.mc-bolsillo').nth(n - 1)
-  // Sin ninguna copia, el − está apagado: no hay nada que quitar.
-  check('sin copias, el − está apagado', await bolsillo(1).locator('[data-quitar]').isDisabled())
-  check('  …y el número no dice «0»', !(await bolsillo(1).locator('.mc-bolsillo-cuenta').isVisible()))
+  const menosDeLaFicha = () => page.locator('#mcEdCantidad').locator('xpath=../button[@data-paso="-1"]')
+  // Quitar la última copia pregunta: se contesta que sí.
+  page.on('dialog', (d) => d.accept())
 
-  await bolsillo(1).locator('[data-anadir]').click()
+  // Una que no tienes: la casilla abre la ficha con «Añadir».
+  await bolsillo(1).locator('.mc-bolsillo-enlace').click()
   await page.waitForTimeout(900)
-  check('el + añade una copia', (await bolsillo(1).locator('.mc-bolsillo-cuenta').textContent()) === '1',
-    await bolsillo(1).locator('.mc-bolsillo-cuenta').textContent())
-  check('  …y la carta pasa a «la tengo»', (await bolsillo(1).getAttribute('class'))?.includes('tengo'))
+  check('tocar un bolsillo vacío abre la ficha para añadir',
+    await page.evaluate(() => document.getElementById('mcEditor').open && !document.getElementById('mcEdAnadirBloque').classList.contains('hidden')))
+  await page.locator('#mcEdAnadirVersiones button').click()
+  await page.waitForTimeout(1200)
+  check('al añadir, la carta pasa a «la tengo»', (await bolsillo(1).getAttribute('class'))?.includes('tengo'),
+    await bolsillo(1).getAttribute('class'))
+  check('  …y la ficha se queda abierta ya como tuya', (await page.inputValue('#mcEdCantidad')) === '1', await page.inputValue('#mcEdCantidad'))
 
-  await bolsillo(1).locator('[data-quitar]').click()
-  await page.waitForTimeout(900)
-  check('el − la quita', !(await bolsillo(1).getAttribute('class'))?.includes('tengo'),
+  // Y el − de la ficha la quita (la última copia es quitarla).
+  await menosDeLaFicha().click()
+  await page.waitForTimeout(1200)
+  check('el − de la ficha la quita', !(await bolsillo(1).getAttribute('class'))?.includes('tengo'),
     await bolsillo(1).getAttribute('class'))
 
   // Con dos copias, el − baja a una en vez de borrar la línea entera.
-  await bolsillo(2).locator('[data-quitar]').click()
+  await bolsillo(2).locator('.mc-bolsillo-enlace').click()
   await page.waitForTimeout(900)
-  check('con dos copias, el − deja una', (await bolsillo(2).locator('.mc-bolsillo-cuenta').textContent()) === '1',
-    await bolsillo(2).locator('.mc-bolsillo-cuenta').textContent())
+  check('la que tienes abre la ficha con sus copias', (await page.inputValue('#mcEdCantidad')) === '2', await page.inputValue('#mcEdCantidad'))
+  await menosDeLaFicha().click()
+  await page.waitForTimeout(1200)
+  check('con dos copias, el − deja una', (await page.inputValue('#mcEdCantidad')) === '1' && (await bolsillo(2).getAttribute('class'))?.includes('tengo'),
+    await page.inputValue('#mcEdCantidad'))
   await page.close()
 }
 
