@@ -116,17 +116,23 @@ console.log('\n── 3. El 30 aniversario es de Mega, y es UN set ──')
   check('no hay un grupo del 30 aniversario', !series.some((t) => /30/.test(t)), series.join(' | '))
   const mega = page.locator('.serie').filter({ hasText: 'Mega Evolution' }).first()
   const nombres = await mega.locator('.serie-nombre').allTextContents()
-  // Y las dos mitades son UNA fila: «es el mismo set, no me lo separes».
-  check('el 30 aniversario va en una sola fila',
-    nombres.filter((t) => /30th/i.test(t)).length === 1, nombres.join(' | '))
-  check('…y no es la Classic la que sale', !nombres.some((t) => /Classic/i.test(t)), nombres.join(' | '))
+  // DOS filas, Celebration y luego Classic (tanda 536). La 347 las plegó en
+  // una porque PINGU dijo «es el mismo set», y la 536 las volvió a separar
+  // porque dijo lo contrario esa misma mañana: «el Classic debería ir
+  // DESPUÉS del Celebration». Esta prueba se quedó afirmando lo de la 347
+  // hasta que la suite entera la cazó en la 565 — un rojo que no se mira
+  // se acumula.
+  check('el 30 aniversario son dos filas',
+    nombres.filter((t) => /30th/i.test(t)).length === 2, nombres.join(' | '))
+  check('…y el Classic va DESPUÉS del Celebration',
+    nombres.indexOf('30th Celebration') < nombres.indexOf('30th Classic Collection'), nombres.join(' | '))
   // Y abajo las energías y las promos, en ese orden desde el final.
   check('las expansiones arriba, y abajo energías y promos',
-    nombres.join(' | ') === 'Pitch Black | 30th Celebration | Mega Evolution | Mega Evolution Energy | MEP Black Star Promos',
+    nombres.join(' | ') === 'Pitch Black | 30th Celebration | 30th Classic Collection | Mega Evolution | Mega Evolution Energy | MEP Black Star Promos',
     nombres.join(' | '))
-  // La fila plegada cuenta las cartas de las dos mitades: 160 + 30.
-  const cuantas = await mega.locator('li').filter({ hasText: '30th Celebration' }).locator('.serie-cuantas').textContent()
-  check('y la cuenta suma las dos mitades', cuantas.trim() === '190 cartas', cuantas)
+  // Cada fila cuenta LO SUYO: la cuenta ya no se suma.
+  const cuantas = await mega.locator('li').filter({ hasText: '30th Celebration' }).first().locator('.serie-cuantas').textContent()
+  check('y cada fila cuenta sus cartas', cuantas.trim() === '160 cartas', cuantas)
   const href = await mega.locator('.serie-fila').first().getAttribute('href')
   check('la fila enlaza al código', href === '/coleccion/pbl', href)
   await page.close()
@@ -171,24 +177,22 @@ console.log('\n── 5. Y por la dirección vieja se sigue llegando ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 5b. Y las dos mitades del 30 aniversario, juntas ──')
+console.log('\n── 5b. Y las dos mitades del 30 aniversario, cada una la suya ──')
 {
   const { page } = await abrir('/coleccion/30c')
-  check('la página del padre enseña las cartas de las dos',
-    (await page.locator('.coleccion-carta').count()) === 4,
+  // Desde la 536 cada colección enseña LAS SUYAS: la del Celebration no
+  // arrastra las de la Classic.
+  check('la página del Celebration enseña solo las suyas',
+    (await page.locator('.coleccion-carta').count()) === 2,
     String(await page.locator('.coleccion-carta').count()))
-  // Las dos mitades empiezan por el 001, así que ordenar solo por el
-  // número las intercala y parece una lista mal ordenada: la Classic va
-  // ENTERA al final.
   const orden = await page.locator('.coleccion-carta-nombre').allTextContents()
-  check('y la otra mitad va al final del todo',
-    orden.join(' | ') === 'Pikachu | Mew | Charizard | Venusaur', orden.join(' | '))
+  check('  …en su orden', orden.join(' | ') === 'Pikachu | Mew', orden.join(' | '))
   await page.close()
-  // Y quien llegue por la dirección de la mitad, acaba en la del set.
+  // Y la Classic tiene su propia página, con las suyas.
   const { page: p2 } = await abrir('/coleccion/30th-c')
-  check('la mitad lleva al set entero',
-    new URL(p2.url()).pathname === '/coleccion/30c', new URL(p2.url()).pathname)
-  check('…con las cartas de las dos', (await p2.locator('.coleccion-carta').count()) === 4)
+  check('la Classic es su propia página',
+    new URL(p2.url()).pathname === '/coleccion/30th-c', new URL(p2.url()).pathname)
+  check('  …con sus dos cartas', (await p2.locator('.coleccion-carta').count()) === 2, String(await p2.locator('.coleccion-carta').count()))
   await p2.close()
 }
 
