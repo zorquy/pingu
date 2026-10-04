@@ -77,6 +77,46 @@ const OTRAS_FORMAS = {
   'Sin rareza': ['None', 'Ninguno'],
 }
 
+// ── EL VOCABULARIO DE SCRYDEX (tanda 509) ──
+//
+// PINGU, mirando Lost Thunder: «las Rainbow se guardan como híper rara,
+// pero realmente no. Esa rareza es Rare Rainbow. Necesitamos que las
+// rarezas sean muy exactas».
+//
+// Y tiene razón: **TCGdex COLAPSA esa rareza**. Le llama «Hyper rare» a la
+// arcoíris y a la dorada, que son dos cosas distintas y se distinguen a un
+// metro. Scrydex las separa, y por eso su inglés va a `rarity_en`.
+//
+// Aquí solo están las que se saben con seguridad. Lo que no esté se enseña
+// **en inglés tal cual**, que es lo que ya hace `rarezaEs` — y es a
+// propósito: una rareza nueva es un dato, pero una traducción inventada es
+// una etiqueta que miente, y eso es peor que el inglés. La función
+// programada apunta las que va viendo (`rarezasVistas`), así que la lista
+// se completa con lo que de verdad hay y no con lo que me imagino.
+const RAREZAS_SCRYDEX = {
+  'Rare Rainbow': 'Rara Arcoíris',
+  'Rare Secret': 'Rara Secreta',
+  'Rare Shiny': 'Rara Brillante',
+  'Rare Ultra': 'Rara Ultra',
+  'Double Rare': 'Rara Doble',
+  'Illustration Rare': 'Rara Ilustración',
+  'Special Illustration Rare': 'Rara Ilustración Especial',
+  'Hyper Rare': 'Rara Híper',
+  'Amazing Rare': 'Rara Asombrosa',
+  'Radiant Rare': 'Rara Radiante',
+  'ACE SPEC Rare': 'Rara ACE SPEC',
+  // El sufijo es el nombre del mecanismo y no se traduce en español
+  // tampoco, así que estas son transparentes y no hay nada que inventar.
+  'Rare Holo EX': 'Rara Holo EX',
+  'Rare Holo GX': 'Rara Holo GX',
+  'Rare Holo V': 'Rara Holo V',
+  'Rare Holo VMAX': 'Rara Holo VMAX',
+  'Rare Holo VSTAR': 'Rara Holo VSTAR',
+  'Rare Holo LV.X': 'Rara Holo LV.X',
+  'Rare BREAK': 'Rara BREAK',
+  'Rare Prime': 'Rara Prime',
+}
+
 // De cualquier forma escrita a la canónica, en un solo mapa.
 const CANONICA = new Map()
 for (const [es, otras] of Object.entries(OTRAS_FORMAS)) {
@@ -84,6 +124,9 @@ for (const [es, otras] of Object.entries(OTRAS_FORMAS)) {
   for (const o of otras) CANONICA.set(o, es)
 }
 for (const [en, es] of Object.entries(RAREZAS_ES)) if (!CANONICA.has(en)) CANONICA.set(en, es)
+// Las de Scrydex PISAN a las de TCGdex cuando chocan, y ese es el motivo
+// de la tanda: TCGdex mete la arcoíris dentro de «Hyper rare».
+for (const [en, es] of Object.entries(RAREZAS_SCRYDEX)) CANONICA.set(en, es)
 
 // El nombre oficial en español de una rareza, venga como venga escrita.
 // Lo que no conocemos se devuelve TAL CUAL y no como «Sin rareza»: una
@@ -91,6 +134,16 @@ for (const [en, es] of Object.entries(RAREZAS_ES)) if (!CANONICA.has(en)) CANONI
 export function rarezaEs(valor) {
   if (!valor) return null
   return CANONICA.get(valor) || String(valor)
+}
+
+// ── La rareza de una CARTA, que no es lo mismo que la de una cadena ──
+//
+// Manda `rarity_en`, que es el inglés canónico de Scrydex, y `rarity` es
+// el respaldo. Mientras la función programada rellena, las dos conviven y
+// la pantalla va ganando precisión sola; una carta sin `rarity_en` se
+// sigue viendo exactamente como antes.
+export function rarezaDeCarta(carta) {
+  return rarezaEs(carta?.rarity_en || carta?.rarity)
 }
 
 // Todas las formas con las que esa rareza puede estar guardada, para
@@ -133,6 +186,11 @@ const MARCAS = {
   'Rara Ilustración': { forma: UNA, acabado: 'oro' },
   'Rara Ilustración Especial': { forma: DOS, acabado: 'oro' },
   'Rara Híper': { forma: DIAMANTE, acabado: 'oro' },
+  // La arcoíris y la secreta llevan la MISMA marca impresa que la híper
+  // —son secretas las tres—, así que comparten dibujo. Lo que cambia es
+  // el nombre, que es justo lo que se estaba perdiendo.
+  'Rara Arcoíris': { forma: DIAMANTE, acabado: 'oro' },
+  'Rara Secreta': { forma: DIAMANTE, acabado: 'oro' },
   'Rara Híper Mega': { forma: DIAMANTE, acabado: 'oro' },
   'Rara Ataque Mega': { forma: DOS, acabado: 'mega' },
   'Rara Brillante': { forma: UNA, acabado: 'mega' },
@@ -156,4 +214,4 @@ export function marcaDeRarezaHtml(valor, { clase = 'rareza-marca' } = {}) {
 }
 
 // Para pruebas y para quien quiera recorrerlas.
-export { OTRAS_FORMAS, MARCAS }
+export { OTRAS_FORMAS, MARCAS, RAREZAS_SCRYDEX }

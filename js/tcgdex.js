@@ -17,8 +17,8 @@ const ASSETS = 'https://assets.tcgdex.net'
 // ficha, que hasta ahora llevaba una copia a mano. Se importan Y se
 // reexportan: un `export … from` no crea el enlace local, y aquí dentro
 // se usan.
-import { MERCADOS, MERCADOS_A_IMPORTAR, MERCADO_POR_DEFECTO, NOMBRE_MERCADO, idiomaDeMercado, IDIOMA } from './mercados.js'
-export { MERCADOS, MERCADOS_A_IMPORTAR, MERCADO_POR_DEFECTO, NOMBRE_MERCADO, idiomaDeMercado, IDIOMA }
+import { MERCADOS, MERCADOS_A_IMPORTAR, MERCADOS_VISIBLES, MERCADO_POR_DEFECTO, NOMBRE_MERCADO, idiomaDeMercado, IDIOMA } from './mercados.js'
+export { MERCADOS, MERCADOS_A_IMPORTAR, MERCADOS_VISIBLES, MERCADO_POR_DEFECTO, NOMBRE_MERCADO, idiomaDeMercado, IDIOMA }
 
 // Series que NO se importan. `tcgp` es Pokémon TCG Pocket: es un juego de
 // móvil, sus cartas no existen en papel y no se coleccionan ni se juegan
@@ -160,7 +160,7 @@ export async function searchCards(
 
   let q = supabase
     .from('tcg_cards')
-    .select('id, market, set_id, local_id, name, image_path, regulation_mark, tcg_sets(name, release_date)', { count: 'exact' })
+    .select('id, market, set_id, local_id, name, image_path,image_scrydex, regulation_mark, tcg_sets(name, release_date)', { count: 'exact' })
     .eq('market', market)
   // Encadenar varios `like` los une con AND, que es lo que se quiere:
   // todas las palabras presentes.
@@ -214,7 +214,7 @@ export async function cardsByIds(refs) {
         // Y `tcg_online_code` desde la tanda 370: es lo que necesita el
         // segundo sitio donde buscar un escaneo cuando TCGdex no tiene
         // el de esa carta (ver js/escaneo-carta.js).
-        .select('id, market, set_id, local_id, name, name_es, image_path, tcg_sets(name, tcg_online_code)')
+        .select('id, market, set_id, local_id, name, name_es, image_path,image_scrydex, tcg_sets(name, tcg_online_code)')
         .eq('market', market)
         .in('id', ids)
     )

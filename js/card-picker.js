@@ -1,7 +1,7 @@
 import { escapeHtml } from './app.js'
 import {
   searchCards, cardImageUrl, refCarta,
-  MERCADOS_A_IMPORTAR, MERCADO_POR_DEFECTO, NOMBRE_MERCADO,
+  MERCADOS_VISIBLES, MERCADO_POR_DEFECTO, NOMBRE_MERCADO,
 } from './tcgdex.js'
 
 // Buscador de cartas del editor. Devuelve una promesa con la lista de
@@ -58,7 +58,7 @@ export function openCardPicker() {
           <label class="cp-mercado">
             <span>Catálogo</span>
             <select id="cpMercado">
-              ${MERCADOS_A_IMPORTAR.map(
+              ${MERCADOS_VISIBLES.map(
                 (mk) =>
                   `<option value="${mk}"${mk === MERCADO_POR_DEFECTO ? ' selected' : ''}>${escapeHtml(
                     NOMBRE_MERCADO[mk] || mk

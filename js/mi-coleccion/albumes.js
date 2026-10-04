@@ -335,7 +335,7 @@ async function buscar() {
     $('mcAlbResultados').innerHTML = ''
     return
   }
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,rarity,tcg_sets(id,name,serie_id,release_date)').eq('market', 'WEST')
+  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,tcg_sets(id,name,serie_id,release_date)').eq('market', 'WEST')
   for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(48)
   if (mio !== turnoBusqueda) return

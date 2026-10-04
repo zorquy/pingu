@@ -47,6 +47,19 @@ export const MERCADOS = {
 // el código en esta lista y reimportar, nada más.
 export const MERCADOS_A_IMPORTAR = ['WEST', 'JP', 'CN', 'TW']
 
+// ── Los que se OFRECEN no son los que se IMPORTAN (tanda 509) ──
+//
+// `MERCADOS_A_IMPORTAR` hacía los dos trabajos mientras coincidían, que es
+// exactamente la forma del fallo de la tanda 335 (`name_search` buscando y
+// cruzando a la vez). Dejaron de coincidir en cuanto PINGU pidió esconder
+// el chino: «el chino no lo borres, pero ocúltamelo, porque Scrydex no
+// tiene chino».
+//
+// Así que son dos listas. El chino se SIGUE importando —`catalogo-asia`
+// lo engorda cada seis minutos y las colecciones de quien tenga cartas
+// chinas no se quedan viejas— y simplemente no se ofrece.
+export const MERCADOS_VISIBLES = ['WEST', 'JP']
+
 export const MERCADO_POR_DEFECTO = 'WEST'
 
 // Cómo se llama cada mercado en pantalla. El idioma va entre paréntesis

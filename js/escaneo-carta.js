@@ -31,7 +31,7 @@
 // Sin DOM y sin Supabase salvo `urlDeImagen`, que es una plantilla de
 // texto: se prueba en Node.
 
-import { urlDeImagen } from './carta-ruta.js'
+import { urlDeImagen, urlDeFotoScrydex } from './carta-ruta.js'
 
 const CDN = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci'
 
@@ -186,6 +186,17 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   // japonesa pedia su escaneo a la carpeta inglesa y devolvia 404.
   const comoEspejo = (ruta) =>
     urlDelEspejo ? urlDelEspejo(ruta, calidad) : urlDeImagen(ruta, calidad, carta?.market)
+  // SCRYDEX VA PRIMERO (tanda 509). Es de pago y tiene las 1.351 fotos
+  // que a TCGdex le faltan, así que manda — pero TODA la cadena de
+  // TCGdex se queda detrás y no se borra: un respaldo que vive en el
+  // mismo sitio no es un respaldo (tanda 321), y el día que su CDN no
+  // conteste se sigue viendo la carta.
+  //
+  // Va aquí dentro y no en cada pintor porque esta función es el cuello
+  // de botella: todo el que dibuja una carta pasa por la cadena. Meterlo
+  // en los pintores habría sido meterlo en ocho sitios y olvidarlo en uno.
+  const deScrydex = urlDeFotoScrydex(carta?.image_scrydex, calidad)
+  if (deScrydex) cadena.push(deScrydex)
   const espejo = carta?.image_path ? comoEspejo(carta.image_path) : null
   if (espejo) cadena.push(espejo)
   // Y si la columna está vacía, la MISMA dirección montada a mano (tanda

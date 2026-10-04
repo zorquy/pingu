@@ -53,7 +53,7 @@ export const CATEGORIAS_ES = { Pokemon: 'Pokémon', Trainer: 'Entrenador', Energ
 // OFICIAL en español y su marca impresa. Se re-exportan desde aquí para no
 // mover los seis sitios que las importan — y porque es verdad: siguen
 // siendo el español del catálogo, solo que con dibujo.
-export { RAREZAS_ES, rarezaEs, formasDeRareza, marcaDeRarezaHtml } from './rarezas.js'
+export { RAREZAS_ES, rarezaEs, rarezaDeCarta, formasDeRareza, marcaDeRarezaHtml } from './rarezas.js'
 import { rarezaEs as rarezaEsImpl } from './rarezas.js'
 
 // AQUÍ ESTABA `ALIAS_TCGDEX` (tanda 455, fuera en la 463). TCGdex traduce

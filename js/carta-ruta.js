@@ -129,6 +129,17 @@ export function filtroDeColeccion(clave) {
   return `id.eq.${limpia.toLowerCase()},tcg_online_code.eq.${limpia.toUpperCase()}`
 }
 
+// La foto de una carta en Scrydex (tanda 509). `image_scrydex` guarda la
+// URL SIN la calidad al final, porque quien pinta elige el tamaño — y las
+// calidades se llaman distinto en cada sitio: TCGdex pide `/high.webp` y
+// Scrydex `/large`. Por eso son dos columnas y no una (ver la migración).
+const CALIDAD_SCRYDEX = { low: 'small', high: 'large', medium: 'medium' }
+
+export function urlDeFotoScrydex(base, calidad = 'high') {
+  if (!base || !/^https:\/\/images\.scrydex\.com\//.test(String(base))) return null
+  return `${base}/${CALIDAD_SCRYDEX[calidad] || 'large'}`
+}
+
 export function urlDeLogo(logoPath, mercado = 'WEST') {
   if (!logoPath) return null
   return `${ASSETS}/${idiomaDeMercado(mercado)}/${logoPath}.webp`

@@ -928,7 +928,7 @@ async function metaDeTorneo(url) {
 // eso pinta el núcleo entero en el servidor y por eso decide aquí si la
 // página merece salir en Google.
 const COLUMNAS_CARTA =
-  'id,set_id,local_id,name,name_es,image_path,category,rarity,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
   'tcg_sets(id,name,release_date,card_count_official,card_count_total,tcg_online_code)'

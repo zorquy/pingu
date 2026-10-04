@@ -24,7 +24,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // y el barrido de la 299 sigue los imports —así que importarlo por una
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
-import { rarezaEs, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
+import { rarezaEs, rarezaDeCarta, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
 import { esDelTCG } from './catalogo-series.js'
 import {
   IDIOMAS,
@@ -214,8 +214,19 @@ const VISTAS = [
   { id: 'es', bandera: '🇪🇸', nombre: 'Español', mercado: 'WEST', enEspanol: true },
   { id: 'en', bandera: '🇬🇧', nombre: 'Inglés', mercado: 'WEST', enEspanol: false },
   { id: 'ja', bandera: '🇯🇵', nombre: 'Japonés', mercado: 'JP', enEspanol: false },
-  { id: 'zh', bandera: '🇨🇳', nombre: 'Chino', mercado: 'CN', enEspanol: false },
+  // EL CHINO SE ESCONDE, NO SE BORRA (tanda 509). PINGU: «el chino no lo
+  // borres, pero ocúltamelo, porque Scrydex no tiene chino, vamos por
+  // ahora a obviar las colecciones chinas».
+  //
+  // Se queda la entrada entera con una marca en vez de quitarla, por tres
+  // motivos: las cartas chinas que alguien tenga guardadas siguen
+  // resolviendo su mercado y su idioma; `catalogo-asia` sigue
+  // engordándolo en segundo plano, así que no se queda viejo; y volver a
+  // enseñarlo es borrar UNA palabra. Quitar la fila habría dejado a quien
+  // tuviera cartas chinas con filas que no saben de qué catálogo son.
+  { id: 'zh', bandera: '🇨🇳', nombre: 'Chino', mercado: 'CN', enEspanol: false, oculta: true },
 ]
+const VISTAS_VISIBLES = VISTAS.filter((v) => !v.oculta)
 const CLAVE_MERCADO = 'mc-vista'
 
 // Se recuerda por navegador, no en el perfil: es cómo MIRAS la página, no
@@ -224,7 +235,9 @@ const CLAVE_MERCADO = 'mc-vista'
 function vistaGuardada() {
   try {
     const v = localStorage.getItem(CLAVE_MERCADO)
-    return VISTAS.some((x) => x.id === v) ? v : 'es'
+    // Una vista ESCONDIDA no se recupera de la memoria: quien estuviera
+    // mirando el chino vuelve al español, que es lo que se pidió.
+    return VISTAS_VISIBLES.some((x) => x.id === v) ? v : 'es'
   } catch {
     return 'es'
   }
@@ -673,7 +686,7 @@ function pintarResumenPanel() {
   const rep = repetidas(ls, clave, busca)
   const sobran = rep.reduce((n, r) => n + r.sobran, 0)
   const valiosas = masValiosas(3, ls, clave, busca)
-  const porRareza = repartoPor((c) => (c?.rarity ? rarezaEs(c.rarity) : null), ls, clave, busca)
+  const porRareza = repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
 
   // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
   // lo que se entra (la lección de la 416). Las listas de números van
@@ -1497,7 +1510,7 @@ function tablaDeCarta(c) {
   const filas = [
     ['Tipo', categoriaEs(c.category)],
     ['Energía', Array.isArray(c.types) && c.types.length ? c.types.map(tipoEs).join(', ') : ''],
-    ['Rareza', rarezaEs(c.rarity)],
+    ['Rareza', rarezaDeCarta(c)],
     ['Número', c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? ` / ${c.tcg_sets.card_count_official}` : ''}` : ''],
     ['Ilustrador', c.illustrator],
     ['Salida', fecha ? new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''],
@@ -1511,7 +1524,7 @@ function tablaDeCarta(c) {
       // La rareza lleva su marca impresa delante: es la que trae la carta
       // en la esquina de abajo, así que con ella la ficha se compara con
       // lo que tienes en la mano sin leer nada.
-      const marca = k === 'Rareza' ? marcaDeRarezaHtml(c.rarity) : ''
+      const marca = k === 'Rareza' ? marcaDeRarezaHtml(c.rarity_en || c.rarity) : ''
       return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${escapeHtml(String(v))}</dd></div>`
     })
     .join('')
@@ -2167,7 +2180,7 @@ function pintarFiltrosDeAlbum() {
     orden.innerHTML = ORDENES.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
   }
   if (rareza.dataset.set !== album.set) {
-    rareza.innerHTML = opcionesDe((c) => (c.rarity ? rarezaEs(c.rarity) : null), 'Cualquier rareza')
+    rareza.innerHTML = opcionesDe((c) => rarezaDeCarta(c), 'Cualquier rareza')
     tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
     rareza.dataset.set = album.set
     // Y si la colección no tiene ni rarezas ni categorías guardadas —el
@@ -2189,7 +2202,7 @@ function cartasDelAlbumFiltradas() {
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
   const encajan = album.cartas.filter((c) => {
     if (album.soloFaltan && tengoDe(c.id)) return false
-    if (rareza && (!c.rarity || rarezaEs(c.rarity) !== rareza)) return false
+    if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
     return true
@@ -2310,7 +2323,7 @@ function filaDeAlbumHtml(c) {
   return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
     <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
     <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${escapeHtml(v.nombre)}</small>` : ''}</span>
-    ${c.rarity ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaEs(c.rarity))}</span>` : ''}
+    ${rarezaDeCarta(c) ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaDeCarta(c))}</span>` : ''}
     <span class="mc-album-fila-cuenta">${n ? `×${n}` : '—'}</span>
   </a>`
 }
@@ -3132,7 +3145,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,image_path,image_scrydex,rarity,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,serie_id,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
@@ -4973,7 +4986,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
 // es una optimización que falte, es que quedarse con la mitad mezclaría
 // dos catálogos en la misma pantalla y nada daría error.
 async function cambiarVista(nuevo) {
-  if (!VISTAS.some((v) => v.id === nuevo) || nuevo === vista) return
+  if (!VISTAS_VISIBLES.some((v) => v.id === nuevo) || nuevo === vista) return
   const antes = mercado
   vista = nuevo
   mercado = laVista().mercado
@@ -5032,7 +5045,7 @@ async function cambiarVista(nuevo) {
 // El nombre no se pierde: va en el `title` de cada opción y en el
 // `aria-label` del desplegable, que es lo que lee un lector de pantalla.
 function pintarVistas() {
-  const opciones = VISTAS
+  const opciones = VISTAS_VISIBLES
     .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${v.bandera}</option>`)
     .join('')
   for (const sel of document.querySelectorAll('.mc-mercado')) {
