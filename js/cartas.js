@@ -8,7 +8,8 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, nombreDeSet, eraDeSet } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, nombreDeSet, eraDeSet, reglasQueNoCasan } from './catalogo-series.js'
+import { logClientError } from './error-log.js'
 
 const MERCADO = 'WEST'
 const $ = (id) => document.getElementById(id)
@@ -62,6 +63,22 @@ async function colecciones() {
   }
   if (error) return aviso('No se han podido cargar las colecciones. Vuelve a intentarlo en un momento.')
   if (!data?.length) return aviso('Todavía no hay ninguna colección en el catálogo.')
+
+  // ── UNA REGLA QUE YA NO CASA CON NADA (tanda 533) ──
+  //
+  // Las colecciones que se pliegan dentro de otra están escritas con sus
+  // identificadores a mano, y una lista a mano se queda vieja: si TCGdex
+  // renombra uno, la regla deja de casar, el set vuelve a salir suelto y
+  // **no da ningún error**. Es la lección de la 323 —las megas que se
+  // curaron a mano y dejaron de encontrarse— aplicada aquí.
+  //
+  // Se mira contra los sets que de verdad han llegado, que es el único
+  // sitio donde se puede saber, y se deja dicho. No rompe la página: una
+  // regla vieja es una fila de más, no una web caída.
+  const reglasViejas = reglasQueNoCasan(data)
+  if (reglasViejas.length) {
+    logClientError(`Reglas de colecciones que ya no casan con ningún set: ${reglasViejas.join('; ')}`)
+  }
 
   const soloTCG = plegarHermanos(data.filter(esDelTCG))
   if (!soloTCG.length) return aviso('No hay ninguna colección del juego de cartas que enseñar.')

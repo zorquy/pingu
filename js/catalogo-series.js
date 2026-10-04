@@ -51,13 +51,45 @@ export function esDelTCG(set) {
 // TCGdex todavía no ha dicho cómo va a llamar a la siguiente entrega del
 // mismo set — y una lista a mano se queda vieja el día que salga (la
 // lección de la 323).
-export const COLECCIONES_JUNTAS = [{ padre: '30th', prefijo: '30th' }]
+// ── Y LOS QUE SE NOMBRAN UNO A UNO (tanda 533) ──
+//
+// PINGU, repasando el catálogo set por set: «la Radiant Collection son 25
+// cartas, pero van dentro de Legendary Treasures, así que es innecesario
+// sacarlo»; «en Unseen Forces lo mismo con la Unown Collection»; «las
+// Yellow A Alternate creo que Scrydex no las tiene, las mete dentro de XY
+// Black Star Promos porque son promos»; «las V promotional irían dentro de
+// Wizards Black Star Promos, y el Ancient Mew es una Miscellaneous promo,
+// pero es mentira, también iría ahí».
+//
+// Aquí no sirve un PREFIJO: `rc` no empieza por `bw11` ni `exu` por
+// `ex10`. Son parejas sueltas y se escriben como parejas sueltas — con el
+// identificador, no con el nombre: el nombre lo pone TCGdex y puede
+// cambiar, el identificador no (la lección de la 486).
+//
+// Y una lista de identificadores a mano SE QUEDA VIEJA sin avisar (la 323):
+// si mañana TCGdex renombra uno de estos ids, la regla deja de casar y el
+// set vuelve a salir suelto sin que nada dé error. Por eso /cartas
+// comprueba al cargar que cada regla casa con algo y lo canta si no.
+export const COLECCIONES_JUNTAS = [
+  { padre: '30th', prefijo: '30th' },
+  // Las promos de Wizards: «W Promotional» y el Ancient Mew, que TCGdex
+  // tiene en un cajón llamado «Miscellaneous Promos» con una sola carta.
+  { padre: 'basep', hijos: ['wp', 'miscp'] },
+  // La colección de Unown va DENTRO de Unseen Forces.
+  { padre: 'ex10', hijos: ['exu'] },
+  // La Radiant Collection son las 25 secretas de Legendary Treasures.
+  { padre: 'bw11', hijos: ['rc'] },
+  // Y las «Yellow A Alternate» son promos de XY.
+  { padre: 'xyp', hijos: ['xya'] },
+]
 
 // Si este set es parte de otro, cuál. `null` si es él mismo.
 export function padreDeColeccion(id) {
   const x = String(id ?? '').toLowerCase()
-  for (const { padre, prefijo } of COLECCIONES_JUNTAS) {
-    if (x !== padre && x.startsWith(prefijo)) return padre
+  for (const { padre, prefijo, hijos } of COLECCIONES_JUNTAS) {
+    if (x === padre) continue
+    if (prefijo && x.startsWith(prefijo)) return padre
+    if (hijos?.some((h) => h.toLowerCase() === x)) return padre
   }
   return null
 }
@@ -66,6 +98,35 @@ export function padreDeColeccion(id) {
 export function prefijoDeColeccion(id) {
   const x = String(id ?? '').toLowerCase()
   return COLECCIONES_JUNTAS.find((c) => c.padre === x)?.prefijo || null
+}
+
+// Los identificadores que se lleva esta colección, ella incluida. Vacío si
+// no se lleva ninguno — que NO es lo mismo que una lista con el suyo: así
+// quien pregunta distingue «esto es una colección plegada» de «esto es un
+// set normal» sin mirar otra cosa.
+export function idsDeColeccion(id) {
+  const x = String(id ?? '').toLowerCase()
+  const suya = COLECCIONES_JUNTAS.find((c) => c.padre === x && c.hijos?.length)
+  return suya ? [x, ...suya.hijos] : []
+}
+
+// ── Las reglas que ya no casan con nada (tanda 533) ──
+//
+// Una lista de identificadores escrita a mano se queda vieja y falla EN
+// SILENCIO: el set vuelve a salir suelto y nadie se entera. Esto compara
+// las reglas con los sets que de verdad hay y devuelve lo que sobra, para
+// que la página lo cante en vez de disimularlo.
+export function reglasQueNoCasan(sets) {
+  const hay = new Set((sets || []).map((s) => String(s?.id ?? '').toLowerCase()))
+  if (!hay.size) return []
+  const sueltas = []
+  for (const { padre, hijos } of COLECCIONES_JUNTAS) {
+    if (!hay.has(padre)) sueltas.push(`el padre «${padre}» no existe`)
+    for (const h of hijos || []) {
+      if (!hay.has(String(h).toLowerCase())) sueltas.push(`el hijo «${h}» (de «${padre}») no existe`)
+    }
+  }
+  return sueltas
 }
 
 // ── EL NOMBRE QUE SE ENSEÑA DE UN SET (tanda 532) ──

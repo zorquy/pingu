@@ -17,7 +17,7 @@ import {
   TIPOS_ES,
 } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeSet } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, idsDeColeccion, nombreDeSet } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -119,18 +119,27 @@ async function cargar() {
 async function masCartas(cuantas) {
   // Normalmente un set es UN `set_id`. El 30 aniversario son todos los
   // que empiezan por «30th», porque TCGdex lo parte en dos y es uno.
+  // Hay DOS formas de llevarse las cartas de otro set, y son distintas a
+  // propósito: por PREFIJO cuando no se sabe cómo va a llamarse la
+  // siguiente entrega (el 30 aniversario), y por LISTA cuando son parejas
+  // sueltas que no comparten ni el principio del identificador — la
+  // Radiant Collection dentro de Legendary Treasures, la Unown dentro de
+  // Unseen Forces (tanda 533).
   const prefijo = prefijoDeColeccion(setId)
+  const ids = prefijo ? [] : idsDeColeccion(setId)
   let consulta = supabase
     .from('tcg_cards')
     .select('id,name,name_es,local_id,image_path,image_scrydex,types,category')
     .eq('market', MERCADO)
-  consulta = prefijo ? consulta.like('set_id', `${prefijo}%`) : consulta.eq('set_id', setId)
+  if (prefijo) consulta = consulta.like('set_id', `${prefijo}%`)
+  else if (ids.length) consulta = consulta.in('set_id', ids)
+  else consulta = consulta.eq('set_id', setId)
   // Y si son dos mitades, PRIMERO la del set y después la otra: los dos
   // empiezan la numeración en el 001, así que ordenar solo por el número
   // impreso las mezcla —001, 001, 002, 002…— y parecen la misma lista
   // mal ordenada. El identificador del padre es prefijo del hijo, así
   // que ordenar por `set_id` deja al padre delante solo.
-  if (prefijo) consulta = consulta.order('set_id')
+  if (prefijo || ids.length) consulta = consulta.order('set_id')
   const { data, error } = await consulta
     .order('local_id')
     .range(desde, desde + cuantas - 1)

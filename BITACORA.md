@@ -4,6 +4,51 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-04 (mañana, 10:45) — PINGU-Claude (533 — cinco sets que son en realidad parte de otro)
+
+**Hecho**: PINGU repasó el catálogo set por set y encontró cinco filas que
+no deberían existir por separado. Con su exportación del SQL Editor delante
+—los identificadores salen de ahí y no de mi memoria— quedan plegadas:
+
+| Se pliega | Dentro de | Por qué |
+|---|---|---|
+| `rc` Radiant Collection (25) | `bw11` Legendary Treasures | son sus secretas |
+| `exu` Unown Collection (28) | `ex10` Unseen Forces | ídem |
+| `xya` Yellow A Alternate (6) | `xyp` XY Black Star Promos | son promos |
+| `wp` W Promotional (7) | `basep` Wizards Black Star Promos | ídem |
+| `miscp` Miscellaneous Promos (1) | `basep` | es el Ancient Mew |
+
+El mecanismo existía desde la 347 (el 30 aniversario) pero por PREFIJO, y
+aquí no vale: `rc` no empieza por `bw11`. Son parejas sueltas, así que
+`COLECCIONES_JUNTAS` admite ahora `hijos: [...]` además de `prefijo`.
+
+**Lo que NO se ha tocado, y comprobarlo es parte del trabajo**: las POP
+Series. PINGU las quería «como colección propia, abajo» y **ya estaban
+así**: su set más grande son 40 cartas y una ERA pide 100, así que caen en
+el cajón de después de las eras. Lo que había que hacer era mirarlo, no
+«arreglarlo».
+
+**La guarda**: una lista de identificadores a mano se queda vieja sin
+avisar —si TCGdex renombra uno, la regla deja de casar, el set vuelve a
+salir suelto y no da ningún error (la lección de la 323 con las megas)—.
+Así que /cartas compara las reglas con los sets que de verdad han llegado y
+canta las que ya no casan con nada. No rompe la página: una regla vieja es
+una fila de más, no una web caída.
+
+**La prueba va en el NAVEGADOR** para lo que vive en `js/cartas.js`: ese
+módulo necesita un DOM, y una prueba que llamara a `plegarHermanos` suelta
+no diría nada de la pantalla (la lección de la 313). Se siembran los doce
+sets de verdad y se mira la lista que sale.
+
+**Ficheros**: `js/catalogo-series.js`, `js/cartas.js`, `js/coleccion.js`. En
+`pruebas`: `pruebas/test-tanda-533.mjs`.
+
+**Queda abierto, por falta de datos**: el `sp` «Sample» de la era e-Card
+(10 cartas) — no sé qué es y no lo toco hasta saberlo; y el 30th Classic
+Collection (sin logo, y debería ir detrás del 30th Celebration), que no
+estaba en la exportación: el SQL Editor cortó en 100 filas y el 30th es de
+2026, o sea del final.
+
 ## 2026-10-04 (mañana, 10:25) — PINGU-Claude (532 — los sets japoneses, con nombre que se pueda leer)
 
 **Hecho**: PINGU, revisando la biblioteca japonesa ya con logos: «Scrydex
