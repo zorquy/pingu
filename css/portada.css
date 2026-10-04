@@ -726,21 +726,3 @@ a.noticia-banner:hover {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
-
-/* La entrada a «Mis 9 cartas» (tanda 566): un renglón bajo el hero. */
-.nueve-banner {
-  display: block;
-  margin: 0 auto var(--e-lg);
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-sm);
-  text-align: center;
-  text-decoration: none;
-}
-
-.nueve-banner:hover {
-  border-color: var(--navy);
-}

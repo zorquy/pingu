@@ -29454,3 +29454,17 @@ pasar otro sitio ni lo que no es imagen. La 312 cuenta ahora 33 páginas
 con pie.
 
 **Sin migración.**
+
+## Tanda 567 — «Mis 9 cartas», escondida (oct. 2026)
+
+Horas después de subir la 566, PINGU vio en X la imagen «My 9 Cards» de
+PTCGenius, igual a la nuestra: nueve cartas, título, pie con la marca.
+«Copiar esto sería una troleada; ocúltalo por ahora».
+
+Se esconde, no se borra: fuera el renglón de la portada y su CSS, y
+`nueve.html` en `noindex, nofollow`. Nadie enlaza la página y el sitemap
+no la lista (su lista es a mano). Los ficheros se quedan porque la
+MÁQUINA es lo que vale —el canvas de 1080×1350, el compartir con fichero y
+la función `imagen-carta`— y es de donde saldrá «Mi colección en una
+imagen», que sí es solo nuestro. La prueba de la 566 comprueba ahora lo
+contrario que antes: que NO hay entrada y que va en `noindex`.

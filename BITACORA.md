@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 02:40) — PINGU-Claude (567 — «Mis 9 cartas», escondida)
+
+**De dónde sale**: PTCGenius ya tiene «My 9 Cards» en los timelines de X.
+PINGU: «copiar esto sería una troleada; ocúltalo por ahora».
+
+**Hecho**: fuera el renglón de la portada y su CSS; `nueve.html` en
+`noindex, nofollow`, sin enlace desde ningún sitio. Los ficheros se
+quedan: de ahí saldrá «Mi colección en una imagen».
+
+**Ficheros**: `index.html`, `css/portada.css`, `nueve.html`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-566.mjs` (ahora comprueba que está escondida).
+
+**Pasado**: 566, 299, 313 y la portada.
+
 ## 2026-10-06 (madrugada, 02:10) — PINGU-Claude (566 — «Mis 9 cartas»)
 
 **De dónde sale**: PINGU, «un minijuego de elegir tus nueve cartas
