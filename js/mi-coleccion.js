@@ -40,7 +40,7 @@ import {
   euros,
   valorDeLinea, resumenDePrecio } from './cardmarket.js'
 import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
-import { icons } from './icons.js'
+import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
@@ -442,6 +442,49 @@ async function guardarAnadir(e) {
     showToast(err.message, 'error')
     boton.disabled = false
   }
+}
+
+// El bloque de precio de la ficha (589), suelto desde la 651 porque se
+// pinta dos veces: al abrir, y cuando llega el precio que no estaba.
+function pintarPrecioDeFicha(l, c, tuya) {
+  const precio = precioDe(l)
+  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
+    idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
+    variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
+  })
+  // El resumen de tu copia (645), con los campos plegados: se abre para
+  // mirar, y Editar los despliega.
+  if (tuya) pintarResumenDeCopia(l, precio)
+  return precio
+}
+
+// EL PRECIO DE UNA QUE NO TIENES (651). `guardados` son las filas de
+// precio de tu colección; de cualquier otra carta no hay nada en memoria,
+// y la ficha decía «Sin precio» de una carta que sí lo tiene. Se pide su
+// fila (una consulta) y, si tampoco dice nada, TCGdex en vivo; y si la
+// ficha sigue en esa carta, se repinta. Una vez por carta y visita.
+const preciosPedidos = new Set()
+async function completarPrecioDeFicha(l, c, tuya) {
+  const id = l.card_id
+  if (preciosPedidos.has(id)) return
+  preciosPedidos.add(id)
+  try {
+    if (!guardados.has(id)) {
+      const mapa = await datos.preciosGuardados([id])
+      for (const [k, v] of mapa) guardados.set(k, v)
+    }
+    if (!datos.tieneCifras(precioDe(l)) && !vivos.has(id)) {
+      const v = await datos.preciosEnVivo(id)
+      if (v) vivos.set(id, v)
+    }
+  } catch {
+    return
+  }
+  if (!$('mcEditor').open || cartaAbierta !== id) return
+  // La línea de AHORA: si mientras tanto la has añadido, la ficha ya es
+  // la de tu copia y es esa la que se repinta.
+  const actual = lineas.find((x) => x.id === $('mcEditor').dataset.linea) || l
+  pintarPrecioDeFicha(actual, c, Boolean(actual.id))
 }
 
 // Las acciones de la ficha (650): el «+» y, si la tienes, «Tienes N».
@@ -1208,12 +1251,41 @@ function vistazoDeSets(sets) {
 // de lo que YA está cargado —las líneas de tu colección—, así que no
 // cuesta ni una consulta: el Panel es lo primero que se abre y no puede
 // quedarse esperando a nadie.
+// EN CIFRAS, NO EN PROSA (651). PINGU: «actualizar un poco el panel,
+// que se ve demasiado texto, poco botón, poco visual». Dos números y la
+// puerta; la explicación de cómo se marca una carta para cambiar vive en
+// la pantalla de Cambios, que es donde se hace.
 function vistazoDeCambios() {
   const doy = loQueDoy().length
-  const dentro = doy
-    ? `<p class="subtext"><strong>${doy}</strong> ${doy === 1 ? 'carta tuya está' : 'cartas tuyas están'} para cambiar. Mira quién las busca y qué te falta a ti.</p>`
-    : '<p class="empty-state">Pon en una carta repetida cuántas copias das —«Para cambio», al editarla— y aquí verás con quién encajas.</p>'
+  const busco = Array.isArray(deseos) ? deseos.length : null
+  const dentro = `<div class="mc-panel-cifras">
+    <button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
+    ${busco === null ? '' : `<button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${busco}</b><span>${busco === 1 ? 'carta que buscas' : 'cartas que buscas'}</span></button>`}
+  </div>`
   return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
+}
+
+// El icono de descargar, aquí y no en js/icons.js: ese fichero lo baja la
+// portada, que no tiene sitio (CLAUDE.md), y esto solo lo usa el Panel.
+const ICONO_DESCARGAR = (size) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>', size)
+
+// LAS ACCIONES DEL PANEL, EN LOSETAS (651): la imagen para compartir,
+// importar y exportar eran dos tarjetas con un párrafo cada una y un
+// enlace pequeño. Son tres botones; se pintan como tres botones. Los ids
+// se quedan (los manejadores y las pruebas cuelgan de ellos).
+function vistazoDeAcciones() {
+  const hay = lineasTodo.length || lineas.length
+  const loseta = (id, dibujo, texto, extra = '') => `<button type="button" class="mc-accion-loseta" id="${id}"${extra}><span class="mc-accion-icono" aria-hidden="true">${dibujo}</span><span>${texto}</span></button>`
+  return `<section class="mc-vistazo mc-vistazo-imagen mc-vistazo-importar">
+      <div class="mc-vistazo-cabecera">
+        <h2 class="mc-subtitulo">Compartir, importar y exportar</h2>
+      </div>
+      <div class="mc-acciones-rejilla">
+        ${hay ? loseta('mcImagenCrear', icons.image(24), 'Mi colección en una imagen') : ''}
+        ${loseta('mcImportarAbrir', icons.upload(24), 'Importar un CSV')}
+        ${loseta('mcExportar', ICONO_DESCARGAR(24), 'Descargar mi colección (CSV)', hay ? '' : ' disabled')}
+      </div>
+    </section>`
 }
 
 async function pintarVistazos() {
@@ -1230,35 +1302,15 @@ async function pintarVistazos() {
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
   // esto, una pantalla que existe deja de tener puerta.
   caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
-  // MI COLECCIÓN EN UNA IMAGEN (tanda 571): lo que solo puede hacer quien
-  // tiene tu colección. Una tarjeta con su botón; el dibujo se baja al
-  // pulsar (import dinámico), que casi nadie lo pulsa a diario.
-  if (lineasTodo.length || lineas.length) {
-    caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo mc-vistazo-imagen">
-      <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Mi colección en una imagen</h2>
-        <button type="button" class="link-btn" id="mcImagenCrear">Crear</button>
-      </div>
-      <p class="subtext">Tus cifras, las tres que más valen y tu expansión más completa, en una imagen para compartir.</p>
-    </section>`)
-  }
-  // IMPORTAR Y EXPORTAR (tanda 580), siempre: es justo quien NO tiene
-  // cartas aquí todavía quien más lo necesita.
+  // MI COLECCIÓN EN UNA IMAGEN (571), IMPORTAR Y EXPORTAR (580): desde la
+  // 651 son tres losetas en una tarjeta (`vistazoDeAcciones`). Importar
+  // sale siempre: es justo quien NO tiene cartas aquí quien lo necesita.
   if (quiereImportar) {
     // Desde la bienvenida (581): «¿ya la tienes en otra app? Impórtala».
     quiereImportar = false
     setTimeout(() => $('mcImportarAbrir')?.click(), 0)
   }
-  caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo mc-vistazo-importar">
-      <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Importar y exportar</h2>
-      </div>
-      <p class="subtext">¿Tienes la colección en Dex, Collectr o una hoja de cálculo? Tráetela de un CSV. Y llévatela cuando quieras.</p>
-      <div class="mc-imagen-botones mc-importar-botones">
-        <button type="button" class="btn-secondary" id="mcImportarAbrir">Importar un CSV</button>
-        <button type="button" class="btn-secondary" id="mcExportar" ${lineasTodo.length || lineas.length ? '' : 'disabled'}>Descargar mi colección (CSV)</button>
-      </div>
-    </section>`)
+  caja.insertAdjacentHTML('beforeend', vistazoDeAcciones())
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
@@ -1826,14 +1878,12 @@ function abrirEditor(l) {
   // El bloque de precio (589): la cifra de TU idioma, las chapas de los
   // demás, Cardmarket y TCGplayer, y las gradeadas. Un solo módulo para
   // esta ficha y para /carta, así que lo que se ve aquí es lo que se ve allí.
-  const precio = precioDe(l)
-  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
-    idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
-    variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
-  })
-  // El resumen de tu copia (645), con los campos plegados: se abre para
-  // mirar, y Editar los despliega.
-  if (tuya) pintarResumenDeCopia(l, precio)
+  const precio = pintarPrecioDeFicha(l, c, tuya)
+  // Y si no dice nada, se pide (651): los precios guardados se cargan
+  // solo para TUS cartas, así que una que no tienes salía «Sin precio»
+  // hasta que la añadías. PINGU: «las cartas que no están en tu
+  // colección no muestran precio; eso no debería ser así».
+  if (!datos.tieneCifras(precio)) void completarPrecioDeFicha(l, c, tuya)
   pintarOtrasCopias(l)
   $('mcEdCopiaCampos')?.classList.add('hidden')
   $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
@@ -5306,7 +5356,13 @@ function enganchar() {
       abrirCarta(enlace.dataset.carta)
     })
   }
-  engancharFicha('mcAlbum', '.mc-bolsillo-enlace')
+  // LAS TRES VISTAS (651). PINGU: «en el móvil, si voy a una expansión y
+  // clico en una carta no sale el pop-up, te lleva a la ficha completa».
+  // Solo estaba enganchado el archivador: en cuadrícula y en lista las
+  // celdas son enlaces iguales (`data-carta`) y nadie les quitaba el
+  // clic, así que se iban a la página. En el ordenador no se veía porque
+  // ahí se usa el archivador; en el móvil, la cuadrícula.
+  engancharFicha('mcAlbum', '.mc-bolsillo-enlace, .mc-rejilla-celda, .mc-album-fila')
   engancharFicha('mcPanelPokedex', '.pdx-carta')
   // ── EL PANEL TAMBIÉN (tanda 562) ──
   //

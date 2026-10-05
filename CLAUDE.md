@@ -427,6 +427,19 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (idioma con banderas, estado, versión, copias, pagado), con «Ya en tu
   colección → Añadir más» si ya la tienes. Si añades un camino para
   meter una carta, que llegue a `anadir`.
+- **Los precios en memoria son los de TU colección** (tanda 651):
+  `guardados` se carga con las ids de tus líneas, así que la ficha de
+  cualquier otra carta —el catálogo entero, las japonesas— decía «Sin
+  precio» de cartas que sí lo tenían. Quien abra una carta por id fuera
+  de la colección pide su fila (`completarPrecioDeFicha`). Y **las tres
+  vistas de una expansión son tres selectores**: el pop-up estaba
+  enganchado solo al archivador, y en el móvil —cuadrícula— cada carta
+  se iba a la página. Si añades una vista, engánchala.
+- **Para cambios de /mi-coleccion se pasa el SUBCONJUNTO de pruebas de
+  esa pantalla, no la suite entera** (PINGU, 2026-10-05: «no creo que
+  haga falta pasar una suite completa»). Son los `test-tanda-*.mjs` que
+  nombran `mi-coleccion` (116) más `test-imports`, 299, 305, 311, 312 y
+  313. La suite entera sigue para lo que toque CSS o JS compartido.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

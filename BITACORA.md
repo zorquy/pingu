@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 5) — PINGU-Claude (651 — precio de las que no tienes, pop-up en el móvil, Panel)
+
+**Hecho**: la ficha de una carta que no tienes pide su precio (antes
+solo se cargaban los de tu colección: «Sin precio» en todo el catálogo,
+japonesas incluidas); en el móvil, la cuadrícula y la lista de una
+expansión abren el pop-up como el archivador (solo estaba enganchado el
+archivador); el Panel con Cambios en cifras y las tres acciones (imagen,
+importar, exportar) en losetas con icono; y la gráfica del valor enseña
+el punto de hoy aunque no haya ninguna foto todavía. Sin migración.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/grafica-valor.js`,
+`css/mi-coleccion.css`, `cartas.html` (regenerado), `SCHEMA.md`. En
+`pruebas`: 651-pantalla (nueva), 377 al día.
+
+**Subconjunto de Mi colección**: 116 pruebas, 114 verdes; los dos rojos
+eran de las pruebas y no de la web: la 408 miraba `[data-ir-a="cambios"]`
+y ahora hay tres (el botón y las dos cifras), y la 578 abortaba la foto y
+la cadena de respaldos salía a la red real por el proxy: iba y venía
+también en HEAD (1 de 2). Las dos al día (la 578 sirve la foto).
+
+**Pendiente**: coreano y chino en el precio de las japonesas, en cuanto
+PINGU pase el JSON de una carta japonesa de TCGGO (no se inventan los
+campos). Y PINGU ha pedido que para cambios de Mi colección se pase el
+subconjunto de pruebas de esa pantalla (116 ficheros) y no la suite
+entera.
 ## 2026-10-05 (noche, 4) — PINGU-Claude (650 — añadir como en TCGGO)
 
 **Hecho**: el «+ Añadir» va pegado a la carta en la ficha (con «Tienes

@@ -83,10 +83,14 @@ export function resumenDeValor(filas, { ahora = null } = {}) {
   // como punto nuevo si no. Es lo que pasa cuando añades una carta a
   // mediodía: la foto de esta madrugada ya no dice la verdad, y la
   // pantalla no puede enseñar dos totales distintos de lo mismo.
-  if (typeof ahora === 'number' && Number.isFinite(ahora) && dias.length) {
+  // Y SIN NINGUNA FOTO TODAVÍA, el de ahora es el primer punto (651).
+  // PINGU: «aunque añadas una carta, se debería ver el gráfico de lo que
+  // vale tu colección». Antes, sin filas, no había ni gráfica ni cifra.
+  if (typeof ahora === 'number' && Number.isFinite(ahora)) {
     const hoy = new Date().toISOString().slice(0, 10)
     const ultimo = dias[dias.length - 1]
-    if (ultimo.dia.slice(0, 10) === hoy) ultimo.valor = ahora
+    if (!ultimo) dias.push({ dia: hoy, valor: ahora, copias: 0, sinPrecio: 0 })
+    else if (ultimo.dia.slice(0, 10) === hoy) ultimo.valor = ahora
     else dias.push({ dia: hoy, valor: ahora, copias: ultimo.copias, sinPrecio: ultimo.sinPrecio })
   }
   if (dias.length < 2) return { dias, bastante: false }
@@ -132,7 +136,23 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
   // punto diría «no ha cambiado nada» cuando lo que pasa es que todavía
   // no sabemos nada. Son dos cosas distintas (la lección de la 319).
   if (!r.bastante) {
-    return `<p class="subtext">La primera foto del valor de tu colección se toma esta noche. En cuanto haya dos, aquí verás si sube o baja.</p>`
+    // Con UN punto (651) se enseña lo que vale HOY, con su punto en la
+    // gráfica, y se dice que la línea empieza mañana: la cifra es verdad
+    // aunque la tendencia todavía no se sepa.
+    const unico = r.dias[0]
+    if (!unico) return `<p class="subtext">La primera foto del valor de tu colección se toma esta noche. En cuanto haya dos, aquí verás si sube o baja.</p>`
+    const cx = MARGEN.izq + (ANCHO - MARGEN.izq - MARGEN.der) * 0.5
+    const cy = ALTO / 2
+    return `
+    <div class="mc-valor-cifras">
+      <p class="mc-valor-ahora">${escapeHtml(euros(unico.valor))}</p>
+      <p class="mc-valor-cambio igual">hoy, ${escapeHtml(fechaCorta(unico.dia))}</p>
+    </div>
+    <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de tu colección hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
+      <line class="mc-valor-base" x1="0" y1="${cy}" x2="${ANCHO}" y2="${cy}" vector-effect="non-scaling-stroke" />
+      <circle class="mc-valor-punto" cx="${cx}" cy="${cy}" r="5" vector-effect="non-scaling-stroke" />
+    </svg>
+    <p class="subtext">Es lo que vale hoy. La primera foto del valor de tu colección se toma esta noche; en cuanto haya dos, aquí verás si sube o baja.</p>`
   }
   // QUÉ RANGOS SE PUEDEN PEDIR: los que tengan dos puntos. Un botón que
   // no lleva a ninguna parte miente, así que el que no tiene datos se

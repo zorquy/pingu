@@ -5998,6 +5998,105 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: 0;
 }
 
+/* ── LAS ACCIONES DEL PANEL EN LOSETAS, Y CAMBIOS EN CIFRAS (651) ── */
+.mc-acciones-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--e-sm);
+}
+
+.mc-accion-loseta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  min-height: 96px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mc-accion-loseta:hover:not(:disabled) {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.mc-accion-loseta:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.mc-accion-icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--navy) 10%, var(--white));
+  color: var(--navy);
+}
+
+.mc-accion-loseta:disabled .mc-accion-icono {
+  color: var(--text-dim);
+}
+
+.mc-panel-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--e-sm);
+}
+
+.mc-panel-cifra {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 72px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-panel-cifra b {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1;
+}
+
+.mc-panel-cifra:hover {
+  border-color: var(--navy);
+}
+
+/* La gráfica con un solo punto (651). */
+.mc-valor-base {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.mc-valor-punto {
+  fill: var(--navy);
+}
+
+.mc-valor-cambio.igual {
+  color: var(--text-mid);
+}
+
 /* ── LOS MANDOS DEL BOLSILLO DE UN ÁLBUM SOÑADO (578; restaurados en la 573) ──
    Los pinta `albumes.js` en «Ordenar y quitar»: el barrido de la 299 no
    los caza (clases pintadas sin regla) y la 565 los borró un día entero.

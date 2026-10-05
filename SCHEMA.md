@@ -31631,3 +31631,71 @@ inglés = OTRA línea y la española sigue española, en la base dos líneas;
 una tercera en inglés suma a la inglesa; sin cuenta no hay «+»; el
 móvil). Al día con el diálogo: 368, 383 (dos Escape), 418, 422, 485, 564,
 648-pantalla, 649-pantalla.
+
+## Tanda 651 — el precio de las que no tienes, el pop-up en el móvil y el Panel más visual (oct. 2026)
+
+Tres cosas de PINGU, todas en /mi-coleccion:
+
+**«Las cartas que no están en tu colección no muestran precio; solo
+una vez la has metido».** `guardados` (las filas de `tcg_card_prices`)
+se cargan para las ids de TU colección y nada más, así que la ficha de
+cualquier otra carta pintaba «Sin precio» aunque la fila existiera. Era
+también lo que veía en las japonesas: un catálogo que se mira sin tener
+nada es un catálogo entero «sin precio». Ahora `abrirEditor` pinta el
+bloque (`pintarPrecioDeFicha`, suelto para poder pintarlo dos veces) y
+si no dice nada llama a `completarPrecioDeFicha`: pide la fila de esa
+carta (`datos.preciosGuardados([id])`, una consulta), y si tampoco dice
+nada TCGdex en vivo (`preciosEnVivo`); si la ficha sigue en esa carta
+repinta con la línea de AHORA (por si entre medias la has añadido). Una
+vez por carta y visita (`preciosPedidos`).
+
+**«En el móvil, si voy a una expansión y clico en una carta no sale el
+pop-up, te lleva a la ficha completa».** `engancharFicha('mcAlbum', …)`
+solo enganchaba `.mc-bolsillo-enlace`, la celda del ARCHIVADOR. En
+cuadrícula y en lista (las otras dos vistas de la 478) las celdas son
+enlaces iguales (`.mc-rejilla-celda`, `.mc-album-fila`, con su
+`data-carta`) y nadie les quitaba el clic, así que iban a la página. En
+el ordenador no se veía porque ahí se usa el archivador; en el móvil, la
+cuadrícula. Las tres vistas van en el mismo selector. La prueba toca en
+un móvil con las dos vistas guardadas.
+
+**«El panel se ve demasiado texto, poco botón, poco visual», y «aunque
+añadas una carta se debería ver el gráfico».**
+
+- `vistazoDeCambios`: dos cifras que se pulsan (`.mc-panel-cifra`:
+  cuántas das y cuántas buscas, las dos llevan a Cambios) en vez del
+  párrafo y del estado vacío que explicaba cómo marcar una carta; eso
+  se cuenta en la pantalla de Cambios, que es donde se hace.
+- `vistazoDeAcciones`: «Mi colección en una imagen» e «Importar y
+  exportar» eran dos tarjetas con un párrafo y un enlace pequeño cada
+  una; son tres botones y se pintan como tres losetas con icono
+  (`.mc-accion-loseta`, 96 px, icono en círculo). Los ids se quedan
+  (`mcImagenCrear`, `mcImportarAbrir`, `mcExportar`) y las dos clases
+  de tarjeta también (`mc-vistazo-imagen`, `mc-vistazo-importar`), que
+  es de lo que cuelgan los manejadores y las pruebas 571/574/580. El
+  icono de descargar va en `mi-coleccion.js` (`ICONO_DESCARGAR`, con el
+  `icon()` de icons.js) y NO en `js/icons.js`: ese fichero lo baja la
+  portada y no tiene sitio (CLAUDE.md).
+- La gráfica con UN punto (`grafica-valor.js`): `resumenDeValor` mete el
+  valor de ahora como primer punto aunque no haya ninguna foto, y
+  `graficaHtml` con un solo día pinta la cifra («160,85 € · hoy, 5 oct»),
+  una línea base a trazos con el punto encima (`.mc-valor-un-punto`), y
+  dice que la primera foto se toma esta noche. Antes, sin filas, no había
+  ni gráfica ni cifra: la 377 lo afirmaba a propósito («una línea plana
+  de un punto diría que no ha cambiado nada»), y sigue siendo verdad para
+  la LÍNEA —no se dibuja—, pero la cifra de hoy es verdad y se enseña.
+
+**Lo que queda fuera y por qué**: el precio de las japonesas con coreano
+y chino. TCGGO lo da (PINGU lo vio en su web: Japanese / Korean /
+Chinese), pero desde este contenedor no se puede pedir `/pokemon-jp` y
+no hay una respuesta suya delante: inventarse los nombres de los campos
+es la lección de la 501. Va en cuanto PINGU pegue el JSON de «Get card»
+de una carta japonesa (columnas `cm_low_ko` y `cm_low_zh`, migración, la
+fila de precios, `IDIOMAS_CON_PRECIO` y `valor_de_linea`).
+
+**Pruebas**: `test-tanda-651-pantalla.mjs` (la ficha de una que no
+tienes con su precio de Cardmarket y TCGplayer; el móvil en cuadrícula y
+en lista abre el pop-up al tocar; las tres losetas con icono y sin
+párrafos, Cambios en cifras que llevan a Cambios; la gráfica con un punto
+y la cifra de hoy sin ninguna foto). La 377 al día (con un día hay punto,
+no línea).
