@@ -8,6 +8,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -72,12 +83,15 @@ console.log('\n── 2. La nota, plegada ──')
   // casi nunca lleva nota es el bulto más grande de la pantalla.
   check('el campo no está de entrada', (await campoVisible()) === false)
   check('  …y sí el botón de ponerla', (await page.locator('#mcEdNotaAbrir').count()) === 1)
+  await desplegarCopia(page)
   await page.locator('#mcEdNotaAbrir').click()
   await page.waitForTimeout(300)
   check('al pulsar, sale el campo', (await campoVisible()) === true)
 
   // Con nota puesta se LEE, no se edita: el campo solo cuando lo pides.
+  await desplegarCopia(page)
   await page.fill('#mcEdNotas', 'La compré en Barcelona')
+  await desplegarCopia(page)
   await page.locator('#mcEdNotaCerrar').click()
   await page.waitForTimeout(400)
   check('al cerrar, la nota se lee', (await campoVisible()) === false)
@@ -86,6 +100,7 @@ console.log('\n── 2. La nota, plegada ──')
     await page.locator('#mcEdNotaPuesta').textContent())
   // Y tocarla la vuelve a abrir: si no, habría que borrarla para
   // corregir una letra.
+  await desplegarCopia(page)
   await page.locator('#mcEdNotaPuesta').click()
   await page.waitForTimeout(300)
   check('  …y tocarla la abre para cambiarla', (await campoVisible()) === true)

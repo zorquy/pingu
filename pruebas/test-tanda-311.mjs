@@ -165,9 +165,13 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
     return r > 120 && r - g > 60 && r - b > 60 && Math.abs(g - b) < 40
   }
+  //  · .pv-bandera[data-idioma] (css/cardmarket.css, tanda 645): las
+  //    banderas dibujadas de la tabla de idiomas. El rojo de la bandera
+  //    de España es EL rojo de la bandera: identidad, como las casas.
+  const sinBanderas = (t) => t.replace(/\.pv-bandera\[data-idioma='[a-z]+'\] \{[^}]*\}/g, '')
   const aMano = []
   for (const hoja of HOJAS) {
-    for (const m of sinComentarios(leer(hoja)).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
+    for (const m of sinBanderas(sinComentarios(leer(hoja))).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
       if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa' || m[1].startsWith('--casa-')) continue
       for (const h of m[2].matchAll(/#[0-9a-f]{6}/gi)) {
         if (esRojo(h[0]) && !/^--danger/.test(m[1])) aMano.push(`${hoja}: ${m[1]}: ${h[0]}`)

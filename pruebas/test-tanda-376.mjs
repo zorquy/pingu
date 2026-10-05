@@ -15,6 +15,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -267,6 +278,7 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(600)
   check('el editor tiene el campo', (await page.locator('#mcEdCambio').count()) === 1)
+  await desplegarCopia(page)
   await page.fill('#mcEdCambio', '2')
   // Ya no hay botón de guardar (tanda 397): se guarda solo al cambiar el
   // campo. `fill` no dispara `change`, así que se manda a mano — es lo
@@ -284,6 +296,7 @@ console.log('\n── 8. «De esas, doy» va en la línea, no en una lista apart
   await page.waitForTimeout(600)
   check('se guardó', (await page.locator('#mcEdCambio').inputValue()) === '2',
     await page.locator('#mcEdCambio').inputValue())
+  await desplegarCopia(page)
   await page.fill('#mcEdCambio', '99')
   // Ya no hay botón de guardar (tanda 397): se guarda solo al cambiar el
   // campo. `fill` no dispara `change`, así que se manda a mano — es lo

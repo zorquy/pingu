@@ -19,6 +19,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -257,6 +268,7 @@ console.log('\n── 7. Se guarda solo, y el cero la quita (tanda 397) ──')
   // Subir una copia se guarda sin tocar nada más.
   const antes = Number(await page.locator('#mcEdCantidad').inputValue())
   // El de COPIAS: «Para cambio» tiene el suyo (376) y casa con el mismo selector.
+  await desplegarCopia(page)
   await page.locator('.mc-contador:has(#mcEdCantidad) .mc-contador-btn[data-paso="1"]').click()
   await page.waitForTimeout(900)
   check('el contador suma', Number(await page.locator('#mcEdCantidad').inputValue()) === antes + 1)

@@ -10,6 +10,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -188,6 +199,7 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   check('  …y la ficha se queda abierta ya como tuya', (await page.inputValue('#mcEdCantidad')) === '1', await page.inputValue('#mcEdCantidad'))
 
   // Y el − de la ficha la quita (la última copia es quitarla).
+  await desplegarCopia(page)
   await menosDeLaFicha().click()
   await page.waitForTimeout(1200)
   check('el − de la ficha la quita', !(await bolsillo(1).getAttribute('class'))?.includes('tengo'),
@@ -197,6 +209,7 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   await bolsillo(2).locator('.mc-bolsillo-enlace').click()
   await page.waitForTimeout(900)
   check('la que tienes abre la ficha con sus copias', (await page.inputValue('#mcEdCantidad')) === '2', await page.inputValue('#mcEdCantidad'))
+  await desplegarCopia(page)
   await menosDeLaFicha().click()
   await page.waitForTimeout(1200)
   check('con dos copias, el − deja una', (await page.inputValue('#mcEdCantidad')) === '1' && (await bolsillo(2).getAttribute('class'))?.includes('tengo'),
@@ -295,7 +308,9 @@ console.log('\n── 5. Cardmarket con su logo ──')
     },
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el bloque lleva el logo', (await page.locator('.cm-logo .cm-marca').count()) === 1)
+  // Desde la 645 la marca va UNA vez, en el botón: el bloque nuevo lleva su
+  // propia cabecera «Cardmarket» y el logo de arriba lo decía dos veces.
+  check('el bloque lleva la marca, en el botón', (await page.locator('.btn-cardmarket .cm-marca').count()) === 1 && (await page.locator('.cm-logo').count()) === 0)
   const boton = page.locator('.btn-cardmarket')
   check('y el botón es un botón de Cardmarket', (await boton.count()) === 1)
   check('  …con la marca dentro', (await boton.locator('.cm-marca').count()) === 1)

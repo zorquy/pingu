@@ -7,6 +7,17 @@
 //     dos ilustradores distintos en tu colección).
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -66,8 +77,10 @@ console.log('── 2. «Quitar de mi colección», en la ficha ──')
   check('tres cartas', (await page.locator('#mcCartas .mc-carta').count()) === 3)
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(800)
-  const boton = page.locator('#mcEdQuitar')
-  check('la ficha de una que tienes lleva «Quitar de mi colección»', (await boton.count()) === 1 && (await boton.innerText()).trim() === 'Quitar de mi colección')
+  // Desde la 645 el «Quitar» a la vista es el del resumen de tu copia; el
+  // de dentro del formulario sigue ahí, plegado, y hace lo mismo.
+  const boton = page.locator('#mcEdQuitarResumen')
+  check('la ficha de una que tienes lleva «Quitar» a la vista (y el largo, plegado)', (await boton.count()) === 1 && (await boton.innerText()).trim() === 'Quitar' && (await page.locator('#mcEdQuitar').innerText()).trim() === 'Quitar de mi colección')
   await boton.click()
   await page.waitForTimeout(1200)
   check('al pulsarlo (y aceptar la pregunta) se quita', (await page.locator('#mcCartas .mc-carta').count()) === 2, String(await page.locator('#mcCartas .mc-carta').count()))

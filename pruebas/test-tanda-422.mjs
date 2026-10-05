@@ -20,6 +20,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -153,6 +164,7 @@ console.log('\n── 3. El teclado, sin robarle las flechas a un campo ──')
   // Y la trampa: con el foco en un desplegable, ← y → son SUYAS. Si se
   // las quitara, creyendo pasar de carta estarías cambiándole el idioma
   // a la que tienes delante.
+  await desplegarCopia(page)
   await page.locator('#mcEdEstado').focus()
   const antes = await page.locator('#mcEdEstado').inputValue()
   await page.keyboard.press('ArrowRight')
@@ -161,6 +173,7 @@ console.log('\n── 3. El teclado, sin robarle las flechas a un campo ──')
   check('  …y el desplegable sí hace lo suyo',
     (await page.locator('#mcEdEstado').inputValue()) !== antes,
     `${antes} → ${await page.locator('#mcEdEstado').inputValue()}`)
+  await desplegarCopia(page)
   await page.locator('#mcEdCantidad').focus()
   await page.keyboard.press('ArrowRight')
   await page.waitForTimeout(400)
@@ -176,7 +189,9 @@ console.log('\n── 4. Lo escrito se guarda en SU carta al cambiar ──')
   await page.locator('#mcCartas .mc-carta-foto').first().click()
   await page.waitForTimeout(700)
   const cualEs = await page.evaluate(() => document.getElementById('mcEditor').dataset.linea)
+  await desplegarCopia(page)
   await page.click('#mcEdNotaAbrir')
+  await desplegarCopia(page)
   await page.fill('#mcEdNotas', 'la del sobre de Madrid')
   // Sin esperar al retardo: cambiar de carta tiene que llevárselo.
   await page.locator('#mcEdSiguiente').click()
@@ -201,7 +216,9 @@ console.log('\n── 4. Lo escrito se guarda en SU carta al cambiar ──')
   // nadie ha tocado. En un set de 200 son 200 escrituras que no pide nadie
   // —y cada una lo dice en pantalla—.
   // Desde la 563 el gradeo es casa + nota en dos desplegables.
+  await desplegarCopia(page)
   await page.selectOption('#mcEdGradeoCasa', 'PSA')
+  await desplegarCopia(page)
   await page.selectOption('#mcEdGradeoNota', '9')
   await page.waitForTimeout(1400)
   check('el guardado salta solo a los 600 ms', await avisoVisible())

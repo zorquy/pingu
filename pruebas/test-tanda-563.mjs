@@ -18,6 +18,17 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from '/home/user/pingu/js/mi-coleccion/gradeo.js'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -92,6 +103,7 @@ console.log('── 1. «Para cambio», con sus dos botones ──')
   // Los dos botones son del SUYO y no del de copias: con el id escrito a
   // pelo, los de abajo movían el contador de arriba.
   const antesCopias = await page.inputValue('#mcEdCantidad')
+  await desplegarCopia(page)
   await page.locator('#mcEdCambio').locator('xpath=../button[@data-paso="1"]').click()
   await page.waitForTimeout(400)
   check('el «+» de cambio sube el cambio', (await page.inputValue('#mcEdCambio')) === '1', await page.inputValue('#mcEdCambio'))
@@ -106,6 +118,7 @@ console.log('── 2. El gradeo: la casa y su escala ──')
   const notasPSA = await page.$$eval('#mcEdGradeoNota option', (os) => os.map((o) => o.value))
   check('PSA no ofrece medias notas salvo el 1.5', !notasPSA.some((n) => /\.5$/.test(n) && n !== '1.5'), notasPSA.join(','))
   check('  …y sí ofrece el 1.5', notasPSA.includes('1.5'))
+  await desplegarCopia(page)
   await page.selectOption('#mcEdGradeoCasa', 'BGS')
   await page.waitForTimeout(500)
   const notasBGS = await page.$$eval('#mcEdGradeoNota option', (os) => os.map((o) => o.value))
@@ -114,6 +127,7 @@ console.log('── 2. El gradeo: la casa y su escala ──')
   // Lo que importa: que no se quede un «BGS 10» inventado de un «PSA 10».
   const chapas = await page.locator('#mcEdChapas').innerText()
   check('  …y la chapa no inventa un gradeo', !/BGS 10\b/.test(chapas), chapas.replace(/\n/g, ' '))
+  await desplegarCopia(page)
   await page.selectOption('#mcEdGradeoNota', '9.5')
   await page.waitForTimeout(700)
   check('al elegir la nota, la chapa dice «BGS 9.5»', /BGS 9\.5/.test(await page.locator('#mcEdChapas').innerText()), await page.locator('#mcEdChapas').innerText())
@@ -137,6 +151,7 @@ console.log('── 4. Un gradeo viejo no se toca ──')
   // Snorlax es la del `grado 9 propio`. Lo escrito a mano vuelve tal cual
   // y en «Otra»: un `<select>` que no encuentra su valor se queda con la
   // primera opción y al guardar escribe ESA (la lección de la 472).
+  await desplegarCopia(page)
   check('la casa es «Otra»', (await page.inputValue('#mcEdGradeoCasa')) === OTRA, await page.inputValue('#mcEdGradeoCasa'))
   check('  …con el texto intacto', (await page.inputValue('#mcEdGradeo')) === 'grado 9 propio', await page.inputValue('#mcEdGradeo'))
   check('  …y el campo libre a la vista', (await page.isVisible('#mcEdGradeo')) === true)

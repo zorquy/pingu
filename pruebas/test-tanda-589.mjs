@@ -9,7 +9,7 @@ import { CLAVE_ESTADO as CLAVE_PARES } from '/home/user/pingu/netlify/functions/
 import {
   precioDeFila, precioParaIdioma, valorDe, valorDeLinea, resumenDePrecio, enlaceTcgplayer, enlaceCardmarket, IDIOMAS_CON_PRECIO, columnaDeIdioma, usdAEuros,
 } from '/home/user/pingu/js/cardmarket.js'
-import { bloqueDePrecio, gradeadasDe, chapasDeIdiomas, deQueEs } from '/home/user/pingu/js/precio-vista.js'
+import { bloqueDePrecio, gradeadasDe, fuenteCardmarket, deQueEs } from '/home/user/pingu/js/precio-vista.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -175,15 +175,16 @@ console.log('── 3. El precio de una copia según su idioma ──')
   console.log('── 4. El bloque de precio ──')
   const html = bloqueDePrecio(p, { idioma: 'es', estado: 'NM', variante: 'holo', nombre: 'Groudon-EX', tcgplayerId: 96048 })
   check('la cifra es la del español, y el renglón dice de qué es', /<p class="pv-cifra">140,00 €<\/p>/.test(limpio(html)) && /mínimo en español en Cardmarket · NM · 5 oct/.test(html), limpio(html).slice(0, 300))
-  check('una chapa por idioma con precio, la española marcada, y TCGplayer en euros', /pv-chapa pv-activa"[^>]*><b>ES<\/b> 140,00 €/.test(limpio(html)) && /<b>EN<\/b> 194,00 €/.test(limpio(html)) && !/<b>DE<\/b>/.test(html) && /<b>TCGplayer<\/b> 171,08 €/.test(limpio(html)))
+  // Desde la 645 los idiomas van en una TABLA (una fila por idioma con precio, la tuya marcada) y TCGplayer en su burbuja.
+  check('una fila por idioma con precio, la española marcada, y TCGplayer en euros', /pv-fila pv-activa"><td><a[^>]*language=4[^>]*>[^]*?<span>Español<\/span><span class="pv-chapa pv-chapa-tuya">tu idioma<\/span><\/a><\/td><td class="pv-precio">140,00 €/.test(limpio(html)) && /<span>Inglés<\/span><\/a><\/td><td class="pv-precio">194,00 €/.test(limpio(html)) && !/Alemán/.test(html) && /<span class="pv-rotulo">TCGplayer<\/span><p class="pv-cifra-2">171,08 €/.test(limpio(html)), limpio(html).slice(0, 400))
   check('los dos botones: Cardmarket al producto con el español, TCGplayer al suyo', /btn-cardmarket[^>]*href="https:\/\/www\.cardmarket\.com\/es\/Pokemon\/Products\?idProduct=273681&amp;language=4&amp;minCondition=2"/.test(html) && /btn-tcgplayer[^>]*href="https:\/\/www\.tcgplayer\.com\/product\/96048"/.test(html), html.match(/href="[^"]*"/g)?.join(' '))
   const g = gradeadasDe(p.gradeadas)
   check('las gradeadas aplanadas: Cardmarket en euros primero, eBay en dólares, por casa y nota', g.length === 6 && g[0].casa === 'PSA' && g[0].nota === '10' && g[0].valor === 2621 && g[0].moneda === 'EUR' && g.find((x) => x.casa === 'BGS')?.moneda === 'USD' && g.find((x) => x.casa === 'TAG')?.nota === '10', JSON.stringify(g))
   check('  …sin repetir la PSA 10 de eBay (ya está la de Cardmarket)', g.filter((x) => x.casa === 'PSA' && x.nota === '10').length === 1)
   check('las chapas llevan la casa en data-casa y los dólares se dicen', /pv-gradeada" data-casa="PSA"[^>]*><b>PSA 10<\/b> 2621,00 €/.test(limpio(html)) && /data-casa="BGS"/.test(html) && /Los dólares son ventas en eBay/.test(html))
   const sinNada = bloqueDePrecio(null, { idioma: 'es', nombre: 'Carta' })
-  check('sin precio: «Sin precio», el botón de buscar en Cardmarket y nada más', /pv-sin/.test(sinNada) && /Products\/Search\?searchString=Carta/.test(sinNada) && !/btn-tcgplayer/.test(sinNada) && !/pv-gradeadas/.test(sinNada) && !/pv-idiomas/.test(sinNada))
-  check('sin TCGGO no hay chapas de idioma', chapasDeIdiomas(precioDeFila({ card_id: 'x', cm_low: 3 }), 'es') === '')
+  check('sin precio: «Sin precio», el botón de buscar en Cardmarket y nada más', /pv-sin/.test(sinNada) && /Products\/Search\?searchString=Carta/.test(sinNada) && !/btn-tcgplayer/.test(sinNada) && !/pv-gradeadas/.test(sinNada) && !/pv-bandera/.test(sinNada))
+  check('sin TCGGO no hay filas por idioma: la guía general, en una fila', !/pv-bandera/.test(fuenteCardmarket(precioDeFila({ card_id: 'x', cm_low: 3 }), { idioma: 'es' })) && /Cualquier idioma/.test(fuenteCardmarket(precioDeFila({ card_id: 'x', cm_low: 3 }), { idioma: 'es' })))
   check('de qué es, en tres versiones', /cualquier idioma/.test(deQueEs({ origen: 'cardmarket' }, { idioma: 'es' })) && /convertidos a ojo/.test(deQueEs({ origen: 'tcgplayer', dolares: 20 }, { idioma: 'es' })) && /en euros/.test(deQueEs({ origen: 'tcgplayer' }, { idioma: 'es' })))
   check('el HTML no cuela nada: el nombre se escapa', /searchString=%3Cb%3E/.test(bloqueDePrecio(null, { nombre: '<b>' })) && !/<b>" /.test(bloqueDePrecio(null, { nombre: '<b>' })))
 }

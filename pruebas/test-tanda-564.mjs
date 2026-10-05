@@ -24,6 +24,17 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { varianteDeCarta } from '/home/user/pingu/js/mi-coleccion/variantes.js'
 import { GRUPOS_FILTRO } from '/home/user/pingu/js/mi-coleccion/filtros.js'
 
+// Desde la 645 los campos de «Tu copia» arrancan PLEGADOS detrás de
+// «Editar»: antes de tocar uno hay que desplegarlos (leerlos no hace falta).
+async function desplegarCopia(page) {
+  const b = page.locator('#mcEdEditar')
+  if ((await b.count()) && (await b.isVisible()) && (await b.getAttribute('aria-expanded')) !== 'true') {
+    await b.click()
+    await page.waitForTimeout(150)
+  }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
