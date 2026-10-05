@@ -104,7 +104,7 @@ console.log('\n── 4. La gráfica con un solo punto: lo que vale hoy ──')
   const t = limpio(await caja.innerText())
   check('sin ninguna foto todavía, la gráfica está, con un punto', (await caja.locator('.mc-valor-un-punto').count()) === 1 && (await caja.locator('.mc-valor-punto').count()) === 1)
   check('  …y dice lo que vale hoy (tu Groudon no tiene precio: 0 €)', /0,00 €/.test(t) && /hoy/.test(t), t.slice(0, 160))
-  check('  …y que la primera foto es esta noche', /primera foto/.test(t))
+  check('  …y sin párrafo debajo (653)', !/primera foto/.test(t) && (await caja.locator('p.subtext').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

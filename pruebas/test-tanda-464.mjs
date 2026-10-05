@@ -80,7 +80,8 @@ console.log('\n── 3. Un rango sin datos se apaga ──')
     (dos.match(/data-rango="1D"[^>]*/) || [])[0])
   // Y con uno solo no hay gráfica: una línea plana de un punto diría «no
   // ha cambiado nada» cuando lo que pasa es que no sabemos nada (la 319).
-  check('con un día no se dibuja nada', /primera foto/.test(graficaHtml(serie(1), {})))
+  // Desde la 651 un día sí tiene su punto; lo que no tiene es línea.
+  check('con un día no se dibuja línea', !/mc-valor-linea/.test(graficaHtml(serie(1), {})) && /mc-valor-un-punto/.test(graficaHtml(serie(1), {})))
 }
 
 console.log('\n── 4. La consulta trae bastantes días ──')

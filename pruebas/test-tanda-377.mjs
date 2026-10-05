@@ -48,7 +48,9 @@ console.log('\n── 1. La cuenta, sin navegador ──')
   // ha cambiado nada» cuando lo que pasa es que no sabemos nada. Desde la
   // 651 sí hay gráfica —un punto y la cifra de hoy—, y se dice qué pasa.
   check('con un solo día no se pinta una línea plana', !/mc-valor-linea/.test(graficaHtml([filas[0]])) && /mc-valor-punto/.test(graficaHtml([filas[0]])))
-  check('  …y se dice qué pasa', /primera foto/.test(graficaHtml([filas[0]])), graficaHtml([filas[0]]).slice(0, 80))
+  // Y SIN la explicación de debajo (653): PINGU, «todo eso lo quitaría
+  // porque no es necesaria». Lo dice el rótulo «hoy» y nada más.
+  check('  …y no hay párrafo explicando (653)', !/primera foto/.test(graficaHtml([filas[0]])) && /hoy, /.test(graficaHtml([filas[0]])), graficaHtml([filas[0]]).slice(0, 80))
   check('  …y sin ninguno, igual', !/<svg/.test(graficaHtml([])))
 
   // Todos los días valiendo lo mismo: el rango es 0 y ahí se divide.
@@ -188,7 +190,7 @@ console.log('\n── 4. Bajando, y con un solo día ──')
   const solo = await abrir([dia(0, 100)], 100)
   const t2 = limpio(await solo.page.locator('#mcValorCaja').textContent())
   check('con un solo día hay un punto y no una línea (651)', (await solo.page.locator('.mc-valor-un-punto').count()) === 1 && (await solo.page.locator('.mc-valor-linea').count()) === 0 && /100,00 €/.test(t2))
-  check('  …y se dice por qué', /primera foto/.test(t2), t2.slice(0, 140))
+  check('  …y sin párrafo debajo (653)', !/primera foto/.test(t2) && (await solo.page.locator('#mcValorCaja p.subtext').count()) === 0, t2.slice(0, 140))
   await solo.page.close()
 }
 

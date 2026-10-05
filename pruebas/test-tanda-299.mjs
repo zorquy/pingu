@@ -357,17 +357,22 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
   //
   //  · Las que pone el JavaScript o el HTML a mano —`style="--i:3"`,
   //    `setProperty('--dx', …)`— existen aunque no estén en ninguna
-  //    hoja. Se miran también los módulos de las subcarpetas (js/torneos/),
-  //    que es donde vive `--i`.
+  //    hoja. Se miran también los módulos de TODAS las subcarpetas de js/
+  //    (653): `--i` vive en js/torneos/ y `--px`/`--lx` en
+  //    js/mi-coleccion/, y con la lista a mano la segunda no se miraba.
   //  · Las que se piden CON RESPALDO: `var(--shadow-lg, 0 12px 32px …)`
   //    está bien escrito, el respaldo es el valor. Solo canta el `var()`
   //    a pelo, que es lo que hacía `--slate`: sin respaldo, la propiedad
   //    entera se cae y el texto hereda el color del padre — parece que
   //    funciona y no funciona.
   const modulos = []
-  for (const dir of ['js', 'js/torneos']) {
-    for (const x of readdirSync(`${RAIZ}/${dir}`)) if (x.endsWith('.js')) modulos.push(`${dir}/${x}`)
+  const recorrer = (dir) => {
+    for (const x of readdirSync(`${RAIZ}/${dir}`, { withFileTypes: true })) {
+      if (x.isDirectory()) recorrer(`${dir}/${x.name}`)
+      else if (x.name.endsWith('.js')) modulos.push(`${dir}/${x.name}`)
+    }
   }
+  recorrer('js')
   const definidas = new Set()
   for (const f of [...todasLasHojas, ...paginas, ...modulos]) {
     for (const m of leer(f).matchAll(/(--[a-z0-9-]+)\s*['"`]?\s*[:,]/gi)) definidas.add(m[1])
