@@ -30886,3 +30886,50 @@ sus frenos —frescura, tope, 400, 404, sin migración—, la foto diaria y
 el SVG) y `test-tanda-643-pantalla.mjs` (la ficha con la función
 interceptada: se pide una vez, se ve, cambia con el idioma, y sin filas
 no se ve).
+
+## Tanda 644 — el catálogo desde TCGGO: lo que faltaba (oct. 2026)
+
+PINGU: «todo de la nueva API: los sets, los filtros, todo». La 640 traía
+las cartas y creaba los sets; esto es lo que un set y una carta de TCGGO
+decían y no se guardaba, y una guarda que faltaba.
+
+**Los sets**: su expansión trae `cards_printed_total` (el «120» de
+«125/120», nuestro `card_count_official`) y `series` (la era de /cartas).
+`resumirEpisodio` los saca (`impresas`, `serie`, `serieId`). Un set
+nuevo entra con su serie en NUESTROS términos (`serieDeEpisodio`): si ya
+tenemos un set cuya serie se llama igual en inglés, la suya es esa misma
+—`serie_id` incluido, que es lo que cruza con `tcg_eras`—; si no, la
+serie es nueva y entra con su slug y su nombre inglés. Sin esto un set
+creado por TCGGO caía en «Sin clasificar». Y a los sets que ya tenemos,
+`tcggo_guardar_sets` les rellena lo impreso si estaba vacío (se vuelve a
+escribir en `supabase-migration-tcggo-catalogo.sql`, que sigue pendiente).
+
+**Solo cartas**: `/cards` lista lo que TCGGO VENDE de una expansión, con
+un `type` que dice qué es. «singles» son cartas; lo demás (sobres,
+cajas) no puede casar con ninguna nuestra ni crearse como carta.
+`esCartaSuelta` lo aparta en el catálogo antes de casar y dentro de
+`emparejarPorNumero` (`descartadas` en el informe). Sin `type` se toma
+por carta: el campo es suyo y puede no venir.
+
+**La rareza, con UNA grafía**: TCGGO escribe «rare» donde Scrydex
+escribía «Rare», y los filtros de /mi-coleccion agrupan por el valor
+exacto: dos grafías son dos chips. `rarezaCanonica` (en
+`js/rarezas-nombres.js`, que no importa nada y por eso lo puede usar la
+función) devuelve el inglés tal como lo guardamos, y lo que no está en el
+vocabulario con cada palabra en mayúscula. La carta pasa por ahí al
+escribirse; y al LEER, `rarezaEs` y `rarezaConocida` tampoco distinguen
+mayúsculas, para lo que ya esté escrito.
+
+**Y TCGGO gana**: `tcggo_guardar_cartas` escribía rareza, PS e
+ilustrador solo si faltaban; ahora los suyos mandan (`coalesce(excluded,
+nuestro)`), porque el catálogo ES TCGGO y lo de antes era de Scrydex o de
+TCGdex. Lo nuestro —id, número, nombre, set, ids de producto— sigue sin
+pisarse, y el nombre inglés y la categoría solo se rellenan.
+
+**De paso**: el informe de rarezas de /admin se fue con los botones de
+Scrydex en la 641 y dejó un import muerto en `admin/js/admin.js`;
+`test-tanda-527.mjs` lo pedía y estaba en rojo desde entonces.
+
+**Pruebas**: en `test-tanda-640.mjs` (episodio, serie, set nuevo, sets
+que ya tenemos, `esCartaSuelta`, el emparejador, la rareza canónica y la
+migración) y `test-tanda-527.mjs` al día.

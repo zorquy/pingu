@@ -29,7 +29,7 @@
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS,
-  emparejarPorNumero, setDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo,
+  emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 
@@ -175,7 +175,7 @@ export async function procesar({
     // (en WEST lo dijo el emparejador; en JP se decide aquí por el código).
     let sets
     try {
-      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code&market=eq.${mercado}&limit=2000`)) || []
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en&market=eq.${mercado}&limit=2000`)) || []
     } catch (e) {
       return { ...resumen(), ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
@@ -200,14 +200,19 @@ export async function procesar({
         await persistir()
         continue
       }
-      // Sus cartas, enteras.
+      // Sus cartas, enteras — y solo las CARTAS: lo que no es «singles»
+      // (sobres, cajas) se aparta antes de casar nada.
       const suyas = []
+      let descartadas = 0
       let pagina = 1
       let completo = false
       for (;;) {
         const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, bases[mercado]))
         if (!r.datos) break
-        suyas.push(...(r.datos.data || []))
+        for (const s of r.datos.data || []) {
+          if (esCartaSuelta(s)) suyas.push(s)
+          else descartadas++
+        }
         if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
         pagina++
       }
@@ -220,7 +225,7 @@ export async function procesar({
         const r = setDeEpisodio(episodio, sets)
         if (r.set) destinos = [r.set.id]
         else if (suyas.length) {
-          setNuevo = filaDeSetNuevo(episodio, idsNuestros)
+          setNuevo = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets))
           try {
             setsCreados += Number(await crearSets([setNuevo], mercado)) || 0
           } catch (e) {
@@ -229,7 +234,7 @@ export async function procesar({
             return { ...resumen(), ok: false, error: `nuestra base al crear el set: ${m.slice(0, 160)}` }
           }
           idsNuestros.add(setNuevo.id)
-          sets.push({ id: setNuevo.id, name: setNuevo.name, name_en: setNuevo.name_en, tcg_online_code: setNuevo.tcg_online_code })
+          sets.push({ id: setNuevo.id, name: setNuevo.name, name_en: setNuevo.name_en, tcg_online_code: setNuevo.tcg_online_code, serie_id: setNuevo.serie_id, serie_name: setNuevo.serie_name, serie_name_en: setNuevo.serie_name_en })
           destinos = [setNuevo.id]
         }
       }
@@ -290,7 +295,7 @@ export async function procesar({
       creadas += nuevas
       estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
-      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, nuestrasSinSuya: nuestras.length - usadas.size })
+      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, nuestrasSinSuya: nuestras.length - usadas.size })
       await persistir()
     }
   }

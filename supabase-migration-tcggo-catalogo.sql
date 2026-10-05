@@ -38,9 +38,9 @@ as $$
 declare
   v_filas int;
 begin
-  insert into public.tcg_sets (id, market, name, name_en, tcg_online_code, release_date, card_count_total, logo_tcggo, tcggo_id, origen)
-  select p.id, p_market, coalesce(p.name, p.id), p.name_en, p.tcg_online_code, p.release_date, nullif(p.card_count_total, 0), p.logo_tcggo, p.tcggo_id, 'tcggo'
-    from jsonb_to_recordset(p_sets) as p(id text, name text, name_en text, tcg_online_code text, release_date date, card_count_total int, logo_tcggo text, tcggo_id int)
+  insert into public.tcg_sets (id, market, name, name_en, tcg_online_code, release_date, card_count_total, card_count_official, serie_id, serie_name, serie_name_en, logo_tcggo, tcggo_id, origen)
+  select p.id, p_market, coalesce(p.name, p.id), p.name_en, p.tcg_online_code, p.release_date, nullif(p.card_count_total, 0), nullif(p.card_count_official, 0), p.serie_id, p.serie_name, p.serie_name_en, p.logo_tcggo, p.tcggo_id, 'tcggo'
+    from jsonb_to_recordset(p_sets) as p(id text, name text, name_en text, tcg_online_code text, release_date date, card_count_total int, card_count_official int, serie_id text, serie_name text, serie_name_en text, logo_tcggo text, tcggo_id int)
   on conflict (id, market) do nothing;
   get diagnostics v_filas = row_count;
   return v_filas;
@@ -54,9 +54,11 @@ grant execute on function public.tcggo_crear_sets(jsonb, text) to service_role;
 -- `origen = 'tcggo'`, `detalle_at` puesto y `detalle_lang = 'tcggo'`: así
 -- el engorde de TCGdex (cartas-detalle) no las visita —TCGdex no las
 -- conoce y serían 404 uno tras otro—. Las que ya existen conservan todo
--- lo suyo: solo se RELLENA lo vacío (rareza, PS, ilustrador, nombre
--- inglés, categoría) y se escribe lo que es de TCGGO (su id, su foto, los
--- ids de producto si faltaban).
+-- lo suyo —id, número, nombre, set, ids de producto— y de TCGGO se
+-- escribe lo que es de TCGGO: su id, su foto, y desde la 644 también la
+-- RAREZA, los PS y el ilustrador, que ganan a lo que hubiera (el catálogo
+-- es TCGGO, y lo de antes era de Scrydex o de TCGdex). El nombre inglés y
+-- la categoría solo se rellenan si faltan.
 create or replace function public.tcggo_guardar_cartas(p_cartas jsonb, p_market text default 'WEST')
 returns int
 language plpgsql
@@ -78,9 +80,9 @@ begin
         tp_id_product_propio = coalesce(tcg_cards.tp_id_product_propio, excluded.tp_id_product_propio),
         cm_por = case when tcg_cards.cm_id_product_propio is null and excluded.cm_id_product_propio is not null then 'tcggo' else tcg_cards.cm_por end,
         cm_emparejado_at = case when tcg_cards.cm_id_product_propio is null and excluded.cm_id_product_propio is not null then now() else tcg_cards.cm_emparejado_at end,
-        rarity_en = coalesce(tcg_cards.rarity_en, excluded.rarity_en),
-        hp = coalesce(tcg_cards.hp, excluded.hp),
-        illustrator = coalesce(tcg_cards.illustrator, excluded.illustrator),
+        rarity_en = coalesce(excluded.rarity_en, tcg_cards.rarity_en),
+        hp = coalesce(excluded.hp, tcg_cards.hp),
+        illustrator = coalesce(excluded.illustrator, tcg_cards.illustrator),
         name_en = coalesce(tcg_cards.name_en, excluded.name_en),
         category = coalesce(tcg_cards.category, excluded.category),
         tcggo_at = now();
@@ -90,6 +92,35 @@ end;
 $$;
 revoke all on function public.tcggo_guardar_cartas(jsonb, text) from public, anon, authenticated;
 grant execute on function public.tcggo_guardar_cartas(jsonb, text) to service_role;
+
+-- ── Los sets que ya tenemos: también el total IMPRESO (tanda 644) ──
+-- La de la 589 (supabase-migration-tcggo-precios.sql) rellenaba logo,
+-- fecha y total; TCGGO da además `cards_printed_total`, que es nuestro
+-- `card_count_official` (el «120» de «125/120»). Misma regla: solo se
+-- rellena lo vacío. Se vuelve a escribir entera para no depender del orden.
+create or replace function public.tcggo_guardar_sets(p_sets jsonb, p_market text default 'WEST')
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_filas int;
+begin
+  update public.tcg_sets s
+     set logo_tcggo = coalesce(nullif(p.logo, ''), s.logo_tcggo),
+         tcggo_id = coalesce(p.tcggo_id, s.tcggo_id),
+         release_date = coalesce(s.release_date, p.fecha),
+         card_count_total = coalesce(s.card_count_total, nullif(p.cartas, 0)),
+         card_count_official = coalesce(s.card_count_official, nullif(p.impresas, 0))
+    from jsonb_to_recordset(p_sets) as p(id text, tcggo_id int, logo text, fecha date, cartas int, impresas int)
+   where s.id = p.id and s.market = p_market;
+  get diagnostics v_filas = row_count;
+  return v_filas;
+end;
+$;
+revoke all on function public.tcggo_guardar_sets(jsonb, text) from public, anon, authenticated;
+grant execute on function public.tcggo_guardar_sets(jsonb, text) to service_role;
 
 commit;
 

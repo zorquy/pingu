@@ -365,6 +365,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo-precios`— copia el precio del día de las cartas que alguien
   TIENE. Si añades algo que le pida a TCGGO desde el navegador, pasa por
   el mismo patrón: freno propio y «se sirve lo que haya» cuando se gasta.
+- **De TCGGO se guarda solo lo que es «singles», y la rareza con UNA
+  grafía** (tanda 644). Su `/cards` lista lo que VENDE (también sobres y
+  cajas, con `type`), y escribe «rare» donde Scrydex escribía «Rare»: un
+  filtro que agrupa por valor exacto enseña dos chips. Lo que entra pasa
+  por `esCartaSuelta` y `rarezaCanonica`; y un set nuevo lleva su serie en
+  NUESTROS términos (`serieDeEpisodio`), que sin ella cae en «Sin
+  clasificar».
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

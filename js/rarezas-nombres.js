@@ -165,6 +165,27 @@ for (const [en, es] of Object.entries(RAREZAS_ES)) if (!CANONICA.has(en)) CANONI
 // Las de Scrydex PISAN a las de TCGdex cuando chocan, y ese es el motivo
 // de la tanda: TCGdex mete la arcoíris dentro de «Hyper rare».
 for (const [en, es] of Object.entries(RAREZAS_SCRYDEX)) CANONICA.set(en, es)
+// La misma tabla sin distinguir mayúsculas (tanda 644): TCGGO escribe «rare»
+// donde Scrydex escribía «Rare», y una rareza que no casa por una
+// mayúscula sale sin traducir y como OTRA rareza en los filtros.
+const CANONICA_MINUSCULAS = new Map([...CANONICA].map(([k, v]) => [k.toLowerCase(), v]))
+// Y el inglés tal como lo GUARDAMOS, por su minúscula: las de Scrydex
+// mandan (son las finas) y detrás las de TCGdex.
+const INGLES_CANONICO = new Map()
+for (const en of Object.keys(RAREZAS_ES)) INGLES_CANONICO.set(en.toLowerCase(), en)
+for (const en of Object.keys(RAREZAS_SCRYDEX)) INGLES_CANONICO.set(en.toLowerCase(), en)
+
+// El inglés con el que se guarda una rareza, venga como venga escrita
+// («rare» → «Rare», «double rare» → «Double Rare»). Lo que no está en el
+// vocabulario se devuelve con cada palabra en mayúscula, que es como lo
+// escriben los dos catálogos: así una rareza nueva entra con UNA grafía.
+export function rarezaCanonica(valor) {
+  const v = String(valor ?? '').trim()
+  if (!v) return null
+  const propia = INGLES_CANONICO.get(v.toLowerCase())
+  if (propia) return propia
+  return v.replace(/\p{L}+/gu, (w) => (w === w.toUpperCase() && w.length <= 4 ? w : w[0].toUpperCase() + w.slice(1).toLowerCase()))
+}
 
 // ── ¿LA CONOCEMOS? (tanda 527) ──
 //
@@ -175,7 +196,7 @@ for (const [en, es] of Object.entries(RAREZAS_SCRYDEX)) CANONICA.set(en, es)
 // se hizo. La pregunta buena no es «¿cambia la palabra?» sino «¿está en el
 // vocabulario?».
 export function rarezaConocida(valor) {
-  return !!valor && CANONICA.has(String(valor))
+  return !!valor && (CANONICA.has(String(valor)) || CANONICA_MINUSCULAS.has(String(valor).toLowerCase()))
 }
 
 // El nombre oficial en español de una rareza, venga como venga escrita.
@@ -183,7 +204,7 @@ export function rarezaConocida(valor) {
 // rareza nueva es un dato, no un hueco.
 export function rarezaEs(valor) {
   if (!valor) return null
-  return CANONICA.get(valor) || String(valor)
+  return CANONICA.get(valor) || CANONICA_MINUSCULAS.get(String(valor).toLowerCase()) || String(valor)
 }
 
 // ── La rareza de una CARTA, que no es lo mismo que la de una cadena ──

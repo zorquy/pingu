@@ -18,6 +18,7 @@
 // VARIABLES DE ENTORNO (de la función, no de aquí): TCGGO_API_KEY.
 import { numeroComparable } from './scrydex.mjs'
 import { normalizeSearch } from '../../js/texto.js'
+import { rarezaCanonica } from '../../js/rarezas-nombres.js'
 
 // La puerta de RapidAPI, que costó cuatro peticiones de 404 encontrar: el
 // PDF describe el servidor por dentro (/v1/tcgapi/{game}/…) y RapidAPI
@@ -66,7 +67,15 @@ const palabrasDe = (n) => nombreComparable(n).split(' ').filter(Boolean)
 // Lo que guardamos de cada expansión suya (de las ~170, solo lo que hace
 // falta para reconocerla y pedir sus cartas).
 export function resumirEpisodio(e) {
-  return { id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null, logo: typeof e.logo === 'string' ? e.logo : null }
+  return {
+    id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null, logo: typeof e.logo === 'string' ? e.logo : null,
+    // Lo IMPRESO en la carta («120» de «125/120») y la serie a la que
+    // pertenece (tanda 644): sin la serie un set nuevo caía en «Sin
+    // clasificar» en /cartas.
+    impresas: Number.isInteger(e.cards_printed_total) ? e.cards_printed_total : null,
+    serie: typeof e.series?.name === 'string' && e.series.name.trim() ? e.series.name.trim() : null,
+    serieId: typeof e.series?.slug === 'string' && e.series.slug.trim() ? e.series.slug.trim() : null,
+  }
 }
 
 // Qué expansión suya es un set nuestro. PRIMERO por el nombre inglés
@@ -167,7 +176,17 @@ const prefijoDeTcgid = (t) => String(t || '').toLowerCase().replace(/-[^-]*$/, '
 // la sellada va «mepr-MEP001s» (o sin tcgid) y la normal «mepr-MEP001».
 // Lo que queda sin par lo dice con el motivo, y si había varias suyas con
 // el mismo número, cuáles (para saber qué distingue a las que sobran).
-export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
+// TCGGO lista en `/cards` lo que VENDE de una expansión, y `type` dice
+// qué es: «singles» son cartas sueltas; lo demás (sobres, cajas, lotes)
+// no es una carta y no puede casar con ninguna nuestra ni crearse como
+// tal (tanda 644). Sin `type` se toma por carta: el campo es suyo y puede
+// no venir.
+export function esCartaSuelta(c) {
+  return !c?.type || String(c.type).toLowerCase() === 'singles'
+}
+
+export function emparejarPorNumero(cartas, todasSuyas, { setId = '' } = {}) {
+  const suyas = (todasSuyas || []).filter(esCartaSuelta)
   const pares = []
   const sinPar = []
   const usados = new Set()
@@ -250,7 +269,7 @@ export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
   const cuenta = new Map()
   for (const p of pares) if (p.tcgid) { const pre = prefijoDeTcgid(p.tcgid); cuenta.set(pre, (cuenta.get(pre) || 0) + 1) }
   const [prefijoDominante] = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0] || [null]
-  return { pares, sinPar, sobran: (suyas || []).length - usados.size, prefijoDominante, ejemplosSuyos: libres().slice(0, 6).map((s) => String(s.card_number ?? '')) }
+  return { pares, sinPar, sobran: suyas.length - usados.size, descartadas: (todasSuyas || []).length - suyas.length, prefijoDominante, ejemplosSuyos: libres().slice(0, 6).map((s) => String(s.card_number ?? '')) }
 }
 
 // Cómo contesta RapidAPI cuando se acaba el plan: 429 (límite por segundo
@@ -314,6 +333,7 @@ export function filaDeSetTcggo(setId, episodio) {
     logo: typeof episodio?.logo === 'string' && /^https?:\/\//.test(episodio.logo) ? episodio.logo : null,
     fecha: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
     cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
+    impresas: Number.isInteger(episodio?.impresas) && episodio.impresas > 0 ? episodio.impresas : null,
   }
 }
 
@@ -345,7 +365,21 @@ export function idDeSetNuevo(episodio, idsNuestros) {
   return `tg-${episodio?.id}`
 }
 
-export function filaDeSetNuevo(episodio, idsNuestros) {
+// La serie (la «era» de /cartas) de una expansión suya, en NUESTROS
+// términos: si ya tenemos un set cuya serie se llama igual en inglés —o
+// en el nombre a secas—, la suya es esa misma (`serie_id` incluido, que es
+// lo que cruza con `tcg_eras`). Si no, la serie es nueva y entra con su
+// slug por id y su nombre como inglés: mejor una era nueva con nombre que
+// «Sin clasificar».
+export function serieDeEpisodio(episodio, sets) {
+  const nombre = nombreComparable(episodio?.serie)
+  if (!nombre) return null
+  const nuestro = (sets || []).find((s) => [s.serie_name_en, s.serie_name].map(nombreComparable).includes(nombre) && s.serie_id)
+  if (nuestro) return { serie_id: nuestro.serie_id, serie_name: nuestro.serie_name || null, serie_name_en: nuestro.serie_name_en || null, por: 'nuestra' }
+  return { serie_id: episodio?.serieId || null, serie_name: null, serie_name_en: episodio.serie, por: 'nueva' }
+}
+
+export function filaDeSetNuevo(episodio, idsNuestros, serie = null) {
   return {
     id: idDeSetNuevo(episodio, idsNuestros),
     name: episodio?.nombre || `Expansión ${episodio?.id}`,
@@ -353,6 +387,10 @@ export function filaDeSetNuevo(episodio, idsNuestros) {
     tcg_online_code: episodio?.codigo || null,
     release_date: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
     card_count_total: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
+    card_count_official: Number.isInteger(episodio?.impresas) && episodio.impresas > 0 ? episodio.impresas : null,
+    serie_id: serie?.serie_id || null,
+    serie_name: serie?.serie_name || null,
+    serie_name_en: serie?.serie_name_en || null,
     logo_tcggo: typeof episodio?.logo === 'string' && /^https?:\/\//.test(episodio.logo) ? episodio.logo : null,
     tcggo_id: episodio?.id ?? null,
   }
@@ -376,7 +414,7 @@ export function filaDeCartaTcggo(carta, { setId, nuestra = null } = {}) {
     image_tcggo: typeof carta?.image === 'string' && /^https?:\/\//.test(carta.image) ? carta.image : null,
     cm_id_product: Number.isInteger(cm) && cm > 0 ? cm : null,
     tp_id_product: Number.isInteger(tp) && tp > 0 ? tp : null,
-    rarity_en: typeof carta?.rarity === 'string' && carta.rarity.trim() ? carta.rarity.trim() : null,
+    rarity_en: rarezaCanonica(carta?.rarity),
     hp: Number.isInteger(hp) && hp > 0 ? hp : null,
     illustrator: typeof carta?.artist?.name === 'string' && carta.artist.name.trim() ? carta.artist.name.trim() : null,
     category: categoriaDe(carta?.supertype),

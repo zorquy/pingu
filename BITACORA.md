@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 6) — PINGU-Claude (644 — el catálogo desde TCGGO: lo que faltaba)
+
+**Hecho**: un set nuevo de TCGGO entra con su serie (la era de /cartas,
+en nuestros términos) y su total impreso; a los que ya tenemos se les
+rellena lo impreso; solo entra lo que es «singles» (sobres y cajas,
+fuera); la rareza se guarda con una grafía («rare» → «Rare») y
+rareza/PS/ilustrador de TCGGO ganan a lo viejo. Import muerto de
+`admin.js` fuera (la 527 estaba roja desde la 641).
+
+**MIGRACIONES pendientes, en este orden**: `supabase-migration-tcggo-catalogo.sql`
+(cambiada en esta tanda: ejecútala entera aunque la tuvieras a medias),
+`supabase-migration-tcggo-japones.sql`, `supabase-migration-tcggo-historial.sql`.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-catalogo.mjs`,
+`js/rarezas-nombres.js`, `admin/js/admin.js`,
+`supabase-migration-tcggo-catalogo.sql`, `SCHEMA.md`, `CLAUDE.md`. En
+`pruebas`: 640 y 527.
+
 ## 2026-10-06 (noche, 5) — PINGU-Claude (643 — el histórico de precios)
 
 **Hecho**: gráfica de precio en /carta. Tabla `tcg_card_history` que
