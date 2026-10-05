@@ -17,15 +17,15 @@ REP = 'js/repeticiones.js'
 MUTACIONES = [
     # El reparto de lo que no sabes
     (CAM, 'el reparto no toca los premios', '  huecosPremio.forEach((i, j) => (s.premios[i] = bolsa[sinConf.length + j]))\n', ''),
-    (CAM, 'lo de arriba se baraja también', '  const t = Math.min(k.arriba, D)\n', '  const t = 0\n'),
+    (CAM, 'lo de arriba se baraja también', '  const s = structuredClone(s0)\n  s.registro = []\n  const k = s.conocimiento\n  const D = s.mazo.length\n  const t = Math.min(k.arriba, D)\n', '  const s = structuredClone(s0)\n  s.registro = []\n  const k = s.conocimiento\n  const D = s.mazo.length\n  const t = 0\n'),
     (CAM, 'lo confirmado puede caer en premios', '  const conf = medio.filter((u) => k.confirmados[u])\n  const sinConf = medio.filter((u) => !k.confirmados[u])\n', '  const conf = []\n  const sinConf = medio\n'),
-    (CAM, 'usa el orden de verdad (trampa)', '  for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar), op: real.op, m: mRaiz })', '  for (let i = 0; i < muestras; i++) raices.push({ s: structuredClone(real.s), op: real.op, m: mRaiz })'),
+    (CAM, 'usa el orden de verdad (trampa)', '  for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar, { objetivo: esLaCarta, u: (estratos[i] + azar()) / muestras }), op: real.op, m: mRaiz })', '  for (let i = 0; i < muestras; i++) raices.push({ s: structuredClone(real.s), op: real.op, m: mRaiz })'),
     # Lo que se puede hacer
     (CAM, 'no cuentan las habilidades al bajar', "      if (def.cuando === 'bajar' && esBasicoEnJuego(c) && p.huecosBanca > 0) {", '      if (false) {'),
     (CAM, 'no cuentan las habilidades con botón', '    if (!def || def.cuando || def.pasiva) continue\n', '    continue\n'),
     (CAM, 'sin puentes', '  const directas = await probarPuentes(objetivo, 1)', '  const directas = []'),
     (CAM, 'dos partidarios en un camino', '        if (p.s.estricta && accion.partidario && nodo.pasos.some((x) => x.partidario)) continue\n', ''),
-    (CAM, 'los peores no se marcan', '    dominado: ordenados.some((q) => q !== c && q.pasos.length < c.pasos.length && q.p >= c.p - 0.005),', '    dominado: false,'),
+    (CAM, 'los peores no se marcan', '    dominado: dominado(c),', '    dominado: false,'),
     # Dejar la partida como estaba
     (CAM, 'la partida se queda con un reparto', '    } finally {\n      ponerFoto(p, real, { copiar: false })\n    }\n    return { pasos: [...nodo.pasos, accion]', '    } finally {\n    }\n    return { pasos: [...nodo.pasos, accion]'),
     (CAM, 'con mesa, el otro se queda tocado', '  if (p.oponente && f.op) p.oponente.s = copiar ? structuredClone(f.op) : f.op\n', ''),

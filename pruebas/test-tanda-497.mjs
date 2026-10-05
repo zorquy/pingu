@@ -259,7 +259,7 @@ const irA = (page, f) =>
   await page.click('[data-accion="jugar"]')
   // Desde la 594 los premios se cogen tocándolos en la mesa: lo pide la
   // barra de abajo, y no una ventana.
-  const pide = await page.waitForFunction((j) => new RegExp(`${j}: coge 1 premio`).test(document.querySelector('#labApuntar.lab-elegir-barra:not(.hidden)')?.textContent || ''), premio.jugador, { timeout: 10000 }).then(() => true).catch(() => false)
+  const pide = await page.waitForFunction((j) => new RegExp(`${j}: coge 1 premio`).test(document.querySelector('#labCentro.lab-centro-eligiendo')?.textContent || ''), premio.jugador, { timeout: 10000 }).then(() => true).catch(() => false)
   check('desde la jugada de un KO, la mesa pide coger sus premios', pide)
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()

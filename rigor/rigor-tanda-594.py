@@ -16,7 +16,7 @@ MUTACIONES = [
     (LAB, 'las energías unidas no se ven en la mesa', "  return lados.some((j) => j.enJuego.some((sl) => sl.energias.includes(uid) || sl.herramienta === uid))", "  return lados.some((j) => j.enJuego.some((sl) => sl.herramienta === uid))"),
     (LAB, 'los Pokémon vuelven a la ventana', "    if (!enLaMesa) return ventana.pokemon(o)", "    return ventana.pokemon(o)"),
     (LAB, 'los premios vuelven a la ventana', "    if (!seVen) return ventana.premios(o)", "    return ventana.premios(o)"),
-    (LAB, 'el sí o no vuelve a la ventana', "    return elegirEnLaMesa({ tipo: 'confirmar'", "    return ventana.confirmar(o) || elegirEnLaMesa({ tipo: 'confirmar'"),
+    (LAB, 'el sí o no vuelve a la ventana', "girandoSiHaceFalta(o, () => elegirEnLaMesa({ tipo: 'confirmar'", "girandoSiHaceFalta(o, () => ventana.confirmar(o) || elegirEnLaMesa({ tipo: 'confirmar'"),
     (LAB, 'elegir un Pokémon pide confirmar', "const elegirAlTocar = (e) => (e.tipo === 'pokemon' && e.min === 1 && e.max === 1) || e.tipo === 'premios'", "const elegirAlTocar = (e) => e.tipo === 'premios'"),
     (LAB, 'se confirma con menos de las que hacen falta', "  return n >= e.min && n <= e.max && !errorDeElegir(e)", "  return n <= e.max && !errorDeElegir(e)"),
     (LAB, 'lo obligatorio se cancela con Escape', "  if (e.sinCancelar) return true\n", ''),
@@ -26,7 +26,8 @@ MUTACIONES = [
     (LAB, 'Intro no pulsa el muñeco', "    tocarElegir(foco.dataset.elegir)\n    return true", "    return true"),
     (LAB, 'cerrar deja la jugada esperando', "  if (L.elegir && !L.elegir.sinCancelar) cancelarElegir()\n", ''),
     (LAB, 'los botones de arriba se cuelan', "      if (!e.target.closest('[data-accion=\"panel\"], [data-accion=\"cerrar\"], [data-panel-pestania]')) return\n", ''),
-    (CSS, 'la mano no se apaga al elegir otra cosa', ".lab-modo-elegir:not([data-eligiendo='cartas']) .lab-mano-carta,\n", ''),
+    # Desde la 620 es al revés: eligiendo un Pokémon la mano se tiene que ver.
+    (CSS, 'la mano se apaga también eligiendo un Pokémon', ".lab-modo-elegir[data-eligiendo='cartas'] .lab-mano-carta:not(.lab-elegible-mano),\n", ".lab-modo-elegir[data-eligiendo='cartas'] .lab-mano-carta:not(.lab-elegible-mano),\n.lab-modo-elegir:not([data-eligiendo='cartas']) .lab-mano-carta,\n"),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-594.mjs')

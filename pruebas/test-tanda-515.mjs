@@ -209,7 +209,8 @@ async function compartir(page) {
   const antes = await foto(page)
   check('el laboratorio ofrece «Compartir» en la barra', (await page.locator('#laboratorio .lab-barra [data-accion="compartir"]').count()) === 1)
   const { url, texto } = await compartir(page)
-  check('el enlace va al constructor y lleva la mesa detrás del #', url.startsWith(`${BASE}/constructor#pos=`), url.slice(0, 80))
+  // Desde la 621 va a /laboratorio: al cerrar la mesa se queda uno allí.
+  check('el enlace va al laboratorio y lleva la mesa detrás del #', url.startsWith(`${BASE}/laboratorio#pos=`), url.slice(0, 80))
   check('  …y la ventana dice qué lleva: las dos manos, y que robará lo mismo', /con los dos mazos y las dos manos tal cual están ahora, y el mazo en su orden: robará lo mismo que robarías tú/.test(texto), texto.slice(0, 200))
   await page.click('#labDialogo [data-dlg="copiar"]')
   const copiado = await page.evaluate(() => navigator.clipboard.readText()).catch(() => '')
@@ -250,7 +251,7 @@ async function compartir(page) {
   await page.waitForTimeout(300)
   const antes = await foto(page)
   const { url, texto } = await compartir(page)
-  check('contra el muñeco también: el enlace, y dice que lleva tu mano y el muñeco', url.includes('/constructor#pos=') && /con tu mazo, tu mano y el muñeco tal cual están ahora/.test(texto), texto.slice(0, 160))
+  check('contra el muñeco también: el enlace, y dice que lleva tu mano y el muñeco', url.includes('/laboratorio#pos=') && /con tu mazo, tu mano y el muñeco tal cual están ahora/.test(texto), texto.slice(0, 160))
   await page.click('#labDialogo [data-dlg="cancelar"]')
   // Sigue jugando aquí: pasar el turno (el muñeco no hace nada) y robar.
   await page.click('[data-accion="pasar"]')
@@ -272,10 +273,12 @@ async function compartir(page) {
   check('sin errores al abrirlo', !otra.errores.length, otra.errores.join(' | '))
   await otra.ctx.close()
 }
-{
-  const { page, ctx } = await pagina('/constructor#pos=esto-no-es-nada')
+// Roto, en los dos sitios que abren posiciones: el constructor (por los
+// enlaces que ya se mandaron) y /laboratorio (desde la 621).
+for (const donde of ['/constructor', '/laboratorio']) {
+  const { page, ctx } = await pagina(`${donde}#pos=esto-no-es-nada`)
   const toast = await page.waitForFunction(() => [...document.querySelectorAll('.toast')].map((t) => t.textContent).join(' '), null, { timeout: 8000 }).then((h) => h.jsonValue()).catch(() => '')
-  check('un enlace roto lo dice, y no abre una mesa a medias', /El enlace de la posición está roto o incompleto/.test(toast) && (await page.locator('#laboratorio:not([hidden])').count()) === 0, toast)
+  check(`[${donde}] un enlace roto lo dice, y no abre una mesa a medias`, /El enlace de la posición está roto o incompleto/.test(toast) && (await page.locator('#laboratorio:not([hidden])').count()) === 0, toast)
   await ctx.close()
 }
 

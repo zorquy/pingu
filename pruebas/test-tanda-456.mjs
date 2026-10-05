@@ -615,7 +615,7 @@ const slotsPropios = (page) => page.locator('#labLadoPropio [data-slot-carta]').
   await page.locator('#labDialogo input[type="number"]').fill('990')
   await page.click('#labDialogo [data-dlg="ok"]')
   await page.waitForTimeout(250)
-  const barra = page.locator('#labApuntar.lab-elegir-barra:not(.hidden)')
+  const barra = page.locator('#labCentro.lab-centro-eligiendo')
   const obligada = await barra.locator('.lab-elegir-titulo').innerText().catch(() => '')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(150)

@@ -81,7 +81,7 @@ async function traer(page, nombre) {
   await page.click('#labDialogo [data-dlg="ok"]')
   await page.waitForTimeout(200)
 }
-const barra = (page) => page.locator('#labApuntar.lab-elegir-barra:not(.hidden)')
+const barra = (page) => page.locator('#labCentro.lab-centro-eligiendo')
 const hayVentana = async (page) => (await page.locator('#labVelo:not(.hidden)').count()) > 0
 const manoUids = (page) => page.locator('#labMano [data-mano]').evaluateAll((ns) => ns.map((n) => n.dataset.uid))
 const descarte = async (page) => Number((await page.locator('#labLadoPropio [data-pila="descarte"] strong').innerText()) || 0)
@@ -175,7 +175,10 @@ console.log('\n── 3. Retirarse: las energías y quién sube, tocándolos ─
   await page.waitForTimeout(300)
   check('  …luego brilla la BANCA para elegir quién sube (y el resto se apaga)', (await page.locator('#labLadoPropio .lab-slot-elegible').count()) === banca && (await page.locator('.lab-modo-elegir[data-eligiendo="pokemon"]').count()) === 1)
   const opacidadMano = await page.locator('#labMano .lab-mano-carta').first().evaluate((el) => getComputedStyle(el).opacity)
-  check('  …y la mano también se apaga mientras se elige el Pokémon', Number(opacidadMano) < 1, opacidadMano)
+  // Desde la 620 la mano NO se apaga eligiendo un Pokémon: es lo que hay
+  // que ver antes de elegir (PINGU, con Dudunsparce: «primero ver toda tu
+  // mano y luego subir un activo»).
+  check('  …y la mano se sigue viendo entera mientras se elige el Pokémon', Number(opacidadMano) === 1, opacidadMano)
   check('  …sin «Confirmar»: tocar ya es elegir', (await page.locator('[data-elegir-accion="ok"]').count()) === 0)
   const sube = await page.locator('#labLadoPropio .lab-slot-elegible [data-slot-carta]').first().getAttribute('data-slot-carta')
   await page.locator('#labLadoPropio .lab-slot-elegible [data-slot-carta]').first().click()
@@ -254,7 +257,8 @@ console.log('\n── 7. En el móvil ──')
   await page.locator('#labMano [data-mano][aria-label^="Ultra Ball"]').first().click()
   await page.waitForTimeout(300)
   const r = await page.evaluate(() => {
-    const b = document.querySelector('#labApuntar').getBoundingClientRect()
+    // Desde la 620 lo que se pide va en la franja del centro, no flotando.
+    const b = document.querySelector('#labCentro').getBoundingClientRect()
     const mano = document.querySelector('.lab-mano-zona')
     return { izq: b.left, der: b.right, abajo: b.bottom, ancho: innerWidth, alto: innerHeight, manoVisible: getComputedStyle(mano).display !== 'none' }
   })
@@ -264,7 +268,7 @@ console.log('\n── 7. En el móvil ──')
   await ultima.scrollIntoViewIfNeeded()
   const tapada = await ultima.evaluate((el) => {
     const c = el.getBoundingClientRect()
-    const b = document.querySelector('#labApuntar').getBoundingClientRect()
+    const b = document.querySelector('#labCentro').getBoundingClientRect()
     return c.bottom > b.top && c.top < b.bottom && c.right > b.left && c.left < b.right
   })
   check('  …y las cartas de la mano se pueden ver por encima de la barra', !tapada)

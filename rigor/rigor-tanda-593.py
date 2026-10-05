@@ -34,7 +34,7 @@ MUTACIONES = [
     (PAR, 'los premios que QUEDAN en vez de los cogidos', "        case 'porPremios': porCada(Math.max(0, 6 - (p.de === 'propio' ? s.premios.length : r.premios)), p.n); break", "        case 'porPremios': porCada(p.de === 'propio' ? s.premios.length : r.premios, p.n); break"),
     (PAR, 'menos por contadores suma', "        case 'menosPorContadoresPropio': out.danio -= p.n", "        case 'menosPorContadoresPropio': out.danio += p.n"),
     (PAR, 'la herramienta se descarta pero sigue puesta', "          const u = ra.herramienta\n          ra.herramienta = null\n", "          const u = ra.herramienta\n"),
-    (PAR, 'el que descarta lo elige quien ataca', "zona: 'mano', partida: op, sinCancelar: true })\n          op.descartar(el)", "zona: 'mano', partida: this, sinCancelar: true })\n          op.descartar(el)"),
+    (PAR, 'el que descarta lo elige quien ataca', "zona: 'mano', partida: op, elige: op, sinCancelar: true })\n          op.descartar(el)", "zona: 'mano', partida: this, elige: this, sinCancelar: true })\n          op.descartar(el)"),
     (PAR, 'el descarte al azar no descarta', "          const u = op.s.mano[Math.floor(this.azar() * op.s.mano.length)]\n          op.descartar([u])\n", "          const u = op.s.mano[Math.floor(this.azar() * op.s.mano.length)]\n"),
     (PAR, 'buscar un partidario ofrece todo el mazo', "filtro: (x) => filtro(x), max: p.n })", "filtro: () => true, max: p.n })"),
     (PAR, 'robar HASTA 6 roba 6', "          this.robarHasta(p.n, { motivo: ataque.name })\n          break", "          this.robar(p.n, { motivo: ataque.name })\n          break"),

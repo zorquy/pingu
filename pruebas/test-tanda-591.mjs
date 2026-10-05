@@ -57,7 +57,9 @@ console.log('\n── 2. Las piezas ──')
   const rep = toml.indexOf('from = "/rep/:id"')
   const lab = toml.indexOf('from = "/lab/:id"')
   const comodin = toml.search(/from = "\/\*"/)
-  check('netlify.toml: /rep/:id → /repeticiones?r=:id y /lab/:id → /constructor?pos=:id, con 302', /from = "\/rep\/:id"\s+to = "\/repeticiones\?r=:id"\s+status = 302/.test(toml) && /from = "\/lab\/:id"\s+to = "\/constructor\?pos=:id"\s+status = 302/.test(toml))
+  // Desde la 621 las posiciones abren en /laboratorio (al cerrar la mesa
+  // se queda uno ahí, no en un constructor vacío).
+  check('netlify.toml: /rep/:id → /repeticiones?r=:id y /lab/:id → /laboratorio?pos=:id, con 302', /from = "\/rep\/:id"\s+to = "\/repeticiones\?r=:id"\s+status = 302/.test(toml) && /from = "\/lab\/:id"\s+to = "\/laboratorio\?pos=:id"\s+status = 302/.test(toml))
   check('  …antes de cualquier comodín', rep > 0 && lab > 0 && (comodin < 0 || (rep < comodin && lab < comodin)))
   const servidor = readFileSync(new URL('../herramientas/servir.py', import.meta.url), 'utf8')
   check('  …y el servidor de pruebas hace lo mismo', /\^\/rep\//.test(servidor) && /\^\/lab\//.test(servidor))
@@ -220,14 +222,21 @@ const manoDe = (page) => page.evaluate(() => [...document.querySelectorAll('#lab
   // Una posición abierta por /rep/ (alguien cambió la ruta a mano) va al
   // laboratorio, que es lo suyo.
   const cruzada = await pagina(`/rep/${fila?.id}`, { cartas: catalogo, sets: SETS, antes: { __FAKE_ENLACES_CORTOS__: [{ id: fila?.id, tipo: 'posicion', carga: fila?.carga }] } })
-  await cruzada.page.waitForURL(/\/constructor#pos=/, { timeout: 8000 }).catch(() => null)
-  check('una POSICIÓN abierta por /rep/ se va al laboratorio', /\/constructor#pos=/.test(cruzada.page.url()), cruzada.page.url().slice(0, 80))
+  await cruzada.page.waitForURL(/\/laboratorio#pos=/, { timeout: 8000 }).catch(() => null)
+  check('una POSICIÓN abierta por /rep/ se va al laboratorio', /\/laboratorio#pos=/.test(cruzada.page.url()), cruzada.page.url().slice(0, 80))
   await cruzada.ctx.close()
 }
 {
   const { page, ctx } = await pagina('/constructor?pos=zzzzzzzz')
   const toast = await page.waitForFunction(() => [...document.querySelectorAll('.toast')].map((t) => t.textContent).join(' '), null, { timeout: 8000 }).then((h) => h.jsonValue()).catch(() => '')
   check('una posición corta que no existe lo dice, sin abrir una mesa a medias', /Este enlace no existe/.test(toast) && (await page.locator('#laboratorio:not([hidden])').count()) === 0, toast)
+  await ctx.close()
+}
+{
+  // Y lo mismo en /laboratorio, que es a donde manda /lab/<id> desde la 621.
+  const { page, ctx } = await pagina('/laboratorio?pos=zzzzzzzz')
+  const toast = await page.waitForFunction(() => [...document.querySelectorAll('.toast')].map((t) => t.textContent).join(' '), null, { timeout: 8000 }).then((h) => h.jsonValue()).catch(() => '')
+  check('  …también en /laboratorio', /Este enlace no existe/.test(toast) && (await page.locator('#laboratorio:not([hidden])').count()) === 0, toast)
   await ctx.close()
 }
 

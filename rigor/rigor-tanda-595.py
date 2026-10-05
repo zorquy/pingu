@@ -18,7 +18,7 @@ MUTACIONES = [
     (CAM, 'una evolución no es un puente', "        const evoluciona = !!def && esEvolucion(c) && !def.cuando && !def.pasiva", "        const evoluciona = false"),
     (CAM, 'el puente evoluciona pero no usa la habilidad', "          const dado = (await hacer(p, accion, ui)) && (!evoluciona || (await hacer(p, { tipo: 'habilidad', clave }, ui)))", "          const dado = await hacer(p, accion, ui)"),
     (HTML, 'ninguno es «lo mejor»', "caminoHtml(c, puedeFallar, { mejor: i === 0 })", "caminoHtml(c, puedeFallar, { mejor: false })"),
-    (HTML, '«en este orden» con un solo paso', "${c.pasos.length > 1 ? 'Lo mejor, en este orden' : 'Lo mejor'}", "${c.pasos.length > 0 ? 'Lo mejor, en este orden' : 'Lo mejor'}"),
+    (HTML, '«en este orden» con un solo paso', "${c.pasos.length < 2 ? 'Lo mejor' : c.ordenDaIgual", "${c.pasos.length < 1 ? 'Lo mejor' : c.ordenDaIgual"),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-595.mjs')

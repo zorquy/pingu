@@ -22,7 +22,7 @@ REESCRITURAS = [
 # Y las REDIRECCIONES (302) de netlify.toml (tanda 591): los enlaces cortos.
 REDIRECCIONES = [
     (re.compile(r'^/rep/([^/?#]+)$'), '/repeticiones?r={}'),
-    (re.compile(r'^/lab/([^/?#]+)$'), '/constructor?pos={}'),
+    (re.compile(r'^/lab/([^/?#]+)$'), '/laboratorio?pos={}'),
 ]
 
 class H(http.server.SimpleHTTPRequestHandler):

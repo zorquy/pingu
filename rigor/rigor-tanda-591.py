@@ -27,7 +27,7 @@ MUTACIONES = [
     (REP, 'sin cuenta sale largo', "      url = enlaceCortoDe('repeticion', await acortar('repeticion', carga))", "      throw new Error('sin corto')"),
     (REP, '«el largo» no cambia lo que se copia', '      cuerpo.dataset.url = largo\n', ''),
     (REP, 'un corto se abre como guardada', "  if (q.get('r') && esIdCorto(q.get('r'))) {", "  if (false) {"),
-    (REP, 'una posición por /rep/ no se va al laboratorio', "  if (fila.tipo === 'posicion') {\n    location.replace(`/constructor#${fila.carga}`)", "  if (false) {\n    location.replace(`/constructor#${fila.carga}`)"),
+    (REP, 'una posición por /rep/ no se va al laboratorio', "  if (fila.tipo === 'posicion') {\n    location.replace(`/laboratorio#${fila.carga}`)", "  if (false) {\n    location.replace(`/laboratorio#${fila.carga}`)"),
     # El laboratorio
     (LAB, 'el corto dice «no se guarda en ningún sitio»', '      corto = true\n', ''),
     (LAB, 'la posición sale larga', "      url = enlaceCorto('posicion', await acortar('posicion', carga))", "      throw new Error('sin corto')"),
