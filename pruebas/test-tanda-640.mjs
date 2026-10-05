@@ -63,7 +63,12 @@ console.log('── 2. La función: occidental y japonés ──')
   const EPS_JP = [{ id: 701, name: 'Triplet Beat', code: 'SV1a', cards_total: 3, released_at: '2023-03-10', logo: 'https://images.tcggo.com/sv1a.png' }, { id: 702, name: 'Abyss Eye', code: 'M5', cards_total: 2, released_at: '2026-07-17', logo: null }]
   // Nuestras cartas: en me05, dos con par propio y una sin; en SV1a, dos por número; sin set para M5.
   const NUESTRAS = {
-    WEST: { me05: [{ id: 'me05-1', set_id: 'me05', local_id: '1', name: 'Tropius', cm_id_product_propio: 895789 }, { id: 'me05-2', set_id: 'me05', local_id: '2', name: 'Grubbin', cm_id_product_propio: 895790 }, { id: 'me05-3', set_id: 'me05', local_id: '3', name: 'Charjabug', cm_id_product_propio: null }] },
+    WEST: {
+      me05: [{ id: 'me05-1', set_id: 'me05', local_id: '1', name: 'Tropius', cm_id_product_propio: 895789 }, { id: 'me05-2', set_id: 'me05', local_id: '2', name: 'Grubbin', cm_id_product_propio: 895790 }, { id: 'me05-3', set_id: 'me05', local_id: '3', name: 'Charjabug', cm_id_product_propio: null }],
+      // La Classic de Celebrations (652): nuestra «001» contra su «4». Por
+      // número no casa; por nombre sí, y entonces NO se crea una segunda.
+      cel25cc: [{ id: 'cel25cc-001', set_id: 'cel25cc', local_id: '001', name: 'Charizard', name_en: 'Charizard', cm_id_product_propio: null }],
+    },
     JP: { SV1a: [{ id: 'SV1a-001', set_id: 'SV1a', local_id: '001', name: 'タロップ', cm_id_product_propio: null }, { id: 'SV1a-002', set_id: 'SV1a', local_id: '002', name: 'ワカシャモ', cm_id_product_propio: null }] },
   }
   const SETS = { WEST: [{ id: 'me05', name: 'Negro Absoluto', name_en: 'Pitch Black', tcg_online_code: 'PBL' }, { id: 'cel25cc', name: 'Celebrations Classic Collection', name_en: 'Celebrations Classic Collection', tcg_online_code: 'CEL' }], JP: [{ id: 'SV1a', name: 'トリプレットビート', name_en: 'Triplet Beat', tcg_online_code: null }] }
@@ -118,7 +123,8 @@ console.log('── 2. La función: occidental y japonés ──')
   const staff = b.cartas.find((c) => c.id === 'tcggo-49999')
   check('  …y la variante se crea en me05 con su foto y su número', staff?.set_id === 'me05' && staff.local_id === '1' && staff.image_tcggo === 'https://images.tcggo.com/tropius-staff.png' && staff.market === 'WEST', JSON.stringify(staff))
   const cc = r.esteTurno.find((t) => t.episodio === 36)
-  check('Celebrations Classic (sin par de antes) encuentra cel25cc por el nombre y crea su carta allí', cc?.sets?.[0] === 'cel25cc' && cc.nuevas === 1 && b.cartas.find((c) => c.id === 'tcggo-60001')?.set_id === 'cel25cc', JSON.stringify(cc))
+  check('Celebrations Classic (sin par de antes) encuentra cel25cc por el nombre, y su Charizard «4» casa con nuestro «001» por el NOMBRE (652): nada se crea', cc?.sets?.[0] === 'cel25cc' && cc.casadas === 1 && cc.nuevas === 0 && !b.cartas.find((c) => c.id === 'tcggo-60001') && b.cartas.find((c) => c.id === 'cel25cc-001')?.cm_id_product === 600001 && b.cartas.find((c) => c.id === 'cel25cc-001').image_tcggo === 'https://images.tcggo.com/cc4.png', JSON.stringify([cc, b.cartas.find((c) => c.id === 'cel25cc-001')]))
+  check('  …y la consulta de las nuestras pide name_en, que es con lo que se compara', /select=id,set_id,local_id,name,name_en,cm_id_product_propio,tcggo_id/.test(readFileSync('/home/user/pingu/netlify/functions/tcggo-catalogo.mjs', 'utf8')))
   check('la expansión vacía se apunta sin gastar', r.esteTurno.find((t) => t.episodio === 20)?.nota === 'vacía')
   const sv1a = r.esteTurno.find((t) => t.episodio === 701)
   check('Japón: Triplet Beat casa con nuestro SV1a por el código y sus dos cartas por número («001»)', sv1a?.sets?.[0] === 'SV1a' && sv1a.casadas === 2 && sv1a.nuevas === 1 && b.cartas.find((c) => c.id === 'SV1a-001')?.cm_id_product === 700001, JSON.stringify(sv1a))

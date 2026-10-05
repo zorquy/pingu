@@ -97,6 +97,16 @@ console.log('── 1. El ayudante puro ──')
   const amb = emparejarPorNumero([{ id: 'a-TG01', local_id: 'TG01' }, { id: 'a-1', local_id: '1' }], [{ id: 7, card_number: '1', cardmarket_id: 500 }])
   check('  …pero no cuando los dígitos no son únicos por nuestro lado (TG01 y 1 contra su 1)', amb.pares.length === 1 && amb.pares[0].id === 'a-1' && amb.sinPar.length === 1, JSON.stringify([amb.pares, amb.sinPar]))
   check('los números suyos sin usar se devuelven como ejemplo', JSON.stringify(tg.ejemplosSuyos) === '["30"]')
+  // POR NOMBRE cuando el número no dice nada (652): el 30 aniversario lleva
+  // dentro la Classic, numerada 001–030 por TCGdex y como la carta original
+  // por TCGGO. Dos «001» nuestras contra su «1» y su «4»: por número no casa
+  // ninguna; por nombre, las dos. Y un nombre repetido en un lado no casa.
+  const treinta = emparejarPorNumero(
+    [{ id: '30th-001', local_id: '001', name: 'Exeggcute' }, { id: '30th-c-001', local_id: '001', name_en: 'Charizard', name: 'Charizard' }, { id: '30th-c-005', local_id: '005', name: 'Pikachu' }],
+    [{ id: 1, card_number: '1', cardmarket_id: 10, name: 'Exeggcute' }, { id: 2, card_number: '4', cardmarket_id: 11, name: 'Charizard' }, { id: 3, card_number: '25', cardmarket_id: 12, name: 'Pikachu' }, { id: 4, card_number: '58', cardmarket_id: 13, name: 'Pikachu' }]
+  )
+  check('el 30 aniversario: dos «001» nuestras casan por NOMBRE con su «1» y su «4»', treinta.pares.length === 2 && treinta.pares.find((p) => p.id === '30th-001')?.idProduct === 10 && treinta.pares.find((p) => p.id === '30th-c-001')?.idProduct === 11 && treinta.pares.every((p) => p.por === 'nombre'), JSON.stringify(treinta.pares))
+  check('  …y «Pikachu», que ellos tienen dos veces, se queda sin par', treinta.sinPar.length === 1 && treinta.sinPar[0].id === '30th-c-005', JSON.stringify(treinta.sinPar))
   const promos = emparejarPorNumero([{ id: 'mep-001', local_id: '001' }], [{ id: 1, card_number: 'MEP 001', cardmarket_id: 1, name_numbered: 'Pikachu MEP 001' }, { id: 2, card_number: 'MEP 001', cardmarket_id: 2, name_numbered: 'Pikachu MEP 001 (Stamped)' }])
   check('dos promos suyas con los mismos dígitos y sin tcgid que decida: sin par, y dice cuáles', promos.pares.length === 0 && /2 cartas suyas con esos dígitos: «Pikachu MEP 001» sin tcgid, «Pikachu MEP 001 \(Stamped\)» sin tcgid/.test(promos.sinPar[0].porque), promos.sinPar[0].porque)
   // Con tcgid: la normal acaba en dígitos («mepr-MEP001»), la sellada no («…001s»).
