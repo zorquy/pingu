@@ -83,6 +83,11 @@ console.log('\n── 2. Y se comprueba DE VERDAD, abriéndolas ──')
     page.on('response', (r) => {
       if (!r.ok() && r.url().startsWith(BASE)) rotos.push(new URL(r.url()).pathname)
     })
+    // Las funciones de Netlify no las sirve el servidor de pruebas, y un
+    // 404 suyo no es lo que esta prueba busca (una reescritura rota de una
+    // ruta bonita). Desde la 643 /carta pide el histórico de precios por
+    // una: se contesta vacío.
+    await page.route('**/.netlify/functions/**', (r) => r.fulfill({ contentType: 'application/json', body: '{"filas":[]}' }))
     await page.addInitScript(() => {
       window.__FAKE_SETS__ = [{ id: 'tr', name: 'Team Rocket', market: 'WEST', serie_id: null,
         release_date: '2000-04-24', card_count_official: 82 }]

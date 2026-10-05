@@ -200,9 +200,11 @@ const jugada = (page) => page.evaluate(() => Number(document.getElementById('rep
 {
   const { page, errores } = await abrir({ ancho: 390, alto: 844, tacto: true })
   check('[móvil] la página no se sale de lado', (await page.evaluate(() => document.documentElement.scrollWidth)) <= 390)
-  // Con las dos mitades de la suite a la vez, a veces se medía antes de que
-  // la tira estuviera pintada (todo a 0): se espera a que lo esté.
-  await page.waitForFunction(() => [...document.querySelectorAll('.rep-momento')].some((x) => x.getBoundingClientRect().height > 0), null, { timeout: 4000 }).catch(() => {})
+  // Con el contenedor cargado (la suite entera) se medía antes de que la
+  // tira estuviera pintada (todo a 0): se espera a que lo esté ENTERA, y
+  // sin tragarse el tiempo agotado — si no se pinta, que lo diga el error
+  // y no una lista de ceros.
+  await page.waitForFunction(() => { const xs = [...document.querySelectorAll('.rep-momento')]; return xs.length > 0 && xs.every((x) => x.getBoundingClientRect().height > 0) }, null, { timeout: 20000 })
   const altos = await page.$$eval('.rep-momento, [data-accion="siguienteKo"], .rep-numeros-detalle summary', (xs) => xs.map((x) => Math.round(x.getBoundingClientRect().height)))
   check('[móvil] los momentos y «Siguiente KO» miden 44 px o más', altos.every((h) => h >= 44), altos.join(','))
   const tira = await page.$eval('#repMomentosLista', (x) => ({ desliza: x.scrollWidth > x.clientWidth, estilo: getComputedStyle(x).overflowX }))
