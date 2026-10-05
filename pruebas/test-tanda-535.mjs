@@ -39,7 +39,8 @@ console.log('── 1. Sus identificadores de verdad casan por prefijo ──')
   check('  …y el padre no va dentro de nadie', padreDeColeccion('bw11') === null)
   // Y el 30 aniversario, que era el ejemplo de esta prueba, ahora son dos
   // filas a propósito (tanda 536).
-  check('el Classic del 30 NO se pliega', padreDeColeccion('30th-c') === null, padreDeColeccion('30th-c'))
+  // Y el 30 aniversario vuelve a ser UNO desde la 646 (PINGU, con la API delante).
+  check('el Classic del 30 se pliega en el 30', padreDeColeccion('30th-c') === '30th', padreDeColeccion('30th-c'))
 }
 
 console.log('── 2. En la estantería: una fila, no dos ──')
