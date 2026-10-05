@@ -1,4 +1,4 @@
-import { tieneCJK } from './texto.js'
+import { tieneCJK, corregirNombreEs } from './texto.js'
 
 // Qué sets del catálogo son el juego de cartas DE VERDAD (tanda 328).
 //
@@ -299,7 +299,7 @@ export function nombreDeSet(set) {
 // de preferir). En el japonés manda lo que SE PUEDE LEER, que es lo que
 // hace la regla de abajo.
 export function nombreDeCarta(carta, { enEspanol = true } = {}) {
-  const es = typeof carta?.name_es === 'string' ? carta.name_es.trim() : ''
+  const es = typeof carta?.name_es === 'string' ? corregirNombreEs(carta.name_es.trim()) : ''
   if (es && enEspanol) return es
   // EL JAPONÉS SE ENSEÑA EN OCCIDENTAL SI LO HAY (tanda 537), misma regla
   // que con el nombre de los sets: se traduce lo que NO SE PUEDE LEER. Una
@@ -308,7 +308,9 @@ export function nombreDeCarta(carta, { enEspanol = true } = {}) {
   const propio = typeof carta?.name === 'string' ? carta.name : ''
   const en = typeof carta?.name_en === 'string' ? carta.name_en.trim() : ''
   if (en && tieneCJK(propio)) return en
-  return propio || en || es || ''
+  // `name` lleva el español en parte del catálogo (ver claveDeEfecto), y
+  // con él el tipo en inglés: se corrige igual (tanda 629).
+  return corregirNombreEs(propio) || en || es || ''
 }
 
 // TODO lo que se busca de una carta, en una cadena. Existe por lo mismo que

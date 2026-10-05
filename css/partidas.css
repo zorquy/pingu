@@ -456,3 +456,104 @@
   display: block;
   margin: 12px auto 0;
 }
+
+/* ── El mazo guardado y las repeticiones (tanda 627) ── */
+.partidas-fila-guardado { flex: 0 1 auto; }
+.partidas-quien {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.partidas-quien legend {
+  padding: 0 4px;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+.partidas-quien-opcion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: var(--t-sm);
+}
+.partidas-sin-mazos { font-size: var(--t-xs); }
+
+/* ── Filtros, cifras y gráficos (tanda 628; el porqué, en SCHEMA.md) ── */
+.partidas-filtros select,
+.partidas-filtros input { min-height: 44px; }
+.partidas-filtros .btn-secondary { min-height: 44px; }
+.partidas-filtro-cuenta { margin: -8px 0 12px; }
+.partidas-titulo-seccion { margin: 24px 0 12px; font-size: var(--t-xl); }
+.partidas-forma { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+
+.partidas-graficos {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.partidas-graf-bloque {
+  min-width: 0;
+  padding: 12px 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.partidas-graf-bloque .partidas-enfrentamientos { margin: 0 -16px -12px; }
+.partidas-graf-titulo { margin: 0 0 4px; font-size: var(--t-lg); }
+.partidas-graf-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+.partidas-graf { overflow: hidden; }
+.partidas-graf svg { display: block; }
+
+.graf-eje { font-size: var(--t-2xs); fill: var(--text-mid); }
+.graf-rejilla { stroke: var(--border); stroke-width: 1; }
+.graf-rejilla-media { stroke: var(--border-strong); stroke-dasharray: 4 4; }
+.graf-linea { fill: none; stroke: var(--navy); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.graf-punto { fill: var(--navy); stroke: var(--white); stroke-width: 2; }
+.graf-zona { fill: transparent; cursor: pointer; }
+.graf-v { fill: var(--success); }
+.graf-e { fill: var(--text-mid); }
+.graf-d { fill: var(--danger); }
+
+.graf-muestra {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-left: 4px;
+}
+.graf-muestra:first-child { margin-left: 0; }
+.graf-muestra.graf-v { background: var(--success); }
+.graf-muestra.graf-e { background: var(--text-mid); }
+.graf-muestra.graf-d { background: var(--danger); }
+.graf-muestra-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--navy); }
+.graf-muestra-linea { width: 16px; height: 2px; border-radius: 1px; background: var(--navy); }
+
+.partidas-cartel {
+  position: absolute;
+  z-index: 50;
+  max-width: 280px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--navy-solid-dark);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  line-height: 1.4;
+  pointer-events: none;
+}
+/* En el móvil, los filtros de dos en dos: uno por fila eran seis pantallas
+   de desplegables antes de llegar a ninguna cifra. */
+@media (max-width: 560px) {
+  .partidas-filtros label { flex: 1 1 calc(50% - 8px); min-width: 0; }
+  .partidas-filtros select,
+  .partidas-filtros input { width: 100%; }
+}

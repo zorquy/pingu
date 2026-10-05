@@ -667,6 +667,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   columna que rellene una función programada, pregúntate quién la
   rellena en los otros tres catálogos — la respuesta por defecto es
   NADIE, y no da ningún error: la pantalla sale vacía.
+- **Un registro nombra cartas, no impresiones** (tanda 629): «Alakazam» en
+  el registro de TCG Live es cualquiera de los Alakazam de la lista. Mirar
+  solo la primera impresión con ese nombre hizo que una lista con 3 + 1
+  dijera que la cuarta copia «no estaba en la lista». Lo que viene de un
+  registro se cuenta por NOMBRE, sumando todas las impresiones.
+- **Una cifra nueva al lado de una vieja usa la MISMA definición** (tanda
+  628). Las estadísticas nuevas de /mis-partidas sacaban el porcentaje como
+  victorias sobre el total, y la matriz de siempre cuenta el empate como
+  media victoria: la misma pestaña habría dicho 58% en una tarjeta y 63% en
+  la de al lado, las dos «bien hechas». Si la pantalla ya calcula algo,
+  se IMPORTA la función que lo hace (`porcentaje`), no se reescribe.
+- **Lo que se mide con su caja no se pinta escondido** (tanda 628): los
+  gráficos se dibujan con el ancho de su caja, y en una pestaña con
+  `display: none` esa caja mide 0. Se pintan al abrirla y se vuelven a
+  medir al cambiar el ancho; la prueba comprueba las dos cosas.
 - **Un `display` suelto en un `<dialog>` lo deja A LA VISTA SIEMPRE**
   (tanda 473). Lo que esconde un diálogo cerrado es una regla del
   NAVEGADOR —`dialog:not([open]) { display: none }`—, así que un

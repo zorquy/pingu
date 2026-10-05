@@ -4,6 +4,66 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 3) — PINGU-Claude (626 a 629 — iconos de energía, Mis partidas, energías bien traducidas)
+
+**Leídas vuestras 645, 646 y 647** (la ficha nueva, las expansiones de
+TCGGO y la expansión por dentro). Ojo, dos rojos vuestros: la **315**
+falla con `css/cardmarket.css` («ninguna hoja escribe #fff a mano»: cuatro
+`background`), y la **546** con `js/coleccion-filtros.js` («ningún módulo
+se monta su propio nombre»: que use `nombreDeCarta`). No los he tocado.
+
+**Hecho**:
+- **626, iconos de energía**: los ocho símbolos que dejó PINGU (Planta,
+  Fuego, Agua, Rayo, Psíquica, Lucha, Oscura, Metálica) en
+  `assets/iconos-energia/`, por CSS sobre el `data-tipo` que ya había: el
+  laboratorio y las repeticiones (`.lab-energia`) y la ficha
+  (`.carta-energia`, en `css/carta.css`: lo he puesto debajo de vuestra
+  paleta, sin tocar lo de la 645). Incolora, Hada y Dragón siguen con su
+  punto: no venían en la carpeta.
+- **627, repeticiones en Mis partidas con su mazo guardado**:
+  `match_log.user_deck_id`. «+ Desde una repetición» en Partidas sueltas,
+  «Con tu mazo guardado» en el formulario y al guardar en /repeticiones.
+  **MIGRACIÓN pendiente**: `supabase-migration-partidas-mazo-guardado.sql`.
+  Hasta que se ejecute no se ofrece (una sonda pregunta por la columna) y
+  apuntar sigue funcionando sin ella.
+- **628, filtros, gráficos y estadísticas en Mis partidas**: periodo
+  (hasta «entre dos fechas»), resultado, tu mazo, mazo guardado, rival y
+  origen; racha, últimas 10, gráficos de evolución, por periodo, por día
+  de la semana, y barras por mazo/rival/dónde. Orden en la lista y en los
+  torneos.
+- **629, energías especiales bien traducidas**: TCGdex escribe «Energía
+  Psychic Telepática» y TCG Live «Energía Psíquica Telepática».
+  `corregirNombreEs` (js/texto.js) al enseñar, al cruzar el registro con la
+  lista y al leer de TCGdex; y la lista de una repetición cuenta por
+  NOMBRE (3 + 1 Alakazam de dos impresiones son 4). **MIGRACIÓN pendiente**:
+  `supabase-migration-nombres-energias.sql`. **Para vosotros**: la
+  telepática está DOS veces en el catálogo (`me03-088` y `tcggo-31886`), y
+  sus hermanas de Perfect Order también (`tcggo-31884`, `tcggo-31885`):
+  vuestro emparejamiento no las casó, seguramente porque el `name` de
+  TCGdex estaba en español a medias. No las he tocado.
+
+**Ficheros**: `assets/iconos-energia/*.png` (nuevos), `css/laboratorio.css`,
+`css/carta.css`, `js/partidas-mazos.js`, `js/estadisticas-partidas.js` y
+`js/graficos-partidas.js` (nuevos), `js/mis-partidas.js`,
+`mis-partidas.html`, `css/partidas.css`, `js/repeticiones.js`,
+`js/repeticiones/datos.js`, `js/repeticiones/lista.js`, `js/texto.js`,
+`js/catalogo-series.js`, `netlify/lib/carta-detalle.mjs`,
+`netlify/functions/cartas-detalle.mjs`,
+`js/constructor/partida.js`, `js/constructor/efectos.js`,
+`js/constructor/nombres.js`, las dos migraciones, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-626` a `629` y sus
+rigores, `sql-partidas-mazo.sql` y `sql-nombres-energias.sql` (contra
+PostgreSQL), el doble (escribir una columna de `__SIN_COLUMNAS__` da
+PGRST204; `user_deck_id` solo con un mazo tuyo), y la 251 mirando solo
+`#partidasMatriz` (la pestaña tiene ahora más listas de barras).
+
+**Suite completa**: verde salvo la 470 (de siempre) y vuestra 315. La 331
+salió roja por mí (le había metido un import a `js/carta-detalle.js`): la
+corrección del nombre se ha ido a `netlify/lib/carta-detalle.mjs` y la 331
+vuelve a verde.
+
+**Pendiente**: las dos migraciones (PINGU). Nada en curso.
+
 ## 2026-10-05 (noche) — PINGU-Claude (647 — la expansión por dentro)
 
 **Hecho** (tercera tanda del rediseño): /coleccion con filtros de

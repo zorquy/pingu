@@ -1,4 +1,4 @@
-import { detalleEnEspanol, urlDeSet, faltaVisitar, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada, imagePathFromUrl, VERSION_CURADO, urlDeCartaEnIdioma } from '../lib/carta-detalle.mjs'
+import { detalleEnEspanol, urlDeSet, faltaVisitar, loQueFaltaDeUnSet, nombresPorArreglar, marcaHeredada, imagePathFromUrl, VERSION_CURADO, urlDeCartaEnIdioma, nombreEspanolDe } from '../lib/carta-detalle.mjs'
 
 // Engorda las cartas de `tcg_cards` poco a poco (tanda 322).
 //
@@ -490,7 +490,9 @@ export default async function handler() {
       //
       // Lo que se guarda como clave es canónico; lo que se enseña va
       // traducido. Misma lección que los enums de la 334.
-      if (encontrado.nombre && encontrado.idioma !== 'en') detalle.name_es = encontrado.nombre
+      // Con el tipo traducido (tanda 629, `nombreEspanolDe`).
+      const nombreEs = nombreEspanolDe(encontrado)
+      if (nombreEs) detalle.name_es = nombreEs
       // `detalle_at` se escribe en la MISMA sentencia que los datos. Si
       // fueran dos, un corte entre ellas dejaría la carta engordada y
       // marcada como pendiente, y la siguiente pasada la repetiría — con

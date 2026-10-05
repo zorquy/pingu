@@ -133,6 +133,30 @@ export function tieneCJK(texto) {
   return CJK.test(String(texto || ''))
 }
 
+// ── EL TIPO QUE TCGdex DEJA EN INGLÉS EN UN NOMBRE ESPAÑOL (tanda 629) ──
+//
+// TCGdex nombra en español las energías especiales de Megaevolución (y de
+// Espada y Escudo) con el tipo SIN traducir: «Energía Psychic Telepática»,
+// «Energía Water Burbujeante». La carta impresa y TCG Live dicen «Energía
+// Psíquica Telepática», así que el registro de una partida no casaba con
+// la lista, el buscador no la encontraba por «psíquica» y la ficha salía a
+// medio traducir. Detrás de «Energía» el tipo va como en las básicas
+// (femenino: Psíquica, Oscura, Metálica, Incolora); en lo demás, como
+// sustantivo, igual que `TIPOS_ES`. Solo se toca ESE hueco: un nombre
+// inglés entero («Telepathic Psychic Energy») no cambia.
+const TIPO_DE_ENERGIA = { Grass: 'Planta', Fire: 'Fuego', Water: 'Agua', Lightning: 'Rayo', Psychic: 'Psíquica', Fighting: 'Lucha', Darkness: 'Oscura', Metal: 'Metálica', Fairy: 'Hada', Dragon: 'Dragón', Colorless: 'Incolora' }
+const TIPO_SUSTANTIVO = { Grass: 'Planta', Fire: 'Fuego', Water: 'Agua', Lightning: 'Rayo', Psychic: 'Psíquico', Fighting: 'Lucha', Darkness: 'Oscuro', Metal: 'Metal', Fairy: 'Hada', Dragon: 'Dragón', Colorless: 'Incoloro' }
+const TIPOS_EN = 'Grass|Fire|Water|Lightning|Psychic|Fighting|Darkness|Metal|Fairy|Dragon|Colorless'
+const ENERGIA_CON_TIPO = new RegExp(`^(Energía) (${TIPOS_EN})(?= |$)`)
+const AMULETO_CON_TIPO = new RegExp(`^(Amuleto Hada) (${TIPOS_EN})$`)
+
+export function corregirNombreEs(nombre) {
+  if (typeof nombre !== 'string' || !nombre) return nombre
+  return nombre
+    .replace(ENERGIA_CON_TIPO, (m, e, t) => `${e} ${TIPO_DE_ENERGIA[t]}`)
+    .replace(AMULETO_CON_TIPO, (m, a, t) => `${a} ${TIPO_SUSTANTIVO[t]}`)
+}
+
 // ── LAS MARCAS QUE EL OCR SE COME (tanda 561) ──
 //
 // PINGU escaneó una リザードン y el aviso dijo «He leído: リサードン»: el

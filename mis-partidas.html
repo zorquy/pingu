@@ -155,6 +155,12 @@
             <option value="cerrados">Cerrados</option>
           </select>
         </label>
+        <label>Orden
+          <select id="torneoOrden">
+            <option value="recientes">Más recientes primero</option>
+            <option value="antiguas">Más antiguos primero</option>
+          </select>
+        </label>
       </div>
 
       <!-- Apuntar un torneo (tanda 236, pedido por Ibai): el torneo de
@@ -204,7 +210,12 @@
       <div class="tab-panel" id="vista-sueltas">
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
+        <button class="btn-secondary" id="btnDesdeRepeticion">+ Desde una repetición</button>
       </div>
+
+      <!-- Apuntar desde una de tus repeticiones guardadas (tanda 627): lo
+           monta mis-partidas.js, porque depende de cuáles tengas. -->
+      <div class="simple-card hidden" id="desdeRepForm"></div>
 
       <!-- El formulario de apuntar a mano: plegado hasta que hace falta.
            En modo «ronda» este MISMO nodo se muda dentro de la tarjeta
@@ -220,6 +231,14 @@
         <div class="partidas-form-fila partidas-mazo-fila">
           <div id="selMio1"></div>
           <div id="selMio2"></div>
+        </div>
+        <!-- Con qué mazo guardado del constructor (tanda 627). Se esconde
+             mientras la base no tenga dónde guardarlo. -->
+        <div class="partidas-form-fila hidden" id="partidaCampoMazoGuardado">
+          <label>Con tu mazo guardado
+            <select id="partidaMazoGuardado"><option value="">Ninguno</option></select>
+            <span class="subtext partidas-sin-mazos hidden">Aún no tienes ninguno: se guardan en el <a href="/constructor">constructor</a>.</span>
+          </label>
         </div>
         </div>
 
@@ -273,24 +292,74 @@
         </div>
       </div>
 
+      <!-- Ordenar y filtrar la lista (tanda 628). -->
+      <div class="partidas-barra partidas-filtros" id="listaFiltros">
+        <label>Orden
+          <select id="listaOrden">
+            <option value="recientes">Más recientes primero</option>
+            <option value="antiguas">Más antiguas primero</option>
+          </select>
+        </label>
+        <label>Periodo
+          <select id="listaPeriodo"></select>
+        </label>
+        <label class="hidden" id="listaDesdeCampo">Desde <input type="date" id="listaFechaDesde" /></label>
+        <label class="hidden" id="listaHastaCampo">Hasta <input type="date" id="listaFechaHasta" /></label>
+        <label>Resultado
+          <select id="listaResultado">
+            <option value="">Todos</option>
+            <option value="win">Victorias</option>
+            <option value="loss">Derrotas</option>
+            <option value="draw">Empates</option>
+          </select>
+        </label>
+      </div>
+
       <!-- Las sueltas, con sus mazos en sprites. -->
       <div id="partidasLista"></div>
       </div>
 
       <div class="tab-panel" id="vista-stats">
-      <div id="partidasResumen" class="partidas-resumen"></div>
-      <div class="partidas-barra">
-        <label>Mazo
-          <select id="filtroMazo"><option value="">Todos los míos</option></select>
+      <!-- Los filtros (tanda 628): valen para todo lo de esta pestaña — las
+           cifras, los gráficos y los enfrentamientos. -->
+      <div class="partidas-barra partidas-filtros">
+        <label>Periodo
+          <select id="filtroPeriodo"></select>
         </label>
-        <label>Desde
-          <select id="filtroDesde">
-            <option value="0">Siempre</option>
-            <option value="30">Último mes</option>
-            <option value="90">Últimos 3 meses</option>
+        <label class="hidden" id="filtroDesdeCampo">Desde <input type="date" id="filtroFechaDesde" /></label>
+        <label class="hidden" id="filtroHastaCampo">Hasta <input type="date" id="filtroFechaHasta" /></label>
+        <label>Resultado
+          <select id="filtroResultado">
+            <option value="">Todos</option>
+            <option value="win">Victorias</option>
+            <option value="loss">Derrotas</option>
+            <option value="draw">Empates</option>
           </select>
         </label>
+        <label>Tu mazo
+          <select id="filtroMazo"><option value="">Todos los míos</option></select>
+        </label>
+        <label class="hidden" id="filtroGuardadoCampo">Mazo guardado
+          <select id="filtroGuardado"><option value="">Todos</option></select>
+        </label>
+        <label>Rival
+          <select id="filtroRival"><option value="">Todos</option></select>
+        </label>
+        <label>Partidas
+          <select id="filtroOrigen">
+            <option value="">Todas</option>
+            <option value="pokedoc">Torneos de PokeDoc</option>
+            <option value="torneo">Torneos apuntados</option>
+            <option value="suelta">Sueltas</option>
+          </select>
+        </label>
+        <button type="button" class="btn-secondary hidden" id="filtroLimpiar">Quitar filtros</button>
       </div>
+      <p class="subtext partidas-filtro-cuenta" id="filtroCuenta" role="status"></p>
+      <div id="partidasResumen" class="partidas-resumen"></div>
+      <div id="partidasExtra" class="partidas-resumen"></div>
+      <div id="partidasGraficos" class="partidas-graficos"></div>
+      <h2 class="partidas-titulo-seccion">Enfrentamientos</h2>
       <div id="partidasMatriz">
         <div class="skeleton" style="height: 70px; margin-bottom: 12px;"></div>
         <div class="skeleton" style="height: 200px;"></div>

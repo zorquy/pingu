@@ -1184,6 +1184,8 @@ const energias = {
   'bubbly water energy': { texto: 'Da Energía {W}. El Pokémon {W} al que está unida se recupera de los estados especiales y no puede sufrirlos.' },
   'voltaic lightning energy': { texto: 'Da Energía {L}. Los ataques del Pokémon {L} al que está unida hacen 20 puntos de daño más al activo rival.' },
   'shadowy darkness energy': { texto: 'Da Energía {D}. Mientras su Pokémon {D} esté en la banca, evita todo el daño de los ataques rivales sobre él.' },
+  'magnetic metal energy': { texto: 'Da Energía {M}. El Pokémon {M} al que está unida no tiene coste de retirada.' },
+  'nitro fire energy': { texto: 'Da Energía {R}. Si la descarta un ataque del Pokémon {R} al que está unida, vuelve a tu mano.' },
 }
 
 // ════════════════════════════════════════════════════════════════════

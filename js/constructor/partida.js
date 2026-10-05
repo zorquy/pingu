@@ -162,6 +162,8 @@ function unidadesEspeciales(nombre, portador, partida) {
     case 'bubbly water energy': return [['W']]
     case 'voltaic lightning energy': return [['L']]
     case 'shadowy darkness energy': return [['D']]
+    case 'magnetic metal energy': return [['M']]
+    case 'nitro fire energy': return [['R']]
     case "team rocket's energy": return esDe(portador, 'team rocket') ? [['P', 'D'], ['P', 'D']] : []
     case 'prism energy': return esBasicoEnJuego(portador) ? [TODAS] : [['C']]
     case 'legacy energy': return [TODAS]
@@ -1280,6 +1282,9 @@ export class Partida {
     if (est === "n's castle" && esDe(c, 'n')) coste = 0
     // Llama Atadura (Mega Chandelure ex del otro): tu activo cuesta {C} más.
     if (this.oponente && slot === this.s.activo) coste += this.oponente.rasgosEnJuego('retiradaRivalMas').reduce((t, { r }) => t + r.n, 0)
+    // Energía Metálica Magnética (tanda 629): «el Pokémon {M} al que esté
+    // unida no tiene ningún Coste de Retirada».
+    if (esDeTipo(c, 'M') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'magnetic metal energy')) return 0
     return Math.max(0, coste)
   }
 
@@ -2411,6 +2416,14 @@ export class Partida {
       this.s.descarte = this.s.descarte.filter((x) => x !== u)
       slot.energias.push(u)
       this.log(`La Energía Bumerán vuelve a unirse a ${nombreVisible(this.cartaDe(slot))}.`)
+    }
+    // La Energía Fuego Nitro (tanda 629) vuelve a la MANO si la descarta un
+    // ataque del Pokémon {R} al que estaba unida.
+    const aMano = uids.filter((u) => claveDeEfecto(this.carta(u)) === 'nitro fire energy' && this.uidsPropios.has(u) && this.s.flags.enAtaque && this.s.flags.atacante === slot.id && esDeTipo(this.cartaDe(slot), 'R'))
+    for (const u of aMano) {
+      this.s.descarte = this.s.descarte.filter((x) => x !== u)
+      this.s.mano.push(u)
+      this.log('La Energía Fuego Nitro vuelve a tu mano.')
     }
   }
 

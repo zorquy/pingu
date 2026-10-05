@@ -65,6 +65,9 @@ const R = {
   // mazos.js): { [jugador]: { vistas, arq, entradas } }, o null mientras
   // no se sabe.
   mazos: null,
+  // Tus mazos guardados y si la base ya enlaza una partida con uno (tanda
+  // 627): { mazos, vinculo }, o null hasta que se abre «Guardar».
+  enlazar: null,
   // Las notas del dueño, ya puestas en su jugada: [{ fila, texto, foto }].
   notas: [],
   // La lista entera de uno de los dos (tanda 519): { jugador, nombre,
@@ -1337,9 +1340,11 @@ const COMO_ACABO = { win: 'ganada', loss: 'perdida', draw: 'empate' }
 
 // La fila de /mis-partidas, con las MISMAS claves de mazo que una partida
 // de torneo (claveDeArquetipo), para que caigan en la misma casilla.
-function partidaParaApuntar(yo, replayId, resultado = resultadoDesde(yo)) {
+function partidaParaApuntar(yo, replayId, resultado = resultadoDesde(yo), { mazoGuardado = null, arqGuardado = null, conVinculo = false } = {}) {
   const rival = elOtro(yo)
-  const arqYo = R.mazos?.[yo]?.arq || null
+  // Con un mazo guardado elegido (tanda 627), tu mazo es ESE: su lista
+  // entera dice más que lo que se llegó a ver en la partida.
+  const arqYo = arqGuardado || R.mazos?.[yo]?.arq || null
   const arqRival = R.mazos?.[rival]?.arq || null
   const clave = (arq) => (arq && mazosCargados ? mazosCargados.claveDeArquetipo(arq) : 'sin-mazo')
   return {
@@ -1352,6 +1357,8 @@ function partidaParaApuntar(yo, replayId, resultado = resultadoDesde(yo)) {
     tipo: 'normal',
     donde: 'TCG Live',
     replay_id: replayId,
+    // Solo si la base ya tiene la columna: si no, el insert fallaría entero.
+    ...(conVinculo && mazoGuardado ? { user_deck_id: mazoGuardado } : {}),
   }
 }
 
@@ -1394,6 +1401,37 @@ function quienHtml(yo, ganador) {
         <span id="repApuntarTexto">${escapeHtml(textoDeApuntar(yo, resultado))}</span>
       </label>
     </div>`
+}
+
+// ── El mazo guardado con el que jugaste (tanda 627) ──
+//
+// «Con tu mazo guardado»: uno de los del constructor, que queda enlazado
+// en Mis partidas. Se ofrece solo con mazos que elegir y con la base ya
+// preparada (`R.enlazar`, que se pide una vez por visita).
+async function ponerMazoGuardado(cuerpo) {
+  if (!R.sesion) return
+  if (!R.enlazar) R.enlazar = await datos.mazosParaEnlazar(R.sesion.user.id).catch(() => ({ mazos: [], vinculo: false }))
+  const { mazos, vinculo } = R.enlazar
+  const caja = cuerpo.querySelector('#repApuntarCaja')
+  if (!caja || !caja.isConnected || !vinculo || !mazos.length || caja.querySelector('#repMazoGuardado')) return
+  // Se trae al usarlo, como los arquetipos de la cabecera: quien solo mira
+  // una repetición no lo baja.
+  const { opcionesDeMazosGuardados } = await import('./partidas-mazos.js')
+  if (!caja.isConnected || caja.querySelector('#repMazoGuardado')) return
+  caja.insertAdjacentHTML(
+    'beforeend',
+    `<label class="rep-campo">Con tu mazo guardado
+      <select id="repMazoGuardado"><option value="">Ninguno</option>${opcionesDeMazosGuardados(mazos).map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')}</select>
+    </label>`
+  )
+}
+
+async function arquetipoDelGuardado(id) {
+  const m = R.enlazar?.mazos?.find((x) => x.id === id)
+  if (!m) return null
+  await cargarModulosDeMazos().catch(() => {})
+  const [{ arquetipoDeMazoGuardado }, filas] = await Promise.all([import('./partidas-mazos.js'), datos.cartasDeMazo((m.cards || []).map((c) => c?.id))])
+  return arquetipoDeMazoGuardado(m.cards, (x) => filas.get(x), mazosCargados?.catalogo || [])
 }
 
 function dialogoGuardar() {
@@ -1451,6 +1489,7 @@ function dialogoGuardar() {
       const caja = cuerpo.querySelector('#repQuienCaja')
       if (!caja || !cuerpo.isConnected) return
       caja.innerHTML = quienHtml(yo, ganador)
+      ponerMazoGuardado(cuerpo)
       // Una guardada que ya se apuntó no se apunta otra vez (la base
       // tampoco lo dejaría): se dice, y con el enlace.
       if (!mia) return
@@ -1496,7 +1535,9 @@ function dialogoGuardar() {
       let tipo = 'success'
       if (apuntarla) {
         try {
-          const r = await datos.apuntarPartida(partidaParaApuntar(elegido, R.origen.id, resultado))
+          const mazoGuardado = cuerpo.querySelector('#repMazoGuardado')?.value || null
+          const arqGuardado = mazoGuardado ? await arquetipoDelGuardado(mazoGuardado).catch(() => null) : null
+          const r = await datos.apuntarPartida(partidaParaApuntar(elegido, R.origen.id, resultado, { mazoGuardado, arqGuardado, conVinculo: Boolean(R.enlazar?.vinculo) }))
           aviso = r.ya ? `${aviso} La partida ya estaba en «Mis partidas».` : mia ? 'Cambios guardados y partida apuntada en «Mis partidas».' : 'Guardada y apuntada en tus partidas sueltas de «Mis partidas».'
         } catch (err) {
           aviso = `${aviso} Pero no se ha podido apuntar en «Mis partidas»: ${err.message}`

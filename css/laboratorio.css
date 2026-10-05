@@ -496,6 +496,40 @@ button.lab-carta:focus-visible {
   color: var(--blanco-fijo);
 }
 
+/* Los ocho tipos con su símbolo (tanda 626; el porqué, en SCHEMA.md).
+   Va DESPUÉS de la letra oscura de L y M, que tiene la misma fuerza. */
+.lab-energia[data-tipo='G'] { --icono-energia: url('/assets/iconos-energia/G.png'); }
+.lab-energia[data-tipo='R'] { --icono-energia: url('/assets/iconos-energia/R.png'); }
+.lab-energia[data-tipo='W'] { --icono-energia: url('/assets/iconos-energia/W.png'); }
+.lab-energia[data-tipo='L'] { --icono-energia: url('/assets/iconos-energia/L.png'); }
+.lab-energia[data-tipo='P'] { --icono-energia: url('/assets/iconos-energia/P.png'); }
+.lab-energia[data-tipo='F'] { --icono-energia: url('/assets/iconos-energia/F.png'); }
+.lab-energia[data-tipo='D'] { --icono-energia: url('/assets/iconos-energia/D.png'); }
+.lab-energia[data-tipo='M'] { --icono-energia: url('/assets/iconos-energia/M.png'); }
+
+.lab-energia:is([data-tipo='G'], [data-tipo='R'], [data-tipo='W'], [data-tipo='L'], [data-tipo='P'], [data-tipo='F'], [data-tipo='D'], [data-tipo='M']) {
+  background-image: var(--icono-energia);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: auto 100%;
+  /* Sin relleno: con él, la letra (transparente) ensanchaba la píldora y
+     asomaba el color del tipo a la derecha del símbolo. */
+  padding: 0;
+  color: transparent;
+}
+
+.lab-energia:is([data-tipo='G'], [data-tipo='R'], [data-tipo='W'], [data-tipo='L'], [data-tipo='P'], [data-tipo='F'], [data-tipo='D'], [data-tipo='M']):has(sub) {
+  padding: 0 var(--e-xs) 0 var(--e-xl);
+}
+
+.lab-energia:is([data-tipo='G'], [data-tipo='R'], [data-tipo='W'], [data-tipo='P'], [data-tipo='F'], [data-tipo='D']) sub {
+  color: var(--blanco-fijo);
+}
+
+.lab-energia:is([data-tipo='L'], [data-tipo='M']) sub {
+  color: var(--navy-solid-dark);
+}
+
 .lab-texto-bloque .lab-energia,
 .lab-menu-texto .lab-energia {
   min-width: 16px;

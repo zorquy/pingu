@@ -21,6 +21,28 @@ import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre }
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
 import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
+import {
+  arquetipoDeMazoGuardado,
+  mazoDeJugador,
+  opcionesDeMazosGuardados,
+  partidaDesdeRepeticion,
+  repeticionesSinApuntar,
+  resultadoDeRepeticion,
+} from './partidas-mazos.js'
+import {
+  PERIODOS,
+  filtrarPartidas,
+  hoyLocal,
+  ordenarPartidas,
+  porDiaDeLaSemana,
+  porGrupo,
+  porPeriodo,
+  rachas,
+  rangoDePeriodo,
+  seJugo,
+  ultimas,
+} from './estadisticas-partidas.js'
+import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -36,6 +58,13 @@ let tipoElegido = 'normal'
 // El torneo al que se está añadiendo una ronda, o null si la partida
 // que se apunta es suelta. Lo pone «+ Añadir ronda» y lo limpia cerrar.
 let rondaPara = null
+// Tus mazos guardados del constructor y tus repeticiones (tanda 627), y
+// si la base ya sabe enlazar una partida con un mazo guardado
+// (`match_log.user_deck_id`). Mientras no lo sepa, no se ofrece: mandar
+// esa columna haría fallar el guardado entero.
+let mazosGuardados = []
+let repeticionesMias = []
+let vinculoMazo = false
 
 // ── Las partidas de los torneos de PokeDoc ──
 //
@@ -154,6 +183,8 @@ async function partidasApuntadas() {
     // La repetición de la que se apuntó (tanda 494), si se apuntó al
     // guardarla en /repeticiones. Una fila de antes no la trae.
     repeticion: p.replay_id || null,
+    // El mazo guardado con el que se jugó (tanda 627), si se dijo.
+    mazoGuardado: p.user_deck_id || null,
   }))
 }
 
@@ -271,14 +302,19 @@ let verTodasLasSueltas = false
 
 function pintarLista(partidas) {
   const caja = $('partidasLista')
-  const ordenadas = [...partidas].sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
-  const ultimas = verTodasLasSueltas ? ordenadas : ordenadas.slice(0, SUELTAS_DE_GOLPE)
-  const ocultas = ordenadas.length - ultimas.length
-  if (!ultimas.length) {
-    caja.innerHTML = `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
+  const ordenadas = ordenarPartidas(partidas, $('listaOrden').value)
+  const visibles = verTodasLasSueltas ? ordenadas : ordenadas.slice(0, SUELTAS_DE_GOLPE)
+  const ocultas = ordenadas.length - visibles.length
+  if (!visibles.length) {
+    // Dos vacíos distintos: no hay ninguna, o las hay y el filtro no deja
+    // pasar ninguna (tanda 510: un vacío no puede decir las dos cosas).
+    const hay = todas.some((p) => !p.deTorneo && !p.torneoId)
+    caja.innerHTML = hay
+      ? `<p class="subtext">Ninguna partida suelta casa con estos filtros.</p>`
+      : `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
     return
   }
-  caja.innerHTML = ultimas
+  caja.innerHTML = visibles
     .map(
       (p) => `
     <div class="partidas-fila partidas-${p.resultado}">
@@ -288,6 +324,7 @@ function pintarLista(partidas) {
       <span class="subtext partidas-fila-donde">${
         p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
       }${p.fecha ? ` · ${escapeHtml(p.fecha)}` : ''}</span>
+      ${p.mazoGuardado ? mazoGuardadoHtml(p.mazoGuardado) : ''}
       ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
       ${
         p.deTorneo
@@ -325,6 +362,14 @@ function pintarLista(partidas) {
     verTodasLasSueltas = true
     repintar()
   })
+}
+
+// El mazo guardado de una partida, con su enlace al constructor. Si ya no
+// está en tu lista (se borró y la base aún no ha soltado el enlace, o no
+// se ha podido leer), se dice así en vez de inventarle un nombre.
+function mazoGuardadoHtml(id) {
+  const m = mazosGuardados.find((x) => x.id === id)
+  return `<span class="subtext partidas-fila-guardado">Con tu mazo <a href="/constructor?mazo=${encodeURIComponent(id)}">${escapeHtml(m?.name || 'guardado')}</a></span>`
 }
 
 // ── Los minisprites de un mazo, como los pinta trainingcourt ──
@@ -519,7 +564,9 @@ function pintarTorneos() {
     caja.innerHTML = `<p class="subtext">Aquí saldrán tus torneos: los de PokeDoc entran solos y los de fuera se apuntan con «+ Apuntar un torneo».</p>`
     return
   }
-  tarjetas.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
+  // El orden que se pida (tanda 628); por defecto, el más reciente arriba.
+  const signo = $('torneoOrden')?.value === 'antiguas' ? 1 : -1
+  tarjetas.sort((a, b) => signo * String(a.fecha || '').localeCompare(String(b.fecha || '')))
 
   const casan = filtrarTorneos(tarjetas, $('torneoBuscar')?.value, $('torneoEstado')?.value)
   if (!casan.length) {
@@ -618,44 +665,238 @@ function pintarTorneos() {
   }
 }
 
-// El filtro de arriba. Se aplica sobre lo ya cargado, sin volver a
-// pedir nada: son unas pocas decenas de filas y la respuesta es
-// instantánea.
-function filtrar() {
-  const mazo = $('filtroMazo').value
-  const dias = Number($('filtroDesde').value) || 0
-  const corte = dias ? new Date(Date.now() - dias * 86400000).toISOString().slice(0, 10) : null
-  return todas.filter((p) => (!mazo || p.mio === mazo) && (!corte || !p.fecha || p.fecha >= corte))
+// ── Los filtros (tanda 628) ──
+//
+// Se aplican sobre lo ya cargado, sin volver a pedir nada: son unas pocas
+// decenas o cientos de filas y la respuesta es instantánea. Los de la
+// pestaña de estadísticas valen para TODO lo de esa pestaña (cifras,
+// gráficos y enfrentamientos); la lista de sueltas tiene los suyos.
+function filtrosDeStats() {
+  return {
+    periodo: $('filtroPeriodo').value,
+    desde: $('filtroFechaDesde').value,
+    hasta: $('filtroFechaHasta').value,
+    resultado: $('filtroResultado').value,
+    mazo: $('filtroMazo').value,
+    guardado: $('filtroGuardado').value,
+    rival: $('filtroRival').value,
+    origen: $('filtroOrigen').value,
+  }
 }
 
+function filtrosDeLista() {
+  return {
+    periodo: $('listaPeriodo').value,
+    desde: $('listaFechaDesde').value,
+    hasta: $('listaFechaHasta').value,
+    resultado: $('listaResultado').value,
+  }
+}
+
+// «Entre dos fechas…» abre sus dos campos; los demás periodos los
+// esconden (y sus fechas dejan de contar, que es lo que dice el filtro).
+function mostrarRango(prefijo) {
+  const rango = $(`${prefijo}Periodo`).value === 'rango'
+  $(`${prefijo}DesdeCampo`).classList.toggle('hidden', !rango)
+  $(`${prefijo}HastaCampo`).classList.toggle('hidden', !rango)
+}
+
+const hayFiltro = (f) => Object.entries(f).some(([k, v]) => v && !(k === 'periodo' && v === 'siempre') && !(['desde', 'hasta'].includes(k) && f.periodo !== 'rango'))
+
 function repintar() {
-  const partidas = filtrar()
+  const filtros = filtrosDeStats()
+  const partidas = filtrarPartidas(todas, filtros)
   // Un bye no es un enfrentamiento y un «no se presentó» no dice nada
   // del mazo rival: cuentan en la lista de abajo (pasaron) pero NO en la
-  // matriz, que es para saber cómo se te da cada emparejamiento. Un ID
-  // sí entra: se jugó lo justo para pactar, y cuenta como empate.
-  const m = construirMatriz(partidas.filter((p) => !['bye', 'no_show'].includes(p.tipo)))
+  // matriz ni en las cifras, que son para saber cómo se te da cada
+  // emparejamiento. Un ID sí entra: se jugó lo justo para pactar, y
+  // cuenta como empate.
+  const jugadas = partidas.filter(seJugo)
+  const m = construirMatriz(jugadas)
+  const filtrado = hayFiltro(filtros)
+  $('filtroLimpiar').classList.toggle('hidden', !filtrado)
+  const n = jugadas.length
+  $('filtroCuenta').textContent = filtrado ? `${n} de ${todas.filter(seJugo).length} partidas con estos filtros.` : ''
   pintarResumen(m)
+  pintarExtra(jugadas)
+  ultimasJugadas = jugadas
+  pintarGraficos()
   pintarMatriz(m)
   pintarTorneos()
   // La lista de la pestaña de sueltas: SOLO las sueltas (las rondas de
-  // torneo ya viven en su tarjeta) y sin el filtro de arriba, que es de
-  // la pestaña de estadísticas.
-  pintarLista(todas.filter((p) => !p.deTorneo && !p.torneoId))
+  // torneo ya viven en su tarjeta), con SUS filtros y su orden.
+  pintarLista(filtrarPartidas(todas.filter((p) => !p.deTorneo && !p.torneoId), filtrosDeLista()))
 }
 
 function rellenarFiltroYSugerencias() {
-  const mios = new Map()
-  for (const p of todas) mios.set(p.mio, p.mioNombre)
-  const sel = $('filtroMazo')
-  const elegido = sel.value
-  sel.innerHTML =
-    '<option value="">Todos los míos</option>' +
-    [...mios.entries()].map(([c, n]) => `<option value="${escapeHtml(c)}">${escapeHtml(n)}</option>`).join('')
-  sel.value = elegido
+  // Un desplegable se rellena con lo que HAY, y conserva lo elegido si
+  // sigue existiendo; si no, vuelve a «todos» (tanda 472: un valor que no
+  // está entre las opciones se quedaría con la primera sin decirlo).
+  const rellenar = (id, primera, pares) => {
+    const sel = $(id)
+    const elegido = sel.value
+    sel.innerHTML = `<option value="">${escapeHtml(primera)}</option>` + pares.map(([c, n]) => `<option value="${escapeHtml(c)}">${escapeHtml(n)}</option>`).join('')
+    sel.value = pares.some(([c]) => c === elegido) ? elegido : ''
+  }
+  const por = (clave, nombre) => {
+    const mapa = new Map()
+    for (const p of todas) if (p[clave] && !mapa.has(p[clave])) mapa.set(p[clave], p[nombre])
+    return [...mapa.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])))
+  }
+  rellenar('filtroMazo', 'Todos los míos', por('mio', 'mioNombre'))
+  rellenar('filtroRival', 'Todos', por('rival', 'rivalNombre').filter(([c]) => c !== 'sin-mazo'))
+  // El de los mazos guardados, solo si alguna partida lleva uno.
+  const guardados = [...new Set(todas.map((p) => p.mazoGuardado).filter(Boolean))].map((id) => [id, mazosGuardados.find((m) => m.id === id)?.name || 'Un mazo que ya no está en tu lista'])
+  rellenar('filtroGuardado', 'Todos', guardados)
+  $('filtroGuardadoCampo').classList.toggle('hidden', !guardados.length)
   // Ya no hace falta autocompletar a mano: el mazo se ELIGE de una lista
   // con sprites (tanda 233), así que dos personas no pueden escribir el
   // mismo mazo de dos formas y partir el enfrentamiento en dos.
+}
+
+// ── Las cifras de más (tanda 628) ──
+const TEXTO_RACHA = { win: ['victoria', 'victorias'], loss: ['derrota', 'derrotas'], draw: ['empate', 'empates'] }
+const enPalabras = (n, r) => `${n} ${TEXTO_RACHA[r][n === 1 ? 0 : 1]}`
+
+function pintarExtra(jugadas) {
+  const caja = $('partidasExtra')
+  if (!jugadas.length) {
+    caja.innerHTML = ''
+    return
+  }
+  const r = rachas(jugadas)
+  const diez = ultimas(jugadas, 10).reverse()
+  const masJugado = porGrupo(jugadas, (p) => p.mio, (p) => p.mioNombre)[0]
+  const masRival = porGrupo(jugadas.filter((p) => p.rival !== 'sin-mazo'), (p) => p.rival, (p) => p.rivalNombre)[0]
+  const dato = (titulo, fuerte, sub = '') =>
+    `<div class="partidas-dato"><span class="partidas-dato-titulo">${titulo}</span><strong>${fuerte}</strong>${sub ? `<span class="subtext">${sub}</span>` : ''}</div>`
+  const rec = (c) => `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''} · ${c.pct == null ? '—' : `${Math.round(c.pct * 100)}%`}`
+  caja.innerHTML = [
+    r.actual
+      ? dato('Racha actual', escapeHtml(`${enPalabras(r.actual.n, r.actual.resultado)}${r.actual.n > 1 ? ' seguidas' : ''}`), escapeHtml(`Mejor: ${r.mejorVictorias ? enPalabras(r.mejorVictorias, 'win') : 'ninguna victoria'} · peor: ${r.peorDerrotas ? enPalabras(r.peorDerrotas, 'loss') : 'ninguna derrota'}`))
+      : '',
+    dato(
+      `Últimas ${diez.length}`,
+      `<span class="partidas-forma" aria-label="${escapeHtml(diez.map((p) => TEXTO_RESULTADO[p.resultado]).join(', '))}">${diez.map((p) => `<span class="partidas-ronda-res partidas-ronda-${p.resultado}" title="${escapeHtml(`${TEXTO_RESULTADO[p.resultado]} contra ${p.rivalNombre}${p.fecha ? ` · ${p.fecha}` : ''}`)}">${LETRA_RESULTADO[p.resultado] || '?'}</span>`).join('')}</span>`,
+      'La más reciente, a la derecha'
+    ),
+    masJugado ? dato('Tu mazo más jugado', escapeHtml(masJugado.nombre), escapeHtml(`${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'} · ${rec(masJugado)}`)) : '',
+    masRival ? dato('El rival que más te sale', escapeHtml(masRival.nombre), escapeHtml(`${masRival.total} ${masRival.total === 1 ? 'partida' : 'partidas'} · ${rec(masRival)}`)) : '',
+  ].join('')
+}
+
+// ── Los gráficos (tanda 628) ──
+//
+// Se miden con el ancho de su caja, así que solo se pueden pintar con la
+// pestaña A LA VISTA (escondida, la caja mide 0): si no lo está, se dejan
+// pendientes y se pintan al abrirla. Y se repintan si cambia el ancho.
+let ultimasJugadas = []
+let anchoPintado = 0
+
+function filaBarraHtml({ nombre, sprites = '', c }) {
+  const pctNum = c.pct === null ? null : Math.round(c.pct * 100)
+  const rec = `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''}`
+  return `
+    <li class="partidas-enf">
+      <span class="partidas-enf-rival">${sprites}<span>${escapeHtml(nombre)}</span></span>
+      <span class="partidas-enf-barra${claseDeCasilla(c)}" role="img" aria-label="${pctNum ?? 0}% de victorias">
+        <span style="width:${pctNum ?? 0}%"></span>
+      </span>
+      <span class="partidas-enf-record">${rec}</span>
+      <span class="partidas-enf-pct">${pctNum === null ? '—' : pctNum + '%'}</span>
+    </li>`
+}
+
+function bloqueGrafico(titulo, cuerpo, { leyenda = '', nota = '' } = {}) {
+  return `<section class="partidas-graf-bloque">
+      <h3 class="partidas-graf-titulo">${titulo}</h3>
+      ${leyenda}
+      ${cuerpo}
+      ${nota ? `<p class="subtext">${nota}</p>` : ''}
+    </section>`
+}
+
+const LEYENDA_RESULTADOS = `<p class="partidas-graf-leyenda"><span class="graf-muestra graf-v"></span>Victorias <span class="graf-muestra graf-e"></span>Empates <span class="graf-muestra graf-d"></span>Derrotas</p>`
+
+function pintarGraficos() {
+  const caja = $('partidasGraficos')
+  const ancho = caja.clientWidth
+  if (!ancho) return // escondida: se pinta al abrir la pestaña
+  anchoPintado = ancho
+  const jugadas = ultimasJugadas
+  if (!jugadas.length) {
+    caja.innerHTML = ''
+    return
+  }
+  const f = filtrosDeStats()
+  const { desde, hasta } = rangoDePeriodo(f.periodo, hoyLocal(), f.desde, f.hasta)
+  const serie = porPeriodo(jugadas, { desde, hasta })
+  const unidadTexto = { dia: 'día', semana: 'semana', mes: 'mes' }[serie.unidad]
+  const anchoGraf = Math.max(240, ancho - 2 * 16 - 2)
+  const evol = graficoEvolucion(serie.cubos, { ancho: anchoGraf, unidad: serie.unidad })
+  const barras = graficoBarras(serie.cubos, { ancho: anchoGraf })
+  const semana = graficoBarras(porDiaDeLaSemana(jugadas), { ancho: anchoGraf, todasLasEtiquetas: true })
+  const lista = (filas) => `<ul class="partidas-enfrentamientos">${filas.join('')}</ul>`
+  const grupos = (clave, nombre, conSprites = true, max = 10) =>
+    porGrupo(jugadas, (p) => p[clave], (p) => p[nombre])
+      .filter((g) => g.clave !== 'sin-mazo')
+      .slice(0, max)
+      .map((g) => filaBarraHtml({ nombre: g.nombre, sprites: conSprites ? spritesDeMazoHtml(g.nombre, g.clave) : '', c: g }))
+  const guardados = porGrupo(jugadas.filter((p) => p.mazoGuardado), (p) => p.mazoGuardado, (p) => mazosGuardados.find((m) => m.id === p.mazoGuardado)?.name || 'Un mazo que ya no está en tu lista').map((g) => filaBarraHtml({ nombre: g.nombre, c: g }))
+  const rivales = grupos('rival', 'rivalNombre')
+  const totalRivales = new Set(jugadas.map((p) => p.rival).filter((r) => r && r !== 'sin-mazo')).size
+
+  caja.innerHTML = [
+    bloqueGrafico(
+      'Tus victorias en el tiempo',
+      evol.svg ? `<div class="partidas-graf">${evol.svg}</div>` : `<p class="subtext">${escapeHtml(evol.vacio)}</p>`,
+      { leyenda: evol.svg ? `<p class="partidas-graf-leyenda"><span class="graf-muestra graf-muestra-punto"></span>Cada ${unidadTexto} <span class="graf-muestra graf-muestra-linea"></span>Acumulado</p>` : '' }
+    ),
+    bloqueGrafico(`Partidas por ${unidadTexto}`, barras.svg ? `<div class="partidas-graf">${barras.svg}</div>` : `<p class="subtext">${escapeHtml(barras.vacio)}</p>`, { leyenda: barras.svg ? LEYENDA_RESULTADOS : '' }),
+    bloqueGrafico('Por día de la semana', semana.svg ? `<div class="partidas-graf">${semana.svg}</div>` : `<p class="subtext">${escapeHtml(semana.vacio)}</p>`, { leyenda: semana.svg ? LEYENDA_RESULTADOS : '' }),
+    bloqueGrafico('Con cada mazo tuyo', lista(grupos('mio', 'mioNombre'))),
+    guardados.length ? bloqueGrafico('Con cada mazo guardado', lista(guardados)) : '',
+    rivales.length ? bloqueGrafico('Contra qué mazos', lista(rivales), { nota: totalRivales > rivales.length ? `Los ${rivales.length} que más te han salido, de ${totalRivales}.` : '' }) : '',
+    bloqueGrafico('Dónde juegas', lista(grupos('donde', 'donde', false))),
+  ].join('')
+}
+
+// El cartel de los gráficos: uno para todos, siguiendo al dedo o al ratón.
+function montarCartel() {
+  const caja = $('partidasGraficos')
+  const cartel = document.createElement('div')
+  cartel.className = 'partidas-cartel hidden'
+  cartel.setAttribute('role', 'status')
+  document.body.appendChild(cartel)
+  const ensenar = (e) => {
+    const marca = e.target.closest?.('[data-tip]')
+    if (!marca || !caja.contains(marca)) return cartel.classList.add('hidden')
+    cartel.textContent = marca.dataset.tip
+    cartel.classList.remove('hidden')
+    const r = cartel.getBoundingClientRect()
+    const x = Math.min(window.innerWidth - r.width - 8, Math.max(8, e.clientX - r.width / 2))
+    const y = e.clientY - r.height - 12 < 8 ? e.clientY + 16 : e.clientY - r.height - 12
+    cartel.style.left = `${x + window.scrollX}px`
+    cartel.style.top = `${y + window.scrollY}px`
+  }
+  caja.addEventListener('pointermove', ensenar)
+  caja.addEventListener('pointerdown', ensenar)
+  caja.addEventListener('pointerleave', () => cartel.classList.add('hidden'))
+  window.addEventListener('scroll', () => cartel.classList.add('hidden'), { passive: true })
+  // Si cambia el ancho (girar el móvil, estrechar la ventana), se vuelven
+  // a medir.
+  if ('ResizeObserver' in window) {
+    let t = null
+    new ResizeObserver(() => {
+      clearTimeout(t)
+      t = setTimeout(() => {
+        // Solo si ya estaban pintados: el primer pintado (de 0 a algo, al
+        // abrir la pestaña) lo hace el clic en la pestaña, y que lo hagan
+        // los dos es una guarda que tapa a la otra.
+        if (anchoPintado && caja.clientWidth && caja.clientWidth !== anchoPintado) pintarGraficos()
+      }, 150)
+    }).observe(caja)
+  }
 }
 
 // ── Apuntar y borrar ──
@@ -717,6 +958,9 @@ async function guardarPartida() {
     donde: rondaPara ? rondaPara.nombre : dondeElegido(),
     notas: $('partidaNotas').value.trim() || null,
   }
+  // El mazo guardado (tanda 627): solo en una suelta, y solo si la base ya
+  // tiene la columna — antes de la migración, mandarla haría fallar todo.
+  if (vinculoMazo && !rondaPara) fila.user_deck_id = $('partidaMazoGuardado').value || null
   if (rondaPara) {
     fila.torneo_id = rondaPara.id
     fila.jugada_el = rondaPara.jugado_el
@@ -783,6 +1027,10 @@ function abrirFormPartida(torneo = null, partida = null) {
   $('partidaCampoFecha').classList.toggle('hidden', esRonda)
   $('partidaCampoDonde').classList.toggle('hidden', esRonda)
   $('partidaDondeOtroCampo').classList.toggle('hidden', esRonda || $('partidaDonde').value !== '__otro')
+  // En una ronda ya lo esconde su bloque (#partidaCamposMios, el de «Tu
+  // mazo»): el mazo de una ronda es el del torneo.
+  $('partidaCampoMazoGuardado').classList.toggle('hidden', !vinculoMazo)
+  pintarSelectMazoGuardado($('partidaMazoGuardado'), partida?.mazoGuardado || null)
   $('torneoLogForm').classList.add('hidden')
   $('partidaForm').classList.remove('hidden')
   if (esRonda) {
@@ -797,6 +1045,44 @@ function abrirFormPartida(torneo = null, partida = null) {
 
   $('partidaForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   ;$(esRonda ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
+}
+
+// ── El mazo guardado (tanda 627) ──
+
+// Las opciones de un desplegable de mazos guardados. Sin ninguno, el
+// desplegable se queda apagado y al lado sale a dónde ir a guardar uno.
+function pintarSelectMazoGuardado(sel, actual = null) {
+  const ops = opcionesDeMazosGuardados(mazosGuardados, actual)
+  sel.innerHTML = '<option value="">Ninguno</option>' + ops.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
+  sel.value = actual || ''
+  sel.disabled = !ops.length
+  const pista = sel.closest('label')?.querySelector('.partidas-sin-mazos')
+  if (pista) pista.classList.toggle('hidden', ops.length > 0)
+}
+
+// Las cartas de los mazos guardados, para deducir de qué arquetipo es
+// cada uno: una vez por carta y por visita.
+const filasDeCartas = new Map()
+async function arquetipoDeGuardado(id) {
+  const m = mazosGuardados.find((x) => x.id === id)
+  if (!m) return null
+  const faltan = [...new Set((m.cards || []).map((c) => c?.id).filter((x) => x && !filasDeCartas.has(x)))]
+  if (faltan.length) {
+    const { data, error } = await supabase.from('tcg_cards').select('id,name,category').in('id', faltan)
+    if (error) return null
+    for (const f of data || []) filasDeCartas.set(f.id, f)
+  }
+  return arquetipoDeMazoGuardado(m.cards, (x) => filasDeCartas.get(x), catalogo)
+}
+
+// Al elegir un mazo guardado con «Tu mazo» vacío, se rellena con el
+// arquetipo de ese mazo: es lo que se jugó. Si ya habías puesto uno, se
+// respeta — puede que lo nombres de otra manera a propósito.
+async function alElegirMazoGuardado() {
+  const id = $('partidaMazoGuardado').value
+  if (!id || selectores.mio1?.valor() || selectores.mio2?.valor()) return
+  const arq = await arquetipoDeGuardado(id)
+  if (arq && !selectores.mio1?.valor()) ponerMazoEnSelector('mio1', 'mio2', claveDeArquetipo(arq), arq.nombre)
 }
 
 // Un mazo guardado vuelve al selector ENTERO en el primero de los dos
@@ -880,6 +1166,126 @@ function cerrarFormPartida() {
   form.classList.add('hidden')
   // De vuelta a su sitio de la pestaña de sueltas si estaba de mudanza.
   if (!$('vista-sueltas').contains(form)) $('vista-sueltas').insertBefore(form, $('partidasLista'))
+}
+
+// ── Apuntar desde una repetición (tanda 627) ──
+//
+// Tus repeticiones guardadas que aún no están en Mis partidas: eliges cuál
+// de los dos eras y con qué mazo guardado jugaste, y se apunta como una
+// partida suelta con su enlace a la repetición. Lo mismo que hace
+// /repeticiones al guardarla, para las que se guardaron sin apuntar.
+
+// Quién eras en tus repeticiones: el mismo recuerdo que usa /repeticiones.
+const CLAVE_YO = 'pokedoc-repeticion-yo'
+function yoRecordado() {
+  try {
+    return localStorage.getItem(CLAVE_YO) || null
+  } catch {
+    return null
+  }
+}
+
+const fechaDe = (iso) => (iso ? String(iso).slice(0, 10) : '')
+
+function pintarDesdeRepeticion(elegida = null) {
+  const caja = $('desdeRepForm')
+  const libres = repeticionesSinApuntar(repeticionesMias, todas)
+  const cerrar = '<button type="button" class="btn-secondary" data-cerrar-desde-rep>Cancelar</button>'
+  if (!libres.length) {
+    caja.innerHTML = `<h3>Apuntar desde una repetición</h3>
+      <p class="subtext">${repeticionesMias.length ? 'Todas tus repeticiones guardadas ya están apuntadas.' : 'Todavía no tienes repeticiones guardadas.'} En Repeticiones pegas el registro de una partida de TCG Live y la guardas; al guardarla también se puede apuntar aquí.</p>
+      <div class="partidas-form-fila"><a class="btn-primary" href="/repeticiones">Ir a Repeticiones</a>${cerrar}</div>`
+    return
+  }
+  const rep = libres.find((r) => r.id === elegida) || libres[0]
+  const recordado = yoRecordado()
+  const yo = [rep.jugador_a, rep.jugador_b].includes(recordado) ? recordado : ''
+  const jugador = (j) =>
+    j
+      ? `<label class="partidas-quien-opcion"><input type="radio" name="desdeRepYo" value="${escapeHtml(j)}"${j === yo ? ' checked' : ''} />
+          <strong>${escapeHtml(j)}</strong> <span class="subtext">${escapeHtml(mazoDeJugador(rep, j) || 'mazo sin identificar')}${rep.ganador === j ? ' · ganó' : ''}</span></label>`
+      : ''
+  const sinGanador = rep.ganador
+    ? ''
+    : `<fieldset class="partidas-quien" id="desdeRepResultado">
+        <legend>La repetición no dice quién ganó. ¿Cómo acabó para ti?</legend>
+        ${[['win', 'La gané'], ['loss', 'La perdí'], ['draw', 'Empate']].map(([v, t]) => `<label class="partidas-quien-opcion"><input type="radio" name="desdeRepRes" value="${v}" /> ${t}</label>`).join('')}
+      </fieldset>`
+  caja.innerHTML = `<h3>Apuntar desde una repetición</h3>
+    <p class="subtext">Se apunta como partida suelta de TCG Live, con el enlace a su repetición.</p>
+    <div class="partidas-form-fila">
+      <label>Repetición
+        <select id="desdeRepSel">${libres.map((r) => `<option value="${escapeHtml(r.id)}"${r.id === rep.id ? ' selected' : ''}>${escapeHtml(r.titulo || 'Repetición')}${r.created_at ? ` · ${escapeHtml(fechaDe(r.created_at))}` : ''}</option>`).join('')}</select>
+      </label>
+      <label>Fecha <input type="date" id="desdeRepFecha" value="${escapeHtml(fechaDe(rep.created_at))}" /></label>
+    </div>
+    <fieldset class="partidas-quien">
+      <legend>¿Cuál de los dos eras?</legend>
+      ${jugador(rep.jugador_a)}${jugador(rep.jugador_b)}
+    </fieldset>
+    ${sinGanador}
+    <div class="partidas-form-fila">
+      <label>Con tu mazo guardado
+        <select id="desdeRepMazo"></select>
+        <span class="subtext partidas-sin-mazos hidden">Aún no tienes ninguno: se guardan en el <a href="/constructor">constructor</a>.</span>
+      </label>
+    </div>
+    <div class="partidas-form-fila">
+      <button type="button" class="btn-primary" id="btnGuardarDesdeRep">Apuntar</button>
+      ${cerrar}
+    </div>`
+  pintarSelectMazoGuardado(caja.querySelector('#desdeRepMazo'))
+}
+
+function abrirDesdeRepeticion() {
+  cerrarFormPartida()
+  const caja = $('desdeRepForm')
+  caja.classList.remove('hidden')
+  pintarDesdeRepeticion()
+  caja.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+function cerrarDesdeRepeticion() {
+  $('desdeRepForm').classList.add('hidden')
+  $('desdeRepForm').innerHTML = ''
+}
+
+async function guardarDesdeRepeticion(boton) {
+  const caja = $('desdeRepForm')
+  const rep = repeticionesMias.find((r) => r.id === caja.querySelector('#desdeRepSel')?.value)
+  const yo = caja.querySelector('[name=desdeRepYo]:checked')?.value || ''
+  const resultado = resultadoDeRepeticion(rep, yo) || caja.querySelector('[name=desdeRepRes]:checked')?.value || null
+  if (!rep) return
+  if (!yo) return showToast('Dinos cuál de los dos eras.', 'error')
+  if (!resultado) return showToast('Dinos cómo acabó.', 'error')
+  const mazo = caja.querySelector('#desdeRepMazo')?.value || null
+  boton.disabled = true
+  try {
+    const arq = mazo ? await arquetipoDeGuardado(mazo) : null
+    const fila = partidaDesdeRepeticion({
+      rep, yo, resultado, catalogo,
+      userId: session.user.id,
+      mazoGuardado: mazo,
+      arqGuardado: arq,
+      fecha: caja.querySelector('#desdeRepFecha')?.value || null,
+      conVinculo: vinculoMazo,
+    })
+    const { error } = await supabase.from('match_log').insert(fila)
+    if (error) {
+      showToast(error.code === '23505' ? 'Esa repetición ya está apuntada.' : 'No se ha podido apuntar: ' + error.message, 'error')
+      return
+    }
+    try {
+      localStorage.setItem(CLAVE_YO, yo)
+    } catch {
+      /* sin almacenamiento, la próxima vez se vuelve a preguntar */
+    }
+    showToast('Partida apuntada.', 'success')
+    cerrarDesdeRepeticion()
+    await cargar()
+  } finally {
+    boton.disabled = false
+  }
 }
 
 // ── Apuntar un torneo ──
@@ -1010,6 +1416,23 @@ async function borrarPartida(id) {
 
 // ── Arranque ──
 
+// Tus mazos guardados, tus repeticiones y si la base ya enlaza una partida
+// con un mazo (tanda 627). Cada una falla por su lado: sin mazos o sin
+// repeticiones, la página sigue siendo la de siempre.
+async function cargarMazosYRepeticiones() {
+  const yo = session.user.id
+  const [mazos, reps, sonda] = await Promise.all([
+    supabase.from('user_decks').select('id,name,cards,updated_at').eq('user_id', yo).order('updated_at', { ascending: false }),
+    supabase.from('replays').select('id,titulo,jugador_a,jugador_b,ganador,mazo_a,mazo_b,turnos,created_at').eq('user_id', yo).order('created_at', { ascending: false }).limit(500),
+    // Pedirla por su nombre falla entera si la columna no existe (42703):
+    // así se sabe si la migración está puesta sin tocar nada.
+    supabase.from('match_log').select('user_deck_id').limit(1),
+  ])
+  mazosGuardados = mazos.error ? [] : mazos.data || []
+  repeticionesMias = reps.error ? [] : reps.data || []
+  vinculoMazo = !sonda.error
+}
+
 async function cargar() {
   const [deTorneos, apuntadas, torneos] = await Promise.all([
     partidasDeTorneos(),
@@ -1033,7 +1456,10 @@ async function init() {
   // El catálogo, una vez: lo necesitan tanto los arquetipos de torneo
   // como las partidas escritas a mano, para que caigan en la misma
   // casilla.
-  const { data } = await supabase.from('tcg_archetypes').select('*').eq('activo', true)
+  const [{ data }] = await Promise.all([
+    supabase.from('tcg_archetypes').select('*').eq('activo', true),
+    cargarMazosYRepeticiones(),
+  ])
   catalogo = data || []
 
   $('partidaFecha').value = new Date().toISOString().slice(0, 10)
@@ -1066,6 +1492,8 @@ async function init() {
       for (const v of ['torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }
+      // Los gráficos se miden al verse (escondidos, su caja mide 0).
+      if (btn.dataset.vista === 'stats') pintarGraficos()
     })
   )
 
@@ -1076,6 +1504,19 @@ async function init() {
     else abrirFormPartida(null)
   })
   $('btnCancelarPartida').addEventListener('click', cerrarFormPartida)
+  $('partidaMazoGuardado').addEventListener('change', () => alElegirMazoGuardado().catch(() => {}))
+  $('btnDesdeRepeticion').addEventListener('click', () => {
+    if (!$('desdeRepForm').classList.contains('hidden')) cerrarDesdeRepeticion()
+    else abrirDesdeRepeticion()
+  })
+  $('desdeRepForm').addEventListener('change', (e) => {
+    if (e.target.id === 'desdeRepSel') pintarDesdeRepeticion(e.target.value)
+  })
+  $('desdeRepForm').addEventListener('click', (e) => {
+    if (e.target.closest('[data-cerrar-desde-rep]')) cerrarDesdeRepeticion()
+    const b = e.target.closest('#btnGuardarDesdeRep')
+    if (b) guardarDesdeRepeticion(b)
+  })
   for (const id of ['torneoBuscar', 'torneoEstado']) {
     $(id)?.addEventListener('input', () => {
       verTodosLosTorneos = false
@@ -1100,8 +1541,31 @@ async function init() {
     $('torneoLogDondeOtroCampo').classList.toggle('hidden', $('torneoLogDonde').value !== '__otro')
     if ($('torneoLogDonde').value === '__otro') $('torneoLogDondeOtro').focus()
   })
-  $('filtroMazo').addEventListener('change', repintar)
-  $('filtroDesde').addEventListener('change', repintar)
+  // Los filtros (tanda 628).
+  const periodos = PERIODOS.map(([v, t]) => `<option value="${v}">${escapeHtml(t)}</option>`).join('')
+  $('filtroPeriodo').innerHTML = periodos
+  $('listaPeriodo').innerHTML = periodos
+  for (const id of ['filtroPeriodo', 'filtroFechaDesde', 'filtroFechaHasta', 'filtroResultado', 'filtroMazo', 'filtroGuardado', 'filtroRival', 'filtroOrigen']) {
+    $(id).addEventListener('change', () => {
+      mostrarRango('filtro')
+      repintar()
+    })
+  }
+  $('filtroLimpiar').addEventListener('click', () => {
+    for (const id of ['filtroResultado', 'filtroMazo', 'filtroGuardado', 'filtroRival', 'filtroOrigen', 'filtroFechaDesde', 'filtroFechaHasta']) $(id).value = ''
+    $('filtroPeriodo').value = 'siempre'
+    mostrarRango('filtro')
+    repintar()
+  })
+  for (const id of ['listaOrden', 'listaPeriodo', 'listaFechaDesde', 'listaFechaHasta', 'listaResultado']) {
+    $(id).addEventListener('change', () => {
+      mostrarRango('lista')
+      verTodasLasSueltas = false
+      repintar()
+    })
+  }
+  $('torneoOrden').addEventListener('change', () => pintarTorneos())
+  montarCartel()
 
   await cargar()
 }

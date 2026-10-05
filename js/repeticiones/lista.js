@@ -9,8 +9,12 @@
 import { plano } from '../constructor/nucleo.js'
 import { SIN_VER } from './posicion.js'
 import { nombreDeCarta } from '../catalogo-series.js'
+import { corregirNombreEs } from '../texto.js'
 
-const nombresDe = (c) => [c?.name_es, c?.name].filter(Boolean).map(plano)
+// Los nombres por los que el registro puede llamar a una carta: el español
+// y el de la clave, TAL CUAL y CORREGIDOS (tanda 629). TCGdex escribe
+// «Energía Psychic Telepática» y TCG Live, «Energía Psíquica Telepática».
+const nombresDe = (c) => [...new Set([c?.name_es, c?.name].filter(Boolean).flatMap((n) => [n, corregirNombreEs(n)]).map(plano))]
 
 // El mazo de la mesa con la lista: las entradas de la lista, y si en la
 // partida se vio algo que la lista NO tiene (o más copias de las que
@@ -19,27 +23,32 @@ const nombresDe = (c) => [c?.name_es, c?.name].filter(Boolean).map(plano)
 // `idDe(nombre)` dice de qué entrada es cada nombre del registro.
 export function mazoConLista(lista, vistas, cartaDe = () => null) {
   const entradas = lista.map((e) => ({ carta: e.carta, n: e.n }))
+  // Por NOMBRE, todas las entradas que se llaman así (tanda 629): una lista
+  // con 3 Alakazam de Megaevolución y 1 de Mascarada Crepuscular lleva CUATRO
+  // Alakazam, y el registro solo dice «Alakazam». Mirando solo la primera
+  // impresión, la cuarta copia salía como «no está en esta lista».
   const porNombre = new Map()
-  for (const e of entradas) for (const n of nombresDe(e.carta)) if (!porNombre.has(n)) porNombre.set(n, e)
+  for (const e of entradas) for (const n of nombresDe(e.carta)) porNombre.set(n, [...(porNombre.get(n) || []), e])
+  const copiasDe = (es) => es.reduce((k, e) => k + e.n, 0)
   const fuera = []
   for (const v of vistas || []) {
-    const e = porNombre.get(plano(v.nombre))
-    if (e && e.n >= v.copias) continue
-    const faltan = v.copias - (e?.n || 0)
+    const es = porNombre.get(plano(v.nombre)) || []
+    if (es.length && copiasDe(es) >= v.copias) continue
+    const faltan = v.copias - copiasDe(es)
     fuera.push({ nombre: v.nombre, copias: faltan })
-    if (e) e.n += faltan
+    if (es.length) es[0].n += faltan
     else {
       const carta = cartaDe(v.nombre) || { id: `suelta:${plano(v.nombre)}`, name: v.nombre, name_es: v.nombre, category: v.tipo === 'pokemon' ? 'Pokemon' : v.tipo === 'energia' ? 'Energy' : 'Trainer' }
       const nueva = { carta, n: faltan }
       entradas.push(nueva)
-      porNombre.set(plano(v.nombre), nueva)
+      porNombre.set(plano(v.nombre), [nueva])
     }
   }
   // Una lista de menos de 60 (a medias) se completa con «sin ver»: la mesa
   // necesita las 60, y lo que falta es justo lo que no se sabe.
   const total = entradas.reduce((k, e) => k + e.n, 0)
   if (total < 60) entradas.push({ carta: SIN_VER, n: 60 - total })
-  return { entradas, idDe: (nombre) => porNombre.get(plano(nombre))?.carta.id ?? null, fuera }
+  return { entradas, idDe: (nombre) => porNombre.get(plano(nombre))?.[0]?.carta.id ?? null, fuera }
 }
 
 // Lo que de la lista NO se ha visto en la foto `s` (está en el mazo, en los
@@ -52,7 +61,7 @@ export function sinVerEnLaFoto(lista, s, jugador) {
   for (const e of lista) {
     const fila = { carta: e.carta, nombre: nombreDeCarta(e.carta), n: e.n }
     cuenta.set(e.carta.id, fila)
-    for (const n of nombresDe(e.carta)) if (!porNombre.has(n)) porNombre.set(n, fila)
+    for (const n of nombresDe(e.carta)) porNombre.set(n, [...(porNombre.get(n) || []), fila])
   }
   if (!p) return { cartas: [...cuenta.values()], total: lista.reduce((k, e) => k + e.n, 0) }
   const vistas = [
@@ -61,9 +70,11 @@ export function sinVerEnLaFoto(lista, s, jugador) {
     ...p.manoConocida.slice(0, p.mano),
     ...(s.estadio?.dueno === jugador ? [s.estadio.carta] : []),
   ]
+  // Con varias impresiones del mismo nombre, se descuenta de la primera que
+  // aún tenga copias: si no, la cuarta Alakazam vista no restaba de nada.
   for (const nombre of vistas) {
-    const fila = porNombre.get(plano(nombre))
-    if (fila && fila.n > 0) fila.n--
+    const fila = (porNombre.get(plano(nombre)) || []).find((f) => f.n > 0)
+    if (fila) fila.n--
   }
   const cartas = [...cuenta.values()].filter((f) => f.n > 0).sort((a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre, 'es'))
   return { cartas, total: cartas.reduce((k, f) => k + f.n, 0) }

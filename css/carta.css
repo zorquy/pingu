@@ -294,9 +294,8 @@
  * tipo, que es su único trabajo. Por eso va declarada como excepción en
  * la prueba de la escala de color.
  *
- * Los símbolos de verdad son imágenes de Nintendo y no están en ninguna
- * CDN abierta, así que aquí son puntos con su nombre en el `title` y en
- * el `aria-label`: quien no ve el color lo oye igual. */
+ * Ocho tipos llevan además su símbolo encima (tanda 626, SCHEMA.md); el
+ * color se queda debajo, y el nombre en el `title` y el `aria-label`. */
 .carta-energia {
   width: 16px;
   height: 16px;
@@ -323,6 +322,20 @@
 .carta-energia[data-tipo='Fairy'] { --tipo-energia: #e07bb0; }
 .carta-energia[data-tipo='Dragon'] { --tipo-energia: #b59433; }
 .carta-energia[data-tipo='Colorless'] { --tipo-energia: #e6eaed; }
+
+.carta-energia[data-tipo='Grass'] { --icono-energia: url('/assets/iconos-energia/G.png'); }
+.carta-energia[data-tipo='Fire'] { --icono-energia: url('/assets/iconos-energia/R.png'); }
+.carta-energia[data-tipo='Water'] { --icono-energia: url('/assets/iconos-energia/W.png'); }
+.carta-energia[data-tipo='Lightning'] { --icono-energia: url('/assets/iconos-energia/L.png'); }
+.carta-energia[data-tipo='Psychic'] { --icono-energia: url('/assets/iconos-energia/P.png'); }
+.carta-energia[data-tipo='Fighting'] { --icono-energia: url('/assets/iconos-energia/F.png'); }
+.carta-energia[data-tipo='Darkness'] { --icono-energia: url('/assets/iconos-energia/D.png'); }
+.carta-energia[data-tipo='Metal'] { --icono-energia: url('/assets/iconos-energia/M.png'); }
+
+.carta-energia:is([data-tipo='Grass'], [data-tipo='Fire'], [data-tipo='Water'], [data-tipo='Lightning'], [data-tipo='Psychic'], [data-tipo='Fighting'], [data-tipo='Darkness'], [data-tipo='Metal']) {
+  background-image: var(--icono-energia);
+  background-size: cover;
+}
 
 /* El tipo que NO conocemos (tanda 340). No lleva color: lleva un hueco.
    El color por defecto de arriba es casi el de Incolora, así que un tipo

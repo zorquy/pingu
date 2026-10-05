@@ -55,6 +55,16 @@ export { fechaDeSet, codigoLiveDeSet, setToRow, cardToRow, sinDuplicados, porIma
 // `normalizarNombre` en la 325.
 import { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol, imagePathFromUrl } from '../../js/carta-detalle.js'
 export { detalleDeCarta, IDIOMAS_DE_FICHA, urlDeCartaEnIdioma, detalleEnEspanol, imagePathFromUrl }
+import { corregirNombreEs } from '../../js/texto.js'
+
+// El nombre español que se guarda en `name_es` (tanda 629), con el tipo
+// traducido: TCGdex manda «Energía Psychic Telepática» y la carta dice
+// «Energía Psíquica Telepática». Aquí y no en `js/carta-detalle.js`, que
+// tiene que seguir sin imports (tanda 331). Si llegó en inglés, nada: el
+// inglés no va a `name_es`.
+export function nombreEspanolDe(encontrado) {
+  return encontrado?.nombre && encontrado.idioma !== 'en' ? corregirNombreEs(encontrado.nombre) : null
+}
 
 // ── Lo que solo viene en el SET COMPLETO (tanda 329) ──
 //

@@ -69,4 +69,16 @@ export const INGLES_DE = {
   damian: 'arven', 'bloc de amigos': 'pal pad', noa: 'penny', 'e nigma': 'iono', supercana: 'super rod', 'vasija terrestre': 'earthen vessel',
   'plan del profesor turo': "professor turo's scenario", 'ogerpon mascara horno ex': 'hearthflame mask ogerpon ex', corin: 'carmine', nakara: 'irida',
   'nivel ball': 'level ball', 'pase de combate vip': 'battle vip pass',
+  // Las dos energías de me04 que faltaban (tanda 629).
+  'energia metal magnetica': 'magnetic metal energy', 'energia fire nitro': 'nitro fire energy',
+}
+
+// Y las energías con el tipo YA traducido (tanda 629): TCGdex escribe
+// «Energía Psychic Telepática», la migración de esa tanda lo deja como en
+// la carta —«Energía Psíquica Telepática»—, y el efecto tiene que seguir
+// encontrándose con las dos.
+const TIPO_EN_ESPANOL = { grass: 'planta', fire: 'fuego', water: 'agua', lightning: 'rayo', psychic: 'psiquica', fighting: 'lucha', darkness: 'oscura', metal: 'metalica', fairy: 'hada', dragon: 'dragon', colorless: 'incolora' }
+for (const [es, en] of Object.entries(INGLES_DE)) {
+  const m = es.match(/^energia (grass|fire|water|lightning|psychic|fighting|darkness|metal|fairy|dragon|colorless)( .+)$/)
+  if (m) INGLES_DE[`energia ${TIPO_EN_ESPANOL[m[1]]}${m[2]}`] = en
 }

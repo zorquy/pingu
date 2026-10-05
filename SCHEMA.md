@@ -31260,3 +31260,187 @@ de una: una chapa sola no dice nada) y la marca de que la tienes. Sin
 ficha, lo estático) y `test-tanda-647-pantalla.mjs` (la página con
 sesión: cifras, desplegables, filtrar, ordenar, faltan, combinados; sin
 sesión y en móvil).
+
+
+## Tanda 626 — las energías, con su símbolo (oct. 2026)
+
+PINGU: «a partir de ahora estaría bien que las energías tengan iconos» y
+dejó una carpeta con los ocho símbolos (Planta, Fuego, Agua, Rayo,
+Psíquico, Lucha, Oscuridad y Metal, PNG de 30 × 30). Van en
+`assets/iconos-energia/` con la LETRA del tipo por nombre (`G.png`,
+`R.png`…), que es como los nombra el laboratorio. Incolora, Hada y Dragón
+no venían en la carpeta: siguen con su punto de color y su letra.
+
+Se pintan por CSS, no en el marcado: los dos sitios donde sale una energía
+ya llevan `data-tipo` (`.lab-energia` en el laboratorio y las
+repeticiones —letra—, `.carta-energia` en la ficha —nombre inglés—), así
+que una regla por tipo pone `--icono-energia` y otra lo usa de
+`background-image`. El color del tipo se queda DEBAJO: si el fichero no
+llega, se ve el punto de siempre en vez de un hueco, y las pruebas de la
+340/342 (que miden el color) siguen diciendo lo mismo. En el laboratorio
+la letra se vuelve transparente (sigue en el texto para quien no ve el
+dibujo, igual que el `title`), y el número de una energía que da dos
+(`<sub>`) lleva su color propio y se aparta del símbolo.
+
+**La regla del símbolo va DESPUÉS de la de «letra oscura en L, C y M»**: las
+dos tienen la misma fuerza, y puesta antes, Rayo y Metal habrían enseñado
+la letra encima del dibujo.
+
+**Pruebas**: `test-tanda-626.mjs` (los ocho ficheros, lo que calcula el
+navegador en las dos hojas —símbolo, letra, número, tamaño en un texto—,
+que el fichero se sirve y se dibuja, y que las dos hojas declaran los
+mismos ocho con su fichero), rigor de 9 mutaciones. La primera versión
+dejaba el relleno de la píldora y asomaba el color del tipo a la derecha
+del símbolo en los textos (18 × 16): lo cazó la propia prueba.
+
+## Tanda 627 — tus repeticiones en Mis partidas, con su mazo guardado (oct. 2026)
+
+PINGU: «que puedas añadir tus repeticiones a tus partidas vinculando las
+repeticiones a uno de los mazos que tienes guardados en el constructor».
+
+**La columna**: `match_log.user_deck_id`
+(`supabase-migration-partidas-mazo-guardado.sql`), con `on delete set
+null` —borrar el mazo deja tus partidas— y un disparador que exige que el
+mazo sea TUYO: una clave ajena solo comprueba que existe, y un mazo
+público de otra persona se puede leer. No sustituye a `mi_mazo` (el
+arquetipo, que es lo que agrupa con las partidas de torneo): es la lista
+concreta, para ver cómo le va a ESA versión de tu mazo.
+
+**Tres sitios**: en /mis-partidas, «+ Desde una repetición» (tus
+guardadas que aún no están apuntadas: eliges cuál de los dos eras —con el
+mismo recuerdo que /repeticiones—, cómo acabó si el registro no lo dice, y
+con qué mazo guardado) y «Con tu mazo guardado» en el formulario de una
+partida suelta (no en una ronda: su mazo es el del torneo); y en
+/repeticiones, al guardar y apuntar. Con un mazo guardado elegido, tu
+mazo de la matriz sale de SU lista entera (`arquetipoDeMazoGuardado`), no
+de lo que se llegó a ver en la partida. La fila enseña el mazo con su
+enlace al constructor.
+
+**Antes de la migración no se ofrece**: una consulta que pide
+`user_deck_id` por su nombre falla entera si la columna no existe, y esa
+es la sonda (`mazosParaEnlazar`, `cargarMazosYRepeticiones`). Sin ella, la
+columna no se manda nunca —un insert con una columna que no existe falla
+ENTERO, y apuntar desde una repetición tiene que seguir funcionando—. El
+doble lo hace igual desde ahora: escribir una columna de
+`__SIN_COLUMNAS__` devuelve PGRST204.
+
+Lo puro vive en `js/partidas-mazos.js` (sin base ni DOM). /repeticiones
+lo trae con `import()` al abrir «Guardar», como los arquetipos: quien solo
+mira una repetición no lo baja.
+
+**Pruebas**: `test-tanda-627.mjs` (lo puro; la base contra PostgreSQL con
+`sql-partidas-mazo.sql`, que carga las migraciones DE VERDAD de los mazos
+y de Mis partidas; /mis-partidas con y sin la migración; /repeticiones),
+rigor de 19 mutaciones. Tres salieron sin detectar en la primera pasada y
+las tres decían algo: el doble devolvía columnas que no se pedían (ahora
+la prueba proyecta, como la base); el mazo guardado de la prueba era del
+mismo arquetipo que lo que se vio, así que «manda la lista» no se podía
+distinguir de «manda lo visto»; y el campo de la ronda se escondía dos
+veces (su bloque y su propia guarda).
+
+## Tanda 628 — Mis partidas: filtros, gráficos y estadísticas (oct. 2026)
+
+PINGU: «un filtro para filtrar por días, victorias, derrotas, partidas más
+recientes, más antiguas, etc. Además de hacer gráficos y sacar
+estadísticas de todo».
+
+**Filtros**: en Estadísticas, periodo (hoy, 7 y 30 días, 3 meses, un año o
+entre dos fechas), resultado, tu mazo, mazo guardado (si alguna partida lo
+lleva), rival y de dónde viene (torneos de PokeDoc, torneos apuntados,
+sueltas); valen para TODO lo de la pestaña y dicen cuántas quedan de
+cuántas. En Partidas sueltas, orden (más recientes o más antiguas),
+periodo y resultado — y un filtro que no deja pasar ninguna lo dice así,
+no «aún no hay partidas». En Torneos, el orden.
+
+**Las cuentas** (`js/estadisticas-partidas.js`, pura): las fechas son
+TEXTO 'AAAA-MM-DD' y se cuentan en días de calendario en UTC (una fecha de
+partida no tiene hora), pero «hoy» es el del calendario de quien mira. Con
+un periodo puesto, una partida sin fecha se queda fuera. El porcentaje es
+el MISMO que el de la matriz (`porcentaje` de matriz-partidas.js: un
+empate cuenta medio); la primera versión contaba victorias sobre el total
+y la misma pestaña habría enseñado 58% arriba y 63% abajo. Las rachas: la
+de ahora, la mejor de victorias y la peor de derrotas (un empate corta).
+
+**Los gráficos** (`js/graficos-partidas.js`, SVG a mano): la evolución
+(un punto por día/semana/mes con partidas y la línea del ACUMULADO, que se
+corta donde no se jugó), las partidas por periodo y por día de la semana
+(columnas apiladas: victorias abajo, empates, derrotas arriba, con 2 px de
+hueco entre trozos), y barras por tu mazo, por mazo guardado, por rival
+(los 10 que más) y por dónde. La unidad sale del tramo: días hasta un mes,
+semanas hasta medio año, meses a partir de ahí; las semanas empiezan en
+lunes y los periodos vacíos están en el eje.
+
+Se miden con el ancho de SU caja en píxeles, no con un `viewBox` que se
+estira (estirado, la letra de los ejes encoge con la pantalla). Eso tiene
+una consecuencia: con la pestaña escondida la caja mide 0, así que se
+pintan al abrirla, y un `ResizeObserver` los vuelve a medir al cambiar el
+ancho. Un solo cartel para todas las marcas (`data-tip`), que se esconde
+al desplazarse. El primer pintado lo hace el clic en la pestaña y el
+`ResizeObserver` solo los RE-mide: en la primera versión los dos pintaban
+al abrirla, y quitar cualquiera de los dos no cambiaba nada (el rigor lo
+apuntó como «sin detectar», la lección de la 506).
+
+**El verde y el rojo** son los de estado (`--success`, `--danger`), no una
+paleta de categorías: ganar y perder SON estados. Para quien no distingue
+esos dos colores se separan poco (ΔE 8,7 en claro y 6,5 en oscuro con el
+validador de paletas), así que nunca van solos: orden fijo, hueco entre
+trozos, leyenda con su nombre y el número en el cartel.
+
+**Pruebas**: `test-tanda-628.mjs` (las cuentas y los dibujos en Node; la
+pestaña con sus filtros, el cartel, el ancho al estrechar y que la página
+no se sale por el lado; la lista y los torneos), rigor de 25 mutaciones.
+
+## Tanda 629 — las energías especiales, bien traducidas (oct. 2026)
+
+PINGU, con una repetición delante: «4 cartas de la partida no están en
+esta lista (Alakazam, Energía Psíquica Telepática): ¿es la lista de esta
+partida? Hay problemas de traducción con la energía telepática, repasa las
+energías especiales y pon todas las cartas en el mismo idioma bien
+traducidas».
+
+**Eran dos fallos con la misma cara.**
+
+1. **El tipo sin traducir.** TCGdex nombra en español las energías
+   especiales de Megaevolución y de Espada y Escudo con el TIPO EN INGLÉS:
+   «Energía Psychic Telepática», «Energía Water Burbujeante», «Energía
+   Metal Magnética» (once en la base, consultadas el 2026-10-05; y los
+   cinco Amuletos Hada de Sol y Luna). La carta impresa y TCG Live dicen
+   «Energía Psíquica Telepática», así que el registro no casaba con la
+   lista, el buscador no la encontraba por «psíquica» y el mazo salía a
+   medio traducir. `corregirNombreEs` (js/texto.js) traduce SOLO ese hueco
+   —detrás de «Energía», como en las básicas: Psíquica, Oscura, Metálica,
+   Incolora; en un Amuleto, como sustantivo— y se aplica en tres sitios:
+   al enseñar (`nombreDeCarta`, también cuando el español está en `name`),
+   al cruzar el registro con la lista, y al guardar el nombre de TCGdex en
+   el engorde (`nombreEspanolDe`, en netlify/lib/carta-detalle.mjs), que es
+   por donde volvería a entrar. No en `js/carta-detalle.js`: la primera
+   versión le metió el import y la 331 lo cantó —ese módulo vive en el
+   navegador y en la función, y tiene que seguir sin imports—. Lo
+   guardado lo arregla `supabase-migration-nombres-energias.sql` (`name_es`,
+   `name` donde el espejo guardó el español, y el nombre inglés: tres
+   vacíos en Perfect Order y cinco con el tipo como símbolo, «Bubbly \[W\]
+   Energy»). El motor reconoce las dos formas (`INGLES_DE` deriva la
+   traducida de la vieja).
+2. **Dos impresiones, un nombre.** Su lista llevaba 3 Alakazam de
+   Megaevolución y 1 de Mascarada Crepuscular. El registro solo dice
+   «Alakazam», y `mazoConLista` miraba solo la PRIMERA entrada con ese
+   nombre: la cuarta copia «no estaba en la lista», y «sin ver al acabar»
+   decía que quedaba un Alakazam en el mazo con los cuatro en la mesa.
+   Ahora se cuenta por NOMBRE, sumando todas las impresiones.
+
+**De paso, las dos energías de me04 que el laboratorio no conocía**:
+Energía Metálica Magnética (el Pokémon {M} al que está unida no paga
+retirada) y Energía Fuego Nitro (si la descarta un ataque de su Pokémon
+{R}, vuelve a la mano).
+
+**Para la otra sesión**: el catálogo de TCGGO tiene la telepática DOS
+veces —`me03-088` (TCGdex) y `tcggo-31886`, en inglés y sin `name_es`—, y lo
+mismo con sus dos hermanas de Perfect Order (`tcggo-31884`, `tcggo-31885`).
+Parece que el emparejamiento no las casó porque el `name` de TCGdex estaba
+en español a medias; con la migración puesta, «Telepathic Psychic Energy»
+queda en `name_en`. No las he tocado: es vuestro importador.
+
+**Pruebas**: `test-tanda-629.mjs` (la corrección, la lista con varias
+impresiones y los dos nombres, el motor con una mesa de verdad —retirada
+y Nitro—, lo que llega de TCGdex, y la migración contra PostgreSQL con
+`sql-nombres-energias.sql`, dos veces), rigor de 16 mutaciones.

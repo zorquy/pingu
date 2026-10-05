@@ -219,6 +219,30 @@ export async function apuntarPartida(fila) {
   return { id: data[0].id }
 }
 
+// ── El mazo guardado de la partida (tanda 627) ──
+//
+// Tus mazos del constructor, y si la base ya sabe enlazar una partida con
+// uno (`match_log.user_deck_id`, supabase-migration-partidas-mazo-guardado.sql).
+// Pedir la columna por su nombre falla entera si no existe: así se sabe sin
+// tocar nada. Sin mazos o sin la columna, no se ofrece y ya está.
+export async function mazosParaEnlazar(userId) {
+  const [mazos, sonda] = await Promise.all([
+    supabase.from('user_decks').select('id,name,cards,updated_at').eq('user_id', userId).order('updated_at', { ascending: false }),
+    supabase.from('match_log').select('user_deck_id').limit(1),
+  ])
+  return { mazos: mazos.error ? [] : mazos.data || [], vinculo: !sonda.error }
+}
+
+// Las cartas de un mazo guardado (nombre inglés y categoría), para saber
+// de qué arquetipo es.
+export async function cartasDeMazo(ids) {
+  const unicos = [...new Set((ids || []).filter(Boolean))]
+  if (!unicos.length) return new Map()
+  const { data, error } = await supabase.from('tcg_cards').select('id,name,category').in('id', unicos)
+  if (error) return new Map()
+  return new Map((data || []).map((f) => [f.id, f]))
+}
+
 // ── Los torneos (tanda 496) ──
 //
 // Adjuntar la repetición de tu partida y quitarla: por función, nunca
