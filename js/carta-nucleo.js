@@ -27,6 +27,7 @@ export { cadenaDeEscaneo, atributosDeEscaneo }
 import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
 import { nombreDeSet, eraDeSet, nombreDeCarta } from './catalogo-series.js'
 import { tieneCJK } from './texto.js'
+import { impresionesDe } from './coleccion-filtros.js'
 
 export {
   aSlug,
@@ -687,15 +688,24 @@ export function mereceIndexarse(carta, play = null) {
 // El hueco va reservado con `width`+`height` (245×337 es la miniatura de
 // TCGdex): son 200 imágenes en una página, y sin las medidas la lista
 // entera baila mientras cargan.
-export function fichaDeRejilla(carta, codigoDeSet = null) {
+// `extra` (647): { precio: '0,05 €', tengo: true } — lo que la expansión
+// por dentro sabe de la carta y el buscador no. La rareza y las
+// impresiones salen de la carta misma; sin dato no se pinta la línea.
+export function fichaDeRejilla(carta, codigoDeSet = null, extra = {}) {
   const attrs = atributosDeEscaneo(cadenaDeEscaneo(carta, codigoDeSet))
+  const rareza = rarezaDeCarta(carta)
+  const marcas = impresionesDe(carta)
+  const pie = extra?.precio || marcas.length > 1
+    ? `<span class="coleccion-carta-pie">${extra?.precio ? `<b>${escapeHtml(extra.precio)}</b>` : '<span></span>'}${marcas.length > 1 ? `<span class="coleccion-marcas">${marcas.map((m) => `<em title="${escapeHtml(m.nombre)}">${escapeHtml(m.corto)}</em>`).join('')}</span>` : ''}</span>`
+    : ''
   return (
-    `<a class="coleccion-carta" href="${escapeHtml(rutaDeCarta(carta))}">` +
+    `<a class="coleccion-carta${extra?.tengo ? ' coleccion-carta-tengo' : ''}" href="${escapeHtml(rutaDeCarta(carta))}">` +
     (attrs
       ? `<img ${attrs} alt="${escapeHtml(nombreDeCarta(carta))}" width="245" height="337" loading="lazy" decoding="async">`
       : '<span class="coleccion-carta-vacia"></span>') +
-    `<span class="coleccion-carta-num">${escapeHtml(carta?.local_id || '')}</span>` +
+    `<span class="coleccion-carta-num">${escapeHtml([carta?.local_id || '', rareza || ''].filter(Boolean).join(' · '))}</span>` +
     `<span class="coleccion-carta-nombre">${escapeHtml(nombreDeCarta(carta))}</span>` +
+    pie +
     '</a>'
   )
 }
@@ -703,10 +713,10 @@ export function fichaDeRejilla(carta, codigoDeSet = null) {
 // `codigoDeSet` es para la rejilla de UNA colección, donde el código se
 // sabe una vez y no viene en cada fila. En el buscador, que mezcla sets,
 // cada carta trae el suyo embebido.
-export function rejillaDeCartas(cartas, codigoDeSet = null) {
+export function rejillaDeCartas(cartas, codigoDeSet = null, extraDe = null) {
   const lista = Array.isArray(cartas) ? cartas : []
   if (!lista.length) return ''
-  return lista.map((c) => fichaDeRejilla(c, codigoDeSet)).join('')
+  return lista.map((c) => fichaDeRejilla(c, codigoDeSet, extraDe ? extraDe(c) : {})).join('')
 }
 
 // La cabecera de una colección: logo, nombre, serie, fecha y cuántas

@@ -31222,3 +31222,41 @@ cuenta en el padre) y cada tarjeta lleva «11.134 € · −7 %».
 episodio, pasada de precios con JP, migración y guardas) y
 `test-tanda-646-pantalla.mjs` (/cartas, la estantería y la página del
 hijo). El doble siembra `tcg_set_valor` (`__FAKE_SET_VALOR__`).
+
+## Tanda 647 — la expansión por dentro (oct. 2026)
+
+Tercera tanda del rediseño: /coleccion/<set>. PINGU: «las cartas, lo
+mismo: toda la información de los filtros, la rareza, si tiene otros
+prints (normal, reverse, master ball)…».
+
+**Los filtros** viven en un módulo puro, `js/coleccion-filtros.js`
+(`opcionesDeFiltros`, `cumpleFiltros`, `ordenarCartas`, `impresionesDe`,
+`RANGOS_DE_PRECIO`, `ORDENES`), y se prueban en Node. Cada desplegable
+ofrece SOLO lo que hay en esa colección —rarezas de más rara a menos (por
+`rangoDeCarta`), tipos, impresiones (de `variants`, en corto: N, RH, H,
+1.ª), ilustradores— y con una sola opción se esconde; el de precio solo si
+alguna carta tiene precio, en cinco tramos fijos. «Las que me faltan» es
+un chip que sale solo con sesión. El orden: número (los que llevan letras
+delante, «TG12», detrás de los numerados), precio, rareza, nombre.
+
+**Lo que llega después de las cartas**, sin bloquear la rejilla y
+callándose si falla: los precios (`preciosGuardados` → `precioDeFila` →
+`valorDe` en español, que es la regla de la casa), lo que TIENES
+(`user_collection` por `card_id`, que la RLS acota a lo tuyo) y lo que
+vale la expansión (`tcg_set_valor`, 646). Cada uno repinta al llegar.
+
+**La cabecera** gana tres cifras (`.coleccion-cifras`): valor del set,
+semanal y «Tienes X / N». Van en el cliente y no en la mitad del borde
+(`meta-social.js` pinta la cabecera base): así las dos mitades siguen
+diciendo lo mismo y la cifra se añade después.
+
+**La ficha de rejilla** (`fichaDeRejilla(carta, codigo, extra)`, compartida
+con el buscador de /cartas y con el borde) lleva ahora número · rareza,
+y, si `extra` lo trae, el precio, las marcas de impresión (solo con más
+de una: una chapa sola no dice nada) y la marca de que la tienes. Sin
+`extra` es la de siempre, que es lo que pinta el borde.
+
+**Pruebas**: `test-tanda-647.mjs` (opciones, pasar o no, orden, la
+ficha, lo estático) y `test-tanda-647-pantalla.mjs` (la página con
+sesión: cifras, desplegables, filtrar, ordenar, faltan, combinados; sin
+sesión y en móvil).

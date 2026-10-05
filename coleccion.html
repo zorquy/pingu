@@ -147,15 +147,22 @@
 
     <!-- El filtro (tanda 346). Nace escondido: sin JavaScript no filtra
          nada, y un control muerto es peor que ninguno. -->
+    <!-- LOS FILTROS DE LA EXPANSIÓN POR DENTRO (tanda 647). Cada desplegable
+         lo llena js/coleccion.js con lo que de verdad hay en esta colección
+         y se esconde si no hay nada que elegir. «Las que me faltan» solo
+         con sesión: sin cuenta no hay nada que falte. -->
     <div id="coleccionFiltros" class="coleccion-filtros hidden">
       <label class="coleccion-filtro-campo">
         <span class="sr-only">Buscar dentro de esta colección</span>
         <input id="filtroNombre" type="search" placeholder="Buscar en esta colección…" autocomplete="off" />
       </label>
-      <label class="coleccion-filtro-campo">
-        <span class="sr-only">Filtrar por tipo</span>
-        <select id="filtroTipo"></select>
-      </label>
+      <button type="button" class="coleccion-faltan hidden" id="filtroFaltan" aria-pressed="false">Las que me faltan</button>
+      <label class="coleccion-filtro-campo"><span class="sr-only">Filtrar por rareza</span><select id="filtroRareza"></select></label>
+      <label class="coleccion-filtro-campo"><span class="sr-only">Filtrar por tipo</span><select id="filtroTipo"></select></label>
+      <label class="coleccion-filtro-campo"><span class="sr-only">Filtrar por impresión</span><select id="filtroImpresion"></select></label>
+      <label class="coleccion-filtro-campo"><span class="sr-only">Filtrar por ilustrador</span><select id="filtroIlustrador"></select></label>
+      <label class="coleccion-filtro-campo"><span class="sr-only">Filtrar por precio</span><select id="filtroPrecio"></select></label>
+      <label class="coleccion-filtro-campo coleccion-filtro-orden"><span class="sr-only">Ordenar</span><select id="filtroOrden"></select></label>
       <span id="coleccionCuenta" class="coleccion-cuenta"></span>
     </div>
     <p id="coleccionVacia" class="empty-state hidden">Ninguna carta de esta colección encaja con lo que buscas.</p>

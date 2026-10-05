@@ -89,7 +89,7 @@ export const COLECCIONES_JUNTAS = [
   // la Classic se queda sospechoso o sin escribir, la fila volvía a salir
   // suelta —y salió—. Así que la regla a mano vuelve, como RESPALDO: por
   // prefijo, porque no se sabe cómo se llamará la siguiente entrega.
-  { padre: '30th', prefijo: '30th-' },
+  { padre: '30th', prefijo: '30th' },
   // Las promos de Wizards: «W Promotional» y el Ancient Mew, que TCGdex
   // tiene en un cajón llamado «Miscellaneous Promos» con una sola carta.
   { padre: 'basep', hijos: ['wp', 'miscp'] },

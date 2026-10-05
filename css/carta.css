@@ -543,6 +543,117 @@
   white-space: nowrap;
 }
 
+/* El pie de la carta (647): el precio y las impresiones que existen. */
+.coleccion-carta-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-xs);
+  margin-top: 2px;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.coleccion-marcas {
+  display: flex;
+  gap: 2px;
+}
+
+.coleccion-marcas em {
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* La que tienes, con su marca: una esquina azul, sin tapar la carta. */
+.coleccion-carta-tengo img,
+.coleccion-carta-tengo .coleccion-carta-vacia {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+/* Las cifras de la cabecera (647): valor del set, semanal, lo que tienes. */
+.coleccion-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-top: var(--e-xs);
+}
+
+.coleccion-cifras > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 104px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.coleccion-cifras small {
+  color: var(--text-dim);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.coleccion-cifras b {
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.coleccion-cifras .sube { color: var(--success); }
+.coleccion-cifras .baja { color: var(--danger); }
+
+/* «Las que me faltan»: un chip que se pulsa, de 44 (312). */
+.coleccion-faltan {
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coleccion-faltan[aria-pressed='true'] {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.coleccion-filtro-orden {
+  margin-left: auto;
+}
+
+/* La flecha del desplegable no pisa la palabra: sitio a la derecha. */
+.coleccion-filtros select {
+  max-width: 100%;
+  padding-right: 32px;
+}
+
+/* En el móvil los seis desplegables iban uno por renglón, una columna de
+   control detrás de control antes de ver una carta: de dos en dos. */
+@media (max-width: 599px) {
+  .coleccion-filtro-campo:has(select) {
+    flex: 1 1 calc(50% - var(--e-xs));
+  }
+  .coleccion-filtros select {
+    width: 100%;
+  }
+  .coleccion-filtro-orden {
+    flex-basis: 100%;
+  }
+}
+
 .coleccion-carta:hover .coleccion-carta-nombre {
   color: var(--navy);
   text-decoration: underline;

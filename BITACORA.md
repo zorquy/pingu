@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche) — PINGU-Claude (647 — la expansión por dentro)
+
+**Hecho** (tercera tanda del rediseño): /coleccion con filtros de
+rareza, tipo, impresión, ilustrador y precio (solo con lo que hay en esa
+colección), «las que me faltan» con sesión, orden por número, precio,
+rareza o nombre; cada carta con su precio y sus impresiones, y la que
+tienes marcada; y en la cabecera el valor del set, el semanal y «Tienes
+X / N». Sin migración.
+
+**Y de paso**: la regla del 30 aniversario vuelve a ser por prefijo `30th`
+(sin guion, como en la 347): con `30th-` la página del padre no se llevaba
+las suyas. Prueba 346 al día con la decisión de la 646.
+
+**Ficheros**: `js/coleccion-filtros.js` (nuevo), `js/coleccion.js`,
+`coleccion.html`, `js/carta-nucleo.js`, `css/carta.css`, `SCHEMA.md`.
+`js/catalogo-series.js`. En `pruebas`: 647 y 647-pantalla (nuevas), 346 y 533.
+
+**Siguiente**: 648, fuera el filtro de idioma de /mi-coleccion (dos
+catálogos: Pokémon y Pokémon Japón, como la API).
+
 ## 2026-10-05 (tarde, 3) — PINGU-Claude (646 — las expansiones son los episodios de TCGGO)
 
 **Hecho** (segunda tanda del rediseño): los sets con el mismo `tcggo_id`
