@@ -3054,7 +3054,10 @@ async function cartaScrydex() {
     const res = await fetch('/.netlify/functions/scrydex-sonda', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ ruta: `en/cards/${id}` }),
+      // `include=prices`: en Scrydex los precios son un extra del plan y la
+      // ficha viene sin ellos si no se piden. Sin esto, xy5-150 contestó
+      // `prices: []` (visto el 2026-10-06).
+      body: JSON.stringify({ ruta: `en/cards/${id}`, params: { include: 'prices' } }),
     })
     const r = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
