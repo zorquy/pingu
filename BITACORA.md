@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 4) — PINGU-Claude (650 — añadir como en TCGGO)
+
+**Hecho**: el «+ Añadir» va pegado a la carta en la ficha (con «Tienes
+N» al lado), y abre un diálogo que pregunta el idioma (chips con
+bandera), estado, versión si hay más de una, copias y lo pagado. Si ya
+la tienes, antes enseña «Ya en tu colección» con tus líneas y «Añadir
+más». Cada guardado pasa por `datos.anadir` (línea nueva, o una copia
+más de la misma): se acabó lo de que añadir una inglesa reescribiera la
+española. Y la ficha enseña «También tienes» con tus otras líneas de la
+carta. Fuera el bloque viejo de añadir (`mcEdAnadirBloque`,
+`tocarBolsillo`). Sin migración.
+
+**Ficheros**: `mi-coleccion.html` (y `cartas.html` regenerado),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `css/cardmarket.css`
+(bandera portuguesa), `SCHEMA.md`. En `pruebas`: 650-pantalla (nueva);
+al día 368, 383, 418, 422, 485, 564, 648-pantalla, 649-pantalla.
+
+**Pendiente (651)**: el Panel más visual y la gráfica del valor con un
+solo punto.
 ## 2026-10-05 (noche, 3) — PINGU-Claude (649 — /cartas es la estantería de Mi colección)
 
 **Hecho**: el catálogo público /cartas pasa a ser la misma pantalla de

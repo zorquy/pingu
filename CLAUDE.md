@@ -418,6 +418,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   del generador. Y Mi colección CONSERVA su pestaña de Expansiones: se
   pensó quitarla y PINGU paró («creo que es muy importante»), así que para
   quien tiene cuenta son dos puertas a la misma estantería, a propósito.
+- **Añadir una carta pasa SIEMPRE por `datos.anadir`, nunca por
+  `actualizar`** (tanda 650). El bloque de añadir solo salía en la ficha
+  de una carta que NO tenías; con una tuya, el único camino era el
+  formulario de EDITAR, y cambiarle el idioma ahí reescribía la línea:
+  PINGU añadió una inglesa y «las dos copias son inglesas», sin error.
+  Ahora el «+» pegado a la carta abre el diálogo `#mcAnadirDialogo`
+  (idioma con banderas, estado, versión, copias, pagado), con «Ya en tu
+  colección → Añadir más» si ya la tienes. Si añades un camino para
+  meter una carta, que llegue a `anadir`.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

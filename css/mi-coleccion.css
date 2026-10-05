@@ -2536,12 +2536,175 @@
    que es lo que se mira mientras tocas los desplegables de al lado. */
 .mc-ficha-carta {
   display: flex;
+  /* En columna desde la 650: debajo de la carta van sus acciones. */
+  flex-direction: column;
   position: sticky;
   top: 0;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   align-self: start;
   padding-top: var(--e-md);
+}
+
+/* Las acciones pegadas a la carta (650): el «+» y «Tienes N». */
+.mc-ficha-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+}
+
+.mc-ficha-mas span {
+  font-size: var(--t-lg);
+  line-height: 1;
+}
+
+/* Tus otras copias de la misma carta (650). */
+.mc-otras-copias {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0 0;
+}
+
+.mc-otras-rotulo {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-otra-copia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  cursor: pointer;
+}
+
+.mc-otra-copia .mc-ficha-chapas {
+  margin: 0;
+}
+
+/* El diálogo de añadir (650): la carta pequeña arriba, el nombre, y
+   las dos caras. */
+.mc-anadir-dialogo .mc-panel-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.mc-ad-carta {
+  display: flex;
+  justify-content: center;
+}
+
+.mc-ad-carta img {
+  width: 96px;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.mc-ad-nombre {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+.mc-ad-ya-titulo {
+  margin: 0 0 var(--e-sm);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.mc-ad-ya-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+
+.mc-ad-ya-linea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.mc-ad-ya-linea .mc-ficha-chapas {
+  margin: 0;
+}
+
+.mc-ad-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.mc-ad-idiomas-caja {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mc-ad-idiomas-caja legend {
+  padding: 0;
+  margin-bottom: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-idioma-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.mc-idioma-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-idioma-chip.activo {
+  border-color: var(--navy);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-ad-campos {
+  flex: none;
+}
+
+.mc-ad-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+  margin-top: var(--e-xs);
 }
 
 /* El aviso de «Guardado», que sustituye a los tres botones. Aparece y se

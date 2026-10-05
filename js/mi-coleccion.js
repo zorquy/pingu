@@ -39,7 +39,7 @@ import {
   varianteDe,
   euros,
   valorDeLinea, resumenDePrecio } from './cardmarket.js'
-import { bloqueDePrecio } from './precio-vista.js'
+import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
@@ -336,29 +336,134 @@ function idiomaDeLaVista() {
 // abrir una carta apuntada como «1.ª edición» de un set que TCGdex dice
 // que no las tiene se la habría cambiado a «normal» sin que nadie lo
 // pidiera. Y lo que no se sabe se ofrece entero: ver `variantes.js`.
-// Los botones de añadir una carta que no tienes (tanda 564): uno por
-// versión de ESA carta, y debajo con qué idioma y en qué estado va a
-// entrar. Las tres cosas las decidía la pantalla sin decirlo.
-function pintarAnadirVersiones(cardId, carta) {
-  const caja = $('mcEdAnadirVersiones')
+// ══════════════════════════════════════════════════════════════════
+// AÑADIR, COMO EN TCGGO (tanda 650)
+// ══════════════════════════════════════════════════════════════════
+//
+// PINGU: «yo agrego la primera copia en español y me pone tu copia en
+// español, pero después si quiero agregar una copia en inglés voy, cambio
+// el idioma, le doy a añadir en el panel de editar y me dice que ahora las
+// dos copias son inglesas. Eso está mal». El camino para añadir era el
+// formulario de EDITAR la línea que ya tenías, así que cambiar el idioma
+// ahí la reescribía. Añadir es otra cosa: una LÍNEA nueva, con su idioma,
+// y `datos.anadir` ya lo hacía bien — lo que faltaba era una puerta que
+// fuera a `anadir` y no a `actualizar`.
+//
+// La puerta es el «+» pegado a la carta, que abre este diálogo. Con la
+// carta ya en tu colección enseña primero lo que tienes («Ya en tu
+// colección», con «Añadir más»); si no, el formulario directamente.
+const anadir = { carta: null }
+
+// La carta por su id, esté donde esté: en tu colección (los dos mapas),
+// en la expansión abierta o en lo último que devolvió el buscador. Una
+// que no tienes no está en `cartas` (la lección de la 418).
+function cartaPorId(cardId) {
+  return cartas.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || null
+}
+
+const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
+
+function abrirAnadir(cardId) {
+  const c = cartaPorId(cardId)
+  if (!c || !sesion || !esMia) return
+  anadir.carta = c
+  const d = $('mcAnadirDialogo')
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  $('mcAdCarta').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="eager" />` : ''
+  // El set por su NOMBRE: las cartas de una expansión abierta traen de
+  // `tcg_sets` solo el código y la serie, así que se busca en la lista.
+  const set = c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets
+  $('mcAdNombre').innerHTML = `Añadiendo <b>${escapeHtml(nombreDe(c))}</b> · ${escapeHtml(nombreDeSet(set) || c.set_id)} ${escapeHtml(c.local_id || '')}`
+  const mias = misLineasDe(cardId)
+  if (mias.length) {
+    $('mcAdYaLista').innerHTML = mias.map((l) => `<div class="mc-ad-ya-linea"><span class="mc-ficha-chapas">${chipsDe(l)}</span><b>${l.cantidad} ${l.cantidad === 1 ? 'copia' : 'copias'}</b></div>`).join('')
+  }
+  caraDeAnadir(mias.length ? 'ya' : 'form')
+  if (!d.open) d.showModal()
+}
+
+// Las dos caras del diálogo. El formulario se prepara al pasar a él: con
+// el idioma que se recuerda para este catálogo (el del álbum, tanda 461),
+// el estado por defecto y la versión de la carta.
+function caraDeAnadir(cara) {
+  $('mcAdYa').classList.toggle('hidden', cara !== 'ya')
+  $('mcAdForm').classList.toggle('hidden', cara !== 'form')
+  if (cara !== 'form') return
+  const c = anadir.carta
+  const idiomas = idiomasDeLaVista()
+  const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
+  pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
+  $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
+  // Las versiones de ESA carta (563): con una sola no hay nada que elegir.
+  const vs = variantesParaEditar(c, null)
+  $('mcAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
+  $('mcAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
+  $('mcAdCantidad').value = '1'
+  $('mcAdCompra').value = ''
+  $('mcAdGuardar').disabled = false
+}
+
+// Los idiomas, con su bandera y de un toque: un `<select>` no admite la
+// bandera dentro, y es la bandera lo que se reconoce.
+function pintarIdiomasDeAnadir(idiomas, puesto) {
+  $('mcAdIdiomas').innerHTML = idiomas
+    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}">${banderaHtml(i.id)}<span>${escapeHtml(i.nombre)}</span></button>`)
+    .join('')
+}
+
+const idiomaDeAnadir = () => $('mcAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomaDeLaVista()
+
+async function guardarAnadir(e) {
+  e.preventDefault()
+  const c = anadir.carta
+  if (!c || !sesion) return
+  const boton = $('mcAdGuardar')
+  boton.disabled = true
+  const linea = {
+    card_id: c.id,
+    idioma: idiomaDeAnadir(),
+    estado: $('mcAdEstado').value,
+    variante: $('mcAdVariante').value,
+    cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcAdCantidad').value) || 1))),
+  }
+  // Lo que pagaste, solo si lo has escrito: un cero no es «no lo sé».
+  const pagado = Number(String($('mcAdCompra').value || '').replace(',', '.'))
+  if (Number.isFinite(pagado) && pagado > 0) linea.precio_compra = pagado
+  try {
+    const nueva = await datos.anadir(sesion.user.id, linea, mercado)
+    meterLinea(nueva, c)
+    $('mcAnadirDialogo').close()
+    showToast(`${nombreDe(c)} añadida en ${idiomaDe(nueva.idioma).nombre.toLowerCase()}.`, 'success')
+    repintar()
+    // Y si la ficha de esa carta está abierta, pasa a ser la de la copia
+    // que acabas de meter: lo que se acaba de hacer es tener la carta.
+    if ($('mcEditor').open && cartaAbierta === c.id) abrirEditor(nueva)
+  } catch (err) {
+    showToast(err.message, 'error')
+    boton.disabled = false
+  }
+}
+
+// Las acciones de la ficha (650): el «+» y, si la tienes, «Tienes N».
+function pintarAccionesDeFicha(l) {
+  const caja = $('mcEdAcciones')
   if (!caja) return
-  const vs = variantesDeCarta(carta, TODAS_LAS_VARIANTES)
-  // Como en Dex (tanda 565): la versión en un DESPLEGABLE y un solo botón.
-  // La 564 puso un botón por versión, y PINGU enseñó cómo lo hace Dex —un
-  // desplegable con todas y un «+»—, que además escala: una carta con
-  // cinco versiones son cinco botones apilados o un desplegable. Con una
-  // sola versión el desplegable sobra y no se enseña: la chapa de arriba
-  // ya la dice.
-  const sel = $('mcEdAnadirVariante')
-  sel.innerHTML = opciones(vs.map((v) => ({ id: v.nuestro, nombre: v.nombre })), vs[0]?.nuestro)
-  sel.closest('label').classList.toggle('hidden', vs.length < 2)
-  caja.innerHTML = `<button type="button" class="btn-primary" data-anadir-ficha="${escapeHtml(cardId)}">Añadir a mi colección</button>`
-  // Y con qué. El idioma y el estado salen de los dos desplegables del
-  // álbum, que desde la Pokédex o desde Buscar no se ven: decirlo es la
-  // diferencia entre elegir y que elijan por ti. Se puede cambiar justo
-  // después, porque la ficha se queda abierta ya como tuya.
-  const con = $('mcEdAnadirCon')
-  if (con) con.textContent = `Entrará en ${idiomaDe($('mcTocarIdioma')?.value || idiomaDeLaVista()).nombre.toLowerCase()} y en ${estadoDe($('mcTocarEstado')?.value || ESTADO_POR_DEFECTO).nombre}. Lo puedes cambiar aquí mismo al añadirla.`
+  caja.classList.toggle('hidden', !esMia || !sesion)
+  const n = misLineasDe(l.card_id).reduce((a, x) => a + (Number(x.cantidad) || 0), 0)
+  const tienes = $('mcEdTienes')
+  tienes.classList.toggle('hidden', n === 0)
+  tienes.textContent = n ? `Tienes ${n}` : ''
+}
+
+// Tus OTRAS líneas de esta carta, para cambiar la ficha a ellas.
+function pintarOtrasCopias(l) {
+  const caja = $('mcEdOtrasCopias')
+  if (!caja) return
+  const otras = misLineasDe(l.card_id).filter((x) => x.id !== l.id)
+  caja.classList.toggle('hidden', !otras.length)
+  caja.innerHTML = otras.length
+    ? `<span class="mc-otras-rotulo">También tienes</span>${otras.map((x) => `<button type="button" class="mc-otra-copia" data-linea-otra="${escapeHtml(x.id)}"><span class="mc-ficha-chapas">${chipsDe(x)}</span><b>×${x.cantidad}</b></button>`).join('')}`
+    : ''
 }
 
 function variantesParaEditar(carta, variante) {
@@ -1637,8 +1742,7 @@ function abrirEditor(l) {
   // nada y lo que hace falta es poder añadirla.
   const tuya = Boolean(l.id)
   $('mcEdCopiaBloque')?.classList.toggle('hidden', !tuya)
-  $('mcEdAnadirBloque')?.classList.toggle('hidden', tuya || !esMia)
-  if (!tuya && esMia) pintarAnadirVersiones(l.card_id, c)
+  pintarAccionesDeFicha(l)
   // Sin cuenta (tanda 649): en el catálogo público, o mirando la
   // colección pública de alguien, la ficha se abre igual — y en vez del
   // botón de añadir dice cómo tener una colección donde añadirla. El
@@ -1730,6 +1834,7 @@ function abrirEditor(l) {
   // El resumen de tu copia (645), con los campos plegados: se abre para
   // mirar, y Editar los despliega.
   if (tuya) pintarResumenDeCopia(l, precio)
+  pintarOtrasCopias(l)
   $('mcEdCopiaCampos')?.classList.add('hidden')
   $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
   // Y el histórico (643): se pide al abrir y se calla si no hay filas.
@@ -3113,20 +3218,8 @@ async function guardarMarcadas() {
   }
 }
 
-async function tocarBolsillo(cardId, variante = 'normal') {
-  const idioma = $('mcTocarIdioma').value
-  const estado = $('mcTocarEstado').value
-  try {
-    const nueva = await datos.anadir(sesion.user.id, { card_id: cardId, idioma, estado, variante, cantidad: 1 }, mercado)
-    const c = album.cartas.find((x) => x.id === cardId)
-    const set = (todosLosSets || []).find((s) => s.id === album.set)
-    meterLinea(nueva, c ? { ...c, tcg_sets: set ? { id: set.id, name: set.name, name_en: set.name_en || null, release_date: set.release_date } : null } : null)
-    pintarAlbum()
-    pintarResumen()
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-}
+// `tocarBolsillo` (el «+» con el idioma y el estado del álbum) se fue en
+// la 650: añadir pasa siempre por el diálogo, que pregunta el idioma.
 
 
 
@@ -4569,17 +4662,26 @@ function enganchar() {
   })
 
   // ── La nota, plegada (tanda 405) ──
-  $('mcEdAnadirVersiones').addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-anadir-ficha]')
-    if (!b) return
-    const id = b.dataset.anadirFicha
-    if (!id) return
-    await tocarBolsillo(id, $('mcEdAnadirVariante').value)
-    // Y la ficha se queda abierta, ya como TUYA: lo que se acaba de
-    // hacer es tener la carta, no cerrar una ventana.
-    const nueva = lineas.find((x) => x.card_id === id)
-    if (nueva) abrirEditor(nueva)
+  // ── Añadir, como en TCGGO (tanda 650) ──
+  $('mcEdMas')?.addEventListener('click', () => cartaAbierta && abrirAnadir(cartaAbierta))
+  $('mcEdTienes')?.addEventListener('click', () => $('mcEdCopiaBloque')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  $('mcEdOtrasCopias')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-linea-otra]')
+    const otra = b && lineas.find((x) => x.id === b.dataset.lineaOtra)
+    if (otra) abrirEditor(otra)
   })
+  for (const id of ['mcAdCerrar', 'mcAdYaCerrar', 'mcAdCancelar']) $(id)?.addEventListener('click', () => $('mcAnadirDialogo').close())
+  $('mcAdMas')?.addEventListener('click', () => caraDeAnadir('form'))
+  $('mcAdIdiomas')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.mc-idioma-chip')
+    if (!chip) return
+    for (const x of $('mcAdIdiomas').querySelectorAll('.mc-idioma-chip')) {
+      const puesto = x === chip
+      x.classList.toggle('activo', puesto)
+      x.setAttribute('aria-checked', puesto ? 'true' : 'false')
+    }
+  })
+  $('mcAdForm')?.addEventListener('submit', (e) => void guardarAnadir(e))
 
   // Quitar desde la ficha (tanda 574): es el cero del contador, con su
   // pregunta. Un camino que ya existía, con un nombre.

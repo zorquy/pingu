@@ -31566,3 +31566,68 @@ sin el filtro, una expansión del vistazo abierta en la página; el móvil).
 Al día con la estantería nueva: 324, 327, 330, 335, 343, 346 (el 30 en
 la serie `me`, como lo trae TCGGO), 533 (con `serie_id`), 646 y
 646-pantalla; y la 330 §2 con el `nombreEspanolDe` de la 629.
+
+## Tanda 650 — añadir como en TCGGO: el «+» pegado a la carta y el idioma a elegir (oct. 2026)
+
+PINGU, con un Groudon EX en español y TCGGO al lado: «el botón de añadir
+debería estar arriba; podrías poner en la carta unos globos como hay en
+la API. Y cuando agrego una carta puedo seleccionar el idioma, pero si
+quiero agregar una copia en otro idioma se vuelve loco: agrego la primera
+en español, luego cambio el idioma en el panel de editar, le doy a añadir
+en inglés, y me dice que ahora las dos copias son inglesas. Eso está
+mal». Y cómo lo hace TCGGO: «agregas en el plus y te dice en qué idioma
+añadirla; la segunda vez te sale lo que tienes, “ya tienes una en el
+inventario”, le das a añadir más y otra vez el idioma».
+
+**El fallo**: no había una puerta para AÑADIR desde la ficha de una carta
+que ya tenías. El bloque de añadir (564/565) solo salía en la ficha de una
+que NO tenías; con una tuya, lo único era el formulario de EDITAR la
+línea, y cambiarle el idioma ahí es reescribir esa línea — que es
+exactamente lo que `actualizar` hace y lo que PINGU vio. `datos.anadir`
+ya estaba bien desde siempre (una línea nueva, o una copia más de la que
+tiene el mismo idioma, estado y versión); lo que faltaba era llegar a ella.
+
+**Lo que hay ahora** (`js/mi-coleccion.js`, bloque «AÑADIR, COMO EN
+TCGGO»):
+
+- **Las acciones, debajo de la carta** (`#mcEdAcciones`, dentro de
+  `.mc-ficha-carta`, que pasa a columna): «+ Añadir» (`#mcEdMas`) y, si
+  la tienes, «Tienes N» (`#mcEdTienes`, suma de todas tus líneas de esa
+  carta; baja al bloque de tu copia). Solo con cuenta y en tu colección
+  (`pintarAccionesDeFicha`); sin cuenta sigue el bloque de «entra» de la
+  649. El bloque viejo `#mcEdAnadirBloque` (botón por versión + «entrará
+  en español y NM») se fue, y con él `tocarBolsillo` y
+  `pintarAnadirVersiones`.
+- **El diálogo** (`#mcAnadirDialogo`, una `mc-bandeja`: hoja abajo en el
+  móvil, centrada en el ordenador), con dos caras (`caraDeAnadir`):
+  «**Ya en tu colección**» —tus líneas de la carta con sus chapas y
+  copias, Cerrar y «Añadir más»— cuando ya la tienes, y el
+  **formulario** directamente cuando no: idioma en chips con bandera
+  (`pintarIdiomasDeAnadir`, `banderaHtml` de `precio-vista.js`; los del
+  catálogo que se mira, con el que se recuerda para ese catálogo puesto
+  —el de «al pulsar +» del álbum, 461/472—), estado, versión (solo si la
+  carta tiene más de una, 563), copias y «lo que pagaste por unidad».
+  `guardarAnadir` llama a `datos.anadir` y NUNCA a `actualizar`; cierra
+  el diálogo, repinta, y si la ficha de esa carta está abierta pasa a la
+  copia recién metida. Un `<select>` no admite la bandera dentro, por
+  eso chips; y `.pv-bandera` ganó la portuguesa, que no tenía dibujo.
+- **«También tienes»** (`#mcEdOtrasCopias`, `pintarOtrasCopias`): la
+  ficha es de UNA línea, así que con una copia española y otra inglesa
+  la otra no se veía desde ahí. Ahora salen como chapas que cambian la
+  ficha a esa línea.
+- `cartaPorId` busca la carta donde esté —tu colección (los dos mapas),
+  la expansión abierta o lo último del buscador—: una que no tienes no
+  está en `cartas` (la 418).
+
+**Lo que se queda igual a propósito**: el formulario de editar sigue
+dejando cambiar el idioma de una línea (corregir una que apuntaste mal
+es legítimo); lo que cambia es que ya no es el camino para añadir.
+
+**Pruebas**: `test-tanda-650-pantalla.mjs` (el «+» pegado a la carta y
+sin bloque de tu copia; el diálogo con banderas, español puesto y la
+versión solo si hay más de una; guardar en inglés con dos copias y lo
+pagado; con una que ya tienes, «Ya en tu colección» → «Añadir más» →
+inglés = OTRA línea y la española sigue española, en la base dos líneas;
+una tercera en inglés suma a la inglesa; sin cuenta no hay «+»; el
+móvil). Al día con el diálogo: 368, 383 (dos Escape), 418, 422, 485, 564,
+648-pantalla, 649-pantalla.

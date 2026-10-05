@@ -1141,6 +1141,16 @@
         <div class="mc-ficha">
           <div class="mc-ficha-carta">
             <div class="mc-editor-foto" id="mcEdFoto"></div>
+            <!-- LAS ACCIONES, PEGADAS A LA CARTA (tanda 650). PINGU, con
+                 TCGGO delante: «el botón de añadir debería estar arriba;
+                 podrías poner en la carta unos globos como hay en la API».
+                 El «+» abre el diálogo de añadir (que pregunta el idioma),
+                 y «Tienes N» baja a tu copia. Solo con cuenta y si la
+                 colección es la tuya: el JavaScript lo esconde si no. -->
+            <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
+              <button type="button" class="btn-primary mc-ficha-mas" id="mcEdMas"><span aria-hidden="true">+</span> Añadir</button>
+              <button type="button" class="btn-secondary hidden" id="mcEdTienes"></button>
+            </div>
           </div>
           <div class="mc-ficha-datos">
             <p class="mc-ficha-set" id="mcEdSet"></p>
@@ -1168,35 +1178,14 @@
               </div>
             </section>
 
-            <!-- Para una carta que NO tienes (tanda 418): la ficha se abre
-                 igual —la foto, los datos, el precio y la salida a la
-                 página entera— y en vez del bloque de «tu copia» sale el
-                 botón de añadirla. PINGU: «cuando clicas en una carta te
-                 lleva a la ficha completa, pero debería abrirte el pop-up
-                 con toda la info y después un botón para ir a la ficha». -->
-            <!-- UN BOTÓN POR VERSIÓN, Y DICIENDO CON QUÉ AÑADE (tanda
-                 564). Era «Añadir a mi colección» a secas, y añadía en
-                 «normal» —aunque la carta solo existiera en holo—, con el
-                 idioma y el estado de los dos desplegables del álbum, que
-                 desde la Pokédex o desde Buscar ni se ven. Tres decisiones
-                 tomadas por ti y ninguna escrita.
-                 Un diálogo extra preguntando las tres habría metido un
-                 paso en lo que más se hace; añadir y que lo corrijas
-                 después escribe algo que no has dicho. Los botones DICEN
-                 lo que van a hacer antes de pulsarlos, y con una sola
-                 versión —que es el caso de casi todas— sigue siendo un
-                 botón y un toque. -->
-            <section class="mc-ficha-bloque hidden" id="mcEdAnadirBloque">
-              <div class="mc-ficha-caja">
-                <p class="subtext">Todavía no tienes esta carta.</p>
-                <!-- La versión en un desplegable y un botón, como en Dex
-                     (tanda 565). Con una sola versión el desplegable se
-                     esconde: la chapa de arriba ya la dice. -->
-                <label class="mc-anadir-version hidden">Versión <select id="mcEdAnadirVariante"></select></label>
-                <div class="mc-anadir-versiones" id="mcEdAnadirVersiones"></div>
-                <p class="subtext" id="mcEdAnadirCon"></p>
-              </div>
-            </section>
+            <!-- Una carta que NO tienes (tanda 418) abre la misma ficha; lo
+                 que cambia es que no hay bloque de «tu copia». Añadirla es
+                 el «+» de debajo de la carta, que abre el diálogo de
+                 #mcAnadirDialogo (tanda 650): la 564 puso aquí un botón
+                 por versión «para no meter un paso», y PINGU pidió el
+                 paso —el diálogo de TCGGO que pregunta el idioma—, porque
+                 sin él añadir una segunda copia en otro idioma acababa en
+                 editar la que había. -->
 
             <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
                  catálogo público, y en vez del botón de añadir dice cómo
@@ -1220,6 +1209,11 @@
         <div class="mc-copia-resumen" id="mcEdCopiaResumen">
           <p class="mc-ficha-chapas" id="mcEdCopiaChapas"></p>
           <p class="mc-copia-vale" id="mcEdCopiaVale"></p>
+          <!-- TUS OTRAS COPIAS DE ESTA CARTA (tanda 650): la ficha es de
+               UNA línea (idioma + estado + versión), y con una en español
+               y otra en inglés la otra no se veía desde aquí. Cada chapa
+               cambia la ficha a esa línea. -->
+          <div class="mc-otras-copias hidden" id="mcEdOtrasCopias"></div>
           <div class="mc-copia-acciones">
             <button type="button" class="btn-primary" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos">Editar</button>
             <button type="button" class="btn-secondary mc-chip-peligro" id="mcEdQuitarResumen">Quitar</button>
@@ -1316,6 +1310,55 @@
              que ha ido bien, que se apaga solo. -->
         <p class="mc-ed-guardado" id="mcEdEstadoGuardado" role="status" aria-live="polite"></p>
       </form>
+    </dialog>
+
+    <!-- AÑADIR A MI COLECCIÓN, COMO EN TCGGO (tanda 650). PINGU: «agregas
+         en el plus y te dice en qué idioma añadirla; la segunda vez te
+         sale lo que tienes, ya tienes una en la colección, y le das a
+         añadir más». Dos caras en un diálogo: la de «ya la tienes» (tus
+         copias y «Añadir más») y la del formulario (idioma con banderas,
+         estado, versión si hay más de una, copias y lo que pagaste).
+         Cada guardado es una LÍNEA nueva —o una copia más de la línea
+         con el mismo idioma, estado y versión—; nunca reescribe otra. -->
+    <dialog class="mc-bandeja mc-anadir-dialogo" id="mcAnadirDialogo" aria-labelledby="mcAdTitulo">
+      <div class="mc-panel-cabecera">
+        <h2 id="mcAdTitulo">Añadir a mi colección</h2>
+        <button type="button" class="mc-panel-cerrar" id="mcAdCerrar" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="mc-panel-cuerpo">
+        <div class="mc-ad-carta" id="mcAdCarta"></div>
+        <p class="mc-ad-nombre" id="mcAdNombre"></p>
+        <div class="mc-ad-ya hidden" id="mcAdYa">
+          <p class="mc-ad-ya-titulo">Ya en tu colección</p>
+          <div class="mc-ad-ya-lista" id="mcAdYaLista"></div>
+          <div class="mc-ad-botones">
+            <button type="button" class="btn-secondary" id="mcAdYaCerrar">Cerrar</button>
+            <button type="button" class="btn-primary" id="mcAdMas">Añadir más</button>
+          </div>
+        </div>
+        <form class="mc-ad-form hidden" id="mcAdForm">
+          <fieldset class="mc-ad-idiomas-caja">
+            <legend>Idioma</legend>
+            <div class="mc-idioma-chips" id="mcAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
+          </fieldset>
+          <div class="mc-editor-campos mc-ad-campos">
+            <label>Estado <select id="mcAdEstado"></select></label>
+            <label id="mcAdVarianteLabel">Versión <select id="mcAdVariante"></select></label>
+            <label class="mc-contador">Copias
+              <span class="mc-contador-mando">
+                <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
+                <input type="number" id="mcAdCantidad" min="1" max="999" value="1" inputmode="numeric" />
+                <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
+              </span>
+            </label>
+            <label>Lo que pagaste por unidad (€, opcional) <input type="text" id="mcAdCompra" inputmode="decimal" placeholder="0,00" /></label>
+          </div>
+          <div class="mc-ad-botones">
+            <button type="button" class="btn-secondary" id="mcAdCancelar">Cancelar</button>
+            <button type="submit" class="btn-primary" id="mcAdGuardar">Guardar</button>
+          </div>
+        </form>
+      </div>
     </dialog>
 
     <!-- De dónde salen los precios (tanda 442: con su id, para poder
