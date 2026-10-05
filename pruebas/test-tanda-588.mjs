@@ -30,16 +30,29 @@ console.log('── 1. El ayudante puro ──')
   const eps = EPISODIOS.data.map(resumirEpisodio)
   check('una expansión resumida: id, nombre, código, cartas', eps[2].id === 415 && eps[2].codigo === 'PBL' && eps[2].nombre === 'Pitch Black' && eps[2].cartas === 120, JSON.stringify(eps[2]))
 
-  const porCodigo = episodioDeSet({ id: 'me05', name: 'Negro Absoluto', name_en: 'Pitch Black', tcg_online_code: 'PBL' }, eps)
-  check('un set se reconoce por su código de TCG Live', porCodigo.episodio?.id === 415 && porCodigo.por === 'codigo', JSON.stringify(porCodigo))
+  const porNombre0 = episodioDeSet({ id: 'me05', name: 'Negro Absoluto', name_en: 'Pitch Black', tcg_online_code: 'PBL' }, eps)
+  check('un set se reconoce PRIMERO por su nombre inglés exacto', porNombre0.episodio?.id === 415 && porNombre0.por === 'nombre', JSON.stringify(porNombre0))
+  const porCodigo = episodioDeSet({ id: 'me05', name: 'Negro Absoluto', name_en: 'Negro Absoluto', tcg_online_code: 'PBL' }, eps)
+  check('  …y si el nombre no casa, por el código de TCG Live', porCodigo.episodio?.id === 415 && porCodigo.por === 'codigo', JSON.stringify(porCodigo))
   check('  …sin distinguir mayúsculas', episodioDeSet({ id: 'x', name: 'x', tcg_online_code: 'pbl' }, eps).episodio?.id === 415)
+  // EL CASO ex7: nuestro «RR» (EX Team Rocket Returns) es el «RR» de Rising
+  // Rivals en TCGGO; ellos llaman «TRR» al nuestro. El nombre manda.
+  const rr = [{ id: 114, nombre: 'Rising Rivals', codigo: 'RR' }, { id: 143, nombre: 'EX Team Rocket Returns', codigo: 'TRR' }]
+  const ex7 = episodioDeSet({ id: 'ex7', name: 'Team Rocket Returns', name_en: 'EX Team Rocket Returns', tcg_online_code: 'RR' }, rr)
+  check('ex7 [RR] va a «EX Team Rocket Returns» por el nombre, no a Rising Rivals por el código', ex7.episodio?.id === 143 && ex7.por === 'nombre', JSON.stringify(ex7))
+  check('  …y pl2 [RR] sigue yendo a Rising Rivals', episodioDeSet({ id: 'pl2', name_en: 'Rising Rivals', name: 'Rivales Emergentes', tcg_online_code: 'RR' }, rr).episodio?.id === 114)
+  check('la puntuación no cuenta: «Celebrations: Classic Collection»', episodioDeSet({ id: 'cel25cc', name_en: 'Celebrations Classic Collection', name: 'x', tcg_online_code: 'CEL' }, [{ id: 35, nombre: 'Celebrations', codigo: 'CEL' }, { id: 36, nombre: 'Celebrations: Classic Collection', codigo: 'CEL' }]).episodio?.id === 36)
+  const palabras = episodioDeSet({ id: '30th-c', name_en: '30th Classic Collection', name: 'x', tcg_online_code: null }, [{ id: 431, nombre: '30th Celebration', codigo: '30C' }, { id: 440, nombre: '30th Celebration: Classic Collection', codigo: '30C' }])
+  check('como último recurso, la única expansión que contiene todas nuestras palabras', palabras.episodio?.id === 440 && palabras.por === 'palabras', JSON.stringify(palabras))
   const porNombre = episodioDeSet({ id: 'sv08.5', name: 'Evoluciones Prismáticas', name_en: 'Prismatic Evolutions', tcg_online_code: null }, eps)
   check('sin código, por el nombre inglés', porNombre.episodio?.id === 212 && porNombre.por === 'nombre', JSON.stringify(porNombre))
   check('  …y «Scarlet & Violet» casa con «Scarlet and Violet»', episodioDeSet({ id: 'x', name_en: 'Scarlet and Violet', name: 'x' }, [{ id: 1, nombre: 'Scarlet & Violet', codigo: 'SVI' }]).episodio?.id === 1)
   const nada = episodioDeSet({ id: 'base1', name: 'Base Set', name_en: 'Base Set', tcg_online_code: 'BS' }, eps)
   check('un set que no está se queda sin expansión diciendo por qué', nada.episodio === null && /BS/.test(nada.porque) && /Base Set/.test(nada.porque), nada.porque)
   const dos = episodioDeSet({ id: 'swsh12.5gg', name: 'Galería Galar', name_en: 'Crown Zenith Galarian Gallery', tcg_online_code: 'CRZ' }, [{ id: 21, nombre: 'Crown Zenith', codigo: 'CRZ' }, { id: 22, nombre: 'Crown Zenith Galarian Gallery', codigo: 'CRZ' }])
-  check('dos expansiones con el mismo código: decide el nombre', dos.episodio?.id === 22 && dos.por === 'codigo+nombre', JSON.stringify(dos))
+  check('dos expansiones con el mismo código: decide el nombre', dos.episodio?.id === 22 && dos.por === 'nombre', JSON.stringify(dos))
+  const dosSinNombre = episodioDeSet({ id: 'x', name: 'Galería', name_en: 'Galería', tcg_online_code: 'CRZ' }, [{ id: 21, nombre: 'Crown Zenith', codigo: 'CRZ' }, { id: 22, nombre: 'Crown Zenith Galarian Gallery', codigo: 'CRZ' }])
+  check('  …y con el nombre sin casar y dos del mismo código, no se elige', dosSinNombre.episodio === null && /2 expansiones/.test(dosSinNombre.porque))
   const empate = episodioDeSet({ id: 'x', name: 'Otro', name_en: 'Otro', tcg_online_code: 'CRZ' }, [{ id: 21, nombre: 'A', codigo: 'CRZ' }, { id: 22, nombre: 'B', codigo: 'CRZ' }])
   check('  …y si el nombre tampoco decide, no se elige', empate.episodio === null && /2 expansiones/.test(empate.porque))
 
@@ -56,6 +69,24 @@ console.log('── 1. El ayudante puro ──')
   check('«002» casa con su «2»', r.pares.find((p) => p.id === 'me05-002')?.idProduct === 895790)
   check('la 999 no existe allí: sin par y diciéndolo', r.sinPar.length === 1 && r.sinPar[0].id === 'me05-999' && /ninguna carta suya/.test(r.sinPar[0].porque), JSON.stringify(r.sinPar))
   check('sobran las 17 suyas que no tenemos', r.sobran === 17, String(r.sobran))
+  check('  …y las suyas dicen ser de «pbl» (prefijo del tcgid dominante)', r.prefijoDominante === 'pbl', String(r.prefijoDominante))
+  // Base Set: ilimitada y 1.ª edición con el MISMO número; solo una lleva
+  // nuestro id como tcgid. Y una sin par con el motivo y los nombres.
+  const base = [
+    { id: 1, card_number: '4', cardmarket_id: 100, tcgid: 'base1-4', name: 'Charizard', name_numbered: 'Charizard 4' },
+    { id: 2, card_number: '4', cardmarket_id: 101, tcgid: null, name: 'Charizard', name_numbered: 'Charizard 4 (1st Edition)' },
+    { id: 3, card_number: '5', cardmarket_id: 102, tcgid: null, name: 'Clefairy', name_numbered: 'Clefairy 5' },
+    { id: 4, card_number: '5', cardmarket_id: 103, tcgid: null, name: 'Clefairy', name_numbered: 'Clefairy 5 (1st Edition)' },
+  ]
+  const rb = emparejarPorNumero([{ id: 'base1-4', local_id: '4' }, { id: 'base1-5', local_id: '5' }], base)
+  check('Base Set: la 4 casa por tcgid con la ilimitada (100), no con la 1.ª edición', rb.pares.find((p) => p.id === 'base1-4')?.idProduct === 100 && rb.pares[0].por === 'tcgid', JSON.stringify(rb.pares))
+  check('  …y la 5, sin tcgid que decida, se queda sin par nombrando las dos', rb.sinPar.length === 1 && /2 cartas suyas con ese número: «Clefairy 5» sin tcgid, «Clefairy 5 \(1st Edition\)» sin tcgid/.test(rb.sinPar[0].porque), JSON.stringify(rb.sinPar))
+  // Trainer Gallery: nuestras «TG01» y las suyas «1» (expansión aparte).
+  const tg = emparejarPorNumero([{ id: 'swsh10tg-TG01', local_id: 'TG01' }, { id: 'swsh10tg-TG02', local_id: 'TG02' }], [{ id: 7, card_number: '1', cardmarket_id: 500 }, { id: 8, card_number: '2', cardmarket_id: 501 }, { id: 9, card_number: '30', cardmarket_id: 502 }])
+  check('Trainer Gallery: «TG01» casa con su «1» por los dígitos', tg.pares.length === 2 && tg.pares[0].idProduct === 500 && tg.pares[0].por === 'digitos' && tg.sobran === 1, JSON.stringify(tg.pares))
+  const amb = emparejarPorNumero([{ id: 'a-TG01', local_id: 'TG01' }, { id: 'a-1', local_id: '1' }], [{ id: 7, card_number: '1', cardmarket_id: 500 }])
+  check('  …pero no cuando los dígitos no son únicos por nuestro lado (TG01 y 1 contra su 1)', amb.pares.length === 1 && amb.pares[0].id === 'a-1' && amb.sinPar.length === 1, JSON.stringify([amb.pares, amb.sinPar]))
+  check('los números suyos sin usar se devuelven como ejemplo', JSON.stringify(tg.ejemplosSuyos) === '["30"]')
   const sinId = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: null }])
   check('una carta suya sin cardmarket_id deja la nuestra sin par, con ese motivo', sinId.pares.length === 0 && /sin|no le da/.test(sinId.sinPar[0].porque), JSON.stringify(sinId.sinPar))
   const dobles = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: 5 }, { id: 10, card_number: '1', cardmarket_id: 6 }])
@@ -137,7 +168,7 @@ console.log('── 3. Una pasada con tope de 9: la lista de expansiones y nada 
   const r2 = await procesar({ env: ENV, ...b, fetchImpl: t.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
   check('gasta 3: Pitch Black (1 página) y Chaos Rising (2 páginas)', r2.cuerpo.peticionesEstaLlamada === 3 && t.urls.slice(9).every((u) => /cards\?episode_id/.test(u)), JSON.stringify(t.urls.slice(9)))
   const pbl = r2.cuerpo.esteTurno.find((f) => f.set === 'me05')
-  check('Pitch Black → su expansión 415 por código: 20 pares de 22, 2 sin par', pbl?.episodio === 415 && pbl.por === 'codigo' && pbl.pares === 20 && pbl.sinPar === 2, JSON.stringify(pbl))
+  check('Pitch Black → su expansión 415 por nombre: 20 pares de 22, 2 sin par', pbl?.episodio === 415 && pbl.por === 'nombre' && pbl.pares === 20 && pbl.sinPar === 2, JSON.stringify(pbl))
   check('  …escribe 19 (la 1 ya tenía el 895789) por la función de la base, con por=tcggo', pbl.escritas === 19 && b.escrituras.filter((e) => e.id.startsWith('me05-')).length === 19 && b.escrituras.every((e) => e.por === 'tcggo') && !b.escrituras.some((e) => e.id === 'me05-1'), JSON.stringify(b.escrituras.slice(0, 2)))
   check('  …la 2 va al 895790', b.escrituras.find((e) => e.id === 'me05-2')?.id_product === 895790)
   const cri = r2.cuerpo.esteTurno.find((f) => f.set === 'me04')
@@ -153,6 +184,39 @@ console.log('── 3. Una pasada con tope de 9: la lista de expansiones y nada 
   check('cero peticiones', r3.cuerpo.peticionesEstaLlamada === 0 && t.urls.length === antes && r3.cuerpo.siguiente === false)
   const r4 = await procesar({ env: ENV, ...b, fetchImpl: t.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9, reiniciar: true })
   check('con `reiniciar` vuelve a pedir expansiones y sets', r4.cuerpo.peticionesEstaLlamada === 9 && r4.cuerpo.setsHechos === 0, JSON.stringify([r4.cuerpo.peticionesEstaLlamada, r4.cuerpo.setsHechos]))
+}
+
+console.log('── 5a. La guarda del set ajeno, y «solo estos sets» ──')
+{
+  // Un set nuestro «ex7» cuyo nombre no casa con nada, con código «CRI»
+  // (el de Chaos Rising): por código iría a Chaos Rising, y las cartas de
+  // allí llevan tcgid «cri-…» — hmm, mejor: llevan el id de OTRO set
+  // nuestro, «me04». Eso es exactamente ex7 → Rising Rivals.
+  const SETS_RR = [
+    { id: 'me04', name: 'Caos Creciente', name_en: 'Chaos Rising', tcg_online_code: 'CRI', release_date: '2026-05-22' },
+    { id: 'ex7', name: 'Team Rocket Returns', name_en: 'No Existe Aquí', tcg_online_code: 'CRI', release_date: '2004-11-01' },
+  ]
+  const NUESTRAS_RR = { me04: [{ id: 'me04-1', local_id: '1', cm_id_product_propio: null }], ex7: [{ id: 'ex7-1', local_id: '1', cm_id_product_propio: null }, { id: 'ex7-2', local_id: '2', cm_id_product_propio: null }] }
+  const t = tcggoDeMentira()
+  const fetchRR = async (url, o) => {
+    const r = await t.fetchImpl(url, o)
+    if (!/episode_id=413/.test(url)) return r
+    const j = JSON.parse(await r.text())
+    j.data = j.data.map((c) => ({ ...c, tcgid: `me04-${c.card_number}` }))
+    return { ok: true, status: 200, text: async () => JSON.stringify(j) }
+  }
+  const b = baseDeMentira()
+  const restRR = async (ruta) => (ruta.startsWith('tcg_sets?') ? SETS_RR : NUESTRAS_RR[decodeURIComponent(ruta.match(/set_id=eq\.([^&]+)/)[1])] || [])
+  await procesar({ env: ENV, ...b, restImpl: restRR, fetchImpl: fetchRR, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
+  const r = await procesar({ env: ENV, ...b, restImpl: restRR, fetchImpl: fetchRR, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
+  const fx = r.cuerpo.esteTurno.find((f) => f.set === 'ex7')
+  check('ex7 cae por código en Chaos Rising, pero sus cartas llevan «me04-…»: SOSPECHOSO y no se escribe', !!fx?.SOSPECHOSO && /«me04»/.test(fx.SOSPECHOSO) && fx.escritas === 0 && !b.escrituras.some((e) => e.id.startsWith('ex7-')), JSON.stringify(fx))
+  check('  …y me04, que sí es suyo, se escribe', b.escrituras.some((e) => e.id === 'me04-1'))
+  check('  …y el set queda apuntado como hecho con la marca', b.estados[CLAVE_ESTADO].hechos.ex7?.sospechoso === 'me04')
+  // «Solo estos sets»: me04 ya está hecho y se repite igual, sin tocar los demás.
+  const antes = t.urls.length
+  const r2 = await procesar({ env: ENV, ...b, restImpl: restRR, fetchImpl: fetchRR, pausa: sinPausa, ahora: AHORA, peticiones: 9, soloSets: ['ME04'] })
+  check('con soloSets se repite un set hecho (2 páginas) y solo ese', t.urls.length === antes + 2 && r2.cuerpo.esteTurno.length === 1 && r2.cuerpo.esteTurno[0].set === 'me04', JSON.stringify([t.urls.length - antes, r2.cuerpo.esteTurno.map((f) => f.set)]))
 }
 
 console.log('── 5b. La lista de expansiones se reanuda, y el plan de pago ──')
