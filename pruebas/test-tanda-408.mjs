@@ -206,7 +206,9 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
   // Y el Panel deja una PUERTA: una pantalla sin nadie que enlace a ella
   // es una pantalla que no existe.
   const { page: panel } = await abrir('/mi-coleccion.html')
-  check('  …y el Panel lleva a ella', await panel.locator('#mcVistazos [data-ir-a="cambios"]').isVisible())
+  // Desde la 651 las dos cifras de la tarjeta también llevan a Cambios: se
+  // mira el botón de la cabecera.
+  check('  …y el Panel lleva a ella', await panel.locator('#mcVistazos .link-btn[data-ir-a="cambios"]').isVisible())
   check('  …y el bloque gordo ya no está en el Panel',
     !(await panel.locator('#mcPanelResumen #mcBloqueCambios').count()))
   await panel.close()

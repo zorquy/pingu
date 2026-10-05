@@ -41,7 +41,12 @@ async function abrirAlbum({ viewport, cuantas = 20, hasTouch = false }) {
       cartas: Array.from({ length: n }, (_, i) => ({ id: `sv8-${i + 1}` })), updated_at: '2026-10-01T10:00:00Z',
     }]
   }, cuantas)
-  await page.route('**assets.tcgdex.net/**', (r) => r.abort())
+  // La foto se SIRVE, no se aborta (651): abortada, la cadena de respaldos
+  // salía a la red real por el proxy y, según lo rápido que fallara, la
+  // imagen ya se había quitado del bolsillo antes de mirarla — la prueba
+  // iba y venía sin que cambiara nada (la lección de la 441: llena la
+  // pantalla antes de mirarla).
+  await page.route(/assets\.tcgdex\.net|images\.tcggo\.com|limitlesstcg|jsdelivr|githubusercontent/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="#888"/></svg>' }))
   await page.goto(`${BASE}/mi-coleccion.html?ver=carpetas&album=alb-1`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#mcAlbArchivador .mc-bolsillo[data-indice]', { timeout: 8000 }).catch(() => {})
   await page.waitForTimeout(600)
