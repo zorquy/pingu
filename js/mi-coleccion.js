@@ -3431,7 +3431,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,

@@ -55,7 +55,7 @@ export function cartasQueSirven(candidatas, cuantas = CARTAS_POR_DIA) {
   for (const c of candidatas || []) {
     const precio = Number(c?.precio)
     if (!c?.id || !Number.isFinite(precio) || precio < PRECIO_MINIMO) continue
-    if (!c.image_path && !c.image_scrydex) continue
+    if (!c.image_path && !c.image_scrydex && !c.image_tcggo) continue
     if (fuera.length && Math.abs(fuera[fuera.length - 1].precio - precio) < 0.005) continue
     fuera.push(c)
     if (fuera.length >= cuantas) break

@@ -25,7 +25,7 @@ export { marcasLegales }
 
 // `name` es el inglés y `name_es` el que se enseña (tanda 335).
 export const COLUMNAS =
-  'id,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types'
+  'id,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,image_tcggo,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types'
 
 const MERCADO = 'WEST'
 

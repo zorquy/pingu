@@ -347,7 +347,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   como respaldo de precio. El bloque de precio es UNO
   (`js/precio-vista.js`) para /carta y la ficha de /mi-coleccion. El plan
   es de pago por peticiones: cualquier función que llame a TCGGO cuenta
-  cada petición, tiene tope diario y para en 429/403.
+  cada petición, tiene tope diario y para en 429/403. Y desde la 640 **el
+  catálogo también sale de TCGGO, solo**: `tcggo-catalogo` (cada semana)
+  recorre sus expansiones occidentales y japonesas, conserva NUESTROS ids
+  (son la llave de las colecciones y de las URLs) y crea lo que no tenemos
+  (`tcggo-<id>`, `origen = 'tcggo'`, que TCGdex no visita). Nada se pulsa:
+  `tcggo-emparejar-auto` casa los sets nuevos cada hora. **La numeración
+  de tandas de esta sesión va desde la 640** (590–596 y 620–623 son de la
+  otra).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

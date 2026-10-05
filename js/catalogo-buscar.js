@@ -16,7 +16,7 @@ export function sinPocket(q) {
 
 // Lo justo para pintar un resultado y una carta. Sin `rarity`: pedirla
 // obliga a pedir también `rarity_en` (tanda 523), y aquí no se enseña.
-export const COLUMNAS_RESULTADO = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,tcg_sets(name,name_en,tcg_online_code,serie_id)'
+export const COLUMNAS_RESULTADO = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,tcg_sets(name,name_en,tcg_online_code,serie_id)'
 
 const setsPorMercado = new Map()
 

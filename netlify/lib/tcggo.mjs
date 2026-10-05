@@ -313,3 +313,89 @@ export function filaDeSetTcggo(setId, episodio) {
     cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
   }
 }
+
+// ── El catálogo desde TCGGO (tanda 640) ──
+
+// El catálogo japonés es otro «juego» en su API: `/pokemon-jp/…`. La base
+// de serie acaba en `/pokemon`; la japonesa se saca de ella para que
+// TCGGO_BASE siga valiendo para las dos.
+export function baseJpDe(base) {
+  return String(base || '').replace(/\/pokemon$/, '/pokemon-jp')
+}
+
+// Su «supertype» a nuestra categoría (la de TCGdex: Pokemon | Trainer | Energy).
+export function categoriaDe(supertype) {
+  const s = String(supertype || '').toLowerCase()
+  if (/pok/.test(s)) return 'Pokemon'
+  if (/trainer|entrenador/.test(s)) return 'Trainer'
+  if (/energ/.test(s)) return 'Energy'
+  return null
+}
+
+// El id de un set que TCGGO tiene y nosotros no: su código en minúsculas
+// si lo tiene y no está cogido (es lo que más se parece a los ids de
+// TCGdex: «sv1a», «pbl»), y si no, «tg-<id suyo>».
+export function idDeSetNuevo(episodio, idsNuestros) {
+  const cogidos = new Set([...(idsNuestros || [])].map((x) => String(x).toLowerCase()))
+  const codigo = String(episodio?.codigo || '').trim().toLowerCase().replace(/[^a-z0-9.-]/g, '')
+  if (codigo && !cogidos.has(codigo)) return codigo
+  return `tg-${episodio?.id}`
+}
+
+export function filaDeSetNuevo(episodio, idsNuestros) {
+  return {
+    id: idDeSetNuevo(episodio, idsNuestros),
+    name: episodio?.nombre || `Expansión ${episodio?.id}`,
+    name_en: episodio?.nombre || null,
+    tcg_online_code: episodio?.codigo || null,
+    release_date: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
+    card_count_total: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
+    logo_tcggo: typeof episodio?.logo === 'string' && /^https?:\/\//.test(episodio.logo) ? episodio.logo : null,
+    tcggo_id: episodio?.id ?? null,
+  }
+}
+
+// De una carta suya a la fila de `tcggo_guardar_cartas`. Con `nuestra`
+// (la carta que ya tenemos) se conserva NUESTRO id, número y nombre —son
+// la llave de las colecciones— y solo se añade lo de TCGGO; sin ella, la
+// carta se crea con id «tcggo-<id suyo>».
+export function filaDeCartaTcggo(carta, { setId, nuestra = null } = {}) {
+  const cm = Number(carta?.cardmarket_id)
+  const tp = Number(carta?.tcgplayer_id)
+  const hp = Number(carta?.hp)
+  return {
+    id: nuestra?.id || `tcggo-${carta?.id}`,
+    set_id: nuestra?.set_id || setId,
+    local_id: nuestra?.local_id ?? String(carta?.card_number ?? ''),
+    name: nuestra?.name || carta?.name || `tcggo-${carta?.id}`,
+    name_en: carta?.name || null,
+    tcggo_id: Number.isInteger(carta?.id) ? carta.id : null,
+    image_tcggo: typeof carta?.image === 'string' && /^https?:\/\//.test(carta.image) ? carta.image : null,
+    cm_id_product: Number.isInteger(cm) && cm > 0 ? cm : null,
+    tp_id_product: Number.isInteger(tp) && tp > 0 ? tp : null,
+    rarity_en: typeof carta?.rarity === 'string' && carta.rarity.trim() ? carta.rarity.trim() : null,
+    hp: Number.isInteger(hp) && hp > 0 ? hp : null,
+    illustrator: typeof carta?.artist?.name === 'string' && carta.artist.name.trim() ? carta.artist.name.trim() : null,
+    category: categoriaDe(carta?.supertype),
+  }
+}
+
+// Qué set nuestro es una expansión suya (al revés que `episodioDeSet`):
+// por el código (sin caja), si no por el nombre inglés exacto, y solo si
+// hay UNO. Es para el catálogo japonés, donde no hay pares de antes: allí
+// nuestros ids de TCGdex («SV1a») SON sus códigos.
+export function setDeEpisodio(episodio, sets) {
+  const codigo = codigoComparable(episodio?.codigo)
+  if (codigo) {
+    const porCodigo = (sets || []).filter((s) => codigoComparable(s.tcg_online_code) === codigo || codigoComparable(s.id) === codigo)
+    if (porCodigo.length === 1) return { set: porCodigo[0], por: 'codigo' }
+    if (porCodigo.length > 1) return { set: null, porque: `${porCodigo.length} sets nuestros con el código ${codigo}` }
+  }
+  const nombre = nombreComparable(episodio?.nombre)
+  if (nombre) {
+    const porNombre = (sets || []).filter((s) => [s.name_en, s.name].map(nombreComparable).includes(nombre))
+    if (porNombre.length === 1) return { set: porNombre[0], por: 'nombre' }
+    if (porNombre.length > 1) return { set: null, porque: `${porNombre.length} sets nuestros con ese nombre` }
+  }
+  return { set: null, porque: 'ninguno nuestro con ese código ni ese nombre' }
+}

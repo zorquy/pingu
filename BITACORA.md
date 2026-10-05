@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 2) — PINGU-Claude (640 — el catálogo desde TCGGO, solo)
+
+**Numeración**: 590–596 y 620–623 son de la otra sesión; las nuestras
+siguen desde la 640.
+
+**Hecho**: sin botones. `tcggo-emparejar-auto` (cada hora, sets nuevos),
+`tcggo-precios` (ya) y la nueva `tcggo-catalogo` (cada 5 min hasta cubrir
+la semana): recorre TODAS las expansiones de TCGGO, occidentales y
+japonesas, conserva nuestros ids y les añade tcggo_id, foto, ids de
+producto, rareza, PS, ilustrador; crea lo que no tenemos (variantes,
+promos de tienda, staff, sets enteros) con id `tcggo-<id>` / `tg-<id>`.
+Foto de TCGGO en la cadena de escaneos y en todos los selects.
+
+**MIGRACIÓN pendiente de ejecutar**: `supabase-migration-tcggo-catalogo.sql`.
+Sin ella la función se salta diciéndolo. Nada más que hacer: arranca sola.
+
+**Ficheros**: `supabase-migration-tcggo-catalogo.sql`,
+`netlify/functions/tcggo-catalogo.mjs`, `netlify/functions/tcggo-emparejar-auto.mjs`
+(nuevos); `netlify/lib/tcggo.mjs`, `js/escaneo-carta.js`, `js/mas-caro.js`
+y los diez módulos con `image_scrydex` en un select (`image_tcggo` al
+lado); `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: `test-tanda-640.mjs`
+(nuevo) y el doble.
+
 ## 2026-10-06 (noche) — PINGU-Claude (589 — precios por idioma desde TCGGO)
 
 **Hecho**: TCGGO pasa a ser la fuente de precios y enlaces: mínimo Near

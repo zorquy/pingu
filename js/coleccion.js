@@ -129,7 +129,7 @@ async function masCartas(cuantas) {
   const ids = prefijo ? [] : idsDeColeccion(setId)
   let consulta = supabase
     .from('tcg_cards')
-    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,types,category')
+    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,image_tcggo,types,category')
     .eq('market', MERCADO)
   if (prefijo) consulta = consulta.like('set_id', `${prefijo}%`)
   else if (ids.length) consulta = consulta.in('set_id', ids)

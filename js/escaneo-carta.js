@@ -205,6 +205,11 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   // arte es siempre el inglés.
   const aMano = carta?.image_path ? null : rutaDeAssetDeTCGdex(carta)
   if (aMano) cadena.push(comoEspejo(aMano))
+  // La foto de TCGGO (tanda 640), detrás de las de TCGdex —que tienen el
+  // arte en español— y delante de Limitless. Para las cartas que creó
+  // TCGGO es la ÚNICA, y para las japonesas sin escaneo en TCGdex, la que
+  // faltaba. Va entera: es una URL de su CDN.
+  if (typeof carta?.image_tcggo === 'string' && /^https?:\/\//.test(carta.image_tcggo)) cadena.push(carta.image_tcggo)
   // Limitless SOLO para las occidentales: sus ficheros son el arte
   // inglés (`_R_EN_`). Enseñar la impresión inglesa de una carta japonesa
   // sería peor que no enseñar ninguna — en una guía sobre cartas

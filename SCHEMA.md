@@ -30709,3 +30709,70 @@ español, 39 € la copia alemana sin mínimo alemán, chapas, botones,
 gradeadas con el color de la casa, /carta cambiando de idioma, el logo de
 TCGGO en el álbum). Al día: 586, 586-pantalla, 369, 375 (el valor es el
 mínimo), 563 y 311 (`--casa-*` es paleta de identidad).
+
+
+## Tanda 640 — el catálogo desde TCGGO, solo (oct. 2026)
+
+(La numeración salta: 590–596 y 620–623 son de la otra sesión de PINGU;
+las nuestras siguen desde la 640.)
+
+PINGU, con la ficha de TCGGO delante: «todo esto no puedes hacerlo tú en
+vez de darme botones… yo cogería todo de la nueva API, todo: desde los
+sets, las variantes, las promocionales de tiendas, las cartas de staff».
+Dos decisiones:
+
+1. **Nada que pulsar.** Lo que hay que repetir lo hacen funciones
+   programadas: `tcggo-emparejar-auto` (cada hora; solo los sets sin
+   expansión decidida, o sea los nuevos: lo normal es que cueste cero
+   peticiones), `tcggo-precios` (cada cinco minutos hasta cubrir el día) y
+   la nueva **`tcggo-catalogo`** (cada cinco minutos hasta cubrir la
+   SEMANA). Los botones de /admin se quedan para forzar algo a mano.
+2. **TCGGO dice qué existe; nuestros ids se quedan.** El id de una carta
+   es la llave de las colecciones, de las fichas y de las URLs que indexa
+   Google: no se cambia. Lo que hace `tcggo-catalogo` es recorrer TODAS
+   sus expansiones —las occidentales, que ya casó el emparejador, y las
+   japonesas (`/pokemon-jp`), que casa aquí por el código (nuestros ids de
+   TCGdex, «SV1a», SON sus códigos) o por el nombre inglés— y, carta a
+   carta: si la tenemos (por el id de Cardmarket del par, por su `tcgid`
+   igual a nuestro id, o por el número), conservar nuestro id y añadirle
+   `tcggo_id`, `image_tcggo`, los ids de producto si faltaban, la rareza
+   inglesa, los PS, el ilustrador y la categoría —solo lo que estaba vacío
+   (la 508)—; si no la tenemos, CREARLA con id `tcggo-<id suyo>` en nuestro
+   set, o en un set nuevo si la expansión tampoco existía (id = su código
+   en minúsculas si está libre, si no `tg-<id>`). Migración
+   `supabase-migration-tcggo-catalogo.sql`: `tcggo_guardar_cartas` (upsert
+   por `(id, market)` con los `coalesce` en el lado nuestro) y
+   `tcggo_crear_sets` (`on conflict do nothing`).
+
+**Las cartas creadas no las conoce TCGdex**: llevan `origen = 'tcggo'`,
+`detalle_at` puesto y `detalle_lang = 'tcggo'`, con lo que
+`cartas-detalle` no las visita (serían 404 uno tras otro). Su foto es la
+de TCGGO: `image_tcggo` entra en `cadenaDeEscaneo` detrás del espejo de
+TCGdex —que tiene el arte en español— y delante de Limitless; para ellas
+es la única, y para las 3.483 japonesas sin escaneo en TCGdex (la nota de
+la 486), la que faltaba. Todos los `select` que piden `image_scrydex`
+piden `image_tcggo` (guarda en `test-tanda-640.mjs`, la lección de la
+523).
+
+**Lo japonés, a ciegas y con red.** Desde este contenedor no se puede
+pedir `/pokemon-jp` (la red cierra RapidAPI), así que el código da por
+hecho que las expansiones y las cartas japonesas vienen con la MISMA forma
+que las occidentales (su documentación lo dice: «Japanese singles expose
+Cardmarket prices under lowest_near_mint_JP»). Las dos guardas: una
+expansión sin un solo `cardmarket_id`… no para aquí (en Japón puede no
+haberlo), pero una carta sin número no casa con nada y se crea con el
+número vacío, que se ve; y el estado apunta expansión a expansión qué
+casó y qué se creó (`esteTurno` en la respuesta de la función), que es lo
+que hay que mirar la primera semana.
+
+**Lo que esta tanda NO hace todavía**: quitar Scrydex (sus diez funciones,
+sus botones, sus 22 pruebas) y pasar los precios japoneses
+(`lowest_near_mint_JP`). Lo segundo va cuando la primera pasada del
+catálogo japonés enseñe lo que trae; lo primero, detrás, cuando el
+japonés ya salga de TCGGO. El visual del bloque de precio («un desastre»,
+PINGU) va aparte.
+
+**Pruebas**: `test-tanda-640.mjs` (los ayudantes; la función con TCGGO y
+base de mentira: occidental por pares, japonés por código, casar por id de
+Cardmarket / número, crear cartas y sets, la semana, sin tiempo, sin
+emparejador, sin migración; la cadena de fotos; la guarda de los selects).
