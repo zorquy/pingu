@@ -69,6 +69,8 @@ const T = {
   tcg_cards: [],
   tcg_archetypes: [],
   tcg_sets: [],
+  // Lo que vale cada expansión, día a día (tanda 646).
+  tcg_set_valor: [],
   // Los nombres y el orden que se les pone a las eras desde /admin (550).
   tcg_eras: [],
   tcg_card_play: [],
@@ -499,6 +501,9 @@ sembrar('__FAKE_CARPETA_CARTAS__', 'collection_folder_cards', (i) => ({
 
 sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
   id: `set-${i}`, name: `Set ${i}`, market: 'WEST', logo_tcggo: null,
+}))
+sembrar('__FAKE_SET_VALOR__', 'tcg_set_valor', (i) => ({
+  set_id: 'set-0', market: 'WEST', dia: '2026-10-05', valor_cm: null, valor_tp: null, origen: 'tcggo',
 }))
 sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
   market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,

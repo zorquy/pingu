@@ -177,7 +177,7 @@ console.log('── 4. La guarda de los selects: donde se pide image_scrydex se 
   // era el cuerpo (tanda 644, lo cazó PINGU al ejecutarla). Se mira en las
   // tres migraciones de TCGGO que quedan por correr.
   const cojas = []
-  for (const m of ['tcggo-catalogo', 'tcggo-japones', 'tcggo-historial', 'tcggo-precios']) {
+  for (const m of ['tcggo-catalogo', 'tcggo-japones', 'tcggo-historial', 'tcggo-precios', 'tcggo-expansiones']) {
     const t = readFileSync(`/home/user/pingu/supabase-migration-${m}.sql`, 'utf8')
     const abre = (t.match(/^as \$\$$/gm) || []).length
     const cierra = (t.match(/^\$\$;$/gm) || []).length
