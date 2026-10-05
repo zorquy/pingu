@@ -84,39 +84,38 @@ console.log('\n── 2. El selector: TRES banderas y nada más (tanda 509) ─�
 {
   const { page, errores } = await abrir()
   const ops = await suyo(page).evaluate((n) => [...n.options].map((o) => ({ v: o.value, t: o.textContent, ti: o.title })))
-  check('son tres', ops.length === 3, JSON.stringify(ops))
-  check('  …español, inglés y japonés',
-    ops.map((o) => o.v).join(',') === 'es,en,ja', ops.map((o) => o.v).join(','))
+  // Desde la 648 son DOS catálogos, como en la API: Pokémon y Pokémon
+  // Japón. El inglés no se borra, se esconde (como el chino).
+  check('son dos (648)', ops.length === 2, JSON.stringify(ops))
+  check('  …Pokémon y Pokémon Japón',
+    ops.map((o) => o.v).join(',') === 'es,ja', ops.map((o) => o.v).join(','))
   check('  …y el chino NO está', !ops.some((o) => o.v === 'zh'), ops.map((o) => o.v).join(','))
-  // PINGU: «no metas contexto, mete el emoji de la bandera que toca».
-  check('  …solo la bandera, sin una letra',
-    ops.every((o) => !/[a-zA-ZÁÉÍÓÚáéíóúñ]/.test(o.t)), ops.map((o) => o.t).join(' '))
+  // Con dos catálogos que se llaman como en la API, la bandera va CON el
+  // nombre (648): lo que se elige ya no es un idioma.
+  check('  …la bandera con el nombre',
+    ops.map((o) => o.t).join(' | ') === '🇬🇧 Pokémon | 🇯🇵 Pokémon Japón', ops.map((o) => o.t).join(' | '))
   // Pero el nombre NO se pierde: una bandera a secas no se puede leer en
   // voz alta, así que va en el `title` y en el `aria-label`.
   check('  …con su nombre para quien no ve la bandera',
-    ops.map((o) => o.ti).join(',') === 'Español,Inglés,Japonés', ops.map((o) => o.ti).join(','))
+    ops.map((o) => o.ti).join(',') === 'Pokémon,Pokémon Japón', ops.map((o) => o.ti).join(','))
   check('  …y el desplegable dice cuál está puesto',
-    /Español/.test(await suyo(page).getAttribute('aria-label')), await suyo(page).getAttribute('aria-label'))
+    /Pokémon/.test(await suyo(page).getAttribute('aria-label')), await suyo(page).getAttribute('aria-label'))
   check('empieza en español', (await suyo(page).inputValue()) === 'es')
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Español e inglés son el MISMO catálogo ──')
+console.log('\n── 3. El catálogo occidental se lee en español (648) ──')
+// Esta sección cambiaba al «inglés» y comprobaba que era el mismo catálogo
+// con el otro rótulo. Desde la 648 lo que se elige es el CATÁLOGO —Pokémon
+// o Pokémon Japón, como en la API— y el inglés ya no se ofrece: queda
+// escondido como el chino (quien lo tuviera guardado vuelve al occidental).
 {
   const { page, errores } = await abrir()
-  check('en español, el nombre traducido', /Órdenes del Jefe/.test(await primera(page)), await primera(page))
-  await elegir(page, 'en', 1200)
-  check('en inglés, el nombre de la carta', /Boss/.test(await primera(page)), await primera(page))
-  // Y la colección NO se vuelve a pedir: es el mismo mercado, solo cambia
-  // cuál de los dos nombres se enseña. Si se recargara, se vería el
-  // «cargando» y la lista parpadearía por nada.
-  check('  …y la carta sigue ahí, sin recargar', (await page.locator('#mcCartas .mc-carta').count()) === 1,
-    String(await page.locator('#mcCartas .mc-carta').count()))
-  check('  …y el cargando no se ha encendido', await page.locator('#mcCargando').isHidden())
-  await elegir(page, 'es', 1200)
-  check('y al volver, el traducido otra vez', /Órdenes del Jefe/.test(await primera(page)), await primera(page))
+  check('en el occidental, el nombre traducido', /Órdenes del Jefe/.test(await primera(page)), await primera(page))
+  const valores = await suyo(page).evaluate((n) => [...n.options].map((o) => o.value))
+  check('  …y el inglés ya no se puede elegir', !valores.includes('en'), valores.join(','))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

@@ -110,15 +110,14 @@ const filtro = await estado(page, 'mcFiltroIdioma')
 check('el filtro empieza en «todos»', filtro.valor === '', JSON.stringify(filtro))
 check('y tampoco ofrece el chino', !filtro.opciones.includes('zh'), filtro.opciones.join(','))
 
-console.log('\n── 2. El catálogo inglés: ESTE era el fallo ──')
-// Mismo mercado (el occidental), otro idioma. `cambiarVista` se sale por
-// un atajo cuando el mercado no cambia, así que si los desplegables se
-// repintaran DESPUÉS de ese atajo, el caso más común —pasar de español a
-// inglés— sería justo el único que no se arreglaría.
-await cambiar(page, 'en')
+console.log('\n── 2. El catálogo «inglés» ya no se ofrece (648) ──')
+// Esta sección cambiaba al inglés y comprobaba que el idioma con el que se
+// añade lo seguía. Desde la 648 el inglés no es un catálogo que se elija
+// (son dos: Pokémon y Pokémon Japón, como en la API); el idioma de una
+// copia se elige al añadirla, y el inglés sigue entre las opciones.
 for (const sel of ['mcAnadirIdioma', 'mcTocarIdioma']) {
   const e = await estado(page, sel)
-  check(`${sel} pasa a inglés`, e.valor === 'en', JSON.stringify(e))
+  check(`${sel} sigue ofreciendo el inglés como idioma de la copia`, e.opciones.includes('en'), e.opciones.join(','))
 }
 
 console.log('\n── 3. El catálogo japonés ──')
@@ -145,7 +144,7 @@ const banderas = await page.evaluate(() =>
   [...document.querySelectorAll('.mc-mercado:not([hidden])')]
     .flatMap((s) => [...s.options].map((o) => o.value)))
 check('el desplegable no ofrece el chino', !banderas.includes('zh'), banderas.join(','))
-check('  …y sigue ofreciendo los tres que se quieren', ['es', 'en', 'ja'].every((v) => banderas.includes(v)), banderas.join(','))
+check('  …y ofrece los dos catálogos (648): el occidental y el japonés', ['es', 'ja'].every((v) => banderas.includes(v)) && !banderas.includes('en'), banderas.join(','))
 // Y NO SE BORRA: la vista sigue declarada, solo marcada. Si alguien la
 // quitara del todo, las cartas chinas guardadas se quedarían sin saber de
 // qué catálogo son — que es por lo que se escondió en vez de borrarse.
@@ -169,11 +168,12 @@ await page.evaluate(() => {
   el.dispatchEvent(new Event('change'))
 })
 await page.waitForTimeout(200)
-await cambiar(page, 'en')
-check('en inglés sigue siendo inglés', (await estado(page, 'mcTocarIdioma')).valor === 'en',
+// Desde la 648 el otro catálogo es el japonés (el inglés ya no se elige).
+await cambiar(page, 'ja')
+check('en el japonés es japonés', (await estado(page, 'mcTocarIdioma')).valor === 'ja',
   JSON.stringify(await estado(page, 'mcTocarIdioma')))
 await cambiar(page, 'es')
-check('y al volver al español, el francés que elegí', (await estado(page, 'mcTocarIdioma')).valor === 'fr',
+check('y al volver al occidental, el francés que elegí', (await estado(page, 'mcTocarIdioma')).valor === 'fr',
   JSON.stringify(await estado(page, 'mcTocarIdioma')))
 
 console.log('\n── 6. Una carta nueva nace con el idioma del catálogo ──')
