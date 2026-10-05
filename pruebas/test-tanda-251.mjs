@@ -269,7 +269,9 @@ console.log('\n── 9. Las estadísticas, sin scroll lateral ──')
 
   check('ya no hay tabla que arrastrar', (await page.locator('.partidas-matriz-scroll, table.partidas-matriz').count()) === 0)
   check('hay un bloque por mazo mío', (await page.locator('.partidas-mazo-bloque').count()) === 1)
-  check('con sus ocho rivales en lista', (await page.locator('.partidas-enf').count()) === 8, String(await page.locator('.partidas-enf').count()))
+  // En #partidasMatriz: desde la 628 la pestaña tiene más listas de barras
+  // (por mazo, por rival, por dónde), y esta prueba es la de la matriz.
+  check('con sus ocho rivales en lista', (await page.locator('#partidasMatriz .partidas-enf').count()) === 8, String(await page.locator('#partidasMatriz .partidas-enf').count()))
 
   // Lo que se pidió: que NADA se salga de ancho.
   const desborde = await page.evaluate(() => {
@@ -288,16 +290,16 @@ console.log('\n── 9. Las estadísticas, sin scroll lateral ──')
   // El orden: primero lo que MÁS te cruzas, aunque no sea lo que mejor
   // se te da. Gardevoir va 5-5 (10 partidas) y Snorlax 2-0 (100%): si se
   // ordenara por porcentaje, mandaría Snorlax.
-  const nombres = await page.locator('.partidas-enf-rival > span').allInnerTexts()
+  const nombres = await page.locator('#partidasMatriz .partidas-enf-rival > span').allInnerTexts()
   check('manda lo más jugado, no lo mejor', nombres[0] === 'Gardevoir', nombres.join(' / '))
   check('y el 100% de dos partidas no se cuela arriba', nombres.indexOf('Snorlax') > 0, nombres.join(' / '))
 
-  const primera = await page.locator('.partidas-enf').first().innerText()
+  const primera = await page.locator('#partidasMatriz .partidas-enf').first().innerText()
   check('cada fila lleva su récord y su porcentaje', /5-5/.test(primera) && /50%/.test(primera), primera.replace(/\n/g, ' '))
 
   // La barra tiene que MEDIR: sin esto, una barra fija pasaría por
   // buena y no diría nada de nada.
-  const barras = await page.locator('.partidas-enf-barra > span').evaluateAll((n) => n.map((x) => x.style.width))
+  const barras = await page.locator('#partidasMatriz .partidas-enf-barra > span').evaluateAll((n) => n.map((x) => x.style.width))
   check('la barra de un 100% va llena', barras[nombres.indexOf('Snorlax')] === '100%', barras.join(' / '))
   check('la de un 0% va vacía', barras[nombres.indexOf('Lost Box')] === '0%', barras.join(' / '))
   check('y la del 5-5 va por la mitad', barras[0] === '50%', barras[0] || '')

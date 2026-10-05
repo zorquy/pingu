@@ -569,6 +569,8 @@ sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   rival_mazo_nombre: 'Rival',
   resultado: 'win',
   jugada_el: new Date().toISOString().slice(0, 10),
+  // La de la tanda 627, con su valor por defecto de la base (tanda 437).
+  user_deck_id: null,
 }))
 
 // Las guías de uno y las correcciones que le sugieren (tanda 253).
@@ -1037,6 +1039,21 @@ function consulta(tabla, estado = {}) {
       }
     }
     // Escrituras
+    // Escribir una columna que la base aún no tiene (`__SIN_COLUMNAS__`)
+    // falla ENTERA, como PostgREST (tanda 627): es lo que pasa si el
+    // cliente manda una columna nueva antes de que se ejecute su migración.
+    if (['insert', 'upsert', 'update'].includes(st.op)) {
+      const faltan = (typeof window !== 'undefined' && window.__SIN_COLUMNAS__?.[tabla]) || []
+      const cuerpos = Array.isArray(st.cuerpo) ? st.cuerpo : [st.cuerpo]
+      const falta = faltan.find((c) => cuerpos.some((f) => f && Object.prototype.hasOwnProperty.call(f, c)))
+      if (falta) return { data: null, error: { code: 'PGRST204', message: `Could not find the '${falta}' column of '${tabla}' in the schema cache` } }
+      // El disparador de supabase-migration-partidas-mazo-guardado.sql: una
+      // partida solo se enlaza con un mazo TUYO (ni con uno público de otro).
+      if (tabla === 'match_log') {
+        const ajeno = cuerpos.find((f) => f?.user_deck_id && !T.user_decks.some((d) => d.id === f.user_deck_id && d.user_id === (f.user_id || sesion?.user?.id)))
+        if (ajeno) return { data: null, error: { code: '42501', message: 'Ese mazo no es tuyo.' } }
+      }
+    }
     if (st.op === 'insert' || st.op === 'upsert') {
       // `user_id … default auth.uid()` (tanda 580): las tablas de cada uno
       // rellenan el dueño con la sesión cuando el cliente no lo manda —
@@ -1074,6 +1091,9 @@ function consulta(tabla, estado = {}) {
       // QUÉ se borró, solo que algo desapareció.
       anotarEscritura(tabla, afectadas.map((f) => ({ ...f })), 'delete')
       T[tabla] = (T[tabla] || []).filter((f) => !afectadas.includes(f))
+      // `match_log.user_deck_id … on delete set null` (tanda 627): borrar
+      // un mazo deja sus partidas, sin el enlace.
+      if (tabla === 'user_decks') for (const p of T.match_log) if (afectadas.some((d) => d.id === p.user_deck_id)) p.user_deck_id = null
       // Como PostgREST: un DELETE devuelve cuerpo SOLO si se pidió
       // (supabase-js manda `Prefer: return=representation` al encadenar
       // .select()). Sin eso, `data` es null aunque se haya borrado —
