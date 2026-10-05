@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 3) — PINGU-Claude (646 — las expansiones son los episodios de TCGGO)
+
+**Hecho** (segunda tanda del rediseño): los sets con el mismo `tcggo_id`
+se pliegan en uno (el 30 aniversario es UNO, como en la API; una Trainer
+Gallery va dentro de su set); la lista a mano queda de respaldo. /cartas
+pasa de filas a tarjetas con logo, era, fecha, cartas, valor del set y
+semanal; la estantería lleva valor y semanal, y lo tuyo del hijo cuenta en
+el padre; la página de un hijo lleva al padre con las cartas de todos. El
+valor lo escribe la pasada de precios cada día en `tcg_set_valor` (también
+los japoneses).
+
+**MIGRACIÓN pendiente**: `supabase-migration-tcggo-expansiones.sql` (tras
+la del catálogo). Sin ella la web funciona igual, solo sin valor ni
+semanal.
+
+**Ficheros**: `supabase-migration-tcggo-expansiones.sql` (nueva),
+`netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`js/catalogo-series.js`, `js/cartas.js`, `js/coleccion.js`,
+`js/mi-coleccion.js`, `css/carta.css`, `css/mi-coleccion.css`,
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 646 y 646-pantalla (nuevas), 640,
+y el doble (`tcg_set_valor`).
+
+**Siguiente**: 647, la expansión por dentro (filtros de rareza, tipo,
+impresión, ilustrador y precio, «las que me faltan»); luego quitar el
+filtro de idioma.
 ## 2026-10-05 (tarde) — PINGU-Claude (625 — el repaso de los efectos del formato)
 
 **Leídas vuestras 644b y 645** (el `$` suelto de la migración y la ficha

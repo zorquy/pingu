@@ -8,7 +8,8 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { rejillaDeCartas, rutaDeColeccion, TIPOS_ES } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, nombreDeSet, eraDeSet, reglasQueNoCasan, plegarHermanos, esUnaEra, CARTAS_DE_UNA_EXPANSION } from './catalogo-series.js'
+import { esDelTCG, nombreDeSet, eraDeSet, reglasQueNoCasan, plegarHermanos, variacionSemanal, esUnaEra, CARTAS_DE_UNA_EXPANSION } from './catalogo-series.js'
+import { urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
 import { logClientError } from './error-log.js'
 
 const MERCADO = 'WEST'
@@ -34,7 +35,7 @@ function insignia(set) {
 async function colecciones() {
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,tcg_online_code,release_date,card_count_official,card_count_total')
+    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,tcg_online_code,release_date,card_count_official,card_count_total,tcggo_id')
     .eq('market', MERCADO)
     // Lo más nuevo primero, y las que no tienen fecha al final. Aquí sí
     // funciona `nullslast`: es una columna PROPIA de la tabla, no una
@@ -88,6 +89,17 @@ async function colecciones() {
   // pintar nada — y la RLS no da error, devuelve una lista vacía.
   const { data: filas } = await supabase.from('tcg_eras').select('id,nombre').eq('market', 'WEST')
   const eras = new Map((filas || []).map((e) => [e.id, { nombre: e.nombre }]))
+
+  // Lo que vale cada expansión y cómo va la semana (646), de
+  // `tcg_set_valor`. Si la tabla no está, las tarjetas salen sin esas
+  // dos cifras y la página sigue.
+  try {
+    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    const { data: valores } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', MERCADO).gte('dia', desde).order('dia').limit(5000)
+    variacionDeSets = variacionSemanal(valores || [])
+  } catch {
+    variacionDeSets = new Map()
+  }
 
   const series = agruparEnSeries(soloTCG, eras)
 
@@ -211,15 +223,40 @@ export function agruparEnSeries(sets, eras = null) {
   ]
 }
 
+// La tarjeta de una expansión (646): el logo sobre su arte, el nombre, la
+// fecha, y tres cifras —cartas, valor del set, semanal—. Las dos últimas
+// solo si TCGGO las ha dado. El logo: el de TCGGO, el de Scrydex, el de
+// TCGdex, y si no hay ninguno, el código en grande.
+let variacionDeSets = new Map()
+const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+
+function logoDeSet(s) {
+  return s.logo_tcggo || s.logo_scrydex || (s.logo_path ? urlDeLogo(s.logo_path, MERCADO) : null) || urlDeLogoPorPartes(s.serie_id, s.id, MERCADO) || null
+}
+
+function cifraSemanal(v) {
+  if (!v || v.pct === null) return '<b class="sin">—</b>'
+  const clase = v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'sin'
+  return `<b class="${clase}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
+}
+
 function filaDeColeccion(s) {
   const total = s.card_count_official || s.card_count_total
+  const logo = logoDeSet(s)
+  const v = variacionDeSets.get(s.id) || null
   return (
     `<li><a class="serie-fila" href="${escapeHtml(rutaDeColeccion(s))}">` +
-    `<span class="serie-codigo">${escapeHtml(insignia(s))}</span>` +
-    `<span class="serie-nombre">${escapeHtml(nombreDeSet(s))}</span>` +
-    `<span class="serie-fecha">${escapeHtml(s.release_date ? fechaCorta(s.release_date) : '—')}</span>` +
-    `<span class="serie-cuantas">${total ? escapeHtml(`${total} cartas`) : ''}</span>` +
-    '</a></li>'
+    `<span class="serie-arte"${logo ? ` style="--arte:url('${escapeHtml(logo)}')"` : ''}>${
+      logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" width="160" height="72" onerror="this.remove()" />` : `<span class="serie-sin-logo">${escapeHtml(insignia(s))}</span>`
+    }</span>` +
+    '<span class="serie-cuerpo">' +
+    `<span class="serie-cabeza"><span class="serie-nombre">${escapeHtml(nombreDeSet(s))}</span><span class="serie-codigo">${escapeHtml(insignia(s))}</span></span>` +
+    `<span class="serie-fecha">${escapeHtml([eraDeSet(s), s.release_date ? fechaCorta(s.release_date) : ''].filter(Boolean).join(' · ') || '—')}</span>` +
+    '<span class="serie-cifras">' +
+    `<span class="serie-cuantas"><small>Cartas</small><b>${total ? escapeHtml(String(total)) : '—'}</b></span>` +
+    `<span class="serie-valor"><small>Valor del set</small><b>${v?.ahora ? escapeHtml(`${fmtEntero.format(v.ahora)} €`) : '<span class="sin">—</span>'}</b></span>` +
+    `<span class="serie-semanal"><small>Semanal</small>${cifraSemanal(v)}</span>` +
+    '</span></span></a></li>'
   )
 }
 

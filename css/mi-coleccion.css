@@ -1636,6 +1636,17 @@
   min-width: 48px;
 }
 
+/* Lo que vale la expansión y el semanal (646), bajo el progreso. */
+.mc-set-valor {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-set-valor .sube { color: var(--success); }
+.mc-set-valor .baja { color: var(--danger); }
+.mc-set-valor .igual { color: var(--text-mid); }
+
 /* La fecha y el código, en una línea. `flex-wrap` porque un código y una
    fecha larga no caben juntos en una tarjeta estrecha. */
 .mc-set-sub {

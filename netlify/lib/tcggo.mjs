@@ -75,8 +75,15 @@ export function resumirEpisodio(e) {
     impresas: Number.isInteger(e.cards_printed_total) ? e.cards_printed_total : null,
     serie: typeof e.series?.name === 'string' && e.series.name.trim() ? e.series.name.trim() : null,
     serieId: typeof e.series?.slug === 'string' && e.series.slug.trim() ? e.series.slug.trim() : null,
+    // Lo que vale la expansión entera (646): la suma de sus mínimos en
+    // Cardmarket y en TCGplayer, en euros. Es lo que su web enseña como
+    // «Valor del set», y cambia cada día.
+    valorCm: totalPositivo(e.prices?.cardmarket?.total),
+    valorTp: totalPositivo(e.prices?.tcgplayer?.total),
   }
 }
+
+const totalPositivo = (x) => (typeof x === 'number' && Number.isFinite(x) && x > 0 ? x : null)
 
 // Qué expansión suya es un set nuestro. PRIMERO por el nombre inglés
 // exacto (sin puntuación), y solo si ningún nombre casa, por el CÓDIGO de
@@ -334,6 +341,8 @@ export function filaDeSetTcggo(setId, episodio) {
     fecha: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
     cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
     impresas: Number.isInteger(episodio?.impresas) && episodio.impresas > 0 ? episodio.impresas : null,
+    valor_cm: totalPositivo(episodio?.valorCm),
+    valor_tp: totalPositivo(episodio?.valorTp),
   }
 }
 

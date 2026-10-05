@@ -31168,3 +31168,57 @@ ninguna moneda. Rigor de 47 mutaciones, todas cazadas — la de Robustez
 «aguanta aunque ya tenga daño» salió sin detectar en la primera pasada
 porque el resultado es el mismo KO; lo que cambia es que el registro dice
 «aguanta con 10 PS» de alguien que no aguanta, y eso es lo que se mira.
+## Tanda 646 — las expansiones son los episodios de TCGGO (oct. 2026)
+
+Segunda tanda del rediseño. PINGU: «la estructura de sets, eliminaría
+toda la lógica y cogería directamente todos los sets que vienen en el
+catálogo de la API: la API dice que el 30 aniversario es UNO entero, con
+las clásicas dentro».
+
+**Plegar por expansión** (`js/catalogo-series.js`): dos sets nuestros
+con el mismo `tcggo_id` son una expansión y se pliegan en uno
+(`padresPorEpisodio`): el padre es el más grande —el set base— y con
+empate el de id más corto (el que no lleva «.5»). Nuestros ids no
+cambian, son la llave de las colecciones y de las URLs; cambia lo que se
+ve. Quien tiene los sets en la mano los registra (`registrarEpisodios`;
+`plegarHermanos` lo hace sola) y `padreDeColeccion` contesta primero por
+TCGGO y después por la lista a mano (`COLECCIONES_JUNTAS`), que se queda
+de RESPALDO para lo que TCGGO no empareja (Wizards, Unown, Radiant…). Y
+encadena: la copia de una Trainer Gallery (a mano) sube hasta su set
+(TCGGO). `idsDeColeccion` devuelve también los hijos registrados, así que
+la página de /coleccion de un hijo lleva al padre con las cartas de todos
+(`coleccion.js` pide los hermanos por `tcggo_id` al abrir).
+
+**Consecuencia que hay que saber**: la 536 había puesto el 30 aniversario
+en DOS filas y la 534 dejó las Trainer Gallery aparte. Con la API de
+guía las dos cosas cambian: el 30 es uno, y una Trainer Gallery va
+dentro de su set, que es como TCGGO las numera. Es lo que PINGU pidió
+esta vez («como la API»); si vuelve a querer la galería aparte, se quita
+su `tcggo_id` del emparejado y la lista a mano vuelve a mandar.
+
+**El valor del set y el semanal**: TCGGO da por expansión la suma de sus
+mínimos (`prices.cardmarket.total`, `prices.tcgplayer.total`).
+`resumirEpisodio` lo saca (`valorCm`, `valorTp`), `filaDeSetTcggo` lo
+lleva, y `tcggo_guardar_sets` —reescrita en
+`supabase-migration-tcggo-expansiones.sql`— lo guarda en la tabla nueva
+`tcg_set_valor` (una fila por set, mercado y día; lectura pública). La
+pasada de precios la llama una vez al día, y desde esta tanda también
+para los sets JAPONESES con la lista que guarda el catálogo. Las
+columnas de `tcg_sets` NO se tocan: así ningún `select` del cliente pide
+una columna que no exista antes de la migración (la lección de la 624);
+el cliente lee `tcg_set_valor` y, si la tabla no está, sigue sin esas
+cifras. `variacionSemanal(filas)` compara la última fila con la más vieja
+de la ventana (ocho días): con una sola hay valor y no hay semanal.
+
+**/cartas**: de filas a tarjetas (`css/carta.css`): el logo sobre su
+propio arte desenfocado (el truco de la estantería), nombre, código,
+era y fecha, y tres cifras —cartas, valor del set, semanal—. Las clases
+de la fila se quedan (`serie-fila`, `serie-nombre`…), que es por lo que
+las pruebas de la 324 y la 533 siguen valiendo. **/mi-coleccion ›
+Expansiones**: registra los episodios antes de contar (lo tuyo del hijo
+cuenta en el padre) y cada tarjeta lleva «11.134 € · −7 %».
+
+**Pruebas**: `test-tanda-646.mjs` (plegar, encadenar, ids, variación,
+episodio, pasada de precios con JP, migración y guardas) y
+`test-tanda-646-pantalla.mjs` (/cartas, la estantería y la página del
+hijo). El doble siembra `tcg_set_valor` (`__FAKE_SET_VALOR__`).

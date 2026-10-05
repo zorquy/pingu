@@ -196,6 +196,23 @@ export async function procesar({
         }
       }
     }
+    // Y los sets JAPONESES (646), con la lista que guarda el catálogo: su
+    // valor sale igual, y si la lista es de antes de la 646 va sin él.
+    const listaJp = Array.isArray(catalogo?.episodiosJp?.lista) ? catalogo.episodiosJp.lista : []
+    if (listaJp.length && setsPorEpisodioJp.size) {
+      const porIdJp = new Map(listaJp.map((e) => [e.id, e]))
+      const filasJp = []
+      for (const [idEpisodio, sets] of setsPorEpisodioJp) {
+        const e = porIdJp.get(idEpisodio)
+        if (!e) continue
+        for (const setId of sets) filasJp.push(filaDeSetTcggo(setId, e))
+      }
+      if (filasJp.length) {
+        try {
+          setsApuntados += Number(await guardarSets(filasJp, 'JP')) || 0
+        } catch { /* los japoneses no paran la pasada de precios */ }
+      }
+    }
     await persistir()
   }
 

@@ -838,87 +838,148 @@
   padding: 0;
 }
 
-/* La fila. El código va a un ancho FIJO para que las insignias queden
-   en columna: si cada una midiera lo suyo, los nombres empezarían a
-   distinta altura y la lista dejaría de leerse de un vistazo. */
-.serie-fila {
+/* ── LA TARJETA DE UNA EXPANSIÓN (tanda 646) ──
+   Era una fila con el código delante; PINGU la quiso como la de TCGGO:
+   el logo sobre su propio arte desenfocado, el nombre, la era y la
+   fecha, y tres cifras —cartas, valor del set y cómo va la semana—.
+   Las clases de la fila se quedan (serie-fila, serie-nombre, serie-codigo,
+   serie-fecha, serie-cuantas): es el mismo enlace con más dentro. */
+.serie-lista {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 104px 88px;
-  align-items: center;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--e-md);
-  /* Lo que se pulsa mide 44 (tanda 312), y se le pide ALTO: una fila
-     ocupa todo el ancho de su caja, estirarla no significa nada. */
+}
+
+.serie-fila {
+  display: flex;
+  flex-direction: column;
   min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-md);
-  text-decoration: none;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
   color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s var(--ease);
 }
 
 .serie-fila:hover {
+  border-color: var(--navy);
+}
+
+/* El logo sobre su propio arte, ampliado y desenfocado (el truco de la
+   estantería, tanda 405): no hace falta pedir el arte de una carta. */
+.serie-arte {
+  display: grid;
+  position: relative;
+  place-items: center;
+  height: 112px;
+  overflow: hidden;
   background: var(--ice);
 }
 
-.serie-codigo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 24px;
-  padding: 2px var(--e-sm);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+.serie-arte::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--arte);
+  background-position: center;
+  background-size: cover;
+  filter: blur(18px) saturate(1.4);
+  opacity: 0.55;
+  transform: scale(1.4);
+}
+
+.serie-arte img {
+  position: relative;
+  max-width: 70%;
+  max-height: 72px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Sin logo, el código grande: todas las tarjetas tienen cabecera. */
+.serie-sin-logo {
+  position: relative;
   font-family: var(--font-display);
-  font-size: var(--t-2xs);
-  letter-spacing: 0.02em;
+  font-size: var(--t-2xl);
   color: var(--text-mid);
-  /* No cede: un hijo de grid con contenido corto se encoge igual, y una
-     insignia a medio recortar no dice nada (tanda 320). */
-  overflow: hidden;
+}
+
+.serie-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-md) var(--e-lg) var(--e-lg);
+}
+
+.serie-cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+
+.serie-codigo {
+  flex: none;
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
 .serie-nombre {
+  font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--t-md);
-  /* Su propia caja, o `ellipsis` no hace nada y el nombre largo empuja
-     la fecha fuera de la fila. */
+  font-size: var(--t-lg);
+  /* Su propia caja, o `ellipsis` no hace nada (tanda 320). */
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.serie-fecha,
-.serie-cuantas {
+.serie-fecha {
   font-size: var(--t-xs);
   color: var(--text-mid);
-  white-space: nowrap;
 }
 
-.serie-cuantas {
-  text-align: right;
+.serie-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
 }
 
-/* En el móvil no caben cuatro columnas: la fecha y la cuenta se van
-   debajo del nombre, que es lo que de verdad se busca. */
-@media (max-width: 599px) {
-  .serie-fila {
-    grid-template-columns: 56px minmax(0, 1fr);
-    grid-template-areas: 'codigo nombre' 'codigo datos';
-    row-gap: 2px;
-  }
-  .serie-codigo {
-    grid-area: codigo;
-  }
-  .serie-nombre {
-    grid-area: nombre;
-  }
-  .serie-fecha {
-    grid-area: datos;
-  }
-  .serie-cuantas {
-    display: none;
-  }
+.serie-cifras > span {
+  display: flex;
+  flex-direction: column;
+  padding: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  text-align: center;
 }
+
+.serie-cifras small {
+  color: var(--text-dim);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.serie-cifras b {
+  font-size: var(--t-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.serie-cifras .sube { color: var(--success); }
+.serie-cifras .baja { color: var(--danger); }
+.serie-cifras .sin { color: var(--text-dim); font-weight: 500; }
 
 /* El dato de combate con su icono (tanda 328). En la carta de verdad la
    debilidad es un símbolo, no la palabra «Fuego»; aquí igual, con el

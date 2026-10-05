@@ -17,7 +17,7 @@ import {
   TIPOS_ES,
 } from './carta-nucleo.js'
 import { normalizeSearch } from './tcgdex.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion, idsDeColeccion, nombreDeSet, nombresDeCartaParaBuscar } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, idsDeColeccion, registrarEpisodios, nombreDeSet, nombresDeCartaParaBuscar } from './catalogo-series.js'
 
 const MERCADO = 'WEST'
 
@@ -56,13 +56,26 @@ async function cargar() {
   // fuera y los que ya indexó Google tienen que seguir llegando.
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code,tcggo_id')
     .eq('market', MERCADO)
     .or(filtroDeColeccion(clave))
     .limit(1)
   let set = data?.[0] || null
   // Una colección que no es del TCG de mesa no tiene página aquí.
   if (error || !set || !esDelTCG(set)) return fallo()
+
+  // Los sets que son la MISMA expansión de TCGGO (646): se registran para
+  // que `padreDeColeccion` e `idsDeColeccion` contesten por TCGGO. Si la
+  // consulta falla, queda la lista a mano, que es lo que había.
+  if (set.tcggo_id) {
+    const { data: hermanos } = await supabase
+      .from('tcg_sets')
+      .select('id,card_count_official,card_count_total,tcggo_id')
+      .eq('market', MERCADO)
+      .eq('tcggo_id', set.tcggo_id)
+      .limit(20)
+    registrarEpisodios(hermanos || [])
+  }
 
   // Y si este set es parte de otro —la Classics Collection lo es del 30
   // aniversario—, la página es la del padre: es un set solo, y tener dos
@@ -71,7 +84,7 @@ async function cargar() {
   if (padre) {
     const { data: suyo } = await supabase
       .from('tcg_sets')
-      .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+      .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code,tcggo_id')
       .eq('market', MERCADO)
       .eq('id', padre)
       .limit(1)
@@ -105,7 +118,8 @@ async function cargar() {
   // La cuenta declarada del set plegado es solo la de su mitad: con las
   // cartas ya contadas se repinta con el número de verdad. Un «160
   // cartas» encima de 190 es peor que no decir ninguna.
-  if (prefijoDeColeccion(setId) && caja) {
+  // (Y lo mismo para una expansión de TCGGO con varios sets nuestros, 646.)
+  if ((prefijoDeColeccion(setId) || idsDeColeccion(setId).length > 1) && caja) {
     caja.innerHTML = cabeceraDeColeccion(
       { ...set, card_count_official: null, card_count_total: null },
       todas.length

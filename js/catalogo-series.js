@@ -110,9 +110,65 @@ export const COLECCIONES_JUNTAS = [
   { padre: 'swsh12tg', hijos: ['swsh12.5tg'] },
 ]
 
-// Si este set es parte de otro, cuál. `null` si es él mismo.
+// ── LOS SETS QUE SON UNA EXPANSIÓN DE TCGGO (tanda 646) ──
+//
+// PINGU: «la estructura de sets, eliminaría toda la lógica y cogería
+// directamente todos los sets que vienen en el catálogo de la API: la API
+// dice que el 30 aniversario es UNO entero, con las clásicas dentro».
+//
+// Así que la regla manda sobre la lista a mano de arriba: dos sets
+// nuestros con el MISMO `tcggo_id` son una expansión y se pliegan en uno.
+// El padre es el más grande (el set base; con empate, el de identificador
+// más corto, que es el que no lleva «.5»). Nuestros ids no cambian —son la
+// llave de las colecciones y de las URLs—: cambia lo que se ve.
+//
+// La lista a mano se queda como RESPALDO para lo que TCGGO no empareja
+// (las promos viejas de Wizards, la Unown…), y por eso `padreDeColeccion`
+// mira primero lo registrado y después la lista. El registro lo pone quien
+// tiene los sets en la mano (`registrarEpisodios`): una función que solo
+// recibe un id no puede saber de qué expansión es.
+let padresRegistrados = new Map()
+
+export function padresPorEpisodio(sets) {
+  const porEpisodio = new Map()
+  for (const s of sets || []) {
+    const id = Number(s?.tcggo_id)
+    if (!Number.isInteger(id) || id <= 0 || !s?.id) continue
+    if (!porEpisodio.has(id)) porEpisodio.set(id, [])
+    porEpisodio.get(id).push(s)
+  }
+  const padres = new Map()
+  const tam = (s) => s.card_count_official || s.card_count_total || 0
+  for (const grupo of porEpisodio.values()) {
+    if (grupo.length < 2) continue
+    const [padre] = [...grupo].sort((a, b) => tam(b) - tam(a) || String(a.id).length - String(b.id).length || String(a.id).localeCompare(String(b.id)))
+    for (const s of grupo) if (s !== padre) padres.set(String(s.id).toLowerCase(), String(padre.id).toLowerCase())
+  }
+  return padres
+}
+
+export function registrarEpisodios(sets) {
+  padresRegistrados = padresPorEpisodio(sets)
+  return padresRegistrados
+}
+
+// Si este set es parte de otro, cuál. `null` si es él mismo. Primero lo
+// que dice TCGGO (registrado), después la lista a mano; y si el padre es a
+// su vez parte de otro, el de arriba del todo.
 export function padreDeColeccion(id) {
-  const x = String(id ?? '').toLowerCase()
+  let x = String(id ?? '').toLowerCase()
+  let padre = null
+  for (let vueltas = 0; vueltas < 4; vueltas++) {
+    const siguiente = padreDirecto(x)
+    if (!siguiente || siguiente === x) break
+    padre = siguiente
+    x = siguiente
+  }
+  return padre
+}
+
+function padreDirecto(x) {
+  if (padresRegistrados.has(x)) return padresRegistrados.get(x)
   for (const { padre, prefijo, hijos } of COLECCIONES_JUNTAS) {
     if (x === padre) continue
     if (prefijo && x.startsWith(prefijo)) return padre
@@ -134,7 +190,38 @@ export function prefijoDeColeccion(id) {
 export function idsDeColeccion(id) {
   const x = String(id ?? '').toLowerCase()
   const suya = COLECCIONES_JUNTAS.find((c) => c.padre === x && c.hijos?.length)
-  return suya ? [x, ...suya.hijos] : []
+  // Y los registrados por TCGGO (646): los que cuelgan de este, también
+  // los que cuelgan por la lista a mano de uno que a su vez cuelga de este.
+  const hijos = new Set(suya ? suya.hijos.map((h) => h.toLowerCase()) : [])
+  for (const [hijo] of padresRegistrados) if (padreDeColeccion(hijo) === x) hijos.add(hijo)
+  for (const { padre, hijos: h } of COLECCIONES_JUNTAS) if (padre !== x && padreDeColeccion(padre) === x) for (const y of h || []) hijos.add(y.toLowerCase())
+  return hijos.size ? [x, ...hijos] : []
+}
+
+// ── Lo que vale una expansión, y cómo va (tanda 646) ──
+//
+// De `tcg_set_valor`: una fila por set y día con la suma de sus mínimos en
+// Cardmarket (la escribe la pasada de precios). Con la última y la más
+// vieja de la ventana (ocho días) sale el «semanal» de la tarjeta. Con una
+// sola fila hay valor y no hay semanal: un 0 % inventado es peor que nada.
+export function variacionSemanal(filas) {
+  const porSet = new Map()
+  for (const f of filas || []) {
+    if (!f?.set_id || !/^\d{4}-\d{2}-\d{2}/.test(String(f.dia))) continue
+    if (!porSet.has(f.set_id)) porSet.set(f.set_id, [])
+    porSet.get(f.set_id).push(f)
+  }
+  const fuera = new Map()
+  for (const [setId, lista] of porSet) {
+    lista.sort((a, b) => String(a.dia).localeCompare(String(b.dia)))
+    const conValor = lista.filter((f) => typeof f.valor_cm === 'number' && f.valor_cm > 0)
+    if (!conValor.length) continue
+    const ahora = conValor[conValor.length - 1]
+    const antes = conValor[0]
+    const pct = antes !== ahora && antes.valor_cm ? Math.round(((ahora.valor_cm - antes.valor_cm) / antes.valor_cm) * 100) : null
+    fuera.set(setId, { ahora: ahora.valor_cm, antes: antes !== ahora ? antes.valor_cm : null, pct, dia: String(ahora.dia).slice(0, 10) })
+  }
+  return fuera
 }
 
 // ── Las reglas que ya no casan con nada (tanda 533) ──
@@ -244,6 +331,9 @@ export function eraDeSet(set) {
 // desaparece: sus cartas se cuentan en la fila del padre, que es lo que
 // dice la lista, y su página lleva al padre.
 export function plegarHermanos(sets) {
+  // Primero se registra qué sets son una expansión de TCGGO (646): así
+  // `padreDeColeccion` contesta por TCGGO y, si no, por la lista a mano.
+  registrarEpisodios(sets)
   const porId = new Map(sets.map((s) => [String(s.id).toLowerCase(), s]))
   const fuera = []
   for (const s of sets) {

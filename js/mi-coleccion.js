@@ -28,7 +28,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, plegarHermanos, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -1931,7 +1931,7 @@ async function cargarSets() {
     // lista de 220 colecciones.
     // `orden` y `oculto` son de la 550: una columna que no se pide llega
     // `undefined` y el orden a mano no se usaría, sin dar error (la 523).
-    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto')
+    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     // Y un desempate (tanda 510): un `order` por fecha a secas deja los
@@ -2000,8 +2000,27 @@ function montarDesplegableDeEras(sets, mercado, eras = null) {
   sel.value = series.some(([id]) => id === antes) ? antes : ''
 }
 
+// Lo que vale cada expansión y cómo va (646), de `tcg_set_valor`. Si la
+// tabla no está, la estantería se pinta igual, sin esas dos cifras.
+let variacionDeSets = new Map()
+async function cargarValoresDeSets() {
+  try {
+    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).gte('dia', desde).order('dia').limit(5000)
+    variacionDeSets = variacionSemanal(data || [])
+  } catch {
+    variacionDeSets = new Map()
+  }
+}
+
+const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+
 async function pintarEstanteria() {
   const sets = await cargarSets()
+  // Qué sets son una expansión de TCGGO (646), antes de contar nada: las
+  // cartas del hijo se cuentan en el padre.
+  registrarEpisodios(sets)
+  await cargarValoresDeSets()
   // Cuántas DISTINTAS tienes de cada colección. Distintas y no copias:
   // el progreso de un álbum es cuántos bolsillos has llenado, y tres
   // Charizards llenan uno.
@@ -2200,8 +2219,18 @@ function tarjetaDeSet(set, tengo) {
                </span>`
             : '<span class="mc-set-cuenta">Sin numeración</span>'
         }
+        ${valorDeSetHtml(set)}
       </span>
     </button>`
+}
+
+// Lo que vale la expansión y cómo va la semana (646): solo si TCGGO lo
+// ha dicho. Sin fila, nada — una raya ocupa lo mismo y no dice nada.
+function valorDeSetHtml(set) {
+  const v = variacionDeSets.get(set?.id)
+  if (!v?.ahora) return ''
+  const semanal = v.pct === null ? '' : ` · <b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
+  return `<span class="mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket">${escapeHtml(fmtEnteroEuros.format(v.ahora))} €${semanal}</span>`
 }
 
 // EL RESPALDO DEL NOMBRE YA NO HACE FALTA (tanda 458) y por eso se queda

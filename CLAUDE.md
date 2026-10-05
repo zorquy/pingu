@@ -394,6 +394,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   inventada. Y el bloque de precio es UNO (`js/precio-vista.js`) con su
   CSS en `css/cardmarket.css`, que cargan /carta y /mi-coleccion; el
   histórico vive ahí también desde la 645.
+- **Dos sets con el mismo `tcggo_id` son UNA expansión** (tanda 646), y
+  manda sobre la lista a mano `COLECCIONES_JUNTAS`, que queda de respaldo
+  para lo que TCGGO no empareja. Quien tiene los sets en la mano llama a
+  `registrarEpisodios(sets)` (o a `plegarHermanos`, que lo hace) ANTES de
+  preguntar `padreDeColeccion`: una función que solo recibe un id no puede
+  saber de qué expansión es. Y una columna nueva para la web NO va en
+  `tcg_sets` si el cliente la pediría en un `select` antes de la migración
+  (la 624): va en su tabla (`tcg_set_valor`) y el cliente la lee aparte,
+  sin romper si no está.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
