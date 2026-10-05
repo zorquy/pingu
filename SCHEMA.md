@@ -30379,7 +30379,7 @@ El código del emparejador se quitó; de la lib queda `URL_GUIA` y
 
 PINGU, la mañana siguiente: «paralo porque creo que no funciona nada de lo
 que tenemos» — y acto seguido la documentación de **TCGGO** (tcggo.com,
-servida por RapidAPI como «Cardmarket API TCG»). Lo que importa de ella no
+servida por RapidAPI; su documentación la llama «Cardmarket API TCG» con host , pero la cuenta de PINGU la tiene como «Pokémon TCG API» en , y con el host de la documentación contestaba 403 «You are not subscribed»: el host es el de la pestaña Headers del playground, no el del PDF). Lo que importa de ella no
 son los precios: es que **cada carta trae `cardmarket_id`** —el
 `idProduct` de Cardmarket— y `tcgplayer_id`, junto a `card_number`,
 `tcgid` (el id de pokemontcg.io) y la expansión con su `code` («PBL»,

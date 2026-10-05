@@ -19,8 +19,11 @@
 import { numeroComparable } from './scrydex.mjs'
 import { normalizeSearch } from '../../js/texto.js'
 
-export const URL_BASE = 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi'
-export const HOST = 'cardmarket-api-tcg.p.rapidapi.com'
+// El host es el de la API tal como RapidAPI la publica en la cuenta de
+// PINGU («Pokémon TCG API»): su documentación decía cardmarket-api-tcg y
+// con ese contestaba 403 «no estás suscrito» — la misma API, otra puerta.
+export const HOST = 'pokemon-tcg-api.p.rapidapi.com'
+export const URL_BASE = `https://${HOST}/v1/tcgapi`
 export const POR_PAGINA_CARTAS = 100
 
 export function cabeceras(clave) {
