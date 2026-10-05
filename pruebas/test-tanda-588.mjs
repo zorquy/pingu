@@ -6,7 +6,7 @@
 // Aroma | Solar Beam]» de la expansión 6569: mismo espacio de ids.
 import { readFileSync } from 'node:fs'
 import {
-  cabeceras, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, HOST,
+  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, HOST,
 } from '/home/user/pingu/netlify/lib/tcggo.mjs'
 import { procesar, CLAVE_ESTADO, TOPE_DIARIO } from '/home/user/pingu/netlify/functions/tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from '/home/user/pingu/netlify/functions/cardmarket-precios.mjs'
@@ -23,6 +23,8 @@ const EPISODIOS = JSON.parse(readFileSync(new URL('tcggo-episodios-ejemplo.json'
 console.log('── 1. El ayudante puro ──')
 {
   check('las cabeceras llevan la clave y el host de RapidAPI', cabeceras('k')['x-rapidapi-key'] === 'k' && cabeceras('k')['x-rapidapi-host'] === HOST)
+  check('la base de serie es la puerta «Pokémon TCG API», y TCGGO_BASE la cambia con su host', baseDe({}).host === 'pokemon-tcg-api.p.rapidapi.com' && baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' }).base === 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon' && baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' }).host === 'cardmarket-api-tcg.p.rapidapi.com', JSON.stringify(baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' })))
+  check('  …y una base rota no rompe: se queda con la de serie como host', baseDe({ TCGGO_BASE: 'no es una url' }).host === 'pokemon-tcg-api.p.rapidapi.com')
   check('las URLs: expansiones por página, cartas por expansión de 100 en 100', /episodes\?page=2$/.test(urlEpisodios(2)) && /cards\?episode_id=415&per_page=100&page=3$/.test(urlCartasDeEpisodio(415, 3)))
   check('`paging` dice si hay más (1 de 9 sí, 9 de 9 no, sin paging no)', hayMasPaginas(EPISODIOS) === true && hayMasPaginas({ paging: { current: 9, total: 9 } }) === false && hayMasPaginas({}) === false)
   const eps = EPISODIOS.data.map(resumirEpisodio)
