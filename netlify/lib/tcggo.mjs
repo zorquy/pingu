@@ -19,24 +19,36 @@
 import { numeroComparable } from './scrydex.mjs'
 import { normalizeSearch } from '../../js/texto.js'
 
-// El host y las rutas son los de la API tal como RapidAPI la publica en la
-// cuenta de PINGU («Pokémon TCG API»): su documentación en PDF decía
-// cardmarket-api-tcg con rutas /v1/tcgapi/pokemon/…, y por ahí contestaba
-// 403 «no estás suscrito» y luego 404 «esa ruta no existe». En esta puerta
-// las rutas van a pelo: /episodes, /cards, /episodes/{id}/cards.
+// El mismo proveedor tiene DOS puertas en RapidAPI, y se vio con dos
+// respuestas: «Cardmarket API TCG» (cardmarket-api-tcg.p.rapidapi.com,
+// rutas /v1/tcgapi/{game}/…, la del PDF) contestó 403 «no estás suscrito»;
+// «Pokémon TCG API» (pokemon-tcg-api.p.rapidapi.com, las mismas rutas sin
+// ese prefijo) contestó 404 a la ruta larga — y un 404 solo llega si la
+// suscripción ha pasado. La base de serie es la segunda, que es a la que
+// PINGU está suscrito; `TCGGO_BASE` en Netlify la cambia sin desplegar
+// (por ejemplo https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon).
 export const HOST = 'pokemon-tcg-api.p.rapidapi.com'
 export const URL_BASE = `https://${HOST}`
+
+// La base que manda: la variable de entorno si está, si no la de serie.
+// Sin barra final, y el host de la cabecera sale de ella.
+export function baseDe(env = {}) {
+  const base = String(env?.TCGGO_BASE || URL_BASE).trim().replace(/\/+$/, '')
+  let host = HOST
+  try { host = new URL(base).host } catch { /* una base rota se queda con el host de serie */ }
+  return { base, host }
+}
 export const POR_PAGINA_CARTAS = 100
 
-export function cabeceras(clave) {
-  return { 'x-rapidapi-key': clave, 'x-rapidapi-host': HOST, accept: 'application/json' }
+export function cabeceras(clave, host = HOST) {
+  return { 'x-rapidapi-key': clave, 'x-rapidapi-host': host, accept: 'application/json' }
 }
 
-export const urlEpisodios = (pagina = 1) => `${URL_BASE}/episodes?page=${pagina}`
+export const urlEpisodios = (pagina = 1, base = URL_BASE) => `${base}/episodes?page=${pagina}`
 // `/cards?episode_id=` y no `/episodes/{id}/cards`: en su documentación el
 // primero es el que enseña `cardmarket_id` en la respuesta; el ejemplo del
 // segundo no lo trae, y no se da por hecho lo que un ejemplo no enseña.
-export const urlCartasDeEpisodio = (idEpisodio, pagina = 1) => `${URL_BASE}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}`
+export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE) => `${base}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}`
 
 // ¿Quedan páginas? Su `paging` es { current, total, per_page }.
 export function hayMasPaginas(respuesta) {

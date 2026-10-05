@@ -27,10 +27,12 @@
 // a pedir: un set ya hecho (salvo `reiniciar`) y un set que no se pudo
 // casar con ninguna expansión (se apunta con el motivo y se enseña).
 //
-// VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY.
+// VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY; opcionales
+// TCGGO_BASE (la puerta de RapidAPI, ver netlify/lib/tcggo.mjs) y
+// TCGGO_TOPE_DIARIO.
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
-  cabeceras, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
+  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from './cardmarket-precios.mjs'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
@@ -76,6 +78,7 @@ export async function procesar({
   if (!claveTcggo) return { estado: 409, cuerpo: { error: 'Falta TCGGO_API_KEY en las variables de Netlify (la clave de RapidAPI).' } }
   const tope = Math.max(1, Math.min(PETICIONES_MAXIMO, Number(peticiones) || PETICIONES_POR_DEFECTO))
   const topeDiario = Math.max(1, Number(env.TCGGO_TOPE_DIARIO) || TOPE_DIARIO)
+  const { base, host } = baseDe(env)
   const arranque = reloj()
   const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
@@ -112,7 +115,7 @@ export async function procesar({
     if (gastadas) await pausa(PAUSA_MS)
     gastadas++
     estado.gasto.peticiones++
-    const res = await fetchImpl(url, { headers: cabeceras(claveTcggo) })
+    const res = await fetchImpl(url, { headers: cabeceras(claveTcggo, host) })
     const texto = await res.text()
     if (!res.ok) {
       if (esLimiteDelPlan(res.status, texto)) {
@@ -142,7 +145,7 @@ export async function procesar({
     let pagina = 1
     let completa = false
     for (;;) {
-      const r = await pedirTcggo(urlEpisodios(pagina))
+      const r = await pedirTcggo(urlEpisodios(pagina, base))
       if (!r.datos) break
       for (const e of r.datos.data || []) lista.push(resumirEpisodio(e))
       if (!hayMasPaginas(r.datos) || !(r.datos.data || []).length) {
@@ -187,7 +190,7 @@ export async function procesar({
     let pagina = 1
     let completo = false
     for (;;) {
-      const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina))
+      const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, base))
       if (!r.datos) break
       suyas.push(...(r.datos.data || []))
       if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) {
@@ -250,6 +253,7 @@ export async function procesar({
     const hechos = Object.keys(estado.hechos).length
     const sinEpisodio = Object.entries(estado.sinEpisodio).map(([id, v]) => ({ set: id, nombre: v.nombre, codigo: v.codigo, porque: v.porque }))
     return {
+      puerta: base,
       peticionesEstaLlamada: gastadas,
       tope,
       peticionesHoy: estado.gasto.peticiones,
