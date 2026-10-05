@@ -30447,6 +30447,43 @@ precio de TCGplayer ya en euros; y el catálogo japonés (planes Ultra o
 Mega). Con 100 al día no cabe pedirlo para 23.000 cartas; sí cabría para
 las que la gente tiene en su colección.
 
+**La primera pasada real (2026-10-05, plan Ultra)**: 345 peticiones en
+tres minutos, 177 sets, **14.968 pares escritos**, y en los sets modernos
+casa todo (Primal Clash 164/164, el Groudon 150 con su producto). Lo que
+salió mal y lo que se cambió:
+
+- **`ex7 Team Rocket Returns [RR] → Rising Rivals`: 111 pares MAL
+  escritos.** Nuestro código «RR» es el «RR» de Rising Rivals en TCGGO
+  (ellos abrevian el nuestro «TRR»): la 508 al pie de la letra, un código
+  es una convención. Ahora el NOMBRE inglés exacto decide primero y el
+  código solo entra si ningún nombre casa; y hay una guarda que no depende
+  de la elección: cada carta suya trae `tcgid` («pl2-12»), y si el prefijo
+  dominante entre los pares es el id de OTRO set nuestro, el set se apunta
+  SOSPECHOSO y no se escribe. Rehecho con «solo estos sets: ex7».
+- **Base, Jungle, Fossil, Team Rocket, Gym, Neo: 0 pares**, «2 cartas
+  suyas con ese número» (la ilimitada y la 1.ª edición). Lo separa el
+  `tcgid`: solo una de las dos lleva nuestro id. Primera pasada del
+  emparejado: tcgid exacto; segunda: número; tercera: solo los dígitos.
+- **Trainer Gallery, Shiny Vault, promos SVP/SVE/MEP: 0 pares**: sus
+  números no llevan nuestro prefijo (nuestras «TG01», las suyas «1» en
+  una expansión aparte). La pasada por dígitos, solo cuando es única por
+  los dos lados.
+- «Celebrations: Classic Collection» no casaba por los dos puntos: el
+  nombre se compara sin puntuación; y «30th Classic Collection» entra por
+  «todas nuestras palabras en el suyo» cuando solo una expansión cumple.
+- Lo que TCGGO no tiene y se queda como estaba: los trainer kits, jumbo,
+  Sample, W Promotional, Yellow A Alternate, Poké Card Creator, Unown
+  Collection, My First Battle, Mega Evolution Energy, Miscellaneous
+  Promos. Y «P-A Promos-A» es de TCG Pocket y `ID_DE_POCKET` no lo caza
+  (solo `A1`, `B2a`…): sin par, sin daño.
+- Unas pocas cartas sueltas «TCGGO no le da id de Cardmarket»: se quedan
+  con el par de TCGdex, que para esas sigue escribiendo `precios-coleccion`.
+
+El panel admite «solo estos sets» (ids separados por comas) para rehacer
+uno sin volver a pedir los 177, y el cuadro enseña por qué llave casó
+cada set (tcgid / número / dígitos) y, cuando quedan sin par, los
+números suyos que han quedado libres.
+
 **Pruebas**: `test-tanda-588.mjs` con los ejemplos de respuesta de su
 documentación como fixtures (`fixtures/tcggo-*.json`): el ayudante puro,
 la función con un TCGGO de mentira que cuenta peticiones, y los frenos

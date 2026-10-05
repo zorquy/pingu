@@ -18,11 +18,16 @@ cobra el exceso → tope diario 95 en el estado, 2,1 s entre peticiones,
 para en 429/403, reanudable set a set. El emparejador por orden/nombres
 de la 587 se ha QUITADO (función, lib, prueba y fixture de productos).
 
-**Pendiente de PINGU**: `TCGGO_API_KEY` ya está en Netlify, y PINGU está
-suscrito a ULTRA: poner `TCGGO_TOPE_DIARIO=14000` y `TCGGO_PAUSA_MS=250`
-(y quitar `TCGGO_BASE` si la puso: la base de serie ya es la buena,
-`…cardmarket-api-tcg…/pokemon`). Probar desde /admin → Cartas →
-«Emparejar con TCGGO» con tope 12 y pegar el cuadro. Los precios buenos entran con la pasada
+**Primera pasada real hecha** (plan Ultra, variables puestas): 177 sets,
+14.968 pares. Salió mal ex7 (código «RR» = Rising Rivals en TCGGO): ahora
+el nombre decide antes que el código y una guarda por el `tcgid` de sus
+cartas para el set ajeno; y las familias con 0 pares (1.ª edición, Trainer
+Gallery, Shiny Vault, promos) se resuelven por tcgid exacto y por dígitos.
+
+**Pendiente de PINGU**: /admin → Cartas → «solo estos sets»:
+`ex7, base1, base2, base3, base5, gym1, gym2, neo1, neo2, neo3, neo4, swsh10tg, swsh9tg, swsh4.5sv, sma, svp, sve, mep, swshp, xyp, bwp, cel25, cel25cc, 30th-c, 2018sm, sm1`
+y pegar el cuadro. Los precios buenos entran con la pasada de la guía
+(≤1 h). Los precios buenos entran con la pasada
 de la guía (≤1 h).
 
 **Ficheros**: `netlify/lib/tcggo.mjs` y

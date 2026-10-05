@@ -75,7 +75,7 @@ const diaDe = (fecha) => fecha.toISOString().slice(0, 10)
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
-  mercado = 'WEST', peticiones = PETICIONES_POR_DEFECTO, reiniciar = false,
+  mercado = 'WEST', peticiones = PETICIONES_POR_DEFECTO, reiniciar = false, soloSets = null,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { estado: 500, cuerpo: { error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' } }
@@ -184,7 +184,13 @@ export async function procesar({
     return { estado: 502, cuerpo: { error: String(e?.message || e).slice(0, 200) } }
   }
   sets = (sets || []).filter((s) => !ID_DE_POCKET.test(String(s.id)))
-  const pendientes = sets.filter((s) => !estado.hechos[s.id] && !estado.sinEpisodio[s.id])
+  // «Solo estos sets»: se repiten aunque estén hechos (para rehacer uno
+  // que salió mal sin volver a pedir los 177).
+  const solo = Array.isArray(soloSets) && soloSets.length ? new Set(soloSets.map((x) => String(x).trim().toLowerCase()).filter(Boolean)) : null
+  const idsNuestros = new Set(sets.map((s) => String(s.id).toLowerCase()))
+  const pendientes = solo
+    ? sets.filter((s) => solo.has(String(s.id).toLowerCase()))
+    : sets.filter((s) => !estado.hechos[s.id] && !estado.sinEpisodio[s.id])
 
   for (const set of pendientes) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
@@ -226,8 +232,13 @@ export async function procesar({
       parado = `nuestra base: ${m.slice(0, 160)}`
       break
     }
-    const r = emparejarPorNumero(cartas || [], suyas)
-    const cambian = r.pares.filter((p) => (cartas || []).find((c) => c.id === p.id)?.cm_id_product_propio !== p.idProduct)
+    const r = emparejarPorNumero(cartas || [], suyas, { setId: set.id })
+    // La guarda: si las cartas suyas dicen ser de OTRO set nuestro (el
+    // prefijo de su tcgid es el id de otro set de nuestra lista), la
+    // expansión no es esta aunque el código casara. Es lo que habría parado
+    // ex7 → Rising Rivals (sus cartas llevaban «pl2-…»).
+    const ajeno = r.prefijoDominante && r.prefijoDominante !== String(set.id).toLowerCase() && idsNuestros.has(r.prefijoDominante) ? r.prefijoDominante : null
+    const cambian = ajeno ? [] : r.pares.filter((p) => (cartas || []).find((c) => c.id === p.id)?.cm_id_product_propio !== p.idProduct)
     if (cambian.length) {
       try {
         for (let k = 0; k < cambian.length; k += 500) {
@@ -243,9 +254,12 @@ export async function procesar({
     const fila = {
       set: set.id, nombre: set.name, codigo: set.tcg_online_code || null, episodio: episodio.id, episodioNombre: episodio.nombre, por,
       nuestras: (cartas || []).length, suyas: suyas.length, pares: r.pares.length, sinPar: r.sinPar.length, sobran: r.sobran, escritas: cambian.length,
+      porTcgid: r.pares.filter((p) => p.por === 'tcgid').length, porDigitos: r.pares.filter((p) => p.por === 'digitos').length,
       ejemplosSinPar: r.sinPar.slice(0, 5).map((s) => `${s.numero}: ${s.porque}`),
+      ...(r.sinPar.length && r.ejemplosSuyos.length ? { numerosSuyosLibres: r.ejemplosSuyos } : {}),
+      ...(ajeno ? { SOSPECHOSO: `sus cartas llevan el id de nuestro set «${ajeno}», no de «${set.id}»: no se escribe` } : {}),
     }
-    estado.hechos[set.id] = { episodio: episodio.id, pares: r.pares.length, sinPar: r.sinPar.length, fecha: ahora.toISOString() }
+    estado.hechos[set.id] = { episodio: episodio.id, pares: r.pares.length, sinPar: r.sinPar.length, fecha: ahora.toISOString(), ...(ajeno ? { sospechoso: ajeno } : {}) }
     esteTurno.push(fila)
     await persistir()
   }
@@ -292,7 +306,7 @@ export default async (req) => {
   let cuerpo = {}
   try { cuerpo = await req.json() } catch { cuerpo = {} }
   try {
-    const r = await procesar({ mercado: cuerpo.mercado || 'WEST', peticiones: cuerpo.peticiones, reiniciar: cuerpo.reiniciar === true })
+    const r = await procesar({ mercado: cuerpo.mercado || 'WEST', peticiones: cuerpo.peticiones, reiniciar: cuerpo.reiniciar === true, soloSets: Array.isArray(cuerpo.sets) ? cuerpo.sets.slice(0, 50) : null })
     return json(r.estado, r.cuerpo)
   } catch (e) {
     return json(502, { error: String(e?.message || e).slice(0, 300) })

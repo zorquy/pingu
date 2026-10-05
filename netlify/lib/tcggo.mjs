@@ -58,7 +58,10 @@ export function hayMasPaginas(respuesta) {
 }
 
 export const codigoComparable = (c) => String(c || '').trim().toUpperCase()
-const nombreComparable = (n) => normalizeSearch(String(n || '').replace(/&/g, 'and')).replace(/\s+/g, ' ').trim()
+// Sin puntuación: «Celebrations: Classic Collection» es «Celebrations
+// Classic Collection», y «HS—Triumphant» se compara como «hs triumphant».
+const nombreComparable = (n) => normalizeSearch(String(n || '').replace(/&/g, 'and')).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+const palabrasDe = (n) => nombreComparable(n).split(' ').filter(Boolean)
 
 // Lo que guardamos de cada expansión suya (de las ~170, solo lo que hace
 // falta para reconocerla y pedir sus cartas).
@@ -66,14 +69,24 @@ export function resumirEpisodio(e) {
   return { id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null }
 }
 
-// Qué expansión suya es un set nuestro. Primero por el CÓDIGO de TCG Live
-// («PRE», «CRZ»), que es lo que llevan nuestro `tcg_online_code` y su
-// `code`; si el código no está o no casa, por el nombre inglés. Varios sets
-// nuestros pueden caer en la misma expansión (Crown Zenith y su Galarian
-// Gallery llevan los dos «CRZ»): es lo esperado, porque allí las GG viven
-// dentro de la expansión madre con su número «gg12», y el número las
-// separa.
+// Qué expansión suya es un set nuestro. PRIMERO por el nombre inglés
+// exacto (sin puntuación), y solo si ningún nombre casa, por el CÓDIGO de
+// TCG Live («PRE», «CRZ»: nuestro `tcg_online_code` y su `code`). El orden
+// importa y costó 111 pares mal escritos: nuestro «RR» de EX Team Rocket
+// Returns es el «RR» de Rising Rivals en TCGGO (ellos abrevian el primero
+// «TRR»), y por código la primera pasada mandó Team Rocket Returns a los
+// productos de Rising Rivals. Un código es una convención (la 508); un
+// nombre exacto no se confunde. Si dos expansiones comparten código,
+// decide el nombre; y como último recurso, la única expansión cuyo nombre
+// contiene todas las palabras del nuestro («30th Classic Collection» en
+// «30th Celebration: Classic Collection»). Varios sets nuestros pueden
+// caer en la misma expansión (Crown Zenith y su Galarian Gallery): allí
+// las GG viven dentro de la madre con su número «gg12», y el número separa.
 export function episodioDeSet(set, episodios) {
+  const nombresNuestros = [set?.name_en, set?.name].map(nombreComparable).filter(Boolean)
+  const porNombreExacto = (episodios || []).filter((e) => nombresNuestros.includes(nombreComparable(e.nombre)))
+  if (porNombreExacto.length === 1) return { episodio: porNombreExacto[0], por: 'nombre' }
+  if (porNombreExacto.length > 1) return { episodio: null, porque: `${porNombreExacto.length} expansiones suyas con ese nombre` }
   const codigo = codigoComparable(set?.tcg_online_code)
   if (codigo) {
     const porCodigo = (episodios || []).filter((e) => codigoComparable(e.codigo) === codigo)
@@ -84,49 +97,104 @@ export function episodioDeSet(set, episodios) {
       return { episodio: null, porque: `${porCodigo.length} expansiones suyas con el código ${codigo}: ${porCodigo.map((e) => `${e.id} ${e.nombre}`).join(', ')}` }
     }
   }
-  const nombres = [set?.name_en, set?.name].map(nombreComparable).filter(Boolean)
-  const porNombre = (episodios || []).filter((e) => nombres.includes(nombreComparable(e.nombre)))
-  if (porNombre.length === 1) return { episodio: porNombre[0], por: 'nombre' }
-  if (porNombre.length > 1) return { episodio: null, porque: `${porNombre.length} expansiones suyas con ese nombre` }
+  // Todas nuestras palabras dentro del nombre suyo, y solo una expansión.
+  const palabras = palabrasDe(set?.name_en || set?.name)
+  if (palabras.length >= 2) {
+    const contienen = (episodios || []).filter((e) => { const suyas = palabrasDe(e.nombre); return palabras.every((p) => suyas.includes(p)) })
+    if (contienen.length === 1) return { episodio: contienen[0], por: 'palabras' }
+  }
   return { episodio: null, porque: codigo ? `ninguna expansión suya con el código ${codigo} ni el nombre «${set.name_en || set.name}»` : `nuestro set no tiene código de TCG Live y ninguna expansión suya se llama «${set.name_en || set.name}»` }
 }
 
-// Empareja las cartas de UN set nuestro con las de SU expansión, por
-// número. Devuelve pares (id nuestro → cardmarket_id y tcgplayer_id) y las
-// que se quedan sin par, con el motivo: no hay carta suya con ese número,
-// o la hay pero sin `cardmarket_id`.
-export function emparejarPorNumero(cartas, suyas) {
-  const porNumero = new Map()
-  for (const s of suyas || []) {
-    const n = numeroComparable(s.card_number)
-    if (!n) continue
-    if (!porNumero.has(n)) porNumero.set(n, [])
-    porNumero.get(n).push(s)
-  }
+// Solo los dígitos de un número: «TG01» → «1», «SV001» → «1», «SWSH001» →
+// «1». Para la segunda pasada, cuando los prefijos no coinciden.
+const soloDigitos = (n) => numeroComparable(n).replace(/[^0-9]/g, '')
+const prefijoDeTcgid = (t) => String(t || '').toLowerCase().replace(/-[^-]*$/, '')
+
+// Empareja las cartas de UN set nuestro con las de SU expansión, en tres
+// pasadas, de la llave más fuerte a la más floja, y cada carta se casa una
+// sola vez:
+//   1. Su `tcgid` es EXACTAMENTE nuestro id (base1-4 = base1-4). Es lo que
+//      separa la ilimitada de la 1.ª edición en Base Set, Jungle, Fossil,
+//      Team Rocket, Gym y Neo, donde las dos llevan el mismo número: solo
+//      una de las dos lleva el id de pokemontcg.io.
+//   2. El NÚMERO, cuando es único en los dos lados.
+//   3. Solo los DÍGITOS del número, cuando es único en los dos lados entre
+//      lo que queda: nuestras Trainer Gallery van «TG01» y las suyas, que
+//      viven en una expansión aparte, «1»; las Shiny Vault «SV001» / «1».
+// Lo que queda sin par lo dice con el motivo, y si había varias suyas con
+// el mismo número, cuáles (para saber qué distingue a las que sobran).
+export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
   const pares = []
   const sinPar = []
   const usados = new Set()
-  for (const c of cartas || []) {
-    const n = numeroComparable(c.local_id)
-    const candidatas = porNumero.get(n) || []
-    if (!candidatas.length) {
-      sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: 'ninguna carta suya con ese número' })
-      continue
-    }
-    if (candidatas.length > 1) {
-      sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: `${candidatas.length} cartas suyas con ese número` })
-      continue
-    }
-    const s = candidatas[0]
+  const libres = () => (suyas || []).filter((s) => !usados.has(s.id))
+  const casar = (c, s, por) => {
     const idProduct = Number(s.cardmarket_id)
-    if (!Number.isInteger(idProduct) || idProduct <= 0) {
-      sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: 'TCGGO no le da id de Cardmarket' })
-      continue
-    }
+    if (!Number.isInteger(idProduct) || idProduct <= 0) return false
     usados.add(s.id)
-    pares.push({ id: c.id, numero: String(c.local_id ?? ''), idProduct, tcgplayerId: Number(s.tcgplayer_id) || null, tcggoId: s.id ?? null, tcgid: s.tcgid || null })
+    pares.push({ id: c.id, numero: String(c.local_id ?? ''), idProduct, tcgplayerId: Number(s.tcgplayer_id) || null, tcggoId: s.id ?? null, tcgid: s.tcgid || null, por })
+    return true
   }
-  return { pares, sinPar, sobran: (suyas || []).length - usados.size }
+  const pendientes = [...(cartas || [])]
+  // 1. tcgid exacto.
+  const porTcgid = new Map()
+  for (const s of suyas || []) if (s.tcgid) porTcgid.set(String(s.tcgid).toLowerCase(), [...(porTcgid.get(String(s.tcgid).toLowerCase()) || []), s])
+  for (let i = pendientes.length - 1; i >= 0; i--) {
+    const c = pendientes[i]
+    const candidatas = (porTcgid.get(String(c.id).toLowerCase()) || []).filter((s) => !usados.has(s.id))
+    if (candidatas.length === 1 && casar(c, candidatas[0], 'tcgid')) pendientes.splice(i, 1)
+  }
+  // 2 y 3. Número entero; luego solo dígitos.
+  for (const [clave, por] of [[numeroComparable, 'numero'], [soloDigitos, 'digitos']]) {
+    const porClave = new Map()
+    for (const s of libres()) {
+      const n = clave(s.card_number)
+      if (!n) continue
+      porClave.set(n, [...(porClave.get(n) || []), s])
+    }
+    const nuestrasPorClave = new Map()
+    for (const c of pendientes) {
+      const n = clave(c.local_id)
+      if (n) nuestrasPorClave.set(n, (nuestrasPorClave.get(n) || 0) + 1)
+    }
+    for (let i = pendientes.length - 1; i >= 0; i--) {
+      const c = pendientes[i]
+      const n = clave(c.local_id)
+      const candidatas = (porClave.get(n) || []).filter((s) => !usados.has(s.id))
+      if (candidatas.length !== 1 || nuestrasPorClave.get(n) !== 1) continue
+      if (!casar(c, candidatas[0], por)) {
+        sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: 'TCGGO no le da id de Cardmarket' })
+        pendientes.splice(i, 1)
+        continue
+      }
+      pendientes.splice(i, 1)
+    }
+  }
+  // Lo que queda, con el motivo.
+  const porNumeroLibre = new Map()
+  for (const s of libres()) {
+    const n = numeroComparable(s.card_number)
+    if (n) porNumeroLibre.set(n, [...(porNumeroLibre.get(n) || []), s])
+  }
+  for (const c of pendientes) {
+    const candidatas = porNumeroLibre.get(numeroComparable(c.local_id)) || []
+    sinPar.push({
+      id: c.id,
+      numero: String(c.local_id ?? ''),
+      porque: candidatas.length > 1
+        ? `${candidatas.length} cartas suyas con ese número: ${candidatas.map((s) => `«${s.name_numbered || s.name}» ${s.tcgid || 'sin tcgid'}`).join(', ')}`
+        : 'ninguna carta suya con ese número',
+    })
+  }
+  pares.sort((a, b) => (/^\d+$/.test(a.numero) && /^\d+$/.test(b.numero) ? Number(a.numero) - Number(b.numero) : a.numero.localeCompare(b.numero)))
+  // De qué set dicen ser las suyas, por el prefijo de su tcgid (pl2-12 →
+  // «pl2»): el más repetido entre los pares. Sirve para la guarda de la
+  // función: si es el id de OTRO set nuestro, la expansión no es esta.
+  const cuenta = new Map()
+  for (const p of pares) if (p.tcgid) { const pre = prefijoDeTcgid(p.tcgid); cuenta.set(pre, (cuenta.get(pre) || 0) + 1) }
+  const [prefijoDominante] = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0] || [null]
+  return { pares, sinPar, sobran: (suyas || []).length - usados.size, prefijoDominante, ejemplosSuyos: libres().slice(0, 6).map((s) => String(s.card_number ?? '')) }
 }
 
 // Cómo contesta RapidAPI cuando se acaba el plan: 429 (límite por segundo

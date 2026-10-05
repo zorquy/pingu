@@ -3050,12 +3050,13 @@ async function tcggoEmparejar() {
   if (!session) return
   const tope = Math.max(1, Math.min(2000, Number(document.getElementById('tcggoTope')?.value) || 40))
   const reiniciar = !!document.getElementById('tcggoReiniciar')?.checked
+  const sets = String(document.getElementById('tcggoSolo')?.value || '').split(/[\s,]+/).map((x) => x.trim()).filter(Boolean)
   if (reiniciar && !window.confirm('Vas a volver a pedir TODOS los sets a TCGGO, también los ya hechos. Son unas 300 peticiones. ¿Seguro?')) return
   const llamar = async (peticiones, primera) => {
     const res = await fetch('/.netlify/functions/tcggo-emparejar', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ mercado: 'WEST', peticiones, reiniciar: primera && reiniciar }),
+      body: JSON.stringify({ mercado: 'WEST', peticiones, reiniciar: primera && reiniciar, ...(sets.length ? { sets } : {}) }),
     })
     const r = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
@@ -3073,7 +3074,7 @@ async function tcggoEmparejar() {
     'EN ESTE CLIC:',
     ...t.esteTurno.map((f) => f.sinEpisodio
       ? `  · ${f.set} ${f.nombre} [${f.codigo || 'sin código'}] — SIN EXPANSIÓN SUYA: ${f.sinEpisodio}`
-      : `  · ${f.set} ${f.nombre} [${f.codigo || 'sin código'}] → ${f.episodioNombre} (#${f.episodio}, por ${f.por}): ${f.pares} pares de ${f.nuestras} (${f.escritas} nuevos), ${f.sinPar} sin par, sobran ${f.sobran} suyas${f.ejemplosSinPar?.length ? `\n      sin par: ${f.ejemplosSinPar.join(' | ')}` : ''}`),
+      : `  · ${f.set} ${f.nombre} [${f.codigo || 'sin código'}] → ${f.episodioNombre} (#${f.episodio}, por ${f.por}): ${f.pares} pares de ${f.nuestras} (${f.escritas} nuevos${f.porTcgid ? `, ${f.porTcgid} por tcgid` : ''}${f.porDigitos ? `, ${f.porDigitos} por dígitos` : ''}), ${f.sinPar} sin par, sobran ${f.sobran} suyas${f.SOSPECHOSO ? ` — ⚠ ${f.SOSPECHOSO}` : ''}${f.ejemplosSinPar?.length ? `\n      sin par: ${f.ejemplosSinPar.join(' | ')}` : ''}${f.numerosSuyosLibres?.length ? `\n      números suyos sin usar: ${f.numerosSuyosLibres.join(', ')}` : ''}`),
     '',
     t.sinEpisodio?.length ? 'SETS SIN EXPANSIÓN SUYA (acumulado; se vuelven a intentar con «empezar de cero»):' : '',
     ...(t.sinEpisodio || []).map((f) => `  · ${f.set} ${f.nombre} [${f.codigo || 'sin código'}] — ${f.porque}`),
@@ -3093,7 +3094,7 @@ async function tcggoEmparejar() {
       total.esteTurno.push(...(r.esteTurno || []))
       total.escritas += r.escritas || 0
       Object.assign(total, { ...r, esteTurno: total.esteTurno, escritas: total.escritas })
-    } while (r.siguiente && gastadas < tope && !r.parado)
+    } while (r.siguiente && gastadas < tope && !r.parado && !sets.length)
     caja.value = pintar(total, gastadas)
     cardsNota(total.parado ? total.parado : `Escritos ${total.escritas} pares. Los precios buenos llegan con la pasada de la guía de Cardmarket (cada hora).`, !!total.parado)
   } catch (e) {
