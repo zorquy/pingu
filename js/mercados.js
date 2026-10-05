@@ -86,10 +86,12 @@ export const MERCADOS_VISIBLES = ['WEST', 'JP']
 //
 // El occidental NO entra y no debe entrar: es el que alimenta «Jugar»
 // —decklists, torneos, el constructor— y ahí TCGdex manda.
-export const MERCADOS_DE_SCRYDEX = ['JP']
+// Desde la 641 el japonés lo llena TCGGO (tcggo-catalogo), antes Scrydex:
+// TCGdex no lo importa ni lo engorda.
+export const MERCADOS_DE_TCGGO = ['JP']
 
-export function esDeScrydex(market) {
-  return MERCADOS_DE_SCRYDEX.includes(String(market || '').toUpperCase())
+export function esDeTcggo(market) {
+  return MERCADOS_DE_TCGGO.includes(String(market || '').toUpperCase())
 }
 
 export const MERCADO_POR_DEFECTO = 'WEST'

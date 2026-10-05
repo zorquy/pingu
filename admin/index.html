@@ -551,41 +551,6 @@
                los sets viejos o si lo perdemos nosotros. Y enseña los
                identificadores de verdad, que es lo que faltaba cuando
                `cs1a CN` dio 404: el chino los nombra de otra forma. -->
-          <!-- SCRYDEX, LA API DE PAGO (tanda 500). Pregunta desde el
-               SERVIDOR, que es donde viven las claves: en el JS de esta
-               página serían claves publicadas. Lo primero que hay que
-               medir con ella es el INGLÉS —1.351 escaneos y 63 logos que
-               nos faltan—, que es lo único que la evaluación no midió. -->
-          <!-- LA MEDICIÓN QUE DECIDE SI LOS 29 $ VALEN (tanda 503): ¿tapa
-               Scrydex nuestros huecos OCCIDENTALES? 1.351 cartas sin foto y
-               63 sets sin logo. Cuesta tres créditos, porque lo único que
-               se le pide a la API es su lista de expansiones: las imágenes
-               no gastan y su dirección se deriva. -->
-          <!-- ANTES DE ESCRIBIR NADA (tanda 504): el emparejamiento de
-               sets casa por fecha y cuenta, y en la medida de la 503 salió
-               `ex5.5 → wb1`, que no es el mismo set. Esto lo comprueba
-               set a set con el NOMBRE de una carta. No escribe nada;
-               cuesta un crédito por set. -->
-          <!-- LA PRIMERA ESCRITURA DESDE SCRYDEX (tanda 507): logos,
-               símbolos y las tres columnas que la 322 encontró vacías.
-               Hace ENSAYO EN SECO primero y enseña fila a fila lo que
-               cambiaría, con el valor de antes al lado; solo escribe si
-               se confirma. Y solo toca los sets cuyo emparejamiento está
-               confirmado por una señal que el idioma no puede engañar.
-               Necesita `supabase-migration-scrydex.sql` puesta. -->
-          <button class="btn-outline" id="btnSetsScrydex">Traer los logos de Scrydex</button>
-          <!-- CÓMO VA EL RELLENO (tanda 510). Las dos funciones
-               programadas trabajan solas y de noche, así que sin esto no
-               hay forma de saber si están haciendo algo: la base no se
-               puede mirar desde fuera. No gasta ni un crédito de Scrydex
-               —son cuentas de nuestra propia base— y es lo primero que
-               hay que mirar por la mañana. -->
-          <button class="btn-outline" id="btnComoVaScrydex">¿Cómo va el relleno?</button>
-          <!-- QUÉ CONTESTA SCRYDEX DE UNA CARTA (tanda 586). Para ver su
-               bloque `prices` en crudo antes de cablear los precios: la
-               norma de la 501 (el fixture ES la respuesta real). Pasa por
-               `scrydex-sonda` —la clave se queda en Netlify— y gasta UN
-               crédito por clic. -->
           <!-- EMPAREJAR CON TCGGO (tanda 588). TCGdex empareja mal con
                Cardmarket (su issue #2325) y el cruce por orden y nombres
                de la 587 casaba un 15 % en los sets modernos. TCGGO trae el
@@ -597,8 +562,6 @@
           <button class="btn-outline" id="btnTcggoPrecios">Precios de TCGGO ahora</button>
           <label>Solo estos sets <input type="text" id="tcggoSolo" placeholder="ex7, base1" size="16" /></label>
           <label><input type="checkbox" id="tcggoReiniciar" /> empezar de cero (vuelve a pedir los sets ya hechos)</label>
-          <label>Carta de Scrydex <input type="text" id="cardsScrydexCarta" placeholder="xy5-150" size="12" /></label>
-          <button class="btn-outline" id="btnCartaScrydex">Qué contesta Scrydex de esta carta (1 crédito)</button>
         </div>
         <p class="admin-note" id="cardsImportNote"></p>
         <!-- Para que nadie vuelva a intentar importar el japón a mano

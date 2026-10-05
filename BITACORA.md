@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 3) — PINGU-Claude (641 — Scrydex, fuera)
+
+**Hecho**: fuera las diez funciones `scrydex-*`, sus tres botones de
+/admin y 18 pruebas; las columnas y los datos se quedan, y
+`netlify/lib/scrydex.mjs` también (fotos y `numeroComparable`).
+`esDeScrydex` → `esDeTcggo`. PINGU puede cancelar la suscripción.
+
+**Ficheros**: borrados `netlify/functions/scrydex-*.mjs` (10);
+`admin/index.html`, `admin/js/admin.js`, `js/mercados.js`,
+`netlify/functions/catalogo-asia.mjs`, `netlify/functions/escaneos-asia.mjs`,
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: borradas 18 `test-tanda-5xx` y
+dos rigores; `test-tanda-483.mjs` al nombre nuevo.
+
 ## 2026-10-06 (noche, 2) — PINGU-Claude (640 — el catálogo desde TCGGO, solo)
 
 **Numeración**: 590–596 y 620–623 son de la otra sesión; las nuestras

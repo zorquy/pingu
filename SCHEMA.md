@@ -30776,3 +30776,37 @@ PINGU) va aparte.
 base de mentira: occidental por pares, japonés por código, casar por id de
 Cardmarket / número, crear cartas y sets, la semana, sin tiempo, sin
 emparejador, sin migración; la cadena de fotos; la guarda de los selects).
+
+
+## Tanda 641 — Scrydex, fuera (oct. 2026)
+
+PINGU: «me desuscribo de Scrydex». Con TCGGO poniendo los precios (589) y
+el catálogo entero, japonés incluido (640), Scrydex no hace nada que no
+haga TCGGO, y costaba 29 $ y una noche a cero cada dos tandas. Se va:
+
+- **Las diez funciones** `netlify/functions/scrydex-*.mjs` (relleno,
+  relleno-jp, importar-jp, japonés, inglés, logos, logos-jp, sets, sonda,
+  verificar) y sus horarios. Las columnas que escribieron
+  (`image_scrydex`, `logo_scrydex`, `symbol_scrydex`, `rarity_en`,
+  `scrydex_id`, `scrydex_at`…) se QUEDAN con sus datos: las fotos de
+  Scrydex siguen en la cadena de escaneos (`urlDeFotoScrydex` en
+  `netlify/lib/scrydex.mjs`, que también presta `numeroComparable`), y lo
+  que hay guardado vale. La tabla `scrydex_estado` se queda con su nombre:
+  es el estado de TODAS las funciones programadas, y renombrarla sería
+  una migración para nada.
+- **Los tres botones de /admin → Cartas** («Traer los logos de Scrydex»,
+  «¿Cómo va el relleno?», «Qué contesta Scrydex de esta carta») y sus
+  funciones, con la constante huérfana de la 504 que se había quedado
+  colgada entre dos comentarios.
+- **Dieciocho pruebas** que probaban esas funciones (500, 503–507, 509,
+  526, 528, 531, 537, 540, 541, 544, 545, 547, 550, 556) y los rigores de
+  la 526 y la 527. Las que probaban la LIBRERÍA (499, 502, 530, 532) se
+  quedan, porque la librería se queda.
+- `esDeScrydex` → `esDeTcggo` y `MERCADOS_DE_SCRYDEX` → `MERCADOS_DE_TCGGO`
+  en `js/mercados.js`: el japonés sigue fuera de lo que TCGdex importa y
+  engorda (`catalogo-asia`, `escaneos-asia`), solo que ahora lo llena
+  `tcggo-catalogo`.
+
+Lo que las lecciones de las tandas 500–556 dicen de Scrydex en CLAUDE.md
+se queda tal cual: son lecciones sobre frenos, fixtures y señales, y
+valen igual con TCGGO.

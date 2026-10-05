@@ -1,4 +1,4 @@
-import { MERCADOS_A_IMPORTAR, idiomaDeMercado, esDeScrydex } from '../../js/mercados.js'
+import { MERCADOS_A_IMPORTAR, idiomaDeMercado, esDeTcggo } from '../../js/mercados.js'
 import { caminoPorPartes, urlDeEscaneo, veredicto, nombreParaBuscar } from '../lib/escaneos-asia.mjs'
 
 // Los escaneos y los nombres que TCGdex TIENE y su API no dice (tanda 488).
@@ -74,7 +74,7 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // volverían a aparecer sus 186 sets al lado de los 231 buenos — la misma
 // colección dos veces en la biblioteca, que es el único error de aquí que
 // se ve en la cara.
-const MERCADOS = MERCADOS_A_IMPORTAR.filter((m) => m !== 'WEST' && !esDeScrydex(m))
+const MERCADOS = MERCADOS_A_IMPORTAR.filter((m) => m !== 'WEST' && !esDeTcggo(m))
 
 // Netlify mata una función programada a los 30 segundos.
 const PRESUPUESTO_MS = 20000

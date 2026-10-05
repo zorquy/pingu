@@ -352,9 +352,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   recorre sus expansiones occidentales y japonesas, conserva NUESTROS ids
   (son la llave de las colecciones y de las URLs) y crea lo que no tenemos
   (`tcggo-<id>`, `origen = 'tcggo'`, que TCGdex no visita). Nada se pulsa:
-  `tcggo-emparejar-auto` casa los sets nuevos cada hora. **La numeración
-  de tandas de esta sesión va desde la 640** (590–596 y 620–623 son de la
-  otra).
+  `tcggo-emparejar-auto` casa los sets nuevos cada hora. **Scrydex ya no
+  existe** (641): sus funciones y botones se fueron; quedan sus columnas
+  con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
+  esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
