@@ -244,6 +244,39 @@ export function emparejarPorNumero(cartas, todasSuyas, { setId = '' } = {}) {
       pendientes.splice(i, 1)
     }
   }
+  // 4. Por NOMBRE, cuando el número no dice nada (652). El 30 aniversario
+  // de TCGGO lleva dentro la Classic Collection, y sus números no son los
+  // nuestros: TCGdex numera la Classic 001–030 y TCGGO la numera como la
+  // carta original («Charizard 4/102», «Zacian V SSH138»). Por número no
+  // casaba ni una, así que el catálogo las creó por SEGUNDA vez en el set
+  // del Celebration —y las nuestras, sin foto, caían al respaldo de
+  // Limitless por código + número, que con «30C» y «001» devuelve el
+  // Exeggcute. Lo que queda sin casar por los tres pasos de arriba se casa
+  // por el nombre inglés, solo cuando es ÚNICO en los dos lados entre lo
+  // que queda: es la misma regla de unicidad que el número.
+  const porNombre = new Map()
+  for (const s of libres()) {
+    const n = nombreComparable(s.name)
+    if (n) porNombre.set(n, [...(porNombre.get(n) || []), s])
+  }
+  const nuestrasPorNombre = new Map()
+  for (const c of pendientes) {
+    const n = nombreComparable(c.name_en || c.name)
+    if (n) nuestrasPorNombre.set(n, (nuestrasPorNombre.get(n) || 0) + 1)
+  }
+  for (let i = pendientes.length - 1; i >= 0; i--) {
+    const c = pendientes[i]
+    const n = nombreComparable(c.name_en || c.name)
+    if (!n) continue
+    const candidatas = (porNombre.get(n) || []).filter((s) => !usados.has(s.id))
+    if (candidatas.length !== 1 || nuestrasPorNombre.get(n) !== 1) continue
+    if (!casar(c, candidatas[0], 'nombre')) {
+      sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: 'TCGGO no le da id de Cardmarket' })
+      pendientes.splice(i, 1)
+      continue
+    }
+    pendientes.splice(i, 1)
+  }
   // Lo que queda, con el motivo.
   const porNumeroLibre = new Map()
   const porDigitosLibre = new Map()

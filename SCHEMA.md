@@ -31699,3 +31699,59 @@ en lista abre el pop-up al tocar; las tres losetas con icono y sin
 párrafos, Cambios en cifras que llevan a Cambios; la gráfica con un punto
 y la cifra de hoy sin ninguna foto). La 377 al día (con un día hay punto,
 no línea).
+
+## Tanda 652 — la Classic del 30 aniversario, dos veces (oct. 2026)
+
+PINGU, en el móvil, con el 30 aniversario abierto: «hay cartas que se
+enseñan mal: dice Charizard, que debería ser el de la Classic, pero sale
+un Exeggcute». En la cuadrícula, «Charizard 001» con la foto del
+Exeggcute 001, «Delcatty 002» con el Exeggutor 002, «Metagross 003» con
+el Volbeat 003: cada carta de la Classic con la foto de la carta del
+Celebration que tiene su mismo número.
+
+**Lo que pasa.** TCGGO tiene UNA expansión «30th Celebration» con la
+Classic Collection dentro (la 640 lo apuntó: «33 de sobra»), y numera
+esas cartas como la carta original («Charizard 4/102», «Zacian V
+SSH138»). TCGdex tiene la Classic como set aparte (`30th-c`), numerada
+001–030. Así que `emparejarPorNumero` no casó ni una —ni por tcgid, ni
+por número, ni por dígitos— y el catálogo las CREÓ por segunda vez en el
+set `30th` con `origen = 'tcggo'`, con su foto y su id de Cardmarket. Las
+nuestras de `30th-c` se quedaron sin foto (TCGdex no la tiene, nota de la
+380) y sin precio, y en pantalla `cadenaDeEscaneo` caía al respaldo de
+Limitless por código + número: el set lleva «30C» y la carta «001», y
+`30C_001` en Limitless es el Exeggcute. No daba error: daba otra carta
+con el nombre de esta. La 649, al abrir la expansión plegada entera, lo
+puso a la vista; antes estaba igual en el álbum de la Classic.
+
+**Dos arreglos:**
+
+- **El catálogo casa por NOMBRE lo que el número no casa** (paso 4 de
+  `emparejarPorNumero`, después de tcgid, número y dígitos): el nombre
+  inglés (`name_en`, o `name`) contra el suyo, con la misma regla de
+  unicidad que el número —solo cuando hay UNA con ese nombre en cada lado
+  entre lo que queda—. «Pikachu» dos veces en el suyo no casa. La consulta
+  de las nuestras pide `name_en` (la lección de la 523).
+- **`supabase-migration-30-aniversario-duplicados.sql`** funde cada
+  duplicado (`30th`, origen tcggo) con la nuestra de `30th-c` por nombre
+  único en los dos lados: la nuestra conserva su id (la llave de las
+  colecciones y las URLs) y gana con `coalesce` la foto de TCGGO, el id de
+  Cardmarket, el de TCGplayer y el de TCGGO; las líneas de colección, los
+  deseos, los álbumes soñados (su JSON de ids), los precios y el histórico
+  del duplicado pasan a la nuestra (si alguien tenía las dos con el mismo
+  idioma, estado y versión, se suman las copias); y el duplicado se
+  borra. Lleva una VISTA PREVIA que se ejecuta primero, y la lista de lo
+  que no se puede fundir solo. Con la foto de TCGGO delante de Limitless
+  en la cadena, el Exeggcute deja de salir; y con el id de Cardmarket, la
+  pasada de precios les pone precio. La semana que viene el catálogo las
+  casa por `cm_id_product_propio` (paso 1) y no vuelve a crear nada.
+
+**Lo que NO se toca**: la cadena de escaneos. Limitless por código +
+número sigue siendo correcto para todo lo demás; lo que estaba mal era
+que estas cartas llegaran hasta ahí sin foto propia.
+
+**Pruebas**: `test-tanda-652.mjs` (el paso por nombre y su orden, la
+unicidad, `name_en` en la consulta; la migración: vista previa delante,
+las guardas «= 1», `coalesce`, lo que se mueve, el borrado acotado, los
+`$$` emparejados). La 588 con el caso del 30 (dos «001» nuestras contra
+su «1» y su «4», y «Pikachu» repetido sin par) y la 640 con la Classic de
+Celebrations casando por nombre en vez de crearse.

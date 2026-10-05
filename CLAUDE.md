@@ -440,6 +440,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   haga falta pasar una suite completa»). Son los `test-tanda-*.mjs` que
   nombran `mi-coleccion` (116) más `test-imports`, 299, 305, 311, 312 y
   313. La suite entera sigue para lo que toque CSS o JS compartido.
+- **Un respaldo por código + número solo es correcto si el número es
+  ÚNICO en ese código** (tanda 652). La Classic del 30 aniversario va
+  numerada 001–030 en TCGdex y su set lleva «30C», el mismo código que el
+  Celebration: sin foto propia, `cadenaDeEscaneo` pedía a Limitless
+  `30C_001` y pintaba el Exeggcute del Celebration rotulado «Charizard».
+  No daba error: daba otra carta. Y el origen era de DATOS: TCGGO numera
+  esas cartas como la original («4/102»), el catálogo no casó ninguna por
+  número y las creó por segunda vez. Desde la 652 `emparejarPorNumero`
+  casa por NOMBRE como último paso (único en los dos lados), y los
+  duplicados se funden con `supabase-migration-30-aniversario-duplicados.sql`.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

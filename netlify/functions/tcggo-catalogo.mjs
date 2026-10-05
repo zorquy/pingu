@@ -247,7 +247,7 @@ export async function procesar({
       // Nuestras cartas de esos sets.
       let nuestras
       try {
-        nuestras = (await pedir(`tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.${mercado}&set_id=in.(${destinos.map((s) => `"${encodeURIComponent(s)}"`).join(',')})&limit=5000`)) || []
+        nuestras = (await pedir(`tcg_cards?select=id,set_id,local_id,name,name_en,cm_id_product_propio,tcggo_id&market=eq.${mercado}&set_id=in.(${destinos.map((s) => `"${encodeURIComponent(s)}"`).join(',')})&limit=5000`)) || []
       } catch (e) {
         return { ...resumen(), ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
       }
