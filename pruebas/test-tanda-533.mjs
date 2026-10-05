@@ -57,7 +57,7 @@ console.log('── 1. Las cinco parejas ──')
   // Y en la 646 vuelve a ser UNO: PINGU, con la API de TCGGO delante («el 30
   // es uno entero, con las clásicas dentro»). Manda lo último.
   check('el Classic del 30 va dentro del 30 (646)', padreDeColeccion('30th-c') === '30th', padreDeColeccion('30th-c'))
-  check('  …por una regla de prefijo, que es la que recoge la siguiente entrega', prefijoDeColeccion('30th') === '30th-', prefijoDeColeccion('30th'))
+  check('  …por una regla de prefijo, que es la que recoge la siguiente entrega', prefijoDeColeccion('30th') === '30th', prefijoDeColeccion('30th'))
 }
 
 console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan en el padre ──')
