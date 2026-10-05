@@ -4,6 +4,16 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana) — PINGU-Claude (586, primer paso: ver los precios de Scrydex en crudo)
+
+**Hecho**: PINGU quiere los precios de Scrydex (su plan Starter incluye
+«Raw Prices»; lleva 2.116 de 5.000 créditos este mes). Antes de cablear
+nada, un botón en /admin → Cartas, «Qué contesta Scrydex de esta carta»
+(por `scrydex-sonda`, 1 crédito por clic), para tener delante su bloque
+`prices` real (la norma de la 501). Nada más cambia todavía.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`.
+
 ## 2026-10-06 (noche, 05:50) — PINGU-Claude (suite entera: 290 verdes, 6 rojos, arreglados)
 
 **Suite entera pasada** con todo lo de la noche (las 580–585 y vuestras

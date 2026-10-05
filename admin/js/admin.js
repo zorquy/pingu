@@ -3035,6 +3035,41 @@ const SONDAS_SCRYDEX = [
 // por la mañana.
 //
 // No gasta ni un crédito: son cuentas de nuestra propia base.
+// Una carta de Scrydex, en crudo (tanda 586): lo que hace falta ver antes
+// de afirmar qué precios trae y en qué moneda. Un crédito por clic.
+async function cartaScrydex() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnCartaScrydex')
+  const id = String(document.getElementById('cardsScrydexCarta')?.value || '').trim()
+  if (!/^[a-z0-9_.-]+$/i.test(id)) {
+    alert('Escribe el id de la carta tal como lo nombra Scrydex (por ejemplo xy5-150).')
+    return
+  }
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) return
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = `Preguntando a Scrydex por ${id}…`
+  try {
+    const res = await fetch('/.netlify/functions/scrydex-sonda', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ ruta: `en/cards/${id}` }),
+    })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    let bonito = r.respuesta
+    try {
+      bonito = JSON.stringify(JSON.parse(r.respuesta), null, 2)
+    } catch {}
+    caja.value = `${r.url}\nHTTP ${r.estadoHttp}\n\n${bonito}${r.recortado ? '\n…(recortado)' : ''}`
+  } catch (e) {
+    caja.value = `No se ha podido preguntar: ${e.message}`
+  } finally {
+    boton.disabled = false
+  }
+}
+
 async function comoVaScrydex() {
   const caja = document.getElementById('cardsDiagnostico')
   const boton = document.getElementById('btnComoVaScrydex')
@@ -3352,6 +3387,7 @@ function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
   document.getElementById('btnSetsScrydex')?.addEventListener('click', setsScrydex)
   document.getElementById('btnComoVaScrydex')?.addEventListener('click', comoVaScrydex)
+  document.getElementById('btnCartaScrydex')?.addEventListener('click', cartaScrydex)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
