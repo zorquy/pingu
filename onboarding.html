@@ -12,13 +12,6 @@
   <meta name="robots" content="noindex" />
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
-       los descubre en cascada —la página pide su .js, ese pide app.js,
-       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
-       es un viaje de ida y vuelta más antes de poder pintar. Con
-       modulepreload se piden los seis a la vez, desde el primer momento.
-       Van estos y no todo el grafo a propósito: son los que no cambian
-       de página a página, así que no se quedan obsoletos solos. -->
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
@@ -28,70 +21,75 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/auth.css" />
-  <style>
-    .onb-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .onb-box { width: 100%; max-width: 420px; }
-    .onb-step { display: none; flex-direction: column; gap: 18px; text-align: center; }
-    .onb-step.active { display: flex; }
-    .onb-welcome { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 56px 28px; align-items: center; position: relative; overflow: hidden; }
-    .onb-welcome::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.14), transparent 60%); pointer-events: none; }
-    .onb-welcome .logo { font-weight: 800; font-size: var(--t-2xl); }
-    .onb-welcome h1 { font-size: var(--t-2xl); font-weight: 800; letter-spacing: -0.4px; }
-    .onb-welcome p { color: var(--ice); font-size: var(--t-md); }
-    .onb-welcome .btn-primary { background: var(--white); color: var(--navy); box-shadow: none; }
-    .onb-welcome .btn-primary:hover { background: var(--ice); }
-    .onb-options { display: flex; flex-direction: column; gap: 10px; }
-    .onb-option-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: left; font-weight: 700; background: var(--white); transition: border-color 0.15s var(--ease); }
-    .onb-option-card:hover { border-color: var(--border-strong); }
-    .onb-option-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
-    .onb-interests-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .onb-interest-card { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 14px; font-weight: 700; font-size: var(--t-sm); background: var(--white); transition: border-color 0.15s var(--ease); }
-    .onb-interest-card:hover { border-color: var(--border-strong); }
-    .onb-interest-card.selected { border-color: var(--navy); background: var(--ice); color: var(--navy); }
-    .onb-path-card { background: var(--navy); color: var(--white); border-radius: var(--radius-xl); padding: 28px; text-align: center; position: relative; overflow: hidden; }
-    .onb-path-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.14), transparent 60%); pointer-events: none; }
-    .onb-path-card h3 { font-size: var(--t-xl); font-weight: 800; margin: 8px 0; }
-    .onb-path-card p { color: var(--ice); font-size: var(--t-sm); margin-bottom: 16px; }
-    .onb-path-card .btn-primary { background: var(--white); color: var(--navy); width: 100%; box-shadow: none; }
-  </style>
+  <link rel="stylesheet" href="css/onboarding.css" />
 </head>
 <body>
+  <!-- LA BIENVENIDA, EN TRES PASOS (tanda 581). Antes eran cinco —nivel,
+       categorías, una categoría recomendada— y acababan en la portada:
+       quien se registraba caía en una web entera sin una sola cosa que
+       hacer. Ahora: tu nombre, qué te trae, y UN primer paso concreto
+       (añadir una carta, jugar el reto de hoy, empezar una guía). El
+       porqué, en SCHEMA.md. -->
   <div class="onb-page">
     <div class="onb-box">
+      <ol class="onb-pasos" aria-label="Pasos">
+        <li class="onb-paso activo" data-paso="2">Tu nombre</li>
+        <li class="onb-paso" data-paso="3">Qué te trae</li>
+        <li class="onb-paso" data-paso="4">Primer paso</li>
+      </ol>
+
       <div class="onb-step onb-welcome active" id="onbStep1">
-        <div class="logo">Poke<span style="opacity:.85">Doc</span></div>
+        <div class="logo">Poke<span>Doc</span></div>
         <h1>¡Bienvenido a PokeDoc!</h1>
-        <p>Vamos a personalizar tu experiencia en menos de un minuto.</p>
+        <p>Tres preguntas rápidas y te dejamos con algo que hacer.</p>
         <button class="btn-primary btn-block" id="btnStep1Next">Empezar →</button>
       </div>
 
       <div class="onb-step" id="onbStep2">
         <h2>¿Cómo te llamamos?</h2>
-        <input type="text" id="onbNameInput" class="auth-input" placeholder="Tu nombre" />
+        <input type="text" id="onbNameInput" class="auth-input" placeholder="Tu nombre" maxlength="40" autocomplete="nickname" />
         <button class="btn-primary btn-block" id="btnStep2Next" disabled>Siguiente →</button>
       </div>
 
       <div class="onb-step" id="onbStep3">
-        <h2>¿Cuál es tu nivel?</h2>
-        <div class="onb-options" id="onbLevelOptions">
-          <button class="onb-option-card" data-value="nuevo" style="display:flex; align-items:center; gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20h10"></path><path d="M10 20c0-4 2-6 2-6"></path><path d="M14 20c0-4-2-6-2-6"></path><path d="M12 14c-3 0-5-2-5-5 3 0 5 1 5 3"></path><path d="M12 14c3 0 5-2 5-5-3 0-5 1-5 3"></path></svg> Soy nuevo en esto</button>
-          <button class="onb-option-card" data-value="intermedio" style="display:flex; align-items:center; gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> Nivel intermedio</button>
-          <button class="onb-option-card" data-value="experimentado" style="display:flex; align-items:center; gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Ya soy experimentado</button>
+        <h2>¿Qué te trae a PokeDoc?</h2>
+        <p class="subtext">Elige una o varias.</p>
+        <div class="onb-options" id="onbQue">
+          <button type="button" class="onb-option-card" data-value="coleccionar" aria-pressed="false">
+            <span class="onb-option-icono" data-icono="cards" aria-hidden="true"></span>
+            <span><strong>Coleccionar</strong><small>Apunta tus cartas y mira cuánto valen.</small></span>
+          </button>
+          <button type="button" class="onb-option-card" data-value="jugar" aria-pressed="false">
+            <span class="onb-option-icono" data-icono="gamepad" aria-hidden="true"></span>
+            <span><strong>Jugar</strong><small>Torneos, mazos del meta y retos diarios.</small></span>
+          </button>
+          <button type="button" class="onb-option-card" data-value="aprender" aria-pressed="false">
+            <span class="onb-option-icono" data-icono="graduationCap" aria-hidden="true"></span>
+            <span><strong>Aprender</strong><small>Guías y cursos jugables, de cero a competir.</small></span>
+          </button>
         </div>
         <button class="btn-primary btn-block" id="btnStep3Next" disabled>Siguiente →</button>
       </div>
 
       <div class="onb-step" id="onbStep4">
-        <h2>¿Qué te interesa más?</h2>
-        <p class="subtext" style="margin-top:-10px;">Elige una o varias categorías.</p>
-        <div class="onb-interests-grid" id="onbInterestsGrid"></div>
-        <button class="btn-primary btn-block" id="btnStep4Next" disabled>Siguiente →</button>
-      </div>
-
-      <div class="onb-step" id="onbStep5">
-        <h2>Tu categoría recomendada</h2>
-        <div class="onb-path-card" id="onbRecommendedCategory"></div>
-        <button class="btn-primary btn-block" id="btnFinish">¡Empezar!</button>
+        <h2>Tu primer paso</h2>
+        <p class="subtext">Lo que elijas te lleva allí ahora mismo. Lo demás te espera en el menú.</p>
+        <div class="onb-acciones" id="onbAcciones">
+          <button type="button" class="onb-accion" data-ir="/mi-coleccion?ver=buscar" data-para="coleccionar">
+            <span class="onb-option-icono" data-icono="search" aria-hidden="true"></span>
+            <span><strong>Añade tu primera carta</strong><small>Búscala por nombre o escanéala con la cámara.</small></span>
+          </button>
+          <button type="button" class="onb-accion" data-ir="/reto" data-para="jugar">
+            <span class="onb-option-icono" data-icono="flame" aria-hidden="true"></span>
+            <span><strong>Juega el reto de hoy</strong><small>Cinco preguntas. Liga semanal y rachas.</small></span>
+          </button>
+          <button type="button" class="onb-accion" data-ir="/aprender.html" data-para="aprender">
+            <span class="onb-option-icono" data-icono="bookOpen" aria-hidden="true"></span>
+            <span><strong>Empieza una guía</strong><small>Las más leídas, ordenadas de cero a experto.</small></span>
+          </button>
+        </div>
+        <p class="subtext onb-importar">¿Ya tienes la colección en Dex, Collectr o una hoja? <button type="button" class="link-btn" data-ir="/mi-coleccion?ver=resumen&amp;importar=1">Impórtala de un CSV</button></p>
+        <button type="button" class="link-btn onb-luego" data-ir="/index.html">Ahora no, llévame a la portada</button>
       </div>
     </div>
   </div>

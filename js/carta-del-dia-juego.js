@@ -13,7 +13,7 @@ import { tipoEs, rarezaDeCarta } from './carta-traducciones.js'
 import { setsDelMercado, buscarEnCatalogo } from './catalogo-buscar.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import {
-  INTENTOS, DESENFOQUES, PISTAS, ORDEN_CASILLAS, compararIntento, textoParaCompartir, rachaDeDias, numeroDelDia,
+  INTENTOS, DESENFOQUES, PISTAS, ORDEN_CASILLAS, compararIntento, textoParaCompartir, rachaDeDias, numeroDelDia, ENLACE,
 } from './carta-del-dia.js'
 
 const $ = (id) => document.getElementById(id)
@@ -129,11 +129,32 @@ function pintarFinal() {
     <p class="subtext">${escapeHtml(nombreDeSet(respuesta.tcg_sets) || respuesta.set_id)} · ${escapeHtml(respuesta.local_id || '')}${racha >= 2 ? ` · ${racha} días seguidos` : ''}</p>
     <div class="cd-final-botones">
       <button type="button" class="btn-primary" id="cdCompartir">Compartir el resultado</button>
+      <button type="button" class="btn-secondary" id="cdImagen">Compartir como imagen</button>
       <a class="btn-secondary" href="${escapeHtml(rutaDeCarta(respuesta))}">Ver la carta</a>
     </div>
     <p class="subtext">Mañana hay otra.</p>`
   final.classList.remove('hidden')
   $('cdCompartir').addEventListener('click', compartir)
+  $('cdImagen').addEventListener('click', compartirImagen)
+}
+
+// La imagen del resultado (tanda 583): la carta ya resuelta, las filas
+// de casillas y la racha. Como el texto, se arma al pulsar.
+async function compartirImagen() {
+  const [{ pintarResultadoReto }, { compartirLienzo, fotoParaElLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
+  const foto = await fotoParaElLienzo(cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high'))
+  const lienzo = pintarResultadoReto(document.createElement('canvas'), {
+    titulo: '¿Qué carta es?',
+    cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
+    detalle: `Carta #${numeroDelDia(dia)} · ${nombreDeCarta(respuesta)}`,
+    filas: estado.intentos.map((it) => ORDEN_CASILLAS.map((k) => Boolean(it.casillas?.[k]))),
+    racha: rachaDeDias(diasAcertados(), dia),
+    enlace: ENLACE,
+    foto,
+    fotoNombre: '',
+  })
+  const texto = textoParaCompartir({ dia, comparaciones: estado.intentos.map((it) => it.casillas), acertada: estado.acertada, rachaDias: rachaDeDias(diasAcertados(), dia) })
+  await compartirLienzo(lienzo, { nombreFichero: `carta-del-dia-${numeroDelDia(dia)}.png`, texto })
 }
 
 function pintarTodo() {

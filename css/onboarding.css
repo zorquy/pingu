@@ -1,0 +1,179 @@
+/* La bienvenida (tanda 581). Solo la carga onboarding.html. */
+
+.onb-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--e-lg);
+}
+
+.onb-box {
+  width: 100%;
+  max-width: 460px;
+}
+
+/* Los tres pasos, arriba: se sabe cuánto queda sin preguntarlo. */
+.onb-pasos {
+  display: flex;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-lg);
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.onb-paso {
+  flex: 1;
+  padding-top: var(--e-xs);
+  border-top: 2px solid var(--border);
+  color: var(--text-dim);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.onb-paso.activo,
+.onb-paso.hecho {
+  border-top-color: var(--navy);
+  color: var(--navy);
+}
+
+.onb-step {
+  display: none;
+  flex-direction: column;
+  gap: var(--e-md);
+  text-align: center;
+}
+
+.onb-step.active {
+  display: flex;
+}
+
+.onb-welcome {
+  position: relative;
+  align-items: center;
+  overflow: hidden;
+  padding: 56px var(--e-xl);
+  border-radius: var(--radius-xl);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.onb-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 60%);
+  pointer-events: none;
+}
+
+.onb-welcome .logo {
+  font-size: var(--t-2xl);
+  font-weight: 800;
+}
+
+.onb-welcome .logo span {
+  opacity: 0.85;
+}
+
+.onb-welcome h1 {
+  font-size: var(--t-2xl);
+  font-weight: 800;
+}
+
+.onb-welcome p {
+  color: var(--blanco-fijo);
+  opacity: 0.85;
+}
+
+.onb-welcome .btn-primary {
+  background: var(--blanco-fijo);
+  color: var(--navy-solid);
+  box-shadow: none;
+}
+
+.onb-options,
+.onb-acciones {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.onb-option-card,
+.onb-accion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease);
+}
+
+.onb-option-card:hover,
+.onb-accion:hover {
+  border-color: var(--border-strong);
+}
+
+.onb-option-card[aria-pressed='true'] {
+  border-color: var(--navy);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.onb-option-card > span:last-child,
+.onb-accion > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.onb-option-card small,
+.onb-accion small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.onb-option-icono {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+/* La acción que casa con lo que has dicho que te trae, primero y en
+   azul: es la que te propone la web. Las otras siguen ahí. */
+.onb-accion.recomendada {
+  border-color: var(--navy);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.onb-accion.recomendada small {
+  color: var(--blanco-fijo);
+  opacity: 0.85;
+}
+
+.onb-accion.recomendada .onb-option-icono {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--blanco-fijo);
+}
+
+.onb-importar {
+  margin: 0;
+}
+
+.onb-luego {
+  justify-self: center;
+  min-height: 44px;
+}

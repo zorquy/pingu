@@ -57,7 +57,7 @@ const terminado = () => ronda() >= RONDAS
 
 function pintarCarta(caja, carta, { precio = null, veredicto = null } = {}) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(carta, carta?.tcg_sets?.tcg_online_code || null))
-  caja.querySelector('.mcr-foto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" />` : ''
+  caja.querySelector('.mcr-foto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''
   caja.querySelector('.mcr-nombre').textContent = nombreDeCarta(carta)
   caja.querySelector('.mcr-set').textContent = `${nombreDeSet(carta?.tcg_sets) || carta?.set_id || ''}${carta?.local_id ? ` · ${carta.local_id}` : ''}`
   caja.querySelector('.mcr-precio').textContent = precio === null ? '¿?' : euros(precio)

@@ -126,7 +126,7 @@ export function valorDe(precio) {
 // la misma forma que `precioDe`.
 export function precioDeFila(fila, { reverse = false } = {}) {
   if (!fila) return null
-  return precioDe(
+  const precio = precioDe(
     {
       cardmarket: {
         idProduct: fila.cm_id_product,
@@ -142,6 +142,12 @@ export function precioDeFila(fila, { reverse = false } = {}) {
     },
     { reverse }
   )
+  // La URL EXACTA del producto (tanda 585), que trae pokemontcg.io cuando
+  // TCGdex no tiene la carta: vale aunque no haya ni una cifra, porque
+  // es lo que convierte el botón en «esta carta» y no en una búsqueda.
+  const url = typeof fila.cm_url === 'string' && /^https?:\/\//.test(fila.cm_url) ? fila.cm_url : null
+  if (!precio) return url ? { idProduct: null, desde: null, tendencia: null, media30: null, media7: null, actualizado: fila.cm_updated || null, reverse, prestado: false, url } : null
+  return { ...precio, url }
 }
 
 // Y al revés: de la respuesta de TCGdex a la fila de la tabla.
@@ -179,7 +185,11 @@ export function euros(v) {
 // `nombre` solo hace falta para el caso sin `idProduct` (la carta no
 // está en Cardmarket según TCGdex, o es japonesa): entonces se busca por
 // nombre, que al menos deja a un clic de la carta.
-export function enlaceCardmarket({ idProduct = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '' } = {}) {
+export function enlaceCardmarket({ idProduct = null, url = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '' } = {}) {
+  // Sin `idProduct` pero con la URL exacta (585): a la carta, sin filtros
+  // —es una redirección y no se le pueden colgar—, que es mejor que una
+  // búsqueda con 133 resultados.
+  if (!idProduct && url) return url
   const i = idiomaDe(idioma)
   const e = estadoDe(estado)
   const p = new URLSearchParams()
@@ -197,8 +207,9 @@ export function enlaceCardmarket({ idProduct = null, idioma = IDIOMA_POR_DEFECTO
 
 // El texto del botón, que dice QUÉ filtros lleva: «español · Good o
 // mejor». Quien lo pulsa sabe qué va a ver antes de irse.
-export function textoDelEnlace({ idProduct = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
+export function textoDelEnlace({ idProduct = null, url = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
   const i = idiomaDe(idioma)
+  if (!idProduct && url) return 'Ver en Cardmarket'
   if (!idProduct || !i.cm) return 'Buscar en Cardmarket'
   const e = estadoDe(estado)
   return `Ver en Cardmarket: ${i.nombre.toLowerCase()} · ${e.nombre}${e.id === 'MT' ? '' : ' o mejor'}`

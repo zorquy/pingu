@@ -30,7 +30,7 @@ import {
   XP_RETO_DIARIO,
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
-import { textoParaCompartir, numeroDelDia, rachaDeDias } from './reto-compartir.js'
+import { textoParaCompartir, numeroDelDia, rachaDeDias, ENLACE as ENLACE_RETO } from './reto-compartir.js'
 import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
 import { clasificacionSemanal } from './liga.js'
 import { puestoDe, textoSaltoLiga } from './liga-salto.js'
@@ -570,7 +570,7 @@ function renderReward(b) {
           // para pegar en WhatsApp o donde sea, con el enlace al reto —
           // quien lo reciba puede intentar superarte hoy mismo.
           modo === 'diario'
-            ? '<button class="btn-primary" id="btnPresumir">🎴 Presumir de resultado</button>'
+            ? '<button class="btn-primary" id="btnPresumir">🎴 Presumir de resultado</button><button class="btn-secondary" id="btnPresumirImagen">Compartir como imagen</button>'
             : ''
         }
         ${
@@ -1626,6 +1626,26 @@ async function setupBlockLogic(block) {
         } catch {
           showToast('No se ha podido copiar el resultado.')
         }
+      })
+    }
+
+    // Y la IMAGEN (tanda 583): lo que se sube a una historia, donde un
+    // texto con emojis no luce. Se dibuja al pulsar, con lo mismo que el
+    // texto (racha incluida), y se comparte o se descarga.
+    const btnImagen = document.getElementById('btnPresumirImagen')
+    if (btnImagen && ultimoResumen) {
+      btnImagen.addEventListener('click', async () => {
+        const [{ pintarResultadoReto }, { compartirLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
+        const lienzo = pintarResultadoReto(document.createElement('canvas'), {
+          titulo: 'El reto de hoy',
+          cuenta: `${ultimoResumen.correct}/${ultimoResumen.total}`,
+          detalle: `Reto #${numeroDelDia(hoyISO())}`,
+          tira: ultimoResumen.tira,
+          racha: rachaDeHoy,
+          enlace: ENLACE_RETO,
+        })
+        const texto = textoParaCompartir({ dia: hoyISO(), tira: ultimoResumen.tira, correct: ultimoResumen.correct, total: ultimoResumen.total, medal: ultimoResumen.medal, rachaDias: rachaDeHoy })
+        await compartirLienzo(lienzo, { nombreFichero: `reto-${numeroDelDia(hoyISO())}.png`, texto })
       })
     }
 

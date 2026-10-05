@@ -43,6 +43,7 @@ const ESTATICAS = [
   // lo que apunta el texto que la gente comparte.
   ['/retos', '0.7'],
   ['/carta-del-dia', '0.7'],
+  ['/mas-caro', '0.7'],
   // El índice del catálogo: es la puerta a las colecciones y, por ellas,
   // a las fichas de carta.
   ['/cartas', '0.8'],

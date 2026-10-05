@@ -28,7 +28,8 @@ import {
 // El dibujo de la marca va aparte: es lo único de Cardmarket que
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
 import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
-import { preciosEnVivo, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
+import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
+import { precioDeFila } from './cardmarket.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
@@ -84,7 +85,11 @@ export async function pintarMercado(carta) {
   if (!caja || !carta?.id) return
   // Solo las del mercado occidental tienen precio en Cardmarket vía
   // TCGdex (las japonesas son otro producto allí).
-  const vivo = await preciosEnVivo(carta.id)
+  // Y el GUARDADO a la vez (tanda 585): cuando TCGdex no tiene precio de
+  // una carta, la función programada lo trae de pokemontcg.io con la URL
+  // exacta de Cardmarket, y eso solo está en `tcg_card_prices`.
+  const [vivo, guardadas] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map())])
+  const guardada = guardadas.get(carta.id) || null
   const variantes = variantesDe(vivo?.variants)
   const estado = { idioma: IDIOMA_POR_DEFECTO, estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
   const nombre = nombreDeCarta(carta)
@@ -122,7 +127,12 @@ export async function pintarMercado(carta) {
   caja.classList.remove('hidden')
 
   const pintarPrecio = () => {
-    const precio = precioDe(vivo?.pricing, { reverse: estado.variante === 'reverse' })
+    const reverse = estado.variante === 'reverse'
+    const enVivo = precioDe(vivo?.pricing, { reverse })
+    const guardado = precioDeFila(guardada, { reverse })
+    // El vivo manda si dice algo; si no, el guardado; y si ninguno tiene
+    // cifras, el que al menos traiga el enlace (la regla de la 375).
+    const precio = tieneCifras(enVivo) ? enVivo : tieneCifras(guardado) ? guardado : enVivo || guardado
     // Con cifras o sin ellas: un precio del que solo se sabe el
     // `idProduct` pintaba tres rayas donde tenía que haber euros.
     const hayCifras = tieneCifras(precio)
@@ -141,10 +151,11 @@ export async function pintarMercado(carta) {
       : 'No tenemos el precio de esta carta. Búscala en Cardmarket:'
     const idProduct = precio?.idProduct || null
     const a = $('cmEnlace')
-    a.href = enlaceCardmarket({ idProduct, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
+    const url = precio?.url || null
+    a.href = enlaceCardmarket({ idProduct, url, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
     // `textContent` primero y la marca después: el texto viene de
     // `textoDelEnlace` y así no hay forma de colar HTML por ahí.
-    a.textContent = textoDelEnlace({ idProduct, idioma: estado.idioma, estado: estado.estado })
+    a.textContent = textoDelEnlace({ idProduct, url, idioma: estado.idioma, estado: estado.estado })
     a.insertAdjacentHTML('afterbegin', marcaCardmarket(22))
   }
   pintarPrecio()

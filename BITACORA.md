@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 03:40) — PINGU-Claude (580–585, SEGUNDA MITAD: todo cableado)
+
+**Hecho**:
+· **585** (lo que PINGU pidió esta noche con el Groudon EX): `precios-coleccion`
+  pide a pokemontcg.io lo que TCGdex no trae (por código de TCG Live +
+  número) y guarda cifras + `cm_url`; el botón de Cardmarket va a la carta
+  EXACTA; /carta lee también el precio guardado.
+· **580**: tarjeta «Importar y exportar» en el Panel, bandeja de importar
+  (pegar o subir; Collectr, TCG Vault, el nuestro; Dex reconstruido sin un
+  export real delante) y «Descargar mi colección (CSV)».
+· **581**: bienvenida en tres pasos (nombre → qué te trae → primer paso
+  concreto) que acaba donde eliges; `css/onboarding.css` nuevo; estado
+  vacío del Panel con dibujo y una acción.
+· **582**: «+X € (+Y %) este mes» bajo el valor de la cabecera y en la
+  imagen de la colección (la gráfica ya existía desde la 377).
+· **583**: «¿Más caro o más barato?» enlazado en /retos y en el sitemap;
+  «Compartir como imagen» en los tres retos.
+· 584 no hace falta: la densidad móvil de Cartas ya la hicieron la 445/461
+  (capturado y comprobado).
+
+**MIGRACIONES pendientes de ejecutar** (las dos re-ejecutables, y sin
+ellas no se rompe nada): `supabase-migration-precios-url.sql` y
+`supabase-migration-mas-caro.sql`. Opcional en Netlify: `POKEMONTCG_API_KEY`.
+
+**Ficheros**: `js/cardmarket.js`, `js/carta-mercado.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/imagen.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`netlify/functions/precios-coleccion.mjs`, `onboarding.html`,
+`js/onboarding.js`, `css/onboarding.css` (nuevo), `js/curso.js`,
+`js/carta-del-dia-juego.js`, `js/retos.js`, `retos.html`, `js/mas-caro*.js`,
+`netlify/functions/sitemap.mjs`, `SCHEMA.md`. En `pruebas`: 580 (+csv),
+581, 582, 583 (+mas-caro), 585 (+pokemontcg) nuevos; 312, 326 y 569 al día
+(36 páginas con pie, tres retos); el doble rellena `user_id` al insertar
+como hace la base.
+
+**Pendiente (sigo esta noche)**: poner al día los tests que las tandas
+550/565/577 dejaron viejos (385, 392, 398, 422, 426, 461, 469, 471, 484,
+488, 500, 503–506, 545, 470) y pasar la suite entera.
+
 ## 2026-10-06 (noche, 01:30) — PINGU-Claude (580–585, PRIMERA MITAD: ficheros nuevos, SIN cablear)
 
 **Hecho**: solo ficheros NUEVOS que nada importa todavía (la suite entera

@@ -722,6 +722,51 @@
           </div>
         </dialog>
 
+        <!-- IMPORTAR UN CSV (tanda 580). Quien ya tiene la colección en
+             Dex, en Collectr o en una hoja no la va a meter a mano. Se
+             pega o se sube, se enseña qué se ha encontrado y qué no, y
+             solo entonces se guarda. El lector vive en
+             js/mi-coleccion/importar-csv.js. -->
+        <dialog class="mc-bandeja mc-importar-dialogo" id="mcImportarDialogo" aria-labelledby="mcImportarTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcImportarTitulo">Importar cartas desde un CSV</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcImportarCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo mc-importar-cuerpo">
+            <div id="mcImpPaso1">
+              <p class="subtext">Vale el CSV que exportan Dex, Collectr, TCG Vault o esta misma página, y cualquier hoja con una columna de expansión (nombre o código) y otra de número. Lo demás —copias, estado, idioma, versión, gradeo— se lee si está.</p>
+              <label class="mc-imp-campo">Sube el fichero <input type="file" id="mcImpFichero" accept=".csv,.tsv,.txt,text/csv,text/plain" /></label>
+              <label class="mc-imp-campo">…o pégalo aquí
+                <textarea id="mcImpTexto" rows="6" placeholder="Set,Name,Card Number,Quantity&#10;Paldea Evolved,Pikachu,025/193,2"></textarea>
+              </label>
+              <label class="mc-imp-campo">Idioma de las cartas si el fichero no lo dice
+                <select id="mcImpIdioma" class="mc-chapa-select">
+                  <option value="es">Español</option>
+                  <option value="en">Inglés</option>
+                  <option value="fr">Francés</option>
+                  <option value="de">Alemán</option>
+                  <option value="it">Italiano</option>
+                  <option value="pt">Portugués</option>
+                  <option value="ja">Japonés</option>
+                </select>
+              </label>
+              <div class="mc-imagen-botones">
+                <button type="button" class="btn-primary" id="mcImpAnalizar">Comprobar</button>
+              </div>
+              <p class="mc-nota" id="mcImpEstado" role="status"></p>
+            </div>
+            <div id="mcImpPaso2" class="hidden">
+              <div id="mcImpResumen"></div>
+              <div id="mcImpPerdidas"></div>
+              <div id="mcImpLista"></div>
+              <div class="mc-imagen-botones">
+                <button type="button" class="btn-primary" id="mcImpConfirmar">Añadir a mi colección</button>
+                <button type="button" class="btn-secondary" id="mcImpVolver">Volver</button>
+              </div>
+            </div>
+          </div>
+        </dialog>
+
       </section>
 
       <!-- LOS CAMBIOS, EN SU PROPIA PANTALLA (tanda 451). Estuvieron al

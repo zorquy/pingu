@@ -46,6 +46,12 @@ export async function pintarImagenDeColeccion(lienzo, datos) {
   cifra(ctx, 560, 260, String(datos.distintas), 'distintas')
   cifra(ctx, 90, 400, String(datos.sets), datos.sets === 1 ? 'colección' : 'colecciones')
   cifra(ctx, 560, 400, datos.valor, 'de valor')
+  // Y cuánto ha cambiado este mes (tanda 582), si se sabe.
+  if (datos.cambioMes) {
+    ctx.fillStyle = datos.cambioMes.startsWith('−') ? '#ff9b9b' : '#9be7b4'
+    ctx.font = '600 26px Inter, sans-serif'
+    ctx.fillText(datos.cambioMes, 560, 466)
+  }
 
   // Las tres que más valen, con su foto
   ctx.textAlign = 'left'

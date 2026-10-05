@@ -5897,3 +5897,90 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: var(--e-xs) 0 0;
   text-align: center;
 }
+
+/* Importar un CSV (tanda 580). */
+.mc-importar-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.mc-imp-campo {
+  display: grid;
+  gap: var(--e-xs);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-imp-campo textarea {
+  width: 100%;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.mc-imp-titulo {
+  margin: var(--e-sm) 0 var(--e-xs);
+  font-weight: 700;
+}
+
+.mc-imp-lista {
+  display: grid;
+  gap: var(--e-xs);
+  max-height: 280px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.mc-imp-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--e-xs) var(--e-sm);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: var(--t-sm);
+}
+
+@media (min-width: 700px) {
+  .mc-importar-dialogo {
+    width: min(100% - var(--e-lg) * 2, 640px);
+  }
+}
+
+/* El dibujo del estado vacío del Panel (tanda 581); la caja es `.mc-vacio` (510). */
+.mc-vacio-icono {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.mc-vacio-acciones .btn-primary,
+.mc-vacio-acciones .btn-secondary {
+  min-height: 44px;
+}
+
+/* El cambio del mes bajo el valor (tanda 582). */
+.mc-cifra-cambio {
+  display: block;
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mc-cifra-cambio.sube {
+  color: var(--success);
+}
+
+.mc-cifra-cambio.baja {
+  color: var(--danger);
+}

@@ -5,6 +5,7 @@ import { icons } from './icons.js'
 import { yaJugadoHoy, diasJugados, hoyISO, PREGUNTAS_POR_RETO } from './reto-diario.js'
 import { rachaDeDias, numeroDelDia } from './reto-compartir.js'
 import { numeroDelDia as numeroDelDiaCarta, INTENTOS as INTENTOS_CARTA } from './carta-del-dia.js'
+import { numeroDelDia as numeroDelDiaMasCaro, RONDAS } from './mas-caro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -69,6 +70,29 @@ function pintarCartaDelDia() {
     <a class="${acabada ? 'btn-secondary' : 'btn-primary'}" href="/carta-del-dia">${acabada ? 'Ver la carta →' : 'Seguir →'}</a>`
 }
 pintarCartaDelDia()
+
+// «¿Más caro o más barato?» (tanda 583) también vive en el navegador.
+function pintarMasCaro() {
+  const caja = $('rtMasCaroEstado')
+  if (!caja) return
+  let g = null
+  try {
+    g = JSON.parse(localStorage.getItem('pokedoc-mas-caro') || 'null')
+  } catch {}
+  const hoy = hoyISO()
+  const numero = numeroDelDiaMasCaro(hoy)
+  if (!g || g.dia !== hoy || !g.respuestas?.length) {
+    caja.innerHTML = `<p class="rt-reto-num">Reto #${numero}</p>${puntosHtml(0, RONDAS)}<a class="btn-primary" href="/mas-caro">Jugar →</a>`
+    return
+  }
+  const aciertos = g.respuestas.filter(Boolean).length
+  const acabado = g.respuestas.length >= RONDAS
+  caja.innerHTML = `
+    <p class="rt-reto-num">Reto #${numero} · <strong>${acabado ? `${aciertos} de ${RONDAS}` : `pregunta ${g.respuestas.length + 1} de ${RONDAS}`}</strong></p>
+    ${puntosHtml(aciertos, RONDAS)}
+    <a class="${acabado ? 'btn-secondary' : 'btn-primary'}" href="/mas-caro">${acabado ? 'Ver el resultado →' : 'Seguir →'}</a>`
+}
+pintarMasCaro()
 
 pintarHoy().catch(() => {
   const caja = $('rtHoyEstado')

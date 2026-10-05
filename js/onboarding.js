@@ -1,53 +1,44 @@
+// La bienvenida en tres pasos (tanda 581). El porqué, en SCHEMA.md.
+//
+// Lo que se guarda: el nombre, qué te trae (`interests`, que antes eran
+// categorías del blog y ahora son «coleccionar / jugar / aprender») y
+// `onboarding_completed`. Y lo que cambia de verdad: no acaba en la
+// portada, acaba en LO QUE HAS ELEGIDO HACER.
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, uniqueUsername, categoryIconHtml, suggestedNameFromSession } from './app.js'
+import { requireAuth, uniqueUsername, suggestedNameFromSession } from './app.js'
+import { icons } from './icons.js'
 
-const state = { level: null, interests: new Set(), recommendedCategory: null }
-let categories = []
+const $ = (id) => document.getElementById(id)
+const elegido = new Set()
 
-const LEVEL_INTRO = {
-  nuevo: 'Como estás empezando, te recomendamos esta categoría:',
-  intermedio: 'Con lo que ya sabes, esta categoría te viene bien:',
-  experimentado: 'Para afinar los detalles, prueba esta categoría:',
-}
+// Qué acción va primero según lo que te trae: la primera que hayas
+// marcado manda. Si marcas las tres, coleccionar: es lo que esta web
+// hace que ninguna otra en español.
+const ORDEN = ['coleccionar', 'jugar', 'aprender']
 
 function goToStep(n) {
   document.querySelectorAll('.onb-step').forEach((s) => s.classList.remove('active'))
-  document.getElementById(`onbStep${n}`).classList.add('active')
-}
-
-async function loadCategories() {
-  const { data } = await supabase.from('categories').select('id, slug, name, description, emoji').order('order_pos').limit(6)
-  categories = data || []
-  document.getElementById('onbInterestsGrid').innerHTML = categories
-    .map((c) => `<button class="onb-interest-card" data-slug="${escapeHtml(c.slug)}">${escapeHtml(c.name)}</button>`)
-    .join('')
-
-  document.querySelectorAll('.onb-interest-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      const slug = card.dataset.slug
-      card.classList.toggle('selected')
-      if (state.interests.has(slug)) state.interests.delete(slug)
-      else state.interests.add(slug)
-      document.getElementById('btnStep4Next').disabled = state.interests.size === 0
-    })
+  $(`onbStep${n}`).classList.add('active')
+  document.querySelectorAll('.onb-paso').forEach((p) => {
+    const suyo = Number(p.dataset.paso)
+    p.classList.toggle('activo', suyo === n)
+    p.classList.toggle('hecho', suyo < n)
   })
+  $('onbStep1').classList.toggle('active', n === 1)
 }
 
-function showRecommendedCategory() {
-  const chosenSlugs = Array.from(state.interests)
-  const category = categories.find((c) => chosenSlugs.includes(c.slug)) || categories[0]
-  state.recommendedCategory = category?.slug || null
-
-  document.getElementById('onbRecommendedCategory').innerHTML = category
-    ? `
-      <p style="opacity:.85; font-size: var(--t-sm); margin-bottom: 4px;">${LEVEL_INTRO[state.level] || ''}</p>
-      ${categoryIconHtml(category, 30)}
-      <h3>${escapeHtml(category.name)}</h3>
-      <p>${escapeHtml(category.description || '')}</p>`
-    : `<p>Todavía no hay categorías configuradas — ¡vuelve pronto!</p>`
+function ordenarAcciones() {
+  const caja = $('onbAcciones')
+  const primera = ORDEN.find((o) => elegido.has(o)) || ORDEN[0]
+  const botones = [...caja.querySelectorAll('.onb-accion')]
+  botones.sort((a, b) => (a.dataset.para === primera ? -1 : b.dataset.para === primera ? 1 : 0))
+  for (const b of botones) {
+    b.classList.toggle('recomendada', b.dataset.para === primera)
+    caja.appendChild(b)
+  }
 }
 
-async function finishOnboarding(session, name) {
+async function guardarPerfil(session, name) {
   const username = await uniqueUsername(name, session.user.id)
   // upsert y no update: quien entra con Google puede no tener todavía
   // fila en user_profiles, y un update no crearía ninguna.
@@ -55,19 +46,12 @@ async function finishOnboarding(session, name) {
     id: session.user.id,
     username,
     display_name: name,
-    interests: Array.from(state.interests),
-    recommended_path: state.recommendedCategory,
+    interests: [...elegido],
+    recommended_path: null,
     onboarding_completed: true,
   })
-
-  if (error) {
-    const { showToast } = await import('./toast.js')
-    showToast('No hemos podido guardar tu perfil. Inténtalo otra vez.')
-    return
-  }
-
+  if (error) throw error
   await apuntarPadrino(session)
-  window.location.href = 'index.html'
 }
 
 // Si esta cuenta llegó por un enlace de invitación (/r/<usuario>, que
@@ -106,46 +90,58 @@ async function apuntarPadrino(session) {
 }
 
 async function init() {
+  // Los iconos de las tarjetas: cada página pinta los suyos (no hay un
+  // pintor global de `data-icono`).
+  for (const el of document.querySelectorAll('[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(20) || ''
   const session = await requireAuth()
   if (!session) return
 
-  // sin rango: es MI perfil durante la bienvenida, para saludarme por mi
-  // nombre (tanda 386).
   const { data: profile } = await supabase.from('user_profiles').select('display_name, username').eq('id', session.user.id).maybeSingle()
+  const nameInput = $('onbNameInput')
   // Si ya hay nombre guardado se respeta; si no, se sugiere el de la
-  // cuenta con la que ha entrado (Google lo manda en user_metadata). Sigue
-  // siendo obligatorio confirmarlo, pero se evita la pantalla en blanco.
-  document.getElementById('onbNameInput').value =
-    profile?.display_name || profile?.username || suggestedNameFromSession(session)
+  // cuenta con la que ha entrado (Google lo manda en user_metadata).
+  nameInput.value = profile?.display_name || profile?.username || suggestedNameFromSession(session)
 
-  await loadCategories()
+  $('btnStep1Next').addEventListener('click', () => goToStep(2))
 
-  document.getElementById('btnStep1Next').addEventListener('click', () => goToStep(2))
-
-  const nameInput = document.getElementById('onbNameInput')
-  const btnStep2Next = document.getElementById('btnStep2Next')
-  btnStep2Next.disabled = nameInput.value.trim().length < 2
+  const btn2 = $('btnStep2Next')
+  btn2.disabled = nameInput.value.trim().length < 2
   nameInput.addEventListener('input', () => {
-    btnStep2Next.disabled = nameInput.value.trim().length < 2
+    btn2.disabled = nameInput.value.trim().length < 2
   })
-  btnStep2Next.addEventListener('click', () => goToStep(3))
+  btn2.addEventListener('click', () => goToStep(3))
 
-  document.querySelectorAll('#onbLevelOptions .onb-option-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('#onbLevelOptions .onb-option-card').forEach((c) => c.classList.remove('selected'))
-      card.classList.add('selected')
-      state.level = card.dataset.value
-      document.getElementById('btnStep3Next').disabled = false
-    })
+  $('onbQue').addEventListener('click', (e) => {
+    const b = e.target.closest('.onb-option-card')
+    if (!b) return
+    const v = b.dataset.value
+    if (elegido.has(v)) elegido.delete(v)
+    else elegido.add(v)
+    b.setAttribute('aria-pressed', String(elegido.has(v)))
+    $('btnStep3Next').disabled = elegido.size === 0
   })
-  document.getElementById('btnStep3Next').addEventListener('click', () => goToStep(4))
-
-  document.getElementById('btnStep4Next').addEventListener('click', () => {
-    showRecommendedCategory()
-    goToStep(5)
+  $('btnStep3Next').addEventListener('click', () => {
+    ordenarAcciones()
+    goToStep(4)
   })
 
-  document.getElementById('btnFinish').addEventListener('click', () => finishOnboarding(session, nameInput.value.trim()))
+  // Cualquier salida guarda el perfil y se va adonde diga el botón.
+  let saliendo = false
+  $('onbStep4').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-ir]')
+    if (!b || saliendo) return
+    saliendo = true
+    for (const x of $('onbStep4').querySelectorAll('[data-ir]')) x.disabled = true
+    try {
+      await guardarPerfil(session, nameInput.value.trim())
+      window.location.href = b.dataset.ir
+    } catch {
+      const { showToast } = await import('./toast.js')
+      showToast('No hemos podido guardar tu perfil. Inténtalo otra vez.')
+      saliendo = false
+      for (const x of $('onbStep4').querySelectorAll('[data-ir]')) x.disabled = false
+    }
+  })
 }
 
 init()

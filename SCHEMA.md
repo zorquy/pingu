@@ -30044,3 +30044,165 @@ barrido de las 36 páginas en dos anchos, dos temas y con y sin sesión
   para quien no ve la pantalla.
 - El vídeo de una repetición ya no se queda en memoria toda la visita (se
   suelta el anterior), y si su módulo no llega, los controles vuelven.
+
+## Tanda 580 — importar y exportar la colección (oct. 2026)
+
+PINGU, de la lista de mejoras: «importar colección (CSV/Dex) quita la
+barrera más grande». Quien ya tiene dos mil cartas apuntadas en Dex, en
+Collectr o en una hoja no las va a meter a mano, y hasta ahora no había
+otra manera.
+
+**Lo puro vive en `js/mi-coleccion/importar-csv.js`** y se prueba en Node
+(`test-tanda-580-csv.mjs`): `leerCsv` (comas, puntos y coma del Excel en
+español, tabuladores, comillas dobladas, saltos dentro de una celda, BOM),
+`reconocerColumnas` (cada campo nuestro con los nombres que le dan las
+demás apps —`SINONIMOS`—, y una pista de qué app es, solo para decirlo),
+`entradasDe` (traducir celdas: «Lightly Played» → EX y nunca hacia arriba,
+«Reverse Holofoil» → reverse, «025/193» → 025, «$1,234.56» → 1234.56,
+casa + nota → «PSA 10»), `emparejar` (la expansión por código de TCG Live,
+por id o por nombre —con o sin «Scarlet & Violet:» delante, «&» y «and»
+intercambiados— y la carta por número comparable; un id de TCGdex manda
+sobre todo) y `exportarCsv` (nuestro formato, con `Id`, que se vuelve a
+leer tal cual).
+
+**Lo que hace falta para encontrar una carta es la expansión y el
+número.** El nombre solo confirma: hay cuarenta Pikachus. Un nombre que no
+coincide AVISA («suele ser el mismo en otro idioma») y no rechaza — la
+lección de la 505. Y nada se adivina a medias: una fila que no se
+encuentra vuelve con su línea y su motivo y se enseña ANTES de guardar.
+
+**El idioma lo elige quien importa** cuando el fichero no lo dice:
+Collectr no lo trae, y suponer «es» o «en» a ciegas apuntaría mal una
+colección entera.
+
+**Dex está reconstruido, no comprobado.** No se ha podido ver una
+exportación suya desde aquí (la red no llega). El reconocimiento por
+sinónimos lo cubre casi seguro, pero la norma de la 501 manda: en cuanto
+haya un CSV real de Dex, se pega en la prueba y el fixture ES ese.
+
+**La pantalla** (`importar.js`, por `import()` al pulsar): la bandeja
+`#mcImportarDialogo` —pegar o subir, idioma, «Comprobar»—, la vista previa
+con lo encontrado y lo perdido, y «Añadir N cartas», en tandas de 200 por
+`anadirVarias` (que ya sube copias a lo que tengas con la misma clave).
+Al acabar se recarga la colección. Exportar: «Descargar mi colección
+(CSV)» en la misma tarjeta del Panel, con BOM para que Excel lea las
+tildes.
+
+## Tanda 581 — la bienvenida en tres pasos y el estado vacío con una acción (oct. 2026)
+
+PINGU: «onboarding de 3 pasos + estados vacíos: convierte registros en
+usuarios». La bienvenida tenía cinco pasos —nombre, nivel, categorías del
+blog, categoría recomendada— y acababa en la portada: quien se registraba
+caía en una web entera sin una sola cosa que hacer. `recommended_path` e
+`interests` no los leía nadie fuera de la propia bienvenida.
+
+Ahora: **tu nombre → qué te trae (coleccionar / jugar / aprender, una o
+varias) → tu primer paso**, que son tres acciones concretas —añade tu
+primera carta, juega el reto de hoy, empieza una guía— con la que casa con
+lo elegido primero y en azul, más «¿ya la tienes en Dex o Collectr?
+Impórtala» (que abre la bandeja de la 580 con `?importar=1`) y «Ahora no».
+Cualquier salida guarda el perfil (`interests` pasa a ser lo que te trae)
+y se va ADONDE HAS ELEGIDO, no a la portada. El CSS sale a
+`css/onboarding.css` (era un `<style>` en la página).
+
+**El estado vacío del Panel** era «Cuando añadas cartas, aquí te contamos
+qué tienes», en gris. Es la primera pantalla de quien se acaba de
+registrar, y una frase gris no lleva a ninguna parte: ahora es un dibujo,
+un título, una frase y UNA acción («Buscar y añadir una carta»), más la
+puerta de importar. Reutiliza `.mc-vacio` de la 510.
+
+## Tanda 582 — el valor en el tiempo, a la vista (oct. 2026)
+
+Propuse «historial de valor con gráfica» como mejora nueva y **ya existía
+desde la 377** (`user_collection_value`, `grafica-valor.js`, la función
+programada `valor-coleccion`). Lo que faltaba era que se viera de un
+vistazo: la cifra grande de la cabecera decía el valor de hoy y nada más, y
+el cambio había que leerlo abajo, en la gráfica, en el rango que tuviera
+puesto. Un número solo no cuenta nada; el cambio es lo que hace volver a
+mirar.
+
+**«+12,50 € (+8,3 %) este mes»** bajo el valor de la cabecera
+(`#mcCifraCambio`, verde si sube y rojo si baja), calculado con las mismas
+piezas que la gráfica (`resumenDeValor` + `diasDelRango(…, '1M')`, con el
+valor de AHORA de último punto, como manda la 377). Sin dos fotos no se
+inventa nada: el hueco se queda escondido. Y lo mismo en «Mi colección en
+una imagen» (`cambioMes` en los datos del dibujo).
+
+## Tanda 583 — «¿Más caro o más barato?» y la imagen de los retos (oct. 2026)
+
+El tercer reto diario. Seis cartas con precio de Cardmarket, las mismas
+para todo el mundo: se enseña una con su precio y la siguiente sin él —
+¿vale más o menos?—, cinco preguntas, tira y racha como los otros dos. Es
+el «Higher or Lower» de siempre con lo único que esta web tiene y los
+demás no: **los precios de cartas que la gente de PokeDoc tiene de verdad**
+(son las únicas con precio guardado en `tcg_card_prices`).
+
+- `js/mas-caro.js` (puro): `DIA_UNO`, `indicesDelDia` (índices distintos
+  por día, con la semilla de `carta-del-dia.js`), `cartasQueSirven` (de un
+  euro para arriba, con foto y **sin dos seguidas con el mismo precio**:
+  «¿más o menos?» con respuesta «igual» no es una pregunta), `acierta`,
+  `textoParaCompartir`.
+- `netlify/functions/mas-caro.mjs`: como `carta-del-dia` — la primera
+  petición del día elige y guarda en `mas_caro_del_dia`, las demás leen.
+  Se eligen hasta 16 candidatas por offset en `tcg_card_prices`
+  (`cm_trend >= 1`) y se comprueban en `tcg_cards` (occidental, sin Pocket,
+  con foto). **Migración**: `supabase-migration-mas-caro.sql`. Sin ella,
+  la función contesta error y la página dice «vuelve en un rato».
+- `mas-caro.html` + `css/mas-caro.css` + `js/mas-caro-juego.js`: las dos
+  cartas lado a lado también en el móvil (se compara con las dos a la
+  vista), los botones pegados a las cartas (la 573), la partida en el
+  navegador (se juega sin cuenta), y al acabar «Compartir el resultado»
+  (texto) y «Compartir como imagen».
+
+**La imagen de un reto** (`js/reto-imagen.js`): 1080×1350, título, la
+cuenta grande, la tira de cuadrados (o varias filas), la racha y el
+enlace; opcionalmente una foto. Es la misma pieza para los tres retos. En
+esta tanda la usa el nuevo; los otros dos se enganchan en la siguiente.
+
+## Tanda 585 — el precio y el enlace EXACTO a Cardmarket (oct. 2026)
+
+PINGU, con un Groudon EX de Duelos Primigenios delante: «hay muchas cartas
+que no vienen con precio, y creo que es porque no estamos linkando bien la
+carta exacta con la de Cardmarket: le das al botón y te saca una búsqueda».
+Las dos cosas eran la misma: el precio y el `idProduct` salían de
+`pricing.cardmarket` de TCGdex, y cuando TCGdex no lo trae de una carta
+—le pasa a muchas de antes de Sol y Luna— nos quedábamos sin precio Y el
+botón caía a la búsqueda por nombre (133 resultados para una carta).
+
+**Segunda fuente: pokemontcg.io** (`netlify/lib/pokemontcg.mjs`), que
+publica por carta los precios de Cardmarket en euros (`cardmarket.prices`:
+trend, low, avg1/7/30 y los del reverso) y **la URL exacta del producto**
+(`cardmarket.url`). Scrydex no vale para esto: sus precios son dólares y
+yenes (ya estaba escrito en la 500).
+
+- **Se busca por código de TCG Live + número, no por id.** Sus ids se
+  parecen a los nuestros pero no son los nuestros (`sv03.5` es su `sv3pt5`,
+  `swsh3.5` su `swsh35`, `me01` su `me1`): un id mal traducido contesta 404
+  y la carta se queda sin precio sin que nada avise. El código
+  (`tcg_online_code` ↔ `set.ptcgoCode`) y el número impreso son los
+  mismos en los dos lados; `idParaPokemontcg` es el respaldo para los sets
+  sin código.
+- **Solo para las que se quedan sin cifras** tras TCGdex, dentro de la
+  misma pasada de `precios-coleccion` (cada diez minutos, 40 cartas) y con
+  tope: un 429 —su límite diario— corta el respaldo en esa pasada y lo que
+  falte se pide en la siguiente. `POKEMONTCG_API_KEY` (opcional, en
+  Netlify) sube el límite.
+- **Migración** `supabase-migration-precios-url.sql`: `cm_url` y `origen`
+  en `tcg_card_prices`. Hasta que esté, PostgREST rechaza la sentencia
+  ENTERA por una columna que no conoce: la función lo detecta
+  (`PGRST204`), quita las dos columnas y vuelve a mandar — un puente como
+  el de `cambio`, con la misma caducidad. Y un `insert` de varias filas
+  exige que todas tengan las mismas claves (`igualarClaves`).
+- **El cliente**: `precioDeFila` lleva `url`; `enlaceCardmarket({ url })`
+  va a la carta cuando no hay `idProduct` (sin filtros: es una redirección
+  y no se le pueden colgar); `textoDelEnlace` dice «Ver en Cardmarket». La
+  página de la carta lee también el precio GUARDADO (antes solo el vivo de
+  TCGdex): el vivo manda si dice algo, si no el guardado, y si ninguno
+  tiene cifras, el que al menos traiga el enlace (la regla de la 375).
+
+**Lo que no se ha visto no se afirma**: la forma de la respuesta de
+pokemontcg.io sale de su documentación, no de una respuesta pegada byte a
+byte (desde aquí no se puede preguntar). Cada lectura es defensiva y lo que
+no cuadre se apunta en `fallos` con su texto. En cuanto haya una respuesta
+real, se pega en `test-tanda-585-pokemontcg.mjs` y sustituye a `RESPUESTA`.
+

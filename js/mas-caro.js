@@ -17,7 +17,7 @@ export { rachaDeDias, tiraEmoji }
 
 // El estreno. De aquí NO SE MUEVE: cambiarlo renumeraría los retos que la
 // gente ya ha publicado.
-export const DIA_UNO = '2026-10-06'
+export const DIA_UNO = '2026-10-04'
 export const RONDAS = 5
 export const CARTAS_POR_DIA = RONDAS + 1
 export const ENLACE = 'pokedoc.es/mas-caro'

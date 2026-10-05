@@ -72,6 +72,7 @@ let sesion = null
 let dueno = null // { id, username, display_name, coleccion_publica }
 // Las cuatro cifras de la cabecera, tal como se pintaron (tanda 571).
 let resumenHero = null
+let quiereImportar = new URLSearchParams(location.search).get('importar') === '1'
 let esMia = false
 let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
@@ -560,8 +561,10 @@ function pintarResumen() {
     <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
     <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES')}</dd></div>
-    <div class="mc-cifra mc-cifra-valor"><dt>Valor</dt><dd>${euros(valor)}</dd></div>
+    <div class="mc-cifra mc-cifra-valor"><dt>Valor</dt><dd>${euros(valor)}</dd><small class="mc-cifra-cambio hidden" id="mcCifraCambio"></small></div>
 `
+  // Y el cambio del mes, si el histórico ya ha llegado (tanda 582).
+  pintarCambioDelMes()
   // AQUÍ VIVÍA «Pagado» (fuera en la 440). Sigue existiendo, pero en su
   // sitio: la tarjeta «Lo que te costó» del panel, que además dice en
   // CUÁNTAS cartas lo has apuntado —que es el dato sin el cual un «Pagado:
@@ -761,7 +764,18 @@ function pintarResumenPanel() {
   if (!caja) return
   const [ls, clave, busca] = pTodo()
   if (!ls.length) {
-    caja.innerHTML = '<p class="subtext">Cuando añadas cartas, aquí te contamos qué tienes.</p>'
+    // UN ESTADO VACÍO CON UNA ACCIÓN (tanda 581). Era una frase gris; es
+    // la primera pantalla de quien se acaba de registrar, y una frase
+    // gris no lleva a ninguna parte.
+    caja.innerHTML = `<section class="mc-vacio">
+      <span class="mc-vacio-icono" aria-hidden="true">${icons.cards(40)}</span>
+      <h2 class="mc-vacio-titulo">Tu colección está vacía</h2>
+      <p class="mc-vacio-texto">Apunta tus cartas y aquí verás cuántas tienes, cuánto valen y qué te falta de cada expansión.</p>
+      <div class="mc-vacio-acciones">
+        <a class="btn-primary" href="/mi-coleccion?ver=buscar">Buscar y añadir una carta</a>
+        <button type="button" class="btn-secondary mc-importar-abrir">Importar un CSV</button>
+      </div>
+    </section>`
     return
   }
   const rep = repetidas(ls, clave, busca)
@@ -1092,6 +1106,23 @@ async function pintarVistazos() {
       <p class="subtext">Tus cifras, las tres que más valen y tu expansión más completa, en una imagen para compartir.</p>
     </section>`)
   }
+  // IMPORTAR Y EXPORTAR (tanda 580), siempre: es justo quien NO tiene
+  // cartas aquí todavía quien más lo necesita.
+  if (quiereImportar) {
+    // Desde la bienvenida (581): «¿ya la tienes en otra app? Impórtala».
+    quiereImportar = false
+    setTimeout(() => $('mcImportarAbrir')?.click(), 0)
+  }
+  caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo mc-vistazo-importar">
+      <div class="mc-vistazo-cabecera">
+        <h2 class="mc-subtitulo">Importar y exportar</h2>
+      </div>
+      <p class="subtext">¿Tienes la colección en Dex, Collectr o una hoja de cálculo? Tráetela de un CSV. Y llévatela cuando quieras.</p>
+      <div class="mc-imagen-botones mc-importar-botones">
+        <button type="button" class="btn-secondary" id="mcImportarAbrir">Importar un CSV</button>
+        <button type="button" class="btn-secondary" id="mcExportar" ${lineasTodo.length || lineas.length ? '' : 'disabled'}>Descargar mi colección (CSV)</button>
+      </div>
+    </section>`)
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
@@ -1115,6 +1146,38 @@ try {
   // En una ventana privada `localStorage` LANZA, no devuelve null.
 }
 
+// «+12,50 € este mes» debajo del valor de la cabecera (tanda 582). La
+// gráfica existe desde la 377, pero vive en el Panel; la cabecera —que se
+// ve en todas las pestañas— decía el valor de hoy y nada más. Un número
+// solo no cuenta nada; el cambio es lo que hace volver a mirar.
+function cambioDelMes() {
+  if (!historico) return null
+  const { resumenDeValor, diasDelRango } = historico.grafica
+  const todo = resumenDeValor(historico.filas, { ahora: valorDeAhora() })
+  if (!todo.bastante) return null
+  const mes = resumenDeValor(diasDelRango(todo.dias, '1M'))
+  if (!mes.bastante) return null
+  return { cambio: mes.cambio, pct: mes.pct, desde: mes.primero.dia }
+}
+
+function textoDelCambio(c) {
+  if (!c) return ''
+  const signo = c.cambio > 0 ? '+' : c.cambio < 0 ? '−' : ''
+  const pct = typeof c.pct === 'number' && Number.isFinite(c.pct) ? ` (${signo}${Math.abs(c.pct).toFixed(1).replace('.', ',')} %)` : ''
+  return `${signo}${euros(Math.abs(c.cambio))}${pct} este mes`
+}
+
+function pintarCambioDelMes() {
+  const sitio = $('mcCifraCambio')
+  const c = cambioDelMes()
+  if (resumenHero) resumenHero.cambioMes = c ? textoDelCambio(c) : null
+  if (!sitio) return
+  sitio.textContent = textoDelCambio(c)
+  sitio.classList.toggle('hidden', !c)
+  sitio.classList.toggle('sube', !!c && c.cambio > 0)
+  sitio.classList.toggle('baja', !!c && c.cambio < 0)
+}
+
 async function pintarValorEnElTiempo() {
   const caja = $('mcValorCaja')
   if (!caja) return
@@ -1131,6 +1194,7 @@ async function pintarValorEnElTiempo() {
     // enseñaría dos totales distintos de lo mismo.
     caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor })}`
     engancharRangosDelValor()
+    pintarCambioDelMes()
   } catch {
     // Una gráfica que no llega no puede tumbar el resumen: se quita la
     // caja y lo demás sigue ahí.
@@ -1606,7 +1670,7 @@ function abrirEditor(l) {
   // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
   // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
   const cm = $('mcEdCardmarket')
-  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
+  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
   cm.innerHTML = `${marcaCardmarket(18)}<span>Ver en Cardmarket</span>`
   // Y la salida a la ficha entera. Si la carta no está en el catálogo no
   // hay adónde ir, así que el enlace se esconde en vez de llevar a una
@@ -4308,6 +4372,25 @@ function enganchar() {
       esperaCatalogo = setTimeout(buscar, 250)
     })
   }
+
+  // ── Importar y exportar (tanda 580) ──
+  document.addEventListener('click', async (e) => {
+    if (e.target.closest('#mcImportarAbrir, .mc-importar-abrir')) {
+      const { abrirImportar } = await import('./mi-coleccion/importar.js')
+      abrirImportar({
+        sesion,
+        mercado,
+        alTerminar: async () => {
+          await cargarColeccion(dueno.id)
+          repintar()
+        },
+      })
+    } else if (e.target.closest('#mcExportar')) {
+      const { descargarExport } = await import('./mi-coleccion/importar.js')
+      const todas = lineasTodo.length ? lineasTodo : lineas
+      descargarExport({ lineas: todas, cartaDe: (l) => cartasTodo.get(datos.claveDeLineaEnMercado(l)) || cartas.get(l.card_id) || null })
+    }
+  })
 
   // ── Mi colección en una imagen (tanda 571) ──
   document.addEventListener('click', async (e) => {
