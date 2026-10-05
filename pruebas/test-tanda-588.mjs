@@ -6,7 +6,7 @@
 // Aroma | Solar Beam]» de la expansión 6569: mismo espacio de ids.
 import { readFileSync } from 'node:fs'
 import {
-  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, HOST,
+  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, alternativasDe, emparejarPorNumero, esLimiteDelPlan, HOST,
 } from '/home/user/pingu/netlify/lib/tcggo.mjs'
 import { procesar, CLAVE_ESTADO, TOPE_DIARIO } from '/home/user/pingu/netlify/functions/tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from '/home/user/pingu/netlify/functions/cardmarket-precios.mjs'
@@ -42,8 +42,14 @@ console.log('── 1. El ayudante puro ──')
   check('ex7 [RR] va a «EX Team Rocket Returns» por el nombre, no a Rising Rivals por el código', ex7.episodio?.id === 143 && ex7.por === 'nombre', JSON.stringify(ex7))
   check('  …y pl2 [RR] sigue yendo a Rising Rivals', episodioDeSet({ id: 'pl2', name_en: 'Rising Rivals', name: 'Rivales Emergentes', tcg_online_code: 'RR' }, rr).episodio?.id === 114)
   check('la puntuación no cuenta: «Celebrations: Classic Collection»', episodioDeSet({ id: 'cel25cc', name_en: 'Celebrations Classic Collection', name: 'x', tcg_online_code: 'CEL' }, [{ id: 35, nombre: 'Celebrations', codigo: 'CEL' }, { id: 36, nombre: 'Celebrations: Classic Collection', codigo: 'CEL' }]).episodio?.id === 36)
-  const palabras = episodioDeSet({ id: '30th-c', name_en: '30th Classic Collection', name: 'x', tcg_online_code: null }, [{ id: 431, nombre: '30th Celebration', codigo: '30C' }, { id: 440, nombre: '30th Celebration: Classic Collection', codigo: '30C' }])
+  const palabras = episodioDeSet({ id: 'x-cc', name_en: 'Classic Collection 30th', name: 'x', tcg_online_code: null }, [{ id: 431, nombre: '30th Celebration', codigo: '30C' }, { id: 440, nombre: '30th Celebration: Classic Collection', codigo: '30C' }])
   check('como último recurso, la única expansión que contiene todas nuestras palabras', palabras.episodio?.id === 440 && palabras.por === 'palabras', JSON.stringify(palabras))
+  const alias = episodioDeSet({ id: '30th-c', name_en: '30th Classic Collection', name: 'x', tcg_online_code: null }, [{ id: 431, nombre: '30th Celebration', codigo: '30C' }])
+  check('30th-c va por alias a «30th Celebration» (allí viven sus cartas)', alias.episodio?.id === 431 && alias.por === 'alias', JSON.stringify(alias))
+  // Alternativas para cuando la elegida venga vacía: mismo código, o la madre.
+  const tgEps = [{ id: 30, nombre: 'Astral Radiance', codigo: 'ASR' }, { id: 31, nombre: 'Astral Radiance Trainer Gallery', codigo: 'ASR' }, { id: 52, nombre: 'Hidden Fates', codigo: 'HIF' }, { id: 53, nombre: 'Hidden Fates Shiny Vault', codigo: null }]
+  check('las alternativas de la Trainer Gallery: su madre, por el código', JSON.stringify(alternativasDe({ id: 'swsh10tg', name_en: 'Astral Radiance Trainer Gallery', tcg_online_code: 'ASR' }, tgEps, tgEps[1]).map((e) => e.id)) === '[30]')
+  check('las de la Shiny Vault sin código: «Hidden Fates», porque es el principio del nombre', JSON.stringify(alternativasDe({ id: 'sma', name_en: 'Hidden Fates Shiny Vault', tcg_online_code: null }, tgEps, tgEps[3]).map((e) => e.id)) === '[52]')
   const porNombre = episodioDeSet({ id: 'sv08.5', name: 'Evoluciones Prismáticas', name_en: 'Prismatic Evolutions', tcg_online_code: null }, eps)
   check('sin código, por el nombre inglés', porNombre.episodio?.id === 212 && porNombre.por === 'nombre', JSON.stringify(porNombre))
   check('  …y «Scarlet & Violet» casa con «Scarlet and Violet»', episodioDeSet({ id: 'x', name_en: 'Scarlet and Violet', name: 'x' }, [{ id: 1, nombre: 'Scarlet & Violet', codigo: 'SVI' }]).episodio?.id === 1)
@@ -87,6 +93,8 @@ console.log('── 1. El ayudante puro ──')
   const amb = emparejarPorNumero([{ id: 'a-TG01', local_id: 'TG01' }, { id: 'a-1', local_id: '1' }], [{ id: 7, card_number: '1', cardmarket_id: 500 }])
   check('  …pero no cuando los dígitos no son únicos por nuestro lado (TG01 y 1 contra su 1)', amb.pares.length === 1 && amb.pares[0].id === 'a-1' && amb.sinPar.length === 1, JSON.stringify([amb.pares, amb.sinPar]))
   check('los números suyos sin usar se devuelven como ejemplo', JSON.stringify(tg.ejemplosSuyos) === '["30"]')
+  const promos = emparejarPorNumero([{ id: 'mep-001', local_id: '001' }], [{ id: 1, card_number: 'MEP 001', cardmarket_id: 1, name_numbered: 'Pikachu MEP 001' }, { id: 2, card_number: 'MEP 001', cardmarket_id: 2, name_numbered: 'Pikachu MEP 001 (Stamped)' }])
+  check('dos promos suyas con los mismos dígitos: sin par, y dice cuáles', promos.pares.length === 0 && /2 cartas suyas con esos dígitos: «Pikachu MEP 001» sin tcgid, «Pikachu MEP 001 \(Stamped\)» sin tcgid/.test(promos.sinPar[0].porque), promos.sinPar[0].porque)
   const sinId = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: null }])
   check('una carta suya sin cardmarket_id deja la nuestra sin par, con ese motivo', sinId.pares.length === 0 && /sin|no le da/.test(sinId.sinPar[0].porque), JSON.stringify(sinId.sinPar))
   const dobles = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: 5 }, { id: 10, card_number: '1', cardmarket_id: 6 }])
@@ -217,6 +225,27 @@ console.log('── 5a. La guarda del set ajeno, y «solo estos sets» ──')
   const antes = t.urls.length
   const r2 = await procesar({ env: ENV, ...b, restImpl: restRR, fetchImpl: fetchRR, pausa: sinPausa, ahora: AHORA, peticiones: 9, soloSets: ['ME04'] })
   check('con soloSets se repite un set hecho (2 páginas) y solo ese', t.urls.length === antes + 2 && r2.cuerpo.esteTurno.length === 1 && r2.cuerpo.esteTurno[0].set === 'me04', JSON.stringify([t.urls.length - antes, r2.cuerpo.esteTurno.map((f) => f.set)]))
+  check('  …y contesta quedanIds vacío y siguiente=false', JSON.stringify(r2.cuerpo.quedanIds) === '[]' && r2.cuerpo.siguiente === false)
+  // Dos sets pedidos y tope para uno: el otro vuelve en quedanIds.
+  const r3 = await procesar({ env: ENV, ...b, restImpl: restRR, fetchImpl: fetchRR, pausa: sinPausa, ahora: AHORA, peticiones: 2, soloSets: ['me04', 'ex7'] })
+  check('con tope para un set, el otro vuelve en quedanIds y siguiente=true', JSON.stringify(r3.cuerpo.quedanIds) === '["ex7"]' && r3.cuerpo.siguiente === true, JSON.stringify([r3.cuerpo.quedanIds, r3.cuerpo.siguiente]))
+
+  // La expansión elegida viene VACÍA: se prueba la alternativa (la madre).
+  const EPS_TG = { data: [{ id: 30, name: 'Astral Radiance', code: 'ASR', cards_total: 216 }, { id: 31, name: 'Astral Radiance Trainer Gallery', code: 'ASR', cards_total: 30 }], paging: { current: 1, total: 1, per_page: 20 } }
+  const fetchTG = async (url, { headers }) => {
+    const u = new URL(url)
+    if (u.pathname.endsWith('/episodes')) return { ok: true, status: 200, text: async () => JSON.stringify(EPS_TG) }
+    const ep = Number(u.searchParams.get('episode_id'))
+    if (ep === 31) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [], paging: { current: 1, total: 1, per_page: 100 } }) }
+    if (ep === 30) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [{ id: 1, card_number: '1', cardmarket_id: 10, tcgid: 'swsh10-1' }, { id: 2, card_number: 'TG01', cardmarket_id: 11, tcgid: 'swsh10tg-TG01' }, { id: 3, card_number: 'TG02', cardmarket_id: 12, tcgid: 'swsh10tg-TG02' }], paging: { current: 1, total: 1, per_page: 100 } }) }
+    return { ok: false, status: 404, text: async () => 'no' }
+  }
+  const SETS_TG = [{ id: 'swsh10tg', name: 'Galería', name_en: 'Astral Radiance Trainer Gallery', tcg_online_code: 'ASR', release_date: '2022-05-27' }]
+  const bTG = baseDeMentira()
+  const restTG = async (ruta) => (ruta.startsWith('tcg_sets?') ? SETS_TG : [{ id: 'swsh10tg-TG01', local_id: 'TG01', cm_id_product_propio: null }, { id: 'swsh10tg-TG02', local_id: 'TG02', cm_id_product_propio: null }])
+  const rTG = await procesar({ env: ENV, ...bTG, restImpl: restTG, fetchImpl: fetchTG, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
+  const fTG = rTG.cuerpo.esteTurno[0]
+  check('la Trainer Gallery elegida viene vacía → se prueba Astral Radiance y casan las dos TG', fTG?.episodio === 30 && fTG.pares === 2 && /vacía → alternativa/.test(fTG.por) && bTG.escrituras.find((e) => e.id === 'swsh10tg-TG01')?.id_product === 11, JSON.stringify(fTG))
 }
 
 console.log('── 5b. La lista de expansiones se reanuda, y el plan de pago ──')
