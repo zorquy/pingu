@@ -30668,10 +30668,12 @@ sets emparejados (del estado `tcggo_pares`, sin los sospechosos) pide sus
 cartas y escribe la fila de cada carta nuestra cuyo `cm_id_product_propio`
 esté entre las suyas; el primer día apunta los sets. Estado
 `tcggo_precios` { dia, hechos, gasto }; ~300 peticiones al día, en ~8
-pasadas de 20 s. Mismos frenos que el emparejador. Y un POST con token de
-admin hace una pasada ahora (/admin → «Precios de TCGGO ahora»): se
-distingue de la programada por el token, porque Netlify también invoca las
-programadas con POST. El upsert de PostgREST solo toca las columnas que
+pasadas de 20 s. Mismos frenos que el emparejador. El botón de /admin («Precios de
+TCGGO ahora») llama a `tcggo-precios-ahora`, una función SIN horario que
+corre la misma `procesar`: **una función con `schedule` no se puede
+llamar por HTTP** —Netlify contesta 403 antes de llegar al código, y así
+salió el primer clic («Error 403»)—. La programada programa; la otra
+atiende al botón. El upsert de PostgREST solo toca las columnas que
 manda cada función: la guía diaria sigue poniendo `cm_trend`, TCGdex los
 `tp_*` en dólares, y TCGGO lo suyo, en la misma fila.
 

@@ -22,12 +22,11 @@
 // 429/403. Y si TCGGO contesta una expansión sin un solo `cardmarket_id`,
 // se para y lo dice: un vacío no es una respuesta.
 //
-// También se puede lanzar a mano desde /admin (POST con token de admin):
-// hace una pasada ahora mismo y devuelve lo que ha hecho.
+// A mano desde /admin la lanza `tcggo-precios-ahora` (misma `procesar`):
+// una función con `schedule` no admite llamadas por HTTP (Netlify da 403).
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
-import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
   cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo,
 } from '../lib/tcggo.mjs'
@@ -250,22 +249,10 @@ export async function procesar({
   }
 }
 
-export default async (req) => {
-  const json = (e, c) => new Response(JSON.stringify(c), { status: e, headers: { 'content-type': 'application/json' } })
-  // A mano desde /admin: una pasada ahora. Se distingue de la programada
-  // por el token —Netlify también invoca las programadas con un POST—.
-  const token = req ? tokenDe(req) : null
-  if (token) {
-    if (!(await idDeAdmin(token))) return json(401, { error: 'No autorizado.' })
-    try {
-      return json(200, await procesar())
-    } catch (e) {
-      return json(502, { error: String(e?.message || e).slice(0, 300) })
-    }
-  }
+export default async () => {
   const r = await procesar()
   if (!r.ok) console.warn('tcggo-precios:', JSON.stringify(r).slice(0, 800))
-  return json(200, r)
+  return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
 // Cada diez minutos: cuando el día está hecho, una pasada es una lectura

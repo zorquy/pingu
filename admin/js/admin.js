@@ -3118,7 +3118,9 @@ async function tcggoPrecios() {
   caja.classList.remove('hidden')
   caja.value = 'Pidiendo precios a TCGGO…'
   try {
-    const res = await fetch('/.netlify/functions/tcggo-precios', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}` } })
+    // `tcggo-precios-ahora` y no `tcggo-precios`: la programada no se deja
+    // llamar por HTTP (Netlify contesta 403).
+    const res = await fetch('/.netlify/functions/tcggo-precios-ahora', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}` } })
     const r = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
     caja.value = [
