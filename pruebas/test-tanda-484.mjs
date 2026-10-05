@@ -101,39 +101,9 @@ console.log('\n── 3. La imagen que el LISTADO no trae, la trae la ficha ─�
   check('el engorde asiático manda el detalle entero', /\.\.\.\(detalle \|\| \{\}\)/.test(asia))
 }
 
-console.log('\n── 4. Lo que no se puede comprobar aquí, se le pregunta a TCGdex ──')
-//
-// La red a `api.tcgdex.net` está cerrada en este contenedor por la
-// política del entorno, así que desde aquí NO se puede leer su API. El
-// navegador del panel sí puede: es el único sitio del proyecto con salida.
-// Un botón que enseña los campos CRUDOS al lado de nuestras columnas
-// convierte una discusión en dos renglones.
-{
-  const html = leer('admin/index.html')
-  const js = leer('admin/js/admin.js')
-  check('el panel tiene el botón', /id="btnMirarSet"/.test(html))
-  check('  …conectado', /getElementById\('btnMirarSet'\)\?\.addEventListener/.test(js))
-  check('  …a una función que existe', /async function mirarUnSet\(\)/.test(js))
-  // Lo que hace falta que enseñe. Si mañana alguien le quita el `logo`,
-  // el botón deja de contestar la pregunta por la que nació.
-  const cuerpo = js.slice(js.indexOf('async function mirarUnSet()'))
-  const hasta = cuerpo.indexOf('\n}\n')
-  const fn = cuerpo.slice(0, hasta)
-  for (const campo of ['logo', 'symbol', 'serie', 'releaseDate', 'cardCount']) {
-    check(`  …enseña el \`${campo}\` crudo`, new RegExp(`linea\\('${campo}'`).test(fn))
-  }
-  // Y AL LADO lo nuestro: el campo crudo solo, sin nuestra columna
-  // enfrente, no dice de quién es la culpa — que es justo el error que
-  // esta tanda viene a corregir.
-  for (const col of ['logo_path', 'symbol_url', 'serie_id', 'release_date']) {
-    check(`  …y nuestra columna \`${col}\` enfrente`, new RegExp(`linea\\('${col}'`).test(fn))
-  }
-  // Pide el set COMPLETO (`fetchSet`), no el listado: el listado es un
-  // SetResume y no trae ni serie, ni fecha, ni cuentas — preguntarle a él
-  // daría «no lo tiene» de nuevo, y esta vez por nuestra culpa (tanda 322).
-  check('  …pidiendo el set COMPLETO, no el listado', /await fetchSet\(setId, market\)/.test(fn))
-  check('  …y separa las cartas CON imagen de las que no', /c\.image\)/.test(fn) && /!c\.image\)/.test(fn))
-}
+// console.log('\n── 4. Lo que no se puede comprobar aquí, se le pregunta a TCGdex ──')
+// (sección retirada: el panel de admin se limpió en la 550 y estos botones
+// —y sus textos— ya no existen; lo que probaban del SERVIDOR sigue arriba.)
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

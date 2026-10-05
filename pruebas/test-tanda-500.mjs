@@ -139,24 +139,9 @@ console.log('\n── 5. Y la función exige las dos cosas ──')
   check('  …sale del entorno', /env/.test(readFileSync('/home/user/pingu/netlify/lib/scrydex.mjs', 'utf8')))
 }
 
-console.log('\n── 6. Y el panel la llama con la sesión, no con la clave ──')
-{
-  const html = readFileSync('/home/user/pingu/admin/index.html', 'utf8')
-  const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
-  check('el botón está', /id="btnSondearScrydex"/.test(html))
-  check('  …conectado', /getElementById\('btnSondearScrydex'\)\?\.addEventListener/.test(js))
-  const i = js.indexOf('async function sondearScrydex()')
-  check('  …a una función que existe', i > 0)
-  const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  // LO QUE IMPORTA: el panel manda la SESIÓN, no la clave. Si alguna vez
-  // aparece aquí un `SCRYDEX_`, es que la clave ha bajado al navegador.
-  check('manda la sesión de admin', /authorization: `Bearer \$\{session\.access_token\}`/.test(fn))
-  check('  …y NUNCA una clave de Scrydex', !/SCRYDEX_/.test(js), 'la clave no puede bajar al navegador')
-  check('llama a la función de servidor', /\/\.netlify\/functions\/scrydex-sonda/.test(fn))
-  // Y avisa de la trampa del relleno al lado del resultado, que es donde
-  // se va a leer.
-  check('avisa del relleno donde se lee', /RELLENO/.test(fn))
-}
+// console.log('\n── 6. Y el panel la llama con la sesión, no con la clave ──')
+// (sección retirada: el panel de admin se limpió en la 550 y estos botones
+// —y sus textos— ya no existen; lo que probaban del SERVIDOR sigue arriba.)
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

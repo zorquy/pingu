@@ -146,21 +146,9 @@ console.log('\n── 4. Y no se puede llamar sin ser admin ──')
   check('usa `esRelleno`, sin la cual diría 100 % siempre', /esRelleno/.test(js))
 }
 
-console.log('\n── 5. Y el panel lo enseña sin que haya que interpretarlo ──')
-{
-  const { readFileSync } = await import('node:fs')
-  const html = readFileSync('/home/user/pingu/admin/index.html', 'utf8')
-  const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
-  check('el botón está', /id="btnMedirIngles"/.test(html))
-  check('  …conectado', /getElementById\('btnMedirIngles'\)\?\.addEventListener/.test(js))
-  const i = js.indexOf('async function medirInglesScrydex()')
-  const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  check('manda la sesión y no una clave', /session\.access_token/.test(fn) && !/SCRYDEX_/.test(js))
-  // Los tres avisos que hacen que el número signifique algo.
-  check('enseña el aviso de que es un suelo', /aviso/.test(fn))
-  check('explica qué es el «relleno»', /relleno/i.test(fn))
-  check('y que «sin emparejar» es fallo NUESTRO', /fallo NUESTRO/.test(fn))
-}
+// console.log('\n── 5. Y el panel lo enseña sin que haya que interpretarlo ──')
+// (sección retirada: el panel de admin se limpió en la 550 y estos botones
+// —y sus textos— ya no existen; lo que probaban del SERVIDOR sigue arriba.)
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

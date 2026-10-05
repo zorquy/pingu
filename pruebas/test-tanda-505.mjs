@@ -175,21 +175,9 @@ const doble = ({ soloLiteral = true } = {}) => {
   check('un 500 se dice como 500, no como «todas las formas»', /devolvió 500/.test(JSON.stringify(r5.cuerpo.sinComprobar)), JSON.stringify(r5.cuerpo.sinComprobar))
 }
 
-console.log('\n── 5. Y el panel no vuelve a decir «rechazado» ──')
-{
-  const { readFileSync } = await import('node:fs')
-  const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
-  const i = js.indexOf('async function verificarScrydex()')
-  const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  // El panel SÍ tiene apartado de rechazos desde la 506 — pero tiene que
-  // decir DE DÓNDE sale, porque un rechazo a secas es lo que llevó a los
-  // ocho falsos. Y tiene que seguir diciendo que el nombre ya no decide.
-  check('el apartado de rechazos dice que sale de una SEÑAL', /RECHAZADOS DE VERDAD/.test(fn) && /se[ñn]al independiente del idioma/.test(fn), (fn.match(/.{0,80}RECHAZADOS.{0,80}/) || [''])[0])
-  check('  …y se dice que el nombre YA NO rechaza', /nombre YA NO puede rechazar/.test(fn))
-  check('enseña «por mirar a mano» uno a uno', /porMirar\.map/.test(fn))
-  check('y los del español aparte, con su porqué', /nuestroNombreEnEspanol/.test(fn) && /est[áa] en español/i.test(fn))
-  check('sigue diciendo que no ha escrito nada', /no ha escrito nada/.test(fn))
-}
+// console.log('\n── 5. Y el panel no vuelve a decir «rechazado» ──')
+// (sección retirada: el panel de admin se limpió en la 550 y estos botones
+// —y sus textos— ya no existen; lo que probaban del SERVIDOR sigue arriba.)
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

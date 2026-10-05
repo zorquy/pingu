@@ -108,12 +108,13 @@ const abrir = async () => {
     // un grupo: una de las dos estaba siempre de adorno.
     (await page.locator('#mcVistaVariantes').getAttribute('aria-pressed')) === 'true')
 
-  // El «+» de una casilla partida suma a SU versión, no a la normal: si
-  // no, las cuatro casillas de una carta harían lo mismo.
+  // Una casilla partida es SU versión: la chapa lo dice con `data-var`.
+  // (El «+» del bolsillo se fue en la 565: la casilla abre la ficha, como
+  // en Dex, y allí se elige la versión.)
   const marcada = page.locator('.mc-bolsillo').filter({ hasText: 'Reverse' }).first()
-  const mas = marcada.locator('button[data-anadir]')
-  check('el + de una versión dice a cuál suma',
-    (await mas.getAttribute('data-var')) === 'reverse', await mas.getAttribute('data-var'))
+  const chapa = marcada.locator('.mc-chapa-variante')
+  check('la casilla de una versión dice cuál es',
+    (await chapa.getAttribute('data-var')) === 'reverse', await chapa.getAttribute('data-var'))
   await page.close()
 }
 

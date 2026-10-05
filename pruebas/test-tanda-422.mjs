@@ -200,7 +200,9 @@ console.log('\n── 4. Lo escrito se guarda en SU carta al cambiar ──')
   // gastado, la siguiente flecha dispararía un guardado de una carta que
   // nadie ha tocado. En un set de 200 son 200 escrituras que no pide nadie
   // —y cada una lo dice en pantalla—.
-  await page.fill('#mcEdGradeo', 'PSA 9')
+  // Desde la 563 el gradeo es casa + nota en dos desplegables.
+  await page.selectOption('#mcEdGradeoCasa', 'PSA')
+  await page.selectOption('#mcEdGradeoNota', '9')
   await page.waitForTimeout(1400)
   check('el guardado salta solo a los 600 ms', await avisoVisible())
   await page.waitForTimeout(2200) // y el aviso se apaga solo

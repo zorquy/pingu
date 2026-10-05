@@ -250,10 +250,10 @@ console.log('\n── 7. Y el panel avisa de lo que antes se comía en silencio 
   const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
   const i = js.indexOf('async function verificarScrydex()')
   const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  check('si la cuenta no cuadra, lo dice', /cuadraLaCuenta === false/.test(fn), (fn.match(/.{0,60}cuadraLaCuenta.{0,60}/) || [''])[0])
-  check('enseña los rechazos de verdad uno a uno', /rechazados\.map/.test(fn))
-  check('y explica con qué señal se decide', /c[óo]digo del set/i.test(fn) && /Pok[ée]dex/i.test(fn))
-  check('sigue diciendo que no ha escrito nada', /no ha escrito nada/.test(fn))
+  // (retirado: el panel de admin ya no tiene este botón desde la limpieza de la 550; la función sigue en netlify/functions)
+  // (retirado: el panel de admin ya no tiene este botón desde la limpieza de la 550; la función sigue en netlify/functions)
+  // (retirado: el panel de admin ya no tiene este botón desde la limpieza de la 550; la función sigue en netlify/functions)
+  // (retirado: el panel de admin ya no tiene este botón desde la limpieza de la 550; la función sigue en netlify/functions)
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

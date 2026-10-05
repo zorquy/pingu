@@ -96,7 +96,10 @@ console.log('\n── 1. La chapa de la versión SE VE, no solo existe ──')
   // Y no pisa al mando de copias, que vive en el mismo borde.
   const choca = await page.locator('.mc-album-rejilla .mc-bolsillo').first().evaluate((n) => {
     const c = n.querySelector('.mc-chapa-variante').getBoundingClientRect()
-    const m = n.querySelector('.mc-bolsillo-mando').getBoundingClientRect()
+    // Sin mando de copias (se fue en la 565) no hay con qué chocar.
+    const mando = n.querySelector('.mc-bolsillo-mando')
+    if (!mando) return false
+    const m = mando.getBoundingClientRect()
     return c.bottom > m.top + 1
   })
   check('  …ni se monta sobre el mando de copias', choca === false)

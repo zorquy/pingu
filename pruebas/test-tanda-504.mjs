@@ -220,23 +220,9 @@ console.log('\n── 8. Y no se puede llamar sin ser admin ──')
   check('no hay ni un INSERT ni un PATCH', !/method:\s*'(POST|PATCH|PUT)'/.test(js) && !/on_conflict/.test(js))
 }
 
-console.log('\n── 9. Y el panel lo enseña sin que haya que interpretarlo ──')
-{
-  const { readFileSync } = await import('node:fs')
-  const html = readFileSync('/home/user/pingu/admin/index.html', 'utf8')
-  const js = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
-  check('el botón está', /id="btnVerificarScrydex"/.test(html))
-  check('  …conectado', /getElementById\('btnVerificarScrydex'\)\?\.addEventListener/.test(js))
-  const i = js.indexOf('async function verificarScrydex()')
-  const fn = js.slice(i, i + js.slice(i).indexOf('\n}\n'))
-  check('manda la sesión y no una clave', /session\.access_token/.test(fn) && !/SCRYDEX_/.test(js))
-  // Va solo de pasada en pasada: si no, los pares de más allá del corte no
-  // se verifican nunca y nadie se enteraría.
-  check('va solo hasta acabarse', /siguienteDesde/.test(fn) && /MAX_PASADAS_VERIFICAR/.test(fn))
-  check('enseña los que hay que mirar uno a uno, no solo el número', /porMirar\.map/.test(fn))
-  check('dice que «sin comprobar» no es un rechazo', /tampoco es un rechazo/.test(fn))
-  check('y que no ha escrito nada', /no ha escrito nada/.test(fn))
-}
+// console.log('\n── 9. Y el panel lo enseña sin que haya que interpretarlo ──')
+// (sección retirada: el panel de admin se limpió en la 550 y estos botones
+// —y sus textos— ya no existen; lo que probaban del SERVIDOR sigue arriba.)
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)
 process.exit(fails === 0 ? 0 : 1)

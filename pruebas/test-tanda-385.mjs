@@ -41,7 +41,12 @@ console.log('\n── 1. Una sola cuenta de las versiones ──')
   check('  …sino que las pide al módulo común', /variantesDeCarta\(\{ variants: v \}, TODAS\)/.test(mercado))
   // Las dos llamadas dicen en voz alta qué quieren: un valor por
   // defecto habría enterrado la diferencia otra vez.
-  check('  …y el álbum no pide «todas»', !/variantesDeCarta\([^)]*TODAS/.test(leer('js/mi-coleccion.js')))
+  // Desde la 564 la ficha de /mi-coleccion también pide «todas» (para
+  // guardar la versión que tienes en la mano), en `variantesParaEditar`;
+  // lo que no puede pedirlas es el ÁLBUM, que marca.
+  const mc = leer('js/mi-coleccion.js')
+  check('  …y el álbum no pide «todas»', /variantesDeCarta\(c\)\.map\(/.test(mc) && !/variantesDeCarta\(c, TODAS/.test(mc))
+  check('  …mientras la ficha sí, en su ayudante', /variantesDeCarta\(carta, TODAS_LAS_VARIANTES\)/.test(mc))
 }
 
 console.log('\n── 2. De una carta a su Pokédex ──')

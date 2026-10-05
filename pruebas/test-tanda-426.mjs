@@ -74,7 +74,8 @@ console.log('\n── 1. Apagado, la rejilla es la de siempre ──')
   const { page, errores } = await abrir()
   check('la barra no está', await page.locator('#mcMarcarBarra').isHidden())
   check('  …y el botón no está pulsado', (await page.locator('#mcMarcarAbrir').getAttribute('aria-pressed')) === 'false')
-  check('el − y el + siguen ahí', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
+  // Desde la 565 la casilla no lleva − ni +: abre la ficha, como en Dex.
+  check('la casilla no lleva − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   // Lo que se quitó en la 368: un modo puesto para siempre que no te deja
   // abrir una ficha. Pulsar una carta tiene que seguir abriéndola.
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
@@ -110,7 +111,7 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
   await page.waitForTimeout(500)
   check('el mismo botón lo apaga', await page.locator('#mcMarcarBarra').isHidden())
   check('  …y lo dice', (await page.locator('#mcMarcarAbrir').getAttribute('aria-pressed')) === 'false')
-  check('  …y el − y el + vuelven', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
+  check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(500)
   check('  …y al volver a encenderlo no quedan marcas de antes', (await marcadas(page)) === 0, String(await marcadas(page)))
@@ -164,7 +165,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
   check('la barra se va', await page.locator('#mcMarcarBarra').isHidden())
   check('  …sin escribir nada', (await escrituras(page)).length === 0, JSON.stringify(await escrituras(page)))
   check('  …y sin marcas', (await marcadas(page)) === 0)
-  check('  …y el − y el + vuelven', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
+  check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   // Y salir de la expansión también lo apaga: lo marcado es de ESTE set.
   await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(300)
@@ -177,7 +178,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
   check('entrar en una expansión empieza con el modo apagado', await page.locator('#mcMarcarBarra').isHidden())
-  check('  …y el − y el + están donde siempre', await page.locator('#mcAlbum .mc-bolsillo-mando').first().isVisible())
+  check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   await page.close()
 }
 
@@ -334,7 +335,12 @@ console.log('\n── 8. En el móvil ──')
   // flujo normal —muy por debajo de la cabecera— y la comprobación sale
   // verde aunque el `top` sea 0: estaría mirando un sitio donde el
   // `sticky` todavía no ha entrado.
-  await page.evaluate(() => window.scrollTo(0, 1200))
+  // Hasta DONDE EL ÁLBUM SIGUE EN PANTALLA: un `sticky` solo se pega
+  // mientras su contenedor está a la vista, y con seis cartas a tres por
+  // fila (550) el álbum mide menos de 1200 px en un móvil. Bajar más de
+  // la cuenta no prueba el `top`: prueba que la barra se fue con su caja.
+  const natural = (await page.locator('#mcMarcarBarra').boundingBox()).y
+  await page.evaluate((y) => window.scrollTo(0, y), Math.round(natural - 72 + 150))
   await page.waitForTimeout(400)
   const caja = await page.locator('#mcMarcarBarra').boundingBox()
   const cabecera = await page.locator('nav.navbar').boundingBox()

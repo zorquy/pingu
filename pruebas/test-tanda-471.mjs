@@ -137,7 +137,8 @@ const nuevos = insertados[0]?.cuerpo || []
 check('solo el set nuevo', nuevos.length === 1 && nuevos[0].id === 'sv8', JSON.stringify(nuevos.map((x) => x.id)))
 check('no es un upsert', !llamadas.some((l) => l.ruta?.startsWith('tcg_sets?on_conflict')))
 check('y Pokémon TCG Pocket se queda fuera', !nuevos.some((x) => x.id === 'A1'), JSON.stringify(nuevos.map((x) => x.id)))
-check('el set nuevo lleva su mercado', nuevos[0]?.market === 'JP', String(nuevos[0]?.market))
+// Desde la 547 el japonés es de Scrydex: a TCGdex solo se le piden CN y TW.
+check('el set nuevo lleva su mercado', nuevos[0]?.market === 'CN', String(nuevos[0]?.market))
 
 console.log('\n── 5. Las cartas ──')
 // Solo las que ESCRIBEN: desde la tanda 483 la pasada también CONSULTA
@@ -251,7 +252,7 @@ for (let m = 0; m < 3; m++) {
   const { llamadas: l } = await correr({}, () => m * 60000)
   idiomas.add(l.find((x) => x.tcgdex?.endsWith('/sets'))?.tcgdex)
 }
-check('tres pasadas seguidas repasan tres catálogos', idiomas.size === 3, [...idiomas].join(' | '))
+check('dos pasadas seguidas repasan los dos catálogos de TCGdex (CN y TW; el JP es de Scrydex desde la 547)', idiomas.size === 2, [...idiomas].join(' | '))
 // Y el occidental NO: lo lleva `cartas-detalle`, y traer sus 23.000
 // cartas otra vez no arreglaría nada.
 check('ninguna pide el inglés', ![...idiomas].some((u) => u.includes('/en/')), [...idiomas].join(' | '))
@@ -271,13 +272,13 @@ console.log('\n── 13. Un mercado VACÍO se llena el primero (tanda 479) ─�
   // otro, así que si sale el vacío es porque manda el vacío.
   const { llamadas } = await correr({ nuestros: [], sets: [] }, () => 60000)
   const pedido = llamadas.find((x) => x.tcgdex?.endsWith('/sets'))?.tcgdex
-  check('se pide el listado del primero que esté a cero', /\/v2\/ja\/sets$/.test(pedido || ''), String(pedido))
+  check('se pide el listado del primero que esté a cero', /\/v2\/zh-cn\/sets$/.test(pedido || ''), String(pedido))
   // Y sin reloj: traer ~400 sets de un catálogo vacío es una petición
   // gorda y cuatro inserciones, y cortarlo a los cinco segundos dejaba la
   // pasada siguiente empezándolo otra vez desde el principio.
   const { r } = await correr({ nuestros: [], sets: [] }, () => 60000)
   check('  …y se insertan sus sets', r.setsNuevos > 0, JSON.stringify(r))
-  check('  …y se dice cuál se está arrancando', r.arrancando === 'JP', JSON.stringify(r))
+  check('  …y se dice cuál se está arrancando', r.arrancando === 'CN', JSON.stringify(r))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

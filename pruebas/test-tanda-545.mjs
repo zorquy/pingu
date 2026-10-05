@@ -66,7 +66,9 @@ console.log('── 1. La fila entera, con las tres que son `not null` ──')
   // NO se escribe `types`: en su respuesta japonesa no he visto ese campo, y
   // llenar una columna que FILTRA con algo que no sé en qué idioma viene es
   // peor que dejarla vacía (la lección de la 484).
-  check('y NO se escribe `types`', !('types' in f), JSON.stringify(Object.keys(f)))
+  // Desde la 547 la ficha viene entera de Scrydex, tipos incluidos (los
+  // vigila test-tanda-547): aquí solo se mira que estén.
+  check('y se escriben los `types` (547)', 'types' in f, JSON.stringify(Object.keys(f)))
 }
 
 console.log('── 2. Lo que no se puede formar, no se forma ──')
@@ -135,8 +137,10 @@ console.log('── 4. En un set de TCGdex, NO ──')
   const d = doble({ cartas: [{ ...SUYA, id: 'sv1a_ja-1', expansion: { id: 'sv1a_ja' } }] })
   const r = await correr(d)
   const todas = d.escrito.flatMap((x) => x.filas)
-  check('no se escribe nada', todas.length === 0, JSON.stringify(todas.map((f) => f.id)))
-  check('pero se DICE que no estaba', r.cuerpo.sinCartaNuestra === 1 && r.cuerpo.insertadas === 0, JSON.stringify([r.cuerpo.sinCartaNuestra, r.cuerpo.insertadas]))
+  // Desde la 547 el japonés se calca de Scrydex ENTERO, también en los sets
+  // que vinieron de TCGdex: la carta que falta se escribe, y se dice.
+  check('desde la 547 sí se escribe', todas.length === 1 && todas[0].id === 'sv1a_ja-1', JSON.stringify(todas.map((f) => f.id)))
+  check('  …y se cuenta', r.cuerpo.insertadas === 1, JSON.stringify([r.cuerpo.sinCartaNuestra, r.cuerpo.insertadas]))
 }
 
 console.log('── 5. Y la que ya tenemos se enriquece, no se duplica ──')
@@ -169,7 +173,7 @@ console.log('── 7. Un set sin emparejar sigue sin tocarse ──')
   // mira sets con `scrydex_id`, y esto lo deja escrito.
   const fuente = readFileSync('/home/user/pingu/netlify/functions/scrydex-relleno.mjs', 'utf8')
   check('solo pide sets emparejados', /tcg_sets\?select=[^`]*scrydex_id=not\.is\.null/.test(fuente))
-  check('  …y mira quién es suyo por `scrydex_por`', /importado de Scrydex/i.test(fuente))
+  // (El rótulo «importado de Scrydex» se fue con la 547: ahora todo el JP es suyo.)
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')

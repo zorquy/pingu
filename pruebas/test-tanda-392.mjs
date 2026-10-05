@@ -256,7 +256,8 @@ console.log('\n── 7. Se guarda solo, y el cero la quita (tanda 397) ──')
 
   // Subir una copia se guarda sin tocar nada más.
   const antes = Number(await page.locator('#mcEdCantidad').inputValue())
-  await page.locator('.mc-contador-btn[data-paso="1"]').click()
+  // El de COPIAS: «Para cambio» tiene el suyo (376) y casa con el mismo selector.
+  await page.locator('.mc-contador:has(#mcEdCantidad) .mc-contador-btn[data-paso="1"]').click()
   await page.waitForTimeout(900)
   check('el contador suma', Number(await page.locator('#mcEdCantidad').inputValue()) === antes + 1)
   check('  …y lo dice', /Guardado/.test((await page.locator('#mcEdEstadoGuardado').textContent()) || ''))

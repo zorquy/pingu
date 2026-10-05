@@ -89,7 +89,8 @@ const doble = (filas, estados = {}) => {
 
   const consulta = d.llamadas[0].ruta
   check('pide SOLO las que no tienen foto', /image_path=is\.null/.test(consulta), consulta)
-  check('  …de los catálogos asiáticos', /market=in\.\(JP,CN,TW\)/.test(consulta) && !/WEST/.test(consulta), consulta)
+  // Desde la 547 el japonés es de Scrydex: TCGdex solo trae escaneos de CN y TW.
+  check('  …de los catálogos asiáticos de TCGdex (CN y TW)', /market=in\.\(CN,TW\)/.test(consulta) && !/WEST/.test(consulta) && !/JP/.test(consulta), consulta)
   check('  …las no miradas o las de hace más de un mes', /or=\(escaneo_buscado_at\.is\.null,escaneo_buscado_at\.lt\./.test(consulta), consulta)
   check('  …primero las que no se han mirado nunca', /order=escaneo_buscado_at\.asc\.nullsfirst/.test(consulta), consulta)
 
@@ -113,7 +114,7 @@ const doble = (filas, estados = {}) => {
   const marcas = patches.filter((p) => !p.cuerpo.image_path)
   check('las que no tienen se marcan sin foto', marcas.every((p) => !('image_path' in p.cuerpo) && p.cuerpo.escaneo_buscado_at))
   const rutas = marcas.map((p) => decodeURIComponent(p.ruta)).join(' | ')
-  check('  …por mercado, nunca mezcladas', /market=eq\.JP&id=in\.\(("SM1M-073","XX-1"|"XX-1","SM1M-073")\)/.test(rutas) && /market=eq\.CN&id=in\.\("SV8-001"\)/.test(rutas), rutas)
+  check('  …por mercado, nunca mezcladas (y las JP ya no se tocan)', !/market=eq\.JP/.test(rutas) && /market=eq\.CN&id=in\.\("SV8-001"\)/.test(rutas), rutas)
   // EL QUE IMPORTA: un 503 no es «no tiene foto». Marcarla la dejaría un
   // mes sin mirar por un mal rato del servidor.
   check('la del 503 NO se marca', !JSON.stringify(patches).includes('M2-005'))
@@ -165,7 +166,7 @@ console.log('\n── 5. La fase de nombres ──')
   check('escribe los tres y cuenta los traducidos', r.escritos === 3 && r.traducidos === 2, JSON.stringify(r))
   const consulta = d.llamadas[0].ruta
   check('solo las que tienen especie y no tienen nombre', /name_es=is\.null/.test(consulta) && /dex_ids=not\.is\.null/.test(consulta), consulta)
-  check('  …asiáticas', /market=in\.\(JP,CN,TW\)/.test(consulta) && !/WEST/.test(consulta))
+  check('  …asiáticas de TCGdex (CN y TW; el JP es de Scrydex desde la 547)', /market=in\.\(CN,TW\)/.test(consulta) && !/WEST/.test(consulta))
   const patches = d.llamadas.filter((l) => l.metodo === 'PATCH')
   check('va a `name_es`', patches[0].cuerpo.name_es === 'Tropius', JSON.stringify(patches[0].cuerpo))
   // LA REGLA DE LA CASA (334 y 335): el nombre japonés es la clave.
