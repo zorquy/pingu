@@ -40,6 +40,10 @@ console.log('── 1. El ayudante puro ──')
   const rr = [{ id: 114, nombre: 'Rising Rivals', codigo: 'RR' }, { id: 143, nombre: 'EX Team Rocket Returns', codigo: 'TRR' }]
   const ex7 = episodioDeSet({ id: 'ex7', name: 'Team Rocket Returns', name_en: 'EX Team Rocket Returns', tcg_online_code: 'RR' }, rr)
   check('ex7 [RR] va a «EX Team Rocket Returns» por el nombre, no a Rising Rivals por el código', ex7.episodio?.id === 143 && ex7.por === 'nombre', JSON.stringify(ex7))
+  // Y con el nombre nuestro SIN el «EX» (que es como está en la base): por
+  // las palabras, antes que por el código. Es lo que pasó de verdad.
+  const ex7real = episodioDeSet({ id: 'ex7', name: 'Team Rocket Returns', name_en: 'Team Rocket Returns', tcg_online_code: 'RR' }, rr)
+  check('  …y con «Team Rocket Returns» a secas, por las palabras, antes que el código', ex7real.episodio?.id === 143 && ex7real.por === 'palabras', JSON.stringify(ex7real))
   check('  …y pl2 [RR] sigue yendo a Rising Rivals', episodioDeSet({ id: 'pl2', name_en: 'Rising Rivals', name: 'Rivales Emergentes', tcg_online_code: 'RR' }, rr).episodio?.id === 114)
   check('la puntuación no cuenta: «Celebrations: Classic Collection»', episodioDeSet({ id: 'cel25cc', name_en: 'Celebrations Classic Collection', name: 'x', tcg_online_code: 'CEL' }, [{ id: 35, nombre: 'Celebrations', codigo: 'CEL' }, { id: 36, nombre: 'Celebrations: Classic Collection', codigo: 'CEL' }]).episodio?.id === 36)
   const palabras = episodioDeSet({ id: 'x-cc', name_en: 'Classic Collection 30th', name: 'x', tcg_online_code: null }, [{ id: 431, nombre: '30th Celebration', codigo: '30C' }, { id: 440, nombre: '30th Celebration: Classic Collection', codigo: '30C' }])
@@ -94,7 +98,13 @@ console.log('── 1. El ayudante puro ──')
   check('  …pero no cuando los dígitos no son únicos por nuestro lado (TG01 y 1 contra su 1)', amb.pares.length === 1 && amb.pares[0].id === 'a-1' && amb.sinPar.length === 1, JSON.stringify([amb.pares, amb.sinPar]))
   check('los números suyos sin usar se devuelven como ejemplo', JSON.stringify(tg.ejemplosSuyos) === '["30"]')
   const promos = emparejarPorNumero([{ id: 'mep-001', local_id: '001' }], [{ id: 1, card_number: 'MEP 001', cardmarket_id: 1, name_numbered: 'Pikachu MEP 001' }, { id: 2, card_number: 'MEP 001', cardmarket_id: 2, name_numbered: 'Pikachu MEP 001 (Stamped)' }])
-  check('dos promos suyas con los mismos dígitos: sin par, y dice cuáles', promos.pares.length === 0 && /2 cartas suyas con esos dígitos: «Pikachu MEP 001» sin tcgid, «Pikachu MEP 001 \(Stamped\)» sin tcgid/.test(promos.sinPar[0].porque), promos.sinPar[0].porque)
+  check('dos promos suyas con los mismos dígitos y sin tcgid que decida: sin par, y dice cuáles', promos.pares.length === 0 && /2 cartas suyas con esos dígitos: «Pikachu MEP 001» sin tcgid, «Pikachu MEP 001 \(Stamped\)» sin tcgid/.test(promos.sinPar[0].porque), promos.sinPar[0].porque)
+  // Con tcgid: la normal acaba en dígitos («mepr-MEP001»), la sellada no («…001s»).
+  const mep = emparejarPorNumero([{ id: 'mep-001', local_id: '001' }, { id: 'mep-002', local_id: '002' }], [
+    { id: 1, card_number: 'MEP 001', cardmarket_id: 11, tcgid: 'mepr-MEP001s' }, { id: 2, card_number: 'MEP 001', cardmarket_id: 12, tcgid: 'mepr-MEP001' },
+    { id: 3, card_number: 'SVP 002', cardmarket_id: 13, tcgid: 'svp-2' }, { id: 4, card_number: 'SVP 002', cardmarket_id: 14, tcgid: null },
+  ])
+  check('entre la normal y la sellada gana la del tcgid que acaba en dígitos; y «svp-2» contra sin tcgid, igual', mep.pares.length === 2 && mep.pares.find((p) => p.id === 'mep-001')?.idProduct === 12 && mep.pares.find((p) => p.id === 'mep-002')?.idProduct === 13, JSON.stringify(mep.pares))
   const sinId = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: null }])
   check('una carta suya sin cardmarket_id deja la nuestra sin par, con ese motivo', sinId.pares.length === 0 && /sin|no le da/.test(sinId.sinPar[0].porque), JSON.stringify(sinId.sinPar))
   const dobles = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: 5 }, { id: 10, card_number: '1', cardmarket_id: 6 }])
