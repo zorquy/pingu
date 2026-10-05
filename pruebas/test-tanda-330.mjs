@@ -81,8 +81,10 @@ console.log('\n── 2. La tarea apunta en qué idioma lo consiguió ──')
   // cruzan el agregado de torneos, el resolutor de decklists y la huella
   // de las reimpresiones. Desde la tanda 335 el traducido va a `name_es`
   // y `name` no se toca — y eso es lo que se comprueba ahora.
+  // Desde la 629 el nombre español sale de `nombreEspanolDe` (el tipo
+  // traducido incluido); sigue yendo a `name_es` y solo si lo hay.
   check('el nombre traducido va a su columna y solo si vino de verdad',
-    /if \(encontrado\.nombre && encontrado\.idioma !== 'en'\) detalle\.name_es = encontrado\.nombre/.test(tarea))
+    /const nombreEs = nombreEspanolDe\(encontrado\)\n\s*if \(nombreEs\) detalle\.name_es = nombreEs/.test(tarea))
   check('…y no encima de la clave', !/\bdetalle\.name\s*=[^=]/.test(tarea),
     tarea.match(/.*detalle\.name\s*=[^=].*/)?.[0])
 
@@ -113,21 +115,22 @@ console.log('\n── 3. Qué es una era y qué no ──')
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
   await page.addInitScript(() => {
     window.__FAKE_SETS__ = [
-      { id: 'meg', name: 'Mega Evolución', market: 'WEST', serie_name: 'Mega Evolución',
+      // Con `serie_id` (649): la estantería agrupa por él.
+      { id: 'meg', name: 'Mega Evolución', market: 'WEST', serie_id: 'me', serie_name: 'Mega Evolución',
         card_count_official: 188, release_date: '2025-09-26' },
       // Más NUEVO que dos eras, y aun así tiene que irse abajo.
-      { id: 'mcd', name: "McDonald's 2025", market: 'WEST', serie_name: "McDonald's Collection",
+      { id: 'mcd', name: "McDonald's 2025", market: 'WEST', serie_id: 'mcd', serie_name: "McDonald's Collection",
         card_count_official: 15, release_date: '2025-08-01' },
-      { id: 'sv8', name: 'Surging Sparks', market: 'WEST', serie_name: 'Escarlata y Púrpura',
+      { id: 'sv8', name: 'Surging Sparks', market: 'WEST', serie_id: 'sv', serie_name: 'Escarlata y Púrpura',
         card_count_official: 252, release_date: '2024-11-08' },
       // OJO con el orden: el set más NUEVO de Espada y Escudo es
       // pequeño y el grande es más viejo. Así «el primero» y «el más
       // grande» dejan de ser el mismo, que es lo que hace falta para
       // que se note si alguien mira solo el primero. Con un set por
       // serie, el rigor no veía la diferencia.
-      { id: 'swshp', name: 'SWSH Promos', market: 'WEST', serie_name: 'Espada y Escudo',
+      { id: 'swshp', name: 'SWSH Promos', market: 'WEST', serie_id: 'swsh', serie_name: 'Espada y Escudo',
         card_count_official: 30, release_date: '2022-06-01' },
-      { id: 'swsh3', name: 'Darkness Ablaze', market: 'WEST', serie_name: 'Espada y Escudo',
+      { id: 'swsh3', name: 'Darkness Ablaze', market: 'WEST', serie_id: 'swsh', serie_name: 'Espada y Escudo',
         card_count_official: 189, release_date: '2020-08-14' },
       { id: 'raro', name: 'Promo suelto', market: 'WEST', serie_name: null,
         card_count_official: 7, release_date: '2019-01-01' },
@@ -137,17 +140,21 @@ console.log('\n── 3. Qué es una era y qué no ──')
   await page.waitForTimeout(2000)
   check('sin errores', errores.length === 0, errores.join(' | '))
 
-  const orden = await page.locator('.serie-titulo').allTextContents()
+  // /cartas ES la estantería de Mi colección desde la 649 (misma página,
+  // modo catálogo): tarjetas `.mc-set-tarjeta` agrupadas por era.
+  // La regla del tamaño era del /cartas viejo; la estantería tiene la
+  // suya (js/mi-coleccion/estanteria.js, tanda 409/415): las eras por su
+  // set más nuevo, y lo que es una colaboración o un producto suelto —
+  // McDonald's entre ellos— al grupo «Sets especiales», al fondo.
+  const orden = await page.locator('.mc-estanteria-titulo').allTextContents()
   check('las eras van primero y de la más nueva a la más vieja',
     orden.slice(0, 3).join('|') === 'Mega Evolución|Escarlata y Púrpura|Espada y Escudo', orden.join(' → '))
   check('McDonald\'s baja, aunque su set sea más nuevo que dos eras',
-    orden.indexOf("McDonald's Collection") > orden.indexOf('Espada y Escudo'), orden.join(' → '))
-  check('y lo que no tiene serie va al final del todo',
-    orden[orden.length - 1] === 'Sin clasificar', orden.join(' → '))
-
-  const menores = await page.locator('.serie-menor .serie-titulo').allTextContents()
-  check('las que no son era se marcan como tales',
-    menores.length === 2 && menores.includes("McDonald's Collection"), menores.join(', '))
+    !orden.includes("McDonald's Collection") && orden[orden.length - 1] === 'Sets especiales', orden.join(' → '))
+  const especiales = await page.locator('.mc-estanteria-titulo:has-text("Sets especiales") + .mc-estanteria .mc-set-nombre').allTextContents()
+  check('  …y es el único especial', especiales.join('|') === "McDonald's 2025", especiales.join('|'))
+  check('y lo que no tiene serie va rotulado y detrás de las eras con algo más nuevo',
+    orden.indexOf('Sin serie') > orden.indexOf('Espada y Escudo'), orden.join(' → '))
   await page.close()
 }
 

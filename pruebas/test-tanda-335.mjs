@@ -154,7 +154,7 @@ console.log('\n── 3. Nadie escribe el nombre traducido encima de `name` ─�
   // Y las dos columnas nuevas viajan en TODAS las consultas que pintan
   // un nombre: si a una se le olvida `name_es`, esa pantalla se queda en
   // inglés sin dar error.
-  for (const f of ['js/carta.js', 'js/cartas.js', 'js/coleccion.js', 'netlify/edge-functions/meta-social.js']) {
+  for (const f of ['js/carta.js', 'js/mi-coleccion/datos.js', 'js/coleccion.js', 'netlify/edge-functions/meta-social.js']) {
     check(`${f} pide name_es`, /name_es/.test(leer(f)))
   }
 }

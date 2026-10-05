@@ -145,9 +145,10 @@ console.log('\n── 6. Y lo que se pinta sigue prefiriendo el de Live ──')
 {
   // Esto ya estaba bien y por eso no se toca: el fallo era el dato, no
   // el molde. Se comprueba para que nadie lo «arregle» al revés.
-  const cartas = leer('js/cartas.js')
+  // Desde la 649 la insignia la pinta la tarjeta de la estantería.
+  const cartas = leer('js/mi-coleccion.js')
   check('la insignia prefiere el código de TCG Live',
-    /set\?\.tcg_online_code \|\| set\?\.id/.test(cartas), cartas.match(/return String\(set[^\n]*/)?.[0])
+    /const codigo = set\.tcg_online_code \|\| \(.*String\(set\.id\)\.toUpperCase\(\)/.test(cartas), cartas.match(/const codigo = [^\n]*/)?.[0])
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

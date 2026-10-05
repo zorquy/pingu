@@ -299,24 +299,25 @@ console.log('\n── 6. La colección y el índice ──')
 
   const { page: p2, errores: e2 } = await abrir('/cartas.html', cartas, [SET, { id: 'sv4', name: 'Destinos de Paldea', market: 'WEST', release_date: '2024-01-26' }])
   check('el índice se abre sin errores', e2.length === 0, e2.join(' | '))
-  // Desde la 328 son filas de una lista agrupada por serie, no
-  // tarjetas con logo: la mitad de las colecciones no tiene logo y una
-  // rejilla de logos no deja comparar ni fecha ni tamaño.
-  check('lista las colecciones', (await p2.locator('.serie-fila').count()) === 2)
+  // /cartas ES la estantería de Mi colección desde la 649 (misma página,
+  // modo catálogo): tarjetas `.mc-set-tarjeta` agrupadas por era.
+  check('lista las colecciones', (await p2.locator('.mc-set-tarjeta').count()) === 2)
   check('lo más nuevo primero',
-    limpio(await p2.locator('.serie-nombre').first().textContent()) === 'Fuerzas Temporales')
-  await p2.fill('#buscarCarta', 'carta 3')
-  await p2.waitForTimeout(800)
-  check('el buscador encuentra', (await p2.locator('#resultados .coleccion-carta').count()) === 1)
-  check('…y aparta la lista de colecciones mientras busca',
-    ((await p2.locator('#seccionColecciones').getAttribute('class')) || '').includes('hidden'))
-  // Dos letras no buscan: con 23.000 cartas, «ch» devuelve ruido y una
+    limpio(await p2.locator('.mc-set-nombre').first().textContent()) === 'Fuerzas Temporales')
+  // El buscador de la estantería busca COLECCIONES; el de cartas es la
+  // pestaña Buscar, que busca en todo el catálogo.
+  await p2.fill('#mcEstanteriaBuscar', 'paldea')
+  await p2.waitForTimeout(500)
+  check('el buscador de colecciones encuentra', (await p2.locator('.mc-set-tarjeta').count()) === 1)
+  await p2.click('[data-pestania="buscar"]')
+  await p2.fill('#mcBuscarTodo', 'carta 3')
+  await p2.waitForTimeout(900)
+  check('el buscador de cartas encuentra', (await p2.locator('.mc-resultado').count()) === 1)
+  // Una letra no busca: con 23.000 cartas, «c» devuelve media base y una
   // consulta por cada tecla.
-  await p2.fill('#buscarCarta', 'ca')
+  await p2.fill('#mcBuscarTodo', 'c')
   await p2.waitForTimeout(700)
-  check('con dos letras no busca', (await p2.locator('#resultados .coleccion-carta').count()) === 0)
-  check('…y vuelven las colecciones',
-    !((await p2.locator('#seccionColecciones').getAttribute('class')) || '').includes('hidden'))
+  check('con una letra no busca', (await p2.locator('.mc-resultado').count()) === 0)
   await p2.close()
 }
 
@@ -346,7 +347,8 @@ console.log('\n── 7. «/cartas» no es «/carta» ──')
     const p = readFileSync(`${RAIZ}/${f}`, 'utf8')
     check(`${f} lleva el pie`, /class="pie-rejilla"/.test(p))
     // Absoluta: en /coleccion/tr una relativa pide /coleccion/css/… (327).
-    check(`  …y su hoja propia, con ruta absoluta`, /href="\/css\/carta\.css"/.test(p))
+    // cartas.html es la estantería (649) y su hoja es la de Mi colección.
+    check(`  …y su hoja propia, con ruta absoluta`, new RegExp(`href="/css/${f === 'cartas.html' ? 'mi-coleccion' : 'carta'}\\.css"`).test(p))
   }
 }
 

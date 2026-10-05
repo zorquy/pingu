@@ -141,7 +141,7 @@ console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
 
   // Y la columna PEDIDA en cada consulta: sin ella el filtro recibe
   // undefined y deja pasar todo SIN DAR ERROR.
-  for (const f of ['js/cartas.js', 'js/coleccion.js', 'netlify/edge-functions/meta-social.js',
+  for (const f of ['js/mi-coleccion.js', 'js/coleccion.js', 'netlify/edge-functions/meta-social.js',
                    'netlify/functions/sitemap.mjs']) {
     check(`${f} pide serie_id`, /select=?[^'"]*serie_id|'[^']*serie_id/.test(leer(f)), 'el filtro recibiría undefined')
   }
@@ -157,7 +157,9 @@ console.log('\n── 3. Pokémon TCG Pocket es otro juego ──')
   })
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
-  const nombres = await page.locator('.serie-nombre').allTextContents()
+  // /cartas ES la estantería de Mi colección desde la 649 (misma página,
+  // modo catálogo): tarjetas `.mc-set-tarjeta` agrupadas por era.
+  const nombres = await page.locator('.mc-set-nombre').allTextContents()
   check('el índice no enseña las de Pocket', !nombres.includes('Genetic Apex'), nombres.join(' | '))
   check('…y sí las del TCG', nombres.includes('Fuerzas Temporales'), nombres.join(' | '))
   await page.close()
@@ -299,7 +301,7 @@ console.log('\n── 6. La lista de colecciones se lee de un vistazo ──')
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
 
-  const codigos = (await page.locator('.serie-codigo').allTextContents()).map((t) => t.trim())
+  const codigos = (await page.locator('.mc-set-codigo').allTextContents()).map((t) => t.trim())
   check('la que tiene código lo enseña', codigos.includes('SSP'), codigos.join(' | '))
   // La que no tiene código cae al identificador. Lo que NO puede pasar
   // es que se quede sin insignia: entonces la columna se descuadra y la
@@ -310,7 +312,7 @@ console.log('\n── 6. La lista de colecciones se lee de un vistazo ──')
   // Y el orden, que lo pidió PINGU: series de la más nueva a la más
   // vieja, y dentro igual. Sale del orden en que llegan las filas, sin
   // una segunda ordenación que pudiera decir otra cosa.
-  const series = await page.locator('.serie-titulo').allTextContents()
+  const series = await page.locator('.mc-estanteria-titulo').allTextContents()
   check('la serie más nueva va primero', series[0] === 'Escarlata y Púrpura', series.join(' | '))
   await page.close()
 }

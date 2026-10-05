@@ -28,18 +28,19 @@ const check = (l, ok, extra = '') => {
 
 // Un trozo del catálogo de verdad, con las cuentas que exportó PINGU.
 const CATALOGO = [
-  { id: 'miscp', name: 'Miscellaneous Promos', serie_name: 'Miscellaneous', release_date: '1996-01-01', card_count_total: 1 },
-  { id: 'base1', name: 'Base Set', serie_name: 'Base', release_date: '1999-01-09', card_count_total: 102 },
-  { id: 'basep', name: 'Wizards Black Star Promos', serie_name: 'Base', release_date: '1999-07-01', card_count_total: 53 },
-  { id: 'wp', name: 'W Promotional', serie_name: 'Base', release_date: '1999-09-01', card_count_total: 7 },
-  { id: 'ex10', name: 'Unseen Forces', serie_name: 'EX', release_date: '2005-08-22', card_count_total: 117 },
-  { id: 'exu', name: 'Unseen Forces Unown Collection', serie_name: 'EX', release_date: '2005-08-22', card_count_total: 28 },
-  { id: 'bw11', name: 'Legendary Treasures', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 140 },
-  { id: 'rc', name: 'Radiant Collection', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 25 },
-  { id: 'xyp', name: 'XY Black Star Promos', serie_name: 'XY', release_date: '2013-10-12', card_count_total: 216 },
-  { id: 'xya', name: 'Yellow A Alternate', serie_name: 'XY', release_date: '2014-02-05', card_count_total: 6 },
-  { id: 'pop1', name: 'POP Series 1', serie_name: 'POP', release_date: '2004-09-01', card_count_total: 17 },
-  { id: 'np', name: 'Nintendo Black Star Promos', serie_name: 'POP', release_date: '2003-10-01', card_count_total: 40 },
+  // Con su `serie_id` (649): la estantería agrupa por él.
+  { id: 'miscp', name: 'Miscellaneous Promos', serie_id: 'misc', serie_name: 'Miscellaneous', release_date: '1996-01-01', card_count_total: 1 },
+  { id: 'base1', name: 'Base Set', serie_id: 'base', serie_name: 'Base', release_date: '1999-01-09', card_count_total: 102 },
+  { id: 'basep', name: 'Wizards Black Star Promos', serie_id: 'base', serie_name: 'Base', release_date: '1999-07-01', card_count_total: 53 },
+  { id: 'wp', name: 'W Promotional', serie_id: 'base', serie_name: 'Base', release_date: '1999-09-01', card_count_total: 7 },
+  { id: 'ex10', name: 'Unseen Forces', serie_id: 'ex', serie_name: 'EX', release_date: '2005-08-22', card_count_total: 117 },
+  { id: 'exu', name: 'Unseen Forces Unown Collection', serie_id: 'ex', serie_name: 'EX', release_date: '2005-08-22', card_count_total: 28 },
+  { id: 'bw11', name: 'Legendary Treasures', serie_id: 'bw', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 140 },
+  { id: 'rc', name: 'Radiant Collection', serie_id: 'bw', serie_name: 'Black & White', release_date: '2013-11-06', card_count_total: 25 },
+  { id: 'xyp', name: 'XY Black Star Promos', serie_id: 'xy', serie_name: 'XY', release_date: '2013-10-12', card_count_total: 216 },
+  { id: 'xya', name: 'Yellow A Alternate', serie_id: 'xy', serie_name: 'XY', release_date: '2014-02-05', card_count_total: 6 },
+  { id: 'pop1', name: 'POP Series 1', serie_id: 'pop', serie_name: 'POP', release_date: '2004-09-01', card_count_total: 17 },
+  { id: 'np', name: 'Nintendo Black Star Promos', serie_id: 'np', serie_name: 'POP', release_date: '2003-10-01', card_count_total: 40 },
 ]
 
 console.log('── 1. Las cinco parejas ──')
@@ -71,7 +72,9 @@ console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   await page.addInitScript((sets) => { window.__FAKE_SETS__ = sets }, CATALOGO.map((s) => ({ ...s, market: 'WEST' })))
   await page.goto('http://localhost:8892/cartas.html', { waitUntil: 'networkidle' })
-  const filas = await page.locator('.serie-fila .serie-nombre').allTextContents()
+  // /cartas ES la estantería de Mi colección desde la 649 (misma página,
+  // modo catálogo): tarjetas `.mc-set-tarjeta` agrupadas por era.
+  const filas = await page.locator('.mc-set-tarjeta .mc-set-nombre').allTextContents()
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   check('la Radiant Collection ya no es una fila', !filas.includes('Radiant Collection'), filas.join(' | '))
   check('ni la Unown Collection', !filas.some((t) => /Unown/.test(t)), filas.join(' | '))
@@ -83,15 +86,18 @@ console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan
   check('  …y Wizards Black Star Promos también', filas.includes('Wizards Black Star Promos'), filas.join(' | '))
   // Las cuentas suman las del hijo, que es lo que hace que la fila no
   // mienta: 140 + 25.
-  const textoLT = await page.locator('.serie-fila', { hasText: 'Legendary Treasures' }).first().innerText()
+  const textoLT = await page.locator('.mc-set-tarjeta', { hasText: 'Legendary Treasures' }).first().innerText()
   check('y la cuenta del padre incluye las del hijo', /165/.test(textoLT), textoLT.replace(/\n/g, ' '))
 
   // ── Las POP, que PINGU quería como colección propia y abajo ──
-  const titulos = await page.locator('.serie h2, .serie h3').allTextContents()
-  check('POP es un grupo propio', titulos.some((t) => /POP/i.test(t)), titulos.join(' | '))
-  const iPop = titulos.findIndex((t) => /POP/i.test(t))
+  // En la estantería las POP son «Sets especiales» (estanteria.js) y van al
+  // fondo, debajo de las eras.
+  const titulos = await page.locator('.mc-estanteria-titulo').allTextContents()
+  const pops = await page.locator('.mc-estanteria-titulo:has-text("Sets especiales") + .mc-estanteria .mc-set-nombre').allTextContents()
+  check('las POP están, en el grupo de especiales', pops.includes('POP Series 1') && pops.includes('Nintendo Black Star Promos'), pops.join(' | '))
+  const iPop = titulos.findIndex((t) => /Sets especiales/.test(t))
   const iEx = titulos.findIndex((t) => /^EX$/i.test(t.trim()))
-  check('  …y va por debajo de las eras', iPop > iEx, JSON.stringify({ titulos, iPop, iEx }))
+  check('  …y va por debajo de las eras', iPop > iEx && iEx >= 0, JSON.stringify({ titulos, iPop, iEx }))
   await page.close()
   await browser.close()
 }

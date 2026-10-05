@@ -99,14 +99,16 @@ console.log('── 4. Lo estático ──')
   const sql = leer('supabase-migration-tcggo-expansiones.sql')
   check('la migración: la tabla con su clave por set, mercado y día, lectura pública, y la función la rellena', /create table if not exists public\.tcg_set_valor/.test(sql) && /primary key \(set_id, market, dia\)/.test(sql) && /create policy tcg_set_valor_ver on public\.tcg_set_valor for select using \(true\)/.test(sql) && /insert into public\.tcg_set_valor \(set_id, market, dia, valor_cm, valor_tp\)/.test(sql) && /on conflict \(set_id, market, dia\) do update/.test(sql) && /grant execute on function public\.tcggo_guardar_sets\(jsonb, text\) to service_role/.test(sql))
   check('  …y sigue sin pisar lo del set (solo rellena)', /card_count_official = coalesce\(s\.card_count_official, nullif\(p\.impresas, 0\)\)/.test(sql))
-  const cartas = leer('js/cartas.js')
-  check('/cartas pide tcggo_id y los valores, y no rompe si la tabla no está', /card_count_total,tcggo_id'\)/.test(cartas) && /from\('tcg_set_valor'\)/.test(cartas) && /variacionSemanal\(valores \|\| \[\]\)/.test(cartas) && /catch \{\n\s*variacionDeSets = new Map\(\)/.test(cartas))
+  // Desde la 649 /cartas es la estantería: lo que pedía js/cartas.js lo
+  // pide `cargarValoresDeSets` de mi-coleccion.js.
   const mc = leer('js/mi-coleccion.js')
+  check('la estantería pide los valores y no rompe si la tabla no está', /from\('tcg_set_valor'\)/.test(mc) && /variacionSemanal\(/.test(mc) && /variacionDeSets = new Map\(\)/.test(mc))
   check('la estantería registra los episodios antes de contar y pide los valores', /registrarEpisodios\(sets\)\n\s*await cargarValoresDeSets\(\)/.test(mc) && /orden,oculto,tcggo_id'\)/.test(mc))
   const col = leer('js/coleccion.js')
   check('la página de una colección registra a sus hermanos por tcggo_id', /\.eq\('tcggo_id', set\.tcggo_id\)/.test(col) && /registrarEpisodios\(hermanos \|\| \[\]\)/.test(col) && /idsDeColeccion\(setId\)\.length > 1/.test(col))
-  const css = leer('css/carta.css')
-  check('las tarjetas de /cartas: rejilla, arte, cifras; y la fila de antes ya no es una fila', /\.serie-lista \{\n  display: grid;/.test(css) && /\.serie-arte::before/.test(css) && /\.serie-cifras \{/.test(css) && !/grid-template-columns: 56px minmax\(0, 1fr\) 104px 88px/.test(css))
+  const css = leer('css/mi-coleccion.css')
+  check('la tarjeta de expansión lleva el valor con su subida o bajada', /\.mc-set-valor \{/.test(css) && /\.mc-set-valor \.baja \{ color: var\(--danger\); \}/.test(css))
+  check('y el CSS del /cartas viejo ya no está', !/\.serie-fila|\.serie-lista|\.cartas-buscador/.test(leer('css/carta.css')))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')

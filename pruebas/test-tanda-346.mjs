@@ -29,9 +29,11 @@ const SETS = [
     tcg_online_code: 'MEP', release_date: '2026-02-01', card_count_official: 40 },
   { id: 'mee', name: 'Mega Evolution Energy', market: 'WEST', serie_id: 'me', serie_name: 'Mega Evolution',
     tcg_online_code: 'MEE', release_date: '2026-02-20', card_count_official: 10 },
-  { id: '30th', name: '30th Celebration', market: 'WEST', serie_id: '30th', serie_name: '30th Celebration',
+  // Serie `me` las dos: así las trae el catálogo de TCGGO (646), y la
+  // estantería agrupa por `serie_id`.
+  { id: '30th', name: '30th Celebration', market: 'WEST', serie_id: 'me', serie_name: 'Mega Evolution',
     tcg_online_code: '30C', release_date: '2026-08-01', card_count_official: 160 },
-  { id: '30th-c', name: '30th Classic Collection', market: 'WEST', serie_id: '30thc', serie_name: '30th Classics',
+  { id: '30th-c', name: '30th Classic Collection', market: 'WEST', serie_id: 'me', serie_name: 'Mega Evolution',
     release_date: '2026-08-01', card_count_official: 30 },
 ]
 
@@ -110,12 +112,14 @@ console.log('\n── 3. El 30 aniversario es de Mega, y es UN set ──')
 {
   const { page, errores } = await abrir('/cartas')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const series = await page.locator('.serie-titulo').allTextContents()
+  // /cartas ES la estantería de Mi colección desde la 649 (misma página,
+  // modo catálogo): tarjetas `.mc-set-tarjeta` agrupadas por era.
+  const series = await page.locator('.mc-estanteria-titulo').allTextContents()
   // Lo primero que hice fue sacarlo a su propio grupo. PINGU: «30 aniv
   // es parte de megaevoluciones, no me lo separes».
   check('no hay un grupo del 30 aniversario', !series.some((t) => /30/.test(t)), series.join(' | '))
-  const mega = page.locator('.serie').filter({ hasText: 'Mega Evolution' }).first()
-  const nombres = await mega.locator('.serie-nombre').allTextContents()
+  const mega = page.locator('.mc-estanteria-titulo:has-text("Mega Evolution") + .mc-estanteria')
+  const nombres = await mega.locator('.mc-set-nombre').allTextContents()
   // DOS filas, Celebration y luego Classic (tanda 536). La 347 las plegó en
   // una porque PINGU dijo «es el mismo set», y la 536 las volvió a separar
   // porque dijo lo contrario esa misma mañana: «el Classic debería ir
@@ -132,10 +136,13 @@ console.log('\n── 3. El 30 aniversario es de Mega, y es UN set ──')
     nombres.join(' | '))
   // La fila del 30 cuenta las de las dos mitades (646): 160 + 30. Desde la
   // 646 la cifra va en una casilla con su rótulo («Cartas» y el número).
-  const cuantas = await mega.locator('li').filter({ hasText: '30th Celebration' }).first().locator('.serie-cuantas').textContent()
+  const cuantas = await mega.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' }).first().locator('.mc-set-cuenta').textContent()
   check('y la fila del 30 cuenta las de las dos mitades', /190/.test(cuantas), cuantas)
-  const href = await mega.locator('.serie-fila').first().getAttribute('href')
-  check('la fila enlaza al código', href === '/coleccion/pbl', href)
+  // La tarjeta abre la expansión AQUÍ (649), y cada hueco enlaza a la ficha.
+  await mega.locator('.mc-set-tarjeta').first().click()
+  await page.waitForTimeout(1500)
+  check('la tarjeta abre la expansión en la página, con sus cartas', (await page.locator('#mcAlbum .mc-bolsillo').count()) === 4, String(await page.locator('#mcAlbum .mc-bolsillo').count()))
+  check('  …y cada hueco enlaza a su ficha', /^\/carta\//.test((await page.locator('#mcAlbum .mc-bolsillo-enlace').first().getAttribute('href')) || ''))
   await page.close()
 }
 
@@ -199,18 +206,18 @@ console.log('\n── 5b. Y las dos mitades del 30 aniversario, cada una la suya
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 6. El buscador de /cartas filtra por tipo ──')
+console.log('\n── 6. El buscador de /cartas busca en todo el catálogo ──')
 {
+  // Desde la 649 es la pestaña Buscar de la estantería (los filtros por
+  // tipo viven en su hoja de filtros, que prueba la 447).
   const { page } = await abrir('/cartas')
-  const opciones = await page.locator('#buscarTipo option').count()
-  check('hay desplegable de tipos', opciones > 5, String(opciones))
-  await page.selectOption('#buscarTipo', 'Water')
-  await page.waitForTimeout(600)
-  check('un tipo SOLO ya es una búsqueda',
-    (await page.locator('#resultados .coleccion-carta').count()) === 2,
-    String(await page.locator('#resultados .coleccion-carta').count()))
-  check('…y las colecciones se apartan',
-    (await page.locator('#seccionColecciones').getAttribute('class')).includes('hidden'))
+  await page.click('[data-pestania="buscar"]')
+  await page.fill('#mcBuscarTodo', 'magikarp')
+  await page.waitForTimeout(900)
+  check('encuentra por el nombre', (await page.locator('.mc-resultado').count()) === 1, String(await page.locator('.mc-resultado').count()))
+  await page.locator('.mc-resultado').first().click()
+  await page.waitForTimeout(800)
+  check('…y el resultado abre la ficha emergente', await page.locator('#mcEditor').evaluate((d) => d.open))
   await page.close()
 }
 
