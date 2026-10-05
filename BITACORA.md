@@ -4,6 +4,58 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 8) — PINGU-Claude (654 — el 30 aniversario se reemplaza solo por el de TCGGO)
+
+**Hecho**: función PROGRAMADA `tcggo-reemplazar-set` (a y 4 de cada
+cinco minutos): borra nuestras cartas de `30th` y `30th-c` y mete las
+de la expansión de TCGGO tal cual (foto, número, id de Cardmarket), una
+sola vez y apuntado en `scrydex_estado` (`tcggo_reemplazos`); lo que la
+gente tenga apuntado se reapunta por nombre, y lo que no case se queda
+y se dice en el estado. Cinco fallos y para. La expansión suya sale de
+los pares del emparejador. Sin SQL y sin botón: PINGU, «hazlo tú
+automáticamente; no hagas mezclas, coge toda la información del set de
+ahí y listo». La migración de la 652 bis queda sin ejecutar. Corre en
+cuanto Netlify despliegue este push.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs` (nueva),
+`netlify/lib/tcggo.mjs` (exporta `nombreComparable` y `soloDigitos`),
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 654 (nueva).
+
+**Pendiente**: mirar el 30 en /mi-coleccion pasados diez minutos del
+despliegue (la 653 de debajo sale en el push siguiente, en cuanto acabe su
+subconjunto de pruebas); el resumen de lo hecho está en `scrydex_estado` →
+`tcggo_reemplazos`. Para reemplazar otra expansión entera, una entrada
+más en `REEMPLAZOS`.
+## 2026-10-05 (noche, 7) — PINGU-Claude (653 — el Panel, más prieto y con la gráfica más visual)
+
+**Hecho**: la gráfica del valor de Mi colección se pinta del color de la
+tendencia (verde sube, rojo baja), con rejilla de tres cifras a la
+derecha, fechas debajo, la marca del último día, lectura al pasar el
+dedo (globo con el día y el valor) y chips de 7 y 30 días que solo
+salen si el histórico cubre esos días. Fuera el párrafo de debajo del
+punto único. Y el Panel más prieto: cabecera, vistazos, losetas y
+cifras un paso más juntos. Solo /mi-coleccion; sin migración.
+
+**Ficheros**: `js/mi-coleccion/grafica-valor.js`, `js/mi-coleccion.js`
+(una línea), `css/mi-coleccion.css`, `SCHEMA.md`, `CLAUDE.md`. En
+`pruebas`: 653 (nueva); 377, 464 y 651-pantalla al día.
+
+**Para IBAI, de PINGU, sobre tu lista de pendientes**: a lo último —si
+los mazos guardados del constructor pasan a la rareza más baja como las
+listas importadas— la respuesta es **SÍ**: los que ya están guardados
+pasan a la rareza mínima, para mantener un estándar; y al construir un
+mazo cada uno puede poner las rarezas que quiera. Lo demás de tu lista
+(colecciones sin nombre en inglés, Scrydex todavía el primero en la
+cadena de escaneo, los pies de foto de /meta en inglés, los ~20 errores
+técnicos enseñados tal cual, las etiquetas del laboratorio que parecen
+botones, el nombre del mazo que parpadea en la repetición) queda
+apuntado aquí; lo de Scrydex en `cadenaDeEscaneo` es de esta sesión y
+lo haré en una tanda propia —avisa en tu entrada si lo coges tú antes—.
+
+**Pendiente**: coreano y chino en el precio de las japonesas (PINGU ha
+pasado dos URLs de TCGGO, `cards/63456` y `episodes/552/cards`, pero
+desde el contenedor no se llega a RapidAPI ni hay clave: hace falta el
+JSON pegado). Y la migración del 30 aniversario sigue sin ejecutar.
 ## 2026-10-05 (noche, 6) — PINGU-Claude (652 — la Classic del 30 aniversario, dos veces)
 
 **Hecho**: el 30 aniversario enseñaba «Charizard 001» con la foto del

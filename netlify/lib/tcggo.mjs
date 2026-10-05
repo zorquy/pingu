@@ -61,7 +61,7 @@ export function hayMasPaginas(respuesta) {
 export const codigoComparable = (c) => String(c || '').trim().toUpperCase()
 // Sin puntuación: «Celebrations: Classic Collection» es «Celebrations
 // Classic Collection», y «HS—Triumphant» se compara como «hs triumphant».
-const nombreComparable = (n) => normalizeSearch(String(n || '').replace(/&/g, 'and')).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+export const nombreComparable = (n) => normalizeSearch(String(n || '').replace(/&/g, 'and')).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
 const palabrasDe = (n) => nombreComparable(n).split(' ').filter(Boolean)
 
 // Lo que guardamos de cada expansión suya (de las ~170, solo lo que hace
@@ -164,7 +164,7 @@ export function episodioDeSet(set, episodios) {
 
 // Solo los dígitos de un número: «TG01» → «1», «SV001» → «1», «SWSH001» →
 // «1». Para la segunda pasada, cuando los prefijos no coinciden.
-const soloDigitos = (n) => numeroComparable(n).replace(/[^0-9]/g, '')
+export const soloDigitos = (n) => numeroComparable(n).replace(/[^0-9]/g, '')
 const prefijoDeTcgid = (t) => String(t || '').toLowerCase().replace(/-[^-]*$/, '')
 
 // Empareja las cartas de UN set nuestro con las de SU expansión, en tres

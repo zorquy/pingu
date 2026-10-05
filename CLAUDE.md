@@ -450,6 +450,30 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   número y las creó por segunda vez. Desde la 652 `emparejarPorNumero`
   casa por NOMBRE como último paso (único en los dos lados), y los
   duplicados se funden con `supabase-migration-30-aniversario-duplicados.sql`.
+- **Un cambio de DATOS que no quiera SQL va en una función con la clave
+  de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
+  aniversario («da igual la migración SQL»), y la única forma de escribir
+  en la base sin que un humano pegue SQL es una función de Netlify con
+  `SUPABASE_SERVICE_ROLE_KEY`: `tcggo-reemplazar-set` (programada, con
+  su lista `REEMPLAZOS` y apuntando lo hecho en `scrydex_estado`) borra y
+  reescribe por REST (la clave de servicio se salta la RLS) y escribe
+  cartas por la RPC que ya existe. Y PINGU tampoco quiso botón («hazlo tú
+  automáticamente»): un arreglo de datos es una pasada programada que se
+  hace UNA vez y se apunta, con tope de intentos. Antes de borrar filas
+  de `tcg_cards` o `tcg_sets`,
+  mira las claves ajenas: solo `tcg_cards(set_id, market) → tcg_sets`;
+  nada apunta a `tcg_cards`, así que las líneas de colección de una carta
+  borrada se quedan HUÉRFANAS sin error — por eso se reapuntan antes, y la
+  que no tiene a dónde ir no se borra.
+- **Un chip de «últimos N días» solo sale si el histórico CUBRE esos
+  días** (tanda 653). Con tres fotos diarias, `diasDelRango(…, '1M')`
+  devuelve las tres —tiene dos puntos y no se queja— y el chip habría
+  dicho «30 d: +20 %» de un mes que no existe. Lo cazó la prueba en el
+  primer verde. Es la 319 con el tiempo: «no se sabe» no se pinta como
+  una cifra. Y de la misma tanda: **texto, cifras y marcas de una
+  gráfica estirada van en HTML, no en el SVG** —con
+  `preserveAspectRatio="none"` un `<text>` se deforma y un `<circle>`
+  sale ovalado—, colocados en tanto por ciento del lienzo.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

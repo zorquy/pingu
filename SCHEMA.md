@@ -31756,3 +31756,145 @@ las guardas «= 1», `coalesce`, lo que se mueve, el borrado acotado, los
 `$$` emparejados). La 588 con el caso del 30 (dos «001» nuestras contra
 su «1» y su «4», y «Pikachu» repetido sin par) y la 640 con la Classic de
 Celebrations casando por nombre en vez de crearse.
+
+## Tanda 653 — el Panel, más prieto y con la gráfica más visual (oct. 2026)
+
+PINGU, con la gráfica de una carta de TCGGO delante y el Panel de Mi
+colección al lado: «me gustaría aplicar algo así, más colorido, en lo de
+mi colección… el tema de mi colección en el panel tiene demasiado
+espacio todo y es muy grande… y el texto que hay abajo en el gráfico
+—“es lo que vale hoy, la primera foto se toma esta noche”— todo eso lo
+quitaría porque no es necesaria».
+
+**La gráfica** (`js/mi-coleccion/grafica-valor.js`, sin dependencias
+nuevas: sigue siendo SVG a mano):
+
+- **El color dice la tendencia.** El lienzo (`.mc-valor-lienzo`) lleva
+  `sube`, `baja` o `igual` y una propiedad local `--valor-tono` (verde
+  `--success`, rojo `--danger`, azul `--navy`) que usan la línea, el
+  degradado del relleno y la marca del último día. Es una clase y no un
+  color escrito: cambia con el tema sin redefinirse.
+- **Rejilla con cifras y fechas.** Tres rayas (máximo, medio, mínimo) en
+  el SVG y sus cifras en HTML en un canal a la derecha (el 14 % del
+  ancho: `MARGEN.der = 84` unidades de 600, que en un móvil de 390 px
+  son unos 50 px, lo que mide «186,33 €» en `--t-2xs`). Las cifras y las
+  fechas NO van dentro del SVG: con `preserveAspectRatio="none"` el texto
+  se estira. Con la línea plana hay una raya sola (tres rótulos iguales
+  dirían tres veces lo mismo). Debajo, la fecha del primer y del último
+  día, y la del medio si el tramo tiene seis días o más.
+- **La marca del último día es un `<span>`** colocado en tanto por
+  ciento (`--px`, `--py` en el `style=`, que son datos y no estilo): un
+  `<circle>` dentro del SVG estirado salía ovalado. Es la misma pieza
+  para el punto único de la 651.
+- **La lectura al pasar el dedo** (`engancharLectura(lienzo)`): el único
+  trozo del módulo que toca el DOM. Los puntos van en `data-puntos`
+  (`[dia, valor, x %, y %]`), y al mover el ratón o el dedo sale una guía
+  vertical y un globo con el día y lo que valía, pegado al lado que
+  tenga sitio. Se engancha al lienzo recién pintado desde
+  `pintarValorEnElTiempo`, que repinta entero en cada cambio de rango.
+- **Chips de 7 y 30 días**, como el «7 days −3 %» de TCGGO: dos lecturas
+  FIJAS que no dependen del rango puesto. Un chip solo sale si el
+  histórico CUBRE sus días —con tres fotos, «30 d: +20 %» afirmaría un
+  mes que no existe (la 319)—: el primer verde fue justo ese fallo, lo
+  cazó la prueba y ahora `chipsHtml` mide el tramo.
+- **Fuera el párrafo de debajo** del punto único. «hoy, 5 oct» junto a
+  la cifra ya lo dice; y esa gráfica mide 96 px y no 180: para un punto,
+  180 px eran 180 px de nada.
+
+**Más prieto** (`css/mi-coleccion.css`, un paso menos en cada hueco):
+cabecera con `padding` y `gap` de `--e-lg`/`--e-md` (eran `--e-xl`/
+`--e-lg`), avatar de 48 px (56), cifras de la cabecera en `--t-xl` menos
+el Valor, que se queda en `--t-2xl` porque es la que se viene a mirar;
+la nota vacía (`.mc-nota:empty`) no ocupa —dejaba 40 px de aire al pie
+de la cabecera—; los vistazos a `--e-xl` de hueco (eran `--e-2xl`); las
+losetas de acciones a 80 px con el icono a 36 (eran 96 y 44; lo que se
+pulsa es la loseta, que sigue por encima de 44); las cifras de Cambios a
+`--t-xl` en 64 px. En escritorio la cabecera pasa de 240 a 166 px.
+
+**Lo que no cambia**: los seis rangos y su lógica (`diasDelRango`), el
+aviso de las cartas sin precio, `resumenDeValor`.
+
+**Pruebas**: `test-tanda-653.mjs` (el tono, las tres rayas y la única
+con línea plana, las fechas, la marca en HTML, los chips y cuándo NO
+salen, los puntos de lectura, el punto único sin párrafo; en pantalla,
+el verde de la casa en línea y marca, el globo con el punto más cercano
+y su lado, las cifras en su canal, y las medidas del Panel). Al día:
+377, 464 y 651-pantalla, que esperaban el párrafo quitado.
+
+## Tanda 654 — reemplazar una expansión por la de TCGGO, entera y sola (oct. 2026)
+
+PINGU, con el 30 aniversario todavía roto a partir de la Classic
+Collection («a partir del Raikou se rompe: el Charizard, el Delcatty y el
+Metagross están mal, y veo alguna repetida»), y con la migración de la
+652 bis sin ganas de ejecutarla: «da igual la migración SQL; simplemente
+sustituye todo el set con todas las cartas que tenga dentro la API de
+TCGGO y ya está, que está bien. No hagas mezclas de nada: coge toda la
+información del set de ahí y listo». Y cuando lo puse como botón de
+/admin: «no me lo pongas como un botón, hazlo tú automáticamente y ya
+está; quiero que arregles el 30 aniversario tú solo y rápido».
+
+**Lo que hay**: una función PROGRAMADA,
+`netlify/functions/tcggo-reemplazar-set.mjs`, a y 4 de cada cinco
+minutos. Lleva una lista `REEMPLAZOS` —hoy una entrada: sets `30th` y
+`30th-c`, todo al `30th`, mercado WEST— y en cada pasada hace UN
+reemplazo pendiente y lo apunta en `scrydex_estado` (`tcggo_reemplazos`:
+`hechos`, `intentos`, `ultimo`). Hecho, no vuelve a tocarlo nunca; con
+todo hecho, una pasada es leer dos estados y cero peticiones a TCGGO.
+Fallado, cuenta el intento y a los cinco (`MAXIMO_INTENTOS`) se para: un
+freno que cuenta intentos y no pregunta «¿queda algo?» (la 510). **Sin
+migración**: escribe las cartas por la RPC que ya existe
+(`tcggo_guardar_cartas`, de la 640) y lo demás por REST con la clave de
+servicio, que se salta la RLS. Es la única forma de escribir en la base
+sin que un humano pegue SQL.
+
+**La expansión suya no va escrita a mano** (`episodioDe`): se lee del
+emparejamiento que ya hizo `tcggo-emparejar` para el set destino
+(`tcggo_pares.hechos['30th'].episodio`), y si no está, se resuelve por
+código o nombre contra su lista (`episodioDeSet`). Sin lista todavía, se
+espera sin gastar ni contar intento. PINGU pegó `episodes/552/cards`
+junto a una carta japonesa, así que no se da por hecho que 552 sea el 30.
+
+**Qué hace un reemplazo** (`procesar`), en orden, y solo si TCGGO ha
+contestado la expansión ENTERA (se sigue mientras su `paging` diga que
+queda página, con tope de 40; si se corta a mitad, o da cero cartas, no
+se toca nada):
+
+1. Pide las cartas del episodio (solo «singles», como el catálogo).
+2. Lee nuestras cartas de los sets a reemplazar.
+3. Arma las filas de TCGGO. Una carta nuestra del set DESTINO que ya
+   lleve su `tcggo_id` **conserva su id**: es la misma carta y cambiarle
+   el id sería cambiar la URL y la llave de la colección para nada. Las
+   demás entran como `tcggo-<id suyo>`, con su número, su nombre, su
+   foto y su `cardmarket_id`.
+4. Lo nuestro que no está en esa lista **se va**. Antes de borrarlo, lo
+   que la gente tenga apuntado de esas cartas —líneas de colección,
+   deseos y los ids dentro del JSON de los álbumes soñados— se reapunta a
+   la carta de TCGGO del mismo nombre (`equivalencias`: nombre inglés
+   único en los dos lados; si el nombre se repite —«Pikachu» dos veces—,
+   nombre + dígitos del número). Una carta que alguien tiene y no tiene
+   equivalente **no se borra**: se deja y queda en el resumen del estado.
+   Lo que no tiene nadie se borra con sus precios y su histórico.
+5. Los sets que sobran (todos menos el destino) se borran si se han
+   quedado vacíos, con su valor diario (`tcg_set_valor`) y sus favoritos.
+   Las únicas claves ajenas que tocan esto son `tcg_cards(set_id, market)
+   → tcg_sets` (por eso las cartas van antes que el set); ninguna tabla
+   apunta a `tcg_cards`.
+6. El destino queda con `tcggo_id` y `card_count_total` de TCGGO.
+
+Los precios de las nuevas llegan con la pasada siguiente de
+`tcggo-precios` por su `cm_id_product_propio`. La migración de la 652
+bis se queda en el repo sin ejecutar: hace lo mismo a mano y ya no hace
+falta. El catálogo semanal de la 640 seguirá casando por nombre (652),
+así que el 30 no vuelve a duplicarse. Para reemplazar otra expansión, se
+añade una entrada a `REEMPLAZOS` con una clave nueva.
+
+**Pruebas**: `test-tanda-654.mjs` (las equivalencias; `procesar` con
+dobles de TCGGO y de la base: dos páginas con un sobre en medio, la que
+conserva el id, las nuevas, las líneas, deseos y álbumes reapuntados, la
+que se queda por tener dueño y dos suyas con ese nombre, lo que se borra
+y en qué orden, el set que sobra —se va si está vacío—, el destino
+apuntado, y que a medias o con cero cartas no se escribe nada; `pasada`:
+resuelve la expansión por los pares, hace el reemplazo una vez y lo
+apunta, la siguiente no toca nada, cinco fallos y para, y sin expansión
+suya espera sin contar). Lo estático: programada, sin SQL nuevo y sin
+botón en /admin.
