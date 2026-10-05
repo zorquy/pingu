@@ -385,6 +385,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   por `esCartaSuelta` y `rarezaCanonica`; y un set nuevo lleva su serie en
   NUESTROS términos (`serieDeEpisodio`), que sin ella cae en «Sin
   clasificar».
+- **TCGGO no da IMPRESIONES ni precio por impresión** (tanda 645,
+  comprobado con PINGU en su playground: `Get card` y `Search cards` dan
+  el Bisharp 65 de Black Bolt UNA vez, sin Reverse Holo ni Master Ball, y
+  no hay endpoint de variantes). Lo que su web enseña sale de datos que no
+  exponen. Las impresiones son las de `variants` (TCGdex) y el precio es
+  el de la carta: las demás impresiones van SIN cifra, no con una
+  inventada. Y el bloque de precio es UNO (`js/precio-vista.js`) con su
+  CSS en `css/cardmarket.css`, que cargan /carta y /mi-coleccion; el
+  histórico vive ahí también desde la 645.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

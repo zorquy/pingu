@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde, 2) — PINGU-Claude (645 — la ficha nueva)
+
+**Hecho** (primera tanda del rediseño acordado sobre maquetas): el bloque
+de precio rehecho —burbujas, impresiones, tabla por idioma con enlace a
+Cardmarket en cada fila, TCGplayer en su azul, gradeadas—, el resumen de
+«Tu copia» con los campos plegados tras «Editar», y el histórico dentro
+de la ficha de /mi-coleccion. TCGGO no da impresiones ni su precio
+(comprobado con PINGU en su playground): las impresiones salen de
+`variants`.
+
+**Ficheros**: `js/precio-vista.js`, `css/cardmarket.css`, `css/carta.css`,
+`js/carta-mercado.js`, `js/carta.js`, `mi-coleccion.html`,
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`, `CLAUDE.md`.
+En `pruebas`: 645 y 645-pantalla (nuevas); 589, 589-pantalla,
+586-pantalla, 368, 311, 376, 383, 392, 405, 422, 472, 563, 564, 574.
+
+**Siguiente**: 646, las expansiones como los episodios de TCGGO (uno por
+episodio, con su era y sus cifras); luego la expansión por dentro y
+quitar el filtro de idioma.
+
 ## 2026-10-05 (tarde) — PINGU-Claude (644b — la migración del catálogo, arreglada)
 
 **Hecho**: `supabase-migration-tcggo-catalogo.sql` fallaba en la línea 106

@@ -1217,6 +1217,26 @@ function engancharRangosDelValor() {
 }
 
 // ── Pestaña «Cartas» ──
+// La carta que la ficha tiene abierta: el histórico llega tarde y no debe
+// pintarse encima de otra carta si se pasó de página mientras cargaba.
+let cartaAbierta = null
+
+// El resumen de tu copia (645): las chapas, cuántas y cuánto vale.
+function pintarResumenDeCopia(l, precio) {
+  const chapas = $('mcEdCopiaChapas')
+  const vale = $('mcEdCopiaVale')
+  if (!chapas || !vale) return
+  chapas.innerHTML = chipsDe(l)
+  const n = Number(l.cantidad) || 0
+  const total = valorDeLinea(l, precio)
+  const pagado = Number(l.precio_compra)
+  const partes = [`${n} ${n === 1 ? 'copia' : 'copias'}`]
+  if (total) partes.push(`${n === 1 ? 'vale' : 'valen'} <b>${euros(total)}</b>${l.valor_manual ? ' (tu valor)' : ''}`)
+  if (Number.isFinite(pagado) && pagado > 0) partes.push(`pagaste ${euros(pagado)}`)
+  if (l.notas) partes.push('con nota')
+  vale.innerHTML = partes.join(' · ')
+}
+
 function chipsDe(l) {
   const chips = [idiomaDe(l.idioma).id.toUpperCase(), estadoDe(l.estado).id]
   if (l.variante !== 'normal') chips.push(varianteDe(l.variante).nombre)
@@ -1611,6 +1631,7 @@ function abrirEditor(l) {
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
   $('mcEdChapas').innerHTML = chipsDe(l)
+  $('mcEdChapas').classList.toggle('hidden', tuya)
   // Y la tabla de datos. No es adorno: la rareza, el tipo de energía y el
   // ilustrador son justo por lo que se filtra, así que verlos aquí es lo
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
@@ -1650,7 +1671,27 @@ function abrirEditor(l) {
   // demás, Cardmarket y TCGplayer, y las gradeadas. Un solo módulo para
   // esta ficha y para /carta, así que lo que se ve aquí es lo que se ve allí.
   const precio = precioDe(l)
-  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, { idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null })
+  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
+    idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
+    variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
+  })
+  // El resumen de tu copia (645), con los campos plegados: se abre para
+  // mirar, y Editar los despliega.
+  if (tuya) pintarResumenDeCopia(l, precio)
+  $('mcEdCopiaCampos')?.classList.add('hidden')
+  $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
+  // Y el histórico (643): se pide al abrir y se calla si no hay filas.
+  // La carta cambia con las flechas, así que cada ficha pide el suyo.
+  const historial = $('mcEdHistorial')
+  if (historial) {
+    historial.classList.add('hidden')
+    historial.innerHTML = ''
+    const esta = l.card_id
+    import('./carta-historial.js')
+      .then(({ montarHistorial }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma) : null))
+      .catch(() => {})
+    cartaAbierta = esta
+  }
   // Y la salida a la ficha entera. Si la carta no está en el catálogo no
   // hay adónde ir, así que el enlace se esconde en vez de llevar a una
   // página rota.
@@ -1819,6 +1860,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
     // abrir desde la 393, y con el gradeo en dos desplegables se ve: lo
     // que acabas de poner es justo lo que la chapa no decía.
     $('mcEdChapas').innerHTML = chipsDe(nueva)
+    pintarResumenDeCopia(nueva, precioDe(nueva))
     // Y la rejilla de detrás, al día: si cambias la versión o las
     // copias, la casilla lo dice.
     repintar()
@@ -4440,6 +4482,16 @@ function enganchar() {
     $('mcEdCantidad').value = '0'
     guardarEditor()
   })
+  // Los del resumen (645): Editar despliega los campos de siempre; Quitar
+  // es el mismo camino que el de dentro (pregunta y quita).
+  $('mcEdEditar')?.addEventListener('click', () => {
+    const campos = $('mcEdCopiaCampos')
+    const abierto = campos.classList.toggle('hidden') === false
+    $('mcEdEditar').setAttribute('aria-expanded', String(abierto))
+    $('mcEdEditar').textContent = abierto ? 'Listo' : 'Editar'
+    if (abierto) $('mcEdIdioma')?.focus()
+  })
+  $('mcEdQuitarResumen')?.addEventListener('click', () => $('mcEdQuitar')?.click())
 
   $('mcEdNotaAbrir').addEventListener('click', () => {
     pintarNota($('mcEdNotas').value, true)

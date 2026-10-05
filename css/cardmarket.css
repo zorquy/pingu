@@ -99,15 +99,42 @@
 .pv {
   display: flex;
   flex-direction: column;
+  gap: var(--e-md);
+}
+
+/* ── Las burbujas (645): el precio de tu idioma, TCGplayer, la PSA 10 y
+   el rango entre idiomas. Cada una es una caja; la primera manda. ── */
+.pv-burbujas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
   gap: var(--e-sm);
 }
 
-.pv-cifra {
-  margin: 0;
-  font-size: var(--t-2xl);
+.pv-burbuja {
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.pv-burbuja-principal {
+  grid-column: 1 / -1;
+}
+
+.pv-cifra,
+.pv-cifra-2 {
+  margin: var(--e-xs) 0;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
   line-height: 1.1;
+}
+
+.pv-cifra {
+  font-size: var(--t-2xl);
+}
+
+.pv-cifra-2 {
+  font-size: var(--t-xl);
 }
 
 .pv-sin {
@@ -123,19 +150,149 @@
   font-size: var(--t-xs);
 }
 
-.pv-idiomas,
-.pv-gradeadas {
+.pv-rotulo {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Las impresiones: la elegida lleva el precio ── */
+.pv-impresiones {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--e-xs);
+  gap: var(--e-sm);
 }
 
-.pv-rotulo {
-  margin-right: var(--e-xs);
+.pv-impresiones .pv-rotulo {
+  display: inline;
+}
+
+.pv-impresion {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: default;
+}
+
+button.pv-impresion {
+  cursor: pointer;
+}
+
+.pv-impresion span {
   color: var(--text-mid);
   font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-impresion.pv-activa {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+/* ── Una fuente: Cardmarket, TCGplayer, las gradeadas ── */
+.pv-fuente {
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.pv-fuente-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+
+.pv-fuente-nombre {
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+.pv-tabla {
+  width: 100%;
+  margin-top: var(--e-sm);
+  border-collapse: collapse;
+  font-size: var(--t-md);
+}
+
+.pv-tabla th {
+  padding: 0 0 var(--e-xs);
+  color: var(--text-dim);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pv-tabla td {
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.pv-tabla th:last-child,
+.pv-precio {
+  text-align: right;
+}
+
+.pv-precio {
+  padding-left: var(--e-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* La fila entera se pulsa: el enlace mide los 44 px (312). */
+.pv-fila-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  color: inherit;
   font-weight: 600;
+  text-decoration: none;
+}
+
+a.pv-fila-enlace:hover span:first-of-type {
+  text-decoration: underline;
+}
+
+.pv-fila.pv-activa td {
+  background: var(--ice);
+}
+
+.pv-fila.pv-activa td:first-child {
+  padding-left: var(--e-sm);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.pv-fila.pv-activa td:last-child {
+  padding-right: var(--e-sm);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.pv-pie {
+  margin-top: var(--e-sm);
+}
+
+.pv-fuente-cab .pv-pie {
+  margin-top: 0;
 }
 
 .pv-chapa {
@@ -154,11 +311,36 @@
   font-weight: 700;
 }
 
-/* La chapa de TU idioma, marcada: es la que suma. */
-.pv-activa {
+.pv-chapa-tuya {
   border-color: var(--navy-solid);
   background: var(--navy-solid);
   color: var(--blanco-fijo);
+  font-weight: 600;
+}
+
+/* Las banderas, dibujadas: tres franjas o un sol. Colores fijos, que son
+   los de cada bandera y no cambian con el tema. */
+.pv-bandera {
+  flex: none;
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+  background: var(--ice);
+}
+.pv-bandera[data-idioma='es'] { background: linear-gradient(#c60b1e 25%, #ffc400 25% 75%, #c60b1e 75%); }
+.pv-bandera[data-idioma='en'] { background: linear-gradient(#cf142b, #cf142b) center / 100% 3px no-repeat, linear-gradient(90deg, #cf142b, #cf142b) center / 3px 100% no-repeat, linear-gradient(#fff, #fff) center / 100% 5px no-repeat, linear-gradient(90deg, #fff, #fff) center / 5px 100% no-repeat, #00247d; }
+.pv-bandera[data-idioma='de'] { background: linear-gradient(#000 33%, #d00 33% 66%, #ffce00 66%); }
+.pv-bandera[data-idioma='fr'] { background: linear-gradient(90deg, #0055a4 33%, #fff 33% 66%, #ef4135 66%); }
+.pv-bandera[data-idioma='it'] { background: linear-gradient(90deg, #009246 33%, #fff 33% 66%, #ce2b37 66%); }
+.pv-bandera[data-idioma='ja'] { background: radial-gradient(circle at 50% 50%, #bc002d 32%, #fff 34%); }
+
+.pv-gradeadas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  margin-top: var(--e-sm);
 }
 
 .pv-gradeada[data-casa] {
@@ -183,22 +365,80 @@
   min-height: 44px;
 }
 
-/* El botón de TCGplayer: sin su marca (no es nuestra para dibujarla), en
-   el mismo molde que el de Cardmarket y con el azul de la casa. */
+/* El botón de TCGplayer (645): en SU azul, con blanco encima, en el
+   mismo molde que el de Cardmarket. Su marca no es nuestra para
+   dibujarla, así que lleva el icono de cartas de la casa. El azul es
+   fijo en los dos temas por lo mismo que --cm-azul. */
 .btn-tcgplayer {
+  --tp-azul: #1b5fc9;
   display: inline-flex;
   align-items: center;
+  gap: var(--e-sm);
   padding: 0 var(--e-md);
-  border: 1px solid var(--navy-solid);
+  border: 0;
   border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--navy-solid);
+  background: var(--tp-azul);
+  color: var(--blanco-fijo);
   font-size: var(--t-sm);
   font-weight: 700;
   text-decoration: none;
 }
 
 .btn-tcgplayer:hover {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  filter: brightness(1.2);
+}
+
+/* ── La gráfica del histórico (643; aquí desde la 645, porque la ficha de
+   /mi-coleccion también la pinta). El SVG se dibuja a 600×200 y se
+   estira al ancho de su caja. ── */
+.carta-historial {
+  margin-top: var(--e-md);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.carta-historial-titulo {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-lg);
+  font-weight: 700;
+}
+
+/* El SVG se estira con su caja, y el texto de los ejes con él: en una
+   caja de 1.080 px la letra salía al doble. Un tope de ancho lo deja
+   legible y la gráfica sigue entera. */
+.carta-historial svg {
+  display: block;
+  width: 100%;
+  max-width: 680px;
+  height: auto;
+}
+
+.carta-historial-linea {
+  fill: none;
+  stroke: var(--navy-solid);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.carta-historial-linea-tp {
+  stroke: var(--text-mid);
+  stroke-dasharray: 4 4;
+}
+
+.carta-historial-eje {
+  fill: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+.carta-historial-reja {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.carta-historial-pie {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
 }

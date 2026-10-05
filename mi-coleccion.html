@@ -1149,6 +1149,9 @@
                    (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
                    pinta js/precio-vista.js, el mismo bloque que /carta. -->
               <div id="mcEdPrecioBloque"></div>
+              <!-- El histórico de precios (643), aquí también desde la 645:
+                   lo pinta js/carta-historial.js y sin filas no se ve. -->
+              <div class="carta-historial hidden" id="mcEdHistorial"></div>
               <div class="mc-ficha-enlaces">
                 <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
                      la que indexa Google, la que se comparte y la que trae
@@ -1192,7 +1195,21 @@
             <section class="mc-ficha-bloque" id="mcEdCopiaBloque">
               <h3>Tu copia</h3>
               <div class="mc-ficha-caja">
-        <div class="mc-editor-campos">
+        <!-- TU COPIA, EN RESUMEN (tanda 645). PINGU: «hay demasiada
+             información, está todo pegado». El formulario entero
+             —ocho campos— estaba siempre abierto en una ficha que casi
+             siempre se abre para MIRAR. Ahora se ve lo que es la copia
+             (las chapas), lo que vale, y dos botones: Editar despliega
+             los campos de siempre; Quitar hace lo que hacía. -->
+        <div class="mc-copia-resumen" id="mcEdCopiaResumen">
+          <p class="mc-ficha-chapas" id="mcEdCopiaChapas"></p>
+          <p class="mc-copia-vale" id="mcEdCopiaVale"></p>
+          <div class="mc-copia-acciones">
+            <button type="button" class="btn-primary" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos">Editar</button>
+            <button type="button" class="btn-secondary mc-chip-peligro" id="mcEdQuitarResumen">Quitar</button>
+          </div>
+        </div>
+        <div class="mc-editor-campos hidden" id="mcEdCopiaCampos">
           <label>Idioma <select id="mcEdIdioma"></select></label>
           <label>Estado <select id="mcEdEstado"></select></label>
           <label>Versión <select id="mcEdVariante"></select></label>

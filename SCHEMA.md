@@ -31025,3 +31025,58 @@ ilegal—, el Greninja de la 481 traído por su id y `searchCards`), rigor de
 24 mutaciones, todas cazadas. Al día: los rigores de la 427 y la 523 apuntan a la escala
 nueva (y cuatro anclas suyas que se habían quedado atrás, una de ellas por
 el `image_tcggo` de la 640) y la 413 sigue con las suyas.
+
+## Tanda 645 — la ficha nueva (oct. 2026)
+
+PINGU, con la ficha de TCGGO al lado de la nuestra: «hay demasiada
+información, está todo pegado; el botón de TCGplayer no tiene su color;
+salen demasiados precios en chapas; mejor una tabla por idioma que al
+pulsar vaya a Cardmarket con ese filtro; más burbujas, más visual». Es la
+primera de las cuatro tandas del rediseño (ficha → expansiones →
+expansión por dentro → fuera el filtro de idioma), acordado sobre
+maquetas antes de tocar nada.
+
+**El bloque de precio** (`js/precio-vista.js`, el mismo para /carta y la
+ficha de /mi-coleccion), de arriba abajo:
+
+- **Burbujas**: el precio de tu idioma (con su «de qué es»), TCGplayer en
+  euros, la PSA 10 y el rango entre idiomas («español, la más barata»).
+  Cada una solo si hay dato (`burbujasDe`, `rangoDeIdiomas`, `psa10De`).
+- **Impresiones** (`chapasDeImpresiones`): normal, reverse, holo, 1.ª
+  edición —las que la carta tiene de verdad, de `variants`—, con el
+  precio en la elegida. TCGGO no da precio por impresión (comprobado en
+  su `Get card` y en `Search cards`: Bisharp 65 de Black Bolt sale UNA
+  vez), así que las demás van sin cifra y no con una inventada. En /carta
+  son botones y cambian la versión; en la ficha de tu copia, informativas.
+- **Cardmarket** (`fuenteCardmarket`): su botón y una fila por idioma con
+  precio, la tuya marcada («tu copia» / «elegido»), y **cada fila abre
+  Cardmarket con ESE idioma y tu estado**. Las banderas van dibujadas en
+  CSS (`.pv-bandera[data-idioma]`): nada de emojis. Sin TCGGO, una fila
+  «Cualquier idioma» con la guía general.
+- **TCGplayer** (`fuenteTcgplayer`): su botón en su azul (`--tp-azul`,
+  fijo en los dos temas, blanco encima) con el icono de cartas de la
+  casa, y el precio de mercado y el medio en euros.
+- **Gradeadas**: como antes, con el color de cada casa.
+
+**La ficha de /mi-coleccion**: «Tu copia» es un RESUMEN (chapas, cuántas,
+cuánto valen, lo que pagaste) con dos botones; **Editar** despliega los
+ocho campos de siempre (`#mcEdCopiaCampos`, plegado al abrir) y **Quitar**
+es el mismo camino que el de dentro. Y el **histórico** (643) se pinta
+también aquí (`#mcEdHistorial`), con el idioma de la copia; por eso sus
+reglas se mudan de `carta.css` a `cardmarket.css`, que cargan las dos
+páginas. El SVG lleva un tope de 680 px: estirado a 1.080 la letra de los
+ejes salía al doble.
+
+**/carta**: pasa las impresiones pulsables y, cuando TCGdex no contesta,
+las saca de `variants` de la carta (antes eran las cuatro, y «las
+cuatro» como botones afirma impresiones que no hay); `variants` entra en
+el `select` de la carta. El logo de Cardmarket de la cabecera del panel se
+va: el bloque ya lleva el suyo.
+
+**Pruebas**: `test-tanda-645.mjs` (las piezas y el bloque entero, el CSS
+y la ficha) y `test-tanda-645-pantalla.mjs` (resumen, Editar, histórico
+dentro de la ficha, impresiones pulsables en /carta). Al día: 589,
+589-pantalla, 586-pantalla, 368 (la marca va en el botón), 311 (las
+banderas son identidad, como las casas), y las diez que tocan el
+formulario de la copia (368, 376, 383, 392, 405, 422, 472, 563, 564, 574),
+que ahora lo despliegan antes (`desplegarCopia`).

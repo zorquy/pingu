@@ -45,7 +45,7 @@ const MERCADO = 'WEST'
 // nadie, en TODAS las visitas.
 const COLUMNAS =
   'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,category,rarity,rarity_en,types,hp,illustrator,' +
-  'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
+  'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,variants,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,cm_id_product_propio,tp_id_product_propio,' +
   'tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code,logo_scrydex,logo_tcggo,logo_path)'
 

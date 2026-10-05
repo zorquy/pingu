@@ -24,7 +24,6 @@ import {
 } from './cardmarket.js'
 // El dibujo de la marca va aparte: es lo único de Cardmarket que
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
-import { logoCardmarket } from './cardmarket-marca.js'
 import { bloqueDePrecio } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila } from './cardmarket.js'
@@ -88,7 +87,10 @@ export async function pintarMercado(carta) {
   // exacta de Cardmarket, y eso solo está en `tcg_card_prices`.
   const [vivo, guardadas] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map())])
   const guardada = guardadas.get(carta.id) || null
-  const variantes = variantesDe(vivo?.variants)
+  // Las impresiones: lo que diga TCGdex en vivo y, si no contesta, lo que
+  // guardamos de él en la carta (645). Antes, sin respuesta, eran las
+  // cuatro — y «las cuatro» como botones afirma impresiones que no hay.
+  const variantes = variantesDe(vivo?.variants ?? carta.variants)
   const estado = { idioma: IDIOMA_POR_DEFECTO, estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
   const nombre = nombreDeCarta(carta)
 
@@ -102,7 +104,7 @@ export async function pintarMercado(carta) {
       </div>
       <div class="carta-mercado-paneles">
         <div class="carta-mercado-panel">
-          <p class="carta-mercado-titulo">${logoCardmarket(20)}</p>
+          <p class="carta-mercado-titulo">Precio</p>
           <div id="cmPrecios"></div>
         </div>
         <div class="carta-mercado-panel">
@@ -133,9 +135,22 @@ export async function pintarMercado(carta) {
     // solo si el guardado no dice nada; y sin cifras, el que traiga el
     // enlace (la regla de la 375).
     const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
-    $('cmPrecios').innerHTML = bloqueDePrecio(precio, { idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null })
+    $('cmPrecios').innerHTML = bloqueDePrecio(precio, {
+      idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null,
+      // Las impresiones de ESTA carta, pulsables (645): tocar una cambia
+      // la versión, igual que el desplegable de arriba.
+      variantes: VARIANTES.filter((v) => variantes.includes(v.id)), impresionesPulsables: true, rotuloActivo: 'elegido',
+    })
   }
   pintarPrecio()
+  $('cmPrecios').addEventListener('click', (e) => {
+    const b = e.target.closest('.pv-impresion[data-variante]')
+    if (!b || !variantes.includes(b.dataset.variante)) return
+    estado.variante = b.dataset.variante
+    const sel = $('cmVariante')
+    if (sel) sel.value = estado.variante
+    pintarPrecio()
+  })
 
   // La gráfica (643), sin bloquear nada: si la función no contesta, la
   // ficha se queda como estaba.

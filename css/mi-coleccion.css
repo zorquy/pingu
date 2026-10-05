@@ -2613,6 +2613,41 @@
   background: var(--bg);
 }
 
+/* El resumen de tu copia (645): chapas, lo que vale y dos botones. */
+.mc-copia-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+}
+
+.mc-copia-resumen .mc-ficha-chapas {
+  margin: 0;
+}
+
+.mc-copia-vale {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-copia-vale b {
+  color: var(--text);
+}
+
+.mc-copia-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.mc-copia-acciones button {
+  min-height: 44px;
+}
+
+.mc-editor-campos:not(.hidden) {
+  margin-top: var(--e-md);
+}
+
 .mc-ficha-bloque h3 {
   margin: 0 0 var(--e-sm);
   color: var(--text-mid);

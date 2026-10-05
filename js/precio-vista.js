@@ -1,20 +1,24 @@
 // El bloque de precio de una carta, UNA vez para las dos pantallas que lo
 // enseñan: la ficha emergente de /mi-coleccion y «Precio y colección» de
-// /carta (tanda 589).
+// /carta (tanda 589, rehecho en la 645).
 //
-// Lo pidió PINGU así: «un precio, no un desde y tendencia; los dos
-// botones, Cardmarket y TCGplayer; gradeadas si las hay; y quitar texto».
-// Así que el bloque es:
+// La forma la pidió PINGU con la ficha de TCGGO delante: «demasiada
+// información, todo pegado; salen demasiados precios en chapas; mejor una
+// tabla por idioma que al pulsar vaya a Cardmarket con ese filtro; más
+// burbujas, más visual». Así que el bloque es, de arriba abajo:
 //
-//   · LA CIFRA: el mínimo en TU idioma (o lo que diga `precioParaIdioma`),
-//     con un renglón pequeño que dice de qué es («mínimo en español en
-//     Cardmarket · NM · 5 oct»). Un número sin decir de qué es se lee
-//     como el tuyo (la 563), pero cabe en un renglón.
-//   · LOS IDIOMAS: una chapa por idioma con precio, la tuya marcada. Son
-//     códigos («ES 140 €») y no banderas: los iconos de la casa son SVG
-//     y las banderas de otros países no son una excepción (la 🇪🇸 sí).
-//   · LOS BOTONES: Cardmarket (con tu idioma y estado filtrados) y
-//     TCGplayer, cada uno solo si hay adónde ir.
+//   · LAS BURBUJAS: el precio de TU idioma (o lo que diga
+//     `precioParaIdioma`, con su renglón de «de qué es»), TCGplayer en
+//     euros, la PSA 10 y el rango entre idiomas. Cada una solo si hay
+//     dato: una burbuja con una raya es un hueco con marco.
+//   · LAS IMPRESIONES: normal, reverse, holo, 1.ª edición — las que la
+//     carta tiene de verdad—, con el precio en la elegida. TCGGO no da
+//     precio por impresión, así que las demás van sin cifra y no con una
+//     inventada.
+//   · CARDMARKET: una fila por idioma con precio, la tuya marcada, y cada
+//     fila abre Cardmarket con ESE idioma y tu estado ya filtrados. Las
+//     banderas van dibujadas en CSS (`.pv-bandera`): aquí no hay emojis.
+//   · TCGPLAYER: su botón, en su azul, y el precio de mercado en euros.
 //   · LAS GRADEADAS: una chapa por casa y nota, con el color de la casa.
 //     Cardmarket en euros; eBay en dólares y dicho.
 //
@@ -23,6 +27,7 @@
 import { escapeHtml } from './html.js'
 import { euros, dolares, precioParaIdioma, idiomaDe, estadoDe, enlaceCardmarket, enlaceTcgplayer, IDIOMAS_CON_PRECIO, IDIOMA_POR_DEFECTO, ESTADO_POR_DEFECTO } from './cardmarket.js'
 import { marcaCardmarket } from './cardmarket-marca.js'
+import { icons } from './icons.js'
 
 // Las casas de gradeo que TCGGO distingue, en su orden, con el color que
 // cada una usa. PINGU: «PSA rojo, Beckett amarillo, CGC azul, ACE naranja
@@ -60,23 +65,20 @@ export function gradeadasDe(gradeadas, { maximo = 8 } = {}) {
   return fuera.sort((a, b) => orden(a) - orden(b)).slice(0, maximo)
 }
 
+const cifraGradeada = (g) => (g.moneda === 'USD' ? dolares(g.valor) : euros(g.valor))
+
+// El rango va sin céntimos: «140 – 590 €» cabe en una burbuja de móvil y
+// «140,00 € – 590,00 €» se parte en tres renglones.
+const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+const rangoHtml = (min, max) => `${fmtEntero.format(min)} – ${fmtEntero.format(max)} €`.replace(/ /g, '\u00a0')
+
 export function chapasDeGradeadas(gradeadas) {
   const lista = gradeadasDe(gradeadas)
   if (!lista.length) return ''
   const hayEbay = lista.some((g) => g.moneda === 'USD')
-  return `<div class="pv-gradeadas"><span class="pv-rotulo">Gradeadas</span>${lista
-    .map((g) => `<span class="pv-chapa pv-gradeada" data-casa="${escapeHtml(g.casa)}" title="${escapeHtml(g.moneda === 'USD' ? `Vendida en eBay${g.ventas ? ` (${g.ventas} ${g.ventas === 1 ? 'venta' : 'ventas'})` : ''}` : 'En venta en Cardmarket')}"><b>${escapeHtml(g.casa)} ${escapeHtml(g.nota)}</b> ${g.moneda === 'USD' ? dolares(g.valor) : euros(g.valor)}</span>`)
-    .join('')}${hayEbay ? '<span class="pv-pie">Los dólares son ventas en eBay.</span>' : ''}</div>`
-}
-
-// Las chapas de idioma: las que tienen precio, la tuya marcada. Sin
-// ninguna (una carta sin TCGGO) no se pinta nada: una fila vacía es ruido.
-export function chapasDeIdiomas(precio, idioma) {
-  const por = precio?.porIdioma || null
-  if (!por) return ''
-  const chapas = IDIOMAS_CON_PRECIO.filter((id) => por[id]).map((id) => `<span class="pv-chapa${id === idioma ? ' pv-activa' : ''}" title="${escapeHtml(idiomaDe(id).nombre)}"><b>${escapeHtml(id.toUpperCase())}</b> ${euros(por[id])}</span>`)
-  if (precio.tpEur) chapas.push(`<span class="pv-chapa pv-tp" title="TCGplayer, en euros"><b>TCGplayer</b> ${euros(precio.tpEur)}</span>`)
-  return chapas.length ? `<div class="pv-idiomas">${chapas.join('')}</div>` : ''
+  return `<div class="pv-fuente pv-gradeadas-fuente"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">Gradeadas</span>${hayEbay ? '<span class="pv-pie">Los dólares son ventas en eBay.</span>' : ''}</div><div class="pv-gradeadas">${lista
+    .map((g) => `<span class="pv-chapa pv-gradeada" data-casa="${escapeHtml(g.casa)}" title="${escapeHtml(g.moneda === 'USD' ? `Vendida en eBay${g.ventas ? ` (${g.ventas} ${g.ventas === 1 ? 'venta' : 'ventas'})` : ''}` : 'En venta en Cardmarket')}"><b>${escapeHtml(g.casa)} ${escapeHtml(g.nota)}</b> ${cifraGradeada(g)}</span>`)
+    .join('')}</div></div>`
 }
 
 // La frase pequeña bajo la cifra: de qué es ese número.
@@ -89,21 +91,109 @@ export function deQueEs(p, { idioma, estado = ESTADO_POR_DEFECTO, precio = null 
   return p.dolares ? `TCGplayer, ${dolares(p.dolares)} convertidos a ojo` : `TCGplayer, en euros${dia}`
 }
 
-// El bloque entero.
-export function bloqueDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '', tcgplayerId = null, extraBotones = '' } = {}) {
+// La bandera de un idioma, dibujada por el CSS (sin emojis: la norma de
+// la casa). `aria-hidden` porque el nombre va escrito al lado.
+export function banderaHtml(idioma) {
+  return `<i class="pv-bandera" data-idioma="${escapeHtml(idioma)}" aria-hidden="true"></i>`
+}
+
+// El rango entre idiomas: el más barato y el más caro, con quién es cada
+// uno. Con menos de dos idiomas no hay rango que valga.
+export function rangoDeIdiomas(precio) {
+  const por = precio?.porIdioma || null
+  if (!por) return null
+  const lista = IDIOMAS_CON_PRECIO.filter((id) => por[id]).map((id) => ({ id, valor: por[id] }))
+  if (lista.length < 2) return null
+  const orden = [...lista].sort((a, b) => a.valor - b.valor)
+  return { min: orden[0].valor, max: orden[orden.length - 1].valor, barato: orden[0].id, caro: orden[orden.length - 1].id }
+}
+
+// La PSA 10, que es la cifra que la gente mira primero de las gradeadas.
+export function psa10De(gradeadas) {
+  return gradeadasDe(gradeadas, { maximo: 50 }).find((g) => g.casa === 'PSA' && g.nota === '10') || null
+}
+
+// Las cuatro burbujas de arriba. La primera siempre (aunque sea «Sin
+// precio»); las otras tres, solo con dato.
+export function burbujasDe(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
   const p = precioParaIdioma(precio, idioma)
-  const cm = enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma, estado, variante, nombre })
-  const tp = enlaceTcgplayer(tcgplayerId)
+  const burbujas = [
+    `<div class="pv-burbuja pv-burbuja-principal"><span class="pv-rotulo">Precio</span>${p ? `<p class="pv-cifra">${euros(p.valor)}</p><p class="pv-de">${escapeHtml(deQueEs(p, { idioma, estado, precio }))}</p>` : '<p class="pv-cifra pv-sin">Sin precio</p><p class="pv-de">Ni Cardmarket ni TCGplayer la tienen todavía.</p>'}</div>`,
+  ]
+  if (precio?.tpEur) burbujas.push(`<div class="pv-burbuja"><span class="pv-rotulo">TCGplayer</span><p class="pv-cifra-2">${euros(precio.tpEur)}</p><p class="pv-de">mercado US, en euros</p></div>`)
+  const psa = psa10De(precio?.gradeadas)
+  if (psa) burbujas.push(`<div class="pv-burbuja"><span class="pv-rotulo">PSA 10</span><p class="pv-cifra-2">${cifraGradeada(psa)}</p><p class="pv-de">${psa.moneda === 'USD' ? `vendidas en eBay${psa.ventas ? ` · ${psa.ventas} ${psa.ventas === 1 ? 'venta' : 'ventas'}` : ''}` : 'en venta en Cardmarket'}</p></div>`)
+  const rango = rangoDeIdiomas(precio)
+  if (rango) burbujas.push(`<div class="pv-burbuja"><span class="pv-rotulo">Entre idiomas</span><p class="pv-cifra-2">${rangoHtml(rango.min, rango.max)}</p><p class="pv-de">${escapeHtml(idiomaDe(rango.barato).nombre.toLowerCase())}, la más barata</p></div>`)
+  return `<div class="pv-burbujas">${burbujas.join('')}</div>`
+}
+
+// Las impresiones de ESTA carta, la elegida con su precio. Solo con más
+// de una: con una sola, la chapa de arriba ya lo dice. Pulsables en
+// /carta (cambian la versión); en la ficha de tu copia, informativas.
+export function chapasDeImpresiones(variantes, variante, { pulsables = false, precio = null, idioma = IDIOMA_POR_DEFECTO } = {}) {
+  const lista = (variantes || []).filter((v) => v?.id && v?.nombre)
+  if (lista.length < 2) return ''
+  const p = precioParaIdioma(precio, idioma)
+  return `<div class="pv-impresiones"><span class="pv-rotulo">Impresión</span>${lista
+    .map((v) => {
+      const activa = v.id === variante
+      const dentro = `<b>${escapeHtml(v.nombre)}</b>${activa && p ? `<span>${euros(p.valor)}</span>` : ''}`
+      return pulsables
+        ? `<button type="button" class="pv-impresion${activa ? ' pv-activa' : ''}" data-variante="${escapeHtml(v.id)}"${activa ? ' aria-pressed="true"' : ''}>${dentro}</button>`
+        : `<span class="pv-impresion${activa ? ' pv-activa' : ''}" data-variante="${escapeHtml(v.id)}">${dentro}</span>`
+    })
+    .join('')}</div>`
+}
+
+// Cardmarket: el botón y la tabla por idioma. Cada fila lleva SU enlace,
+// con ese idioma y tu estado filtrados: es lo que convierte la tabla en
+// «dónde está el mínimo exacto» y no en una lista de números.
+export function fuenteCardmarket(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '', rotuloActivo = 'tu idioma' } = {}) {
+  const enlace = (id) => enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma: id, estado, variante, nombre })
   const e = estadoDe(estado)
-  const botones = [
-    `<a class="btn-cardmarket pv-boton" href="${escapeHtml(cm)}" target="_blank" rel="noopener" title="${escapeHtml(precio?.idProduct && !precio?.dudoso ? `Cardmarket, ${idiomaDe(idioma).nombre.toLowerCase()} · ${e.nombre}` : 'Buscar en Cardmarket')}">${marcaCardmarket(18)}<span>Cardmarket</span></a>`,
-    tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">TCGplayer</a>` : '',
-    extraBotones,
-  ].filter(Boolean).join('')
+  const conProducto = Boolean(precio?.idProduct && !precio?.dudoso)
+  const boton = `<a class="btn-cardmarket pv-boton" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(conProducto ? `Cardmarket, ${idiomaDe(idioma).nombre.toLowerCase()} · ${e.nombre}` : 'Buscar en Cardmarket')}">${marcaCardmarket(18)}<span>Cardmarket</span></a>`
+  const por = precio?.porIdioma || null
+  const filas = []
+  if (por) {
+    for (const id of IDIOMAS_CON_PRECIO) {
+      if (!por[id]) continue
+      const activa = id === idioma
+      filas.push(`<tr class="pv-fila${activa ? ' pv-activa' : ''}"><td><a class="pv-fila-enlace" href="${escapeHtml(enlace(id))}" target="_blank" rel="noopener" title="${escapeHtml(`Cardmarket, ${idiomaDe(id).nombre.toLowerCase()} · ${e.nombre}`)}">${banderaHtml(id)}<span>${escapeHtml(idiomaDe(id).nombre)}</span>${activa ? `<span class="pv-chapa pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>` : ''}</a></td><td class="pv-precio">${euros(por[id])}</td></tr>`)
+    }
+  } else {
+    // Sin TCGGO, lo que diga la guía general de Cardmarket (vía TCGdex),
+    // que es de la carta en cualquier idioma.
+    const general = !precio?.dudoso ? precio?.desde || precio?.tendencia || precio?.media30 || null : null
+    if (general) filas.push(`<tr class="pv-fila"><td><a class="pv-fila-enlace" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener"><span>Cualquier idioma</span></a></td><td class="pv-precio">${euros(general)}</td></tr>`)
+  }
+  return `<div class="pv-fuente pv-cardmarket"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">Cardmarket</span>${boton}</div>${
+    filas.length
+      ? `<table class="pv-tabla"><thead><tr><th>Idioma</th><th>Mínimo ${escapeHtml(e.id)}</th></tr></thead><tbody>${filas.join('')}</tbody></table><p class="pv-pie">${por ? 'Cada fila abre Cardmarket con ese idioma puesto.' : 'Precio de la guía general; el botón abre Cardmarket con tu idioma y estado.'}</p>`
+      : ''
+  }</div>`
+}
+
+// TCGplayer: su botón y su precio de mercado en euros (lo convierte TCGGO).
+// Solo si hay adónde ir o algo que decir.
+export function fuenteTcgplayer(precio, tcgplayerId) {
+  const tp = enlaceTcgplayer(tcgplayerId)
+  if (!tp && !precio?.tpEur) return ''
+  const filas = []
+  if (precio?.tpEur) filas.push(`<tr class="pv-fila"><td><span class="pv-fila-enlace">Precio de mercado, en euros</span></td><td class="pv-precio">${euros(precio.tpEur)}</td></tr>`)
+  if (precio?.tpMidEur) filas.push(`<tr class="pv-fila"><td><span class="pv-fila-enlace">Precio medio</span></td><td class="pv-precio">${euros(precio.tpMidEur)}</td></tr>`)
+  return `<div class="pv-fuente pv-tcgplayer"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">TCGplayer</span>${tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.cards(16)}<span>TCGplayer</span></a>` : ''}</div>${filas.length ? `<table class="pv-tabla"><tbody>${filas.join('')}</tbody></table>` : ''}</div>`
+}
+
+// El bloque entero.
+export function bloqueDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '', tcgplayerId = null, extraBotones = '', variantes = [], impresionesPulsables = false, rotuloActivo = 'tu idioma' } = {}) {
   return `<div class="pv">
-    ${p ? `<p class="pv-cifra">${euros(p.valor)}</p><p class="pv-de">${escapeHtml(deQueEs(p, { idioma, estado, precio }))}</p>` : '<p class="pv-cifra pv-sin">Sin precio</p>'}
-    ${chapasDeIdiomas(precio, idioma)}
-    <div class="pv-botones">${botones}</div>
+    ${burbujasDe(precio, { idioma, estado })}
+    ${chapasDeImpresiones(variantes, variante, { pulsables: impresionesPulsables, precio, idioma })}
+    ${fuenteCardmarket(precio, { idioma, estado, variante, nombre, rotuloActivo })}
+    ${fuenteTcgplayer(precio, tcgplayerId)}
+    ${extraBotones ? `<div class="pv-botones">${extraBotones}</div>` : ''}
     ${chapasDeGradeadas(precio?.gradeadas)}
   </div>`
 }
