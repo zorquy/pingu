@@ -11,8 +11,10 @@ Exeggcute 001. TCGGO lleva la Classic dentro del 30 con los números de la
 carta original y TCGdex la numera 001–030: el catálogo no casó ninguna y
 las creó por segunda vez en `30th`; las nuestras de `30th-c`, sin foto,
 caían a Limitless por «30C» + número. Ahora el catálogo casa por NOMBRE
-lo que el número no casa (paso 4, único en los dos lados), y hay
-migración que funde los duplicados con las nuestras.
+lo que el número no casa (paso 4, único en los dos lados), y la
+migración deja el 30 como la expansión de TCGGO ENTERA (PINGU: «coge la
+expansión entera de la API y listo»): lo apuntado en las de TCGdex pasa a
+las de TCGGO y el set «30th-c» se va.
 
 **MIGRACIÓN pendiente**: `supabase-migration-30-aniversario-duplicados.sql`
 — ejecuta primero la vista previa (dos `select`), mira las parejas, y

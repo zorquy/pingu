@@ -31731,19 +31731,20 @@ puso a la vista; antes estaba igual en el álbum de la Classic.
   unicidad que el número —solo cuando hay UNA con ese nombre en cada lado
   entre lo que queda—. «Pikachu» dos veces en el suyo no casa. La consulta
   de las nuestras pide `name_en` (la lección de la 523).
-- **`supabase-migration-30-aniversario-duplicados.sql`** funde cada
-  duplicado (`30th`, origen tcggo) con la nuestra de `30th-c` por nombre
-  único en los dos lados: la nuestra conserva su id (la llave de las
-  colecciones y las URLs) y gana con `coalesce` la foto de TCGGO, el id de
-  Cardmarket, el de TCGplayer y el de TCGGO; las líneas de colección, los
-  deseos, los álbumes soñados (su JSON de ids), los precios y el histórico
-  del duplicado pasan a la nuestra (si alguien tenía las dos con el mismo
-  idioma, estado y versión, se suman las copias); y el duplicado se
-  borra. Lleva una VISTA PREVIA que se ejecuta primero, y la lista de lo
-  que no se puede fundir solo. Con la foto de TCGGO delante de Limitless
-  en la cadena, el Exeggcute deja de salir; y con el id de Cardmarket, la
-  pasada de precios les pone precio. La semana que viene el catálogo las
-  casa por `cm_id_product_propio` (paso 1) y no vuelve a crear nada.
+- **`supabase-migration-30-aniversario-duplicados.sql`**: el 30
+  aniversario pasa a ser EXACTAMENTE la expansión de TCGGO. PINGU: «¿por
+  qué no coges simplemente la expansión entera de la API y listo?». La
+  primera versión fundía al revés —la nuestra de TCGdex se quedaba y
+  ganaba la foto y los ids de la de TCGGO—; esta deja la de TCGGO y se
+  lleva la de TCGdex. Cada carta de `30th-c` con equivalente único por
+  nombre inglés en `30th` le pasa lo suyo (líneas de colección —sumando
+  copias si alguien tenía las dos iguales—, deseos, álbumes soñados por su
+  JSON de ids, precios e histórico) y se borra; las de TCGdex sin
+  equivalente se borran solo si nadie tiene copias apuntadas (las que las
+  tengan se quedan y salen en la comprobación final); y el set `30th-c`
+  se va con su valor diario y sus favoritos si se ha quedado vacío. Vista
+  previa delante, re-ejecutable. Las URLs de esas 30 cartas cambian
+  (`/carta/...-tcggo-NNN`): son 30 fichas sin tráfico.
 
 **Lo que NO se toca**: la cadena de escaneos. Limitless por código +
 número sigue siendo correcto para todo lo demás; lo que estaba mal era
