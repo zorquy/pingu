@@ -215,10 +215,20 @@ window.addEventListener('popstate', aplicarDireccion)
 // El tradicional se queda fuera porque PINGU lo pidió. Queda apuntado que
 // es el que tiene catálogo DE VERDAD: 98 colecciones y 7.436 cartas,
 // contra las 56 y 877 del simplificado.
+// ── DOS CATÁLOGOS, COMO LA API (tanda 648) ──
+//
+// PINGU, con TCGGO delante: «ellos tienen dos apartados, Pokémon
+// occidental —con la bandera inglesa— y Pokémon japonés; es mejor hacerlo
+// así y dejarnos de filtros de español, inglés y japonés, porque es un
+// lío». Así que lo que se elige es el CATÁLOGO y nada más: el occidental
+// (en español, que es como se lee aquí; el idioma de cada copia se elige
+// al añadirla) y el japonés. La vista «en» no se borra —quien la tuviera
+// guardada vuelve al occidental, y el resto del código sigue sabiendo
+// de qué va— pero no se ofrece, igual que el chino desde la 509.
 const VISTAS = [
-  { id: 'es', bandera: '🇪🇸', nombre: 'Español', mercado: 'WEST', enEspanol: true },
-  { id: 'en', bandera: '🇬🇧', nombre: 'Inglés', mercado: 'WEST', enEspanol: false },
-  { id: 'ja', bandera: '🇯🇵', nombre: 'Japonés', mercado: 'JP', enEspanol: false },
+  { id: 'es', bandera: '🇬🇧', nombre: 'Pokémon', mercado: 'WEST', enEspanol: true },
+  { id: 'en', bandera: '🇬🇧', nombre: 'Pokémon (en inglés)', mercado: 'WEST', enEspanol: false, oculta: true },
+  { id: 'ja', bandera: '🇯🇵', nombre: 'Pokémon Japón', mercado: 'JP', enEspanol: true },
   // EL CHINO SE ESCONDE, NO SE BORRA (tanda 509). PINGU: «el chino no lo
   // borres, pero ocúltamelo, porque Scrydex no tiene chino, vamos por
   // ahora a obviar las colecciones chinas».
@@ -1289,7 +1299,7 @@ function notaDePrecio(l, precio) {
 // tras un botón «Editar» en cada fila: lo mismo que pedía PINGU, pero
 // sin que nadie lo encontrara.
 function lineaHtml(l) {
-  const c = cartas.get(l.card_id)
+  const c = cartas.get(l.card_id) || cartaDeLineaTodo(l)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   // Solo para la ETIQUETA que lee quien no ve la carta: lo que se PINTA es
   // la chapa de encima (tanda 461), que sale siempre. Aquí se calla cuando
@@ -1567,13 +1577,20 @@ function abrirCarta(cardId, carta = null) {
   // y aquí se abre cualquiera. Se busca donde esté a la vista —la
   // colección abierta o la especie abierta— y se guarda, que es lo que
   // lee todo lo que pinta la ficha.
+  // Y en la colección ENTERA (648): desde el Panel se abre lo último que
+  // añadiste aunque sea de otro catálogo. Primero la línea del catálogo
+  // que miras —dos catálogos pueden compartir id— y si no, la que sea.
+  const miaDeTodo = lineasTodo.find((x) => x.card_id === cardId) || null
   const encontrada = carta
     || cartas.get(cardId)
     || album.cartas?.find((x) => x.id === cardId)
     || cartasDeLaEspecie.find((x) => x.id === cardId)
     || ultimaBusqueda.find((x) => x.id === cardId)
-  if (encontrada && !cartas.has(cardId)) cartas.set(cardId, encontrada)
-  const mia = lineas.find((x) => x.card_id === cardId)
+    || (miaDeTodo ? cartaDeLineaTodo(miaDeTodo) : null)
+  // Al mapa del catálogo solo entra lo que es de ese catálogo: una
+  // española metida en el mapa japonés se pintaría como japonesa.
+  if (encontrada && !cartas.has(cardId) && (!encontrada.market || encontrada.market === mercado)) cartas.set(cardId, encontrada)
+  const mia = lineas.find((x) => x.card_id === cardId) || miaDeTodo
   if (mia) return abrirEditor(mia)
   // El idioma de una carta NUEVA sale del catálogo que miras, no de la
   // primera opción de la lista (tanda 472): en el catálogo japonés
@@ -1586,7 +1603,12 @@ function abrirCarta(cardId, carta = null) {
 }
 
 function abrirEditor(l) {
-  const c = cartas.get(l.card_id)
+  // La carta del catálogo que se mira, o la de la colección ENTERA (648):
+  // desde el Panel se abre cualquiera de tus cartas, y si estabas mirando
+  // el japonés una española no estaba en `cartas` — la ficha salía sin
+  // foto, sin precio y sin TCGplayer, sin error. Es el fallo que PINGU
+  // describió: «cambio a japonés, vuelvo al panel y deja de cargar todo».
+  const c = cartas.get(l.card_id) || cartaDeLineaTodo(l)
   const d = $('mcEditor')
   // Sin `id` es una carta que no tienes: el bloque de tu copia no pinta
   // nada y lo que hace falta es poder añadirla.
@@ -5575,13 +5597,16 @@ async function cambiarVista(nuevo) {
 // El nombre no se pierde: va en el `title` de cada opción y en el
 // `aria-label` del desplegable, que es lo que lee un lector de pantalla.
 function pintarVistas() {
+  // Con dos catálogos que se llaman como en la API, la bandera va CON el
+  // nombre (648): «Pokémon» y «Pokémon Japón» se leen; una bandera sola
+  // dice un idioma, y lo que se elige ya no es un idioma.
   const opciones = VISTAS_VISIBLES
-    .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${v.bandera}</option>`)
+    .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${v.bandera} ${escapeHtml(v.nombre)}</option>`)
     .join('')
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
     sel.value = vista
-    sel.setAttribute('aria-label', `Idioma del catálogo: ${laVista().nombre}`)
+    sel.setAttribute('aria-label', `Qué catálogo se mira: ${laVista().nombre}`)
   }
 }
 

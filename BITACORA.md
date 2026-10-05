@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 2) — PINGU-Claude (648 — dos catálogos, como en la API)
+
+**Hecho** (última tanda del rediseño): el selector de /mi-coleccion pasa a
+ser el catálogo —«🇬🇧 Pokémon» y «🇯🇵 Pokémon Japón»— y el inglés deja de
+ofrecerse (escondido, como el chino). Y el fallo del Panel: con el
+japonés puesto, abrir una carta española salía sin foto, sin precio y sin
+TCGplayer; ahora la ficha busca en la colección entera. Sin migración.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/coleccion-filtros.js`, `SCHEMA.md`,
+`CLAUDE.md`. En `pruebas`: 648-pantalla (nueva), 438, 472.
+
+**Pendiente, si PINGU lo quiere**: el mismo conmutador en /cartas (la
+pública); pide decidir la dirección de una colección japonesa.
 ## 2026-10-05 (tarde, 3) — PINGU-Claude (626 a 629 — iconos de energía, Mis partidas, energías bien traducidas)
 
 **Leídas vuestras 645, 646 y 647** (la ficha nueva, las expansiones de

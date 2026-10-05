@@ -31444,3 +31444,43 @@ queda en `name_en`. No las he tocado: es vuestro importador.
 impresiones y los dos nombres, el motor con una mesa de verdad —retirada
 y Nitro—, lo que llega de TCGdex, y la migración contra PostgreSQL con
 `sql-nombres-energias.sql`, dos veces), rigor de 16 mutaciones.
+## Tanda 648 — dos catálogos, como en la API (oct. 2026)
+
+Última tanda del rediseño. PINGU: «ellos tienen dos apartados, Pokémon
+occidental —con la bandera inglesa— y Pokémon japonés; es mejor hacerlo
+así y dejarnos de filtros de español, inglés y japonés, porque es un
+lío. Si cambio a japonés en Expansiones, vuelvo al Panel y abro una
+carta en español, deja de cargar TCGplayer y la imagen».
+
+**Lo que se elige es el CATÁLOGO** (`VISTAS` en `js/mi-coleccion.js`):
+«🇬🇧 Pokémon» (el occidental, que se lee en español; el idioma de cada
+copia se elige al añadirla, y el inglés sigue entre las opciones) y
+«🇯🇵 Pokémon Japón». La vista «en» no se borra, se esconde como el chino
+desde la 509: quien la tuviera guardada vuelve al occidental, y el
+resto del código sigue sabiendo de qué va. El desplegable lleva la
+bandera CON el nombre, porque lo que se elige ya no es un idioma. Y el
+japonés enseña también el español cuando lo hay (`enEspanol: true`): a
+las japonesas no les cambia nada y a una occidental abierta desde el
+Panel sí.
+
+**El fallo del Panel**: `abrirCarta` buscaba la carta en `cartas` —el
+mapa del catálogo que se mira— y la línea en `lineas` —las de ese
+catálogo—, así que con el japonés puesto una española no estaba en
+ninguno de los dos: la ficha salía como «una que no tienes», sin foto,
+sin precio y sin TCGplayer, sin error. Ahora cae a la colección ENTERA
+(`lineasTodo` y `cartaDeLineaTodo`, que ya existían desde la 485 para el
+propio Panel), y `abrirEditor` igual. Al mapa del catálogo solo entra lo
+que es de ese catálogo: una española metida en el mapa japonés se
+pintaría como japonesa. Los precios ya se pedían para las dos
+colecciones (`idsTodo`), así que ahí no había nada que arreglar.
+
+**Lo que NO entra aquí**: el conmutador de catálogo en /cartas (la página
+pública sigue siendo la occidental). Las páginas de /coleccion no llevan
+mercado en la dirección y hay ids de set que el japonés comparte con el
+inglés; abrirlo pide decidir cómo se nombra una colección japonesa en la
+URL. Queda apuntado para cuando PINGU lo pida.
+
+**Pruebas**: `test-tanda-648-pantalla.mjs` (los dos catálogos; la ficha
+de una española desde el Panel con el japonés puesto: tu copia, foto,
+nombre, colección, precio y TCGplayer). Al día: 438 y 472 (el inglés ya
+no se elige), 546 (`ordenarCartas` por nombre pasa por `nombreDeCarta`).

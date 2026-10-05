@@ -9,7 +9,7 @@ import { rarezaDeCarta } from './rarezas-nombres.js'
 import { rangoDeCarta } from './rareza-escala.js'
 import { variantesDeCarta } from './mi-coleccion/variantes.js'
 import { normalizeSearch } from './texto.js'
-import { nombresDeCartaParaBuscar } from './catalogo-series.js'
+import { nombresDeCartaParaBuscar, nombreDeCarta } from './catalogo-series.js'
 
 // Los tramos de precio, en euros: lo que cuesta una común, una rara, una
 // que ya duele, una cara. Fijos y pocos: un filtro de precio con diez
@@ -103,6 +103,8 @@ export function ordenarCartas(cartas, orden = 'numero', ctx = {}) {
   const porNumero = (a, b) => String(a.set_id || '').localeCompare(String(b.set_id || '')) || conLetras(a) - conLetras(b) || numeroDe(a) - numeroDe(b) || String(a.local_id || '').localeCompare(String(b.local_id || ''))
   if (orden === 'precio') return lista.sort((a, b) => precio(b) - precio(a) || porNumero(a, b))
   if (orden === 'rareza') return lista.sort((a, b) => (rangoDeCarta(b) ?? -1) - (rangoDeCarta(a) ?? -1) || porNumero(a, b))
-  if (orden === 'nombre') return lista.sort((a, b) => String(a.name_es || a.name || '').localeCompare(String(b.name_es || b.name || ''), 'es') || porNumero(a, b))
+  // El nombre que se enseña es el de `nombreDeCarta` (la regla de la 546):
+  // un `name_es || name` a mano se separa de ella sin dar error.
+  if (orden === 'nombre') return lista.sort((a, b) => nombreDeCarta(a).localeCompare(nombreDeCarta(b), 'es') || porNumero(a, b))
   return lista.sort(porNumero)
 }

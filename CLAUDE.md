@@ -403,6 +403,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcg_sets` si el cliente la pediría en un `select` antes de la migración
   (la 624): va en su tabla (`tcg_set_valor`) y el cliente la lee aparte,
   sin romper si no está.
+- **En /mi-coleccion se elige el CATÁLOGO, no el idioma** (tanda 648):
+  «Pokémon» (occidental, en español) y «Pokémon Japón», como en la API.
+  La vista «en» sigue declarada y escondida. Y la ficha desde el Panel
+  busca en la colección ENTERA (`lineasTodo`, `cartaDeLineaTodo`): una
+  carta de otro catálogo no está en `cartas` ni en `lineas`, y buscarla
+  solo ahí la pintaba como «una que no tienes», sin foto ni precio y sin
+  error. Si añades un camino que abra una carta por id, mira en las dos.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
