@@ -11,7 +11,7 @@
 //
 // ── UNA VEZ AL DÍA, EN VARIAS PASADAS ──
 //
-// Cada diez minutos mira qué expansiones faltan hoy y hace las que le
+// Cada cinco minutos mira qué expansiones faltan hoy y hace las que le
 // quepan en 20 s (con la pausa del plan entre peticiones). El estado
 // (`tcggo_precios`: { dia, hechos: [idExpansion…], gasto }) dice por
 // dónde va; al acabar todas, marca el día y no pide nada más hasta
@@ -255,7 +255,9 @@ export default async () => {
   return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
-// Cada diez minutos: cuando el día está hecho, una pasada es una lectura
-// del estado y nada más. La primera del día tarda ~8 pasadas en cubrir
-// las ~178 expansiones (300 peticiones a 250 ms, 20 s por pasada).
-export const config = { schedule: '*/10 * * * *' }
+// Cada cinco minutos: cuando el día está hecho, una pasada es una lectura
+// del estado y nada más. Medido el 2026-10-05: en 20 s caben ~6
+// expansiones (lo que tarda no es TCGGO, son las tres idas a nuestra base
+// por expansión), así que las ~170 son ~28 pasadas: dos horas y media
+// solas, o nueve minutos desde el botón de /admin, que las encadena.
+export const config = { schedule: '*/5 * * * *' }

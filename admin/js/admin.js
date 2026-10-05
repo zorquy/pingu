@@ -3116,24 +3116,36 @@ async function tcggoPrecios() {
   if (!session) return
   boton.disabled = true
   caja.classList.remove('hidden')
-  caja.value = 'Pidiendo precios a TCGGO…'
+  // Una pasada son 20 s y unas seis expansiones; el día entero son ~30.
+  // Se encadenan hasta que la función diga «hecho» (o pare), con un tope
+  // de vueltas por si algo se queda dando vueltas sin avanzar.
+  const total = { escritas: 0, hechasAhora: [], pasadas: 0, peticiones: 0 }
+  let r = {}
   try {
-    // `tcggo-precios-ahora` y no `tcggo-precios`: la programada no se deja
-    // llamar por HTTP (Netlify contesta 403).
-    const res = await fetch('/.netlify/functions/tcggo-precios-ahora', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}` } })
-    const r = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    for (let vuelta = 0; vuelta < 60; vuelta++) {
+      caja.value = `Pidiendo precios a TCGGO… pasada ${vuelta + 1}${r.quedan !== undefined ? ` · quedan ${r.quedan} expansiones` : ''} · ${total.escritas} filas escritas`
+      const res = await fetch('/.netlify/functions/tcggo-precios-ahora', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}` } })
+      r = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+      total.pasadas++
+      total.escritas += r.escritas || 0
+      total.peticiones += r.peticionesEstaPasada || 0
+      total.hechasAhora.push(...(r.hechasAhora || []))
+      if (r.saltado || r.error || r.parado || r.hecho) break
+      // Sin avanzar nada (ni una expansión ni una petición) no se insiste.
+      if (!(r.hechasAhora || []).length && !(r.peticionesEstaPasada || 0)) break
+    }
     caja.value = [
       r.saltado ? `Saltado: ${r.saltado}` : '',
       r.error ? `Error: ${r.error}` : '',
       r.dia ? `Día ${r.dia} · expansiones con sets: ${r.episodios} · hechas hoy: ${r.hechasHoy} · quedan: ${r.quedan}` : '',
-      r.dia ? `Peticiones en esta pasada: ${r.peticionesEstaPasada} · hoy: ${r.peticionesHoy} de ${r.topeDiario} · pausa ${r.pausaMs} ms · puerta ${r.puerta}` : '',
-      r.dia ? `Filas de precios escritas: ${r.escritas} · nuestras sin carta suya: ${r.sinPar} · sets apuntados (logo, fecha): ${r.setsApuntados}` : '',
+      r.dia ? `Pasadas en este clic: ${total.pasadas} · peticiones: ${total.peticiones} (hoy ${r.peticionesHoy} de ${r.topeDiario}) · pausa ${r.pausaMs} ms · puerta ${r.puerta}` : '',
+      r.dia ? `Filas de precios escritas en este clic: ${total.escritas} · sets apuntados (logo, fecha): ${r.setsApuntados}` : '',
       r.parado ? `⚠ PARADO: ${r.parado}` : r.hecho ? '✓ Los precios de hoy están puestos.' : r.nota ? `→ ${r.nota}` : '',
       '',
-      ...(r.hechasAhora || []).map((h) => `  · expansión #${h.episodio} (${h.sets.join(', ')}): ${h.escritas} filas de ${h.nuestras} nuestras, ${h.suyas} suyas`),
+      ...total.hechasAhora.map((h) => `  · expansión #${h.episodio} (${h.sets.join(', ')}): ${h.escritas} filas de ${h.nuestras} nuestras, ${h.suyas} suyas`),
     ].filter((l) => l !== '').join('\n')
-    cardsNota(r.parado || r.error ? (r.parado || r.error) : `Pasada hecha: ${r.escritas ?? 0} filas.`, !!(r.parado || r.error))
+    cardsNota(r.parado || r.error ? (r.parado || r.error) : `${total.pasadas} pasadas, ${total.escritas} filas.${r.hecho ? ' Los precios de hoy están puestos.' : ''}`, !!(r.parado || r.error))
   } catch (e) {
     caja.value = `No se ha podido: ${e.message}`
     cardsNota(e.message, true)

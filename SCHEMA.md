@@ -30667,8 +30667,10 @@ más barata en español. No se descuenta por estado. Y la firma vieja de
 sets emparejados (del estado `tcggo_pares`, sin los sospechosos) pide sus
 cartas y escribe la fila de cada carta nuestra cuyo `cm_id_product_propio`
 esté entre las suyas; el primer día apunta los sets. Estado
-`tcggo_precios` { dia, hechos, gasto }; ~300 peticiones al día, en ~8
-pasadas de 20 s. Mismos frenos que el emparejador. El botón de /admin («Precios de
+`tcggo_precios` { dia, hechos, gasto }; ~300 peticiones al día. Medido:
+en 20 s caben ~6 expansiones —lo lento no es TCGGO, son las tres idas a
+nuestra base por expansión—, o sea ~28 pasadas: cada cinco minutos son dos
+horas y media solas, y el botón de /admin las encadena (nueve minutos). Mismos frenos que el emparejador. El botón de /admin («Precios de
 TCGGO ahora») llama a `tcggo-precios-ahora`, una función SIN horario que
 corre la misma `procesar`: **una función con `schedule` no se puede
 llamar por HTTP** —Netlify contesta 403 antes de llegar al código, y así
