@@ -54,8 +54,10 @@ console.log('── 1. Las cinco parejas ──')
   // EL 30 ANIVERSARIO YA NO SE PLIEGA (tanda 536): PINGU lo pidió plegado
   // en la 347 y lo pidió separado esta mañana, y manda lo último. Queda
   // comprobado que NO se pliega, que es lo que ahora tiene que pasar.
-  check('el Classic del 30 es su propia colección', padreDeColeccion('30th-c') === null, padreDeColeccion('30th-c'))
-  check('  …y ya no hay regla de prefijo que lo recoja', prefijoDeColeccion('30th') === null, prefijoDeColeccion('30th'))
+  // Y en la 646 vuelve a ser UNO: PINGU, con la API de TCGGO delante («el 30
+  // es uno entero, con las clásicas dentro»). Manda lo último.
+  check('el Classic del 30 va dentro del 30 (646)', padreDeColeccion('30th-c') === '30th', padreDeColeccion('30th-c'))
+  check('  …por una regla de prefijo, que es la que recoge la siguiente entrega', prefijoDeColeccion('30th') === '30th-', prefijoDeColeccion('30th'))
 }
 
 console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan en el padre ──')

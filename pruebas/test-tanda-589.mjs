@@ -53,7 +53,7 @@ console.log('── 2. La función programada ──')
   // El estado de los pares, como lo deja tcggo-emparejar: dos sets en la
   // expansión 415 (Pitch Black y una «galería» ficticia) y uno sospechoso.
   const PARES = {
-    episodios: { fecha: '2026-10-05T10:00:00Z', lista: [{ id: 415, nombre: 'Pitch Black', codigo: 'PBL', cartas: 120, fecha: '2026-07-17', logo: 'https://images.tcggo.com/pbl.png' }, { id: 413, nombre: 'Chaos Rising', codigo: 'CRI', cartas: 122, fecha: '2026-05-22', logo: null }] },
+    episodios: { fecha: '2026-10-05T10:00:00Z', lista: [{ id: 415, nombre: 'Pitch Black', codigo: 'PBL', cartas: 120, fecha: '2026-07-17', logo: 'https://images.tcggo.com/pbl.png', valorCm: 616.4 }, { id: 413, nombre: 'Chaos Rising', codigo: 'CRI', cartas: 122, fecha: '2026-05-22', logo: null, valorCm: 535.13 }] }, // con valor (646): sin él la pasada vuelve a pedir la lista
     hechos: { me05: { episodio: 415, pares: 20 }, 'me05-g': { episodio: 415, pares: 1 }, ex7: { episodio: 413, pares: 100, sospechoso: 'pl2' }, me04: { episodio: 413, pares: 1 } },
   }
   const NUESTRAS = {

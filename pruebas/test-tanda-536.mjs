@@ -46,7 +46,9 @@ console.log('── 1. Las POP son una ERA ──')
 
 console.log('── 2. El 30 aniversario, otra vez dos filas ──')
 {
-  check('el Classic vuelve a ser su propia colección', padreDeColeccion('30th-c') === null, padreDeColeccion('30th-c'))
+  // Desde la 646 vuelve a plegarse (PINGU, con la API delante): la prueba
+  // de esta tanda deja de afirmar lo contrario.
+  check('el Classic del 30 se pliega otra vez en el 30 (646)', padreDeColeccion('30th-c') === '30th', padreDeColeccion('30th-c'))
   check('  …y el Celebration sigue siendo la suya', padreDeColeccion('30th') === null)
   // Y salen en el orden que pidió —primero el Celebration— sin tocar nada:
   // misma fecha, y al desempatar por identificador `30th` va antes que
