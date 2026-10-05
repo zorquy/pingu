@@ -586,12 +586,15 @@
                norma de la 501 (el fixture ES la respuesta real). Pasa por
                `scrydex-sonda` —la clave se queda en Netlify— y gasta UN
                crédito por clic. -->
-          <!-- EMPAREJAR CON CARDMARKET (tanda 587). TCGdex empareja mal
-               (su issue #2325); esto cruza nuestras cartas con el catálogo
-               abierto de Cardmarket por orden, nombre y ataques. Ensayo en
-               seco primero, set a set; escribe solo si se confirma. No gasta
-               créditos de nada. -->
-          <button class="btn-outline" id="btnCardmarketEmparejar">Emparejar con Cardmarket (ensayo)</button>
+          <!-- EMPAREJAR CON TCGGO (tanda 588). TCGdex empareja mal con
+               Cardmarket (su issue #2325) y el cruce por orden y nombres
+               de la 587 casaba un 15 % en los sets modernos. TCGGO trae el
+               cardmarket_id de cada carta y se cruza por código de set +
+               número. Es de pago por peticiones: cada clic gasta como
+               mucho las que diga el tope, y lo hecho queda apuntado. -->
+          <label>Tope de peticiones <input type="number" id="tcggoTope" value="40" min="1" max="400" size="5" /></label>
+          <button class="btn-outline" id="btnTcggoEmparejar">Emparejar con TCGGO</button>
+          <label><input type="checkbox" id="tcggoReiniciar" /> empezar de cero (vuelve a pedir los sets ya hechos)</label>
           <label>Carta de Scrydex <input type="text" id="cardsScrydexCarta" placeholder="xy5-150" size="12" /></label>
           <button class="btn-outline" id="btnCartaScrydex">Qué contesta Scrydex de esta carta (1 crédito)</button>
         </div>

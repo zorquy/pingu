@@ -30350,3 +30350,100 @@ emparejan solos y cuántas cartas quedan sin par (el informe lo dice set a
 set), y, con la consulta del final de la migración, en cuántas cartas el
 par propio discrepa del de TCGdex — o sea, cuántas estaban mal.
 
+**Lo que se supo (2026-10-05, la primera pasada real, y es la lección de
+la 501 otra vez)**: 54 sets con expansión, 91 sin, 65 sospechosos; 3.839
+cartas con par y 4.192 sin. En los sets modernos casaba por orden un
+5–30 %. Tres causas, y las tres eran mías:
+
+1. **La alineación exigía que coincidieran los ATAQUES** cuando los dos
+   lados los traían, y los nuestros están en ESPAÑOL desde la 330
+   («Garra Desgarradora» contra «Rip Claw»). Solo casaban entrenadores y
+   energías, que no tienen. La prueba salió verde porque el fixture
+   construía «nuestro lado» a partir del suyo: los mismos ataques en los
+   dos. Un fixture que te inventas prueba tu imaginación.
+2. **Los empates de expansión no se decidían**: McDonald's 2011 daba
+   12/12 contra la expansión de 12 y 12/12 contra una de 140, y la regla
+   de la ventaja no elegía. Lo mismo en Base Set, Jungle, Fossil, Neo,
+   151, Prismatic: siempre hay una expansión grande que contiene los
+   nombres de la pequeña.
+3. **Los nombres en otra forma**: «Pinsir de Eco» y «Energía Planta»
+   (español en `name`), «M Charizard EX» contra «Mega Charizard EX»,
+   «Ultraball», la «δ» de Dragon Frontiers, la «☆».
+
+Se podía arreglar (nombres solos, desempate por tamaño, `name_en`), y no
+se arregló: la 588 lo sustituye por un cruce con una llave de verdad.
+El código del emparejador se quitó; de la lib queda `URL_GUIA` y
+`filaDeGuia`, que son lo que usa la guía diaria.
+
+## Tanda 588 — el par con Cardmarket por TCGGO: código de set + número (oct. 2026)
+
+PINGU, la mañana siguiente: «paralo porque creo que no funciona nada de lo
+que tenemos» — y acto seguido la documentación de **TCGGO** (tcggo.com,
+servida por RapidAPI como «Cardmarket API TCG»). Lo que importa de ella no
+son los precios: es que **cada carta trae `cardmarket_id`** —el
+`idProduct` de Cardmarket— y `tcgplayer_id`, junto a `card_number`,
+`tcgid` (el id de pokemontcg.io) y la expansión con su `code` («PBL»,
+«CRZ»: nuestro `tcg_online_code`). Comprobado contra el fichero abierto
+de Cardmarket: su 895789 (Tropius 1 de Pitch Black) es allí «Tropius
+[Fruity Aroma | Solar Beam]» de la expansión 6569. Mismo espacio de ids,
+así que la guía diaria de la 587 funciona tal cual con estos.
+
+**El cruce ahora es una llave, no una deducción**: set nuestro →
+expansión suya por el CÓDIGO de TCG Live (si no, por el nombre inglés;
+si dos expansiones comparten código, decide el nombre; si no decide nada,
+el set se apunta «sin expansión» con el motivo y se enseña); carta → carta
+por el NÚMERO (`numeroComparable`: «002» casa con «2», «TG01» con
+«tg1»). Varios sets nuestros pueden caer en la misma expansión suya
+(Crown Zenith y su Galarian Gallery): allí las GG viven dentro de la madre
+con número «gg12», y el número las separa.
+
+**Lo que cuesta y los frenos** (`netlify/functions/tcggo-emparejar.mjs`).
+El plan Basic de RapidAPI da **100 peticiones al día y 30 por minuto, y
+cobra las que pasen** (0,005 $). Las expansiones vienen de 20 en 20 (9
+páginas, se guardan una semana en `scrydex_estado` → `tcggo_pares`); las
+cartas de una expansión de 100 en 100 (1–3 páginas por set). La pasada
+entera son ~300 peticiones: tres días gratis. Los frenos no preguntan
+«¿queda trabajo?» (la 510): **tope diario** en el estado (`TOPE_DIARIO`
+= 95; `TCGGO_TOPE_DIARIO` lo cambia si se cambia de plan), **pausa de
+2,1 s** entre peticiones (28/min), tope por llamada (8–9: la función tiene
+20 s), y **parar** si RapidAPI contesta 429 o 403 con «quota». Lo hecho
+se apunta set a set, así que la llamada siguiente sigue por el primer set
+sin hacer y nunca vuelve a pedir uno hecho (salvo «empezar de cero»). Un
+set a medias (le faltaba una página) no se da por hecho: se vuelve a
+pedir entero. Y una respuesta en la que NINGUNA carta trae
+`cardmarket_id` no es «ninguna casa»: es que el campo no viene, y se
+para diciéndolo (la 510: un vacío no es una respuesta).
+
+**Por qué `/cards?episode_id=` y no `/episodes/{id}/cards`**: en su
+documentación el ejemplo del primero enseña `cardmarket_id` y el del
+segundo no. No se da por hecho lo que un ejemplo no enseña (la 484).
+
+**Qué escribe**: `tcg_cards.cm_id_product_propio` con `cm_por = 'tcggo'`,
+por la misma `cardmarket_guardar_pares` de la 587; y reabre el estado de
+la guía (`cardmarket_guia`, `hecho: false`) para que la pasada de la
+próxima hora rellene los precios de las cartas que acaban de ganar par
+sin esperar a mañana. **TCGGO se paga una vez por set; los precios
+diarios siguen siendo el fichero gratuito.** El `tcgplayer_id` llega en
+la misma respuesta y de momento no se guarda (no hay columna; el enlace a
+TCGplayer sigue siendo el de TCGdex).
+
+**/admin → Cartas → «Emparejar con TCGGO»**: casilla con el tope de
+peticiones del clic (40 por defecto), llamadas de 8, y el cuadro enseña
+peticiones gastadas hoy, expansiones, sets hechos/pendientes, lo de este
+clic set a set (pares, sin par con ejemplos) y la lista acumulada de sets
+sin expansión suya. Casilla «empezar de cero» con confirmación.
+
+**Lo que TCGGO da además y todavía no se usa**: el mínimo de Cardmarket
+POR IDIOMA (`lowest_near_mint_ES`), que es lo que PINGU preguntó hace
+días y entonces no tenía fuente; el histórico de precios por fecha; el
+precio de TCGplayer ya en euros; y el catálogo japonés (planes Ultra o
+Mega). Con 100 al día no cabe pedirlo para 23.000 cartas; sí cabría para
+las que la gente tiene en su colección.
+
+**Pruebas**: `test-tanda-588.mjs` con los ejemplos de respuesta de su
+documentación como fixtures (`fixtures/tcggo-*.json`): el ayudante puro,
+la función con un TCGGO de mentira que cuenta peticiones, y los frenos
+(tope diario, día siguiente, variable de entorno, 429 a mitad de set, sin
+`cardmarket_id`, sin tiempo). `test-tanda-587.mjs` se queda con la guía.
+
+

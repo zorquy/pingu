@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde) — PINGU-Claude (588 — el par con Cardmarket por TCGGO)
+
+**Hecho**: la primera pasada real de la 587 casó un 15 % en los sets
+modernos (los ataques nuestros están en español, los empates de expansión
+no se decidían, nombres en otra forma; detalle en SCHEMA 587). PINGU trajo
+la documentación de TCGGO (RapidAPI «Cardmarket API TCG»): cada carta trae
+`cardmarket_id` y `tcgplayer_id`, y la expansión su código de TCG Live.
+Nueva función `tcggo-emparejar` (admin): set → expansión por código (o
+nombre), carta → carta por NÚMERO, escribe `cm_id_product_propio` con la
+RPC de la 587 y reabre la guía diaria. Plan Basic: 100 peticiones/día y
+cobra el exceso → tope diario 95 en el estado, 2,1 s entre peticiones,
+para en 429/403, reanudable set a set. El emparejador por orden/nombres
+de la 587 se ha QUITADO (función, lib, prueba y fixture de productos).
+
+**Pendiente de PINGU**: `TCGGO_API_KEY` ya está en Netlify. Probar desde
+/admin → Cartas → «Emparejar con TCGGO» con tope 12 (9 son la lista de
+expansiones) y pegar el cuadro. Los precios buenos entran con la pasada
+de la guía (≤1 h).
+
+**Ficheros**: `netlify/lib/tcggo.mjs` y
+`netlify/functions/tcggo-emparejar.mjs` (nuevos),
+`netlify/lib/cardmarket-catalogo.mjs` (podado), `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`; borrado
+`netlify/functions/cardmarket-emparejar.mjs`. En `pruebas`:
+`test-tanda-588.mjs` y `fixtures/tcggo-*.json` (nuevos),
+`test-tanda-587.mjs` (solo la guía); borrados
+`test-tanda-587-catalogo.mjs` y `fixtures/cardmarket-products-prc-pal.json`.
+
 ## 2026-10-06 (mediodía) — PINGU-Claude (587 — nuestro emparejamiento con Cardmarket)
 
 **Hecho**: TCGdex empareja mal con Cardmarket a lo grande (su issue
