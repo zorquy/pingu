@@ -1,20 +1,25 @@
 // Cardmarket: el precio de una carta y el enlace a su página con los
 // filtros ya puestos (tanda 365).
 //
-// ── DE DÓNDE SALE CADA COSA ──
+// ── DE DÓNDE SALE CADA COSA (tanda 589) ──
 //
-// · El PRECIO sale de TCGdex (`pricing.cardmarket` de la ficha de una
-//   carta), que copia la guía de precios de Cardmarket una vez al día:
-//   «desde» (`low`), tendencia (`trend`) y medias de 1, 7 y 30 días, más
-//   las mismas cifras para el reverso holográfico (`*-holo`). Es el
-//   precio de la carta en GENERAL: cualquier idioma y cualquier estado.
+// · El PRECIO de una copia es el mínimo Near Mint de Cardmarket EN SU
+//   IDIOMA (español, inglés, alemán, francés, italiano), que lo da TCGGO
+//   cada día (`cm_low_es`… en `tcg_card_prices`). Lo que vale tu carta
+//   en español es lo que cuesta la más barata en español.
+// · Si TCGGO no tiene la carta, el general de la guía de Cardmarket
+//   (mínimo, tendencia, media de 30 días: `cm_low`, `cm_trend`…), que
+//   es lo que había hasta la 588, y que sigue poniendo TCGdex para las
+//   cartas sin par propio.
+// · Y si Cardmarket no la tiene, TCGplayer: en euros si viene de TCGGO
+//   (`tp_market_eur`), en dólares por versión si viene de TCGdex (`tp_*`).
+// · Las gradeadas: Cardmarket (euros) y ventas en eBay (dólares), por
+//   casa y nota (`cm_gradeadas`, `ebay_gradeadas`).
 //
-// · El mínimo por idioma y estado NO lo da ninguna fuente abierta. Lo
-//   tiene la API de Cardmarket (solo vendedores con credenciales) y su
-//   propia página, que no se deja leer desde fuera. Por eso el precio
-//   general se enseña con su nombre («desde», «tendencia») y el ENLACE
-//   lleva a Cardmarket con el idioma y el estado ya filtrados: ahí está
-//   el mínimo de verdad, a un clic.
+// · El ENLACE a Cardmarket va por `idProduct` con el idioma y el estado
+//   ya filtrados; el de TCGplayer, por su id de producto. Los dos ids
+//   los decide `tcggo-emparejar` (`cm_id_product_propio`,
+//   `tp_id_product_propio` en `tcg_cards`).
 //
 // · El ENLACE va por `idProduct` (también lo da TCGdex): Cardmarket
 //   redirige /Products?idProduct=N a la página de la carta y CONSERVA
@@ -45,6 +50,11 @@ export const IDIOMAS = [
   { id: 'zh', cm: null, nombre: 'Chino' },
 ]
 export const IDIOMA_POR_DEFECTO = 'es'
+
+// Los idiomas en los que TCGGO da un mínimo propio, en el orden en que se
+// enseñan: el nuestro primero. El portugués y los asiáticos no tienen.
+export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it']
+export const columnaDeIdioma = (id) => (IDIOMAS_CON_PRECIO.includes(id) ? `cm_low_${id}` : null)
 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
 // Es «este estado O MEJOR», que es lo que se quiere: si tu carta está
@@ -192,29 +202,20 @@ export function dolares(v) {
 
 // Una línea con los dos mercados, para la ficha y para el formulario de
 // añadir: siempre la misma frase, venga de donde venga.
-export function resumenDePrecio(precio) {
-  if (!precio) return 'Sin precio de Cardmarket ni de TCGplayer.'
-  const eur = precio.tendencia || precio.media30 || precio.desde
-  const trozos = []
-  if (eur && !precio.dudoso) trozos.push(`Cardmarket: desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}${precio.prestado ? ' (de la versión normal)' : ''}`)
-  if (precio.usd?.mercado || precio.usd?.desde) trozos.push(`TCGplayer: ${dolares(precio.usd.mercado || precio.usd.desde)}${precio.usd.mercado ? '' : ' (desde)'}${eur && !precio.dudoso ? '' : ` (≈ ${euros(usdAEuros(precio.usd.mercado || precio.usd.desde))})`}`)
-  if (eur && precio.dudoso) trozos.push(`Cardmarket parece tener emparejada OTRA carta (${euros(eur)}): no se usa`)
-  return trozos.length ? trozos.join(' · ') : 'Sin precio de Cardmarket ni de TCGplayer.'
+export function resumenDePrecio(precio, idioma = IDIOMA_POR_DEFECTO) {
+  const p = precioParaIdioma(precio, idioma)
+  if (!p) return 'Sin precio.'
+  if (p.origen === 'cardmarket-idioma') return `Desde ${euros(p.valor)} en ${idiomaDe(idioma).nombre.toLowerCase()}`
+  if (p.origen === 'cardmarket') return `Desde ${euros(p.valor)} en Cardmarket`
+  return `TCGplayer: ${p.dolares ? `${dolares(p.dolares)} (≈ ${euros(p.valor)})` : euros(p.valor)}`
 }
 
-// El valor con el que se suma una carta a la colección: la TENDENCIA,
-// que es lo que Cardmarket da como «lo que vale»; sin ella, la media de
-// 30 días; sin nada, el «desde». No se ajusta por estado a propósito:
-// cualquier descuento por «Good» sería un número inventado.
-export function valorDe(precio) {
-  if (!precio) return null
-  const eur = precio.tendencia || precio.media30 || precio.desde || null
-  // Cardmarket manda. Si no tiene la carta —o la tiene mal emparejada
-  // (`dudoso`)—, TCGplayer convertido a euros (tanda 586).
-  if (eur && !precio.dudoso) return eur
-  const usd = precio.usd?.mercado || precio.usd?.desde || null
-  if (usd) return usdAEuros(usd)
-  return eur
+// El valor con el que se suma una carta a la colección (589): el mínimo
+// de su idioma, y si no, lo que diga `precioParaIdioma`. Hasta la 588 era
+// la tendencia general; PINGU lo cambió al mínimo —«pondría el precio
+// más bajo, que sería el desde»—, que es lo que cuesta comprarla hoy.
+export function valorDe(precio, idioma = null) {
+  return precioParaIdioma(precio, idioma || IDIOMA_POR_DEFECTO)?.valor ?? null
 }
 
 // De una fila de `tcg_card_prices` (la guarda la función programada) a
@@ -255,8 +256,57 @@ export function precioDeFila(fila, { reverse = false, variante = null } = {}) {
   // TCGdex no tiene la carta: vale aunque no haya ni una cifra, porque
   // es lo que convierte el botón en «esta carta» y no en una búsqueda.
   const url = typeof fila.cm_url === 'string' && /^https?:\/\//.test(fila.cm_url) ? fila.cm_url : null
-  if (!precio) return url ? { idProduct: null, desde: null, tendencia: null, media30: null, media7: null, actualizado: fila.cm_updated || null, reverse, prestado: false, url } : null
-  return { ...precio, url }
+  // Lo de TCGGO (589): el mínimo por idioma, TCGplayer en euros, cuántas
+  // hay a la venta y las gradeadas. Lo que no viene es null, y `porIdioma`
+  // solo existe si hay al menos un idioma con cifra.
+  const porIdioma = {}
+  for (const id of IDIOMAS_CON_PRECIO) {
+    const v = num(fila[`cm_low_${id}`])
+    if (v) porIdioma[id] = v
+  }
+  const extra = {
+    porIdioma: Object.keys(porIdioma).length ? porIdioma : null,
+    tpEur: num(fila.tp_market_eur),
+    tpMidEur: num(fila.tp_mid_eur),
+    disponibles: Number.isInteger(fila.cm_disponibles) ? fila.cm_disponibles : null,
+    gradeadas: fila.cm_gradeadas || fila.ebay_gradeadas ? { cardmarket: fila.cm_gradeadas || null, ebay: fila.ebay_gradeadas || null } : null,
+    actualizadoTcggo: fila.tcggo_updated || null,
+  }
+  const hayExtra = extra.porIdioma || extra.tpEur || extra.gradeadas
+  if (!precio) {
+    if (!url && !hayExtra) return null
+    return { idProduct: fila.cm_id_product || null, desde: null, tendencia: null, media30: null, media7: null, actualizado: fila.cm_updated || null, reverse, prestado: false, usd: null, dudoso: false, url, ...extra }
+  }
+  return { ...precio, url, ...extra }
+}
+
+// ── El precio de UNA copia, según su idioma (tanda 589) ──
+//
+// Devuelve { valor, origen, idioma } con la regla de la casa (la misma
+// que `valor_de_linea` en la base, que es quien hace la foto diaria):
+//   1. el mínimo de Cardmarket en SU idioma (`cardmarket-idioma`);
+//   2. el general de Cardmarket —mínimo, tendencia, media— si no parece
+//      ser de otra carta (`cardmarket`);
+//   3. TCGplayer, en euros de TCGGO o en dólares convertidos (`tcgplayer`).
+// Sin nada, null. No se descuenta por estado: sería un número inventado.
+export function precioParaIdioma(precio, idioma = IDIOMA_POR_DEFECTO) {
+  if (!precio) return null
+  const propio = precio.porIdioma?.[idioma] || null
+  if (propio) return { valor: propio, origen: 'cardmarket-idioma', idioma }
+  const general = precio.desde || precio.tendencia || precio.media30 || null
+  if (general && !precio.dudoso) return { valor: general, origen: 'cardmarket', idioma: null }
+  if (precio.tpEur) return { valor: precio.tpEur, origen: 'tcgplayer', idioma: null }
+  const usd = precio.usd?.mercado || precio.usd?.desde || null
+  if (usd) return { valor: usdAEuros(usd), origen: 'tcgplayer', idioma: null, dolares: usd }
+  if (general) return { valor: general, origen: 'cardmarket', idioma: null }
+  return null
+}
+
+// TCGplayer, directo al producto.
+const TP = 'https://www.tcgplayer.com/product'
+export function enlaceTcgplayer(idProduct) {
+  const id = Number(idProduct)
+  return Number.isInteger(id) && id > 0 ? `${TP}/${id}` : null
 }
 
 // Y al revés: de la respuesta de TCGdex a la fila de la tabla.
@@ -350,7 +400,7 @@ export function textoDelEnlace({ idProduct = null, url = null, dudoso = false, i
   if (!idProduct && url) return 'Ver en Cardmarket'
   if (!idProduct || !i.cm || dudoso) return 'Buscar en Cardmarket'
   const e = estadoDe(estado)
-  return `Ver en Cardmarket: ${i.nombre.toLowerCase()} · ${e.nombre}${e.id === 'MT' ? '' : ' o mejor'}`
+  return `Cardmarket · ${i.nombre.toLowerCase()} · ${e.id}`
 }
 
 // ── La colección ──
@@ -360,7 +410,7 @@ export function textoDelEnlace({ idProduct = null, url = null, dudoso = false, i
 // ahí el precio general no dice nada).
 export function valorDeLinea(linea, precio) {
   const manual = typeof linea?.valor_manual === 'number' ? linea.valor_manual : Number(linea?.valor_manual)
-  const unidad = Number.isFinite(manual) && manual > 0 ? manual : valorDe(precio)
+  const unidad = Number.isFinite(manual) && manual > 0 ? manual : valorDe(precio, linea?.idioma || null)
   return unidad ? unidad * (Number(linea?.cantidad) || 1) : null
 }
 

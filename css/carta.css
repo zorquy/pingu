@@ -1009,37 +1009,11 @@
 }
 
 
-.carta-precios {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--e-md);
-  width: 100%;
-  margin: 0;
-}
-
-.carta-precios:empty {
-  display: none;
-}
-
-.carta-precios dt {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-}
-
-.carta-precios dd {
-  margin: var(--e-xs) 0 0;
-  font-size: var(--t-xl);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
 .carta-mercado-nota {
   color: var(--text-mid);
   font-size: var(--t-sm);
 }
 
-.carta-mercado-boton,
 .carta-mercado-anadir .btn-secondary,
 .carta-mercado-ir {
   display: inline-flex;

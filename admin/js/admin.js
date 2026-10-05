@@ -3107,6 +3107,39 @@ async function tcggoEmparejar() {
   }
 }
 
+// Una pasada de precios de TCGGO ahora mismo (589): lo mismo que hace la
+// programada cada diez minutos, pero sin esperar. Enseña lo que ha hecho.
+async function tcggoPrecios() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnTcggoPrecios')
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) return
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Pidiendo precios a TCGGO…'
+  try {
+    const res = await fetch('/.netlify/functions/tcggo-precios', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}` } })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    caja.value = [
+      r.saltado ? `Saltado: ${r.saltado}` : '',
+      r.error ? `Error: ${r.error}` : '',
+      r.dia ? `Día ${r.dia} · expansiones con sets: ${r.episodios} · hechas hoy: ${r.hechasHoy} · quedan: ${r.quedan}` : '',
+      r.dia ? `Peticiones en esta pasada: ${r.peticionesEstaPasada} · hoy: ${r.peticionesHoy} de ${r.topeDiario} · pausa ${r.pausaMs} ms · puerta ${r.puerta}` : '',
+      r.dia ? `Filas de precios escritas: ${r.escritas} · nuestras sin carta suya: ${r.sinPar} · sets apuntados (logo, fecha): ${r.setsApuntados}` : '',
+      r.parado ? `⚠ PARADO: ${r.parado}` : r.hecho ? '✓ Los precios de hoy están puestos.' : r.nota ? `→ ${r.nota}` : '',
+      '',
+      ...(r.hechasAhora || []).map((h) => `  · expansión #${h.episodio} (${h.sets.join(', ')}): ${h.escritas} filas de ${h.nuestras} nuestras, ${h.suyas} suyas`),
+    ].filter((l) => l !== '').join('\n')
+    cardsNota(r.parado || r.error ? (r.parado || r.error) : `Pasada hecha: ${r.escritas ?? 0} filas.`, !!(r.parado || r.error))
+  } catch (e) {
+    caja.value = `No se ha podido: ${e.message}`
+    cardsNota(e.message, true)
+  } finally {
+    boton.disabled = false
+  }
+}
+
 // Una carta de Scrydex, en crudo (tanda 586): lo que hace falta ver antes
 // de afirmar qué precios trae y en qué moneda. Un crédito por clic.
 async function cartaScrydex() {
@@ -3464,6 +3497,7 @@ function initCardsSection() {
   document.getElementById('btnComoVaScrydex')?.addEventListener('click', comoVaScrydex)
   document.getElementById('btnCartaScrydex')?.addEventListener('click', cartaScrydex)
   document.getElementById('btnTcggoEmparejar')?.addEventListener('click', tcggoEmparejar)
+  document.getElementById('btnTcggoPrecios')?.addEventListener('click', tcggoPrecios)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

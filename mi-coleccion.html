@@ -1144,21 +1144,17 @@
             <section class="mc-ficha-bloque">
               <h3>Precio</h3>
               <div class="mc-ficha-caja">
-              <p class="mc-ficha-precio" id="mcEdPrecio"></p>
-              <!-- DE QUIÉN ES ESE PRECIO (tanda 563). PINGU: «esta carta la
-                   he añadido en español y ahí pone un precio; no sé si está
-                   cogiendo los precios en español». No los coge, y tampoco
-                   los ingleses: Cardmarket publica UNA cifra por producto,
-                   con todos los idiomas juntos. Decirlo es lo mínimo —un
-                   número sin decir de qué es se lee como el tuyo. -->
-              <p class="subtext mc-precio-pie" id="mcEdPrecioPie"></p>
+              <!-- EL PRECIO DE TU COPIA (tanda 589): el mínimo en SU idioma,
+                   las chapas de los demás idiomas, los dos botones
+                   (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
+                   pinta js/precio-vista.js, el mismo bloque que /carta. -->
+              <div id="mcEdPrecioBloque"></div>
               <div class="mc-ficha-enlaces">
-                <a class="mc-accion mc-accion-cm" id="mcEdCardmarket" href="#" target="_blank" rel="noopener"></a>
                 <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
                      la que indexa Google, la que se comparte y la que trae
                      los ataques, las reimpresiones y el tablón. Este
                      diálogo es el atajo de dentro de tu colección. -->
-                <a class="mc-accion" id="mcEdFicha" href="#">Ver la ficha completa</a>
+                <a class="mc-accion" id="mcEdFicha" href="#">Ficha completa</a>
               </div>
               </div>
             </section>

@@ -56,7 +56,7 @@ async function cargar() {
   // fuera y los que ya indexó Google tienen que seguir llegando.
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+    .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
     .eq('market', MERCADO)
     .or(filtroDeColeccion(clave))
     .limit(1)
@@ -71,7 +71,7 @@ async function cargar() {
   if (padre) {
     const { data: suyo } = await supabase
       .from('tcg_sets')
-      .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
+      .select('id,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code')
       .eq('market', MERCADO)
       .eq('id', padre)
       .limit(1)

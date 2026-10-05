@@ -30615,3 +30615,93 @@ mandaba a «otros caminos» todo lo que Dawn (un paso, 100 %) superaba,
 también «Kadabra → Dudunsparce», que NO gasta el partidario del turno —y
 es lo que quiere quien lo guarda para un Jefes—. Un camino que gasta el
 partidario ya no domina a uno que no.
+
+## Tanda 589 — los precios por idioma desde TCGGO, y el bloque de precio de un renglón (oct. 2026)
+
+PINGU, con la ficha de TCGGO delante: «podemos traer básicamente todo de
+esta API: precios de todos los idiomas, japonés, las colecciones, las
+imágenes, los enlaces bien enlazados… yo quitaría todo lo de TCGdex y
+Scrydex». La respuesta, por lo que hace cada fuente:
+
+- **TCGGO** es la fuente única de PRECIOS y de ENLACES: el mínimo Near
+  Mint de Cardmarket en cada idioma (inglés, alemán, francés, español,
+  italiano), medias de 30 y 7 días, cuántas hay a la venta, TCGplayer ya
+  en euros, las gradeadas de Cardmarket (euros) y las ventas de gradeadas
+  en eBay (dólares, por casa y nota), y los dos ids de producto. Y de los
+  sets: logo, fecha, total. Es para lo que se pagaba Scrydex.
+- **TCGdex se queda** para lo que TCGGO no tiene: el ESPAÑOL —nombres,
+  textos de ataques y habilidades, imágenes en español, la Pokédex—, de lo
+  que viven el buscador, las fichas, el curso y el motor de efectos. Es
+  gratis y abierto. Sigue poniendo TCGplayer en dólares por versión para
+  las cartas sin par propio (`precios-coleccion`), que es el respaldo.
+- **Scrydex** sale en una tanda aparte, cuando una petición real enseñe
+  cómo viene el catálogo japonés de TCGGO (planes Ultra/Mega). No se
+  cancela antes de eso.
+- **El riesgo que no se ve**: TCGGO es una empresa pequeña con un correo
+  de Gmail, y pokemontcg.io también era «la API» hasta que contestó 502.
+  La regla de siempre: TCGGO llena nuestras tablas, la web lee nuestras
+  tablas, y cambiar de fuente es cambiar un importador.
+
+**Las columnas** (`supabase-migration-tcggo-precios.sql`), en
+`tcg_card_prices`: `cm_low_en/de/fr/es/it` (`lowest_near_mint` a secas es
+el general, que en su web coincide con el inglés), `cm_disponibles`,
+`tp_market_eur`, `tp_mid_eur`, `cm_gradeadas` y `ebay_gradeadas` (jsonb,
+con sus dos formas: `{psa:{psa10:2700}}` y `{psa:{"10":{median_price,
+sample_size}}}`), `tcggo_id`, `tcggo_updated`. En `tcg_cards`,
+`tp_id_product_propio`; en `tcg_sets`, `logo_tcggo` y `tcggo_id`.
+`cardmarket_guardar_pares` guarda también el id de TCGplayer con la MISMA
+firma (una clave más en el jsonb, que la función vieja ignoraba: el
+emparejador la manda antes o después de la migración); `tcggo_guardar_sets`
+rellena logo e id, y fecha y total solo si estaban vacíos (la 508).
+
+**La regla del VALOR cambió** (`valor_de_linea` en la base, `precioParaIdioma`
+en `js/cardmarket.js`, y las dos iguales): manual → mínimo de SU idioma →
+general de Cardmarket (MÍNIMO, tendencia, media; salvo dudoso) → TCGplayer
+en euros → dólares convertidos. Hasta la 588 el valor era la TENDENCIA;
+PINGU: «pondría un precio, no un desde y tendencia… el precio más bajo,
+que sería el desde». Lo que vale tu carta en español es lo que cuesta la
+más barata en español. No se descuenta por estado. Y la firma vieja de
+`valor_de_linea` se BORRA: dos con el mismo nombre serían una ambigüedad.
+
+**`tcggo-precios`** (cada diez minutos): por cada expansión suya con
+sets emparejados (del estado `tcggo_pares`, sin los sospechosos) pide sus
+cartas y escribe la fila de cada carta nuestra cuyo `cm_id_product_propio`
+esté entre las suyas; el primer día apunta los sets. Estado
+`tcggo_precios` { dia, hechos, gasto }; ~300 peticiones al día, en ~8
+pasadas de 20 s. Mismos frenos que el emparejador. Y un POST con token de
+admin hace una pasada ahora (/admin → «Precios de TCGGO ahora»): se
+distingue de la programada por el token, porque Netlify también invoca las
+programadas con POST. El upsert de PostgREST solo toca las columnas que
+manda cada función: la guía diaria sigue poniendo `cm_trend`, TCGdex los
+`tp_*` en dólares, y TCGGO lo suyo, en la misma fila.
+
+**El bloque de precio** (`js/precio-vista.js`, CSS en
+`css/cardmarket.css`), el mismo en la ficha emergente de /mi-coleccion y en
+«Precio y colección» de /carta: LA CIFRA (el mínimo de tu idioma) con un
+renglón que dice de qué es («mínimo en español en Cardmarket · NM · 5
+oct»); una CHAPA por idioma con precio (códigos, no banderas: los iconos
+son SVG y la 🇪🇸 es la única excepción) con la tuya marcada, más TCGplayer
+en euros; los DOS BOTONES, Cardmarket (con tu idioma y estado filtrados) y
+TCGplayer (directo al producto), cada uno solo si hay adónde ir; y las
+GRADEADAS, una chapa por casa y nota con el color de la casa —PSA rojo,
+Beckett amarillo (letra oscura), CGC azul, ACE naranja, TAG rosa—, las de
+Cardmarket en euros y las de eBay en dólares y dicho. Los colores de casa
+viven en `cardmarket.css` como `--casa-*` y la chapa de TU gradeo
+(`.mc-chip-gradeo`) los usa: tu PSA 10 y el precio de las PSA 10 del mismo
+rojo. Se fueron el texto largo («precio general… lo ves en Cardmarket con
+el botón»), el pie de la 563, la coletilla «de la versión normal» de la
+375 (el renglón dice «cualquier idioma», que es lo que importa) y el
+`<dl>` de /carta. Con los `<select>` de /carta el bloque se repinta: en
+inglés 194 €, en italiano sin precio propio el general.
+
+**Lo que TCGGO da y todavía no se usa**: el histórico de precios por fecha
+(una petición por carta: pide una tabla de caché y una gráfica, tanda
+aparte), las ventas sueltas de eBay, el catálogo japonés, el `_EU_only`.
+
+**Pruebas**: `test-tanda-589.mjs` (la fila, la función con TCGGO y base
+de mentira, el precio por idioma, el bloque, la migración) y
+`test-tanda-589-pantalla.mjs` (la ficha con una fila de TCGGO: 140 € en
+español, 39 € la copia alemana sin mínimo alemán, chapas, botones,
+gradeadas con el color de la casa, /carta cambiando de idioma, el logo de
+TCGGO en el álbum). Al día: 586, 586-pantalla, 369, 375 (el valor es el
+mínimo), 563 y 311 (`--casa-*` es paleta de identidad).

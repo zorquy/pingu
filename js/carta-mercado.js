@@ -4,9 +4,9 @@
 // estado UNA vez y con eso (1) el botón de Cardmarket abre la carta con
 // esos filtros puestos y (2) «Añadir a mi colección» la guarda así.
 //
-// El precio es el general de Cardmarket (vía TCGdex): se enseña con su
-// nombre —«desde», «tendencia»— y el mínimo exacto de tu idioma y tu
-// estado está a un clic, en Cardmarket. Ver js/cardmarket.js.
+// El precio es el mínimo de Cardmarket en el idioma elegido (TCGGO, 589),
+// y el bloque lo pinta js/precio-vista.js, el mismo que la ficha de
+// /mi-coleccion. Ver js/cardmarket.js.
 import { escapeHtml, getSession, getInitial, avatarStyle, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
@@ -18,19 +18,14 @@ import {
   IDIOMA_POR_DEFECTO,
   ESTADO_POR_DEFECTO,
   precioDe,
-  euros,
-  dolares,
-  usdAEuros,
-  origenDelValor,
-  enlaceCardmarket,
-  textoDelEnlace,
   idiomaDe,
   estadoDe,
   varianteDe,
 } from './cardmarket.js'
 // El dibujo de la marca va aparte: es lo único de Cardmarket que
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
-import { logoCardmarket, marcaCardmarket } from './cardmarket-marca.js'
+import { logoCardmarket } from './cardmarket-marca.js'
+import { bloqueDePrecio } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila } from './cardmarket.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
@@ -108,9 +103,7 @@ export async function pintarMercado(carta) {
       <div class="carta-mercado-paneles">
         <div class="carta-mercado-panel">
           <p class="carta-mercado-titulo">${logoCardmarket(20)}</p>
-          <dl class="carta-precios" id="cmPrecios"></dl>
-          <p class="carta-mercado-nota" id="cmNota"></p>
-          <a class="btn-cardmarket carta-mercado-boton" id="cmEnlace" href="#" target="_blank" rel="noopener"></a>
+          <div id="cmPrecios"></div>
         </div>
         <div class="carta-mercado-panel">
           <p class="carta-mercado-titulo">Mi colección</p>
@@ -133,45 +126,11 @@ export async function pintarMercado(carta) {
     const reverse = estado.variante === 'reverse'
     const enVivo = precioDe(vivo?.pricing, { reverse, variante: estado.variante })
     const guardado = precioDeFila(guardada, { reverse, variante: estado.variante })
-    // El vivo manda si dice algo; si no, el guardado; y si ninguno tiene
-    // cifras, el que al menos traiga el enlace (la regla de la 375).
-    const precio = tieneCifras(enVivo) ? enVivo : tieneCifras(guardado) ? guardado : enVivo || guardado
-    // Con cifras o sin ellas: un precio del que solo se sabe el
-    // `idProduct` pintaba tres rayas donde tenía que haber euros.
-    const hayCifras = tieneCifras(precio)
-    const hayEur = Boolean(precio && (precio.tendencia || precio.media30 || precio.desde)) && !precio?.dudoso
-    const usd = precio?.usd || null
-    // Los dos mercados (586): Cardmarket en euros y TCGplayer en dólares.
-    // Si Cardmarket está mal emparejado (`dudoso`), sus cifras no se
-    // enseñan como precio: serían las de otra carta.
-    $('cmPrecios').innerHTML = hayCifras
-      ? `${hayEur ? `<div><dt>Desde</dt><dd>${euros(precio.desde)}</dd></div>
-         <div><dt>Tendencia</dt><dd>${euros(precio.tendencia)}</dd></div>
-         <div><dt>Media 30 días</dt><dd>${euros(precio.media30)}</dd></div>` : ''}${
-           usd ? `<div><dt>TCGplayer</dt><dd>${dolares(usd.mercado || usd.desde)}${hayEur ? '' : ` <small>≈ ${euros(usdAEuros(usd.mercado || usd.desde))}</small>`}</dd></div>` : ''
-         }`
-      : ''
-    // Y si el número es prestado de la versión normal, se dice AQUÍ y no
-    // en letra pequeña: la diferencia entre un reverso y su normal la
-    // paga quien compra.
-    $('cmNota').textContent = hayCifras
-      ? precio.dudoso
-        ? `Cardmarket parece tener emparejada OTRA carta con esta (dice ${euros(precio.tendencia || precio.media30 || precio.desde)} y TCGplayer ${dolares(usd?.mercado || usd?.desde)}): su precio no se usa, y el botón busca por nombre.`
-        : origenDelValor(precio) === 'tcgplayer'
-          ? 'Cardmarket no tiene esta carta. El precio es el de TCGplayer, en dólares, con la conversión a euros a ojo. Búscala en Cardmarket:'
-          : precio.prestado
-        ? `Cardmarket no publica precio del reverso holográfico de esta carta, así que este es el de la versión NORMAL —lo que vale como poco—, actualizado el ${haceCuanto(precio.actualizado)}. El del reverso en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
-        : `Precio general de la carta en cualquier idioma y estado${precio.reverse ? ' (reverse holo)' : ''}, actualizado el ${haceCuanto(precio.actualizado)}. El mínimo en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
-      : 'No tenemos el precio de esta carta. Búscala en Cardmarket:'
-    const idProduct = precio?.idProduct || null
-    const a = $('cmEnlace')
-    const url = precio?.url || null
-    const dudoso = Boolean(precio?.dudoso)
-    a.href = enlaceCardmarket({ idProduct, url, dudoso, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
-    // `textContent` primero y la marca después: el texto viene de
-    // `textoDelEnlace` y así no hay forma de colar HTML por ahí.
-    a.textContent = textoDelEnlace({ idProduct, url, dudoso, idioma: estado.idioma, estado: estado.estado })
-    a.insertAdjacentHTML('afterbegin', marcaCardmarket(22))
+    // El guardado manda (es el de TCGGO, por idioma); el vivo de TCGdex
+    // solo si el guardado no dice nada; y sin cifras, el que traiga el
+    // enlace (la regla de la 375).
+    const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
+    $('cmPrecios').innerHTML = bloqueDePrecio(precio, { idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null })
   }
   pintarPrecio()
 

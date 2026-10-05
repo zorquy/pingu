@@ -66,7 +66,7 @@ const palabrasDe = (n) => nombreComparable(n).split(' ').filter(Boolean)
 // Lo que guardamos de cada expansión suya (de las ~170, solo lo que hace
 // falta para reconocerla y pedir sus cartas).
 export function resumirEpisodio(e) {
-  return { id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null }
+  return { id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null, logo: typeof e.logo === 'string' ? e.logo : null }
 }
 
 // Qué expansión suya es un set nuestro. PRIMERO por el nombre inglés
@@ -246,4 +246,58 @@ export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
 // de los dos la pasada PARA: seguir pidiendo es seguir gastando.
 export function esLimiteDelPlan(estado, texto = '') {
   return estado === 429 || (estado === 403 && /quota|limit|exceeded/i.test(String(texto)))
+}
+
+// ── De una carta suya a nuestra fila de precios (tanda 589) ──
+//
+// Lo que TCGGO da por carta y NADIE más daba: el mínimo Near Mint de
+// Cardmarket EN CADA IDIOMA (`lowest_near_mint` a secas es el general,
+// que coincide con el inglés en su propia web; `_DE`, `_FR`, `_ES`, `_IT`
+// los demás), las medias, cuántas hay a la venta, TCGplayer ya en euros,
+// y las gradeadas (Cardmarket en euros, eBay en dólares). Un cero o un
+// nulo se guarda como null: un precio que no está no vale cero.
+const positivo = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null)
+// `graded` viene como `[]` cuando no hay nada y como objeto cuando hay:
+// solo el objeto con algo dentro se guarda.
+const objetoOnull = (v) => (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length ? v : null)
+
+export function filaDePreciosTcggo(cardId, carta, { ahora = new Date() } = {}) {
+  const cm = carta?.prices?.cardmarket || {}
+  const tp = carta?.prices?.tcg_player || {}
+  const ebay = carta?.prices?.ebay || {}
+  const idProduct = Number(carta?.cardmarket_id)
+  return {
+    card_id: cardId,
+    ...(Number.isInteger(idProduct) && idProduct > 0 ? { cm_id_product: idProduct } : {}),
+    cm_low: positivo(cm.lowest_near_mint),
+    cm_low_en: positivo(cm.lowest_near_mint),
+    cm_low_de: positivo(cm.lowest_near_mint_DE),
+    cm_low_fr: positivo(cm.lowest_near_mint_FR),
+    cm_low_es: positivo(cm.lowest_near_mint_ES),
+    cm_low_it: positivo(cm.lowest_near_mint_IT),
+    cm_avg30: positivo(cm['30d_average']),
+    cm_avg7: positivo(cm['7d_average']),
+    cm_disponibles: Number.isInteger(cm.available_items) ? cm.available_items : null,
+    cm_gradeadas: objetoOnull(cm.graded),
+    ebay_gradeadas: objetoOnull(ebay.graded),
+    tp_market_eur: tp.currency === 'EUR' ? positivo(tp.market_price) : null,
+    tp_mid_eur: tp.currency === 'EUR' ? positivo(tp.mid_price) : null,
+    tcggo_id: Number.isInteger(carta?.id) ? carta.id : null,
+    tcggo_updated: ahora.toISOString(),
+    origen: 'tcggo',
+    checked_at: ahora.toISOString(),
+  }
+}
+
+// Lo que se escribe de un set a partir de SU expansión: el logo, su id, y
+// la fecha y el total solo si los nuestros están vacíos (lo decide la
+// función de la base).
+export function filaDeSetTcggo(setId, episodio) {
+  return {
+    id: setId,
+    tcggo_id: Number.isInteger(episodio?.id) ? episodio.id : null,
+    logo: typeof episodio?.logo === 'string' && /^https?:\/\//.test(episodio.logo) ? episodio.logo : null,
+    fecha: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
+    cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
+  }
 }

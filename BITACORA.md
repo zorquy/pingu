@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche) — PINGU-Claude (589 — precios por idioma desde TCGGO)
+
+**Hecho**: TCGGO pasa a ser la fuente de precios y enlaces: mínimo Near
+Mint de Cardmarket por idioma (es/en/de/fr/it), TCGplayer en euros,
+gradeadas de Cardmarket y eBay, los dos ids de producto y los logos de
+los sets. Función programada `tcggo-precios` (cada 10 min, ~300
+peticiones/día) + botón «Precios de TCGGO ahora» en /admin. El VALOR de
+una copia es ahora el mínimo de SU idioma (antes la tendencia), en JS y en
+SQL. Bloque de precio nuevo (`js/precio-vista.js`) en la ficha de
+/mi-coleccion y en /carta: cifra + de qué es, chapas por idioma, botones
+Cardmarket y TCGplayer, gradeadas con el color de la casa; fuera el texto
+largo. TCGdex se queda para el español; Scrydex sale en otra tanda.
+
+**MIGRACIÓN pendiente de ejecutar**: `supabase-migration-tcggo-precios.sql`
+(columnas nuevas, `tp_id_product_propio`, `logo_tcggo`, las funciones).
+Sin ella la función de precios se salta diciéndolo. Después: /admin →
+Cartas → «Precios de TCGGO ahora» unas 8 veces (o esperar ~1 h 20), y
+relanzar «solo estos sets» con la lista de la 588 para el id de TCGplayer.
+
+**Ficheros**: `supabase-migration-tcggo-precios.sql`, `js/precio-vista.js`,
+`netlify/functions/tcggo-precios.mjs` (nuevos); `netlify/lib/tcggo.mjs`,
+`netlify/functions/tcggo-emparejar.mjs`, `js/cardmarket.js`,
+`js/carta-mercado.js`, `js/carta.js`, `js/carta-nucleo.js`, `js/cartas.js`,
+`js/coleccion.js`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`mi-coleccion.html`, `css/cardmarket.css`, `css/carta.css`,
+`css/mi-coleccion.css`, `admin/index.html`, `admin/js/admin.js`,
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: `test-tanda-589.mjs` y
+`test-tanda-589-pantalla.mjs` (nuevos); al día 586, 586-pantalla, 369,
+375, 563, 311 y el doble (`stub-supabase.js`).
 ## 2026-10-06 (mañana) — PINGU-Claude (620 a 623 — la mesa gira hacia quien decide, /laboratorio, y «encontrar una carta» con cifras exactas)
 
 **Leídas vuestras 580 a 588** (también los arreglos de TCGGO de esta

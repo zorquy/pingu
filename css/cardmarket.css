@@ -77,3 +77,128 @@
     transition: none;
   }
 }
+
+/* ── El bloque de precio (tanda 589), el mismo en /carta y en la ficha
+   emergente de /mi-coleccion. Lo pinta js/precio-vista.js. ── */
+
+/* Los colores de las casas de gradeo, los suyos: PSA rojo, Beckett
+   amarillo (con letra oscura: blanco sobre amarillo no se lee), CGC azul,
+   ACE naranja, TAG rosa, SGC negro. Fijos en los dos temas, porque son la
+   marca de otro y llevan el blanco fijo encima. */
+.pv,
+.mc-chip-gradeo {
+  --casa-psa: #c8102e;
+  --casa-bgs: #f2c200;
+  --casa-bgs-texto: #1a1a1a;
+  --casa-cgc: #1b64c4;
+  --casa-ace: #e8771d;
+  --casa-tag: #e0338c;
+  --casa-sgc: #2b2b2b;
+}
+
+.pv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+}
+
+.pv-cifra {
+  margin: 0;
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pv-sin {
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  font-weight: 600;
+}
+
+.pv-de,
+.pv-pie {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pv-idiomas,
+.pv-gradeadas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.pv-rotulo {
+  margin-right: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.pv-chapa {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pv-chapa b {
+  font-weight: 700;
+}
+
+/* La chapa de TU idioma, marcada: es la que suma. */
+.pv-activa {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.pv-gradeada[data-casa] {
+  border-color: transparent;
+  background: var(--casa, var(--navy-solid));
+  color: var(--blanco-fijo);
+}
+.pv-gradeada[data-casa='PSA'] { --casa: var(--casa-psa); }
+.pv-gradeada[data-casa='BGS'] { --casa: var(--casa-bgs); color: var(--casa-bgs-texto); }
+.pv-gradeada[data-casa='CGC'] { --casa: var(--casa-cgc); }
+.pv-gradeada[data-casa='ACE'] { --casa: var(--casa-ace); }
+.pv-gradeada[data-casa='TAG'] { --casa: var(--casa-tag); }
+.pv-gradeada[data-casa='SGC'] { --casa: var(--casa-sgc); }
+
+.pv-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.pv-boton {
+  min-height: 44px;
+}
+
+/* El botón de TCGplayer: sin su marca (no es nuestra para dibujarla), en
+   el mismo molde que el de Cardmarket y con el azul de la casa. */
+.btn-tcgplayer {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--navy-solid);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--navy-solid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btn-tcgplayer:hover {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}

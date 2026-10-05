@@ -714,7 +714,7 @@ export function rejillaDeCartas(cartas, codigoDeSet = null) {
 export function cabeceraDeColeccion(set, cuantasHay = null) {
   if (!set) return ''
   // Scrydex primero y TCGdex detrás (tanda 507): su URL va entera.
-  const logo = set.logo_scrydex || urlDeLogo(set.logo_path)
+  const logo = set.logo_scrydex || set.logo_tcggo || urlDeLogo(set.logo_path)
   const datos = []
   if (eraDeSet(set)) datos.push(eraDeSet(set))
   if (set.release_date) datos.push(fechaLarga(set.release_date))

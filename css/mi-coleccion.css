@@ -1146,11 +1146,14 @@
   background: var(--casa, var(--navy-solid));
   color: var(--blanco-fijo);
 }
-.mc-chip-gradeo[data-casa='PSA'] { --casa: #c8102e; }
-.mc-chip-gradeo[data-casa='BGS'] { --casa: #1b3f94; }
-.mc-chip-gradeo[data-casa='CGC'] { --casa: #0b3b63; }
-.mc-chip-gradeo[data-casa='SGC'] { --casa: #2b2b2b; }
-.mc-chip-gradeo[data-casa='ACE'] { --casa: #0f6b4f; }
+/* Los colores de las casas son los de css/cardmarket.css (589), para que
+   la chapa de tu PSA 10 y la del precio de las PSA 10 sean del mismo rojo. */
+.mc-chip-gradeo[data-casa='PSA'] { --casa: var(--casa-psa); }
+.mc-chip-gradeo[data-casa='BGS'] { --casa: var(--casa-bgs); color: var(--casa-bgs-texto); }
+.mc-chip-gradeo[data-casa='CGC'] { --casa: var(--casa-cgc); }
+.mc-chip-gradeo[data-casa='SGC'] { --casa: var(--casa-sgc); }
+.mc-chip-gradeo[data-casa='ACE'] { --casa: var(--casa-ace); }
+.mc-chip-gradeo[data-casa='TAG'] { --casa: var(--casa-tag); }
 
 .mc-carta-valor {
   margin-top: auto;
@@ -1216,14 +1219,6 @@
    chapa blanca fija debajo, que en claro no se ve (blanco sobre blanco)
    y en oscuro es lo que la hace legible. Aclararle el azul sería
    inventarse su marca. */
-.mc-accion-cm .cm-marca {
-  flex: 0 0 auto;
-  box-sizing: content-box;
-  padding: 2px;
-  border-radius: 4px;
-  background: var(--blanco-fijo);
-}
-
 @media (pointer: fine) {
   .mc-accion {
     min-height: 32px;
@@ -2629,12 +2624,6 @@
 
 /* El precio, con el peso que tiene: es el número que se viene a mirar
    después de la carta. */
-.mc-ficha-precio {
-  margin: 0 0 var(--e-md);
-  font-size: var(--t-lg);
-  font-weight: 700;
-}
-
 .mc-ficha-enlaces {
   display: flex;
   flex-wrap: wrap;

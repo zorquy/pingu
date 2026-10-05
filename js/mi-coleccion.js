@@ -38,13 +38,12 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  enlaceCardmarket,
-  valorDeLinea, resumenDePrecio, origenDelValor } from './cardmarket.js'
+  valorDeLinea, resumenDePrecio } from './cardmarket.js'
+import { bloqueDePrecio } from './precio-vista.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
-import { marcaCardmarket } from './cardmarket-marca.js'
 import * as datos from './mi-coleccion/datos.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
@@ -1647,34 +1646,11 @@ function abrirEditor(l) {
   $('mcEdCompra').value = l.precio_compra ?? ''
   $('mcEdNotas').value = l.notas || ''
   pintarNota(l.notas || '')
+  // El bloque de precio (589): la cifra de TU idioma, las chapas de los
+  // demás, Cardmarket y TCGplayer, y las gradeadas. Un solo módulo para
+  // esta ficha y para /carta, así que lo que se ve aquí es lo que se ve allí.
   const precio = precioDe(l)
-  // Con `precio` a secas salía «Desde — · tendencia —» para una carta
-  // de la que solo se sabe el `idProduct`: dos rayas no son un precio.
-  // Los dos mercados en una frase (586): Cardmarket y TCGplayer, y el
-  // aviso si Cardmarket parece tener otra carta.
-  $('mcEdPrecio').textContent = datos.tieneCifras(precio) ? resumenDePrecio(precio) : 'Sin precio de Cardmarket ni de TCGplayer.'
-  // Y de QUIÉN es ese precio (tanda 563). Cardmarket publica una cifra
-  // por producto con todos los idiomas juntos, así que no es el de tu
-  // español ni el del inglés: es el de la carta. Dejarlo vacío sería
-  // tirar la única referencia que hay, y enseñarlo sin decirlo deja que
-  // se lea como el tuyo — de ahí el renglón, y de ahí que el enlace vaya
-  // con tu idioma ya filtrado, que es donde está el mínimo de verdad.
-  const pie = $('mcEdPrecioPie')
-  if (pie) {
-    pie.textContent = !datos.tieneCifras(precio)
-      ? ''
-      : precio.dudoso
-        ? 'Cardmarket parece tener emparejada otra carta con esta (los dos mercados se llevan más de diez veces): el valor sale de TCGplayer y el botón busca por nombre.'
-        : origenDelValor(precio) === 'tcgplayer'
-          ? 'Cardmarket no tiene esta carta: el valor sale de TCGplayer, convertido a euros a ojo.'
-          : `Es el precio de Cardmarket para esta carta en cualquier idioma. Para verlo${idiomaDe(l.idioma).cm ? ` solo en ${idiomaDe(l.idioma).nombre.toLowerCase()}` : ''}, entra en Cardmarket.`
-    pie.classList.toggle('hidden', !pie.textContent)
-  }
-  // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
-  // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
-  const cm = $('mcEdCardmarket')
-  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
-  cm.innerHTML = `${marcaCardmarket(18)}<span>${precio?.dudoso || !precio?.idProduct ? 'Buscar en Cardmarket' : 'Ver en Cardmarket'}</span>`
+  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, { idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null })
   // Y la salida a la ficha entera. Si la carta no está en el catálogo no
   // hay adónde ir, así que el enlace se esconde en vez de llevar a una
   // página rota.
@@ -1913,7 +1889,7 @@ async function cargarSets() {
     // lista de 220 colecciones.
     // `orden` y `oculto` son de la 550: una columna que no se pide llega
     // `undefined` y el orden a mano no se usaría, sin dar error (la 523).
-    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto')
+    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     // Y un desempate (tanda 510): un `order` por fecha a secas deja los
@@ -2135,7 +2111,8 @@ function tarjetaDeSet(set, tengo) {
   // DETRÁS y no se borra: un respaldo que vive en el mismo sitio no es un
   // respaldo (tanda 321), y el día que su CDN no conteste se sigue viendo
   // algo. Su URL va entera y sin extensión, que es como la publican.
-  const dibujos = [set.logo_scrydex, logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
+  // El de TCGGO (589) detrás del de Scrydex y delante del montado a mano.
+  const dibujos = [set.logo_scrydex, set.logo_tcggo, logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || ''
   // EL NOMBRE, SIEMPRE A LA VISTA (tanda 458), y el logo a un lado.
@@ -3594,7 +3571,8 @@ async function elegir(cardId) {
   if (seleccion?.id !== c.id) return
   if (v) vivos.set(c.id, v)
   const p = datos.precioDeLinea({ card_id: c.id, variante: $('mcAnadirVariante').value }, guardados, vivos)
-  $('mcAnadirPrecio').textContent = datos.tieneCifras(p) ? resumenDePrecio(p) : 'Sin precio de Cardmarket ni de TCGplayer.'
+  // Con el idioma con el que se va a añadir (589): «Desde 140 € en español».
+  $('mcAnadirPrecio').textContent = datos.tieneCifras(p) ? resumenDePrecio(p, $('mcTocarIdioma')?.value || idiomaDeLaVista()) : 'Sin precio.'
 }
 
 async function anadirSeleccion(e) {

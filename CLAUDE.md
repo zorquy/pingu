@@ -337,6 +337,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mandan las franjas y no la foto por dos motivos: una foto son dos o tres
   megas para leer cuatro palabras, y el dibujo de la carta es justo donde
   un OCR se inventa texto.
+- **Los PRECIOS salen de TCGGO y el valor de una copia es el mínimo de
+  SU idioma** (tandas 588 y 589). TCGGO (RapidAPI, clave `TCGGO_API_KEY`
+  en Netlify, plan Ultra: 15.000 peticiones/día) da por carta el
+  `cardmarket_id` bueno, el mínimo Near Mint de Cardmarket en cada idioma,
+  TCGplayer en euros y las gradeadas; `tcggo-emparejar` (admin) decide los
+  pares por código de set + número y `tcggo-precios` (cada 10 min) los
+  precios. TCGdex se queda para el ESPAÑOL (nombres, textos, imágenes) y
+  como respaldo de precio. El bloque de precio es UNO
+  (`js/precio-vista.js`) para /carta y la ficha de /mi-coleccion. El plan
+  es de pago por peticiones: cualquier función que llame a TCGGO cuenta
+  cada petición, tiene tope diario y para en 429/403.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

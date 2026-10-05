@@ -261,7 +261,9 @@ export async function procesar({
     if (cambian.length) {
       try {
         for (let k = 0; k < cambian.length; k += 500) {
-          const n = await guardar(cambian.slice(k, k + 500).map((p) => ({ id: p.id, id_product: p.idProduct, por: 'tcggo' })))
+          // `tp_id_product` lo guarda la función de la base desde la 589; la
+          // de la 587 lo ignora, así que vale con las dos.
+          const n = await guardar(cambian.slice(k, k + 500).map((p) => ({ id: p.id, id_product: p.idProduct, por: 'tcggo', tp_id_product: p.tcgplayerId || null })))
           escritas += Number(n) || 0
         }
       } catch (e) {
