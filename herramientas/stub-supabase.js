@@ -507,6 +507,8 @@ sembrar('__FAKE_CARTAS__', 'tcg_cards', (i) => ({
   id: `carta-${i}`, set_id: 'set-0', market: 'WEST', local_id: String(i), name: `Carta ${i}`, image_path: `x/y/${i}`,
   // Los dos ids de producto (587 y 589): null hasta que los decida TCGGO.
   cm_id_product_propio: null, tp_id_product_propio: null,
+  // Lo de TCGGO en el catálogo (640).
+  tcggo_id: null, image_tcggo: null, origen: null,
 }))
 // Lo que se juega en los torneos (tanda 325). La clave es el nombre
 // normalizado, igual que en la tabla de verdad.
