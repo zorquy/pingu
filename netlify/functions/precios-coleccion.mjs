@@ -67,11 +67,28 @@ export async function procesar({ env = process.env, fetchImpl = fetch, reloj = (
     await dormir(pausa)
   }
 
+  // Las cartas con PAR PROPIO con Cardmarket (587) no reciben las cifras
+  // de Cardmarket de TCGdex —son las del producto equivocado—: de ellas
+  // solo se guarda TCGplayer. La guía diaria (`cardmarket-precios`) pone
+  // las suyas.
+  let conPropio = new Set()
   if (filas.length) {
-    const guardado = await guardarFilas(filas, { fetchImpl, cab })
+    try {
+      const lista = filas.map((f) => `"${f.card_id.replace(/"/g, '')}"`).join(',')
+      const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/tcg_cards?select=id&market=eq.WEST&cm_id_product_propio=not.is.null&id=in.(${lista})`, { headers: cab })
+      if (res.ok) conPropio = new Set((await res.json()).map((c) => c.id))
+    } catch {
+      // Sin la migración de la 587 no hay pares propios: se guarda todo.
+    }
+  }
+  const sinCardmarket = (f) => Object.fromEntries(Object.entries(f).filter(([k]) => !k.startsWith('cm_')))
+  const grupos = [filas.filter((f) => !conPropio.has(f.card_id)), filas.filter((f) => conPropio.has(f.card_id)).map(sinCardmarket)]
+  for (const grupo of grupos) {
+    if (!grupo.length) continue
+    const guardado = await guardarFilas(grupo, { fetchImpl, cab })
     if (guardado.error) return { ok: false, error: guardado.error, fallos }
   }
-  return { ok: fallos.length === 0, pendientes: pendientes.length, guardados: filas.length, fallos }
+  return { ok: fallos.length === 0, pendientes: pendientes.length, guardados: filas.length, conParPropio: conPropio.size, fallos }
 }
 
 // Las columnas que trajeron la 585 y la 586. Hasta que la migración esté

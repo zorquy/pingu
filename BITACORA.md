@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía) — PINGU-Claude (587 — nuestro emparejamiento con Cardmarket)
+
+**Hecho**: TCGdex empareja mal con Cardmarket a lo grande (su issue
+#2325). Cardmarket publica dos ficheros abiertos al día (catálogo de
+productos y guía de precios); el cruce lo hacemos nosotros: por expansión
+(huella de nombres) y por carta (alineación de nombres en orden, como un
+`diff`, y nombre + ataques para lo suelto). Lib pura
+`netlify/lib/cardmarket-catalogo.mjs` probada con trozos REALES de los
+dos ficheros (Primal Clash y Paldea Evolved: el Groudon 150 va al 273681).
+Funciones: `cardmarket-emparejar` (admin, ensayo en seco por tandas,
+escribe solo tras confirmar) y `cardmarket-precios` (cada hora; una guía
+al día para todas las cartas con par). `precios-coleccion` ya no pisa
+Cardmarket donde hay par propio. Botón en /admin → Cartas.
+
+**MIGRACIÓN pendiente de ejecutar**: `supabase-migration-cardmarket-propio.sql`.
+Después: /admin → Cartas → «Emparejar con Cardmarket (ensayo)», leer el
+informe, confirmar. La guía entra en la siguiente pasada (≤1 h).
+
+**Ficheros**: `netlify/lib/cardmarket-catalogo.mjs` (nuevo),
+`netlify/functions/cardmarket-emparejar.mjs` y `cardmarket-precios.mjs`
+(nuevos), `netlify/functions/precios-coleccion.mjs`, `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`. En `pruebas`: `test-tanda-587.mjs`,
+`test-tanda-587-catalogo.mjs` y `fixtures/cardmarket-*.json` (nuevos).
+
 ## 2026-10-06 (mañana) — PINGU-Claude (586 — los dos mercados, y el Groudon que valía 2 €)
 
 **Hecho**: PINGU vio que el Groudon-EX (PRC 150) traía el precio y el

@@ -3035,6 +3035,77 @@ const SONDAS_SCRYDEX = [
 // por la mañana.
 //
 // No gasta ni un crédito: son cuentas de nuestra propia base.
+// Nuestro emparejamiento con Cardmarket (tanda 587): ensayo en seco set a
+// set, en varias llamadas (la función se corta a los pocos segundos), y
+// escritura solo tras confirmar con el número delante.
+async function cardmarketEmparejar() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnCardmarketEmparejar')
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) return
+  const llamar = async (escribir, desde) => {
+    const res = await fetch('/.netlify/functions/cardmarket-emparejar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ mercado: 'WEST', escribir, desde }),
+    })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    return r
+  }
+  // Todas las tandas seguidas, acumulando el informe.
+  const recorrer = async (escribir) => {
+    const total = { informe: [], aEscribir: 0, escritas: 0, cartasConPar: 0, cartasSinPar: 0, setsConPar: 0, setsSinExpansion: 0, setsSospechosos: 0 }
+    let desde = 0
+    let r
+    do {
+      caja.value = `${escribir ? 'Escribiendo' : 'Ensayo en seco'}… sets ${desde}${r ? ` de ${r.nuestrosSets}` : ''}`
+      r = await llamar(escribir, desde)
+      for (const k of ['aEscribir', 'escritas', 'cartasConPar', 'cartasSinPar', 'setsConPar', 'setsSinExpansion', 'setsSospechosos']) total[k] += r[k] || 0
+      total.informe.push(...r.informe)
+      total.susProductos = r.susProductos
+      total.nuestrosSets = r.nuestrosSets
+      desde = r.siguienteDesde
+    } while (desde !== null && desde !== undefined)
+    return total
+  }
+  const pintar = (t, escrito) => [
+    escrito ? `── ESCRITO: ${t.escritas} cartas ──` : '── ENSAYO EN SECO: NO SE HA TOCADO LA BASE ──',
+    `Catálogo de Cardmarket: ${t.susProductos} productos · nuestros sets: ${t.nuestrosSets}`,
+    `Sets con expansión: ${t.setsConPar} · sin expansión clara: ${t.setsSinExpansion} · sospechosos (no se escriben): ${t.setsSospechosos}`,
+    `Cartas con par: ${t.cartasConPar} · sin par: ${t.cartasSinPar} · A ESCRIBIR (cambian): ${t.aEscribir}`,
+    '',
+    'SET A SET:',
+    ...t.informe.map((f) => f.error
+      ? `  · ${f.set} — ERROR ${f.error}`
+      : !f.idExpansion
+        ? `  · ${f.set} ${f.nombre} (${f.cartas}) — SIN EXPANSIÓN: ${f.porque} ${JSON.stringify(f.candidatas || [])}`
+        : `  · ${f.set} ${f.nombre} (${f.cartas}) → exp ${f.idExpansion} (${Math.round((f.puntos || 0) * 100)} %): ${f.pares} pares (${f.porOrden} por orden, ${f.porNombre} por nombre), ${f.sinPar} sin par, sobran ${f.sobran}, ya iguales ${f.yaIguales}${f.SOSPECHOSO ? ` — ⚠ ${f.SOSPECHOSO}` : ''}${f.ejemplosSinPar?.length ? `\n      sin par: ${f.ejemplosSinPar.join(' | ')}` : ''}`),
+  ].join('\n')
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  try {
+    const ensayo = await recorrer(false)
+    caja.value = pintar(ensayo, false)
+    if (!ensayo.aEscribir) {
+      cardsNota('Ensayo hecho: no hay nada que escribir.')
+      return
+    }
+    if (!window.confirm(`El ensayo dice que se escribirían ${ensayo.aEscribir} pares (cartas → producto de Cardmarket). Lee el cuadro y, si está bien, acepta para ESCRIBIRLO en la base.`)) {
+      cardsNota('Ensayo hecho. No se ha escrito nada.')
+      return
+    }
+    const escrito = await recorrer(true)
+    caja.value = pintar(escrito, true)
+    cardsNota(`Escritos ${escrito.escritas} pares. La guía de precios de Cardmarket los usa en su próxima pasada (cada hora).`)
+  } catch (e) {
+    caja.value = `No se ha podido: ${e.message}`
+    cardsNota(e.message, true)
+  } finally {
+    boton.disabled = false
+  }
+}
+
 // Una carta de Scrydex, en crudo (tanda 586): lo que hace falta ver antes
 // de afirmar qué precios trae y en qué moneda. Un crédito por clic.
 async function cartaScrydex() {
@@ -3391,6 +3462,7 @@ function initCardsSection() {
   document.getElementById('btnSetsScrydex')?.addEventListener('click', setsScrydex)
   document.getElementById('btnComoVaScrydex')?.addEventListener('click', comoVaScrydex)
   document.getElementById('btnCartaScrydex')?.addEventListener('click', cartaScrydex)
+  document.getElementById('btnCardmarketEmparejar')?.addEventListener('click', cardmarketEmparejar)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

@@ -30274,3 +30274,79 @@ migración; la función programada sin pokemontcg y con el puente) y
 `test-tanda-586-pantalla.mjs` (la cabecera suma por TCGplayer, la ficha y
 /carta avisan y buscan).
 
+## Tanda 587 — nuestro propio emparejamiento con Cardmarket, y sus precios de un fichero al día (oct. 2026)
+
+PINGU, con el issue #2325 de TCGdex delante: «no tiene ni un puto sentido
+que estén todas las cartas mal». Y luego: «¿no hay alguna manera de
+revisar cada carta en Cardmarket y crear nuestra propia base de datos de
+precios?». La hay, y no es leer páginas: **Cardmarket publica cada día
+dos ficheros abiertos**, sin clave ni API:
+
+- `productCatalog/productList/products_singles_6.json` — 74.620 productos
+  de Pokémon: `idProduct`, `name`, `idExpansion`. El nombre lleva los
+  ataques entre corchetes («Groudon EX [Rip Claw | Massive Rend]»). **No
+  trae el número de carta ni el nombre de la expansión.**
+- `productCatalog/priceGuide/price_guide_6.json` — 79.688 precios:
+  avg/low/trend/avg1/avg7/avg30 y los «-holo». Es EXACTAMENTE lo que TCGdex
+  nos daba (el 273615 trae los mismos 0,15 / 2,06 / 1,34): TCGdex no tiene
+  precios propios, relee este fichero. Lo que TCGdex hacía mal era el
+  CRUCE, y el cruce lo hacemos ahora nosotros.
+
+**Cómo se cruza sin número** (`netlify/lib/cardmarket-catalogo.mjs`,
+probado con trozos reales de los dos ficheros):
+
+1. **Qué expansión suya es cada set nuestro: por los nombres.** La que más
+   nombres comparte con el set, y solo si se lleva ≥15 puntos de la
+   segunda (`expansionDeSet`). Una huella de 150 nombres no se parece a
+   ninguna otra; dos expansiones a medias (una reimpresión) no se deciden.
+2. **Qué producto es cada carta: alineando las dos listas.** Medido sobre
+   el fichero entero: dentro de una expansión los `idProduct` van, casi
+   siempre, en el orden de numeración (Primal Clash: 273532 es la 1 y
+   273681 la 150). «Casi»: en 324 de 785 expansiones la secuencia es
+   perfecta; en las demás hay tarjetas de código delante, cartas añadidas
+   después fuera de sitio y productos de más. Así que no se cruza por
+   posición a pelo: se alinean las nuestras (por número) con las suyas
+   (por id) con **la subsecuencia común más larga de nombres** —lo que
+   hace un `diff`— (`alinear`). Lo que está en orden casa aunque falten o
+   sobren cosas en medio, y dos cartas con el mismo nombre y los mismos
+   ataques (Chien-Pao ex normal y su ilustración especial; el Groudon EX
+   85 y el 150) caen cada una en la suya porque el orden las separa.
+   Lo que no entra en la alineación se intenta por nombre + ataques si es
+   único en los dos lados, y si no por nombre si es único. Lo demás, sin
+   par, con su motivo.
+3. **Lo que no se escribe**: un set sin expansión clara; una carta sin
+   par; y un set cuya alineación casa menos de la mitad por orden
+   (`CONFIANZA_MINIMA`): la expansión probablemente no es esa. Un par malo
+   es justo el fallo que venimos a arreglar.
+
+**Dónde vive el par**: `tcg_cards.cm_id_product_propio` (+ `cm_por`,
+`cm_emparejado_at`), por la función `cardmarket_guardar_pares(jsonb)` —una
+sentencia para cientos de cartas; un PATCH por carta serían 23.000
+peticiones—. Migración `supabase-migration-cardmarket-propio.sql`.
+
+**Las dos funciones**:
+
+- `cardmarket-emparejar` (admin, POST): ensayo en seco por defecto, set a
+  set, en varias llamadas (`desde` / `siguienteDesde`: una función de
+  Netlify se corta a los pocos segundos y 220 sets no caben en una); el
+  panel encadena las llamadas, enseña el informe y pide confirmación con
+  el número delante antes de escribir. /admin → Cartas → «Emparejar con
+  Cardmarket (ensayo)».
+- `cardmarket-precios` (cada hora, a y 23): si la guía de hoy no está
+  puesta, la baja (15 MB) y escribe `tcg_card_prices` para cada carta con
+  par propio, por páginas de mil y con presupuesto de tiempo, apuntando en
+  `scrydex_estado` (`cardmarket_guia`) por dónde va; cuando acaba marca el
+  día. Un fichero al día, todas las cartas, cero créditos.
+- `precios-coleccion` (TCGdex) **deja de pisar Cardmarket** en las cartas
+  con par propio: de ellas solo guarda TCGplayer (dos sentencias, porque
+  las claves son distintas). La guía pone lo suyo.
+
+**Lo que no cambia**: el cliente. Lee `tcg_card_prices` como siempre; lo
+que cambia es que el `cm_id_product` y las cifras son del producto bueno.
+La regla de las diez veces de la 586 se queda de guarda.
+
+**Lo que se sabrá después de la primera pasada**: cuántos sets se
+emparejan solos y cuántas cartas quedan sin par (el informe lo dice set a
+set), y, con la consulta del final de la migración, en cuántas cartas el
+par propio discrepa del de TCGdex — o sea, cuántas estaban mal.
+
