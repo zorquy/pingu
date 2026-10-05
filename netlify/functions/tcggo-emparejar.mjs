@@ -38,6 +38,9 @@ import {
   cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, alternativasDe, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from './cardmarket-precios.mjs'
+// Solo la CLAVE: importar la función entera sería un ciclo (ella importa
+// de aquí los topes).
+const CLAVE_PRECIOS = 'tcggo_precios'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -140,6 +143,12 @@ export async function procesar({
   }
 
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
+  // Las expansiones cuyos pares cambian en esta llamada: la pasada de
+  // precios de hoy las tiene que volver a mirar (589). Si no, un set
+  // reemparejado se quedaría con los precios viejos —o sin ellos— hasta
+  // mañana, que es justo lo que pasó con Team Rocket Returns.
+  const episodiosTocados = new Set()
+  let episodiosReabiertos = 0
   const esteTurno = []
   const tocados = new Set()
   let escritas = 0
@@ -271,6 +280,7 @@ export async function procesar({
         break
       }
       hayQueRefrescarLaGuia = true
+      episodiosTocados.add(episodio.id)
     }
     const fila = {
       set: set.id, nombre: set.name, codigo: set.tcg_online_code || null, episodio: episodio.id, episodioNombre: episodio.nombre, por,
@@ -295,6 +305,19 @@ export async function procesar({
       await guardarEstado(CLAVE_GUIA, { dia: ahora.toISOString().slice(0, 10), desde: 0, hecho: false, reabierta_por: 'tcggo-emparejar' })
     } catch { /* no es grave: mañana pasa igual */ }
   }
+  // Y lo mismo con la pasada de precios de TCGGO: sus expansiones tocadas
+  // salen de «hechas hoy» para que la próxima pasada las vuelva a pedir.
+  if (episodiosTocados.size) {
+    try {
+      const precios = (await pedir(`scrydex_estado?select=valor&clave=eq.${CLAVE_PRECIOS}&limit=1`))?.[0]?.valor
+      if (precios && Array.isArray(precios.hechos)) {
+        const antes = precios.hechos.length
+        precios.hechos = precios.hechos.filter((id) => !episodiosTocados.has(id))
+        episodiosReabiertos = antes - precios.hechos.length
+        if (episodiosReabiertos) await guardarEstado(CLAVE_PRECIOS, { ...precios, hecho: false, reabierta_por: 'tcggo-emparejar' })
+      }
+    } catch { /* sin estado de precios todavía: no hay nada que reabrir */ }
+  }
 
   function resumen() {
     const hechos = Object.keys(estado.hechos).length
@@ -313,6 +336,7 @@ export async function procesar({
       sinEpisodio,
       esteTurno,
       escritas,
+      episodiosReabiertos,
       parado,
     }
   }
