@@ -51,14 +51,13 @@ console.log('── 2. Conocida no es lo mismo que distinta ──')
 
 console.log('── 3. Y el informe pregunta lo que hay que preguntar ──')
 {
-  // La prueba mira el ORIGEN, no una copia: si /admin vuelve a decidirlo
-  // por su cuenta con `rarezaEs(r) === r`, esto se pone rojo.
+  // El informe de /admin que usaba `rarezaConocida` se fue con los botones
+  // de Scrydex en la 641 (la rareza la escribe ahora el catálogo de TCGGO,
+  // tanda 644, pasando por `rarezaCanonica`). Lo que queda de la lección
+  // es la pregunta buena —«¿está en el vocabulario?»— y su guarda de abajo.
   const admin = readFileSync('/home/user/pingu/admin/js/admin.js', 'utf8')
-  check('el informe usa `rarezaConocida`', /filter\(\(r\) => !rarezaConocida\(r\)\)/.test(admin))
-  check('  …y ya no compara la traducción consigo misma', !/rarezaEs\(r\) === r/.test(admin))
-  // Y lo importa de verdad, que si no es una llamada a una función que no
-  // existe (la lección de la 510: eso rompe la PÁGINA entera).
-  check('  …y lo importa', /import \{[^}]*rarezaConocida[^}]*\} from '\.\.\/\.\.\/js\/rarezas-nombres\.js'/.test(admin))
+  check('/admin ya no compara la traducción consigo misma', !/rarezaEs\(r\) === r/.test(admin))
+  check('  …ni importa lo que no usa (un import muerto no da error, pero miente)', !/rarezaConocida/.test(admin))
   // Todas las de Scrydex que tenemos escritas son, por definición,
   // conocidas: si una se cuela sin entrar en el mapa canónico, el informe
   // la pediría para siempre y nadie sabría por qué.

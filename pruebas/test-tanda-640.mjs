@@ -2,7 +2,8 @@
 // (occidental y japonés) con TCGGO y base de mentira, la foto de TCGGO en
 // la cadena, y la guarda de los selects. Sin red.
 import { readFileSync, readdirSync } from 'node:fs'
-import { baseJpDe, categoriaDe, idDeSetNuevo, filaDeSetNuevo, filaDeCartaTcggo, setDeEpisodio } from '/home/user/pingu/netlify/lib/tcggo.mjs'
+import { baseJpDe, categoriaDe, idDeSetNuevo, filaDeSetNuevo, filaDeCartaTcggo, setDeEpisodio, serieDeEpisodio, esCartaSuelta, emparejarPorNumero, resumirEpisodio, filaDeSetTcggo } from '/home/user/pingu/netlify/lib/tcggo.mjs'
+import { rarezaCanonica, rarezaEs } from '/home/user/pingu/js/rarezas-nombres.js'
 import { procesar, CLAVE_ESTADO, semanaDe } from '/home/user/pingu/netlify/functions/tcggo-catalogo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES } from '/home/user/pingu/netlify/functions/tcggo-emparejar.mjs'
 import { cadenaDeEscaneo } from '/home/user/pingu/js/escaneo-carta.js'
@@ -22,7 +23,24 @@ console.log('── 1. Los ayudantes ──')
   check('su supertype → nuestra categoría', categoriaDe('Pokémon') === 'Pokemon' && categoriaDe('Trainer') === 'Trainer' && categoriaDe('Energy') === 'Energy' && categoriaDe(null) === null)
   check('el id de un set nuevo: su código en minúsculas si está libre, si no tg-<id>', idDeSetNuevo({ id: 415, codigo: 'PBL' }, ['sv01']) === 'pbl' && idDeSetNuevo({ id: 415, codigo: 'PBL' }, ['pbl']) === 'tg-415' && idDeSetNuevo({ id: 9, codigo: null }, []) === 'tg-9')
   const set = filaDeSetNuevo({ id: 415, nombre: 'Pitch Black', codigo: 'PBL', cartas: 120, fecha: '2026-07-17', logo: 'https://images.tcggo.com/x.png' }, [])
-  check('la fila de un set nuevo', set.id === 'pbl' && set.name === 'Pitch Black' && set.tcg_online_code === 'PBL' && set.release_date === '2026-07-17' && set.card_count_total === 120 && set.logo_tcggo === 'https://images.tcggo.com/x.png' && set.tcggo_id === 415, JSON.stringify(set))
+  check('la fila de un set nuevo', set.id === 'pbl' && set.name === 'Pitch Black' && set.tcg_online_code === 'PBL' && set.release_date === '2026-07-17' && set.card_count_total === 120 && set.logo_tcggo === 'https://images.tcggo.com/x.png' && set.tcggo_id === 415 && set.card_count_official === null && set.serie_id === null, JSON.stringify(set))
+  // ── Tanda 644: la serie y el total impreso de un set nuevo, y solo cartas ──
+  const ep = resumirEpisodio(CARTAS[0].episode)
+  check('644: del episodio salen también lo impreso y la serie', ep.impresas === 120 && ep.serie === 'Mega Evolution' && ep.serieId === 'mega-evolution' && ep.cartas === 120, JSON.stringify(ep))
+  const SETS_SERIE = [{ id: 'me01', serie_id: 'me', serie_name: 'Megaevolución', serie_name_en: 'Mega Evolution' }, { id: 'sv01', serie_id: 'sv', serie_name_en: 'Scarlet & Violet' }]
+  const serieNuestra = serieDeEpisodio(ep, SETS_SERIE)
+  check('644: la serie de una expansión es la NUESTRA si un set nuestro se llama igual en inglés', serieNuestra?.serie_id === 'me' && serieNuestra.serie_name === 'Megaevolución' && serieNuestra.serie_name_en === 'Mega Evolution' && serieNuestra.por === 'nuestra', JSON.stringify(serieNuestra))
+  const serieNueva = serieDeEpisodio({ ...ep, serie: 'Zenith Era', serieId: 'zenith-era' }, SETS_SERIE)
+  check('  …y si no la tenemos, entra nueva con su slug y su inglés', serieNueva?.serie_id === 'zenith-era' && serieNueva.serie_name === null && serieNueva.serie_name_en === 'Zenith Era' && serieNueva.por === 'nueva' && serieDeEpisodio({ serie: null }, SETS_SERIE) === null, JSON.stringify(serieNueva))
+  const setCompleto = filaDeSetNuevo(ep, [], serieNuestra)
+  check('  …y la fila del set nuevo las lleva: total impreso y serie', setCompleto.card_count_official === 120 && setCompleto.card_count_total === 120 && setCompleto.serie_id === 'me' && setCompleto.serie_name === 'Megaevolución' && setCompleto.serie_name_en === 'Mega Evolution', JSON.stringify(setCompleto))
+  check('  …y la de un set que ya tenemos también lleva lo impreso', filaDeSetTcggo('me05', ep).impresas === 120 && filaDeSetTcggo('me05', { ...ep, impresas: 0 }).impresas === null)
+  check('644: lo que no es «singles» no es una carta', esCartaSuelta({ type: 'singles' }) && esCartaSuelta({}) && !esCartaSuelta({ type: 'sealed' }) && !esCartaSuelta({ type: 'Booster Box' }))
+  const conSobre = emparejarPorNumero([{ id: 'a-1', local_id: '1' }], [{ id: 9, card_number: '1', cardmarket_id: 5, type: 'singles' }, { id: 10, card_number: '1', cardmarket_id: 6, type: 'sealed' }])
+  check('  …y el emparejador lo aparta antes de casar (sin él, «1» sería ambiguo)', conSobre.pares.length === 1 && conSobre.pares[0].idProduct === 5 && conSobre.descartadas === 1 && conSobre.sobran === 0, JSON.stringify(conSobre))
+  check('644: la rareza se guarda con UNA grafía: «rare» → «Rare», «double rare» → «Double Rare»', rarezaCanonica('rare') === 'Rare' && rarezaCanonica('double rare') === 'Double Rare' && rarezaCanonica('ACE SPEC Rare') === 'ACE SPEC Rare' && rarezaCanonica('nueva cosa') === 'Nueva Cosa' && rarezaCanonica('') === null && rarezaCanonica(null) === null)
+  check('  …y la fila de la carta pasa por ahí', filaDeCartaTcggo({ id: 1, rarity: 'rare' }, { setId: 'x' }).rarity_en === 'Rare' && filaDeCartaTcggo({ id: 1, rarity: '  ' }, { setId: 'x' }).rarity_en === null)
+  check('  …y leer tampoco distingue mayúsculas', rarezaEs('rare') === 'Rara' && rarezaEs('double rare') === 'Rara Doble' && rarezaEs('Lo Que Sea') === 'Lo Que Sea')
   const tropius = CARTAS[0]
   const nueva = filaDeCartaTcggo(tropius, { setId: 'me05' })
   check('una carta NUEVA: id tcggo-<id>, su número, su nombre, sus ids y su foto', nueva.id === 'tcggo-49770' && nueva.set_id === 'me05' && nueva.local_id === '1' && nueva.name === 'Tropius' && nueva.name_en === 'Tropius' && nueva.cm_id_product === 895789 && nueva.tp_id_product === 704758 && nueva.image_tcggo === tropius.image && nueva.rarity_en === 'Common' && nueva.tcggo_id === 49770, JSON.stringify(nueva))
@@ -155,7 +173,8 @@ console.log('── 4. La guarda de los selects: donde se pide image_scrydex se 
   check('ninguna lista de columnas con image_scrydex sin image_tcggo', malos.length === 0, malos.join(' | '))
   const sql = readFileSync('/home/user/pingu/supabase-migration-tcggo-catalogo.sql', 'utf8')
   check('la migración: las columnas, las dos funciones, y las creadas no las visita TCGdex', /add column if not exists image_tcggo/.test(sql) && /tcggo_crear_sets/.test(sql) && /tcggo_guardar_cartas/.test(sql) && /'tcggo', now\(\), now\(\), 'tcggo'/.test(sql) && /on conflict \(id, market\) do update/.test(sql))
-  check('  …y lo nuestro no se pisa: coalesce(tcg_cards.x, excluded.x)', /rarity_en = coalesce\(tcg_cards\.rarity_en, excluded\.rarity_en\)/.test(sql) && /cm_id_product_propio = coalesce\(tcg_cards\.cm_id_product_propio, excluded\.cm_id_product_propio\)/.test(sql))
+  check('  …los ids de producto nuestros no se pisan, y la rareza, los PS y el ilustrador son de TCGGO (644)', /rarity_en = coalesce\(excluded\.rarity_en, tcg_cards\.rarity_en\)/.test(sql) && /hp = coalesce\(excluded\.hp, tcg_cards\.hp\)/.test(sql) && /illustrator = coalesce\(excluded\.illustrator, tcg_cards\.illustrator\)/.test(sql) && /cm_id_product_propio = coalesce\(tcg_cards\.cm_id_product_propio, excluded\.cm_id_product_propio\)/.test(sql) && /name_en = coalesce\(tcg_cards\.name_en, excluded\.name_en\)/.test(sql))
+  check('  …un set nuevo entra con serie y total impreso, y tcggo_guardar_sets rellena lo impreso (644)', /card_count_official, serie_id, serie_name, serie_name_en/.test(sql) && /card_count_official = coalesce\(s\.card_count_official, nullif\(p\.impresas, 0\)\)/.test(sql) && /p\(id text, tcggo_id int, logo text, fecha date, cartas int, impresas int\)/.test(sql))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
