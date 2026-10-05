@@ -23,9 +23,9 @@ const EPISODIOS = JSON.parse(readFileSync(new URL('tcggo-episodios-ejemplo.json'
 console.log('── 1. El ayudante puro ──')
 {
   check('las cabeceras llevan la clave y el host de RapidAPI', cabeceras('k')['x-rapidapi-key'] === 'k' && cabeceras('k')['x-rapidapi-host'] === HOST)
-  check('la base de serie es la puerta «Pokémon TCG API», y TCGGO_BASE la cambia con su host', baseDe({}).host === 'pokemon-tcg-api.p.rapidapi.com' && baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' }).base === 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon' && baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' }).host === 'cardmarket-api-tcg.p.rapidapi.com', JSON.stringify(baseDe({ TCGGO_BASE: 'https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon/' })))
-  check('  …y una base rota no rompe: se queda con la de serie como host', baseDe({ TCGGO_BASE: 'no es una url' }).host === 'pokemon-tcg-api.p.rapidapi.com')
-  check('las URLs: expansiones por página, cartas por expansión de 100 en 100', /episodes\?page=2$/.test(urlEpisodios(2)) && /cards\?episode_id=415&per_page=100&page=3$/.test(urlCartasDeEpisodio(415, 3)))
+  check('la base de serie es la puerta del PDF con /pokemon, y TCGGO_BASE la cambia con su host', baseDe({}).base === 'https://cardmarket-api-tcg.p.rapidapi.com/pokemon' && baseDe({}).host === 'cardmarket-api-tcg.p.rapidapi.com' && baseDe({ TCGGO_BASE: 'https://pokemon-tcg-api.p.rapidapi.com/' }).base === 'https://pokemon-tcg-api.p.rapidapi.com' && baseDe({ TCGGO_BASE: 'https://pokemon-tcg-api.p.rapidapi.com/' }).host === 'pokemon-tcg-api.p.rapidapi.com', JSON.stringify(baseDe({ TCGGO_BASE: 'https://pokemon-tcg-api.p.rapidapi.com/' })))
+  check('  …y una base rota no rompe: se queda con la de serie como host', baseDe({ TCGGO_BASE: 'no es una url' }).host === 'cardmarket-api-tcg.p.rapidapi.com')
+  check('las URLs: /pokemon/episodes por página, /pokemon/cards por expansión de 100 en 100', urlEpisodios(2) === 'https://cardmarket-api-tcg.p.rapidapi.com/pokemon/episodes?page=2' && urlCartasDeEpisodio(415, 3) === 'https://cardmarket-api-tcg.p.rapidapi.com/pokemon/cards?episode_id=415&per_page=100&page=3', urlEpisodios(2))
   check('`paging` dice si hay más (1 de 9 sí, 9 de 9 no, sin paging no)', hayMasPaginas(EPISODIOS) === true && hayMasPaginas({ paging: { current: 9, total: 9 } }) === false && hayMasPaginas({}) === false)
   const eps = EPISODIOS.data.map(resumirEpisodio)
   check('una expansión resumida: id, nombre, código, cartas', eps[2].id === 415 && eps[2].codigo === 'PBL' && eps[2].nombre === 'Pitch Black' && eps[2].cartas === 120, JSON.stringify(eps[2]))
@@ -153,6 +153,23 @@ console.log('── 3. Una pasada con tope de 9: la lista de expansiones y nada 
   check('cero peticiones', r3.cuerpo.peticionesEstaLlamada === 0 && t.urls.length === antes && r3.cuerpo.siguiente === false)
   const r4 = await procesar({ env: ENV, ...b, fetchImpl: t.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9, reiniciar: true })
   check('con `reiniciar` vuelve a pedir expansiones y sets', r4.cuerpo.peticionesEstaLlamada === 9 && r4.cuerpo.setsHechos === 0, JSON.stringify([r4.cuerpo.peticionesEstaLlamada, r4.cuerpo.setsHechos]))
+}
+
+console.log('── 5b. La lista de expansiones se reanuda, y el plan de pago ──')
+{
+  const t = tcggoDeMentira()
+  const b = baseDeMentira()
+  const r1 = await procesar({ env: ENV, ...b, fetchImpl: t.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 5 })
+  check('con tope 5 bajan 5 páginas y la lista queda EN CURSO, no decidida', r1.cuerpo.peticionesEstaLlamada === 5 && !b.estados[CLAVE_ESTADO].episodios && b.estados[CLAVE_ESTADO].episodiosEnCurso?.siguientePagina === 6 && b.estados[CLAVE_ESTADO].episodiosEnCurso.lista.length === 24, JSON.stringify(b.estados[CLAVE_ESTADO].episodiosEnCurso?.siguientePagina))
+  const r2 = await procesar({ env: ENV, ...b, fetchImpl: t.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 5 })
+  check('la siguiente sigue por la página 6, acaba la lista y le sobra una para un set', t.urls[5].endsWith('episodes?page=6') && b.estados[CLAVE_ESTADO].episodios?.lista?.length === 28 && !b.estados[CLAVE_ESTADO].episodiosEnCurso && r2.cuerpo.peticionesEstaLlamada === 5 && r2.cuerpo.setsHechos === 1, JSON.stringify([t.urls[5], r2.cuerpo.setsHechos]))
+  // Con la pausa del plan Ultra caben 60 por llamada; con la del gratis, 9.
+  const b3 = baseDeMentira()
+  const t3 = tcggoDeMentira()
+  const r3 = await procesar({ env: { ...ENV, TCGGO_PAUSA_MS: '250', TCGGO_TOPE_DIARIO: '14000' }, ...b3, fetchImpl: t3.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 60 })
+  check('con TCGGO_PAUSA_MS=250 una llamada hace la lista y los sets de una vez', r3.cuerpo.tope === 60 && r3.cuerpo.pausaMs === 250 && r3.cuerpo.peticionesEstaLlamada === 12 && r3.cuerpo.setsHechos === 2 && r3.cuerpo.topeDiario === 14000, JSON.stringify([r3.cuerpo.tope, r3.cuerpo.peticionesEstaLlamada, r3.cuerpo.setsHechos]))
+  const r4 = await procesar({ env: ENV, ...baseDeMentira(), fetchImpl: tcggoDeMentira().fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 60 })
+  check('con la pausa del gratis el tope por llamada se acota a 9', r4.cuerpo.tope === 9)
 }
 
 console.log('── 6. Los frenos ──')
