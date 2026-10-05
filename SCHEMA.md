@@ -31080,3 +31080,91 @@ dentro de la ficha, impresiones pulsables en /carta). Al día: 589,
 banderas son identidad, como las casas), y las diez que tocan el
 formulario de la copia (368, 376, 383, 392, 405, 422, 472, 563, 564, 574),
 que ahora lo despliegan antes (`desplegarCopia`).
+
+## Tanda 625 — el repaso de los efectos del formato (oct. 2026)
+
+PINGU: «Meowth ex no vuelve a usar la habilidad la segunda vez… lo mismo
+con ataques como el de Hydrapple ex, que siempre hay que introducir a mano
+el daño. Corrige todo eso y léete todos los efectos de ataque, habilidades
+y el funcionamiento de TODOS los ataques de los Pokémon del formato
+actual».
+
+**Los dos casos concretos no se reproducen** con el motor de hoy: Meowth ex
+bajado en dos turnos distintos usa la habilidad las dos veces, y Tormenta
+en Almíbar de Hydrapple ex, con su texto de producción en español, hace
+30 + 30 por cada Energía {G} de tus Pokémon sin preguntar nada. Se probó en
+el motor y en el laboratorio de verdad (muñeco y mesa). Quedan los dos en
+`test-tanda-625.mjs` y se le pidió a PINGU el enlace de la partida donde lo
+vio, porque «a mano» sale cuando la CARTA no trae texto (el engorde no ha
+pasado por ella) y eso no lo arregla el lector.
+
+**El inventario**: las 3.234 cartas con marca H, I o J de
+tcgdex/cards-database (2.763 Pokémon, 1.753 distintos), cada ataque leído
+en inglés Y en español. Antes de la tanda, 545 ataques distintos no se
+leían enteros; ahora 364, y el corpus de la 593 pasa de 2.777 cartas
+leídas a 3.180. **Ninguno de los que quedan es de una carta del meta** (la
+lista de los 86 Pokémon que salen en los mazos de /meta): lo que falta son
+cartas de una sola impresión que casi no se juegan. Las habilidades que el
+inventario cuenta como «no» (190) son casi todas ACTIVAS («una vez durante
+tu turno, puedes…»), que no se leen del texto sino que se escriben en
+`efectos.js`; las del meta están todas (Festival en Cabeza vive en
+`partida.js` por su nombre).
+
+**Frases nuevas de daño** (`calc: true`, en `textos.js` y su español en
+`textos-es.js`): por herramientas en juego, si tiene/el rival tiene
+herramienta, contra un Pokémon Evolución o Teracristal, «por lo menos N
+energías (de un tipo) en juego», por cada uno de tus Pokémon en juego, por
+energías de todos los del rival, por premios (los suyos, los tuyos, «más
+que tu rival», «exactamente N o M»), menos por cada {C} de su retirada, sin
+contadores / con N contadores encima, la misma cantidad de energías, por
+estados del rival, «si no está Quemado, no hace nada», por contadores de
+todos los del rival, «algún Pokémon {M}/Teracristal/de fase 2 en tu banca»,
+«si Beldum y Metang están en tu banca», «3 cartas o menos en tu baraja»,
+lo de la mano (igual, menos, exactamente N), descartar energías de tus
+Pokémon / de este / de la mano «y N por cada una», el Aliento Hydra
+(«descarta 6 Planta de la mano y KO; si no puedes, nada»: si no llegan, no
+se descarta ninguna), daño a cada uno de los del rival (o a sus ex), a N de
+ellos, a uno «por cada energía» o «por cada contador», a un ex o V de la
+banca, cambiar al de la banca y pegarle al NUEVO activo, «puedes hacer N
+más; si lo haces, te haces M», y las monedas «una por cada energía unida»
+y «por cada cara, X».
+
+**Lo de después**: contadores a cada uno que ya tenga, repartir contadores,
+devolver energías del activo rival a SU mano («puedes» pregunta; sin
+«puedes», no), no retirarse el próximo turno, curar lo que se ha hecho,
+curar la banca, daño a tu propia banca, el bono de Puño Meteoro para el
+turno siguiente, evolucionar desde el mazo, descartar una y robar, enseñar
+la mano rival, recuperar del descarte por clase, buscar energía y unirla
+(a este, a uno, repartida, a la banca de un tipo), unir del descarte o de
+la mano a la banca, el Ataque Arena (el rival lanza moneda al atacar en su
+turno; con cruz no hay ataque) y «si vas primero, puedes usarlo en tu
+primer turno».
+
+**Habilidades**: Robustez (con todos sus PS, aguanta con 10), el refugio en
+la banca de Poltchageist (ni daño ni efectos mientras esté en la banca),
+Vida Bloqueada de Yveltal (el activo rival no se cura), «no puede pasar a
+estar Confundido» / «ninguna condición especial», Excava Excava de Drilbur,
+las de Abra (*Teleporter*) y Moltres (*Fiery Flapping*) y la Perdición Plasma
+de Kyurem, que **ahora se lee del texto**: con los nombres ingleses a fuego,
+la carta en español («Triple Escarcha», «Acromo») no la activaba nunca.
+
+**Usar el ataque de otro**: Broma Nocturna del Zoroark ex de N (uno de los
+ataques de tus Pokémon de N en banca) y Buscar Inspiración de Slowking
+(descarta la de arriba; si es un Pokémon sin recuadro de regla, usa uno de
+sus ataques). Lo hace ESTE Pokémon, sin pagar la energía del copiado
+(`usarAtaqueDe` en `efectos.js`).
+
+**Dos detalles del lector**: una rama de moneda que no se entiende sola
+(«Si sale cruz, ese ataque no se lleva a cabo») ya no corta la traducción:
+se prueba como frase entera; y «Pon 1 Energía…» (imperativo, sin
+«puedes») no casaba porque la plantilla decía `poner?`.
+
+**Pruebas**: `test-tanda-625.mjs`, todo con el motor de verdad y en
+español (los textos son los de producción: «Cambia 1 de los Pokémon en
+Banca de tu rival por el Pokémon que esté en el Puesto Activo», no uno que
+se le parezca). Las monedas se prueban con OCHO semillas: con una sola,
+«o sale cruz y no hay ataque, o hay golpe» es verdad aunque no se lance
+ninguna moneda. Rigor de 47 mutaciones, todas cazadas — la de Robustez
+«aguanta aunque ya tenga daño» salió sin detectar en la primera pasada
+porque el resultado es el mismo KO; lo que cambia es que el registro dice
+«aguanta con 10 PS» de alguien que no aguanta, y eso es lo que se mira.

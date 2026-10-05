@@ -220,6 +220,94 @@ const TRADUCIR = [
 
   // — Monedas —
   [new RegExp(`^lanza ${N} monedas?( hasta que salga cruz)?$`), (m) => `flip ${unoA(m[1])} coin${num(m[1]) === 1 ? '' : 's'}${m[2] ? ' until you get tails' : ''}`],
+
+  // ── Tanda 625: el repaso del formato entero ──
+  [/^lanza 1 moneda por cada energía (?:({[a-z]}) )?unida a este pokémon$/, (m) => `flip a coin for each ${m[1] ? `${m[1]} ` : ''}energy attached to this pokémon`],
+  [/^por cada cara, (.+)$/, (m) => {
+    const dentro = alIngles(m[1])
+    return dentro ? `for each heads, ${dentro}` : null
+  }],
+  [new RegExp(`^${D} por cada herramienta pokémon unida a (cada uno de tus pokémon|cada pokémon)$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each pokémon tool attached to ${m[3] === 'cada pokémon' ? 'all pokémon' : 'all of your pokémon'}`],
+  [new RegExp(`^si este pokémon tiene una herramienta pokémon unida, ${D}$`), (m) => `if this pokémon has a pokémon tool attached, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si el pokémon activo de tu rival tiene una herramienta pokémon unida, ${D}$`), (m) => `if your opponent's active pokémon has a pokémon tool attached, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si el pokémon activo de tu rival es un pokémon evolución, ${D}$`), (m) => `if your opponent's active pokémon is an evolution pokémon, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si el pokémon activo de tu rival es un pokémon teracristal, ${D}$`), (m) => `if your opponent's active pokémon is a tera pokémon, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si tienes por lo menos (\\d+) energías? (?:({[a-z]}) )?en juego, ${D}$`), (m) => `if you have at least ${m[1]} ${m[2] ? `${m[2]} ` : ''}energy in play, this attack does ${m[3]} more damage`],
+  [new RegExp(`^si tienes (\\d+) energías? (?:({[a-z]}) )?o más en juego, ${D}$`), (m) => `if you have ${m[1]} or more ${m[2] ? `${m[2]} ` : ''}energy in play, this attack does ${m[3]} more damage`],
+  [new RegExp(`^${D} por cada uno de tus pokémon en juego$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each of your pokémon in play`],
+  [new RegExp(`^${D} por cada energía (especial |{[a-z]} )?unida a cada uno de los pokémon de tu rival$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each ${m[3] === 'especial ' ? 'special ' : m[3] || ''}energy attached to all of your opponent's pokémon`],
+  [new RegExp(`^si a tu rival le quedan (\\d+) cartas de premio o menos, ${D}$`), (m) => `if your opponent has ${m[1]} or fewer prize cards remaining, this attack does ${m[2]} more damage`],
+  [new RegExp(`^si a tu rival le quedan exactamente (\\d+) o (\\d+) cartas de premio, ${D}$`), (m) => `if your opponent has exactly ${m[1]} or ${m[2]} prize cards remaining, this attack does ${m[3]} more damage`],
+  [new RegExp(`^si te quedan más cartas de premio que a tu rival, ${D}$`), (m) => `if you have more prize cards remaining than your opponent, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si te quedan? exactamente (\\d+) cartas? de premio, ${D}$`), (m) => `if you have exactly ${m[1]} prize cards remaining, this attack does ${m[2]} more damage`],
+  [new RegExp(`^si tu rival tiene (\\d+) cartas o menos en su mano, ${D}$`), (m) => `if your opponent has ${m[1]} or fewer cards in their hand, this attack does ${m[2]} more damage`],
+  [/^este ataque hace (\d+) puntos de daño menos por cada {c} en el coste de retirada del pokémon activo de tu rival$/, (m) => `this attack does ${m[1]} less damage for each {c} in your opponent's active pokémon's retreat cost`],
+  [new RegExp(`^si este pokémon no tiene ningún contador de daño sobre él, ${D}$`), (m) => `if this pokémon has no damage counters on it, this attack does ${m[1]} more damage`],
+  [new RegExp(`^si este pokémon tiene (\\d+) contadores de daño o más sobre él, ${D}$`), (m) => `if this pokémon has ${m[1]} or more damage counters on it, this attack does ${m[2]} more damage`],
+  [new RegExp(`^si este pokémon y el pokémon activo de tu rival tienen la misma cantidad de energías unidas, ${D}$`), (m) => `if this pokémon and your opponent's active pokémon have the same amount of energy attached, this attack does ${m[1]} more damage`],
+  [new RegExp(`^${D} por cada condición especial que afecte al pokémon activo de tu rival$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each special condition affecting your opponent's active pokémon`],
+  [new RegExp(`^si el pokémon activo de tu rival no está ${EST}, este ataque no hace nada$`), (m) => `if your opponent's active pokémon isn't ${ESTADO[m[1]]}, this attack does nothing`],
+  [new RegExp(`^${D} por cada contador de daño en cada uno de los pokémon de tu rival$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each damage counter on all of your opponent's pokémon`],
+  [new RegExp(`^si tienes algún pokémon (teracristal|{[a-z]})?( de fase 2)? en tu banca, ${D}$`), (m) => `if you have any ${m[2] ? 'stage 2 ' : ''}${m[1] === 'teracristal' ? 'tera ' : m[1] ? `${m[1]} ` : ''}pokémon on your bench, this attack does ${m[3]} more damage`],
+  [new RegExp(`^si hay (\\d+) cartas o menos en tu baraja, ${D}$`), (m) => `if there are ${m[1]} or fewer cards in your deck, this attack does ${m[2]} more damage`],
+  [new RegExp(`^si hay un pokémon en tu banca que tenga "(.+?)" en su nombre, ${D}$`), (m) => `if a pokémon that has "${m[1]}" in its name is on your bench, this attack does ${m[2]} more damage`],
+  [new RegExp(`^si (.+?) están? en tu banca, ${D}$`), (m) => `if ${m[1].replace(/ y /g, ' and ')} ${/ y /.test(m[1]) ? 'are' : 'is'} on your bench, this attack does ${m[2]} more damage`],
+  [/^si no tienes exactamente (\d+) cartas en tu mano, este ataque no hace nada$/, (m) => `if you don't have exactly ${m[1]} cards in your hand, this attack does nothing`],
+  [/^si tienes (\d+) pokémon en banca o menos, este ataque no hace nada$/, (m) => `if you have ${m[1]} or fewer benched pokémon, this attack does nothing`],
+  [new RegExp(`^si tienes la misma cantidad de cartas en tu mano que tu rival, ${D}$`), (m) => `if you have the same number of cards in your hand as your opponent, this attack does ${m[1]} more damage`],
+  [/^si no tienes la misma cantidad de cartas en tu mano que tu rival, este ataque no hace nada$/, () => "if you don't have the same number of cards in your hand as your opponent, this attack does nothing"],
+  [new RegExp(`^${D} por cada carta que hayas descartado de esta manera$`), (m) => `this attack does ${m[1]} ${mas(m[2])}damage for each card you discarded in this way`],
+  [/^descarta hasta (\d+) (?:cartas de energía|energías) (?:({[a-z]}) )?de tus pokémon$/, (m) => `discard up to ${m[1]} ${m[2] ? `${m[2]} ` : ''}energy cards from your pokémon`],
+  [/^descarta hasta (\d+) (?:cartas de energía|energías) (?:({[a-z]}) )?de este pokémon$/, (m) => `discard up to ${m[1]} ${m[2] ? `${m[2]} ` : ''}energy from this pokémon`],
+  [new RegExp(`^descarta hasta (\\d+) cartas de energía (?:({[a-z]}) )?(básica )?de tu mano, y ${D} por cada carta que hayas descartado de esta manera$`), (m) => `discard up to ${m[1]} ${m[3] ? 'basic ' : ''}${m[2] ? `${m[2]} ` : ''}energy cards from your hand, and this attack does ${m[4]} ${mas(m[5])}damage for each card you discarded in this way`],
+  [new RegExp(`^descarta hasta (\\d+) cartas de energía de este pokémon, y ${D} por cada carta que hayas descartado de esta manera$`), (m) => `discard up to ${m[1]} energy cards from this pokémon, and this attack does ${m[2]} ${mas(m[3])}damage for each card you discarded in this way`],
+  [/^descarta (\d+) cartas de energía ({[a-z]}) básica de tu mano$/, (m) => `discard ${m[1]} basic ${m[2]} energy cards from your hand`],
+  [/^descarta (\d+) cartas de energía ({[a-z]}) básica de tu mano y deja fuera de combate al pokémon activo de tu rival$/, (m) => `discard ${m[1]} basic ${m[2]} energy cards from your hand, and knock out your opponent's active pokémon`],
+  [/^si no puedes descartar (\d+) cartas de esta manera, este ataque no hace nada$/, (m) => `if you can't discard ${m[1]} cards in this way, this attack does nothing`],
+  [/^este ataque hace (\d+) puntos de daño a cada uno de los pokémon( ex)? de tu rival$/, (m) => `this attack does ${m[1]} damage to each of your opponent's pokémon${m[2] ? ' ex' : ''}`],
+  [/^este ataque hace (\d+) puntos de daño a (\d+) de los pokémon de tu rival$/, (m) => `this attack does ${m[1]} damage to ${m[2]} of your opponent's pokémon`],
+  [/^este ataque hace (\d+) puntos de daño a uno de los pokémon ex en banca o (?:de los )?pokémon v en banca de tu rival$/, (m) => `this attack does ${m[1]} damage to 1 of your opponent's benched pokémon ex or benched pokémon v`],
+  [/^este ataque hace (\d+) puntos de daño a uno de los pokémon (en banca )?de tu rival por cada energía (?:({[a-z]}) )?unida a este pokémon$/, (m) => `this attack does ${m[1]} damage to 1 of your opponent's ${m[2] ? 'benched ' : ''}pokémon for each ${m[3] ? `${m[3]} ` : ''}energy attached to this pokémon`],
+  [/^este ataque hace (\d+) puntos de daño a uno de los pokémon (en banca )?de tu rival por cada contador de daño en este pokémon$/, (m) => `this attack does ${m[1]} damage to 1 of your opponent's ${m[2] ? 'benched ' : ''}pokémon for each damage counter on this pokémon`],
+  [/^descarta (todas las|\d+|una) energías? (?:({[a-z]}) )?de este pokémon, y este ataque hace (\d+) puntos de daño a uno de los pokémon de tu rival$/, (m) => `discard ${m[1] === 'todas las' ? 'all' : unoA(m[1])} ${m[2] ? `${m[2]} ` : ''}energy from this pokémon, and this attack does ${m[3]} damage to 1 of your opponent's pokémon`],
+  [/^pon (\d+) contadores de daño en cada uno de los pokémon de tu rival que tenga algún contador de daño sobre él$/, (m) => `put ${m[1]} damage counters on each of your opponent's pokémon that has any damage counters on it`],
+  [/^pon (\d+) contadores de daño en los pokémon (en banca )?de tu rival de la manera que desees$/, (m) => `put ${m[1]} damage counters on your opponent's ${m[2] ? 'benched ' : ''}pokémon in any way you like`],
+  [new RegExp(`^(puedes )?(?:pon|poner) ${N} energías? unidas? al pokémon activo de tu rival en su mano$`), (m) => `${m[1] ? 'you may ' : ''}put ${num(m[2]) === 1 ? 'an' : num(m[2])} energy attached to your opponent's active pokémon into their hand`],
+  [/^durante tu próximo turno, este pokémon no puede retirarse$/, () => "during your next turn, this pokémon can't retreat"],
+  [/^cura a este pokémon la misma cantidad de puntos de daño que hayas infligido al pokémon activo de tu rival$/, () => "heal from this pokémon the same amount of damage you did to your opponent's active pokémon"],
+  [/^cura (\d+) puntos de daño a uno de tus pokémon en banca$/, (m) => `heal ${m[1]} damage from 1 of your benched pokémon`],
+  [/^cura todos los puntos de daño a uno de tus pokémon en banca$/, () => 'heal all damage from 1 of your benched pokémon'],
+  [/^cura (\d+) puntos de daño a cada uno de tus pokémon en banca$/, (m) => `heal ${m[1]} damage from each of your benched pokémon`],
+  [new RegExp(`^este ataque también hace (\\d+) puntos de daño a ${N} de tus pokémon en banca$`), (m) => `this attack also does ${m[1]} damage to ${num(m[2])} of your benched pokémon`],
+  [/^durante tu próximo turno, el ataque (.+?) de este pokémon hace (\d+) puntos de daño más$/, (m) => `during your next turn, this pokémon's ${m[1]} attack does ${m[2]} more damage`],
+  [/^durante tu próximo turno, los ataques usados por este pokémon hacen (\d+) puntos de daño más al pokémon activo de tu rival$/, (m) => `during your next turn, attacks used by this pokémon do ${m[1]} more damage to your opponent's active pokémon`],
+  [/^si sales en primer lugar, puedes usar este ataque durante tu primer turno$/, () => 'if you go first, you can use this attack during your first turn'],
+  [/^busca en tu baraja 1 carta que evolucione de este pokémon y ponla sobre este pokémon para hacerlo evolucionar$/, () => 'search your deck for a card that evolves from this pokémon and put it onto this pokémon to evolve it'],
+  [new RegExp(`^descarta ${N} carta de tu mano$`), (m) => (num(m[1]) === 1 ? 'discard a card from your hand' : null)],
+  [new RegExp(`^si lo haces, roba ${N} cartas?$`), (m) => `if you do, draw ${num(m[1])} cards`],
+  [/^tu rival enseña las cartas de su mano$/, () => 'your opponent reveals their hand'],
+  [new RegExp(`^pon (hasta \\d+|${N.slice(1, -1)}) (pokémon|cartas? de partidario|cartas? de objeto|cartas? de energía básica|cartas? de energía ({[a-z]}) básica) de tu pila de descartes en tu mano$`), (m) => {
+    const hasta = /^hasta/.test(m[1])
+    const n = hasta ? Number(m[1].replace(/\D/g, '')) : num(m[1])
+    const clase = m[2] === 'pokémon' ? 'pokémon' : /partidario/.test(m[2]) ? 'supporter card' : /objeto/.test(m[2]) ? 'item card' : m[3] ? `basic ${m[3]} energy card` : 'basic energy card'
+    const plural = clase === 'pokémon' ? clase : n === 1 && !hasta ? clase : `${clase}s`
+    return `put ${hasta ? `up to ${n}` : n === 1 ? (clase === 'item card' ? 'an' : 'a') : n} ${plural} from your discard pile into your hand`
+  }],
+  [new RegExp(`^busca en tu baraja (hasta \\d+|${N.slice(1, -1)}) cartas? de energía (?:({[a-z]}) )?básica y únel[ao]s? a (este pokémon|uno de tus pokémon)$`), (m) => {
+    const hasta = /^hasta/.test(m[1])
+    const n = hasta ? Number(m[1].replace(/\D/g, '')) : num(m[1])
+    const cuantas = hasta ? `up to ${n}` : 'a'
+    return `search your deck for ${cuantas} basic ${m[2] ? `${m[2]} ` : ''}energy card${hasta ? 's' : ''} and attach ${hasta ? 'them' : 'it'} to ${m[3] === 'este pokémon' ? 'this pokémon' : '1 of your pokémon'}`
+  }],
+  [/^busca en tu baraja hasta (\d+) cartas de energía (?:({[a-z]}) )?básica y únelas a tus pokémon (en banca )?de la manera que desees$/, (m) => `search your deck for up to ${m[1]} basic ${m[2] ? `${m[2]} ` : ''}energy cards and attach them to your ${m[3] ? 'benched ' : ''}pokémon in any way you like`],
+  [/^busca en tu baraja 1 carta de energía (?:({[a-z]}) )?y únela a uno de tus pokémon (?:({[a-z]}) )?en banca$/, (m) => `search your deck for an ${m[1] ? `${m[1]} ` : ''}energy card and attach it to 1 of your benched ${m[2] ? `${m[2]} ` : ''}pokémon`],
+  [/^une (1|hasta \d+) cartas? de energía (?:({[a-z]}) )?básica de tu pila de descartes a (uno de tus pokémon en banca|tus pokémon en banca de la manera que desees|tus pokémon de la manera que desees)$/, (m) => `attach ${m[1] === '1' ? 'a' : `up to ${m[1].replace(/\D/g, '')}`} basic ${m[2] ? `${m[2]} ` : ''}energy card${m[1] === '1' ? '' : 's'} from your discard pile to ${m[3] === 'uno de tus pokémon en banca' ? '1 of your benched pokémon' : m[3] === 'tus pokémon en banca de la manera que desees' ? 'your benched pokémon in any way you like' : 'your pokémon in any way you like'}`],
+  [/^une 1 carta de energía (?:({[a-z]}) )?básica de tu mano a uno de tus pokémon en banca$/, (m) => `attach a basic ${m[1] ? `${m[1]} ` : ''}energy card from your hand to 1 of your benched pokémon`],
+  [/^durante el próximo turno de tu rival, si el pokémon defensor intenta usar un ataque, tu rival lanza 1 moneda$/, () => "during your opponent's next turn, if the defending pokémon tries to use an attack, your opponent flips a coin"],
+  [/^si sale cruz, ese ataque no se lleva a cabo$/, () => "if tails, that attack doesn't happen"],
+  [/^este ataque hace (\d+) puntos de daño al nuevo pokémon activo$/, (m) => `this attack does ${m[1]} damage to the new active pokémon`],
+  [/^puedes hacer (\d+) puntos de daño más$/, (m) => `you may do ${m[1]} more damage`],
+  [/^si lo haces, este pokémon también se hace (\d+) puntos de daño a s[ií] mismo$/, (m) => `if you do, this pokémon also does ${m[1]} damage to itself`],
 ]
 
 // La frase inglesa de una frase española, o null si no se reconoce. «Si
@@ -229,7 +317,9 @@ export function alIngles(frase) {
   const rama = f.match(/^si sale (cara|cruz), (.+)$/)
   if (rama) {
     const dentro = alIngles(rama[2])
-    return dentro ? `if ${rama[1] === 'cara' ? 'heads' : 'tails'}, ${dentro}` : null
+    if (dentro) return `if ${rama[1] === 'cara' ? 'heads' : 'tails'}, ${dentro}`
+    // Si la rama no se entiende sola, puede ser una frase entera que
+    // empieza así («Si sale cruz, ese ataque no se lleva a cabo»).
   }
   for (const [re, hacer] of TRADUCIR) {
     const m = f.match(re)
@@ -281,6 +371,14 @@ const TRADUCIR_HABILIDAD = [
   [/^este pokémon no puede atacar a menos que tengas (\d+) pokémon (.+?) o más en juego$/, (m) => `this pokémon can't attack unless you have ${m[1]} or more ${clase(m[2])} pokémon in play`],
   [/^si este pokémon tiene una herramienta pokémon unida, tu rival no puede jugar ninguna carta de as táctico de su mano$/, () => "if this pokémon has a pokémon tool attached, your opponent can't play any ace spec cards from their hand"],
   [/^los contadores de daño de cada pokémon no se pueden mover a otro pokémon$/, () => "damage counters on each pokémon can't be moved to other pokémon"],
+  // Tanda 625.
+  [/^si este pokémon tiene todos sus ps y fuese a quedar fuera de combate por el daño de un ataque, no queda fuera de combate y sus ps restantes pasan a ser 10$/, () => 'if this pokémon has full hp and would be knocked out by damage from an attack, it is not knocked out, and its remaining hp becomes 10'],
+  [/^mientras este pokémon esté en tu banca, se evitan todo el daño y todos los efectos de los ataques de los pokémon de tu rival infligidos a este pokémon$/, () => "as long as this pokémon is on your bench, prevent all damage from and effects of attacks from your opponent's pokémon done to this pokémon"],
+  [/^mientras este pokémon esté en tu banca, se evita todo el daño infligido a este pokémon por ataques de los pokémon de tu rival$/, () => "as long as this pokémon is on your bench, prevent all damage done to this pokémon by attacks from your opponent's pokémon"],
+  [/^el pokémon activo de tu rival no puede ser curado$/, () => "your opponent's active pokémon can't be healed"],
+  [/^este pokémon no puede pasar a estar (dormido|quemado|confundido|paralizado|envenenado)$/, (m) => `this pokémon can't be ${{ dormido: 'asleep', quemado: 'burned', confundido: 'confused', paralizado: 'paralyzed', envenenado: 'poisoned' }[m[1]]}`],
+  [/^este pokémon no puede verse afectado por ninguna condición especial$/, () => "this pokémon can't be affected by any special conditions"],
+  [/^si tu rival tiene alguna carta en su pila de descartes que tenga "(.+?)" en el nombre, este pokémon puede usar el ataque (.+?) por (?:colorless|{c})$/, (m) => `if your opponent has any cards in their discard pile that have "${m[1]}" in the name, this pokémon can use the ${m[2]} attack for {c}`],
 ]
 
 export function alInglesHabilidad(frase) {

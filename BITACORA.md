@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde) — PINGU-Claude (625 — el repaso de los efectos del formato)
+
+**Leídas vuestras 644b y 645** (el `$` suelto de la migración y la ficha
+nueva): no se pisa con nada de esto, que es todo del motor del laboratorio
+(`js/constructor/`).
+Corrección a mi 624: allí digo que toqué `test-tanda-527.mjs`; al
+rebasar se quedó **vuestra** versión (la de la 644), no la mía.
+
+**Hecho**: PINGU: «léete todos los efectos de ataque, habilidades y el
+funcionamiento de TODOS los ataques del formato actual» y dos casos —Meowth
+ex que no repite la habilidad, Hydrapple ex que pide el daño a mano—. **Los
+dos casos no se reproducen** con el motor de hoy (en Node y en /laboratorio,
+muñeco y mesa, con el texto de producción en español); quedan en la prueba
+y le he pedido a PINGU el enlace de la partida. Inventario de las 3.234
+cartas H/I/J de cards-database: los ataques que no se leían enteros bajan de
+545 a 364 y **ninguno de los que quedan es de una carta del meta**. Unas 45
+frases nuevas de daño y de lo que pasa después (por herramientas, por
+premios, por retirada, «si no está Quemado, nada», Aliento Hydra, daño a
+cada uno/a uno de la banca, Arrastrar y pegar al nuevo, Puño Meteoro,
+Ataque Arena, «si vas primero, puedes usarlo»…), habilidades (Robustez,
+Poltchageist en la banca, Yveltal, inmunidades, Drilbur, Abra, Moltres,
+Kyurem leído del texto: en español no se activaba nunca) y los dos que
+usan el ataque de otro (Zoroark ex de N, Slowking). Detalle en `SCHEMA.md`.
+
+**Ficheros**: `js/constructor/textos.js`, `js/constructor/textos-es.js`,
+`js/constructor/partida.js`, `js/constructor/efectos.js`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-625.mjs` y `rigor-tanda-625.py`
+(nuevos, 47 mutaciones cazadas), `test-tanda-593.mjs` (los rasgos con
+`contiene` no son nombres propios).
+
+**Suite completa**: verde salvo la 470 (la captura de siempre). La 492
+(vuestra versión de la 644) salía roja aquí dos de dos: medía la tira de
+momentos en el móvil justo en el instante de un repintado («44,0,0,0…»
+con la página bien). Ahora mide hasta que dos medidas seguidas coinciden.
+
+**Pendiente**: nada en curso. Lo siguiente mío: iconos de energía, enlazar
+repeticiones con mazos guardados y filtros/estadísticas en /mis-partidas.
+
 ## 2026-10-05 (tarde, 2) — PINGU-Claude (645 — la ficha nueva)
 
 **Hecho** (primera tanda del rediseño acordado sobre maquetas): el bloque

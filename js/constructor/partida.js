@@ -1383,6 +1383,13 @@ export class Partida {
 
   curar(slot, cantidad) {
     if (!slot) return 0
+    // «El Pokémon activo de tu rival no puede ser curado» (Yveltal, tanda
+    // 625): mira las habilidades del OTRO.
+    const cierra = slot === this.s.activo && this.oponente?.rasgosEnJuego('sinCurarRivalActivo')[0]
+    if (cierra && slot.danio > 0) {
+      this.log(`${nombreVisible(this.cartaDe(slot))} no se puede curar (${cierra.r.habilidad || nombreVisible(cierra.c)}).`)
+      return 0
+    }
     const antes = slot.danio
     slot.danio = Math.max(0, slot.danio - cantidad)
     if (antes !== slot.danio) this.log(`${nombreVisible(this.cartaDe(slot))} se cura ${antes - slot.danio}.`)
@@ -1467,6 +1474,16 @@ export class Partida {
       if (no) {
         this.log(`${nombreVisible(this.oponente.cartaDe(objetivo))} no recibe ${contadores ? 'los contadores' : 'el daño'} (${no}).`)
         return
+      }
+    }
+    // «Si tiene todos sus PS y fuese a quedar fuera de combate por el daño
+    // de un ataque, se queda con 10» (Crustle, Robustez; tanda 625).
+    if (this.oponente && this.s.flags.enAtaque && !contadores && objetivo.danio === 0) {
+      const ps = this.oponente.psDe(objetivo)
+      const aguante = cantidad >= ps && this.oponente.rasgosDe(objetivo, 'aguante')[0]
+      if (aguante) {
+        cantidad = ps - 10
+        this.log(`${nombreVisible(this.oponente.cartaDe(objetivo))} aguanta con 10 PS (${aguante.habilidad || 'su habilidad'}).`)
       }
     }
     objetivo.danio += cantidad
@@ -1687,6 +1704,10 @@ export class Partida {
         if (k === 'rocky fighting energy' && esDeTipo(c, 'F')) return 'Energía Lucha Rocosa'
       }
       if (slot !== this.s.activo && this.rasgosEnJuego('protegeBanca').some(({ r }) => r.efectos)) return 'lo protege una habilidad'
+      // «Mientras esté en tu banca, se evitan el daño y los efectos de los
+      // ataques» (Poltchageist, tanda 625): solo él, y solo en la banca.
+      const refugio = slot !== this.s.activo && this.rasgosDe(slot, 'refugioEnBanca').find((r) => r.efectos)
+      if (refugio) return refugio.habilidad || 'su habilidad'
       if (esBasicoEnJuego(c) && this.rasgosEnJuego('sinEfectosBasicosDe').some(({ r }) => esDe(c, r.dueno.replace(/'s$/, '')))) return 'lo protege una habilidad'
     }
     for (const r of this.rasgosDe(slot, 'sinEfectos')) if (!porHabilidad || r.habilidades) return r.habilidad || 'su habilidad'
@@ -1713,6 +1734,9 @@ export class Partida {
       const no = op.previeneEfectosEn(r)
       if (no) return this.log(`${nombreVisible(op.cartaDe(r))} no se ve afectado (${no}).`)
       if (op.inmuneAEstados(r)) return this.log(`${nombreVisible(op.cartaDe(r))} no puede sufrir estados especiales.`)
+      // «Este Pokémon no puede pasar a estar Confundido» (tanda 625).
+      const inmune = op.rasgosDe(r, 'inmuneA').find((x) => !x.estado || x.estado === e)
+      if (inmune) return this.log(`${nombreVisible(op.cartaDe(r))} no puede quedar ${e} (${inmune.habilidad || 'su habilidad'}).`)
     }
     // La parálisis se va al final del SIGUIENTE turno del afectado: con
     // mesa, cuenta el turno de su dueño.
@@ -1778,6 +1802,8 @@ export class Partida {
     if (enBanca && !porHabilidad) {
       if (esDeTipo(c, 'D') && slot.energias.some((u) => claveDeEfecto(this.carta(u)) === 'shadowy darkness energy')) return 'Energía Oscura Sombría'
       for (const { r } of this.rasgosEnJuego('protegeBanca')) if (r.efectos || (r.sinRegla && !tieneRegla(c))) return r.habilidad
+      const refugio = this.rasgosDe(slot, 'refugioEnBanca')[0]
+      if (refugio) return refugio.habilidad || 'su habilidad'
     }
     return null
   }
@@ -1877,9 +1903,16 @@ export class Partida {
     const est = this.s.estadio && claveDeEfecto(this.carta(this.s.estadio))
     if (est === 'nighttime mine' && esTera(this.cartaDe(slot))) coste = [...coste, 'C']
     // Perdición de Plasma (Kyurem): con una carta «Colress» en el descarte
-    // del otro, Tritormenta cuesta {C}.
+    // del otro, Tritormenta cuesta {C}. Se lee del TEXTO de la habilidad
+    // (tanda 625): con los nombres ingleses a fuego, la carta en español
+    // —«Triple Escarcha», «Acromo»— no lo hacía nunca.
     const op = this.oponente
-    if (op && normalizarTexto(ataque?.name) === 'trifrost' && (c?.abilities || []).some((h) => normalizarTexto(h?.name) === 'plasma bane') && this.habilidadActiva(slot) && op.s.descarte.some((u) => /colress/.test(normalizarNombre(op.carta(u)?.name)))) coste = ['C']
+    if (op) {
+      for (const r of this.rasgosDe(prestadoDe || slot, 'ataqueIncoloroSi')) {
+        const conNombre = (u) => [op.carta(u)?.name, op.carta(u)?.name_es].some((n) => normalizarNombre(n).includes(normalizarNombre(r.contiene)))
+        if (normalizarTexto(ataque?.name) === normalizarTexto(r.nombre) && op.s.descarte.some(conNombre)) coste = ['C']
+      }
+    }
     return coste
   }
 
@@ -1888,7 +1921,10 @@ export class Partida {
     if (!this.enTurno) return 'Ahora no es tu turno.'
     if (slot !== s.activo) return 'Solo ataca el Pokémon activo.'
     if (!s.estricta) return null
-    if (this.primerTurnoDelPrimero) return 'Quien va primero no puede atacar en su primer turno.'
+    // «Si vas primero, puedes usar este ataque en tu primer turno»
+    // (tanda 625): el texto de la carta levanta la regla.
+    const puedePrimero = !this.defDeAtaque(this.cartaDe(prestadoDe || slot), ataque) && lecturaDeAtaque(ataque).completo && lecturaDeAtaque(ataque).pasos.some((p) => p.t === 'puedePrimerTurno')
+    if (this.primerTurnoDelPrimero && !puedePrimero) return 'Quien va primero no puede atacar en su primer turno.'
     if (s.activo.estados.some((e) => e === 'dormido' || e === 'paralizado')) return 'Dormido o paralizado: no puede atacar.'
     const c = this.cartaDe(prestadoDe || slot)
     const b = slot.bloqueo
@@ -1999,6 +2035,13 @@ export class Partida {
     if (!ataque) throw new NoSePuede('Ese ataque no existe.')
     const no = this.motivoNoAtacar(slot, ataque, origen !== slot ? origen : null)
     if (no) throw new NoSePuede(no)
+    // «Si el Pokémon defensor intenta atacar, lanza una moneda: con cruz,
+    // no hay ataque» (Ataque Arena, tanda 625).
+    if (slot.monedaAtaque?.turno === s.turno && !this.moneda()) {
+      this.log(`Cruz: el ataque no se hace (${slot.monedaAtaque.por || 'efecto rival'}).`)
+      s.flags.atacado = true
+      return this.finDeAtaque(ui)
+    }
     // Confusión: moneda, y con cruz el ataque falla y te haces 30.
     if (slot.estados.includes('confundido') && !this.moneda()) {
       this.ponerDanio(slot, 30, { motivo: 'confusión' })
@@ -2065,15 +2108,31 @@ export class Partida {
     } else if (ataque.effect && !def) {
       this.log(`(El texto de ${ataque.name} no está automatizado: aplica lo que falte a mano.)`)
     }
+    // «Durante tu próximo turno, el ataque X de este Pokémon hace N más»
+    // (tanda 625): lo dejó apuntado el ataque del turno anterior.
+    const bono = slot.bonoAtaque
+    if (bono && bono.turno === s.turno && danio > 0 && !calculo.nada && (!bono.nombre || normalizarTexto(bono.nombre) === normalizarTexto(ataque.name))) {
+      danio += bono.n
+      this.log(`+${bono.n} (${bono.por || 'su último ataque'}).`)
+    }
+    s.flags.danioHecho = 0
     if (calculo.nada) {
       this.log(`${ataque.name} no hace nada.`)
+    } else if (calculo.objetivos) {
+      // «A cada uno de los Pokémon del rival» / «a 2 de los Pokémon del
+      // rival» (tanda 625): el activo con debilidad y resistencia, la banca
+      // sin ellas.
+      for (const d of calculo.objetivos) {
+        if (d === this.rival.activo) s.flags.danioHecho = await this.danioDeAtaque(slot, danio, ui, calculo.mods)
+        else this.danioAlRival(d, danio)
+      }
     } else if (calculo.objetivo && calculo.objetivo !== this.rival.activo) {
       // «Hace N de daño a 1 de los Pokémon del rival» y se eligió uno de
       // la banca: sin debilidad, sin resistencia, sin bonos (los bonos
       // dicen «al activo»).
       this.danioAlRival(calculo.objetivo, danio)
     } else {
-      await this.danioDeAtaque(slot, danio, ui, calculo.mods)
+      s.flags.danioHecho = await this.danioDeAtaque(slot, danio, ui, calculo.mods)
     }
     s.flags.atacado = true
     if (porTexto && !calculo.nada) await this.efectosPorTexto(slot, ataque, calculo.despues, ui)
@@ -2110,7 +2169,8 @@ export class Partida {
         case 'nada': out.nada = true; out.danio = 0; break
         case 'monedasPor': {
           let caras = 0
-          if (p.n == null) while (this.moneda()) caras++
+          if (p.porEnergia) for (let i = energiasDe(slot, p.letra); i > 0; i--) caras += this.moneda() ? 1 : 0
+          else if (p.n == null) while (this.moneda()) caras++
           else for (let i = 0; i < p.n; i++) if (this.moneda()) caras++
           out.danio = (p.mas ? out.danio : 0) + caras * p.por
           break
@@ -2142,7 +2202,7 @@ export class Partida {
           this.log(`Se descarta ${op.nombre(u)} de ${nombreVisible(cr)} (${ataque.name}).`)
           break
         }
-        case 'siRivalFase': if (op ? faseDe(cr) === p.fase : p.fase === 0) out.danio += p.n; break
+        case 'siRivalFase': if (op ? (p.fase === 'evolucion' ? faseDe(cr) > 0 : faseDe(cr) === p.fase) : p.fase === 0) out.danio += p.n; break
         case 'siRivalTipo': if (cr && esDeTipo(cr, p.letra)) out.danio += p.n; break
         case 'siRivalDanado': if (ra?.danio > 0) out.danio += p.n; break
         case 'siPropioDanado': if (slot.danio > 0) out.danio += p.n; break
@@ -2188,13 +2248,126 @@ export class Partida {
           break
         }
         case 'danioAUno': {
-          const lista = (p.soloBanca ? r.banca : [ra, ...r.banca]).filter(Boolean)
-          if (!lista.length) break
+          const lista = (p.soloBanca ? r.banca : [ra, ...r.banca]).filter((d) => d && (!p.soloEx || d.ex))
+          if (!lista.length) {
+            out.nada = !p.soloEx ? out.nada : true
+            break
+          }
           const [id] = lista.length === 1 ? [lista[0].id] : await ui.pokemon({ titulo: `${ataque.name}: ¿a quién?`, opciones: lista.map((d) => d.id), min: 1, max: 1 })
           out.objetivo = lista.find((d) => d.id === id)
+          // «… por cada energía unida a este Pokémon / por cada contador»
+          // (tanda 625).
+          const veces = p.porEnergia ? energiasDe(slot, p.letra) : p.porContadores ? Math.floor(slot.danio / 10) : 1
+          out.danio = p.n * veces
+          break
+        }
+
+        // ── Tanda 625 ──
+        case 'porHerramientas': {
+          const propias = this.enJuego.filter((x) => x.herramienta).length
+          if (p.de === 'ambos' && !op) sinDummy('las herramientas')
+          const suyas = p.de === 'ambos' && op ? op.enJuego.filter((x) => x.herramienta).length : 0
+          porCada(propias + suyas, p.n)
+          break
+        }
+        case 'siHerramienta': if (p.de === 'propio' ? slot.herramienta : op && ra?.herramienta) out.danio += p.n; break
+        case 'siRivalTera': if (cr && esTera(cr)) out.danio += p.n; break
+        case 'siEnergiaEnJuego': if (this.enJuego.reduce((t, x) => t + energiasDe(x, p.letra), 0) >= p.min) out.danio += p.n; break
+        case 'porEnJuegoPropios': porCada(this.enJuego.length, p.n); break
+        case 'porEnergiaRivalTodos': {
+          if (!op) { sinDummy('las energías'); porCada(0, p.n); break }
+          const cuenta = op.enJuego.reduce((t, x) => t + (p.letra ? op.unidadesDe(x).filter((u) => u.includes(p.letra)).length : x.energias.filter((u) => !p.especial || !esEnergiaBasica(op.carta(u))).length), 0)
+          porCada(cuenta, p.n)
+          break
+        }
+        case 'siPremiosRival': if (p.lista ? p.lista.includes(r.premios) : r.premios <= p.max) out.danio += p.n; break
+        case 'siMasPremios': if (s.premios.length > r.premios) out.danio += p.n; break
+        case 'siPremiosPropios': if (p.lista.includes(s.premios.length)) out.danio += p.n; break
+        // Lo que se cuenta de la MANO del rival: el maniquí no tiene, y una
+        // condición que no se puede saber no se da por cumplida.
+        case 'siManoRivalMenos': if (!op) sinDummy('la mano'); else if (op.s.mano.length <= p.max) out.danio += p.n; break
+        case 'menosPorRetiradaRival': sinDummy('el coste de retirada'); out.danio -= p.n * (op && ra ? op.costeDeRetirada(ra) : 0); break
+        case 'siPropioSinDanio': if (!slot.danio) out.danio += p.n; break
+        case 'siPropioContadores': if (Math.floor(slot.danio / 10) >= p.min) out.danio += p.n; break
+        case 'siMismaEnergia': if (ra && (ra.energias || []).length === slot.energias.length) out.danio += p.n; break
+        case 'porEstadosRival': porCada(ra?.estados?.length || 0, p.n); break
+        case 'nadaSiNoEstado': if (!ra?.estados?.includes(p.estado)) { out.nada = true; out.danio = 0 } break
+        case 'porContadoresRivalTodos': porCada([ra, ...r.banca].filter(Boolean).reduce((t, d) => t + Math.floor(d.danio / 10), 0), p.n); break
+        case 'siEnBancaClase': {
+          const vale = (x) => {
+            const c = this.cartaDe(x)
+            return (!p.fase2 || faseDe(c) === 2) && (!p.tera || esTera(c)) && (!p.letra || esDeTipo(c, p.letra))
+          }
+          if (s.banca.some(vale)) out.danio += p.n
+          break
+        }
+        case 'siMazoMenos': if (s.mazo.length <= p.max) out.danio += p.n; break
+        case 'siNombresEnBanca': if (nombresEnBanca(this, p.nombres)) out.danio += p.n; break
+        case 'nadaSiManoNo': if (s.mano.length !== p.n) { out.nada = true; out.danio = 0 } break
+        case 'nadaSiBancaMenos': if (s.banca.length <= p.max) { out.nada = true; out.danio = 0 } break
+        case 'siManoIgual': if (!op) sinDummy('la mano'); else if (op.s.mano.length === s.mano.length) out.danio += p.n; break
+        case 'nadaSiManoDistinta': if (!op) sinDummy('la mano'); else if (op.s.mano.length !== s.mano.length) { out.nada = true; out.danio = 0 } break
+        case 'porDescartadas': porCada(out.descartadas || 0, p.n); break
+        case 'descartarEnergiaDeTuyos':
+        case 'descartarEnergiaHasta': {
+          const de = p.t === 'descartarEnergiaHasta' ? [slot] : this.enJuego
+          const vale = de.flatMap((x) => x.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), this.cartaDe(x), this).some((y) => y.includes(p.letra))))
+          if (!vale.length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: descarta hasta ${p.max} ${p.max === 1 ? 'energía' : 'energías'}`, opciones: vale, min: 0, max: Math.min(p.max, vale.length) })
+          for (const x of de) {
+            const fuera = x.energias.filter((u) => el.includes(u))
+            if (fuera.length) this.descartarEnergiasDe(x, fuera, ataque.name)
+          }
+          out.descartadas = (out.descartadas || 0) + el.length
+          break
+        }
+        case 'descartarEnergiaDeMano': {
+          const vale = s.mano.filter((u) => {
+            const c = this.carta(u)
+            return esEnergia(c) && (!p.basica || esEnergiaBasica(c)) && (!p.letra || unidadesDeEnergia(c, null, this).some((y) => y.includes(p.letra)))
+          })
+          if (p.exacto) {
+            // Si no llegan, no se descarta nada: «si no puedes descartar N»
+            // es la frase siguiente, y ella decide.
+            if (vale.length < p.exacto) { out.descartadas = 0; break }
+            const el = vale.length === p.exacto ? vale : await ui.cartas({ titulo: `${ataque.name}: descarta ${p.exacto} de tu mano`, opciones: vale, min: p.exacto, max: p.exacto, zona: 'mano' })
+            this.descartar(el)
+            out.descartadas = (out.descartadas || 0) + el.length
+            break
+          }
+          if (!vale.length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: descarta hasta ${p.max} de tu mano`, opciones: vale, min: 0, max: Math.min(p.max, vale.length), zona: 'mano' })
+          this.descartar(el)
+          out.descartadas = (out.descartadas || 0) + el.length
+          break
+        }
+        case 'nadaSiNoDescartadas': if ((out.descartadas || 0) < p.n) { out.nada = true; out.danio = 0 } break
+        case 'danioATodos': {
+          out.objetivos = [ra, ...r.banca].filter((d) => d && (!p.soloEx || d.ex))
           out.danio = p.n
           break
         }
+        case 'danioAVarios': {
+          const lista = [ra, ...r.banca].filter(Boolean)
+          const k = Math.min(p.k, lista.length)
+          const ids = lista.length <= k ? lista.map((d) => d.id) : await ui.pokemon({ titulo: `${ataque.name}: ${p.n} de daño a ${k} Pokémon del rival`, opciones: lista.map((d) => d.id), min: k, max: k })
+          out.objetivos = lista.filter((d) => ids.includes(d.id))
+          out.danio = p.n
+          break
+        }
+        case 'atraerRival': {
+          if (!r.banca.length) break
+          const [id] = r.banca.length === 1 ? [r.banca[0].id] : await ui.pokemon({ titulo: `${ataque.name}: ¿qué Pokémon de la banca rival sube?`, opciones: r.banca.map((d) => d.id), min: 1, max: 1 })
+          this.cambiarActivoRival(r.banca.findIndex((d) => d.id === id))
+          break
+        }
+        case 'fijarDanio': out.danio = p.n; break
+        case 'opcionalMas':
+          if (await ui.confirmar({ titulo: ataque.name, texto: `¿Haces ${p.n} más? Si lo haces, este Pokémon se hace ${p.propio} a sí mismo.` })) {
+            out.danio += p.n
+            out.despues.push({ t: 'danioPropio', n: p.propio })
+          }
+          break
         default: break
       }
     }
@@ -2315,7 +2488,7 @@ export class Partida {
           break
         case 'premioExtra': s.flags.premioExtra = (s.flags.premioExtra || 0) + p.n; break
         case 'curarPropio': this.curar(slot, p.n); break
-        case 'curarUno': for (const d of await elegir(this.enJuego.filter((x) => x.danio > 0), `${ataque.name}: cura ${p.n} a 1 de tus Pokémon`)) this.curar(d, p.n); break
+        case 'curarUno': for (const d of await elegir((p.soloBanca ? s.banca : this.enJuego).filter((x) => x.danio > 0), `${ataque.name}: cura ${p.n >= 9999 ? 'todo el daño' : p.n} a 1 de tus Pokémon${p.soloBanca ? ' en banca' : ''}`)) this.curar(d, p.n); break
         case 'curarTodos': for (const d of this.enJuego) this.curar(d, p.n); break
         case 'descartarEnergiaPropia': {
           const vale = slot.energias.filter((u) => !p.letra || unidadesDeEnergia(this.carta(u), c, this).some((x) => x.includes(p.letra)))
@@ -2526,6 +2699,135 @@ export class Partida {
           this.estadoAlRival(p.estado, por)
           break
         }
+
+        // ── Tanda 625 ──
+        case 'monedasCada': {
+          let caras = 0
+          if (p.n == null) while (this.moneda()) caras++
+          else for (let i = 0; i < p.n; i++) if (this.moneda()) caras++
+          this.log(`${ataque.name}: ${caras} ${caras === 1 ? 'cara' : 'caras'}.`)
+          for (let i = 0; i < caras; i++) for (const q of p.pasos) await hacer(q)
+          break
+        }
+        case 'contadoresCadaDanado': for (const d of [ra, ...r.banca].filter((x) => x && x.danio > 0)) this.danioAlRival(d, p.n * 10, { contadores: true }); break
+        case 'repartirContadores': {
+          const objetivos = (p.soloBanca ? r.banca : [ra, ...r.banca]).filter(Boolean)
+          if (!objetivos.length) break
+          const reparto = await ui.repartir({ titulo: `${ataque.name}: reparte ${p.n} contadores de daño`, total: p.n, opciones: objetivos.map((d) => d.id) })
+          for (const d of objetivos) if (reparto?.[d.id]) this.danioAlRival(d, reparto[d.id] * 10, { contadores: true })
+          break
+        }
+        case 'energiaRivalAMano': {
+          if (!op) { alManiqui(`devuelve ${p.n === 1 ? 'una energía' : `${p.n} energías`} del activo rival a su mano`); break }
+          const vale = [...(ra?.energias || [])]
+          if (!vale.length || prevenido(ra)) break
+          if (p.opcional && !(await ui.confirmar({ titulo: ataque.name, texto: `¿Devuelves ${p.n === 1 ? 'una energía' : `${p.n} energías`} del activo rival a su mano?` }))) break
+          const k = Math.min(p.n, vale.length)
+          const el = vale.length <= k ? vale : await ui.cartas({ titulo: `${ataque.name}: ¿qué ${k === 1 ? 'energía' : `${k} energías`}?`, opciones: vale, min: k, max: k })
+          ra.energias = ra.energias.filter((u) => !el.includes(u))
+          op.s.mano.push(...el)
+          this.log(`${el.map((u) => op.nombre(u)).join(', ')} ${el.length === 1 ? 'vuelve' : 'vuelven'} a la mano de ${op.nombreJugador}.`)
+          break
+        }
+        case 'noRetiraSiguiente': slot.noRetirarHasta = s.turno + 1; this.log(`${nombreVisible(c)} no podrá retirarse en tu próximo turno.`); break
+        case 'curarLoHecho': if (s.flags.danioHecho) this.curar(slot, s.flags.danioHecho); break
+        case 'curarBanca': for (const d of s.banca) this.curar(d, p.n); break
+        case 'bancaPropiaVarios': for (const d of await elegir(s.banca, `${ataque.name}: ${p.n} de daño a ${p.k === 1 ? '1 de tus Pokémon' : `${p.k} de tus Pokémon`} en banca`, p.k)) this.ponerDanio(d, p.n, { motivo: ataque.name }); break
+        case 'bonoAtaqueSiguiente':
+          slot.bonoAtaque = { turno: s.turno + 1, nombre: p.nombre, n: p.n, por }
+          this.log(`En tu próximo turno, ${p.nombre ? `${p.nombre} hará` : 'sus ataques harán'} ${p.n} más.`)
+          break
+        case 'evolucionarDesdeMazo': {
+          this.verMazo()
+          const el = await ui.cartas({ titulo: `${ataque.name}: una carta que evolucione de este Pokémon`, opciones: [...s.mazo], elegibles: s.mazo.filter((u) => evolucionaDe(this.carta(u), c)), min: 0, max: 1, zona: 'mazo' })
+          if (el.length) await this.evolucionar(el[0], slot, ui, { desdeMazo: true, sinHabilidad: true }).catch(() => {})
+          this.barajar()
+          break
+        }
+        case 'descartarUnaYRobar': {
+          if (!s.mano.length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: descarta 1 carta de tu mano`, opciones: [...s.mano], min: 0, max: 1, zona: 'mano' })
+          if (!el.length) break
+          this.descartar(el)
+          this.robar(p.n, { motivo: ataque.name })
+          break
+        }
+        case 'verManoRival':
+          if (!op) { alManiqui('el rival enseña su mano'); break }
+          this.log(`${op.nombreJugador} enseña su mano: ${op.s.mano.length ? op.s.mano.map((u) => op.nombre(u)).join(', ') : 'vacía'}.`)
+          break
+        case 'recuperarDescarte': {
+          const DE_CLASE = { 'pokémon': esPokemon, supporter: esPartidario, item: esObjeto, 'basic energy': (x) => esEnergiaBasica(x) && (!p.letra || letraDeCartaDeEnergia(x) === p.letra) }
+          const filtro = DE_CLASE[p.clase]
+          const vale = filtro ? s.descarte.filter((u) => filtro(this.carta(u))) : []
+          if (!vale.length) break
+          const k = Math.min(p.n, vale.length)
+          const el = !p.hasta && vale.length <= k ? vale : await ui.cartas({ titulo: `${ataque.name}: ${p.hasta ? `hasta ${p.n}` : p.n} del descarte a la mano`, opciones: vale, min: p.hasta ? 0 : k, max: k, zona: 'descarte' })
+          for (const u of el) s.descarte.splice(s.descarte.indexOf(u), 1)
+          s.mano.push(...el)
+          if (el.length) this.log(`A la mano desde el descarte: ${el.map((u) => this.nombre(u)).join(', ')}.`)
+          break
+        }
+        case 'buscarEnergiaYUnir': {
+          const destinos = () => {
+            if (p.destino === 'este') return [slot]
+            return (p.soloBanca ? s.banca : this.enJuego).filter((x) => !p.tipoPokemon || esDeTipo(this.cartaDe(x), p.tipoPokemon))
+          }
+          if (!destinos().length) break
+          this.verMazo()
+          const vale = s.mazo.filter((u) => {
+            const x = this.carta(u)
+            return esEnergia(x) && (!p.basica || esEnergiaBasica(x)) && (!p.letra || unidadesDeEnergia(x, null, this).some((y) => y.includes(p.letra)))
+          })
+          const el = await ui.cartas({ titulo: `${ataque.name}: ${p.n === 1 ? 'una energía' : `hasta ${p.n} energías`} del mazo`, opciones: [...s.mazo], elegibles: vale, min: 0, max: Math.min(p.n, vale.length), zona: 'mazo' })
+          let fijo = null
+          for (const u of el) {
+            let d = p.destino === 'este' ? slot : fijo
+            if (!d) {
+              const lista = destinos()
+              const [id] = lista.length === 1 ? [lista[0].id] : await ui.pokemon({ titulo: `¿A quién unes ${this.nombre(u)}?`, opciones: lista.map((x) => x.id), min: 1, max: 1 })
+              d = lista.find((x) => x.id === id)
+              // «Attach it to 1 of your Pokémon»: todas al mismo.
+              if (p.destino === 'uno') fijo = d
+            }
+            this.unirEnergia(u, d, { desde: 'mazo' })
+          }
+          this.barajar()
+          break
+        }
+        case 'unirDescarteA': {
+          const vale = () => s.descarte.filter((u) => esEnergiaBasica(this.carta(u)) && (!p.letra || letraDeCartaDeEnergia(this.carta(u)) === p.letra))
+          const lista = (p.soloBanca ? s.banca : this.enJuego)
+          if (!lista.length || !vale().length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: ${p.n === 1 ? 'una energía' : `hasta ${p.n} energías`} del descarte`, opciones: vale(), min: 0, max: Math.min(p.n, vale().length), zona: 'descarte' })
+          let fijo = null
+          for (const u of el) {
+            let d = fijo
+            if (!d) {
+              const [id] = lista.length === 1 ? [lista[0].id] : await ui.pokemon({ titulo: `¿A quién unes ${this.nombre(u)}?`, opciones: lista.map((x) => x.id), min: 1, max: 1 })
+              d = lista.find((x) => x.id === id)
+              if (!p.repartir) fijo = d
+            }
+            this.unirEnergia(u, d, { desde: 'descarte' })
+          }
+          break
+        }
+        case 'unirDeManoA': {
+          const vale = s.mano.filter((u) => esEnergiaBasica(this.carta(u)) && (!p.letra || letraDeCartaDeEnergia(this.carta(u)) === p.letra))
+          const lista = p.soloBanca ? s.banca : this.enJuego
+          if (!vale.length || !lista.length) break
+          const el = await ui.cartas({ titulo: `${ataque.name}: una energía de tu mano`, opciones: vale, min: 0, max: 1, zona: 'mano' })
+          if (!el.length) break
+          const [id] = lista.length === 1 ? [lista[0].id] : await ui.pokemon({ titulo: `¿A quién unes ${this.nombre(el[0])}?`, opciones: lista.map((x) => x.id), min: 1, max: 1 })
+          this.unirEnergia(el[0], lista.find((x) => x.id === id), { desde: 'mano' })
+          break
+        }
+        case 'rivalMonedaAtaque':
+          if (!op) { alManiqui('si el activo rival intenta atacar en su turno, lanza una moneda'); break }
+          if (!ra || prevenido(ra)) break
+          ra.monedaAtaque = { turno: op.s.turno + 1, por }
+          this.log(`En su próximo turno, si el activo rival ataca, lanzará una moneda: con cruz, no hay ataque (${por}).`)
+          break
         default: break
       }
     }
@@ -2682,6 +2984,19 @@ function cartaDeClase(c, clase) {
 
 // Los Pokémon de TU descarte que tienen una habilidad con ese nombre
 // (Escondite: Dhelmise, Sinistcha, Spiritomb).
+// «If Beldum and Metang are on your Bench» / «if a Pokémon that has
+// "Nidoking" in its name is on your Bench» (tanda 625). El nombre viene en
+// el idioma de la carta, así que se mira contra `name` y `name_es`.
+function nombresEnBanca(p, texto) {
+  const nombres = (c) => [c?.name, c?.name_es, claveDeEfecto(c)].filter(Boolean).map(normalizarNombre)
+  const contiene = String(texto).match(/^(?:a pokémon that has|un pokémon que tenga) "(.+?)" in its name$/)
+  if (contiene) return p.s.banca.some((x) => nombres(p.cartaDe(x)).some((n) => n.includes(normalizarNombre(contiene[1]))))
+  return String(texto)
+    .split(/ and | y /)
+    .map((n) => normalizarNombre(n))
+    .every((n) => p.s.banca.some((x) => nombres(p.cartaDe(x)).includes(n)))
+}
+
 function cuentaConHabilidad(p, habilidad) {
   const h = normalizarTexto(habilidad)
   return p.s.descarte.filter((u) => {
@@ -2700,6 +3015,7 @@ export function limpiarEfectosDeAtaque(p) {
   delete p.escudos
   delete p.debil
   delete p.marca
+  delete p.monedaAtaque
 }
 
 function quitarEstado(p, e) {

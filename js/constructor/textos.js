@@ -201,6 +201,90 @@ const FRASES_ATAQUE = [
   [/^this pokémon can't (?:attack|use attacks) during your next turn$/, () => ({ t: 'noAtacaSiguiente' })],
   [/^during your next turn, this pokémon can't use (.+)$/, (m) => ({ t: 'noUsaSiguiente', nombre: m[1] })],
   [/^during your next turn, the defending pokémon takes (\d+) more damage from attacks$/, (m) => ({ t: 'marcaRival', n: +m[1] })],
+
+  // ── Tanda 625: el repaso del formato entero ──
+  //
+  // PINGU: «léete todos los efectos de ataque, habilidades y el
+  // funcionamiento de TODOS los ataques de los Pokémon del formato actual».
+  // Salen de un inventario de las 2.763 cartas con marca H, I o J: estas
+  // son las frases que más se repiten entre las que no se leían, y las de
+  // los Pokémon del meta.
+  //
+  // — El daño —
+  [/^this attack does (\d+) (?:more )?damage for each pokémon tool attached to (all of your pokémon|all pokémon)$/, (m) => ({ t: 'porHerramientas', n: +m[1], de: m[2] === 'all pokémon' ? 'ambos' : 'propios', calc: true })],
+  [/^if this pokémon has a pokémon tool attached, this attack does (\d+) more damage$/, (m) => ({ t: 'siHerramienta', de: 'propio', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon has a pokémon tool attached, this attack does (\d+) more damage$/, (m) => ({ t: 'siHerramienta', de: 'rival', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon is an evolution pokémon, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalFase', fase: 'evolucion', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon is a tera pokémon, this attack does (\d+) more damage$/, (m) => ({ t: 'siRivalTera', n: +m[1], calc: true })],
+  [/^if you have (?:at least (\d+)|(\d+) or more) (?:{([a-z])} )?energy in play, this attack does (\d+) more damage$/, (m) => ({ t: 'siEnergiaEnJuego', min: +(m[1] || m[2]), letra: LETRA(m[3]), n: +m[4], calc: true })],
+  [/^this attack does (\d+) (?:more )?damage for each of your pokémon in play$/, (m) => ({ t: 'porEnJuegoPropios', n: +m[1], calc: true })],
+  [/^this attack does (\d+) (?:more )?damage for each (special |{[a-z]} )?energy attached to all of your opponent's pokémon$/, (m) => ({ t: 'porEnergiaRivalTodos', n: +m[1], especial: m[2] === 'special ', letra: m[2] && m[2] !== 'special ' ? LETRA(m[2].trim()) : null, calc: true })],
+  [/^if your opponent has (\d+) or fewer prize cards remaining, this attack does (\d+) more damage$/, (m) => ({ t: 'siPremiosRival', max: +m[1], n: +m[2], calc: true })],
+  [/^if your opponent has exactly (\d+) or (\d+) prize cards remaining, this attack does (\d+) more damage$/, (m) => ({ t: 'siPremiosRival', lista: [+m[1], +m[2]], n: +m[3], calc: true })],
+  [/^if you have more prize cards remaining than your opponent, this attack does (\d+) more damage$/, (m) => ({ t: 'siMasPremios', n: +m[1], calc: true })],
+  [/^if you have exactly (\d+) prize cards? remaining, this attack does (\d+) more damage$/, (m) => ({ t: 'siPremiosPropios', lista: [+m[1]], n: +m[2], calc: true })],
+  [/^if your opponent has (\d+) or fewer cards in their hand, this attack does (\d+) more damage$/, (m) => ({ t: 'siManoRivalMenos', max: +m[1], n: +m[2], calc: true })],
+  [/^this attack does (\d+) less damage for each {c} in your opponent's active pokémon's retreat cost$/, (m) => ({ t: 'menosPorRetiradaRival', n: +m[1], calc: true })],
+  [/^if this pokémon has no damage counters on it, this attack does (\d+) more damage$/, (m) => ({ t: 'siPropioSinDanio', n: +m[1], calc: true })],
+  [/^if this pokémon has (\d+) or more damage counters on it, this attack does (\d+) more damage$/, (m) => ({ t: 'siPropioContadores', min: +m[1], n: +m[2], calc: true })],
+  [/^if this pokémon and your opponent's active pokémon have the same amount of energy attached, this attack does (\d+) more damage$/, (m) => ({ t: 'siMismaEnergia', n: +m[1], calc: true })],
+  [/^this attack does (\d+) (?:more )?damage for each special condition affecting your opponent's active pokémon$/, (m) => ({ t: 'porEstadosRival', n: +m[1], calc: true })],
+  [/^if your opponent's active pokémon isn't (asleep|burned|confused|paralyzed|poisoned), this attack does nothing$/, (m) => ({ t: 'nadaSiNoEstado', estado: ESTADO[m[1]], calc: true })],
+  [/^this attack does (\d+) (?:more )?damage for each damage counter on all of your opponent's pokémon$/, (m) => ({ t: 'porContadoresRivalTodos', n: +m[1], calc: true })],
+  [/^if you have any (?:(stage 2|tera) )?(?:{([a-z])} )?pokémon on your bench, this attack does (\d+) more damage$/, (m) => ({ t: 'siEnBancaClase', fase2: m[1] === 'stage 2', tera: m[1] === 'tera', letra: LETRA(m[2]), n: +m[3], calc: true })],
+  [/^if there are (\d+) or fewer cards in your deck, this attack does (\d+) more damage$/, (m) => ({ t: 'siMazoMenos', max: +m[1], n: +m[2], calc: true })],
+  [/^if (.+?) (?:is|are) on your bench, this attack does (\d+) more damage$/, (m) => ({ t: 'siNombresEnBanca', nombres: m[1], n: +m[2], calc: true })],
+  [/^if you don't have exactly (\d+) cards in your hand, this attack does nothing$/, (m) => ({ t: 'nadaSiManoNo', n: +m[1], calc: true })],
+  [/^if you have (\d+) or fewer benched pokémon, this attack does nothing$/, (m) => ({ t: 'nadaSiBancaMenos', max: +m[1], calc: true })],
+  [/^if you have the same number of cards in your hand as your opponent, this attack does (\d+) more damage$/, (m) => ({ t: 'siManoIgual', n: +m[1], calc: true })],
+  [/^if you don't have the same number of cards in your hand as your opponent, this attack does nothing$/, () => ({ t: 'nadaSiManoDistinta', calc: true })],
+  // «Descarta… y hace N por cada carta que hayas descartado así»: el
+  // descarte va ANTES del daño (es lo que lo cuenta), así que es `calc`.
+  [/^this attack does (\d+) (more )?damage for each card you discarded in this way$/, (m) => ({ t: 'porDescartadas', n: +m[1], mas: !!m[2], calc: true })],
+  [/^discard up to (\d+) (?:{([a-z])} )?energy cards from your pokémon$/, (m) => ({ t: 'descartarEnergiaDeTuyos', max: +m[1], letra: LETRA(m[2]), calc: true })],
+  [/^discard up to (\d+) (?:{([a-z])} )?energy from your pokémon$/, (m) => ({ t: 'descartarEnergiaDeTuyos', max: +m[1], letra: LETRA(m[2]), calc: true })],
+  [/^discard up to (\d+) (?:{([a-z])} )?energy(?: cards)? from this pokémon$/, (m) => ({ t: 'descartarEnergiaHasta', max: +m[1], letra: LETRA(m[2]), calc: true })],
+  [/^discard up to (\d+) (basic )?(?:{([a-z])} )?energy cards from your hand, and this attack does (\d+) (more )?damage for each card you discarded in this way$/, (m) => [{ t: 'descartarEnergiaDeMano', max: +m[1], basica: !!m[2], letra: LETRA(m[3]), calc: true }, { t: 'porDescartadas', n: +m[4], mas: !!m[5], calc: true }]],
+  [/^discard up to (\d+) energy cards from this pokémon, and this attack does (\d+) (more )?damage for each card you discarded in this way$/, (m) => [{ t: 'descartarEnergiaHasta', max: +m[1], letra: null, calc: true }, { t: 'porDescartadas', n: +m[2], mas: !!m[3], calc: true }]],
+  [/^discard (\d+) basic {([a-z])} energy cards from your hand$/, (m) => ({ t: 'descartarEnergiaDeMano', exacto: +m[1], basica: true, letra: LETRA(m[2]), calc: true })],
+  [/^discard (\d+) basic {([a-z])} energy cards from your hand, and knock out your opponent's active pokémon$/, (m) => [{ t: 'descartarEnergiaDeMano', exacto: +m[1], basica: true, letra: LETRA(m[2]), calc: true }, { t: 'koActivoRival' }]],
+  [/^if you can't discard (\d+) cards in this way, this attack does nothing$/, (m) => ({ t: 'nadaSiNoDescartadas', n: +m[1], calc: true })],
+  // — A otros Pokémon del rival —
+  [/^this attack does (\d+) damage to each of your opponent's pokémon( ex)?$/, (m) => ({ t: 'danioATodos', n: +m[1], soloEx: !!m[2], calc: true })],
+  [/^this attack does (\d+) damage to (\d+) of your opponent's pokémon$/, (m) => ({ t: 'danioAVarios', n: +m[1], k: +m[2], calc: true })],
+  [/^this attack does (\d+) damage to 1 of your opponent's benched pokémon ex or benched pokémon v$/, (m) => ({ t: 'danioAUno', n: +m[1], soloBanca: true, soloEx: true, calc: true })],
+  [/^this attack does (\d+) damage to 1 of your opponent's (benched )?pokémon for each (?:{([a-z])} )?energy attached to this pokémon$/, (m) => ({ t: 'danioAUno', n: +m[1], soloBanca: !!m[2], porEnergia: true, letra: LETRA(m[3]), calc: true })],
+  [/^this attack does (\d+) damage to 1 of your opponent's (benched )?pokémon for each damage counter on this pokémon$/, (m) => ({ t: 'danioAUno', n: +m[1], soloBanca: !!m[2], porContadores: true, calc: true })],
+  [/^discard (all|an?|\d+) (?:{([a-z])} )?energy from this pokémon, and this attack does (\d+) damage to 1 of your opponent's pokémon$/, (m) => [{ t: 'descartarEnergiaPropia', cuantas: m[1] === 'all' ? 'todas' : num(m[1]), letra: LETRA(m[2]) }, { t: 'danioAUno', n: +m[3], calc: true }]],
+  [/^put (\d+) damage counters on each of your opponent's pokémon that has any damage counters on it$/, (m) => ({ t: 'contadoresCadaDanado', n: +m[1] })],
+  [/^put (\d+) damage counters on your opponent's (benched )?pokémon in any way you like$/, (m) => ({ t: 'repartirContadores', n: +m[1], soloBanca: !!m[2] })],
+  [/^(you may )?put (an?|\d+) energy attached to your opponent's active pokémon into their hand$/, (m) => ({ t: 'energiaRivalAMano', n: num(m[2]), opcional: !!m[1] })],
+  // — Lo propio —
+  [/^during your next turn, this pokémon can't retreat$/, () => ({ t: 'noRetiraSiguiente' })],
+  [/^heal from this pokémon the same amount of damage you did to your opponent's active pokémon$/, () => ({ t: 'curarLoHecho' })],
+  [/^heal (\d+) damage from 1 of your benched pokémon$/, (m) => ({ t: 'curarUno', n: +m[1], soloBanca: true })],
+  [/^heal all damage from 1 of your benched pokémon$/, () => ({ t: 'curarUno', n: 9999, soloBanca: true })],
+  [/^heal (\d+) damage from each of your benched pokémon$/, (m) => ({ t: 'curarBanca', n: +m[1] })],
+  [/^this attack also does (\d+) damage to (\d+) of your benched pokémon$/, (m) => ({ t: 'bancaPropiaVarios', n: +m[1], k: +m[2] })],
+  [/^during your next turn, this pokémon's (.+?) attack does (\d+) more damage$/, (m) => ({ t: 'bonoAtaqueSiguiente', nombre: m[1], n: +m[2] })],
+  [/^during your next turn, attacks used by this pokémon do (\d+) more damage to your opponent's active pokémon$/, (m) => ({ t: 'bonoAtaqueSiguiente', nombre: null, n: +m[1] })],
+  [/^if you go first, you can use this attack during your first turn$/, () => ({ t: 'puedePrimerTurno', puede: true })],
+  [/^search your deck for a card that evolves from this pokémon and put it onto this pokémon to evolve it$/, () => ({ t: 'evolucionarDesdeMazo' })],
+  [/^discard a card from your hand if you do, draw (\d+|a|one|two|three) cards?$/, (m) => ({ t: 'descartarUnaYRobar', n: num(m[1]) })],
+  [/^your opponent reveals their hand$/, () => ({ t: 'verManoRival' })],
+  [/^put (up to \d+|an?|\d+) (pokémon|supporter cards?|item cards?|basic energy cards?|basic {([a-z])} energy cards?) from your discard pile into your hand$/, (m) => ({ t: 'recuperarDescarte', n: /^up to/.test(m[1]) ? +m[1].replace(/\D/g, '') : num(m[1]), hasta: /^up to/.test(m[1]), clase: m[2].replace(/ cards?$/, '').replace(/ {[a-z]}/, ''), letra: LETRA(m[3]) })],
+  [/^search your deck for (an?|up to \d+) basic (?:{([a-z])} )?energy cards? and attach (?:it|them) to this pokémon$/, (m) => ({ t: 'buscarEnergiaYUnir', n: num(m[1]) ?? +m[1].replace(/\D/g, ''), letra: LETRA(m[2]), basica: true, destino: 'este' })],
+  [/^search your deck for (an?|up to \d+) basic (?:{([a-z])} )?energy cards? and attach (?:it|them) to 1 of your pokémon$/, (m) => ({ t: 'buscarEnergiaYUnir', n: num(m[1]) ?? +m[1].replace(/\D/g, ''), letra: LETRA(m[2]), basica: true, destino: 'uno' })],
+  [/^search your deck for (up to \d+) basic (?:{([a-z])} )?energy cards and attach them to your (benched )?pokémon in any way you like$/, (m) => ({ t: 'buscarEnergiaYUnir', n: +m[1].replace(/\D/g, ''), letra: LETRA(m[2]), basica: true, destino: 'repartir', soloBanca: !!m[3] })],
+  [/^search your deck for an? (?:{([a-z])} )?energy card and attach it to 1 of your benched (?:{([a-z])} )?pokémon$/, (m) => ({ t: 'buscarEnergiaYUnir', n: 1, letra: LETRA(m[1]), basica: false, destino: 'uno', soloBanca: true, tipoPokemon: LETRA(m[2]) })],
+  [/^attach (an?|up to \d+) basic (?:{([a-z])} )?energy cards? from your discard pile to (1 of your benched pokémon|your benched pokémon in any way you like|your pokémon in any way you like)$/, (m) => ({ t: 'unirDescarteA', n: num(m[1]) ?? +m[1].replace(/\D/g, ''), letra: LETRA(m[2]), soloBanca: /benched/.test(m[3]), repartir: /any way/.test(m[3]) })],
+  [/^attach a basic (?:{([a-z])} )?energy card from your hand to 1 of your benched pokémon$/, (m) => ({ t: 'unirDeManoA', n: 1, letra: LETRA(m[1]), soloBanca: true })],
+  // — El turno que viene —
+  [/^during your opponent's next turn, if the defending pokémon tries to use an attack, your opponent flips a coin if tails, that attack doesn't happen$/, () => ({ t: 'rivalMonedaAtaque' })],
+  // «Atrae a uno de la banca rival y golpea al NUEVO activo»: el cambio va
+  // antes del daño (pegadas en `leerAtaque`).
+  [/^switch in 1 of your opponent's benched pokémon to the active spot this attack does (\d+) damage to the new active pokémon$/, (m) => [{ t: 'atraerRival', calc: true }, { t: 'fijarDanio', n: +m[1], calc: true }]],
+  [/^you may do (\d+) more damage if you do, this pokémon also does (\d+) damage to itself$/, (m) => ({ t: 'opcionalMas', n: +m[1], propio: +m[2], calc: true })],
 ]
 
 // «Choose 1 of your opponent's Active Pokémon's attacks. During your
@@ -208,6 +292,11 @@ const FRASES_ATAQUE = [
 // frases que solo tienen sentido juntas: se pegan antes de leer.
 const PEGAR = [
   [/^choose 1 of your opponent's active pokémon's attacks$/, /^during your opponent's next turn, that pokémon can't use that attack$/],
+  // Tanda 625.
+  [/^during your opponent's next turn, if the defending pokémon tries to use an attack, your opponent flips a coin$/, /^if tails, that attack doesn't happen$/],
+  [/^switch in 1 of your opponent's benched pokémon to the active spot$/, /^this attack does (\d+) damage to the new active pokémon$/],
+  [/^you may do (\d+) more damage$/, /^if you do, this pokémon also does (\d+) damage to itself$/],
+  [/^discard a card from your hand$/, /^if you do, draw (\d+|a|one|two|three) cards?$/],
 ]
 
 function leerFrase(f) {
@@ -235,6 +324,18 @@ export function leerAtaque(texto) {
     // does nothing.» / «Flip N coins. This attack does X damage for each
     // heads.» / «Flip a coin until you get tails…».
     let mm
+    // «Flip a coin for each Energy attached to this Pokémon» (tanda 625):
+    // tantas monedas como energías, y el daño por cara.
+    if ((mm = f.match(/^flip a coin for each (?:{([a-z])} )?energy attached to this pokémon$/))) {
+      const m2 = (fs[i + 1] || '').match(/^this attack does (\d+) (more )?damage for each heads$/)
+      if (m2) {
+        pasos.push({ t: 'monedasPor', n: null, porEnergia: true, letra: LETRA(mm[1]), por: +m2[1], mas: !!m2[2], calc: true })
+        i++
+        continue
+      }
+      sinLeer.push(f)
+      continue
+    }
     if ((mm = f.match(/^flip (a|\d+|two|three|four) coins?( until you get tails)?$/))) {
       const n = num(mm[1])
       const hasta = !!mm[2]
@@ -244,6 +345,15 @@ export function leerAtaque(texto) {
         pasos.push({ t: 'monedasPor', n: hasta ? null : n, por: +m2[1], mas: !!m2[2], calc: true })
         i++
         continue
+      }
+      // «For each heads, X» (tanda 625): X una vez por cara, si X se lee.
+      if ((m2 = sig.match(/^for each heads, (.+)$/))) {
+        const dentro = leerFrase(m2[1])
+        if (dentro && !(Array.isArray(dentro) ? dentro : [dentro]).some((p) => p.calc)) {
+          pasos.push({ t: 'monedasCada', n: hasta ? null : n, pasos: Array.isArray(dentro) ? dentro : [dentro] })
+          i++
+          continue
+        }
       }
       if (n === 1 && !hasta) {
         // «If heads, X» y/o «If tails, Y», en cualquier orden.
@@ -312,6 +422,14 @@ const FRASES_HABILIDAD = [
   [/^this pokémon can't attack unless you have (\d+) or more (.+?) pokémon in play$/, (m) => ({ t: 'atacaSiTiene', n: +m[1], dueno: m[2] })],
   [/^if this pokémon has a pokémon tool attached, your opponent can't play any ace spec cards from their hand$/, () => ({ t: 'cierraAceSpec' })],
   [/^damage counters on each pokémon can't be moved to other pokémon$/, () => ({ t: 'contadoresQuietos' })],
+  // Tanda 625.
+  [/^if this pokémon has full hp and would be knocked out by damage from an attack, it is not knocked out, and its remaining hp becomes 10$/, () => ({ t: 'aguante' })],
+  [/^as long as this pokémon is on your bench, prevent all damage from and effects of attacks from your opponent's pokémon done to this pokémon$/, () => ({ t: 'refugioEnBanca', efectos: true })],
+  [/^as long as this pokémon is on your bench, prevent all damage done to this pokémon by attacks from your opponent's pokémon$/, () => ({ t: 'refugioEnBanca', efectos: false })],
+  [/^your opponent's active pokémon can't be healed$/, () => ({ t: 'sinCurarRivalActivo' })],
+  [/^this pokémon can't be (asleep|burned|confused|paralyzed|poisoned)$/, (m) => ({ t: 'inmuneA', estado: ESTADO[m[1]] })],
+  [/^this pokémon can't be affected by any special conditions$/, () => ({ t: 'inmuneA', estado: null })],
+  [/^if your opponent has any cards in their discard pile that have "(.+?)" in the name, this pokémon can use the (.+?) attack for {c}$/, (m) => ({ t: 'ataqueIncoloroSi', contiene: m[1], nombre: m[2] })],
 ]
 
 const PEGAR_HABILIDAD = [

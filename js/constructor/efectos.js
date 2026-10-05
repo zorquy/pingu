@@ -139,6 +139,23 @@ async function repartirContadores(p, ui, n, { donde = 'todos', titulo } = {}) {
   for (const d of objetivos) if (reparto[d.id]) p.danioAlRival(d, reparto[d.id] * 10, { contadores: true })
 }
 
+// «Elige uno de los ataques de … y úsalo como este ataque» (tanda 625).
+// Lo hace ESTE Pokémon (su debilidad y resistencia, sus bonos, lo que su
+// texto diga de «este Pokémon»), sin pagar la energía del copiado: es la
+// regla. Devuelve 0 porque el daño ya lo ha hecho el ataque copiado.
+async function usarAtaqueDe(p, ui, s, fuentes, titulo) {
+  const opciones = []
+  for (const c of fuentes) for (const a of Array.isArray(c?.attacks) ? c.attacks : []) if (a) opciones.push({ id: String(opciones.length), c, a, texto: `${nombreVisible(c)}: ${a.name}${a.damage ? ` · ${a.damage}` : ''}` })
+  if (!opciones.length) {
+    p.log('No hay ningún ataque que usar.')
+    return 0
+  }
+  const id = opciones.length === 1 ? '0' : await ui.opcion({ titulo, opciones: opciones.map((o) => ({ id: o.id, texto: o.texto })) })
+  const o = opciones.find((x) => x.id === String(id))
+  if (o) await p.ejecutarAtaque(s, o.c, o.a, ui)
+  return 0
+}
+
 // Hacer daño o poner contadores en UN Pokémon rival que se elige.
 async function aUnRival(p, ui, cantidad, { titulo, soloBanca = false, soloEx = false, contadores = false } = {}) {
   const r = p.rival
@@ -1212,6 +1229,38 @@ const habilidades = {
       await aUnRival(p, ui, n * 10, { titulo: '¿A qué Pokémon del rival?', contadores: true })
     },
   },
+  // ── Tanda 625: las que faltaban del meta ──
+  drilbur: {
+    nombre: 'Dig Dig Dig',
+    texto: 'Al bajarlo de la mano a la banca: puedes buscar en tu mazo hasta 3 Energías {F} básicas y descartarlas. Después, baraja.',
+    cuando: 'bajar',
+    usar: (p, ui) => p.buscarEnMazo(ui, { titulo: 'Hasta 3 Energías Lucha básicas al descarte', filtro: basicaDe('F'), max: 3, destino: 'descarte' }),
+  },
+  abra: {
+    nombre: 'Teleporter',
+    texto: 'Una vez por turno, si está en el puesto activo, puedes barajarlo con todo lo unido en tu mazo.',
+    soloActivo: true,
+    async usar(p, ui, s) {
+      const todo = p.cartasDelSlot(s)
+      p.quitarDelJuego(s)
+      p.alMazo(todo, 'barajar')
+      p.log('Abra y todo lo unido vuelven al mazo, barajado.')
+      await p.reponerActivo(ui)
+    },
+  },
+  moltres: {
+    nombre: 'Fiery Flapping',
+    texto: 'Una vez por turno, si tienes a Articuno y a Zapdos en juego, une una Energía {R} básica de tu mano a este Pokémon.',
+    puede(p) {
+      const hay = (n) => p.enJuego.some((x) => claveDeEfecto(p.cartaDe(x)) === n)
+      if (!hay('articuno') || !hay('zapdos')) return 'Necesitas a Articuno y a Zapdos en juego.'
+      return p.s.mano.some((u) => basicaDe('R')(p.carta(u))) || 'No tienes Energía Fuego básica en la mano.'
+    },
+    async usar(p, ui, s) {
+      const [u] = await ui.cartas({ titulo: 'Una Energía Fuego básica de tu mano', opciones: p.s.mano.filter((x) => basicaDe('R')(p.carta(x))), min: 1, max: 1, zona: 'mano' })
+      if (u) p.unirEnergia(u, s, { desde: 'mano' })
+    },
+  },
   dudunsparce: {
     nombre: 'Run Away Draw',
     texto: 'Una vez por turno, puedes robar 3 cartas. Si has robado alguna, baraja este Pokémon y todo lo unido con tu mazo.',
@@ -1566,6 +1615,27 @@ const ataques = {
   'dragapult ex': {
     '#1': { async usar(p, ui, s, { base }) { await repartirContadores(p, ui, 6, { donde: 'banca', titulo: 'Picado Fantasma: 6 contadores en la banca rival' }); return base } },
   },
+  // «Usa uno de esos ataques como este ataque» (tanda 625).
+  "n's zoroark ex": {
+    '#0': { usar: (p, ui, s) => usarAtaqueDe(p, ui, s, p.s.banca.map((b) => p.cartaDe(b)).filter((c) => esDe(c, 'n')), 'Broma Nocturna: ¿qué ataque de tus Pokémon de N en banca?') },
+  },
+  slowking: {
+    '#0': {
+      async usar(p, ui, s) {
+        const [u] = p.s.mazo.slice(0, 1)
+        if (!u) return 0
+        p.sacarDelMazo(u)
+        p.s.descarte.push(u)
+        const c = p.carta(u)
+        p.log(`Se descarta ${p.nombre(u)} de arriba del mazo.`)
+        if (!esPokemon(c) || tieneRegla(c)) {
+          p.log('No es un Pokémon sin recuadro de regla: no hay ataque que usar.')
+          return 0
+        }
+        return usarAtaqueDe(p, ui, s, [c], `¿Qué ataque de ${nombreVisible(c)} usas?`)
+      },
+    },
+  },
   'fezandipiti ex': { '#0': { async usar(p, ui) { await aUnRival(p, ui, 100, { titulo: '100 de daño a 1 de los Pokémon del rival' }); return 0 } } },
   dunsparce: { '#0': cambiaAtaque },
   abra: { '#0': { async usar(p, ui, s, { base }) { await p.elegirYCambiar(ui); return base } } },
@@ -1731,7 +1801,7 @@ const ataques = {
 // otra colección), y aplicarle a uno el efecto del otro sería peor que
 // no aplicar nada. Si el daño de la carta no casa con la firma, el
 // ataque se trata como no automatizado.
-const firmas = {"dragapult ex":["70","200"],"fezandipiti ex":[""],"dunsparce":["","20"],"abra":["10"],"buneary":["","20"],"duskull":["","30"],"slowpoke":["","30"],"raging bolt ex":["","70"],"torchic":["","10"],"froakie":["","10"],"marnie's impidimp":["","10"],"chi-yu":["","60"],"comfey":["","20"],"seaking":["60"],"mega sharpedo ex":["70","120"],"jirachi ex":["","150"],"cynthia's garchomp ex":["100","260"],"frogadier":["","50"],"piplup":["","20"],"team rocket's murkrow":["","30"],"celebi":["","30"],"lampent":[""],"drilbur":["","50"],"toxel":["","20"],"dwebble":[""],"dedenne":["","30"],"greninja ex":["170",""],"banette":["80"],"mega lucario ex":["130","270"],"riolu":["30"],"mega kangaskhan ex":["200"],"alakazam":[""],"mega excadrill ex":["90","200"],"teal mask ogerpon ex":["30"],"lillie's clefairy ex":["20"],"toucannon":["60"],"dipplin":["20"],"passimian":["20"],"beedrill ex":["110"],"pecharunt ex":["60"],"mega mawile ex":["80","260"],"moltres":["20"],"blaziken ex":["200"],"iron leaves ex":["180"],"latias ex":["200"],"n's zekrom":["70","250"],"bloodmoon ursaluna ex":["240"],"mega starmie ex":["120","210"],"wellspring mask ogerpon ex":["20","100"],"mega skarmory ex":[""],"zeraora":["20",""],"n's darmanitan":["30","90"],"marnie's grimmsnarl ex":["180"],"hop's zacian ex":["30","240"],"flutter mane":["90"],"gengar ex":[""],"kyurem":[""],"iron crown ex":[""],"arboliva ex":["","160"],"mega eelektross ex":["","190"],"dudunsparce ex":["60","150"],"mega absol ex":["","200"],"ethan's typhlosion":["40","160"]}
+const firmas = {"dragapult ex":["70","200"],"n's zoroark ex":[""],"slowking":["","120"],"fezandipiti ex":[""],"dunsparce":["","20"],"abra":["10"],"buneary":["","20"],"duskull":["","30"],"slowpoke":["","30"],"raging bolt ex":["","70"],"torchic":["","10"],"froakie":["","10"],"marnie's impidimp":["","10"],"chi-yu":["","60"],"comfey":["","20"],"seaking":["60"],"mega sharpedo ex":["70","120"],"jirachi ex":["","150"],"cynthia's garchomp ex":["100","260"],"frogadier":["","50"],"piplup":["","20"],"team rocket's murkrow":["","30"],"celebi":["","30"],"lampent":[""],"drilbur":["","50"],"toxel":["","20"],"dwebble":[""],"dedenne":["","30"],"greninja ex":["170",""],"banette":["80"],"mega lucario ex":["130","270"],"riolu":["30"],"mega kangaskhan ex":["200"],"alakazam":[""],"mega excadrill ex":["90","200"],"teal mask ogerpon ex":["30"],"lillie's clefairy ex":["20"],"toucannon":["60"],"dipplin":["20"],"passimian":["20"],"beedrill ex":["110"],"pecharunt ex":["60"],"mega mawile ex":["80","260"],"moltres":["20"],"blaziken ex":["200"],"iron leaves ex":["180"],"latias ex":["200"],"n's zekrom":["70","250"],"bloodmoon ursaluna ex":["240"],"mega starmie ex":["120","210"],"wellspring mask ogerpon ex":["20","100"],"mega skarmory ex":[""],"zeraora":["20",""],"n's darmanitan":["30","90"],"marnie's grimmsnarl ex":["180"],"hop's zacian ex":["30","240"],"flutter mane":["90"],"gengar ex":[""],"kyurem":[""],"iron crown ex":[""],"arboliva ex":["","160"],"mega eelektross ex":["","190"],"dudunsparce ex":["60","150"],"mega absol ex":["","200"],"ethan's typhlosion":["40","160"]}
 
 // Las claves se escriben aquí como se leen («poké pad», «pokégear 3.0»)
 // y se guardan como las busca el motor: con `claveDeEfecto`, sin tildes.
