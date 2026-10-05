@@ -474,6 +474,22 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y /admin lo enseña («Estado del catálogo de TCGGO»); y una expansión
   que no se deja escribir se salta a la tercera, no se pide cada cinco
   minutos para siempre.
+- **El calendario de lanzamientos sale del catálogo** (tanda 656):
+  /lanzamientos y la miniatura de la portada leen `tcg_sets` (fecha,
+  logo, código), por catálogo; la lista a mano de /admin es solo para un
+  set anunciado que TCGGO aún no tiene (se funde por nombre). Y
+  `?catalogo=JP` en /cartas o /mi-coleccion manda sobre la vista
+  recordada al arrancar (`vistaDeDireccion`): un enlace a un set japonés
+  tiene que abrir el catálogo japonés.
+- **Dos reglas de padre que se contradicen hacen desaparecer la expansión
+  ENTERA** (tanda 656). TCGGO decía que el padre del 30 es la Classic (es
+  el set más grande de su `tcggo_id`) y `COLECCIONES_JUNTAS` que el padre
+  de la Classic es el 30: cada uno colgaba del otro, los dos «tenían
+  padre» y `plegarHermanos` los dejaba fuera a los dos, sin error. Un
+  padre registrado por TCGGO no es hijo de nadie según la lista a mano, y
+  un camino que vuelve al origen no es un padre. Si añades otra fuente de
+  «este set cuelga de aquel», pregúntate qué pasa cuando no esté de
+  acuerdo con las que ya hay.
 - **Un chip de «últimos N días» solo sale si el histórico CUBRE esos
   días** (tanda 653). Con tres fotos diarias, `diasDelRango(…, '1M')`
   devuelve las tres —tiene dos puntos y no se queja— y el chip habría

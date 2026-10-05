@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 2) — PINGU-Claude (656 — el calendario de lanzamientos sale del catálogo)
+
+**Hecho**: /lanzamientos lee `tcg_sets` —desplegable Pokémon / Pokémon
+Japón—, el siguiente set arriba con cuenta atrás, los que vienen debajo y
+TODAS las pasadas por año, cada una enlazando a su página del catálogo
+(`?catalogo=` abre /cartas en el catálogo que toca). La lista a mano del
+admin queda como complemento para un set anunciado que TCGGO aún no
+tiene. La portada también coge el siguiente del catálogo. Y un fallo
+destapado de paso: dos sets que se hacían padre el uno del otro (TCGGO y
+la lista a mano en desacuerdo) desaparecían los dos; ahora manda TCGGO.
+Sin migración.
+
+**Ficheros**: `js/lanzamientos.js`, `lanzamientos.html`,
+`css/lanzamientos.css`, `js/home.js`, `js/mi-coleccion.js` (una función),
+`js/catalogo-series.js`, `admin/index.html`, `admin/js/admin.js`,
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 656 (nueva).
+
+**Pruebas**: 656 en verde; pasadas las de CSS (299, 305, 310–313), las
+del catálogo de series y el subconjunto de Mi colección (ver abajo).
 ## 2026-10-06 (madrugada) — PINGU-Claude (655 — el catálogo apunta lo que no se deja escribir)
 
 **Hecho**: PINGU ve sets japoneses creados por TCGGO con «0 de 102» y

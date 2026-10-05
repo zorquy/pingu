@@ -839,9 +839,16 @@ async function cargarLanzamiento() {
   const hueco = document.getElementById('lanzamientoPortada')
   if (!seccion || !hueco) return
   try {
-    const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
     const hoy = new Date().toISOString().slice(0, 10)
-    const proximo = (data?.value?.sets || [])
+    // Del CATÁLOGO (656): el primer set occidental con fecha de hoy en
+    // adelante (sin Pocket, que no es el TCG), y la lista a mano por si hay
+    // un anuncio que TCGGO aún no tiene. Gana el que salga antes.
+    const [{ data: sets }, { data }] = await Promise.all([
+      supabase.from('tcg_sets').select('name,name_en,release_date,logo_tcggo,logo_scrydex,oculto').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(5),
+      supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle(),
+    ])
+    const delCatalogo = (sets || []).filter((s) => !s.oculto && s.release_date).map((s) => ({ nombre: s.name || s.name_en, fecha: String(s.release_date).slice(0, 10), imagen: s.logo_scrydex || s.logo_tcggo || '' }))
+    const proximo = [...delCatalogo, ...(data?.value?.sets || [])]
       .filter((s) => s && s.nombre && /^\d{4}-\d{2}-\d{2}$/.test(s.fecha || '') && s.fecha >= hoy)
       .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))[0]
     if (!proximo) return recogerSeccion('lanzamientoSeccion')

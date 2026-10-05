@@ -674,7 +674,7 @@ async function loadLanzamientos() {
         ? /site_settings/.test(error.message || '')
           ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
           : 'No se ha podido guardar: ' + error.message
-        : `Guardados ${sets.length} sets. Ya están en /lanzamientos y en la portada.`,
+        : `Guardados ${sets.length} sets. Salen en /lanzamientos y en la portada si el catálogo no los tiene todavía.`,
       error ? 'error' : 'success'
     )
   })

@@ -125,8 +125,18 @@
   <main id="contenido" class="page-content container">
     <div class="page-header">
       <h1>Calendario de lanzamientos</h1>
-      <p>Las fechas de los próximos sets de Pokémon TCG, con cuenta atrás. Lo mantenemos a mano: si falta alguno, dilo en el foro.</p>
+      <p>La fecha de salida de todas las expansiones de Pokémon TCG, con cuenta atrás para la que viene. Sale del catálogo, así que se pone al día solo.</p>
     </div>
+
+    <!-- QUÉ CATÁLOGO SE MIRA (tanda 656): el occidental o el japonés, como
+         en Mi colección. Lo rellena js/lanzamientos.js; `?catalogo=JP` en
+         la dirección manda sobre lo recordado. -->
+    <div class="lanz-mandos">
+      <label for="lanzCatalogo">Catálogo</label>
+      <select id="lanzCatalogo" aria-label="Qué catálogo se mira"></select>
+    </div>
+
+    <p id="lanzamientosCargando" class="subtext">Cargando el calendario…</p>
 
     <!-- El siguiente set, en grande y con su cuenta atrás. Lo pinta
          js/lanzamientos.js; sin sets futuros, no sale. -->
@@ -138,11 +148,12 @@
     </section>
 
     <section id="seccionPasados" class="hidden">
-      <h2 class="section-title">Ya en tiendas</h2>
+      <h2 class="section-title">Ya en tiendas <span class="lanz-cuantos" id="cuantosPasados"></span></h2>
       <div id="listaPasados" class="lanzamientos-lista"></div>
     </section>
 
-    <p id="lanzamientosVacio" class="empty-state hidden">Todavía no hay fechas anunciadas por aquí. En cuanto se anuncie el próximo set, saldrá con su cuenta atrás.</p>
+    <p id="lanzamientosVacio" class="empty-state hidden">Este catálogo todavía no tiene fechas. En cuanto las tenga, saldrán aquí.</p>
+    <p id="lanzamientosError" class="empty-state hidden">No se ha podido cargar el calendario. Vuelve a intentarlo en un momento.</p>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres

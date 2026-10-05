@@ -276,7 +276,19 @@ function vistaGuardada() {
     return 'es'
   }
 }
-let vista = vistaGuardada()
+// Y LA DIRECCIÓN MANDA (656): `?catalogo=JP` abre el catálogo japonés
+// aunque la última vez se mirara el occidental. Es lo que hace que un
+// enlace de /lanzamientos a un set japonés abra ESE set y no «no existe».
+// No se guarda: es cómo se ha llegado, no lo que se ha elegido.
+function vistaDeDireccion() {
+  try {
+    const c = new URLSearchParams(location.search).get('catalogo')
+    return VISTAS_VISIBLES.find((v) => v.mercado === c)?.id || null
+  } catch {
+    return null
+  }
+}
+let vista = vistaDeDireccion() || vistaGuardada()
 const laVista = () => VISTAS.find((v) => v.id === vista) || VISTAS[0]
 // `mercado` se queda como lo que es: el catálogo que se consulta. Lo
 // calcula la vista, así que las diez consultas de la 437 no se enteran.

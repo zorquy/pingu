@@ -163,11 +163,19 @@ export function registrarEpisodios(sets) {
 // que dice TCGGO (registrado), después la lista a mano; y si el padre es a
 // su vez parte de otro, el de arriba del todo.
 export function padreDeColeccion(id) {
-  let x = String(id ?? '').toLowerCase()
+  const origen = String(id ?? '').toLowerCase()
+  let x = origen
   let padre = null
   for (let vueltas = 0; vueltas < 4; vueltas++) {
     const siguiente = padreDirecto(x)
     if (!siguiente || siguiente === x) break
+    // UN CICLO NO ES UN PADRE (656). TCGGO puede decir que el padre del
+    // 30 es la Classic (es el set más grande de su expansión) mientras la
+    // lista a mano dice que el padre de la Classic es el 30: cada uno
+    // colgaba del otro, los dos «tenían padre» y la expansión ENTERA
+    // desaparecía de la estantería y del calendario, sin error. Si el
+    // camino vuelve al origen, el origen es su propio padre.
+    if (siguiente === origen) return null
     padre = siguiente
     x = siguiente
   }
@@ -176,6 +184,11 @@ export function padreDeColeccion(id) {
 
 function padreDirecto(x) {
   if (padresRegistrados.has(x)) return padresRegistrados.get(x)
+  // Un PADRE según TCGGO no es hijo de nadie según la lista a mano (656):
+  // TCGGO manda (la 646). Sin esto, el 30 colgaba de la Classic por TCGGO
+  // y la Classic del 30 por la lista: un ciclo, y la expansión entera
+  // desaparecía de la estantería y del calendario.
+  for (const padre of padresRegistrados.values()) if (padre === x) return null
   for (const { padre, prefijo, hijos } of COLECCIONES_JUNTAS) {
     if (x === padre) continue
     if (prefijo && x.startsWith(prefijo)) return padre

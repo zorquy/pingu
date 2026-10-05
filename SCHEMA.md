@@ -31945,3 +31945,69 @@ el «0 de 102»—, dos intentos, a la tercera se salta y sigue con la
 siguiente, no se vuelve a pedir, y a la semana se reintenta; escribir
 cero filas se apunta y se quita si después escribe; el botón de /admin
 lee los cuatro estados y no escribe nada).
+
+## Tanda 656 — el calendario de lanzamientos sale del catálogo (oct. 2026)
+
+PINGU: «el calendario de lanzamientos es una cosa hecha a mano desde el
+panel de admin. Podríamos transformar la página en un calendario de
+lanzamientos REAL, trayéndonos las fechas de la API: tenemos todo, los
+nombres, las fechas de salida… Dos catálogos, el occidental y el japonés,
+que puedes seleccionar con un desplegable; el próximo lanzamiento arriba
+y todos los demás más abajo, los que ya han salido en orden de fecha. Así
+podemos tener todos, literal todos. Y que sea automático, obviamente».
+
+**La página** (`js/lanzamientos.js`, reescrito; `lanzamientos.html`,
+`css/lanzamientos.css`): lee `tcg_sets` del catálogo elegido —un
+desplegable «Pokémon / Pokémon Japón», como el de Mi colección (648)— y
+pinta el siguiente set arriba con su cuenta atrás, los demás que vienen
+debajo, y «Ya en tiendas» con TODAS las expansiones pasadas, de la más
+reciente a la más vieja, agrupadas por año (cuatrocientas japonesas sin
+cortes no se recorren) y con la cuenta total. Cada tarjeta es un ENLACE a
+la página del set en el catálogo público (`/cartas.html?ver=album&set=…
+&catalogo=…`), con su chapa de código y sus cartas. Entran las filas con
+fecha, no escondidas (`oculto`) y del TCG (sin Pocket, `esDelTCG`), con
+los hermanos plegados (`plegarHermanos`: 30th + Classic son una). El logo
+sigue la cadena de la estantería (Scrydex → TCGGO → TCGdex por ruta →
+TCGdex a mano) y si no llega se esconde y queda el nombre. `?catalogo=JP`
+manda sobre lo recordado (`lanz-catalogo`), y cambiar el desplegable lo
+escribe en la dirección. Tres finales distintos, cada uno con su frase
+(la 510): «cargando», «no se ha podido», «este catálogo no tiene fechas».
+
+**La lista a mano no desaparece: es COMPLEMENTO.** `site_settings`
+(`lanzamientos`) se funde con el occidental solo para lo que el catálogo
+NO tiene por nombre (`fundirConManuales`, con `normalizeSearch`): un set
+recién anunciado que TCGGO aún no lista. Sale rotulado «anunciado» y sin
+enlace. /admin lo dice así ahora.
+
+**La portada** (`js/home.js`): la miniatura del siguiente set sale del
+catálogo (el primer occidental con fecha de hoy en adelante, sin Pocket y
+sin escondidos) y de la lista a mano; gana el que salga antes. La portada
+pesa 168,8 KB de 170 (cabe 1,2).
+
+**`?catalogo=` en /cartas y /mi-coleccion** (`js/mi-coleccion.js`,
+`vistaDeDireccion`): la dirección manda sobre la vista recordada al
+arrancar, sin guardarse — es cómo se ha llegado, no lo que se ha elegido.
+Sin esto, el enlace a un set japonés abría el catálogo occidental y decía
+que el set no existe.
+
+**Y lo que destapó la captura: un ciclo de padres** (`js/catalogo-series.js`).
+Con el 30 (25 cartas) y la Classic (30) bajo el mismo `tcggo_id`,
+`padresPorEpisodio` hacía padre a la Classic (la más grande) y
+`COLECCIONES_JUNTAS` hace padre al 30 por prefijo: cada uno colgaba del
+otro, los dos «tenían padre» y `plegarHermanos` los dejaba FUERA a los
+dos — la expansión entera desaparecía de la estantería y del calendario,
+sin error. Dos guardas: en `padreDirecto`, un padre registrado por TCGGO
+no es hijo de nadie según la lista a mano (TCGGO manda, la 646); y en
+`padreDeColeccion`, si el camino vuelve al origen, el origen es su propio
+padre. En producción tras la 654 la Classic ya no existe, pero la forma
+del fallo vale para cualquier par.
+
+**Pruebas**: `test-tanda-656.mjs` (en puro: el filtrado, el plegado sin
+pérdidas, la fundición con la lista a mano, el siguiente/los que vienen/
+los pasados, hoy cuenta como siguiente, los años, qué catálogo manda; el
+ciclo de padres en las dos direcciones; en pantalla: el desplegable, el
+destacado con enlace, los que vienen con el anunciado sin enlace, los
+pasados por año como enlaces, sin Pocket ni escondidos, el cambio a
+japonés con la dirección y los enlaces con `catalogo=JP`, la dirección
+mandando al entrar; /cartas con `?catalogo=JP` abre el set en japonés; la
+portada sale del catálogo y gana el que salga antes).
