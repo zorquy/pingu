@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 5) — PINGU-Claude (643 — el histórico de precios)
+
+**Hecho**: gráfica de precio en /carta. Tabla `tcg_card_history` que
+llena `tcggo-historial` (a demanda, la primera vez que se abre la ficha,
+y no más de una vez a la semana por carta; tope diario propio) y la foto
+diaria que `tcggo-precios` toma al cerrar el día de las cartas que
+alguien tiene. SVG a mano (`js/carta-historial.js`): línea del idioma
+elegido y, a trazos, TCGplayer.
+
+**MIGRACIONES pendientes de ejecutar, en este orden**:
+`supabase-migration-tcggo-catalogo.sql`,
+`supabase-migration-tcggo-japones.sql`,
+`supabase-migration-tcggo-historial.sql`.
+
+**Ficheros**: `supabase-migration-tcggo-historial.sql`,
+`netlify/functions/tcggo-historial.mjs`, `js/carta-historial.js`
+(nuevos); `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`js/carta-mercado.js`, `css/carta.css`, `SCHEMA.md`, `CLAUDE.md`. En
+`pruebas`: 643 y 643-pantalla (nuevas).
+
 ## 2026-10-06 (noche, 4) — PINGU-Claude (642 — el precio de las japonesas)
 
 **Hecho**: `cm_low_ja` desde `lowest_near_mint_JP`; «ja» en la regla del

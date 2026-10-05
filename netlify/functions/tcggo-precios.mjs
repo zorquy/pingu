@@ -57,7 +57,7 @@ async function rest(ruta, clave, opciones = null) {
 export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 
 export async function procesar({
-  env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, guardarSetsImpl = null, estadoImpl = null, guardarEstadoImpl = null,
+  env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, guardarSetsImpl = null, fotoImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
   peticiones = 60,
 } = {}) {
@@ -75,6 +75,8 @@ export async function procesar({
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = guardarImpl || ((filas) => rest('tcg_card_prices', clave, { method: 'POST', body: JSON.stringify(filas) }))
   const guardarSets = guardarSetsImpl || ((sets, mercado = 'WEST') => rest('rpc/tcggo_guardar_sets', clave, { method: 'POST', body: JSON.stringify({ p_sets: sets, p_market: mercado }) }))
+  // La foto del histórico (643): una fila de hoy por carta que alguien tiene.
+  const foto = fotoImpl || ((d) => rest('rpc/historial_foto_diaria', clave, { method: 'POST', body: JSON.stringify({ p_dia: d }) }))
   const leerEstado = estadoImpl || (async (claveEstado) => (await pedir(`scrydex_estado?select=valor&clave=eq.${claveEstado}&limit=1`))?.[0]?.valor || {})
   const guardarEstado = guardarEstadoImpl || ((claveEstado, valor) => rest('scrydex_estado', clave, { method: 'POST', body: JSON.stringify([{ clave: claveEstado, valor, updated_at: new Date().toISOString() }]) }))
   const dia = ahora.toISOString().slice(0, 10)
@@ -256,10 +258,20 @@ export async function procesar({
     await persistir()
   }
   const quedan = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id)).length + [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id)).length
-  if (!quedan && !parado) estado.hecho = true
+  let fotoHistorial = null
+  if (!quedan && !parado) {
+    estado.hecho = true
+    // Con el día entero escrito, la foto del histórico: cero peticiones.
+    // Si falta su migración, se dice y no pasa nada más.
+    try {
+      fotoHistorial = Number(await foto(dia)) || 0
+    } catch (e) {
+      fotoHistorial = /historial_foto_diaria|42883|PGRST202/.test(String(e?.message || e)) ? 'falta ejecutar supabase-migration-tcggo-historial.sql' : String(e?.message || e).slice(0, 120)
+    }
+  }
   await persistir()
   return {
-    ok: true, dia, hecho: !quedan && !parado, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
+    ok: true, dia, hecho: !quedan && !parado, fotoHistorial, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
     episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado,
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }

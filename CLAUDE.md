@@ -356,6 +356,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
   con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
+- **El HISTÓRICO de precios se pide A DEMANDA, y lo demás lo escribe la
+  pasada de precios** (tanda 643). TCGGO da la serie de una carta en una
+  petición, así que pedirla para las 20.000 es imposible: `tcggo-historial`
+  la pide la PRIMERA vez que alguien abre la ficha, no más de una vez a
+  la semana por carta y con tope diario (`TCGGO_TOPE_HISTORIAL`), y a
+  partir de ahí `historial_foto_diaria` —al cerrar cada día de
+  `tcggo-precios`— copia el precio del día de las cartas que alguien
+  TIENE. Si añades algo que le pida a TCGGO desde el navegador, pasa por
+  el mismo patrón: freno propio y «se sirve lo que haya» cuando se gasta.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

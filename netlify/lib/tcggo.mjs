@@ -402,3 +402,37 @@ export function setDeEpisodio(episodio, sets) {
   }
   return { set: null, porque: 'ninguno nuestro con ese código ni ese nombre' }
 }
+
+// ── El histórico de precios de una carta (tanda 643) ──
+
+// `/history-prices?cardmarket_id=…`: el histórico por el id de Cardmarket,
+// que es el que decidimos nosotros. Del más antiguo al más nuevo; una
+// página son 30 fechas, que son dos o tres meses de muestras.
+export const urlHistorial = (idProduct, base = URL_BASE) => `${base}/history-prices?cardmarket_id=${idProduct}&sort=asc`
+
+// Su respuesta es un objeto por fecha: { "2026-09-11": { cm_low, cm_low_de,
+// cm_low_fr, cm_low_es, cm_low_it, tcg_player_market } }. No hay `_en`: el
+// `cm_low` a secas es el general, que en su web es el inglés. Una fila por
+// fecha, con lo que haya; una fecha sin ninguna cifra no se guarda.
+export function filasDeHistorial(cardId, respuesta) {
+  const datos = respuesta?.data && typeof respuesta.data === 'object' && !Array.isArray(respuesta.data) ? respuesta.data : {}
+  const fuera = []
+  for (const [dia, v] of Object.entries(datos)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dia) || !v || typeof v !== 'object') continue
+    const fila = {
+      card_id: cardId,
+      dia,
+      cm_low: positivo(v.cm_low),
+      cm_low_en: positivo(v.cm_low),
+      cm_low_es: positivo(v.cm_low_es),
+      cm_low_de: positivo(v.cm_low_de),
+      cm_low_fr: positivo(v.cm_low_fr),
+      cm_low_it: positivo(v.cm_low_it),
+      cm_low_ja: positivo(v.cm_low_jp ?? v.cm_low_ja),
+      tp_market_eur: positivo(v.tcg_player_market),
+      origen: 'tcggo',
+    }
+    if (fila.cm_low || fila.cm_low_es || fila.cm_low_de || fila.cm_low_fr || fila.cm_low_it || fila.cm_low_ja || fila.tp_market_eur) fuera.push(fila)
+  }
+  return fuera.sort((a, b) => a.dia.localeCompare(b.dia))
+}

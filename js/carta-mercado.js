@@ -113,6 +113,9 @@ export async function pintarMercado(carta) {
           ${enlaceDeEspecie(carta)}
         </div>
       </div>
+      <!-- El histórico de precios (tanda 643): lo pinta js/carta-historial.js,
+           que entra por import() al tener el precio; sin filas no se ve. -->
+      <div class="carta-historial hidden" id="cmHistorial"></div>
       <!-- Quién da ESTA carta (tanda 376). Va en la ficha y no solo en
            /mi-coleccion porque es donde se está cuando te hace falta:
            miras una carta que te falta y ves que hay tres personas que
@@ -134,10 +137,19 @@ export async function pintarMercado(carta) {
   }
   pintarPrecio()
 
+  // La gráfica (643), sin bloquear nada: si la función no contesta, la
+  // ficha se queda como estaba.
+  let repintarHistorial = null
+  import('./carta-historial.js')
+    .then(({ montarHistorial }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma))
+    .then((r) => { repintarHistorial = r })
+    .catch(() => {})
+
   for (const [id, campo] of [['cmIdioma', 'idioma'], ['cmEstado', 'estado'], ['cmVariante', 'variante']]) {
     $(id)?.addEventListener('change', (e) => {
       estado[campo] = e.target.value
       pintarPrecio()
+      if (campo === 'idioma') repintarHistorial?.()
     })
   }
 

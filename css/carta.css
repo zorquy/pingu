@@ -1028,6 +1028,55 @@
   gap: var(--e-md);
 }
 
+/* La gráfica del histórico (643). El SVG se dibuja a 600×200 y se estira
+   al ancho de su caja; la altura la fija el aspect-ratio del propio SVG. */
+.carta-historial {
+  margin-top: var(--e-lg);
+}
+
+.carta-historial-titulo {
+  margin: 0 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.carta-historial svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.carta-historial-linea {
+  fill: none;
+  stroke: var(--navy-solid);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.carta-historial-linea-tp {
+  stroke: var(--text-mid);
+  stroke-dasharray: 4 4;
+}
+
+.carta-historial-eje {
+  fill: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+.carta-historial-reja {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.carta-historial-pie {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
 /* ── Quién da esta carta (tanda 376) ──
    Va debajo del precio, que es donde se está cuando te hace falta:
    miras una carta que te falta y ves que hay tres que la dan. */

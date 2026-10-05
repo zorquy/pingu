@@ -30839,3 +30839,50 @@ cualquier idioma sin filtro.
 **Pruebas**: en `test-tanda-589.mjs` (la columna, el valor, el enlace, la
 pasada de precios con una expansión japonesa) y `test-tanda-640.mjs` (el
 estado con `setsPorEpisodio`).
+
+## Tanda 643 — el histórico de precios de una carta (oct. 2026)
+
+PINGU pidió gráficas de precio, y TCGGO las tiene: `/history-prices?cardmarket_id=ID`
+devuelve, por día, el mínimo de Cardmarket general y por idioma
+(`cm_low`, `cm_low_de/fr/es/it`) y el mercado de TCGplayer en euros. Es
+UNA petición por carta, así que no se puede pedir para las 20.000: se
+pide **a demanda**, la primera vez que alguien abre la ficha, y a partir
+de ahí lo alimenta nuestra propia pasada de precios.
+
+**Dónde vive**: tabla `tcg_card_history` (`card_id, dia` como clave;
+`cm_low`, `cm_low_es/en/de/fr/it/ja`, `tp_market_eur`, `origen`), lectura
+pública, escritura solo con la clave de servicio. `tcg_card_prices` gana
+`historial_at`: cuándo se le pidió a TCGGO el histórico de esa carta.
+Todo en `supabase-migration-tcggo-historial.sql`.
+
+**Dos caminos que la llenan**:
+
+- `tcggo-historial` (función pública, `GET ?card=`). Devuelve lo guardado
+  y, si la carta tiene `cm_id_product_propio` y no se le ha pedido en
+  **siete días**, pide a TCGGO la serie entera y la funde con lo que
+  había (sin repetir días). Lleva su propio freno —la lección de la 509—:
+  tope diario de peticiones (`TCGGO_TOPE_HISTORIAL`, 1500 por defecto)
+  en `scrydex_estado.tcggo_historial`; con el tope gastado se sirve lo
+  que haya y se dice por qué. Sin migración, filas vacías y la nota, sin
+  romper la ficha.
+- `historial_foto_diaria(p_dia)`: la llama `tcggo-precios` al cerrar
+  cada día (`fotoHistorial` en su respuesta) y copia a la tabla el precio
+  del día de **las cartas que alguien tiene** — las demás no las ve nadie
+  y serían filas por miles. Así una carta de tu colección va acumulando
+  un punto al día sin gastar ni una petición de TCGGO.
+
+**La gráfica** (`js/carta-historial.js`, import dinámico desde
+`carta-mercado.js` a `#cmHistorial`): un SVG dibujado a mano —aquí no
+hay npm para el cliente— con la línea del idioma elegido (o la general si
+ese idioma no tiene cifra) y, a trazos, la de TCGplayer. El eje dice el
+mínimo y el máximo **de las dos líneas** y abajo la primera y la última
+fecha. Con menos de dos puntos no hay gráfica y la caja se queda
+escondida. Al cambiar de idioma se repinta con las mismas filas, sin
+volver a pedir. El dibujo es una función pura (`svgDeHistorial`) para
+probarla en Node.
+
+**Pruebas**: `test-tanda-643.mjs` (filas de su respuesta, la función con
+sus frenos —frescura, tope, 400, 404, sin migración—, la foto diaria y
+el SVG) y `test-tanda-643-pantalla.mjs` (la ficha con la función
+interceptada: se pide una vez, se ve, cambia con el idioma, y sin filas
+no se ve).
