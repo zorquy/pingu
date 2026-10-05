@@ -160,6 +160,12 @@
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
+        <!-- Y SE QUEDA (tanda 649). La misma estantería es ahora también el
+             catálogo público (/cartas, generado de esta página); se pensó
+             quitar la pestaña de aquí y PINGU paró: «alguien que quiera
+             utilizar mi colección, tener una pestaña de expansiones está
+             muy bien; creo que es muy importante». Es desde donde más se
+             añade: abres un set y tocas los huecos. -->
         <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="pokedex" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
         <!-- «Álbumes» y no «Carpetas» (tanda 579): dentro hay carpetas Y
@@ -1189,6 +1195,16 @@
                 <label class="mc-anadir-version hidden">Versión <select id="mcEdAnadirVariante"></select></label>
                 <div class="mc-anadir-versiones" id="mcEdAnadirVersiones"></div>
                 <p class="subtext" id="mcEdAnadirCon"></p>
+              </div>
+            </section>
+
+            <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
+                 catálogo público, y en vez del botón de añadir dice cómo
+                 tener dónde añadirla. El enlace vuelve a esta misma página. -->
+            <section class="mc-ficha-bloque hidden" id="mcEdEntrarBloque">
+              <div class="mc-ficha-caja mc-ficha-entrar">
+                <p class="subtext">¿La tienes? Entra y guárdala en tu colección.</p>
+                <a class="btn-primary" id="mcEdEntrar" href="/auth.html?volver=%2Fcartas">Entrar</a>
               </div>
             </section>
 

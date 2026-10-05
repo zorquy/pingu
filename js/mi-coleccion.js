@@ -28,7 +28,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, idsDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -118,6 +118,24 @@ const pedida = params.get('ver')
 // una carta, repasar un set, ver la Pokédex—, y el panel es para ver qué
 // tienes, que es a lo que entra uno cuando entra sin un plan.
 let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'resumen'
+// ── EL CATÁLOGO PÚBLICO ES ESTA MISMA PANTALLA (tanda 649) ──
+//
+// /cartas es mi-coleccion.html generado con `<body data-modo="catalogo">`
+// (generar-cartas.mjs): la misma estantería, la misma expansión por
+// dentro y la misma ficha emergente. Lo que cambia con el modo es poco y
+// está todo detrás de este nombre: se enseñan TODAS las expansiones
+// aunque mires sin cuenta (la colección vacía y la ficha diciendo «entra
+// para añadirla»), la cabecera es la de una página pública y las pestañas
+// son dos (Expansiones y Buscar). Con cuenta, tu colección se carga igual
+// y la estantería enseña tu progreso. Y Mi colección CONSERVA su pestaña
+// de Expansiones: PINGU, «creo que es muy importante».
+const modoCatalogo = document.body.dataset.modo === 'catalogo'
+const PESTANAS_CATALOGO = ['album', 'buscar']
+// La pestaña por defecto es la que NO va en la dirección: compartir
+// /mi-coleccion o /cartas a secas tiene que abrir lo mismo que ve quien
+// lo comparte.
+const PESTANA_POR_DEFECTO = modoCatalogo ? 'album' : 'resumen'
+if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -140,7 +158,8 @@ let albumesAbiertos = false
 // no empuja: la entrada de llegada ya existe.
 function irA(cambios, { push = true } = {}) {
   const url = new URL(location.href)
-  for (const [k, v] of Object.entries(cambios)) {
+  for (let [k, v] of Object.entries(cambios)) {
+    if (k === 'ver' && v === PESTANA_POR_DEFECTO) v = null
     if (v == null || v === '') url.searchParams.delete(k)
     else url.searchParams.set(k, String(v))
   }
@@ -158,7 +177,7 @@ function irA(cambios, { push = true } = {}) {
 function aplicarDireccion() {
   const p = new URLSearchParams(location.search)
   const pedidaAhora = p.get('ver')
-  const ver = PESTANAS.includes(pedidaAhora) ? pedidaAhora : MUDANZAS[pedidaAhora] || 'resumen'
+  const ver = PESTANAS.includes(pedidaAhora) ? pedidaAhora : MUDANZAS[pedidaAhora] || PESTANA_POR_DEFECTO
   if (ver !== pestania) cambiarPestania(ver, { push: false })
   if (ver === 'album') {
     const set = p.get('set')
@@ -1073,6 +1092,10 @@ function vistazoDeSets(sets) {
   if (!conAlgo.length) {
     return vistazoHtml('Expansiones', 'album', '<p class="empty-state">Cuando añadas cartas, aquí verás por dónde vas en cada colección.</p>')
   }
+  // «Ver todas» abre la estantería ENTERA (tanda 649; el filtro de «solo
+  // las empezadas» se quita al llegar, en el manejador del vistazo).
+  // PINGU: «cuando le des a ver todas, que no te lleve a solo las
+  // empezadas, que te deje ver todas directamente».
   return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
 }
 
@@ -1616,6 +1639,13 @@ function abrirEditor(l) {
   $('mcEdCopiaBloque')?.classList.toggle('hidden', !tuya)
   $('mcEdAnadirBloque')?.classList.toggle('hidden', tuya || !esMia)
   if (!tuya && esMia) pintarAnadirVersiones(l.card_id, c)
+  // Sin cuenta (tanda 649): en el catálogo público, o mirando la
+  // colección pública de alguien, la ficha se abre igual — y en vez del
+  // botón de añadir dice cómo tener una colección donde añadirla. El
+  // `volver` es ESTA página, para que al entrar se siga donde se estaba.
+  $('mcEdEntrarBloque')?.classList.toggle('hidden', Boolean(sesion))
+  const entrar = $('mcEdEntrar')
+  if (entrar && !sesion) entrar.href = `/auth.html?volver=${encodeURIComponent(location.pathname + location.search)}`
   // La carta, a la vista (tanda 369): el escaneo, el nombre y de qué
   // colección es. Antes la ventana solo decía el nombre en un título, y
   // con dos impresiones de la misma carta en la colección no había forma
@@ -2098,7 +2128,10 @@ async function pintarEstanteria() {
   // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
   // igual de larga pero sin fechas. Ahora arriba va solo lo que marcas.
-  const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && (esMia || cuantas.has(s.id)))
+  // En el catálogo se ven TODAS (tanda 649), tengas o no: es el catálogo.
+  // Fuera de él, mirando la colección de otro, solo las que tiene.
+  const seVe = (s) => modoCatalogo || esMia || cuantas.has(s.id)
+  const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && seVe(s))
   const grupos = gruposDeEstanteria(visibles, favoritos || new Set(), eras)
 
   $('mcEstanteriaRejilla').innerHTML = grupos
@@ -2108,7 +2141,7 @@ async function pintarEstanteria() {
   // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:
   // sin nada en el catálogo es un estado; con doscientas y cero visibles
   // es que has filtrado de más, y eso se arregla con un botón.
-  const totalSinFiltrar = sets.filter((s) => esMia || cuantas.has(s.id)).length
+  const totalSinFiltrar = sets.filter(seVe).length
   const filtrado = visibles.length === 0 && totalSinFiltrar > 0
   $('mcAlbumVacio').classList.toggle('hidden', visibles.length > 0 || filtrado)
   $('mcAlbumFiltrado')?.classList.toggle('hidden', !filtrado)
@@ -2197,7 +2230,11 @@ function tarjetaDeSet(set, tengo) {
   // El de TCGGO (589) detrás del de Scrydex y delante del montado a mano.
   const dibujos = [set.logo_scrydex, set.logo_tcggo, logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
   const completo = total && tengo >= total
-  const codigo = set.tcg_online_code || ''
+  // Sin código de TCG Live, el identificador en mayúsculas (649; lo hacía
+  // el /cartas viejo): una tarjeta sin chapa descuadra la fila y el
+  // identificador es lo que la gente escribe cuando no hay código. Los
+  // que creó TCGGO (`tcggo-123`) no dicen nada a nadie y van sin ella.
+  const codigo = set.tcg_online_code || (/^tcggo-/i.test(String(set.id)) ? '' : String(set.id).toUpperCase().slice(0, 6))
   // EL NOMBRE, SIEMPRE A LA VISTA (tanda 458), y el logo a un lado.
   //
   // Hasta ahora el logo ocupaba la tarjeta entera y el nombre se escondía
@@ -2354,7 +2391,14 @@ async function abrirAlbum(setId, { push = true } = {}) {
   $('mcAlbumMigas').innerHTML = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
   $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
   try {
-    album.cartas = (await datos.cartasDeSet(setId, mercado)).sort(porNumero)
+    // Una expansión PLEGADA se abre entera (649): la tarjeta dice «1 de
+    // 128» contando las dos mitades del 30 aniversario, y abrirla tenía
+    // que enseñar solo las 92 del Celebration, con tu Charizard de la
+    // Classic en ninguna parte. El orden bloque a bloque lo pone
+    // `cartasDelAlbumFiltradas`, que es quien ordena.
+    const ids = idsDeColeccion(setId)
+    const lista = ids.length > 1 ? await datos.cartasDeSets(ids, mercado) : await datos.cartasDeSet(setId, mercado)
+    album.cartas = lista.sort(porNumero)
   } catch (err) {
     $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
@@ -2581,7 +2625,15 @@ function cartasDelAlbumFiltradas() {
   // El orden va DESPUÉS de filtrar y sobre una copia: `album.cartas` es la
   // lista buena del set, y ordenarla en el sitio dejaría «por número»
   // dependiendo de lo último que hubieras elegido.
-  return ordenar(encajan, $('mcAlbumOrden')?.value || 'numero', { tengo: tengoDe, nombre: nombreDe })
+  const orden = $('mcAlbumOrden')?.value || 'numero'
+  const ordenadas = ordenar(encajan, orden, { tengo: tengoDe, nombre: nombreDe })
+  // Una expansión PLEGADA por número va BLOQUE a bloque (649): el 001 de
+  // la Classic no se cuela entre el 001 y el 002 del Celebration. Solo en
+  // «por número», que es el orden del set; los demás son de la carta.
+  const ids = idsDeColeccion(album.set)
+  if (orden !== 'numero' || ids.length < 2) return ordenadas
+  const bloque = (c) => Math.max(0, ids.indexOf(String(c.set_id || '').toLowerCase()))
+  return ordenadas.sort((a, b) => bloque(a) - bloque(b))
 }
 
 // Cómo están las variantes, en UN solo botón (tanda 473).
@@ -3723,13 +3775,15 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // `display: none` lo saca también del árbol de accesibilidad y la
   // pantalla se queda SIN encabezado, que es peor que el espacio. Así
   // sigue leyéndose en voz alta y ocupa cero.
-  const mini = nueva !== 'resumen'
+  // En el catálogo (tanda 649) la cabecera es el título de la página y
+  // se queda: no hay Panel al que reservarle el espacio.
+  const mini = !modoCatalogo && nueva !== 'resumen'
   $('mcHero')?.classList.toggle('mc-hero-mini', mini)
   $('mcTitulo')?.classList.toggle('sr-only', mini)
   // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
   // /mi-coleccion a secas llevaría a una pestaña distinta de la que ve
   // quien la abre.
-  if (nueva === 'resumen') url.searchParams.delete('ver')
+  if (nueva === PESTANA_POR_DEFECTO) url.searchParams.delete('ver')
   else url.searchParams.set('ver', nueva)
   if (nueva !== 'carpetas') url.searchParams.delete('album')
   // Y al salir de una pestaña se va lo que había abierto DENTRO: un
@@ -4761,7 +4815,18 @@ function enganchar() {
   // volver a colgarlo cada vez.
   $('mcVistazos')?.addEventListener('click', (e) => {
     const ir = e.target.closest('[data-ir-a]')
-    if (ir) return cambiarPestania(ir.dataset.irA)
+    if (ir) {
+      // «Ver todas» de Expansiones son TODAS (tanda 649): si «Solo las
+      // empezadas» se quedó pulsado de antes, se quita, que si no el botón
+      // dice una cosa y la estantería enseña otra.
+      if (ir.dataset.irA === 'album' && soloEmpezadas) {
+        soloEmpezadas = false
+        $('mcEstanteriaEmpezadas')?.classList.remove('activo')
+        $('mcEstanteriaEmpezadas')?.setAttribute('aria-pressed', 'false')
+        void pintarEstanteria()
+      }
+      return cambiarPestania(ir.dataset.irA)
+    }
     // Y una expansión del vistazo abre esa expansión, no la estantería: es
     // lo que espera quien pulsa una tarjeta con su nombre y su progreso.
     const set = e.target.closest('[data-set]')
@@ -5382,6 +5447,7 @@ async function iniciar() {
   enganchar()
   albumes.iniciarAlbumes(contexto)
   sesion = await getSession().catch(() => null)
+  if (modoCatalogo) return iniciarCatalogo()
   const idAlbum = params.get('album')
   if (idAlbum) {
     const fila = await albumes.cargarParaVer(idAlbum)
@@ -5468,6 +5534,46 @@ async function iniciar() {
   cambiarPestania(pestania)
 
   await cargarColeccion(dueno.id, { primeraVez: true })
+  window.addEventListener('resize', () => album.set && pintarAlbum())
+}
+
+// ── EL ARRANQUE DEL CATÁLOGO (tanda 649) ──
+//
+// Lo mismo que el de la colección, sin lo que aquí no tiene sentido: ni
+// `?u=` (no es la colección de nadie), ni `?album=`, ni la puerta de
+// «entra para guardar tus cartas» — el catálogo se mira sin cuenta, y lo
+// que pide cuenta es AÑADIR, que lo dice la ficha de cada carta.
+//
+// Con cuenta se carga tu colección entera igual que en /mi-coleccion:
+// es lo que hace que la estantería enseñe tu progreso y la ficha, tu
+// copia. Sin cuenta, la colección es la vacía y se pinta la estantería
+// directamente, que es lo que `cargarColeccion` haría al acabar.
+async function iniciarCatalogo() {
+  if (sesion) {
+    // sin rango: la colección es la de quien mira (tanda 386).
+    const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
+    dueno = data || { id: sesion.user.id }
+    esMia = true
+  } else {
+    dueno = null
+    esMia = false
+    // Lo que solo tiene sentido con una colección detrás: añadir del
+    // catálogo, «solo las empezadas» (no hay ninguna empezada), el escáner
+    // (añade lo que lee) y el desplegable de con qué se añade.
+    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios', 'mcEstanteriaEmpezadas', 'mcEscanear']) $(id)?.classList.add('hidden')
+    $('mcTocarOpciones')?.classList.add('hidden')
+  }
+  pintarHojaOrden()
+  pintarBandejaCatalogo()
+  pintarGruposDelCatalogo()
+  cambiarPestania(pestania)
+  if (sesion) {
+    await cargarColeccion(dueno.id, { primeraVez: true })
+  } else {
+    $('mcCargando').classList.add('hidden')
+    if (pestania === 'album') await pintarEstanteria()
+    if (pestania === 'album' && params.get('set')) void abrirAlbum(params.get('set'), { push: false })
+  }
   window.addEventListener('resize', () => album.set && pintarAlbum())
 }
 

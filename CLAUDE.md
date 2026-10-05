@@ -410,6 +410,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   carta de otro catálogo no está en `cartas` ni en `lineas`, y buscarla
   solo ahí la pintaba como «una que no tienes», sin foto ni precio y sin
   error. Si añades un camino que abra una carta por id, mira en las dos.
+- **/cartas se GENERA desde mi-coleccion.html** (tanda 649): es la misma
+  pantalla en modo catálogo (`<body data-modo="catalogo">`,
+  `modoCatalogo` en `js/mi-coleccion.js`). No edites `cartas.html` a
+  mano: toca la plantilla y corre `node generar-cartas.mjs`;
+  `test-tanda-649-pantalla.mjs` comprueba que el repo lleva lo que sale
+  del generador. Y Mi colección CONSERVA su pestaña de Expansiones: se
+  pensó quitarla y PINGU paró («creo que es muy importante»), así que para
+  quien tiene cuenta son dos puertas a la misma estantería, a propósito.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

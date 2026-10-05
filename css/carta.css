@@ -678,11 +678,9 @@
   min-height: 44px;
 }
 
-/* ── El índice ── */
-/* Buscador y filtros en una fila que se parte sola en el móvil: el
-   nombre se lleva el sitio que sobre y el tipo mide lo que mide su
-   palabra más larga (tanda 346). */
-.cartas-buscador,
+/* ── Los filtros de una colección ── */
+/* En una fila que se parte sola en el móvil: el nombre se lleva el sitio
+   que sobre y el tipo mide lo que mide su palabra más larga (tanda 346). */
 .coleccion-filtros {
   display: flex;
   flex-wrap: wrap;
@@ -706,8 +704,7 @@
   font-size: var(--t-sm);
 }
 
-.coleccion-filtros select,
-.cartas-buscador select {
+.coleccion-filtros select {
   min-height: 44px;
   padding: var(--e-sm) var(--e-md);
   font-size: var(--t-md);
@@ -729,24 +726,7 @@
 }
 
 .coleccion-filtros input:focus-visible,
-.coleccion-filtros select:focus-visible,
-.cartas-buscador select:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 2px;
-}
-
-.cartas-buscador input {
-  width: 100%;
-  min-height: 44px;
-  padding: var(--e-md) var(--e-lg);
-  font-size: var(--t-lg);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-}
-
-.cartas-buscador input:focus-visible {
+.coleccion-filtros select:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
@@ -931,180 +911,6 @@
 
 
 
-/* ════════════════════════════════════════════════════════════════════
- * Las colecciones, en lista (tanda 328)
- * ════════════════════════════════════════════════════════════════════
- *
- * Eran tarjetas con el logo. El problema no era que fueran feas: era
- * que la mitad de las colecciones no tiene logo en TCGdex, y que una
- * rejilla de logos no deja COMPARAR nada — ni la fecha, ni el tamaño,
- * ni el código, que es como la gente las nombra de verdad.
- *
- * Una lista con el código delante sí, y además todas las filas se ven
- * iguales tengan logo o no. */
-
-.serie {
-  margin-bottom: var(--e-2xl);
-}
-
-.serie-titulo {
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-  color: var(--text-mid);
-  margin: 0 0 var(--e-sm);
-  padding-bottom: var(--e-sm);
-  border-bottom: 1px solid var(--border);
-}
-
-.serie-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* ── LA TARJETA DE UNA EXPANSIÓN (tanda 646) ──
-   Era una fila con el código delante; PINGU la quiso como la de TCGGO:
-   el logo sobre su propio arte desenfocado, el nombre, la era y la
-   fecha, y tres cifras —cartas, valor del set y cómo va la semana—.
-   Las clases de la fila se quedan (serie-fila, serie-nombre, serie-codigo,
-   serie-fecha, serie-cuantas): es el mismo enlace con más dentro. */
-.serie-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--e-md);
-}
-
-.serie-fila {
-  display: flex;
-  flex-direction: column;
-  min-height: 44px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-  text-decoration: none;
-  transition: border-color 0.15s var(--ease);
-}
-
-.serie-fila:hover {
-  border-color: var(--navy);
-}
-
-/* El logo sobre su propio arte, ampliado y desenfocado (el truco de la
-   estantería, tanda 405): no hace falta pedir el arte de una carta. */
-.serie-arte {
-  display: grid;
-  position: relative;
-  place-items: center;
-  height: 112px;
-  overflow: hidden;
-  background: var(--ice);
-}
-
-.serie-arte::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: var(--arte);
-  background-position: center;
-  background-size: cover;
-  filter: blur(18px) saturate(1.4);
-  opacity: 0.55;
-  transform: scale(1.4);
-}
-
-.serie-arte img {
-  position: relative;
-  max-width: 70%;
-  max-height: 72px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-}
-
-/* Sin logo, el código grande: todas las tarjetas tienen cabecera. */
-.serie-sin-logo {
-  position: relative;
-  font-family: var(--font-display);
-  font-size: var(--t-2xl);
-  color: var(--text-mid);
-}
-
-.serie-cuerpo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  padding: var(--e-md) var(--e-lg) var(--e-lg);
-}
-
-.serie-cabeza {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--e-sm);
-}
-
-.serie-codigo {
-  flex: none;
-  padding: 1px var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.serie-nombre {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--t-lg);
-  /* Su propia caja, o `ellipsis` no hace nada (tanda 320). */
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.serie-fecha {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.serie-cifras {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--e-sm);
-  margin-top: var(--e-sm);
-}
-
-.serie-cifras > span {
-  display: flex;
-  flex-direction: column;
-  padding: var(--e-sm);
-  border-radius: var(--radius-md);
-  background: var(--bg);
-  text-align: center;
-}
-
-.serie-cifras small {
-  color: var(--text-dim);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.serie-cifras b {
-  font-size: var(--t-md);
-  font-variant-numeric: tabular-nums;
-}
-
-.serie-cifras .sube { color: var(--success); }
-.serie-cifras .baja { color: var(--danger); }
-.serie-cifras .sin { color: var(--text-dim); font-weight: 500; }
-
 /* El dato de combate con su icono (tanda 328). En la carta de verdad la
    debilidad es un símbolo, no la palabra «Fuego»; aquí igual, con el
    nombre en el `title` para quien no ve el color. */
@@ -1123,17 +929,6 @@
 .carta-nada {
   color: var(--text-mid);
   font-weight: 400;
-}
-
-/* Las series que no son una era —promos, colecciones sueltas, lo que
-   aún no tiene serie— van detrás y con el título más apagado (tanda
-   330). No es que valgan menos: es que quien entra al catálogo viene a
-   buscar lo que se juega, y una colección de McDonald's en medio de las
-   eras rompe esa lectura. `--text-dim` vale aquí porque es un RÓTULO,
-   no un control: lo que se pulsa son las filas de debajo. */
-.serie-menor .serie-titulo {
-  color: var(--text-dim);
-  font-size: var(--t-md);
 }
 
 /* ── Precio y colección (tanda 365) ──

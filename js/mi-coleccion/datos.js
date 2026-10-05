@@ -311,6 +311,15 @@ export async function cartasDeSet(setId, mercado = 'WEST') {
   return data || []
 }
 
+// Las de VARIOS sets a la vez (649): una expansión plegada —el 30
+// aniversario con su Classic dentro— es un set para la estantería y para
+// la ficha pública, así que al abrirla salen las cartas de sus dos
+// mitades. Misma lista de columnas que `cartasDeSet`, por eso la llama.
+export async function cartasDeSets(ids, mercado = 'WEST') {
+  const listas = await Promise.all(ids.map((id) => cartasDeSet(id, mercado)))
+  return listas.flat()
+}
+
 // ── Los precios ──
 
 // Los guardados por la función programada, de una vez.

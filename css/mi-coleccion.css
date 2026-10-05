@@ -190,6 +190,39 @@
   font-size: var(--t-sm);
 }
 
+/* ── EL CATÁLOGO PÚBLICO (tanda 649) ──
+   /cartas es esta misma página en modo catálogo (generar-cartas.mjs). La
+   cabecera de perfil se queda en título y lema: no hay perfil que
+   enseñar. El porqué largo, en SCHEMA.md. */
+[data-modo='catalogo'] .mc-hero-avatar,
+[data-modo='catalogo'] .mc-hero-desde,
+[data-modo='catalogo'] .mc-compartir,
+[data-modo='catalogo'] .mc-resumen,
+[data-modo='catalogo'] .mc-nota {
+  display: none;
+}
+
+[data-modo='catalogo'] .mc-hero {
+  margin: 0 0 var(--e-lg);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.mc-catalogo-lema {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+.mc-ficha-entrar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+
 /* Las cifras, dentro de la cabecera y SIN caja: separadas por una línea,
    como en un panel de verdad. */
 /* ── LAS CUATRO CIFRAS ──

@@ -31484,3 +31484,85 @@ URL. Queda apuntado para cuando PINGU lo pida.
 de una española desde el Panel con el japonés puesto: tu copia, foto,
 nombre, colección, precio y TCGplayer). Al día: 438 y 472 (el inglés ya
 no se elige), 546 (`ordenarCartas` por nombre pasa por `nombreDeCarta`).
+
+## Tanda 649 — /cartas es la estantería de Mi colección (oct. 2026)
+
+PINGU, con las tres capturas delante: «tenemos la categoría de cartas con
+catálogo, lanzamientos y mi colección… en el catálogo tenemos todas las
+colecciones pero en mi colección las expansiones, lo mismo pero
+visualmente distinto. A mí me gusta más el apartado de colecciones
+porque es más pequeño, tiene más información y cuando clicas en una
+carta te sale el pop-up y desde ahí puedes ir a la ficha». Así que el
+catálogo público pasa a SER esa pantalla.
+
+**Cómo**: `cartas.html` se GENERA desde `mi-coleccion.html` con
+`generar-cartas.mjs` (raíz del repo; `node generar-cartas.mjs` tras tocar
+la plantilla). El generador cambia cuatro cosas y para si alguna no casa
+exactamente una vez: el `<title>`, el `noindex` por la descripción y el
+bloque social con su canónica, `<body data-modo="catalogo">`, y el `<h1>`
+con su lema (`.mc-catalogo-lema`); y el menú se queda en dos pestañas,
+Expansiones y Buscar. Lo demás es byte a byte la misma página, y
+`test-tanda-649-pantalla.mjs` comprueba que el fichero del repo es lo
+que sale del generador: dos copias de 1.400 líneas se separan sin que
+nadie lo vea, y esto es lo que lo impide.
+
+**El modo** (`modoCatalogo` en `js/mi-coleccion.js`, de
+`document.body.dataset.modo`): la pestaña por defecto es `album` y no va
+en la dirección (`PESTANA_POR_DEFECTO`, que también respeta `irA` y
+`aplicarDireccion`); `iniciarCatalogo()` sustituye al arranque de la
+colección —sin `?u=`, sin `?album=`, sin la puerta de «entra para guardar
+tus cartas»—: con cuenta carga tu colección entera igual que
+/mi-coleccion (progreso en las tarjetas, tu copia en la ficha), sin
+cuenta pinta la estantería directamente con la colección vacía y esconde
+lo que solo tiene sentido con colección (añadir del catálogo, «solo las
+empezadas», el escáner). `pintarEstanteria` enseña TODAS las expansiones
+en el catálogo (`seVe`); fuera de él sigue como antes (todas si es la
+tuya, solo las que tiene si es la de otro). La cabecera no se encoge
+(`mini` solo fuera del catálogo) y el CSS del modo
+(`[data-modo='catalogo']` en `css/mi-coleccion.css`) esconde el avatar,
+las cifras y el interruptor de pública.
+
+**La ficha sin cuenta**: `#mcEdEntrarBloque` («¿La tienes? Entra y
+guárdala en tu colección») sale cuando no hay sesión —en el catálogo y
+también mirando la colección pública de alguien—, con el `volver` a la
+página y la expansión abiertas. Con cuenta, el bloque de añadir o el de
+tu copia, como siempre. «Ficha completa» sigue llevando a /carta.
+
+**Una expansión plegada se abre ENTERA** (`abrirAlbum` +
+`datos.cartasDeSets`): la tarjeta del 30 aniversario dice «1 de 128»
+contando la Classic, y abrirla enseñaba solo las 92 del Celebration, con
+tu Charizard de la Classic en ninguna parte. Ahora carga
+`idsDeColeccion(setId)` y, en «por número», `cartasDelAlbumFiltradas`
+ordena bloque a bloque (primero las del padre), que si no el 001 de la
+Classic se colaba entre el 001 y el 002 del Celebration.
+
+**La tarjeta sin código de TCG Live** enseña el identificador en
+mayúsculas (lo hacía el /cartas viejo; `tcggo-<id>` no, que no dice nada).
+
+**Lo que se pensó y se DESHIZO**: quitar la pestaña Expansiones de Mi
+colección y poner Cambios en su sitio. PINGU paró a medias: «alguien que
+quiera utilizar mi colección, tener una pestaña de expansiones está muy
+bien; creo que es muy importante». Tiene razón: es desde donde más se
+añade (abres un set y tocas los huecos) y mandar a otra página para eso
+es un salto que no aporta nada. Así que Mi colección conserva sus cinco
+pestañas, Cambios sigue en el Panel, y el «Ver todas» de Expansiones del
+Panel abre la pestaña con TODAS, quitando «solo las empezadas» si se
+había quedado pulsado (PINGU: «que no te lleve a solo las empezadas»).
+Para quien tiene cuenta son dos puertas a la misma estantería, y está
+bien: una es «mirar el catálogo» y otra «mi colección».
+
+**Se va**: `js/cartas.js` y el CSS del índice viejo en `css/carta.css`
+(`.serie-*`, `.cartas-buscador`). `/cartas` sigue en el sitemap, en la
+barra y en el pie; `netlify.toml` no cambia. Sin migración.
+
+**Pendiente (650)**: el Panel más visual y menos texto, y la gráfica del
+valor aunque solo haya un punto (el de hoy, en vivo).
+
+**Pruebas**: `test-tanda-649-pantalla.mjs` (el generador; /cartas sin
+cuenta: título, dos pestañas, las tres expansiones, la expansión por
+dentro, la ficha con «entra» y su `volver`; con cuenta: progreso, tu
+copia y añadir; Mi colección: el menú de cinco, «Ver todas» con todas y
+sin el filtro, una expansión del vistazo abierta en la página; el móvil).
+Al día con la estantería nueva: 324, 327, 330, 335, 343, 346 (el 30 en
+la serie `me`, como lo trae TCGGO), 533 (con `serie_id`), 646 y
+646-pantalla; y la 330 §2 con el `nombreEspanolDe` de la 629.

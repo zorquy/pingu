@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (noche, 3) — PINGU-Claude (649 — /cartas es la estantería de Mi colección)
+
+**Hecho**: el catálogo público /cartas pasa a ser la misma pantalla de
+Mi colección en modo catálogo: `cartas.html` se GENERA desde
+`mi-coleccion.html` con `generar-cartas.mjs` (si tocas la plantilla,
+`node generar-cartas.mjs`; una prueba comprueba que el repo lleva lo que
+sale de ahí). Estantería con TODAS las expansiones, la expansión por
+dentro y la ficha emergente; sin cuenta también (la ficha dice «entra y
+guárdala»), con cuenta enseña tu progreso y tu copia. Una expansión
+plegada (el 30 aniversario) se abre ahora con las cartas de sus dos
+mitades. Mi colección CONSERVA su pestaña de Expansiones (se pensó
+quitarla y PINGU paró) y el «Ver todas» del Panel abre todas, quitando
+«solo las empezadas». Fuera `js/cartas.js` y su CSS. Sin migración.
+
+**Ficheros**: `cartas.html` (generado), `generar-cartas.mjs` (nuevo),
+`mi-coleccion.html`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`css/mi-coleccion.css`, `css/carta.css`, `js/cartas.js` (borrado),
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 649-pantalla (nueva); al día
+324, 327, 330, 335, 343, 346, 533, 646, 646-pantalla.
+
+**Ojo**: si editas `mi-coleccion.html`, regenera `cartas.html` (la
+prueba 649 lo canta si no).
+
+**Y el rojo de la 315 que apuntasteis** (los cuatro `#fff` de las
+banderitas de `css/cardmarket.css`): al token `--blanco-fijo`. Suite
+entera: 299 verdes; quedan en rojo solo 493 y 514, que necesitan ffmpeg
+y en este contenedor no existe.
+
+**Pendiente (650)**: el Panel más visual y la gráfica del valor con un
+solo punto.
 ## 2026-10-05 (noche, 2) — PINGU-Claude (648 — dos catálogos, como en la API)
 
 **Hecho** (última tanda del rediseño): el selector de /mi-coleccion pasa a

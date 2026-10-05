@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- GENERADO desde mi-coleccion.html por generar-cartas.mjs (tanda 649): no lo edites a mano, edita la plantilla y vuelve a generarlo. -->
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -9,7 +10,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="El catálogo de cartas de Pokémon TCG colección a colección: ataques, rareza e ilustración, en español." />
+  <meta name="description" content="El catálogo de cartas de Pokémon TCG expansión a expansión: qué vale cada una, cuánto se mueve esta semana y cada carta con su precio, en español." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/cartas.html" />
   <meta property="og:url" content="https://pokedoc.es/cartas.html" />
@@ -17,13 +18,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
   <meta property="og:title" content="Cartas de Pokémon TCG en español" />
-  <meta property="og:description" content="El catálogo de cartas de Pokémon TCG colección a colección: ataques, rareza e ilustración, en español." />
+  <meta property="og:description" content="El catálogo de cartas de Pokémon TCG expansión a expansión: qué vale cada una, cuánto se mueve esta semana y cada carta con su precio, en español." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cartas de Pokémon TCG en español" />
-  <meta name="twitter:description" content="El catálogo de cartas de Pokémon TCG colección a colección: ataques, rareza e ilustración, en español." />
+  <meta name="twitter:description" content="El catálogo de cartas de Pokémon TCG expansión a expansión: qué vale cada una, cuánto se mueve esta semana y cada carta con su precio, en español." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -32,18 +33,15 @@
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
   <link rel="modulepreload" href="/js/icons.js" />
-  <link rel="modulepreload" href="/js/content-icon.js" />
-  <link rel="modulepreload" href="/js/html.js" />
-  <link rel="modulepreload" href="/js/carta-nucleo.js" />
+  <link rel="modulepreload" href="/js/cardmarket.js" />
+  <link rel="modulepreload" href="/js/mi-coleccion/datos.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/carta-holo.css" />
-  <link rel="stylesheet" href="/css/carta.css" />
+  <link rel="stylesheet" href="/css/cardmarket.css" />
+  <link rel="stylesheet" href="/css/mi-coleccion.css" />
 </head>
-<body>
-  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
-       porque su razón de ser es no tener que tabular por los doce
-       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+<body data-modo="catalogo">
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
@@ -124,42 +122,1260 @@
     </div>
   </nav>
 
-  <main id="contenido" class="page-content container">
-    <div class="page-header">
-      <h1>Cartas de Pokémon TCG</h1>
-      <p>El catálogo entero, colección a colección. Cada carta con sus ataques, su rareza y quién la ilustró — en español.</p>
+  <main id="contenido" class="page-content container mc-pagina">
+    <!-- LA CABECERA DE PERFIL (tanda 440). PINGU: «me gusta mucho la app
+         Dex y creo que lo tienen perfecto y muy moderno visualmente».
+         Lo que hace Dex y aquí no se hacía: el quién y el cuánto van
+         JUNTOS, en una sola pieza, en vez de un título suelto arriba y
+         cuatro cajas de cifras debajo.
+
+         Las cifras van DENTRO y sin caja propia. Eso no es un gusto: eran
+         cuatro recuadros con borde que en 390 px no caben, y de ahí salía
+         la tira que se desliza de la 412 y el corte que la 439 tuvo que
+         disimular. Sin caja, cuatro cifras caben en una fila a cualquier
+         ancho y el problema deja de existir en vez de taparse. -->
+    <header class="mc-hero" id="mcHero">
+      <div class="mc-hero-quien">
+        <span class="mc-hero-avatar" id="mcHeroAvatar" aria-hidden="true"></span>
+        <div class="mc-hero-nombre">
+          <h1 id="mcTitulo">Cartas de Pokémon TCG</h1>
+          <p class="mc-catalogo-lema">Todas las expansiones con lo que valen y cómo van esta semana. Entra en una y toca cualquier carta.</p>
+          <p class="mc-hero-desde" id="mcHeroDesde"></p>
+        </div>
+        <!-- Compartir la colección. El «Copiar enlace» era un `link-btn`
+             azul subrayado y pasa a chapa (tanda 461): van cuatro sitios
+             donde PINGU ha dicho «no quiero enlaces pochos». -->
+        <div class="mc-compartir hidden" id="mcCompartir">
+          <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
+          <button type="button" class="mc-chip-mando hidden" id="mcCopiarEnlace">Copiar enlace</button>
+        </div>
+      </div>
+      <dl class="mc-resumen" id="mcResumen"></dl>
+      <p class="mc-nota" id="mcResumenNota"></p>
+    </header>
+    <div id="mcAviso" class="mc-aviso hidden" role="status"></div>
+
+    <div class="mc-entrar hidden" id="mcEntrar">
+      <p><strong>Entra para guardar tus cartas.</strong> Tu colección es privada salvo que tú decidas enseñarla.</p>
+      <a class="btn-primary" href="/auth.html?volver=%2Fmi-coleccion">Entrar</a>
     </div>
 
-    <div class="cartas-buscador">
-      <label class="coleccion-filtro-campo">
-        <span class="sr-only">Buscar una carta por su nombre</span>
-        <input id="buscarCarta" type="search" placeholder="Buscar una carta por su nombre…" autocomplete="off" />
-      </label>
-      <!-- El tipo lo llena js/cartas.js desde la misma tabla que los
-           traduce: una lista de tipos escrita aquí a mano se quedaría
-           vieja el día que salga uno nuevo. -->
-      <label class="coleccion-filtro-campo">
-        <span class="sr-only">Filtrar por tipo</span>
-        <select id="buscarTipo"></select>
-      </label>
-    </div>
-    <div id="resultados" class="coleccion-rejilla"></div>
-    <p id="sinResultados" class="empty-state hidden">No hay ninguna carta con ese nombre en el catálogo.</p>
+    <div id="mcContenido">
+      <p class="subtext" id="mcCargando">Cargando la colección…</p>
 
-    <section id="seccionColecciones">
-      <h2 class="section-title">Colecciones</h2>
-      <div id="listaColecciones" class="cartas-colecciones"></div>
-    </section>
+      <!-- EL MENÚ (tandas 405 a 408). Empezó siendo ocho pestañas en una
+           fila que en un portátil no cabía; la columna las hizo caber, pero
+           caber no es lo mismo que hacer falta. Son CINCO, las mismas cinco
+           que la app: lo tuyo, las dos formas de explorar, la manera de
+           ordenarlo y tus números.
+           Las otras tres no se han borrado, se han metido donde les tocaba:
+           añadir cartas es el MISMO buscador de «Cartas», los álbumes
+           soñados son otra forma de agrupar y viven en «Carpetas», y los
+           cambios son una cosa del panel —en Dex, «Intercambiar» es un
+           acceso del panel de control—.
+           Con cinco caben en la barra del móvil sin un «Más» detrás, y en
+           el ordenador la columna no necesita rótulos de grupo: cinco
+           nombres se leen de un vistazo. -->
+      <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas del catálogo">
+        <button type="button" role="tab" class="mc-pestania activa" data-pestania="album" data-icono="layers" aria-selected="true" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
+      </nav>
+
+      <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
+        <!-- La barra se queda con lo de siempre: buscar y abrir los
+             filtros. El resto se fue a un panel (tanda 399) porque cuatro
+             desplegables en fila no caben en un móvil y porque los de
+             verdad —tipo, energía, rareza— son muchos más de cuatro. -->
+        <!-- La barra, más pequeña (tanda 405): el campo ocupaba todo el
+             ancho y al lado llevaba un botón gris de formulario. Ahora el
+             campo mide lo que mide una búsqueda —320 px— con su lupa
+             dentro, y lo demás son chapas. La de limpiar va FUERA del
+             campo a propósito: dentro no podría medir los 44 px que pide
+             un icono sin reventar el alto del campo. -->
+        <!-- LA BARRA, COMO LA DE DEX (tanda 444). PINGU, con Dex delante:
+             «puedes deslizar para un lado para ver los filtros y botones,
+             además la barra de búsqueda es muy sutil; lo nuestro ocupa
+             demasiadísimo».
+
+             El buscador se lleva su propia fila y se calla —sin fondo
+             blanco ni sombra, que es lo que lo hacía parecer el campo
+             principal de un formulario—, y TODOS los mandos van en UNA
+             fila que se desliza.
+
+             Sí, la tanda 439 quitó una tira que se deslizaba… pero aquella
+             llevaba CIFRAS, que hay que leer, y una cifra cortada por el
+             borde se lee como un fallo. Esto son MANDOS: deslizar una fila
+             de botones es el gesto normal en un móvil y es justo lo que
+             hace Dex. No es la misma pieza. -->
+        <div class="mc-filtros hidden" id="mcFiltros">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
+          </div>
+          <div class="mc-mandos" id="mcMandos">
+          <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+            <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
+          </button>
+          <!-- Qué catálogo se mira (tanda 437). Va en los TRES sitios donde
+               se mira el catálogo —aquí, la estantería y la Pokédex— porque
+               el que cambia es el mismo y quien está en una pantalla no
+               tiene por qué irse a otra para cambiarlo. -->
+          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+          <!-- ORDENAR, en su propia hoja (tanda 449). Era un <select> con
+               cuatro opciones; PINGU pidió diez criterios y el sentido
+               aparte, y un desplegable de diez renglones en un móvil es
+               justo lo que Dex no hace: él abre una hoja desde abajo con
+               los criterios en lista, su icono y una marca en el elegido.
+
+               El botón dice QUÉ orden hay puesto, no «Ordenar» a secas: el
+               rótulo de un control que guarda un estado tiene que decir el
+               estado, o hay que abrirlo para saber qué pusiste. -->
+          <button type="button" class="mc-chip-mando" id="mcAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
+            <span class="mc-chip-texto" id="mcOrdenRotulo">Precio</span>
+            <span class="mc-orden-flecha" id="mcOrdenFlecha" aria-hidden="true">↓</span>
+          </button>
+          <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
+          <!-- CUÁNTAS ESTÁS VIENDO (tanda 441). Con un filtro puesto la
+               rejilla se acorta y nada decía por qué: no había ningún
+               sitio donde leer «9 de 12». La cuenta de la cabecera es la
+               de la colección ENTERA; esta es la de lo que tienes delante.
+               Va dentro de la barra, al final, para no meter un bloque
+               nuevo entre la barra y las cartas. -->
+          </div>
+          <p class="mc-cuantas" id="mcCuantas" role="status" aria-live="polite"></p>
+        </div>
+
+        <!-- LA HOJA DE ORDENAR. Sube desde abajo en el móvil y sale
+             centrada en el ordenador; el sentido va arriba en un
+             interruptor de dos, porque «descendente/ascendente» es UNA
+             pregunta con dos respuestas y dos botones sueltos la cuentan
+             como dos. -->
+        <dialog class="mc-bandeja" id="mcHojaOrden" aria-labelledby="mcHojaOrdenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcHojaOrdenTitulo">Ordenar por</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcOrdenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-sentido" role="radiogroup" aria-label="Sentido del orden">
+            <button type="button" class="mc-sentido-opcion" data-sentido="desc" role="radio" aria-checked="true">Descendente</button>
+            <button type="button" class="mc-sentido-opcion" data-sentido="asc" role="radio" aria-checked="false">Ascendente</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <ul class="mc-orden-lista" id="mcOrdenLista"></ul>
+          </div>
+        </dialog>
+
+        <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcPanelFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <!-- AQUÍ VIVÍA «Ordenar» (fuera en la tanda 441). Ordenar es de
+                 lo que más se cambia —«a ver las caras», «a ver las
+                 últimas»— y estaba detrás de un botón que abre un modal.
+                 Un filtro se pone una vez y se olvida; un orden se toca
+                 cada dos por tres. Ahora vive en la barra, al lado del
+                 buscador. -->
+            <div class="mc-grupo-filtro">
+              <h3>Colección</h3>
+              <select id="mcFiltroSet" aria-label="Colección"></select>
+            </div>
+            <div class="mc-grupo-filtro">
+              <h3>Idioma</h3>
+              <select id="mcFiltroIdioma" aria-label="Idioma"></select>
+            </div>
+            <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
+                 colección: una lista escrita a mano ofrece rarezas que no
+                 tienes y se queda sin las que salgan mañana. -->
+            <div id="mcGruposChips"></div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="mc-chip-mando" id="mcFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="btn-primary" id="mcFiltrosVer">Ver resultados</button>
+          </div>
+        </dialog>
+        <div class="mc-cartas" id="mcCartas"></div>
+        <!-- EL ESTADO VACÍO ES LO PRIMERO QUE VE QUIEN LLEGA (tanda 510),
+             así que tiene que LLEVAR a algún sitio y no solo nombrarlo.
+             Decía «añádelas desde “Añadir cartas”» y esa pestaña LA BORRÓ
+             LA TANDA 408, que juntó los dos buscadores en uno: mandaba a
+             un sitio que no existe desde entonces. Es la norma de la 447
+             —una frase de la interfaz es una afirmación sobre lo que hace
+             el código— y la forma de que no vuelva a pasar es que los tres
+             caminos sean BOTONES que van, no palabras que describen. -->
+        <div class="mc-vacio hidden" id="mcCartasVacio">
+          <p class="mc-vacio-titulo"><strong>Todavía no hay cartas aquí.</strong></p>
+          <p class="mc-vacio-texto">Hay tres formas de empezar, y la más rápida es buscar la carta por su nombre.</p>
+          <div class="mc-vacio-acciones">
+            <button type="button" class="btn-primary" data-ir-pestania="buscar">Buscar una carta</button>
+            <button type="button" class="btn-outline" data-ir-pestania="album">Abrir una colección</button>
+            <a class="btn-outline" href="/cartas">Ver el catálogo</a>
+          </div>
+          <p class="mc-vacio-pie">También puedes añadirlas desde el botón de la ficha de cualquier carta.</p>
+        </div>
+        <p class="subtext hidden" id="mcSinResultados">Ninguna carta de tu colección encaja con esos filtros.</p>
+
+        <!-- EL CATÁLOGO, DEBAJO (tanda 408). «Añadir cartas» era una
+             pestaña con SU PROPIO buscador, y eso obligaba a saber de
+             antemano si la carta que buscas ya es tuya: si lo era, estaba
+             en «Cartas»; si no, en la otra pestaña. Nadie sabe eso antes
+             de buscar. Ahora hay UN buscador: arriba lo tuyo y aquí lo que
+             todavía no tienes, para añadirlo sin cambiar de sitio. -->
+        <section class="mc-catalogo hidden" id="mcCatalogo" aria-label="Añadir del catálogo">
+          <h2 class="mc-catalogo-titulo">¿No la tienes? Añádela del catálogo</h2>
+
+        <form class="mc-anadir-form hidden" id="mcAnadirForm">
+          <div class="mc-anadir-elegida" id="mcAnadirElegida"></div>
+          <div class="mc-anadir-campos">
+            <label>Idioma <select id="mcAnadirIdioma"></select></label>
+            <label>Estado <select id="mcAnadirEstado"></select></label>
+            <label>Versión <select id="mcAnadirVariante"></select></label>
+            <label>Copias <input type="number" id="mcAnadirCantidad" min="1" max="999" value="1" inputmode="numeric" /></label>
+            <button type="submit" class="btn-primary" id="mcAnadirBoton">Añadir</button>
+          </div>
+        </form>
+        <div class="mc-resultados" id="mcAnadirResultados"></div>
+        </section>
+      </section>
+
+      <section id="mcPanelAlbum" class="hidden" role="tabpanel" aria-label="Expansiones">
+        <!-- LA ESTANTERÍA (tanda 372). Aquí había un `<select>` con 220
+             colecciones dentro: lo menos vistoso que hay y, peor,
+             escondía lo único que engancha de coleccionar — cuánto
+             llevas de cada una. Con la lista abierta ves de un vistazo
+             dónde te falta poco para completar, que es justo lo que hace
+             volver al día siguiente. -->
+        <div id="mcEstanteriaZona">
+          <div class="mc-estanteria-barra">
+            <div class="mc-buscador">
+              <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+              <input type="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
+            </div>
+            <div class="mc-mandos">
+            <select id="mcEstanteriaSerie" class="mc-chapa-select" aria-label="Serie"></select>
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <!-- SOLO LAS EMPEZADAS (tanda 443). Hay 206 colecciones y de
+                 casi todas no tienes ninguna, así que la pantalla son
+                 doscientas tarjetas diciendo «0 de N · 0 %». La 409 ya
+                 probó a SUBIR arriba las empezadas y lo descartó —con cien
+                 empezadas eso no es un orden, es la misma lista sin
+                 fechas—; un filtro es otra cosa: QUITA las doscientas. -->
+            <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcEstanteriaEmpezadas" aria-pressed="false">Solo las empezadas</button>
+            </div>
+            <p class="mc-cuantas" id="mcEstanteriaCuantas" role="status" aria-live="polite"></p>
+          </div>
+          <div id="mcEstanteriaRejilla"></div>
+        </div>
+
+        <div id="mcArchivadorZona" class="hidden">
+          <!-- UNA MIGA, NO UNA CHAPA (tanda 474). PINGU: «estás ocupando
+               mucho espacio arriba… el botón de volver atrás, yo quitaría
+               ese botón». Una chapa de 44 px en una fila para ella sola es
+               mucho sitio para decir dónde estás — y lo dice al revés: una
+               chapa cuenta A DÓNDE VAS, y lo que hace falta saber es DE
+               DÓNDE VIENES. El molde está en `js/mi-coleccion/migas.js`,
+               que lo usan también la Pokédex y las carpetas: eran tres
+               chapas escritas tres veces y con tres pintas.
+
+               El identificador `mcAlbumVolver` se queda igual a propósito:
+               es por el que lo busca quien engancha el clic, y cambiarlo
+               sería romper media docena de sitios para no ganar nada. -->
+          <div id="mcAlbumMigas"></div>
+          <!-- LA CABECERA, COMO LA DE DEX (tanda 461). PINGU: «fíjate en
+               Dex: tiene unos botones arriba, el de seleccionar múltiples
+               cartas, el corazón para marcar el set como favorito y uno de
+               compartir». Los tres existían ya, pero vivían de chapa con
+               texto en la fila de filtros, ocupando media pantalla para
+               decir lo que dicen tres iconos. Aquí arriba, junto al
+               nombre, es además donde se buscan. -->
+          <div class="mc-album-barra">
+            <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+            <!-- LOS CUATRO, DETRÁS DE UN ⋮ (tanda 475). PINGU: «estás
+                 ocupando mucho espacio arriba… he pensado en poner tres
+                 puntos como pasa en la aplicación de Dex».
+
+                 Eran cuatro iconos en fila, y cuatro iconos seguidos sin
+                 una palabra al lado es un acertijo: hay que pulsarlos para
+                 saber qué hacen. Dentro del menú caben con su nombre
+                 escrito, que es lo que hace Dex y lo que hace que se
+                 entiendan. Y la cabecera se queda en el título y un botón.
+
+                 Los identificadores no cambian: son por los que los busca
+                 quien engancha el clic, y hay cinco pruebas que los pulsan.
+
+                 Va con `<details>` y no con un `<dialog>` a propósito: es
+                 un menú corto que cuelga de su botón, no una pantalla; y
+                 un `<details>` ya se abre y se cierra sin JavaScript — si
+                 el módulo tarda, el menú funciona igual. -->
+            <details class="mc-menu-caja" id="mcAlbumMenu">
+              <summary class="mc-icono-mando" data-icono="moreHorizontal" aria-label="Más opciones de esta colección" title="Más opciones"></summary>
+              <div class="mc-menu">
+                <!-- Marcar varias de golpe (tanda 426). Apuntar un sobre son
+                     diez cartas, y una a una eran diez búsquedas con el ojo,
+                     diez botones pequeños y veinte peticiones.
+
+                     OJO con lo que ya pasó: en la tanda 365 hubo un
+                     interruptor de «tocar una carta la añade» y se quitó en
+                     la 368 porque obligaba a elegir. Esto NO es eso: es un
+                     modo que se enciende, se usa y se apaga, con su barra a
+                     la vista. -->
+                <button type="button" class="mc-menu-opcion" id="mcMarcarAbrir" aria-pressed="false">
+                  <span class="mc-menu-icono" data-icono="checkSquare" aria-hidden="true"></span>Marcar varias cartas
+                </button>
+                <!-- La estrella (tanda 409). Lo que sube una expansión arriba
+                     del todo es que TÚ la marques, no que tengas una carta
+                     suelta: con cien empezadas, «arriba» deja de significar
+                     nada. Sale escondido mientras no se sepa si la migración
+                     de favoritos está puesta. -->
+                <button type="button" class="mc-menu-opcion hidden" id="mcAlbumFavorito" aria-pressed="false">
+                  <span class="mc-menu-icono" data-icono="star" aria-hidden="true"></span><span id="mcAlbumFavoritoTexto">Marcar como favorita</span>
+                </button>
+                <!-- Lo que me falta, para pegarlo en un chat (tanda 430). Es
+                     el botón de COMPARTIR de Dex, y lo que se comparte de una
+                     colección es justo lo que te falta — es la otra mitad de
+                     un intercambio. -->
+                <button type="button" class="mc-menu-opcion" id="mcFaltanCopiar">
+                  <span class="mc-menu-icono" data-icono="share" aria-hidden="true"></span><span id="mcFaltanCopiarTexto">Copiar lo que me falta</span>
+                </button>
+                <!-- CON QUÉ SE AÑADE (tanda 461, y aquí dentro desde la 475).
+                     El + de una carta suma una copia en ESE idioma y ESE
+                     estado, y sin poder cambiarlo quien colecciona en inglés
+                     tendría que editar carta por carta. Se recuerda en el
+                     navegador y POR CATÁLOGO (tanda 472).
+
+                     Ya no cuelga de su propio `<details>`: un desplegable
+                     dentro de otro desplegable es un acertijo, y el ajuste
+                     cabe aquí con su frase delante. -->
+                <div id="mcTocarOpciones">
+                  <hr class="mc-menu-raya" />
+                  <p class="mc-ajuste-fila">
+                    <span>Al pulsar + se suma una copia en</span>
+                    <select id="mcTocarIdioma" class="mc-chapa-select" aria-label="Idioma al añadir"></select>
+                    <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
+                  </p>
+                </div>
+              </div>
+            </details>
+          </div>
+          <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que
+               le faltaba a esta pantalla frente a la app de TCGdex: en
+               un set de 200 cartas, «enséñame solo las ultra raras que
+               me faltan» es la pregunta que se hace quien colecciona, y
+               hasta ahora había que ir pasando páginas.
+
+               Las opciones se sacan de las cartas que hay DE VERDAD en
+               esta colección, no de una lista escrita a mano: un set con
+               rareza nueva la trae sola (la lección de la 323). -->
+          <!-- EL ORDEN (tanda 412, dado la vuelta en la 467).
+               La 412 puso el progreso primero «porque es lo que se viene a
+               ver», y con cinco filas de controles encima tenía razón. Pero
+               con los controles ya en una sola fila el reparto correcto es
+               el de Dex, y PINGU lo dijo mirando los dos: «me estás
+               poniendo primero las estadísticas y luego los filtros con el
+               buscador y queda muy raro».
+               Y es verdad: lo primero que se hace al abrir una expansión de
+               200 cartas es BUSCAR una, y para eso había que pasar por tres
+               tarjetas de datos. Ahora: buscador, mandos, datos y cartas. -->
+          <div class="mc-buscador mc-buscador-ancho">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
+          </div>
+          <!-- LOS MANDOS, EN UNA TIRA (tanda 459). PINGU, con la pantalla
+               de una expansión en el móvil: «se ve fatal». Eran cuatro
+               filas de controles —264 px— entre el buscador y la primera
+               carta, porque esta era la única pantalla de la sección que
+               no usaba `.mc-mandos`: la estantería, Buscar y la Pokédex ya
+               deslizan sus mandos en una sola fila desde la 445.
+               Los que ABREN algo (el «Al añadir», que cuelga de su chapa)
+               no pueden ir aquí: la tira recorta lo que se sale, así que
+               esos se quedan en la fila de acciones de abajo. -->
+          <!-- LA BARRA DE UNA EXPANSIÓN, COMO LA DE «Cartas» (tanda 473).
+               PINGU, enseñando Dex: «el botón de juntar variantes y separar
+               variantes que sea solamente uno… yo quiero que los filtros
+               estén en un botón que sea filtros… mira un poquito mejor cómo
+               están los espaciados entre los filtros».
+
+               Aquí había CINCO controles sueltos en la tira —orden, «solo
+               las que me faltan», rareza, categoría y los dos de variantes—
+               y había que deslizarla para ver la mitad. La pestaña «Cartas»
+               resolvió esto mismo en la 449 y la 450: buscador, un botón
+               «Filtros» con su cuenta y lo demás dentro de un panel. Era la
+               última pantalla de la sección que no lo tenía.
+
+               Lo que SE QUEDA fuera del panel es lo que se toca cada dos
+               por tres: juntar o separar variantes. Lo que se pone una vez
+               y se olvida —el orden, la rareza, la categoría, «solo las que
+               me faltan»— se va dentro. Es el reparto de la 441, dicho
+               para esta pantalla. -->
+          <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
+            <button type="button" class="mc-chip-mando" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcAlbumFiltrosCuenta"></span>
+            </button>
+            <!-- UN SOLO BOTÓN, Y DICE EL ESTADO (tanda 473). Eran dos chapas
+                 en un grupo, «Juntar variantes» y «Separar variantes», y una
+                 de las dos siempre estaba de adorno. El rótulo dice cómo
+                 están AHORA y no lo que pasa al pulsarlo — un control que
+                 guarda un estado tiene que decir el estado, o hay que
+                 pulsarlo para saber qué tenías puesto (la lección de la
+                 449). Y se queda el vocabulario de la 418, que es el que
+                 PINGU pidió: juntas / separadas, no «una por carta». -->
+            <!-- CÓMO SE VEN LAS CARTAS (tanda 478). PINGU, enumerando la
+                 barra de Dex: «un botón que si le das te sale el
+                 desplegable si lo quieres ver en grid, en lista o en
+                 binder».
+
+                 El rótulo dice LA VISTA QUE HAY PUESTA y no «Vista» a
+                 secas, por lo mismo que el botón de ordenar de la 449: un
+                 control que guarda un estado tiene que decir el estado, o
+                 hay que abrirlo para saber qué pusiste. -->
+            <button type="button" class="mc-chip-mando" id="mcAlbumVista" data-icono="eye" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Archivador</span>
+            </button>
+            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="cards">
+              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
+            </button>
+            <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcAlbumQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
+          </div>
+
+          <!-- LA HOJA DE LA VISTA (tanda 478), y va aquí FUERA de la tira
+               de mandos a propósito. Lo intenté primero con un `<details>`
+               colgando de su chapa, y es justo la trampa que la 459 dejó
+               escrita: una tira recorta lo que se sale de ella, así que un
+               panel colgado de una chapa de dentro sale cortado — y sin
+               dar ningún error. Un `<dialog>` no se recorta.
+
+               Y de paso es la misma pieza que la hoja de ordenar de la
+               pestaña «Cartas» (tanda 449): sube desde abajo en el móvil
+               y sale centrada en el ordenador. -->
+          <dialog class="mc-bandeja" id="mcAlbumVistaHoja" aria-labelledby="mcAlbumVistaTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcAlbumVistaTitulo">Cómo se ven las cartas</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcAlbumVistaCerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <div class="mc-menu" role="radiogroup" aria-labelledby="mcAlbumVistaTitulo" id="mcAlbumVistaMenu"></div>
+            </div>
+          </dialog>
+
+          <!-- EL PANEL. Mismo molde que los otros tres de la sección
+               (Cartas, Pokédex y Buscar): sube desde abajo en el móvil y
+               sale centrado en el ordenador, con «Limpiar» y «Ver
+               resultados» en el pie. -->
+          <dialog class="mc-panel-filtros" id="mcAlbumPanelFiltros" aria-labelledby="mcAlbumFiltrosTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcAlbumFiltrosTitulo">Filtros</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <!-- Cómo se ordena (tanda 427). Una expansión se mira de
+                   cuatro maneras según lo que vayas a hacer: por número
+                   cuando la repasas en la mano, por nombre cuando buscas
+                   una, por rareza cuando miras lo que vale, y «lo que te
+                   falta» cuando vas a comprar o a cambiar. Las opciones las
+                   pone el JavaScript desde `orden.js`, que es quien sabe
+                   ordenar: dos listas iguales en dos sitios se separan. -->
+              <div class="mc-grupo-filtro">
+                <h3>Ordenar por</h3>
+                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+              </div>
+              <!-- Las opciones salen de las cartas que hay DE VERDAD en esta
+                   colección, no de una lista escrita a mano: un set con una
+                   rareza nueva la trae solo (la lección de la 323). Y si la
+                   colección todavía no tiene rarezas guardadas —el engorde
+                   no ha llegado— el grupo entero se esconde, en vez de
+                   ofrecer un desplegable de una sola opción. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoRareza">
+                <h3>Rareza</h3>
+                <select id="mcAlbumRareza" aria-label="Filtrar por rareza"></select>
+              </div>
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoTipo">
+                <h3>Categoría</h3>
+                <select id="mcAlbumTipo" aria-label="Filtrar por categoría"></select>
+              </div>
+              <div class="mc-grupo-filtro">
+                <h3>Qué cartas</h3>
+                <!-- CHAPA Y NO CASILLA (tanda 459). Es el mismo control que
+                     «Solo las empezadas» de la estantería, así que es la
+                     misma pieza. -->
+                <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
+              </div>
+              <!-- EN QUÉ IDIOMA CUENTA «la tengo» (tanda 577). PINGU: «en las
+                   expansiones, filtrar por las que faltan y también por el
+                   idioma». Con «español» puesto, una carta que solo tienes en
+                   inglés cuenta como que te falta — y «Solo las que me
+                   faltan» con ese idioma es la lista de lo que te falta EN
+                   ESPAÑOL, que es lo que pregunta quien colecciona en uno. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoIdioma">
+                <h3>Contar solo las que tengo en</h3>
+                <select id="mcAlbumIdioma" aria-label="En qué idioma cuentan tus copias"></select>
+              </div>
+            </div>
+            <div class="mc-panel-pie">
+              <button type="button" class="mc-chip-mando" id="mcAlbumFiltrosLimpiar">Limpiar</button>
+              <button type="button" class="btn-primary" id="mcAlbumFiltrosVer">Ver resultados</button>
+            </div>
+          </dialog>
+          <!-- AQUÍ ESTABA LA FILA DE ACCIONES (fuera en la tanda 461).
+               Llevaba tres cosas y las tres se han ido a donde se buscan:
+               «Marcar varias» y «Copiar lo que me falta» son los dos
+               iconos de la cabecera, y el ajuste de «Al añadir» se ha ido
+               a los ajustes de la colección. PINGU: «al añadir, eso yo lo
+               quitaría; marcar varias es muy necesario; copiar las que
+               faltan es un botón que no hace nada». Lo de «no hace nada»
+               no era que no hiciera: una chapa que dice «Copiar las 485
+               que me faltan» ocupa una fila entera y aun así no cuenta qué
+               pasa al pulsarla. -->
+          <div class="mc-barras" id="mcAlbumProgreso"></div>
+          <p class="mc-cuantas" id="mcAlbumCuenta" role="status" aria-live="polite"></p>
+          <!-- La barra va ARRIBA y no pegada abajo: en el móvil abajo está
+               la barra de pestañas, y dos barras flotantes peleándose por
+               el mismo borde es justo el lío que arreglaba la 419. -->
+          <div class="mc-marcar-barra hidden" id="mcMarcarBarra">
+            <p class="mc-marcar-cuenta" id="mcMarcarCuenta" role="status" aria-live="polite">Toca las cartas que tienes</p>
+            <div class="mc-marcar-botones">
+              <button type="button" class="btn-secondary" id="mcMarcarCancelar">Cancelar</button>
+              <button type="button" class="btn-primary" id="mcMarcarGuardar" disabled>Añadir</button>
+            </div>
+          </div>
+        <!-- Aquí había un interruptor de «Tocar una carta la añade»
+             (tanda 365) que se fue en la 368. Obligaba a elegir: con él
+             puesto no podías abrir la ficha de una carta, y sin él no
+             podías añadir ninguna sin irte a la ficha y volver. Ahora
+             cada bolsillo lleva su − y su +, y el bolsillo entero sigue
+             llevando a la ficha; no hay modo que recordar.
+             Lo que sí se queda es con QUÉ se añade, que antes vivía
+             escondido detrás del interruptor. -->
+        <!-- Las tres barras (tanda 398): completo, maestro y adicionales.
+             Son tres preguntas distintas y antes había una sola, así que
+             quien colecciona por versiones no tenía ningún número suyo. -->
+        <!-- Stack / Split: una casilla por CARTA o una por VERSIÓN. En
+             «split» un reverse holo y su normal son dos huecos, que es
+             como se colecciona un set maestro. -->
+        <!-- DENTRO DE UNA EXPANSIÓN, UNA REJILLA (tanda 417). PINGU, con
+             la pantalla de Dex al lado: «mira las expansiones cómo se
+             muestran, quiero lo mismo; el formato álbum dejémoslo
+             solamente para los álbumes soñados y punto».
+             Y tiene sentido: un archivador de pliegos ordena lo que TÚ
+             montas, carta a carta. Una expansión ya viene ordenada y lo
+             que se quiere es verla entera. Los pliegos obligaban a pasar
+             22 páginas para mirar un set de 200. -->
+        <div id="mcAlbum"></div>
+        </div>
+        <!-- DOS SITUACIONES MUY DISTINTAS (tanda 510), y antes compartían
+             frase: que no haya NINGUNA colección, o que TUS FILTROS no
+             dejen pasar ninguna de las doscientas. El «todavía» de la
+             frase vieja además mentía en el segundo caso —decía «espera y
+             se llenará» cuando lo que había que hacer era quitar un
+             filtro—. Es la misma familia que el `return` mudo de /cartas:
+             un vacío que no dice de qué es. -->
+        <p class="subtext hidden" id="mcAlbumVacio">No hay ninguna colección que enseñar todavía.</p>
+        <div class="mc-vacio hidden" id="mcAlbumFiltrado">
+          <p class="mc-vacio-titulo"><strong>Ninguna colección encaja con estos filtros.</strong></p>
+          <p class="mc-vacio-texto" id="mcAlbumFiltradoCuantas"></p>
+          <div class="mc-vacio-acciones">
+            <button type="button" class="btn-primary" id="mcEstanteriaLimpiar">Quitar los filtros</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EL RESUMEN (tanda 374). Las cuatro cifras de arriba dicen
+           cuánto tienes; esta pestaña dice QUÉ tienes. Tres cosas, y las
+           tres salen de lo que ya está guardado:
+           · Las REPETIDAS, que son la puerta a los intercambios: sin
+             saber qué te sobra no hay nada que ofrecer.
+           · Lo más valioso, que es lo primero que enseña cualquiera.
+           · El reparto por serie y por rareza, que es lo que cuenta qué
+             clase de coleccionista eres. -->
+      <section id="mcPanelResumen" class="hidden" role="tabpanel" aria-label="Resumen">
+        <div id="mcResumenPanel"></div>
+
+        <!-- Los VISTAZOS (tanda 436). PINGU, con el panel de Dex delante:
+             «que el panel se asemeje más a lo que existe en Dex, cogiendo
+             la información de las otras pestañas». Eso es justo lo que son:
+             un asomo de cada pestaña con su «ver todas», para que el panel
+             sea una PORTADA de la colección y no una pestaña más.
+
+             Llegan DESPUÉS y por su cuenta, como la gráfica: las
+             expansiones y las carpetas son dos consultas, y el panel es lo
+             primero que se abre desde esta misma tanda. Lo que ya está en
+             memoria —tus cartas— se pinta al momento. -->
+        <div class="mc-vistazos" id="mcVistazos"></div>
+
+        <!-- LO DEMÁS, DETRÁS DEL BOTÓN (tanda 440). El botón y las
+             estadísticas vivían arriba del todo, dentro de #mcResumenPanel,
+             y con el carrusel convertido en rejilla eso apilaba tres
+             tarjetas de números ENCIMA de tus cartas: en el móvil, 200 px
+             más antes de ver la primera. Lo que cambia solo —la gráfica—
+             se queda arriba; lo que son listas, aquí abajo y plegado. -->
+        <div id="mcMasEstadisticas"></div>
+
+        <!-- MI COLECCIÓN EN UNA IMAGEN (tanda 571). Lo que PTCGenius y
+             TCGdex no pueden hacer: no tienen tu colección. Se pinta en un
+             canvas al pulsar y se enseña ANTES de compartir. -->
+        <dialog class="mc-bandeja mc-imagen-dialogo" id="mcImagenDialogo" aria-labelledby="mcImagenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcImagenTitulo">Mi colección en una imagen</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcImagenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo mc-imagen-cuerpo">
+            <canvas id="mcImagenLienzo" width="1080" height="1350" aria-label="Tu colección en una imagen"></canvas>
+            <div class="mc-imagen-botones">
+              <button type="button" class="btn-primary" id="mcImagenCompartir">Compartir la imagen</button>
+              <button type="button" class="btn-secondary" id="mcImagenDescargar">Descargar</button>
+            </div>
+          </div>
+        </dialog>
+
+        <!-- IMPORTAR UN CSV (tanda 580). Quien ya tiene la colección en
+             Dex, en Collectr o en una hoja no la va a meter a mano. Se
+             pega o se sube, se enseña qué se ha encontrado y qué no, y
+             solo entonces se guarda. El lector vive en
+             js/mi-coleccion/importar-csv.js. -->
+        <dialog class="mc-bandeja mc-importar-dialogo" id="mcImportarDialogo" aria-labelledby="mcImportarTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcImportarTitulo">Importar cartas desde un CSV</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcImportarCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo mc-importar-cuerpo">
+            <div id="mcImpPaso1">
+              <p class="subtext">Vale el CSV que exportan Dex, Collectr, TCG Vault o esta misma página, y cualquier hoja con una columna de expansión (nombre o código) y otra de número. Lo demás —copias, estado, idioma, versión, gradeo— se lee si está.</p>
+              <label class="mc-imp-campo">Sube el fichero <input type="file" id="mcImpFichero" accept=".csv,.tsv,.txt,text/csv,text/plain" /></label>
+              <label class="mc-imp-campo">…o pégalo aquí
+                <textarea id="mcImpTexto" rows="6" placeholder="Set,Name,Card Number,Quantity&#10;Paldea Evolved,Pikachu,025/193,2"></textarea>
+              </label>
+              <label class="mc-imp-campo">Idioma de las cartas si el fichero no lo dice
+                <select id="mcImpIdioma" class="mc-chapa-select">
+                  <option value="es">Español</option>
+                  <option value="en">Inglés</option>
+                  <option value="fr">Francés</option>
+                  <option value="de">Alemán</option>
+                  <option value="it">Italiano</option>
+                  <option value="pt">Portugués</option>
+                  <option value="ja">Japonés</option>
+                </select>
+              </label>
+              <div class="mc-imagen-botones">
+                <button type="button" class="btn-primary" id="mcImpAnalizar">Comprobar</button>
+              </div>
+              <p class="mc-nota" id="mcImpEstado" role="status"></p>
+            </div>
+            <div id="mcImpPaso2" class="hidden">
+              <div id="mcImpResumen"></div>
+              <div id="mcImpPerdidas"></div>
+              <div id="mcImpLista"></div>
+              <div class="mc-imagen-botones">
+                <button type="button" class="btn-primary" id="mcImpConfirmar">Añadir a mi colección</button>
+                <button type="button" class="btn-secondary" id="mcImpVolver">Volver</button>
+              </div>
+            </div>
+          </div>
+        </dialog>
+
+      </section>
+
+      <!-- LOS CAMBIOS, EN SU PROPIA PANTALLA (tanda 451). Estuvieron al
+           final del Panel desde la 408, y PINGU: «quizá hay que scrollear
+           demasiado; o meterlo en una pestaña o en algún otro sitio».
+           Tiene razón, y el motivo es que esto NO ES UN WIDGET: son unas
+           cifras, la gente que encaja contigo y el explicador de tres
+           pasos. Es una pantalla entera puesta debajo de otra.
+
+           Y no entra en el menú: cinco entradas es lo que hace que un menú
+           se lea de un vistazo, y es la forma que tiene Dex. Así que va
+           como SUBPANTALLA, igual que «Cartas»: se llega por su tarjeta
+           del Panel y por `?ver=cambios`, y no enciende ninguna pestaña
+           porque no tiene. -->
+      <!-- Los filtros de una especie (tanda 455), en el mismo panel que los
+           de Buscar. La primera versión los puso sueltos en la pantalla y
+           en un Bulbasaur eran 300 px de chips antes de la primera carta.
+           Lo que ofrecen sigue saliendo de las cartas que hay; lo que
+           cambia es que ya no están por delante de ellas. -->
+      <dialog class="mc-panel-filtros" id="mcPdxPanelFiltros" aria-labelledby="mcPdxFiltrosTitulo">
+        <div class="mc-panel-cabecera">
+          <h2 id="mcPdxFiltrosTitulo">Filtros</h2>
+          <button type="button" class="mc-panel-cerrar" id="mcPdxFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+        </div>
+        <div class="mc-panel-cuerpo">
+          <div id="mcPdxGrupos"></div>
+        </div>
+        <div class="mc-panel-pie">
+          <button type="button" class="mc-chip-mando" id="mcPdxFiltrosLimpiar">Limpiar</button>
+          <button type="button" class="btn-primary" id="mcPdxFiltrosVer">Ver resultados</button>
+        </div>
+      </dialog>
+
+      <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
+        <div class="mc-bloque-cambios" id="mcBloqueCambios">
+          <h2 class="mc-subtitulo">Cambios</h2>
+          <div id="mcCambiosPanel"></div>
+        </div>
+      </section>
+
+      <!-- LOS CAMBIOS (tanda 376). Es la pieza donde le ganamos a
+           HoloNook: su tutorial dice «no tiene chat: los cambios se
+           hablan por fuera» y te manda a X o a Instagram. Aquí el
+           cambio se cierra DENTRO, con los mensajes de la casa.
+
+           Tres partes y un orden que no es casual: primero LO QUE SALE
+           —quién encaja contigo—, porque es lo que hace volver; y
+           debajo las dos listas que lo alimentan, doy y busco. Al revés
+           la pantalla empieza por deberes. -->
+
+      <!-- LA POKÉDEX (tanda 381). Lo pidió PINGU viendo la app de
+           TCGdex, y es lo que convierte un listado de cartas en una
+           colección: la gente no colecciona sets, colecciona Pokémon.
+
+           La rejilla de las 1.025 especies con tu progreso se pinta SIN
+           UNA SOLA CONSULTA —tu colección ya está en memoria y la
+           especie sale del nombre de cada carta—; lo único que se
+           pregunta es cuántas hay en el catálogo. -->
+      <!-- Carpetas (tanda 402): ordenar tu colección como quieras, con
+           subcarpetas dentro. Lo pidió PINGU viendo Dex. -->
+      <section id="mcPanelCarpetas" role="tabpanel" aria-label="Álbumes" class="hidden">
+        <!-- DENTRO DE UNA CARPETA SE VE COMO DENTRO DE UNA EXPANSIÓN
+             (tanda 477). PINGU: «mejoraría visualmente el apartado de
+             carpetas porque se ve un poco pocho… el menú de cada carpeta
+             es lo mismo que una colección».
+
+             Así que es la misma pantalla, pieza por pieza: la miga, el
+             título con su ⋮, el buscador y lo de dentro. Antes aquí solo
+             había un botón azul suelto y una fila de migas pegada a él. -->
+        <div id="mcCarpetaMigas"></div>
+        <div class="mc-album-barra hidden" id="mcCarpetaBarra">
+          <h3 class="mc-album-titulo" id="mcCarpetaTitulo"></h3>
+          <details class="mc-menu-caja" id="mcCarpetaMenu">
+            <summary class="mc-icono-mando" data-icono="moreHorizontal" aria-label="Más opciones de esta carpeta" title="Más opciones"></summary>
+            <div class="mc-menu">
+              <button type="button" class="mc-menu-opcion" id="mcCarpetaSub">
+                <span class="mc-menu-icono" data-icono="folder" aria-hidden="true"></span>Nueva subcarpeta
+              </button>
+              <button type="button" class="mc-menu-opcion" id="mcCarpetaEditar">
+                <span class="mc-menu-icono" data-icono="edit" aria-hidden="true"></span>Cambiar la carpeta
+              </button>
+            </div>
+          </details>
+        </div>
+        <!-- El buscador solo DENTRO: en la lista de carpetas no hay nada
+             que buscar —son cuatro burbujas— y un buscador vacío encima de
+             cuatro burbujas es justo el tipo de cosa que PINGU llama
+             pocha. -->
+        <div class="mc-buscador mc-buscador-ancho hidden" id="mcCarpetaBuscadorCaja">
+          <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+          <input type="search" id="mcCarpetaBuscar" placeholder="Busca en esta carpeta" aria-label="Buscar en esta carpeta" />
+        </div>
+        <!-- «Nueva carpeta», de botón azul a chapa (tanda 477): es un mando
+             más, como «Filtros» o «Variantes juntas», y un `btn-primary`
+             solo en una pantalla dice «esto es lo que hay que hacer aquí»,
+             que no es verdad cuando ya tienes carpetas. Dentro de una
+             carpeta se esconde: ahí lo que se crea es una SUBcarpeta, y
+             eso está en el ⋮. -->
+        <div class="mc-mandos" id="mcCarpetasMandos">
+          <button type="button" class="mc-chip-mando" id="mcCarpetaNueva" data-icono="folder">
+            <span class="mc-chip-texto">Nueva carpeta</span>
+          </button>
+        </div>
+        <div id="mcCarpetasPanel"></div>
+
+        <!-- LOS ÁLBUMES SOÑADOS, AQUÍ (tanda 408). Una carpeta y un álbum
+             soñado son la misma pregunta —cómo agrupo mis cartas— con dos
+             respuestas: lo que tengo y lo que quiero tener. En Dex una
+             carpeta ya lleva su barra de progreso, que es exactamente un
+             álbum soñado. Dos pestañas para eso eran una de más. -->
+        <div class="mc-bloque-albumes" id="mcBloqueAlbumes">
+          <h2 class="mc-subtitulo">Álbumes soñados</h2>
+
+        <div id="mcAlbumesLista">
+          <div class="mc-albumes-cab">
+            <p class="mc-nota">Monta el álbum que quieras: con tus cartas, con una colección entera o carta a carta, en el orden que quieras. Verás cuáles ya tienes y cuánto costaría completarlo.</p>
+            <button type="button" class="btn-primary" id="mcAlbNuevoAbrir">Nuevo álbum</button>
+          </div>
+          <div class="mc-burbujas" id="mcAlbumesRejilla"></div>
+          <p class="subtext hidden" id="mcAlbumesVacio">Todavía no tienes ningún álbum soñado.</p>
+        </div>
+
+        <div id="mcAlbumesDetalle" class="hidden">
+          <!-- La cuarta miga (tanda 474). Las cuatro pantallas que tienen
+               un «dentro» —una expansión, un Pokémon, una carpeta y un
+               álbum soñado— llevaban su propia chapa de volver, escrita
+               cuatro veces. La pinta la rellena `albumes.js` con el molde
+               común; el identificador `mcAlbVolver` se queda igual. -->
+          <div id="mcAlbMigas"></div>
+          <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
+          <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
+          <p class="mc-progreso" id="mcAlbProgreso"></p>
+          <p class="mc-nota" id="mcAlbFalta"></p>
+          <div id="mcAlbHerramientas">
+            <div class="mc-alb-barra">
+              <input type="search" id="mcAlbBuscar" placeholder="Añade cartas: busca por nombre" aria-label="Buscar cartas para el álbum" />
+              <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
+              <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
+              <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
+              <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Copiar enlace</button>
+              <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
+            </div>
+            <p class="mc-nota hidden" id="mcAlbAyuda">Arrastra una carta hasta otro hueco para cambiarlas de sitio, o usa las flechas. Si la llevas a una flecha de pliego, pasa de página.</p>
+            <div class="mc-resultados mc-alb-resultados" id="mcAlbResultados"></div>
+          </div>
+          <div class="mc-archivador-caja">
+            <div id="mcAlbArchivador"></div>
+            <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcAlbAnterior" aria-label="Pliego anterior">‹</button>
+            <button type="button" class="mc-tira-flecha mc-tira-der" id="mcAlbSiguiente" aria-label="Pliego siguiente">›</button>
+          </div>
+          <!-- Las flechas A LOS LADOS del archivador y las páginas DEBAJO
+               (tanda 418). PINGU: «los botones de anterior y siguiente
+               deberían ir a la izquierda y a la derecha, y las páginas
+               quizá abajo, para no recargar demasiado la parte de arriba
+               con botones y filtros». Es verdad: arriba había dos filas
+               de mandos antes de ver una sola carta. -->
+          <div class="mc-album-paginas">
+            <span id="mcAlbPaginas"></span>
+            <select id="mcAlbSalto" class="mc-chapa-select hidden" aria-label="Ir a una página"></select>
+            <!-- La tapa se muda aquí desde la expansión (tanda 417): el
+                 archivador ya solo existe en los álbumes soñados, así que
+                 el color del archivador se elige donde se ve. -->
+            <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
+          </div>
+          <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
+          <p class="mc-alb-borrar-zona"><button type="button" class="mc-chip-mando mc-chip-peligro" id="mcAlbBorrar">Borrar este álbum</button></p>
+        </div>
+        </div>
+      </section>
+
+      <!-- BUSCAR EN TODO EL CATÁLOGO (tanda 447). No es «añadir a mi
+           colección» con otro nombre: aquí se busca en las 21.000 cartas
+           del catálogo, tengas la carta o no. El bloque de «añadir» de la
+           pestaña de cartas sigue donde estaba, para cuando ya estás
+           mirando lo tuyo.
+
+           El ESTADO VACÍO no es un hueco en blanco: es lo que explica qué
+           se puede escribir —y es donde vive el botón de escanear, igual
+           que en Dex. En cuanto buscas algo, desaparece. -->
+      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar">
+        <div class="mc-filtros" id="mcBuscarBarra">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcBuscarTodo" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
+          </div>
+          <div class="mc-mandos">
+            <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (tanda
+                 450): filtros, catálogo y orden. Dos pantallas que hacen
+                 lo mismo con los botones en distinto sitio parecen dos
+                 webs. Lo que cambia es QUÉ ofrecen, no dónde están. -->
+            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcBuscarFiltrosCuenta"></span>
+            </button>
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcBuscarOrdenRotulo">Nombre</span>
+              <span class="mc-orden-flecha" id="mcBuscarOrdenFlecha" aria-hidden="true">↑</span>
+            </button>
+          </div>
+          <p class="mc-cuantas" id="mcBuscarCuantas" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="mc-vacio-buscar" id="mcBuscarVacio">
+          <!-- La frase dice lo que el buscador HACE, ni más ni menos, y
+               cada ejemplo que se puede pulsar tiene que devolver algo —
+               hay una prueba que los pulsa todos. En la tanda 447 esta
+               frase prometía ilustrador y número y el buscador no sabía
+               hacerlo: dos de las tres sugerencias daban CERO resultados
+               sin ningún error, solo una pantalla vacía. Desde la 450 sí
+               sabe, y por eso vuelven a estar. -->
+          <p class="mc-vacio-buscar-texto">
+            Busca cualquier carta del catálogo por su <strong>nombre</strong> (en español o en
+            inglés), por su <strong>número</strong> o por su <strong>ilustrador</strong>. Prueba con
+            <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>,
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button> o
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>.
+          </p>
+          <button type="button" class="btn-primary mc-escanear" id="mcEscanear">
+            <span data-icono="scan" aria-hidden="true"></span> Escanear cartas
+          </button>
+          <p class="mc-vacio-buscar-pie">Enfoca la carta y la reconocemos por su nombre y por su número.</p>
+        </div>
+
+        <div class="mc-resultados" id="mcBuscarResultados"></div>
+
+        <!-- La bandeja de ordenar del catálogo. Es la MISMA pieza que la de
+             Cartas —mismo CSS, mismo molde— con otra lista: aquí no hay
+             precio de compra ni «cuántas tienes», porque la carta no es
+             tuya. -->
+        <dialog class="mc-bandeja" id="mcBuscarHojaOrden" aria-labelledby="mcBuscarOrdenTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcBuscarOrdenTitulo">Ordenar por</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcBuscarOrdenCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-sentido" role="radiogroup" aria-label="Sentido del orden">
+            <button type="button" class="mc-sentido-opcion" data-bsentido="desc" role="radio" aria-checked="false">Descendente</button>
+            <button type="button" class="mc-sentido-opcion" data-bsentido="asc" role="radio" aria-checked="true">Ascendente</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <ul class="mc-orden-lista" id="mcBuscarOrdenLista"></ul>
+          </div>
+        </dialog>
+
+        <!-- Y los filtros. Estos van EN LA CONSULTA y no en memoria: el
+             catálogo tiene 21.000 cartas y la consulta trae 120, así que
+             filtrar después sería filtrar la muestra y no el catálogo. -->
+        <dialog class="mc-panel-filtros" id="mcBuscarPanelFiltros" aria-labelledby="mcBuscarFiltrosTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcBuscarFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcBuscarFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo">
+            <div id="mcBuscarGrupos"></div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="mc-chip-mando" id="mcBuscarFiltrosLimpiar">Limpiar</button>
+            <button type="button" class="btn-primary" id="mcBuscarFiltrosVer">Ver resultados</button>
+          </div>
+        </dialog>
+      </section>
+
+      <!-- EL ESCÁNER (tanda 447). PINGU vio el de Dex y pidió lo mismo:
+           «se abre la cámara y reconoce nombre, tipo, código y el artista».
+           Dex lo hace en TIEMPO REAL porque es una app nativa y usa el OCR
+           del propio iPhone (el framework Vision de Apple — su lista de
+           idiomas es literalmente la de Vision). Una web no puede: el
+           equivalente del navegador, la Shape Detection API, solo va en
+           Chrome tras una bandera y en Safari de iOS dejó de funcionar en
+           iOS 18.
+
+           Así que aquí se hace lo otro que Dex también tiene, su modo
+           «Snap»: encuadras con las MISMAS dos guías, tocas para capturar,
+           y se recortan SOLO esas dos franjas —no la foto entera— y se
+           mandan a leer. El coste es por carta y no por fotograma, que es
+           la diferencia entre viable y ruinoso.
+
+           Y de esas dos franjas salen CUATRO señales —nombre, tipo, código
+           de colección e ilustrador— que tenemos las cuatro en la base: con
+           que el OCR acierte dos, la carta se resuelve. Por eso no hace
+           falta que sea perfecto. -->
+      <dialog class="mc-escaner" id="mcEscanerCaja" aria-label="Escanear una carta">
+        <video class="mc-escaner-video" id="mcEscanerVideo" playsinline muted></video>
+        <div class="mc-escaner-velo" aria-hidden="true">
+          <div class="mc-escaner-marco" id="mcEscanerMarco">
+            <span class="mc-escaner-guia mc-escaner-guia-arriba"><i>Nombre y tipo</i></span>
+            <span class="mc-escaner-guia mc-escaner-guia-abajo"><i>Código e ilustrador</i></span>
+          </div>
+        </div>
+        <div class="mc-escaner-arriba">
+          <button type="button" class="mc-escaner-redondo" id="mcEscanerCerrar" aria-label="Cerrar el escáner">✕</button>
+          <p class="mc-escaner-ayuda" id="mcEscanerAyuda">Encuadra la carta dentro del marco</p>
+        </div>
+        <div class="mc-escaner-abajo">
+          <select class="mc-chapa-select" id="mcEscanerIdioma" aria-label="Idioma de la carta"></select>
+          <button type="button" class="mc-escaner-disparo" id="mcEscanerDisparo" aria-label="Capturar la carta"></button>
+          <span class="mc-escaner-hueco" aria-hidden="true"></span>
+        </div>
+        <canvas class="hidden" id="mcEscanerLienzo"></canvas>
+      </dialog>
+
+      <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
+        <div class="pdx-mandos" id="mcPdxMandos">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número…" autocomplete="off" aria-label="Busca un Pokémon" />
+          </div>
+          <!-- La misma barra que las otras dos desde la 445: el buscador en
+               su fila y los mandos en una que se desliza. La Pokédex se
+               quedó con la vieja en la 444 y se notaba — tres filas de
+               mandos y el buscador cortado a media palabra. -->
+          <div class="mc-mandos">
+          <!-- CHAPA Y NO CASILLA (tanda 465), como «Solo las empezadas» de la
+               estantería y «Solo las que me faltan» de una expansión. Era la
+               única casilla suelta que quedaba en una fila de chapas. -->
+          <button type="button" class="mc-chip-filtro mc-chip-mando" id="mcPdxSoloMios" aria-pressed="false">Solo los que tengo</button>
+          <!-- Los que casi completas (tanda 429). Lo que persigue quien
+               colecciona no es «el siguiente por número», es «¿a cuál le
+               falta UNA?», y esa lista no existía. Los dos datos ya
+               estaban en memoria. -->
+          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+          <select id="mcPdxOrden" class="mc-chapa-select" aria-label="Cómo se ordena la Pokédex">
+            <option value="dex">Por número</option>
+            <option value="cerca">Los que casi completas</option>
+          </select>
+          </div>
+          <span class="subtext mc-cuantas" id="mcPdxCuenta"></span>
+        </div>
+        <div id="mcPokedexPanel"></div>
+      </section>
+
+
+    </div>
+
+    <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
+      <form id="mcEditorForm" method="dialog">
+        <!-- El mando de la ficha (tanda 422). Dos cosas que faltaban:
+             MOVERSE a la carta de al lado sin cerrar y volver a abrir —si
+             estás repasando un set de 200, cerrar la ficha en cada carta
+             son 400 toques— y un botón de CERRAR a la vista. Hasta ahora
+             esta ficha solo se cerraba con Escape o pulsando fuera: en un
+             teléfono no hay Escape, y «pulsa fuera» no se le ocurre a
+             nadie que no lo sepa ya.
+
+             El sitio («12 de 198») no es adorno: es lo que dice si merece
+             la pena seguir pulsando la flecha o es mejor cerrar y buscar.
+             -->
+        <div class="mc-ficha-mando">
+          <div class="mc-ficha-pasos" id="mcEdPasos">
+            <button type="button" class="mc-ficha-flecha" id="mcEdAnterior" aria-label="La carta anterior">‹</button>
+            <span class="mc-ficha-sitio" id="mcEdSitio" aria-live="polite"></span>
+            <button type="button" class="mc-ficha-flecha" id="mcEdSiguiente" aria-label="La carta siguiente">›</button>
+          </div>
+          <button type="button" class="mc-panel-cerrar" id="mcEdCerrar" aria-label="Cerrar la ficha">✕</button>
+        </div>
+        <!-- La ficha de una carta (tanda 393). La carta MANDA: ocupa su
+             columna entera a la izquierda, porque es lo que has venido a
+             mirar. Antes esto era una cabecera estrecha con el escaneo
+             del tamaño de un sello y el diálogo pegado a una esquina.
+
+             A la derecha, en el orden en el que se lee: de dónde es, cómo
+             se llama, qué versión, cuántas tienes, cuánto vale, y al final
+             la tabla de datos — que no es adorno: la rareza, el tipo y el
+             ilustrador son justo por lo que se filtra. -->
+        <div class="mc-ficha">
+          <div class="mc-ficha-carta">
+            <div class="mc-editor-foto" id="mcEdFoto"></div>
+          </div>
+          <div class="mc-ficha-datos">
+            <p class="mc-ficha-set" id="mcEdSet"></p>
+            <h2 id="mcEditorTitulo">Editar</h2>
+            <p class="mc-ficha-chapas" id="mcEdChapas"></p>
+
+            <section class="mc-ficha-bloque">
+              <h3>Precio</h3>
+              <div class="mc-ficha-caja">
+              <!-- EL PRECIO DE TU COPIA (tanda 589): el mínimo en SU idioma,
+                   las chapas de los demás idiomas, los dos botones
+                   (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
+                   pinta js/precio-vista.js, el mismo bloque que /carta. -->
+              <div id="mcEdPrecioBloque"></div>
+              <!-- El histórico de precios (643), aquí también desde la 645:
+                   lo pinta js/carta-historial.js y sin filas no se ve. -->
+              <div class="carta-historial hidden" id="mcEdHistorial"></div>
+              <div class="mc-ficha-enlaces">
+                <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
+                     la que indexa Google, la que se comparte y la que trae
+                     los ataques, las reimpresiones y el tablón. Este
+                     diálogo es el atajo de dentro de tu colección. -->
+                <a class="mc-accion" id="mcEdFicha" href="#">Ficha completa</a>
+              </div>
+              </div>
+            </section>
+
+            <!-- Para una carta que NO tienes (tanda 418): la ficha se abre
+                 igual —la foto, los datos, el precio y la salida a la
+                 página entera— y en vez del bloque de «tu copia» sale el
+                 botón de añadirla. PINGU: «cuando clicas en una carta te
+                 lleva a la ficha completa, pero debería abrirte el pop-up
+                 con toda la info y después un botón para ir a la ficha». -->
+            <!-- UN BOTÓN POR VERSIÓN, Y DICIENDO CON QUÉ AÑADE (tanda
+                 564). Era «Añadir a mi colección» a secas, y añadía en
+                 «normal» —aunque la carta solo existiera en holo—, con el
+                 idioma y el estado de los dos desplegables del álbum, que
+                 desde la Pokédex o desde Buscar ni se ven. Tres decisiones
+                 tomadas por ti y ninguna escrita.
+                 Un diálogo extra preguntando las tres habría metido un
+                 paso en lo que más se hace; añadir y que lo corrijas
+                 después escribe algo que no has dicho. Los botones DICEN
+                 lo que van a hacer antes de pulsarlos, y con una sola
+                 versión —que es el caso de casi todas— sigue siendo un
+                 botón y un toque. -->
+            <section class="mc-ficha-bloque hidden" id="mcEdAnadirBloque">
+              <div class="mc-ficha-caja">
+                <p class="subtext">Todavía no tienes esta carta.</p>
+                <!-- La versión en un desplegable y un botón, como en Dex
+                     (tanda 565). Con una sola versión el desplegable se
+                     esconde: la chapa de arriba ya la dice. -->
+                <label class="mc-anadir-version hidden">Versión <select id="mcEdAnadirVariante"></select></label>
+                <div class="mc-anadir-versiones" id="mcEdAnadirVersiones"></div>
+                <p class="subtext" id="mcEdAnadirCon"></p>
+              </div>
+            </section>
+
+            <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
+                 catálogo público, y en vez del botón de añadir dice cómo
+                 tener dónde añadirla. El enlace vuelve a esta misma página. -->
+            <section class="mc-ficha-bloque hidden" id="mcEdEntrarBloque">
+              <div class="mc-ficha-caja mc-ficha-entrar">
+                <p class="subtext">¿La tienes? Entra y guárdala en tu colección.</p>
+                <a class="btn-primary" id="mcEdEntrar" href="/auth.html?volver=%2Fcartas">Entrar</a>
+              </div>
+            </section>
+
+            <section class="mc-ficha-bloque" id="mcEdCopiaBloque">
+              <h3>Tu copia</h3>
+              <div class="mc-ficha-caja">
+        <!-- TU COPIA, EN RESUMEN (tanda 645). PINGU: «hay demasiada
+             información, está todo pegado». El formulario entero
+             —ocho campos— estaba siempre abierto en una ficha que casi
+             siempre se abre para MIRAR. Ahora se ve lo que es la copia
+             (las chapas), lo que vale, y dos botones: Editar despliega
+             los campos de siempre; Quitar hace lo que hacía. -->
+        <div class="mc-copia-resumen" id="mcEdCopiaResumen">
+          <p class="mc-ficha-chapas" id="mcEdCopiaChapas"></p>
+          <p class="mc-copia-vale" id="mcEdCopiaVale"></p>
+          <div class="mc-copia-acciones">
+            <button type="button" class="btn-primary" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos">Editar</button>
+            <button type="button" class="btn-secondary mc-chip-peligro" id="mcEdQuitarResumen">Quitar</button>
+          </div>
+        </div>
+        <div class="mc-editor-campos hidden" id="mcEdCopiaCampos">
+          <label>Idioma <select id="mcEdIdioma"></select></label>
+          <label>Estado <select id="mcEdEstado"></select></label>
+          <label>Versión <select id="mcEdVariante"></select></label>
+          <!-- Las copias, con sus dos botones (tanda 396). Un campo de
+               número a secas obliga a seleccionar y teclear para sumar
+               una, y sumar una es lo que más se hace aquí: te llega un
+               sobre y metes la que ya tenías. Las flechas nativas del
+               navegador son de dos píxeles y en el móvil no salen. -->
+          <label class="mc-contador">Copias
+            <span class="mc-contador-mando">
+              <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
+              <input type="number" id="mcEdCantidad" min="0" max="999" inputmode="numeric" />
+              <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
+            </span>
+          </label>
+          <!-- Cuántas DAS (tanda 376). Va aquí y no en una pantalla
+               aparte porque es un dato de ESTA línea: de tus tres
+               Charizards en español y Near Mint, das dos. Una lista de
+               cambio separada sería el mismo dato escrito dos veces. -->
+          <label class="mc-contador">Para cambio
+            <span class="mc-contador-mando">
+              <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una menos para cambio">−</button>
+              <input type="number" id="mcEdCambio" min="0" max="999" inputmode="numeric" />
+              <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una más para cambio">+</button>
+            </span>
+          </label>
+          <!-- EL GRADEO, EN DOS DESPLEGABLES (tanda 563). Era un campo de
+               texto de 20 caracteres con «CGC 10» de ejemplo, así que
+               dentro había lo que a cada uno le pareciera y no se podía
+               ni contar ni filtrar. La escala la pone cada casa y no son
+               la misma: la nota sale de `js/mi-coleccion/gradeo.js`. -->
+          <label>Gradeo <select id="mcEdGradeoCasa"></select></label>
+          <label id="mcEdGradeoNotaLabel" class="hidden">Nota <select id="mcEdGradeoNota"></select></label>
+          <label id="mcEdGradeoLibreLabel" class="hidden">Nota <input type="text" id="mcEdGradeo" maxlength="20" placeholder="Escríbelo tú" /></label>
+          <label>Tu valor (€, opcional) <input type="text" id="mcEdValor" inputmode="decimal" placeholder="Manda sobre Cardmarket" /></label>
+          <label>Lo que pagaste (€) <input type="text" id="mcEdCompra" inputmode="decimal" /></label>
+          <!-- Las notas, PLEGADAS (tanda 405). PINGU: «el trozo de las
+               notas no te abre el formulario para escribir hasta que no
+               le des a añadir nota». Y es mejor: un campo de texto vacío
+               ocupando cinco renglones en una ficha que casi nunca lleva
+               nota es el bulto más grande de la pantalla. -->
+          <div class="mc-editor-notas">
+            <button type="button" class="mc-anadir-nota" id="mcEdNotaAbrir">+ Añadir una nota</button>
+            <p class="mc-nota-puesta hidden" id="mcEdNotaPuesta"></p>
+            <div class="mc-nota-campo hidden" id="mcEdNotaCampo">
+              <label class="sr-only" for="mcEdNotas">Nota</label>
+              <textarea id="mcEdNotas" maxlength="280" rows="3" placeholder="¿Algo que recordar de esta copia?"></textarea>
+              <div class="mc-nota-mandos">
+                <button type="button" class="mc-chip-mando mc-chip-peligro" id="mcEdNotaQuitar">Quitar la nota</button>
+                <button type="button" class="btn-secondary" id="mcEdNotaCerrar">Listo</button>
+              </div>
+            </div>
+          </div>
+          <!-- QUITARLA, DICHO (tanda 574). Se podía —bajando las copias a
+               cero—, pero nadie adivina que un contador es también la
+               puerta de salida. Hace lo mismo que el cero: pregunta y quita. -->
+          <p class="mc-editor-quitar"><button type="button" class="link-btn mc-chip-peligro" id="mcEdQuitar">Quitar de mi colección</button></p>
+        </div>
+              </div>
+            </section>
+
+            <!-- Quién de los que sigues la tiene (tanda 403). El bloque
+                 entero se esconde si no hay nadie: un rótulo encima de un
+                 hueco vacío dice «no tienes amigos» sin querer. -->
+            <section class="mc-ficha-bloque hidden" id="mcEdQuienBloque">
+              <h3>La tienen</h3>
+              <div class="mc-ficha-caja"><div class="mc-quien" id="mcEdQuien"></div></div>
+            </section>
+
+            <!-- En qué carpetas está esta copia (tanda 402). Va antes de
+                 los datos porque es algo TUYO y se toca; los datos de la
+                 carta son de consulta. -->
+            <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
+              <h3>Carpetas</h3>
+              <div class="mc-ficha-caja"><div class="mc-chips-filtro" id="mcEdCarpetas"></div></div>
+            </section>
+
+            <section class="mc-ficha-bloque">
+              <h3>Datos de la carta</h3>
+              <div class="mc-ficha-caja"><dl class="mc-ficha-tabla" id="mcEdTabla"></dl></div>
+            </section>
+          
+</div>
+        </div>
+        <!-- Sin botones (tanda 397). Se guarda solo según tocas, así que
+             no hay nada que confirmar ni que cancelar; y para quitarla,
+             bajar las copias a cero. Lo único que queda es el aviso de
+             que ha ido bien, que se apaga solo. -->
+        <p class="mc-ed-guardado" id="mcEdEstadoGuardado" role="status" aria-live="polite"></p>
+      </form>
+    </dialog>
+
+    <!-- De dónde salen los precios (tanda 442: con su id, para poder
+         enseñarla solo donde hay precios). Es un pie de página y vive
+         FUERA de las pestañas, así que salía en las cinco — también en
+         Expansiones y en la Pokédex, donde no hay ni un precio que
+         explicar. Tres renglones de letra pequeña que no vienen a
+         cuento son ruido, no una aclaración. -->
+    <p class="mc-fuente hidden" id="mcFuente">Los precios son los de la guía de <a href="https://www.cardmarket.com" target="_blank" rel="noopener">Cardmarket</a> (vía TCGdex), de la carta en general. El enlace de cada carta abre Cardmarket con su idioma, su estado y su versión ya filtrados, que es donde está el mínimo exacto.</p>
+      <!-- EL DIÁLOGO DEL ADORNO (tanda 411). Uno solo para carpetas y
+           álbumes: lo único que cambia es el título y la palabra del
+           botón, y dos diálogos que se parecen acaban siendo dos que ya
+           no se parecen. -->
+      <dialog class="mc-dlg-adorno" id="mcDlgAdorno" aria-labelledby="mcDlgTitulo">
+        <form id="mcDlgForm">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcDlgTitulo">Nueva carpeta</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcDlgCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-dlg-cuerpo">
+            <!-- La vista previa es la MISMA burbuja que se verá luego. -->
+            <div class="mc-dlg-vista" id="mcDlgVista" aria-hidden="true"></div>
+            <label class="mc-dlg-nombre">Nombre
+              <input type="text" id="mcDlgNombre" maxlength="60" placeholder="Mis Charizards" required />
+            </label>
+            <div class="mc-dlg-tabs" id="mcDlgTabs" role="tablist" aria-label="Qué dibujo quieres">
+              <button type="button" role="tab" class="mc-chip-filtro activo" data-pestania-adorno="icono" aria-selected="true">Iconos</button>
+              <button type="button" role="tab" class="mc-chip-filtro" data-pestania-adorno="dex" aria-selected="false">Pokémon</button>
+              <button type="button" role="tab" class="mc-chip-filtro" data-pestania-adorno="emoji" aria-selected="false">Emoji</button>
+            </div>
+            <div class="mc-dlg-rejilla" id="mcDlgIconos"></div>
+            <div class="mc-dlg-dex hidden" id="mcDlgDex">
+              <div class="mc-buscador">
+                <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+                <input type="search" id="mcDlgDexBuscar" placeholder="Busca un Pokémon" aria-label="Busca un Pokémon" />
+              </div>
+              <div class="mc-dlg-rejilla" id="mcDlgDexRejilla"></div>
+            </div>
+            <div class="mc-dlg-rejilla hidden" id="mcDlgEmojis"></div>
+            <h3 class="mc-dlg-rotulo">Color de fondo</h3>
+            <div class="mc-dlg-colores" id="mcDlgColores"></div>
+            <!-- Solo para un álbum NUEVO (tanda 411): un álbum nace con
+                 cartas dentro o vacío, y eso se pregunta una vez. Una
+                 carpeta no, así que esto se esconde. -->
+            <div class="mc-dlg-origen hidden" id="mcDlgOrigen">
+              <label>Empezar con
+                <select id="mcAlbOrigen" class="mc-chapa-select">
+                  <option value="vacio">Un álbum vacío</option>
+                  <option value="mias">Todas mis cartas</option>
+                  <option value="set">Una colección entera</option>
+                </select>
+              </label>
+              <label class="hidden" id="mcAlbSetCampo">Colección <select id="mcAlbSet" class="mc-chapa-select"></select></label>
+            </div>
+          </div>
+          <div class="mc-panel-pie">
+            <button type="button" class="mc-chip-mando mc-chip-peligro mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
+            <button type="button" class="mc-chip-mando" id="mcDlgCancelar">Cancelar</button>
+            <button type="submit" class="btn-primary" id="mcDlgGuardar">Crear</button>
+          </div>
+        </form>
+      </dialog>
   </main>
 
-  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
-       enlaces centrados; el problema no era que fuera feo, era que casi
-       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
-       nada antes de llegar a él. Un pie con columnas llena ese hueco,
-       da una segunda vía a cada sección desde cualquier página y enlaza
-       internamente todo el sitio, que es lo que Google recorre.
-       Va en el HTML y no montado desde JavaScript a propósito: estos
-       enlaces tienen que estar en la página aunque el JS no llegue. -->
   <footer class="footer">
     <div class="pie-rejilla">
       <div>
@@ -199,6 +1415,6 @@
   </footer>
 
   <script type="module" src="/js/app.js"></script>
-  <script type="module" src="/js/cartas.js"></script>
+  <script type="module" src="/js/mi-coleccion.js"></script>
 </body>
 </html>
