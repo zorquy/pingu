@@ -205,7 +205,18 @@ const jugada = (page) => page.evaluate(() => Number(document.getElementById('rep
   // sin tragarse el tiempo agotado — si no se pinta, que lo diga el error
   // y no una lista de ceros.
   await page.waitForFunction(() => { const xs = [...document.querySelectorAll('.rep-momento')]; return xs.length > 0 && xs.every((x) => x.getBoundingClientRect().height > 0) }, null, { timeout: 20000 })
-  const altos = await page.$$eval('.rep-momento, [data-accion="siguienteKo"], .rep-numeros-detalle summary', (xs) => xs.map((x) => Math.round(x.getBoundingClientRect().height)))
+  // …y QUIETA (tanda 625): justo después de la primera pintura hay un
+  // repintado que deja la tira a 0 un instante, sin un fotograma de por
+  // medio, y una medida en ese hueco daba «44,0,0,0…» con la página bien.
+  // Se mide hasta que dos medidas seguidas dicen lo mismo.
+  const medir = () => page.$$eval('.rep-momento, [data-accion="siguienteKo"], .rep-numeros-detalle summary', (xs) => xs.map((x) => Math.round(x.getBoundingClientRect().height)))
+  let altos = await medir()
+  for (let i = 0; i < 20; i++) {
+    await page.waitForTimeout(150)
+    const otra = await medir()
+    if (otra.join() === altos.join()) break
+    altos = otra
+  }
   check('[móvil] los momentos y «Siguiente KO» miden 44 px o más', altos.every((h) => h >= 44), altos.join(','))
   const tira = await page.$eval('#repMomentosLista', (x) => ({ desliza: x.scrollWidth > x.clientWidth, estilo: getComputedStyle(x).overflowX }))
   check('[móvil] la tira se desliza dentro de su caja', tira.desliza && tira.estilo === 'auto', JSON.stringify(tira))
