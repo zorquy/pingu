@@ -109,7 +109,7 @@ console.log('\n── 1. /cartas sin cuenta: todas las expansiones, la de Mi col
   await page.waitForTimeout(900)
   const ficha = page.locator('#mcEditor')
   check('tocar una carta abre la ficha emergente', await ficha.evaluate((d) => d.open))
-  check('  …que dice «entra» en vez de ofrecer añadir', (await page.locator('#mcEdEntrarBloque').isVisible()) && !(await page.locator('#mcEdAnadirBloque').isVisible()) && !(await page.locator('#mcEdCopiaBloque').isVisible()))
+  check('  …que dice «entra» en vez de ofrecer añadir', (await page.locator('#mcEdEntrarBloque').isVisible()) && !(await page.locator('#mcEdAcciones').isVisible()) && !(await page.locator('#mcEdCopiaBloque').isVisible()))
   const volver = await page.locator('#mcEdEntrar').getAttribute('href')
   check('  …y el enlace de entrar vuelve a esta página con la expansión abierta', /^\/auth\.html\?volver=%2Fcartas%3Fset%3Dme02/.test(volver || ''), volver)
   check('  …con el camino a la ficha completa', /^\/carta\//.test((await page.locator('#mcEdFicha').getAttribute('href')) || ''))
@@ -134,7 +134,7 @@ console.log('\n── 2. /cartas con cuenta: lo mismo, con tu progreso y tu copi
   await page.locator('#mcEdCerrar').click()
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.waitForTimeout(900)
-  check('  …y la de una que no tienes ofrece añadirla', (await page.locator('#mcEdAnadirBloque').isVisible()) && !(await page.locator('#mcEdEntrarBloque').isVisible()))
+  check('  …y la de una que no tienes ofrece añadirla (el «+» bajo la carta, 650)', (await page.locator('#mcEdMas').isVisible()) && !(await page.locator('#mcEdCopiaBloque').isVisible()) && !(await page.locator('#mcEdEntrarBloque').isVisible()))
   await page.close()
 }
 

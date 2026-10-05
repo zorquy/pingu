@@ -81,8 +81,11 @@ console.log('── 1. El «+» del álbum guarda la versión DE LA CARTA ──
   await page.locator('.mc-bolsillo-enlace[data-carta="sv8-1"]').click()
   await page.waitForTimeout(900)
   check('la casilla no lleva mando', (await page.locator('[data-anadir]').count()) === 0)
-  check('  …y la ficha propone la versión de la carta', (await page.inputValue('#mcEdAnadirVariante')) === 'holo', await page.inputValue('#mcEdAnadirVariante'))
-  await page.locator('#mcEdAnadirVersiones button').click()
+  // Desde la 650 la versión se propone en el diálogo del «+».
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  check('  …y el diálogo propone la versión de la carta', (await page.inputValue('#mcAdVariante')) === 'holo', await page.inputValue('#mcAdVariante'))
+  await page.click('#mcAdGuardar')
   await page.waitForTimeout(1400)
   // Lo que importa no es lo propuesto: es lo que acaba en la línea.
   check('la copia guardada es la HOLO', (await page.inputValue('#mcEdVariante')) === 'holo', await page.inputValue('#mcEdVariante'))
@@ -102,17 +105,20 @@ console.log('── 2. La ficha de una que no tienes: la versión en un desplega
   // El Spinarak, que tiene dos.
   await page.locator('.mc-bolsillo-enlace[data-carta="sv8-2"]').click()
   await page.waitForTimeout(900)
-  // Como en Dex (565): un desplegable con las versiones y UN botón.
-  const vs = await page.$$eval('#mcEdAnadirVariante option', (os) => os.map((o) => o.value))
+  // Como en TCGGO (650): el «+» abre el diálogo, con un desplegable de
+  // versiones y UN botón de guardar.
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  const vs = await page.$$eval('#mcAdVariante option', (os) => os.map((o) => o.value))
   check('dos versiones, un desplegable con las dos', vs.join(',') === 'normal,reverse', vs.join(','))
-  check('  …a la vista', (await page.isVisible('#mcEdAnadirVariante')) === true)
-  const botones = page.locator('#mcEdAnadirVersiones button')
+  check('  …a la vista', (await page.isVisible('#mcAdVariante')) === true)
+  const botones = page.locator('#mcAdForm button[type="submit"]')
   check('  …y un solo botón', (await botones.count()) === 1, String(await botones.count()))
-  // Y lo que PINGU no veía: con qué idioma y en qué estado entra.
-  const con = await page.locator('#mcEdAnadirCon').innerText()
-  check('dice con qué idioma y estado entra', /español/i.test(con) && /Near Mint/i.test(con), con)
+  // Y lo que PINGU no veía: con qué idioma y en qué estado entra — ahora
+  // se ELIGE, con el español y Near Mint puestos de antemano.
+  check('el idioma y el estado se eligen, con español y Near Mint puestos', (await page.locator('#mcAdIdiomas .mc-idioma-chip.activo').getAttribute('data-idioma')) === 'es' && (await page.inputValue('#mcAdEstado')) === 'NM')
   // Elegir reverse y pulsar guarda reverse, no la primera opción.
-  await page.selectOption('#mcEdAnadirVariante', 'reverse')
+  await page.selectOption('#mcAdVariante', 'reverse')
   await botones.first().click()
   await page.waitForTimeout(1500)
   check('al pulsar «reverse holo» entra en reverse', (await page.inputValue('#mcEdVariante')) === 'reverse', await page.inputValue('#mcEdVariante'))
@@ -126,12 +132,13 @@ console.log('── 3. Con una sola versión sigue siendo un botón y un toque �
   await page.waitForTimeout(1300)
   await page.locator('.mc-bolsillo-enlace[data-carta="sv8-1"]').click()
   await page.waitForTimeout(900)
-  const botones = page.locator('#mcEdAnadirVersiones button')
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  const botones = page.locator('#mcAdForm button[type="submit"]')
   check('una sola versión, un solo botón', (await botones.count()) === 1, String(await botones.count()))
-  // Y sin desplegable: con una sola versión no hay nada que elegir, y la
-  // chapa de arriba ya la dice.
-  check('  …y sin desplegable', (await page.isVisible('#mcEdAnadirVariante')) === false)
-  check('  …y no nombra la versión', (await botones.first().innerText()).trim() === 'Añadir a mi colección', await botones.first().innerText())
+  // Y sin desplegable: con una sola versión no hay nada que elegir.
+  check('  …y sin desplegable', (await page.isVisible('#mcAdVariante')) === false)
+  check('  …y no nombra la versión', (await botones.first().innerText()).trim() === 'Guardar', await botones.first().innerText())
   await botones.first().click()
   await page.waitForTimeout(1500)
   check('  …y entra en holo', (await page.inputValue('#mcEdVariante')) === 'holo', await page.inputValue('#mcEdVariante'))

@@ -190,9 +190,13 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   // Una que no tienes: la casilla abre la ficha con «Añadir».
   await bolsillo(1).locator('.mc-bolsillo-enlace').click()
   await page.waitForTimeout(900)
+  // Desde la 650 añadir es el «+» de debajo de la carta y su diálogo.
   check('tocar un bolsillo vacío abre la ficha para añadir',
-    await page.evaluate(() => document.getElementById('mcEditor').open && !document.getElementById('mcEdAnadirBloque').classList.contains('hidden')))
-  await page.locator('#mcEdAnadirVersiones button').click()
+    await page.evaluate(() => document.getElementById('mcEditor').open && !document.getElementById('mcEdAcciones').classList.contains('hidden') && document.getElementById('mcEdCopiaBloque').classList.contains('hidden')))
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  if (await page.locator('#mcAdMas').isVisible()) { await page.click('#mcAdMas'); await page.waitForTimeout(200) }
+  await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   check('al añadir, la carta pasa a «la tengo»', (await bolsillo(1).getAttribute('class'))?.includes('tengo'),
     await bolsillo(1).getAttribute('class'))

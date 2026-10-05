@@ -57,7 +57,7 @@ console.log('── 2. Desde el Panel, la ficha de una carta española con el ja
   check('lo último que añadiste sale en el Panel aunque sea de otro catálogo', (await tarjeta.count()) === 1)
   await tarjeta.click()
   await page.waitForTimeout(1500)
-  check('la ficha se abre como TU copia (no como una que no tienes)', (await page.locator('#mcEditor[open]').count()) === 1 && (await page.locator('#mcEdCopiaBloque').isVisible()) && (await page.locator('#mcEdAnadirBloque').isVisible()) === false)
+  check('la ficha se abre como TU copia (no como una que no tienes)', (await page.locator('#mcEditor[open]').count()) === 1 && (await page.locator('#mcEdCopiaBloque').isVisible()))
   check('  …con su foto', (await page.locator('#mcEdFoto img').count()) === 1 && /xy5|x\/1/.test(await page.locator('#mcEdFoto img').getAttribute('src') || ''), await page.locator('#mcEdFoto img').getAttribute('src'))
   check('  …su nombre y su colección', limpio(await page.locator('#mcEditorTitulo').innerText()) === 'Groudon EX' && /Duelos Primigenios/i.test(await page.locator('#mcEdSet').innerText()), limpio(await page.locator('#mcEditorTitulo').innerText()) + ' / ' + limpio(await page.locator('#mcEdSet').innerText()))
   check('  …su precio (140 € en español)', limpio(await page.locator('#mcEdPrecioBloque .pv-cifra').innerText()) === '140,00 €', limpio(await page.locator('#mcEdPrecioBloque').innerText()).slice(0, 120))

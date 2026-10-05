@@ -244,7 +244,7 @@ console.log('\n── 5. En una expansión: también por las que NO tienes ─�
   // La cuarta no es tuya: la ficha sale igual, con el botón de añadirla.
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(3).click()
   await page.waitForTimeout(800)
-  check('se abre la ficha de una que no tienes', await page.locator('#mcEdAnadirBloque').isVisible())
+  check('se abre la ficha de una que no tienes', (await page.locator('#mcEditor[open]').count()) === 1 && !(await page.locator('#mcEdCopiaBloque').isVisible()) && (await page.locator('#mcEdMas').isVisible()))
   check('  …con su sitio en el SET entero', (await sitio(page)) === '4 de 5', await sitio(page))
   await page.locator('#mcEdSiguiente').click()
   await page.waitForTimeout(700)

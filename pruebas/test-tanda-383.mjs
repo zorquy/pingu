@@ -104,24 +104,30 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
   // donde se ofrecen ahora.
   check('ninguna casilla lleva botones de versión', (await page.locator('.mc-variante, .mc-variantes').count()) === 0)
   const abrirFicha = async (id) => {
+    // Dos Escape (650): uno cierra el diálogo de añadir y otro la ficha.
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(150)
     await page.keyboard.press('Escape')
     await page.waitForTimeout(300)
     await page.locator(`.mc-bolsillo-enlace[data-carta="${id}"]`).click()
     await page.waitForTimeout(900)
-    return page.$$eval('#mcEdAnadirVariante option', (os) => os.map((o) => o.value))
+    // Desde la 650 las versiones se ofrecen en el DIÁLOGO de añadir.
+    await page.click('#mcEdMas')
+    await page.waitForTimeout(400)
+    return page.$$eval('#mcAdVariante option', (os) => os.map((o) => o.value))
   }
   check('una común de hoy ofrece normal y reverse', (await abrirFicha('sv1-1')).join(',') === 'normal,reverse')
-  check('  …y el desplegable se ve', (await page.isVisible('#mcEdAnadirVariante')) === true)
+  check('  …y el desplegable se ve', (await page.isVisible('#mcAdVariante')) === true)
   check('una ultra rara no ofrece nada que elegir', (await abrirFicha('sv1-2')).join(',') === 'holo')
-  check('  …y el desplegable se esconde', (await page.isVisible('#mcEdAnadirVariante')) === false)
+  check('  …y el desplegable se esconde', (await page.isVisible('#mcAdVariante')) === false)
   check('una de la que no se sabe ofrece las cuatro', (await abrirFicha('sv1-3')).length === 4)
   check('y la que las tiene todas, las cuatro', (await abrirFicha('sv1-4')).length === 4)
 
   // Elegir reverse y añadir guarda REVERSE, no la primera opción: esa es
   // toda la idea. Si marcar reverse marcara la normal, no serviría de nada.
   await abrirFicha('sv1-1')
-  await page.selectOption('#mcEdAnadirVariante', 'reverse')
-  await page.locator('#mcEdAnadirVersiones button').click()
+  await page.selectOption('#mcAdVariante', 'reverse')
+  await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   check('al añadir en reverse, la línea es reverse', (await page.inputValue('#mcEdVariante')) === 'reverse', await page.inputValue('#mcEdVariante'))
   check('  …y el bolsillo pasa a «la tengo»', (await page.locator('.mc-bolsillo').first().getAttribute('class'))?.includes('tengo'))

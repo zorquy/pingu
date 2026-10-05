@@ -49,7 +49,7 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   const tuya = await page.evaluate(() => ({
     abierto: document.getElementById('mcEditor').open,
     copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
-    anadir: !document.getElementById('mcEdAnadirBloque').classList.contains('hidden'),
+    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'),
     ruta: location.pathname,
   }))
   check('una que tienes abre la ficha', tuya.abierto && tuya.copia && !tuya.anadir, JSON.stringify(tuya))
@@ -68,7 +68,8 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   await page.waitForTimeout(700)
   const ajena = await page.evaluate(() => ({
     copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
-    anadir: !document.getElementById('mcEdAnadirBloque').classList.contains('hidden'),
+    // Desde la 650 «se puede añadir» es: sin bloque de tu copia y con el «+».
+    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'),
     titulo: document.getElementById('mcEditorTitulo').textContent,
     ficha: document.getElementById('mcEdFicha').getAttribute('href'),
   }))
@@ -78,14 +79,15 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   // ventana salía con el nombre y el enlace de OTRA carta.
   check('  …con SU nombre', ajena.titulo === 'Carta 9', ajena.titulo)
   check('  …y con SU enlace a la página entera', /sv1-9/.test(ajena.ficha || ''), ajena.ficha)
-  // Desde la 564 el bloque lleva un botón POR VERSIÓN de la carta (y uno
-  // solo cuando solo hay una): se pulsa el primero, que es el caso de la
-  // de aquí.
-  await page.locator('#mcEdAnadirVersiones button').first().click()
+  // Desde la 650: el «+» de debajo de la carta, el diálogo y Guardar.
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  if (await page.locator('#mcAdMas').isVisible()) { await page.click('#mcAdMas'); await page.waitForTimeout(200) }
+  await page.click('#mcAdGuardar')
   await page.waitForTimeout(900)
   const tras = await page.evaluate(() => ({
     copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
-    anadir: !document.getElementById('mcEdAnadirBloque').classList.contains('hidden'),
+    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
   }))
   // La ficha se queda abierta, ya como TUYA: lo que se acaba de hacer es
   // tener la carta, no cerrar una ventana.

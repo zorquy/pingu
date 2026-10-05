@@ -164,7 +164,10 @@ console.log('\n── 6. Lo que se añade entra en LAS DOS memorias ──')
   if (await bolsillo.count()) {
     await bolsillo.click()
     await page.waitForTimeout(900)
-    await page.locator('#mcEdAnadirVersiones button').click()
+    await page.click('#mcEdMas')
+  await page.waitForTimeout(400)
+  if (await page.locator('#mcAdMas').isVisible()) { await page.click('#mcAdMas'); await page.waitForTimeout(200) }
+  await page.click('#mcAdGuardar')
     await page.waitForTimeout(1600)
     const despues = await cifras()
     check('la cabecera sube al marcar una carta', Number(despues.Cartas) > Number(antes.Cartas),
