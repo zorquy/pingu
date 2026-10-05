@@ -15,6 +15,10 @@
 // Y las elecciones tampoco: cuando una carta dice «elige», el motor se lo
 // pregunta a un `ui` que le pasa quien llama. En la web es una ventana;
 // en las pruebas, un guion. Por eso todo lo que elige es asíncrono.
+// Con mesa, `elige` dice QUIÉN decide cuando no es el que juega (el que
+// sube un activo tras un KO, el que descarta por un ataque): la web gira
+// la mesa hacia él (tanda 620). `partida` es otra cosa —de quién son las
+// cartas—, y «mira la mano del rival y descarta una» la elige el que ataca.
 import { plano, categoriaDe, esBasico, esEnergiaBasica, letraDeCartaDeEnergia, claveDeNombre, nombreVisible, subtipoDeEntrenador, esAsTactico } from './nucleo.js'
 import { INGLES_DE } from './nombres.js'
 import { lecturaDeAtaque, rasgosDeCarta, normalizarTexto } from './textos.js'
@@ -1403,6 +1407,7 @@ export class Partida {
     const s = this.s
     const c = this.cartaDe(slot)
     const premios = premiosQueDa(c)
+    if (slot === s.activo) s.activoCaido = true
     this.alDescarteDeSuDueno(this.cartasDelSlot(slot))
     this.quitarDelJuego(slot)
     s.caidos = (s.caidos || 0) + 1
@@ -1433,9 +1438,14 @@ export class Partida {
   // Si el activo se ha ido, hay que subir uno de la banca.
   async reponerActivo(ui) {
     const s = this.s
+    if (s.activo) s.activoCaido = false
     if (s.activo || !s.banca.length || s.fase === 'fin') return
-    const titulo = this.mesa ? `${this.nombreJugador}: tu activo ha caído, elige quién sube` : 'Tu activo ha caído: elige quién sube'
-    const [id] = await ui.pokemon({ titulo, opciones: s.banca.map((p) => p.id), min: 1, max: 1, sinCancelar: true, partida: this })
+    // «Ha caído» solo si lo ha dejado KO algo: Dudunsparce se baraja con
+    // el mazo y «Devolver a la mano» se lo lleva, y ahí no ha caído nadie.
+    const que = s.activoCaido ? 'tu activo ha caído' : 'te has quedado sin activo'
+    s.activoCaido = false
+    const titulo = this.mesa ? `${this.nombreJugador}: ${que}, elige quién sube` : `${que[0].toUpperCase()}${que.slice(1)}: elige quién sube`
+    const [id] = await ui.pokemon({ titulo, opciones: s.banca.map((p) => p.id), min: 1, max: 1, sinCancelar: true, partida: this, elige: this })
     const p = this.slot(id)
     s.banca = s.banca.filter((x) => x !== p)
     s.activo = p
@@ -1552,6 +1562,7 @@ export class Partida {
         }
       }
       const n = Math.max(0, Math.min(premiosQueDa(c) + extra - menos, s.premios.length))
+      if (d === op.s.activo) op.s.activoCaido = true
       op.alDescarteDeSuDueno(op.cartasDelSlot(d))
       op.quitarDelJuego(d)
       op.s.caidos = (op.s.caidos || 0) + 1
@@ -1577,7 +1588,7 @@ export class Partida {
     if (n <= 0 || !s.premios.length) return
     let elegidos
     if (n >= s.premios.length) elegidos = [...s.premios]
-    else elegidos = await ui.premios({ titulo: `${this.mesa ? `${this.nombreJugador}: c` : 'C'}oge ${n} ${n === 1 ? 'premio' : 'premios'}`, n, sinCancelar: true, partida: this })
+    else elegidos = await ui.premios({ titulo: `${this.mesa ? `${this.nombreJugador}: c` : 'C'}oge ${n} ${n === 1 ? 'premio' : 'premios'}`, n, sinCancelar: true, partida: this, elige: this })
     for (const u of elegidos) {
       s.premios = s.premios.filter((x) => x !== u)
       delete s.premiosVistos[u]
@@ -1787,8 +1798,8 @@ export class Partida {
       const ap = atacante.partida
       const a = atacante.slot
       if (a.energias.length && ap.s.banca.length) {
-        const [u] = a.energias.length === 1 ? a.energias : await ui.cartas({ titulo: `Ventilador de Mano: ¿qué energía del atacante se mueve?`, opciones: [...a.energias], min: 1, max: 1, partida: this })
-        const [id] = ap.s.banca.length === 1 ? [ap.s.banca[0].id] : await ui.pokemon({ titulo: 'Ventilador de Mano: ¿a qué Pokémon de su banca?', opciones: ap.s.banca.map((x) => x.id), min: 1, max: 1, partida: this })
+        const [u] = a.energias.length === 1 ? a.energias : await ui.cartas({ titulo: `Ventilador de Mano: ¿qué energía del atacante se mueve?`, opciones: [...a.energias], min: 1, max: 1, partida: this, elige: this })
+        const [id] = ap.s.banca.length === 1 ? [ap.s.banca[0].id] : await ui.pokemon({ titulo: 'Ventilador de Mano: ¿a qué Pokémon de su banca?', opciones: ap.s.banca.map((x) => x.id), min: 1, max: 1, partida: this, elige: this })
         const destino = ap.s.banca.find((x) => x.id === id)
         a.energias = a.energias.filter((x) => x !== u)
         destino.energias.push(u)
@@ -2392,7 +2403,7 @@ export class Partida {
           if (!n) break
           // Las elige el RIVAL: se le pregunta a él (en «tú contra ti» es
           // la otra mitad de la mesa).
-          const el = n >= op.s.mano.length ? [...op.s.mano] : await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${n === 1 ? '1 carta' : `${n} cartas`} de tu mano`, opciones: [...op.s.mano], min: n, max: n, zona: 'mano', partida: op, sinCancelar: true })
+          const el = n >= op.s.mano.length ? [...op.s.mano] : await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${n === 1 ? '1 carta' : `${n} cartas`} de tu mano`, opciones: [...op.s.mano], min: n, max: n, zona: 'mano', partida: op, elige: op, sinCancelar: true })
           op.descartar(el)
           break
         }
@@ -2450,7 +2461,7 @@ export class Partida {
         case 'echarRival': {
           if (!ra || !r.banca.length || prevenido(ra)) break
           if (!op) { this.cambiarActivoRival(0); break }
-          const [id] = op.s.banca.length === 1 ? [op.s.banca[0].id] : await ui.pokemon({ titulo: `${op.nombreJugador}: elige quién pasa a tu puesto activo`, opciones: op.s.banca.map((d) => d.id), min: 1, max: 1, sinCancelar: true, partida: op })
+          const [id] = op.s.banca.length === 1 ? [op.s.banca[0].id] : await ui.pokemon({ titulo: `${op.nombreJugador}: elige quién pasa a tu puesto activo`, opciones: op.s.banca.map((d) => d.id), min: 1, max: 1, sinCancelar: true, partida: op, elige: op })
           op.cambiarActivo(op.s.banca.find((d) => d.id === id))
           break
         }
@@ -2986,7 +2997,7 @@ export class Mesa {
     for (const j of this.jugadores) {
       const n = j.oponente.s.mulligans
       if (!n) continue
-      const cuantas = ui?.numero ? await ui.numero({ titulo: `${j.nombreJugador}: ${j.oponente.nombreJugador} hizo ${n} ${n === 1 ? 'mulligan' : 'mulligans'}`, texto: '¿Cuántas cartas robas de más? (Hasta una por mulligan.)', min: 0, max: n, valor: n }) : n
+      const cuantas = ui?.numero ? await ui.numero({ titulo: `${j.nombreJugador}: ${j.oponente.nombreJugador} hizo ${n} ${n === 1 ? 'mulligan' : 'mulligans'}`, texto: '¿Cuántas cartas robas de más? (Hasta una por mulligan.)', min: 0, max: n, valor: n, elige: j }) : n
       if (cuantas > 0) {
         const robadas = j.robar(cuantas, { motivo: 'Por los mulligans del rival' })
         const J = N[this.indice(j)]

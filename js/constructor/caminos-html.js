@@ -25,7 +25,9 @@ function caminoHtml(c, puedeFallar, { mejor = false } = {}) {
   const partidario = c.pasos.some((x) => x.partidario) ? '<span class="sr-only">. </span><span class="lab-camino-nota">Usa tu partidario del turno</span>' : ''
   // El primero es LA respuesta a «¿cómo la encuentro?» (tanda 595): se dice
   // con palabras, y que el orden de los pasos es parte de ella.
-  const etiqueta = mejor ? `<span class="lab-camino-mejor">${c.pasos.length > 1 ? 'Lo mejor, en este orden' : 'Lo mejor'}</span><span class="sr-only">: </span>` : ''
+  // Y si el orden no cambia nada (tanda 623), se dice eso: «en este orden»
+  // afirmaría algo que el cálculo no ha visto.
+  const etiqueta = mejor ? `<span class="lab-camino-mejor">${c.pasos.length < 2 ? 'Lo mejor' : c.ordenDaIgual ? 'Lo mejor, en cualquier orden' : 'Lo mejor, en este orden'}</span><span class="sr-only">: </span>` : ''
   return `<li class="lab-camino${mejor ? ' lab-camino-es-mejor' : ''}">
       ${etiqueta}<span class="lab-camino-p">${pctDeCamino(c.p, puedeFallar)}</span>
       <span class="lab-camino-pasos">${c.pasos.map(pasoHtml).join('<span class="lab-camino-flecha" aria-hidden="true">→</span><span class="sr-only">, después </span>')}${partidario}</span>
@@ -51,5 +53,5 @@ export function resultadoDeCaminosHtml(r, nombre) {
         ? `<details class="lab-caminos-otros"><summary>${otros.length === 1 ? 'Otro camino' : `Otros ${otros.length} caminos`} (uno más corto llega igual o mejor)</summary><ol class="lab-caminos">${otros.map((c) => caminoHtml(c, puedeFallar)).join('')}</ol></details>`
         : ''
     }
-    <p class="subtext lab-caminos-nota">Cada camino se ha jugado en ${r.muestras} repartos de lo que no sabes (el orden del mazo y los premios boca abajo), eligiendo siempre a favor de ${n}: cada cifra puede bailar unos ${Math.round(200 * Math.sqrt(0.25 / r.muestras))} puntos arriba o abajo. Un paso que no puedes dar en un reparto (no tienes la carta) se salta, y en cuanto aparece ${n} se para.</p>`
+    <p class="subtext lab-caminos-nota">Cada camino se ha jugado en ${r.muestras} repartos de lo que no sabes (el orden del mazo y los premios boca abajo), eligiendo siempre a favor de ${n}. Dónde está ${n} se reparte a partes iguales entre los repartos, así que robar o mirar las de arriba sale casi exacto; lo que pasa después de barajar (un Poffin, Dudunsparce que vuelve al mazo) puede bailar unos ${Math.round(200 * Math.sqrt(0.25 / r.muestras))} puntos. Un paso que no puedes dar en un reparto (no tienes la carta) se salta, y en cuanto aparece ${n} se para.</p>`
 }

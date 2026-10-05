@@ -2544,7 +2544,7 @@ async function abrirCorto(id) {
     return false
   }
   if (fila.tipo === 'posicion') {
-    location.replace(`/constructor#${fila.carga}`)
+    location.replace(`/laboratorio#${fila.carga}`)
     return false
   }
   const texto = await desempaquetar(fila.carga)

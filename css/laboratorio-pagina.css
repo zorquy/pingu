@@ -1,0 +1,175 @@
+/* /laboratorio (tanda 621): elegir con qué mazo se abre el laboratorio.
+   Solo la carga laboratorio.html; el laboratorio en sí es laboratorio.css. */
+
+.lp-pagina {
+  max-width: 760px;
+}
+
+.lp-cabecera {
+  margin-bottom: var(--e-lg);
+}
+
+.lp-cabecera h1 {
+  margin-bottom: var(--e-xs);
+}
+
+.lp-que {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-sm);
+  margin: var(--e-md) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-que li {
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.lp-bloque {
+  display: grid;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.lp-bloque h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.lp-bloque > .btn-secondary {
+  justify-self: start;
+}
+
+.lp-esqueleto {
+  display: block;
+  height: 48px;
+}
+
+.lp-mazos {
+  display: grid;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-mazo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.lp-mazo-texto {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lp-mazo-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lp-mazo-detalle {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.lp-mazo-editar,
+.lp-mazo-probar {
+  flex-shrink: 0;
+}
+
+.lp-lista {
+  width: 100%;
+  min-height: 160px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--t-sm);
+  resize: vertical;
+}
+
+.lp-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.lp-resultado {
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  font-size: var(--t-sm);
+}
+
+.lp-resultado ul {
+  margin: var(--e-xs) 0 0;
+  padding-left: var(--e-lg);
+}
+
+.lp-error {
+  color: var(--danger);
+}
+
+.lp-meta-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-meta-mazo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-xs) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lp-meta-mazo:hover {
+  border-color: var(--border-strong);
+}
+
+.lp-meta-cuota {
+  color: var(--text-mid);
+  font-weight: 400;
+}
+
+@media (pointer: coarse) {
+  .lp-mazo-editar,
+  .lp-meta-mazo {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lp-mazo {
+    flex-wrap: wrap;
+  }
+
+  .lp-mazo-texto {
+    flex-basis: 100%;
+  }
+}

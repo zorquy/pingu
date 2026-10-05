@@ -494,6 +494,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   llamada «cartas» y no hacía nada, sin error. Un atributo de estado en un
   contenedor no puede llamarse como el de los elementos que se buscan con
   `closest()` dentro de él (`data-eligiendo` en la raíz).
+- **De QUIÉN son las cartas no dice QUIÉN decide** (tanda 620). El motor
+  le pasaba al `ui` `partida` —de quién son las cartas— y con eso no se
+  podía girar la mesa: «mira la mano del rival y descarta una» la elige el
+  que ataca, y «el rival descarta dos», el rival; las dos llevan `partida:
+  op`. Hace falta un dato aparte (`elige`), escrito donde pasa. Cuando un
+  parámetro sirve para dos preguntas, la segunda se contesta mal sin error.
+- **Una muestra con semilla fija se equivoca SIEMPRE hacia el mismo lado
+  en la misma mesa** (tanda 623). «Encontrar una carta» jugaba cada camino
+  en 400 repartos al azar: ±3 puntos, y en la mesa de PINGU, «Dudunsparce:
+  11 %» donde la cuenta es 7,5 —siempre 11, porque la semilla es fija—.
+  Repetirlo no lo destapa, y el orden de dos pasos se decidía por ese
+  ruido. Lo que más pesa (dónde está la carta) se reparte por estratos y
+  sale exacto; y un «este orden es mejor» se compara reparto a reparto y
+  solo se afirma si pasa del azar.
 - **La API de TCGdex y su servidor de FICHEROS son dos sitios, y la API
   se calla fotos que el servidor sí tiene** (medido por la sesión de
   COWORK el 2026-10-03, con un HEAD por carta a las 20.442 asiáticas):

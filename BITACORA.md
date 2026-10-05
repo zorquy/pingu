@@ -4,6 +4,59 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana) — PINGU-Claude (620 a 623 — la mesa gira hacia quien decide, /laboratorio, y «encontrar una carta» con cifras exactas)
+
+**Leídas vuestras 580 a 588** (también los arreglos de TCGGO de esta
+mañana): cartas, precios y /admin; nada de lo mío. Mis números son 620-623
+(de la 589 a la 619 os las dejo). Coincidimos en
+TODAS las páginas: «Laboratorio» va en el menú (arriba y en el del móvil)
+y en el pie, que ahora es el mismo en las 37 (a la portada y a /colabora
+les faltaba «Constructor de mazos»). /colabora tenía aún la barra vieja sin
+grupos: lleva la de todas.
+
+**De dónde sale**: PINGU, esta mañana: «cuando te noquean un Pokémon, que
+se gire el tablero para ver tu mano y elegir quién sube», «con Dudunsparce,
+ver primero lo robado: no tapar la mano con el mini modal», «un apartado
+del laboratorio en el menú» y, con un enlace (/lab/rf8eeeuz), «¿se tiene
+en cuenta que Dudunsparce vuelve al mazo y Drakloak manda una abajo?».
+
+· **620** — «tú contra ti»: el motor dice `elige` (QUIÉN decide; `partida`
+  dice de quién son las cartas) y la mesa gira hacia él mientras decide:
+  su mano y su banca abajo, «decide X». Lo que se pide va en la franja del
+  centro, no flotando encima de la mano; la mano no se apaga eligiendo un
+  Pokémon; lo robado a mitad de jugada sale «nueva»; «te has quedado sin
+  activo» si no ha caído nadie.
+· **621** — `/laboratorio`: tus mazos, el que está a medias en el
+  constructor, una lista pegada o uno del meta; el laboratorio se abre
+  encima y al cerrarlo sigues ahí. `?mazo=<id>` (y «Probar» en Mis mazos).
+  Las posiciones compartidas (`/lab/<id>` y el enlace largo) abren ya aquí;
+  el constructor sigue abriendo las que ya se mandaron.
+· **623** — «encontrar una carta»: el motor SÍ contaba lo de Dudunsparce y
+  Drakloak; lo que fallaba eran las cifras (±3 puntos con 400 repartos al
+  azar: «11 %» donde son 7,5). Dónde cae la carta va por estratos y sale
+  exacta; «en cualquier orden» cuando el orden no cambia nada (comparado
+  reparto a reparto); y un camino con partidario ya no esconde uno sin él.
+
+**Sin migración.**
+
+**Ficheros**: `js/constructor/{laboratorio,partida,efectos,caminos,
+caminos-html}.js`, `css/laboratorio.css`, **nuevos** `laboratorio.html`,
+`js/laboratorio-pagina.js`, `css/laboratorio-pagina.css`; `js/mazos.js`,
+`js/repeticiones.js` (una posición por /rep/ va a /laboratorio),
+`netlify.toml` (/lab/:id → /laboratorio?pos=), `netlify/functions/
+sitemap.mjs`, las 37 páginas (menú y pie), `SCHEMA.md`, `CLAUDE.md` (dos
+lecciones). En `pruebas`: `test-tanda-620/621/623.mjs` con sus rigores (todo
+detectado), `servir.py` (/lab/ → /laboratorio), y al día 456, 497, 554,
+591, 594 y sus rigores (anclas que movía esto).
+
+**Suite entera pasada**: todo verde salvo la 470 (pide una captura del
+scratch de una sesión vieja, de siempre). Al día la 312 y la 326 (37
+páginas con pie, con /laboratorio), y la 492 esperaba a medir la tira de
+momentos en el móvil: con las dos mitades de la suite a la vez a veces la
+medía antes de pintarla (todo a 0).
+
+**Pendiente**: nada de esto.
+
 ## 2026-10-06 (tarde) — PINGU-Claude (588 — el par con Cardmarket por TCGGO)
 
 **Hecho**: la primera pasada real de la 587 casó un 15 % en los sets

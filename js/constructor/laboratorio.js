@@ -78,6 +78,15 @@ const L = {
   // Elegir en la mesa (tanda 594): lo que un efecto pregunta y se contesta
   // tocando las cartas de la mesa, sin ventana. Ver `elegirEnLaMesa`.
   elegir: null,
+  // «Tú contra ti» (tanda 620): quién DECIDE cuando no es el que juega —al
+  // que le han dejado KO el activo y sube otro, el que descarta de su mano
+  // por un ataque—. La mesa gira hacia él mientras decide, para que vea su
+  // mano y su banca, y vuelve después. `giro` apunta que ha girado en esta
+  // jugada; `manoAntes`, las manos de antes de la jugada, para marcar lo que
+  // acaba de llegar mientras todavía se está eligiendo (Dudunsparce).
+  vista: null,
+  giro: false,
+  manoAntes: null,
   anuncio: '',
   ignorarClic: false,
 }
@@ -174,6 +183,8 @@ export async function abrirLaboratorioEnPosicion({ mazos, nombres, colocar, avis
   L.nuevas = new Set()
   L.apuntar = null
   L.elegir = null
+  L.vista = null
+  L.manoAntes = null
   L.cacheHtml = new WeakMap()
   $('#labCuerpo').innerHTML = cuerpoHtml()
   const semilla = (Math.random() * 2 ** 32) >>> 0
@@ -220,6 +231,8 @@ export async function abrirPosicionCompartida({ posicion, codigoDeSet = () => nu
   L.nuevas = new Set()
   L.apuntar = null
   L.elegir = null
+  L.vista = null
+  L.manoAntes = null
   L.cacheHtml = new WeakMap()
   $('#labCuerpo').innerHTML = cuerpoHtml()
   L.partida = new Partida({ entradas: preparadas, efectos: EFECTOS, semilla: 1, estricta: posicion.estado.estricta !== false })
@@ -271,7 +284,9 @@ async function dialogoCompartir() {
   try {
     const { empaquetarPosicion } = await import('./posicion-compartida.js')
     const carga = await empaquetarPosicion(posicion)
-    url = `${location.origin}/constructor#${carga}`
+    // A /laboratorio (tanda 621): al cerrar la mesa, quien lo abra se
+    // queda en el laboratorio y no en un constructor vacío.
+    url = `${location.origin}/laboratorio#${carga}`
     // Corto (tanda 591): la mesa, comprimida, se guarda en PokeDoc y el
     // enlace lleva ocho letras. Si no se puede, el largo de siempre.
     try {
@@ -379,6 +394,7 @@ function cuerpoHtml() {
         <section class="lab-centro-mesa" id="labCentro" aria-label="La mesa"></section>
         <section class="lab-lado lab-lado-propio" id="labLadoPropio" aria-label="Tu lado de la mesa"></section>
         <div class="lab-apuntar hidden" id="labApuntar" role="status"></div>
+        <p class="sr-only" id="labElegirVoz" role="status"></p>
         <div class="lab-cambio" id="labCambio" aria-hidden="true" hidden></div>
       </div>
       <section class="lab-mano-zona" aria-labelledby="labManoTitulo">
@@ -414,6 +430,8 @@ function nuevaPartida() {
   L.nuevas = new Set()
   L.apuntar = null
   L.elegir = null
+  L.vista = null
+  L.manoAntes = null
   L.anuncio = ''
   L.cacheHtml = new WeakMap()
   const o = L.opciones
@@ -451,6 +469,8 @@ async function hacer(fn) {
   const otro = L.mesa ? quien.oponente : null
   const antes = new Set(quien.s.mano)
   const antesOtro = otro ? new Set(otro.s.mano) : null
+  L.manoAntes = new Map([[quien, antes], ...(otro ? [[otro, antesOtro]] : [])])
+  L.giro = false
   try {
     if (L.mesa) await L.mesa.accion(fn, ui)
     else await L.partida.accion(fn)
@@ -464,6 +484,9 @@ async function hacer(fn) {
     if (L.mesa && ahora !== quien && !L.mesa.terminada) {
       L.anuncio = L.mesa.fase === 'preparacion' ? `Prepara ${ahora.nombreJugador}` : `Turno de ${ahora.nombreJugador}`
       mostrarCambio(ahora, L.anuncio)
+    } else if (L.mesa && L.giro && !L.mesa.terminada) {
+      // La mesa giró para que decidiera el otro y vuelve: que se note.
+      mostrarCambio(ahora, `Sigue ${ahora.nombreJugador}`)
     }
   } catch (err) {
     if (err?.cancelado) {
@@ -476,6 +499,9 @@ async function hacer(fn) {
     }
   } finally {
     L.ocupado = false
+    L.vista = null
+    L.giro = false
+    L.manoAntes = null
     pintar()
     devolverFoco(foco)
   }
@@ -537,7 +563,7 @@ function devolverFoco(marca, el = null) {
 // ════════════════════════════════════════════════════════════════════
 
 function pintar() {
-  if (L.mesa) L.partida = L.mesa.actual
+  if (L.mesa) L.partida = L.vista || L.mesa.actual
   const p = L.partida
   if (!p || !$('#labMesa')) return
   pintarBarra()
@@ -558,8 +584,10 @@ function pintarBarra() {
   for (const b of L.raiz.querySelectorAll('[data-modo]')) b.setAttribute('aria-checked', String(b.dataset.modo === (m ? 'mesa' : 'muneco')))
   let t = ''
   if (m) {
+    // Con la mesa girada hacia el otro, la barra dice quién decide; de
+    // quién es el turno ya lo dice la chapa «Su turno» del lado de arriba.
     if (m.fase === 'preparacion') t = `Preparación · ${p.nombreJugador}`
-    else if (m.fase === 'juego') t = `Turno ${m.m.turnoGlobal} · ${p.nombreJugador}${s.vaPrimero && s.turno === 1 ? ' (va primero)' : ''}`
+    else if (m.fase === 'juego') t = L.vista ? `Turno ${m.m.turnoGlobal} · decide ${L.vista.nombreJugador}` : `Turno ${m.m.turnoGlobal} · ${p.nombreJugador}${s.vaPrimero && s.turno === 1 ? ' (va primero)' : ''}`
     else if (m.fase === 'fin') t = 'Partida terminada'
   } else if (s.fase === 'preparacion') t = `Preparación · vas ${s.vaPrimero ? 'primero' : 'segundo'}`
   else if (s.fase === 'turno') t = `Tu turno ${s.turno} · vas ${s.vaPrimero ? 'primero' : 'segundo'}`
@@ -877,10 +905,21 @@ function pintarCentro() {
     medio = '<p class="lab-guia">Partida terminada.</p>'
     botones = '<button type="button" class="btn-primary lab-btn" data-accion="otra">Otra partida</button>'
   }
+  // Eligiendo (tanda 620): lo que se pide va en la franja del centro, en el
+  // sitio de los botones del turno —que a mitad de una jugada no se pueden
+  // tocar—. Era una barra flotando abajo y tapaba la mano: con Dudunsparce
+  // no se veía lo robado antes de elegir quién sube.
+  const e = L.elegir
+  const centro = $('#labCentro')
+  centro.classList.toggle('lab-centro-eligiendo', !!e)
+  if (e) {
+    medio = elegirTextoHtml(e)
+    botones = elegirBotonesHtml(e)
+  }
   poner(
-    $('#labCentro'),
+    centro,
     `${estadioBloque}
-     <div class="lab-centro-medio">${medio}</div>
+     <div class="lab-centro-medio"${e ? ' id="labElegir"' : ''}>${medio}</div>
      <div class="lab-centro-botones">${botones}</div>`
   )
 }
@@ -903,7 +942,7 @@ function vetosHtml(p) {
 
 function pintarPropio() {
   const el = $('#labLadoPropio')
-  el.setAttribute('aria-label', L.mesa ? `Lado de ${L.partida.nombreJugador} (le toca)` : 'Tu lado de la mesa')
+  el.setAttribute('aria-label', L.mesa ? `Lado de ${L.partida.nombreJugador} (${L.vista ? 'decide' : 'le toca'})` : 'Tu lado de la mesa')
   poner(el, ladoHtml(L.partida))
 }
 
@@ -923,8 +962,13 @@ function pintarMano() {
             const nombre = escapeHtml(p.nombre(u))
             const apuntando = L.apuntar?.uid === u
             const elegible = L.elegir?.tipo === 'cartas' && L.elegir.valen.has(u)
+            // A mitad de una jugada (eligiendo), lo nuevo es lo que no estaba
+            // al empezarla: con Dudunsparce, las tres que acaba de robar
+            // mientras se elige quién sube.
+            const antes = L.elegir && L.manoAntes?.get(p)
+            const nueva = antes ? !antes.has(u) : L.nuevas?.has(u)
             return `<div class="lab-mano-carta${j && !L.elegir ? ' lab-jugable' : ''}${apuntando ? ' lab-apuntando' : ''}${elegible ? ' lab-elegible-mano' : ''}">
-              ${cartaHtml(u, { extra: ` data-mano${j ? '' : ' data-no-jugable'}`, nueva: L.nuevas?.has(u), etiqueta: `${nombre}${j ? '' : ' (ahora no se puede jugar)'}` })}
+              ${cartaHtml(u, { extra: ` data-mano${j ? '' : ' data-no-jugable'}`, nueva, etiqueta: `${nombre}${j ? '' : ' (ahora no se puede jugar)'}` })}
               <button type="button" class="lab-mas" data-mas="${u}" aria-label="Más opciones: ${nombre}" title="Más opciones">${icons.moreHorizontal(16)}</button>
             </div>`
           })
@@ -939,15 +983,17 @@ function pintarApuntar() {
   if (!el) return
   const a = L.apuntar
   const e = L.elegir
-  el.classList.toggle('hidden', !a && !e)
-  el.classList.toggle('lab-elegir-barra', !!e)
+  el.classList.toggle('hidden', !a)
   L.raiz.classList.toggle('lab-modo-apuntar', !!a)
   L.raiz.classList.toggle('lab-modo-elegir', !!e)
   // En la raíz va `data-eligiendo` y no `data-elegir`: ese es el de lo que
   // se toca, y un `closest('[data-elegir]')` acabaría en la raíz.
   if (e) L.raiz.dataset.eligiendo = e.tipo
   else delete L.raiz.dataset.eligiendo
-  if (e) return poner(el, barraElegirHtml(e))
+  // Lo que se pide, también para el lector: la franja del centro se repinta
+  // entera y una región viva recién puesta no siempre se anuncia.
+  const voz = $('#labElegirVoz')
+  if (voz && voz.textContent !== (e?.titulo || '')) voz.textContent = e?.titulo || ''
   if (!a) return poner(el, '')
   poner(el, `<span>${escapeHtml(a.texto)}</span><button type="button" class="btn-secondary lab-btn" data-accion="no-apuntar">Cancelar <kbd>Esc</kbd></button>`)
 }
@@ -1735,7 +1781,7 @@ function elegirEnLaMesa(cfg) {
     pintar()
     // Lo primero que se puede tocar, a la vista y con el foco.
     requestAnimationFrame(() => {
-      const primero = L.raiz.querySelector('[data-elegir]') || L.raiz.querySelector('#labApuntar button')
+      const primero = L.raiz.querySelector('[data-elegir]') || L.raiz.querySelector('#labCentro [data-elegir-accion]')
       primero?.scrollIntoView?.({ block: 'nearest' })
       primero?.focus({ preventScroll: true })
     })
@@ -1754,7 +1800,7 @@ function puedeAcabarElegir(e) {
 // varios, o los premios (boca abajo, como en la mesa de verdad).
 const elegirAlTocar = (e) => (e.tipo === 'pokemon' && e.min === 1 && e.max === 1) || e.tipo === 'premios'
 
-function barraElegirHtml(e) {
+function elegirTextoHtml(e) {
   const n = e.sel.size
   const err = errorDeElegir(e)
   const cuenta =
@@ -1765,19 +1811,18 @@ function barraElegirHtml(e) {
         : e.max === 1 && e.min <= 1
           ? n ? '1 elegida' : e.min ? 'Toca 1' : 'Toca 1 o ninguna'
           : `${n} de ${e.max}${e.min && e.min < e.max ? ` · mínimo ${e.min}` : ''}`
-  const botones =
-    e.tipo === 'confirmar'
-      ? `<button type="button" class="btn-secondary lab-btn" data-elegir-accion="no">${escapeHtml(e.no || 'No')}</button>
-         <button type="button" class="btn-primary lab-btn" data-elegir-accion="si">${escapeHtml(e.si || 'Sí')}</button>`
-      : `${e.sinCancelar ? '' : '<button type="button" class="btn-secondary lab-btn" data-elegir-accion="cancelar">Cancelar <kbd>Esc</kbd></button>'}
-         ${elegirAlTocar(e) ? '' : `<button type="button" class="btn-primary lab-btn" data-elegir-accion="ok"${puedeAcabarElegir(e) ? '' : ' disabled'}>Confirmar</button>`}`
-  return `<div class="lab-elegir-texto">
-      <strong class="lab-elegir-titulo">${escapeHtml(e.titulo || '')}</strong>
+  return `<strong class="lab-elegir-titulo">${escapeHtml(e.titulo || '')}</strong>
       ${e.texto ? `<span class="lab-elegir-sub">${escapeHtml(e.texto)}</span>` : ''}
       ${cuenta ? `<span class="lab-elegir-cuenta">${cuenta}</span>` : ''}
-      ${err ? `<span class="lab-elegir-error" role="alert">${escapeHtml(err)}</span>` : ''}
-    </div>
-    <div class="lab-elegir-botones">${botones}</div>`
+      ${err ? `<span class="lab-elegir-error" role="alert">${escapeHtml(err)}</span>` : ''}`
+}
+
+function elegirBotonesHtml(e) {
+  return e.tipo === 'confirmar'
+    ? `<button type="button" class="btn-secondary lab-btn" data-elegir-accion="no">${escapeHtml(e.no || 'No')}</button>
+       <button type="button" class="btn-primary lab-btn" data-elegir-accion="si">${escapeHtml(e.si || 'Sí')}</button>`
+    : `${e.sinCancelar ? '' : '<button type="button" class="btn-secondary lab-btn" data-elegir-accion="cancelar">Cancelar <kbd>Esc</kbd></button>'}
+       ${elegirAlTocar(e) ? '' : `<button type="button" class="btn-primary lab-btn" data-elegir-accion="ok"${puedeAcabarElegir(e) ? '' : ' disabled'}>Confirmar</button>`}`
 }
 
 function acabarElegir(valor) {
@@ -1824,37 +1869,69 @@ function accionElegir(que) {
   if (que === 'ok' && puedeAcabarElegir(e)) acabarElegir(e.tipo === 'cartas' ? e.orden.filter((x) => e.sel.has(x)) : [...e.sel])
 }
 
+// Quién decide, si no es el que juega (tanda 620). El motor lo dice con
+// `elige`; `partida` es otra cosa —de QUIÉN son las cartas: «mira la mano
+// del rival y descarta una» la elige el que ataca—, y por eso no sirve para
+// girar la mesa.
+function quienDecide(o) {
+  const q = o?.elige
+  return L.mesa && q && q !== L.mesa.actual && L.mesa.jugadores.includes(q) ? q : null
+}
+
+// Mientras decide el otro, la mesa gira hacia él: abajo su lado y su mano,
+// arriba el del que juega. Como en TCG Live: al que le dejan KO el activo
+// ve su mano antes de elegir quién sube. Al acabar vuelve sola.
+async function girandoSiHaceFalta(o, fn) {
+  const q = quienDecide(o)
+  if (!q || L.vista === q) return fn()
+  const antes = L.vista
+  L.vista = q
+  L.partida = q
+  L.giro = true
+  pintar()
+  mostrarCambio(q, `Decide ${q.nombreJugador}`)
+  try {
+    return await fn()
+  } finally {
+    L.vista = antes
+    L.partida = antes || L.mesa.actual
+    pintar()
+  }
+}
+
 // Lo que pregunta el motor: en la mesa cuando se puede, en una ventana
 // cuando no.
 const ui = {
-  cartas(o) {
-    // Un solo criterio: que TODAS las que valen estén a la vista. El mazo,
-    // el descarte o la mano del otro no lo están, y eso ya las manda a la
-    // ventana sin mirar la zona (mirarla también sería una segunda guarda
-    // que tapa a la primera y ninguna prueba podría ver).
-    const valen = o.elegibles || o.opciones
-    if (!valen.length || !valen.every(seVeEnLaMesa)) return ventana.cartas(o)
-    return elegirEnLaMesa({ tipo: 'cartas', titulo: o.titulo, texto: o.texto || '', valen: new Set(valen), orden: o.opciones, min: Math.min(o.min ?? 0, valen.length), max: o.max ?? 1, validar: o.validar || null, sinCancelar: !!o.sinCancelar })
-  },
-  pokemon(o) {
-    // Mientras se prepara, el lado del otro está boca abajo: no se puede
-    // tocar lo que no se ve.
-    const enLaMesa = L.mesa?.fase !== 'preparacion' && o.opciones.length > 0 && o.opciones.every((id) => buscarSlot(id))
-    if (!enLaMesa) return ventana.pokemon(o)
-    return elegirEnLaMesa({ tipo: 'pokemon', titulo: o.titulo, texto: o.texto || '', valen: new Set(o.opciones), min: o.min ?? 1, max: o.max ?? 1, sinCancelar: !!o.sinCancelar })
-  },
-  confirmar(o) {
-    return elegirEnLaMesa({ tipo: 'confirmar', titulo: o.titulo, texto: o.texto || '', si: o.si || 'Sí', no: o.no || 'No', valen: new Set() })
-  },
-  premios(o) {
-    const p = o.partida || L.partida
-    const seVen = p === L.partida || (L.mesa && p === L.partida.oponente)
-    if (!seVen) return ventana.premios(o)
-    return elegirEnLaMesa({ tipo: 'premios', titulo: o.titulo, valen: new Set(p.s.premios), min: o.n, max: o.n, sinCancelar: true, partida: p })
-  },
-  opcion: (o) => ventana.opcion(o),
-  numero: (o) => ventana.numero(o),
-  repartir: (o) => ventana.repartir(o),
+  cartas: (o) =>
+    girandoSiHaceFalta(o, () => {
+      // Un solo criterio: que TODAS las que valen estén a la vista. El mazo,
+      // el descarte o la mano del otro no lo están, y eso ya las manda a la
+      // ventana sin mirar la zona (mirarla también sería una segunda guarda
+      // que tapa a la primera y ninguna prueba podría ver). Con la mesa
+      // girada, la mano del que decide SÍ está a la vista.
+      const valen = o.elegibles || o.opciones
+      if (!valen.length || !valen.every(seVeEnLaMesa)) return ventana.cartas(o)
+      return elegirEnLaMesa({ tipo: 'cartas', titulo: o.titulo, texto: o.texto || '', valen: new Set(valen), orden: o.opciones, min: Math.min(o.min ?? 0, valen.length), max: o.max ?? 1, validar: o.validar || null, sinCancelar: !!o.sinCancelar })
+    }),
+  pokemon: (o) =>
+    girandoSiHaceFalta(o, () => {
+      // Mientras se prepara, el lado del otro está boca abajo: no se puede
+      // tocar lo que no se ve.
+      const enLaMesa = L.mesa?.fase !== 'preparacion' && o.opciones.length > 0 && o.opciones.every((id) => buscarSlot(id))
+      if (!enLaMesa) return ventana.pokemon(o)
+      return elegirEnLaMesa({ tipo: 'pokemon', titulo: o.titulo, texto: o.texto || '', valen: new Set(o.opciones), min: o.min ?? 1, max: o.max ?? 1, sinCancelar: !!o.sinCancelar })
+    }),
+  confirmar: (o) => girandoSiHaceFalta(o, () => elegirEnLaMesa({ tipo: 'confirmar', titulo: o.titulo, texto: o.texto || '', si: o.si || 'Sí', no: o.no || 'No', valen: new Set() })),
+  premios: (o) =>
+    girandoSiHaceFalta(o, () => {
+      const p = o.partida || L.partida
+      const seVen = p === L.partida || (L.mesa && p === L.partida.oponente)
+      if (!seVen) return ventana.premios(o)
+      return elegirEnLaMesa({ tipo: 'premios', titulo: o.titulo, valen: new Set(p.s.premios), min: o.n, max: o.n, sinCancelar: true, partida: p })
+    }),
+  opcion: (o) => girandoSiHaceFalta(o, () => ventana.opcion(o)),
+  numero: (o) => girandoSiHaceFalta(o, () => ventana.numero(o)),
+  repartir: (o) => girandoSiHaceFalta(o, () => ventana.repartir(o)),
 }
 
 // Las ventanas: para lo que no está en la mesa (y para lo que no es elegir

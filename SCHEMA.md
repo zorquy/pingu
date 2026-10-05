@@ -30511,3 +30511,107 @@ la función con un TCGGO de mentira que cuenta peticiones, y los frenos
 `cardmarket_id`, sin tiempo). `test-tanda-587.mjs` se queda con la guía.
 
 
+
+## Tanda 620 — «tú contra ti»: la mesa gira hacia quien decide (oct. 2026)
+
+PINGU: «cuando te noquean un Pokémon se tiene que cambiar el tablero para
+ver tu mano y elegir qué Pokémon subir […] y con Robo a la Fuga de
+Dudunsparce robas las 3 cartas, pero en vez de ver primero toda tu mano te
+dice de subir un activo: es tan fácil como no tapar la mano con el mini
+modal ese».
+
+**Quién decide.** El motor ya le decía al `ui` de QUIÉN eran las cartas
+(`partida`), y eso no basta: «mira la mano del rival y descarta una» la
+elige el que ataca, y «el rival descarta dos» la elige el rival. Desde aquí
+el motor dice además `elige` —quién decide cuando no es el que juega—, y lo
+dice donde pasa: subir activo (`reponerActivo`), coger premios, el que
+descarta por un ataque (Xerosic, «descarta hasta quedarte con N»), quién
+pasa a su puesto activo cuando lo echa un ataque, el Ventilador de Mano y
+las cartas de más por los mulligans del otro.
+
+**La mesa gira.** `girandoSiHaceFalta` (laboratorio.js) pone `L.vista` en
+quien decide mientras pregunta: abajo SU lado y SU mano, arriba el del que
+juega (con su «Su turno»), la barra «Turno N · decide X», el lado propio
+«(decide)» y el aviso del centro «Decide X». Al contestar vuelve sola; y
+como atacar acaba el turno, tras un KO lo normal es que siga el que acaba
+de subir activo, ya sin girar.
+
+**Lo que se pide va en el centro.** Era una barra fija abajo, encima de la
+mano. Ahora va en la franja del centro (`#labElegir`), en el sitio de los
+botones del turno, que a mitad de una jugada no se pueden tocar; la franja
+lleva el anillo de `--lab-brillo`. La barra flotante (`#labApuntar`) queda
+solo para «dónde va esta carta». Una región viva (`#labElegirVoz`) le dice
+al lector lo que se pide, porque la franja se repinta entera. La mano ya no
+se apaga cuando se elige un Pokémon o un premio: solo cuando se elige DE
+ella. En el móvil, lo primero que se toca queda por encima de la mano
+pegada (lo mide la prueba a 390 px).
+
+**Lo nuevo, a mitad de jugada.** `L.manoAntes` guarda las manos al empezar
+la jugada: mientras se elige, lo que no estaba lleva su «nueva» (las tres de
+Dudunsparce antes de elegir quién sube). Y el aviso dice «te has quedado sin
+activo» salvo que el activo haya caído de verdad (`s.activoCaido`, que
+ponen los dos caminos del KO y se limpia al reponer).
+
+## Tanda 621 — /laboratorio, con su propia puerta (oct. 2026)
+
+PINGU: «un apartado al laboratorio en el menú, que no solo se acceda desde
+el constructor». `laboratorio.html` + `js/laboratorio-pagina.js` +
+`css/laboratorio-pagina.css`: se elige con qué mazo —los tuyos guardados
+(`misMazos`), el que está a medias en el constructor (su borrador del
+navegador, `pokedoc-constructor-borrador`), una lista pegada (lo mismo que
+entiende «Importar»: TCG Live, Limitless, un enlace del constructor) o uno
+del meta (los ocho más jugados, cada uno a su ficha, donde está «Probar en
+el laboratorio»)— y el laboratorio se abre ENCIMA: al cerrarlo se vuelve
+aquí. `/laboratorio?mazo=<id>` lo abre directamente, y «Mis mazos» tiene
+«Probar», que manda ahí. Un fallo al leer tus mazos se dice («no se han
+podido cargar», con reintentar), no «no tienes ninguno».
+
+En el menú, «Laboratorio» va detrás de «Constructor de mazos», en las 37
+páginas y en los dos menús (arriba y el del móvil). `/colabora` tenía
+todavía la barra de antes de los grupos (enlaces sueltos, sin «Retos
+diarios» ni «Mis partidas») y ahora lleva la de todas. Y el pie, que no era
+el mismo en todas (a la portada y a /colabora les faltaba «Constructor de
+mazos»), es ya uno solo, con «Laboratorio». En el sitemap con 0,6.
+
+## Tanda 623 — «¿cómo la encuentro?»: cifras por estratos (oct. 2026)
+
+PINGU, con un enlace: «¿se está teniendo en cuenta que, robando primero
+con Dudunsparce, este vuelve al mazo y el mazo se hace más grande? Y
+Drakloak mira las 2 primeras, te quedas una y la otra va abajo: te quitas 2
+de en medio».
+
+**El motor sí lo tenía en cuenta** (se juega con él): Run Away Draw roba 3
+y baraja a Dudunsparce y lo de debajo con el mazo (40 → 39), y Recon
+Directive deja una en la mano y la otra al fondo, sabida. Lo que fallaba
+eran las CIFRAS: en esa mesa salía «Run Away Draw: 11 %» cuando robar 3 de
+40 con UNA que buscas es un 7,5. Con 400 repartos al azar, en cuántos cae
+la carta arriba baila ±3 puntos, y con la semilla fija bailaba siempre al
+mismo lado en la misma mesa. Y el orden de dos pasos se decidía por ese
+baile.
+
+**Por estratos.** Lo que más pesa es dónde está la carta, así que eso ya no
+se deja al azar: en el reparto i la primera copia va al sitio del cuantil
+u_i, y los u_i cubren [0, 1) a partes iguales (uno por estrato, en orden
+barajado para que los primeros, los de probar puentes, no sean todos de
+arriba del mazo). El sitio sigue su reparto de verdad: si sabes que está en
+el mazo, un hueco del medio; si no, un premio boca abajo con 1/(S+Ph) cada
+uno o el mazo con lo demás (`colocarEnSuEstrato`). Si colocarla obligara a
+mandar a un premio una carta que sabes que está en el mazo, ese reparto se
+saca otra vez. Con una copia y nada barajado en medio, la cifra sale EXACTA
+(3/40, 2/40, 5/40; 3/46 sin haber visto el mazo); lo que pasa después de
+barajar sigue siendo una muestra.
+
+**¿Importa el orden?** Kadabra (roba 2) y Dudunsparce (roba 3 y vuelve al
+mazo) dan 12,5 % o 12,2 % según el orden: da igual. Barajar con un Poffin y
+DESPUÉS mirar con Drakloak, no. Para el mejor camino (de 2 o 3 pasos) se
+juegan los otros órdenes con los mismos repartos y se comparan reparto a
+reparto (McNemar: solo cuentan los repartos en los que uno la encuentra y
+el otro no). Si ningún otro orden pierde por más de un punto y de lo que da
+el azar, dice «Lo mejor, en cualquier orden»; si alguno pierde, «Lo mejor,
+en este orden».
+
+**El partidario no esconde caminos.** «Uno más corto llega igual o mejor»
+mandaba a «otros caminos» todo lo que Dawn (un paso, 100 %) superaba,
+también «Kadabra → Dudunsparce», que NO gasta el partidario del turno —y
+es lo que quiere quien lo guarda para un Jefes—. Un camino que gasta el
+partidario ya no domina a uno que no.

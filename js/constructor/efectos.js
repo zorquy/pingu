@@ -220,7 +220,7 @@ async function rivalDescartaHasta(p, ui, n) {
   const op = p.oponente
   const sobran = op.s.mano.length - n
   if (sobran <= 0) return p.log(`${op.nombreJugador} tiene ${op.s.mano.length} o menos: no descarta.`)
-  const el = await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${sobran} para quedarte con ${n}`, opciones: [...op.s.mano], min: sobran, max: sobran, zona: 'mano', partida: op })
+  const el = await ui.cartas({ titulo: `${op.nombreJugador}: descarta ${sobran} para quedarte con ${n}`, opciones: [...op.s.mano], min: sobran, max: sobran, zona: 'mano', partida: op, elige: op })
   op.descartar(el)
 }
 

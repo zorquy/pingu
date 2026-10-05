@@ -69,6 +69,7 @@ function tarjetaHtml(m) {
         <p class="cm-mazo-meta subtext">Editado ${haceCuanto(m.updated_at)}</p>
         <div class="cm-mazo-acciones">
           <a class="btn-primary cm-btn" href="${enlace}">Abrir</a>
+          <a class="btn-secondary cm-btn" href="/laboratorio?mazo=${escapeHtml(m.id)}">Probar</a>
           <button type="button" class="btn-secondary cm-btn" data-portada>Portada</button>
           <button type="button" class="link-btn" data-duplicar>Duplicar</button>
           <button type="button" class="link-btn cm-mazo-borrar" data-borrar>Borrar</button>

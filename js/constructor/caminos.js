@@ -62,7 +62,20 @@ function barajar(lista, azar) {
 // son UNA bolsa: se barajan juntas y se vuelven a repartir en los mismos
 // huecos. Lo que sabes que está en el mazo se queda en el mazo (en un
 // sitio cualquiera del medio); lo de arriba y lo de abajo, donde está.
-export function repartoDeLoQueNoSabes(s0, azar) {
+//
+// `fijar` (tanda 623): { objetivo(uid), u } pone la primera copia de la carta
+// buscada en el sitio que le toca al cuantil `u` (ver `colocarEnSuEstrato`).
+export function repartoDeLoQueNoSabes(s0, azar, fijar = null) {
+  // Si colocarla obliga a mandar a un premio una carta que sabes que está en
+  // el mazo, ese reparto no vale y se saca otro (pasa muy pocas veces).
+  for (let intento = 0; fijar && intento < 12; intento++) {
+    const s = repartir(s0, azar)
+    if (colocarEnSuEstrato(s, fijar)) return s
+  }
+  return repartir(s0, azar)
+}
+
+function repartir(s0, azar) {
   const s = structuredClone(s0)
   s.registro = []
   const k = s.conocimiento
@@ -81,6 +94,61 @@ export function repartoDeLoQueNoSabes(s0, azar) {
   // reparto.
   s.semilla = Math.floor(azar() * 4294967296) >>> 0
   return s
+}
+
+// ── Dónde cae la carta buscada: por estratos (tanda 623) ──
+//
+// PINGU, con un enlace: «Run Away Draw de Dudunsparce, 11 %» cuando robar 3
+// de un mazo de 40 con UNA que buscas es un 7,5. El motor lo hacía bien
+// —roba tres, baraja a Dudunsparce con el mazo, que crece—; lo que fallaba
+// es la cuenta: con 400 repartos al azar, en cuántos cae la carta arriba
+// baila ±3 puntos, y con la semilla fija bailaba SIEMPRE hacia el mismo
+// lado en esa mesa. Y el orden de dos pasos (¿Kadabra antes o después de
+// Dudunsparce?) se decidía por ese baile.
+//
+// Lo que más pesa es DÓNDE está la carta, así que eso no se deja al azar:
+// en el reparto i, la primera copia va al sitio del cuantil u_i, y los u_i
+// cubren [0, 1) a partes iguales (uno por estrato, en orden barajado). Con
+// una copia y un mazo sin barajar en medio, la cuenta sale EXACTA (3/40, no
+// «entre 4 y 11»). Su sitio sigue su reparto de verdad: si sabes que está
+// en el mazo (la viste al buscar), un hueco del medio del mazo; si no, un
+// premio boca abajo con su probabilidad y, si no, el mazo. Las demás
+// cartas, como salieron.
+function colocarEnSuEstrato(s, { objetivo, u }) {
+  const k = s.conocimiento
+  const D = s.mazo.length
+  const t = Math.min(k.arriba, D)
+  const b = Math.min(k.abajo, D - t)
+  const medio = []
+  for (let i = t; i < D - b; i++) medio.push(i)
+  const huecosPremio = s.premios.map((x, i) => (s.premiosVistos[x] ? -1 : i)).filter((i) => i >= 0)
+  // La primera copia cuyo sitio no se sabe (por uid: la misma en todos los
+  // repartos).
+  const copias = [...medio.map((i) => s.mazo[i]), ...huecosPremio.map((i) => s.premios[i])].filter(objetivo).sort()
+  if (!copias.length || !medio.length) return true
+  const c1 = copias[0]
+  const Dm = medio.length
+  const Ph = huecosPremio.length
+  const S = medio.filter((i) => !k.confirmados[s.mazo[i]]).length
+  const enUno = (x, n) => Math.min(n - 1, Math.floor(x * n))
+  let destino
+  if (k.confirmados[c1] || !Ph) destino = ['mazo', medio[enUno(u, Dm)]]
+  else {
+    // Una que no sabes dónde está: en cada premio boca abajo con 1/(S+Ph),
+    // y en el mazo con lo que queda, en cualquier hueco del medio.
+    const pPremio = Ph / (S + Ph)
+    destino = u < pPremio ? ['premio', huecosPremio[enUno(u / pPremio, Ph)]] : ['mazo', medio[enUno((u - pPremio) / (1 - pPremio), Dm)]]
+  }
+  const zona = (z) => (z === 'mazo' ? s.mazo : s.premios)
+  const ahora = s.mazo.includes(c1) ? ['mazo', s.mazo.indexOf(c1)] : ['premio', s.premios.indexOf(c1)]
+  const otra = zona(destino[0])[destino[1]]
+  if (otra === c1) return true
+  // La que estaba ahí va a donde estaba la buscada: si sabes que está en el
+  // mazo, no puede acabar en un premio.
+  if (ahora[0] === 'premio' && k.confirmados[otra]) return false
+  zona(destino[0])[destino[1]] = c1
+  zona(ahora[0])[ahora[1]] = otra
+  return true
 }
 
 // ── Lo que se puede hacer ahora ──
@@ -241,11 +309,16 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   if (inicial > 0 && p.s.mano.some((u) => objetivo(p.carta(u)))) return { ...resumen, yaLaTienes: true, caminos: [] }
   if (robo.quedan === 0) return { ...resumen, noQueda: true, caminos: [] }
 
-  // Los repartos, los mismos para todos los caminos.
+  // Los repartos, los mismos para todos los caminos. Dónde cae la carta, por
+  // estratos (ver `colocarEnSuEstrato`): uno por cada trozo de [0, 1), en
+  // orden barajado para que los primeros (los de probar puentes) no sean
+  // todos de arriba del mazo.
   const azar = azarDe(semilla)
   const raices = []
   const mRaiz = p.mesa ? { ...structuredClone({ ...p.mesa.m, registro: [], diario: [] }) } : null
-  for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar), op: real.op, m: mRaiz })
+  const estratos = barajar([...Array(muestras).keys()], azar)
+  const esLaCarta = (u) => objetivo(p.carta(u))
+  for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar, { objetivo: esLaCarta, u: (estratos[i] + azar()) / muestras }), op: real.op, m: mRaiz })
 
   const puentes = new Map()
   const ui = uiAFavor(objetivo, puentes, () => p)
@@ -304,6 +377,10 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   // `null` si la carta ya apareció) y si cada paso se pudo dar.
   const raiz = { pasos: [], estados: raices, encontradas: 0, dados: [] }
   const todos = []
+  // Todos los nodos jugados, por su secuencia de pasos: para comparar un
+  // camino con los mismos pasos en otro orden sin volver a jugarlo.
+  const jugados = new Map()
+  const claveDe = (pasos) => pasos.map((a) => a.key).join('>')
   let hechos = 0
   const total = () => hechos
 
@@ -375,6 +452,7 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
         // sería «o este otro», y eso no es un camino sino dos.
         if (p.s.estricta && accion.partidario && nodo.pasos.some((x) => x.partidario)) continue
         const hijo = await extender(nodo, accion)
+        jugados.set(claveDe(hijo.pasos), hijo)
         const pPadre = nodo.encontradas / muestras
         hijo.p = hijo.encontradas / muestras
         hijo.gana = hijo.p - pPadre
@@ -408,12 +486,78 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
     if (!ya || c.p > ya.p || (c.p === ya.p && c.pasos.length < ya.pasos.length)) porConjunto.set(k, c)
   }
   const ordenados = [...porConjunto.values()].sort((a, b) => b.p - a.p || a.pasos.length - b.pasos.length)
+  // Uno más CORTO que llega igual o mejor: este no es la mejor opción para
+  // nadie, aunque sea un camino posible. Salvo que el corto gaste el
+  // partidario y este no (tanda 623): con Dawn al 100 %, «Kadabra →
+  // Dudunsparce» sin gastarlo es lo que quiere quien guarda el partidario
+  // para un Jefes, y se escondía.
+  const usaPartidario = (c) => c.pasos.some((a) => a.partidario)
+  const dominado = (c) => ordenados.some((q) => q !== c && q.pasos.length < c.pasos.length && q.p >= c.p - 0.005 && (!usaPartidario(q) || usaPartidario(c)))
+  const mejor = ordenados.find((c) => !dominado(c))
+  const ordenDaIgual = mejor ? await ordenDaIgualEn(mejor) : null
   const caminos = ordenados.map((c) => ({
     p: c.p,
-    // Uno más CORTO que llega igual o mejor: este no es la mejor opción
-    // para nadie, aunque sea un camino posible.
-    dominado: ordenados.some((q) => q !== c && q.pasos.length < c.pasos.length && q.p >= c.p - 0.005),
+    dominado: dominado(c),
+    // Solo del primero: si cambiar el orden de sus pasos no cambia nada que
+    // se pueda distinguir del azar, «en este orden» sería mentira.
+    ordenDaIgual: c === mejor ? ordenDaIgual : null,
     pasos: c.pasos.map((a, i) => ({ tipo: a.tipo, clave: a.clave, nombre: a.nombre, habilidad: a.habilidad || null, partidario: Boolean(a.partidario), siempre: c.dados[i] > 0.995, cuando: c.dados[i] })),
   }))
   return { ...resumen, caminos, simulados: total(), puentes: Object.fromEntries(puentes) }
+
+  // ── ¿Importa el orden? (tanda 623) ──
+  //
+  // PINGU: «¿qué tienes que hacer primero?». A veces mucho (barajar con un
+  // Poffin y DESPUÉS mirar con Drakloak), y a veces nada: Kadabra (roba 2)
+  // y Dudunsparce (roba 3 y se baraja con el mazo, que crece) dan 12,5 % o
+  // 12,2 % según el orden. Se juegan los otros órdenes con los MISMOS
+  // repartos y se comparan reparto a reparto (la prueba de McNemar: solo
+  // cuentan los repartos en los que un orden la encuentra y el otro no). Si
+  // la diferencia no pasa de un punto o se explica por el azar con TODOS
+  // los otros órdenes, el orden da igual. Hasta tres pasos: con cuatro
+  // serían 24 órdenes que jugar.
+  async function ordenDaIgualEn(c) {
+    const n = c.pasos.length
+    if (n < 2 || n > 3) return null
+    const halla = (nodo) => nodo.estados.map((x) => x === null)
+    const base = halla(c)
+    for (const orden of permutaciones(c.pasos)) {
+      if (claveDe(orden) === claveDe(c.pasos)) continue
+      if (p.s.estricta && orden.filter((a) => a.partidario).length > 1) continue
+      let nodo = jugados.get(claveDe(orden))
+      if (!nodo) {
+        nodo = raiz
+        for (const a of orden) {
+          nodo = await extender(nodo, a)
+          jugados.set(claveDe(nodo.pasos), nodo)
+        }
+      }
+      const otro = halla(nodo)
+      let solo1 = 0
+      let solo2 = 0
+      base.forEach((x, i) => {
+        if (x && !otro[i]) solo1++
+        if (!x && otro[i]) solo2++
+      })
+      // Este orden gana a ese de verdad: más de un punto y más de lo que
+      // da el azar (dos desviaciones de la diferencia emparejada).
+      // Con tres pasos puede dar igual cambiar dos y no el tercero: si
+      // ALGÚN otro orden pierde de verdad, el orden importa.
+      if (solo1 - solo2 > Math.max(muestras * 0.01, 2 * Math.sqrt(solo1 + solo2))) return false
+    }
+    return true
+  }
+}
+
+// Los órdenes distintos de unos pasos (con repetidos, sin duplicar).
+function permutaciones(pasos) {
+  if (pasos.length <= 1) return [pasos]
+  const out = []
+  const vistos = new Set()
+  pasos.forEach((a, i) => {
+    if (vistos.has(a.key)) return
+    vistos.add(a.key)
+    for (const resto of permutaciones([...pasos.slice(0, i), ...pasos.slice(i + 1)])) out.push([a, ...resto])
+  })
+  return out
 }

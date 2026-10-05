@@ -106,7 +106,7 @@
 
 [[redirects]]
   from = "/lab/:id"
-  to = "/constructor?pos=:id"
+  to = "/laboratorio?pos=:id"
   status = 302
 
 # La insignia dinámica para firmas de otros foros: una imagen SVG con el

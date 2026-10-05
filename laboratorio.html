@@ -4,26 +4,26 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>¿Más caro o más barato? — PokeDoc</title>
+  <title>Laboratorio: prueba tu mazo de Pokémon TCG — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Dos cartas de Pokémon TCG: ¿cuál vale más en Cardmarket? Cinco preguntas al día con precios reales, las mismas para todo el mundo. Un reto diario de PokeDoc." />
+  <meta name="description" content="Juega partidas de prueba con tu mazo de Pokémon TCG: contra un muñeco que mide tu daño o tú contra ti, con las reglas, los efectos de las cartas y las probabilidades de robo en vivo." />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/mas-caro" />
-  <meta property="og:url" content="https://pokedoc.es/mas-caro" />
+  <link rel="canonical" href="https://pokedoc.es/laboratorio" />
+  <meta property="og:url" content="https://pokedoc.es/laboratorio" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="¿Más caro o más barato? — el reto diario de PokeDoc" />
-  <meta property="og:description" content="Dos cartas, ¿cuál vale más? Cinco preguntas al día con precios reales de Cardmarket." />
+  <meta property="og:title" content="Laboratorio: prueba tu mazo" />
+  <meta property="og:description" content="Partidas de prueba con tu mazo: contra el muñeco o tú contra ti, con las probabilidades en vivo." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="¿Más caro o más barato? — el reto diario de PokeDoc" />
-  <meta name="twitter:description" content="Dos cartas, ¿cuál vale más? Cinco preguntas al día con precios reales de Cardmarket." />
+  <meta name="twitter:title" content="Laboratorio: prueba tu mazo" />
+  <meta name="twitter:description" content="Partidas de prueba con tu mazo: contra el muñeco o tú contra ti, con las probabilidades en vivo." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -32,16 +32,16 @@
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
   <link rel="modulepreload" href="/js/icons.js" />
-  <link rel="modulepreload" href="/js/content-icon.js" />
-  <link rel="modulepreload" href="/js/html.js" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/mas-caro.css" />
+  <link rel="modulepreload" href="/js/constructor/nucleo.js" />
+  <link rel="modulepreload" href="/js/constructor/datos.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/laboratorio-pagina.css" />
+  <!-- El laboratorio se baja al abrirlo, pero su hoja va aquí: el barrido
+       de la 299 sigue los import() y lo que pinta tiene que tener su CSS. -->
+  <link rel="stylesheet" href="/css/laboratorio.css" />
 </head>
 <body>
-  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
-       porque su razón de ser es no tener que tabular por los doce
-       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
@@ -122,42 +122,44 @@
     </div>
   </nav>
 
-    <main id="contenido" class="page-content container mcr-pagina">
-    <!-- ¿MÁS CARO O MÁS BARATO? (tanda 583). Seis cartas al día con su
-         precio de Cardmarket, las mismas para todo el mundo. Se enseña
-         una con precio y la siguiente sin él: ¿vale más o menos? Cinco
-         preguntas, tira y racha como los otros dos retos. El porqué, en
-         SCHEMA.md. -->
-    <header class="mcr-cabecera">
-      <p class="mcr-sobre"><a href="/retos">Retos diarios</a></p>
-      <h1>¿Más caro o más barato?</h1>
-      <p class="subtext" id="mcrSub">Dos cartas. ¿La segunda vale más o menos que la primera en Cardmarket?</p>
+  <main id="contenido" class="page-content container lp-pagina">
+    <!-- EL LABORATORIO CON SU PROPIA PUERTA (tanda 621). PINGU: «estaría
+         bien hacerle un apartado al laboratorio en el menú y que no solo
+         se acceda desde el constructor». Aquí se elige CON QUÉ mazo; el
+         laboratorio es el mismo y se abre encima de esta página, así que
+         al cerrarlo se vuelve aquí. Lo que no depende de la cuenta va en
+         el HTML, para que esté aunque el JS no llegue. -->
+    <header class="lp-cabecera">
+      <h1>Laboratorio</h1>
+      <p class="subtext">Juega partidas de prueba con un mazo, con las reglas y los efectos de las cartas: contra el muñeco, que mide tu daño, o tú contra ti, con los dos lados de la mesa.</p>
+      <ul class="lp-que">
+        <li>Las probabilidades de robo, en vivo</li>
+        <li>La mejor manera de encontrar una carta</li>
+        <li>Deshacer y compartir la posición</li>
+      </ul>
     </header>
 
-    <section class="mcr-tablero">
-      <div class="mcr-par">
-        <article class="mcr-carta" id="mcrA" aria-live="polite">
-          <div class="mcr-foto"></div>
-          <p class="mcr-nombre"></p>
-          <p class="mcr-set subtext"></p>
-          <p class="mcr-precio"></p>
-        </article>
-        <article class="mcr-carta mcr-carta-b" id="mcrB" aria-live="polite">
-          <div class="mcr-foto"></div>
-          <p class="mcr-nombre"></p>
-          <p class="mcr-set subtext"></p>
-          <p class="mcr-precio">¿?</p>
-        </article>
+    <section class="lp-bloque" aria-labelledby="lpMiosTitulo">
+      <h2 id="lpMiosTitulo">Con uno de tus mazos</h2>
+      <div class="lp-mios" id="lpMios" aria-live="polite"><span class="skeleton lp-esqueleto"></span></div>
+    </section>
+
+    <section class="lp-bloque" aria-labelledby="lpPegarTitulo">
+      <h2 id="lpPegarTitulo">Con una lista</h2>
+      <p class="subtext">Pega la de TCG Live o la de Limitless tal cual, o un enlace del constructor.</p>
+      <label class="sr-only" for="lpLista">La lista del mazo</label>
+      <textarea id="lpLista" class="lp-lista" rows="8" spellcheck="false" placeholder="Pokémon: 12&#10;4 Dreepy TWM 128&#10;4 Drakloak TWM 129&#10;…"></textarea>
+      <div class="lp-acciones">
+        <button type="button" class="btn-primary" id="lpProbarLista">Probar esta lista</button>
       </div>
-      <!-- Los dos botones, pegados a las cartas: lo que se pulsa va donde
-           se mira (la lección de la 573). -->
-      <div class="mcr-acciones" id="mcrAcciones">
-        <button type="button" class="btn-primary" data-respuesta="mas">Vale más</button>
-        <button type="button" class="btn-secondary" data-respuesta="menos">Vale menos</button>
-      </div>
-      <ol class="mcr-tira" id="mcrTira" aria-label="Tus respuestas"></ol>
-      <div class="mcr-final hidden" id="mcrFinal"></div>
-      <p class="mcr-leyenda subtext">Los precios son la tendencia de Cardmarket de cartas que tiene la gente de PokeDoc. Cambian cada día.</p>
+      <div class="lp-resultado hidden" id="lpResultado" role="status"></div>
+    </section>
+
+    <section class="lp-bloque" aria-labelledby="lpMetaTitulo">
+      <h2 id="lpMetaTitulo">Con un mazo del meta</h2>
+      <p class="subtext">Abre uno y, en sus listas, pulsa «Probar en el laboratorio».</p>
+      <div class="lp-meta" id="lpMeta"></div>
+      <a class="btn-secondary" href="/meta">Ver los mazos del meta</a>
     </section>
   </main>
 
@@ -199,7 +201,7 @@
     </div>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
-  <script type="module" src="js/mas-caro-juego.js"></script>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/laboratorio-pagina.js"></script>
 </body>
 </html>

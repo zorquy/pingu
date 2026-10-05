@@ -57,6 +57,8 @@ const ESTATICAS = [
   // El constructor de mazos: pública e indexable (los mazos concretos no,
   // van por parámetro y son de cada usuario).
   ['/constructor', '0.7'],
+  // El laboratorio (tanda 621): su propia puerta, con qué mazo probar.
+  ['/laboratorio', '0.6'],
   // Los mazos del meta (tanda 364): cambia cada día y es de lo que más
   // se busca de un juego de cartas («mejores mazos pokémon tcg»).
   ['/meta', '0.8'],

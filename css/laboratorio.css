@@ -1137,8 +1137,9 @@ button.lab-carta.lab-a-elegir[aria-pressed='true']::after,
   }
 }
 
+/* La mano solo se apaga cuando se elige DE ella: eligiendo quién sube,
+   es lo que hay que ver (tanda 620). */
 .lab-modo-elegir[data-eligiendo='cartas'] .lab-mano-carta:not(.lab-elegible-mano),
-.lab-modo-elegir:not([data-eligiendo='cartas']) .lab-mano-carta,
 .lab-modo-elegir[data-eligiendo='pokemon'] .lab-slot:not(.lab-slot-elegible),
 .lab-modo-elegir[data-eligiendo='pokemon'] .lab-maniqui:not(.lab-a-elegir) {
   opacity: 0.45;
@@ -1149,15 +1150,15 @@ button.lab-carta.lab-a-elegir[aria-pressed='true']::after,
   visibility: hidden;
 }
 
-.lab-elegir-barra {
-  max-width: min(760px, calc(100vw - 32px));
+/* Lo que se pide va en la franja del centro, en el sitio de los botones
+   del turno (tanda 620): flotando abajo tapaba la mano. */
+.lab-centro-mesa.lab-centro-eligiendo {
+  background: var(--navy-solid-dark);
+  box-shadow: inset 0 0 0 2px var(--lab-brillo);
 }
 
-.lab-elegir-texto {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  min-width: 0;
+.lab-elegir-titulo {
+  font-size: var(--t-md);
 }
 
 .lab-elegir-sub,
@@ -1171,20 +1172,15 @@ button.lab-carta.lab-a-elegir[aria-pressed='true']::after,
   font-size: var(--t-sm);
 }
 
-.lab-elegir-botones {
-  display: flex;
-  flex-shrink: 0;
-  gap: var(--e-sm);
-  margin-left: auto;
-}
-
 @media (pointer: coarse) {
-  .lab-apuntar kbd {
+  .lab-apuntar kbd,
+  .lab-centro-eligiendo kbd {
     display: none;
   }
 }
 
-.lab-apuntar kbd {
+.lab-apuntar kbd,
+.lab-centro-eligiendo kbd {
   margin-left: var(--e-xs);
   padding: 0 var(--e-xs);
   border: 1px solid var(--tp-linea);
@@ -3046,8 +3042,7 @@ button.lab-carta.lab-no-vale:hover {
     display: none;
   }
 
-  .lab-modo-apuntar .lab-mesa,
-  .lab-modo-elegir .lab-mesa {
+  .lab-modo-apuntar .lab-mesa {
     padding-bottom: 160px;
     scroll-padding-bottom: 160px;
   }
