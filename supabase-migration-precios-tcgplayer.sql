@@ -163,6 +163,30 @@ $$;
 
 revoke all on function public.coleccion_foto_diaria(date) from public, anon, authenticated;
 
+-- Y las filas que ya existen, SIN TCGplayer todavía, cuentan como
+-- pendientes: si no, cada una esperaría sus 20 horas desde la última
+-- mirada y el Groudon seguiría valiendo 2 € hasta mañana. Una fila vieja
+-- sin `tp_updated` se pide antes que las que ya lo tienen.
+create or replace function public.precios_pendientes(p_limite int default 40, p_horas int default 20)
+returns table (card_id text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select c.card_id
+  from (select distinct card_id from public.user_collection where market = 'WEST') c
+  left join public.tcg_card_prices p on p.card_id = c.card_id
+  where p.card_id is null
+     or p.checked_at < now() - make_interval(hours => greatest(1, coalesce(p_horas, 20)))
+     or (p.tp_updated is null and p.checked_at < now() - interval '5 minutes')
+  order by p.checked_at asc nulls first, c.card_id
+  limit greatest(1, least(coalesce(p_limite, 40), 200));
+$$;
+
+revoke all on function public.precios_pendientes(int, int) from public, anon, authenticated;
+grant execute on function public.precios_pendientes(int, int) to service_role;
+
 commit;
 
 notify pgrst, 'reload schema';
