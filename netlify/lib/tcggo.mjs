@@ -82,7 +82,42 @@ export function resumirEpisodio(e) {
 // «30th Celebration: Classic Collection»). Varios sets nuestros pueden
 // caer en la misma expansión (Crown Zenith y su Galarian Gallery): allí
 // las GG viven dentro de la madre con su número «gg12», y el número separa.
+// Sets nuestros cuyo nombre no se parece al de la expansión suya donde
+// viven sus cartas, uno a uno y con el porqué: en TCGGO las cartas de la
+// Classic Collection del 30 aniversario están dentro de «30th Celebration»
+// (no hay expansión aparte), igual que las Trainer Gallery dentro de su
+// set madre — pero esas se resuelven solas por el código.
+export const ALIAS_EPISODIO = {
+  '30th-c': '30th Celebration',
+}
+
+// Las expansiones que se prueban DESPUÉS si la elegida viene vacía: en
+// TCGGO «Astral Radiance Trainer Gallery» existe como expansión pero no
+// tiene cartas (viven en «Astral Radiance» con su número TG01), y lo mismo
+// las Shiny Vault. Son las del mismo código y las cuyo nombre es el
+// principio del nuestro («Hidden Fates» para «Hidden Fates Shiny Vault»).
+export function alternativasDe(set, episodios, elegida) {
+  const codigo = codigoComparable(set?.tcg_online_code)
+  const nuestro = nombreComparable(set?.name_en || set?.name)
+  const vistas = new Set(elegida ? [elegida.id] : [])
+  const fuera = []
+  for (const e of episodios || []) {
+    if (vistas.has(e.id)) continue
+    const suyo = nombreComparable(e.nombre)
+    const mismoCodigo = codigo && codigoComparable(e.codigo) === codigo
+    const esPrefijo = suyo && nuestro.startsWith(suyo + ' ')
+    if (mismoCodigo || esPrefijo) { vistas.add(e.id); fuera.push(e) }
+  }
+  // Las de nombre más largo primero (la más específica), y la madre al final.
+  return fuera.sort((a, b) => nombreComparable(b.nombre).length - nombreComparable(a.nombre).length)
+}
+
 export function episodioDeSet(set, episodios) {
+  const alias = ALIAS_EPISODIO[String(set?.id || '')]
+  if (alias) {
+    const porAlias = (episodios || []).filter((e) => nombreComparable(e.nombre) === nombreComparable(alias))
+    if (porAlias.length === 1) return { episodio: porAlias[0], por: 'alias' }
+  }
   const nombresNuestros = [set?.name_en, set?.name].map(nombreComparable).filter(Boolean)
   const porNombreExacto = (episodios || []).filter((e) => nombresNuestros.includes(nombreComparable(e.nombre)))
   if (porNombreExacto.length === 1) return { episodio: porNombreExacto[0], por: 'nombre' }
@@ -173,18 +208,27 @@ export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
   }
   // Lo que queda, con el motivo.
   const porNumeroLibre = new Map()
+  const porDigitosLibre = new Map()
   for (const s of libres()) {
     const n = numeroComparable(s.card_number)
     if (n) porNumeroLibre.set(n, [...(porNumeroLibre.get(n) || []), s])
+    const d = soloDigitos(s.card_number)
+    if (d) porDigitosLibre.set(d, [...(porDigitosLibre.get(d) || []), s])
   }
+  const describir = (lista) => lista.map((s) => `«${s.name_numbered || s.name}» ${s.tcgid || 'sin tcgid'}`).join(', ')
   for (const c of pendientes) {
-    const candidatas = porNumeroLibre.get(numeroComparable(c.local_id)) || []
+    const exactas = porNumeroLibre.get(numeroComparable(c.local_id)) || []
+    const porDigitos = exactas.length ? [] : porDigitosLibre.get(soloDigitos(c.local_id)) || []
     sinPar.push({
       id: c.id,
       numero: String(c.local_id ?? ''),
-      porque: candidatas.length > 1
-        ? `${candidatas.length} cartas suyas con ese número: ${candidatas.map((s) => `«${s.name_numbered || s.name}» ${s.tcgid || 'sin tcgid'}`).join(', ')}`
-        : 'ninguna carta suya con ese número',
+      porque: exactas.length > 1
+        ? `${exactas.length} cartas suyas con ese número: ${describir(exactas)}`
+        : porDigitos.length > 1
+          ? `${porDigitos.length} cartas suyas con esos dígitos: ${describir(porDigitos)}`
+          : porDigitos.length === 1
+            ? `una suya con esos dígitos pero otra nuestra también los tiene: ${describir(porDigitos)}`
+            : 'ninguna carta suya con ese número',
     })
   }
   pares.sort((a, b) => (/^\d+$/.test(a.numero) && /^\d+$/.test(b.numero) ? Number(a.numero) - Number(b.numero) : a.numero.localeCompare(b.numero)))

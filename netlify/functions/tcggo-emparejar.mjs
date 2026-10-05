@@ -35,7 +35,7 @@
 // TCGGO_TOPE_DIARIO.
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
-  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
+  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, alternativasDe, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from './cardmarket-precios.mjs'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
@@ -141,6 +141,7 @@ export async function procesar({
 
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
   const esteTurno = []
+  const tocados = new Set()
   let escritas = 0
   let hayQueRefrescarLaGuia = false
 
@@ -194,29 +195,47 @@ export async function procesar({
 
   for (const set of pendientes) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
-    const { episodio, por, porque } = episodioDeSet(set, episodios)
-    if (!episodio) {
-      estado.sinEpisodio[set.id] = { porque, nombre: set.name, codigo: set.tcg_online_code || null, fecha: ahora.toISOString() }
-      esteTurno.push({ set: set.id, nombre: set.name, codigo: set.tcg_online_code || null, sinEpisodio: porque })
+    const elegida = episodioDeSet(set, episodios)
+    if (!elegida.episodio) {
+      estado.sinEpisodio[set.id] = { porque: elegida.porque, nombre: set.name, codigo: set.tcg_online_code || null, fecha: ahora.toISOString() }
+      esteTurno.push({ set: set.id, nombre: set.name, codigo: set.tcg_online_code || null, sinEpisodio: elegida.porque })
+      tocados.add(set.id)
       continue
     }
-    // Sus cartas, página a página. Si no caben en lo que queda, este set
-    // no se apunta como hecho: se vuelve a pedir entero la próxima vez
-    // (una página sola no es un set).
-    const suyas = []
-    let pagina = 1
+    // Sus cartas, página a página. Si la elegida viene VACÍA (las Trainer
+    // Gallery existen como expansión pero sin cartas: viven en la madre),
+    // se prueba la siguiente alternativa. Si no caben en lo que queda,
+    // este set no se apunta como hecho: se vuelve a pedir entero la
+    // próxima vez (una página sola no es un set).
+    const porProbar = [elegida.episodio, ...alternativasDe(set, episodios, elegida.episodio)]
+    let episodio = null
+    let por = elegida.por
+    let suyas = []
     let completo = false
-    for (;;) {
-      const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, base))
-      if (!r.datos) break
-      suyas.push(...(r.datos.data || []))
-      if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) {
-        completo = true
-        break
+    for (const candidata of porProbar) {
+      if (parado || gastadas >= tope || !quedaTiempo()) break
+      const lista = []
+      let pagina = 1
+      let entera = false
+      for (;;) {
+        const r = await pedirTcggo(urlCartasDeEpisodio(candidata.id, pagina, base))
+        if (!r.datos) break
+        lista.push(...(r.datos.data || []))
+        if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) {
+          entera = true
+          break
+        }
+        pagina++
       }
-      pagina++
+      if (!entera) break
+      episodio = candidata
+      suyas = lista
+      completo = true
+      if (lista.length) break
+      por = `${elegida.por}, «${candidata.nombre}» vacía, probando la siguiente`
     }
-    if (!completo) break
+    if (!completo || !episodio) break
+    if (episodio.id !== elegida.episodio.id) por = `${elegida.por}; «${elegida.episodio.nombre}» vacía → alternativa`
     if (suyas.length && !suyas.some((s) => s.cardmarket_id)) {
       // Una respuesta sin un solo id no es «ninguna casa»: es que el
       // campo no viene. Se para y se enseña, no se apunta como hecho.
@@ -261,6 +280,7 @@ export async function procesar({
     }
     estado.hechos[set.id] = { episodio: episodio.id, pares: r.pares.length, sinPar: r.sinPar.length, fecha: ahora.toISOString(), ...(ajeno ? { sospechoso: ajeno } : {}) }
     esteTurno.push(fila)
+    tocados.add(set.id)
     await persistir()
   }
   await persistir()
@@ -295,8 +315,11 @@ export async function procesar({
     }
   }
   const res = resumen()
-  const quedan = sets.filter((s) => !estado.hechos[s.id] && !estado.sinEpisodio[s.id]).length
-  return { estado: 200, cuerpo: { ...res, nuestrosSets: sets.length, setsPendientes: quedan, siguiente: quedan > 0 && !parado } }
+  // Con «solo estos sets», lo que queda son los pedidos que no se han
+  // tocado en esta llamada (el panel vuelve a llamar con ellos).
+  const quedanIds = solo ? pendientes.filter((s) => !tocados.has(s.id)).map((s) => s.id) : null
+  const quedan = solo ? quedanIds.length : sets.filter((s) => !estado.hechos[s.id] && !estado.sinEpisodio[s.id]).length
+  return { estado: 200, cuerpo: { ...res, nuestrosSets: sets.length, setsPendientes: quedan, siguiente: quedan > 0 && !parado, ...(solo ? { quedanIds } : {}) } }
 }
 
 export default async (req) => {

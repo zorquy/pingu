@@ -30479,6 +30479,26 @@ salió mal y lo que se cambió:
 - Unas pocas cartas sueltas «TCGGO no le da id de Cardmarket»: se quedan
   con el par de TCGdex, que para esas sigue escribiendo `precios-coleccion`.
 
+**La relanzada de las familias (misma tarde)** enseñó lo que faltaba:
+
+- **Una expansión suya puede EXISTIR y estar VACÍA**: «Astral Radiance
+  Trainer Gallery», «Shining Fates Shiny Vault» y «Scarlet & Violet
+  Energies» salen en su lista con 0 cartas, porque las cartas viven en la
+  madre (Astral Radiance tenía 30 suyas de sobra). «0 pares, sobran 0»
+  es la firma. Cuando la elegida viene vacía se prueban las ALTERNATIVAS
+  (`alternativasDe`: las del mismo código y las cuyo nombre es el
+  principio del nuestro), una petición más por intento.
+- **Las promos suyas van «SVP 004» / «MEP 001», y REPETIDAS**: dos
+  productos con los mismos dígitos (una versión con sello). Por dígitos no
+  es única y se queda fuera; el motivo nombra ahora las dos candidatas para
+  ver qué las distingue en la siguiente vuelta.
+- **«30th Classic Collection» no existe en TCGGO**: sus cartas están en
+  «30th Celebration» (33 de sobra). Va por `ALIAS_EPISODIO`, uno a uno y
+  con el porqué.
+- **Con «solo estos sets» el panel hacía UNA llamada** y la función se
+  queda sin tiempo a los 20 s: de 26 pedidos hizo 12. Ahora devuelve
+  `quedanIds` y el panel sigue con ellos.
+
 El panel admite «solo estos sets» (ids separados por comas) para rehacer
 uno sin volver a pedir los 177, y el cuadro enseña por qué llave casó
 cada set (tcgid / número / dígitos) y, cuando quedan sin par, los

@@ -24,6 +24,11 @@ el nombre decide antes que el código y una guarda por el `tcgid` de sus
 cartas para el set ajeno; y las familias con 0 pares (1.ª edición, Trainer
 Gallery, Shiny Vault, promos) se resuelven por tcgid exacto y por dígitos.
 
+Segunda vuelta: las Trainer Gallery / Shiny Vault de TCGGO existen
+VACÍAS (las cartas están en la madre) → alternativas cuando la elegida
+viene vacía; alias para 30th-c; motivos con las candidatas por dígitos;
+«solo estos sets» sigue entre llamadas (`quedanIds`).
+
 **Pendiente de PINGU**: /admin → Cartas → «solo estos sets»:
 `ex7, base1, base2, base3, base5, gym1, gym2, neo1, neo2, neo3, neo4, swsh10tg, swsh9tg, swsh4.5sv, sma, svp, sve, mep, swshp, xyp, bwp, cel25, cel25cc, 30th-c, 2018sm, sm1`
 y pegar el cuadro. Los precios buenos entran con la pasada de la guía

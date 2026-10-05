@@ -3050,7 +3050,7 @@ async function tcggoEmparejar() {
   if (!session) return
   const tope = Math.max(1, Math.min(2000, Number(document.getElementById('tcggoTope')?.value) || 40))
   const reiniciar = !!document.getElementById('tcggoReiniciar')?.checked
-  const sets = String(document.getElementById('tcggoSolo')?.value || '').split(/[\s,]+/).map((x) => x.trim()).filter(Boolean)
+  let sets = String(document.getElementById('tcggoSolo')?.value || '').split(/[\s,]+/).map((x) => x.trim()).filter(Boolean)
   if (reiniciar && !window.confirm('Vas a volver a pedir TODOS los sets a TCGGO, también los ya hechos. Son unas 300 peticiones. ¿Seguro?')) return
   const llamar = async (peticiones, primera) => {
     const res = await fetch('/.netlify/functions/tcggo-emparejar', {
@@ -3094,7 +3094,9 @@ async function tcggoEmparejar() {
       total.esteTurno.push(...(r.esteTurno || []))
       total.escritas += r.escritas || 0
       Object.assign(total, { ...r, esteTurno: total.esteTurno, escritas: total.escritas })
-    } while (r.siguiente && gastadas < tope && !r.parado && !sets.length)
+      // Con «solo estos sets», la siguiente llamada va solo con los que faltan.
+      if (Array.isArray(r.quedanIds)) sets = r.quedanIds
+    } while (r.siguiente && gastadas < tope && !r.parado)
     caja.value = pintar(total, gastadas)
     cardsNota(total.parado ? total.parado : `Escritos ${total.escritas} pares. Los precios buenos llegan con la pasada de la guía de Cardmarket (cada hora).`, !!total.parado)
   } catch (e) {
