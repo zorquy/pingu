@@ -268,6 +268,11 @@ sembrar('__FAKE_PRECIOS__', 'tcg_card_prices', (i) => ({
   cm_low: null, cm_trend: null, cm_avg30: null, cm_avg7: null,
   cm_low_holo: null, cm_trend_holo: null, cm_avg30_holo: null,
   cm_updated: null, cm_url: null, origen: null,
+  // Lo de TCGGO (589): el mínimo por idioma, TCGplayer en euros, las
+  // gradeadas. Null es «no lo da», como en la base.
+  cm_low_en: null, cm_low_de: null, cm_low_fr: null, cm_low_es: null, cm_low_it: null,
+  cm_disponibles: null, tp_market_eur: null, tp_mid_eur: null, cm_gradeadas: null, ebay_gradeadas: null,
+  tcggo_id: null, tcggo_updated: null,
   checked_at: new Date().toISOString(),
 }))
 
@@ -493,13 +498,15 @@ sembrar('__FAKE_CARPETA_CARTAS__', 'collection_folder_cards', (i) => ({
 }))
 
 sembrar('__FAKE_SETS__', 'tcg_sets', (i) => ({
-  id: `set-${i}`, name: `Set ${i}`, market: 'WEST',
+  id: `set-${i}`, name: `Set ${i}`, market: 'WEST', logo_tcggo: null,
 }))
 sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
   market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,
 }))
 sembrar('__FAKE_CARTAS__', 'tcg_cards', (i) => ({
   id: `carta-${i}`, set_id: 'set-0', market: 'WEST', local_id: String(i), name: `Carta ${i}`, image_path: `x/y/${i}`,
+  // Los dos ids de producto (587 y 589): null hasta que los decida TCGGO.
+  cm_id_product_propio: null, tp_id_product_propio: null,
 }))
 // Lo que se juega en los torneos (tanda 325). La clave es el nombre
 // normalizado, igual que en la tabla de verdad.

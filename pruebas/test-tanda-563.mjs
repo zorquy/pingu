@@ -146,13 +146,15 @@ console.log('── 4. Un gradeo viejo no se toca ──')
 console.log('── 5. El precio dice de quién es ──')
 {
   await abrir('Lapras')
-  const pie = await page.locator('#mcEdPrecioPie').innerText().catch(() => '')
-  const precio = await page.locator('#mcEdPrecio').innerText()
-  // Sin cifras no hay nada que matizar, y entonces el renglón sobra.
+  // Desde la 589 es el bloque de js/precio-vista.js: la cifra y, debajo,
+  // de qué es. Sin cifras no hay renglón; con ellas y sin mínimo del
+  // idioma, dice «cualquier idioma», y el botón de Cardmarket va con el tuyo.
+  const pie = await page.locator('#mcEdPrecioBloque .pv-de').innerText().catch(() => '')
+  const precio = await page.locator('#mcEdPrecioBloque .pv-cifra').innerText()
   if (/Sin precio/.test(precio)) check('sin cifras, no se matiza nada', pie.trim() === '', pie)
   else {
     check('dice que es el de cualquier idioma', /cualquier idioma/i.test(pie), pie)
-    check('  …y manda a Cardmarket para el tuyo', /Cardmarket/.test(pie), pie)
+    check('  …y manda a Cardmarket para el tuyo', (await page.locator('#mcEdPrecioBloque .btn-cardmarket').count()) === 1)
   }
 }
 

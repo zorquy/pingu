@@ -32,7 +32,8 @@ console.log('\n── 1. Un reverso sin precio propio vale lo que la carta ─�
   // existen, y pedir el del reverso devolvía NADA.
   const sinHolo = { cardmarket: { idProduct: 1, low: 2, trend: 5, avg30: 4 } }
   const r = precioDe(sinHolo, { reverse: true })
-  check('el reverso ya no se queda sin precio', valorDe(r) === 5, JSON.stringify(r))
+  // Desde la 589 el valor es el MÍNIMO (2) y no la tendencia (5).
+  check('el reverso ya no se queda sin precio', valorDe(r) === 2, JSON.stringify(r))
   check('  …y se marca que el número es prestado', r.prestado === true)
   check('  …mientras que el normal no lo marca', precioDe(sinHolo).prestado === false)
 
@@ -125,13 +126,14 @@ async function abrir(coleccion) {
   // comprueba no cambia; cambia dónde mirarlo.
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(500)
-  const valor = limpio(await page.locator('#mcEdPrecio').textContent())
+  // Desde la 589 el precio es un bloque (js/precio-vista.js) y la cifra es
+  // el MÍNIMO (2,50) y no la tendencia (5,50); y la coletilla «de la
+  // versión normal» se fue con el texto largo: el renglón de debajo dice
+  // de qué es el número («cualquier idioma»), que es lo que importa.
+  const valor = limpio(await page.locator('#mcEdPrecioBloque .pv-cifra').textContent())
   check('la carta en reverse YA no dice «Sin precio»', !/Sin precio/.test(valor), valor)
-  check('  …y enseña el de la normal', /5,50/.test(valor), valor)
-  // La ficha lo dice con más palabras que la casilla de antes («de la
-  // versión normal: Cardmarket no publica el del reverso»), que es lo
-  // mismo pero explicado. Lo que importa es que NO se dé por suyo.
-  check('  …diciendo de dónde sale', /de la versión normal/.test(valor), valor)
+  check('  …y enseña el de la normal (el mínimo, desde la 589)', /2,50/.test(valor), valor)
+  check('  …diciendo de qué es', /cualquier idioma/.test(limpio(await page.locator('#mcEdPrecioBloque .pv-de').textContent())))
   // Y el total de arriba deja de decir que te falta un precio.
   const nota = limpio(await page.locator('#mcResumenNota').textContent())
   check('  …y arriba no se cuenta como carta sin precio', !/no tiene precio/.test(nota), nota)
@@ -143,8 +145,8 @@ console.log('\n── 4. Y una normal no dice de dónde sale, porque sale de su 
   const { page } = await abrir([{ id: 'l1', card_id: 'sv1-1', cantidad: 1, variante: 'normal', idioma: 'es', estado: 'NM' }])
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(500)
-  const valor = limpio(await page.locator('#mcEdPrecio').textContent())
-  check('la normal enseña su precio', /5,50/.test(valor), valor)
+  const valor = limpio(await page.locator('#mcEdPrecio').textContent().catch(() => '')) || limpio(await page.locator('#mcEdPrecioBloque .pv-cifra').textContent())
+  check('la normal enseña su precio', /2,50/.test(valor), valor)
   check('  …y sin la coletilla', !/de la versión normal/.test(valor), valor)
   await page.close()
 }

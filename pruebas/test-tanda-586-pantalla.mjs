@@ -3,6 +3,9 @@
 // Fixture: el Groudon-EX con la fila guardada que trae Cardmarket MAL
 // emparejado (2,06 €, el común) y TCGplayer a 150 $; y un Weedle que solo
 // tiene TCGplayer. TCGdex en vivo se corta: lo guardado es lo que manda.
+// Desde la 589 el precio es un bloque (js/precio-vista.js): la cifra, de
+// qué es, y los botones. Sin TCGGO en estas filas, la cifra sale de
+// TCGplayer convertido.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { rutaDeCarta } from '/home/user/pingu/js/carta-ruta.js'
 import { usdAEuros } from '/home/user/pingu/js/cardmarket.js'
@@ -53,23 +56,22 @@ console.log('── 2. La ficha del Groudon ──')
   const groudon = page.locator('.mc-carta-foto').filter({ hasText: 'Groudon' }).first()
   await groudon.click()
   await page.waitForTimeout(900)
-  const precio = limpio(await page.locator('#mcEdPrecio').innerText())
-  check('enseña TCGplayer con su conversión', /TCGplayer: 150,00/.test(precio) && /≈ 129,00 €/.test(precio), precio)
-  check('  …y avisa de que Cardmarket tiene otra carta (2,06 €)', /OTRA carta \(2,06 €\)/.test(precio), precio)
-  check('  …sin enseñar «desde 0,25 · tendencia 2,06» como precio', !/tendencia 2,06/.test(precio), precio)
-  const pie = limpio(await page.locator('#mcEdPrecioPie').innerText())
-  check('el pie explica el porqué', /más de diez veces/.test(pie), pie)
-  const href = await page.locator('#mcEdCardmarket').getAttribute('href')
+  const cifra = limpio(await page.locator('#mcEdPrecioBloque .pv-cifra').innerText())
+  check('la cifra es TCGplayer convertido (129 €), no los 2,06 € de la otra carta', cifra === '129,00 €', cifra)
+  const de = limpio(await page.locator('#mcEdPrecioBloque .pv-de').innerText())
+  check('  …y el renglón dice de qué es', /TCGplayer, 150,00 US\$ convertidos/.test(de), de)
+  check('  …sin chapas de idioma (no hay TCGGO)', (await page.locator('#mcEdPrecioBloque .pv-idiomas').count()) === 0)
+  const href = await page.locator('#mcEdPrecioBloque .btn-cardmarket').getAttribute('href')
   check('el botón busca por nombre en vez de ir al producto equivocado', /Products\/Search\?searchString=Groudon/.test(href || '') && !/idProduct=272930/.test(href || ''), String(href))
-  check('  …y lo dice', /Buscar en Cardmarket/.test(await page.locator('#mcEdCardmarket').innerText()))
+  check('  …y sin id de TCGplayer no hay botón de TCGplayer', (await page.locator('#mcEdPrecioBloque .btn-tcgplayer').count()) === 0)
   await page.keyboard.press('Escape')
   await page.waitForTimeout(500)
   // Weedle: solo TCGplayer.
   await page.locator('.mc-carta-foto').filter({ hasText: 'Weedle' }).first().click()
   await page.waitForTimeout(900)
-  const p2 = limpio(await page.locator('#mcEdPrecio').innerText())
-  check('una carta que solo tiene TCGplayer lo enseña con el ≈', /TCGplayer: 0,50/.test(p2) && /≈/.test(p2), p2)
-  check('  …y el pie dice que Cardmarket no la tiene', /Cardmarket no tiene esta carta/.test(limpio(await page.locator('#mcEdPrecioPie').innerText())))
+  const p2 = limpio(await page.locator('#mcEdPrecioBloque .pv-cifra').innerText())
+  check('una carta que solo tiene TCGplayer enseña la conversión', p2 === '0,43 €', p2)
+  check('  …y el renglón dice que son dólares', /0,50 US\$ convertidos/.test(limpio(await page.locator('#mcEdPrecioBloque .pv-de').innerText())))
   await page.keyboard.press('Escape')
 }
 
@@ -78,12 +80,10 @@ console.log('── 3. La página de la carta ──')
   await page.goto(`${BASE}${rutaDeCarta({ id: 'xy5-150', name: 'Groudon-EX', name_es: 'Groudon EX' })}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const precios = limpio(await page.locator('#cmPrecios').innerText())
-  check('hay fila de TCGplayer', /TCGplayer/.test(precios) && /150,00/.test(precios), precios)
+  check('la cifra es la de TCGplayer convertida', /129,00 €/.test(precios) && /150,00 US\$/.test(precios), precios)
   check('  …y NO las cifras del Groudon común', !/2,06/.test(precios), precios)
-  const nota = limpio(await page.locator('#cmNota').innerText())
-  check('la nota avisa del emparejamiento', /OTRA carta/.test(nota) && /2,06 €/.test(nota) && /150,00/.test(nota), nota)
-  const enlace = page.locator('#cmEnlace')
-  check('el botón busca', /Buscar en Cardmarket/.test(await enlace.innerText()) && /Products\/Search/.test(await enlace.getAttribute('href')))
+  const enlace = page.locator('#cmPrecios .btn-cardmarket')
+  check('el botón busca', /Products\/Search/.test(await enlace.getAttribute('href')))
 }
 
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))

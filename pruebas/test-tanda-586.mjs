@@ -1,5 +1,6 @@
 // Tanda 586 — los dos mercados (Cardmarket y TCGplayer) y el emparejamiento
-// dudoso.
+// dudoso. (Desde la 589 el valor es el MÍNIMO y no la tendencia, y la
+// frase del precio es de un renglón: las expectativas van con eso.)
 //
 // El fixture de Furret es el EJEMPLO de la documentación de TCGdex
 // (tcgdex.dev/reference/card), tal cual; el del Groudon lleva las cifras
@@ -47,10 +48,10 @@ console.log('── 2. Furret: los dos mercados cuadran y Cardmarket manda ─�
   check('Cardmarket como siempre', p.tendencia === 0.08 && p.desde === 0.02 && p.media30 === 0.08)
   check('  …y TCGplayer al lado', p.usd?.mercado === 0.09 && p.usd?.desde === 0.02, JSON.stringify(p.usd))
   check('  …no es dudoso (0,08 € contra 0,09 $)', p.dudoso === false)
-  check('  …el valor es el de Cardmarket', valorDe(p) === 0.08 && origenDelValor(p) === 'cardmarket')
+  check('  …el valor es el de Cardmarket (el mínimo, desde la 589)', valorDe(p) === 0.02 && origenDelValor(p) === 'cardmarket', String(valorDe(p)))
   const r = precioDe(FURRET, { reverse: true })
   check('el reverse: el -holo de Cardmarket y el reverse de TCGplayer', r.tendencia === 0.21 && r.usd?.mercado === 0.23, JSON.stringify([r.tendencia, r.usd]))
-  check('la frase lleva los dos', /Cardmarket: desde 0,02 € · tendencia 0,08 €/.test(limpio(resumenDePrecio(p))) && /TCGplayer: 0,09/.test(limpio(resumenDePrecio(p))), limpio(resumenDePrecio(p)))
+  check('la frase es un renglón: «Desde 0,02 € en Cardmarket»', limpio(resumenDePrecio(p)) === 'Desde 0,02 € en Cardmarket', limpio(resumenDePrecio(p)))
 }
 
 console.log('── 3. El Groudon: Cardmarket tiene OTRA carta ──')
@@ -65,7 +66,7 @@ console.log('── 3. El Groudon: Cardmarket tiene OTRA carta ──')
   check('  …y el botón lo dice', textoDelEnlace({ idProduct: p.idProduct, dudoso: true }) === 'Buscar en Cardmarket')
   check('  …mientras que sin duda sí va al producto', /idProduct=272930/.test(enlaceCardmarket({ idProduct: 272930, dudoso: false, nombre: 'x' })))
   const frase = limpio(resumenDePrecio(p))
-  check('la frase enseña TCGplayer con el ≈ y avisa de Cardmarket', /TCGplayer: 150,00/.test(frase) && /≈/.test(frase) && /OTRA carta/.test(frase), frase)
+  check('la frase enseña TCGplayer con el ≈ y no las cifras de la otra carta', /TCGplayer: 150,00/.test(frase) && /≈ 129,00 €/.test(frase) && !/2,06/.test(frase), frase)
 }
 
 console.log('── 4. Solo TCGplayer, y nada ──')
