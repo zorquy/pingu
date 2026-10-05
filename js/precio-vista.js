@@ -69,7 +69,7 @@ const cifraGradeada = (g) => (g.moneda === 'USD' ? dolares(g.valor) : euros(g.va
 
 // El rango va sin céntimos: «140 – 590 €» cabe en una burbuja de móvil y
 // «140,00 € – 590,00 €» se parte en tres renglones.
-const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
 const rangoHtml = (min, max) => `${fmtEntero.format(min)} – ${fmtEntero.format(max)} €`.replace(/ /g, '\u00a0')
 
 export function chapasDeGradeadas(gradeadas) {

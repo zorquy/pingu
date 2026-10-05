@@ -228,7 +228,9 @@ export function agruparEnSeries(sets, eras = null) {
 // solo si TCGGO las ha dado. El logo: el de TCGGO, el de Scrydex, el de
 // TCGdex, y si no hay ninguno, el código en grande.
 let variacionDeSets = new Map()
-const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+// Con el punto de los miles SIEMPRE: en es-ES, 4210 sale «4210» y 11134
+// «11.134», y en una rejilla de cifras eso se lee como dos formatos.
+const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
 
 function logoDeSet(s) {
   return s.logo_tcggo || s.logo_scrydex || (s.logo_path ? urlDeLogo(s.logo_path, MERCADO) : null) || urlDeLogoPorPartes(s.serie_id, s.id, MERCADO) || null
@@ -254,7 +256,7 @@ function filaDeColeccion(s) {
     `<span class="serie-fecha">${escapeHtml([eraDeSet(s), s.release_date ? fechaCorta(s.release_date) : ''].filter(Boolean).join(' · ') || '—')}</span>` +
     '<span class="serie-cifras">' +
     `<span class="serie-cuantas"><small>Cartas</small><b>${total ? escapeHtml(String(total)) : '—'}</b></span>` +
-    `<span class="serie-valor"><small>Valor del set</small><b>${v?.ahora ? escapeHtml(`${fmtEntero.format(v.ahora)} €`) : '<span class="sin">—</span>'}</b></span>` +
+    `<span class="serie-valor"><small>Valor</small><b>${v?.ahora ? escapeHtml(`${fmtEntero.format(v.ahora)} €`) : '<span class="sin">—</span>'}</b></span>` +
     `<span class="serie-semanal"><small>Semanal</small>${cifraSemanal(v)}</span>` +
     '</span></span></a></li>'
   )

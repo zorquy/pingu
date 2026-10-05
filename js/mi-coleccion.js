@@ -2013,7 +2013,7 @@ async function cargarValoresDeSets() {
   }
 }
 
-const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
+const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
 
 async function pintarEstanteria() {
   const sets = await cargarSets()

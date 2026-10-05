@@ -19,6 +19,10 @@ los japoneses).
 la del catálogo). Sin ella la web funciona igual, solo sin valor ni
 semanal.
 
+**Pulido tras verlo en pantalla**: el punto de los miles siempre («4.210 €»,
+que en es-ES los de cuatro cifras salían sin él) y el rótulo «Valor» en
+vez de «Valor del set», que se partía en dos renglones.
+
 **Ficheros**: `supabase-migration-tcggo-expansiones.sql` (nueva),
 `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
 `js/catalogo-series.js`, `js/cartas.js`, `js/coleccion.js`,
