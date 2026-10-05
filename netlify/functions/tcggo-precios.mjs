@@ -28,9 +28,11 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
+// Solo la clave: importar la función sería un ciclo.
+const CLAVE_CATALOGO = 'tcggo_catalogo'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_precios'
@@ -57,7 +59,7 @@ export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, guardarSetsImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
-  mercado = 'WEST', peticiones = 60,
+  peticiones = 60,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
@@ -67,20 +69,23 @@ export async function procesar({
   const topeDiario = Math.max(1, Number(env.TCGGO_TOPE_DIARIO) || TOPE_DIARIO)
   const tope = Math.max(1, Math.min(60, Number(peticiones) || 60))
   const { base, host } = baseDe(env)
+  const bases = { WEST: base, JP: baseJpDe(base) }
   const arranque = reloj()
   const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = guardarImpl || ((filas) => rest('tcg_card_prices', clave, { method: 'POST', body: JSON.stringify(filas) }))
-  const guardarSets = guardarSetsImpl || ((sets) => rest('rpc/tcggo_guardar_sets', clave, { method: 'POST', body: JSON.stringify({ p_sets: sets, p_market: mercado }) }))
+  const guardarSets = guardarSetsImpl || ((sets, mercado = 'WEST') => rest('rpc/tcggo_guardar_sets', clave, { method: 'POST', body: JSON.stringify({ p_sets: sets, p_market: mercado }) }))
   const leerEstado = estadoImpl || (async (claveEstado) => (await pedir(`scrydex_estado?select=valor&clave=eq.${claveEstado}&limit=1`))?.[0]?.valor || {})
   const guardarEstado = guardarEstadoImpl || ((claveEstado, valor) => rest('scrydex_estado', clave, { method: 'POST', body: JSON.stringify([{ clave: claveEstado, valor, updated_at: new Date().toISOString() }]) }))
   const dia = ahora.toISOString().slice(0, 10)
 
   // ── Los dos estados: los pares (qué set es qué expansión) y el nuestro ──
   let pares
+  let catalogo
   let estado
   try {
     pares = await leerEstado(CLAVE_PARES)
+    catalogo = await leerEstado(CLAVE_CATALOGO)
     estado = await leerEstado(CLAVE_ESTADO)
   } catch (e) {
     const m = String(e?.message || e)
@@ -92,8 +97,9 @@ export async function procesar({
   if (!Object.keys(hechosPares).length) return { ok: true, saltado: 'todavía no hay sets emparejados con TCGGO (/admin → Cartas → Emparejar con TCGGO)' }
 
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], setsApuntados: false }
+  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false }
   if (!Array.isArray(estado.hechos)) estado.hechos = []
+  if (!Array.isArray(estado.hechosJp)) estado.hechosJp = []
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
 
@@ -105,10 +111,16 @@ export async function procesar({
     if (!setsPorEpisodio.has(h.episodio)) setsPorEpisodio.set(h.episodio, [])
     setsPorEpisodio.get(h.episodio).push(setId)
   }
+  // Y las japonesas (642): las que `tcggo-catalogo` ha casado con un set.
+  const setsPorEpisodioJp = new Map()
+  for (const [id, sets] of Object.entries(catalogo?.setsPorEpisodio?.JP || {})) {
+    if (Array.isArray(sets) && sets.length) setsPorEpisodioJp.set(Number(id), sets)
+  }
   const pendientes = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id))
-  if (!pendientes.length) {
+  const pendientesJp = [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id))
+  if (!pendientes.length && !pendientesJp.length) {
     if (!estado.hecho) { estado.hecho = true; await persistir() }
-    return { ok: true, dia, hecho: true, saltado: `los precios de ${dia} ya están puestos`, episodios: setsPorEpisodio.size }
+    return { ok: true, dia, hecho: true, saltado: `los precios de ${dia} ya están puestos`, episodios: setsPorEpisodio.size + setsPorEpisodioJp.size }
   }
   estado.hecho = false
 
@@ -173,7 +185,7 @@ export async function procesar({
       }
       if (filas.length) {
         try {
-          setsApuntados = Number(await guardarSets(filas)) || 0
+          setsApuntados = Number(await guardarSets(filas, 'WEST')) || 0
           estado.setsApuntados = true
         } catch (e) {
           const m = String(e?.message || e)
@@ -185,17 +197,21 @@ export async function procesar({
     await persistir()
   }
 
-  // ── Expansión a expansión ──
+  // ── Expansión a expansión: primero las occidentales, luego las japonesas ──
   let escritas = 0
   let sinPar = 0
   const hechasAhora = []
-  for (const idEpisodio of pendientes) {
+  const tandas = [
+    { mercado: 'WEST', pendientes, mapa: setsPorEpisodio, hechos: estado.hechos },
+    { mercado: 'JP', pendientes: pendientesJp, mapa: setsPorEpisodioJp, hechos: estado.hechosJp },
+  ]
+  for (const { mercado, pendientes: lista, mapa, hechos } of tandas) for (const idEpisodio of lista) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
     const suyas = []
     let pagina = 1
     let completo = false
     for (;;) {
-      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, pagina, base))
+      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, pagina, bases[mercado]))
       if (!r.datos) break
       suyas.push(...(r.datos.data || []))
       if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
@@ -212,7 +228,7 @@ export async function procesar({
       if (Number.isInteger(id) && id > 0 && !porProducto.has(id)) porProducto.set(id, s)
     }
     // Nuestras cartas de los sets que cuelgan de esta expansión.
-    const sets = setsPorEpisodio.get(idEpisodio) || []
+    const sets = mapa.get(idEpisodio) || []
     let cartas
     try {
       cartas = await pedir(`tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&cm_id_product_propio=not.is.null&set_id=in.(${sets.map((s) => `"${encodeURIComponent(s)}"`).join(',')})&limit=5000`)
@@ -223,7 +239,7 @@ export async function procesar({
     for (const c of cartas || []) {
       const s = porProducto.get(Number(c.cm_id_product_propio))
       if (!s) { sinPar++; continue }
-      filas.push(filaDePreciosTcggo(c.id, s, { ahora }))
+      filas.push(filaDePreciosTcggo(c.id, s, { ahora, mercado }))
     }
     if (filas.length) {
       try {
@@ -235,16 +251,16 @@ export async function procesar({
       }
       escritas += filas.length
     }
-    estado.hechos.push(idEpisodio)
-    hechasAhora.push({ episodio: idEpisodio, sets, suyas: suyas.length, nuestras: (cartas || []).length, escritas: filas.length })
+    hechos.push(idEpisodio)
+    hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: suyas.length, nuestras: (cartas || []).length, escritas: filas.length })
     await persistir()
   }
-  const quedan = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id)).length
+  const quedan = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id)).length + [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id)).length
   if (!quedan && !parado) estado.hecho = true
   await persistir()
   return {
     ok: true, dia, hecho: !quedan && !parado, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
-    episodios: setsPorEpisodio.size, hechasHoy: estado.hechos.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado,
+    episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado,
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }
 }

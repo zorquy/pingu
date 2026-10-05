@@ -273,7 +273,7 @@ const positivo = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? 
 // solo el objeto con algo dentro se guarda.
 const objetoOnull = (v) => (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length ? v : null)
 
-export function filaDePreciosTcggo(cardId, carta, { ahora = new Date() } = {}) {
+export function filaDePreciosTcggo(cardId, carta, { ahora = new Date(), mercado = 'WEST' } = {}) {
   const cm = carta?.prices?.cardmarket || {}
   const tp = carta?.prices?.tcg_player || {}
   const ebay = carta?.prices?.ebay || {}
@@ -287,6 +287,9 @@ export function filaDePreciosTcggo(cardId, carta, { ahora = new Date() } = {}) {
     cm_low_fr: positivo(cm.lowest_near_mint_FR),
     cm_low_es: positivo(cm.lowest_near_mint_ES),
     cm_low_it: positivo(cm.lowest_near_mint_IT),
+    // El japonés (642): su catálogo japonés lo da como `_JP`; y si una carta
+    // del mercado JP solo trae el general, ese general ES el japonés.
+    cm_low_ja: positivo(cm.lowest_near_mint_JP) ?? (mercado === 'JP' ? positivo(cm.lowest_near_mint) : null),
     cm_avg30: positivo(cm['30d_average']),
     cm_avg7: positivo(cm['7d_average']),
     cm_disponibles: Number.isInteger(cm.available_items) ? cm.available_items : null,

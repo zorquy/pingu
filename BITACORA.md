@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 4) — PINGU-Claude (642 — el precio de las japonesas)
+
+**Hecho**: `cm_low_ja` desde `lowest_near_mint_JP`; «ja» en la regla del
+valor (JS y SQL); `tcggo-precios` recorre también las expansiones
+japonesas que el catálogo casó; el botón de Cardmarket va al producto
+aunque el idioma no tenga filtro.
+
+**MIGRACIÓN pendiente de ejecutar** (después de la de la 589):
+`supabase-migration-tcggo-japones.sql`.
+
+**Ficheros**: `supabase-migration-tcggo-japones.sql` (nueva),
+`netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-catalogo.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `js/cardmarket.js`, `SCHEMA.md`.
+En `pruebas`: 589, 640 y el doble.
+
 ## 2026-10-06 (noche, 3) — PINGU-Claude (641 — Scrydex, fuera)
 
 **Hecho**: fuera las diez funciones `scrydex-*`, sus tres botones de

@@ -30810,3 +30810,32 @@ haga TCGGO, y costaba 29 $ y una noche a cero cada dos tandas. Se va:
 Lo que las lecciones de las tandas 500–556 dicen de Scrydex en CLAUDE.md
 se queda tal cual: son lecciones sobre frenos, fixtures y señales, y
 valen igual con TCGGO.
+
+
+## Tanda 642 — el precio de las cartas japonesas (oct. 2026)
+
+Con el catálogo japonés viniendo de TCGGO (640) faltaba su precio: en su
+catálogo japonés el mínimo Near Mint de la impresión japonesa va en
+`lowest_near_mint_JP` (y si una carta del mercado JP solo trae el
+general, ese general ES el japonés). Columna `cm_low_ja` en
+`tcg_card_prices` (`supabase-migration-tcggo-japones.sql`, que vuelve a
+escribir `valor_de_linea` con el caso «ja» y borra la firma de la 589) y
+«ja» en `IDIOMAS_CON_PRECIO`: la ficha de una copia japonesa enseña su
+mínimo japonés y la colección lo suma.
+
+**Cómo llega**: `tcggo-catalogo` apunta en su estado de qué set nuestro
+cuelga cada expansión (`setsPorEpisodio[JP]`), y `tcggo-precios` recorre
+cada día, después de las occidentales, esas expansiones por la puerta
+`/pokemon-jp` (`hechosJp` aparte en su estado). Una carta japonesa casa
+por su `cm_id_product_propio`, que el catálogo le puso al casarla por
+número.
+
+**El enlace**: en Cardmarket la impresión japonesa es OTRO producto, así
+que el idioma «ja» no tiene filtro (`cm: null`). Hasta ahora eso mandaba
+a una búsqueda por nombre aunque hubiera `idProduct`; ahora con
+`idProduct` se va al producto, solo que sin `language`. Lo mismo para
+cualquier idioma sin filtro.
+
+**Pruebas**: en `test-tanda-589.mjs` (la columna, el valor, el enlace, la
+pasada de precios con una expansión japonesa) y `test-tanda-640.mjs` (el
+estado con `setsPorEpisodio`).

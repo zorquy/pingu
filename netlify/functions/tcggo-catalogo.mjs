@@ -95,6 +95,10 @@ export async function procesar({
   if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false }
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   for (const m of MERCADOS) if (!Array.isArray(estado.hechos[m])) estado.hechos[m] = []
+  // De qué sets nuestros cuelga cada expansión suya, por mercado: lo lee
+  // `tcggo-precios` para el japonés (lo occidental lo sabe por los pares).
+  if (!estado.setsPorEpisodio || typeof estado.setsPorEpisodio !== 'object') estado.setsPorEpisodio = {}
+  for (const m of MERCADOS) if (!estado.setsPorEpisodio[m] || typeof estado.setsPorEpisodio[m] !== 'object') estado.setsPorEpisodio[m] = {}
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
 
@@ -284,6 +288,7 @@ export async function procesar({
         return { ...resumen(), ok: false, error: `nuestra base al escribir cartas: ${m.slice(0, 160)}` }
       }
       creadas += nuevas
+      estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
       esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, nuestrasSinSuya: nuestras.length - usadas.size })
       await persistir()

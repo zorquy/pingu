@@ -53,7 +53,7 @@ export const IDIOMA_POR_DEFECTO = 'es'
 
 // Los idiomas en los que TCGGO da un mínimo propio, en el orden en que se
 // enseñan: el nuestro primero. El portugués y los asiáticos no tienen.
-export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it']
+export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it', 'ja']
 export const columnaDeIdioma = (id) => (IDIOMAS_CON_PRECIO.includes(id) ? `cm_low_${id}` : null)
 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
@@ -381,9 +381,11 @@ export function enlaceCardmarket({ idProduct = null, url = null, dudoso = false,
   const e = estadoDe(estado)
   const p = new URLSearchParams()
   // Un `idProduct` dudoso (586) lleva a OTRA carta: mejor la búsqueda.
-  if (idProduct && i.cm && !dudoso) {
+  // Sin filtro de idioma (la japonesa es otro producto allí, 642) se va al
+  // producto igual, solo que sin `language`.
+  if (idProduct && !dudoso) {
     p.set('idProduct', String(idProduct))
-    p.set('language', String(i.cm))
+    if (i.cm) p.set('language', String(i.cm))
     p.set('minCondition', String(e.cm))
     if (variante === 'reverse') p.set('isReverseHolo', 'Y')
     return `${CM}/Products?${p.toString()}`
@@ -398,7 +400,7 @@ export function enlaceCardmarket({ idProduct = null, url = null, dudoso = false,
 export function textoDelEnlace({ idProduct = null, url = null, dudoso = false, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
   const i = idiomaDe(idioma)
   if (!idProduct && url) return 'Ver en Cardmarket'
-  if (!idProduct || !i.cm || dudoso) return 'Buscar en Cardmarket'
+  if (!idProduct || dudoso) return 'Buscar en Cardmarket'
   const e = estadoDe(estado)
   return `Cardmarket · ${i.nombre.toLowerCase()} · ${e.id}`
 }
