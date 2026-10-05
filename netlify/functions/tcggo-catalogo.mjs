@@ -38,6 +38,9 @@ export const CLAVE_ESTADO = 'tcggo_catalogo'
 const MS_DE_MARGEN = 20_000
 const DIAS_DE_EPISODIOS = 7
 export const MERCADOS = ['WEST', 'JP']
+// Cuántas veces se intenta escribir una expansión cuya escritura falla
+// antes de saltarla (655). Ver el comentario en el `catch` de abajo.
+export const MAXIMO_INTENTOS_EPISODIO = 3
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -92,9 +95,23 @@ export async function procesar({
     return { ok: false, error: m.slice(0, 200) }
   }
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false }
+  if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false, fallidos: {} }
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   for (const m of MERCADOS) if (!Array.isArray(estado.hechos[m])) estado.hechos[m] = []
+  // LO QUE HA IDO MAL, APUNTADO (655). PINGU abrió el «Expansion Pack»
+  // japonés —set creado, «0 de 102»— y dentro no había ni una carta. Esta
+  // función solo creaba el set si TCGGO le había dado cartas, así que las
+  // cartas se pidieron y NO se escribieron, y nada lo decía: un error al
+  // escribir volvía como respuesta de la función (que nadie lee) sin
+  // apuntarse, y una escritura que escribe CERO filas ni siquiera era un
+  // error. Desde aquí las dos cosas quedan en el estado —`fallidos`,
+  // `vacios`, `ultimoError`— y /admin las enseña.
+  if (!estado.fallidos || typeof estado.fallidos !== 'object') estado.fallidos = {}
+  if (!estado.vacios || typeof estado.vacios !== 'object') estado.vacios = {}
+  for (const m of MERCADOS) {
+    if (!estado.fallidos[m] || typeof estado.fallidos[m] !== 'object') estado.fallidos[m] = {}
+    if (!estado.vacios[m] || typeof estado.vacios[m] !== 'object') estado.vacios[m] = {}
+  }
   // De qué sets nuestros cuelga cada expansión suya, por mercado: lo lee
   // `tcggo-precios` para el japonés (lo occidental lo sabe por los pares).
   if (!estado.setsPorEpisodio || typeof estado.setsPorEpisodio !== 'object') estado.setsPorEpisodio = {}
@@ -159,7 +176,10 @@ export async function procesar({
 
   const resumen = (extra = {}) => ({
     ok: true, semana, dia, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
-    hechas: Object.fromEntries(MERCADOS.map((m) => [m, estado.hechos[m].length])), parado, ...extra,
+    hechas: Object.fromEntries(MERCADOS.map((m) => [m, estado.hechos[m].length])), parado,
+    fallidos: Object.fromEntries(MERCADOS.map((m) => [m, Object.keys(estado.fallidos[m]).length])),
+    vacios: Object.fromEntries(MERCADOS.map((m) => [m, Object.keys(estado.vacios[m]).length])),
+    ultimoError: estado.ultimoError || null, ...extra,
   })
 
   const esteTurno = []
@@ -285,17 +305,46 @@ export async function procesar({
         filas.push(filaDeCartaTcggo(s, { setId: destinos[0] }))
         nuevas++
       }
+      let escritasAqui = 0
       try {
-        for (let k = 0; k < filas.length; k += 300) escritas += Number(await guardarCartas(filas.slice(k, k + 300), mercado)) || 0
+        for (let k = 0; k < filas.length; k += 300) escritasAqui += Number(await guardarCartas(filas.slice(k, k + 300), mercado)) || 0
       } catch (e) {
         const m = String(e?.message || e)
         if (/tcggo_guardar_cartas|42883|PGRST202/.test(m)) return { ...resumen(), saltado: 'falta ejecutar supabase-migration-tcggo-catalogo.sql (tcggo_guardar_cartas)' }
-        return { ...resumen(), ok: false, error: `nuestra base al escribir cartas: ${m.slice(0, 160)}` }
+        // UNA EXPANSIÓN QUE NO SE DEJA ESCRIBIR NO BLOQUEA EL CATÁLOGO
+        // (655). Antes, el error volvía sin apuntarse y la pasada
+        // siguiente volvía a pedir la MISMA expansión a TCGGO: dos
+        // peticiones cada cinco minutos para no escribir nada, y las
+        // expansiones de detrás sin llegar nunca (la 522: lo que viene
+        // después de pagar cuenta como intento). Se apunta con su error,
+        // la pasada se para —es nuestra base la que falla (la 526)— y a la
+        // tercera vez se salta esa expansión y se sigue con las demás.
+        const f = estado.fallidos[mercado][episodio.id] || { intentos: 0 }
+        f.intentos += 1
+        f.error = m.slice(0, 200)
+        f.nombre = episodio.nombre
+        f.fecha = ahora.toISOString()
+        estado.fallidos[mercado][episodio.id] = f
+        estado.ultimoError = { mercado, episodio: episodio.id, nombre: episodio.nombre, error: m.slice(0, 200), fecha: ahora.toISOString(), intentos: f.intentos }
+        if (f.intentos >= MAXIMO_INTENTOS_EPISODIO) {
+          estado.hechos[mercado].push(episodio.id)
+          esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: suyas.length, fallido: f.error, intentos: f.intentos })
+          await persistir()
+          continue
+        }
+        await persistir()
+        return { ...resumen(), ok: false, error: `nuestra base al escribir cartas (${mercado} #${episodio.id} ${episodio.nombre}, intento ${f.intentos} de ${MAXIMO_INTENTOS_EPISODIO}): ${m.slice(0, 160)}` }
       }
+      escritas += escritasAqui
+      // Y una escritura que escribe CERO filas de una lista que no está
+      // vacía se apunta: no es un error, y es justo por eso que hay que
+      // decirlo. (Si escribe alguna, deja de contar como vacía.)
+      if (filas.length && !escritasAqui) estado.vacios[mercado][episodio.id] = { nombre: episodio.nombre, filas: filas.length, sets: destinos, fecha: ahora.toISOString() }
+      else delete estado.vacios[mercado][episodio.id]
       creadas += nuevas
       estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
-      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, nuestrasSinSuya: nuestras.length - usadas.size })
+      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size })
       await persistir()
     }
   }

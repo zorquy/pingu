@@ -3000,6 +3000,41 @@ async function cargarSetsDeTcgdex() {
 // la pausa del plan (8 con el gratis, ~60 con Ultra; lo acota la función), y enseña lo que ha
 // hecho y lo que queda. La función apunta set a set, así que el clic
 // siguiente sigue donde se quedó.
+// El estado de las funciones programadas de TCGGO, tal cual lo han dejado
+// en `scrydex_estado` (655): el catálogo (por dónde va, qué expansión no
+// se ha dejado escribir y por qué, cuáles han escrito cero cartas), los
+// pares y los reemplazos. Lee con la sesión del admin: la política de la
+// 510 le deja ver esa tabla y a nadie más.
+async function tcggoEstado() {
+  const caja = document.getElementById('cardsDiagnostico')
+  caja.classList.remove('hidden')
+  caja.value = 'Leyendo el estado…'
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos'])
+  if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
+  const de = (k) => (data || []).find((f) => f.clave === k)
+  const cat = de('tcggo_catalogo')
+  const v = cat?.valor || {}
+  const lista = (obj, f) => Object.entries(obj || {}).map(([id, x]) => `  · #${id} ${f(x)}`)
+  const lineas = [
+    `CATÁLOGO (tcggo_catalogo) — última pasada: ${cat?.updated_at || 'nunca'}`,
+    cat ? `  semana ${v.semana} · hecho: ${v.hecho ? 'sí' : 'no'} · hechas: WEST ${v.hechos?.WEST?.length ?? 0}, JP ${v.hechos?.JP?.length ?? 0} · expansiones JP en lista: ${v.episodiosJp?.lista?.length ?? '—'} · peticiones hoy: ${v.gasto?.peticiones ?? 0}` : '  (todavía no ha corrido ninguna vez — o la tabla no te deja leer)',
+    v.ultimoError ? `  ⚠ ÚLTIMO ERROR: ${v.ultimoError.mercado} #${v.ultimoError.episodio} ${v.ultimoError.nombre} (intento ${v.ultimoError.intentos}, ${v.ultimoError.fecha}): ${v.ultimoError.error}` : '  sin errores apuntados',
+    ...['WEST', 'JP'].flatMap((m) => {
+      const f = lista(v.fallidos?.[m], (x) => `${x.nombre}: ${x.intentos} intentos — ${x.error}`)
+      const z = lista(v.vacios?.[m], (x) => `${x.nombre}: ${x.filas} cartas pedidas, CERO escritas (sets ${(x.sets || []).join(', ')})`)
+      return [
+        f.length ? `  ${m} — expansiones que no se han dejado escribir:` : '', ...f,
+        z.length ? `  ${m} — expansiones que escribieron cero cartas:` : '', ...z,
+      ]
+    }),
+    '',
+    `PARES (tcggo_pares) — ${de('tcggo_pares')?.updated_at || 'nunca'}: ${Object.keys(de('tcggo_pares')?.valor?.hechos || {}).length} sets con expansión decidida · ${Object.keys(de('tcggo_pares')?.valor?.sinEpisodio || {}).length} sin expansión suya`,
+    `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}`,
+    `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify(de('tcggo_reemplazos')?.valor || {}, null, 1).slice(0, 1500)}`,
+  ].filter((l) => l !== '')
+  caja.value = lineas.join('\n')
+}
+
 async function tcggoEmparejar() {
   const caja = document.getElementById('cardsDiagnostico')
   const boton = document.getElementById('btnTcggoEmparejar')
@@ -3225,6 +3260,7 @@ async function importarSets(ids) {
 function initCardsSection() {
   document.getElementById('btnLoadTcgSets')?.addEventListener('click', cargarSetsDeTcgdex)
   document.getElementById('btnTcggoEmparejar')?.addEventListener('click', tcggoEmparejar)
+  document.getElementById('btnTcggoEstado')?.addEventListener('click', tcggoEstado)
   document.getElementById('btnTcggoPrecios')?.addEventListener('click', tcggoPrecios)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
