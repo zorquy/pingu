@@ -137,11 +137,12 @@ function tcggoDeMentira({ fallaEn = null, codigoFallo = 429, textoFallo = 'Too m
   }
   return { urls, fetchImpl }
 }
-function baseDeMentira(estadoInicial = {}) {
-  const estados = { [CLAVE_ESTADO]: estadoInicial }
+function baseDeMentira(estadoInicial = {}, estadoPrecios = null) {
+  const estados = { [CLAVE_ESTADO]: estadoInicial, ...(estadoPrecios ? { tcggo_precios: estadoPrecios } : {}) }
   const escrituras = []
   const restImpl = async (ruta) => {
     if (ruta.startsWith('tcg_sets?')) return SETS
+    if (/scrydex_estado\?select=valor&clave=eq\.tcggo_precios/.test(ruta)) return estados.tcggo_precios ? [{ valor: estados.tcggo_precios }] : []
     const m = ruta.match(/set_id=eq\.([^&]+)/)
     if (m) return NUESTRAS[decodeURIComponent(m[1])] || []
     throw new Error(`ruta inesperada ${ruta}`)
@@ -185,6 +186,13 @@ console.log('── 3. Una pasada con tope de 9: la lista de expansiones y nada 
   check('Base Set no está en TCGGO: se apunta sin expansión, sin gastar', !!base?.sinEpisodio && b.estados[CLAVE_ESTADO].sinEpisodio.base1 && r2.cuerpo.setsSinEpisodio === 1, JSON.stringify(base))
   check('Pocket se queda fuera; no queda nada pendiente', r2.cuerpo.siguiente === false && r2.cuerpo.setsPendientes === 0 && r2.cuerpo.setsHechos === 2)
   check('la guía de precios se reabre para hoy', b.estados[CLAVE_GUIA]?.dia === '2026-10-05' && b.estados[CLAVE_GUIA].hecho === false, JSON.stringify(b.estados[CLAVE_GUIA]))
+  // Con una pasada de precios de hoy que ya tenía hechas las dos expansiones,
+  // escribir pares las saca de «hechas» para que se vuelvan a pedir.
+  const bp = baseDeMentira({}, { dia: '2026-10-05', hechos: [415, 413, 999], hecho: true })
+  const tp = tcggoDeMentira()
+  await procesar({ env: ENV, ...bp, fetchImpl: tp.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
+  const rp = await procesar({ env: ENV, ...bp, fetchImpl: tp.fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
+  check('las expansiones con pares nuevos salen de «hechas hoy» en la pasada de precios', rp.cuerpo.episodiosReabiertos === 2 && JSON.stringify(bp.estados.tcggo_precios.hechos) === '[999]' && bp.estados.tcggo_precios.hecho === false, JSON.stringify([rp.cuerpo.episodiosReabiertos, bp.estados.tcggo_precios]))
 
   console.log('── 5. La tercera: no pide nada (todo hecho o sin expansión) ──')
   const antes = t.urls.length
