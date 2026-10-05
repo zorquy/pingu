@@ -3064,7 +3064,7 @@ async function tcggoEmparejar() {
   const pintar = (t, gastadas) => [
     `Peticiones gastadas en este clic: ${gastadas} de ${tope} · hoy: ${t.peticionesHoy} de ${t.topeDiario} (el plan da 100 al día)`,
     `Expansiones de TCGGO: ${t.episodios} (lista del ${t.episodiosDe ? t.episodiosDe.slice(0, 10) : '—'})`,
-    `Nuestros sets: ${t.nuestrosSets} · hechos: ${t.setsHechos} · sin expansión suya: ${t.setsSinEpisodio} · pendientes: ${t.setsPendientes}`,
+    `Nuestros sets: ${t.nuestrosSets ?? "—"} · hechos: ${t.setsHechos} · sin expansión suya: ${t.setsSinEpisodio} · pendientes: ${t.setsPendientes ?? "—"}`,
     `Pares escritos en este clic: ${t.escritas}`,
     t.parado ? `⚠ PARADO: ${t.parado}` : t.siguiente ? '→ Quedan sets: vuelve a pulsar para seguir.' : '✓ No queda ningún set pendiente.',
     t.nota ? `Nota: ${t.nota}` : '',
