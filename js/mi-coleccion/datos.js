@@ -354,10 +354,12 @@ export function preciosEnVivo(cardId) {
 // quedaba en «Sin precio» aunque al día siguiente ya tuviera.
 export function precioDeLinea(linea, guardados, vivos) {
   const reverse = linea.variante === 'reverse'
-  const guardado = precioDeFila(guardados.get(linea.card_id), { reverse })
+  // La versión entera (586): TCGplayer da un precio por cada una.
+  const variante = linea.variante || 'normal'
+  const guardado = precioDeFila(guardados.get(linea.card_id), { reverse, variante })
   if (tieneCifras(guardado)) return guardado
   const v = vivos.get(linea.card_id)
-  const vivo = v ? precioDe(v.pricing, { reverse }) : null
+  const vivo = v ? precioDe(v.pricing, { reverse, variante }) : null
   if (tieneCifras(vivo)) return vivo
   // Ninguno tiene cifras: vale el que al menos traiga el `idProduct`,
   // que es lo que hace que el enlace a Cardmarket lleve a la carta y no
@@ -367,7 +369,7 @@ export function precioDeLinea(linea, guardados, vivos) {
 
 // Un precio con `idProduct` y nada más sirve para el ENLACE, no para
 // sumar: `valorDe` devolvería null igual.
-export const tieneCifras = (p) => Boolean(p && (p.tendencia || p.media30 || p.desde))
+export const tieneCifras = (p) => Boolean(p && (p.tendencia || p.media30 || p.desde || p.usd?.mercado || p.usd?.desde))
 
 // ── La Pokédex (tanda 381) ──
 //

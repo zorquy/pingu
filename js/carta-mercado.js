@@ -19,6 +19,9 @@ import {
   ESTADO_POR_DEFECTO,
   precioDe,
   euros,
+  dolares,
+  usdAEuros,
+  origenDelValor,
   enlaceCardmarket,
   textoDelEnlace,
   idiomaDe,
@@ -128,34 +131,46 @@ export async function pintarMercado(carta) {
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'
-    const enVivo = precioDe(vivo?.pricing, { reverse })
-    const guardado = precioDeFila(guardada, { reverse })
+    const enVivo = precioDe(vivo?.pricing, { reverse, variante: estado.variante })
+    const guardado = precioDeFila(guardada, { reverse, variante: estado.variante })
     // El vivo manda si dice algo; si no, el guardado; y si ninguno tiene
     // cifras, el que al menos traiga el enlace (la regla de la 375).
     const precio = tieneCifras(enVivo) ? enVivo : tieneCifras(guardado) ? guardado : enVivo || guardado
     // Con cifras o sin ellas: un precio del que solo se sabe el
     // `idProduct` pintaba tres rayas donde tenía que haber euros.
     const hayCifras = tieneCifras(precio)
+    const hayEur = Boolean(precio && (precio.tendencia || precio.media30 || precio.desde)) && !precio?.dudoso
+    const usd = precio?.usd || null
+    // Los dos mercados (586): Cardmarket en euros y TCGplayer en dólares.
+    // Si Cardmarket está mal emparejado (`dudoso`), sus cifras no se
+    // enseñan como precio: serían las de otra carta.
     $('cmPrecios').innerHTML = hayCifras
-      ? `<div><dt>Desde</dt><dd>${euros(precio.desde)}</dd></div>
+      ? `${hayEur ? `<div><dt>Desde</dt><dd>${euros(precio.desde)}</dd></div>
          <div><dt>Tendencia</dt><dd>${euros(precio.tendencia)}</dd></div>
-         <div><dt>Media 30 días</dt><dd>${euros(precio.media30)}</dd></div>`
+         <div><dt>Media 30 días</dt><dd>${euros(precio.media30)}</dd></div>` : ''}${
+           usd ? `<div><dt>TCGplayer</dt><dd>${dolares(usd.mercado || usd.desde)}${hayEur ? '' : ` <small>≈ ${euros(usdAEuros(usd.mercado || usd.desde))}</small>`}</dd></div>` : ''
+         }`
       : ''
     // Y si el número es prestado de la versión normal, se dice AQUÍ y no
     // en letra pequeña: la diferencia entre un reverso y su normal la
     // paga quien compra.
     $('cmNota').textContent = hayCifras
-      ? precio.prestado
+      ? precio.dudoso
+        ? `Cardmarket parece tener emparejada OTRA carta con esta (dice ${euros(precio.tendencia || precio.media30 || precio.desde)} y TCGplayer ${dolares(usd?.mercado || usd?.desde)}): su precio no se usa, y el botón busca por nombre.`
+        : origenDelValor(precio) === 'tcgplayer'
+          ? 'Cardmarket no tiene esta carta. El precio es el de TCGplayer, en dólares, con la conversión a euros a ojo. Búscala en Cardmarket:'
+          : precio.prestado
         ? `Cardmarket no publica precio del reverso holográfico de esta carta, así que este es el de la versión NORMAL —lo que vale como poco—, actualizado el ${haceCuanto(precio.actualizado)}. El del reverso en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
         : `Precio general de la carta en cualquier idioma y estado${precio.reverse ? ' (reverse holo)' : ''}, actualizado el ${haceCuanto(precio.actualizado)}. El mínimo en ${idiomaDe(estado.idioma).nombre.toLowerCase()} y ${estadoDe(estado.estado).nombre} lo ves en Cardmarket con el botón.`
       : 'No tenemos el precio de esta carta. Búscala en Cardmarket:'
     const idProduct = precio?.idProduct || null
     const a = $('cmEnlace')
     const url = precio?.url || null
-    a.href = enlaceCardmarket({ idProduct, url, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
+    const dudoso = Boolean(precio?.dudoso)
+    a.href = enlaceCardmarket({ idProduct, url, dudoso, idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre })
     // `textContent` primero y la marca después: el texto viene de
     // `textoDelEnlace` y así no hay forma de colar HTML por ahí.
-    a.textContent = textoDelEnlace({ idProduct, url, idioma: estado.idioma, estado: estado.estado })
+    a.textContent = textoDelEnlace({ idProduct, url, dudoso, idioma: estado.idioma, estado: estado.estado })
     a.insertAdjacentHTML('afterbegin', marcaCardmarket(22))
   }
   pintarPrecio()

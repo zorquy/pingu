@@ -30202,7 +30202,75 @@ yenes (ya estaba escrito en la 500).
 
 **Lo que no se ha visto no se afirma**: la forma de la respuesta de
 pokemontcg.io sale de su documentación, no de una respuesta pegada byte a
-byte (desde aquí no se puede preguntar). Cada lectura es defensiva y lo que
-no cuadre se apunta en `fallos` con su texto. En cuanto haya una respuesta
-real, se pega en `test-tanda-585-pokemontcg.mjs` y sustituye a `RESPUESTA`.
+byte (desde aquí no se puede preguntar).
+
+**MUERTA A LA MAÑANA SIGUIENTE (586).** PINGU la probó desde su navegador:
+`prices.pokemontcg.io` contesta **502**; la API la compró Scrydex y está
+deprecada. Se quitó el respaldo ese mismo día (`netlify/lib/pokemontcg.mjs`
+y sus pruebas, fuera). Quedan `cm_url` y `origen` en la tabla, que no
+estorban y el cliente tolera. Y la lección es la de siempre, con un giro:
+escribí contra una documentación sin una respuesta real delante, y lo que
+estaba mal no era la forma de la respuesta, era que **la API ya no
+existía**. La norma de la 501 cubre las dos cosas: con una respuesta real
+pegada se habría visto el 502 antes de escribir una línea.
+
+## Tanda 586 — los dos mercados, y el Groudon que valía 2 € (oct. 2026)
+
+PINGU, con el Groudon-EX de Duelos Primigenios y Cardmarket al lado: «le
+das a Cardmarket y te lleva al número 84, que es la carta normalita; por
+eso pone desde 15 céntimos. Y estoy viendo que casi todas las cartas están
+mal linkadas». Lo primero era verdad y lo segundo no se sabía (ver abajo);
+pero lo importante: **no era un enlace mal puesto, era un PRECIO de otra
+carta**. El `idProduct` y las cifras de Cardmarket vienen juntos de TCGdex,
+y TCGdex casa cada carta con un producto de Cardmarket por su cuenta — a
+veces mal. Ese emparejamiento no se puede corregir desde aquí: la fuente
+es la misma para todo.
+
+**Scrydex, descartado con una respuesta real** (la sonda de /admin,
+`en/cards/xy5-150?include=prices`): `"prices": []` y en `marketplaces`
+solo TCGplayer. Su plan trae «Raw Prices», pero de TCGplayer, en dólares.
+
+**Lo que sí hay: TCGdex trae los DOS mercados** en la misma ficha
+(`pricing.cardmarket` en euros y `pricing.tcgplayer` en dólares, este por
+versión: normal, holofoil, reverse-holofoil, 1st-edition…). PINGU: «yo
+metería los dos: Cardmarket lo usamos los españoles, pero tenemos muchos
+usuarios latinoamericanos que usan TCGplayer».
+
+- **Se guardan los dos.** `filaDePrecio` añade `tp_{normal,holo,reverse,
+  primera}_{market,low}` y `tp_updated` (migración
+  `supabase-migration-precios-tcgplayer.sql`; hasta que esté, la función
+  quita las columnas nuevas y reintenta, el puente de la 585).
+  `precioDeFila` los reconstruye; `precioDe` devuelve `usd` para la
+  VERSIÓN que se pide (`variante`, no solo `reverse`), cayendo a la más
+  parecida —una ultra rara no tiene «normal»: su normal ES el holofoil—.
+  Las llaves de TCGplayer se prueban en orden porque su documentación dice
+  «reverse-holofoil» y su ejemplo «reverse».
+- **Cardmarket manda; TCGplayer cuando Cardmarket no está… o no es de
+  fiar.** `valorDe`: euros si hay y no es dudoso; si no, dólares
+  convertidos (`EUR_POR_USD = 0.86`, a ojo, para un «≈» y no para
+  facturar; el mismo número en la base, `eur_por_usd()`). Lo mismo en
+  SQL: `valor_de_linea` y la foto diaria (`coleccion_foto_diaria`) con
+  los `tp_*`, porque la gráfica tiene que sumar lo que suma la cabecera.
+- **El emparejamiento DUDOSO** (`emparejamientoDudoso`, en JS y en SQL):
+  cuando Cardmarket y TCGplayer se llevan **más de diez veces** para la
+  misma carta, el de Cardmarket es de otra carta. Diez y no dos porque
+  entre mercados hay diferencias reales de 2-3×; 10× no es un mercado.
+  Dudoso ⇒ el valor sale de TCGplayer, la ficha y /carta lo DICEN (con las
+  dos cifras, para que se entienda), y el botón de Cardmarket busca por
+  nombre en vez de ir al producto equivocado (`enlaceCardmarket({ dudoso })`).
+- **Se enseñan los dos**: `resumenDePrecio(precio)` es la frase única
+  («Cardmarket: desde X · tendencia Y · TCGplayer: Z $») para la ficha y el
+  formulario de añadir; /carta añade la fila «TCGplayer» a su lista y la
+  conversión cuando no hay euros.
+
+**Lo que NO se sabe**: cuántas cartas tienen el emparejamiento mal. Con
+las columnas nuevas se puede contar desde la base (las filas donde
+`emparejamiento_dudoso` sea verdad), y ese número dirá si es «el Groudon y
+cuatro más» o «la mitad del catálogo».
+
+Guardas: `test-tanda-586.mjs` (lo puro, con el ejemplo de Furret de la
+documentación de TCGdex y el Groudon con las cifras que PINGU vio; la
+migración; la función programada sin pokemontcg y con el puente) y
+`test-tanda-586-pantalla.mjs` (la cabecera suma por TCGplayer, la ficha y
+/carta avisan y buscan).
 

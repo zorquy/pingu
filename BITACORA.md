@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana) — PINGU-Claude (586 — los dos mercados, y el Groudon que valía 2 €)
+
+**Hecho**: PINGU vio que el Groudon-EX (PRC 150) traía el precio y el
+enlace del Groudon común (PRC 84): TCGdex lo empareja mal con Cardmarket.
+Scrydex, descartado con su respuesta real (sin precios). pokemontcg.io,
+muerta (502): fuera el respaldo de la 585 (`netlify/lib/pokemontcg.mjs`).
+Ahora TCGdex guarda **Cardmarket y TCGplayer** (columnas `tp_*`), la ficha
+y /carta enseñan los dos, y cuando se llevan más de diez veces el de
+Cardmarket se marca DUDOSO: el valor sale de TCGplayer convertido y el
+botón busca por nombre. Lo mismo en SQL para la foto diaria.
+
+**MIGRACIÓN pendiente de ejecutar**: `supabase-migration-precios-tcgplayer.sql`
+(re-ejecutable; incluye las dos columnas de la 585 por si no se ejecutó).
+Sin ella la función reintenta sin las columnas nuevas y todo sigue como
+antes (solo Cardmarket).
+
+**Ficheros**: `js/cardmarket.js`, `js/mi-coleccion.js`, `js/carta-mercado.js`,
+`js/mi-coleccion/datos.js`, `netlify/functions/precios-coleccion.mjs`,
+`SCHEMA.md`; borrado `netlify/lib/pokemontcg.mjs`. En `pruebas`:
+`test-tanda-586.mjs` y `test-tanda-586-pantalla.mjs` (nuevos); borrados los
+dos de la 585.
+
 ## 2026-10-06 (mañana) — PINGU-Claude (586, primer paso: ver los precios de Scrydex en crudo)
 
 **Hecho**: PINGU quiere los precios de Scrydex (su plan Starter incluye

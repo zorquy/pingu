@@ -39,8 +39,7 @@ import {
   varianteDe,
   euros,
   enlaceCardmarket,
-  valorDeLinea,
-} from './cardmarket.js'
+  valorDeLinea, resumenDePrecio, origenDelValor } from './cardmarket.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
@@ -1651,9 +1650,9 @@ function abrirEditor(l) {
   const precio = precioDe(l)
   // Con `precio` a secas salía «Desde — · tendencia —» para una carta
   // de la que solo se sabe el `idProduct`: dos rayas no son un precio.
-  $('mcEdPrecio').textContent = datos.tieneCifras(precio)
-    ? `Desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}${precio.prestado ? ' (de la versión normal: Cardmarket no publica el del reverso)' : ''}`
-    : 'Sin precio de Cardmarket.'
+  // Los dos mercados en una frase (586): Cardmarket y TCGplayer, y el
+  // aviso si Cardmarket parece tener otra carta.
+  $('mcEdPrecio').textContent = datos.tieneCifras(precio) ? resumenDePrecio(precio) : 'Sin precio de Cardmarket ni de TCGplayer.'
   // Y de QUIÉN es ese precio (tanda 563). Cardmarket publica una cifra
   // por producto con todos los idiomas juntos, así que no es el de tu
   // español ni el del inglés: es el de la carta. Dejarlo vacío sería
@@ -1662,16 +1661,20 @@ function abrirEditor(l) {
   // con tu idioma ya filtrado, que es donde está el mínimo de verdad.
   const pie = $('mcEdPrecioPie')
   if (pie) {
-    pie.textContent = datos.tieneCifras(precio)
-      ? `Es el precio de Cardmarket para esta carta en cualquier idioma. Para verlo${idiomaDe(l.idioma).cm ? ` solo en ${idiomaDe(l.idioma).nombre.toLowerCase()}` : ''}, entra en Cardmarket.`
-      : ''
+    pie.textContent = !datos.tieneCifras(precio)
+      ? ''
+      : precio.dudoso
+        ? 'Cardmarket parece tener emparejada otra carta con esta (los dos mercados se llevan más de diez veces): el valor sale de TCGplayer y el botón busca por nombre.'
+        : origenDelValor(precio) === 'tcgplayer'
+          ? 'Cardmarket no tiene esta carta: el valor sale de TCGplayer, convertido a euros a ojo.'
+          : `Es el precio de Cardmarket para esta carta en cualquier idioma. Para verlo${idiomaDe(l.idioma).cm ? ` solo en ${idiomaDe(l.idioma).nombre.toLowerCase()}` : ''}, entra en Cardmarket.`
     pie.classList.toggle('hidden', !pie.textContent)
   }
   // Y el enlace a Cardmarket también aquí, con los filtros de ESTA línea:
   // es justo cuando estás mirando lo que vale cuando quieres ir a verla.
   const cm = $('mcEdCardmarket')
-  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
-  cm.innerHTML = `${marcaCardmarket(18)}<span>Ver en Cardmarket</span>`
+  cm.href = enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c) })
+  cm.innerHTML = `${marcaCardmarket(18)}<span>${precio?.dudoso || !precio?.idProduct ? 'Buscar en Cardmarket' : 'Ver en Cardmarket'}</span>`
   // Y la salida a la ficha entera. Si la carta no está en el catálogo no
   // hay adónde ir, así que el enlace se esconde en vez de llevar a una
   // página rota.
@@ -3591,9 +3594,7 @@ async function elegir(cardId) {
   if (seleccion?.id !== c.id) return
   if (v) vivos.set(c.id, v)
   const p = datos.precioDeLinea({ card_id: c.id, variante: $('mcAnadirVariante').value }, guardados, vivos)
-  $('mcAnadirPrecio').textContent = datos.tieneCifras(p)
-    ? `Cardmarket: desde ${euros(p.desde)} · tendencia ${euros(p.tendencia)}${p.prestado ? ' (de la versión normal)' : ''}`
-    : 'Sin precio de Cardmarket.'
+  $('mcAnadirPrecio').textContent = datos.tieneCifras(p) ? resumenDePrecio(p) : 'Sin precio de Cardmarket ni de TCGplayer.'
 }
 
 async function anadirSeleccion(e) {

@@ -91,9 +91,66 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : n
 // vale la carta. Se cae a las del normal y se marca `prestado`, para
 // que la pantalla pueda decir de dónde sale — un precio que no es el
 // tuyo y no lo dice es peor que no tenerlo.
-export function precioDe(pricing, { reverse = false } = {}) {
+// ── TCGplayer, en dólares (tanda 586) ──
+//
+// TCGdex trae los dos mercados en la misma ficha: Cardmarket (euros, el
+// nuestro) y TCGplayer (dólares, el de media comunidad latinoamericana).
+// TCGplayer va POR VERSIÓN —normal, holofoil, reverse-holofoil, 1st
+// edition…— y las versiones se llaman distinto en su documentación y en
+// su ejemplo («reverse-holofoil» y «reverse»), así que cada una de las
+// nuestras prueba varias llaves suyas, de la más exacta a la más
+// parecida. Una ultra rara no tiene «normal»: su precio «normal» ES el
+// holofoil.
+const LLAVES_TCGPLAYER = {
+  normal: ['normal', 'unlimited', 'holofoil', 'unlimited-holofoil'],
+  reverse: ['reverse-holofoil', 'reverse', 'holofoil', 'normal'],
+  holo: ['holofoil', 'unlimited-holofoil', 'normal', 'unlimited'],
+  primera: ['1st-edition-holofoil', '1st-edition', 'holofoil', 'normal'],
+}
+
+// Cuánto vale un dólar en euros, A OJO. Es para dar un «≈» cuando
+// Cardmarket no tiene la carta, no para facturar: se revisa de vez en
+// cuando (2026-10).
+export const EUR_POR_USD = 0.86
+export const usdAEuros = (v) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v * EUR_POR_USD * 100) / 100 : null)
+
+export function tcgplayerDe(tp, variante = 'normal') {
+  if (!tp || typeof tp !== 'object') return null
+  for (const llave of LLAVES_TCGPLAYER[variante] || LLAVES_TCGPLAYER.normal) {
+    const v = tp[llave]
+    if (!v || typeof v !== 'object') continue
+    const mercado = num(v.marketPrice)
+    const desde = num(v.lowPrice)
+    if (mercado || desde) return { mercado, desde, version: llave, prestado: llave !== (LLAVES_TCGPLAYER[variante] || [])[0] }
+  }
+  return null
+}
+
+// ── El emparejamiento DUDOSO (tanda 586) ──
+//
+// TCGdex casa cada carta con un producto de Cardmarket, y a veces casa
+// mal: el Groudon-EX de Duelos Primigenios (PRC 150, ~200 €) traía el
+// precio y el enlace del Groudon común (PRC 84, 2 €). No da ningún error:
+// es un precio perfectamente válido… de otra carta. Lo único que lo
+// delata es TCGplayer, que para la MISMA carta dice 150 $. Cuando los dos
+// mercados se llevan más de DIEZ veces, el de Cardmarket no se cree: el
+// valor sale de TCGplayer y el botón de Cardmarket busca por nombre en
+// vez de ir al producto equivocado. Diez y no dos porque entre mercados
+// hay diferencias reales de 2-3×; 10× no es un mercado, es otra carta.
+export const VECES_PARA_DUDAR = 10
+export function emparejamientoDudoso(eur, usd) {
+  const e = num(eur)
+  const d = num(usd)
+  if (!e || !d) return false
+  const dEnEuros = d * EUR_POR_USD
+  return e / dEnEuros > VECES_PARA_DUDAR || dEnEuros / e > VECES_PARA_DUDAR
+}
+
+export function precioDe(pricing, { reverse = false, variante = null } = {}) {
+  const version = variante || (reverse ? 'reverse' : 'normal')
+  const usd = tcgplayerDe(pricing?.tcgplayer, version)
   const cm = pricing?.cardmarket
-  if (!cm) return null
+  if (!cm) return usd ? { idProduct: null, desde: null, tendencia: null, media30: null, media7: null, actualizado: null, reverse, prestado: false, usd, dudoso: false } : null
   const cifrasDe = (s) => ({
     desde: num(cm[`low${s}`]),
     tendencia: num(cm[`trend${s}`]),
@@ -110,8 +167,39 @@ export function precioDe(pricing, { reverse = false } = {}) {
     reverse,
     // De la versión normal, porque la del reverso no la da nadie.
     prestado,
+    usd,
+    dudoso: false,
   }
-  return fuera.desde || fuera.tendencia || fuera.media30 || fuera.idProduct ? fuera : null
+  fuera.dudoso = emparejamientoDudoso(fuera.tendencia || fuera.media30 || fuera.desde, usd?.mercado || usd?.desde)
+  return fuera.desde || fuera.tendencia || fuera.media30 || fuera.idProduct || usd ? fuera : null
+}
+
+// De dónde sale el valor con el que se suma: 'cardmarket', 'tcgplayer' o
+// null. Cardmarket manda; TCGplayer (convertido) cuando Cardmarket no
+// tiene la carta o la tiene mal emparejada.
+export function origenDelValor(precio) {
+  if (!precio) return null
+  const eur = precio.tendencia || precio.media30 || precio.desde
+  if (eur && !precio.dudoso) return 'cardmarket'
+  if (precio.usd?.mercado || precio.usd?.desde) return 'tcgplayer'
+  return eur ? 'cardmarket' : null
+}
+
+const fmtUsd = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+export function dolares(v) {
+  return typeof v === 'number' && Number.isFinite(v) ? fmtUsd.format(v) : '—'
+}
+
+// Una línea con los dos mercados, para la ficha y para el formulario de
+// añadir: siempre la misma frase, venga de donde venga.
+export function resumenDePrecio(precio) {
+  if (!precio) return 'Sin precio de Cardmarket ni de TCGplayer.'
+  const eur = precio.tendencia || precio.media30 || precio.desde
+  const trozos = []
+  if (eur && !precio.dudoso) trozos.push(`Cardmarket: desde ${euros(precio.desde)} · tendencia ${euros(precio.tendencia)}${precio.prestado ? ' (de la versión normal)' : ''}`)
+  if (precio.usd?.mercado || precio.usd?.desde) trozos.push(`TCGplayer: ${dolares(precio.usd.mercado || precio.usd.desde)}${precio.usd.mercado ? '' : ' (desde)'}${eur && !precio.dudoso ? '' : ` (≈ ${euros(usdAEuros(precio.usd.mercado || precio.usd.desde))})`}`)
+  if (eur && precio.dudoso) trozos.push(`Cardmarket parece tener emparejada OTRA carta (${euros(eur)}): no se usa`)
+  return trozos.length ? trozos.join(' · ') : 'Sin precio de Cardmarket ni de TCGplayer.'
 }
 
 // El valor con el que se suma una carta a la colección: la TENDENCIA,
@@ -119,28 +207,49 @@ export function precioDe(pricing, { reverse = false } = {}) {
 // 30 días; sin nada, el «desde». No se ajusta por estado a propósito:
 // cualquier descuento por «Good» sería un número inventado.
 export function valorDe(precio) {
-  return precio?.tendencia || precio?.media30 || precio?.desde || null
+  if (!precio) return null
+  const eur = precio.tendencia || precio.media30 || precio.desde || null
+  // Cardmarket manda. Si no tiene la carta —o la tiene mal emparejada
+  // (`dudoso`)—, TCGplayer convertido a euros (tanda 586).
+  if (eur && !precio.dudoso) return eur
+  const usd = precio.usd?.mercado || precio.usd?.desde || null
+  if (usd) return usdAEuros(usd)
+  return eur
 }
 
 // De una fila de `tcg_card_prices` (la guarda la función programada) a
 // la misma forma que `precioDe`.
-export function precioDeFila(fila, { reverse = false } = {}) {
+export function precioDeFila(fila, { reverse = false, variante = null } = {}) {
   if (!fila) return null
+  // Las columnas `tp_*` (586): si la fila no las trae todavía, TCGplayer
+  // sencillamente no está, que es la verdad.
+  const tp = {}
+  for (const [nuestra, suya] of [['normal', 'normal'], ['holo', 'holofoil'], ['reverse', 'reverse-holofoil'], ['primera', '1st-edition-holofoil']]) {
+    const mercado = num(fila[`tp_${nuestra}_market`])
+    const desde = num(fila[`tp_${nuestra}_low`])
+    if (mercado || desde) tp[suya] = { marketPrice: mercado, lowPrice: desde }
+  }
+  const hayCm = fila.cm_id_product || fila.cm_low || fila.cm_trend || fila.cm_avg30 || fila.cm_low_holo || fila.cm_trend_holo || fila.cm_avg30_holo
   const precio = precioDe(
     {
-      cardmarket: {
-        idProduct: fila.cm_id_product,
-        low: fila.cm_low,
-        trend: fila.cm_trend,
-        avg30: fila.cm_avg30,
-        avg7: fila.cm_avg7,
-        'low-holo': fila.cm_low_holo,
-        'trend-holo': fila.cm_trend_holo,
-        'avg30-holo': fila.cm_avg30_holo,
-        updated: fila.cm_updated,
-      },
+      ...(hayCm
+        ? {
+            cardmarket: {
+              idProduct: fila.cm_id_product,
+              low: fila.cm_low,
+              trend: fila.cm_trend,
+              avg30: fila.cm_avg30,
+              avg7: fila.cm_avg7,
+              'low-holo': fila.cm_low_holo,
+              'trend-holo': fila.cm_trend_holo,
+              'avg30-holo': fila.cm_avg30_holo,
+              updated: fila.cm_updated,
+            },
+          }
+        : {}),
+      ...(Object.keys(tp).length ? { tcgplayer: tp } : {}),
     },
-    { reverse }
+    { reverse, variante }
   )
   // La URL EXACTA del producto (tanda 585), que trae pokemontcg.io cuando
   // TCGdex no tiene la carta: vale aunque no haya ni una cifra, porque
@@ -165,7 +274,35 @@ export function filaDePrecio(cardId, pricing, ahora = new Date()) {
     cm_trend_holo: n(cm['trend-holo']),
     cm_avg30_holo: n(cm['avg30-holo']),
     cm_updated: cm.updated || null,
+    // TCGplayer, por versión (586). Lo que no viene se guarda a null: una
+    // versión que TCGplayer no vende no vale cero.
+    ...filaDeTcgplayer(pricing?.tcgplayer),
     checked_at: ahora.toISOString(),
+  }
+}
+
+export const COLUMNAS_TCGPLAYER = ['tp_normal_market', 'tp_normal_low', 'tp_holo_market', 'tp_holo_low', 'tp_reverse_market', 'tp_reverse_low', 'tp_primera_market', 'tp_primera_low', 'tp_updated']
+
+function filaDeTcgplayer(tp) {
+  const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+  const de = (llaves) => {
+    for (const k of llaves) if (tp?.[k] && typeof tp[k] === 'object') return tp[k]
+    return null
+  }
+  const normal = de(['normal', 'unlimited'])
+  const holo = de(['holofoil', 'unlimited-holofoil'])
+  const reverse = de(['reverse-holofoil', 'reverse'])
+  const primera = de(['1st-edition-holofoil', '1st-edition'])
+  return {
+    tp_normal_market: n(normal?.marketPrice),
+    tp_normal_low: n(normal?.lowPrice),
+    tp_holo_market: n(holo?.marketPrice),
+    tp_holo_low: n(holo?.lowPrice),
+    tp_reverse_market: n(reverse?.marketPrice),
+    tp_reverse_low: n(reverse?.lowPrice),
+    tp_primera_market: n(primera?.marketPrice),
+    tp_primera_low: n(primera?.lowPrice),
+    tp_updated: tp?.updated ? new Date(tp.updated).toISOString() : null,
   }
 }
 
@@ -185,7 +322,7 @@ export function euros(v) {
 // `nombre` solo hace falta para el caso sin `idProduct` (la carta no
 // está en Cardmarket según TCGdex, o es japonesa): entonces se busca por
 // nombre, que al menos deja a un clic de la carta.
-export function enlaceCardmarket({ idProduct = null, url = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '' } = {}) {
+export function enlaceCardmarket({ idProduct = null, url = null, dudoso = false, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '' } = {}) {
   // Sin `idProduct` pero con la URL exacta (585): a la carta, sin filtros
   // —es una redirección y no se le pueden colgar—, que es mejor que una
   // búsqueda con 133 resultados.
@@ -193,7 +330,8 @@ export function enlaceCardmarket({ idProduct = null, url = null, idioma = IDIOMA
   const i = idiomaDe(idioma)
   const e = estadoDe(estado)
   const p = new URLSearchParams()
-  if (idProduct && i.cm) {
+  // Un `idProduct` dudoso (586) lleva a OTRA carta: mejor la búsqueda.
+  if (idProduct && i.cm && !dudoso) {
     p.set('idProduct', String(idProduct))
     p.set('language', String(i.cm))
     p.set('minCondition', String(e.cm))
@@ -207,10 +345,10 @@ export function enlaceCardmarket({ idProduct = null, url = null, idioma = IDIOMA
 
 // El texto del botón, que dice QUÉ filtros lleva: «español · Good o
 // mejor». Quien lo pulsa sabe qué va a ver antes de irse.
-export function textoDelEnlace({ idProduct = null, url = null, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
+export function textoDelEnlace({ idProduct = null, url = null, dudoso = false, idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO } = {}) {
   const i = idiomaDe(idioma)
   if (!idProduct && url) return 'Ver en Cardmarket'
-  if (!idProduct || !i.cm) return 'Buscar en Cardmarket'
+  if (!idProduct || !i.cm || dudoso) return 'Buscar en Cardmarket'
   const e = estadoDe(estado)
   return `Ver en Cardmarket: ${i.nombre.toLowerCase()} · ${e.nombre}${e.id === 'MT' ? '' : ' o mejor'}`
 }
