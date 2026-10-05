@@ -81,7 +81,14 @@ console.log('\n── 2. Y la que TIENES se pone con color ──')
   // pie —que una carta sin escaneo se distinga de las que no tienes— y es
   // lo que se comprueba, en el sitio donde ahora se dice.
   const antes = await page.locator('.mc-bolsillo').first().evaluate((n) => getComputedStyle(n.querySelector('.mc-carta-sinfoto')).boxShadow)
-  await page.locator('.mc-bolsillo [data-anadir]').first().click()
+  // El «+» se fue en la 565: se marca con el modo de marcar (426).
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click('#mcMarcarAbrir')
+  await page.waitForTimeout(400)
+  await page.locator('.mc-bolsillo .mc-bolsillo-enlace').first().click()
+  await page.waitForTimeout(300)
+  await page.locator('#mcMarcarGuardar').click()
   await page.waitForTimeout(1500)
   const m = await page.locator('.mc-bolsillo').first().evaluate((n) => ({
     tengo: n.classList.contains('tengo'),
@@ -101,7 +108,14 @@ console.log('\n── 2. Y la que TIENES se pone con color ──')
 console.log('\n── 3. En los dos temas ──')
 for (const tema of ['dark', 'light']) {
   const { page } = await abrir(tema)
-  await page.locator('.mc-bolsillo [data-anadir]').first().click()
+  // Marcar va por el modo de marcar (426): el «+» se fue en la 565.
+  await page.click('#mcAlbumMenu > summary')
+  await page.waitForTimeout(250)
+  await page.click('#mcMarcarAbrir')
+  await page.waitForTimeout(400)
+  await page.locator('.mc-bolsillo .mc-bolsillo-enlace').first().click()
+  await page.waitForTimeout(300)
+  await page.locator('#mcMarcarGuardar').click()
   await page.waitForTimeout(1500)
   const m = await page.locator('.mc-bolsillo').first().evaluate((n) => {
     const s = n.querySelector('.mc-carta-sinfoto')
