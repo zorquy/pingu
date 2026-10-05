@@ -30379,7 +30379,7 @@ El código del emparejador se quitó; de la lib queda `URL_GUIA` y
 
 PINGU, la mañana siguiente: «paralo porque creo que no funciona nada de lo
 que tenemos» — y acto seguido la documentación de **TCGGO** (tcggo.com,
-servida por RapidAPI; su documentación la llama «Cardmarket API TCG» con host `cardmarket-api-tcg.p.rapidapi.com`, pero la cuenta de PINGU la tiene como «Pokémon TCG API» en `pokemon-tcg-api.p.rapidapi.com`, y con el host de la documentación contestaba 403 «You are not subscribed»: el host es el de la pestaña Headers del playground, no el del PDF). Lo que importa de ella no
+servida por RapidAPI como «Cardmarket API TCG», host `cardmarket-api-tcg.p.rapidapi.com`). **Las rutas que publica RapidAPI no son las del PDF**: el PDF describe el servidor por dentro (`/v1/tcgapi/{game}/…`) y la puerta expone `/pokemon/episodes`, `/pokemon/cards`, `/pokemon/episodes/{id}/cards` — lo dice la ficha de la API en RapidAPI («Getting Started»), y costó cuatro 404 y un 403 (PINGU aún no estaba suscrito) dar con ello. El mismo proveedor tiene una segunda puerta, «Pokémon TCG API» (`pokemon-tcg-api.p.rapidapi.com`, rutas sin `/pokemon`), que es otra suscripción. `TCGGO_BASE` en Netlify cambia la base sin desplegar y el host de la cabecera sale de ella. Lo que importa de ella no
 son los precios: es que **cada carta trae `cardmarket_id`** —el
 `idProduct` de Cardmarket— y `tcgplayer_id`, junto a `card_number`,
 `tcgid` (el id de pokemontcg.io) y la expansión con su `code` («PBL»,
@@ -30404,9 +30404,16 @@ páginas, se guardan una semana en `scrydex_estado` → `tcggo_pares`); las
 cartas de una expansión de 100 en 100 (1–3 páginas por set). La pasada
 entera son ~300 peticiones: tres días gratis. Los frenos no preguntan
 «¿queda trabajo?» (la 510): **tope diario** en el estado (`TOPE_DIARIO`
-= 95; `TCGGO_TOPE_DIARIO` lo cambia si se cambia de plan), **pausa de
-2,1 s** entre peticiones (28/min), tope por llamada (8–9: la función tiene
-20 s), y **parar** si RapidAPI contesta 429 o 403 con «quota». Lo hecho
+= 95), **pausa** entre peticiones (`PAUSA_MS` = 2,1 s, 28/min), tope por
+llamada (lo que quepa en 20 s con esa pausa: 9 con el gratis, 60 con una
+pausa de 250 ms), y **parar** si RapidAPI contesta 429 o 403 con «quota».
+Los valores de serie son los del plan GRATIS, que es el que no puede
+fallar hacia arriba; **PINGU está en Ultra** (15.000/día, 300/min) y eso
+se pone por variables de entorno: `TCGGO_TOPE_DIARIO=14000` y
+`TCGGO_PAUSA_MS=250`. La lista de expansiones (9 páginas) se reanuda
+página a página entre llamadas (`episodiosEnCurso`): si no cupiera en
+una llamada y volviera a empezar por la 1, no acabaría nunca y gastaría
+en cada vuelta. Lo hecho
 se apunta set a set, así que la llamada siguiente sigue por el primer set
 sin hacer y nunca vuelve a pedir uno hecho (salvo «empezar de cero»). Un
 set a medias (le faltaba una página) no se da por hecho: se vuelve a

@@ -3039,8 +3039,8 @@ const SONDAS_SCRYDEX = [
 // set, en varias llamadas (la función se corta a los pocos segundos), y
 // escritura solo tras confirmar con el número delante.
 // Emparejar con TCGGO (tanda 588): cada clic gasta como mucho el tope de
-// peticiones que diga la casilla, en llamadas de 8 (2,1 s entre
-// peticiones: el plan da 30 por minuto y la función 20 s), y enseña lo que ha
+// peticiones que diga la casilla, en llamadas de lo que quepa en 20 s con
+// la pausa del plan (8 con el gratis, ~60 con Ultra; lo acota la función), y enseña lo que ha
 // hecho y lo que queda. La función apunta set a set, así que el clic
 // siguiente sigue donde se quedó.
 async function tcggoEmparejar() {
@@ -3048,7 +3048,7 @@ async function tcggoEmparejar() {
   const boton = document.getElementById('btnTcggoEmparejar')
   const { data: { session } = {} } = await supabase.auth.getSession()
   if (!session) return
-  const tope = Math.max(1, Math.min(400, Number(document.getElementById('tcggoTope')?.value) || 40))
+  const tope = Math.max(1, Math.min(2000, Number(document.getElementById('tcggoTope')?.value) || 40))
   const reiniciar = !!document.getElementById('tcggoReiniciar')?.checked
   if (reiniciar && !window.confirm('Vas a volver a pedir TODOS los sets a TCGGO, también los ya hechos. Son unas 300 peticiones. ¿Seguro?')) return
   const llamar = async (peticiones, primera) => {
@@ -3063,7 +3063,7 @@ async function tcggoEmparejar() {
   }
   const pintar = (t, gastadas) => [
     `Peticiones gastadas en este clic: ${gastadas} de ${tope} · hoy: ${t.peticionesHoy} de ${t.topeDiario} (el plan da 100 al día)`,
-    `Puerta: ${t.puerta || '—'}`,
+    `Puerta: ${t.puerta || '—'} · pausa entre peticiones: ${t.pausaMs ?? '—'} ms`,
     `Expansiones de TCGGO: ${t.episodios} (lista del ${t.episodiosDe ? t.episodiosDe.slice(0, 10) : '—'})`,
     `Nuestros sets: ${t.nuestrosSets ?? "—"} · hechos: ${t.setsHechos} · sin expansión suya: ${t.setsSinEpisodio} · pendientes: ${t.setsPendientes ?? "—"}`,
     `Pares escritos en este clic: ${t.escritas}`,
@@ -3087,7 +3087,7 @@ async function tcggoEmparejar() {
     let primera = true
     do {
       caja.value = `Pidiendo a TCGGO… ${gastadas} de ${tope} peticiones`
-      r = await llamar(Math.min(8, tope - gastadas), primera)
+      r = await llamar(Math.min(60, tope - gastadas), primera)
       primera = false
       gastadas += r.peticionesEstaLlamada || 0
       total.esteTurno.push(...(r.esteTurno || []))

@@ -19,16 +19,16 @@
 import { numeroComparable } from './scrydex.mjs'
 import { normalizeSearch } from '../../js/texto.js'
 
-// El mismo proveedor tiene DOS puertas en RapidAPI, y se vio con dos
-// respuestas: «Cardmarket API TCG» (cardmarket-api-tcg.p.rapidapi.com,
-// rutas /v1/tcgapi/{game}/…, la del PDF) contestó 403 «no estás suscrito»;
-// «Pokémon TCG API» (pokemon-tcg-api.p.rapidapi.com, las mismas rutas sin
-// ese prefijo) contestó 404 a la ruta larga — y un 404 solo llega si la
-// suscripción ha pasado. La base de serie es la segunda, que es a la que
-// PINGU está suscrito; `TCGGO_BASE` en Netlify la cambia sin desplegar
-// (por ejemplo https://cardmarket-api-tcg.p.rapidapi.com/v1/tcgapi/pokemon).
-export const HOST = 'pokemon-tcg-api.p.rapidapi.com'
-export const URL_BASE = `https://${HOST}`
+// La puerta de RapidAPI, que costó cuatro peticiones de 404 encontrar: el
+// PDF describe el servidor por dentro (/v1/tcgapi/{game}/…) y RapidAPI
+// publica las rutas SIN ese prefijo: /pokemon/episodes, /pokemon/cards,
+// /pokemon/episodes/{id}/cards (lo dice la ficha de la API en RapidAPI,
+// «Getting Started», no el PDF). El mismo proveedor tiene otra puerta,
+// «Pokémon TCG API» (pokemon-tcg-api.p.rapidapi.com, rutas sin /pokemon),
+// que no es a la que está suscrito PINGU. `TCGGO_BASE` en Netlify cambia
+// la base sin desplegar, y el host de la cabecera sale de ella.
+export const HOST = 'cardmarket-api-tcg.p.rapidapi.com'
+export const URL_BASE = `https://${HOST}/pokemon`
 
 // La base que manda: la variable de entorno si está, si no la de serie.
 // Sin barra final, y el host de la cabecera sale de ella.

@@ -18,9 +18,11 @@ cobra el exceso → tope diario 95 en el estado, 2,1 s entre peticiones,
 para en 429/403, reanudable set a set. El emparejador por orden/nombres
 de la 587 se ha QUITADO (función, lib, prueba y fixture de productos).
 
-**Pendiente de PINGU**: `TCGGO_API_KEY` ya está en Netlify. Probar desde
-/admin → Cartas → «Emparejar con TCGGO» con tope 12 (9 son la lista de
-expansiones) y pegar el cuadro. Los precios buenos entran con la pasada
+**Pendiente de PINGU**: `TCGGO_API_KEY` ya está en Netlify, y PINGU está
+suscrito a ULTRA: poner `TCGGO_TOPE_DIARIO=14000` y `TCGGO_PAUSA_MS=250`
+(y quitar `TCGGO_BASE` si la puso: la base de serie ya es la buena,
+`…cardmarket-api-tcg…/pokemon`). Probar desde /admin → Cartas →
+«Emparejar con TCGGO» con tope 12 y pegar el cuadro. Los precios buenos entran con la pasada
 de la guía (≤1 h).
 
 **Ficheros**: `netlify/lib/tcggo.mjs` y

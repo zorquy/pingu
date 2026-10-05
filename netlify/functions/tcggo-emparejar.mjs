@@ -15,12 +15,15 @@
 // COBRA las que pasen de 100 (0,005 $ cada una). Por eso hay dos frenos
 // que no dependen de que «quede trabajo» (la lección de la 510: cuando el
 // trabajo pendiente nunca llega a cero, el freno cuenta intentos): un tope
-// diario en el estado (`TOPE_DIARIO`, 95, que se puede subir con la
-// variable TCGGO_TOPE_DIARIO si se cambia de plan) y una pausa de 2,1 s
-// entre peticiones (28 por minuto como mucho). Y cada llamada recibe
-// además su propio tope (`peticiones`) y para al llegar, al acabarse el
-// tiempo, o si RapidAPI contesta que el plan se ha agotado (429 / 403):
-// seguir pidiendo sería seguir gastando sin escribir nada. Lo hecho queda
+// diario en el estado (`TOPE_DIARIO`, 95) y una pausa entre peticiones
+// (`PAUSA_MS`, 2,1 s: 28 por minuto como mucho). Los dos valen para el
+// plan GRATIS, que es el que no puede fallar hacia arriba; con un plan de
+// pago se suben por variables de entorno (TCGGO_TOPE_DIARIO y
+// TCGGO_PAUSA_MS: PINGU está en Ultra, 15.000 al día y 300 por minuto, o
+// sea 14.000 y 250). Y cada llamada recibe además su propio tope
+// (`peticiones`, acotado a lo que cabe en 20 s con esa pausa) y para al
+// llegar, al acabarse el tiempo, o si RapidAPI contesta que el plan se ha
+// agotado (429 / 403): seguir pidiendo sería seguir gastando sin escribir. Lo hecho queda
 // apuntado set a set en `scrydex_estado` (`tcggo_pares`), así que la
 // llamada siguiente sigue por el primer set sin hacer, y la lista de
 // expansiones suyas (9 páginas) se guarda una semana. Lo que no se vuelve
@@ -42,10 +45,12 @@ export const CLAVE_ESTADO = 'tcggo_pares'
 const MS_DE_MARGEN = 20_000
 const DIAS_DE_EPISODIOS = 7
 export const PETICIONES_POR_DEFECTO = 8
-export const PETICIONES_MAXIMO = 9
+export const PETICIONES_MAXIMO = 60
 export const TOPE_DIARIO = 95
-// Entre petición y petición: 30 por minuto es el límite del plan.
-const PAUSA_MS = 2_100
+// Entre petición y petición: 30 por minuto es el límite del plan gratis.
+export const PAUSA_MS = 2_100
+// Cuántas caben en una llamada con esa pausa (el margen son 20 s).
+export const cabenEnUnaLlamada = (pausaMs) => Math.max(1, Math.min(PETICIONES_MAXIMO, Math.floor(19_000 / Math.max(1, pausaMs))))
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -76,7 +81,8 @@ export async function procesar({
   if (!clave) return { estado: 500, cuerpo: { error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' } }
   const claveTcggo = env.TCGGO_API_KEY
   if (!claveTcggo) return { estado: 409, cuerpo: { error: 'Falta TCGGO_API_KEY en las variables de Netlify (la clave de RapidAPI).' } }
-  const tope = Math.max(1, Math.min(PETICIONES_MAXIMO, Number(peticiones) || PETICIONES_POR_DEFECTO))
+  const pausaMs = Math.max(0, Number(env.TCGGO_PAUSA_MS) >= 0 && env.TCGGO_PAUSA_MS !== undefined && env.TCGGO_PAUSA_MS !== '' ? Number(env.TCGGO_PAUSA_MS) : PAUSA_MS)
+  const tope = Math.max(1, Math.min(cabenEnUnaLlamada(pausaMs), Number(peticiones) || PETICIONES_POR_DEFECTO))
   const topeDiario = Math.max(1, Number(env.TCGGO_TOPE_DIARIO) || TOPE_DIARIO)
   const { base, host } = baseDe(env)
   const arranque = reloj()
@@ -112,7 +118,7 @@ export async function procesar({
       return { fin: 'dia' }
     }
     if (!quedaTiempo()) return { fin: 'tiempo' }
-    if (gastadas) await pausa(PAUSA_MS)
+    if (gastadas && pausaMs) await pausa(pausaMs)
     gastadas++
     estado.gasto.peticiones++
     const res = await fetchImpl(url, { headers: cabeceras(claveTcggo, host) })
@@ -141,8 +147,11 @@ export async function procesar({
   // ── Sus expansiones, una semana en el estado ──
   const edadDias = estado.episodios?.fecha ? (ahora.getTime() - new Date(estado.episodios.fecha).getTime()) / 86_400_000 : Infinity
   if (!Array.isArray(estado.episodios?.lista) || edadDias > DIAS_DE_EPISODIOS || reiniciar) {
-    const lista = []
-    let pagina = 1
+    // Se reanuda por donde se quedó la llamada anterior (la lista a medias
+    // no vale para decidir, pero sí para no volver a pedir sus páginas).
+    const enCurso = !reiniciar && Array.isArray(estado.episodiosEnCurso?.lista) ? estado.episodiosEnCurso : null
+    const lista = enCurso ? [...enCurso.lista] : []
+    let pagina = enCurso ? Number(enCurso.siguientePagina) || 1 : 1
     let completa = false
     for (;;) {
       const r = await pedirTcggo(urlEpisodios(pagina, base))
@@ -155,12 +164,14 @@ export async function procesar({
       pagina++
     }
     if (!completa) {
-      // A medias no vale: una lista corta diría «ese set no existe» de
-      // sets que sí existen. No se guarda; la próxima vuelve a empezar.
+      // A medias no vale para decidir: una lista corta diría «ese set no
+      // existe» de sets que sí existen. Se guarda aparte, para seguir.
+      estado.episodiosEnCurso = { lista, siguientePagina: pagina }
       await persistir()
       return { estado: 200, cuerpo: { ...resumen(), siguiente: !parado, nota: parado ? 'la lista de expansiones se ha quedado a medias' : 'no ha dado tiempo (o peticiones) a bajar la lista de expansiones entera: vuelve a llamar' } }
     }
     estado.episodios = { fecha: ahora.toISOString(), lista }
+    delete estado.episodiosEnCurso
     await persistir()
   }
   const episodios = estado.episodios.lista
@@ -254,6 +265,7 @@ export async function procesar({
     const sinEpisodio = Object.entries(estado.sinEpisodio).map(([id, v]) => ({ set: id, nombre: v.nombre, codigo: v.codigo, porque: v.porque }))
     return {
       puerta: base,
+      pausaMs,
       peticionesEstaLlamada: gastadas,
       tope,
       peticionesHoy: estado.gasto.peticiones,
