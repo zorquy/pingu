@@ -465,6 +465,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nada apunta a `tcg_cards`, así que las líneas de colección de una carta
   borrada se quedan HUÉRFANAS sin error — por eso se reapuntan antes, y la
   que no tiene a dónde ir no se borra.
+- **Un error que vuelve como RESPUESTA de una función programada no lo
+  lee nadie** (tanda 655). `tcggo-catalogo` creaba el set japonés, la
+  escritura de sus cartas fallaba, y el error volvía en el JSON de la
+  función —a los registros de Netlify— sin apuntarse en el estado: en la
+  web, «0 de 102» y dentro nada, durante días. Lo que falla en una
+  función programada va al ESTADO (`fallidos`, `vacios`, `ultimoError`)
+  y /admin lo enseña («Estado del catálogo de TCGGO»); y una expansión
+  que no se deja escribir se salta a la tercera, no se pide cada cinco
+  minutos para siempre.
 - **Un chip de «últimos N días» solo sale si el histórico CUBRE esos
   días** (tanda 653). Con tres fotos diarias, `diasDelRango(…, '1M')`
   devuelve las tres —tiene dos puntos y no se queja— y el chip habría

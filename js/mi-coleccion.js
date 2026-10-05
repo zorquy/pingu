@@ -1382,6 +1382,8 @@ async function pintarValorEnElTiempo() {
     // enseñaría dos totales distintos de lo mismo.
     caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor })}`
     engancharRangosDelValor()
+    // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
+    historico.grafica.engancharLectura(caja.querySelector('.mc-valor-lienzo'))
     pintarCambioDelMes()
   } catch {
     // Una gráfica que no llega no puede tumbar el resumen: se quita la

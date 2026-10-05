@@ -32,6 +32,12 @@
   font-size: var(--t-sm);
 }
 
+/* Vacía no ocupa (653): sin aviso que dar, dejaba 40 px de aire al pie
+   de la cabecera, que es parte del «demasiado espacio» de PINGU. */
+.mc-nota:empty {
+  display: none;
+}
+
 .mc-aviso,
 .mc-entrar {
   margin-bottom: var(--e-lg);
@@ -105,9 +111,11 @@
 .mc-hero {
   display: flex;
   flex-direction: column;
-  gap: var(--e-lg);
-  margin-bottom: var(--e-xl);
-  padding: var(--e-xl);
+  /* Más prieta desde la 653: PINGU, «tiene demasiado espacio todo y es
+     muy grande». Un paso menos en cada hueco; el porqué, en SCHEMA.md. */
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+  padding: var(--e-lg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   /* Un azul muy lavado, no un bloque de color: la cabecera tiene que
@@ -157,8 +165,8 @@
   flex: 0 0 auto;
   place-items: center;
   /* Una MEDIDA y no un paso (por encima de 32 px), en la retícula de 4. */
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   color: var(--blanco-fijo);
   font-family: var(--font-display);
@@ -244,7 +252,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--e-md) 0;
   margin: 0;
-  padding-top: var(--e-lg);
+  padding-top: var(--e-md);
   border-top: 1px solid var(--border);
 }
 
@@ -293,7 +301,7 @@
 .mc-cifra dd {
   margin: var(--e-xs) 0 0;
   font-family: var(--font-display);
-  font-size: var(--t-2xl);
+  font-size: var(--t-xl);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.1;
@@ -303,6 +311,8 @@
    hay borde que teñir, y además es la cifra que se viene a mirar. */
 .mc-cifra-valor dd {
   color: var(--navy);
+  /* La única que se viene a mirar sigue un paso más grande (653). */
+  font-size: var(--t-2xl);
 }
 
 /* ── EL MENÚ (tandas 405 a 408) ──
@@ -2243,8 +2253,8 @@
 /* ── Los vistazos del panel (tanda 436) ── */
 .mc-vistazos {
   display: grid;
-  gap: var(--e-2xl);
-  margin-top: var(--e-2xl);
+  gap: var(--e-xl);
+  margin-top: var(--e-xl);
 }
 
 .mc-vistazo-cabecera {
@@ -2253,7 +2263,7 @@
   gap: var(--e-sm);
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: var(--e-md);
+  margin-bottom: var(--e-sm);
 }
 
 .mc-vistazo-cabecera .mc-subtitulo {
@@ -3374,30 +3384,177 @@ input.mc-alb-titulo:not([readonly]):focus {
   width: calc(100% + var(--e-md) * 2);
 }
 
+/* EL LIENZO (653): la caja que colocan en tanto por ciento la marca del
+   último día, los rótulos de la rejilla y el globo de lectura. Y lleva el
+   TONO: verde si el tramo sube, rojo si baja, azul si no se sabe. Es una
+   propiedad local y no un token de `:root`: solo la usa esta gráfica. */
+.mc-valor-lienzo {
+  --valor-tono: var(--navy);
+  position: relative;
+  margin-inline: calc(var(--e-md) * -1);
+  touch-action: pan-y;
+}
+
+.mc-valor-lienzo.sube {
+  --valor-tono: var(--success);
+}
+
+.mc-valor-lienzo.baja {
+  --valor-tono: var(--danger);
+}
+
+.mc-valor-lienzo .mc-valor-grafica {
+  margin-inline: 0;
+  width: 100%;
+}
+
 /* El relleno, en degradado y no en un velo plano: es lo que separa una
-   gráfica de hoy de una de 2010. Los dos colores salen del mismo token,
-   así que sigue al tema sin tener que redefinirse. */
+   gráfica de hoy de una de 2010. Los dos colores salen del mismo tono,
+   así que siguen al tema y a la tendencia sin tener que redefinirse. */
 .mc-valor-area {
   fill: url('#mcValorDegradado');
   stroke: none;
 }
 
 .mc-valor-arriba {
-  stop-color: var(--navy);
-  stop-opacity: 0.28;
+  stop-color: var(--valor-tono);
+  stop-opacity: 0.4;
 }
 
 .mc-valor-abajo {
-  stop-color: var(--navy);
-  stop-opacity: 0;
+  stop-color: var(--valor-tono);
+  stop-opacity: 0.02;
+}
+
+/* Las rayas de la rejilla: tres, con su cifra al lado en HTML. */
+.mc-valor-raya {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.mc-valor-rotulos span {
+  position: absolute;
+  top: var(--py);
+  right: 0;
+  width: 14%;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* La marca del último día: un punto con halo, del tono del tramo. */
+.mc-valor-punto {
+  position: absolute;
+  top: var(--py);
+  left: var(--px);
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: var(--valor-tono);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--valor-tono) 25%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* La lectura al pasar el dedo: una guía vertical y un globo. */
+.mc-valor-lectura {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lx);
+  width: 0;
+  border-left: 1px dashed var(--valor-tono);
+  pointer-events: none;
+}
+
+.mc-valor-lectura-globo {
+  position: absolute;
+  top: var(--ly);
+  left: var(--e-sm);
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.mc-valor-lectura-globo b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-valor-lectura.a-la-izquierda .mc-valor-lectura-globo {
+  right: var(--e-sm);
+  left: auto;
+}
+
+/* Las fechas de los extremos (y la del medio, si el tramo es largo). */
+.mc-valor-fechas {
+  display: flex;
+  justify-content: space-between;
+  /* Acaba donde acaba la línea: el 14 % de la derecha es el canal. */
+  width: 86%;
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+/* Los chips de 7 y 30 días: dos lecturas fijas, con el signo delante del
+   número para quien no distingue el verde del rojo. */
+.mc-valor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-sm);
+}
+
+.mc-valor-chip {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: baseline;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--navy) 8%, var(--white));
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-valor-chip b {
+  color: var(--text);
+}
+
+.mc-valor-chip.sube {
+  background: color-mix(in srgb, var(--success) 12%, var(--white));
+}
+
+.mc-valor-chip.sube b {
+  color: var(--success);
+}
+
+.mc-valor-chip.baja {
+  background: color-mix(in srgb, var(--danger) 12%, var(--white));
+}
+
+.mc-valor-chip.baja b {
+  color: var(--danger);
 }
 
 .mc-valor-linea {
   fill: none;
-  stroke: var(--navy);
+  stroke: var(--valor-tono);
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2;
+  stroke-width: 2.5;
   /* `preserveAspectRatio="none"` estira el dibujo, y con él estiraría el
      grosor de la línea: `non-scaling-stroke` lo deja en 2 px de verdad. */
   vector-effect: non-scaling-stroke;
@@ -5581,7 +5738,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    aparecía pegado al párrafo del bloque de arriba y los dos se leían como
    uno. El mismo paso que separa a los demás. */
 #mcMasEstadisticas > .mc-vistazo {
-  margin-top: var(--e-2xl);
+  margin-top: var(--e-xl);
 }
 
 /* Los filtros de dentro de un Pokémon van en el MISMO panel que los de
@@ -6011,7 +6168,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   align-items: center;
   justify-content: center;
   gap: var(--e-sm);
-  min-height: 96px;
+  min-height: 80px;
   padding: var(--e-md);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -6037,8 +6194,8 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-accion-icono {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--navy) 10%, var(--white));
   color: var(--navy);
@@ -6059,8 +6216,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  min-height: 72px;
-  padding: var(--e-md);
+  min-height: 64px;
+  padding: var(--e-sm) var(--e-md);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -6074,7 +6231,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-panel-cifra b {
   color: var(--text);
   font-family: var(--font-display);
-  font-size: var(--t-2xl);
+  font-size: var(--t-xl);
   line-height: 1;
 }
 
@@ -6082,15 +6239,17 @@ input.mc-alb-titulo:not([readonly]):focus {
   border-color: var(--navy);
 }
 
-/* La gráfica con un solo punto (651). */
+/* La gráfica con un solo punto (651): la raya de base; el punto es la
+   misma marca que la del último día de una línea (653). Y a la mitad de
+   alto: 180 px para un punto son 180 px de nada. */
+.mc-valor-un-punto {
+  height: 96px;
+}
+
 .mc-valor-base {
   stroke: var(--border);
   stroke-width: 1;
   stroke-dasharray: 4 4;
-}
-
-.mc-valor-punto {
-  fill: var(--navy);
 }
 
 .mc-valor-cambio.igual {

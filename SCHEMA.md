@@ -31898,3 +31898,50 @@ resuelve la expansión por los pares, hace el reemplazo una vez y lo
 apunta, la siguiente no toca nada, cinco fallos y para, y sin expansión
 suya espera sin contar). Lo estático: programada, sin SQL nuevo y sin
 botón en /admin.
+
+## Tanda 655 — el catálogo de TCGGO apunta lo que no se deja escribir (oct. 2026)
+
+PINGU, en el móvil, con el «Expansion Pack» japonés (BASE1_) abierto:
+«el logo está y te dice cuántas cartas contiene, pero cuando entras ves
+que no hay cartas. Creo que el catálogo japonés no está completo». Lo
+mismo en Jungle, Mystery of the Fossils y Rocket Gang: «0 de 102» en la
+estantería y «de 0 cartas» dentro.
+
+**Lo que se sabe desde aquí** (sin acceso a la base ni a los registros
+de Netlify): esos sets los creó `tcggo-catalogo` —solo los crea
+`tcggo_crear_sets` y solo cuando TCGGO le ha dado cartas—, así que las
+cartas se PIDIERON y NO SE ESCRIBIERON. Y nada lo decía: un error de
+`tcggo_guardar_cartas` volvía como respuesta de la función programada
+(que nadie lee) **sin apuntarse en el estado**, y la pasada siguiente
+volvía a pedir la misma expansión a TCGGO —dos peticiones cada cinco
+minutos para no escribir nada, y todas las expansiones de detrás sin
+llegar nunca, que es la forma de la 522—; y una escritura que escribe
+CERO filas de una lista llena ni siquiera era un error. El porqué
+concreto (qué rechaza la base de esas filas) lo dirá el estado en cuanto
+corra una pasada; no se adivina.
+
+**Lo que hace la 655:**
+
+- **`fallidos`**: una expansión cuya escritura falla se apunta en
+  `estado.fallidos[mercado][episodio]` con el error, el nombre y cuántas
+  veces; la pasada se para (es nuestra base la que falla, la 526) y a la
+  tercera vez (`MAXIMO_INTENTOS_EPISODIO`) se SALTA esa expansión y se
+  sigue con las demás, rotulada en el turno. Los fallidos se olvidan al
+  cambiar la semana, con los hechos: se vuelve a intentar una vez por
+  semana, no cada cinco minutos.
+- **`vacios`**: una expansión con cartas pedidas y cero escritas se
+  apunta (`filas`, `sets`); si en otra pasada sí escribe, sale.
+- **`ultimoError`**: el último, con mercado, expansión, intento y fecha.
+  Y `resumen()` lleva las tres cuentas.
+- **/admin → Cartas, «Estado del catálogo de TCGGO»**: botón de SOLO
+  LECTURA que lee `scrydex_estado` con la sesión del admin (la política
+  de la 510) y pinta por dónde va el catálogo, el último error, los
+  fallidos y los vacíos de cada mercado, los pares, los precios y los
+  reemplazos de la 654. Es donde se lee el porqué del «0 de 102».
+
+**Pruebas**: `test-tanda-655.mjs` (con la base rechazando una expansión
+siempre: se apunta con su error, el set se crea igual —que es cómo se ve
+el «0 de 102»—, dos intentos, a la tercera se salta y sigue con la
+siguiente, no se vuelve a pedir, y a la semana se reintenta; escribir
+cero filas se apunta y se quita si después escribe; el botón de /admin
+lee los cuatro estados y no escribe nada).

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada) — PINGU-Claude (655 — el catálogo apunta lo que no se deja escribir)
+
+**Hecho**: PINGU ve sets japoneses creados por TCGGO con «0 de 102» y
+sin cartas dentro (Expansion Pack, Jungle, Fossils, Rocket Gang). Las
+cartas se pidieron y no se escribieron, y nada lo decía. Ahora
+`tcggo-catalogo` apunta en su estado las expansiones que no se dejan
+escribir (`fallidos`, con el error y los intentos; a la tercera las
+salta y sigue), las que escriben cero filas (`vacios`) y el último
+error; y /admin → Cartas tiene «Estado del catálogo de TCGGO» (solo
+lectura) para leerlo. **El porqué de verdad se lee ahí** tras la
+próxima pasada: pulsa el botón y pega lo que diga «ÚLTIMO ERROR».
+
+**Ficheros**: `netlify/functions/tcggo-catalogo.mjs`, `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`. En `pruebas`: 655 (nueva).
+
+**Pendiente**: con el error delante, arreglar la escritura de esos sets.
 ## 2026-10-05 (noche, 8) — PINGU-Claude (654 — el 30 aniversario se reemplaza solo por el de TCGGO)
 
 **Hecho**: función PROGRAMADA `tcggo-reemplazar-set` (a y 4 de cada
@@ -22,8 +38,7 @@ cuanto Netlify despliegue este push.
 `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 654 (nueva).
 
 **Pendiente**: mirar el 30 en /mi-coleccion pasados diez minutos del
-despliegue (la 653 de debajo sale en el push siguiente, en cuanto acabe su
-subconjunto de pruebas); el resumen de lo hecho está en `scrydex_estado` →
+despliegue; el resumen de lo hecho está en `scrydex_estado` →
 `tcggo_reemplazos`. Para reemplazar otra expansión entera, una entrada
 más en `REEMPLAZOS`.
 ## 2026-10-05 (noche, 7) — PINGU-Claude (653 — el Panel, más prieto y con la gráfica más visual)

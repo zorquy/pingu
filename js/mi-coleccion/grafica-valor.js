@@ -18,7 +18,11 @@ const pct1 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumF
 // el dibujo se escala solo con la caja que lo contenga.
 const ANCHO = 600
 const ALTO = 180
-const MARGEN = { arriba: 14, abajo: 14, izq: 0, der: 0 }
+// El de la derecha (653) es el CANAL de las cifras de la rejilla, como en
+// TCGGO: el 14 % del ancho, que en un móvil de 390 px son unos 50 px —lo
+// que mide «186,33 €» en letra pequeña—. La marca del último día cae al
+// borde de la línea, justo antes del canal.
+const MARGEN = { arriba: 14, abajo: 14, izq: 0, der: 84 }
 
 // ── EN CUÁNTOS DÍAS SE MIRA (tanda 464) ──
 //
@@ -121,6 +125,47 @@ function fechaCorta(iso) {
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')
 }
 
+// El tono de un tramo: sube, baja o igual. Es una CLASE y no un color,
+// porque el color lo pone la hoja (y cambia con el tema).
+const tono = (cambio) => (cambio > 0 ? 'sube' : cambio < 0 ? 'baja' : 'igual')
+
+// Un porcentaje con su signo, o nada si no se puede calcular (desde cero).
+function pctHtml(cambio, base) {
+  if (!(base > 0)) return ''
+  const p = (cambio / base) * 100
+  return `${p > 0 ? '+' : ''}${pct1.format(p)} %`
+}
+
+// ── LOS CHIPS DE 7 Y 30 DÍAS (653) ──
+// PINGU, con la ficha de TCGGO delante: «hay un porcentaje de que ha
+// bajado en los últimos 7 días». Son dos lecturas fijas que no dependen
+// del rango puesto: con MAX elegido se sigue sabiendo qué ha hecho la
+// colección esta semana y este mes, que es lo que se mira de un vistazo.
+// Un chip solo sale si el histórico CUBRE sus días: con tres días de
+// fotos, «30 d: +20 %» afirmaría un mes que no existe (la lección de la
+// 319, otra vez: lo que no se sabe no se pinta).
+function chipsHtml(diasTodos) {
+  const chips = [['7D', '7 d'], ['1M', '30 d']].map(([id, rotulo]) => {
+    const tramo = diasDelRango(diasTodos, id)
+    if (tramo.length < 2) return ''
+    const cubre = (Date.parse(`${tramo[tramo.length - 1].dia.slice(0, 10)}T00:00:00Z`) - Date.parse(`${tramo[0].dia.slice(0, 10)}T00:00:00Z`)) / 86400000
+    if (cubre < RANGOS.find((x) => x.id === id).dias) return ''
+    const cambio = tramo[tramo.length - 1].valor - tramo[0].valor
+    const p = pctHtml(cambio, tramo[0].valor)
+    return `<span class="mc-valor-chip ${tono(cambio)}">${rotulo} <b>${escapeHtml(p || `${cambio > 0 ? '+' : ''}${euros(cambio)}`)}</b></span>`
+  }).join('')
+  return chips ? `<div class="mc-valor-chips">${chips}</div>` : ''
+}
+
+// La marca del último día, en HTML y no en el SVG (653): el SVG se estira
+// con `preserveAspectRatio="none"`, así que un `<circle>` dentro sale
+// ovalado en una pantalla ancha. Un `<span>` colocado en tanto por ciento
+// mide lo mismo en todas. Las dos coordenadas van en un `style=` porque
+// son DATOS, no estilo (la excepción que CLAUDE.md declara para `--i`).
+function marcaHtml(xPct, yPct) {
+  return `<span class="mc-valor-punto" style="--px:${xPct.toFixed(2)}%;--py:${yPct.toFixed(2)}%" aria-hidden="true"></span>`
+}
+
 // `ahora` es lo que vale la colección EN ESTE MOMENTO: la misma suma
 // que enseña la cifra de arriba de la página.
 //
@@ -137,22 +182,22 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
   // no sabemos nada. Son dos cosas distintas (la lección de la 319).
   if (!r.bastante) {
     // Con UN punto (651) se enseña lo que vale HOY, con su punto en la
-    // gráfica, y se dice que la línea empieza mañana: la cifra es verdad
-    // aunque la tendencia todavía no se sepa.
+    // gráfica. Sin la explicación de debajo (653): PINGU, «todo eso lo
+    // quitaría porque no es necesaria». El rótulo «hoy» y un punto solo
+    // ya dicen que la línea empieza mañana.
     const unico = r.dias[0]
-    if (!unico) return `<p class="subtext">La primera foto del valor de tu colección se toma esta noche. En cuanto haya dos, aquí verás si sube o baja.</p>`
-    const cx = MARGEN.izq + (ANCHO - MARGEN.izq - MARGEN.der) * 0.5
-    const cy = ALTO / 2
+    if (!unico) return `<p class="subtext">La primera foto del valor de tu colección se toma esta noche.</p>`
     return `
     <div class="mc-valor-cifras">
       <p class="mc-valor-ahora">${escapeHtml(euros(unico.valor))}</p>
       <p class="mc-valor-cambio igual">hoy, ${escapeHtml(fechaCorta(unico.dia))}</p>
     </div>
-    <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de tu colección hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
-      <line class="mc-valor-base" x1="0" y1="${cy}" x2="${ANCHO}" y2="${cy}" vector-effect="non-scaling-stroke" />
-      <circle class="mc-valor-punto" cx="${cx}" cy="${cy}" r="5" vector-effect="non-scaling-stroke" />
-    </svg>
-    <p class="subtext">Es lo que vale hoy. La primera foto del valor de tu colección se toma esta noche; en cuanto haya dos, aquí verás si sube o baja.</p>`
+    <div class="mc-valor-lienzo igual">
+      <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de tu colección hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
+        <line class="mc-valor-base" x1="0" y1="${ALTO / 2}" x2="${ANCHO}" y2="${ALTO / 2}" vector-effect="non-scaling-stroke" />
+      </svg>
+      ${marcaHtml(50, 50)}
+    </div>`
   }
   // QUÉ RANGOS SE PUEDEN PEDIR: los que tengan dos puntos. Un botón que
   // no lleva a ninguna parte miente, así que el que no tiene datos se
@@ -201,10 +246,36 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
     })
     .join('')
 
+  // ── LA REJILLA Y LOS EJES (653) ──
+  // PINGU, con la gráfica de TCGGO delante: «me gustaría que fuese más
+  // visual». Lo que la hace legible no es más color: son tres rayas con su
+  // cifra —máximo, medio, mínimo— y las fechas debajo. Las rayas van en el
+  // SVG (una horizontal se estira bien); las cifras y las fechas son HTML
+  // colocado en tanto por ciento, porque el texto de un SVG estirado sale
+  // deformado. Con todos los días iguales solo hay una raya: tres rótulos
+  // con la misma cifra dirían tres veces lo mismo.
+  const alturas = max === min ? [max] : [max, (max + min) / 2, min]
+  const rayas = alturas.map((v) => `<line class="mc-valor-raya" x1="0" y1="${y(v).toFixed(1)}" x2="${ANCHO}" y2="${y(v).toFixed(1)}" vector-effect="non-scaling-stroke" />`).join('')
+  const rotulos = alturas.map((v) => `<span style="--py:${((y(v) / ALTO) * 100).toFixed(2)}%">${escapeHtml(euros(v))}</span>`).join('')
+  // Las fechas: la primera y la última siempre; la del medio solo si el
+  // tramo es largo (con tres días, tres fechas se pisan en un móvil).
+  const medio = dias[Math.floor((dias.length - 1) / 2)]
+  const fechas = cuantosDias >= 6 && medio !== primero && medio !== ultimo
+    ? [primero, medio, ultimo]
+    : [primero, ultimo]
+  const ejeFechas = fechas.map((d) => `<span>${escapeHtml(fechaCorta(d.dia))}</span>`).join('')
+  // Los puntos, para la lectura al pasar el dedo (`engancharLectura`): la
+  // fecha, el valor y dónde cae cada uno, en tanto por ciento del lienzo.
+  const puntosLectura = dias.map((d, i2) => [d.dia.slice(0, 10), Number(d.valor.toFixed(2)), Number(((x(i2) / ANCHO) * 100).toFixed(2)), Number(((y(d.valor) / ALTO) * 100).toFixed(2))])
+
   // El trazo lleva `vector-effect="non-scaling-stroke"` porque el SVG se
   // estira a lo ancho con `preserveAspectRatio="none"`: sin él, el trazo se
   // estira con el dibujo y la línea sale más gorda en una pantalla ancha
   // que en una estrecha.
+  //
+  // Y EL COLOR DICE LA TENDENCIA (653): verde si el tramo sube, rojo si
+  // baja, como en TCGGO y en cualquier gráfica de precios. Es una clase en
+  // el lienzo y la hoja pone el tono en la línea, el relleno y la marca.
   return `
     <div class="mc-valor-cifras">
       <p class="mc-valor-ahora">${escapeHtml(euros(ultimo.valor))}</p>
@@ -213,19 +284,71 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
         en ${cuantosDias === 1 ? 'el último día' : `los últimos ${cuantosDias} días`}
       </p>
     </div>
-    <svg class="mc-valor-grafica" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none"
-         role="img" aria-label="El valor de tu colección, del ${escapeHtml(fechaCorta(primero.dia))} al ${escapeHtml(fechaCorta(ultimo.dia))}: de ${escapeHtml(euros(primero.valor))} a ${escapeHtml(euros(ultimo.valor))}.">
-      <defs>
-        <linearGradient id="mcValorDegradado" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" class="mc-valor-arriba" />
-          <stop offset="100%" class="mc-valor-abajo" />
-        </linearGradient>
-      </defs>
-      <path class="mc-valor-area" d="${relleno}" />
-      <path class="mc-valor-linea" d="${linea}" vector-effect="non-scaling-stroke" />
-    </svg>
+    ${chipsHtml(r.dias)}
+    <div class="mc-valor-lienzo ${tono(cambio)}" data-puntos="${escapeHtml(JSON.stringify(puntosLectura))}">
+      <svg class="mc-valor-grafica" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none"
+           role="img" aria-label="El valor de tu colección, del ${escapeHtml(fechaCorta(primero.dia))} al ${escapeHtml(fechaCorta(ultimo.dia))}: de ${escapeHtml(euros(primero.valor))} a ${escapeHtml(euros(ultimo.valor))}.">
+        <defs>
+          <linearGradient id="mcValorDegradado" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="mc-valor-arriba" />
+            <stop offset="100%" class="mc-valor-abajo" />
+          </linearGradient>
+        </defs>
+        ${rayas}
+        <path class="mc-valor-area" d="${relleno}" />
+        <path class="mc-valor-linea" d="${linea}" vector-effect="non-scaling-stroke" />
+      </svg>
+      <div class="mc-valor-rotulos" aria-hidden="true">${rotulos}</div>
+      ${marcaHtml((x(dias.length - 1) / ANCHO) * 100, (y(ultimo.valor) / ALTO) * 100)}
+      <div class="mc-valor-lectura" hidden aria-hidden="true"><span class="mc-valor-lectura-globo"></span></div>
+    </div>
+    <div class="mc-valor-fechas" aria-hidden="true">${ejeFechas}</div>
     <div class="mc-valor-rangos" role="group" aria-label="En cuántos días se mira">${botones}</div>
     ${r.sinPrecio
       ? `<p class="subtext">${r.sinPrecio} ${r.sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía, así que no cuentan. Cuando lo tengan, la línea dará un salto que no es que hayan subido.</p>`
       : ''}`
+}
+
+// ── LA LECTURA AL PASAR EL DEDO (653) ──
+// Como en TCGGO: pasas el ratón (o el dedo) por la gráfica y un globo dice
+// el día y lo que valía. Es lo ÚNICO del módulo que toca el DOM, y se
+// engancha al lienzo que se acaba de pintar — la gráfica se repinta
+// entera en cada cambio de rango, así que el oyente vive y muere con su
+// lienzo. Los puntos vienen en `data-puntos`, que es lo que deja probarla
+// sin volver a calcular nada.
+export function engancharLectura(lienzo) {
+  if (!lienzo || lienzo.dataset.lectura) return
+  let puntos = []
+  try { puntos = JSON.parse(lienzo.dataset.puntos || '[]') } catch { puntos = [] }
+  if (puntos.length < 2) return
+  lienzo.dataset.lectura = '1'
+  const lectura = lienzo.querySelector('.mc-valor-lectura')
+  const globo = lienzo.querySelector('.mc-valor-lectura-globo')
+  if (!lectura || !globo) return
+  const leer = (e) => {
+    const caja = lienzo.getBoundingClientRect()
+    if (!caja.width) return
+    const pct = Math.min(100, Math.max(0, ((e.clientX - caja.left) / caja.width) * 100))
+    // El punto más cercano en horizontal: están repartidos a partes
+    // iguales, así que es el índice redondeado.
+    let i = 0
+    let mejor = Infinity
+    for (let k = 0; k < puntos.length; k++) {
+      const d = Math.abs(puntos[k][2] - pct)
+      if (d < mejor) { mejor = d; i = k }
+    }
+    const [dia, valor, px, py] = puntos[i]
+    lienzo.style.setProperty('--lx', `${px}%`)
+    lienzo.style.setProperty('--ly', `${py}%`)
+    // El globo se pega al lado que tenga sitio: a la izquierda del punto
+    // en la mitad derecha, para que no se salga de la caja.
+    lectura.classList.toggle('a-la-izquierda', px > 60)
+    globo.innerHTML = `<b>${escapeHtml(euros(valor))}</b> ${escapeHtml(fechaCorta(dia))}`
+    lectura.hidden = false
+  }
+  const soltar = () => { lectura.hidden = true }
+  lienzo.addEventListener('pointermove', leer)
+  lienzo.addEventListener('pointerdown', leer)
+  lienzo.addEventListener('pointerleave', soltar)
+  lienzo.addEventListener('pointercancel', soltar)
 }
