@@ -122,6 +122,17 @@ export function episodioDeSet(set, episodios) {
   const porNombreExacto = (episodios || []).filter((e) => nombresNuestros.includes(nombreComparable(e.nombre)))
   if (porNombreExacto.length === 1) return { episodio: porNombreExacto[0], por: 'nombre' }
   if (porNombreExacto.length > 1) return { episodio: null, porque: `${porNombreExacto.length} expansiones suyas con ese nombre` }
+  // Todas nuestras palabras dentro del nombre suyo, y solo una expansión:
+  // «Team Rocket Returns» en «EX Team Rocket Returns». Va ANTES que el
+  // código porque ex7 [RR] casó por código con Rising Rivals dos veces
+  // seguidas (la guarda del tcgid lo paró la segunda); un nombre entero
+  // dentro de otro dice más que una abreviatura que cada catálogo escribe
+  // a su manera.
+  const palabras = palabrasDe(set?.name_en || set?.name)
+  if (palabras.length >= 2) {
+    const contienen = (episodios || []).filter((e) => { const suyas = palabrasDe(e.nombre); return palabras.every((p) => suyas.includes(p)) })
+    if (contienen.length === 1) return { episodio: contienen[0], por: 'palabras' }
+  }
   const codigo = codigoComparable(set?.tcg_online_code)
   if (codigo) {
     const porCodigo = (episodios || []).filter((e) => codigoComparable(e.codigo) === codigo)
@@ -131,12 +142,6 @@ export function episodioDeSet(set, episodios) {
       if (porNombre.length === 1) return { episodio: porNombre[0], por: 'codigo+nombre' }
       return { episodio: null, porque: `${porCodigo.length} expansiones suyas con el código ${codigo}: ${porCodigo.map((e) => `${e.id} ${e.nombre}`).join(', ')}` }
     }
-  }
-  // Todas nuestras palabras dentro del nombre suyo, y solo una expansión.
-  const palabras = palabrasDe(set?.name_en || set?.name)
-  if (palabras.length >= 2) {
-    const contienen = (episodios || []).filter((e) => { const suyas = palabrasDe(e.nombre); return palabras.every((p) => suyas.includes(p)) })
-    if (contienen.length === 1) return { episodio: contienen[0], por: 'palabras' }
   }
   return { episodio: null, porque: codigo ? `ninguna expansión suya con el código ${codigo} ni el nombre «${set.name_en || set.name}»` : `nuestro set no tiene código de TCG Live y ninguna expansión suya se llama «${set.name_en || set.name}»` }
 }
@@ -157,6 +162,9 @@ const prefijoDeTcgid = (t) => String(t || '').toLowerCase().replace(/-[^-]*$/, '
 //   3. Solo los DÍGITOS del número, cuando es único en los dos lados entre
 //      lo que queda: nuestras Trainer Gallery van «TG01» y las suyas, que
 //      viven en una expansión aparte, «1»; las Shiny Vault «SV001» / «1».
+// Y en las pasadas 2 y 3, si hay VARIAS suyas con el mismo número, se queda
+// la que tiene un tcgid que acaba en dígitos y las demás no: en las promos
+// la sellada va «mepr-MEP001s» (o sin tcgid) y la normal «mepr-MEP001».
 // Lo que queda sin par lo dice con el motivo, y si había varias suyas con
 // el mismo número, cuáles (para saber qué distingue a las que sobran).
 export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
@@ -196,7 +204,11 @@ export function emparejarPorNumero(cartas, suyas, { setId = '' } = {}) {
     for (let i = pendientes.length - 1; i >= 0; i--) {
       const c = pendientes[i]
       const n = clave(c.local_id)
-      const candidatas = (porClave.get(n) || []).filter((s) => !usados.has(s.id))
+      let candidatas = (porClave.get(n) || []).filter((s) => !usados.has(s.id))
+      if (candidatas.length > 1) {
+        const normales = candidatas.filter((s) => /\d$/.test(String(s.tcgid || '')))
+        if (normales.length === 1) candidatas = normales
+      }
       if (candidatas.length !== 1 || nuestrasPorClave.get(n) !== 1) continue
       if (!casar(c, candidatas[0], por)) {
         sinPar.push({ id: c.id, numero: String(c.local_id ?? ''), porque: 'TCGGO no le da id de Cardmarket' })
