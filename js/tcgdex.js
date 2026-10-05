@@ -127,6 +127,13 @@ export function fetchCard(cardId, market = MERCADO_POR_DEFECTO) {
 // `name_search`, y este fichero importa `./supabase.js` —que en las
 // pruebas ES el doble—: arrastrarlo habría cerrado el círculo.
 export { normalizeSearch } from './texto.js'
+// Y se IMPORTA también (tanda 624): un reexport no crea el nombre en este
+// fichero, y `searchCards` la llama. Desde la 447 cada búsqueda acababa en
+// un `ReferenceError` que el `try` de quien llama se tragaba: el buscador
+// de cartas del editor, el del selector de mazo de los torneos y el
+// respaldo por nombre de las listas devolvían NADA. Lo vigila
+// test-imports.mjs.
+import { normalizeSearch } from './texto.js'
 
 // Busca en NUESTRO espejo, no en TCGdex, y SIEMPRE dentro de un mercado.
 //

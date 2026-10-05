@@ -297,10 +297,14 @@ export async function listaParaEnsenar(parsed) {
       if (!final) continue
       // La carta que se enseña puede ser otra impresión: su número va a
       // la línea para la imagen de respaldo, y el código de set es el de
-      // la línea que la ha traído.
+      // la línea que la ha traído (salvo que cambie de colección: abajo).
       const carta = final.carta ? { ...final.carta, exacta: final.carta.exacta ?? true } : null
       porSeccion[seccion].push({
         ...final.linea,
+        // Si la de rareza más baja es de otra colección (tanda 624), su
+        // código; sin él, ninguno: mezclar el de la línea con el número de
+        // otra colección pintaría otra carta de respaldo.
+        ...(carta?.cambio_de_set ? { set: carta.codigo_set || '' } : {}),
         number: carta?.exacta && carta.local_id ? carta.local_id : final.linea.number,
         quantity: final.n,
         carta,

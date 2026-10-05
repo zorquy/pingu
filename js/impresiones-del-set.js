@@ -12,7 +12,10 @@
 // que hacen falta: las que están fuera de la colección oficial, y los
 // Pokémon que la lista trae de dos sets (para saber si son la misma).
 import { supabase } from './supabase.js'
-import { impresionBase, juntarReimpresiones, fueraDeLaColeccion } from './impresion-canonica.js'
+import { marcasLegales } from './carta-legalidad.js'
+import { normalizeSearch } from './texto.js'
+import { esEnergiaBasica } from './constructor/nucleo.js'
+import { impresionBase, impresionMasComun, juntarReimpresiones, fueraDeLaColeccion } from './impresion-canonica.js'
 
 const oficiales = new Map() // set_id → cartas de la colección oficial (0 = no se sabe)
 const hermanas = new Map() // `${set_id}|${name_key}` → filas
@@ -54,6 +57,107 @@ async function impresionesHermanas(setId, claves, columnas) {
   return (await Promise.all(claves.map((k) => hermanas.get(`${setId}|${k}`)))).flat()
 }
 
+// ── Las reimpresiones de una carta, de CUALQUIER colección (tanda 624) ──
+//
+// Por la clave (el nombre inglés) y por el nombre español: desde la 330
+// hay filas con el español metido en `name`, y de las doce impresiones del
+// «Interruptor de Energía» tres tienen de clave «interruptor de energia» y
+// nueve «energy switch» — solo el nombre español las cruza. Dos consultas
+// por tanda de nombres, con la promesa en caché como las de arriba.
+const reimpresiones = new Map() // `${columnas}|${nombre normalizado}` → filas
+const fechas = new Map() // set_id → { fecha, codigo } (fecha de salida y código de TCG Live)
+const COLUMNAS_DE_RAREZA = 'id,set_id,local_id,name,name_es,name_en,name_key,category,image_path,image_scrydex,image_tcggo,rarity,rarity_en,regulation_mark,hp,attacks'
+
+function columnasCon(columnas) {
+  const todas = new Set([...String(columnas || '').split(','), ...COLUMNAS_DE_RAREZA.split(',')].map((c) => c.trim()).filter(Boolean))
+  return [...todas].join(',')
+}
+
+// De ocho en ocho nombres: hay cartas con decenas de reimpresiones (la
+// Ultra Ball, el Pikachu), y con todos los nombres en una consulta las de
+// uno se comerían el tope de filas de las demás sin decir nada.
+const NOMBRES_POR_CONSULTA = 8
+
+function consultaDeReimpresiones(claves, nombres, sel) {
+  const pedir = () => supabase.from('tcg_cards').select(sel).eq('market', 'WEST')
+  return Promise.all([
+    pedir().in('name_key', claves).limit(1000),
+    nombres.length ? pedir().in('name_es', nombres).limit(1000) : { data: [] },
+  ]).then(([a, b]) => [...(a.data || []), ...(b.data || [])])
+}
+
+async function reimpresionesDe(cartas, columnas) {
+  // Las energías básicas no: su dibujo lo pone js/imagen-carta.js por el
+  // tipo, y tienen más impresiones que ninguna otra carta.
+  const conReimpresiones = cartas.filter((c) => !esEnergiaBasica(c))
+  const nombresDe = (c) => [...new Set([c.name_key, normalizeSearch(c.name), normalizeSearch(c.name_es)].filter(Boolean))]
+  // Las columnas van en la clave de la caché: la fila que gana se enseña
+  // EN LUGAR de la que traía quien llama, así que tiene que traer lo mismo
+  // (el constructor necesita la fase y los tipos; la lista de un torneo, no).
+  const sel = columnasCon(columnas)
+  const llave = (k) => `${sel}|${k}`
+  const pendientes = conReimpresiones.filter((c) => nombresDe(c).some((k) => !reimpresiones.has(llave(k))))
+  for (let i = 0; i < pendientes.length; i += NOMBRES_POR_CONSULTA) {
+    const tanda = pendientes.slice(i, i + NOMBRES_POR_CONSULTA)
+    const claves = [...new Set(tanda.flatMap(nombresDe))].filter((k) => !reimpresiones.has(llave(k)))
+    if (!claves.length) continue
+    const nombres = [...new Set(tanda.flatMap((c) => [c.name_es, c.name]).filter(Boolean))]
+    const consulta = consultaDeReimpresiones(claves, nombres, sel)
+      .then((filas) => [...new Map(filas.map((f) => [f.id, f])).values()])
+      // Sin ellas se queda la impresión que había: es lo que se hacía antes.
+      .catch(() => [])
+    for (const k of claves) {
+      reimpresiones.set(
+        llave(k),
+        consulta.then((filas) => filas.filter((f) => [f.name_key, normalizeSearch(f.name), normalizeSearch(f.name_es)].includes(k)))
+      )
+    }
+  }
+  const claves = [...new Set(conReimpresiones.flatMap(nombresDe))]
+  const filas = (await Promise.all(claves.map((k) => reimpresiones.get(llave(k))))).flat()
+  return [...new Map(filas.map((f) => [f.id, f])).values()]
+}
+
+async function fechasDeSets(setIds) {
+  const faltan = [...new Set(setIds)].filter((s) => s && !fechas.has(s))
+  if (faltan.length) {
+    const consulta = supabase
+      .from('tcg_sets')
+      .select('id,release_date,tcg_online_code')
+      .in('id', faltan)
+      .then(({ data }) => new Map((data || []).map((s) => [s.id, { fecha: s.release_date || '', codigo: s.tcg_online_code || '' }])))
+      .catch(() => new Map())
+    for (const s of faltan) fechas.set(s, consulta.then((m) => m.get(s) || { fecha: '', codigo: '' }))
+  }
+  const out = new Map()
+  for (const s of new Set(setIds)) if (s) out.set(s, await fechas.get(s))
+  return out
+}
+
+// Regla 0, sobre unas entradas: cada carta, a su reimpresión de rareza más
+// baja (js/impresion-canonica.js, `impresionMasComun`).
+async function aLaMasComun(entradas, columnas) {
+  const cartas = entradas.map((e) => e.carta).filter(Boolean)
+  if (!cartas.length) return entradas
+  const [filas, legales] = await Promise.all([reimpresionesDe(cartas, columnas), marcasLegales().catch(() => [])])
+  if (!filas.length) return entradas
+  const deSet = await fechasDeSets(filas.map((f) => f.set_id))
+  const porId = new Map(filas.map((f) => [f.id, f]))
+  return entradas.map((e) => {
+    if (!e.carta) return e
+    // Su propia fila trae la rareza y los ataques, que la carta que llega
+    // puede no traer (las columnas de quien llama).
+    const propia = { ...(porId.get(e.carta.id) || {}), ...e.carta }
+    for (const k of 'rarity,rarity_en,attacks,hp,name_es,image_path,image_scrydex,image_tcggo'.split(',')) if (propia[k] == null && porId.get(e.carta.id)?.[k] != null) propia[k] = porId.get(e.carta.id)[k]
+    const mejor = impresionMasComun(propia, filas, { legales, fechaDeSet: (id) => deSet.get(id)?.fecha })
+    if (mejor === propia) return e
+    // Si cambia de colección, con su código: quien pinte una imagen de
+    // respaldo por «código + número» (Limitless) no puede mezclar el código
+    // de la línea con el número de otra colección.
+    return { ...e, carta: mejor.set_id === propia.set_id ? mejor : { ...mejor, cambio_de_set: true, codigo_set: deSet.get(mejor.set_id)?.codigo || '' } }
+  })
+}
+
 // Los ataques de unos cuantos Pokémon, para saber si dos con el mismo
 // nombre en sets distintos son la misma carta.
 async function conAtaques(cartas) {
@@ -72,7 +176,11 @@ async function conAtaques(cartas) {
 // con `carta` traída del espejo (con set_id, local_id, name_key y
 // category). `columnas` son las que necesita quien llama: la impresión
 // base vuelve con esas mismas, para que pueda pintarla igual que la otra.
-export async function canonizarEntradas(entradas, { columnas, codigoDeSet = () => '' } = {}) {
+export async function canonizarEntradas(entradasDadas, { columnas, codigoDeSet = () => '' } = {}) {
+  // Regla 0 (tanda 624): la reimpresión de rareza más baja, de cualquier
+  // colección. Las reglas 1 y 2 siguen detrás: la 1 para cuando la rareza
+  // no se sabe y el número dice que está fuera de su colección.
+  const entradas = await aLaMasComun(entradasDadas, columnas).catch(() => entradasDadas)
   const cartas = entradas.map((e) => e.carta).filter(Boolean)
   if (!cartas.length) return entradas
   const cuentas = await cuentasOficiales(cartas.map((c) => c.set_id))

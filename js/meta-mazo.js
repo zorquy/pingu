@@ -142,6 +142,8 @@ async function rellenarImagen(hueco, f) {
     if (e?.carta && e.carta.id !== carta.id) {
       carta = { ...e.carta, exacta: true }
       linea.number = carta.local_id
+      // De otra colección (tanda 624): su código, o ninguno.
+      if (carta.cambio_de_set) linea.set = carta.codigo_set || ''
     }
   }
   const attrs = atributosDeImagen(cadenaDeImagenes(linea, carta, (r) => cardImageUrl(r, 'low')))

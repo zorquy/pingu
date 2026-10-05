@@ -80,6 +80,19 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   que cada una de las ~1.600 importaciones con nombre apunta a algo que de
   verdad se exporta. **Correrla antes de cada push cuesta un segundo y se
   come esta familia entera de fallos.**
+- **Un REEXPORT no es un IMPORT** (tanda 624). `export { normalizeSearch }
+  from './texto.js'` deja que otros la importen de `js/tcgdex.js`, pero NO
+  crea el nombre dentro de ese fichero — y `searchCards` la llamaba. Desde la
+  447, cada búsqueda era un `ReferenceError` que el `try` de quien llama
+  convertía en «no hay resultados»: el buscador de cartas del editor y el
+  del selector de mazo llevaban semanas mudos. Si un fichero reexporta algo
+  y además lo usa, lo IMPORTA también. `test-imports.mjs` lo vigila.
+- **Un `select` del cliente que pide una columna NUEVA no se empuja antes
+  que la migración que la crea** (tanda 624, por la 640). Una función de
+  servidor puede «saltarse diciéndolo»; una consulta de la web que nombra
+  una columna inexistente falla ENTERA (42703), y con ella el buscador del
+  constructor, /mi-coleccion o las listas de torneos. O la migración va
+  primero, o la columna no se pide hasta que exista.
 - **No lances una suite mientras corre otra** (tanda 510). Las dos escriben
   en el mismo `suite.log` y las dos mueven el navegador, así que los
   números salen mezclados y no valen para nada — di «22 verdes, 0 rojos» de

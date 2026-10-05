@@ -20,7 +20,8 @@
 import { escapeHtml } from './html.js'
 import { cardImageUrl } from './tcgdex.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
-import { resolverLineas, cargarSets, cartasPorIds, misMazos } from './constructor/datos.js'
+import { resolverLineas, cargarSets, cartasPorIds, misMazos, COLUMNAS } from './constructor/datos.js'
+import { canonizarEntradas } from './impresiones-del-set.js'
 import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano, codificarMazo, leerLista } from './constructor/nucleo.js'
 import { mazoConLista, sinVerEnLaFoto, premiosCogidos, probabilidadDeRobar } from './repeticiones/lista.js'
 import { leerRegistro } from './repeticiones/registro.js'
@@ -267,7 +268,12 @@ async function afinarImpresion(nombre, carta, vez) {
     const { codigoDeId } = await cargarSets()
     const codigo = codigoDeId.get(buena.set)
     if (codigo) nueva = (await resolverLineas([{ n: 1, nombre, set: codigo, numero: buena.numero }])).resueltas.find((r) => r.exacta)?.carta || null
-    if (!nueva) nueva = (await cartasPorIds([buena.id])).get(buena.id) || null
+    if (!nueva) {
+      // Por su id, y como todas, a la de rareza más baja de esa misma carta
+      // (tanda 624): si no, este era el único camino que la saltaba.
+      const c = (await cartasPorIds([buena.id])).get(buena.id) || null
+      nueva = c ? (await canonizarEntradas([{ carta: c, n: 1 }], { columnas: COLUMNAS }).catch(() => [{ carta: c }]))[0]?.carta || c : null
+    }
   } catch {
     return false
   }

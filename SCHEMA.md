@@ -30933,3 +30933,95 @@ Scrydex en la 641 y dejó un import muerto en `admin/js/admin.js`;
 **Pruebas**: en `test-tanda-640.mjs` (episodio, serie, set nuevo, sets
 que ya tenemos, `esCartaSuelta`, el emparejador, la rareza canónica y la
 migración) y `test-tanda-527.mjs` al día.
+
+## Tanda 624 — una norma para todas las cartas: la impresión de rareza más baja (oct. 2026)
+
+PINGU: «en las repeticiones no salen las cartas con su mínima rareza, eso
+debería de ser así al igual que el constructor de mazos, deberíamos de
+seguir un estándar para todas las cartas».
+
+**La regla 0** (`impresionMasComun`, js/impresion-canonica.js): de las
+reimpresiones de una carta, de CUALQUIER colección, la de rareza más baja.
+Va dentro de `canonizarEntradas` (js/impresiones-del-set.js), delante de
+las reglas 1 y 2 de la 413, así que la cumplen a la vez el constructor
+(`resolverLineas`), las repeticiones (también el camino por id de la 481,
+que se la saltaba), /laboratorio, las listas de los torneos
+(`listaParaEnsenar`) y el meta (`meta-mazo.js`). En la repetición de
+Zoroark que se probó contra producción solo cambia una: el «Interruptor de
+Energía» que se resolvía por el nombre era el de ME05 107 (Ultra Rara) y
+pasa al de ME01 115 (Común). En una muestra de 367 cartas legales de rareza
+alta (Ultra, Ilustración, Ilustración Especial, Híper), 365 pasan a su
+impresión baja (los SIR de Evoluciones Prismáticas a la Rara Doble de su
+set de origen) y las 2 que se quedan son energías.
+
+**Cuándo NO cambia**, que es lo delicado:
+
+- a igual rareza se queda la que venía (la del meta de la 590, la que casa
+  con lo que se le ve hacer de la 481, la que trae la lista);
+- una carta legal no pasa a una impresión que no lo es: el constructor mira
+  la marca DE LA IMPRESIÓN («Marca G: fuera de Estándar») y el mazo saldría
+  ilegal; y una con marca no pasa a una de antes de las marcas (el «Cambio»
+  de Espada y Escudo, Infrecuente, no pasa al Común de Base Set de 1999 sino
+  al Común de Escarlata y Púrpura). Por lo mismo tampoco entran las cartas
+  que crea TCGGO (640): nacen sin marca de regulación;
+- una promo no sustituye a una carta de colección; la promo cuenta entre la
+  Rara y la Rara Holo (`RANGO_DE_PROMO = 3.5`): la promo de un objeto pasa a
+  su Común, la de un ex no «baja» a su Rara Doble;
+- nunca a una sin imagen, ni a una cuya rareza no se sabe (lo que no se sabe
+  no se afirma). Eso deja fuera, sin regla aparte, las de TCG Pocket que hay
+  en el catálogo occidental (P-A: «Poción», «Ninguno», diamantes); y por si
+  la escala aprende sus rarezas, `esDePocket` las saca por su colección;
+- un Pokémon con el mismo nombre solo es la misma carta con los mismos
+  ataques —por el nombre o, si están en otro idioma (330), por su FORMA: PS
+  y coste y daño de cada ataque—; sin ataques, no;
+- las energías básicas no entran: su dibujo lo pone js/imagen-carta.js por
+  el tipo.
+
+A igual rareza entre candidatas: la de su misma colección (la 413), la
+legal, la marca más nueva y la colección más reciente.
+
+**Las reimpresiones se buscan por la clave Y por el nombre español**: desde
+la 330 hay filas con el español en `name`, y de las doce del «Interruptor
+de Energía» tres tienen de clave «interruptor de energia» y nueve «energy
+switch». De ocho en ocho nombres (una carta con decenas de impresiones no
+se come el tope de filas de las demás), y en caché por nombre **y por
+columnas**: la fila que gana se enseña EN LUGAR de la que traía quien
+llama, así que tiene que traer lo mismo (el constructor necesita la fase y
+el subtipo; la lista de un torneo, no). Si cambia de colección vuelve con
+`cambio_de_set` y su `codigo_set`, y la lista de un torneo y el meta ponen
+ese código en la línea: el código de una colección con el número de otra
+pintaría otra carta de respaldo.
+
+**Una escala para toda la web** (js/rareza-escala.js). Había dos: la de
+/mi-coleccion (427 y 523) no entendía el español, y con media base en
+español («Común», «Rara Doble», «Ultra Rara») esas cartas se ordenaban al
+final como «no se sabe». Ahora es la misma para ordenar el álbum y para
+elegir impresión: la tabla exacta de antes y, debajo, palabras en los dos
+idiomas comparadas SIN TILDES (un `\b` junto a una «í» no es un borde para
+JavaScript). La Galería de Entrenadores cuenta como ilustración (8) y no
+como holo (4). `rangoDeCarta` lee `rarity_en` primero —«Ultra Rara» vale
+lo mismo para un GX normal («Rare Holo GX») que para su arte completo— y el
+orden del álbum usa ya la de la carta y no `rarity` a secas.
+`mi-coleccion/orden.js` la reexporta: nada de lo que la importaba se entera.
+
+**Y un fallo de la 447 que salió al probar esto**: `js/tcgdex.js`
+reexportaba `normalizeSearch` (`export { … } from './texto.js'`) y la
+llamaba en `searchCards`. Un reexport NO crea el nombre en el fichero, así
+que cada búsqueda era un `ReferenceError` que el `try` de quien llama
+convertía en «no hay resultados»: el buscador de cartas del editor
+(`card-picker.js`), el del selector de mazo de los torneos y el respaldo por
+nombre de las listas (`resolverCarta`) llevaban desde entonces sin devolver
+nada. Ahora se importa además de reexportarse, y `test-imports.mjs` tiene
+una guarda nueva: un nombre que un fichero solo REEXPORTA no se puede
+llamar dentro de él.
+
+**Pruebas**: `test-tanda-624.mjs` (la escala en los dos idiomas, cada caso
+de cuándo cambia y cuándo no, el álbum ordenado, la lista de un torneo con
+código y número de la colección nueva y, DESPUÉS, `canonizarEntradas` con
+las columnas del constructor —el doble proyecta columnas
+(`__PROYECTAR__`), si no la caché por columnas no se podría ver—, el
+Shaymin de una repetición y sus dos contrastes —otros ataques, común
+ilegal—, el Greninja de la 481 traído por su id y `searchCards`), rigor de
+24 mutaciones, todas cazadas. Al día: los rigores de la 427 y la 523 apuntan a la escala
+nueva (y cuatro anclas suyas que se habían quedado atrás, una de ellas por
+el `image_tcggo` de la 640) y la 413 sigue con las suyas.

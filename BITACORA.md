@@ -4,6 +4,61 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (mediodía) — PINGU-Claude (624 — una norma para todas las cartas: la rareza más baja)
+
+**Leídas vuestras 640 a 644** (TCGGO de catálogo, Scrydex fuera, precio
+japonés, histórico, lo que faltaba del catálogo). Nada de lo vuestro se
+pisa con esto; mi número es 624 (sigo en la 62x). La escala de rareza
+nueva compara sin distinguir mayúsculas, así que el «rare» en minúscula de
+TCGGO (644) ya cuenta. Ojo con la fecha: hoy es **5 de octubre** (las entradas de
+«2026-10-06» de abajo van un día adelantadas, la mía de la 620 también).
+
+**⚠️ La 640 tiró producción hasta que se ejecutó su migración**: diez
+consultas del cliente pedían `image_tcggo` y la columna NO existía todavía
+en la base (comprobado en pokedoc.es: el buscador del constructor falla con
+«column tcg_cards.image_tcggo does not exist»; también faltan `tcggo_id`,
+`origen` y `tcggo_at`). Se lo dije a PINGU, la ejecutó y a las 13:30 el
+buscador del constructor ya contestaba (comprobado en pokedoc.es). La norma
+que sale de aquí, y va en CLAUDE.md: **un
+`select` del cliente que pide una columna nueva no se empuja antes que la
+migración que la crea** — la función de servidor «se salta diciéndolo», pero
+la web no: falla entera.
+
+**Hecho**: PINGU: «en las repeticiones no salen las cartas con su mínima
+rareza… deberíamos seguir un estándar para todas las cartas». Regla 0 en
+`canonizarEntradas`: cada carta, a su reimpresión de rareza más baja DE
+CUALQUIER COLECCIÓN (por la clave y por el nombre español). La siguen el
+constructor, las repeticiones (también el camino por id de la 481), el
+laboratorio, las listas de torneos y el meta. No cambia a igual rareza, ni
+de legal a no legal, ni a una sin marca o sin imagen, ni a una promo, ni a
+una de rareza desconocida (Pocket queda fuera), ni a otro Pokémon con el
+mismo nombre. Probado contra producción: en la repetición de Zoroark solo
+cambia el Interruptor de Energía (ME05 Ultra Rara → ME01 Común).
+**Una escala de rareza para toda la web** (`js/rareza-escala.js`): la de
+/mi-coleccion no entendía el español y ordenaba «Común» o «Rara Doble» al
+final; ahora es la misma para ordenar el álbum y para elegir impresión.
+
+**Y un fallo de la 447**: `js/tcgdex.js` reexportaba `normalizeSearch` sin
+importarla y la llamaba en `searchCards` → ReferenceError en cada búsqueda,
+tragado por el `try` de quien llama: el buscador de cartas del editor, el
+selector de mazo de torneos y el respaldo por nombre de las listas llevaban
+semanas sin devolver nada. Arreglado, y `test-imports.mjs` lo vigila ya
+(«un reexport no es un import»).
+
+**Ficheros**: `js/rareza-escala.js` (nuevo), `js/impresion-canonica.js`,
+`js/impresiones-del-set.js`, `js/lista-canonica.js`, `js/meta-mazo.js`,
+`js/repeticiones.js`, `js/mi-coleccion/orden.js`, `js/tcgdex.js`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-624.mjs` y `rigor-tanda-624.py` (nuevos), `test-imports.mjs`
+(la guarda de reexports), `test-tanda-527.mjs` (el informe que ya no está),
+rigores 427 y 523 apuntando a la escala nueva.
+
+**Suite completa**: verde salvo la 470 (la captura que falta, de siempre).
+Por el camino: la 527 exigía el informe de rarezas de /admin que se fue con
+Scrydex en vuestra 641 — ahora lo exige solo si el informe existe; y la
+546 (columnas con `name_es` piden `name_en`) cazó mis consultas nuevas.
+
+**Pendiente**: nada en curso.
 ## 2026-10-06 (noche, 6) — PINGU-Claude (644 — el catálogo desde TCGGO: lo que faltaba)
 
 **Hecho**: un set nuevo de TCGGO entra con su serie (la era de /cartas,
