@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 05:50) — PINGU-Claude (suite entera: 290 verdes, 6 rojos, arreglados)
+
+**Suite entera pasada** con todo lo de la noche (las 580–585 y vuestras
+590–596): **290 verdes, 6 rojos**, y de los seis: 374 (el estado vacío
+nuevo de la 581), 386 (la marca `// sin rango:` que se me cayó al rehacer
+onboarding.js), 546 (`name_es || name` en los dos módulos de importar →
+`nombreDeCarta`), 591 (vuestro test leía `servir.py` por una ruta de
+vuestra máquina: ahora relativa al propio test) — los cuatro al día. Los
+otros dos, **493 y 514, piden `ffprobe` y este contenedor ya no lo tiene**
+(se reinició de madrugada): no son de la web.
+
+**Ficheros**: `js/onboarding.js`, `js/mi-coleccion/importar-csv.js`,
+`js/mi-coleccion/importar.js`. En `pruebas`: 374, 591, y los 16 viejos de
+la entrada anterior (ya empujados).
+
 ## 2026-10-06 (noche, 03:40) — PINGU-Claude (580–585, SEGUNDA MITAD: todo cableado)
 
 **Hecho**:

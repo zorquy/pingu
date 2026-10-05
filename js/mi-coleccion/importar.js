@@ -8,6 +8,7 @@ import { supabase } from '../supabase.js'
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import * as datos from './datos.js'
+import { nombreDeCarta } from '../catalogo-series.js'
 import { leerCsv, reconocerColumnas, faltanColumnas, entradasDe, emparejar, exportarCsv } from './importar-csv.js'
 
 const $ = (id) => document.getElementById(id)
@@ -83,7 +84,7 @@ async function analizar({ mercado }) {
   $('mcImpLista').innerHTML = listas.length
     ? `<p class="mc-imp-titulo">Se van a añadir:</p><ul class="mc-imp-lista">${listas
         .slice(0, 60)
-        .map((l) => `<li><span>${escapeHtml(l.carta.name_es || l.carta.name)} <small>${escapeHtml(l.carta.tcg_sets?.name || l.carta.set_id)} · ${escapeHtml(l.carta.local_id || '')}</small></span> <span class="subtext">×${l.linea.cantidad} · ${escapeHtml(l.linea.idioma)} · ${escapeHtml(l.linea.estado)}${l.linea.variante !== 'normal' ? ` · ${escapeHtml(l.linea.variante)}` : ''}${l.linea.gradeo ? ` · ${escapeHtml(l.linea.gradeo)}` : ''}</span></li>`)
+        .map((l) => `<li><span>${escapeHtml(nombreDeCarta(l.carta))} <small>${escapeHtml(l.carta.tcg_sets?.name || l.carta.set_id)} · ${escapeHtml(l.carta.local_id || '')}</small></span> <span class="subtext">×${l.linea.cantidad} · ${escapeHtml(l.linea.idioma)} · ${escapeHtml(l.linea.estado)}${l.linea.variante !== 'normal' ? ` · ${escapeHtml(l.linea.variante)}` : ''}${l.linea.gradeo ? ` · ${escapeHtml(l.linea.gradeo)}` : ''}</span></li>`)
         .join('')}${listas.length > 60 ? `<li class="subtext">…y ${listas.length - 60} más</li>` : ''}</ul>`
     : ''
   const boton = $('mcImpConfirmar')

@@ -26,6 +26,7 @@
 // Sin DOM y sin Supabase: `emparejar` recibe los sets y una función que
 // trae las cartas de uno, así que se prueba en Node con listas a mano.
 import { normalizeSearch } from '../texto.js'
+import { nombreDeCarta } from '../catalogo-series.js'
 import { CASAS } from './gradeo.js'
 
 // ── 1. Leer el CSV ──
@@ -381,7 +382,7 @@ export function exportarCsv(lineas, cartaDe) {
     const c = cartaDe(l) || {}
     filas.push([
       l.card_id,
-      c.name_es || c.name || '',
+      nombreDeCarta(c) || '',
       c.tcg_sets?.name || c.tcg_sets?.name_en || c.set_id || '',
       c.tcg_sets?.tcg_online_code || '',
       c.local_id || '',
