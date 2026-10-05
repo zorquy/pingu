@@ -9,24 +9,26 @@ sys.path.insert(0, '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d4504905
 import rigor_comun
 
 O = 'js/mi-coleccion/orden.js'
+# La escala se mudó a su propio fichero en la tanda 624 (una para toda la web).
+ESC = 'js/rareza-escala.js'
 J = 'js/mi-coleccion.js'
 H = 'mi-coleccion.html'
 
 MUTACIONES = [
     # ── La escala ──
-    (O, 'la ilustracion especial baja al escalon de la normal',
+    (ESC, 'la ilustracion especial baja al escalon de la normal',
      "  'Special illustration rare': 10,", "  'Special illustration rare': 8,"),
-    (O, 'la promo se cuela en medio de la escala',
+    (ESC, 'la promo se cuela en medio de la escala',
      "  Promo: 0,", "  Promo: 6,"),
-    (O, 'una rareza desconocida se inventa un escalon',
+    (ESC, 'una rareza desconocida se inventa un escalon',
      "  return palabra ? palabra[1] : null", "  return palabra ? palabra[1] : 3"),
-    (O, 'sin rareza se inventa un escalon',
+    (ESC, 'sin rareza se inventa un escalon',
      "  if (!rareza) return null", "  if (!rareza) return 0"),
     # Los bordes de palabra: `/rare/i` casa con «Rareza».
-    (O, 'se pierden los bordes de palabra',
-     "  [/\\brare\\b/i, 3],", "  [/rare/i, 3],"),
-    (O, 'ya no se reconoce una rareza nueva por su palabra',
-     "  const palabra = POR_PALABRAS.find(([re]) => re.test(String(rareza)))", "  const palabra = null"),
+    (ESC, 'se pierden los bordes de palabra',
+     "  [/\\b(rare|rara)\\b/i, 3],", "  [/(rare|rara)/i, 3],"),
+    (ESC, 'ya no se reconoce una rareza nueva por su palabra',
+     "  const palabra = POR_PALABRAS.find(([re]) => re.test(texto))", "  const palabra = null"),
 
     # ── El orden ──
     (O, 'por rareza va de menos a mas',
@@ -54,14 +56,14 @@ MUTACIONES = [
      "  return ordenar(encajan, $('mcAlbumOrden')?.value || 'numero', { tengo: tengoDe, nombre: nombreDe })",
      "  return ordenar(encajan, 'numero', { tengo: tengoDe, nombre: nombreDe })"),
     (J, 'cambiar el orden no repinta',
-     "  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden']) {",
-     "  for (const id of ['mcAlbumRareza', 'mcAlbumTipo']) {"),
+     "  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden', 'mcAlbumIdioma']) {",
+     "  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumIdioma']) {"),
     (J, 'el desplegable se repinta y pierde lo elegido',
      "  if (orden && !orden.options.length) {", "  if (orden) {"),
     (J, 'no se pasa quien sabe cuantas tienes',
      "{ tengo: tengoDe, nombre: nombreDe })", "{ nombre: nombreDe })"),
     (H, 'la rejilla se queda sin desplegable de orden',
-     '<select id="mcAlbumOrden" class="mc-chapa-select" aria-label="Cómo se ordenan las cartas"></select>', ''),
+     '<select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>', ''),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-427.mjs')

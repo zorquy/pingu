@@ -11,6 +11,8 @@ import rigor_comun
 NOM = 'js/rarezas-nombres.js'
 TRA = 'js/carta-traducciones.js'
 ORD = 'js/mi-coleccion/orden.js'
+# La escala vive en su propio fichero desde la tanda 624.
+ESC = 'js/rareza-escala.js'
 FIL = 'js/mi-coleccion/filtros.js'
 DAT = 'js/mi-coleccion/datos.js'
 NUC = 'js/constructor/nucleo.js'
@@ -36,9 +38,9 @@ MUTACIONES = [
     (TRA, 'y la secreta también deja de ser oro',
      "  'Rara Secreta': 'dorada',\n", ''),
     # La escala.
-    (ORD, 'la Rainbow se ordena como una rara del montón',
-     "  [/\\b(rainbow|arco[ií]ris)\\b/i, 11],\n", ''),
-    (ORD, 'y la secreta igual',
+    (ESC, 'la Rainbow se ordena como una rara del montón',
+     "  [/\\b(rainbow|arcoiris)\\b/i, 11],\n", ''),
+    (ESC, 'y la secreta igual',
      "  [/\\b(secret|secreta)\\b/i, 11],\n", ''),
     # Los chips de filtro.
     (FIL, 'los chips ignoran la columna preferida',
@@ -56,16 +58,16 @@ MUTACIONES = [
     # Y EL BARRIDO: una consulta que se deja la columna. Es la mutación que
     # de verdad reproduce la tanda, porque lo demás estaba bien desde la 510.
     (DAT, 'la consulta de tu colección se deja `rarity_en`',
-     'image_scrydex,rarity,rarity_en,category,variants,illustrator',
-     'image_scrydex,rarity,category,variants,illustrator'),
+     'image_tcggo,rarity,rarity_en,category,variants,illustrator',
+     'image_tcggo,rarity,category,variants,illustrator'),
     # Las reglas de mazo.
     (NUC, 'el AS táctico vuelve a mirar una sola columna',
      "const rarezasDe = (carta) => `${carta?.rarity_en || ''} ${carta?.rarity || ''}`",
      "const rarezasDe = (carta) => `${carta?.rarity || ''}`"),
     # Y la ficha de /carta, que era la pantalla de la queja.
     (CAR, '/carta vuelve a rotular la rareza gruesa',
-     "  const cruda = rarezaCrudaDeCarta(carta)\n  if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeRarezaHtml(cruda)])",
-     "  if (carta?.rarity) filas.push(['Rareza', rarezaEs(carta.rarity), marcaDeRarezaHtml(carta.rarity)])"),
+     "  const cruda = rarezaCrudaDeCarta(carta)\n  if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeCartaHtml(carta)])",
+     "  if (carta?.rarity) filas.push(['Rareza', rarezaEs(carta.rarity), marcaDeCartaHtml(carta)])"),
 ]
 
 rigor_comun.correr(MUTACIONES, 'test-tanda-523.mjs')

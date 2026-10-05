@@ -143,6 +143,39 @@ for (const f of readdirSync(AQUI).filter((n) => /^test-.*\.mjs$/.test(n)).map((n
   }
 }
 
+// ── UN REEXPORT NO ES UN IMPORT (tanda 624) ──
+//
+// `export { normalizeSearch } from './texto.js'` deja que OTROS la importen
+// de aquí, pero NO crea el nombre dentro de este fichero. `js/tcgdex.js` la
+// reexportaba así desde la tanda 447 y la seguía llamando en `searchCards`:
+// un `ReferenceError` en cada búsqueda, que el `try` de quien llama se
+// tragaba — el buscador de cartas del editor, el selector de mazo de los
+// torneos y el respaldo por nombre de las listas llevaban semanas
+// devolviendo NADA, sin un error a la vista. Y la guarda de arriba no lo
+// ve: el import de quien llama a `searchCards` es perfectamente válido.
+const sinComentarios = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1')
+const huerfanos = []
+let reexportados = 0
+for (const f of todos) {
+  const s = sinComentarios(readFileSync(f, 'utf8'))
+  for (const m of s.matchAll(/(?:^|[;}\s])export\s*\{([^}]*)\}\s*from\s*['"][^'"]+['"]/gm)) {
+    for (const trozo of m[1].split(',')) {
+      const nombre = trozo.trim().split(/\s+as\s+/)[0].trim()
+      if (!nombre || nombre === 'default') continue
+      reexportados++
+      const resto = s.replace(m[0], '')
+      const e = nombre.replace(/\$/g, '\\$')
+      const seLlama = new RegExp(`(?<![.\\w$])${e}\\s*\\(`).test(resto)
+      const declarado =
+        new RegExp(`import\\s*\\{[^}]*(?<![\\w$])${e}(?![\\w$])[^}]*\\}`).test(resto) ||
+        new RegExp(`(?:function\\*?|const|let|var|class)\\s+${e}(?![\\w$])`).test(resto) ||
+        new RegExp(`import\\s+${e}\\s+from`).test(resto)
+      if (seLlama && !declarado) huerfanos.push(`${f.replace(RAIZ + '/', '')} llama a «${nombre}», que solo REEXPORTA`)
+    }
+  }
+}
+check(`un reexport no se usa como si fuera un import (${reexportados} reexportados)`, huerfanos.length === 0, huerfanos.join('\n      '))
+
 // Que el barrido LLEGUE: de un repo del que no se recoge ni un import no
 // se puede decir que no tenga ninguno roto (la lección de la 307).
 check(`el barrido llega: ${todos.length} módulos, ${revisados} importaciones con nombre`, revisados > 300, String(revisados))
