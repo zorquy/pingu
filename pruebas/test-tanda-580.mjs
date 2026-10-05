@@ -87,14 +87,28 @@ console.log('── 2. Importar un CSV de Collectr ──')
   check('el Chien-Pao con su PSA 10', filas.find((f) => f.card_id === 'sv2-193')?.gradeo === 'PSA 10')
   check('el Charizard de primera edición, GD', filas.find((f) => f.card_id === 'base1-4')?.variante === 'primera' && filas.find((f) => f.card_id === 'base1-4')?.estado === 'GD')
   check('la bandeja se cierra', await page.evaluate(() => !document.getElementById('mcImportarDialogo')?.open))
-  // Y la pantalla se entera sin recargar.
-  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2000)
+  // Y la pantalla se entera SIN recargar (el doble vive en la página: una
+  // recarga lo sembraría de nuevo y no probaría nada).
+  await page.locator('#mcVistazos [data-ir-a="cartas"]').first().click()
+  await page.waitForTimeout(1200)
   const cuantas = await page.locator('.mc-carta-foto').count()
   check('la pestaña Cartas enseña las nuevas', cuantas >= 3, String(cuantas))
+  await page.locator('[data-pestania="resumen"]:visible').first().click()
+  await page.waitForTimeout(800)
 }
 
-console.log('── 3. Un fichero sin lo mínimo lo dice ──')
+console.log('── 3. Exportar ──')
+{
+  const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }), page.click('#mcExportar')])
+  const ruta = await descarga.path()
+  const texto = (await import('node:fs')).readFileSync(ruta, 'utf8').replace(/^﻿/, '')
+  check('se descarga un .csv', /\.csv$/.test(descarga.suggestedFilename()), descarga.suggestedFilename())
+  check('con nuestra cabecera', /^Id,Carta,Expansión,Código,Número,Idioma,Estado,Versión,Cantidad/.test(texto), texto.slice(0, 80))
+  check('  …y las líneas con su id, set y código', /sv2-25,Pikachu,Evoluciones en Paldea,PAL,25,/.test(texto), texto.split('\n')[1])
+  check('  …todas (la que había y las tres importadas)', texto.trim().split('\n').length === 5, String(texto.trim().split('\n').length))
+}
+
+console.log('── 4. Un fichero sin lo mínimo lo dice ──')
 {
   await page.goto(`${BASE}/mi-coleccion.html?ver=resumen`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2000)
@@ -108,17 +122,6 @@ console.log('── 3. Un fichero sin lo mínimo lo dice ──')
   check('  …y no pasa a la vista previa', await page.evaluate(() => document.getElementById('mcImpPaso2').classList.contains('hidden')))
   await page.click('#mcImportarCerrar')
   await page.waitForTimeout(300)
-}
-
-console.log('── 4. Exportar ──')
-{
-  const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }), page.click('#mcExportar')])
-  const ruta = await descarga.path()
-  const texto = (await import('node:fs')).readFileSync(ruta, 'utf8').replace(/^﻿/, '')
-  check('se descarga un .csv', /\.csv$/.test(descarga.suggestedFilename()), descarga.suggestedFilename())
-  check('con nuestra cabecera', /^Id,Carta,Expansión,Código,Número,Idioma,Estado,Versión,Cantidad/.test(texto), texto.slice(0, 80))
-  check('  …y las líneas con su id, set y código', /sv2-25,Pikachu,Evoluciones en Paldea,PAL,25,/.test(texto), texto.split('\n')[1])
-  check('  …todas', texto.trim().split('\n').length === 5, String(texto.trim().split('\n').length))
 }
 
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))

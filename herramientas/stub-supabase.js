@@ -17,6 +17,9 @@
 import { normalizeSearch } from './texto.js'
 
 // ── Las tablas ──
+// Las tablas cuyo `user_id` tiene `default auth.uid()` en la base.
+const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_collection_value', 'user_folders', 'match_log']
+
 const T = {
   user_profiles: [],
   tournaments: [],
@@ -1021,8 +1024,15 @@ function consulta(tabla, estado = {}) {
     }
     // Escrituras
     if (st.op === 'insert' || st.op === 'upsert') {
+      // `user_id … default auth.uid()` (tanda 580): las tablas de cada uno
+      // rellenan el dueño con la sesión cuando el cliente no lo manda —
+      // `anadirVarias` no lo manda—, y sin esto la fila entraba sin dueño
+      // y la siguiente lectura `eq('user_id', …)` no la veía: un verde en
+      // la escritura y una colección que no crece, sin ningún error.
+      const conDueno = TABLAS_CON_DUENO.includes(tabla) && sesion?.user?.id ? { user_id: sesion.user.id } : {}
       const filas = (Array.isArray(st.cuerpo) ? st.cuerpo : [st.cuerpo]).map((f, i) => ({
         id: f.id || `${tabla}-nuevo-${(T[tabla] || []).length + i + 1}`,
+        ...conDueno,
         ...f,
       }))
       // El índice único de supabase-migration-repeticiones.sql (tanda

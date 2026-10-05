@@ -160,8 +160,8 @@ console.log('\n── 2. El pie de página ofrece algo, y las páginas cortas no
   // enteraría nadie.
   check('las 32 páginas con pie lo tienen nuevo',
     // Y 33 desde la 566, con /nueve; 34 desde la 569, con /retos; 35 desde
-    // la 570, con /carta-del-dia.
-    PAGINAS.length - sinPie.length === 35, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
+    // la 570, con /carta-del-dia; 36 desde la 583, con /mas-caro.
+    PAGINAS.length - sinPie.length === 36, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
   // En CADA página, y con sus piezas contadas. Mirar solo si aparece la
   // palabra «pie-rejilla» dejaba pasar una página con la rejilla pero
   // sin columnas — el rigor metió justo esa y salió verde.

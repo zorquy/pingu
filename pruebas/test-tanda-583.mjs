@@ -123,6 +123,31 @@ console.log('── 5. Sin cartas, se dice ──')
   await p2.close()
 }
 
+console.log('── 6. En /retos y en los otros dos retos ──')
+{
+  const p3 = await browser.newPage({ viewport: { width: 420, height: 900 } })
+  await p3.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
+  await p3.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
+  await p3.waitForTimeout(1200)
+  check('el índice lista TRES retos', (await p3.locator('.rt-reto').count()) === 3)
+  const caja = p3.locator('#rtMasCaroEstado')
+  check('  …con el tercero sin jugar: número y «Jugar»', new RegExp(`#${numeroDelDia(hoy)}`).test(await caja.innerText()) && /Jugar/.test(await caja.innerText()), await caja.innerText())
+  // Con una partida a medias guardada en el navegador, lo dice.
+  await p3.evaluate((d) => localStorage.setItem('pokedoc-mas-caro', JSON.stringify({ dia: d, respuestas: [true, false] })), hoy)
+  await p3.reload({ waitUntil: 'domcontentloaded' })
+  await p3.waitForTimeout(1000)
+  check('  …y a medias dice por dónde vas', /pregunta 3 de 5/.test(await caja.innerText()) && /Seguir/.test(await caja.innerText()), await caja.innerText())
+  await p3.close()
+  // Los otros dos retos llevan el botón de imagen (se dibuja con la misma
+  // pieza, reto-imagen.js). Aquí se mira que exista y use la pieza; la
+  // pantalla de resultado de cada uno la cubren la 568 y la 570.
+  const { readFileSync } = await import('node:fs')
+  const curso = readFileSync('/home/user/pingu/js/curso.js', 'utf8')
+  const carta = readFileSync('/home/user/pingu/js/carta-del-dia-juego.js', 'utf8')
+  check('el reto diario ofrece «Compartir como imagen» con reto-imagen.js', /btnPresumirImagen/.test(curso) && /reto-imagen\.js/.test(curso) && /pintarResultadoReto\(/.test(curso))
+  check('«¿Qué carta es?» también, con la foto de la carta', /cdImagen/.test(carta) && /fotoParaElLienzo\(/.test(carta) && /filas: estado\.intentos/.test(carta))
+}
+
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
