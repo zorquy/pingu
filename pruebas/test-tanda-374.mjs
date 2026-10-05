@@ -124,7 +124,8 @@ console.log('\n── 4. Una colección vacía no enseña cajas vacías ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('no se pintan cuatro cajas en blanco', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 0,
     String(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()))
-  check('  …sino que se dice', /Cuando añadas cartas/.test(limpio(await page.locator('#mcResumenPanel').textContent())),
+  // Desde la 581 el estado vacío es un dibujo, un título y una acción.
+  check('  …sino que se dice', /Tu colección está vacía/.test(limpio(await page.locator('#mcResumenPanel').textContent())),
     limpio(await page.locator('#mcResumenPanel').textContent()))
   await page.close()
 }

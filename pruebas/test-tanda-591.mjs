@@ -59,7 +59,7 @@ console.log('\n── 2. Las piezas ──')
   const comodin = toml.search(/from = "\/\*"/)
   check('netlify.toml: /rep/:id → /repeticiones?r=:id y /lab/:id → /constructor?pos=:id, con 302', /from = "\/rep\/:id"\s+to = "\/repeticiones\?r=:id"\s+status = 302/.test(toml) && /from = "\/lab\/:id"\s+to = "\/constructor\?pos=:id"\s+status = 302/.test(toml))
   check('  …antes de cualquier comodín', rep > 0 && lab > 0 && (comodin < 0 || (rep < comodin && lab < comodin)))
-  const servidor = readFileSync('/home/claude/pruebas/herramientas/servir.py', 'utf8')
+  const servidor = readFileSync(new URL('../herramientas/servir.py', import.meta.url), 'utf8')
   check('  …y el servidor de pruebas hace lo mismo', /\^\/rep\//.test(servidor) && /\^\/lab\//.test(servidor))
   // El módulo importa supabase.js: aquí solo las reglas que no lo tocan.
   const EC = leer('js/enlace-corto.js')
