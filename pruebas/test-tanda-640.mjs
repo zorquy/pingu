@@ -172,6 +172,18 @@ console.log('── 4. La guarda de los selects: donde se pide image_scrydex se 
   }
   check('ninguna lista de columnas con image_scrydex sin image_tcggo', malos.length === 0, malos.join(' | '))
   const sql = readFileSync('/home/user/pingu/supabase-migration-tcggo-catalogo.sql', 'utf8')
+  // Un «$$» escrito a través de String.replace se queda en «$» (es su
+  // secuencia de escape), y Postgres se para en la línea sin decir cuál
+  // era el cuerpo (tanda 644, lo cazó PINGU al ejecutarla). Se mira en las
+  // tres migraciones de TCGGO que quedan por correr.
+  const cojas = []
+  for (const m of ['tcggo-catalogo', 'tcggo-japones', 'tcggo-historial', 'tcggo-precios']) {
+    const t = readFileSync(`/home/user/pingu/supabase-migration-${m}.sql`, 'utf8')
+    const abre = (t.match(/^as \$\$$/gm) || []).length
+    const cierra = (t.match(/^\$\$;$/gm) || []).length
+    if (/^as \$$/m.test(t) || /^\$;$/m.test(t) || abre !== cierra) cojas.push(`${m}: ${abre} abren, ${cierra} cierran`)
+  }
+  check('las migraciones de TCGGO abren y cierran cada cuerpo con $$ (un $ suelto no es SQL)', cojas.length === 0, cojas.join(' | '))
   check('la migración: las columnas, las dos funciones, y las creadas no las visita TCGdex', /add column if not exists image_tcggo/.test(sql) && /tcggo_crear_sets/.test(sql) && /tcggo_guardar_cartas/.test(sql) && /'tcggo', now\(\), now\(\), 'tcggo'/.test(sql) && /on conflict \(id, market\) do update/.test(sql))
   check('  …los ids de producto nuestros no se pisan, y la rareza, los PS y el ilustrador son de TCGGO (644)', /rarity_en = coalesce\(excluded\.rarity_en, tcg_cards\.rarity_en\)/.test(sql) && /hp = coalesce\(excluded\.hp, tcg_cards\.hp\)/.test(sql) && /illustrator = coalesce\(excluded\.illustrator, tcg_cards\.illustrator\)/.test(sql) && /cm_id_product_propio = coalesce\(tcg_cards\.cm_id_product_propio, excluded\.cm_id_product_propio\)/.test(sql) && /name_en = coalesce\(tcg_cards\.name_en, excluded\.name_en\)/.test(sql))
   check('  …un set nuevo entra con serie y total impreso, y tcggo_guardar_sets rellena lo impreso (644)', /card_count_official, serie_id, serie_name, serie_name_en/.test(sql) && /card_count_official = coalesce\(s\.card_count_official, nullif\(p\.impresas, 0\)\)/.test(sql) && /p\(id text, tcggo_id int, logo text, fecha date, cartas int, impresas int\)/.test(sql))
