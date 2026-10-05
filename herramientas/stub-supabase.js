@@ -270,7 +270,7 @@ sembrar('__FAKE_PRECIOS__', 'tcg_card_prices', (i) => ({
   cm_updated: null, cm_url: null, origen: null,
   // Lo de TCGGO (589): el mínimo por idioma, TCGplayer en euros, las
   // gradeadas. Null es «no lo da», como en la base.
-  cm_low_en: null, cm_low_de: null, cm_low_fr: null, cm_low_es: null, cm_low_it: null,
+  cm_low_en: null, cm_low_de: null, cm_low_fr: null, cm_low_es: null, cm_low_it: null, cm_low_ja: null,
   cm_disponibles: null, tp_market_eur: null, tp_mid_eur: null, cm_gradeadas: null, ebay_gradeadas: null,
   tcggo_id: null, tcggo_updated: null,
   checked_at: new Date().toISOString(),

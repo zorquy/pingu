@@ -60,8 +60,9 @@ console.log('── 2. La función programada ──')
     415: [{ id: 'me05-1', cm_id_product_propio: 895789 }, { id: 'me05-2', cm_id_product_propio: 895790 }, { id: 'me05-g-1', cm_id_product_propio: 895808 }, { id: 'me05-99', cm_id_product_propio: 1 }],
     413: [{ id: 'me04-1', cm_id_product_propio: 700000 }],
   }
+  const CATALOGO = { setsPorEpisodio: { JP: { 701: ['SV1a'] } } }
   const montar = (estadoInicial = {}) => {
-    const estados = { [CLAVE_PARES]: JSON.parse(JSON.stringify(PARES)), [CLAVE_ESTADO]: estadoInicial }
+    const estados = { [CLAVE_PARES]: JSON.parse(JSON.stringify(PARES)), tcggo_catalogo: JSON.parse(JSON.stringify(CATALOGO)), [CLAVE_ESTADO]: estadoInicial }
     const escritas = []
     const sets = []
     const urls = []
@@ -72,12 +73,14 @@ console.log('── 2. La función programada ──')
       const ep = Number(u.searchParams.get('episode_id'))
       if (ep === 415) return { ok: true, status: 200, text: async () => JSON.stringify({ data: CARTAS, paging: { current: 1, total: 1, per_page: 100 } }) }
       if (ep === 413) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [{ id: 5000, card_number: '1', cardmarket_id: 700000, prices: { cardmarket: { lowest_near_mint: 9, lowest_near_mint_ES: 8 }, tcg_player: { currency: 'EUR', market_price: 7 } } }], paging: { current: 1, total: 1, per_page: 100 } }) }
+      if (ep === 701 && /pokemon-jp/.test(u.pathname)) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [{ id: 70001, card_number: '001', cardmarket_id: 700001, prices: { cardmarket: { lowest_near_mint: 15, lowest_near_mint_JP: 12 } } }], paging: { current: 1, total: 1, per_page: 100 } }) }
       return { ok: false, status: 404, text: async () => 'no' }
     }
     const restImpl = async (ruta) => {
       const m = ruta.match(/set_id=in\.\(([^)]*)\)/)
       if (!m) throw new Error(`ruta inesperada ${ruta}`)
       const ids = m[1].split(',').map((x) => decodeURIComponent(x.replace(/"/g, '')))
+      if (/market=eq\.JP/.test(ruta)) return ids.includes('SV1a') ? [{ id: 'SV1a-001', cm_id_product_propio: 700001 }] : []
       return Object.values(NUESTRAS).flat().filter((c) => ids.some((id) => c.id.startsWith(id + '-')))
     }
     return {
@@ -92,19 +95,20 @@ console.log('── 2. La función programada ──')
 
   const b = montar()
   const r = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
-  check('una pasada: las dos expansiones (el set sospechoso no cuenta), 3 peticiones', r.ok && r.hecho === true && r.episodios === 2 && r.peticionesEstaPasada === 2 && r.quedan === 0, JSON.stringify(r).slice(0, 300))
-  check('escribe una fila por carta nuestra con carta suya: 3 de Pitch Black + 1 de Chaos Rising', r.escritas === 4 && b.escritas.length === 4 && r.sinPar === 1, JSON.stringify([r.escritas, r.sinPar]))
+  check('una pasada: las dos expansiones occidentales (el set sospechoso no cuenta) y la japonesa, 3 peticiones', r.ok && r.hecho === true && r.episodios === 3 && r.peticionesEstaPasada === 3 && r.quedan === 0, JSON.stringify(r).slice(0, 300))
+  check('escribe una fila por carta nuestra con carta suya: 3 de Pitch Black + 1 de Chaos Rising + 1 japonesa', r.escritas === 5 && b.escritas.length === 5 && r.sinPar === 1, JSON.stringify([r.escritas, r.sinPar]))
+  check('  …la japonesa con su mínimo japonés (12) por la puerta /pokemon-jp', b.escritas.find((f) => f.card_id === 'SV1a-001')?.cm_low_ja === 12 && b.urls.some((u) => /pokemon-jp\/cards\?episode_id=701/.test(u)), JSON.stringify(b.escritas.find((f) => f.card_id === 'SV1a-001')))
   const tropius = b.escritas.find((f) => f.card_id === 'me05-1')
   check('  …el Tropius con sus idiomas y su origen', tropius?.cm_low_es === 0.02 && tropius.cm_id_product === 895789 && tropius.origen === 'tcggo', JSON.stringify(tropius))
   check('  …la de la «galería» (otro set, misma expansión) también', b.escritas.some((f) => f.card_id === 'me05-g-1' && f.cm_id_product === 895808))
   check('  …y la de Chaos Rising con TCGplayer en euros', b.escritas.find((f) => f.card_id === 'me04-1')?.tp_market_eur === 7)
   check('los sets quedan apuntados con el logo suyo (3 filas: me05, me05-g, me04; ex7 no)', r.setsApuntados === 3 && b.sets.find((s) => s.id === 'me05')?.logo === 'https://images.tcggo.com/pbl.png' && !b.sets.some((s) => s.id === 'ex7'), JSON.stringify(b.sets))
-  check('el estado marca el día hecho con las dos expansiones', b.estados[CLAVE_ESTADO].dia === '2026-10-05' && b.estados[CLAVE_ESTADO].hecho === true && b.estados[CLAVE_ESTADO].hechos.length === 2)
+  check('el estado marca el día hecho con las dos expansiones y la japonesa aparte', b.estados[CLAVE_ESTADO].dia === '2026-10-05' && b.estados[CLAVE_ESTADO].hecho === true && b.estados[CLAVE_ESTADO].hechos.length === 2 && b.estados[CLAVE_ESTADO].hechosJp.length === 1)
   const antes = b.urls.length
   const r2 = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
   check('la segunda pasada del día no pide nada', r2.ok && /ya están puestos/.test(r2.saltado) && b.urls.length === antes, JSON.stringify(r2))
   const r3 = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: new Date('2026-10-06T12:00:00Z') })
-  check('al día siguiente vuelve a empezar (y los sets no se vuelven a apuntar hasta que cambie el día… que ha cambiado: sí)', r3.ok && r3.peticionesEstaPasada === 2 && r3.hecho === true && r3.setsApuntados === 3, JSON.stringify([r3.peticionesEstaPasada, r3.setsApuntados]))
+  check('al día siguiente vuelve a empezar (y los sets se vuelven a apuntar)', r3.ok && r3.peticionesEstaPasada === 3 && r3.hecho === true && r3.setsApuntados === 3, JSON.stringify([r3.peticionesEstaPasada, r3.setsApuntados]))
 
   // Sin tiempo: hace una y deja la otra para la siguiente.
   let tic = 0
@@ -112,7 +116,7 @@ console.log('── 2. La función programada ──')
   const r4 = await procesar({ env: ENV, ...b4, pausa: sinPausa, ahora: AHORA, reloj: () => (tic++ > 2 ? 1e9 : 0) })
   check('sin tiempo, deja expansiones para la próxima y lo dice', r4.ok && r4.hecho === false && r4.quedan >= 1 && /próxima pasada/.test(r4.nota || ''), JSON.stringify([r4.hecho, r4.quedan, r4.nota]))
   const r5 = await procesar({ env: ENV, ...b4, pausa: sinPausa, ahora: AHORA })
-  check('  …y la siguiente las acaba', r5.ok && r5.hecho === true && b4.escritas.length === 4)
+  check('  …y la siguiente las acaba', r5.ok && r5.hecho === true && b4.escritas.length === 5)
 
   // Sin pares todavía, sin clave, sin la migración.
   const b6 = montar()
@@ -160,7 +164,12 @@ console.log('── 3. El precio de una copia según su idioma ──')
   const soloUsd = precioDeFila({ card_id: 'x', tp_holo_market: 20 }, { variante: 'holo' })
   check('  …y sin euros, los dólares convertidos, con el ≈', valorDe(soloUsd) === usdAEuros(20) && /≈/.test(resumenDePrecio(soloUsd)))
   check('sin nada, null y «Sin precio.»', precioDeFila({ card_id: 'x' }) === null && resumenDePrecio(null) === 'Sin precio.')
-  check('los idiomas con precio, en orden, con su columna', JSON.stringify(IDIOMAS_CON_PRECIO) === '["es","en","de","fr","it"]' && columnaDeIdioma('es') === 'cm_low_es' && columnaDeIdioma('ja') === null)
+  check('los idiomas con precio, en orden, con su columna (el japonés desde la 642)', JSON.stringify(IDIOMAS_CON_PRECIO) === '["es","en","de","fr","it","ja"]' && columnaDeIdioma('es') === 'cm_low_es' && columnaDeIdioma('ja') === 'cm_low_ja' && columnaDeIdioma('pt') === null)
+  // El japonés (642): su columna, su valor, y el enlace al producto sin filtro de idioma.
+  const jp = precioDeFila({ card_id: 'SV1a-001', cm_id_product: 777, cm_low_ja: 12, cm_low: 20 })
+  check('una copia japonesa vale su mínimo japonés (12), no el general (20)', valorDe(jp, 'ja') === 12 && precioParaIdioma(jp, 'ja').origen === 'cardmarket-idioma' && limpio(resumenDePrecio(jp, 'ja')) === 'Desde 12,00 € en japonés', limpio(resumenDePrecio(jp, 'ja')))
+  check('  …y el botón va al producto aunque el japonés no tenga filtro de idioma en Cardmarket', /idProduct=777/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })) && !/language=/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })))
+  check('  …la fila de una carta del mercado JP coge el general como japonés si no hay _JP', filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9 } } }, { mercado: 'JP' }).cm_low_ja === 9 && filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9, lowest_near_mint_JP: 7 } } }, { mercado: 'JP' }).cm_low_ja === 7 && filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9 } } }).cm_low_ja === null)
   check('el enlace a TCGplayer va directo al producto', enlaceTcgplayer(96048) === 'https://www.tcgplayer.com/product/96048' && enlaceTcgplayer(null) === null && enlaceTcgplayer('x') === null)
 
   console.log('── 4. El bloque de precio ──')
@@ -183,6 +192,8 @@ console.log('── 5. La migración ──')
 {
   const sql = readFileSync('/home/user/pingu/supabase-migration-tcggo-precios.sql', 'utf8')
   for (const c of ['cm_low_en', 'cm_low_de', 'cm_low_fr', 'cm_low_es', 'cm_low_it', 'cm_disponibles', 'tp_market_eur', 'tp_mid_eur', 'cm_gradeadas', 'ebay_gradeadas', 'tcggo_id', 'tcggo_updated']) check(`añade ${c}`, sql.includes(`add column if not exists ${c}`))
+  const sqlJp = readFileSync('/home/user/pingu/supabase-migration-tcggo-japones.sql', 'utf8')
+  check('la del japonés (642): la columna, el caso «ja» en la regla, la firma de la 589 borrada y la foto con la columna', /add column if not exists cm_low_ja/.test(sqlJp) && /when 'ja' then p_low_ja/.test(sqlJp) && /drop function if exists public\.valor_de_linea\(numeric, int, text, text, numeric, numeric, numeric, numeric, numeric, numeric, numeric/.test(sqlJp) && /pr\.cm_low_it, pr\.cm_low_ja,/.test(sqlJp))
   check('tp_id_product_propio en tcg_cards, logo_tcggo en tcg_sets', /tcg_cards add column if not exists tp_id_product_propio/.test(sql) && /tcg_sets add column if not exists logo_tcggo/.test(sql))
   check('la función de pares guarda el id de TCGplayer sin cambiar de firma', /tp_id_product_propio = coalesce\(p\.tp_id_product, c\.tp_id_product_propio\)/.test(sql) && /p\(id text, id_product int, por text, tp_id_product int\)/.test(sql))
   check('tcggo_guardar_sets solo rellena fecha y total si están vacíos', /release_date = coalesce\(s\.release_date, p\.fecha\)/.test(sql) && /card_count_total = coalesce\(s\.card_count_total, nullif\(p\.cartas, 0\)\)/.test(sql))

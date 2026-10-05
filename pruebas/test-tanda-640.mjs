@@ -108,6 +108,7 @@ console.log('── 2. La función: occidental y japonés ──')
   const m5 = r.esteTurno.find((t) => t.episodio === 702)
   check('Abyss Eye no existía: se crea el set «m5» en JP con su fecha y sus dos cartas', m5?.setNuevo === 'm5' && b.sets[0]?.id === 'm5' && b.sets[0].market === 'JP' && b.sets[0].release_date === '2026-07-17' && m5.nuevas === 2 && r.setsCreados === 1, JSON.stringify([m5, b.sets]))
   check('las expansiones japonesas quedan guardadas una semana', b.estados[CLAVE_ESTADO].episodiosJp?.lista?.length === 2 && b.estados[CLAVE_ESTADO].semana === semanaDe(AHORA))
+  check('  …y el estado apunta de qué set cuelga cada expansión (para los precios japoneses, 642)', JSON.stringify(b.estados[CLAVE_ESTADO].setsPorEpisodio?.JP?.[701]) === '["SV1a"]' && JSON.stringify(b.estados[CLAVE_ESTADO].setsPorEpisodio?.JP?.[702]) === '["m5"]' && JSON.stringify(b.estados[CLAVE_ESTADO].setsPorEpisodio?.WEST?.[415]) === '["me05"]', JSON.stringify(b.estados[CLAVE_ESTADO].setsPorEpisodio))
   const antes = b.urls.length
   const r2 = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
   check('la segunda pasada de la semana no pide nada', r2.ok && r2.hecho === true && b.urls.length === antes && r2.peticionesEstaPasada === 0)
