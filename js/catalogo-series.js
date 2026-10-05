@@ -83,6 +83,13 @@ export function esDelTCG(set) {
 // dos filas, no una. Y ya salen en ese orden sin hacer nada: misma fecha,
 // y `30th` va antes que `30th-c` al desempatar por identificador.
 export const COLECCIONES_JUNTAS = [
+  // ── EL 30 ANIVERSARIO VUELVE A SER UNO (tanda 646b) ──
+  // PINGU, con la API delante: «la API dice que 30 es uno entero, con las
+  // clásicas metidas ahí». TCGGO lo empareja por alias, pero si el par de
+  // la Classic se queda sospechoso o sin escribir, la fila volvía a salir
+  // suelta —y salió—. Así que la regla a mano vuelve, como RESPALDO: por
+  // prefijo, porque no se sabe cómo se llamará la siguiente entrega.
+  { padre: '30th', prefijo: '30th-' },
   // Las promos de Wizards: «W Promotional» y el Ancient Mew, que TCGdex
   // tiene en un cajón llamado «Miscellaneous Promos» con una sola carta.
   { padre: 'basep', hijos: ['wp', 'miscp'] },

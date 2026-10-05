@@ -157,10 +157,15 @@ export async function procesar({
   // La lista de expansiones en el estado de los pares puede no traer el
   // logo (se guardó antes de la 589): entonces se vuelve a pedir, que son
   // nueve peticiones una vez a la semana.
+  // Y desde la 646 también si lo que hay guardado no trae el VALOR de la
+  // expansión (una lista de antes), y entonces se vuelve a escribir aunque
+  // los sets de hoy ya estuvieran apuntados: así el valor entra en la
+  // pasada siguiente y no mañana.
   let setsApuntados = 0
-  if (!estado.setsApuntados) {
+  const listaSinValor = episodios.length > 0 && !episodios.some((e) => e.valorCm != null)
+  if (!estado.setsApuntados || (listaSinValor && !estado.setsConValor)) {
     let lista = episodios
-    if (lista.length && !lista.some((e) => e.logo)) {
+    if (lista.length && (!lista.some((e) => e.logo) || listaSinValor)) {
       const nueva = []
       let pagina = 1
       let completa = false
@@ -189,6 +194,7 @@ export async function procesar({
         try {
           setsApuntados = Number(await guardarSets(filas, 'WEST')) || 0
           estado.setsApuntados = true
+          if (lista.some((e) => e.valorCm != null)) estado.setsConValor = true
         } catch (e) {
           const m = String(e?.message || e)
           if (/tcggo_guardar_sets|42883|PGRST202/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql (tcggo_guardar_sets)' }

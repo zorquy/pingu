@@ -23,6 +23,15 @@ semanal.
 que en es-ES los de cuatro cifras salían sin él) y el rótulo «Valor» en
 vez de «Valor del set», que se partía en dos renglones.
 
+**646b, tras la captura de PINGU** («las expansiones se ven igual»): el
+valor no salía porque la pasada de precios apunta los sets UNA vez al día
+y hoy ya había pasado, y además la lista guardada era de antes y no traía
+valor; ahora vuelve a pedir la lista y a escribir los sets en la pasada
+siguiente cuando lo guardado no lleva valor (`setsConValor`). Y el 30
+aniversario seguía en dos porque la Classic no llevaba `tcggo_id`: vuelve
+la regla a mano `{ padre: '30th', prefijo: '30th-' }` como respaldo (la 536
+la había quitado; manda lo último). Pruebas 533, 536 y 589 al día.
+
 **Ficheros**: `supabase-migration-tcggo-expansiones.sql` (nueva),
 `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
 `js/catalogo-series.js`, `js/cartas.js`, `js/coleccion.js`,
