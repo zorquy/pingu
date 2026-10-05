@@ -19,22 +19,24 @@
 import { numeroComparable } from './scrydex.mjs'
 import { normalizeSearch } from '../../js/texto.js'
 
-// El host es el de la API tal como RapidAPI la publica en la cuenta de
-// PINGU («Pokémon TCG API»): su documentación decía cardmarket-api-tcg y
-// con ese contestaba 403 «no estás suscrito» — la misma API, otra puerta.
+// El host y las rutas son los de la API tal como RapidAPI la publica en la
+// cuenta de PINGU («Pokémon TCG API»): su documentación en PDF decía
+// cardmarket-api-tcg con rutas /v1/tcgapi/pokemon/…, y por ahí contestaba
+// 403 «no estás suscrito» y luego 404 «esa ruta no existe». En esta puerta
+// las rutas van a pelo: /episodes, /cards, /episodes/{id}/cards.
 export const HOST = 'pokemon-tcg-api.p.rapidapi.com'
-export const URL_BASE = `https://${HOST}/v1/tcgapi`
+export const URL_BASE = `https://${HOST}`
 export const POR_PAGINA_CARTAS = 100
 
 export function cabeceras(clave) {
   return { 'x-rapidapi-key': clave, 'x-rapidapi-host': HOST, accept: 'application/json' }
 }
 
-export const urlEpisodios = (pagina = 1) => `${URL_BASE}/pokemon/episodes?page=${pagina}`
+export const urlEpisodios = (pagina = 1) => `${URL_BASE}/episodes?page=${pagina}`
 // `/cards?episode_id=` y no `/episodes/{id}/cards`: en su documentación el
 // primero es el que enseña `cardmarket_id` en la respuesta; el ejemplo del
 // segundo no lo trae, y no se da por hecho lo que un ejemplo no enseña.
-export const urlCartasDeEpisodio = (idEpisodio, pagina = 1) => `${URL_BASE}/pokemon/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}`
+export const urlCartasDeEpisodio = (idEpisodio, pagina = 1) => `${URL_BASE}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}`
 
 // ¿Quedan páginas? Su `paging` es { current, total, per_page }.
 export function hayMasPaginas(respuesta) {
