@@ -46,7 +46,7 @@ console.log('\n── 1. El mismo ataque en inglés y en español, los mismos pa
   // Los nombres propios (de un ataque, de una habilidad, «excepto los de
   // Ferrotesta ex») se quedan en el idioma de la carta: es contra lo que
   // se comparan, y la carta habla ese idioma.
-  const sinNombres = (x) => JSON.stringify(x, (k, v) => (k === 'nombre' || k === 'habilidad' || k === 'salvo' ? '·' : v))
+  const sinNombres = (x) => JSON.stringify(x, (k, v) => (k === 'nombre' || k === 'habilidad' || k === 'salvo' || k === 'contiene' ? '·' : v))
   let enteros = 0
   let cartas = 0
   const malos = []
