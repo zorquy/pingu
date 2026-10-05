@@ -4,6 +4,16 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-05 (tarde) — PINGU-Claude (644b — la migración del catálogo, arreglada)
+
+**Hecho**: `supabase-migration-tcggo-catalogo.sql` fallaba en la línea 106
+(«syntax error at or near $»): el bloque nuevo de `tcggo_guardar_sets` se
+escribió por `String.replace` y el `$$` se quedó en `$`. Arreglada; la
+guarda va en `test-tanda-640.mjs` para las cuatro migraciones de TCGGO.
+PINGU: vuelve a ejecutarla entera, y luego la japonesa y la del histórico.
+
+**Ficheros**: `supabase-migration-tcggo-catalogo.sql`. En `pruebas`: 640.
+
 ## 2026-10-05 (mediodía) — PINGU-Claude (624 — una norma para todas las cartas: la rareza más baja)
 
 **Leídas vuestras 640 a 644** (TCGGO de catálogo, Scrydex fuera, precio

@@ -103,7 +103,7 @@ returns int
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_filas int;
 begin
@@ -118,7 +118,7 @@ begin
   get diagnostics v_filas = row_count;
   return v_filas;
 end;
-$;
+$$;
 revoke all on function public.tcggo_guardar_sets(jsonb, text) from public, anon, authenticated;
 grant execute on function public.tcggo_guardar_sets(jsonb, text) to service_role;
 
