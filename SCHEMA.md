@@ -33854,3 +33854,31 @@ Dos cosas, las dos en `scrydex-huecos`:
 
 **Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`.
 Prueba 684 (rama `pruebas`).
+
+## Tanda 699 — lo que Scrydex tiene y nosotros no se crea SOLO en el japonés (oct. 2026)
+
+PINGU, sobre la 698: «¿pero entonces qué pasa con ese set en específico y
+otros que no existan y/o tengan cartas japonesas?». La 698 pedía una
+lista a mano por cada set que faltara, y la pregunta es la regla general.
+
+El catálogo japonés viene de TCGdex, que trae eras enteras sin cartas o
+sin listar (XY, ADV, LEGEND, DP, medio S); TCGGO tiene el japonés
+bloqueado por plan (671). La única fuente que queda es Scrydex, y
+`scrydex-huecos` ya rellena lo que está VACÍO — lo que no existe no es un
+hueco. Desde ahora, en los mercados de `MERCADOS_QUE_SE_CREAN` (`JP`),
+**toda expansión de Scrydex que no case con ningún set nuestro se crea
+sola**, de diez en diez por pasada, escondida y con su `scrydex_id`; la
+pasada siguiente la ve vacía y la rellena como a cualquier otra (un
+crédito por cien cartas). El occidental no: ahí el catálogo está completo
+y una expansión suya que no casa es casi siempre la misma con otro nombre,
+así que solo se apunta.
+
+Qué es «no casa»: ni `scrydex_id`, ni nombre (japonés o inglés), ni lo
+que casa `expansionDelSet` —fecha + cuenta, código—. Y una guarda contra
+el duplicado: si un set nuestro sale el MISMO día que la expansión, es
+casi seguro el mismo set con otro nombre, y esa **no se crea sola**: queda
+en la lista de sueltas con «ese día sale nuestro X», y si de verdad es
+otra (dos medios mazos del mismo día) se mete en `CREAR_SETS`, que fuerza.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`.
+Prueba 684 (rama `pruebas`).

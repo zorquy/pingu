@@ -3071,8 +3071,13 @@ async function tcggoEstado() {
         // Lo que se ha creado de una expansión de Scrydex sin set nuestro
         // (698), y lo que Scrydex tiene y nosotros no: de aquí sale lo que
         // hay que meter en CREAR_SETS.
-        ...Object.entries(h.creados || {}).map(([k, x]) => `  ${x.estado === 'creado' ? '✓ creado' : x.estado === 'yaExiste' ? '· ya existía' : '✗ no está en Scrydex'} ${k}${x.set ? ` → ${x.set}` : ''}${x.nombre ? ` «${x.nombre}»` : ''}`),
-        ...Object.entries(h.sueltas || {}).map(([m, x]) => `  Scrydex tiene y nosotros no (${m}, ${(x.lista || []).length}): ${(x.lista || []).map((e) => `${e.id} «${e.name_en || e.name}» (${e.total ?? '?'}, ${e.release_date || 'sin fecha'})`).join(' · ') || '—'}`),
+        ...(() => { const c = Object.entries(h.creados || {}); const creados = c.filter(([, x]) => x.estado === 'creado'); return [
+          creados.length ? `  sets creados de Scrydex (699): ${creados.length} · ${creados.map(([, x]) => `${x.set} «${x.nombre || ''}»${x.por === 'lista' ? ' (lista)' : ''}`).join(' · ')}` : '',
+          ...c.filter(([, x]) => x.estado !== 'creado').map(([k, x]) => `  ${x.estado === 'yaExiste' ? '· ya existía' : '✗ no está en Scrydex'} ${k}${x.set ? ` → ${x.set}` : ''}`),
+        ] })(),
+        // Las sueltas: las libres se crean solas en el japonés; las que
+        // tienen un set nuestro con la misma fecha se quedan aquí, para mirar.
+        ...Object.entries(h.sueltas || {}).map(([m, x]) => `  Scrydex tiene y nosotros no (${m}, ${(x.lista || []).length}): ${(x.lista || []).map((e) => `${e.id} «${e.name_en || e.name}» (${e.total ?? '?'}, ${e.release_date || 'sin fecha'}${e.ocupadaPor ? `; ese día sale nuestro ${e.ocupadaPor}` : ''})`).join(' · ') || '—'}`),
         h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
         h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
       ]

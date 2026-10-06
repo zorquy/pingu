@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 22) — PINGU-Claude (699 — lo que Scrydex tiene y nosotros no se crea solo en el japonés)
+
+**Hecho**: PINGU: «¿qué pasa con ese set y otros que no existan?». La
+regla general en vez de la lista: en el japonés, toda expansión de
+Scrydex que no case con ningún set nuestro (id, nombre, fecha+cuenta)
+se crea sola, diez por pasada, escondida; la siguiente la rellena. Si
+un set nuestro sale el mismo día, no se crea (duplicado probable) y se
+apunta para mirar. `CREAR_SETS` queda para forzar.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`. Prueba 684 en `pruebas`.
+
+**Pendiente**: que PINGU pegue el bloque HUECOS en una hora (sets
+creados, sueltas ocupadas) y mire si Reviving Legends ya tiene cartas.
+
 ## 2026-10-06 (tarde, 21) — PINGU-Claude (698 — el set japonés que no existe se crea desde Scrydex)
 
 **Hecho**: PINGU: Lanturn Prime sale en español (Unleashed) pero en

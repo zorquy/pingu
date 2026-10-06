@@ -71,7 +71,16 @@ export const CREAR_SETS = [
   { mercado: 'JP', nombre: 'Advent of Arceus' },
 ]
 // Cuántas expansiones sueltas (sin set nuestro) se apuntan por mercado.
-export const MAXIMO_SUELTAS = 120
+export const MAXIMO_SUELTAS = 200
+// En qué mercados una expansión suelta se crea SOLA (699). PINGU: «¿qué
+// pasa con ese set y con otros que no existan?» — la regla general, no la
+// lista: en el japonés nuestro catálogo viene de TCGdex, que trae eras
+// enteras sin cartas o sin listar, y Scrydex es la única fuente que queda.
+// En el occidental el catálogo está completo (TCGdex + TCGGO) y una
+// expansión suya que no casa es casi siempre la misma con otro nombre:
+// ahí solo se apunta.
+export const MERCADOS_QUE_SE_CREAN = ['JP']
+export const MAXIMO_CREADOS_POR_PASADA = 10
 
 // La expansión de la lista que nombra una entrada de CREAR_SETS: por id, o
 // por el nombre inglés (o el suyo), sin tildes ni signos.
@@ -105,15 +114,35 @@ export function filaDeSetDeScrydex(expansion, mercado, sets = []) {
   }
 }
 
-// Las expansiones de Scrydex que no casan con ningún set nuestro, ni por
-// `scrydex_id` ni por nombre (698). Gratis: se calcula de la lista que ya
-// está en el estado y de nuestra tabla. Es lo que enseña /admin para saber
-// qué hay que meter en CREAR_SETS.
+// Las expansiones de Scrydex que no casan con ningún set nuestro: ni por
+// `scrydex_id`, ni por nombre, ni por lo que casa `expansionDelSet` (fecha
+// + cuenta, código) (698, y la 699 le añade la huella). Gratis: se calcula
+// de la lista que ya está en el estado y de nuestra tabla. Cada suelta
+// lleva `ocupadaPor` si un set nuestro sale el MISMO día: dos sets con la
+// misma fecha de salida son casi siempre el mismo set con otro nombre, y
+// esa no se crea sola — se apunta, y si de verdad es otra (dos medios
+// mazos del mismo día) va a CREAR_SETS a mano.
 export function expansionesSueltas(expansiones, sets) {
-  const porId = new Set((sets || []).map((s) => s.scrydex_id).filter(Boolean))
+  const casadas = new Set((sets || []).map((s) => s.scrydex_id).filter(Boolean))
+  for (const s of sets || []) {
+    const e = expansionDelSet(s, expansiones)?.expansion
+    if (e) casadas.add(e.id)
+  }
   const nombres = new Set((sets || []).flatMap((s) => [clave(s.name_en), clave(s.name)]).filter(Boolean))
-  return (expansiones || []).filter((e) => !porId.has(e.id) && !nombres.has(clave(e.name_en)) && !nombres.has(clave(e.name)))
-    .map((e) => ({ id: e.id, name: e.name, name_en: e.name_en || null, total: e.total ?? null, release_date: e.release_date || null }))
+  const porFecha = new Map()
+  for (const s of sets || []) { const f = fechaISO(s.release_date); if (f && !porFecha.has(f)) porFecha.set(f, s.id) }
+  return (expansiones || []).filter((e) => !casadas.has(e.id) && !nombres.has(clave(e.name_en)) && !nombres.has(clave(e.name)))
+    .map((e) => {
+      const suelta = { id: e.id, name: e.name, name_en: e.name_en || null, total: e.total ?? null, release_date: e.release_date || null }
+      const ocupadaPor = porFecha.get(fechaISO(e.release_date))
+      if (ocupadaPor) suelta.ocupadaPor = ocupadaPor
+      return suelta
+    })
+}
+
+// «2010/07/08» (Scrydex) y «2010-07-08» (nuestra) son la misma fecha.
+function fechaISO(f) {
+  return typeof f === 'string' && /^\d{4}[/-]\d{2}[/-]\d{2}/.test(f) ? f.slice(0, 10).replace(/\//g, '-') : null
 }
 
 async function rest(ruta, clave, opciones = null) {
@@ -293,12 +322,27 @@ export async function pasada({
     }
     const k = (s) => `${mercado}|${s.id}`
     // ── 2b. Lo que Scrydex tiene y nosotros no (698), y lo que hay que crear ──
-    estado.sueltas[mercado] = { fecha: ahora.toISOString(), lista: expansionesSueltas(expansiones, sets).slice(0, MAXIMO_SUELTAS) }
+    const sueltas = expansionesSueltas(expansiones, sets)
+    estado.sueltas[mercado] = { fecha: ahora.toISOString(), lista: sueltas.slice(0, MAXIMO_SUELTAS) }
+    // Primero la lista a mano (fuerza aunque la fecha esté ocupada), luego
+    // las sueltas libres del mercado, de diez en diez (699).
+    const aCrear = []
     for (const entrada of crear.filter((c) => c.mercado === mercado)) {
-      const ck = `${mercado}|${entrada.id || entrada.nombre}`
-      if (estado.creados[ck]?.set) continue
       const expansion = expansionACrear(entrada, expansiones)
-      if (!expansion) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'noEstaEnScrydex' }; continue }
+      if (!expansion) { estado.creados[`${mercado}|${entrada.id || entrada.nombre}`] = { fecha: ahora.toISOString(), estado: 'noEstaEnScrydex' }; continue }
+      aCrear.push({ expansion, por: 'lista' })
+    }
+    if (MERCADOS_QUE_SE_CREAN.includes(mercado)) {
+      for (const su of sueltas) {
+        if (su.ocupadaPor || aCrear.some((a) => a.expansion.id === su.id) || estado.creados[`${mercado}|${su.id}`]) continue
+        const expansion = expansiones.find((e) => e.id === su.id)
+        if (expansion) aCrear.push({ expansion, por: 'suelta' })
+        if (aCrear.length >= MAXIMO_CREADOS_POR_PASADA) break
+      }
+    }
+    for (const { expansion, por } of aCrear) {
+      const ck = `${mercado}|${expansion.id}`
+      if (estado.creados[ck]?.set) continue
       if (sets.some((x) => x.id === expansion.id || x.scrydex_id === expansion.id)) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'yaExiste', set: expansion.id }; continue }
       const fila = filaDeSetDeScrydex(expansion, mercado, sets)
       try {
@@ -309,7 +353,7 @@ export async function pasada({
         await persistir()
         return { ok: false, ...resumen(), error: estado.ultimoError.error }
       }
-      estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'creado', set: fila.id, nombre: expansion.name_en || expansion.name }
+      estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'creado', por, set: fila.id, nombre: expansion.name_en || expansion.name }
       sets.push({ ...fila })
     }
     await persistir()
