@@ -113,7 +113,9 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     check('un rellenado sin nombres ingleses se vuelve a escribir con ellos (1 crédito)', rn.ok && rn.nombres?.set === 'BASE1_' && rn.nombres.conNombreIngles === 2 && rn.creditos === 4 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres === VERSION_NOMBRES, JSON.stringify(rn))
     // Un set a MEDIAS (685.2): tiene cartas de Scrydex pero el PATCH no llegó
     // (sin `scrydex_por`). Se remata sin pedir nada a Scrydex.
-    sets.JP.push({ id: 'MEDIAS_', name: 'Pokémon Jungle', name_en: 'Pokémon Jungle', release_date: '1997-03-05', card_count_official: 48, oculto: true, scrydex_por: null })
+    // Con un `scrydex_por` VIEJO (de la 547), que es como estaban el Expansion
+    // Pack y Jungle de verdad (685.4): se remata igual.
+    sets.JP.push({ id: 'MEDIAS_', name: 'Pokémon Jungle', name_en: 'Pokémon Jungle', release_date: '1997-03-05', card_count_official: 48, oculto: true, scrydex_por: 'fecha+cuenta' })
     aMedias.add('MEDIAS_')
     estados[CLAVE_ESTADO].llenosOlvidados = 'otra'
     const rm = await correr()
