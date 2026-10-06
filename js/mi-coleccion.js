@@ -46,7 +46,7 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // cargan esta página y la ficha de una carta).
 import * as datos from './mi-coleccion/datos.js'
 // «Avísame» (665), en el bloque de precio de la ficha.
-import { botonDeAvisoHtml, engancharAvisos } from './avisos-precio.js'
+import { engancharAvisos } from './avisos-precio.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
@@ -484,9 +484,7 @@ function pintarPrecioDeFicha(l, c, tuya) {
   $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
     variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
-    extraBotones: sesion && esMia && c?.id ? botonDeAvisoHtml(c.id) : '',
   })
-  engancharAvisos($('mcEdPrecioBloque'), () => avisoDatos || {})
   // El resumen de tu copia (645), con los campos plegados: se abre para
   // mirar, y Editar los despliega.
   if (tuya) pintarResumenDeCopia(l, precio)
@@ -522,7 +520,8 @@ async function completarPrecioDeFicha(l, c, tuya) {
   pintarPrecioDeFicha(actual, c, Boolean(actual.id))
 }
 
-// Las acciones de la ficha (650): el «+» y, si la tienes, «Tienes N».
+// Las acciones de la ficha (650, losetas desde la 667): el «+», Editar si
+// la tienes y Avísame; y «Tienes N» en el resumen de tu copia.
 function pintarAccionesDeFicha(l) {
   const caja = $('mcEdAcciones')
   if (!caja) return
@@ -531,6 +530,9 @@ function pintarAccionesDeFicha(l) {
   const tienes = $('mcEdTienes')
   tienes.classList.toggle('hidden', n === 0)
   tienes.textContent = n ? `Tienes ${n}` : ''
+  $('mcEdEditar')?.classList.toggle('hidden', n === 0)
+  const aviso = $('mcEdAviso')
+  if (aviso) aviso.dataset.aviso = l.card_id || ''
 }
 
 // Tus OTRAS líneas de esta carta, para cambiar la ficha a ellas.
@@ -1929,9 +1931,12 @@ function abrirEditor(l) {
   $('mcEditorTitulo').textContent = nombreDe(c)
   // El set va ARRIBA del nombre y el número con él, como una miga de pan:
   // «de dónde es» antes que «cómo se llama» (tanda 393).
-  $('mcEdSet').textContent = c
-    ? `${nombreDeSet(c.tcg_sets)}${c.local_id ? ` · ${c.local_id}` : ''}`
-    : l.card_id
+  // Y desde la 667 el nombre del set LLEVA a la expansión (PINGU: «que
+  // sea clicable todo»): un enlace de verdad, que vale en las dos
+  // pantallas y en una pestaña nueva.
+  $('mcEdSet').innerHTML = c
+    ? `<a href="${escapeHtml(direccionDeSet(c))}">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id || '')}</a>${c.local_id ? ` · ${escapeHtml(c.local_id)}` : ''}`
+    : escapeHtml(l.card_id)
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
   $('mcEdChapas').innerHTML = chipsDe(l)
@@ -2020,15 +2025,42 @@ function abrirEditor(l) {
 // Dex. Lo que no se sabe no se pinta: una fila con una raya ocupa igual
 // que el dato y no dice nada — y además miente sobre lo que el catálogo
 // tiene (la regla de los tres estados, tanda 319).
+// A dónde lleva un set desde la ficha (667): a su expansión en esta misma
+// pantalla (Mi colección o el catálogo público), con el catálogo japonés
+// puesto si hace falta (la 656).
+function direccionDeSet(c) {
+  const id = c?.set_id || c?.tcg_sets?.id
+  if (!id) return '#'
+  const p = new URLSearchParams()
+  if (!modoCatalogo) p.set('ver', 'album')
+  p.set('set', id)
+  if ((c.market || mercado) === 'JP') p.set('catalogo', 'JP')
+  return `${location.pathname}?${p}`
+}
+
+// Y a las cartas de un ilustrador: la pestaña Buscar, que busca también
+// por ilustrador (la 447), con su nombre puesto.
+function direccionDeIlustrador(c) {
+  const p = new URLSearchParams()
+  p.set('ver', 'buscar')
+  p.set('q', c.illustrator)
+  if ((c.market || mercado) === 'JP') p.set('catalogo', 'JP')
+  return `${location.pathname}?${p}`
+}
+
 function tablaDeCarta(c) {
   if (!c) return ''
   const fecha = c.tcg_sets?.release_date
+  const enlace = (href, texto) => `<a href="${escapeHtml(href)}">${escapeHtml(texto)}</a>`
   const filas = [
+    // La expansión, enlazada (667), como el ilustrador: «si le doy, que me
+    // lleve al set; al ilustrador, a todas sus cartas».
+    ['Expansión', nombreDeSet(c.tcg_sets) || c.set_id ? { html: enlace(direccionDeSet(c), nombreDeSet(c.tcg_sets) || c.set_id) } : ''],
     ['Tipo', categoriaEs(c.category)],
     ['Energía', Array.isArray(c.types) && c.types.length ? c.types.map(tipoEs).join(', ') : ''],
     ['Rareza', rarezaDeCarta(c)],
     ['Número', c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? ` / ${c.tcg_sets.card_count_official}` : ''}` : ''],
-    ['Ilustrador', c.illustrator],
+    ['Ilustrador', c.illustrator ? { html: enlace(direccionDeIlustrador(c), c.illustrator) } : ''],
     ['Salida', fecha ? new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''],
     // El número nacional solo si la carta es de UNA especie: una TAG TEAM
     // lleva dos y «25, 133» no es un número de Pokédex, es una lista.
@@ -2041,7 +2073,7 @@ function tablaDeCarta(c) {
       // en la esquina de abajo, así que con ella la ficha se compara con
       // lo que tienes en la mano sin leer nada.
       const marca = k === 'Rareza' ? marcaDeCartaHtml(c) : ''
-      return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${escapeHtml(String(v))}</dd></div>`
+      return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${v && typeof v === 'object' && v.html ? v.html : escapeHtml(String(v))}</dd></div>`
     })
     .join('')
 }
@@ -3225,58 +3257,12 @@ function pintarTiraDeSet(elSet) {
           : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>'),
   ], { idPuntos: 'mcAlbumPuntos' })
   engancharPuntos('mcAlbumProgreso')
-  // Y lo que vale la expansión en el tiempo (662), que llega por su cuenta.
-  void pintarValorDeSet(elSet)
 }
 
-// ── LO QUE VALE LA EXPANSIÓN, EN EL TIEMPO (662) ──
-//
-// La misma gráfica que la del valor de tu colección (653), con las filas
-// de `tcg_set_valor` de ESTA expansión: la pasada de precios escribe una
-// al día (646). Con menos de dos días no hay gráfica, y la tarjeta de la
-// estantería ya dice el valor y el semanal. Va DEBAJO de la tira de cifras
-// y la pinta el mismo módulo, así que los rangos y la lectura al pasar el
-// dedo son los mismos de arriba.
-let rangoDelSet = 'MAX'
-async function pintarValorDeSet(elSet) {
-  const sitio = $('mcAlbumProgreso')
-  if (!sitio || !elSet?.id) return
-  let caja = $('mcAlbumValor')
-  if (!caja) {
-    sitio.insertAdjacentHTML('afterend', '<section class="mc-resumen-caja mc-valor-caja mc-album-valor hidden" id="mcAlbumValor"></section>')
-    caja = $('mcAlbumValor')
-  }
-  caja.classList.add('hidden')
-  caja.innerHTML = ''
-  const id = elSet.id
-  try {
-    const [{ data }, grafica] = await Promise.all([
-      supabase.from('tcg_set_valor').select('dia,valor_cm').eq('market', elSet.market || mercado).eq('set_id', id).order('dia').limit(2000),
-      import('./mi-coleccion/grafica-valor.js'),
-    ])
-    // Si mientras tanto se abrió otra expansión, esto ya no es de nadie.
-    if (album.set !== id) return
-    const filas = (data || []).filter((f) => Number(f.valor_cm) > 0).map((f) => ({ dia: f.dia, valor: Number(f.valor_cm) }))
-    if (filas.length < 2) return
-    const pintar = () => {
-      caja.innerHTML = `<h3>Lo que vale esta expansión</h3><p class="subtext mc-album-valor-de">La suma de los mínimos de Cardmarket de sus cartas, cada día.</p>${grafica.graficaHtml(filas, { rango: rangoDelSet, nombre: 'esta expansión' })}`
-      grafica.engancharLectura(caja.querySelector('.mc-valor-lienzo'))
-      caja.classList.remove('hidden')
-    }
-    if (!caja.dataset.enganchada) {
-      caja.dataset.enganchada = '1'
-      caja.addEventListener('click', (e2) => {
-        const b2 = e2.target.closest('[data-rango]')
-        if (!b2 || b2.disabled) return
-        rangoDelSet = b2.dataset.rango
-        pintar()
-      })
-    }
-    pintar()
-  } catch {
-    // Sin la tabla o sin red, la expansión se ve igual: sin esta caja.
-  }
-}
+// La gráfica de «lo que vale esta expansión» (662) vivió aquí dentro
+// hasta la 667: PINGU la quitó de dentro («como vas a ponerlo en el
+// overview de la expansión no tiene sentido meterlo dentro») y va en la
+// tarjeta de la estantería.
 
 // ── LOS PUNTOS DE UNA TIRA (tanda 467) ──
 //
@@ -4934,10 +4920,15 @@ function enganchar() {
     const campos = $('mcEdCopiaCampos')
     const abierto = campos.classList.toggle('hidden') === false
     $('mcEdEditar').setAttribute('aria-expanded', String(abierto))
-    $('mcEdEditar').textContent = abierto ? 'Listo' : 'Editar'
+    const rotulo = $('mcEdEditar').querySelector('span') || $('mcEdEditar')
+    rotulo.textContent = abierto ? 'Listo' : 'Editar'
     if (abierto) $('mcEdIdioma')?.focus()
   })
   $('mcEdQuitarResumen')?.addEventListener('click', () => $('mcEdQuitar')?.click())
+  // Los iconos de las losetas (667) y el «Avísame», delegado una vez: la
+  // loseta lleva el id de la carta abierta en data-aviso.
+  for (const i of document.querySelectorAll('#mcEdAcciones [data-icono]')) i.innerHTML = icons[i.dataset.icono]?.(16) || ''
+  engancharAvisos($('mcEdAcciones'), () => avisoDatos || {})
 
   $('mcEdNotaAbrir').addEventListener('click', () => {
     pintarNota($('mcEdNotas').value, true)
@@ -5926,6 +5917,12 @@ async function iniciarCatalogo() {
   pintarBandejaCatalogo()
   pintarGruposDelCatalogo()
   cambiarPestania(pestania)
+  // Una búsqueda que viene en la dirección (667): el enlace del ilustrador
+  // de la ficha abre Buscar con su nombre ya puesto.
+  if (pestania === 'buscar' && params.get('q') && $('mcBuscarTodo')) {
+    $('mcBuscarTodo').value = params.get('q')
+    void buscarEnTodo()
+  }
   if (sesion) {
     await cargarColeccion(dueno.id, { primeraVez: true })
   } else {

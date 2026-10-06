@@ -106,7 +106,7 @@
    el rango entre idiomas. Cada una es una caja; la primera manda. ── */
 .pv-burbujas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--e-sm);
 }
 
@@ -133,8 +133,10 @@
   font-size: var(--t-2xl);
 }
 
+/* Un paso menos y partible (667): «1632,25 US$» se salía de su caja. */
 .pv-cifra-2 {
-  font-size: var(--t-xl);
+  font-size: var(--t-lg);
+  overflow-wrap: anywhere;
 }
 
 .pv-sin {
@@ -370,8 +372,10 @@ a.pv-fila-enlace:hover span:first-of-type {
    mismo molde que el de Cardmarket. Su marca no es nuestra para
    dibujarla, así que lleva el icono de cartas de la casa. El azul es
    fijo en los dos temas por lo mismo que --cm-azul. */
+/* Desde la 667 con el azul de SU logo y su rayo (PINGU: «hazlo más como
+   el logo de TCGplayer»). */
 .btn-tcgplayer {
-  --tp-azul: #1b5fc9;
+  --tp-azul: #1a6eff;
   display: inline-flex;
   align-items: center;
   gap: var(--e-sm);
@@ -381,9 +385,12 @@ a.pv-fila-enlace:hover span:first-of-type {
   background: var(--tp-azul);
   color: var(--blanco-fijo);
   font-size: var(--t-sm);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   text-decoration: none;
 }
+
+.btn-tcgplayer svg { fill: var(--blanco-fijo); stroke: var(--blanco-fijo); }
 
 .btn-tcgplayer:hover {
   filter: brightness(1.2);
@@ -423,8 +430,9 @@ a.pv-fila-enlace:hover span:first-of-type {
   stroke-linejoin: round;
 }
 
+/* TCGplayer en amarillo desde la 667 (PINGU), y el alemán cede el token. */
 .carta-historial-linea-tp {
-  stroke: var(--text-mid);
+  stroke: var(--warning);
   stroke-dasharray: 4 4;
 }
 
@@ -457,7 +465,7 @@ a.pv-fila-enlace:hover span:first-of-type {
 .carta-historial-linea-otra { stroke-width: 1.25; opacity: 0.75; }
 .carta-historial-linea[data-idioma='es'] { stroke: var(--navy-solid); }
 .carta-historial-linea[data-idioma='en'] { stroke: var(--indigo); }
-.carta-historial-linea[data-idioma='de'] { stroke: var(--warning); }
+.carta-historial-linea[data-idioma='de'] { stroke: var(--text-dim); }
 .carta-historial-linea[data-idioma='fr'] { stroke: var(--pink); }
 .carta-historial-linea[data-idioma='it'] { stroke: var(--ice-dark); }
 .carta-historial-linea[data-idioma='ja'] { stroke: var(--rarity-bronze); }
@@ -511,7 +519,8 @@ a.pv-fila-enlace:hover span:first-of-type {
 .carta-historial-leyenda-item.elegido { color: var(--text); font-weight: 700; }
 .carta-historial-leyenda-item i { width: 12px; height: 2px; border-radius: 1px; background: var(--navy-solid); }
 .carta-historial-leyenda-item[data-idioma='en'] i { background: var(--indigo); }
-.carta-historial-leyenda-item[data-idioma='de'] i { background: var(--warning); }
+.carta-historial-leyenda-item[data-idioma='de'] i { background: var(--text-dim); }
+.carta-historial-leyenda-item[data-idioma='tp'] i { background: var(--warning); }
 .carta-historial-leyenda-item[data-idioma='fr'] i { background: var(--pink); }
 .carta-historial-leyenda-item[data-idioma='it'] i { background: var(--ice-dark); }
 .carta-historial-leyenda-item[data-idioma='ja'] i { background: var(--rarity-bronze); }

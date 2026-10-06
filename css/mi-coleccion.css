@@ -2608,19 +2608,46 @@
   padding-top: var(--e-md);
 }
 
-/* Las acciones pegadas a la carta (650): el «+» y «Tienes N». */
+/* Las acciones pegadas a la carta (650), losetas desde la 667: icono
+   arriba y palabra debajo, como en TCGGO. Ver SCHEMA 667. */
 .mc-ficha-acciones {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: var(--e-sm);
   margin-top: var(--e-md);
 }
 
-.mc-ficha-mas span {
-  font-size: var(--t-lg);
-  line-height: 1;
+.mc-ficha-tile {
+  display: inline-flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 64px;
+  max-width: 120px;
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--ease), border-color var(--ease);
 }
+
+.mc-ficha-tile:hover { border-color: var(--border-strong); background: var(--white); }
+.mc-ficha-tile i { display: inline-flex; width: 16px; height: 16px; font-style: normal; line-height: 1; }
+.mc-ficha-mas i { font-size: var(--t-lg); align-items: center; justify-content: center; }
+.mc-ficha-tile svg { width: 16px; height: 16px; }
+
+/* Tu copia bajo la carta (667). */
+.mc-ficha-carta .mc-ficha-bloque { margin: var(--e-lg) 0 0; text-align: left; }
+.mc-copia-tienes { align-self: center; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
+.mc-ficha-set a:hover, .mc-ficha-tabla dd a:hover { color: var(--navy); border-color: var(--navy); }
 
 /* Tus otras copias de la misma carta (650). */
 .mc-otras-copias {

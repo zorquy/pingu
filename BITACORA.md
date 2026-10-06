@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 2) — PINGU-Claude (667 — la ficha y la expansión, como en TCGGO)
+
+**Hecho**: fuera la gráfica de valor de DENTRO de la expansión (irá en
+la tarjeta de la estantería); los precios ya no se desbordan en las
+burbujas; bajo la carta, tres losetas (Añadir, Editar si la tienes,
+Avísame) y el bloque «Tu copia» mudado ahí debajo; en el histórico,
+fuera el pie, «Cardmarket» en azul y TCGplayer en amarillo; el botón de
+TCGplayer con el azul de su logo y el rayo; y el set (arriba y en la
+tabla) y el ilustrador son enlaces (a la expansión y a Buscar).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `css/cardmarket.css`, `js/carta-historial.js`,
+`js/precio-vista.js`, `SCHEMA.md`. En `pruebas`: 650-pantalla,
+645-pantalla, 665 y 662 ajustadas.
+
+**Pendiente**: la tarjeta de expansión al estilo TCGGO con su gráfica
+(siguiente tanda); suite entera (CSS compartido tocado).
 ## 2026-10-06 (mañana, 1) — PINGU-Claude (666 — el 30 aniversario, ENTERO de TCGGO)
 
 **Hecho**: PINGU pegó la página 1 de `episodes/431/cards` y pidió

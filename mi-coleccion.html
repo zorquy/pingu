@@ -1147,56 +1147,17 @@
                  El «+» abre el diálogo de añadir (que pregunta el idioma),
                  y «Tienes N» baja a tu copia. Solo con cuenta y si la
                  colección es la tuya: el JavaScript lo esconde si no. -->
+            <!-- Desde la 667 son LOSETAS como las de TCGGO (PINGU: «debajo
+                 de la carta tienen unos botones bastante más sutiles y
+                 modernos»): Añadir, Editar (si la tienes) y Avísame. Los
+                 iconos los pone el JavaScript por data-icono. -->
             <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
-              <button type="button" class="btn-primary mc-ficha-mas" id="mcEdMas"><span aria-hidden="true">+</span> Añadir</button>
-              <button type="button" class="btn-secondary hidden" id="mcEdTienes"></button>
+              <button type="button" class="mc-ficha-tile mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span>Añadir</span></button>
+              <button type="button" class="mc-ficha-tile hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos"><i aria-hidden="true" data-icono="edit"></i><span>Editar</span></button>
+              <button type="button" class="mc-ficha-tile" id="mcEdAviso"><i aria-hidden="true" data-icono="bell"></i><span>Avísame</span></button>
             </div>
-          </div>
-          <div class="mc-ficha-datos">
-            <p class="mc-ficha-set" id="mcEdSet"></p>
-            <h2 id="mcEditorTitulo">Editar</h2>
-            <p class="mc-ficha-chapas" id="mcEdChapas"></p>
-
-            <section class="mc-ficha-bloque">
-              <h3>Precio</h3>
-              <div class="mc-ficha-caja">
-              <!-- EL PRECIO DE TU COPIA (tanda 589): el mínimo en SU idioma,
-                   las chapas de los demás idiomas, los dos botones
-                   (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
-                   pinta js/precio-vista.js, el mismo bloque que /carta. -->
-              <div id="mcEdPrecioBloque"></div>
-              <!-- El histórico de precios (643), aquí también desde la 645:
-                   lo pinta js/carta-historial.js y sin filas no se ve. -->
-              <div class="carta-historial hidden" id="mcEdHistorial"></div>
-              <div class="mc-ficha-enlaces">
-                <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
-                     la que indexa Google, la que se comparte y la que trae
-                     los ataques, las reimpresiones y el tablón. Este
-                     diálogo es el atajo de dentro de tu colección. -->
-                <a class="mc-accion" id="mcEdFicha" href="#">Ficha completa</a>
-              </div>
-              </div>
-            </section>
-
-            <!-- Una carta que NO tienes (tanda 418) abre la misma ficha; lo
-                 que cambia es que no hay bloque de «tu copia». Añadirla es
-                 el «+» de debajo de la carta, que abre el diálogo de
-                 #mcAnadirDialogo (tanda 650): la 564 puso aquí un botón
-                 por versión «para no meter un paso», y PINGU pidió el
-                 paso —el diálogo de TCGGO que pregunta el idioma—, porque
-                 sin él añadir una segunda copia en otro idioma acababa en
-                 editar la que había. -->
-
-            <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
-                 catálogo público, y en vez del botón de añadir dice cómo
-                 tener dónde añadirla. El enlace vuelve a esta misma página. -->
-            <section class="mc-ficha-bloque hidden" id="mcEdEntrarBloque">
-              <div class="mc-ficha-caja mc-ficha-entrar">
-                <p class="subtext">¿La tienes? Entra y guárdala en tu colección.</p>
-                <a class="btn-primary" id="mcEdEntrar" href="/auth.html?volver=%2Fcartas">Entrar</a>
-              </div>
-            </section>
-
+            <!-- TU COPIA, aquí desde la 667: PINGU pidió lo de editar tu
+                 copia «justo debajo de la foto de la carta». -->
             <section class="mc-ficha-bloque" id="mcEdCopiaBloque">
               <h3>Tu copia</h3>
               <div class="mc-ficha-caja">
@@ -1215,7 +1176,7 @@
                cambia la ficha a esa línea. -->
           <div class="mc-otras-copias hidden" id="mcEdOtrasCopias"></div>
           <div class="mc-copia-acciones">
-            <button type="button" class="btn-primary" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos">Editar</button>
+            <span class="mc-copia-tienes hidden" id="mcEdTienes"></span>
             <button type="button" class="btn-secondary mc-chip-peligro" id="mcEdQuitarResumen">Quitar</button>
           </div>
         </div>
@@ -1280,6 +1241,53 @@
         </div>
               </div>
             </section>
+          </div>
+          <div class="mc-ficha-datos">
+            <p class="mc-ficha-set" id="mcEdSet"></p>
+            <h2 id="mcEditorTitulo">Editar</h2>
+            <p class="mc-ficha-chapas" id="mcEdChapas"></p>
+
+            <section class="mc-ficha-bloque">
+              <h3>Precio</h3>
+              <div class="mc-ficha-caja">
+              <!-- EL PRECIO DE TU COPIA (tanda 589): el mínimo en SU idioma,
+                   las chapas de los demás idiomas, los dos botones
+                   (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
+                   pinta js/precio-vista.js, el mismo bloque que /carta. -->
+              <div id="mcEdPrecioBloque"></div>
+              <!-- El histórico de precios (643), aquí también desde la 645:
+                   lo pinta js/carta-historial.js y sin filas no se ve. -->
+              <div class="carta-historial hidden" id="mcEdHistorial"></div>
+              <div class="mc-ficha-enlaces">
+                <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
+                     la que indexa Google, la que se comparte y la que trae
+                     los ataques, las reimpresiones y el tablón. Este
+                     diálogo es el atajo de dentro de tu colección. -->
+                <a class="mc-accion" id="mcEdFicha" href="#">Ficha completa</a>
+              </div>
+              </div>
+            </section>
+
+            <!-- Una carta que NO tienes (tanda 418) abre la misma ficha; lo
+                 que cambia es que no hay bloque de «tu copia». Añadirla es
+                 el «+» de debajo de la carta, que abre el diálogo de
+                 #mcAnadirDialogo (tanda 650): la 564 puso aquí un botón
+                 por versión «para no meter un paso», y PINGU pidió el
+                 paso —el diálogo de TCGGO que pregunta el idioma—, porque
+                 sin él añadir una segunda copia en otro idioma acababa en
+                 editar la que había. -->
+
+            <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
+                 catálogo público, y en vez del botón de añadir dice cómo
+                 tener dónde añadirla. El enlace vuelve a esta misma página. -->
+            <section class="mc-ficha-bloque hidden" id="mcEdEntrarBloque">
+              <div class="mc-ficha-caja mc-ficha-entrar">
+                <p class="subtext">¿La tienes? Entra y guárdala en tu colección.</p>
+                <a class="btn-primary" id="mcEdEntrar" href="/auth.html?volver=%2Fcartas">Entrar</a>
+              </div>
+            </section>
+
+
 
             <!-- Quién de los que sigues la tiene (tanda 403). El bloque
                  entero se esconde si no hay nadie: un rótulo encima de un

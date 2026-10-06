@@ -32280,3 +32280,47 @@ cartas, dos Eevee—; la pasada con la expansión escrita; la cadena de
 escaneos). `test-tanda-654.mjs` pasa a la pasada solo el primer
 reemplazo. Pasadas también 661, 640, 434, 435, 392, 370 y
 `test-imports`.
+
+## Tanda 667 — la ficha y la expansión, como en TCGGO (oct. 2026)
+
+PINGU, por la mañana, con capturas de TCGGO al lado: cinco cosas.
+
+1. **Dentro de la expansión sobraba espacio** antes de las primeras
+   cartas, y «lo que vale esta expansión» (la gráfica de la 662) no
+   tiene sentido dentro si va a estar en la tarjeta de la estantería.
+   Fuera: `pintarValorDeSet` ya no existe; quedan el buscador, los
+   filtros y la tira de las tres cifras, y luego las cartas. La gráfica
+   va a la tarjeta de la expansión (tanda siguiente).
+2. **Los precios se desbordaban** en las burbujas pequeñas («1632,25
+   US$» en PSA 10): `.pv-cifra-2` baja un paso (`--t-lg`), parte si hace
+   falta (`overflow-wrap: anywhere`) y la rejilla pide 140 px por caja.
+3. **Los botones bajo la carta, sutiles y modernos** como los de TCGGO
+   («colección, inventario, favoritos»): tres LOSETAS (`.mc-ficha-tile`,
+   icono arriba y palabra debajo): **Añadir** (`#mcEdMas`), **Editar**
+   (`#mcEdEditar`, solo si la tienes; despliega los campos como antes) y
+   **Avísame** (`#mcEdAviso`, con `data-aviso` de la carta abierta; el
+   oyente de la 665 va enganchado a `#mcEdAcciones` y ya no se pinta en
+   el bloque de precio). Y el bloque **Tu copia** entero (chapas, lo que
+   vale, otras copias, Quitar, los campos) se muda a la columna de la
+   carta, justo debajo de las losetas; «Tienes N» es un texto en ese
+   resumen (`#mcEdTienes`).
+4. **La gráfica del histórico**: fuera el pie que explicaba las líneas
+   (`pieDeHistorial` sigue exportada, no se pinta); la leyenda llama
+   **Cardmarket** a la línea del idioma elegido (las demás, por idioma) y
+   **TCGplayer va en amarillo** (`--warning`; el alemán pasa a
+   `--text-dim`). Y el botón de TCGplayer lleva el azul de su logo
+   (`#1a6eff`) y el rayo (`icons.zap`).
+5. **Todo clicable**: el nombre del set arriba de la ficha es un enlace a
+   la expansión (`direccionDeSet`: `?ver=album&set=…` en Mi colección,
+   `?set=…` en /cartas, con `catalogo=JP` si toca), la tabla de datos
+   lleva una fila **Expansión** con el mismo enlace, y **Ilustrador** va a
+   Buscar con su nombre (`direccionDeIlustrador`: `?ver=buscar&q=…`; al
+   arrancar, un `?q=` en Buscar pone la búsqueda y la lanza).
+
+**Ficheros**: `mi-coleccion.html` (+ `cartas.html` generado),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `css/cardmarket.css`,
+`js/carta-historial.js`, `js/precio-vista.js`.
+
+**Pruebas** (PINGU: «no hagas demasiado test, quiero ver los cambios
+cuanto antes»): pasadas 650-pantalla, 645-pantalla, 665, 662 (ajustadas
+a lo nuevo), 661, 643 e imports. La suite entera queda para después.

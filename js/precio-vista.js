@@ -183,7 +183,7 @@ export function fuenteTcgplayer(precio, tcgplayerId) {
   const filas = []
   if (precio?.tpEur) filas.push(`<tr class="pv-fila"><td><span class="pv-fila-enlace">Precio de mercado, en euros</span></td><td class="pv-precio">${euros(precio.tpEur)}</td></tr>`)
   if (precio?.tpMidEur) filas.push(`<tr class="pv-fila"><td><span class="pv-fila-enlace">Precio medio</span></td><td class="pv-precio">${euros(precio.tpMidEur)}</td></tr>`)
-  return `<div class="pv-fuente pv-tcgplayer"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">TCGplayer</span>${tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.cards(16)}<span>TCGplayer</span></a>` : ''}</div>${filas.length ? `<table class="pv-tabla"><tbody>${filas.join('')}</tbody></table>` : ''}</div>`
+  return `<div class="pv-fuente pv-tcgplayer"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">TCGplayer</span>${tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.zap(16)}<span>TCGplayer</span></a>` : ''}</div>${filas.length ? `<table class="pv-tabla"><tbody>${filas.join('')}</tbody></table>` : ''}</div>`
 }
 
 // El bloque entero.

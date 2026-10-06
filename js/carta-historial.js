@@ -174,7 +174,9 @@ export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [
 // por `data-idioma`), el elegido marcado; y TCGplayer si está.
 export function leyendaHtml(filas, idioma, { todas = false } = {}) {
   const ids = todas ? idiomasConSerie(filas) : idiomasConSerie(filas).filter((id) => id === idioma)
-  const partes = ids.map((id) => `<span class="carta-historial-leyenda-item${id === idioma ? ' elegido' : ''}" data-idioma="${id}"><i></i>${escapeHtml(idiomaDe(id).nombre)}</span>`)
+  // La línea elegida se llama «Cardmarket» (667, PINGU: «en vez de inglés
+  // pon Cardmarket en azul»); las otras, por su idioma.
+  const partes = ids.map((id) => `<span class="carta-historial-leyenda-item${id === idioma ? ' elegido' : ''}" data-idioma="${id}"><i></i>${id === idioma ? 'Cardmarket' : escapeHtml(idiomaDe(id).nombre)}</span>`)
   if (serieDe(filas, (f) => num(f?.tp_market_eur)).length >= 2) partes.push('<span class="carta-historial-leyenda-item" data-idioma="tp"><i></i>TCGplayer</span>')
   return partes.length ? `<div class="carta-historial-leyenda">${partes.join('')}</div>` : ''
 }
@@ -282,7 +284,7 @@ export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', {
       caja.innerHTML = ''
       return
     }
-    caja.innerHTML = `<p class="carta-historial-titulo">Histórico de precios</p>${chipsHtml(filas, idioma)}<div class="carta-historial-lienzo">${svg}<div class="carta-historial-lectura" hidden aria-hidden="true"><span class="carta-historial-globo"></span></div></div>${leyendaHtml(tramo, idioma, { todas: true })}${botonesDeRango(filas, elegido)}<p class="carta-historial-pie">${escapeHtml(pieDeHistorial(tramo, idioma))}</p>`
+    caja.innerHTML = `<p class="carta-historial-titulo">Histórico de precios</p>${chipsHtml(filas, idioma)}<div class="carta-historial-lienzo">${svg}<div class="carta-historial-lectura" hidden aria-hidden="true"><span class="carta-historial-globo"></span></div></div>${leyendaHtml(tramo, idioma, { todas: true })}${botonesDeRango(filas, elegido)}`
     caja.classList.remove('hidden')
     engancharLectura(caja.querySelector('.carta-historial-lienzo'))
   }
