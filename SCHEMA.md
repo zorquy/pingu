@@ -34069,3 +34069,39 @@ título. Tres cosas:
 La prueba 704 abre la hoja tocando la sección activa en la portada y en
 Mi colección, mide que la burbuja queda encima de la barra y que el
 relleno de arriba es el pequeño.
+
+## Tanda 705 — los diálogos son hojas desde abajo en el móvil (oct. 2026)
+
+Segunda tanda del móvil (plan de la 704; PINGU: «dale con todo lo
+planeado»). El panel de filtros de Mi colección era un cajón lateral
+pegado a la derecha de arriba abajo, y la ficha de una carta un diálogo
+centrado con 24 px de margen: los dos de escritorio. En un móvil se usan
+desde abajo, donde está el pulgar, y es lo que PINGU señaló en Dex. En
+`css/movil.css` (solo móvil) `.mc-panel-filtros`, `.mc-editor` y
+`.mc-dlg-adorno` pasan a hoja: de lado a lado, pegadas al fondo,
+redondeadas arriba, 92 dvh como mucho y con el hueco del gesto de inicio
+del iPhone (`env(safe-area-inset-bottom)`). La bandeja de añadir
+(`.mc-bandeja`) ya nacía así. En el escritorio no cambia nada: la prueba
+abre los filtros a 1200 px y comprueba que siguen siendo el cajón.
+
+**Ficheros**: `css/movil.css`. Prueba 705-pantalla (rama `pruebas`).
+
+## Tanda 706 — la expansión, compacta (oct. 2026)
+
+Tercera tanda del móvil. En una expansión, antes de ver una carta se
+pasaba por la miga, el título, el buscador, los chips y un carrusel de
+estadísticas con el aire del escritorio: la primera carta empezaba a
+pantalla y media. Ahora, solo en el móvil:
+
+- La miga «Expansiones ›» no sale: la burbuja ya dice dónde estás.
+- El carrusel de estadísticas se queda, que es lo que Dex enseña y PINGU
+  quiere, pero sin aire: menos relleno en cada diapositiva y entre ellas.
+- El «+» de cada carta tapaba un cuarto del dibujo (arriba a la
+  derecha, azul). Va abajo a la izquierda —la cuenta está abajo a la
+  derecha y «×2» arriba a la izquierda—, blanco translúcido con el signo
+  azul, y del mismo tamaño.
+
+La primera carta empieza ahora en la primera pantalla; la prueba lo
+mide (≤ 460 px) y comprueba dónde cae el «+».
+
+**Ficheros**: `css/movil.css`. Prueba 705-pantalla.

@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (madrugada, 1) — PINGU-Claude (705 y 706 — hojas desde abajo y la expansión compacta en el móvil)
+
+**Hecho**: PINGU: «sigue con todas las tandas y mañana repasamos». 705:
+los filtros y la ficha de una carta son hojas desde abajo en el móvil
+(`css/movil.css`); el escritorio igual. 706: la expansión sin la miga
+que repite la pestaña, el carrusel sin aire y el «+» abajo a la
+izquierda, sin tapar el dibujo: la primera carta entra en la primera
+pantalla.
+
+**Ficheros**: `css/movil.css`, `SCHEMA.md`. Prueba 705-pantalla en
+`pruebas`.
+
+**Pendiente**: 707 (acciones de /carta pegadas abajo) y 708 (pequeños).
+
 ## 2026-10-06 (noche, 5) — PINGU-Claude (704 — la barra inferior del móvil y las píldoras de sección)
 
 **Hecho** (704c, con Dex delante: FUERA la fila de sección; las páginas de la sección salen en una hoja al volver a tocar la sección activa en la barra; la burbuja de Mi colección vuelve a flotar encima de la barra; el hueco de 76 px bajo la barra de arriba pasa a 16 en el móvil): primera tanda del móvil, aprobada por PINGU con maquetas.

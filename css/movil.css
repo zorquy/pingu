@@ -100,3 +100,68 @@
     padding-bottom: calc(80px + 88px + env(safe-area-inset-bottom));
   }
 }
+
+/* ── 705: los diálogos son HOJAS DESDE ABAJO en el móvil ──
+   El panel de filtros era un cajón lateral y la ficha de una carta un
+   diálogo centrado: los dos de escritorio. En el móvil se usan desde
+   abajo, donde está el pulgar (PINGU: «mira Dex»). La bandeja de añadir
+   (`.mc-bandeja`) ya nacía así. */
+@media (max-width: 900px) {
+  .mc-panel-filtros,
+  .mc-editor,
+  .mc-dlg-adorno {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    overscroll-behavior: contain;
+  }
+  .mc-editor {
+    padding: var(--e-md) var(--e-md) calc(var(--e-md) + env(safe-area-inset-bottom));
+  }
+  .mc-bandeja,
+  .mc-panel-filtros,
+  .mc-dlg-adorno {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ── 706: la expansión, compacta ──
+   Antes de ver una carta pasabas por la miga, el título, el buscador,
+   los chips y un carrusel de estadísticas con aire de escritorio. */
+@media (max-width: 900px) {
+  /* La miga «Expansiones ›» repite la pestaña de la burbuja. */
+  html.con-barra-movil #mcAlbumMigas {
+    display: none;
+  }
+  .mc-album-barra {
+    margin-bottom: var(--e-xs);
+  }
+  .mc-diapos {
+    gap: var(--e-sm);
+    margin-bottom: var(--e-xs);
+  }
+  .mc-diapo {
+    padding: var(--e-sm) var(--e-md);
+    gap: 2px;
+  }
+  .mc-puntos {
+    margin: var(--e-xs) 0 var(--e-sm);
+  }
+  /* El «+» tapaba un cuarto del dibujo de cada carta: abajo a la
+     izquierda (la cuenta va abajo a la derecha y «×2» arriba a la
+     izquierda), blanco translúcido con el signo azul, y el mismo tamaño. */
+  .mc-mas {
+    top: auto;
+    right: auto;
+    bottom: var(--e-xs);
+    left: var(--e-xs);
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--white) 88%, transparent);
+    color: var(--navy);
+    box-shadow: none;
+  }
+}
