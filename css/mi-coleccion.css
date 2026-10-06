@@ -2691,41 +2691,6 @@
   padding-top: var(--e-md);
 }
 
-/* Las acciones pegadas a la carta (650), losetas desde la 667: icono
-   arriba y palabra debajo, como en TCGGO. Ver SCHEMA 667. */
-.mc-ficha-acciones {
-  display: flex;
-  justify-content: center;
-  gap: var(--e-sm);
-  margin-top: var(--e-md);
-}
-
-.mc-ficha-tile {
-  display: inline-flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-xs);
-  min-width: 64px;
-  max-width: 120px;
-  min-height: 56px;
-  padding: var(--e-sm) var(--e-xs);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg);
-  color: var(--text);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--ease), border-color var(--ease);
-}
-
-.mc-ficha-tile:hover { border-color: var(--border-strong); background: var(--white); }
-.mc-ficha-tile i { display: inline-flex; width: 16px; height: 16px; font-style: normal; line-height: 1; }
-.mc-ficha-mas i { font-size: var(--t-lg); align-items: center; justify-content: center; }
-.mc-ficha-tile svg { width: 16px; height: 16px; }
-
 /* Tu copia bajo la carta (667), compacta desde la 673: dos columnas,
    controles de 36 px con ratón (44 con el dedo), un solo «Quitar». */
 .mc-ficha-carta .mc-ficha-bloque { margin: var(--e-md) 0 0; text-align: left; }
@@ -2805,8 +2770,6 @@
 .mc-vista-seg button[aria-pressed='true'] { background: var(--navy); color: var(--blanco-fijo); }
 .mc-vista-seg .pv-bandera { width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
 @media (pointer: coarse) { .mc-vista-seg button { min-height: 40px; } }
-.mc-ficha-tile small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
-.mc-ficha-tile small:empty { display: none; }
 .mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
 .mc-ficha-set a:hover, .mc-ficha-tabla dd a:hover { color: var(--navy); border-color: var(--navy); }
 
@@ -2842,119 +2805,6 @@
 
 .mc-otra-copia .mc-ficha-chapas {
   margin: 0;
-}
-
-/* El diálogo de añadir (650): la carta pequeña arriba, el nombre, y
-   las dos caras. */
-.mc-anadir-dialogo .mc-panel-cuerpo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
-}
-
-.mc-ad-carta {
-  display: flex;
-  justify-content: center;
-}
-
-.mc-ad-carta img {
-  width: 96px;
-  height: auto;
-  aspect-ratio: 245 / 342;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-
-.mc-ad-nombre {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  text-align: center;
-}
-
-.mc-ad-ya-titulo {
-  margin: 0 0 var(--e-sm);
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-}
-
-.mc-ad-ya-lista {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-}
-
-.mc-ad-ya-linea {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-sm);
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.mc-ad-ya-linea .mc-ficha-chapas {
-  margin: 0;
-}
-
-.mc-ad-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
-}
-
-.mc-ad-idiomas-caja {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.mc-ad-idiomas-caja legend {
-  padding: 0;
-  margin-bottom: var(--e-xs);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-}
-
-.mc-idioma-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-}
-
-.mc-idioma-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mc-idioma-chip.activo {
-  border-color: var(--navy);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-.mc-ad-campos {
-  flex: none;
-}
-
-.mc-ad-botones {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--e-sm);
-  margin-top: var(--e-xs);
 }
 
 /* El aviso de «Guardado», que sustituye a los tres botones. Aparece y se
@@ -4099,60 +3949,6 @@ input.mc-alb-titulo:not([readonly]):focus {
    una fila que ya se reparte el bolsillo entero, y estirarlas sacaría
    la fila fuera (regla de la 312). */
 
-/* ── El contador de copias (tanda 396) ── */
-.mc-contador-mando {
-  display: flex;
-  align-items: stretch;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-}
-
-.mc-contador-btn {
-  /* 44 de ancho Y de alto: aquí el ancho SÍ se pide, porque es un icono y
-     nada más — la regla de la 312 deja el ancho para lo que no lleva
-     palabra. */
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  background: none;
-  color: var(--text-mid);
-  font-size: var(--t-lg);
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.mc-contador-btn:hover {
-  background: var(--bg);
-  color: var(--text);
-}
-
-.mc-contador-mando input[type='number'] {
-  width: 56px;
-  /* El color, DICHO. Sin esto el número salía del color que tocara y en
-     el tema oscuro se perdía contra el fondo del mando: se veía en claro
-     y no en oscuro, que es el fallo que cantó PINGU. */
-  color: var(--text);
-  border: 0;
-  border-right: 1px solid var(--border);
-  border-left: 1px solid var(--border);
-  border-radius: 0;
-  background: none;
-  text-align: center;
-  /* Las flechas nativas sobran: para eso están los dos botones, y en
-     medio del mando se amontonan con ellos. */
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.mc-contador-mando input[type='number']::-webkit-outer-spin-button,
-.mc-contador-mando input[type='number']::-webkit-inner-spin-button {
-  margin: 0;
-  appearance: none;
-}
-
 /* ── Las tres barras del set (tanda 398) ── */
 .mc-barras {
   display: flex;
@@ -4249,47 +4045,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-panel-filtros::backdrop {
   background: rgba(13, 27, 42, 0.5);
-}
-
-.mc-panel-cabecera {
-  display: flex;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--e-lg);
-  border-bottom: 1px solid var(--border);
-  background: var(--white);
-}
-
-.mc-panel-cabecera h2 {
-  margin: 0;
-  font-size: var(--t-xl);
-}
-
-.mc-panel-cerrar {
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: none;
-  color: var(--text-mid);
-  font-size: var(--t-lg);
-  cursor: pointer;
-}
-
-.mc-panel-cuerpo {
-  /* Se come TODO el hueco que quede entre la cabecera y el pie (tanda 473).
-     Antes era un `max-height` a ojo —150 px de cabecera y pie— y eso solo
-     acierta cuando el contenido sobra; con poco contenido no estiraba nada.
-     El `min-height: 0` no es de adorno: un hijo de flex no baja de su
-     tamaño de contenido por defecto, así que sin él el `overflow-y` no
-     llega a desplazar y el pie se sale por abajo. */
-  flex: 1;
-  min-height: 0;
-  padding: var(--e-lg);
-  overflow-y: auto;
 }
 
 .mc-grupo-filtro {
@@ -5826,42 +5581,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   LA BANDEJA DE ORDENAR (tanda 449)
-   ══════════════════════════════════════════════════════════════════
-   Era un <select> de cuatro opciones; PINGU pidió diez criterios y el
-   sentido aparte. Un desplegable de diez renglones en un móvil es justo
-   lo que Dex no hace: él sube una hoja desde abajo con los criterios en
-   lista, su icono y una marca en el elegido.
-
-   SE LLAMA «BANDEJA» Y NO «HOJA» porque `.mc-hoja` YA EXISTE desde la
-   tanda del archivador: es una hoja de álbum, y lleva `display: grid`. La
-   primera versión de esto se llamaba igual y heredó esa rejilla, así que
-   el título, el interruptor y la lista salieron EN FILA, uno al lado del
-   otro. No dio error: una clase repetida nunca lo da, simplemente te
-   aplica el CSS de otro. Antes de inventar un nombre, búscalo.
-
-   Sube desde ABAJO y no desde el lado como el panel de filtros, y es a
-   propósito: el pulgar está abajo, y esta hoja se abre, se toca una cosa
-   y se cierra. El panel de filtros se queda abierto mientras pruebas. */
-.mc-bandeja {
-  width: 100%;
-  max-width: 100%;
-  max-height: 85dvh;
-  /* `auto` arriba y 0 abajo: eso la pega al fondo. */
-  margin: auto 0 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  background: var(--white);
-  color: var(--text);
-  overscroll-behavior: contain;
-}
-
-.mc-bandeja::backdrop {
-  background: rgba(13, 27, 42, 0.5);
-}
-
 /* El interruptor de sentido: UNA pregunta con dos respuestas. Dos botones
    sueltos la contarían como dos preguntas, y entonces «ninguna puesta» y
    «las dos puestas» serían estados posibles que aquí no existen. */
@@ -5948,17 +5667,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   color: var(--text-mid);
   font-size: var(--t-sm);
   font-weight: 700;
-}
-
-/* En el ordenador no hay pulgar ni borde de abajo: la hoja se centra y se
-   queda con el ancho de un diálogo normal. */
-@media (min-width: 700px) {
-  .mc-bandeja {
-    width: min(420px, calc(100vw - 32px));
-    max-height: 80vh;
-    margin: auto;
-    border-radius: var(--radius-xl);
-  }
 }
 
 /* El vistazo de Expansiones del Panel, a UNA FILA (tanda 451). PINGU:

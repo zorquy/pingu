@@ -365,8 +365,8 @@
 
 .carta-versiones {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--e-lg);
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--e-md);
 }
 
 .carta-version {
@@ -931,9 +931,11 @@
   font-weight: 400;
 }
 
-/* ── Precio y colección (tanda 365) ──
-   Lo pinta js/carta-mercado.js. Los selectores de arriba mandan sobre
-   las dos mitades: el enlace de Cardmarket y lo que se guarda. */
+/* ── El precio (365, rehecho en la 677) ──
+   Lo pinta js/carta-mercado.js al final de la página: los chips de
+   idioma y el estado arriba, el bloque de precio-vista debajo. Las
+   losetas de Añadir · Editar · Avísame van pegadas a la carta
+   (`.mc-ficha-acciones`, en cardmarket.css). Ver SCHEMA 677. */
 .carta-mercado {
   display: flex;
   flex-direction: column;
@@ -943,69 +945,42 @@
 .carta-mercado-filtros {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--e-md);
 }
 
-.carta-mercado-filtros label,
-.carta-mercado-cantidad {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
+.carta-mercado-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-left: auto;
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 600;
 }
 
-.carta-mercado-filtros select {
-  min-width: 160px;
+.carta-mercado-estado select {
   min-height: 44px;
 }
 
-.carta-mercado-cantidad input {
-  width: 96px;
-  min-height: 44px;
+.carta-mercado-pie {
+  margin: 0;
 }
 
-.carta-mercado-paneles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--e-lg);
+.carta-mercado-pie:empty {
+  display: none;
 }
 
-.carta-mercado-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--e-md);
-  padding: var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-
-.carta-mercado-titulo {
-  font-size: var(--t-lg);
-  font-weight: 700;
-}
-
-
-.carta-mercado-nota {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.carta-mercado-anadir .btn-secondary,
 .carta-mercado-ir {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
 }
 
-.carta-mercado-anadir {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--e-md);
+/* Las losetas, dentro del `figure` de la carta: en escritorio acompañan
+   al escaneo pegajoso; en el móvil quedan justo bajo la foto. */
+.carta-scan .carta-acciones {
+  margin-top: var(--e-md);
 }
 
 /* El histórico (643) vive en css/cardmarket.css desde la 645: lo pintan

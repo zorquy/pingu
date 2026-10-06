@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 5) — PINGU-Claude (677 — /carta reestructurada: otras versiones arriba, precio al final, las losetas y el diálogo de añadir)
+
+**Hecho**: /carta en el orden que pidió PINGU: ficha completa del
+borde → otras versiones → menciones → precio al final. Las losetas
+Añadir · Editar («Tienes N») · Avísame pegadas a la carta, y el
+diálogo de añadir de la 650 en vez del panel con tres desplegables.
+El precio elige idioma con chips de bandera. El CSS de losetas,
+diálogo, contador, cabecera y bandeja se MUDÓ de mi-coleccion.css a
+cardmarket.css (lo cargan las dos pantallas).
+
+**Ficheros**: `carta.html`, `js/carta-mercado.js`, `css/carta.css`,
+`css/cardmarket.css`, `css/mi-coleccion.css`, `SCHEMA.md`. En
+`pruebas`: 665 ajustada.
+
+**Pendiente**: 678 (un solo control de pestañas), 679–682; suite
+entera (la de la 676 se paró a medias); migración corea-china;
+Celebrations.
 ## 2026-10-06 (mediodía, 4) — PINGU-Claude (676 — una sola familia de botones, plana)
 
 **Hecho**: fuera el relieve antiguo de los botones (`box-shadow: 0 4px

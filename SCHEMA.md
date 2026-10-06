@@ -32792,3 +32792,69 @@ chapa, y a propósito.
 
 **Ficheros**: `css/style.css`, `css/curso.css`, `css/torneos.css`,
 `css/laboratorio.css`. **Pruebas**: 299, 305, 311, 312, 313 e imports.
+
+## Tanda 677 — /carta reestructurada: la ficha completa, las otras versiones arriba y el precio al final (oct. 2026)
+
+PINGU, con la ficha pública delante: «está muy bien, pero hay que
+reestructurarla; el tema de mi colección está horriblemente mal puesto;
+lo principal es que indexe en Google toda la información; los precios
+abajo; otras versiones más arriba (debajo de ataques o debajo de la
+imagen); y lo de mi colección, como el pop-up».
+
+**El orden de la página** (`carta.html`): el núcleo que pinta el borde
+—cabecera, escaneo, ficha, legalidad, combate, ataques y habilidades (en
+español cuando TCGdex lo tiene), torneos de PokeDoc, descripción— se
+queda como estaba, que es lo que Google lee; **debajo, «Otras versiones
+de esta carta»** (antes era lo último); luego «Dónde se habla de esta
+carta»; y **el precio, al final**. Ninguna de las tres secciones las
+pinta el borde: nacen escondidas y llegan cuando llegan.
+
+**Las losetas pegadas a la carta** (`montarAcciones` en
+`js/carta-mercado.js`): las mismas tres de la ficha de /mi-coleccion
+(667) —**Añadir**, **Editar** con «Tienes N» (solo si la tienes; lleva a
+Buscar de Mi colección con el nombre puesto) y **Avísame**—, dentro del
+`figure` del escaneo para que en escritorio acompañen a la carta
+pegajosa y en el móvil queden justo bajo la foto. Sin sesión, Añadir y
+Avísame son enlaces al registro con `volver`.
+
+**El diálogo de añadir** es el de la 650 (`#cmAdDialogo`, montado una
+vez por JavaScript): la carta pequeña, «Añadiendo X · set número», la
+cara «Ya en tu colección» con lo que tienes y «Añadir más», y el
+formulario —idioma con banderas, estado, versión (solo si hay más de
+una), copias con contador, lo que pagaste—. Guarda por `datos.anadir`,
+que es el único camino de la casa (650), y recuerda el idioma en la
+MISMA clave que /mi-coleccion (`mcTocarIdioma-es`, la memoria por
+catálogo de la 472): elegir «inglés» aquí lo deja elegido allí.
+
+**El bloque de precio**: chips de idioma con bandera y el estado en su
+desplegable; el `<select id="cmIdioma">` y el `#cmVariante` SIGUEN,
+sin verse (`.pv-select-oculto`, 1×1 px y nunca `display: none`), porque
+son quienes mandan: los chips y las impresiones pulsables escriben en
+ellos y disparan su `change`, así que hay UN camino se cambie desde
+donde se cambie, y las pruebas que hacen `selectOption` siguen valiendo.
+Debajo, el bloque de `js/precio-vista.js` (sin el botón de Avísame, que
+ya está en la loseta), el histórico (643) y quién la da (376). El panel
+«Mi colección» con su campo de copias y sus dos enlaces se fue; queda
+«Todas las cartas de X» (384) al pie.
+
+**CSS compartido, a `cardmarket.css`**: las losetas
+(`.mc-ficha-acciones`, `.mc-ficha-tile`), el diálogo de añadir
+(`.mc-anadir-dialogo`, `.mc-ad-*`, `.mc-idioma-chip(s)`), el contador
+(`.mc-contador-*`), la cabecera de panel (`.mc-panel-cabecera`,
+`.mc-panel-cerrar`, `.mc-panel-cuerpo`) y la bandeja (`.mc-bandeja`,
+con su `@media` de escritorio). Vivían en `mi-coleccion.css`; esa hoja
+no la carga /carta y la copia está prohibida (471), así que se MUDAN a
+la hoja que cargan las dos pantallas y nadie más. Cascada: cardmarket.css
+va ANTES que mi-coleccion.css, y lo que queda allí de esos selectores
+son reglas compuestas (`.mc-ficha-carta .mc-editor-campos
+.mc-contador-btn`, `.mc-dlg-adorno .mc-panel-cabecera`), que ganan por
+especificidad y no por orden — mirado a mano, que es la trampa de la
+306. `.mc-ad-campos` lleva ahora su propia rejilla de etiquetas (en
+/mi-coleccion se la daba `.mc-editor-campos`).
+
+**Ficheros**: `carta.html`, `js/carta-mercado.js`, `css/carta.css`,
+`css/cardmarket.css`, `css/mi-coleccion.css`. **Pruebas**: 665
+(ajustada: la loseta), 299, 311–313, 324–328, 331, 334, 335, 340, 342,
+385, 408, 524, 546, 549, 586/589/643/645-pantalla, 626, 645, 661, y las
+de /mi-coleccion que usan lo mudado (368, 392, 564, 650-pantalla, 657,
+671, 667, 673).

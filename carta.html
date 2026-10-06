@@ -171,10 +171,13 @@
       </div>
     </div>
 
-    <!-- Precio de Cardmarket y «Añadir a mi colección» (tanda 365). Lo
-         pinta js/carta-mercado.js con el precio que pide a TCGdex en el
-         momento; nace escondido para que no salga un hueco si no llega. -->
-    <section id="cartaMercado" class="carta-seccion hidden" aria-label="Precio y colección"></section>
+    <!-- Otras versiones de la misma carta, JUSTO debajo de la ficha
+         (677: PINGU las quería «más arriba, debajo de los ataques»). Las
+         pinta el navegador, no el borde; sin datos, la sección no sale. -->
+    <section id="cartaVersiones" class="carta-seccion hidden">
+      <h2 class="section-title">Otras versiones de esta carta</h2>
+      <div id="listaVersiones" class="carta-versiones"></div>
+    </section>
 
     <!-- Dónde más se habla de esta carta: guías del sitio e hilos del
          foro. Llegan por su cuenta y la sección nace escondida, así que
@@ -184,12 +187,11 @@
       <ul id="listaMenciones" class="carta-menciones"></ul>
     </section>
 
-    <!-- Lo que añade el navegador y el borde no pinta: otras versiones
-         de la misma carta. Sin datos, la sección entera no sale. -->
-    <section id="cartaVersiones" class="carta-seccion hidden">
-      <h2 class="section-title">Otras versiones de esta carta</h2>
-      <div id="listaVersiones" class="carta-versiones"></div>
-    </section>
+    <!-- El precio, al FINAL (677): lo pinta js/carta-mercado.js —idioma
+         con chips, estado, impresiones, histórico y quién la da—. Las
+         losetas de Añadir · Editar · Avísame van pegadas a la carta, en
+         el núcleo. Nace escondido para que no salga un hueco si no llega. -->
+    <section id="cartaMercado" class="carta-seccion hidden" aria-label="Precio"></section>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
