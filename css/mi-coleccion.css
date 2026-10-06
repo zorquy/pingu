@@ -113,9 +113,11 @@
   flex-direction: column;
   /* Más prieta desde la 653: PINGU, «tiene demasiado espacio todo y es
      muy grande». Un paso menos en cada hueco; el porqué, en SCHEMA.md. */
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-  padding: var(--e-lg);
+  /* Y otro paso menos en la 673 (PINGU: «en pantallas pequeñas hay que
+     scrollear; el resumen es demasiado grande»). */
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  padding: var(--e-md) var(--e-lg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   /* Un azul muy lavado, no un bloque de color: la cabecera tiene que
@@ -299,9 +301,9 @@
 }
 
 .mc-cifra dd {
-  margin: var(--e-xs) 0 0;
+  margin: 2px 0 0;
   font-family: var(--font-display);
-  font-size: var(--t-xl);
+  font-size: var(--t-lg);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.1;
@@ -2724,8 +2726,85 @@
 .mc-ficha-mas i { font-size: var(--t-lg); align-items: center; justify-content: center; }
 .mc-ficha-tile svg { width: 16px; height: 16px; }
 
-/* Tu copia bajo la carta (667). */
-.mc-ficha-carta .mc-ficha-bloque { margin: var(--e-lg) 0 0; text-align: left; }
+/* Tu copia bajo la carta (667), compacta desde la 673: dos columnas,
+   controles de 36 px con ratón (44 con el dedo), un solo «Quitar». */
+.mc-ficha-carta .mc-ficha-bloque { margin: var(--e-md) 0 0; text-align: left; }
+.mc-ficha-carta .mc-ficha-caja { padding: var(--e-md); }
+.mc-ficha-carta .mc-copia-resumen { gap: var(--e-xs); }
+.mc-ficha-carta .mc-copia-resumen .mc-copia-acciones { margin-top: var(--e-xs); }
+.mc-ficha-carta .mc-copia-acciones button { min-height: 36px; padding: 0 var(--e-md); font-size: var(--t-xs); }
+.mc-ficha-carta .mc-editor-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-sm) var(--e-md);
+  margin-top: var(--e-sm);
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--border);
+}
+.mc-ficha-carta .mc-editor-campos label { gap: 2px; font-size: var(--t-2xs); }
+.mc-ficha-carta .mc-editor-campos select,
+.mc-ficha-carta .mc-editor-campos input,
+.mc-ficha-carta .mc-editor-campos .mc-contador-btn { min-height: 36px; font-size: var(--t-sm); }
+.mc-ficha-carta .mc-editor-campos label { min-width: 0; }
+.mc-ficha-carta .mc-editor-campos select,
+.mc-ficha-carta .mc-editor-campos input { width: 100%; min-width: 0; }
+.mc-ficha-carta .mc-editor-campos .mc-contador-mando { display: flex; width: 100%; }
+.mc-ficha-carta .mc-editor-campos .mc-contador-btn { flex: 0 0 32px; min-width: 32px; padding: 0; }
+.mc-ficha-carta .mc-editor-campos input[type='number'] { flex: 1 1 0; width: auto; min-width: 0; text-align: center; }
+/* El resumen: chapas y cifra a la izquierda, «Quitar» a la derecha. */
+.mc-ficha-carta .mc-copia-resumen { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.mc-ficha-carta .mc-copia-resumen .mc-ficha-chapas { justify-content: flex-start; }
+.mc-ficha-carta .mc-copia-resumen .mc-copia-acciones { grid-column: 2; grid-row: 1 / span 3; margin: 0; }
+.mc-ficha-carta .mc-copia-resumen .mc-otras-copias { grid-column: 1; }
+.mc-ficha-carta .mc-copia-resumen + .mc-editor-campos { grid-column: 1 / -1; }
+/* En un móvil estrecho los desplegables van a todo el ancho (se cortaban: «Near Mi»); los contadores siguen a medias. */
+@media (max-width: 480px) {
+  .mc-ficha-carta .mc-editor-campos > label:not(.mc-contador) { grid-column: 1 / -1; }
+}
+.mc-ficha-carta .mc-editor-notas { grid-column: 1 / -1; }
+.mc-ficha-carta .mc-editor-notas .mc-anadir-nota { min-height: 36px; font-size: var(--t-xs); }
+/* El «Quitar de mi colección» largo repetía el «Quitar» del resumen. */
+.mc-ficha-carta .mc-editor-quitar { display: none; }
+@media (pointer: coarse) {
+  .mc-ficha-carta .mc-editor-campos select,
+  .mc-ficha-carta .mc-editor-campos input,
+  .mc-ficha-carta .mc-editor-campos .mc-contador-btn,
+  .mc-ficha-carta .mc-copia-acciones button { min-height: 44px; }
+}
+
+/* EL SELECTOR DE CATÁLOGO, con bandera de verdad (673). PINGU: «en PC
+   sale GB Pokémon y JP Pokémon, poco visual; mete un icono». Un
+   <option> no admite imágenes y Windows no pinta las banderas emoji:
+   el <select> sigue —es lo que escuchan el JavaScript y las pruebas—
+   pero escondido, y lo que se ve es un control de dos botones con la
+   bandera dibujada en CSS (.pv-bandera, la de la tabla de precios). */
+.mc-mercado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mc-vista-seg {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+.mc-vista-seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.mc-vista-seg button[aria-pressed='true'] { background: var(--navy); color: var(--blanco-fijo); }
+.mc-vista-seg .pv-bandera { width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
+@media (pointer: coarse) { .mc-vista-seg button { min-height: 40px; } }
 .mc-ficha-tile small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
 .mc-ficha-tile small:empty { display: none; }
 .mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
@@ -3498,7 +3577,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    Va arriba y a lo ancho, fuera de la rejilla: es la única cifra que
    cambia sola, y es la que se viene a mirar. */
 .mc-valor-caja {
-  margin-bottom: var(--e-lg);
+  margin-bottom: var(--e-md);
 }
 
 .mc-valor-cifras {
@@ -3545,8 +3624,9 @@ input.mc-alb-titulo:not([readonly]):focus {
      «el gráfico quiero que sea más así, más detallado». Lo que lo hace
      detallado no es tener más datos —son los mismos— sino darle sitio:
      con 180 px de alto y sin márgenes laterales, los mismos puntos
-     dibujan una línea con relieve en vez de una raya. */
-  height: 180px;
+     dibujan una línea con relieve en vez de una raya. Y 120 desde la 673:
+     con 180 el Panel entero quedaba bajo el borde en un portátil. */
+  height: 120px;
   margin-inline: calc(var(--e-md) * -1);
   width: calc(100% + var(--e-md) * 2);
 }

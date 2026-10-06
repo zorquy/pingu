@@ -32559,3 +32559,45 @@ Collection como set aparte con números repetidos, como pasaba con el
 occidental y con el japonés: las dos expansiones, la japonesa con valor
 y progreso, y pulsarla cambia de catálogo), `test-tanda-670.mjs`
 (el cascarón se esconde).
+
+## Tanda 673 — más compacto y más moderno: Panel, tu copia, gradeadas y el selector de catálogo (oct. 2026)
+
+PINGU, con capturas: «el desplegable de editar es muy largo y en móvil
+te mueve para abajo; hay dos veces Quitar; las gradeadas son liosas,
+mejor por casas y que se despliegue; la interfaz en general más
+pequeña, el gráfico del Panel es demasiado alto; y en PC el selector de
+catálogo sale GB Pokémon y JP Pokémon, mete un icono». Se hizo en
+local, con capturas de antes y después, y PINGU dio el sí.
+
+1. **Panel más bajo**: la cabecera pierde un paso de aire (`padding`
+   `--e-md`, `gap` `--e-sm`), las cifras bajan a `--t-lg`, y la gráfica
+   de «lo que vale tu colección» pasa de 180 a **120 px** de alto
+   (`.mc-valor-grafica`). En un portátil, «Expansiones» entra en la
+   primera pantalla.
+2. **Tu copia, compacta** (`.mc-ficha-carta .mc-editor-campos`): rejilla
+   de dos columnas, controles de 36 px con ratón y 44 con el dedo
+   (`pointer: coarse`), rótulos a `--t-2xs`; en un móvil estrecho
+   (≤480 px) los desplegables van a todo el ancho —se cortaba «Near
+   Mint»— y los dos contadores comparten fila. El resumen es una rejilla
+   con las chapas y la cifra a la izquierda y **un solo «Quitar»** a la
+   derecha: el «Quitar de mi colección» largo del fondo sigue en el DOM
+   (`#mcEdQuitar`, que es a quien llama el corto) pero no se pinta. Y
+   Editar ya no desplaza la pantalla.
+3. **Gradeadas por casa y plegadas** (`chapasDeGradeadas`): un
+   `<details>` cuyo resumen enseña la nota que más se mira (PSA 10, o la
+   mejor que haya) y «N notas · M casas»; abierto, una fila por casa con
+   su chapa de color (`.pv-casa`) y sus notas en orden (`.pv-nota`), cada
+   una con su cifra. Hasta 24 notas (antes 8). El pie explica que los
+   dólares son ventas en eBay y los euros, en venta en Cardmarket.
+4. **El selector de catálogo con bandera dibujada**: un `<option>` no
+   admite imágenes y Windows no pinta las banderas emoji («GB», «JP»).
+   El `<select class="mc-mercado">` sigue —es a quien escuchan el
+   JavaScript y las pruebas— pero escondido (clip), y `pintarVistas` le
+   pone al lado un `.mc-vista-seg` con un botón por catálogo: la bandera
+   en CSS (`.pv-bandera`, la de la tabla de precios) y el nombre. Cada
+   botón pone el valor al select y dispara `change`.
+
+**Ficheros**: `css/mi-coleccion.css`, `js/mi-coleccion.js`,
+`js/precio-vista.js`, `css/cardmarket.css`, `cartas.html` (generado).
+**Pruebas**: 645, 645-pantalla, 650-pantalla, 574, 648-pantalla, 472,
+653, 312, 672-pantalla e imports.

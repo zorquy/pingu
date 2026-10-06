@@ -72,13 +72,22 @@ const cifraGradeada = (g) => (g.moneda === 'USD' ? dolares(g.valor) : euros(g.va
 const fmtEntero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
 const rangoHtml = (min, max) => `${fmtEntero.format(min)} – ${fmtEntero.format(max)} €`.replace(/ /g, '\u00a0')
 
+// POR CASA Y PLEGADAS (673). PINGU: «muestra datos pero es un poco lioso;
+// mejor que te ponga las casas, que se despliegue». Un <details> con la
+// cifra que más se mira en el resumen (la PSA 10, o la mejor nota que
+// haya) y dentro una fila por casa: la chapa de la casa con su color y
+// sus notas en orden, cada una con su cifra. Lo que viene de eBay son
+// ventas en dólares y lo dice el pie, como antes.
 export function chapasDeGradeadas(gradeadas) {
-  const lista = gradeadasDe(gradeadas)
+  const lista = gradeadasDe(gradeadas, { maximo: 24 })
   if (!lista.length) return ''
   const hayEbay = lista.some((g) => g.moneda === 'USD')
-  return `<div class="pv-fuente pv-gradeadas-fuente"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">Gradeadas</span>${hayEbay ? '<span class="pv-pie">Los dólares son ventas en eBay.</span>' : ''}</div><div class="pv-gradeadas">${lista
-    .map((g) => `<span class="pv-chapa pv-gradeada" data-casa="${escapeHtml(g.casa)}" title="${escapeHtml(g.moneda === 'USD' ? `Vendida en eBay${g.ventas ? ` (${g.ventas} ${g.ventas === 1 ? 'venta' : 'ventas'})` : ''}` : 'En venta en Cardmarket')}"><b>${escapeHtml(g.casa)} ${escapeHtml(g.nota)}</b> ${cifraGradeada(g)}</span>`)
-    .join('')}</div></div>`
+  const casas = [...new Set(lista.map((g) => g.casa))]
+  const mejor = lista.find((g) => g.casa === 'PSA' && g.nota === '10') || lista[0]
+  const filas = casas.map((casa) => `<div class="pv-casa-fila"><span class="pv-chapa pv-gradeada pv-casa" data-casa="${escapeHtml(casa)}"><b>${escapeHtml(casa)}</b></span><span class="pv-casa-notas">${lista.filter((g) => g.casa === casa)
+    .map((g) => `<span class="pv-nota" title="${escapeHtml(g.moneda === 'USD' ? `Vendida en eBay${g.ventas ? ` (${g.ventas} ${g.ventas === 1 ? 'venta' : 'ventas'})` : ''}` : 'En venta en Cardmarket')}"><b>${escapeHtml(g.nota)}</b> ${cifraGradeada(g)}</span>`)
+    .join('')}</span></div>`).join('')
+  return `<details class="pv-fuente pv-gradeadas-fuente"><summary class="pv-fuente-cab pv-gradeadas-cab"><span class="pv-fuente-nombre">Gradeadas</span><span class="pv-gradeadas-resumen"><span class="pv-chapa pv-gradeada" data-casa="${escapeHtml(mejor.casa)}"><b>${escapeHtml(mejor.casa)} ${escapeHtml(mejor.nota)}</b> ${cifraGradeada(mejor)}</span><span class="pv-pie">${lista.length} ${lista.length === 1 ? 'nota' : 'notas'} · ${casas.length} ${casas.length === 1 ? 'casa' : 'casas'}</span></span></summary><div class="pv-gradeadas pv-casas">${filas}</div>${hayEbay ? '<p class="pv-pie">Los dólares son ventas en eBay; los euros, en venta en Cardmarket.</p>' : ''}</details>`
 }
 
 // La frase pequeña bajo la cifra: de qué es ese número.

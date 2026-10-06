@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 1) — PINGU-Claude (673 — más compacto: Panel, tu copia, gradeadas por casa, selector con banderas)
+
+**Hecho** (propuesto con capturas y aprobado por PINGU): el Panel más
+bajo (cabecera prieta, gráfica de 120 px); el bloque de tu copia en dos
+columnas con controles pequeños y un solo Quitar; las gradeadas
+plegadas y por casa; y el selector de catálogo con la bandera dibujada
+en CSS (el select sigue debajo, escondido).
+
+**Ficheros**: `css/mi-coleccion.css`, `js/mi-coleccion.js`,
+`js/precio-vista.js`, `css/cardmarket.css`, `cartas.html`, `SCHEMA.md`.
+
+**Pendiente**: segunda ronda visual (ficha entera, estantería); la
+migración corea-china; Celebrations.
 ## 2026-10-06 (mañana, 7) — PINGU-Claude (672 — el Panel global, los cascarones japoneses escondidos, el valor de los sets japoneses)
 
 **Hecho**: el vistazo de Expansiones del Panel cuenta tus líneas de

@@ -353,6 +353,20 @@ a.pv-fila-enlace:hover span:first-of-type {
   background: var(--casa, var(--navy-solid));
   color: var(--blanco-fijo);
 }
+
+/* Por casa y plegadas (673). */
+.pv-gradeadas-cab { cursor: pointer; list-style: none; }
+.pv-gradeadas-cab::-webkit-details-marker { display: none; }
+.pv-gradeadas-cab::after { content: '›'; margin-left: auto; color: var(--text-mid); font-size: var(--t-lg); transform: rotate(90deg); transition: transform var(--ease); }
+details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
+.pv-gradeadas-resumen { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.pv-casas { flex-direction: column; align-items: stretch; gap: var(--e-sm); }
+.pv-casa-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.pv-casa { min-width: 48px; justify-content: center; }
+.pv-casa-notas { display: inline-flex; flex-wrap: wrap; gap: var(--e-xs); }
+.pv-nota { padding: 2px var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-pill); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.pv-nota b { color: var(--text); }
+@media (prefers-reduced-motion: reduce) { .pv-gradeadas-cab::after { transition: none; } }
 .pv-gradeada[data-casa='PSA'] { --casa: var(--casa-psa); }
 .pv-gradeada[data-casa='BGS'] { --casa: var(--casa-bgs); color: var(--casa-bgs-texto); }
 .pv-gradeada[data-casa='CGC'] { --casa: var(--casa-cgc); }

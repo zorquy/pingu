@@ -5005,7 +5005,6 @@ function enganchar() {
     $('mcEdEditar').setAttribute('aria-expanded', String(abierto))
     const rotulo = $('mcEdEditar').querySelector('span') || $('mcEdEditar')
     rotulo.textContent = abierto ? 'Listo' : 'Editar'
-    if (abierto) bloque.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   })
   $('mcEdQuitarResumen')?.addEventListener('click', () => $('mcEdQuitar')?.click())
   // Los iconos de las losetas (667) y el «Avísame», delegado una vez: la
@@ -6158,6 +6157,27 @@ function pintarVistas() {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
     sel.value = vista
     sel.setAttribute('aria-label', `Qué catálogo se mira: ${laVista().nombre}`)
+    // Lo que se VE (673): dos botones con la bandera dibujada. El select
+    // se queda escondido y sigue siendo quien manda: cada botón le pone
+    // su valor y dispara `change`, así que todo lo que escuchaba el
+    // select sigue funcionando igual.
+    let seg = sel.nextElementSibling
+    if (!seg?.classList.contains('mc-vista-seg')) {
+      seg = document.createElement('span')
+      seg.className = 'mc-vista-seg'
+      seg.setAttribute('role', 'group')
+      seg.setAttribute('aria-label', 'Qué catálogo se mira')
+      sel.insertAdjacentElement('afterend', seg)
+      seg.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-vista]')
+        if (!b || sel.value === b.dataset.vista) return
+        sel.value = b.dataset.vista
+        sel.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    }
+    const html = VISTAS_VISIBLES.map((v) => `<button type="button" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(v.nombre)}</span></button>`).join('')
+    if (seg.innerHTML !== html) seg.innerHTML = html
+    else for (const b of seg.querySelectorAll('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === vista))
   }
 }
 
