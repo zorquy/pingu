@@ -33385,3 +33385,71 @@ un `do` es una sola sentencia y vale, como en `torneos-xp`), y ejecuta la
 de la 629 sentencia a sentencia, cada una en su propia conexión, como el
 editor; la versión vieja, ejecutada igual, falla con el mismo error que vio
 PINGU, que es lo que demuestra que el andamio lo imita.
+
+## Tanda 689 — «Mi colección en una imagen»: cinco dibujos y un carrusel (oct. 2026)
+
+PINGU, con cuatro maquetas delante: «me gustan todas. En vez de elegir
+una, dejar la que está y añadir estas cuatro variantes también. Y que
+puedas generar la imagen, pero con un slide vayas pasando entre la que
+quieres compartir. Y lo de la vitrina, en vez de catorce, nueve».
+
+**Los cinco dibujos**, en `js/mi-coleccion/imagen.js` (`VARIANTES_IMAGEN`,
+en el orden del carrusel; `pintarImagenDeColeccion` sigue existiendo y
+pinta el resumen, así que nadie que la importara cambia):
+
+- **resumen**: la de la 571, intacta.
+- **joya**: UNA carta grande, girada 6° con halo, la que más vale, con
+  nombre, rareza, expansión y año; una chapa con el precio y «1 de N»;
+  las tres cifras de pie.
+- **vitrina**: las NUEVE que más valen en 3 × 3 (224 × 313: tres filas
+  acaban en 1.199 y dejan sitio a las cifras); los huecos que falten
+  van con rayas, y el «+N más» en el subtítulo. Chapa amarilla con el
+  total.
+- **mes**: «Mi octubre coleccionando»: cartas distintas que entraron en
+  los últimos 30 días en grande, las tres últimas en abanico (o las que
+  más valen si no entró ninguna: un abanico vacío no es una imagen),
+  cuánto vale más que hace 30 días (la 582) y cuatro hitos: la
+  expansión más completa, el Pokémon más repetido, las expansiones
+  nuevas del mes y la carta más antigua.
+- **pokedex**, SIN precio: anillo de especies distintas sobre 1.025 (con
+  un decimal por debajo del 10 %), los seis tipos que más coleccionas
+  (barras con el color del tipo), las nueve regiones y hasta tres
+  trofeos (al 100 % o la más completa, la más antigua, el favorito); las
+  tres cartas de firma y desde cuándo.
+
+**Los números** los cuenta `js/mi-coleccion/imagen-datos.js`, puro y
+probado en Node: `cartasDistintas` (una por carta, con la PRIMERA vez
+que entró y las copias sumadas; una línea nueva de una carta vieja no es
+una carta nueva), `masRepetido` (la especie con más cartas distintas, a
+empate el número más bajo; con menos de dos, nada), `resumenDelMes`
+(nuevas, las tres últimas, expansiones cuya primera carta entró este
+mes) y `resumenDePokedex` (especies por `dex_ids` o por el nombre —la
+483—, tipos por `TIPOS_ES` más Entrenador y Energía, regiones por la
+primera especie, la más antigua por `tcg_sets.release_date`). La
+pantalla le pasa `pTodo()` —la colección ENTERA, no el catálogo abierto—
+y añade lo que necesita el DOM: nombres, cadenas de fotos, nombres de
+set. `masValiosas` se pide con nueve en vez de tres.
+
+**El carrusel** (`mi-coleccion.html`, `#mcImagenDialogo`): flecha, lienzo,
+flecha (`.mc-imagen-tira`, con las flechas de la ficha `.mc-ficha-flecha`
+que ya miden 44), un rótulo «La joya · 2 de 5» (`#mcImagenRotulo`,
+`aria-live`) y cinco puntos de 44 (`.mc-imagen-punto`, el punto se pinta
+en un `::before`). Se pasa con las flechas, los puntos, ← → y
+arrastrando sobre el lienzo (`pointerdown`/`pointerup`, 40 px y más
+horizontal que vertical; `touch-action: pan-y` para no pelearse con el
+scroll). Cada variante se pinta UNA vez en un canvas escondido y se copia
+al visible: volver a una ya pintada es instantáneo, y compartir o
+descargar cogen siempre lo que se ve. Las pintadas llevan la versión de
+la apertura (`carrusel.version`, la 663): si se cierra y se abre con
+otros datos mientras una se pintaba, lo viejo no se guarda. El fichero
+descargado lleva la variante en el nombre salvo el resumen
+(`mi-coleccion-pingu-joya.png`). `window.__mcImagenVariante` queda a mano.
+
+**Ficheros**: `js/mi-coleccion/imagen.js`, `js/mi-coleccion/imagen-datos.js`
+(nuevo), `js/mi-coleccion.js`, `mi-coleccion.html` (y `cartas.html`
+generado), `css/mi-coleccion.css`.
+**Pruebas**: `test-tanda-689.mjs` (los números, en Node),
+`test-tanda-689-pantalla.mjs` (abre en el resumen con cinco puntos, los
+datos salen de la colección, flechas/puntos/teclas/dedo, cada dibujo se
+exporta, compartir coge la que se ve, 44 px en el móvil; guarda los cinco
+PNG en la carpeta de capturas); 571, 574 y 582 siguen.

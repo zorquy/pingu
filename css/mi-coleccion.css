@@ -6063,6 +6063,61 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-sm);
 }
 
+/* El carrusel (689): flecha, lienzo, flecha; el rótulo y los puntos. */
+.mc-imagen-tira {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+}
+
+.mc-imagen-tira canvas {
+  touch-action: pan-y;
+  justify-self: center;
+}
+
+.mc-imagen-tira canvas.mc-imagen-pintando {
+  opacity: 0.6;
+}
+
+.mc-imagen-rotulo {
+  margin: 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.mc-imagen-puntos {
+  display: flex;
+  justify-content: center;
+}
+
+.mc-imagen-punto {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.mc-imagen-punto::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.mc-imagen-punto[aria-current='true']::before {
+  width: 12px;
+  height: 12px;
+  background: var(--navy);
+}
+
 /* La tarjeta del Panel que la abre. */
 .mc-vistazo-imagen .subtext {
   margin: 0;

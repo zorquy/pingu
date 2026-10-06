@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 12) — PINGU-Claude (689 — «Mi colección en una imagen»: cinco dibujos y un carrusel)
+
+**Hecho**: la imagen de siempre se queda y se le suman cuatro: la joya
+(una carta grande), la vitrina (las nueve que más valen), tu mes
+(cartas nuevas, hitos) y tu Pokédex (sin precio: especies, tipos,
+regiones, trofeos). En el diálogo se pasa de una a otra con flechas,
+puntos, teclas o arrastrando; compartir y descargar cogen la que se ve.
+Los números nuevos viven en `js/mi-coleccion/imagen-datos.js` (puro).
+
+**Ficheros**: `js/mi-coleccion/imagen.js`, `js/mi-coleccion/imagen-datos.js`
+(nuevo), `js/mi-coleccion.js`, `mi-coleccion.html`, `cartas.html`
+(generado), `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: 689 y
+689-pantalla (nuevas).
+
+**Pendiente**: que PINGU abra la suya y diga qué cambia de cada dibujo
+con las fotos de verdad; migración corea-china ya puesta (687); mirar
+/admin por Celebrations y el espejo.
+
 ## 2026-10-06 (tarde, 11) — PINGU-Claude (631 — la migración de las energías, sin tabla temporal)
 
 **Hecho**: el SQL Editor dio «relation "tipos_629" does not exist» con

@@ -722,7 +722,15 @@
             <button type="button" class="mc-panel-cerrar" id="mcImagenCerrar" aria-label="Cerrar">✕</button>
           </div>
           <div class="mc-panel-cuerpo mc-imagen-cuerpo">
-            <canvas id="mcImagenLienzo" width="1080" height="1350" aria-label="Tu colección en una imagen"></canvas>
+            <!-- Cinco dibujos y un carrusel (689): flechas, puntos, y con
+                 el dedo se arrastra sobre la imagen. -->
+            <div class="mc-imagen-tira">
+              <button type="button" class="mc-ficha-flecha" id="mcImagenAnterior" aria-label="La imagen anterior">‹</button>
+              <canvas id="mcImagenLienzo" width="1080" height="1350" aria-label="Tu colección en una imagen"></canvas>
+              <button type="button" class="mc-ficha-flecha" id="mcImagenSiguiente" aria-label="La imagen siguiente">›</button>
+            </div>
+            <p class="mc-imagen-rotulo" id="mcImagenRotulo" aria-live="polite"></p>
+            <div class="mc-imagen-puntos" id="mcImagenPuntos" role="group" aria-label="Qué imagen"></div>
             <div class="mc-imagen-botones">
               <button type="button" class="btn-primary" id="mcImagenCompartir">Compartir la imagen</button>
               <button type="button" class="btn-secondary" id="mcImagenDescargar">Descargar</button>

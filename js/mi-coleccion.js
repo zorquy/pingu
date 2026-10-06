@@ -4939,17 +4939,54 @@ function enganchar() {
     }
   })
 
-  // ── Mi colección en una imagen (tanda 571) ──
+  // ── Mi colección en una imagen (tanda 571; cinco dibujos desde la 689) ──
+  // El carrusel: un lienzo a la vista y uno escondido por variante, que se
+  // pinta la primera vez que se pasa por ella y se copia al visible. Así
+  // pasar de una a otra es instantáneo y compartir coge siempre lo que se
+  // ve. `window.__mcImagenDatos` y `__mcImagenVariante` quedan a mano para
+  // la prueba y para depurar.
+  const carrusel = { indice: 0, datos: null, pintados: new Map(), version: 0 }
+  const variantesDeImagen = async () => (await import('./mi-coleccion/imagen.js')).VARIANTES_IMAGEN
+  async function enseñarVariante(i) {
+    const variantes = await variantesDeImagen()
+    carrusel.indice = (i + variantes.length) % variantes.length
+    const v = variantes[carrusel.indice]
+    window.__mcImagenVariante = v.id
+    const rotulo = $('mcImagenRotulo')
+    if (rotulo) rotulo.textContent = `${v.nombre} · ${carrusel.indice + 1} de ${variantes.length}`
+    document.querySelectorAll('#mcImagenPuntos .mc-imagen-punto').forEach((b, k) => b.setAttribute('aria-current', k === carrusel.indice ? 'true' : 'false'))
+    const visible = $('mcImagenLienzo')
+    const version = carrusel.version
+    let escondido = carrusel.pintados.get(v.id)
+    if (!escondido) {
+      escondido = document.createElement('canvas')
+      escondido.width = visible.width
+      escondido.height = visible.height
+      visible.classList.add('mc-imagen-pintando')
+      await v.pintar(escondido, carrusel.datos)
+      // Si mientras se pintaba se cerró y se volvió a abrir con otros
+      // datos, lo pintado es de la pintada vieja (la 663): no se guarda.
+      if (version !== carrusel.version) return
+      carrusel.pintados.set(v.id, escondido)
+    }
+    if (carrusel.indice !== variantes.indexOf(v)) return
+    visible.getContext('2d').drawImage(escondido, 0, 0)
+    visible.classList.remove('mc-imagen-pintando')
+  }
   document.addEventListener('click', async (e) => {
     if (!e.target.closest('#mcImagenCrear')) return
     const d = $('mcImagenDialogo')
     if (!d || !resumenHero) return
     const [ls, clave, busca] = pTodo()
-    // Las tres que más valen, con la cadena de fotos de cada una.
-    const valiosas = masValiosas(3, ls, clave, busca).map((v) => ({
+    // Las nueve que más valen, con la cadena de fotos de cada una (la
+    // vitrina pinta nueve; el resumen, las tres primeras).
+    const valiosas = masValiosas(9, ls, clave, busca).map((v) => ({
       nombre: nombreDe(v.carta),
       cadena: cadenaDeEscaneo(v.carta, v.carta?.tcg_sets?.tcg_online_code || null, 'high'),
       valor: euros(v.valor),
+      expansion: nombreDeSet(v.carta?.tcg_sets) || v.carta?.set_id || '',
+      anio: v.carta?.tcg_sets?.release_date ? String(v.carta.tcg_sets.release_date).slice(0, 4) : '',
+      rareza: rarezaDeCarta(v.carta) || '',
     }))
     // La expansión más completa: la misma cuenta que el vistazo de
     // Expansiones, y el total oficial del set.
@@ -4963,30 +5000,70 @@ function enganchar() {
       const pct = tengo / total
       if (!mejorSet || pct > mejorSet.pct) mejorSet = { nombre: nombreDeSet(s) || s.id, tengo, total, pct }
     }
+    // Lo que cuentan las otras variantes (689): el mes y la Pokédex.
+    const { cartasDistintas, resumenDelMes, resumenDePokedex, masRepetido } = await import('./mi-coleccion/imagen-datos.js')
+    const distintas = cartasDistintas(ls, busca)
+    const conCadena = (c) => ({ nombre: nombreDe(c), cadena: cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null, 'high') })
+    const mes = resumenDelMes(distintas, { nombreDeSet: (c) => nombreDeSet(c?.tcg_sets) || c?.set_id || '' })
+    const pokedex = resumenDePokedex(distintas)
+    const favorito = masRepetido(distintas)
     const datos = {
       quien: dueno?.username || null,
       ...resumenHero,
       valiosas,
       mejorSet: mejorSet ? { nombre: mejorSet.nombre, tengo: mejorSet.tengo, total: mejorSet.total } : null,
       desde: $('mcHeroDesde')?.textContent?.trim() || '',
+      mes: { nuevas: mes.nuevas, ultimas: mes.ultimas.map(conCadena), expansionesNuevas: mes.expansionesNuevas },
+      pokedex: {
+        especies: pokedex.especies, total: pokedex.total, pct: pokedex.pct, tipos: pokedex.tipos, regiones: pokedex.regiones,
+        masAntigua: pokedex.masAntigua ? { nombre: nombreDe(pokedex.masAntigua.carta), anio: pokedex.masAntigua.anio, expansion: nombreDeSet(pokedex.masAntigua.carta?.tcg_sets) || pokedex.masAntigua.carta?.set_id || '' } : null,
+        favorito,
+      },
     }
     // A mano, para la prueba y para depurar: lo que se le dio al dibujo.
     window.__mcImagenDatos = datos
+    carrusel.datos = datos
+    carrusel.pintados = new Map()
+    carrusel.version++
+    const variantes = await variantesDeImagen()
+    const puntos = $('mcImagenPuntos')
+    if (puntos) puntos.innerHTML = variantes.map((v, i) => `<button type="button" class="mc-imagen-punto" data-indice="${i}" aria-label="${escapeHtml(v.nombre)}" aria-current="${i === 0 ? 'true' : 'false'}"></button>`).join('')
     d.showModal()
-    const { pintarImagenDeColeccion } = await import('./mi-coleccion/imagen.js')
-    await pintarImagenDeColeccion($('mcImagenLienzo'), datos)
+    await enseñarVariante(0)
   })
   $('mcImagenCerrar')?.addEventListener('click', () => $('mcImagenDialogo').close())
+  $('mcImagenAnterior')?.addEventListener('click', () => enseñarVariante(carrusel.indice - 1))
+  $('mcImagenSiguiente')?.addEventListener('click', () => enseñarVariante(carrusel.indice + 1))
+  $('mcImagenPuntos')?.addEventListener('click', (e) => {
+    const b = e.target.closest('.mc-imagen-punto')
+    if (b) enseñarVariante(Number(b.dataset.indice) || 0)
+  })
+  // Con el dedo: un arrastre horizontal sobre la imagen pasa de variante.
+  let arrastre = null
+  $('mcImagenLienzo')?.addEventListener('pointerdown', (e) => { arrastre = { x: e.clientX, y: e.clientY } })
+  $('mcImagenLienzo')?.addEventListener('pointerup', (e) => {
+    if (!arrastre) return
+    const dx = e.clientX - arrastre.x
+    const dy = e.clientY - arrastre.y
+    arrastre = null
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return
+    enseñarVariante(carrusel.indice + (dx < 0 ? 1 : -1))
+  })
+  $('mcImagenDialogo')?.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') enseñarVariante(carrusel.indice - 1)
+    else if (e.key === 'ArrowRight') enseñarVariante(carrusel.indice + 1)
+  })
+  const nombreDeFicheroDeImagen = () => `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}${carrusel.indice ? `-${window.__mcImagenVariante || ''}` : ''}.png`
   $('mcImagenCompartir')?.addEventListener('click', async () => {
     const { compartirLienzo } = await import('./imagen-compartir.js')
     compartirLienzo($('mcImagenLienzo'), {
-      nombreFichero: `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}.png`,
+      nombreFichero: nombreDeFicheroDeImagen(),
       texto: 'Mi colección de Pokémon TCG en PokeDoc. pokedoc.es/mi-coleccion',
     })
   })
   $('mcImagenDescargar')?.addEventListener('click', async () => {
     const { descargarLienzo } = await import('./imagen-compartir.js')
-    descargarLienzo($('mcImagenLienzo'), `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}.png`)
+    descargarLienzo($('mcImagenLienzo'), nombreDeFicheroDeImagen())
   })
 
   // ── La nota, plegada (tanda 405) ──
