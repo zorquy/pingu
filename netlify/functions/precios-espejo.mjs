@@ -36,6 +36,9 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'precios_espejo'
 export const VENTANA_DIAS = 4 * 365
 export const DIAS_REPASO = 1
+// Qué escribe el espejo; si cambia, los sets hechos se vuelven a pasar.
+// 2 (688): solo el producto, sin precio.
+export const VERSION_ESPEJO = 2
 const MERCADO = 'JP'
 
 async function rest(ruta, clave, opciones = null) {
@@ -111,23 +114,27 @@ export function casarGemelas(cartasJp, cartasWest, setsWest) {
   return { pares, sinPar }
 }
 
-// La fila de precio de la copia japonesa: el producto y las cifras
-// GENERALES de la gemela. Los mínimos por idioma (DE, FR, ES, IT) no se
-// copian: son de otras impresiones, y en la ficha de una japonesa serían
-// ruido. `card_id` es la clave; `checked_at` lleva `default now()`.
+// La fila del espejo (688, que deshace la mitad de la 686): SOLO el
+// producto de Cardmarket de la gemela —el id y la dirección, que es lo que
+// deja llegar a Cardmarket y, desde ahí, a la reimpresión japonesa— y NADA
+// de su precio. PINGU, con el Charizard del Expansion Pack a 50.000 €
+// delante: «prefiero que no tengan precio a que tengan estos precios,
+// porque esto es irreal». El mínimo de la gemela occidental es el de la
+// carta occidental (la Base Set 1.ª edición, en este caso), no el de la
+// japonesa. El precio de una japonesa antigua es el de TCGplayer que da
+// Scrydex de ESA carta (`tp_normal_*`, 685.3), que la web convierte. Las
+// columnas de precio van a `null` a propósito: borran lo que la 686
+// escribió. `card_id` es la clave; `checked_at` lleva `default now()`.
 export function filaEspejo(cardIdJp, precioWest, ahora = new Date()) {
   if (!precioWest?.cm_id_product) return null
-  const n = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null)
   return {
     card_id: cardIdJp,
     cm_id_product: precioWest.cm_id_product,
-    cm_low: n(precioWest.cm_low), cm_avg30: n(precioWest.cm_avg30), cm_avg7: n(precioWest.cm_avg7),
-    cm_disponibles: Number.isInteger(precioWest.cm_disponibles) ? precioWest.cm_disponibles : null,
-    cm_gradeadas: precioWest.cm_gradeadas ?? null,
-    tp_market_eur: n(precioWest.tp_market_eur), tp_mid_eur: n(precioWest.tp_mid_eur),
     cm_url: precioWest.cm_url ?? null,
+    cm_low: null, cm_avg30: null, cm_avg7: null, cm_disponibles: null, cm_gradeadas: null,
+    tp_market_eur: null, tp_mid_eur: null,
     origen: 'espejo',
-    tcggo_updated: precioWest.tcggo_updated ?? null,
+    tcggo_updated: null,
     checked_at: ahora.toISOString(),
   }
 }
@@ -165,11 +172,11 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
     // «Charmeleon» y casaba con el que no era.
     const vistos = (await leerEstado('scrydex_huecos'))?.vistos || {}
     const nombresDe = (id) => Number(vistos[`${MERCADO}|${id}`]?.nombres) || 0
-    const caducado = (s) => { const h = estado.hechos[s.id]; return !h?.fecha || (ahora.getTime() - new Date(h.fecha).getTime()) / 86_400_000 >= DIAS_REPASO || (h.nombres ?? 0) !== nombresDe(s.id) }
+    const caducado = (s) => { const h = estado.hechos[s.id]; return !h?.fecha || (ahora.getTime() - new Date(h.fecha).getTime()) / 86_400_000 >= DIAS_REPASO || (h.nombres ?? 0) !== nombresDe(s.id) || h.version !== VERSION_ESPEJO }
     const set = sets.find((s) => caducado(s))
     if (!set) { await persistir(); return { ok: true, ...resumen(), hecho: true } }
     if (!set.release_date) {
-      estado.hechos[set.id] = { fecha: ahora.toISOString(), nota: 'sin fecha: no se sabe qué ventana mirar', espejadas: 0, sinPar: 0 }
+      estado.hechos[set.id] = { fecha: ahora.toISOString(), version: VERSION_ESPEJO, nota: 'sin fecha: no se sabe qué ventana mirar', espejadas: 0, sinPar: 0 }
       await persistir()
       return { ok: true, ...resumen(), set: set.id, nota: estado.hechos[set.id].nota }
     }
@@ -180,7 +187,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
       : []
     const { pares, sinPar } = casarGemelas(cartasJp, cartasWest, setsWest)
     const idsWest = [...new Set([...pares.values()].map((p) => p.west.id))]
-    const precios = idsWest.length ? (await pedir(`tcg_card_prices?select=card_id,cm_id_product,cm_low,cm_avg30,cm_avg7,cm_disponibles,cm_gradeadas,tp_market_eur,tp_mid_eur,cm_url,tcggo_updated&card_id=in.(${idsWest.map((i) => `"${i}"`).join(',')})`)) || [] : []
+    const precios = idsWest.length ? (await pedir(`tcg_card_prices?select=card_id,cm_id_product,cm_url&card_id=in.(${idsWest.map((i) => `"${i}"`).join(',')})`)) || [] : []
     const precioDe = new Map(precios.map((p) => [p.card_id, p]))
     const filas = []
     let sinPrecio = 0
@@ -194,7 +201,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
     }
     const { principal, fuera } = cruzadas(pares)
     estado.hechos[set.id] = {
-      fecha: ahora.toISOString(), nombre: set.name_en || set.id, nombres: nombresDe(set.id), cartas: cartasJp.length, espejadas: filas.length, sinPar: sinPar.length, sinPrecio,
+      fecha: ahora.toISOString(), version: VERSION_ESPEJO, nombre: set.name_en || set.id, nombres: nombresDe(set.id), cartas: cartasJp.length, espejadas: filas.length, sinPar: sinPar.length, sinPrecio,
       setsWest: [...new Set([...pares.values()].map((p) => p.setWest))], principal, cruzadas: fuera.length, ejemplosCruzadas: fuera.slice(0, 8), ejemplosSinPar: sinPar.slice(0, 5),
     }
     await persistir()

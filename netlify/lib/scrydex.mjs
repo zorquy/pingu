@@ -1309,6 +1309,15 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
   if (descripcion) fila.description = String(descripcion)
   const dex = (Array.isArray(carta.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
   if (dex.length) fila.dex_ids = dex
+  // Las impresiones que EXISTEN de esta carta (688), de su `variants` a
+  // nuestro objeto de banderas (el mismo que escribe TCGdex). Sin esto la
+  // ficha ofrecía las cuatro de una carta que solo existe en una.
+  const variantes = {}
+  for (const v of Array.isArray(carta.variants) ? carta.variants : []) {
+    const k = VARIANTE_DE_SUYA[minus(v?.name)]
+    if (k) variantes[k] = true
+  }
+  if (Object.keys(variantes).length) fila.variants = variantes
   return fila
 }
 

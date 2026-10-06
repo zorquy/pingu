@@ -53,8 +53,13 @@ const CLAVE_IDIOMA = 'mcTocarIdioma-es'
 
 // Las versiones que existen de ESTA carta, del módulo común (384). Esta
 // pantalla pide TODAS cuando no se sabe: aquí tienes la carta en la mano.
-function variantesDe(v) {
-  return variantesDeCarta({ variants: v }, TODAS).map((x) => x.nuestro)
+// Las impresiones que EXISTEN de la carta para el bloque de precio (688):
+// si no se sabe, una sola y las chapas no salen. Las cuatro a la vez
+// (`TODAS`) solo las ofrece el diálogo de añadir, donde la carta la tienes
+// en la mano. PINGU: «no tiene sentido que tengas todas esas versiones y
+// encima no puedes clicar en ellas porque no existen».
+function variantesDe(v, siNoSeSabe = undefined) {
+  return variantesDeCarta({ variants: v }, siNoSeSabe).map((x) => x.nuestro)
 }
 
 // Los idiomas de una carta occidental: la misma regla que la vista «es»
@@ -117,6 +122,7 @@ export async function pintarMercado(carta) {
   // Las impresiones: lo que diga TCGdex en vivo y, si no contesta, lo que
   // guardamos de él en la carta (645).
   const variantes = variantesDe(vivo?.variants ?? carta.variants)
+  const variantesParaAnadir = variantesDe(vivo?.variants ?? carta.variants, TODAS)
   const idiomas = idiomasDeCarta()
   const estado = { idioma: idiomaRecordado(idiomas), estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
   let ultimoPrecio = null
@@ -192,7 +198,7 @@ export async function pintarMercado(carta) {
 
   // ── Las losetas bajo la carta ──
   const sesion = await getSession().catch(() => null)
-  montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
+  montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
 }
 
 // Las tres losetas, pegadas al escaneo (donde las tiene la ficha de

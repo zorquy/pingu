@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 10) — PINGU-Claude (688 — el precio de una japonesa antigua es el de TCGplayer de ESA carta; las impresiones que existen)
+
+**Hecho**: el espejo (686) ya no copia el precio de la gemela occidental
+(el Charizard del Expansion Pack salía a 50.000 €): copia solo el
+producto de Cardmarket para el enlace y borra lo copiado; el precio es
+el de TCGplayer de la carta japonesa (Scrydex), convertido. Las chapas
+de impresión de /carta y de la ficha de Mi colección enseñan solo las
+que existen (sin `variants`, ninguna); el diálogo de añadir y el de
+editar siguen ofreciendo las cuatro. Scrydex guarda sus `variants`.
+
+**Ficheros**: `netlify/functions/precios-espejo.mjs`,
+`netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`js/carta-mercado.js`, `js/mi-coleccion.js`, `SCHEMA.md`, `CLAUDE.md`.
+En `pruebas`: 684, 686.
+
+**Pendiente**: ver en /admin el reemplazo de Celebrations y los ejemplos
+del espejo (687); los sets japoneses antiguos se repasan solos (nombres
+v3, espejo v2) en la próxima media hora.
+
 ## 2026-10-06 (tarde, 9) — PINGU-Claude (687 — Celebrations entero de TCGGO, el coreano/chino que se tiraba, el espejo con ejemplos)
 
 **Hecho**: Celebrations (`cel25` + `cel25c`) se reemplaza entero por la

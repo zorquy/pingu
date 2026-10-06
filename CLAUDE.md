@@ -369,6 +369,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
   con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
+- **El precio de una japonesa antigua es el de TCGplayer de ESA carta, y
+  el espejo solo copia el PRODUCTO** (tandas 686 y 688). `precios-espejo`
+  casa cada carta de los sets rellenados por Scrydex con su gemela
+  occidental y le copia el `cm_id_product` (para el enlace a Cardmarket)
+  y NADA más: el mínimo de la gemela es el de la carta occidental (el
+  Charizard de Base Set salía a 50.000 € en el Expansion Pack). PINGU:
+  «prefiero que no tengan precio a que tengan estos precios». Y las
+  chapas de impresión de un bloque de precio enseñan solo las que
+  existen (`variants`); las cuatro a la vez solo las ofrecen añadir y
+  editar, donde la carta la tienes en la mano.
 - **El HISTÓRICO de precios se pide A DEMANDA, y lo demás lo escribe la
   pasada de precios** (tanda 643). TCGGO da la serie de una carta en una
   petición, así que pedirla para las 20.000 es imposible: `tcggo-historial`

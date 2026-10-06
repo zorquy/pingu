@@ -485,7 +485,7 @@ function pintarPrecioDeFicha(l, c, tuya) {
   avisoDatos = { market: c?.market || l.market || 'WEST', idioma: l.idioma, precio: precioParaIdioma(precio, l.idioma)?.valor ?? null }
   $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
-    variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
+    variantes: variantesQueExisten(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
   })
   // El resumen de tu copia (645), con los campos plegados: se abre para
   // mirar, y Editar los despliega.
@@ -549,6 +549,16 @@ function pintarOtrasCopias(l) {
   caja.innerHTML = otras.length
     ? `<span class="mc-otras-rotulo">También tienes</span>${otras.map((x) => `<button type="button" class="mc-otra-copia" data-linea-otra="${escapeHtml(x.id)}"><span class="mc-ficha-chapas">${chipsDe(x)}</span><b>×${x.cantidad}</b></button>`).join('')}`
     : ''
+}
+
+// Para las chapas del bloque de precio (688): solo las que existen de
+// verdad y, si no se sabe, la de tu copia y nada más (con una sola no
+// salen). Las cuatro siguen en el desplegable de EDITAR, que es donde lo
+// sabes tú mejor que nosotros.
+function variantesQueExisten(carta, variante) {
+  const hay = variantesDeCarta(carta, []).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
+  if (!variante || hay.some((v) => v.id === variante)) return hay
+  return [...hay, ...VARIANTES.filter((v) => v.id === variante)]
 }
 
 function variantesParaEditar(carta, variante) {

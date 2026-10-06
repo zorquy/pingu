@@ -33316,3 +33316,49 @@ dos ataques distintos.
 `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`.
 **Pruebas**: 666 (Celebrations en la lista y la guarda), 671 (la marca
 caduca al día), 686 (el «×» y las cruzadas).
+
+## Tanda 688 — el precio de una japonesa antigua es el de TCGplayer de ESA carta, y las impresiones que existen (oct. 2026)
+
+PINGU, con el Charizard del Expansion Pack delante a **50.000 €**: «me
+parece un problemón exageradísimo. Prefiero que no tengan precio a que
+tengan estos precios, porque esto es irreal. Está cogiendo el Charizard
+[de Base Set] y no es ese. Es mejor coger el precio de TCGplayer y
+listo». Y de las chapas de impresión: «no tiene sentido que tengas todas
+esas versiones y encima no puedes clicar en ellas porque no existen».
+
+**El espejo copia el PRODUCTO, no el precio.** La 686 copiaba de la gemela
+occidental el mínimo de Cardmarket, las medias, las disponibles, las
+gradeadas y TCGplayer en euros. Todo eso es de la carta OCCIDENTAL —en
+Base Set, la 1.ª edición sin sombra, que es la que vale 50.000—, no de
+la japonesa. Lo único que vale de la gemela es el producto de Cardmarket
+(`cm_id_product`, `cm_url`): deja llegar a Cardmarket y de ahí, con
+«mostrar reimpresiones», a la japonesa. `filaEspejo` escribe eso y pone
+las columnas de precio a `null` A PROPÓSITO, para borrar lo que la 686
+dejó; `VERSION_ESPEJO = 2` hace que los sets hechos se vuelvan a pasar.
+Así `precioParaIdioma` cae al cuarto escalón: `tp_normal_market`, que es
+el Near Mint de TCGplayer en dólares **de esa carta japonesa** (685.3,
+de Scrydex), convertido «a ojo» y dicho en el pie. Si Scrydex no tiene
+precio, «Sin precio» — que es lo que PINGU prefiere a una cifra ajena.
+
+**Las impresiones que existen.** `variantesDeCarta` tiene dos respuestas
+para «no se sabe» (la 383: una sola para marcar, todas para guardar), y
+los dos bloques de precio pedían TODAS: una carta sin `variants` —toda
+TCGGO, y las de Scrydex hasta hoy— enseñaba Normal, Reverse holo, Holo y
+1.ª edición como botones que no hacían nada. Desde ahora: en /carta las
+chapas y el desplegable van con las que existen (si no se sabe, una, y
+las chapas no salen); el diálogo de AÑADIR sigue ofreciendo las cuatro
+cuando no se sabe, que es donde la carta la tienes en la mano. En la
+ficha de /mi-coleccion, `variantesQueExisten`: las de verdad y, si no se
+sabe, la de tu copia y nada más; el desplegable de EDITAR sigue con
+`variantesParaEditar` (todas + la de la copia, la 472). Y las de Scrydex
+se guardan: `filaDeCartaScrydex` traduce su `variants` (`normal`,
+`holofoil`, `reverse holofoil`, `1st edition`) a nuestro objeto de
+banderas con `VARIANTE_DE_SUYA`; `VERSION_NOMBRES` sube a 3 para que los
+cuatro sets rellenados se repasen con ellas (un crédito por 100).
+
+**Ficheros**: `netlify/functions/precios-espejo.mjs`,
+`netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`js/carta-mercado.js`, `js/mi-coleccion.js`.
+**Pruebas**: 686 (la fila sin precio, la versión), 684 (las
+impresiones), 645 y 645-pantalla (siguen: la ficha con `variants`
+conocidas enseña sus dos), 672-pantalla.
