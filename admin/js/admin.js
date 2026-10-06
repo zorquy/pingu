@@ -3009,7 +3009,7 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos'])
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
   const cat = de('tcggo_catalogo')
@@ -3052,6 +3052,20 @@ async function tcggoEstado() {
         ...paradas.map((e) => `  ⚠ parada #${e.id} ${e.nombre}`),
         k.ultimoError ? `  último error: #${k.ultimoError.episodio ?? '—'} ${k.ultimoError.nombre ?? ''} (${k.ultimoError.fecha}): ${k.ultimoError.error}` : '',
         k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
+      ]
+    })(),
+    // Los huecos desde Scrydex (684): los sets vacíos que TCGGO no tiene.
+    ...(() => {
+      const h = de('scrydex_huecos')?.valor
+      if (!h) return ['HUECOS DESDE SCRYDEX (scrydex_huecos, 684): todavía no ha corrido']
+      const v = Object.entries(h.vistos || {})
+      const cuenta = (e) => v.filter(([, x]) => x.estado === e).length
+      return [
+        `HUECOS DESDE SCRYDEX (scrydex_huecos, 684) — ${de('scrydex_huecos')?.updated_at || 'nunca'}: ${cuenta('rellenado')} rellenados · ${cuenta('lleno')} llenos · ${cuenta('sinPar')} sin expansión suya · ${cuenta('vacioEnScrydex')} vacíos en Scrydex · ${cuenta('parado')} parados · créditos gastados: ${h.gasto?.creditos ?? 0}`,
+        ...v.filter(([, x]) => x.estado === 'rellenado').map(([k, x]) => `  ✓ ${k} ← ${x.expansion} «${x.nombre || ''}» (${x.cartas} cartas, por ${x.por})`),
+        ...v.filter(([, x]) => x.estado === 'parado').map(([k, x]) => `  ⚠ parado ${k}: ${x.error}`),
+        h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
+        h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
       ]
     })(),
     `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,

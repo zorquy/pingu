@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 2) — PINGU-Claude (684 — los huecos desde Scrydex)
+
+**Hecho**: función programada `scrydex-huecos` (cada 4 min): rellena
+desde Scrydex los sets nuestros vacíos (los antiguos japoneses que
+TCGGO no tiene, escondidos incluidos) con ficha completa y escaneo, y
+los desesconde. Un set por pasada, 3 intentos, 401/403 para el día.
+/admin lo enseña. **Hace falta volver a suscribirse a Scrydex y poner
+`SCRYDEX_API_KEY` y `SCRYDEX_TEAM_ID` en Netlify.**
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`admin/js/admin.js`, `SCHEMA.md`. En `pruebas`: 684.
+
+**Pendiente**: PINGU: suscripción de Scrydex + claves en Netlify; la
+sonda (683) para confirmar `q=expansion.id:` y lo japonés antiguo; suite
+entera en marcha; migración corea-china; Celebrations.
 ## 2026-10-06 (tarde, 1) — PINGU-Claude (683 — la sonda de orígenes)
 
 **Hecho**: botón «Sonda de orígenes» en /admin → Cartas y función

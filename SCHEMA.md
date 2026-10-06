@@ -33048,3 +33048,62 @@ pokemontcg.io murió como API en la 586 (queda su CDN de imágenes).
 **Ficheros**: `netlify/functions/sonda-origenes.mjs`, `admin/index.html`,
 `admin/js/admin.js`. **Pruebas**: 683 (ayudantes con los fixtures reales
 de TCGGO y la sonda entera con red de mentira).
+
+## Tanda 684 — los huecos, desde Scrydex: los sets antiguos que TCGGO no tiene (oct. 2026)
+
+PINGU, tras el análisis de la 683: «lo cogemos de Scrydex, ¿no?
+Móntamelo, que necesito esos sets antiguos rellenados de cartas». Hay que
+VOLVER A SUSCRIBIRSE a Scrydex (se dio de baja en la 641) y tener
+`SCRYDEX_API_KEY` y `SCRYDEX_TEAM_ID` en Netlify; sin ellas la función
+se salta diciéndolo, y con la suscripción caducada un 401/403 la para
+hasta mañana.
+
+**`netlify/functions/scrydex-huecos`** (programada cada cuatro minutos,
+a y 3): rellena desde Scrydex los sets nuestros que están VACÍOS —también
+los escondidos por la 672 y la 674, que son justo estos— y los
+desesconde.
+1. La lista de expansiones de Scrydex del mercado (`ja` para JP, `en`
+   para WEST), una vez a la semana (3 créditos por mercado; una lista
+   vacía se apunta y se pasa al otro mercado).
+2. Hasta ocho sets por pasada que no haya mirado (o mirara hace más de
+   una semana): a cada uno le pregunta a NUESTRA base si tiene alguna
+   carta (gratis). Con cartas, `lleno`.
+3. Al primero vacío le busca su expansión (`expansionDelSet`): por
+   `scrydex_id`, por nombre inglés exacto, y si no por la huella de la 505
+   (fecha + cuenta, `emparejarSets` de `netlify/lib/scrydex.mjs`, que
+   vale aunque nuestro nombre esté en kanji). Sin expansión: `sinPar`, se
+   vuelve a mirar a la semana. Con una de cero cartas: `vacioEnScrydex`.
+4. Sus cartas (`{idioma}/cards?q=expansion.id:X`, un crédito por 100) se
+   convierten a nuestras columnas (`filaDeCartaScrydex`: id
+   `scrydex-<id suyo>`, número, nombre, `image_scrydex` como BASE sin
+   calidad —lo que espera `urlDeFotoScrydex`—, rareza inglesa,
+   ilustrador, categoría sin tilde, PS, fase en nuestro enum, tipos,
+   evoluciona de, ataques/habilidades/debilidades/resistencias en la
+   forma de TCGdex, retirada, marca, descripción, Pokédex; `origen =
+   'scrydex'`, `detalle_lang` = idioma) y se escriben por REST con la
+   clave de servicio (`tcg_cards?on_conflict=id,market`, 200 por
+   sentencia, con las mismas claves en todas las filas — la 585). Sin
+   migración: todas las columnas existen desde la 335 y la 547. Y el set
+   se apunta (`parcheDeSet`: `scrydex_id`, logo y símbolo, y fecha,
+   cuentas y nombre inglés SOLO si estaban vacíos) y queda
+   `oculto = false`. UNA expansión por pasada.
+
+**Frenos**: un set por pasada; un fallo de Scrydex cuenta y a
+`MAXIMO_INTENTOS` (3) el set queda `parado` con su error; un 401/403
+para el día entero (`parado: {dia, motivo}`); un fallo de NUESTRA base
+para la pasada sin contar intento (la 526). Lo rellenado y lo parado no
+se vuelven a mirar; todo lo demás, a la semana. El estado
+(`scrydex_estado.scrydex_huecos`: listas, vistos, intentos, gasto,
+ultimoError, parado) lo enseña /admin → «Estado del catálogo de TCGGO»
+como HUECOS DESDE SCRYDEX, con cada set rellenado y su expansión.
+
+**Lo que NO hace**: precios (siguen siendo de TCGGO; para una copia
+japonesa de una carta occidental, el `_JP` del producto de Cardmarket),
+ni tocar sets con cartas, ni crear sets nuevos (rellena los NUESTROS que
+están vacíos; las expansiones de Scrydex que no tengan set nuestro no
+entran, a propósito: lo que PINGU pidió es rellenar los que hay).
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`.
+**Pruebas**: 684 (la conversión con la ficha REAL de sm10-1, el emparejado,
+el parche, y la pasada entera: rellena y desesconde, cuenta créditos,
+403 para el día, 500 cuenta, fallo nuestro para sin intento).
