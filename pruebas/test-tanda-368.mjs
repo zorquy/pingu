@@ -173,8 +173,10 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
   // SIN MANDO desde la 565: la casilla es la carta, y las copias se suman
-  // y se quitan desde la ficha, que se abre tocándola (como en Dex).
-  check('ningún bolsillo lleva mando', (await page.locator('.mc-bolsillo-mando, [data-anadir], [data-quitar]').count()) === 0,
+  // y se quitan desde la ficha, que se abre tocándola (como en Dex). Lo
+  // ÚNICO que lleva desde la 657 es el «+» (`.mc-mas[data-anadir]`), que
+  // PINGU pidió con TCGGO delante: abre el diálogo de añadir, no suma.
+  check('ningún bolsillo lleva mando (salvo el «+» de la 657)', (await page.locator('.mc-bolsillo-mando, [data-quitar], [data-anadir]:not(.mc-mas)').count()) === 0,
     String(await page.locator('.mc-bolsillo-mando, [data-anadir], [data-quitar]').count()))
   // Y el bolsillo SIGUE llevando a la ficha: es la mitad que se perdía
   // con el interruptor puesto.

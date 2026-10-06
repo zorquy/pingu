@@ -112,11 +112,14 @@ console.log('\n── 2. El archivador: la vista de APUNTAR ──')
     // Sin mando desde la 565: la casilla es la carta, y se apunta desde
     // la ficha. Lo que sí tiene que llevar cada bolsillo es su enlace,
     // que es lo que la abre.
-    mandos: document.querySelectorAll('.mc-album-rejilla [data-anadir]').length,
+    // Desde la 657 cada bolsillo lleva el «+» (`.mc-mas[data-anadir]`),
+    // que abre el diálogo de añadir; lo que no puede haber es un mando de
+    // sumar/quitar en la casilla (la 565).
+    mandos: document.querySelectorAll('.mc-album-rejilla [data-anadir]:not(.mc-mas), .mc-album-rejilla [data-quitar]').length,
     enlaces: document.querySelectorAll('.mc-album-rejilla .mc-bolsillo-enlace[data-carta]').length,
   }))
   check('son bolsillos', r.caja && r.huecos === 12, JSON.stringify(r))
-  check('  …sin mando (se apunta desde la ficha, tanda 565)', r.mandos === 0, JSON.stringify(r))
+  check('  …sin mando de sumar o quitar (se apunta desde la ficha, tanda 565; el «+» de la 657 abre el diálogo)', r.mandos === 0, JSON.stringify(r))
   check('  …y cada uno abre su ficha', r.enlaces === 12, JSON.stringify(r))
 }
 

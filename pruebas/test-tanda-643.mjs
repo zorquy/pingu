@@ -117,12 +117,13 @@ console.log('── 4. La gráfica ──')
   check('el valor de una fila: el del idioma, y si no el general', valorDeFila(filas[0], 'es') === 140 && valorDeFila(filas[0], 'de') === 39 && valorDeFila({ dia: 'x' }, 'es') === null)
   check('una serie solo lleva los días con cifra', serieDe(filas, (f) => f.tp_market_eur).length === 2)
   const svg = svgDeHistorial(filas, { idioma: 'es' })
-  check('un SVG con la línea del español (3 puntos) y la de TCGplayer a trazos (2)', /<svg viewBox="0 0 600 200"/.test(svg) && (svg.match(/<polyline class="carta-historial-linea"/g) || []).length === 1 && /carta-historial-linea-tp/.test(svg) && ANCHO === 600 && ALTO === 200, svg.slice(0, 200))
+  check('un SVG con la línea del español (3 puntos) y la de TCGplayer a trazos (2)', /<svg viewBox="0 0 600 200"/.test(svg) && (svg.match(/<polyline class="carta-historial-linea"[ >]/g) || []).length === 1 && /carta-historial-linea-tp/.test(svg) && ANCHO === 600 && ALTO === 200, svg.slice(0, 200))
   check('  …con el mínimo y el máximo de las dos líneas en el eje (140 del español, 171 de TCGplayer) y las dos fechas abajo', /140,00 €/.test(limpio(svg)) && /199,00 €/.test(limpio(svg)) === false && /171,00 €/.test(limpio(svg)) && /1 sept/.test(svg) && /1 oct/.test(svg), limpio(svg).match(/<text[^>]*>[^<]*/g)?.join(' | '))
   check('  …y un rótulo accesible', /aria-label="Histórico: de 140,00 € a 171,00 €/.test(limpio(svg)))
   // Los puntos: el español sube de 140 a 160, así que el primero está más
   // abajo (y mayor) que el último en pantalla.
-  const puntos = svg.match(/<polyline class="carta-historial-linea" points="([^"]*)"/)[1].split(' ').map((p) => p.split(',').map(Number))
+  // Desde la 661 la línea lleva `data-idioma` entre la clase y los puntos.
+  const puntos = svg.match(/<polyline class="carta-historial-linea"[^>]*? points="([^"]*)"/)[1].split(' ').map((p) => p.split(',').map(Number))
   check('  …y la línea sube: el primer punto está más abajo que el último', puntos.length === 3 && puntos[0][1] > puntos[2][1] && puntos[0][0] < puntos[2][0], JSON.stringify(puntos))
   check('en inglés, otra línea: el máximo pasa a ser el 199 del inglés', /199,00 €/.test(limpio(svgDeHistorial(filas, { idioma: 'en' }))) && /140,00 €/.test(limpio(svgDeHistorial(filas, { idioma: 'en' }))) === false)
   check('con menos de dos puntos no hay gráfica', svgDeHistorial(filas.slice(0, 1), { idioma: 'es' }) === '' && svgDeHistorial([], {}) === '')

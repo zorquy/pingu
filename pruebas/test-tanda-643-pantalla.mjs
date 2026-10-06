@@ -44,15 +44,18 @@ console.log('── 1. La gráfica, con las filas de la función ──')
   const caja = page.locator('#cmHistorial')
   check('se pide el histórico de ESTA carta, una vez', pedidas === 1)
   check('la gráfica se ve, con su título', await caja.isVisible() && /Histórico de precios/i.test(await caja.innerText()))
-  check('  …un SVG con las dos líneas', (await caja.locator('svg polyline.carta-historial-linea').count()) === 2 && (await caja.locator('svg .carta-historial-linea-tp').count()) === 1)
-  check('  …el eje con el mínimo y el máximo del español (140 y 171 por TCGplayer)', /140,00 €/.test(limpio(await caja.innerText())) && /171,00 €/.test(limpio(await caja.innerText())), limpio(await caja.innerText()))
+  // Desde la 661 se dibujan TODOS los idiomas con cifra (el elegido,
+  // gordo) y el eje abarca todas las líneas: español, inglés y TCGplayer.
+  check('  …un SVG con las tres líneas (español, inglés y TCGplayer)', (await caja.locator('svg polyline.carta-historial-linea').count()) === 3 && (await caja.locator('svg .carta-historial-linea-tp').count()) === 1 && (await caja.locator('svg polyline[data-idioma="en"].carta-historial-linea-otra').count()) === 1)
+  check('  …el eje con el mínimo y el máximo de todas (140 del español, 199 del inglés)', /140,00 €/.test(limpio(await caja.innerText())) && /199,00 €/.test(limpio(await caja.innerText())), limpio(await caja.innerText()))
+  check('  …con los chips de 7 y 30 días, la leyenda y los rangos', (await caja.locator('.carta-historial-chip').count()) === 2 && (await caja.locator('.carta-historial-leyenda-item').count()) === 3 && (await caja.locator('.carta-historial-rango').count()) === 6)
   check('  …y el pie en español', /mínimo en Cardmarket en español/.test(await caja.locator('.carta-historial-pie').innerText()))
   const ancho = await caja.locator('svg').evaluate((el) => el.getBoundingClientRect().width)
   check('el SVG ocupa el ancho de su caja', ancho > 400, String(ancho))
   // El idioma: en inglés el eje cambia.
   await page.selectOption('#cmIdioma', 'en')
   await page.waitForTimeout(300)
-  check('al cambiar a inglés la gráfica cambia (199 € arriba) sin volver a pedir', /199,00 €/.test(limpio(await caja.innerText())) && /en inglés/.test(await caja.locator('.carta-historial-pie').innerText()) && pedidas === 1, limpio(await caja.innerText()))
+  check('al cambiar a inglés la gráfica cambia (el inglés pasa a ser la línea gorda) sin volver a pedir', (await caja.locator('svg polyline.carta-historial-linea[data-idioma="en"]:not(.carta-historial-linea-otra)').count()) === 1 && /en inglés/.test(await caja.locator('.carta-historial-pie').innerText()) && pedidas === 1, limpio(await caja.innerText()))
 }
 
 console.log('── 2. Sin filas, no se ve ──')

@@ -80,7 +80,9 @@ console.log('── 1. El «+» del álbum guarda la versión DE LA CARTA ──
   // que la ficha propone — que tiene que ser la de la carta.
   await page.locator('.mc-bolsillo-enlace[data-carta="sv8-1"]').click()
   await page.waitForTimeout(900)
-  check('la casilla no lleva mando', (await page.locator('[data-anadir]').count()) === 0)
+  // Desde la 657 la casilla lleva el «+» (`.mc-mas[data-anadir]`), que abre
+  // el diálogo de añadir; lo que no lleva es un mando de sumar o quitar.
+  check('la casilla no lleva mando de sumar o quitar (solo el «+» de la 657)', (await page.locator('[data-anadir]:not(.mc-mas), [data-quitar]').count()) === 0)
   // Desde la 650 la versión se propone en el diálogo del «+».
   await page.click('#mcEdMas')
   await page.waitForTimeout(400)
