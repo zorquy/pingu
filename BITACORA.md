@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 6) — PINGU-Claude (664 — el repaso en móvil)
+
+**Hecho**: capturas a 390 px de lo de esta noche. Solo fallaba el
+histórico de /carta: la letra de los ejes se encogía con el SVG hasta
+no leerse. Un paso más de letra por debajo de 560 px y margen izquierdo
+más ancho. CSS compartido: suite entera (ver abajo).
+
+**Ficheros**: `css/cardmarket.css`, `js/carta-historial.js` (una
+constante), `SCHEMA.md`.
+
+**Suite entera (664)**: 298 verdes y los dos rojos de ffmpeg (493, 514)
+cuando un reinicio del contenedor la cortó en la 647; las doce que
+faltaban (648 a 662) pasadas sueltas después, todas en verde.
 ## 2026-10-06 (madrugada, 5) — PINGU-Claude (662, 663 — el valor de la expansión en el tiempo; las que más se mueven)
 
 **Hecho** (las dos primeras propuestas de la noche, ya puestas): (662)

@@ -32157,3 +32157,18 @@ copia, el orden, lo que se queda fuera; la gráfica de la expansión con
 sus rangos y su rótulo, y sin ella con un día; el vistazo en el Panel con
 las tres que suben y la que baja, su sitio, la ficha al pulsar, y sin
 histórico no sale; el tope de 600 y las tandas de 150).
+
+## Tanda 664 — el repaso en móvil de la noche (oct. 2026)
+
+Capturas a 390 px del Panel con «las que más se mueven» (663), de la
+expansión con su gráfica (662) y del histórico de /carta (661). Las dos
+primeras cabían; la tercera no: el SVG del histórico se dibuja a 600
+unidades y en el móvil se encoge a poco más de la mitad, y el texto de
+los ejes —cifras, fechas, códigos de las marcas— se encogía con él hasta
+los cinco píxeles. Ahora en `css/cardmarket.css` ese texto va un paso
+grande de la escala (`--t-lg`) por debajo de 560 px, que al encoger se
+queda en los doce de siempre, y `MARGEN.izquierda` del SVG pasa de 56 a
+72 unidades para que «193,90 €» quepa con esa letra. Es la misma lección
+de la 653 (el texto de una gráfica estirada no se escala bien), resuelta
+aquí por la vía corta porque este SVG no se estira a lo ancho sin
+proporción, solo se encoge.

@@ -574,3 +574,11 @@ a.pv-fila-enlace:hover span:first-of-type {
 }
 .carta-historial-globo b { color: var(--text); font-variant-numeric: tabular-nums; }
 .carta-historial-lectura.a-la-izquierda .carta-historial-globo { right: var(--e-sm); left: auto; }
+
+/* En el móvil el SVG se encoge a poco más de la mitad de sus 600
+   unidades, y el texto de los ejes con él (664): un paso grande de la
+   escala, que al encoger se queda en los 12 px de siempre. */
+@media (max-width: 560px) {
+  .carta-historial-eje,
+  .carta-historial-marca-texto { font-size: var(--t-lg); }
+}

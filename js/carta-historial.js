@@ -25,7 +25,9 @@ import { euros, idiomaDe, IDIOMAS_CON_PRECIO } from './cardmarket.js'
 
 export const ANCHO = 600
 export const ALTO = 200
-const MARGEN = { arriba: 16, abajo: 24, izquierda: 56, derecha: 12 }
+// El de la izquierda da sitio a «193,90 €» también en el móvil (664), donde
+// la letra de los ejes va un paso más grande.
+const MARGEN = { arriba: 16, abajo: 24, izquierda: 72, derecha: 12 }
 
 export const RANGOS = [
   { id: '7D', dias: 7, nombre: 'siete días' },
