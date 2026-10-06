@@ -72,7 +72,7 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
     !grupos.includes('Versión') && !grupos.includes('Estado'), grupos.join(', '))
 
   // Y los valores son los de TU colección, traducidos.
-  const energias = await page.locator('.mc-chip-filtro[data-grupo="energia"]').allTextContents()
+  const energias = await page.locator('.chip-filtro[data-grupo="energia"]').allTextContents()
   check('las energías son las que tienes', energias.sort().join(',') === 'Agua,Fuego', energias.join(','))
   await page.close()
 }
@@ -83,7 +83,7 @@ console.log('\n── 2. Dentro suman, entre grupos restan ──')
   await page.locator('#mcAbrirFiltros').click()
   await page.waitForTimeout(400)
   const cartas = () => page.locator('.mc-carta').count()
-  const chip = (g, v) => page.locator(`.mc-chip-filtro[data-grupo="${g}"][data-valor="${v}"]`)
+  const chip = (g, v) => page.locator(`.chip-filtro[data-grupo="${g}"][data-valor="${v}"]`)
 
   await chip('energia', 'Agua').click()
   await page.waitForTimeout(500)

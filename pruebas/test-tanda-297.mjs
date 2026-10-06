@@ -70,7 +70,7 @@ const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INS
   return { page, errores }
 }
 const abrirGrupo = async (page, texto) => {
-  const chips = page.locator('.torneo-pestana')
+  const chips = page.locator('.torneo-pestanas-chips .chip-filtro')
   for (let i = 0; i < (await chips.count()); i++) {
     if (((await chips.nth(i).textContent()) || '').includes(texto)) {
       await chips.nth(i).click()
@@ -237,25 +237,22 @@ console.log('\n── 8. La rejilla y las chips ──')
   check('  …con un mínimo por tarjeta', /minmax\(330px, 1fr\)/.test(CSS))
   check('  …y las pestañas no están dentro de ella',
     /\.torneos-lista \{[^}]*display: flex/.test(CSS) && !/\.torneos-rejilla > \.torneo-pestanas/.test(CSS))
-  // Las de la FICHA se quedan como estaban: allí son navegación, no
-  // filtros. Por eso el estilo de chip va en una clase aparte.
-  check('las chips son de la lista, no de la ficha', /\.torneo-pestanas-chips/.test(CSS) && JS_LISTA.includes('torneo-pestanas torneo-pestanas-chips'))
-  // Y el bloque de chips va DESPUÉS de la regla base: las dos son de una
-  // sola clase, así que a igualdad de especificidad manda la última. Con
-  // el bloque arriba, el `border-bottom: none` se lo comía la regla de
-  // siempre y bajo los filtros seguía saliendo el subrayado.
-  check('  …y pisan a la regla base, no al revés',
-    CSS.indexOf('\n.torneo-pestanas {') < CSS.indexOf('.torneo-pestanas-chips {'))
+  // Desde la 678 los grupos de la lista son el chip compartido de la casa
+  // (`.chip-filtro`, en components.css) y Lista/Calendario es la cápsula
+  // (`.seg`): un filtro se pulsa y se queda pulsado; un conmutador elige
+  // una de dos. Ninguno lleva ya el subrayado de pestaña.
+  check('las chips son de la lista, no de la ficha', /\.torneo-pestanas-chips \{/.test(CSS) && JS_LISTA.includes('class="torneo-pestanas-chips"') && JS_LISTA.includes('class="chip-filtro'))
+  check('  …y el subrayado de pestaña se fue de torneos.css', !/\n\.torneo-pestanas \{/.test(CSS) && !/\n\.torneo-pestana \{/.test(CSS))
   const { page } = await abrir()
-  // Ojo con el selector: el PRIMER .torneo-pestanas de la página es el
-  // conmutador Lista/Calendario, que sí lleva su subrayado. Los filtros
-  // son los que llevan además la clase de chips.
   const subrayados = await page.evaluate(() => ({
     filtros: parseFloat(getComputedStyle(document.querySelector('.torneo-pestanas-chips')).borderBottomWidth),
-    conmutador: parseFloat(getComputedStyle(document.querySelector('.torneo-vista-conmutador')).borderBottomWidth),
+    chip: getComputedStyle(document.querySelector('.torneo-pestanas-chips .chip-filtro')).borderRadius,
+    conmutador: document.querySelector('.torneo-vista-conmutador')?.classList.contains('seg'),
+    conmutadorBoton: document.querySelector('.torneo-vista-conmutador .seg-btn.activa')?.textContent.trim(),
   }))
   check('  …así que los filtros no llevan subrayado debajo', subrayados.filtros === 0, JSON.stringify(subrayados))
-  check('  …y el conmutador Lista/Calendario sí conserva el suyo', subrayados.conmutador >= 2, JSON.stringify(subrayados))
+  check('  …y son chips redondos', /px/.test(subrayados.chip || '') && parseFloat(subrayados.chip) >= 16, JSON.stringify(subrayados))
+  check('  …y el conmutador Lista/Calendario es la cápsula compartida', subrayados.conmutador === true && subrayados.conmutadorBoton === 'Lista', JSON.stringify(subrayados))
   const cuantas = await page.evaluate(() => getComputedStyle(document.querySelector('.torneos-rejilla')).gridTemplateColumns.split(' ').length)
   check('a 1280 px caben tres columnas', cuantas === 3, String(cuantas))
   // En un móvil estrecho lo que importa no es cuántas columnas hay —una,
@@ -297,7 +294,7 @@ console.log('\n── 9. Y la FICHA se queda como estaba ──')
   // esta comprobación guarda sigue siendo lo mismo: que cada pantalla
   // tenga el suyo y que el de la lista no se cuele aquí. Si las chips se
   // escribieran sobre la clase compartida, esto lo cantaría.
-  check('  …con el suyo, el de pastillas', /torneo-pestanas-pastillas/.test(nav?.clases || ''), nav?.clases)
+  check('  …con el suyo: la cápsula compartida (678), marcada como la de la ficha', /torneo-pestanas-pastillas/.test(nav?.clases || '') && /\bseg\b/.test(nav?.clases || ''), nav?.clases)
   check('  …y no con las chips de la lista', !/torneo-pestanas-chips/.test(nav?.clases || ''), nav?.clases)
   await page.close()
 }

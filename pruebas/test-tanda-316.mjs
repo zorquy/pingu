@@ -83,10 +83,14 @@ console.log('\n── 1. Una guía se dibuja IGUAL en la portada y en /aprender 
   // Y lo que la tarjeta DICE, no solo qué clases lleva: la categoría era
   // justo lo que no decía la de la portada, y comparar listas de clases
   // no lo cazaría si un día se pintara la chapa vacía.
+  // Desde la 682 la categoría se dice SOLO en la portada, donde las guías
+  // van mezcladas; en /aprender los chips de filtro de arriba ya la dicen
+  // y la chapa sobraba (PINGU: «menos chips en las tarjetas»).
   for (const [url, nombre] of [['/index.html', 'portada'], ['/aprender', 'aprender']]) {
     const { page } = await abrir(url)
-    const chapa = (await page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent().catch(() => ''))?.trim()
-    check(`  …y en ${nombre} dice de qué es la guía`, !!chapa && CATS.some((c) => c.name === chapa), chapa || '(vacía)')
+    const chapa = (await page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
+    if (nombre === 'portada') check(`  …y en ${nombre} dice de qué es la guía`, !!chapa && CATS.some((c) => c.name === chapa), chapa || '(vacía)')
+    else check(`  …y en ${nombre} ya no repite la categoría (682)`, !chapa, chapa || '(sin chapa)')
     const min = (await page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
     check(`  …y cuánto cuesta leerla`, /\d+ min/.test(min || ''), min || '(vacía)')
     await page.close()

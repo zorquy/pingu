@@ -158,7 +158,7 @@ const navegador = await chromium.launch()
   // encendida. Sin acotar, esta comprobación habla de otra pantalla. Es la
   // misma trampa de las tarjetas de colección (447) y de las dos bandejas
   // (452), tres tandas seguidas.
-  ok((await p.locator('#mcPdxGrupos .mc-chip-filtro.activo').count()) === 0, '  …y ningún chip encendido')
+  ok((await p.locator('#mcPdxGrupos .chip-filtro.activa').count()) === 0, '  …y ningún chip encendido')
   await p.close()
 }
 

@@ -63,18 +63,21 @@ console.log('\n── 1. La franja de color de la tarjeta de guía dice algo ─
       texto: { cat: cat?.textContent.trim() || null, min: min?.textContent.trim() || null },
       // Que estén DENTRO de la franja y no debajo: una chapa que se
       // pinta bien pero cae fuera de la caja no ha llenado nada.
-      dentro: [trozo(cat), trozo(min)].every((r) => r && r.top >= ca.top - 1 && r.bottom <= ca.bottom + 1),
+      // La categoría se fue de la tarjeta de /aprender en la 682 (los chips
+      // de arriba ya la dicen); si está, dentro; los minutos, siempre.
+      dentro: [trozo(cat), trozo(min)].every((r, i) => (i === 0 && !r) || (r && r.top >= ca.top - 1 && r.bottom <= ca.bottom + 1)),
       // Y una a cada lado, que es lo que reparte el hueco.
       catIzq: trozo(cat)?.left, minDer: trozo(min)?.right, arteIzq: ca.left, arteDer: ca.right,
       hayInfo: !!info,
     }
   })
   check('la franja lleva su fila de información', m?.hayInfo === true)
-  check('  …con el nombre de la categoría', m?.texto.cat === 'Mazos', JSON.stringify(m?.texto))
+  // Desde la 682 la categoría no va en la tarjeta de /aprender (los chips
+  // de arriba ya la dicen): solo los minutos, a la derecha.
+  check('  …sin la chapa de categoría (682)', m?.texto.cat === null, JSON.stringify(m?.texto))
   check('  …y los minutos de lectura', m?.texto.min === '8 min', JSON.stringify(m?.texto))
-  check('  …las dos DENTRO de la franja', m?.dentro === true, JSON.stringify(m))
-  check('  …y una a cada lado',
-    m && m.catIzq - m.arteIzq < 24 && m.arteDer - m.minDer < 24, JSON.stringify(m))
+  check('  …DENTRO de la franja', m?.dentro === true, JSON.stringify(m))
+  check('  …y a la derecha', m && m.arteDer - m.minDer < 24, JSON.stringify(m))
 
   // El pie de la tarjeta: la barra se pinta SIEMPRE. Antes aparecía solo
   // si habías empezado, así que dos tarjetas seguidas tenían pies de

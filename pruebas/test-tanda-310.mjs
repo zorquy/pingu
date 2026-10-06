@@ -170,7 +170,7 @@ console.log('\n── 5. Una barra de UNA pestaña no es una barra ──')
     sesion: 'none',
     semillas: { __FAKE_TORNEOS__: [TORNEO], __FAKE_INSCRIPCIONES__: [{ id: 'i1', tournament_id: 't1', user_id: 'user-2', status: 'active' }] },
   })
-  const n = await page.locator('#torneoPestanas .torneo-pestana').count()
+  const n = await page.locator('#torneoPestanas .seg-btn').count()
   check('con inscripciones abiertas solo hay una pestaña', n === 1, String(n))
   check('  …y la barra no se enseña', !(await page.locator('#torneoPestanas').isVisible()))
   await page.close()
@@ -189,7 +189,7 @@ console.log('\n── 5. Una barra de UNA pestaña no es una barra ──')
       __FAKE_MESAS__: [{ id: 'm1', round_id: 'r1', tournament_id: 't1', table_number: 1, player1_id: 'user-1', player2_id: 'user-2' }],
     },
   })
-  const n2 = await enJuego.locator('#torneoPestanas .torneo-pestana').count()
+  const n2 = await enJuego.locator('#torneoPestanas .seg-btn').count()
   check('en juego hay más de una pestaña', n2 > 1, String(n2))
   check('  …y entonces la barra sí se enseña', await enJuego.locator('#torneoPestanas').isVisible())
   await enJuego.close()

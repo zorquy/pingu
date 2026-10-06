@@ -116,29 +116,30 @@ console.log('\n── 3. Nada más puede colarse dentro de la tira ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 4. El banner sin foto sigue midiendo 96 px ──')
+console.log('\n── 4. El banner sin foto sigue midiendo 64 px (679; eran 96) ──')
 {
   // LA FORMA DEL FALLO de mudar una hoja: `.profile-hero-banner-vacio`
   // ya vivía en perfil.css y `.profile-hero-banner` llegó DESPUÉS desde
   // components.css. Misma especificidad, así que ganó la última y el
   // banner vacío volvió a los 160 px — sin que nada diera error.
+  // (Desde la 679 las medidas son 128 con foto y 64 sin ella.)
   //
   // Se mide el resultado y no el orden de las reglas: da igual cómo se
   // arregle mientras el banner vacío mida lo que tiene que medir.
   for (const [ruta, sesion] of [['/perfil', 'user-1'], ['/usuario?u=Ash', 'user-2']]) {
     const { page } = await abrir(ruta, { sesion })
     const alto = await page.locator('#heroBanner').evaluate((n) => n.getBoundingClientRect().height)
-    check(`${ruta}: sin foto el banner mide 96`, alto === 96, String(alto))
+    check(`${ruta}: sin foto el banner mide 64`, alto === 64, String(alto))
     await page.close()
   }
-  // Y con foto se queda en los 160: si alguien «arreglara» lo de arriba
+  // Y con foto se queda en los 128: si alguien «arreglara» lo de arriba
   // bajando la regla base, esto lo cazaría.
   const { page } = await abrir('/usuario?u=Ash', {
     sesion: 'user-2',
     semillas: { __FAKE_PERFILES__: [{ id: 'user-1', banner_url: 'https://ejemplo/x.png' }] },
   })
   const alto = await page.locator('#heroBanner').evaluate((n) => n.getBoundingClientRect().height)
-  check('con foto se queda en 160', alto === 160, String(alto))
+  check('con foto se queda en 128', alto === 128, String(alto))
   await page.close()
 }
 
