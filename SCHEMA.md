@@ -33362,3 +33362,26 @@ cuatro sets rellenados se repasen con ellas (un crédito por 100).
 **Pruebas**: 686 (la fila sin precio, la versión), 684 (las
 impresiones), 645 y 645-pantalla (siguen: la ficha con `variants`
 conocidas enseña sus dos), 672-pantalla.
+
+## Tanda 631 — una migración, sentencia a sentencia (oct. 2026)
+
+PINGU ejecutó `supabase-migration-nombres-energias.sql` (629) en el SQL
+Editor y le salió «ERROR: 42P01: relation "tipos_629" does not exist». La
+migración creaba una tabla TEMPORAL con la lista de tipos (`on commit
+drop`, dentro de `begin`/`commit`) y la usaba en las sentencias
+siguientes: en psql —y en `sql-nombres-energias.sql`, que la carga con
+`\i`— todo va en la misma sesión y salía verde; en el editor, la tabla no
+llegó a la sentencia siguiente. Los nombres de producción, mirados después
+desde el navegador, ya están bien (la Telepática es «Energía Psíquica
+Telepática» / «Telepathic Psychic Energy», y no queda ninguna energía ni
+Amuleto Hada con el tipo en inglés ni ningún `name_en` con «[W]»), así que
+no hace falta volver a ejecutarla.
+
+Ahora cada sentencia lleva su lista en un `(values …)` y se basta sola, sin
+`begin`/`commit` (todas son re-ejecutables). Y la regla general queda
+vigilada: `test-tanda-631.mjs` barre TODAS las migraciones en busca de un
+`create temp table` fuera de un cuerpo `$$…$$` (dentro de una función o de
+un `do` es una sola sentencia y vale, como en `torneos-xp`), y ejecuta la
+de la 629 sentencia a sentencia, cada una en su propia conexión, como el
+editor; la versión vieja, ejecutada igual, falla con el mismo error que vio
+PINGU, que es lo que demuestra que el andamio lo imita.

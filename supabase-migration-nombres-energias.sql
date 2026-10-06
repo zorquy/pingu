@@ -31,43 +31,42 @@
 -- Es re-ejecutable: la segunda vez no encuentra nada que cambiar.
 -- ═══════════════════════════════════════════════════════════════════
 
-begin;
-
-create temp table tipos_629 (en text primary key, letra text, energia text, sustantivo text) on commit drop;
-insert into tipos_629 values
-  ('Grass', 'G', 'Planta', 'Planta'),
-  ('Fire', 'R', 'Fuego', 'Fuego'),
-  ('Water', 'W', 'Agua', 'Agua'),
-  ('Lightning', 'L', 'Rayo', 'Rayo'),
-  ('Psychic', 'P', 'Psíquica', 'Psíquico'),
-  ('Fighting', 'F', 'Lucha', 'Lucha'),
-  ('Darkness', 'D', 'Oscura', 'Oscuro'),
-  ('Metal', 'M', 'Metálica', 'Metal'),
-  ('Fairy', 'Y', 'Hada', 'Hada'),
-  ('Dragon', 'N', 'Dragón', 'Dragón'),
-  ('Colorless', 'C', 'Incolora', 'Incoloro');
+-- Sin tabla temporal y sin `begin`/`commit` (corregido el 2026-10-06): el
+-- SQL Editor de Supabase no conserva la tabla temporal de una sentencia a
+-- la siguiente, y la primera versión falló con «relation "tipos_629" does
+-- not exist» sin cambiar nada. Cada sentencia lleva su propia lista de
+-- tipos y se basta sola; como todas son re-ejecutables, no hace falta que
+-- vayan juntas en una transacción.
 
 -- ── 1. «Energía <tipo en inglés> …» → «Energía <tipo en español> …» ──
 update public.tcg_cards c
    set name_es = regexp_replace(c.name_es, '^Energía ' || t.en || '( |$)', 'Energía ' || t.energia || '\1')
-  from tipos_629 t
+  from (values ('Grass', 'Planta'), ('Fire', 'Fuego'), ('Water', 'Agua'), ('Lightning', 'Rayo'),
+               ('Psychic', 'Psíquica'), ('Fighting', 'Lucha'), ('Darkness', 'Oscura'), ('Metal', 'Metálica'),
+               ('Fairy', 'Hada'), ('Dragon', 'Dragón'), ('Colorless', 'Incolora')) as t(en, energia)
  where c.name_es ~ ('^Energía ' || t.en || '( |$)');
 
 update public.tcg_cards c
    set name = regexp_replace(c.name, '^Energía ' || t.en || '( |$)', 'Energía ' || t.energia || '\1')
-  from tipos_629 t
+  from (values ('Grass', 'Planta'), ('Fire', 'Fuego'), ('Water', 'Agua'), ('Lightning', 'Rayo'),
+               ('Psychic', 'Psíquica'), ('Fighting', 'Lucha'), ('Darkness', 'Oscura'), ('Metal', 'Metálica'),
+               ('Fairy', 'Hada'), ('Dragon', 'Dragón'), ('Colorless', 'Incolora')) as t(en, energia)
  where c.name ~ ('^Energía ' || t.en || '( |$)');
 
 -- ── 2. Los Amuletos Hada (Sol y Luna), con el tipo como sustantivo ──
 update public.tcg_cards c
    set name_es = 'Amuleto Hada ' || t.sustantivo
-  from tipos_629 t
+  from (values ('Grass', 'Planta'), ('Fire', 'Fuego'), ('Water', 'Agua'), ('Lightning', 'Rayo'),
+               ('Psychic', 'Psíquico'), ('Fighting', 'Lucha'), ('Darkness', 'Oscuro'), ('Metal', 'Metal'),
+               ('Fairy', 'Hada'), ('Dragon', 'Dragón'), ('Colorless', 'Incoloro')) as t(en, sustantivo)
  where c.name_es = 'Amuleto Hada ' || t.en;
 
 -- ── 3. El nombre inglés con el tipo como símbolo: «[W]» o «\[W\]» ──
 update public.tcg_cards c
    set name_en = regexp_replace(c.name_en, '\\?\[' || t.letra || '\\?\]', t.en, 'g')
-  from tipos_629 t
+  from (values ('Grass', 'G'), ('Fire', 'R'), ('Water', 'W'), ('Lightning', 'L'), ('Psychic', 'P'),
+               ('Fighting', 'F'), ('Darkness', 'D'), ('Metal', 'M'), ('Fairy', 'Y'), ('Dragon', 'N'),
+               ('Colorless', 'C')) as t(en, letra)
  where c.name_en ~ ('\\?\[' || t.letra || '\\?\]');
 
 -- ── 4. Los tres de Perfect Order (me03) que no tenían nombre inglés ──
@@ -77,8 +76,6 @@ update public.tcg_cards set name_en = 'Rocky Fighting Energy'
  where set_id = 'me03' and local_id in ('087', '87') and name_en is null and coalesce(name_es, name) ~ '^Energía Lucha Rocosa$';
 update public.tcg_cards set name_en = 'Telepathic Psychic Energy'
  where set_id = 'me03' and local_id in ('088', '88') and name_en is null and coalesce(name_es, name) ~ '^Energía Psíquica Telepática$';
-
-commit;
 
 -- ── Comprobación ───────────────────────────────────────────────────
 -- Tiene que devolver CERO filas: ningún nombre español con el tipo en

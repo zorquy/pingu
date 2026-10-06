@@ -33,7 +33,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   vive en `js/supabase.js` y es la única que puede aparecer en el repo.
   **NUNCA toques la base real directamente**: todo cambio de esquema o
   datos se entrega como fichero `supabase-migration-*.sql` en la raíz,
-  y un humano lo ejecuta en el SQL Editor.
+  y un humano lo ejecuta en el SQL Editor. **Y en el SQL Editor cada sentencia puede
+  ir por su lado** (tanda 631): una tabla TEMPORAL creada en una sentencia
+  no existe en la siguiente («relation "tipos_629" does not exist»), y con
+  `\i` en psql —la prueba— sí. Nada de tablas temporales entre sentencias:
+  la lista va en un `(values …)` dentro de cada una, o todo en un `do`.
+  Lo vigila `test-tanda-631.mjs`, que ejecuta la migración sentencia a
+  sentencia, cada una en su conexión.
 - **Netlify** despliega la rama `claude/react-native-web-migration-wl51z5`
   DIRECTAMENTE a producción. Cada push sale en vivo en minutos: no
   subas nada roto. Las funciones de servidor van en `netlify/functions/`

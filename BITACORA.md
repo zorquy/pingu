@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 11) — PINGU-Claude (631 — la migración de las energías, sin tabla temporal)
+
+**Hecho**: el SQL Editor dio «relation "tipos_629" does not exist» con
+`supabase-migration-nombres-energias.sql`: la tabla temporal de la lista
+de tipos no pasa de una sentencia a la siguiente. Cada sentencia lleva
+ahora su `(values …)`. Los nombres de producción ya están bien (mirado
+desde el navegador): no hace falta volver a ejecutarla. Y
+`supabase-migration-partidas-mazo-guardado.sql` (627) ya está puesta
+(`match_log.user_deck_id` existe).
+
+**Ficheros**: `supabase-migration-nombres-energias.sql`, `SCHEMA.md`,
+`CLAUDE.md`. En `pruebas`: 631 (nueva: barre las migraciones y ejecuta la
+de la 629 sentencia a sentencia) y su rigor (3 de 3).
+
+**Pendiente**: nada mío. Lo del repaso de 648–672 (mi entrada de la 630)
+sigue para quien lleve Mi colección y TCGGO.
 ## 2026-10-06 (tarde, 10) — PINGU-Claude (688 — el precio de una japonesa antigua es el de TCGplayer de ESA carta; las impresiones que existen)
 
 **Hecho**: el espejo (686) ya no copia el precio de la gemela occidental
