@@ -119,7 +119,7 @@ console.log('\n── 4. En pantalla: más prieto ──')
 {
   const { page, errores } = await abrir()
   const hero = await page.locator('#mcHero').evaluate((n) => ({ alto: n.getBoundingClientRect().height, pad: getComputedStyle(n).paddingTop, gap: getComputedStyle(n).gap }))
-  check('la cabecera mide menos de 200 px en escritorio', hero.alto < 200 && hero.pad === '16px' && hero.gap === '12px', JSON.stringify(hero))
+  check('la cabecera mide menos de 200 px en escritorio', hero.alto < 170 && hero.pad === '12px' && hero.gap === '8px' /* un paso menos desde la 673 */, JSON.stringify(hero))
   check('la nota vacía no ocupa', await page.locator('#mcResumenNota').evaluate((n) => n.textContent === '' && getComputedStyle(n).display === 'none'))
   const grafica = await page.locator('.mc-valor-un-punto').evaluate((n) => n.getBoundingClientRect().height)
   check('con un punto, la gráfica mide 96 px', grafica === 96, String(grafica))
