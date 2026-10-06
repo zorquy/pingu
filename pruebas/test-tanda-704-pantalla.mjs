@@ -72,6 +72,12 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   check('Cartas activa', b.some((x) => x.startsWith('Cartas*:')), b.join(' | '))
   check('las píldoras son los enlaces del desplegable «Cartas», con Mi colección activa', (await pildoras(page)).join() === 'Catálogo de cartas,Lanzamientos,Mi colección*', (await pildoras(page)).join())
   check('  …y van ANTES de todo lo de la página', (await page.$eval('main', (m) => m.firstElementChild?.className)) === 'bm-secc')
+  // 704b: PINGU, con la primera versión en píldoras: «ocupan demasiadísima
+  // pantalla». Son una LÍNEA DE TEXTO (enlaces en línea, como una miga de
+  // pan) y aun así el área que se pulsa mide 44 por el relleno vertical.
+  const fila = await page.$$eval('.bm-secc a', (as) => as.map((a) => ({ inline: getComputedStyle(a).display === 'inline', h: Math.round(a.getBoundingClientRect().height) })))
+  check('las píldoras son una línea de texto (enlaces en línea) y el área que se pulsa mide 44', fila.every((x) => x.inline && x.h >= 44), JSON.stringify(fila))
+  check('  …y la fila entera mide menos de 48 px: no se come la pantalla', (await page.$eval('.bm-secc', (e) => Math.round(e.getBoundingClientRect().height))) <= 48, String(await page.$eval('.bm-secc', (e) => Math.round(e.getBoundingClientRect().height))))
   const mc = await page.$eval('.mc-pestanias', (e) => ({ pos: getComputedStyle(e).position, visible: e.getBoundingClientRect().height > 0 }))
   check('las pestañas de Mi colección ya no flotan: fila normal bajo la cabecera', mc.pos === 'static' && mc.visible, JSON.stringify(mc))
   check('  …y cada pestaña mide 44', (await page.$$eval('.mc-pestania', (as) => as.every((a) => a.getBoundingClientRect().height >= 44))))
