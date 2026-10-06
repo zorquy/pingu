@@ -292,6 +292,10 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
       vistos.add(js)
       const txt = leer(js)
       usadas = new Set([...usadas, ...clasesDeTexto(txt)])
+      // Una hoja que un módulo INYECTA (704: js/barra-movil.js mete
+      // css/movil.css solo en el móvil) cuenta como cargada en toda página
+      // que llegue a ese módulo.
+      for (const h of txt.matchAll(/hojaInyectada\('([^']+\.css)'\)/g)) if (!hojas.includes(h[1])) hojas.push(h[1])
       const dir = js.slice(0, js.lastIndexOf('/') + 1)
       // Las dos formas: `from './x.js'` e `import('./x.js')`.
       for (const imp of txt.matchAll(/(?:from|import)\s*\(?\s*'([^']+\.js)'/g)) {
