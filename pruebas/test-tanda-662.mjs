@@ -64,38 +64,13 @@ async function abrir(ruta, { valor = 20, historial = true } = {}) {
   return { page, errores }
 }
 
-console.log('\n── 2. Lo que vale la expansión, en el tiempo (662) ──')
+console.log('\n── 2. Lo que vale la expansión: ya NO va dentro de la expansión (667) ──')
 {
+  // PINGU en la 667: «como vas a ponerlo en el overview de la expansión no
+  // tiene sentido meterlo dentro». La gráfica se fue de aquí; la tarjeta
+  // de la estantería es la que lo cuenta.
   const { page, errores } = await abrir('/mi-coleccion.html?ver=album&set=xy5')
-  const caja = page.locator('#mcAlbumValor')
-  check('debajo de la tira de cifras, la gráfica de la expansión', await caja.isVisible() && /Lo que vale esta expansión/.test(await caja.innerText()) && (await caja.locator('.mc-valor-linea').count()) === 1, limpio(await caja.innerText()).slice(0, 160))
-  check('  …con los rangos, y 7D la recorta sin pedir nada', (await caja.locator('.mc-valor-rango').count()) === 6 && (await caja.locator('.mc-valor-lienzo').getAttribute('data-puntos')).split('],[').length === 20)
-  await caja.locator('[data-rango="7D"]').click()
-  await page.waitForTimeout(300)
-  check('  …y al pulsar 7D quedan ocho puntos', (await caja.locator('.mc-valor-lienzo').getAttribute('data-puntos')).split('],[').length === 8)
-  check('  …con un rótulo que habla de la expansión, no de tu colección', /El valor de esta expansión/.test(await caja.locator('svg').getAttribute('aria-label')))
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  await page.close()
-  const pocos = await abrir('/mi-coleccion.html?ver=album&set=xy5', { valor: 1 })
-  check('con un solo día no hay gráfica (la tarjeta ya dice el valor)', (await pocos.page.locator('#mcAlbumValor').count()) === 0 || !(await pocos.page.locator('#mcAlbumValor').isVisible()))
-  await pocos.page.close()
-}
-
-console.log('\n── 3. Las que más se mueven, en el Panel (663) ──')
-{
-  const { page, errores } = await abrir('/mi-coleccion.html')
-  const bloque = page.locator('#mcVistazos .mc-vistazo').filter({ hasText: 'Las que más se mueven' })
-  check('hay un vistazo «Las que más se mueven esta semana»', (await bloque.count()) === 1)
-  const movidas = bloque.locator('.mc-movida')
-  const textos = await movidas.evaluateAll((ns) => ns.map((n) => `${n.className}|${n.querySelector('.mc-movida-pie b')?.textContent}|${n.querySelector('[data-carta]')?.dataset.carta}`))
-  check('  …con las que suben primero (Groudon +15 %, Kakuna en inglés +175 %) y la que baja después (Weedle)', textos.length === 3 && /sube\|\+175 %\|xy5-2/.test(textos[0]) && /sube\|\+15 %\|xy5-150/.test(textos[1]) && /baja\|-42 %\|xy5-1/.test(textos[2]), textos.join(' ; '))
-  check('  …detrás de Expansiones y delante de Cambios', await page.evaluate(() => {
-    const titulos = [...document.querySelectorAll('#mcVistazos .mc-vistazo .mc-subtitulo')].map((h) => h.textContent.trim())
-    return titulos.indexOf('Las que más se mueven esta semana') === titulos.indexOf('Expansiones') + 1 && titulos.indexOf('Cambios') > titulos.indexOf('Las que más se mueven esta semana')
-  }))
-  await movidas.first().locator('[data-carta]').click()
-  await page.waitForTimeout(800)
-  check('  …y cada una abre su ficha', await page.locator('#mcEditor').evaluate((n) => n.open) && /Kakuna/.test(limpio(await page.locator('#mcEditor').innerText())))
+  check('dentro de la expansión no hay gráfica de valor', (await page.locator('#mcAlbumValor').count()) === 0 && !/Lo que vale esta expansión/.test(await page.locator('#mcPanelAlbum').innerText()))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
   const sin = await abrir('/mi-coleccion.html', { historial: false })

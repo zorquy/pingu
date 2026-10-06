@@ -66,7 +66,8 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   check('las acciones se ven debajo de la carta, con el «+» y sin «Tienes»', (await page.locator('#mcEdAcciones').isVisible()) && (await page.locator('#mcEdMas').isVisible()) && !(await page.locator('#mcEdTienes').isVisible()))
   const foto = await page.locator('#mcEdFoto').boundingBox()
   const mas = await page.locator('#mcEdMas').boundingBox()
-  check('  …pegado a la carta: justo debajo y centrado con ella', mas.y >= foto.y + foto.height && Math.abs((mas.x + mas.width / 2) - (foto.x + foto.width / 2)) < 60, JSON.stringify({ foto, mas }))
+  // Desde la 667 es la primera de tres losetas: debajo de la carta y dentro de su ancho.
+  check('  …pegado a la carta: justo debajo y dentro de su ancho', mas.y >= foto.y + foto.height && mas.x >= foto.x - 1 && mas.x + mas.width <= foto.x + foto.width + 1, JSON.stringify({ foto, mas }))
   check('  …y no hay bloque de «tu copia»', !(await page.locator('#mcEdCopiaBloque').isVisible()))
   await page.click('#mcEdMas')
   await page.waitForTimeout(500)

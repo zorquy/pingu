@@ -56,7 +56,7 @@ console.log('── 1. La ficha de tu copia ──')
   check('la tabla de Cardmarket: tres filas, la del español marcada como tu copia', (await filas.count()) === 3 && /tu copia/.test(limpio(await filas.first().innerText())))
   const alto = await filas.first().locator('.pv-fila-enlace').evaluate((el) => el.getBoundingClientRect().height)
   check('  …cada fila mide 44 px y abre Cardmarket con ese idioma', alto >= 44 && /language=1/.test(await filas.nth(1).locator('a').getAttribute('href')), String(alto))
-  check('el botón de TCGplayer es azul con blanco', (await bloque.locator('.btn-tcgplayer').evaluate((el) => getComputedStyle(el).backgroundColor)) === 'rgb(27, 95, 201)')
+  check('el botón de TCGplayer es azul con blanco', (await bloque.locator('.btn-tcgplayer').evaluate((el) => getComputedStyle(el).backgroundColor)) === 'rgb(26, 110, 255)') // el azul de su logo desde la 667
   check('el histórico se pide y se pinta dentro de la ficha', historialPedido === 1 && (await page.locator('#mcEdHistorial').isVisible()) && (await page.locator('#mcEdHistorial svg polyline').count()) === 1)
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
