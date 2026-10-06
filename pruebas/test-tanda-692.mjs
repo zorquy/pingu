@@ -22,10 +22,17 @@ const browser = await chromium.launch()
 const semilla = ({ split }) => {
   window.__FAKE_SESSION__ = 'admin-1'
   localStorage.setItem('mc-split', split ? '1' : '0')
-  window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', name_en: 'Primal Clash', serie_id: 'xy', market: 'WEST', release_date: '2015-02-04', card_count_official: 160, card_count_total: 164, tcg_online_code: 'PRC' }]
+  window.__FAKE_SETS__ = [
+    { id: 'xy5', name: 'Duelos Primigenios', name_en: 'Primal Clash', serie_id: 'xy', market: 'WEST', release_date: '2015-02-04', card_count_official: 160, card_count_total: 164, tcg_online_code: 'PRC' },
+    { id: 'A1', name: 'Genetic Apex', name_en: 'Genetic Apex', serie_id: 'tcgp', market: 'WEST', release_date: '2024-10-30', card_count_official: 226, card_count_total: 286 },
+  ]
   window.__FAKE_CARTAS__ = [
     { id: 'xy5-1', market: 'WEST', set_id: 'xy5', local_id: '1', name: 'Weedle', name_es: 'Weedle', image_path: 'x/2', rarity: 'Common', category: 'Pokemon', dex_ids: [13], variants: { normal: true, reverse: true } },
     { id: 'xy5-2', market: 'WEST', set_id: 'xy5', local_id: '2', name: 'Kakuna', name_es: 'Kakuna', image_path: 'x/3', rarity: 'Uncommon', category: 'Pokemon', dex_ids: [14], variants: { normal: true, reverse: true } },
+    // Otro Weedle que NO tienes (694: su «+» no hacía nada) y uno de TCG
+    // Pocket (694: no puede salir en la Pokédex).
+    { id: 'xy5-3', market: 'WEST', set_id: 'xy5', local_id: '3', name: 'Weedle', name_es: 'Weedle', image_path: 'x/4', rarity: 'Common', category: 'Pokemon', dex_ids: [13], variants: { normal: true } },
+    { id: 'A1-5', market: 'WEST', set_id: 'A1', local_id: '5', name: 'Weedle', name_es: 'Weedle', image_path: 'x/5', rarity: 'Common', category: 'Pokemon', dex_ids: [13], variants: { normal: true }, tcg_sets: { id: 'A1', name: 'Genetic Apex', serie_id: 'tcgp' } },
   ]
   // El Weedle NORMAL ya está en la colección; la reverse no.
   window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'xy5-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }]
@@ -86,13 +93,20 @@ console.log('── 3. La Pokédex de un Pokémon, con las variantes separadas �
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('hay chip de variantes, encendido y rotulado «separadas» (la misma memoria que la expansión)', (await page.locator('#pdxVariantes').count()) === 1 && (await page.getAttribute('#pdxVariantes', 'aria-pressed')) === 'true' && limpio(await page.locator('#pdxVariantes').innerText()) === 'Variantes separadas')
   const casillas = await page.$$eval('.pdx-carta', (es) => es.map((e) => `${e.dataset.carta}:${e.dataset.version}:${e.classList.contains('tengo') ? 'tengo' : 'falta'}`))
-  check('el Weedle sale DOS veces: la normal (tuya) y la reverse (te falta)', casillas.join(',') === 'xy5-1:normal:tengo,xy5-1:reverse:falta', casillas.join(','))
-  check('  …cada una con su chapa de versión y la reverse con su velo', (await page.locator('.pdx-carta .mc-chapa-variante').count()) === 2 && limpio(await page.locator('.pdx-carta[data-version="reverse"] .mc-chapa-variante').innerText()) === 'RH Reverse holo' && (await page.locator('.pdx-carta[data-version="reverse"] .mc-velo-reverse').count()) === 1)
+  check('el Weedle 1 sale DOS veces (la normal tuya, la reverse te falta), el 3 una, y el de TCG Pocket NO sale (694)', casillas.join(',') === 'xy5-1:normal:tengo,xy5-1:reverse:falta,xy5-3:normal:falta', casillas.join(','))
+  check('  …cada una con su chapa de versión y la reverse con su velo', (await page.locator('.pdx-carta .mc-chapa-variante').count()) === 3 && limpio(await page.locator('.pdx-carta[data-version="reverse"] .mc-chapa-variante').innerText()) === 'RH Reverse holo' && (await page.locator('.pdx-carta[data-version="reverse"] .mc-velo-reverse').count()) === 1)
   check('  …y con su «+» de esa versión', (await page.locator('.pdx-carta[data-version="reverse"] [data-anadir="xy5-1"][data-variante="reverse"]').count()) === 1)
   await page.locator('#pdxSoloFaltan').click({ force: true })
   await page.waitForTimeout(800)
   const faltan = await page.$$eval('.pdx-carta', (es) => es.map((e) => `${e.dataset.carta}:${e.dataset.version}`))
-  check('«solo las que me faltan» deja la reverse', faltan.join(',') === 'xy5-1:reverse', faltan.join(','))
+  check('«solo las que me faltan» deja la reverse del 1 y el 3', faltan.join(',') === 'xy5-1:reverse,xy5-3:normal', faltan.join(','))
+  // 694: el «+» de una carta que NO tienes (no está en tu colección ni en
+  // ningún álbum abierto) tiene que abrir el diálogo igual.
+  await page.locator('.pdx-carta [data-anadir="xy5-3"]').click()
+  await page.waitForTimeout(600)
+  check('el «+» de una carta que NO tienes abre el diálogo con ESA carta (694)', (await dialogo(page).evaluate((d) => d.open)) && /Weedle/.test(limpio(await page.locator('#mcAdNombre').innerText())) && /Duelos Primigenios 3/.test(limpio(await page.locator('#mcAdNombre').innerText())), limpio(await page.locator('#mcAdNombre').innerText()))
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
   await page.locator('.pdx-carta [data-anadir="xy5-1"][data-variante="reverse"]').click()
   await page.waitForTimeout(600)
   check('el «+» de la Pokédex abre el diálogo con la reverse puesta, y no la ficha', (await dialogo(page).evaluate((d) => d.open)) && (await page.inputValue('#mcAdVariante')) === 'reverse' && /ver=pokedex/.test(page.url()))
@@ -102,7 +116,7 @@ console.log('── 3. La Pokédex de un Pokémon, con las variantes separadas �
   await page.waitForTimeout(500)
   await page.locator('#pdxVariantes').click({ force: true })
   await page.waitForTimeout(800)
-  check('pulsar el chip las junta: una casilla, rótulo «juntas», y la memoria cambia', (await page.locator('.pdx-carta').count()) === 1 && limpio(await page.locator('#pdxVariantes').innerText()) === 'Variantes juntas' && (await page.evaluate(() => localStorage.getItem('mc-split'))) === '0')
+  check('pulsar el chip las junta: dos casillas (una por carta), rótulo «juntas», y la memoria cambia', (await page.locator('.pdx-carta').count()) === 2 && limpio(await page.locator('#pdxVariantes').innerText()) === 'Variantes juntas' && (await page.evaluate(() => localStorage.getItem('mc-split'))) === '0')
   check('  …y la casilla junta también lleva su «+», sin versión', (await page.locator('.pdx-carta [data-anadir="xy5-1"]').count()) === 1 && (await page.locator('.pdx-carta [data-anadir="xy5-1"]').getAttribute('data-variante')) === null)
   await page.close()
 }
