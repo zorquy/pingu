@@ -164,11 +164,11 @@ console.log('── 3. El precio de una copia según su idioma ──')
   const soloUsd = precioDeFila({ card_id: 'x', tp_holo_market: 20 }, { variante: 'holo' })
   check('  …y sin euros, los dólares convertidos, con el ≈', valorDe(soloUsd) === usdAEuros(20) && /≈/.test(resumenDePrecio(soloUsd)))
   check('sin nada, null y «Sin precio.»', precioDeFila({ card_id: 'x' }) === null && resumenDePrecio(null) === 'Sin precio.')
-  check('los idiomas con precio, en orden, con su columna (el japonés desde la 642)', JSON.stringify(IDIOMAS_CON_PRECIO) === '["es","en","de","fr","it","ja"]' && columnaDeIdioma('es') === 'cm_low_es' && columnaDeIdioma('ja') === 'cm_low_ja' && columnaDeIdioma('pt') === null)
+  check('los idiomas con precio, en orden, con su columna (el japonés desde la 642)', JSON.stringify(IDIOMAS_CON_PRECIO) === '["es","en","de","fr","it","ja","ko","zh"]' /* coreano y chino desde la 671 */ && columnaDeIdioma('es') === 'cm_low_es' && columnaDeIdioma('ja') === 'cm_low_ja' && columnaDeIdioma('pt') === null)
   // El japonés (642): su columna, su valor, y el enlace al producto sin filtro de idioma.
   const jp = precioDeFila({ card_id: 'SV1a-001', cm_id_product: 777, cm_low_ja: 12, cm_low: 20 })
   check('una copia japonesa vale su mínimo japonés (12), no el general (20)', valorDe(jp, 'ja') === 12 && precioParaIdioma(jp, 'ja').origen === 'cardmarket-idioma' && limpio(resumenDePrecio(jp, 'ja')) === 'Desde 12,00 € en japonés', limpio(resumenDePrecio(jp, 'ja')))
-  check('  …y el botón va al producto aunque el japonés no tenga filtro de idioma en Cardmarket', /idProduct=777/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })) && !/language=/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })))
+  check('  …y el botón va al producto Y con el filtro japonés (language=7 desde la 671)', /idProduct=777/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })) && /language=7/.test(enlaceCardmarket({ idProduct: 777, idioma: 'ja' })))
   check('  …la fila de una carta del mercado JP coge el general como japonés si no hay _JP', filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9 } } }, { mercado: 'JP' }).cm_low_ja === 9 && filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9, lowest_near_mint_JP: 7 } } }, { mercado: 'JP' }).cm_low_ja === 7 && filaDePreciosTcggo('x', { prices: { cardmarket: { lowest_near_mint: 9 } } }).cm_low_ja === null)
   check('el enlace a TCGplayer va directo al producto', enlaceTcgplayer(96048) === 'https://www.tcgplayer.com/product/96048' && enlaceTcgplayer(null) === null && enlaceTcgplayer('x') === null)
 
