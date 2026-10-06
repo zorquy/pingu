@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 19) — PINGU-Claude (696 — /admin dice qué sets japoneses no se han podido rellenar)
+
+**Hecho**: PINGU reporta cartas japonesas que no salen (Lanturn Prime de
+Reviving Legends, exclusivas de Arceus): sets de la era LEGEND y DP que
+TCGdex trae vacíos. El bloque HUECOS DESDE SCRYDEX solo listaba los
+rellenados; ahora lista también los «sin expansión suya» (con sus
+candidatas) y los «vacíos también en Scrydex», con el nombre del set.
+
+**Ficheros**: `admin/js/admin.js`, `netlify/functions/scrydex-huecos.mjs`.
+
+**Pendiente**: que PINGU pegue ese bloque para ver por qué esos sets no
+se han rellenado, y dónde exactamente «no sale» la carta (buscador o
+expansión).
+
 ## 2026-10-06 (tarde, 18) — PINGU-Claude (695 — el índice del foro vuelve a la lista clásica)
 
 **Hecho**: PINGU no quiere los foros en tarjetas («mejor vertical, como

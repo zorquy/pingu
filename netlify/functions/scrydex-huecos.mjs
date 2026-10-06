@@ -284,12 +284,12 @@ export async function pasada({
     // ── 3. Su expansión ──
     const { por, expansion, candidatas } = expansionDelSet(vacio, expansiones)
     if (!expansion) {
-      estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'sinPar', candidatas: candidatas || [] }
+      estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'sinPar', nombre: vacio.name_en || vacio.name || '', candidatas: candidatas || [] }
       await persistir()
       return { ok: true, ...resumen(), mirado: { mercado, set: vacio.id, estado: 'sinPar' } }
     }
     if (Number(expansion.total) === 0) {
-      estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'vacioEnScrydex', expansion: expansion.id }
+      estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'vacioEnScrydex', nombre: vacio.name_en || vacio.name || '', expansion: expansion.id }
       await persistir()
       return { ok: true, ...resumen(), mirado: { mercado, set: vacio.id, estado: 'vacioEnScrydex', expansion: expansion.id } }
     }
