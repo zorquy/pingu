@@ -33241,3 +33241,27 @@ va detrás del de Cardmarket. `VERSION_NOMBRES` sube a 2: los sets ya
 rellenados se repasan con esto. El JSON de PINGU es el fixture
 `scrydex-card-base1_ja-4.json` (la 501: la respuesta real, no una
 parecida; solo se recortaron filas de gradeadas repetidas).
+
+**685.4 — el Expansion Pack y Jungle no se remataban.** El estado de
+las 14:03 lo enseñó: `base3_ja` y `base4_ja` rellenados y con nombres,
+y `base1_ja`/`base2_ja` con sus cartas dentro, escondidos y fuera de la
+lista. El remate de la 685.2 preguntaba «¿set sin `scrydex_por`?», y esos
+dos lo traían de la época antigua de Scrydex (la 547 lo escribía
+`'fecha+cuenta'`), así que para el remate eran sets «apuntados» y para
+la fase 0 —que mira `rellenados`— no existían. Un set lleno de cartas de
+Scrydex que no haya apuntado ESTA función (`scrydex_por !== 'huecos'`)
+se remata igual. `VERSION` sube a 685.4 para soltar el freno.
+
+**686.1 — la gemela que no era.** El espejo casaba el Charmander de
+Rocket Gang con el de Base Set: mismo nombre, mismos PS, misma Pokédex,
+y OTRO producto en Cardmarket. Lo que los separa son los ataques, y los
+nombres de los ataques no sirven (los nuestros van en español desde la
+330, los suyos en inglés), pero los números sí: `huellaDeAtaques` es
+«daño/energías» por ataque, y dos cartas con huella distinta no son la
+misma. La ventana sube a cuatro años (Base Set es de enero del 99 y
+Team Rocket de abril de 2000; el Expansion Pack es de octubre del 96).
+Y como la 685.3 reescribe los nombres de los sets ya rellenados, el
+espejo apunta en `hechos[set].nombres` con qué versión de nombres casó
+y repasa el set en cuanto `scrydex_huecos.vistos` diga otra, sin
+esperar al día: con los nombres de la Pokédex «Dark Charmeleon» era
+«Charmeleon» y casaba con el que no era.

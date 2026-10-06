@@ -54,7 +54,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 // estrellarse contra la misma columna que no existía. «Saltar vale para el
 // fallo del otro; para el tuyo, parar» (la 526) — y lo quita un humano
 // desplegando el arreglo, que es lo que cambia esta cadena.
-export const VERSION = '685.3'
+export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
 export const VERSION_NOMBRES = 2
@@ -242,10 +242,13 @@ export async function pasada({
       }
       if (alguna.length) {
         // ¿Lleno A MEDIAS? Cartas de Scrydex dentro y el set sin apuntar
-        // (`scrydex_por`): el PATCH de una pasada anterior no llegó. Se
-        // remata aquí, sin pedirle nada a Scrydex, y queda `rellenado`
-        // con `nombres: 0` para que la fase 0 le ponga los nombres.
-        if (!s.scrydex_por) {
+        // por ESTA función (`scrydex_por !== 'huecos'`): el PATCH de una
+        // pasada anterior no llegó. Se remata aquí, sin pedirle nada a
+        // Scrydex, y queda `rellenado` con `nombres: 0` para que la fase 0
+        // le ponga los nombres. La 685.2 miraba «sin `scrydex_por`», y el
+        // Expansion Pack y Jungle lo traían de la época antigua de Scrydex
+        // (547): se quedaron con cartas, escondidos y fuera de la lista.
+        if (s.scrydex_por !== 'huecos') {
           let deScrydex
           try {
             deScrydex = (await pedir(`tcg_cards?select=id&market=eq.${mercado}&set_id=eq.${encodeURIComponent(s.id)}&origen=eq.scrydex&limit=1`)) || []

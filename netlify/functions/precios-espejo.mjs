@@ -34,7 +34,7 @@ import { nombreComparable } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'precios_espejo'
-export const VENTANA_DIAS = 3 * 365
+export const VENTANA_DIAS = 4 * 365
 export const DIAS_REPASO = 1
 const MERCADO = 'JP'
 
@@ -53,6 +53,17 @@ async function rest(ruta, clave, opciones = null) {
 // ── Lo puro ──
 const dexDe = (c) => (Array.isArray(c?.dex_ids) ? c.dex_ids.map(Number).filter((n) => n > 0).sort((a, b) => a - b).join(',') : '')
 const hpDe = (c) => (Number.isInteger(Number(c?.hp)) && Number(c.hp) > 0 ? Number(c.hp) : null)
+// La huella de los ataques SIN el idioma (686.1): cuántos, qué daño y
+// cuántas energías cuesta cada uno. Los nombres no valen —los nuestros
+// occidentales están en español desde la 330 y los suyos en inglés— pero
+// un «Scratch 10 (1)» y un «Ember 30 (2)» son números. Es lo que separa al
+// Charmander de Base Set del de Team Rocket: mismo nombre, mismos PS,
+// otros ataques, OTRO producto en Cardmarket.
+export const huellaDeAtaques = (c) => {
+  const lista = Array.isArray(c?.attacks) ? c.attacks : []
+  if (!lista.length) return ''
+  return lista.map((a) => `${String(a?.damage ?? '').replace(/\s+/g, '').toLowerCase()}/${Array.isArray(a?.cost) ? a.cost.length : ''}`).join('|')
+}
 
 // La gemela occidental de cada carta japonesa. Devuelve un mapa id JP →
 // { west, setWest } y la lista de las que no casan con su motivo.
@@ -77,9 +88,11 @@ export function casarGemelas(cartasJp, cartasWest, setsWest) {
       if (hj && hw && hj !== hw) return false
       const dj = dexDe(j), dw = dexDe(w)
       if (dj && dw && dj !== dw) return false
+      const aj = huellaDeAtaques(j), aw = huellaDeAtaques(w)
+      if (aj && aw && aj !== aw) return false
       return Boolean(w.cm_id_product_propio)
     })
-    if (!candidatas.length) { sinPar.push({ id: j.id, motivo: (porNombre.get(k) || []).length ? 'mismo nombre pero otros PS/Pokédex o sin producto' : 'ninguna occidental con ese nombre en la ventana' }); continue }
+    if (!candidatas.length) { sinPar.push({ id: j.id, motivo: (porNombre.get(k) || []).length ? 'mismo nombre pero otros PS/Pokédex/ataques, o sin producto' : 'ninguna occidental con ese nombre en la ventana' }); continue }
     candidatas.sort((a, b) => String(fechaDeSet.get(a.set_id) || '').localeCompare(String(fechaDeSet.get(b.set_id) || '')))
     pares.set(j.id, { west: candidatas[0], setWest: candidatas[0].set_id })
   }
@@ -134,18 +147,24 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   try {
     // Los sets japoneses rellenados por scrydex-huecos (684).
     const sets = (await pedir(`tcg_sets?select=id,name_en,release_date&market=eq.${MERCADO}&scrydex_por=eq.huecos&order=release_date&limit=2000`)) || []
-    const caducado = (h) => !h?.fecha || (ahora.getTime() - new Date(h.fecha).getTime()) / 86_400_000 >= DIAS_REPASO
-    const set = sets.find((s) => caducado(estado.hechos[s.id]))
+    // Si `scrydex-huecos` ha vuelto a escribir los nombres de un set (su
+    // `vistos[k].nombres`, 685.3), las gemelas se buscan otra vez sin
+    // esperar al día: con los nombres de la Pokédex «Dark Charmeleon» era
+    // «Charmeleon» y casaba con el que no era.
+    const vistos = (await leerEstado('scrydex_huecos'))?.vistos || {}
+    const nombresDe = (id) => Number(vistos[`${MERCADO}|${id}`]?.nombres) || 0
+    const caducado = (s) => { const h = estado.hechos[s.id]; return !h?.fecha || (ahora.getTime() - new Date(h.fecha).getTime()) / 86_400_000 >= DIAS_REPASO || (h.nombres ?? 0) !== nombresDe(s.id) }
+    const set = sets.find((s) => caducado(s))
     if (!set) { await persistir(); return { ok: true, ...resumen(), hecho: true } }
     if (!set.release_date) {
       estado.hechos[set.id] = { fecha: ahora.toISOString(), nota: 'sin fecha: no se sabe qué ventana mirar', espejadas: 0, sinPar: 0 }
       await persistir()
       return { ok: true, ...resumen(), set: set.id, nota: estado.hechos[set.id].nota }
     }
-    const cartasJp = (await pedir(`tcg_cards?select=id,name_en,hp,dex_ids&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(set.id)}&origen=eq.scrydex&limit=2000`)) || []
+    const cartasJp = (await pedir(`tcg_cards?select=id,name_en,hp,dex_ids,attacks&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(set.id)}&origen=eq.scrydex&limit=2000`)) || []
     const setsWest = (await pedir(`tcg_sets?select=id,release_date&market=eq.WEST&release_date=gte.${set.release_date}&release_date=lte.${sumarDias(set.release_date, VENTANA_DIAS)}&order=release_date&limit=500`)) || []
     const cartasWest = setsWest.length
-      ? (await pedir(`tcg_cards?select=id,set_id,name,name_en,hp,dex_ids,cm_id_product_propio&market=eq.WEST&set_id=in.(${setsWest.map((s) => `"${s.id}"`).join(',')})&limit=10000`)) || []
+      ? (await pedir(`tcg_cards?select=id,set_id,name,name_en,hp,dex_ids,attacks,cm_id_product_propio&market=eq.WEST&set_id=in.(${setsWest.map((s) => `"${s.id}"`).join(',')})&limit=10000`)) || []
       : []
     const { pares, sinPar } = casarGemelas(cartasJp, cartasWest, setsWest)
     const idsWest = [...new Set([...pares.values()].map((p) => p.west.id))]
@@ -162,7 +181,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
       await pedir('tcg_card_prices?on_conflict=card_id', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
     }
     estado.hechos[set.id] = {
-      fecha: ahora.toISOString(), nombre: set.name_en || set.id, cartas: cartasJp.length, espejadas: filas.length, sinPar: sinPar.length, sinPrecio,
+      fecha: ahora.toISOString(), nombre: set.name_en || set.id, nombres: nombresDe(set.id), cartas: cartasJp.length, espejadas: filas.length, sinPar: sinPar.length, sinPrecio,
       setsWest: [...new Set([...pares.values()].map((p) => p.setWest))], ejemplosSinPar: sinPar.slice(0, 5),
     }
     await persistir()

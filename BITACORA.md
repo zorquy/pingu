@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 8) — PINGU-Claude (685.4 + 686.1 — el Expansion Pack y Jungle se rematan, y el espejo mira los ataques)
+
+**Hecho**: `scrydex-huecos` remata también los sets llenos que traían un
+`scrydex_por` de la época antigua de Scrydex (Expansion Pack y Jungle
+estaban con cartas, escondidos y sin nombres). `precios-espejo` exige
+además la misma huella de ataques (daño/energías) para dar dos cartas
+por gemelas —el Charmander de Rocket Gang casaba con el de Base Set—,
+mira cuatro años de sets occidentales y vuelve a casar un set cuando
+`scrydex-huecos` le ha reescrito los nombres.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/precios-espejo.mjs`, `SCHEMA.md`. En `pruebas`: 684
+y 686.
+
+**Pendiente**: ver en /admin que base1_ja y base2_ja salen rematados y
+con nombres, y que el espejo deja de cruzar sets; migración
+corea-china; Celebrations.
+
 ## 2026-10-06 (tarde, 7) — PINGU-Claude (685.3 — la ficha japonesa de Scrydex viene en japonés: todo lo canónico de translation.en, y su precio de TCGplayer)
 
 **Hecho**: con el Weedle real que pegó PINGU: categoría, fase, tipos,
