@@ -6,7 +6,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ```
 ## 2026-10-07 (madrugada, 2) — PINGU-Claude (707 y 708 — la ficha de carta con las acciones a mano, y los pequeños)
 
-**Hecho**: 707: en /carta en el móvil las losetas Añadir/Editar/Avísame
+**Hecho** (705b, PINGU: «el pop-up se va para los lados»: la fila de mando sobresalía 12 px por lado; las hojas llevan `overflow-x: hidden`): 707: en /carta en el móvil las losetas Añadir/Editar/Avísame
 van en una barra fija encima de la barra de secciones, la foto en 200
 px y los chips de idioma del precio en una fila que se desplaza. 708:
 el botón «Ver las guías» ya no se sale de su tarjeta en la portada;

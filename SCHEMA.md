@@ -34144,3 +34144,17 @@ Quinta tanda, y última del plan de la 704.
 
 **Ficheros**: `css/components.css`, `css/style.css`, las 43 páginas
 (`cartas.html` regenerado con `generar-cartas.mjs`). Prueba 707-pantalla.
+
+### 705b — la hoja se iba de lado
+
+PINGU, con la ficha de un Mewtwo EX: «cuando sale el pop-up de agregar
+una carta, con el dedo se va para los lados; debería ser inmóvil». Medido
+en la hoja: `scrollWidth` 402 con 390 de pantalla, y lo que sobresalía
+era la fila de mando («1 de 31 ›  ✕»), que lleva márgenes negativos de 24
+px —los del relleno de escritorio— y en el móvil el relleno es de 12.
+Dos arreglos, porque uno solo no basta: la fila lleva en el móvil los
+márgenes del relleno del móvil, y las cuatro hojas (`.mc-bandeja`,
+`.mc-panel-filtros`, `.mc-editor`, `.mc-dlg-adorno`) llevan `overflow-x:
+hidden` y `overscroll-behavior-x: none`, que es lo que hace que una hoja
+no se mueva de lado aunque mañana algo vuelva a sobresalir. La prueba 705
+mide que nada dentro de la ficha sea más ancho que la pantalla.

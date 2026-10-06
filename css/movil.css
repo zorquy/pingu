@@ -122,6 +122,20 @@
   .mc-editor {
     padding: var(--e-md) var(--e-md) calc(var(--e-md) + env(safe-area-inset-bottom));
   }
+  /* Una hoja no se desliza de lado (PINGU: «con el dedo se va para los
+     lados; debería ser inmóvil»): la fila de mando de la ficha salía 12 px
+     por cada lado —sus márgenes negativos son los del relleno de
+     escritorio— y el desplazamiento horizontal del diálogo hacía el resto. */
+  .mc-panel-filtros,
+  .mc-editor,
+  .mc-dlg-adorno,
+  .mc-bandeja {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+  .mc-editor .mc-ficha-mando {
+    margin-inline: calc(-1 * var(--e-md));
+  }
   .mc-bandeja,
   .mc-panel-filtros,
   .mc-dlg-adorno {
