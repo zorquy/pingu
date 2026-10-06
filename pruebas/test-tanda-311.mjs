@@ -168,7 +168,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //  · .pv-bandera[data-idioma] (css/cardmarket.css, tanda 645): las
   //    banderas dibujadas de la tabla de idiomas. El rojo de la bandera
   //    de España es EL rojo de la bandera: identidad, como las casas.
-  const sinBanderas = (t) => t.replace(/\.pv-bandera\[data-idioma='[a-z]+'\] \{[^}]*\}/g, '')
+  const sinBanderas = (t) => t.replace(/\.(pv|lanz)-bandera\[data-idioma='[a-z]+'\] \{[^}]*\}/g, '') // y las de /lanzamientos (675), que son las mismas
   const aMano = []
   for (const hoja of HOJAS) {
     for (const m of sinBanderas(sinComentarios(leer(hoja))).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
