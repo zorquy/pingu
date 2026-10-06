@@ -8,7 +8,7 @@
 // expansión es un set nuestro, que se prueban los dos parámetros de
 // búsqueda y se apunta el que contesta, y los frenos (intentos, tope,
 // parón del plan, fallo nuestro).
-import { laUnica, parcheDeCarta, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
+import { laUnica, parcheDeCarta, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO, PRIORIDAD } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -50,20 +50,30 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false } = {
     const data = /ancient/i.test(q) ? [MEW, SOBRE] : /pikachu/i.test(q) ? [{ ...MEW, id: 1, name: 'Pikachu' }, { ...MEW, id: 2, name: 'Pikachu' }] : []
     return { ok: true, status: 200, text: async () => JSON.stringify({ data }) }
   }
+  const rutas = []
   const restImpl = async (ruta, opciones) => {
+    rutas.push(ruta)
     if (opciones?.method === 'PATCH') { if (baseFalla) throw new Error('Supabase 400: PGRST204'); parches.push({ ruta, cuerpo: JSON.parse(opciones.body) }); return null }
-    if (ruta.startsWith('tcg_cards?select=')) return [NUESTRA, { id: 'xyp-1', set_id: 'xyp', local_id: '1', name: 'Pikachu', name_en: 'Pikachu' }]
+    // La lista de prioridad y el tramo por cursor son dos consultas (693.1).
+    if (ruta.startsWith('tcg_cards?select=') && /id=in\./.test(ruta)) return [NUESTRA]
+    if (ruta.startsWith('tcg_cards?select=')) {
+      const m = ruta.match(/id=gt\.([^&]*)/)
+      const desde = m ? decodeURIComponent(m[1]) : ''
+      return [NUESTRA, { id: 'xyp-1', set_id: 'xyp', local_id: '1', name: 'Pikachu', name_en: 'Pikachu' }].filter((c) => c.id > desde)
+    }
     if (ruta.startsWith('tcg_sets?select=')) return SETS
     return []
   }
   const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ env: ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
-  return { estados, urls, parches, correr }
+  return { estados, urls, parches, rutas, correr }
 }
 {
   const b = montar()
   const r = await b.correr()
   check('va bien: el Ancient Mew hecho (movido a basep) y el Pikachu sin par (varias)', r.ok && r.hechasAhora.length === 1 && r.hechasAhora[0].id === 'miscp-1' && r.hechasAhora[0].movida?.a === 'basep' && r.sinParAhora.length === 1 && /2 cartas/.test(r.sinParAhora[0].motivo), JSON.stringify(r))
   check('  …el PATCH va a ESA carta con la foto y el set', b.parches.length === 1 && /id=eq\.miscp-1/.test(b.parches[0].ruta) && b.parches[0].cuerpo.image_tcggo === MEW.image && b.parches[0].cuerpo.set_id === 'basep', JSON.stringify(b.parches[0]))
+  check('el Ancient Mew va en la lista de prioridad, y se pide aparte antes del recorrido (693.1)', PRIORIDAD.includes('miscp-1') && /id=in\./.test(b.rutas.find((r) => r.startsWith('tcg_cards?select=')) || ''), b.rutas[0])
+  check('  …y el cursor queda en la última mirada; al acabar vuelve al principio', b.estados[CLAVE_ESTADO].cursor === 'xyp-1', b.estados[CLAVE_ESTADO].cursor)
   check('  …con `search` contestando, UNA petición por carta y el parámetro apuntado', b.urls.length === 2 && b.urls.every((u) => /[?&]search=/.test(u)) && b.estados[CLAVE_ESTADO].parametro === 'search' && b.estados[CLAVE_ESTADO].peticionesHoy === 2, JSON.stringify(b.urls))
   const r2 = await b.correr()
   check('la segunda pasada no repite la hecha y reintenta la sin par (intento 2)', r2.ok && r2.hechasAhora.length === 0 && b.estados[CLAVE_ESTADO].sinPar['xyp-1'].intentos === 2, JSON.stringify(r2))
