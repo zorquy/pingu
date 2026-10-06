@@ -11,7 +11,9 @@ tienes (no estaba en ningún sitio donde se buscaba); y la Pokédex de un
 Pokémon enseñaba cartas de TCG Pocket (la consulta va por Pokédex y
 Pocket también la lleva). Las dos arregladas y cubiertas en la 692. Y el «+» ya no se calla: si no encuentra la carta o no hay sesión, lo dice en un aviso (694.1).
 
-**Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: 692.
+Y la 693.1: `tcggo-sueltas` mira primero lo señalado (`PRIORIDAD`, el Ancient Mew) y recorre el resto con un cursor por id que no se queda dando vueltas a las 200 primeras.
+
+**Ficheros**: `js/mi-coleccion.js`, `netlify/functions/tcggo-sueltas.mjs`, `SCHEMA.md`. En `pruebas`: 692, 693.
 
 **Pendiente**: lo de la 693 (CARTAS SUELTAS en /admin) y los bloques de
 /admin de antes.

@@ -38,6 +38,9 @@ export const MAXIMO_INTENTOS = 3
 export const DIAS_REVISAR = 14
 export const TOPE_DIARIO = 300
 export const PARAMETROS_DE_BUSQUEDA = ['search', 'name']
+// Las que alguien ha señalado van PRIMERO, antes que el recorrido por id
+// (693.1): el Ancient Mew de PINGU no podía esperar a que le tocara.
+export const PRIORIDAD = ['miscp-1']
 const MERCADO = 'WEST'
 
 async function rest(ruta, clave, opciones = null) {
@@ -108,12 +111,24 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
   if (estado.parado?.dia === dia) return { ok: true, ...resumen(), saltado: `parado hoy: ${estado.parado.motivo}` }
   if ((estado.peticionesHoy || 0) >= TOPE_DIARIO) return { ok: true, ...resumen(), saltado: 'tope diario' }
 
-  // Las candidatas: sin ninguna foto y sin id de TCGGO. Se piden más de las
-  // que se van a mirar porque las ya hechas o agotadas se descartan aquí.
+  // Las candidatas: sin ninguna foto y sin id de TCGGO. Primero las de la
+  // lista de prioridad; después, un recorrido por id con CURSOR (693.1):
+  // pedir siempre «las 200 primeras» se quedaba dando vueltas a las mismas
+  // en cuanto esas 200 estaban hechas o agotadas, y las de más allá no se
+  // miraban nunca. Al llegar al final, el cursor vuelve al principio.
+  const COLUMNAS = 'id,set_id,local_id,name,name_en'
+  const FILTRO = `market=eq.${MERCADO}&image_path=is.null&image_tcggo=is.null&image_scrydex=is.null&tcggo_id=is.null`
   let candidatas
   let sets
   try {
-    candidatas = (await pedir(`tcg_cards?select=id,set_id,local_id,name,name_en&market=eq.${MERCADO}&image_path=is.null&image_tcggo=is.null&image_scrydex=is.null&tcggo_id=is.null&order=id&limit=200`)) || []
+    const prioritarias = PRIORIDAD.length ? (await pedir(`tcg_cards?select=${COLUMNAS}&${FILTRO}&id=in.(${PRIORIDAD.map((i) => `"${i}"`).join(',')})`)) || [] : []
+    let tramo = (await pedir(`tcg_cards?select=${COLUMNAS}&${FILTRO}&id=gt.${encodeURIComponent(estado.cursor || '')}&order=id&limit=200`)) || []
+    if (!tramo.length && estado.cursor) {
+      estado.cursor = ''
+      tramo = (await pedir(`tcg_cards?select=${COLUMNAS}&${FILTRO}&order=id&limit=200`)) || []
+    }
+    if (tramo.length) estado.cursor = tramo[tramo.length - 1].id
+    candidatas = [...prioritarias, ...tramo.filter((c) => !PRIORIDAD.includes(c.id))]
     sets = (await pedir(`tcg_sets?select=id,tcggo_id&market=eq.${MERCADO}&tcggo_id=not.is.null&limit=2000`)) || []
   } catch (e) {
     estado.ultimoError = { fecha: ahora.toISOString(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }

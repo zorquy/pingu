@@ -33699,3 +33699,13 @@ despliegue había llegado, y un «+» que no hace nada es un silencio (la
 aviso: «No encuentro esa carta. Recarga la página y vuelve a intentarlo»
 o «Inicia sesión para añadir cartas». Si no sale ningún aviso, es que el
 módulo que corre es de antes de la 694.
+
+**693.1 — prioridad y cursor.** PINGU, a los doce minutos: «el Ancient
+Mew sale sin foto ni nada todavía». Dos cosas: la función mira diez
+cartas por pasada por orden de id, y `miscp-1` no era de las primeras;
+y la consulta pedía SIEMPRE «las 200 primeras por id», así que en cuanto
+esas 200 estuvieran hechas o agotadas las de más allá no se habrían
+mirado nunca (la forma de la 510: un recorrido que no avanza). Ahora hay
+una lista `PRIORIDAD` (lo que alguien ha señalado va primero, aparte del
+recorrido) y un cursor por id en el estado que avanza con cada tramo y
+vuelve al principio al llegar al final.
