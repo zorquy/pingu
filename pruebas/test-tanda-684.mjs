@@ -4,7 +4,7 @@
 // rellena uno por pasada, desesconde, cuenta créditos, para con 403 y
 // salta a la tercera con un 500 suyo; con un fallo nuestro para sin contar.
 import { readFileSync } from 'node:fs'
-import { filaDeCartaScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
+import { filaDeCartaScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
@@ -17,7 +17,7 @@ console.log('── 1. Una carta suya, con nuestras columnas ──')
   check('la foto es la BASE sin calidad (lo que espera urlDeFotoScrydex)', f.image_scrydex === 'https://images.scrydex.com/pokemon/sm10-1')
   check('ataques con coste, daño y efecto en nuestra forma', f.attacks.length === 3 && f.attacks[0].name === 'Jet Punch' && f.attacks[0].cost[0] === 'Grass' && f.attacks[0].damage === '30' && /Benched/.test(f.attacks[0].effect))
   check('debilidad, retirada, PS, tipos, fase y Pokédex', f.weaknesses[0].type === 'Fire' && f.retreat === 2 && f.hp === 260 && f.types[0] === 'Grass' && f.stage === 'Basic' && f.dex_ids.join(',') === '794,795', JSON.stringify([f.weaknesses, f.retreat, f.hp, f.types, f.stage, f.dex_ids]))
-  check('rareza inglesa, ilustrador, categoría sin tilde, origen y detalle', f.rarity_en === 'Rare Holo GX' && f.illustrator && f.category === 'Pokemon' && f.origen === 'scrydex' && f.detalle_lang === 'en' && f.scrydex_id === 'sm10-1')
+  check('rareza inglesa, ilustrador, categoría sin tilde, origen y detalle', f.rarity_en === 'Rare Holo GX' && f.illustrator && f.category === 'Pokemon' && f.origen === 'scrydex' && f.detalle_lang === 'en' && !('scrydex_id' in f) && f.scrydex_at)
   check('en japonés no se afirma name_en', !('name_en' in filaDeCartaScrydex(SM10, { setId: 'x', mercado: 'JP', idioma: 'ja' })))
   check('faseDe: «Stage 1» → Stage1, y GX no es fase', faseDe(['Stage 1', 'GX']) === 'Stage1' && faseDe(['GX']) === null)
   check('idNuestro limpia', idNuestro('SV1a-001') === 'scrydex-sv1a-001')
@@ -107,6 +107,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const { correr, estados } = montar({ nuestraFalla: true })
     const r = await correr()
     check('un fallo nuestro al escribir para y se apunta, sin intento', !r.ok && /nuestra base/.test(r.error) && !estados[CLAVE_ESTADO].intentos['JP|BASE1_'] && estados[CLAVE_ESTADO].vistos['JP|BASE1_'] === undefined, JSON.stringify(r))
+    check('  …y queda parado hasta otra versión: la pasada siguiente no gasta ni un crédito', estados[CLAVE_ESTADO].parado?.version === VERSION && /desde la versión/.test((await correr()).saltado || '') && estados[CLAVE_ESTADO].gasto.creditos === 2, JSON.stringify(estados[CLAVE_ESTADO].parado))
   }
   check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
