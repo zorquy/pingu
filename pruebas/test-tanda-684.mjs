@@ -198,6 +198,13 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     check('la pasada apunta las sueltas (jungle) y crea el set de la lista (por «lista»), escondido y con su scrydex_id; lo que no está en Scrydex queda dicho', r.ok && estados[CLAVE_ESTADO].creados['JP|jungle']?.por === 'lista' && estados[CLAVE_ESTADO].sueltas.JP.lista.map((e) => e.id).join() === 'jungle' && escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].market === 'JP' && escrito.setsNuevos[0].oculto === true && escrito.setsNuevos[0].scrydex_id === 'jungle' && estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado' && estados[CLAVE_ESTADO].creados['JP|No existe']?.estado === 'noEstaEnScrydex', JSON.stringify([r, escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
     await correr()
     check('  …y la pasada siguiente no lo vuelve a crear', escrito.setsNuevos.length === 1)
+    // 702: la creación es gratis y va ANTES de la fase de nombres. Con un
+    // set pendiente de renombrar (que se come la pasada) y la lista ya en
+    // el estado, la misma pasada renombra Y crea.
+    const b = montar({ crear: [{ mercado: 'JP', id: 'jungle' }] })
+    b.estados[CLAVE_ESTADO] = { listas: { JP: { fecha: '2026-10-06T11:00:00Z', expansiones: [{ id: 'base1', name: 'Expansion Pack', name_en: 'Expansion Pack', release_date: '1996/10/20', total: 2 }, { id: 'jungle', name: 'Pokémon Jungle', name_en: 'Pokémon Jungle', release_date: '1997/03/05', total: 48 }] } }, vistos: { 'JP|BASE1_': { fecha: '2026-10-06T11:00:00Z', estado: 'rellenado', expansion: 'base1', nombres: 0 } }, gasto: { creditos: 0 }, llenosOlvidados: VERSION }
+    const rb = await b.correr()
+    check('con la lista en el estado, la pasada crea el set que falta ANTES de gastar la pasada en nombres (702)', rb.ok && rb.nombres?.set === 'BASE1_' && b.escrito.setsNuevos.length === 1 && b.escrito.setsNuevos[0].id === 'jungle' && b.estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado', JSON.stringify([rb, b.escrito.setsNuevos.map((x) => x.id)]))
   }
   {
     const { correr, escrito, estados, peticiones } = montar({ sinTraduccionConInclude: true })
