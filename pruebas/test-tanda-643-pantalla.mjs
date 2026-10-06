@@ -49,13 +49,13 @@ console.log('── 1. La gráfica, con las filas de la función ──')
   check('  …un SVG con las tres líneas (español, inglés y TCGplayer)', (await caja.locator('svg polyline.carta-historial-linea').count()) === 3 && (await caja.locator('svg .carta-historial-linea-tp').count()) === 1 && (await caja.locator('svg polyline[data-idioma="en"].carta-historial-linea-otra').count()) === 1)
   check('  …el eje con el mínimo y el máximo de todas (140 del español, 199 del inglés)', /140,00 €/.test(limpio(await caja.innerText())) && /199,00 €/.test(limpio(await caja.innerText())), limpio(await caja.innerText()))
   check('  …con los chips de 7 y 30 días, la leyenda y los rangos', (await caja.locator('.carta-historial-chip').count()) === 2 && (await caja.locator('.carta-historial-leyenda-item').count()) === 3 && (await caja.locator('.carta-historial-rango').count()) === 6)
-  check('  …y el pie en español', /mínimo en Cardmarket en español/.test(await caja.locator('.carta-historial-pie').innerText()))
+  check('  …y la leyenda llama «Cardmarket» a la línea elegida (667: sin pie)', /Cardmarket/.test(await caja.locator('.carta-historial-leyenda').innerText()))
   const ancho = await caja.locator('svg').evaluate((el) => el.getBoundingClientRect().width)
   check('el SVG ocupa el ancho de su caja', ancho > 400, String(ancho))
   // El idioma: en inglés el eje cambia.
   await page.selectOption('#cmIdioma', 'en')
   await page.waitForTimeout(300)
-  check('al cambiar a inglés la gráfica cambia (el inglés pasa a ser la línea gorda) sin volver a pedir', (await caja.locator('svg polyline.carta-historial-linea[data-idioma="en"]:not(.carta-historial-linea-otra)').count()) === 1 && /en inglés/.test(await caja.locator('.carta-historial-pie').innerText()) && pedidas === 1, limpio(await caja.innerText()))
+  check('al cambiar a inglés la gráfica cambia (el inglés pasa a ser la línea gorda) sin volver a pedir', (await caja.locator('svg polyline.carta-historial-linea[data-idioma="en"]:not(.carta-historial-linea-otra)').count()) === 1 && /elegido" data-idioma="en"/.test(await caja.locator('.carta-historial-leyenda').innerHTML()) /* la leyenda marca el inglés (667: sin pie) */ && pedidas === 1, limpio(await caja.innerText()))
 }
 
 console.log('── 2. Sin filas, no se ve ──')

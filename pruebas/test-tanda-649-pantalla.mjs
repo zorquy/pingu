@@ -130,7 +130,7 @@ console.log('\n── 2. /cartas con cuenta: lo mismo, con tu progreso y tu copi
   await page.waitForTimeout(1500)
   await page.locator('#mcAlbum .mc-bolsillo-enlace').first().click()
   await page.waitForTimeout(900)
-  check('la ficha de tu carta enseña tu copia, no «entra»', (await page.locator('#mcEdCopiaBloque').isVisible()) && !(await page.locator('#mcEdEntrarBloque').isVisible()))
+  check('la ficha de tu carta enseña tu copia, no «entra»', (await page.locator('#mcEdEditar').isVisible()) /* la loseta Editar desde la 669 */ && !(await page.locator('#mcEdEntrarBloque').isVisible()))
   await page.locator('#mcEdCerrar').click()
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.waitForTimeout(900)
