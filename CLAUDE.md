@@ -474,6 +474,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y /admin lo enseña («Estado del catálogo de TCGGO»); y una expansión
   que no se deja escribir se salta a la tercera, no se pide cada cinco
   minutos para siempre.
+- **Un aviso que se dispara se APAGA antes de avisar** (tanda 665).
+  `avisos-precio` marca el aviso como disparado y DESPUÉS escribe la
+  notificación y el correo: si lo de después falla, se pierde un aviso;
+  al revés, la pasada siguiente lo repetiría cada hora. Es la forma de la
+  522 (contar desde donde se paga) aplicada a un envío. Y los avisos
+  viven en `user_price_alerts` (migración `avisos-precio`); la
+  notificación es `user_notifications` tipo `aviso_precio`, que
+  `enviar-push` ya empuja sola.
 - **Lo que llega TARDE de una pintada vieja no se mete en la nueva**
   (tanda 663). `pintarVistazos` corre dos veces al abrir el Panel y el
   bloque de «las que más se mueven» —una consulta— aterrizaba después de

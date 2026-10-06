@@ -32172,3 +32172,43 @@ queda en los doce de siempre, y `MARGEN.izquierda` del SVG pasa de 56 a
 de la 653 (el texto de una gráfica estirada no se escala bien), resuelta
 aquí por la vía corta porque este SVG no se estira a lo ancho sin
 proporción, solo se encoge.
+
+## Tanda 665 — avisos de precio (oct. 2026)
+
+La tercera propuesta de la noche: «avísame si esta carta baja de X €»
+(o sube de). Tres piezas:
+
+- **`supabase-migration-avisos-precio.sql`** (PENDIENTE de ejecutar):
+  `user_price_alerts` (user_id, card_id, market, idioma, tipo
+  `baja`/`sube`, umbral, activo, disparado_at, precio_disparo), RLS «cada
+  uno los suyos» para `authenticated`; la función escribe con la clave
+  de servicio. Hasta que se ejecute, el botón sale y al guardar se dice
+  «falta ejecutar la migración»; la función se salta nombrándola.
+- **`netlify/functions/avisos-precio.mjs`**, cada hora a y 23: lee los
+  avisos activos (tope 2.000), los precios guardados de sus cartas
+  (`tcg_card_prices`, el mínimo en el IDIOMA del aviso y si no el
+  general: `precioDeAviso`) y los que se cumplen (`seCumple`: «baja» en
+  o por debajo, «sube» en o por encima) se APAGAN primero —uno se dispara
+  una vez; si lo de después falla no se repite— y dejan una notificación
+  en la campanita (`user_notifications`, tipo `aviso_precio`; de ahí
+  `enviar-push` la empuja al móvil) y un correo en `email_outbox` salvo
+  que la persona tenga `aviso_precio` en `notification_email_disabled`.
+  Cero peticiones a TCGGO.
+- **`js/avisos-precio.js`**, compartido por /carta y la ficha de
+  /mi-coleccion como el bloque de precio: `botonDeAvisoHtml` (va en
+  `extraBotones` del bloque, solo con sesión; en la ficha, solo si es tu
+  colección) y `engancharAvisos` (delegado en el contenedor, porque el
+  bloque se repinta entero al cambiar de idioma o de versión; los datos
+  —mercado, idioma, precio de ahora— se piden al pulsar). El diálogo
+  (`#pvAvisoDialogo`, se crea una vez en `body`) propone un umbral un 10 %
+  por debajo del precio de ahora, deja elegir «si baja de» / «si sube
+  de», lista tus avisos de esa carta (los apagados, con el precio al que
+  avisaron) y los quita. CSS en `css/cardmarket.css`.
+
+**Pruebas**: `test-tanda-665.mjs` (la función con dobles: idioma del
+aviso, en/por debajo, apagar antes de avisar, campanita, correo solo a
+quien no lo apagó, sin tabla se salta, sin avisos nada; la migración; en
+/carta: botón con sesión, diálogo con el precio y el umbral propuesto,
+lista, guardar, quitar, sigue tras cambiar de idioma y habla del inglés;
+sin sesión no hay botón; la ficha de Mi colección también). El doble
+tiene `user_price_alerts` (`__FAKE_AVISOS__`).

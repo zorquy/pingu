@@ -26,7 +26,9 @@ import {
 // necesita CSS, y ese CSS solo lo carga esta página (ver el fichero).
 import { bloqueDePrecio } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
-import { precioDeFila } from './cardmarket.js'
+import { precioDeFila, precioParaIdioma } from './cardmarket.js'
+// «Avísame» (665): el botón va en el bloque de precio, con sesión.
+import { botonDeAvisoHtml, engancharAvisos } from './avisos-precio.js'
 // Para las marcas de lanzamiento de la gráfica (661): el módulo de la
 // gráfica no toca la base, se le pasa el cliente.
 import { supabase } from './supabase.js'
@@ -95,6 +97,9 @@ export async function pintarMercado(carta) {
   // cuatro — y «las cuatro» como botones afirma impresiones que no hay.
   const variantes = variantesDe(vivo?.variants ?? carta.variants)
   const estado = { idioma: IDIOMA_POR_DEFECTO, estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
+  // El botón de «Avísame» (665) solo con sesión: se pone cuando se sabe.
+  let botonAviso = ''
+  let ultimoPrecio = null
   const nombre = nombreDeCarta(carta)
 
   caja.innerHTML = `
@@ -138,8 +143,9 @@ export async function pintarMercado(carta) {
     // solo si el guardado no dice nada; y sin cifras, el que traiga el
     // enlace (la regla de la 375).
     const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
+    ultimoPrecio = precio
     $('cmPrecios').innerHTML = bloqueDePrecio(precio, {
-      idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null,
+      idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null, extraBotones: botonAviso,
       // Las impresiones de ESTA carta, pulsables (645): tocar una cambia
       // la versión, igual que el desplegable de arriba.
       variantes: VARIANTES.filter((v) => variantes.includes(v.id)), impresionesPulsables: true, rotuloActivo: 'elegido',
@@ -180,6 +186,11 @@ export async function pintarMercado(carta) {
 
   // ── La mitad de la colección ──
   const sesion = await getSession().catch(() => null)
+  if (sesion) {
+    botonAviso = botonDeAvisoHtml(carta.id)
+    pintarPrecio()
+    engancharAvisos($('cmPrecios'), () => ({ market: carta.market || 'WEST', idioma: estado.idioma, precio: precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null }))
+  }
   const zona = $('cmAnadirZona')
   if (!sesion) {
     zona.innerHTML = `<a class="btn-secondary" href="/auth.html?volver=${encodeURIComponent(location.pathname)}">Entra para guardarla</a>`

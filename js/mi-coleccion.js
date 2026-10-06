@@ -38,13 +38,15 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  valorDeLinea, resumenDePrecio } from './cardmarket.js'
+  valorDeLinea, resumenDePrecio , precioParaIdioma } from './cardmarket.js'
 import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
 import * as datos from './mi-coleccion/datos.js'
+// «Avísame» (665), en el bloque de precio de la ficha.
+import { botonDeAvisoHtml, engancharAvisos } from './avisos-precio.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
@@ -472,12 +474,19 @@ async function guardarAnadir(e) {
 
 // El bloque de precio de la ficha (589), suelto desde la 651 porque se
 // pinta dos veces: al abrir, y cuando llega el precio que no estaba.
+// Lo que el diálogo de «Avísame» (665) necesita de la carta ABIERTA: se
+// escribe en cada pintada, y el oyente —delegado y enganchado una vez— lo
+// lee al pulsar. Así la ficha puede cambiar de carta sin reenganchar.
+let avisoDatos = null
 function pintarPrecioDeFicha(l, c, tuya) {
   const precio = precioDe(l)
+  avisoDatos = { market: c?.market || l.market || 'WEST', idioma: l.idioma, precio: precioParaIdioma(precio, l.idioma)?.valor ?? null }
   $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
     variantes: variantesParaEditar(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
+    extraBotones: sesion && esMia && c?.id ? botonDeAvisoHtml(c.id) : '',
   })
+  engancharAvisos($('mcEdPrecioBloque'), () => avisoDatos || {})
   // El resumen de tu copia (645), con los campos plegados: se abre para
   // mirar, y Editar los despliega.
   if (tuya) pintarResumenDeCopia(l, precio)

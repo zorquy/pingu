@@ -582,3 +582,73 @@ a.pv-fila-enlace:hover span:first-of-type {
   .carta-historial-eje,
   .carta-historial-marca-texto { font-size: var(--t-lg); }
 }
+
+
+/* ── «Avísame» (665): el botón en el bloque de precio y su diálogo. ── */
+.pv-aviso { display: inline-flex; gap: var(--e-xs); align-items: center; }
+
+.pv-aviso-dialogo {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+.pv-aviso-dialogo::backdrop { background: rgba(13, 27, 42, 0.5); }
+.pv-aviso-form { display: grid; gap: var(--e-md); padding: var(--e-lg); }
+.pv-aviso-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-md); }
+.pv-aviso-cab h2 { margin: 0; font-size: var(--t-lg); }
+.pv-aviso-cerrar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.pv-aviso-cerrar:hover { background: var(--bg); color: var(--text); }
+.pv-aviso-tipos { display: flex; gap: var(--e-sm); }
+.pv-aviso-tipo {
+  display: inline-flex;
+  flex: 1 1 0;
+  gap: var(--e-xs);
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+}
+.pv-aviso-tipo:has(input:checked) { border-color: var(--navy); background: color-mix(in srgb, var(--navy) 8%, var(--white)); color: var(--navy); }
+.pv-aviso-umbral { display: grid; gap: var(--e-xs); font-size: var(--t-sm); font-weight: 600; color: var(--text-mid); }
+.pv-aviso-umbral input { min-height: 44px; font-size: var(--t-lg); }
+.pv-aviso-lista-titulo { margin: 0 0 var(--e-xs); font-size: var(--t-sm); font-weight: 700; }
+.pv-aviso-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-xs) 0;
+  border-top: 1px solid var(--border);
+  font-size: var(--t-sm);
+}
+.pv-aviso-fila.apagado { color: var(--text-mid); }
+.pv-aviso-quitar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.pv-aviso-quitar:hover { color: var(--danger); background: var(--danger-bg); }
+.pv-aviso-pie { display: flex; justify-content: flex-end; gap: var(--e-sm); }

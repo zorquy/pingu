@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 7) — PINGU-Claude (665 — avisos de precio)
+
+**Hecho**: «Avísame» en el bloque de precio de /carta y de la ficha de
+Mi colección: «si baja de X €» o «si sube de», en el idioma que mires.
+Una función programada (cada hora) los dispara una vez y te lo deja en
+la campanita (y de ahí al móvil por push) y en el correo. **MIGRACIÓN
+pendiente**: `supabase-migration-avisos-precio.sql` (sin ella el botón
+avisa de que falta y la función se salta). JS y CSS compartidos: suite
+entera (ver abajo).
+
+**Ficheros**: `supabase-migration-avisos-precio.sql` (nueva),
+`netlify/functions/avisos-precio.mjs` (nueva), `js/avisos-precio.js`
+(nuevo), `js/carta-mercado.js`, `js/mi-coleccion.js`,
+`css/cardmarket.css`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 665
+(nueva) y el doble con `user_price_alerts`.
+
+**Suite entera (665)**: 311 verdes, 2 rojos (493 y 514, ffmpeg).
 ## 2026-10-06 (madrugada, 6) — PINGU-Claude (664 — el repaso en móvil)
 
 **Hecho**: capturas a 390 px de lo de esta noche. Solo fallaba el
