@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 3) — PINGU-Claude (702 — la creación de sets va antes de la fase de nombres)
+
+**Hecho**: el bloque HUECOS de PINGU (20:47 UTC) enseña que `l2_ja` no
+se ha creado: la fase de nombres (uno por pasada, dos versiones
+seguidas) se comía todas las pasadas y la creación nunca llegaba. Ahora
+la creación —gratis— va en una fase 00 antes de los nombres. Y el calco
+japonés de TCGGO está ACTIVO (207 de 210): lo que PINGU vio y dejó de
+ver no era de Scrydex; lo dirá la sonda de la 701.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `SCHEMA.md`.
+Prueba 684 en `pruebas`.
+
+**Pendiente**: la sonda de `scrydex-l2_ja-1` (JP) y la URL del set que
+PINGU vio (`?set=…`).
+
 ## 2026-10-06 (noche, 2) — PINGU-Claude (701 — la sonda dice qué ha hecho cada función con un set)
 
 **Hecho**: PINGU: «se veía el set de Reviving Legends y de repente ya no

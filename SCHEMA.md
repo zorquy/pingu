@@ -33916,3 +33916,29 @@ nada); entonces habrá que mirar la fila.
 **Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
 `netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`. Prueba 684
 (rama `pruebas`).
+
+## Tanda 702 — la creación de sets va ANTES de la fase de nombres (oct. 2026)
+
+El bloque HUECOS que pegó PINGU a las 20:47 (UTC) lo dice: 16
+rellenados, ni «creado» ni «Scrydex tiene y nosotros no», `l2_ja` en
+ninguna casilla. Y la causa está en el orden de la pasada: la fase 0
+—renombrar los rellenados de una versión anterior, uno por pasada— se
+come la pasada entera y vuelve, y la 697 y la 700 subieron
+`VERSION_NOMBRES` dos veces: diecisiete sets × dos versiones son
+treinta y cuatro pasadas en las que la creación (fase 2b) no llegó NUNCA.
+Es la forma de la 322 (un dato que decide el orden y se calcula sobre la
+marcha): lo gratis esperando a lo de pago.
+
+La creación no gasta créditos —la lista de expansiones está en el
+estado— así que va en una fase 00, antes de los nombres: por mercado,
+con la lista que ya haya (si no la hay, la trae la fase 1 y se crea en
+la pasada siguiente), nuestros sets (una consulta gratis) y
+`crearLoQueFalte`, que es el mismo código que corre en la fase 2b.
+
+Y lo que PINGU vio «con los nombres en japonés» y luego «ya no sale» no
+era de Scrydex: Scrydex no había creado nada. El calco japonés de TCGGO
+SÍ está activo (207 de 210 expansiones hechas; la 699 dijo que estaba
+bloqueado por plan y era falso, era un 403 de un día), así que lo que
+vio es casi seguro un set de TCGGO. Queda en la sonda (701) saber cuál.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`. Prueba 684.

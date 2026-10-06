@@ -260,6 +260,66 @@ export async function pasada({
     return precios.length
   }
 
+  // Lo que Scrydex tiene y nosotros no (698), y lo que hay que crear (699).
+  // Devuelve el error si NUESTRA base falla al crear; si no, null. Es
+  // gratis (la lista está en el estado), y por eso corre ANTES de la fase
+  // de nombres (702): con diecisiete sets por renombrar, uno por pasada,
+  // la creación no llegaba nunca.
+  const crearLoQueFalte = async (mercado, expansiones, sets) => {
+    const sueltas = expansionesSueltas(expansiones, sets)
+    estado.sueltas[mercado] = { fecha: ahora.toISOString(), lista: sueltas.slice(0, MAXIMO_SUELTAS) }
+    // Primero la lista a mano (fuerza aunque la fecha esté ocupada), luego
+    // las sueltas libres del mercado, de diez en diez (699).
+    const aCrear = []
+    for (const entrada of crear.filter((c) => c.mercado === mercado)) {
+      const expansion = expansionACrear(entrada, expansiones)
+      if (!expansion) { estado.creados[`${mercado}|${entrada.id || entrada.nombre}`] = { fecha: ahora.toISOString(), estado: 'noEstaEnScrydex' }; continue }
+      aCrear.push({ expansion, por: 'lista' })
+    }
+    if (MERCADOS_QUE_SE_CREAN.includes(mercado)) {
+      for (const su of sueltas) {
+        if (su.ocupadaPor || aCrear.some((a) => a.expansion.id === su.id) || estado.creados[`${mercado}|${su.id}`]) continue
+        const expansion = expansiones.find((e) => e.id === su.id)
+        if (expansion) aCrear.push({ expansion, por: 'suelta' })
+        if (aCrear.length >= MAXIMO_CREADOS_POR_PASADA) break
+      }
+    }
+    for (const { expansion, por } of aCrear) {
+      const ck = `${mercado}|${expansion.id}`
+      if (estado.creados[ck]?.set) continue
+      if (sets.some((x) => x.id === expansion.id || x.scrydex_id === expansion.id)) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'yaExiste', set: expansion.id }; continue }
+      const fila = filaDeSetDeScrydex(expansion, mercado, sets)
+      try {
+        await pedir('tcg_sets', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify([fila]) })
+      } catch (e) {
+        estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: fila.id, expansion: expansion.id, donde: 'crear', error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+        estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
+        await persistir()
+        return estado.ultimoError.error
+      }
+      estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'creado', por, set: fila.id, nombre: expansion.name_en || expansion.name }
+      sets.push({ ...fila })
+    }
+    await persistir()
+    return null
+  }
+
+  // ── 00. Crear lo que falte, con la lista que ya haya (702) ──
+  // Sin créditos: la lista de expansiones es la del estado (si no la hay
+  // todavía, la trae la fase 1 y se crea en la pasada siguiente).
+  for (const mercado of mercados) {
+    const expansiones = estado.listas[mercado]?.expansiones
+    if (!Array.isArray(expansiones) || !expansiones.length) continue
+    let sets
+    try {
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,release_date,card_count_official,card_count_total,tcg_online_code,tcggo_id,scrydex_id,scrydex_por,oculto&market=eq.${mercado}&order=id&limit=2000`)) || []
+    } catch (e) {
+      return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+    }
+    const fallo = await crearLoQueFalte(mercado, expansiones, sets)
+    if (fallo) return { ok: false, ...resumen(), error: fallo }
+  }
+
   // ── 0. Los ya rellenados con nombres de una versión anterior (685) ──
   // Se vuelven a pedir y a escribir (el upsert es idempotente), uno por
   // pasada, para ponerles `name_en`. Un crédito por 100 cartas.
@@ -338,42 +398,10 @@ export async function pasada({
       return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
     const k = (s) => `${mercado}|${s.id}`
-    // ── 2b. Lo que Scrydex tiene y nosotros no (698), y lo que hay que crear ──
-    const sueltas = expansionesSueltas(expansiones, sets)
-    estado.sueltas[mercado] = { fecha: ahora.toISOString(), lista: sueltas.slice(0, MAXIMO_SUELTAS) }
-    // Primero la lista a mano (fuerza aunque la fecha esté ocupada), luego
-    // las sueltas libres del mercado, de diez en diez (699).
-    const aCrear = []
-    for (const entrada of crear.filter((c) => c.mercado === mercado)) {
-      const expansion = expansionACrear(entrada, expansiones)
-      if (!expansion) { estado.creados[`${mercado}|${entrada.id || entrada.nombre}`] = { fecha: ahora.toISOString(), estado: 'noEstaEnScrydex' }; continue }
-      aCrear.push({ expansion, por: 'lista' })
+    {
+      const fallo = await crearLoQueFalte(mercado, expansiones, sets)
+      if (fallo) return { ok: false, ...resumen(), error: fallo }
     }
-    if (MERCADOS_QUE_SE_CREAN.includes(mercado)) {
-      for (const su of sueltas) {
-        if (su.ocupadaPor || aCrear.some((a) => a.expansion.id === su.id) || estado.creados[`${mercado}|${su.id}`]) continue
-        const expansion = expansiones.find((e) => e.id === su.id)
-        if (expansion) aCrear.push({ expansion, por: 'suelta' })
-        if (aCrear.length >= MAXIMO_CREADOS_POR_PASADA) break
-      }
-    }
-    for (const { expansion, por } of aCrear) {
-      const ck = `${mercado}|${expansion.id}`
-      if (estado.creados[ck]?.set) continue
-      if (sets.some((x) => x.id === expansion.id || x.scrydex_id === expansion.id)) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'yaExiste', set: expansion.id }; continue }
-      const fila = filaDeSetDeScrydex(expansion, mercado, sets)
-      try {
-        await pedir('tcg_sets', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify([fila]) })
-      } catch (e) {
-        estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: fila.id, expansion: expansion.id, donde: 'crear', error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
-        estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
-        await persistir()
-        return { ok: false, ...resumen(), error: estado.ultimoError.error }
-      }
-      estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'creado', por, set: fila.id, nombre: expansion.name_en || expansion.name }
-      sets.push({ ...fila })
-    }
-    await persistir()
     const caducado = (v) => !v?.fecha || (ahora.getTime() - new Date(v.fecha).getTime()) / 86_400_000 > DIAS_REVISAR
     // Lo rellenado y lo parado no se vuelven a mirar; lo demás, a la semana.
     const porMirar = sets.filter((s) => {
