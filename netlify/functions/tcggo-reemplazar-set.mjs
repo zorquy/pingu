@@ -94,7 +94,17 @@ export const REEMPLAZOS = [
   { clave: '30th', sets: ['30th', '30th-c'], destino: '30th', mercado: 'WEST' },
   // La segunda vez, entero y con su expansión escrita (666).
   { clave: '30th-entero', sets: ['30th', '30th-c'], destino: '30th', mercado: 'WEST', episodio: 431, entero: true },
+  // Celebrations (25 aniversario), igual que el 30 (687): la Classic
+  // Collection iba aparte en `cel25c` con los números de la carta original
+  // y TCGGO la lleva dentro de su expansión 35 (de la respuesta de PINGU).
+  { clave: 'cel25-entero', sets: ['cel25', 'cel25c'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
 ]
+// En el modo entero, un set que se va tiene que estar DENTRO de la
+// expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
+// estas) tienen una suya del mismo nombre, no es la misma expansión y no se
+// reemplaza nada (687). Una Classic que TCGGO llevara en otra expansión se
+// habría borrado entera con las líneas de la gente.
+export const MINIMO_PARA_COMPROBAR = 5
 const MAXIMO_PAGINAS = 40
 
 async function rest(ruta, clave, opciones = null) {
@@ -158,6 +168,21 @@ export function equivalencias(viejas, nuevas, { aproximar = false } = {}) {
     }
   }
   return resultado
+}
+
+// Qué sets (de los que se van) NO cubre la lista de TCGGO: los que tienen
+// al menos `MINIMO_PARA_COMPROBAR` cartas y menos de la mitad con una suya
+// del mismo nombre.
+export function setsQueNoCubre(cartasQueSeVan, suyas) {
+  const nombres = new Set(suyas.map((s) => nombreComparable(s.name)).filter(Boolean))
+  const porSet = new Map()
+  for (const c of cartasQueSeVan) {
+    const x = porSet.get(c.set_id) || { set: c.set_id, cartas: 0, conNombre: 0 }
+    x.cartas++
+    if (nombres.has(nombreComparable(c.name_en || c.name))) x.conNombre++
+    porSet.set(c.set_id, x)
+  }
+  return [...porSet.values()].filter((x) => x.cartas >= MINIMO_PARA_COMPROBAR && x.conNombre * 2 < x.cartas)
 }
 
 export async function procesar({
@@ -235,6 +260,10 @@ export async function procesar({
   }
   const idsNuevos = new Set(filas.map((f) => f.id))
   const seVan = nuestras.filter((c) => !idsNuevos.has(c.id))
+  if (entero) {
+    const fuera = setsQueNoCubre(nuestras.filter((c) => c.set_id !== setDestino), suyas)
+    if (fuera.length) return { ok: false, peticiones, error: `TCGGO no trae las cartas de ${fuera.map((f) => `«${f.set}» (${f.conNombre} de ${f.cartas} con una suya del mismo nombre)`).join(', ')}: no es la misma expansión y no se reemplaza nada.` }
+  }
 
   // ── 4. Lo que la gente tiene apuntado de las que se van ──
   const equiv = equivalencias(seVan, filas, { aproximar: entero })

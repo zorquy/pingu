@@ -302,15 +302,17 @@ export async function procesar({
     if (filas.length) {
       // Sin la migración del coreano y el chino (671) la base rechaza la
       // fila ENTERA (la lección de la 624): se quitan esas dos columnas,
-      // se apunta para /admin y se escribe lo demás.
+      // se apunta para /admin y se escribe lo demás. La marca vale UN DÍA
+      // (687): con `true` para siempre, PINGU ejecutó la migración y las dos
+      // columnas se siguieron tirando, sin error.
       const sinKoZh = (f) => { const { cm_low_ko, cm_low_zh, ...resto } = f; return resto }
       const escribir = async (lote) => {
         try {
-          await guardar(estado.faltaMigracionKoZh ? lote.map(sinKoZh) : lote)
+          await guardar(estado.faltaMigracionKoZh === dia ? lote.map(sinKoZh) : lote)
         } catch (e) {
           const m = String(e?.message || e)
-          if (/cm_low_ko|cm_low_zh/.test(m) && !estado.faltaMigracionKoZh) {
-            estado.faltaMigracionKoZh = true
+          if (/cm_low_ko|cm_low_zh/.test(m) && estado.faltaMigracionKoZh !== dia) {
+            estado.faltaMigracionKoZh = dia
             await guardar(lote.map(sinKoZh))
             return
           }

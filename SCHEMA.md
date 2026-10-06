@@ -33265,3 +33265,54 @@ espejo apunta en `hechos[set].nombres` con qué versión de nombres casó
 y repasa el set en cuanto `scrydex_huecos.vistos` diga otra, sin
 esperar al día: con los nombres de la Pokédex «Dark Charmeleon» era
 «Charmeleon» y casaba con el que no era.
+
+## Tanda 687 — Celebrations entero de TCGGO, el coreano y el chino que se tiraban, y el espejo con ejemplos (oct. 2026)
+
+Cuatro cosas de la ronda de PINGU de las 14:20, con el CSV de la
+migración y el JSON de Celebrations delante.
+
+**Celebrations (25 aniversario), como el 30.** La Classic Collection iba
+aparte en `cel25c` con los números de la carta original y el catálogo
+la había creado por segunda vez dentro de `cel25`. PINGU pegó la
+respuesta de TCGGO: expansión **35**, código CEL, 50 resultados con
+`cards_total: 25` (los 25 y la Classic dentro, como en el 30). Va a
+`REEMPLAZOS` como `cel25-entero` —sets `cel25` y `cel25c`, destino
+`cel25`, modo entero— y lo hace `tcggo-reemplazar-set` en su pasada, una
+vez, apuntándolo. Y con una **guarda nueva para el modo entero**
+(`setsQueNoCubre`): un set que se va tiene que estar DENTRO de la lista
+de TCGGO — si tiene al menos cinco cartas y menos de la mitad tienen una
+suya del mismo nombre, no es la misma expansión y no se reemplaza nada.
+Es la 666 con el freno que le faltaba: si TCGGO llevara la Classic en
+otra expansión, el modo entero habría borrado `cel25c` con las líneas
+de la gente, apuntándolo pero borrándolo. El error va al estado y cuenta
+intentos.
+
+**El coreano y el chino se tiraban con la migración puesta.** El CSV de
+PINGU: `con_coreano 0, con_chino 0, con_japones 9346`. La marca
+`faltaMigracionKoZh` de la 671 era `true` para siempre: una vez puesta,
+cada lote se mandaba sin las dos columnas, con la migración ya
+ejecutada y sin ningún error. Ahora la marca es EL DÍA en que la base
+rechazó, y al día siguiente se vuelven a mandar las dos columnas; si la
+base vuelve a decir que no, se apunta ese día. /admin enseña «visto el
+<día>» y que se vuelve a probar mañana. Es la familia de la 510 («un
+aviso que no para») por el otro lado: un freno que no se suelta nunca.
+
+**El remate del 685.2 apuntaba «undefined cartas».** La consulta de «¿hay
+alguna de Scrydex?» pedía `limit=1`; ahora pide hasta 2.000 y apunta
+cuántas son.
+
+**El espejo, con ejemplos.** El estado decía «Expansion Pack: 78 de 102,
+gemelas en base1, base4, gym1, base5» y no se podía saber CUÁLES caían
+fuera de Base Set ni por qué las 24 sin par no casaban. `cruzadas(pares)`
+saca el set principal (el que más gemelas tiene) y las que caen fuera;
+el estado lleva `principal`, `cruzadas` y ocho ejemplos (`id JP → id
+gemela`), y /admin enseña esos y los cinco de sin par con su motivo. Y
+el daño de un ataque se compara por lo que es daño —cifras y signo—:
+TCGdex escribe «20x» y Scrydex «20×», que con la huella de la 686.1 eran
+dos ataques distintos.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`.
+**Pruebas**: 666 (Celebrations en la lista y la guarda), 671 (la marca
+caduca al día), 686 (el «×» y las cruzadas).

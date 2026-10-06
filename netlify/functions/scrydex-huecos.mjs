@@ -251,7 +251,7 @@ export async function pasada({
         if (s.scrydex_por !== 'huecos') {
           let deScrydex
           try {
-            deScrydex = (await pedir(`tcg_cards?select=id&market=eq.${mercado}&set_id=eq.${encodeURIComponent(s.id)}&origen=eq.scrydex&limit=1`)) || []
+            deScrydex = (await pedir(`tcg_cards?select=id&market=eq.${mercado}&set_id=eq.${encodeURIComponent(s.id)}&origen=eq.scrydex&limit=2000`)) || []
           } catch (e) {
             await persistir()
             return { ok: false, ...resumen(), error: `nuestra base (${s.id}): ${String(e?.message || e).slice(0, 160)}` }
@@ -267,7 +267,7 @@ export async function pasada({
                 await persistir()
                 return { ok: false, ...resumen(), error: estado.ultimoError.error }
               }
-              estado.vistos[k(s)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, nombre: expansion.name, nombres: 0, rematado: true }
+              estado.vistos[k(s)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, nombre: expansion.name, cartas: deScrydex.length, nombres: 0, rematado: true }
               await persistir()
               return { ok: true, ...resumen(), rematado: { mercado, set: s.id, expansion: expansion.id, por } }
             }

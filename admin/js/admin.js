@@ -3037,7 +3037,7 @@ async function tcggoEstado() {
         `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}: día ${p.dia || '—'} · hecho: ${p.hecho ? 'sí' : 'no'} · expansiones hechas hoy: WEST ${p.hechos?.length ?? 0}, JP ${p.hechosJp?.length ?? 0} · peticiones hoy: ${p.gasto?.peticiones ?? 0}`,
         p.ultimoParado ? `  ⚠ ÚLTIMO PARÓN (${p.ultimoParado.fecha}): ${p.ultimoParado.motivo}` : '  sin parones apuntados',
         p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
-        p.faltaMigracionKoZh ? '  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql: el coreano y el chino se están tirando' : '',
+        p.faltaMigracionKoZh ? `  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql (visto el ${p.faltaMigracionKoZh}): el coreano y el chino se están tirando; se vuelve a probar mañana` : '',
       ]
     })(),
     // El calco japonés (674): expansión a expansión desde TCGGO.
@@ -3076,7 +3076,12 @@ async function tcggoEstado() {
       const h = Object.entries(e.hechos || {})
       return [
         `ESPEJO DE PRECIOS (precios_espejo, 686) — ${de('precios_espejo')?.updated_at || 'nunca'}: ${h.length} sets · ${h.reduce((a, [, x]) => a + (x.espejadas || 0), 0)} cartas con el producto de su gemela · ${h.reduce((a, [, x]) => a + (x.sinPar || 0), 0)} sin gemela`,
-        ...h.map(([k, x]) => `  ${x.nota ? '·' : '✓'} ${k} «${x.nombre || ''}»: ${x.nota || `${x.espejadas} de ${x.cartas} (gemelas en ${(x.setsWest || []).join(', ') || '—'}; sin par ${x.sinPar}${x.sinPrecio ? `, sin precio la gemela ${x.sinPrecio}` : ''})`}`),
+        ...h.flatMap(([k, x]) => [
+          `  ${x.nota ? '·' : '✓'} ${k} «${x.nombre || ''}»: ${x.nota || `${x.espejadas} de ${x.cartas} (gemelas en ${(x.setsWest || []).join(', ') || '—'}; sin par ${x.sinPar}${x.sinPrecio ? `, sin precio la gemela ${x.sinPrecio}` : ''})`}`,
+          // Lo que cae fuera del set principal y lo que no casa, con ejemplos (687).
+          ...(x.cruzadas ? [`      fuera de ${x.principal}: ${x.cruzadas} · ${(x.ejemplosCruzadas || []).map((e) => `${e.id} → ${e.gemela}`).join(', ')}`] : []),
+          ...((x.ejemplosSinPar || []).length ? [`      sin par: ${x.ejemplosSinPar.map((e) => `${e.id} (${e.motivo})`).join(' · ')}`] : []),
+        ]),
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.error}` : '',
       ]
     })(),

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 9) — PINGU-Claude (687 — Celebrations entero de TCGGO, el coreano/chino que se tiraba, el espejo con ejemplos)
+
+**Hecho**: Celebrations (`cel25` + `cel25c`) se reemplaza entero por la
+expansión 35 de TCGGO, como el 30, con una guarda nueva del modo entero
+(no se reemplaza si TCGGO no trae las cartas de un set que se va). La
+marca «falta la migración corea-china» caduca al día: PINGU la ejecutó
+y las dos columnas se seguían tirando. El remate de huecos apunta
+cuántas cartas; el espejo apunta y enseña las gemelas que caen fuera
+del set principal y los ejemplos sin par, y compara el daño «20x»/«20×»
+igual.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+En `pruebas`: 666, 671, 686.
+
+**Pendiente**: ver en /admin el reemplazo de Celebrations (REEMPLAZOS →
+`cel25-entero`), los ejemplos del espejo y que mañana entren el coreano
+y el chino.
+
 ## 2026-10-06 (tarde, 8) — PINGU-Claude (685.4 + 686.1 — el Expansion Pack y Jungle se rematan, y el espejo mira los ataques)
 
 **Hecho**: `scrydex-huecos` remata también los sets llenos que traían un

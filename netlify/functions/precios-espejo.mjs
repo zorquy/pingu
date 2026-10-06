@@ -62,7 +62,19 @@ const hpDe = (c) => (Number.isInteger(Number(c?.hp)) && Number(c.hp) > 0 ? Numbe
 export const huellaDeAtaques = (c) => {
   const lista = Array.isArray(c?.attacks) ? c.attacks : []
   if (!lista.length) return ''
-  return lista.map((a) => `${String(a?.damage ?? '').replace(/\s+/g, '').toLowerCase()}/${Array.isArray(a?.cost) ? a.cost.length : ''}`).join('|')
+  // Del daño se queda lo que es daño: cifras y el signo («30+», «20×»,
+  // que TCGdex escribe «20x» y Scrydex «20×»).
+  const dano = (d) => String(d ?? '').toLowerCase().replace(/[×*]/g, 'x').replace(/[^\d+x-]/g, '')
+  return lista.map((a) => `${dano(a?.damage)}/${Array.isArray(a?.cost) ? a.cost.length : ''}`).join('|')
+}
+
+// Las gemelas que caen FUERA del set occidental que más tiene (687): es lo
+// que hay que mirar cuando el espejo dice «gemelas en base1, base4, gym1».
+export function cruzadas(pares) {
+  const cuenta = new Map()
+  for (const { setWest } of pares.values()) cuenta.set(setWest, (cuenta.get(setWest) || 0) + 1)
+  const principal = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  return { principal, fuera: [...pares.entries()].filter(([, p]) => p.setWest !== principal).map(([id, p]) => ({ id, gemela: p.west.id })) }
 }
 
 // La gemela occidental de cada carta japonesa. Devuelve un mapa id JP →
@@ -180,9 +192,10 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
     for (let i = 0; i < filas.length; i += 200) {
       await pedir('tcg_card_prices?on_conflict=card_id', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
     }
+    const { principal, fuera } = cruzadas(pares)
     estado.hechos[set.id] = {
       fecha: ahora.toISOString(), nombre: set.name_en || set.id, nombres: nombresDe(set.id), cartas: cartasJp.length, espejadas: filas.length, sinPar: sinPar.length, sinPrecio,
-      setsWest: [...new Set([...pares.values()].map((p) => p.setWest))], ejemplosSinPar: sinPar.slice(0, 5),
+      setsWest: [...new Set([...pares.values()].map((p) => p.setWest))], principal, cruzadas: fuera.length, ejemplosCruzadas: fuera.slice(0, 8), ejemplosSinPar: sinPar.slice(0, 5),
     }
     await persistir()
     return { ok: true, ...resumen(), set: set.id, ...estado.hechos[set.id] }
