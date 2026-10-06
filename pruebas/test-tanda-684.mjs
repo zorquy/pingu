@@ -43,6 +43,7 @@ console.log('── 2. La expansión de un set ──')
   const p = parcheDeSet({ id: 'x', release_date: null, card_count_total: null, card_count_official: 0, name_en: null }, exps[0], new Date('2026-10-06T00:00:00Z'))
   check('el parche apunta la expansión, desesconde y rellena solo lo vacío', p.scrydex_id === 'base1' && p.oculto === false && p.release_date === '1996-10-20' && p.card_count_total === 102 && p.card_count_official === 102 && p.name_en === 'Expansion Pack' && p.logo_scrydex, JSON.stringify(p))
   check('  …y no pisa lo que ya hay', !('release_date' in parcheDeSet({ release_date: '1996-10-21', card_count_total: 103, card_count_official: 1, name_en: 'X' }, exps[0])))
+  check('  …y no escribe scrydex_at en el set (no existe ahí; 685.2)', !('scrydex_at' in p))
 }
 
 console.log('── 3. La pasada, con Scrydex y base de mentira ──')
@@ -50,6 +51,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
   const montar = ({ scrydexStatus = 200, nuestraFalla = false } = {}) => {
     const escrito = { cartas: [], parches: [] }
     const estados = {}
+    const aMedias = new Set()
     const sets = { JP: [
       { id: 'BASE1_', name: 'Expansion Pack', name_en: 'Expansion Pack', release_date: '1996-10-20', card_count_official: 102, oculto: true },
       { id: 'LLENO', name: 'Lleno', name_en: 'Lleno', oculto: false },
@@ -60,7 +62,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       peticiones.push(url)
       const r = (status, cuerpo) => ({ ok: status < 400, status, text: async () => (typeof cuerpo === 'string' ? cuerpo : JSON.stringify(cuerpo)) })
       if (scrydexStatus !== 200) return r(scrydexStatus, scrydexStatus === 403 ? '{"error":"subscription required"}' : 'boom')
-      if (/\/ja\/expansions/.test(url)) return r(200, { data: [{ id: 'base1', name: 'Expansion Pack', total: 2, printed_total: 2, release_date: '1996/10/20', logo: 'https://images.scrydex.com/pokemon/base1-logo/logo' }] })
+      if (/\/ja\/expansions/.test(url)) return r(200, { data: [{ id: 'base1', name: 'Expansion Pack', total: 2, printed_total: 2, release_date: '1996/10/20', logo: 'https://images.scrydex.com/pokemon/base1-logo/logo' }, { id: 'jungle', name: 'Pokémon Jungle', total: 48, printed_total: 48, release_date: '1997/03/05' }] })
       if (/\/en\/expansions/.test(url)) return r(200, { data: [] })
       if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...SM10, id: 'base1-4', number: '4', name: 'リザードン', images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...SM10, id: 'base1-5', number: '5', name: 'ピッピ' }] })
       return r(500, 'ruta no prevista ' + url)
@@ -68,17 +70,21 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const restImpl = async (ruta, opciones) => {
       if (nuestraFalla && ruta.startsWith('tcg_cards?on_conflict')) throw new Error('Supabase 500: boom')
       if (ruta.startsWith('tcg_sets?select')) return sets[/market=eq\.(\w+)/.exec(ruta)[1]]
-      if (ruta.startsWith('tcg_cards?select=id')) return /set_id=eq\.LLENO/.test(ruta) ? [{ id: 'x' }] : []
+      if (ruta.startsWith('tcg_cards?select=id')) {
+        const id = /set_id=eq\.(\w+)/.exec(ruta)?.[1]
+        if (/origen=eq\.scrydex/.test(ruta)) return aMedias.has(id) ? [{ id: 'x' }] : []
+        return id === 'LLENO' || aMedias.has(id) ? [{ id: 'x' }] : []
+      }
       if (ruta.startsWith('tcg_cards?on_conflict')) { escrito.cartas.push(...JSON.parse(opciones.body)); return null }
       if (ruta.startsWith('tcg_sets?market=')) { escrito.parches.push({ ruta, body: JSON.parse(opciones.body) }); return null }
       throw new Error('ruta no prevista ' + ruta)
     }
     const env = { SUPABASE_SERVICE_ROLE_KEY: 'k', SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 't' }
     const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {} })
-    return { correr, escrito, estados, peticiones }
+    return { correr, escrito, estados, peticiones, sets, aMedias }
   }
   {
-    const { correr, escrito, estados, peticiones } = montar()
+    const { correr, escrito, estados, peticiones, sets, aMedias } = montar()
     const r1 = await correr()
     check('primera pasada: la lista (1 crédito) y el primer vacío rellenado (1 crédito)', r1.ok && r1.rellenado?.set === 'BASE1_' && r1.rellenado.cartas === 2 && r1.rellenado.por === 'nombre' && r1.creditos === 2, JSON.stringify(r1))
     check('  …las cartas con nuestro id, set, mercado, foto y nombre inglés', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン' && escrito.cartas[0].name_en === 'Buzzwole & Pheromosa-GX', JSON.stringify(escrito.cartas[0]).slice(0, 220))
@@ -93,8 +99,18 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres = 0
     const rn = await correr()
     check('un rellenado sin nombres ingleses se vuelve a escribir con ellos (1 crédito)', rn.ok && rn.nombres?.set === 'BASE1_' && rn.nombres.conNombreIngles === 2 && rn.creditos === 4 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres === VERSION_NOMBRES, JSON.stringify(rn))
+    // Un set a MEDIAS (685.2): tiene cartas de Scrydex pero el PATCH no llegó
+    // (sin `scrydex_por`). Se remata sin pedir nada a Scrydex.
+    sets.JP.push({ id: 'MEDIAS_', name: 'Pokémon Jungle', name_en: 'Pokémon Jungle', release_date: '1997-03-05', card_count_official: 48, oculto: true, scrydex_por: null })
+    aMedias.add('MEDIAS_')
+    estados[CLAVE_ESTADO].llenosOlvidados = 'otra'
+    const rm = await correr()
+    check('un set a medias se remata: parche y rellenado, sin créditos', rm.ok && rm.rematado?.set === 'MEDIAS_' && rm.creditos === 4 && escrito.parches.at(-1).body.oculto === false && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].estado === 'rellenado' && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].nombres === 0, JSON.stringify(rm))
+    check('  …y los llenos se olvidaron una vez por versión', estados[CLAVE_ESTADO].llenosOlvidados === VERSION)
+    const rn2 = await correr()
+    check('  …y a la pasada siguiente la fase 0 le pone los nombres (1 crédito)', rn2.nombres?.set === 'MEDIAS_' && rn2.creditos === 5, JSON.stringify(rn2))
     const r4 = await correr(new Date('2026-10-20T12:00:00Z'))
-    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 5 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
+    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 6 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
   }
   {
     const { correr, estados } = montar({ scrydexStatus: 403 })
