@@ -727,6 +727,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   ruido. Lo que más pesa (dónde está la carta) se reparte por estratos y
   sale exacto; y un «este orden es mejor» se compara reparto a reparto y
   solo se afirma si pasa del azar.
+- **Comparar reparto a reparto solo sirve si el azar va EMPAREJADO** (tanda
+  630). Para saber si coger de más en un Poffin cambiaba algo, se jugaba el
+  camino con y sin y se comparaban los repartos: después de barajar, los dos
+  mazos tienen distinto tamaño, la misma semilla da órdenes que no tienen
+  nada que ver, y una ganancia de dos puntos no se distinguía del azar —se
+  dijo «no cambia nada» de algo que cambiaba—. Lo que decide (dónde cae la
+  carta tras CADA barajada) se reparte por estratos y se ata al reparto, y
+  entonces sí se ve. Y su pariente: «prepara» quería decir «mueve el mazo»,
+  y vaciar la mano antes de Ariana prepara sin moverlo. Un criterio que mira
+  un solo efecto se deja los otros sin dar error.
 - **La API de TCGdex y su servidor de FICHEROS son dos sitios, y la API
   se calla fotos que el servidor sí tiene** (medido por la sesión de
   COWORK el 2026-10-03, con un HEAD por carta a las 20.442 asiáticas):

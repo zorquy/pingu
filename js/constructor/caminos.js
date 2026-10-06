@@ -178,6 +178,11 @@ export function accionesDisponibles(p) {
       if (!def) continue
       if (def.cuando === 'bajar' && esBasicoEnJuego(c) && p.huecosBanca > 0) {
         poner(`b:${clave}`, { tipo: 'banca', clave, nombre: nombreVisible(c), habilidad: def.nombre })
+      } else if (seBajaYSeUsa(c, def) && p.huecosBanca > 0) {
+        // Un básico cuya habilidad va con su botón (Fezandipiti ex, Ogerpon
+        // ex, Fan Rotom…): en la mano no hace nada, en la banca sí (tanda
+        // 630). Es UN paso —bajarlo y usarla—, que bajarlo solo no es camino.
+        poner(`b:${clave}`, { tipo: 'banca', usa: true, clave, nombre: nombreVisible(c), habilidad: def.nombre })
       } else if (esEvolucion(c) && p.enJuego.some((sl) => evolucionaDe(c, p.cartaDe(sl)) && !p.motivoNoEvolucionar(u, sl))) {
         poner(`e:${clave}`, { tipo: 'evolucion', clave, nombre: nombreVisible(c), habilidad: def.nombre })
       }
@@ -193,6 +198,13 @@ export function accionesDisponibles(p) {
   return [...out.values()]
 }
 
+// Una habilidad que se usa con su botón: ni la que salta sola al bajar o al
+// evolucionar, ni una pasiva.
+const conBoton = (def) => !!def && !def.cuando && !def.pasiva
+// Un básico que se baja para usar su habilidad (tanda 630). Las de «solo en
+// el puesto activo» no: bajarlo a la banca no la deja usar.
+const seBajaYSeUsa = (c, def) => conBoton(def) && esBasicoEnJuego(c) && !def.soloActivo
+
 // Hacer la acción en el estado que tenga `p` ahora. false si no se puede.
 async function hacer(p, accion, ui) {
   const conClave = (u) => claveDeEfecto(p.carta(u)) === accion.clave
@@ -205,6 +217,15 @@ async function hacer(p, accion, ui) {
       const u = p.s.mano.find(conClave)
       if (!u || p.huecosBanca <= 0) return false
       await p.bajarABanca(u, ui)
+      if (accion.usa) {
+        // Si la habilidad no se puede usar (Fezandipiti sin un KO en el
+        // turno del rival), `usarHabilidad` lo dice (NoSePuede) y el paso no
+        // se ha dado: bajarlo no trae nada, y quien llama se queda con el
+        // estado de antes.
+        const sl = p.enJuego.find((x) => x.cartas.includes(u))
+        if (!sl) return false
+        await p.usarHabilidad(sl, ui)
+      }
     } else if (accion.tipo === 'evolucion') {
       const u = p.s.mano.find(conClave)
       const sl = u && p.enJuego.find((x) => evolucionaDe(p.carta(u), p.cartaDe(x)) && !p.motivoNoEvolucionar(u, x))
@@ -229,9 +250,29 @@ async function hacer(p, accion, ui) {
 // trae; hasta 1 si trae una de las que la traen), para que Pokégear coja a
 // Dawn —que la trae casi siempre— antes que a Lillie. Al soltar cartas (un
 // coste de la mano), suelta primero lo que menos vale.
-function uiAFavor(objetivo, puentes, p0) {
+//
+// Y ADELGAZA el mazo (tanda 630). PINGU: «puede que te quites cartas del
+// mazo». Una búsqueda que deja coger más de lo que hace falta —un Poffin con
+// dos huecos, una Ultra Ball sin nada que valga— coge lo que pueda: cada
+// carta que sale del mazo hace más fácil robar la buscada después. Coger
+// nunca la aleja, con dos excepciones que se miran: a la BANCA se deja un
+// hueco libre (para bajar un Fezandipiti luego), y a la MANO no se coge nada
+// si hay a tiro una carta que roba HASTA tener N (Ariana, Surfista,
+// Kilowattrel de Iris): ahí cada carta de más en la mano es una menos que
+// robas. `ui.adelgazadas` cuenta lo cogido de más, para decirlo en el paso.
+function uiAFavor(objetivo, puentes, p0, { adelgazarAMano = true } = {}) {
   const vale = (p, u) => (objetivo(p.carta(u)) ? 3 : puentes.get(claveDeEfecto(p.carta(u))) || 0)
-  return {
+  // Hasta cuántas se cogen, adelgazando. Solo cuando quien busca dice adónde
+  // van (`destino`): sin eso no se sabe si coger de más ayuda.
+  const tope = (p, o, ya) => {
+    if (ui.sinAdelgazar || o.zona !== 'mazo' || !o.destino) return ya
+    if (o.destino === 'banca') return Math.max(ya, Math.min(o.max, p.huecosBanca - 1))
+    if (o.destino === 'mano' && !adelgazarAMano) return ya
+    return o.max
+  }
+  const ui = {
+    adelgazadas: 0,
+    sinAdelgazar: false,
     async cartas(o) {
       const p = o.partida || p0()
       const elegibles = o.elegibles || o.opciones
@@ -251,6 +292,13 @@ function uiAFavor(objetivo, puentes, p0) {
         if (vale(p, u) > 0 && cabe(u)) sel.push(u)
       }
       for (const u of orden) if (sel.length < o.min && !sel.includes(u) && cabe(u)) sel.push(u)
+      const hasta = Math.min(o.max, tope(p, o, sel.length))
+      for (const u of orden) {
+        if (sel.length >= hasta) break
+        if (sel.includes(u) || !cabe(u)) continue
+        sel.push(u)
+        ui.adelgazadas++
+      }
       return sel.slice(0, o.max)
     },
     async pokemon(o) {
@@ -272,6 +320,7 @@ function uiAFavor(objetivo, puentes, p0) {
       return (o.partida || p0()).s.premios.slice(0, o.n)
     },
   }
+  return ui
 }
 
 // Cuántas hay de la carta en la mano y en juego (lo que ya tienes).
@@ -301,7 +350,20 @@ function ponerFoto(p, f, { copiar = true } = {}) {
 // `ceder()`: se llama entre tandas para no congelar la página; durante la
 // tanda el estado de verdad está cambiado, así que NO puede haber nada más
 // tocando la partida mientras tanto (quien llama tiene la ventana delante).
-export async function buscarCaminos({ partida: p, objetivo, muestras = 300, profundidad = 4, anchura = 6, preparar = 3, semilla = 0x5eed, alProgresar = null, ceder = null }) {
+export async function buscarCaminos(opciones) {
+  // Mientras se buscan, la partida baraja «por estratos» (ver abajo): se le
+  // pone un `barajar` propio y se le quita al acabar, pase lo que pase.
+  const p = opciones.partida
+  const propio = Object.getOwnPropertyDescriptor(p, 'barajar')
+  try {
+    return await buscar(opciones)
+  } finally {
+    if (propio) Object.defineProperty(p, 'barajar', propio)
+    else delete p.barajar
+  }
+}
+
+async function buscar({ partida: p, objetivo, muestras = 300, profundidad = 4, anchura = 6, preparar = 3, semilla = 0x5eed, alProgresar = null, ceder = null }) {
   const real = fotoDe(p)
   const inicial = cuantasTienes(p, objetivo)
   const robo = probabilidadDeGrupo(p, objetivo, 1)
@@ -318,10 +380,59 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   const mRaiz = p.mesa ? { ...structuredClone({ ...p.mesa.m, registro: [], diario: [] }) } : null
   const estratos = barajar([...Array(muestras).keys()], azar)
   const esLaCarta = (u) => objetivo(p.carta(u))
-  for (let i = 0; i < muestras; i++) raices.push({ s: repartoDeLoQueNoSabes(real.s, azar, { objetivo: esLaCarta, u: (estratos[i] + azar()) / muestras }), op: real.op, m: mRaiz })
+  for (let i = 0; i < muestras; i++) {
+    const s = repartoDeLoQueNoSabes(real.s, azar, { objetivo: esLaCarta, u: (estratos[i] + azar()) / muestras })
+    s.repartoDeCaminos = i
+    raices.push({ s, op: real.op, m: mRaiz })
+  }
 
+  // ── Y después de barajar, también por estratos (tanda 630) ──
+  //
+  // Hasta aquí, lo de después de barajar (un Poffin, una Ultra Ball,
+  // Dudunsparce que vuelve) era una muestra: ±2 puntos con 400 repartos. Y
+  // eso tapaba justo lo que PINGU pedía ver: sacar dos cartas con un Poffin
+  // antes de un Lillie's Determination es pasar de 8/23 a 8/21 —dos puntos—,
+  // y dos puntos de baile no dejan ver dos puntos de ganancia. Ahora, al
+  // barajar, la primera copia de la buscada va al sitio del estrato que le
+  // toca a ESE reparto en ESA barajada (la k-ésima del camino): cada
+  // barajada reparte los estratos de nuevo, a partes iguales. Es el mismo
+  // reparto de antes —tras barajar, la carta está en cualquier sitio con la
+  // misma probabilidad, y las demás también—, solo que contado en vez de
+  // sorteado. Y empareja: con y sin adelgazar, la k-ésima barajada de un
+  // reparto pone la carta en el mismo trozo del mazo.
+  const azarTras = azarDe((semilla ^ 0x9e3779b9) >>> 0)
+  const tras = []
+  const estratoTras = (k, i) => {
+    while (tras.length <= k) tras.push(barajar([...Array(muestras).keys()], azarTras))
+    return tras[k][i]
+  }
+  const barajarDeVerdad = Object.getPrototypeOf(p).barajar
+  p.barajar = function () {
+    barajarDeVerdad.call(this)
+    const s = this.s
+    if (s.repartoDeCaminos == null) return
+    const k = s.barajadasDeCaminos || 0
+    s.barajadasDeCaminos = k + 1
+    const c1 = s.mazo.filter(esLaCarta).sort()[0]
+    if (!c1) return
+    const D = s.mazo.length
+    const destino = Math.min(D - 1, Math.floor(((estratoTras(k, s.repartoDeCaminos) + 0.5) / muestras) * D))
+    const ahora = s.mazo.indexOf(c1)
+    ;[s.mazo[ahora], s.mazo[destino]] = [s.mazo[destino], s.mazo[ahora]]
+  }
+
+  // ¿Hay a tiro una carta que roba HASTA tener N en la mano (tanda 630)? Con
+  // ella, lo que vacía la mano también prepara (jugar una Ultra Ball antes que
+  // Ariana es robar tres más) y lo que la llena estorba (ver `uiAFavor`). Se
+  // mira en la mano, en juego y en el mazo —la del mazo puede llegar con un
+  // Pokégear—; la del descarte, no.
+  const aTiro = [...p.s.mano, ...p.s.mazo, ...p.enJuego.flatMap((sl) => sl.cartas)]
+  const roboSegunMano = aTiro.some((u) => {
+    const c = p.carta(u)
+    return Boolean(esEntrenador(c) ? p.efectoDe(c)?.robaSegunMano : p.efectos?.habilidades?.[claveDeEfecto(c)]?.robaSegunMano)
+  })
   const puentes = new Map()
-  const ui = uiAFavor(objetivo, puentes, () => p)
+  const ui = uiAFavor(objetivo, puentes, () => p, { adelgazarAMano: !roboSegunMano })
 
   // ── Los puentes ──
   //
@@ -331,10 +442,19 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   // repartos: primero las que traen la carta y luego las que traen una de
   // esas. Sin esto, al buscar con Pokégear no se cogería nada que no fuera
   // la propia carta.
+  // Los repartos de probar puentes: los que caen a partes iguales en los
+  // estratos (tanda 630). Con los 24 primeros, que caen donde caen, un puente
+  // que roba 2 de 39 no acertaba NINGUNA vez en uno de cada cuatro mazos —y
+  // no siendo puente, la Ultra Ball no sabía que coger a Kadabra servía—.
+  // Repartidos, el que roba arriba acierta en los que tocan, siempre.
+  const PROBAR = Math.min(32, muestras)
+  const porEstrato = [...raices.keys()].sort((a, b) => estratos[a] - estratos[b])
+  const tandaDePrueba = Array.from({ length: PROBAR }, (_, k) => raices[porEstrato[Math.floor(((k + 0.5) * muestras) / PROBAR)]])
+
   async function probarPuentes(trae, valor) {
     const vistas = new Set()
     const nuevas = []
-    const tanda = raices.slice(0, 24)
+    const tanda = tandaDePrueba
     try {
       for (const u of p.uidsPropios) {
         const c = p.carta(u)
@@ -342,11 +462,15 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
         if (vistas.has(clave) || puentes.has(clave)) continue
         vistas.add(clave)
         const def = esPokemon(c) ? p.efectos?.habilidades?.[clave] : null
-        // Una evolución con habilidad de las que se usan (Drakloak, Kadabra…)
-        // también es un puente: Ultra Ball la trae, evoluciona y la usas. Sin
-        // esto la búsqueda no sabía que coger a Drakloak servía de algo.
-        const evoluciona = !!def && esEvolucion(c) && !def.cuando && !def.pasiva
-        const util = esEntrenador(c) ? !esHerramienta(c) && (p.efectoDe(c)?.usar || p.efectoDe(c)?.alPoner) : (def?.cuando === 'bajar' && esBasicoEnJuego(c)) || evoluciona
+        // Una evolución con habilidad (Drakloak, Kadabra…) también es un
+        // puente: Ultra Ball la trae, evoluciona y la usas —o salta sola al
+        // evolucionar, como Kadabra, que eso se dejaba fuera hasta la 630—.
+        // Sin esto la búsqueda no sabía que coger a Drakloak servía de algo.
+        const evoluciona = !!def && esEvolucion(c) && (conBoton(def) || def.cuando === 'evolucionar')
+        // Y un básico que se baja para usar su habilidad (tanda 630): Nest
+        // Ball trae a Fezandipiti, lo bajas y robas tres.
+        const bajaYUsa = !!def && seBajaYSeUsa(c, def)
+        const util = esEntrenador(c) ? !esHerramienta(c) && (p.efectoDe(c)?.usar || p.efectoDe(c)?.alPoner) : (def?.cuando === 'bajar' && esBasicoEnJuego(c)) || evoluciona || bajaYUsa
         if (!util) continue
         let sirve = 0
         for (const st of tanda) {
@@ -358,8 +482,8 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
           p.sacarDelMazo(copia)
           p.s.mano.push(copia)
           const antes = cuantasTienes(p, trae) - (trae(c) ? 1 : 0)
-          const accion = { tipo: esEntrenador(c) ? 'carta' : evoluciona ? 'evolucion' : 'banca', clave }
-          const dado = (await hacer(p, accion, ui)) && (!evoluciona || (await hacer(p, { tipo: 'habilidad', clave }, ui)))
+          const accion = { tipo: esEntrenador(c) ? 'carta' : evoluciona ? 'evolucion' : 'banca', clave, usa: bajaYUsa }
+          const dado = (await hacer(p, accion, ui)) && (!(evoluciona && conBoton(def)) || (await hacer(p, { tipo: 'habilidad', clave }, ui)))
           if (dado && cuantasTienes(p, trae) > antes) sirve++
         }
         if (sirve) nuevas.push([clave, sirve / tanda.length])
@@ -375,24 +499,32 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
 
   // Un nodo: los pasos, y por cada reparto el estado al que llevan (o
   // `null` si la carta ya apareció) y si cada paso se pudo dar.
-  const raiz = { pasos: [], estados: raices, encontradas: 0, dados: [] }
+  const raiz = { pasos: [], estados: raices, encontradas: 0, dados: [], adelgazan: [] }
   const todos = []
   // Todos los nodos jugados, por su secuencia de pasos: para comparar un
   // camino con los mismos pasos en otro orden sin volver a jugarlo.
   const jugados = new Map()
   const claveDe = (pasos) => pasos.map((a) => a.key).join('>')
+  // Y los jugados sin adelgazar (`adelgazarCuenta`): muchos caminos empiezan
+  // igual.
+  const sinAdelgazar = new Map()
   let hechos = 0
   const total = () => hechos
 
-  async function extender(nodo, accion) {
+  // `adelgazar: false` juega el paso cogiendo solo lo que hace falta (para
+  // ver si adelgazar cambia algo: `adelgazarCuenta`).
+  async function extender(nodo, accion, { adelgazar = true } = {}) {
     const estados = []
     let encontradas = 0
     let pudo = 0
     let intentos = 0
     // En cuántos repartos el paso ha MOVIDO el mazo (barajarlo, mandar una
     // abajo, sacar cartas): lo que hace que un paso que no trae nada sí
-    // cambie lo que trae el siguiente.
+    // cambie lo que trae el siguiente. Y con una carta que roba hasta tener
+    // N a tiro, también lo que VACÍA la mano (tanda 630).
     let mueve = 0
+    // En cuántos ha cogido de más para adelgazar el mazo (ver `uiAFavor`).
+    let adelgaza = 0
     try {
       for (let i = 0; i < nodo.estados.length; i++) {
         const st = nodo.estados[i]
@@ -404,10 +536,14 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
         intentos++
         ponerFoto(p, st)
         const mazoAntes = p.s.mazo.join()
-        const dado = await hacer(p, accion, ui)
+        const manoAntes = p.s.mano.length
+        ui.adelgazadas = 0
+        ui.sinAdelgazar = !adelgazar
+        const dado = await hacer(p, accion, ui).finally(() => (ui.sinAdelgazar = false))
         hechos++
         if (dado) pudo++
-        if (dado && p.s.mazo.join() !== mazoAntes) mueve++
+        if (dado && (p.s.mazo.join() !== mazoAntes || (roboSegunMano && p.s.mano.length < manoAntes))) mueve++
+        if (dado && ui.adelgazadas > 0) adelgaza++
         if (cuantasTienes(p, objetivo) > inicial) {
           estados.push(null)
           encontradas++
@@ -420,7 +556,7 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
     } finally {
       ponerFoto(p, real, { copiar: false })
     }
-    return { pasos: [...nodo.pasos, accion], estados, encontradas, dados: [...nodo.dados, intentos ? pudo / intentos : 0], mueve: intentos ? mueve / intentos : 0, padre: nodo }
+    return { pasos: [...nodo.pasos, accion], estados, encontradas, dados: [...nodo.dados, intentos ? pudo / intentos : 0], adelgazan: [...nodo.adelgazan, pudo ? adelgaza / pudo : 0], mueve: intentos ? mueve / intentos : 0, padre: nodo }
   }
 
   // Lo que se puede hacer después de un nodo: lo que esté disponible en
@@ -495,15 +631,59 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   const dominado = (c) => ordenados.some((q) => q !== c && q.pasos.length < c.pasos.length && q.p >= c.p - 0.005 && (!usaPartidario(q) || usaPartidario(c)))
   const mejor = ordenados.find((c) => !dominado(c))
   const ordenDaIgual = mejor ? await ordenDaIgualEn(mejor) : null
+  // Los que adelgazan: ¿cambia algo? (tanda 630). Adelgazar en el ÚLTIMO
+  // paso no cambia nada (la buscada se coge la primera, y detrás no queda
+  // nada que robe), así que eso ni se mira. De los demás, los ocho primeros
+  // —antes los que no tienen uno más corto delante—; en el resto no se dice,
+  // que sin mirarlo no se sabe.
+  for (const c of ordenados) c.adelgazan = c.adelgazan.map((a, i) => (i < c.pasos.length - 1 ? a : 0))
+  const adelgazan = ordenados.filter((x) => x.adelgazan.some((a) => a > 0.5)).sort((a, b) => dominado(a) - dominado(b))
+  for (const [i, c] of adelgazan.entries()) {
+    if (i >= 8 || !(await adelgazarCuenta(c))) c.adelgazan = c.adelgazan.map(() => 0)
+  }
   const caminos = ordenados.map((c) => ({
     p: c.p,
     dominado: dominado(c),
     // Solo del primero: si cambiar el orden de sus pasos no cambia nada que
     // se pueda distinguir del azar, «en este orden» sería mentira.
     ordenDaIgual: c === mejor ? ordenDaIgual : null,
-    pasos: c.pasos.map((a, i) => ({ tipo: a.tipo, clave: a.clave, nombre: a.nombre, habilidad: a.habilidad || null, partidario: Boolean(a.partidario), siempre: c.dados[i] > 0.995, cuando: c.dados[i] })),
+    // `adelgaza`: en la mayoría de las veces que se da, coge de más para
+    // sacar cartas del mazo, y eso hay que decirlo: quien lo juegue cogiendo
+    // solo lo que busca no llega a la cifra.
+    pasos: c.pasos.map((a, i) => ({ tipo: a.tipo, clave: a.clave, nombre: a.nombre, habilidad: a.habilidad || null, usa: Boolean(a.usa), partidario: Boolean(a.partidario), siempre: c.dados[i] > 0.995, cuando: c.dados[i], adelgaza: c.adelgazan[i] > 0.5 })),
   }))
   return { ...resumen, caminos, simulados: total(), puentes: Object.fromEntries(puentes) }
+
+  // ── ¿Cuenta adelgazar? (tanda 630) ──
+  //
+  // Coger de más antes de un Lillie's Determination no cambia nada (la mano
+  // vuelve al mazo); antes de un Poffin a la banca y luego robar, sí. Decir
+  // «cogiendo todas las que deje» donde no cuenta sería mandar a hacer algo
+  // que no sirve: el camino se juega otra vez cogiendo solo lo que hace falta
+  // y se compara reparto a reparto, con la misma regla que el orden.
+  async function adelgazarCuenta(c) {
+    let nodo = raiz
+    for (const [i, a] of c.pasos.entries()) {
+      const k = claveDe(c.pasos.slice(0, i + 1))
+      if (!sinAdelgazar.has(k)) sinAdelgazar.set(k, await extender(nodo, a, { adelgazar: false }))
+      nodo = sinAdelgazar.get(k)
+    }
+    return ganaDeVerdad(c, nodo)
+  }
+
+  // ¿`a` encuentra la carta en más repartos que `b`, más de lo que da el
+  // azar? La prueba de McNemar: solo cuentan los repartos en los que uno la
+  // encuentra y el otro no, y tiene que pasar de un punto y de dos
+  // desviaciones de la diferencia emparejada.
+  function ganaDeVerdad(a, b) {
+    let solo1 = 0
+    let solo2 = 0
+    a.estados.forEach((x, i) => {
+      if (x === null && b.estados[i] !== null) solo1++
+      if (x !== null && b.estados[i] === null) solo2++
+    })
+    return solo1 - solo2 > Math.max(muestras * 0.01, 2 * Math.sqrt(solo1 + solo2))
+  }
 
   // ── ¿Importa el orden? (tanda 623) ──
   //
@@ -519,8 +699,6 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
   async function ordenDaIgualEn(c) {
     const n = c.pasos.length
     if (n < 2 || n > 3) return null
-    const halla = (nodo) => nodo.estados.map((x) => x === null)
-    const base = halla(c)
     for (const orden of permutaciones(c.pasos)) {
       if (claveDe(orden) === claveDe(c.pasos)) continue
       if (p.s.estricta && orden.filter((a) => a.partidario).length > 1) continue
@@ -532,18 +710,10 @@ export async function buscarCaminos({ partida: p, objetivo, muestras = 300, prof
           jugados.set(claveDe(nodo.pasos), nodo)
         }
       }
-      const otro = halla(nodo)
-      let solo1 = 0
-      let solo2 = 0
-      base.forEach((x, i) => {
-        if (x && !otro[i]) solo1++
-        if (!x && otro[i]) solo2++
-      })
-      // Este orden gana a ese de verdad: más de un punto y más de lo que
-      // da el azar (dos desviaciones de la diferencia emparejada).
-      // Con tres pasos puede dar igual cambiar dos y no el tercero: si
-      // ALGÚN otro orden pierde de verdad, el orden importa.
-      if (solo1 - solo2 > Math.max(muestras * 0.01, 2 * Math.sqrt(solo1 + solo2))) return false
+      // Este orden gana a ese de verdad (`ganaDeVerdad`). Con tres pasos
+      // puede dar igual cambiar dos y no el tercero: si ALGÚN otro orden
+      // pierde de verdad, el orden importa.
+      if (ganaDeVerdad(c, nodo)) return false
     }
     return true
   }

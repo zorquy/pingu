@@ -744,7 +744,12 @@ function pilasHtml(partida, { rival = false } = {}) {
   const ctx = !rival && s.fase === 'turno' ? contextoDeProbabilidad(partida) : null
   const ultima = s.descarte.at(-1)
   const quien = rival ? 'rival' : 'propio'
-  const mano = rival
+  // La mano, contada: la del rival siempre y, en «tú contra ti», también la
+  // del que juega (tanda 630). PINGU: «necesito un contador de cuántas cartas
+  // tienes en la mano». Abajo está la mano entera, pero en el móvil su
+  // cabecera —la que lleva la cuenta— queda tapada, y al girar la mesa cada
+  // uno tiene que ver lo mismo de sí que del otro.
+  const mano = rival || L.mesa
     ? `<div class="lab-pila lab-pila-mano" role="img" aria-label="${s.mano.length} cartas en la mano"><span class="lab-abanico" aria-hidden="true">${Array.from({ length: Math.min(s.mano.length, 5) }, () => dorsoHtml()).join('')}</span><span class="lab-pila-texto"><strong>${s.mano.length}</strong> en la mano</span></div>`
     : ''
   return `

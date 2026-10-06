@@ -2949,18 +2949,29 @@ button.lab-carta.lab-no-vale:hover {
     --lab-pie-activo: 64px;
   }
 
-  .lab-lado-rival .lab-zona-pilas {
+  .lab-lado-rival .lab-zona-pilas,
+  .lab-lado-propio .lab-zona-pilas:has(.lab-pila-mano) {
     grid-template-columns: repeat(3, auto);
   }
 
-  .lab-lado-rival .lab-pila-mano {
+  /* En «tú contra ti» tu mano también se cuenta (tanda 630): en la fila del
+     mazo, como la del rival, con sus medidas (a 360 px no cabían). */
+  .lab-lado-propio:has(.lab-pila-mano) {
+    --lab-c-pila: 32px;
+  }
+
+  .lab-lado-propio:has(.lab-pila-mano) .lab-slot-activo {
+    --lab-pie-activo: 64px;
+  }
+
+  .lab-pila-mano {
     grid-column: auto;
     flex-direction: column;
     gap: var(--e-xs);
     text-align: center;
   }
 
-  .lab-lado-rival .lab-abanico {
+  .lab-pila-mano .lab-abanico {
     width: 52px;
     height: 44px;
   }
@@ -3120,6 +3131,19 @@ button.lab-carta.lab-no-vale:hover {
 
   .lab-apuntar .btn-secondary {
     margin-left: auto;
+  }
+}
+
+/* Por debajo de 380 px tu mano no cabe en la fila junto a tu activo (que es
+   más grande que el del rival): va debajo del mazo, como en el escritorio. */
+@media (max-width: 379px) {
+  .lab-lado-propio .lab-zona-pilas:has(.lab-pila-mano) {
+    grid-template-columns: repeat(2, auto);
+  }
+
+  .lab-lado-propio .lab-pila-mano {
+    grid-column: 1 / -1;
+    flex-direction: row;
   }
 }
 

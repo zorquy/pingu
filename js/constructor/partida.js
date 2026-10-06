@@ -2894,7 +2894,9 @@ export class Partida {
   async buscarEnMazo(ui, { titulo, texto = '', filtro = () => true, min = 0, max = 1, validar = null, destino = 'mano', barajar = true } = {}) {
     this.verMazo()
     const elegibles = this.s.mazo.filter((u) => filtro(this.carta(u), u))
-    const elegidas = await ui.cartas({ titulo, texto, opciones: [...this.s.mazo], elegibles, min: Math.min(min, elegibles.length), max, validar, zona: 'mazo' })
+    // `destino` va también al `ui`: el que busca caminos (caminos.js) coge
+    // de más para adelgazar el mazo según adónde vayan (tanda 630).
+    const elegidas = await ui.cartas({ titulo, texto, opciones: [...this.s.mazo], elegibles, min: Math.min(min, elegibles.length), max, validar, zona: 'mazo', destino })
     const hechas = []
     for (const u of elegidas) {
       if (destino === 'mano') {

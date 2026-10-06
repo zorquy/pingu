@@ -4,6 +4,63 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 4) — PINGU-Claude (630 — «¿cómo la encuentro?» con lo que hacen las cartas de la mano; tu mano contada en «tú contra ti»; repaso de 648–672)
+
+**Hecho**: (1) los caminos para encontrar una carta cuentan con lo que
+hacen las cartas: un básico con habilidad de botón (Fezandipiti ex,
+Ogerpon ex…) es un paso desde la mano («Bajar Fezandipiti ex y usar Flip
+the Script») y un puente para la Ultra Ball, igual que Kadabra (roba al
+evolucionar); las búsquedas cogen de más para adelgazar el mazo (dejando un
+hueco en la banca, y nada a la mano si viene Ariana/Surfista/Kilowattrel),
+vaciar la mano prepara un robo hasta N, y el paso dice «cogiendo todas las
+que deje» solo donde cambia la cifra. Lo de después de barajar va también
+por estratos: Ultra Ball → Kadabra o Poffin → Lillie's salen exactos. (2)
+en «tú contra ti», tu lado lleva «N en la mano» como el del rival, también
+en el móvil (donde la cabecera de la mano no se ve). Sin migración.
+
+**Ficheros**: `js/constructor/caminos.js`, `js/constructor/caminos-html.js`,
+`js/constructor/partida.js` (`buscarEnMazo` pasa `destino` al `ui`),
+`js/constructor/efectos.js` (`robaSegunMano` en tres cartas; `mirarYCoger`
+pasa `destino`), `js/constructor/laboratorio.js` (`pilasHtml`),
+`css/laboratorio.css`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 630 (nueva)
+y su rigor (20 de 20).
+
+**Suite entera**: 317 verdes, 1 rojo: la 470, que busca `visual/carta-real.png` en el scratchpad y aquí no está (de entorno, no de la web).
+
+**Repaso de 648–672 (para quien lleve Mi colección y TCGGO; sigue igual tras la 675)** — leído el
+código y mirado en producción; nada de esto lo he tocado:
+1. `baja-correo.mjs` no conoce `aviso_precio`: darse de baja desde un
+   correo de precio APAGA TODOS los demás correos y los de precio siguen
+   llegando (el tipo desconocido cae en «desactivar todo»). Falta también
+   en `EMAIL_TYPES` de `js/notifications.js` (sin interruptor en el perfil).
+2. `cargarValoresDeSets` pide `tcg_set_valor` con `.order('dia')` y
+   `.limit(20000)`, pero PostgREST corta en 1.000: hoy son 348 filas (174
+   sets × 2 días) y hacia el 10 de octubre pasa de 1.000; entonces se
+   pierden los días MÁS NUEVOS (orden ascendente) y «Valor»/«Semanal» se
+   quedan viejos sin error. Igual `historicoDeCartas` (150 × 9 = 1.350).
+3. `carta-historial.js`: el clic de los rangos se engancha una vez por
+   caja (`dataset.rangos`) con el `pintar` de la PRIMERA carta; la ficha de
+   Mi colección reutiliza la caja, así que abrir A, luego B y pulsar «1M»
+   pinta el histórico de A en la ficha de B.
+4. `tcggo-precios`: con el japonés bloqueado por el plan (671), `quedan`
+   nunca llega a 0 y la pasada siguiente sale por el `return` temprano:
+   ese día no hay foto del histórico para NADIE (tampoco occidentales).
+5. `tcggo-reemplazar-set` / barrido de huecos: un set sin expansión
+   conocida se esconde (`oculto`) y el `continue` de los ocultos va antes
+   de la revisión semanal, así que no vuelve nunca; un 429/403 de TCGGO
+   cuenta como intento del set (a los cinco, parado para siempre); y
+   `user_price_alerts` no se reapunta al reemplazar (avisos huérfanos).
+6. Panel global: una expansión plegada suma las cartas de sus hijos pero
+   divide por el total del padre («175 de 160 · completa»).
+7. Menores: `faltaMigracionKoZh` no se borra nunca (hoy no está puesto);
+   el aviso de precio en ko/zh cae al `cm_low` general; `.carta-historial-rango`
+   mide 40 px con dedo (la regla es 44); la leyenda de TCGplayer declarada
+   dos veces en `cardmarket.css` (gana la gris).
+
+**Pendiente**: que PINGU ejecute mis dos migraciones de la 627 y la 629
+(`supabase-migration-partidas-mazo-guardado.sql`,
+`supabase-migration-nombres-energias.sql`): en producción `match_log` sigue
+sin `user_deck_id` y la Telepática sigue «Energía Psychic Telepática».
 ## 2026-10-06 (mediodía, 3) — PINGU-Claude (675 — el selector de /lanzamientos con banderas y los esqueletos de carga)
 
 **Hecho**: /lanzamientos lleva el mismo selector de dos botones con

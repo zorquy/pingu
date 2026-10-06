@@ -74,7 +74,7 @@ function buscarVarias(p, ui, requisitos, titulo, texto = '') {
 async function mirarYCoger(p, ui, n, { titulo, filtro = () => true, max = 1, resto = 'barajar' } = {}) {
   const vistas = p.mirarArriba(n)
   const elegibles = vistas.filter((u) => filtro(p.carta(u)))
-  const elegidas = await ui.cartas({ titulo, opciones: vistas, elegibles, min: 0, max, zona: 'mazo' })
+  const elegidas = await ui.cartas({ titulo, opciones: vistas, elegibles, min: 0, max, zona: 'mazo', destino: 'mano' })
   for (const u of elegidas) {
     p.sacarDelMazo(u)
     p.s.mano.push(u)
@@ -572,6 +572,9 @@ const entrenadores = {
   },
   "team rocket's ariana": {
     texto: 'Roba hasta tener 5 cartas en la mano. Si todos tus Pokémon en juego son del Team Rocket, roba hasta tener 8.',
+    // Lo que roba depende de lo que tengas en la mano: lo mira «¿cómo la
+    // encuentro?» (caminos.js, tanda 630) para vaciarla antes.
+    robaSegunMano: true,
     usar(p) {
       const todosTR = p.enJuego.length && p.enJuego.every((s) => esDe(p.cartaDe(s), 'team rocket'))
       p.robarHasta(todosTR ? 8 : 5, { motivo: 'Ariana del Team Rocket' })
@@ -718,6 +721,7 @@ const entrenadores = {
   },
   surfer: {
     texto: 'Cambia tu Pokémon activo por 1 de tu banca. Si lo haces, roba hasta tener 5 cartas en la mano.',
+    robaSegunMano: true,
     puede: conBanca,
     async usar(p, ui) {
       if (await p.elegirYCambiar(ui)) p.robarHasta(5, { motivo: 'Surfista' })
@@ -1578,6 +1582,7 @@ const habilidades = {
   "iono's kilowattrel": {
     nombre: 'Flashing Draw',
     texto: 'Descarta una Energía {L} básica de este Pokémon para usarla. Una vez por turno, roba hasta tener 6 cartas en la mano.',
+    robaSegunMano: true,
     puede: (p, s) => (s.energias.some((u) => basicaDe('L')(p.carta(u))) ? p.s.mano.length < 6 || 'Ya tienes 6 cartas o más.' : 'Necesita una Energía Rayo básica unida.'),
     usar(p, ui, s) {
       const u = s.energias.find((x) => basicaDe('L')(p.carta(x)))

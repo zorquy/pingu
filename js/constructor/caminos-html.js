@@ -15,10 +15,15 @@ export function pctDeCamino(x, puedeFallar = true) {
 export function pasoHtml(paso) {
   const n = escapeHtml(paso.nombre)
   const h = paso.habilidad ? escapeHtml(paso.habilidad) : ''
+  // `usa` (tanda 630): un básico que se baja para usar su habilidad con su
+  // botón (Fezandipiti ex) es un paso, no dos.
   const texto =
-    paso.tipo === 'banca' ? `Bajar ${n} (${h})` : paso.tipo === 'evolucion' ? `Evolucionar a ${n} (${h})` : paso.tipo === 'habilidad' ? `${n}: ${h}` : n
+    paso.tipo === 'banca' ? (paso.usa ? `Bajar ${n} y usar ${h}` : `Bajar ${n} (${h})`) : paso.tipo === 'evolucion' ? `Evolucionar a ${n} (${h})` : paso.tipo === 'habilidad' ? `${n}: ${h}` : n
   const si = paso.siempre ? '' : ` <span class="lab-paso-si">${paso.tipo === 'habilidad' ? 'si se puede' : 'si la tienes'}: ${pctDeCamino(paso.cuando)}</span>`
-  return `<span class="lab-paso${paso.partidario ? ' lab-paso-partidario' : ''}">${texto}${si}</span>`
+  // La cifra cuenta con que se coge todo lo que la carta deje (tanda 630):
+  // quien coja solo lo que busca saca menos cartas del mazo y no llega.
+  const adelgaza = paso.adelgaza ? ' <span class="lab-paso-si">cogiendo todas las que deje: el mazo adelgaza</span>' : ''
+  return `<span class="lab-paso${paso.partidario ? ' lab-paso-partidario' : ''}">${texto}${si}${adelgaza}</span>`
 }
 
 function caminoHtml(c, puedeFallar, { mejor = false } = {}) {
@@ -53,5 +58,5 @@ export function resultadoDeCaminosHtml(r, nombre) {
         ? `<details class="lab-caminos-otros"><summary>${otros.length === 1 ? 'Otro camino' : `Otros ${otros.length} caminos`} (uno más corto llega igual o mejor)</summary><ol class="lab-caminos">${otros.map((c) => caminoHtml(c, puedeFallar)).join('')}</ol></details>`
         : ''
     }
-    <p class="subtext lab-caminos-nota">Cada camino se ha jugado en ${r.muestras} repartos de lo que no sabes (el orden del mazo y los premios boca abajo), eligiendo siempre a favor de ${n}. Dónde está ${n} se reparte a partes iguales entre los repartos, así que robar o mirar las de arriba sale casi exacto; lo que pasa después de barajar (un Poffin, Dudunsparce que vuelve al mazo) puede bailar unos ${Math.round(200 * Math.sqrt(0.25 / r.muestras))} puntos. Un paso que no puedes dar en un reparto (no tienes la carta) se salta, y en cuanto aparece ${n} se para.</p>`
+    <p class="subtext lab-caminos-nota">Cada camino se ha jugado en ${r.muestras} repartos de lo que no sabes (el orden del mazo y los premios boca abajo), eligiendo siempre a favor de ${n}. Dónde está ${n} se reparte a partes iguales entre los repartos, también después de barajar (un Poffin, Dudunsparce que vuelve al mazo), así que con una sola copia la cifra sale casi exacta; con varias copias, o con monedas de por medio, puede bailar unos ${Math.round(200 * Math.sqrt(0.25 / r.muestras))} puntos. Al buscar se cogen también cartas que no hacen falta (cada una que sale del mazo hace más fácil robar ${n} después), salvo si viene una que roba hasta tener N en la mano; donde eso cambia la cifra, el paso lo dice. Un paso que no puedes dar en un reparto (no tienes la carta) se salta, y en cuanto aparece ${n} se para.</p>`
 }

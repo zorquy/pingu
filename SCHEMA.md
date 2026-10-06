@@ -32685,3 +32685,85 @@ no quería.
 `css/lanzamientos.css`, `js/mi-coleccion.js`, `css/mi-coleccion.css`,
 `cartas.html` (generado). **Pruebas**: 656, 672-pantalla, 646-pantalla,
 650-pantalla, 313, 299, 311 (ajustada) e imports.
+
+## Tanda 630 — «¿cómo la encuentro?» con lo que hacen las cartas de la mano; tu mano, contada en «tú contra ti» (oct. 2026)
+
+PINGU: «tienes que tener en cuenta la funcionalidad de las cartas que se
+tienen en mano: es posible que se creen más caminos si buscas una carta
+que te haga robar más con un entrenador u objeto, además de que puede que
+te quites cartas del mazo». Y: «necesito un contador de cuántas cartas
+tienes en mano cuando juegas tú contra ti mismo».
+
+**Lo que faltaba en los caminos** (`js/constructor/caminos.js`), medido
+antes de tocar nada con mesas de prueba:
+
+- **Un básico cuya habilidad va con su botón** (Fezandipiti ex, Teal Mask
+  Ogerpon ex, Fan Rotom, Genesect ex) no era un paso: en la mano no hace
+  nada y solo se miraban los que saltan solos al bajar (Meowth ex). Ahora
+  es UN paso, «Bajar Fezandipiti ex y usar Flip the Script» (`tipo:
+  'banca'`, `usa: true`); si la habilidad no se puede usar (sin un KO en el
+  turno del rival), `usarHabilidad` lanza `NoSePuede` y el paso no cuenta.
+  Los de «solo en el puesto activo» (Tatsugiri) no: bajarlo no la deja usar.
+- **Y como puente**: la Ultra Ball no sabía que coger a Fezandipiti servía
+  de algo, ni a Kadabra —que roba AL evolucionar (`cuando: 'evolucionar'`)
+  y se quedaba fuera porque solo contaban las evoluciones con botón—.
+- **Adelgazar el mazo.** Una búsqueda que deja coger más de lo que hace
+  falta coge lo que pueda (`uiAFavor`): cada carta que sale del mazo hace
+  más fácil robar la buscada después. Poffin a la banca y luego Lillie's
+  pasa de 8/27 a 8/25. Dos excepciones: a la BANCA se deja un hueco libre
+  (para bajar un Fezandipiti después), y a la MANO no se coge nada si hay a
+  tiro —en la mano, en juego o en el mazo— una carta que roba HASTA tener N
+  (`robaSegunMano` en Ariana, Surfista y Kilowattrel de Iris): ahí cada
+  carta de más en la mano es una menos que robas. Solo adelgaza la búsqueda
+  que dice adónde van las cartas: `buscarEnMazo` y `mirarYCoger` pasan
+  `destino` al `ui` (los demás `ui` lo ignoran).
+- **Vaciar la mano también prepara**, con una de esas cartas a tiro: un
+  Martillo antes de Ariana es robar una más. Hasta ahora solo pasaba al
+  nivel siguiente un paso que MOVÍA el mazo (595), y el Martillo no lo mueve.
+- **El paso lo dice donde cuenta**: «Buddy-Buddy Poffin · cogiendo todas
+  las que deje: el mazo adelgaza». Coger de más antes de un Lillie's no
+  cambia nada (la mano vuelve al mazo), así que el camino se juega otra vez
+  sin adelgazar y se compara reparto a reparto (`adelgazarCuenta`, con la
+  misma prueba de McNemar que el orden de la 623, ahora `ganaDeVerdad`). En
+  el último paso no se mira (detrás no queda nada que robe), y se miran los
+  ocho primeros caminos; en el resto no se dice.
+
+**Barajar por estratos.** Hasta aquí, lo de después de barajar (un Poffin,
+una Ultra Ball, Dudunsparce que vuelve al mazo) era una muestra: ±2 puntos
+con 400 repartos. Eso tapaba justo lo que PINGU pedía ver, porque dos
+cartas menos en el mazo son dos puntos. Ahora, mientras se buscan los
+caminos, la partida lleva un `barajar` propio: baraja de verdad y luego
+pone la primera copia de la buscada en el sitio del estrato que le toca a
+ESE reparto (`repartoDeCaminos`) en ESA barajada (`barajadasDeCaminos`, la
+k-ésima del camino); cada barajada reparte los estratos de nuevo. Es el
+mismo reparto —tras barajar, la carta está en cualquier sitio con la misma
+probabilidad— contado en vez de sorteado, y empareja: con y sin adelgazar,
+la k-ésima barajada de un reparto pone la carta en el mismo trozo del mazo.
+Con una copia, Ultra Ball → Kadabra da 2/23 y Poffin → Lillie's 8/25,
+exactos. El `barajar` se quita al acabar, pase lo que pase (`try/finally`),
+y el estado de verdad no lleva `repartoDeCaminos`, así que si algo baraja
+la partida real mientras el cálculo cede el paso, baraja normal.
+
+**Probar puentes**, en 32 repartos repartidos por los estratos en vez de
+los 24 primeros: un puente que roba 2 de 39 no acertaba ninguna vez en uno
+de cada cuatro mazos, y entonces no era puente.
+
+**Coste**: en una mesa de Dragapult con seis cartas en la mano, de 2,7 a
+3,3 s (28.600 → 35.700 jugadas). Lo nuevo de verdad son los pasos de
+Fezandipiti y las comprobaciones de adelgazar; las segundas reutilizan lo
+jugado de un camino que empieza igual.
+
+**La mano contada en «tú contra ti»** (`pilasHtml` en
+`js/constructor/laboratorio.js`): tu lado lleva «N en la mano» junto al
+mazo y al descarte, como el del rival. Abajo está la mano entera, pero en
+el móvil su cabecera —la que lleva la cuenta— está escondida, y al girar la
+mesa cada uno tiene que ver lo mismo de sí que del otro. Contra el muñeco
+no sale. En el móvil va en la fila del mazo con las medidas del rival
+(pila de 32 px, pie del activo de 64); por debajo de 380 px no cabe junto a
+tu activo, que es más grande, y va debajo del mazo, como en el escritorio.
+
+Pruebas: `test-tanda-630.mjs` (cifras exactas de cada caso, el texto del
+panel, la partida intacta y la pila en 1440, 390, 380 y 360 px) y su rigor
+(20 mutaciones, todas cazadas). No se mutan, a propósito, dos cosas que no
+se pueden observar: no mirar adelgazar en el último paso (es solo para ir
+más deprisa) y los repartos de probar puentes (afinan un valor interno).
