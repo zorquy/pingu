@@ -4,7 +4,7 @@
 // rellena uno por pasada, desesconde, cuenta créditos, para con 403 y
 // salta a la tercera con un 500 suyo; con un fallo nuestro para sin contar.
 import { readFileSync } from 'node:fs'
-import { filaDeCartaScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
+import { filaDeCartaScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION, VERSION_NOMBRES, nombreInglesDe } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
@@ -18,7 +18,9 @@ console.log('── 1. Una carta suya, con nuestras columnas ──')
   check('ataques con coste, daño y efecto en nuestra forma', f.attacks.length === 3 && f.attacks[0].name === 'Jet Punch' && f.attacks[0].cost[0] === 'Grass' && f.attacks[0].damage === '30' && /Benched/.test(f.attacks[0].effect))
   check('debilidad, retirada, PS, tipos, fase y Pokédex', f.weaknesses[0].type === 'Fire' && f.retreat === 2 && f.hp === 260 && f.types[0] === 'Grass' && f.stage === 'Basic' && f.dex_ids.join(',') === '794,795', JSON.stringify([f.weaknesses, f.retreat, f.hp, f.types, f.stage, f.dex_ids]))
   check('rareza inglesa, ilustrador, categoría sin tilde, origen y detalle', f.rarity_en === 'Rare Holo GX' && f.illustrator && f.category === 'Pokemon' && f.origen === 'scrydex' && f.detalle_lang === 'en' && !('scrydex_id' in f) && f.scrydex_at)
-  check('en japonés no se afirma name_en', !('name_en' in filaDeCartaScrydex(SM10, { setId: 'x', mercado: 'JP', idioma: 'ja' })))
+  const ja = filaDeCartaScrydex({ ...SM10, name: 'フェローチェ＆マッシブーンGX' }, { setId: 'x', mercado: 'JP', idioma: 'ja' })
+  check('en japonés el nombre se queda y el inglés sale de la Pokédex (685)', ja.name === 'フェローチェ＆マッシブーンGX' && ja.name_en === 'Buzzwole & Pheromosa-GX', JSON.stringify([ja.name, ja.name_en]))
+  check('nombreInglesDe: fase, ex/EX, mega, V, y sin Pokédex nada', nombreInglesDe({ national_pokedex_numbers: [9], subtypes: ['Stage 2'] }) === 'Blastoise' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['Basic', 'ex'] }) === 'Charizard ex' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['Basic', 'EX'] }) === 'Charizard-EX' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['MEGA', 'EX'] }) === 'M Charizard-EX' && nombreInglesDe({ national_pokedex_numbers: [25], subtypes: ['Basic', 'V'] }) === 'Pikachu V' && nombreInglesDe({ subtypes: ['Item'] }) === null && nombreInglesDe({ national_pokedex_numbers: [1, 2, 3] }) === null)
   check('faseDe: «Stage 1» → Stage1, y GX no es fase', faseDe(['Stage 1', 'GX']) === 'Stage1' && faseDe(['GX']) === null)
   check('idNuestro limpia', idNuestro('SV1a-001') === 'scrydex-sv1a-001')
   check('baseDeFoto sin cara, null', baseDeFoto({ images: [{ type: 'back', large: 'https://images.scrydex.com/pokemon/x/large' }] }) === null)
@@ -79,15 +81,20 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const { correr, escrito, estados, peticiones } = montar()
     const r1 = await correr()
     check('primera pasada: la lista (1 crédito) y el primer vacío rellenado (1 crédito)', r1.ok && r1.rellenado?.set === 'BASE1_' && r1.rellenado.cartas === 2 && r1.rellenado.por === 'nombre' && r1.creditos === 2, JSON.stringify(r1))
-    check('  …las cartas con nuestro id, set, mercado y foto', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン', JSON.stringify(escrito.cartas[0]).slice(0, 220))
+    check('  …las cartas con nuestro id, set, mercado, foto y nombre inglés', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン' && escrito.cartas[0].name_en === 'Buzzwole & Pheromosa-GX', JSON.stringify(escrito.cartas[0]).slice(0, 220))
     check('  …con las mismas claves las dos (igualarClaves)', Object.keys(escrito.cartas[0]).join() === Object.keys(escrito.cartas[1]).join())
     check('  …y el set desescondido y apuntado', escrito.parches[0]?.body.oculto === false && escrito.parches[0].body.scrydex_id === 'base1' && /id=eq\.BASE1_/.test(escrito.parches[0].ruta))
     const r2 = await correr()
     check('segunda pasada: el lleno se apunta y el siguiente vacío no casa → sinPar, sin gastar', r2.ok && r2.mirado?.set === 'RARO' && r2.mirado.estado === 'sinPar' && r2.creditos === 2 && estados[CLAVE_ESTADO].vistos['JP|LLENO']?.estado === 'lleno', JSON.stringify(r2))
     const r3 = await correr()
     check('tercera: la lista occidental (vacía, 1 crédito) y nada más que hacer', r3.ok && r3.hecho === true && r3.creditos === 3 && !peticiones.some((u) => /no prevista/.test(u)), JSON.stringify(r3))
+    // Un rellenado de ANTES de los nombres (685) se vuelve a pasar, uno por
+    // pasada, antes de buscar más vacíos.
+    estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres = 0
+    const rn = await correr()
+    check('un rellenado sin nombres ingleses se vuelve a escribir con ellos (1 crédito)', rn.ok && rn.nombres?.set === 'BASE1_' && rn.nombres.conNombreIngles === 2 && rn.creditos === 4 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres === VERSION_NOMBRES, JSON.stringify(rn))
     const r4 = await correr(new Date('2026-10-20T12:00:00Z'))
-    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 4 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
+    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 5 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
   }
   {
     const { correr, estados } = montar({ scrydexStatus: 403 })
