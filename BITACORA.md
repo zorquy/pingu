@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 7) — PINGU-Claude (672 — el Panel global, los cascarones japoneses escondidos, el valor de los sets japoneses)
+
+**Hecho**: el vistazo de Expansiones del Panel cuenta tus líneas de
+todos los catálogos (y pulsar una de otro catálogo entra con ese
+catálogo puesto); el barrido de huecos esconde los sets vacíos que no
+son ninguna expansión de TCGGO; y la pasada de precios apunta el valor
+de los sets japoneses en la siguiente pasada, no mañana.
+
+**Ficheros**: `js/mi-coleccion.js`, `netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+En `pruebas`: 672-pantalla (nueva) y 670.
+
+**Pendiente**: Celebrations (25 aniversario) con su Classic como set
+aparte, como el 30 — PINGU lo deja para después; la migración
+corea-china.
 ## 2026-10-06 (mañana, 6) — PINGU-Claude (671 — las japonesas sin precio, el enlace japonés, coreano y chino)
 
 **Hecho**: la pasada de precios completa el mapa japonés con nuestros

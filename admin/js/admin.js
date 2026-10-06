@@ -3048,7 +3048,7 @@ async function tcggoEstado() {
       const vistos = Object.entries(h.vistos || {})
       const de2 = (estado) => vistos.filter(([, v]) => v.estado === estado)
       return [
-        `HUECOS (sets sin cartas, 670): ${vistos.length} mirados · ${de2('lleno').length} con cartas · ${de2('rellenado').length} rellenados · ${de2('hermano').length} plegados con otro · ${de2('sinEpisodio').length + de2('vacioEnTcggo').length} sin expansión suya · ${de2('parado').length} parados`,
+        `HUECOS (sets sin cartas, 670): ${vistos.length} mirados · ${de2('lleno').length} con cartas · ${de2('rellenado').length} rellenados · ${de2('hermano').length} plegados con otro · ${de2('sinEpisodio').length + de2('vacioEnTcggo').length} sin expansión suya · ${de2('ocultado').length} escondidos (vacíos sin expansión) · ${de2('parado').length} parados`,
         ...de2('rellenado').map(([k, v]) => `  · rellenado ${k} ← expansión #${v.episodio} (${v.cartas} cartas, ${v.fecha})`),
         ...de2('parado').map(([k, v]) => `  ⚠ parado ${k}: ${v.error}`),
         h.ultimoError ? `  último error: ${h.ultimoError.set} (intento ${h.ultimoError.intento}, ${h.ultimoError.fecha}): ${h.ultimoError.error}` : '',

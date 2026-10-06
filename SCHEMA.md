@@ -32513,3 +32513,49 @@ precio inglés de una impresión japonesa. Ahora en JP solo si viene `_EN`.
 enlace; la pasada con dobles: mapa desde los sets, plan que bloquea solo
 lo japonés un día, reintento sin las columnas), `test-tanda-589.mjs`
 ajustada.
+
+## Tanda 672 — el Panel es global, los cascarones japoneses se esconden y el valor de los sets japoneses (oct. 2026)
+
+PINGU, con tres capturas: «sigue habiendo sets japoneses sin cartas
+(Expansion Pack); el Panel depende del catálogo escogido y tiene que
+ser global; y mira la diferencia entre los bloques japoneses y los
+ingleses».
+
+**1. El Panel, global.** El vistazo de Expansiones contaba las cartas
+del catálogo ABIERTO (`cartas`, `tengoDe`): con el japonés puesto no
+salía ninguna occidental y decía «cuando añadas cartas». Ahora cuenta
+TUS líneas de todos los catálogos (`lineasTodo` con su carta en
+`cartasTodo`), agrupadas por mercado y set padre (646), contra los sets
+de todos los mercados (`cargarSetsDeTodos`, una consulta sin filtro de
+mercado, cacheada) y con el valor de todos (`cargarValoresDeSets({
+todos: true })`). Cada tarjeta lleva `data-market`, y pulsar una de OTRO
+catálogo entra con ese catálogo puesto (`?ver=album&set=…&catalogo=JP`,
+lo de la 656). El vistazo de «Tus cartas» y el hero ya eran globales.
+
+**2. Los cascarones.** El barrido de huecos (670) deja «sinEpisodio» un
+set vacío que no casa con ninguna expansión de TCGGO; a la semana lo
+volvía a mirar y seguía igual. Son los 68 sets japoneses que TCGdex
+trae con nombre, logo y cuenta pero sin una carta (XY, ADV, Legend,
+medio S). Ahora se ESCONDEN (`oculto = true`, estado `ocultado`): sin
+cartas no hay nada de nadie dentro, y si TCGGO los trae algún día el
+catálogo los crea aparte. Los ya vistos como `sinEpisodio` se vuelven a
+mirar a la semana y entonces se esconden; /admin los cuenta.
+
+**3. El valor de los sets japoneses.** Los bloques japoneses salían sin
+Valor, Semanal ni gráfica porque `tcg_set_valor` no tenía filas
+japonesas: la fase de sets de `tcggo-precios` corre una vez al día y
+hoy ya había corrido cuando la 671 amplió el mapa japonés. Desde ahora
+la fase corre también cuando los sets japoneses no se han apuntado hoy
+(`estado.setsJpApuntados`), así que el valor entra en la pasada
+siguiente, y la tarjeta japonesa se pinta igual que la occidental.
+
+**Lo que queda**: Celebrations (25 aniversario) tiene su Classic
+Collection como set aparte con números repetidos, como pasaba con el
+30 — PINGU lo vio y lo deja para después.
+
+**Ficheros**: `js/mi-coleccion.js`, `netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `admin/js/admin.js`.
+**Pruebas**: `test-tanda-672-pantalla.mjs` (el Panel con el catálogo
+occidental y con el japonés: las dos expansiones, la japonesa con valor
+y progreso, y pulsarla cambia de catálogo), `test-tanda-670.mjs`
+(el cascarón se esconde).

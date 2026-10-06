@@ -461,7 +461,17 @@ export async function barrerHuecos({ env = process.env, restImpl = null, pedir, 
         por = r.por
       }
       if (!episodio) {
-        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'sinEpisodio', porque: String(por || '') }
+        // Un set vacío que no es ninguna expansión de TCGGO es un cascarón
+        // (672): TCGdex trae nombre y logo de 68 sets japoneses sin una
+        // carta. PINGU: «sigue habiendo sets japoneses sin cartas». Se
+        // esconde (`oculto`): sin cartas no hay nada de nadie dentro, y si
+        // TCGGO lo trae algún día el catálogo lo crea aparte.
+        try {
+          await pedir(`tcg_sets?market=eq.${m}&id=eq.${encodeURIComponent(set.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
+          h.vistos[k] = { fecha: ahora.toISOString(), estado: 'ocultado', porque: String(por || '') }
+        } catch {
+          h.vistos[k] = { fecha: ahora.toISOString(), estado: 'sinEpisodio', porque: String(por || '') }
+        }
         resumen.sinEpisodio++
         continue
       }

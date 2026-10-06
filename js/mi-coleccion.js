@@ -1241,15 +1241,27 @@ function vistazoDeCartas() {
 // mejor en el primero y la verdad es que acabas antes el segundo.
 
 function vistazoDeSets(sets) {
-  const conAlgo = (sets || [])
-    .map((s) => {
-      // Las de sus hijos cuentan como suyas: si no, el vistazo diría que
-      // de una colección plegada tienes menos de las que tienes.
-      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
-      const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
-      return { set: s, tengo }
+  // GLOBAL desde la 672: se cuentan TUS líneas de todos los catálogos
+  // (`lineasTodo`, con su carta en `cartasTodo`), no las del catálogo
+  // abierto. Las de los hijos cuentan en el padre (646).
+  const lineasBase = lineasTodo.length ? lineasTodo : lineas
+  const busca = lineasTodo.length ? cartaDeLineaTodo : cartaDeLinea
+  const porSet = new Map()
+  for (const l of lineasBase) {
+    const c = busca(l)
+    if (!c?.set_id || !(Number(l.cantidad) > 0)) continue
+    const m = c.market || l.market || mercado
+    const k = `${m}|${padreDeColeccion(c.set_id) || c.set_id}`
+    if (!porSet.has(k)) porSet.set(k, new Set())
+    porSet.get(k).add(l.card_id)
+  }
+  const conAlgo = [...porSet.entries()]
+    .map(([k, ids]) => {
+      const [m, id] = k.split('|')
+      const s = (sets || []).find((x) => x.id === id && (x.market || 'WEST') === m)
+      return s ? { set: s, tengo: ids.size } : null
     })
-    .filter((x) => x.tengo > 0)
+    .filter((x) => x && x.tengo > 0)
     // LAS MÁS NUEVAS PRIMERO (tanda 451), no las que tienes más llenas.
     // PINGU: «¿qué ha pasado con las expansiones? ¿Ya no están las más
     // nuevas? Escarlata y Púrpura se ha ido hacia abajo». Ordenaba por
@@ -1341,8 +1353,12 @@ async function pintarVistazos() {
   // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
   // se abre y no puede quedarse en blanco esperando a dos consultas.
   caja.innerHTML = vistazoDeCartas()
-  const sets = await cargarSets().catch(() => null)
+  // Los sets y su valor de TODOS los catálogos (672), y el registro de qué
+  // set cuelga de cuál con todos ellos en la mano (646).
+  const [sets] = await Promise.all([cargarSetsDeTodos().catch(() => null), cargarValoresDeSets({ todos: true })])
   if (pestania !== 'resumen') return
+  if (version !== vistazosVersion) return
+  registrarEpisodios(sets || [])
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
   // LAS QUE MÁS SE MUEVEN (663), que llegan por su cuenta: es una consulta
   // al histórico y el Panel no la espera. Se colocan detrás de las
@@ -2275,6 +2291,23 @@ async function cargarEras() {
   return erasAMano
 }
 
+// EL PANEL ES GLOBAL (672). PINGU: «me voy a Expansiones, selecciono
+// japonés, vuelvo al Panel y no salen expansiones porque depende del
+// catálogo que haya escogido. El Panel tiene que ser global, tanto para
+// precios como para todo». Los sets de todos los mercados, una vez.
+let setsDeTodos = null
+async function cargarSetsDeTodos() {
+  if (setsDeTodos) return setsDeTodos
+  const { data } = await supabase
+    .from('tcg_sets')
+    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id')
+    .order('release_date', { ascending: false, nullsFirst: false })
+    .order('id')
+    .limit(2000)
+  setsDeTodos = (data || []).filter((s) => esDelTCG(s) && !s.oculto)
+  return setsDeTodos
+}
+
 async function cargarSets() {
   if (todosLosSets) return todosLosSets
   const { data } = await supabase
@@ -2371,9 +2404,13 @@ export function fechasDeValor(ahora = new Date(), { semanas = 39, dias = 8 } = {
   for (let s = 1; s <= semanas; s++) fechas.add(dia(s * 7))
   return [...fechas].sort()
 }
-async function cargarValoresDeSets() {
+async function cargarValoresDeSets({ todos = false } = {}) {
   try {
-    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).in('dia', fechasDeValor()).order('dia').limit(20000)
+    // El Panel (672) los pide de todos los mercados: enseña expansiones de
+    // cualquier catálogo. Los ids de set no chocan entre mercados.
+    let consulta = supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').in('dia', fechasDeValor()).order('dia').limit(20000)
+    if (!todos) consulta = consulta.eq('market', mercado)
+    const { data } = await consulta
     const filas = data || []
     const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     variacionDeSets = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8))
@@ -2631,7 +2668,7 @@ function tarjetaDeSet(set, tengo) {
   const semanal = v?.pct === null || v?.pct === undefined ? '' : `<b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
   const serie = seriesDeSets.get(set?.id)
   return `
-    <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
+    <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(set.market || mercado)}">
       <span class="mc-set-cab">
         ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(dibujos[0])}')" aria-hidden="true"></span>` : ''}
         <span class="mc-set-mini"><span class="mc-set-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span></span>
@@ -5209,6 +5246,12 @@ function enganchar() {
     // lo que espera quien pulsa una tarjeta con su nombre y su progreso.
     const set = e.target.closest('[data-set]')
     if (!set) return
+    // Una expansión de OTRO catálogo (672): se entra con ese catálogo
+    // puesto, que es lo que hace `?catalogo=` al arrancar (la 656).
+    if (set.dataset.market && set.dataset.market !== mercado) {
+      location.href = `${location.pathname}?ver=album&set=${encodeURIComponent(set.dataset.set)}&catalogo=${encodeURIComponent(set.dataset.market)}`
+      return
+    }
     cambiarPestania('album')
     void abrirAlbum(set.dataset.set)
   })

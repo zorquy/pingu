@@ -188,7 +188,9 @@ export async function procesar({
   // pasada siguiente y no mañana.
   let setsApuntados = 0
   const listaSinValor = episodios.length > 0 && !episodios.some((e) => e.valorCm != null)
-  if (!estado.setsApuntados || (listaSinValor && !estado.setsConValor)) {
+  // Y también si los sets JAPONESES no se han apuntado hoy (672): el mapa
+  // japonés creció con la 671 y sus valores no podían esperar a mañana.
+  if (!estado.setsApuntados || (listaSinValor && !estado.setsConValor) || (!estado.setsJpApuntados && setsPorEpisodioJp.size)) {
     let lista = episodios
     if (lista.length && (!lista.some((e) => e.logo) || listaSinValor)) {
       const nueva = []
@@ -241,6 +243,7 @@ export async function procesar({
       if (filasJp.length) {
         try {
           setsApuntados += Number(await guardarSets(filasJp, 'JP')) || 0
+          estado.setsJpApuntados = true
         } catch { /* los japoneses no paran la pasada de precios */ }
       }
     }
