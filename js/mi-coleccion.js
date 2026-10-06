@@ -368,7 +368,7 @@ function idiomaDeLaVista() {
 // La puerta es el «+» pegado a la carta, que abre este diálogo. Con la
 // carta ya en tu colección enseña primero lo que tienes («Ya en tu
 // colección», con «Añadir más»); si no, el formulario directamente.
-const anadir = { carta: null }
+const anadir = { carta: null, variante: null }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
@@ -388,15 +388,20 @@ const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
 // El dibujo va en línea y no en js/icons.js: ese fichero lo baja la
 // portada, que no tiene sitio (CLAUDE.md).
 const DIBUJO_MAS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
-function masHtml(c, nombre) {
+// Con `variante`, el «+» es de ESA casilla (692): en «separar variantes»
+// el de la reverse añade una reverse, no una normal más. PINGU: «añadiendo
+// las variantes de reverse no se añade cada variante».
+function masHtml(c, nombre, variante = null) {
   if (!esMia || !sesion || !c?.id) return ''
-  return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}" aria-label="Añadir ${escapeHtml(nombre)} a mi colección" title="Añadir a mi colección">${DIBUJO_MAS}</span>`
+  const v = variante ? varianteDe(variante) : null
+  return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.id)}"` : ''} aria-label="Añadir ${escapeHtml(nombre)}${v ? ` (${escapeHtml(v.nombre)})` : ''} a mi colección" title="Añadir a mi colección">${DIBUJO_MAS}</span>`
 }
 
-function abrirAnadir(cardId) {
+function abrirAnadir(cardId, variante = null) {
   const c = cartaPorId(cardId)
   if (!c || !sesion || !esMia) return
   anadir.carta = c
+  anadir.variante = variante
   const d = $('mcAnadirDialogo')
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   $('mcAdCarta').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="eager" />` : ''
@@ -408,7 +413,9 @@ function abrirAnadir(cardId) {
   if (mias.length) {
     $('mcAdYaLista').innerHTML = mias.map((l) => `<div class="mc-ad-ya-linea"><span class="mc-ficha-chapas">${chipsDe(l)}</span><b>${l.cantidad} ${l.cantidad === 1 ? 'copia' : 'copias'}</b></div>`).join('')
   }
-  caraDeAnadir(mias.length ? 'ya' : 'form')
+  // Si el «+» viene de una casilla de versión, se va directo al formulario
+  // con esa versión puesta: lo que se pide es «una de ESTAS», no «otra».
+  caraDeAnadir(mias.length && !variante ? 'ya' : 'form')
   if (!d.open) d.showModal()
 }
 
@@ -425,8 +432,9 @@ function caraDeAnadir(cara) {
   pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
   $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
   // Las versiones de ESA carta (563): con una sola no hay nada que elegir.
-  const vs = variantesParaEditar(c, null)
-  $('mcAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
+  const vs = variantesParaEditar(c, anadir.variante || null)
+  const puesta = anadir.variante && vs.some((v) => v.id === anadir.variante) ? anadir.variante : vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id
+  $('mcAdVariante').innerHTML = opciones(vs, puesta)
   $('mcAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
   $('mcAdCantidad').value = '1'
   $('mcAdCompra').value = ''
@@ -2934,7 +2942,7 @@ function bolsilloDeVariante(c, v) {
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
     ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
     ${chapaDeVarianteHtml(v.nuestro)}
-    ${masHtml(c, nombre)}`
+    ${masHtml(c, nombre, v.nuestro)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   // SIN MANDO (tanda 565). PINGU, con Dex delante: «Dex no tiene botón de
   // agregar desde ahí: le das a una, te sale la ficha, y ahí eliges la
@@ -3161,7 +3169,7 @@ function celdaDeCuadriculaHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     ${n > 1 ? `<span class="mc-rejilla-copias" aria-hidden="true">×${n}</span>` : ''}
-    ${masHtml(c, nombre)}
+    ${masHtml(c, nombre, v?.nuestro || null)}
   </a>`
 }
 
@@ -4502,15 +4510,22 @@ let textoEspecie = ''
 function pintarEspecieFiltrada() {
   const caja = $('mcPokedexPanel')
   if (!caja || especieAbierta == null) return
-  // «La tengo» en el idioma elegido, o en cualquiera (577).
-  const tuyas = new Set(lineas.filter((l) => !pdxIdioma || l.idioma === pdxIdioma).map((l) => l.card_id))
+  // «La tengo» en el idioma elegido, o en cualquiera (577). Y por versión
+  // (692): con las variantes separadas cada casilla es UNA versión.
+  const mias = lineas.filter((l) => !pdxIdioma || l.idioma === pdxIdioma)
+  const tuyas = new Set(mias.map((l) => l.card_id))
+  const tuyasPorVersion = new Map()
+  for (const l of mias) tuyasPorVersion.set(l.card_id, (tuyasPorVersion.get(l.card_id) || new Map()).set(l.variante || 'normal', (tuyasPorVersion.get(l.card_id)?.get(l.variante || 'normal') || 0) + (Number(l.cantidad) || 1)))
+  const versionesDe = (c) => variantesDeCarta(c).map((v) => ({ id: v.nuestro, nombre: v.nombre, corto: v.corto }))
+  const tengoVersion = (c, id) => tuyasPorVersion.get(c.id)?.get(id) || 0
   const grupos = valoresDeCartas(cartasDeLaEspecie, AYUDAS)
   // Se compara por el RÓTULO traducido y no por el valor crudo: la columna
   // tiene las dos formas mezcladas porque TCGdex traduce los enums y el
   // catálogo se ha importado en varios idiomas (tanda 455).
   const texto = normalizeSearch(textoEspecie).trim()
   const lista = cartasDeLaEspecie.filter((c) => {
-    if (pdxSoloFaltan && tuyas.has(c.id)) return false
+    // Con las versiones separadas, «me falta» es que falte ALGUNA versión.
+    if (pdxSoloFaltan && (album.split ? versionesDe(c).every((v) => tengoVersion(c, v.id) > 0) : tuyas.has(c.id))) return false
     if (!pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS)) return false
     // Por nombre, número o ilustrador, igual que el buscador de Buscar
     // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
@@ -4535,6 +4550,10 @@ function pintarEspecieFiltrada() {
     soloFaltan: pdxSoloFaltan,
     idioma: pdxIdioma,
     idiomas: idiomasDeLaVista(),
+    separadas: album.split,
+    versionesDe,
+    tengoVersion,
+    masDe: (c, variante) => masHtml(c, nombreDe(c), variante),
   })
   // El selector de catálogo se repinta porque la cabecera entera es HTML
   // nuevo: sus `<option>` los pone `pintarVistas`, y sin esta llamada
@@ -5761,10 +5780,13 @@ function enganchar() {
     if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return
     e.preventDefault()
     e.stopPropagation()
-    abrirAnadir(b.dataset.anadir)
+    abrirAnadir(b.dataset.anadir, b.dataset.variante || null)
   }
   $('mcAlbum')?.addEventListener('click', pulsarMas, true)
   $('mcAlbum')?.addEventListener('keydown', pulsarMas, true)
+  // Y en la Pokédex (692), que desde ahora también tiene «+» por casilla.
+  $('mcPokedexPanel')?.addEventListener('click', pulsarMas, true)
+  $('mcPokedexPanel')?.addEventListener('keydown', pulsarMas, true)
   engancharFicha('mcPanelPokedex', '.pdx-carta')
   // ── EL PANEL TAMBIÉN (tanda 562) ──
   //
@@ -5783,6 +5805,14 @@ function enganchar() {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
     if (e.target.closest('#pdxSoloFaltan')) {
       pdxSoloFaltan = !pdxSoloFaltan
+      pintarEspecieFiltrada()
+    }
+    // Juntas / separadas, la MISMA memoria que en una expansión (692):
+    // quien colecciona set maestro lo quiere igual en los dos sitios.
+    if (e.target.closest('#pdxVariantes')) {
+      album.split = !album.split
+      try { localStorage.setItem('mc-split', album.split ? '1' : '0') } catch {}
+      pintarVistaVariantes()
       pintarEspecieFiltrada()
     }
   })

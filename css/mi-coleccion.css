@@ -3881,6 +3881,14 @@ input.mc-alb-titulo:not([readonly]):focus {
    y `aspect-ratio` no actúa (solo actúa si un lado es auto). Resultado:
    cartas de 144×342 en vez de 144×201, largas como una tira. Se midió,
    no se dedujo. */
+/* La foto va en su caja (692): la chapa de la versión, el velo de la
+   reverse y el «+» se colocan sobre la FOTO, no sobre el rótulo del set. */
+.pdx-carta-foto {
+  display: block;
+  position: relative;
+  border-radius: var(--radius-sm);
+}
+
 .pdx-carta img {
   width: 100%;
   height: auto;

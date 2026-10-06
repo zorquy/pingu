@@ -33594,3 +33594,44 @@ vistazo) y pasa `firma` (las cartas del líder o las tres primeras).
 reglas), 689-pantalla (cuatro puntos, los datos de las tres nuevas,
 sprites de mentira por `page.route`); 571, 574, 582 y 645-pantalla
 siguen.
+
+## Tanda 692 — el «+» de una casilla de versión añade ESA versión, y la Pokédex separa las variantes (oct. 2026)
+
+PINGU, con dos capturas: «añadiendo las variantes de reverse y así, no se
+añade cada variante. Debería añadirse. Y en la Dex también solo sale la
+carta única y no salen las variantes; deberías meter el filtro de las
+variantes también en la Dex».
+
+**El «+» de la reverse añadía una normal.** En «separar variantes» cada
+casilla es UNA versión, pero el «+» de todas llevaba solo el id de la
+carta: abría el diálogo con «normal» puesta y, como la normal ya estaba
+en la colección, por la cara de «ya la tienes → añadir más». La reverse
+entraba como una normal más («×2») y la casilla de la reverse seguía
+vacía, sin error. Ahora `masHtml(c, nombre, variante)` lleva
+`data-variante` en las casillas de versión (archivador y cuadrícula),
+`abrirAnadir(cardId, variante)` la guarda en `anadir.variante`, el
+formulario la pone en el desplegable (`variantesParaEditar(c, variante)`,
+por si no estuviera entre las de la carta), y con versión se va DIRECTO
+al formulario aunque tengas la carta: lo que se pide es «una de ESTAS»,
+no «otra». Con las variantes juntas no cambia nada.
+
+**La Pokédex de un Pokémon, con «Variantes juntas / separadas».** El chip
+`#pdxVariantes` va en la barra de la especie al lado de «Solo las que me
+faltan» y comparte memoria con el de la expansión (`album.split`,
+`mc-split`): quien colecciona set maestro lo quiere igual en los dos
+sitios. Separadas, cada carta sale una vez por versión
+(`casillaDeEspecie`) con la chapa de la versión, el velo de la reverse,
+«×N» y el «+» de esa versión; «la tengo» se mira por versión
+(`tuyasPorVersion`, con el idioma de la 577) y «solo las que me faltan»
+deja las versiones que faltan, no las cartas. La foto va en su caja
+(`.pdx-carta-foto`) para que la chapa y el «+» se coloquen sobre la
+carta y no sobre el rótulo del set. Y el «+» de la Pokédex pasa por el
+mismo oyente en captura que el del álbum (`pulsarMas` en
+`#mcPokedexPanel`): abre el diálogo y no la ficha.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`css/mi-coleccion.css`. **Pruebas**: `test-tanda-692.mjs` (el «+» de la
+reverse en el álbum, guardado, la normal sigue con una; juntas como
+antes; la Pokédex separada con chapas, velo, «solo las que me faltan» por
+versión, el «+» y el chip que las junta); 657, 577, 650-pantalla, 564,
+453, 418, 381, 437 siguen.

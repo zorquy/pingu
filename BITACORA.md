@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 15) — PINGU-Claude (692 — el «+» de la reverse añade una reverse; la Pokédex separa las variantes)
+
+**Hecho**: en «separar variantes» el «+» de cada casilla lleva su
+versión y el diálogo abre directo en el formulario con ella puesta (la
+reverse entraba como una normal más). La Pokédex de un Pokémon tiene el
+chip «Variantes juntas / separadas» (misma memoria que la expansión):
+separadas, una casilla por versión con chapa, velo, «×N» y «+», y «solo
+las que me faltan» mira por versión.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: 692 (nueva).
+
+**Pendiente**: lo de la 691 (que PINGU pase las cuatro imágenes) y los
+bloques de /admin.
+
 ## 2026-10-06 (tarde, 14) — PINGU-Claude (632 — Mis partidas al mejor de tres, juego a juego)
 
 **Hecho**: el resultado de una partida se apunta juego a juego, como en

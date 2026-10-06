@@ -257,7 +257,7 @@ export function rejillaHtml(filas, orden = 'dex') {
 // no veintiún mil: «un Bulbasaur de Pokémon GO» se encuentra antes
 // escribiendo que mirando treinta dibujos, y PINGU lo dijo — «quizá aquí
 // puedes quitarla, pero yo igualmente la mantendría».
-function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '', idiomas = [] } = {}) {
+function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '', idiomas = [], separadas = false } = {}) {
   return `<div class="mc-filtros">
     <div class="mc-buscador">
       <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
@@ -270,6 +270,8 @@ function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '
       <!-- Solo las que me faltan, y en qué idioma cuentan mis copias
            (tanda 577): lo mismo que en una expansión. -->
       <button type="button" class="chip-filtro mc-chip-mando${soloFaltan ? ' activa' : ''}" id="pdxSoloFaltan" aria-pressed="${soloFaltan ? 'true' : 'false'}">Solo las que me faltan</button>
+      <!-- Juntas / separadas (692), como en una expansión y con la misma memoria. -->
+      <button type="button" class="chip-filtro mc-chip-mando${separadas ? ' activa' : ''}" id="pdxVariantes" aria-pressed="${separadas ? 'true' : 'false'}">${separadas ? 'Variantes separadas' : 'Variantes juntas'}</button>
       <select class="mc-chapa-select" id="pdxIdioma" aria-label="En qué idioma cuentan tus copias">
         <option value=""${idioma ? '' : ' selected'}>Cualquier idioma</option>
         ${idiomas.map((i) => `<option value="${escapeHtml(i.id)}"${i.id === idioma ? ' selected' : ''}>Tengo en ${escapeHtml(i.nombre.toLowerCase())}</option>`).join('')}
@@ -292,31 +294,47 @@ export function gruposDeEspecieHtml(grupos, puestos) {
     .join('')
 }
 
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [] }) {
+// Una casilla de la especie (692): la carta entera o UNA de sus versiones,
+// con la chapa de la versión, el velo de la reverse y el «+» de esa
+// versión, como en el álbum de una expansión.
+function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '' }) {
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  const set = nombreDeSet(c.tcg_sets) || c.set_id
+  const rotulo = `${nombreDe(c)}${version ? ` — ${version.nombre}` : ''} — ${set}${mia ? (copias > 1 ? `, tienes ${copias}` : ', la tienes') : ', te falta'}`
+  return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}"${version ? ` data-version="${escapeHtml(version.id)}"` : ''} title="${escapeHtml(rotulo)}" aria-label="${escapeHtml(rotulo)}">
+    <span class="pdx-carta-foto">
+      ${
+        escaneo
+          ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+          : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${c.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''}</span>`
+      }
+      ${version?.id === 'reverse' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''}
+      ${copias > 1 ? `<span class="mc-cantidad" aria-hidden="true">×${copias}</span>` : ''}
+      ${version ? `<span class="mc-chapa-variante" data-var="${escapeHtml(version.id)}" aria-hidden="true"><b>${escapeHtml(version.corto || 'N')}</b><span>${escapeHtml(version.nombre)}</span></span>` : ''}
+      ${mas}
+    </span>
+    <span class="pdx-carta-set">${escapeHtml(set)}</span>
+  </a>`
+}
+
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [], separadas = false, versionesDe = null, tengoVersion = null, masDe = null }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
+  const conVersiones = separadas && typeof versionesDe === 'function' && typeof tengoVersion === 'function'
   const cuerpo = cartas.length
     ? `<div class="pdx-cartas">${cartas
         .map((c) => {
-          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+          if (conVersiones) {
+            return versionesDe(c)
+              .filter((v) => !soloFaltan || tengoVersion(c, v.id) === 0)
+              .map((v) => casillaDeEspecie(c, { version: v, mia: tengoVersion(c, v.id) > 0, copias: tengoVersion(c, v.id), mas: masDe ? masDe(c, v.id) : '' }))
+              .join('')
+          }
+          // Sin escaneo, la casilla pinta el nombre y el número en el hueco
+          // (tanda 415): un sitio en blanco se lee como un fallo.
           const mia = tuyas.has(c.id)
-          // Sin escaneo, el NOMBRE y el número en el hueco (tanda 415).
-          // PINGU: «hay un montón de cartas en la colección que no se
-          // muestran y no sé por qué». No hay por qué: TCGdex es un
-          // catálogo comunitario y a esas cartas no les han subido la
-          // foto, y de Limitless solo se puede sacar si la colección
-          // tiene código de TCG Live. Lo que no puede ser es que el hueco
-          // se quede vacío: un sitio en blanco se lee como un fallo, y
-          // una carta con su nombre escrito se lee como una carta.
-          return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" title="${escapeHtml(nombreDe(c))} — ${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)}">
-            ${
-              escaneo
-                ? `<img ${escaneo} alt="${escapeHtml(nombreDe(c))}" width="245" height="342" loading="lazy" />`
-                : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${c.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''}</span>`
-            }
-            <span class="pdx-carta-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)}</span>
-          </a>`
+          return casillaDeEspecie(c, { mia, mas: masDe ? masDe(c, null) : '' })
         })
         .join('')}</div>`
     : sinCatalogo
@@ -351,7 +369,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { soloFaltan, idioma, idiomas })}
+    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { soloFaltan, idioma, idiomas, separadas })}
     ${cuerpo}`
 }
 
