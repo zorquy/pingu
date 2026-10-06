@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 7) — PINGU-Claude (685.3 — la ficha japonesa de Scrydex viene en japonés: todo lo canónico de translation.en, y su precio de TCGplayer)
+
+**Hecho**: con el Weedle real que pegó PINGU: categoría, fase, tipos,
+ataques, debilidades y rareza salen ahora de `translation.en` (antes
+se escribían en japonés sin que nada lo cantara); el nombre japonés
+sigue en `name` y el inglés en `name_en`. De la misma ficha se guarda el
+precio NM de TCGplayer en dólares (`tp_normal_*`). Los sets ya
+rellenados se repasan solos.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`,
+`netlify/functions/scrydex-huecos.mjs`, `SCHEMA.md`. En `pruebas`: 684 y
+el fixture `scrydex-card-base1_ja-4.json`.
+
+**Pendiente**: ver en /admin cómo quedan los nombres; migración
+corea-china; Celebrations.
 ## 2026-10-06 (tarde, 6) — PINGU-Claude (685.2 — scrydex-huecos remata los sets a medias)
 
 **Hecho**: el parche del set ya no escribe `scrydex_at` (no existe en

@@ -38,7 +38,7 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, SCRYDEX_API_KEY,
 // SCRYDEX_TEAM_ID.
-import { cabecerasDe, urlDeSonda, faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, igualarClaves, expansionDelSet, parcheDeSet } from '../lib/scrydex.mjs'
+import { cabecerasDe, urlDeSonda, faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, precioDeScrydex, igualarClaves, expansionDelSet, parcheDeSet } from '../lib/scrydex.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'scrydex_huecos'
@@ -54,10 +54,10 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 // estrellarse contra la misma columna que no existía. «Saltar vale para el
 // fallo del otro; para el tuyo, parar» (la 526) — y lo quita un humano
 // desplegando el arreglo, que es lo que cambia esta cadena.
-export const VERSION = '685.2'
+export const VERSION = '685.3'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
-export const VERSION_NOMBRES = 1
+export const VERSION_NOMBRES = 2
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -77,7 +77,7 @@ async function rest(ruta, clave, opciones = null) {
 // los módulos puros, no en la función que hace el upsert. Se importan Y se
 // reexportan (un reexport no es un import, la 624): la prueba los pide de
 // aquí.
-export { faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, igualarClaves, expansionDelSet, parcheDeSet }
+export { faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, precioDeScrydex, igualarClaves, expansionDelSet, parcheDeSet }
 
 const esDeSuscripcion = (status) => status === 401 || status === 403 || status === 402
 
@@ -137,6 +137,14 @@ export async function pasada({
     return { mirados: v.length, rellenados: cuenta('rellenado'), llenos: cuenta('lleno'), sinPar: cuenta('sinPar'), vaciosEnScrydex: cuenta('vacioEnScrydex'), parados: cuenta('parado'), creditos: estado.gasto.creditos }
   }
 
+  // Los precios de TCGplayer que traen sus fichas (685.3), en dólares.
+  const escribirPrecios = async (cartas, filas) => {
+    const porId = new Map(filas.map((f) => [f.id, f]))
+    const precios = cartas.map((c) => { const f = porId.get(idNuestro(c.id)); return f ? precioDeScrydex(f.id, c, ahora) : null }).filter(Boolean)
+    for (let i = 0; i < precios.length; i += 200) await pedir('tcg_card_prices?on_conflict=card_id', { method: 'POST', body: JSON.stringify(igualarClaves(precios.slice(i, i + 200))) })
+    return precios.length
+  }
+
   // ── 0. Los ya rellenados con nombres de una versión anterior (685) ──
   // Se vuelven a pedir y a escribir (el upsert es idempotente), uno por
   // pasada, para ponerles `name_en`. Un crédito por 100 cartas.
@@ -161,8 +169,10 @@ export async function pasada({
       return { ok: false, ...resumen(), error: fallo }
     }
     const filas = igualarClaves(cartas.map((c) => filaDeCartaScrydex(c, { setId, mercado, idioma, ahora })).filter(Boolean))
+    let conPrecio = 0
     try {
       for (let i = 0; i < filas.length; i += 200) await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
+      conPrecio = await escribirPrecios(cartas, filas)
     } catch (e) {
       estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: setId, expansion: v.expansion, donde: 'nombres', error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
       estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
@@ -171,8 +181,9 @@ export async function pasada({
     }
     v.nombres = VERSION_NOMBRES
     v.conNombreIngles = filas.filter((f) => f.name_en).length
+    v.conPrecio = conPrecio
     await persistir()
-    return { ok: true, ...resumen(), nombres: { mercado, set: setId, expansion: v.expansion, cartas: filas.length, conNombreIngles: v.conNombreIngles } }
+    return { ok: true, ...resumen(), nombres: { mercado, set: setId, expansion: v.expansion, cartas: filas.length, conNombreIngles: v.conNombreIngles, conPrecio } }
   }
 
   for (const mercado of mercados) {
@@ -191,7 +202,7 @@ export async function pasada({
           return { ok: false, ...resumen(), error: r.error }
         }
         const datos = Array.isArray(r.datos?.data) ? r.datos.data : []
-        for (const e of datos) expansiones.push({ id: e.id, name: e.name, code: e.code || null, total: e.total ?? null, printed_total: e.printed_total ?? null, release_date: e.release_date || null, logo: e.logo || null, symbol: e.symbol || null, language_code: e.language_code || null })
+        for (const e of datos) expansiones.push({ id: e.id, name: e.name, name_en: e.translation?.en?.name || null, code: e.code || null, total: e.total ?? null, printed_total: e.printed_total ?? null, release_date: e.release_date || null, logo: e.logo || null, symbol: e.symbol || null, language_code: e.language_code || null })
         if (datos.length < 100) break
         await pausa(200)
       }
@@ -306,11 +317,13 @@ export async function pasada({
       await persistir()
       return { ok: true, ...resumen(), mirado: { mercado, set: vacio.id, estado: 'vacioEnScrydex', expansion: expansion.id } }
     }
+    let conPrecio = 0
     try {
       for (let i = 0; i < filas.length; i += 200) {
         await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
       }
       await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(vacio.id)}`, { method: 'PATCH', body: JSON.stringify(parcheDeSet(vacio, expansion)) })
+      conPrecio = await escribirPrecios(cartas, filas)
     } catch (e) {
       // Fallo NUESTRO: se para sin contar intento, se apunta, y NO se vuelve
       // a pedir nada a Scrydex hasta que se despliegue un arreglo.
@@ -320,7 +333,7 @@ export async function pasada({
       return { ok: false, ...resumen(), error: estado.ultimoError.error }
     }
     delete estado.intentos[k(vacio)]
-    estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, cartas: filas.length, nombre: expansion.name, nombres: VERSION_NOMBRES, conNombreIngles: filas.filter((f) => f.name_en).length }
+    estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, cartas: filas.length, nombre: expansion.name_en || expansion.name, nombres: VERSION_NOMBRES, conNombreIngles: filas.filter((f) => f.name_en).length, conPrecio }
     await persistir()
     return { ok: true, ...resumen(), rellenado: { mercado, set: vacio.id, expansion: expansion.id, nombre: expansion.name, por, cartas: filas.length } }
   }

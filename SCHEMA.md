@@ -33219,3 +33219,25 @@ a Scrydex; y los «lleno» se olvidan una vez por versión
 segunda vez en el mismo día: **antes de escribir una columna por REST,
 `grep` en las migraciones de ESA tabla**; el mismo nombre en la tabla de
 al lado no cuenta.
+
+**685.3 — la ficha japonesa de verdad.** PINGU pegó el Weedle del
+Expansion Pack tal como lo da Scrydex (`ja/cards/base1_ja-4`): **todo en
+japonés** —`supertype` «ポケモン», `subtypes` «たね», `types` «草»,
+`rarity` «通常», los ataques en kana— y una `translation.en` con el
+nombre, la fase, los tipos, los ataques, las debilidades, la rareza y
+de qué evoluciona. Mi conversión leía los campos a pelo y escribía
+«ポケモン» en `category`, «草» en `types` y nada en `stage`: ninguna
+guarda lo canta, porque `category` es texto. Ahora lo canónico sale de
+`translation.en` (y la Pokédex queda de respaldo para el nombre si la
+traducción no viene); el nombre japonés sigue en `name`. La lista de
+expansiones guarda su `name_en` (también traducido: «拡張パック» es
+«Expansion Pack») y el emparejado lo compara. Y de la misma ficha salen
+**los precios de TCGplayer en dólares** por impresión (`variants[].prices`,
+crudos y gradeados): se guarda el Near Mint crudo de la impresión
+«normal» en `tp_normal_market`/`tp_normal_low` (las columnas de la 586, que
+la web convierte «a ojo»), `origen = 'scrydex'`. Para una japonesa
+antigua sin gemela occidental es el único precio que hay; para las demás
+va detrás del de Cardmarket. `VERSION_NOMBRES` sube a 2: los sets ya
+rellenados se repasan con esto. El JSON de PINGU es el fixture
+`scrydex-card-base1_ja-4.json` (la 501: la respuesta real, no una
+parecida; solo se recortaron filas de gradeadas repetidas).

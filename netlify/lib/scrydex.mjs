@@ -1249,8 +1249,19 @@ export function baseDeFoto(carta) {
 }
 
 // Una carta suya, con nuestras columnas. Solo lo que viene.
+//
+// SU CATÁLOGO JAPONÉS VIENE EN JAPONÉS ENTERO (685.3, con el Weedle del
+// Expansion Pack que pegó PINGU): `supertype` «ポケモン», `subtypes`
+// «たね», `types` «草», `rarity` «通常», y los ataques en kana. Nuestros
+// enums son los ingleses de TCGdex, así que de ahí no se puede leer nada
+// a pelo. Lo que sí trae es `translation.en` —nombre, fase, tipos,
+// ataques, debilidades, rareza, de qué evoluciona— y ESO es lo que se
+// escribe en las columnas canónicas. El nombre japonés se queda en `name`
+// (se busca en los dos) y el inglés va en `name_en`; la Pokédex sigue de
+// respaldo para el nombre si un día la traducción no viene.
 export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new Date() }) {
   if (!carta?.id || !setId) return null
+  const en = carta.translation?.en && typeof carta.translation.en === 'object' ? carta.translation.en : null
   const fila = {
     id: idNuestro(carta.id), market: mercado, set_id: setId,
     local_id: String(carta.number ?? carta.printed_number?.split('/')[0] ?? '').trim(),
@@ -1258,35 +1269,64 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
     // Sin `scrydex_id`: esa columna solo existe en `tcg_sets` (PGRST204 en
     // la primera pasada real); el id suyo va dentro del nuestro.
     scrydex_at: ahora.toISOString(), origen: 'scrydex',
-    detalle_at: ahora.toISOString(), detalle_lang: idioma,
+    detalle_at: ahora.toISOString(),
+    // Los ataques se guardan en el idioma en que se escriben: en inglés si
+    // hay traducción (que es lo que lee `idiomaDeFicha` para la huella).
+    detalle_lang: en ? 'en' : idioma,
   }
   if (idioma === 'en') fila.name_en = fila.name
   else {
-    const en = nombreInglesDe(carta)
-    if (en) fila.name_en = en
+    const nombreEn = typeof en?.name === 'string' && en.name.trim() ? en.name.trim() : nombreInglesDe(carta)
+    if (nombreEn) fila.name_en = nombreEn
   }
   const foto = baseDeFoto(carta)
   if (foto) fila.image_scrydex = foto
-  if (carta.rarity) fila.rarity_en = String(carta.rarity)
+  const rareza = en?.rarity || (idioma === 'en' ? carta.rarity : null)
+  if (rareza) fila.rarity_en = String(rareza)
   if (carta.artist) fila.illustrator = String(carta.artist)
-  if (carta.supertype) fila.category = sinTilde(carta.supertype)
+  const supertipo = en?.supertype || (idioma === 'en' ? carta.supertype : null)
+  if (supertipo) fila.category = sinTilde(supertipo)
   if (Number.isInteger(Number(carta.hp)) && Number(carta.hp) > 0) fila.hp = Number(carta.hp)
-  const fase = faseDe(carta.subtypes)
+  const fase = faseDe(en?.subtypes || (idioma === 'en' ? carta.subtypes : null))
   if (fase) fila.stage = fase
-  if (Array.isArray(carta.types) && carta.types.length) fila.types = carta.types.map(String)
-  if (Array.isArray(carta.evolves_from) && carta.evolves_from[0]) fila.evolve_from = String(carta.evolves_from[0])
-  else if (typeof carta.evolves_from === 'string' && carta.evolves_from) fila.evolve_from = carta.evolves_from
-  if (Array.isArray(carta.attacks)) fila.attacks = carta.attacks.map((a) => ({ name: a?.name || '', cost: Array.isArray(a?.cost) ? a.cost : [], damage: a?.damage || '', effect: a?.text || '' }))
-  if (Array.isArray(carta.abilities)) fila.abilities = carta.abilities.map((h) => ({ type: h?.type || 'Ability', name: h?.name || '', effect: h?.text || '' }))
-  if (Array.isArray(carta.weaknesses)) fila.weaknesses = carta.weaknesses.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
-  if (Array.isArray(carta.resistances)) fila.resistances = carta.resistances.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
+  const tipos = en?.types || (idioma === 'en' ? carta.types : null)
+  if (Array.isArray(tipos) && tipos.length) fila.types = tipos.map(String)
+  const evoluciona = en?.evolves_from ?? (idioma === 'en' ? carta.evolves_from : null)
+  if (Array.isArray(evoluciona) && evoluciona[0]) fila.evolve_from = String(evoluciona[0])
+  else if (typeof evoluciona === 'string' && evoluciona) fila.evolve_from = evoluciona
+  const ataques = en?.attacks || (idioma === 'en' ? carta.attacks : null)
+  if (Array.isArray(ataques)) fila.attacks = ataques.map((x) => ({ name: x?.name || '', cost: Array.isArray(x?.cost) ? x.cost : [], damage: x?.damage || '', effect: x?.text || '' }))
+  const habilidades = en?.abilities || (idioma === 'en' ? carta.abilities : null)
+  if (Array.isArray(habilidades)) fila.abilities = habilidades.map((h) => ({ type: h?.type || 'Ability', name: h?.name || '', effect: h?.text || '' }))
+  const debilidades = en?.weaknesses || (idioma === 'en' ? carta.weaknesses : null)
+  if (Array.isArray(debilidades)) fila.weaknesses = debilidades.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
+  const resistencias = en?.resistances || (idioma === 'en' ? carta.resistances : null)
+  if (Array.isArray(resistencias)) fila.resistances = resistencias.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
   if (Number.isInteger(carta.converted_retreat_cost)) fila.retreat = carta.converted_retreat_cost
   else if (Array.isArray(carta.retreat_cost)) fila.retreat = carta.retreat_cost.length
   if (carta.regulation_mark) fila.regulation_mark = String(carta.regulation_mark)
-  if (carta.flavor_text) fila.description = String(carta.flavor_text)
+  const descripcion = en?.flavor_text || (idioma === 'en' ? carta.flavor_text : null)
+  if (descripcion) fila.description = String(descripcion)
   const dex = (Array.isArray(carta.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
   if (dex.length) fila.dex_ids = dex
   return fila
+}
+
+// EL PRECIO DE TCGPLAYER, EN DÓLARES (685.3). Su ficha trae, por
+// impresión (`variants`), los precios de TCGplayer en USD y JPY, crudos y
+// gradeados. Se guarda el Near Mint crudo en dólares de la impresión
+// «normal» (`tp_normal_market`/`tp_normal_low`, las columnas de la 586 que
+// la web convierte «a ojo» a euros): para una japonesa antigua sin gemela
+// occidental es el único precio que hay, y para las demás queda detrás
+// del de Cardmarket, que manda. `card_id` es la clave; `checked_at` lleva
+// `default now()`.
+export function precioDeScrydex(cardIdNuestro, carta, ahora = new Date()) {
+  const variantes = Array.isArray(carta?.variants) ? carta.variants : []
+  const normal = variantes.find((v) => String(v?.name || '').toLowerCase() === 'normal') || variantes[0]
+  const nm = (Array.isArray(normal?.prices) ? normal.prices : []).find((p) => p?.type === 'raw' && p?.condition === 'NM' && p?.currency === 'USD')
+  const n = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null)
+  if (!nm || (!n(nm.market) && !n(nm.low))) return null
+  return { card_id: cardIdNuestro, tp_normal_market: n(nm.market), tp_normal_low: n(nm.low), tp_updated: ahora.toISOString(), origen: 'scrydex', checked_at: ahora.toISOString() }
 }
 
 // Todas las filas con las MISMAS claves: un `insert` de varias filas por
@@ -1305,7 +1345,9 @@ export function expansionDelSet(set, expansiones) {
     if (e) return { por: 'scrydex_id', expansion: e }
   }
   const nombre = clave(set.name_en || set.name)
-  const porNombre = nombre ? expansiones.filter((x) => clave(x.name) === nombre) : []
+  // Su `name` japonés es «拡張パック»; el inglés va en `name_en` (de su
+  // `translation.en`, que la lista guarda desde la 685.3).
+  const porNombre = nombre ? expansiones.filter((x) => clave(x.name) === nombre || (x.name_en && clave(x.name_en) === nombre)) : []
   if (porNombre.length === 1) return { por: 'nombre', expansion: porNombre[0] }
   const { pares } = emparejarSets([set], expansiones)
   if (pares.length === 1) return { por: pares[0].por || 'huella', expansion: pares[0].suyo }
@@ -1321,7 +1363,10 @@ export function parcheDeSet(set, expansion) {
   if (!set.release_date && fecha(expansion.release_date)) p.release_date = fecha(expansion.release_date)
   if (!set.card_count_total && Number(expansion.total) > 0) p.card_count_total = Number(expansion.total)
   if (!set.card_count_official && Number(expansion.printed_total) > 0) p.card_count_official = Number(expansion.printed_total)
-  if (!set.name_en && expansion.name) p.name_en = String(expansion.name)
+  // El inglés: el de la traducción, y si no hay, su `name` solo si se lee
+  // (un nombre en kana no es un nombre inglés).
+  const nombreEn = expansion.name_en || expansion.translation?.en?.name || (expansion.name && !/[\u3040-\u30ff\u4e00-\u9fff]/.test(expansion.name) ? expansion.name : null)
+  if (!set.name_en && nombreEn) p.name_en = String(nombreEn)
   // Sin `scrydex_at`: esa columna es de `tcg_cards`, no de `tcg_sets`
   // (PGRST204 en la segunda pasada real, 685.2). La fecha va en el estado.
   return p
