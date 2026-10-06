@@ -33635,3 +33635,45 @@ reverse en el álbum, guardado, la normal sigue con una; juntas como
 antes; la Pokédex separada con chapas, velo, «solo las que me faltan» por
 versión, el «+» y el chip que las junta); 657, 577, 650-pantalla, 564,
 453, 418, 381, 437 siguen.
+
+## Tanda 693 — las cartas sueltas sin foto, buscadas en TCGGO por nombre (oct. 2026)
+
+PINGU, con el Ancient Mew delante («Miscellaneous Promos · 001», el dorso
+de una carta por foto): «sale sin imagen; creo que está en la colección
+incorrecta. Si encuentras dónde está guardada en la API de TCGGO, la traes
+y la metes en la colección correcta».
+
+**Por qué estaba así.** TCGdex tiene esa carta en un cajón llamado
+«Miscellaneous Promos» (`miscp`, una sola carta, sin foto), que la 535
+pliega bajo Wizards Black Star Promos (`basep`) en la estantería. El
+catálogo de TCGGO (640) solo escribe en los sets que casa por código o
+nombre, y un cajón de una carta no casa con nada: ni foto, ni producto,
+ni precio, para siempre. Desde este contenedor no se puede preguntar a
+TCGGO dónde la tiene (la red lo cierra), así que la pregunta la hace una
+función programada, y la respuesta queda en /admin.
+
+**`tcggo-sueltas`** (cada 12 min, estado `tcggo_sueltas`): coge hasta
+diez cartas occidentales SIN NINGUNA foto (ni TCGdex, ni TCGGO, ni
+Scrydex) y sin `tcggo_id`, busca cada una en TCGGO por su nombre y, si
+TCGGO da UNA sola carta suelta con ese nombre exacto (`laUnica`: los
+sobres no cuentan, y «Pikachu» son cientos y no se elige ninguna), le
+escribe la foto, el id y los productos de Cardmarket y TCGplayer
+(`parcheDeCarta`), y si la expansión de TCGGO es un set NUESTRO
+(`tcg_sets.tcggo_id`) distinto del que tiene, la cambia de set con el
+número de TCGGO. El id de la carta no cambia: es la llave de las
+colecciones y de las URL, y `COLECCIONES_JUNTAS` sigue plegando `miscp`
+por si queda algo. La pasada siguiente de `tcggo-precios` le pone precio
+por su `cm_id_product_propio`.
+
+TCGGO tiene dos parámetros de búsqueda y no se sabe cuál contesta (la
+sonda de la 683 prueba los dos): se prueba `search` y, si no devuelve
+nada, `name`; el que funcione se apunta (`estado.parametro`) y va primero
+desde entonces. Los frenos: `TOPE_DIARIO` 300 peticiones, parón hasta
+mañana en 429/403, `MAXIMO_INTENTOS` 3 por carta y a los `DIAS_REVISAR`
+14 días se vuelve a mirar, y un fallo de NUESTRA base para la pasada
+entera (la 526). /admin: «CARTAS SUELTAS SIN FOTO».
+
+**Ficheros**: `netlify/functions/tcggo-sueltas.mjs` (nueva),
+`admin/js/admin.js`. **Pruebas**: `test-tanda-693.mjs` (la única, el
+parche con y sin mudanza, la pasada con `search` y con `name`, los
+intentos y la revisión, el parón del plan, el fallo nuestro, el tope).

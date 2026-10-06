@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 16) — PINGU-Claude (693 — las cartas sueltas sin foto, buscadas en TCGGO por nombre)
+
+**Hecho**: el Ancient Mew (`miscp`, cajón de TCGdex de una carta sin
+foto) y lo que esté como él: `tcggo-sueltas` (cada 12 min) busca en
+TCGGO por nombre las cartas occidentales sin ninguna foto, y con UNA
+suelta del nombre exacto escribe foto, id y productos, y la cambia al
+set nuestro de esa expansión si es otro. Frenos de la casa; /admin lo
+enseña.
+
+**Ficheros**: `netlify/functions/tcggo-sueltas.mjs` (nueva),
+`admin/js/admin.js`, `SCHEMA.md`. En `pruebas`: 693 (nueva).
+
+**Pendiente**: ver en /admin «CARTAS SUELTAS SIN FOTO» en un rato: qué
+parámetro contesta y dónde ha ido el Ancient Mew.
+
 ## 2026-10-06 (tarde, 15) — PINGU-Claude (692 — el «+» de la reverse añade una reverse; la Pokédex separa las variantes)
 
 **Hecho**: en «separar variantes» el «+» de cada casilla lleva su

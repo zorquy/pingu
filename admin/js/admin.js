@@ -3009,7 +3009,7 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo', 'tcggo_sueltas'])
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
   const cat = de('tcggo_catalogo')
@@ -3083,6 +3083,20 @@ async function tcggoEstado() {
           ...((x.ejemplosSinPar || []).length ? [`      sin par: ${x.ejemplosSinPar.map((e) => `${e.id} (${e.motivo})`).join(' · ')}`] : []),
         ]),
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.error}` : '',
+      ]
+    })(),
+    // Las cartas sueltas sin foto, buscadas en TCGGO por nombre (693).
+    ...(() => {
+      const e = de('tcggo_sueltas')?.valor
+      if (!e) return ['CARTAS SUELTAS SIN FOTO (tcggo_sueltas, 693): todavía no ha corrido']
+      const hechas = Object.entries(e.hechas || {})
+      const sinPar = Object.entries(e.sinPar || {})
+      return [
+        `CARTAS SUELTAS SIN FOTO (tcggo_sueltas, 693) — ${de('tcggo_sueltas')?.updated_at || 'nunca'}: ${hechas.length} con foto de TCGGO (${hechas.filter(([, x]) => x.movida).length} cambiadas de set) · ${sinPar.length} sin par · peticiones hoy: ${e.peticionesHoy ?? 0} · parámetro que contesta: ${e.parametro || 'aún no se sabe'}`,
+        ...hechas.slice(-8).map(([k, x]) => `  ✓ ${k} «${x.nombre || ''}» ← TCGGO ${x.tcggo}${x.episodio ? ` (${x.episodio})` : ''}${x.movida ? ` · de ${x.movida.de} a ${x.movida.a}` : ''}`),
+        ...sinPar.slice(0, 6).map(([k, x]) => `  · ${k} «${x.nombre || ''}»: ${x.motivo} (intento ${x.intentos})`),
+        e.parado ? `  ⚠ PARADO ${e.parado.dia}: ${e.parado.motivo}` : '',
+        e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.carta || ''} ${e.ultimoError.error}` : '',
       ]
     })(),
     `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
