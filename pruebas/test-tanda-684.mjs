@@ -4,7 +4,7 @@
 // rellena uno por pasada, desesconde, cuenta créditos, para con 403 y
 // salta a la tercera con un 500 suyo; con un fallo nuestro para sin contar.
 import { readFileSync } from 'node:fs'
-import { filaDeCartaScrydex, precioDeScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION, VERSION_NOMBRES, nombreInglesDe } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
+import { filaDeCartaScrydex, precioDeScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION, VERSION_NOMBRES, nombreInglesDe, CREAR_SETS, expansionACrear, filaDeSetDeScrydex, expansionesSueltas } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
@@ -63,8 +63,8 @@ console.log('── 2. La expansión de un set ──')
 
 console.log('── 3. La pasada, con Scrydex y base de mentira ──')
 {
-  const montar = ({ scrydexStatus = 200, nuestraFalla = false, sinInclude = false } = {}) => {
-    const escrito = { cartas: [], parches: [], precios: [] }
+  const montar = ({ scrydexStatus = 200, nuestraFalla = false, sinInclude = false, crear } = {}) => {
+    const escrito = { cartas: [], parches: [], precios: [], setsNuevos: [] }
     const estados = {}
     const aMedias = new Set()
     const sets = { JP: [
@@ -93,11 +93,12 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       }
       if (ruta.startsWith('tcg_cards?on_conflict')) { escrito.cartas.push(...JSON.parse(opciones.body)); return null }
       if (ruta.startsWith('tcg_sets?market=')) { escrito.parches.push({ ruta, body: JSON.parse(opciones.body) }); return null }
+      if (ruta === 'tcg_sets' && opciones?.method === 'POST') { escrito.setsNuevos.push(...JSON.parse(opciones.body)); return null }
       if (ruta.startsWith('tcg_card_prices?on_conflict=card_id')) { escrito.precios.push(...JSON.parse(opciones.body)); return null }
       throw new Error('ruta no prevista ' + ruta)
     }
     const env = { SUPABASE_SERVICE_ROLE_KEY: 'k', SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 't' }
-    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {} })
+    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {}, ...(crear ? { crear } : {}) })
     return { correr, escrito, estados, peticiones, sets, aMedias }
   }
   {
@@ -159,6 +160,23 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const { correr, escrito, estados, peticiones } = montar({ sinInclude: true })
     const r = await correr()
     check('si Scrydex rechaza include=prices (400), se vuelve a pedir sin él y se apunta (697)', r.ok && r.rellenado?.set === 'BASE1_' && escrito.cartas.length === 2 && estados[CLAVE_ESTADO].sinIncludePrecios === true && peticiones.filter((u) => /\/ja\/cards/.test(u)).length === 2 && !/include=prices/.test(peticiones.filter((u) => /\/ja\/cards/.test(u))[1]), JSON.stringify([r, peticiones]))
+  }
+  console.log('── 4. Lo que Scrydex tiene y nosotros no, y los sets que se crean de una lista (698) ──')
+  {
+    const exps = [{ id: 'base1', name: '拡張パック', name_en: 'Expansion Pack', total: 102, release_date: '1996/10/20' }, { id: 'l2_ja', name: '蘇る伝説', name_en: 'Reviving Legends', series: 'LEGEND', total: 80, printed_total: 80, release_date: '2010/07/08', logo: 'https://images.scrydex.com/pokemon/l2_ja-logo/logo' }, { id: 'x', name: 'Dos', name_en: 'Reviving Legends' }]
+    const nuestros = [{ id: 'BASE1_', name: 'Expansion Pack', scrydex_id: null, serie_id: 'legend', serie_name_en: 'LEGEND', serie_name: 'LEGEND' }]
+    check('las sueltas son las que no casan ni por scrydex_id ni por nombre', expansionesSueltas(exps, nuestros).map((e) => e.id).join() === 'l2_ja,x')
+    check('CREAR_SETS lleva Reviving Legends y Advent of Arceus en japonés, por nombre', CREAR_SETS.some((c) => c.mercado === 'JP' && c.nombre === 'Reviving Legends') && CREAR_SETS.some((c) => c.mercado === 'JP' && c.nombre === 'Advent of Arceus'))
+    check('una entrada por nombre con DOS expansiones iguales no elige; por id, sí', expansionACrear({ nombre: 'Reviving Legends' }, exps) === null && expansionACrear({ id: 'l2_ja' }, exps)?.id === 'l2_ja' && expansionACrear({ nombre: 'reviving-legends' }, exps.slice(0, 2))?.id === 'l2_ja')
+    const fila = filaDeSetDeScrydex(exps[1], 'JP', nuestros)
+    check('la fila del set: id de Scrydex, escondido, fecha con guiones, cuentas, logo, serie de un set nuestro con esa serie', fila.id === 'l2_ja' && fila.market === 'JP' && fila.oculto === true && fila.scrydex_id === 'l2_ja' && fila.scrydex_por === 'huecos' && fila.release_date === '2010-07-08' && fila.card_count_total === 80 && fila.name === '蘇る伝説' && fila.name_en === 'Reviving Legends' && fila.serie_id === 'legend' && fila.logo_scrydex === exps[1].logo, JSON.stringify(fila))
+    check('  …y sin serie nuestra, la de Scrydex como nombre y sin id', filaDeSetDeScrydex(exps[1], 'JP', []).serie_id === null && filaDeSetDeScrydex(exps[1], 'JP', []).serie_name_en === 'LEGEND')
+    // La pasada: Jungle está en la lista de Scrydex y no es set nuestro.
+    const { correr, escrito, estados } = montar({ crear: [{ mercado: 'JP', id: 'jungle' }, { mercado: 'JP', nombre: 'No existe' }] })
+    const r = await correr()
+    check('la pasada apunta las sueltas (jungle) y crea el set de la lista, escondido y con su scrydex_id; lo que no está en Scrydex queda dicho', r.ok && estados[CLAVE_ESTADO].sueltas.JP.lista.map((e) => e.id).join() === 'jungle' && escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].market === 'JP' && escrito.setsNuevos[0].oculto === true && escrito.setsNuevos[0].scrydex_id === 'jungle' && estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado' && estados[CLAVE_ESTADO].creados['JP|No existe']?.estado === 'noEstaEnScrydex', JSON.stringify([r, escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
+    await correr()
+    check('  …y la pasada siguiente no lo vuelve a crear', escrito.setsNuevos.length === 1)
   }
   check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
