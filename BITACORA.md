@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 5) — PINGU-Claude (704 — la barra inferior del móvil y las píldoras de sección)
+
+**Hecho**: primera tanda del móvil, aprobada por PINGU con maquetas.
+Barra inferior fija con las cinco secciones (Inicio, Aprender, Cartas,
+Comunidad, Jugar), píldoras arriba con las páginas de la sección (leídas
+del HTML de la barra de escritorio), y las pestañas de Mi colección en
+fila bajo la cabecera en vez de flotando. Solo en móvil, por `import()`
+y con su hoja inyectada: el escritorio no baja nada (presupuesto de la
+portada). La hamburguesa se esconde en el móvil.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`, `js/app.js`,
+`js/icons.js`, `SCHEMA.md`, `CLAUDE.md`. Pruebas 704-pantalla y 299 en
+`pruebas`.
+
+**Pendiente**: las otras cuatro tandas del móvil (hojas desde abajo,
+expansión compacta, ficha de carta, pequeños). Y de antes: la sonda del
+Lanturn (`scrydex-l2_ja-N`, JP) y los bloques de /admin.
+
 ## 2026-10-06 (noche, 4) — PINGU-Claude (703 — Reviving Legends existe; los nombres que faltan)
 
 **Hecho**: el set ya existe y se rellenó; quedan cartas en japonés

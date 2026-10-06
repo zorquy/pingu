@@ -375,6 +375,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
   con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
+- **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
+  inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +
+  `css/movil.css`) se carga desde app.js solo si la pantalla es de móvil,
+  y el módulo mete su `<link>`: el escritorio no descarga ni un byte, que
+  es lo que mide el presupuesto de la portada. La prueba 299 reconoce el
+  marcador `hojaInyectada('css/x.css')` para dar la hoja por cargada;
+  si inyectas otra, usa esa función con el literal. Y la navegación del
+  móvil son tres niveles: ABAJO la sección (fija, igual en todas las
+  páginas), ARRIBA las píldoras con las páginas de la sección (se leen de
+  los desplegables de la barra, no hay segunda lista), y dentro lo de
+  cada página. Una página de detalle dice de qué sección es en
+  `SECCION_DE`.
 - **Un reemplazo que BORRA filas de precio tiene que avisar a la pasada
   que las escribe** (tanda 697). `30th-entero` borró las cartas viejas con
   sus `tcg_card_prices` y escribió las nuevas; `tcggo-precios` ya había

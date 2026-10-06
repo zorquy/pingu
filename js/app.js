@@ -766,6 +766,12 @@ export async function initNavbar() {
   // visita: sin esperar, y si falla no toca nada.
   import('./en-linea.js').then(({ latidoEnLinea }) => latidoEnLinea()).catch(() => {})
   renderNavUser(session).catch(() => {})
+  // La barra inferior del móvil (704): solo en pantallas de móvil, con
+  // `import()` para que el escritorio no la descargue (presupuesto de
+  // la portada). Si el ancho cambia después, el CSS la esconde solo.
+  if (document.getElementById('navbar') && window.matchMedia?.('(max-width: 900px)').matches) {
+    import('./barra-movil.js').then((m) => m.montarBarraMovil({ conSesion: !!session })).catch(() => {})
+  }
 
   // Los iconos de la barra: se DESCARGAN a la vez y se PINTAN en orden.
   //

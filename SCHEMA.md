@@ -33968,3 +33968,66 @@ saber cuál es el caso del Lanturn, la sonda (700) de esa carta.
 
 **Ficheros**: `netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`.
 Prueba 684.
+
+## Tanda 704 — la barra inferior del móvil y las píldoras de sección (oct. 2026)
+
+PINGU: «la interfaz de móvil, ¿cómo podríamos mejorar? El PC va muy
+bien». Un repaso con capturas a ancho de iPhone de las diez pantallas
+más usadas (están en el guion `capturar.mjs` de la sesión) dio esto: la
+navegación era de ratón —siete iconos sin rótulo arriba, las secciones
+detrás de la hamburguesa y Mi colección escondida dentro de «Cartas»—,
+las cabeceras se comían la primera pantalla y los diálogos salían
+centrados. Esta tanda es la primera de cinco y arregla lo primero.
+
+### Tres niveles, cada uno en su sitio
+
+1. **Abajo, fija**: la sección. Inicio, Aprender, Cartas, Comunidad,
+   Jugar — los cuatro desplegables de la barra de escritorio más la
+   portada. La misma en todas las páginas; nunca cambia. Es el patrón de
+   cualquier app que la gente ya tiene en el móvil.
+2. **Arriba, píldoras**: las páginas de esa sección, exactamente lo que
+   vive en cada desplegable. Se LEEN del HTML de la barra
+   (`seccionesDeLaBarra`): no hay una segunda lista que mantener.
+3. **Dentro de la página**: lo que ya tiene. Las pestañas de Mi
+   colección (Panel, Expansiones, Pokédex, Álbumes, Buscar) siguen,
+   pero en una fila bajo la cabecera: la burbuja flotante de la 452 se
+   pisaría con la barra, y dos cosas flotando abajo no caben.
+
+Una página que no está en ningún desplegable (la ficha de una carta, un
+tema del foro, un torneo) pertenece a la sección de lo que enseña:
+`SECCION_DE`, por el primer tramo de la ruta. Y «Cartas» lleva a Mi
+colección con cuenta y al catálogo sin ella (`destinoDe`).
+
+### Cómo se carga, y por qué así
+
+`js/barra-movil.js` entra desde app.js con un `import()` solo si la
+pantalla es de móvil (`max-width: 900px`, el mismo corte de la barra de
+arriba), y se trae su hoja `css/movil.css` inyectando el `<link>`. En el
+escritorio no se descarga ni un byte: el presupuesto de la portada (170
+KB) quedaba en 0,6 y la barra son 2,5. Dos consecuencias que hay que
+saber:
+
+- `pesar-portada.mjs` no cuenta ni los `import()` ni una hoja inyectada,
+  y eso es lo correcto aquí: lo que mide es lo que baja todo el mundo.
+- La prueba 299 (clases ↔ hojas) lee el HTML para saber qué hojas carga
+  una página; una hoja inyectada no está ahí. Desde esta tanda el barrido
+  reconoce el marcador `hojaInyectada('css/x.css')` en un módulo
+  alcanzado y da esa hoja por cargada. Si inyectas otra, usa la misma
+  función y el mismo literal.
+
+En el móvil la hamburguesa se esconde: todo lo suyo está en la barra y
+en las píldoras. El cajón sigue en el HTML por el escritorio estrecho y
+por quien no tenga JavaScript.
+
+### Lo que queda (las otras cuatro tandas)
+
+Hojas desde abajo (añadir carta, filtros, ficha rápida); expansión
+compacta (título y progreso en una línea, estadísticas plegadas, «+»
+pequeño); ficha de carta con las acciones en una barra fija; y los
+pequeños: el botón «Ver las guías» que se sale de su tarjeta en la
+portada, el hueco de 76 px bajo la barra en todas las páginas, los
+bordes seguros del iPhone.
+
+**Ficheros**: `js/barra-movil.js` (nuevo), `css/movil.css` (nueva),
+`js/app.js`, `js/icons.js` (icono `home`). Pruebas: 704-pantalla
+(nueva) y 299 (el marcador), en `pruebas`.
