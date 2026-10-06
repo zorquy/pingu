@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 4) — PINGU-Claude (685 — nombres ingleses de las cartas de Scrydex; el desplegable del catálogo escondido otra vez)
+
+**Hecho**: las cartas que trae `scrydex-huecos` llevan `name_en` sacado
+de la Pokédex Nacional y los subtipos (Entrenadores y Energías se
+quedan en japonés); los sets ya rellenados se repasan solos, uno por
+pasada. Y vuelve la línea de CSS que esconde el `<select>` del catálogo
+en Mi colección (se fue con la 678).
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: 684.
+
+**Pendiente**: decidir el PRECIO de las cartas japonesas antiguas (ver
+mensaje a PINGU: espejo del producto occidental en japonés vía TCGGO, o
+TCGplayer en dólares vía Scrydex); suite entera; migración corea-china;
+Celebrations.
 ## 2026-10-06 (tarde, 3) — PINGU-Claude (684.1 — el arreglo de la primera pasada de scrydex-huecos)
 
 **Hecho**: la fila de carta ya no lleva `scrydex_id` (no existe en

@@ -33118,3 +33118,40 @@ NUESTRA base deja la función parada hasta que se despliega otra
 (un crédito) para estrellarse contra la misma columna, cada cuatro
 minutos. Es la 526 al pie de la letra: saltar vale para el fallo del otro,
 para el tuyo parar, y lo quita un humano desplegando el arreglo.
+
+## Tanda 685 — los nombres ingleses de las cartas de Scrydex, y el desplegable del catálogo escondido otra vez (oct. 2026)
+
+PINGU, con el Expansion Pack ya relleno: «el nombre está en japonés; tiene
+que ser buscable». Y: «está el selector nuevo y luego el desplegable, que
+es lo mismo; quitaría el desplegable».
+
+**Los nombres.** El catálogo japonés de Scrydex da el nombre en katakana
+(«カメックス»). La web ya enseña `name_en` cuando `name` no se puede leer
+(537) y `name_search` lo incluye desde la migración `cartas-buscar-en`,
+así que lo que faltaba era PONERLO. Sale de lo canónico: la Pokédex
+Nacional (`national_pokedex_numbers` → `POKEMON_POR_DEX`, la misma lista
+que usa la web) da la especie en inglés, y los subtipos el apellido
+(`nombreInglesDe`: «ex» y «EX» se distinguen por la caja, «-GX», « V»,
+« VMAX», « VSTAR», « BREAK», «M » delante de una Mega; dos especies son
+un TAG TEAM «A & B-GX», en el orden de la Pokédex, que no siempre es el
+de la carta). Un Entrenador o una Energía no tienen Pokédex y se quedan
+con su nombre japonés —no se inventa—; tampoco salen los dueños y
+prefijos («Brock's», «Dark», «Shining»), que no están en ningún campo
+canónico. `name` sigue siendo el japonés (se busca en los dos).
+
+**Los ya rellenados** antes de esto se vuelven a pasar (fase 0 de la
+pasada: uno por pasada, un crédito por 100 cartas, el upsert es
+idempotente): `vistos[k].nombres < VERSION_NOMBRES` los marca. Si cambia
+cómo se montan los nombres, sube `VERSION_NOMBRES` y se repasan solos.
+
+**El desplegable.** La 678 se llevó, con el bloque de `.mc-vista-seg`,
+la línea de al lado que escondía el `<select class="mc-mercado">` (1×1
+px, nunca `display: none`): el desplegable volvió a verse junto a la
+cápsula en las cuatro barras de Mi colección. Vuelve la línea. Es la
+trampa de la 316 —«una sección de CSS no es una unidad de mudanza»— por
+segunda vez: al borrar un bloque, mirar línea a línea qué más había
+dentro.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`css/mi-coleccion.css`. **Pruebas**: 684 (ampliada: nombres y la fase
+0), 648-pantalla.

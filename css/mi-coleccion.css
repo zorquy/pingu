@@ -2741,6 +2741,12 @@
    el tamaño de su bandera y, en la barra de mandos, la misma altura que
    los demás mandos (36 px, como `.mc-chapa-select`): con los 40 de la
    cápsula la fila crecía 10 px y la Pokédex perdía su listón (453). */
+/* El <select> del catálogo sigue mandando y NO se ve: 1×1 px, nunca
+   `display: none` (las pruebas hacen selectOption). La 678 se llevó esta
+   línea con el bloque de al lado y el desplegable volvió a salir junto a
+   la cápsula (PINGU: «está el selector nuevo y luego el desplegable, que
+   es lo mismo»). */
+.mc-mercado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .seg .pv-bandera { width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
 .mc-mandos .seg { padding: 1px; }
 .mc-mandos .seg-btn { min-height: 32px; font-size: var(--t-xs); }

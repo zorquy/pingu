@@ -39,6 +39,9 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, SCRYDEX_API_KEY,
 // SCRYDEX_TEAM_ID.
 import { cabecerasDe, urlDeSonda, emparejarSets, fecha as fechaDe, clave as claveDeNombre } from '../lib/scrydex.mjs'
+// La Pokédex Nacional en inglés, que es la misma lista que usa la web (no
+// importa nada, así que se puede traer a una función).
+import { POKEMON_POR_DEX } from '../../js/torneos/sprites-pokemon.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'scrydex_huecos'
@@ -54,7 +57,10 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 // estrellarse contra la misma columna que no existía. «Saltar vale para el
 // fallo del otro; para el tuyo, parar» (la 526) — y lo quita un humano
 // desplegando el arreglo, que es lo que cambia esta cadena.
-export const VERSION = '684.1'
+export const VERSION = '685'
+// Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
+// se vuelven a pasar (una expansión por pasada, un crédito por 100).
+export const VERSION_NOMBRES = 1
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -81,6 +87,36 @@ export function faseDe(subtipos) {
     if (f) return f
   }
   return null
+}
+
+// EL NOMBRE EN INGLÉS (685). El catálogo japonés de Scrydex da el nombre
+// en katakana («カメックス»), que no se puede buscar ni leer desde aquí
+// (PINGU: «el nombre tiene que ser buscable»). Lo que sí trae es la
+// Pokédex Nacional, que es canónica (la 508): de ahí sale la especie en
+// inglés, y de los subtipos el apellido («ex», «-GX», « V», « VMAX»…).
+// Dos especies son un TAG TEAM («A & B-GX»). Un Entrenador o una Energía
+// no tienen Pokédex y se quedan con su nombre japonés: no se inventa.
+// Lo que no sale de aquí: los dueños y prefijos («Brock's», «Dark»,
+// «Shining»), que no están en ningún campo canónico.
+const APELLIDOS = [
+  ['vstar', ' VSTAR'], ['vmax', ' VMAX'], ['v-union', ' V-UNION'], ['v', ' V'], ['gx', '-GX'], ['ex', ' ex'], ['break', ' BREAK'], ['lv.x', ' LV.X'], ['prism star', ' ◇'],
+]
+export function nombreInglesDe(carta) {
+  const dex = (Array.isArray(carta?.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= POKEMON_POR_DEX.length)
+  if (!dex.length || dex.length > 2) return null
+  const especies = dex.map((n) => POKEMON_POR_DEX[n - 1]).filter(Boolean)
+  if (especies.length !== dex.length) return null
+  const subtipos = (Array.isArray(carta?.subtypes) ? carta.subtypes : []).map((x) => String(x || '').trim())
+  const bajos = subtipos.map((x) => x.toLowerCase())
+  // «EX» (mayúsculas, era XY) y «ex» (minúsculas, Escarlata y Púrpura)
+  // son dos apellidos distintos y Scrydex los distingue por la caja.
+  let apellido = ''
+  if (subtipos.includes('EX')) apellido = '-EX'
+  else {
+    for (const [sub, ap] of APELLIDOS) if (bajos.includes(sub)) { apellido = ap; break }
+  }
+  const mega = bajos.includes('mega') ? 'M ' : ''
+  return `${mega}${especies.join(' & ')}${apellido}`
 }
 
 // El id nuestro de una carta suya. Suyo es `sm10-1`; el nuestro, con su
@@ -110,6 +146,10 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
     detalle_at: ahora.toISOString(), detalle_lang: idioma,
   }
   if (idioma === 'en') fila.name_en = fila.name
+  else {
+    const en = nombreInglesDe(carta)
+    if (en) fila.name_en = en
+  }
   const foto = baseDeFoto(carta)
   if (foto) fila.image_scrydex = foto
   if (carta.rarity) fila.rarity_en = String(carta.rarity)
@@ -220,6 +260,44 @@ export async function pasada({
     const v = Object.values(estado.vistos)
     const cuenta = (e) => v.filter((x) => x.estado === e).length
     return { mirados: v.length, rellenados: cuenta('rellenado'), llenos: cuenta('lleno'), sinPar: cuenta('sinPar'), vaciosEnScrydex: cuenta('vacioEnScrydex'), parados: cuenta('parado'), creditos: estado.gasto.creditos }
+  }
+
+  // ── 0. Los ya rellenados con nombres de una versión anterior (685) ──
+  // Se vuelven a pedir y a escribir (el upsert es idempotente), uno por
+  // pasada, para ponerles `name_en`. Un crédito por 100 cartas.
+  const pendienteDeNombres = Object.entries(estado.vistos).find(([, v]) => v.estado === 'rellenado' && (Number(v.nombres) || 0) < VERSION_NOMBRES)
+  if (pendienteDeNombres) {
+    const [k, v] = pendienteDeNombres
+    const [mercado, setId] = k.split('|')
+    const idioma = IDIOMA_DE_MERCADO[mercado]
+    const cartas = []
+    let fallo = null
+    for (let pagina = 1; pagina <= MAXIMO_PAGINAS_CARTAS; pagina++) {
+      const r = await scrydex(`${idioma}/cards`, { q: `expansion.id:${v.expansion}`, page_size: 100, page: pagina })
+      if (r.error) { fallo = r.error; break }
+      const datos = Array.isArray(r.datos?.data) ? r.datos.data : []
+      cartas.push(...datos)
+      if (datos.length < 100) break
+      await pausa(200)
+    }
+    if (fallo) {
+      estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: setId, expansion: v.expansion, donde: 'nombres', error: fallo }
+      await persistir()
+      return { ok: false, ...resumen(), error: fallo }
+    }
+    const filas = igualarClaves(cartas.map((c) => filaDeCartaScrydex(c, { setId, mercado, idioma, ahora })).filter(Boolean))
+    try {
+      for (let i = 0; i < filas.length; i += 200) await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
+    } catch (e) {
+      estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: setId, expansion: v.expansion, donde: 'nombres', error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+      estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
+      await persistir()
+      return { ok: false, ...resumen(), error: estado.ultimoError.error }
+    }
+    v.nombres = VERSION_NOMBRES
+    v.conNombreIngles = filas.filter((f) => f.name_en).length
+    await persistir()
+    return { ok: true, ...resumen(), nombres: { mercado, set: setId, expansion: v.expansion, cartas: filas.length, conNombreIngles: v.conNombreIngles } }
   }
 
   for (const mercado of mercados) {
@@ -335,7 +413,7 @@ export async function pasada({
       return { ok: false, ...resumen(), error: estado.ultimoError.error }
     }
     delete estado.intentos[k(vacio)]
-    estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, cartas: filas.length, nombre: expansion.name }
+    estado.vistos[k(vacio)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, cartas: filas.length, nombre: expansion.name, nombres: VERSION_NOMBRES, conNombreIngles: filas.filter((f) => f.name_en).length }
     await persistir()
     return { ok: true, ...resumen(), rellenado: { mercado, set: vacio.id, expansion: expansion.id, nombre: expansion.name, por, cartas: filas.length } }
   }
