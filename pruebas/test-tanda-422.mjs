@@ -253,7 +253,7 @@ console.log('\n── 5. En una expansión: también por las que NO tienes ─�
   await page.locator('#mcEdAnterior').click()
   await page.waitForTimeout(800)
   check('  …y hacia atrás llega a una que SÍ tienes',
-    await page.locator('#mcEdCopiaBloque').isVisible(), await sitio(page))
+    await page.locator('#mcEdEditar').isVisible() /* desde la 669 lo que dice «tuya» es la loseta Editar */, await sitio(page))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
