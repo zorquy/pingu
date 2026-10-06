@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 5) — PINGU-Claude (670 — el barrido de huecos: sets sin cartas que se rellenan solos)
+
+**Hecho**: la pasada programada del reemplazo, con la lista hecha,
+mira ocho sets por pasada, y al primero vacío con expansión de TCGGO
+conocida lo rellena (uno por pasada). Los que comparten expansión con
+otro set se pliegan (se les apunta el `tcggo_id`), los que no tienen
+expansión se miran otra vez a la semana, los que fallan cuentan y paran.
+/admin lo resume en «Estado del catálogo de TCGGO» (HUECOS).
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`admin/js/admin.js`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 670 (nueva)
+y 654.
+
+**Pendiente**: la suite entera (corriendo).
 ## 2026-10-06 (mañana, 4) — PINGU-Claude (669 — el orden del 30, la ficha en móvil, una cuenta de «completa»)
 
 **Hecho**: los «B/RGB» de la Classic van al final (como en TCGGO); en

@@ -60,6 +60,7 @@ import {
   cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
+import { CLAVE_ESTADO as CLAVE_CATALOGO } from './tcggo-catalogo.mjs'
 import { episodioDeSet } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -67,6 +68,23 @@ const MS_DE_MARGEN = 22_000
 const MAXIMO_SETS = 5
 export const CLAVE_ESTADO = 'tcggo_reemplazos'
 export const MAXIMO_INTENTOS = 5
+// EL BARRIDO DE HUECOS (670). PINGU: «el Expansion Pack japonés está
+// vacío: el logo está y te dice cuántas cartas contiene, pero cuando
+// entras no hay cartas». Son sets que TCGdex trae con nombre y logo pero
+// sin una sola carta (68 de los 186 japoneses), y que el catálogo de TCGGO
+// no rellena porque solo escribe en los sets que casa por código o
+// nombre. Con los reemplazos de la lista hechos, cada pasada mira hasta
+// `MAXIMO_PROBADOS` sets que no haya mirado (o que mirara hace más de
+// `DIAS_REVISAR`), pregunta a NUESTRA base si tienen alguna carta (gratis),
+// y al PRIMERO vacío con expansión de TCGGO conocida lo rellena con
+// `procesar` — uno por pasada, que es una expansión entera a la API de
+// pago. Un set vacío cuya expansión ya la lleva OTRO set nuestro no se
+// rellena (sería la misma expansión dos veces, y la 646 ya los pliega):
+// se le apunta el `tcggo_id` para que se plieguen, y nada más. Lo que
+// falla cuenta intentos y para en `MAXIMO_INTENTOS`; lo que no tiene
+// expansión se vuelve a mirar a la semana, por si el emparejador la trae.
+export const MAXIMO_PROBADOS = 8
+export const DIAS_REVISAR = 7
 // Qué expansiones se reemplazan enteras por las de TCGGO. El 30
 // aniversario: TCGGO lleva la Classic Collection dentro con los números
 // de la carta original, y lo nuestro (TCGdex) tenía la Classic aparte en
@@ -351,7 +369,14 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   if (!estado.intentos || typeof estado.intentos !== 'object') estado.intentos = {}
   const pendiente = reemplazos.find((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
-  if (!pendiente) return { ok: true, hecho: true, hechos: Object.keys(estado.hechos), parados: reemplazos.filter((r) => !estado.hechos[r.clave]).map((r) => r.clave) }
+  if (!pendiente) {
+    // Con la lista hecha, el barrido de huecos (670).
+    let catalogo = {}
+    try { catalogo = await leerEstado(CLAVE_CATALOGO) } catch { catalogo = {} }
+    const huecos = await barrerHuecos({ env, restImpl, pedir, estado, pares, catalogo, procesarImpl, ahora, ...resto })
+    await guardarEstado(CLAVE_ESTADO, estado)
+    return { ok: true, hecho: true, hechos: Object.keys(estado.hechos), parados: reemplazos.filter((r) => !estado.hechos[r.clave]).map((r) => r.clave), huecos }
+  }
   // El set destino, para resolver su expansión.
   let set = null
   try {
@@ -380,6 +405,100 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   }
   await guardarEstado(CLAVE_ESTADO, estado)
   return { ...r, clave: pendiente.clave, episodioPor: por, intentos: estado.intentos[pendiente.clave] || 0 }
+}
+
+// El barrido (670): ver el comentario de MAXIMO_PROBADOS. Devuelve lo que ha
+// hecho esta pasada y deja el detalle en `estado.huecos`.
+export async function barrerHuecos({ env = process.env, restImpl = null, pedir, estado, pares, catalogo, procesarImpl = null, ahora = new Date(), mercados = ['JP', 'WEST'], ...resto } = {}) {
+  if (!estado.huecos || typeof estado.huecos !== 'object') estado.huecos = {}
+  const h = estado.huecos
+  if (!h.vistos || typeof h.vistos !== 'object') h.vistos = {}
+  if (!h.intentos || typeof h.intentos !== 'object') h.intentos = {}
+  const resumen = { probados: 0, llenos: 0, hermanos: 0, sinEpisodio: 0, rellenado: null, error: null }
+  const clave = (m, id) => `${m}:${id}`
+  const caducado = (v) => !v?.fecha || (ahora.getTime() - new Date(v.fecha).getTime()) / 86_400_000 > DIAS_REVISAR
+  const listaDe = (m) => (m === 'WEST' ? pares?.episodios?.lista : catalogo?.episodiosJp?.lista) || []
+  let pendientes = MAXIMO_PROBADOS
+  let rellenadoEstaPasada = false
+  for (const m of mercados) {
+    if (pendientes <= 0 || rellenadoEstaPasada) break
+    let sets
+    try {
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id,oculto&market=eq.${m}&order=id&limit=2000`)) || []
+    } catch (e) {
+      resumen.error = `nuestra base (${m}): ${String(e?.message || e).slice(0, 160)}`
+      break
+    }
+    const conEpisodio = new Map()
+    for (const x of sets) if (Number.isInteger(x.tcggo_id)) conEpisodio.set(x.tcggo_id, (conEpisodio.get(x.tcggo_id) || []).concat([x.id]))
+    for (const set of sets) {
+      if (pendientes <= 0 || rellenadoEstaPasada) break
+      if (set.oculto) continue
+      const k = clave(m, set.id)
+      const visto = h.vistos[k]
+      // Lo rellenado y lo parado no se vuelve a mirar; lo demás, a la semana.
+      if (visto && (visto.estado === 'rellenado' || visto.estado === 'parado' || !caducado(visto))) continue
+      pendientes--
+      resumen.probados++
+      let alguna
+      try {
+        alguna = (await pedir(`tcg_cards?select=id&market=eq.${m}&set_id=eq.${encodeURIComponent(set.id)}&limit=1`)) || []
+      } catch (e) {
+        resumen.error = `nuestra base (${k}): ${String(e?.message || e).slice(0, 160)}`
+        break
+      }
+      if (alguna.length) {
+        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'lleno' }
+        resumen.llenos++
+        continue
+      }
+      // Vacío: ¿qué expansión suya es?
+      let episodio = Number.isInteger(set.tcggo_id) && set.tcggo_id > 0 ? set.tcggo_id : null
+      let por = episodio ? 'tcggo_id' : null
+      if (!episodio) {
+        const r = m === 'WEST' ? episodioDe(set, pares) : (() => { const x = episodioDeSet(set, listaDe(m)); return x?.episodio ? { episodio: x.episodio.id, por: x.por } : { episodio: null, por: x?.porque || 'ninguna' } })()
+        episodio = r.episodio
+        por = r.por
+      }
+      if (!episodio) {
+        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'sinEpisodio', porque: String(por || '') }
+        resumen.sinEpisodio++
+        continue
+      }
+      const enLista = listaDe(m).find((e) => e.id === episodio)
+      if (enLista && enLista.cartas === 0) {
+        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'vacioEnTcggo', episodio }
+        resumen.sinEpisodio++
+        continue
+      }
+      // La misma expansión ya la lleva otro set nuestro: hermanos (646),
+      // no se rellena dos veces. Si a este le falta el tcggo_id, se le
+      // apunta para que se plieguen.
+      const otros = (conEpisodio.get(episodio) || []).filter((id) => id !== set.id)
+      if (otros.length) {
+        if (!Number.isInteger(set.tcggo_id)) {
+          try { await pedir(`tcg_sets?market=eq.${m}&id=eq.${encodeURIComponent(set.id)}`, { method: 'PATCH', body: JSON.stringify({ tcggo_id: episodio }) }) } catch { /* se reintenta a la semana */ }
+        }
+        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'hermano', episodio, de: otros }
+        resumen.hermanos++
+        continue
+      }
+      // Rellenar: uno por pasada.
+      const r = await (procesarImpl || procesar)({ env, restImpl, sets: [set.id], destino: set.id, mercado: m, episodio, ...resto })
+      rellenadoEstaPasada = true
+      if (r.ok) {
+        h.vistos[k] = { fecha: ahora.toISOString(), estado: 'rellenado', episodio, por, cartas: r.escritas }
+        delete h.intentos[k]
+        resumen.rellenado = { set: set.id, mercado: m, episodio, cartas: r.escritas }
+      } else {
+        h.intentos[k] = (Number(h.intentos[k]) || 0) + 1
+        h.ultimoError = { set: k, fecha: ahora.toISOString(), intento: h.intentos[k], error: r.error }
+        if (h.intentos[k] >= MAXIMO_INTENTOS) h.vistos[k] = { fecha: ahora.toISOString(), estado: 'parado', episodio, error: r.error }
+        resumen.error = `${k}: ${r.error}`
+      }
+    }
+  }
+  return resumen
 }
 
 export default async () => {

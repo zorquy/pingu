@@ -462,6 +462,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   no casa se reapunta por nombre al número más cercano (apuntado) o se
   borra con sus líneas, que quedan escritas en el estado. Borrar sí; en
   silencio no.
+- **Rellenar un set vacío con los MISMOS ids que ya tiene otro set los
+  MUEVE, no los copia** (tanda 670). Las cartas de TCGGO entran como
+  `tcggo-<id>` y la RPC hace upsert por id: rellenar el «Expansion Pack»
+  vacío con una expansión que el catálogo ya escribió en `tcggo-700`
+  habría cambiado el `set_id` de esas cartas, vaciado el otro, y a la
+  pasada siguiente el barrido lo habría rellenado al revés — un ping-pong
+  de una expansión de pago cada cinco minutos, sin error. Por eso el
+  barrido de huecos mira ANTES si otro set lleva ese `tcggo_id` y, si lo
+  lleva, no rellena: los pliega (la 646). Y el barrido va con las frenos de
+  la casa: ocho consultas gratis por pasada, UNA expansión de pago, los
+  fallos cuentan y paran, lo que no tiene expansión se mira a la semana.
 - **Un cambio de DATOS que no quiera SQL va en una función con la clave
   de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
   aniversario («da igual la migración SQL»), y la única forma de escribir

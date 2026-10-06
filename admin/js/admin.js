@@ -3030,7 +3030,20 @@ async function tcggoEstado() {
     '',
     `PARES (tcggo_pares) — ${de('tcggo_pares')?.updated_at || 'nunca'}: ${Object.keys(de('tcggo_pares')?.valor?.hechos || {}).length} sets con expansión decidida · ${Object.keys(de('tcggo_pares')?.valor?.sinEpisodio || {}).length} sin expansión suya`,
     `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}`,
-    `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify(de('tcggo_reemplazos')?.valor || {}, null, 1).slice(0, 1500)}`,
+    `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
+    // El barrido de huecos (670): sets sin cartas que se rellenan solos.
+    ...(() => {
+      const h = de('tcggo_reemplazos')?.valor?.huecos
+      if (!h) return ['HUECOS (sets sin cartas, 670): todavía no ha barrido']
+      const vistos = Object.entries(h.vistos || {})
+      const de2 = (estado) => vistos.filter(([, v]) => v.estado === estado)
+      return [
+        `HUECOS (sets sin cartas, 670): ${vistos.length} mirados · ${de2('lleno').length} con cartas · ${de2('rellenado').length} rellenados · ${de2('hermano').length} plegados con otro · ${de2('sinEpisodio').length + de2('vacioEnTcggo').length} sin expansión suya · ${de2('parado').length} parados`,
+        ...de2('rellenado').map(([k, v]) => `  · rellenado ${k} ← expansión #${v.episodio} (${v.cartas} cartas, ${v.fecha})`),
+        ...de2('parado').map(([k, v]) => `  ⚠ parado ${k}: ${v.error}`),
+        h.ultimoError ? `  último error: ${h.ultimoError.set} (intento ${h.ultimoError.intento}, ${h.ultimoError.fecha}): ${h.ultimoError.error}` : '',
+      ]
+    })(),
   ].filter((l) => l !== '')
   caja.value = lineas.join('\n')
 }

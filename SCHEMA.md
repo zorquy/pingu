@@ -32386,3 +32386,60 @@ da el total de hoy, no su histórico).
 
 **Ficheros**: `js/mi-coleccion/orden.js`, `mi-coleccion.html` (+
 `cartas.html`), `js/mi-coleccion.js`, `css/mi-coleccion.css`.
+
+## Tanda 670 — el barrido de huecos: sets sin cartas que se rellenan solos (oct. 2026)
+
+PINGU, con el catálogo japonés delante: «el Expansion Pack está vacío:
+el logo está y te dice cuántas cartas contiene, pero cuando entras no
+hay cartas». Son sets que TCGdex trae con nombre, logo y cuenta pero
+sin una carta (68 de 186 japoneses: XY, ADV, Legend, medio S), y el
+catálogo de TCGGO (640) no los rellena: solo escribe en los sets que
+casa por código o nombre con una expansión suya, y lo que no casa lo
+crea aparte (`tcggo-<id>`).
+
+**Qué hace** (`barrerHuecos`, en `netlify/functions/tcggo-reemplazar-set.mjs`,
+dentro de la pasada programada de cada cinco minutos, SOLO cuando los
+reemplazos de la lista están hechos):
+
+1. Por mercado (JP, WEST), lee nuestros sets y mira hasta
+   `MAXIMO_PROBADOS` (8) que no haya mirado, o que mirara hace más de
+   `DIAS_REVISAR` (7). Lo rellenado y lo parado no se vuelve a mirar; lo
+   oculto, nunca.
+2. A cada uno le pregunta a NUESTRA base si tiene alguna carta (una
+   consulta de una fila, gratis). Con cartas: `lleno`.
+3. Vacío: su expansión de TCGGO es `tcggo_id` si lo tiene; si no, en
+   WEST la que diga el emparejador (`episodioDe`) y en JP la que case
+   por código/nombre con la lista del catálogo (`episodioDeSet` sobre
+   `tcggo_catalogo.episodiosJp.lista`). Sin ninguna: `sinEpisodio` (se
+   vuelve a mirar a la semana, por si el emparejador la trae). Con una
+   expansión que su lista da con CERO cartas (las energías): `vacioEnTcggo`.
+4. Si esa expansión YA la lleva otro set nuestro (`tcggo_id` igual), no
+   se rellena dos veces: es un `hermano` (los pliega la 646) y, si al
+   vacío le falta el `tcggo_id`, se le apunta con un PATCH para que se
+   plieguen. Esto es lo que evita el ping-pong: sin esta guarda, rellenar
+   el vacío MOVERÍA las cartas (mismos ids `tcggo-<id>`) del lleno al
+   vacío, y a la pasada siguiente al revés.
+5. Si no, lo rellena con `procesar` (`sets: [id]`, `destino: id`, su
+   mercado, su expansión): **uno por pasada**, que es una expansión
+   entera a la API de pago. Bien: `rellenado` (expansión, cartas). Mal:
+   cuenta intentos (`huecos.intentos`), apunta `huecos.ultimoError` y a
+   `MAXIMO_INTENTOS` (5) queda `parado`.
+
+**La cuenta** (la regla de la 509): a la base propia, dos listas y ocho
+consultas por pasada, gratis. A TCGGO, como mucho UNA expansión por
+pasada y solo mientras queden vacíos con expansión conocida: con ~70
+japoneses vacíos son ~70 expansiones en unas seis horas, una vez, y
+después nada. Lo que no se puede rellenar se apunta y no se vuelve a
+pedir.
+
+**El estado** vive en `tcggo_reemplazos.huecos` (`vistos` por
+`MERCADO:id` con fecha y estado, `intentos`, `ultimoError`) y /admin →
+«Estado del catálogo de TCGGO» lo resume (cuántos mirados, con cartas,
+rellenados, plegados, sin expansión, parados; los rellenados uno a uno,
+los parados con su error) en vez de volcar el mapa, que no cabría.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`admin/js/admin.js`. **Pruebas**: `test-tanda-670.mjs` (dobles: el
+primero vacío se rellena, uno por pasada; llenos, hermanos con su PATCH,
+sin expansión, cero en TCGGO; la semana; los fallos cuentan y paran) y
+`test-tanda-654.mjs` adaptada (sus sets tienen cartas).
