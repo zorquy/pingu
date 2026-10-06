@@ -61,8 +61,8 @@ console.log('── 1. /cartas: una tarjeta por expansión de TCGGO ──')
   check('dos tarjetas: el 30 aniversario es UNA (la Classic va dentro) y Pitch Black', nombres.join(' | ') === '30th Celebration | Pitch Black', nombres.join(' | '))
   const treinta = page.locator('.mc-set-tarjeta', { hasText: '30th Celebration' })
   const texto = limpio(await treinta.innerText())
-  check('  …con las cartas de las dos (128, y tu Charizard de la Classic cuenta), el valor del set y el semanal (−7 %)', /1 de 128/.test(texto) && /11\.134 € · [−-]7 %/.test(texto), texto)
-  check('  …y el semanal en rojo', (await treinta.locator('.mc-set-valor .baja').evaluate((el) => getComputedStyle(el).color)) === 'rgb(220, 38, 38)')
+  check('  …con las cartas de las dos (128, y tu Charizard de la Classic cuenta), el valor del set y el semanal (−7 %)', /1 de 128/.test(texto) && /11\.134 €/.test(texto) && /[−-]7 %/.test(texto), texto) // en losetas aparte desde la 668
+  check('  …y el semanal en rojo', (await treinta.locator('.mc-set-cifra .baja').evaluate((el) => getComputedStyle(el).color)) === 'rgb(220, 38, 38)')
   check('  …la fecha debajo del nombre y la era de rótulo', /16 sept 2026/.test(texto) && (await page.locator('.mc-estanteria-titulo').allTextContents()).includes('Mega Evolution'), texto)
   const pitch = limpio(await page.locator('.mc-set-tarjeta', { hasText: 'Pitch Black' }).innerText())
   check('Pitch Black, con un solo día: valor sí y sin semanal', /616 €/.test(pitch) && !/%/.test(pitch), pitch)
@@ -90,7 +90,7 @@ console.log('── 2. La estantería de /mi-coleccion: lo mismo, y lo tuyo se c
   const treinta = tarjetas.filter({ hasText: '30th Celebration' })
   const texto = limpio(await treinta.innerText())
   check('tu Charizard de la Classic cuenta en el 30 aniversario: 1 de 128', /1 de 128/.test(texto), texto)
-  check('  …y la tarjeta dice lo que vale y cómo va', /11\.134 € · −7 %|11\.134 € · -7 %/.test(texto), texto)
+  check('  …y la tarjeta dice lo que vale y cómo va', /11\.134 €/.test(texto) && /[−-]7 %/.test(texto), texto) // losetas aparte desde la 668
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

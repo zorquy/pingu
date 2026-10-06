@@ -107,7 +107,7 @@ console.log('── 4. Lo estático ──')
   const col = leer('js/coleccion.js')
   check('la página de una colección registra a sus hermanos por tcggo_id', /\.eq\('tcggo_id', set\.tcggo_id\)/.test(col) && /registrarEpisodios\(hermanos \|\| \[\]\)/.test(col) && /idsDeColeccion\(setId\)\.length > 1/.test(col))
   const css = leer('css/mi-coleccion.css')
-  check('la tarjeta de expansión lleva el valor con su subida o bajada', /\.mc-set-valor \{/.test(css) && /\.mc-set-valor \.baja \{ color: var\(--danger\); \}/.test(css))
+  check('la tarjeta de expansión lleva el valor con su subida o bajada', /\.mc-set-valor \{/.test(css) && /\.mc-set-cifra \.baja \{ color: var\(--danger\); \}/.test(css))
   check('y el CSS del /cartas viejo ya no está', !/\.serie-fila|\.serie-lista|\.cartas-buscador/.test(leer('css/carta.css')))
 }
 

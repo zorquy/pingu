@@ -82,7 +82,7 @@ console.log('\n── 2. La chispa del mes (658) ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html?ver=album')
   const chispa = page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-chispa')
-  check('la tarjeta de la expansión lleva su chispa, verde si sube', (await chispa.count()) === 1 && /sube/.test(await chispa.getAttribute('class')) && (await chispa.locator('polyline').getAttribute('points')).split(' ').length === 30, await chispa.getAttribute('class'))
+  check('la tarjeta de la expansión lleva su chispa, verde si sube', (await chispa.count()) === 1 && /sube/.test(await chispa.getAttribute('class')) && (await chispa.locator('polyline').getAttribute('points')).split(' ').length >= 3, await chispa.getAttribute('class')) // desde la 668 se pide por semanas + ocho días, no los 30 días seguidos
   check('  …delante de la cifra y del semanal', /448|487|4\d\d €/.test(limpio(await page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor').innerText())))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
@@ -93,7 +93,7 @@ console.log('\n── 2. La chispa del mes (658) ──')
   check('con dos días no hay chispa (sería una raya) pero sí la cifra', (await pocos.page.locator('.mc-set-chispa').count()) === 0 && /€/.test(limpio(await pocos.page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor').innerText())))
   await pocos.page.close()
   const js = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
-  check('la consulta mira un mes, y el semanal sigue siendo de ocho días', /31 \* 86_400_000/.test(js) && /hace8/.test(js))
+  check('la consulta pide nueve meses por semanas (668), y el semanal sigue siendo de ocho días', /fechasDeValor\(\)/.test(js) && /hace8/.test(js))
 }
 
 console.log('\n── 3. El nombre inglés de un set, desde TCGGO (659) ──')
