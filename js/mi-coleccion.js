@@ -373,8 +373,10 @@ const anadir = { carta: null, variante: null }
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
 // que no tienes no está en `cartas` (la lección de la 418).
+// Y las de la especie abierta (694): el «+» de la Pokédex de una carta
+// que NO tienes no la encontraba en ningún sitio y no hacía nada.
 function cartaPorId(cardId) {
-  return cartas.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || null
+  return cartas.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecie.find((x) => x.id === cardId) || null
 }
 
 const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
@@ -4580,7 +4582,9 @@ async function pintarEspecie(dex, { push = true } = {}) {
   // columna `dex_ids` se esté rellenando, la consulta de arriba devuelve
   // poco o nada — y lo tuyo es justo lo que has venido a ver. Se saca
   // del NOMBRE, que ya está en memoria, así que no cuesta nada.
-  const porId = new Map(delCatalogo.map((c) => [c.id, c]))
+  // Sin TCG Pocket (694): la consulta va por `dex_ids` y los sets de
+  // Pocket también los llevan. PINGU: «ya dijimos que eso fuera».
+  const porId = new Map(delCatalogo.filter((c) => esDelTCG(c.tcg_sets || { id: c.set_id })).map((c) => [c.id, c]))
   for (const id of tuyas) {
     const c = cartas.get(id)
     if (c && !porId.has(id) && pokedex.esDeLaEspecie(c, dex)) porId.set(id, c)

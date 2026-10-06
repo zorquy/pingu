@@ -33677,3 +33677,16 @@ entera (la 526). /admin: «CARTAS SUELTAS SIN FOTO».
 `admin/js/admin.js`. **Pruebas**: `test-tanda-693.mjs` (la única, el
 parche con y sin mudanza, la pasada con `search` y con `name`, los
 intentos y la revisión, el parón del plan, el fallo nuestro, el tope).
+
+**694 — el «+» de la Pokédex de una carta que NO tienes, y TCG Pocket
+fuera.** PINGU, probando la 692: «ahora el + no deja añadir cartas, no
+hace nada; solo funciona con las que ya tienes. Además veo en el
+catálogo cartas del TCG Pocket, ya dijimos que eso fuera». Lo primero:
+`cartaPorId` buscaba en tu colección, en el álbum abierto y en la última
+búsqueda — y una carta de la especie que no tienes no está en ninguno,
+así que `abrirAnadir` se salía sin error. Ahora mira también en
+`cartasDeLaEspecie`. Lo segundo: la consulta de la especie va por
+`dex_ids` y los sets de Pocket también los llevan; `pintarEspecie` deja
+fuera lo que `esDelTCG` no admite, como ya hacen la estantería y el
+buscador. La prueba 692 lleva las dos: un Weedle que no tienes cuyo «+»
+abre el diálogo, y uno de Genetic Apex que no sale.

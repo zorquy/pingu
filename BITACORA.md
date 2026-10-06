@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 17) — PINGU-Claude (694 — el «+» de la Pokédex de una carta que no tienes, y TCG Pocket fuera)
+
+**Hecho**: el «+» de la Pokédex no hacía nada con una carta que no
+tienes (no estaba en ningún sitio donde se buscaba); y la Pokédex de un
+Pokémon enseñaba cartas de TCG Pocket (la consulta va por Pokédex y
+Pocket también la lleva). Las dos arregladas y cubiertas en la 692.
+
+**Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: 692.
+
+**Pendiente**: lo de la 693 (CARTAS SUELTAS en /admin) y los bloques de
+/admin de antes.
+
 ## 2026-10-06 (tarde, 16) — PINGU-Claude (693 — las cartas sueltas sin foto, buscadas en TCGGO por nombre)
 
 **Hecho**: el Ancient Mew (`miscp`, cajón de TCGdex de una carta sin
