@@ -450,6 +450,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   número y las creó por segunda vez. Desde la 652 `emparejarPorNumero`
   casa por NOMBRE como último paso (único en los dos lados), y los
   duplicados se funden con `supabase-migration-30-aniversario-duplicados.sql`.
+- **Una dirección SUPUESTA no va delante de una CONTESTADA** (tanda 666).
+  La cadena de escaneos monta a mano el camino de TCGdex cuando falta
+  `image_path` (la 434) y lo ponía antes de la foto de TCGGO: para una
+  carta creada por TCGGO en un set que TCGdex también tiene, es el número
+  de TCGGO sobre el set de TCGdex, y en el 30 aniversario la Classic lleva
+  los números originales («4»), así que pintaba la carta 4 del set
+  principal — otra carta, sin error. Para los ids `tcggo-…` la suya va
+  primero. Y el modo `entero` del reemplazo (PINGU: «sustituye todo»)
+  da la vuelta a la regla de la 654 A PROPÓSITO: lo que alguien tiene y
+  no casa se reapunta por nombre al número más cercano (apuntado) o se
+  borra con sus líneas, que quedan escritas en el estado. Borrar sí; en
+  silencio no.
 - **Un cambio de DATOS que no quiera SQL va en una función con la clave
   de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
   aniversario («da igual la migración SQL»), y la única forma de escribir

@@ -204,12 +204,21 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   // el espejo: mismo arte y mismo idioma. Limitless es el respaldo, y su
   // arte es siempre el inglés.
   const aMano = carta?.image_path ? null : rutaDeAssetDeTCGdex(carta)
+  const deTcggo = typeof carta?.image_tcggo === 'string' && /^https?:\/\//.test(carta.image_tcggo) ? carta.image_tcggo : null
+  // Para una carta que CREÓ TCGGO (id «tcggo-…»), su foto va antes que el
+  // camino montado a mano (666): ese camino es una SUPOSICIÓN con el
+  // número de TCGGO sobre el set de TCGdex, y en el 30 aniversario la
+  // Classic lleva los números originales («4»), así que la suposición
+  // devolvía la carta 4 del set principal —otra carta, sin error—. Una
+  // dirección que la fuente ha contestado va delante de una que se
+  // supone; para las de TCGdex se queda como estaba (arte en español).
+  if (deTcggo && /^tcggo-/.test(String(carta?.id || ''))) cadena.push(deTcggo)
   if (aMano) cadena.push(comoEspejo(aMano))
   // La foto de TCGGO (tanda 640), detrás de las de TCGdex —que tienen el
   // arte en español— y delante de Limitless. Para las cartas que creó
   // TCGGO es la ÚNICA, y para las japonesas sin escaneo en TCGdex, la que
   // faltaba. Va entera: es una URL de su CDN.
-  if (typeof carta?.image_tcggo === 'string' && /^https?:\/\//.test(carta.image_tcggo)) cadena.push(carta.image_tcggo)
+  if (deTcggo) cadena.push(deTcggo)
   // Y la de Scrydex (660), detrás de las dos fuentes vivas.
   const deScrydex = urlDeFotoScrydex(carta?.image_scrydex, calidad)
   if (deScrydex) cadena.push(deScrydex)

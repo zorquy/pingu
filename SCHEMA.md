@@ -32212,3 +32212,71 @@ quien no lo apagó, sin tabla se salta, sin avisos nada; la migración; en
 lista, guardar, quitar, sigue tras cambiar de idioma y habla del inglés;
 sin sesión no hay botón; la ficha de Mi colección también). El doble
 tiene `user_price_alerts` (`__FAKE_AVISOS__`).
+
+## Tanda 666 — el 30 aniversario, entero de TCGGO (oct. 2026)
+
+PINGU, la mañana después de la 654, con la página 1 de
+`episodes/431/cards` pegada: «la expansión del 30 occidental, te paso
+esto y sustituyes todo, que sigue estando mal con cartas duplicadas,
+cartas que enlazan mal, mal las imágenes… simplemente coge todo el set
+como aquí». La 654 había conservado lo nuestro que ya era la misma carta
+y dejado 16 que alguien tenía y no casaban: eso eran los duplicados.
+
+**Qué se ve mal, y por qué**. Tres cosas distintas:
+
+1. **Duplicados**: las 16 que se quedaron (Pikachu ×3, Ninetales ×2,
+   Vivillon, Vulpix, Victini, Palkia…) al lado de las de TCGGO con el
+   mismo nombre. Se quedaron porque la regla de la 654 era «lo que
+   alguien tiene y no tiene equivalente no se borra».
+2. **Enlaces y numeración mezclados**: las conservadas llevaban id y
+   número de TCGdex (`30th-106`, «106») y las nuevas de TCGGO
+   (`tcggo-65629`); un mismo set con dos numeraciones.
+3. **Imágenes**: la cadena de escaneos (`cadenaDeEscaneo`) monta a mano
+   el camino de TCGdex cuando la carta no tiene `image_path`
+   (`serie/set/número`, la 434), y lo pone ANTES de la foto de TCGGO.
+   Para una carta creada por TCGGO en un set que TCGdex también tiene,
+   eso es una SUPOSICIÓN con el número de TCGGO sobre el set de TCGdex:
+   en el 30 la Classic lleva los números originales («4»), así que el
+   camino `me/30th/4` devolvía la carta 4 del set principal — otra
+   carta, sin error.
+
+**Qué hace la 666**:
+
+- `REEMPLAZOS` lleva un segundo reemplazo, `30th-entero`
+  (`sets: ['30th','30th-c']`, `destino: '30th'`, `episodio: 431`,
+  `entero: true`). La expansión va ESCRITA porque la dio PINGU de la
+  propia respuesta; la pasada la prefiere a la de los pares
+  (`episodioPor: 'lista'`). La pasada programada lo hace sola en la
+  siguiente (a y 4 de cada cinco minutos), como la 654.
+- `procesar({ entero: true })`: **nada nuestro se conserva**. Toda carta
+  entra como `tcggo-<id suyo>` con el número y la foto de TCGGO. Las
+  líneas de colección, deseos y álbumes se reapuntan: por `tcggo_id` si
+  la nuestra ya era la misma carta (exacto; regla nueva en
+  `equivalencias`, va primero), si no por nombre y por nombre + número
+  (las de la 654), y lo que siga sin pareja pero tenga alguna suya del
+  mismo nombre va a la del **número más cercano** (`nombre aproximado`,
+  solo con `aproximar: true`), apuntado en `aproximadas` para poder
+  corregirlo a mano. Lo que no tiene NINGUNA suya con ese nombre se
+  borra con sus líneas, y las líneas quedan escritas en el resumen
+  (`lineasSinDestino`: tabla, id, usuario, carta, nombre, copias). Es la
+  regla de la 654 dada la vuelta a propósito y solo en este modo: PINGU
+  quiere el set de TCGGO y nada nuestro dentro, y lo que se borra no se
+  borra en silencio. Las consultas de líneas piden `user_id` y
+  `cantidad` para poder apuntarlo.
+- `cadenaDeEscaneo`: para una carta cuyo id empieza por `tcggo-`, su
+  foto (`image_tcggo`) va ANTES del camino montado a mano de TCGdex.
+  Una dirección que la fuente ha contestado va delante de una que se
+  supone. Para las de TCGdex sin `image_path` no cambia nada (su camino
+  a mano es el arte en español, y es la misma fuente).
+
+**Lo que queda**: el resumen del estado (`tcggo_reemplazos.hechos
+['30th-entero']`) dirá qué líneas se aproximaron y cuáles se fueron; se
+ve en /admin → Cartas → «Estado del catálogo de TCGGO».
+
+**Pruebas**: `test-tanda-666.mjs` (la lista; `equivalencias` por
+`tcggo_id` y por nombre aproximado; `procesar` entero con dobles sobre
+`tcggo-30th-431-pagina1.json`, que es la página de PINGU tal cual —cinco
+cartas, dos Eevee—; la pasada con la expansión escrita; la cadena de
+escaneos). `test-tanda-654.mjs` pasa a la pasada solo el primer
+reemplazo. Pasadas también 661, 640, 434, 435, 392, 370 y
+`test-imports`.

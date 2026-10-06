@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 1) — PINGU-Claude (666 — el 30 aniversario, ENTERO de TCGGO)
+
+**Hecho**: PINGU pegó la página 1 de `episodes/431/cards` y pidió
+«sustituye todo». Segundo reemplazo programado, `30th-entero`: nada
+nuestro se conserva, todo entra como `tcggo-<id>` con número y foto de
+TCGGO; las líneas de la gente se reapuntan (por `tcggo_id`, nombre,
+nombre+número, o nombre al número más cercano —apuntado—) y lo que no
+tiene ninguna suya con ese nombre se borra con sus líneas, que quedan
+escritas en el estado. Y la cadena de escaneos pone la foto de TCGGO
+delante del camino montado a mano para las cartas que creó TCGGO (era
+lo de «mal las imágenes»: la Classic con números originales pintaba la
+carta 4 del set principal). La pasada lo hace sola en minutos.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`js/escaneo-carta.js`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 666
+(nueva) con `tcggo-30th-431-pagina1.json`, y 654.
+
+**Pendiente**: mirar el resumen en /admin cuando haya corrido
+(`aproximadas`, `lineasSinDestino`).
 ## 2026-10-06 (madrugada, 7) — PINGU-Claude (665 — avisos de precio)
 
 **Hecho**: «Avísame» en el bloque de precio de /carta y de la ficha de
