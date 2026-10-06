@@ -46,7 +46,6 @@ async function abrir(ruta, { movil = true, sesion = true } = {}) {
   return { page, ctx, errores }
 }
 const barra = async (page) => page.$$eval('.bm a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}:${a.getAttribute('href')}`))
-const pildoras = async (page) => page.$$eval('.bm-secc a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`))
 
 console.log('── 2. La portada en un iPhone ──')
 {
@@ -59,7 +58,19 @@ console.log('── 2. La portada en un iPhone ──')
   check('  …cada hueco mide 44 o más', (await page.$$eval('.bm a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
   check('  …la página reserva sitio debajo para que la barra no tape el final', (await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingBottom))) >= 72)
   check('  …y la hamburguesa se va: todo lo suyo está en la barra y las píldoras', !(await page.locator('.nav-toggle').isVisible()))
-  check('las píldoras de Inicio: Inicio (activa) y Noticias', (await pildoras(page)).join() === 'Inicio*,Noticias', (await pildoras(page)).join())
+  // 704c: nada de píldoras arriba (PINGU: «estamos cogiendo demasiado
+  // espacio»). Las páginas de la sección salen en una hoja al volver a
+  // tocar la sección activa.
+  check('arriba no hay píldoras, y el hueco bajo la barra de arriba es el pequeño', (await page.locator('.bm-secc').count()) === 0 && (await page.$eval('.page-content', (m) => parseFloat(getComputedStyle(m).paddingTop))) <= 24)
+  check('la hoja de la sección nace cerrada', (await page.locator('.bm-hoja').count()) === 1 && !(await page.locator('.bm-hoja').isVisible()))
+  await page.click('.bm a[aria-current="page"]')
+  await page.waitForTimeout(300)
+  const hoja = await page.$$eval('.bm-hoja a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`))
+  check('tocar Inicio (ya activa) abre la hoja con sus páginas: Inicio (activa) y Noticias, encima de la barra', (await page.locator('.bm-hoja').isVisible()) && hoja.join() === 'Inicio*,Noticias' && (await page.$eval('.bm-hoja', (e) => e.getBoundingClientRect().bottom)) <= (await page.$eval('.bm', (e) => e.getBoundingClientRect().top)), hoja.join())
+  check('  …cada fila mide 44', (await page.$$eval('.bm-hoja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44))))
+  await page.click('.bm-velo')
+  await page.waitForTimeout(200)
+  check('  …y tocar fuera la cierra', !(await page.locator('.bm-hoja').isVisible()))
   check('la hoja se inyecta sola', (await page.locator('link[href="css/movil.css"]').count()) === 1)
   await ctx.close()
 }
@@ -70,30 +81,27 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await barra(page)
   check('Cartas activa', b.some((x) => x.startsWith('Cartas*:')), b.join(' | '))
-  check('las píldoras son los enlaces del desplegable «Cartas», con Mi colección activa', (await pildoras(page)).join() === 'Catálogo de cartas,Lanzamientos,Mi colección*', (await pildoras(page)).join())
-  check('  …y van ANTES de todo lo de la página', (await page.$eval('main', (m) => m.firstElementChild?.className)) === 'bm-secc')
-  // 704b: PINGU, con la primera versión en píldoras: «ocupan demasiadísima
-  // pantalla». Son una LÍNEA DE TEXTO (enlaces en línea, como una miga de
-  // pan) y aun así el área que se pulsa mide 44 por el relleno vertical.
-  const fila = await page.$$eval('.bm-secc a', (as) => as.map((a) => ({ inline: getComputedStyle(a).display === 'inline', h: Math.round(a.getBoundingClientRect().height) })))
-  check('las píldoras son una línea de texto (enlaces en línea) y el área que se pulsa mide 44', fila.every((x) => x.inline && x.h >= 44), JSON.stringify(fila))
-  check('  …y la fila entera mide menos de 48 px: no se come la pantalla', (await page.$eval('.bm-secc', (e) => Math.round(e.getBoundingClientRect().height))) <= 48, String(await page.$eval('.bm-secc', (e) => Math.round(e.getBoundingClientRect().height))))
-  const mc = await page.$eval('.mc-pestanias', (e) => ({ pos: getComputedStyle(e).position, visible: e.getBoundingClientRect().height > 0 }))
-  check('las pestañas de Mi colección ya no flotan: fila normal bajo la cabecera', mc.pos === 'static' && mc.visible, JSON.stringify(mc))
-  check('  …y cada pestaña mide 44', (await page.$$eval('.mc-pestania', (as) => as.every((a) => a.getBoundingClientRect().height >= 44))))
+  const mc = await page.$eval('.mc-pestanias', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), alto: Math.round(r.height) } })
+  const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
+  check('la burbuja de Mi colección sigue flotando, justo ENCIMA de la barra (704c)', mc.pos === 'fixed' && mc.alto > 0 && mc.bottom <= barraTop && mc.bottom >= barraTop - 24, JSON.stringify({ mc, barraTop }))
+  check('  …y la página reserva sitio para las dos', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom))) >= 160)
+  await page.click('.bm a[aria-current="page"]')
+  await page.waitForTimeout(300)
+  const hoja = await page.$$eval('.bm-hoja a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`))
+  check('tocar Cartas abre la hoja con las páginas del desplegable «Cartas», con Mi colección activa', hoja.join() === 'Catálogo de cartas,Lanzamientos,Mi colección*', hoja.join())
   await ctx.close()
 }
 
 console.log('── 4. Las demás secciones, y una página que no está en ningún desplegable ──')
 {
   const { page, ctx } = await abrir('/torneos.html')
-  check('Torneos: Jugar activa y sus páginas arriba, con Torneos activa', (await barra(page)).some((x) => x.startsWith('Jugar*:')) && (await pildoras(page))[0] === 'Torneos*' && (await pildoras(page)).includes('Mazos del meta'), (await pildoras(page)).join())
+  check('Torneos: Jugar activa, y su hoja lleva Torneos (activa) y Mazos del meta', (await barra(page)).some((x) => x.startsWith('Jugar*:')) && (await page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : ''))))[0] === 'Torneos*' && (await page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim()))).includes('Mazos del meta'))
   await ctx.close()
   const f = await abrir('/foro.html')
-  check('Foro: Comunidad activa, píldoras Foro (activa) y Gente', (await barra(f.page)).some((x) => x.startsWith('Comunidad*:')) && (await pildoras(f.page)).join() === 'Foro*,Gente', (await pildoras(f.page)).join())
+  check('Foro: Comunidad activa, con hoja Foro (activa) y Gente', (await barra(f.page)).some((x) => x.startsWith('Comunidad*:')) && (await f.page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')))).join() === 'Foro*,Gente')
   await f.ctx.close()
   const c = await abrir('/carta.html?id=xy5-1')
-  check('la ficha de una carta no está en ningún desplegable y aun así Cartas sale activa, con sus píldoras sin ninguna encendida', (await barra(c.page)).some((x) => x.startsWith('Cartas*:')) && (await pildoras(c.page)).length === 3 && !(await pildoras(c.page)).some((x) => x.endsWith('*')), (await pildoras(c.page)).join())
+  check('la ficha de una carta no está en ningún desplegable y aun así Cartas sale activa, con su hoja sin ninguna página encendida', (await barra(c.page)).some((x) => x.startsWith('Cartas*:')) && (await c.page.locator('.bm-hoja a').count()) === 3 && (await c.page.locator('.bm-hoja a[aria-current]').count()) === 0)
   await c.ctx.close()
 }
 
@@ -103,7 +111,7 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   check('sin cuenta, Cartas lleva al catálogo', (await barra(page)).some((x) => x === 'Cartas:/cartas'), (await barra(page)).join(' | '))
   await ctx.close()
   const d = await abrir('/index.html', { movil: false })
-  check('en el escritorio no hay barra, ni píldoras, ni se descarga su hoja', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-secc').count()) === 0 && (await d.page.locator('link[href="css/movil.css"]').count()) === 0)
+  check('en el escritorio no hay barra, ni hoja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-hoja').count()) === 0 && (await d.page.locator('link[href="css/movil.css"]').count()) === 0)
   check('  …y la barra de arriba sigue con sus desplegables', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 4)
   await d.ctx.close()
 }
