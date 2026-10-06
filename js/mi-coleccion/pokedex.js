@@ -269,7 +269,7 @@ function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '
       </button>` : ''}
       <!-- Solo las que me faltan, y en qué idioma cuentan mis copias
            (tanda 577): lo mismo que en una expansión. -->
-      <button type="button" class="mc-chip-filtro mc-chip-mando${soloFaltan ? ' activo' : ''}" id="pdxSoloFaltan" aria-pressed="${soloFaltan ? 'true' : 'false'}">Solo las que me faltan</button>
+      <button type="button" class="chip-filtro mc-chip-mando${soloFaltan ? ' activa' : ''}" id="pdxSoloFaltan" aria-pressed="${soloFaltan ? 'true' : 'false'}">Solo las que me faltan</button>
       <select class="mc-chapa-select" id="pdxIdioma" aria-label="En qué idioma cuentan tus copias">
         <option value=""${idioma ? '' : ' selected'}>Cualquier idioma</option>
         ${idiomas.map((i) => `<option value="${escapeHtml(i.id)}"${i.id === idioma ? ' selected' : ''}>Tengo en ${escapeHtml(i.nombre.toLowerCase())}</option>`).join('')}
@@ -285,7 +285,7 @@ export function gruposDeEspecieHtml(grupos, puestos) {
       (g) => `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${g.valores
         .map(({ rotulo }) => {
           const puesto = !!puestos?.[g.id]?.has(rotulo)
-          return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(rotulo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+          return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(rotulo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
         })
         .join('')}</div></div>`
     )

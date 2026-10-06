@@ -68,37 +68,7 @@
   color: var(--blanco-fijo);
 }
 
-.meta-periodo {
-  display: inline-flex;
-  flex-shrink: 0;
-  padding: var(--e-xs);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-}
-
-.meta-periodo-btn {
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.meta-periodo-btn.activo {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-.meta-periodo-btn:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 2px;
-}
+/* El periodo y la fuente son la cápsula compartida (`.seg`, 678). */
 
 /* ── Los iconos ── */
 .meta-iconos {
@@ -674,4 +644,18 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+
+/* La silueta del ranking (681): una fila gris por mazo, con el barrido
+   de `.esq-linea` (components.css), que ya se para con «menos
+   movimiento». */
+.esq-meta {
+  padding: 8px 0;
+}
+
+.esq-meta .esq-linea {
+  /* Es un <span> dentro del <li>: sin `block` la altura no cuenta. */
+  display: block;
+  height: 40px;
+  margin: 0;
 }

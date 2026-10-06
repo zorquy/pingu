@@ -126,8 +126,8 @@
         <p class="meta-lema">Los mazos que más se juegan en Estándar, en los torneos oficiales de Pokémon, en los online de Limitless y en los de PokeDoc: cuánto se usan, cómo les va y, dentro de cada uno, su lista media, listas del top 8 para copiar y guías para aprender a llevarlo.</p>
       </div>
       <div class="meta-filtros-cab">
-        <div class="meta-periodo" id="metaFuente" role="group" aria-label="Torneos"></div>
-        <div class="meta-periodo" id="metaPeriodo" role="group" aria-label="Periodo"></div>
+        <div class="seg" id="metaFuente" role="group" aria-label="Torneos"></div>
+        <div class="seg" id="metaPeriodo" role="group" aria-label="Periodo"></div>
       </div>
     </header>
     <p class="meta-totales" id="metaTotales"></p>
@@ -137,7 +137,16 @@
       <div class="meta-cabecera-tabla hidden" id="metaCabeceraTabla" aria-hidden="true">
         <span>#</span><span></span><span>Mazo</span><span>Uso</span><span>Tendencia</span><span>Victorias</span>
       </div>
-      <ol class="meta-ranking" id="metaRanking" aria-busy="true" aria-label="Mazos, del más jugado al menos"></ol>
+      <!-- La silueta del ranking mientras llega (681): seis filas, como
+           las tarjetas de /noticias. El JS la sustituye entera. -->
+      <ol class="meta-ranking" id="metaRanking" aria-busy="true" aria-label="Mazos, del más jugado al menos">
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+        <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
+      </ol>
     </div>
     <button type="button" class="btn-secondary meta-ver-todos hidden" id="metaVerTodos"></button>
     <p class="meta-nota" id="metaOtros"></p>

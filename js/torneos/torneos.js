@@ -287,11 +287,11 @@ function pintarGrupos(grupos) {
   if (!pestanaLista || !conAlgo.some((g) => g.id === pestanaLista)) pestanaLista = conAlgo[0].id
   const activa = conAlgo.find((g) => g.id === pestanaLista)
   lista.innerHTML = `
-    <nav class="torneo-pestanas torneo-pestanas-chips" aria-label="Grupos de torneos">
+    <nav class="torneo-pestanas-chips" aria-label="Grupos de torneos">
       ${conAlgo
         .map(
           (g) =>
-            `<button class="torneo-pestana ${g.id === pestanaLista ? 'activa' : ''}" data-grupo="${g.id}">${g.texto} <span class="torneo-pestana-cuenta">${g.filas.length}</span></button>`
+            `<button type="button" class="chip-filtro${g.id === pestanaLista ? ' activa' : ''}" data-grupo="${g.id}">${g.texto} <span class="torneo-pestana-cuenta">${g.filas.length}</span></button>`
         )
         .join('')}
     </nav>

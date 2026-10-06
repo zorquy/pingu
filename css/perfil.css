@@ -158,16 +158,18 @@
 }
 
 /* ── Profile hero (perfil.html propio) ── */
+/* Compacta desde la 679 (PINGU: «cabeceras más compactas»): banner de
+   128 (64 sin foto), avatar de 80 y menos aire; la ficha empieza antes. */
 .profile-hero {
   border-radius: var(--radius-xl);
   overflow: hidden;
   border: 1px solid var(--border);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   background: var(--white);
 }
 
 .profile-hero-banner {
-  height: 160px;
+  height: 128px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -179,7 +181,7 @@
    Va JUSTO DESPUÉS de la regla de arriba a propósito: tienen la misma
    especificidad, así que la que gana es la última que se lee. */
 .profile-hero-banner-vacio {
-  height: 96px;
+  height: 64px;
 }
 
 /* Sin `position`: este botón sale en dos sitios —encima del banner
@@ -216,7 +218,7 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  padding: 12px 24px 24px;
+  padding: 8px 16px 16px;
   position: relative;
 }
 
@@ -240,12 +242,12 @@
 .profile-hero-avatar-wrap {
   position: relative;
   flex-shrink: 0;
-  margin-top: -48px;
+  margin-top: -40px;
 }
 
 .profile-hero-avatar {
-  width: 96px;
-  height: 96px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   /* Sin aro. Llevaba un borde de 4px que en modo oscuro se leía como un
      círculo raro alrededor de la foto, sobre todo desde que el color de
@@ -256,7 +258,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--t-3xl);
+  font-size: var(--t-2xl);
   font-weight: 800;
   color: var(--white);
   background-color: var(--navy);
@@ -280,7 +282,7 @@
 }
 
 .profile-hero-info {
-  padding-top: 24px;
+  padding-top: 12px;
   flex: 1;
   min-width: 0;
 }
@@ -437,7 +439,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 8px 0 8px;
+  margin: 4px 0 8px;
 }
 
 .perfil-rango {

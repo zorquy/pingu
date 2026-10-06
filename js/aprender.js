@@ -151,7 +151,6 @@ async function loadCategories(session) {
   // id → nombre, para la chapa de la tarjeta. Se arma una vez y no una
   // búsqueda por tarjeta en cada repintado: cambiar de filtro repinta
   // todas las guías y eso serían decenas de recorridos por nada.
-  const nombreDeCategoria = Object.fromEntries((categories || []).map((c) => [c.id, c.name]))
 
   // El tema que venía en la URL se traduce a su id ahora que hay
   // categorías. Si el slug no existe —enlace viejo, categoría borrada—
@@ -175,7 +174,7 @@ async function loadCategories(session) {
       ${chipsHtml(categories || [], guias, porCategoria)}
       ${
         visibles.length
-          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso, categoria: nombreDeCategoria[g.category_id] })).join('')}</div>`
+          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
           : '<p class="empty-state">No hay ninguna guía con esos filtros. Prueba a quitar alguno.</p>'
       }`
     list.querySelectorAll('[data-cat]').forEach((b) =>

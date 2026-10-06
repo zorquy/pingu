@@ -15,16 +15,13 @@
 .lanz-mandos label { font-size: var(--t-sm); font-weight: 600; color: var(--text-mid); }
 .lanz-mandos-rotulo { font-size: var(--t-sm); font-weight: 600; color: var(--text-mid); }
 /* El select escondido y los dos botones con bandera (675; es el mismo
-   control que .mc-vista-seg de Mi colección, y las banderas las mismas
+   control que `.seg` de Mi colección (678), y las banderas las mismas
    que .pv-bandera, que esta página no carga). */
 .lanz-mercado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.lanz-vista-seg { display: inline-flex; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--white); }
-.lanz-vista-seg button { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 40px; padding: 0 var(--e-md); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
-.lanz-vista-seg button[aria-pressed='true'] { background: var(--navy); color: var(--blanco-fijo); }
+/* El selector de catálogo es la cápsula compartida (`.seg`, 678). */
 .lanz-bandera { display: inline-block; width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
 .lanz-bandera[data-idioma='en'] { background: linear-gradient(#cf142b, #cf142b) center / 100% 3px no-repeat, linear-gradient(90deg, #cf142b, #cf142b) center / 3px 100% no-repeat, linear-gradient(var(--blanco-fijo), var(--blanco-fijo)) center / 100% 5px no-repeat, linear-gradient(90deg, var(--blanco-fijo), var(--blanco-fijo)) center / 5px 100% no-repeat, #00247d; }
 .lanz-bandera[data-idioma='ja'] { background: radial-gradient(circle at 50% 50%, #bc002d 32%, var(--blanco-fijo) 34%); }
-@media (pointer: coarse) { .lanz-vista-seg button { min-height: 44px; } }
 
 /* El siguiente set, con presencia: banda con el tinte de la casa. */
 .lanzamiento-destacado {

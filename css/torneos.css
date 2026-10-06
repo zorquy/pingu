@@ -1264,34 +1264,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-mesas-barra > span { transition: none; }
 }
 
-/* ── Las pestañas de la FICHA, en pastillas (tanda 298) ──
-   Las de la lista son chips de FILTRO (tanda 297); estas son navegación
-   entre las partes del torneo, así que van juntas en un grupo, como un
-   conmutador. Cada una en su clase: la base sin tocar. */
-.torneo-pestanas-pastillas {
-  border-bottom: none;
-  gap: 4px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 8px;
-  margin: 0 0 16px;
-  width: fit-content;
-  max-width: 100%;
-  overflow-x: auto;
-}
-.torneo-pestanas-pastillas .torneo-pestana {
-  border-bottom: none;
-  border-radius: var(--radius-pill);
-  padding: 8px 16px;
-  margin-bottom: 0;
-  white-space: nowrap;
-}
-.torneo-pestanas-pastillas .torneo-pestana.activa {
-  background: var(--navy);
-  color: var(--blanco-fijo);
-}
-:root[data-theme='dark'] .torneo-pestanas-pastillas .torneo-pestana.activa { color: var(--blanco-fijo); }
+/* Las pestañas de la FICHA son la cápsula compartida (`.seg`, 678);
+   aquí solo queda su sitio. */
+.torneo-pestanas-pastillas { margin: 0 0 16px; }
 
 /* ── El tablero de «Tu partida» (tanda 298) ──
    Era una columna de párrafos —contexto, «vs rival», TCG Live, reloj,
@@ -2157,30 +2132,14 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-solicitud-juez:last-of-type { border-bottom: none; }
 
-/* ── Pestañas (tanda 210): la ficha y la lista respiran ── */
-.torneo-pestanas {
+/* ── Los grupos de la LISTA, como chips (297; el chip compartido
+   `.chip-filtro` desde la 678) ── Son FILTROS de una rejilla: lo que se
+   pulsa y se queda pulsado. El subrayado de pestaña se fue con la 678. */
+.torneo-pestanas-chips {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
-  margin: 4px 0 16px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 0;
-}
-.torneo-pestana {
-  border: none;
-  background: none;
-  color: var(--text-mid);
-  font-size: var(--t-lg);
-  font-weight: 600;
-  padding: 8px 16px;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-}
-.torneo-pestana:hover { color: var(--navy); }
-.torneo-pestana.activa {
-  color: var(--navy);
-  border-bottom-color: var(--navy);
+  gap: 8px;
+  margin: 0 0 24px;
 }
 .torneo-pestana-cuenta {
   display: inline-block;
@@ -2189,37 +2148,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   border-radius: var(--radius-pill);
   background: rgba(127, 127, 127, 0.14);
   font-size: var(--t-xs);
-  text-align: center;
+  font-weight: 700;
 }
-
-/* ── Las pestañas de la LISTA, como chips (tanda 297) ──
-   Las de la ficha se quedan como estaban —subrayado— porque allí son
-   navegación de una cosa sola. Aquí son FILTROS de una rejilla, y un
-   filtro se lee mejor como algo que se pulsa y se queda pulsado. */
-.torneo-pestanas-chips {
-  border-bottom: none;
-  gap: 8px;
-  margin: 0 0 24px;
-  flex-wrap: wrap;
-}
-.torneo-pestanas-chips .torneo-pestana {
-  border: 1px solid var(--border-strong);
-  background: var(--white);
-  border-radius: var(--radius-pill);
-  padding: 8px 16px;
-  font-size: var(--t-md);
-  font-weight: 500;
-  color: var(--text-mid);
-  margin-bottom: 0;
-}
-.torneo-pestanas-chips .torneo-pestana:hover { border-color: var(--navy); color: var(--navy); }
-.torneo-pestanas-chips .torneo-pestana.activa {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--blanco-fijo);
-}
-:root[data-theme='dark'] .torneo-pestanas-chips .torneo-pestana.activa { color: var(--blanco-fijo); }
-.torneo-pestanas-chips .torneo-pestana.activa .torneo-pestana-cuenta {
+.chip-filtro.activa .torneo-pestana-cuenta {
   background: rgba(255, 255, 255, 0.22);
   color: var(--blanco-fijo);
 }
@@ -3154,13 +3085,6 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   .torneo-arquetipo-icono.es-sprite { width: 26px; height: 26px; }
   .torneo-arquetipo-marco { width: 22px; height: 22px; }
   .torneo-arquetipo-nombre { max-width: 9ch; }
-}
-
-/* Las pestañas de un torneo, para un dedo (tanda 312). */
-@media (pointer: coarse) {
-  .torneo-pestana {
-    min-height: 44px;
-  }
 }
 
 /* La entrada de los meses del calendario (tanda 313). El calendario ya

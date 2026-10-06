@@ -28,14 +28,14 @@ export function iconosHtml(iconos, { grande = false } = {}) {
 
 export function periodoHtml(activo) {
   return PERIODOS.map(
-    (d) => `<button type="button" class="meta-periodo-btn${d === activo ? ' activo' : ''}" data-dias="${d}" aria-pressed="${d === activo}">${d} días</button>`
+    (d) => `<button type="button" class="seg-btn" data-dias="${d}" aria-pressed="${d === activo}">${d} días</button>`
   ).join('')
 }
 
 // Y de dónde salen los torneos (tanda 366), con el mismo aspecto.
 export function fuenteHtml(activa) {
   return FUENTES.map(
-    (f) => `<button type="button" class="meta-periodo-btn${f.id === activa ? ' activo' : ''}" data-fuente="${f.id || ''}" aria-pressed="${f.id === activa}">${f.nombre}</button>`
+    (f) => `<button type="button" class="seg-btn" data-fuente="${f.id || ''}" aria-pressed="${f.id === activa}">${f.nombre}</button>`
   ).join('')
 }
 
@@ -45,7 +45,6 @@ export function engancharFuente(caja, alCambiar) {
     if (!b) return
     const fuente = b.dataset.fuente || null
     for (const x of caja.querySelectorAll('[data-fuente]')) {
-      x.classList.toggle('activo', x === b)
       x.setAttribute('aria-pressed', String(x === b))
     }
     const url = new URL(location.href)
@@ -64,7 +63,6 @@ export function engancharPeriodo(caja, alCambiar) {
     if (!b) return
     const dias = Number(b.dataset.dias)
     for (const x of caja.querySelectorAll('[data-dias]')) {
-      x.classList.toggle('activo', x === b)
       x.setAttribute('aria-pressed', String(x === b))
     }
     const url = new URL(location.href)

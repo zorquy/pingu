@@ -253,7 +253,7 @@ function init() {
   const seg = $('lanzVistaSeg')
   const pintarSeg = () => {
     if (!seg) return
-    seg.innerHTML = CATALOGOS.map((c) => `<button type="button" data-mercado="${c.mercado}" aria-pressed="${c.mercado === sel.value}" title="${escapeHtml(c.nombre)}"><i class="lanz-bandera" data-idioma="${c.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(c.nombre)}</span></button>`).join('')
+    seg.innerHTML = CATALOGOS.map((c) => `<button type="button" class="seg-btn" data-mercado="${c.mercado}" aria-pressed="${c.mercado === sel.value}" title="${escapeHtml(c.nombre)}"><i class="lanz-bandera" data-idioma="${c.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(c.nombre)}</span></button>`).join('')
   }
   pintarSeg()
   seg?.addEventListener('click', (e) => {

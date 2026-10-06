@@ -2066,7 +2066,7 @@ function pintarPestanas() {
         p.id === 'jueces' && pendientes
           ? ` <span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>`
           : ''
-      return `<button class="torneo-pestana ${p.id === pestanaActiva ? 'activa' : ''}" data-pestana="${p.id}">${p.texto}${cuenta}</button>`
+      return `<button type="button" class="seg-btn${p.id === pestanaActiva ? ' activa' : ''}" data-pestana="${p.id}">${p.texto}${cuenta}</button>`
     })
     .join('')
   // Las pestañas son lo PRIMERO de la página: rehacerlas mueve todo lo

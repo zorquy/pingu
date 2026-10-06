@@ -4,6 +4,69 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 10) — PINGU-Claude (682 — la valoración en una fila y menos chips en /aprender)
+
+**Hecho**: la caja de valorar una guía pasa a una fila (título,
+estrellas, media); la chapa de categoría se va de las tarjetas de
+/aprender (se queda en la portada). Cierra las siete propuestas de la
+segunda ronda visual (676–682).
+
+**Ficheros**: `css/components.css`, `js/aprender.js`, `SCHEMA.md`.
+En `pruebas`: 312, 316 ajustadas.
+
+**Pendiente**: suite entera tras 676–682; migración corea-china;
+Celebrations.
+## 2026-10-06 (mediodía, 9) — PINGU-Claude (681 — esqueletos en el meta y en los torneos)
+
+**Hecho**: /meta y /torneos nacen con su silueta (seis filas, tres
+tarjetas) como ya hacían /noticias y /aprender; el JS la sustituye en
+todos los caminos, también en el error. Los estados vacíos ya eran
+`.empty-state` en las cuatro.
+
+**Ficheros**: `meta.html`, `css/meta.css`, `torneos.html`,
+`SCHEMA.md`.
+
+**Pendiente**: 682 (valoración en una fila, menos chips en Aprender);
+suite entera; migración corea-china; Celebrations.
+## 2026-10-06 (mediodía, 8) — PINGU-Claude (680 — el foro: los foros del índice en tarjetas y «Marcar todo» discreto)
+
+**Hecho**: el índice del foro pasa de cajas con filas a un título por
+sección y tarjetas (icono, nombre, descripción, números en una línea,
+último mensaje abajo); «Marcar todo como leído» es un botón de texto.
+La búsqueda y las listas de temas no cambian.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`, `SCHEMA.md`.
+
+**Pendiente**: 681 (esqueletos y estados vacíos), 682; suite entera;
+migración corea-china; Celebrations.
+## 2026-10-06 (mediodía, 7) — PINGU-Claude (679 — cabeceras compactas: la bienvenida y la ficha de persona)
+
+**Hecho**: la bienvenida de la portada pasa de tarjeta a barra (8×16,
+«Hola, X» en t-lg); la cabecera de /perfil y /usuario con banner de
+128/64, avatar de 80 y menos aire. Solo CSS.
+
+**Ficheros**: `css/components.css`, `css/perfil.css`, `SCHEMA.md`.
+
+**Pendiente**: 680 (foro en tarjetas), 681, 682; suite entera;
+migración corea-china; Celebrations.
+## 2026-10-06 (mediodía, 6) — PINGU-Claude (678 — un solo control de pestañas y filtros: la cápsula y el chip)
+
+**Hecho**: `.seg`/`.seg-btn` (cápsula) y `.chip-filtro` en
+`components.css`; los usan el meta (periodo y fuente), torneos
+(Lista/Calendario, secciones de la ficha, grupos de la lista), Mi
+colección (catálogo y chips de filtro) y /lanzamientos. Fuera las
+cinco versiones por hoja. Portada: 169,2 KB.
+
+**Ficheros**: `css/components.css`, `meta.html`, `js/meta/pintar.js`,
+`css/meta.css`, `torneos.html`, `torneo.html`, `js/torneos/torneos.js`,
+`js/torneos/torneo.js`, `css/torneos.css`, `mi-coleccion.html`,
+`cartas.html` (generado), `js/mi-coleccion.js`,
+`js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`,
+`lanzamientos.html`, `js/lanzamientos.js`, `css/lanzamientos.css`,
+`SCHEMA.md`. En `pruebas`: 297, 310, 399, 449, 453.
+
+**Pendiente**: 679 (cabeceras compactas), 680–682; suite entera;
+migración corea-china; Celebrations.
 ## 2026-10-06 (mediodía, 5) — PINGU-Claude (677 — /carta reestructurada: otras versiones arriba, precio al final, las losetas y el diálogo de añadir)
 
 **Hecho**: /carta en el orden que pidió PINGU: ficha completa del

@@ -1724,7 +1724,7 @@ function pintarGruposDeChips() {
         // lleva impreso la carta en la esquina — o sea, la forma de
         // comprobar que lo que dice la web es lo que tienes en la mano.
         const marca = g.id === 'rareza' ? marcaDeRarezaHtml(v) : ''
-        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
+        return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
       })
       .join('')}</div></div>`
   }).join('')
@@ -3572,7 +3572,7 @@ function pintarGruposDelCatalogo() {
       .map(([clave, rotulo]) => {
         const puesto = filtrosCatalogo[g.id].has(clave)
         const marca = g.id === 'rarity' ? marcaDeRarezaHtml(clave) : ''
-        return `<button type="button" class="mc-chip-filtro${puesto ? ' activo' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(rotulo)}</button>`
+        return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(rotulo)}</button>`
       })
       .join('')}</div></div>`
   }).join('')
@@ -4306,7 +4306,7 @@ async function pintarCarpetasDeLaFicha(lineId) {
   hueco.innerHTML = carpetasLista
     .map((c) => {
       const puesta = dentro.has(c.id)
-      return `<button type="button" class="mc-chip-filtro${puesta ? ' activo' : ''}" data-carpeta-chip="${escapeHtml(c.id)}" aria-pressed="${puesta ? 'true' : 'false'}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`
+      return `<button type="button" class="chip-filtro${puesta ? ' activa' : ''}" data-carpeta-chip="${escapeHtml(c.id)}" aria-pressed="${puesta ? 'true' : 'false'}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`
     })
     .join('')
 }
@@ -6175,9 +6175,9 @@ function pintarVistas() {
     // su valor y dispara `change`, así que todo lo que escuchaba el
     // select sigue funcionando igual.
     let seg = sel.nextElementSibling
-    if (!seg?.classList.contains('mc-vista-seg')) {
+    if (!seg?.classList.contains('seg')) {
       seg = document.createElement('span')
-      seg.className = 'mc-vista-seg'
+      seg.className = 'seg'
       seg.setAttribute('role', 'group')
       seg.setAttribute('aria-label', 'Qué catálogo se mira')
       sel.insertAdjacentElement('afterend', seg)
@@ -6188,7 +6188,7 @@ function pintarVistas() {
         sel.dispatchEvent(new Event('change', { bubbles: true }))
       })
     }
-    const html = VISTAS_VISIBLES.map((v) => `<button type="button" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(v.nombre)}</span></button>`).join('')
+    const html = VISTAS_VISIBLES.map((v) => `<button type="button" class="seg-btn" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(v.nombre)}</span></button>`).join('')
     if (seg.innerHTML !== html) seg.innerHTML = html
     else for (const b of seg.querySelectorAll('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === vista))
   }

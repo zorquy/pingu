@@ -91,6 +91,83 @@
   display: block;
 }
 
+/* ── La cápsula y el chip (tanda 678) ──
+   UN control para elegir una de pocas (`.seg` + `.seg-btn`: el periodo
+   del meta, Lista/Calendario, las secciones de un torneo, el catálogo
+   de Mi colección y Lanzamientos) y UN chip de filtro (`.chip-filtro`:
+   lo que se pulsa y se queda pulsado). Antes cada pantalla tenía el
+   suyo, con cinco pintas. Ver SCHEMA 678. */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.seg-btn,
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 40px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* El botón de la cápsula no parte su palabra; el chip SÍ puede: «Solo
+   las que me faltan» en una fila de mandos estrecha cabe en dos líneas
+   dentro del chip, y si no pudiera, la fila entera se partiría (453). */
+.seg-btn {
+  white-space: nowrap;
+}
+
+.chip-filtro {
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.seg-btn:hover,
+.chip-filtro:hover {
+  color: var(--text);
+}
+
+.chip-filtro:hover {
+  border-color: var(--border-strong);
+}
+
+.seg-btn[aria-pressed='true'],
+.seg-btn.activa,
+.chip-filtro[aria-pressed='true'],
+.chip-filtro[aria-selected='true'],
+.chip-filtro.activa {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.seg-btn:focus-visible,
+.chip-filtro:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .seg-btn,
+  .chip-filtro {
+    min-height: 44px;
+  }
+}
+
 /* ── Page header ── */
 .page-header {
   padding: 32px 0 16px;
@@ -1821,26 +1898,47 @@ tcg-deck {
 
 /* ── Valorar una guía (al final de la guía y del curso) ── */
 
+/* Una sola fila desde la 682: título, estrellas y la media en línea;
+   la pista y quién valoró, debajo a todo el ancho. */
 .rating-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
   margin: 32px 0 8px;
-  padding: 16px 24px;
+  padding: 12px 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  text-align: center;
 }
 
 .rating-box h3 {
-  font-size: var(--t-lg);
+  font-size: var(--t-md);
   font-weight: 800;
-  margin: 0 0 12px;
+  margin: 0;
 }
 
 .rating-box .star-picker {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.rating-box .rating-summary {
+  flex: 1;
+  width: auto;
+  min-width: 160px;
+  text-align: left;
+}
+
+.rating-box .rating-hint,
+.rating-box .rater-panel,
+.rating-box > .subtext {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.rating-box .rating-hint:empty {
+  display: none;
 }
 
 .rating-box .star-pick {
@@ -3176,13 +3274,14 @@ body.portada-compacta .page-content {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px 24px;
+  /* Una barra, no una tarjeta (679): el saludo cabe en 60 px. */
+  padding: 8px 16px;
   box-shadow: var(--shadow-xs);
 }
 
 .bienvenida-texto strong {
   display: block;
-  font-size: var(--t-xl);
+  font-size: var(--t-lg);
 }
 
 .bienvenida > .mini-avatar {
@@ -3197,7 +3296,7 @@ body.portada-compacta .page-content {
 .bienvenida-chips {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 

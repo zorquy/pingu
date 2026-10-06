@@ -306,12 +306,36 @@
     <!-- Lista o calendario (tanda 242, pedido por Ibai): el calendario
          pinta el año entero, mes a mes, con los días de torneo
          marcados en navy; pulsar un día enseña sus torneos debajo. -->
-    <nav class="torneo-pestanas torneo-vista-conmutador" aria-label="Cómo ver los torneos">
-      <button type="button" class="torneo-pestana activa" data-vista-torneos="lista">Lista</button>
-      <button type="button" class="torneo-pestana" data-vista-torneos="calendario">Calendario</button>
+    <nav class="seg torneo-vista-conmutador" aria-label="Cómo ver los torneos">
+      <button type="button" class="seg-btn activa" data-vista-torneos="lista">Lista</button>
+      <button type="button" class="seg-btn" data-vista-torneos="calendario">Calendario</button>
     </nav>
     <div id="torneosCalendario" class="hidden"></div>
-    <div id="listaTorneos" class="torneos-lista"></div>
+    <!-- La silueta de la lista mientras llega (681): tres tarjetas con
+         su cartel, como las de /noticias. js/torneos/torneos.js la
+         sustituye entera, también cuando no hay ninguno o falla. -->
+    <div id="listaTorneos" class="torneos-lista">
+      <div class="torneos-rejilla" aria-hidden="true">
+        <div class="esq-tarjeta">
+          <div class="esq-bloque"></div>
+          <div class="esq-linea" style="width:35%"></div>
+          <div class="esq-linea"></div>
+          <div class="esq-linea" style="width:70%"></div>
+        </div>
+        <div class="esq-tarjeta">
+          <div class="esq-bloque"></div>
+          <div class="esq-linea" style="width:35%"></div>
+          <div class="esq-linea"></div>
+          <div class="esq-linea" style="width:70%"></div>
+        </div>
+        <div class="esq-tarjeta">
+          <div class="esq-bloque"></div>
+          <div class="esq-linea" style="width:35%"></div>
+          <div class="esq-linea"></div>
+          <div class="esq-linea" style="width:70%"></div>
+        </div>
+      </div>
+    </div>
     <p id="torneosVacio" class="empty-state hidden">Todavía no hay ningún torneo. Crea el primero con el botón de arriba.</p>
   </main>
 

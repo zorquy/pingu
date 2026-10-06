@@ -32858,3 +32858,141 @@ especificidad y no por orden — mirado a mano, que es la trampa de la
 385, 408, 524, 546, 549, 586/589/643/645-pantalla, 626, 645, 661, y las
 de /mi-coleccion que usan lo mudado (368, 392, 564, 650-pantalla, 657,
 671, 667, 673).
+
+## Tanda 678 — un solo control de pestañas y filtros: la cápsula y el chip (oct. 2026)
+
+PINGU, en la segunda ronda visual (propuesta 3): «igualar todo,
+modernizarlo». La web tenía CINCO pintas para «elige una de pocas»
+—el periodo del meta (`.meta-periodo`), Lista/Calendario y las
+pestañas de la ficha de un torneo (`.torneo-pestanas` con subrayado o
+en pastillas), el catálogo de Mi colección (`.mc-vista-seg`) y el de
+/lanzamientos (`.lanz-vista-seg`)— y DOS para un chip de filtro
+(`.torneo-pestanas-chips .torneo-pestana`, `.mc-chip-filtro`), cada una
+escrita en su hoja con sus números.
+
+**Lo que hay** (`components.css`, que lo baja todo el mundo: +0,4 KB,
+la portada queda en 169,2):
+- **`.seg` + `.seg-btn`**: la cápsula. Un marco redondo con botones
+  dentro; el elegido lleva `aria-pressed="true"` (o `.activa`, que es lo
+  que escriben torneos) y se pinta en `--navy-solid` con blanco fijo —la
+  familia que no cambia en oscuro—, así que sobra el parche de
+  `:root[data-theme='dark']` que llevaban las pastillas.
+- **`.chip-filtro`**: lo que se pulsa y se queda pulsado. Mismas medidas
+  que el botón de la cápsula, con borde propio; marcado por
+  `aria-pressed`, `aria-selected` (las pestañas de icono/Pokémon/emoji
+  del diálogo del adorno) o `.activa`.
+- Los dos miden 40 px (44 con el dedo, tras `pointer: coarse`).
+
+**Quién lo usa**: el meta (`js/meta/pintar.js` ya escribía
+`aria-pressed`, se le quita la clase `activo`), los torneos
+(`torneos.html` el conmutador, `torneo.html` + `js/torneos/torneo.js`
+las secciones, `js/torneos/torneos.js` los grupos de la lista como
+`.chip-filtro`; en `torneos.css` se van el subrayado base, las pastillas
+y el dibujo de los chips, y quedan la fila `.torneo-pestanas-chips`, la
+cuenta y la marca `.torneo-pestanas-pastillas` con su margen), Mi
+colección (`js/mi-coleccion.js` el selector y los tres tipos de chips,
+`js/mi-coleccion/pokedex.js`, `mi-coleccion.html` y `cartas.html`
+generado; en `mi-coleccion.css` quedan `.seg .pv-bandera` y el tamaño
+de 36 px dentro de `.mc-mandos`) y /lanzamientos. `.mc-chip-mando` —los
+botones de Filtros, Orden, Copiar enlace— NO es un filtro y se queda.
+
+**Pruebas**: 297 (reescrita: ya no exige el subrayado del conmutador,
+exige la cápsula y el chip compartidos), 310, 399, 449, 453
+(selectores), y de paso 394, 299, 305, 311–313, 251, 478, 494, 553,
+627, 628, 656, 646/648/649/650/672-pantalla.
+
+## Tanda 679 — cabeceras compactas: la bienvenida de la portada y la ficha de /perfil (oct. 2026)
+
+PINGU (propuesta 4 de la segunda ronda visual): cabeceras más
+compactas. Solo CSS.
+
+**La bienvenida** (`components.css`, `.bienvenida`): de tarjeta a
+barra. Padding 8×16 en vez de 16×24, el «Hola, X» en `--t-lg` en vez de
+`--t-xl`, los chips a 8 px. Cabe en unos 60 px y el reto y el foro
+suben media pantalla.
+
+**La ficha de persona** (`perfil.css`, la misma hoja para /perfil y
+/usuario): banner de 128 px (64 sin foto; eran 160 y 96), avatar de 80
+(era 96, con su inicial en `--t-2xl`), solape de −40, cuerpo con 8/20/16
+de padding (era 12/24/24), el bloque de nombre 12 px por debajo del
+avatar (eran 24) y 16 px hasta la siguiente tarjeta (eran 24). Las dos
+reglas del banner —con foto y sin foto— siguen en el orden que exige la
+306 (la vacía después, que gana por orden a igual especificidad).
+
+**Ficheros**: `css/components.css`, `css/perfil.css`. **Pruebas**: 306,
+299, 301, 305, 311–313, 581.
+
+## Tanda 680 — el foro: los foros del índice en tarjetas y «Marcar todo» discreto (oct. 2026)
+
+PINGU (propuesta 5 de la segunda ronda visual).
+
+**Las tarjetas**: la sección del índice (`js/foro.js` pone
+`.foro-seccion-tarjetas` junto a `.foro-seccion`) deja de ser una caja
+con filas: es un título suelto y una rejilla de tarjetas
+(`repeat(auto-fill, minmax(300px, 1fr))`). Cada foro es una tarjeta con
+su icono y nombre, la descripción y los subforos, los números «Temas 12
+· Mensajes 40» en una línea y el último mensaje abajo con su raya. El
+HTML de la fila no cambia: son las mismas cuatro piezas (icono, cuerpo,
+números, último) recolocadas con `grid-template-areas`, así que lo de
+«nuevo»/«leído» (314) sigue igual. Solo el ÍNDICE: las secciones de
+resultados de la búsqueda y las listas de temas siguen siendo filas, y
+por eso la clase va aparte y no en `.foro-seccion`. La especificidad
+(0,2,0) de `.foro-seccion-tarjetas > .foro-fila` gana a la fila base y
+a su `@media` de móvil sin depender del orden (la trampa de la 306).
+
+**«Marcar todo como leído»** (`.foro-btn-leido`): de `btn-secondary` a
+un botón de texto con icono, gris, subrayado al pasar; sigue siendo
+`<button>` (hace algo) y mide 44.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`. **Pruebas**: 299 (foro),
+314, 303, 312, 313.
+
+## Tanda 681 — esqueletos y estados vacíos iguales: el meta y los torneos (oct. 2026)
+
+PINGU (propuesta 6 de la segunda ronda visual): «un esqueleto mientras
+carga, en cualquier cosa». /noticias y /aprender ya tenían su silueta
+(308); /meta y /torneos pintaban NADA hasta que llegaba la consulta: un
+hueco blanco y, de golpe, la lista.
+
+**El meta**: el `<ol>` del ranking nace con seis filas `.esq-meta`
+—una `.esq-linea` de 40 px cada una, el barrido de components.css— y
+`js/meta.js` las sustituye enteras en sus tres caminos, que ya vaciaban
+el `ol`: con datos, con «no hay torneos leídos» y en el error.
+
+**Los torneos**: `#listaTorneos` nace con una `.torneos-rejilla` de tres
+`.esq-tarjeta` (las mismas de /noticias: cartel 16:9 y tres líneas), y
+`cargarLista` la sustituye en todos los caminos (lista, ninguno, error).
+
+**Los estados vacíos** ya eran UNO: `.empty-state` de style.css en
+/torneos, /noticias y /aprender, con tres textos distintos para tres
+situaciones (no hay, no se ha podido, el filtro no deja pasar —la 510—).
+El meta avisa con `.meta-aviso` (`role="status"`), que no es un estado
+vacío sino «todavía no se ha leído ningún torneo de este periodo», y
+se queda.
+
+**Ficheros**: `meta.html`, `css/meta.css`, `torneos.html`.
+**Pruebas**: 627, 628, 297, 313 (la silueta se para con
+«menos movimiento», como las demás `.esq-*`).
+
+## Tanda 682 — pequeños: la valoración de una guía en una fila y menos chips en las tarjetas de /aprender (oct. 2026)
+
+PINGU (propuesta 7 de la segunda ronda visual).
+
+**La valoración** (`.rating-box` en `components.css`, la pinta
+`js/guide-rating.js` al final de una guía y de un curso): de una caja
+centrada en tres pisos —título, estrellas, media— a UNA fila: el título
+(`--t-md`), las cinco estrellas y la media con su desplegable de quién
+valoró, en línea y a la izquierda; la pista («ya la has valorado») y la
+lista de valoradores bajan a todo el ancho, y la pista vacía no ocupa.
+El HTML no cambia.
+
+**Las tarjetas de /aprender**: la chapa de categoría se va de la franja
+de arte (`js/aprender.js` deja de pasarle `categoria` a
+`tarjetaDeGuia`): los chips de filtro de arriba ya dicen de qué es cada
+guía, y en la tarjeta era un chip más. En la PORTADA se queda, porque
+allí las guías van mezcladas y es la única pista. Las pruebas 312 y 316
+lo recogen: la categoría se exige en la portada y se exige que NO esté
+en /aprender.
+
+**Ficheros**: `css/components.css`, `js/aprender.js`. **Pruebas**: 312,
+316 (ajustadas), 299, 305, 308.

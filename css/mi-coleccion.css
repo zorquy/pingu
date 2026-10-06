@@ -645,7 +645,7 @@
    lista volverá a desalinearse, así que la lista es la regla. */
 .mc-mandos .mc-chapa-select,
 .mc-mandos .mc-chip-mando,
-.mc-mandos .mc-chip-filtro {
+.mc-mandos .chip-filtro {
   min-height: 36px;
   padding: 0 var(--e-md);
   font-size: var(--t-sm);
@@ -670,7 +670,7 @@
 @media (pointer: coarse) {
   .mc-mandos .mc-chapa-select,
   .mc-mandos .mc-chip-mando,
-  .mc-mandos .mc-chip-filtro {
+  .mc-mandos .chip-filtro {
     min-height: 44px;
   }
 }
@@ -2737,39 +2737,14 @@
   .mc-ficha-carta .mc-copia-acciones button { min-height: 44px; }
 }
 
-/* EL SELECTOR DE CATÁLOGO, con bandera de verdad (673). PINGU: «en PC
-   sale GB Pokémon y JP Pokémon, poco visual; mete un icono». Un
-   <option> no admite imágenes y Windows no pinta las banderas emoji:
-   el <select> sigue —es lo que escuchan el JavaScript y las pruebas—
-   pero escondido, y lo que se ve es un control de dos botones con la
-   bandera dibujada en CSS (.pv-bandera, la de la tabla de precios). */
-.mc-mercado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.mc-vista-seg {
-  display: inline-flex;
-  flex: 0 0 auto;
-  padding: 2px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-}
-.mc-vista-seg button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 36px;
-  padding: 0 var(--e-md);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.mc-vista-seg button[aria-pressed='true'] { background: var(--navy); color: var(--blanco-fijo); }
-.mc-vista-seg .pv-bandera { width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
-@media (pointer: coarse) { .mc-vista-seg button { min-height: 40px; } }
+/* El selector de catálogo es la cápsula compartida (`.seg`, 678); aquí
+   el tamaño de su bandera y, en la barra de mandos, la misma altura que
+   los demás mandos (36 px, como `.mc-chapa-select`): con los 40 de la
+   cápsula la fila crecía 10 px y la Pokédex perdía su listón (453). */
+.seg .pv-bandera { width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
+.mc-mandos .seg { padding: 1px; }
+.mc-mandos .seg-btn { min-height: 32px; font-size: var(--t-xs); }
+@media (pointer: coarse) { .mc-mandos .seg-btn { min-height: 40px; } }
 .mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
 .mc-ficha-set a:hover, .mc-ficha-tabla dd a:hover { color: var(--navy); border-color: var(--navy); }
 
@@ -4071,25 +4046,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-sm);
 }
 
-.mc-chip-filtro {
-  /* Alto sí, ancho NO: llevan palabra, y estirarlos dejaría un área
-     invisible pisando al de al lado (la regla de la 312). */
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mc-chip-filtro.activo {
-  border-color: var(--navy);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
+/* Los chips de filtro son el chip compartido (`.chip-filtro`, 678). */
 
 .mc-panel-pie {
   display: flex;
@@ -5714,12 +5671,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    así que en cuanto `carta-nucleo.js` importó `rarezas.js` las tres
    páginas de carta «usaron» estas clases sin cargar esta hoja. */
 
-/* Y el chip la lleva pegada a su palabra, sin que la palabra se mueva. */
-.mc-chip-filtro {
-  display: inline-flex;
-  gap: var(--e-xs);
-  align-items: center;
-}
+/* Y el chip la lleva pegada a su palabra: `.chip-filtro` ya es inline-flex con hueco. */
 
 
 /* ── LAS MIGAS DE PAN (tanda 474) ──

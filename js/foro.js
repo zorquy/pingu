@@ -96,7 +96,7 @@ function ultimoHtml({ titulo, url, fecha, perfil }) {
 // para marcar como leído lo que ya lo está es ruido.
 function botonMarcarTodoHtml(hayAlgoSinLeer) {
   if (!sesion || !hayAlgoSinLeer) return ''
-  return `<button type="button" class="btn-secondary foro-btn-leido" id="btnMarcarLeido">${icons.checkCircle(15)} Marcar todo como leído</button>`
+  return `<button type="button" class="foro-btn-leido" id="btnMarcarLeido">${icons.checkCircle(15)} Marcar todo como leído</button>`
 }
 
 // La chapa de "3 nuevos" de un foro.
@@ -292,7 +292,7 @@ async function pintarIndice() {
       const suyos = foros.filter((f) => f.section_id === s.id && !f.parent_id).sort((a, b) => a.position - b.position)
       if (suyos.length === 0) return ''
       return `
-      <section class="foro-seccion">
+      <section class="foro-seccion foro-seccion-tarjetas">
         <h2 class="foro-seccion-titulo">${escapeHtml(s.name)}</h2>
         ${suyos.map(filaForo).join('')}
       </section>`
