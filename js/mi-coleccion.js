@@ -1353,12 +1353,15 @@ async function pintarVistazos() {
   // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
   // se abre y no puede quedarse en blanco esperando a dos consultas.
   caja.innerHTML = vistazoDeCartas()
+  // El hueco de las expansiones, en esqueleto hasta que lleguen (675).
+  caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo" id="mcVistazoSetsEsq"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Expansiones</h2></div>${esqueletoDeSets(2)}</section>`)
   // Los sets y su valor de TODOS los catálogos (672), y el registro de qué
   // set cuelga de cuál con todos ellos en la mano (646).
   const [sets] = await Promise.all([cargarSetsDeTodos().catch(() => null), cargarValoresDeSets({ todos: true })])
   if (pestania !== 'resumen') return
   if (version !== vistazosVersion) return
   registrarEpisodios(sets || [])
+  $('mcVistazoSetsEsq')?.remove()
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
   // LAS QUE MÁS SE MUEVEN (663), que llegan por su cuenta: es una consulta
   // al histórico y el Panel no la espera. Se colocan detrás de las
@@ -2471,7 +2474,17 @@ export function graficaDeSetHtml(serie) {
 
 const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
 
+// ESQUELETOS (675). PINGU: «mientras carga, si clicas muy rápido puede
+// haber un misclick; yo metería un esqueleto». Mientras llegan los datos
+// se pinta la SILUETA de lo que va a llegar —tarjetas de expansión, huecos
+// de carta—, que no se puede pulsar y dice que algo viene.
+const esqueletoDeSets = (n = 4) => `<div class="mc-estanteria mc-esq" aria-hidden="true">${'<div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div>'.repeat(n)}</div>`
+const esqueletoDeAlbum = (n = 12) => `<p class="sr-only">Cargando la colección…</p><div class="mc-album-rejilla mc-esq" aria-hidden="true">${'<i class="mc-esq-bolsillo"></i>'.repeat(n)}</div>`
+
 async function pintarEstanteria() {
+  // Sin los sets en memoria (al entrar, al cambiar de catálogo) la
+  // estantería enseña su esqueleto hasta que lleguen (675).
+  if (!todosLosSets && $('mcEstanteriaRejilla')) $('mcEstanteriaRejilla').innerHTML = esqueletoDeSets(6)
   const sets = await cargarSets()
   // Qué sets son una expansión de TCGGO (646), antes de contar nada: las
   // cartas del hijo se cuentan en el padre.
@@ -2789,7 +2802,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // del HTML que esta función repinta, y el clic va delegado en la zona
   // (ver `mcArchivadorZona`), así que no hay oyente que volver a colgar.
   $('mcAlbumMigas').innerHTML = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
-  $('mcAlbum').innerHTML = '<p class="subtext">Cargando la colección…</p>'
+  $('mcAlbum').innerHTML = esqueletoDeAlbum()
   try {
     // Una expansión PLEGADA se abre entera (649): la tarjeta dice «1 de
     // 128» contando las dos mitades del 30 aniversario, y abrirla tenía

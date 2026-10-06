@@ -248,8 +248,23 @@ function init() {
   let mercado = catalogoElegido(location.search, guardado)
   sel.innerHTML = CATALOGOS.map((c) => `<option value="${c.mercado}">${c.bandera} ${escapeHtml(c.nombre)}</option>`).join('')
   sel.value = mercado
+  // Los botones con bandera (675), como el selector de Mi colección: el
+  // select sigue mandando; cada botón le pone su valor y dispara change.
+  const seg = $('lanzVistaSeg')
+  const pintarSeg = () => {
+    if (!seg) return
+    seg.innerHTML = CATALOGOS.map((c) => `<button type="button" data-mercado="${c.mercado}" aria-pressed="${c.mercado === sel.value}" title="${escapeHtml(c.nombre)}"><i class="lanz-bandera" data-idioma="${c.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(c.nombre)}</span></button>`).join('')
+  }
+  pintarSeg()
+  seg?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mercado]')
+    if (!b || sel.value === b.dataset.mercado) return
+    sel.value = b.dataset.mercado
+    sel.dispatchEvent(new Event('change', { bubbles: true }))
+  })
   sel.addEventListener('change', () => {
     mercado = sel.value
+    pintarSeg()
     try { localStorage.setItem(CLAVE_CATALOGO, mercado) } catch {}
     const u = new URL(location.href)
     u.searchParams.set('catalogo', mercado)

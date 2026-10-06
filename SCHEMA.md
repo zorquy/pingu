@@ -32650,3 +32650,38 @@ que desde la 671 recorre todos los sets japoneses con `tcggo_id`.
 `admin/js/admin.js`. **Pruebas**: `test-tanda-674.mjs` (dobles: la lista
 una vez, el destino por tcggo_id / nombre / creado, la vacía, los
 cascarones, los fallos que paran, el plan).
+
+## Tanda 675 — el selector de /lanzamientos con banderas y los esqueletos de carga (oct. 2026)
+
+PINGU: «el selector de lanzamientos igual que el de expansiones, dos
+iconos en vez de desplegable; y mientras carga, si clicas muy rápido
+puede haber un misclick: metería un esqueleto, en el Panel, en
+expansiones, en cualquier cosa».
+
+**El selector de /lanzamientos**: el mismo control que el de Mi
+colección (673): el `<select id="lanzCatalogo">` sigue —es quien manda y
+a quien escuchan las pruebas— escondido, y al lado `#lanzVistaSeg` con
+un botón por catálogo, la bandera dibujada en CSS y el nombre. Como
+/lanzamientos no carga `cardmarket.css`, las dos banderas (`.lanz-bandera`)
+van copiadas en `lanzamientos.css`; `test-tanda-311.mjs` las excepta
+igual que a las de la tabla de precios.
+
+**Los esqueletos** (`esqueletoDeSets`, `esqueletoDeAlbum` en
+`js/mi-coleccion.js`; CSS `.mc-esq*` con el `shimmer` de
+`components.css`, apagado con «menos movimiento»):
+- La estantería pinta seis siluetas de tarjeta de expansión mientras no
+  tenga los sets en memoria (al entrar y al cambiar de catálogo). Al
+  filtrar, que no espera a nadie, no parpadea.
+- La expansión abierta pinta doce huecos de carta (con la proporción de
+  una carta) en vez de «Cargando la colección…» (el texto queda en
+  `sr-only`).
+- El Panel pinta el hueco de «Expansiones» con dos siluetas hasta que
+  llegan los sets y su valor; entonces se quita (`#mcVistazoSetsEsq`) y
+  entra el vistazo de verdad.
+Una silueta no se puede pulsar, así que el clic rápido no se va a donde
+no quería.
+
+**Ficheros**: `lanzamientos.html`, `js/lanzamientos.js`,
+`css/lanzamientos.css`, `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`cartas.html` (generado). **Pruebas**: 656, 672-pantalla, 646-pantalla,
+650-pantalla, 313, 299, 311 (ajustada) e imports.

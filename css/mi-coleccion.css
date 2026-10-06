@@ -6720,3 +6720,31 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-cifra-cambio.baja {
   color: var(--danger);
 }
+
+
+/* ── Los esqueletos de carga (675): la silueta de lo que va a llegar.
+   Comparten el barrido de components.css (@keyframes shimmer). ── */
+.mc-esq i {
+  display: block;
+  background: linear-gradient(90deg, var(--border) 25%, var(--ice) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
+}
+.mc-esq-set {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: 0 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  overflow: hidden;
+}
+.mc-esq-cab { height: 96px; border-radius: 0 !important; }
+.mc-esq-fila { height: 56px; margin: 0 var(--e-sm); }
+.mc-esq-grafica { height: 56px; margin: 0 var(--e-sm); }
+.mc-esq-bolsillo { aspect-ratio: 245 / 342; border-radius: var(--radius-md) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mc-esq i { animation: none; }
+}

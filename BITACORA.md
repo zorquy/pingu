@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 3) — PINGU-Claude (675 — el selector de /lanzamientos con banderas y los esqueletos de carga)
+
+**Hecho**: /lanzamientos lleva el mismo selector de dos botones con
+bandera que Mi colección; y mientras cargan la estantería, la
+expansión abierta y el bloque de Expansiones del Panel se pinta su
+silueta (no se puede pulsar, así que no hay clic a destiempo).
+
+**Ficheros**: `lanzamientos.html`, `js/lanzamientos.js`,
+`css/lanzamientos.css`, `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`cartas.html`, `SCHEMA.md`. En `pruebas`: 311 ajustada.
+
+**Pendiente**: migración corea-china; Celebrations; segunda ronda visual.
 ## 2026-10-06 (mediodía, 2) — PINGU-Claude (674 — el calco japonés: el catálogo japonés entero de TCGGO)
 
 **Hecho**: función programada nueva (`tcggo-calco-jp`, cada dos
