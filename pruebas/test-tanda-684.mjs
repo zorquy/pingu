@@ -4,11 +4,14 @@
 // rellena uno por pasada, desesconde, cuenta créditos, para con 403 y
 // salta a la tercera con un 500 suyo; con un fallo nuestro para sin contar.
 import { readFileSync } from 'node:fs'
-import { filaDeCartaScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION, VERSION_NOMBRES, nombreInglesDe } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
+import { filaDeCartaScrydex, precioDeScrydex, faseDe, idNuestro, baseDeFoto, igualarClaves, expansionDelSet, parcheDeSet, pasada, MAXIMO_INTENTOS, CLAVE_ESTADO, VERSION, VERSION_NOMBRES, nombreInglesDe } from '/home/user/pingu/netlify/functions/scrydex-huecos.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
 const SM10 = JSON.parse(readFileSync('/tmp/wt-pruebas/pruebas/fixtures/scrydex-cards-sm10-1.json', 'utf8')).data
+// El Weedle del Expansion Pack, la ficha JAPONESA real que pegó PINGU
+// (685.3): todo en japonés y la traducción inglesa en `translation.en`.
+const WEEDLE = JSON.parse(readFileSync('/tmp/wt-pruebas/pruebas/fixtures/scrydex-card-base1_ja-4.json', 'utf8')).data
 
 console.log('── 1. Una carta suya, con nuestras columnas ──')
 {
@@ -18,8 +21,15 @@ console.log('── 1. Una carta suya, con nuestras columnas ──')
   check('ataques con coste, daño y efecto en nuestra forma', f.attacks.length === 3 && f.attacks[0].name === 'Jet Punch' && f.attacks[0].cost[0] === 'Grass' && f.attacks[0].damage === '30' && /Benched/.test(f.attacks[0].effect))
   check('debilidad, retirada, PS, tipos, fase y Pokédex', f.weaknesses[0].type === 'Fire' && f.retreat === 2 && f.hp === 260 && f.types[0] === 'Grass' && f.stage === 'Basic' && f.dex_ids.join(',') === '794,795', JSON.stringify([f.weaknesses, f.retreat, f.hp, f.types, f.stage, f.dex_ids]))
   check('rareza inglesa, ilustrador, categoría sin tilde, origen y detalle', f.rarity_en === 'Rare Holo GX' && f.illustrator && f.category === 'Pokemon' && f.origen === 'scrydex' && f.detalle_lang === 'en' && !('scrydex_id' in f) && f.scrydex_at)
-  const ja = filaDeCartaScrydex({ ...SM10, name: 'フェローチェ＆マッシブーンGX' }, { setId: 'x', mercado: 'JP', idioma: 'ja' })
-  check('en japonés el nombre se queda y el inglés sale de la Pokédex (685)', ja.name === 'フェローチェ＆マッシブーンGX' && ja.name_en === 'Buzzwole & Pheromosa-GX', JSON.stringify([ja.name, ja.name_en]))
+  const ja = filaDeCartaScrydex({ ...SM10, name: 'フェローチェ＆マッシブーンGX', translation: null }, { setId: 'x', mercado: 'JP', idioma: 'ja' })
+  check('en japonés sin traducción el nombre se queda y el inglés sale de la Pokédex (685)', ja.name === 'フェローチェ＆マッシブーンGX' && ja.name_en === 'Buzzwole & Pheromosa-GX' && !('stage' in ja) && !('types' in ja) && !('attacks' in ja), JSON.stringify([ja.name, ja.name_en, ja.stage, ja.types]))
+  const w = filaDeCartaScrydex(WEEDLE, { setId: 'base1_ja', mercado: 'JP', idioma: 'ja' })
+  check('la ficha japonesa REAL: nombre japonés, y todo lo canónico de translation.en (685.3)', w.name === 'ビードル' && w.name_en === 'Weedle' && w.category === 'Pokemon' && w.stage === 'Basic' && w.types.join() === 'Grass' && w.rarity_en === 'Common' && w.detalle_lang === 'en', JSON.stringify(w).slice(0, 300))
+  check('  …con los ataques y la debilidad en inglés, PS, retirada, Pokédex y foto', w.attacks[0].name === 'Poison Sting' && /Poisoned/.test(w.attacks[0].effect) && w.attacks[0].cost[0] === 'Grass' && w.weaknesses[0].type === 'Fire' && w.hp === 40 && w.retreat === 1 && w.dex_ids[0] === 13 && w.image_scrydex === 'https://images.scrydex.com/pokemon/base1_ja-4' && w.local_id === '13', JSON.stringify(w.attacks))
+  check('  …y nada en japonés en las columnas canónicas', !/[\u3040-\u30ff\u4e00-\u9fff]/.test(JSON.stringify([w.category, w.stage, w.types, w.attacks, w.weaknesses, w.rarity_en])))
+  const pr = precioDeScrydex('scrydex-base1_ja-4', WEEDLE, new Date('2026-10-06T12:00:00Z'))
+  check('el precio de TCGplayer, en dólares, de la impresión normal, NM crudo', pr.card_id === 'scrydex-base1_ja-4' && pr.tp_normal_market === 0.74 && pr.tp_normal_low === 0.65 && pr.origen === 'scrydex', JSON.stringify(pr))
+  check('  …sin precio en dólares no hay fila', precioDeScrydex('x', { variants: [{ name: 'normal', prices: [{ type: 'raw', condition: 'NM', currency: 'JPY', market: 500 }] }] }) === null)
   check('nombreInglesDe: fase, ex/EX, mega, V, y sin Pokédex nada', nombreInglesDe({ national_pokedex_numbers: [9], subtypes: ['Stage 2'] }) === 'Blastoise' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['Basic', 'ex'] }) === 'Charizard ex' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['Basic', 'EX'] }) === 'Charizard-EX' && nombreInglesDe({ national_pokedex_numbers: [6], subtypes: ['MEGA', 'EX'] }) === 'M Charizard-EX' && nombreInglesDe({ national_pokedex_numbers: [25], subtypes: ['Basic', 'V'] }) === 'Pikachu V' && nombreInglesDe({ subtypes: ['Item'] }) === null && nombreInglesDe({ national_pokedex_numbers: [1, 2, 3] }) === null)
   check('faseDe: «Stage 1» → Stage1, y GX no es fase', faseDe(['Stage 1', 'GX']) === 'Stage1' && faseDe(['GX']) === null)
   check('idNuestro limpia', idNuestro('SV1a-001') === 'scrydex-sv1a-001')
@@ -49,7 +59,7 @@ console.log('── 2. La expansión de un set ──')
 console.log('── 3. La pasada, con Scrydex y base de mentira ──')
 {
   const montar = ({ scrydexStatus = 200, nuestraFalla = false } = {}) => {
-    const escrito = { cartas: [], parches: [] }
+    const escrito = { cartas: [], parches: [], precios: [] }
     const estados = {}
     const aMedias = new Set()
     const sets = { JP: [
@@ -64,7 +74,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       if (scrydexStatus !== 200) return r(scrydexStatus, scrydexStatus === 403 ? '{"error":"subscription required"}' : 'boom')
       if (/\/ja\/expansions/.test(url)) return r(200, { data: [{ id: 'base1', name: 'Expansion Pack', total: 2, printed_total: 2, release_date: '1996/10/20', logo: 'https://images.scrydex.com/pokemon/base1-logo/logo' }, { id: 'jungle', name: 'Pokémon Jungle', total: 48, printed_total: 48, release_date: '1997/03/05' }] })
       if (/\/en\/expansions/.test(url)) return r(200, { data: [] })
-      if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...SM10, id: 'base1-4', number: '4', name: 'リザードン', images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...SM10, id: 'base1-5', number: '5', name: 'ピッピ' }] })
+      if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...WEEDLE, id: 'base1-5', number: '5', name: 'ピッピ', national_pokedex_numbers: [35], translation: null, variants: [] }] })
       return r(500, 'ruta no prevista ' + url)
     }
     const restImpl = async (ruta, opciones) => {
@@ -77,6 +87,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       }
       if (ruta.startsWith('tcg_cards?on_conflict')) { escrito.cartas.push(...JSON.parse(opciones.body)); return null }
       if (ruta.startsWith('tcg_sets?market=')) { escrito.parches.push({ ruta, body: JSON.parse(opciones.body) }); return null }
+      if (ruta.startsWith('tcg_card_prices?on_conflict=card_id')) { escrito.precios.push(...JSON.parse(opciones.body)); return null }
       throw new Error('ruta no prevista ' + ruta)
     }
     const env = { SUPABASE_SERVICE_ROLE_KEY: 'k', SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 't' }
@@ -87,7 +98,8 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const { correr, escrito, estados, peticiones, sets, aMedias } = montar()
     const r1 = await correr()
     check('primera pasada: la lista (1 crédito) y el primer vacío rellenado (1 crédito)', r1.ok && r1.rellenado?.set === 'BASE1_' && r1.rellenado.cartas === 2 && r1.rellenado.por === 'nombre' && r1.creditos === 2, JSON.stringify(r1))
-    check('  …las cartas con nuestro id, set, mercado, foto y nombre inglés', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン' && escrito.cartas[0].name_en === 'Buzzwole & Pheromosa-GX', JSON.stringify(escrito.cartas[0]).slice(0, 220))
+    check('  …las cartas con nuestro id, set, mercado, foto y nombre inglés (de la traducción, o de la Pokédex)', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン' && escrito.cartas[0].name_en === 'Charizard' && escrito.cartas[1].name_en === 'Clefairy', JSON.stringify(escrito.cartas.map((c) => [c.name, c.name_en])))
+    check('  …y el precio de TCGplayer de la que lo trae', escrito.precios.length === 1 && escrito.precios[0].card_id === 'scrydex-base1-4' && escrito.precios[0].tp_normal_market === 0.74 && r1.rellenado.cartas === 2, JSON.stringify(escrito.precios))
     check('  …con las mismas claves las dos (igualarClaves)', Object.keys(escrito.cartas[0]).join() === Object.keys(escrito.cartas[1]).join())
     check('  …y el set desescondido y apuntado', escrito.parches[0]?.body.oculto === false && escrito.parches[0].body.scrydex_id === 'base1' && /id=eq\.BASE1_/.test(escrito.parches[0].ruta))
     const r2 = await correr()

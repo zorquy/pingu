@@ -1,0 +1,335 @@
+{
+ "data": {
+  "id": "base1_ja-4",
+  "name": "ビードル",
+  "supertype": "ポケモン",
+  "subtypes": [
+   "たね"
+  ],
+  "types": [
+   "草"
+  ],
+  "hp": "40",
+  "evolves_from": [],
+  "abilities": [],
+  "attacks": [
+   {
+    "cost": [
+     "草"
+    ],
+    "converted_energy_cost": 1,
+    "name": "どくばり",
+    "text": "コインを投げて「おもて」なら、相手を「どく」状態にする。",
+    "damage": "10"
+   }
+  ],
+  "weaknesses": [
+   {
+    "type": "炎",
+    "value": "×2"
+   }
+  ],
+  "resistances": [],
+  "retreat_cost": [
+   "無"
+  ],
+  "converted_retreat_cost": 1,
+  "rules": [],
+  "number": "13",
+  "printed_number": "No.013",
+  "additional_numbers": [],
+  "rarity": "通常",
+  "rarity_code": "●",
+  "artist": "Mitsuhiro Arita",
+  "national_pokedex_numbers": [
+   13
+  ],
+  "regulation_mark": null,
+  "legalities": [
+   {
+    "format": "Standard",
+    "status": "Not Legal"
+   },
+   {
+    "format": "Unlimited",
+    "status": "Legal"
+   },
+   {
+    "format": "Expanded",
+    "status": "Not Legal"
+   },
+   {
+    "format": "Gym Leader Challenge",
+    "status": "Not Legal"
+   }
+  ],
+  "flavor_text": null,
+  "images": [
+   {
+    "type": "front",
+    "small": "https://images.scrydex.com/pokemon/base1_ja-4/small",
+    "medium": "https://images.scrydex.com/pokemon/base1_ja-4/medium",
+    "large": "https://images.scrydex.com/pokemon/base1_ja-4/large"
+   }
+  ],
+  "expansion": {
+   "id": "base1_ja",
+   "name": "拡張パック",
+   "series": "Original",
+   "code": null,
+   "total": 102,
+   "printed_total": 102,
+   "language": "Japanese",
+   "language_code": "JA",
+   "release_date": "1996/10/20",
+   "is_online_only": false,
+   "logo": "https://images.scrydex.com/pokemon/base1_ja-logo/logo",
+   "symbol": "https://images.scrydex.com/pokemon/base1_ja-symbol/symbol",
+   "translation": {
+    "en": {
+     "name": "Expansion Pack"
+    }
+   }
+  },
+  "language": "Japanese",
+  "language_code": "JA",
+  "expansion_sort_order": 4,
+  "translation": {
+   "en": {
+    "name": "Weedle",
+    "supertype": "Pokémon",
+    "subtypes": [
+     "Basic"
+    ],
+    "types": [
+     "Grass"
+    ],
+    "rules": null,
+    "abilities": [],
+    "attacks": [
+     {
+      "cost": [
+       "Grass"
+      ],
+      "converted_energy_cost": 1,
+      "name": "Poison Sting",
+      "text": "Flip a coin. If heads, the Defending Pokémon is now Poisoned.",
+      "damage": "10"
+     }
+    ],
+    "weaknesses": [
+     {
+      "type": "Fire",
+      "value": "×2"
+     }
+    ],
+    "resistances": [],
+    "retreat_cost": [
+     "Colorless"
+    ],
+    "evolves_from": null,
+    "flavor_text": null,
+    "rarity": "Common",
+    "expansion": {
+     "name": "Expansion Pack"
+    }
+   }
+  },
+  "variants": [
+   {
+    "name": "normal",
+    "images": [],
+    "marketplaces": [
+     {
+      "name": "tcgplayer",
+      "product_id": "575600",
+      "purchase_url": "https://scrydex.com/pokemon/cards/base1_ja-4/purchase?type=tcgplayer&variant=normal"
+     }
+    ],
+    "pop_reports": [],
+    "prices": [
+     {
+      "condition": "NM",
+      "grade": null,
+      "company": null,
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "raw",
+      "low": 500,
+      "mid": 500,
+      "high": 500,
+      "market": 500,
+      "currency": "JPY",
+      "source_currency": "JPY",
+      "trends": {
+       "days_1": {
+        "price_change": 350,
+        "percent_change": 233.33
+       },
+       "days_90": {
+        "price_change": 350,
+        "percent_change": 233.33
+       }
+      }
+     },
+     {
+      "condition": "NM",
+      "grade": null,
+      "company": null,
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "raw",
+      "low": 0.65,
+      "mid": null,
+      "high": null,
+      "market": 0.74,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {
+       "days_1": {
+        "price_change": 0,
+        "percent_change": 0
+       },
+       "days_7": {
+        "price_change": 0.02,
+        "percent_change": 2.78
+       },
+       "days_14": {
+        "price_change": 0.02,
+        "percent_change": 2.78
+       }
+      }
+     },
+     {
+      "condition": "LP",
+      "grade": null,
+      "company": null,
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "raw",
+      "low": 0.3,
+      "mid": null,
+      "high": null,
+      "market": 0.57,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     },
+     {
+      "condition": null,
+      "grade": "10",
+      "company": "PSA",
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "graded",
+      "low": 102.5,
+      "mid": 212.5,
+      "high": 311,
+      "market": 152.54,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     },
+     {
+      "condition": null,
+      "grade": "9",
+      "company": "PSA",
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "graded",
+      "low": 12.5,
+      "mid": 39,
+      "high": 74.99,
+      "market": 32.91,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     },
+     {
+      "condition": null,
+      "grade": "10",
+      "company": "CGC",
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "graded",
+      "low": 22,
+      "mid": 57.47,
+      "high": 99.21,
+      "market": 73.64,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     }
+    ]
+   },
+   {
+    "name": "noRaritySymbol",
+    "images": [],
+    "marketplaces": [
+     {
+      "name": "tcgplayer",
+      "product_id": "577027",
+      "purchase_url": "https://scrydex.com/pokemon/cards/base1_ja-4/purchase?type=tcgplayer&variant=noRaritySymbol"
+     }
+    ],
+    "pop_reports": [],
+    "prices": [
+     {
+      "condition": "NM",
+      "grade": null,
+      "company": null,
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "raw",
+      "low": 7000,
+      "mid": 7000,
+      "high": 7000,
+      "market": 7000,
+      "currency": "JPY",
+      "source_currency": "JPY",
+      "trends": {}
+     },
+     {
+      "condition": "NM",
+      "grade": null,
+      "company": null,
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "raw",
+      "low": null,
+      "mid": null,
+      "high": null,
+      "market": 1,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     },
+     {
+      "condition": null,
+      "grade": "10",
+      "company": "PSA",
+      "is_perfect": false,
+      "is_signed": false,
+      "is_error": false,
+      "type": "graded",
+      "low": 372,
+      "mid": 372,
+      "high": 372,
+      "market": 372,
+      "currency": "USD",
+      "source_currency": "USD",
+      "trends": {}
+     }
+    ]
+   }
+  ]
+ }
+}
