@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 1) — PINGU-Claude (700 — Reviving Legends con los nombres en japonés: se arregla solo)
+
+**Hecho**: PINGU ve el set con los nombres en japonés. `name_en` sale de
+la traducción de Scrydex o de la Pokédex, y faltan los dos: lo único
+que cambió es el `include=prices` de la 697. Si el listado con precios
+viene sin traducción ni Pokédex, se pide también a secas y se juntan
+(un crédito más, apuntado). `VERSION_NOMBRES` 6: los 17 rellenados se
+reescriben con nombres, uno por pasada. La sonda de /admin enseña ahora
+nuestro `name_en`, la traducción y la Pokédex de Scrydex, y una carta
+del listado pedido con `include=prices`.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+Prueba 684 en `pruebas`.
+
+**Pendiente**: que PINGU sondee `scrydex-l2_ja-1` (JP) en /admin → Cartas
+y pegue el bloque SCRYDEX, y el bloque HUECOS en media hora.
+
 ## 2026-10-06 (tarde, 22) — PINGU-Claude (699 — lo que Scrydex tiene y nosotros no se crea solo en el japonés)
 
 **Hecho**: PINGU: «¿qué pasa con ese set y otros que no existan?». La

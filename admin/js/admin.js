@@ -3078,6 +3078,7 @@ async function tcggoEstado() {
         // Las sueltas: las libres se crean solas en el japonés; las que
         // tienen un set nuestro con la misma fecha se quedan aquí, para mirar.
         ...Object.entries(h.sueltas || {}).map(([m, x]) => `  Scrydex tiene y nosotros no (${m}, ${(x.lista || []).length}): ${(x.lista || []).map((e) => `${e.id} «${e.name_en || e.name}» (${e.total ?? '?'}, ${e.release_date || 'sin fecha'}${e.ocupadaPor ? `; ese día sale nuestro ${e.ocupadaPor}` : ''})`).join(' · ') || '—'}`),
+        h.listadoSinTraduccion ? `  listados con precios que vinieron sin traducción ni Pokédex y se pidieron dos veces (700): ${h.listadoSinTraduccion}` : '',
         h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
         h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
       ]

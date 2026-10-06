@@ -106,6 +106,10 @@ export function resumirScrydex(c) {
   const precios = c.prices || c.variants?.flatMap?.((v) => v.prices || []) || []
   return {
     id: c.id || null, nombre: c.name || null, expansion: c.expansion?.name || c.expansion?.id || null, idioma: c.language_code || c.expansion?.language_code || null,
+    // El nombre inglés de su traducción y la Pokédex (700): son las dos
+    // fuentes de nuestro `name_en` en el japonés, y si faltan las dos la
+    // carta se enseña en japonés.
+    nombreIngles: c.translation?.en?.name || null, traduccion: c.translation ? Object.keys(c.translation) : [], dex: Array.isArray(c.national_pokedex_numbers) ? c.national_pokedex_numbers : null,
     imagenes: Array.isArray(c.images) ? c.images.length : 0, ataques: Array.isArray(c.attacks) ? c.attacks.length : 0,
     variantes: Array.isArray(c.variants) ? c.variants.map((v) => v.name).filter(Boolean) : [],
     precios: Array.isArray(precios) ? precios.slice(0, 6).map((p) => `${p.type || p.name || '?'} ${p.market ?? p.low ?? ''} ${p.currency || ''}`.trim()) : [],
@@ -145,7 +149,7 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
     informe.nuestra = carta
       ? {
           id: carta.id, set: set?.id || carta.set_id, setNombre: set?.name || null, codigoSet: set?.tcg_online_code || null, fechaSet: set?.release_date || null, tcggoIdSet: set?.tcggo_id ?? null,
-          numero: carta.local_id, nombre: carta.name, nombreEs: carta.name_es || null, origen: carta.origen || null, detalle: carta.detalle_at ? `sí (${carta.detalle_lang || '?'})` : 'no',
+          numero: carta.local_id, nombre: carta.name, nombreEs: carta.name_es || null, nombreEn: carta.name_en || null, dex: carta.dex_ids || null, origen: carta.origen || null, detalle: carta.detalle_at ? `sí (${carta.detalle_lang || '?'})` : 'no',
           ataques: Array.isArray(carta.attacks) ? carta.attacks.length : 0,
           fotos: { tcgdex: carta.image_path || null, tcggo: carta.image_tcggo || null, scrydex: carta.image_scrydex || null },
           ids: { tcggo: carta.tcggo_id ?? null, cardmarket: carta.cm_id_product_propio ?? null, tcgplayer: carta.tp_id_product_propio ?? null },
@@ -234,6 +238,15 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
       // Una carta nuestra escrita por Scrydex se llama `scrydex-<id suyo>`: a Scrydex se le pide el suyo.
       const r = await pedir(urlDeSonda(`${idiomaScrydex}/cards/${id.replace(/^scrydex-/, '')}`), sc.cabeceras, 'scrydex')
       informe.scrydex.carta = r.ok ? resumirScrydex(r.datos?.data || r.datos) : { status: r.status, texto: (r.texto || JSON.stringify(r.datos || '')).slice(0, 160) }
+      // El LISTADO de su expansión pedido como lo pide el relleno desde la
+      // 697 (`include=prices`), una carta (700): para ver si ese listado
+      // trae la traducción y la Pokédex, o solo los precios.
+      const expansion = (r.datos?.data || r.datos)?.expansion?.id
+      if (r.ok && expansion) {
+        const l = await pedir(urlDeSonda(`${idiomaScrydex}/cards`, { q: `expansion.id:${expansion}`, page_size: 1, include: 'prices' }), sc.cabeceras, 'scrydex')
+        const primera = l.datos?.data?.[0]
+        informe.scrydex.listadoConPrecios = l.ok ? (primera ? { id: primera.id, campos: Object.keys(primera), nombreIngles: primera.translation?.en?.name || null, dex: primera.national_pokedex_numbers || null, precios: (primera.variants || []).flatMap((v) => v.prices || []).length } : { nota: 'lista vacía' }) : { status: l.status, texto: (l.texto || JSON.stringify(l.datos || '')).slice(0, 160) }
+      }
     } catch (e) { informe.scrydex.carta = { error: String(e?.message || e).slice(0, 120) } }
     try {
       const r = await pedir(urlDeSonda(`${idiomaScrydex}/expansions/${setId}`), sc.cabeceras, 'scrydex')

@@ -57,7 +57,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
-export const VERSION_NOMBRES = 5
+export const VERSION_NOMBRES = 6
 // Expansiones de Scrydex que NO tienen set nuestro y hay que CREAR (698).
 // PINGU: «Lanturn Prime, del set Reviving Legends, en japonés no sale ni
 // el set ni la carta». El estado no lo tenía ni rellenado, ni sin par, ni
@@ -229,6 +229,21 @@ export async function pasada({
     if (estado.sinIncludePrecios) return scrydex(`${idioma}/cards`, params)
     const r = await scrydex(`${idioma}/cards`, { ...params, include: 'prices' })
     if (r.error && r.status === 400) { estado.sinIncludePrecios = true; return scrydex(`${idioma}/cards`, params) }
+    // Si el listado con precios viene SIN la traducción ni la Pokédex en
+    // ninguna carta (700: Reviving Legends salió con los nombres en
+    // japonés tras la 697), se pide también a secas —un crédito más— y se
+    // junta: las cartas de ese, con las impresiones y precios del otro.
+    // Se apunta cuántas veces ha hecho falta, para que /admin lo diga.
+    const datos = r.datos?.data
+    if (!r.error && idioma !== 'en' && Array.isArray(datos) && datos.length && !datos.some((c) => c?.translation || c?.national_pokedex_numbers)) {
+      const sin = await scrydex(`${idioma}/cards`, params)
+      if (!sin.error && Array.isArray(sin.datos?.data)) {
+        const conPrecio = new Map(datos.map((c) => [c.id, c]))
+        sin.datos.data = sin.datos.data.map((c) => ({ ...c, variants: conPrecio.get(c.id)?.variants ?? c.variants }))
+        estado.listadoSinTraduccion = (Number(estado.listadoSinTraduccion) || 0) + 1
+        return sin
+      }
+    }
     return r
   }
   const resumen = () => {

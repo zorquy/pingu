@@ -33882,3 +33882,37 @@ otra (dos medios mazos del mismo día) se mete en `CREAR_SETS`, que fuerza.
 
 **Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`.
 Prueba 684 (rama `pruebas`).
+
+## Tanda 700 — Reviving Legends con los nombres en japonés: ¿se arregla solo? (oct. 2026)
+
+PINGU: «ya veo el set, pero tiene los nombres en japonés, como ya ha
+pasado anteriormente. ¿Esto se arregla solo?». La web enseña el japonés
+solo cuando no hay `name_en` (la 537), y `name_en` sale de dos sitios:
+la traducción de Scrydex (`translation.en.name`) o la Pokédex (`national_
+pokedex_numbers` → `nombreInglesDe`). Que falten los DOS en un set entero
+de Pokémon apunta a lo que cambió la 697: el listado se pide ahora con
+`include=prices`, y el único listado que se ha visto con los nombres en
+japonés es el primero pedido así. Desde aquí no se puede preguntar a
+Scrydex, así que:
+
+- **Se arregla solo**: si el listado con precios viene sin traducción ni
+  Pokédex en ninguna carta, `cartasDeExpansion` lo pide también a secas
+  —un crédito más— y junta los dos: las cartas del listado a secas con las
+  impresiones y precios del otro. Cuántas veces ha hecho falta queda en
+  `listadoSinTraduccion` y /admin lo enseña. `VERSION_NOMBRES` sube a 6
+  para que los diecisiete rellenados (Reviving Legends entre ellos) se
+  vuelvan a escribir con los nombres, uno por pasada.
+- **Y la sonda de /admin lo mide**: la ficha de Scrydex dice ahora
+  `nombreIngles`, `traduccion` y `dex`; nuestra fila dice `nombreEn` y
+  `dex`; y hay un `listadoConPrecios`: una carta del listado de su
+  expansión pedido con `include=prices`, con sus campos. Con
+  `scrydex-l2_ja-1` (mercado JP) se ve de una vez si el listado con
+  precios trae o no la traducción.
+
+Si la sonda dice que el listado con precios SÍ trae la traducción, la
+causa es otra y la segunda petición no se disparará nunca (no cuesta
+nada); entonces habrá que mirar la fila.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`. Prueba 684
+(rama `pruebas`).
