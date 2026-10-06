@@ -33821,3 +33821,36 @@ escritas, nuevas, borradas) y el último aviso.
 `netlify/functions/scrydex-huecos.mjs`,
 `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`. Pruebas
 666, 684, 686 y 693 (rama `pruebas`).
+
+## Tanda 698 — el set japonés que no existe no se puede rellenar: se crea (oct. 2026)
+
+PINGU: «el Lanturn Prime en español sí sale, con precio, del set
+Unleashed; pero en japonés es del set Reviving Legends, y no sale ni el
+set ni el Lanturn». El estado de `scrydex-huecos` que pegó no tenía ese
+set en ninguna casilla —ni rellenado, ni «sin expansión suya», ni «vacío
+en Scrydex»—, y las casillas suman todo lo que la pasada ha mirado. Así
+que **no había set nuestro que rellenar**: el relleno de huecos parte de
+`tcg_sets`, y un set que TCGdex no lista (o que se quedó fuera del
+catálogo asiático) no es un hueco, es nada. Y no lo cantaba nadie.
+
+Dos cosas, las dos en `scrydex-huecos`:
+
+- **Lo que Scrydex tiene y nosotros no**, por mercado (`sueltas`): las
+  expansiones de su lista que no casan con ningún set nuestro ni por
+  `scrydex_id` ni por nombre. Gratis: la lista ya está en el estado y la
+  tabla es nuestra. /admin lo enseña con id, nombre inglés, cuenta y fecha.
+  Es la lista de la que sale lo siguiente.
+- **`CREAR_SETS`**: una lista en el código, como `REEMPLAZOS`, de
+  expansiones de Scrydex que hay que crear como set nuestro (por id o por
+  nombre inglés, único). El set nace con el id de Scrydex —como los
+  dieciséis que ya había (`base1_ja`, `gym1_ja`…)—, escondido, con su
+  `scrydex_id`, fecha, cuentas, logo y la serie de un set nuestro que
+  lleve el mismo nombre de serie; la pasada siguiente lo ve vacío, lo casa
+  por `scrydex_id` y lo rellena como a cualquier otro. Lo creado, lo que
+  ya existía y lo que no está en Scrydex quedan en `creados` y /admin lo
+  lista. Arranca con «Reviving Legends» y «Advent of Arceus» en japonés,
+  por nombre: si Scrydex los llama de otra forma, saldrá «no está en
+  Scrydex» y el nombre bueno estará en la lista de sueltas de al lado.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`.
+Prueba 684 (rama `pruebas`).

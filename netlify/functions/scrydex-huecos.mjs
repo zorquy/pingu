@@ -38,7 +38,7 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, SCRYDEX_API_KEY,
 // SCRYDEX_TEAM_ID.
-import { cabecerasDe, urlDeSonda, faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, precioDeScrydex, igualarClaves, expansionDelSet, parcheDeSet } from '../lib/scrydex.mjs'
+import { cabecerasDe, urlDeSonda, faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, precioDeScrydex, igualarClaves, expansionDelSet, parcheDeSet, clave } from '../lib/scrydex.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'scrydex_huecos'
@@ -58,6 +58,63 @@ export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
 export const VERSION_NOMBRES = 5
+// Expansiones de Scrydex que NO tienen set nuestro y hay que CREAR (698).
+// PINGU: «Lanturn Prime, del set Reviving Legends, en japonés no sale ni
+// el set ni la carta». El estado no lo tenía ni rellenado, ni sin par, ni
+// vacío: no había set nuestro al que rellenar (TCGdex trae la era LEGEND
+// y DP sin cartas, y lo que no tiene cartas se esconde). Se nombran por
+// el inglés de Scrydex (`translation.en.name`) o por su id; el set nace
+// con el id de Scrydex —como los dieciséis que ya había (`base1_ja`)—,
+// escondido, y la pasada siguiente lo rellena como a cualquier vacío.
+export const CREAR_SETS = [
+  { mercado: 'JP', nombre: 'Reviving Legends' },
+  { mercado: 'JP', nombre: 'Advent of Arceus' },
+]
+// Cuántas expansiones sueltas (sin set nuestro) se apuntan por mercado.
+export const MAXIMO_SUELTAS = 120
+
+// La expansión de la lista que nombra una entrada de CREAR_SETS: por id, o
+// por el nombre inglés (o el suyo), sin tildes ni signos.
+export function expansionACrear(entrada, expansiones) {
+  if (!entrada || !Array.isArray(expansiones)) return null
+  if (entrada.id) return expansiones.find((e) => e.id === entrada.id) || null
+  const k = clave(entrada.nombre)
+  if (!k) return null
+  const porNombre = expansiones.filter((e) => clave(e.name_en) === k || clave(e.name) === k)
+  return porNombre.length === 1 ? porNombre[0] : null
+}
+
+// La fila del set que se crea de una expansión de Scrydex (698): su id,
+// escondido hasta que tenga cartas, y con lo que la lista trae. La serie
+// se copia de un set nuestro con el mismo nombre de serie, si lo hay.
+export function filaDeSetDeScrydex(expansion, mercado, sets = []) {
+  const fecha = typeof expansion.release_date === 'string' && /^\d{4}[/-]\d{2}[/-]\d{2}/.test(expansion.release_date) ? expansion.release_date.slice(0, 10).replace(/\//g, '-') : null
+  const serieK = clave(expansion.series)
+  const deSerie = serieK ? sets.find((s) => s.serie_id && (clave(s.serie_name_en) === serieK || clave(s.serie_name) === serieK)) : null
+  return {
+    id: expansion.id, market: mercado,
+    name: expansion.name || expansion.name_en || expansion.id,
+    name_en: expansion.name_en || null,
+    release_date: fecha,
+    card_count_total: Number(expansion.total) > 0 ? Number(expansion.total) : null,
+    card_count_official: Number(expansion.printed_total) > 0 ? Number(expansion.printed_total) : null,
+    serie_id: deSerie?.serie_id || null, serie_name: deSerie?.serie_name || null, serie_name_en: deSerie?.serie_name_en || expansion.series || null,
+    logo_scrydex: typeof expansion.logo === 'string' && expansion.logo ? expansion.logo : null,
+    symbol_scrydex: typeof expansion.symbol === 'string' && expansion.symbol ? expansion.symbol : null,
+    scrydex_id: expansion.id, scrydex_por: 'huecos', oculto: true,
+  }
+}
+
+// Las expansiones de Scrydex que no casan con ningún set nuestro, ni por
+// `scrydex_id` ni por nombre (698). Gratis: se calcula de la lista que ya
+// está en el estado y de nuestra tabla. Es lo que enseña /admin para saber
+// qué hay que meter en CREAR_SETS.
+export function expansionesSueltas(expansiones, sets) {
+  const porId = new Set((sets || []).map((s) => s.scrydex_id).filter(Boolean))
+  const nombres = new Set((sets || []).flatMap((s) => [clave(s.name_en), clave(s.name)]).filter(Boolean))
+  return (expansiones || []).filter((e) => !porId.has(e.id) && !nombres.has(clave(e.name_en)) && !nombres.has(clave(e.name)))
+    .map((e) => ({ id: e.id, name: e.name, name_en: e.name_en || null, total: e.total ?? null, release_date: e.release_date || null }))
+}
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -84,7 +141,7 @@ const esDeSuscripcion = (status) => status === 401 || status === 403 || status =
 // ── La pasada ──
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null,
-  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), mercados = ['JP', 'WEST'],
+  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), mercados = ['JP', 'WEST'], crear = CREAR_SETS,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
@@ -104,7 +161,7 @@ export async function pasada({
     return { ok: false, error: m.slice(0, 200) }
   }
   estado = estado && typeof estado === 'object' ? estado : {}
-  for (const k of ['listas', 'vistos', 'intentos']) if (!estado[k] || typeof estado[k] !== 'object') estado[k] = {}
+  for (const k of ['listas', 'vistos', 'intentos', 'sueltas', 'creados']) if (!estado[k] || typeof estado[k] !== 'object') estado[k] = {}
   if (!estado.gasto || typeof estado.gasto !== 'object') estado.gasto = { creditos: 0 }
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
   // Parado por Scrydex (401/403): hasta mañana. Parado por NUESTRA base:
@@ -214,7 +271,7 @@ export async function pasada({
           return { ok: false, ...resumen(), error: r.error }
         }
         const datos = Array.isArray(r.datos?.data) ? r.datos.data : []
-        for (const e of datos) expansiones.push({ id: e.id, name: e.name, name_en: e.translation?.en?.name || null, code: e.code || null, total: e.total ?? null, printed_total: e.printed_total ?? null, release_date: e.release_date || null, logo: e.logo || null, symbol: e.symbol || null, language_code: e.language_code || null })
+        for (const e of datos) expansiones.push({ id: e.id, name: e.name, name_en: e.translation?.en?.name || null, series: e.series || null, code: e.code || null, total: e.total ?? null, printed_total: e.printed_total ?? null, release_date: e.release_date || null, logo: e.logo || null, symbol: e.symbol || null, language_code: e.language_code || null })
         if (datos.length < 100) break
         await pausa(200)
       }
@@ -235,6 +292,27 @@ export async function pasada({
       return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
     const k = (s) => `${mercado}|${s.id}`
+    // ── 2b. Lo que Scrydex tiene y nosotros no (698), y lo que hay que crear ──
+    estado.sueltas[mercado] = { fecha: ahora.toISOString(), lista: expansionesSueltas(expansiones, sets).slice(0, MAXIMO_SUELTAS) }
+    for (const entrada of crear.filter((c) => c.mercado === mercado)) {
+      const ck = `${mercado}|${entrada.id || entrada.nombre}`
+      if (estado.creados[ck]?.set) continue
+      const expansion = expansionACrear(entrada, expansiones)
+      if (!expansion) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'noEstaEnScrydex' }; continue }
+      if (sets.some((x) => x.id === expansion.id || x.scrydex_id === expansion.id)) { estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'yaExiste', set: expansion.id }; continue }
+      const fila = filaDeSetDeScrydex(expansion, mercado, sets)
+      try {
+        await pedir('tcg_sets', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify([fila]) })
+      } catch (e) {
+        estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: fila.id, expansion: expansion.id, donde: 'crear', error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+        estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
+        await persistir()
+        return { ok: false, ...resumen(), error: estado.ultimoError.error }
+      }
+      estado.creados[ck] = { fecha: ahora.toISOString(), estado: 'creado', set: fila.id, nombre: expansion.name_en || expansion.name }
+      sets.push({ ...fila })
+    }
+    await persistir()
     const caducado = (v) => !v?.fecha || (ahora.getTime() - new Date(v.fecha).getTime()) / 86_400_000 > DIAS_REVISAR
     // Lo rellenado y lo parado no se vuelven a mirar; lo demás, a la semana.
     const porMirar = sets.filter((s) => {

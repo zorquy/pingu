@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 21) — PINGU-Claude (698 — el set japonés que no existe se crea desde Scrydex)
+
+**Hecho**: PINGU: Lanturn Prime sale en español (Unleashed) pero en
+japonés «no sale ni el set ni la carta» (Reviving Legends). El estado de
+huecos no tenía ese set en ninguna casilla: no había set nuestro que
+rellenar. `scrydex-huecos` apunta ahora las expansiones de Scrydex sin
+set nuestro (`sueltas`, gratis, en /admin) y crea los de `CREAR_SETS`
+(id de Scrydex, escondido, con `scrydex_id`; la pasada siguiente lo
+rellena). Sembrado con Reviving Legends y Advent of Arceus por nombre.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`. Prueba 684 en `pruebas`.
+
+**Pendiente**: que PINGU pegue el bloque HUECOS tras dos pasadas: si
+dice «no está en Scrydex» para alguno de los dos, el nombre bueno está
+en la lista «Scrydex tiene y nosotros no» y se mete en `CREAR_SETS`.
+
 ## 2026-10-06 (tarde, 20) — PINGU-Claude (697 — los precios que desaparecieron, y lo que la pasada de sueltas hizo mal)
 
 **Hecho**: PINGU: «han desaparecido un montón de precios (30 aniversario,

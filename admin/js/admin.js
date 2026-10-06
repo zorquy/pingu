@@ -3068,6 +3068,11 @@ async function tcggoEstado() {
         // bloque decía «12 sin expansión suya» y no cuáles.
         ...v.filter(([, x]) => x.estado === 'sinPar').map(([k, x]) => `  · sin expansión suya ${k} «${x.nombre || ''}»${(x.candidatas || []).length ? ` (candidatas: ${x.candidatas.slice(0, 3).map((c) => `${c.id || c}${c.nombre ? ` «${c.nombre}»` : ''}`).join(', ')})` : ''}`),
         ...v.filter(([, x]) => x.estado === 'vacioEnScrydex').map(([k, x]) => `  · vacío también en Scrydex ${k} «${x.nombre || ''}» (su ${x.expansion})`),
+        // Lo que se ha creado de una expansión de Scrydex sin set nuestro
+        // (698), y lo que Scrydex tiene y nosotros no: de aquí sale lo que
+        // hay que meter en CREAR_SETS.
+        ...Object.entries(h.creados || {}).map(([k, x]) => `  ${x.estado === 'creado' ? '✓ creado' : x.estado === 'yaExiste' ? '· ya existía' : '✗ no está en Scrydex'} ${k}${x.set ? ` → ${x.set}` : ''}${x.nombre ? ` «${x.nombre}»` : ''}`),
+        ...Object.entries(h.sueltas || {}).map(([m, x]) => `  Scrydex tiene y nosotros no (${m}, ${(x.lista || []).length}): ${(x.lista || []).map((e) => `${e.id} «${e.name_en || e.name}» (${e.total ?? '?'}, ${e.release_date || 'sin fecha'})`).join(' · ') || '—'}`),
         h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
         h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
       ]
