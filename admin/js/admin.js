@@ -3062,7 +3062,7 @@ async function tcggoEstado() {
       const cuenta = (e) => v.filter(([, x]) => x.estado === e).length
       return [
         `HUECOS DESDE SCRYDEX (scrydex_huecos, 684) — ${de('scrydex_huecos')?.updated_at || 'nunca'}: ${cuenta('rellenado')} rellenados · ${cuenta('lleno')} llenos · ${cuenta('sinPar')} sin expansión suya · ${cuenta('vacioEnScrydex')} vacíos en Scrydex · ${cuenta('parado')} parados · créditos gastados: ${h.gasto?.creditos ?? 0}`,
-        ...v.filter(([, x]) => x.estado === 'rellenado').map(([k, x]) => `  ✓ ${k} ← ${x.expansion} «${x.nombre || ''}» (${x.cartas} cartas, por ${x.por})`),
+        ...v.filter(([, x]) => x.estado === 'rellenado').map(([k, x]) => `  ✓ ${k} ← ${x.expansion} «${x.nombre || ''}» (${x.cartas} cartas, por ${x.por}; nombres v${x.nombres ?? 0}${x.conNombreIngles != null ? `, ${x.conNombreIngles} con nombre inglés` : ''}${x.conPrecio != null ? `, ${x.conPrecio} con precio de TCGplayer` : ''})`),
         ...v.filter(([, x]) => x.estado === 'parado').map(([k, x]) => `  ⚠ parado ${k}: ${x.error}`),
         h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
         h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',

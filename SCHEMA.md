@@ -33453,3 +33453,36 @@ generado), `css/mi-coleccion.css`.
 datos salen de la colección, flechas/puntos/teclas/dedo, cada dibujo se
 exporta, compartir coge la que se ve, 44 px en el móvil; guarda los cinco
 PNG en la carpeta de capturas); 571, 574 y 582 siguen.
+
+## Tanda 690 — la «normal» fantasma de Scrydex: el precio de la impresión que lo tiene (oct. 2026)
+
+PINGU, con dos fichas japonesas: el Zapdos de Fossil «mantiene el precio
+incorrecto» (500 € de Cardmarket y 42,66 € de TCGplayer) y el Poliwrath
+del Expansion Pack «no tiene precio, no sale ni el de TCGplayer; y pone
+Holo y Normal cuando solo es Holo».
+
+**El Zapdos** es la 688 todavía sin llegar: el espejo repasa un set por
+pasada (cada seis minutos) y la Pokédex de ese set aún llevaba lo
+copiado en la 686. En cuanto le toque, las cifras de la gemela se borran
+y queda lo de Scrydex.
+
+**El Poliwrath** es un fallo de verdad, y el «Normal» lo delata: Scrydex
+lista para esa carta una impresión `normal` SIN precios ni tiendas al
+lado del `holofoil` que sí los tiene, y `precioDeScrydex` miraba la
+«normal» primero y, al no tener cifra, devolvía nada — con el precio del
+holo al lado, sin error. Ahora mira la «normal» primero y, si no tiene
+Near Mint en dólares, la primera impresión que lo tenga. Y
+`filaDeCartaScrydex` solo afirma una impresión si tiene precios o
+tiendas: una «normal» de la que nadie vende nada no existe. Los cuatro
+sets se repasan solos (`VERSION_NOMBRES` 4, un crédito por 100 cartas).
+
+**Para verlo sin adivinar**: /admin enseña por set rellenado la versión
+de nombres, cuántas tienen nombre inglés y cuántas precio de TCGplayer;
+y la sonda de orígenes (683) pide a Scrydex el id SUYO (quitando el
+`scrydex-` de delante, que antes daba 404) y devuelve los precios por
+impresión con su estado («raw NM 0.74 USD»), que es lo que decide.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`.
+**Pruebas**: 684 (la «normal» fantasma: precio del holo, impresión solo
+holo), 683 sigue.

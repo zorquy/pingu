@@ -109,6 +109,13 @@ export function resumirScrydex(c) {
     imagenes: Array.isArray(c.images) ? c.images.length : 0, ataques: Array.isArray(c.attacks) ? c.attacks.length : 0,
     variantes: Array.isArray(c.variants) ? c.variants.map((v) => v.name).filter(Boolean) : [],
     precios: Array.isArray(precios) ? precios.slice(0, 6).map((p) => `${p.type || p.name || '?'} ${p.market ?? p.low ?? ''} ${p.currency || ''}`.trim()) : [],
+    // Por impresión y con el estado (690): es lo que decide si la web
+    // tiene precio («raw NM USD» de alguna impresión) y qué impresiones
+    // existen (las que tienen precios o tiendas).
+    porImpresion: Array.isArray(c.variants) ? c.variants.map((v) => ({
+      nombre: v.name || '?', tiendas: Array.isArray(v.marketplaces) ? v.marketplaces.length : 0,
+      precios: (Array.isArray(v.prices) ? v.prices : []).map((p) => `${p.type || '?'}${p.condition ? ` ${p.condition}` : ''}${p.grade ? ` ${p.grade}` : ''} ${p.market ?? p.low ?? ''} ${p.currency || ''}`.trim()),
+    })) : [],
   }
 }
 
@@ -224,7 +231,8 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
   } else {
     const idiomaScrydex = mercado === 'JP' ? 'ja' : 'en'
     try {
-      const r = await pedir(urlDeSonda(`${idiomaScrydex}/cards/${id}`), sc.cabeceras, 'scrydex')
+      // Una carta nuestra escrita por Scrydex se llama `scrydex-<id suyo>`: a Scrydex se le pide el suyo.
+      const r = await pedir(urlDeSonda(`${idiomaScrydex}/cards/${id.replace(/^scrydex-/, '')}`), sc.cabeceras, 'scrydex')
       informe.scrydex.carta = r.ok ? resumirScrydex(r.datos?.data || r.datos) : { status: r.status, texto: (r.texto || JSON.stringify(r.datos || '')).slice(0, 160) }
     } catch (e) { informe.scrydex.carta = { error: String(e?.message || e).slice(0, 120) } }
     try {

@@ -57,7 +57,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
-export const VERSION_NOMBRES = 3
+export const VERSION_NOMBRES = 4
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {

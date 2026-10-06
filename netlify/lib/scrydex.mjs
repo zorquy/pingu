@@ -1312,10 +1312,14 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
   // Las impresiones que EXISTEN de esta carta (688), de su `variants` a
   // nuestro objeto de banderas (el mismo que escribe TCGdex). Sin esto la
   // ficha ofrecía las cuatro de una carta que solo existe en una.
+  // Y solo las que EXISTEN de verdad (690): Scrydex lista una «normal» sin
+  // precios ni tiendas en cartas que solo salieron en holo. Una impresión
+  // de la que nadie vende nada ni da precio no se afirma.
   const variantes = {}
   for (const v of Array.isArray(carta.variants) ? carta.variants : []) {
     const k = VARIANTE_DE_SUYA[minus(v?.name)]
-    if (k) variantes[k] = true
+    const conAlgo = (Array.isArray(v?.prices) && v.prices.length) || (Array.isArray(v?.marketplaces) && v.marketplaces.length)
+    if (k && conAlgo) variantes[k] = true
   }
   if (Object.keys(variantes).length) fila.variants = variantes
   return fila
@@ -1331,8 +1335,13 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
 // `default now()`.
 export function precioDeScrydex(cardIdNuestro, carta, ahora = new Date()) {
   const variantes = Array.isArray(carta?.variants) ? carta.variants : []
-  const normal = variantes.find((v) => String(v?.name || '').toLowerCase() === 'normal') || variantes[0]
-  const nm = (Array.isArray(normal?.prices) ? normal.prices : []).find((p) => p?.type === 'raw' && p?.condition === 'NM' && p?.currency === 'USD')
+  // La «normal» primero y, si no tiene cifra, la primera que la tenga
+  // (690): Scrydex lista una «normal» SIN precios en cartas que solo
+  // existen en holo, y mirar solo esa dejaba la carta «Sin precio» con el
+  // precio del holo al lado.
+  const esNm = (p) => p?.type === 'raw' && p?.condition === 'NM' && p?.currency === 'USD'
+  const ordenadas = [...variantes].sort((a, b) => (String(b?.name || '').toLowerCase() === 'normal') - (String(a?.name || '').toLowerCase() === 'normal'))
+  const nm = ordenadas.map((v) => (Array.isArray(v?.prices) ? v.prices : []).find(esNm)).find(Boolean)
   const n = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null)
   if (!nm || (!n(nm.market) && !n(nm.low))) return null
   return { card_id: cardIdNuestro, tp_normal_market: n(nm.market), tp_normal_low: n(nm.low), tp_updated: ahora.toISOString(), origen: 'scrydex', checked_at: ahora.toISOString() }

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 13) — PINGU-Claude (690 — la «normal» fantasma de Scrydex)
+
+**Hecho**: una japonesa que solo existe en holo salía «Sin precio» y
+con la impresión «Normal»: Scrydex lista una `normal` sin precios ni
+tiendas. El precio sale ahora de la impresión que lo tiene, y una
+impresión sin precios ni tiendas no se afirma; los sets rellenados se
+repasan (nombres v4). /admin dice cuántas de cada set tienen precio, y
+la sonda de orígenes pide a Scrydex el id suyo y enseña los precios por
+impresión.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+En `pruebas`: 684.
+
+**Pendiente**: que PINGU pegue el bloque HUECOS de /admin y la sonda del
+Poliwrath; el Zapdos de Fossil se arregla solo cuando el espejo repase
+ese set.
+
 ## 2026-10-06 (tarde, 12) — PINGU-Claude (689 — «Mi colección en una imagen»: cinco dibujos y un carrusel)
 
 **Hecho**: la imagen de siempre se queda y se le suman cuatro: la joya
