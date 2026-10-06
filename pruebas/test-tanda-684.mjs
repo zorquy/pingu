@@ -84,7 +84,8 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       // a secas, con ellas pero sin precios.
       if (sinTraduccionConInclude && /\/ja\/cards/.test(url)) {
         const base = [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }]
-        const pelar = (c) => { const { translation, national_pokedex_numbers, ...resto } = c; return resto }
+        // 703: basta con que falte la traducción (la Pokédex puede venir).
+        const pelar = (c) => { const { translation, ...resto } = c; return resto }
         return /include=prices/.test(url) ? r(200, { data: base.map(pelar) }) : r(200, { data: base.map((c) => ({ ...c, variants: [] })) })
       }
       if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...WEEDLE, id: 'base1-5', number: '5', name: 'ピッピ', national_pokedex_numbers: [35], translation: null, variants: [] }] })
@@ -212,6 +213,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const ja = peticiones.filter((u) => /\/ja\/cards/.test(u))
     check('si el listado con precios viene sin traducción ni Pokédex, se pide también a secas y se juntan: nombre inglés Y precio (700)', r.ok && r.rellenado?.set === 'BASE1_' && ja.length === 2 && /include=prices/.test(ja[0]) && !/include=prices/.test(ja[1]) && escrito.cartas[0]?.name_en === 'Charizard' && escrito.cartas[0].dex_ids?.[0] === 6 && escrito.precios.length === 1 && r.creditos === 3 && estados[CLAVE_ESTADO].listadoSinTraduccion === 1, JSON.stringify([r, ja, escrito.cartas.map((c) => [c.name_en, c.dex_ids]), escrito.precios.length]))
   }
+  check('el respaldo de la Pokédex conoce los apellidos de HGSS (703): Prime y LEGEND', nombreInglesDe({ national_pokedex_numbers: [171], subtypes: ['Prime'] }) === 'Lanturn Prime' && nombreInglesDe({ national_pokedex_numbers: [250], subtypes: ['LEGEND'] }) === 'Ho-Oh LEGEND' && nombreInglesDe({ national_pokedex_numbers: [171], subtypes: ['Stage 1'] }) === 'Lanturn')
   check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
 
