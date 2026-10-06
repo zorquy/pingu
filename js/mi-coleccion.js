@@ -1314,15 +1314,24 @@ function vistazoDeAcciones() {
     </section>`
 }
 
+// Cuántas veces se ha pintado el Panel (663): lo que llega tarde de una
+// pintada anterior —las movidas, que son una consulta— no se mete en la
+// siguiente. Sin esto el bloque salía dos veces.
+let vistazosVersion = 0
 async function pintarVistazos() {
   const caja = $('mcVistazos')
   if (!caja || !esMia) return
+  const version = ++vistazosVersion
   // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
   // se abre y no puede quedarse en blanco esperando a dos consultas.
   caja.innerHTML = vistazoDeCartas()
   const sets = await cargarSets().catch(() => null)
   if (pestania !== 'resumen') return
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
+  // LAS QUE MÁS SE MUEVEN (663), que llegan por su cuenta: es una consulta
+  // al histórico y el Panel no la espera. Se colocan detrás de las
+  // expansiones cuando llegan.
+  void pintarMovidas(caja, version)
   // LA TARJETA DE CAMBIOS (tanda 451). Lo que estaba debajo —la pantalla
   // entera— se ha ido a la suya; aquí queda lo que el Panel sí tiene que
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
@@ -1340,6 +1349,56 @@ async function pintarVistazos() {
   if (carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
+  }
+}
+
+// ── LAS QUE MÁS SE MUEVEN ESTA SEMANA (663) ──
+//
+// De la foto diaria del histórico (643) de TUS cartas: las tres que más
+// han subido y las tres que más han bajado en los últimos ocho días, en el
+// idioma de tu copia, con su foto y su porcentaje. Solo las que tienen
+// precio, y como mucho las 600 más valiosas: es lo que cabe en cuatro
+// consultas sin hacer esperar al Panel. Sin dos fotos de ninguna, no sale.
+const TOPE_MOVIDAS = 600
+async function pintarMovidas(caja, version) {
+  if (!esMia || !caja) return
+  try {
+    const [ls, , busca] = pTodo()
+    const conPrecio = ls
+      .map((l) => ({ l, v: valorDeLinea(l, precioDe(l)) || 0 }))
+      .filter((x) => x.v > 0)
+      .sort((a, b) => b.v - a.v)
+      .slice(0, TOPE_MOVIDAS)
+      .map((x) => x.l)
+    if (!conPrecio.length) return
+    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    const [filas, movidas] = await Promise.all([
+      datos.historicoDeCartas(conPrecio.map((l) => l.card_id), desde),
+      import('./mi-coleccion/movidas.js'),
+    ])
+    if (pestania !== 'resumen' || !caja.isConnected || version !== vistazosVersion) return
+    $('mcMovidas')?.remove()
+    const { suben, bajan } = movidas.extremos(movidas.movidasDe(conPrecio, filas, busca), 3)
+    if (!suben.length && !bajan.length) return
+    const tarjeta = (m) => {
+      const c = m.carta
+      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+      const signo = m.cambio > 0 ? '+' : ''
+      const pct = m.pct === null ? `${signo}${euros(m.cambio)}` : `${signo}${Math.round(m.pct)} %`
+      return `<div class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}">
+        <a class="mc-vistazo-carta" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">${
+          escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>`
+        }</a>
+        <span class="mc-movida-pie"><b>${escapeHtml(pct)}</b><span>${escapeHtml(euros(m.ahora))}</span></span>
+      </div>`
+    }
+    const dentro = `<div class="mc-movidas">${[...suben, ...bajan].map(tarjeta).join('')}</div>`
+    const html = vistazoHtml('Las que más se mueven esta semana', 'cartas', dentro).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
+    const sets = caja.querySelector('.mc-vistazo-sets')?.closest('.mc-vistazo')
+    if (sets) sets.insertAdjacentHTML('afterend', html)
+    else caja.insertAdjacentHTML('beforeend', html)
+  } catch {
+    // Sin histórico (o sin red), el Panel se queda como estaba.
   }
 }
 
@@ -3157,6 +3216,57 @@ function pintarTiraDeSet(elSet) {
           : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>'),
   ], { idPuntos: 'mcAlbumPuntos' })
   engancharPuntos('mcAlbumProgreso')
+  // Y lo que vale la expansión en el tiempo (662), que llega por su cuenta.
+  void pintarValorDeSet(elSet)
+}
+
+// ── LO QUE VALE LA EXPANSIÓN, EN EL TIEMPO (662) ──
+//
+// La misma gráfica que la del valor de tu colección (653), con las filas
+// de `tcg_set_valor` de ESTA expansión: la pasada de precios escribe una
+// al día (646). Con menos de dos días no hay gráfica, y la tarjeta de la
+// estantería ya dice el valor y el semanal. Va DEBAJO de la tira de cifras
+// y la pinta el mismo módulo, así que los rangos y la lectura al pasar el
+// dedo son los mismos de arriba.
+let rangoDelSet = 'MAX'
+async function pintarValorDeSet(elSet) {
+  const sitio = $('mcAlbumProgreso')
+  if (!sitio || !elSet?.id) return
+  let caja = $('mcAlbumValor')
+  if (!caja) {
+    sitio.insertAdjacentHTML('afterend', '<section class="mc-resumen-caja mc-valor-caja mc-album-valor hidden" id="mcAlbumValor"></section>')
+    caja = $('mcAlbumValor')
+  }
+  caja.classList.add('hidden')
+  caja.innerHTML = ''
+  const id = elSet.id
+  try {
+    const [{ data }, grafica] = await Promise.all([
+      supabase.from('tcg_set_valor').select('dia,valor_cm').eq('market', elSet.market || mercado).eq('set_id', id).order('dia').limit(2000),
+      import('./mi-coleccion/grafica-valor.js'),
+    ])
+    // Si mientras tanto se abrió otra expansión, esto ya no es de nadie.
+    if (album.set !== id) return
+    const filas = (data || []).filter((f) => Number(f.valor_cm) > 0).map((f) => ({ dia: f.dia, valor: Number(f.valor_cm) }))
+    if (filas.length < 2) return
+    const pintar = () => {
+      caja.innerHTML = `<h3>Lo que vale esta expansión</h3><p class="subtext mc-album-valor-de">La suma de los mínimos de Cardmarket de sus cartas, cada día.</p>${grafica.graficaHtml(filas, { rango: rangoDelSet, nombre: 'esta expansión' })}`
+      grafica.engancharLectura(caja.querySelector('.mc-valor-lienzo'))
+      caja.classList.remove('hidden')
+    }
+    if (!caja.dataset.enganchada) {
+      caja.dataset.enganchada = '1'
+      caja.addEventListener('click', (e2) => {
+        const b2 = e2.target.closest('[data-rango]')
+        if (!b2 || b2.disabled) return
+        rangoDelSet = b2.dataset.rango
+        pintar()
+      })
+    }
+    pintar()
+  } catch {
+    // Sin la tabla o sin red, la expansión se ve igual: sin esta caja.
+  }
 }
 
 // ── LOS PUNTOS DE UNA TIRA (tanda 467) ──

@@ -2379,6 +2379,27 @@
   .mc-mas { width: 44px; height: 44px; }
 }
 
+/* ── Las que más se mueven (663): una fila de cartas con su porcentaje. ── */
+.mc-movidas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-rows: auto;
+  grid-auto-rows: 0;
+  gap: var(--e-md);
+  row-gap: 0;
+  overflow: hidden;
+}
+.mc-movida { display: flex; flex-direction: column; gap: var(--e-xs); min-width: 0; }
+.mc-movida-pie { display: flex; justify-content: space-between; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); font-variant-numeric: tabular-nums; }
+.mc-movida-pie b { color: var(--text); }
+.mc-movida.sube .mc-movida-pie b { color: var(--success); }
+.mc-movida.baja .mc-movida-pie b { color: var(--danger); }
+
+/* Lo que vale la expansión en el tiempo (662), debajo de la tira. */
+.mc-album-valor { margin-top: var(--e-md); }
+.mc-album-valor h3 { margin: 0 0 var(--e-xs); font-size: var(--t-md); }
+.mc-album-valor-de { margin: 0 0 var(--e-sm); }
+
 /* ── Marcar varias de golpe (tanda 426) ── */
 .mc-marcar-barra {
   display: flex;

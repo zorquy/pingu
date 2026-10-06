@@ -32112,3 +32112,48 @@ tamaño; en /carta: 3M por defecto con su marca, 7D y MAX sin volver a
 pedir, el globo; los colores por tokens y la ficha pasando las marcas).
 Al día: 643 (la línea lleva `data-idioma`) y 643-pantalla (tres líneas,
 el eje de todas, chips, leyenda y rangos).
+
+## Tanda 662 — lo que vale una expansión, en el tiempo (oct. 2026)
+
+La primera propuesta de la noche: la expansión abierta lleva, debajo de
+la tira de cifras (`#mcAlbumProgreso`), la MISMA gráfica del valor de la
+colección (653) con las filas de `tcg_set_valor` de esa expansión —una al
+día, de la pasada de precios (646)—. `pintarValorDeSet` la pide al abrir
+el set, la pinta en `#mcAlbumValor` con `graficaHtml(filas, { nombre:
+'esta expansión' })` (el `nombre` nuevo solo cambia el rótulo accesible),
+con sus rangos (estado propio, `rangoDelSet`) y la lectura al pasar el
+dedo. Con menos de dos días no hay caja: la tarjeta de la estantería ya
+dice el valor y el semanal. Si mientras llega la consulta se abre otra
+expansión, no se pinta nada de la anterior.
+
+## Tanda 663 — las que más se mueven esta semana (oct. 2026)
+
+La segunda propuesta: un vistazo nuevo del Panel, detrás de Expansiones,
+con las tres cartas tuyas que más han subido y las tres que más han
+bajado en los últimos ocho días, con su foto, su porcentaje y su precio,
+y cada una abre su ficha. Sale de la foto diaria de `tcg_card_history`
+(la 643 guarda cada noche el precio de las cartas que alguien tiene), en
+el idioma de tu copia (`valorDeFila`, de `carta-historial.js`).
+
+- `js/mi-coleccion/movidas.js` (puro): `movidasDe(lineas, filas,
+  buscaCarta)` —primer y último precio de la ventana por carta e idioma,
+  sin repetir líneas, sin las que apenas cambian (5 céntimos), sin las de
+  una sola foto, sin las que no están en el catálogo— y `extremos(m, n)`.
+- `datos.historicoDeCartas(ids, desde)`: por tandas de 150, y calla sin
+  la migración del histórico.
+- `pintarMovidas` en el Panel: solo las cartas con precio y como mucho
+  las 600 más valiosas (`TOPE_MOVIDAS`: cuatro consultas, para no hacer
+  esperar al Panel); llega por su cuenta y se coloca detrás de
+  Expansiones. **Dos pintadas del Panel metían el bloque dos veces**: la
+  consulta de la primera aterrizaba después de la segunda. Desde el
+  primer verde lleva `vistazosVersion` (lo que llega tarde de una pintada
+  vieja no se mete) y se quita el bloque anterior (`#mcMovidas`) antes de
+  poner el nuevo.
+- El doble de Supabase tiene ahora `tcg_card_history`
+  (`__FAKE_HISTORIAL__`).
+
+**Pruebas**: `test-tanda-662.mjs` (las movidas en puro: idioma de la
+copia, el orden, lo que se queda fuera; la gráfica de la expansión con
+sus rangos y su rótulo, y sin ella con un día; el vistazo en el Panel con
+las tres que suben y la que baja, su sitio, la ficha al pulsar, y sin
+histórico no sale; el tope de 600 y las tandas de 150).

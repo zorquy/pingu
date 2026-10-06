@@ -175,7 +175,9 @@ function marcaHtml(xPct, yPct) {
 // gráfica— y nadie sabría cuál creerse. Con `ahora`, el número grande es
 // el de arriba y el histórico solo aporta la DIFERENCIA, que es para lo
 // que está.
-export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } = {}) {
+// `nombre` (662): de qué es el valor, para el rótulo accesible. Por
+// defecto «tu colección»; la expansión abierta pasa «esta expansión».
+export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO, nombre = 'tu colección' } = {}) {
   const r = resumenDeValor(filas, { ahora })
   // Con un solo día no hay línea que dibujar, y una línea plana de un
   // punto diría «no ha cambiado nada» cuando lo que pasa es que todavía
@@ -193,7 +195,7 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
       <p class="mc-valor-cambio igual">hoy, ${escapeHtml(fechaCorta(unico.dia))}</p>
     </div>
     <div class="mc-valor-lienzo igual">
-      <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de tu colección hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
+      <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de ${escapeHtml(nombre)} hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
         <line class="mc-valor-base" x1="0" y1="${ALTO / 2}" x2="${ANCHO}" y2="${ALTO / 2}" vector-effect="non-scaling-stroke" />
       </svg>
       ${marcaHtml(50, 50)}
@@ -287,7 +289,7 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO } =
     ${chipsHtml(r.dias)}
     <div class="mc-valor-lienzo ${tono(cambio)}" data-puntos="${escapeHtml(JSON.stringify(puntosLectura))}">
       <svg class="mc-valor-grafica" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none"
-           role="img" aria-label="El valor de tu colección, del ${escapeHtml(fechaCorta(primero.dia))} al ${escapeHtml(fechaCorta(ultimo.dia))}: de ${escapeHtml(euros(primero.valor))} a ${escapeHtml(euros(ultimo.valor))}.">
+           role="img" aria-label="El valor de ${escapeHtml(nombre)}, del ${escapeHtml(fechaCorta(primero.dia))} al ${escapeHtml(fechaCorta(ultimo.dia))}: de ${escapeHtml(euros(primero.valor))} a ${escapeHtml(euros(ultimo.valor))}.">
         <defs>
           <linearGradient id="mcValorDegradado" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" class="mc-valor-arriba" />

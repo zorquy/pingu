@@ -474,6 +474,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y /admin lo enseña («Estado del catálogo de TCGGO»); y una expansión
   que no se deja escribir se salta a la tercera, no se pide cada cinco
   minutos para siempre.
+- **Lo que llega TARDE de una pintada vieja no se mete en la nueva**
+  (tanda 663). `pintarVistazos` corre dos veces al abrir el Panel y el
+  bloque de «las que más se mueven» —una consulta— aterrizaba después de
+  la segunda: dos bloques iguales, sin error. Lo que se pinta por su
+  cuenta lleva la versión de la pintada que lo pidió (`vistazosVersion`)
+  y, antes de ponerse, quita al anterior por id. Es la misma forma que
+  `cartaAbierta` en la ficha y que `album.set` en la expansión.
 - **La cadena de escaneos va TCGdex → TCGGO → Scrydex → Limitless →
   pokemontcg** (tanda 660; Scrydex iba primero desde la 509 y se dio de
   baja en la 641). Una fuente que ya no se paga no va delante de las que

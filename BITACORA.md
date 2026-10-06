@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 5) — PINGU-Claude (662, 663 — el valor de la expansión en el tiempo; las que más se mueven)
+
+**Hecho** (las dos primeras propuestas de la noche, ya puestas): (662)
+la expansión abierta lleva debajo de sus cifras la gráfica de lo que
+vale cada día, con rangos y lectura, de `tcg_set_valor`. (663) el Panel
+tiene «Las que más se mueven esta semana»: las tres cartas tuyas que más
+suben y las tres que más bajan en ocho días, del histórico diario, con
+foto, porcentaje y precio. Sin migración. Solo /mi-coleccion:
+subconjunto (ver abajo).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/movidas.js`
+(nuevo), `js/mi-coleccion/datos.js`, `js/mi-coleccion/grafica-valor.js`
+(un parámetro), `css/mi-coleccion.css`, `SCHEMA.md`. En `pruebas`: 662
+(nueva) y el doble con `tcg_card_history`.
 ## 2026-10-06 (madrugada, 4) — PINGU-Claude (660, 661 — Scrydex al final de la cadena; el histórico como el de TCGGO)
 
 **Hecho**: (660) la cadena de escaneos va TCGdex → TCGGO → Scrydex →

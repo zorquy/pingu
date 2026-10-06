@@ -337,6 +337,23 @@ export async function preciosGuardados(ids) {
   return mapa
 }
 
+// El histórico diario de unas cartas (663), desde una fecha: para «las que
+// más se mueven» del Panel. Por tandas de 150 ids, como los precios. Sin
+// la migración del histórico, vacío y sin ruido.
+export async function historicoDeCartas(ids, desde) {
+  const unicos = [...new Set((ids || []).filter(Boolean))]
+  const filas = []
+  for (let i = 0; i < unicos.length; i += 150) {
+    const { data, error } = await supabase.from('tcg_card_history').select('card_id,dia,cm_low,cm_low_es,cm_low_en,cm_low_de,cm_low_fr,cm_low_it,cm_low_ja').in('card_id', unicos.slice(i, i + 150)).gte('dia', desde).order('dia')
+    if (error) {
+      if (traducir(error).sinMigracion) return filas
+      throw traducir(error)
+    }
+    filas.push(...(data || []))
+  }
+  return filas
+}
+
 // Uno en el momento, a TCGdex. Con caché por visita: la ficha y el
 // formulario de añadir preguntan por la misma carta.
 const enVivo = new Map()
