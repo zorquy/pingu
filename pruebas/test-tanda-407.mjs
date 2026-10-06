@@ -63,7 +63,9 @@ console.log('\n── 2. En el móvil, el nombre va centrado (encima de la carta
     const t = document.querySelector('.mc-ficha-cabecera h2') /* la cabecera agrupada desde la 669 */
     const s = document.querySelector('.mc-ficha-set')
     return { h2: getComputedStyle(t).textAlign, set: getComputedStyle(s).textAlign,
-      chapas: getComputedStyle(document.querySelector('.mc-ficha-chapas')).justifyContent }
+      // Las chapas de la CABECERA (#mcEdChapas): desde la 667 el resumen de tu
+      // copia va antes en el DOM, con sus chapas a la izquierda a propósito.
+      chapas: getComputedStyle(document.querySelector('#mcEdChapas')).justifyContent }
   })
   check('el nombre, centrado', r.h2 === 'center', r.h2)
   check('  …y la colección también', r.set === 'center', r.set)

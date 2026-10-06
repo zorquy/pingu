@@ -60,7 +60,7 @@ console.log('\n── 1. Nadie hace un UPSERT parcial sobre una tabla con NOT NU
   // el trozo llama a una, se le pega su cuerpo antes de buscar. Si alguien
   // le quita `name` a `cardToRow`, esto se pone rojo — que es lo que la
   // guarda tiene que hacer.
-  const MODULOS_PUROS = ['js/catalogo-tcgdex.js', 'netlify/lib/carta-detalle.mjs', 'js/carta-detalle.js']
+  const MODULOS_PUROS = ['js/catalogo-tcgdex.js', 'netlify/lib/carta-detalle.mjs', 'js/carta-detalle.js', 'netlify/lib/scrydex.mjs']
   const mapeadores = new Map()
   for (const f of MODULOS_PUROS) {
     for (const m of leer(f).matchAll(/export function (\w+)\(([\s\S]*?)\n\}/g)) {
