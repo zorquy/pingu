@@ -48,6 +48,13 @@ export const DIAS_DE_LISTA = 7
 export const DIAS_REVISAR = 7
 export const MAXIMO_PAGINAS_CARTAS = 8
 export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
+// La versión del código. Un fallo de NUESTRA base deja la función parada
+// hasta que se despliega otra versión (684.1): la primera pasada real
+// gastó un crédito cada cuatro minutos pidiendo las mismas cartas para
+// estrellarse contra la misma columna que no existía. «Saltar vale para el
+// fallo del otro; para el tuyo, parar» (la 526) — y lo quita un humano
+// desplegando el arreglo, que es lo que cambia esta cadena.
+export const VERSION = '684.1'
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -97,7 +104,9 @@ export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new 
     id: idNuestro(carta.id), market: mercado, set_id: setId,
     local_id: String(carta.number ?? carta.printed_number?.split('/')[0] ?? '').trim(),
     name: String(carta.name || carta.id),
-    scrydex_id: String(carta.id), scrydex_at: ahora.toISOString(), origen: 'scrydex',
+    // Sin `scrydex_id`: esa columna solo existe en `tcg_sets` (PGRST204 en
+    // la primera pasada real); el id suyo va dentro del nuestro.
+    scrydex_at: ahora.toISOString(), origen: 'scrydex',
     detalle_at: ahora.toISOString(), detalle_lang: idioma,
   }
   if (idioma === 'en') fila.name_en = fila.name
@@ -190,7 +199,10 @@ export async function pasada({
   for (const k of ['listas', 'vistos', 'intentos']) if (!estado[k] || typeof estado[k] !== 'object') estado[k] = {}
   if (!estado.gasto || typeof estado.gasto !== 'object') estado.gasto = { creditos: 0 }
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
-  if (estado.parado?.dia === dia) return { ok: true, saltado: `parado hoy: ${estado.parado.motivo}` }
+  // Parado por Scrydex (401/403): hasta mañana. Parado por NUESTRA base:
+  // hasta que se despliegue otra versión.
+  if (estado.parado?.version ? estado.parado.version === VERSION : estado.parado?.dia === dia) return { ok: true, saltado: `parado${estado.parado.version ? ` desde la versión ${estado.parado.version}` : ' hoy'}: ${estado.parado.motivo}` }
+  if (estado.parado) delete estado.parado
 
   // Una petición a Scrydex, contada. Un 401/403 para hasta mañana.
   const scrydex = async (ruta, params) => {
@@ -315,8 +327,10 @@ export async function pasada({
       }
       await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(vacio.id)}`, { method: 'PATCH', body: JSON.stringify(parcheDeSet(vacio, expansion, ahora)) })
     } catch (e) {
-      // Fallo NUESTRO: se para sin contar intento, y se apunta.
+      // Fallo NUESTRO: se para sin contar intento, se apunta, y NO se vuelve
+      // a pedir nada a Scrydex hasta que se despliegue un arreglo.
       estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: vacio.id, expansion: expansion.id, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+      estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
       await persistir()
       return { ok: false, ...resumen(), error: estado.ultimoError.error }
     }

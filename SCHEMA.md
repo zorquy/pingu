@@ -33107,3 +33107,14 @@ entran, a propósito: lo que PINGU pidió es rellenar los que hay).
 **Pruebas**: 684 (la conversión con la ficha REAL de sm10-1, el emparejado,
 el parche, y la pasada entera: rellena y desesconde, cuenta créditos,
 403 para el día, 500 cuenta, fallo nuestro para sin intento).
+
+**684.1 — la primera pasada real.** Las claves estaban y Scrydex
+contestó (5 créditos: las dos listas y las cartas del Expansion Pack,
+`q=expansion.id:` funciona) y la escritura falló: `scrydex_id` no es una
+columna de `tcg_cards` (solo de `tcg_sets`; PGRST204). Dos arreglos: la
+fila ya no la lleva (el id suyo va dentro del nuestro), y **un fallo de
+NUESTRA base deja la función parada hasta que se despliega otra
+`VERSION`** — porque la pasada siguiente volvía a pedir las mismas cartas
+(un crédito) para estrellarse contra la misma columna, cada cuatro
+minutos. Es la 526 al pie de la letra: saltar vale para el fallo del otro,
+para el tuyo parar, y lo quita un humano desplegando el arreglo.

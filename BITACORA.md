@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 3) — PINGU-Claude (684.1 — el arreglo de la primera pasada de scrydex-huecos)
+
+**Hecho**: la fila de carta ya no lleva `scrydex_id` (no existe en
+`tcg_cards`: fue el PGRST204 de la primera pasada); y un fallo de nuestra
+base deja la función parada hasta la siguiente `VERSION`, para no gastar
+un crédito cada cuatro minutos contra el mismo error. Scrydex contestó
+bien: la consulta de cartas por expansión funciona.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`, `SCHEMA.md`. En
+`pruebas`: 684.
+
+**Pendiente**: ver en /admin cómo rellena (Expansion Pack el primero);
+suite entera en marcha; migración corea-china; Celebrations.
 ## 2026-10-06 (tarde, 2) — PINGU-Claude (684 — los huecos desde Scrydex)
 
 **Hecho**: función programada `scrydex-huecos` (cada 4 min): rellena
