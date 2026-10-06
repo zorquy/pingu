@@ -63,7 +63,7 @@ console.log('── 2. La expansión de un set ──')
 
 console.log('── 3. La pasada, con Scrydex y base de mentira ──')
 {
-  const montar = ({ scrydexStatus = 200, nuestraFalla = false, sinInclude = false, crear } = {}) => {
+  const montar = ({ scrydexStatus = 200, nuestraFalla = false, sinInclude = false, sinTraduccionConInclude = false, crear } = {}) => {
     const escrito = { cartas: [], parches: [], precios: [], setsNuevos: [] }
     const estados = {}
     const aMedias = new Set()
@@ -80,6 +80,13 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       if (/\/ja\/expansions/.test(url)) return r(200, { data: [{ id: 'base1', name: 'Expansion Pack', total: 2, printed_total: 2, release_date: '1996/10/20', logo: 'https://images.scrydex.com/pokemon/base1-logo/logo' }, { id: 'jungle', name: 'Pokémon Jungle', total: 48, printed_total: 48, release_date: '1997/03/05' }] })
       if (/\/en\/expansions/.test(url)) return r(200, { data: [] })
       if (sinInclude && /\/ja\/cards/.test(url) && /include=prices/.test(url)) return r(400, '{"error":"include"}')
+      // 700: con include=prices el listado viene sin traducción ni Pokédex;
+      // a secas, con ellas pero sin precios.
+      if (sinTraduccionConInclude && /\/ja\/cards/.test(url)) {
+        const base = [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }]
+        const pelar = (c) => { const { translation, national_pokedex_numbers, ...resto } = c; return resto }
+        return /include=prices/.test(url) ? r(200, { data: base.map(pelar) }) : r(200, { data: base.map((c) => ({ ...c, variants: [] })) })
+      }
       if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...WEEDLE, id: 'base1-5', number: '5', name: 'ピッピ', national_pokedex_numbers: [35], translation: null, variants: [] }] })
       return r(500, 'ruta no prevista ' + url)
     }
@@ -191,6 +198,12 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     check('la pasada apunta las sueltas (jungle) y crea el set de la lista (por «lista»), escondido y con su scrydex_id; lo que no está en Scrydex queda dicho', r.ok && estados[CLAVE_ESTADO].creados['JP|jungle']?.por === 'lista' && estados[CLAVE_ESTADO].sueltas.JP.lista.map((e) => e.id).join() === 'jungle' && escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].market === 'JP' && escrito.setsNuevos[0].oculto === true && escrito.setsNuevos[0].scrydex_id === 'jungle' && estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado' && estados[CLAVE_ESTADO].creados['JP|No existe']?.estado === 'noEstaEnScrydex', JSON.stringify([r, escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
     await correr()
     check('  …y la pasada siguiente no lo vuelve a crear', escrito.setsNuevos.length === 1)
+  }
+  {
+    const { correr, escrito, estados, peticiones } = montar({ sinTraduccionConInclude: true })
+    const r = await correr()
+    const ja = peticiones.filter((u) => /\/ja\/cards/.test(u))
+    check('si el listado con precios viene sin traducción ni Pokédex, se pide también a secas y se juntan: nombre inglés Y precio (700)', r.ok && r.rellenado?.set === 'BASE1_' && ja.length === 2 && /include=prices/.test(ja[0]) && !/include=prices/.test(ja[1]) && escrito.cartas[0]?.name_en === 'Charizard' && escrito.cartas[0].dex_ids?.[0] === 6 && escrito.precios.length === 1 && r.creditos === 3 && estados[CLAVE_ESTADO].listadoSinTraduccion === 1, JSON.stringify([r, ja, escrito.cartas.map((c) => [c.name_en, c.dex_ids]), escrito.precios.length]))
   }
   check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
