@@ -2726,7 +2726,8 @@
 
 /* Tu copia bajo la carta (667). */
 .mc-ficha-carta .mc-ficha-bloque { margin: var(--e-lg) 0 0; text-align: left; }
-.mc-copia-tienes { align-self: center; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.mc-ficha-tile small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
+.mc-ficha-tile small:empty { display: none; }
 .mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
 .mc-ficha-set a:hover, .mc-ficha-tabla dd a:hover { color: var(--navy); border-color: var(--navy); }
 
@@ -2905,6 +2906,12 @@
     gap: var(--e-lg);
   }
 
+  /* En el móvil la cabecera (set, nombre, chapas) sube ENCIMA de la carta
+     (669): la columna de datos se disuelve en la rejilla y la cabecera
+     pide ir la primera. */
+  .mc-ficha-datos { display: contents; }
+  .mc-ficha-cabecera { order: -1; }
+
   /* Y ahí la carta no se come la pantalla entera: con el alto de un
      móvil, una carta a ancho completo deja los datos fuera de vista.
 
@@ -2931,7 +2938,7 @@
   /* En el móvil la carta manda y lo que la acompaña se centra debajo,
      como en la app: con el nombre pegado a la izquierda bajo una carta
      centrada, la cabecera se lee torcida. */
-  .mc-ficha-datos > h2,
+  .mc-ficha-cabecera h2,
   .mc-ficha-set {
     text-align: center;
   }
@@ -2951,7 +2958,7 @@
   letter-spacing: 0.4px;
 }
 
-.mc-ficha-datos > h2 {
+.mc-ficha-cabecera h2 {
   margin: var(--e-xs) 0 var(--e-md);
   font-size: var(--t-3xl);
   line-height: 1.15;

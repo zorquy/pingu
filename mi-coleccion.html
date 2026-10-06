@@ -1153,7 +1153,7 @@
                  iconos los pone el JavaScript por data-icono. -->
             <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
               <button type="button" class="mc-ficha-tile mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span>Añadir</span></button>
-              <button type="button" class="mc-ficha-tile hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaCampos"><i aria-hidden="true" data-icono="edit"></i><span>Editar</span></button>
+              <button type="button" class="mc-ficha-tile hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaBloque"><i aria-hidden="true" data-icono="edit"></i><span>Editar</span><small id="mcEdTienes"></small></button>
               <button type="button" class="mc-ficha-tile" id="mcEdAviso"><i aria-hidden="true" data-icono="bell"></i><span>Avísame</span></button>
             </div>
             <!-- TU COPIA, aquí desde la 667: PINGU pidió lo de editar tu
@@ -1176,7 +1176,6 @@
                cambia la ficha a esa línea. -->
           <div class="mc-otras-copias hidden" id="mcEdOtrasCopias"></div>
           <div class="mc-copia-acciones">
-            <span class="mc-copia-tienes hidden" id="mcEdTienes"></span>
             <button type="button" class="btn-secondary mc-chip-peligro" id="mcEdQuitarResumen">Quitar</button>
           </div>
         </div>
@@ -1243,9 +1242,14 @@
             </section>
           </div>
           <div class="mc-ficha-datos">
-            <p class="mc-ficha-set" id="mcEdSet"></p>
-            <h2 id="mcEditorTitulo">Editar</h2>
-            <p class="mc-ficha-chapas" id="mcEdChapas"></p>
+            <!-- La cabecera va agrupada (669) para que en el móvil suba
+                 ENCIMA de la carta: PINGU, «el nombre debería salir encima
+                 de la carta, con la información del set». -->
+            <div class="mc-ficha-cabecera">
+              <p class="mc-ficha-set" id="mcEdSet"></p>
+              <h2 id="mcEditorTitulo">Editar</h2>
+              <p class="mc-ficha-chapas" id="mcEdChapas"></p>
+            </div>
 
             <section class="mc-ficha-bloque">
               <h3>Precio</h3>

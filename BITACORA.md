@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 4) — PINGU-Claude (669 — el orden del 30, la ficha en móvil, una cuenta de «completa»)
+
+**Hecho**: los «B/RGB» de la Classic van al final (como en TCGGO); en
+la ficha el nombre y el set van encima de la carta en móvil y el bloque
+de tu copia solo sale al pulsar Editar; y «completa» es una sola
+cuenta en estantería, expansión e imagen: distintas sobre todas las del
+set (nunca 101 %).
+
+**Ficheros**: `js/mi-coleccion/orden.js`, `mi-coleccion.html`,
+`cartas.html`, `js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`.
+
+**Pendiente**: suite entera.
 ## 2026-10-06 (mañana, 3) — PINGU-Claude (668 — la tarjeta de expansión, como la de TCGGO)
 
 **Hecho**: la tarjeta de la estantería es vertical como la de TCGGO:

@@ -16,14 +16,23 @@ export const ORDENES = [
   { id: 'falta', nombre: 'Lo que te falta primero' },
 ]
 
-// El número impreso ordena «como en el álbum»: 2 antes que 10, y los que
-// llevan letras (TG12, SV045) detrás de los numéricos.
+// El número impreso ordena «como en el álbum»: 2 antes que 10, los que
+// llevan letras (TG12, SV045) detrás de los numéricos, y los que llevan
+// BARRA («B/RGB», «R/RGB»: los Mew de la Classic del 30 aniversario) los
+// últimos de todos, que es como los lista TCGGO (669). Antes «B/RGB» caía
+// entre «AQ149» y «BKP041», en mitad del alfabeto.
+function tramoDeNumero(id) {
+  const s = String(id ?? '')
+  if (/^\d+$/.test(s)) return 0
+  if (s.includes('/')) return 2
+  return 1
+}
 export function porNumero(a, b) {
   const na = parseInt(a.local_id, 10)
   const nb = parseInt(b.local_id, 10)
-  const ea = String(a.local_id).match(/^\d+$/) ? 0 : 1
-  const eb = String(b.local_id).match(/^\d+$/) ? 0 : 1
-  return ea - eb || (Number.isFinite(na) && Number.isFinite(nb) ? na - nb : 0) || String(a.local_id).localeCompare(String(b.local_id))
+  const ea = tramoDeNumero(a.local_id)
+  const eb = tramoDeNumero(b.local_id)
+  return ea - eb || (ea === 0 && Number.isFinite(na) && Number.isFinite(nb) ? na - nb : 0) || String(a.local_id).localeCompare(String(b.local_id))
 }
 
 // La escala de rareza vive en js/rareza-escala.js desde la tanda 624: es

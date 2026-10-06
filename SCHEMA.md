@@ -32353,3 +32353,36 @@ no hay ninguna fuente con nueve meses del valor de una expansión (TCGGO
 da el total de hoy, no su histórico).
 
 **Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`.
+
+## Tanda 669 — tres arreglos de PINGU: el orden del 30, la ficha en móvil y UNA cuenta de «completa» (oct. 2026)
+
+1. **El orden de la Classic del 30 aniversario**. Con las cartas de
+   TCGGO, los Mew de la Classic llevan de número «B/RGB», «G/RGB» y
+   «R/RGB», y `porNumero` los metía en el alfabeto («B/RGB» entre
+   «AQ149» y «BKP041»). TCGGO los lista al final del todo. Desde ahora
+   `porNumero` (`js/mi-coleccion/orden.js`) ordena en TRES tramos: los
+   numéricos por número, los códigos con letras por alfabeto, y los que
+   llevan barra, los últimos (`tramoDeNumero`).
+2. **La ficha en móvil**. PINGU: «el nombre debería salir encima de la
+   carta, con la información del set; y el bloque de tu copia solo
+   cuando le des a editar, porque si no se oculta el precio». La
+   cabecera (set, nombre, chapas) va agrupada en `.mc-ficha-cabecera`;
+   bajo 760 px la columna de datos se disuelve (`display: contents`) y
+   la cabecera pide ir la primera (`order: -1`): nombre, carta, losetas,
+   precio. El bloque **Tu copia** (`#mcEdCopiaBloque`) nace plegado al
+   abrir cualquier carta y lo despliega entero la loseta **Editar**
+   (resumen + campos; «Listo» lo pliega). «Tienes N» va como texto
+   pequeño dentro de la loseta de Editar (`#mcEdTienes`).
+3. **Una sola definición de «completa»**. Crown Zenith: la imagen
+   compartible decía «160 de 159 · 101 %» (todas las distintas sobre el
+   total IMPRESO) y la expansión «159 de 229» (las numeradas hasta el
+   impreso, con las de galería contadas en el total). Desde la 669 la
+   cuenta es la misma en la estantería, en la cifra grande de la
+   expansión y en la imagen: **cartas distintas que tienes sobre TODAS
+   las del set** (`card_count_total`, y si no se sabe, el impreso; en la
+   expansión, las cartas que hay de verdad). Nunca pasa del 100 %. Las
+   tres barras de la 398 (set completo = las numeradas hasta el impreso,
+   set maestro, adicionales) siguen debajo de la cifra, ahora las tres.
+
+**Ficheros**: `js/mi-coleccion/orden.js`, `mi-coleccion.html` (+
+`cartas.html`), `js/mi-coleccion.js`, `css/mi-coleccion.css`.

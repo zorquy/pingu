@@ -530,7 +530,7 @@ function pintarAccionesDeFicha(l) {
   const tienes = $('mcEdTienes')
   tienes.classList.toggle('hidden', n === 0)
   tienes.textContent = n ? `Tienes ${n}` : ''
-  $('mcEdEditar')?.classList.toggle('hidden', n === 0)
+  $('mcEdEditar')?.classList.toggle('hidden', n === 0 || !l.id)
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
 }
@@ -1891,7 +1891,20 @@ function abrirEditor(l) {
   // Sin `id` es una carta que no tienes: el bloque de tu copia no pinta
   // nada y lo que hace falta es poder añadirla.
   const tuya = Boolean(l.id)
-  $('mcEdCopiaBloque')?.classList.toggle('hidden', !tuya)
+  // El bloque de tu copia solo se ve con Editar desplegado (669, PINGU:
+  // «solo lo sacaría cuando le des a editar; si no, se oculta el precio»).
+  // Abrir una carta lo pliega: la ficha se abre para MIRAR.
+  // …salvo que la ficha YA esté abierta en esta misma carta con el bloque
+  // desplegado (cambiar a otra copia tuya, añadir una más): entonces se
+  // queda como está, que cerrarlo bajo el dedo sería peor.
+  const seguirAbierto = d.open && cartaAbierta === l.card_id && !$('mcEdCopiaBloque')?.classList.contains('hidden')
+  if (!seguirAbierto) {
+    $('mcEdCopiaBloque')?.classList.add('hidden')
+    $('mcEdCopiaCampos')?.classList.add('hidden')
+    $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
+    const rotuloEditar = $('mcEdEditar')?.querySelector('span')
+    if (rotuloEditar) rotuloEditar.textContent = 'Editar'
+  }
   pintarAccionesDeFicha(l)
   // Sin cuenta (tanda 649): en el catálogo público, o mirando la
   // colección pública de alguien, la ficha se abre igual — y en vez del
@@ -2516,7 +2529,11 @@ async function pintarEstanteria() {
 // numeración impresa («1/198») y es la que cuenta para un álbum; si no
 // la sabemos, el total. Si no hay ninguna, no se inventa un porcentaje.
 function totalDe(set) {
-  return set?.card_count_official || set?.card_count_total || 0
+  // Desde la 669 manda el TOTAL (numeradas + secretas + galerías) y no el
+  // impreso: PINGU tenía las 160 de Crown Zenith y la imagen decía «160 de
+  // 159 · 101 %» mientras la expansión decía «159 de 229». Una sola cuenta
+  // en todas las pantallas: distintas que tienes sobre todas las del set.
+  return set?.card_count_total || set?.card_count_official || 0
 }
 
 // La tarjeta de una expansión (rehecha en la tanda 405).
@@ -3214,8 +3231,11 @@ function pintarTiraDeSet(elSet) {
   const caja = $('mcAlbumProgreso')
   if (!caja) return
   const barras = barrasDeSet(progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoEnAlbum }))
-  const completo = barras.find((b) => b.id === 'completo') || barras[0]
-  const pct = completo ? porcentaje(completo) ?? 0 : 0
+  // La cifra grande es la MISMA que la de la estantería y la de la imagen
+  // (669): distintas que tienes sobre todas las del set. Las tres barras
+  // de la 398 (numeradas, maestro, adicionales) siguen debajo.
+  const completo = { tengo: album.cartas.filter((c) => tengoEnAlbum(c.id) > 0).length, total: album.cartas.length }
+  const pct = porcentaje(completo) ?? 0
   // Lo que valen TUS copias de esta colección, que es lo que se puede
   // decir con lo que hay en memoria: el precio del set entero pediría el
   // de todas las cartas, las tengas o no.
@@ -3254,7 +3274,6 @@ function pintarTiraDeSet(elSet) {
           <p class="mc-diapo-pie">de ${completo ? completo.total : 0} cartas</p>
           <span class="mc-anillo" style="--pct:${pct}" role="img" aria-label="${pct} % del conjunto"><b>${pct} %</b></span>
           ${barras
-            .filter((b) => b.id !== 'completo')
             .map((b) => `<div class="mc-barra-fila">
               <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
               <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
@@ -4874,7 +4893,7 @@ function enganchar() {
     for (const s of sets || []) {
       const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
       const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
-      const total = Number(s.card_count_official) || Number(s.card_count_total) || suyas.length
+      const total = Number(s.card_count_total) || Number(s.card_count_official) || suyas.length
       if (!tengo || !total) continue
       const pct = tengo / total
       if (!mejorSet || pct > mejorSet.pct) mejorSet = { nombre: nombreDeSet(s) || s.id, tengo, total, pct }
@@ -4908,7 +4927,6 @@ function enganchar() {
   // ── La nota, plegada (tanda 405) ──
   // ── Añadir, como en TCGGO (tanda 650) ──
   $('mcEdMas')?.addEventListener('click', () => cartaAbierta && abrirAnadir(cartaAbierta))
-  $('mcEdTienes')?.addEventListener('click', () => $('mcEdCopiaBloque')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
   $('mcEdOtrasCopias')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-linea-otra]')
     const otra = b && lineas.find((x) => x.id === b.dataset.lineaOtra)
@@ -4936,12 +4954,16 @@ function enganchar() {
   // Los del resumen (645): Editar despliega los campos de siempre; Quitar
   // es el mismo camino que el de dentro (pregunta y quita).
   $('mcEdEditar')?.addEventListener('click', () => {
-    const campos = $('mcEdCopiaCampos')
-    const abierto = campos.classList.toggle('hidden') === false
+    // Despliega el bloque de tu copia ENTERO (669): el resumen y los
+    // campos; «Listo» lo pliega.
+    const bloque = $('mcEdCopiaBloque')
+    const abierto = bloque.classList.contains('hidden')
+    bloque.classList.toggle('hidden', !abierto)
+    $('mcEdCopiaCampos').classList.toggle('hidden', !abierto)
     $('mcEdEditar').setAttribute('aria-expanded', String(abierto))
     const rotulo = $('mcEdEditar').querySelector('span') || $('mcEdEditar')
     rotulo.textContent = abierto ? 'Listo' : 'Editar'
-    if (abierto) $('mcEdIdioma')?.focus()
+    if (abierto) bloque.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   })
   $('mcEdQuitarResumen')?.addEventListener('click', () => $('mcEdQuitar')?.click())
   // Los iconos de las losetas (667) y el «Avísame», delegado una vez: la
