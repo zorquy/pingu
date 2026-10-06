@@ -2,7 +2,7 @@
 // japonesa antigua (nombre inglés + PS + Pokédex + ventana + la más
 // antigua + con producto), la fila que se copia, y la pasada con base de
 // mentira (un set por pasada, repaso al día).
-import { casarGemelas, filaEspejo, pasada, CLAVE_ESTADO, huellaDeAtaques, cruzadas } from '/home/user/pingu/netlify/functions/precios-espejo.mjs'
+import { casarGemelas, filaEspejo, pasada, CLAVE_ESTADO, VERSION_ESPEJO, huellaDeAtaques, cruzadas } from '/home/user/pingu/netlify/functions/precios-espejo.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
@@ -45,7 +45,7 @@ console.log('── 1. Las gemelas ──')
   check('  …y la huella de ataques no depende del idioma', huellaDeAtaques({ attacks: [{ name: 'Arañazo', cost: ['Colorless'], damage: '10' }] }) === huellaDeAtaques({ attacks: [{ name: 'Scratch', cost: ['Colorless'], damage: '10' }] }) && huellaDeAtaques({}) === '')
   check('los motivos, uno a uno', sinPar.length === 3 && sinPar.some((s) => /sin nombre/.test(s.motivo)) && sinPar.some((s) => /otros PS/.test(s.motivo)), JSON.stringify(sinPar))
   const f = filaEspejo('scrydex-base1-6', { card_id: 'base1-4', cm_id_product: 273699, cm_low: 499.99, cm_low_es: 500, cm_avg30: 709.55, tp_market_eur: 0, tcggo_updated: 'x' }, new Date('2026-10-06T12:00:00Z'))
-  check('la fila copia el producto y lo general, no lo de cada idioma, y se firma espejo', f.card_id === 'scrydex-base1-6' && f.cm_id_product === 273699 && f.cm_low === 499.99 && !('cm_low_es' in f) && f.tp_market_eur === null && f.origen === 'espejo' && f.checked_at, JSON.stringify(f))
+  check('la fila copia SOLO el producto (688): el precio de la gemela va a null, lo de cada idioma ni se nombra, y se firma espejo', f.card_id === 'scrydex-base1-6' && f.cm_id_product === 273699 && f.cm_low === null && f.cm_avg30 === null && f.tp_market_eur === null && f.tcggo_updated === null && !('cm_low_es' in f) && f.origen === 'espejo' && f.checked_at, JSON.stringify(f))
   check('sin producto, sin fila', filaEspejo('x', { cm_low: 3 }) === null)
 }
 
@@ -53,7 +53,9 @@ console.log('── 2. La pasada ──')
 {
   const escrito = []
   const estados = {}
+  const pedidas = []
   const restImpl = async (ruta, opciones) => {
+    pedidas.push(ruta)
     if (ruta.startsWith('tcg_sets?select=id,name_en,release_date')) return [{ id: 'base1_ja', name_en: 'Expansion Pack', release_date: '1996-10-20' }, { id: 'sinfecha_ja', name_en: 'Sin fecha', release_date: null }]
     if (ruta.startsWith('tcg_cards?select=id,name_en,hp,dex_ids')) return [{ id: 'scrydex-base1-6', name_en: 'Charizard', hp: 120, dex_ids: [6] }, { id: 'scrydex-base1-1', name_en: null }]
     if (ruta.startsWith('tcg_sets?select=id,release_date&market=eq.WEST')) return /release_date=gte\.1996-10-20&release_date=lte\.2000-10-/.test(ruta) ? [{ id: 'base1', release_date: '1999-01-09' }] : []
@@ -66,7 +68,8 @@ console.log('── 2. La pasada ──')
   const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora })
   const r1 = await correr()
   check('primera pasada: el Expansion Pack, 1 espejada y 1 sin par', r1.ok && r1.set === 'base1_ja' && r1.espejadas === 1 && r1.sinPar === 1 && r1.setsWest.join() === 'base1', JSON.stringify(r1))
-  check('  …y la fila escrita lleva el producto de la gemela', escrito[0]?.card_id === 'scrydex-base1-6' && escrito[0].cm_id_product === 273699 && escrito[0].origen === 'espejo', JSON.stringify(escrito[0]))
+  check('  …y la fila escrita lleva el producto de la gemela y NINGÚN precio suyo (688)', escrito[0]?.card_id === 'scrydex-base1-6' && escrito[0].cm_id_product === 273699 && escrito[0].origen === 'espejo' && escrito[0].cm_low === null && estados[CLAVE_ESTADO].hechos.base1_ja.version === VERSION_ESPEJO, JSON.stringify(escrito[0]))
+  check('  …y lo que se le pide a la base de la gemela es el producto, no su precio', !/cm_low|tp_market_eur/.test(pedidas.find((x) => x.startsWith('tcg_card_prices?select=')) || ''), pedidas.find((x) => x.startsWith('tcg_card_prices?select=')))
   const r2 = await correr()
   check('segunda: el set sin fecha se apunta y no se mira', r2.ok && r2.set === 'sinfecha_ja' && /sin fecha/.test(r2.nota), JSON.stringify(r2))
   const r3 = await correr()
@@ -76,6 +79,9 @@ console.log('── 2. La pasada ──')
   check('si scrydex-huecos vuelve a escribir los nombres, se buscan las gemelas otra vez sin esperar al día', rn.ok && rn.set === 'base1_ja' && escrito.length === 2 && estados[CLAVE_ESTADO].hechos.base1_ja.nombres === 2, JSON.stringify(rn))
   const r4 = await correr(new Date('2026-10-07T13:00:00Z'))
   check('al día siguiente se repasa el primero', r4.ok && r4.set === 'base1_ja' && escrito.length === 3, JSON.stringify(r4))
+  estados[CLAVE_ESTADO].hechos.base1_ja.version = 1
+  const rv = await correr(new Date('2026-10-07T13:00:00Z'))
+  check('un set hecho con otra versión del espejo se vuelve a pasar (688: el precio copiado se borra)', rv.ok && rv.set === 'base1_ja' && escrito.length === 4 && estados[CLAVE_ESTADO].hechos.base1_ja.version === VERSION_ESPEJO, JSON.stringify(rv))
   check('el estado guarda el resumen por set', estados[CLAVE_ESTADO].hechos.base1_ja.espejadas === 1 && estados[CLAVE_ESTADO].hechos.base1_ja.ejemplosSinPar.length === 1)
 }
 
