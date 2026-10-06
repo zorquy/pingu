@@ -30,6 +30,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_PAUSA_MS.
 import { cabeceras, baseDe, esCartaSuelta, esLimiteDelPlan, nombreComparable, filaDeCartaTcggo } from '../lib/tcggo.mjs'
+import { cabecerasDe as cabecerasScrydex, urlDeSonda, baseDeFoto, precioDeScrydex } from '../lib/scrydex.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_sueltas'
@@ -41,6 +42,12 @@ export const PARAMETROS_DE_BUSQUEDA = ['search', 'name']
 // Las que alguien ha señalado van PRIMERO, antes que el recorrido por id
 // (693.1): el Ancient Mew de PINGU no podía esperar a que le tocara.
 export const PRIORIDAD = ['miscp-1']
+// Y cuando TCGGO no la tiene, Scrydex (693.2): nuestros ids de TCGdex SON
+// los suyos (`miscp-1` es `miscp-1`), así que se le pide la ficha por id
+// —un crédito— y se guardan su foto, su rareza y su precio de TCGplayer.
+// PINGU: «el Ancient Mew parece que no está en la API de TCGGO, pero sí
+// en Scrydex». Con tope aparte, que los créditos son 5.000 al mes.
+export const TOPE_SCRYDEX_DIARIO = 40
 const MERCADO = 'WEST'
 
 async function rest(ruta, clave, opciones = null) {
@@ -90,6 +97,21 @@ export function parcheDeCarta(nuestra, suya, sets) {
   return { parche, movida: destino ? { de: nuestra.set_id, a: destino.id } : null }
 }
 
+// Lo que se le escribe a la carta desde la ficha de Scrydex (693.2): la
+// foto (la base sin calidad, como la 684), la rareza inglesa, los PS y el
+// ilustrador si faltaban. Sin foto no hay parche: era lo que se buscaba.
+export function parcheDeScrydex(nuestra, suya) {
+  const foto = baseDeFoto(suya)
+  if (!foto) return null
+  const parche = { image_scrydex: foto, scrydex_at: new Date().toISOString() }
+  if (suya?.rarity) parche.rarity_en = String(suya.rarity)
+  if (!nuestra.name_en && suya?.name) parche.name_en = String(suya.name)
+  const ps = Number(suya?.hp)
+  if (Number.isInteger(ps) && ps > 0) parche.hp = ps
+  if (typeof suya?.artist === 'string' && suya.artist.trim()) parche.illustrator = suya.artist.trim()
+  return parche
+}
+
 // ── La pasada ──
 export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -105,9 +127,10 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
   const dia = ahora.toISOString().slice(0, 10)
 
   const estado = { hechas: {}, sinPar: {}, ...(await leerEstado(CLAVE_ESTADO)) }
-  if (estado.dia !== dia) { estado.dia = dia; estado.peticionesHoy = 0 }
+  if (estado.dia !== dia) { estado.dia = dia; estado.peticionesHoy = 0; estado.scrydexHoy = 0 }
+  const sc = cabecerasScrydex(env)
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
-  const resumen = () => ({ hechas: Object.keys(estado.hechas).length, sinPar: Object.keys(estado.sinPar).length, peticionesHoy: estado.peticionesHoy || 0, parametro: estado.parametro || null })
+  const resumen = () => ({ hechas: Object.keys(estado.hechas).length, sinPar: Object.keys(estado.sinPar).length, peticionesHoy: estado.peticionesHoy || 0, scrydexHoy: estado.scrydexHoy || 0, parametro: estado.parametro || null })
   if (estado.parado?.dia === dia) return { ok: true, ...resumen(), saltado: `parado hoy: ${estado.parado.motivo}` }
   if ((estado.peticionesHoy || 0) >= TOPE_DIARIO) return { ok: true, ...resumen(), saltado: 'tope diario' }
 
@@ -139,6 +162,22 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
   const pendientes = candidatas.filter((c) => !estado.hechas[c.id] && ((estado.sinPar[c.id]?.intentos || 0) < MAXIMO_INTENTOS || caducado(estado.sinPar[c.id]))).slice(0, MAXIMO_POR_PASADA)
   const hechasAhora = []
   const sinParAhora = []
+  const desdeScrydex = async (c) => {
+    const url = urlDeSonda(`en/cards/${c.id}`)
+    if (!url) return { motivo: 'id que no se puede pedir' }
+    if (pausaMs) await pausa(pausaMs)
+    estado.scrydexHoy = (estado.scrydexHoy || 0) + 1
+    let res
+    try { res = await fetchImpl(url, { headers: sc.cabeceras }) } catch (e) { return { motivo: `no contesta: ${String(e?.message || e).slice(0, 80)}` } }
+    const texto = await res.text()
+    if (!res.ok) return { motivo: `${res.status}` }
+    let datos
+    try { datos = JSON.parse(texto) } catch { return { motivo: 'no es JSON' } }
+    const suya = datos?.data || datos
+    const parche = parcheDeScrydex(c, suya)
+    if (!parche) return { motivo: 'sin foto' }
+    return { id: suya?.id || c.id, parche, precio: precioDeScrydex(c.id, suya, ahora) }
+  }
   for (const c of pendientes) {
     if ((estado.peticionesHoy || 0) >= TOPE_DIARIO) break
     const nombre = c.name_en || c.name
@@ -175,7 +214,25 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
     }
     if (!resultado?.carta) {
       const motivo = resultado?.motivo || fallo || 'sin respuesta'
-      estado.sinPar[c.id] = { fecha: ahora.toISOString(), intentos, motivo, nombre }
+      // TCGGO no la tiene (o tiene varias): Scrydex por nuestro id, que es
+      // el suyo para lo que viene de TCGdex (693.2). No para los
+      // «tcggo-…» ni «scrydex-…», que no son ids de TCGdex.
+      const porScrydex = !sc.faltan && !/^(tcggo|scrydex)-/.test(c.id) && (estado.scrydexHoy || 0) < TOPE_SCRYDEX_DIARIO ? await desdeScrydex(c) : null
+      if (porScrydex?.parche) {
+        try {
+          await pedir(`tcg_cards?market=eq.${MERCADO}&id=eq.${encodeURIComponent(c.id)}`, { method: 'PATCH', body: JSON.stringify(porScrydex.parche) })
+          if (porScrydex.precio) await pedir('tcg_card_prices?on_conflict=card_id', { method: 'POST', body: JSON.stringify([porScrydex.precio]) })
+        } catch (e) {
+          estado.ultimoError = { fecha: ahora.toISOString(), carta: c.id, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+          await persistir()
+          return { ok: false, ...resumen(), hechasAhora, sinParAhora, error: estado.ultimoError.error }
+        }
+        delete estado.sinPar[c.id]
+        estado.hechas[c.id] = { fecha: ahora.toISOString(), nombre, por: 'scrydex', scrydex: porScrydex.id, foto: true, precio: Boolean(porScrydex.precio), tcggo: null, movida: null, motivoTcggo: motivo }
+        hechasAhora.push({ id: c.id, por: 'scrydex', scrydex: porScrydex.id })
+        continue
+      }
+      estado.sinPar[c.id] = { fecha: ahora.toISOString(), intentos, motivo: porScrydex?.motivo ? `${motivo}; Scrydex: ${porScrydex.motivo}` : motivo, nombre }
       sinParAhora.push({ id: c.id, motivo })
       continue
     }

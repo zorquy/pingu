@@ -3092,8 +3092,8 @@ async function tcggoEstado() {
       const hechas = Object.entries(e.hechas || {})
       const sinPar = Object.entries(e.sinPar || {})
       return [
-        `CARTAS SUELTAS SIN FOTO (tcggo_sueltas, 693) — ${de('tcggo_sueltas')?.updated_at || 'nunca'}: ${hechas.length} con foto de TCGGO (${hechas.filter(([, x]) => x.movida).length} cambiadas de set) · ${sinPar.length} sin par · peticiones hoy: ${e.peticionesHoy ?? 0} · parámetro que contesta: ${e.parametro || 'aún no se sabe'}`,
-        ...hechas.slice(-8).map(([k, x]) => `  ✓ ${k} «${x.nombre || ''}» ← TCGGO ${x.tcggo}${x.episodio ? ` (${x.episodio})` : ''}${x.movida ? ` · de ${x.movida.de} a ${x.movida.a}` : ''}`),
+        `CARTAS SUELTAS SIN FOTO (tcggo_sueltas, 693) — ${de('tcggo_sueltas')?.updated_at || 'nunca'}: ${hechas.length} con foto de TCGGO (${hechas.filter(([, x]) => x.movida).length} cambiadas de set) · ${sinPar.length} sin par · peticiones hoy: ${e.peticionesHoy ?? 0} (Scrydex ${e.scrydexHoy ?? 0}) · parámetro que contesta: ${e.parametro || 'aún no se sabe'}`,
+        ...hechas.slice(-8).map(([k, x]) => `  ✓ ${k} «${x.nombre || ''}» ← ${x.por === 'scrydex' ? `Scrydex ${x.scrydex}${x.precio ? ' (con precio de TCGplayer)' : ''}` : `TCGGO ${x.tcggo}${x.episodio ? ` (${x.episodio})` : ''}${x.movida ? ` · de ${x.movida.de} a ${x.movida.a}` : ''}`}`),
         ...sinPar.slice(0, 6).map(([k, x]) => `  · ${k} «${x.nombre || ''}»: ${x.motivo} (intento ${x.intentos})`),
         e.parado ? `  ⚠ PARADO ${e.parado.dia}: ${e.parado.motivo}` : '',
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.carta || ''} ${e.ultimoError.error}` : '',

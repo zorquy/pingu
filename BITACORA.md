@@ -13,6 +13,8 @@ Pocket también la lleva). Las dos arregladas y cubiertas en la 692. Y el «+» 
 
 Y la 693.1: `tcggo-sueltas` mira primero lo señalado (`PRIORIDAD`, el Ancient Mew) y recorre el resto con un cursor por id que no se queda dando vueltas a las 200 primeras.
 
+Y la 693.2: cuando TCGGO no tiene la carta, `tcggo-sueltas` le pide a Scrydex la ficha por nuestro id (que es el suyo) y guarda foto, rareza y precio de TCGplayer, con tope de créditos aparte.
+
 **Ficheros**: `js/mi-coleccion.js`, `netlify/functions/tcggo-sueltas.mjs`, `SCHEMA.md`. En `pruebas`: 692, 693.
 
 **Pendiente**: lo de la 693 (CARTAS SUELTAS en /admin) y los bloques de

@@ -33709,3 +33709,20 @@ mirado nunca (la forma de la 510: un recorrido que no avanza). Ahora hay
 una lista `PRIORIDAD` (lo que alguien ha señalado va primero, aparte del
 recorrido) y un cursor por id en el estado que avanza con cada tramo y
 vuelve al principio al llegar al final.
+
+**693.2 — cuando TCGGO no la tiene, Scrydex por nuestro id.** PINGU, con
+Scrydex delante: «el Ancient Mew parece que no está en la API de TCGGO,
+pero sí en Scrydex, y además con varias versiones». Y su ficha de
+Scrydex se llama `miscp-1`: nuestros ids de TCGdex SON los suyos. Así
+que cuando TCGGO no devuelve una única (nada, o varias) y las claves de
+Scrydex están, se le pide la ficha por id —un crédito, con tope aparte
+`TOPE_SCRYDEX_DIARIO` 40, que los créditos son 5.000 al mes— y se
+guardan su foto (`image_scrydex`, la base sin calidad), la rareza
+inglesa, los PS y el ilustrador si faltaban (`parcheDeScrydex`), y el
+Near Mint de TCGplayer en dólares en `tcg_card_prices` (la 685.3). No se
+hace para los ids `tcggo-…` ni `scrydex-…`, que no son de TCGdex. La
+carta no cambia de set (Scrydex también la tiene en «Miscellaneous»,
+que la estantería pliega bajo Wizards Black Star Promos). Las otras dos
+versiones que Scrydex lista como «Unnumbered Promos» son otras cartas
+(sin fecha, sin número), y no se crean: no hay set donde ponerlas.
+/admin dice por quién se hizo cada una y los créditos de Scrydex del día.
