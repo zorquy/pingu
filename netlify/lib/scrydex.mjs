@@ -1215,6 +1215,8 @@ export function faseDe(subtipos) {
 // «Shining»), que no están en ningún campo canónico.
 const APELLIDOS = [
   ['vstar', ' VSTAR'], ['vmax', ' VMAX'], ['v-union', ' V-UNION'], ['v', ' V'], ['gx', '-GX'], ['ex', ' ex'], ['break', ' BREAK'], ['lv.x', ' LV.X'], ['prism star', ' ◇'],
+  // La era HeartGold & SoulSilver (703): «Lanturn Prime», «Ho-Oh LEGEND».
+  ['prime', ' Prime'], ['legend', ' LEGEND'],
 ]
 export function nombreInglesDe(carta) {
   const dex = (Array.isArray(carta?.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= POKEMON_POR_DEX.length)

@@ -57,7 +57,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
-export const VERSION_NOMBRES = 6
+export const VERSION_NOMBRES = 7
 // Expansiones de Scrydex que NO tienen set nuestro y hay que CREAR (698).
 // PINGU: «Lanturn Prime, del set Reviving Legends, en japonés no sale ni
 // el set ni la carta». El estado no lo tenía ni rellenado, ni sin par, ni
@@ -235,7 +235,9 @@ export async function pasada({
     // junta: las cartas de ese, con las impresiones y precios del otro.
     // Se apunta cuántas veces ha hecho falta, para que /admin lo diga.
     const datos = r.datos?.data
-    if (!r.error && idioma !== 'en' && Array.isArray(datos) && datos.length && !datos.some((c) => c?.translation || c?.national_pokedex_numbers)) {
+    // (703: basta con que no venga la TRADUCCIÓN en ninguna; la Pokédex
+    // sola no nombra a un Entrenador ni a una carta que no la traiga.)
+    if (!r.error && idioma !== 'en' && Array.isArray(datos) && datos.length && !datos.some((c) => c?.translation)) {
       const sin = await scrydex(`${idioma}/cards`, params)
       if (!sin.error && Array.isArray(sin.datos?.data)) {
         const conPrecio = new Map(datos.map((c) => [c.id, c]))

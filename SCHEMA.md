@@ -33942,3 +33942,29 @@ bloqueado por plan y era falso, era un 403 de un día), así que lo que
 vio es casi seguro un set de TCGGO. Queda en la sonda (701) saber cuál.
 
 **Ficheros**: `netlify/functions/scrydex-huecos.mjs`. Prueba 684.
+
+## Tanda 703 — Reviving Legends existe; los nombres que faltan (oct. 2026)
+
+PINGU: «el set ahora existe pero las cartas están en japonés (no todas);
+el Lanturn sigue en japo». «No todas» es la pista: las que salen en
+inglés son las que tienen traducción de Scrydex o número de Pokédex, y
+las que no, ni lo uno ni lo otro. Para este set la traducción de Scrydex
+parece venir solo en parte de las cartas (gym1_ja, que tiene
+Entrenadores, salió 96 de 96 con el mismo listado: la traducción SÍ
+viaja con `include=prices`).
+
+- El respaldo de la Pokédex no conocía los apellidos de la era HGSS:
+  «Lanturn Prime» salía «Lanturn» y «Ho-Oh LEGEND», «Ho-Oh». Van en
+  `APELLIDOS`.
+- La segunda petición de la 700 saltaba solo si no venía NI traducción NI
+  Pokédex en ninguna carta; ahora basta con que no venga la traducción,
+  que es la única que nombra a un Entrenador.
+- `VERSION_NOMBRES` 7: los rellenados se reescriben otra vez (la
+  creación ya no espera a esto, 702).
+
+Lo que no se puede inventar: un Entrenador sin traducción, o un Pokémon
+al que Scrydex no le pone Pokédex, se queda con su nombre japonés. Para
+saber cuál es el caso del Lanturn, la sonda (700) de esa carta.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`.
+Prueba 684.

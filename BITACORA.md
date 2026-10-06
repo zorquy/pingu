@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 4) — PINGU-Claude (703 — Reviving Legends existe; los nombres que faltan)
+
+**Hecho**: el set ya existe y se rellenó; quedan cartas en japonés
+(Lanturn Prime entre ellas). El respaldo de la Pokédex aprende los
+apellidos de HGSS (Prime, LEGEND); la segunda petición a Scrydex salta
+en cuanto falta la traducción; `VERSION_NOMBRES` 7.
+
+**Ficheros**: `netlify/lib/scrydex.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`SCHEMA.md`. Prueba 684 en `pruebas`.
+
+**Pendiente**: la sonda del Lanturn (su id `scrydex-l2_ja-N`, JP): si
+Scrydex no le da ni traducción ni Pokédex, no hay de dónde sacar el
+nombre.
+
 ## 2026-10-06 (noche, 3) — PINGU-Claude (702 — la creación de sets va antes de la fase de nombres)
 
 **Hecho**: el bloque HUECOS de PINGU (20:47 UTC) enseña que `l2_ja` no
