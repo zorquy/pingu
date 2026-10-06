@@ -56,11 +56,11 @@ console.log('\n── 1. La carta se ve en CUALQUIER ancho ──')
   }
 }
 
-console.log('\n── 2. En el móvil, el nombre va centrado bajo la carta ──')
+console.log('\n── 2. En el móvil, el nombre va centrado (encima de la carta desde la 669) ──')
 {
   const { page } = await abrirFicha(390, 820)
   const r = await page.evaluate(() => {
-    const t = document.querySelector('.mc-ficha-datos > h2')
+    const t = document.querySelector('.mc-ficha-cabecera h2') /* la cabecera agrupada desde la 669 */
     const s = document.querySelector('.mc-ficha-set')
     return { h2: getComputedStyle(t).textAlign, set: getComputedStyle(s).textAlign,
       chapas: getComputedStyle(document.querySelector('.mc-ficha-chapas')).justifyContent }
@@ -78,7 +78,7 @@ console.log('\n── 3. En el ordenador NO: ahí la carta va al lado ──')
     const c = document.querySelector('.mc-ficha-carta').getBoundingClientRect()
     const d = document.querySelector('.mc-ficha-datos').getBoundingClientRect()
     return { cartaDer: Math.round(c.right), datosIzq: Math.round(d.left),
-      h2: getComputedStyle(document.querySelector('.mc-ficha-datos > h2')).textAlign }
+      h2: getComputedStyle(document.querySelector('.mc-ficha-cabecera h2') /* la cabecera agrupada desde la 669 */).textAlign }
   })
   check('la carta está a la izquierda de los datos', r.cartaDer <= r.datosIzq + 1, JSON.stringify(r))
   check('  …y el nombre no se centra', r.h2 !== 'center', r.h2)
