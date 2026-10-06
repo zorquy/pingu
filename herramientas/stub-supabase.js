@@ -580,6 +580,10 @@ sembrar('__FAKE_PARTIDAS__', 'match_log', (i) => ({
   jugada_el: new Date().toISOString().slice(0, 10),
   // La de la tanda 627, con su valor por defecto de la base (tanda 437).
   user_deck_id: null,
+  // Y las de los juegos (tanda 632): nulas, como una fila de antes.
+  formato: null,
+  juegos: null,
+  salida: null,
 }))
 
 // Las guías de uno y las correcciones que le sugieren (tanda 253).

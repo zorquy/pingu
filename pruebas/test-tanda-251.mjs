@@ -102,7 +102,7 @@ console.log('\n── 4. Editar una ronda mal apuntada ──')
   check('el mazo del rival vuelve puesto', rival === 'Charizard', rival)
   check('y el resultado también', (await page.locator('#partidaResultado').inputValue()) === 'loss')
 
-  await page.locator('#partidaResultado').selectOption('win')
+  await page.locator('#partidaJuegos [data-r="W"]').click()
   await page.locator('#btnGuardarPartida').click()
   await page.waitForTimeout(1400)
   const upd = await escrituras(page, 'match_log', 'update')

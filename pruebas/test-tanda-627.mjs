@@ -170,7 +170,7 @@ console.log('\n── 3. /mis-partidas: desde una repetición, con tu mazo guard
   await page.locator('#selRival1 .selector-mazo-texto').fill('Gardevoir')
   await page.waitForTimeout(400)
   await page.locator('#selRival1 .selector-mazo-opcion').first().click()
-  await page.click('#btnGuardarPartida')
+  await guardarPartida(page)
   await page.waitForTimeout(700)
   const amano = (await filasLog(page)).find((f) => !f.replay_id && f.id !== 'mlog-ya')
   check('  …y se guarda con él', amano?.user_deck_id === 'mazo-1' && amano.mi_mazo === 'a:arq-dragapult', JSON.stringify(amano))
@@ -259,3 +259,12 @@ console.log('\n── 5. /repeticiones: «Con tu mazo guardado» al guardar ─�
 await browser.close()
 console.log(fails ? `\n${fails} FALLAS` : '\nTodo en verde.')
 process.exit(fails ? 1 : 0)
+
+// Desde la 632 el resultado no viene marcado («Ganada» por defecto era
+// apuntar una victoria que nadie había marcado): si la prueba no lo ha
+// elegido, se marca la victoria antes de guardar, como haría quien apunta.
+async function guardarPartida(page) {
+  const sinMarcar = await page.evaluate(() => !document.querySelector('#partidaResultado')?.value && !document.querySelector('#partidaCampoResultado')?.classList.contains('hidden'))
+  if (sinMarcar) await page.click('#partidaJuegos [data-r="W"]')
+  await page.click('#btnGuardarPartida')
+}
