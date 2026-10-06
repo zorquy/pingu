@@ -114,13 +114,19 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     check('  …y el set desescondido y apuntado', escrito.parches[0]?.body.oculto === false && escrito.parches[0].body.scrydex_id === 'base1' && /id=eq\.BASE1_/.test(escrito.parches[0].ruta))
     const r2 = await correr()
     check('segunda pasada: el lleno se apunta y el siguiente vacío no casa → sinPar, sin gastar', r2.ok && r2.mirado?.set === 'RARO' && r2.mirado.estado === 'sinPar' && r2.creditos === 2 && estados[CLAVE_ESTADO].vistos['JP|LLENO']?.estado === 'lleno', JSON.stringify(r2))
+    // 699: Jungle está en la lista de Scrydex, no es set nuestro y ningún
+    // set nuestro sale ese día → se creó solo en la primera pasada
+    // (escondido) y ahora es un vacío más, que se rellena por scrydex_id.
+    check('el set que Scrydex tiene y nosotros no se creó solo, escondido, y queda apuntado (699)', escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].oculto === true && estados[CLAVE_ESTADO].creados['JP|jungle']?.por === 'suelta' && estados[CLAVE_ESTADO].sueltas.JP.lista.length === 0, JSON.stringify([escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
     const r3 = await correr()
-    check('tercera: la lista occidental (vacía, 1 crédito) y nada más que hacer', r3.ok && r3.hecho === true && r3.creditos === 3 && !peticiones.some((u) => /no prevista/.test(u)), JSON.stringify(r3))
+    check('tercera: el set creado se rellena como cualquier vacío (1 crédito)', r3.ok && r3.rellenado?.set === 'jungle' && r3.rellenado.por === 'scrydex_id' && r3.creditos === 3, JSON.stringify(r3))
+    const r3b = await correr()
+    check('cuarta: la lista occidental (vacía, 1 crédito) y nada más que hacer', r3b.ok && r3b.hecho === true && r3b.creditos === 4 && !peticiones.some((u) => /no prevista/.test(u)), JSON.stringify(r3b))
     // Un rellenado de ANTES de los nombres (685) se vuelve a pasar, uno por
     // pasada, antes de buscar más vacíos.
     estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres = 0
     const rn = await correr()
-    check('un rellenado sin nombres ingleses se vuelve a escribir con ellos (1 crédito)', rn.ok && rn.nombres?.set === 'BASE1_' && rn.nombres.conNombreIngles === 2 && rn.creditos === 4 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres === VERSION_NOMBRES, JSON.stringify(rn))
+    check('un rellenado sin nombres ingleses se vuelve a escribir con ellos (1 crédito)', rn.ok && rn.nombres?.set === 'BASE1_' && rn.nombres.conNombreIngles === 2 && rn.creditos === 5 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].nombres === VERSION_NOMBRES, JSON.stringify(rn))
     // Un set a MEDIAS (685.2): tiene cartas de Scrydex pero el PATCH no llegó
     // (sin `scrydex_por`). Se remata sin pedir nada a Scrydex.
     // Con un `scrydex_por` VIEJO (de la 547), que es como estaban el Expansion
@@ -129,12 +135,12 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     aMedias.add('MEDIAS_')
     estados[CLAVE_ESTADO].llenosOlvidados = 'otra'
     const rm = await correr()
-    check('un set a medias se remata: parche y rellenado, sin créditos', rm.ok && rm.rematado?.set === 'MEDIAS_' && rm.creditos === 4 && escrito.parches.at(-1).body.oculto === false && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].estado === 'rellenado' && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].nombres === 0, JSON.stringify(rm))
+    check('un set a medias se remata: parche y rellenado, sin créditos', rm.ok && rm.rematado?.set === 'MEDIAS_' && rm.creditos === 5 && escrito.parches.at(-1).body.oculto === false && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].estado === 'rellenado' && estados[CLAVE_ESTADO].vistos['JP|MEDIAS_'].nombres === 0, JSON.stringify(rm))
     check('  …y los llenos se olvidaron una vez por versión', estados[CLAVE_ESTADO].llenosOlvidados === VERSION)
     const rn2 = await correr()
-    check('  …y a la pasada siguiente la fase 0 le pone los nombres (1 crédito)', rn2.nombres?.set === 'MEDIAS_' && rn2.creditos === 5, JSON.stringify(rn2))
+    check('  …y a la pasada siguiente la fase 0 le pone los nombres (1 crédito)', rn2.nombres?.set === 'MEDIAS_' && rn2.creditos === 6, JSON.stringify(rn2))
     const r4 = await correr(new Date('2026-10-20T12:00:00Z'))
-    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 6 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
+    check('a las dos semanas se vuelve a pedir la lista y a mirar lo sinPar, no lo rellenado', r4.ok && r4.mirado?.set === 'RARO' && r4.creditos === 7 && estados[CLAVE_ESTADO].vistos['JP|BASE1_'].estado === 'rellenado', JSON.stringify(r4))
   }
   {
     const { correr, estados } = montar({ scrydexStatus: 403 })
@@ -166,6 +172,14 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const exps = [{ id: 'base1', name: '拡張パック', name_en: 'Expansion Pack', total: 102, release_date: '1996/10/20' }, { id: 'l2_ja', name: '蘇る伝説', name_en: 'Reviving Legends', series: 'LEGEND', total: 80, printed_total: 80, release_date: '2010/07/08', logo: 'https://images.scrydex.com/pokemon/l2_ja-logo/logo' }, { id: 'x', name: 'Dos', name_en: 'Reviving Legends' }]
     const nuestros = [{ id: 'BASE1_', name: 'Expansion Pack', scrydex_id: null, serie_id: 'legend', serie_name_en: 'LEGEND', serie_name: 'LEGEND' }]
     check('las sueltas son las que no casan ni por scrydex_id ni por nombre', expansionesSueltas(exps, nuestros).map((e) => e.id).join() === 'l2_ja,x')
+    // 699: un set nuestro que sale el MISMO día ocupa la fecha (es casi
+    // seguro el mismo set con otro nombre), y la huella (fecha + cuenta)
+    // también casa.
+    const conFecha = [...nuestros, { id: 'L2', name: '蘇る伝説（別名）', release_date: '2010-07-08', card_count_official: 80 }]
+    const su = expansionesSueltas(exps, conFecha)
+    check('  …con un set nuestro de la misma fecha y cuenta, l2_ja casa por huella y deja de ser suelta', !su.some((e) => e.id === 'l2_ja'), JSON.stringify(su))
+    const su2 = expansionesSueltas(exps, [...nuestros, { id: 'OTRO', name: 'Otro', release_date: '2010-07-08', card_count_official: 12 }])
+    check('  …y con uno de la misma fecha pero otra cuenta, sigue suelta pero OCUPADA (no se crea sola)', su2.find((e) => e.id === 'l2_ja')?.ocupadaPor === 'OTRO', JSON.stringify(su2))
     check('CREAR_SETS lleva Reviving Legends y Advent of Arceus en japonés, por nombre', CREAR_SETS.some((c) => c.mercado === 'JP' && c.nombre === 'Reviving Legends') && CREAR_SETS.some((c) => c.mercado === 'JP' && c.nombre === 'Advent of Arceus'))
     check('una entrada por nombre con DOS expansiones iguales no elige; por id, sí', expansionACrear({ nombre: 'Reviving Legends' }, exps) === null && expansionACrear({ id: 'l2_ja' }, exps)?.id === 'l2_ja' && expansionACrear({ nombre: 'reviving-legends' }, exps.slice(0, 2))?.id === 'l2_ja')
     const fila = filaDeSetDeScrydex(exps[1], 'JP', nuestros)
@@ -174,7 +188,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     // La pasada: Jungle está en la lista de Scrydex y no es set nuestro.
     const { correr, escrito, estados } = montar({ crear: [{ mercado: 'JP', id: 'jungle' }, { mercado: 'JP', nombre: 'No existe' }] })
     const r = await correr()
-    check('la pasada apunta las sueltas (jungle) y crea el set de la lista, escondido y con su scrydex_id; lo que no está en Scrydex queda dicho', r.ok && estados[CLAVE_ESTADO].sueltas.JP.lista.map((e) => e.id).join() === 'jungle' && escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].market === 'JP' && escrito.setsNuevos[0].oculto === true && escrito.setsNuevos[0].scrydex_id === 'jungle' && estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado' && estados[CLAVE_ESTADO].creados['JP|No existe']?.estado === 'noEstaEnScrydex', JSON.stringify([r, escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
+    check('la pasada apunta las sueltas (jungle) y crea el set de la lista (por «lista»), escondido y con su scrydex_id; lo que no está en Scrydex queda dicho', r.ok && estados[CLAVE_ESTADO].creados['JP|jungle']?.por === 'lista' && estados[CLAVE_ESTADO].sueltas.JP.lista.map((e) => e.id).join() === 'jungle' && escrito.setsNuevos.length === 1 && escrito.setsNuevos[0].id === 'jungle' && escrito.setsNuevos[0].market === 'JP' && escrito.setsNuevos[0].oculto === true && escrito.setsNuevos[0].scrydex_id === 'jungle' && estados[CLAVE_ESTADO].creados['JP|jungle']?.estado === 'creado' && estados[CLAVE_ESTADO].creados['JP|No existe']?.estado === 'noEstaEnScrydex', JSON.stringify([r, escrito.setsNuevos, estados[CLAVE_ESTADO].creados]))
     await correr()
     check('  …y la pasada siguiente no lo vuelve a crear', escrito.setsNuevos.length === 1)
   }
