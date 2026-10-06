@@ -18,6 +18,8 @@ apunta para mirar. `CREAR_SETS` queda para forzar.
 
 **Pendiente**: que PINGU pegue el bloque HUECOS en una hora (sets
 creados, sueltas ocupadas) y mire si Reviving Legends ya tiene cartas.
+(699b: PINGU confirmó en scrydex.com el id `l2_ja`; va en `CREAR_SETS`
+por id.)
 
 ## 2026-10-06 (tarde, 21) — PINGU-Claude (698 — el set japonés que no existe se crea desde Scrydex)
 

@@ -67,7 +67,9 @@ export const VERSION_NOMBRES = 5
 // con el id de Scrydex —como los dieciséis que ya había (`base1_ja`)—,
 // escondido, y la pasada siguiente lo rellena como a cualquier vacío.
 export const CREAR_SETS = [
-  { mercado: 'JP', nombre: 'Reviving Legends' },
+  // Por id, que es exacto: PINGU lo vio en scrydex.com (l2_ja, LEGEND, 81
+  // cartas, 2010/02/11).
+  { mercado: 'JP', id: 'l2_ja' },
   { mercado: 'JP', nombre: 'Advent of Arceus' },
 ]
 // Cuántas expansiones sueltas (sin set nuestro) se apuntan por mercado.
