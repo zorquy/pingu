@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 20) — PINGU-Claude (697 — los precios que desaparecieron, y lo que la pasada de sueltas hizo mal)
+
+**Hecho**: PINGU: «han desaparecido un montón de precios (30 aniversario,
+Cardmarket en español). Esto lo quiero bien». El 30 entero corrió a las
+6:20 y borró las filas de precio con las cartas viejas; la pasada de
+precios ya había hecho esa expansión hoy y no volvía hasta mañana. El
+reemplazo avisa ahora a la pasada de precios (y una vez, para los
+hechos de antes). Además: `tcggo-sueltas` se llevó el Charizard de la
+Classic de Celebrations al 30 («la única» de una página de cientos) —
+se deshace solo y `laUnica` mira el total—; Scrydex solo para
+prioridad o sets con `scrydex_id` (40 créditos en 404); el listado de
+Scrydex se pide con `include=prices` (16 sets sin precio); el espejo
+deja los Entrenadores en el set principal; Celebrations lleva `cel25cc`;
+REEMPLAZOS legible en /admin.
+
+**Ficheros**: `netlify/functions/tcggo-sueltas.mjs`,
+`netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`, `CLAUDE.md`. Pruebas 666, 684, 686 y 693 en `pruebas`.
+
+**Pendiente**: que PINGU mire en ~10 min si el 30 aniversario vuelve a
+tener precio y pegue el bloque REEMPLAZOS y CARTAS SUELTAS de /admin
+(ya legibles); un ejemplo concreto de carta sin precio si sigue; y
+dónde exactamente no salen Lanturn Prime / Arceus.
+
 ## 2026-10-06 (tarde, 19) — PINGU-Claude (696 — /admin dice qué sets japoneses no se han podido rellenar)
 
 **Hecho**: PINGU reporta cartas japonesas que no salen (Lanturn Prime de

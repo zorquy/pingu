@@ -47,7 +47,17 @@ export const PRIORIDAD = ['miscp-1']
 // —un crédito— y se guardan su foto, su rareza y su precio de TCGplayer.
 // PINGU: «el Ancient Mew parece que no está en la API de TCGGO, pero sí
 // en Scrydex». Con tope aparte, que los créditos son 5.000 al mes.
-export const TOPE_SCRYDEX_DIARIO = 40
+export const TOPE_SCRYDEX_DIARIO = 15
+// Cuántas cartas puede devolver TCGGO en total para dar una por «la única»
+// (697). La primera pasada real casó el Charizard de la Classic de
+// Celebrations con el del 30 aniversario: la página traía UN «Charizard»
+// exacto entre cincuenta «Charizard ex», «Charizard V»… y el total eran
+// cientos. Una página no es el total.
+export const MAXIMO_RESULTADOS = 5
+// Lo que la primera pasada hizo mal y hay que deshacer (697): la carta
+// vuelve a su set y a su número, sin nada de TCGGO, y su fila de precios
+// —que era la del otro Charizard— se borra.
+export const DESHACER = [{ id: 'cel25cc-CC002', set_id: 'cel25cc', local_id: 'CC002' }]
 const MERCADO = 'WEST'
 
 async function rest(ruta, clave, opciones = null) {
@@ -68,6 +78,9 @@ async function rest(ruta, clave, opciones = null) {
 // con cero o con varias, nada y el motivo.
 export function laUnica(respuesta, nombre) {
   const lista = Array.isArray(respuesta?.data) ? respuesta.data : []
+  const total = Number(respuesta?.results ?? respuesta?.paging?.total_results ?? lista.length)
+  const paginas = Number(respuesta?.paging?.total ?? 1)
+  if (total > MAXIMO_RESULTADOS || paginas > 1) return { carta: null, motivo: `TCGGO devuelve ${total || `${paginas} páginas de`} cartas para ese nombre: no se elige ninguna` }
   const k = nombreComparable(nombre)
   const sueltas = lista.filter((c) => esCartaSuelta(c) && nombreComparable(c?.name) === k)
   if (sueltas.length === 1) return { carta: sueltas[0] }
@@ -126,13 +139,31 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
   const pausaMs = env.TCGGO_PAUSA_MS !== undefined && env.TCGGO_PAUSA_MS !== '' && Number(env.TCGGO_PAUSA_MS) >= 0 ? Number(env.TCGGO_PAUSA_MS) : 250
   const dia = ahora.toISOString().slice(0, 10)
 
-  const estado = { hechas: {}, sinPar: {}, ...(await leerEstado(CLAVE_ESTADO)) }
+  const estado = { hechas: {}, sinPar: {}, deshechas: {}, ...(await leerEstado(CLAVE_ESTADO)) }
   if (estado.dia !== dia) { estado.dia = dia; estado.peticionesHoy = 0; estado.scrydexHoy = 0 }
+  if (!estado.deshechas || typeof estado.deshechas !== 'object') estado.deshechas = {}
   const sc = cabecerasScrydex(env)
-  const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
   const resumen = () => ({ hechas: Object.keys(estado.hechas).length, sinPar: Object.keys(estado.sinPar).length, peticionesHoy: estado.peticionesHoy || 0, scrydexHoy: estado.scrydexHoy || 0, parametro: estado.parametro || null })
   if (estado.parado?.dia === dia) return { ok: true, ...resumen(), saltado: `parado hoy: ${estado.parado.motivo}` }
   if ((estado.peticionesHoy || 0) >= TOPE_DIARIO) return { ok: true, ...resumen(), saltado: 'tope diario' }
+
+  const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
+
+  // Lo que hay que deshacer, una vez (697).
+  for (const d of DESHACER) {
+    if (estado.deshechas[d.id]) continue
+    try {
+      await pedir(`tcg_cards?market=eq.${MERCADO}&id=eq.${encodeURIComponent(d.id)}`, { method: 'PATCH', body: JSON.stringify({ set_id: d.set_id, local_id: d.local_id, tcggo_id: null, image_tcggo: null, cm_id_product_propio: null, tp_id_product_propio: null, tcggo_at: null }) })
+      await pedir(`tcg_card_prices?card_id=eq.${encodeURIComponent(d.id)}`, { method: 'DELETE' })
+    } catch (e) {
+      estado.ultimoError = { fecha: ahora.toISOString(), carta: d.id, error: `al deshacer: ${String(e?.message || e).slice(0, 160)}` }
+      await persistir()
+      return { ok: false, ...resumen(), error: estado.ultimoError.error }
+    }
+    delete estado.hechas[d.id]
+    estado.deshechas[d.id] = { fecha: ahora.toISOString(), set_id: d.set_id }
+    await persistir()
+  }
 
   // Las candidatas: sin ninguna foto y sin id de TCGGO. Primero las de la
   // lista de prioridad; después, un recorrido por id con CURSOR (693.1):
@@ -152,7 +183,7 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
     }
     if (tramo.length) estado.cursor = tramo[tramo.length - 1].id
     candidatas = [...prioritarias, ...tramo.filter((c) => !PRIORIDAD.includes(c.id))]
-    sets = (await pedir(`tcg_sets?select=id,tcggo_id&market=eq.${MERCADO}&tcggo_id=not.is.null&limit=2000`)) || []
+    sets = (await pedir(`tcg_sets?select=id,tcggo_id,scrydex_id&market=eq.${MERCADO}&limit=2000`)) || []
   } catch (e) {
     estado.ultimoError = { fecha: ahora.toISOString(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     await persistir()
@@ -217,7 +248,12 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
       // TCGGO no la tiene (o tiene varias): Scrydex por nuestro id, que es
       // el suyo para lo que viene de TCGdex (693.2). No para los
       // «tcggo-…» ni «scrydex-…», que no son ids de TCGdex.
-      const porScrydex = !sc.faltan && !/^(tcggo|scrydex)-/.test(c.id) && (estado.scrydexHoy || 0) < TOPE_SCRYDEX_DIARIO ? await desdeScrydex(c) : null
+      // Y solo si hay motivos para creer que Scrydex la tiene con ese id
+      // (697): la lista de prioridad o un set que Scrydex ya emparejó
+      // (`tcg_sets.scrydex_id`). Los «My First Battle» gastaron cuarenta
+      // créditos en 404.
+      const setConScrydex = sets.some((s) => s.id === c.set_id && s.scrydex_id)
+      const porScrydex = !sc.faltan && !/^(tcggo|scrydex)-/.test(c.id) && (PRIORIDAD.includes(c.id) || setConScrydex) && (estado.scrydexHoy || 0) < TOPE_SCRYDEX_DIARIO ? await desdeScrydex(c) : null
       if (porScrydex?.parche) {
         try {
           await pedir(`tcg_cards?market=eq.${MERCADO}&id=eq.${encodeURIComponent(c.id)}`, { method: 'PATCH', body: JSON.stringify(porScrydex.parche) })

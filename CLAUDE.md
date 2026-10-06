@@ -375,6 +375,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
   con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
+- **Un reemplazo que BORRA filas de precio tiene que avisar a la pasada
+  que las escribe** (tanda 697). `30th-entero` borró las cartas viejas con
+  sus `tcg_card_prices` y escribió las nuevas; `tcggo-precios` ya había
+  hecho esa expansión HOY y no volvía hasta mañana: el 30 aniversario
+  estuvo el día entero sin precio, sin error. Lo que borra le quita la
+  expansión a los `hechos` del día. Y de la misma tanda: **«la única de la
+  página» no es «la única»** — `tcggo-sueltas` buscó «Charizard», TCGGO
+  devolvió cientos en páginas de cincuenta, y el único «Charizard» a secas
+  de la primera página era el del 30: la Classic de Celebrations se fue a
+  otro set con el precio de otra carta. Una búsqueda por nombre identifica
+  solo si el TOTAL es pequeño; una página no dice nada del total.
 - **El precio de una japonesa antigua es el de TCGplayer de ESA carta, y
   el espejo solo copia el PRODUCTO** (tandas 686 y 688). `precios-espejo`
   casa cada carta de los sets rellenados por Scrydex con su gemela

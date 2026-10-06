@@ -38,7 +38,7 @@ export const VENTANA_DIAS = 4 * 365
 export const DIAS_REPASO = 1
 // Qué escribe el espejo; si cambia, los sets hechos se vuelven a pasar.
 // 2 (688): solo el producto, sin precio.
-export const VERSION_ESPEJO = 2
+export const VERSION_ESPEJO = 3
 const MERCADO = 'JP'
 
 async function rest(ruta, clave, opciones = null) {
@@ -109,8 +109,26 @@ export function casarGemelas(cartasJp, cartasWest, setsWest) {
     })
     if (!candidatas.length) { sinPar.push({ id: j.id, motivo: (porNombre.get(k) || []).length ? 'mismo nombre pero otros PS/Pokédex/ataques, o sin producto' : 'ninguna occidental con ese nombre en la ventana' }); continue }
     candidatas.sort((a, b) => String(fechaDeSet.get(a.set_id) || '').localeCompare(String(fechaDeSet.get(b.set_id) || '')))
-    pares.set(j.id, { west: candidatas[0], setWest: candidatas[0].set_id })
+    pares.set(j.id, { west: candidatas[0], setWest: candidatas[0].set_id, candidatas, soloNombre: !hpDe(j) && !dexDe(j) && !huellaDeAtaques(j) })
   }
+  // Lo que casa SOLO por el nombre —entrenadores y energías, sin PS, sin
+  // Pokédex, sin ataques— se queda en el set PRINCIPAL (697): el que más
+  // gemelas de Pokémon tiene. Un «Potion» o un «Bill» existe en veinte
+  // sets, y la más antigua de la ventana no es la del Expansion Pack sino
+  // la que TCGdex tuviera a mano; el estado enseñaba «gemelas en base1,
+  // gym1, base4, base5» de un set que es Base Set entero.
+  const cuenta = new Map()
+  for (const p of pares.values()) if (!p.soloNombre) cuenta.set(p.setWest, (cuenta.get(p.setWest) || 0) + 1)
+  const principal = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  if (principal) {
+    for (const [id, p] of [...pares.entries()]) {
+      if (!p.soloNombre || p.setWest === principal) continue
+      const enPrincipal = p.candidatas.find((c) => c.set_id === principal)
+      if (enPrincipal) pares.set(id, { ...p, west: enPrincipal, setWest: principal })
+      else { pares.delete(id); sinPar.push({ id, motivo: `solo casa por el nombre y fuera de ${principal}` }) }
+    }
+  }
+  for (const p of pares.values()) { delete p.candidatas; delete p.soloNombre }
   return { pares, sinPar }
 }
 

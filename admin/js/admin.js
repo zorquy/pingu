@@ -3103,7 +3103,18 @@ async function tcggoEstado() {
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.carta || ''} ${e.ultimoError.error}` : '',
       ]
     })(),
-    `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
+    // Los reemplazos, legibles (697): antes era el JSON cortado a 1.500
+    // letras y no se veía si el de Celebrations había corrido.
+    ...(() => {
+      const e = de('tcggo_reemplazos')?.valor
+      if (!e) return ['REEMPLAZOS (tcggo_reemplazos): todavía no ha corrido']
+      const hechos = Object.entries(e.hechos || {})
+      return [
+        `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${hechos.length} hechos · intentos: ${JSON.stringify(e.intentos || {})}`,
+        ...hechos.map(([k, x]) => `  ✓ ${k} (${x.fecha}, expansión ${x.episodio} por ${x.por}): suyas ${x.resumen?.suyas ?? '?'}, escritas ${x.resumen?.escritas ?? '?'}, nuevas ${x.resumen?.nuevas ?? '?'}, borradas ${x.resumen?.borradas ?? '?'}, se quedan ${(x.resumen?.seQuedan || []).length}, líneas sin destino ${(x.resumen?.lineasSinDestino || []).length}`),
+        e.ultimo ? `  último: ${e.ultimo.clave} (${e.ultimo.fecha}): ${e.ultimo.error || e.ultimo.aviso || ''}` : '',
+      ]
+    })(),
     // El barrido de huecos (670): sets sin cartas que se rellenan solos.
     ...(() => {
       const h = de('tcggo_reemplazos')?.valor?.huecos

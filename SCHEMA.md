@@ -33740,3 +33740,84 @@ parte de la queja. La prueba 299 (hojas y clases en las 26 páginas) y la
 314 (el foro entero) siguen en verde.
 
 **Ficheros**: `js/foro.js`, `css/foro.css`.
+
+## Tanda 697 — los precios que desaparecieron, y lo que la primera pasada de sueltas hizo mal (oct. 2026)
+
+PINGU: «han desaparecido un montón de precios; cartas del 30 aniversario
+que tenían precio de Cardmarket en español y ahora no. Revisarlo muy
+bien. Esto lo quiero bien». Releyendo lo que corrió hoy, cinco cosas, y
+cuatro son mías.
+
+### 1. El 30 aniversario entero corrió a las 6:20 y la pasada de precios ya lo había hecho
+
+`30th-entero` (la 666) borra las cartas viejas **con sus filas de
+`tcg_card_prices`** y escribe las de TCGGO con ids nuevos. La pasada de
+precios (`tcggo-precios`) va por expansión y apunta en `hechos` las que ya
+hizo HOY: la 431 estaba hecha de las 6:00, así que las cartas nuevas no
+tenían precio y **no lo iban a tener hasta mañana**. Sin un solo error. Es
+la forma de la 523 —un dato que nadie pide— con el tiempo: lo que se borra
+y se reescribe queda sin precio exactamente el tiempo que le quede al día.
+
+Desde ahora `tcggo-reemplazar-set` **avisa a la pasada de precios**: al
+acabar un reemplazo le quita la expansión de los `hechos` del día (en su
+mercado) para que la pasada siguiente —cada diez minutos— la vuelva a
+escribir. Y lo hace también, UNA vez, para los reemplazos hechos antes de
+la 697 (`preciosAvisados` en cada hecho): el 30 recupera sus precios en la
+pasada siguiente al despliegue, no mañana. Si no se puede avisar queda en
+`ultimo.aviso` y se reintenta.
+
+### 2. La primera pasada de sueltas se llevó un Charizard a otro set
+
+`tcggo-sueltas` (693) busca por nombre las cartas sin foto y escribe solo
+con «la única» del nombre exacto. Buscó «Charizard» para `cel25cc-CC002`
+(la Classic de Celebrations): TCGGO devuelve **cientos** de Charizard en
+páginas de cincuenta, y en la primera página solo UNO se llamaba
+«Charizard» a secas —el del 30 aniversario—. «La única de la página» no
+es «la única». La carta se fue al set del 30 con su número, su foto y su
+producto de Cardmarket: el Charizard de la Classic enseñando el precio del
+otro.
+
+- `laUnica` mira el **total** (`results`, o `paging.total`): más de
+  `MAXIMO_RESULTADOS` (5) o más de una página, y no se elige ninguna.
+- `DESHACER` es la lista de lo que la pasada mala escribió: la carta
+  vuelve a su set y a su número, sin nada de TCGGO, y su fila de precio
+  —que era la del otro— se borra. Se hace UNA vez (`deshechas` en el
+  estado) y antes de pedir nada.
+
+### 3. Scrydex por nuestro id gastó cuarenta créditos en 404
+
+El respaldo de la 693.2 pedía a Scrydex `cards/<nuestro id>` para cada
+carta que TCGGO no tenía: las `mfb-*` (My First Battle) no existen allí
+con ese id y fueron cuarenta 404 a crédito. Solo se le pregunta por una
+carta de la lista de prioridad o de un set que Scrydex ya emparejó
+(`tcg_sets.scrydex_id`), y el tope diario baja a 15.
+
+### 4. El listado de Scrydex no trae precios si no se le piden
+
+Los 16 sets japoneses rellenados por `scrydex-huecos` salían «0 con precio
+de TCGplayer», y la ficha de una carta suelta sí los traía (la sonda del
+Ancient Mew). La diferencia es el parámetro: el listado los trae con
+`include=prices`. Se pide así; si Scrydex contesta 400 se vuelve a pedir
+sin él y queda apuntado (`sinIncludePrecios`). `VERSION_NOMBRES` sube a 5
+para que los rellenados se vuelvan a escribir con precio.
+
+### 5. Un Entrenador casa por el nombre con el set que no es
+
+El espejo (686) casaba un «Potion» del Expansion Pack con la promo
+occidental más antigua de la ventana, porque sin PS, Pokédex ni ataques
+solo queda el nombre y «la más antigua» es un criterio de Pokémon. Lo que
+casa solo por el nombre se queda en el set **principal** (el que más
+gemelas de Pokémon tiene); si allí no hay, sin par con su motivo.
+`VERSION_ESPEJO` sube a 3.
+
+Y Celebrations: la Classic es `cel25cc` en nuestra tabla (`cel25c` es el
+id de Scrydex), así que `cel25-entero` con `cel25c` no la tocaba; ahora
+lleva los dos. Y el bloque REEMPLAZOS de /admin era el JSON cortado a
+1.500 letras: ahora es una línea por reemplazo (expansión, por, suyas,
+escritas, nuevas, borradas) y el último aviso.
+
+**Ficheros**: `netlify/functions/tcggo-sueltas.mjs`,
+`netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`. Pruebas
+666, 684, 686 y 693 (rama `pruebas`).

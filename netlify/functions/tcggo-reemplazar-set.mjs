@@ -61,6 +61,7 @@ import {
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_CATALOGO } from './tcggo-catalogo.mjs'
+import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
 import { episodioDeSet } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -97,7 +98,9 @@ export const REEMPLAZOS = [
   // Celebrations (25 aniversario), igual que el 30 (687): la Classic
   // Collection iba aparte en `cel25c` con los números de la carta original
   // y TCGGO la lleva dentro de su expansión 35 (de la respuesta de PINGU).
-  { clave: 'cel25-entero', sets: ['cel25', 'cel25c'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
+  // La Classic es `cel25cc` en nuestra tabla (`cel25c` es el id de Scrydex,
+  // la 505): con `cel25c` solo, el reemplazo no la tocaba (697).
+  { clave: 'cel25-entero', sets: ['cel25', 'cel25c', 'cel25cc'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
@@ -397,6 +400,33 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   estado = estado && typeof estado === 'object' ? estado : {}
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   if (!estado.intentos || typeof estado.intentos !== 'object') estado.intentos = {}
+  // Las cartas nuevas llevan ids nuevos y sus filas de precio se han ido
+  // con las viejas; si la pasada de precios ya hizo esa expansión HOY no
+  // vuelve hasta mañana (697): se le quita de los hechos del día para que
+  // las escriba en la siguiente. Devuelve si se ha podido avisar; si no,
+  // queda apuntado en `ultimo` y se vuelve a intentar en la pasada siguiente.
+  const avisarAPrecios = async (mercado, episodio, claveDe) => {
+    try {
+      const precios = await leerEstado(CLAVE_PRECIOS)
+      const lista = (mercado || 'WEST') === 'JP' ? 'hechosJp' : 'hechos'
+      if (Array.isArray(precios?.[lista]) && precios[lista].includes(episodio)) {
+        precios[lista] = precios[lista].filter((e) => e !== episodio)
+        await guardarEstado(CLAVE_PRECIOS, precios)
+      }
+      return true
+    } catch (e) {
+      estado.ultimo = { clave: claveDe, fecha: ahora.toISOString(), aviso: `no se ha podido avisar a la pasada de precios: ${String(e?.message || e).slice(0, 120)}` }
+      return false
+    }
+  }
+  // Los hechos de antes de la 697 (el 30 aniversario entero corrió hoy a
+  // las 6:20 y la pasada de precios ya había hecho su expansión): se avisa
+  // una vez, ahora.
+  for (const [k, h] of Object.entries(estado.hechos)) {
+    if (h?.preciosAvisados || !h?.episodio) continue
+    const mercado = reemplazos.find((x) => x.clave === k)?.mercado || 'WEST'
+    h.preciosAvisados = await avisarAPrecios(mercado, h.episodio, k)
+  }
   const pendiente = reemplazos.find((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
   if (!pendiente) {
     // Con la lista hecha, el barrido de huecos (670).
@@ -427,7 +457,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   if (!episodio) return { ok: true, clave: pendiente.clave, esperando: `sin expansión de TCGGO para «${set.id}»: ${por}` }
   const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...resto })
   if (r.ok) {
-    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
+    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
   } else {
     estado.intentos[pendiente.clave] = (Number(estado.intentos[pendiente.clave]) || 0) + 1
     estado.ultimo = { clave: pendiente.clave, fecha: ahora.toISOString(), error: r.error }

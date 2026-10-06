@@ -57,7 +57,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 export const VERSION = '685.4'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
-export const VERSION_NOMBRES = 4
+export const VERSION_NOMBRES = 5
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -131,6 +131,18 @@ export async function pasada({
     }
     try { return { datos: JSON.parse(texto) } } catch { return { error: 'Scrydex ha contestado algo que no es JSON', status: res.status } }
   }
+  // Las cartas de una expansión CON sus precios (697). El listado a secas
+  // no trae `variants[].prices` —las dieciséis expansiones rellenadas
+  // salieron con «0 con precio de TCGplayer» mientras la ficha de una
+  // carta sí los traía—: se piden con `include=prices`, y si Scrydex no
+  // admitiera el parámetro (400) se piden sin él y se apunta.
+  const cartasDeExpansion = async (idioma, expansionId, pagina) => {
+    const params = { q: `expansion.id:${expansionId}`, page_size: 100, page: pagina }
+    if (estado.sinIncludePrecios) return scrydex(`${idioma}/cards`, params)
+    const r = await scrydex(`${idioma}/cards`, { ...params, include: 'prices' })
+    if (r.error && r.status === 400) { estado.sinIncludePrecios = true; return scrydex(`${idioma}/cards`, params) }
+    return r
+  }
   const resumen = () => {
     const v = Object.values(estado.vistos)
     const cuenta = (e) => v.filter((x) => x.estado === e).length
@@ -156,7 +168,7 @@ export async function pasada({
     const cartas = []
     let fallo = null
     for (let pagina = 1; pagina <= MAXIMO_PAGINAS_CARTAS; pagina++) {
-      const r = await scrydex(`${idioma}/cards`, { q: `expansion.id:${v.expansion}`, page_size: 100, page: pagina })
+      const r = await cartasDeExpansion(idioma, v.expansion, pagina)
       if (r.error) { fallo = r.error; break }
       const datos = Array.isArray(r.datos?.data) ? r.datos.data : []
       cartas.push(...datos)
@@ -298,7 +310,7 @@ export async function pasada({
     const cartas = []
     let fallo = null
     for (let pagina = 1; pagina <= MAXIMO_PAGINAS_CARTAS; pagina++) {
-      const r = await scrydex(`${idioma}/cards`, { q: `expansion.id:${expansion.id}`, page_size: 100, page: pagina })
+      const r = await cartasDeExpansion(idioma, expansion.id, pagina)
       if (r.error) { fallo = r.error; break }
       const datos = Array.isArray(r.datos?.data) ? r.datos.data : []
       cartas.push(...datos)
