@@ -33726,3 +33726,17 @@ que la estantería pliega bajo Wizards Black Star Promos). Las otras dos
 versiones que Scrydex lista como «Unnumbered Promos» son otras cartas
 (sin fecha, sin número), y no se crean: no hay set donde ponerlas.
 /admin dice por quién se hizo cada una y los créditos de Scrydex del día.
+
+## Tanda 695 — el índice del foro vuelve a la lista clásica (oct. 2026)
+
+PINGU: «el foro que vuelva a ser como antes; en tarjetas no me gusta. Es
+mejor en forma vertical, como un foro clásico, como el ejemplo de
+Wakahack. Reviértelo». Se deshace la mitad de la 680: `js/foro.js` deja
+de poner `foro-seccion-tarjetas` en las secciones del índice y el bloque
+de la rejilla de tarjetas sale de `css/foro.css` entero (la clase ya no
+la escribe nadie, y un CSS sin dueño es lo que vigila la 299). Lo que
+se queda de la 680 es el «Marcar todo como leído» discreto, que no era
+parte de la queja. La prueba 299 (hojas y clases en las 26 páginas) y la
+314 (el foro entero) siguen en verde.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`.

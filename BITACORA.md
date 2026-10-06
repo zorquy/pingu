@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 18) — PINGU-Claude (695 — el índice del foro vuelve a la lista clásica)
+
+**Hecho**: PINGU no quiere los foros en tarjetas («mejor vertical, como
+un foro clásico»): fuera la clase y la rejilla de la 680. El «Marcar
+todo como leído» discreto se queda.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`, `SCHEMA.md`.
+
+**Pendiente**: los bloques de /admin (CARTAS SUELTAS, HUECOS,
+REEMPLAZOS, ESPEJO), la sonda del Poliwrath y las cuatro imágenes de la
+691 con fotos de verdad.
+
 ## 2026-10-06 (tarde, 17) — PINGU-Claude (694 — el «+» de la Pokédex de una carta que no tienes, y TCG Pocket fuera)
 
 **Hecho**: el «+» de la Pokédex no hacía nada con una carta que no

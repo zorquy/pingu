@@ -292,7 +292,7 @@ async function pintarIndice() {
       const suyos = foros.filter((f) => f.section_id === s.id && !f.parent_id).sort((a, b) => a.position - b.position)
       if (suyos.length === 0) return ''
       return `
-      <section class="foro-seccion foro-seccion-tarjetas">
+      <section class="foro-seccion">
         <h2 class="foro-seccion-titulo">${escapeHtml(s.name)}</h2>
         ${suyos.map(filaForo).join('')}
       </section>`
