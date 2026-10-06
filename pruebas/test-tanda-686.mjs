@@ -9,7 +9,7 @@ const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${
 
 console.log('── 1. Las gemelas ──')
 {
-  const setsWest = [{ id: 'base1', release_date: '1999-01-09' }, { id: 'base4', release_date: '2000-02-24' }, { id: 'base2', release_date: '1999-06-16' }, { id: 'base5', release_date: '2000-04-24' }]
+  const setsWest = [{ id: 'base1', release_date: '1999-01-09' }, { id: 'base4', release_date: '2000-02-24' }, { id: 'base2', release_date: '1999-06-16' }, { id: 'base5', release_date: '2000-04-24' }, { id: 'wp', release_date: '1998-07-01' }]
   const west = [
     { id: 'base1-4', set_id: 'base1', name: 'Charizard', hp: 120, dex_ids: [6], cm_id_product_propio: 273699 },
     // El Charmander de Base Set y el de Team Rocket: mismo nombre, mismos PS,
@@ -20,8 +20,15 @@ console.log('── 1. Las gemelas ──')
     { id: 'base1-2', set_id: 'base1', name: 'Blastoise', hp: 100, dex_ids: [9], cm_id_product_propio: 273697 },
     { id: 'base1-70', set_id: 'base1', name: 'Clefairy Doll', hp: null, dex_ids: null, cm_id_product_propio: 1 },
     { id: 'base2-99', set_id: 'base2', name: 'Pikachu', hp: 60, dex_ids: [25], cm_id_product_propio: null },
+    // 697: un Entrenador que existe en un set MÁS ANTIGUO que el principal
+    // (una promo) y en el principal, y otro que solo existe fuera.
+    { id: 'wp-5', set_id: 'wp', name: 'Potion', name_en: 'Potion', hp: null, dex_ids: null, cm_id_product_propio: 501 },
+    { id: 'base1-94', set_id: 'base1', name: 'Poción', name_en: 'Potion', hp: null, dex_ids: null, cm_id_product_propio: 502 },
+    { id: 'wp-6', set_id: 'wp', name: 'Switch', name_en: 'Switch', hp: null, dex_ids: null, cm_id_product_propio: 503 },
   ]
   const jp = [
+    { id: 'scrydex-base1-94', name_en: 'Potion', hp: null, dex_ids: null },
+    { id: 'scrydex-base1-95', name_en: 'Switch', hp: null, dex_ids: null },
     { id: 'scrydex-base1-6', name_en: 'Charizard', hp: 120, dex_ids: [6] },
     { id: 'scrydex-base1-9', name_en: 'Blastoise', hp: 100, dex_ids: [9] },
     { id: 'scrydex-base1-99', name_en: 'Blastoise', hp: 90, dex_ids: [9] },
@@ -43,7 +50,10 @@ console.log('── 1. Las gemelas ──')
     check('  …y las cruzadas son las que caen fuera del set con más gemelas (687)', x.principal === 'base1' && x.fuera.length === 1 && x.fuera[0].id === 'c' && x.fuera[0].gemela === 'w3', JSON.stringify(x))
   }
   check('  …y la huella de ataques no depende del idioma', huellaDeAtaques({ attacks: [{ name: 'Arañazo', cost: ['Colorless'], damage: '10' }] }) === huellaDeAtaques({ attacks: [{ name: 'Scratch', cost: ['Colorless'], damage: '10' }] }) && huellaDeAtaques({}) === '')
-  check('los motivos, uno a uno', sinPar.length === 3 && sinPar.some((s) => /sin nombre/.test(s.motivo)) && sinPar.some((s) => /otros PS/.test(s.motivo)), JSON.stringify(sinPar))
+  check('un Entrenador que solo casa por el nombre va a su gemela del set PRINCIPAL, no a la promo más antigua (697)', pares.get('scrydex-base1-94')?.west.id === 'base1-94' && pares.get('scrydex-base1-94').setWest === 'base1', JSON.stringify(pares.get('scrydex-base1-94')))
+  check('  …y si fuera del principal no hay otra, se queda sin par con su motivo', !pares.has('scrydex-base1-95') && sinPar.some((s) => s.id === 'scrydex-base1-95' && /solo casa por el nombre y fuera de base1/.test(s.motivo)), JSON.stringify(sinPar))
+  check('  …sin dejar rastro de los campos de trabajo en el par', !('candidatas' in pares.get('scrydex-base1-6')) && !('soloNombre' in pares.get('scrydex-base1-6')))
+  check('los motivos, uno a uno', sinPar.length === 4 && sinPar.some((s) => /sin nombre/.test(s.motivo)) && sinPar.some((s) => /otros PS/.test(s.motivo)), JSON.stringify(sinPar))
   const f = filaEspejo('scrydex-base1-6', { card_id: 'base1-4', cm_id_product: 273699, cm_low: 499.99, cm_low_es: 500, cm_avg30: 709.55, tp_market_eur: 0, tcggo_updated: 'x' }, new Date('2026-10-06T12:00:00Z'))
   check('la fila copia SOLO el producto (688): el precio de la gemela va a null, lo de cada idioma ni se nombra, y se firma espejo', f.card_id === 'scrydex-base1-6' && f.cm_id_product === 273699 && f.cm_low === null && f.cm_avg30 === null && f.tp_market_eur === null && f.tcggo_updated === null && !('cm_low_es' in f) && f.origen === 'espejo' && f.checked_at, JSON.stringify(f))
   check('sin producto, sin fila', filaEspejo('x', { cm_low: 3 }) === null)

@@ -8,7 +8,7 @@
 // expansión es un set nuestro, que se prueban los dos parámetros de
 // búsqueda y se apunta el que contesta, y los frenos (intentos, tope,
 // parón del plan, fallo nuestro).
-import { laUnica, parcheDeCarta, parcheDeScrydex, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO, PRIORIDAD } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
+import { laUnica, parcheDeCarta, parcheDeScrydex, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO, PRIORIDAD, DESHACER, MAXIMO_RESULTADOS } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -24,10 +24,17 @@ check('una suelta con el nombre exacto, y los sobres no cuentan', laUnica({ data
 check('con dos sueltas, nada y el motivo', laUnica({ data: [MEW, { ...MEW, id: 1 }] }, 'Ancient Mew').carta === null && /2 cartas/.test(laUnica({ data: [MEW, { ...MEW, id: 1 }] }, 'Ancient Mew').motivo))
 check('con otras cartas pero ninguna del nombre, nada', /ninguna con ese nombre/.test(laUnica({ data: [{ ...MEW, name: 'Mew' }] }, 'Ancient Mew').motivo))
 check('sin nada, nada', /no devuelve nada/.test(laUnica({ data: [] }, 'Ancient Mew').motivo))
+// 697: la primera pasada real casó el Charizard de la Classic del 30
+// (`cel25cc-CC002`) con el de la 30th Anniversary porque la búsqueda por
+// «Charizard» devolvía 300 resultados en 50 por página, y en la página
+// solo UNA se llamaba exactamente así. Una búsqueda que trae más de unos
+// pocos resultados no identifica nada.
+check('con más resultados de los que caben, nada (697)', laUnica({ data: [MEW], results: 300 }, 'Ancient Mew').carta === null && /devuelve 300 cartas/.test(laUnica({ data: [MEW], results: 300 }, 'Ancient Mew').motivo) && laUnica({ data: [MEW], paging: { total: 2 } }, 'Ancient Mew').carta === null && MAXIMO_RESULTADOS === 5)
+check('  …y con `results` dentro del tope, sí', laUnica({ data: [MEW, SOBRE], results: 2 }, 'Ancient Mew')?.carta?.id === 7777)
 
 console.log('── 2. El parche ──')
 const NUESTRA = { id: 'miscp-1', set_id: 'miscp', local_id: '001', name: 'Ancient Mew', name_en: null }
-const SETS = [{ id: 'basep', tcggo_id: 90 }, { id: 'base1', tcggo_id: 171 }]
+const SETS = [{ id: 'basep', tcggo_id: 90, scrydex_id: null }, { id: 'base1', tcggo_id: 171, scrydex_id: null }]
 const { parche, movida } = parcheDeCarta(NUESTRA, MEW, SETS)
 check('foto, id y productos de TCGGO, y el nombre inglés que faltaba', parche.image_tcggo === MEW.image && parche.tcggo_id === 7777 && parche.cm_id_product_propio === 123 && parche.tp_id_product_propio === 456 && parche.name_en === 'Ancient Mew' && parche.tcggo_at, JSON.stringify(parche))
 check('  …y se cambia a basep (la expansión 90 es ese set), con el número de TCGGO', parche.set_id === 'basep' && parche.local_id === '1' && movida?.de === 'miscp' && movida.a === 'basep')
@@ -42,6 +49,7 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
   const estados = {}
   const urls = []
   const parches = []
+  const borrados = []
   const fetchImpl = async (url) => {
     urls.push(url)
     if (/api\.scrydex\.com/.test(url)) {
@@ -59,7 +67,8 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
   const rutas = []
   const restImpl = async (ruta, opciones) => {
     rutas.push(ruta)
-    if (opciones?.method === 'PATCH') { if (baseFalla) throw new Error('Supabase 400: PGRST204'); parches.push({ ruta, cuerpo: JSON.parse(opciones.body) }); return null }
+    if (opciones?.method === 'PATCH') { if (baseFalla && !/cel25cc/.test(ruta)) throw new Error('Supabase 400: PGRST204'); parches.push({ ruta, cuerpo: JSON.parse(opciones.body) }); return null }
+    if (opciones?.method === 'DELETE') { borrados.push(ruta); return null }
     // La lista de prioridad y el tramo por cursor son dos consultas (693.1).
     if (ruta.startsWith('tcg_cards?select=') && /id=in\./.test(ruta)) return [NUESTRA]
     if (ruta.startsWith('tcg_cards?select=')) {
@@ -71,18 +80,25 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
     return []
   }
   const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ env: scrydex ? { ...ENV, SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 'e' } : ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
-  return { estados, urls, parches, rutas, correr }
+  return { estados, urls, parches, borrados, rutas, correr }
 }
 {
   const b = montar()
   const r = await b.correr()
   check('va bien: el Ancient Mew hecho (movido a basep) y el Pikachu sin par (varias)', r.ok && r.hechasAhora.length === 1 && r.hechasAhora[0].id === 'miscp-1' && r.hechasAhora[0].movida?.a === 'basep' && r.sinParAhora.length === 1 && /2 cartas/.test(r.sinParAhora[0].motivo), JSON.stringify(r))
-  check('  …el PATCH va a ESA carta con la foto y el set', b.parches.length === 1 && /id=eq\.miscp-1/.test(b.parches[0].ruta) && b.parches[0].cuerpo.image_tcggo === MEW.image && b.parches[0].cuerpo.set_id === 'basep', JSON.stringify(b.parches[0]))
+  const deMew = b.parches.filter((p) => /id=eq\.miscp-1/.test(p.ruta))
+  check('  …el PATCH va a ESA carta con la foto y el set', deMew.length === 1 && deMew[0].cuerpo.image_tcggo === MEW.image && deMew[0].cuerpo.set_id === 'basep', JSON.stringify(deMew[0]))
+  // 697: lo que la pasada mala escribió se deshace UNA vez, antes de nada,
+  // y queda apuntado: el Charizard vuelve a su set y a su número, sin id ni
+  // foto de TCGGO, y su fila de precio (la del otro Charizard) se borra.
+  const vuelta = b.parches.find((p) => /id=eq\.cel25cc-CC002/.test(p.ruta))
+  check('lo deshecho (697): el Charizard de la Classic vuelve a cel25cc CC002, sin nada de TCGGO, y su precio se borra', DESHACER.length === 1 && b.parches[0] === vuelta && vuelta.cuerpo.set_id === 'cel25cc' && vuelta.cuerpo.local_id === 'CC002' && vuelta.cuerpo.tcggo_id === null && vuelta.cuerpo.image_tcggo === null && vuelta.cuerpo.cm_id_product_propio === null && b.borrados.length === 1 && /tcg_card_prices\?card_id=eq\.cel25cc-CC002/.test(b.borrados[0]) && b.estados[CLAVE_ESTADO].deshechas['cel25cc-CC002']?.set_id === 'cel25cc', JSON.stringify([vuelta, b.borrados]))
   check('el Ancient Mew va en la lista de prioridad, y se pide aparte antes del recorrido (693.1)', PRIORIDAD.includes('miscp-1') && /id=in\./.test(b.rutas.find((r) => r.startsWith('tcg_cards?select=')) || ''), b.rutas[0])
   check('  …y el cursor queda en la última mirada; al acabar vuelve al principio', b.estados[CLAVE_ESTADO].cursor === 'xyp-1', b.estados[CLAVE_ESTADO].cursor)
   check('  …con `search` contestando, UNA petición por carta y el parámetro apuntado', b.urls.length === 2 && b.urls.every((u) => /[?&]search=/.test(u)) && b.estados[CLAVE_ESTADO].parametro === 'search' && b.estados[CLAVE_ESTADO].peticionesHoy === 2, JSON.stringify(b.urls))
   const r2 = await b.correr()
   check('la segunda pasada no repite la hecha y reintenta la sin par (intento 2)', r2.ok && r2.hechasAhora.length === 0 && b.estados[CLAVE_ESTADO].sinPar['xyp-1'].intentos === 2, JSON.stringify(r2))
+  check('  …y no vuelve a deshacer lo deshecho (697)', b.parches.filter((p) => /cel25cc/.test(p.ruta)).length === 1 && b.borrados.length === 1)
   await b.correr()
   const r4 = await b.correr()
   check(`a los ${MAXIMO_INTENTOS} intentos se deja en paz`, r4.miradas === 0 && b.estados[CLAVE_ESTADO].sinPar['xyp-1'].intentos === MAXIMO_INTENTOS, JSON.stringify(r4))
@@ -100,7 +116,7 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
 {
   const b = montar({ limite: true })
   const r = await b.correr()
-  check('con el plan agotado se para hasta mañana, sin escribir nada', r.ok && r.parado?.dia === '2026-10-06' && b.parches.length === 0 && b.urls.length === 1, JSON.stringify(r))
+  check('con el plan agotado se para hasta mañana, sin escribir nada (salvo lo deshecho)', r.ok && r.parado?.dia === '2026-10-06' && b.parches.every((p) => /cel25cc/.test(p.ruta)) && b.urls.length === 1, JSON.stringify(r))
   const r2 = await b.correr()
   check('  …y no vuelve a pedir nada ese día', /parado hoy/.test(r2.saltado) && b.urls.length === 1)
 }
@@ -125,8 +141,11 @@ console.log('── 4. Cuando TCGGO no la tiene, Scrydex por nuestro id (693.2) 
   const r = await b.correr()
   check('con TCGGO vacío y Scrydex con la ficha: el Ancient Mew hecho por Scrydex, con foto y precio', r.ok && r.hechasAhora.length === 1 && r.hechasAhora[0].por === 'scrydex' && b.estados[CLAVE_ESTADO].hechas['miscp-1'].por === 'scrydex' && b.estados[CLAVE_ESTADO].hechas['miscp-1'].precio === true, JSON.stringify(r))
   check('  …el PATCH lleva image_scrydex y el precio va a tcg_card_prices con el NM del holo en dólares', b.parches.some((p) => /miscp-1/.test(p.ruta) && p.cuerpo.image_scrydex) && b.rutas.some((x) => x.startsWith('tcg_card_prices?on_conflict=card_id')), JSON.stringify(b.parches))
-  check('  …el Pikachu (que Scrydex no tiene por ese id) sigue sin par, con los dos motivos', /Scrydex: 404/.test(b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo || ''), b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo)
-  check('  …y se cuentan los créditos de Scrydex aparte', b.estados[CLAVE_ESTADO].scrydexHoy === 2 && b.urls.filter((u) => /scrydex/.test(u)).length === 2)
+  // 697: Scrydex solo para la lista de prioridad o un set que Scrydex
+  // rellenó (scrydex_id): la primera pasada real gastó 40 créditos en
+  // 404 de cartas `mfb-*` que Scrydex no tiene por nuestro id.
+  check('  …el Pikachu (set sin scrydex_id, fuera de la prioridad) NO se le pide a Scrydex y sigue sin par solo por TCGGO (697)', !/Scrydex/.test(b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo || '') && !b.urls.some((u) => /scrydex.*xyp-1/.test(u)), b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo)
+  check('  …y se cuentan los créditos de Scrydex aparte: UNO', b.estados[CLAVE_ESTADO].scrydexHoy === 1 && b.urls.filter((u) => /scrydex/.test(u)).length === 1)
   const sin = montar({ scrydex: false, tcggoVacio: true })
   const r2 = await sin.correr()
   check('sin claves de Scrydex no se le pide nada y la carta queda sin par', r2.hechasAhora.length === 0 && !sin.urls.some((u) => /scrydex/.test(u)))

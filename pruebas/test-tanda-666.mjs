@@ -24,7 +24,7 @@ console.log('── 1. La lista: el 30 va otra vez, entero y con su expansión e
   check('hay un segundo reemplazo del 30, entero, con la Classic, al 30th y con la expansión 431 (de la respuesta de PINGU)', r && r.entero === true && r.sets.join() === '30th,30th-c' && r.destino === '30th' && r.episodio === 431 && r.mercado === 'WEST', JSON.stringify(r))
   check('  …y el primero sigue (hecho, no se repite)', REEMPLAZOS.findIndex((x) => x.clave === '30th') < REEMPLAZOS.findIndex((x) => x.clave === '30th-entero'))
   const c = REEMPLAZOS.find((x) => x.clave === 'cel25-entero')
-  check('Celebrations va igual (687): entero, con la Classic (cel25c), al cel25 y con la expansión 35 de TCGGO', c && c.entero === true && c.sets.join() === 'cel25,cel25c' && c.destino === 'cel25' && c.episodio === 35 && c.mercado === 'WEST', JSON.stringify(c))
+  check('Celebrations va igual (687): entero, con la Classic (cel25cc en nuestra tabla, 697; cel25c por si acaso), al cel25 y con la expansión 35 de TCGGO', c && c.entero === true && c.sets.join() === 'cel25,cel25c,cel25cc' && c.destino === 'cel25' && c.episodio === 35 && c.mercado === 'WEST', JSON.stringify(c))
   // La guarda del modo entero: un set que se va y cuyas cartas TCGGO no
   // trae no es la misma expansión.
   const suyas = [{ name: 'Ho-Oh' }, { name: 'Pikachu' }, { name: 'Mew' }]
@@ -98,7 +98,7 @@ console.log('\n── 3. La función en modo entero: nada nuestro se conserva �
 
 console.log('\n── 4. La pasada: con el primero hecho, hace el entero con la expansión ESCRITA ──')
 {
-  const estados = { [CLAVE_ESTADO]: { hechos: { '30th': { episodio: 552 } }, intentos: {} }, tcggo_pares: { hechos: { '30th': { episodio: 999 } } } }
+  const estados = { [CLAVE_ESTADO]: { hechos: { '30th': { episodio: 552 } }, intentos: {} }, tcggo_pares: { hechos: { '30th': { episodio: 999 } } }, tcggo_precios: { dia: '2026-10-06', hechos: [1, 431, 552, 2], hechosJp: [431] } }
   const hechas = []
   const r = await pasada({
     env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' },
@@ -108,6 +108,10 @@ console.log('\n── 4. La pasada: con el primero hecho, hace el entero con la 
     procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 191, escritas: 191, conservadas: 0, nuevas: 191, borradas: 20, lineasMovidas: 3, deseosMovidos: 0, albumesTocados: 0, seQuedan: [], aproximadas: [{ de: '30th-c-023', a: 'tcggo-1', nombre: 'Pikachu' }], lineasSinDestino: [], setsBorrados: ['30th-c'], setsQueSeQuedan: [] } },
   })
   check('hace el 30th-entero con la 431 de la lista (no la 999 de los pares) y en modo entero', r.ok && r.clave === '30th-entero' && hechas.length === 1 && hechas[0].episodio === 431 && hechas[0].entero === true && r.episodioPor === 'lista', JSON.stringify(r).slice(0, 300))
+  // 697: las cartas nuevas tienen ids nuevos y sus filas de precio se
+  // borraron con las viejas; si la pasada de precios ya había hecho esa
+  // expansión HOY, no volvía hasta mañana — un día entero sin precios.
+  check('  …y le quita la expansión a la pasada de precios de hoy (697), solo en su mercado — también la del reemplazo hecho ANTES de la 697, una vez', estados.tcggo_precios.hechos.join() === '1,2' && estados.tcggo_precios.hechosJp.join() === '431' && estados[CLAVE_ESTADO].hechos['30th'].preciosAvisados === true && estados[CLAVE_ESTADO].hechos['30th-entero'].preciosAvisados === true, JSON.stringify([estados.tcggo_precios, estados[CLAVE_ESTADO].hechos]))
   check('  …y lo apunta con las aproximadas y las líneas sin destino en el resumen', estados[CLAVE_ESTADO].hechos['30th-entero']?.episodio === 431 && estados[CLAVE_ESTADO].hechos['30th-entero'].resumen.aproximadas.length === 1 && Array.isArray(estados[CLAVE_ESTADO].hechos['30th-entero'].resumen.lineasSinDestino))
 }
 

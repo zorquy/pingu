@@ -63,7 +63,7 @@ console.log('── 2. La expansión de un set ──')
 
 console.log('── 3. La pasada, con Scrydex y base de mentira ──')
 {
-  const montar = ({ scrydexStatus = 200, nuestraFalla = false } = {}) => {
+  const montar = ({ scrydexStatus = 200, nuestraFalla = false, sinInclude = false } = {}) => {
     const escrito = { cartas: [], parches: [], precios: [] }
     const estados = {}
     const aMedias = new Set()
@@ -79,6 +79,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       if (scrydexStatus !== 200) return r(scrydexStatus, scrydexStatus === 403 ? '{"error":"subscription required"}' : 'boom')
       if (/\/ja\/expansions/.test(url)) return r(200, { data: [{ id: 'base1', name: 'Expansion Pack', total: 2, printed_total: 2, release_date: '1996/10/20', logo: 'https://images.scrydex.com/pokemon/base1-logo/logo' }, { id: 'jungle', name: 'Pokémon Jungle', total: 48, printed_total: 48, release_date: '1997/03/05' }] })
       if (/\/en\/expansions/.test(url)) return r(200, { data: [] })
+      if (sinInclude && /\/ja\/cards/.test(url) && /include=prices/.test(url)) return r(400, '{"error":"include"}')
       if (/\/ja\/cards/.test(url)) return r(200, { data: [{ ...WEEDLE, id: 'base1-4', number: '4', name: 'リザードン', national_pokedex_numbers: [6], translation: { en: { ...WEEDLE.translation.en, name: 'Charizard' } }, images: [{ type: 'front', large: 'https://images.scrydex.com/pokemon/base1-4/large' }] }, { ...WEEDLE, id: 'base1-5', number: '5', name: 'ピッピ', national_pokedex_numbers: [35], translation: null, variants: [] }] })
       return r(500, 'ruta no prevista ' + url)
     }
@@ -104,6 +105,9 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const r1 = await correr()
     check('primera pasada: la lista (1 crédito) y el primer vacío rellenado (1 crédito)', r1.ok && r1.rellenado?.set === 'BASE1_' && r1.rellenado.cartas === 2 && r1.rellenado.por === 'nombre' && r1.creditos === 2, JSON.stringify(r1))
     check('  …las cartas con nuestro id, set, mercado, foto y nombre inglés (de la traducción, o de la Pokédex)', escrito.cartas.length === 2 && escrito.cartas[0].id === 'scrydex-base1-4' && escrito.cartas[0].set_id === 'BASE1_' && escrito.cartas[0].market === 'JP' && escrito.cartas[0].image_scrydex === 'https://images.scrydex.com/pokemon/base1-4' && escrito.cartas[0].name === 'リザードン' && escrito.cartas[0].name_en === 'Charizard' && escrito.cartas[1].name_en === 'Clefairy', JSON.stringify(escrito.cartas.map((c) => [c.name, c.name_en])))
+    // 697: el listado de Scrydex no trae los precios si no se le piden con
+    // `include=prices` — los 16 sets rellenados salían «0 con precio».
+    check('  …las cartas se piden con include=prices (697)', peticiones.filter((u) => /\/ja\/cards/.test(u)).every((u) => /include=prices/.test(u)) && peticiones.some((u) => /\/ja\/cards/.test(u)), JSON.stringify(peticiones))
     check('  …y el precio de TCGplayer de la que lo trae', escrito.precios.length === 1 && escrito.precios[0].card_id === 'scrydex-base1-4' && escrito.precios[0].tp_normal_market === 0.74 && r1.rellenado.cartas === 2, JSON.stringify(escrito.precios))
     check('  …con las mismas claves las dos (igualarClaves)', Object.keys(escrito.cartas[0]).join() === Object.keys(escrito.cartas[1]).join())
     check('  …y el set desescondido y apuntado', escrito.parches[0]?.body.oculto === false && escrito.parches[0].body.scrydex_id === 'base1' && /id=eq\.BASE1_/.test(escrito.parches[0].ruta))
@@ -150,6 +154,11 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     const r = await correr()
     check('un fallo nuestro al escribir para y se apunta, sin intento', !r.ok && /nuestra base/.test(r.error) && !estados[CLAVE_ESTADO].intentos['JP|BASE1_'] && estados[CLAVE_ESTADO].vistos['JP|BASE1_'] === undefined, JSON.stringify(r))
     check('  …y queda parado hasta otra versión: la pasada siguiente no gasta ni un crédito', estados[CLAVE_ESTADO].parado?.version === VERSION && /desde la versión/.test((await correr()).saltado || '') && estados[CLAVE_ESTADO].gasto.creditos === 2, JSON.stringify(estados[CLAVE_ESTADO].parado))
+  }
+  {
+    const { correr, escrito, estados, peticiones } = montar({ sinInclude: true })
+    const r = await correr()
+    check('si Scrydex rechaza include=prices (400), se vuelve a pedir sin él y se apunta (697)', r.ok && r.rellenado?.set === 'BASE1_' && escrito.cartas.length === 2 && estados[CLAVE_ESTADO].sinIncludePrecios === true && peticiones.filter((u) => /\/ja\/cards/.test(u)).length === 2 && !/include=prices/.test(peticiones.filter((u) => /\/ja\/cards/.test(u))[1]), JSON.stringify([r, peticiones]))
   }
   check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
