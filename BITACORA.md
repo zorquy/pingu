@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 6) — PINGU-Claude (685.2 — scrydex-huecos remata los sets a medias)
+
+**Hecho**: el parche del set ya no escribe `scrydex_at` (no existe en
+`tcg_sets`; paró la función con el Expansion Pack y Jungle a medias:
+cartas dentro, set sin apuntar y escondido). Un set lleno de cartas de
+Scrydex y sin `scrydex_por` se remata sin créditos; los «lleno» se
+olvidan una vez por versión.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`netlify/lib/scrydex.mjs`, `SCHEMA.md`. En `pruebas`: 684.
+
+**Pendiente**: ver en /admin que remata los dos y sigue; migración
+corea-china; Celebrations.
 ## 2026-10-06 (tarde, 5) — PINGU-Claude (686 — el espejo de precios para las japonesas antiguas)
 
 **Hecho**: función programada `precios-espejo` (cada 6 min, solo nuestra

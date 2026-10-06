@@ -54,7 +54,7 @@ export const IDIOMA_DE_MERCADO = { JP: 'ja', WEST: 'en' }
 // estrellarse contra la misma columna que no existía. «Saltar vale para el
 // fallo del otro; para el tuyo, parar» (la 526) — y lo quita un humano
 // desplegando el arreglo, que es lo que cambia esta cadena.
-export const VERSION = '685'
+export const VERSION = '685.2'
 // Cómo se montan los nombres ingleses; si cambia, los sets ya rellenados
 // se vuelven a pasar (una expansión por pasada, un crédito por 100).
 export const VERSION_NOMBRES = 1
@@ -111,6 +111,13 @@ export async function pasada({
   // hasta que se despliegue otra versión.
   if (estado.parado?.version ? estado.parado.version === VERSION : estado.parado?.dia === dia) return { ok: true, saltado: `parado${estado.parado.version ? ` desde la versión ${estado.parado.version}` : ' hoy'}: ${estado.parado.motivo}` }
   if (estado.parado) delete estado.parado
+  // Una vez por versión se olvidan los `lleno` (gratis volver a mirarlos):
+  // la 685.2 llega con dos sets a MEDIAS —cartas escritas y el set sin
+  // apuntar ni desesconder, porque el PATCH falló— que estaban como llenos.
+  if (estado.llenosOlvidados !== VERSION) {
+    for (const [k, v] of Object.entries(estado.vistos)) if (v.estado === 'lleno') delete estado.vistos[k]
+    estado.llenosOlvidados = VERSION
+  }
 
   // Una petición a Scrydex, contada. Un 401/403 para hasta mañana.
   const scrydex = async (ruta, params) => {
@@ -200,7 +207,7 @@ export async function pasada({
     // ── 2. Nuestros sets, y cuáles están vacíos ──
     let sets
     try {
-      sets = (await pedir(`tcg_sets?select=id,name,name_en,release_date,card_count_official,card_count_total,tcg_online_code,tcggo_id,scrydex_id,oculto&market=eq.${mercado}&order=id&limit=2000`)) || []
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,release_date,card_count_official,card_count_total,tcg_online_code,tcggo_id,scrydex_id,scrydex_por,oculto&market=eq.${mercado}&order=id&limit=2000`)) || []
     } catch (e) {
       return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
@@ -222,7 +229,39 @@ export async function pasada({
         await persistir()
         return { ok: false, ...resumen(), error: `nuestra base (${s.id}): ${String(e?.message || e).slice(0, 160)}` }
       }
-      if (alguna.length) { estado.vistos[k(s)] = { fecha: ahora.toISOString(), estado: 'lleno' }; continue }
+      if (alguna.length) {
+        // ¿Lleno A MEDIAS? Cartas de Scrydex dentro y el set sin apuntar
+        // (`scrydex_por`): el PATCH de una pasada anterior no llegó. Se
+        // remata aquí, sin pedirle nada a Scrydex, y queda `rellenado`
+        // con `nombres: 0` para que la fase 0 le ponga los nombres.
+        if (!s.scrydex_por) {
+          let deScrydex
+          try {
+            deScrydex = (await pedir(`tcg_cards?select=id&market=eq.${mercado}&set_id=eq.${encodeURIComponent(s.id)}&origen=eq.scrydex&limit=1`)) || []
+          } catch (e) {
+            await persistir()
+            return { ok: false, ...resumen(), error: `nuestra base (${s.id}): ${String(e?.message || e).slice(0, 160)}` }
+          }
+          if (deScrydex.length) {
+            const { por, expansion } = expansionDelSet(s, expansiones)
+            if (expansion) {
+              try {
+                await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(s.id)}`, { method: 'PATCH', body: JSON.stringify(parcheDeSet(s, expansion)) })
+              } catch (e) {
+                estado.ultimoError = { fecha: ahora.toISOString(), mercado, set: s.id, expansion: expansion.id, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+                estado.parado = { dia, motivo: estado.ultimoError.error, version: VERSION }
+                await persistir()
+                return { ok: false, ...resumen(), error: estado.ultimoError.error }
+              }
+              estado.vistos[k(s)] = { fecha: ahora.toISOString(), estado: 'rellenado', expansion: expansion.id, por, nombre: expansion.name, nombres: 0, rematado: true }
+              await persistir()
+              return { ok: true, ...resumen(), rematado: { mercado, set: s.id, expansion: expansion.id, por } }
+            }
+          }
+        }
+        estado.vistos[k(s)] = { fecha: ahora.toISOString(), estado: 'lleno' }
+        continue
+      }
       vacio = s
       break
     }
@@ -271,7 +310,7 @@ export async function pasada({
       for (let i = 0; i < filas.length; i += 200) {
         await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(filas.slice(i, i + 200)) })
       }
-      await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(vacio.id)}`, { method: 'PATCH', body: JSON.stringify(parcheDeSet(vacio, expansion, ahora)) })
+      await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(vacio.id)}`, { method: 'PATCH', body: JSON.stringify(parcheDeSet(vacio, expansion)) })
     } catch (e) {
       // Fallo NUESTRO: se para sin contar intento, se apunta, y NO se vuelve
       // a pedir nada a Scrydex hasta que se despliegue un arreglo.

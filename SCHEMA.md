@@ -33204,3 +33204,18 @@ quedó en japonés (sin `name_en` no hay gemela).
 
 **Ficheros**: `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`.
 **Pruebas**: 686 (las gemelas, la fila, la pasada con dobles), 391.
+
+**685.2 — la segunda pasada real.** Otra columna que no existe:
+`scrydex_at` tampoco está en `tcg_sets` (sí en `tcg_cards`). El orden de
+la pasada es cartas y DESPUÉS el set, así que el Expansion Pack y Jungle
+se quedaron con sus cartas escritas y el set sin apuntar ni
+desesconder, marcados «lleno» (porque ya tenían cartas) y la función
+parada. Tres cosas: `parcheDeSet` ya no lleva `scrydex_at`; al mirar un
+set lleno SIN `scrydex_por` se pregunta si sus cartas son de Scrydex
+(gratis) y, si lo son, se REMATA —parche, desescondido, `rellenado` con
+`nombres: 0` para que la fase 0 le ponga los nombres— sin pedirle nada
+a Scrydex; y los «lleno» se olvidan una vez por versión
+(`llenosOlvidados`), que volver a mirarlos no cuesta. La lección, por
+segunda vez en el mismo día: **antes de escribir una columna por REST,
+`grep` en las migraciones de ESA tabla**; el mismo nombre en la tabla de
+al lado no cuenta.

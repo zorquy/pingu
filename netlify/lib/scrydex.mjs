@@ -1314,7 +1314,7 @@ export function expansionDelSet(set, expansiones) {
 
 // Lo que se apunta en el set al rellenarlo: su expansión, logo y símbolo,
 // y la fecha y las cuentas SOLO si estaban vacías (la 508: no pisar).
-export function parcheDeSet(set, expansion, ahora = new Date()) {
+export function parcheDeSet(set, expansion) {
   const p = { scrydex_id: expansion.id, scrydex_por: 'huecos', oculto: false }
   if (typeof expansion.logo === 'string' && expansion.logo) p.logo_scrydex = expansion.logo
   if (typeof expansion.symbol === 'string' && expansion.symbol) p.symbol_scrydex = expansion.symbol
@@ -1322,7 +1322,8 @@ export function parcheDeSet(set, expansion, ahora = new Date()) {
   if (!set.card_count_total && Number(expansion.total) > 0) p.card_count_total = Number(expansion.total)
   if (!set.card_count_official && Number(expansion.printed_total) > 0) p.card_count_official = Number(expansion.printed_total)
   if (!set.name_en && expansion.name) p.name_en = String(expansion.name)
-  p.scrydex_at = ahora.toISOString()
+  // Sin `scrydex_at`: esa columna es de `tcg_cards`, no de `tcg_sets`
+  // (PGRST204 en la segunda pasada real, 685.2). La fecha va en el estado.
   return p
 }
 
