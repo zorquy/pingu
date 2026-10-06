@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 6) — PINGU-Claude (671 — las japonesas sin precio, el enlace japonés, coreano y chino)
+
+**Hecho**: la pasada de precios completa el mapa japonés con nuestros
+sets con `tcggo_id` (las expansiones hechas antes de la 642 no estaban
+en el mapa del catálogo: por eso unas japonesas tenían precio y otras
+no); el error de plan japonés queda apuntado, bloquea solo lo japonés
+un día y se ve en /admin (línea PRECIOS completa); el enlace japonés
+lleva `language=7`; y entran `cm_low_ko` y `cm_low_zh` (**MIGRACIÓN
+pendiente**: `supabase-migration-tcggo-corea-china.sql`; sin ella la
+pasada escribe lo demás y lo avisa).
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`supabase-migration-tcggo-corea-china.sql`, `js/cardmarket.js`,
+`css/cardmarket.css`, `js/mi-coleccion.js`, `admin/js/admin.js`,
+`SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 671 (nueva) y 589.
+
+**Pendiente**: que PINGU ejecute la migración; la suite entera.
 ## 2026-10-06 (mañana, 5) — PINGU-Claude (670 — el barrido de huecos: sets sin cartas que se rellenan solos)
 
 **Hecho**: la pasada programada del reemplazo, con la lista hecha,

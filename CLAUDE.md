@@ -462,6 +462,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   no casa se reapunta por nombre al número más cercano (apuntado) o se
   borra con sus líneas, que quedan escritas en el estado. Borrar sí; en
   silencio no.
+- **Un mapa que se escribe «al terminar» no tiene lo que terminó ANTES de
+  existir el mapa** (tanda 671). La pasada de precios recorría las
+  expansiones japonesas de `setsPorEpisodio.JP`, que el catálogo apunta al
+  acabar cada una — y las acabadas antes de la 642 están en `hechos` y no
+  se vuelven a visitar: sus cartas no tuvieron precio nunca, y «algunas sí,
+  algunas no» no lo cantó nadie. La fuente buena es la FILA (`tcg_sets.
+  tcggo_id`), que no depende de cuándo se escribió el mapa. Y de la misma
+  tanda: un 403 de PLAN para el catálogo japonés no es «el plan no da más»
+  (eso para todo) ni un error cualquiera (eso se repite cada diez minutos):
+  bloquea SOLO lo japonés hasta mañana y se apunta donde /admin lo lea.
 - **Rellenar un set vacío con los MISMOS ids que ya tiene otro set los
   MUEVE, no los copia** (tanda 670). Las cartas de TCGGO entran como
   `tcggo-<id>` y la RPC hace upsert por id: rellenar el «Expansion Pack»

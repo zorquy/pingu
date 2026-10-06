@@ -322,7 +322,9 @@ function idiomasDeLaVista() {
   // El chino fuera del catálogo chino no es que no se ofrezca por gusto:
   // una carta china no está en el catálogo occidental, así que no hay
   // ninguna a la que ponerle esa etiqueta.
-  return IDIOMAS.filter((i) => i.id !== 'zh')
+  // Y el coreano igual (671): tiene precio, pero no hay carta coreana a la
+  // que ponérselo en estos catálogos.
+  return IDIOMAS.filter((i) => i.id !== 'zh' && i.id !== 'ko')
 }
 
 // El idioma por defecto es EL DE LA VISTA. Los cuatro identificadores de

@@ -113,13 +113,31 @@ export async function procesar({
     if (!setsPorEpisodio.has(h.episodio)) setsPorEpisodio.set(h.episodio, [])
     setsPorEpisodio.get(h.episodio).push(setId)
   }
-  // Y las japonesas (642): las que `tcggo-catalogo` ha casado con un set.
+  // Y las japonesas (642): las que `tcggo-catalogo` ha casado con un set…
   const setsPorEpisodioJp = new Map()
   for (const [id, sets] of Object.entries(catalogo?.setsPorEpisodio?.JP || {})) {
     if (Array.isArray(sets) && sets.length) setsPorEpisodioJp.set(Number(id), sets)
   }
+  // …Y TAMBIÉN nuestros sets japoneses con `tcggo_id` (671). El mapa del
+  // catálogo solo tiene las expansiones que escribió DESPUÉS de existir el
+  // mapa: las de antes están hechas y no se vuelven a visitar, así que sus
+  // sets no entraban aquí y sus cartas no tenían precio — «las japonesas
+  // no tienen precio; algunas sí, algunas no» (PINGU). La fila del set es
+  // la fuente que no se queda vieja (y es una consulta a lo nuestro).
+  try {
+    const filasJp = (await pedir('tcg_sets?select=id,tcggo_id&market=eq.JP&tcggo_id=not.is.null&limit=2000')) || []
+    for (const s of filasJp) {
+      const id = Number(s.tcggo_id)
+      if (!Number.isInteger(id) || id <= 0 || !s.id) continue
+      const lista = setsPorEpisodioJp.get(id) || []
+      if (!lista.includes(s.id)) setsPorEpisodioJp.set(id, lista.concat([s.id]))
+    }
+  } catch { /* sin la consulta se sigue con el mapa del catálogo */ }
+  // El japonés bloqueado por el PLAN (671): si TCGGO contesta que el
+  // catálogo japonés pide Ultra, no se le vuelve a pedir en todo el día.
+  const jpBloqueado = estado.jpBloqueado?.dia === dia
   const pendientes = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id))
-  const pendientesJp = [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id))
+  const pendientesJp = jpBloqueado ? [] : [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id))
   if (!pendientes.length && !pendientesJp.length) {
     if (!estado.hecho) { estado.hecho = true; await persistir() }
     return { ok: true, dia, hecho: true, saltado: `los precios de ${dia} ya están puestos`, episodios: setsPorEpisodio.size + setsPorEpisodioJp.size }
@@ -143,6 +161,13 @@ export async function procesar({
     const texto = await res.text()
     if (!res.ok) {
       parado = esLimiteDelPlan(res.status, texto) ? `RapidAPI ${res.status}: el plan no da más por ahora` : `TCGGO ${res.status}: ${texto.slice(0, 160)}`
+      // Lo que para se apunta (671): hasta ahora volvía en la respuesta de
+      // la función, que no lee nadie (la lección de la 655).
+      estado.ultimoParado = { fecha: ahora.toISOString(), motivo: parado, url: String(url).replace(/\?.*$/, '') }
+      if (/japanese_catalog|required_plan|Ultra or Mega/i.test(texto)) {
+        estado.jpBloqueado = { dia, motivo: texto.slice(0, 200) }
+        return { fin: 'plan-jp' }
+      }
       return { fin: 'error' }
     }
     try {
@@ -235,13 +260,18 @@ export async function procesar({
     const suyas = []
     let pagina = 1
     let completo = false
+    let planJp = false
     for (;;) {
       const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, pagina, bases[mercado]))
+      if (r.fin === 'plan-jp') { planJp = true; break }
       if (!r.datos) break
       suyas.push(...(r.datos.data || []))
       if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
       pagina++
     }
+    // El plan no da el japonés: se deja apuntado y lo occidental no se
+    // entera (lo occidental ya ha ido antes, y `parado` no se queda).
+    if (planJp) { parado = null; break }
     if (!completo) break
     if (suyas.length && !suyas.some((s) => s.cardmarket_id)) {
       parado = `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: no se escribe nada`
@@ -267,8 +297,25 @@ export async function procesar({
       filas.push(filaDePreciosTcggo(c.id, s, { ahora, mercado }))
     }
     if (filas.length) {
+      // Sin la migración del coreano y el chino (671) la base rechaza la
+      // fila ENTERA (la lección de la 624): se quitan esas dos columnas,
+      // se apunta para /admin y se escribe lo demás.
+      const sinKoZh = (f) => { const { cm_low_ko, cm_low_zh, ...resto } = f; return resto }
+      const escribir = async (lote) => {
+        try {
+          await guardar(estado.faltaMigracionKoZh ? lote.map(sinKoZh) : lote)
+        } catch (e) {
+          const m = String(e?.message || e)
+          if (/cm_low_ko|cm_low_zh/.test(m) && !estado.faltaMigracionKoZh) {
+            estado.faltaMigracionKoZh = true
+            await guardar(lote.map(sinKoZh))
+            return
+          }
+          throw e
+        }
+      }
       try {
-        for (let k = 0; k < filas.length; k += 500) await guardar(filas.slice(k, k + 500))
+        for (let k = 0; k < filas.length; k += 500) await escribir(filas.slice(k, k + 500))
       } catch (e) {
         const m = String(e?.message || e)
         if (/cm_low_es|PGRST204|42703/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql', dia }

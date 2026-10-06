@@ -3029,7 +3029,17 @@ async function tcggoEstado() {
     }),
     '',
     `PARES (tcggo_pares) — ${de('tcggo_pares')?.updated_at || 'nunca'}: ${Object.keys(de('tcggo_pares')?.valor?.hechos || {}).length} sets con expansión decidida · ${Object.keys(de('tcggo_pares')?.valor?.sinEpisodio || {}).length} sin expansión suya`,
-    `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}`,
+    // La pasada de precios (671): hasta ahora solo salía la fecha, y «las
+    // japonesas no tienen precio» no se veía en ninguna parte.
+    ...(() => {
+      const p = de('tcggo_precios')?.valor || {}
+      return [
+        `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}: día ${p.dia || '—'} · hecho: ${p.hecho ? 'sí' : 'no'} · expansiones hechas hoy: WEST ${p.hechos?.length ?? 0}, JP ${p.hechosJp?.length ?? 0} · peticiones hoy: ${p.gasto?.peticiones ?? 0}`,
+        p.ultimoParado ? `  ⚠ ÚLTIMO PARÓN (${p.ultimoParado.fecha}): ${p.ultimoParado.motivo}` : '  sin parones apuntados',
+        p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
+        p.faltaMigracionKoZh ? '  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql: el coreano y el chino se están tirando' : '',
+      ]
+    })(),
     `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
     // El barrido de huecos (670): sets sin cartas que se rellenan solos.
     ...(() => {

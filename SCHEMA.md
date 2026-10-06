@@ -32443,3 +32443,73 @@ los parados con su error) en vez de volcar el mapa, que no cabría.
 primero vacío se rellena, uno por pasada; llenos, hermanos con su PATCH,
 sin expansión, cero en TCGGO; la semana; los fallos cuentan y paran) y
 `test-tanda-654.mjs` adaptada (sus sets tienen cartas).
+
+## Tanda 671 — las japonesas sin precio, el enlace japonés, y el coreano y el chino (oct. 2026)
+
+PINGU: «las japonesas no tienen precio; algunas sí, algunas no. El
+enlace no te lleva al filtro correcto en Cardmarket. Y lo de traernos
+los precios coreanos y chinos de los prints japoneses». Pegó además la
+respuesta de TCGGO a SU clave del playground: «Japanese catalog requires
+an Ultra or Mega plan · current_plan: BASIC». Tres cosas distintas.
+
+**1. Por qué unas japonesas tenían precio y otras no.** La pasada de
+precios recorría las expansiones japonesas que hay en
+`tcggo_catalogo.setsPorEpisodio.JP`, el mapa que el catálogo escribe al
+terminar cada expansión. Pero ese mapa nació en la 642, y una expansión
+que el catálogo terminó ANTES está en `hechos` y no se vuelve a visitar:
+sus sets nunca entraron en el mapa, y sus cartas nunca tuvieron precio.
+Las de después sí. Desde ahora el mapa japonés se completa con **nuestros
+sets japoneses con `tcggo_id`** (una consulta a lo nuestro, gratis), que
+es la fuente que no se queda vieja. Lo que sigue sin precio es lo que no
+tiene `cm_id_product_propio` (cartas que el catálogo no casó).
+
+**2. El plan.** Si la clave de Netlify fuera BASIC, TCGGO contesta 403 a
+todo lo japonés y hasta ahora eso ni se veía (volvía en la respuesta de
+la función, la lección de la 655) ni dejaba de pedirse cada diez
+minutos. Ahora: todo parón queda en `estado.ultimoParado`; la respuesta
+de plan japonés (`japanese_catalog`, `required_plan`, «Ultra or Mega»)
+deja `estado.jpBloqueado = { dia, motivo }` y en lo que queda de día no
+se le pide nada japonés, **sin tocar lo occidental** (que va antes y no
+hereda el `parado`). /admin → «Estado del catálogo de TCGGO» enseña la
+línea PRECIOS entera: día, hecho, expansiones hechas (WEST/JP),
+peticiones, último parón, japonés bloqueado, migración pendiente. El
+catálogo japonés de esta semana se hizo entero (210 expansiones), así
+que la clave de Netlify SÍ tenía el japonés el 2026-10-06; la BASIC es
+la del playground de PINGU.
+
+**3. El enlace japonés.** `IDIOMAS` llevaba `ja` con `cm: null` («en
+Cardmarket es otro producto»), y es verdad que es otro producto — pero el
+`idProduct` que da TCGGO para una japonesa ES el del producto japonés, y
+dentro de ese producto el filtro de idioma existe: **7** japonés, **10**
+coreano, **11** chino tradicional. Ahora el enlace lleva `idProduct` y
+`language`.
+
+**4. El coreano y el chino.** Su web enseña, en una carta japonesa,
+«Japanese 9 € · Korean 8 € · Chinese 8,50 €». No tenemos su JSON delante
+(la clave BASIC no deja pedirlo), así que `filaDePreciosTcggo` lee las
+grafías que un catálogo puede usar (`_KR`/`_KO`/`_KOR`;
+`_CN`/`_ZH`/`_TW`/`_TC`/`_SC`/`_CHT`/`_CHS`/`_CH`) y la primera con cifra
+vale → `cm_low_ko`, `cm_low_zh`. **Migración pendiente**:
+`supabase-migration-tcggo-corea-china.sql` (las dos columnas). Mientras
+no esté, la base rechazaría la fila ENTERA (la 624): la pasada lo detecta
+(`PGRST204` nombrando `cm_low_ko`/`cm_low_zh`), apunta
+`estado.faltaMigracionKoZh`, quita las dos columnas y escribe lo demás.
+El cliente lee `tcg_card_prices` con `select('*')`, así que las columnas
+llegan solas en cuanto existan; `IDIOMAS_CON_PRECIO` lleva `ko` y `zh`
+(dos filas más en la tabla de Cardmarket de una japonesa, con bandera),
+y al AÑADIR no se ofrecen (`idiomasDeLaVista` los deja fuera como al
+chino: no hay carta coreana a la que ponérselos). La función de la base
+`valor_de_linea` no sabe de `ko`/`zh` (cae al general): no hay líneas
+coreanas todavía.
+
+**Y el inglés de una japonesa.** `cm_low_en` se escribía con el general
+también en el mercado JP, donde el general ES el japonés: afirmaba un
+precio inglés de una impresión japonesa. Ahora en JP solo si viene `_EN`.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`supabase-migration-tcggo-corea-china.sql` (nueva), `js/cardmarket.js`,
+`css/cardmarket.css`, `js/mi-coleccion.js`, `admin/js/admin.js`.
+**Pruebas**: `test-tanda-671.mjs` (la fila JP; los ids de idioma y el
+enlace; la pasada con dobles: mapa desde los sets, plan que bloquea solo
+lo japonés un día, reintento sin las columnas), `test-tanda-589.mjs`
+ajustada.

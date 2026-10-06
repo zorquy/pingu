@@ -337,11 +337,19 @@ export function filaDePreciosTcggo(cardId, carta, { ahora = new Date(), mercado 
   const tp = carta?.prices?.tcg_player || {}
   const ebay = carta?.prices?.ebay || {}
   const idProduct = Number(carta?.cardmarket_id)
+  // El coreano y el chino (671): su catálogo japonés da los mínimos de las
+  // impresiones coreana y china al lado de la japonesa (en su web, «Korean
+  // 8,00 € · Chinese 8,50 €»). No tenemos su JSON delante —PINGU no pudo
+  // pedirlo: su clave del playground es BASIC—, así que se leen las
+  // grafías que un catálogo puede usar y la primera que traiga cifra vale.
+  const primera = (claves) => { for (const k of claves) { const v = positivo(cm[k]); if (v != null) return v } return null }
   return {
     card_id: cardId,
     ...(Number.isInteger(idProduct) && idProduct > 0 ? { cm_id_product: idProduct } : {}),
     cm_low: positivo(cm.lowest_near_mint),
-    cm_low_en: positivo(cm.lowest_near_mint),
+    // En el mercado JP el general ES el japonés (ver cm_low_ja): escribirlo
+    // como inglés afirmaba un precio inglés de una impresión japonesa (671).
+    cm_low_en: mercado === 'JP' ? primera(['lowest_near_mint_EN']) : positivo(cm.lowest_near_mint),
     cm_low_de: positivo(cm.lowest_near_mint_DE),
     cm_low_fr: positivo(cm.lowest_near_mint_FR),
     cm_low_es: positivo(cm.lowest_near_mint_ES),
@@ -349,6 +357,8 @@ export function filaDePreciosTcggo(cardId, carta, { ahora = new Date(), mercado 
     // El japonés (642): su catálogo japonés lo da como `_JP`; y si una carta
     // del mercado JP solo trae el general, ese general ES el japonés.
     cm_low_ja: positivo(cm.lowest_near_mint_JP) ?? (mercado === 'JP' ? positivo(cm.lowest_near_mint) : null),
+    cm_low_ko: primera(['lowest_near_mint_KR', 'lowest_near_mint_KO', 'lowest_near_mint_KOR']),
+    cm_low_zh: primera(['lowest_near_mint_CN', 'lowest_near_mint_ZH', 'lowest_near_mint_TW', 'lowest_near_mint_TC', 'lowest_near_mint_SC', 'lowest_near_mint_CHT', 'lowest_near_mint_CHS', 'lowest_near_mint_CH']),
     cm_avg30: positivo(cm['30d_average']),
     cm_avg7: positivo(cm['7d_average']),
     cm_disponibles: Number.isInteger(cm.available_items) ? cm.available_items : null,

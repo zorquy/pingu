@@ -337,6 +337,8 @@ a.pv-fila-enlace:hover span:first-of-type {
 .pv-bandera[data-idioma='it'] { background: linear-gradient(90deg, #009246 33%, var(--blanco-fijo) 33% 66%, #ce2b37 66%); }
 .pv-bandera[data-idioma='pt'] { background: linear-gradient(90deg, #006600 40%, #d40000 40%); }
 .pv-bandera[data-idioma='ja'] { background: radial-gradient(circle at 50% 50%, #bc002d 32%, var(--blanco-fijo) 34%); }
+.pv-bandera[data-idioma='ko'] { background: radial-gradient(circle at 50% 50%, #cd2e3a 0 14%, #0047a0 14% 28%, var(--blanco-fijo) 28%); }
+.pv-bandera[data-idioma='zh'] { background: linear-gradient(#de2910, #de2910) 0 0 / 100% 100%, #de2910; }
 
 .pv-gradeadas {
   display: flex;

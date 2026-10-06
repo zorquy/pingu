@@ -32,9 +32,13 @@
 const API = 'https://api.tcgdex.net/v2'
 const CM = 'https://www.cardmarket.com/es/Pokemon'
 
-// Los idiomas de Cardmarket para una carta occidental (los de su filtro
-// en la página de un producto). La japonesa, la coreana y la china son
-// OTROS productos en Cardmarket: no hay filtro que las saque aquí.
+// Los idiomas de Cardmarket, con el número de su filtro `language`. La
+// japonesa, la coreana y la china son OTROS productos en Cardmarket (el
+// `idProduct` de TCGGO para una carta japonesa es el del producto
+// japonés), y dentro de ESE producto el filtro de idioma sí existe: 7 es
+// el japonés, 10 el coreano, 11 el chino tradicional (671). Hasta la 671
+// iban a `null` y el enlace salía sin filtro («no te lleva al filtro
+// correcto», PINGU).
 export const IDIOMAS = [
   { id: 'es', cm: 4, nombre: 'Español' },
   { id: 'en', cm: 1, nombre: 'Inglés' },
@@ -42,18 +46,21 @@ export const IDIOMAS = [
   { id: 'de', cm: 3, nombre: 'Alemán' },
   { id: 'it', cm: 5, nombre: 'Italiano' },
   { id: 'pt', cm: 8, nombre: 'Portugués' },
-  { id: 'ja', cm: null, nombre: 'Japonés' },
+  { id: 'ja', cm: 7, nombre: 'Japonés' },
+  // El coreano (671): una impresión que TCGGO cotiza al lado de la japonesa.
+  { id: 'ko', cm: 10, nombre: 'Coreano' },
   // El chino entra en la tanda 472, cuando el selector de catálogo pasó a
   // mandar con qué idioma se añade: sin él, añadir del catálogo chino
   // guardaba la carta como ESPAÑOLA. `cm: null` como la japonesa — en
   // Cardmarket es otro producto, no un filtro de este.
-  { id: 'zh', cm: null, nombre: 'Chino' },
+  { id: 'zh', cm: 11, nombre: 'Chino' },
 ]
 export const IDIOMA_POR_DEFECTO = 'es'
 
 // Los idiomas en los que TCGGO da un mínimo propio, en el orden en que se
-// enseñan: el nuestro primero. El portugués y los asiáticos no tienen.
-export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it', 'ja']
+// enseñan: el nuestro primero. El portugués no tiene; el coreano y el
+// chino los da su catálogo japonés (671).
+export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it', 'ja', 'ko', 'zh']
 export const columnaDeIdioma = (id) => (IDIOMAS_CON_PRECIO.includes(id) ? `cm_low_${id}` : null)
 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
