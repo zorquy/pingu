@@ -58,19 +58,15 @@ console.log('── 2. La portada en un iPhone ──')
   check('  …cada hueco mide 44 o más', (await page.$$eval('.bm a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
   check('  …la página reserva sitio debajo para que la barra no tape el final', (await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingBottom))) >= 72)
   check('  …y la hamburguesa se va: todo lo suyo está en la barra y las píldoras', !(await page.locator('.nav-toggle').isVisible()))
-  // 704c: nada de píldoras arriba (PINGU: «estamos cogiendo demasiado
-  // espacio»). Las páginas de la sección salen en una hoja al volver a
-  // tocar la sección activa.
+  // 704d: PINGU descartó la hoja al volver a tocar la pestaña («la gente
+  // no lo va a entender») y eligió la burbuja de Mi colección para todas
+  // las secciones: flotando encima de la barra, con icono y palabra.
   check('arriba no hay píldoras, y el hueco bajo la barra de arriba es el pequeño', (await page.locator('.bm-secc').count()) === 0 && (await page.$eval('.page-content', (m) => parseFloat(getComputedStyle(m).paddingTop))) <= 24)
-  check('la hoja de la sección nace cerrada', (await page.locator('.bm-hoja').count()) === 1 && !(await page.locator('.bm-hoja').isVisible()))
-  await page.click('.bm a[aria-current="page"]')
-  await page.waitForTimeout(300)
-  const hoja = await page.$$eval('.bm-hoja a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`))
-  check('tocar Inicio (ya activa) abre la hoja con sus páginas: Inicio (activa) y Noticias, encima de la barra', (await page.locator('.bm-hoja').isVisible()) && hoja.join() === 'Inicio*,Noticias' && (await page.$eval('.bm-hoja', (e) => e.getBoundingClientRect().bottom)) <= (await page.$eval('.bm', (e) => e.getBoundingClientRect().top)), hoja.join())
-  check('  …cada fila mide 44', (await page.$$eval('.bm-hoja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44))))
-  await page.click('.bm-velo')
-  await page.waitForTimeout(200)
-  check('  …y tocar fuera la cierra', !(await page.locator('.bm-hoja').isVisible()))
+  const bu = await page.$eval('.bm-burbuja', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), items: [...e.querySelectorAll('a')].map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`), iconos: e.querySelectorAll('a svg').length } })
+  const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
+  check('la burbuja de la sección flota encima de la barra con Inicio (activa) y Noticias, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias' && bu.iconos === 2, JSON.stringify({ bu, barraTop }))
+  check('  …cada hueco mide 44 o más', (await page.$$eval('.bm-burbuja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
+  check('  …y no hay hoja ni doble toque: la pestaña activa es un enlace normal', (await page.locator('.bm-hoja').count()) === 0 && !(await page.locator('.bm a[aria-current="page"]').getAttribute('aria-haspopup')))
   check('la hoja se inyecta sola', (await page.locator('link[href="css/movil.css"]').count()) === 1)
   await ctx.close()
 }
@@ -85,23 +81,23 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
   check('la burbuja de Mi colección sigue flotando, justo ENCIMA de la barra (704c)', mc.pos === 'fixed' && mc.alto > 0 && mc.bottom <= barraTop && mc.bottom >= barraTop - 24, JSON.stringify({ mc, barraTop }))
   check('  …y la página reserva sitio para las dos', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom))) >= 160)
-  await page.click('.bm a[aria-current="page"]')
-  await page.waitForTimeout(300)
-  const hoja = await page.$$eval('.bm-hoja a', (as) => as.map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`))
-  check('tocar Cartas abre la hoja con las páginas del desplegable «Cartas», con Mi colección activa', hoja.join() === 'Catálogo de cartas,Lanzamientos,Mi colección*', hoja.join())
+  const ajenas = await page.$$eval('.mc-pestanias .bm-ajena', (as) => as.map((a) => `${a.textContent.trim()}:${a.getAttribute('href')}`))
+  check('en Mi colección no hay segunda burbuja: las otras páginas de Cartas van al final de la suya', (await page.locator('.bm-burbuja').count()) === 0 && ajenas.join() === 'Catálogo:/cartas,Lanzamientos:/lanzamientos.html' && (await page.locator('.mc-pestanias.bm-con-ajenas').count()) === 1, ajenas.join())
   await ctx.close()
 }
 
 console.log('── 4. Las demás secciones, y una página que no está en ningún desplegable ──')
 {
   const { page, ctx } = await abrir('/torneos.html')
-  check('Torneos: Jugar activa, y su hoja lleva Torneos (activa) y Mazos del meta', (await barra(page)).some((x) => x.startsWith('Jugar*:')) && (await page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : ''))))[0] === 'Torneos*' && (await page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim()))).includes('Mazos del meta'))
+  const bj = await page.$eval('.bm-burbuja', (e) => ({ items: [...e.querySelectorAll('a')].map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')), desborda: e.scrollWidth > e.clientWidth + 2, clase: e.classList.contains('desborda-derecha'), ancho: Math.round(e.getBoundingClientRect().width), vw: window.innerWidth }))
+  check('Torneos: Jugar activa, y la burbuja lleva las siete páginas de Jugar con Torneos activa', (await barra(page)).some((x) => x.startsWith('Jugar*:')) && bj.items[0] === 'Torneos*' && bj.items.includes('Meta') && bj.items.includes('Constructor') && bj.items.length === 7, JSON.stringify(bj))
+  check('  …no caben siete: la burbuja se desliza a un lado y lo insinúa con el degradado', bj.desborda && bj.clase && bj.ancho <= bj.vw - 32, JSON.stringify(bj))
   await ctx.close()
   const f = await abrir('/foro.html')
-  check('Foro: Comunidad activa, con hoja Foro (activa) y Gente', (await barra(f.page)).some((x) => x.startsWith('Comunidad*:')) && (await f.page.$$eval('.bm-hoja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')))).join() === 'Foro*,Gente')
+  check('Foro: Comunidad activa, con burbuja Foro (activa) y Gente', (await barra(f.page)).some((x) => x.startsWith('Comunidad*:')) && (await f.page.$$eval('.bm-burbuja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')))).join() === 'Foro*,Gente')
   await f.ctx.close()
   const c = await abrir('/carta.html?id=xy5-1')
-  check('la ficha de una carta no está en ningún desplegable y aun así Cartas sale activa, con su hoja sin ninguna página encendida', (await barra(c.page)).some((x) => x.startsWith('Cartas*:')) && (await c.page.locator('.bm-hoja a').count()) === 3 && (await c.page.locator('.bm-hoja a[aria-current]').count()) === 0)
+  check('la ficha de una carta no está en ningún desplegable: Cartas sale activa y NO hay burbuja (es una hoja, y abajo van sus acciones)', (await barra(c.page)).some((x) => x.startsWith('Cartas*:')) && (await c.page.locator('.bm-burbuja').count()) === 0)
   await c.ctx.close()
 }
 
@@ -111,7 +107,7 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   check('sin cuenta, Cartas lleva al catálogo', (await barra(page)).some((x) => x === 'Cartas:/cartas'), (await barra(page)).join(' | '))
   await ctx.close()
   const d = await abrir('/index.html', { movil: false })
-  check('en el escritorio no hay barra, ni hoja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-hoja').count()) === 0 && (await d.page.locator('link[href="css/movil.css"]').count()) === 0)
+  check('en el escritorio no hay barra, ni burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href="css/movil.css"]').count()) === 0)
   check('  …y la barra de arriba sigue con sus desplegables', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 4)
   await d.ctx.close()
 }
