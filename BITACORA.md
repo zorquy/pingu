@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 14) — PINGU-Claude (632 — Mis partidas al mejor de tres, juego a juego)
+
+**Hecho**: el resultado de una partida se apunta juego a juego, como en
+trainingcourt: conmutador Bo1/Bo3, Bo1 de un toque (Ganada/Perdida/
+Empate) y en Bo3 una fila por juego con V/D/E y «Empieza: Tú/Rival»; la
+fila siguiente sale al marcar la anterior y la tercera solo si hace falta.
+El resultado de la partida sale de los juegos («V, E» = victoria 1-0), y
+sin nada marcado no se guarda (antes «Ganada» venía puesta). Las rondas de
+un torneo abren en Bo3 y las sueltas en Bo1 (se recuerda por sitio). La
+lista y las rondas enseñan «V D V 2-1», y Estadísticas, los juegos y
+cómo te va empezando tú y el rival.
+
+**MIGRACIÓN pendiente**: `supabase-migration-partidas-juegos.sql` (tres
+columnas en `match_log`; sin ella el formulario se queda en Bo1 y no rompe
+nada).
+
+**Ficheros**: `js/partidas-juegos.js` (nuevo), `js/mis-partidas.js`,
+`mis-partidas.html`, `css/partidas.css`,
+`supabase-migration-partidas-juegos.sql`, `SCHEMA.md`. En `pruebas`: 632
+(nueva) y su rigor (16 de 16); `test-partidas-pagina`, 251 y 627 al día
+(marcan el resultado con su botón); el doble siembra las columnas a null.
+
+**Pruebas**: el subconjunto de Mis partidas (partidas, partidas-pagina,
+251, 321, 381, 494, 553, 627, 628, 632) y las de CSS (299, 305, 310–313,
+315) e imports: todas en verde.
 ## 2026-10-06 (tarde, 13) — PINGU-Claude (690 — la «normal» fantasma de Scrydex)
 
 **Hecho**: una japonesa que solo existe en holo salía «Sin precio» y

@@ -248,14 +248,24 @@
           <div id="selRival2"></div>
         </div>
 
+        <!-- El resultado, juego a juego (tanda 632): al mejor de uno un
+             toque; al mejor de tres, cada juego con quién ganó y quién
+             empezó, y el resultado de la partida sale de ahí. Lo pinta
+             mis-partidas.js; `partidaResultado` guarda lo que sale. -->
+        <div class="partidas-res" id="partidaCampoResultado">
+          <div class="partidas-res-cab">
+            <p class="subtext" id="partidaResTitulo">Resultado</p>
+            <div class="partidas-formato hidden" id="partidaFormato" role="radiogroup" aria-labelledby="partidaResTitulo">
+              <button type="button" role="radio" data-formato="bo1" aria-checked="true">Bo1</button>
+              <button type="button" role="radio" data-formato="bo3" aria-checked="false">Bo3</button>
+            </div>
+          </div>
+          <div class="partidas-juegos" id="partidaJuegos"></div>
+          <p class="partidas-marcador" id="partidaMarcador" role="status" aria-live="polite"></p>
+          <input type="hidden" id="partidaResultado" value="" />
+        </div>
+
         <div class="partidas-form-fila">
-          <label>Resultado
-            <select id="partidaResultado">
-              <option value="win">Ganada</option>
-              <option value="loss">Perdida</option>
-              <option value="draw">Empate</option>
-            </select>
-          </label>
           <label id="partidaCampoFecha">Fecha <input type="date" id="partidaFecha" /></label>
           <label id="partidaCampoDonde">Dónde
             <select id="partidaDonde">

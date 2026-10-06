@@ -557,3 +557,92 @@
   .partidas-filtros select,
   .partidas-filtros input { width: 100%; }
 }
+
+/* ── El resultado, juego a juego (tanda 632; el porqué, en SCHEMA.md) ── */
+.partidas-res { margin: var(--e-sm) 0 var(--e-md); }
+.partidas-res-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.partidas-res-cab .subtext { margin: 0; }
+.partidas-formato {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+}
+.partidas-formato button {
+  min-height: 36px;
+  min-width: 52px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.partidas-formato button[aria-checked='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.partidas-juegos { display: flex; flex-direction: column; gap: var(--e-sm); margin-top: var(--e-sm); }
+.partidas-juego { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); }
+.partidas-juego-num { min-width: 64px; font-size: var(--t-sm); font-weight: 600; color: var(--text-mid); }
+.partidas-juego-botones { display: inline-flex; gap: var(--e-sm); }
+.partidas-juego-r {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 700;
+  cursor: pointer;
+}
+.partidas-juego-unico .partidas-juego-r { flex: 1; min-width: 96px; font-size: var(--t-sm); }
+.partidas-juego-unico .partidas-juego-botones { flex: 1 1 280px; }
+.partidas-juego-r:hover { border-color: var(--text-dim); }
+.partidas-juego-win[aria-pressed='true'] { border-color: var(--success); background: rgba(46, 160, 67, 0.16); color: var(--success); }
+.partidas-juego-loss[aria-pressed='true'] { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); }
+.partidas-juego-draw[aria-pressed='true'] { border-color: var(--text-mid); background: rgba(160, 160, 160, 0.14); color: var(--text); }
+.partidas-juego-salida { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.partidas-juego-salida .subtext { margin: 0 var(--e-xs) 0 0; }
+.partidas-juego-salida button {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+.partidas-juego-salida button[aria-pressed='true'] { border-color: var(--navy); background: var(--navy-solid); color: var(--blanco-fijo); }
+.partidas-marcador { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); margin: var(--e-sm) 0 0; font-weight: 600; white-space: nowrap; }
+.partidas-marcador .subtext { white-space: normal; }
+.partidas-marcador:empty { display: none; }
+.partidas-marcador .subtext { font-weight: 400; }
+/* En pequeño, en la lista: «V D V 2-1». El juego que empezaste tú, subrayado. */
+.partidas-mini { display: inline-flex; align-items: center; gap: 2px; }
+.partidas-mini-juego {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+.partidas-mini-empiezas { box-shadow: inset 0 -2px 0 currentColor; }
+.partidas-mini-marcador { margin-left: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); font-variant-numeric: tabular-nums; }
+/* En el móvil «Empieza» baja a su renglón, alineado con los botones. */
+@media (max-width: 520px) {
+  .partidas-juego:not(.partidas-juego-unico) .partidas-juego-salida { margin-left: calc(64px + var(--e-md)); }
+}
+@media (pointer: coarse) {
+  .partidas-formato button,
+  .partidas-juego-salida button { min-height: 44px; }
+}

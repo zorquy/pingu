@@ -33486,3 +33486,60 @@ impresión con su estado («raw NM 0.74 USD»), que es lo que decide.
 `netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`.
 **Pruebas**: 684 (la «normal» fantasma: precio del holo, impresión solo
 holo), 683 sigue.
+
+## Tanda 632 — Mis partidas al mejor de tres, juego a juego (oct. 2026)
+
+PINGU: «me falta que se pueda marcar en Mis partidas el Bo3: algo más
+dinámico, tipo poner game 1 W, L, T y así consecutivamente, como
+trainingcourt.app; una interfaz más cómoda para rellenar tus partidas».
+
+**El formulario** (el mismo para una suelta y para una ronda de un torneo
+apuntado): el desplegable «Resultado» se va. En su sitio, un conmutador
+**Bo1 / Bo3** y los juegos:
+- **Bo1**: tres botones grandes, «Ganada / Perdida / Empate». Un toque.
+- **Bo3**: una fila por juego con **V / D / E** (44 px) y **«Empieza: Tú /
+  Rival»**. Sale solo el juego 1; al marcarlo sale el 2 y el foco salta a
+  él (se rellena de corrido con el dedo o con el teclado); el 3 sale solo
+  si hace falta (1-1). Volver a tocar lo marcado lo quita, con lo de
+  detrás. Quién empieza se puede marcar antes de saber quién gana (se sabe
+  al empezar el juego). Debajo, el marcador: «2-1 · Ganada», y si la
+  partida no está decidida, «si se acabó el tiempo, guárdala así».
+- **El resultado de la partida no se elige: sale de los juegos**
+  (`resultadoDeJuegos` en `js/partidas-juegos.js`, módulo sin imports).
+  Gana quien gana más juegos y un juego empatado no suma a nadie: «V, E»
+  (se acabó el tiempo) es una victoria 1-0, «V D E» un empate. Elegirlo
+  aparte sería poder apuntar «2-1» y «Perdida» a la vez.
+- **Sin nada marcado no se guarda.** Antes «Ganada» venía puesta por
+  defecto, que era apuntar una victoria que nadie había marcado.
+- **El formato se recuerda por sitio** (`localStorage`,
+  `pokedoc-partidas-formato-ronda` / `-suelta`): las rondas de un torneo
+  abren al mejor de tres y las sueltas (TCG Live) al de uno, hasta que
+  cambies.
+- Lo que no se jugó (ID, no presentado, bye) sigue sin juegos: el bloque
+  se esconde, como se escondía el desplegable.
+
+**En la base** (`supabase-migration-partidas-juegos.sql`, MIGRACIÓN
+pendiente): tres columnas opcionales de `match_log` —`formato` ('bo1' |
+'bo3'), `juegos` (una letra por juego: 'WLW') y `salida` (quién empezó
+cada uno: '1' tú, '2' el rival, '-' no se sabe)— con sus tres `check`.
+`resultado` lo sigue guardando la web, calculado: la matriz, las rachas y
+los gráficos de la 628 no cambian. Una fila de antes no trae nada y es
+una partida al mejor de uno sin detalle (`deColumnas`). Mientras la
+migración no esté, una sonda (`select('formato')`, como la de la 627) lo
+sabe: el formulario se queda en Bo1, sin «quién empieza», y no manda
+columnas que la base no tiene. El doble siembra las tres a `null`.
+
+**Dónde se ve**: en la lista de sueltas y en las rondas de un torneo, al
+lado de la letra del resultado, «V D V 2-1» en pequeño (el juego que
+empezaste tú, subrayado; quien no lo ve oye «2-1: juego 1 ganado,
+empezaste tú; …»). Y en Estadísticas, dos datos nuevos de las partidas
+que traen juegos (`cifrasDeJuegos`): **«Juegos 2-3 · 40 %»** (el empate
+como medio, la misma definición que el resto de la página, 628) y
+**«Empezando tú / el rival: 100 % / 0 %»**. Sin ninguna partida con
+juegos no salen: no es un cero, es «no se sabe».
+
+Pruebas: `test-tanda-632.mjs` (las cuentas, la migración sentencia a
+sentencia, el formulario fila a fila, lo guardado, editar, la lista, las
+estadísticas, la ronda en Bo3, sin migración y a 360 px) y su rigor;
+`test-partidas-pagina`, 251 y 627 al día (marcan el resultado con su
+botón).

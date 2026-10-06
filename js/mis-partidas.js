@@ -43,6 +43,7 @@ import {
   ultimas,
 } from './estadisticas-partidas.js'
 import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
+import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -55,6 +56,13 @@ let torneosLog = []
 // se nombra por una o dos cartas.
 let selectores = {}
 let tipoElegido = 'normal'
+// Los juegos de la partida (tanda 632): el formato y, por juego, quién
+// ganó (`r`: W/L/T) y quién empezó (`s`: '1' tú, '2' el rival).
+let formatoElegido = 'bo1'
+let juegosElegidos = []
+// ¿La base ya tiene dónde guardarlos? Sin la migración, el formulario se
+// queda al mejor de uno (que es lo que cabe en `resultado`).
+let juegosEnBase = false
 // El torneo al que se está añadiendo una ronda, o null si la partida
 // que se apunta es suelta. Lo pone «+ Añadir ronda» y lo limpia cerrar.
 let rondaPara = null
@@ -185,6 +193,9 @@ async function partidasApuntadas() {
     repeticion: p.replay_id || null,
     // El mazo guardado con el que se jugó (tanda 627), si se dijo.
     mazoGuardado: p.user_deck_id || null,
+    // Sus juegos (tanda 632). Una fila de antes, o de antes de la
+    // migración, no los trae: al mejor de uno y sin detalle.
+    ...deColumnas(p),
   }))
 }
 
@@ -320,7 +331,7 @@ function pintarLista(partidas) {
     <div class="partidas-fila partidas-${p.resultado}">
       <span class="partidas-fila-mazos">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong>
         <span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}${escapeHtml(p.rivalNombre)}</span>
-      <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>
+      <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>${juegosMiniHtml(p)}
       <span class="subtext partidas-fila-donde">${
         p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
       }${p.fecha ? ` · ${escapeHtml(p.fecha)}` : ''}</span>
@@ -436,6 +447,19 @@ function claseDeRecord(rondas) {
 const TEXTO_TIPO = { id: ' · ID', no_show: ' · no se presentó', bye: '' }
 const LETRA_RESULTADO = { win: 'V', loss: 'D', draw: 'E' }
 
+// Los juegos de una partida al mejor de tres, en pequeño al lado de su
+// resultado (tanda 632): «V D V · 2-1». Al mejor de uno no aportan nada que
+// no diga ya la letra.
+function juegosMiniHtml(p) {
+  if (p.formato !== 'bo3' || !p.juegos?.length) return ''
+  const quien = { 1: ', empezaste tú', 2: ', empezó el rival' }
+  const palabra = { W: 'ganado', L: 'perdido', T: 'empate' }
+  const texto = p.juegos.map((j, i) => `juego ${i + 1} ${palabra[j.r]}${quien[j.s] || ''}`).join('; ')
+  return `<span class="partidas-mini" role="img" aria-label="${escapeHtml(`${textoMarcador(p.juegos)}: ${texto}`)}">${p.juegos
+    .map((j) => `<span class="partidas-mini-juego partidas-ronda-${{ W: 'win', L: 'loss', T: 'draw' }[j.r]}${j.s === '1' ? ' partidas-mini-empiezas' : ''}" aria-hidden="true">${{ W: 'V', L: 'D', T: 'E' }[j.r]}</span>`)
+    .join('')}<span class="partidas-mini-marcador" aria-hidden="true">${escapeHtml(textoMarcador(p.juegos))}</span></span>`
+}
+
 // Qué torneos están desplegados: sobrevive a los repintados.
 const torneosAbiertos = new Set()
 
@@ -474,7 +498,7 @@ function tarjetaTorneoHtml(t) {
              <button type="button" class="link-btn" data-borrar-ronda="${escapeHtml(p.id)}" title="Borrar esta ronda">Borrar</button>
            </span>`
         : ''
-      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}${acciones}</li>`
+      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}${juegosMiniHtml(p)}${acciones}</li>`
     })
     .join('')
   const abierto = torneosAbiertos.has(t.id)
@@ -782,7 +806,33 @@ function pintarExtra(jugadas) {
     ),
     masJugado ? dato('Tu mazo más jugado', escapeHtml(masJugado.nombre), escapeHtml(`${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'} · ${rec(masJugado)}`)) : '',
     masRival ? dato('El rival que más te sale', escapeHtml(masRival.nombre), escapeHtml(`${masRival.total} ${masRival.total === 1 ? 'partida' : 'partidas'} · ${rec(masRival)}`)) : '',
+    ...datosDeJuegos(jugadas, dato),
   ].join('')
+}
+
+// Lo que dicen los juegos (tanda 632): cuántos ganas al mejor de tres y
+// cómo te va empezando tú y empezando el rival. Solo con las partidas que
+// los traen; sin ninguna, no se enseña (no es un cero, es «no se sabe»).
+function datosDeJuegos(jugadas, dato) {
+  const c = cifrasDeJuegos(jugadas)
+  if (!c.partidas) return []
+  const pct = (g, t) => (t ? `${Math.round((g / t) * 100)}%` : '—')
+  const jugados = c.juegos.g + c.juegos.p + c.juegos.e
+  const salida = c.primero.total + c.segundo.total
+  return [
+    dato(
+      'Juegos',
+      escapeHtml(`${c.juegos.g}-${c.juegos.p}${c.juegos.e ? `-${c.juegos.e}` : ''} · ${pct(c.juegos.g + c.juegos.e / 2, jugados)}`),
+      escapeHtml(`En ${c.partidas} ${c.partidas === 1 ? 'partida apuntada' : 'partidas apuntadas'} juego a juego`)
+    ),
+    salida
+      ? dato(
+          'Empezando tú / el rival',
+          escapeHtml(`${pct(c.primero.g, c.primero.total)} / ${pct(c.segundo.g, c.segundo.total)}`),
+          escapeHtml(`Juegos ganados: ${c.primero.g} de ${c.primero.total} empezando tú, ${c.segundo.g} de ${c.segundo.total} empezando el rival`)
+        )
+      : '',
+  ]
 }
 
 // ── Los gráficos (tanda 628) ──
@@ -936,6 +986,12 @@ async function guardarPartida() {
 
   // Un bye no tiene rival: exigirlo sería no dejar apuntarlo nunca.
   const necesitaRival = tipoElegido !== 'bye'
+  // Sin resultado no se guarda: «Ganada» por defecto era apuntar una
+  // victoria que nadie había marcado.
+  if (tipoElegido === 'normal' && !$('partidaResultado').value) {
+    showToast(formatoElegido === 'bo3' ? 'Marca al menos el primer juego.' : 'Marca si la ganaste, la perdiste o empataste.', 'error')
+    return
+  }
   if (!mio?.clave || (necesitaRival && !rival)) {
     showToast(
       necesitaRival ? 'Elige los dos mazos: el tuyo y el del rival.' : 'Elige al menos tu mazo.',
@@ -954,6 +1010,9 @@ async function guardarPartida() {
     // «no se presentó» son victorias, y un ID es un empate. Dejarlo a
     // mano solo daba ocasión de apuntarlo mal.
     resultado: tipoElegido === 'id' ? 'draw' : tipoElegido === 'normal' ? $('partidaResultado').value : 'win',
+    // Los juegos van con la partida si la base tiene dónde (tanda 632); lo
+    // que no se jugó (ID, no presentado, bye) no tiene juegos.
+    ...(juegosEnBase ? (tipoElegido === 'normal' ? aColumnas(formatoElegido, juegosElegidos) : { formato: null, juegos: null, salida: null }) : {}),
     tipo: tipoElegido,
     donde: rondaPara ? rondaPara.nombre : dondeElegido(),
     notas: $('partidaNotas').value.trim() || null,
@@ -1003,6 +1062,7 @@ async function guardarPartida() {
   selectores.rival1?.limpiar()
   selectores.rival2?.limpiar()
   $('partidaNotas').value = ''
+  ponerJuegos(formatoElegido, [])
   await cargar()
 }
 
@@ -1123,9 +1183,104 @@ function rellenarFormConPartida(p, esRonda) {
     $('partidaDondeOtroCampo').classList.toggle('hidden', hay)
   }
   ponerMazoEnSelector('rival1', 'rival2', p.rival, p.tipo === 'bye' ? '' : p.rivalNombre)
-  $('partidaResultado').value = p.resultado || 'win'
+  // Una partida de antes, sin juegos, se abre al mejor de uno con su
+  // resultado marcado: es lo que se apuntó.
+  const letra = { win: 'W', loss: 'L', draw: 'T' }[p.resultado]
+  ponerJuegos(p.juegos?.length ? p.formato : 'bo1', p.juegos?.length ? p.juegos : letra ? [{ r: letra, s: null }] : [])
   $('partidaNotas').value = p.notas || ''
   marcarTipo(p.tipo || 'normal')
+}
+
+// ── Los juegos, uno a uno (tanda 632) ──
+//
+// Al mejor de uno, tres botones; al mejor de tres, una fila por juego con
+// quién lo ganó y quién empezó, y la fila siguiente sale al marcar la
+// anterior —como en trainingcourt—, hasta que la partida está decidida.
+// El resultado de la partida no se elige: sale de los juegos.
+const CLAVE_FORMATO = 'pokedoc-partidas-formato'
+const PALABRA_JUEGO = { W: 'Ganado', L: 'Perdido', T: 'Empate' }
+const PALABRA_PARTIDA = { W: 'Ganada', L: 'Perdida', T: 'Empate' }
+const LETRA_JUEGO = { W: 'V', L: 'D', T: 'E' }
+const CLASE_JUEGO = { W: 'win', L: 'loss', T: 'draw' }
+
+function formatoRecordado(esRonda) {
+  try {
+    const f = localStorage.getItem(`${CLAVE_FORMATO}-${esRonda ? 'ronda' : 'suelta'}`)
+    if (f === 'bo1' || f === 'bo3') return f
+  } catch {}
+  return esRonda ? 'bo3' : 'bo1'
+}
+
+function recordarFormato(f) {
+  try {
+    localStorage.setItem(`${CLAVE_FORMATO}-${rondaPara ? 'ronda' : 'suelta'}`, f)
+  } catch {}
+}
+
+function ponerJuegos(formato, juegos) {
+  formatoElegido = formato === 'bo3' && juegosEnBase ? 'bo3' : 'bo1'
+  juegosElegidos = recortar(formatoElegido, juegos)
+  pintarJuegos()
+}
+
+function pintarJuegos() {
+  const bo3 = formatoElegido === 'bo3'
+  $('partidaFormato').classList.toggle('hidden', !juegosEnBase)
+  document.querySelectorAll('#partidaFormato [data-formato]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.formato === formatoElegido)))
+  const filas = filasVisibles(formatoElegido, juegosElegidos)
+  const botones = (i, j) =>
+    ['W', 'L', 'T']
+      .map((r) => {
+        const texto = bo3 ? LETRA_JUEGO[r] : PALABRA_PARTIDA[r]
+        const etiqueta = bo3 ? `Juego ${i + 1}: ${PALABRA_JUEGO[r].toLowerCase()}` : PALABRA_PARTIDA[r]
+        return `<button type="button" class="partidas-juego-r partidas-juego-${CLASE_JUEGO[r]}" data-juego="${i}" data-r="${r}" aria-pressed="${j?.r === r}" aria-label="${etiqueta}"${bo3 ? ` title="${PALABRA_JUEGO[r]}"` : ''}>${texto}</button>`
+      })
+      .join('')
+  // Quién empezó: solo con la base al día (se guarda en `salida`).
+  const salida = (i, j) =>
+    juegosEnBase
+      ? `<span class="partidas-juego-salida" role="group" aria-label="${bo3 ? `Juego ${i + 1}: quién empezó` : 'Quién empezó'}">
+           <span class="subtext">Empieza</span>
+           <button type="button" data-juego="${i}" data-s="1" aria-pressed="${j?.s === '1'}">Tú</button>
+           <button type="button" data-juego="${i}" data-s="2" aria-pressed="${j?.s === '2'}">Rival</button>
+         </span>`
+      : ''
+  $('partidaJuegos').innerHTML = Array.from({ length: filas }, (_, i) => {
+    const j = juegosElegidos[i] || null
+    return `<div class="partidas-juego${bo3 ? '' : ' partidas-juego-unico'}">
+        ${bo3 ? `<span class="partidas-juego-num">Juego ${i + 1}</span>` : ''}
+        <span class="partidas-juego-botones">${botones(i, j)}</span>
+        ${salida(i, j)}
+      </div>`
+  }).join('')
+  const res = resultadoDeJuegos(formatoElegido, juegosElegidos)
+  $('partidaResultado').value = res || ''
+  const palabra = { win: 'Ganada', loss: 'Perdida', draw: 'Empate' }[res]
+  $('partidaMarcador').innerHTML = bo3 && juegosElegidos.length
+    ? `<strong class="partidas-ronda-res partidas-ronda-${res}">${LETRA_RESULTADO[res]}</strong> ${escapeHtml(textoMarcador(juegosElegidos))} · ${palabra}${decidida('bo3', juegosElegidos) ? '' : ' <span class="subtext">(si se acabó el tiempo, guárdala así)</span>'}`
+    : ''
+}
+
+function marcarJuego(boton) {
+  const i = Number(boton.dataset.juego)
+  const js = juegosElegidos.map((j) => ({ ...j }))
+  while (js.length <= i) js.push({ r: null, s: null })
+  if (boton.dataset.r) {
+    // Volver a tocar el marcado lo quita (y con él los de detrás).
+    if (js[i].r === boton.dataset.r) js.splice(i)
+    else js[i].r = boton.dataset.r
+  } else js[i].s = js[i].s === boton.dataset.s ? null : boton.dataset.s
+  const antes = recortar(formatoElegido, juegosElegidos).length
+  const hechos = recortar(formatoElegido, js)
+  // Quién empezó se puede marcar ANTES que el resultado (se sabe al
+  // empezar el juego): la fila siguiente lo guarda sin contar como jugada.
+  const siguiente = js[hechos.length]
+  juegosElegidos = siguiente && !siguiente.r && siguiente.s && hechos.length < filasVisibles(formatoElegido, hechos) ? [...hechos, { r: null, s: siguiente.s }] : hechos
+  pintarJuegos()
+  // Al marcar un juego nuevo, el foco va al siguiente: se rellena de
+  // corrido con el teclado igual que con el dedo.
+  const sig = boton.dataset.r && hechos.length > antes ? document.querySelector(`#partidaJuegos [data-juego="${hechos.length}"][data-r="W"]`) : null
+  ;(sig || document.querySelector(`#partidaJuegos [data-juego="${i}"][data-${boton.dataset.r ? 'r' : 's'}="${boton.dataset.r || boton.dataset.s}"]`))?.focus()
 }
 
 const NOTA_TIPO = {
@@ -1142,7 +1297,7 @@ function marcarTipo(tipo) {
   document.querySelectorAll('.partidas-tipo').forEach((x) => x.classList.toggle('activo', x.dataset.tipo === tipoElegido))
   // El resultado solo se elige cuando se jugó de verdad: en los demás
   // casos lo decide el tipo, y enseñarlo invitaría a contradecirse.
-  $('partidaResultado').closest('label').classList.toggle('hidden', tipoElegido !== 'normal')
+  $('partidaCampoResultado').classList.toggle('hidden', tipoElegido !== 'normal')
   const nota = $('partidaTipoNota')
   nota.textContent = NOTA_TIPO[tipoElegido] || ''
   nota.classList.toggle('hidden', !NOTA_TIPO[tipoElegido])
@@ -1157,6 +1312,9 @@ function limpiarFormPartida(esRonda) {
   }
   $('partidaNotas').value = ''
   marcarTipo('normal')
+  // El formato se queda el que se usa en ese sitio: las rondas de un
+  // torneo suelen ser al mejor de tres y las sueltas (TCG Live) al de uno.
+  ponerJuegos(juegosEnBase ? formatoRecordado(esRonda) : 'bo1', [])
 }
 
 function cerrarFormPartida() {
@@ -1421,16 +1579,19 @@ async function borrarPartida(id) {
 // repeticiones, la página sigue siendo la de siempre.
 async function cargarMazosYRepeticiones() {
   const yo = session.user.id
-  const [mazos, reps, sonda] = await Promise.all([
+  const [mazos, reps, sonda, sondaJuegos] = await Promise.all([
     supabase.from('user_decks').select('id,name,cards,updated_at').eq('user_id', yo).order('updated_at', { ascending: false }),
     supabase.from('replays').select('id,titulo,jugador_a,jugador_b,ganador,mazo_a,mazo_b,turnos,created_at').eq('user_id', yo).order('created_at', { ascending: false }).limit(500),
     // Pedirla por su nombre falla entera si la columna no existe (42703):
     // así se sabe si la migración está puesta sin tocar nada.
     supabase.from('match_log').select('user_deck_id').limit(1),
+    // Y lo mismo para los juegos (tanda 632).
+    supabase.from('match_log').select('formato').limit(1),
   ])
   mazosGuardados = mazos.error ? [] : mazos.data || []
   repeticionesMias = reps.error ? [] : reps.data || []
   vinculoMazo = !sonda.error
+  juegosEnBase = !sondaJuegos.error
 }
 
 async function cargar() {
@@ -1525,6 +1686,17 @@ async function init() {
   }
 
   $('btnGuardarPartida').addEventListener('click', guardarPartida)
+  $('partidaJuegos').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-juego]')
+    if (b) marcarJuego(b)
+  })
+  $('partidaFormato').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-formato]')
+    if (!b || b.dataset.formato === formatoElegido) return
+    recordarFormato(b.dataset.formato)
+    // Lo marcado se conserva: el juego 1 de un Bo1 es el juego 1 del Bo3.
+    ponerJuegos(b.dataset.formato, juegosElegidos)
+  })
 
   // El formulario de torneo.
   $('torneoLogFecha').value = new Date().toISOString().slice(0, 10)
