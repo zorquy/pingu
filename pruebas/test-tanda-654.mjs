@@ -132,23 +132,26 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
     }
   }
   const ENV = { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' }
+  // Desde la 666 la lista lleva también el reemplazo ENTERO: estas pruebas
+  // son del primero y se lo pasan solo (el entero tiene su prueba, la 666).
+  const SOLO = { reemplazos: REEMPLAZOS.filter((r) => r.clave === '30th') }
   const b = montar()
   const hechas = []
-  const r = await pasada({ env: ENV, ...b, procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 6, escritas: 6, conservadas: 1, nuevas: 5, borradas: 3, lineasMovidas: 2, deseosMovidos: 1, albumesTocados: 1, seQuedan: [], setsBorrados: ['30th-c'], setsQueSeQuedan: [] } } })
+  const r = await pasada({ env: ENV, ...SOLO, ...b, procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 6, escritas: 6, conservadas: 1, nuevas: 5, borradas: 3, lineasMovidas: 2, deseosMovidos: 1, albumesTocados: 1, seQuedan: [], setsBorrados: ['30th-c'], setsQueSeQuedan: [] } } })
   check('la primera pasada hace el reemplazo con la expansión de los pares', r.ok && hechas.length === 1 && hechas[0].episodio === 552 && hechas[0].sets.join() === '30th,30th-c' && hechas[0].destino === '30th' && r.clave === '30th', JSON.stringify(r))
   check('  …y lo apunta como hecho, con su resumen', b.estados[CLAVE_ESTADO].hechos['30th']?.episodio === 552 && b.estados[CLAVE_ESTADO].hechos['30th'].resumen.borradas === 3)
-  const r2 = await pasada({ env: ENV, ...b, procesarImpl: async () => { throw new Error('no debería llamarse') } })
+  const r2 = await pasada({ env: ENV, ...SOLO, ...b, procesarImpl: async () => { throw new Error('no debería llamarse') } })
   check('la segunda pasada no toca nada: todo hecho', r2.ok && r2.hecho === true && r2.hechos.join() === '30th', JSON.stringify(r2))
   // Un fallo cuenta como intento, y a los cinco se para.
   const b3 = montar()
-  for (let k = 0; k < MAXIMO_INTENTOS + 2; k++) await pasada({ env: ENV, ...b3, procesarImpl: async () => ({ ok: false, error: 'TCGGO 500' }) })
+  for (let k = 0; k < MAXIMO_INTENTOS + 2; k++) await pasada({ env: ENV, ...SOLO, ...b3, procesarImpl: async () => ({ ok: false, error: 'TCGGO 500' }) })
   const cuantas = b3.guardados.length
   check(`un fallo cuenta como intento y a los ${MAXIMO_INTENTOS} se para (no es una factura)`, b3.estados[CLAVE_ESTADO].intentos['30th'] === MAXIMO_INTENTOS && cuantas === MAXIMO_INTENTOS && b3.estados[CLAVE_ESTADO].ultimo.error === 'TCGGO 500', JSON.stringify(b3.estados[CLAVE_ESTADO]))
-  const r4 = await pasada({ env: ENV, ...b3, procesarImpl: async () => ({ ok: true }) })
+  const r4 = await pasada({ env: ENV, ...SOLO, ...b3, procesarImpl: async () => ({ ok: true }) })
   check('  …y después dice que está parado', r4.hecho === true && r4.parados.join() === '30th')
   // Sin expansión suya todavía, se espera sin gastar ni contar.
   const b5 = montar({}, {})
-  const r5 = await pasada({ env: ENV, ...b5, procesarImpl: async () => { throw new Error('no debería llamarse') } })
+  const r5 = await pasada({ env: ENV, ...SOLO, ...b5, procesarImpl: async () => { throw new Error('no debería llamarse') } })
   check('sin expansión de TCGGO para el set, espera sin contar intento', r5.ok && /esperando/.test(JSON.stringify(r5)) && !b5.guardados.length, JSON.stringify(r5))
 }
 

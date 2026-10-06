@@ -1,0 +1,410 @@
+{
+    "data": [
+        {
+            "id": 65629,
+            "name": "Zacian",
+            "name_numbered": "Zacian 106",
+            "slug": "zacian",
+            "card_code_number": "30C 106",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 106,
+            "hp": null,
+            "rarity": "rare",
+            "supertype": null,
+            "tcgid": "30C-106",
+            "cardmarket_id": 907713,
+            "tcgplayer_id": 716499,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.02,
+                    "lowest_near_mint_EU_only": 0.02,
+                    "lowest_near_mint_DE": 0.02,
+                    "lowest_near_mint_DE_EU_only": 0.02,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.02,
+                    "lowest_near_mint_ES_EU_only": 0.02,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.17,
+                    "7d_average": 0.14,
+                    "available_items": 1206,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.17
+                }
+            },
+            "episode": {
+                "id": 431,
+                "name": "30th Celebration",
+                "slug": "30th-celebration",
+                "lang": "en",
+                "released_at": "2026-09-16",
+                "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+                "code": "30C",
+                "cards_total": 128,
+                "cards_printed_total": 128,
+                "prices": {
+                    "cardmarket": {
+                        "total": 11133.72,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 765.29,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 434,
+                "name": "AKIRA EGAWA",
+                "slug": "akira-egawa"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/60032/zacian-30c-106-30th-celebration.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/zacian-6",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/65629",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/65629"
+            }
+        },
+        {
+            "id": 65630,
+            "name": "Zamazenta",
+            "name_numbered": "Zamazenta 107",
+            "slug": "zamazenta",
+            "card_code_number": "30C 107",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 107,
+            "hp": null,
+            "rarity": "rare",
+            "supertype": null,
+            "tcgid": "30C-107",
+            "cardmarket_id": 907714,
+            "tcgplayer_id": 716500,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.02,
+                    "lowest_near_mint_EU_only": 0.02,
+                    "lowest_near_mint_DE": 0.02,
+                    "lowest_near_mint_DE_EU_only": 0.02,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.02,
+                    "lowest_near_mint_ES_EU_only": 0.02,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.13,
+                    "7d_average": 0.11,
+                    "available_items": 1176,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.16
+                }
+            },
+            "episode": {
+                "id": 431,
+                "name": "30th Celebration",
+                "slug": "30th-celebration",
+                "lang": "en",
+                "released_at": "2026-09-16",
+                "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+                "code": "30C",
+                "cards_total": 128,
+                "cards_printed_total": 128,
+                "prices": {
+                    "cardmarket": {
+                        "total": 11133.72,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 765.29,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 788,
+                "name": "Tsuyoshi Nagano",
+                "slug": "tsuyoshi-nagano"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/60033/zamazenta-30c-107-30th-celebration.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/zamazenta-3",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/65630",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/65630"
+            }
+        },
+        {
+            "id": 65631,
+            "name": "Gholdengo",
+            "name_numbered": "Gholdengo 108",
+            "slug": "gholdengo",
+            "card_code_number": "30C 108",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 108,
+            "hp": null,
+            "rarity": "Common",
+            "supertype": null,
+            "tcgid": "30C-108",
+            "cardmarket_id": 907715,
+            "tcgplayer_id": 716501,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.03,
+                    "lowest_near_mint_EU_only": 0.02,
+                    "lowest_near_mint_DE": 0.02,
+                    "lowest_near_mint_DE_EU_only": 0.02,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.02,
+                    "lowest_near_mint_ES_EU_only": 0.02,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.1,
+                    "7d_average": 0.09,
+                    "available_items": 1873,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.14
+                }
+            },
+            "episode": {
+                "id": 431,
+                "name": "30th Celebration",
+                "slug": "30th-celebration",
+                "lang": "en",
+                "released_at": "2026-09-16",
+                "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+                "code": "30C",
+                "cards_total": 128,
+                "cards_printed_total": 128,
+                "prices": {
+                    "cardmarket": {
+                        "total": 11133.72,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 765.29,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 379,
+                "name": "Sanosuke Sakuma",
+                "slug": "sanosuke-sakuma"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/60034/gholdengo-30c-108-30th-celebration.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/gholdengo-2",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/65631",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/65631"
+            }
+        },
+        {
+            "id": 65639,
+            "name": "Eevee",
+            "name_numbered": "Eevee 116",
+            "slug": "eevee",
+            "card_code_number": "30C 116",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 116,
+            "hp": null,
+            "rarity": "Common",
+            "supertype": null,
+            "tcgid": "30C-116",
+            "cardmarket_id": 907723,
+            "tcgplayer_id": 714357,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.02,
+                    "lowest_near_mint_EU_only": 0.02,
+                    "lowest_near_mint_DE": 0.04,
+                    "lowest_near_mint_DE_EU_only": 0.04,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.02,
+                    "lowest_near_mint_ES_EU_only": 0.02,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.26,
+                    "7d_average": 0.18,
+                    "available_items": 1315,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.3
+                }
+            },
+            "episode": {
+                "id": 431,
+                "name": "30th Celebration",
+                "slug": "30th-celebration",
+                "lang": "en",
+                "released_at": "2026-09-16",
+                "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+                "code": "30C",
+                "cards_total": 128,
+                "cards_printed_total": 128,
+                "prices": {
+                    "cardmarket": {
+                        "total": 11133.72,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 765.29,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 779,
+                "name": "Wintr Wandr",
+                "slug": "wintr-wandr"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/60042/eevee-30c-116-30th-celebration.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/eevee-64",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/65639",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/65639"
+            }
+        },
+        {
+            "id": 65640,
+            "name": "Eevee",
+            "name_numbered": "Eevee 117",
+            "slug": "eevee",
+            "card_code_number": "30C 117",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 117,
+            "hp": null,
+            "rarity": "Common",
+            "supertype": null,
+            "tcgid": "30C-117",
+            "cardmarket_id": 907724,
+            "tcgplayer_id": 696832,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.05,
+                    "lowest_near_mint_EU_only": 0.05,
+                    "lowest_near_mint_DE": 0.08,
+                    "lowest_near_mint_DE_EU_only": 0.08,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.1,
+                    "lowest_near_mint_ES_EU_only": 0.1,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.38,
+                    "7d_average": 0.36,
+                    "available_items": 659,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.31
+                }
+            },
+            "episode": {
+                "id": 431,
+                "name": "30th Celebration",
+                "slug": "30th-celebration",
+                "lang": "en",
+                "released_at": "2026-09-16",
+                "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+                "code": "30C",
+                "cards_total": 128,
+                "cards_printed_total": 128,
+                "prices": {
+                    "cardmarket": {
+                        "total": 11133.72,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 765.29,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 477,
+                "name": "En Morikura",
+                "slug": "en-morikura"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/60045/eevee-30c-117-30th-celebration.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/eevee-65",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/65640",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/65640"
+            }
+        }
+    ],
+    "paging": {
+        "current": 1,
+        "total": 10,
+        "per_page": 20
+    },
+    "results": 191
+}
