@@ -566,6 +566,13 @@
                han escrito cero cartas—. Sin esto, «0 de 102» en un set
                japonés no se podía explicar desde ningún sitio. -->
           <button class="btn-outline" id="btnTcggoEstado">Estado del catálogo de TCGGO</button>
+          <!-- LA SONDA DE ORÍGENES (683). De UNA carta, qué tiene cada
+               sitio: nuestra base, TCGdex, TCGGO (y de paso sus expansiones
+               más antiguas, occidentales y japonesas) y Scrydex si quedan
+               claves. Unas 20 peticiones a TCGGO por clic. -->
+          <label>Sonda de orígenes <input type="text" id="sondaCartaId" placeholder="base1-4" size="12" /></label>
+          <select id="sondaMercado" aria-label="Mercado de la carta"><option value="WEST">occidental</option><option value="JP">japonés</option></select>
+          <button class="btn-outline" id="btnSondaOrigenes">¿Qué tiene cada sitio?</button>
           <label>Solo estos sets <input type="text" id="tcggoSolo" placeholder="ex7, base1" size="16" /></label>
           <label><input type="checkbox" id="tcggoReiniciar" /> empezar de cero (vuelve a pedir los sets ya hechos)</label>
         </div>

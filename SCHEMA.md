@@ -32996,3 +32996,55 @@ en /aprender.
 
 **Ficheros**: `css/components.css`, `js/aprender.js`. **Pruebas**: 312,
 316 (ajustadas), 299, 305, 308.
+
+## Tanda 683 — la sonda de orígenes: de una carta, qué tiene cada sitio (oct. 2026)
+
+PINGU: «TCGGO no tiene los primeros sets… el primero que tiene es uno de
+2008. Revísalo; si no los tiene, tendremos que traer de Scrydex o de
+TCGdex. Haz un análisis, dime de dónde podemos conseguir cada cosa, pon
+de ejemplo el Charizard de Base Set y el del Expansion Pack, y haz
+pruebas». Desde el contenedor de Claude la red está cerrada (TCGdex,
+RapidAPI, Scrydex y pokedoc.es contestan 000), así que la prueba la hace
+una función y la pide un botón.
+
+**`netlify/functions/sonda-origenes`** (POST, solo admin; cuerpo `{ id,
+mercado }`): para esa carta pregunta a cuatro sitios, cada uno en su
+`try`, y devuelve el resumen de lo que contestó cada uno —un 404 o un 403
+son respuestas, no errores—:
+- nuestra base (la fila de `tcg_cards` con su set, y la de precios);
+- TCGdex (la carta en inglés y español, o japonés e inglés si es JP; y
+  el set: cuántas cartas y cuántas con imagen);
+- TCGGO: la lista ENTERA de expansiones de las dos puertas (occidental y
+  `/pokemon-jp`, hasta 15 páginas cada una), con las ocho más antiguas
+  por fecha y la más nueva —la pregunta de PINGU—; la expansión que casa
+  con nuestro set (`episodioDelSet`: por `tcggo_id`, por nombre inglés,
+  por código, por palabras) y, dentro, la carta por número y por nombre
+  (`cartasQueCasan`; las viejas traen DOS por número, ilimitada y 1.ª
+  edición) con sus ids de Cardmarket y TCGplayer y qué idiomas de
+  Cardmarket traen precio; y dos intentos de búsqueda (`/cards?search=`
+  y `/cards?name=`), porque no sabemos si su `/cards` busca por nombre;
+- Scrydex, con las claves que queden en Netlify: la carta por nuestro id
+  (sus ids occidentales son los nuestros, `base1-4`), la expansión, y si
+  es japonesa la expansión por nombre. Sin claves lo dice; con la
+  suscripción caducada, el 403 también.
+Cuenta las peticiones (unas 20 a TCGGO por clic). El botón está en
+/admin → Cartas, «Sonda de orígenes» (id + mercado), y escribe el informe
+en la caja de diagnóstico.
+
+**Lo que ya se sabe sin pulsar** (de las tandas anteriores): TCGGO
+OCCIDENTAL sí tiene Base Set, Jungle, Fossil, Team Rocket, Gym y Neo
+(588: «0 pares, 2 cartas suyas con ese número: la ilimitada y la 1.ª
+edición»; se separan por `tcgid`), y da el mínimo de Cardmarket por
+idioma, japonés incluido (`lowest_near_mint_JP`, 642), porque para
+Cardmarket el japonés es un IDIOMA del mismo producto. Lo que
+probablemente no tiene es el catálogo JAPONÉS antiguo (`/pokemon-jp`
+empieza donde empiezan las expansiones japonesas de Cardmarket). Scrydex
+declara 231 expansiones japonesas con 22.272 cartas, ficha completa y
+99,9 % de escaneos (500–547), pero sus precios son dólares y yenes y la
+suscripción se dio de baja en la 641. TCGdex lista el Expansion Pack
+japonés con nombre y logo y CERO cartas (68 de 186 sets JP así, 486).
+pokemontcg.io murió como API en la 586 (queda su CDN de imágenes).
+
+**Ficheros**: `netlify/functions/sonda-origenes.mjs`, `admin/index.html`,
+`admin/js/admin.js`. **Pruebas**: 683 (ayudantes con los fixtures reales
+de TCGGO y la sonda entera con red de mentira).

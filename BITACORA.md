@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 1) — PINGU-Claude (683 — la sonda de orígenes)
+
+**Hecho**: botón «Sonda de orígenes» en /admin → Cartas y función
+`sonda-origenes`: de una carta (id + mercado) dice qué tienen nuestra
+base, TCGdex, TCGGO (y sus expansiones más antiguas, occidentales y
+japonesas) y Scrydex. Para contestar «TCGGO no tiene los primeros
+sets» con datos, que desde el contenedor la red está cerrada.
+
+**Ficheros**: `netlify/functions/sonda-origenes.mjs`, `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`. En `pruebas`: 683.
+
+**Pendiente**: que PINGU pulse la sonda con `base1-4` (occidental) y
+con el Charizard del Expansion Pack (japonés) y decidamos de dónde
+traer los sets antiguos; suite entera en marcha; migración
+corea-china; Celebrations.
 ## 2026-10-06 (mediodía, 10) — PINGU-Claude (682 — la valoración en una fila y menos chips en /aprender)
 
 **Hecho**: la caja de valorar una guía pasa a una fila (título,

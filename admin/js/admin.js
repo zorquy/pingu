@@ -3137,6 +3137,53 @@ async function tcggoEmparejar() {
 }
 
 // Una pasada de precios de TCGGO ahora mismo (589): lo mismo que hace la
+// La sonda de orígenes (683): de una carta, qué tiene cada sitio. Lo
+// contesta la función `sonda-origenes` (es la que tiene las claves) y aquí
+// se escribe tal cual, legible, en la caja de diagnóstico.
+async function sondaOrigenes() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnSondaOrigenes')
+  const id = (document.getElementById('sondaCartaId')?.value || '').trim() || 'base1-4'
+  const mercado = document.getElementById('sondaMercado')?.value || 'WEST'
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) return
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = `Preguntando por ${id} (${mercado}) a nuestra base, TCGdex, TCGGO y Scrydex… unos 30 segundos.`
+  try {
+    const res = await fetch('/.netlify/functions/sonda-origenes', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: JSON.stringify({ id, mercado }) })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    const pinta = (titulo, objeto) => `── ${titulo} ──\n${JSON.stringify(objeto, null, 2)}`
+    const ex = (m) => {
+      const e = r.tcggo?.[`expansiones_${m}`]
+      if (!e) return `(sin lista ${m})`
+      return `${m}: ${e.total} expansiones (${e.sinFecha} sin fecha)${e.fin ? ` · ${e.fin}` : ''}\n  más antiguas: ${(e.primeras || []).map((x) => `${x.fecha} ${x.nombre} [${x.codigo || '—'}] #${x.id} (${x.cartas ?? '?'} cartas)`).join('\n                ')}\n  más nueva: ${e.ultima ? `${e.ultima.fecha} ${e.ultima.nombre}` : '—'}`
+    }
+    caja.value = [
+      `Carta ${r.id} · mercado ${r.mercado} · peticiones: TCGGO ${r.peticiones?.tcggo}, TCGdex ${r.peticiones?.tcgdex}, Scrydex ${r.peticiones?.scrydex}`,
+      '',
+      pinta('NUESTRA BASE', r.nuestra),
+      '',
+      pinta('TCGDEX', r.tcgdex),
+      '',
+      '── TCGGO · expansiones más antiguas ──',
+      ex('WEST'),
+      ex('JP'),
+      '',
+      pinta('TCGGO · la expansión de este set', r.tcggo?.expansionDelSet ?? r.tcggo?.saltado),
+      pinta('TCGGO · la carta dentro', { cartasDeLaExpansion: r.tcggo?.cartasDeLaExpansion, ...(r.tcggo?.laCarta || {}) }),
+      pinta('TCGGO · ¿busca por nombre?', r.tcggo?.busqueda),
+      '',
+      pinta('SCRYDEX', r.scrydex),
+    ].join('\n')
+  } catch (err) {
+    caja.value = `Error: ${err.message}`
+  } finally {
+    boton.disabled = false
+  }
+}
+
 // programada cada diez minutos, pero sin esperar. Enseña lo que ha hecho.
 async function tcggoPrecios() {
   const caja = document.getElementById('cardsDiagnostico')
@@ -3299,6 +3346,7 @@ function initCardsSection() {
   document.getElementById('btnTcggoEmparejar')?.addEventListener('click', tcggoEmparejar)
   document.getElementById('btnTcggoEstado')?.addEventListener('click', tcggoEstado)
   document.getElementById('btnTcggoPrecios')?.addEventListener('click', tcggoPrecios)
+  document.getElementById('btnSondaOrigenes')?.addEventListener('click', sondaOrigenes)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )
