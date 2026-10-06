@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (tarde, 5) — PINGU-Claude (686 — el espejo de precios para las japonesas antiguas)
+
+**Hecho**: función programada `precios-espejo` (cada 6 min, solo nuestra
+base): cada carta japonesa de Scrydex hereda el producto de Cardmarket
+de su gemela occidental (nombre inglés + PS + Pokédex + ventana de tres
+años + la más antigua), con el mínimo general y el enlace filtrado a
+japonés. TCGGO no da el mínimo japonés en el producto occidental
+(comprobado con el Charizard BS 4), así que no se inventa.
+
+**Ficheros**: `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`. En `pruebas`: 686.
+
+**Pendiente**: ver en /admin cuántas casan; suite entera; migración
+corea-china; Celebrations.
 ## 2026-10-06 (tarde, 4) — PINGU-Claude (685 — nombres ingleses de las cartas de Scrydex; el desplegable del catálogo escondido otra vez)
 
 **Hecho**: las cartas que trae `scrydex-huecos` llevan `name_en` sacado

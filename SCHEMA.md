@@ -33168,3 +33168,39 @@ la guarda los lee de ahí, y la función los importa Y los reexporta (la
 va antes en el DOM y a la izquierda a propósito) en vez de las de la
 cabecera: ahora mira `#mcEdChapas`. Ese rojo era de la 667, no de hoy:
 la suite de la 673 murió antes de llegar.
+
+## Tanda 686 — el espejo de precios: las japonesas antiguas heredan el producto de su gemela occidental (oct. 2026)
+
+PINGU, con el Blastoise del Expansion Pack sin precio: «¿hay alguna
+manera de enlazarlo con Cardmarket por id de carta?». Y pegó el JSON de
+TCGGO del Charizard BS 4: en el producto occidental vienen el mínimo
+general y los de DE, FR, ES e IT, pero **no hay `lowest_near_mint_JP`**.
+O sea que el mínimo japonés exacto no está en la API; lo que sí hay es
+el PRODUCTO (para Cardmarket la copia japonesa es el mismo producto en
+idioma japonés).
+
+**`netlify/functions/precios-espejo`** (programada cada seis minutos,
+solo nuestra base, sin créditos): para cada set japonés rellenado por
+`scrydex-huecos` (`tcg_sets.scrydex_por = 'huecos'`), un set por pasada
+y repaso diario, casa cada carta con su gemela occidental SIN lista a
+mano (`casarGemelas`): mismo nombre inglés (el `name_en` de la 685 contra
+`name`/`name_en`), mismos PS y misma Pokédex cuando los dos lados los
+traen (las señales canónicas de la 506), la occidental salida DESPUÉS y
+dentro de `VENTANA_DIAS` (tres años), la más antigua si hay varias (el
+Charizard del Expansion Pack es el de Base Set, no el de Base Set 2) y
+con producto de Cardmarket decidido (`cm_id_product_propio`). Le escribe
+a la japonesa una fila de `tcg_card_prices` (`filaEspejo`): el producto,
+el mínimo general, las medias, TCGplayer en euros y las gradeadas de la
+gemela, `origen = 'espejo'`. NO copia los mínimos por idioma (son de
+otras impresiones). La ficha lo rotula como lo que es —«mínimo en
+Cardmarket, cualquier idioma»— y el botón de Cardmarket va al producto
+filtrado a japonés (`language=7`), donde está el precio exacto. Lo que
+no casa queda apuntado con su motivo (`ejemplosSinPar`) y /admin lo
+enseña como ESPEJO DE PRECIOS.
+
+**Lo que no hace**: inventar un precio japonés (no existe en la API), ni
+tocar cartas con par propio, ni Entrenadores y Energías cuyo nombre se
+quedó en japonés (sin `name_en` no hay gemela).
+
+**Ficheros**: `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`.
+**Pruebas**: 686 (las gemelas, la fila, la pasada con dobles), 391.

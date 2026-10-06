@@ -3009,7 +3009,7 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo'])
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
   const cat = de('tcggo_catalogo')
@@ -3066,6 +3066,18 @@ async function tcggoEstado() {
         ...v.filter(([, x]) => x.estado === 'parado').map(([k, x]) => `  ⚠ parado ${k}: ${x.error}`),
         h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
         h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
+      ]
+    })(),
+    // El espejo de precios (686): las japonesas antiguas con el producto de
+    // su gemela occidental.
+    ...(() => {
+      const e = de('precios_espejo')?.valor
+      if (!e) return ['ESPEJO DE PRECIOS (precios_espejo, 686): todavía no ha corrido']
+      const h = Object.entries(e.hechos || {})
+      return [
+        `ESPEJO DE PRECIOS (precios_espejo, 686) — ${de('precios_espejo')?.updated_at || 'nunca'}: ${h.length} sets · ${h.reduce((a, [, x]) => a + (x.espejadas || 0), 0)} cartas con el producto de su gemela · ${h.reduce((a, [, x]) => a + (x.sinPar || 0), 0)} sin gemela`,
+        ...h.map(([k, x]) => `  ${x.nota ? '·' : '✓'} ${k} «${x.nombre || ''}»: ${x.nota || `${x.espejadas} de ${x.cartas} (gemelas en ${(x.setsWest || []).join(', ') || '—'}; sin par ${x.sinPar}${x.sinPrecio ? `, sin precio la gemela ${x.sinPrecio}` : ''})`}`),
+        e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.error}` : '',
       ]
     })(),
     `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
