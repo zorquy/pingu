@@ -3236,6 +3236,8 @@ async function sondaOrigenes() {
       '',
       pinta('NUESTRA BASE', r.nuestra),
       '',
+      pinta('EL SET, Y QUÉ HA HECHO CADA FUNCIÓN CON ÉL', r.setNuestro),
+      '',
       pinta('TCGDEX', r.tcgdex),
       '',
       '── TCGGO · expansiones más antiguas ──',

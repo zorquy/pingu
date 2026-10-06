@@ -159,7 +159,36 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
   } catch (e) {
     informe.nuestra = { error: String(e?.message || e).slice(0, 200) }
   }
-  const setId = set?.id || String(id).replace(/-[^-]+$/, '')
+  const setId = set?.id || String(id).replace(/-[^-]+$/, '').replace(/^scrydex-/, '')
+  // El SET en sí, exista o no la carta (701): si está, si está escondido,
+  // cuántas cartas tiene y con qué ids; y lo que cada función programada
+  // ha apuntado de él. PINGU: «se veía el set y de repente ya no sale».
+  // Sin esto, «no sale» puede ser cuatro cosas distintas.
+  try {
+    const clave = env.SUPABASE_SERVICE_ROLE_KEY
+    const cab = { apikey: clave, authorization: `Bearer ${clave}` }
+    const filas = await pedir(`${SUPABASE_URL}/rest/v1/tcg_sets?select=id,name,name_en,oculto,tcggo_id,scrydex_id,scrydex_por,release_date,card_count_total,serie_id,serie_name_en&id=eq.${encodeURIComponent(setId)}&market=eq.${encodeURIComponent(mercado)}`, cab)
+    const fila = filas.datos?.[0] || null
+    const cartas = await pedir(`${SUPABASE_URL}/rest/v1/tcg_cards?select=id,origen&set_id=eq.${encodeURIComponent(setId)}&market=eq.${encodeURIComponent(mercado)}&limit=500`, cab)
+    const lista = Array.isArray(cartas.datos) ? cartas.datos : []
+    const porOrigen = {}
+    for (const c of lista) porOrigen[c.origen || 'sin origen'] = (porOrigen[c.origen || 'sin origen'] || 0) + 1
+    const estados = await pedir(`${SUPABASE_URL}/rest/v1/scrydex_estado?select=clave,valor&clave=in.(scrydex_huecos,tcggo_calco_jp,tcggo_reemplazos,precios_espejo)`, cab)
+    const de = (k) => (Array.isArray(estados.datos) ? estados.datos : []).find((x) => x.clave === k)?.valor || {}
+    const h = de('scrydex_huecos')
+    const calco = de('tcggo_calco_jp')
+    const reempl = de('tcggo_reemplazos')
+    informe.setNuestro = {
+      fila: fila ? { ...fila } : `no hay ningún set ${setId} en el mercado ${mercado}`,
+      cartas: lista.length, porOrigen, ejemplos: lista.slice(0, 3).map((c) => c.id),
+      huecos: { visto: h.vistos?.[`${mercado}|${setId}`] || null, creado: Object.entries(h.creados || {}).find(([, x]) => x.set === setId)?.[1] || null, parado: h.parado || null },
+      calcoJp: { hecho: Object.entries(calco.hechos || {}).filter(([, x]) => x?.set === setId).map(([ep, x]) => ({ episodio: ep, ...x })), cascaron: calco.cascarones?.vistos?.[setId] || null, planBloqueado: calco.planBloqueado || null },
+      reemplazos: { hueco: reempl.huecos?.vistos?.[`${mercado}:${setId}`] || null },
+      espejo: de('precios_espejo').hechos?.[setId] ? 'hecho' : null,
+    }
+  } catch (e) {
+    informe.setNuestro = { error: String(e?.message || e).slice(0, 200) }
+  }
   const numero = carta?.local_id || String(id).split('-').pop()
   const nombre = carta?.name || ''
 

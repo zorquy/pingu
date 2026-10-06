@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (noche, 2) — PINGU-Claude (701 — la sonda dice qué ha hecho cada función con un set)
+
+**Hecho**: PINGU: «se veía el set de Reviving Legends y de repente ya no
+sale ni el set ni el Lanturn; ¿una API se carga a la otra?». Para no
+adivinar: la sonda de /admin enseña ahora EL SET (si existe, si está
+escondido, cuántas cartas tiene y de qué origen) y lo que han apuntado
+de él `scrydex-huecos`, `tcggo-calco-jp` (que SÍ está activo: 207 de
+210 expansiones hechas, o sea que TCGGO sí da el japonés), el barrido
+de huecos de `tcggo-reemplazar-set` y el espejo. Nada se ha cambiado de
+lo que escribe o borra hasta tener ese dato.
+
+**Ficheros**: `netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`.
+
+**Pendiente**: que PINGU sondee `scrydex-l2_ja-1` (JP) y pegue el bloque
+«EL SET, Y QUÉ HA HECHO CADA FUNCIÓN CON ÉL». Con eso se ve quién lo
+escondió o borró, y se le quita a esa función la mano sobre lo que
+escribe otra.
+
 ## 2026-10-06 (noche, 1) — PINGU-Claude (700 — Reviving Legends con los nombres en japonés: se arregla solo)
 
 **Hecho**: PINGU ve el set con los nombres en japonés. `name_en` sale de
