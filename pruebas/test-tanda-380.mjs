@@ -149,7 +149,7 @@ console.log('\n── 6. Y el síntoma que se ve en pantalla ──')
   // se deja escrito de dónde sale, que es lo que costó encontrar.
   const js = leer('js/mi-coleccion.js')
   check('la estantería mide con las cuentas del set',
-    /card_count_official \|\| set\?\.card_count_total \|\| 0/.test(js),
+    /card_count_total \|\| set\?\.card_count_official \|\| 0/.test(js), // el total manda desde la 669
     (js.match(/return set\?\.card_count[^\n]*/) || [])[0])
 }
 

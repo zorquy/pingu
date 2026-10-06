@@ -48,8 +48,8 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   await page.waitForTimeout(700)
   const tuya = await page.evaluate(() => ({
     abierto: document.getElementById('mcEditor').open,
-    copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
-    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'),
+    copia: !document.getElementById('mcEdEditar').classList.contains('hidden'), // desde la 669, la loseta Editar (el bloque nace plegado)
+    anadir: document.getElementById('mcEdEditar').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'), // sin Editar = no la tienes (669)
     ruta: location.pathname,
   }))
   check('una que tienes abre la ficha', tuya.abierto && tuya.copia && !tuya.anadir, JSON.stringify(tuya))
@@ -67,9 +67,9 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   await page.locator('.mc-bolsillo-enlace').nth(8).click()
   await page.waitForTimeout(700)
   const ajena = await page.evaluate(() => ({
-    copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
+    copia: !document.getElementById('mcEdEditar').classList.contains('hidden'), // desde la 669, la loseta Editar (el bloque nace plegado)
     // Desde la 650 «se puede añadir» es: sin bloque de tu copia y con el «+».
-    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'),
+    anadir: document.getElementById('mcEdEditar').classList.contains('hidden') && !document.getElementById('mcEdAcciones').classList.contains('hidden'), // sin Editar = no la tienes (669)
     titulo: document.getElementById('mcEditorTitulo').textContent,
     ficha: document.getElementById('mcEdFicha').getAttribute('href'),
   }))
@@ -86,8 +86,8 @@ console.log('\n── 1. Al pulsar una carta se abre la ventana, no la página �
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(900)
   const tras = await page.evaluate(() => ({
-    copia: !document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
-    anadir: document.getElementById('mcEdCopiaBloque').classList.contains('hidden'),
+    copia: !document.getElementById('mcEdEditar').classList.contains('hidden'), // desde la 669, la loseta Editar (el bloque nace plegado)
+    anadir: document.getElementById('mcEdEditar').classList.contains('hidden'), // sin Editar = no la tienes (669)
   }))
   // La ficha se queda abierta, ya como TUYA: lo que se acaba de hacer es
   // tener la carta, no cerrar una ventana.

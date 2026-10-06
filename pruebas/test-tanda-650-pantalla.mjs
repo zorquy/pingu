@@ -57,6 +57,8 @@ const abrirFicha = async (page, id) => {
   await page.waitForTimeout(900)
 }
 const dialogo = (page) => page.locator('#mcAnadirDialogo')
+// Desde la 669 el bloque de tu copia nace plegado: Editar lo despliega.
+const desplegar = async (page) => { if (!(await page.locator('#mcEdCopiaBloque').isVisible())) { await page.click('#mcEdEditar'); await page.waitForTimeout(250) } }
 
 console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formulario ──')
 {
@@ -82,6 +84,7 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   check('al guardar, el diálogo se cierra', !(await dialogo(page).evaluate((d) => d.open)))
+  await desplegar(page)
   check('  …y la ficha pasa a ser la de tu copia en INGLÉS, dos copias', (await page.locator('#mcEdCopiaBloque').isVisible()) && /EN NM/.test(limpio(await page.locator('#mcEdCopiaChapas').innerText())) && /2 copias/.test(limpio(await page.locator('#mcEdCopiaVale').innerText())), limpio(await page.locator('#mcEdCopiaVale').innerText()))
   check('  …con lo que pagaste', /pagaste 2,50 €/.test(limpio(await page.locator('#mcEdCopiaVale').innerText())), limpio(await page.locator('#mcEdCopiaVale').innerText()))
   check('  …y «Tienes 2» junto al «+»', limpio(await page.locator('#mcEdTienes').innerText()) === 'Tienes 2')
@@ -105,6 +108,7 @@ console.log('\n── 2. Una que ya tienes en español: «ya en tu colección»,
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   const otras = page.locator('#mcEdOtrasCopias')
+  await desplegar(page)
   check('la ficha pasa a la copia inglesa y dice que también tienes la española', /EN NM/.test(limpio(await page.locator('#mcEdCopiaChapas').innerText())) && (await otras.isVisible()) && /ES NM/.test(limpio(await otras.innerText())) && /×1/.test(limpio(await otras.innerText())), limpio(await otras.innerText()))
   check('  …«Tienes 2»', limpio(await page.locator('#mcEdTienes').innerText()) === 'Tienes 2')
   // LA FORMA DEL FALLO: la española tiene que seguir siendo española.

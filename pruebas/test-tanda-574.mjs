@@ -81,6 +81,9 @@ console.log('── 2. «Quitar de mi colección», en la ficha ──')
   // de dentro del formulario sigue ahí, plegado, y hace lo mismo.
   const boton = page.locator('#mcEdQuitarResumen')
   check('la ficha de una que tienes lleva «Quitar» a la vista (y el largo, plegado)', (await boton.count()) === 1 && (await boton.innerText()).trim() === 'Quitar' && (await page.locator('#mcEdQuitar').innerText()).trim() === 'Quitar de mi colección')
+  // Desde la 669 el bloque de tu copia nace plegado: Editar lo despliega.
+  await page.click('#mcEdEditar')
+  await page.waitForTimeout(250)
   await boton.click()
   await page.waitForTimeout(1200)
   check('al pulsarlo (y aceptar la pregunta) se quita', (await page.locator('#mcCartas .mc-carta').count()) === 2, String(await page.locator('#mcCartas .mc-carta').count()))
