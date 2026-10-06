@@ -401,7 +401,10 @@ function masHtml(c, nombre, variante = null) {
 
 function abrirAnadir(cardId, variante = null) {
   const c = cartaPorId(cardId)
-  if (!c || !sesion || !esMia) return
+  // Un «+» que no hace nada es un silencio (la 510): si la carta no está
+  // en memoria o no hay sesión, se dice.
+  if (!c) { showToast('No encuentro esa carta. Recarga la página y vuelve a intentarlo.', 'error'); return }
+  if (!sesion || !esMia) { showToast('Inicia sesión para añadir cartas a tu colección.', 'error'); return }
   anadir.carta = c
   anadir.variante = variante
   const d = $('mcAnadirDialogo')

@@ -33690,3 +33690,12 @@ así que `abrirAnadir` se salía sin error. Ahora mira también en
 fuera lo que `esDelTCG` no admite, como ya hacen la estantería y el
 buscador. La prueba 692 lleva las dos: un Weedle que no tienes cuyo «+»
 abre el diálogo, y uno de Genetic Apex que no sale.
+
+**694.1 — el «+» no se calla.** PINGU, con la 694 recién empujada: «pues
+no, el + sigue sin hacer nada». Desde aquí no se puede ver si el
+despliegue había llegado, y un «+» que no hace nada es un silencio (la
+510): no distingue «la carta no está en memoria» de «no hay sesión» de
+«el navegador lleva el módulo viejo». Ahora `abrirAnadir` lo dice en un
+aviso: «No encuentro esa carta. Recarga la página y vuelve a intentarlo»
+o «Inicia sesión para añadir cartas». Si no sale ningún aviso, es que el
+módulo que corre es de antes de la 694.

@@ -9,7 +9,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 **Hecho**: el «+» de la Pokédex no hacía nada con una carta que no
 tienes (no estaba en ningún sitio donde se buscaba); y la Pokédex de un
 Pokémon enseñaba cartas de TCG Pocket (la consulta va por Pokédex y
-Pocket también la lleva). Las dos arregladas y cubiertas en la 692.
+Pocket también la lleva). Las dos arregladas y cubiertas en la 692. Y el «+» ya no se calla: si no encuentra la carta o no hay sesión, lo dice en un aviso (694.1).
 
 **Ficheros**: `js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: 692.
 
