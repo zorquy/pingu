@@ -27,6 +27,9 @@ import {
 import { bloqueDePrecio } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila } from './cardmarket.js'
+// Para las marcas de lanzamiento de la gráfica (661): el módulo de la
+// gráfica no toca la base, se le pasa el cliente.
+import { supabase } from './supabase.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
@@ -156,7 +159,7 @@ export async function pintarMercado(carta) {
   // ficha se queda como estaba.
   let repintarHistorial = null
   import('./carta-historial.js')
-    .then(({ montarHistorial }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma))
+    .then(({ montarHistorial, cargadorDeMarcas }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma, { marcas: cargadorDeMarcas(supabase, carta.market || 'WEST') }))
     .then((r) => { repintarHistorial = r })
     .catch(() => {})
 

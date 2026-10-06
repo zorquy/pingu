@@ -186,17 +186,17 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   // japonesa pedia su escaneo a la carpeta inglesa y devolvia 404.
   const comoEspejo = (ruta) =>
     urlDelEspejo ? urlDelEspejo(ruta, calidad) : urlDeImagen(ruta, calidad, carta?.market)
-  // SCRYDEX VA PRIMERO (tanda 509). Es de pago y tiene las 1.351 fotos
-  // que a TCGdex le faltan, así que manda — pero TODA la cadena de
-  // TCGdex se queda detrás y no se borra: un respaldo que vive en el
-  // mismo sitio no es un respaldo (tanda 321), y el día que su CDN no
-  // conteste se sigue viendo la carta.
+  // SCRYDEX YA NO VA PRIMERO (660; lo iba desde la 509). Scrydex se dio
+  // de baja en la 641: sus fotos siguen en la columna y en su CDN mientras
+  // dure, pero una fuente que ya no se paga no puede ir delante de las
+  // dos que sí (TCGdex, con el arte en español, y TCGGO). Se queda en la
+  // cadena, DETRÁS de las dos y delante de Limitless: un respaldo que
+  // sigue contestando no se borra (la 321). Lo apuntó IBAI: «al buscar la
+  // imagen de una carta, todavía se prueba Scrydex lo primero».
   //
   // Va aquí dentro y no en cada pintor porque esta función es el cuello
   // de botella: todo el que dibuja una carta pasa por la cadena. Meterlo
   // en los pintores habría sido meterlo en ocho sitios y olvidarlo en uno.
-  const deScrydex = urlDeFotoScrydex(carta?.image_scrydex, calidad)
-  if (deScrydex) cadena.push(deScrydex)
   const espejo = carta?.image_path ? comoEspejo(carta.image_path) : null
   if (espejo) cadena.push(espejo)
   // Y si la columna está vacía, la MISMA dirección montada a mano (tanda
@@ -210,6 +210,9 @@ export function cadenaDeEscaneo(carta, codigoDeSet = null, calidad = 'low', urlD
   // TCGGO es la ÚNICA, y para las japonesas sin escaneo en TCGdex, la que
   // faltaba. Va entera: es una URL de su CDN.
   if (typeof carta?.image_tcggo === 'string' && /^https?:\/\//.test(carta.image_tcggo)) cadena.push(carta.image_tcggo)
+  // Y la de Scrydex (660), detrás de las dos fuentes vivas.
+  const deScrydex = urlDeFotoScrydex(carta?.image_scrydex, calidad)
+  if (deScrydex) cadena.push(deScrydex)
   // Limitless SOLO para las occidentales: sus ficheros son el arte
   // inglés (`_R_EN_`). Enseñar la impresión inglesa de una carta japonesa
   // sería peor que no enseñar ninguna — en una guía sobre cartas

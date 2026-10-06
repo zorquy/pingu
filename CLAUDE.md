@@ -474,6 +474,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y /admin lo enseña («Estado del catálogo de TCGGO»); y una expansión
   que no se deja escribir se salta a la tercera, no se pide cada cinco
   minutos para siempre.
+- **La cadena de escaneos va TCGdex → TCGGO → Scrydex → Limitless →
+  pokemontcg** (tanda 660; Scrydex iba primero desde la 509 y se dio de
+  baja en la 641). Una fuente que ya no se paga no va delante de las que
+  sí; pero no se borra mientras conteste (la 321). Y **la gráfica del
+  histórico de una carta es `js/carta-historial.js`** (661): rangos, una
+  línea por idioma, marcas de lanzamiento (quien monta le pasa
+  `cargadorDeMarcas(supabase, mercado)`: el módulo no toca la base), chips
+  y lectura. Si añades una línea, su color va por token en
+  `css/cardmarket.css` y nunca verde ni rojo.
 - **El calendario de lanzamientos sale del catálogo** (tanda 656):
   /lanzamientos y la miniatura de la portada leen `tcg_sets` (fecha,
   logo, código), por catálogo; la lista a mano de /admin es solo para un

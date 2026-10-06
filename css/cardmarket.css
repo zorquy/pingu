@@ -443,3 +443,134 @@ a.pv-fila-enlace:hover span:first-of-type {
   color: var(--text-mid);
   font-size: var(--t-xs);
 }
+
+/* ── Lo de la 661: rangos, una línea por idioma, marcas, chips, lectura ── */
+.carta-historial-lienzo {
+  position: relative;
+  max-width: 680px;
+  touch-action: pan-y;
+}
+
+/* Cada idioma con su color (el elegido, gorda; los demás, finos). Son
+   tokens de la casa, no colores sueltos; el rojo y el verde no se usan
+   aquí a propósito: en una gráfica de precios dirían «baja» y «sube». */
+.carta-historial-linea-otra { stroke-width: 1.25; opacity: 0.75; }
+.carta-historial-linea[data-idioma='es'] { stroke: var(--navy-solid); }
+.carta-historial-linea[data-idioma='en'] { stroke: var(--indigo); }
+.carta-historial-linea[data-idioma='de'] { stroke: var(--warning); }
+.carta-historial-linea[data-idioma='fr'] { stroke: var(--pink); }
+.carta-historial-linea[data-idioma='it'] { stroke: var(--ice-dark); }
+.carta-historial-linea[data-idioma='ja'] { stroke: var(--rarity-bronze); }
+.carta-historial-linea[data-idioma='pt'] { stroke: var(--text-dim); }
+
+.carta-historial-marca {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.carta-historial-marca-texto {
+  fill: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.carta-historial-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-sm);
+}
+
+.carta-historial-chip {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: baseline;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--navy) 8%, var(--white));
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+.carta-historial-chip b { color: var(--text); }
+.carta-historial-chip.sube { background: color-mix(in srgb, var(--success) 12%, var(--white)); }
+.carta-historial-chip.sube b { color: var(--success); }
+.carta-historial-chip.baja { background: color-mix(in srgb, var(--danger) 12%, var(--white)); }
+.carta-historial-chip.baja b { color: var(--danger); }
+
+.carta-historial-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+.carta-historial-leyenda-item { display: inline-flex; gap: var(--e-xs); align-items: center; }
+.carta-historial-leyenda-item.elegido { color: var(--text); font-weight: 700; }
+.carta-historial-leyenda-item i { width: 12px; height: 2px; border-radius: 1px; background: var(--navy-solid); }
+.carta-historial-leyenda-item[data-idioma='en'] i { background: var(--indigo); }
+.carta-historial-leyenda-item[data-idioma='de'] i { background: var(--warning); }
+.carta-historial-leyenda-item[data-idioma='fr'] i { background: var(--pink); }
+.carta-historial-leyenda-item[data-idioma='it'] i { background: var(--ice-dark); }
+.carta-historial-leyenda-item[data-idioma='ja'] i { background: var(--rarity-bronze); }
+.carta-historial-leyenda-item[data-idioma='pt'] i { background: var(--text-dim); }
+.carta-historial-leyenda-item[data-idioma='tp'] i { background: var(--text-mid); }
+
+.carta-historial-rangos {
+  display: flex;
+  gap: var(--e-xs);
+  justify-content: space-around;
+  max-width: 680px;
+  margin: var(--e-sm) 0 0;
+}
+
+.carta-historial-rango {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 72px;
+  min-height: 32px;
+  padding: 0 var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.carta-historial-rango:hover:not(:disabled) { color: var(--text); }
+.carta-historial-rango.activo { background: var(--navy-solid); color: var(--blanco-fijo); }
+.carta-historial-rango:disabled { color: var(--text-dim); cursor: default; }
+.carta-historial-rango:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+@media (pointer: coarse) {
+  .carta-historial-rango { min-height: 40px; }
+}
+
+.carta-historial-lectura {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lx);
+  width: 0;
+  border-left: 1px dashed var(--navy);
+  pointer-events: none;
+}
+.carta-historial-globo {
+  position: absolute;
+  top: var(--ly);
+  left: var(--e-sm);
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+.carta-historial-globo b { color: var(--text); font-variant-numeric: tabular-nums; }
+.carta-historial-lectura.a-la-izquierda .carta-historial-globo { right: var(--e-sm); left: auto; }

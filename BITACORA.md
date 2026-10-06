@@ -4,6 +4,51 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (madrugada, 4) — PINGU-Claude (660, 661 — Scrydex al final de la cadena; el histórico como el de TCGGO)
+
+**Hecho**: (660) la cadena de escaneos va TCGdex → TCGGO → Scrydex →
+Limitless → pokemontcg (de la lista de IBAI: Scrydex iba primero). (661)
+el histórico de precios de /carta y de la ficha de Mi colección tiene
+selector de rango (7D…MAX), una línea por idioma con su color, marcas
+verticales de las expansiones grandes del tramo, chips de 7 y 30 días y
+lectura al pasar el dedo. JS compartido: suite entera (ver abajo).
+
+**Ficheros**: `js/escaneo-carta.js`, `js/carta-historial.js`,
+`js/carta-mercado.js`, `js/mi-coleccion.js` (una línea),
+`css/cardmarket.css`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 661
+(nueva); 643 y 643-pantalla al día; 368, 478 y 564 al día (prohibían
+cualquier mando en la casilla; ahora admiten solo el «+» de la 657).
+
+**Suite entera (657–661)**: 306 verdes, 5 rojos: 368, 478 y 564 (los de
+arriba, verdes tras ponerlos al día) y 493 y 514 (ffmpeg, no hay en el
+contenedor).
+
+**PROPUESTAS PARA PINGU (de la noche del 5 al 6)**, por orden de lo que
+creo que más luce:
+1. **La gráfica del valor de una EXPANSIÓN** en su cabecera (tenemos
+   `tcg_set_valor` a diario): la misma gráfica de la 653 con rangos.
+2. **«Las que más se mueven» en el Panel**: con el histórico diario de
+   tus cartas (`tcg_card_history`, la foto de la 643) salen las tres que
+   más han subido y bajado esta semana, con foto y porcentaje.
+3. **Avisos de precio**: «avísame si esta carta baja de X €» desde la
+   ficha (una tabla `user_alertas` + la pasada de precios + correo).
+4. **Deseos con precio objetivo** (lo mismo para la lista de deseos).
+5. Coreano y chino en las japonesas: en cuanto haya el JSON.
+6. Un `mensajeDeError()` común para los ~20 sitios que enseñan el error
+   técnico tal cual (lista de IBAI; es suyo, pero el ayudante lo puedo
+   hacer yo).
+## 2026-10-06 (madrugada, 3) — PINGU-Claude (657, 658, 659 — el «+» en cada carta, la chispa de la expansión, el inglés de los sets)
+
+**Hecho**: (657) cada carta de una expansión lleva un «+» que abre el
+diálogo de añadir con esa carta, como en TCGGO; solo con sesión. (658)
+la tarjeta de expansión lleva una chispa con la línea del último mes
+(verde/roja) delante del valor. (659) `tcggo-catalogo` escribe el
+nombre inglés de la expansión en los sets que no lo tienen —de la lista
+de IBAI—. Sin migración.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`netlify/functions/tcggo-catalogo.mjs`, `SCHEMA.md`. En `pruebas`: 657
+(nueva, las tres).
 ## 2026-10-06 (madrugada, 2) — PINGU-Claude (656 — el calendario de lanzamientos sale del catálogo)
 
 **Hecho**: /lanzamientos lee `tcg_sets` —desplegable Pokémon / Pokémon

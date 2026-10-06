@@ -62,7 +62,7 @@ async function rest(ruta, clave, opciones = null) {
 export const semanaDe = (fecha) => Math.floor(fecha.getTime() / (7 * 86_400_000))
 
 export async function procesar({
-  env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null, crearSetsImpl = null, estadoImpl = null, guardarEstadoImpl = null,
+  env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null, crearSetsImpl = null, nombrarSetImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), peticiones = 60,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -79,6 +79,13 @@ export async function procesar({
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardarCartas = guardarCartasImpl || ((filas, mercado) => rest('rpc/tcggo_guardar_cartas', clave, { method: 'POST', body: JSON.stringify({ p_cartas: filas, p_market: mercado }) }))
   const crearSets = crearSetsImpl || ((filas, mercado) => rest('rpc/tcggo_crear_sets', clave, { method: 'POST', body: JSON.stringify({ p_sets: filas, p_market: mercado }) }))
+  // EL NOMBRE INGLÉS DE UN SET QUE NO LO TIENE (659). IBAI: «algunas
+  // colecciones no tienen nombre en inglés». TCGdex lo trae a veces y a
+  // veces no; TCGGO nombra todas sus expansiones en inglés, y aquí se
+  // tiene delante la expansión de cada set nuestro. Solo se rellena lo
+  // vacío, por REST con la clave de servicio (sin SQL nuevo), y si falla
+  // no para nada: es un rótulo, no una carta.
+  const nombrarSet = nombrarSetImpl || ((setId, mercado, nombre) => rest(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(setId)}`, clave, { method: 'PATCH', body: JSON.stringify({ name_en: nombre }) }))
   const leerEstado = estadoImpl || (async (claveEstado) => (await pedir(`scrydex_estado?select=valor&clave=eq.${claveEstado}&limit=1`))?.[0]?.valor || {})
   const guardarEstado = guardarEstadoImpl || ((claveEstado, valor) => rest('scrydex_estado', clave, { method: 'POST', body: JSON.stringify([{ clave: claveEstado, valor, updated_at: new Date().toISOString() }]) }))
   const dia = ahora.toISOString().slice(0, 10)
@@ -186,6 +193,7 @@ export async function procesar({
   let escritas = 0
   let creadas = 0
   let setsCreados = 0
+  let nombrados = 0
   let quedanTotal = 0
   for (const mercado of MERCADOS) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
@@ -263,6 +271,19 @@ export async function procesar({
         esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: 0, nota: 'vacía' })
         await persistir()
         continue
+      }
+      // Los sets destino sin nombre inglés se rotulan con el de su
+      // expansión (659). Solo el PRIMERO: en una expansión con varios sets
+      // nuestros los demás son galerías con su propio nombre.
+      const sinIngles = sets.find((s) => s.id === destinos[0] && !String(s.name_en || '').trim() && String(episodio.nombre || '').trim())
+      if (sinIngles) {
+        try {
+          await nombrarSet(sinIngles.id, mercado, String(episodio.nombre).trim())
+          sinIngles.name_en = String(episodio.nombre).trim()
+          nombrados++
+        } catch {
+          // Un rótulo que no se pudo poner no para el catálogo.
+        }
       }
       // Nuestras cartas de esos sets.
       let nuestras
@@ -357,7 +378,7 @@ export async function procesar({
   }
   if (!quedan && !parado) estado.hecho = true
   await persistir()
-  return resumen({ hecho: !quedan && !parado, quedan, escritas, creadas, setsCreados, esteTurno, ...(quedan && !parado ? { nota: 'sigue en la próxima pasada' } : {}) })
+  return resumen({ hecho: !quedan && !parado, quedan, escritas, creadas, setsCreados, nombrados, esteTurno, ...(quedan && !parado ? { nota: 'sigue en la próxima pasada' } : {}) })
 }
 
 export default async () => {

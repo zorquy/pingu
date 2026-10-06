@@ -375,6 +375,20 @@ function cartaPorId(cardId) {
 
 const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
 
+// EL «+» PEGADO A CADA CARTA DE LA EXPANSIÓN (657). PINGU, con la rejilla
+// de TCGGO delante: «hay un plus en la carta; ese plus te lleva al pop-up.
+// Estaría bien que tenga un plus ahí la carta y darle para que te salte el
+// pop-up de agregar». Solo con sesión y en TU colección: sin cuenta no hay
+// a dónde añadir. Es un `role="button"` dentro del enlace de la carta, y el
+// manejador va en CAPTURA para ganarle al que abre la ficha.
+// El dibujo va en línea y no en js/icons.js: ese fichero lo baja la
+// portada, que no tiene sitio (CLAUDE.md).
+const DIBUJO_MAS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+function masHtml(c, nombre) {
+  if (!esMia || !sesion || !c?.id) return ''
+  return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}" aria-label="Añadir ${escapeHtml(nombre)} a mi colección" title="Añadir a mi colección">${DIBUJO_MAS}</span>`
+}
+
 function abrirAnadir(cardId) {
   const c = cartaPorId(cardId)
   if (!c || !sesion || !esMia) return
@@ -1909,7 +1923,7 @@ function abrirEditor(l) {
     historial.innerHTML = ''
     const esta = l.card_id
     import('./carta-historial.js')
-      .then(({ montarHistorial }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma) : null))
+      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma, { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST') }) : null))
       .catch(() => {})
     cartaAbierta = esta
   }
@@ -2224,14 +2238,53 @@ function montarDesplegableDeEras(sets, mercado, eras = null) {
 // Lo que vale cada expansión y cómo va (646), de `tcg_set_valor`. Si la
 // tabla no está, la estantería se pinta igual, sin esas dos cifras.
 let variacionDeSets = new Map()
+// Y la serie de cada expansión, para la chispa de la tarjeta (658): los
+// valores de los últimos días, en orden. Se mira UN MES y no ocho días:
+// ocho puntos son una raya; treinta ya dibujan algo.
+let seriesDeSets = new Map()
 async function cargarValoresDeSets() {
   try {
-    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
-    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).gte('dia', desde).order('dia').limit(5000)
-    variacionDeSets = variacionSemanal(data || [])
+    const desde = new Date(Date.now() - 31 * 86_400_000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).gte('dia', desde).order('dia').limit(20000)
+    const filas = data || []
+    const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    variacionDeSets = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8))
+    seriesDeSets = seriesDeValor(filas)
   } catch {
     variacionDeSets = new Map()
+    seriesDeSets = new Map()
   }
+}
+
+// De las filas de `tcg_set_valor` (ya ordenadas por día), la serie de
+// cada set: solo las cifras, en orden. Pura, para poder probarla.
+function seriesDeValor(filas) {
+  const m = new Map()
+  for (const f of filas || []) {
+    const v = Number(f?.valor_cm)
+    if (!f?.set_id || !Number.isFinite(v) || v <= 0) continue
+    if (!m.has(f.set_id)) m.set(f.set_id, [])
+    m.get(f.set_id).push(v)
+  }
+  return m
+}
+
+// LA CHISPA (658): la línea del mes de una expansión en 64 × 20, como las
+// tarjetas de expansión de TCGGO. PINGU: «los sets se muestran así, con
+// gráficas; te dice cuánto ha subido, cuánto ha bajado». Verde si acaba
+// por encima de donde empezó, rojo si por debajo. Con menos de tres
+// puntos no hay línea que valga: dos puntos son una raya que dice lo
+// mismo que el porcentaje de al lado.
+function chispaHtml(serie) {
+  if (!Array.isArray(serie) || serie.length < 3) return ''
+  const ancho = 64
+  const alto = 20
+  const max = Math.max(...serie)
+  const min = Math.min(...serie)
+  const span = max - min || 1
+  const puntos = serie.map((v, i) => `${((i / (serie.length - 1)) * ancho).toFixed(1)},${(2 + (1 - (v - min) / span) * (alto - 4)).toFixed(1)}`).join(' ')
+  const tono = serie[serie.length - 1] > serie[0] ? 'sube' : serie[serie.length - 1] < serie[0] ? 'baja' : 'igual'
+  return `<svg class="mc-set-chispa ${tono}" viewBox="0 0 ${ancho} ${alto}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${puntos}" vector-effect="non-scaling-stroke"/></svg>`
 }
 
 const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
@@ -2458,7 +2511,7 @@ function valorDeSetHtml(set) {
   const v = variacionDeSets.get(set?.id)
   if (!v?.ahora) return ''
   const semanal = v.pct === null ? '' : ` · <b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
-  return `<span class="mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket">${escapeHtml(fmtEnteroEuros.format(v.ahora))} €${semanal}</span>`
+  return `<span class="mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket">${chispaHtml(seriesDeSets.get(set?.id))}${escapeHtml(fmtEnteroEuros.format(v.ahora))} €${semanal}</span>`
 }
 
 // EL RESPALDO DEL NOMBRE YA NO HACE FALTA (tanda 458) y por eso se queda
@@ -2679,7 +2732,8 @@ function bolsilloDeVariante(c, v) {
     ${veloDeVariante(v.nuestro)}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
     ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
-    ${chapaDeVarianteHtml(v.nuestro)}`
+    ${chapaDeVarianteHtml(v.nuestro)}
+    ${masHtml(c, nombre)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   // SIN MANDO (tanda 565). PINGU, con Dex delante: «Dex no tiene botón de
   // agregar desde ahí: le das a una, te sale la ficha, y ahí eliges la
@@ -2708,7 +2762,8 @@ function bolsilloHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
-    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}`
+    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
+    ${masHtml(c, nombre)}`
   // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
   // 564): de esta clave sale lo que `guardarMarcadas` escribe en la base,
   // así que marcar veinte ultra raras las guardaba las veinte en «normal».
@@ -2905,6 +2960,7 @@ function celdaDeCuadriculaHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     ${n > 1 ? `<span class="mc-rejilla-copias" aria-hidden="true">×${n}</span>` : ''}
+    ${masHtml(c, nombre)}
   </a>`
 }
 
@@ -5377,6 +5433,18 @@ function enganchar() {
   // clic, así que se iban a la página. En el ordenador no se veía porque
   // ahí se usa el archivador; en el móvil, la cuadrícula.
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace, .mc-rejilla-celda, .mc-album-fila')
+  // El «+» de cada carta (657), en CAPTURA: va dentro del enlace que abre
+  // la ficha, y tiene que ganarle. Con el teclado, Intro y la barra.
+  const pulsarMas = (e) => {
+    const b = e.target.closest('[data-anadir]')
+    if (!b) return
+    if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return
+    e.preventDefault()
+    e.stopPropagation()
+    abrirAnadir(b.dataset.anadir)
+  }
+  $('mcAlbum')?.addEventListener('click', pulsarMas, true)
+  $('mcAlbum')?.addEventListener('keydown', pulsarMas, true)
   engancharFicha('mcPanelPokedex', '.pdx-carta')
   // ── EL PANEL TAMBIÉN (tanda 562) ──
   //

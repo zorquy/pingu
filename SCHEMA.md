@@ -32011,3 +32011,104 @@ pasados por año como enlaces, sin Pocket ni escondidos, el cambio a
 japonés con la dirección y los enlaces con `catalogo=JP`, la dirección
 mandando al entrar; /cartas con `?catalogo=JP` abre el set en japonés; la
 portada sale del catálogo y gana el que salga antes).
+
+## Tanda 657 — el «+» en cada carta de la expansión (oct. 2026)
+
+PINGU, con la rejilla de TCGGO delante: «hay un plus en la carta; ese
+plus te lleva al pop-up. Estaría bien que tenga un plus ahí la carta y
+darle para que te salte el pop-up de agregar. No quiero que me muestres
+el precio en la rejilla».
+
+Cada carta de una expansión —archivador (los dos pintadores de bolsillo),
+cuadrícula y sus variantes— lleva un `.mc-mas` (`role="button"`,
+`data-anadir`) arriba a la derecha que abre el diálogo de añadir de la
+650 (`abrirAnadir`) con ESA carta, sin pasar por la ficha. Solo con
+sesión y en tu colección (`masHtml`): en /cartas sin cuenta no hay a
+dónde añadir y no sale. El manejador va en CAPTURA sobre `#mcAlbum`
+porque el «+» vive dentro del enlace que abre la ficha y tiene que
+ganarle; Intro y la barra también. 32 px con ratón, 44 con el dedo
+(`pointer: coarse`). El dibujo va en línea (`DIBUJO_MAS`), no en
+`js/icons.js`, que lo baja la portada. La 565 quitó los mandos de la
+casilla porque Dex no los tiene; esto es UN botón, el que TCGGO sí tiene
+y PINGU pidió.
+
+## Tanda 658 — la chispa del mes en la tarjeta de expansión (oct. 2026)
+
+PINGU: «los sets se muestran así, con gráficas; te dice cuánto ha
+subido, cuánto ha bajado». `cargarValoresDeSets` pide ahora 31 días de
+`tcg_set_valor` (eran 8) y guarda, además de la variación semanal
+—que sigue siendo de ocho días—, la serie de cada set (`seriesDeValor`,
+pura). `chispaHtml` dibuja un SVG de 64 × 20 con la línea del mes
+delante de la cifra, verde si acaba por encima de donde empezó y roja
+si por debajo; con menos de tres puntos no hay chispa (dos puntos son
+una raya que dice lo mismo que el porcentaje de al lado).
+
+## Tanda 659 — el nombre inglés de un set, desde TCGGO (oct. 2026)
+
+IBAI, en su lista: «algunas colecciones no tienen nombre en inglés».
+TCGdex lo trae a veces; TCGGO nombra todas sus expansiones en inglés, y
+`tcggo-catalogo` tiene delante la expansión de cada set nuestro. Al
+procesar una expansión, si el set destino (el primero) no tiene
+`name_en`, se le escribe el nombre de la expansión por REST con la clave
+de servicio (`nombrarSet`, inyectable; sin SQL nuevo). Solo lo vacío, y
+si falla no para nada: es un rótulo. El resumen lleva `nombrados`.
+
+**Pruebas de las tres**: `test-tanda-657.mjs` (el «+» en archivador y
+cuadrícula, abre el diálogo con esa carta y no la ficha, con Intro y con
+el dedo a 44 px, y no sale sin cuenta; la chispa verde/roja con 30
+puntos, ninguna con dos, la consulta de un mes; el set sin inglés lo
+recibe y el que lo tiene no).
+
+## Tanda 660 — Scrydex, al final de la cadena de escaneos (oct. 2026)
+
+IBAI, en su lista: «al buscar la imagen de una carta, todavía se prueba
+Scrydex lo primero, aunque se está quitando». Lo iba desde la 509 y
+Scrydex se dio de baja en la 641: sus fotos siguen en `image_scrydex` y
+en su CDN mientras dure, pero una fuente que ya no se paga no puede ir
+delante de las dos que sí. `cadenaDeEscaneo` (`js/escaneo-carta.js`)
+va ahora: TCGdex por `image_path` (el arte en español) → TCGdex montado
+a mano → TCGGO (`image_tcggo`) → Scrydex → Limitless → pokemontcg.io.
+Scrydex se queda en la cadena, no se borra: un respaldo que sigue
+contestando no se tira (la 321). Es el cuello de botella por el que
+pasa todo el que dibuja una carta, así que cambia en todas las
+pantallas a la vez.
+
+## Tanda 661 — el histórico de precios como el de TCGGO (oct. 2026)
+
+PINGU, con la ficha de TCGGO: «hay historial de precios… me gusta mucho
+la interfaz y el historial muestra estos datos: un selector de rango, una
+línea por idioma y marcas de los lanzamientos. Eso también me gustaría
+agregar». `js/carta-historial.js`, rehecho, misma API hacia fuera
+(`svgDeHistorial`, `pieDeHistorial`, `montarHistorial`) y lo nuevo:
+
+- **Rangos** (`RANGOS`: 7D, 1M, 3M, 6M, 1A, MAX; `filasDelRango`,
+  `rangoElegido`, `botonesDeRango`): por defecto tres meses si los hay;
+  un botón sin dos puntos se apaga. Cambiar de rango repinta sin volver
+  a pedir.
+- **Una línea por idioma** (`todas: true` en el montaje; `idiomasConSerie`):
+  el elegido gorda, los demás finos (`.carta-historial-linea-otra`,
+  `data-idioma`) con su color por tokens en `css/cardmarket.css` (nada
+  de verde ni rojo: en una gráfica de precios dirían «sube» y «baja»);
+  TCGplayer a trazos; y una leyenda (`leyendaHtml`). El eje abarca todas
+  las líneas dibujadas. Sin `todas`, dibuja como antes.
+- **Marcas de lanzamiento** (`marcas` en el SVG; `cargadorDeMarcas`):
+  rayas verticales con el código de las expansiones GRANDES (cien cartas
+  o más) del mercado de la carta que salieron dentro del tramo. El módulo
+  no toca la base: quien monta le pasa el cargador con el cliente de
+  Supabase (/carta en `carta-mercado.js`, que ahora importa `supabase`;
+  la ficha de /mi-coleccion). Llegan después y repintan: la gráfica no
+  espera a la base. Si dos caen a menos de un 4 % del ancho, la segunda
+  va sin rótulo.
+- **Chips de 7 y 30 días** (`cambioEnDias`, `chipsHtml`) del idioma
+  elegido, solo si el histórico cubre esos días (la 653).
+- **Lectura al pasar el dedo** (`engancharLectura`): el día y el precio
+  del idioma elegido, con los puntos en `data-puntos` del SVG.
+
+**Pruebas**: `test-tanda-661.mjs` (la cadena en los dos órdenes; los
+rangos y su corte por fecha, el cambio de 7/30 y lo que no cubre, las
+líneas por idioma, las marcas dentro y fuera del tramo, los puntos de
+lectura, la leyenda, los chips, el cargador de marcas filtrando por
+tamaño; en /carta: 3M por defecto con su marca, 7D y MAX sin volver a
+pedir, el globo; los colores por tokens y la ficha pasando las marcas).
+Al día: 643 (la línea lleva `data-idioma`) y 643-pantalla (tres líneas,
+el eje de todas, chips, leyenda y rangos).
