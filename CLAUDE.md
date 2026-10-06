@@ -383,10 +383,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   marcador `hojaInyectada('css/x.css')` para dar la hoja por cargada;
   si inyectas otra, usa esa función con el literal. Y la navegación del
   móvil son tres niveles: ABAJO la sección (fija, igual en todas las
-  páginas), las páginas de la sección en una HOJA al volver a tocar la
-  sección activa (se leen de los desplegables de la barra, no hay segunda
-  lista; arriba no va NADA, PINGU: «demasiado espacio»), y dentro lo de
-  cada página. Una página de detalle dice de qué sección es en
+  páginas), las páginas de la sección en una BURBUJA flotante encima de la
+  barra (la de Mi colección, 452, para todas: icono y palabra,
+  deslizable; se leen de los desplegables de la barra, no hay segunda
+  lista; arriba no va NADA, PINGU: «demasiado espacio»; ni hamburguesa
+  ni doble toque, PINGU los descartó), y dentro lo de cada página. La
+  burbuja sale solo en las páginas de la lista de la sección, no en una
+  ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
 - **Un reemplazo que BORRA filas de precio tiene que avisar a la pasada
   que las escribe** (tanda 697). `30th-entero` borró las cartas viejas con

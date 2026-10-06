@@ -34158,3 +34158,40 @@ márgenes del relleno del móvil, y las cuatro hojas (`.mc-bandeja`,
 hidden` y `overscroll-behavior-x: none`, que es lo que hace que una hoja
 no se mueva de lado aunque mañana algo vuelva a sobresalir. La prueba 705
 mide que nada dentro de la ficha sea más ancho que la pantalla.
+
+### 704d — la burbuja de la sección (y fuera la hoja del doble toque)
+
+PINGU, con la hoja del 704c en el móvil: «no me gusta que los menús estén
+clicando dos veces; súper poco intuitivo, la gente no lo va a entender».
+Y sobre la vuelta de la hamburguesa: «no es muy mobile friendly; el menú
+fijo de abajo está genial, eso hay que mantenerlo». Con cuatro maquetas
+delante (burbuja flotante, chips que se esconden al bajar, botón flotante
+que se despliega, pestañas tipo app pegadas arriba) eligió la burbuja:
+«la A es la mejor, dale caña».
+
+La burbuja es la píldora de Mi colección (452) para todas las secciones:
+flotando encima de la barra, icono y palabra, deslizable a un lado cuando
+no cabe —con un degradado en el lado por el que sigue, que se quita al
+llegar al final (`vigilarDesborde`)—. Tres reglas:
+
+- **Sale solo en las páginas que ESTÁN en la lista de la sección** (las
+  del desplegable de escritorio). En una ficha de carta, un tema o un
+  torneo no: son hojas, y abajo va otra cosa (las acciones de /carta).
+- **En Mi colección no hay segunda burbuja**: las otras páginas de Cartas
+  (Catálogo, Lanzamientos) se cuelgan al final de la suya, tras una raya,
+  y la burbuja pasa a deslizarse. Dos burbujas una encima de otra no
+  caben. En /cartas (modo catálogo, con la de Mi colección escondida)
+  sale la de la sección.
+- **Las palabras van cortas** (`ROTULO_CORTO`): «Constructor» y no
+  «Constructor de mazos», «Catálogo» y no «Catálogo de cartas». El
+  nombre entero va en el `title`.
+
+La pestaña activa de la barra vuelve a ser un enlace normal: un toque, a
+la primera página de la sección. Y un detalle que costó una captura:
+centrar la activa con `scrollIntoView` en un elemento FIJO también
+desplaza la página (la portada se abría por el pie); se centra tocando
+`scrollLeft` a mano.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`. Prueba 704 (la
+burbuja en portada, Jugar con siete páginas que no caben, Comunidad; en
+Mi colección las ajenas al final de la suya; en /carta ninguna).

@@ -44,51 +44,108 @@
   html.con-barra-movil .page-content {
     padding-top: var(--e-md);
   }
-  /* La hoja con las páginas de la sección: encima de la barra, al volver
-     a tocar la sección activa (704c). */
-  .bm-velo {
-    position: fixed;
-    inset: 0;
-    z-index: 94;
-    background: rgb(0 0 0 / 35%);
+  /* LA BURBUJA DE LA SECCIÓN (704d): la misma píldora que Mi colección
+     (452), flotando encima de la barra, con icono y palabra, deslizable. */
+  html.con-burbuja-movil body {
+    padding-bottom: calc(72px + 72px + env(safe-area-inset-bottom));
   }
-  .bm-hoja {
+  .bm-burbuja {
+    display: flex;
     position: fixed;
-    inset-inline: var(--e-md);
-    bottom: calc(80px + env(safe-area-inset-bottom));
-    z-index: 96;
-    padding: var(--e-xs);
+    z-index: 90;
+    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
+    inset-inline: 0;
+    width: max-content;
+    max-width: calc(100% - var(--e-lg) * 2);
+    margin: 0 auto;
+    padding: 4px;
+    gap: 2px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-pill);
     background: var(--white);
     box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
   }
-  .bm-hoja-titulo {
-    margin: 0;
-    padding: var(--e-xs) var(--e-sm);
-    color: var(--text-dim);
-    font-size: var(--t-2xs);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  .bm-burbuja::-webkit-scrollbar {
+    display: none;
   }
-  .bm-hoja a {
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .bm-burbuja {
+      background: color-mix(in srgb, var(--white) 82%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  }
+  .bm-burbuja-item {
+    flex: 0 0 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    min-height: 44px;
+    justify-content: center;
+    gap: 2px;
+    min-width: 64px;
+    min-height: 52px;
     padding: 0 var(--e-sm);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-size: var(--t-sm);
+    border-radius: var(--radius-pill);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
     font-weight: 600;
     text-decoration: none;
+    scroll-snap-align: start;
   }
-  .bm-hoja a[aria-current='page'] {
+  /* La palabra de cada hueco: su propia clase, porque la de Mi colección
+     (`mc-menu-texto`) vive en una hoja que las demás páginas no cargan. */
+  .bm-texto {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--t-2xs);
+    line-height: 1;
+  }
+  .bm-burbuja-item svg {
+    width: 24px;
+    height: 24px;
+  }
+  .bm-burbuja-item[aria-current='page'] {
     background: var(--navy-solid);
     color: var(--blanco-fijo);
   }
-  .bm-hoja a:not([aria-current]):active {
-    background: var(--bg);
+  /* Lo que sigue por un lado se insinúa con un degradado en ese lado. */
+  .desborda-derecha {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+  }
+  .desborda-izquierda {
+    mask-image: linear-gradient(90deg, transparent, #000 40px);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px);
+  }
+  .desborda-izquierda.desborda-derecha {
+    mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  }
+  /* En Mi colección, las otras páginas de Cartas van al final de SU
+     burbuja, tras una raya, y la burbuja pasa a deslizarse. */
+  .mc-pestanias.bm-con-ajenas {
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: calc(100% - var(--e-lg) * 2);
+  }
+  .mc-pestanias.bm-con-ajenas::-webkit-scrollbar {
+    display: none;
+  }
+  .mc-pestanias .mc-pestania {
+    flex: 0 0 auto;
+  }
+  .bm-ajena {
+    text-decoration: none;
+  }
+  .bm-ajena:first-of-type {
+    margin-left: var(--e-xs);
+    border-left: 1px solid var(--border);
+    border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
   }
   /* La burbuja de Mi colección (452) sigue flotando —PINGU: «ya teniendo
      un menú fijo abajo, la burbuja justo encima»—, subida lo que mide la

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (madrugada, 3) — PINGU-Claude (704d — la burbuja de la sección; fuera el doble toque)
+
+**Hecho**: PINGU descartó la hoja al volver a tocar la pestaña («la
+gente no lo va a entender») y la hamburguesa («no es mobile friendly»);
+de cuatro maquetas eligió la burbuja. Cada sección lleva ahora en el
+móvil la píldora flotante de Mi colección (452), con icono y palabra,
+deslizable cuando no cabe (Jugar), encima de la barra fija. Solo en las
+páginas de la lista de la sección (no en fichas); en Mi colección las
+otras páginas de Cartas van al final de su propia burbuja. También:
+las hojas ya no se deslizan de lado (705b).
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`, `SCHEMA.md`,
+`CLAUDE.md`. Prueba 704-pantalla en `pruebas`.
+
+**Pendiente**: el repaso de PINGU en el iPhone; la sonda del Lanturn.
+
 ## 2026-10-07 (madrugada, 2) — PINGU-Claude (707 y 708 — la ficha de carta con las acciones a mano, y los pequeños)
 
 **Hecho** (705b, PINGU: «el pop-up se va para los lados»: la fila de mando sobresalía 12 px por lado; las hojas llevan `overflow-x: hidden`): 707: en /carta en el móvil las losetas Añadir/Editar/Avísame

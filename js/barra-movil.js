@@ -75,6 +75,27 @@ export function destinoDe(seccion, conSesion) {
   return seccion.enlaces[0]?.href || '/'
 }
 
+// El icono de cada página de una sección (lo que hay en js/icons.js).
+export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', 'mi-coleccion': 'layers', foro: 'messageSquare', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
+export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
+// En una burbuja la palabra es corta: «Constructor de mazos» pide 160 px
+// y «Constructor» dice lo mismo debajo de un lápiz.
+export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', meta: 'Meta', constructor: 'Constructor', 'mis-partidas': 'Partidas', usuarios: 'Gente' }
+export const rotuloCorto = (clave, texto) => ROTULO_CORTO[clave] || texto
+
+// Una burbuja con más de lo que cabe lleva un degradado en el lado por el
+// que sigue, para que se vea que se desliza; al llegar al final, se quita.
+function vigilarDesborde(el) {
+  const mirar = () => {
+    const sobra = el.scrollWidth - el.clientWidth
+    el.classList.toggle('desborda-derecha', sobra > 2 && el.scrollLeft < sobra - 2)
+    el.classList.toggle('desborda-izquierda', sobra > 2 && el.scrollLeft > 2)
+  }
+  el.addEventListener('scroll', mirar, { passive: true })
+  mirar()
+  setTimeout(mirar, 300)
+}
+
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   if (!doc.getElementById('navbar') || doc.querySelector('.bm')) return null
   hojaInyectada('css/movil.css')
@@ -88,29 +109,37 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   barra.innerHTML = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
   doc.body.appendChild(barra)
 
-  // Las páginas de la sección (lo que hoy vive en su desplegable) NO van
-  // arriba (704c: PINGU, «estamos cogiendo demasiado espacio con las
-  // píldoras»): salen en una hoja pequeña encima de la barra al volver a
-  // tocar la sección en la que ya estás, como hace cualquier app.
+  // LA BURBUJA DE LA SECCIÓN (704d). PINGU probó la hoja al volver a
+  // tocar la pestaña («súper poco intuitivo, la gente no lo va a
+  // entender») y eligió, con cuatro maquetas delante, la burbuja que ya
+  // tenía Mi colección: una píldora flotando encima de la barra, con icono
+  // y palabra, que se desliza a un lado cuando hay muchas. Sale solo en
+  // las páginas que ESTÁN en la lista de la sección (no en una ficha, un
+  // tema o un torneo, que son hojas y donde abajo va otra cosa). Y en Mi
+  // colección, que ya tiene la suya, las otras páginas de Cartas se
+  // cuelgan al final de esa misma burbuja: dos burbujas no caben.
   const seccion = secciones.find((s) => s.nombre === actual)
-  const activo = barra.querySelector('[aria-current="page"]')
-  if (seccion && activo && seccion.enlaces.length > 1) {
-    activo.setAttribute('aria-haspopup', 'true')
-    activo.setAttribute('aria-expanded', 'false')
-    const velo = doc.createElement('div')
-    velo.className = 'bm-velo'
-    velo.hidden = true
-    const hoja = doc.createElement('div')
-    hoja.className = 'bm-hoja'
-    hoja.hidden = true
-    hoja.setAttribute('role', 'menu')
-    hoja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
-    hoja.innerHTML = `<p class="bm-hoja-titulo">${seccion.nombre}</p>` + seccion.enlaces.map((e) => `<a role="menuitem" href="${e.href}"${claveDePagina(e.href) === clave ? ' aria-current="page"' : ''}>${e.texto}</a>`).join('')
-    doc.body.append(velo, hoja)
-    const abrir = (si) => { velo.hidden = !si; hoja.hidden = !si; activo.setAttribute('aria-expanded', String(si)) }
-    activo.addEventListener('click', (ev) => { ev.preventDefault(); abrir(hoja.hidden) })
-    velo.addEventListener('click', () => abrir(false))
-    doc.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !hoja.hidden) abrir(false) })
+  const enLista = seccion?.enlaces.some((e) => claveDePagina(e.href) === clave)
+  if (seccion && enLista && seccion.enlaces.length > 1) {
+    const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }
+    const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
+    if (propia) {
+      propia.insertAdjacentHTML('beforeend', seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
+      propia.classList.add('bm-con-ajenas')
+      vigilarDesborde(propia)
+    } else {
+      const burbuja = doc.createElement('nav')
+      burbuja.className = 'bm-burbuja'
+      burbuja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
+      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('')
+      doc.body.appendChild(burbuja)
+      doc.documentElement.classList.add('con-burbuja-movil')
+      vigilarDesborde(burbuja)
+      // La activa, a la vista. NO con `scrollIntoView`: en un elemento
+      // fijo también desplaza la PÁGINA, y dejaba la portada en el pie.
+      const activa = burbuja.querySelector('[aria-current]')
+      if (activa) burbuja.scrollLeft = Math.max(0, activa.offsetLeft - (burbuja.clientWidth - activa.offsetWidth) / 2)
+    }
   }
   return { actual, secciones }
 }
