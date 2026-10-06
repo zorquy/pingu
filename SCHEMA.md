@@ -34045,3 +34045,27 @@ recibe el dedo (es la misma salida que la prueba 312 admite para un
 enlace dentro de una frase). Y las pestañas de Mi colección se quedan
 sin borde ni fondo, en fila. La prueba 704 mide la fila entera (≤ 48 px)
 y el área de cada enlace (≥ 44).
+
+### 704c — sin píldoras arriba: la hoja de la sección, la burbuja encima de la barra y el hueco de 76 px
+
+PINGU, con Dex delante: «siempre tiene la misma estructura: la barra de
+búsqueda arriba y unas burbujas; ya teniendo un menú fijo abajo, la
+burbuja de Mi colección justo encima, para evitarnos tener píldoras
+arriba; estamos cogiendo demasiado espacio con las píldoras/menús». Y
+una captura de /aprender en su iPhone con media pantalla vacía antes del
+título. Tres cosas:
+
+- **Fuera la fila de sección**. Las páginas de la sección (lo del
+  desplegable de escritorio) salen en una HOJA pequeña encima de la barra
+  cuando vuelves a tocar la sección en la que ya estás —el patrón de
+  cualquier app—, con la página actual marcada. Se cierra tocando fuera o
+  con Escape. La pestaña activa lleva `aria-haspopup` y `aria-expanded`.
+- **La burbuja de Mi colección (452) vuelve a flotar**, subida lo que
+  mide la barra, y la página reserva sitio para las dos. Dos cosas
+  flotando abajo no se pisan si una sabe de la otra.
+- **El hueco de 76 px bajo la barra de arriba** (`.page-content`) es de
+  escritorio: en el móvil, 16.
+
+La prueba 704 abre la hoja tocando la sección activa en la portada y en
+Mi colección, mide que la burbuja queda encima de la barra y que el
+relleno de arriba es el pequeño.

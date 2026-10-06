@@ -39,77 +39,64 @@
   .bm a[aria-current='page'] svg {
     stroke-width: 2.5;
   }
-  /* Las páginas de la sección, en UNA LÍNEA DE TEXTO (704b). PINGU, con
-     la primera versión en píldoras: «esas burbujas ocupan demasiadísima
-     pantalla». Son enlaces en línea —como una miga de pan— con el
-     subrayado en la activa; el área que se pulsa la da el relleno
-     vertical, que en un elemento en línea no engorda el renglón. */
-  .bm-secc {
-    display: block;
-    margin: 0 0 var(--e-sm);
-    overflow-x: auto;
-    white-space: nowrap;
-    scrollbar-width: none;
-    line-height: 1.6;
+  /* El hueco de 76 px bajo la barra de arriba es de escritorio (704c:
+     en un iPhone era media pantalla vacía antes del título). */
+  html.con-barra-movil .page-content {
+    padding-top: var(--e-md);
   }
-  .bm-secc::-webkit-scrollbar {
-    display: none;
+  /* La hoja con las páginas de la sección: encima de la barra, al volver
+     a tocar la sección activa (704c). */
+  .bm-velo {
+    position: fixed;
+    inset: 0;
+    z-index: 94;
+    background: rgb(0 0 0 / 35%);
   }
-  main:not(.container) > .bm-secc {
-    padding: 0 var(--e-md);
+  .bm-hoja {
+    position: fixed;
+    inset-inline: var(--e-md);
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    z-index: 96;
+    padding: var(--e-xs);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
   }
-  .bm-secc a {
-    display: inline;
-    padding: 16px 2px;
-    margin-right: var(--e-md);
-    color: var(--text-mid);
-    font-size: var(--t-xs);
+  .bm-hoja-titulo {
+    margin: 0;
+    padding: var(--e-xs) var(--e-sm);
+    color: var(--text-dim);
+    font-size: var(--t-2xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .bm-hoja a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--e-sm);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: var(--t-sm);
     font-weight: 600;
     text-decoration: none;
   }
-  .bm-secc a[aria-current='page'] {
-    color: var(--navy);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 6px;
+  .bm-hoja a[aria-current='page'] {
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
   }
-  /* Las pestañas de Mi colección dejan de flotar (la burbuja de la 452):
-     abajo ya está la barra de secciones, y dos cosas flotando se pisan.
-     Pasan a una fila de píldoras bajo la cabecera, con desplazamiento. */
+  .bm-hoja a:not([aria-current]):active {
+    background: var(--bg);
+  }
+  /* La burbuja de Mi colección (452) sigue flotando —PINGU: «ya teniendo
+     un menú fijo abajo, la burbuja justo encima»—, subida lo que mide la
+     barra, y la página reserva sitio para las dos. */
   .mc-pestanias {
-    position: static;
-    inset-inline: auto;
-    width: auto;
-    max-width: none;
-    margin: 0 0 var(--e-sm);
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    justify-content: flex-start;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
   }
-  .mc-pestanias::-webkit-scrollbar {
-    display: none;
-  }
-  /* Compactas: icono y palabra en fila, sin borde, 44 de alto que es lo
-     que pide el dedo, y nada más. */
-  .mc-pestania {
-    flex: 0 0 auto;
-    flex-direction: row;
-    gap: var(--e-xs);
-    min-height: 44px;
-    padding: 0 var(--e-sm);
-    border: 0;
-    background: transparent;
-  }
-  .mc-pestania > svg {
-    width: 16px;
-    height: 16px;
+  .mc-pagina {
+    padding-bottom: calc(80px + 88px + env(safe-area-inset-bottom));
   }
 }

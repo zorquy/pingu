@@ -383,8 +383,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   marcador `hojaInyectada('css/x.css')` para dar la hoja por cargada;
   si inyectas otra, usa esa función con el literal. Y la navegación del
   móvil son tres niveles: ABAJO la sección (fija, igual en todas las
-  páginas), ARRIBA las píldoras con las páginas de la sección (se leen de
-  los desplegables de la barra, no hay segunda lista), y dentro lo de
+  páginas), las páginas de la sección en una HOJA al volver a tocar la
+  sección activa (se leen de los desplegables de la barra, no hay segunda
+  lista; arriba no va NADA, PINGU: «demasiado espacio»), y dentro lo de
   cada página. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
 - **Un reemplazo que BORRA filas de precio tiene que avisar a la pasada

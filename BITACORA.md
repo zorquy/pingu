@@ -6,7 +6,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ```
 ## 2026-10-06 (noche, 5) — PINGU-Claude (704 — la barra inferior del móvil y las píldoras de sección)
 
-**Hecho** (704b: PINGU «esas burbujas ocupan demasiadísima pantalla» → la fila de sección es una línea de texto de 24 px, con área de 44, y las pestañas de Mi colección sin borde): primera tanda del móvil, aprobada por PINGU con maquetas.
+**Hecho** (704c, con Dex delante: FUERA la fila de sección; las páginas de la sección salen en una hoja al volver a tocar la sección activa en la barra; la burbuja de Mi colección vuelve a flotar encima de la barra; el hueco de 76 px bajo la barra de arriba pasa a 16 en el móvil): primera tanda del móvil, aprobada por PINGU con maquetas.
 Barra inferior fija con las cinco secciones (Inicio, Aprender, Cartas,
 Comunidad, Jugar), píldoras arriba con las páginas de la sección (leídas
 del HTML de la barra de escritorio), y las pestañas de Mi colección en

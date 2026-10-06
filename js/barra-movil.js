@@ -88,16 +88,29 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   barra.innerHTML = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
   doc.body.appendChild(barra)
 
-  // Las píldoras de la sección, encima de todo lo de la página.
+  // Las páginas de la sección (lo que hoy vive en su desplegable) NO van
+  // arriba (704c: PINGU, «estamos cogiendo demasiado espacio con las
+  // píldoras»): salen en una hoja pequeña encima de la barra al volver a
+  // tocar la sección en la que ya estás, como hace cualquier app.
   const seccion = secciones.find((s) => s.nombre === actual)
-  const main = doc.querySelector('main')
-  if (seccion && main && seccion.enlaces.length > 1) {
-    const fila = doc.createElement('nav')
-    fila.className = 'bm-secc'
-    fila.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
-    fila.innerHTML = seccion.enlaces.map((e) => `<a href="${e.href}"${claveDePagina(e.href) === clave ? ' aria-current="page"' : ''}>${e.texto}</a>`).join('')
-    main.prepend(fila)
-    fila.querySelector('[aria-current]')?.scrollIntoView?.({ block: 'nearest', inline: 'center' })
+  const activo = barra.querySelector('[aria-current="page"]')
+  if (seccion && activo && seccion.enlaces.length > 1) {
+    activo.setAttribute('aria-haspopup', 'true')
+    activo.setAttribute('aria-expanded', 'false')
+    const velo = doc.createElement('div')
+    velo.className = 'bm-velo'
+    velo.hidden = true
+    const hoja = doc.createElement('div')
+    hoja.className = 'bm-hoja'
+    hoja.hidden = true
+    hoja.setAttribute('role', 'menu')
+    hoja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
+    hoja.innerHTML = `<p class="bm-hoja-titulo">${seccion.nombre}</p>` + seccion.enlaces.map((e) => `<a role="menuitem" href="${e.href}"${claveDePagina(e.href) === clave ? ' aria-current="page"' : ''}>${e.texto}</a>`).join('')
+    doc.body.append(velo, hoja)
+    const abrir = (si) => { velo.hidden = !si; hoja.hidden = !si; activo.setAttribute('aria-expanded', String(si)) }
+    activo.addEventListener('click', (ev) => { ev.preventDefault(); abrir(hoja.hidden) })
+    velo.addEventListener('click', () => abrir(false))
+    doc.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !hoja.hidden) abrir(false) })
   }
   return { actual, secciones }
 }
