@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mañana, 3) — PINGU-Claude (668 — la tarjeta de expansión, como la de TCGGO)
+
+**Hecho**: la tarjeta de la estantería es vertical como la de TCGGO:
+cabecera con arte y logo, era · fecha, tres losetas (Valor con chispa,
+Semanal, Tienes/Cartas) y la gráfica a lo ancho con área; el valor se
+pide por semanas (nueve meses) más los últimos ocho días. La gráfica
+solo tiene los días que la tabla lleva (desde la 646) y crece sola.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`.
+
+**Pendiente**: suite entera (667 y 668 tocan CSS y JS compartidos).
 ## 2026-10-06 (mañana, 2) — PINGU-Claude (667 — la ficha y la expansión, como en TCGGO)
 
 **Hecho**: fuera la gráfica de valor de DENTRO de la expansión (irá en

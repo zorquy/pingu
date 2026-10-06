@@ -2342,10 +2342,20 @@ let variacionDeSets = new Map()
 // valores de los últimos días, en orden. Se mira UN MES y no ocho días:
 // ocho puntos son una raya; treinta ya dibujan algo.
 let seriesDeSets = new Map()
+// Las fechas que se piden para la gráfica de la tarjeta (668): una por
+// SEMANA hacia atrás durante nueve meses, más los últimos ocho días
+// enteros (que es de donde sale el semanal). Pedir 270 días de 180 sets
+// serían 48.000 filas; así son unas 8.000. Pura, para probarla.
+export function fechasDeValor(ahora = new Date(), { semanas = 39, dias = 8 } = {}) {
+  const dia = (n) => new Date(ahora.getTime() - n * 86_400_000).toISOString().slice(0, 10)
+  const fechas = new Set()
+  for (let k = 0; k < dias; k++) fechas.add(dia(k))
+  for (let s = 1; s <= semanas; s++) fechas.add(dia(s * 7))
+  return [...fechas].sort()
+}
 async function cargarValoresDeSets() {
   try {
-    const desde = new Date(Date.now() - 31 * 86_400_000).toISOString().slice(0, 10)
-    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).gte('dia', desde).order('dia').limit(20000)
+    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', mercado).in('dia', fechasDeValor()).order('dia').limit(20000)
     const filas = data || []
     const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     variacionDeSets = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8))
@@ -2385,6 +2395,23 @@ function chispaHtml(serie) {
   const puntos = serie.map((v, i) => `${((i / (serie.length - 1)) * ancho).toFixed(1)},${(2 + (1 - (v - min) / span) * (alto - 4)).toFixed(1)}`).join(' ')
   const tono = serie[serie.length - 1] > serie[0] ? 'sube' : serie[serie.length - 1] < serie[0] ? 'baja' : 'igual'
   return `<svg class="mc-set-chispa ${tono}" viewBox="0 0 ${ancho} ${alto}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${puntos}" vector-effect="non-scaling-stroke"/></svg>`
+}
+
+// LA GRÁFICA DE LA TARJETA (668): la misma serie que la chispa pero a lo
+// ancho de la tarjeta, con el área rellena, como en las tarjetas de
+// expansión de TCGGO. Con menos de tres puntos no se dibuja.
+export function graficaDeSetHtml(serie) {
+  if (!Array.isArray(serie) || serie.length < 3) return ''
+  const ancho = 300
+  const alto = 60
+  const max = Math.max(...serie)
+  const min = Math.min(...serie)
+  const span = max - min || 1
+  const xy = serie.map((v, i) => [((i / (serie.length - 1)) * ancho).toFixed(1), (4 + (1 - (v - min) / span) * (alto - 8)).toFixed(1)])
+  const linea = xy.map((p) => p.join(',')).join(' ')
+  const area = `0,${alto} ${linea} ${ancho},${alto}`
+  const tono = serie[serie.length - 1] > serie[0] ? 'sube' : serie[serie.length - 1] < serie[0] ? 'baja' : 'igual'
+  return `<svg class="mc-set-grafica ${tono}" viewBox="0 0 ${ancho} ${alto}" preserveAspectRatio="none" aria-hidden="true"><polygon points="${area}"/><polyline points="${linea}" vector-effect="non-scaling-stroke"/></svg>`
 }
 
 const fmtEnteroEuros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0, useGrouping: 'always' })
@@ -2573,45 +2600,37 @@ function tarjetaDeSet(set, tengo) {
   const fecha = set.release_date
     ? new Date(set.release_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
     : ''
+  // LA TARJETA DE TCGGO (668). PINGU, con su captura al lado: «es algo
+  // más visual; no sé si tan grande, pero algo así estaría guay». Vertical:
+  // la cabecera (logo sobre su arte, nombre, era · fecha, código), tres
+  // cifras (valor, semanal, tienes), la gráfica a lo ancho y el pie.
+  const era = eraDeSet(set) || ''
+  const v = variacionDeSets.get(set?.id)
+  const semanal = v?.pct === null || v?.pct === undefined ? '' : `<b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
+  const serie = seriesDeSets.get(set?.id)
   return `
     <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}">
-      <span class="mc-set-mini">
+      <span class="mc-set-cab">
         ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(dibujos[0])}')" aria-hidden="true"></span>` : ''}
-        <span class="mc-set-logo">${
-          dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''
-        }</span>
-      </span>
-      <span class="mc-set-info">
-        <!-- El código arriba a la derecha y en línea con el nombre, como en
-             Dex: es una etiqueta de la colección, no un dato más del pie. -->
-        <span class="mc-set-titulo">
-          <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
-          ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
+        <span class="mc-set-mini"><span class="mc-set-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span></span>
+        <span class="mc-set-info">
+          <span class="mc-set-titulo">
+            <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
+            ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
+          </span>
+          ${era || fecha ? `<span class="mc-set-sub">${escapeHtml([era, fecha].filter(Boolean).join(' · '))}</span>` : ''}
         </span>
-        ${fecha ? `<span class="mc-set-sub">${escapeHtml(fecha)}</span>` : ''}
-        ${
-          total
-            // La cuenta y la barra en la MISMA línea (como en el móvil de
-            // Dex): apiladas gastaban dos renglones para decir una cosa, y
-            // en una tarjeta de 88 px eso es la mitad del alto.
-            ? `<span class="mc-set-progreso">
-                 <span class="mc-set-cuenta">${tengo} de ${total}${completo ? ' · completa' : ''}</span>
-                 <span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>
-               </span>`
-            : '<span class="mc-set-cuenta">Sin numeración</span>'
-        }
-        ${valorDeSetHtml(set)}
       </span>
+      <span class="mc-set-cifras">
+        ${v?.ahora ? `<span class="mc-set-cifra mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket"><i>Valor</i>${chispaHtml(serie)}<b>${escapeHtml(fmtEnteroEuros.format(v.ahora))} €</b></span>` : ''}
+        ${semanal ? `<span class="mc-set-cifra"><i>Semanal</i>${semanal}</span>` : ''}
+        ${total
+          ? `<span class="mc-set-cifra mc-set-progreso"><i>${esMia && sesion ? 'Tienes' : 'Cartas'}</i><span class="mc-set-cuenta">${esMia && sesion ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : total}</span>${esMia && sesion ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>`
+          : '<span class="mc-set-cifra"><i>Cartas</i><span class="mc-set-cuenta">Sin numeración</span></span>'}
+      </span>
+      ${graficaDeSetHtml(serie)}
+      <span class="mc-set-pie"><span class="mc-set-chip">${total ? `${total} cartas` : 'Expansión'}</span><span class="mc-set-ver">Ver →</span></span>
     </button>`
-}
-
-// Lo que vale la expansión y cómo va la semana (646): solo si TCGGO lo
-// ha dicho. Sin fila, nada — una raya ocupa lo mismo y no dice nada.
-function valorDeSetHtml(set) {
-  const v = variacionDeSets.get(set?.id)
-  if (!v?.ahora) return ''
-  const semanal = v.pct === null ? '' : ` · <b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : ''}${v.pct} %</b>`
-  return `<span class="mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket">${chispaHtml(seriesDeSets.get(set?.id))}${escapeHtml(fmtEnteroEuros.format(v.ahora))} €${semanal}</span>`
 }
 
 // EL RESPALDO DEL NOMBRE YA NO HACE FALTA (tanda 458) y por eso se queda

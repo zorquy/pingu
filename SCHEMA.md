@@ -32324,3 +32324,32 @@ PINGU, por la mañana, con capturas de TCGGO al lado: cinco cosas.
 **Pruebas** (PINGU: «no hagas demasiado test, quiero ver los cambios
 cuanto antes»): pasadas 650-pantalla, 645-pantalla, 665, 662 (ajustadas
 a lo nuevo), 661, 643 e imports. La suite entera queda para después.
+
+## Tanda 668 — la tarjeta de expansión, como la de TCGGO (oct. 2026)
+
+PINGU, con la captura de las expansiones de TCGGO: «es algo más visual;
+no sé si tan grande, pero algo así estaría guay; y con los gráficos de
+los últimos nueve meses, que si no sale vacío».
+
+**La tarjeta** (`tarjetaDeSet`, vertical, `.mc-set-tarjeta`): la
+cabecera con el logo sobre su arte desenfocado, el nombre, «era ·
+fecha» (`eraDeSet`) y el código; tres losetas (`.mc-set-cifra`):
+**Valor** (la suma de mínimos de Cardmarket, con la chispa de la 658),
+**Semanal** (el % de la 646) y **Tienes** (N de M con la barra; en el
+catálogo público o sin sesión, **Cartas**: M); la gráfica a lo ancho
+(`graficaDeSetHtml`: línea y área, verde si acaba por encima de donde
+empezó, roja si por debajo; con menos de tres puntos no se dibuja); y el
+pie con la chapa «M cartas» y «Ver →». La rejilla pide 280 px por
+tarjeta. Las clases viejas (`.mc-set-valor`, `.mc-set-chispa`,
+`.mc-set-progreso`, `.mc-set-cuenta`) siguen, dentro de sus losetas.
+
+**Los nueve meses**: `tcg_set_valor` tiene una fila por set y día, y
+pedir 270 días de 180 sets son 48.000 filas. `fechasDeValor()` pide una
+fecha por SEMANA hacia atrás (39) más los últimos ocho días enteros (de
+donde sale el semanal): unas 8.000 filas. **Lo que no existe no se
+inventa**: la tabla nació en la 646 (principios de octubre), así que hoy
+la gráfica tiene unos días y crece uno cada noche con `tcggo-precios`;
+no hay ninguna fuente con nueve meses del valor de una expansión (TCGGO
+da el total de hoy, no su histórico).
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`.

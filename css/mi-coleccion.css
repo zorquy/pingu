@@ -1556,7 +1556,7 @@
 
 .mc-estanteria {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--e-md);
 }
 
@@ -1583,13 +1583,96 @@
    se escondía detrás —un logo occidental lleva su nombre escrito—, pero un
    logo japonés está en kanji y un set sin logo se quedaba en una caja.
    Ahora el nombre no depende ni de que haya dibujo ni del idioma. */
+/* Desde la 668, VERTICAL como la tarjeta de expansión de TCGGO: cabecera
+   con el arte, tres cifras, la gráfica a lo ancho y el pie. SCHEMA 668. */
 .mc-set-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: 0 0 var(--e-sm);
+}
+
+.mc-set-cab {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  position: relative;
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: var(--e-md);
   align-items: center;
-  padding: var(--e-sm);
+  min-height: 96px;
+  padding: var(--e-md);
+  overflow: hidden;
+  background: var(--bg);
 }
+
+.mc-set-cab > * { position: relative; }
+.mc-set-cab .mc-set-arte { position: absolute; z-index: 0; }
+.mc-set-cab .mc-set-mini { background: transparent; }
+
+.mc-set-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+  padding: 0 var(--e-sm);
+}
+
+.mc-set-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-set-cifra > i {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mc-set-grafica {
+  display: block;
+  width: calc(100% - var(--e-lg));
+  height: 56px;
+  margin: 0 var(--e-sm);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.mc-set-grafica polygon { fill: var(--text-mid); opacity: 0.12; }
+.mc-set-grafica polyline { fill: none; stroke: var(--text-mid); stroke-width: 1.5; stroke-linejoin: round; }
+.mc-set-grafica.sube polygon { fill: var(--success); }
+.mc-set-grafica.sube polyline { stroke: var(--success); }
+.mc-set-grafica.baja polygon { fill: var(--danger); }
+.mc-set-grafica.baja polyline { stroke: var(--danger); }
+
+.mc-set-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--e-md);
+}
+
+.mc-set-chip {
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mc-set-ver { color: var(--navy); font-size: var(--t-sm); font-weight: 800; }
 
 /* El cuadro del logo: CUADRADO, redondeado y con aire alrededor, como en
    Dex — no pegado al canto de la tarjeta. Y de alto fijo, que es lo que
@@ -1660,10 +1743,7 @@
 /* La cuenta y la barra, en una línea: la barra se queda con el hueco que
    deje la cuenta. */
 .mc-set-progreso {
-  display: flex;
-  gap: var(--e-sm);
-  align-items: center;
-  margin-top: var(--e-xs);
+  gap: 2px;
 }
 
 .mc-set-progreso .mc-set-cuenta {
@@ -1675,24 +1755,25 @@
    quedaba en una rayita de dos píxeles detrás de la cuenta. Con base 0 se
    reparte el hueco que sobra, que es lo que se quería. */
 .mc-set-progreso .mc-barra {
-  flex: 1 1 0;
-  min-width: 48px;
+  flex: 0 0 6px;
+  width: 100%;
+  margin-top: var(--e-xs);
 }
 
-/* Lo que vale la expansión y el semanal (646), bajo el progreso. */
+/* Lo que vale la expansión y el semanal (646), en su loseta desde la 668. */
 .mc-set-valor {
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
   font-variant-numeric: tabular-nums;
 }
 
-.mc-set-valor .sube { color: var(--success); }
-.mc-set-valor .baja { color: var(--danger); }
-.mc-set-valor .igual { color: var(--text-mid); }
+.mc-set-valor .sube,
+.mc-set-cifra .sube { color: var(--success); }
+.mc-set-valor .baja,
+.mc-set-cifra .baja { color: var(--danger); }
+.mc-set-valor .igual,
+.mc-set-cifra .igual { color: var(--text-mid); }
 
 /* La chispa de la expansión (658): la línea del mes, delante de la cifra. */
-.mc-set-valor { display: inline-flex; align-items: center; gap: var(--e-xs); }
-.mc-set-chispa { width: 48px; height: 16px; flex-shrink: 0; }
+.mc-set-chispa { width: 48px; height: 14px; flex-shrink: 0; }
 .mc-set-chispa polyline { fill: none; stroke: var(--text-mid); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
 .mc-set-chispa.sube polyline { stroke: var(--success); }
 .mc-set-chispa.baja polyline { stroke: var(--danger); }
@@ -1749,9 +1830,9 @@
 }
 
 .mc-set-cuenta {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 800;
 }
 
 /* La barra, sin estirarse A LO ALTO. `.mc-barra` nace con `flex: 1 1 200px`
