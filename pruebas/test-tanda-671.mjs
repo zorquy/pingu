@@ -105,7 +105,14 @@ console.log('\n── 3. La pasada: el mapa japonés sale de NUESTROS sets, y el
   const b4 = montar({ sinMigracionKoZh: true })
   const r4 = await procesar({ env: ENV, ...b4, pausa: sinPausa, ahora: AHORA })
   const jp4 = b4.escritas.find((f) => f.card_id === 'M6-080')
-  check('sin la migración, la base rechaza y se reintenta SIN las dos columnas: el japonés se escribe igual', r4.ok && !r4.saltado && jp4 && jp4.cm_low_ja === 9 && !('cm_low_ko' in jp4) && b4.estados[CLAVE_ESTADO].faltaMigracionKoZh === true, JSON.stringify({ r4: JSON.stringify(r4).slice(0, 160), jp4 }))
+  check('sin la migración, la base rechaza y se reintenta SIN las dos columnas: el japonés se escribe igual', r4.ok && !r4.saltado && jp4 && jp4.cm_low_ja === 9 && !('cm_low_ko' in jp4) && b4.estados[CLAVE_ESTADO].faltaMigracionKoZh === '2026-10-06', JSON.stringify({ r4: JSON.stringify(r4).slice(0, 160), jp4 }))
+  // 687: la marca vale UN DÍA. Al día siguiente se vuelven a mandar las dos
+  // columnas (PINGU ejecutó la migración y se seguían tirando).
+  b4.estados[CLAVE_ESTADO] = { ...b4.estados[CLAVE_ESTADO], hechos: [], dia: undefined }
+  const escritasAntes = b4.escritas.length
+  const r5 = await procesar({ env: ENV, ...b4, pausa: sinPausa, ahora: new Date('2026-10-07T08:00:00Z') })
+  const jp5 = b4.escritas.slice(escritasAntes).find((f) => f.card_id === 'M6-080')
+  check('al día siguiente se prueba otra vez CON las dos columnas (y la base, que sigue sin migración, vuelve a apuntarlo para ese día)', r5.ok && jp5 && !('cm_low_ko' in jp5) && b4.estados[CLAVE_ESTADO].faltaMigracionKoZh === '2026-10-07', JSON.stringify({ r5: JSON.stringify(r5).slice(0, 120), marca: b4.estados[CLAVE_ESTADO].faltaMigracionKoZh }))
   const js = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
   check('/admin enseña el estado de los precios: hecho, hechas, parón, japonés bloqueado, migración', /ÚLTIMO PARÓN/.test(js) && /JAPONÉS BLOQUEADO/.test(js) && /corea-china/.test(js))
 }

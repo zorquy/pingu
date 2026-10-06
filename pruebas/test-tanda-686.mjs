@@ -2,7 +2,7 @@
 // japonesa antigua (nombre inglés + PS + Pokédex + ventana + la más
 // antigua + con producto), la fila que se copia, y la pasada con base de
 // mentira (un set por pasada, repaso al día).
-import { casarGemelas, filaEspejo, pasada, CLAVE_ESTADO, huellaDeAtaques } from '/home/user/pingu/netlify/functions/precios-espejo.mjs'
+import { casarGemelas, filaEspejo, pasada, CLAVE_ESTADO, huellaDeAtaques, cruzadas } from '/home/user/pingu/netlify/functions/precios-espejo.mjs'
 
 let fails = 0
 const check = (n, ok, extra = '') => { console.log(`  ${ok ? 'ok ' : 'FALLA'} ${n}${!ok && extra ? ` — ${extra}` : ''}`); if (!ok) fails++ }
@@ -36,6 +36,12 @@ console.log('── 1. Las gemelas ──')
   check('sin PS ni Pokédex (un Entrenador) casa por nombre', pares.get('scrydex-base1-77')?.west.id === 'base1-70')
   check('sin producto en la gemela no hay par; sin nombre inglés tampoco', !pares.has('scrydex-base1-50') && !pares.has('scrydex-base1-71'))
   check('el Charmander de Rocket Gang casa con el de Team Rocket por los ATAQUES, no con el de Base Set (686.1)', pares.get('scrydex-rocket-charmander')?.west.id === 'base5-50', JSON.stringify(pares.get('scrydex-rocket-charmander')))
+  check('  …ni de cómo se escribe el «×» del daño (687)', huellaDeAtaques({ attacks: [{ cost: ['Fire', 'Fire'], damage: '20×' }] }) === huellaDeAtaques({ attacks: [{ cost: ['Fire', 'Fire'], damage: '20x' }] }) && huellaDeAtaques({ attacks: [{ cost: ['Fire'], damage: '30+' }] }) !== huellaDeAtaques({ attacks: [{ cost: ['Fire'], damage: '30' }] }))
+  {
+    const pares = new Map([['a', { west: { id: 'w1' }, setWest: 'base1' }], ['b', { west: { id: 'w2' }, setWest: 'base1' }], ['c', { west: { id: 'w3' }, setWest: 'gym1' }]])
+    const x = cruzadas(pares)
+    check('  …y las cruzadas son las que caen fuera del set con más gemelas (687)', x.principal === 'base1' && x.fuera.length === 1 && x.fuera[0].id === 'c' && x.fuera[0].gemela === 'w3', JSON.stringify(x))
+  }
   check('  …y la huella de ataques no depende del idioma', huellaDeAtaques({ attacks: [{ name: 'Arañazo', cost: ['Colorless'], damage: '10' }] }) === huellaDeAtaques({ attacks: [{ name: 'Scratch', cost: ['Colorless'], damage: '10' }] }) && huellaDeAtaques({}) === '')
   check('los motivos, uno a uno', sinPar.length === 3 && sinPar.some((s) => /sin nombre/.test(s.motivo)) && sinPar.some((s) => /otros PS/.test(s.motivo)), JSON.stringify(sinPar))
   const f = filaEspejo('scrydex-base1-6', { card_id: 'base1-4', cm_id_product: 273699, cm_low: 499.99, cm_low_es: 500, cm_avg30: 709.55, tp_market_eur: 0, tcggo_updated: 'x' }, new Date('2026-10-06T12:00:00Z'))

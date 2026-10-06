@@ -16,13 +16,23 @@ const check = (l, ok, extra = '') => {
 const RAIZ = '/home/user/pingu'
 const DIR = new URL('.', import.meta.url)
 const PAGINA = JSON.parse(readFileSync(new URL('tcggo-30th-431-pagina1.json', DIR), 'utf8'))
-const { procesar, equivalencias, pasada, REEMPLAZOS, CLAVE_ESTADO } = await import(`${RAIZ}/netlify/functions/tcggo-reemplazar-set.mjs`)
+const { procesar, equivalencias, pasada, REEMPLAZOS, setsQueNoCubre, CLAVE_ESTADO } = await import(`${RAIZ}/netlify/functions/tcggo-reemplazar-set.mjs`)
 
 console.log('── 1. La lista: el 30 va otra vez, entero y con su expansión escrita ──')
 {
   const r = REEMPLAZOS.find((x) => x.clave === '30th-entero')
   check('hay un segundo reemplazo del 30, entero, con la Classic, al 30th y con la expansión 431 (de la respuesta de PINGU)', r && r.entero === true && r.sets.join() === '30th,30th-c' && r.destino === '30th' && r.episodio === 431 && r.mercado === 'WEST', JSON.stringify(r))
   check('  …y el primero sigue (hecho, no se repite)', REEMPLAZOS.findIndex((x) => x.clave === '30th') < REEMPLAZOS.findIndex((x) => x.clave === '30th-entero'))
+  const c = REEMPLAZOS.find((x) => x.clave === 'cel25-entero')
+  check('Celebrations va igual (687): entero, con la Classic (cel25c), al cel25 y con la expansión 35 de TCGGO', c && c.entero === true && c.sets.join() === 'cel25,cel25c' && c.destino === 'cel25' && c.episodio === 35 && c.mercado === 'WEST', JSON.stringify(c))
+  // La guarda del modo entero: un set que se va y cuyas cartas TCGGO no
+  // trae no es la misma expansión.
+  const suyas = [{ name: 'Ho-Oh' }, { name: 'Pikachu' }, { name: 'Mew' }]
+  const classic = ['Charizard', 'Blastoise', 'Venusaur', 'Mew', 'Umbreon ☆'].map((n, i) => ({ id: `cel25c-${i}`, set_id: 'cel25c', name: n, name_en: n }))
+  const fuera = setsQueNoCubre(classic, suyas)
+  check('cinco de la Classic y una sola con nombre en TCGGO: el set no está cubierto', fuera.length === 1 && fuera[0].set === 'cel25c' && fuera[0].cartas === 5 && fuera[0].conNombre === 1, JSON.stringify(fuera))
+  check('  …con TCGGO trayéndolas, sí', setsQueNoCubre(classic, classic.map((c) => ({ name: c.name }))).length === 0)
+  check('  …y con menos de cinco cartas no se juzga', setsQueNoCubre(classic.slice(0, 4), suyas).length === 0)
 }
 
 console.log('\n── 2. Las equivalencias: por tcggo_id primero; con «aproximar», por nombre al número más cercano ──')
