@@ -128,7 +128,8 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
       estados, guardados, llamadas,
       estadoImpl: async (k) => estados[k] || {},
       guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)); guardados.push(k) },
-      restImpl: async (ruta) => { llamadas.push(ruta); return ruta.startsWith('tcg_sets?') ? [SET] : [] },
+      // Desde la 670, con todo hecho la pasada barre huecos: aquí todos los sets tienen cartas.
+      restImpl: async (ruta) => { llamadas.push(ruta); return ruta.startsWith('tcg_sets?') ? [SET] : ruta.startsWith('tcg_cards?') ? [{ id: 'una' }] : [] },
     }
   }
   const ENV = { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' }
@@ -146,7 +147,7 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
   const b3 = montar()
   for (let k = 0; k < MAXIMO_INTENTOS + 2; k++) await pasada({ env: ENV, ...SOLO, ...b3, procesarImpl: async () => ({ ok: false, error: 'TCGGO 500' }) })
   const cuantas = b3.guardados.length
-  check(`un fallo cuenta como intento y a los ${MAXIMO_INTENTOS} se para (no es una factura)`, b3.estados[CLAVE_ESTADO].intentos['30th'] === MAXIMO_INTENTOS && cuantas === MAXIMO_INTENTOS && b3.estados[CLAVE_ESTADO].ultimo.error === 'TCGGO 500', JSON.stringify(b3.estados[CLAVE_ESTADO]))
+  check(`un fallo cuenta como intento y a los ${MAXIMO_INTENTOS} se para (no es una factura)`, b3.estados[CLAVE_ESTADO].intentos['30th'] === MAXIMO_INTENTOS && cuantas >= MAXIMO_INTENTOS && /* desde la 670 el barrido de huecos también guarda */ b3.estados[CLAVE_ESTADO].ultimo.error === 'TCGGO 500', JSON.stringify(b3.estados[CLAVE_ESTADO]))
   const r4 = await pasada({ env: ENV, ...SOLO, ...b3, procesarImpl: async () => ({ ok: true }) })
   check('  …y después dice que está parado', r4.hecho === true && r4.parados.join() === '30th')
   // Sin expansión suya todavía, se espera sin gastar ni contar.
