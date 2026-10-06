@@ -16,8 +16,12 @@ japonés. TCGGO no da el mínimo japonés en el producto occidental
 **Ficheros**: `netlify/functions/precios-espejo.mjs`, `admin/js/admin.js`,
 `SCHEMA.md`. En `pruebas`: 686.
 
-**Pendiente**: ver en /admin cuántas casan; suite entera; migración
-corea-china; Celebrations.
+**Suite entera** (lanzada tras 676–682, acabada a las 13:20): 315
+verdes, 4 rojos — 391 y 407 arreglados en la 685.1 (y verdes sueltos),
+493 y 514 los de siempre (ffmpeg no está en el contenedor).
+
+**Pendiente**: ver en /admin cuántas casan; migración corea-china;
+Celebrations.
 ## 2026-10-06 (tarde, 4) — PINGU-Claude (685 — nombres ingleses de las cartas de Scrydex; el desplegable del catálogo escondido otra vez)
 
 **Hecho**: las cartas que trae `scrydex-huecos` llevan `name_en` sacado
