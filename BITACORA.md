@@ -20,7 +20,15 @@ pasada escribe lo demás y lo avisa).
 `css/cardmarket.css`, `js/mi-coleccion.js`, `admin/js/admin.js`,
 `SCHEMA.md`, `CLAUDE.md`. En `pruebas`: 671 (nueva) y 589.
 
-**Pendiente**: que PINGU ejecute la migración; la suite entera.
+**Suite entera (666–671)**: 307 verdes, 8 rojos — 493 y 514 (ffmpeg,
+los de siempre) y seis pruebas que buscaban la ficha como era antes de
+la 667/669 (407, 422, 643-pantalla, 645, 648-pantalla, 649-pantalla),
+ajustadas y en verde sueltas. Un fallo REAL cazado por la 648: la
+loseta Editar no salía en una carta tuya de OTRO catálogo abierta desde
+el Panel (la cuenta de líneas es del catálogo de ahora); corregido en
+este push (`mi-coleccion.js`, `cartas.html`).
+
+**Pendiente**: que PINGU ejecute la migración.
 ## 2026-10-06 (mañana, 5) — PINGU-Claude (670 — el barrido de huecos: sets sin cartas que se rellenan solos)
 
 **Hecho**: la pasada programada del reemplazo, con la lista hecha,

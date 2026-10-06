@@ -532,7 +532,10 @@ function pintarAccionesDeFicha(l) {
   const tienes = $('mcEdTienes')
   tienes.classList.toggle('hidden', n === 0)
   tienes.textContent = n ? `Tienes ${n}` : ''
-  $('mcEdEditar')?.classList.toggle('hidden', n === 0 || !l.id)
+  // Editar sale si la línea es TUYA (l.id), aunque la cuenta de este
+  // catálogo dé cero: desde el Panel se abre una carta de OTRO catálogo
+  // (648) y sus líneas no están en `lineas`.
+  $('mcEdEditar')?.classList.toggle('hidden', !l.id)
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
 }
