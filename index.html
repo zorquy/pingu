@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <script>/* Como el del tema: si hay sesión guardada (la clave sb-…-auth-token de Supabase), la portada del miembro se pinta YA — hero fuera y hueco de la bienvenida reservado — en vez de dar el salto cuando el JS confirma la sesión (era el mayor layout shift de la portada). */try{if(Object.keys(localStorage).some(function(k){return k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0}))document.documentElement.classList.add('con-sesion')}catch(e){}</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>PokeDoc — Todo sobre Pokémon TCG</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />

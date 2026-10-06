@@ -165,3 +165,53 @@
     box-shadow: none;
   }
 }
+
+/* ── 707: la ficha de una carta, con las acciones a mano ──
+   Añadir, Editar y Avísame iban bajo la foto, que en el móvil es la
+   primera pantalla entera: había que bajar para encontrarlas. Van en una
+   barra fija encima de la barra de secciones, y la foto se queda más
+   pequeña para que nombre, foto y datos entren a la vez. */
+@media (max-width: 900px) {
+  html.con-barra-movil .carta-scan {
+    max-width: 200px;
+  }
+  html.con-barra-movil .carta-scan .carta-acciones {
+    position: fixed;
+    z-index: 94;
+    inset-inline: var(--e-md);
+    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
+    margin: 0;
+    padding: var(--e-xs);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--white) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-md);
+  }
+  html.con-barra-movil .carta-scan .carta-acciones .mc-ficha-tile {
+    max-width: none;
+    min-height: 52px;
+    border: 0;
+    background: transparent;
+  }
+  html.con-barra-movil .carta-scan .carta-acciones .mc-ficha-mas {
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+  }
+  html.con-barra-movil .carta-cuerpo {
+    padding-bottom: 88px;
+  }
+  /* Los chips de idioma del precio: una fila que se desplaza, no tres. */
+  #cmIdiomas {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #cmIdiomas::-webkit-scrollbar {
+    display: none;
+  }
+  #cmIdiomas > * {
+    flex: 0 0 auto;
+  }
+}

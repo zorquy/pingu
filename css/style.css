@@ -452,6 +452,8 @@ body:has(> .footer) .page-content {
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--border);
+  /* La muesca del iPhone instalado como app (708, con viewport-fit=cover). */
+  padding-top: env(safe-area-inset-top);
   transition: box-shadow 0.15s var(--ease);
 }
 

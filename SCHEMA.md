@@ -34105,3 +34105,42 @@ La primera carta empieza ahora en la primera pantalla; la prueba lo
 mide (≤ 460 px) y comprueba dónde cae el «+».
 
 **Ficheros**: `css/movil.css`. Prueba 705-pantalla.
+
+## Tanda 707 — la ficha de una carta, con las acciones a mano (oct. 2026)
+
+Cuarta tanda del móvil. En /carta las losetas Añadir, Editar y Avísame
+iban bajo la foto, y en un iPhone la foto era la primera pantalla
+entera: había que bajar para encontrarlas. Solo en el móvil
+(`css/movil.css`):
+
+- Las losetas van en una **barra fija** encima de la barra de secciones,
+  de lado a lado, translúcida; «Añadir» en azul. El cuerpo reserva sitio
+  debajo para que el final de la página no quede escondido.
+- La foto se queda en 200 px: nombre, foto y los primeros datos entran
+  a la vez.
+- Los chips de idioma del precio (`#cmIdiomas`) son una fila que se
+  desplaza, no tres filas. Ojo: `.pv-burbujas` son las BURBUJAS de precio
+  (la cifra), no los chips; la primera versión las convirtió en fila y
+  no era eso.
+
+En el escritorio las losetas siguen bajo la foto, pegajosas con ella.
+
+**Ficheros**: `css/movil.css`. Prueba 707-pantalla (rama `pruebas`).
+
+## Tanda 708 — los pequeños del móvil (oct. 2026)
+
+Quinta tanda, y última del plan de la 704.
+
+- **El botón «Ver las guías» se salía de su tarjeta** en la portada: a
+  menos de 560 px el botón medía el 100 % MÁS 32 px de sangría a la
+  izquierda. Ahora el ancho descuenta la sangría (`components.css`, que
+  lo baja todo el mundo: cuatro bytes, la portada queda en 169,8).
+- **`viewport-fit=cover` en las 43 páginas** y la barra de arriba con
+  `padding-top: env(safe-area-inset-top)` (`style.css`): instalada como
+  app en un iPhone con muesca, la página llega hasta el borde y la barra
+  reserva el hueco. La barra inferior ya reservaba el de abajo.
+- El hueco de 76 px bajo la barra de arriba (704c) y la miga de la
+  expansión (706) ya estaban hechos.
+
+**Ficheros**: `css/components.css`, `css/style.css`, las 43 páginas
+(`cartas.html` regenerado con `generar-cartas.mjs`). Prueba 707-pantalla.

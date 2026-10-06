@@ -2762,7 +2762,9 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
   }
 
   .paso-boton {
-    width: 100%;
+    /* El 100 % MÁS los 32 de sangría se salía de la tarjeta por la
+       derecha (708): el ancho descuenta la sangría. */
+    width: calc(100% - 32px);
     text-align: center;
     margin-left: 32px;
   }

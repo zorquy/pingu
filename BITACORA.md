@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (madrugada, 2) — PINGU-Claude (707 y 708 — la ficha de carta con las acciones a mano, y los pequeños)
+
+**Hecho**: 707: en /carta en el móvil las losetas Añadir/Editar/Avísame
+van en una barra fija encima de la barra de secciones, la foto en 200
+px y los chips de idioma del precio en una fila que se desplaza. 708:
+el botón «Ver las guías» ya no se sale de su tarjeta en la portada;
+`viewport-fit=cover` en las 43 páginas y la barra de arriba con el
+hueco de la muesca. Con esto, las cinco tandas del plan del móvil (704)
+están hechas; mañana las repasa PINGU.
+
+**Ficheros**: `css/movil.css`, `css/components.css`, `css/style.css`,
+las 43 páginas (viewport), `SCHEMA.md`. Prueba 707-pantalla en `pruebas`.
+
+**Pendiente**: el repaso de PINGU en su iPhone; la sonda del Lanturn
+(`scrydex-l2_ja-N`, JP) y los bloques de /admin.
+
 ## 2026-10-07 (madrugada, 1) — PINGU-Claude (705 y 706 — hojas desde abajo y la expansión compacta en el móvil)
 
 **Hecho**: PINGU: «sigue con todas las tandas y mañana repasamos». 705:
