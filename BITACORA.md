@@ -29,6 +29,22 @@ nada).
 **Pruebas**: el subconjunto de Mis partidas (partidas, partidas-pagina,
 251, 321, 381, 494, 553, 627, 628, 632) y las de CSS (299, 305, 310–313,
 315) e imports: todas en verde.
+## 2026-10-06 (tarde, 14) — PINGU-Claude (691 — la imagen de la cadena: cuatro dibujos sin un euro)
+
+**Hecho**: el carrusel de «Mi colección en una imagen» pasa a cuatro
+dibujos sin precio, para la cadena de Twitter e Instagram: Mi equipo de
+6 (con sprites), Qué coleccionista soy (un perfil por reglas, cuatro
+rasgos, reparto), Mi viaje en el tiempo (la más antigua, la más nueva,
+cartas por época) y Mi Pokédex. Se van el resumen, la joya, la vitrina
+y el mes.
+
+**Ficheros**: `js/mi-coleccion/imagen.js`, `js/mi-coleccion/imagen-datos.js`,
+`js/mi-coleccion.js`, `SCHEMA.md`. En `pruebas`: 689 y 689-pantalla.
+
+**Pendiente**: que PINGU las pase con sus fotos y sprites de verdad y
+diga qué cambia; HUECOS, sonda del Poliwrath, REEMPLAZOS y ESPEJO de
+/admin.
+
 ## 2026-10-06 (tarde, 13) — PINGU-Claude (690 — la «normal» fantasma de Scrydex)
 
 **Hecho**: una japonesa que solo existe en holo salía «Sin precio» y

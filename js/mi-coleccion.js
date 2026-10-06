@@ -4978,9 +4978,10 @@ function enganchar() {
     const d = $('mcImagenDialogo')
     if (!d || !resumenHero) return
     const [ls, clave, busca] = pTodo()
-    // Las nueve que más valen, con la cadena de fotos de cada una (la
-    // vitrina pinta nueve; el resumen, las tres primeras).
-    const valiosas = masValiosas(9, ls, clave, busca).map((v) => ({
+    // Las tres que más valen siguen en los datos (la prueba de la 571 las
+    // mira), pero desde la 691 ningún dibujo las pinta: la imagen no va de
+    // dinero.
+    const valiosas = masValiosas(3, ls, clave, busca).map((v) => ({
       nombre: nombreDe(v.carta),
       cadena: cadenaDeEscaneo(v.carta, v.carta?.tcg_sets?.tcg_online_code || null, 'high'),
       valor: euros(v.valor),
@@ -5000,18 +5001,35 @@ function enganchar() {
       const pct = tengo / total
       if (!mejorSet || pct > mejorSet.pct) mejorSet = { nombre: nombreDeSet(s) || s.id, tengo, total, pct }
     }
-    // Lo que cuentan las otras variantes (689): el mes y la Pokédex.
-    const { cartasDistintas, resumenDelMes, resumenDePokedex, masRepetido } = await import('./mi-coleccion/imagen-datos.js')
+    // Lo que cuentan los dibujos (689, 691): el equipo, el perfil, el
+    // viaje y la Pokédex. Sin un euro.
+    const { cartasDistintas, resumenDelMes, resumenDePokedex, masRepetido, equipoDe6, viajeEnElTiempo, perfilDeColeccionista } = await import('./mi-coleccion/imagen-datos.js')
+    const { urlDeSprite, cadenaDeRespaldos } = await import('./torneos/sprites-pokemon.js')
     const distintas = cartasDistintas(ls, busca)
-    const conCadena = (c) => ({ nombre: nombreDe(c), cadena: cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null, 'high') })
+    const conCadena = (c) => ({ nombre: nombreDe(c), cadena: cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null, 'high'), expansion: nombreDeSet(c?.tcg_sets) || c?.set_id || '' })
     const mes = resumenDelMes(distintas, { nombreDeSet: (c) => nombreDeSet(c?.tcg_sets) || c?.set_id || '' })
     const pokedex = resumenDePokedex(distintas)
     const favorito = masRepetido(distintas)
+    const alCien = (sets || []).filter((s) => {
+      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
+      const total = Number(s.card_count_total) || Number(s.card_count_official) || 0
+      return total > 0 && suyas.filter((c) => tengoDe(c.id) > 0).length >= total
+    }).length
+    const equipo = equipoDe6(distintas).map((m) => {
+      const sprite = urlDeSprite(m.dex)
+      return { ...m, sprites: sprite ? [sprite, ...cadenaDeRespaldos(sprite)] : [], ejemplos: m.ejemplos.map(conCadena) }
+    })
+    const viaje = viajeEnElTiempo(distintas)
+    const perfil = perfilDeColeccionista(distintas, { pokedex, mejorSet, alCien })
+    // Las tres cartas de firma: las del líder del equipo y, si no, las
+    // tres primeras que entraron.
+    const firma = (equipo[0]?.ejemplos?.length ? equipo[0].ejemplos : distintas.slice(0, 3).map((x) => conCadena(x.carta))).slice(0, 3)
     const datos = {
       quien: dueno?.username || null,
       ...resumenHero,
       valiosas,
       mejorSet: mejorSet ? { nombre: mejorSet.nombre, tengo: mejorSet.tengo, total: mejorSet.total } : null,
+      alCien,
       desde: $('mcHeroDesde')?.textContent?.trim() || '',
       mes: { nuevas: mes.nuevas, ultimas: mes.ultimas.map(conCadena), expansionesNuevas: mes.expansionesNuevas },
       pokedex: {
@@ -5019,6 +5037,10 @@ function enganchar() {
         masAntigua: pokedex.masAntigua ? { nombre: nombreDe(pokedex.masAntigua.carta), anio: pokedex.masAntigua.anio, expansion: nombreDeSet(pokedex.masAntigua.carta?.tcg_sets) || pokedex.masAntigua.carta?.set_id || '' } : null,
         favorito,
       },
+      equipo,
+      viaje: viaje ? { ...viaje, antigua: { ...conCadena(viaje.antigua.carta), anio: viaje.antigua.anio }, nueva: { ...conCadena(viaje.nueva.carta), anio: viaje.nueva.anio } } : null,
+      perfil,
+      firma,
     }
     // A mano, para la prueba y para depurar: lo que se le dio al dibujo.
     window.__mcImagenDatos = datos

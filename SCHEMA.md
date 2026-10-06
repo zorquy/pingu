@@ -33543,3 +33543,54 @@ sentencia, el formulario fila a fila, lo guardado, editar, la lista, las
 estadísticas, la ronda en Bo3, sin migración y a 360 px) y su rigor;
 `test-partidas-pagina`, 251 y 627 al día (marcan el resultado con su
 botón).
+
+## Tanda 691 — la imagen de la cadena: cuatro dibujos sin un euro (oct. 2026)
+
+PINGU, con las ocho maquetas delante: «no quiero hacer tantas imágenes.
+Quiero que la gente entre y comparta, una cadena en Twitter y en
+Instagram. No quiero centrarme en la pasta: eso es privado y quien
+quiera ya compartirá desde su panel. Que se centre en cuántos Pokémon,
+tu Pokémon, el que más tienes, datos sobre las cartas». Y de las
+propuestas: «la última (qué coleccionista soy), mi viaje en el tiempo, mi
+equipo de seis, y añade la que a ti te parezca». La cuarta es la
+Pokédex (la D de la 689).
+
+**Las cuatro** (`VARIANTES_IMAGEN`, en este orden), y se van las de la
+689 que llevaban dinero (resumen, joya, vitrina, mes):
+
+- **equipo** — «Mi equipo de 6»: las seis especies con más cartas
+  distintas; el líder grande con sprite, chapa («14 cartas · 9
+  expansiones · desde 1999») y sus cartas debajo (hasta cinco y un
+  «+N»); los otros cinco en fila con su sprite; medallas (expansión al
+  100 %, Pokémon distintos, expansiones, desde cuándo). Los sprites
+  salen de `urlDeSprite(dex)` con `cadenaDeRespaldos` (la 321) por
+  `fotoParaElLienzo`; sin sprite, la inicial sobre el círculo.
+- **perfil** — «Qué coleccionista soy»: UN perfil con nombre y una frase
+  con números, cuatro rasgos (brillo, región favorita, tipo favorito,
+  fetiche), de qué son tus cartas (Pokémon / entrenadores / energías) y
+  tres cartas de firma. Los perfiles son `PERFILES`, en orden, y gana la
+  primera regla que se cumple: **Completista** (una expansión al 100 % o
+  la más completa ≥ 90 %), **Fan de X** (≥ 8 cartas de una especie y
+  ≥ 10 % de la colección), **Cazador de holos** (≥ 50 % brillan, por
+  `familiaDeBrillo` de la rareza), **Maestro de <tipo>** (≥ 45 % de los
+  Pokémon), **Nostálgico de Kanto** (≥ 40 % de Kanto), **De <región>**
+  (≥ 50 %), **Entrenador** (≥ 30 % entrenadores) y **De todo un poco**,
+  que siempre se cumple: nadie se queda sin perfil.
+- **viaje** — «Mi viaje en el tiempo»: la carta más antigua y la más
+  nueva por la fecha de su expansión, los años entre ellas en grande,
+  y una barra por época (la `serie_id` de la expansión, con rótulo corto
+  —Base, EX, DP, BW, XY, SM, SWSH, SV, Mega…—, hasta ocho, en orden de
+  fecha; la que más tiene en amarillo y «Mi época»).
+- **pokedex** — la de la 689.
+
+**Los números**, en `imagen-datos.js`: `equipoDe6`, `viajeEnElTiempo`,
+`perfilDeColeccionista` (+ `PERFILES`). La pantalla añade sprites y
+cadenas de fotos, cuenta `alCien` (expansiones al 100 %, como el
+vistazo) y pasa `firma` (las cartas del líder o las tres primeras).
+`valiosas` sigue en los datos (la 571 lo mira) pero no se pinta.
+
+**Ficheros**: `js/mi-coleccion/imagen.js`, `js/mi-coleccion/imagen-datos.js`,
+`js/mi-coleccion.js`. **Pruebas**: 689 (equipo, viaje, perfil y sus
+reglas), 689-pantalla (cuatro puntos, los datos de las tres nuevas,
+sprites de mentira por `page.route`); 571, 574, 582 y 645-pantalla
+siguen.
