@@ -32601,3 +32601,52 @@ local, con capturas de antes y después, y PINGU dio el sí.
 `js/precio-vista.js`, `css/cardmarket.css`, `cartas.html` (generado).
 **Pruebas**: 645, 645-pantalla, 650-pantalla, 574, 648-pantalla, 472,
 653, 312, 672-pantalla e imports.
+
+## Tanda 674 — el calco japonés: el catálogo japonés, entero, de TCGGO (oct. 2026)
+
+PINGU: «el catálogo japonés está prácticamente vacío: expansiones sin
+cartas (Expansion Pack, Jungla, Fossil…), muchas cartas sin precio, no
+muestra la misma información que el inglés. Yo lo volcaría todo desde
+TCGGO, con todas las cartas dentro, y copiaría su estructura. Tengo la
+suscripción Ultra».
+
+**Por qué estaba así.** Lo japonés venía de TCGdex, que de 68 sets no
+publica ni una carta. El catálogo semanal de TCGGO (640) solo escribe en
+los sets que casa por código o nombre, y lo que marcó «hecho» antes de
+que se apuntaran los fallos (655) no se vuelve a visitar. El barrido de
+huecos (670) rellena uno por pasada SOLO si resuelve la expansión; lo
+que no casa queda «sinEpisodio» una semana. Tres mecanismos, ninguno con
+la orden de «deja el catálogo japonés como el de TCGGO».
+
+**Qué hace** `netlify/functions/tcggo-calco-jp.mjs` (programada cada dos
+minutos, en los impares; estado `tcggo_calco_jp`):
+
+1. La lista de expansiones japonesas de TCGGO, una vez a la semana
+   (`/pokemon-jp/episodes`, todas sus páginas).
+2. **Una expansión por pasada**: el destino es nuestro set que ya lleve
+   su `tcggo_id`; si no, el que case por código o nombre
+   (`setDeEpisodio`); y si no hay ninguno, se crea con su nombre, logo,
+   fecha, cuentas y serie (`filaDeSetNuevo` + `tcggo_crear_sets`). Las
+   cartas las escribe `procesar` (el reemplazo de la 654): entran todas
+   las suyas, lo nuestro que no es suyo se reapunta si alguien lo tiene y
+   se borra si no, y el set queda apuntado a su expansión. Una expansión
+   que su lista da con cero cartas se apunta sin pedirla.
+3. Con todas hechas, **los cascarones**: sets japoneses sin `tcggo_id`,
+   sin una carta y que no han sido destino de nada se esconden
+   (`oculto`), ocho por pasada. Después, una pasada es leer el estado.
+
+**Frenos**: ~3 páginas por expansión y ~210 expansiones = unas 630
+peticiones UNA vez (siete horas); los fallos cuentan y a
+`MAXIMO_INTENTOS` (3) la expansión queda parada con su error, que /admin
+enseña (línea CALCO JAPONÉS); si TCGGO contesta que el japonés pide otro
+plan, se apunta y no se vuelve a pedir hasta mañana.
+
+**Lo que no cambia**: TCGplayer no tiene las japonesas (su propia ficha
+dice «Mercado US N/A»), así que ese precio no existe para ellas; el de
+Cardmarket, el coreano y el chino entran por la pasada de precios (671),
+que desde la 671 recorre todos los sets japoneses con `tcggo_id`.
+
+**Ficheros**: `netlify/functions/tcggo-calco-jp.mjs` (nueva),
+`admin/js/admin.js`. **Pruebas**: `test-tanda-674.mjs` (dobles: la lista
+una vez, el destino por tcggo_id / nombre / creado, la vacía, los
+cascarones, los fallos que paran, el plan).

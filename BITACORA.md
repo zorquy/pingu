@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 2) — PINGU-Claude (674 — el calco japonés: el catálogo japonés entero de TCGGO)
+
+**Hecho**: función programada nueva (`tcggo-calco-jp`, cada dos
+minutos) que recorre las expansiones japonesas de TCGGO una por pasada
+y deja cada una como él la tiene (set existente, casado por nombre, o
+creado; cartas por `procesar`); al acabar esconde los cascarones de
+TCGdex. ~7 horas la primera vez, una vez. /admin: línea CALCO JAPONÉS.
+
+**Ficheros**: `netlify/functions/tcggo-calco-jp.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`. En `pruebas`: 674.
+
+**Pendiente**: el selector de /lanzamientos con banderas y los
+esqueletos de carga (675); migración corea-china; Celebrations.
 ## 2026-10-06 (mediodía, 1) — PINGU-Claude (673 — más compacto: Panel, tu copia, gradeadas por casa, selector con banderas)
 
 **Hecho** (propuesto con capturas y aprobado por PINGU): el Panel más

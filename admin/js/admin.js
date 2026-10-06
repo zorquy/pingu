@@ -3009,7 +3009,7 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp'])
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
   const cat = de('tcggo_catalogo')
@@ -3038,6 +3038,20 @@ async function tcggoEstado() {
         p.ultimoParado ? `  ⚠ ÚLTIMO PARÓN (${p.ultimoParado.fecha}): ${p.ultimoParado.motivo}` : '  sin parones apuntados',
         p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
         p.faltaMigracionKoZh ? '  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql: el coreano y el chino se están tirando' : '',
+      ]
+    })(),
+    // El calco japonés (674): expansión a expansión desde TCGGO.
+    ...(() => {
+      const k = de('tcggo_calco_jp')?.valor
+      if (!k) return ['CALCO JAPONÉS (tcggo_calco_jp, 674): todavía no ha corrido']
+      const total = k.lista?.episodios?.length ?? 0
+      const hechas = Object.keys(k.hechos || {}).length
+      const paradas = (k.lista?.episodios || []).filter((e) => !k.hechos?.[e.id] && (Number(k.intentos?.[e.id]) || 0) >= 3)
+      return [
+        `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
+        ...paradas.map((e) => `  ⚠ parada #${e.id} ${e.nombre}`),
+        k.ultimoError ? `  último error: #${k.ultimoError.episodio ?? '—'} ${k.ultimoError.nombre ?? ''} (${k.ultimoError.fecha}): ${k.ultimoError.error}` : '',
+        k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
       ]
     })(),
     `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${JSON.stringify({ ...(de('tcggo_reemplazos')?.valor || {}), huecos: undefined }, null, 1).slice(0, 1500)}`,
