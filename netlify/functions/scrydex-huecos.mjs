@@ -38,10 +38,7 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, SCRYDEX_API_KEY,
 // SCRYDEX_TEAM_ID.
-import { cabecerasDe, urlDeSonda, emparejarSets, fecha as fechaDe, clave as claveDeNombre } from '../lib/scrydex.mjs'
-// La Pokédex Nacional en inglés, que es la misma lista que usa la web (no
-// importa nada, así que se puede traer a una función).
-import { POKEMON_POR_DEX } from '../../js/torneos/sprites-pokemon.js'
+import { cabecerasDe, urlDeSonda, faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, igualarClaves, expansionDelSet, parcheDeSet } from '../lib/scrydex.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'scrydex_huecos'
@@ -74,142 +71,13 @@ async function rest(ruta, clave, opciones = null) {
   try { return texto ? JSON.parse(texto) : null } catch { return texto }
 }
 
-// ── Lo puro ──
-
-const sinTilde = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
-// La fase, en NUESTRO enum (el de TCGdex, con el que compara todo lo de
-// /carta): «Stage 1» → `Stage1`. Lo que no es una fase (TAG TEAM, GX, ex)
-// no es una fase.
-const FASES = { basic: 'Basic', 'stage 1': 'Stage1', 'stage 2': 'Stage2', mega: 'MEGA', vmax: 'VMAX', vstar: 'VSTAR', 'v-union': 'V-UNION', break: 'BREAK', baby: 'Baby', restored: 'RESTORED', 'level-up': 'LEVEL-UP', 'level up': 'LEVEL-UP' }
-export function faseDe(subtipos) {
-  for (const s of Array.isArray(subtipos) ? subtipos : []) {
-    const f = FASES[String(s || '').trim().toLowerCase()]
-    if (f) return f
-  }
-  return null
-}
-
-// EL NOMBRE EN INGLÉS (685). El catálogo japonés de Scrydex da el nombre
-// en katakana («カメックス»), que no se puede buscar ni leer desde aquí
-// (PINGU: «el nombre tiene que ser buscable»). Lo que sí trae es la
-// Pokédex Nacional, que es canónica (la 508): de ahí sale la especie en
-// inglés, y de los subtipos el apellido («ex», «-GX», « V», « VMAX»…).
-// Dos especies son un TAG TEAM («A & B-GX»). Un Entrenador o una Energía
-// no tienen Pokédex y se quedan con su nombre japonés: no se inventa.
-// Lo que no sale de aquí: los dueños y prefijos («Brock's», «Dark»,
-// «Shining»), que no están en ningún campo canónico.
-const APELLIDOS = [
-  ['vstar', ' VSTAR'], ['vmax', ' VMAX'], ['v-union', ' V-UNION'], ['v', ' V'], ['gx', '-GX'], ['ex', ' ex'], ['break', ' BREAK'], ['lv.x', ' LV.X'], ['prism star', ' ◇'],
-]
-export function nombreInglesDe(carta) {
-  const dex = (Array.isArray(carta?.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= POKEMON_POR_DEX.length)
-  if (!dex.length || dex.length > 2) return null
-  const especies = dex.map((n) => POKEMON_POR_DEX[n - 1]).filter(Boolean)
-  if (especies.length !== dex.length) return null
-  const subtipos = (Array.isArray(carta?.subtypes) ? carta.subtypes : []).map((x) => String(x || '').trim())
-  const bajos = subtipos.map((x) => x.toLowerCase())
-  // «EX» (mayúsculas, era XY) y «ex» (minúsculas, Escarlata y Púrpura)
-  // son dos apellidos distintos y Scrydex los distingue por la caja.
-  let apellido = ''
-  if (subtipos.includes('EX')) apellido = '-EX'
-  else {
-    for (const [sub, ap] of APELLIDOS) if (bajos.includes(sub)) { apellido = ap; break }
-  }
-  const mega = bajos.includes('mega') ? 'M ' : ''
-  return `${mega}${especies.join(' & ')}${apellido}`
-}
-
-// El id nuestro de una carta suya. Suyo es `sm10-1`; el nuestro, con su
-// marca de origen delante como las de TCGGO (`tcggo-49770`), para que no
-// pise a ninguna de TCGdex y para que se sepa de dónde salió.
-export const idNuestro = (idScrydex) => `scrydex-${String(idScrydex || '').trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '')}`
-
-// La base de la foto: `images.scrydex.com/pokemon/<id>` sin la calidad,
-// que es lo que `urlDeFotoScrydex` espera para montar `/large` o `/small`.
-export function baseDeFoto(carta) {
-  const cara = (Array.isArray(carta?.images) ? carta.images : []).find((i) => String(i?.type || '').toLowerCase() === 'front')
-  const url = cara?.large || cara?.medium || cara?.small || null
-  if (typeof url !== 'string' || !/^https:\/\/images\.scrydex\.com\//.test(url)) return null
-  return url.replace(/\/(small|medium|large)$/, '')
-}
-
-// Una carta suya, con nuestras columnas. Solo lo que viene.
-export function filaDeCartaScrydex(carta, { setId, mercado, idioma, ahora = new Date() }) {
-  if (!carta?.id || !setId) return null
-  const fila = {
-    id: idNuestro(carta.id), market: mercado, set_id: setId,
-    local_id: String(carta.number ?? carta.printed_number?.split('/')[0] ?? '').trim(),
-    name: String(carta.name || carta.id),
-    // Sin `scrydex_id`: esa columna solo existe en `tcg_sets` (PGRST204 en
-    // la primera pasada real); el id suyo va dentro del nuestro.
-    scrydex_at: ahora.toISOString(), origen: 'scrydex',
-    detalle_at: ahora.toISOString(), detalle_lang: idioma,
-  }
-  if (idioma === 'en') fila.name_en = fila.name
-  else {
-    const en = nombreInglesDe(carta)
-    if (en) fila.name_en = en
-  }
-  const foto = baseDeFoto(carta)
-  if (foto) fila.image_scrydex = foto
-  if (carta.rarity) fila.rarity_en = String(carta.rarity)
-  if (carta.artist) fila.illustrator = String(carta.artist)
-  if (carta.supertype) fila.category = sinTilde(carta.supertype)
-  if (Number.isInteger(Number(carta.hp)) && Number(carta.hp) > 0) fila.hp = Number(carta.hp)
-  const fase = faseDe(carta.subtypes)
-  if (fase) fila.stage = fase
-  if (Array.isArray(carta.types) && carta.types.length) fila.types = carta.types.map(String)
-  if (Array.isArray(carta.evolves_from) && carta.evolves_from[0]) fila.evolve_from = String(carta.evolves_from[0])
-  else if (typeof carta.evolves_from === 'string' && carta.evolves_from) fila.evolve_from = carta.evolves_from
-  if (Array.isArray(carta.attacks)) fila.attacks = carta.attacks.map((a) => ({ name: a?.name || '', cost: Array.isArray(a?.cost) ? a.cost : [], damage: a?.damage || '', effect: a?.text || '' }))
-  if (Array.isArray(carta.abilities)) fila.abilities = carta.abilities.map((h) => ({ type: h?.type || 'Ability', name: h?.name || '', effect: h?.text || '' }))
-  if (Array.isArray(carta.weaknesses)) fila.weaknesses = carta.weaknesses.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
-  if (Array.isArray(carta.resistances)) fila.resistances = carta.resistances.map((w) => ({ type: w?.type || '', value: w?.value || '' }))
-  if (Number.isInteger(carta.converted_retreat_cost)) fila.retreat = carta.converted_retreat_cost
-  else if (Array.isArray(carta.retreat_cost)) fila.retreat = carta.retreat_cost.length
-  if (carta.regulation_mark) fila.regulation_mark = String(carta.regulation_mark)
-  if (carta.flavor_text) fila.description = String(carta.flavor_text)
-  const dex = (Array.isArray(carta.national_pokedex_numbers) ? carta.national_pokedex_numbers : []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
-  if (dex.length) fila.dex_ids = dex
-  return fila
-}
-
-// Todas las filas con las MISMAS claves: un `insert` de varias filas por
-// PostgREST exige que todas tengan las mismas columnas (la 585).
-export function igualarClaves(filas) {
-  const claves = [...new Set(filas.flatMap((f) => Object.keys(f)))]
-  return filas.map((f) => Object.fromEntries(claves.map((k) => [k, f[k] === undefined ? null : f[k]])))
-}
-
-// Qué expansión suya es un set nuestro: por `scrydex_id`, por nombre
-// exacto, y si no por la huella de la 505 (fecha + cuenta).
-export function expansionDelSet(set, expansiones) {
-  if (!set || !Array.isArray(expansiones)) return { por: null, expansion: null }
-  if (set.scrydex_id) {
-    const e = expansiones.find((x) => x.id === set.scrydex_id)
-    if (e) return { por: 'scrydex_id', expansion: e }
-  }
-  const nombre = claveDeNombre(set.name_en || set.name)
-  const porNombre = nombre ? expansiones.filter((x) => claveDeNombre(x.name) === nombre) : []
-  if (porNombre.length === 1) return { por: 'nombre', expansion: porNombre[0] }
-  const { pares } = emparejarSets([set], expansiones)
-  if (pares.length === 1) return { por: pares[0].por || 'huella', expansion: pares[0].suyo }
-  return { por: null, expansion: null, candidatas: porNombre.map((x) => x.id) }
-}
-
-// Lo que se apunta en el set al rellenarlo: su expansión, logo y símbolo,
-// y la fecha y las cuentas SOLO si estaban vacías (la 508: no pisar).
-export function parcheDeSet(set, expansion, ahora = new Date()) {
-  const p = { scrydex_id: expansion.id, scrydex_por: 'huecos', oculto: false }
-  if (typeof expansion.logo === 'string' && expansion.logo) p.logo_scrydex = expansion.logo
-  if (typeof expansion.symbol === 'string' && expansion.symbol) p.symbol_scrydex = expansion.symbol
-  if (!set.release_date && fechaDe(expansion.release_date)) p.release_date = fechaDe(expansion.release_date)
-  if (!set.card_count_total && Number(expansion.total) > 0) p.card_count_total = Number(expansion.total)
-  if (!set.card_count_official && Number(expansion.printed_total) > 0) p.card_count_official = Number(expansion.printed_total)
-  if (!set.name_en && expansion.name) p.name_en = String(expansion.name)
-  p.scrydex_at = ahora.toISOString()
-  return p
-}
+// Los mapeadores puros (la fila de una carta suya, el parche del set, la
+// expansión de un set) viven en `netlify/lib/scrydex.mjs`: la guarda de la
+// 391 sigue a los mapeadores que escriben en `tcg_cards` y los busca en
+// los módulos puros, no en la función que hace el upsert. Se importan Y se
+// reexportan (un reexport no es un import, la 624): la prueba los pide de
+// aquí.
+export { faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, igualarClaves, expansionDelSet, parcheDeSet }
 
 const esDeSuscripcion = (status) => status === 401 || status === 403 || status === 402
 

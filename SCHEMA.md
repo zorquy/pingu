@@ -33155,3 +33155,16 @@ dentro.
 **Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
 `css/mi-coleccion.css`. **Pruebas**: 684 (ampliada: nombres y la fase
 0), 648-pantalla.
+
+**685.1 — los mapeadores, a la librería.** La suite entera cantó dos
+rojos: la guarda de la 391 («ningún upsert se deja una columna
+obligatoria») sigue a los mapeadores por los MÓDULOS PUROS y
+`filaDeCartaScrydex` vivía en la función, así que veía un upsert a
+`tcg_cards` «sin local_id». Los mapeadores (`filaDeCartaScrydex`,
+`nombreInglesDe`, `faseDe`, `idNuestro`, `baseDeFoto`, `igualarClaves`,
+`expansionDelSet`, `parcheDeSet`) se mudan a `netlify/lib/scrydex.mjs`,
+la guarda los lee de ahí, y la función los importa Y los reexporta (la
+624). Y la 407 leía las chapas del RESUMEN de tu copia (que desde la 667
+va antes en el DOM y a la izquierda a propósito) en vez de las de la
+cabecera: ahora mira `#mcEdChapas`. Ese rojo era de la 667, no de hoy:
+la suite de la 673 murió antes de llegar.
