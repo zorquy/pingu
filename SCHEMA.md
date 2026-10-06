@@ -34031,3 +34031,17 @@ bordes seguros del iPhone.
 **Ficheros**: `js/barra-movil.js` (nuevo), `css/movil.css` (nueva),
 `js/app.js`, `js/icons.js` (icono `home`). Pruebas: 704-pantalla
 (nueva) y 299 (el marcador), en `pruebas`.
+
+### 704b — las píldoras eran demasiado
+
+PINGU, con la primera versión en producción: «esas burbujas de las
+categorías ocupan demasiadísima pantalla, es una barbaridad». Dos filas
+de píldoras de 44 px con borde, más la cabecera de siempre, se comían
+media pantalla de un iPhone. La fila de sección pasa a ser una LÍNEA DE
+TEXTO —enlaces en línea, como una miga de pan, con el subrayado en la
+activa— que mide 24 px de alto y aun así se pulsa con 44: en un elemento
+en línea el relleno vertical no engorda el renglón pero sí el área que
+recibe el dedo (es la misma salida que la prueba 312 admite para un
+enlace dentro de una frase). Y las pestañas de Mi colección se quedan
+sin borde ni fondo, en fila. La prueba 704 mide la fila entera (≤ 48 px)
+y el área de cada enlace (≥ 44).

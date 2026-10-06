@@ -39,12 +39,18 @@
   .bm a[aria-current='page'] svg {
     stroke-width: 2.5;
   }
+  /* Las páginas de la sección, en UNA LÍNEA DE TEXTO (704b). PINGU, con
+     la primera versión en píldoras: «esas burbujas ocupan demasiadísima
+     pantalla». Son enlaces en línea —como una miga de pan— con el
+     subrayado en la activa; el área que se pulsa la da el relleno
+     vertical, que en un elemento en línea no engorda el renglón. */
   .bm-secc {
-    display: flex;
-    gap: var(--e-xs);
-    margin: 0 0 var(--e-md);
+    display: block;
+    margin: 0 0 var(--e-sm);
     overflow-x: auto;
+    white-space: nowrap;
     scrollbar-width: none;
+    line-height: 1.6;
   }
   .bm-secc::-webkit-scrollbar {
     display: none;
@@ -53,24 +59,19 @@
     padding: 0 var(--e-md);
   }
   .bm-secc a {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 var(--e-sm);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    background: var(--white);
+    display: inline;
+    padding: 16px 2px;
+    margin-right: var(--e-md);
     color: var(--text-mid);
     font-size: var(--t-xs);
     font-weight: 600;
     text-decoration: none;
-    white-space: nowrap;
   }
   .bm-secc a[aria-current='page'] {
-    background: var(--navy-solid);
-    border-color: var(--navy-solid);
-    color: var(--blanco-fijo);
+    color: var(--navy);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
   }
   /* Las pestañas de Mi colección dejan de flotar (la burbuja de la 452):
      abajo ya está la barra de secciones, y dos cosas flotando se pisan.
@@ -80,7 +81,7 @@
     inset-inline: auto;
     width: auto;
     max-width: none;
-    margin: 0 0 var(--e-md);
+    margin: 0 0 var(--e-sm);
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -89,27 +90,26 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     justify-content: flex-start;
-    gap: var(--e-xs);
+    gap: 2px;
     overflow-x: auto;
     scrollbar-width: none;
   }
   .mc-pestanias::-webkit-scrollbar {
     display: none;
   }
+  /* Compactas: icono y palabra en fila, sin borde, 44 de alto que es lo
+     que pide el dedo, y nada más. */
   .mc-pestania {
     flex: 0 0 auto;
     flex-direction: row;
     gap: var(--e-xs);
     min-height: 44px;
     padding: 0 var(--e-sm);
-    border: 1px solid var(--border);
-    background: var(--white);
+    border: 0;
+    background: transparent;
   }
   .mc-pestania > svg {
     width: 16px;
     height: 16px;
-  }
-  .mc-pestania.activa {
-    border-color: var(--navy-solid);
   }
 }
