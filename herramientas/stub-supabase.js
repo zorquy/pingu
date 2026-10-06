@@ -66,6 +66,8 @@ const T = {
   forum_poll_options: [],
   forum_poll_votes: [],
   user_notifications: [],
+  // Los avisos de precio (665).
+  user_price_alerts: [],
   tcg_cards: [],
   tcg_archetypes: [],
   tcg_sets: [],
@@ -315,6 +317,9 @@ sembrar('__FAKE_VALOR__', 'user_collection_value', (i) => ({
   sin_precio: 0,
 }))
 
+sembrar('__FAKE_AVISOS__', 'user_price_alerts', (i) => ({
+  id: `aviso-${i + 1}`, user_id: 'admin-1', card_id: 'carta-0', market: 'WEST', idioma: 'es', tipo: 'baja', umbral: 10, activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-06T00:00:00Z',
+}))
 sembrar('__FAKE_DESEOS__', 'user_wants', (i) => ({
   id: `des-${i + 1}`,
   user_id: 'admin-1',
