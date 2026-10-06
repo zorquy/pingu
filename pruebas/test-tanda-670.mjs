@@ -76,7 +76,7 @@ console.log('\n── 2. La segunda pasada: los llenos, los hermanos y los que n
   check('el BASE1 ya no se vuelve a mirar (rellenado)', b.hechas.length === 1 || b.hechas.every((x) => x.sets[0] !== 'BASE1'), JSON.stringify(b.hechas.map((x) => [x.sets, x.destino, x.mercado, x.episodio])))
   check('SV1a tiene cartas: «lleno»', h.vistos['JP:SV1a']?.estado === 'lleno')
   check('SM1 (vacío, sin tcggo_id) casa por código con la 700, que YA lleva tcggo-700: hermano, se le apunta el tcggo_id y NO se rellena', h.vistos['JP:SM1']?.estado === 'hermano' && h.vistos['JP:SM1'].de.join() === 'tcggo-700' && b.llamadas.some((l) => l.metodo === 'PATCH' && /tcg_sets\?market=eq\.JP&id=eq\.SM1/.test(l.ruta) && l.cuerpo.tcggo_id === 700) && !b.hechas.some((x) => x.sets[0] === 'SM1'), JSON.stringify(h.vistos['JP:SM1']))
-  check('XY1 (vacío, sin ninguna expansión suya que case): «sinEpisodio», se mira otra vez a la semana', h.vistos['JP:XY1']?.estado === 'sinEpisodio' && !b.hechas.some((x) => x.sets[0] === 'XY1'))
+  check('XY1 (vacío, sin ninguna expansión suya que case): un cascarón, se ESCONDE (672) y no se rellena', h.vistos['JP:XY1']?.estado === 'ocultado' && b.llamadas.some((l) => l.metodo === 'PATCH' && /tcg_sets\?market=eq\.JP&id=eq\.XY1/.test(l.ruta) && l.cuerpo.oculto === true) && !b.hechas.some((x) => x.sets[0] === 'XY1'), JSON.stringify(h.vistos['JP:XY1']))
   check('las energías occidentales (vacías, expansión con CERO cartas en su lista): «vacioEnTcggo», sin pedir nada', h.vistos['WEST:energias']?.estado === 'vacioEnTcggo' && !b.hechas.some((x) => x.sets[0] === 'energias'), JSON.stringify(h.vistos['WEST:energias']))
   check('sv1 lleno', h.vistos['WEST:sv1']?.estado === 'lleno' && r2.ok)
   const r3 = await pasada({ env: ENV, ...b })
