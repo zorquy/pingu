@@ -233,7 +233,6 @@ html.lab-abierto {
   background: var(--navy-solid);
   border-color: var(--navy-solid);
   color: var(--blanco-fijo);
-  box-shadow: 0 4px 0 0 var(--navy-solid-dark);
 }
 
 .lab-cerrar {
@@ -664,7 +663,6 @@ button.lab-carta:focus-visible {
   background: var(--tp-velo-fuerte);
   border-color: var(--tp-linea);
   color: var(--tp-texto);
-  box-shadow: 0 4px 0 0 var(--navy-solid-dark);
 }
 
 .lab-tapete .btn-secondary:hover {
@@ -675,7 +673,6 @@ button.lab-carta:focus-visible {
 .lab-tapete .btn-primary {
   background: var(--blanco-fijo);
   color: var(--navy-solid-dark);
-  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--blanco-fijo) 40%, var(--navy-solid-dark));
 }
 
 .lab-tapete .btn-primary:hover {

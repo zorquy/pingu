@@ -32767,3 +32767,28 @@ panel, la partida intacta y la pila en 1440, 390, 380 y 360 px) y su rigor
 (20 mutaciones, todas cazadas). No se mutan, a propósito, dos cosas que no
 se pueden observar: no mirar adelgazar en el último paso (es solo para ir
 más deprisa) y los repartos de probar puentes (afinan un valor interno).
+## Tanda 676 — una sola familia de botones, plana (oct. 2026)
+
+PINGU, en la segunda ronda visual: «toda la web lleva una familia de
+botones, hazlo» (propuesta 2 de las siete, aprobada la primera).
+
+**Lo que había**: `.btn-primary`, `.btn-secondary`, `.btn-outline` y
+una docena de botones de pantalla (`.curso-*`, `.lab-*`, los de
+torneos) llevaban el relieve antiguo: `box-shadow: 0 4px 0 0 …` como
+«base», `translateY(4px)` al pulsar y un `:active` que lo apagaba.
+Cada hoja lo escribía a su manera (12 sombras en cuatro ficheros), y
+los botones nuevos de /mi-coleccion (las fichas, el «+», los tiles) ya
+eran planos: la web tenía DOS familias a la vez.
+
+**Lo que hay**: una. Sin relieve, sin salto al pulsar; el estado se
+dice con el color (fondo y borde, `transition` de 0,15 s). `.btn-secondary`
+lleva borde de `--border` y al pasar `--border-strong` + fondo `--bg`,
+que es la misma gramática de los tiles de la ficha. Lo que sí se queda
+con su sombra corta (3 px) son los AZULEJOS de icono —`.category-card`,
+`.icon-tint-*`, la rareza de los logros—, que no son botones: son una
+chapa, y a propósito.
+
+**Peso**: la portada baja a 168,8 KB gzip (caben 1,2 KB).
+
+**Ficheros**: `css/style.css`, `css/curso.css`, `css/torneos.css`,
+`css/laboratorio.css`. **Pruebas**: 299, 305, 311, 312, 313 e imports.

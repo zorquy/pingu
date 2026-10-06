@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-06 (mediodía, 4) — PINGU-Claude (676 — una sola familia de botones, plana)
+
+**Hecho**: fuera el relieve antiguo de los botones (`box-shadow: 0 4px
+0 0`, el salto de 4 px al pulsar y los `:active` que lo apagaban) en
+las cuatro hojas que lo llevaban; `.btn-secondary` con borde `--border`.
+Una sola familia, plana, como los tiles de la ficha. Portada: 168,8 KB.
+
+**Ficheros**: `css/style.css`, `css/curso.css`, `css/torneos.css`,
+`css/laboratorio.css`, `SCHEMA.md`.
+
+**Pendiente**: 677 (/carta reestructurada), 678–682; migración
+corea-china; Celebrations; suite entera tras esta tanda.
 ## 2026-10-06 (mediodía, 4) — PINGU-Claude (630 — «¿cómo la encuentro?» con lo que hacen las cartas de la mano; tu mano contada en «tú contra ti»; repaso de 648–672)
 
 **Hecho**: (1) los caminos para encontrar una carta cuentan con lo que

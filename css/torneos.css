@@ -117,7 +117,6 @@
 .torneo-vivo .btn-primary {
   background: var(--blanco-fijo);
   color: var(--navy-solid);
-  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.25);
 }
 .torneo-vivo .btn-primary:hover { background: #e1f0f4; }
 @media (max-width: 640px) {
@@ -580,7 +579,6 @@
   font-size: var(--t-md);
   padding: 12px 16px;
   text-decoration: none;
-  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
 }
 .torneo-btn-apuntarse:hover { background: color-mix(in srgb, var(--success) 88%, #000); color: var(--blanco-fijo); }
 /* Los botones del pie, todos a la misma altura y sin el tamaño de

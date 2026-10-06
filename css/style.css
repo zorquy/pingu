@@ -974,56 +974,40 @@ body:has(.nav-menu-mobile.open) {
   font-weight: 600;
   font-size: var(--t-md);
   line-height: 1;
-  transition: transform 0.15s var(--ease), box-shadow 0.1s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
+  /* Planos desde la 676 (PINGU: «una sola familia de botones, la que
+     queda mejor»): sin el relieve de 4 px ni el hundido. SCHEMA 676. */
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
   white-space: nowrap;
 }
 
 .btn-primary {
   background: var(--navy);
   color: var(--white);
-  box-shadow: 0 4px 0 0 var(--navy-dark);
 }
 
 .btn-primary:hover {
   background: var(--navy-light);
 }
 
-.btn-primary:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 0 var(--navy-dark);
-}
-
 .btn-secondary {
   background: var(--white);
   color: var(--navy);
-  border: 1px solid var(--border-strong);
-  box-shadow: 0 4px 0 0 var(--border-strong);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  border-color: var(--navy);
-  background: var(--ice);
-}
-
-.btn-secondary:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 0 var(--border-strong);
+  border-color: var(--border-strong);
+  background: var(--bg);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--navy);
   border: 1px solid var(--navy);
-  box-shadow: 0 4px 0 0 rgba(30, 81, 117, 0.3);
 }
 
 .btn-outline:hover {
   background: var(--ice);
-}
-
-.btn-outline:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 0 rgba(30, 81, 117, 0.3);
 }
 
 .btn-primary:disabled,
@@ -1451,11 +1435,6 @@ button.btn-block {
 .banner-signup .btn-primary {
   background: var(--white);
   color: var(--navy);
-  box-shadow: 0 4px 0 0 var(--ice-dark);
-}
-
-.banner-signup .btn-primary:active {
-  box-shadow: 0 0 0 0 var(--ice-dark);
 }
 
 .banner-signup .btn-primary:hover {
