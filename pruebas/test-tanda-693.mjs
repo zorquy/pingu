@@ -8,7 +8,7 @@
 // expansión es un set nuestro, que se prueban los dos parámetros de
 // búsqueda y se apunta el que contesta, y los frenos (intentos, tope,
 // parón del plan, fallo nuestro).
-import { laUnica, parcheDeCarta, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO, PRIORIDAD } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
+import { laUnica, parcheDeCarta, parcheDeScrydex, pasada, CLAVE_ESTADO, MAXIMO_INTENTOS, TOPE_DIARIO, PRIORIDAD } from '/home/user/pingu/netlify/functions/tcggo-sueltas.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -37,13 +37,19 @@ check('si ya está en ese set, tampoco', parcheDeCarta({ ...NUESTRA, set_id: 'ba
 check('el id de la carta no va en el parche: es la llave de las colecciones', !('id' in parche))
 
 console.log('── 3. La pasada ──')
-const montar = ({ searchContesta = true, limite = false, baseFalla = false } = {}) => {
+const SCRYDEX_MEW = { id: 'miscp-1', name: 'Ancient Mew', supertype: 'Pokémon', hp: '30', rarity: 'Promo', artist: null, expansion: { id: 'miscp', name: 'Miscellaneous' }, images: [{ type: 'front', small: 'https://images.scrydex.com/pokemon/miscp-1/small', large: 'https://images.scrydex.com/pokemon/miscp-1/large' }], variants: [{ name: 'holofoil', marketplaces: [{ name: 'tcgplayer' }], prices: [{ type: 'raw', condition: 'NM', currency: 'USD', market: 118.76, low: 110 }] }] }
+const montar = ({ searchContesta = true, limite = false, baseFalla = false, scrydex = false, tcggoVacio = false } = {}) => {
   const estados = {}
   const urls = []
   const parches = []
   const fetchImpl = async (url) => {
     urls.push(url)
+    if (/api\.scrydex\.com/.test(url)) {
+      if (!scrydex) return { ok: false, status: 404, text: async () => '{}' }
+      return /miscp-1/.test(url) ? { ok: true, status: 200, text: async () => JSON.stringify({ data: SCRYDEX_MEW }) } : { ok: false, status: 404, text: async () => '{}' }
+    }
     if (limite) return { ok: false, status: 429, text: async () => 'You have exceeded the rate limit' }
+    if (tcggoVacio) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [] }) }
     const u = new URL(url)
     const q = u.searchParams.get('search') ?? u.searchParams.get('name')
     if (u.searchParams.has('search') && !searchContesta) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [] }) }
@@ -64,7 +70,7 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false } = {
     if (ruta.startsWith('tcg_sets?select=')) return SETS
     return []
   }
-  const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ env: ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
+  const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ env: scrydex ? { ...ENV, SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 'e' } : ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
   return { estados, urls, parches, rutas, correr }
 }
 {
@@ -108,6 +114,22 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false } = {
   b.estados[CLAVE_ESTADO] = { dia: '2026-10-06', peticionesHoy: TOPE_DIARIO, hechas: {}, sinPar: {} }
   const r = await b.correr()
   check('con el tope diario gastado no se pide nada', r.saltado === 'tope diario' && b.urls.length === 0)
+}
+
+console.log('── 4. Cuando TCGGO no la tiene, Scrydex por nuestro id (693.2) ──')
+{
+  const pr = parcheDeScrydex({ id: 'miscp-1', name_en: null }, SCRYDEX_MEW)
+  check('el parche de Scrydex: la foto sin calidad, la rareza, los PS y el nombre inglés que faltaba; sin ilustrador si no viene', pr.image_scrydex === 'https://images.scrydex.com/pokemon/miscp-1' && pr.rarity_en === 'Promo' && pr.hp === 30 && pr.name_en === 'Ancient Mew' && !('illustrator' in pr) && pr.scrydex_at, JSON.stringify(pr))
+  check('  …y sin foto no hay parche', parcheDeScrydex({ id: 'x' }, { ...SCRYDEX_MEW, images: [] }) === null)
+  const b = montar({ scrydex: true, tcggoVacio: true })
+  const r = await b.correr()
+  check('con TCGGO vacío y Scrydex con la ficha: el Ancient Mew hecho por Scrydex, con foto y precio', r.ok && r.hechasAhora.length === 1 && r.hechasAhora[0].por === 'scrydex' && b.estados[CLAVE_ESTADO].hechas['miscp-1'].por === 'scrydex' && b.estados[CLAVE_ESTADO].hechas['miscp-1'].precio === true, JSON.stringify(r))
+  check('  …el PATCH lleva image_scrydex y el precio va a tcg_card_prices con el NM del holo en dólares', b.parches.some((p) => /miscp-1/.test(p.ruta) && p.cuerpo.image_scrydex) && b.rutas.some((x) => x.startsWith('tcg_card_prices?on_conflict=card_id')), JSON.stringify(b.parches))
+  check('  …el Pikachu (que Scrydex no tiene por ese id) sigue sin par, con los dos motivos', /Scrydex: 404/.test(b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo || ''), b.estados[CLAVE_ESTADO].sinPar['xyp-1']?.motivo)
+  check('  …y se cuentan los créditos de Scrydex aparte', b.estados[CLAVE_ESTADO].scrydexHoy === 2 && b.urls.filter((u) => /scrydex/.test(u)).length === 2)
+  const sin = montar({ scrydex: false, tcggoVacio: true })
+  const r2 = await sin.correr()
+  check('sin claves de Scrydex no se le pide nada y la carta queda sin par', r2.hechasAhora.length === 0 && !sin.urls.some((u) => /scrydex/.test(u)))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
