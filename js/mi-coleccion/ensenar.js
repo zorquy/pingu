@@ -136,3 +136,29 @@ export function celebrarSetCompleto({ setId, nombre, total }, { doc = document }
   if (!d.open) d.show()
   return d
 }
+
+// «AÑADIDA», DICHO CON EL PROPIO BOTÓN (728, V4 de la lista). Al añadir, el
+// «+» de esa carta rebota, se vuelve una marca verde un momento y suelta un
+// «+1». Con «menos movimiento» el CSS no lo mueve y la marca se queda
+// quieta lo mismo. Se quita con un temporizador y NO con `animationend`,
+// que con «menos movimiento» no llega (la 313).
+export function celebrarAnadida(raiz, cardId, { win = window } = {}) {
+  if (!raiz || !cardId) return 0
+  const botones = [...raiz.querySelectorAll(`[data-anadir="${CSS.escape(cardId)}"]`)]
+  for (const b of botones) {
+    b.classList.remove('mc-mas-hecho')
+    void b.offsetWidth
+    b.classList.add('mc-mas-hecho')
+    const uno = b.ownerDocument.createElement('span')
+    uno.className = 'mc-mas-uno'
+    uno.setAttribute('aria-hidden', 'true')
+    uno.textContent = '+1'
+    b.appendChild(uno)
+    win.setTimeout(() => {
+      b.classList.remove('mc-mas-hecho')
+      uno.remove()
+    }, 900)
+  }
+  return botones.length
+}
+

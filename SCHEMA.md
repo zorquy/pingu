@@ -34802,3 +34802,16 @@ V2 de la lista y una de las tres reglas de la V3.
 
 **Ficheros**: `css/style.css`, `css/mi-coleccion.css`, `css/carta.css`.
 La portada sigue en 169,6.
+
+## Tanda 728 — al añadir, el «+» lo dice (oct. 2026)
+
+V4 de la lista, la parte de añadir. Tras guardar desde la hoja de añadir,
+el «+» de esa carta en la expansión rebota, se vuelve verde con una marca
+y suelta un «+1» que sube y se apaga (`celebrarAnadida` en
+`js/mi-coleccion/ensenar.js`). Se va a los 900 ms con un temporizador y no
+con `animationend`, que con «menos movimiento» no llega (la 313): ahí la
+marca sale quieta y se va igual. Lo de completar un set ya lo dice la
+medalla (725); lo de «la quiero» queda como está.
+
+**Ficheros**: `js/mi-coleccion/ensenar.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`. Prueba 728-pantalla.

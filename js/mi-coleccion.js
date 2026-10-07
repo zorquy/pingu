@@ -67,7 +67,7 @@ import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
 import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
-import { abrirEnsenar, celebrarSetCompleto } from './mi-coleccion/ensenar.js'
+import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -493,6 +493,7 @@ async function guardarAnadir(e) {
     $('mcAnadirDialogo').close()
     avisarAnadida(c, linea, nueva)
     repintar()
+    celebrarAnadida($('mcAlbum'), c.id)
     // Y si la ficha de esa carta está abierta, pasa a ser la de la copia
     // que acabas de meter: lo que se acaba de hacer es tener la carta.
     if ($('mcEditor').open && cartaAbierta === c.id) abrirEditor(nueva)

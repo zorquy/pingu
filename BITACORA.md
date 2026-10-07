@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 8) — PINGU-Claude (728 — al añadir, el «+» lo dice)
+
+**Hecho**: V4 de la lista (añadir). El «+» de la carta que acabas de
+añadir rebota, se pone verde con una marca y suelta un «+1»; con «menos
+movimiento», sin moverse.
+
+**Ficheros**: `js/mi-coleccion/ensenar.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. Prueba 728-pantalla en `pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V3 (antetítulo), V5, V6, V7, A1 y X3,
+X4, X6, X7, X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 7) — PINGU-Claude (727 — el tema oscuro afinado y las cifras que no bailan)
 
 **Hecho**: V2 de la lista: en oscuro el fondo es más hondo, las cajas un
