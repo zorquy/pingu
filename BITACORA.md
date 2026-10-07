@@ -4,38 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
-## 2026-10-07 (noche, 3) — PINGU-Claude (749 y 750 — las expansiones con su logo y su color, el precio dentro de una expansión y la Pokédex por regiones)
+## 2026-10-07 (noche, 3) — PINGU-Claude (749 a 752 — las expansiones con su logo, el precio dentro de una expansión, «La quiero» y el perfil en tres niveles)
 
-**Hecho**: de la lista que eligió PINGU, las dos primeras tandas. 749:
-cada fila de Expansiones lleva su LOGO donde iba el código (si la cadena
-de logos se agota, vuelve el código: nunca una caja vacía) y detrás el
-mismo logo muy difuminado, que es lo que le da a cada set su color (E1,
-E2); en el ordenador son baldosas con el logo grande arriba (E4); dentro
-de una expansión con logo, el logo y a su lado el nombre PEQUEÑO con
-«OBF · agosto de 2023 · 197 cartas» debajo —PINGU: «si tiene logo, no
-pongas el título, o muy pequeño»—, y sin logo el título de siempre (E5);
-«Casi completas» en el orden (Y2); el punto de los miles también en
-«1.475,90 €» (Y1: `useGrouping: 'always'`, que en español el navegador no
-pone por debajo de 10.000); y en el ordenador ancho, un hueco más
-estrecho entre cartas (Y8). 750: en los filtros de una expansión, el
-precio de cada carta con dos tiradores, «Desde / Hasta» y tres atajos
-(«Menos de 0,50 €», «Menos de 2 €», «Más de 10 €»), contando también las
-que NO tienes, cuyos precios se piden al abrirla; el botón dice «Ver N
-cartas · unos X €» (K6). Y la Pokédex con la cuenta de cada región en su
-chip («Kanto 15/151» y una barra) y «24 de 1.025 especies» arriba (K7).
+**Hecho**: de la lista que eligió PINGU, cuatro tandas. **749**: cada fila
+de Expansiones con su LOGO donde iba el código (si no carga, vuelve el
+código) y detrás el mismo logo difuminado, que le da a cada set su color
+(E1, E2); baldosas con el logo grande en el ordenador (E4); dentro de una
+expansión con logo, el nombre PEQUEÑO a su lado con «OBF · agosto de 2023
+· 197 cartas» (E5, «si tiene logo, no pongas el título, o muy pequeño»);
+«Casi completas» en el orden (Y2); un hueco más estrecho en pantallas
+anchas (Y8). **750**: el precio de cada carta en los filtros de una
+expansión, con tiradores, Desde/Hasta y tres atajos, contando las que no
+tienes (K6); la Pokédex con «Kanto 15/151» en cada región (K7). **751**:
+«La quiero» — el corazón en la ficha y en /carta, su pantalla
+(`?ver=quiero`) con el precio de cada carta y lo que suman, el aviso de
+precio por fila (K2) y la lista en una imagen (Y3). SIN migración: es la
+lista de «Lo que buscas» de los cambios (376), y «quién tiene lo que te
+falta» (K4) ya era el tablón de Cambios; la propuesta decía que no
+existía y se equivocaba. **752**: el perfil en tres niveles, Vitrina ·
+Actividad · Medallas, con Muro/Guías/Foro/Torneos como filtros de
+Actividad (P1); «En tu álbum X» en la ficha (Y5); y el punto de los miles
+en todas partes (Y1, también dólares, Gente y Meta). Y un fallo de la 749
+que cazó la suite: el ⋮ de una expansión se abría por debajo del buscador
+(`isolation: isolate`; ver SCHEMA 752).
 
 **Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
-`js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`,
-`js/cardmarket.js`, `js/home.js`, `js/perfil-cifras.js`,
-`js/constructor.js`, `SCHEMA.md`. Pruebas 749-pantalla y 750-pantalla
-(nuevas) y 400, 414, 475, 476, 710 y 748 al día en `pruebas`.
+`js/mi-coleccion.js`, `js/mi-coleccion/{pokedex,cambios,iconos,imagen-quiero,arrastrar-a-album}.js`,
+`js/la-quiero.js` (nuevo), `js/carta-mercado.js`, `js/menu-tu.js`,
+`css/mi-coleccion.css`, `css/cardmarket.css`, `perfil.html`,
+`usuario.html`, `js/perfil.js`, `js/usuario.js`, `js/perfil-pestanias.js`,
+`css/perfil.css`, `js/cardmarket.js`, `js/home.js`, `js/perfil-cifras.js`,
+`js/constructor.js`, `js/usuarios.js`, `js/meta/nucleo.js`,
+`js/constructor/laboratorio.js`, `js/repeticiones.js`, `SCHEMA.md`.
+Pruebas 749, 750, 751 y 752-pantalla (nuevas) y 253, 308, 309, 376, 400,
+414, 429, 475, 476, 589, 589-pantalla, 645, 670 (rojo desde la 697), 710,
+717 y 748 al día en `pruebas`; el doble pone los `default` de los avisos
+y de `user_wants` al insertar.
 
-**Pendiente**: lo demás de la lista de PINGU — «La quiero» con aviso de
-precio, compartirla como imagen y quién tiene lo que te falta (751, con
-migración); las pestañas del perfil y «en qué álbum la tienes» (752); la
-hoja de instalar, los atajos del icono, la barra de abajo en el HTML con
-transiciones y los avisos de lanzamiento (753); escanear desde la galería
-(754).
+**Pendiente**: la hoja de instalar, los atajos del icono, la barra de
+abajo escrita en el HTML con transiciones y los avisos de lanzamiento
+(753); escanear desde la galería (754).
 
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
