@@ -516,6 +516,10 @@ sembrar('__FAKE_SET_VALOR__', 'tcg_set_valor', (i) => ({
 sembrar('__FAKE_HISTORIAL__', 'tcg_card_history', (i) => ({
   card_id: 'carta-0', dia: '2026-10-05', cm_low: null, cm_low_es: null, cm_low_en: null, cm_low_de: null, cm_low_fr: null, cm_low_it: null, cm_low_ja: null, tp_market_eur: null, origen: 'tcggo',
 }))
+// Los temas que sigue alguien (746, «Siguiendo» en las conversaciones).
+sembrar('__FAKE_SUSCRIPCIONES__', 'forum_subscriptions', (i) => ({
+  id: `sus-${i + 1}`, thread_id: 'tema-1', user_id: 'admin-1', created_at: new Date().toISOString(),
+}))
 // Los avisos de la campana (736).
 sembrar('__FAKE_NOTIFICACIONES__', 'user_notifications', (i) => ({
   id: `aviso-${i}`, recipient_id: 'user-1', type: 'forum_reply', title: 'Aviso', body: null, link: null, read_at: null, created_at: new Date().toISOString(),
