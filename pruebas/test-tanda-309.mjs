@@ -158,19 +158,20 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   const { page } = await abrir('/foro', { sesion: 'admin-1' })
   await page.locator('#navUserBtn').click()
   await page.waitForTimeout(300)
-  const opciones = (await page.locator('.nav-user-links a, .nav-user-links button').allTextContents()).map((t) => t.trim())
-  // Cinco en la 309; la 355 metió «Mis mazos» junto a «Mis partidas».
-  check('quedan seis opciones', opciones.length === 6, JSON.stringify(opciones))
+  // Desde la 748 es la hoja «Tú» de su maqueta (N8): «Ver perfil», dos
+  // losetas, una lista de cinco y «Salir» aparte, junto al tema.
+  await page.waitForTimeout(600)
+  const opciones = (await page.locator('#navUserDropdown .tu-lista a').allTextContents()).map((t) => t.trim())
+  check('la lista de lo tuyo tiene cinco', opciones.length === 5, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
-  // Ni siquiera al admin, que era el único al que le salía «Mis torneos».
   check('  …y sigue estando lo que sí se usa',
-    ['Mi perfil', 'Guardados', 'Mis partidas', 'Escribir una guía', 'Cerrar sesión'].every((x) => opciones.includes(x)),
+    ['Guardados', 'Mis partidas', 'Mis mazos', 'Escribir una guía', 'Ajustes'].every((x) => opciones.includes(x)) && (await page.locator('#navUserDropdown .tu-perfil').count()) === 1,
     JSON.stringify(opciones))
-  // «Cerrar sesión» separado por una raya: es lo que evita pulsarlo
-  // yendo a por lo de arriba.
-  const separado = await page.locator('#navUserSignOut').evaluate((n) => getComputedStyle(n).borderTopWidth)
-  check('  …y «Cerrar sesión» va separado por una raya', separado !== '0px', String(separado))
+  // «Salir» fuera de la lista: es lo que evita pulsarlo yendo a por lo de
+  // arriba.
+  const fuera = await page.locator('#navUserSignOut').evaluate((n) => !n.closest('.tu-lista') && !!n.closest('.tu-pie'))
+  check('  …y «Salir» va aparte, abajo', fuera)
   await page.close()
 }
 

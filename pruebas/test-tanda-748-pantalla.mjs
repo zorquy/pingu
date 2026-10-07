@@ -411,6 +411,100 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
   await ctx.close()
 }
 
+console.log('── 8. La hoja «Tú» de su maqueta (N8) ──')
+for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['portátil', { viewport: { width: 1280, height: 900 } }]]) {
+  const ctx = await browser.newContext({ ...opciones, locale: 'es-ES', colorScheme: 'dark' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_NOTIFICACIONES__ = [{ recipient_id: 'admin-1', type: 'forum_reply', title: 'Misty te ha respondido' }, { recipient_id: 'admin-1', type: 'forum_reply', title: 'Ash te ha respondido' }]
+    try { localStorage.setItem('pokedoc-theme', 'light') } catch {}
+  })
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2500)
+  const css = () => page.evaluate(() => [...document.querySelectorAll('link[rel=stylesheet]')].some((l) => /menu-tu\.css/.test(l.href)))
+  check(`[${nombre}] la hoja de la hoja «Tú» no se baja hasta tocarla`, !(await css()))
+  await page.click('#navUserBtn')
+  await page.waitForTimeout(900)
+  const m = await page.evaluate(() => {
+    const d = document.getElementById('navUserDropdown')
+    const t = (s) => (d.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim()
+    return {
+      quien: t('.tu-quien'),
+      perfil: d.querySelector('.tu-perfil')?.getAttribute('href'),
+      dos: [...d.querySelectorAll('.tu-dos > *')].map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
+      lista: [...d.querySelectorAll('.tu-lista a')].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`),
+      tema: [...d.querySelectorAll('[data-tema]')].map((b) => b.textContent.trim() + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
+      salir: t('#navUserSignOut'),
+      viejo: !!d.querySelector('.nav-user-stats, .bm-tu-filas'),
+      dentro: (() => { const r = d.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 })(),
+    }
+  })
+  check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
+  check(`[${nombre}] quién eres en una línea, con «Ver perfil»`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
+  check(`[${nombre}] avisos (con su número) y mensajes en dos losetas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
+  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
+  check(`[${nombre}] el tema en tres y «Salir» aparte`, m.tema === 'Claro* Oscuro Auto' && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
+  check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
+  await page.click('#navUserDropdown [data-tema="auto"]')
+  await page.waitForTimeout(200)
+  const auto = await page.evaluate(() => ({ guardado: localStorage.getItem('pokedoc-theme'), tema: document.documentElement.dataset.theme, sistema: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' }))
+  check(`[${nombre}] «Auto» olvida la elección y sigue al sistema`, auto.guardado === null && auto.tema === 'dark' && auto.sistema === 'dark', JSON.stringify(auto))
+  await ctx.close()
+}
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1' })
+  const page = await ctx.newPage()
+  await page.goto(`${BASE}/perfil.html?editar=1`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2500)
+  check('«Ajustes» abre el editor del perfil y limpia la dirección', await page.locator('#peDisplayName').isVisible() && !/editar=/.test(page.url()), page.url())
+  await ctx.close()
+}
+
+console.log('── 9. La portada «Hoy» de su maqueta (J5 y N1) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    const hoy = Date.now()
+    window.__FAKE_VALOR__ = Array.from({ length: 40 }, (_, i) => ({ user_id: 'admin-1', dia: new Date(hoy - (39 - i) * 864e5).toISOString().slice(0, 10), valor: 1000 + i * 2 }))
+    window.__FAKE_GUIAS__ = [{ id: 'guia-1', slug: 'primer-mazo', title: 'Cómo montar tu primer mazo', blocks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]
+    window.__FAKE_PROGRESO__ = [{ user_id: 'admin-1', guide_id: 'guia-1', status: 'in_progress', current_block: 6, started_at: new Date().toISOString() }]
+  })
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const m = await page.evaluate(() => {
+    const b = document.getElementById('bienvenida')
+    const t = (e) => (e?.textContent || '').replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim()
+    return {
+      fecha: t(b?.querySelector('.bienvenida-texto small')),
+      saludo: t(b?.querySelector('.bienvenida-texto strong')),
+      viejo: !!b?.querySelector('.mini-avatar, .bienvenida-perfil, .level-badge'),
+      tarjeta: getComputedStyle(b).borderTopWidth,
+      valor: t(document.querySelector('.hoy-valor')),
+      flecha: !!document.querySelector('.hoy-valor-mes.sube .hoy-flecha'),
+      area: !!document.querySelector('.hoy-chispa .hoy-chispa-area'),
+      reto: document.querySelector('.hoy-ficha[href="/retos"]')?.className,
+      sigue: t(document.querySelector('.hoy-sigue')),
+      barra: document.querySelector('.hoy-sigue-barra i')?.style.getPropertyValue('--ancho'),
+      ancho: document.documentElement.scrollWidth <= innerWidth + 1,
+    }
+  })
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('el saludo: el día y «Buenos días / tardes / noches», sin tarjeta ni avatar', /^(lunes|martes|miércoles|jueves|viernes|sábado|domingo), \d+ de /.test(m.fecha) && /^Buen(os días|as tardes|as noches), Admin$/.test(m.saludo) && !m.viejo && m.tarjeta === '0px', JSON.stringify(m))
+  check('tu colección: la cifra con su punto, la flecha y la línea con su relleno', /^TU COLECCIÓN|^Tu colección/i.test(m.valor) && /1\.078,00 €/.test(m.valor) && /este mes/.test(m.valor) && m.flecha && m.area, m.valor)
+  check('el reto que te toca, de color', /hoy-destaca/.test(m.reto || ''), m.reto)
+  check('«Sigue donde lo dejaste»: la guía empezada con su barra', /Sigue donde lo dejaste/.test(m.sigue) && /Guía · Cómo montar tu primer mazo/.test(m.sigue) && m.barra === '60%', JSON.stringify(m))
+  check('la portada no se va de ancho', m.ancho)
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)

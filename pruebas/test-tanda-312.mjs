@@ -348,7 +348,9 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
     if (ancho <= 900) {
       await page.click('#navUserBtn')
       await page.waitForTimeout(300)
-      const enHoja = await page.locator('.bm-tu-extra [data-tu="tema"]').isVisible().catch(() => false)
+      // En la hoja «Tú» de su maqueta (748): claro, oscuro o auto.
+      await page.waitForTimeout(400)
+      const enHoja = await page.locator('#navUserDropdown .tu-tema [data-tema="dark"]').isVisible().catch(() => false)
       check(`[${ancho}px] el tema, uno: en la hoja «Tú» y no en la barra`, cuantos === 0 && enHoja, `${cuantos} en la barra, hoja: ${enHoja}`)
     } else check(`[${ancho}px] hay exactamente un botón de tema`, cuantos === 1, String(cuantos))
     await page.close()

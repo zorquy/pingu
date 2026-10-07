@@ -33,8 +33,10 @@ console.log('── 1. Las reglas ──')
   check('la línea necesita dos puntos', chispaSvg([{ valor: 1 }]) === '' && /<path d="M0\.0,/.test(chispaSvg(filas)))
   check('hoy, mañana, en N días, o la fecha', cuandoEs(dia(0), AHORA) === 'hoy' && cuandoEs(new Date(AHORA + 86400e3).toISOString(), AHORA) === 'mañana' && cuandoEs(new Date(AHORA + 3 * 86400e3).toISOString(), AHORA) === 'en 3 días' && /oct/.test(cuandoEs(new Date(AHORA + 20 * 86400e3).toISOString(), AHORA)))
   const f = (x) => fichasHtml(x, AHORA)
-  check('el reto: hecho, por hacer, o «no se sabe» (sin afirmar nada)', /Hecho: 4 de 5/.test(f({ reto: { correct: 4, total: 5 } })) && /Te toca jugar/.test(f({ reto: false })) && !/Hecho|Te toca/.test(f({ reto: null })))
-  check('las respuestas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /2 respuestas nuevas/.test(f({ respuestas: 2 })) && /Nada nuevo/.test(f({ respuestas: 0 })) && /<b>El foro<\/b>/.test(f({ respuestas: null })))
+  // Desde la 748 cada ficha es la de su maqueta (J5): lo que es en grande
+  // y el detalle debajo («Reto del día · Sin hacer · 7 h»).
+  check('el reto: hecho, por hacer, o «no se sabe» (sin afirmar nada)', /Hecho: 4 de 5/.test(f({ reto: { correct: 4, total: 5 } })) && /Sin hacer · \d+ h/.test(f({ reto: false })) && !/Hecho|Sin hacer/.test(f({ reto: null })))
+  check('las respuestas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 respuestas<\/b>/.test(f({ respuestas: 2 })) && /Nada nuevo/.test(f({ respuestas: 0 })) && /<b>El foro<\/b>/.test(f({ respuestas: null })))
   check('el valor: sin la migración no sale; sin fotos, invita', valorHtml(null) === '' && /Empieza a llevarla/.test(valorHtml([])))
 }
 
@@ -71,12 +73,12 @@ console.log('── 2. La portada con cuenta ──')
     return { debajo: !!b && b.getBoundingClientRect().bottom <= c.getBoundingClientRect().top, valor: c.querySelector('.hoy-valor')?.innerText.replace(/\s+/g, ' '), linea: !!c.querySelector('.hoy-chispa path'), fichas: [...c.querySelectorAll('.hoy-ficha')].map((a) => ({ t: a.innerText.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href') })), borde: getComputedStyle(c.querySelector('.hoy-ficha')).borderTopWidth }
   })
   check('el bloque «Hoy», debajo del saludo, con su hoja', h?.debajo && h.borde === '1px', JSON.stringify(h))
-  check('  …lo que vale tu colección, su cambio en 30 días y su línea', /250,00 €/.test(n(h?.valor)) && /\+50,00 € \(\+25 %\) en 30 días/.test(n(h?.valor)) && h.linea, n(h?.valor))
+  check('  …lo que vale tu colección, su cambio en 30 días y su línea', /250,00 €/.test(n(h?.valor)) && /Sube 50,00 € este mes/.test(n(h?.valor)) && h.linea, n(h?.valor))
   const t = (h?.fichas || []).map((f) => f.t).join(' | ')
   check('  …el reto, hecho hoy', /Hecho: 4 de 5/.test(t), t)
-  check('  …tu próximo torneo (estás apuntado), y lleva a él', /Tu próximo torneo Liga de otoño en 2 días/i.test(t) && h.fichas.some((f) => f.href === '/torneo?slug=liga-otono'), t)
-  check('  …el próximo lanzamiento', /Héroes Ascendentes Sale mañana/.test(t), t)
-  check('  …y las respuestas en tus hilos (solo las del foro)', /2 respuestas nuevas/.test(t), t)
+  check('  …tu próximo torneo (estás apuntado), y lleva a él', /Torneo en 2 días Liga de otoño/i.test(t) && h.fichas.some((f) => f.href === '/torneo?slug=liga-otono'), t)
+  check('  …el próximo lanzamiento', /Sale mañana Héroes Ascendentes/.test(t), t)
+  check('  …y las respuestas en tus hilos (solo las del foro)', /2 respuestas en tus hilos del foro/.test(t), t)
   check('todo se pulsa con 44 o más', await page.$$eval('#hoyPortada a', (as) => as.length === 5 && as.every((a) => a.getBoundingClientRect().height >= 44)))
   await ctx.close()
 }

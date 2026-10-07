@@ -64,7 +64,9 @@ const abrir = async (ruta, ancho = 1280) => {
 
 console.log('\n── 2. Una tarjeta de expansión NUNCA se queda sin decir qué es ──')
 {
-  const { page, errores, pedidas } = await abrir('/mi-coleccion.html?ver=album')
+  // En el catálogo desde la 748: es donde vive la tarjeta con logo (en tu
+  // colección la fila de su maqueta lleva el código).
+  const { page, errores, pedidas } = await abrir('/cartas.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const sinSimbolo = await page.locator('[data-set="nada"] .mc-set-logo img').count()
   check('sin logo ni símbolo no se pide ninguna imagen', sinSimbolo === 0, String(sinSimbolo))

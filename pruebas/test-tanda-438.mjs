@@ -140,7 +140,8 @@ console.log('\n── 4. La imagen se pide a la carpeta de SU idioma ──')
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 5. Y el logo de la expansión, igual ──')
 {
-  const { page, errores, pedidas } = await abrir('/mi-coleccion.html?ver=album')
+  // En el catálogo desde la 748: en tu colección la fila lleva el código.
+  const { page, errores, pedidas } = await abrir('/cartas.html')
   const logos = () => pedidas.filter((u) => u.includes('/logo'))
   check('el logo occidental, a /en/', logos().some((u) => u.includes('/en/sv/sv1/logo')), logos().join(' | '))
   pedidas.length = 0

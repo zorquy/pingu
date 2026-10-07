@@ -52,14 +52,15 @@ console.log('── 2. En un iPhone: la barra de arriba ──')
   const hoja = await page.$eval('#navUserDropdown', (d) => { const r = d.getBoundingClientRect(); return { pos: getComputedStyle(d).position, bottom: Math.round(r.bottom), vh: innerHeight, left: Math.round(r.left), w: Math.round(r.width), vw: innerWidth } })
   check('tocar el avatar abre la hoja: pegada abajo y a lo ancho', hoja.pos === 'fixed' && Math.abs(hoja.bottom - hoja.vh) <= 1 && hoja.left === 0 && hoja.w === hoja.vw, JSON.stringify(hoja))
   check('  …con el velo detrás', await seVe(page, '.bm-velo'))
-  const filas = limpio(await page.locator('#navUserDropdown .bm-tu-filas').innerText())
-  check('arriba: avisos (3), mensajes (2) y el tema', /Avisos\s*3/.test(filas) && /Mensajes\s*2/.test(filas) && /Tema oscuro/.test(filas), filas)
-  check('y debajo, los enlaces de siempre (perfil, guardados, cerrar sesión)', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserSignOut').count()) === 1)
-  await page.click('#navUserDropdown [data-tu="tema"]')
+  // Desde la 748 la hoja es la de su maqueta (N8, js/menu-tu.js): avisos y
+  // mensajes en dos losetas con su número, la lista de lo tuyo y, abajo, el
+  // tema en tres (claro, oscuro, auto) y «Salir».
+  const filas = limpio(await page.locator('#navUserDropdown .tu-dos').innerText())
+  check('arriba: avisos (3) y mensajes (2)', /Avisos\s*3/.test(filas) && /Mensajes\s*2/.test(filas), filas)
+  check('y debajo, «Ver perfil», lo tuyo y «Salir»', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserDropdown .tu-lista a').count()) === 5 && (await page.locator('#navUserSignOut').count()) === 1)
+  await page.click('#navUserDropdown [data-tema="dark"]')
   await page.waitForTimeout(300)
-  check('el tema cambia desde la hoja, y la fila se rotula al revés', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark' && /Tema claro/.test(limpio(await page.locator('#navUserDropdown .bm-tu-filas').innerText())))
-  // La forma del fallo: la fila tocada se repintaba antes de que su clic
-  // llegara al documento, y el menú lo contaba como «pulsado fuera».
+  check('el tema cambia desde la hoja, y la chapa se queda puesta', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark' && (await page.getAttribute('#navUserDropdown [data-tema="dark"]', 'aria-pressed')) === 'true')
   check('  …y la hoja SIGUE abierta', !(await page.$eval('#navUserDropdown', (d) => d.classList.contains('hidden'))) && (await seVe(page, '#navUserDropdown')))
   await page.click('#navUserDropdown [data-tu="avisos"]')
   await page.waitForTimeout(700)
