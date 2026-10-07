@@ -28,6 +28,7 @@ export function renderNavSearch() {
   navRight.insertBefore(wrap, navUser)
   document.getElementById('navSearchBtn').addEventListener('click', () => abrir())
 
+  let g = 0
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented) return
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
@@ -37,12 +38,52 @@ export function renderNavSearch() {
       abrir()
       return
     }
-    // «/» solo a pelo: sin modificadores y nunca mientras se escribe en un
-    // campo o en el editor.
-    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return
+    // Los demás atajos, solo a pelo: sin modificadores y nunca mientras se
+    // escribe en un campo o en el editor (ahí una «g» es una letra).
+    if (e.ctrlKey || e.metaKey || e.altKey) return
     const donde = e.target
     if (donde && (donde.closest?.('input, textarea, select, [contenteditable]') || donde.isContentEditable)) return
-    e.preventDefault()
-    abrir()
+    const accion = atajo(e.key, Date.now() - g < 1200)
+    g = accion?.tipo === 'g' ? Date.now() : 0
+    if (!accion || accion.tipo === 'g') return
+    if (accion.tipo === 'buscar') {
+      e.preventDefault()
+      abrir()
+    } else if (accion.tipo === 'ir') {
+      e.preventDefault()
+      location.href = accion.a
+    } else if (accion.tipo === 'pulsar') {
+      const b = accion.cual()
+      if (!b) return
+      e.preventDefault()
+      b.click()
+    } else if (accion.tipo === 'ayuda') {
+      e.preventDefault()
+      import('./atajos.js').then((m) => m.abrirAyuda()).catch(() => {})
+    }
   })
+}
+
+// LOS ATAJOS (723, D6 de la lista). «G» y una letra para ir a cada
+// sección, como en Gmail o GitHub; «T» el tema; «A» añadir la carta que
+// tienes abierta; «/» y Ctrl+K buscar; «?» los enseña todos. Las flechas
+// para pasar de carta y Esc para cerrar ya funcionaban (422 y el propio
+// `<dialog>`). Va aquí, que lo baja toda página, para que la tecla actúe
+// en el momento; solo la ayuda espera a cargarse.
+export const SECCIONES = { i: '/index.html', n: '/noticias', a: '/aprender.html', c: '/cartas', m: '/mi-coleccion', f: '/foro.html', j: '/torneos.html', b: '/buscar.html' }
+
+const visible = (b) => (b && !b.hidden && !b.disabled && b.getClientRects().length ? b : null)
+
+export function atajo(tecla, trasG = false, doc = globalThis.document) {
+  const k = String(tecla || '')
+  if (trasG) return SECCIONES[k.toLowerCase()] ? { tipo: 'ir', a: SECCIONES[k.toLowerCase()] } : null
+  if (k === 'g' || k === 'G') return { tipo: 'g' }
+  if (k === '/') return { tipo: 'buscar' }
+  if (k === '?') return { tipo: 'ayuda' }
+  // El tema: el botón de la barra aunque en el móvil vaya escondido (la
+  // hoja «Tú», 717): pulsarlo por código no necesita verlo.
+  if (k === 't' || k === 'T') return { tipo: 'pulsar', cual: () => doc.getElementById('navThemeToggle') }
+  // Añadir: la ficha abierta de Mi colección, o la de /carta.
+  if (k === 'a' || k === 'A') return { tipo: 'pulsar', cual: () => (doc.getElementById('mcEditor')?.open ? visible(doc.getElementById('mcEdMas')) : null) || visible(doc.getElementById('cmAnadir')) }
+  return null
 }

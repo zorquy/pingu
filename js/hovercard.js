@@ -100,6 +100,8 @@ async function abrir(enlace, username) {
 
 export function engancharTarjetasDeUsuario() {
   if (!window.matchMedia('(hover: hover)').matches) return
+  // Y la de las cartas (724, D4): la misma idea, con su propio módulo.
+  import('./vista-carta.js').then((m) => m.engancharVistaDeCartas()).catch(() => {})
   document.addEventListener('mouseover', (e) => {
     const enlace = e.target.closest?.('a[href]')
     if (!enlace || tarjeta?.contains(enlace)) return

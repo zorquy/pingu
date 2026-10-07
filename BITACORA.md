@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 4) — PINGU-Claude (724 — los atajos de teclado y la carta al pasar el ratón)
+
+**Hecho**: D6 y D4 de la lista. «G» y una letra para ir a cada sección,
+«T» el tema, «A» añadir, «?» la ayuda; y al posar el ratón en el nombre de
+una carta sale su foto, precio, tendencia y si la tienes.
+
+**Ficheros**: `js/nav-search.js`, `js/atajos.js`, `js/vista-carta.js`,
+`js/hovercard.js`, `css/buscador.css`, `SCHEMA.md`. Prueba 724-pantalla en
+`pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V2–V7, A1 y el resto de las X.
+
 ## 2026-10-07 (tarde, 3) — PINGU-Claude (723 — el teclado de cada campo y precargar al posar el dedo)
 
 **Hecho**: X5 y X17 de la lista (la X12, borradores del foro, ya estaba).

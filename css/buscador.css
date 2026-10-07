@@ -287,3 +287,107 @@ input.bs-input[type='search']:focus {
   padding: var(--e-lg);
   color: var(--text-mid);
 }
+
+/* ── La ayuda de los atajos (723) ── */
+.atajos-cuerpo {
+  overflow-y: auto;
+  padding: var(--e-lg) var(--e-xl);
+}
+
+.atajos-cuerpo h2 {
+  margin: 0 0 var(--e-md);
+  font-size: var(--t-lg);
+}
+
+.atajos-cuerpo table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.atajos-cuerpo td {
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.atajos-cuerpo td:first-child {
+  width: 40%;
+  white-space: nowrap;
+}
+
+.atajos-cuerpo kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 0 var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+.atajos-cuerpo form {
+  margin-top: var(--e-lg);
+  text-align: right;
+}
+
+/* ── La carta al pasar el ratón (724) ── */
+.vista-carta {
+  position: absolute;
+  z-index: 60;
+  display: flex;
+  gap: var(--e-md);
+  width: 300px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+
+.vista-carta img {
+  flex: none;
+  width: 96px;
+  height: 134px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  object-fit: cover;
+}
+
+.vista-carta-datos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.vista-carta-datos small {
+  color: var(--text-mid);
+}
+
+.vista-carta-precio {
+  font-size: var(--t-sm);
+}
+
+.vista-carta-sube {
+  color: var(--success);
+}
+
+.vista-carta-baja {
+  color: var(--danger);
+}
+
+.vista-carta-tengo {
+  align-self: flex-start;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.vista-carta-tengo.si {
+  background: var(--success-bg);
+  color: var(--success);
+}

@@ -34700,3 +34700,28 @@ navegador y se borran al publicar.
 **Ficheros**: `js/precarga.js` (nuevo), `js/app.js`, y el `enterkeyhint` /
 `inputmode` en 23 ficheros (con `cartas.html` regenerado). Prueba
 723-pantalla.
+
+## Tanda 724 — los atajos de teclado y la carta al pasar el ratón (oct. 2026)
+
+D6 y D4 de la lista.
+
+- **D6 — atajos.** «G» y una letra va a su sección (I inicio, N noticias,
+  A guías, C catálogo, M mi colección, F foro, J torneos, B buscar), «T»
+  cambia el tema, «A» añade la carta abierta (la ficha de Mi colección o
+  /carta), «/» y Ctrl+K buscan (718) y «?» enseña todos en una ayuda
+  (`js/atajos.js`, que solo se baja al pulsarla). Las flechas para pasar
+  de carta (422) y Esc ya estaban. La regla es pura (`atajo` en
+  `js/nav-search.js`, que lo baja toda página para que la tecla actúe al
+  momento) y NADA salta mientras se escribe en un campo o en el editor:
+  ahí una «g» es una letra. La «G» espera la segunda tecla 1,2 s.
+- **D4 — la carta al pasar el ratón** (`js/vista-carta.js`, enganchado
+  desde `hovercard.js`, que es su pariente de las personas): en un enlace
+  de TEXTO a una ficha de carta —el nombre en una guía o en un hilo—, a
+  los 350 ms sale su foto, el set y número, el precio («Desde», la regla
+  de siempre), la tendencia de Cardmarket frente a ese mínimo y, con
+  cuenta, si la tienes. En un enlace que ya enseña la foto no sale, y solo
+  con ratón: en el móvil, tocar lleva a la ficha. Una consulta por carta,
+  guardada mientras dura la página.
+
+**Ficheros**: `js/nav-search.js`, `js/atajos.js` y `js/vista-carta.js`
+(nuevos), `js/hovercard.js`, `css/buscador.css`. Prueba 724-pantalla.
