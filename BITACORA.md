@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 11) — PINGU-Claude (718 — un buscador para todo y la paleta con Ctrl+K)
+
+**Hecho**: N2 y D3 de la lista. /buscar busca a la vez cartas (con foto y
+precio), guías, hilos y gente, con chips, «Ver más», lo que buscaste antes
+y el escáner al lado. En el escritorio Ctrl+K (o «/», o la lupa) abre una
+paleta que busca lo mismo, lleva a cualquier página y lanza acciones; con
+una carta elegida, Mayús+Intro la añade. La lupa perdió su desplegable y
+la portada ganó 0,3 KB de margen (169,5).
+
+**Ficheros**: `js/buscador.js`, `js/buscador-filas.js`, `js/paleta.js`,
+`css/buscador.css`, `js/search.js`, `buscar.html`, `js/nav-search.js`,
+`js/carta-mercado.js`, `js/mi-coleccion.js`, `css/components.css`,
+`css/movil.css`, `css/carta.css`, `SCHEMA.md`, `CLAUDE.md`. Prueba
+718-pantalla y `__FAKE_FALLA__` en el doble, en `pruebas`.
+
+**Pendiente**: la 719 (escanear desde la burbuja y en ráfaga).
+
 ## 2026-10-07 (mañana, 10) — PINGU-Claude (718, 1.ª parte — la hoja del móvil desde la raíz)
 
 **Hecho**: la barra de abajo salía sin estilo en /carta/…, /tema/…,

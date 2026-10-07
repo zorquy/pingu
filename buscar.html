@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <link rel="apple-touch-icon" href="/assets/icon-192.png" />
-  <meta name="description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta name="description" content="Busca a la vez cartas con su precio, guías, hilos del foro y gente de PokeDoc." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/buscar.html" />
   <meta property="og:url" content="https://pokedoc.es/buscar.html" />
@@ -17,13 +17,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
   <meta property="og:title" content="Buscar — PokeDoc" />
-  <meta property="og:description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta property="og:description" content="Busca a la vez cartas con su precio, guías, hilos del foro y gente de PokeDoc." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Buscar — PokeDoc" />
-  <meta name="twitter:description" content="Busca guías y cursos de Pokémon TCG por palabra clave o categoría." />
+  <meta name="twitter:description" content="Busca a la vez cartas con su precio, guías, hilos del foro y gente de PokeDoc." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -43,6 +43,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="/css/buscador.css" />
 </head>
 <body>
   <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
@@ -128,23 +129,24 @@
     </div>
   </nav>
 
-  <main id="contenido" class="page-content container-narrow">
-    <div class="page-header" style="padding-top: 8px;">
-      <h1>Buscar</h1>
+  <main id="contenido" class="page-content container-narrow bs-pagina">
+    <!-- Un buscador para todo (718): cartas, guías, el foro y la gente a
+         la vez, con lo que buscaste antes y el escáner a mano. -->
+    <h1 class="bs-titulo">Buscar</h1>
+    <form class="bs-caja" id="bsForm" role="search">
+      <span class="bs-lupa" id="bsLupa" aria-hidden="true"></span>
+      <input type="search" id="searchInput" class="bs-input" placeholder="Cartas, guías, hilos, gente…" autocomplete="off" enterkeyhint="search" aria-label="Buscar en PokeDoc" autofocus />
+      <a class="bs-escanear" id="bsEscanear" href="/mi-coleccion?ver=buscar&amp;escanear=1" aria-label="Escanear una carta" title="Escanear una carta"></a>
+    </form>
+    <div class="bs-chips" id="bsChips" aria-label="Dónde buscar">
+      <button type="button" class="chip-filtro" data-grupo="" aria-pressed="true">Todo</button>
+      <button type="button" class="chip-filtro" data-grupo="cartas" aria-pressed="false">Cartas</button>
+      <button type="button" class="chip-filtro" data-grupo="guias" aria-pressed="false">Guías</button>
+      <button type="button" class="chip-filtro" data-grupo="temas" aria-pressed="false">Foro</button>
+      <button type="button" class="chip-filtro" data-grupo="gente" aria-pressed="false">Gente</button>
     </div>
-
-    <div class="search-input-wrap">
-      <input type="text" id="searchInput" class="search-input" placeholder="Cartas falsas, PSA, rarezas…" autofocus />
-    </div>
-
-    <div class="form-group" style="max-width: 280px; margin-bottom: 20px;">
-      <label>Categoría</label>
-      <select id="categorySelect">
-        <option value="">Todas las categorías</option>
-      </select>
-    </div>
-
-    <div id="searchResults"></div>
+    <div id="bsRecientes"></div>
+    <div id="searchResults" aria-live="polite"></div>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres

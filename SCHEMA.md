@@ -34503,3 +34503,50 @@ pruebas no reescribe, y `/carta.html?id=` resuelve la relativa bien.
 `hojaInyectada` vive ahora en `js/hoja.js` y pone siempre la dirección
 desde la raíz; la 704 comprueba que el `<link>` empieza por `/`. El
 marcador que lee la 299 sigue siendo el literal `hojaInyectada('css/x.css')`.
+
+**El buscador (N2)**. Cada pantalla buscaba en lo suyo. Ahora hay UN motor,
+`js/buscador.js` (`buscarTodo(q, {limite, grupos})`), que pregunta a la vez
+por las cartas (catálogo occidental, por `name_search`; el precio en una
+segunda consulta con la regla de siempre, `valorDe(…, 'es')`), las guías y
+los hilos (`search_norm`, con la vuelta atrás de `busqueda.js`) y la gente
+(`username` o `search_norm`, sin los baneados). Cada grupo vuelve con UNO
+de tres estados —`{error}`, `{filas: []}`, `{filas}`— y un grupo que falla
+NO cuenta como vacío: con el foro caído, «zzzz» no dice «nada», dice que el
+foro no ha contestado (la 510). El molde de la fila es uno
+(`js/buscador-filas.js`, CSS en `css/buscador.css`): una carta es siempre
+su foto con el hueco reservado, su nombre, su set y número y su precio —sin
+cifra si no la hay—.
+
+/buscar (`js/search.js`) es ahora ese buscador a pantalla completa: la caja
+con el escáner al lado (`/mi-coleccion?ver=buscar&escanear=1`, que abre la
+cámara si hay cuenta), chips de Todo / Cartas / Guías / Foro / Gente, cuatro
+por grupo con «Ver más» que se queda con uno, `?q=` y `?en=` en la
+dirección, y «Lo que buscaste» (seis, en `localStorage`, con Borrar). Lo
+que se recuerda es lo que se busca con Intro o lo que se abre. El filtro de
+categoría de guías se fue con el buscador viejo.
+
+**La paleta (D3)**, `js/paleta.js`: Ctrl+K (Cmd+K en el Mac), «/» o la lupa
+de la barra. Un `<dialog>` con la caja y una lista navegable con el teclado
+(`role=combobox` + `listbox`, `aria-activedescendant`): lo buscado antes,
+ACCIONES (escanear, añadir cartas, crear un mazo, el tema, los mensajes),
+el mismo `buscarTodo` con tres por grupo, e «Ir a» con las páginas LEÍDAS
+DE LA BARRA de arriba (no hay segunda lista que se quede vieja, la 323).
+Con una carta elegida, Mayús+Intro lleva a su ficha con `#anadir`, que abre
+el diálogo de añadir cuando ya se sabe lo que tienes y se borra de la
+dirección. Las acciones se filtran por lo que SON y no por su detalle: con
+«Buscando «tema»» en el detalle, «Añadir cartas» casaba con todo. La lupa
+ya no tiene desplegable propio, así que sus reglas salen de
+`components.css` (con las del resultado viejo de /buscar): la portada baja
+de 169,8 a **169,5 KB** y le quedan 0,5. La paleta y su hoja entran por
+`import()` y `hojaInyectada`: nadie las descarga hasta abrirlas.
+
+De paso, dos rojos viejos de la 310: la barra de abajo (709) y las pestañas
+de la ficha (716) animaban en 0,22 s, fuera de la escala de dos duraciones
+(0,15 y 0,3), y la miniatura del aviso de añadir (712) no pedía carga
+diferida.
+
+**Ficheros**: `js/buscador.js`, `js/buscador-filas.js`, `js/paleta.js`,
+`css/buscador.css` (nuevos); `js/search.js` y `buscar.html` (reescritos),
+`js/nav-search.js`, `js/carta-mercado.js` (`#anadir`), `js/mi-coleccion.js`
+(`escanear=1`), `css/components.css`, `css/movil.css`, `css/carta.css`.
+Prueba 718-pantalla; en el doble, `__FAKE_FALLA__` hace fallar una tabla.

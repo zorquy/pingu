@@ -507,7 +507,7 @@ function avisarAnadida(c, linea, nueva) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const plan = comoDeshacer(linea, nueva)
   avisoConDeshacer({
-    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ya tienes ${total}</span>`,
+    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ya tienes ${total}</span>`,
     alDeshacer: async () => {
       if (!plan) return
       try {
@@ -6483,6 +6483,9 @@ async function iniciarCatalogo() {
   }
   if (sesion) {
     await cargarColeccion(dueno.id, { primeraVez: true })
+    // «Escanear una carta» desde /buscar o la paleta (718) entra aquí con
+    // la cámara abierta: es lo que se ha pedido.
+    if (pestania === 'buscar' && params.get('escanear') && $('mcEscanear') && !$('mcEscanear').classList.contains('hidden')) void abrirEscaner()
   } else {
     $('mcCargando').classList.add('hidden')
     if (pestania === 'album') await pintarEstanteria()

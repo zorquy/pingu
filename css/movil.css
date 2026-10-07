@@ -296,7 +296,7 @@
   .bm-burbuja,
   .mc-pestanias,
   html.con-barra-movil .carta-scan .carta-acciones {
-    transition: transform 0.22s var(--ease);
+    transition: transform 0.3s var(--ease);
   }
   html.bm-escondidas .navbar {
     transform: translateY(-100%);

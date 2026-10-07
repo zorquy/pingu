@@ -1,0 +1,289 @@
+/* Un buscador para todo (718): /buscar y la paleta de Ctrl+K. SCHEMA 718. */
+
+/* ── La fila de un resultado (las dos lo pintan con el mismo molde) ── */
+.bs-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* En la paleta una acción es un botón y no un enlace: misma fila. */
+button.bs-fila {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bs-fila:hover,
+.bs-fila[aria-selected='true'] {
+  background: var(--ice);
+}
+
+.bs-fila:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+.bs-foto {
+  flex: none;
+  width: 36px;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  object-fit: cover;
+}
+
+.bs-foto.bs-sin-foto {
+  visibility: hidden;
+}
+
+.bs-icono,
+.bs-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+}
+
+.bs-avatar {
+  background-position: center;
+  background-size: cover;
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.bs-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bs-texto b,
+.bs-texto small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-texto b {
+  font-weight: 600;
+}
+
+.bs-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.bs-precio {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bs-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--e-lg) 0 var(--e-xs);
+  padding: 0 var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── /buscar ── */
+.bs-titulo {
+  margin: var(--e-lg) 0 var(--e-md);
+}
+
+.bs-caja {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 52px;
+  padding: 0 var(--e-xs) 0 var(--e-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.bs-caja:focus-within {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.bs-lupa {
+  display: flex;
+  color: var(--text-mid);
+}
+
+/* La caja ya es el contorno: el campo de dentro no lleva el suyo (y
+   tiene que ganar a `input[type='search']:focus` de style.css). */
+input.bs-input[type='search'],
+input.bs-input[type='search']:focus {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+.bs-escanear {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.bs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: var(--e-md) 0 var(--e-sm);
+}
+
+.bs-recientes {
+  display: flex;
+  flex-direction: column;
+}
+
+.bs-reciente {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bs-reciente svg {
+  color: var(--text-mid);
+}
+
+.bs-reciente:hover {
+  background: var(--ice);
+}
+
+.bs-borrar,
+.bs-mas {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.bs-aviso {
+  padding: 0 var(--e-md);
+  color: var(--text-mid);
+}
+
+#searchResults.bs-cargando {
+  opacity: 0.6;
+}
+
+/* ── La paleta (Ctrl+K) ── */
+.paleta {
+  width: min(640px, calc(100vw - 2 * var(--e-lg)));
+  max-height: min(560px, calc(100vh - 2 * var(--e-2xl)));
+  margin: 12vh auto auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.paleta[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.paleta::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.paleta-caja {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mid);
+}
+
+.paleta-caja input.bs-input[type='search'] {
+  min-height: 48px;
+}
+
+.paleta-lista {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--e-xs) var(--e-sm) var(--e-sm);
+}
+
+.paleta-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-lg);
+  padding: var(--e-sm) var(--e-lg);
+  border-top: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.paleta-pie kbd,
+.paleta-caja kbd {
+  padding: 0 var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font: inherit;
+}
+
+.paleta-pie a {
+  margin-left: auto;
+  color: var(--navy);
+}
+
+.paleta-nada {
+  padding: var(--e-lg);
+  color: var(--text-mid);
+}

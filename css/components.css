@@ -627,29 +627,6 @@
   box-shadow: var(--shadow-ring);
 }
 
-.search-result {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.search-result h3 {
-  font-size: var(--t-lg);
-  font-weight: 700;
-}
-
-.search-result .snippet {
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-
-.search-result mark {
-  background: var(--ice);
-  color: var(--navy);
-  border-radius: 3px;
-}
-
 /* El "emoji" de portada lo escribe el autor y es texto libre: nada
    impide meter ahí una cadena larga. Sin este tope, eso ensancha la
    cabecera y hace que la página se arrastre de lado en móvil. */
@@ -1568,45 +1545,6 @@ tcg-deck {
   background: var(--ice);
 }
 
-.nav-search-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 280px;
-  max-width: 90vw;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 16px;
-  z-index: 50;
-}
-
-.nav-search-dropdown form {
-  display: flex;
-  gap: 8px;
-}
-
-.nav-search-dropdown .search-input {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: var(--t-sm);
-}
-
-.nav-search-dropdown form button {
-  padding: 8px 12px;
-  font-size: var(--t-sm);
-}
-
-.nav-search-dropdown a#navSearchAdvanced {
-  display: block;
-  margin-top: 12px;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  color: var(--navy);
-  text-align: center;
-}
-
 /* ── Menú de cuenta (avatar) en la navbar ── */
 .nav-user-wrap {
   position: relative;
@@ -1735,7 +1673,6 @@ tcg-deck {
    desplegable al viewport en vez de al icono que lo abre. */
 @media (max-width: 899px) {
   .nav-bell-dropdown,
-  .nav-search-dropdown,
   .nav-user-dropdown {
     position: fixed;
     top: 76px;
@@ -2827,36 +2764,6 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
 .enlace-tarjeta .et-tipo {
   font-size: var(--t-xs);
   color: var(--text-mid);
-}
-
-/* ── Los resultados rápidos de la lupa ── */
-.nav-search-seccion {
-  margin: 8px 0 2px;
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-mid);
-}
-
-.nav-search-fila {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: inherit;
-}
-
-.nav-search-fila:hover {
-  background: var(--ice);
-}
-
-.nav-search-fila span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ── La tarjetita al posar el ratón sobre un nombre ── */

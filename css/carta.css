@@ -1129,7 +1129,7 @@
     background: color-mix(in srgb, var(--white) 92%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    transition: top 0.22s var(--ease);
+    transition: top 0.3s var(--ease);
   }
   html.bm-escondidas .carta-pestanas {
     top: env(safe-area-inset-top);

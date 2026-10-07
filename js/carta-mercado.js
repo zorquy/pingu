@@ -238,9 +238,16 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
     const tienes = $('cmTienes')
     if (tienes) tienes.textContent = n ? `Tienes ${n}` : ''
   }
-  refrescarTengo()
+  const tengoListo = refrescarTengo()
 
   $('cmAnadir').addEventListener('click', () => abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar: refrescarTengo }))
+  // Mayús+Intro en la paleta (718) llega con #anadir: el diálogo se abre
+  // solo, ya sabiendo lo que tienes (si no, diría «añadir» de una que ya
+  // es tuya). Se quita de la dirección para que recargar no lo reabra.
+  if (location.hash === '#anadir') {
+    history.replaceState(null, '', location.pathname + location.search)
+    tengoListo.finally(() => $('cmAnadir')?.click())
+  }
 }
 
 // ── El diálogo de añadir (la misma pieza que en /mi-coleccion, 650) ──
