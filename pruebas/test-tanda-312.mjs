@@ -334,16 +334,33 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
   // Y el botón de tema: EXACTAMENTE uno a cualquier ancho. Esconder el
   // de la barra sin el gemelo del menú dejaría sin cambiar de tema a
   // quien tenga una pantalla estrecha; enseñar los dos es un duplicado.
+  // Desde la 717 (N1 + N8), en el móvil y CON cuenta el tema vive en la
+  // hoja «Tú» que abre el avatar: en la barra no hay ninguno, y el que
+  // cuenta es la fila de la hoja. Sin cuenta no hay hoja, así que sigue el
+  // de la barra.
+  const botonesDeTema = (page) => page.evaluate(() => {
+    const vale = (n) => n && getComputedStyle(n).display !== 'none'
+    return (vale(document.getElementById('navThemeToggle')) ? 1 : 0) + (vale(document.getElementById('navThemeToggleMenu')) ? 1 : 0)
+  })
   for (const ancho of [320, 359, 360, 393, 1280]) {
     const { page } = await abrir('/index.html', { ancho, alto: 700 })
-    const cuantos = await page.evaluate(() => {
-      const enBarra = document.getElementById('navThemeToggle')
-      const enMenu = document.getElementById('navThemeToggleMenu')
-      const vale = (n) => n && getComputedStyle(n).display !== 'none'
-      return (vale(enBarra) ? 1 : 0) + (vale(enMenu) ? 1 : 0)
-    })
-    check(`[${ancho}px] hay exactamente un botón de tema`, cuantos === 1, String(cuantos))
+    const cuantos = await botonesDeTema(page)
+    if (ancho <= 900) {
+      await page.click('#navUserBtn')
+      await page.waitForTimeout(300)
+      const enHoja = await page.locator('.bm-tu-extra [data-tu="tema"]').isVisible().catch(() => false)
+      check(`[${ancho}px] el tema, uno: en la hoja «Tú» y no en la barra`, cuantos === 0 && enHoja, `${cuantos} en la barra, hoja: ${enHoja}`)
+    } else check(`[${ancho}px] hay exactamente un botón de tema`, cuantos === 1, String(cuantos))
     await page.close()
+    if (ancho <= 900) {
+      const { page: sin } = await abrir('/index.html', { ancho, alto: 700, sesion: 'none' })
+      check(`[${ancho}px] sin cuenta, el de la barra (no hay hoja «Tú»)`, (await botonesDeTema(sin)) === 1, String(await botonesDeTema(sin)))
+      // …y con él puesto la barra sigue cabiendo (a 320 se salía 42 px: el
+      // grupo de la derecha cedía antes que la pastilla, 320).
+      const sobra = await sin.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+      check(`[${ancho}px]   …y la barra no se sale`, sobra <= 1, `${sobra}px`)
+      await sin.close()
+    }
   }
 
   // Y el caso que se me pasó y cazó test-torneos-15: con un torneo EN
@@ -366,11 +383,13 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
         chapa: !!document.querySelector('.nav-torneo-vivo'),
         desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         temas: (vale(document.getElementById('navThemeToggle')) ? 1 : 0) + (vale(document.getElementById('navThemeToggleMenu')) ? 1 : 0),
+        // 717: con la barra de abajo y cuenta, el tema está en la hoja «Tú».
+        enHoja: document.documentElement.classList.contains('con-barra-movil') && !!document.getElementById('navUserBtn'),
         logo: Math.round(document.querySelector('.nav-logo').getBoundingClientRect().width),
       }
     })
     check(`[${ancho}px, torneo en juego] la barra no se sale`, r.desborde <= 1, `${r.desborde}px · chapa=${r.chapa}`)
-    check(`  …sigue habiendo un botón de tema`, r.temas === 1, String(r.temas))
+    check(`  …sigue habiendo un botón de tema`, r.enHoja ? r.temas === 0 : r.temas === 1, `${r.temas} en la barra · en la hoja: ${r.enHoja}`)
     // Antes de la tanda, con la chapa puesta el logo se encogía a 2 px:
     // la barra le robaba el sitio al nombre del sitio.
     check(`  …y el logo no se aplasta`, r.logo >= 26, `${r.logo}px`)
