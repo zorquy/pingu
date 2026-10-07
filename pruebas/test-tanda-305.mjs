@@ -26,7 +26,7 @@ const HOJAS = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((
 // como `.auth-input { font-size: 14px }` tienen más especificidad…») y
 // eso no es una declaración.
 const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 1. La escala existe y tiene saltos que se ven ──')

@@ -21,7 +21,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const ahora = Date.now()
 const NOMBRE_LARGO = 'Pachanga de inauguración de PokeDoc con un nombre larguísimo'
 const TORNEOS = [{ id: 't1', slug: 'p', name: NOMBRE_LARGO, status: 'in_progress', format: 'standard',

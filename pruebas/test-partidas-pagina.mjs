@@ -11,7 +11,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + extra : ''}`)
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const MAZO_MIO = { pokemon: [{ quantity: 3, name: 'Dragapult ex', set: 'TWM', number: '130' }], trainer: [], energy: [] }

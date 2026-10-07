@@ -18,7 +18,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 220) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const RAIZ = '/home/user/pingu'
 const LETRAS = ['G', 'R', 'W', 'L', 'P', 'F', 'D', 'M']
 const TIPO_DE_LETRA = { G: 'Grass', R: 'Fire', W: 'Water', L: 'Lightning', P: 'Psychic', F: 'Fighting', D: 'Darkness', M: 'Metal' }

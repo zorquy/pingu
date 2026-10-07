@@ -29,7 +29,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + extra : ''}`)
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const GUIAS = [

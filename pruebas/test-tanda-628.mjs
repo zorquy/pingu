@@ -18,7 +18,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = process.env.RAIZ || '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const E = await import(`${RAIZ}/js/estadisticas-partidas.js`)
 const G = await import(`${RAIZ}/js/graficos-partidas.js`)
 

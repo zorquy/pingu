@@ -27,7 +27,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const FILAS = JSON.parse(readFileSync(new URL('./cartas-laboratorio.json', import.meta.url), 'utf8'))
 const fila = (n) => {
   const f = FILAS.find((x) => x.name === n)

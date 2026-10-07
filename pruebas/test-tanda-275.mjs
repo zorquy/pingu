@@ -22,7 +22,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 120) : ''}`)
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = (await import('/opt/node22/lib/node_modules/playwright/index.mjs')).chromium
 
 console.log('\n── 1. De dónde se saca el slug ──')

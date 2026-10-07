@@ -38,7 +38,7 @@ const check = (l, ok, extra = '') => {
 }
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const { plano } = await import(`${RAIZ}/js/constructor/nucleo.js`)
 
 const FILAS = JSON.parse(readFileSync(new URL('./cartas-laboratorio.json', import.meta.url), 'utf8'))

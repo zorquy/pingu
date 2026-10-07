@@ -38,7 +38,7 @@ const check = (l, ok, extra = '') => {
 }
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const M = await import(`${RAIZ}/js/constructor/partida.js`)
 const { EFECTOS } = await import(`${RAIZ}/js/constructor/efectos.js`)
 const { leerAtaque, rasgosDeCarta } = await import(`${RAIZ}/js/constructor/textos.js`)

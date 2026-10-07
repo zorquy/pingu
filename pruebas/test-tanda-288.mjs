@@ -11,7 +11,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 140) : ''}`)
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 const abrir = async (semillas) => {
   const page = await browser.newPage({ viewport: { width: 1150, height: 900 } })

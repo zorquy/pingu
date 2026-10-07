@@ -18,7 +18,7 @@ const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 const HOJAS = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((f) => `css/${f}`)
 const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(?<![:'"`])\/\/[^\n]*/g, '')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const abrir = async (ruta, { sesion = 'user-1', semillas = {}, ancho = 1100, tema = 'light' } = {}) => {

@@ -20,7 +20,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const L = await import(`${RAIZ}/js/repeticiones/lista.js`)
 const { leerRegistro } = await import(`${RAIZ}/js/repeticiones/registro.js`)
 const { fotos: sacarFotos } = await import(`${RAIZ}/js/repeticiones/estado.js`)

@@ -39,7 +39,7 @@ const check = (l, ok, extra = '') => {
 const RAIZ = '/home/user/pingu'
 const AQUI = dirname(fileURLToPath(import.meta.url))
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const TMP = mkdtempSync(join(tmpdir(), 'repeticiones-'))
 const { empaquetar, desempaquetar, esEnlaceDeRepeticion } = await import(`${RAIZ}/js/repeticiones/enlace.js`)
 const { empaquetarMp4 } = await import(`${RAIZ}/js/repeticiones/mp4.js`)

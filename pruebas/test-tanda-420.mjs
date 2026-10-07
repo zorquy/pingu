@@ -20,7 +20,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 240) : ''}`)
 }
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const BORRADOR = 'pokedoc-constructor-borrador'
 
 const carta = (set_id, local_id, name, category, extra = {}) => ({

@@ -18,7 +18,7 @@ const check = (l, ok, extra = '') => {
 }
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const { ORDENES, ordenar, porNumero, rangoDeRareza } = await import(`${RAIZ}/js/mi-coleccion/orden.js`)
 
 // ═════════════════════════════════════════════════════════════════════

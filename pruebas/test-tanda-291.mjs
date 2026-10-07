@@ -39,7 +39,7 @@ console.log('\n── 1. La serie, sin navegador ──')
   check('ni se repite una ya jugada', !juegoAbierto({ 1: 'a_wins' }, 1))
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const TORNEO = {

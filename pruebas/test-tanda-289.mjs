@@ -20,7 +20,7 @@ const check = (l, ok, extra = '') => {
 // guías nuevas y los temas de «Ahora en el foro»—. Así que aquí las
 // semillas tienen que dejar SOBRANTES: lo que se mira en el hilo de
 // actividad tiene que ser algo que no esté también en pantalla.
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 const abrir = async (ruta, semillas) => {
   const page = await browser.newPage({ viewport: { width: 1150, height: 1000 } })

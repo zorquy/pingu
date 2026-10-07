@@ -27,7 +27,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 220) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const limpio = (t) => String(t || '').replace(/\s+/g, ' ').trim()
 const leer = (f) => readFileSync(`/home/user/pingu/${f}`, 'utf8')
 const browser = await chromium.launch()

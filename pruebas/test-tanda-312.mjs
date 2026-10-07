@@ -18,7 +18,7 @@ const check = (l, ok, extra = '') => {
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 const PAGINAS = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const SEMILLA = {

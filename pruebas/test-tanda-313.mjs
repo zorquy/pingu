@@ -20,7 +20,7 @@ const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 const PAGINAS = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
 const HOJAS = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((f) => `css/${f}`)
 const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(?<![:'"`])\/\/[^\n]*/g, '')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const abrir = async (ruta, { ancho = 1100, alto = 800, tema = 'light', movimiento = 'no-preference' } = {}) => {

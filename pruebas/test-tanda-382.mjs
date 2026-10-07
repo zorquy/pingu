@@ -19,7 +19,7 @@ const check = (l, ok, extra = '') => {
 }
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const limpio = (t) => String(t || '').replace(/\s+/g, ' ').trim()
 
 console.log('\n── 1. Ninguna barra se pinta con la variable equivocada ──')

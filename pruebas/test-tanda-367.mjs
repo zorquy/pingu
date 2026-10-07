@@ -155,7 +155,7 @@ console.log('\n── 5. Dónde se anuncia (y dónde no) ──')
     /const procede = Boolean\(perfil\?\.is_admin\) && torneo\.status === 'registration_open'/.test(leer('js/torneos/torneo.js')))
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 const CON_CODIGO = {
   id: 'torneo-1', slug: 'pachanga', name: 'La Pachanga', status: 'registration_open',

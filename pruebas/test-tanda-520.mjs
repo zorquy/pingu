@@ -24,7 +24,7 @@ const check = (l, ok, extra = '') => {
 }
 const AQUI = dirname(fileURLToPath(import.meta.url))
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const A = await import(`${RAIZ}/js/repeticiones/anonimizar.js`)
 const { leerRegistro } = await import(`${RAIZ}/js/repeticiones/registro.js`)
 const R481 = readFileSync(new URL('./registro-481.txt', import.meta.url), 'utf8').replace(/\r/g, '')

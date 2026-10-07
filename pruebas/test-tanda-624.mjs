@@ -27,7 +27,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const escala = await import(`${RAIZ}/js/rareza-escala.js`)
 const orden = await import(`${RAIZ}/js/mi-coleccion/orden.js`)
 const { impresionMasComun } = await import(`${RAIZ}/js/impresion-canonica.js`)

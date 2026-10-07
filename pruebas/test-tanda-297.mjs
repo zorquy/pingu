@@ -16,7 +16,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const JS_LISTA = readFileSync('/home/user/pingu/js/torneos/torneos.js', 'utf8')
 const CSS = readFileSync('/home/user/pingu/css/torneos.css', 'utf8')
 const ahora = Date.now()

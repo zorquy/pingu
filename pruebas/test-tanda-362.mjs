@@ -14,7 +14,7 @@ const check = (l, ok, extra = '') => {
 }
 const RAIZ = '/home/user/pingu'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
 const SETS = [
   { id: 'me05', name: 'Pitch Black', market: 'WEST', serie_id: 'me', serie_name: 'Mega Evolution',

@@ -27,7 +27,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const hace = (min) => new Date(Date.now() - min * 60000).toISOString()
 const S = await import(`${RAIZ}/js/torneos/sprites-pokemon.js`)
 const { CDN_SPRITES, FORMAS_TCG, spriteDeCarta, cadenaDeRespaldos, respaldoDeSprite } = S

@@ -94,7 +94,7 @@ console.log('\n── 4. La migración de la cola ──')
   check('y sin aforo no hay cupo que mirar', /max_players is not null/.test(sql))
 }
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 console.log('\n── 5. En pantalla: se avisa y NO se escribe nada ──')

@@ -24,7 +24,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 220) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const { cadenaDeEscaneo, rutaDeAssetDeTCGdex } = await import(`${RAIZ}/js/escaneo-carta.js`)
 const { urlDeLogoPorPartes, urlDeImagen } = await import(`${RAIZ}/js/carta-ruta.js`)
 

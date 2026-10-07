@@ -17,7 +17,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 200) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const ahora = Date.now()
 
 const CATS = [{ id: 'c1', slug: 'hist', name: 'Historia', order_pos: 0, guide_count: 4 }]

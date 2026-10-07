@@ -86,7 +86,7 @@ console.log('\n── 4. Separar los logros de torneo del resto ──')
 // ═════════════════════════════════════════════════════════════════════
 // La vitrina, ya en el navegador
 // ═════════════════════════════════════════════════════════════════════
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const LOGROS = [

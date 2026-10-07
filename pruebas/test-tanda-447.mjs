@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 let fallos = 0
 const ok = (b, msg, extra = '') => {
   console.log(`  ${b ? 'ok  ' : 'FALLA'} ${msg}${extra ? `  ${extra}` : ''}`)

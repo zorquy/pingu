@@ -23,7 +23,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const hoy = Date.now()
 const serie = (n) => Array.from({ length: n }, (_, i) => ({
   dia: new Date(hoy - (n - 1 - i) * 86400000).toISOString().slice(0, 10),

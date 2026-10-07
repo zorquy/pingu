@@ -14,7 +14,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 220) : ''}`)
 }
 const leer = (f) => readFileSync(`/home/user/pingu/${f}`, 'utf8')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const LOGO = (n) => `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80"><rect width="240" height="80" fill="#1e5175"/><text x="120" y="50" font-size="26" text-anchor="middle" fill="#fff">${n}</text></svg>`

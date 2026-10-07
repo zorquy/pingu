@@ -30,7 +30,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const M = await import(`${RAIZ}/js/constructor/partida.js`)
 const { EFECTOS } = await import(`${RAIZ}/js/constructor/efectos.js`)
 const C = await import(`${RAIZ}/js/constructor/caminos.js`)

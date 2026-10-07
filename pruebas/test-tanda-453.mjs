@@ -18,7 +18,7 @@ const ok = (b, msg, extra = '') => {
   console.log(`  ${b ? 'ok  ' : 'FALLA'} ${msg}${extra ? `  ${extra}` : ''}`)
   if (!b) fallos++
 }
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
 // ═══════════════════════════════════════════════════════════════════
 console.log('\n── 1. De dónde salen las opciones, en Node ──')

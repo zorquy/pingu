@@ -24,7 +24,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 240) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const hace = (min) => new Date(Date.now() - min * 60000).toISOString()
 const DIR = mkdtempSync(join(tmpdir(), 'tanda-421-'))
 const { meterLista, sacarLista, CLAVE_LISTA } = await import(`${RAIZ}/js/lista-en-png.js`)

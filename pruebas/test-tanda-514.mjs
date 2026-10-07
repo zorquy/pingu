@@ -22,7 +22,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const TMP = mkdtempSync(join(tmpdir(), 'video-notas-'))
 const REGISTRO = readFileSync(new URL('./registro-481.txt', import.meta.url), 'utf8')
 const LINEAS = REGISTRO.replace(/\r/g, '').split('\n')

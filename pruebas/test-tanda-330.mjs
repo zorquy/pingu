@@ -22,7 +22,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 220) : ''}`)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 const ES = { name: 'Exeggcute', category: 'Pokemon', hp: 60, types: ['Grass'],

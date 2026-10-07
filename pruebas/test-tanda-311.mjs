@@ -23,7 +23,7 @@ const HOJAS = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css')).map((
 // lo busca. Van tres veces (la 305 con --t-lg, la 310 con --shadow-lg y
 // con loading=), así que aquí se quitan los dos tipos de comentario.
 const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(?<![:'"`])\/\/[^\n]*/g, '')
-const BASE = 'http://localhost:8892'
+const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const browser = await chromium.launch()
 
 // ═════════════════════════════════════════════════════════════════════

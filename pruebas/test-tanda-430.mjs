@@ -25,7 +25,7 @@ const porElMenu = async (page, sel) => {
   await page.waitForTimeout(350)
 }
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const { textoDeLoQueFalta } = await import(`${RAIZ}/js/mi-coleccion/lo-que-falta.js`)
 
 // ═════════════════════════════════════════════════════════════════════

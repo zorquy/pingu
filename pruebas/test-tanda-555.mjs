@@ -31,7 +31,7 @@ const check = (l, ok, extra = '') => {
 }
 const AQUI = dirname(fileURLToPath(import.meta.url))
 const RAIZ = '/home/user/pingu'
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 const hace = (min) => new Date(Date.now() - min * 60000).toISOString()
 const REGISTRO = readFileSync(join(AQUI, 'registro-481.txt'), 'utf8').replace(/\r/g, '')

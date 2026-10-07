@@ -25,7 +25,7 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 260) : ''}`)
 }
-const BASE = process.env.BASE || 'http://localhost:8892'
+const BASE = process.env.PD_BASE || process.env.BASE || 'http://localhost:8892'
 const RAIZ = '/home/user/pingu'
 const J = await import(`${RAIZ}/js/partidas-juegos.js`)
 const js = (txt, sal = '') => [...txt].map((r, i) => ({ r, s: sal[i] === '1' || sal[i] === '2' ? sal[i] : null }))
