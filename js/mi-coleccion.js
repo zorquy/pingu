@@ -4623,6 +4623,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
   // se quedaría flotando encima de lo que no es suyo.
   if (nueva !== 'cartas' && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
+  const otra = nueva !== pestania
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
@@ -4670,6 +4671,11 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // Cambiar de pestaña ES un paso: el botón de atrás vuelve a la anterior.
   if (push && url.href !== location.href) history.pushState(null, '', url)
   else history.replaceState(null, '', url)
+  // Otra pestaña empieza ARRIBA (747). PINGU: con la de antes bajada, al
+  // tocar Álbumes o Buscar «te empieza más hacia abajo», a media página de
+  // algo que no has visto. Solo al pulsar (`push`): con «atrás» el
+  // navegador devuelve la posición que tenía esa entrada (la 709).
+  if (push && otra) window.scrollTo({ top: 0, behavior: 'instant' })
   // Los álbumes soñados (tanda 366) se cargan la primera vez que se abren.
   // Los álbumes soñados viven dentro de «Carpetas» desde la 408, así que
   // es esa pestaña la que los enciende la primera vez.
@@ -6073,8 +6079,13 @@ function enganchar() {
   for (const id of ['mcEstanteriaBuscar', 'mcEstanteriaSerie']) {
     $(id).addEventListener(id === 'mcEstanteriaBuscar' ? 'input' : 'change', () => pintarEstanteria())
   }
-  // El escáner (tanda 447).
-  $('mcEscanear')?.addEventListener('click', () => void abrirEscaner())
+  // El escáner (tanda 447). Desde la 747 no tiene botón en Buscar: lo pide
+  // el «Escanear» de la burbuja del móvil con este aviso.
+  document.addEventListener('pokedoc:escanear', (e) => {
+    if (!esMia) return
+    e.preventDefault()
+    void abrirEscaner()
+  })
   $('mcEscanerVer')?.addEventListener('click', () => cerrarEscaner())
   $('mcEscanerCandidatas')?.addEventListener('click', (e) => {
     const mas = e.target.closest('[data-escaner-anadir]')
@@ -6750,7 +6761,7 @@ async function iniciarCatalogo() {
     // Lo que solo tiene sentido con una colección detrás: añadir del
     // catálogo, «solo las empezadas» (no hay ninguna empezada), el escáner
     // (añade lo que lee) y el desplegable de con qué se añade.
-    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios', 'mcEstanteriaEmpezadas', 'mcEscanear']) $(id)?.classList.add('hidden')
+    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios', 'mcEstanteriaEmpezadas']) $(id)?.classList.add('hidden')
     $('mcTocarOpciones')?.classList.add('hidden')
   }
   pintarHojaOrden()
@@ -6827,7 +6838,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // «Escanear una carta» desde /buscar, la paleta o la burbuja (718, 719)
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
-  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear') && $('mcEscanear')) void abrirEscaner()
+  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear')) void abrirEscaner()
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
   if (primeraVez) void montarAlbumesLaterales()

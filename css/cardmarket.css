@@ -930,6 +930,35 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   font-weight: 600;
 }
 
+/* La caja lleva también `.mc-editor-campos`, la de la ficha de editar, y
+   mi-coleccion.css carga después: su `flex: 2 1 360px` en esta columna la
+   dejaba en 360 px de ALTO y los campos se repartían el hueco (747). Aquí
+   mide lo que mide lo de dentro, y copias y precio van en una fila. */
+.mc-anadir-dialogo .mc-ad-campos.mc-editor-campos {
+  flex: none;
+  align-items: flex-end;
+  margin: 0;
+}
+
+.mc-anadir-dialogo .mc-ad-campo {
+  flex: 1 1 100%;
+}
+
+.mc-anadir-dialogo .mc-ad-campos > label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mc-anadir-dialogo .mc-ad-campos input {
+  width: 100%;
+  min-width: 0;
+}
+
+.mc-anadir-dialogo .mc-contador-mando input[type='number'] {
+  flex: 1 1 0;
+  width: auto;
+}
+
 .mc-ad-botones {
   display: flex;
   justify-content: flex-end;

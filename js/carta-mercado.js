@@ -312,7 +312,7 @@ function dialogoDeAnadir() {
                 <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
               </span>
             </label>
-            <label>Lo que pagaste por unidad (€, opcional) <input type="text" id="cmAdCompra" inputmode="decimal" placeholder="0,00" /></label>
+            <label>Lo que pagaste (€) <input type="text" id="cmAdCompra" inputmode="decimal" placeholder="Por copia" /></label>
           </div>
           <div class="mc-ad-botones">
             <button type="button" class="btn-secondary" id="cmAdCancelar">Cancelar</button>

@@ -35352,3 +35352,52 @@ todos los mensajes. Tres piezas:
 **Ficheros**: `js/foro-conversaciones.js` (nuevo), `js/foro.js`,
 `js/tema.js`, `css/foro.css`. Prueba 746-pantalla en `pruebas`; el doble
 siembra ya las suscripciones (`__FAKE_SUSCRIPCIONES__`).
+
+## Tanda 747 — Cuatro arreglos de Mi colección en el móvil (oct. 2026)
+
+PINGU, con cuatro capturas de su iPhone:
+
+- **«El panel en móvil se desborda con el gráfico»**: la página se podía
+  echar a los lados. Las cifras de la rejilla de «Lo que vale tu
+  colección» van en un canal del 14 % del ancho, pensado para «186,33 €»
+  (la 653); con «15.042,36 €» el texto se salía de su caja por la derecha y
+  la página pasaba a medir 409 px en un móvil de 390. Lo encontró un
+  barrido que esconde nodos uno a uno hasta que la página vuelve a caber
+  (buscar «quién se sale» por su caja no sirve: la caja del rótulo sí
+  cabía, lo que se salía era su TEXTO). Dos arreglos: el rótulo va pegado
+  a la derecha, sin partir y creciendo hacia dentro (`min-width` en vez de
+  `width`), y la cifra pierde lo que no hace falta para leer una rejilla
+  (`rotuloDeEje` en `js/mi-coleccion/grafica-valor.js`): los céntimos
+  desde mil y la forma corta desde cien mil («600,9 mil €», «1,2 M €»).
+  El punto de los miles va SIEMPRE (`useGrouping: 'always'`): el español no
+  lo pone a cuatro cifras y «8390» al lado de «15.042» parecía otra unidad.
+  La cifra exacta la siguen diciendo la cabecera y el globo de lectura.
+- **«La pantalla de agregar una carta rápido… hay muchísimo espacio»**: la
+  caja de campos de `#mcAnadirDialogo` lleva también `.mc-editor-campos`,
+  la de la ficha de editar, y `mi-coleccion.css` carga después de
+  `cardmarket.css`. Su `flex: 2 1 360px` —pensado para una FILA— en la
+  columna del diálogo es una altura: la caja medía 360 px y los campos se
+  repartían el hueco pegados abajo (`align-items: flex-end`). Es la 306
+  otra vez: una regla que llega de otra hoja y gana por orden. Ahora la
+  caja mide lo que lleva dentro, copias y «Lo que pagaste (€)» van en una
+  fila (el rótulo largo «por unidad, opcional» pasa al `placeholder`: «Por
+  copia»; también en el de /carta) y la hoja cabe entera en un iPhone sin
+  desplazarse.
+- **«Cuando cambias la pestaña… te empieza más hacia abajo»**: el
+  documento es el mismo para las siete pestañas, así que la posición de la
+  de antes se quedaba puesta. Ahora `cambiarPestania` sube arriba cuando
+  CAMBIA de pestaña y lo ha pedido alguien (`push`); con «atrás» no, que
+  ahí el navegador devuelve la posición de esa entrada (la 709).
+- **«El escáner de cartas lo quitaría de Buscar porque ya tienes el
+  escáner en el menú»**: fuera el botón y su frase del vacío de Buscar.
+  El «Escanear» de la burbuja usaba ese botón para abrir la cámara (le
+  hacía `click()`), así que ahora manda un aviso, `pokedoc:escanear`, que
+  Mi colección atiende si la colección es tuya (`preventDefault`); si no
+  lo atiende nadie, el enlace sigue a tu colección con `?escanear=1`. En
+  el escritorio el escáner se abre desde la paleta (Ctrl+K).
+
+**Ficheros**: `js/mi-coleccion/grafica-valor.js`, `js/mi-coleccion.js`,
+`js/barra-movil.js`, `js/carta-mercado.js`, `css/mi-coleccion.css`,
+`css/cardmarket.css`, `mi-coleccion.html` (y `cartas.html`, generado).
+Prueba 747-pantalla en `pruebas` (13 rojos contra el código de antes);
+447, 451 y 719 abren el escáner por el aviso o por la burbuja.

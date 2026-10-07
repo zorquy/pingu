@@ -327,11 +327,11 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
       : '')
     if (propia) {
       propia.insertAdjacentHTML('beforeend', escanear('mc-pestania bm-ajena') + seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
+      // En tu colección, la cámara se abre ahí mismo (Mi colección escucha
+      // el aviso); en la de otra persona, el enlace te lleva a la tuya.
       propia.querySelector('.bm-escanear')?.addEventListener('click', (ev) => {
-        const boton = doc.getElementById('mcEscanear')
-        if (!boton) return
-        ev.preventDefault()
-        boton.click()
+        const atendido = !doc.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true }))
+        if (atendido) ev.preventDefault()
       })
       propia.classList.add('bm-con-ajenas')
       vigilarDesborde(propia)

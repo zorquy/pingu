@@ -24,6 +24,22 @@ const ALTO = 180
 // borde de la línea, justo antes del canal.
 const MARGEN = { arriba: 14, abajo: 14, izq: 0, der: 84 }
 
+// La cifra de una raya de la rejilla (747). El canal mide lo que «186,33 €»
+// y una colección de cinco cifras no cabía: «15.042,36 €» se salía por la
+// derecha y en el móvil la página entera se iba de ancho. Para leer la
+// rejilla los céntimos sobran a partir de mil (la cifra exacta la dice la
+// cabecera y el globo), y el punto de los miles va SIEMPRE: el español no
+// lo pone a cuatro cifras y «8390» al lado de «15.042» parece otra unidad.
+const ejeConCentimos = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
+const ejeSinCentimos = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always', maximumFractionDigits: 0 })
+// Y desde las seis cifras, en corto («600,9 mil €», «1,2 M €»): ni sin
+// céntimos cabe en el canal.
+const ejeCorto = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 })
+export function rotuloDeEje(v, max = v) {
+  const m = Math.abs(max)
+  return (m >= 100000 ? ejeCorto : m >= 1000 ? ejeSinCentimos : ejeConCentimos).format(v)
+}
+
 // ── EN CUÁNTOS DÍAS SE MIRA (tanda 464) ──
 //
 // PINGU, con la app de Collectr delante: «quiero que pongas en cuántos
@@ -258,7 +274,7 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO, no
   // con la misma cifra dirían tres veces lo mismo.
   const alturas = max === min ? [max] : [max, (max + min) / 2, min]
   const rayas = alturas.map((v) => `<line class="mc-valor-raya" x1="0" y1="${y(v).toFixed(1)}" x2="${ANCHO}" y2="${y(v).toFixed(1)}" vector-effect="non-scaling-stroke" />`).join('')
-  const rotulos = alturas.map((v) => `<span style="--py:${((y(v) / ALTO) * 100).toFixed(2)}%">${escapeHtml(euros(v))}</span>`).join('')
+  const rotulos = alturas.map((v) => `<span style="--py:${((y(v) / ALTO) * 100).toFixed(2)}%">${escapeHtml(rotuloDeEje(v, max))}</span>`).join('')
   // Las fechas: la primera y la última siempre; la del medio solo si el
   // tramo es largo (con tres días, tres fechas se pisan en un móvil).
   const medio = dias[Math.floor((dias.length - 1) / 2)]

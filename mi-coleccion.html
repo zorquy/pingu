@@ -1005,8 +1005,9 @@
            mirando lo tuyo.
 
            El ESTADO VACÍO no es un hueco en blanco: es lo que explica qué
-           se puede escribir —y es donde vive el botón de escanear, igual
-           que en Dex. En cuanto buscas algo, desaparece. -->
+           se puede escribir. En cuanto buscas algo, desaparece. El botón de
+           escanear que vivía aquí se fue (747, PINGU: «ya tienes el escáner
+           en el menú»): lo abre la burbuja de abajo y la paleta (Ctrl+K). -->
       <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar">
         <div class="mc-filtros" id="mcBuscarBarra">
           <div class="mc-buscador">
@@ -1045,10 +1046,6 @@
             <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button> o
             <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>.
           </p>
-          <button type="button" class="btn-primary mc-escanear" id="mcEscanear">
-            <span data-icono="scan" aria-hidden="true"></span> Escanear cartas
-          </button>
-          <p class="mc-vacio-buscar-pie">Enfoca la carta y la reconocemos por su nombre y por su número.</p>
         </div>
 
         <div class="mc-resultados" id="mcBuscarResultados"></div>
@@ -1443,7 +1440,7 @@
                 <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
               </span>
             </label>
-            <label>Lo que pagaste por unidad (€, opcional) <input type="text" id="mcAdCompra" inputmode="decimal" placeholder="0,00" /></label>
+            <label>Lo que pagaste (€) <input type="text" id="mcAdCompra" inputmode="decimal" placeholder="Por copia" /></label>
           </div>
           <div class="mc-ad-botones">
             <button type="button" class="btn-secondary" id="mcAdCancelar">Cancelar</button>

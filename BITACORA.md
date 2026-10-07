@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (noche, 1) — PINGU-Claude (747 — cuatro arreglos de Mi colección en el móvil)
+
+**Hecho**: lo que PINGU mandó con capturas. (1) El Panel ya no se echa a
+los lados: las cifras de la rejilla de la gráfica se salían por la derecha;
+ahora van sin céntimos desde mil y en corto desde cien mil. (2) La hoja de
+añadir rápido sin huecos: una regla de la ficha de editar le daba 360 px de
+alto a sus campos; copias y precio en una fila, cabe entera. (3) Cambiar de
+pestaña empieza arriba. (4) Fuera el botón de escanear de Buscar: lo abre
+el «Escanear» del menú.
+
+**Ficheros**: `js/mi-coleccion/grafica-valor.js`, `js/mi-coleccion.js`,
+`js/barra-movil.js`, `js/carta-mercado.js`, `css/mi-coleccion.css`,
+`css/cardmarket.css`, `mi-coleccion.html`, `cartas.html` (generado),
+`SCHEMA.md`. Prueba 747-pantalla y 447, 451, 719 al día en `pruebas`.
+
+**Pendiente**: ejecutar `supabase-migration-vitrina.sql`.
+
 ## 2026-10-07 (tarde, 26) — PINGU-Claude (746 — el foro como una app de mensajes)
 
 **Hecho**: J1 de la lista, la última de las 53. En el índice del foro,

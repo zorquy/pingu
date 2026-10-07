@@ -3516,7 +3516,10 @@ input.mc-alb-titulo:not([readonly]):focus {
   position: absolute;
   top: var(--py);
   right: 0;
-  width: 14%;
+  /* Pegada a la derecha y creciendo hacia dentro: una cifra larga no
+     saca la página de ancho (747). */
+  min-width: 14%;
+  white-space: nowrap;
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-variant-numeric: tabular-nums;
@@ -5347,30 +5350,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-sugerencia:hover {
   border-color: var(--navy);
   background: color-mix(in srgb, var(--navy) 8%, var(--white));
-}
-
-/* EL BOTÓN DEL ESCÁNER. Es lo único que se pulsa aquí, así que pide el
-   turno: ancho, con su icono y en el azul sólido del sitio. */
-.mc-escanear {
-  display: inline-flex;
-  gap: var(--e-sm);
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 360px;
-  min-height: 52px;
-  font-size: var(--t-lg);
-}
-
-.mc-escanear svg {
-  width: 22px;
-  height: 22px;
-}
-
-.mc-vacio-buscar-pie {
-  margin: 0;
-  color: var(--text-dim);
-  font-size: var(--t-sm);
 }
 
 /* LOS RESULTADOS. Una rejilla de cartas con su nombre y su colección
