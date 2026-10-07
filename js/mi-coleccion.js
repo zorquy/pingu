@@ -60,7 +60,6 @@ import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
-import { especiePorDex } from './pokedex-especies.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
@@ -5044,6 +5043,9 @@ async function abrirPokedex() {
   pintarPokedex()
 }
 
+// La región que se mira en la Pokédex (748): la primera, al entrar.
+let pdxRegion = 0
+
 function pintarPokedex() {
   const caja = $('mcPokedexPanel')
   $('mcPdxMandos').classList.remove('hidden')
@@ -5060,15 +5062,22 @@ function pintarPokedex() {
   // cambiar porque estés buscando «char», igual que el progreso de un
   // set no cambia al filtrar por rareza.
   const resumen = pokedex.resumenDePokedex({ mio, totales: totalesPokedex })
-  caja.innerHTML = pokedex.cabeceraHtml(resumen, { nombreDe: (d) => especiePorDex(d) || `#${d}` }) +
-    pokedex.rejillaHtml(filas, $('mcPdxOrden')?.value || 'dex')
-  // Los puntos de la tira, como en una expansión (tanda 476). Se enganchan
-  // DESPUÉS de pintar porque cuántos hay depende de cuántas tarjetas hayan
-  // salido: «El que menos» no sale si es el mismo que «el que más».
-  engancharPuntos('mcPokedexPanel')
+  // Como en su maqueta (748): el título con la región y el anillo, las
+  // pestañas por región y la rejilla de UNA región. Buscando o en «los que
+  // casi completas», la lista de siempre: ahí la región no ayuda.
+  const orden = $('mcPdxOrden')?.value || 'dex'
+  const buscando = Boolean(String($('mcPdxBuscar').value || '').trim())
+  const todas = pokedex.filasDePokedex({ mio, totales: totalesPokedex, soloMios: pdxSoloMios, tipos: pokedex.tiposPorEspecie(lineas, cartas) })
+  const encabezado = $('mcPdxEncabezado')
+  if (encabezado) encabezado.innerHTML = pokedex.encabezadoHtml(todas, { region: pdxRegion, registrados: resumen.registrados })
+  caja.innerHTML = buscando || orden !== 'dex'
+    ? pokedex.rejillaHtml(filas, orden)
+    : pokedex.regionesHtml(pdxRegion) + pokedex.rejillaDeRegionHtml(filas, pdxRegion)
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
+  // Lo dice el anillo de arriba (748): aquí solo para quien lee en voz alta.
   $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
+  $('mcPdxCuenta').classList.add('sr-only')
 }
 
 let cartasDeLaEspecie = []
@@ -5144,6 +5153,8 @@ async function pintarEspecie(dex, { push = true } = {}) {
   if (push) irA({ ver: 'pokedex', dex })
   especieAbierta = dex
   $('mcPdxMandos').classList.add('hidden')
+  // El título de la Pokédex es de la rejilla, no de una especie (748).
+  if ($('mcPdxEncabezado')) $('mcPdxEncabezado').innerHTML = ''
   caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
   let delCatalogo = []
   try {
@@ -6404,6 +6415,13 @@ function enganchar() {
     if (pokedexCargada) pintarPokedex()
   })
   $('mcPanelPokedex').addEventListener('click', (e) => {
+    const region = e.target.closest('[data-pdx-region]')
+    if (region) {
+      pdxRegion = Number(region.dataset.pdxRegion) || 0
+      pintarPokedex()
+      $('mcPokedexPanel')?.querySelector('.pdx-regiones .activa')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+      return
+    }
     const especie = e.target.closest('[data-dex]')
     if (especie) return pintarEspecie(Number(especie.dataset.dex))
     if (e.target.closest('#pdxVolver')) {

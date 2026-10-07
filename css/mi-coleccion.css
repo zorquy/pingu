@@ -7704,3 +7704,74 @@ input.mc-alb-titulo:not([readonly]):focus {
     padding-bottom: var(--e-xs);
   }
 }
+
+/* ── 748: la Pokédex como en su maqueta (C3; SCHEMA 748) ── */
+.pdx-especie.tipo-N { --tipo-energia: #b8962e; }
+.pdx-especie.tipo-C { --tipo-energia: #a7a49b; }
+.pdx-especie.tipo-Y { --tipo-energia: #e17aa6; }
+
+.pdx-encabezado {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--e-md);
+}
+
+.pdx-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+}
+
+.pdx-sub {
+  margin: 2px 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-regiones {
+  display: flex;
+  gap: var(--e-sm);
+  margin: 0 calc(-1 * var(--e-xl)) var(--e-md);
+  padding: 0 var(--e-xl);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pdx-region {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pdx-region.activa {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+/* El número arriba a la izquierda y el símbolo a la derecha, como en la
+   maqueta; el de los que faltan, apagado. */
+.pdx-especie .pdx-num {
+  align-self: flex-start;
+}
+
+.pdx-especie:not(.tengo) .pdx-energia {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.pdx-especie:not(.tengo) .pdx-nombre,
+.pdx-especie:not(.tengo) .pdx-cuenta {
+  color: var(--text-mid);
+}

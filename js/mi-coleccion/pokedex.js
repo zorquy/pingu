@@ -30,6 +30,7 @@ import { urlDeSprite, atributosDeRespaldo } from '../torneos/sprites-pokemon.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 // Un reexport no es un import (624): se importa para usarlo aquí.
 import { LETRA_DE_TIPO, NOMBRE_DE_LETRA } from './energias.js'
+import { tipoDeEspecie } from '../tipos-de-especie.js'
 
 const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
 
@@ -133,7 +134,12 @@ export function filasDePokedex({ mio, totales, soloMios = false, texto = '', tip
     if (soloMios && !tengo) continue
     const nombre = POKEMON_POR_DEX[dex - 1]
     if (busca && !nombre.toLowerCase().includes(busca) && String(dex) !== busca) continue
-    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null, tipo: tengo ? tipos.get(dex) || null : null })
+    // El tipo de TUS cartas manda; si no lo traen, el de la especie (748):
+    // si no, un Pokémon tuyo salía sin color solo porque sus cartas aún no
+    // tienen la columna rellena. `tipoDe` es el de la especie, también para
+    // los que faltan, que llevan su símbolo en gris.
+    const tipoDe = tipoDeEspecie(dex)
+    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null, tipo: tengo ? tipos.get(dex) || tipoDe : null, tipoDe })
   }
   return filas
 }
@@ -151,22 +157,24 @@ function filaHtml(f) {
   const sprite = urlDeSprite(f.dex)
   const pct = f.total ? Math.min(100, Math.round((f.tengo / f.total) * 100)) : 0
   const completo = f.total && f.tengo >= f.total
+  // Como en su maqueta (748): «#001», el sprite, el nombre y cuántas cartas
+  // tienes —«1 de 3» si se sabe cuántas hay, que es lo que se persigue al
+  // completar una especie (381); la maqueta decía «3 cartas» a secas—; los que faltan, en silueta, con «???» y «te falta» —el nombre
+  // sigue en la etiqueta, para quien no lo ve y para el que pasa el ratón—.
+  const simbolo = f.tipo || f.tipoDe
+  const nombreDeTipo = simbolo ? NOMBRE_DE_LETRA[simbolo] : ''
+  const hay = f.total ? `; hay ${f.total}` : ''
+  const etiqueta = `${f.nombre}, número ${f.dex}${f.tengo ? `, tienes ${f.tengo} ${f.tengo === 1 ? 'carta' : 'cartas'}` : ', te falta'}${hay}`
   return `
-    <button type="button" class="pdx-especie${f.tengo ? ' tengo' : ''}${completo ? ' completo' : ''}${f.tipo ? ` tipo-${f.tipo}` : ''}" data-dex="${f.dex}">
-      ${f.tipo ? `<img class="pdx-energia" src="/assets/energias/${f.tipo}.svg" alt="${NOMBRE_DE_LETRA[f.tipo]}" title="${NOMBRE_DE_LETRA[f.tipo]}" width="16" height="16" />` : ''}
+    <button type="button" class="pdx-especie${f.tengo ? ' tengo' : ''}${completo ? ' completo' : ''}${f.tipo ? ` tipo-${f.tipo}` : ''}" data-dex="${f.dex}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(f.nombre)}">
+      ${simbolo && nombreDeTipo ? `<img class="pdx-energia" src="/assets/energias/${simbolo}.svg" alt="" title="${escapeHtml(nombreDeTipo)}" width="16" height="16" />` : ''}
+      <span class="pdx-num">#${String(f.dex).padStart(3, '0')}</span>
       <span class="pdx-sprite">${
         sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="68" height="56" loading="lazy" decoding="async"${atributosDeRespaldo(sprite)} />` : ''
       }</span>
-      <span class="pdx-num">N.º ${String(f.dex).padStart(4, '0')}</span>
-      <span class="pdx-nombre">${escapeHtml(f.nombre)}</span>
-      <span class="pdx-cuenta">${
-        f.total === null
-          ? f.tengo
-            ? `${f.tengo} ${f.tengo === 1 ? 'carta' : 'cartas'}`
-            : '—'
-          : `${f.tengo} de ${f.total}`
-      }</span>
-      ${f.total ? `<span class="mc-barra" role="presentation"><i style="--ancho:${pct}%"></i></span>` : ''}
+      <span class="pdx-nombre">${f.tengo ? escapeHtml(f.nombre) : '???'}</span>
+      <span class="pdx-cuenta">${!f.tengo ? 'te falta' : f.total ? `${f.tengo} de ${f.total}` : `${f.tengo} ${f.tengo === 1 ? 'carta' : 'cartas'}`}</span>
+      ${f.total && f.tengo ? `<span class="mc-barra" role="presentation"><i style="--ancho:${pct}%"></i></span>` : ''}
     </button>`
 }
 
@@ -181,16 +189,16 @@ function filaHtml(f) {
 // no van a cambiar nunca, pero la novena sí: el día que salga la décima,
 // una lista cerrada dejaría a los nuevos FUERA de todos los grupos y
 // desaparecerían de la pantalla sin dar error. Así, caen en la última.
-const GENERACIONES = [
-  { nombre: 'Primera generación', desde: 1, hasta: 151 },
-  { nombre: 'Segunda generación', desde: 152, hasta: 251 },
-  { nombre: 'Tercera generación', desde: 252, hasta: 386 },
-  { nombre: 'Cuarta generación', desde: 387, hasta: 493 },
-  { nombre: 'Quinta generación', desde: 494, hasta: 649 },
-  { nombre: 'Sexta generación', desde: 650, hasta: 721 },
-  { nombre: 'Séptima generación', desde: 722, hasta: 809 },
-  { nombre: 'Octava generación', desde: 810, hasta: 905 },
-  { nombre: 'Novena generación', desde: 906, hasta: Infinity },
+export const GENERACIONES = [
+  { nombre: 'Primera generación', region: 'Kanto', desde: 1, hasta: 151 },
+  { nombre: 'Segunda generación', region: 'Johto', desde: 152, hasta: 251 },
+  { nombre: 'Tercera generación', region: 'Hoenn', desde: 252, hasta: 386 },
+  { nombre: 'Cuarta generación', region: 'Sinnoh', desde: 387, hasta: 493 },
+  { nombre: 'Quinta generación', region: 'Teselia', desde: 494, hasta: 649 },
+  { nombre: 'Sexta generación', region: 'Kalos', desde: 650, hasta: 721 },
+  { nombre: 'Séptima generación', region: 'Alola', desde: 722, hasta: 809 },
+  { nombre: 'Octava generación', region: 'Galar', desde: 810, hasta: 905 },
+  { nombre: 'Novena generación', region: 'Paldea', desde: 906, hasta: Infinity },
 ]
 
 export function porGeneraciones(filas) {
@@ -234,6 +242,36 @@ export function casiCompletos(filas) {
     .filter((f) => f.tengo > 0 && f.total && f.tengo < f.total)
     .sort((a, b) => (a.total - a.tengo) - (b.total - b.tengo) ||
       b.tengo / b.total - a.tengo / a.total || a.dex - b.dex)
+}
+
+// UNA REGIÓN A LA VEZ (748, la C3 de su maqueta). Arriba, el título con
+// «Kanto · 5 de 151» y el anillo del total, y las pestañas por región; la
+// rejilla enseña la región elegida. Buscando, en cambio, salen TODAS las
+// que casan, por generación: quien escribe «char» no sabe de qué región es.
+export function encabezadoHtml(filas, { region = 0, registrados = 0, total = 1025 } = {}) {
+  const g = GENERACIONES[region] || GENERACIONES[0]
+  const deLaRegion = filas.filter((f) => f.dex >= g.desde && f.dex <= g.hasta)
+  const tengo = deLaRegion.filter((f) => f.tengo).length
+  const crudo = total ? (registrados / total) * 100 : 0
+  const pct = crudo > 0 && crudo < 10 ? crudo.toFixed(1).replace('.', ',') : Math.round(crudo)
+  return `<div class="pdx-encabezado">
+      <div>
+        <h2 class="pdx-titulo">Pokédex</h2>
+        <p class="pdx-sub">${escapeHtml(g.region)} · ${tengo} de ${deLaRegion.length}</p>
+      </div>
+      <span class="mc-anillo" style="--pct:${crudo.toFixed(1)}" role="img" aria-label="${escapeHtml(String(pct))} % de la Pokédex registrado"><b>${escapeHtml(String(pct))} %</b></span>
+    </div>`
+}
+
+export function regionesHtml(region = 0) {
+  return `<div class="pdx-regiones" role="group" aria-label="Región">${GENERACIONES.map((x, i) => `<button type="button" class="pdx-region${i === region ? ' activa' : ''}" data-pdx-region="${i}" aria-pressed="${i === region ? 'true' : 'false'}">${escapeHtml(x.region)}</button>`).join('')}</div>`
+}
+
+export function rejillaDeRegionHtml(filas, region = 0) {
+  const g = GENERACIONES[region] || GENERACIONES[0]
+  const deLaRegion = filas.filter((f) => f.dex >= g.desde && f.dex <= g.hasta)
+  if (!deLaRegion.length) return '<p class="empty-state">Todavía no tienes ningún Pokémon de esta región.</p>'
+  return `<div class="pdx-rejilla">${deLaRegion.map(filaHtml).join('')}</div>`
 }
 
 export function rejillaHtml(filas, orden = 'dex') {
