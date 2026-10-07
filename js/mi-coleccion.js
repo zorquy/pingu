@@ -5194,12 +5194,20 @@ async function pintarCarpetasDeLaFicha(lineId) {
     const lista = await carpetas.listarCarpetas().catch(() => null)
     carpetasLista = lista || []
   }
+  const linea = $('mcEdCopiaAlbum')
+  linea?.classList.add('hidden')
   if (!carpetasLista.length) {
     bloque.classList.add('hidden')
     return
   }
   bloque.classList.remove('hidden')
   const dentro = new Set(await carpetas.carpetasDeLinea(lineId).catch(() => []))
+  // La línea de arriba (752, Y5), si la ficha sigue en esta copia.
+  const suyas = carpetasLista.filter((c) => dentro.has(c.id))
+  if (linea && suyas.length && $('mcEditor').dataset.linea === lineId) {
+    linea.innerHTML = `${icons.folder ? icons.folder(14) : ''}<span>${suyas.length === 1 ? 'En tu álbum' : 'En tus álbumes'}</span> ${suyas.map((c) => `<button type="button" class="link-btn" data-abrir-carpeta="${escapeHtml(c.id)}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`).join(', ')}`
+    linea.classList.remove('hidden')
+  }
   hueco.innerHTML = carpetasLista
     .map((c) => {
       const puesta = dentro.has(c.id)
@@ -6360,6 +6368,15 @@ function enganchar() {
   })
 
   // Meter y sacar la carta abierta de una carpeta, desde su ficha.
+  // «En tu álbum X» (752): abre ese álbum.
+  $('mcEdCopiaAlbum')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-abrir-carpeta]')
+    if (!b) return
+    carpetaAbierta = b.dataset.abrirCarpeta
+    $('mcEditor').close()
+    if (pestania === 'carpetas') void recargarCarpetas()
+    else cambiarPestania('carpetas')
+  })
   $('mcEdCarpetas').addEventListener('click', async (e) => {
     const chip = e.target.closest('[data-carpeta-chip]')
     if (!chip) return

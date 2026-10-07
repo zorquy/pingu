@@ -8483,9 +8483,11 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 /* ── 749: el logo arriba de una expansión (E5; SCHEMA 749) ── */
+/* z-index y no `isolation`: el contexto tiene que quedar POR ENCIMA de lo
+   que sigue, o el menú del ⋮ se abre debajo del buscador (SCHEMA 752). */
 #mcArchivadorZona .mc-album-barra {
   position: relative;
-  isolation: isolate;
+  z-index: 3;
 }
 
 .mc-album-nombre {
@@ -8716,4 +8718,22 @@ input.mc-alb-titulo:not([readonly]):focus {
   .mc-deseos .mc-quiero-fila { flex-wrap: nowrap; }
   .mc-deseos .mc-quiero-fila .mc-fila-dato { flex: 0 0 auto; order: 1; padding-left: 0; }
   .mc-quiero-fila .mc-quiero-precio { order: 2; min-width: 88px; text-align: right; }
+}
+
+/* En qué álbum la tienes (752, Y5). */
+.mc-copia-album {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-copia-album .link-btn { font-weight: 700; }
+
+#mcEdCopiaAlbum {
+  justify-content: center;
+  margin-top: var(--e-sm);
 }

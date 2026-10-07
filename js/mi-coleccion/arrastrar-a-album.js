@@ -34,7 +34,7 @@ export function albumesDeLaLateral(arbol, resumen = new Map(), { tope = 12 } = {
 export function albumesHtml(albumes) {
   if (!albumes.length) return ''
   return `<ul class="lat-albumes" aria-label="Tus álbumes: suelta una carta encima para meterla">${albumes
-    .map((a) => `<li><button type="button" class="lat-album${a.nivel ? ' lat-album-hija' : ''}" data-carpeta-destino="${escapeHtml(a.id)}"><span>${escapeHtml(a.nombre)}</span>${a.cartas == null ? '' : `<b>${a.cartas.toLocaleString('es-ES')}</b>`}</button></li>`)
+    .map((a) => `<li><button type="button" class="lat-album${a.nivel ? ' lat-album-hija' : ''}" data-carpeta-destino="${escapeHtml(a.id)}"><span>${escapeHtml(a.nombre)}</span>${a.cartas == null ? '' : `<b>${a.cartas.toLocaleString('es-ES', { useGrouping: 'always' })}</b>`}</button></li>`)
     .join('')}</ul>`
 }
 

@@ -14,6 +14,44 @@
 
 const CONTENEDOR = 'profileTabs'
 
+// ── LOS TRES NIVELES (tanda 752, P1) ──
+//
+// Arriba van tres, como en la maqueta: Vitrina, Actividad y Medallas. Las
+// pestañas de siempre (Muro, Guías, Foro, Torneos) no se pierden: son los
+// filtros de Actividad. «Acerca» era los trofeos y los cursos, o sea las
+// Medallas, y su panel (`ptab-about`) es el de ese nivel. Qué se ve lo
+// decide `body[data-pnivel]` en css/perfil.css.
+const NIVELES = 'perfilNiveles'
+const NIVEL_DE = { about: 'medallas', medallas: 'medallas', vitrina: 'vitrina' }
+let alAbrirNivel = null
+
+export function abrirNivel(nivel) {
+  const caja = document.getElementById(NIVELES)
+  const btn = caja?.querySelector(`[data-pnivel="${nivel}"]`)
+  if (!btn || btn.hidden) return false
+  for (const b of caja.querySelectorAll('[data-pnivel]')) {
+    b.classList.toggle('active', b === btn)
+    b.setAttribute('aria-selected', String(b === btn))
+  }
+  document.body.dataset.pnivel = nivel
+  alAbrirNivel?.(nivel === 'medallas' ? 'about' : nivel)
+  return true
+}
+
+// La vitrina, cuando llega (la pinta js/vitrina.js aparte): su nivel sale
+// si hay algo que enseñar —o si es la tuya, para elegir—, y se abre por
+// ella si tiene cartas y no has tocado nada: es lo primero de la maqueta,
+// pero una vitrina vacía no es «la que tiene algo».
+export function vitrinaLista({ visible, conCartas }) {
+  const btn = document.querySelector(`#${NIVELES} [data-pnivel="vitrina"]`)
+  if (!btn) return
+  btn.hidden = !visible
+  if (!visible && document.body.dataset.pnivel === 'vitrina') abrirNivel('actividad')
+  // Con #vitrina en la dirección, ahora que el nivel existe: el hash se
+  // leyó al cargar, cuando todavía estaba escondido.
+  if (visible && !laHaTocado && (window.location.hash === '#vitrina' || (conCartas && !window.location.hash))) abrirNivel('vitrina')
+}
+
 const botones = () => [...document.querySelectorAll(`#${CONTENEDOR} .tab-btn`)]
 const botonDe = (nombre) => botones().find((b) => b.dataset.ptab === nombre)
 
@@ -23,8 +61,10 @@ const cuentas = {}
 let laHaTocado = false
 
 export function abrirPestania(nombre) {
+  if (NIVEL_DE[nombre] || nombre === 'actividad') return abrirNivel(NIVEL_DE[nombre] || 'actividad')
   const btn = botonDe(nombre)
   if (!btn) return false
+  abrirNivel('actividad')
   btn.click()
   return true
 }
@@ -57,7 +97,8 @@ export function abrirLaQueTengaAlgo() {
   // dejarte donde estabas.
   if (laHaTocado || window.location.hash) return
   const conAlgo = ORDEN.find((n) => cuentas[n] > 0 && botonDe(n))
-  if (conAlgo && conAlgo !== 'wall') abrirPestania(conAlgo)
+  // Solo el filtro de dentro: si la vitrina ya se ha abierto, se queda.
+  if (conAlgo && conAlgo !== 'wall') botonDe(conAlgo)?.click()
 }
 
 // `alAbrir` recibe el nombre de la pestaña: es donde cada página engancha
@@ -65,6 +106,14 @@ export function abrirLaQueTengaAlgo() {
 export function montarPestanias({ alAbrir } = {}) {
   const caja = document.getElementById(CONTENEDOR)
   if (!caja) return
+  alAbrirNivel = alAbrir
+  if (!document.body.dataset.pnivel) document.body.dataset.pnivel = 'actividad'
+  for (const b of document.querySelectorAll(`#${NIVELES} [data-pnivel]`)) {
+    b.addEventListener('click', (e) => {
+      if (e.isTrusted) laHaTocado = true
+      abrirNivel(b.dataset.pnivel)
+    })
+  }
   for (const btn of botones()) {
     btn.addEventListener('click', (e) => {
       // `isTrusted` distingue el clic de una persona del `.click()` que

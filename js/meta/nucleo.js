@@ -67,9 +67,9 @@ export function especieBaseDeIcono(icono) {
 }
 
 // ── Números que se leen ──
-const fmt1 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-const fmt2 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-const fmt0 = new Intl.NumberFormat('es-ES')
+const fmt1 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: 'always' })
+const fmt2 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2, useGrouping: 'always' })
+const fmt0 = new Intl.NumberFormat('es-ES', { useGrouping: 'always' })
 
 export function porcentaje(valor) {
   const n = Number(valor)

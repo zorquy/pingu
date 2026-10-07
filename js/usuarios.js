@@ -102,7 +102,7 @@ function render(list) {
 async function cargarCifras() {
   const poner = (id, n) => {
     const e = document.getElementById(id)
-    if (e && n != null) e.textContent = new Intl.NumberFormat('es-ES').format(n)
+    if (e && n != null) e.textContent = new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(n)
   }
   const desde = new Date(Date.now() - 7 * 86400e3).toISOString()
   const ayer = new Date(Date.now() - 86400e3).toISOString().slice(0, 10)
@@ -132,7 +132,7 @@ async function cargarCifras() {
   poner('cifraGuias', guias)
   poner('cifraRachas', rachas)
   const chip = document.getElementById('chipGente')
-  if (chip && miembros != null) chip.textContent = new Intl.NumberFormat('es-ES').format(miembros)
+  if (chip && miembros != null) chip.textContent = new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(miembros)
 }
 
 // ── El podio del mes ──
@@ -175,7 +175,7 @@ async function cargarPodio(perfiles) {
               <span class="com-puesto-medalla">${icons.medal(14)} ${MEDALLAS[i]}</span>
               <span class="com-puesto-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</span>
               <span class="com-puesto-nombre">${escapeHtml(p.display_name || p.username || 'Usuario')}</span>
-              <span class="com-puesto-xp">+${new Intl.NumberFormat('es-ES').format(ganado)} XP este mes</span>
+              <span class="com-puesto-xp">+${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP este mes</span>
             </a>`
             )
             .join('')}

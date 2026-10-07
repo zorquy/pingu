@@ -159,6 +159,15 @@
       </div>
     </div>
 
+    <!-- Los tres niveles de la maqueta (752, P1): Vitrina, Actividad y
+         Medallas. Muro, Guías, Foro y Torneos son los filtros de
+         Actividad; lo maneja js/perfil-pestanias.js. -->
+    <div class="perfil-niveles" id="perfilNiveles" role="tablist" aria-label="El perfil">
+      <button type="button" class="perfil-nivel" data-pnivel="vitrina" role="tab" aria-selected="false" hidden>Vitrina</button>
+      <button type="button" class="perfil-nivel active" data-pnivel="actividad" role="tab" aria-selected="true">Actividad</button>
+      <button type="button" class="perfil-nivel" data-pnivel="medallas" role="tab" aria-selected="false">Medallas</button>
+    </div>
+
     <!-- La vitrina (743, J4): seis cartas que eliges tú. La pinta
          js/vitrina.js; sin supabase-migration-vitrina.sql no sale. -->
     <section class="vitrina" id="perfilVitrina" aria-label="Vitrina" hidden></section>
@@ -167,7 +176,6 @@
       <button class="tab-btn active" data-ptab="wall">Muro</button>
       <button class="tab-btn" data-ptab="guides">Guías</button>
       <button class="tab-btn" data-ptab="foro">Foro</button>
-      <button class="tab-btn" data-ptab="about">Acerca</button>
     </div>
 
     <div class="tab-panel" id="ptab-foro">

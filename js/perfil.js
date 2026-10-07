@@ -8,7 +8,7 @@ import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notificat
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { renderWall } from './wall.js'
-import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { showToast } from './toast.js'
 import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
@@ -132,11 +132,11 @@ async function loadAchievements(profile) {
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
 }
 
+// La cifra de trofeos lleva a las Medallas (752), que es donde viven: el
+// modal enseñaba lo mismo encima de la página.
 document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
-  const unlocked = currentProfile?.achievements || []
-  openModal(`
-    <h3>Trofeos (${unlocked.length}/${achievementsCache.length})</h3>
-    <div class="achievements-grid">${achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')}</div>`)
+  abrirPestania('medallas')
+  document.getElementById('perfilNiveles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 })
 
 document.getElementById('achievementsToggle')?.addEventListener('click', () => {
@@ -907,7 +907,11 @@ async function init() {
   abrirLaQueTengaAlgo()
   await loadAchievements(profile)
   // La vitrina (743): la tuya, con «Elegir cartas».
-  import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast })).catch(() => {})
+  // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
+  import('./vitrina.js')
+    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast }))
+    .then((r) => vitrinaLista({ visible: r?.estado === 'ok' && (true), conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
+    .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   await loadAccountDeletionStatus(session)
 
   document.getElementById('btnLogout').addEventListener('click', signOut)

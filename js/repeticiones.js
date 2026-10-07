@@ -1621,7 +1621,7 @@ async function dialogoCompartir() {
     } catch {
       url = largo
       texto += 'Este enlace lleva la partida DENTRO: no se guarda en ningún sitio, y quien lo abra la ve igual.'
-      if (url.length > 2000) texto += ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.`
+      if (url.length > 2000) texto += ` Es largo (${url.length.toLocaleString('es-ES', { useGrouping: 'always' })} caracteres): en Discord no cabe en un mensaje.`
     }
     if (!R.sesion) {
       texto += ' Con una cuenta, además, la tienes en «Tus repeticiones».'
@@ -2707,7 +2707,7 @@ function iniciar() {
       if (!largo) return
       cuerpo.dataset.url = largo
       cuerpo.querySelector('#repEnlace').value = largo
-      cuerpo.querySelector('#repCompartirNota').textContent = `Este enlace lleva la partida DENTRO: no hace falta PokeDoc para guardarla, y quien lo abra la ve igual.${largo.length > 2000 ? ` Es largo (${largo.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.` : ''}`
+      cuerpo.querySelector('#repCompartirNota').textContent = `Este enlace lleva la partida DENTRO: no hace falta PokeDoc para guardarla, y quien lo abra la ve igual.${largo.length > 2000 ? ` Es largo (${largo.length.toLocaleString('es-ES', { useGrouping: 'always' })} caracteres): en Discord no cabe en un mensaje.` : ''}`
       b.remove()
       return
     }

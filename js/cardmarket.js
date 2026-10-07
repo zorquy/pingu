@@ -202,7 +202,7 @@ export function origenDelValor(precio) {
   return eur ? 'cardmarket' : null
 }
 
-const fmtUsd = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const fmtUsd = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' })
 export function dolares(v) {
   return typeof v === 'number' && Number.isFinite(v) ? fmtUsd.format(v) : '—'
 }

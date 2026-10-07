@@ -308,7 +308,7 @@ async function dialogoCompartir() {
   const quien = L.mesa ? 'los dos mazos y las dos manos' : 'tu mazo, tu mano y el muñeco'
   const donde = corto
     ? 'La mesa se guarda en PokeDoc (sin ningún dato tuyo) para que el enlace quepa en un mensaje.'
-    : `El enlace lleva la mesa dentro; no se guarda en ningún sitio.${url.length > 2000 ? ` Es largo (${url.length.toLocaleString('es-ES')} caracteres): en Discord no cabe en un mensaje.` : ''}`
+    : `El enlace lleva la mesa dentro; no se guarda en ningún sitio.${url.length > 2000 ? ` Es largo (${url.length.toLocaleString('es-ES', { useGrouping: 'always' })} caracteres): en Discord no cabe en un mensaje.` : ''}`
   cuerpo.innerHTML = `
     <p class="subtext">Quien lo abra sigue jugando desde aquí, con ${quien} tal cual están ahora, y el mazo en su orden: robará lo mismo que robarías tú. ${donde}</p>
     <div class="lab-enlace">

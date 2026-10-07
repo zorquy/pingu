@@ -10,7 +10,7 @@ import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
-import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
@@ -293,11 +293,11 @@ async function loadAchievementsGrid() {
   document.getElementById('achievementsGrid').innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
 }
 
+// La cifra de trofeos lleva a las Medallas (752), que es donde viven: el
+// modal enseñaba lo mismo encima de la página.
 document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
-  const unlocked = profile?.achievements || []
-  openModal(`
-    <h3>Trofeos (${unlocked.length}/${achievementsCache.length})</h3>
-    <div class="achievements-grid">${achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')}</div>`)
+  abrirPestania('medallas')
+  document.getElementById('perfilNiveles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 })
 
 // ── Muro ──
@@ -339,7 +339,11 @@ async function init() {
     contarElForo(),
   ])
   // La vitrina (743), la de esta persona: solo lo que hay.
-  import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => {})
+  // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
+  import('./vitrina.js')
+    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId))
+    .then((r) => vitrinaLista({ visible: r?.estado === 'ok' && (r.cartas.length > 0), conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
+    .catch(() => vitrinaLista({ visible: false, conCartas: false }))
 
   // Con las cuentas ya puestas, se abre la que tenga algo — y solo si
   // quien mira no ha tocado nada todavía ni ha llegado con un #hash.
