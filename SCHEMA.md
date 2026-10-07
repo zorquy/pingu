@@ -34892,3 +34892,24 @@ ficheros viejos»). Es una decisión que hay que tomar con PINGU.
 
 **Ficheros**: `js/instalar.js` y `js/tirar-refrescar.js` (nuevos),
 `js/barra-movil.js`, `css/movil.css`. Prueba 732-pantalla.
+
+## Tanda 733 — una imagen para compartir una carta (oct. 2026)
+
+X7 de la lista. En la ficha de una carta, una loseta más junto a Añadir,
+Editar y Avísame: «Compartir» (con y sin cuenta). Dibuja una imagen
+VERTICAL de 1080 × 1350 —la que llena una historia o un post sin
+recortes— con la carta en grande, su nombre, set y número, «Desde» con el
+precio de siempre (`precioActual`, el del idioma elegido) y, si es tuya,
+una chapa verde «La tengo» (o «La tengo · 2 copias»). Sin precio no se
+inventa uno; sin cuenta no dice que la tiene nadie. La máquina es la de la
+571 (`imagen-compartir.js`): la foto con permiso o por nuestra función
+`imagen-carta`, el menú del sistema en el móvil y la descarga en el
+escritorio. Lo que dice la imagen sale de una función pura
+(`textosDeLaImagen`) y el lienzo entra por `import()` al pulsar.
+
+Ojo con lo que casi rompe: la loseta se engancha ANTES del `return` de
+quien no tiene cuenta, y `mias` (lo que tienes) se declara después; leerlo
+sin cuenta habría sido un `ReferenceError` al pulsar. Sin cuenta no se lee.
+
+**Ficheros**: `js/carta-imagen.js` (nuevo), `js/carta-mercado.js`. Prueba
+733-pantalla; la 707 cuenta ya cuatro losetas.

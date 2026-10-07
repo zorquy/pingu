@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 13) — PINGU-Claude (733 — una imagen para compartir una carta)
+
+**Hecho**: X7 de la lista. La ficha de una carta lleva «Compartir»: una
+imagen vertical con la carta, su precio y «La tengo» si es tuya, por el
+menú del móvil o descargada en el ordenador.
+
+**Ficheros**: `js/carta-imagen.js`, `js/carta-mercado.js`, `SCHEMA.md`.
+Prueba 733-pantalla y la 707 al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X6, X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 12) — PINGU-Claude (732 — instalar PokeDoc y, instalada, tirar para refrescar)
 
 **Hecho**: A1 y X4 de la lista. En el móvil, desde la segunda visita, la

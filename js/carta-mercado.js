@@ -214,11 +214,28 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
         <button type="button" class="mc-ficha-tile mc-ficha-mas" id="cmAnadir"><i aria-hidden="true">+</i><span>Añadir</span></button>
         <a class="mc-ficha-tile hidden" id="cmEditar" href="${escapeHtml(buscarla)}"><i aria-hidden="true">${icons.edit(16)}</i><span>Editar</span><small id="cmTienes"></small></a>
         <button type="button" class="mc-ficha-tile" id="cmAviso" data-aviso="${escapeHtml(carta.id)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame</span></button>
+        <button type="button" class="mc-ficha-tile" id="cmCompartir"><i aria-hidden="true">${icons.share(16)}</i><span>Compartir</span></button>
       </div>`
     : `<div class="mc-ficha-acciones carta-acciones" id="cartaAcciones">
         <a class="mc-ficha-tile mc-ficha-mas" href="${escapeHtml(volver)}"><i aria-hidden="true">+</i><span>Añadir</span></a>
         <a class="mc-ficha-tile" href="${escapeHtml(volver)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame</span></a>
+        <button type="button" class="mc-ficha-tile" id="cmCompartir"><i aria-hidden="true">${icons.share(16)}</i><span>Compartir</span></button>
       </div>`)
+  // Compartir la carta en una imagen (733, X7): con su precio y, si es
+  // tuya, «La tengo». El módulo del lienzo entra al pulsar.
+  $('cmCompartir')?.addEventListener('click', async () => {
+    const boton = $('cmCompartir')
+    boton.disabled = true
+    try {
+      const { compartirCarta } = await import('./carta-imagen.js')
+      // Sin cuenta, `mias` ni existe (se declara más abajo, tras el
+      // `return`): no se lee.
+      const tengo = sesion ? mias.reduce((n, l) => n + (Number(l.cantidad) || 0), 0) : null
+      await compartirCarta({ carta, valor: precioActual(), tengo })
+    } finally {
+      boton.disabled = false
+    }
+  })
   if (!sesion) return
 
   engancharAvisos($('cartaAcciones'), () => ({ market: carta.market || MERCADO, idioma: estado.idioma, precio: precioActual() }))
