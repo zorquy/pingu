@@ -79,7 +79,7 @@ console.log('── 2. Con las variantes JUNTAS, el «+» va como antes: sin ver
   check('el «+» no lleva versión', (await mas.count()) === 1 && (await mas.getAttribute('data-variante')) === null)
   await mas.click()
   await page.waitForTimeout(600)
-  check('y como la tienes, abre en «ya en tu colección»', (await page.locator('#mcAdYa').isVisible()) && !(await page.locator('#mcAdForm').isVisible()))
+  check('y como la tienes, la cabecera lo dice (y el formulario ya está a la vista, 748)', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1' && (await page.locator('#mcAdForm').isVisible()), limpio(await page.locator('#mcAdTienes').innerText()))
   await page.keyboard.press('Escape')
   await page.close()
 }
@@ -104,7 +104,7 @@ console.log('── 3. La Pokédex de un Pokémon, con las variantes separadas �
   // ningún álbum abierto) tiene que abrir el diálogo igual.
   await page.locator('.pdx-carta [data-anadir="xy5-3"]').click()
   await page.waitForTimeout(600)
-  check('el «+» de una carta que NO tienes abre el diálogo con ESA carta (694)', (await dialogo(page).evaluate((d) => d.open)) && /Weedle/.test(limpio(await page.locator('#mcAdNombre').innerText())) && /Duelos Primigenios 3/.test(limpio(await page.locator('#mcAdNombre').innerText())), limpio(await page.locator('#mcAdNombre').innerText()))
+  check('el «+» de una carta que NO tienes abre el diálogo con ESA carta (694)', (await dialogo(page).evaluate((d) => d.open)) && /Weedle/.test(limpio(await page.locator('#mcAdNombre').innerText())) && /Duelos Primigenios · 3/.test(limpio(await page.locator('#mcAdSet').innerText())), limpio(await page.locator('#mcAdSet').innerText()))
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
   await page.locator('.pdx-carta [data-anadir="xy5-1"][data-variante="reverse"]').click()

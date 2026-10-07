@@ -86,14 +86,16 @@ console.log('── 3. La hoja de añadir, sin huecos ──')
   const m = await page.evaluate(() => {
     const d = document.getElementById('mcAnadirDialogo')
     const r = (e) => e.getBoundingClientRect()
-    const caja = d.querySelector('.mc-ad-campos')
+    // Desde la 748 la hoja es UN formulario en columna (la C5 de su
+    // maqueta): la caja es el formulario y las filas, lo que lleva dentro.
+    const caja = d.querySelector('.mc-ad-form')
     const hijos = [...caja.children].filter((e) => r(e).height > 0)
-    const copias = d.querySelector('.mc-contador')
-    const pagado = document.getElementById('mcAdCompra').closest('label')
-    const filas = [d.querySelector('.mc-ad-idiomas-caja'), ...hijos]
+    const copias = d.querySelector('.mc-ad-fila .mc-contador-mando')
+    const pagado = document.getElementById('mcAdCompra')
+    const filas = hijos
     let hueco = 0
     for (let i = 1; i < filas.length; i++) if (r(filas[i]).top > r(filas[i - 1]).bottom) hueco = Math.max(hueco, Math.round(r(filas[i]).top - r(filas[i - 1]).bottom))
-    return { cajaAlto: Math.round(r(caja).height), sumaFilas: Math.round(Math.max(...hijos.map((h) => r(h).bottom)) - Math.min(...hijos.map((h) => r(h).top))), hueco, mismaFila: Math.abs(r(copias).bottom - r(pagado).bottom) <= 1 && r(pagado).left > r(copias).right, cabe: d.scrollHeight <= d.clientHeight + 1, botonAbajo: Math.round(r(document.getElementById('mcAdGuardar')).bottom), dlgAbajo: Math.round(r(d).bottom) }
+    return { cajaAlto: Math.round(r(caja).height), sumaFilas: Math.round(Math.max(...hijos.map((h) => r(h).bottom)) - Math.min(...hijos.map((h) => r(h).top)) + parseFloat(getComputedStyle(caja).paddingBottom) + parseFloat(getComputedStyle(caja).paddingTop)), hueco, mismaFila: Math.abs(r(copias).bottom - r(pagado).bottom) <= 1 && r(pagado).left > r(copias).right, cabe: d.scrollHeight <= d.clientHeight + 1, botonAbajo: Math.round(r(document.getElementById('mcAdGuardar')).bottom), dlgAbajo: Math.round(r(d).bottom) }
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('la caja de campos mide lo que lleva dentro (no 360 px)', m.cajaAlto <= m.sumaFilas + 1, JSON.stringify(m))

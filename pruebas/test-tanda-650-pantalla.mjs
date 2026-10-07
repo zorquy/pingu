@@ -73,8 +73,8 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   check('  …y no hay bloque de «tu copia»', !(await page.locator('#mcEdCopiaBloque').isVisible()))
   await page.click('#mcEdMas')
   await page.waitForTimeout(500)
-  check('se abre el diálogo de añadir, en la cara del formulario', (await dialogo(page).evaluate((d) => d.open)) && (await page.locator('#mcAdForm').isVisible()) && !(await page.locator('#mcAdYa').isVisible()))
-  check('  …con la carta y su nombre', (await page.locator('#mcAdCarta img').count()) === 1 && /Añadiendo Weedle/.test(limpio(await page.locator('#mcAdNombre').innerText())))
+  check('se abre el diálogo de añadir, en la cara del formulario', (await dialogo(page).evaluate((d) => d.open)) && (await page.locator('#mcAdForm').isVisible()))
+  check('  …con la carta y su nombre', (await page.locator('#mcAdCarta img').count()) === 1 && limpio(await page.locator('#mcAdNombre').innerText()) === 'Weedle')
   const chips = page.locator('#mcAdIdiomas .mc-idioma-chip')
   check('los idiomas son chips con bandera, y el español viene puesto', (await chips.count()) >= 5 && (await chips.locator('.pv-bandera').count()) === (await chips.count()) && (await page.locator('#mcAdIdiomas .mc-idioma-chip.activo').getAttribute('data-idioma')) === 'es')
   check('la versión se ofrece (normal y reverse)', (await page.locator('#mcAdVarianteLabel').isVisible()) && (await page.$$eval('#mcAdVariante option', (os) => os.map((o) => o.value).join(','))) === 'normal,reverse')
@@ -92,17 +92,17 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   await page.close()
 }
 
-console.log('\n── 2. Una que ya tienes en español: «ya en tu colección», y la inglesa es OTRA línea ──')
+console.log('\n── 2. Una que ya tienes en español: «Ya tienes 1» arriba, y la inglesa es OTRA línea ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html?ver=album&set=xy5')
   await abrirFicha(page, 'xy5-150')
   check('la ficha de tu copia: «Tienes 1» y el «+»', limpio(await page.locator('#mcEdTienes').innerText()) === 'Tienes 1' && (await page.locator('#mcEdMas').isVisible()))
   await page.click('#mcEdMas')
   await page.waitForTimeout(500)
-  check('el diálogo abre en «Ya en tu colección», con tu línea', (await page.locator('#mcAdYa').isVisible()) && !(await page.locator('#mcAdForm').isVisible()) && /ES NM Holo 1 copia/.test(limpio(await page.locator('#mcAdYaLista').innerText())), limpio(await page.locator('#mcAdYaLista').innerText()))
-  await page.click('#mcAdMas')
-  await page.waitForTimeout(300)
-  check('«Añadir más» pasa al formulario, con el idioma otra vez a elegir', (await page.locator('#mcAdForm').isVisible()) && (await page.locator('#mcAdIdiomas .mc-idioma-chip').count()) >= 5)
+  // Desde la 748 (la C5 de su maqueta) no hay paso de «Añadir más»: lo que
+  // ya tienes lo dice la cabecera y el formulario está a la vista.
+  check('el diálogo abre en el formulario y la cabecera dice «Ya tienes 1»', (await page.locator('#mcAdForm').isVisible()) && limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1', limpio(await page.locator('#mcAdTienes').innerText()))
+  check('  …con el idioma otra vez a elegir', (await page.locator('#mcAdIdiomas .mc-idioma-chip').count()) >= 5)
   check('  …y sin desplegable de versión: solo existe en holo', !(await page.locator('#mcAdVarianteLabel').isVisible()))
   await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]').click()
   await page.click('#mcAdGuardar')
@@ -120,9 +120,7 @@ console.log('\n── 2. Una que ya tienes en español: «ya en tu colección»,
   // Y otra vez en inglés: no es una tercera línea, es una copia más.
   await page.click('#mcEdMas')
   await page.waitForTimeout(400)
-  check('la tercera vez enseña las dos líneas', (await page.locator('#mcAdYaLista .mc-ad-ya-linea').count()) === 2)
-  await page.click('#mcAdMas')
-  await page.waitForTimeout(300)
+  check('la tercera vez dice «Ya tienes 2»', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 2')
   await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]').click()
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)

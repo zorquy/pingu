@@ -132,6 +132,56 @@ console.log('── 2. En una expansión ──')
   await ctx.close()
 }
 
+console.log('── 3. La hoja de añadir, la de su maqueta (C5), en Mi colección y en /carta ──')
+for (const [donde, ruta, abrirla, pre] of [
+  ['Mi colección', '/mi-coleccion.html?ver=album&set=xy5', async (page) => { await page.locator('#mcAlbum .mc-mas[data-anadir="xy5-1"]').first().click() }, 'mcAd'],
+  ['/carta', '/carta.html?id=xy5-1', async (page) => { await page.locator('#cmAnadir').click() }, 'cmAd'],
+]) {
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy', market: 'WEST', card_count_official: 6, card_count_total: 6 }]
+    window.__FAKE_CARTAS__ = [1, 2].map((n) => ({ id: `xy5-${n}`, market: 'WEST', set_id: 'xy5', local_id: String(n), name: `Carta ${n}`, image_path: `x/${n}`, rarity: 'Common', category: 'Pokemon', dex_ids: [n], variants: { normal: true, reverse: true }, tcg_sets: { id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy' } }))
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'admin-1', card_id: 'xy5-1', market: 'WEST', cantidad: 2, idioma: 'es', estado: 'NM', variante: 'normal' }]
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"><rect width="600" height="837" fill="#3a7bd5"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  await abrirla(page)
+  await page.waitForTimeout(800)
+  const m = await page.evaluate((pre) => {
+    const $ = (id) => document.getElementById(pre + id)
+    const d = document.querySelector('dialog.mc-anadir-dialogo[open]')
+    const r = (e) => e.getBoundingClientRect()
+    const chips = [...$('Idiomas').querySelectorAll('.mc-idioma-chip')]
+    return {
+      abierta: !!d, titulo: !!d?.querySelector('.mc-panel-cabecera'), paso: !!d?.querySelector('.mc-ad-ya'),
+      tirador: !!d?.querySelector('.mc-ad-tirador'), nombre: $('Nombre').textContent, set: $('Set').textContent, tienes: $('Tienes').textContent,
+      chipsUnaFila: new Set(chips.map((c) => Math.round(r(c).top))).size === 1,
+      activoNombre: d?.querySelector('.mc-idioma-chip.activo')?.textContent.trim(), otro: chips.find((c) => !c.classList.contains('activo'))?.textContent.trim(),
+      segmentados: d?.querySelectorAll('.mc-seg').length,
+      fila: Math.abs(r(d.querySelector('.mc-ad-fila .mc-contador-mando')).top - r($('Compra')).top) <= 1,
+      dentro: [...d.querySelectorAll('.mc-ad-fila *, .mc-ad-guardar')].every((e) => r(e).right <= innerWidth + 1),
+      guardar: $('Guardar').textContent.trim(), ancho: Math.round(r($('Guardar')).width), hoja: Math.round(r(d).width),
+      cabe: d.scrollHeight <= d.clientHeight + 1,
+    }
+  }, pre)
+  check(`[${donde}] sin barra de título ni paso de «Ya en tu colección»: directa al formulario, con su tirador`, m.abierta && !m.titulo && !m.paso && m.tirador, JSON.stringify(m))
+  check(`[${donde}]   …la cabecera: nombre, set · número y «Ya tienes 2»`, m.nombre === 'Carta 1' && m.set === 'Duelos Primigenios · 1' && m.tienes === 'Ya tienes 2', JSON.stringify(m))
+  check(`[${donde}]   …los idiomas en UNA fila: el elegido con su nombre, los demás con su sigla`, m.chipsUnaFila && /Español/.test(m.activoNombre) && /^[A-Z]{2}$/.test(m.otro), JSON.stringify(m))
+  check(`[${donde}]   …estado y versión segmentados, copias y precio en una fila, nada se sale`, m.segmentados === 2 && m.fila && m.dentro, JSON.stringify(m))
+  check(`[${donde}]   …un solo botón, ancho, que dice lo que hará, y la hoja cabe entera`, m.guardar === 'Añadir 1 copia' && m.ancho >= m.hoja - 48 && m.cabe, JSON.stringify(m))
+  await page.mouse.click(195, 40)
+  await page.waitForTimeout(400)
+  check(`[${donde}]   …tocar fuera la cierra`, !(await page.evaluate(() => !!document.querySelector('dialog.mc-anadir-dialogo[open]'))))
+  check(`[${donde}] sin errores`, errores.length === 0, errores.join(' | '))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
