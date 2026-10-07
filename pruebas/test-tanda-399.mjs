@@ -67,14 +67,17 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
   await page.waitForTimeout(500)
   const grupos = await page.locator('#mcGruposChips h3').allTextContents()
   check('hay grupo de tipo, energía y rareza',
-    ['Tipo de carta', 'Tipo de energía', 'Rareza'].every((g) => grupos.includes(g)), grupos.join(', '))
+    // La energía se rotula «Tipo» y va la PRIMERA desde la 748 (su maqueta).
+    ['Tipo de carta', 'Tipo', 'Rareza'].every((g) => grupos.includes(g)) && grupos[0] === 'Tipo', grupos.join(', '))
   // Todas las líneas son normal/nueva/es: esos grupos tendrían UN valor
   // y no se pintan.
   check('un grupo con un solo valor no se pinta',
     !grupos.includes('Versión') && !grupos.includes('Estado'), grupos.join(', '))
 
   // Y los valores son los de TU colección, traducidos.
-  const energias = await page.locator('.chip-filtro[data-grupo="energia"]').allTextContents()
+  // Desde la 748 (la C6 de su maqueta) cada energía es su símbolo en
+  // redondo, y su nombre va en `aria-label`.
+  const energias = await page.locator('.chip-filtro[data-grupo="energia"]').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')))
   check('las energías son las que tienes', energias.sort().join(',') === 'Agua,Fuego', energias.join(','))
   await page.close()
 }

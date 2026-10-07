@@ -182,6 +182,77 @@ for (const [donde, ruta, abrirla, pre] of [
   await ctx.close()
 }
 
+console.log('── 4. Los filtros, los de su maqueta (C6) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy', market: 'WEST', card_count_official: 6, card_count_total: 6 }]
+    const tipos = ['Fire', 'Water', 'Fire', 'Grass', 'Dragon', 'Water']
+    window.__FAKE_CARTAS__ = tipos.map((t, i) => ({ id: `xy5-${i + 1}`, market: 'WEST', set_id: 'xy5', local_id: String(i + 1), name: `Carta ${i + 1}`, image_path: `x/${i + 1}`, rarity: i % 2 ? 'Rare' : 'Common', category: 'Pokemon', types: [t], dex_ids: [i + 1], variants: { normal: true }, tcg_sets: { id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy' } }))
+    window.__FAKE_COLECCION__ = [1, 2, 3, 4].map((n) => ({ id: `l${n}`, user_id: 'admin-1', card_id: `xy5-${n}`, market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', valor_manual: n * 10 }))
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"><rect width="600" height="837" fill="#3a7bd5"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  await page.click('#mcAbrirFiltros')
+  await page.waitForTimeout(600)
+  const c = await page.evaluate(() => {
+    const d = document.getElementById('mcPanelFiltros')
+    const r = (e) => e.getBoundingClientRect()
+    const borrar = document.getElementById('mcFiltrosLimpiar')
+    const energias = [...d.querySelectorAll('.chip-energia')]
+    const primero = d.querySelector('#mcGruposChips h3')?.textContent
+    const ver = document.getElementById('mcFiltrosVer')
+    return {
+      borrarArriba: !!borrar.closest('.mc-panel-cabecera') && borrar.textContent.trim() === 'Borrar todo',
+      primero, energias: energias.map((e) => ({ l: e.getAttribute('aria-label'), w: Math.round(r(e).width), h: Math.round(r(e).height), img: !!e.querySelector('img.mc-energia'), txt: e.textContent.trim() })),
+      tiradores: d.querySelectorAll('#mcRangoDoble input[type="range"]').length, tope: document.getElementById('mcPrecioTiradorMax').max,
+      ver: { w: Math.round(r(ver).width), hoja: Math.round(r(d).width), bajo: Math.round(r(d).bottom - r(ver).bottom) },
+      tirador: getComputedStyle(document.getElementById('mcFiltrosCerrar'), '::before').width,
+    }
+  })
+  check('[Cartas] «Borrar todo» arriba, en la cabecera, y el aspa es el tirador', c.borrarArriba && c.tirador === '36px', JSON.stringify(c))
+  check('[Cartas]   …el tipo, PRIMERO y en redondo: el símbolo solo, con su nombre para quien no lo ve (las de TU colección: Agua, Fuego, Planta)', c.primero === 'Tipo' && c.energias.length === 3 && c.energias.every((e) => e.img && e.txt === '' && e.w === 44 && e.h === 44 && e.l), JSON.stringify(c.energias))
+  check('[Cartas]   …el precio con dos tiradores, hasta lo que vale tu copia más cara', c.tiradores === 2 && c.tope === '40', JSON.stringify(c))
+  check('[Cartas]   …y abajo un solo botón ancho, pegado al fondo', c.ver.w >= c.ver.hoja - 48 && c.ver.bajo <= 40, JSON.stringify(c.ver))
+  await page.locator('#mcPrecioTiradorMin').evaluate((t) => { t.value = '25'; t.dispatchEvent(new Event('input', { bubbles: true })) })
+  await page.waitForTimeout(300)
+  check('[Cartas] mover el tirador de abajo filtra: 2 cartas de 25 € o más, y el campo lo dice', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 2 cartas' && (await page.inputValue('#mcFiltroPrecioDesde')) === '25', await page.textContent('#mcFiltrosVer'))
+  await page.click('#mcFiltrosLimpiar')
+  await page.waitForTimeout(300)
+  check('[Cartas]   …y «Borrar todo» lo devuelve', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 4 cartas' && (await page.inputValue('#mcPrecioTiradorMin')) === '0')
+  await page.locator('.chip-energia[aria-label="Fuego"]').click()
+  await page.waitForTimeout(300)
+  check('[Cartas] tocar Fuego deja las dos de fuego', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 2 cartas')
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album&set=xy5`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(600)
+  const a = await page.evaluate(() => ({
+    que: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-que button')].map((b) => `${b.textContent}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`).join('|'),
+    primero: document.querySelector('#mcAlbumPanelFiltros .mc-grupo-filtro:not(.hidden) h3')?.textContent,
+    energias: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-energias .mc-seg-dibujo')].map((b) => b.getAttribute('aria-label')),
+    borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-cabecera'),
+  }))
+  check('[Expansión] arriba «Qué cartas»: Todas (puesta), Las tengo, Me faltan', a.primero === 'Qué cartas' && a.que === 'Todas*|Las tengo|Me faltan', JSON.stringify(a))
+  check('[Expansión]   …el tipo, con los símbolos de las que hay en la expansión', a.energias.sort().join() === 'Agua,Dragón,Fuego,Planta', JSON.stringify(a.energias))
+  check('[Expansión]   …y «Borrar todo» arriba', a.borrar)
+  await page.click('#mcAlbumSoloFaltan')
+  await page.waitForTimeout(300)
+  check('[Expansión] «Me faltan» deja las 2 que no tienes y «Todas» se apaga', (await page.textContent('#mcAlbumFiltrosVer')).trim() === 'Ver 2 cartas' && (await page.getAttribute('#mcAlbumTodas', 'aria-pressed')) === 'false')
+  await page.click('#mcAlbumTodas')
+  await page.locator('#mcAlbumPanelFiltros .mc-seg-dibujo[aria-label="Agua"]').click()
+  await page.waitForTimeout(300)
+  check('[Expansión] «Todas» vuelve y el tipo Agua deja las dos de agua', (await page.textContent('#mcAlbumFiltrosVer')).trim() === 'Ver 2 cartas' && (await page.getAttribute('#mcAlbumTodas', 'aria-pressed')) === 'true', await page.textContent('#mcAlbumFiltrosVer'))
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
