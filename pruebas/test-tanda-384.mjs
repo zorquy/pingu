@@ -490,6 +490,11 @@ console.log('\n── 5. La paleta de energías es COPIA de la de la ficha ─�
   const LETRA = { Grass: 'G', Fire: 'R', Water: 'W', Lightning: 'L', Psychic: 'P', Fighting: 'F', Darkness: 'D', Metal: 'M', Fairy: 'Y', Dragon: 'N', Colorless: 'C' }
   const distintas = Object.entries(LETRA).filter(([t, l]) => ficha[t] !== lab[l]).map(([t]) => t)
   check('los once colores coinciden', Object.keys(ficha).length === 11 && distintas.length === 0, distintas.join(', '))
+  // Y la tercera copia (711): las fichas de la Pokédex tiñen con los ocho
+  // tipos que tienen símbolo de energía.
+  const pdx = Object.fromEntries([...leer('css/mi-coleccion.css').matchAll(/\.pdx-especie\.tipo-([A-Z])\s*\{\s*--tipo-energia:\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]))
+  const malPdx = Object.entries(LETRA).filter(([, l]) => 'GRWLPFDM'.includes(l)).filter(([t, l]) => ficha[t] !== pdx[l]).map(([t]) => t)
+  check('…y los ocho de la Pokédex de Mi colección también', Object.keys(pdx).length === 8 && malPdx.length === 0, malPdx.join(', ') || JSON.stringify(pdx))
 }
 
 // ═════════════════════════════════════════════════════════════════════

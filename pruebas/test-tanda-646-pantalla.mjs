@@ -65,7 +65,9 @@ console.log('── 1. /cartas: una tarjeta por expansión de TCGGO ──')
   check('  …y el semanal en rojo', (await treinta.locator('.mc-set-cifra .baja').evaluate((el) => getComputedStyle(el).color)) === 'rgb(220, 38, 38)')
   check('  …la fecha debajo del nombre y la era de rótulo', /16 sept 2026/.test(texto) && (await page.locator('.mc-estanteria-titulo').allTextContents()).includes('Mega Evolution'), texto)
   const pitch = limpio(await page.locator('.mc-set-tarjeta', { hasText: 'Pitch Black' }).innerText())
-  check('Pitch Black, con un solo día: valor sí y sin semanal', /616 €/.test(pitch) && !/%/.test(pitch), pitch)
+  // Sin semanal = sin la loseta «Semanal». No «sin ningún %»: desde la 710
+  // la tarjeta lleva el anillo de lo que tienes, que dice «0%».
+  check('Pitch Black, con un solo día: valor sí y sin semanal', /616 €/.test(pitch) && !/semanal/i.test(pitch), pitch)
   check('las tarjetas miden 44 o más y van en rejilla', (await treinta.evaluate((el) => el.getBoundingClientRect().height)) >= 44 && (await page.locator('.mc-estanteria').first().evaluate((el) => getComputedStyle(el).display)) === 'grid')
   await treinta.click()
   await page.waitForTimeout(1500)

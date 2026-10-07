@@ -38,7 +38,10 @@ console.log('\n── 1. Una sola cuenta de las versiones ──')
   const mercado = leer('js/carta-mercado.js')
   check('la ficha ya no calcula las versiones por su cuenta',
     !/if \(v\.normal\) lista\.push/.test(mercado))
-  check('  …sino que las pide al módulo común', /variantesDeCarta\(\{ variants: v \}, TODAS\)/.test(mercado))
+  // Desde la 688 el segundo argumento es «qué ofrecer si no se sabe»
+  // (`siNoSeSabe`), y cambia por pantalla: lo que se vigila es que pida al
+  // módulo común, no cómo se llame la variable.
+  check('  …sino que las pide al módulo común', /variantesDeCarta\(\{ variants: v \}, \w+\)/.test(mercado))
   // Las dos llamadas dicen en voz alta qué quieren: un valor por
   // defecto habría enterrado la diferencia otra vez.
   // Desde la 564 la ficha de /mi-coleccion también pide «todas» (para

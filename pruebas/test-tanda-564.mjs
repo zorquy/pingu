@@ -140,7 +140,9 @@ console.log('── 3. Con una sola versión sigue siendo un botón y un toque �
   check('una sola versión, un solo botón', (await botones.count()) === 1, String(await botones.count()))
   // Y sin desplegable: con una sola versión no hay nada que elegir.
   check('  …y sin desplegable', (await page.isVisible('#mcAdVariante')) === false)
-  check('  …y no nombra la versión', (await botones.first().innerText()).trim() === 'Guardar', await botones.first().innerText())
+  // Desde la 712 el botón dice lo que hará («Añadir 1 copia»); lo que se
+  // vigila aquí es que no nombre una versión cuando no hay que elegir.
+  check('  …y no nombra la versión', /^Añadir \d+ copias?$/.test((await botones.first().innerText()).trim()), await botones.first().innerText())
   await botones.first().click()
   await page.waitForTimeout(1500)
   check('  …y entra en holo', (await page.inputValue('#mcEdVariante')) === 'holo', await page.inputValue('#mcEdVariante'))

@@ -132,10 +132,23 @@ console.log('\n── 4. Ya no queda ninguna chapa de volver ──')
 console.log('\n── 5. En el móvil, lo que se pulsa mide 44 ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=album&set=sv8', 390)
-  const p = await pinta(page, '#mcAlbumVolver')
+  // Desde la 706 la miga NO sale en el móvil con la barra de abajo: repetía
+  // la pestaña de la burbuja («Expansiones ›»). Se comprueba que es eso —que
+  // está escondida a propósito— y los 44 se miden donde sí se ve: una
+  // tableta de 1.000 px con el dedo.
+  const escondida = await page.evaluate(() => document.documentElement.classList.contains('con-barra-movil') && getComputedStyle(document.getElementById('mcAlbumMigas')).display === 'none')
+  check('en el móvil la miga se esconde a propósito (706: la burbuja ya dice dónde estás)', escondida)
+  const tableta = await browser.newPage({ viewport: { width: 1000, height: 900 }, hasTouch: true, isMobile: true })
+  await tableta.route('**assets.tcgdex.net/**', (r) => r.abort())
+  await tableta.route('**limitlesstcg**', (r) => r.abort())
+  await tableta.addInitScript(siembra)
+  await tableta.goto(BASE + '/mi-coleccion.html?ver=album&set=sv8', { waitUntil: 'domcontentloaded' })
+  await tableta.waitForTimeout(3400)
+  const p = await pinta(tableta, '#mcAlbumVolver')
   // ALTO y no ancho: una miga es texto, y estirarla a 44 de ancho dejaría
   // un área invisible pisando a la de al lado (la regla de la 312).
-  check('la miga mide 44 de alto con el dedo', p.alto >= 44, JSON.stringify(p))
+  check('la miga mide 44 de alto con el dedo', p?.alto >= 44, JSON.stringify(p))
+  await tableta.close()
   const r = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }))
   check('y la página no se va de ancho', r.s <= r.c + 1, `${r.s} > ${r.c}`)
   await page.close()

@@ -47,11 +47,15 @@ console.log('\n── 1. En el móvil, la barra va pegada al fondo ──')
     const m = document.getElementById('mcMenu')
     const c = getComputedStyle(m)
     const r = m.getBoundingClientRect()
+    const bm = document.querySelector('.bm')
     return { pos: c.position, abajo: Math.round(innerHeight - r.bottom), alto: Math.round(r.height),
-      sombra: c.boxShadow !== 'none', radio: c.borderTopLeftRadius }
+      sombra: c.boxShadow !== 'none', radio: c.borderTopLeftRadius, barra: bm ? Math.round(bm.getBoundingClientRect().height) : 0 }
   })
   check('la barra es fija', b.pos === 'fixed', b.pos)
-  check('  …y está pegada al fondo', b.abajo >= 0 && b.abajo <= 16, b.abajo)
+  // Desde la 704 abajo del todo va la barra de secciones, y la burbuja de
+  // Mi colección flota JUSTO encima (PINGU: «ya teniendo un menú fijo
+  // abajo, la burbuja justo encima»). Pegada al fondo = pegada a esa barra.
+  check('  …y está pegada al fondo (encima de la barra de secciones)', b.abajo >= b.barra && b.abajo <= b.barra + 24, JSON.stringify(b))
   check('  …y es una píldora con sombra', b.sombra && parseFloat(b.radio) >= 12, JSON.stringify(b))
 
   // Y lo de debajo no se queda tapado: el sitio de la barra se reserva.
