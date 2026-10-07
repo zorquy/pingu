@@ -1,15 +1,34 @@
-// El service worker de PokeDoc. SOLO se ocupa de las notificaciones
-// push: sin caché ni intercepción de peticiones a propósito — un fallo
-// aquí jamás puede dejar la web sirviendo ficheros viejos.
+// El service worker de PokeDoc: las notificaciones push y, desde la 745,
+// la página «Sin conexión».
+//
+// La regla de siempre sigue en pie: un fallo aquí jamás puede dejar la web
+// sirviendo ficheros viejos. Por eso NO se guarda en caché nada de la web:
+// solo una página suelta (/sin-conexion.html, con su CSS dentro), y solo se
+// sirve cuando una NAVEGACIÓN no llega a la red. Con red, todo va a la red
+// como antes; los JS, las hojas y las imágenes ni se tocan.
+const CACHE = 'pokedoc-sin-conexion-1'
+const PAGINA = '/sin-conexion.html'
 
-self.addEventListener('install', () => {
-  // La versión nueva del worker entra sin esperar a que se cierren las
-  // pestañas viejas: no hay caché que migrar.
+self.addEventListener('install', (e) => {
+  // La versión nueva entra sin esperar a que se cierren las pestañas.
   self.skipWaiting()
+  e.waitUntil(caches.open(CACHE).then((c) => c.add(new Request(PAGINA, { cache: 'reload' }))).catch(() => {}))
 })
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(self.clients.claim())
+  // Las cachés de versiones anteriores de esta página, fuera.
+  e.waitUntil(
+    caches
+      .keys()
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE).map((k) => caches.delete(k))))
+      .catch(() => {})
+      .then(() => self.clients.claim())
+  )
+})
+
+self.addEventListener('fetch', (e) => {
+  if (e.request.mode !== 'navigate') return
+  e.respondWith(fetch(e.request).catch(async () => (await caches.match(PAGINA)) || Response.error()))
 })
 
 self.addEventListener('push', (e) => {

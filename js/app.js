@@ -777,6 +777,8 @@ export async function initNavbar() {
   }
   // Precarga al posar el dedo (SCHEMA 723).
   import('./precarga.js').then((m) => m.montarPrecarga()).catch(() => {})
+  // El aviso de «sin conexión» (SCHEMA 745): se baja con red y se queda escuchando.
+  import('./sin-conexion.js').then((m) => m.vigilarRed()).catch(() => {})
 
   // Los iconos de la barra: se DESCARGAN a la vez y se PINTAN en orden.
   //

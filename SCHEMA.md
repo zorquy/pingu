@@ -35266,3 +35266,47 @@ llama.
 
 **Ficheros**: `js/hoy.js` y `css/hoy.css` (nuevos), `js/home.js`,
 `CLAUDE.md`. Prueba 744-pantalla.
+
+## Tanda 745 — sin conexión (oct. 2026)
+
+V7 de la lista (PINGU: «lo que creas mejor»). Sin red, la página se
+quedaba cargando sin explicar nada. Cuatro piezas:
+
+- **El worker sigue sin servir NADA viejo.** La regla de `sw.js` («un fallo
+  aquí jamás puede dejar la web sirviendo ficheros viejos») sigue en pie:
+  no se guarda en caché nada de la web, solo una página suelta,
+  `/sin-conexion.html`, al instalarse. Y solo se sirve cuando una
+  NAVEGACIÓN no llega a la red (`fetch(…).catch(…)`); con red, todo va a
+  la red como antes, y los JS, las hojas y las imágenes ni se tocan. La
+  caché lleva versión (`pokedoc-sin-conexion-1`) y al activarse se borran
+  las de antes.
+- **La página «Sin conexión»** va entera dentro —sus estilos, con sus
+  propios tokens copiados de style.css, y su script—: sin red no puede
+  bajar nada más. Dice qué pasa, tiene «Reintentar», se recarga sola al
+  volver la red, y enseña tu colección guardada (la copia de abajo) y lo
+  que tienes por guardar.
+- **La copia de tu colección**: Mi colección, al cargar la tuya, guarda en
+  este navegador cada carta con su set y sus copias (las que más copias
+  primero, 400 como mucho) — `copiaDeColeccion` en
+  `js/mi-coleccion/cola.js`. Es para mirarla, no para trabajar.
+- **La cola**: sin red, «Añadir» mete la carta en una cola de este
+  navegador, con su dueño, y lo dice. Al volver la red (o la próxima vez
+  que abras Mi colección con conexión) se manda en orden por
+  `datos.anadir` —el único camino de añadir, la 650—, y lo que falla se
+  queda con un intento más; a la quinta se aparta y se avisa, para que un
+  fallo que no es de red no se repita para siempre (la 510). Solo
+  AÑADIR, a propósito: editar o borrar sin red pediría resolver choques
+  con lo que haya cambiado en otro sitio.
+- **El aviso en una página abierta**: al irse la red, una franja arriba
+  («Sin conexión…»), y se va al volver (`js/sin-conexion.js`). Se baja CON
+  red en un rato libre y se queda escuchando: si se pidiera al irse la red,
+  ya no podría bajarse. Sus estilos van en línea por lo mismo.
+
+La prueba de la página sin red levanta su PROPIO servidor y lo apaga a
+mitad: el `setOffline` de Playwright no corta lo que pide el worker, y sus
+rutas tampoco lo ven. Y la 299 cuenta ya las clases que una página define
+en su propio `<style>`.
+
+**Ficheros**: `sin-conexion.html`, `js/sin-conexion.js` y
+`js/mi-coleccion/cola.js` (nuevos), `sw.js`, `js/app.js`,
+`js/mi-coleccion.js`. Prueba 745-pantalla; la 299 al día.

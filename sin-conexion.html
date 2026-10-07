@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){try{var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';}catch(e){}})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sin conexión — PokeDoc</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#1e5175" />
+  <!-- LA PÁGINA «SIN CONEXIÓN» (745, V7). La sirve sw.js SOLO cuando una
+       navegación no llega a la red. Va entera aquí dentro —estilos y
+       script— porque sin red no se puede bajar nada más: ni style.css ni
+       app.js. Por eso lleva sus propios tokens, copiados de style.css. -->
+  <style>
+    :root {
+      --bg: #f5f8fb; --white: #fff; --text: #0d1b2a; --text-mid: #4a5c6e; --border: #dfe7ee;
+      --navy: #1e5175; --navy-solid: #1e5175; --blanco-fijo: #fff; --ice: #eaf1f7;
+      --t-xs: 0.75rem; --t-sm: 0.875rem; --t-md: 1rem; --t-xl: 1.25rem; --t-2xl: 1.625rem;
+      --e-xs: 4px; --e-sm: 8px; --e-md: 12px; --e-lg: 16px; --e-xl: 24px; --e-2xl: 32px;
+    }
+    :root[data-theme='dark'] {
+      --bg: #0b1219; --white: #1a2733; --text: #e8eef4; --text-mid: #a9b8c6; --border: #2b3a46; --navy: #7cbae4; --ice: #1d2d3b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: var(--t-md); }
+    .salta-al-contenido { position: absolute; top: -64px; left: var(--e-sm); padding: var(--e-sm) var(--e-md); background: var(--navy-solid); color: var(--blanco-fijo); }
+    .salta-al-contenido:focus { top: var(--e-sm); }
+    main { max-width: 640px; margin: 0 auto; padding: var(--e-2xl) var(--e-lg); }
+    .aviso { padding: var(--e-lg); border: 1px solid var(--border); border-radius: 14px; background: var(--white); }
+    h1 { margin: 0 0 var(--e-sm); font-size: var(--t-2xl); }
+    h2 { margin: var(--e-xl) 0 var(--e-sm); font-size: var(--t-xl); }
+    p { margin: 0 0 var(--e-md); color: var(--text-mid); line-height: 1.5; }
+    button { min-height: 44px; padding: 0 var(--e-lg); border: 0; border-radius: 999px; background: var(--navy-solid); color: var(--blanco-fijo); font: inherit; font-weight: 700; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+    ul { margin: 0; padding: 0; list-style: none; }
+    li { display: flex; justify-content: space-between; gap: var(--e-md); padding: var(--e-sm) 0; border-bottom: 1px solid var(--border); font-size: var(--t-sm); }
+    li span { color: var(--text-mid); }
+    li b { font-variant-numeric: tabular-nums; }
+    .pequeno { font-size: var(--t-xs); }
+  </style>
+</head>
+<body>
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <main id="contenido">
+    <section class="aviso">
+      <h1>Sin conexión</h1>
+      <p>No llega la red, así que esta página no se ha podido abrir. En cuanto vuelva, se carga sola.</p>
+      <button type="button" id="reintentar">Reintentar</button>
+    </section>
+    <section id="cola" hidden>
+      <h2>Por guardar</h2>
+      <p>Lo que añadiste sin red. Se guarda solo la próxima vez que abras Mi colección con conexión.</p>
+      <ul id="colaLista"></ul>
+    </section>
+    <section id="copia" hidden>
+      <h2>Tu colección</h2>
+      <p class="pequeno" id="copiaCuando"></p>
+      <ul id="copiaLista"></ul>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var leer = function (k) { try { return JSON.parse(localStorage.getItem(k) || 'null') } catch (e) { return null } }
+      var texto = function (t) { var s = document.createElement('span'); s.textContent = t == null ? '' : String(t); return s.innerHTML }
+      document.getElementById('reintentar').addEventListener('click', function () { location.reload() })
+      window.addEventListener('online', function () { location.reload() })
+      var cola = leer('pokedoc-cola-anadir')
+      if (Array.isArray(cola) && cola.length) {
+        document.getElementById('cola').hidden = false
+        document.getElementById('colaLista').innerHTML = cola.map(function (e) { return '<li>' + texto(e.nombre || 'Carta') + '<b>×' + texto((e.linea && e.linea.cantidad) || 1) + '</b></li>' }).join('')
+      }
+      var copia = leer('pokedoc-coleccion-guardada')
+      if (copia && Array.isArray(copia.cartas) && copia.cartas.length) {
+        document.getElementById('copia').hidden = false
+        var cuando = new Date(copia.cuando)
+        document.getElementById('copiaCuando').textContent = (copia.distintas || copia.cartas.length) + ' cartas distintas, ' + (copia.total || '') + ' copias. Guardada en este navegador el ' + (isNaN(cuando) ? '' : cuando.toLocaleString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) + '.'
+        document.getElementById('copiaLista').innerHTML = copia.cartas.map(function (c) { return '<li><span>' + texto(c.n) + (c.s ? ' · ' + texto(c.s) : '') + '</span><b>×' + texto(c.c) + '</b></li>' }).join('')
+      }
+    })()
+  </script>
+</body>
+</html>

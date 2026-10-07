@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 25) — PINGU-Claude (745 — sin conexión)
+
+**Hecho**: V7 de la lista. Sin red: una franja arriba lo dice; una
+navegación que no llega abre la página «Sin conexión», con tu colección
+guardada en el navegador; y lo que añadas a tu colección se queda en cola
+y se guarda solo al volver la red. El worker sigue sin servir nada viejo:
+solo guarda esa página suelta y solo la usa cuando la red falla.
+
+**Ficheros**: `sin-conexion.html`, `js/sin-conexion.js`,
+`js/mi-coleccion/cola.js` (nuevos), `sw.js`, `js/app.js`,
+`js/mi-coleccion.js`, `SCHEMA.md`. Prueba 745-pantalla y la 299 al día en
+`pruebas`.
+
+**Pendiente**: ejecutar `supabase-migration-vitrina.sql`; J1.
+
 ## 2026-10-07 (tarde, 24) — PINGU-Claude (744 — la portada «Hoy»)
 
 **Hecho**: J5 de la lista. Con cuenta, debajo del saludo, un bloque «Hoy»:

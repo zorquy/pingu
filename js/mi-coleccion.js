@@ -72,6 +72,7 @@ import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
 import { CONSULTA as FICHA_AL_LADO, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
+import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -491,6 +492,16 @@ async function guardarAnadir(e) {
   // Lo que pagaste, solo si lo has escrito: un cero no es «no lo sé».
   const pagado = Number(String($('mcAdCompra').value || '').replace(',', '.'))
   if (Number.isFinite(pagado) && pagado > 0) linea.precio_compra = pagado
+  // SIN RED (745): a la cola, y se guarda sola cuando vuelva. Antes de
+  // intentarlo: con la red caída, `datos.anadir` tardaría en fallar y el
+  // botón se quedaría pensando.
+  if (navigator.onLine === false) {
+    encolar({ userId: sesion.user.id, linea, mercado, nombre: nombreDe(c) })
+    $('mcAnadirDialogo').close()
+    boton.disabled = false
+    showToast(`Sin conexión: ${nombreDe(c)} se añadirá en cuanto vuelva la red.`, 'success')
+    return
+  }
   try {
     const nueva = await datos.anadir(sesion.user.id, linea, mercado)
     meterLinea(nueva, c)
@@ -6820,9 +6831,34 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
   if (primeraVez) void montarAlbumesLaterales()
+  // Lo que se añadió sin red (745): ahora que hay sesión y colección, va.
+  if (primeraVez && esMia) {
+    void enviarCola()
+    window.addEventListener('online', () => void enviarCola())
+  }
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()
+  // Y la copia para mirarla sin red (745), solo de la tuya.
+  if (esMia) guardarCopia(copiaDeColeccion(lineasTodo, (l) => nombreDe(cartaDeLineaTodo(l)), (l) => nombreDeSet(cartaDeLineaTodo(l)?.tcg_sets) || ''))
+}
+
+// La cola de lo añadido sin red (745), en orden; si se guardó algo, la
+// colección se vuelve a pedir para que salga con lo nuevo.
+let enviandoCola = false
+async function enviarCola() {
+  if (enviandoCola || !sesion || navigator.onLine === false) return
+  enviandoCola = true
+  try {
+    const r = await vaciarCola(sesion.user.id, (e) => datos.anadir(e.userId, e.linea, e.mercado))
+    if (r.enviadas) {
+      showToast(r.enviadas === 1 ? 'Ya hay red: guardada la carta que añadiste sin conexión.' : `Ya hay red: guardadas las ${r.enviadas} cartas que añadiste sin conexión.`, 'success')
+      await cargarColeccion(duenoActual)
+    }
+    if (r.descartadas.length) showToast(`No se ha podido guardar: ${r.descartadas.map((e) => e.nombre).join(', ')}.`, 'error')
+  } finally {
+    enviandoCola = false
+  }
 }
 
 // ── Cambiar de catálogo (tanda 437) ──
