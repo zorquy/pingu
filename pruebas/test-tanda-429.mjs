@@ -103,9 +103,11 @@ const browser = await chromium.launch()
   const nombres = () => page.locator('.pdx-especie .pdx-nombre').allTextContents()
   const cuentas = () => page.locator('.pdx-especie .pdx-cuenta').allTextContents()
 
-  check('empieza por número y con generaciones',
-    (await page.locator('.pdx-generacion').count()) === 9, String(await page.locator('.pdx-generacion').count()))
-  check('  …con las cuentas de cada uno', (await cuentas()).slice(0, 4).join(',') === '2 de 3,8 de 10,5 de 5,0 de 4',
+  // Por número, desde la 748 (la C3 de su maqueta), es UNA región con sus
+  // pestañas; y lo que no tienes dice «te falta» y no «0 de 4».
+  check('empieza por número, por regiones',
+    (await page.locator('.pdx-region').count()) === 9 && (await page.locator('.pdx-region.activa').textContent()) === 'Kanto', String(await page.locator('.pdx-region').count()))
+  check('  …con las cuentas de cada uno', (await cuentas()).slice(0, 4).join(',') === '2 de 3,8 de 10,5 de 5,te falta',
     (await cuentas()).slice(0, 4).join(','))
 
   await page.selectOption('#mcPdxOrden', 'cerca')

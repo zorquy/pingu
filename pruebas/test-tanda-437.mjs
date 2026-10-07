@@ -167,10 +167,12 @@ console.log('\n── 4. El buscador y la Pokédex ──')
   // llega, el japonés diría 3 contando las INGLESAS, y el progreso de al
   // lado contaría las tuyas japonesas. Dos catálogos en la misma frase.
   const pdx = await abrir('/mi-coleccion.html?ver=pokedex')
-  const dePikachu = async () => (await pdx.page.locator('.pdx-especie[data-dex="25"] .pdx-cuenta').first().textContent()) || ''
-  check('en occidental, Pikachu tiene tres cartas', /de 3$/.test((await dePikachu()).trim()), await dePikachu())
+  // Desde la 748 una especie que no tienes dice «te falta» (su maqueta): el
+  // total va en la etiqueta («…; hay 2»), que es de donde se lee aquí.
+  const dePikachu = async () => (await pdx.page.locator('.pdx-especie[data-dex="25"]').first().getAttribute('aria-label')) || ''
+  check('en occidental, Pikachu tiene tres cartas', /hay 3$/.test((await dePikachu()).trim()), await dePikachu())
   await elegir(pdx.page, 'ja')
-  check('  …y en japonés, dos', /de 2$/.test((await dePikachu()).trim()), await dePikachu())
+  check('  …y en japonés, dos', /hay 2$/.test((await dePikachu()).trim()), await dePikachu())
   check('sin errores', !pdx.errores.length, pdx.errores[0])
   await pdx.page.close()
 }

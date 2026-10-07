@@ -188,7 +188,9 @@ async function abrir(opciones = {}) {
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('salen los 1.025 Pokémon', (await page.locator('.pdx-especie').count()) === 1025,
+  // Desde la 748 (la C3 de su maqueta) la rejilla es UNA región a la vez:
+  // Kanto entera, y las pestañas llevan a las otras ocho.
+  check('sale Kanto entera (151) y las pestañas de las nueve regiones', (await page.locator('.pdx-especie').count()) === 151 && (await page.locator('.pdx-region').count()) === 9,
     String(await page.locator('.pdx-especie').count()))
   check('  …y arriba se cuentan las especies, no las cartas',
     /2 de 1\.025 Pokémon/.test(limpio(await page.locator('#mcPdxCuenta').textContent())),
@@ -219,7 +221,7 @@ async function abrir(opciones = {}) {
 
   await page.locator('#pdxVolver').click()
   await page.waitForTimeout(600)
-  check('y se vuelve a la rejilla', (await page.locator('.pdx-especie').count()) === 1025)
+  check('y se vuelve a la rejilla', (await page.locator('.pdx-especie').count()) === 151 && (await page.locator('.pdx-region').count()) === 9)
   await page.close()
 }
 

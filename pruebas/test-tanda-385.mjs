@@ -135,7 +135,7 @@ console.log('\n── 3. `?dex=` entra directo a la especie ──')
 
   await page.locator('#pdxVolver').click()
   await page.waitForTimeout(700)
-  check('al volver sale la rejilla', (await page.locator('.pdx-especie').count()) === 1025)
+  check('al volver sale la rejilla (una región, 748)', (await page.locator('.pdx-especie').count()) === 151 && (await page.locator('.pdx-region').count()) === 9)
   // Y `dex` se va de la dirección: si se queda, recargar vuelve a abrir
   // la especie que acabas de cerrar.
   check('  …y la dirección se limpia', !/dex=/.test(page.url()), page.url())
@@ -143,7 +143,7 @@ console.log('\n── 3. `?dex=` entra directo a la especie ──')
   // Un número que no es un Pokémon no abre nada raro.
   await page.goto(`${BASE}/mi-coleccion.html?ver=pokedex&dex=99999`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2800)
-  check('un número inventado deja la rejilla', (await page.locator('.pdx-especie').count()) === 1025,
+  check('un número inventado deja la rejilla (una región, 748)', (await page.locator('.pdx-especie').count()) === 151 && (await page.locator('.pdx-region').count()) === 9,
     String(await page.locator('.pdx-especie').count()))
   await page.close()
 }

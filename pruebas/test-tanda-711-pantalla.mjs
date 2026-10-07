@@ -41,9 +41,13 @@ console.log('── 1. El tipo de cada especie, de tus cartas ──')
   check('dos de Fuego y una de Dragón: Charizard es de Fuego (cuenta cartas distintas, no copias)', t.get(6) === 'R', JSON.stringify([...t]))
   check('una fila vieja con el tipo en español también vale', t.get(1) === 'G')
   check('una TAG TEAM tiñe a las dos especies', t.get(25) === 'L' && t.get(644) === 'L')
-  check('un tipo sin símbolo de energía no tiñe nada', !t.has(384))
+  // Desde la 748 Dragón, Incoloro y Hada tienen su símbolo, así que tiñen.
+  check('Dragón tiene símbolo desde la 748, y tiñe', t.get(384) === 'N')
   const filas = filasDePokedex({ mio: new Map([[6, 3]]), totales: new Map(), tipos: t })
   check('la fila de una especie que tienes lleva su tipo; la de una que no, ninguno', filas.find((f) => f.dex === 6).tipo === 'R' && filas.find((f) => f.dex === 1).tipo === null)
+  // 748: el de la especie, para todas (la que no tienes lleva su símbolo en
+  // gris); y una que tienes sin `types` en sus cartas, el de la especie.
+  check('  …y todas saben el de su especie, aunque no lo traigan sus cartas', filas.find((f) => f.dex === 1).tipoDe === 'G' && filasDePokedex({ mio: new Map([[150, 1]]), totales: new Map(), tipos: new Map() }).find((f) => f.dex === 150).tipo === 'P')
 }
 
 console.log('── 1b. Los ocho tipos se leen, en los dos temas ──')
@@ -70,7 +74,7 @@ console.log('── 1b. Los ocho tipos se leen, en los dos temas ──')
       if (k < 4.5) peor.push(`${letra} en ${nombre}: ${k.toFixed(2)}`)
     }
   }
-  check('los ocho tipos, en claro y en oscuro, con la cifra a 4,5 o más', Object.keys(tipos).length === 8 && peor.length === 0, peor.join(', '))
+  check('los once tipos (los ocho y, desde la 748, Dragón, Incoloro y Hada), en claro y en oscuro, con la cifra a 4,5 o más', Object.keys(tipos).length === 11 && peor.length === 0, peor.join(', '))
 }
 
 const browser = await chromium.launch()
@@ -98,7 +102,7 @@ async function abrir({ oscuro = false } = {}) {
 const ficha = (page, dex) => page.$eval(`.pdx-especie[data-dex="${dex}"]`, (b) => {
   const e = b.querySelector('.pdx-energia')
   const img = b.querySelector('.pdx-sprite img')
-  return { clases: b.className, fondo: getComputedStyle(b).backgroundColor, tinta: getComputedStyle(b.querySelector('.pdx-cuenta')).color, energia: e ? { src: e.getAttribute('src'), alt: e.alt, carga: e.complete && e.naturalWidth > 0 } : null, filtro: img ? getComputedStyle(img).filter : null }
+  return { clases: b.className, fondo: getComputedStyle(b).backgroundColor, tinta: getComputedStyle(b.querySelector('.pdx-cuenta')).color, energia: e ? { src: e.getAttribute('src'), titulo: e.title, carga: e.complete && e.naturalWidth > 0 } : null, filtro: img ? getComputedStyle(img).filter : null }
 })
 
 console.log('── 2. En la pantalla ──')
@@ -106,13 +110,13 @@ console.log('── 2. En la pantalla ──')
   const { page, ctx, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   const bulba = await ficha(page, 1), chari = await ficha(page, 6), squirtle = await ficha(page, 7), dratini = await ficha(page, 147)
-  check('Bulbasaur (tienes uno de Planta): fondo verde y claro, y su símbolo de Planta', /tipo-G/.test(bulba.clases) && verde(bulba.fondo) && lum(rgb(bulba.fondo)) > 0.7 && bulba.energia?.alt === 'Planta' && bulba.energia.src === '/assets/energias/G.svg', JSON.stringify(bulba))
+  check('Bulbasaur (tienes uno de Planta): fondo verde y claro, y su símbolo de Planta', /tipo-G/.test(bulba.clases) && verde(bulba.fondo) && lum(rgb(bulba.fondo)) > 0.7 && bulba.energia?.titulo === 'Planta' && bulba.energia.src === '/assets/energias/G.svg', JSON.stringify(bulba))
   check('  …el símbolo existe de verdad (el SVG carga)', bulba.energia?.carga)
   check('  …y la cifra va en el color de su tipo (verde), y se lee encima (≥ 4,5)', verde(bulba.tinta) && contraste(bulba.tinta, bulba.fondo) >= 4.5, `${bulba.tinta} sobre ${bulba.fondo}: ${contraste(bulba.tinta, bulba.fondo).toFixed(2)}`)
   const chFondo = chari.fondo
   check('  …y el Fuego también se lee (≥ 4,5)', contraste(chari.tinta, chFondo) >= 4.5, contraste(chari.tinta, chFondo).toFixed(2))
-  check('Charizard: Fuego', /tipo-R/.test(chari.clases) && chari.energia?.alt === 'Fuego')
-  check('Dratini (Dragón, sin símbolo): ficha neutra, sin color y sin icono', !/tipo-/.test(dratini.clases) && !dratini.energia && /tengo/.test(dratini.clases))
+  check('Charizard: Fuego', /tipo-R/.test(chari.clases) && chari.energia?.titulo === 'Fuego')
+  check('Dratini (Dragón, con símbolo desde la 748): teñido de Dragón y con su icono', /tipo-N/.test(dratini.clases) && dratini.energia?.titulo === 'Dragón' && /tengo/.test(dratini.clases), JSON.stringify(dratini))
   check('Squirtle (no lo tienes): sin tipo y el sprite en silueta', !/tipo-/.test(squirtle.clases) && /brightness\(0\)/.test(squirtle.filtro || ''), JSON.stringify(squirtle))
   await ctx.close()
 }

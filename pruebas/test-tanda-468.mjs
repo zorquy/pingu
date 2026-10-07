@@ -89,7 +89,7 @@ console.log('\n── 2. Lo mismo dentro de la Pokédex ──')
   await page.goBack()
   await page.waitForTimeout(1500)
   check('ATRÁS vuelve a la rejilla', (await donde(page)) === '?ver=pokedex', await donde(page))
-  check('  …con las 1.025 especies', (await page.locator('.pdx-especie').count()) === 1025,
+  check('  …con su región entera y las pestañas (748)', (await page.locator('.pdx-especie').count()) === 151 && (await page.locator('.pdx-region').count()) === 9,
     String(await page.locator('.pdx-especie').count()))
   await page.close()
 }

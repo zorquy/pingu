@@ -253,6 +253,39 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
   await ctx.close()
 }
 
+console.log('── 5. La Pokédex: el color no depende de que tus cartas traigan el tipo (C3) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'sv3pt5', name: '151', serie_id: 'sv', market: 'WEST', card_count_official: 3, card_count_total: 3 }]
+    // Mewtwo y Dratini SIN `types` (como tantas cartas antes del engorde) y
+    // Charizard con el suyo.
+    window.__FAKE_CARTAS__ = [
+      { id: 'sv3pt5-150', name: 'Mewtwo', dex_ids: [150] },
+      { id: 'sv3pt5-147', name: 'Dratini', dex_ids: [147] },
+      { id: 'sv3pt5-6', name: 'Charizard ex', dex_ids: [6], types: ['Fire'] },
+    ].map((c) => ({ ...c, market: 'WEST', set_id: 'sv3pt5', local_id: c.id.split('-')[1], image_path: 'x', rarity: 'Common', category: 'Pokemon', variants: { normal: true }, tcg_sets: { id: 'sv3pt5', name: '151', serie_id: 'sv' } }))
+    window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.map((c, i) => ({ id: `l${i}`, user_id: 'admin-1', card_id: c.id, market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal' }))
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com|r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=pokedex`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const t = await page.evaluate(() => Object.fromEntries([150, 147, 6, 7].map((d) => {
+    const b = document.querySelector(`.pdx-especie[data-dex="${d}"]`)
+    return [d, { tipo: (b.className.match(/tipo-([A-Z])/) || [])[1] || null, icono: b.querySelector('.pdx-energia')?.getAttribute('src') || null, nombre: b.querySelector('.pdx-nombre').textContent, cuenta: b.querySelector('.pdx-cuenta').textContent, etiqueta: b.getAttribute('aria-label') }]
+  })))
+  check('Mewtwo tuyo SIN tipo en su carta: teñido de Psíquico igual (sale de la especie)', t[150].tipo === 'P' && /P\.svg$/.test(t[150].icono), JSON.stringify(t[150]))
+  check('  …Dratini, de Dragón, con su símbolo nuevo', t[147].tipo === 'N' && /N\.svg$/.test(t[147].icono), JSON.stringify(t[147]))
+  check('  …Charizard, con el de su carta (Fuego)', t[6].tipo === 'R', JSON.stringify(t[6]))
+  check('el que no tienes: sin teñir, «???» y «te falta», su símbolo (en gris) y su nombre para quien no lo ve', t[7].tipo === null && t[7].nombre === '???' && t[7].cuenta === 'te falta' && /W\.svg$/.test(t[7].icono) && /^Squirtle/.test(t[7].etiqueta), JSON.stringify(t[7]))
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
