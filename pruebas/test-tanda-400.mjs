@@ -70,16 +70,18 @@ console.log('\n── 2. En la pantalla ──')
   await page.goto('http://localhost:8892/mi-coleccion.html?ver=pokedex', { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  // Desde la tanda 476 es la MISMA tira que la de una expansión (PINGU: «la
-  // Pokédex tiene que ser igual»): sus tarjetas son `.mc-diapo` y la caja es
-  // `.mc-tira-datos`. Lo que esta prueba vigila —que la cabecera esté y qué
-  // dice— no cambia.
-  check('la cabecera está', (await page.locator('#mcPokedexPanel .mc-diapo').count()) >= 2)
-  const texto = (await page.locator('#mcPokedexPanel .mc-tira-datos').textContent())?.replace(/\s+/g, ' ') || ''
-  check('dice cuántos llevas', /Registrados/.test(texto) && /de 1\.025/.test(texto), texto.slice(0, 120))
+  // Desde la 748 la cabecera es la de su maqueta (C3): «Pokédex», la región
+  // que se mira con cuántas llevas de ella, y el anillo de la Pokédex
+  // entera. Lo que esta prueba vigila —que esté y que diga cuántos llevas—
+  // sigue; el «el que más tienes» se fue con la tira.
+  check('la cabecera está', (await page.locator('#mcPdxEncabezado .pdx-encabezado').count()) === 1)
+  const texto = (await page.locator('#mcPdxEncabezado').textContent())?.replace(/\s+/g, ' ') || ''
+  check('dice cuántos llevas de la región', /Pokédex/.test(texto) && /Kanto · 2 de 151/.test(texto), texto.slice(0, 120))
+  check('  …y el anillo, de la Pokédex entera y sin redondear a cero', /0,2 %/.test(texto), texto.slice(0, 160))
   // `especiePorDex` devuelve el NOMBRE, no un objeto: pedirle `.nombre`
   // daba undefined y salía «#25» en vez de «Pikachu».
-  check('y nombra al Pokémon, no su número', /Pikachu/.test(texto) && !/#25/.test(texto), texto.slice(0, 160))
+  const pika = (await page.locator('.pdx-especie').nth(24).textContent())?.replace(/\s+/g, ' ') || ''
+  check('y nombra al Pokémon, no solo su número', /Pikachu/.test(pika), pika.slice(0, 160))
   await browser.close()
 }
 

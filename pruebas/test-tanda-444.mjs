@@ -44,7 +44,11 @@ const altoDeLaCabecera = (page) =>
 console.log('\n── 1. La cabecera, solo en el Panel ──')
 {
   const { page, errores } = await abrir(390)
-  check('en el Panel la cabecera está entera', (await altoDeLaCabecera(page)) > 150,
+  // Desde la 748 tampoco en el Panel, si la colección es TUYA: la cartera
+  // de su maqueta abre con lo que vale y nada encima. Lo que esta tanda
+  // defiende —que esos 400 px no se repitan— sigue, y ahora del todo.
+  const cartera = async () => (await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible()) && (await altoDeLaCabecera(page)) === 0
+  check('en el Panel manda la cartera y la cabecera no ocupa nada', await cartera(),
     String(await altoDeLaCabecera(page)))
   // A «Cartas» NO SE VA POR EL MENÚ desde la tanda 447, que la sacó de ahí
   // a propósito —el menú es Panel · Expansiones · Pokédex · Carpetas ·
@@ -63,7 +67,7 @@ console.log('\n── 1. La cabecera, solo en el Panel ──')
   }
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(500)
-  check('y al volver al Panel está otra vez', (await altoDeLaCabecera(page)) > 150,
+  check('y al volver al Panel está otra vez la cartera', await cartera(),
     String(await altoDeLaCabecera(page)))
   check('sin errores', !errores.length, errores[0])
   await page.close()

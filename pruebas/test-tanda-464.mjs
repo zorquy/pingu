@@ -110,8 +110,10 @@ console.log('\n── 5. Y en la pantalla ──')
   await page.waitForTimeout(3000)
   check('sin errores', errores.length === 0, errores.join(' | '))
   const caja = page.locator('#mcValorCaja')
-  check('salen los seis botones', (await caja.locator('[data-rango]').count()) === 6,
-    String(await caja.locator('[data-rango]').count()))
+  // En el Panel, desde la 748, los cinco de la cartera de su maqueta
+  // (7D · 1M · 6M · 1A · Todo); la tabla de seis sigue en el módulo.
+  check('salen los cinco botones de la cartera', (await caja.locator('[data-rango]').count()) === 5 && (await caja.locator('[data-rango]').allTextContents()).join(' ') === '7D 1M 6M 1A Todo',
+    (await caja.locator('[data-rango]').allTextContents()).join(' '))
   const antes = await caja.locator('.mc-valor-linea').getAttribute('d')
   const dice = async () => (await caja.locator('.mc-valor-cambio').textContent()).replace(/\s+/g, ' ').trim()
   const rotuloAntes = await dice()

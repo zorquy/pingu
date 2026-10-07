@@ -98,19 +98,19 @@ console.log('\n── 3. En pantalla: la lectura al pasar el dedo ──')
   await page.waitForTimeout(150)
   const globo = limpio(await page.locator('.mc-valor-lectura-globo').textContent())
   check('al pasar el ratón sale el globo con el día y lo que valía', await page.locator('.mc-valor-lectura').isVisible() && /€/.test(globo), globo)
-  // El 43 % del lienzo (la línea acaba en el 86 %) es el punto 15 de 30:
-  // 100 + 15 × 2 = 130 €.
-  check('  …y es el punto más cercano, no el primero', /130,00 €/.test(globo), globo)
+  // En la cartera del Panel (748) la línea va de borde a borde (acaba en
+  // el 98,3 %): el 43 % del lienzo es el punto 13 de 30, 100 + 13 × 2.
+  check('  …y es el punto más cercano, no el primero', /126,00 €/.test(globo), globo)
   await page.mouse.move(b.x + b.width * 0.8, b.y + b.height * 0.5)
   await page.waitForTimeout(100)
-  check('  …y cambia al moverse', !/130,00 €/.test(limpio(await page.locator('.mc-valor-lectura-globo').textContent())))
+  check('  …y cambia al moverse', !/126,00 €/.test(limpio(await page.locator('.mc-valor-lectura-globo').textContent())))
   check('  …pegado a la izquierda del punto cuando está a la derecha', await page.locator('.mc-valor-lectura.a-la-izquierda').count() === 1)
   await page.mouse.move(10, 10)
   await page.waitForTimeout(100)
   check('al salir se esconde', await page.locator('.mc-valor-lectura').isHidden())
-  // Y los rótulos de la rejilla están dentro del lienzo y a la derecha.
-  const r = await page.locator('.mc-valor-rotulos span').first().boundingBox()
-  check('las cifras de la rejilla van a la derecha, en su canal', r.x + r.width <= b.x + b.width + 1 && r.x > b.x + b.width * 0.8, JSON.stringify({ r, b }))
+  // La rejilla con sus cifras sigue en el módulo (la sección 1), pero la
+  // cartera de su maqueta (748) va limpia: lo exacto lo dice el globo.
+  check('la cartera va sin rejilla', (await page.locator('#mcValorCaja .mc-valor-rotulos, #mcValorCaja .mc-valor-raya').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -118,14 +118,15 @@ console.log('\n── 3. En pantalla: la lectura al pasar el dedo ──')
 console.log('\n── 4. En pantalla: más prieto ──')
 {
   const { page, errores } = await abrir()
-  const hero = await page.locator('#mcHero').evaluate((n) => ({ alto: n.getBoundingClientRect().height, pad: getComputedStyle(n).paddingTop, gap: getComputedStyle(n).gap }))
-  // 715 (C1, la cartera): el valor va arriba a lo ancho y las tres fichas
-  // debajo, así que son dos filas y la cabecera crece a ~225. El tope sube
-  // a 240, que sigue cortando si alguien vuelve a meterle aire.
-  check('la cabecera mide menos de 240 px en escritorio', hero.alto < 240 && hero.pad === '12px' && hero.gap === '8px' /* un paso menos desde la 673 */, JSON.stringify(hero))
+  // Desde la 748, en el Panel de tu colección la cabecera no ocupa nada:
+  // manda la cartera, con lo que vale ARRIBA del todo.
+  const hero = await page.locator('#mcHero').evaluate((n) => n.getBoundingClientRect().height)
+  const cifra = await page.locator('#mcValorCaja .mc-cartera-cifra').boundingBox()
+  check('la cabecera no ocupa y lo que vale va arriba', hero === 0 && cifra && cifra.y < 160, JSON.stringify({ hero, cifra }))
   check('la nota vacía no ocupa', await page.locator('#mcResumenNota').evaluate((n) => n.textContent === '' && getComputedStyle(n).display === 'none'))
   const grafica = await page.locator('.mc-valor-un-punto').evaluate((n) => n.getBoundingClientRect().height)
-  check('con un punto, la gráfica mide 96 px', grafica === 96, String(grafica))
+  // En la cartera (748) mide lo que su hueco, 128: así no salta al llegar.
+  check('con un punto, la gráfica mide lo que su hueco', grafica === 128, String(grafica))
   check('  …y no hay párrafo debajo', (await page.locator('#mcValorCaja p.subtext').count()) === 0)
   const huecos = await page.locator('#mcVistazos').evaluate((n) => getComputedStyle(n).gap)
   check('los vistazos van a un paso menos', huecos === '24px', huecos)

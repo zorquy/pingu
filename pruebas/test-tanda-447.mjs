@@ -69,8 +69,11 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   )
   // «Mi colección» solo en el Panel: en las demás pestañas ese hueco está
   // desperdiciado, que es lo que PINGU pidió quitar.
-  const heroEnPanel = await p.$eval('.mc-hero', (n) => !n.classList.contains('mc-hero-mini')).catch(() => null)
-  ok(heroEnPanel === true, 'en el Panel la cabecera va entera')
+  // Desde la 748, en el Panel de TU colección manda la cartera (la C1 de su
+  // maqueta): lo que vale, arriba, y la cabecera recogida.
+  // Con la colección VACÍA de este fixture, lo que abre es su estado vacío.
+  const heroEnPanel = await p.$eval('#mcPanelResumen', (n) => !!n.querySelector('.mc-cartera-cifra, .mc-vacio-titulo') && n.getBoundingClientRect().height > 0).catch(() => null)
+  ok(heroEnPanel === true, 'en el Panel va la cartera (o su estado vacío), arriba')
   await p.click('#mcMenu button[data-pestania="buscar"]')
   await p.waitForTimeout(400)
   const heroEnBuscar = await p.$eval('.mc-hero', (n) => n.classList.contains('mc-hero-mini'))

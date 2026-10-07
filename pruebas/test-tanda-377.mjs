@@ -152,8 +152,10 @@ const dia = (n, valor, sinPrecio = 0) => ({
     (await page.locator('.mc-resumen-rejilla #mcValorCaja').count()) === 0)
   const t = limpio(await caja.textContent())
   check('dice lo que vale hoy', /150,00/.test(t), t.slice(0, 120))
-  check('  …y cuánto ha subido', /\+50,00/.test(t), t.slice(0, 160))
-  check('  …con su porcentaje', /\+50,0 %/.test(t), t.slice(0, 200))
+  // Desde la 748 (la cartera de su maqueta) la dirección la dice una
+  // flecha y, para quien escucha, «Sube»: «▲ 50,00 € · 50,0 %».
+  check('  …y cuánto ha subido', /Sube 50,00/.test(t), t.slice(0, 160))
+  check('  …con su porcentaje', /50,0 %/.test(t), t.slice(0, 200))
   check('la gráfica se pinta', (await caja.locator('svg.mc-valor-grafica').count()) === 1)
 
   // El hueco está reservado: sin alto fijo el resumen pega un salto
@@ -167,7 +169,7 @@ const dia = (n, valor, sinPrecio = 0) => ({
 
   // Y el color no es lo único que dice si sube: el signo va delante,
   // que es lo que lee quien no distingue los dos colores.
-  check('el signo va en el texto, no solo el color', /\+/.test(limpio(await caja.locator('.mc-valor-cambio').textContent())))
+  check('la dirección va en una forma y en el texto, no solo en el color', (await caja.locator('.mc-valor-cambio .mc-valor-flecha').count()) === 1 && /^Sube/.test(limpio(await caja.locator('.mc-valor-cambio').textContent())))
 
   // La gráfica tiene texto alternativo de verdad, no «gráfica».
   // Con `\s` y no con un espacio: `Intl` mete un espacio FINO antes del
@@ -183,7 +185,7 @@ console.log('\n── 4. Bajando, y con un solo día ──')
   const { page } = await abrir([dia(10, 200), dia(0, 180)], 180)
   const caja = page.locator('#mcValorCaja')
   const t = limpio(await caja.textContent())
-  check('una bajada se dice', /-20,00/.test(t), t.slice(0, 140))
+  check('una bajada se dice', /Baja 20,00/.test(t) && (await caja.locator('.mc-valor-flecha.abajo').count()) === 1, t.slice(0, 140))
   check('  …y se marca como bajada', (await caja.locator('.mc-valor-cambio.baja').count()) === 1)
   await page.close()
 

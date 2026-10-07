@@ -84,18 +84,22 @@ for (const ver of ['resumen', 'cartas', 'album', 'pokedex', 'carpetas', 'buscar'
 console.log('\n── 2. Las cuatro cifras caben, con una colección cara ──')
 for (const ancho of [360, 390, 430, 768, 1280]) {
   const { page } = await abrir('resumen', ancho)
-  const m = await page.locator('#mcResumen').evaluate((n) => ({
-    desborda: n.scrollWidth > n.clientWidth + 2,
-    filas: new Set([...n.children].map((c) => Math.round(c.getBoundingClientRect().top))).size,
-    // Y que ninguna CIFRA se salga de su propia columna, que es lo que
-    // pasaba: la rejilla cabía y el texto no.
-    cortadas: [...n.querySelectorAll('dd')].filter((d) => d.scrollWidth > d.clientWidth + 1).map((d) => d.textContent),
-  }))
+  // Desde la 748 las cifras son la de la cartera y TRES fichas (la C1 de
+  // su maqueta). Lo que se mide es lo mismo: que nada se sale ni se corta,
+  // con la cifra larga que rompía.
+  const m = await page.evaluate(() => {
+    const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
+    const fichas = document.querySelector('.mc-cartera-fichas')
+    return {
+      desborda: document.documentElement.scrollWidth > innerWidth + 1 || fichas.scrollWidth > fichas.clientWidth + 2,
+      filas: new Set([...fichas.children].map((c) => Math.round(c.getBoundingClientRect().top))).size,
+      cortadas: [cifra, ...fichas.querySelectorAll('li')].filter((d) => d.scrollWidth > d.clientWidth + 1 || d.getBoundingClientRect().right > innerWidth).map((d) => d.textContent),
+      cifra: cifra.textContent,
+    }
+  })
   check(`en ${ancho} px no se sale`, !m.desborda, JSON.stringify(m))
-  check(`  …ni se corta ninguna cifra`, m.cortadas.length === 0, m.cortadas.join(' | '))
-  // Desde la 715 (C1, la cartera) son SIEMPRE dos filas: el valor arriba a
-  // lo ancho y las otras tres en fichas debajo, a cualquier ancho.
-  check('  …y son dos filas (el valor arriba, las tres fichas debajo)', m.filas === 2, String(m.filas))
+  check(`  …ni se corta ninguna cifra`, m.cortadas.length === 0 && /6\.240,00/.test(m.cifra), m.cortadas.join(' | ') + ' ' + m.cifra)
+  check('  …y las tres fichas van en una fila', m.filas === 1, String(m.filas))
   await page.close()
 }
 
@@ -107,7 +111,9 @@ console.log('\n── 3. «Solo los que tengo» de la Pokédex es una chapa Y FI
   const chapa = page.locator('#mcPdxSoloMios')
   check('es un botón y no una casilla', (await chapa.evaluate((n) => n.tagName)) === 'BUTTON')
   const cuantas = () => page.locator('.pdx-especie').count()
-  check('salen las 1.025', (await cuantas()) === 1025, String(await cuantas()))
+  // Desde la 748 la Pokédex abre por REGIONES (la C3 de su maqueta), y la
+  // que se abre es Kanto: 151.
+  check('salen las 151 de Kanto', (await cuantas()) === 151, String(await cuantas()))
   await chapa.scrollIntoViewIfNeeded()
   await chapa.click()
   await page.waitForTimeout(900)
@@ -115,7 +121,7 @@ console.log('\n── 3. «Solo los que tengo» de la Pokédex es una chapa Y FI
   check('  …marcada como pulsada', (await chapa.getAttribute('aria-pressed')) === 'true')
   await chapa.click()
   await page.waitForTimeout(900)
-  check('  …y al apagarla vuelven todas', (await cuantas()) === 1025, String(await cuantas()))
+  check('  …y al apagarla vuelven todas', (await cuantas()) === 151, String(await cuantas()))
   await page.close()
 }
 

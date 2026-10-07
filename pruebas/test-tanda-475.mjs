@@ -94,7 +94,9 @@ console.log('\n── 4. Se cierra solo al elegir ──')
 await page.click('#mcMarcarAbrir')
 await page.waitForTimeout(500)
 check('al elegir, se cierra', (await page.locator(menu).evaluate((n) => n.open)) === false)
-check('  …y la acción ha ocurrido', await page.locator('#mcMarcarBarra').isVisible())
+// Desde la 748 la barra es la de su maqueta y va por piezas FIJAS: lo que
+// se ve es su tira de arriba (la caja que las lleva no mide nada).
+check('  …y la acción ha ocurrido', await page.locator('#mcMarcarBarra .mc-sel-arriba').isVisible())
 // Se apaga otra vez para lo que sigue.
 await page.click(boton)
 await page.waitForTimeout(300)

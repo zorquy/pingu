@@ -34,22 +34,24 @@ async function abrir(movil) {
   await page.waitForTimeout(3000)
   return { page, ctx, errores }
 }
+// Desde la 748 la cartera es la de su maqueta de verdad: la cabecera se
+// recoge y el Panel abre con la etiqueta, la cifra grande, el cambio, la
+// línea, los rangos y las tres fichas, en ese orden.
 const medir = (page) => page.evaluate(() => {
   const r = (e) => e.getBoundingClientRect()
-  const cifras = [...document.querySelectorAll('#mcResumen .mc-cifra')]
-  const valor = document.querySelector('#mcResumen .mc-cifra-valor')
-  const otras = cifras.filter((c) => c !== valor)
-  const grande = document.querySelector('#mcValorCaja .mc-valor-ahora')
-  const caja = document.getElementById('mcValorCaja')
+  const q = (s) => document.querySelector(s)
+  const cifra = q('#mcValorCaja .mc-cartera-cifra')
+  const cambio = q('#mcValorCaja .mc-valor-cambio')
+  const lienzo = q('#mcValorCaja .mc-valor-lienzo')
+  const rangos = q('#mcValorCaja .mc-valor-rangos')
+  const fichas = [...document.querySelectorAll('.mc-cartera-fichas li')]
   return {
-    valorArriba: otras.every((c) => r(c).top > r(valor).bottom - 1),
-    valorAncho: Math.round(r(valor).width), resumenAncho: Math.round(r(document.getElementById('mcResumen')).width),
-    talla: parseFloat(getComputedStyle(valor.querySelector('dd')).fontSize),
-    cambioDebajo: (() => { const c = document.getElementById('mcCifraCambio'); return c && !c.classList.contains('hidden') && r(c).top >= r(valor.querySelector('dd')).bottom - 1 })(),
-    unaFila: new Set(otras.map((c) => Math.round(r(c).top))).size === 1 && otras.length === 3,
-    fichas: otras.every((c) => getComputedStyle(c).borderTopWidth === '1px'),
-    grandeOculta: grande ? r(grande).width <= 1 && grande.textContent.trim().length > 0 : null,
-    caja: caja ? { izq: Math.round(r(caja).left), der: Math.round(innerWidth - r(caja).right) } : null,
+    cabecera: Math.round(r(q('#mcHero')).height),
+    orden: !!(cifra && cambio && lienzo && rangos && fichas.length) && r(cifra).bottom <= r(cambio).top + 1 && r(cambio).bottom <= r(lienzo).top + 1 && r(lienzo).bottom <= r(rangos).top + 1 && r(rangos).bottom <= r(fichas[0]).top + 1,
+    talla: cifra ? parseFloat(getComputedStyle(cifra).fontSize) : 0,
+    unaFila: new Set(fichas.map((c) => Math.round(r(c).top))).size === 1 && fichas.length === 3,
+    fichas: fichas.every((c) => getComputedStyle(c).borderTopWidth === '1px'),
+    caja: lienzo ? { izq: Math.round(r(lienzo).left), der: Math.round(innerWidth - r(lienzo).right) } : null,
   }
 })
 
@@ -58,11 +60,10 @@ console.log('── 1. En un iPhone ──')
   const { page, ctx, errores } = await abrir(true)
   check('sin errores', errores.length === 0, errores.join(' | '))
   const m = await medir(page)
-  check('el valor va arriba de las demás y a lo ancho', m.valorArriba && m.valorAncho >= m.resumenAncho - 2, JSON.stringify(m))
-  check('  …en la talla grande (34 px) y con el cambio del mes debajo', m.talla === 34 && m.cambioDebajo, JSON.stringify(m))
-  check('las otras tres son fichas en una fila', m.unaFila && m.fichas, JSON.stringify(m))
-  check('la gráfica no repite la cifra grande a la vista, pero se lee en voz alta', m.grandeOculta === true, String(m.grandeOculta))
-  check('  …y va de borde a borde', m.caja && m.caja.izq <= 1 && m.caja.der <= 1, JSON.stringify(m.caja))
+  check('la cabecera se recoge y abre la cartera: cifra, cambio, línea, rangos y fichas', m.cabecera === 0 && m.orden, JSON.stringify(m))
+  check('  …la cifra en la talla grande (34 px)', m.talla === 34, JSON.stringify(m))
+  check('las tres fichas en una fila', m.unaFila && m.fichas, JSON.stringify(m))
+  check('  …y la línea va de borde a borde', m.caja && m.caja.izq <= 1 && m.caja.der <= 1, JSON.stringify(m.caja))
   const ancho = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }))
   check('  …sin que la página se vaya de ancho', ancho.s <= ancho.c + 1, JSON.stringify(ancho))
   await ctx.close()
@@ -73,8 +74,8 @@ console.log('── 2. En el escritorio ──')
   const { page, ctx, errores } = await abrir(false)
   check('sin errores', errores.length === 0, errores.join(' | '))
   const m = await medir(page)
-  check('la misma cartera: el valor arriba y las tres fichas en una fila', m.valorArriba && m.unaFila && m.fichas, JSON.stringify(m))
-  check('  …y la gráfica sigue en su caja (no a sangre)', m.caja && m.caja.izq > 16, JSON.stringify(m.caja))
+  check('la misma cartera: en orden y con las tres fichas en una fila', m.orden && m.unaFila && m.fichas, JSON.stringify(m))
+  check('  …y la línea sigue en su columna (no a sangre)', m.caja && m.caja.izq > 16, JSON.stringify(m.caja))
   await ctx.close()
 }
 

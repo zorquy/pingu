@@ -69,12 +69,14 @@ for (const [nombre, valores] of [['cinco cifras', [1738.36, 9000, 15042.36]], ['
   const { page, ctx, errores } = await abrir('/mi-coleccion.html', { valores })
   const m = await page.evaluate(() => {
     const W = document.documentElement.clientWidth
-    const rot = [...document.querySelectorAll('#mcValorCaja .mc-valor-rotulos span')]
-    return { W, sw: document.documentElement.scrollWidth, rotulos: rot.map((s) => ({ t: s.textContent, der: Math.round(s.getBoundingClientRect().right), alto: Math.round(s.getBoundingClientRect().height) })) }
+    // Desde la 748 la cartera va sin rejilla (la C1 de su maqueta): lo que
+    // se mide son la cifra grande y el cambio, que son lo que puede crecer.
+    const rot = [...document.querySelectorAll('#mcValorCaja .mc-cartera-cifra, #mcValorCaja .mc-valor-cambio')]
+    return { W, sw: document.documentElement.scrollWidth, rotulos: rot.map((s) => ({ t: s.textContent.trim(), der: Math.round(s.getBoundingClientRect().right), alto: Math.round(s.getBoundingClientRect().height), lh: parseFloat(getComputedStyle(s).lineHeight) || parseFloat(getComputedStyle(s).fontSize) * 1.3 })) }
   })
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   check(`[${nombre}] la página mide lo que la pantalla (no se echa a los lados)`, m.sw <= m.W, JSON.stringify(m))
-  check(`[${nombre}]   …las tres cifras de la rejilla dentro y en un renglón`, m.rotulos.length === 3 && m.rotulos.every((x) => x.der <= m.W && x.alto < 24), JSON.stringify(m.rotulos))
+  check(`[${nombre}]   …la cifra y su cambio dentro y en un renglón`, m.rotulos.length === 2 && m.rotulos.every((x) => x.der <= m.W && x.alto < x.lh * 1.6 + 2), JSON.stringify(m.rotulos))
   await ctx.close()
 }
 

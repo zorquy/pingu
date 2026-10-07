@@ -286,6 +286,62 @@ console.log('── 5. La Pokédex: el color no depende de que tus cartas traiga
   await ctx.close()
 }
 
+console.log('── 6. El Panel es la cartera de su maqueta (C1) ──')
+for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['portátil', { viewport: { width: 1280, height: 900 } }]]) {
+  const ctx = await browser.newContext({ ...opciones, locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy', market: 'WEST', card_count_official: 6, card_count_total: 6 }, { id: 'xy6', name: 'Cielos Rugientes', serie_id: 'xy', market: 'WEST', card_count_official: 6, card_count_total: 6 }]
+    window.__FAKE_CARTAS__ = [1, 2, 3, 4].map((n) => ({ id: `xy${n < 3 ? 5 : 6}-${n}`, market: 'WEST', set_id: n < 3 ? 'xy5' : 'xy6', local_id: String(n), name: ['Mewtwo-EX', 'Rayquaza-EX', 'Ho-Oh-EX', 'Pikachu'][n - 1], image_path: `x/${n}`, rarity: 'Rare', category: 'Pokemon', dex_ids: [n], variants: { normal: true } }))
+    window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.map((c, i) => ({ id: `l${i}`, user_id: 'admin-1', card_id: c.id, market: 'WEST', cantidad: i + 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }))
+    window.__FAKE_PRECIOS__ = window.__FAKE_CARTAS__.map((c, i) => ({ card_id: c.id, market: 'WEST', cm_low: [12.4, 8.9, 4.1, 2][i], cm_low_es: [12.4, 8.9, 4.1, 2][i], tcggo_updated: '2026-10-06T12:00:00Z', origen: 'tcggo' }))
+    const dia = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10)
+    window.__FAKE_VALOR__ = Array.from({ length: 40 }, (_, i) => ({ user_id: 'admin-1', dia: dia(39 - i), valor: 30 + i * 0.5 }))
+    // Ocho días de precio: Mewtwo sube un 18 %, Ho-Oh baja un 6 %.
+    window.__FAKE_HISTORIAL__ = [[0, 10.5, 12.4], [1, 8.2, 8.9], [2, 4.36, 4.1], [3, 2, 2]].flatMap(([k, a, b]) => Array.from({ length: 8 }, (_, d) => ({ card_id: window.__FAKE_CARTAS__[k].id, dia: dia(7 - d), cm_low: a + (b - a) * d / 7, cm_low_es: a + (b - a) * d / 7, origen: 'tcggo' })))
+    window.__desplazado = 0
+    addEventListener('scroll', () => { window.__desplazado = Math.max(window.__desplazado, scrollY) })
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"><rect width="600" height="837" fill="#3a7bd5"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3200)
+  const m = await page.evaluate(() => {
+    const r = (e) => e?.getBoundingClientRect()
+    const q = (s) => document.querySelector(s)
+    const t = (s) => (q(s)?.textContent || '').replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim()
+    return {
+      cabecera: Math.round(r(q('#mcHero')).height),
+      etiqueta: t('.mc-cartera-etiqueta'),
+      cifra: t('.mc-cartera-cifra'),
+      cambio: t('#mcValorCaja .mc-valor-cambio'),
+      flecha: !!q('#mcValorCaja .mc-valor-cambio.sube .mc-valor-flecha'),
+      rangos: [...document.querySelectorAll('#mcValorCaja [data-rango]')].map((b) => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
+      rejilla: document.querySelectorAll('#mcValorCaja .mc-valor-rotulos, #mcValorCaja .mc-valor-chips').length,
+      fichas: [...document.querySelectorAll('.mc-cartera-fichas li')].map((li) => [...li.children].map((c) => c.textContent.trim()).join(' ')),
+      movidas: [...document.querySelectorAll('#mcMovidas .mc-movida')].map((a) => ({ n: a.querySelector('b').textContent, set: a.querySelector('small').textContent, pct: a.querySelector('.mc-movida-precio small').textContent.replace(/[  ]/g, ' '), sube: a.classList.contains('sube') })),
+      movidasTras: (() => { const f = q('.mc-cartera-fichas'), mv = q('#mcMovidas'); return !!(f && mv) && r(mv).top >= r(f).bottom - 1 })(),
+      compartirAbajo: (() => { const c = q('#mcCompartir'), v = q('#mcVistazos'); return !!(c && v) && r(c).top >= r(v).top })(),
+      ancho: document.documentElement.scrollWidth <= innerWidth + 1,
+      desplazado: window.__desplazado,
+    }
+  })
+  check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
+  check(`[${nombre}] abre con lo que vale y nada encima`, m.cabecera === 0 && m.etiqueta === 'Lo que vale tu colección' && /^\d[\d.]*,\d{2} €$/.test(m.cifra), JSON.stringify(m))
+  check(`[${nombre}]   …con el cambio del mes y su flecha`, m.flecha && /^Sube [\d.,]+ € · [\d,]+ % este mes$/.test(m.cambio), m.cambio)
+  check(`[${nombre}]   …los cinco rangos con 1M puesto, y sin rejilla`, m.rangos === '7D 1M* 6M 1A Todo' && m.rejilla === 0, m.rangos)
+  check(`[${nombre}] tres fichas: cartas, distintas y expansiones`, m.fichas.join(' | ') === '10 cartas | 4 distintas | 2 expansiones', m.fichas.join(' | '))
+  check(`[${nombre}] «Las que más se mueven», debajo de las fichas, en lista`, m.movidasTras && m.movidas.length === 3, JSON.stringify(m.movidas))
+  check(`[${nombre}]   …las tres que MÁS se mueven, con su set y su signo`, m.movidas[0]?.n === 'Mewtwo-EX' && m.movidas[0].set === 'Duelos Primigenios' && m.movidas[0].pct === '+18 %' && m.movidas[0].sube && m.movidas.some((x) => x.n === 'Ho-Oh-EX' && x.pct === '−6 %' && !x.sube) && !m.movidas.some((x) => x.n === 'Pikachu'), JSON.stringify(m.movidas))
+  check(`[${nombre}] «Colección pública», al final`, m.compartirAbajo)
+  check(`[${nombre}] la página no se va de ancho`, m.ancho)
+  check(`[${nombre}] y al cargar no baja sola (la columna de filtros enfocaba «Borrar todo»)`, m.desplazado === 0, String(m.desplazado))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)

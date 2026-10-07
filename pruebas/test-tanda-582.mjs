@@ -36,12 +36,15 @@ await page.route('**/api.tcgdex.net/**', (r) => r.fulfill({ contentType: 'applic
 await page.goto(`${BASE}/mi-coleccion.html?ver=resumen`, { waitUntil: 'domcontentloaded' })
 await page.waitForTimeout(3000)
 
-console.log('── 1. En la cabecera ──')
+console.log('── 1. Bajo el valor ──')
 {
-  const chip = page.locator('#mcCifraCambio')
+  // Desde la 748 el cambio va en la CARTERA del Panel (la C1 de su
+  // maqueta): flecha, cifra, porcentaje y «este mes» con 1M puesto, que es
+  // el rango con el que abre.
+  const chip = page.locator('#mcValorCaja .mc-valor-cambio')
   check('bajo el valor hay un «este mes»', (await chip.count()) === 1 && (await chip.isVisible()), String(await chip.count()))
-  const t = ((await chip.textContent()) || '').replace(/ /g, ' ').trim()
-  check('  …que dice +70,00 € (+87,5 %) este mes', /^\+70,00 € \(\+87,5 %\) este mes$/.test(t), JSON.stringify(t))
+  const t = ((await chip.textContent()) || '').replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim()
+  check('  …que dice 70,00 € · 87,5 % este mes', /^Sube 70,00 € · 87,5 % este mes$/.test(t), JSON.stringify(t))
   check('  …y va en verde (clase sube)', await chip.evaluate((e) => e.classList.contains('sube')))
 }
 
@@ -67,7 +70,7 @@ console.log('── 3. Sin histórico, nada ──')
   await p2.route('**/api.tcgdex.net/**', (r) => r.fulfill({ contentType: 'application/json', body: '{}' }))
   await p2.goto(`${BASE}/mi-coleccion.html?ver=resumen`, { waitUntil: 'domcontentloaded' })
   await p2.waitForTimeout(2500)
-  check('sin dos fotos no se inventa un cambio', !(await p2.locator('#mcCifraCambio').isVisible()))
+  check('sin dos fotos no se inventa un cambio', !(await p2.locator('#mcCifraCambio').isVisible()) && (await p2.locator('#mcValorCaja .mc-valor-cambio.sube, #mcValorCaja .mc-valor-cambio.baja').count()) === 0)
   await p2.close()
 }
 

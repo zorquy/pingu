@@ -493,8 +493,15 @@ console.log('\n── 5. La paleta de energías es COPIA de la de la ficha ─�
   // Y la tercera copia (711): las fichas de la Pokédex tiñen con los ocho
   // tipos que tienen símbolo de energía.
   const pdx = Object.fromEntries([...leer('css/mi-coleccion.css').matchAll(/\.pdx-especie\.tipo-([A-Z])\s*\{\s*--tipo-energia:\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]))
-  const malPdx = Object.entries(LETRA).filter(([, l]) => 'GRWLPFDM'.includes(l)).filter(([t, l]) => ficha[t] !== pdx[l]).map(([t]) => t)
-  check('…y los ocho de la Pokédex de Mi colección también', Object.keys(pdx).length === 8 && malPdx.length === 0, malPdx.join(', ') || JSON.stringify(pdx))
+  // Desde la 748 son ONCE: Dragón, Incolora y Hada también tiñen, porque
+  // el tipo de cada especie se sabe aunque no tengas su carta.
+  // La Incolora es la ÚNICA que no copia, y a propósito: en la ficha es el
+  // fondo casi blanco de una chapa (#e6eaed); en la Pokédex tiñe la casilla
+  // entera, y con ese blanco un Rattata se leía «sin tipo», que es justo la
+  // queja que arregló la 748. Va un gris que se ve.
+  const malPdx = Object.entries(LETRA).filter(([t]) => t !== 'Colorless').filter(([t, l]) => ficha[t] !== pdx[l]).map(([t]) => t)
+  if (!/^#[0-9a-f]{6}$/.test(pdx.C || '') || pdx.C === ficha.Colorless) malPdx.push('Colorless (tiene que ser un gris propio)')
+  check('…y los once de la Pokédex de Mi colección también', Object.keys(pdx).length === 11 && malPdx.length === 0, malPdx.join(', ') || JSON.stringify(pdx))
   // Y la cuarta (721): la barra de uso de cada mazo del meta, con los diez
   // que tiñen (Incoloro no: su gris no se vería sobre el fondo de la barra).
   const meta = paleta(leer('css/meta.css'), '\\.meta-barra')

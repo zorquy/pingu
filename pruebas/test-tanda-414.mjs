@@ -52,10 +52,12 @@ const browser = await chromium.launch()
   // Un anillo sin texto no lo lee nadie que no lo vea.
   check('  …y dice lo que vale', /registrado/.test(anillo.etiqueta || ''), anillo.etiqueta)
 
-  const rotulos = await page.locator('.pdx-generacion').allTextContents()
-  check('hay rótulos de generación', rotulos.length >= 9, String(rotulos.length))
-  check('  …y cada uno dice cuántos llevas', /Primera generación\s*3 de 151/.test(rotulos[0].replace(/\s+/g, ' ')),
-    rotulos[0]?.replace(/\s+/g, ' '))
+  // Desde la 748 las generaciones son REGIONES en chips (la C3 de su
+  // maqueta) y se mira una a la vez: la cabecera dice cuántas llevas de esa.
+  const rotulos = await page.locator('.pdx-region').allTextContents()
+  check('hay una chapa por región', rotulos.length >= 9 && rotulos[0] === 'Kanto', rotulos.join(' | '))
+  const sub = (await page.locator('.pdx-sub').textContent())?.replace(/\s+/g, ' ') || ''
+  check('  …y la cabecera dice cuántos llevas de la que miras', /Kanto · 3 de 151/.test(sub), sub)
 
   // Con un buscador puesto, un rótulo encima de nada es ruido.
   await page.fill('#mcPdxBuscar', 'pikachu')
@@ -101,7 +103,9 @@ console.log('\n── 3. El anillo no se sale de su caja (tanda 424) ──')
       // dentro de su caja y siga siendo redondo— no cambia; lo que cambia
       // es que ahora el anillo FLOTA en la esquina, como el de una
       // expansión, y por eso hay que mirarlo igual que allí.
-      const caja = document.querySelector('#mcPokedexPanel .mc-diapo')
+      // Desde la 748 el anillo va en la cabecera de su maqueta, a la derecha
+      // del título y de la región.
+      const caja = document.querySelector('#mcPdxEncabezado .pdx-encabezado')
       const anillo = caja?.querySelector('.mc-anillo')
       if (!caja || !anillo) return null
       const c = caja.getBoundingClientRect()

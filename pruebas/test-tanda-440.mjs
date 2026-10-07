@@ -72,9 +72,13 @@ console.log('\n── 1. La cabecera de perfil ──')
   const { page, errores } = await abrir()
   // `count()` cuenta también lo escondido: lo que se pide aquí es que SE
   // VEA, que es distinto. Lo cazó el rigor poniéndole `hidden` al h1.
-  check('el h1 vive dentro de la cabecera y se ve',
-    await page.locator('.mc-hero h1#mcTitulo').isVisible())
-  check('  …y las cifras también', await page.locator('.mc-hero #mcResumen').isVisible())
+  // Desde la 748 (la cartera de su maqueta) el Panel de TU colección abre
+  // con lo que vale y nada encima: el h1 se queda para quien escucha y las
+  // cifras van en la cartera. El avatar y la fecha siguen en la cabecera,
+  // que es la que se ve en la colección de otra persona.
+  check('el h1 vive dentro de la cabecera, para quien escucha',
+    (await page.locator('.mc-hero h1#mcTitulo.sr-only').count()) === 1)
+  check('  …y las cifras se ven, en la cartera', await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible() && (await page.locator('.mc-cartera-fichas li').count()) === 3 && await page.locator('.mc-cartera-fichas li').first().isVisible())
   // El avatar lleva la inicial cuando no hay foto. Sin ella es un círculo
   // de color y nada más, y no hay ningún otro sitio donde se vea de quién
   // es esta pantalla.
@@ -106,19 +110,18 @@ console.log('\n── 1. La cabecera de perfil ──')
   // sigue siendo cierto y es lo que se comprueba: que caben sin recuadro,
   // sin deslizarse y sin que ninguna se salga de su hueco.
   const { page } = await abrir(390)
-  const r = await page.locator('#mcResumen').evaluate((n) => ({
+  // Desde la 748 son la cifra grande de la cartera y TRES fichas en una
+  // fila (cartas, distintas, expansiones): lo que se defiende es lo mismo,
+  // que caben sin deslizarse y que ninguna se sale de su hueco.
+  const r = await page.locator('.mc-cartera-fichas').evaluate((n) => ({
     filas: new Set([...n.children].map((e) => Math.round(e.getBoundingClientRect().top))).size,
-    sobra: n.scrollWidth > n.clientWidth + 4,
+    sobra: n.scrollWidth > n.clientWidth + 4 || document.documentElement.scrollWidth > innerWidth,
   }))
-  check('en 390 px las cuatro cifras caben en dos filas', r.filas === 2, JSON.stringify(r))
+  check('en 390 px las tres fichas caben en una fila', r.filas === 1, JSON.stringify(r))
   check('  …y sin deslizarse', !r.sobra, JSON.stringify(r))
-  // Y CABEN DE VERDAD, que es lo que la fila sola no dice: con el recuadro
-  // puesto, la columna sigue siendo una cuarta parte del ancho pero el
-  // relleno se come 40 px de ella y el número se sale de su hueco. El
-  // rigor lo cazó devolviéndole la caja: «una fila» seguía siendo cierto.
-  const dentro = await page.locator('#mcResumen .mc-cifra').evaluateAll((ns) => ns.map((x) => ({
-    nombre: x.querySelector('dt').textContent,
-    sobra: Math.max(x.scrollWidth - x.clientWidth, x.querySelector('dd').scrollWidth - x.clientWidth),
+  const dentro = await page.locator('.mc-cartera-fichas li').evaluateAll((ns) => ns.map((x) => ({
+    nombre: x.querySelector('span').textContent,
+    sobra: Math.max(x.scrollWidth - x.clientWidth, x.querySelector('b').scrollWidth - x.clientWidth),
   })))
   check('  …y cada cifra cabe dentro de su hueco',
     dentro.every((d) => d.sobra <= 1), JSON.stringify(dentro))
