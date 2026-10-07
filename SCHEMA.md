@@ -34195,3 +34195,43 @@ desplaza la página (la portada se abría por el pie); se centra tocando
 **Ficheros**: `js/barra-movil.js`, `css/movil.css`. Prueba 704 (la
 burbuja en portada, Jugar con siete páginas que no caben, Comunidad; en
 Mi colección las ajenas al final de la suya; en /carta ninguna).
+
+## Tanda 709 — al bajar, las barras se apartan; tocar la sección sube; volver deja donde estabas (oct. 2026)
+
+PINGU eligió TODAS las propuestas de la lista de mejoras de interfaz
+(«escojo todas, me parecen cambios buenísimos»). Esta es la primera, y
+la más barata: N3, X1 y X2 de la lista. Las tres viven en
+`js/barra-movil.js`, que solo baja el móvil, así que el escritorio y el
+presupuesto de la portada no se enteran.
+
+- **N3 — bajar esconde, subir enseña.** Con la barra de arriba, la de
+  abajo y la burbuja fijas, una expansión se quedaba con dos tercios de
+  pantalla. Al bajar, la de arriba sube (`transform`, es `sticky`), la de
+  abajo baja y la burbuja —o la de Mi colección, o la barra de acciones
+  de /carta— baja a ocupar su sitio. La decisión es una función pura,
+  `decidirBarras(estado, y)`, con dos frenos: por encima de
+  `ESCONDER.desde` (120 px) nunca se esconde, y hace falta un recorrido de
+  `ESCONDER.recorrido` (12 px) en el mismo sentido para cambiar, medido
+  desde el punto más bajo (o más alto) alcanzado, o un temblor del dedo
+  las haría bailar. Con un `dialog[open]` o un campo con el foco (el
+  teclado fuera) no se mueve nada.
+- **X1 — tocar la sección en la que estás te sube arriba**, como en iOS.
+  Solo si la página actual ES el destino de ese hueco; si estás en otra
+  página de la sección, el toque navega como siempre.
+- **X2 — volver atrás deja donde estabas.** El navegador ya devuelve la
+  posición, pero solo si la página mide lo bastante en ese instante, y
+  aquí casi todo se pinta después con lo que llega de la base: se quedaba
+  a medias (la prueba lo reproduce, 1.587 de 2.100). Al salir
+  (`pagehide`) se apunta la posición por dirección en `sessionStorage`; al
+  volver (`back_forward`) se espera a que la página crezca, con un tope de
+  4 s y parando si el dedo ya se ha movido.
+
+Una trampa que costó una prueba: `html` lleva `scroll-behavior: smooth`
+SIEMPRE (style.css), así que `scrollTo(0, y)` y hasta `behavior: 'auto'`
+animan. Para «menos movimiento» y para devolver la posición se pide
+`behavior: 'instant'`.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`. Prueba 709-pantalla
+(la regla pura, las tres barras en un iPhone, el teclado, el toque en
+la sección activa y la vuelta atrás con la página creciendo tarde; quitar
+`recordarPosicion` la pone roja).

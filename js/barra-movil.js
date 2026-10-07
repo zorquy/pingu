@@ -96,6 +96,73 @@ function vigilarDesborde(el) {
   setTimeout(mirar, 300)
 }
 
+// BAJAR ESCONDE, SUBIR ENSEÑA (709, N3). PINGU eligió la propuesta de las
+// barras que se apartan: con la de arriba, la de abajo y la burbuja fijas,
+// una expansión se quedaba con dos tercios de pantalla. Al bajar se
+// esconden las dos barras y queda la burbuja; un poco hacia arriba y
+// vuelven, como en Safari o Dex. La decisión es pura para poder probarla:
+// cerca del principio nunca se esconde, y hace falta un recorrido mínimo
+// en el mismo sentido para cambiar, o un temblor del dedo las haría bailar.
+export const ESCONDER = { desde: 120, recorrido: 12 }
+export function decidirBarras(estado, y) {
+  const { escondidas = false, ancla = y } = estado
+  if (y <= ESCONDER.desde) return { escondidas: false, ancla: y }
+  if (!escondidas && y - ancla > ESCONDER.recorrido) return { escondidas: true, ancla: y }
+  if (escondidas && ancla - y > ESCONDER.recorrido) return { escondidas: false, ancla: y }
+  // Seguir en el mismo sentido mueve el ancla; así «subir un poco» se mide
+  // desde el punto más bajo y no desde donde se escondieron.
+  if (escondidas ? y > ancla : y < ancla) return { escondidas, ancla: y }
+  return { escondidas, ancla }
+}
+
+function vigilarBajada(doc, win) {
+  const html = doc.documentElement
+  let estado = { escondidas: false, ancla: win.scrollY }
+  let pendiente = false
+  const quieto = () => doc.querySelector('dialog[open]') || doc.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
+  win.addEventListener('scroll', () => {
+    if (pendiente) return
+    pendiente = true
+    win.requestAnimationFrame(() => {
+      pendiente = false
+      // Con un diálogo abierto o el teclado fuera, la barra no se mueve.
+      if (quieto()) return
+      estado = decidirBarras(estado, win.scrollY)
+      html.classList.toggle('bm-escondidas', estado.escondidas)
+    })
+  }, { passive: true })
+}
+
+// VOLVER DEJA DONDE ESTABAS (709, X2). El navegador recupera la posición
+// al volver atrás, pero solo si la página ya mide lo bastante en ese
+// momento — y aquí casi todo se pinta después, con lo que llega de la
+// base: de vuelta de una carta, la rejilla volvía al principio. Al salir se
+// apunta la posición por dirección; al volver, se espera a que la página
+// crezca lo justo (con un tope, para no saltar cuando ya estás leyendo).
+const CLAVE_POSICION = 'bm-posicion:'
+function recordarPosicion(doc, win) {
+  const clave = CLAVE_POSICION + win.location.pathname + win.location.search
+  win.addEventListener('pagehide', () => {
+    try { win.sessionStorage.setItem(clave, String(Math.round(win.scrollY))) } catch {}
+  })
+  let guardada = 0
+  try { guardada = Number(win.sessionStorage.getItem(clave)) || 0 } catch {}
+  const volviendo = win.performance?.getEntriesByType?.('navigation')?.[0]?.type === 'back_forward'
+  if (!volviendo || guardada < 200) return
+  const empezo = Date.now()
+  let tocado = false
+  const parar = () => { tocado = true }
+  win.addEventListener('touchstart', parar, { once: true, passive: true })
+  win.addEventListener('wheel', parar, { once: true, passive: true })
+  const intentar = () => {
+    if (tocado || Date.now() - empezo > 4000) return
+    if (Math.abs(win.scrollY - guardada) < 40) return
+    if (doc.documentElement.scrollHeight - win.innerHeight >= guardada) { win.scrollTo({ top: guardada, behavior: 'instant' }); return }
+    win.setTimeout(intentar, 150)
+  }
+  win.setTimeout(intentar, 50)
+}
+
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   if (!doc.getElementById('navbar') || doc.querySelector('.bm')) return null
   hojaInyectada('css/movil.css')
@@ -108,6 +175,17 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   barra.setAttribute('aria-label', 'Secciones')
   barra.innerHTML = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
   doc.body.appendChild(barra)
+
+  // TOCAR LA SECCIÓN EN LA QUE YA ESTÁS TE SUBE ARRIBA (709, X1), como
+  // en iOS: volver a cargar la misma página no le sirve a nadie.
+  barra.addEventListener('click', (ev) => {
+    const a = ev.target.closest('a')
+    if (!a || claveDePagina(a.getAttribute('href'), location.origin) !== clave) return
+    ev.preventDefault()
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+  })
+  vigilarBajada(doc, window)
+  recordarPosicion(doc, window)
 
   // LA BURBUJA DE LA SECCIÓN (704d). PINGU probó la hoja al volver a
   // tocar la pestaña («súper poco intuitivo, la gente no lo va a

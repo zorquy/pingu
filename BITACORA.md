@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 1) — PINGU-Claude (709 — las barras se apartan al bajar; tocar la sección sube; volver deja donde estabas)
+
+**Hecho**: PINGU eligió TODAS las propuestas de la lista de mejoras
+(53: N1–N8, C1–C7, F1–F4, J1–J5, D1–D6, V1–V7, A1 y X1–X17). Empiezo
+por la más barata. En el móvil, al bajar se esconden la barra de arriba
+y la de abajo y la burbuja baja a su sitio; un poco hacia arriba y
+vuelven. Tocar la sección en la que ya estás te sube arriba en vez de
+recargar. Y al volver atrás la página se queda donde estabas aunque se
+pinte tarde.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`, `SCHEMA.md`. Prueba
+709-pantalla en `pruebas`.
+
+**Pendiente**: el resto de la lista, por tandas desde la 710 (C2, C3,
+C5+C7, C4, C6, C1, la ficha F1–F4, N1+N8, buscador, escáner, gestos,
+Comunidad, escritorio, lo visual, la app y las pequeñas).
+
 ## 2026-10-07 (madrugada, 3) — PINGU-Claude (704d — la burbuja de la sección; fuera el doble toque)
 
 **Hecho**: PINGU descartó la hoja al volver a tocar la pestaña («la

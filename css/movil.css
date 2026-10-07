@@ -286,3 +286,36 @@
     flex: 0 0 auto;
   }
 }
+
+/* ── 709: al bajar, las barras se apartan ──
+   La de arriba sube, la de abajo baja y la burbuja (o la de Mi colección,
+   o la de acciones de /carta) baja a ocupar su sitio. */
+@media (max-width: 900px) {
+  html.con-barra-movil .navbar,
+  .bm,
+  .bm-burbuja,
+  .mc-pestanias,
+  html.con-barra-movil .carta-scan .carta-acciones {
+    transition: transform 0.22s var(--ease);
+  }
+  html.bm-escondidas .navbar {
+    transform: translateY(-100%);
+  }
+  html.bm-escondidas .bm {
+    transform: translateY(100%);
+  }
+  html.bm-escondidas .bm-burbuja,
+  html.bm-escondidas .mc-pestanias,
+  html.bm-escondidas.con-barra-movil .carta-scan .carta-acciones {
+    transform: translateY(calc(80px + var(--e-xs)));
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  html.con-barra-movil .navbar,
+  .bm,
+  .bm-burbuja,
+  .mc-pestanias,
+  html.con-barra-movil .carta-scan .carta-acciones {
+    transition: none;
+  }
+}
