@@ -34594,3 +34594,40 @@ el botón de escanear en la burbuja.
 generado), `css/mi-coleccion.css`, `js/barra-movil.js`, `js/buscador.js`,
 `js/buscador-filas.js`. Prueba 719-pantalla; 306, 320, 334, 447 y 704 al
 día.
+
+## Tanda 720 — la ficha con el dedo y la carta que crece (oct. 2026)
+
+N5 y N6 de la lista. Todo en `js/mi-coleccion/gestos-ficha.js`.
+
+- **N5 — con el dedo**. En la ficha (`#mcEditor`, hoja desde abajo en el
+  móvil, 705), deslizar a un lado pasa a la carta de al lado —la MISMA
+  que la flecha de la 422 (`abrirVecino`) y solo si la flecha se podría
+  pulsar—, con la foto entrando por su lado; arrastrar hacia abajo desde
+  arriba la cierra (pulsando `#mcEdCerrar`, que es quien guarda lo
+  pendiente) y la hoja SIGUE al dedo mientras tanto; arrastrar hacia
+  arriba la abre entera (`.mc-editor-entera`). La regla es pura
+  (`decidirGesto`): de lado solo si es más del doble de lo vertical —en
+  diagonal se está leyendo—, y abajo solo desde lo alto de la hoja. Fuera
+  quedan los campos y la gráfica, que se lee arrastrando a lo ancho (661).
+  Va con eventos TÁCTILES y no de puntero: en cuanto el navegador decide
+  que el dedo desplaza, el puntero recibe un `pointercancel` y ya no se
+  sabe cuánto se ha arrastrado.
+- **N6 — la carta crece desde su hueco**: al abrir la ficha desde una
+  rejilla de expansión o desde Cartas, `crecerDesde` pone el mismo
+  `view-transition-name` en la carta de la rejilla y en la de la ficha
+  dentro de `document.startViewTransition`, y el navegador anima la una
+  hasta la otra. Sin la API, o con «menos movimiento», se abre sin animar.
+  Los nombres se quitan al acabar (o al fallar): dos elementos con el
+  mismo nombre a la vez rompen la transición SIGUIENTE.
+
+La foto que entra por un lado se limpia con un temporizador y no con
+`animationend`, que con «menos movimiento» no llega (la 313).
+
+Y un fallo de la 718 que cazó la suite entera (la 546): el buscador pedía
+`name_es` de las cartas sin `name_en`, así que una japonesa sin español
+habría salido con el nombre en japonés. Ahora pide los dos (y el de su
+set).
+
+**Ficheros**: `js/mi-coleccion/gestos-ficha.js` (nuevo), `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/buscador.js`. Prueba 720-pantalla, con toques
+de verdad por CDP.

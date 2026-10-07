@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 13) — PINGU-Claude (720 — la ficha con el dedo y la carta que crece)
+
+**Hecho**: N5 y N6 de la lista. En la ficha de una carta, deslizar a un
+lado pasa a la de al lado, arrastrar abajo cierra y arriba abre la hoja
+entera; y al abrirla desde la rejilla la carta crece desde su hueco (sin
+animar con «menos movimiento»). De paso, el buscador de la 718 pide ya el
+nombre inglés de las cartas (lo cazó la 546).
+
+**Ficheros**: `js/mi-coleccion/gestos-ficha.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/buscador.js`, `SCHEMA.md`. Prueba
+720-pantalla en `pruebas`.
+
+**Pendiente**: la 721 (J1–J5).
+
 ## 2026-10-07 (mañana, 12) — PINGU-Claude (719 — escanear a un toque y en ráfaga)
 
 **Hecho**: N4 de la lista. La burbuja de Cartas lleva «Escanear» (con

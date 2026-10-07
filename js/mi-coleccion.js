@@ -66,6 +66,7 @@ import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
+import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -5699,7 +5700,8 @@ function enganchar() {
     const l = lineas.find((x) => x.id === e.target.closest('[data-linea]').dataset.linea)
     if (!l) return
     fijarVecindario('mcCartas', '[data-linea]', 'linea', l.id)
-    abrirEditor(l)
+    if ($('mcEditor').open) abrirEditor(l)
+    else crecerDesde(e.target.closest('[data-linea]').querySelector('img'), () => abrirEditor(l))
   })
   $('mcFaltanCopiar')?.addEventListener('click', () => void copiarLoQueFalta())
 
@@ -5821,6 +5823,23 @@ function enganchar() {
   // Las flechas y el cerrar de la ficha (tanda 422).
   $('mcEdAnterior')?.addEventListener('click', () => void abrirVecino(-1))
   $('mcEdSiguiente')?.addEventListener('click', () => void abrirVecino(1))
+  // Con el dedo (720, N5): de lado, la carta de al lado —la misma que la
+  // flecha, y solo si la flecha se podría pulsar—; abajo, cerrar (por el
+  // mismo botón, que es quien guarda lo pendiente); arriba, la hoja entera.
+  const deLado = (paso) => {
+    const flecha = $(paso > 0 ? 'mcEdSiguiente' : 'mcEdAnterior')
+    if ($('mcEdPasos')?.hidden || !flecha || flecha.disabled) return
+    void abrirVecino(paso).then(() => entrarPorElLado($('mcEdFoto'), paso))
+  }
+  if ($('mcEditor')) {
+    engancharGestos($('mcEditor'), {
+      anterior: () => deLado(-1),
+      siguiente: () => deLado(1),
+      cerrar: () => $('mcEdCerrar')?.click(),
+      subir: () => $('mcEditor').classList.add('mc-editor-entera'),
+    })
+    $('mcEditor').addEventListener('close', () => $('mcEditor').classList.remove('mc-editor-entera'))
+  }
   $('mcEdCerrar')?.addEventListener('click', () => $('mcEditor').close())
   // Y con el teclado, que es como se repasa una lista larga. Solo cuando
   // el foco NO está en un campo: dentro de un desplegable o de un número
@@ -6195,7 +6214,10 @@ function enganchar() {
       if (abreLaPagina(e)) return
       e.preventDefault()
       fijarVecindario(zona, selector, 'carta', enlace.dataset.carta)
-      abrirCarta(enlace.dataset.carta)
+      // La carta crece desde su hueco (720, N6) si la ficha no está ya
+      // abierta: con ella abierta no hay hueco del que salir.
+      if ($('mcEditor').open) abrirCarta(enlace.dataset.carta)
+      else crecerDesde(enlace.querySelector('img'), () => abrirCarta(enlace.dataset.carta))
     })
   }
   // LAS TRES VISTAS (651). PINGU: «en el móvil, si voy a una expansión y

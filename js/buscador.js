@@ -32,7 +32,7 @@ const CONSULTAS = {
     if (!palabras.length) return []
     let q = supabase
       .from('tcg_cards')
-      .select('id, market, set_id, local_id, name, name_es, image_path, image_tcggo, tcg_sets(name)')
+      .select('id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en)')
       .eq('market', 'WEST')
     for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
     const { data, error } = await q.order('name_search').limit(limite)

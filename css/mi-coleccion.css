@@ -6980,3 +6980,43 @@ input.mc-alb-titulo:not([readonly]):focus {
     font-size: var(--t-3xl);
   }
 }
+
+/* ── 720: la ficha con el dedo y la carta que crece (SCHEMA 720) ── */
+.mc-editor.mc-editor-entera {
+  max-height: 100dvh;
+  border-radius: 0;
+}
+
+.mc-entra-derecha {
+  animation: mc-entra-derecha 0.3s var(--ease);
+}
+
+.mc-entra-izquierda {
+  animation: mc-entra-izquierda 0.3s var(--ease);
+}
+
+@keyframes mc-entra-derecha {
+  from {
+    opacity: 0.4;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes mc-entra-izquierda {
+  from {
+    opacity: 0.4;
+    transform: translateX(-24px);
+  }
+}
+
+::view-transition-group(mc-carta-que-crece) {
+  animation-duration: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-entra-derecha,
+  .mc-entra-izquierda,
+  ::view-transition-group(mc-carta-que-crece) {
+    animation: none;
+  }
+}
