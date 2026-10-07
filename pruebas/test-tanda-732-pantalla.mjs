@@ -24,6 +24,8 @@ if (tocaOfrecer) {
   const ahora = Date.now()
   check('a la primera visita, no', !tocaOfrecer({ instalada: false, visitas: 1 }))
   check('a la segunda, sí', tocaOfrecer({ instalada: false, visitas: 2 }))
+  // Desde la 753 también a la tercera página vista de la primera visita.
+  check('  …o a la tercera página vista, aunque sea la primera visita', tocaOfrecer({ instalada: false, visitas: 1, vistas: 3 }) && !tocaOfrecer({ instalada: false, visitas: 1, vistas: 2 }))
   check('instalada, nunca', !tocaOfrecer({ instalada: true, visitas: 9 }))
   check('«Ahora no» hace dos semanas: no', !tocaOfrecer({ instalada: false, visitas: 5, calladaEn: ahora - 14 * 864e5, ahora }))
   check('  …hace dos meses: otra vez sí', tocaOfrecer({ instalada: false, visitas: 5, calladaEn: ahora - 60 * 864e5, ahora }))
@@ -38,7 +40,9 @@ const abrir = async (ctx) => {
   await page.waitForTimeout(2000)
   return page
 }
-const banda = (page) => page.evaluate(() => { const b = document.querySelector('.bm-instalar'); return b ? { texto: b.textContent.replace(/\s+/g, ' ').trim(), boton: b.querySelector('[data-instalar="si"]')?.textContent } : null })
+// Desde la 753, en el iPhone es una HOJA desde abajo con los tres pasos a
+// la vista (la maqueta A1), con «Ahora no» y «Entendido».
+const banda = (page) => page.evaluate(() => { const b = document.querySelector('.bm-instalar'); return b ? { texto: b.textContent.replace(/\s+/g, ' ').trim(), botones: [...b.querySelectorAll('[data-instalar]')].map((x) => x.textContent.trim()) } : null })
 
 console.log('── 2. En el navegador del iPhone ──')
 {
@@ -50,23 +54,27 @@ console.log('── 2. En el navegador del iPhone ──')
   // Otra visita es otra pestaña (la cuenta va por sesión del navegador).
   page = await abrir(ctx)
   const b = await banda(page)
-  check('a la segunda sale: qué es y por qué', /Instala PokeDoc/.test(b?.texto || '') && /pantalla completa/.test(b?.texto || ''), JSON.stringify(b))
-  check('  …y en el iPhone el botón dice «Cómo» (Safari no instala solo)', b?.boton === 'Cómo', b?.boton)
-  check('  …sin tapar la barra de arriba ni salirse', await page.evaluate(() => { const r = document.querySelector('.bm-instalar').getBoundingClientRect(); const n = document.querySelector('.navbar').getBoundingClientRect(); return r.top >= n.bottom - 1 && r.right <= innerWidth && r.left >= 0 }))
-  await page.click('.bm-instalar [data-instalar="si"]')
-  check('«Cómo»: los dos pasos, Compartir y «Añadir a pantalla de inicio»', await page.evaluate(() => { const o = document.querySelector('.bm-instalar-pasos'); return !o.classList.contains('hidden') && /Compartir/.test(o.textContent) && /Añadir a pantalla de inicio/.test(o.textContent) && !!o.querySelector('svg') }))
+  check('a la segunda sale: qué es y por qué', /Ten PokeDoc como una app/.test(b?.texto || '') && /pantalla completa/.test(b?.texto || ''), JSON.stringify(b))
+  check('  …con los tres pasos de Safari a la vista', await page.evaluate(() => { const o = document.querySelector('.bm-instalar-pasos'); const li = [...(o?.querySelectorAll('li') || [])]; return li.length === 3 && /Compartir/.test(li[0].textContent) && /Añadir a pantalla de inicio/.test(li[1].textContent) && /Añadir/.test(li[2].textContent) && li.every((x) => x.querySelector('svg') && x.getBoundingClientRect().height > 0) }))
+  check('  …y «Ahora no» / «Entendido»', JSON.stringify(b?.botones) === JSON.stringify(['Ahora no', 'Entendido']), JSON.stringify(b?.botones))
+  check('  …desde abajo y sin salirse', await page.evaluate(() => { const r = document.querySelector('.bm-instalar').getBoundingClientRect(); return Math.abs(r.bottom - innerHeight) <= 1 && r.right <= innerWidth + 1 && r.left >= -1 }))
   await page.click('.bm-instalar [data-instalar="no"]')
-  check('«Ahora no» la quita', (await banda(page)) === null)
+  check('«Ahora no» la quita (con su velo)', (await banda(page)) === null && (await page.locator('.bm-instalar-velo').count()) === 0)
   await page.close()
   page = await abrir(ctx)
   check('  …y en la visita siguiente no vuelve', (await banda(page)) === null)
   await page.close()
   const ctx2 = await browser.newContext(iPhone)
   await ctx2.addInitScript(() => { window.__FAKE_SESSION__ = 'none'; try { localStorage.setItem('pokedoc-visitas', '4') } catch {} })
+  // Desde la 753 sale en las páginas de la lista de cada sección (el foro
+  // sí); en una ficha o en un hilo, no: estás haciendo otra cosa.
   const foro = await ctx2.newPage()
   await foro.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
   await foro.waitForTimeout(1800)
-  check('fuera de la portada no sale (estás haciendo otra cosa)', (await foro.locator('.bm-instalar').count()) === 0)
+  check('en la lista del foro sí sale', (await foro.locator('.bm-instalar').count()) === 1)
+  await foro.goto(`${BASE}/tema.html?id=1`, { waitUntil: 'domcontentloaded' })
+  await foro.waitForTimeout(1800)
+  check('  …y en un hilo, no', (await foro.locator('.bm-instalar').count()) === 0)
   await ctx2.close()
   page = await abrir(ctx)
   check('en el navegador no se monta el tirón (ya lo hace él)', (await page.locator('.bm-refrescar').count()) === 0)

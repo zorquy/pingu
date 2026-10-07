@@ -109,7 +109,9 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   check('sin cuenta, Cartas lleva al catálogo', (await barra(page)).some((x) => x === 'Cartas:/cartas'), (await barra(page)).join(' | '))
   await ctx.close()
   const d = await abrir('/index.html', { movil: false })
-  check('en el escritorio no hay barra, ni burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href$="css/movil.css"]').count()) === 0)
+  // Desde la 753 la barra viene en el HTML: en el escritorio está, pero no
+  // se ve (y su CSS grande sigue sin bajarse).
+  check('en el escritorio no se ve la barra, ni hay burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 1 && !(await d.page.locator('.bm').isVisible()) && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href$="css/movil.css"]').count()) === 0)
   check('  …y la barra de arriba sigue con sus desplegables', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 4)
   await d.ctx.close()
 }

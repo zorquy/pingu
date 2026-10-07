@@ -30,6 +30,7 @@ const T = {
   // Lo que cada uno busca (tanda 376). Lo que DA no es tabla: es la
   // columna `cambio` de su linea de `user_collection`.
   user_wants: [],
+  user_release_alerts: [],
   // La foto diaria del valor de una coleccion (tanda 377).
   user_collection_value: [],
   // Los precios guardados de Cardmarket (tanda 585): `cm_url` es el
@@ -195,6 +196,7 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 const DEFECTOS_AL_INSERTAR = {
   user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
   user_wants: { idioma: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
+  user_release_alerts: { semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-07T00:00:00Z' },
 }
 
 function sembrar(gancho, tabla, porDefecto) {
@@ -327,6 +329,9 @@ sembrar('__FAKE_VALOR__', 'user_collection_value', (i) => ({
 
 sembrar('__FAKE_AVISOS__', 'user_price_alerts', (i) => ({
   id: `aviso-${i + 1}`, user_id: 'admin-1', card_id: 'carta-0', market: 'WEST', idioma: 'es', tipo: 'baja', umbral: 10, activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-06T00:00:00Z',
+}))
+sembrar('__FAKE_AVISOS_LANZAMIENTO__', 'user_release_alerts', (i) => ({
+  id: `al-${i + 1}`, user_id: 'admin-1', clave: `set-${i}`, market: 'WEST', nombre: `Set ${i}`, semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-06T00:00:00Z',
 }))
 sembrar('__FAKE_DESEOS__', 'user_wants', (i) => ({
   id: `des-${i + 1}`,
@@ -1111,6 +1116,20 @@ function consulta(tabla, estado = {}) {
       if (tabla === 'tournament_match_replays') {
         return { data: null, error: { code: '42501', message: 'permission denied for table tournament_match_replays' } }
       }
+      // UN UPSERT ACTUALIZA LA QUE YA HAY (753): con `onConflict` (o el id),
+      // la fila que choca se funde y no se duplica — como en la base. Antes
+      // el doble lo trataba como un insert y guardar dos veces dejaba dos.
+      if (st.op === 'upsert') {
+        const cols = String(st.conflicto).split(',').map((c) => c.trim())
+        const finales = filas.map((f) => {
+          const ya = (T[tabla] || []).find((x) => cols.every((c) => f[c] !== undefined && x[c] === f[c]))
+          if (!ya) { (T[tabla] = T[tabla] || []).push(f); return f }
+          const { id: _id, ...resto } = f
+          return Object.assign(ya, resto)
+        })
+        anotarEscritura(tabla, finales, st.op)
+        return { data: st.unico ? finales[0] : finales, error: null }
+      }
       T[tabla] = (T[tabla] || []).concat(filas)
       anotarEscritura(tabla, filas, st.op)
       return { data: st.unico ? filas[0] : filas, error: null }
@@ -1335,7 +1354,7 @@ function consulta(tabla, estado = {}) {
     maybeSingle: () => consulta(tabla, { ...st, unico: 'maybe' }),
     single: () => consulta(tabla, { ...st, unico: 'one' }),
     insert: (cuerpo) => consulta(tabla, { ...st, op: 'insert', cuerpo }),
-    upsert: (cuerpo) => consulta(tabla, { ...st, op: 'upsert', cuerpo }),
+    upsert: (cuerpo, opciones = {}) => consulta(tabla, { ...st, op: 'upsert', cuerpo, conflicto: opciones.onConflict || 'id' }),
     update: (cuerpo) => consulta(tabla, { ...st, op: 'update', cuerpo }),
     delete: () => consulta(tabla, { ...st, op: 'delete' }),
     // `window.__FAKE_RETRASO__ = { tcg_cards: 400 }` hace que esa tabla
