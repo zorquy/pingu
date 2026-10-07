@@ -35541,6 +35541,18 @@ coinciden. Esta tanda trae cuatro.
   la maqueta con blanco fijo encima, y la caja de responder, recogida, es
   una fila con el botón de enviar redondo. En el ordenador, todo a la
   vista como estaba.
+- **La ficha de carta (F1)**: en el móvil es una pantalla de detalle, como
+  su maqueta: sin la barra de arriba ni la de secciones, con «volver» y
+  «compartir» flotando sobre el arte (volver es atrás si vienes de PokeDoc
+  y el catálogo si no). Arriba la colección (la 742), luego la carta en
+  grande sobre su arte, el nombre, la tarjeta de precio («MÍNIMO EN
+  ESPAÑOL EN CARDMARKET · NM», la cifra en grande y cómo va en 30 días si
+  el histórico lo sabe; tocarla abre la pestaña Precio) y la chapa verde
+  «Tienes 2», que es la loseta de Editar. Abajo, «Añadir» a lo ancho y
+  «Avísame». El corazón de la maqueta (la lista de deseos) NO va: desde
+  /carta no hay camino a la lista de «busco» de Cambios, y un botón que
+  no hace nada miente. El orden lo pone el CSS (`display: contents` en el
+  cuerpo): el núcleo es el mismo HTML que pinta el borde.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35555,12 +35567,13 @@ coinciden. Esta tanda trae cuatro.
 `js/menu-tu.js` y `css/menu-tu.css` (nuevos), `js/app.js`,
 `js/barra-movil.js`, `css/movil.css`, `css/components.css`, `js/home.js`,
 `js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
-`js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`, `CLAUDE.md`,
+`js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
+`js/carta-movil.js`, `css/carta.css`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (diez bloques) y 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (once bloques) y 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

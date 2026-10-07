@@ -1220,3 +1220,203 @@
   box-shadow: 0 0 0 1px rgb(255 255 255 / 10%);
 }
 
+
+/* ── 748: la ficha del móvil, la de su maqueta (F1; SCHEMA 748) ── */
+.carta-flotantes {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Sin las barras del sitio: es una pantalla de detalle, con su vuelta
+     atrás flotando sobre el arte y sus acciones abajo. */
+  html.ficha-movil .navbar,
+  html.ficha-movil .bm,
+  html.ficha-movil .bm-burbuja {
+    display: none;
+  }
+
+  html.ficha-movil .page-content {
+    padding-top: calc(64px + env(safe-area-inset-top));
+  }
+
+  .carta-flotantes {
+    position: fixed;
+    z-index: 96;
+    top: calc(var(--e-md) + env(safe-area-inset-top));
+    right: var(--e-lg);
+    left: var(--e-lg);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .carta-flotantes button {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--white) 70%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm);
+    color: var(--text);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .carta-flecha {
+    width: 12px;
+    height: 12px;
+    margin-left: 4px;
+    border-bottom: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+
+  /* La colección (la 742) se queda, encima de la carta y centrada. */
+  html.ficha-movil .carta-migas {
+    justify-content: center;
+    margin: 0 64px var(--e-sm);
+  }
+
+  /* La carta primero, en grande; luego el nombre y el precio. */
+  html.ficha-movil .carta-articulo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.ficha-movil .carta-cuerpo {
+    display: contents;
+  }
+
+  /* El arte sube hasta arriba del todo, detrás de los botones. */
+  html.ficha-movil .carta-articulo::before {
+    top: -136px;
+    height: 640px;
+  }
+
+  html.ficha-movil .carta-scan {
+    order: 1;
+    max-width: 260px;
+    margin: 0 auto var(--e-lg);
+  }
+
+  html.ficha-movil .carta-cabecera {
+    order: 2;
+  }
+
+  html.ficha-movil .carta-pestanas {
+    order: 3;
+  }
+
+  html.ficha-movil .carta-datos {
+    order: 4;
+  }
+
+  html.ficha-movil .carta-cabecera h1 {
+    font-size: var(--t-3xl);
+  }
+
+  .carta-precio-corto {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 0 var(--e-md);
+    margin: var(--e-md) 0;
+    padding: var(--e-md) var(--e-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .carta-precio-corto small {
+    grid-column: 1 / -1;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .carta-precio-corto b {
+    font-size: var(--t-3xl);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .carta-precio-mes {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .carta-precio-mes i {
+    display: block;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  .carta-precio-mes.sube {
+    color: var(--success);
+  }
+
+  .carta-precio-mes.baja {
+    color: var(--danger);
+  }
+
+  .carta-tienes {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-xs);
+    min-height: 40px;
+    margin-bottom: var(--e-sm);
+    padding: 0 var(--e-md);
+    border-radius: var(--radius-pill);
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* Abajo, «Añadir» a lo ancho y «Avísame» en redondo; editar es la chapa
+     de «Tienes N» y compartir, el botón flotante de arriba. */
+  html.ficha-movil.con-barra-movil .carta-scan .carta-acciones {
+    bottom: calc(env(safe-area-inset-bottom) + var(--e-md));
+    display: flex;
+    gap: var(--e-sm);
+  }
+
+  html.ficha-movil .carta-acciones #cmEditar,
+  html.ficha-movil .carta-acciones #cmCompartir {
+    display: none;
+  }
+
+  html.ficha-movil .carta-acciones .mc-ficha-mas {
+    flex: 1 1 auto;
+    flex-direction: row;
+    gap: var(--e-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--t-md);
+  }
+
+  html.ficha-movil .carta-acciones .mc-ficha-tile:not(.mc-ficha-mas) {
+    flex: 0 0 56px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0;
+  }
+
+  html.ficha-movil .carta-acciones .mc-ficha-tile:not(.mc-ficha-mas) i {
+    font-size: var(--t-md);
+  }
+
+  html.ficha-movil.bm-escondidas.con-barra-movil .carta-scan .carta-acciones {
+    transform: none;
+  }
+}

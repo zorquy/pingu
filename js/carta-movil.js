@@ -15,6 +15,8 @@
 // Entra por `import()` y solo en el móvil, como la barra de abajo (704).
 // El núcleo se repinta a veces entero (cuando llega la ficha de TCGdex,
 // 332), así que lo que se mete dentro se vuelve a meter con un observador.
+import { icons } from './icons.js'
+
 const PESTANAS = [
   ['resumen', 'Resumen'],
   ['precio', 'Precio'],
@@ -74,6 +76,46 @@ export function montarFichaMovil(doc = document, win = window) {
     return cifra ? { cifra: cifra.textContent.trim(), de: de?.textContent.trim() || '' } : null
   }
 
+  // VOLVER Y COMPARTIR, FLOTANDO SOBRE EL ARTE (748, la F1 de su maqueta):
+  // la barra de arriba no está en la ficha del móvil, así que la vuelta
+  // atrás va aquí. Volver es atrás si vienes de PokeDoc y el catálogo si no
+  // (alguien que entra desde Google no tiene un «atrás» nuestro).
+  if (!doc.querySelector('.carta-flotantes')) {
+    const flot = doc.createElement('div')
+    flot.className = 'carta-flotantes'
+    flot.innerHTML = `<button type="button" data-flota="volver" aria-label="Volver"><span class="carta-flecha" aria-hidden="true"></span></button><button type="button" data-flota="compartir" aria-label="Compartir">${icons.share(20)}</button>`
+    flot.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-flota]')
+      if (!b) return
+      if (b.dataset.flota === 'compartir') return doc.getElementById('cmCompartir')?.click()
+      let mismo = false
+      try { mismo = !!doc.referrer && new URL(doc.referrer).origin === win.location.origin } catch {}
+      if (mismo && win.history.length > 1) win.history.back()
+      else win.location.href = '/cartas'
+    })
+    doc.body.appendChild(flot)
+  }
+
+  // «TIENES 2» ES UNA CHAPA (748): lo que decía la loseta de Editar, debajo
+  // del precio, y tocarla lleva a editarla. Se copia de la loseta, que es la
+  // que sabe cuántas tienes (una sola fuente).
+  const pintarTienes = () => {
+    const editar = doc.getElementById('cmEditar')
+    const n = (doc.getElementById('cmTienes')?.textContent || '').trim()
+    let chapa = nucleo.querySelector('.carta-tienes')
+    if (!editar || editar.classList.contains('hidden') || !n) { chapa?.remove(); return }
+    const cabecera = nucleo.querySelector('.carta-cabecera')
+    if (!cabecera) return
+    if (!chapa) {
+      chapa = doc.createElement('a')
+      chapa.className = 'carta-tienes'
+      cabecera.appendChild(chapa)
+    }
+    const html = `${icons.checkCircle(16)}<span>${n}</span>`
+    if (chapa.dataset.html !== html) { chapa.dataset.html = html; chapa.innerHTML = html }
+    chapa.href = editar.getAttribute('href') || '#'
+  }
+
   // Lo que va DENTRO del núcleo: la línea de precio bajo el nombre y la
   // barra entre la carta y su ficha. Si el núcleo se repintó, se vuelve a
   // poner.
@@ -83,13 +125,19 @@ export function montarFichaMovil(doc = document, win = window) {
     const p = precioCorto()
     if (cabecera && p) {
       if (!linea) {
-        linea = doc.createElement('p')
+        linea = doc.createElement('a')
         linea.className = 'carta-precio-corto'
+        linea.href = '#cartaMercado'
+        linea.addEventListener('click', (e) => { e.preventDefault(); elegir('precio') })
         cabecera.appendChild(linea)
       }
-      const texto = `${p.cifra}${p.de ? ` · ${p.de}` : ''}`
-      if (linea.textContent !== texto) linea.innerHTML = `<b>${p.cifra}</b>${p.de ? ` · ${p.de}` : ''}`
+      // La tarjeta de su maqueta (748): de dónde sale arriba, la cifra en
+      // grande y, si el histórico lo dice, cómo va en 30 días.
+      const mes = doc.querySelector('#cmHistorial .carta-historial-chip:last-child')
+      const html = `<small>${p.de || 'Precio'}</small><b>${p.cifra}</b>${mes && /30 d/.test(mes.textContent) ? `<span class="carta-precio-mes ${mes.classList.contains('sube') ? 'sube' : mes.classList.contains('baja') ? 'baja' : ''}">${mes.querySelector('b')?.textContent || ''} <i>en 30 días</i></span>` : ''}`
+      if (linea.dataset.html !== html) { linea.dataset.html = html; linea.innerHTML = html }
     }
+    pintarTienes()
     const figura = nucleo.querySelector('.carta-scan')
     if (figura && barra.previousElementSibling !== figura) figura.insertAdjacentElement('afterend', barra)
     const img = nucleo.querySelector('.carta-scan img')
