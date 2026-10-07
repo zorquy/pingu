@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 9) — PINGU-Claude (717 — la barra de arriba limpia y la hoja «Tú»)
+
+**Hecho**: N1 y N8 de la lista. En el móvil arriba van el logo, una
+pastilla de búsqueda y el avatar con la suma de mensajes y avisos; el
+avatar abre una hoja desde abajo con Avisos, Mensajes y Tema encima de los
+enlaces de la cuenta. Sin cuenta el tema sigue en la barra, a cualquier
+ancho (por debajo de 360 px se había quedado sin sitio desde la 704). Solo
+el móvil; la portada no cambia de peso.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`, `SCHEMA.md`. Prueba
+717-pantalla y 312, 465 y 653 al día en `pruebas`.
+
+**Pendiente**: la 718 (buscador global y paleta Ctrl+K).
+
 ## 2026-10-07 (mañana, 8) — PINGU-Claude (716 — la ficha de una carta en el móvil, con su arte y en pestañas)
 
 **Hecho**: F1, F2 y F4 de la lista (la F3, leer la gráfica con el dedo, ya

@@ -34451,3 +34451,41 @@ El núcleo se repinta entero a veces (cuando llega la ficha de TCGdex,
 Prueba 716-pantalla. Y en `pruebas`, las 160 pruebas que tenían el servidor
 escrito a mano aceptan ya `PD_BASE`: se puede probar contra una segunda
 copia mientras la primera corre un subconjunto.
+
+## Tanda 717 — la barra de arriba limpia y la hoja «Tú» (oct. 2026)
+
+N1 y N8 de la lista de propuestas. En el móvil la barra de arriba llevaba
+logo, lupa, tema, mensajes, campana y avatar: seis cosas de 44 px en 390.
+Ahora (todo en `js/barra-movil.js` y `css/movil.css`, que solo baja el
+móvil, 704 — la portada no paga ni un byte):
+
+- **N1 — logo, una pastilla y el avatar**. La pastilla (`.bm-pastilla`) es
+  un enlace a /buscar que se lee como un buscador. La lupa, el tema y la
+  campana siguen EN LA PÁGINA, escondidos: sus chapas son las que cuentan,
+  y el avatar lleva la suma (`.bm-punto`, `sumaDeAvisos`: un «9+» de
+  cualquiera, o una suma de más de 9, se queda en «9+»).
+- **N8 — la hoja «Tú»**: el desplegable del avatar sale desde abajo, con un
+  velo detrás, y encima de los enlaces de siempre tres filas: Avisos (el
+  propio `#navBellDropdown`, MOVIDO dentro, no copiado), Mensajes y Tema.
+  Las filas se pulsan con `pulsarSinCerrar`: el clic del botón de verdad
+  burbujearía hasta el «clic fuera» del desplegable y cerraría la hoja; y
+  el repintado del tema va en un `setTimeout(…, 0)` por lo mismo (repintar
+  el elemento pulsado antes de que su clic acabe de subir lo deja «fuera»).
+- Con la hoja abierta, la barra de arriba pierde `transform` y
+  `backdrop-filter`: con cualquiera de los dos la barra es el bloque
+  contenedor de lo `fixed` que lleva dentro, y la hoja se abría arriba.
+
+**El tema sin cuenta**: sin sesión no hay avatar ni hoja, así que el botón
+de tema se queda en la barra a TODO ancho. Por debajo de 360 px antes se
+iba al cajón de la hamburguesa (312) —que con la barra de abajo no existe,
+704—, o sea que desde la 704 en un iPhone SE sin cuenta no había forma de
+cambiar de tema. Ahora el gemelo del cajón se esconde con la barra de abajo
+y el de arriba manda. Con él puesto, a 320 px la barra se salía 42 px:
+el grupo de la derecha cedía antes que la pastilla y su contenido se
+desbordaba (la trampa de la 320), así que `.nav-right` va con
+`flex-shrink: 0` y la que se estrecha es la pastilla. La prueba 312 mira
+los dos casos por ancho: con cuenta, cero en la barra y la fila en la
+hoja; sin cuenta, uno, y la barra sin salirse.
+
+**Ficheros**: `js/barra-movil.js`, `css/movil.css`. Prueba 717-pantalla;
+312 al día.

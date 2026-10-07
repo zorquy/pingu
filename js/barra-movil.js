@@ -163,6 +163,127 @@ function recordarPosicion(doc, win) {
   win.setTimeout(intentar, 50)
 }
 
+// LA BARRA DE ARRIBA, LIMPIA, Y LA HOJA «TÚ» (717: N1 y N8 de la lista de
+// propuestas, elegidas por PINGU). En el móvil la barra de arriba eran el
+// logo y cinco iconos sin rótulo —buscar, tema, mensajes, avisos, avatar—
+// que llenaban la fila sin decir qué eran. Queda: el logo, una pastilla que
+// SE LEE como un buscador y tu avatar con el número de lo que tienes sin
+// leer. Lo demás se va a la hoja que sale al tocar el avatar, que es el
+// mismo desplegable de siempre (sus enlaces y su «Cerrar sesión» no se
+// copian: se reutilizan) puesto desde abajo, con tres filas más: avisos y
+// mensajes con su número, y el tema. Todo aquí y en movil.css, que el
+// escritorio no descarga: la portada no paga ni un byte.
+export function sumaDeAvisos(textos) {
+  let n = 0
+  for (const t of textos) {
+    const s = String(t || '').trim()
+    // Una chapa que ya dice «9+» no se puede sumar: el total también lo es.
+    if (s.endsWith('+')) return '9+'
+    n += Number(s) || 0
+  }
+  return n > 9 ? '9+' : n ? String(n) : ''
+}
+
+function montarTu(doc, win) {
+  const inner = doc.querySelector('.nav-inner')
+  const derecha = doc.querySelector('.nav-right')
+  if (inner && derecha && !doc.querySelector('.bm-pastilla')) {
+    const a = doc.createElement('a')
+    a.className = 'bm-pastilla'
+    a.href = '/buscar.html'
+    a.innerHTML = `${icons.search?.(17) || ''}<span>Busca cartas, guías, gente…</span>`
+    inner.insertBefore(a, derecha)
+  }
+  // El número del avatar: lo que digan las chapas de mensajes y avisos,
+  // que siguen vivas aunque sus botones no se vean.
+  const chapas = () => [...doc.querySelectorAll('#navMsgBadge, #navBellBadge')].filter((b) => !b.classList.contains('hidden')).map((b) => b.textContent)
+  const pintarPunto = () => {
+    const btn = doc.getElementById('navUserBtn')
+    if (!btn) return
+    const n = sumaDeAvisos(chapas())
+    let punto = btn.querySelector('.bm-punto')
+    if (!n) { punto?.remove(); return }
+    if (!punto) { punto = doc.createElement('span'); punto.className = 'bm-punto'; punto.setAttribute('aria-hidden', 'true'); btn.appendChild(punto) }
+    if (punto.textContent !== n) punto.textContent = n
+    btn.setAttribute('aria-label', `Tu cuenta (${n} sin leer)`)
+  }
+  const filasDeTu = () => {
+    const d = doc.getElementById('navUserDropdown')
+    const enlaces = d?.querySelector('.nav-user-links')
+    if (!enlaces) return
+    let extra = d.querySelector('.bm-tu-extra')
+    if (!extra) {
+      extra = doc.createElement('div')
+      extra.className = 'bm-tu-extra'
+      enlaces.insertAdjacentElement('beforebegin', extra)
+      extra.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-tu]')
+        if (!b) return
+        // El repintado, DESPUÉS de este clic: si la fila que se acaba de
+        // tocar sale del árbol antes de que el clic llegue al documento, el
+        // menú lo cuenta como «pulsado fuera» y se cierra.
+        if (b.dataset.tu === 'tema') { pulsarSinCerrar(doc.getElementById('navThemeToggle')); win.setTimeout(pintarFilas, 0); return }
+        if (b.dataset.tu === 'avisos') {
+          // El desplegable de la campana, DENTRO de la hoja: se mueve el
+          // nodo (con sus oyentes) y se abre después de este toque, o el
+          // «cerrar al pulsar fuera» de la campana lo volvería a cerrar.
+          const lista = doc.getElementById('navBellDropdown')
+          if (lista && lista.parentElement !== extra) extra.appendChild(lista)
+          win.setTimeout(() => pulsarSinCerrar(doc.getElementById('navBellBtn')), 0)
+        }
+      })
+    }
+    pintarFilas()
+  }
+  // Pulsar un botón escondido de la barra SIN que la hoja se cierre: su
+  // clic sube hasta el documento, y el menú del usuario cierra con
+  // cualquier clic fuera de él. Un oyente de una vez, puesto DESPUÉS del
+  // suyo, deja que el botón haga lo suyo y corta la subida.
+  const pulsarSinCerrar = (boton) => {
+    if (!boton) return
+    boton.addEventListener('click', (e) => e.stopPropagation(), { once: true })
+    boton.click()
+  }
+  const pintarFilas = () => {
+    const extra = doc.querySelector('#navUserDropdown .bm-tu-extra')
+    if (!extra) return
+    const msg = doc.getElementById('navMsgBadge'), bell = doc.getElementById('navBellBadge')
+    const cuenta = (b) => (b && !b.classList.contains('hidden') && b.textContent !== '0' ? `<span class="bm-tu-cuenta">${b.textContent}</span>` : '')
+    const oscuro = doc.documentElement.dataset.theme === 'dark'
+    const filas = []
+    if (bell) filas.push(`<button type="button" data-tu="avisos">${icons.bell?.(18) || ''}<span>Avisos</span>${cuenta(bell)}</button>`)
+    if (msg) filas.push(`<a href="/mensajes.html" data-tu="mensajes">${icons.mail?.(18) || ''}<span>Mensajes</span>${cuenta(msg)}</a>`)
+    filas.push(`<button type="button" data-tu="tema">${(oscuro ? icons.sun : icons.moon)?.(18) || ''}<span>${oscuro ? 'Tema claro' : 'Tema oscuro'}</span></button>`)
+    const html = filas.join('')
+    // Sin tocar lo que ya está bien: la lista de avisos movida vive aquí
+    // dentro y repintar a lo bruto se la llevaría por delante.
+    let caja = extra.querySelector('.bm-tu-filas')
+    if (!caja) { caja = doc.createElement('div'); caja.className = 'bm-tu-filas'; extra.prepend(caja) }
+    if (caja.dataset.html !== html) { caja.dataset.html = html; caja.innerHTML = html }
+  }
+  // La hoja se abre y se cierra con la MISMA clase de siempre (`hidden` en
+  // el desplegable); aquí solo se pone el velo detrás y las filas dentro.
+  const vigilarHoja = () => {
+    const d = doc.getElementById('navUserDropdown')
+    const abierta = !!d && !d.classList.contains('hidden')
+    doc.documentElement.classList.toggle('bm-tu-abierta', abierta)
+    if (abierta) filasDeTu()
+  }
+  if (!doc.querySelector('.bm-velo')) {
+    const velo = doc.createElement('div')
+    velo.className = 'bm-velo'
+    velo.setAttribute('aria-hidden', 'true')
+    doc.body.appendChild(velo)
+  }
+  let pendiente = false
+  new win.MutationObserver(() => {
+    if (pendiente) return
+    pendiente = true
+    win.requestAnimationFrame(() => { pendiente = false; pintarPunto(); vigilarHoja(); pintarFilas() })
+  }).observe(derecha || doc.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] })
+  pintarPunto()
+}
+
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   if (!doc.getElementById('navbar') || doc.querySelector('.bm')) return null
   hojaInyectada('css/movil.css')
@@ -186,6 +307,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   })
   vigilarBajada(doc, window)
   recordarPosicion(doc, window)
+  montarTu(doc, window)
 
   // LA BURBUJA DE LA SECCIÓN (704d). PINGU probó la hoja al volver a
   // tocar la pestaña («súper poco intuitivo, la gente no lo va a

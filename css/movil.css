@@ -319,3 +319,145 @@
     transition: none;
   }
 }
+
+/* ── 717: la barra de arriba, limpia, y la hoja «Tú» (SCHEMA 717) ──
+   Logo, una pastilla que se lee como un buscador y el avatar con su número.
+   Los iconos siguen en la página (sus chapas cuentan), sin verse. El tema
+   va a la hoja con cuenta; sin ella se queda en la barra a todo ancho (su
+   gemelo era del cajón, que aquí no existe). */
+@media (max-width: 900px) {
+  html.con-barra-movil .nav-right > .nav-search-wrap,
+  html.con-barra-movil .nav-right:has(#navUserBtn) > #navThemeToggle,
+  html.con-barra-movil .nav-right > .nav-bell-wrap,
+  html.con-barra-movil .nav-tema-menu {
+    display: none;
+  }
+  html.con-barra-movil .nav-right:not(:has(#navUserBtn)) > #navThemeToggle {
+    display: flex;
+  }
+  .bm-pastilla {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--e-sm);
+    min-width: 0;
+    min-height: 44px;
+    margin: 0 var(--e-sm);
+    padding: 0 var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+    text-decoration: none;
+  }
+  .bm-pastilla span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  html.con-barra-movil .nav-inner {
+    gap: 0;
+  }
+  html.con-barra-movil .nav-logo,
+  html.con-barra-movil .nav-right {
+    flex-shrink: 0;
+  }
+  #navUserBtn {
+    position: relative;
+  }
+  .bm-punto {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 var(--e-xs);
+    border: 2px solid var(--white);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    line-height: 1;
+  }
+  /* La hoja: el desplegable de siempre, desde abajo y a lo ancho. */
+  html.con-barra-movil #navUserDropdown:not(.hidden) {
+    position: fixed;
+    z-index: 1;
+    inset: auto 0 0;
+    width: auto;
+    max-height: 86dvh;
+    margin: 0;
+    padding-bottom: calc(var(--e-md) + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -10px 40px rgb(0 0 0 / 22%);
+  }
+  .bm-velo {
+    display: none;
+  }
+  html.bm-tu-abierta .bm-velo {
+    display: block;
+    position: fixed;
+    /* Por debajo de la barra de arriba (100), donde vive la hoja, y por
+       encima de la de abajo (95) y de la burbuja (90). */
+    z-index: 99;
+    inset: 0;
+    background: rgb(10 20 30 / 45%);
+  }
+  /* La hoja vive DENTRO de la barra de arriba, y un `backdrop-filter` o un
+     `transform` en la barra la convierten en la caja de lo que va fijo:
+     «abajo del todo» sería el pie de la barra. Con la hoja abierta, fuera. */
+  html.bm-tu-abierta .navbar {
+    transform: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--white);
+  }
+  .bm-tu-filas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--e-sm);
+    padding: var(--e-sm) var(--e-md);
+  }
+  .bm-tu-filas > * {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 48px;
+    padding: 0 var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .bm-tu-filas > [data-tu='tema'] {
+    grid-column: 1 / -1;
+  }
+  .bm-tu-cuenta {
+    margin-left: auto;
+    min-width: 20px;
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    line-height: 20px;
+    text-align: center;
+  }
+  .bm-tu-extra .nav-bell-dropdown {
+    position: static;
+    width: auto;
+    margin: 0 var(--e-md);
+    box-shadow: none;
+  }
+}
