@@ -187,6 +187,10 @@ console.log('\n── 4. El punto de corte de la barra se MIDE ──')
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   const pide = await page.evaluate(() => {
+    // A 1.600 con ratón sale la barra lateral (739), que esconde arriba el
+    // logo y los desplegables: lo que se mide es la barra de arriba ENTERA,
+    // que es la de quien no tiene la lateral.
+    document.documentElement.classList.remove('con-lateral')
     const inner = document.querySelector('.nav-inner')
     const cs = getComputedStyle(inner)
     const piezas = [...inner.children].filter((n) => n.offsetParent)
