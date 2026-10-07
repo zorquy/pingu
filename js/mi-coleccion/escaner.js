@@ -74,18 +74,40 @@ export function marcoEnElVideo(video, marco) {
 export function recortarFranjas(video, marco, lienzo, calidad = 0.85) {
   const r = marcoEnElVideo(video, marco)
   if (!r) return null
+  return recortarFranjasDe(video, r, lienzo, calidad)
+}
+
+// Lo mismo desde cualquier imagen y su rectángulo de carta (754: también
+// las fotos de la galería). Una foto de móvil son 4.000 px de ancho: la
+// franja se reduce a `anchoMaximo`, que para leer cuatro palabras sobra.
+export function recortarFranjasDe(fuente, r, lienzo, calidad = 0.85, anchoMaximo = 1200) {
   const ctx = lienzo.getContext('2d')
   const fuera = {}
   for (const [clave, f] of Object.entries(FRANJAS)) {
     const alto = Math.round(r.alto * f.alto)
     const ancho = Math.round(r.ancho)
     if (alto < 8 || ancho < 8) return null
-    lienzo.width = ancho
-    lienzo.height = alto
-    ctx.drawImage(video, Math.round(r.x), Math.round(r.y + r.alto * f.y), ancho, alto, 0, 0, ancho, alto)
+    const escala = Math.min(1, anchoMaximo / ancho)
+    lienzo.width = Math.round(ancho * escala)
+    lienzo.height = Math.round(alto * escala)
+    ctx.drawImage(fuente, Math.round(r.x), Math.round(r.y + r.alto * f.y), ancho, alto, 0, 0, lienzo.width, lienzo.height)
     fuera[clave] = lienzo.toDataURL('image/jpeg', calidad)
   }
   return fuera
+}
+
+// DÓNDE ESTÁ LA CARTA EN UNA FOTO (754). En la cámara la encuadras tú
+// dentro del marco; en una foto de la galería no hay marco, así que se da
+// por hecho lo que hace casi todo el mundo al fotografiar una carta: que
+// está en el centro y la llena. Es el rectángulo más grande con la
+// proporción de una carta (63 × 88) centrado en la foto. Puro.
+export const PROPORCION_CARTA = 63 / 88
+export function marcoEnLaFoto(ancho, alto) {
+  if (!(ancho > 0) || !(alto > 0)) return null
+  const porAlto = alto * PROPORCION_CARTA
+  const w = Math.min(ancho, porAlto)
+  const h = w / PROPORCION_CARTA
+  return { x: (ancho - w) / 2, y: (alto - h) / 2, ancho: w, alto: h }
 }
 
 // ══════════════════════════════════════════════════════════════════

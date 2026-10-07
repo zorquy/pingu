@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (noche, 5) — PINGU-Claude (754 — escanear desde las fotos de la galería)
+
+**Hecho**: «Desde tus fotos» en el escáner (K5): una o varias fotos, cada
+una leída como un disparo (sus dos franjas, la misma búsqueda), y de cada
+una su carta a la bandeja con su «+». Funciona sin cámara. Con esto
+están las veinte de la lista de PINGU.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion.js` (el disparo partido en recortar y `leerYBuscar`),
+`js/mi-coleccion/escaner.js` (`recortarFranjasDe`, `marcoEnLaFoto`),
+`css/mi-coleccion.css`, `SCHEMA.md`. Prueba 754-pantalla (nueva).
+
+**Pendiente**: nada de la lista. Migración por ejecutar (de la 753):
+`supabase-migration-avisos-lanzamientos.sql`.
+
 ## 2026-10-07 (noche, 4) — PINGU-Claude (753 — instalar, los atajos del icono, la barra de abajo en el HTML con transición y los avisos de lanzamientos)
 
 **Hecho**: **A1**, la hoja de instalar existía (732) pero solo en la

@@ -1211,7 +1211,10 @@
         <div class="mc-escaner-abajo">
           <select class="mc-chapa-select" id="mcEscanerIdioma" aria-label="Idioma de la carta"></select>
           <button type="button" class="mc-escaner-disparo" id="mcEscanerDisparo" aria-label="Capturar la carta"></button>
-          <span class="mc-escaner-hueco" aria-hidden="true"></span>
+          <!-- Desde tus fotos (754, K5): una o varias de la galería, cada una
+               leída como un disparo; sale también sin cámara. -->
+          <button type="button" class="mc-escaner-fotos" id="mcEscanerFotos"><span aria-hidden="true" data-icono-escaner="image"></span><span>Desde tus fotos</span></button>
+          <input type="file" id="mcEscanerFicheros" accept="image/*" multiple hidden />
         </div>
         <canvas class="hidden" id="mcEscanerLienzo"></canvas>
       </dialog>

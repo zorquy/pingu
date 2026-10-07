@@ -5745,7 +5745,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    el desplegable solo a la izquierda, el botón se iba hacia un lado. */
 /* 128 y no 110: con 110 «Español» se cortaba a «Españo». El hueco de la
    derecha mide lo mismo para que el disparador quede centrado de verdad. */
-.mc-escaner-hueco,
+.mc-escaner-fotos,
 .mc-escaner-abajo .mc-chapa-select {
   flex: 0 0 128px;
   width: 128px;
@@ -8745,3 +8745,23 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-quiero-aviso.cumple svg { color: var(--success); }
+
+/* Desde tus fotos (754, K5): en el hueco que equilibraba el idioma. */
+.mc-escaner-fotos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 15%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.mc-escaner-fotos:disabled { opacity: 0.5; }

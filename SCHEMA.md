@@ -35849,3 +35849,23 @@ también estaría bien por expansión».
   dejaba dos filas, un verde que en la base no puede pasar).
 - **K1, un detalle**: si una carta de «La quiero» ya está por debajo del
   aviso que le pusiste, la fila dice «¡Ya por debajo de X!».
+
+## Tanda 754 — Escanear desde las fotos de la galería (oct. 2026)
+
+- **K5**: «Desde tus fotos» en la barra del escáner, donde estaba el hueco
+  que equilibraba el idioma. Una o varias (doce como mucho: cada foto es
+  una lectura del servidor), y cada una se lee como un disparo: las dos
+  franjas recortadas en el navegador y la misma búsqueda con sus aflojes.
+  El disparo se partió en dos para eso: recortar (cámara o foto) y
+  `leerYBuscar(franjas)`, que es lo común.
+- **Dónde está la carta en una foto**: en la cámara la encuadras tú; en
+  una foto no hay marco, así que `marcoEnLaFoto` da por hecho lo que hace
+  casi todo el mundo —la carta en el centro, llenándola— y toma el
+  rectángulo más grande con la proporción de una carta. Una foto con la
+  carta pequeña en una esquina no se lee, y lo dice («mejor la carta sola,
+  de frente»). La franja se reduce a 1.200 px de ancho: una foto de móvil
+  son 4.000 y para leer cuatro palabras sobra.
+- De cada foto sale su PRIMERA carta a la bandeja de la ráfaga (719), con
+  su «+» y su Deshacer; repetidas, una vez. Y funciona sin cámara: sin
+  permiso, o en un ordenador sin ella, el aviso ya manda a «Desde tus
+  fotos».
