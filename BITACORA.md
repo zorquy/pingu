@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (noche, 3) — PINGU-Claude (749 y 750 — las expansiones con su logo y su color, el precio dentro de una expansión y la Pokédex por regiones)
+
+**Hecho**: de la lista que eligió PINGU, las dos primeras tandas. 749:
+cada fila de Expansiones lleva su LOGO donde iba el código (si la cadena
+de logos se agota, vuelve el código: nunca una caja vacía) y detrás el
+mismo logo muy difuminado, que es lo que le da a cada set su color (E1,
+E2); en el ordenador son baldosas con el logo grande arriba (E4); dentro
+de una expansión con logo, el logo y a su lado el nombre PEQUEÑO con
+«OBF · agosto de 2023 · 197 cartas» debajo —PINGU: «si tiene logo, no
+pongas el título, o muy pequeño»—, y sin logo el título de siempre (E5);
+«Casi completas» en el orden (Y2); el punto de los miles también en
+«1.475,90 €» (Y1: `useGrouping: 'always'`, que en español el navegador no
+pone por debajo de 10.000); y en el ordenador ancho, un hueco más
+estrecho entre cartas (Y8). 750: en los filtros de una expansión, el
+precio de cada carta con dos tiradores, «Desde / Hasta» y tres atajos
+(«Menos de 0,50 €», «Menos de 2 €», «Más de 10 €»), contando también las
+que NO tienes, cuyos precios se piden al abrirla; el botón dice «Ver N
+cartas · unos X €» (K6). Y la Pokédex con la cuenta de cada región en su
+chip («Kanto 15/151» y una barra) y «24 de 1.025 especies» arriba (K7).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`, `css/mi-coleccion.css`,
+`js/cardmarket.js`, `js/home.js`, `js/perfil-cifras.js`,
+`js/constructor.js`, `SCHEMA.md`. Pruebas 749-pantalla y 750-pantalla
+(nuevas) y 400, 414, 475, 476, 710 y 748 al día en `pruebas`.
+
+**Pendiente**: lo demás de la lista de PINGU — «La quiero» con aviso de
+precio, compartirla como imagen y quién tiene lo que te falta (751, con
+migración); las pestañas del perfil y «en qué álbum la tienes» (752); la
+hoja de instalar, los atajos del icono, la barra de abajo en el HTML con
+transiciones y los avisos de lanzamiento (753); escanear desde la galería
+(754).
+
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y

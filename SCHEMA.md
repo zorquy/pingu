@@ -35677,3 +35677,55 @@ Prueba 748-pantalla (diecisiete bloques) y 306, 309, 327, 740, 710, 721, 707, 71
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.
+
+## Tanda 749 — Las expansiones con su logo y su color (oct. 2026)
+
+PINGU: «se les ha quitado el logo y daban bastante personalidad… y colores
+también estaría bien por expansión».
+
+- **La fila (E1)**: el logo va donde iba el código, en una caja de 88×44
+  (`.mc-set-marca`), con la misma cadena que el resto de la web
+  (`logo_tcggo` → `logo_scrydex` → `urlDeLogo(logo_path)` →
+  `symbol_scrydex`). Si se agota, la caja se queda con `sin-logo` y pinta
+  el código con `attr(data-codigo)`: un logo que no carga deja el código,
+  no un hueco. Con logo, el código pasa a la línea de debajo
+  (`.mc-set-corta-codigo`), que se esconde si el logo cae para no
+  repetirlo.
+- **El color (E2)**: el color de cada set saldría de leer su logo en un
+  lienzo, y eso pide CORS de una CDN ajena y trabajo por fila. Lo que se
+  hace es el MISMO logo, ampliado y muy difuminado detrás de la fila, con
+  un degradado a `--white`: cada expansión trae su color sin calcular
+  nada, y en oscuro el degradado va al fondo oscuro solo.
+- **El ordenador (E4)**: desde 900 px la lista son baldosas con el logo
+  grande arriba (hasta 160×68) y el fondo bajando. El `width`/`height` del
+  `<img>` (que reserva el hueco) ganaba al tamaño: la imagen va a
+  `width: 100%; height: 100%; object-fit: contain` dentro de su caja.
+- **La cabecera de una expansión (E5)**: con logo, el logo y a su lado el
+  nombre en `--t-sm` y una línea «código · mes de año · N cartas» en
+  `--t-xs`; sin logo, el título de siempre y sin línea. La fecha se lee
+  con `T12:00:00` para que una zona horaria no la pase al día anterior.
+  `.mc-album-nombre` es `flex: 1 1 0`: con `auto` empujaba el «⋯» a otra
+  línea en el móvil.
+- **«Casi completas» (Y2)**: primero las empezadas por lo que les falta,
+  luego las completas, al final las que no tienes.
+- **El punto de los miles (Y1)**: el español no lo pone por debajo de
+  10.000 (`1475,90`); `useGrouping: 'always'` en todos los
+  `toLocaleString('es-ES')` y en el `fmt` de `js/cardmarket.js`.
+- **Una columna más (Y8)**: la rejilla ya daba ocho a 1.600 px; lo que se
+  toca es el hueco a partir de 1.200, a `--e-sm`.
+
+## Tanda 750 — El precio dentro de una expansión y la Pokédex por regiones (oct. 2026)
+
+- **K6**: los filtros de una expansión tienen «Precio de cada carta» con
+  dos tiradores, «Desde / Hasta» y tres atajos que se marcan
+  (`aria-pressed`) cuando el rango es el suyo. El tope es el precio más
+  alto de las cartas del SET, no de las tuyas: los precios en memoria son
+  los de tu colección (la 651), así que al abrir una expansión
+  `cargarPreciosDelAlbum` pide los que faltan y los funde en `guardados`.
+  Una carta sin precio no entra en ningún rango (no se sabe si vale 1 € o
+  100). El botón dice «Ver N cartas · unos X €». La 748 lo dejó fuera
+  porque los precios no estaban: es lo que se ha resuelto.
+- **K7**: cada chip de región dice «n/total» con una barra
+  (`.pdx-region-cuenta`, `.pdx-region-barra`), contado sobre TODAS las
+  especies aunque esté puesto «Solo las mías» (si no, sale «15/15»); y la
+  cabecera, «N de 1.025 especies».
