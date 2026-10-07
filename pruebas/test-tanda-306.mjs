@@ -82,7 +82,9 @@ console.log('\n── 2. Las cifras van todas en la MISMA fila ──')
     const sinCaja = await page.locator('.perfil-cifras-lote').evaluate((n) => getComputedStyle(n).display)
     check(`${ruta}: y el lote del JS no hace caja`, sinCaja === 'contents', sinCaja)
     const filas = await page.locator('.perfil-cifra').evaluateAll((ns) => [...new Set(ns.map((x) => Math.round(x.getBoundingClientRect().top)))])
-    check(`${ruta}: en escritorio caben en un solo renglón`, filas.length === 1, `${filas.length} renglones`)
+    // Desde la 748 (J4) son DOS renglones a propósito: las cuatro grandes
+    // y, debajo, «0 seguidores · 0 siguiendo · 0 trofeos» en pequeño.
+    check(`${ruta}: en escritorio, las cuatro en un renglón y las tres de la gente en otro`, filas.length === 2, `${filas.length} renglones`)
     // La tarjeta las contiene: si la tira se saliera, esto cambiaría.
     const dentro = await page.evaluate(() => !!document.querySelector('.profile-hero .perfil-cifras'))
     check(`${ruta}: la tira va dentro de la tarjeta`, dentro)
@@ -130,7 +132,9 @@ console.log('\n── 4. El banner sin foto sigue midiendo 64 px (679; eran 96) 
   for (const [ruta, sesion] of [['/perfil', 'user-1'], ['/usuario?u=Ash', 'user-2']]) {
     const { page } = await abrir(ruta, { sesion })
     const alto = await page.locator('#heroBanner').evaluate((n) => n.getBoundingClientRect().height)
-    check(`${ruta}: sin foto el banner mide 64`, alto === 64, String(alto))
+    // Desde la 748 (J4) el banner sin foto lleva el degradado de su maqueta
+    // y mide lo mismo que con foto: ya no es «color liso que no dice nada».
+    check(`${ruta}: sin foto el banner mide 136`, alto === 136, String(alto))
     await page.close()
   }
   // Y con foto se queda en los 128: si alguien «arreglara» lo de arriba
@@ -140,7 +144,7 @@ console.log('\n── 4. El banner sin foto sigue midiendo 64 px (679; eran 96) 
     semillas: { __FAKE_PERFILES__: [{ id: 'user-1', banner_url: 'https://ejemplo/x.png' }] },
   })
   const alto = await page.locator('#heroBanner').evaluate((n) => n.getBoundingClientRect().height)
-  check('con foto se queda en 128', alto === 128, String(alto))
+  check('con foto, lo mismo: 136', alto === 136, String(alto))
   await page.close()
 }
 

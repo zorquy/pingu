@@ -642,6 +642,235 @@ console.log('── 12. El meta de su maqueta (J3) ──')
   await ctx.close()
 }
 
+console.log('── 13. El escritorio de su maqueta (D1) ──')
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [
+      { id: 'sv3', name: 'Llamas Obsidianas', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-08-11', tcg_online_code: 'OBF' },
+      { id: 'sv2', name: 'Evoluciones en Paldea', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-06-09', tcg_online_code: 'PAL' },
+    ]
+    const c = (set, n) => ({ id: `${set}-${n}`, market: 'WEST', set_id: set, local_id: String(n), name: `Carta ${n}`, image_path: `x/${n}`, rarity: 'Common', category: 'Pokemon', dex_ids: [n], variants: { normal: true } })
+    window.__FAKE_CARTAS__ = [c('sv3', 1), c('sv3', 2), c('sv2', 1)]
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'admin-1', card_id: 'sv3-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }, { id: 'l2', user_id: 'admin-1', card_id: 'sv2-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }]
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const m = await page.evaluate(() => {
+    const r = (s) => document.querySelector(s)?.getBoundingClientRect()
+    const fs = [...document.querySelectorAll('#mcEstanteriaRejilla .mc-set-fila')].filter((f) => f.offsetHeight > 0).map((f) => f.getBoundingClientRect())
+    return {
+      pastilla: (document.querySelector('#navSearchBtn .nav-busca-texto')?.offsetWidth || 0) > 0 ? document.querySelector('#navSearchBtn').textContent.trim() : null,
+      anchoBuscar: r('#navSearchBtn')?.width || 0,
+      avatarArriba: getComputedStyle(document.querySelector('#navUserBtn')).clipPath,
+      yo: document.querySelector('.lat-yo')?.offsetHeight > 0 ? document.querySelector('.lat-yo').textContent.trim() : null,
+      yoAbajo: (r('.lat-yo')?.bottom || 0) > innerHeight - 120,
+      enFila: fs.length >= 2 && Math.abs(fs[0].top - fs[1].top) < 2,
+    }
+  })
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('el buscador es una pastilla que se lee, con su «Ctrl K»', /Busca cartas, guías, gente…\s*Ctrl K/.test(m.pastilla || '') && m.anchoBuscar >= 300, JSON.stringify(m))
+  check('tu cuenta, abajo en la lateral («Ver perfil»), y el avatar de arriba apartado', /Ver perfil/.test(m.yo || '') && m.yoAbajo && m.avatarArriba === 'inset(50%)', JSON.stringify(m))
+  check('las expansiones, en baldosas una al lado de otra', m.enFila, JSON.stringify(m))
+  await page.locator('.lat-yo').click()
+  await page.waitForTimeout(600)
+  const h = await page.evaluate(() => {
+    const d = document.querySelector('#navUserDropdown')
+    const b = d?.getBoundingClientRect(), y = document.querySelector('.lat-yo').getBoundingClientRect()
+    return { abierta: !!d && !d.classList.contains('hidden') && b.height > 0, dentro: b && b.top >= 0 && b.bottom <= innerHeight && b.left >= y.right - 4, ver: !!d?.querySelector('a.tu-perfil') }
+  })
+  check('la tarjeta abre la hoja «Tú» a su lado y dentro de la pantalla', h.abierta && h.dentro && h.ver, JSON.stringify(h))
+  await ctx.close()
+}
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'es-ES' })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/aprender.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2200)
+  const m = await page.evaluate(() => ({ yo: !!document.querySelector('.lat-yo'), pastilla: (document.querySelector('#navSearchBtn .nav-busca-texto')?.offsetWidth || 0) > 0 }))
+  check('sin sesión: pastilla sí, tarjeta de cuenta no', !errores.length && m.pastilla && !m.yo, JSON.stringify(m) + errores.join(' | '))
+  await ctx.close()
+}
+
+console.log('── 14. La expansión en tres columnas (D2) ──')
+for (const ancho of [1440, 1280]) {
+  const ctx = await browser.newContext({ viewport: { width: ancho, height: 900 }, locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [
+      { id: 'sv3', name: 'Llamas Obsidianas', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-08-11', tcg_online_code: 'OBF' },
+      { id: 'sv2', name: 'Evoluciones en Paldea', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-06-09', tcg_online_code: 'PAL' },
+      { id: 'swsh12', name: 'Tempestad Plateada', serie_id: 'swsh', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2022-11-11', tcg_online_code: 'SIT' },
+    ]
+    const c = (set, n) => ({ id: `${set}-${n}`, market: 'WEST', set_id: set, local_id: String(n), name: `Carta ${set} ${n}`, image_path: `x/${n}`, rarity: 'Common', category: 'Pokemon', dex_ids: [n], variants: { normal: true } })
+    window.__FAKE_CARTAS__ = [1, 2, 3, 4].flatMap((n) => [c('sv3', n), c('sv2', n), c('swsh12', n)])
+    window.__FAKE_COLECCION__ = ['sv3-1', 'sv3-2', 'sv2-1', 'swsh12-1'].map((id, i) => ({ id: `l${i}`, user_id: 'admin-1', card_id: id, market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }))
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"><rect width="600" height="837" fill="#3a7bd5"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album&set=sv3`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const lee = () => page.evaluate(() => {
+    const d = document.getElementById('mcEditor')
+    const h = document.getElementById('mcAlbumHermanos')
+    return {
+      hermanos: h?.offsetHeight > 0 ? [...h.querySelectorAll('.mc-hermano')].map((b) => `${b.textContent.replace(/\s+/g, ' ').trim()}${b.getAttribute('aria-current') ? ' *' : ''}`) : null,
+      izquierda: h?.offsetHeight > 0 && h.getBoundingClientRect().right <= document.getElementById('mcAlbum').getBoundingClientRect().left,
+      linea: document.getElementById('mcAlbumLinea')?.offsetHeight > 0 ? document.getElementById('mcAlbumLinea').textContent : null,
+      chips: document.getElementById('mcAlbumQue')?.offsetHeight > 0,
+      titulo: document.getElementById('mcAlbumTitulo').textContent,
+      cartas: [...document.querySelectorAll('#mcAlbum [data-carta]')].map((a) => a.dataset.carta),
+      ficha: { open: d.open, modal: d.matches(':modal'), der: Math.round(d.getBoundingClientRect().right), nombre: d.querySelector('#mcEditorTitulo')?.textContent.trim() },
+      abierta: [...document.querySelectorAll('#mcAlbum .mc-abierta')].map((a) => a.dataset.carta),
+      ventana: innerWidth, scroll: document.documentElement.scrollWidth,
+    }
+  })
+  const m = await lee()
+  check(`${ancho}: sin errores`, errores.length === 0, errores.join(' | '))
+  if (ancho === 1280) {
+    check('1280: una columna, como siempre (sin la lista de al lado ni la línea)', m.hermanos === null && m.linea === null && !m.chips, JSON.stringify(m))
+    await page.locator('#mcAlbum [data-carta]').first().click()
+    await page.waitForTimeout(900)
+    check('  …y la carta se abre en su ventana de siempre', (await lee()).ficha.modal)
+    await ctx.close()
+    continue
+  }
+  check('a la izquierda, las de su era con su código y su cuenta (y no las de otra)', JSON.stringify(m.hermanos) === JSON.stringify(['OBF Llamas Obsidianas 2/4 *', 'PAL Evoluciones en Paldea 1/4']) && m.izquierda, JSON.stringify(m))
+  check('debajo del título, «2 de 4 · 50 %», y Todas / Tengo / Faltan al lado', /^2 de 4 · 50 %/.test(m.linea || '') && m.chips, JSON.stringify(m))
+  await page.click('#mcAlbumQue [data-que="mcAlbumSoloFaltan"]')
+  await page.waitForTimeout(500)
+  const f = await lee()
+  check('«Faltan» deja solo las que faltan, y se queda marcada', JSON.stringify(f.cartas) === JSON.stringify(['sv3-3', 'sv3-4']) && (await page.getAttribute('#mcAlbumQue [data-que="mcAlbumSoloFaltan"]', 'aria-pressed')) === 'true', JSON.stringify(f.cartas))
+  await page.click('#mcAlbumQue [data-que="mcAlbumTodas"]')
+  await page.waitForTimeout(500)
+  await page.locator('#mcAlbum [data-carta="sv3-2"]').first().click()
+  await page.waitForTimeout(1000)
+  const a = await lee()
+  check('la carta se abre a la derecha, sin tapar la rejilla, y se marca en ella', a.ficha.open && !a.ficha.modal && a.ficha.der === a.ventana && a.scroll <= a.ventana && JSON.stringify(a.abierta) === '["sv3-2"]', JSON.stringify(a))
+  await page.evaluate(() => document.body.focus())
+  await page.keyboard.press('ArrowRight')
+  await page.waitForTimeout(800)
+  const b = await lee()
+  check('  …la flecha pasa a la siguiente', b.ficha.open && b.ficha.nombre !== a.ficha.nombre, `${a.ficha.nombre} → ${b.ficha.nombre}`)
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(400)
+  const c = await lee()
+  check('  …y Esc la cierra y quita la marca', !c.ficha.open && c.abierta.length === 0, JSON.stringify(c))
+  await page.locator('#mcAlbum [data-carta="sv3-1"]').first().click()
+  await page.waitForTimeout(900)
+  await page.click('#mcAlbumHermanos [data-hermano="sv2"]')
+  await page.waitForTimeout(1200)
+  const e = await lee()
+  check('pulsar otra de la izquierda la abre (y cierra la carta, que era de la otra)', e.titulo === 'Evoluciones en Paldea' && e.cartas[0] === 'sv2-1' && !e.ficha.open && /\*$/.test(e.hermanos?.[1] || ''), JSON.stringify(e))
+  await ctx.close()
+}
+
+console.log('── 15. Sin saltos al cargar en el ordenador ──')
+// La lateral llegaba tarde y empujaba la página 240 px (y, sin su hoja, un
+// instante en el flujo, 230 px hacia abajo): 0,5–0,9 de desplazamiento
+// acumulado en cada página. Por debajo de 0,1 es «bueno».
+for (const ruta of ['/aprender.html', '/foro.html', '/carta.html?id=xy5-1', '/noticias.html', '/mi-coleccion.html?ver=album']) {
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__saltos = 0
+    window.__izq = []
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__saltos += e.value }).observe({ type: 'layout-shift', buffered: true })
+    const mira = () => { const c = document.getElementById('contenido'); if (c) { const x = Math.round(c.getBoundingClientRect().left); if (window.__izq.at(-1) !== x) window.__izq.push(x) } if (performance.now() < 3000) requestAnimationFrame(mira) }
+    requestAnimationFrame(mira)
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3200)
+  const m = await page.evaluate(() => ({ saltos: Math.round(window.__saltos * 1000) / 1000, izq: window.__izq, lat: !!document.querySelector('.lat:not([hidden])') }))
+  check(`${ruta}: la lateral ya tiene su sitio al pintar y la página no salta (< 0,15)`, m.lat && m.saltos < 0.15 && m.izq.every((x) => x === m.izq[0]), JSON.stringify(m))
+  await ctx.close()
+}
+
+console.log('── 16. El perfil de su maqueta (J4) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1' })
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/perfil.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+  const m = await page.evaluate(() => {
+    const r = (s) => document.querySelector(s)?.getBoundingClientRect()
+    const b = r('#heroBanner'), a = r('#heroAvatar'), n = r('.profile-hero-info h1'), e = r('#btnEditProfile')
+    const lote = [...document.querySelectorAll('#profileStats .perfil-cifra')]
+    return {
+      banner: { izq: Math.round(b.left), ancho: Math.round(b.width), ventana: innerWidth, fondo: getComputedStyle(document.getElementById('heroBanner')).backgroundImage.slice(0, 15) },
+      avatarCuadrado: getComputedStyle(document.getElementById('heroAvatar')).borderRadius !== '50%' && a.top < b.bottom,
+      botonAlLado: Math.abs(e.top - a.top) < a.height && e.left > a.right,
+      nombreDebajo: n.top > a.top && n.width > 200,
+      arroba: document.querySelector('.perfil-arroba')?.textContent || null,
+      cuatro: lote.length === 4 && new Set(lote.map((x) => Math.round(x.getBoundingClientRect().top))).size === 1,
+      rotulos: lote.map((x) => x.querySelector('.rotulo').textContent + '/' + getComputedStyle(x.querySelector('.rotulo')).textTransform),
+      gente: (document.getElementById('btnShowFollowers').innerText || '').replace(/\s+/g, ' ').trim(),
+    }
+  })
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('el banner va a sangre y, sin foto, con su degradado', m.banner.izq === 0 && m.banner.ancho === m.banner.ventana && /gradient/.test(m.banner.fondo), JSON.stringify(m.banner))
+  check('el avatar, cuadrado redondeado y montado en el banner; «Editar perfil» a su lado', m.avatarCuadrado && m.botonAlLado, JSON.stringify(m))
+  check('el nombre debajo, a lo ancho, con su @', m.nombreDebajo && /^@/.test(m.arroba || ''), JSON.stringify(m))
+  check('las cuatro cifras en una fila, en minúscula, y la gente en una línea («0 seguidores»)', m.cuatro && m.rotulos.every((x) => /lowercase$/.test(x)) && /^0 seguidores$/i.test(m.gente), JSON.stringify(m))
+  await ctx.close()
+}
+
+console.log('── 17. El torneo mientras juegas (J2) ──')
+for (const [quien, juega] of [['user-1', true], ['admin-1', false]]) {
+  const ahora = Date.now()
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(([s, a]) => {
+    window.__FAKE_SESSION__ = s
+    window.__FAKE_TORNEOS__ = [{ id: 'torneo-1', slug: 'pachanga', name: 'La Pachanga de Otoño', status: 'in_progress', description: 'Tres rondas suizas.', admin_id: 'mod-1', max_players: 16, swiss_rounds: 3, swiss_bo: 3, top_cut_size: 4, top_cut_bo: 3, round_time_minutes: 30, checkin_minutes: 5, start_at: new Date(a - 3600e3).toISOString(), current_round_id: 'ronda-1' }]
+    window.__FAKE_INSCRIPCIONES__ = ['user-1', 'user-2'].map((u, i) => ({ id: `i${i}`, tournament_id: 'torneo-1', user_id: u, status: 'active', tcg_live_username: `TCG_${u}`, participation_confirmed_at: new Date(a - 7200e3).toISOString() }))
+    window.__FAKE_RONDAS__ = [{ id: 'ronda-1', tournament_id: 'torneo-1', round_number: 1, status: 'active', phase: 'swiss', started_at: new Date(a - 120e3).toISOString(), ends_at: new Date(a + 14 * 60000).toISOString() }]
+    window.__FAKE_MESAS__ = [{ id: 'mesa-1', round_id: 'ronda-1', table_number: 1, player_a_id: 'user-1', player_b_id: 'user-2', status: 'active', check_in_a_at: new Date(a - 60e3).toISOString(), check_in_b_at: new Date(a - 60e3).toISOString() }]
+  }, [quien, ahora])
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/torneo?slug=pachanga`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+  const m = await page.evaluate(() => {
+    const vis = (sel) => { const e = document.querySelector(sel); return !!e && e.getBoundingClientRect().height > 0 }
+    const botones = [...document.querySelectorAll('.torneo-bo3-juego .torneo-reportar .torneo-boton-resultado')].map((b) => Math.round(b.getBoundingClientRect().top))
+    return {
+      clase: document.documentElement.classList.contains('torneo-jugando'),
+      formato: vis('#torneoFormato'), plazas: vis('.torneo-plazas'),
+      mesaArriba: Math.round(document.getElementById('torneoMiPartida')?.getBoundingClientRect().top + scrollY || 0),
+      pantalla: innerHeight,
+      enFila: botones.length === 3 && new Set(botones).size === 1,
+    }
+  })
+  check(`${quien}: sin errores`, errores.length === 0, errores.join(' | '))
+  if (juega) {
+    check('jugando: la cabecera se queda en el nombre (sin formato ni plazas)', m.clase && !m.formato && !m.plazas, JSON.stringify(m))
+    check('  …tu mesa empieza en la primera pantalla y media, no dos más abajo', m.mesaArriba > 0 && m.mesaArriba < m.pantalla * 1.5, JSON.stringify(m))
+    check('  …y Victoria / Derrota / Tablas, en una fila', m.enFila, JSON.stringify(m))
+  } else {
+    check('mirando sin jugar: la cabecera entera, con su formato', !m.clase && m.formato, JSON.stringify(m))
+  }
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)

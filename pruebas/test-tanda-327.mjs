@@ -182,15 +182,16 @@ console.log('\n── 4. El punto de corte de la barra se MIDE ──')
   // cambia lo que la barra PIDE, y un corte heredado es una afirmación
   // sobre un ancho que ya no existe. El síntoma no canta — el logo es
   // hijo de flex y cede.
-  const page = await browser.newPage({ viewport: { width: 1600, height: 800 } })
+  // A 1.360 y no a 1.600: desde 1.400 con ratón sale la barra lateral
+  // (739), que esconde arriba el logo y los desplegables, y desde la 748
+  // lo hace la MEDIA desde el primer pintado (no la clase, que se podía
+  // quitar aquí). Lo que se mide es la barra de arriba ENTERA, la de quien
+  // no tiene lateral, y a 1.360 sobra sitio para que nada ceda.
+  const page = await browser.newPage({ viewport: { width: 1360, height: 800 } })
   await page.addInitScript(() => { window.__FAKE_SESSION__ = 'user-1' })
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   const pide = await page.evaluate(() => {
-    // A 1.600 con ratón sale la barra lateral (739), que esconde arriba el
-    // logo y los desplegables: lo que se mide es la barra de arriba ENTERA,
-    // que es la de quien no tiene la lateral.
-    document.documentElement.classList.remove('con-lateral')
     const inner = document.querySelector('.nav-inner')
     const cs = getComputedStyle(inner)
     const piezas = [...inner.children].filter((n) => n.offsetParent)

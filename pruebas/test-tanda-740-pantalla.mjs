@@ -23,7 +23,10 @@ const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
 console.log('── 1. La regla ──')
 check('ancha y desde Cartas: al lado', vaAlLado({ ancha: true, vista: 'cartas' }))
-check('desde una expansión, no', !vaAlLado({ ancha: true, vista: 'album' }))
+// Desde la 748 (D2 de su maqueta) también desde una expansión, y desde 1.400.
+check('desde una expansión, también', vaAlLado({ ancha: false, anchaExpansion: true, vista: 'album' }))
+check('  …pero no en una expansión estrecha', !vaAlLado({ ancha: false, anchaExpansion: false, vista: 'album' }))
+check('desde la Pokédex, no', !vaAlLado({ ancha: true, vista: 'pokedex' }))
 check('estrecha, no', !vaAlLado({ ancha: false, vista: 'cartas' }))
 
 const browser = await chromium.launch()
@@ -101,11 +104,12 @@ console.log('── 2. Tus expansiones, a la izquierda ──')
 
 console.log('── 5. Donde la ficha es la de siempre ──')
 {
-  const { page, ctx } = await abrir('/mi-coleccion.html?ver=album&set=xy5')
+  // Desde la 748 la expansión ancha va en tres columnas (748-pantalla, 14).
+  const { page, ctx } = await abrir('/mi-coleccion.html?ver=album&set=xy5', 1280)
   await page.locator('#mcPanelAlbum .mc-bolsillo-enlace').first().click()
   await page.waitForTimeout(800)
   const f = await ficha(page)
-  check('desde una expansión, la ficha es modal (no hay tres columnas que hacer)', f.open && f.modal, JSON.stringify(f))
+  check('desde una expansión estrecha, la ficha es modal', f.open && f.modal, JSON.stringify(f))
   await ctx.close()
   const b = await abrir('/mi-coleccion.html?ver=cartas', 1440)
   await b.page.click('#mcCartas .mc-carta >> nth=2')

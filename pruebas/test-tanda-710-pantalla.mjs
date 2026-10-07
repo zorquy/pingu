@@ -80,7 +80,9 @@ console.log('── 2. En el escritorio, la misma lista (748) y la tarjeta enter
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=album', { movil: false })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const ts = await tarjetas(page)
-  check('en tu colección, filas con su anillo y sin las cifras', ts.length === 2 && ts.every((t) => t.anillo && !t.cifras && !t.pie && t.alto <= 90), JSON.stringify(ts))
+  // En el ordenador, desde la 748 (D1), las mismas filas en BALDOSA: más
+  // altas (código y anillo arriba, nombre debajo), pero sin las cifras.
+  check('en tu colección, baldosas con su anillo y sin las cifras', ts.length === 2 && ts.every((t) => t.anillo && !t.cifras && !t.pie && t.alto <= 140), JSON.stringify(ts))
   await ctx.close()
   const cat = await abrir('/cartas.html', { movil: false })
   const tc = await tarjetas(cat.page)
