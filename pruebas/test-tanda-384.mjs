@@ -495,6 +495,11 @@ console.log('\n── 5. La paleta de energías es COPIA de la de la ficha ─�
   const pdx = Object.fromEntries([...leer('css/mi-coleccion.css').matchAll(/\.pdx-especie\.tipo-([A-Z])\s*\{\s*--tipo-energia:\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]))
   const malPdx = Object.entries(LETRA).filter(([, l]) => 'GRWLPFDM'.includes(l)).filter(([t, l]) => ficha[t] !== pdx[l]).map(([t]) => t)
   check('…y los ocho de la Pokédex de Mi colección también', Object.keys(pdx).length === 8 && malPdx.length === 0, malPdx.join(', ') || JSON.stringify(pdx))
+  // Y la cuarta (721): la barra de uso de cada mazo del meta, con los diez
+  // que tiñen (Incoloro no: su gris no se vería sobre el fondo de la barra).
+  const meta = paleta(leer('css/meta.css'), '\\.meta-barra')
+  const malMeta = Object.keys(LETRA).filter((t) => t !== 'Colorless').filter((t) => ficha[t] !== meta[t])
+  check('…y los diez de la barra del meta también', Object.keys(meta).length === 10 && malMeta.length === 0, malMeta.join(', ') || JSON.stringify(meta))
 }
 
 // ═════════════════════════════════════════════════════════════════════
