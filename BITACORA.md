@@ -10,17 +10,21 @@ antes de cada push (ver CLAUDE.md). Formato:
 tenía razón. Se rehacen una a una con la captura al lado. Van cuatro:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
-cartas», precio con dos tiradores, «Borrar todo») y la Pokédex por regiones
-con el tipo de cada especie aunque no tengas su carta.
+cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
+con el tipo de cada especie aunque no tengas su carta, y el Panel como la
+cartera de su maqueta (lo que vale, la línea, los rangos, tres fichas y
+«Las que más se mueven» en lista). De paso, un salto al cargar en el
+ordenador: la columna de filtros se enfocaba y bajaba la página.
 
 **Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
 `js/mi-coleccion.js`, `js/mi-coleccion/{segmentado,energias,pokedex}.js`,
+`js/mi-coleccion/{grafica-valor,filtros-columna}.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
 `CLAUDE.md` (la regla de la 650), `SCHEMA.md`. Prueba 748-pantalla y
-quince más al día en `pruebas`.
+veintiocho más al día en `pruebas`.
 
-**Pendiente**: seguir rehaciendo — Panel, Expansiones, la hoja «Tú», la
+**Pendiente**: seguir rehaciendo — Expansiones, la hoja «Tú», la
 portada, foro, ficha de carta, meta, escritorio y la sensación de app. El
 rango de precio dentro de una expansión no se hace (ver SCHEMA 748).
 

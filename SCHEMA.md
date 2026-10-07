@@ -35461,10 +35461,36 @@ coinciden. Esta tanda trae cuatro.
   «x de total» y no «N cartas», porque es lo que dice cuánto te falta de
   esa especie, que es para lo que sirve la pantalla.
 
+- **El Panel (C1)**: «sin el hero viejo». En TU colección la cabecera se
+  recoge también en el Panel (el `<h1>` queda en `sr-only`) y abre la
+  cartera de la maqueta: «Lo que vale tu colección», la cifra grande con el
+  punto de los miles siempre, el cambio con su flecha («▲ 42,10 € · 3,4 %
+  este mes»), la línea de borde a borde sin rejilla, los rangos 7D · 1M ·
+  6M · 1A · Todo (`RANGOS_CARTERA`; abre en 1M), tres fichas (cartas,
+  distintas, expansiones) y «Las que más se mueven» en lista de tres filas
+  con su set, su precio y su porcentaje. «Colección pública» baja al final
+  del Panel. En la colección de otra persona la cabecera conserva el QUIÉN
+  pero no las cifras, que las dice la cartera. La cifra sale al momento de
+  lo que hay en memoria y la gráfica llega a un hueco del mismo alto (128),
+  así que nada salta. La frase del cambio solo dice «este mes» si el
+  histórico cubre el mes; si no, «en 12 días» (la 653). La dirección la
+  dice una flecha (una forma, no solo un color) y, para quien escucha,
+  «Sube»/«Baja». `carteraHtml` vive al lado de `graficaHtml`, que se queda
+  como estaba para quien la quiera con rejilla.
+- **Un salto al cargar en el ordenador**: la columna de filtros (738) se
+  abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
+  trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
+  todo» es lo primero de la cabecera, en un portátil la página bajaba sola
+  medio metro al abrir Mi colección. Ahora se devuelve el foco y la
+  posición donde estaban. Se cazó porque la prueba de la gráfica del Panel
+  se encontraba el lienzo a −310 px.
+
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`, generado),
-`js/mi-coleccion.js`, `js/mi-coleccion/segmentado.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/grafica-valor.js`,
+`js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (cinco bloques) y 381, 385, 399, 426, 429, 437, 468,
-476, 650, 692, 711, 712, 713, 714 y 747 al día en `pruebas`.
+Prueba 748-pantalla (seis bloques) y 377, 381, 384, 385, 399, 400, 414,
+426, 429, 437, 440, 444, 447, 464, 465, 468, 475, 476, 582, 650, 653, 692,
+711, 712, 713, 714, 715 y 747 al día en `pruebas`.

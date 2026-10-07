@@ -2463,21 +2463,7 @@
   .mc-mas { width: 44px; height: 44px; }
 }
 
-/* ── Las que más se mueven (663): una fila de cartas con su porcentaje. ── */
-.mc-movidas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  grid-template-rows: auto;
-  grid-auto-rows: 0;
-  gap: var(--e-md);
-  row-gap: 0;
-  overflow: hidden;
-}
-.mc-movida { display: flex; flex-direction: column; gap: var(--e-xs); min-width: 0; }
-.mc-movida-pie { display: flex; justify-content: space-between; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); font-variant-numeric: tabular-nums; }
-.mc-movida-pie b { color: var(--text); }
-.mc-movida.sube .mc-movida-pie b { color: var(--success); }
-.mc-movida.baja .mc-movida-pie b { color: var(--danger); }
+/* Las que más se mueven: desde la 748 es una lista (bloque «748: la cartera»). */
 
 /* Lo que vale la expansión en el tiempo (662), debajo de la tira. */
 .mc-album-valor { margin-top: var(--e-md); }
@@ -7139,30 +7125,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-resumen .mc-cifra-valor .mc-cifra-cambio {
   font-size: var(--t-sm);
 }
-/* La gráfica ya no repite el total: lo dice la cabecera, justo encima.
-   Se queda para quien lee en voz alta, que no ve la cabecera al lado. */
-#mcValorCaja .mc-valor-ahora {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-#mcValorCaja h3 {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-/* En el móvil, la gráfica a sangre: sin caja, de borde a borde. */
 @media (max-width: 599px) {
-  #mcValorCaja {
-    /* Lo que mide el relleno lateral de `.container` (24 px). */
-    margin-inline: calc(-1 * var(--e-xl));
-    padding-inline: var(--e-xl);
-    border-inline: 0;
-    border-radius: 0;
-  }
   .mc-resumen .mc-cifra dd {
     font-size: var(--t-lg);
   }
@@ -7706,9 +7669,9 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 /* ── 748: la Pokédex como en su maqueta (C3; SCHEMA 748) ── */
-.pdx-especie.tipo-N { --tipo-energia: #b8962e; }
+.pdx-especie.tipo-N { --tipo-energia: #b59433; }
 .pdx-especie.tipo-C { --tipo-energia: #a7a49b; }
-.pdx-especie.tipo-Y { --tipo-energia: #e17aa6; }
+.pdx-especie.tipo-Y { --tipo-energia: #e07bb0; }
 
 .pdx-encabezado {
   display: flex;
@@ -7774,4 +7737,223 @@ input.mc-alb-titulo:not([readonly]):focus {
 .pdx-especie:not(.tengo) .pdx-nombre,
 .pdx-especie:not(.tengo) .pdx-cuenta {
   color: var(--text-mid);
+}
+
+/* ── 748: la cartera (la C1 de su maqueta; el porqué, en SCHEMA 748) ── */
+.mc-hero.mc-hero-panel #mcResumen,
+.mc-hero.mc-hero-panel #mcResumenNota {
+  display: none;
+}
+.mc-cartera {
+  margin: 0 0 var(--e-md);
+}
+.mc-cartera-etiqueta {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mc-cartera-cifra {
+  margin: var(--e-xs) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.mc-cartera .mc-valor-cambio {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 24px;
+  margin: var(--e-xs) 0 var(--e-sm);
+  font-size: var(--t-md);
+  font-variant-numeric: tabular-nums;
+}
+.mc-cartera .mc-valor-frase {
+  color: var(--text-mid);
+  font-weight: 400;
+}
+.mc-valor-flecha {
+  width: 0;
+  height: 0;
+  border-inline: 6px solid transparent;
+  border-bottom: 8px solid currentColor;
+}
+.mc-valor-flecha.abajo {
+  border-top: 8px solid currentColor;
+  border-bottom: 0;
+}
+.mc-cartera .mc-valor-lienzo,
+.mc-cartera-esq-lienzo {
+  height: 128px;
+  margin-inline: 0;
+}
+.mc-cartera .mc-valor-grafica {
+  height: 128px;
+}
+.mc-cartera-esq-cambio {
+  display: block;
+  width: 180px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+}
+.mc-cartera-esq-lienzo {
+  border-radius: var(--radius-md);
+}
+.mc-cartera-esq-rango {
+  flex: 1 1 0;
+  max-width: 72px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+}
+.mc-cartera .mc-valor-rangos {
+  gap: var(--e-sm);
+  justify-content: flex-start;
+  margin-top: var(--e-md);
+}
+.mc-cartera .mc-valor-rango {
+  max-width: 96px;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-size: var(--t-sm);
+}
+.mc-cartera .mc-valor-rango.activo {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+}
+.mc-cartera .mc-valor-rango:disabled {
+  border-style: dashed;
+}
+.mc-cartera-fichas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-lg);
+  padding: 0;
+  list-style: none;
+}
+.mc-cartera-fichas li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.mc-cartera-fichas b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.mc-cartera-fichas span {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-esq-grafica {
+  height: 128px;
+  border-radius: var(--radius-md);
+}
+.mc-movidas {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  list-style: none;
+}
+.mc-movidas li + li {
+  border-top: 1px solid var(--border);
+}
+.mc-movida {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 72px;
+  padding: var(--e-sm) var(--e-md);
+  color: var(--text);
+  text-decoration: none;
+}
+.mc-movida:hover {
+  background: var(--bg);
+}
+.mc-movida-foto {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.mc-movida-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mc-movida-nombre,
+.mc-movida-precio {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mc-movida-nombre {
+  flex: 1 1 auto;
+}
+.mc-movida-nombre b,
+.mc-movida-nombre small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-movida-nombre small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.mc-movida-precio {
+  align-items: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+.mc-movida-precio small {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+.mc-movida.sube .mc-movida-precio small {
+  color: var(--success);
+}
+.mc-movida.baja .mc-movida-precio small {
+  color: var(--danger);
+}
+.mc-movida-esq {
+  flex: 1 1 auto;
+  height: 16px;
+  border-radius: var(--radius-pill);
+}
+#mcCompartir {
+  margin-top: var(--e-lg);
+}
+/* En el móvil, la línea a sangre: de borde a borde, como en la maqueta
+   (24 px es el relleno lateral de `.container`). */
+@media (max-width: 599px) {
+  .mc-cartera .mc-valor-lienzo,
+  .mc-cartera-esq-lienzo {
+    margin-inline: calc(-1 * var(--e-xl));
+  }
+  .mc-cartera-esq-lienzo {
+    border-radius: 0;
+  }
+  .mc-cartera .mc-valor-rango {
+    max-width: none;
+  }
 }

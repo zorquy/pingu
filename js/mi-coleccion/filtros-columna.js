@@ -37,7 +37,18 @@ export function montarColumnaFiltros({ seccion, panel, boton, cerrar, alAbrir = 
       if (panel.open) panel.close()
       seccion.classList.add('mc-con-columna')
       alAbrir()
+      // `show()` ENFOCA lo primero que se pulsa dentro (748: «Borrar
+      // todo») y lo trae a la vista, con el desplazamiento suave de la
+      // casa: al cargar en un portátil, la página bajaba sola medio metro.
+      // Una columna que aparece no es algo que se haya pedido mirar, así
+      // que se deja el foco y la posición donde estaban.
+      const antes = panel.ownerDocument?.activeElement
+      const x = win.scrollX
+      const y = win.scrollY
       panel.show()
+      if (antes && antes !== panel.ownerDocument.body && antes.focus) antes.focus({ preventScroll: true })
+      else panel.ownerDocument?.activeElement?.blur?.()
+      win.scrollTo?.({ left: x, top: y, behavior: 'instant' })
     } else if (!toca && enColumna()) {
       seccion.classList.remove('mc-con-columna')
       if (panel.open) panel.close()

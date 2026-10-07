@@ -60,6 +60,17 @@ export const RANGOS = [
 
 export const RANGO_POR_DEFECTO = 'MAX'
 
+// LOS DE LA CARTERA (748, la C1 de su maqueta): cinco y con «un año», que
+// en un Panel se lee mejor que «1D» y «3M». La tabla de arriba se queda
+// para quien la pide entera.
+export const RANGOS_CARTERA = [
+  { id: '7D', dias: 7, nombre: 'siete días', rotulo: '7D', frase: 'esta semana' },
+  { id: '1M', dias: 30, nombre: 'un mes', rotulo: '1M', frase: 'este mes' },
+  { id: '6M', dias: 180, nombre: 'seis meses', rotulo: '6M', frase: 'en seis meses' },
+  { id: '1A', dias: 365, nombre: 'un año', rotulo: '1A', frase: 'en un año' },
+  { id: 'MAX', dias: null, nombre: 'todo', rotulo: 'Todo', frase: null },
+]
+
 // Los días que entran en un rango. El corte se hace por FECHA y no por
 // cuántos puntos hay: con una foto al día son lo mismo, pero el día que
 // falte una —un despliegue, una noche sin cron— «los últimos 7 puntos»
@@ -70,7 +81,7 @@ export const RANGO_POR_DEFECTO = 'MAX'
 // colección no existía. Eso NO cambia el rótulo —sigue diciendo los días
 // que se piden— pero sí dibuja la línea desde el borde.
 export function diasDelRango(dias, rango) {
-  const r = RANGOS.find((x) => x.id === rango)
+  const r = RANGOS.find((x) => x.id === rango) || RANGOS_CARTERA.find((x) => x.id === rango)
   if (!r || r.dias === null || !dias.length) return dias
   const ultimo = new Date(`${dias[dias.length - 1].dia.slice(0, 10)}T00:00:00Z`)
   const corte = new Date(ultimo.getTime() - r.dias * 86400000).toISOString().slice(0, 10)
@@ -369,4 +380,93 @@ export function engancharLectura(lienzo) {
   lienzo.addEventListener('pointerdown', leer)
   lienzo.addEventListener('pointerleave', soltar)
   lienzo.addEventListener('pointercancel', soltar)
+}
+
+// La cifra con el punto de los miles SIEMPRE (la 747): el español no lo
+// pone a cuatro cifras, y «4817,20 €» en grande se lee mal.
+const conMiles = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
+export const eurosConMiles = (v) => conMiles.format(Number(v) || 0)
+
+// ── LA CARTERA (748) ──
+// La gráfica del Panel tal como la pinta su maqueta: sin rejilla, sin
+// fechas y de borde a borde. La cifra grande NO va aquí —la pinta el Panel
+// al momento, con lo que hay en memoria—; esto pone el cambio debajo, la
+// línea y los cinco rangos. Lo exacto lo sigue diciendo el globo al pasar
+// el dedo, que es lo que hace una app de cartera.
+//
+// El cambio dice el TRAMO que se ve, con una frase solo si el histórico
+// cubre el rango entero: «este mes» con doce días de fotos afirmaría un
+// mes que no existe (la 653), así que entonces dice «en 12 días».
+export function carteraHtml(filas, { ahora = null, rango = '1M', nombre = 'tu colección' } = {}) {
+  const r = resumenDeValor(filas, { ahora })
+  if (!r.bastante) {
+    const unico = r.dias[0]
+    if (!unico) return `<p class="mc-valor-cambio igual">La primera foto se toma esta noche</p>`
+    return `<p class="mc-valor-cambio igual">hoy, ${escapeHtml(fechaCorta(unico.dia))}</p>
+    <div class="mc-valor-lienzo igual">
+      <svg class="mc-valor-grafica mc-valor-un-punto" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de ${escapeHtml(nombre)} hoy: ${escapeHtml(euros(unico.valor))}. Todavía no hay más días.">
+        <line class="mc-valor-base" x1="0" y1="${ALTO / 2}" x2="${ANCHO}" y2="${ALTO / 2}" vector-effect="non-scaling-stroke" />
+      </svg>
+      ${marcaHtml(98, 50)}
+    </div>`
+  }
+  // `tramo` y no `dias`: la tabla ya usa `dias` para el NÚMERO de días.
+  const hay = RANGOS_CARTERA.map((x) => ({ ...x, tramo: diasDelRango(r.dias, x.id) }))
+  const elegido = hay.find((x) => x.id === rango && x.tramo.length >= 2)
+    || hay.find((x) => x.id === '1M' && x.tramo.length >= 2)
+    || hay.find((x) => x.id === 'MAX')
+  const dias = elegido.tramo.length >= 2 ? elegido.tramo : r.dias
+  const primero = dias[0]
+  const ultimo = dias[dias.length - 1]
+  const cambio = ultimo.valor - primero.valor
+  const pct = primero.valor > 0 ? (cambio / primero.valor) * 100 : null
+  const cuantosDias = Math.max(1, Math.round((Date.parse(`${ultimo.dia.slice(0, 10)}T00:00:00Z`) - Date.parse(`${primero.dia.slice(0, 10)}T00:00:00Z`)) / 86400000))
+  const frase = elegido.frase && cuantosDias >= elegido.dias
+    ? elegido.frase
+    : cuantosDias === 1 ? 'en un día' : `en ${cuantosDias} días`
+  // Arriba y abajo con margen, y a los lados NADA: de borde a borde.
+  const valores = dias.map((d) => d.valor)
+  const max = Math.max(...valores)
+  const min = Math.min(...valores)
+  const span = max - min || 1
+  const arriba = 12
+  const alto = ALTO - arriba - 28
+  // La línea acaba un pelo antes del borde derecho: ahí va la marca de
+  // HOY, que a sangre se quedaría cortada por la mitad.
+  const fin = ANCHO - 10
+  const x = (i) => (dias.length === 1 ? fin / 2 : (i / (dias.length - 1)) * fin)
+  const y = (v) => arriba + alto - ((v - min) / span) * alto
+  const linea = `M${dias.map((d, i) => `${x(i).toFixed(1)},${y(d.valor).toFixed(1)}`).join(' L')}`
+  const relleno = `${linea} L${fin},${ALTO} L0,${ALTO} Z`
+  const puntosLectura = dias.map((d, i) => [d.dia.slice(0, 10), Number(d.valor.toFixed(2)), Number(((x(i) / ANCHO) * 100).toFixed(2)), Number(((y(d.valor) / ALTO) * 100).toFixed(2))])
+  const t = tono(cambio)
+  // La dirección la dice una FLECHA, como en la maqueta, y no solo el
+  // color: quien no distingue el verde del rojo ve la forma, y quien
+  // escucha oye «sube» o «baja» (la flecha no se lee).
+  const flecha = cambio > 0
+    ? '<span class="mc-valor-flecha" aria-hidden="true"></span><span class="sr-only">Sube </span>'
+    : cambio < 0 ? '<span class="mc-valor-flecha abajo" aria-hidden="true"></span><span class="sr-only">Baja </span>' : ''
+  const signo = ''
+  const botones = hay.map((b) => {
+    const puede = b.tramo.length >= 2 || b.id === 'MAX'
+    const puesto = b.id === elegido.id
+    return `<button type="button" class="mc-valor-rango${puesto ? ' activo' : ''}" data-rango="${b.id}"${puede ? '' : ' disabled'} aria-pressed="${puesto ? 'true' : 'false'}" aria-label="Ver ${escapeHtml(b.nombre)}">${escapeHtml(b.rotulo)}</button>`
+  }).join('')
+  return `<p class="mc-valor-cambio ${t}">${flecha}${escapeHtml(signo + eurosConMiles(Math.abs(cambio)))}${pct === null ? '' : ` · ${escapeHtml(pct1.format(Math.abs(pct)))} %`} <span class="mc-valor-frase">${escapeHtml(frase)}</span></p>
+    <div class="mc-valor-lienzo ${t}" data-puntos="${escapeHtml(JSON.stringify(puntosLectura))}">
+      <svg class="mc-valor-grafica" viewBox="0 0 ${ANCHO} ${ALTO}" preserveAspectRatio="none" role="img" aria-label="El valor de ${escapeHtml(nombre)}, del ${escapeHtml(fechaCorta(primero.dia))} al ${escapeHtml(fechaCorta(ultimo.dia))}: de ${escapeHtml(euros(primero.valor))} a ${escapeHtml(euros(ultimo.valor))}.">
+        <defs>
+          <linearGradient id="mcValorDegradado" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="mc-valor-arriba" />
+            <stop offset="100%" class="mc-valor-abajo" />
+          </linearGradient>
+        </defs>
+        <path class="mc-valor-area" d="${relleno}" />
+        <path class="mc-valor-linea" d="${linea}" vector-effect="non-scaling-stroke" />
+      </svg>
+      ${marcaHtml((x(dias.length - 1) / ANCHO) * 100, (y(ultimo.valor) / ALTO) * 100)}
+      <div class="mc-valor-lectura" hidden aria-hidden="true"><span class="mc-valor-lectura-globo"></span></div>
+    </div>
+    <div class="mc-valor-rangos" role="group" aria-label="En cuántos días se mira">${botones}</div>
+    ${r.sinPrecio ? `<p class="mc-nota">${r.sinPrecio} ${r.sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía y no cuentan.</p>` : ''}`
 }

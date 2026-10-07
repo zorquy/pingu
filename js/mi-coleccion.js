@@ -1078,6 +1078,25 @@ function pTodo() {
     : [lineas, (l) => l.card_id, cartaDeLinea]
 }
 
+// La cifra grande de la cartera, con el punto de los miles SIEMPRE (747):
+// el español no lo pone a cuatro cifras y «4817,20 €» se lee mal.
+const conMiles = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
+const eurosConMiles = (v) => conMiles.format(Number(v) || 0)
+
+// Las tres fichas de la cartera (748): cuántas, cuántas distintas y de
+// cuántas expansiones. Las MISMAS cifras que la cabecera (`resumenHero`),
+// que son de toda la colección (la 485).
+function fichasDeCartera() {
+  const r = resumenHero
+  if (!r) return ''
+  const n = (v) => Number(v || 0).toLocaleString('es-ES')
+  return `<ul class="mc-cartera-fichas" aria-label="Tu colección en cifras">
+    <li><b>${n(r.copias)}</b><span>${r.copias === 1 ? 'carta' : 'cartas'}</span></li>
+    <li><b>${n(r.distintas)}</b><span>${r.distintas === 1 ? 'distinta' : 'distintas'}</span></li>
+    <li><b>${n(r.sets)}</b><span>${r.sets === 1 ? 'expansión' : 'expansiones'}</span></li>
+  </ul>`
+}
+
 function pintarResumenPanel() {
   const caja = $('mcResumenPanel')
   if (!caja) return
@@ -1112,11 +1131,21 @@ function pintarResumenPanel() {
          existe». Tenía razón: es la ÚNICA cifra que cambia sola, y es la
          que se viene a mirar. Escondida detrás de un botón, no existe.
          Lo que sigue detrás del botón es lo demás, que son listas. -->
-    <section class="mc-resumen-caja mc-valor-caja" id="mcValorCaja">
-      <h3>Lo que vale tu colección</h3>
-      <div class="skeleton" style="height:120px"></div>
+    <!-- LA CARTERA (748, la C1 de su maqueta). La cifra grande sale YA,
+         de lo que hay en memoria; la gráfica llega después a un hueco que
+         mide lo mismo que ella, así que nada salta. Las tres fichas y lo
+         que más se mueve van debajo, como en cualquier app de cartera. -->
+    <section class="mc-cartera" id="mcValorCaja">
+      <h2 class="mc-cartera-etiqueta">Lo que vale ${esMia ? 'tu' : 'esta'} colección</h2>
+      <p class="mc-cartera-cifra">${escapeHtml(eurosConMiles(valorDeAhora()))}</p>
+      <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
+        <p class="mc-valor-cambio igual"><span class="skeleton mc-cartera-esq-cambio"></span></p>
+        <div class="skeleton mc-cartera-esq-lienzo"></div>
+        <div class="mc-valor-rangos" aria-hidden="true">${'<span class="skeleton mc-cartera-esq-rango"></span>'.repeat(5)}</div>
+      </div>
     </section>
-
+    ${fichasDeCartera()}
+    ${esMia ? '<div id="mcMovidasSitio"></div>' : ''}
 `
 
   const mas = $('mcMasEstadisticas')
@@ -1455,6 +1484,9 @@ async function pintarVistazos() {
   // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
   // se abre y no puede quedarse en blanco esperando a dos consultas.
   caja.innerHTML = vistazoDeCartas()
+  // LAS QUE MÁS SE MUEVEN (663), por su cuenta y en su hueco de debajo de
+  // las fichas (748): es una consulta al histórico y el Panel no la espera.
+  void pintarMovidas(version)
   // El hueco de las expansiones, en esqueleto hasta que lleguen (675).
   caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo" id="mcVistazoSetsEsq"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Expansiones</h2></div>${esqueletoDeSets(2)}</section>`)
   // Los sets y su valor de TODOS los catálogos (672), y el registro de qué
@@ -1465,10 +1497,6 @@ async function pintarVistazos() {
   registrarEpisodios(sets || [])
   $('mcVistazoSetsEsq')?.remove()
   caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
-  // LAS QUE MÁS SE MUEVEN (663), que llegan por su cuenta: es una consulta
-  // al histórico y el Panel no la espera. Se colocan detrás de las
-  // expansiones cuando llegan.
-  void pintarMovidas(caja, version)
   // LA TARJETA DE CAMBIOS (tanda 451). Lo que estaba debajo —la pantalla
   // entera— se ha ido a la suya; aquí queda lo que el Panel sí tiene que
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
@@ -1497,8 +1525,9 @@ async function pintarVistazos() {
 // precio, y como mucho las 600 más valiosas: es lo que cabe en cuatro
 // consultas sin hacer esperar al Panel. Sin dos fotos de ninguna, no sale.
 const TOPE_MOVIDAS = 600
-async function pintarMovidas(caja, version) {
-  if (!esMia || !caja) return
+async function pintarMovidas(version) {
+  const sitio = $('mcMovidasSitio')
+  if (!esMia || !sitio) return
   try {
     const [ls, , busca] = pTodo()
     const conPrecio = ls
@@ -1508,34 +1537,39 @@ async function pintarMovidas(caja, version) {
       .slice(0, TOPE_MOVIDAS)
       .map((x) => x.l)
     if (!conPrecio.length) return
+    // El hueco, en esqueleto mientras llega (748): tres filas del alto de
+    // las de verdad, para que lo de debajo no salte al llegar.
+    sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
     const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     const [filas, movidas] = await Promise.all([
       datos.historicoDeCartas(conPrecio.map((l) => l.card_id), desde),
       import('./mi-coleccion/movidas.js'),
     ])
-    if (pestania !== 'resumen' || !caja.isConnected || version !== vistazosVersion) return
-    $('mcMovidas')?.remove()
+    if (pestania !== 'resumen' || !sitio.isConnected || version !== vistazosVersion) return
     const { suben, bajan } = movidas.extremos(movidas.movidasDe(conPrecio, filas, busca), 3)
-    if (!suben.length && !bajan.length) return
-    const tarjeta = (m) => {
+    // Las tres que MÁS se mueven, suban o bajen, como en la maqueta: una
+    // lista de tres filas y no dos tiras de seis fotos.
+    const tres = [...suben, ...bajan]
+      .sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0) || Math.abs(b.cambio) - Math.abs(a.cambio))
+      .slice(0, 3)
+    if (!tres.length) { sitio.innerHTML = ''; return }
+    const fila = (m) => {
       const c = m.carta
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-      const signo = m.cambio > 0 ? '+' : ''
-      const pct = m.pct === null ? `${signo}${euros(m.cambio)}` : `${signo}${Math.round(m.pct)} %`
-      return `<div class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}">
-        <a class="mc-vistazo-carta" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">${
-          escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>`
-        }</a>
-        <span class="mc-movida-pie"><b>${escapeHtml(pct)}</b><span>${escapeHtml(euros(m.ahora))}</span></span>
-      </div>`
+      const signo = m.cambio > 0 ? '+' : '−'
+      const pct = m.pct === null ? `${signo}${euros(Math.abs(m.cambio))}` : `${signo}${Math.abs(Math.round(m.pct))} %`
+      const set = nombreDeSet(c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets) || c.set_id || ''
+      return `<li><a class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">
+        <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+        <span class="mc-movida-nombre"><b>${escapeHtml(nombreDe(c))}</b><small>${escapeHtml(set)}</small></span>
+        <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${escapeHtml(pct)}</small></span>
+      </a></li>`
     }
-    const dentro = `<div class="mc-movidas">${[...suben, ...bajan].map(tarjeta).join('')}</div>`
-    const html = vistazoHtml('Las que más se mueven esta semana', 'cartas', dentro).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
-    const sets = caja.querySelector('.mc-vistazo-sets')?.closest('.mc-vistazo')
-    if (sets) sets.insertAdjacentHTML('afterend', html)
-    else caja.insertAdjacentHTML('beforeend', html)
+    sitio.innerHTML = vistazoHtml('Las que más se mueven', 'cartas', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
+      .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
   } catch {
-    // Sin histórico (o sin red), el Panel se queda como estaba.
+    // Sin histórico (o sin red), el hueco se va y el Panel sigue.
+    sitio.innerHTML = ''
   }
 }
 
@@ -1548,7 +1582,7 @@ let historico = null
 // «quiero que pongas en cuántos días quieres ver el gráfico». Se recuerda
 // en el navegador, como el color de la tapa y la vista de variantes: es
 // gusto de quien mira, no un dato de la colección.
-let rangoDelValor = 'MAX'
+let rangoDelValor = '1M'
 try {
   const guardado = localStorage.getItem('mc-valor-rango')
   if (guardado) rangoDelValor = guardado
@@ -1602,15 +1636,18 @@ async function pintarValorEnElTiempo() {
     // Con el valor de AHORA, que es el mismo que enseña la cifra de
     // arriba: la foto diaria es de las 4:07 y sin esto la pantalla
     // enseñaría dos totales distintos de lo mismo.
-    caja.innerHTML = `<h3>Lo que vale tu colección</h3>${historico.grafica.graficaHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor })}`
+    const sitio = $('mcCarteraGrafica')
+    if (!sitio) return
+    sitio.innerHTML = historico.grafica.carteraHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor, nombre: esMia ? 'tu colección' : 'esta colección' })
+    sitio.removeAttribute('aria-busy')
     engancharRangosDelValor()
     // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
-    historico.grafica.engancharLectura(caja.querySelector('.mc-valor-lienzo'))
+    historico.grafica.engancharLectura(sitio.querySelector('.mc-valor-lienzo'))
     pintarCambioDelMes()
   } catch {
-    // Una gráfica que no llega no puede tumbar el resumen: se quita la
-    // caja y lo demás sigue ahí.
-    caja.remove()
+    // Una gráfica que no llega no puede tumbar el resumen: se quita el
+    // hueco de la gráfica y la cifra de ahora sigue ahí.
+    $('mcCarteraGrafica')?.remove()
   }
 }
 
@@ -4775,9 +4812,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // sigue leyéndose en voz alta y ocupa cero.
   // En el catálogo (tanda 649) la cabecera es el título de la página y
   // se queda: no hay Panel al que reservarle el espacio.
-  const mini = !modoCatalogo && nueva !== 'resumen'
-  $('mcHero')?.classList.toggle('mc-hero-mini', mini)
-  $('mcTitulo')?.classList.toggle('sr-only', mini)
+  pintarCabecera(nueva)
   // La pestaña por defecto es la que NO lleva `?ver=`: si no, compartir
   // /mi-coleccion a secas llevaría a una pestaña distinta de la que ve
   // quien la abre.
@@ -5996,7 +6031,7 @@ function enganchar() {
   // Los «ver todas» de los vistazos (tanda 436). Delegado en la caja, que
   // no se repinta: los vistazos de dentro sí, y uno por botón habría que
   // volver a colgarlo cada vez.
-  $('mcVistazos')?.addEventListener('click', (e) => {
+  $('mcPanelResumen')?.addEventListener('click', (e) => {
     const ir = e.target.closest('[data-ir-a]')
     if (ir) {
       // «Ver todas» de Expansiones son TODAS (tanda 649): si «Solo las
@@ -6593,7 +6628,7 @@ function enganchar() {
   //
   // Son los dos sitios donde el Panel enseña cartas: la tira de «Tus
   // cartas» y las listas de «te sobran» y «las más valiosas».
-  engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a')
+  engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a, a.mc-movida')
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
     if (e.target.closest('#pdxSoloFaltan')) {
@@ -6744,7 +6779,22 @@ function enganchar() {
   })
 }
 
+// LA CABECERA SEGÚN LA PESTAÑA. Fuera del Panel no ocupa nada (444). Y
+// DENTRO TAMPOCO, desde la 748, si la colección es tuya: la maqueta de la
+// cartera abre con lo que vale y nada encima — el «Mi colección» con tu
+// avatar ya lo dice la barra de abajo. Si es de otra persona, se queda el
+// QUIÉN (de quién es lo que miras), pero no las cifras, que las dice la
+// cartera de debajo. El `<h1>`, en `sr-only` cuando no se ve (444).
+function pintarCabecera(nueva = pestania) {
+  const panel = !modoCatalogo && nueva === 'resumen'
+  const mini = !modoCatalogo && (nueva !== 'resumen' || esMia)
+  $('mcHero')?.classList.toggle('mc-hero-mini', mini)
+  $('mcHero')?.classList.toggle('mc-hero-panel', panel)
+  $('mcTitulo')?.classList.toggle('sr-only', mini)
+}
+
 function pintarCompartir() {
+  pintarCabecera()
   if (!esMia) return
   $('mcCompartir').classList.remove('hidden')
   $('mcPublica').checked = Boolean(dueno.coleccion_publica)

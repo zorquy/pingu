@@ -142,13 +142,6 @@
           <p class="mc-catalogo-lema">Todas las expansiones con lo que valen y cómo van esta semana. Entra en una y toca cualquier carta.</p>
           <p class="mc-hero-desde" id="mcHeroDesde"></p>
         </div>
-        <!-- Compartir la colección. El «Copiar enlace» era un `link-btn`
-             azul subrayado y pasa a chapa (tanda 461): van cuatro sitios
-             donde PINGU ha dicho «no quiero enlaces pochos». -->
-        <div class="mc-compartir hidden" id="mcCompartir">
-          <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
-          <button type="button" class="mc-chip-mando hidden" id="mcCopiarEnlace">Copiar enlace</button>
-        </div>
       </div>
       <dl class="mc-resumen" id="mcResumen"></dl>
       <p class="mc-nota" id="mcResumenNota"></p>
@@ -167,6 +160,7 @@
       <div class="mc-cargando" id="mcCargando" role="status">
         <span class="sr-only">Cargando la colección…</span>
         <div class="skeleton mc-esq-valor" aria-hidden="true"></div>
+        <div class="skeleton mc-esq-grafica" aria-hidden="true"></div>
         <div class="mc-esq-fichas" aria-hidden="true"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
         <div class="mc-esq-cartas" aria-hidden="true"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
       </div>
@@ -747,6 +741,15 @@
              más antes de ver la primera. Lo que cambia solo —la gráfica—
              se queda arriba; lo que son listas, aquí abajo y plegado. -->
         <div id="mcMasEstadisticas"></div>
+
+        <!-- Compartir la colección, AL FINAL del Panel desde la 748: en la
+             maqueta de la cartera arriba va lo que vale y nada más. El
+             «Copiar enlace» es chapa desde la 461 («no quiero enlaces
+             pochos»). -->
+        <div class="mc-compartir hidden" id="mcCompartir">
+          <label class="mc-interruptor"><input type="checkbox" id="mcPublica" /> Colección pública</label>
+          <button type="button" class="mc-chip-mando hidden" id="mcCopiarEnlace">Copiar enlace</button>
+        </div>
 
         <!-- MI COLECCIÓN EN UNA IMAGEN (tanda 571). Lo que PTCGenius y
              TCGdex no pueden hacer: no tienen tu colección. Se pinta en un
