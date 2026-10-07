@@ -48,7 +48,9 @@ console.log('── 1. En un iPhone: la cabecera ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const arte = await page.evaluate(() => ({ var: getComputedStyle(document.getElementById('cartaNucleo')).getPropertyValue('--arte'), antes: getComputedStyle(document.querySelector('.carta-articulo'), '::before').backgroundImage }))
   check('la carta lleva detrás su propio arte (la misma imagen, difuminada)', /url\(/.test(arte.var) && /url\(/.test(arte.antes), JSON.stringify(arte))
-  const precio = limpio(await page.locator('.carta-precio-corto').innerText().catch(() => ''))
+  // Desde la 748 es la tarjeta de precio de su maqueta (F1): de dónde sale
+  // arriba y la cifra en grande; la cifra es la del bloque.
+  const precio = limpio(await page.locator('.carta-precio-corto b').innerText().catch(() => ''))
   const delBloque = limpio(await page.locator('#cmPrecios .pv-burbuja-principal .pv-cifra').innerText().catch(() => ''))
   check('el precio en una línea bajo el nombre, el MISMO que el bloque de precio', precio.startsWith(delBloque) && /12,40/.test(precio), `${precio} / ${delBloque}`)
   const orden = await page.evaluate(() => {

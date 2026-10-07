@@ -52,9 +52,15 @@ console.log('── 707. La ficha de una carta en un iPhone ──')
   const { page, ctx, errores } = await abrir('/carta.html?id=xy5-12')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const a = await page.$eval('#cartaAcciones', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), left: Math.round(r.left), w: Math.round(r.width), vw: window.innerWidth, losetas: e.querySelectorAll('.mc-ficha-tile').length } })
-  const barra = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
-  check('las acciones van en una barra FIJA encima de la barra de secciones, de lado a lado', a.pos === 'fixed' && a.bottom <= barra && a.bottom >= barra - 24 && a.left >= 8 && a.left <= 24 && a.w === a.vw - 2 * a.left && a.losetas === 4, JSON.stringify({ a, barra }))
-  check('  …y cada loseta mide 44 o más', (await page.$$eval('#cartaAcciones .mc-ficha-tile', (as) => as.every((x) => x.getBoundingClientRect().height >= 44))))
+  // Desde la 748 la ficha es una pantalla de detalle (la F1 de su maqueta):
+  // sin la barra de secciones, y las acciones abajo del todo —«Añadir» a lo
+  // ancho y «Avísame»—; editar es la chapa «Tienes N» y compartir, el botón
+  // flotante de arriba.
+  const vh = await page.evaluate(() => innerHeight)
+  const sinBarra = await page.$eval('.bm', (e) => getComputedStyle(e).display === 'none').catch(() => true)
+  const vistas = await page.$$eval('#cartaAcciones .mc-ficha-tile', (as) => as.filter((x) => x.getBoundingClientRect().height > 0).map((x) => x.id || x.textContent.trim()))
+  check('las acciones van en una barra FIJA abajo, de lado a lado, sin la barra de secciones', sinBarra && a.pos === 'fixed' && a.bottom <= vh && a.bottom >= vh - 48 && a.left >= 8 && a.left <= 24 && a.w === a.vw - 2 * a.left && vistas.length === 2, JSON.stringify({ a, vistas }))
+  check('  …y cada loseta que se ve mide 44 o más', (await page.$$eval('#cartaAcciones .mc-ficha-tile', (as) => as.filter((x) => x.getBoundingClientRect().height > 0).every((x) => x.getBoundingClientRect().height >= 44))))
   check('la foto se queda en 200 px para que quepa con el nombre', (await page.$eval('.carta-scan', (e) => Math.round(e.getBoundingClientRect().width))) <= 200)
   const chips = await page.$$eval('#cmIdiomas', (es) => es.map((e) => ({ filas: new Set([...e.children].map((c) => Math.round(c.getBoundingClientRect().top))).size })))
   if (chips.length) check('las burbujas de idioma del precio van en UNA fila que se desplaza', chips[0].filas === 1, JSON.stringify(chips))

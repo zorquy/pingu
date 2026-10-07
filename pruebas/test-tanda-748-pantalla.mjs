@@ -505,6 +505,143 @@ console.log('── 9. La portada «Hoy» de su maqueta (J5 y N1) ──')
   await ctx.close()
 }
 
+console.log('── 10. El foro de su maqueta (J1) ──')
+{
+  const siembra = () => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    const hace = (m) => new Date(Date.now() - m * 60000).toISOString()
+    window.__FAKE_SECCIONES__ = [{ name: 'General' }]
+    window.__FAKE_FOROS__ = [{ id: 'foro-1', slug: 'dudas', name: 'Dudas de reglas', section_id: 'seccion-1' }, { id: 'foro-2', slug: 'mercado', name: 'Mercadillo', section_id: 'seccion-1', position: 1 }]
+    window.__FAKE_TEMAS__ = [
+      { id: 'tema-1', board_id: 'foro-1', title: '¿Esta Pikachu es legal en Estándar?', author_id: 'user-1', post_count: 3, last_post_at: hace(5), last_post_author_id: 'user-2' },
+      { id: 'tema-2', board_id: 'foro-2', title: 'Cambio Charizard ex por Umbreon', author_id: 'admin-1', post_count: 2, last_post_at: hace(60), last_post_author_id: 'user-1' },
+    ]
+    window.__FAKE_MENSAJES__ = [
+      { id: 'm1', thread_id: 'tema-1', author_id: 'user-1', body_html: '<p>Tengo una Pikachu ex y no sé si entra.</p>', created_at: hace(40) },
+      { id: 'm2', thread_id: 'tema-1', author_id: 'admin-1', body_html: '<p>Mira la letra de abajo.</p>', created_at: hace(30) },
+      { id: 'm3', thread_id: 'tema-1', author_id: 'user-2', body_html: '<p>Es una H, así que sí.</p>', created_at: hace(5) },
+      { id: 'm4', thread_id: 'tema-2', author_id: 'admin-1', body_html: '<p>Lo cambio en mano.</p>', created_at: hace(90) },
+      { id: 'm5', thread_id: 'tema-2', author_id: 'user-1', body_html: '<p>Te escribo por privado.</p>', created_at: hace(60) },
+    ]
+  }
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(siembra)
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const vis = (s) => page.locator(s).first().isVisible().catch(() => false)
+  const fila = await page.evaluate(() => {
+    const f = document.querySelector('.foro-conv[href*="tema-1"]')
+    const t = (s) => (f?.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim()
+    return { foro: t('.foro-conv-foro'), titulo: t('.foro-conv-titulo'), trozo: t('.foro-conv-trozo'), resp: t('.foro-conv-resp'), punto: !!f?.querySelector('.foro-conv-punto') }
+  })
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('la fila: de qué foro, el título, quién dijo lo último y cuántas respuestas', fila.foro === 'Dudas de reglas' && /Pikachu/.test(fila.titulo) && /: Es una H, así que sí\./.test(fila.trozo) && fila.resp === '2' && fila.punto, JSON.stringify(fila))
+  check('arriba solo «Foro», «Leído» y la lupa: sin subtítulo, sin franja y sin buscador a la vista', !(await vis('#foroSubtitulo')) && !(await vis('#foroDestacado')) && !(await vis('#foroBuscadorTexto')) && (await vis('#foroLupa')))
+  await page.click('#foroLupa')
+  await page.waitForTimeout(200)
+  check('  …y la lupa saca el buscador', await vis('#foroBuscadorTexto'))
+  check('el botón de escribir flota', await vis('#foroEscribir'))
+  await page.click('#foroEscribir')
+  await page.waitForTimeout(300)
+  const destinos = await page.$$eval('.foro-elegir-lista a', (as) => as.map((a) => a.getAttribute('href')))
+  check('  …y pregunta en qué foro, llevando al formulario', destinos.length === 2 && destinos.every((h) => /\?nuevo=1$/.test(h)), destinos.join(' | '))
+  await page.goto(`${BASE}${destinos[0]}`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2500)
+  check('  …que llega abierto', await vis('#temaForm'))
+  await page.goto(`${BASE}/tema?t=tema-1`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  check('en el hilo, compartir y moderar van tras «⋯»', (await vis('#temaMasBtn')) && !(await vis('#temaMas')))
+  await page.click('#temaMasBtn')
+  await page.waitForTimeout(200)
+  check('  …y salen al tocarlo', await vis('#temaMas'))
+  const m2 = page.locator('[data-mensaje="m2"]')
+  check('cada mensaje guarda sus acciones tras su «⋯»', !(await m2.locator('.foro-mensaje-izq').isVisible()))
+  await m2.locator('[data-mas-mensaje]').click()
+  await page.waitForTimeout(200)
+  check('  …y las saca al tocarlo', await m2.locator('.foro-mensaje-izq').isVisible())
+  const tuyo = await m2.locator('.foro-mensaje-cuerpo').evaluate((n) => getComputedStyle(n).backgroundColor)
+  const azul = await page.evaluate(() => { const d = document.createElement('i'); d.style.color = 'var(--navy-solid)'; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c })
+  check('lo tuyo va en el azul de la maqueta', tuyo === azul, `${tuyo} vs ${azul}`)
+  const caja = await page.evaluate(() => { const f = document.querySelector('#temaResponder .foro-form'); const b = document.getElementById('btnResponder')?.getBoundingClientRect(); const c = document.querySelector('#temaResponder .rte-wrap')?.getBoundingClientRect(); return { fila: !!b && !!c && Math.abs((b.top + b.bottom) / 2 - (c.top + c.bottom) / 2) < 12, redondo: !!b && Math.round(b.width) === Math.round(b.height) } })
+  check('la caja de responder, recogida, es una fila con el botón redondo', caja.fila && caja.redondo, JSON.stringify(caja))
+  await ctx.close()
+}
+
+console.log('── 11. La ficha de carta de su maqueta (F1) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy', market: 'WEST', card_count_official: 160 }]
+    window.__FAKE_CARTAS__ = [{ id: 'xy5-12', market: 'WEST', set_id: 'xy5', local_id: '12', name: 'Mewtwo-EX', image_path: 'x/12', rarity: 'Ultra Rare', category: 'Pokemon', hp: 170, types: ['Psychic'], variants: { normal: true, holo: true }, tcg_sets: { id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy' } }]
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'admin-1', card_id: 'xy5-12', market: 'WEST', cantidad: 2, idioma: 'es', estado: 'NM', variante: 'holo', created_at: '2026-10-01T10:00:00Z' }]
+    window.__FAKE_PRECIOS__ = [{ card_id: 'xy5-12', market: 'WEST', cm_low: 12.4, cm_low_es: 12.4, tcggo_updated: '2026-10-06T12:00:00Z', origen: 'tcggo' }]
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="825"><rect width="600" height="825" fill="#e36"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/carta.html?id=xy5-12`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3200)
+  const m = await page.evaluate(() => {
+    const r = (s) => document.querySelector(s)?.getBoundingClientRect()
+    const vis = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().height > 0 }
+    return {
+      navbar: vis('.navbar'), bm: vis('.bm'),
+      flotan: [...document.querySelectorAll('.carta-flotantes [data-flota]')].map((b) => b.getAttribute('aria-label')),
+      orden: r('.carta-scan')?.top < r('.carta-cabecera h1')?.top && r('.carta-cabecera h1')?.top < r('.carta-precio-corto')?.top,
+      precio: (document.querySelector('.carta-precio-corto b')?.textContent || '').replace(/[  ]/g, ' '),
+      tienes: (document.querySelector('.carta-tienes')?.textContent || '').trim(),
+      acciones: [...document.querySelectorAll('#cartaAcciones .mc-ficha-tile')].filter((x) => x.getBoundingClientRect().height > 0).map((x) => x.textContent.trim()),
+    }
+  })
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('sin las barras del sitio: volver y compartir flotan sobre el arte', !m.navbar && !m.bm && m.flotan.join(' | ') === 'Volver | Compartir', JSON.stringify(m))
+  check('la carta primero, luego el nombre y la tarjeta de precio', m.orden && /12,40/.test(m.precio), JSON.stringify(m))
+  check('«Tienes 2» es una chapa', /^Tienes 2$/.test(m.tienes), m.tienes)
+  check('abajo, «Añadir» y «Avísame»', m.acciones.length === 2 && /Añadir/.test(m.acciones[0]) && /Avísame/.test(m.acciones[1]), JSON.stringify(m.acciones))
+  await ctx.close()
+}
+
+console.log('── 12. El meta de su maqueta (J3) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__RPC_RESPUESTAS__ = {
+      meta_resumen: [
+        { arquetipo: 'charizard-pidgeot', nombre: 'Charizard Pidgeot', iconos: ['charizard', 'pidgeot'], mazos: 120, top8: 30, cuota: 14.2, cuota_anterior: 12, victorias: 300, derrotas: 250, empates: 10, porcentaje_victorias: 54.1 },
+        // Sin ninguna carta suya en la base: el color sale de la especie.
+        { arquetipo: 'gardevoir', nombre: 'Gardevoir ex', iconos: ['gardevoir'], mazos: 80, top8: 12, cuota: 8.3, cuota_anterior: 8, victorias: 150, derrotas: 130, empates: 2, porcentaje_victorias: 53 },
+      ],
+      meta_totales: [{ torneos: 12, jugadores: 800, online: 12, ultima_lectura: new Date().toISOString() }],
+    }
+    window.__FAKE_CARTAS__ = [{ id: 'sv3-1', market: 'WEST', set_id: 'sv3', local_id: '1', name: 'Charizard ex', dex_ids: [6], types: ['Darkness'] }]
+  })
+  await ctx.route(/r2\.limitlesstcg\.net|cdn\.jsdelivr\.net|raw\.githubusercontent\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"></svg>' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/meta.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2600)
+  const fs = await page.$$eval('#metaRanking .meta-fila', (fs) => fs.map((f) => ({
+    nombre: f.querySelector('.meta-nombre strong')?.textContent,
+    tipo: f.querySelector('.meta-barra')?.dataset.tipo || null,
+    listas: f.querySelector('.meta-de-listas')?.offsetHeight > 0 ? f.querySelector('.meta-de-listas').textContent.replace(/[  ]/g, ' ') : null,
+    gana: (f.querySelector('.meta-victorias')?.textContent || '').replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim(),
+    sub: f.querySelector('.meta-sub')?.offsetHeight > 0,
+    carta: getComputedStyle(f).borderTopWidth === '1px',
+  })))
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('el tipo de las cartas manda: Charizard ex de Oscuro', fs[0]?.tipo === 'Darkness', JSON.stringify(fs[0]))
+  check('  …y sin cartas, el de la especie: Gardevoir de Psíquico', fs[1]?.tipo === 'Psychic', JSON.stringify(fs[1]))
+  check('cada fila, como su maqueta: «14,2 % de las listas» y «54,1 % gana», en su tarjeta', /14,2 % de las listas/.test(fs[0]?.listas || '') && /^54,1 % ?gana$/.test(fs[0]?.gana) && !fs[0].sub && fs[0].carta, JSON.stringify(fs[0]))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)

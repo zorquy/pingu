@@ -51,7 +51,9 @@ for (const sesion of [true, false]) {
   await page.goto(`${BASE}/carta.html?id=base1-4`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2800)
   check('la ficha lleva la loseta «Compartir»', (await page.locator('#cmCompartir').count()) === 1)
-  await page.click('#cmCompartir')
+  // En el móvil se comparte desde el botón flotante de arriba (748, F1),
+  // que pulsa la misma loseta.
+  await page.click('[data-flota="compartir"]')
   await page.waitForTimeout(2500)
   const c = await page.evaluate(() => window.__COMPARTIDO__ || null)
   check('al pulsarla se comparte UNA imagen PNG, vertical, de 1080 × 1350', c?.n === 1 && c.tipo === 'image/png' && c.w === 1080 && c.h === 1350 && c.nombre === 'pokedoc-charizard-base1-4.png', JSON.stringify(c))

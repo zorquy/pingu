@@ -64,7 +64,9 @@ console.log('── 2. En el escritorio ──')
   const lu = bs.find((b) => /Lugia/.test(b.nombre))
   check('Charizard: barra de Fuego (el tipo más repetido de sus cartas)', ch?.tipo === 'Fire' && ch.color === 'rgb(232, 86, 74)', JSON.stringify(ch))
   check('Dragapult: de Dragón', dr?.tipo === 'Dragon' && dr.color === 'rgb(181, 148, 51)', JSON.stringify(dr))
-  check('Lugia (Incoloro): sin teñir, en el azul de siempre', lu && !lu.tipo && lu.color !== 'rgb(230, 234, 237)', JSON.stringify(lu))
+  // Desde la 748 Incoloro también tiñe, con un gris que se ve (PINGU: «hay
+  // otros que no tienen color»); el casi blanco de la ficha no se vería.
+  check('Lugia (Incoloro): en su gris, que se ve', lu?.tipo === 'Colorless' && lu.color === 'rgb(154, 151, 140)', JSON.stringify(lu))
   const tallas = await page.$eval('#metaRanking .meta-fila', (f) => ({ v: parseFloat(getComputedStyle(f.querySelector('.meta-victorias')).fontSize), t: parseFloat(getComputedStyle(f.querySelector('.meta-tend')).fontSize) }))
   check('las victorias, más grandes que la tendencia', tallas.v > tallas.t, JSON.stringify(tallas))
   await ctx.close()

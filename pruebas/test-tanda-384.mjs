@@ -506,7 +506,9 @@ console.log('\n── 5. La paleta de energías es COPIA de la de la ficha ─�
   // que tiñen (Incoloro no: su gris no se vería sobre el fondo de la barra).
   const meta = paleta(leer('css/meta.css'), '\\.meta-barra')
   const malMeta = Object.keys(LETRA).filter((t) => t !== 'Colorless').filter((t) => ficha[t] !== meta[t])
-  check('…y los diez de la barra del meta también', Object.keys(meta).length === 10 && malMeta.length === 0, malMeta.join(', ') || JSON.stringify(meta))
+  // Y desde la 748 son once: Incoloro también, en un gris propio que se ve.
+  if (!/^#[0-9a-f]{6}$/.test(meta.Colorless || '') || meta.Colorless === ficha.Colorless) malMeta.push('Colorless (tiene que ser un gris propio)')
+  check('…y los once de la barra del meta también', Object.keys(meta).length === 11 && malMeta.length === 0, malMeta.join(', ') || JSON.stringify(meta))
 }
 
 // ═════════════════════════════════════════════════════════════════════
