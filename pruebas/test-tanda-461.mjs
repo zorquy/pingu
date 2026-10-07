@@ -173,9 +173,10 @@ console.log('\n── 4. La cabecera, con sus iconos ──')
     id: n.id, svg: Boolean(n.querySelector('svg')), texto: n.textContent.trim(),
     alto: Math.round(n.getBoundingClientRect().height),
   })))
-  check('están los tres mandos dentro', iconos.length === 3, JSON.stringify(iconos.map((i) => i.id)))
-  check('  …en el orden de Dex: marcar, favorita y compartir',
-    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar', JSON.stringify(iconos.map((i) => i.id)))
+  // Desde la 725, un cuarto al final: «Enseñar las que tengo».
+  check('están los cuatro mandos dentro', iconos.length === 4, JSON.stringify(iconos.map((i) => i.id)))
+  check('  …en el orden de Dex: marcar, favorita y compartir, y enseñar al final',
+    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumEnsenar', JSON.stringify(iconos.map((i) => i.id)))
   check('  …cada uno con su dibujo', iconos.every((i) => i.svg), JSON.stringify(iconos))
   // Y aquí dentro SÍ llevan palabra, que es la gracia del menú: cuatro
   // iconos seguidos sin un rótulo al lado son un acertijo.
