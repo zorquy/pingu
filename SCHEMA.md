@@ -35184,3 +35184,26 @@ lo abre.
 **Ficheros**: `js/mi-coleccion/arrastrar-a-album.js` (nuevo),
 `js/mi-coleccion.js`, `js/barra-lateral.js`, `css/lateral.css`. Prueba
 741-pantalla.
+
+## Tanda 742 — en el móvil, las migas son un antetítulo (oct. 2026)
+
+Lo que quedaba de la V3 («un antetítulo pequeño que da contexto; en el
+móvil sustituye a las migas de pan»). En el móvil, «Inicio › Foro ›
+General › El tema» repetía lo que dicen la barra de abajo y el título, y
+ocupaba una línea entera, o dos.
+
+Solo CSS, en `css/movil.css` (que solo baja el móvil), para las tres formas
+de migas que hay —`.breadcrumb` (guías y categorías), `.foro-migas` (foro
+y temas) y `.carta-migas` (carta y colección)—; las de Mi colección ya
+eran un antetítulo desde la 474:
+
+- Se queda UN paso, el último enlace (`a:last-of-type`): el sitio de
+  arriba. Pequeño, en versalitas y encima del título.
+- Si el único enlace es «Inicio» (`:not(:has(a:nth-of-type(2)))`), no
+  queda nada: «INICIO» encima de «Foro» no da ningún contexto.
+- El enlace mide 44 de alto para el dedo, con un margen negativo que
+  devuelve lo que añade: el antetítulo no abre hueco.
+- En el HTML siguen todos los pasos: son enlaces internos y es lo que
+  recorre Google (la nota de carta.html). En el escritorio, enteras.
+
+**Ficheros**: `css/movil.css`. Prueba 742-pantalla.

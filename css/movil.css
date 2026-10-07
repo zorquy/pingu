@@ -556,3 +556,39 @@
   }
 }
 
+
+/* LAS MIGAS, EN ANTETÍTULO (742, V3). En el móvil la fila «Inicio › Foro ›
+   General › El tema» repite lo que dicen la barra de abajo y el título, y
+   ocupa una línea entera (o dos). Se queda UN paso —el sitio de arriba, el
+   último enlace—, pequeño y en versalitas encima del título; y si el único
+   enlace es «Inicio», nada. Las migas siguen en el HTML para Google. */
+@media (max-width: 900px) {
+  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) {
+    gap: 0;
+    margin: 0 0 var(--e-xs);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) > :not(a:last-of-type) {
+    display: none;
+  }
+
+  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas):not(:has(a:nth-of-type(2))) {
+    display: none;
+  }
+
+  /* 44 de alto para el dedo sin abrir hueco: el margen negativo devuelve
+     lo que el alto añade. */
+  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) > a:last-of-type {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: -12px 0;
+    color: var(--text-mid);
+    font-weight: 700;
+  }
+}

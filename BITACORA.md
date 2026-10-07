@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 22) — PINGU-Claude (742 — las migas, en antetítulo)
+
+**Hecho**: lo que quedaba de la V3. En el móvil, de las migas de pan queda
+solo el sitio de arriba, pequeño y en versalitas encima del título (la
+colección en una carta, el foro en un tema); si solo sería «Inicio», nada.
+En el escritorio y en el HTML siguen enteras.
+
+**Ficheros**: `css/movil.css`, `SCHEMA.md`. Prueba 742-pantalla en
+`pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5.
+
 ## 2026-10-07 (tarde, 21) — PINGU-Claude (741 — arrastrar una carta a un álbum)
 
 **Hecho**: X13 de la lista. En el ordenador, tus álbumes salen en la
