@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js'
-import { escapeHtml } from './app.js'
 import { icons } from './icons.js'
 import { anotarEnPestania } from './pestania.js'
 
@@ -184,28 +183,6 @@ export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, g
   }
 }
 
-function timeAgo(iso) {
-  const diffMs = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diffMs / 60000)
-  if (mins < 1) return 'ahora mismo'
-  if (mins < 60) return `hace ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `hace ${hours} h`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `hace ${days} d`
-  return new Date(iso).toLocaleDateString('es-ES')
-}
-
-function notificationItemHtml(n) {
-  const href = n.link || '#'
-  return `
-    <a class="nav-bell-item${n.read_at ? '' : ' unread'}" href="${escapeHtml(href)}" data-notif-id="${n.id}">
-      <span class="nav-bell-item-title">${escapeHtml(n.title)}</span>
-      ${n.body ? `<span class="nav-bell-item-body">${escapeHtml(n.body)}</span>` : ''}
-      <span class="nav-bell-item-date">${timeAgo(n.created_at)}</span>
-    </a>`
-}
-
 export async function renderNotificationBell(session) {
   if (!session) return
   const navRight = document.querySelector('.nav-right')
@@ -242,7 +219,9 @@ export async function renderNotificationBell(session) {
       // un historial. Lo que cambia es qué enseña la campanita.
       .is('read_at', null)
       .order('created_at', { ascending: false })
-      .limit(20)
+      // 60 y no 20: agrupadas (736), veinte reacciones al mismo mensaje
+      // ya no se comen la lista.
+      .limit(60)
     return data || []
   }
 
@@ -259,15 +238,14 @@ export async function renderNotificationBell(session) {
     const notifications = await loadNotifications()
     updateBadge(notifications)
     const list = document.getElementById('navBellList')
-    list.innerHTML =
-      notifications.length === 0
-        ? `<p class="empty-state" style="padding:16px;">Estás al día. No tienes avisos sin leer.</p>`
-        : notifications.map(notificationItemHtml).join('')
+    // Agrupada (736) y por `import()`: este módulo lo baja la portada.
+    const { listaDeAvisos } = await import('./avisos-grupos.js')
+    list.innerHTML = listaDeAvisos(notifications)
 
     list.querySelectorAll('[data-notif-id]').forEach((item) =>
       item.addEventListener('click', async (e) => {
         e.preventDefault()
-        await supabase.from('user_notifications').update({ read_at: new Date().toISOString() }).eq('id', item.dataset.notifId)
+        await supabase.from('user_notifications').update({ read_at: new Date().toISOString() }).in('id', item.dataset.notifIds.split(','))
         const href = item.getAttribute('href')
         if (href && href !== '#') {
           window.location.href = href

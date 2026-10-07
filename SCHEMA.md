@@ -34965,3 +34965,35 @@ en la pestaña de precio y no en la de histórico.
 **Ficheros**: `js/carta-comparar.js` y `css/comparar.css` (nuevos),
 `js/carta-mercado.js`, `css/carta.css`. Prueba 735-pantalla. De paso, el
 icono del aviso de instalar (732) lleva `loading`, que la 310 pedía.
+
+## Tanda 736 — la campana agrupada (oct. 2026)
+
+X11 de la lista. Diez reacciones al mismo mensaje eran diez filas iguales
+que tapaban la respuesta que importaba. Ahora (`js/avisos-grupos.js`):
+
+- Lo que habla de LO MISMO —mismo tipo y mismo enlace— es una fila con su
+  cuenta: «3 reacciones a tu mensaje», «2 mensajes nuevos para ti en este
+  tema». Las respuestas de un tema se juntan aunque cada una lleve el ancla
+  de su mensaje (se compara sin el `#…`) y el grupo lleva al PRIMER mensaje
+  sin leer; las reacciones conservan el ancla, porque son a UN mensaje.
+- Los seguidores se juntan por tipo («Te siguen 4 personas nuevas»), sin
+  el nombre de uno y hacia tu perfil. Los del muro no: los de tu muro ya
+  comparten enlace y una mención en el muro de otro va a otro sitio.
+- Un tipo sin frase propia dice el título del más nuevo «(y N más)»:
+  nunca se inventa una frase para lo que no se conoce.
+- Por tramos de calendario: Hoy, Ayer, Esta semana, Antes; un grupo cae en
+  el tramo de su aviso más nuevo.
+- Pulsar un grupo marca leídos TODOS los suyos en una escritura
+  (`.in('id', …)`). La chapa sigue contando avisos, no filas.
+- La campana pide 60 sin leer y no 20: agrupadas caben.
+
+El peso: `notifications.js` lo baja la PORTADA (lo importa
+`guide-rating.js` por `createNotification`), así que meter ahí la
+agrupación se comió 2,7 KB y la pasó a 172,5. Las reglas, el pintado y el
+`timeAgo` viven en `avisos-grupos.js`, que entra por `import()` al abrir
+la campana, con su hoja `css/avisos.css` inyectada; la portada queda en
+169,5 (tres décimas MENOS que antes).
+
+**Ficheros**: `js/avisos-grupos.js` y `css/avisos.css` (nuevos),
+`js/notifications.js`, `CLAUDE.md`. Prueba 736-pantalla; el doble siembra
+la campana con `__FAKE_NOTIFICACIONES__`.

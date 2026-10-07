@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 16) — PINGU-Claude (736 — la campana agrupada)
+
+**Hecho**: X11 de la lista. La campana junta los avisos que hablan de lo
+mismo («3 reacciones a tu mensaje», «Te siguen 4 personas nuevas») y los
+ordena en Hoy, Ayer, Esta semana y Antes; pulsar uno marca leídos todos
+los suyos. De paso la portada baja a 169,5 KB.
+
+**Ficheros**: `js/avisos-grupos.js`, `css/avisos.css` (nuevos),
+`js/notifications.js`, `CLAUDE.md`, `SCHEMA.md`. Prueba 736-pantalla y el
+doble al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X13, X14, X16.
+
 ## 2026-10-07 (tarde, 15) — PINGU-Claude (735 — comparar dos cartas)
 
 **Hecho**: X8 de la lista. En la ficha de una carta, «Comparar con otra

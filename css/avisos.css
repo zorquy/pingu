@@ -1,0 +1,27 @@
+/* La campana agrupada (736). La inyecta js/notifications.js al abrirla. */
+.nav-bell-tramo {
+  margin: 0;
+  padding: var(--e-sm) var(--e-lg) var(--e-xs);
+  border-bottom: 1px solid var(--border);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.nav-bell-cuenta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
