@@ -1204,3 +1204,9 @@
     transition: none;
   }
 }
+
+/* 727 (V2): en oscuro, la carta con un filo de luz. SCHEMA 727. */
+:root[data-theme='dark'] .carta-scan img {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 10%);
+}
+

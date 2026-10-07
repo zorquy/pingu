@@ -34779,3 +34779,26 @@ Y de paso: el comentario de los atajos de `js/nav-search.js` decía 723 y
 eran de la 724; y la foto de la vista de carta (724) y la de enseñar (725)
 no llevaban `loading` —lo cazó la 310—: la primera, diferida; la de
 enseñar, `eager`, que es lo que acabas de pedir (como el visor).
+
+## Tanda 727 — el tema oscuro afinado y las cifras que no bailan (oct. 2026)
+
+V2 de la lista y una de las tres reglas de la V3.
+
+- **V2 — el oscuro.** «Las cartas se pegan al fondo y las cajas casi no se
+  distinguen.» Se separan un escalón más: el fondo más hondo (`--bg`
+  #0f1720 → #0b1219, y la barra a juego), la superficie un poco más clara
+  (`--white` #182430 → #1a2733, `--ice` y `--ice-dark` con ella), los
+  bordes más visibles (`--border` #26333d → #2b3a46) y el azul de acento
+  algo más claro para que se lea (`--navy` #6fb0dc → #7cbae4). Y cada
+  carta —la ficha, el archivador, la rejilla, los resultados— lleva en
+  oscuro un filo de luz de 1 px (`box-shadow`, en la hoja de su pantalla)
+  para no fundirse con el fondo. Las medidas de contraste de la 311 por
+  los dos temas siguen en verde.
+- **V3, la regla de las cifras**: `font-variant-numeric: tabular-nums` en
+  el `body`, así que un precio o una cuenta que cambian no mueven lo de al
+  lado. De las otras dos: «un solo título grande por pantalla» ya lo vigila
+  la 313 (un `<h1>` por página), y el antetítulo que sustituya a las migas
+  en el móvil queda pendiente.
+
+**Ficheros**: `css/style.css`, `css/mi-coleccion.css`, `css/carta.css`.
+La portada sigue en 169,6.

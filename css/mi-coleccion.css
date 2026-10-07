@@ -7203,3 +7203,12 @@ input.mc-alb-titulo:not([readonly]):focus {
     animation: none;
   }
 }
+
+/* ── 727 (V2): en oscuro, cada carta con un filo de luz (SCHEMA 727) ── */
+:root[data-theme='dark'] .mc-carta-foto img,
+:root[data-theme='dark'] .mc-bolsillo img,
+:root[data-theme='dark'] .mc-resultado-foto img,
+:root[data-theme='dark'] .mc-rejilla-celda img {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 10%);
+}
+

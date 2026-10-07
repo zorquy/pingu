@@ -146,22 +146,22 @@
    <head> de cada página, antes de pintar nada, para no dar un parpadeo de
    tema claro al cargar con el oscuro ya guardado. */
 :root[data-theme='dark'] {
-  /* Aclarado en la tanda 311 (era #4a90c2). (el porqué, en SCHEMA.md: tanda 359) */
-  --navy: #6fb0dc;
+  /* Aclarado en la 311 y otra vez en la 727 (V2). (el porqué, en SCHEMA.md) */
+  --navy: #7cbae4;
   /* Los rangos, aclarados para el fondo oscuro (tanda 386). */
   --rango-admin: #f0a63a;
   --rango-moderador: #b389ee;
   --navy-light: #63a8d6;
   --navy-dark: #3a76a3;
-  --ice: #1c2b38;
-  --ice-dark: #243847;
-  --bg: #0f1720;
-  --white: #182430;
+  --ice: #1d2d3b;
+  --ice-dark: #26394a;
+  --bg: #0b1219;
+  --white: #1a2733;
   --text: #e8eef2;
   --text-mid: #9fb3bd;
   --text-dim: #64808c;
-  --border: #26333d;
-  --border-strong: #34434f;
+  --border: #2b3a46;
+  --border-strong: #3a4b58;
   --success: #34d399;
   --success-bg: #11312a;
   /* El rojo del tema claro sobre la superficie oscura daba 3,26 de
@@ -174,7 +174,7 @@
   --indigo-bg: #211f3d;
   --pink: #f472b6;
   --pink-bg: #3a1526;
-  --navbar-bg: rgba(15, 23, 32, 0.92);
+  --navbar-bg: rgba(11, 18, 25, 0.92);
 }
 
 * {
@@ -219,6 +219,8 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Cifras de ancho fijo en toda la web (727, V3): un precio que cambia no baila. */
+  font-variant-numeric: tabular-nums;
 }
 
 h1, h2, h3,

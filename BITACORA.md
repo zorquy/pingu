@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 7) — PINGU-Claude (727 — el tema oscuro afinado y las cifras que no bailan)
+
+**Hecho**: V2 de la lista: en oscuro el fondo es más hondo, las cajas un
+escalón más claras, los bordes se ven, el azul se lee mejor y cada carta
+lleva un filo de luz. Y de la V3, cifras de ancho fijo en toda la web
+(el antetítulo del móvil queda pendiente).
+
+**Ficheros**: `css/style.css`, `css/mi-coleccion.css`, `css/carta.css`,
+`SCHEMA.md`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V3 (antetítulo), V4–V7, A1 y X3, X4,
+X6, X7, X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 6) — PINGU-Claude (726 — el aviso de «¡sale hoy!» también para los sets del catálogo)
 
 **Hecho**: X10 de la lista. La cuenta atrás y el aviso del día del
