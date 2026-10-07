@@ -27073,8 +27073,8 @@ Sigue sin arreglar el clic de Playwright, y eso ya se sabía: su
 desplazamiento va por CDP y no honra `scroll-padding`. Esto es para el
 navegador de una persona.
 
-**Ficheros**: `css/style.css`, `js/perfil.js`, `js/usuario.js`, `css/perfil.css`,
-`CLAUDE.md`, y en la rama `pruebas`:
+**Ficheros**: `css/style.css`, `js/perfil.js`, `js/usuario.js`, `css/perfil.css`, `js/torneos/ronda.js`,
+`css/torneos.css`, `CLAUDE.md`, y en la rama `pruebas`:
 `pruebas/test-tanda-299.mjs`.
 
 ## Tanda 499 — Scrydex: emparejar su catálogo con el nuestro, y su imagen de relleno
@@ -35639,6 +35639,17 @@ coinciden. Esta tanda trae cuatro.
   la cabecera. Las cuatro cifras grandes, en minúscula, y seguidores,
   siguiendo y trofeos en una línea pequeña debajo: dos renglones a
   propósito.
+- **El torneo mientras juegas (J2)**: en su maqueta lo primero es la
+  ronda y tu mesa; aquí, con un torneo en juego, la cabecera (descripción,
+  cinco chapas de formato y la barra de plazas) llenaba la primera
+  pantalla del móvil entera y «Tu partida» empezaba dos más abajo. La
+  barra viva —que es quien sabe si tienes mesa en la ronda— pone
+  `html.torneo-jugando` y la cabecera se queda en el nombre: formato,
+  plazas, descripción y «Añadir al calendario» se apartan (son de antes
+  de jugar y siguen en la pestaña Torneo). Sin ronda viva, o con bye, o
+  mirando sin jugar, la cabecera entera como siempre. Y en el móvil
+  Victoria / Derrota / Tablas van en fila dentro de la casilla de cada
+  partida (en el ordenador la casilla es un tercio y en fila no caben).
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35662,7 +35673,7 @@ coinciden. Esta tanda trae cuatro.
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (dieciséis bloques) y 306, 309, 740, 710, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (diecisiete bloques) y 306, 309, 327, 740, 710, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

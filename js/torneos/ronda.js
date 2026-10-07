@@ -1068,6 +1068,10 @@ function pintarBarraViva(ronda) {
 
   const html = `${rotulo}|${titular}|${der}|${mesasHtml}`
   caja.classList.remove('hidden')
+  // MIENTRAS JUEGAS, LA RONDA PRIMERO (748, J2): la cabecera se queda en el
+  // nombre y lo de inscribirse —formato, plazas, calendario— se aparta,
+  // para que tu mesa salga en la primera pantalla y no dos más abajo.
+  document.documentElement.classList.toggle('torneo-jugando', Boolean(mia && mia.status !== 'bye'))
   if (yaEstaPintado('barraViva', html)) return
   $('torneoVivaRotulo').textContent = rotulo
   $('torneoVivaTitular').textContent = titular
@@ -1111,6 +1115,7 @@ function arrancarReloj(ronda) {
     // ocuparía sitio sin decir nada.
     marcador.classList.add('hidden')
     $('torneoBarraViva')?.classList.add('hidden')
+    document.documentElement.classList.remove('torneo-jugando')
     return
   }
   pintarBarraViva(ronda)

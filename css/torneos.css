@@ -3347,3 +3347,28 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text-mid);
 }
 
+
+/* ── 748: mientras juegas, la ronda primero (J2; SCHEMA 748) ── */
+html.torneo-jugando .torneo-meta,
+html.torneo-jugando .torneo-descripcion,
+html.torneo-jugando .torneo-formato,
+html.torneo-jugando .torneo-plazas,
+html.torneo-jugando #btnCalendario {
+  display: none;
+}
+
+html.torneo-jugando #torneoNombre {
+  margin-bottom: 0;
+  font-size: var(--t-xl);
+}
+
+@media (max-width: 640px) {
+  .torneo-bo3-juego .torneo-reportar {
+    flex-direction: row;
+  }
+
+  .torneo-bo3-juego .torneo-reportar > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

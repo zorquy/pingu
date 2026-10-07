@@ -7,7 +7,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y
-tenía razón. Se rehacen una a una con la captura al lado. Van quince:
+tenía razón. Se rehacen una a una con la captura al lado. Van dieciséis:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
 cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
@@ -32,7 +32,9 @@ derecha) y los saltos al cargar: en el ordenador cada página saltaba
 sitio desde el primer pintado y espera a su hoja (≤ 0,05 en casi todas).
 Y el perfil (banner a sangre con el degradado de su maqueta, avatar
 cuadrado montado encima, el nombre con su @, cuatro cifras grandes y la
-gente en una línea).
+gente en una línea) y el torneo mientras juegas (la cabecera se queda en
+el nombre y tu mesa sale en la primera pantalla; Victoria / Derrota /
+Tablas en fila).
 La portada baja a 168,4 KB. De paso, un salto al cargar en el
 ordenador: la columna de filtros se enfocaba y bajaba la página.
 
@@ -45,7 +47,8 @@ ordenador: la columna de filtros se enfocaba y bajaba la página.
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
 `js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
 `css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`, `js/hoja.js`, `css/style.css`,
-`js/perfil.js`, `js/usuario.js`, `css/perfil.css`,
+`js/perfil.js`, `js/usuario.js`, `css/perfil.css`, `js/torneos/ronda.js`,
+`css/torneos.css`,
 `js/mi-coleccion/ficha-al-lado.js`, `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
 `CLAUDE.md` (la regla de la 650 y el presupuesto), `SCHEMA.md`. Prueba
