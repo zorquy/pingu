@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 10) — PINGU-Claude (730 — mientras carga Mi colección, la forma de lo que llega)
+
+**Hecho**: V5 de la lista. Al entrar en Mi colección, mientras carga, se
+ve la forma del Panel (la cifra, las tres fichas y una fila de cartas) con
+el brillo de los esqueletos, en vez de una frase.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html`, `css/mi-coleccion.css`,
+`SCHEMA.md`. Prueba 730-pantalla en `pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V3 (antetítulo), V7, A1 y X3, X4, X6,
+X7, X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 9) — PINGU-Claude (729 — el vacío de Mi colección, con la mascota y dos caminos)
 
 **Hecho**: V6 de la lista. Sin cartas, Mi colección enseña la mascota,

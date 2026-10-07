@@ -34830,3 +34830,18 @@ documento). Siguen siendo BOTONES que van, no frases que describen (la
 
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`), `js/mi-coleccion.js`,
 `css/mi-coleccion.css`. Prueba 729-pantalla.
+
+## Tanda 730 — mientras carga Mi colección, la forma de lo que llega (oct. 2026)
+
+V5 de la lista. La expansión ya cargaba con bolsillos con forma de carta
+(`esqueletoDeAlbum`), pero la entrada a Mi colección era una frase,
+«Cargando la colección…», y el Panel aparecía de golpe y todo saltaba.
+Ahora `#mcCargando` dibuja lo que va a llegar: la cifra grande del valor
+(96 px), las tres fichas (715) y una fila de cartas en su proporción
+(63 × 88), con el brillo de `.skeleton` —que «menos movimiento» ya
+apaga—. Sigue siendo `role="status"` con «Cargando la colección…» para la
+lectura en voz alta. Se esconde donde se escondía.
+
+**Ficheros**: `mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`.
+Prueba 730-pantalla, con la colección tardando a propósito
+(`__FAKE_RETRASO__`).

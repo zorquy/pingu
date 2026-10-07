@@ -7266,3 +7266,38 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: 0 auto var(--e-md);
 }
 
+/* ── 730 (V5): la carga con la forma del Panel (SCHEMA 730) ── */
+.mc-cargando {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  margin-top: var(--e-md);
+}
+
+.mc-esq-valor {
+  height: 96px;
+  border-radius: var(--radius-lg);
+}
+
+.mc-esq-fichas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--e-sm);
+}
+
+.mc-esq-fichas .skeleton {
+  height: 64px;
+  border-radius: var(--radius-md);
+}
+
+.mc-esq-cartas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-sm);
+}
+
+.mc-esq-cartas .skeleton {
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-md);
+}
+
