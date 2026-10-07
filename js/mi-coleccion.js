@@ -1721,11 +1721,13 @@ function lineaHtml(l) {
   const etiqueta = `${nombreDe(c)}${nombreDeSet(c?.tcg_sets) ? `, ${nombreDeSet(c.tcg_sets)}` : ''}${
     variante ? `, ${variante}` : ''
   }${l.cantidad > 1 ? `, ${l.cantidad} copias` : ''}`
+  const marcando = marcadas && marcarEn === 'cartas'
+  const puesta = marcando && marcadas.has(l.id)
   return `
-    <article class="mc-carta" data-linea="${escapeHtml(l.id)}">
+    <article class="mc-carta${puesta ? ' marcada' : ''}" data-linea="${escapeHtml(l.id)}">
       <button type="button" class="mc-carta-foto carta-scan-holo"${
         brillo ? ` data-brillo="${brillo}"` : ''
-      } data-ficha aria-label="${escapeHtml(etiqueta)}">
+      } data-ficha aria-label="${escapeHtml(etiqueta)}"${marcando ? ` aria-pressed="${puesta ? 'true' : 'false'}"` : ''}>
         ${
           // EL NOMBRE VA SIEMPRE DEBAJO, y la imagen encima (tanda 441).
           //
@@ -1753,6 +1755,7 @@ function lineaHtml(l) {
         ${veloDeVariante(l.variante)}
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
         ${chapaDeVarianteHtml(l.variante)}
+        <span class="mc-sel-marca" aria-hidden="true"></span>
       </button>
     </article>`
 }
@@ -3691,16 +3694,40 @@ function masValiosasDe(filas, cuantas = 3) {
 // La clave lleva la versión porque en «separar variantes» cada casilla ES
 // una versión: con el id de la carta a secas, marcar el reverse holo
 // marcaría también la normal.
-let marcadas = null // Set de `cardId|variante`, o null si el modo está apagado
+let marcadas = null // Set de `cardId|variante` (expansión) o de ids de línea (Cartas); null = apagado
 const claveMarca = (cardId, variante = 'normal') => `${cardId}|${variante || 'normal'}`
+// DÓNDE se selecciona (747). En una expansión se marca cada CARTA (y su
+// versión); en «Cartas» se marca cada COPIA tuya, que es una línea: dos
+// copias de la misma carta en dos idiomas son dos casillas distintas.
+let marcarEn = 'album'
 
-function modoMarcar(encender) {
+function modoMarcar(encender, donde = pestania === 'cartas' ? 'cartas' : 'album', { repintar = true } = {}) {
+  const antes = marcarEn
   marcadas = encender ? new Set() : null
+  if (encender) marcarEn = donde
   $('mcMarcarAbrir')?.setAttribute('aria-pressed', encender ? 'true' : 'false')
   $('mcMarcarBarra')?.classList.toggle('hidden', !encender)
-  $('mcAlbum')?.classList.toggle('mc-album-marcando', Boolean(encender))
+  document.documentElement.classList.toggle('mc-seleccionando', Boolean(encender))
+  $('mcAlbum')?.classList.toggle('mc-album-marcando', Boolean(encender) && marcarEn === 'album')
+  $('mcCartas')?.classList.toggle('mc-cartas-marcando', Boolean(encender) && marcarEn === 'cartas')
   pintarMarcadas()
-  pintarAlbum()
+  if (!repintar) return
+  if ((encender ? marcarEn : antes) === 'cartas') pintarCartas()
+  else pintarAlbum()
+}
+
+// Lo marcado, como una lista de {cardId, variante, linea} sea cual sea la
+// rejilla: las acciones no tienen que saber de dónde viene.
+function entradasMarcadas() {
+  if (!marcadas) return []
+  if (marcarEn === 'cartas') {
+    return [...marcadas].map((id) => lineas.find((l) => l.id === id)).filter(Boolean)
+      .map((l) => ({ cardId: l.card_id, variante: l.variante || 'normal', linea: l }))
+  }
+  return [...marcadas].map((k) => {
+    const corte = k.lastIndexOf('|')
+    return { cardId: k.slice(0, corte), variante: k.slice(corte + 1), linea: null }
+  })
 }
 
 function pintarMarcadas() {
@@ -3708,18 +3735,18 @@ function pintarMarcadas() {
   const cuenta = $('mcMarcarCuenta')
   if (cuenta) {
     cuenta.textContent = cuantas
-      ? `${cuantas} ${cuantas === 1 ? 'carta marcada' : 'cartas marcadas'}`
-      : 'Toca las cartas que tienes'
+      ? `${cuantas} ${cuantas === 1 ? 'seleccionada' : 'seleccionadas'}`
+      : 'Toca las cartas'
   }
   const guardar = $('mcMarcarGuardar')
   if (guardar) {
     guardar.disabled = !cuantas
     // El botón dice CUÁNTAS va a añadir: «Añadir» a secas, con doce
     // marcadas, no deja claro si añade una o las doce.
-    guardar.textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
+    $('mcMarcarGuardarTexto').textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
   }
   // 713: lo demás que se hace con varias. «Quitar» cuenta solo las tuyas.
-  $('mcMarcarAcciones')?.classList.toggle('hidden', !cuantas)
+  for (const id of ['mcMarcarAlbum', 'mcMarcarQuiero']) if ($(id)) $(id).disabled = !cuantas
   confirmarQuitar = false
   const tuyas = lineasDeLasMarcadas().length
   const quitar = $('mcMarcarQuitar')
@@ -3730,6 +3757,32 @@ function pintarMarcadas() {
   }
 }
 
+// «Seleccionar todas»: las que están A LA VISTA en la rejilla, con los
+// filtros puestos —seleccionar las 400 de la colección con un filtro de
+// «Fuego» delante no es lo que nadie espera—.
+function marcarTodas() {
+  if (!marcadas) return
+  if (marcarEn === 'cartas') {
+    for (const t of $('mcCartas').querySelectorAll('.mc-carta[data-linea]')) { marcadas.add(t.dataset.linea); t.classList.add('marcada'); t.querySelector('[data-ficha]')?.setAttribute('aria-pressed', 'true') }
+  } else {
+    for (const a of $('mcAlbum').querySelectorAll('.mc-bolsillo-enlace[data-marca]')) { marcadas.add(a.dataset.marca); a.setAttribute('aria-pressed', 'true'); a.closest('.mc-bolsillo')?.classList.add('marcada') }
+  }
+  pintarMarcadas()
+}
+
+// Marcar o desmarcar una copia de la rejilla de Cartas. Sin repintar: con
+// cientos de casillas, repintar a cada toque se nota.
+function alternarLinea(tarjeta) {
+  if (!marcadas || marcarEn !== 'cartas') return
+  const id = tarjeta.dataset.linea
+  if (marcadas.has(id)) marcadas.delete(id)
+  else marcadas.add(id)
+  const puesta = marcadas.has(id)
+  tarjeta.classList.toggle('marcada', puesta)
+  tarjeta.querySelector('[data-ficha]')?.setAttribute('aria-pressed', puesta ? 'true' : 'false')
+  pintarMarcadas()
+}
+
 // ── Lo demás que se hace con varias (713, C4) ──
 //
 // PINGU eligió la selección múltiple de la lista de propuestas: con varias
@@ -3738,13 +3791,14 @@ function pintarMarcadas() {
 // tengas (de la línea de esa versión con más copias): quitar una carta
 // entera con todos sus idiomas desde una rejilla sería demasiado para un
 // toque, y para eso está su ficha.
-const idsDeLasMarcadas = () => [...new Set([...(marcadas || [])].map((k) => k.slice(0, k.lastIndexOf('|'))))]
+const idsDeLasMarcadas = () => [...new Set(entradasMarcadas().map((e) => e.cardId))]
 function lineasDeLasMarcadas() {
   const out = []
-  for (const k of marcadas || []) {
-    const corte = k.lastIndexOf('|')
-    const id = k.slice(0, corte), variante = k.slice(corte + 1)
-    const suyas = misLineasDe(id).filter((l) => (l.variante || 'normal') === variante)
+  for (const e of entradasMarcadas()) {
+    // En «Cartas» lo marcado YA es una línea; en una expansión, la tuya de
+    // esa versión con más copias.
+    if (e.linea) { out.push(e.linea); continue }
+    const suyas = misLineasDe(e.cardId).filter((l) => (l.variante || 'normal') === e.variante)
     if (suyas.length) out.push(suyas.sort((a, b) => (b.cantidad || 0) - (a.cantidad || 0))[0])
   }
   return out
@@ -3859,12 +3913,13 @@ function alternarMarca(enlace) {
 async function guardarMarcadas() {
   if (!marcadas?.size) return
   const boton = $('mcMarcarGuardar')
-  const idioma = $('mcTocarIdioma').value
-  const estado = $('mcTocarEstado').value
-  const lineasNuevas = [...marcadas].map((clave) => {
-    const corte = clave.lastIndexOf('|')
-    return { card_id: clave.slice(0, corte), variante: clave.slice(corte + 1), idioma, estado }
-  })
+  const idioma = $('mcTocarIdioma')?.value || 'es'
+  const estado = $('mcTocarEstado')?.value || 'NM'
+  // Desde «Cartas», una copia MÁS de cada una, con su idioma y su estado:
+  // es «otra igual que esta», no una carta nueva.
+  const lineasNuevas = entradasMarcadas().map((e) => ({
+    card_id: e.cardId, variante: e.variante, idioma: e.linea?.idioma || idioma, estado: e.linea?.estado || estado,
+  }))
   boton.disabled = true
   try {
     const puestas = await datos.anadirVarias(sesion.user.id, lineasNuevas, mercado)
@@ -3885,8 +3940,8 @@ async function guardarMarcadas() {
     // se pueda quedar corto.
     const elSet = (todosLosSets || []).find((x) => x.id === album.set)
     for (const l of puestas) {
-      const c = album.cartas.find((x) => x.id === l.card_id)
-      meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : null)
+      const c = (album.cartas || []).find((x) => x.id === l.card_id)
+      meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : cartas.get(l.card_id) || null)
     }
     const cuantas = puestas.length
     modoMarcar(false)
@@ -4624,6 +4679,8 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // se quedaría flotando encima de lo que no es suyo.
   if (nueva !== 'cartas' && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
   const otra = nueva !== pestania
+  // Lo seleccionado es de la rejilla que estabas mirando.
+  if (otra && marcadas) modoMarcar(false)
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
@@ -5835,6 +5892,12 @@ function enganchar() {
     // Ahora la ficha se abre pulsando la CARTA, no un botón «Editar» en
     // cada fila (tanda 392). `data-editar` se sigue aceptando: lo usan
     // otras pantallas que todavía pintan la fila con su botón.
+    // Seleccionando (747), tocar una carta la marca en vez de abrirla.
+    if (marcadas && marcarEn === 'cartas') {
+      const t = e.target.closest('.mc-carta[data-linea]')
+      if (t) { e.preventDefault(); alternarLinea(t) }
+      return
+    }
     if (!e.target.closest('[data-ficha], [data-editar]')) return
     const l = lineas.find((x) => x.id === e.target.closest('[data-linea]').dataset.linea)
     if (!l) return
@@ -5886,6 +5949,7 @@ function enganchar() {
   // ── Marcar varias (tanda 426) ──
   $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))
   $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))
+  $('mcMarcarTodas')?.addEventListener('click', () => marcarTodas())
   $('mcMarcarGuardar')?.addEventListener('click', () => void guardarMarcadas())
   $('mcMarcarQuitar')?.addEventListener('click', () => void quitarMarcadas())
   $('mcMarcarQuiero')?.addEventListener('click', () => void quererMarcadas())
@@ -5905,48 +5969,73 @@ function enganchar() {
   // EMPEZÓ, y si la rejilla se repinta a mitad ese elemento ya no está en
   // la página: el soltar no llega a nadie y el gesto se queda a medias. El
   // modo de verdad se enciende al soltar.
+  //
+  // Y EN LAS DOS REJILLAS (747). Hasta aquí solo estaba en la de una
+  // expansión, y PINGU lo probaba —con razón— en «Cartas». En la de Cartas
+  // no se repinta nada al marcar (solo clases), así que el modo se enciende
+  // en cuanto se cumple el medio segundo, que es lo que hace la galería
+  // del iPhone; en la expansión sigue esperando al soltar, por lo de arriba.
+  // Lo que en el iPhone se comía el gesto —la vista previa del sistema al
+  // mantener un enlace o una imagen— lo quita la hoja (`-webkit-touch-
+  // callout`), y el menú contextual, el `contextmenu` de abajo.
   {
-    let reloj = null, origen = null, pendiente = null, comer = false
-    const zona = $('mcAlbum')
+    let reloj = null, origen = null, pendiente = null, comer = false, yaEncendido = false
     const parar = () => { clearTimeout(reloj); reloj = null }
     const aplicar = () => {
       const p = pendiente
       pendiente = null
       if (!p) return
-      if (!marcadas) modoMarcar(true)
+      const zona = $('mcAlbum')
+      if (!marcadas) modoMarcar(true, 'album')
       const nuevo = zona.querySelector(`.mc-bolsillo-enlace[data-marca="${CSS.escape(claveMarca(p.carta, p.variante))}"]`) || zona.querySelector(`.mc-bolsillo-enlace[data-carta="${CSS.escape(p.carta)}"][data-marca]`)
       if (nuevo && !marcadas.has(nuevo.dataset.marca)) alternarMarca(nuevo)
     }
-    zona?.addEventListener('pointerdown', (e) => {
-      const enlace = e.target.closest('.mc-bolsillo-enlace[data-carta]')
-      if (!enlace || !esMia || !sesion || e.button !== 0) return
-      // Con el modo ya puesto, un toque marca: no hace falta mantener.
-      if (marcadas) return
-      origen = { x: e.clientX, y: e.clientY }
-      parar()
-      reloj = setTimeout(() => {
-        reloj = null
-        pendiente = { carta: enlace.dataset.carta, variante: enlace.dataset.variante || 'normal' }
-        enlace.closest('.mc-bolsillo')?.classList.add('marcada')
-        navigator.vibrate?.(10)
-      }, 500)
-    })
-    zona?.addEventListener('pointermove', (e) => {
-      if (reloj && origen && Math.hypot(e.clientX - origen.x, e.clientY - origen.y) > 10) parar()
-    })
-    zona?.addEventListener('pointerup', () => {
-      parar()
-      if (!pendiente) return
-      // El clic de este mismo soltar se come; si no llega, a los 250 ms se
-      // deja de esperar para no comerse el siguiente toque de verdad.
-      // Y el modo se enciende DESPUÉS de ese clic: encenderlo saca la barra
-      // de marcar, que empuja la rejilla, y el clic caía en su «Cancelar».
-      comer = true
-      setTimeout(() => { comer = false }, 250)
-      setTimeout(aplicar, 60)
-    })
-    zona?.addEventListener('pointercancel', () => { parar(); if (pendiente) setTimeout(aplicar, 0) })
-    zona?.addEventListener('pointerleave', parar)
+    const zonas = [
+      { zona: $('mcAlbum'), casilla: '.mc-bolsillo-enlace[data-carta]', yaMarcando: () => marcadas && marcarEn === 'album',
+        alCumplir: (el) => {
+          pendiente = { carta: el.dataset.carta, variante: el.dataset.variante || 'normal' }
+          el.closest('.mc-bolsillo')?.classList.add('marcada')
+        } },
+      { zona: $('mcCartas'), casilla: '.mc-carta[data-linea]', yaMarcando: () => marcadas && marcarEn === 'cartas',
+        alCumplir: (el) => {
+          if (!marcadas) modoMarcar(true, 'cartas', { repintar: false })
+          if (!marcadas.has(el.dataset.linea)) alternarLinea(el)
+          yaEncendido = true
+        } },
+    ]
+    for (const { zona, casilla, yaMarcando, alCumplir } of zonas) {
+      zona?.addEventListener('pointerdown', (e) => {
+        const el = e.target.closest(casilla)
+        if (!el || !esMia || !sesion || e.button !== 0) return
+        // Con el modo ya puesto, un toque marca: no hace falta mantener.
+        if (yaMarcando()) return
+        origen = { x: e.clientX, y: e.clientY }
+        parar()
+        reloj = setTimeout(() => {
+          reloj = null
+          alCumplir(el)
+          navigator.vibrate?.(10)
+        }, 450)
+      })
+      zona?.addEventListener('pointermove', (e) => {
+        if (reloj && origen && Math.hypot(e.clientX - origen.x, e.clientY - origen.y) > 10) parar()
+      })
+      zona?.addEventListener('pointerup', () => {
+        parar()
+        if (!pendiente && !yaEncendido) return
+        // El clic de este mismo soltar se come; si no llega, a los 250 ms se
+        // deja de esperar para no comerse el siguiente toque de verdad.
+        // Y el modo se enciende DESPUÉS de ese clic: encenderlo saca la barra
+        // de marcar, que empuja la rejilla, y el clic caía en su «Cancelar».
+        comer = true
+        yaEncendido = false
+        setTimeout(() => { comer = false }, 250)
+        if (pendiente) setTimeout(aplicar, 60)
+      })
+      zona?.addEventListener('pointercancel', () => { parar(); yaEncendido = false; if (pendiente) setTimeout(aplicar, 0) })
+      zona?.addEventListener('pointerleave', parar)
+      zona?.addEventListener('contextmenu', (e) => { if (e.target.closest(casilla)) e.preventDefault() })
+    }
     // En el DOCUMENTO y no en la zona: si el clic acaba en otro sitio (la
     // barra que acaba de salir), también se lo come.
     document.addEventListener('click', (e) => {
@@ -5955,7 +6044,6 @@ function enganchar() {
       e.preventDefault()
       e.stopImmediatePropagation()
     }, true)
-    zona?.addEventListener('contextmenu', (e) => { if (e.target.closest('.mc-bolsillo-enlace')) e.preventDefault() })
   }
   // Con el teclado: un enlace ya responde a Intro, pero `role="button"`
   // promete también la BARRA ESPACIADORA, y un enlace no la tiene.

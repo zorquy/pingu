@@ -2484,58 +2484,195 @@
 .mc-album-valor h3 { margin: 0 0 var(--e-xs); font-size: var(--t-md); }
 .mc-album-valor-de { margin: 0 0 var(--e-sm); }
 
-/* ── Marcar varias de golpe (tanda 426) ── */
-.mc-marcar-barra {
-  display: flex;
-  position: sticky;
-  z-index: 4;
-  /* Debajo de la barra de arriba del sitio, que es `sticky` a 0 con 70 px
-     de alto y un z-index de 100: a 0 esta se le metía por debajo y los
-     botones quedaban cortados. 72 y no 70 porque por encima de 32 px ya no
-     es un paso sino una MEDIDA, y una medida sigue la retícula de 4
-     (CLAUDE.md). Los 2 px de sobra son aire, no un error de cuenta. */
-  top: 72px;
-  flex-wrap: wrap;
-  gap: var(--e-sm) var(--e-md);
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--e-md);
-  padding: var(--e-sm) var(--e-md);
-  /* Superficie normal con un contorno que la destaca, y NO el azul sólido
-     de fondo: encima van un `btn-primary` —que ya es azul sólido— y un
-     `link-btn`, y azul sobre azul no se lee. Una barra se hace notar con
-     el contorno y con estar pegada arriba; pintarla entera obliga a
-     repintar todo lo que lleva dentro. */
-  border: 2px solid var(--navy);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+/* ── Seleccionar varias (747, la C4 de su maqueta; SCHEMA 747) ── */
+.mc-sel.hidden {
+  display: none;
 }
 
-.mc-marcar-cuenta {
-  margin: 0;
-  font-weight: 700;
-}
-
-.mc-marcar-botones {
+.mc-sel-arriba {
   display: flex;
-  flex-wrap: wrap;
+  position: fixed;
+  z-index: 140;
+  top: 0;
+  right: 0;
+  left: 0;
   gap: var(--e-sm);
   align-items: center;
+  min-height: 64px;
+  padding: calc(env(safe-area-inset-top) + var(--e-sm)) var(--e-lg) var(--e-sm) var(--e-sm);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  box-shadow: var(--shadow-md);
 }
 
-/* En el móvil la barra se queda en dos renglones: lo que dice arriba y lo
-   que se pulsa abajo, ocupando el ancho. Con los tres botones apretados en
-   la misma línea que la cuenta se iba a tres y cuatro renglones. */
-@media (max-width: 599px) {
-  .mc-marcar-barra {
-    gap: var(--e-sm);
-  }
+.mc-sel-cerrar {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--blanco-fijo);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
 
-  .mc-marcar-botones {
-    width: 100%;
-    justify-content: flex-end;
+.mc-sel-cuenta {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-sel-todas {
+  min-height: 44px;
+  padding: 0 var(--e-xs);
+  border: 0;
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-sel-abajo {
+  display: grid;
+  position: fixed;
+  z-index: 140;
+  right: var(--e-lg);
+  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  left: var(--e-lg);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-xs);
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+
+.mc-sel-accion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-sel-accion svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mc-sel-mas {
+  font-size: var(--t-xl);
+  line-height: 1;
+}
+
+.mc-sel-accion:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.mc-sel-accion:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.mc-sel-quitar {
+  color: var(--danger);
+}
+
+.mc-sel-quitar.confirmando {
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+}
+
+/* Lo de abajo no se queda tapado por las acciones. */
+html.mc-seleccionando .mc-pagina {
+  padding-bottom: 120px;
+}
+
+/* En el móvil la selección tapa la barra de abajo y la burbuja: son de
+   moverse, y seleccionando no se va a ningún sitio. */
+@media (max-width: 900px) {
+  html.mc-seleccionando .bm,
+  html.mc-seleccionando .mc-pestanias {
+    visibility: hidden;
   }
+}
+
+/* Mantener pulsada una carta no saca la vista previa del iPhone ni
+   selecciona texto: es el gesto de seleccionar (747). */
+.mc-carta,
+.mc-bolsillo {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mc-carta img,
+.mc-bolsillo img {
+  -webkit-user-drag: none;
+}
+
+/* Seleccionando, cada casilla lleva su círculo: vacío o con el visto. En
+   Cartas es un elemento propio: el `::after` de la foto es el del brillo
+   holo. */
+.mc-sel-marca {
+  display: none;
+}
+
+.mc-cartas-marcando .mc-sel-marca,
+.mc-album-marcando .mc-bolsillo:not(.marcada)::after {
+  content: '';
+  display: grid;
+  position: absolute;
+  z-index: 3;
+  inset: var(--e-xs) var(--e-xs) auto auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--blanco-fijo);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 25%);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-cartas-marcando .mc-carta.marcada .mc-sel-marca {
+  background: var(--navy-solid);
+}
+
+.mc-cartas-marcando .mc-carta.marcada .mc-sel-marca::after {
+  content: '✓';
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+
+.mc-carta.marcada .mc-carta-foto {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.mc-cartas-marcando .mc-carta-foto {
+  cursor: pointer;
 }
 
 .mc-album-marcando .mc-bolsillo-enlace {
@@ -2557,8 +2694,10 @@
   display: grid;
   position: absolute;
   z-index: 2;
-  top: var(--e-xs);
-  right: var(--e-xs);
+  /* `inset` entero: el brillo de las que tienes (`.tengo::after`) pone
+     `inset: 0` y estiraba el visto hasta la otra esquina. */
+  inset: var(--e-xs) var(--e-xs) auto auto;
+  background-image: none;
   place-items: center;
   width: 24px;
   height: 24px;
@@ -6470,6 +6609,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    Desde la 578 la carta se ARRASTRA (js/mi-coleccion/arrastre.js); las
    flechas se quedan para el teclado. */
 .mc-album-marcando .mc-bolsillo-controles,
+.mc-album-marcando .mc-mas,
 .mc-album-marcando .mc-bolsillo-quitar {
   display: none;
 }
@@ -6877,49 +7017,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* ── 713: con varias marcadas, a un álbum, la quiero o quitar ── */
-.mc-marcar-acciones {
-  display: flex;
-  flex-basis: 100%;
-  gap: var(--e-xs);
-  padding-top: var(--e-sm);
-  border-top: 1px solid var(--border);
-}
-.mc-marcar-acciones.hidden {
-  display: none;
-}
-.mc-marcar-accion {
-  display: inline-flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 52px;
-  padding: var(--e-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-.mc-marcar-accion:hover:not(:disabled) {
-  background: var(--bg);
-}
-.mc-marcar-accion:disabled {
-  color: var(--text-dim);
-  cursor: default;
-}
-.mc-marcar-quitar {
-  color: var(--danger);
-}
-.mc-marcar-quitar.confirmando {
-  background: var(--danger-solid);
-  color: var(--blanco-fijo);
-}
 .mc-ea-lista {
   display: flex;
   flex-direction: column;

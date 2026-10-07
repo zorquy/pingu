@@ -668,24 +668,6 @@
                pasa al pulsarla. -->
           <div class="mc-barras" id="mcAlbumProgreso"></div>
           <p class="mc-cuantas" id="mcAlbumCuenta" role="status" aria-live="polite"></p>
-          <!-- La barra va ARRIBA y no pegada abajo: en el móvil abajo está
-               la barra de pestañas, y dos barras flotantes peleándose por
-               el mismo borde es justo el lío que arreglaba la 419. -->
-          <div class="mc-marcar-barra hidden" id="mcMarcarBarra">
-            <p class="mc-marcar-cuenta" id="mcMarcarCuenta" role="status" aria-live="polite">Toca las cartas que tienes</p>
-            <div class="mc-marcar-botones">
-              <button type="button" class="btn-secondary" id="mcMarcarCancelar">Cancelar</button>
-              <button type="button" class="btn-primary" id="mcMarcarGuardar" disabled>Añadir</button>
-            </div>
-            <!-- 713 (C4): lo demás que se hace con varias a la vez. Sale en
-                 cuanto hay alguna marcada; «Quitar» solo cuenta las tuyas y
-                 pide un segundo toque. -->
-            <div class="mc-marcar-acciones hidden" id="mcMarcarAcciones">
-              <button type="button" class="mc-marcar-accion" id="mcMarcarAlbum"><span data-icono="folder" aria-hidden="true"></span>A un álbum</button>
-              <button type="button" class="mc-marcar-accion" id="mcMarcarQuiero"><span data-icono="star" aria-hidden="true"></span>La quiero</button>
-              <button type="button" class="mc-marcar-accion mc-marcar-quitar" id="mcMarcarQuitar"><span data-icono="trash" aria-hidden="true"></span><span id="mcMarcarQuitarTexto">Quitar</span></button>
-            </div>
-          </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
              (tanda 365) que se fue en la 368. Obligaba a elegir: con él
              puesto no podías abrir la ficha de una carta, y sin él no
@@ -1510,6 +1492,24 @@
           </div>
         </form>
       </dialog>
+    <!-- SELECCIONAR VARIAS (747, la C4 como en su maqueta). Vale para las
+         DOS rejillas —«Cartas», donde se marca cada copia tuya, y una
+         expansión, donde se marca cada carta— y por eso vive fuera de las
+         pestañas. Arriba, una barra de color que tapa la del sitio y dice
+         cuántas llevas; abajo, las acciones flotando sobre la rejilla. -->
+    <div class="mc-sel hidden" id="mcMarcarBarra">
+      <div class="mc-sel-arriba">
+        <button type="button" class="mc-sel-cerrar" id="mcMarcarCancelar" aria-label="Salir de la selección">✕</button>
+        <p class="mc-sel-cuenta" id="mcMarcarCuenta" role="status" aria-live="polite">Toca las cartas</p>
+        <button type="button" class="mc-sel-todas" id="mcMarcarTodas">Seleccionar todas</button>
+      </div>
+      <div class="mc-sel-abajo" id="mcMarcarAcciones">
+        <button type="button" class="mc-sel-accion" id="mcMarcarGuardar" disabled><span class="mc-sel-mas" aria-hidden="true">+</span><span id="mcMarcarGuardarTexto">Añadir</span></button>
+        <button type="button" class="mc-sel-accion" id="mcMarcarAlbum" disabled><span data-icono="folder" aria-hidden="true"></span>A un álbum</button>
+        <button type="button" class="mc-sel-accion" id="mcMarcarQuiero" disabled><span data-icono="star" aria-hidden="true"></span>Las quiero</button>
+        <button type="button" class="mc-sel-accion mc-sel-quitar" id="mcMarcarQuitar" disabled><span data-icono="trash" aria-hidden="true"></span><span id="mcMarcarQuitarTexto">Quitar</span></button>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">
