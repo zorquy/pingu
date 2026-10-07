@@ -35401,3 +35401,70 @@ PINGU, con cuatro capturas de su iPhone:
 `css/cardmarket.css`, `mi-coleccion.html` (y `cartas.html`, generado).
 Prueba 747-pantalla en `pruebas` (13 rojos contra el código de antes);
 447, 451 y 719 abren el escáner por el aviso o por la burbuja.
+
+## Tanda 748 — rehacer contra la maqueta: seleccionar, añadir, filtros y Pokédex (oct. 2026)
+
+PINGU, con la web delante: «hay un montón de cosas que no has hecho… no
+se ve igual». La lista de 53 se había dado por hecha comparando contra la
+DESCRIPCIÓN de cada propuesta, no contra su maqueta. Desde aquí cada una se
+rehace con la captura al lado de su imagen, y no se da por hecha hasta que
+coinciden. Esta tanda trae cuatro.
+
+- **Seleccionar varias (C4)**: «mantener pulsado una carta no funciona».
+  Solo existía en el archivador de una expansión (`#mcAlbum`), y en iOS el
+  menú del sistema (`-webkit-touch-callout`) se comía la pulsación larga
+  antes de los 450 ms. Ahora vale en las dos rejillas: en una expansión
+  se aplica al soltar (como antes) y en Cartas en cuanto se cumple el
+  tiempo; se come el clic que viene detrás y el `contextmenu`. La barra es
+  la de la maqueta: arriba, fija y azul, «✕ · N seleccionadas ·
+  Seleccionar todas»; abajo una tarjeta flotante con Guardar en carpeta,
+  Álbum, «Las quiero» y Quitar. Con cero marcadas los botones están pero
+  apagados — que desaparezcan haría saltar la barra. En Cartas lo que se
+  marca es la LÍNEA (cada una con su idioma y estado), y guardar en
+  carpeta usa los de cada línea, no los de la hoja. Cambiar de pestaña
+  sale del modo. Chromium tira `-webkit-touch-callout` del CSSOM, así que
+  la prueba lee el texto de la hoja, y el dedo de verdad se simula con
+  `Input.dispatchTouchEvent` de CDP: con `tap()` el fallo no se ve.
+- **La hoja de añadir (C5)**: una sola columna — tirador, la carta con su
+  nombre, set y «Ya tienes N», idiomas en una fila que se desliza (la
+  elegida con su nombre entero, las demás con su código), Estado y Versión
+  segmentados, copias y «Lo que pagaste (€)» en una fila y el botón a todo
+  lo ancho. Desaparece el paso previo «Ya en tu colección → Añadir más»:
+  el «Ya tienes N» de la cabecera dice lo mismo sin un toque de más. La
+  hoja de /carta (`#cmAdDialogo`) es la misma, con los mismos ayudantes.
+- **Los filtros (C6)**: «Borrar todo» arriba a la derecha, el cierre es el
+  tirador de la hoja en el móvil, y el pie es un botón a todo lo ancho. En
+  una expansión, primero «Qué cartas» (Todas · Las tengo · Me faltan),
+  luego el TIPO de energía con su icono redondo, rareza, categoría, idioma
+  y el orden al final. En Cartas el tipo va igual de primero, y el precio
+  es un rango con DOS tiradores sobre las dos cajas de número que ya
+  había. Dragón, Incolora y Hada no tenían icono —el texto se salía del
+  círculo—: `assets/energias/N.svg`, `C.svg` e `Y.svg`, en el dibujo de
+  las demás. Los filtros de la expansión salían vacíos si se pintaban
+  antes de llegar las cartas: su llave lleva ahora la cuenta de cartas.
+  **Lo que NO se ha hecho**: el rango de precio en una expansión. Una carta
+  que no tienes no tiene precio en memoria (la 651), y filtrar por precio
+  las 200 de un set pediría sus 200 filas; se queda solo en Cartas.
+- **La Pokédex (C3)**: «hay Pokémon que tienen los tipos puestos y hay
+  otros que no». El color salía del `types` de TUS cartas, así que una
+  especie que no tienes —o una carta sin el campo engordado— iba en gris.
+  `js/tipos-de-especie.js` lleva el tipo de las 1.025 especies en una
+  cadena de 1.025 letras (2,6 KB, sacada de la tabla de PokeAPI y pasada a
+  las energías del TCG: Normal y Volador → Incolora, Veneno → Oscura,
+  Fantasma y Hada → Psíquica, Bicho → Planta, Hielo → Agua, Tierra y Roca
+  → Lucha, Acero → Metálica, Eléctrico → Rayo, Dragón → Dragón). Tus
+  cartas siguen mandando; la especie es el respaldo. La pantalla es la de
+  la maqueta: título con «Kanto · x de 151» y su anillo, las regiones en
+  chips y la rejilla de una región; buscar u ordenar por «cerca» vuelve a
+  la lista entera. Una especie que no tienes sale «???» con su icono en
+  gris y «te falta». **Una decisión contra la maqueta**: la casilla dice
+  «x de total» y no «N cartas», porque es lo que dice cuánto te falta de
+  esa especie, que es para lo que sirve la pantalla.
+
+**Ficheros**: `mi-coleccion.html` (y `cartas.html`, generado),
+`js/mi-coleccion.js`, `js/mi-coleccion/segmentado.js`,
+`js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
+`js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
+`css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
+Prueba 748-pantalla (cinco bloques) y 381, 385, 399, 426, 429, 437, 468,
+476, 650, 692, 711, 712, 713, 714 y 747 al día en `pruebas`.
