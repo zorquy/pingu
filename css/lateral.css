@@ -1,0 +1,92 @@
+/* La barra lateral del ordenador (739). La inyecta js/barra-lateral.js
+   solo en pantallas anchas con ratón. El porqué, en SCHEMA.md: tanda 739. */
+.lat {
+  display: none;
+}
+
+@media (min-width: 1400px) and (pointer: fine) {
+  html.con-lateral body {
+    padding-left: 240px;
+  }
+
+  .lat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-lg);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 101;
+    width: 240px;
+    padding: var(--e-md) var(--e-md) var(--e-xl);
+    border-right: 1px solid var(--border);
+    background: var(--white);
+    overflow-y: auto;
+  }
+
+  /* Arriba se quedan el buscador, los avisos y tu avatar: el logo y los
+     desplegables viven ya en la barra lateral. */
+  html.con-lateral .navbar .nav-logo,
+  html.con-lateral .navbar .nav-links {
+    display: none;
+  }
+
+  html.con-lateral .nav-inner {
+    justify-content: flex-end;
+  }
+
+  .lat-logo {
+    padding: 0 var(--e-sm);
+  }
+
+  .lat-lista,
+  .lat-paginas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lat-seccion-enlace,
+  .lat-paginas a {
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+    min-height: 44px;
+    padding: 0 var(--e-md);
+    border-radius: var(--radius-md);
+    color: var(--text-mid);
+    font-weight: 600;
+  }
+
+  .lat-seccion-enlace:hover,
+  .lat-paginas a:hover {
+    background: var(--ice);
+    color: var(--text);
+  }
+
+  .lat-activa > .lat-seccion-enlace {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .lat-paginas {
+    margin: var(--e-xs) 0 var(--e-sm) var(--e-lg);
+    padding-left: var(--e-sm);
+    border-left: 1px solid var(--border);
+  }
+
+  .lat-paginas a {
+    font-size: var(--t-sm);
+    font-weight: 500;
+  }
+
+  .lat [aria-current='page'] {
+    background: var(--ice);
+    color: var(--navy);
+    font-weight: 700;
+  }
+}

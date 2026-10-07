@@ -771,6 +771,9 @@ export async function initNavbar() {
   // la portada). Si el ancho cambia después, el CSS la esconde solo.
   if (document.getElementById('navbar') && window.matchMedia?.('(max-width: 900px)').matches) {
     import('./barra-movil.js').then((m) => m.montarBarraMovil({ conSesion: !!session })).catch(() => {})
+  } else if (document.getElementById('navbar') && window.matchMedia?.('(min-width: 1400px) and (pointer: fine)').matches) {
+    // Y la lateral del ordenador (SCHEMA 739), igual: solo quien la usa.
+    import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: !!session })).catch(() => {})
   }
   // Precarga al posar el dedo (SCHEMA 723).
   import('./precarga.js').then((m) => m.montarPrecarga()).catch(() => {})

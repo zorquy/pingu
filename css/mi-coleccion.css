@@ -6946,6 +6946,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-rango-precio label {
   display: flex;
   flex: 1;
+  min-width: 0;
   flex-direction: column;
   gap: var(--e-xs);
   color: var(--text-mid);
@@ -6953,6 +6954,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 600;
 }
 .mc-rango-precio input {
+  width: 100%;
+  min-width: 0;
   min-height: 44px;
   padding: 0 var(--e-md);
   border: 1px solid var(--border);

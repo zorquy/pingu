@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 19) — PINGU-Claude (739 — la barra lateral del ordenador)
+
+**Hecho**: D1 de la lista. En pantallas de 1.400 px o más con ratón, las
+cinco secciones van en una barra fija a la izquierda, con las páginas de
+la activa debajo; arriba quedan el buscador, los avisos y tu avatar. Por
+debajo de ese ancho, o con el dedo, todo sigue como estaba.
+
+**Ficheros**: `js/barra-lateral.js`, `css/lateral.css` (nuevos),
+`js/app.js`, `css/mi-coleccion.css`, `SCHEMA.md`. Prueba 739-pantalla y
+la 327 al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D2, V3
+(antetítulo), X13.
+
 ## 2026-10-07 (tarde, 18) — PINGU-Claude (738 — los filtros en una columna)
 
 **Hecho**: X14 de la lista. En el ordenador, los filtros de Mi colección ›

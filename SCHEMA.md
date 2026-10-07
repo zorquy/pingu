@@ -35071,3 +35071,38 @@ está abierto, y «Ver resultados» solo si se ve.
 **Ficheros**: `js/mi-coleccion/filtros-columna.js` (nuevo),
 `js/mi-coleccion.js`, `css/mi-coleccion.css`. Prueba 738-pantalla; 399,
 564 y 574 al día.
+
+## Tanda 739 — la barra lateral del ordenador (oct. 2026)
+
+D1 de la lista. Arriba había cinco desplegables: para llegar a una página
+había que abrir el suyo cada vez. En una pantalla ancha sobra sitio a la
+izquierda, así que (`js/barra-lateral.js`, `css/lateral.css`):
+
+- Con `(min-width: 1400px) and (pointer: fine)` sale una barra FIJA de
+  240 px a la izquierda, de arriba abajo, con el logo, las cinco secciones
+  y, debajo de la activa, sus páginas a la vista. El `body` se aparta
+  240 px, así que la barra de arriba, el contenido y el pie se corren
+  juntos y nada queda debajo.
+- Arriba quedan solo el buscador, el tema, los mensajes, los avisos y tu
+  avatar: el logo y los desplegables ya viven en la lateral
+  (`html.con-lateral`). A menos de 1.400, o con el dedo (una tableta), la
+  barra de arriba es la de siempre.
+- La lista es LA MISMA que la de la barra del móvil (704): se lee de los
+  desplegables con `seccionesDeLaBarra`, con sus iconos y rótulos cortos.
+  Cartas lleva a Mi colección con cuenta y al catálogo sin ella, como
+  abajo en el móvil.
+- «Estás aquí» (`aria-current`) va en la PÁGINA, no en la sección; la
+  sección activa va en negrita.
+- Va justo detrás del «Saltar al contenido» en el orden de tabulación: es
+  la navegación y la de arriba se esconde.
+- Como la del móvil, entra por `import()` desde app.js y trae su hoja: la
+  portada paga una línea.
+
+De paso, en la columna de filtros (738) el campo «Hasta» del precio se
+salía: los dos campos van en flex y un `<input>` sin `min-width: 0` no
+cede de su ancho de serie. La 327, que mide lo que pide la barra de
+arriba a 1.600 px, quita la clase de la lateral antes de medir: lo que
+mide es la barra entera, la de quien no la tiene.
+
+**Ficheros**: `js/barra-lateral.js` y `css/lateral.css` (nuevos),
+`js/app.js`, `css/mi-coleccion.css`. Prueba 739-pantalla; 327 al día.
