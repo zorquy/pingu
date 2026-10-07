@@ -34631,3 +34631,26 @@ set).
 **Ficheros**: `js/mi-coleccion/gestos-ficha.js` (nuevo), `js/mi-coleccion.js`,
 `css/mi-coleccion.css`, `js/buscador.js`. Prueba 720-pantalla, con toques
 de verdad por CDP.
+
+## Tanda 721 — el meta con el color de su tipo (oct. 2026)
+
+J3 de la lista (la primera de las cinco J; van una por tanda). El meta ya
+tenía sus sprites y su barra de uso; le faltaba que se reconociera de un
+vistazo.
+
+- **La barra, del color del tipo del mazo.** El tipo sale de las CARTAS,
+  no de una lista: la especie del primer icono (`dexDeIcono`, con el mismo
+  `dexExacto` de los sprites) y, de las cartas occidentales de esa
+  especie, el tipo que más se repite (`tipoMasRepetido`: un Charizard es
+  de Fuego aunque tenga alguna carta de Oscuro). UNA consulta para todo el
+  ranking (`tiposDeArquetipos`, `overlaps` sobre `dex_ids`), que llega
+  después y repinta; si falla, la barra se queda en el azul de siempre: es
+  un adorno, y «no se sabe» no se pinta como un tipo. Incoloro no tiñe
+  —su gris no se ve sobre el fondo de la barra—. La paleta es la cuarta
+  copia de la de la ficha y la 384 vigila que coincida.
+- **En el móvil la barra también está** (estaba escondida): a lo ancho,
+  debajo del nombre, con la tendencia y las victorias arriba a la derecha.
+- **Las victorias, a la vista**: un paso más de letra y en negrita.
+
+**Ficheros**: `js/meta.js`, `js/meta/datos.js`, `css/meta.css`. Prueba
+721-pantalla; la 384 mira la paleta nueva.

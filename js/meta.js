@@ -2,7 +2,7 @@
 // los torneos online de Estándar, sacado de Limitless por la función
 // programada meta-limitless. Cada fila lleva a la ficha del arquetipo.
 import { escapeHtml } from './html.js'
-import { resumen, totales } from './meta/datos.js'
+import { resumen, totales, tiposDeArquetipos } from './meta/datos.js'
 import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
 import {
   periodoDe,
@@ -21,6 +21,10 @@ let fuente = fuenteDe(new URLSearchParams(location.search).get('fuente'))
 let turno = 0
 let verTodos = false
 let filas = []
+// El tipo de cada arquetipo (721): llega después del ranking y repinta.
+// Mientras no llega —o si falla— la barra va en el azul de siempre: es
+// un adorno, y «no se sabe» no se pinta como un tipo.
+let tipos = new Map()
 
 function aviso(html) {
   $('metaAviso').innerHTML = html
@@ -38,6 +42,8 @@ function filaHtml(f, i, maximo) {
   if (dias !== 14) q.set('dias', String(dias))
   if (fuente) q.set('fuente', fuente)
   const href = `/meta/${encodeURIComponent(f.arquetipo)}${q.toString() ? `?${q}` : ''}`
+  // Incoloro no tiñe: su gris sobre el fondo de la barra no se vería.
+  const tipo = tipos.get(f.arquetipo) !== 'Colorless' ? tipos.get(f.arquetipo) : null
   return `
     <li class="meta-fila">
       <a class="meta-fila-enlace" href="${href}">
@@ -48,7 +54,7 @@ function filaHtml(f, i, maximo) {
           <span class="meta-sub">${entero(f.mazos)} mazos · ${entero(f.top8)} top 8</span>
         </span>
         <span class="meta-uso">
-          <span class="meta-barra" aria-hidden="true"><i style="--ancho:${ancho}%"></i></span>
+          <span class="meta-barra"${tipo ? ` data-tipo="${escapeHtml(tipo)}"` : ''} aria-hidden="true"><i style="--ancho:${ancho}%"></i></span>
           <span class="meta-uso-num">${porcentaje(f.cuota)}</span>
         </span>
         <span class="meta-tend meta-tend-${t?.tipo || 'igual'}" title="${t?.tipo === 'nuevo' ? 'Sin datos del periodo anterior' : 'Diferencia de uso con el periodo anterior, en puntos'}">${escapeHtml(textoTendencia(t))}</span>
@@ -105,6 +111,13 @@ async function cargar() {
     ].filter(Boolean)
     $('metaTotales').textContent = `${entero(t.torneos)} torneos${partes.length > 1 ? ` (${partes.join(', ')})` : ''} · ${entero(t.jugadores)} jugadores · actualizado ${haceCuanto(t.ultima_lectura)}`
     pintar()
+    tiposDeArquetipos(filas)
+      .then((m) => {
+        if (mio !== turno) return
+        tipos = m
+        pintar()
+      })
+      .catch(() => {})
   } catch (err) {
     if (mio !== turno) return
     $('metaRanking').innerHTML = ''

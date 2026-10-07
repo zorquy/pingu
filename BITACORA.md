@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 1) — PINGU-Claude (721 — el meta con el color de su tipo)
+
+**Hecho**: J3 de la lista. En /meta la barra de uso de cada mazo lleva el
+color de su tipo (sacado de las cartas de su especie), también en el
+móvil, donde antes no salía; y el porcentaje de victorias se lee mejor.
+
+**Ficheros**: `js/meta.js`, `js/meta/datos.js`, `css/meta.css`,
+`SCHEMA.md`. Prueba 721-pantalla y la 384 al día en `pruebas`.
+
+**Pendiente**: J2 (tu partida arriba), J1 (foro), J4 (perfil), J5
+(portada).
+
 ## 2026-10-07 (mañana, 13) — PINGU-Claude (720 — la ficha con el dedo y la carta que crece)
 
 **Hecho**: N5 y N6 de la lista. En la ficha de una carta, deslizar a un

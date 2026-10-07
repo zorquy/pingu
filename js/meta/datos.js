@@ -2,6 +2,7 @@
 // la base (supabase-migration-meta.sql): el ranking y la lista media se
 // calculan al leer, no hay nada guardado que se pueda quedar viejo.
 import { supabase } from '../supabase.js'
+import { dexExacto } from '../torneos/sprites-pokemon.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-meta.sql'
 
@@ -99,4 +100,38 @@ export async function partidasDeEjemplo(arquetipo, limite = 6) {
   const { data, error } = await supabase.rpc('repeticiones_publicas', { p_arquetipo: arquetipo, p_limite: limite })
   if (error) return null
   return data || []
+}
+
+// ── El tipo de un arquetipo (721, J3) ──
+//
+// Para teñir su barra de uso. Sale de las CARTAS y no de una lista: la
+// especie del primer icono, y de las cartas de esa especie el tipo que
+// más se repite (un Charizard es de Fuego aunque haya alguno de Oscuro).
+// Una lista a mano de «este mazo es de este tipo» se quedaría vieja con
+// el primer arquetipo nuevo (la 323).
+export function dexDeIcono(icono) {
+  const s = String(icono || '').toLowerCase()
+  if (!s) return null
+  return dexExacto(s.replace(/-/g, ' ')) ?? dexExacto(s.split('-')[0]) ?? null
+}
+
+export function tipoMasRepetido(cartas, dex) {
+  const cuenta = new Map()
+  for (const c of cartas || []) {
+    const t = (c.types || [])[0]
+    if (!t || !(c.dex_ids || []).includes(dex)) continue
+    cuenta.set(t, (cuenta.get(t) || 0) + 1)
+  }
+  let mejor = null
+  for (const [t, n] of cuenta) if (!mejor || n > mejor[1]) mejor = [t, n]
+  return mejor?.[0] || null
+}
+
+export async function tiposDeArquetipos(filas) {
+  const dexDe = new Map((filas || []).map((f) => [f.arquetipo, dexDeIcono((f.iconos || [])[0])]).filter(([, d]) => d))
+  const dexes = [...new Set(dexDe.values())]
+  if (!dexes.length) return new Map()
+  const { data, error } = await supabase.from('tcg_cards').select('dex_ids, types').eq('market', 'WEST').overlaps('dex_ids', dexes).limit(4000)
+  if (error) throw traducir(error)
+  return new Map([...dexDe].map(([a, d]) => [a, tipoMasRepetido(data, d)]).filter(([, t]) => t))
 }

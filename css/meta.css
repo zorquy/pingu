@@ -213,6 +213,23 @@
   background: var(--navy);
 }
 
+/* La barra, del color del tipo del mazo (721, J3). Copia de la paleta de
+   la ficha (css/carta.css); test-tanda-384 vigila que coincidan. */
+.meta-barra[data-tipo] i {
+  background: var(--tipo-energia);
+}
+
+.meta-barra[data-tipo='Grass'] { --tipo-energia: #4faa5a; }
+.meta-barra[data-tipo='Fire'] { --tipo-energia: #e8564a; }
+.meta-barra[data-tipo='Water'] { --tipo-energia: #3aa2dd; }
+.meta-barra[data-tipo='Lightning'] { --tipo-energia: #e9c227; }
+.meta-barra[data-tipo='Psychic'] { --tipo-energia: #a06bc4; }
+.meta-barra[data-tipo='Fighting'] { --tipo-energia: #c8722f; }
+.meta-barra[data-tipo='Darkness'] { --tipo-energia: #3d4a57; }
+.meta-barra[data-tipo='Metal'] { --tipo-energia: #8c9aa5; }
+.meta-barra[data-tipo='Fairy'] { --tipo-energia: #e07bb0; }
+.meta-barra[data-tipo='Dragon'] { --tipo-energia: #b59433; }
+
 .meta-uso-num {
   min-width: 56px;
   font-size: var(--t-md);
@@ -227,6 +244,13 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   text-align: right;
+}
+
+/* Las victorias, bien a la vista (721, J3): es la otra cifra que se
+   viene a mirar, al lado del uso. */
+.meta-victorias {
+  font-size: var(--t-md);
+  font-weight: 700;
 }
 
 .meta-tend-sube,
@@ -252,11 +276,13 @@
     display: none;
   }
 
+  /* La barra también en el móvil (721): con el color de su tipo es lo
+     que se reconoce de un vistazo. Va a lo ancho, debajo del nombre. */
   .meta-fila-enlace {
     grid-template-columns: 16px 56px minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'pos iconos nombre uso uso'
-      'pos iconos nombre tend vict';
+      'pos iconos nombre tend vict'
+      'pos iconos uso uso uso';
     column-gap: var(--e-sm);
     row-gap: var(--e-xs);
     padding: var(--e-md);
@@ -290,11 +316,6 @@
 
   .meta-uso {
     grid-area: uso;
-    justify-content: flex-end;
-  }
-
-  .meta-barra {
-    display: none;
   }
 
   /* La tendencia y las victorias van debajo del uso, cada una en su
