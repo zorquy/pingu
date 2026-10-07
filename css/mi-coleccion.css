@@ -7629,14 +7629,16 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* En los paneles de filtros, las opciones son pastillas sueltas —como los
    chips de «Cartas»— y no un bloque oscuro; las energías, en redondo. */
-.mc-panel-filtros .mc-seg-chips {
+.mc-panel-filtros .mc-seg-chips,
+.mc-seg.mc-seg-sueltas {
   gap: var(--e-sm);
   padding: 0;
   border: 0;
   background: transparent;
 }
 
-.mc-panel-filtros .mc-seg-chips button {
+.mc-panel-filtros .mc-seg-chips button,
+.mc-seg.mc-seg-sueltas button {
   flex: none;
   padding: 0 var(--e-md);
   border: 1px solid var(--border);
@@ -7644,7 +7646,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   background: var(--white);
 }
 
-.mc-panel-filtros .mc-seg-chips button[aria-checked='true'] {
+.mc-panel-filtros .mc-seg-chips button[aria-checked='true'],
+.mc-seg.mc-seg-sueltas button[aria-pressed='true'] {
   border-color: var(--navy-solid);
   background: var(--navy-solid);
   color: var(--blanco-fijo);
@@ -7955,5 +7958,161 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
   .mc-cartera .mc-valor-rango {
     max-width: none;
+  }
+}
+
+/* ── 748: las Expansiones de su maqueta (C2; SCHEMA 748) ── */
+.mc-estanteria-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+.mc-estanteria-h {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-2xl);
+}
+.mc-estanteria-cabeza .mc-mercado {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+}
+.mc-estanteria-lupa {
+  justify-content: center;
+  min-width: 44px;
+  padding: 0;
+}
+.mc-estanteria-orden {
+  gap: var(--e-xs);
+}
+.mc-estanteria-orden.activo {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+#mcEstanteriaBusca {
+  display: none;
+}
+.mc-busca-abierta #mcEstanteriaBusca,
+[data-modo='catalogo'] #mcEstanteriaBusca {
+  display: flex;
+}
+[data-modo='catalogo'] .mc-estanteria-lupa,
+[data-modo='catalogo'] .mc-estanteria-h {
+  display: none;
+}
+.mc-estanteria-que {
+  justify-content: flex-start;
+}
+.mc-estanteria-fila2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+.mc-estanteria-fila2 .mc-cuantas {
+  margin: 0 0 0 auto;
+}
+.mc-estanteria-hoja .mc-panel-cuerpo select {
+  width: 100%;
+}
+.mc-estanteria-lista {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.mc-set-tarjeta.mc-set-fila {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  width: 100%;
+  min-height: 72px;
+  padding: var(--e-sm) var(--e-lg);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+}
+.mc-set-fila + .mc-set-fila {
+  border-top: 1px solid var(--border);
+}
+.mc-set-fila:hover {
+  background: var(--bg);
+}
+.mc-set-fila .mc-set-codigo {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  padding: 0 var(--e-xs);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.mc-set-codigo-logo img {
+  max-width: 100%;
+  max-height: 28px;
+  object-fit: contain;
+}
+.mc-set-fila .mc-set-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+}
+.mc-set-fila .mc-set-nombre {
+  overflow: hidden;
+  font-size: var(--t-lg);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-set-fila .mc-set-corta {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+.mc-set-completa {
+  color: var(--success);
+}
+.mc-set-fila .mc-set-anillo {
+  width: 52px;
+  height: 52px;
+}
+.mc-estanteria-lista + .mc-estanteria-titulo {
+  margin-top: var(--e-xl);
+}
+.mc-estanteria-titulo {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+[data-modo='catalogo'] .mc-estanteria-titulo {
+  color: var(--text);
+  font-size: var(--t-md);
+  letter-spacing: 0;
+  text-transform: none;
+}
+@media (min-width: 900px) {
+  .mc-estanteria-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mc-estanteria-lista .mc-set-fila:nth-child(2) {
+    border-top: 0;
+  }
+  .mc-estanteria-lista .mc-set-fila:nth-child(even) {
+    border-left: 1px solid var(--border);
   }
 }

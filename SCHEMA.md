@@ -35477,6 +35477,22 @@ coinciden. Esta tanda trae cuatro.
   dice una flecha (una forma, no solo un color) y, para quien escucha,
   «Sube»/«Baja». `carteraHtml` vive al lado de `graficaHtml`, que se queda
   como estaba para quien la quiera con rejilla.
+- **Las Expansiones (C2)**: «cómo se ven las expansiones». En tu colección
+  (y en la de otra persona) la estantería es la lista de su maqueta: arriba
+  «Expansiones» con la lupa y «Orden»; debajo tres chapas —Empezadas ·
+  Todas · Completas— que sustituyen a «Solo las empezadas» (la 443), y el
+  catálogo a la vista con la cuenta. Luego una tarjeta por era (rótulo en
+  versalitas) con una fila por expansión: el código en su chapa (sin
+  código, el logo pequeño en su sitio), el nombre, «128/197 · Completa» y
+  el anillo. En una fila de 72 px caben diez por pantalla donde la tarjeta
+  grande dejaba dos; en el ordenador la tarjeta de la era va en dos
+  columnas. «Orden» es una hoja con cómo se reparte (por era, lo que más
+  llevas, lo más nuevo, A–Z; se recuerda en el navegador) y la serie, que
+  vivía en la barra. **El catálogo (/cartas) conserva la tarjeta grande de
+  la 668**, con lo que vale cada expansión, su gráfica y su semanal: ahí no
+  hay progreso que enseñar y lo que se mira es el set. El catálogo NO se
+  escondió en «Orden» a propósito (se probó): quien colecciona japonés no
+  sabría por dónde se llega a sus sets, que es la regla de la 648.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35487,10 +35503,12 @@ coinciden. Esta tanda trae cuatro.
 
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`, generado),
 `js/mi-coleccion.js`, `js/mi-coleccion/grafica-valor.js`,
-`js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/segmentado.js`,
+`js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/iconos.js`,
+`js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (seis bloques) y 377, 381, 384, 385, 399, 400, 414,
-426, 429, 437, 440, 444, 447, 464, 465, 468, 475, 476, 582, 650, 653, 692,
-711, 712, 713, 714, 715 y 747 al día en `pruebas`.
+Prueba 748-pantalla (siete bloques) y 372, 377, 381, 384, 385, 399, 400,
+405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
+476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
+747 al día en `pruebas`.

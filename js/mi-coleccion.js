@@ -2584,6 +2584,14 @@ const CLAVE_VISTA_ALBUM = 'mc-album-vista'
 // Solo las colecciones de las que tienes algo (tanda 443). Fuera del
 // objeto `album` porque no es del álbum abierto, es de la estantería.
 let soloEmpezadas = false
+// Y desde la 748, tres en vez de dos: «empezadas», «todas» o «completas»
+// (la C2 de su maqueta). `soloEmpezadas` se queda como atajo de lo primero.
+let queSets = 'todas'
+// Cómo se reparte la lista (748): por era —lo de siempre—, lo que más
+// llevas, lo más nuevo o por nombre. Gusto de quien mira: en el navegador.
+let ordenSets = 'era'
+let ponerQueSets = null
+try { ordenSets = localStorage.getItem('mc-estanteria-orden') || 'era' } catch {}
 let todosLosSets = null
 // Las eras colocadas a mano desde /admin (tanda 550). `null` = todavía no
 // se han pedido; un mapa vacío = se han pedido y no hay ninguna, que es lo
@@ -2846,7 +2854,8 @@ async function pintarEstanteria() {
     // ninguna. Esto QUITA esas, que es distinto de ordenarlas —la 409
     // probó a subirlas arriba y con cien empezadas la lista seguía
     // midiendo lo mismo—.
-    (!soloEmpezadas || cuantas.has(s.id))
+    (queSets !== 'empezadas' || cuantas.has(s.id)) &&
+    (queSets !== 'completas' || (totalDe(s) > 0 && (cuantas.get(s.id) || 0) >= totalDe(s)))
 
   // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
@@ -2855,11 +2864,24 @@ async function pintarEstanteria() {
   // Fuera de él, mirando la colección de otro, solo las que tiene.
   const seVe = (s) => modoCatalogo || esMia || cuantas.has(s.id)
   const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter((s) => cumple(s) && seVe(s))
-  const grupos = gruposDeEstanteria(visibles, favoritos || new Set(), eras)
+  // Por era es lo de siempre; los otros tres órdenes son UNA lista, sin
+  // rótulos: «lo que más llevas» repartido por eras no ordena nada.
+  const fecha = (x) => Date.parse(x.release_date || '') || 0
+  const llevas = (x) => (totalDe(x) ? (cuantas.get(x.id) || 0) / totalDe(x) : 0)
+  const grupos = ordenSets === 'era' || modoCatalogo && ordenSets === 'progreso'
+    ? gruposDeEstanteria(visibles, favoritos || new Set(), eras)
+    : [{ id: 'todas', titulo: '', sets: [...visibles].sort(
+      ordenSets === 'progreso' ? (a, b) => llevas(b) - llevas(a) || fecha(b) - fecha(a)
+        : ordenSets === 'nuevas' ? (a, b) => fecha(b) - fecha(a)
+          : (a, b) => String(nombreDeSet(a) || a.name).localeCompare(String(nombreDeSet(b) || b.name), 'es')) }]
 
+  // En TU colección (o la de otra persona) es la lista de su maqueta: una
+  // tarjeta por era con una fila por expansión. En el catálogo, la tarjeta
+  // grande de la 668, que es la que enseña el valor de cada una.
+  const lista = !modoCatalogo
   $('mcEstanteriaRejilla').innerHTML = grupos
-    .map((g) => `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>
-      <div class="mc-estanteria">${g.sets.map((x) => tarjetaDeSet(x, cuantas.get(x.id) || 0)).join('')}</div>`)
+    .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
+      <div class="mc-estanteria${lista ? ' mc-estanteria-lista' : ''}">${g.sets.map((x) => (lista ? filaDeSet : tarjetaDeSet)(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
   // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:
   // sin nada en el catálogo es un estado; con doscientas y cero visibles
@@ -3025,6 +3047,31 @@ function tarjetaDeSet(set, tengo) {
       </span>
       ${graficaDeSetHtml(serie)}
       <span class="mc-set-pie"><span class="mc-set-chip">${total ? `${total} cartas` : 'Expansión'}</span><span class="mc-set-ver">Ver →</span></span>
+    </button>`
+}
+
+// LA FILA DE UNA EXPANSIÓN (748, la C2 de su maqueta): el código en su
+// chapa, el nombre, «128/197» y el anillo. Lo que se busca en una
+// estantería es cuánto te falta de cada una, y en una fila de 64 px caben
+// diez por pantalla donde la tarjeta grande dejaba dos. Sin código (los
+// sets que creó TCGGO), el logo pequeño en el sitio de la chapa.
+function filaDeSet(set, tengo) {
+  const total = totalDe(set)
+  const completo = total && tengo >= total
+  const codigo = set.tcg_online_code || (/^tcggo-/i.test(String(set.id)) ? '' : String(set.id).toUpperCase().slice(0, 6))
+  const dibujos = [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, set.market || mercado), set.symbol_scrydex].filter(Boolean)
+  const mia = esMia && sesion
+  const cuenta = !total ? 'Sin numeración' : mia ? `${tengo}/${total}` : `${total} cartas`
+  return `
+    <button type="button" class="mc-set-tarjeta mc-set-fila${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(set.market || mercado)}">
+      ${codigo
+        ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>`
+        : `<span class="mc-set-codigo mc-set-codigo-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" width="48" height="24" />` : ''}</span>`}
+      <span class="mc-set-info">
+        <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
+        <span class="mc-set-corta">${escapeHtml(cuenta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}</span>
+      </span>
+      ${anilloDeSet(tengo, total)}
     </button>`
 }
 
@@ -6037,12 +6084,7 @@ function enganchar() {
       // «Ver todas» de Expansiones son TODAS (tanda 649): si «Solo las
       // empezadas» se quedó pulsado de antes, se quita, que si no el botón
       // dice una cosa y la estantería enseña otra.
-      if (ir.dataset.irA === 'album' && soloEmpezadas) {
-        soloEmpezadas = false
-        $('mcEstanteriaEmpezadas')?.classList.remove('activo')
-        $('mcEstanteriaEmpezadas')?.setAttribute('aria-pressed', 'false')
-        void pintarEstanteria()
-      }
+      if (ir.dataset.irA === 'album' && queSets !== 'todas') ponerQueSets?.('todas')
       return cambiarPestania(ir.dataset.irA)
     }
     // Y una expansión del vistazo abre esa expansión, no la estantería: es
@@ -6368,12 +6410,50 @@ function enganchar() {
     void buscarEnTodo()
   })
 
-  $('mcEstanteriaEmpezadas')?.addEventListener('click', () => {
-    soloEmpezadas = !soloEmpezadas
-    $('mcEstanteriaEmpezadas').classList.toggle('activo', soloEmpezadas)
-    $('mcEstanteriaEmpezadas').setAttribute('aria-pressed', soloEmpezadas ? 'true' : 'false')
+  // Las tres chapas de qué se ve (748). Pulsar la que ya está puesta la
+  // deja puesta: es un segmentado, no tres interruptores.
+  const ponerQue = (que) => {
+    queSets = que
+    soloEmpezadas = que === 'empezadas'
+    for (const [id, v] of [['mcEstanteriaEmpezadas', 'empezadas'], ['mcEstanteriaTodas', 'todas'], ['mcEstanteriaCompletas', 'completas']]) {
+      $(id)?.classList.toggle('activo', v === que)
+      $(id)?.setAttribute('aria-pressed', v === que ? 'true' : 'false')
+    }
+    void pintarEstanteria()
+  }
+  ponerQueSets = ponerQue
+  $('mcEstanteriaEmpezadas')?.addEventListener('click', () => ponerQue('empezadas'))
+  $('mcEstanteriaTodas')?.addEventListener('click', () => ponerQue('todas'))
+  $('mcEstanteriaCompletas')?.addEventListener('click', () => ponerQue('completas'))
+  // La lupa saca el buscador (en el catálogo está siempre a la vista).
+  $('mcEstanteriaLupa')?.addEventListener('click', () => {
+    const zona = $('mcEstanteriaZona')
+    const abierto = !zona.classList.contains('mc-busca-abierta')
+    zona.classList.toggle('mc-busca-abierta', abierto)
+    $('mcEstanteriaLupa').setAttribute('aria-expanded', abierto ? 'true' : 'false')
+    if (abierto) $('mcEstanteriaBuscar')?.focus()
+    else if ($('mcEstanteriaBuscar')?.value) { $('mcEstanteriaBuscar').value = ''; void pintarEstanteria() }
+  })
+  // La hoja de «Orden»: cómo se reparte y de qué serie.
+  const hojaOrden = $('mcEstanteriaOrden')
+  const pintarOrdenes = () => {
+    for (const b of document.querySelectorAll('[data-orden-sets]')) b.setAttribute('aria-pressed', b.dataset.ordenSets === ordenSets ? 'true' : 'false')
+    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenSets !== 'era' || !!$('mcEstanteriaSerie')?.value)
+  }
+  pintarOrdenes()
+  $('mcEstanteriaOrdenAbrir')?.addEventListener('click', () => { pintarOrdenes(); if (!hojaOrden.open) hojaOrden.showModal() })
+  $('mcEstanteriaOrdenCerrar')?.addEventListener('click', () => hojaOrden.close())
+  $('mcEstanteriaOrdenVer')?.addEventListener('click', () => hojaOrden.close())
+  hojaOrden?.addEventListener('click', (e) => { if (e.target === hojaOrden) hojaOrden.close() })
+  $('mcEstanteriaOrdenes')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-orden-sets]')
+    if (!b) return
+    ordenSets = b.dataset.ordenSets
+    try { localStorage.setItem('mc-estanteria-orden', ordenSets) } catch {}
+    pintarOrdenes()
     void pintarEstanteria()
   })
+  $('mcEstanteriaSerie')?.addEventListener('change', pintarOrdenes)
   // Quitar los filtros los quita LOS TRES, que es lo que espera quien
   // pulsa «quitar los filtros»: dejar uno puesto sería dejar la pantalla
   // igual de vacía y el botón pareciendo roto.
@@ -6382,10 +6462,9 @@ function enganchar() {
     if (buscar) buscar.value = ''
     const serie = $('mcEstanteriaSerie')
     if (serie) serie.value = ''
-    soloEmpezadas = false
-    $('mcEstanteriaEmpezadas')?.classList.remove('activo')
-    $('mcEstanteriaEmpezadas')?.setAttribute('aria-pressed', 'false')
-    void pintarEstanteria()
+    $('mcEstanteriaOrdenAbrir')?.classList.remove('activo')
+    if (ponerQueSets) ponerQueSets('todas')
+    else void pintarEstanteria()
   })
   $('mcEstanteriaRejilla').addEventListener('click', (e) => {
     const b = e.target.closest('[data-set]')
@@ -6993,7 +7072,10 @@ async function iniciarCatalogo() {
     // Lo que solo tiene sentido con una colección detrás: añadir del
     // catálogo, «solo las empezadas» (no hay ninguna empezada), el escáner
     // (añade lo que lee) y el desplegable de con qué se añade.
-    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios', 'mcEstanteriaEmpezadas']) $(id)?.classList.add('hidden')
+    // Las tres chapas de qué se ve (748) hablan de lo que TIENES: en la
+    // colección de otra persona no se ofrecen.
+    for (const id of ['mcCatalogo', 'mcBloqueAlbumes', 'mcBloqueCambios']) $(id)?.classList.add('hidden')
+    document.querySelector('.mc-estanteria-que')?.classList.add('hidden')
     $('mcTocarOpciones')?.classList.add('hidden')
   }
   pintarHojaOrden()

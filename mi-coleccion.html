@@ -379,24 +379,61 @@
              dónde te falta poco para completar, que es justo lo que hace
              volver al día siguiente. -->
         <div id="mcEstanteriaZona">
+          <!-- LA CABECERA DE SU MAQUETA (748, la C2): «Expansiones» con el
+               catálogo y «Orden» a la derecha, y debajo QUÉ se ve en tres
+               chapas. El buscador sale con la lupa (en el catálogo, siempre)
+               y la serie vive en la hoja de «Orden», que es donde se decide
+               cómo se reparte la lista. -->
           <div class="mc-estanteria-barra">
-            <div class="mc-buscador">
+            <div class="mc-estanteria-cabeza">
+              <h2 class="mc-estanteria-h">Expansiones</h2>
+              <button type="button" class="mc-chip-mando mc-estanteria-lupa" id="mcEstanteriaLupa" data-icono="search" aria-expanded="false" aria-controls="mcEstanteriaBusca" aria-label="Buscar una expansión"></button>
+              <button type="button" class="mc-chip-mando mc-estanteria-orden" id="mcEstanteriaOrdenAbrir" aria-haspopup="dialog" aria-controls="mcEstanteriaOrden"><span data-icono="sliders" aria-hidden="true"></span>Orden</button>
+            </div>
+            <div class="mc-buscador" id="mcEstanteriaBusca">
               <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
               <input type="search" enterkeyhint="search" id="mcEstanteriaBuscar" placeholder="Buscar una colección…" aria-label="Buscar una colección" />
             </div>
-            <div class="mc-mandos">
-            <select id="mcEstanteriaSerie" class="mc-chapa-select" aria-label="Serie"></select>
-            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
-            <!-- SOLO LAS EMPEZADAS (tanda 443). Hay 206 colecciones y de
-                 casi todas no tienes ninguna, así que la pantalla son
-                 doscientas tarjetas diciendo «0 de N · 0 %». La 409 ya
-                 probó a SUBIR arriba las empezadas y lo descartó —con cien
-                 empezadas eso no es un orden, es la misma lista sin
-                 fechas—; un filtro es otra cosa: QUITA las doscientas. -->
-            <button type="button" class="chip-filtro mc-chip-mando" id="mcEstanteriaEmpezadas" aria-pressed="false">Solo las empezadas</button>
+            <!-- SOLO LAS EMPEZADAS (tanda 443) es ahora una de tres (748):
+                 con 206 colecciones, de casi todas no tienes ninguna, y lo
+                 que se quiere ver es lo que llevas o lo que has acabado. -->
+            <div class="mc-seg mc-seg-chips mc-seg-sueltas mc-estanteria-que" role="group" aria-label="Qué expansiones se ven">
+              <button type="button" id="mcEstanteriaEmpezadas" aria-pressed="false">Empezadas</button>
+              <button type="button" id="mcEstanteriaTodas" aria-pressed="true">Todas</button>
+              <button type="button" id="mcEstanteriaCompletas" aria-pressed="false">Completas</button>
             </div>
-            <p class="mc-cuantas" id="mcEstanteriaCuantas" role="status" aria-live="polite"></p>
+            <!-- El catálogo, A LA VISTA (648: se elige el catálogo, no el
+                 idioma): con él escondido en «Orden», quien colecciona
+                 japonés no sabría por dónde se llega a sus sets. -->
+            <div class="mc-estanteria-fila2">
+              <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+              <p class="mc-cuantas" id="mcEstanteriaCuantas" role="status" aria-live="polite"></p>
+            </div>
           </div>
+          <dialog class="mc-panel-filtros mc-estanteria-hoja" id="mcEstanteriaOrden" aria-labelledby="mcEstanteriaOrdenTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcEstanteriaOrdenTitulo">Orden</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcEstanteriaOrdenCerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <div class="mc-filtro-grupo">
+                <p class="mc-filtro-titulo">Ordenar</p>
+                <div class="mc-seg mc-seg-chips mc-seg-sueltas" role="group" aria-label="Ordenar las expansiones" id="mcEstanteriaOrdenes">
+                  <button type="button" data-orden-sets="era" aria-pressed="true">Por era</button>
+                  <button type="button" data-orden-sets="progreso" aria-pressed="false">Lo que más llevas</button>
+                  <button type="button" data-orden-sets="nuevas" aria-pressed="false">Lo más nuevo</button>
+                  <button type="button" data-orden-sets="nombre" aria-pressed="false">A–Z</button>
+                </div>
+              </div>
+              <div class="mc-filtro-grupo">
+                <label class="mc-filtro-titulo" for="mcEstanteriaSerie">Serie</label>
+                <select id="mcEstanteriaSerie" class="mc-chapa-select"></select>
+              </div>
+            </div>
+            <div class="mc-panel-pie">
+              <button type="button" class="btn-primary" id="mcEstanteriaOrdenVer">Ver expansiones</button>
+            </div>
+          </dialog>
           <div id="mcEstanteriaRejilla"></div>
         </div>
 

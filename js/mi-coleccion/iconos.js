@@ -31,4 +31,14 @@ export const ICONOS_COLECCION = {
         '<path d="M7.5 15.5h9"></path>',
       size
     ),
+  // «ORDEN» (748, la C2): tres raíles con su tirador, el dibujo de «cómo se
+  // reparte esto» en cualquier app; el engranaje dice «ajustes».
+  sliders: (size) =>
+    icon(
+      '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"></path>' +
+        '<circle cx="16" cy="6" r="2"></circle>' +
+        '<circle cx="10" cy="12" r="2"></circle>' +
+        '<circle cx="18" cy="18" r="2"></circle>',
+      size
+    ),
 }
