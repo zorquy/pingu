@@ -41,6 +41,16 @@ Pruebas 749, 750, 751 y 752-pantalla (nuevas) y 253, 308, 309, 376, 400,
 717 y 748 al día en `pruebas`; el doble pone los `default` de los avisos
 y de `user_wants` al insertar.
 
+**Suite entera**: 356 verdes y 16 rojos, todos mirados. Cuatro eran de
+esta tanda y están arreglados (310, la `loading` del logo de la cabecera;
+426, 430 y 469, el ⋮ debajo del buscador); cinco eran pruebas al día con
+lo nuevo (429, 589, 589-pantalla, 645 y 670); 512, 725 y el salto de la
+748 salen verdes solas (carga); 493 y 514 son las de siempre (sin
+ffmpeg), 631 y 632 piden el PostgreSQL local, que este contenedor no
+tiene arrancado, y **la 492 sale roja también en 842aaa9, antes de estas
+tandas** (la marca nº 4 de la tira de momentos no existe): no es de aquí,
+queda para quien toque /repeticiones.
+
 **Pendiente**: la hoja de instalar, los atajos del icono, la barra de
 abajo escrita en el HTML con transiciones y los avisos de lanzamiento
 (753); escanear desde la galería (754).
