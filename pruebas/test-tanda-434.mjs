@@ -147,7 +147,9 @@ const browser = await chromium.launch()
     ]
     window.__FAKE_COLECCION__ = []
   })
-  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  // En el CATÁLOGO desde la 748: en tu colección la estantería es la lista
+  // de su maqueta (C2), que pinta el código del set y no su logo.
+  await page.goto(`${BASE}/cartas.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
 
   // El set sin logo monta la ruta a mano: la tarjeta pide el fichero en

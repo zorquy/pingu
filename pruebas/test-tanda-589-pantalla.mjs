@@ -113,7 +113,8 @@ console.log('── 4. La página de la carta: el mismo bloque, y cambia con el 
 
 console.log('── 5. El logo de TCGGO, en el álbum de colecciones ──')
 {
-  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  // En el catálogo desde la 748: la lista de tu colección pinta el código.
+  await page.goto(`${BASE}/cartas.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   // La <img> se quita sola al no cargar (aquí se corta la red a TCGGO), así
   // que lo que se mira es el arte de fondo, que lleva la misma URL.

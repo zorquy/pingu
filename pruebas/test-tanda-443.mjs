@@ -10,6 +10,13 @@
 // cuenta dice el número equivocado. Se ve igual de bien.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// Desde la 748 (la C2 de su maqueta) el buscador de la estantería sale con
+// la lupa y la serie vive en la hoja de «Orden»: se abren antes de usarlos.
+const abrirLupa = async (p) => { if (await p.locator('#mcEstanteriaLupa').isVisible().catch(() => false) && !(await p.locator('#mcEstanteriaBuscar').isVisible())) { await p.click('#mcEstanteriaLupa'); await p.waitForTimeout(150) } }
+const abrirOrden = async (p) => { if (!(await p.locator('#mcEstanteriaSerie').isVisible())) { await p.click('#mcEstanteriaOrdenAbrir'); await p.waitForTimeout(250) } }
+const cerrarOrden = async (p) => { if (await p.locator('#mcEstanteriaOrden').evaluate((d) => d.open).catch(() => false)) { await p.click('#mcEstanteriaOrdenVer'); await p.waitForTimeout(250) } }
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -67,8 +74,9 @@ console.log('\n── 1. Solo las empezadas ──')
   const ids = await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').evaluateAll(
     (ns) => ns.map((n) => n.dataset.set).sort())
   check('  …y son exactamente esas dos', ids.join(',') === 's0,s5', ids.join(','))
-  // Se APAGA, que es la mitad que se olvida de un interruptor.
-  await page.click('#mcEstanteriaEmpezadas')
+  // Se APAGA, que es la mitad que se olvida de un interruptor. Desde la 748
+  // es una de tres chapas (la C2 de su maqueta), y se apaga con «Todas».
+  await page.click('#mcEstanteriaTodas')
   await page.waitForTimeout(700)
   check('y se apaga', (await cuantas(page)) === 8, String(await cuantas(page)))
   check('sin errores', !errores.length, errores[0])
@@ -79,7 +87,9 @@ console.log('\n── 1. Solo las empezadas ──')
   // tiene que quedar UNA —la empezada de esa serie—, no las dos empezadas
   // ni las cuatro de la serie.
   const { page } = await abrir()
+  await abrirOrden(page)
   await page.selectOption('#mcEstanteriaSerie', 'sv')
+  await cerrarOrden(page)
   await page.waitForTimeout(700)
   check('filtrando por serie quedan las cuatro de esa serie', (await cuantas(page)) === 4, String(await cuantas(page)))
   await page.click('#mcEstanteriaEmpezadas')
@@ -99,6 +109,7 @@ console.log('\n── 2. Cuántas estás viendo ──')
   // El total es el del CATÁLOGO, no el de lo que queda después de
   // filtrar: si el total se calculara sobre lo filtrado diría «2 de 2».
   check('al filtrar dice cuántas de cuántas', (await rotulo(page)) === '2 de 8', await rotulo(page))
+  await abrirLupa(page)
   await page.fill('#mcEstanteriaBuscar', 'Set 0')
   await page.waitForTimeout(700)
   check('  …y el buscador también cuenta', (await rotulo(page)) === '1 de 8', await rotulo(page))

@@ -8,6 +8,13 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// Desde la 748 (la C2 de su maqueta) el buscador de la estantería sale con
+// la lupa y la serie vive en la hoja de «Orden»: se abren antes de usarlos.
+const abrirLupa = async (p) => { if (await p.locator('#mcEstanteriaLupa').isVisible().catch(() => false) && !(await p.locator('#mcEstanteriaBuscar').isVisible())) { await p.click('#mcEstanteriaLupa'); await p.waitForTimeout(150) } }
+const abrirOrden = async (p) => { if (!(await p.locator('#mcEstanteriaSerie').isVisible())) { await p.click('#mcEstanteriaOrdenAbrir'); await p.waitForTimeout(250) } }
+const cerrarOrden = async (p) => { if (await p.locator('#mcEstanteriaOrden').evaluate((d) => d.open).catch(() => false)) { await p.click('#mcEstanteriaOrdenVer'); await p.waitForTimeout(250) } }
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -90,7 +97,8 @@ console.log('\n── 2. La estantería, con su progreso ──')
   // prueba se puso roja sin que el progreso tuviera nada de malo. El
   // orden tiene su propia comprobación unas líneas más abajo.
   const tarjetaSv1 = page.locator('#mcPanelAlbum .mc-set-tarjeta[data-set="sv1"]')
-  check('la tarjeta de sv1 dice cuánto llevas', /9 de 20/.test((await tarjetaSv1.textContent()) || ''),
+  // «9/20» desde la 748: la fila de su maqueta (C2).
+  check('la tarjeta de sv1 dice cuánto llevas', /9\/20|9 de 20/.test((await tarjetaSv1.textContent()) || ''),
     (await tarjetaSv1.textContent())?.replace(/\s+/g, ' '))
 
   // ── «NO HAY NINGUNA» Y «TUS FILTROS LAS ESCONDEN» SON DOS COSAS (510) ──
@@ -103,6 +111,7 @@ console.log('\n── 2. La estantería, con su progreso ──')
   // aprobaba sin ejercitar la mitad del botón.
   await page.click('#mcEstanteriaEmpezadas')
   await page.waitForTimeout(400)
+  await abrirLupa(page)
   await page.fill('#mcEstanteriaBuscar', 'zzzzz-no-existe')
   await page.waitForTimeout(600)
   const estados = await page.evaluate(() => ({
@@ -138,8 +147,10 @@ console.log('\n── 2. La estantería, con su progreso ──')
   // La barra no se estira: `.mc-barra` nace con `flex: 1 1 200px` para
   // vivir en una FILA, y dentro de una tarjeta en columna ese grow la
   // convierte en un óvalo del tamaño de la tarjeta. Se mide.
-  const alto = await page.locator('#mcPanelAlbum .mc-set-tarjeta .mc-barra').first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
-  check('la barra de progreso sigue siendo una barra', alto <= 12, `${alto}px`)
+  // Desde la 748 el progreso de la fila es su ANILLO (la C2 de su maqueta),
+  // y lo que se defiende es lo mismo: que no se deforme.
+  const anillo = await page.locator('#mcPanelAlbum .mc-set-tarjeta .mc-set-anillo').first().evaluate((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })
+  check('el anillo de progreso sigue siendo redondo', anillo[0] === anillo[1] && anillo[0] <= 56, anillo.join('×'))
   await page.close()
 }
 
@@ -156,13 +167,17 @@ console.log('\n── 3. Una colección completa se nota ──')
 console.log('\n── 4. Buscar y filtrar por serie ──')
 {
   const { page } = await abrir([{ id: 'a', card_id: 'sv1-1', cantidad: 1 }])
+  await abrirLupa(page)
   await page.fill('#mcEstanteriaBuscar', 'paldea')
   await page.waitForTimeout(500)
   check('el buscador filtra', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 1,
     String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))
+  await abrirLupa(page)
   await page.fill('#mcEstanteriaBuscar', '')
   await page.waitForTimeout(400)
+  await abrirOrden(page)
   await page.selectOption('#mcEstanteriaSerie', 'swsh')
+  await cerrarOrden(page)
   await page.waitForTimeout(500)
   check('y la serie también', (await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()) === 1,
     String(await page.locator('#mcPanelAlbum .mc-set-tarjeta').count()))

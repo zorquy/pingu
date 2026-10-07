@@ -128,6 +128,9 @@ console.log('\n── 4. Un filtro es una chapa, no un campo de formulario ─�
   // los 44 siguen estando.
   const { page: movil } = await abrir(390, 800, '/mi-coleccion.html?ver=album', { dedo: true })
   await movil.waitForTimeout(600)
+  // Desde la 748 vive en la hoja de «Orden» (la C2 de su maqueta).
+  await movil.click('#mcEstanteriaOrdenAbrir')
+  await movil.waitForTimeout(300)
   const alto = await movil.locator('#mcEstanteriaSerie').evaluate((e) => e.getBoundingClientRect().height)
   check('  …y con el dedo mide sus 44', alto >= 44, alto)
   await movil.close()

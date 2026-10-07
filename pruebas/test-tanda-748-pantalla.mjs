@@ -342,6 +342,75 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   await ctx.close()
 }
 
+console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
+{
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_SETS__ = [
+      { id: 'sv3', name: 'Llamas Obsidianas', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-08-11', tcg_online_code: 'OBF' },
+      { id: 'sv2', name: 'Evoluciones en Paldea', serie_id: 'sv', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2023-06-09', tcg_online_code: 'PAL' },
+      { id: 'swsh12pt5', name: 'Cénit Supremo', serie_id: 'swsh', market: 'WEST', card_count_official: 2, card_count_total: 2, release_date: '2023-01-20', tcg_online_code: 'CRZ' },
+      { id: 'swsh12', name: 'Tempestad Plateada', serie_id: 'swsh', market: 'WEST', card_count_official: 4, card_count_total: 4, release_date: '2022-11-11', tcg_online_code: 'SIT' },
+    ]
+    const c = (set, n) => ({ id: `${set}-${n}`, market: 'WEST', set_id: set, local_id: String(n), name: `Carta ${n}`, image_path: `x/${n}`, rarity: 'Common', category: 'Pokemon', dex_ids: [n], variants: { normal: true } })
+    window.__FAKE_CARTAS__ = [c('sv3', 1), c('sv3', 2), c('sv3', 3), c('sv2', 1), c('swsh12pt5', 1), c('swsh12pt5', 2), c('swsh12', 1)]
+    // Llevas 3/4 de OBF, 1/4 de PAL, CRZ completa y SIT sin empezar.
+    window.__FAKE_COLECCION__ = ['sv3-1', 'sv3-2', 'sv3-3', 'sv2-1', 'swsh12pt5-1', 'swsh12pt5-2'].map((id, i) => ({ id: `l${i}`, user_id: 'admin-1', card_id: id, market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }))
+    try { localStorage.removeItem('mc-estanteria-orden') } catch {}
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"><rect width="600" height="837" fill="#3a7bd5"/></svg>' }))
+  await ctx.route(/r2\.limitlesstcg\.net|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3000)
+  const filas = () => page.$$eval('#mcEstanteriaRejilla .mc-set-fila', (fs) => fs.map((f) => ({ set: f.dataset.set, codigo: f.querySelector('.mc-set-codigo')?.textContent.trim(), cuenta: f.querySelector('.mc-set-corta')?.textContent.replace(/\s+/g, ' ').trim(), anillo: f.querySelector('.mc-set-anillo')?.getAttribute('aria-label'), alto: Math.round(f.getBoundingClientRect().height) })))
+  const cab = await page.evaluate(() => ({
+    titulo: document.querySelector('.mc-estanteria-h')?.textContent,
+    orden: !!document.getElementById('mcEstanteriaOrdenAbrir')?.offsetHeight,
+    buscadorEscondido: !document.getElementById('mcEstanteriaBuscar')?.offsetHeight,
+    chapas: [...document.querySelectorAll('.mc-estanteria-que button')].map((b) => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
+    catalogo: [...document.querySelectorAll('.mc-estanteria-fila2 .seg-btn')].some((b) => b.offsetHeight > 0),
+    eras: [...document.querySelectorAll('#mcEstanteriaRejilla .mc-estanteria-titulo')].length,
+    tarjetasPorEra: [...document.querySelectorAll('#mcEstanteriaRejilla .mc-estanteria-lista')].length,
+  }))
+  check('sin errores', errores.length === 0, errores.join(' | '))
+  check('la cabecera: «Expansiones» con «Orden», el buscador tras la lupa y el catálogo a la vista', cab.titulo === 'Expansiones' && cab.orden && cab.buscadorEscondido && cab.catalogo, JSON.stringify(cab))
+  check('  …y las tres chapas, con «Todas» puesta', cab.chapas === 'Empezadas Todas* Completas', cab.chapas)
+  check('una tarjeta por era, con una fila por expansión', cab.eras === 2 && cab.tarjetasPorEra === 2, JSON.stringify(cab))
+  const fs = await filas()
+  const obf = fs.find((f) => f.set === 'sv3')
+  const crz = fs.find((f) => f.set === 'swsh12pt5')
+  check('cada fila: código, «3/4» y su anillo, y baja', obf?.codigo === 'OBF' && obf.cuenta === '3/4' && obf.anillo === '3 de 4' && fs.every((f) => f.alto <= 90), JSON.stringify(fs))
+  check('  …y la completa lo dice', crz?.cuenta === '2/2 · Completa', JSON.stringify(crz))
+  await page.click('#mcEstanteriaEmpezadas')
+  await page.waitForTimeout(500)
+  check('«Empezadas» quita las que no has empezado', (await filas()).map((f) => f.set).sort().join(',') === 'sv2,sv3,swsh12pt5', JSON.stringify(await filas()))
+  await page.click('#mcEstanteriaCompletas')
+  await page.waitForTimeout(500)
+  check('«Completas», solo las acabadas', (await filas()).map((f) => f.set).join(',') === 'swsh12pt5', JSON.stringify(await filas()))
+  await page.click('#mcEstanteriaTodas')
+  await page.click('#mcEstanteriaOrdenAbrir')
+  await page.waitForTimeout(300)
+  check('«Orden» abre su hoja, con la serie dentro', await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open) && await page.locator('#mcEstanteriaSerie').isVisible())
+  await page.click('[data-orden-sets="progreso"]')
+  await page.waitForTimeout(400)
+  await page.click('#mcEstanteriaOrdenVer')
+  await page.waitForTimeout(300)
+  const porProgreso = await filas()
+  check('«Lo que más llevas»: una lista, de lo más lleno a lo vacío, sin rótulos de era', porProgreso.map((f) => f.set).join(',') === 'swsh12pt5,sv3,sv2,swsh12' && (await page.locator('#mcEstanteriaRejilla .mc-estanteria-titulo').count()) === 0, porProgreso.map((f) => f.set).join(','))
+  check('  …y el botón de «Orden» dice que hay un orden puesto', await page.locator('#mcEstanteriaOrdenAbrir.activo').count() === 1)
+  await page.click('#mcEstanteriaLupa')
+  await page.waitForTimeout(200)
+  await page.fill('#mcEstanteriaBuscar', 'tempestad')
+  await page.waitForTimeout(400)
+  check('la lupa saca el buscador y busca', (await filas()).map((f) => f.set).join(',') === 'swsh12', JSON.stringify(await filas()))
+  check('la página no se va de ancho', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)

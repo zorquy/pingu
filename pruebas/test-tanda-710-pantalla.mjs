@@ -63,22 +63,30 @@ console.log('── 1. En un iPhone: filas compactas con su anillo ──')
   check('las dos expansiones están', !!a && !!b, JSON.stringify(ts))
   check('la completa: anillo verde con la marca, «4 de 4»', a?.anillo?.completo && a.anillo.marca && a.anillo.pct === '100' && a.anillo.label === '4 de 4', JSON.stringify(a))
   check('la de una de cuatro: 25 %, escrito dentro', b?.anillo && !b.anillo.completo && b.anillo.pct === '25' && b.anillo.texto === '25%' && b.anillo.label === '1 de 4', JSON.stringify(b))
-  check('el anillo se ve y mide lo que debe (48 px)', a?.anillo?.ancho === 48 && b?.anillo?.ancho === 48)
-  check('cada fila es baja (≤ 90 px) y dice «1 de 4» bajo el nombre', ts.every((t) => t.alto <= 90) && b?.corta === '1 de 4' && a?.corta === '4 de 4 · completa', JSON.stringify(ts.map((t) => [t.alto, t.corta])))
+  // Desde la 748 es la fila de su maqueta (C2): anillo de 52 y «1/4».
+  check('el anillo se ve y mide lo que debe (52 px)', a?.anillo?.ancho === 52 && b?.anillo?.ancho === 52)
+  check('cada fila es baja (≤ 90 px) y dice «1/4» bajo el nombre', ts.every((t) => t.alto <= 90) && b?.corta === '1/4' && a?.corta === '4/4 · Completa', JSON.stringify(ts.map((t) => [t.alto, t.corta])))
   check('  …sin las cifras, la gráfica ni el pie de la tarjeta grande', ts.every((t) => !t.cifras && !t.grafica && !t.pie))
   const aro = await page.$eval('.mc-set-tarjeta[data-set="xy6"] .mc-set-anillo > i', (i) => getComputedStyle(i).backgroundImage)
   check('el aro es un degradado cónico que llega al 25 %', /conic-gradient/.test(aro), aro)
   await ctx.close()
 }
 
-console.log('── 2. En el escritorio sigue la tarjeta entera, con su anillo ──')
+console.log('── 2. En el escritorio, la misma lista (748) y la tarjeta entera en el catálogo ──')
 {
+  // Desde la 748 tu colección es la lista de su maqueta también en el
+  // ordenador (en dos columnas); la tarjeta grande —cifras, gráfica, pie y
+  // su anillo— es la del catálogo, con cuenta.
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=album', { movil: false })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const ts = await tarjetas(page)
-  check('las cifras y el pie siguen, y el anillo también', ts.length === 2 && ts.every((t) => t.cifras && t.pie && t.anillo), JSON.stringify(ts))
-  check('  …y la cuenta corta no se repite (ya está en la cifra «Tienes»)', ts.every((t) => t.corta === null))
+  check('en tu colección, filas con su anillo y sin las cifras', ts.length === 2 && ts.every((t) => t.anillo && !t.cifras && !t.pie && t.alto <= 90), JSON.stringify(ts))
   await ctx.close()
+  const cat = await abrir('/cartas.html', { movil: false })
+  const tc = await tarjetas(cat.page)
+  check('en el catálogo con cuenta, las cifras y el pie siguen, y el anillo también', tc.length === 2 && tc.every((t) => t.cifras && t.pie && t.anillo), JSON.stringify(tc))
+  check('  …y la cuenta corta no se repite (ya está en la cifra «Tienes»)', tc.every((t) => t.corta === null))
+  await cat.ctx.close()
 }
 
 console.log('── 3. El catálogo sin cuenta: sin anillos ──')

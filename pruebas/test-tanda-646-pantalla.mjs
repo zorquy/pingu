@@ -84,7 +84,9 @@ console.log('── 2. La estantería de /mi-coleccion: lo mismo, y lo tuyo se c
   await fijarReloj(page)
   await page.addInitScript(semilla)
   await page.route(/assets\.tcgdex\.net|images\.tcggo\.com|api\.tcgdex\.net/, (r) => r.abort())
-  await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
+  // La tarjeta grande —con lo que vale y cómo va— es la del CATÁLOGO desde
+  // la 748; en tu colección la estantería es la lista de su maqueta (C2).
+  await page.goto(`${BASE}/cartas.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const tarjetas = page.locator('.mc-set-tarjeta')
   const nombres = (await tarjetas.locator('.mc-set-nombre').allInnerTexts()).map(limpio)

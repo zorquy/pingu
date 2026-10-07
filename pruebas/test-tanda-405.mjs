@@ -109,7 +109,9 @@ console.log('\n── 2. La nota, plegada ──')
 
 console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
 {
-  const { page } = await abrir('/mi-coleccion.html?ver=album')
+  // La tarjeta grande con su arte vive en el CATÁLOGO desde la 748; en tu
+  // colección la estantería es la lista de su maqueta (C2).
+  const { page } = await abrir('/cartas.html')
   await page.waitForTimeout(800)
   const t = page.locator('.mc-set-tarjeta').first()
   // La cabecera se llama `.mc-set-titulo` desde la 458, que rehizo la

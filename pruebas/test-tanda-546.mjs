@@ -28,6 +28,13 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { nombreDeCarta, nombresDeCartaParaBuscar, nombreDeSet } from '/home/user/pingu/js/catalogo-series.js'
 import { readFileSync, readdirSync } from 'node:fs'
 
+// Desde la 748 (la C2 de su maqueta) el buscador de la estantería sale con
+// la lupa y la serie vive en la hoja de «Orden»: se abren antes de usarlos.
+const abrirLupa = async (p) => { if (await p.locator('#mcEstanteriaLupa').isVisible().catch(() => false) && !(await p.locator('#mcEstanteriaBuscar').isVisible())) { await p.click('#mcEstanteriaLupa'); await p.waitForTimeout(150) } }
+const abrirOrden = async (p) => { if (!(await p.locator('#mcEstanteriaSerie').isVisible())) { await p.click('#mcEstanteriaOrdenAbrir'); await p.waitForTimeout(250) } }
+const cerrarOrden = async (p) => { if (await p.locator('#mcEstanteriaOrden').evaluate((d) => d.open).catch(() => false)) { await p.click('#mcEstanteriaOrdenVer'); await p.waitForTimeout(250) } }
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -191,7 +198,9 @@ console.log('── 4. El filtro de eras, al cambiar de catálogo ──')
   check('en español ofrece las eras occidentales', a.opciones.includes('sv'), JSON.stringify(a))
   check('  …y NO una era japonesa', !a.opciones.includes('mega-evolution'), JSON.stringify(a))
   // LO QUE PINGU VIO: se elige una era y se cambia de catálogo.
+  await abrirOrden(page)
   await page.selectOption('#mcEstanteriaSerie', 'sv')
+  await cerrarOrden(page)
   await page.waitForTimeout(900)
   await cambiar('ja')
   const b = await eras()
@@ -212,7 +221,8 @@ console.log('── 5. Y los nombres, en la pantalla ──')
   check('la colección se rotula en occidental', /30th Celebration/.test(texto), texto.slice(0, 200))
   check('  …y no en kanji', !/セレブレーション/.test(texto), texto.slice(0, 200))
   const titulo = await page.locator('.mc-estanteria-titulo').first().innerText()
-  check('y su era también', /Mega Evolution/.test(titulo), titulo)
+  // En mayúsculas desde la 748 (el rótulo de era de su maqueta, C2).
+  check('y su era también', /Mega Evolution/i.test(titulo), titulo)
 }
 
 console.log('── 6. La carta japonesa, por su nombre ──')
