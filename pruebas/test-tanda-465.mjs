@@ -93,7 +93,9 @@ for (const ancho of [360, 390, 430, 768, 1280]) {
   }))
   check(`en ${ancho} px no se sale`, !m.desborda, JSON.stringify(m))
   check(`  …ni se corta ninguna cifra`, m.cortadas.length === 0, m.cortadas.join(' | '))
-  check(`  …y son ${ancho < 560 ? 'dos filas' : 'una fila'}`, m.filas === (ancho < 560 ? 2 : 1), String(m.filas))
+  // Desde la 715 (C1, la cartera) son SIEMPRE dos filas: el valor arriba a
+  // lo ancho y las otras tres en fichas debajo, a cualquier ancho.
+  check('  …y son dos filas (el valor arriba, las tres fichas debajo)', m.filas === 2, String(m.filas))
   await page.close()
 }
 

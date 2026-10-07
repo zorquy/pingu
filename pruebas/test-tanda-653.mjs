@@ -119,7 +119,10 @@ console.log('\n── 4. En pantalla: más prieto ──')
 {
   const { page, errores } = await abrir()
   const hero = await page.locator('#mcHero').evaluate((n) => ({ alto: n.getBoundingClientRect().height, pad: getComputedStyle(n).paddingTop, gap: getComputedStyle(n).gap }))
-  check('la cabecera mide menos de 200 px en escritorio', hero.alto < 170 && hero.pad === '12px' && hero.gap === '8px' /* un paso menos desde la 673 */, JSON.stringify(hero))
+  // 715 (C1, la cartera): el valor va arriba a lo ancho y las tres fichas
+  // debajo, así que son dos filas y la cabecera crece a ~225. El tope sube
+  // a 240, que sigue cortando si alguien vuelve a meterle aire.
+  check('la cabecera mide menos de 240 px en escritorio', hero.alto < 240 && hero.pad === '12px' && hero.gap === '8px' /* un paso menos desde la 673 */, JSON.stringify(hero))
   check('la nota vacía no ocupa', await page.locator('#mcResumenNota').evaluate((n) => n.textContent === '' && getComputedStyle(n).display === 'none'))
   const grafica = await page.locator('.mc-valor-un-punto').evaluate((n) => n.getBoundingClientRect().height)
   check('con un punto, la gráfica mide 96 px', grafica === 96, String(grafica))
