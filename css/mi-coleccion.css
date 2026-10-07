@@ -6644,3 +6644,82 @@ input.mc-alb-titulo:not([readonly]):focus {
     bottom: calc(80px + 76px + env(safe-area-inset-bottom) + var(--e-sm));
   }
 }
+
+/* ── 713: con varias marcadas, a un álbum, la quiero o quitar ── */
+.mc-marcar-acciones {
+  display: flex;
+  flex-basis: 100%;
+  gap: var(--e-xs);
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--border);
+}
+.mc-marcar-acciones.hidden {
+  display: none;
+}
+.mc-marcar-accion {
+  display: inline-flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.mc-marcar-accion:hover:not(:disabled) {
+  background: var(--bg);
+}
+.mc-marcar-accion:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+.mc-marcar-quitar {
+  color: var(--danger);
+}
+.mc-marcar-quitar.confirmando {
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+}
+.mc-ea-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+.mc-ea-album {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  min-height: 52px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mc-ea-album:hover {
+  border-color: var(--navy);
+}
+.mc-ea-album span {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+/* El menú del navegador al mantener pulsada una foto taparía el gesto de
+   marcar (iOS); la foto se sigue abriendo con un toque normal. */
+.mc-bolsillo-enlace,
+.mc-bolsillo-enlace img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

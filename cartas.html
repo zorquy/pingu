@@ -636,6 +636,14 @@
               <button type="button" class="btn-secondary" id="mcMarcarCancelar">Cancelar</button>
               <button type="button" class="btn-primary" id="mcMarcarGuardar" disabled>Añadir</button>
             </div>
+            <!-- 713 (C4): lo demás que se hace con varias a la vez. Sale en
+                 cuanto hay alguna marcada; «Quitar» solo cuenta las tuyas y
+                 pide un segundo toque. -->
+            <div class="mc-marcar-acciones hidden" id="mcMarcarAcciones">
+              <button type="button" class="mc-marcar-accion" id="mcMarcarAlbum"><span data-icono="folder" aria-hidden="true"></span>A un álbum</button>
+              <button type="button" class="mc-marcar-accion" id="mcMarcarQuiero"><span data-icono="star" aria-hidden="true"></span>La quiero</button>
+              <button type="button" class="mc-marcar-accion mc-marcar-quitar" id="mcMarcarQuitar"><span data-icono="trash" aria-hidden="true"></span><span id="mcMarcarQuitarTexto">Quitar</span></button>
+            </div>
           </div>
         <!-- Aquí había un interruptor de «Tocar una carta la añade»
              (tanda 365) que se fue en la 368. Obligaba a elegir: con él
@@ -1336,6 +1344,17 @@
          estado, versión si hay más de una, copias y lo que pagaste).
          Cada guardado es una LÍNEA nueva —o una copia más de la línea
          con el mismo idioma, estado y versión—; nunca reescribe otra. -->
+    <!-- 713: a qué álbum van las marcadas. -->
+    <dialog class="mc-bandeja mc-elegir-album" id="mcElegirAlbum" aria-labelledby="mcEaTitulo">
+      <div class="mc-panel-cabecera">
+        <h2 id="mcEaTitulo">¿A qué álbum?</h2>
+        <button type="button" class="mc-panel-cerrar" id="mcEaCerrar" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="mc-panel-cuerpo">
+        <div class="mc-ea-lista" id="mcEaLista"></div>
+      </div>
+    </dialog>
+
     <dialog class="mc-bandeja mc-anadir-dialogo" id="mcAnadirDialogo" aria-labelledby="mcAdTitulo">
       <div class="mc-panel-cabecera">
         <h2 id="mcAdTitulo">Añadir a mi colección</h2>

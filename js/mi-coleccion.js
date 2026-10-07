@@ -3552,6 +3552,124 @@ function pintarMarcadas() {
     // marcadas, no deja claro si añade una o las doce.
     guardar.textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
   }
+  // 713: lo demás que se hace con varias. «Quitar» cuenta solo las tuyas.
+  $('mcMarcarAcciones')?.classList.toggle('hidden', !cuantas)
+  confirmarQuitar = false
+  const tuyas = lineasDeLasMarcadas().length
+  const quitar = $('mcMarcarQuitar')
+  if (quitar) {
+    quitar.disabled = !tuyas
+    $('mcMarcarQuitarTexto').textContent = tuyas ? `Quitar ${tuyas}` : 'Quitar'
+    quitar.classList.remove('confirmando')
+  }
+}
+
+// ── Lo demás que se hace con varias (713, C4) ──
+//
+// PINGU eligió la selección múltiple de la lista de propuestas: con varias
+// marcadas, además de añadirlas, mandarlas a un álbum, apuntarlas como «la
+// quiero» o quitarlas. Lo que se quita es UNA copia de cada una que
+// tengas (de la línea de esa versión con más copias): quitar una carta
+// entera con todos sus idiomas desde una rejilla sería demasiado para un
+// toque, y para eso está su ficha.
+const idsDeLasMarcadas = () => [...new Set([...(marcadas || [])].map((k) => k.slice(0, k.lastIndexOf('|'))))]
+function lineasDeLasMarcadas() {
+  const out = []
+  for (const k of marcadas || []) {
+    const corte = k.lastIndexOf('|')
+    const id = k.slice(0, corte), variante = k.slice(corte + 1)
+    const suyas = misLineasDe(id).filter((l) => (l.variante || 'normal') === variante)
+    if (suyas.length) out.push(suyas.sort((a, b) => (b.cantidad || 0) - (a.cantidad || 0))[0])
+  }
+  return out
+}
+
+let confirmarQuitar = false
+let quitarTiempo = null
+async function quitarMarcadas() {
+  const ls = lineasDeLasMarcadas()
+  if (!ls.length) return
+  const b = $('mcMarcarQuitar')
+  // Un segundo toque confirma: quitar es lo único de la barra que borra.
+  if (!confirmarQuitar) {
+    confirmarQuitar = true
+    b.classList.add('confirmando')
+    $('mcMarcarQuitarTexto').textContent = `¿Quitar ${ls.length}? Toca otra vez`
+    clearTimeout(quitarTiempo)
+    quitarTiempo = setTimeout(() => pintarMarcadas(), 4000)
+    return
+  }
+  clearTimeout(quitarTiempo)
+  b.disabled = true
+  let hechas = 0
+  try {
+    for (const l of ls) {
+      if ((Number(l.cantidad) || 1) > 1) cambiarLinea(l.id, await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 }))
+      else { await datos.borrar(l.id); quitarLinea(l.id) }
+      hechas++
+    }
+    showToast(`${hechas} ${hechas === 1 ? 'copia quitada' : 'copias quitadas'} de tu colección.`, 'success')
+  } catch (err) {
+    showToast(`${hechas ? `Quitadas ${hechas}; ` : ''}${err.message}`, 'error')
+  }
+  modoMarcar(false)
+  repintar()
+}
+
+async function quererMarcadas() {
+  const ids = idsDeLasMarcadas()
+  if (!ids.length) return
+  const b = $('mcMarcarQuiero')
+  b.disabled = true
+  try {
+    cambios = cambios || (await import('./mi-coleccion/cambios.js'))
+    let nuevas = 0
+    for (const id of ids) {
+      try {
+        await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
+        nuevas++
+      } catch (err) {
+        if (!err.yaEstaba) throw err
+      }
+    }
+    showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «Lo que buscas», en Cambios.` : 'Ya estaban todas en «Lo que buscas».', 'success')
+    modoMarcar(false)
+  } catch (err) {
+    showToast(err.message, 'error')
+  } finally {
+    b.disabled = false
+  }
+}
+
+async function elegirAlbumParaMarcadas() {
+  const d = $('mcElegirAlbum')
+  const lista = $('mcEaLista')
+  lista.innerHTML = '<p class="subtext">Cargando tus álbumes…</p>'
+  if (!d.open) d.showModal()
+  try {
+    const todos = await albumes.albumesParaElegir(sesion.user.id)
+    lista.innerHTML = todos.length
+      ? todos.map((a) => `<button type="button" class="mc-ea-album" data-album="${escapeHtml(a.id)}"><b>${escapeHtml(a.nombre || 'Sin nombre')}</b><span>${(a.cartas || []).length} cartas</span></button>`).join('')
+      : `<p class="subtext">Todavía no tienes ningún álbum.</p><a class="btn-secondary" href="?ver=carpetas">Crear uno en Álbumes</a>`
+  } catch (err) {
+    lista.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
+  }
+}
+
+async function meterMarcadasEnAlbum(albumId) {
+  const ids = idsDeLasMarcadas()
+  try {
+    const r = await albumes.meterCartas(albumId, ids)
+    $('mcElegirAlbum').close()
+    const partes = [`${r.anadidas} ${r.anadidas === 1 ? 'carta' : 'cartas'} a «${r.nombre}»`]
+    if (r.yaEstaban) partes.push(`${r.yaEstaban} ya estaban`)
+    if (r.sinSitio) partes.push(`${r.sinSitio} no caben`)
+    showToast(partes.join(' · ') + '.', r.sinSitio ? 'error' : 'success')
+    modoMarcar(false)
+    albumes.repintar?.()
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
 }
 
 // Marcar o desmarcar una casilla. No toca la base: lo que se marca vive
@@ -5469,6 +5587,76 @@ function enganchar() {
   $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))
   $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))
   $('mcMarcarGuardar')?.addEventListener('click', () => void guardarMarcadas())
+  $('mcMarcarQuitar')?.addEventListener('click', () => void quitarMarcadas())
+  $('mcMarcarQuiero')?.addEventListener('click', () => void quererMarcadas())
+  $('mcMarcarAlbum')?.addEventListener('click', () => void elegirAlbumParaMarcadas())
+  $('mcEaCerrar')?.addEventListener('click', () => $('mcElegirAlbum').close())
+  $('mcEaLista')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-album]')
+    if (b) void meterMarcadasEnAlbum(b.dataset.album)
+  })
+  // MANTENER PULSADA UNA CARTA LA MARCA (713). Es el gesto de cualquier
+  // galería de fotos: medio segundo quieto encima enciende el modo y deja
+  // esa carta marcada. Moverse más de 10 px es desplazarse, no pulsar; y el
+  // clic que llega al soltar se come, o abriría la ficha encima.
+  //
+  // Durante la pulsación NO se repinta nada: solo se marca la casilla a la
+  // vista. Con el dedo el navegador manda el «soltar» al elemento donde
+  // EMPEZÓ, y si la rejilla se repinta a mitad ese elemento ya no está en
+  // la página: el soltar no llega a nadie y el gesto se queda a medias. El
+  // modo de verdad se enciende al soltar.
+  {
+    let reloj = null, origen = null, pendiente = null, comer = false
+    const zona = $('mcAlbum')
+    const parar = () => { clearTimeout(reloj); reloj = null }
+    const aplicar = () => {
+      const p = pendiente
+      pendiente = null
+      if (!p) return
+      if (!marcadas) modoMarcar(true)
+      const nuevo = zona.querySelector(`.mc-bolsillo-enlace[data-marca="${CSS.escape(claveMarca(p.carta, p.variante))}"]`) || zona.querySelector(`.mc-bolsillo-enlace[data-carta="${CSS.escape(p.carta)}"][data-marca]`)
+      if (nuevo && !marcadas.has(nuevo.dataset.marca)) alternarMarca(nuevo)
+    }
+    zona?.addEventListener('pointerdown', (e) => {
+      const enlace = e.target.closest('.mc-bolsillo-enlace[data-carta]')
+      if (!enlace || !esMia || !sesion || e.button !== 0) return
+      // Con el modo ya puesto, un toque marca: no hace falta mantener.
+      if (marcadas) return
+      origen = { x: e.clientX, y: e.clientY }
+      parar()
+      reloj = setTimeout(() => {
+        reloj = null
+        pendiente = { carta: enlace.dataset.carta, variante: enlace.dataset.variante || 'normal' }
+        enlace.closest('.mc-bolsillo')?.classList.add('marcada')
+        navigator.vibrate?.(10)
+      }, 500)
+    })
+    zona?.addEventListener('pointermove', (e) => {
+      if (reloj && origen && Math.hypot(e.clientX - origen.x, e.clientY - origen.y) > 10) parar()
+    })
+    zona?.addEventListener('pointerup', () => {
+      parar()
+      if (!pendiente) return
+      // El clic de este mismo soltar se come; si no llega, a los 250 ms se
+      // deja de esperar para no comerse el siguiente toque de verdad.
+      // Y el modo se enciende DESPUÉS de ese clic: encenderlo saca la barra
+      // de marcar, que empuja la rejilla, y el clic caía en su «Cancelar».
+      comer = true
+      setTimeout(() => { comer = false }, 250)
+      setTimeout(aplicar, 60)
+    })
+    zona?.addEventListener('pointercancel', () => { parar(); if (pendiente) setTimeout(aplicar, 0) })
+    zona?.addEventListener('pointerleave', parar)
+    // En el DOCUMENTO y no en la zona: si el clic acaba en otro sitio (la
+    // barra que acaba de salir), también se lo come.
+    document.addEventListener('click', (e) => {
+      if (!comer) return
+      comer = false
+      e.preventDefault()
+      e.stopImmediatePropagation()
+    }, true)
+    zona?.addEventListener('contextmenu', (e) => { if (e.target.closest('.mc-bolsillo-enlace')) e.preventDefault() })
+  }
   // Con el teclado: un enlace ya responde a Intro, pero `role="button"`
   // promete también la BARRA ESPACIADORA, y un enlace no la tiene.
   $('mcAlbum')?.addEventListener('keydown', (e) => {

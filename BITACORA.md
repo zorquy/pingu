@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 5) — PINGU-Claude (713 — seleccionar varias y hacer algo con ellas)
+
+**Hecho**: C4 de la lista. En una expansión, mantener pulsada una carta
+enciende el modo de marcar (antes solo desde el menú) y la barra, además
+de «Añadir N», lleva «A un álbum», «La quiero» y «Quitar N» (solo las
+tuyas, con un segundo toque, una copia de cada). Con 710–712 ya empujadas
+y su subconjunto en verde.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`,
+`mi-coleccion.html`, `cartas.html`, `css/mi-coleccion.css`, `SCHEMA.md`.
+Prueba 713-pantalla en `pruebas`.
+
+**Pendiente**: la 714 (filtros en chips con «Ver N cartas»).
+
 ## 2026-10-07 (mañana, 4) — PINGU-Claude (712 — añadir más corto, y Deshacer)
 
 **Hecho**: C5 y C7 de la lista. La hoja de añadir lleva la carta en

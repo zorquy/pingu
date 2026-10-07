@@ -34334,3 +34334,35 @@ la miga se esconde en el móvil), y la 546 cazó de verdad un
 `mi-coleccion.html` (y `cartas.html`, generado), `css/cardmarket.css`,
 `css/mi-coleccion.css`. Prueba 712-pantalla; al día 385, 406, 474, 564 y
 646-pantalla.
+
+## Tanda 713 — seleccionar varias y hacer algo con ellas (oct. 2026)
+
+C4 de la lista de propuestas, sobre el «marcar varias» de la 426, que
+solo sabía AÑADIR las marcadas.
+
+- **Mantener pulsada una carta** medio segundo enciende el modo y la deja
+  marcada (como en una galería de fotos). Moverse más de 10 px es
+  desplazarse, no pulsar. Dos trampas que costaron la prueba con el DEDO
+  (con el ratón no se ven): con un toque el navegador manda el «soltar»
+  al elemento donde EMPEZÓ, así que no se puede repintar la rejilla
+  durante la pulsación —se marca la casilla a la vista y el modo se
+  enciende al soltar—; y encender el modo saca la barra, que empuja la
+  rejilla, así que el clic del soltar caía en su «Cancelar». El clic se
+  come en el DOCUMENTO (no en la zona) y el modo se enciende 60 ms
+  después de soltar. El menú de imagen de iOS se apaga con
+  `-webkit-touch-callout: none`.
+- **Lo que se hace con las marcadas** (`#mcMarcarAcciones`): **A un
+  álbum** (una hoja con tus álbumes; `albumes.meterCartas` mete las que
+  faltan, sin repetir y diciendo cuántas no caben por el tope), **La
+  quiero** (a `user_wants`, «Lo que buscas» en Cambios; las que ya
+  estaban no son un error) y **Quitar N**, que cuenta solo las TUYAS,
+  pide un segundo toque y quita UNA copia de cada (de la línea de esa
+  versión con más copias). Quitar una carta entera con todos sus idiomas
+  es demasiado para un toque desde una rejilla; para eso está su ficha.
+
+La barra sigue ARRIBA y pegada (419: abajo se pelearía con la burbuja).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`,
+`mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
+713-pantalla (con ratón y con eventos táctiles de verdad; devolver el
+oyente a la zona la pone roja).

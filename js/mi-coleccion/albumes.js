@@ -66,6 +66,23 @@ async function borrarAlbum(id) {
   if (!data?.length) throw new Error('No se ha podido borrar el álbum.')
 }
 
+// ── Meter varias desde fuera (713, C4) ──
+// La selección de varias de una expansión las manda a un álbum. Las que
+// ya estaban no se repiten, y lo que no cabe se dice (un álbum tiene tope).
+export async function albumesParaElegir(userId) {
+  return misAlbumes(userId)
+}
+export async function meterCartas(albumId, ids) {
+  const a = await cargarAlbum(albumId)
+  if (!a) throw new Error('Ese álbum ya no existe.')
+  const ya = new Set((Array.isArray(a.cartas) ? a.cartas : []).map((c) => c.id))
+  const nuevas = [...new Set(ids)].filter((id) => !ya.has(id))
+  const caben = Math.max(0, MAX_CARTAS - ya.size)
+  const entran = nuevas.slice(0, caben)
+  if (entran.length) await guardarAlbum(albumId, { cartas: [...(a.cartas || []), ...entran.map((id) => ({ id }))] })
+  return { nombre: a.nombre, anadidas: entran.length, yaEstaban: ids.length - nuevas.length, sinSitio: nuevas.length - entran.length }
+}
+
 // ── Estado ──
 let ctx = null // lo que pasa /mi-coleccion: sesión, colección, precios…
 let albumes = []
