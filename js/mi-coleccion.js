@@ -69,6 +69,7 @@ import { MERCADO_POR_DEFECTO } from './mercados.js'
 import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
+import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -1902,7 +1903,12 @@ function lineasFiltradas() {
   return ordenarLineas(filtradas, ordenElegido, sentidoElegido, AYUDAS)
 }
 
+// La columna de filtros del ordenador (738): con ella a la vista, los
+// chips se repintan con la colección, que en una hoja se hacía al abrirla.
+let columnaFiltros = null
+
 function pintarCartas() {
+  if (columnaFiltros?.enColumna()) pintarGruposDeChips()
   const lista = lineasFiltradas()
   $('mcCartas').innerHTML = lista.map(lineaHtml).join('')
   $('mcCartasVacio').classList.toggle('hidden', lineas.length > 0)
@@ -5710,6 +5716,8 @@ function enganchar() {
     if (!dentro) e.currentTarget.close()
   })
   $('mcFiltrosLimpiar').addEventListener('click', limpiarFiltros)
+  // En el ordenador, el panel es una columna fija junto a la rejilla (738).
+  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: pintarGruposDeChips })
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
   // lado: dejarlo puesto haría que la lista siguiera recortada después de
   // pulsar «quitar» y parecería que no ha hecho nada.

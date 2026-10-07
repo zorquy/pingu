@@ -4037,6 +4037,58 @@ input.mc-alb-titulo:not([readonly]):focus {
   background: rgba(13, 27, 42, 0.5);
 }
 
+/* EN EL ORDENADOR, UNA COLUMNA (738, X14). El mismo `<dialog>`, abierto
+   sin modal por js/mi-coleccion/filtros-columna.js: pegado a la izquierda
+   de la rejilla y a la vista mientras bajas. Sin «Ver resultados», que en
+   una hoja servía para cerrarla: aquí no hay nada que cerrar. */
+@media (min-width: 1100px) and (pointer: fine) {
+  /* Con la columna, la página se ensancha: ya lleva las pestañas a la
+     izquierda (216 px), y con el contenedor de siempre (1.160) a la
+     rejilla le quedaban 519 px, menos que sin columna. */
+  .mc-pagina:has(.mc-con-columna:not(.hidden)) {
+    max-width: 1440px;
+  }
+
+  #mcPanelCartas.mc-con-columna:not(.hidden) {
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    column-gap: var(--e-xl);
+    align-items: start;
+  }
+
+  #mcPanelCartas.mc-con-columna > * {
+    grid-column: 2;
+  }
+
+  #mcPanelCartas.mc-con-columna > .mc-panel-filtros[open] {
+    position: sticky;
+    top: 80px;
+    grid-column: 1;
+    grid-row: 1 / span 8;
+    width: auto;
+    height: auto;
+    max-height: calc(100vh - 96px);
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow-y: auto;
+  }
+
+  .mc-con-columna #mcFiltrosVer {
+    display: none;
+  }
+
+  /* El buscador mide lo que mide una búsqueda (405), no la rejilla. */
+  .mc-con-columna .mc-buscador {
+    max-width: 400px;
+  }
+
+  .mc-con-columna #mcAbrirFiltros[aria-expanded='true'] {
+    border-color: var(--navy);
+    color: var(--navy);
+  }
+}
+
 .mc-grupo-filtro {
   margin-bottom: var(--e-lg);
 }

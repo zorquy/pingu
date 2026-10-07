@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 18) — PINGU-Claude (738 — los filtros en una columna)
+
+**Hecho**: X14 de la lista. En el ordenador, los filtros de Mi colección ›
+Cartas van en una columna fija a la izquierda de la rejilla, ya abierta y
+aplicando al momento; «Filtros» la esconde y se recuerda. En el móvil sigue
+la hoja de siempre.
+
+**Ficheros**: `js/mi-coleccion/filtros-columna.js` (nuevo),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`. Prueba
+738-pantalla y 399, 564 y 574 al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X13.
+
 ## 2026-10-07 (tarde, 17) — PINGU-Claude (737 — el foco se ve, y en orden)
 
 **Hecho**: X16 de la lista. Recorridas doce páginas con Tab: el orden ya

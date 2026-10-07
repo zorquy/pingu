@@ -35037,3 +35037,37 @@ tres antepasados), que es el caso de la lupa.
 **Ficheros**: `css/style.css`, `css/components.css`, `css/foro.css`,
 `css/mi-coleccion.css`, `css/constructor.css`, `css/laboratorio.css`,
 `CLAUDE.md`. Prueba 737-pantalla.
+
+## Tanda 738 — los filtros en una columna, en el ordenador (oct. 2026)
+
+X14 de la lista. En el móvil el panel de filtros es una hoja que tapa la
+rejilla, y está bien. En el ordenador sobra sitio, y abrir una hoja para
+tocar un chip y cerrarla para ver el resultado es el gesto del móvil en una
+pantalla donde no hace falta.
+
+- Con pantalla ancha y ratón (`(min-width: 1100px) and (pointer: fine)`)
+  el MISMO `<dialog>` de filtros se abre sin modal (`show()`) y la hoja lo
+  coloca como columna pegajosa de 272 px a la izquierda de la rejilla
+  (`js/mi-coleccion/filtros-columna.js`). Los filtros ya aplicaban al
+  momento (714): solo cambia dónde se ven. Sin «Ver resultados», que en la
+  hoja servía para cerrarla.
+- «Filtros» y el ✕ esconden la columna y la sacan, y se recuerda
+  (`mc-filtros-columna`): hay quien quiere la rejilla a lo ancho. Van en
+  captura para adelantarse al clic de siempre, que abría la hoja; con la
+  ventana estrecha siguen abriendo la hoja.
+- Con la columna a la vista, los chips se repintan en `pintarCartas`: en la
+  hoja se pintaban al abrirla, y aquí está abierta desde antes de que
+  llegue la colección.
+- **La página se ensancha** (`.mc-pagina:has(.mc-con-columna)`, hasta
+  1.440 px): Mi colección ya lleva sus pestañas en una columna de 216 px, y
+  con el contenedor de siempre (1.160) a la rejilla le quedaban 519 px,
+  menos que sin columna. A 1.280 de ventana se queda en 639. Y el buscador,
+  a 400 px como mucho: mide lo que mide una búsqueda (405).
+
+Las pruebas viejas de filtros (399, 564, 574) pulsaban «Filtros» a 1.280 px
+para abrir la hoja: ahora, en el ordenador, lo pulsan solo si el panel no
+está abierto, y «Ver resultados» solo si se ve.
+
+**Ficheros**: `js/mi-coleccion/filtros-columna.js` (nuevo),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`. Prueba 738-pantalla; 399,
+564 y 574 al día.
