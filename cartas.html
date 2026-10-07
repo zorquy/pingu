@@ -417,6 +417,7 @@
                 <div class="mc-seg mc-seg-chips mc-seg-sueltas" role="group" aria-label="Ordenar las expansiones" id="mcEstanteriaOrdenes">
                   <button type="button" data-orden-sets="era" aria-pressed="true">Por era</button>
                   <button type="button" data-orden-sets="progreso" aria-pressed="false">Lo que más llevas</button>
+                  <button type="button" data-orden-sets="casi" aria-pressed="false">Casi completas</button>
                   <button type="button" data-orden-sets="nuevas" aria-pressed="false">Lo más nuevo</button>
                   <button type="button" data-orden-sets="nombre" aria-pressed="false">A–Z</button>
                 </div>
@@ -457,7 +458,17 @@
                decir lo que dicen tres iconos. Aquí arriba, junto al
                nombre, es además donde se buscan. -->
           <div class="mc-album-barra">
-            <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+            <!-- El logo primero y el nombre pequeño al lado (749, E5). PINGU:
+                 «si tiene logo, no pongas el título porque ya se lee en el
+                 logo; y si lo pones, muy pequeño». -->
+            <div class="mc-album-nombre">
+              <span class="mc-album-fondo" id="mcAlbumFondo" aria-hidden="true"></span>
+              <span class="mc-album-logo hidden" id="mcAlbumLogo" aria-hidden="true"></span>
+              <div class="mc-album-nombre-texto">
+                <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+                <p class="mc-album-meta hidden" id="mcAlbumMeta"></p>
+              </div>
+            </div>
             <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
               <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
               <button type="button" data-que="mcAlbumSoloTengo" aria-pressed="false">Tengo</button>

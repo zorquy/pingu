@@ -90,7 +90,7 @@ async function cargarNumerosComunidad() {
     if (elMiembros && miembros != null) elMiembros.textContent = miembros
     // Con separador de miles: «21356» se lee como un número de serie y
     // «21.356» se lee como una cifra.
-    if (elCartas && cartas != null) elCartas.textContent = cartas.toLocaleString('es-ES')
+    if (elCartas && cartas != null) elCartas.textContent = cartas.toLocaleString('es-ES', { useGrouping: 'always' })
   } catch {}
 }
 

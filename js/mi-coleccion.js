@@ -857,9 +857,9 @@ function pintarResumen() {
   // dice LAS MISMAS cifras que la cabecera, no otras calculadas aparte.
   resumenHero = { copias, distintas, sets, valor: euros(valor) }
   $('mcResumen').innerHTML = `
-    <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES')}</dd></div>
-    <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES')}</dd></div>
-    <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES')}</dd></div>
+    <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
+    <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
+    <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
     <div class="mc-cifra mc-cifra-valor"><dt>Valor</dt><dd>${euros(valor)}</dd><small class="mc-cifra-cambio hidden" id="mcCifraCambio"></small></div>
 `
   // Y el cambio del mes, si el histórico ya ha llegado (tanda 582).
@@ -1089,7 +1089,7 @@ const eurosConMiles = (v) => conMiles.format(Number(v) || 0)
 function fichasDeCartera() {
   const r = resumenHero
   if (!r) return ''
-  const n = (v) => Number(v || 0).toLocaleString('es-ES')
+  const n = (v) => Number(v || 0).toLocaleString('es-ES', { useGrouping: 'always' })
   return `<ul class="mc-cartera-fichas" aria-label="Tu colección en cifras">
     <li><b>${n(r.copias)}</b><span>${r.copias === 1 ? 'carta' : 'cartas'}</span></li>
     <li><b>${n(r.distintas)}</b><span>${r.distintas === 1 ? 'distinta' : 'distintas'}</span></li>
@@ -1186,7 +1186,7 @@ function pintarResumenPanel() {
       }
       ${esMia ? diapoDelBalance() : ''}
       ${diapoHtml('Lo que te sobra', `
-        <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES')}</p>
+        <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES', { useGrouping: 'always' })}</p>
         <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
         ${
           rep.length
@@ -1273,7 +1273,7 @@ function diapoDelBalance() {
   // «en las 1 carta» no lo escribe nadie: con una se dice de otra manera.
   const cuantas = b.copias === 1
     ? 'la única carta en la que apuntaste lo que pagaste'
-    : `las ${b.copias.toLocaleString('es-ES')} cartas en las que apuntaste lo que pagaste`
+    : `las ${b.copias.toLocaleString('es-ES', { useGrouping: 'always' })} cartas en las que apuntaste lo que pagaste`
   const clase = dif === 0 ? '' : dif > 0 ? ' mc-gana' : ' mc-pierde'
   // El signo delante, que es lo que lee quien no distingue el verde del
   // rojo: el color nunca va solo.
@@ -1954,7 +1954,7 @@ function pasaElPrecio(l, rango) {
 function rotularVer(id, n, { mas = false } = {}) {
   const b = $(id)
   if (!b) return
-  b.textContent = n === 0 ? 'Ninguna carta: afloja algún filtro' : `Ver ${n.toLocaleString('es-ES')}${mas ? '+' : ''} ${n === 1 ? 'carta' : 'cartas'}`
+  b.textContent = n === 0 ? 'Ninguna carta: afloja algún filtro' : `Ver ${n.toLocaleString('es-ES', { useGrouping: 'always' })}${mas ? '+' : ''} ${n === 1 ? 'carta' : 'cartas'}`
 }
 
 function limpiarFiltros() {
@@ -2079,8 +2079,8 @@ function pintarCuantas(cuantas) {
   caja.textContent = !total
     ? ''
     : cuantas === total
-      ? `${total.toLocaleString('es-ES')} ${total === 1 ? 'carta' : 'cartas'}`
-      : `${cuantas.toLocaleString('es-ES')} de ${total.toLocaleString('es-ES')}`
+      ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'}`
+      : `${cuantas.toLocaleString('es-ES', { useGrouping: 'always' })} de ${total.toLocaleString('es-ES', { useGrouping: 'always' })}`
 }
 
 function pintarFiltros() {
@@ -2109,7 +2109,7 @@ function pintarColumnaSets() {
     cuantas.set(c.set_id, ya)
   }
   const actual = $('mcFiltroSet').value
-  const fila = (id, nombre, n) => `<button type="button" class="mc-columna-set" data-columna-set="${escapeHtml(id)}" aria-pressed="${id === actual ? 'true' : 'false'}"><span>${escapeHtml(nombre)}</span>${n == null ? '' : `<b>${n.toLocaleString('es-ES')}</b>`}</button>`
+  const fila = (id, nombre, n) => `<button type="button" class="mc-columna-set" data-columna-set="${escapeHtml(id)}" aria-pressed="${id === actual ? 'true' : 'false'}"><span>${escapeHtml(nombre)}</span>${n == null ? '' : `<b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b>`}</button>`
   caja.innerHTML = fila('', 'Todas', null) + [...cuantas].sort((a, b) => b[1].n - a[1].n || a[1].nombre.localeCompare(b[1].nombre, 'es')).map(([id, x]) => fila(id, x.nombre, x.n)).join('')
 }
 
@@ -2865,10 +2865,20 @@ async function pintarEstanteria() {
   // rótulos: «lo que más llevas» repartido por eras no ordena nada.
   const fecha = (x) => Date.parse(x.release_date || '') || 0
   const llevas = (x) => (totalDe(x) ? (cuantas.get(x.id) || 0) / totalDe(x) : 0)
-  const grupos = ordenSets === 'era' || modoCatalogo && ordenSets === 'progreso'
+  // «Casi completas» (749, Y2): las empezadas que menos cartas les faltan,
+  // primero; detrás las ya completas y al final las que no has empezado.
+  // Es «lo que me falta poco para acabar», que no es lo mismo que «lo que
+  // más llevas»: de una de 300 cartas al 90 % te faltan 30.
+  const faltan = (x) => {
+    const t = totalDe(x), n = cuantas.get(x.id) || 0
+    if (!t || !n) return [2, -fecha(x)]
+    return n >= t ? [1, -fecha(x)] : [0, t - n]
+  }
+  const grupos = ordenSets === 'era' || modoCatalogo && (ordenSets === 'progreso' || ordenSets === 'casi')
     ? gruposDeEstanteria(visibles, favoritos || new Set(), eras)
     : [{ id: 'todas', titulo: '', sets: [...visibles].sort(
-      ordenSets === 'progreso' ? (a, b) => llevas(b) - llevas(a) || fecha(b) - fecha(a)
+      ordenSets === 'casi' ? (a, b) => { const fa = faltan(a), fb = faltan(b); return fa[0] - fb[0] || fa[1] - fb[1] }
+        : ordenSets === 'progreso' ? (a, b) => llevas(b) - llevas(a) || fecha(b) - fecha(a)
         : ordenSets === 'nuevas' ? (a, b) => fecha(b) - fecha(a)
           : (a, b) => String(nombreDeSet(a) || a.name).localeCompare(String(nombreDeSet(b) || b.name), 'es')) }]
 
@@ -2889,7 +2899,7 @@ async function pintarEstanteria() {
   $('mcAlbumFiltrado')?.classList.toggle('hidden', !filtrado)
   if (filtrado) {
     $('mcAlbumFiltradoCuantas').textContent =
-      `Tienes ${totalSinFiltrar.toLocaleString('es-ES')} ${totalSinFiltrar === 1 ? 'colección' : 'colecciones'} que mirar; estos filtros las esconden todas.`
+      `Tienes ${totalSinFiltrar.toLocaleString('es-ES', { useGrouping: 'always' })} ${totalSinFiltrar === 1 ? 'colección' : 'colecciones'} que mirar; estos filtros las esconden todas.`
   }
   // Cuántas estás viendo de cuántas hay. `cumple` ya lleva el filtro
   // dentro, así que el total se cuenta aparte: es el del catálogo, no el
@@ -2900,8 +2910,8 @@ async function pintarEstanteria() {
     caja.textContent = !hay
       ? ''
       : visibles.length === hay
-        ? `${hay.toLocaleString('es-ES')} ${hay === 1 ? 'colección' : 'colecciones'}`
-        : `${visibles.length.toLocaleString('es-ES')} de ${hay.toLocaleString('es-ES')}`
+        ? `${hay.toLocaleString('es-ES', { useGrouping: 'always' })} ${hay === 1 ? 'colección' : 'colecciones'}`
+        : `${visibles.length.toLocaleString('es-ES', { useGrouping: 'always' })} de ${hay.toLocaleString('es-ES', { useGrouping: 'always' })}`
   }
 }
 
@@ -2946,7 +2956,13 @@ async function pintarHermanos(setId) {
     const pct = total ? Math.min(100, Math.round((tengo / total) * 100)) : 0
     const actual = x.id === setId
     return `<li><button type="button" class="mc-hermano${actual ? ' actual' : ''}${mia && total && tengo >= total ? ' completo' : ''}" data-hermano="${escapeHtml(x.id)}"${actual ? ' aria-current="page"' : ''}>
-      <span class="mc-set-codigo">${escapeHtml(codigo)}</span>
+      ${(() => {
+        // El logo también aquí (749): es lo que se reconoce de un vistazo.
+        const dibujos = [x.logo_tcggo, x.logo_scrydex, urlDeLogo(x.logo_path, x.market || mercado)].filter(Boolean)
+        return dibujos.length
+          ? `<span class="mc-set-marca mc-hermano-logo" data-codigo="${escapeHtml(codigo)}"><img ${atributosDeEscaneo(dibujos, "this.parentNode.classList.add('sin-logo');this.remove()")} alt="" loading="lazy" width="56" height="28" /></span>`
+          : `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>`
+      })()}
       <span class="mc-hermano-info"><span class="mc-hermano-nombre">${escapeHtml(nombreDeSet(x) || x.id)}</span>${mia && total ? `<span class="mc-hermano-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>
       <span class="mc-hermano-cuenta">${!total ? '' : mia ? `${tengo}/${total}` : total}</span>
     </button></li>`
@@ -3107,14 +3123,30 @@ function filaDeSet(set, tengo) {
   const dibujos = [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, set.market || mercado), set.symbol_scrydex].filter(Boolean)
   const mia = esMia && sesion
   const cuenta = !total ? 'Sin numeración' : mia ? `${tengo}/${total}` : `${total} cartas`
+  // EL LOGO EN LA FILA Y SU COLOR DETRÁS (749, E1 y E2). PINGU: «se les ha
+  // quitado el logo y daban bastante personalidad». El logo va donde iba el
+  // código; detrás, el MISMO logo ampliado y difuminado tiñe la fila con sus
+  // colores sin elegir ninguno a mano. Si la cadena de logos se agota, la
+  // marca enseña el código (la clase `sin-logo` y su `data-codigo`), que es
+  // lo que había: una caja vacía se lee como un fallo.
+  const logo = dibujos.length > 0
+  const anio = (String(set.release_date || '').match(/^\d{4}/) || [])[0]
+  // El código va en la línea solo cuando el logo ocupa su sitio; si el logo
+  // no llega, la marca enseña el código y este trozo se esconde (CSS).
+  const corta = [anio, cuenta].filter(Boolean).join(' · ')
+  const codigoEnLinea = logo && codigo ? `<span class="mc-set-corta-codigo">${escapeHtml(codigo)} · </span>` : ''
+  const pct = mia && total ? Math.min(100, Math.round((tengo / total) * 100)) : null
+  const marca = logo
+    ? `<span class="mc-set-marca" data-codigo="${escapeHtml(codigo || '')}"><img ${atributosDeEscaneo(dibujos, "this.parentNode.classList.add('sin-logo');this.parentNode.closest('.mc-set-fila')?.classList.remove('con-logo');this.remove()")} alt="" loading="lazy" width="96" height="48" /></span>`
+    : `<span class="mc-set-codigo">${escapeHtml(codigo || '·')}</span>`
   return `
-    <button type="button" class="mc-set-tarjeta mc-set-fila${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(set.market || mercado)}">
-      ${codigo
-        ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>`
-        : `<span class="mc-set-codigo mc-set-codigo-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" width="48" height="24" />` : ''}</span>`}
+    <button type="button" class="mc-set-tarjeta mc-set-fila${logo ? ' con-logo' : ''}${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(set.market || mercado)}">
+      ${logo ? `<span class="mc-set-fondo" aria-hidden="true"><img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" width="96" height="48" /></span>` : ''}
+      ${marca}
       <span class="mc-set-info">
         <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
-        <span class="mc-set-corta">${escapeHtml(cuenta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}</span>
+        <span class="mc-set-corta">${codigoEnLinea}${escapeHtml(corta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}</span>
+        ${pct !== null ? `<span class="mc-set-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}
       </span>
       ${anilloDeSet(tengo, total)}
     </button>`
@@ -3224,6 +3256,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   $('mcArchivadorZona').classList.remove('hidden')
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = nombreDeSet(set) || ''
+  pintarLogoDeAlbum(set)
   // Sin sesión no hay «las tuyas» que separar.
   $('mcAlbumQue')?.classList.toggle('hidden', !sesion)
   if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = ''
@@ -3249,6 +3282,30 @@ async function abrirAlbum(setId, { push = true } = {}) {
     return
   }
   pintarAlbum()
+}
+
+// EL LOGO ARRIBA (749, E5). Con logo, el nombre se queda pequeño a su lado
+// con el código y la fecha: el logo ya dice el nombre, y título + logo +
+// fecha en tres renglones empujaban las cartas hacia abajo. Sin logo (o si
+// la cadena se agota), el título grande de siempre. Aquí no entra el
+// SÍMBOLO de respaldo de la fila: un símbolo no es un logo.
+function pintarLogoDeAlbum(set) {
+  const caja = $('mcAlbumLogo')
+  const barra = caja?.closest('.mc-album-barra')
+  if (!caja || !barra) return
+  const dibujos = set ? [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, set.market || mercado)].filter(Boolean) : []
+  const con = dibujos.length > 0
+  barra.classList.toggle('con-logo', con)
+  caja.classList.toggle('hidden', !con)
+  $('mcAlbumMeta')?.classList.toggle('hidden', !con)
+  const quitar = "var b=this.closest('.mc-album-barra');if(b){b.classList.remove('con-logo');b.querySelector('#mcAlbumMeta')?.classList.add('hidden');b.querySelector('#mcAlbumFondo').innerHTML=''}this.parentNode.classList.add('hidden');this.remove()"
+  caja.innerHTML = con ? `<img ${atributosDeEscaneo(dibujos, quitar)} alt="" width="160" height="64" />` : ''
+  if ($('mcAlbumFondo')) $('mcAlbumFondo').innerHTML = con ? `<img ${atributosDeEscaneo(dibujos)} alt="" width="160" height="64" />` : ''
+  if (con && $('mcAlbumMeta')) {
+    const fecha = set.release_date ? new Date(`${String(set.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : ''
+    const total = totalDe(set)
+    $('mcAlbumMeta').textContent = [set.tcg_online_code, fecha, total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} cartas` : ''].filter(Boolean).join(' · ')
+  }
 }
 
 // ── El bolsillo del archivador (tanda 368) ──
@@ -3770,7 +3827,7 @@ function pintarTiraDeSet(elSet) {
   const linea = $('mcAlbumLinea')
   if (linea) {
     linea.textContent = [
-      `${completo.tengo.toLocaleString('es-ES')} de ${completo.total.toLocaleString('es-ES')}`,
+      `${completo.tengo.toLocaleString('es-ES', { useGrouping: 'always' })} de ${completo.total.toLocaleString('es-ES', { useGrouping: 'always' })}`,
       `${pct} %`,
       ...(mias.length && valor ? [`${euros(valor)} las tuyas`] : []),
     ].join(' · ')

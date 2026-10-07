@@ -385,7 +385,7 @@ function pintarResultados(nuevas) {
   } else {
     cont.innerHTML = busqueda.cartas.map(resultadoHtml).join('')
   }
-  $('cmCuenta').textContent = busqueda.total ? `${busqueda.total.toLocaleString('es-ES')} ${busqueda.total === 1 ? 'carta' : 'cartas'}` : ''
+  $('cmCuenta').textContent = busqueda.total ? `${busqueda.total.toLocaleString('es-ES', { useGrouping: 'always' })} ${busqueda.total === 1 ? 'carta' : 'cartas'}` : ''
   $('cmMas').classList.toggle('hidden', busqueda.desde >= busqueda.total)
 }
 

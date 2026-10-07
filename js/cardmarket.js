@@ -369,7 +369,7 @@ export function urlDePrecio(cardId) {
   return `${API}/en/cards/${encodeURIComponent(cardId)}`
 }
 
-const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' })
 export function euros(v) {
   return typeof v === 'number' && Number.isFinite(v) ? fmt.format(v) : '—'
 }

@@ -8347,3 +8347,216 @@ input.mc-alb-titulo:not([readonly]):focus {
     border-left: 0;
   }
 }
+
+/* ── 749: el logo en la fila y su color detrás (E1, E2 y E4; SCHEMA 749) ── */
+.mc-set-tarjeta.mc-set-fila {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+}
+
+.mc-set-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mc-set-fondo img {
+  position: absolute;
+  top: 50%;
+  left: -24px;
+  width: 240px;
+  height: auto;
+  opacity: 0.45;
+  filter: blur(24px) saturate(1.6);
+  transform: translateY(-50%);
+}
+
+.mc-set-fondo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0, var(--white) 64%);
+}
+
+.mc-set-marca {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 44px;
+}
+
+.mc-set-marca img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 25%));
+}
+
+.mc-set-marca.sin-logo::after {
+  content: attr(data-codigo);
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 800;
+}
+
+.mc-set-barra {
+  display: block;
+  height: 4px;
+  margin-top: var(--e-xs);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.mc-set-barra i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  background: var(--navy);
+}
+
+.mc-set-fila.completo .mc-set-barra i {
+  background: var(--success);
+}
+
+@media (min-width: 900px) {
+  .mc-estanteria-lista {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .mc-set-tarjeta.mc-set-fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'codigo anillo'
+      'info info';
+    min-height: 168px;
+  }
+
+  .mc-set-fila .mc-set-marca {
+    grid-area: codigo;
+    justify-items: start;
+    width: 100%;
+    max-width: 160px;
+    height: 68px;
+  }
+
+  .mc-set-fila .mc-set-marca img {
+    object-position: left center;
+  }
+
+  .mc-set-fila .mc-set-codigo {
+    justify-self: start;
+  }
+
+  .mc-set-fila .mc-set-info {
+    align-self: end;
+  }
+
+  .mc-set-fondo img {
+    top: 32%;
+    left: 50%;
+    width: 340px;
+    opacity: 0.5;
+    transform: translate(-50%, -50%);
+  }
+
+  .mc-set-fondo::after {
+    background: linear-gradient(180deg, transparent 0, var(--white) 74%);
+  }
+}
+
+/* Una carta más por fila en el ordenador (749, Y8). */
+@media (min-width: 1200px) {
+  .mc-album-rejilla {
+    gap: var(--e-sm);
+  }
+}
+
+/* ── 749: el logo arriba de una expansión (E5; SCHEMA 749) ── */
+#mcArchivadorZona .mc-album-barra {
+  position: relative;
+  isolation: isolate;
+}
+
+.mc-album-nombre {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+}
+
+.mc-album-nombre-texto {
+  min-width: 0;
+}
+
+.mc-album-logo img {
+  display: block;
+  max-width: 160px;
+  max-height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 25%));
+}
+
+.mc-album-fondo {
+  position: absolute;
+  inset: -32px 0 -16px;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent);
+  mask-image: linear-gradient(180deg, #000 30%, transparent);
+}
+
+.mc-album-fondo img {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 360px;
+  height: auto;
+  opacity: 0.4;
+  filter: blur(30px) saturate(1.7);
+  transform: translateY(-50%);
+}
+
+#mcArchivadorZona .mc-album-barra.con-logo .mc-album-titulo {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-album-meta {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* El logo en la columna de su era (749). */
+.mc-hermano .mc-hermano-logo {
+  flex: none;
+  width: 56px;
+  height: 28px;
+}
+
+.mc-hermano .mc-hermano-logo.sin-logo::after {
+  width: 48px;
+  height: 28px;
+  font-size: var(--t-2xs);
+}
+
+.mc-set-fila:has(.sin-logo) .mc-set-corta-codigo {
+  display: none;
+}

@@ -10,7 +10,7 @@
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 
-const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('es-ES') : '—')
+const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('es-ES', { useGrouping: 'always' }) : '—')
 
 // Puro: lo prueba node.
 export function cifrasHtml({ cartas = null, racha = null, guias = null, nota = null, votos = 0, torneos = null } = {}) {
