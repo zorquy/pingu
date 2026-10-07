@@ -34845,3 +34845,18 @@ lectura en voz alta. Se esconde donde se escondía.
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`.
 Prueba 730-pantalla, con la colección tardando a propósito
 (`__FAKE_RETRASO__`).
+
+## Tanda 731 — pellizcar la rejilla cambia las columnas (oct. 2026)
+
+X3 de la lista (`js/mi-coleccion/pellizco.js`). En una expansión, con dos
+dedos sobre la cuadrícula o el archivador, abrir agranda las cartas (una
+columna menos) y cerrar las achica (una más), entre 2 y 4 —como la galería
+del móvil—, y se recuerda en el navegador (`mc-columnas`). La regla es
+pura (`columnasTrasPellizco`: un 20 % de pellizco es un paso; menos, nada).
+Con dos dedos encima de la rejilla el gesto se le quita al navegador, que
+si no haría zoom de la página entera. Va con eventos táctiles, como la 720.
+Y SOLO con dedos (`pointer: coarse`): lo elegido en el móvil no puede dejar
+el escritorio, donde caben once, en cuatro columnas.
+
+**Ficheros**: `js/mi-coleccion/pellizco.js` (nuevo), `js/mi-coleccion.js`,
+`css/mi-coleccion.css`. Prueba 731-pantalla, con dos dedos de verdad por CDP.

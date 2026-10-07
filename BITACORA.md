@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 11) — PINGU-Claude (731 — pellizcar la rejilla cambia las columnas)
+
+**Hecho**: X3 de la lista. En el móvil, pellizcar la rejilla de una
+expansión pasa de 2 a 4 columnas, y se recuerda; en el escritorio no
+cambia nada.
+
+**Ficheros**: `js/mi-coleccion/pellizco.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. Prueba 731-pantalla en `pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V3 (antetítulo), V7, A1 y X4, X6, X7,
+X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 10) — PINGU-Claude (730 — mientras carga Mi colección, la forma de lo que llega)
 
 **Hecho**: V5 de la lista. Al entrar en Mi colección, mientras carga, se

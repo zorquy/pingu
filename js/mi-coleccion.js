@@ -68,6 +68,7 @@ import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-
 import { MERCADO_POR_DEFECTO } from './mercados.js'
 import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
+import { engancharPellizco } from './mi-coleccion/pellizco.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -6259,6 +6260,8 @@ function enganchar() {
   // clic, así que se iban a la página. En el ordenador no se veía porque
   // ahí se usa el archivador; en el móvil, la cuadrícula.
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace, .mc-rejilla-celda, .mc-album-fila')
+  // Pellizcar para cambiar de 2 a 4 columnas (731, X3).
+  engancharPellizco($('mcAlbum'))
   // El «+» de cada carta (657), en CAPTURA: va dentro del enlace que abre
   // la ficha, y tiene que ganarle. Con el teclado, Intro y la barra.
   const pulsarMas = (e) => {

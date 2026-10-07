@@ -7301,3 +7301,9 @@ input.mc-alb-titulo:not([readonly]):focus {
   border-radius: var(--radius-md);
 }
 
+/* ── 731 (X3): las columnas que eligió el pellizco (SCHEMA 731) ── */
+#mcAlbum[data-columnas] .mc-album-cuadricula,
+#mcAlbum[data-columnas] .mc-album-rejilla {
+  grid-template-columns: repeat(var(--mc-columnas), minmax(0, 1fr));
+}
+
