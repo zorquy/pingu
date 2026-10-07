@@ -634,7 +634,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
   const puedeResolver = puedoEditarTema() && numero > 1
 
   return `
-  <article class="foro-mensaje ${esLaSolucion ? 'foro-mensaje-solucion' : ''}" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
+  <article class="foro-mensaje${esLaSolucion ? ' foro-mensaje-solucion' : ''}${esMio ? ' foro-mensaje-mio' : ''}" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
     <div class="foro-mensaje-autor">
       ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>

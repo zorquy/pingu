@@ -35310,3 +35310,45 @@ en su propio `<style>`.
 **Ficheros**: `sin-conexion.html`, `js/sin-conexion.js` y
 `js/mi-coleccion/cola.js` (nuevos), `sw.js`, `js/app.js`,
 `js/mi-coleccion.js`. Prueba 745-pantalla; la 299 al día.
+
+## Tanda 746 — El foro como una app de mensajes (oct. 2026)
+
+J1 de la lista de propuestas (la última de las 53). El foro tenía forma de
+foro de los 2000: un índice de tarjetas altas por foro —para saber de qué
+se estaba hablando había que entrar en cada uno— y, dentro de un tema, una
+columna de autor a la izquierda con avatar grande y contadores, igual para
+todos los mensajes. Tres piezas:
+
+- **Conversaciones, arriba del índice** (`js/foro-conversaciones.js`, que
+  entra por `import()` desde `pintarIndice`): los 30 hilos con movimiento
+  más reciente de todos los foros, en filas densas como las de una app de
+  mensajes. Cada fila es UN enlace (el avatar va como `<span>`, no con
+  `avatarHtml`, que es un `<a>`: un enlace dentro de otro el navegador lo
+  parte en dos) con quién escribió lo último, el título, de qué foro es y
+  un trozo de la última respuesta, sin etiquetas y sin lo que cita. Lo no
+  leído lleva un punto y lleva a lo nuevo (`?nuevo=1`); la regla de «no
+  leído» es la de siempre, `estaSinLeer`, así que sin la migración de
+  lecturas no se marca nada (no se sabe ≠ todo nuevo). Chips: «Todo»,
+  «Para ti» (donde has escrito, o lo que abriste), «Siguiendo» (tus
+  suscripciones) y uno por foro con algo en la lista; sin cuenta, solo
+  «Todo» y los foros. Si la consulta falla, la lista no sale y el índice
+  de debajo sigue. El índice de siempre no se va: quien quiere ir por
+  foros, va.
+- **El tema como un chat**: cada mensaje es una burbuja; los tuyos
+  (`foro-mensaje-mio`, que pone `mensajeHtml`) van a la derecha, con fondo
+  `--ice` y el pico al otro lado. La columna de autor pasa a ser una fila
+  pequeña encima, con un avatar de 28 px, y los contadores de mensajes,
+  gracias y oros se quedan en el perfil, que es donde se miran. La
+  solución marcada sigue con su caja.
+- **La caja de responder, pegada abajo** como la de un chat (`sticky`),
+  recogida —sin la barra de formato— hasta que escribes en ella. Lo que se
+  enfoca no se queda debajo (`scroll-padding-bottom`). En el móvil va
+  encima de la barra de abajo, con una banda que tapa el hueco entre las
+  dos; y **cuando la barra se esconde al bajar (la 709), la caja baja al
+  fondo**: con la regla a secas se quedaba a 72 px del borde y por debajo
+  asomaban los mensajes. Lo cazó la prueba, no la captura: en la captura
+  la barra se ve porque no se ha bajado.
+
+**Ficheros**: `js/foro-conversaciones.js` (nuevo), `js/foro.js`,
+`js/tema.js`, `css/foro.css`. Prueba 746-pantalla en `pruebas`; el doble
+siembra ya las suscripciones (`__FAKE_SUSCRIPCIONES__`).

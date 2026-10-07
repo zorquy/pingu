@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 26) — PINGU-Claude (746 — el foro como una app de mensajes)
+
+**Hecho**: J1 de la lista, la última de las 53. En el índice del foro,
+arriba, «Conversaciones»: los hilos con movimiento de todos los foros, con
+quién dijo qué, un punto en lo no leído y chips «Todo», «Para ti»,
+«Siguiendo» y uno por foro. Dentro de un tema, burbujas (las tuyas a la
+derecha) y la caja de responder pegada abajo, recogida hasta que escribes;
+en el móvil, encima de la barra, y al fondo cuando la barra se esconde.
+
+**Ficheros**: `js/foro-conversaciones.js` (nuevo), `js/foro.js`,
+`js/tema.js`, `css/foro.css`, `SCHEMA.md`. Prueba 746-pantalla y el doble
+(suscripciones) en `pruebas`.
+
+**Pendiente**: ejecutar `supabase-migration-vitrina.sql` (la vitrina del
+perfil sigue escondida hasta entonces). La lista de 53 está entera.
+
 ## 2026-10-07 (tarde, 25) — PINGU-Claude (745 — sin conexión)
 
 **Hecho**: V7 de la lista. Sin red: una franja arriba lo dice; una

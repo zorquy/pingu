@@ -311,8 +311,15 @@ async function pintarIndice() {
   if (destacado) destacado.innerHTML = calientes
 
   principal.innerHTML = bloques
-    ? sinResponder + bloques
+    ? `<section class="foro-conversaciones" id="foroConversaciones" hidden></section>` + sinResponder + bloques
     : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
+  // Las conversaciones, arriba (746): los hilos con movimiento de todos
+  // los foros, como una app de mensajes. El índice sigue debajo.
+  if (bloques) {
+    import('./foro-conversaciones.js')
+      .then((m) => m.montarConversaciones(document.getElementById('foroConversaciones'), { supabase, sesion, marcas, foros }))
+      .catch(() => {})
+  }
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un

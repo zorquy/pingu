@@ -1821,3 +1821,249 @@ a.foro-cita-quien:hover {
   font-size: var(--t-2xs);
   font-weight: 700;
 }
+
+/* ── El foro como una app de mensajes (746, J1). El porqué, en SCHEMA.md ── */
+
+/* La lista de conversaciones del índice. */
+.foro-conversaciones:not([hidden]) {
+  display: block;
+  margin-bottom: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.foro-conv-chips {
+  display: flex;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.foro-conv-chip {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.foro-conv-chip[aria-pressed='true'] {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.foro-conv {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 64px;
+  padding: var(--e-sm) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.foro-conv:last-child {
+  border-bottom: 0;
+}
+
+.foro-conv:hover {
+  background: var(--ice);
+}
+
+.foro-conv .mini-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.foro-conv-cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foro-conv-arriba,
+.foro-conv-abajo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.foro-conv-arriba b {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-conv-nueva .foro-conv-arriba b {
+  font-weight: 800;
+}
+
+.foro-conv-arriba time {
+  flex-shrink: 0;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+.foro-conv-foro {
+  flex-shrink: 0;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.foro-conv-trozo {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-conv-punto {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+}
+
+.foro-conv-vacio {
+  padding: var(--e-lg);
+}
+
+/* El tema: cada mensaje es una burbuja, y los tuyos van a la derecha. */
+.foro-mensaje {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 88%;
+  margin: 0 0 var(--e-md);
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.foro-mensaje-mio {
+  margin-left: auto;
+}
+
+.foro-mensaje-autor {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--e-sm);
+  padding: 0 var(--e-xs) var(--e-xs);
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.foro-mensaje-mio .foro-mensaje-autor {
+  justify-content: flex-end;
+}
+
+.foro-mensaje-autor .mini-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: var(--t-sm) !important;
+}
+
+/* Los contadores de siempre («Mensajes», «Gracias», «Oros») siguen en el
+   perfil; en una burbuja eran ruido. */
+.foro-mensaje-autor .foro-autor-mensajes {
+  display: none;
+}
+
+.foro-mensaje-cuerpo {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  border-top-left-radius: var(--radius-sm);
+  background: var(--white);
+}
+
+.foro-mensaje-mio .foro-mensaje-cuerpo {
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-sm);
+  background: var(--ice);
+}
+
+.foro-mensaje-solucion .foro-mensaje-cuerpo {
+  border-radius: var(--radius-xl);
+}
+
+.foro-mensaje-cabecera {
+  padding-bottom: var(--e-xs);
+  border-bottom: 0;
+}
+
+/* Y la caja de responder, fija abajo como la de un chat: recogida hasta
+   que escribes en ella. */
+#temaResponder {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: var(--e-lg);
+  padding: var(--e-sm) 0;
+  background: var(--bg);
+}
+
+#temaResponder .foro-form:not(:focus-within) .rte-toolbar {
+  display: none;
+}
+
+#temaResponder .foro-form:not(:focus-within) .rte-surface {
+  min-height: 44px;
+  max-height: 96px;
+}
+
+#temaResponder .rte-surface {
+  max-height: 40vh;
+}
+
+/* Lo que se enfoca o se salta no se queda debajo de la caja. */
+html:has(#temaResponder) {
+  scroll-padding-bottom: 240px;
+}
+
+@media (max-width: 900px) {
+  /* Encima de la barra de abajo; cuando la barra se esconde al bajar
+     (la 709), la caja baja al fondo. */
+  html.con-barra-movil:not(.bm-escondidas) #temaResponder {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  /* Entre la caja y la barra de abajo no asoma el mensaje de debajo. */
+  html.con-barra-movil:not(.bm-escondidas) #temaResponder::after {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    height: var(--e-lg);
+    background: var(--bg);
+    content: '';
+  }
+
+  .foro-mensaje {
+    max-width: 94%;
+  }
+}
