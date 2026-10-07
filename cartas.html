@@ -288,6 +288,16 @@
                  colección: una lista escrita a mano ofrece rarezas que no
                  tienes y se queda sin las que salgan mañana. -->
             <div id="mcGruposChips"></div>
+            <!-- 714 (C6): lo que vale CADA copia, en euros. Una carta sin
+                 precio no entra cuando hay un límite puesto: «no se sabe»
+                 no cumple ningún rango. -->
+            <div class="mc-grupo-filtro">
+              <h3>Precio por copia (€)</h3>
+              <div class="mc-rango-precio">
+                <label>Desde <input type="number" id="mcFiltroPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0" /></label>
+                <label>Hasta <input type="number" id="mcFiltroPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
+              </div>
+            </div>
           </div>
           <div class="mc-panel-pie">
             <button type="button" class="mc-chip-mando" id="mcFiltrosLimpiar">Limpiar</button>
@@ -597,7 +607,11 @@
                 <!-- CHAPA Y NO CASILLA (tanda 459). Es el mismo control que
                      «Solo las empezadas» de la estantería, así que es la
                      misma pieza. -->
-                <button type="button" class="chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
+                <div class="mc-chips-filtro">
+                  <button type="button" class="chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
+                  <!-- 714: la otra mitad. Pulsar una suelta la otra. -->
+                  <button type="button" class="chip-filtro mc-chip-mando" id="mcAlbumSoloTengo" aria-pressed="false">Solo las que tengo</button>
+                </div>
               </div>
               <!-- EN QUÉ IDIOMA CUENTA «la tengo» (tanda 577). PINGU: «en las
                    expansiones, filtrar por las que faltan y también por el

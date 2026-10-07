@@ -62,6 +62,7 @@ import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, TODAS
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { especiePorDex } from './pokedex-especies.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
+import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
@@ -1785,7 +1786,9 @@ function pintarGruposDeChips() {
         // se reconoce por su dibujo antes que por su nombre, y es lo que
         // lleva impreso la carta en la esquina — o sea, la forma de
         // comprobar que lo que dice la web es lo que tienes en la mano.
-        const marca = g.id === 'rareza' ? marcaDeRarezaHtml(v) : ''
+        // Y el SÍMBOLO de la energía delante de su tipo (714): se reconoce
+        // antes que la palabra, igual que la marca de una rareza.
+        const marca = g.id === 'rareza' ? marcaDeRarezaHtml(v) : g.id === 'energia' ? simboloDeTipoHtml(v) : ''
         return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
       })
       .join('')}</div></div>`
@@ -1796,13 +1799,41 @@ function pintarGruposDeChips() {
 // filtro olvidado parece una colección que ha encogido.
 function cuantosFiltros() {
   return GRUPOS.reduce((n, g) => n + filtros[g.id].size, 0) +
-    ($('mcFiltroSet')?.value ? 1 : 0) + ($('mcFiltroIdioma')?.value ? 1 : 0)
+    ($('mcFiltroSet')?.value ? 1 : 0) + ($('mcFiltroIdioma')?.value ? 1 : 0) +
+    (rangoDePrecio().puesto ? 1 : 0)
+}
+
+// El rango de precio por copia (714). Un campo vacío es «sin límite»; con
+// los dos al revés (desde 50, hasta 5) se entienden al derecho.
+function rangoDePrecio() {
+  const leer = (id) => { const v = String($(id)?.value ?? '').replace(',', '.').trim(); const n = Number(v); return v !== '' && Number.isFinite(n) && n >= 0 ? n : null }
+  let desde = leer('mcFiltroPrecioDesde'), hasta = leer('mcFiltroPrecioHasta')
+  if (desde !== null && hasta !== null && desde > hasta) [desde, hasta] = [hasta, desde]
+  return { desde, hasta, puesto: desde !== null || hasta !== null }
+}
+function pasaElPrecio(l, rango) {
+  if (!rango.puesto) return true
+  const total = valorDeLinea(l, precioDe(l))
+  if (!total) return false
+  const copia = total / (Number(l.cantidad) || 1)
+  return (rango.desde === null || copia >= rango.desde) && (rango.hasta === null || copia <= rango.hasta)
+}
+
+// «Ver 42 cartas» (714, C6): el botón del panel dice lo que vas a ver
+// antes de cerrarlo. Con cero, lo dice también: cerrar para encontrarte
+// una pantalla vacía es lo que había antes.
+function rotularVer(id, n, { mas = false } = {}) {
+  const b = $(id)
+  if (!b) return
+  b.textContent = n === 0 ? 'Ninguna carta: afloja algún filtro' : `Ver ${n.toLocaleString('es-ES')}${mas ? '+' : ''} ${n === 1 ? 'carta' : 'cartas'}`
 }
 
 function limpiarFiltros() {
   for (const g of GRUPOS) filtros[g.id].clear()
   $('mcFiltroSet').value = ''
   $('mcFiltroIdioma').value = ''
+  if ($('mcFiltroPrecioDesde')) $('mcFiltroPrecioDesde').value = ''
+  if ($('mcFiltroPrecioHasta')) $('mcFiltroPrecioHasta').value = ''
   pintarGruposDeChips()
   pintarCartas()
   pintarCuentaDeFiltros()
@@ -1823,10 +1854,12 @@ function lineasFiltradas() {
   const texto = normalizeSearch($('mcBuscar').value)
   const set = $('mcFiltroSet').value
   const idioma = $('mcFiltroIdioma').value
+  const rango = rangoDePrecio()
   const filtradas = lineas.filter((l) => {
     const c = cartas.get(l.card_id)
     if (set && c?.set_id !== set) return false
     if (idioma && l.idioma !== idioma) return false
+    if (!pasaElPrecio(l, rango)) return false
     if (texto && !normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)) return false
     return pasaLosFiltros(l, c, filtros, AYUDAS)
   })
@@ -1845,6 +1878,7 @@ function pintarCartas() {
   $('mcFiltros').classList.toggle('hidden', !lineas.length)
   $('mcSinResultados').classList.toggle('hidden', !lineas.length || lista.length > 0)
   pintarCuantas(lista.length)
+  rotularVer('mcFiltrosVer', lista.length)
 }
 
 // Cuántas estás viendo (tanda 441). Dice «9 de 12» SOLO cuando hay algo
@@ -3111,6 +3145,7 @@ function cartasDelAlbumFiltradas() {
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
   const encajan = album.cartas.filter((c) => {
     if (album.soloFaltan && tengoEnAlbum(c.id)) return false
+    if (album.soloTengo && !tengoEnAlbum(c.id)) return false
     if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
@@ -3174,6 +3209,7 @@ function cuantosFiltrosDeAlbum() {
   return ($('mcAlbumRareza')?.value ? 1 : 0) +
     ($('mcAlbumTipo')?.value ? 1 : 0) +
     (album.soloFaltan ? 1 : 0) +
+    (album.soloTengo ? 1 : 0) +
     (album.idioma ? 1 : 0) +
     // El orden cuenta solo si NO es el de siempre: «por número» es como
     // viene una expansión, y marcarlo como filtro puesto diría que has
@@ -3199,6 +3235,7 @@ function limpiarFiltrosDeAlbum() {
   if ($('mcAlbumIdioma')) $('mcAlbumIdioma').value = ''
   album.idioma = ''
   album.soloFaltan = false
+  album.soloTengo = false
   album.pagina = 0
   pintarSoloFaltan()
   pintarAlbum()
@@ -3213,6 +3250,9 @@ function pintarSoloFaltan() {
   if (!b) return
   b.classList.toggle('activo', album.soloFaltan)
   b.setAttribute('aria-pressed', album.soloFaltan ? 'true' : 'false')
+  const t = $('mcAlbumSoloTengo')
+  t?.classList.toggle('activo', Boolean(album.soloTengo))
+  t?.setAttribute('aria-pressed', album.soloTengo ? 'true' : 'false')
 }
 
 // La CUADRÍCULA: el escaneo y nada más. Sin mandos a propósito — si
@@ -3262,6 +3302,7 @@ function pintarAlbum() {
   pintarCuentaDeFiltrosDeAlbum()
   const lista = cartasDelAlbumFiltradas()
   const total = album.cartas.length
+  rotularVer('mcAlbumFiltrosVer', lista.length)
   // El progreso es SIEMPRE el de la colección entera, filtres lo que
   // filtres: «llevas 40 de 198» no puede cambiar porque estés mirando
   // solo las ultra raras. Lo que cambia es la cuenta de al lado.
@@ -3857,6 +3898,8 @@ async function buscarEnTodo({ variantes = null } = {}) {
     const tope = lista.length >= TOPE ? ' · hay más, afina la búsqueda' : ''
     cuenta.textContent = cuantas + (porIlustrador ? ' · por ilustrador' : '') + tope
   }
+  // Aquí el tope de la consulta manda: con 120 de vuelta pueden ser más.
+  rotularVer('mcBuscarFiltrosVer', lista.length, { mas: lista.length >= TOPE })
   ultimaBusqueda = lista
   caja.innerHTML = lista.length
     ? lista.map((c) => {
@@ -4718,6 +4761,7 @@ function pintarEspecieFiltrada() {
   // de antes.
   const hueco = $('mcPdxGrupos')
   if (hueco) hueco.innerHTML = pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie)
+  rotularVer('mcPdxFiltrosVer', lista.length)
   caja.innerHTML = pokedex.especieHtml({
     dex: especieAbierta,
     cartas: lista,
@@ -5488,6 +5532,9 @@ function enganchar() {
     const dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
     if (!dentro) e.currentTarget.close()
   })
+  for (const id of ['mcFiltroPrecioDesde', 'mcFiltroPrecioHasta']) {
+    $(id)?.addEventListener('input', () => { pintarCartas(); pintarCuentaDeFiltros() })
+  }
   $('mcGruposChips').addEventListener('click', (e) => {
     const chip = e.target.closest('[data-grupo]')
     if (!chip) return
@@ -5935,10 +5982,24 @@ function enganchar() {
   }
   $('mcAlbumSoloFaltan').addEventListener('click', () => {
     album.soloFaltan = !album.soloFaltan
+    if (album.soloFaltan) album.soloTengo = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
   })
+  // La otra mitad (714): las dos a la vez no enseñarían nada.
+  $('mcAlbumSoloTengo')?.addEventListener('click', () => {
+    album.soloTengo = !album.soloTengo
+    if (album.soloTengo) album.soloFaltan = false
+    pintarSoloFaltan()
+    album.pagina = 0
+    pintarAlbum()
+  })
+  // Rareza, categoría e idioma de un toque (714), con el mismo componente
+  // que la hoja de añadir: el select sigue mandando.
+  segmentar($('mcAlbumRareza'), { etiqueta: 'Rareza', chips: true })
+  segmentar($('mcAlbumTipo'), { etiqueta: 'Categoría', chips: true })
+  segmentar($('mcAlbumIdioma'), { etiqueta: 'Idioma en que cuentan tus copias', chips: true })
 
   // ── El panel de filtros de una expansión (tanda 473) ──
   //

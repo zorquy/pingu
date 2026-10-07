@@ -28,6 +28,8 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { especiesDeCarta, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
 import { urlDeSprite, atributosDeRespaldo } from '../torneos/sprites-pokemon.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
+// Un reexport no es un import (624): se importa para usarlo aquí.
+import { LETRA_DE_TIPO, NOMBRE_DE_LETRA } from './energias.js'
 
 const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
 
@@ -90,11 +92,9 @@ export function esDeLaEspecie(carta, dex) {
 // otro de Dragón, manda el que más se repite; a la par, el primero que
 // llegó. Y solo los ocho tipos que tienen símbolo: el color nunca va solo,
 // así que Dragón, Hada e Incoloro se quedan con la ficha neutra.
-export const LETRA_DE_TIPO = {
-  Grass: 'G', Fire: 'R', Water: 'W', Lightning: 'L', Psychic: 'P', Fighting: 'F', Darkness: 'D', Metal: 'M',
-  Planta: 'G', Fuego: 'R', Agua: 'W', Rayo: 'L', 'Psíquico': 'P', Lucha: 'F', Oscuridad: 'D', Metálico: 'M',
-}
-export const NOMBRE_DE_LETRA = { G: 'Planta', R: 'Fuego', W: 'Agua', L: 'Rayo', P: 'Psíquico', F: 'Lucha', D: 'Oscuridad', M: 'Metálico' }
+// El mapa vive en `./energias.js` desde la 714 (los chips de filtro lo
+// necesitan también); se reexporta para quien lo pida desde aquí.
+export { LETRA_DE_TIPO, NOMBRE_DE_LETRA }
 
 export function tiposPorEspecie(lineas, cartas) {
   const cuentas = new Map()

@@ -34366,3 +34366,31 @@ La barra sigue ARRIBA y pegada (419: abajo se pelearía con la burbuja).
 `mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
 713-pantalla (con ratón y con eventos táctiles de verdad; devolver el
 oyente a la zona la pone roja).
+
+## Tanda 714 — los filtros, de un toque y con su resultado (oct. 2026)
+
+C6 de la lista de propuestas. Los filtros ya se aplicaban al momento; lo
+que faltaba era saber QUÉ ibas a encontrarte al cerrar el panel.
+
+- **«Ver N cartas»** (`rotularVer`) en el pie de los cuatro paneles
+  (Cartas, una expansión, una especie de la Pokédex y Buscar), recontado
+  con cada cambio. Con cero lo dice («Ninguna carta: afloja algún
+  filtro»); en Buscar, con la consulta topada, «Ver 120+ cartas».
+- **El símbolo de cada energía** delante de su nombre en «Tipo de
+  energía». El mapa de tipos se mudó a `js/mi-coleccion/energias.js`, sin
+  dependencias, y lo importan la Pokédex (711) y los chips: dos copias del
+  mismo mapa se separan (471). De paso se corrigió: el español de la web
+  (`TIPOS_ES`) dice «Oscuro» y «Metal», no «Oscuridad» ni «Metálico».
+- **El precio por copia** en el panel de Cartas: desde y hasta, en euros,
+  sobre `valorDeLinea / cantidad` (el precio a mano manda, como en todo).
+  Una carta sin precio NO pasa un rango puesto —«no se sabe» no cumple
+  ningún límite—; dos límites al revés se entienden al derecho.
+- **En una expansión**, rareza, categoría e idioma de un toque con el
+  `segmentar` de la 712 en modo `chips` (cada botón mide su palabra), y
+  «Solo las que tengo» al lado de «Solo las que me faltan»: pulsar una
+  suelta la otra.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/energias.js` (nuevo),
+`js/mi-coleccion/pokedex.js`, `js/mi-coleccion/segmentado.js`,
+`mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
+714-pantalla.

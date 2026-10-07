@@ -12,14 +12,16 @@
 // por el `change` del select.
 import { escapeHtml } from '../html.js'
 
-export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent, conNombre = false } = {}) {
+export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent, conNombre = false, chips = false } = {}) {
   if (!select || select.dataset.segmentado) return null
   select.dataset.segmentado = '1'
   select.classList.add('mc-seg-select')
   select.tabIndex = -1
   select.setAttribute('aria-hidden', 'true')
   const caja = document.createElement('div')
-  caja.className = 'mc-seg'
+  // `chips`: cada botón mide lo que su palabra (rarezas largas), no un
+  // reparto a partes iguales que las recortaría.
+  caja.className = chips ? 'mc-seg mc-seg-chips' : 'mc-seg'
   caja.setAttribute('role', 'radiogroup')
   if (etiqueta) caja.setAttribute('aria-label', etiqueta)
   select.insertAdjacentElement('afterend', caja)

@@ -6723,3 +6723,47 @@ input.mc-alb-titulo:not([readonly]):focus {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* ── 714: filtros de un toque ── */
+.mc-seg-chips button {
+  flex: 0 0 auto;
+}
+.mc-grupo-filtro select.mc-seg-select {
+  position: absolute;
+  width: 1px;
+  min-width: 0;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.mc-energia {
+  flex: 0 0 auto;
+  vertical-align: -3px;
+}
+.chip-filtro .mc-energia {
+  margin-right: var(--e-xs);
+}
+.mc-rango-precio {
+  display: flex;
+  gap: var(--e-sm);
+}
+.mc-rango-precio label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+.mc-rango-precio input {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}

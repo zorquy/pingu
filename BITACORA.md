@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 6) — PINGU-Claude (714 — los filtros de un toque y con su resultado)
+
+**Hecho**: C6 de la lista. El botón de cada panel de filtros dice «Ver N
+cartas» y se recuenta con cada chip; los tipos de energía llevan su
+símbolo; en Cartas hay un rango de precio por copia; y en una expansión la
+rareza, la categoría y el idioma se eligen de un toque, con «Solo las que
+tengo» al lado de «Solo las que me faltan».
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/energias.js`,
+`js/mi-coleccion/pokedex.js`, `js/mi-coleccion/segmentado.js`,
+`mi-coleccion.html`, `cartas.html`, `css/mi-coleccion.css`, `SCHEMA.md`.
+Prueba 714-pantalla en `pruebas`.
+
+**Pendiente**: la 715 (el panel como una cartera).
+
 ## 2026-10-07 (mañana, 5) — PINGU-Claude (713 — seleccionar varias y hacer algo con ellas)
 
 **Hecho**: C4 de la lista. En una expansión, mantener pulsada una carta
