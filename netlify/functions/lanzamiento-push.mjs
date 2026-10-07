@@ -28,6 +28,31 @@ async function restReal(ruta, clave, opciones = {}) {
 
 export const claveDeSet = (s) => `${s.fecha}|${s.nombre}`
 
+// LOS DE HOY, DE LAS DOS FUENTES (726). Desde la 656 el calendario sale
+// del CATÁLOGO (`tcg_sets`) y la lista a mano de /admin queda solo para un
+// set anunciado que TCGGO aún no tiene; pero esta función seguía leyendo
+// solo la lista, así que los sets que llegaban por el catálogo —la
+// mayoría— salían en /lanzamientos con su «¡Sale hoy!» y nadie recibía el
+// aviso. Se juntan por nombre, como hace la página: el mismo set en las
+// dos no se avisa dos veces.
+const plano = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+export function setsDeHoy({ lista = [], catalogo = [], hoy, avisados = new Set() }) {
+  const salida = []
+  const vistos = new Set()
+  for (const s of lista) {
+    if (!s?.nombre || s.fecha !== hoy) continue
+    vistos.add(plano(s.nombre))
+    salida.push({ nombre: s.nombre, fecha: s.fecha, notas: s.notas || '' })
+  }
+  for (const c of catalogo) {
+    if (!c?.name || String(c.release_date || '').slice(0, 10) !== hoy || vistos.has(plano(c.name))) continue
+    vistos.add(plano(c.name))
+    salida.push({ nombre: c.name, fecha: hoy, notas: '' })
+  }
+  return salida.filter((s) => !avisados.has(claveDeSet(s)))
+}
+
 export async function procesar({ env = process.env, rest = restReal, enviar = null, ahora = new Date() } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   const privada = env.PUSH_VAPID_PRIVATE
@@ -44,10 +69,21 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
 
   const hoy = ahora.toISOString().slice(0, 10)
   const avisados = new Set(valor('lanzamientos_avisados')?.claves || [])
-  const deHoy = (valor('lanzamientos')?.sets || []).filter(
-    (s) => s && s.nombre && s.fecha === hoy && !avisados.has(claveDeSet(s))
-  )
+  // El catálogo occidental: es el que se enseña por defecto y el que se
+  // vende aquí. Si la consulta falla, se avisa al menos de la lista.
+  const catalogo = await rest(`tcg_sets?release_date=eq.${hoy}&market=eq.WEST&select=name,release_date`, clave).catch(() => [])
+  const deHoy = setsDeHoy({ lista: valor('lanzamientos')?.sets || [], catalogo: catalogo || [], hoy, avisados })
   if (deHoy.length === 0) return { ok: true, sets: 0, enviados: 0 }
+
+  // Se APUNTAN antes de mandar (la 665): si el envío se corta a medias, se
+  // pierde un aviso; al revés, una segunda pasada el mismo día los
+  // repetiría todos.
+  const claves = [...avisados, ...deHoy.map(claveDeSet)].slice(-20)
+  await rest(`site_settings?on_conflict=key`, clave, {
+    method: 'POST',
+    headers: { prefer: 'resolution=merge-duplicates' },
+    body: JSON.stringify([{ key: 'lanzamientos_avisados', value: { claves }, updated_at: ahora.toISOString() }]),
+  })
 
   const sitio = env.SITE_URL || 'https://pokedoc.es'
   const mandar =
@@ -84,15 +120,6 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       }
     }
   }
-
-  // Apuntar los avisados ANTES de terminar, recortando la lista a los
-  // últimos 20: los sets viejos ya nunca volverán a ser "de hoy".
-  const claves = [...avisados, ...deHoy.map(claveDeSet)].slice(-20)
-  await rest(`site_settings?on_conflict=key`, clave, {
-    method: 'POST',
-    headers: { prefer: 'resolution=merge-duplicates' },
-    body: JSON.stringify([{ key: 'lanzamientos_avisados', value: { claves }, updated_at: ahora.toISOString() }]),
-  })
 
   return { ok: true, sets: deHoy.length, enviados, caducadas }
 }

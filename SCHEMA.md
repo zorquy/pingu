@@ -34755,3 +34755,27 @@ X15 y X9 de la lista, en `js/mi-coleccion/ensenar.js`.
 **Ficheros**: `js/mi-coleccion/ensenar.js` (nuevo), `js/mi-coleccion.js`,
 `mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
 725-pantalla.
+
+## Tanda 726 — el aviso de «¡sale hoy!» también para los sets del catálogo (oct. 2026)
+
+X10 de la lista: «cuenta atrás en Lanzamientos y un aviso el día que sale
+el set». Las dos cosas EXISTÍAN —`cuentaAtras` en /lanzamientos y la
+función programada `lanzamiento-push` a las 7:15—, pero el aviso leía
+solo la lista a mano de /admin (`site_settings.lanzamientos`). Desde la
+656 el calendario sale sobre todo del catálogo (`tcg_sets`), y esa lista
+queda para un set anunciado que TCGGO aún no tiene: así que la página
+ponía «¡Sale hoy!» a sets de los que nadie recibía el aviso, sin error.
+
+Ahora `setsDeHoy` junta las dos fuentes —la lista y los sets occidentales
+del catálogo con `release_date` de hoy— por nombre, como la página: el
+mismo set en las dos se avisa una vez (con la nota de la lista). Si el
+catálogo no contesta, se avisa al menos lo de la lista. Y los avisados se
+apuntan ANTES de mandar y no después (la regla de la 665): si el envío se
+corta a medias se pierde un aviso; al revés, una segunda pasada el mismo
+día los repetiría todos. Una consulta más al día, a nuestra base.
+
+**Ficheros**: `netlify/functions/lanzamiento-push.mjs`. Prueba 726 (Node).
+Y de paso: el comentario de los atajos de `js/nav-search.js` decía 723 y
+eran de la 724; y la foto de la vista de carta (724) y la de enseñar (725)
+no llevaban `loading` —lo cazó la 310—: la primera, diferida; la de
+enseñar, `eager`, que es lo que acabas de pedir (como el visor).

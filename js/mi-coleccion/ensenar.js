@@ -23,7 +23,7 @@ export function abrirEnsenar(cartas, { inicio = 0, doc = document, win = window 
     d.innerHTML = `
       <button type="button" class="mc-ensenar-cerrar" data-ensenar="cerrar" aria-label="Salir">✕</button>
       <button type="button" class="mc-ensenar-lado mc-ensenar-antes" data-ensenar="-1" aria-label="La anterior">‹</button>
-      <figure class="mc-ensenar-carta"><img alt="" width="600" height="837"><figcaption><b></b><small></small></figcaption></figure>
+      <figure class="mc-ensenar-carta"><img alt="" width="600" height="837" loading="eager"><figcaption><b></b><small></small></figcaption></figure>
       <button type="button" class="mc-ensenar-lado mc-ensenar-despues" data-ensenar="1" aria-label="La siguiente">›</button>
       <p class="mc-ensenar-sitio" aria-live="polite"></p>`
     doc.body.appendChild(d)

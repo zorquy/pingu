@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 6) — PINGU-Claude (726 — el aviso de «¡sale hoy!» también para los sets del catálogo)
+
+**Hecho**: X10 de la lista. La cuenta atrás y el aviso del día del
+lanzamiento ya existían, pero el aviso solo miraba la lista a mano de
+/admin: los sets que llegan por el catálogo (casi todos desde la 656) no
+avisaban a nadie. Ahora mira las dos, sin repetir, y apunta lo avisado
+antes de mandar.
+
+**Ficheros**: `netlify/functions/lanzamiento-push.mjs`, `js/nav-search.js`
+(un comentario), `SCHEMA.md`. Prueba 726 en `pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V2–V7, A1 y X3, X4, X6, X7, X8, X11,
+X13, X14, X16.
+
 ## 2026-10-07 (tarde, 5) — PINGU-Claude (725 — enseñar la colección y la medalla del set completo)
 
 **Hecho**: X15 y X9 de la lista. En una expansión, «Enseñar las que

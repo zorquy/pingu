@@ -83,7 +83,7 @@ async function abrir(enlace) {
   tarjeta.className = 'vista-carta'
   tarjeta.setAttribute('role', 'tooltip')
   tarjeta.innerHTML = `
-    ${foto ? `<img src="${escapeHtml(foto)}" alt="" width="96" height="134">` : ''}
+    ${foto ? `<img src="${escapeHtml(foto)}" alt="" width="96" height="134" loading="lazy">` : ''}
     <div class="vista-carta-datos">
       <b>${escapeHtml(nombreDeCarta(carta))}</b>
       <small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id)}</small>

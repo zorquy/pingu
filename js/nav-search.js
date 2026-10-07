@@ -64,7 +64,7 @@ export function renderNavSearch() {
   })
 }
 
-// LOS ATAJOS (723, D6 de la lista). «G» y una letra para ir a cada
+// LOS ATAJOS (724, D6 de la lista). «G» y una letra para ir a cada
 // sección, como en Gmail o GitHub; «T» el tema; «A» añadir la carta que
 // tienes abierta; «/» y Ctrl+K buscar; «?» los enseña todos. Las flechas
 // para pasar de carta y Esc para cerrar ya funcionaban (422 y el propio
