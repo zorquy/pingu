@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 3) — PINGU-Claude (711 — la Pokédex con el color de su tipo)
+
+**Hecho**: C3 y V1 de la lista. En la Pokédex, cada Pokémon que tienes
+lleva el fondo de su tipo (sacado de tus cartas) y su símbolo de energía;
+los que faltan, en silueta. La paleta es la de identidad que ya había
+(`--tipo-energia`), mezclada con los colores del tema: se lee en claro y
+en oscuro.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `SCHEMA.md`. Pruebas 711-pantalla y 384 en
+`pruebas`.
+
+**Pendiente**: la 712 (añadir más corto y Deshacer).
+
 ## 2026-10-07 (mañana, 2) — PINGU-Claude (710 — las expansiones con anillo, y en el móvil en filas)
 
 **Hecho**: C2 de la lista. Cada expansión tuya lleva un anillo con lo que

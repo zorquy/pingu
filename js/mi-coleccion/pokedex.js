@@ -79,12 +79,53 @@ export function esDeLaEspecie(carta, dex) {
   return especiesDeLaCarta(carta).includes(Number(dex))
 }
 
+// ── El tipo de cada especie (711, C3 y V1) ──
+//
+// PINGU eligió la Pokédex con color: cada Pokémon que tienes, teñido con
+// su tipo, su símbolo de energía y cuántas cartas tienes; los que faltan,
+// en silueta. No hay una tabla de tipos por especie y no hace falta: el
+// tipo de TCG sale de TUS cartas de ese Pokémon (la columna `types`, que
+// se guarda canónica en inglés —334—, con el español de respaldo por si
+// una fila vieja lo trae traducido). Si tienes un Charizard de Fuego y
+// otro de Dragón, manda el que más se repite; a la par, el primero que
+// llegó. Y solo los ocho tipos que tienen símbolo: el color nunca va solo,
+// así que Dragón, Hada e Incoloro se quedan con la ficha neutra.
+export const LETRA_DE_TIPO = {
+  Grass: 'G', Fire: 'R', Water: 'W', Lightning: 'L', Psychic: 'P', Fighting: 'F', Darkness: 'D', Metal: 'M',
+  Planta: 'G', Fuego: 'R', Agua: 'W', Rayo: 'L', 'Psíquico': 'P', Lucha: 'F', Oscuridad: 'D', Metálico: 'M',
+}
+export const NOMBRE_DE_LETRA = { G: 'Planta', R: 'Fuego', W: 'Agua', L: 'Rayo', P: 'Psíquico', F: 'Lucha', D: 'Oscuridad', M: 'Metálico' }
+
+export function tiposPorEspecie(lineas, cartas) {
+  const cuentas = new Map()
+  const vistas = new Set()
+  for (const l of lineas || []) {
+    if (vistas.has(l.card_id)) continue
+    vistas.add(l.card_id)
+    const carta = cartas.get(l.card_id)
+    const letra = LETRA_DE_TIPO[(carta?.types || [])[0]]
+    if (!letra) continue
+    for (const dex of especiesDeLaCarta(carta)) {
+      if (!cuentas.has(dex)) cuentas.set(dex, new Map())
+      const c = cuentas.get(dex)
+      c.set(letra, (c.get(letra) || 0) + 1)
+    }
+  }
+  const tipos = new Map()
+  for (const [dex, c] of cuentas) {
+    let mejor = null
+    for (const [letra, n] of c) if (!mejor || n > mejor[1]) mejor = [letra, n]
+    tipos.set(dex, mejor[0])
+  }
+  return tipos
+}
+
 // ── Las filas de la rejilla ──
 //
 // `total` es null cuando no se sabe (sin migración, o una especie de la
 // que el catálogo todavía no ha contado nada). `null` y `0` son cosas
 // distintas y la pantalla dice cuál es — la lección de la 319.
-export function filasDePokedex({ mio, totales, soloMios = false, texto = '' }) {
+export function filasDePokedex({ mio, totales, soloMios = false, texto = '', tipos = new Map() }) {
   const busca = String(texto || '').trim().toLowerCase()
   const filas = []
   for (let dex = 1; dex <= POKEMON_POR_DEX.length; dex++) {
@@ -92,7 +133,7 @@ export function filasDePokedex({ mio, totales, soloMios = false, texto = '' }) {
     if (soloMios && !tengo) continue
     const nombre = POKEMON_POR_DEX[dex - 1]
     if (busca && !nombre.toLowerCase().includes(busca) && String(dex) !== busca) continue
-    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null })
+    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null, tipo: tengo ? tipos.get(dex) || null : null })
   }
   return filas
 }
@@ -111,7 +152,8 @@ function filaHtml(f) {
   const pct = f.total ? Math.min(100, Math.round((f.tengo / f.total) * 100)) : 0
   const completo = f.total && f.tengo >= f.total
   return `
-    <button type="button" class="pdx-especie${f.tengo ? ' tengo' : ''}${completo ? ' completo' : ''}" data-dex="${f.dex}">
+    <button type="button" class="pdx-especie${f.tengo ? ' tengo' : ''}${completo ? ' completo' : ''}${f.tipo ? ` tipo-${f.tipo}` : ''}" data-dex="${f.dex}">
+      ${f.tipo ? `<img class="pdx-energia" src="/assets/energias/${f.tipo}.svg" alt="${NOMBRE_DE_LETRA[f.tipo]}" title="${NOMBRE_DE_LETRA[f.tipo]}" width="16" height="16" />` : ''}
       <span class="pdx-sprite">${
         sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="68" height="56" loading="lazy" decoding="async"${atributosDeRespaldo(sprite)} />` : ''
       }</span>

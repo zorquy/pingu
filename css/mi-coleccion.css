@@ -6549,3 +6549,49 @@ input.mc-alb-titulo:not([readonly]):focus {
     color: var(--success);
   }
 }
+
+/* ── 711: la Pokédex con el color de su tipo (SCHEMA 711) ──
+   El color de cada tipo es `--tipo-energia`, la paleta de identidad de
+   css/carta.css (324; la prueba 384 vigila que las copias digan lo mismo).
+   El fondo y la tinta SALEN de él mezclándolo con la superficie y el
+   texto de la página, así que en oscuro se adaptan solos. Solo los ocho
+   con símbolo de energía: el color nunca va solo. */
+.pdx-especie { position: relative; }
+.pdx-especie.tipo-G { --tipo-energia: #4faa5a; }
+.pdx-especie.tipo-R { --tipo-energia: #e8564a; }
+.pdx-especie.tipo-W { --tipo-energia: #3aa2dd; }
+.pdx-especie.tipo-L { --tipo-energia: #e9c227; }
+.pdx-especie.tipo-P { --tipo-energia: #a06bc4; }
+.pdx-especie.tipo-F { --tipo-energia: #c8722f; }
+.pdx-especie.tipo-D { --tipo-energia: #3d4a57; }
+.pdx-especie.tipo-M { --tipo-energia: #8c9aa5; }
+.pdx-especie[class*='tipo-'] {
+  --pdx-bg: color-mix(in srgb, var(--tipo-energia) 16%, var(--white));
+  --pdx-tinta: color-mix(in srgb, var(--tipo-energia) 45%, var(--text));
+}
+.pdx-especie[class*='tipo-'] {
+  border-color: transparent;
+  background: var(--pdx-bg);
+}
+.pdx-especie[class*='tipo-'] .pdx-num,
+.pdx-especie[class*='tipo-'] .pdx-cuenta {
+  color: var(--pdx-tinta);
+  font-weight: 700;
+}
+.pdx-especie[class*='tipo-'] .mc-barra i {
+  background: var(--pdx-tinta);
+}
+.pdx-energia {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+}
+/* Los que faltan, en silueta: se lee el nombre y no el dibujo. */
+.pdx-especie:not(.tengo) .pdx-sprite img {
+  filter: brightness(0);
+  opacity: 0.18;
+}
+:root[data-theme='dark'] .pdx-especie:not(.tengo) .pdx-sprite img {
+  filter: brightness(0) invert(1);
+  opacity: 0.22;
+}

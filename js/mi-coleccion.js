@@ -4500,6 +4500,7 @@ function pintarPokedex() {
     totales: totalesPokedex,
     soloMios: pdxSoloMios,
     texto: $('mcPdxBuscar').value,
+    tipos: pokedex.tiposPorEspecie(lineas, cartas),
   })
   // La cabecera con las cuatro cifras (tanda 400), y debajo la rejilla.
   // Se pinta siempre, incluso filtrando: «llevas 701 de 1.025» no puede

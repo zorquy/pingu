@@ -34263,3 +34263,35 @@ techo.
 **Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`. Prueba
 710-pantalla (anillos al 100 y al 25 %, filas bajas en el iPhone, la
 tarjeta entera en el escritorio, sin anillos en el catálogo).
+
+## Tanda 711 — la Pokédex con el color de su tipo (oct. 2026)
+
+C3 y V1 de la lista de propuestas. Cada Pokémon que TIENES se tiñe con
+su tipo y lleva el símbolo de su energía arriba a la derecha; los que no
+tienes van en silueta (se lee el nombre, no el dibujo).
+
+- **El tipo sale de TUS cartas**, no de una tabla por especie
+  (`tiposPorEspecie` en `js/mi-coleccion/pokedex.js`): el primer valor de
+  `types` de cada carta distinta que tengas de ese Pokémon, y manda el que
+  más se repite. `types` se guarda canónico en inglés (334); el mapa
+  `LETRA_DE_TIPO` lleva también el español por si una fila vieja lo trae
+  traducido. Una TAG TEAM tiñe a las dos especies, igual que cuenta en las
+  dos (381).
+- **El color nunca va solo**: solo los ocho tipos que tienen SVG en
+  `/assets/energias/` (G R W L P F D M) tiñen. Dragón, Hada e Incoloro se
+  quedan con la ficha neutra.
+- **Una sola paleta**: el color de cada tipo es `--tipo-energia`, la paleta
+  de identidad de `css/carta.css` (324), copiada a mano en la hoja como ya
+  lo estaba en `css/laboratorio.css`; la prueba 384 compara ahora las tres.
+  El fondo y la tinta NO son colores nuevos: se mezclan
+  (`color-mix`) con `--white` y `--text`, así que en oscuro se adaptan
+  solos sin una segunda paleta. Las proporciones (16 % de fondo, 45 % de
+  tinta) están elegidas para que los ocho tipos den 4,5 o más en los dos
+  temas: con un 62 % el Rayo daba 3,44 en claro y la Oscuridad 4,01 en
+  oscuro. La prueba 711 lo recalcula leyendo la hoja.
+- **La silueta**: `brightness(0)` al 18 %; en oscuro, invertida, que una
+  silueta negra sobre fondo oscuro no se ve.
+
+**Ficheros**: `js/mi-coleccion/pokedex.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`. Pruebas 711-pantalla y 384 (la tercera copia de la
+paleta) en `pruebas`.
