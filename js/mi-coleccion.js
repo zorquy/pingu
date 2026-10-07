@@ -1961,7 +1961,7 @@ function pintarColumnaSets() {
     cuantas.set(c.set_id, ya)
   }
   const actual = $('mcFiltroSet').value
-  const fila = (id, nombre, n) => `<button type="button" class="mc-columna-set" data-set="${escapeHtml(id)}" aria-pressed="${id === actual ? 'true' : 'false'}"><span>${escapeHtml(nombre)}</span>${n == null ? '' : `<b>${n.toLocaleString('es-ES')}</b>`}</button>`
+  const fila = (id, nombre, n) => `<button type="button" class="mc-columna-set" data-columna-set="${escapeHtml(id)}" aria-pressed="${id === actual ? 'true' : 'false'}"><span>${escapeHtml(nombre)}</span>${n == null ? '' : `<b>${n.toLocaleString('es-ES')}</b>`}</button>`
   caja.innerHTML = fila('', 'Todas', null) + [...cuantas].sort((a, b) => b[1].n - a[1].n || a[1].nombre.localeCompare(b[1].nombre, 'es')).map(([id, x]) => fila(id, x.nombre, x.n)).join('')
 }
 
@@ -5745,9 +5745,11 @@ function enganchar() {
   })
   $('mcFiltrosLimpiar').addEventListener('click', limpiarFiltros)
   $('mcColumnaSets')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-set]')
+    // `data-columna-set` y no `data-set`: ese ya lo llevan las tarjetas de
+    // la estantería, y un `[data-set="sv8"]` encontraría las dos (la 594).
+    const b = e.target.closest('[data-columna-set]')
     if (!b) return
-    $('mcFiltroSet').value = b.dataset.set
+    $('mcFiltroSet').value = b.dataset.columnaSet
     $('mcFiltroSet').dispatchEvent(new Event('change'))
   })
   $('mcFiltroSet').addEventListener('change', pintarColumnaSets)

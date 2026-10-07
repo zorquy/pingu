@@ -35144,6 +35144,12 @@ En el escritorio, Mi colección era la pantalla del móvil más ancha.
 La 738 siembra 60 cartas en vez de 24: con la rejilla más ancha, 24 no
 daban recorrido al `sticky` de la columna de filtros.
 
+Y los botones de la lista llevan `data-columna-set`, no `data-set`: ese
+ya lo llevan las tarjetas de la estantería, y un `[data-set="sv8"]`
+encontraba las dos (la trampa de la 594 en otra forma). Lo cantó la 577
+en el modo estricto de Playwright; un `querySelector` de la web se habría
+quedado con la primera sin decir nada.
+
 **Ficheros**: `js/mi-coleccion/ficha-al-lado.js` (nuevo),
 `js/mi-coleccion.js`, `mi-coleccion.html` (y `cartas.html`, generado),
 `css/mi-coleccion.css`, `js/barra-lateral.js`, `css/lateral.css`. Prueba
