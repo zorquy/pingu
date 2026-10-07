@@ -1027,3 +1027,188 @@ button.perfil-cifra:hover .rotulo {
   font-size: var(--t-2xs);
   font-weight: 700;
 }
+
+/* ── 748: la cabecera de su maqueta (J4; SCHEMA 748) ── */
+.profile-hero {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.profile-hero-banner,
+.profile-hero-banner-vacio {
+  height: 136px;
+  border-radius: var(--radius-xl);
+}
+
+.profile-hero-avatar-wrap {
+  margin-top: -48px;
+}
+
+.profile-hero-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 0 4px var(--bg);
+  color: var(--blanco-fijo);
+  font-size: var(--t-3xl);
+}
+
+.profile-hero-body {
+  padding: 0 var(--e-xs) var(--e-sm);
+}
+
+.profile-hero-info {
+  padding-top: var(--e-sm);
+}
+
+.profile-hero-info h1 {
+  font-size: var(--t-2xl);
+  line-height: 1.1;
+}
+
+.perfil-arroba {
+  margin: 2px 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+/* Nivel y rango, una línea de texto: «Novato 5 XP  Miembro». */
+.perfil-chapas {
+  gap: 0 var(--e-sm);
+  margin: 2px 0 0;
+}
+
+.perfil-chapas .nivel-chapa {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+.perfil-chapas .profile-level,
+.perfil-chapas .perfil-rango {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.perfil-chapas .perfil-rango svg,
+.perfil-chapas .profile-level svg {
+  display: none;
+}
+
+.profile-hero-info .profile-xp-bar {
+  display: none;
+}
+
+.perfil-acciones {
+  margin-top: var(--e-sm);
+}
+
+.perfil-acciones .profile-hero-edit-btn {
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-md);
+  backdrop-filter: none;
+}
+
+.perfil-acciones .profile-hero-edit-btn svg {
+  display: none;
+}
+
+/* Las cuatro, grandes; seguidores, siguiendo y trofeos, una línea debajo. */
+.perfil-cifras {
+  border-top: 0;
+}
+
+.perfil-cifras-lote .perfil-cifra {
+  flex: 1 1 25%;
+  padding: var(--e-md) var(--e-xs);
+}
+
+.perfil-cifras-lote .perfil-cifra .valor {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+}
+
+.perfil-cifra .rotulo {
+  font-size: var(--t-sm);
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+
+button.perfil-cifra {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-md) 0 var(--e-xs);
+}
+
+button.perfil-cifra .valor {
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+@media (pointer: coarse) {
+  .perfil-chapas .profile-level,
+  .perfil-chapas .perfil-rango {
+    min-height: 44px;
+  }
+}
+
+/* En el móvil, el avatar y el botón en la franja de debajo del banner, y
+   el nombre debajo, a todo lo ancho: al lado del avatar no cabe un
+   nombre largo sin partirse. */
+@media (max-width: 640px) {
+  .profile-hero-row-break {
+    display: none;
+  }
+
+  .profile-hero-info {
+    order: 3;
+    flex-basis: 100%;
+    padding-top: 0;
+  }
+
+  .perfil-acciones {
+    order: 2;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  .profile-hero {
+    margin: calc(-1 * var(--e-lg)) calc(50% - 50vw) var(--e-md);
+  }
+
+  .profile-hero-avatar {
+    width: 88px;
+    height: 88px;
+  }
+
+  .profile-hero-banner,
+  .profile-hero-banner-vacio {
+    border-radius: 0;
+  }
+
+  .profile-hero-body {
+    padding: 0 var(--e-lg) var(--e-sm);
+  }
+
+  .perfil-cifras {
+    padding: 0 var(--e-sm);
+  }
+}

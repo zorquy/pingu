@@ -67,7 +67,7 @@ async function loadHeader() {
   const banner = document.getElementById('heroBanner')
   banner.style.background = profile.banner_url
     ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
-    : profile.banner_color || 'var(--ice)'
+    : profile.banner_color || 'var(--arte-rosa)'
   // Sin imagen, 160 px de color liso son 160 px de nada: la cabecera se
   // veía medio vacía y todo lo de debajo empezaba muy abajo. Con foto se
   // quedan los 160 —ahí sí hay algo que enseñar—; sin ella baja a 96.
@@ -83,6 +83,7 @@ async function loadHeader() {
          la única pantalla del sitio sin ninguno, y el título de una
          ficha de persona es la persona. -->
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
+    ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
     <div class="perfil-chapas">
       <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
       <!-- El rango lo rellena loadReputationAndGuides(): depende de

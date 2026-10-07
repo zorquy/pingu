@@ -27073,7 +27073,8 @@ Sigue sin arreglar el clic de Playwright, y eso ya se sabía: su
 desplazamiento va por CDP y no honra `scroll-padding`. Esto es para el
 navegador de una persona.
 
-**Ficheros**: `css/style.css`, `CLAUDE.md`, y en la rama `pruebas`:
+**Ficheros**: `css/style.css`, `js/perfil.js`, `js/usuario.js`, `css/perfil.css`,
+`CLAUDE.md`, y en la rama `pruebas`:
 `pruebas/test-tanda-299.mjs`.
 
 ## Tanda 499 — Scrydex: emparejar su catálogo con el nuestro, y su imagen de relleno
@@ -35621,6 +35622,23 @@ coinciden. Esta tanda trae cuatro.
   `748-pantalla` bloque 15. Sin JavaScript, en el ordenador la columna
   queda vacía y la navegación es el pie: el sitio sin JS no funciona de
   todas formas, y es el precio de no saltar.
+- **El perfil como en su maqueta (J4)**: la cabecera de /perfil y
+  /usuario deja de ser una tarjeta. El banner va a sangre en el móvil y,
+  sin foto, lleva el degradado de la maqueta (`--arte-rosa`) en vez del
+  hielo liso —y por eso mide lo mismo con foto que sin ella (136): el
+  motivo de la 263 para encogerlo era «160 px de color liso son 160 px de
+  nada», y un degradado ya dice algo—. El avatar es un cuadrado
+  redondeado montado en el banner, con un aro del color del fondo (no un
+  borde blanco: en oscuro se leía raro, la 679); su inicial va en
+  `--blanco-fijo`, que en oscuro salía oscura. En el móvil, avatar y
+  botón comparten la franja de debajo del banner y el nombre va debajo a
+  lo ancho: al lado del avatar, con «Editar perfil» o «Seguir» y
+  «Mensaje», no cabe un nombre largo sin partirse (la 262). Debajo del
+  nombre su @; nivel y rango son una línea de texto (siguen siendo los
+  botones de las escaleras, con 44 px al dedo) y la barra de XP sale de
+  la cabecera. Las cuatro cifras grandes, en minúscula, y seguidores,
+  siguiendo y trofeos en una línea pequeña debajo: dos renglones a
+  propósito.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35644,7 +35662,7 @@ coinciden. Esta tanda trae cuatro.
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (quince bloques) y 740, 710, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (dieciséis bloques) y 306, 309, 740, 710, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

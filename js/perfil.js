@@ -27,7 +27,7 @@ function applyHeroVisuals(profile, name) {
   const bannerUrl = profile?.banner_url
   banner.style.background = bannerUrl
     ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
-    : profile?.banner_color || 'var(--ice)'
+    : profile?.banner_color || 'var(--arte-rosa)'
   // Igual que en la ficha de otro (tanda 263): sin foto, 160 px de color
   // liso son 160 px de nada y empujan todo lo demás hacia abajo. Aquí
   // faltaba — la tuya era la única que seguía con el hueco entero.
@@ -58,6 +58,7 @@ async function loadProfile(session) {
          la única pantalla del sitio sin ninguno, y el título de una
          ficha de persona es la persona. -->
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
+    ${profile?.username ? `<p class="perfil-arroba">@${escapeHtml(profile?.username)}</p>` : ''}
     <div class="perfil-chapas">
       <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
       <!-- El rango lo rellena loadStats(): depende de cuántas guías
