@@ -42,6 +42,8 @@ const T = {
   // cantaba porque el vacio es un estado legitimo de esa pantalla.
   collection_folders: [],
   collection_folder_cards: [],
+  // La vitrina del perfil (743).
+  user_showcase: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -517,6 +519,9 @@ sembrar('__FAKE_HISTORIAL__', 'tcg_card_history', (i) => ({
 // Los avisos de la campana (736).
 sembrar('__FAKE_NOTIFICACIONES__', 'user_notifications', (i) => ({
   id: `aviso-${i}`, recipient_id: 'user-1', type: 'forum_reply', title: 'Aviso', body: null, link: null, read_at: null, created_at: new Date().toISOString(),
+}))
+sembrar('__FAKE_VITRINA__', 'user_showcase', (i) => ({
+  user_id: 'user-1', posicion: i + 1, card_id: `carta-${i}`, market: 'WEST', created_at: new Date().toISOString(),
 }))
 sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
   market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,
