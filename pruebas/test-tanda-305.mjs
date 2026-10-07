@@ -37,8 +37,10 @@ console.log('\n── 1. La escala existe y tiene saltos que se ven ──')
   const style = sinComentarios(leer('css/style.css'))
   const pasos = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl']
   const valores = pasos.map((p) => {
-    const m = style.match(new RegExp(`--t-${p}:\\s*([0-9.]+)px`))
-    return m ? Number(m[1]) : null
+    // En px hasta la 734, y en rem desde entonces (crece con la letra del
+    // sistema): se cuenta en px a la base de siempre, 16.
+    const m = style.match(new RegExp(`--t-${p}:\\s*([0-9.]+)(px|rem)`))
+    return m ? Number(m[1]) * (m[2] === 'rem' ? 16 : 1) : null
   })
   check('están los ocho pasos', valores.every((v) => v !== null), JSON.stringify(valores))
   check('  …y van de menor a mayor', valores.every((v, i) => i === 0 || v > valores[i - 1]), JSON.stringify(valores))
