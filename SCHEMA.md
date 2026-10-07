@@ -34394,3 +34394,26 @@ que faltaba era saber QUÉ ibas a encontrarte al cerrar el panel.
 `js/mi-coleccion/pokedex.js`, `js/mi-coleccion/segmentado.js`,
 `mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
 714-pantalla.
+
+## Tanda 715 — el Panel como una cartera (oct. 2026)
+
+C1 de la lista de propuestas. El Panel ya tenía las piezas —el valor con
+su cambio del mes (582), la gráfica con rangos y lectura al dedo (653) y
+«las que más se mueven» (663)—; lo que no tenía era el orden de una
+cartera. Es sobre todo CSS, y a propósito: muchas pruebas leen las cifras
+de la cabecera, así que no se esconde ni se mueve nada del DOM.
+
+- **El valor manda**: `.mc-cifra-valor` va primera (`order: -1`), a lo
+  ancho de la rejilla y en la talla héroe (`--t-3xl`), con el cambio del
+  mes debajo. Las otras tres (cartas, distintas, colecciones) pasan a ser
+  tres fichas con borde en una fila, también en el escritorio.
+- **La gráfica no repite la cifra grande**: `.mc-valor-ahora` dentro de
+  `#mcValorCaja` queda solo para la lectura en voz alta (mide un píxel);
+  a la vista se queda el cambio del rango, que es lo que la gráfica añade.
+- **En el móvil, la gráfica va a sangre**: `margin-inline` negativo de lo
+  que mide el relleno de `.container` (24 px, `--e-xl`; con `--e-md` se
+  quedaba a 12 px de cada borde, y en el móvil `--e-md` no vale 16).
+
+**Ficheros**: `css/mi-coleccion.css`. Prueba 715-pantalla (el valor arriba
+y a lo ancho, 34 px, el cambio debajo, las tres fichas en una fila, la
+gráfica de borde a borde sin desbordar la página).

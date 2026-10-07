@@ -6767,3 +6767,74 @@ input.mc-alb-titulo:not([readonly]):focus {
   font: inherit;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── 715: el Panel como una cartera (SCHEMA 715) ──
+   El valor arriba, en grande y a lo ancho, con su cambio del mes; debajo,
+   las otras tres cifras en fichas. La gráfica no repite la cifra grande. */
+.mc-resumen {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+@media (min-width: 560px) {
+  .mc-resumen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.mc-resumen .mc-cifra,
+.mc-resumen .mc-cifra:nth-child(odd),
+.mc-resumen .mc-cifra:nth-child(odd):not(:first-child) {
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.mc-resumen .mc-cifra-valor,
+.mc-resumen .mc-cifra-valor:nth-child(odd),
+.mc-resumen .mc-cifra-valor:nth-child(odd):not(:first-child) {
+  order: -1;
+  grid-column: 1 / -1;
+  padding: 0 0 var(--e-xs);
+  border: 0;
+}
+.mc-resumen .mc-cifra-valor dt {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mc-resumen .mc-cifra-valor dd {
+  color: var(--text);
+  font-size: var(--t-3xl);
+  letter-spacing: -0.01em;
+}
+.mc-resumen .mc-cifra-valor .mc-cifra-cambio {
+  font-size: var(--t-sm);
+}
+/* La gráfica ya no repite el total: lo dice la cabecera, justo encima.
+   Se queda para quien lee en voz alta, que no ve la cabecera al lado. */
+#mcValorCaja .mc-valor-ahora {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#mcValorCaja h3 {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* En el móvil, la gráfica a sangre: sin caja, de borde a borde. */
+@media (max-width: 599px) {
+  #mcValorCaja {
+    /* Lo que mide el relleno lateral de `.container` (24 px). */
+    margin-inline: calc(-1 * var(--e-xl));
+    padding-inline: var(--e-xl);
+    border-inline: 0;
+    border-radius: 0;
+  }
+  .mc-resumen .mc-cifra dd {
+    font-size: var(--t-lg);
+  }
+  .mc-resumen .mc-cifra-valor dd {
+    font-size: var(--t-3xl);
+  }
+}

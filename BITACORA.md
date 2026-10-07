@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 7) — PINGU-Claude (715 — el Panel como una cartera)
+
+**Hecho**: C1 de la lista. En el Panel el valor va arriba, grande y a lo
+ancho con su cambio del mes; cartas, distintas y colecciones van en tres
+fichas debajo; la gráfica ya no repite el total y en el móvil va de borde
+a borde. Solo CSS.
+
+**Ficheros**: `css/mi-coleccion.css`, `SCHEMA.md`. Prueba 715-pantalla en
+`pruebas`.
+
+**Pendiente**: la 716 (la ficha de una carta inmersiva y con pestañas).
+
 ## 2026-10-07 (mañana, 6) — PINGU-Claude (714 — los filtros de un toque y con su resultado)
 
 **Hecho**: C6 de la lista. El botón de cada panel de filtros dice «Ver N
