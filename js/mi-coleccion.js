@@ -375,9 +375,9 @@ function idiomaDeLaVista() {
 // y `datos.anadir` ya lo hacía bien — lo que faltaba era una puerta que
 // fuera a `anadir` y no a `actualizar`.
 //
-// La puerta es el «+» pegado a la carta, que abre este diálogo. Con la
-// carta ya en tu colección enseña primero lo que tienes («Ya en tu
-// colección», con «Añadir más»); si no, el formulario directamente.
+// La puerta es el «+» pegado a la carta, que abre este diálogo. Desde la
+// 748 (la C5 de su maqueta) va SIEMPRE al formulario: lo que ya tienes lo
+// dice la cabecera («Ya tienes 2»), sin un paso de «Añadir más» delante.
 const anadir = { carta: null, variante: null }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
@@ -423,27 +423,20 @@ function abrirAnadir(cardId, variante = null) {
   // El set por su NOMBRE: las cartas de una expansión abierta traen de
   // `tcg_sets` solo el código y la serie, así que se busca en la lista.
   const set = c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets
-  $('mcAdNombre').innerHTML = `Añadiendo <b>${escapeHtml(nombreDe(c))}</b> · ${escapeHtml(nombreDeSet(set) || c.set_id)} ${escapeHtml(c.local_id || '')}`
-  const mias = misLineasDe(cardId)
-  const copias = mias.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-  $('mcAdTienes').textContent = copias ? `Ya tienes ${copias} ${copias === 1 ? 'copia' : 'copias'}` : ''
+  $('mcAdNombre').textContent = nombreDe(c)
+  $('mcAdSet').textContent = [nombreDeSet(set) || c.set_id, c.local_id].filter(Boolean).join(' · ')
+  const copias = misLineasDe(cardId).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  $('mcAdTienes').textContent = copias ? `Ya tienes ${copias}` : ''
   $('mcAdTienes').classList.toggle('hidden', !copias)
-  if (mias.length) {
-    $('mcAdYaLista').innerHTML = mias.map((l) => `<div class="mc-ad-ya-linea"><span class="mc-ficha-chapas">${chipsDe(l)}</span><b>${l.cantidad} ${l.cantidad === 1 ? 'copia' : 'copias'}</b></div>`).join('')
-  }
-  // Si el «+» viene de una casilla de versión, se va directo al formulario
-  // con esa versión puesta: lo que se pide es «una de ESTAS», no «otra».
-  caraDeAnadir(mias.length && !variante ? 'ya' : 'form')
+  prepararAnadir()
   if (!d.open) d.showModal()
 }
 
-// Las dos caras del diálogo. El formulario se prepara al pasar a él: con
-// el idioma que se recuerda para este catálogo (el del álbum, tanda 461),
-// el estado por defecto y la versión de la carta.
-function caraDeAnadir(cara) {
-  $('mcAdYa').classList.toggle('hidden', cara !== 'ya')
-  $('mcAdForm').classList.toggle('hidden', cara !== 'form')
-  if (cara !== 'form') return
+// El formulario: con el idioma que se recuerda para este catálogo (el del
+// álbum, tanda 461), el estado por defecto y la versión de la carta —la de
+// la casilla, si el «+» viene de una versión: lo que se pide es «una de
+// ESTAS», no «otra»—.
+function prepararAnadir() {
   const c = anadir.carta
   const idiomas = idiomasDeLaVista()
   const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
@@ -467,10 +460,12 @@ function rotularGuardar() {
 }
 
 // Los idiomas, con su bandera y de un toque: un `<select>` no admite la
-// bandera dentro, y es la bandera lo que se reconoce.
+// bandera dentro, y es la bandera lo que se reconoce. El elegido lleva su
+// nombre y los demás su sigla (748): así caben en UNA fila, como en la
+// maqueta, y el que importa se lee entero.
 function pintarIdiomasDeAnadir(idiomas, puesto) {
   $('mcAdIdiomas').innerHTML = idiomas
-    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}">${banderaHtml(i.id)}<span>${escapeHtml(i.nombre)}</span></button>`)
+    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}">${banderaHtml(i.id)}<span>${escapeHtml(i.id === puesto ? i.nombre : i.id.toUpperCase())}</span></button>`)
     .join('')
 }
 
@@ -5631,21 +5626,20 @@ function enganchar() {
     const otra = b && lineas.find((x) => x.id === b.dataset.lineaOtra)
     if (otra) abrirEditor(otra)
   })
-  for (const id of ['mcAdCerrar', 'mcAdYaCerrar', 'mcAdCancelar']) $(id)?.addEventListener('click', () => $('mcAnadirDialogo').close())
+  $('mcAdCerrar')?.addEventListener('click', () => $('mcAnadirDialogo').close())
+  // Tocar fuera de la hoja la cierra: el clic llega al propio <dialog>
+  // cuando cae en su fondo y no en algo de dentro.
+  $('mcAnadirDialogo')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close() })
   // Estado y versión de un toque (712). El estado se rotula con su sigla
   // (NM, EX…) y el nombre entero debajo; la versión, con su nombre.
-  segmentar($('mcAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value, conNombre: true })
+  segmentar($('mcAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value })
   segmentar($('mcAdVariante'), { etiqueta: 'Versión de la copia' })
   for (const ev of ['input', 'change']) $('mcAdCantidad')?.addEventListener(ev, rotularGuardar)
-  $('mcAdMas')?.addEventListener('click', () => caraDeAnadir('form'))
   $('mcAdIdiomas')?.addEventListener('click', (e) => {
     const chip = e.target.closest('.mc-idioma-chip')
     if (!chip) return
-    for (const x of $('mcAdIdiomas').querySelectorAll('.mc-idioma-chip')) {
-      const puesto = x === chip
-      x.classList.toggle('activo', puesto)
-      x.setAttribute('aria-checked', puesto ? 'true' : 'false')
-    }
+    pintarIdiomasDeAnadir(idiomasDeLaVista(), chip.dataset.idioma)
+    $('mcAdIdiomas').querySelector(`[data-idioma="${CSS.escape(chip.dataset.idioma)}"]`)?.focus()
   })
   $('mcAdForm')?.addEventListener('submit', (e) => void guardarAnadir(e))
 

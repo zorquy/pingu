@@ -966,6 +966,119 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   margin-top: var(--e-xs);
 }
 
+/* ── La hoja corta de añadir (748, la C5 de su maqueta; SCHEMA 748) ── */
+.mc-anadir-dialogo .mc-ad-form {
+  gap: var(--e-md);
+  padding: 0 var(--e-lg) calc(var(--e-lg) + env(safe-area-inset-bottom));
+}
+
+.mc-ad-tirador {
+  position: relative;
+  align-self: center;
+  width: 64px;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mc-ad-tirador::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  transform: translate(-50%, -50%);
+}
+
+.mc-anadir-dialogo .mc-ad-cabeza {
+  gap: var(--e-md);
+}
+
+.mc-anadir-dialogo .mc-ad-cabeza .mc-ad-carta img {
+  width: 64px;
+}
+
+.mc-anadir-dialogo .mc-ad-nombre {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  line-height: 1.15;
+  text-align: left;
+}
+
+.mc-ad-set {
+  margin: 2px 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-anadir-dialogo .mc-ad-tienes {
+  margin: 2px 0 0;
+  font-size: var(--t-sm);
+}
+
+.mc-anadir-dialogo .mc-ad-idiomas-caja legend,
+.mc-anadir-dialogo .mc-ad-rotulo {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Los idiomas en UNA fila que se desliza, como en la maqueta. */
+.mc-anadir-dialogo .mc-idioma-chips {
+  flex-wrap: nowrap;
+  margin-inline: calc(-1 * var(--e-lg));
+  padding-inline: var(--e-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mc-anadir-dialogo .mc-idioma-chip {
+  flex-shrink: 0;
+}
+
+.mc-anadir-dialogo .mc-ad-campo .mc-seg {
+  flex-wrap: nowrap;
+}
+
+.mc-ad-fila {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.mc-ad-fila .mc-contador-mando {
+  flex: none;
+}
+
+.mc-ad-fila input[type='number'] {
+  width: 48px;
+}
+
+.mc-ad-fila input[type='text'] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+
+.mc-ad-guardar {
+  width: 100%;
+  min-height: 52px;
+  font-size: var(--t-lg);
+}
+
 /* ── El contador de copias (tanda 396) ── */
 .mc-contador-mando {
   display: flex;

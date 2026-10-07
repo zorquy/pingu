@@ -43,6 +43,7 @@ import { supabase } from './supabase.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
+import { segmentar } from './mi-coleccion/segmentado.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 
 const $ = (id) => document.getElementById(id)
@@ -275,73 +276,73 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
 
 // ── El diálogo de añadir (la misma pieza que en /mi-coleccion, 650) ──
 //
-// Dos caras: «Ya en tu colección» (con «Añadir más») si la tienes, y el
-// formulario. Se monta una vez y se rellena en cada apertura.
+// La hoja corta de añadir (748, la C5 de su maqueta): LA MISMA que la de
+// Mi colección —mismas clases, misma forma—, para que añadir una carta se
+// vea igual vengas de donde vengas. Sin paso de «Ya en tu colección»: lo
+// que ya tienes lo dice la cabecera. Se monta una vez y se rellena en cada
+// apertura.
+let idiomasDeLaHoja = []
+function chipsDeAnadir(idiomas, puesto) {
+  return idiomas
+    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}">${banderaHtml(i.id)}<span>${escapeHtml(i.id === puesto ? i.nombre : i.id.toUpperCase())}</span></button>`)
+    .join('')
+}
+function rotularGuardarCarta() {
+  const n = Math.max(1, Math.min(999, Math.round(Number($('cmAdCantidad')?.value) || 1)))
+  $('cmAdGuardar').textContent = `Añadir ${n} ${n === 1 ? 'copia' : 'copias'}`
+}
 function dialogoDeAnadir() {
   let d = $('cmAdDialogo')
   if (d) return d
   document.body.insertAdjacentHTML('beforeend', `
-    <dialog class="mc-bandeja mc-anadir-dialogo" id="cmAdDialogo" aria-labelledby="cmAdTitulo">
-      <div class="mc-panel-cabecera">
-        <h2 id="cmAdTitulo">Añadir a mi colección</h2>
-        <button type="button" class="mc-panel-cerrar" id="cmAdCerrar" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="mc-panel-cuerpo">
-        <div class="mc-ad-carta" id="cmAdCarta"></div>
-        <p class="mc-ad-nombre" id="cmAdNombre"></p>
-        <div class="mc-ad-ya hidden" id="cmAdYa">
-          <p class="mc-ad-ya-titulo">Ya en tu colección</p>
-          <div class="mc-ad-ya-lista" id="cmAdYaLista"></div>
-          <div class="mc-ad-botones">
-            <button type="button" class="btn-secondary" id="cmAdYaCerrar">Cerrar</button>
-            <button type="button" class="btn-primary" id="cmAdMas">Añadir más</button>
+    <dialog class="mc-bandeja mc-anadir-dialogo" id="cmAdDialogo" aria-labelledby="cmAdNombre">
+      <form class="mc-ad-form" id="cmAdForm">
+        <button type="button" class="mc-ad-tirador" id="cmAdCerrar" aria-label="Cerrar"></button>
+        <div class="mc-ad-cabeza">
+          <div class="mc-ad-carta" id="cmAdCarta"></div>
+          <div class="mc-ad-cabeza-texto">
+            <h2 class="mc-ad-nombre" id="cmAdNombre"></h2>
+            <p class="mc-ad-set" id="cmAdSet"></p>
+            <p class="mc-ad-tienes hidden" id="cmAdTienes"></p>
           </div>
         </div>
-        <form class="mc-ad-form hidden" id="cmAdForm">
-          <fieldset class="mc-ad-idiomas-caja">
-            <legend>Idioma</legend>
-            <div class="mc-idioma-chips" id="cmAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
-          </fieldset>
-          <div class="mc-ad-campos">
-            <label>Estado <select id="cmAdEstado"></select></label>
-            <label id="cmAdVarianteLabel">Versión <select id="cmAdVariante"></select></label>
-            <label>Copias
-              <span class="mc-contador-mando">
-                <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
-                <input type="number" id="cmAdCantidad" min="1" max="999" value="1" inputmode="numeric" />
-                <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
-              </span>
-            </label>
-            <label>Lo que pagaste (€) <input type="text" id="cmAdCompra" inputmode="decimal" placeholder="Por copia" /></label>
-          </div>
-          <div class="mc-ad-botones">
-            <button type="button" class="btn-secondary" id="cmAdCancelar">Cancelar</button>
-            <button type="submit" class="btn-primary" id="cmAdGuardar">Guardar</button>
-          </div>
-        </form>
-      </div>
+        <fieldset class="mc-ad-idiomas-caja">
+          <legend>Idioma</legend>
+          <div class="mc-idioma-chips" id="cmAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
+        </fieldset>
+        <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="cmAdEstado"></select></div>
+        <div class="mc-ad-campo" id="cmAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="cmAdVariante"></select></div>
+        <div class="mc-ad-fila">
+          <span class="mc-contador-mando">
+            <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
+            <input type="number" id="cmAdCantidad" min="1" max="999" value="1" inputmode="numeric" aria-label="Copias" />
+            <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
+          </span>
+          <input type="text" id="cmAdCompra" inputmode="decimal" placeholder="Lo que pagaste (€)" aria-label="Lo que pagaste por copia (€), opcional" />
+        </div>
+        <button type="submit" class="btn-primary mc-ad-guardar" id="cmAdGuardar">Añadir 1 copia</button>
+      </form>
     </dialog>`)
   d = $('cmAdDialogo')
-  for (const id of ['cmAdCerrar', 'cmAdYaCerrar', 'cmAdCancelar']) $(id).addEventListener('click', () => d.close())
-  $('cmAdMas').addEventListener('click', () => caraDeAnadir('form'))
+  $('cmAdCerrar').addEventListener('click', () => d.close())
+  d.addEventListener('click', (e) => { if (e.target === d) d.close() })
   $('cmAdIdiomas').addEventListener('click', (e) => {
     const chip = e.target.closest('.mc-idioma-chip')
-    if (chip) marcarChip($('cmAdIdiomas'), chip.dataset.idioma)
+    if (chip) $('cmAdIdiomas').innerHTML = chipsDeAnadir(idiomasDeLaHoja, chip.dataset.idioma)
   })
+  segmentar($('cmAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value })
+  segmentar($('cmAdVariante'), { etiqueta: 'Versión de la copia' })
   // El contador: suma sobre lo escrito y no baja de una copia (396).
   for (const b of d.querySelectorAll('.mc-contador-btn')) {
     b.addEventListener('click', () => {
       const campo = $('cmAdCantidad')
       const n = Math.round(Number(campo.value) || 0) + Number(b.dataset.paso)
       campo.value = String(Math.max(1, Math.min(999, n)))
+      rotularGuardarCarta()
     })
   }
+  $('cmAdCantidad').addEventListener('input', rotularGuardarCarta)
   return d
-}
-
-function caraDeAnadir(cara) {
-  $('cmAdYa').classList.toggle('hidden', cara !== 'ya')
-  $('cmAdForm').classList.toggle('hidden', cara !== 'form')
 }
 
 function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
@@ -349,13 +350,15 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
   const set = carta.tcg_sets || null
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(carta, set?.tcg_online_code))
   $('cmAdCarta').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="eager" />` : ''
-  $('cmAdNombre').innerHTML = `Añadiendo <b>${escapeHtml(nombreDeCarta(carta))}</b> · ${escapeHtml(nombreDeSet(set) || carta.set_id || '')} ${escapeHtml(carta.local_id || '')}`
-  $('cmAdYaLista').innerHTML = mias
-    .map((l) => `<div class="mc-ad-ya-linea"><span>${escapeHtml(senasDe(l))}</span><b>${l.cantidad} ${l.cantidad === 1 ? 'copia' : 'copias'}</b></div>`)
-    .join('')
+  $('cmAdNombre').textContent = nombreDeCarta(carta)
+  $('cmAdSet').textContent = [nombreDeSet(set) || carta.set_id, carta.local_id].filter(Boolean).join(' · ')
+  const copias = mias.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  $('cmAdTienes').textContent = copias ? `Ya tienes ${copias}` : ''
+  $('cmAdTienes').classList.toggle('hidden', !copias)
   // El formulario, preparado: el idioma que se recuerda, el estado por
   // defecto, las versiones de ESTA carta (con una sola no hay que elegir).
-  $('cmAdIdiomas').innerHTML = chipsDeIdioma(idiomas, idiomaRecordado(idiomas))
+  idiomasDeLaHoja = idiomas
+  $('cmAdIdiomas').innerHTML = chipsDeAnadir(idiomas, idiomaRecordado(idiomas))
   $('cmAdEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
   const vs = VARIANTES.filter((v) => variantes.includes(v.id))
   $('cmAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
@@ -363,7 +366,7 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
   $('cmAdCantidad').value = '1'
   $('cmAdCompra').value = ''
   $('cmAdGuardar').disabled = false
-  caraDeAnadir(mias.length ? 'ya' : 'form')
+  rotularGuardarCarta()
 
   $('cmAdForm').onsubmit = async (e) => {
     e.preventDefault()

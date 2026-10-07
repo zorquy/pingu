@@ -472,9 +472,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   formulario de EDITAR, y cambiarle el idioma ahí reescribía la línea:
   PINGU añadió una inglesa y «las dos copias son inglesas», sin error.
   Ahora el «+» pegado a la carta abre el diálogo `#mcAnadirDialogo`
-  (idioma con banderas, estado, versión, copias, pagado), con «Ya en tu
-  colección → Añadir más» si ya la tienes. Si añades un camino para
-  meter una carta, que llegue a `anadir`.
+  (idioma con banderas, estado, versión, copias, pagado); si ya la
+  tienes, la cabecera dice «Ya tienes N» y el formulario está igual a la
+  vista (748, sin paso previo). /carta usa LA MISMA hoja. Si añades un
+  camino para meter una carta, que llegue a `anadir`.
 - **Los precios en memoria son los de TU colección** (tanda 651):
   `guardados` se carga con las ids de tus líneas, así que la ficha de
   cualquier otra carta —el catálogo entero, las japonesas— decía «Sin

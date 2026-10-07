@@ -1381,55 +1381,40 @@
       </div>
     </dialog>
 
-    <dialog class="mc-bandeja mc-anadir-dialogo" id="mcAnadirDialogo" aria-labelledby="mcAdTitulo">
-      <div class="mc-panel-cabecera">
-        <h2 id="mcAdTitulo">Añadir a mi colección</h2>
-        <button type="button" class="mc-panel-cerrar" id="mcAdCerrar" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="mc-panel-cuerpo">
-        <!-- 712: la carta en miniatura y su nombre en una fila, y cuántas
-             tienes ya: la hoja entera cabe sin desplazarse. -->
+    <!-- AÑADIR, EN UNA HOJA CORTA (748, la C5 de su maqueta). Sin barra de
+         título ni paso previo: arriba la carta, su nombre y cuántas tienes
+         ya; debajo todo a un toque, y un solo botón que dice lo que hará.
+         Se cierra tocando fuera, con Esc o arrastrando el tirador. -->
+    <dialog class="mc-bandeja mc-anadir-dialogo" id="mcAnadirDialogo" aria-labelledby="mcAdNombre">
+      <form class="mc-ad-form" id="mcAdForm">
+        <button type="button" class="mc-ad-tirador" id="mcAdCerrar" aria-label="Cerrar"></button>
         <div class="mc-ad-cabeza">
           <div class="mc-ad-carta" id="mcAdCarta"></div>
           <div class="mc-ad-cabeza-texto">
-            <p class="mc-ad-nombre" id="mcAdNombre"></p>
+            <h2 class="mc-ad-nombre" id="mcAdNombre"></h2>
+            <p class="mc-ad-set" id="mcAdSet"></p>
             <p class="mc-ad-tienes hidden" id="mcAdTienes"></p>
           </div>
         </div>
-        <div class="mc-ad-ya hidden" id="mcAdYa">
-          <p class="mc-ad-ya-titulo">Ya en tu colección</p>
-          <div class="mc-ad-ya-lista" id="mcAdYaLista"></div>
-          <div class="mc-ad-botones">
-            <button type="button" class="btn-secondary" id="mcAdYaCerrar">Cerrar</button>
-            <button type="button" class="btn-primary" id="mcAdMas">Añadir más</button>
-          </div>
+        <fieldset class="mc-ad-idiomas-caja">
+          <legend>Idioma</legend>
+          <div class="mc-idioma-chips" id="mcAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
+        </fieldset>
+        <!-- Estado y versión, de un toque (712): el select se queda como
+             fuente del valor y los botones se pintan desde él
+             (js/mi-coleccion/segmentado.js). -->
+        <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="mcAdEstado"></select></div>
+        <div class="mc-ad-campo" id="mcAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="mcAdVariante"></select></div>
+        <div class="mc-ad-fila">
+          <span class="mc-contador-mando">
+            <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
+            <input type="number" id="mcAdCantidad" min="1" max="999" value="1" inputmode="numeric" aria-label="Copias" />
+            <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
+          </span>
+          <input type="text" id="mcAdCompra" inputmode="decimal" placeholder="Lo que pagaste (€)" aria-label="Lo que pagaste por copia (€), opcional" />
         </div>
-        <form class="mc-ad-form hidden" id="mcAdForm">
-          <fieldset class="mc-ad-idiomas-caja">
-            <legend>Idioma</legend>
-            <div class="mc-idioma-chips" id="mcAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
-          </fieldset>
-          <div class="mc-editor-campos mc-ad-campos">
-            <!-- Estado y versión, de un toque (712): el select se queda como
-                 fuente del valor y los botones se pintan desde él
-                 (js/mi-coleccion/segmentado.js). -->
-            <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="mcAdEstado"></select></div>
-            <div class="mc-ad-campo" id="mcAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="mcAdVariante"></select></div>
-            <label class="mc-contador">Copias
-              <span class="mc-contador-mando">
-                <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
-                <input type="number" id="mcAdCantidad" min="1" max="999" value="1" inputmode="numeric" />
-                <button type="button" class="mc-contador-btn" data-paso="1" aria-label="Una copia más">+</button>
-              </span>
-            </label>
-            <label>Lo que pagaste (€) <input type="text" id="mcAdCompra" inputmode="decimal" placeholder="Por copia" /></label>
-          </div>
-          <div class="mc-ad-botones">
-            <button type="button" class="btn-secondary" id="mcAdCancelar">Cancelar</button>
-            <button type="submit" class="btn-primary" id="mcAdGuardar">Añadir 1 copia</button>
-          </div>
-        </form>
-      </div>
+        <button type="submit" class="btn-primary mc-ad-guardar" id="mcAdGuardar">Añadir 1 copia</button>
+      </form>
     </dialog>
 
     <!-- De dónde salen los precios (tanda 442: con su id, para poder
