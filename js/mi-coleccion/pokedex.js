@@ -257,14 +257,24 @@ export function encabezadoHtml(filas, { region = 0, registrados = 0, total = 102
   return `<div class="pdx-encabezado">
       <div>
         <h2 class="pdx-titulo">Pokédex</h2>
-        <p class="pdx-sub">${escapeHtml(g.region)} · ${tengo} de ${deLaRegion.length}</p>
+        <p class="pdx-sub">${registrados.toLocaleString('es-ES', { useGrouping: 'always' })} de ${total.toLocaleString('es-ES', { useGrouping: 'always' })} especies</p>
       </div>
       <span class="mc-anillo" style="--pct:${crudo.toFixed(1)}" role="img" aria-label="${escapeHtml(String(pct))} % de la Pokédex registrado"><b>${escapeHtml(String(pct))} %</b></span>
     </div>`
 }
 
-export function regionesHtml(region = 0) {
-  return `<div class="pdx-regiones" role="group" aria-label="Región">${GENERACIONES.map((x, i) => `<button type="button" class="pdx-region${i === region ? ' activa' : ''}" data-pdx-region="${i}" aria-pressed="${i === region ? 'true' : 'false'}">${escapeHtml(x.region)}</button>`).join('')}</div>`
+// Cada región dice cuántas llevas (750, K7): «Kanto 87/151» con su barra.
+// Las cuentas salen de TODAS las especies (`filas` sin el filtro de «solo
+// las mías»): con él puesto, cada región diría «87/87».
+export function regionesHtml(region = 0, filas = null) {
+  return `<div class="pdx-regiones" role="group" aria-label="Región">${GENERACIONES.map((x, i) => {
+    const deLaRegion = filas ? filas.filter((f) => f.dex >= x.desde && f.dex <= x.hasta) : null
+    const tengo = deLaRegion ? deLaRegion.filter((f) => f.tengo).length : 0
+    const cuenta = deLaRegion && deLaRegion.length
+      ? `<span class="pdx-region-cuenta">${tengo}/${deLaRegion.length}</span><span class="pdx-region-barra" aria-hidden="true"><i style="--ancho:${Math.round((tengo / deLaRegion.length) * 100)}%"></i></span>`
+      : ''
+    return `<button type="button" class="pdx-region${i === region ? ' activa' : ''}${cuenta ? ' con-cuenta' : ''}" data-pdx-region="${i}" aria-pressed="${i === region ? 'true' : 'false'}"><span class="pdx-region-nombre">${escapeHtml(x.region)}</span>${cuenta}</button>`
+  }).join('')}</div>`
 }
 
 export function rejillaDeRegionHtml(filas, region = 0) {

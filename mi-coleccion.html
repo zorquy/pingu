@@ -672,6 +672,26 @@
                   <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Me faltan</button>
                 </div>
               </div>
+              <!-- El precio de cada carta, también aquí (750, K6): «enséñame las
+                   que me faltan de menos de 2 €» es como se completa un set. Las
+                   cartas de la expansión no son todas tuyas, así que sus precios
+                   se piden al abrirla (`cargarPreciosDelAlbum`). -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoPrecio">
+                <h3>Precio de cada carta</h3>
+                <div class="mc-rango-doble" id="mcAlbumRangoDoble">
+                  <input type="range" id="mcAlbumTiradorMin" min="0" max="100" step="1" value="0" aria-label="Precio mínimo" />
+                  <input type="range" id="mcAlbumTiradorMax" min="0" max="100" step="1" value="100" aria-label="Precio máximo" />
+                </div>
+                <div class="mc-rango-precio">
+                  <label>Desde <input type="number" id="mcAlbumPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0 €" /></label>
+                  <label>Hasta <input type="number" id="mcAlbumPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
+                </div>
+                <div class="mc-seg mc-seg-chips mc-seg-sueltas mc-precio-atajos" role="group" aria-label="Atajos de precio" id="mcAlbumPrecioAtajos">
+                  <button type="button" data-precio-atajo="-0.5" aria-pressed="false">Menos de 0,50 €</button>
+                  <button type="button" data-precio-atajo="-2" aria-pressed="false">Menos de 2 €</button>
+                  <button type="button" data-precio-atajo="10-" aria-pressed="false">Más de 10 €</button>
+                </div>
+              </div>
               <!-- El tipo de energía, con su símbolo (748). Como la rareza:
                    sale de las cartas de ESTA colección. -->
               <div class="mc-grupo-filtro" id="mcAlbumGrupoEnergia">

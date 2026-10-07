@@ -3277,6 +3277,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
     const ids = idsDeColeccion(setId)
     const lista = ids.length > 1 ? await datos.cartasDeSets(ids, mercado) : await datos.cartasDeSet(setId, mercado)
     album.cartas = lista.sort(porNumero)
+    void cargarPreciosDelAlbum(setId)
   } catch (err) {
     $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
@@ -3522,6 +3523,71 @@ function pintarFiltrosDeAlbum() {
   }
 }
 
+// ── El precio dentro de una expansión (750, K6) ──
+//
+// Lo que vale UNA copia de la carta, la versión normal y en cualquier
+// idioma, que es lo que dice su ficha. `guardados` lleva solo los precios
+// de tus líneas (la 651), así que los de la expansión entera se piden al
+// abrirla, una vez, y se suman al mapa: tus sumas no cambian, porque solo
+// se suman tus líneas.
+function precioDeCartaDelAlbum(c) {
+  const linea = { card_id: c.id, cantidad: 1, variante: 'normal' }
+  return valorDeLinea(linea, precioDe(linea)) ?? null
+}
+function rangoDelAlbum() {
+  const leer = (id) => { const v = String($(id)?.value ?? '').replace(',', '.').trim(); const n = Number(v); return v !== '' && Number.isFinite(n) && n >= 0 ? n : null }
+  let desde = leer('mcAlbumPrecioDesde'), hasta = leer('mcAlbumPrecioHasta')
+  if (desde !== null && hasta !== null && desde > hasta) [desde, hasta] = [hasta, desde]
+  return { desde, hasta, puesto: desde !== null || hasta !== null }
+}
+async function cargarPreciosDelAlbum(setId) {
+  const faltan = (album.cartas || []).map((c) => c.id).filter((id) => !guardados.has(id))
+  if (!faltan.length) return
+  try {
+    const mapa = await datos.preciosGuardados(faltan)
+    if (album.set !== setId) return
+    for (const [id, fila] of mapa) if (!guardados.has(id)) guardados.set(id, fila)
+    pintarTiradoresDelAlbum()
+    if (rangoDelAlbum().puesto) pintarAlbum()
+  } catch {}
+}
+function topeDelAlbum() {
+  let tope = 0
+  for (const c of album.cartas || []) { const p = precioDeCartaDelAlbum(c); if (p) tope = Math.max(tope, p) }
+  return Math.max(10, Math.ceil(tope / 5) * 5)
+}
+function pintarTiradoresDelAlbum() {
+  const min = $('mcAlbumTiradorMin'), max = $('mcAlbumTiradorMax')
+  if (!min || !max) return
+  const tope = topeDelAlbum()
+  const { desde, hasta } = rangoDelAlbum()
+  for (const t of [min, max]) t.max = String(tope)
+  min.value = String(Math.min(desde ?? 0, tope))
+  max.value = String(Math.min(hasta ?? tope, tope))
+  const caja = $('mcAlbumRangoDoble')
+  caja?.style.setProperty('--desde', `${(Number(min.value) / tope) * 100}%`)
+  caja?.style.setProperty('--hasta', `${(Number(max.value) / tope) * 100}%`)
+  // El atajo puesto es el que coincide con lo escrito, sin más memoria.
+  for (const b of document.querySelectorAll('#mcAlbumPrecioAtajos [data-precio-atajo]')) {
+    const [d, h] = b.dataset.precioAtajo.split('-').map((x) => (x === '' ? null : Number(x)))
+    b.setAttribute('aria-pressed', d === desde && h === hasta ? 'true' : 'false')
+  }
+}
+function moverTiradorDelAlbum(cual) {
+  const min = $('mcAlbumTiradorMin'), max = $('mcAlbumTiradorMax')
+  const tope = Number(max.max)
+  let a = Number(min.value), b = Number(max.value)
+  if (a > b) { if (cual === 'min') a = b; else b = a }
+  $('mcAlbumPrecioDesde').value = a > 0 ? String(a) : ''
+  $('mcAlbumPrecioHasta').value = b < tope ? String(b) : ''
+  cambioDePrecioDelAlbum()
+}
+function cambioDePrecioDelAlbum() {
+  pintarTiradoresDelAlbum()
+  album.pagina = 0
+  pintarAlbum()
+}
+
 function cartasDelAlbumFiltradas() {
   // El idioma en que cuentan tus copias se lee AQUÍ, al filtrar, y no en
   // un oyente aparte: así `tengoEnAlbum` lo ve en cuanto cambia (577).
@@ -3533,6 +3599,7 @@ function cartasDelAlbumFiltradas() {
   // carta, número o ilustrador», y el número es como se busca una carta
   // dentro de un set — «la 102» —, que es justo lo que no se podía.
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
+  const rango = rangoDelAlbum()
   const encajan = album.cartas.filter((c) => {
     if (album.soloFaltan && tengoEnAlbum(c.id)) return false
     if (album.soloTengo && !tengoEnAlbum(c.id)) return false
@@ -3540,6 +3607,12 @@ function cartasDelAlbumFiltradas() {
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (energia && !(Array.isArray(c.types) && c.types.map(tipoEs).includes(energia))) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
+    if (rango.puesto) {
+      // Una carta sin precio no cumple ningún rango: «no se sabe» no es
+      // «menos de 2 €» (la misma regla que en Cartas, 714).
+      const p = precioDeCartaDelAlbum(c)
+      if (p === null || (rango.desde !== null && p < rango.desde) || (rango.hasta !== null && p > rango.hasta)) return false
+    }
     return true
   })
   // El orden va DESPUÉS de filtrar y sobre una copia: `album.cartas` es la
@@ -3603,6 +3676,7 @@ function cuantosFiltrosDeAlbum() {
     (album.soloFaltan ? 1 : 0) +
     (album.soloTengo ? 1 : 0) +
     (album.idioma ? 1 : 0) +
+    (rangoDelAlbum().puesto ? 1 : 0) +
     // El orden cuenta solo si NO es el de siempre: «por número» es como
     // viene una expansión, y marcarlo como filtro puesto diría que has
     // tocado algo cuando no.
@@ -3621,6 +3695,9 @@ function pintarCuentaDeFiltrosDeAlbum() {
 }
 
 function limpiarFiltrosDeAlbum() {
+  if ($('mcAlbumPrecioDesde')) $('mcAlbumPrecioDesde').value = ''
+  if ($('mcAlbumPrecioHasta')) $('mcAlbumPrecioHasta').value = ''
+  pintarTiradoresDelAlbum()
   if ($('mcAlbumRareza')) $('mcAlbumRareza').value = ''
   if ($('mcAlbumTipo')) $('mcAlbumTipo').value = ''
   if ($('mcAlbumEnergia')) $('mcAlbumEnergia').value = ''
@@ -3699,6 +3776,12 @@ function pintarAlbum() {
   const lista = cartasDelAlbumFiltradas()
   const total = album.cartas.length
   rotularVer('mcAlbumFiltrosVer', lista.length)
+  // Con un precio puesto, el botón dice también lo que suman (750): «Ver 54
+  // cartas · unos 21 €» es la cuenta de completar con esas.
+  if (lista.length && rangoDelAlbum().puesto && $('mcAlbumFiltrosVer')) {
+    const suma = lista.reduce((n, c) => n + (precioDeCartaDelAlbum(c) || 0), 0)
+    if (suma) $('mcAlbumFiltrosVer').textContent += ` · unos ${euros(Math.round(suma))}`.replace(',00', '')
+  }
   // El progreso es SIEMPRE el de la colección entera, filtres lo que
   // filtres: «llevas 40 de 198» no puede cambiar porque estés mirando
   // solo las ultra raras. Lo que cambia es la cuenta de al lado.
@@ -5287,7 +5370,7 @@ function pintarPokedex() {
   if (encabezado) encabezado.innerHTML = pokedex.encabezadoHtml(todas, { region: pdxRegion, registrados: resumen.registrados })
   caja.innerHTML = buscando || orden !== 'dex'
     ? pokedex.rejillaHtml(filas, orden)
-    : pokedex.regionesHtml(pdxRegion) + pokedex.rejillaDeRegionHtml(filas, pdxRegion)
+    : pokedex.regionesHtml(pdxRegion, pdxSoloMios ? pokedex.filasDePokedex({ mio, totales: totalesPokedex, soloMios: false, tipos: pokedex.tiposPorEspecie(lineas, cartas) }) : todas) + pokedex.rejillaDeRegionHtml(filas, pdxRegion)
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
   // Lo dice el anillo de arriba (748): aquí solo para quien lee en voz alta.
@@ -6735,6 +6818,19 @@ function enganchar() {
     if (e.target === $('mcAlbumPanelFiltros')) $('mcAlbumPanelFiltros').close()
   })
   $('mcAlbumFiltrosLimpiar')?.addEventListener('click', limpiarFiltrosDeAlbum)
+  for (const id of ['mcAlbumPrecioDesde', 'mcAlbumPrecioHasta']) $(id)?.addEventListener('input', cambioDePrecioDelAlbum)
+  $('mcAlbumTiradorMin')?.addEventListener('input', () => moverTiradorDelAlbum('min'))
+  $('mcAlbumTiradorMax')?.addEventListener('input', () => moverTiradorDelAlbum('max'))
+  $('mcAlbumPrecioAtajos')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-precio-atajo]')
+    if (!b) return
+    // Pulsar el que ya está puesto lo quita, como cualquier chip.
+    const puesto = b.getAttribute('aria-pressed') === 'true'
+    const [d, h] = b.dataset.precioAtajo.split('-')
+    $('mcAlbumPrecioDesde').value = puesto ? '' : d
+    $('mcAlbumPrecioHasta').value = puesto ? '' : h
+    cambioDePrecioDelAlbum()
+  })
   // Y el ✕ de la barra, que quita TAMBIÉN lo escrito: para quien mira, «lo
   // que estoy filtrando» incluye la búsqueda.
   $('mcAlbumQuitar')?.addEventListener('click', () => {

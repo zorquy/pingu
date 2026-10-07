@@ -8560,3 +8560,51 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-set-fila:has(.sin-logo) .mc-set-corta-codigo {
   display: none;
 }
+
+/* ── 750: cada región dice cuántas llevas (K7; SCHEMA 750) ── */
+.pdx-region.con-cuenta {
+  display: grid;
+  gap: 2px;
+  min-width: 88px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.pdx-region-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-region-barra {
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.pdx-region-barra i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  background: var(--navy);
+}
+
+.pdx-region.activa .pdx-region-cuenta {
+  color: var(--blanco-fijo);
+}
+
+.pdx-region.activa .pdx-region-barra {
+  background: rgb(255 255 255 / 30%);
+}
+
+.pdx-region.activa .pdx-region-barra i {
+  background: var(--blanco-fijo);
+}
+
+.mc-precio-atajos {
+  margin-top: var(--e-sm);
+}
