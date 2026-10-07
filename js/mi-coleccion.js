@@ -70,6 +70,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/ge
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
+import { CONSULTA as FICHA_AL_LADO, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -1863,6 +1864,7 @@ function rotularVer(id, n, { mas = false } = {}) {
 function limpiarFiltros() {
   for (const g of GRUPOS) filtros[g.id].clear()
   $('mcFiltroSet').value = ''
+  pintarColumnaSets()
   $('mcFiltroIdioma').value = ''
   if ($('mcFiltroPrecioDesde')) $('mcFiltroPrecioDesde').value = ''
   if ($('mcFiltroPrecioHasta')) $('mcFiltroPrecioHasta').value = ''
@@ -1941,6 +1943,26 @@ function pintarFiltros() {
   }
   const actual = $('mcFiltroSet').value
   $('mcFiltroSet').innerHTML = '<option value="">Todas las colecciones</option>' + [...sets].sort((a, b) => a[1].localeCompare(b[1], 'es')).map(([id, n]) => `<option value="${escapeHtml(id)}"${id === actual ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('')
+  pintarColumnaSets()
+}
+
+// «Tus expansiones» (740, D2): la misma elección que el desplegable, en una
+// lista con cuántas tienes de cada una, de la que más a la que menos. El
+// desplegable sigue mandando: la lista lo cambia y escucha lo que diga.
+function pintarColumnaSets() {
+  const caja = $('mcColumnaSets')
+  if (!caja) return
+  const cuantas = new Map()
+  for (const l of lineas) {
+    const c = cartas.get(l.card_id)
+    if (!c?.set_id) continue
+    const ya = cuantas.get(c.set_id) || { nombre: nombreDeSet(c.tcg_sets) || c.set_id, n: 0 }
+    ya.n += Number(l.cantidad) || 1
+    cuantas.set(c.set_id, ya)
+  }
+  const actual = $('mcFiltroSet').value
+  const fila = (id, nombre, n) => `<button type="button" class="mc-columna-set" data-set="${escapeHtml(id)}" aria-pressed="${id === actual ? 'true' : 'false'}"><span>${escapeHtml(nombre)}</span>${n == null ? '' : `<b>${n.toLocaleString('es-ES')}</b>`}</button>`
+  caja.innerHTML = fila('', 'Todas', null) + [...cuantas].sort((a, b) => b[1].n - a[1].n || a[1].nombre.localeCompare(b[1].nombre, 'es')).map(([id, x]) => fila(id, x.nombre, x.n)).join('')
 }
 
 // ── Editar una línea ──
@@ -2185,10 +2207,13 @@ function abrirEditor(l) {
   // `showModal()` sobre un diálogo YA abierto revienta (InvalidStateError):
   // con las flechas de la 422 se repinta la misma ficha una y otra vez sin
   // cerrarla, así que abrir dejó de ser siempre lo primero que pasa.
-  if (!d.open) d.showModal()
+  // En una pantalla ancha, desde la rejilla de Cartas, a la derecha y sin
+  // modal (740): la rejilla sigue a la vista y se puede abrir otra.
+  const yaAbierta = d.open
+  abrirFichaDonde(d, { alLado: vaAlLado({ ancha: window.matchMedia?.(FICHA_AL_LADO).matches, vista: pestania }) })
   // Y al cambiar de carta, arriba: la ficha es otra, y quedarse a media
   // altura de la anterior deja la carta nueva fuera de la pantalla.
-  else d.scrollTop = 0
+  if (yaAbierta) d.scrollTop = 0
 }
 
 // La tabla de datos de la ficha (tanda 393), con lo mismo que enseña
@@ -4532,6 +4557,9 @@ async function anadirSeleccion(e) {
 
 // ── Pestañas y repintado ──
 function cambiarPestania(nueva, { push = true } = {}) {
+  // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
+  // se quedaría flotando encima de lo que no es suyo.
+  if (nueva !== 'cartas' && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
     const activa = b.dataset.pestania === nueva
@@ -5716,6 +5744,13 @@ function enganchar() {
     if (!dentro) e.currentTarget.close()
   })
   $('mcFiltrosLimpiar').addEventListener('click', limpiarFiltros)
+  $('mcColumnaSets')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-set]')
+    if (!b) return
+    $('mcFiltroSet').value = b.dataset.set
+    $('mcFiltroSet').dispatchEvent(new Event('change'))
+  })
+  $('mcFiltroSet').addEventListener('change', pintarColumnaSets)
   // En el ordenador, el panel es una columna fija junto a la rejilla (738).
   columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: pintarGruposDeChips })
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
@@ -5882,6 +5917,7 @@ function enganchar() {
     $('mcEditor').addEventListener('close', () => $('mcEditor').classList.remove('mc-editor-entera'))
   }
   $('mcEdCerrar')?.addEventListener('click', () => $('mcEditor').close())
+  if ($('mcEditor')) engancharFichaAlLado($('mcEditor'), { vecino: (paso) => void abrirVecino(paso) })
   // Y con el teclado, que es como se repasa una lista larga. Solo cuando
   // el foco NO está en un campo: dentro de un desplegable o de un número
   // las flechas ya hacen lo suyo, y robárselas sería cambiar el valor de

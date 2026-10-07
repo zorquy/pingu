@@ -84,6 +84,41 @@
     font-weight: 500;
   }
 
+  /* El menú de Mi colección, colgado de su página (740). Es el de la
+     columna de siempre; aquí va con la cara de la lateral. */
+  .lat .mc-pestanias {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-xs);
+    margin: var(--e-xs) 0 var(--e-sm) var(--e-md);
+    padding-left: var(--e-sm);
+    border-left: 1px solid var(--border);
+  }
+
+  .lat .mc-pestania {
+    color: var(--text-mid);
+    font-weight: 500;
+  }
+
+  .lat .mc-pestania.activa,
+  .lat .mc-pestania.activa:hover {
+    background: var(--ice);
+    color: var(--navy);
+    font-weight: 700;
+  }
+
+  /* Y Mi colección, sin su columna: una sola. */
+  html.mc-menu-al-lado #mcContenido {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html.mc-menu-al-lado #mcContenido > section[role="tabpanel"] {
+    grid-column: 1;
+    padding-left: 0;
+    border-left: 0;
+  }
+
   .lat [aria-current='page'] {
     background: var(--ice);
     color: var(--navy);

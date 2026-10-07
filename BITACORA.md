@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 20) — PINGU-Claude (740 — Mi colección en tres columnas)
+
+**Hecho**: D2 de la lista. En el escritorio: tus expansiones (con su
+cuenta) a la izquierda, en la columna de filtros; la rejilla en el centro;
+y desde 1.600 px la carta abierta a la derecha sin tapar la rejilla, con
+flechas y Esc. Con la barra lateral, el menú de Mi colección vive dentro
+de ella.
+
+**Ficheros**: `js/mi-coleccion/ficha-al-lado.js` (nuevo),
+`js/mi-coleccion.js`, `mi-coleccion.html`, `cartas.html` (generado),
+`css/mi-coleccion.css`, `js/barra-lateral.js`, `css/lateral.css`,
+`SCHEMA.md`. Prueba 740-pantalla y la 738 al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, V3
+(antetítulo), X13.
+
 ## 2026-10-07 (tarde, 19) — PINGU-Claude (739 — la barra lateral del ordenador)
 
 **Hecho**: D1 de la lista. En pantallas de 1.400 px o más con ratón, las

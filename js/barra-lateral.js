@@ -55,10 +55,29 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   if (salto) salto.after(barra)
   else doc.body.prepend(barra)
   doc.documentElement.classList.add('con-lateral')
+  // EL MENÚ DE MI COLECCIÓN, DENTRO (740, D2). Panel, Expansiones, Pokédex,
+  // Álbumes y Buscar son las páginas de «Mi colección»: con la lateral
+  // puesta, su columna propia (216 px) era una segunda barra lateral al
+  // lado de la primera, y se comía el sitio de la rejilla. Se MUEVE el
+  // mismo nodo —con sus escuchas— debajo de su página, y vuelve a su sitio
+  // si la ventana se estrecha.
+  const menu = doc.getElementById('mcMenu')
+  const suyo = barra.querySelector('.lat-paginas [aria-current="page"]')?.closest('li')
+  const origen = menu ? { padre: menu.parentNode, siguiente: menu.nextSibling } : null
+  const meterMenu = (dentro) => {
+    if (!menu || !suyo) return
+    if (dentro) suyo.appendChild(menu)
+    else origen.padre.insertBefore(menu, origen.siguiente)
+    doc.documentElement.classList.toggle('mc-menu-al-lado', dentro)
+  }
+  meterMenu(true)
   // Si la ventana se estrecha, la hoja la esconde (y la barra de arriba
   // vuelve a ser la de siempre); se quita la clase para que lo de arriba
   // reaparezca aunque la hoja no lo sepa.
   const mq = globalThis.matchMedia?.(CONSULTA)
-  mq?.addEventListener?.('change', () => doc.documentElement.classList.toggle('con-lateral', mq.matches))
+  mq?.addEventListener?.('change', () => {
+    doc.documentElement.classList.toggle('con-lateral', mq.matches)
+    meterMenu(mq.matches)
+  })
   return { actual, secciones }
 }

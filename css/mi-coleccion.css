@@ -4087,6 +4087,64 @@ input.mc-alb-titulo:not([readonly]):focus {
     border-color: var(--navy);
     color: var(--navy);
   }
+
+  /* «Tus expansiones» en lugar del desplegable (740). */
+  .mc-con-columna .mc-columna-sets {
+    display: block;
+  }
+
+  .mc-con-columna .mc-grupo-set {
+    display: none;
+  }
+}
+
+.mc-columna-sets {
+  display: none;
+}
+
+.mc-columna-sets-lista {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0 calc(var(--e-sm) * -1);
+}
+
+.mc-columna-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  min-height: 36px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-align: left;
+}
+
+.mc-columna-set span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-columna-set b {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-columna-set:hover {
+  background: var(--ice);
+  color: var(--text);
+}
+
+.mc-columna-set[aria-pressed='true'] {
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 700;
 }
 
 .mc-grupo-filtro {
@@ -7363,3 +7421,42 @@ input.mc-alb-titulo:not([readonly]):focus {
   grid-template-columns: repeat(var(--mc-columnas), minmax(0, 1fr));
 }
 
+
+/* LA CARTA ABIERTA A LA DERECHA (740, D2). El mismo `<dialog>` de la
+   ficha, sin modal, pegado al borde derecho; la página se aparta. El
+   porqué, en SCHEMA.md: tanda 740. */
+@media (min-width: 1600px) and (pointer: fine) {
+  html.con-ficha-al-lado body {
+    padding-right: 440px;
+  }
+
+  .mc-editor.mc-ficha-al-lado[open] {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 102;
+    width: 440px;
+    max-width: 440px;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    border-width: 0 0 0 1px;
+    border-radius: 0;
+  }
+
+  /* Por dentro, la de una sola columna, como en el móvil (669). */
+  .mc-ficha-al-lado .mc-ficha {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-lg);
+  }
+
+  .mc-ficha-al-lado .mc-ficha-datos { display: contents; }
+  .mc-ficha-al-lado .mc-ficha-cabecera { order: -1; }
+
+  .mc-ficha-al-lado .mc-ficha-carta {
+    position: static;
+    width: 100%;
+    max-width: 240px;
+    margin: 0 auto;
+    padding-top: 0;
+  }
+}

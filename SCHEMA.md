@@ -35106,3 +35106,45 @@ mide es la barra entera, la de quien no la tiene.
 
 **Ficheros**: `js/barra-lateral.js` y `css/lateral.css` (nuevos),
 `js/app.js`, `css/mi-coleccion.css`. Prueba 739-pantalla; 327 al día.
+
+## Tanda 740 — Mi colección en tres columnas (oct. 2026)
+
+D2 de la lista: «las expansiones a la izquierda, la rejilla en el centro y
+la carta abierta a la derecha; las flechas pasan de carta y Esc cierra».
+En el escritorio, Mi colección era la pantalla del móvil más ancha.
+
+- **Tus expansiones, a la izquierda.** En la columna de filtros (738), la
+  colección se elige de una lista con cuántas tienes de cada una, de la
+  que más a la que menos (`pintarColumnaSets`), y no de un desplegable. El
+  desplegable sigue siendo quien manda: la lista lo cambia y escucha lo
+  que diga, así que «Limpiar» y el ✕ de la barra la ponen en «Todas». En
+  la hoja del móvil, el desplegable de siempre.
+- **La carta, a la derecha.** Con `(min-width: 1600px) and (pointer:
+  fine)` y desde la rejilla de Cartas, la MISMA ficha (`#mcEditor`) se abre
+  sin modal (`show()`), fija al borde derecho y de 440 px, y la página se
+  aparta (`html.con-ficha-al-lado`). Con ella abierta se pulsa otra carta y
+  la de la derecha cambia; las flechas pasan de carta también con el foco
+  en la rejilla (en el modal no podía salir de la ficha), y Esc cierra —un
+  `<dialog>` no modal no lo hace solo— (`js/mi-coleccion/ficha-al-lado.js`).
+  Por dentro, la de una columna, como en el móvil. Desde una expansión, la
+  Pokédex o un álbum, y por debajo de 1.600 px, la ficha es la de siempre:
+  con la barra lateral, las pestañas y los filtros, a la rejilla le
+  quedaban dos cartas. Cambiar de pestaña la cierra.
+- **El menú de Mi colección, en la barra lateral.** Panel, Expansiones,
+  Pokédex, Álbumes y Buscar son las páginas de «Mi colección»: con la
+  lateral (739) puesta, su columna propia de 216 px era una segunda barra
+  lateral al lado de la primera. `montarBarraLateral` MUEVE el mismo nodo
+  (`#mcMenu`, con sus escuchas) debajo de «Mi colección» y lo devuelve a
+  su sitio si la ventana se estrecha; la página se queda en una columna
+  (`html.mc-menu-al-lado`, en `css/lateral.css`: la clase la pone un
+  módulo que baja toda página ancha, así que su regla va en la hoja de ese
+  módulo y no en la de Mi colección — lo cantó la 299). A 1.680 de ventana
+  y con la carta abierta, la rejilla queda en cinco columnas.
+
+La 738 siembra 60 cartas en vez de 24: con la rejilla más ancha, 24 no
+daban recorrido al `sticky` de la columna de filtros.
+
+**Ficheros**: `js/mi-coleccion/ficha-al-lado.js` (nuevo),
+`js/mi-coleccion.js`, `mi-coleccion.html` (y `cartas.html`, generado),
+`css/mi-coleccion.css`, `js/barra-lateral.js`, `css/lateral.css`. Prueba
+740-pantalla; 738 al día.
