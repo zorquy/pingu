@@ -34913,3 +34913,25 @@ sin cuenta habría sido un `ReferenceError` al pulsar. Sin cuenta no se lee.
 
 **Ficheros**: `js/carta-imagen.js` (nuevo), `js/carta-mercado.js`. Prueba
 733-pantalla; la 707 cuenta ya cuatro losetas.
+
+## Tanda 734 — la letra crece con la del sistema (oct. 2026)
+
+X6 de la lista: respetar el tamaño de letra de quien lo tiene grande en el
+iPhone. La escala (305) estaba en px y no crecía con nada. Ahora:
+
+- Los ocho pasos `--t-2xs`…`--t-3xl` van en **rem** (11 px = 0,6875 rem…
+  34 px = 2,125 rem): a la base de serie (16 px) miden exactamente lo
+  mismo, y si alguien sube la letra del navegador —el ajuste de Chrome en
+  Android, el zoom de texto— el texto sube con ella. Lo que no es texto
+  (espaciado, iconos, avatares) se queda en px a propósito.
+- En **iOS**, Safari solo aplica el tamaño del sistema (Ajustes →
+  Pantalla → Tamaño del texto) a `font: -apple-system-body`, que de serie
+  mide 17 px y no 16. Así que, solo allí
+  (`@supports (font: -apple-system-body) and (-webkit-touch-callout: none)`),
+  la base es esa y la escala se cuenta en diecisieteavos (`calc(14rem /
+  17)`): a tamaño normal sigue midiendo 14, y con la letra grande crece.
+  El `body` pone su Inter después, así que la familia no cambia.
+
+Cuesta 0,2 KB de la portada (queda 0,2) y la 305 lee ya los pasos en rem.
+
+**Ficheros**: `css/style.css`. Prueba 734-pantalla; 305 al día.

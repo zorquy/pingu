@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 14) — PINGU-Claude (734 — la letra crece con la del sistema)
+
+**Hecho**: X6 de la lista. La escala de letra pasa a rem (a tamaño normal
+mide igual) y en el iPhone sigue el tamaño de texto del sistema.
+
+**Ficheros**: `css/style.css`, `SCHEMA.md`, `CLAUDE.md` (el presupuesto:
+quedan 0,2 KB). Prueba 734-pantalla y la 305 al día en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 13) — PINGU-Claude (733 — una imagen para compartir una carta)
 
 **Hecho**: X7 de la lista. La ficha de una carta lleva «Compartir»: una
