@@ -1305,3 +1305,6 @@ body:not([data-pnivel="vitrina"]) #perfilVitrina { display: none; }
 }
 
 #perfilVitrina .vitrina-cabeza { justify-content: flex-end; }
+
+/* El rojo de peligro, del token: a mano no se leía en oscuro (752). */
+.perfil-borrar { border-color: var(--danger); color: var(--danger); }
