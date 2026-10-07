@@ -296,6 +296,8 @@ console.log('\n── 7. El CSS de los perfiles deja de bajarlo todo el mundo �
       }
     }
     const tiene = reglasDe(suyas)
+    // Y las que la página define en su PROPIO <style> (745, como la 299).
+    for (const bloque of fuente.matchAll(/<style>([\s\S]*?)<\/style>/g)) for (const c of bloque[1].matchAll(/\.([a-zA-Z][\w-]*)/g)) tiene.add(c[1])
     const enOtra = reglasDe(hojas.filter((h) => !suyas.includes(h)))
     const huerfanas = [...usadas].filter((c) => !tiene.has(c) && enOtra.has(c))
     if (huerfanas.length) rotas.push(`${pagina}: ${huerfanas.slice(0, 6).join(', ')}`)
