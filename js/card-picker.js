@@ -55,7 +55,7 @@ export function openCardPicker() {
         <h3>Añadir cartas</h3>
         <p class="cp-help">Busca por nombre y pincha las cartas que quieras. Se añadirán a la guía en el orden en que las elijas.</p>
         <div class="cp-buscar">
-          <input type="search" id="cpQuery" class="cp-input" placeholder="Nombre de la carta…" autocomplete="off" />
+          <input type="search" enterkeyhint="search" id="cpQuery" class="cp-input" placeholder="Nombre de la carta…" autocomplete="off" />
           <label class="cp-mercado">
             <span>Catálogo</span>
             <select id="cpMercado">

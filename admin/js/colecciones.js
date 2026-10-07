@@ -357,7 +357,7 @@ function abrirEditorDeEra(id) {
     <p class="admin-note">Identificador: <code>${escapeHtml(id || '(sin era)')}</code> · ${g.sets.length} colecciones.</p>
     <label>Cómo se llama<input id="colEraNombre" type="text" maxlength="80" value="${escapeHtml(g.nombre)}"></label>
     <label>En qué orden va <small>(menor = más arriba; vacío = por fecha)</small>
-      <input id="colEraOrden" type="number" value="${g.orden ?? ''}"></label>
+      <input id="colEraOrden" type="number" inputmode="numeric" value="${g.orden ?? ''}"></label>
     <div class="col-hoja-pie">
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colEraGuardar">Guardar</button>
@@ -389,7 +389,7 @@ function abrirEditor(id) {
     <label>Cómo se llama esa era <small>(solo si la estás creando)</small>
       <input id="colEraNombreNuevo" type="text" maxlength="80" placeholder="McDonald's"></label>
     <label>Orden dentro de la era <small>(vacío = por fecha)</small>
-      <input id="colOrden" type="number" value="${s.orden ?? ''}"></label>
+      <input id="colOrden" type="number" inputmode="numeric" value="${s.orden ?? ''}"></label>
     <label>Logo <small>(vacío = el que traiga el catálogo)</small>
       <span class="col-logo-caja">
         <span class="col-logo-ver" id="colLogoVer">${logoDe(s) ? `<img src="${escapeHtml(logoDe(s))}" alt="">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>

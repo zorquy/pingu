@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 3) — PINGU-Claude (723 — el teclado de cada campo y precargar al posar el dedo)
+
+**Hecho**: X5 y X17 de la lista (la X12, borradores del foro, ya estaba).
+Las cajas de búsqueda piden la tecla «Buscar» y los campos de números el
+teclado numérico, en toda la web; y la página de un enlace se empieza a
+pedir al posar el dedo o el ratón, para que abra al instante.
+
+**Ficheros**: `js/precarga.js`, `js/app.js`, 23 páginas y módulos con
+campos, `cartas.html`, `SCHEMA.md`. Prueba 723-pantalla en `pruebas`.
+
+**Pendiente**: el resto de la lista (J1, J4, J5, D, V, A1 y las X).
+
 ## 2026-10-07 (tarde, 2) — PINGU-Claude (722 — «Tu partida» arriba, y debajo cómo vas)
 
 **Hecho**: J2 de la lista. En un torneo en juego, debajo de tu mesa sale

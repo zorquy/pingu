@@ -204,13 +204,13 @@
           <!-- «Sin límite» apaga el campo de plazas y guarda NULL
                (tanda 228): sin aforo no hay lleno ni lista de espera. -->
           <div class="torneos-form-plazas">Plazas
-            <input type="number" id="torneoPlazas" min="4" max="256" value="16" />
+            <input type="number" inputmode="numeric" id="torneoPlazas" min="4" max="256" value="16" />
             <label class="torneo-sin-limite">
               <input type="checkbox" id="torneoSinLimite" /> Sin límite
             </label>
           </div>
           <label id="torneoRondasEtiqueta">Rondas suizas
-            <input type="number" id="torneoRondas" min="1" max="12" value="4" />
+            <input type="number" inputmode="numeric" id="torneoRondas" min="1" max="12" value="4" />
           </label>
           <label>Top cut
             <select id="torneoCorte">
@@ -284,10 +284,10 @@
         <p class="torneo-wizard-pista">El reloj solo corre en las suizas; el top cut se juega a acabar.</p>
         <div class="torneos-form-rejilla">
           <label>Minutos por ronda
-            <input type="number" id="torneoMinutos" min="5" max="120" value="30" />
+            <input type="number" inputmode="numeric" id="torneoMinutos" min="5" max="120" value="30" />
           </label>
           <label>Ventana de check-in (min)
-            <input type="number" id="torneoCheckin" min="0" max="30" value="5" />
+            <input type="number" inputmode="numeric" id="torneoCheckin" min="0" max="30" value="5" />
           </label>
         </div>
         <dl class="torneo-wizard-resumen" id="wizardResumen"></dl>

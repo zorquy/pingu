@@ -206,7 +206,7 @@ async function loadPaths(guide) {
       <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
         <input type="checkbox" class="gr-check" data-route-id="${p.id}" ${checked ? 'checked' : ''} />
         <span style="flex:1;">${inlineIconHtml(p.emoji, 16, 'bookOpen')}${escapeHtml(p.title)}</span>
-        <input type="number" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingRoutePositions[p.id] ?? 0}" />
+        <input type="number" inputmode="numeric" class="gr-position" data-route-id="${p.id}" placeholder="Posición" style="width: 90px;" value="${existingRoutePositions[p.id] ?? 0}" />
       </div>`
     })
     .join('')

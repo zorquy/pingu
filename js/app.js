@@ -772,6 +772,8 @@ export async function initNavbar() {
   if (document.getElementById('navbar') && window.matchMedia?.('(max-width: 900px)').matches) {
     import('./barra-movil.js').then((m) => m.montarBarraMovil({ conSesion: !!session })).catch(() => {})
   }
+  // Precarga al posar el dedo (SCHEMA 723).
+  import('./precarga.js').then((m) => m.montarPrecarga()).catch(() => {})
 
   // Los iconos de la barra: se DESCARGAN a la vez y se PINTAN en orden.
   //

@@ -91,7 +91,7 @@ export function fieldsForCourseBlock(block, i) {
       return `
         <input class="be-field" data-i="${i}" data-f="question" placeholder="Pregunta" value="${escapeHtml(block.question || '')}" />
         <textarea class="be-field" data-i="${i}" data-f="options" placeholder="Opciones (una por línea)">${escapeHtml((block.options || []).join('\n'))}</textarea>
-        <input class="be-field" data-i="${i}" data-f="correct_index" type="number" placeholder="Índice de la correcta (0, 1, 2...)" value="${block.correct_index ?? 0}" />
+        <input class="be-field" data-i="${i}" data-f="correct_index" type="number" inputmode="numeric" placeholder="Índice de la correcta (0, 1, 2...)" value="${block.correct_index ?? 0}" />
         <textarea class="be-field" data-i="${i}" data-f="explanation" placeholder="Explicación">${escapeHtml(block.explanation || '')}</textarea>`
     case 'truefalse':
       return `

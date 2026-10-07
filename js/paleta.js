@@ -69,7 +69,7 @@ function montar() {
   dialogo.setAttribute('aria-label', 'Buscar en PokeDoc')
   dialogo.innerHTML = `
     <div class="paleta-caja">${icons.search(18)}
-      <input type="search" class="bs-input" id="paletaInput" placeholder="Busca una carta, una guía, una página…" autocomplete="off"
+      <input type="search" enterkeyhint="search" class="bs-input" id="paletaInput" placeholder="Busca una carta, una guía, una página…" autocomplete="off"
         role="combobox" aria-expanded="true" aria-controls="paletaLista" aria-autocomplete="list" />
       <kbd>Esc</kbd>
     </div>

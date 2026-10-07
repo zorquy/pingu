@@ -614,13 +614,13 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) 
         <label>Nombre<input type="text" id="editarNombre" maxlength="120" value="${escapeHtml(torneo.name)}" /></label>
         <label>Fecha y hora<input type="datetime-local" id="editarFecha" value="${aFechaLocal(torneo.start_at)}" /></label>
         <div class="torneos-form-plazas">Plazas
-          <input type="number" id="editarPlazas" min="4" max="256" value="${torneo.max_players ?? ''}" ${bloqueo} ${torneo.max_players == null ? 'disabled' : ''} />
+          <input type="number" inputmode="numeric" id="editarPlazas" min="4" max="256" value="${torneo.max_players ?? ''}" ${bloqueo} ${torneo.max_players == null ? 'disabled' : ''} />
           <label class="torneo-sin-limite"><input type="checkbox" id="editarSinLimite" ${torneo.max_players == null ? 'checked' : ''} ${bloqueo} /> Sin límite</label>
         </div>
-        ${esLiga ? '' : `<label>Rondas suizas<input type="number" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
+        ${esLiga ? '' : `<label>Rondas suizas<input type="number" inputmode="numeric" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
-        <label>Minutos por ronda<input type="number" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
-        <label>Check-in (min)<input type="number" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
+        <label>Minutos por ronda<input type="number" inputmode="numeric" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
+        <label>Check-in (min)<input type="number" inputmode="numeric" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
         <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
         <label id="editarCorteBoCampo" class="${torneo.top_cut_size ? '' : 'hidden'}">Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>
@@ -1325,7 +1325,7 @@ function cerrarInscripciones() {
       <p>Con <strong>${activos()} jugador${activos() === 1 ? '' : 'es'}</strong>, la tabla oficial sugiere
       <strong>${sugeridas} ronda${sugeridas === 1 ? '' : 's'} suiza${sugeridas === 1 ? '' : 's'}</strong>
       (ahora hay ${torneo.swiss_rounds}). Puedes cambiar el número antes de cerrar.</p>
-      <label>Rondas suizas<input type="number" id="cerrarRondasNumero" min="1" max="12" value="${sugeridas}" /></label>
+      <label>Rondas suizas<input type="number" inputmode="numeric" id="cerrarRondasNumero" min="1" max="12" value="${sugeridas}" /></label>
       <button class="btn-primary" id="btnCerrarConRondas">Cerrar inscripciones</button>
       <button class="btn-secondary" id="btnCerrarRondasVolver">Volver</button>
     </div>`

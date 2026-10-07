@@ -34674,3 +34674,29 @@ entera» cambia de pestaña.
 
 **Ficheros**: `torneo.html`, `js/torneos/ronda.js`, `css/torneos.css`.
 Prueba 722-pantalla; la 298 cuenta las medallas solo en la tabla.
+
+## Tanda 723 — el teclado de cada campo y precargar al posar el dedo (oct. 2026)
+
+X5 y X17 de la lista. La X12 —que el borrador del foro se guarde— ya
+existía: el tema nuevo (por foro) y la respuesta (por tema) viven en el
+navegador y se borran al publicar.
+
+- **X5 — el teclado adecuado.** Toda caja `type="search"` lleva
+  `enterkeyhint="search"` (en el móvil la tecla de Intro dice «Buscar») y
+  todo `type="number"` su `inputmode` (el teclado numérico). Los de precio
+  ya iban con `decimal`. Se puso en bloque en el HTML y en lo que pinta el
+  JS (31 cajas de búsqueda, 22 campos numéricos), y la 723 los cuenta
+  todos: uno nuevo sin su atributo cae en la prueba.
+- **X17 — precargar al posar.** `js/precarga.js`, por `import()` desde
+  `app.js` (a la portada le cuesta la línea de la llamada: queda en
+  169,6). Donde el navegador entiende las reglas de especulación
+  (Chrome) se le declaran —`eagerness: moderate`, que es «al posarse»— y
+  él decide; donde no (Safari, Firefox), un `<link rel="prefetch">` al
+  tocar un enlace o al dejar el ratón encima 80 ms, una vez por dirección.
+  Solo lo del sitio y solo páginas: nunca /admin, /auth, las funciones,
+  ficheros, la misma página con otra almohadilla, ni con «ahorro de
+  datos» puesto (`sePuedePrecargar`).
+
+**Ficheros**: `js/precarga.js` (nuevo), `js/app.js`, y el `enterkeyhint` /
+`inputmode` en 23 ficheros (con `cartas.html` regenerado). Prueba
+723-pantalla.

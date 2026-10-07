@@ -290,7 +290,7 @@ function openCategoryModal(category) {
     <div class="form-group"><label>Icono</label><input id="catEmoji" value="${escapeHtml(c.emoji || '')}" /></div>
     <div class="form-group"><label>Icono personalizado (URL, opcional)</label><input id="catIconImage" value="${escapeHtml(c.icon_image || '')}" placeholder="https://..." /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">Sustituye al icono en las tarjetas de categoría. Sube la imagen en la pestaña "Imágenes" y pega aquí la URL.</p></div>
     <div class="form-group"><label>Imagen de portada (URL)</label><input id="catCoverImage" value="${escapeHtml(c.cover_image || '')}" /></div>
-    <div class="form-group"><label>Orden</label><input id="catOrder" type="number" value="${c.order_pos ?? 0}" /></div>
+    <div class="form-group"><label>Orden</label><input id="catOrder" type="number" inputmode="numeric" value="${c.order_pos ?? 0}" /></div>
     <button class="btn-primary btn-block" id="btnSaveCategory">Guardar</button>`)
 
   attachEmojiPicker(document.getElementById('catEmoji'))
@@ -920,8 +920,8 @@ function openAchievementModal(achievement) {
         <option value="forum_reactions_received" ${a.condition?.type === 'forum_reactions_received' ? 'selected' : ''}>Reacciones recibidas en el foro</option>
       </select>
     </div>
-    <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" value="${a.condition?.count ?? 1}" /></div>
-    <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" value="${a.xp_reward ?? 50}" /></div>
+    <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" inputmode="numeric" value="${a.condition?.count ?? 1}" /></div>
+    <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" inputmode="numeric" value="${a.xp_reward ?? 50}" /></div>
     <div class="form-group"><label><input type="checkbox" id="aIsActive" ${a.is_active ? 'checked' : ''} /> Activo</label></div>
     <button class="btn-primary btn-block" id="btnSaveAchievement">Guardar</button>`)
 
@@ -1330,7 +1330,7 @@ async function loadForo() {
     <tr class="${esHijo ? 'foro-admin-hijo' : ''}">
       <td>${esHijo ? '<span class="foro-admin-rama">└</span> ' : ''}<input type="text" value="${escapeHtml(f.name)}" data-nombre="${f.id}" /></td>
       <td><input type="text" value="${escapeHtml(f.description || '')}" data-desc="${f.id}" placeholder="Sin descripción" /></td>
-      <td><input type="number" value="${f.position}" data-pos="${f.id}" style="width:64px;" /></td>
+      <td><input type="number" inputmode="numeric" value="${f.position}" data-pos="${f.id}" style="width:64px;" /></td>
       <td>
         <select data-politica="${f.id}">
           <option value="todos" ${f.post_policy === 'todos' ? 'selected' : ''}>Cualquiera</option>
@@ -1351,7 +1351,7 @@ async function loadForo() {
       <div class="admin-card" style="margin-bottom:18px;">
         <div class="foro-admin-fila">
           <input type="text" value="${escapeHtml(s.name)}" data-seccion-nombre="${s.id}" />
-          <input type="number" value="${s.position}" data-seccion-pos="${s.id}" style="width:64px;" />
+          <input type="number" inputmode="numeric" value="${s.position}" data-seccion-pos="${s.id}" style="width:64px;" />
           <button class="btn-secondary" data-guardar-seccion="${s.id}">Guardar</button>
           <button class="admin-danger" data-borrar-seccion="${s.id}">Borrar sección</button>
         </div>

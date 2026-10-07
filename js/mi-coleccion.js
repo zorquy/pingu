@@ -5039,7 +5039,7 @@ async function pintarCambios() {
     <section class="mc-cambio-bloque">
       <h3>Lo que buscas</h3>
       <div class="mc-deseo-alta">
-        <input type="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" />
+        <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" />
         <div id="mcDeseoResultados" class="mc-deseo-resultados hidden"></div>
       </div>
       ${deseos.length

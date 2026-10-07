@@ -386,7 +386,7 @@
         <div class="admin-card">
           <div class="col-barra">
             <select id="coleccionesMercado" aria-label="Catálogo"></select>
-            <input type="search" id="coleccionesFiltro" placeholder="Buscar por nombre, id o código…" aria-label="Buscar una colección">
+            <input type="search" enterkeyhint="search" id="coleccionesFiltro" placeholder="Buscar por nombre, id o código…" aria-label="Buscar una colección">
             <button class="btn-secondary btn-small" id="coleccionesRecargar">Recargar</button>
             <button class="btn-secondary btn-small" id="coleccionesReordenar" title="Quita el orden puesto a mano y deja mandar al catálogo">Volver al orden del catálogo</button>
             <span class="col-resumen" id="coleccionesResumen"></span>
@@ -557,7 +557,7 @@
                cardmarket_id de cada carta y se cruza por código de set +
                número. Es de pago por peticiones: cada clic gasta como
                mucho las que diga el tope, y lo hecho queda apuntado. -->
-          <label>Tope de peticiones <input type="number" id="tcggoTope" value="40" min="1" max="2000" size="5" /></label>
+          <label>Tope de peticiones <input type="number" inputmode="numeric" id="tcggoTope" value="40" min="1" max="2000" size="5" /></label>
           <button class="btn-outline" id="btnTcggoEmparejar">Emparejar con TCGGO</button>
           <button class="btn-outline" id="btnTcggoPrecios">Precios de TCGGO ahora</button>
           <!-- Solo lectura (655): lo que han dejado apuntado las funciones
@@ -592,7 +592,7 @@
           style="font-family: monospace; font-size: 12px; white-space: pre; width: 100%;"></textarea>
 
         <h2 class="admin-subtitle">Sets</h2>
-        <input type="search" id="cardsSetFilter" class="admin-search" placeholder="Filtrar sets por nombre…" />
+        <input type="search" enterkeyhint="search" id="cardsSetFilter" class="admin-search" placeholder="Filtrar sets por nombre…" />
         <div id="cardsSetsTable"></div>
       </section>
 

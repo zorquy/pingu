@@ -303,7 +303,7 @@ function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '
   return `<div class="mc-filtros">
     <div class="mc-buscador">
       <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-      <input type="search" id="pdxEspecieBuscar" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon" value="${escapeHtml(texto || '')}" />
+      <input type="search" enterkeyhint="search" id="pdxEspecieBuscar" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon" value="${escapeHtml(texto || '')}" />
     </div>
     <div class="mc-mandos">
       ${grupos.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
