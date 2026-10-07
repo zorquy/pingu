@@ -45,13 +45,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-07 van 169,6 y queda 0,4**
+  CSS) debe caber en 170 KB gzip. **A 2026-10-07 van 169,7 y queda 0,3**
   (medido con `pesar-portada.mjs`; la 718 sacó de `components.css` el
   desplegable viejo de la lupa y bajó a 169,5, la 723 y la 734 se
   comieron tres décimas y la 736 las devolvió sacando el pintado de la
   campana a un `import()`: `notifications.js` lo baja la portada por
   `guide-rating.js`, así que lo que se pinta AL ABRIRLA no va ahí; la 737
-  puso el anillo de foco a los campos). O sea: CUATROCIENTOS BYTES. Una tanda que meta algo de verdad en la portada no cabe —tiene
+  puso el anillo de foco a los campos, y la 744 la línea que llama a la
+  portada «Hoy», que entra por `import()`). O sea: TRESCIENTOS BYTES. Una tanda que meta algo de verdad en la portada no cabe —tiene
   que empezar por hacer sitio—. Historia: el pie de
   la tanda 312 está en las 22 páginas y suma, la 313 sacó el editor de
   texto rico a `css/editor-texto.css` para hacer sitio, y la 319 le metió

@@ -35239,3 +35239,30 @@ los demás (`js/vitrina.js`, CSS en `css/perfil.css`).
 `supabase-migration-vitrina.sql` (nuevos), `js/perfil.js`, `js/usuario.js`,
 `perfil.html`, `usuario.html`, `css/perfil.css`. Prueba 743-pantalla y la
 306 al día; el doble tiene `user_showcase` y `__FAKE_VITRINA__`.
+
+## Tanda 744 — la portada «Hoy» (oct. 2026)
+
+J5 de la lista. Para quien tiene cuenta, la portada era una pila de
+bloques y lo de HOY había que buscarlo bajando. Ahora, debajo del saludo
+con tu racha, un bloque «Hoy» (`js/hoy.js`, `css/hoy.css`):
+
+- **Lo que vale tu colección**, de la última foto de
+  `user_collection_value`, con su línea de los últimos 30 puntos y lo que
+  se ha movido en 30 días — solo si el histórico cubre esos 30 días (la
+  653). Sin fotos todavía, invita a Mi colección; sin la migración del
+  histórico, no sale.
+- **Cuatro fichas**: el reto (hecho con su nota, por hacer, o «cinco
+  preguntas» si no se sabe), tu próximo torneo (en el que estás apuntado;
+  si no, el próximo abierto), el próximo lanzamiento (del catálogo, como la
+  656) y las respuestas sin leer en tus hilos (`forum_reply`; si no se sabe,
+  «El foro» a secas, sin cifra).
+- Lo de debajo sigue igual: es el detalle.
+- Tu próximo torneo se pide en DOS pasos (tus inscripciones y luego esos
+  torneos) y no con un `select` embebido.
+
+Entra por `import()` desde `cargarBienvenida` y solo con sesión, con su
+hoja inyectada: la portada pasa de 169,6 a 169,7 KB por la línea que lo
+llama.
+
+**Ficheros**: `js/hoy.js` y `css/hoy.css` (nuevos), `js/home.js`,
+`CLAUDE.md`. Prueba 744-pantalla.

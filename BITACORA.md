@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 24) — PINGU-Claude (744 — la portada «Hoy»)
+
+**Hecho**: J5 de la lista. Con cuenta, debajo del saludo, un bloque «Hoy»:
+lo que vale tu colección con su línea y su cambio en 30 días, y cuatro
+fichas (reto, tu próximo torneo, próximo lanzamiento y respuestas sin leer
+en tus hilos). Entra por `import()`: la portada queda en 169,7 KB.
+
+**Ficheros**: `js/hoy.js`, `css/hoy.css` (nuevos), `js/home.js`,
+`CLAUDE.md`, `SCHEMA.md`. Prueba 744-pantalla en `pruebas`.
+
+**Pendiente**: ejecutar `supabase-migration-vitrina.sql`; J1 y V7.
+
 ## 2026-10-07 (tarde, 23) — PINGU-Claude (743 — la vitrina del perfil)
 
 **Hecho**: J4 de la lista. Seis cartas que eliges de tu colección salen en

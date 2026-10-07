@@ -550,6 +550,8 @@ async function cargarBienvenida(session) {
     document.body.classList.add('portada-compacta')
     document.documentElement.classList.add('con-sesion')
     seccion.style.display = ''
+    // Lo de hoy, debajo del saludo (SCHEMA 744).
+    import('./hoy.js').then((m) => m.montarHoy(session)).catch(() => {})
   } catch {}
 }
 
