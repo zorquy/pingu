@@ -48,6 +48,9 @@ const NO_SON_CONTROLES = new Set([
   // Un ejemplo de lo que se puede escribir en el puesto de un premio,
   // que es texto libre: «1º», «Top 8», «Todos los participantes».
   'Todos los participantes',
+  // Una opción del menú Compartir de SAFARI (732): el paso para instalar
+  // la web en un iPhone; el control es de Apple, no nuestro.
+  'Añadir a pantalla de inicio',
 ])
 
 const ficheros = []
