@@ -5269,6 +5269,8 @@ function enganchar() {
   // gancho: hacen lo mismo que la barra, pero no SON la barra, y mezclar
   // los dos deja `[data-pestania]` sin identificar a nadie.
   for (const b of document.querySelectorAll('[data-ir-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.irPestania))
+  // El escáner desde el vacío (729): el mismo botón que el de Buscar.
+  for (const b of document.querySelectorAll('[data-vacio-escanear]')) b.addEventListener('click', () => void abrirEscaner())
   // AQUÍ VIVÍA el observador que apartaba la barra flotante al llegar al
   // pie (tanda 406). Se fue en la 419 y el motivo merece quedar escrito:
   // en una página CORTA el pie se ve desde el primer momento, así que la

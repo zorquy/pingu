@@ -7260,3 +7260,9 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+/* ── 729 (V6): el vacío con la mascota (SCHEMA 729) ── */
+.mc-vacio-img {
+  display: block;
+  margin: 0 auto var(--e-md);
+}
+

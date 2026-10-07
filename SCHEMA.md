@@ -34815,3 +34815,18 @@ medalla (725); lo de «la quiero» queda como está.
 
 **Ficheros**: `js/mi-coleccion/ensenar.js`, `js/mi-coleccion.js`,
 `css/mi-coleccion.css`. Prueba 728-pantalla.
+
+## Tanda 729 — el vacío de Mi colección, con la mascota y dos caminos (oct. 2026)
+
+V6 de la lista. El vacío de Cartas era un título, una frase y tres
+botones —buscar, abrir una colección, ver el catálogo—: tres decisiones
+antes de la primera carta. Ahora lleva la mascota (con su hueco: 96 × 145),
+una frase y DOS caminos: «Escanear una carta», que abre la cámara ahí
+mismo (`data-vacio-escanear` → `abrirEscaner`), y «Buscar una carta».
+Debajo, «¿La llevas en otra app? Tráela de Collectr o Dex», que abre el
+importador de la 580 (la clase `mc-importar-abrir`, que ya escuchaba el
+documento). Siguen siendo BOTONES que van, no frases que describen (la
+510), y la prueba pulsa los tres.
+
+**Ficheros**: `mi-coleccion.html` (y `cartas.html`), `js/mi-coleccion.js`,
+`css/mi-coleccion.css`. Prueba 729-pantalla.

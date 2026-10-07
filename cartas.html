@@ -313,15 +313,18 @@
              —una frase de la interfaz es una afirmación sobre lo que hace
              el código— y la forma de que no vuelva a pasar es que los tres
              caminos sean BOTONES que van, no palabras que describen. -->
-        <div class="mc-vacio hidden" id="mcCartasVacio">
+        <!-- Con la mascota y DOS caminos (729, V6 de la lista): escanear o
+             buscar, y debajo traerla de otra app. Los tres de antes eran
+             tres decisiones antes de la primera carta. -->
+        <div class="mc-vacio mc-vacio-mascota hidden" id="mcCartasVacio">
+          <img class="mc-vacio-img" src="/assets/images/mascota.webp" alt="" width="96" height="145" loading="lazy" />
           <p class="mc-vacio-titulo"><strong>Todavía no hay cartas aquí.</strong></p>
-          <p class="mc-vacio-texto">Hay tres formas de empezar, y la más rápida es buscar la carta por su nombre.</p>
+          <p class="mc-vacio-texto">Escanea la primera con la cámara o búscala por su nombre.</p>
           <div class="mc-vacio-acciones">
-            <button type="button" class="btn-primary" data-ir-pestania="buscar">Buscar una carta</button>
-            <button type="button" class="btn-outline" data-ir-pestania="album">Abrir una colección</button>
-            <a class="btn-outline" href="/cartas">Ver el catálogo</a>
+            <button type="button" class="btn-primary" data-vacio-escanear>Escanear una carta</button>
+            <button type="button" class="btn-outline" data-ir-pestania="buscar">Buscar una carta</button>
           </div>
-          <p class="mc-vacio-pie">También puedes añadirlas desde el botón de la ficha de cualquier carta.</p>
+          <p class="mc-vacio-pie">¿La llevas en otra app? <button type="button" class="link-btn mc-importar-abrir">Tráela de Collectr o Dex</button></p>
         </div>
         <p class="subtext hidden" id="mcSinResultados">Ninguna carta de tu colección encaja con esos filtros.</p>
 
