@@ -306,6 +306,10 @@ console.log('\n── 2. D · El CSS del foro deja de bajarlo todo el mundo ─�
     // poder comprobar después que llegó hasta el final (ver más abajo).
     recogidas[pagina] = usadas
     const tiene = reglasDe(hojas)
+    // Y las que la página define en su PROPIO <style> (745): la de «Sin
+    // conexión» se sirve sin red y no puede bajar ninguna hoja, así que lleva
+    // la suya dentro.
+    for (const bloque of fuente.matchAll(/<style>([\s\S]*?)<\/style>/g)) for (const c of bloque[1].matchAll(/\.([a-zA-Z][\w-]*)/g)) tiene.add(c[1])
     const enOtra = reglasDe(todasLasHojas.filter((h) => !hojas.includes(h)))
     // Una clase que empieza por un prefijo armado en ejecución cuenta como
     // USADA aquí: no se puede saber si esta página la compone o no, y
