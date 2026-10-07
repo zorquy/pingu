@@ -35565,6 +35565,23 @@ coinciden. Esta tanda trae cuatro.
   la barra, «14,2 % de las listas» y a la derecha «54,1 %» con «gana»
   debajo; fuera la tendencia y «120 mazos · 30 top 8», que siguen en el
   ordenador y en la ficha del mazo, y fuera el párrafo de presentación.
+- **El escritorio (D1)**: con la lateral puesta (≥1.400 px y ratón), el
+  buscador de arriba es una pastilla ancha que se lee —«Busca cartas,
+  guías, gente…» y su «Ctrl K» (⌘ K en un Mac)— y SIGUE siendo
+  `#navSearchBtn`: no hay segundo buscador, el texto va dentro del botón.
+  Tu cuenta baja al pie de la lateral como en su maqueta (avatar, nombre,
+  «Ver perfil»), y la tarjeta no abre nada propio: pulsa el avatar de
+  arriba, que se aparta de la vista pero sigue ahí, porque es quien monta
+  la hoja «Tú». El clic de la tarjeta no sube al documento —el «cerrar al
+  pulsar fuera» la cerraría en el mismo toque— y la hoja sale fija junto a
+  la tarjeta. Trampa: el desenfoque de la barra de arriba la hace CAJA de
+  lo que va fijo dentro, así que con la hoja abierta la barra se queda sin
+  él (`:has(#navUserDropdown:not(.hidden))`); sin eso la hoja salía fuera
+  de la pantalla. La barra se pinta por partes, así que un vigía espera a
+  las dos piezas — y sin sesión no espera al avatar, o se quedaría mirando
+  para siempre. Las Expansiones de Mi colección, en el ordenador, son
+  baldosas en rejilla (código, anillo, nombre y «n/total»), las mismas
+  filas del móvil colocadas de otra forma.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35581,7 +35598,7 @@ coinciden. Esta tanda trae cuatro.
 `js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
 `js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
-`css/meta.css`, `CLAUDE.md`,
+`css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,

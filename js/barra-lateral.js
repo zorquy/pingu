@@ -71,6 +71,44 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
     doc.documentElement.classList.toggle('mc-menu-al-lado', dentro)
   }
   meterMenu(true)
+  // LA BARRA DE ARRIBA DE SU MAQUETA (748, D1): el buscador es una pastilla
+  // ancha que se lee —con su «Ctrl K»— y tu cuenta baja a la lateral, abajo,
+  // como «Nombre · Ver perfil». El botón y el avatar de arriba siguen
+  // siendo los que mandan: la pastilla ES el botón de buscar, y la tarjeta
+  // de abajo pulsa el avatar (que abre la hoja «Tú»).
+  const pintarBuscador = () => {
+    const buscar = doc.getElementById('navSearchBtn')
+    if (!buscar) return false
+    if (!buscar.querySelector('.nav-busca-texto')) {
+      const mac = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '')
+      buscar.insertAdjacentHTML('beforeend', `<span class="nav-busca-texto">Busca cartas, guías, gente…</span><kbd class="nav-busca-kbd">${mac ? '⌘ K' : 'Ctrl K'}</kbd>`)
+    }
+    return true
+  }
+  const montarYo = () => {
+    const avatar = doc.getElementById('navUserBtn')
+    if (!avatar || barra.querySelector('.lat-yo')) return !!avatar
+    const yo = doc.createElement('button')
+    yo.type = 'button'
+    yo.className = 'lat-yo'
+    yo.innerHTML = `<span class="lat-yo-avatar" style="${avatar.getAttribute('style') || ''}" aria-hidden="true">${avatar.childNodes[0]?.nodeType === 3 ? avatar.childNodes[0].textContent : ''}</span><span class="lat-yo-texto"><b></b><small>Ver perfil</small></span>${icons.settings(18)}`
+    yo.querySelector('b').textContent = avatar.getAttribute('title') || 'Tu cuenta'
+    yo.setAttribute('aria-label', `Tu cuenta: ${avatar.getAttribute('title') || ''}`)
+    // El clic no sube al documento: si subiera, el «cerrar al pulsar fuera»
+    // del menú lo cerraría en el mismo toque que lo abre.
+    yo.addEventListener('click', (e) => { e.stopPropagation(); avatar.click() })
+    barra.appendChild(yo)
+    doc.documentElement.classList.add('lat-con-yo')
+    return true
+  }
+  // La barra de arriba se pinta por partes (el avatar llega después): se
+  // mira hasta que estén las dos piezas. Sin sesión no hay avatar que
+  // esperar, y el vigía se quedaría mirando para siempre.
+  const listo = () => { const b = pintarBuscador(); const y = conSesion ? montarYo() : true; return b && y }
+  if (!listo() && globalThis.MutationObserver) {
+    const ob = new MutationObserver(() => { if (listo()) ob.disconnect() })
+    ob.observe(navbar, { childList: true, subtree: true })
+  }
   // Quien tenga algo que colgar de la lateral (los álbumes de Mi colección,
   // 741) se entera aquí: la lateral llega por `import()` y puede ser después.
   doc.dispatchEvent(new CustomEvent('pokedoc:lateral'))

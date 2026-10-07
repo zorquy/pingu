@@ -178,3 +178,138 @@
     font-weight: 700;
   }
 }
+
+/* ── 748: la barra de arriba de su maqueta (D1; SCHEMA 748) ── */
+.nav-busca-texto,
+.nav-busca-kbd {
+  display: none;
+}
+
+@media (min-width: 1400px) and (pointer: fine) {
+  html.con-lateral .nav-inner {
+    justify-content: flex-start;
+  }
+
+  html.con-lateral .nav-right {
+    flex: 1 1 auto;
+  }
+
+  html.con-lateral .nav-search-wrap {
+    flex: 0 1 420px;
+    order: -1;
+    margin-right: auto;
+  }
+
+  html.con-lateral #navSearchBtn {
+    justify-content: flex-start;
+    gap: var(--e-sm);
+    width: 100%;
+    height: 44px;
+    padding: 0 var(--e-sm) 0 var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    color: var(--text-mid);
+  }
+
+  html.con-lateral .nav-busca-texto {
+    display: block;
+    flex: 1 1 auto;
+    overflow: hidden;
+    font-size: var(--t-sm);
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html.con-lateral .nav-busca-kbd {
+    display: block;
+    padding: 2px var(--e-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font: inherit;
+    font-size: var(--t-2xs);
+    font-weight: 700;
+  }
+
+  /* Tu cuenta, abajo en la lateral; el avatar de arriba se aparta (sigue
+     ahí: es el que abre la hoja), y la hoja sale junto a la tarjeta. */
+  html.lat-con-yo #navUserBtn {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  /* El desenfoque de la barra la convierte en la caja de lo que va fijo
+     (la misma trampa que la hoja del móvil): con la hoja abierta, fuera. */
+  html.lat-con-yo:has(#navUserDropdown:not(.hidden)) .navbar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transform: none;
+    background: var(--white);
+  }
+
+  html.lat-con-yo #navUserDropdown {
+    position: fixed;
+    top: auto;
+    right: auto;
+    bottom: var(--e-lg);
+    left: 252px;
+  }
+
+  .lat-yo {
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+    margin-top: auto;
+    min-height: 60px;
+    padding: var(--e-sm) var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    color: var(--text-mid);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .lat-yo:hover {
+    border-color: var(--navy);
+  }
+
+  .lat-yo-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background-color: var(--navy);
+    background-position: center;
+    background-size: cover;
+    color: var(--blanco-fijo);
+    font-weight: 800;
+  }
+
+  .lat-yo-texto {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .lat-yo-texto b {
+    overflow: hidden;
+    color: var(--text);
+    font-size: var(--t-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lat-yo-texto small {
+    font-size: var(--t-xs);
+  }
+}

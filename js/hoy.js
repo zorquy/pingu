@@ -121,7 +121,7 @@ export function sigueHtml(guia, fila) {
 export function valorHtml(filas) {
   if (!filas) return ''
   if (!filas.length) {
-    return `<a class="hoy-valor" href="/mi-coleccion"><span class="hoy-valor-texto"><small>Tu colección</small><b>Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></span></a>`
+    return `<a class="hoy-valor" href="/mi-coleccion"><span class="hoy-valor-texto"><small>Tu colección</small><b class="hoy-valor-invita">Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></span></a>`
   }
   const ultimo = filas[filas.length - 1]
   const mes = cambioDelMes(filas)

@@ -8104,15 +8104,56 @@ input.mc-alb-titulo:not([readonly]):focus {
   letter-spacing: 0;
   text-transform: none;
 }
+/* En el ordenador, la rejilla de tarjetas de su maqueta (D1): el código y
+   el anillo arriba, el nombre y la cuenta debajo. */
 @media (min-width: 900px) {
   .mc-estanteria-lista {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--e-md);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
-  .mc-estanteria-lista .mc-set-fila:nth-child(2) {
-    border-top: 0;
+  .mc-set-tarjeta.mc-set-fila {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'codigo . anillo'
+      'info info info';
+    align-items: start;
+    gap: var(--e-sm) var(--e-md);
+    min-height: 112px;
+    padding: var(--e-md) var(--e-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
   }
-  .mc-estanteria-lista .mc-set-fila:nth-child(even) {
-    border-left: 1px solid var(--border);
+  .mc-set-fila + .mc-set-fila {
+    border-top: 1px solid var(--border);
+  }
+  .mc-set-fila:hover {
+    border-color: var(--navy);
+    background: var(--white);
+  }
+  .mc-set-fila .mc-set-codigo {
+    grid-area: codigo;
+    height: 32px;
+    padding: 0 var(--e-sm);
+    font-size: var(--t-xs);
+  }
+  .mc-set-fila .mc-set-anillo {
+    grid-area: anillo;
+    width: 48px;
+    height: 48px;
+  }
+  .mc-set-fila .mc-set-info {
+    grid-area: info;
+  }
+  .mc-set-fila .mc-set-nombre {
+    font-size: var(--t-md);
+  }
+  .mc-set-fila .mc-set-corta {
+    font-size: var(--t-xs);
   }
 }
