@@ -16,6 +16,15 @@ están las veinte de la lista de PINGU.
 `js/mi-coleccion/escaner.js` (`recortarFranjasDe`, `marcoEnLaFoto`),
 `css/mi-coleccion.css`, `SCHEMA.md`. Prueba 754-pantalla (nueva).
 
+**Suite entera (753, antes de la 754)**: 366 verdes y 9 rojos, mirados
+todos. Uno era de verdad y está arreglado: el botón de pedir el borrado de
+la cuenta llevaba un rojo a mano que en oscuro no se lee (3,9), y desde la
+752 está a la vista (antes vivía en «Acerca», escondido) — ahora con el
+token. La 656 y la 707 eran pruebas al día con lo nuevo (el «Avísame» y el
+corazón); la 709 sale verde sola; 493 y 514 (ffmpeg), 631 y 632 (sin el
+PostgreSQL local) y la 492 (roja desde antes de la 749) siguen como
+estaban. Después: 754-pantalla, 753, 752, 311, 656, 707, 709 y 299, verdes.
+
 **Pendiente**: nada de la lista. Migración por ejecutar (de la 753):
 `supabase-migration-avisos-lanzamientos.sql`.
 
