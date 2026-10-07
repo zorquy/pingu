@@ -2614,6 +2614,21 @@ function totalDe(set) {
   return set?.card_count_total || set?.card_count_official || 0
 }
 
+// EL ANILLO DE PROGRESO (710, C2). PINGU eligió la propuesta de las
+// expansiones con anillos: en el móvil la tarjeta grande de la 668 cabía
+// de dos en dos por pantalla, y lo que se busca en una estantería es «cuánto
+// me falta de cada una». El anillo es un `conic-gradient` con el tanto por
+// ciento en `--pct`; la completa lleva la marca y va en verde. Solo cuando
+// es TU colección y el set tiene numeración: sin cuenta no hay progreso
+// que enseñar, y un 0 % en cada tarjeta del catálogo afirmaría algo falso.
+function anilloDeSet(tengo, total) {
+  if (!esMia || !sesion || !total) return ''
+  const pct = Math.min(100, Math.round((tengo / total) * 100))
+  const completo = tengo >= total
+  return `<span class="mc-set-anillo${completo ? ' completo' : ''}" style="--pct:${pct}" role="img" aria-label="${tengo} de ${total}"><i aria-hidden="true"></i>`
+    + `<b aria-hidden="true">${completo ? icon('<polyline points="20 6 9 17 4 12"></polyline>', 18) : `${pct}%`}</b></span>`
+}
+
 // La tarjeta de una expansión (rehecha en la tanda 405).
 //
 // PINGU: «algunos logos se salen, todos deberían ser del mismo tamaño, y
@@ -2714,7 +2729,9 @@ function tarjetaDeSet(set, tengo) {
             ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
           </span>
           ${era || fecha ? `<span class="mc-set-sub">${escapeHtml([era, fecha].filter(Boolean).join(' · '))}</span>` : ''}
+          ${total ? `<span class="mc-set-corta">${esMia && sesion ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : `${total} cartas`}</span>` : ''}
         </span>
+        ${anilloDeSet(tengo, total)}
       </span>
       <span class="mc-set-cifras">
         ${v?.ahora ? `<span class="mc-set-cifra mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket"><i>Valor</i>${chispaHtml(serie)}<b>${escapeHtml(fmtEnteroEuros.format(v.ahora))} €</b></span>` : ''}

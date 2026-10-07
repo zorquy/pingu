@@ -34235,3 +34235,31 @@ animan. Para «menos movimiento» y para devolver la posición se pide
 (la regla pura, las tres barras en un iPhone, el teclado, el toque en
 la sección activa y la vuelta atrás con la página creciendo tarde; quitar
 `recordarPosicion` la pone roja).
+
+## Tanda 710 — las expansiones con anillo, y en el móvil en filas (oct. 2026)
+
+C2 de la lista de propuestas. En el móvil la tarjeta de expansión de la
+668 (cabecera con el arte, tres cifras, gráfica, pie) cabía de dos en dos
+por pantalla, y en una estantería lo que se busca es «cuánto me falta de
+cada una». Dos cambios, y ninguno quita lo de la 668 en el escritorio:
+
+- **El anillo** (`anilloDeSet`): un `conic-gradient` con el tanto por
+  ciento en `--pct`, en la tercera columna de la cabecera. La completa va
+  en verde con la marca. El aro vive en un `<i>` y la cifra en un `<b>`
+  hermano: la máscara radial que vacía el aro por dentro se comería
+  también el texto si fuera su hijo. **Solo en TU colección y si el set
+  tiene numeración**: en el catálogo, o en la de otra persona, no hay
+  progreso que enseñar, y un «0 %» en cada set afirmaría algo falso.
+- **Por debajo de 640 px la tarjeta es una fila**: logo de 52 px, nombre,
+  era y fecha, la cuenta corta (`.mc-set-corta`: «128 de 197», o «197
+  cartas» en el catálogo) y el anillo. Las cifras, la gráfica y el pie se
+  esconden. Caben seis por pantalla en vez de dos. La agrupación por era
+  ya existía (409, `gruposDeEstanteria`).
+
+La marca del anillo se pinta con `icon('<polyline …/>')` en vez de un
+`icons.check` nuevo: `js/icons.js` lo baja la portada, y está a 0,2 KB del
+techo.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`. Prueba
+710-pantalla (anillos al 100 y al 25 %, filas bajas en el iPhone, la
+tarjeta entera en el escritorio, sin anillos en el catálogo).

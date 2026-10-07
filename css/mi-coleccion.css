@@ -6477,3 +6477,75 @@ input.mc-alb-titulo:not([readonly]):focus {
 @media (prefers-reduced-motion: reduce) {
   .mc-esq i { animation: none; }
 }
+
+/* ── 710: el anillo de progreso y la fila compacta del móvil ──
+   El porqué, en SCHEMA 710. El anillo es un conic-gradient con `--pct`. */
+.mc-set-cab {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+}
+.mc-set-anillo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+}
+/* El aro va en su propio `<i>`: la máscara que lo vacía por dentro se
+   comería también la cifra si fuera su hija. */
+.mc-set-anillo > i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--navy) calc(var(--pct) * 1%), var(--border) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+}
+.mc-set-anillo > b {
+  position: relative;
+  color: var(--text);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.mc-set-anillo.completo > i {
+  background: var(--success);
+}
+.mc-set-anillo.completo > b {
+  color: var(--success);
+}
+.mc-set-corta {
+  display: none;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .mc-estanteria {
+    gap: var(--e-sm);
+  }
+  .mc-set-tarjeta {
+    padding: 0;
+    gap: 0;
+  }
+  .mc-set-cab {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: var(--e-md);
+    min-height: 72px;
+    padding: var(--e-sm) var(--e-md) var(--e-sm) var(--e-sm);
+  }
+  .mc-set-logo img {
+    max-height: 40px;
+  }
+  .mc-set-cifras,
+  .mc-set-tarjeta .mc-set-grafica,
+  .mc-set-pie {
+    display: none;
+  }
+  .mc-set-corta {
+    display: block;
+  }
+  .mc-set-tarjeta.completo .mc-set-corta {
+    color: var(--success);
+  }
+}

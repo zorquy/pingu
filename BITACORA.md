@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 2) — PINGU-Claude (710 — las expansiones con anillo, y en el móvil en filas)
+
+**Hecho**: C2 de la lista. Cada expansión tuya lleva un anillo con lo que
+tienes (la completa en verde con su marca). En el móvil la tarjeta grande
+pasa a ser una fila con logo, nombre, fecha, «128 de 197» y el anillo:
+caben seis por pantalla. En el escritorio sigue la tarjeta de la 668. En
+el catálogo, sin colección, no hay anillos.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`.
+Prueba 710-pantalla en `pruebas`.
+
+**Pendiente**: la 711 (la Pokédex con el color del tipo).
+
 ## 2026-10-07 (mañana, 1) — PINGU-Claude (709 — las barras se apartan al bajar; tocar la sección sube; volver deja donde estabas)
 
 **Hecho**: PINGU eligió TODAS las propuestas de la lista de mejoras
