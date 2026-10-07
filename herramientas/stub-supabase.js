@@ -514,6 +514,10 @@ sembrar('__FAKE_SET_VALOR__', 'tcg_set_valor', (i) => ({
 sembrar('__FAKE_HISTORIAL__', 'tcg_card_history', (i) => ({
   card_id: 'carta-0', dia: '2026-10-05', cm_low: null, cm_low_es: null, cm_low_en: null, cm_low_de: null, cm_low_fr: null, cm_low_it: null, cm_low_ja: null, tp_market_eur: null, origen: 'tcggo',
 }))
+// Los avisos de la campana (736).
+sembrar('__FAKE_NOTIFICACIONES__', 'user_notifications', (i) => ({
+  id: `aviso-${i}`, recipient_id: 'user-1', type: 'forum_reply', title: 'Aviso', body: null, link: null, read_at: null, created_at: new Date().toISOString(),
+}))
 sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
   market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,
 }))
