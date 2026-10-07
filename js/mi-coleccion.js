@@ -67,6 +67,7 @@ import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
 import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
+import { abrirEnsenar, celebrarSetCompleto } from './mi-coleccion/ensenar.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -912,6 +913,26 @@ function pintarResumen() {
 //
 // Por eso van aquí y no a mano: una función que no se puede hacer a medias.
 function meterLinea(l, carta = null) {
+  // ¿Era la que faltaba? Se mira antes y después (725, X9).
+  const delAlbum = album.set && (carta?.set_id || cartas.get(l.card_id)?.set_id) === album.set
+  const antes = delAlbum ? albumCompleto() : null
+  meterLineaSinMirar(l, carta)
+  if (antes === false && albumCompleto()) {
+    const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
+    celebrarSetCompleto({ setId: `${mercado}:${album.set}`, nombre: elSet ? nombreDeSet(elSet) : album.set, total: album.cartas.length })
+  }
+}
+
+// ¿Tienes todas las del set numerado del álbum abierto? `null` si no se
+// sabe (sin álbum, sin cartas cargadas).
+function albumCompleto() {
+  if (!album.set || !album.cartas?.length) return null
+  const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
+  const { completo } = progresoDeSet({ cartas: album.cartas, set: elSet, tengo: tengoEnAlbum })
+  return completo.total > 0 ? completo.tengo >= completo.total : null
+}
+
+function meterLineaSinMirar(l, carta = null) {
   for (const lista of [lineas, lineasTodo]) {
     const i = lista.findIndex((x) => x.id === l.id)
     if (i >= 0) lista[i] = l
@@ -5704,6 +5725,14 @@ function enganchar() {
     else crecerDesde(e.target.closest('[data-linea]').querySelector('img'), () => abrirEditor(l))
   })
   $('mcFaltanCopiar')?.addEventListener('click', () => void copiarLoQueFalta())
+  // Enseñar las que tengo (725, X15): a pantalla completa, en el orden del
+  // álbum.
+  $('mcAlbumEnsenar')?.addEventListener('click', () => {
+    $('mcAlbumMenu')?.removeAttribute('open')
+    const mias = (album.cartas || []).filter((c) => tengoEnAlbum(c.id) > 0)
+    if (!mias.length) return showToast('Todavía no tienes ninguna de esta colección.', 'error')
+    abrirEnsenar(mias.map((c) => ({ fotos: cadenaDeEscaneo(c, null, 'high'), nombre: nombreDe(c), detalle: `${nombreDeSet(c.tcg_sets) || c.set_id} · ${c.local_id}` })))
+  })
 
   // Los «ver todas» de los vistazos (tanda 436). Delegado en la caja, que
   // no se repinta: los vistazos de dentro sí, y uno por botón habría que

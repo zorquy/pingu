@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 5) — PINGU-Claude (725 — enseñar la colección y la medalla del set completo)
+
+**Hecho**: X15 y X9 de la lista. En una expansión, «Enseñar las que
+tengo» abre tus cartas a pantalla completa, una a una; y al añadir la
+carta que te faltaba sale la mascota con su medalla (una vez por set).
+
+**Ficheros**: `js/mi-coleccion/ensenar.js`, `js/mi-coleccion.js`,
+`mi-coleccion.html`, `cartas.html`, `css/mi-coleccion.css`, `SCHEMA.md`.
+Prueba 725-pantalla en `pruebas`.
+
+**Pendiente**: J1, J4, J5, D1, D2, V2–V7, A1 y las X que quedan.
+
 ## 2026-10-07 (tarde, 4) — PINGU-Claude (724 — los atajos de teclado y la carta al pasar el ratón)
 
 **Hecho**: D6 y D4 de la lista. «G» y una letra para ir a cada sección,

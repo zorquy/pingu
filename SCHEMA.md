@@ -34725,3 +34725,33 @@ D6 y D4 de la lista.
 
 **Ficheros**: `js/nav-search.js`, `js/atajos.js` y `js/vista-carta.js`
 (nuevos), `js/hovercard.js`, `css/buscador.css`. Prueba 724-pantalla.
+
+## Tanda 725 — enseñar la colección y la medalla del set completo (oct. 2026)
+
+X15 y X9 de la lista, en `js/mi-coleccion/ensenar.js`.
+
+- **X15 — «Enseñar las que tengo»**, en el menú ⋮ de una expansión: a
+  pantalla completa (fondo negro, `requestFullscreen` donde se deja), una
+  carta cada vez y en la calidad alta, solo las TUYAS y en el orden del
+  álbum, con su nombre, set y número y «2 de 45». Se pasa con las flechas
+  de los lados, las del teclado o deslizando (`decidirGesto`, la de la
+  720), y se sale con la ✕, Esc o deslizando hacia abajo. Las teclas se
+  escuchan en el DOCUMENTO mientras está abierto: al llegar a la última,
+  su flecha se apaga, el foco se cae del diálogo y sus teclas dejaban de
+  llegar.
+- **X9 — la medalla**: `meterLinea` (por donde pasa TODA carta que entra,
+  la añadas desde la hoja, el «+», el escáner o marcando varias) mira si
+  el set del álbum abierto estaba completo antes y lo está después, y si
+  es la que faltaba saca la mascota con su medalla y el nombre del set.
+  Completo es el set NUMERADO (`progresoDeSet().completo`, la barra de la
+  398), con el idioma del álbum si lo hay. Una vez por set y por
+  navegador (`pokedoc-sets-completos`): quitarla y volverla a poner no es
+  completarlo otra vez. La medalla entra con un giro que «menos
+  movimiento» quita. Y va SIN modal, arriba y compacta: la carta que lo
+  completa acaba de entrar con su aviso de Deshacer abajo (712), y la
+  primera versión —centrada, con capa— lo dejaba sin poder pulsar (lo
+  cazó la 712).
+
+**Ficheros**: `js/mi-coleccion/ensenar.js` (nuevo), `js/mi-coleccion.js`,
+`mi-coleccion.html` (y `cartas.html`), `css/mi-coleccion.css`. Prueba
+725-pantalla.

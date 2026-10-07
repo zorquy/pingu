@@ -7020,3 +7020,186 @@ input.mc-alb-titulo:not([readonly]):focus {
     animation: none;
   }
 }
+
+/* ── 725: enseñar la colección y el set completo (SCHEMA 725) ── */
+.mc-ensenar {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #000;
+  color: var(--blanco-fijo);
+}
+
+.mc-ensenar[open] {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
+  align-items: center;
+}
+
+.mc-ensenar::backdrop {
+  background: #000;
+}
+
+.mc-ensenar-carta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-md);
+  margin: 0;
+}
+
+.mc-ensenar-carta img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100dvh - 140px);
+  aspect-ratio: 600 / 837;
+  border-radius: var(--radius-lg);
+  object-fit: contain;
+}
+
+.mc-ensenar-carta figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mc-ensenar-carta small {
+  color: rgb(255 255 255 / 75%);
+}
+
+.mc-ensenar-lado,
+.mc-ensenar-cerrar {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 15%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xl);
+  cursor: pointer;
+}
+
+.mc-ensenar-lado {
+  justify-self: center;
+}
+
+.mc-ensenar-lado:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.mc-ensenar-cerrar {
+  position: absolute;
+  top: calc(var(--e-md) + env(safe-area-inset-top, 0px));
+  right: var(--e-md);
+  font-size: var(--t-lg);
+}
+
+.mc-ensenar-sitio {
+  position: absolute;
+  bottom: calc(var(--e-md) + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  width: 100%;
+  margin: 0;
+  color: rgb(255 255 255 / 75%);
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+/* Arriba, compacta y sin capa: abajo está el aviso de Deshacer de esa
+   misma carta, y no puede quedar tapado. */
+.mc-completo {
+  position: fixed;
+  top: calc(80px + env(safe-area-inset-top, 0px));
+  right: 0;
+  bottom: auto;
+  left: 0;
+  z-index: 1000;
+  width: min(380px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.mc-completo[open] {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.mc-completo-mascota {
+  position: relative;
+  flex: none;
+}
+
+.mc-completo-mascota img {
+  display: block;
+}
+
+.mc-completo-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-completo h2 {
+  margin: 0;
+  font-size: var(--t-md);
+}
+
+.mc-completo p {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-completo-cerrar {
+  flex: none;
+  align-self: flex-start;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mc-completo-medalla {
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--rarity-gold-bg);
+  color: var(--rarity-gold);
+  animation: mc-medalla 0.5s var(--ease);
+}
+
+@keyframes mc-medalla {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-completo-medalla {
+    animation: none;
+  }
+}
