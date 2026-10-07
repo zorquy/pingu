@@ -64,6 +64,8 @@ console.log('── 2. Tu perfil ──')
 {
   const { page, ctx, errores } = await abrir('/perfil.html', { vitrina: [{ posicion: 1, card_id: 'xy5-2', market: 'WEST' }] })
   check('sin errores', errores.length === 0, errores.join(' | '))
+  const cifras = await page.$$eval('#profileStats .perfil-cifra', (cs) => cs.map((c) => `${c.querySelector('.rotulo').textContent}:${c.querySelector('.valor').textContent.trim()}`))
+  check('las cuatro cifras: cartas (las ocho tuyas), racha, guías y torneos', JSON.stringify(cifras.map((c) => c.split(':')[0])) === JSON.stringify(['Cartas', 'Racha', 'Guías', 'Torneos']) && cifras[0] === 'Cartas:8', JSON.stringify(cifras))
   const v = await vitrina(page)
   check('la vitrina, con tu carta, cinco huecos y «Cambiar»', v?.visto && JSON.stringify(v.cartas) === JSON.stringify(['Carta 2']) && v.huecos === 5 && v.boton === 'Cambiar', JSON.stringify(v))
   await page.click('#perfilVitrina .vitrina-editar')

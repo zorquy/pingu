@@ -65,10 +65,11 @@ console.log('\n── 1. Un perfil es UNA tarjeta, no tres cajas ──')
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 2. Las cifras van todas en la MISMA fila ──')
 {
+  // Siete en los dos desde la 743: cartas, racha, guías y torneos + tres.
   // La tira mezcla lo que pinta el JS (#profileStats) con los tres
   // contadores que ya vienen en el HTML. Si `display: contents` fallara,
   // el lote sería una caja y las cifras saldrían en dos bloques.
-  for (const [ruta, sesion, cuantas] of [['/usuario?u=Ash', 'user-2', 5], ['/perfil', 'user-1', 7]]) {
+  for (const [ruta, sesion, cuantas] of [['/usuario?u=Ash', 'user-2', 7], ['/perfil', 'user-1', 7]]) {
     const { page, errores } = await abrir(ruta, { sesion })
     check(`${ruta}: sin errores de JavaScript`, errores.length === 0, errores[0] || '')
     const n = await page.locator('.perfil-cifra').count()
