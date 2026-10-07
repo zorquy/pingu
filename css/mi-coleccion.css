@@ -8608,3 +8608,112 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-precio-atajos {
   margin-top: var(--e-sm);
 }
+
+/* ── «La quiero» (751). Ver SCHEMA 751. ── */
+.mc-quiero-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-md);
+}
+
+.mc-quiero-cifra {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-quiero-cifra b {
+  color: var(--text);
+  font-size: var(--t-lg);
+  font-weight: 800;
+}
+
+.mc-quiero-cifra small { font-size: var(--t-xs); }
+
+.mc-quiero-compartir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.mc-quiero-precio {
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 800;
+}
+
+.mc-quiero-precio.sin {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-quiero-aviso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-quiero-aviso.puesto {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.mc-quiero-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-xl) var(--e-md);
+  text-align: center;
+}
+
+.mc-quiero-vacio p { margin: 0; }
+
+.mc-quiero-vacio-icono { color: var(--danger); }
+
+.mc-deseos .mc-quiero-fila {
+  gap: var(--e-xs) var(--e-md);
+  padding: var(--e-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mc-deseos .mc-quiero-fila > a { flex: 1 1 0; }
+
+.mc-deseos .mc-quiero-fila .mc-fila-dato {
+  flex: 1 0 100%;
+  justify-content: flex-start;
+  padding-left: 44px;
+}
+
+.mc-deseos .mc-quiero-fila .mc-fila-dato { flex-wrap: nowrap; }
+
+.mc-quiero-fila .mc-deseo-prioridad {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.mc-quiero-fila .mc-quiero-aviso,
+.mc-quiero-fila .mc-borrar { flex: 0 0 auto; }
+
+@media (min-width: 720px) {
+  .mc-deseos .mc-quiero-fila { flex-wrap: nowrap; }
+  .mc-deseos .mc-quiero-fila .mc-fila-dato { flex: 0 0 auto; order: 1; padding-left: 0; }
+  .mc-quiero-fila .mc-quiero-precio { order: 2; min-width: 88px; text-align: right; }
+}

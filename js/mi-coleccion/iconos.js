@@ -41,4 +41,7 @@ export const ICONOS_COLECCION = {
         '<circle cx="18" cy="18" r="2"></circle>',
       size
     ),
+  // «La quiero» (751). Lo usan también /carta y la hoja «Tú».
+  corazon: (size) =>
+    icon('<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.8 1-1.1a5.5 5.5 0 0 0 0-7.8z"></path>', size),
 }

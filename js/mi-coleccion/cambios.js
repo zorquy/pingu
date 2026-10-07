@@ -34,6 +34,14 @@ export async function deseosDe(userId) {
   return data || []
 }
 
+// Los de UNA carta (751): el corazón de /carta pregunta por la carta que
+// enseña, no por la lista entera.
+export async function deseosDeCarta(userId, cardId) {
+  const { data, error } = await supabase.from('user_wants').select(COLUMNAS_DESEO).eq('user_id', userId).eq('card_id', cardId)
+  if (error) throw traducir(error)
+  return data || []
+}
+
 export async function anadirDeseo(deseo) {
   const { data, error } = await supabase.from('user_wants').insert(deseo).select(COLUMNAS_DESEO).single()
   if (error) {

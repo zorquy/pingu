@@ -39,6 +39,8 @@ import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma } from './cardmarket.js'
 import { engancharAvisos } from './avisos-precio.js'
+import * as laQuiero from './la-quiero.js'
+import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
 import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
@@ -220,6 +222,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
     ? `<div class="mc-ficha-acciones carta-acciones" id="cartaAcciones">
         <button type="button" class="mc-ficha-tile mc-ficha-mas" id="cmAnadir"><i aria-hidden="true">+</i><span>Añadir</span></button>
         <a class="mc-ficha-tile hidden" id="cmEditar" href="${escapeHtml(buscarla)}"><i aria-hidden="true">${icons.edit(16)}</i><span>Editar</span><small id="cmTienes"></small></a>
+        ${laQuiero.losetaHtml('cmQuiero')}
         <button type="button" class="mc-ficha-tile" id="cmAviso" data-aviso="${escapeHtml(carta.id)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame</span></button>
         <button type="button" class="mc-ficha-tile" id="cmCompartir"><i aria-hidden="true">${icons.share(16)}</i><span>Compartir</span></button>
       </div>`
@@ -246,6 +249,27 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
   if (!sesion) return
 
   engancharAvisos($('cartaAcciones'), () => ({ market: carta.market || MERCADO, idioma: estado.idioma, precio: precioActual() }))
+
+  // «La quiero» (751): el corazón sale cuando se sabe si la quieres; sin
+  // poder preguntarlo (sin la migración de los cambios) no sale.
+  let deseos = null
+  deseosDeCarta(sesion.user.id, carta.id).then((filas) => {
+    deseos = filas
+    laQuiero.pintarLoseta($('cmQuiero'), carta.id, deseos)
+  }).catch(() => {})
+  $('cmQuiero')?.addEventListener('click', async () => {
+    const b = $('cmQuiero')
+    if (!Array.isArray(deseos)) return
+    b.disabled = true
+    try {
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos })
+    } catch (err) {
+      showToast(err.message, err.yaEstaba ? 'info' : 'error')
+    } finally {
+      b.disabled = false
+    }
+    laQuiero.pintarLoseta(b, carta.id, deseos)
+  })
 
   // Lo que tienes de ella, para la loseta de Editar y para la primera
   // cara del diálogo. Se vuelve a pedir al guardar.

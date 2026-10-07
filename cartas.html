@@ -930,6 +930,17 @@
         </div>
       </dialog>
 
+      <!-- «LA QUIERO» (tanda 751): lo que buscas, con su precio, lo que
+           suma, su aviso y para compartirla. Es la lista de los cambios
+           (`user_wants`) en su propia pantalla, como Cambios: se llega por
+           el Panel, por la hoja «Tú» y por `?ver=quiero`. -->
+      <section id="mcPanelQuiero" class="hidden" role="tabpanel" aria-label="La quiero">
+        <div class="mc-bloque-quiero">
+          <h2 class="mc-subtitulo">La quiero</h2>
+          <div id="mcQuieroPanel"></div>
+        </div>
+      </section>
+
       <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
         <div class="mc-bloque-cambios" id="mcBloqueCambios">
           <h2 class="mc-subtitulo">Cambios</h2>
@@ -1281,6 +1292,7 @@
             <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
               <button type="button" class="mc-ficha-tile mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span>Añadir</span></button>
               <button type="button" class="mc-ficha-tile hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaBloque"><i aria-hidden="true" data-icono="edit"></i><span>Editar</span><small id="mcEdTienes"></small></button>
+              <button type="button" class="mc-ficha-tile mc-ficha-quiero hidden" id="mcEdQuiero" aria-pressed="false"><i aria-hidden="true" data-icono-quiero></i><span>La quiero</span></button>
               <button type="button" class="mc-ficha-tile" id="mcEdAviso"><i aria-hidden="true" data-icono="bell"></i><span>Avísame</span></button>
             </div>
             <!-- TU COPIA, aquí desde la 667: PINGU pidió lo de editar tu
@@ -1581,7 +1593,7 @@
       <div class="mc-sel-abajo" id="mcMarcarAcciones">
         <button type="button" class="mc-sel-accion" id="mcMarcarGuardar" disabled><span class="mc-sel-mas" aria-hidden="true">+</span><span id="mcMarcarGuardarTexto">Añadir</span></button>
         <button type="button" class="mc-sel-accion" id="mcMarcarAlbum" disabled><span data-icono="folder" aria-hidden="true"></span>A un álbum</button>
-        <button type="button" class="mc-sel-accion" id="mcMarcarQuiero" disabled><span data-icono="star" aria-hidden="true"></span>Las quiero</button>
+        <button type="button" class="mc-sel-accion" id="mcMarcarQuiero" disabled><span data-icono-quiero aria-hidden="true"></span>Las quiero</button>
         <button type="button" class="mc-sel-accion mc-sel-quitar" id="mcMarcarQuitar" disabled><span data-icono="trash" aria-hidden="true"></span><span id="mcMarcarQuitarTexto">Quitar</span></button>
       </div>
     </div>

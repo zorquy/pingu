@@ -1246,3 +1246,8 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   height: 28px;
 }
 
+
+/* «La quiero» (751): pulsada, el corazón relleno. */
+.mc-ficha-quiero[aria-pressed="true"] { color: var(--danger); }
+.mc-ficha-quiero[aria-pressed="true"] svg { fill: currentColor; }
+.mc-ficha-quiero[aria-pressed="true"] span { color: var(--text); }

@@ -46,7 +46,9 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // cargan esta página y la ficha de una carta).
 import * as datos from './mi-coleccion/datos.js'
 // «Avísame» (665), en el bloque de precio de la ficha.
-import { engancharAvisos } from './avisos-precio.js'
+import { engancharAvisos, abrirAviso } from './avisos-precio.js'
+// «La quiero» (751): el corazón de la ficha.
+import * as laQuiero from './la-quiero.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
@@ -118,7 +120,7 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios']
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
@@ -610,6 +612,7 @@ function pintarAccionesDeFicha(l) {
   $('mcEdEditar')?.classList.toggle('hidden', !l.id)
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
+  pintarLoseta(l.card_id || null)
 }
 
 // Tus OTRAS líneas de esta carta, para cambiar la ficha a ellas.
@@ -685,7 +688,9 @@ let favoritos = null
 // tiene por qué pesar en la primera visita de nadie.
 let cambios = null // el módulo de consultas, cuando llegue
 let tablon = null // el módulo que pinta
-let deseos = [] // lo que busco
+// Lo que busco = «La quiero» (751). null = todavía no se sabe: el Panel
+// decía «0 cartas que buscas» hasta abrir Cambios, con la lista llena.
+let deseos = null
 let cambiosCargados = false
 // Lo último que devolvieron las dos RPC. Se guarda porque el botón de
 // escribir necesita las cartas de ESA persona para redactar el mensaje,
@@ -1445,7 +1450,7 @@ function vistazoDeCambios() {
   const busco = Array.isArray(deseos) ? deseos.length : null
   const dentro = `<div class="mc-panel-cifras">
     <button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
-    ${busco === null ? '' : `<button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${busco}</b><span>${busco === 1 ? 'carta que buscas' : 'cartas que buscas'}</span></button>`}
+    ${busco === null ? '' : `<button type="button" class="mc-panel-cifra" data-ir-a="quiero"><b>${busco}</b><span>${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</span></button>`}
   </div>`
   return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
 }
@@ -3300,8 +3305,8 @@ function pintarLogoDeAlbum(set) {
   caja.classList.toggle('hidden', !con)
   $('mcAlbumMeta')?.classList.toggle('hidden', !con)
   const quitar = "var b=this.closest('.mc-album-barra');if(b){b.classList.remove('con-logo');b.querySelector('#mcAlbumMeta')?.classList.add('hidden');b.querySelector('#mcAlbumFondo').innerHTML=''}this.parentNode.classList.add('hidden');this.remove()"
-  caja.innerHTML = con ? `<img ${atributosDeEscaneo(dibujos, quitar)} alt="" width="160" height="64" />` : ''
-  if ($('mcAlbumFondo')) $('mcAlbumFondo').innerHTML = con ? `<img ${atributosDeEscaneo(dibujos)} alt="" width="160" height="64" />` : ''
+  caja.innerHTML = con ? `<img ${atributosDeEscaneo(dibujos, quitar)} alt="" width="160" height="64" loading="eager" />` : ''
+  if ($('mcAlbumFondo')) $('mcAlbumFondo').innerHTML = con ? `<img ${atributosDeEscaneo(dibujos)} alt="" width="160" height="64" loading="eager" />` : ''
   if (con && $('mcAlbumMeta')) {
     const fecha = set.release_date ? new Date(`${String(set.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : ''
     const total = totalDe(set)
@@ -4208,13 +4213,14 @@ async function quererMarcadas() {
     let nuevas = 0
     for (const id of ids) {
       try {
-        await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
+        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
+        if (Array.isArray(deseos)) deseos = [d, ...deseos]
         nuevas++
       } catch (err) {
         if (!err.yaEstaba) throw err
       }
     }
-    showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «Lo que buscas», en Cambios.` : 'Ya estaban todas en «Lo que buscas».', 'success')
+    showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
     modoMarcar(false)
   } catch (err) {
     showToast(err.message, 'error')
@@ -5051,7 +5057,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero']]) {
     $(id).classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
@@ -5108,6 +5114,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
     void pintarVistazos()
   }
   if (nueva === 'cambios' && esMia) abrirCambios()
+  if (nueva === 'quiero' && esMia) void abrirQuiero()
   if (nueva === 'carpetas') abrirCarpetas()
   if (nueva === 'pokedex') abrirPokedex()
   // Al entrar en Buscar, el foco al campo: se viene a escribir.
@@ -5506,8 +5513,8 @@ async function abrirCambios() {
   if (cambiosCargados) return pintarCambios()
   caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
   try {
-    ;[cambios, tablon] = await Promise.all([import('./mi-coleccion/cambios.js'), import('./mi-coleccion/tablon.js')])
-    deseos = await cambios.deseosDe(sesion.user.id)
+    tablon = await import('./mi-coleccion/tablon.js')
+    await cargarDeseos()
     cambiosCargados = true
     await pintarCambios()
   } catch (err) {
@@ -5572,7 +5579,7 @@ async function pintarCambios() {
         : `<div class="mc-cambio-cifras">
       ${chapaDeCambio(encajan, 'encajan contigo', 'refreshCw')}
       ${chapaDeCambio(doy.length, doy.length === 1 ? 'carta que das' : 'cartas que das', 'package')}
-      ${chapaDeCambio(deseos.length, deseos.length === 1 ? 'carta que buscas' : 'cartas que buscas', 'target')}
+      ${chapaDeCambio(deseos.length, deseos.length === 1 ? 'carta que quieres' : 'cartas que quieres', 'target')}
     </div>`
     }
     ${
@@ -5581,7 +5588,7 @@ async function pintarCambios() {
         // CÓMO funciona, que es lo que hace falta la primera vez.
         ? `<ol class="mc-cambio-pasos">
              <li><span class="mc-cambio-paso">1</span><div><strong>Marca lo que das</strong><p class="subtext">Abre una repetida y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.</p></div></li>
-             <li><span class="mc-cambio-paso">2</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Aquí abajo, con el buscador.</p></div></li>
+             <li><span class="mc-cambio-paso">2</span><div><strong>Apunta lo que buscas</strong><p class="subtext">En tu lista, <button type="button" class="link-btn" data-ir-quiero>La quiero</button>: con su buscador o con el corazón de cada carta.</p></div></li>
              <li><span class="mc-cambio-paso">3</span><div><strong>Te decimos quién encaja</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
            </ol>`
         : tablon.tablonHtml({ tiene, busca, cartas, deseos, doy })
@@ -5595,14 +5602,10 @@ async function pintarCambios() {
     </section>
     <section class="mc-cambio-bloque">
       <h3>Lo que buscas</h3>
-      <div class="mc-deseo-alta">
-        <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" />
-        <div id="mcDeseoResultados" class="mc-deseo-resultados hidden"></div>
-      </div>
-      ${deseos.length
-        ? `<ul class="mc-lista-cartas mc-deseos">${deseos.map(deseoHtml).join('')}</ul>
-           <p class="subtext">Tu lista de búsqueda la ve todo el mundo: es lo que hace que alguien te escriba.</p>`
-        : '<p class="subtext">Apunta las cartas que te faltan y te diremos quién las tiene.</p>'}
+      <p class="subtext">${deseos.length
+        ? `Buscas ${deseos.length} ${deseos.length === 1 ? 'carta' : 'cartas'}: las de tu lista, con su precio y su aviso.`
+        : 'Lo que buscas es tu lista de cartas que quieres: apunta las que te faltan y te diremos quién las tiene.'}
+      <button type="button" class="link-btn" data-ir-quiero>${deseos.length ? 'Ver «La quiero»' : 'Abrir «La quiero»'}</button></p>
     </section>`
   engancharCambios()
 }
@@ -5667,23 +5670,8 @@ let cambiosEnganchados = false
 
 function engancharCambios() {
   const caja = $('mcCambiosPanel')
-  // El buscador SÍ se repinta, así que su oyente se pone cada vez; y va
-  // en el elemento nuevo, que es otro objeto.
-  const buscarDeseo = $('mcDeseoBuscar')
-  if (buscarDeseo) buscarDeseo.addEventListener('input', buscarParaDesear)
   if (cambiosEnganchados) return
   cambiosEnganchados = true
-  caja.addEventListener('change', async (e) => {
-    const sel = e.target.closest('.mc-deseo-prioridad')
-    if (!sel) return
-    try {
-      const nuevo = await cambios.cambiarPrioridad(sel.dataset.deseo, Number(sel.value))
-      deseos = deseos.map((d) => (d.id === nuevo.id ? nuevo : d))
-      showToast('Guardado.', 'success')
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
-  })
   caja.addEventListener('click', async (e) => {
     const escribir = e.target.closest('[data-escribir]')
     if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
@@ -5700,32 +5688,8 @@ function engancharCambios() {
     const aCartas = e.target.closest('[data-ir-cartas]')
     if (aCartas) return cambiarPestania('cartas')
 
-    const desear = e.target.closest('[data-desear]')
-    if (desear) {
-      desear.disabled = true
-      try {
-        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear })
-        deseos = [d, ...deseos]
-        $('mcDeseoBuscar').value = ''
-        showToast('Apuntada. Si alguien la da, saldrá arriba.', 'success')
-        await pintarCambios()
-      } catch (err) {
-        desear.disabled = false
-        showToast(err.message, err.yaEstaba ? 'info' : 'error')
-      }
-      return
-    }
-
-    const quitar = e.target.closest('[data-quitar-deseo]')
-    if (quitar) {
-      try {
-        await cambios.borrarDeseo(quitar.dataset.quitarDeseo)
-        deseos = deseos.filter((d) => d.id !== quitar.dataset.quitarDeseo)
-        await pintarCambios()
-      } catch (err) {
-        showToast(err.message, 'error')
-      }
-    }
+    // Lo que buscas vive en «La quiero» desde la 751.
+    if (e.target.closest('[data-ir-quiero]')) return cambiarPestania('quiero')
   })
 }
 
@@ -5739,15 +5703,232 @@ function abrirMensaje(userId, direccion) {
   location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
 }
 
-function deseoHtml(d) {
+// ── «LA QUIERO» (tanda 751) ──
+//
+// Es «Lo que buscas» de los cambios en su propia pantalla, con lo que le
+// faltaba para usarla a diario: el precio de cada carta y lo que suma
+// (K1), su aviso de precio (K2, los avisos de la 665) y compartirla como
+// imagen (Y3). Quién te las da sigue en Cambios: es la misma lista
+// cruzada con la de los demás.
+
+// La lista se pide UNA vez y la comparten el Panel, Cambios, «La quiero»
+// y el corazón de la ficha. Si dos piden a la vez, esperan a la misma.
+let cargandoDeseos = null
+function cargarDeseos() {
+  if (Array.isArray(deseos)) return Promise.resolve(deseos)
+  if (!cargandoDeseos) {
+    cargandoDeseos = (async () => {
+      cambios = cambios || (await import('./mi-coleccion/cambios.js'))
+      deseos = await cambios.deseosDe(sesion.user.id)
+      return deseos
+    })().catch((err) => {
+      cargandoDeseos = null
+      throw err
+    })
+  }
+  return cargandoDeseos
+}
+
+// El precio de lo que quieres es el de su idioma; «cualquier idioma»,
+// el de la carta en español, que es el que se pinta en el resto de la
+// pantalla.
+function precioDeDeseo(d) {
+  const l = { card_id: d.card_id, cantidad: 1, variante: 'normal', idioma: d.idioma || 'es' }
+  return valorDeLinea(l, precioDe(l)) ?? null
+}
+
+// Tus avisos de precio de estas cartas: id → avisos encendidos. null = no
+// se sabe (sin la migración de la 665), y entonces la fila no dice si hay
+// aviso, en vez de decir que no lo hay.
+let avisosDeQuiero = null
+async function pedirAvisosDeQuiero(ids) {
+  if (!ids.length) return new Map()
+  const { data, error } = await supabase.from('user_price_alerts').select('id,card_id,tipo,umbral,activo').eq('user_id', sesion.user.id).eq('activo', true).in('card_id', ids.slice(0, 300))
+  if (error) return null
+  const mapa = new Map()
+  for (const a of data || []) mapa.set(a.card_id, [...(mapa.get(a.card_id) || []), a])
+  return mapa
+}
+
+async function abrirQuiero() {
+  const caja = $('mcQuieroPanel')
+  if (!caja) return
+  if (!Array.isArray(deseos)) caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
+  try {
+    await cargarDeseos()
+  } catch (err) {
+    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+    return
+  }
+  pintarQuiero()
+  // La carta, su precio y tus avisos llegan después y repintan: lo que
+  // quieres casi nunca lo tienes, así que no está en memoria.
+  await completarQuiero()
+  if (pestania === 'quiero') pintarQuiero()
+}
+
+async function completarQuiero() {
+  const ids = [...new Set(deseos.map((d) => d.card_id))]
+  const sinCarta = ids.filter((id) => !cartas.has(id))
+  const sinPrecio = ids.filter((id) => !guardados.has(id))
+  const [nuevas, precios, avisos] = await Promise.all([
+    sinCarta.length ? datos.cartasPorIds(sinCarta, mercado).catch(() => new Map()) : new Map(),
+    sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
+    pedirAvisosDeQuiero(ids).catch(() => null),
+  ])
+  for (const [k, v] of nuevas) cartas.set(k, v)
+  for (const [k, v] of precios) guardados.set(k, v)
+  avisosDeQuiero = avisos
+}
+
+function pintarQuiero() {
+  const caja = $('mcQuieroPanel')
+  if (!caja || !Array.isArray(deseos)) return
+  const precios = deseos.map(precioDeDeseo)
+  const conPrecio = precios.filter((v) => v != null)
+  const suma = conPrecio.reduce((a, v) => a + v, 0)
+  const n = deseos.length
+  const sinPrecio = n - conPrecio.length
+  caja.innerHTML = `
+    ${n
+      ? `<div class="mc-quiero-cabeza">
+          <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
+          <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.share(16)}<span>Compartir</span></button>
+        </div>`
+      : ''}
+    <div class="mc-deseo-alta">
+      <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
+      <div id="mcDeseoResultados" class="mc-deseo-resultados hidden"></div>
+    </div>
+    ${n
+      ? `<ul class="mc-lista-cartas mc-deseos">${deseos.map((d, i) => deseoHtml(d, precios[i])).join('')}</ul>
+         <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quién te las da, en <button type="button" class="link-btn" data-ir-cambios>Cambios</button>.</p>`
+      : `<div class="mc-quiero-vacio">
+           <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
+           <p><strong>Apunta las cartas que te faltan</strong></p>
+           <p class="subtext">Con el buscador de arriba, con el corazón de cada carta o seleccionando varias. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
+         </div>`}`
+  engancharQuiero()
+}
+
+let quieroEnganchado = false
+function engancharQuiero() {
+  const caja = $('mcQuieroPanel')
+  // El buscador SÍ se repinta, así que su oyente se pone cada vez; y va
+  // en el elemento nuevo, que es otro objeto.
+  $('mcDeseoBuscar')?.addEventListener('input', buscarParaDesear)
+  if (quieroEnganchado) return
+  quieroEnganchado = true
+  caja.addEventListener('change', async (e) => {
+    const sel = e.target.closest('.mc-deseo-prioridad')
+    if (!sel) return
+    try {
+      const nuevo = await cambios.cambiarPrioridad(sel.dataset.deseo, Number(sel.value))
+      deseos = deseos.map((d) => (d.id === nuevo.id ? nuevo : d))
+      showToast('Guardado.', 'success')
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  })
+  caja.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-ir-cambios]')) return cambiarPestania('cambios')
+    if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
+
+    // El aviso de precio de la fila (K2) es el «Avísame» de la ficha, con
+    // el idioma que buscas y su precio de ahora para proponer el umbral.
+    const avisar = e.target.closest('[data-avisar-deseo]')
+    if (avisar) {
+      const d = deseos.find((x) => x.id === avisar.dataset.avisarDeseo)
+      if (!d) return
+      return abrirAviso({ cardId: d.card_id, market: cartas.get(d.card_id)?.market || mercado, idioma: d.idioma || 'es', precio: precioDeDeseo(d) })
+    }
+
+    const desear = e.target.closest('[data-desear]')
+    if (desear) {
+      desear.disabled = true
+      try {
+        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear })
+        deseos = [d, ...deseos]
+        $('mcDeseoBuscar').value = ''
+        showToast('Apuntada. Si alguien la da, saldrá en Cambios.', 'success')
+        pintarQuiero()
+        await completarQuiero()
+        pintarQuiero()
+        pintarLoseta()
+      } catch (err) {
+        desear.disabled = false
+        showToast(err.message, err.yaEstaba ? 'info' : 'error')
+      }
+      return
+    }
+
+    const quitar = e.target.closest('[data-quitar-deseo]')
+    if (quitar) {
+      try {
+        await cambios.borrarDeseo(quitar.dataset.quitarDeseo)
+        deseos = deseos.filter((d) => d.id !== quitar.dataset.quitarDeseo)
+        pintarQuiero()
+        pintarLoseta()
+      } catch (err) {
+        showToast(err.message, 'error')
+      }
+    }
+  })
+  // Al cerrar el diálogo de aviso, la fila dice el aviso que acabas de
+  // poner (o quitar). El diálogo lo crea avisos-precio.js al abrirlo por
+  // primera vez, así que se escucha en el documento: `close` no sube, pero
+  // se ve en la captura.
+  document.addEventListener('close', async (e) => {
+    if (e.target?.id !== 'pvAvisoDialogo' || pestania !== 'quiero' || !Array.isArray(deseos)) return
+    avisosDeQuiero = await pedirAvisosDeQuiero([...new Set(deseos.map((d) => d.card_id))]).catch(() => null)
+    pintarQuiero()
+  }, true)
+}
+
+// Tu lista en una imagen (Y3), para pegarla en un grupo de cambios. El
+// dibujo entra al pulsar.
+async function compartirLaQuiero() {
+  const b = $('mcQuieroCompartir')
+  if (b) b.disabled = true
+  try {
+    const { compartirLaQuiero: compartir } = await import('./mi-coleccion/imagen-quiero.js')
+    await compartir({ cartas: deseos.map((d) => ({ carta: cartas.get(d.card_id), prioridad: d.prioridad, idioma: d.idioma })), nombre: dueno?.username || '' })
+  } catch (err) {
+    showToast(err.message || 'No se ha podido hacer la imagen.', 'error')
+  } finally {
+    if (b) b.disabled = false
+  }
+}
+
+// El corazón de la ficha (K1): la carta abierta, pulsado si la quieres.
+function pintarLoseta(id = $('mcEdQuiero')?.dataset.quiero || null) {
+  const b = $('mcEdQuiero')
+  if (!b) return
+  laQuiero.pintarLoseta(b, id, esMia && sesion ? deseos : null)
+}
+
+// La fila de lo que quieres (751): arriba la carta y su precio, que es
+// lo que se viene a mirar; debajo, lo que se toca. En una sola línea no
+// cabían prioridad, idioma, aviso y quitar con el nombre al lado.
+function deseoHtml(d, precio = precioDeDeseo(d)) {
   const c = cartas.get(d.card_id)
+  const nombre = nombreDe(c) || d.card_id
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const sel = PRIORIDADES.map((p) => `<option value="${p.valor}"${p.valor === d.prioridad ? ' selected' : ''}>${escapeHtml(p.nombre)}</option>`).join('')
-  return filaDeCartaHtml(
-    c,
-    `<select class="mc-deseo-prioridad" data-deseo="${escapeHtml(d.id)}" aria-label="Cuánto buscas ${escapeHtml(nombreDe(c))}">${sel}</select>
-     <span class="mc-deseo-idioma">${d.idioma ? escapeHtml(idiomaDe(d.idioma).nombre) : 'cualquier idioma'}</span>
-     <button type="button" class="link-btn mc-borrar" data-quitar-deseo="${escapeHtml(d.id)}" aria-label="Quitar ${escapeHtml(nombreDe(c))} de tu lista">${icons.trash(14)}</button>`
-  )
+  const baja = (avisosDeQuiero?.get(d.card_id) || []).find((a) => a.tipo === 'baja')
+  const idioma = d.idioma ? idiomaDe(d.idioma).nombre : 'cualquier idioma'
+  return `<li class="mc-fila-carta mc-quiero-fila">
+    <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
+      <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+      <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idioma].filter(Boolean).join(' · '))}</small></span>
+    </a>
+    <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
+    <span class="mc-fila-dato">
+      <select class="mc-deseo-prioridad" data-deseo="${escapeHtml(d.id)}" aria-label="Cuánto buscas ${escapeHtml(nombre)}">${sel}</select>
+      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>&lt; ${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
+      <button type="button" class="link-btn mc-borrar" data-quitar-deseo="${escapeHtml(d.id)}" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${icons.trash(14)}</button>
+    </span>
+  </li>`
 }
 
 function repintar() {
@@ -5771,6 +5952,7 @@ function repintar() {
   // añadido ninguna carta» con la colección entera cargada.
   if (pestania === 'resumen') void pintarVistazos()
   if (pestania === 'cambios' && esMia) abrirCambios()
+  if (pestania === 'quiero' && esMia) void abrirQuiero()
   if (pestania === 'pokedex') abrirPokedex()
 }
 
@@ -6046,6 +6228,23 @@ function enganchar() {
   // loseta lleva el id de la carta abierta en data-aviso.
   for (const i of document.querySelectorAll('#mcEdAcciones [data-icono]')) i.innerHTML = icons[i.dataset.icono]?.(16) || ''
   engancharAvisos($('mcEdAcciones'), () => avisoDatos || {})
+  // El corazón (751): pone o quita la carta abierta de «La quiero».
+  for (const i of document.querySelectorAll('[data-icono-quiero]')) i.innerHTML = laQuiero.corazon(16)
+  $('mcEdQuiero')?.addEventListener('click', async () => {
+    const b = $('mcEdQuiero')
+    const id = b.dataset.quiero
+    if (!id || !Array.isArray(deseos)) return
+    b.disabled = true
+    try {
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos })
+    } catch (err) {
+      showToast(err.message, err.yaEstaba ? 'info' : 'error')
+    } finally {
+      b.disabled = false
+    }
+    pintarLoseta(id)
+    if (pestania === 'quiero') void abrirQuiero()
+  })
 
   $('mcEdNotaAbrir').addEventListener('click', () => {
     pintarNota($('mcEdNotas').value, true)
@@ -7371,6 +7570,14 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
     if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
+    // «La quiero» (751), sin parar nada: el Panel la cuenta y la ficha
+    // pinta su corazón. Si falla, las dos se callan (null = no se sabe).
+    if (esMia && sesion && primeraVez) {
+      void cargarDeseos().then(() => {
+        if (pestania === 'resumen') void pintarVistazos()
+        pintarLoseta()
+      }).catch(() => {})
+    }
   } catch (err) {
     aviso(`<p>${escapeHtml(err.message)}</p>`)
     return

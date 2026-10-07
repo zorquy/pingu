@@ -12,6 +12,7 @@
 // el móvil (desde abajo, css/movil.css). Entra por `import()` al tocar el
 // avatar, con su hoja: la portada no paga ni un byte.
 import { icons } from './icons.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
 
@@ -73,6 +74,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     </div>
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Lo tuyo">
+      ${fila('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero')}
       ${fila('/guardados.html', icons.bookmark(20), 'Guardados')}
       ${fila('/mazos', icons.layers(20), 'Mis mazos')}
       ${fila('/mis-partidas', icons.gamepad(20), 'Mis partidas')}
