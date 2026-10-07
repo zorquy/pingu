@@ -130,6 +130,11 @@ async function cargar() {
   menciones(completa).catch(() => {})
   // Y el precio y la colección, igual: su sección nace escondida.
   pintarMercado(completa).catch(() => {})
+  // En el móvil, la ficha con su arte detrás y en pestañas (716). Por
+  // `import()`: el escritorio no lo descarga.
+  if (window.matchMedia?.('(max-width: 900px)').matches) {
+    import('./carta-movil.js').then((m) => m.montarFichaMovil()).catch(() => {})
+  }
 }
 
 // La ficha que falta, pedida a TCGdex en el momento.

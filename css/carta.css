@@ -1077,3 +1077,130 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ── 716: la ficha en el móvil, con su arte y en pestañas (SCHEMA 716) ──
+   Lo pone js/carta-movil.js (solo en el móvil). Las pestañas solo
+   ESCONDEN: todo sigue en el HTML. */
+@media (max-width: 900px) {
+  html.ficha-movil .carta-articulo {
+    position: relative;
+    isolation: isolate;
+  }
+  /* La carta sobre su propio arte, difuminado y apagándose hacia abajo. */
+  html.ficha-movil .carta-articulo::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: calc(-1 * var(--e-xl));
+    right: calc(-1 * var(--e-xl));
+    left: calc(-1 * var(--e-xl));
+    height: 520px;
+    background: var(--arte, none) center 30% / cover no-repeat;
+    filter: blur(32px) saturate(1.4);
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(#000 35%, transparent);
+    mask-image: linear-gradient(#000 35%, transparent);
+    pointer-events: none;
+  }
+  html.ficha-movil .carta-sub {
+    margin-bottom: var(--e-sm);
+  }
+  .carta-precio-corto {
+    margin: 0 0 var(--e-md);
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+  }
+  .carta-precio-corto b {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--t-xl);
+    font-variant-numeric: tabular-nums;
+  }
+  /* La barra de pestañas: pegada debajo de la de arriba, y arriba del todo
+     cuando la de arriba se aparta al bajar (709). */
+  .carta-pestanas {
+    position: sticky;
+    z-index: 5;
+    top: calc(72px + env(safe-area-inset-top));
+    display: flex;
+    margin: var(--e-md) calc(-1 * var(--e-xl)) 0;
+    padding: 0 var(--e-md);
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--white) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: top 0.22s var(--ease);
+  }
+  html.bm-escondidas .carta-pestanas {
+    top: env(safe-area-inset-top);
+  }
+  .carta-pestanas button {
+    flex: 1 1 0;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--text-mid);
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .carta-pestanas button[aria-pressed='true'] {
+    color: var(--navy);
+    box-shadow: inset 0 -3px var(--navy-solid);
+  }
+  .carta-pestanas button[hidden] {
+    display: none;
+  }
+  /* Qué enseña cada pestaña. */
+  main[data-pestana]:not([data-pestana='resumen']) .carta-datos,
+  main[data-pestana]:not([data-pestana='resumen']) #cartaMenciones,
+  main[data-pestana='resumen'] #cartaMercado,
+  main[data-pestana]:not([data-pestana='versiones']) #cartaVersiones,
+  main[data-pestana='versiones'] #cartaMercado,
+  main[data-pestana='precio'] #cmHistorial,
+  main[data-pestana='historial'] #cmPrecios,
+  main[data-pestana='historial'] #cmCambios,
+  main[data-pestana='historial'] .carta-mercado-pie {
+    display: none;
+  }
+  main[data-pestana] .carta-datos ~ *,
+  main[data-pestana]:not([data-pestana='resumen']) .carta-seccion {
+    margin-top: var(--e-lg);
+  }
+  main[data-pestana]:not([data-pestana='resumen']) .carta-articulo {
+    margin-bottom: 0;
+  }
+  /* El título de la sección repite lo que dice la pestaña: se queda para
+     quien lee en voz alta. */
+  html.ficha-movil #cartaMercado > .section-title,
+  html.ficha-movil #cartaVersiones > .section-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  /* F4: las otras versiones, en carrusel. */
+  html.ficha-movil .carta-versiones {
+    display: flex;
+    gap: var(--e-md);
+    margin-inline: calc(-1 * var(--e-xl));
+    padding: 0 var(--e-xl) var(--e-sm);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  html.ficha-movil .carta-versiones::-webkit-scrollbar {
+    display: none;
+  }
+  html.ficha-movil .carta-version {
+    flex: 0 0 128px;
+    scroll-snap-align: start;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .carta-pestanas {
+    transition: none;
+  }
+}

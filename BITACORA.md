@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 8) — PINGU-Claude (716 — la ficha de una carta en el móvil, con su arte y en pestañas)
+
+**Hecho**: F1, F2 y F4 de la lista (la F3, leer la gráfica con el dedo, ya
+estaba). En el móvil la carta lleva detrás su arte difuminado y el precio
+bajo el nombre, y la ficha va en pestañas (Resumen, Precio, Historial,
+Versiones) que solo esconden: todo sigue en el HTML. Las otras versiones en
+carrusel. El escritorio, igual.
+
+**Ficheros**: `js/carta-movil.js`, `js/carta.js`, `css/carta.css`,
+`SCHEMA.md`. Prueba 716-pantalla en `pruebas`, y las pruebas aceptan
+`PD_BASE`.
+
+**Pendiente**: empujar 713–716 tras su subconjunto; la 717 (barra de arriba
+limpia y hoja «Tú»).
+
 ## 2026-10-07 (mañana, 7) — PINGU-Claude (715 — el Panel como una cartera)
 
 **Hecho**: C1 de la lista. En el Panel el valor va arriba, grande y a lo

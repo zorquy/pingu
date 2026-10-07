@@ -34417,3 +34417,37 @@ de la cabecera, así que no se esconde ni se mueve nada del DOM.
 **Ficheros**: `css/mi-coleccion.css`. Prueba 715-pantalla (el valor arriba
 y a lo ancho, 34 px, el cambio debajo, las tres fichas en una fila, la
 gráfica de borde a borde sin desbordar la página).
+
+## Tanda 716 — la ficha de una carta en el móvil, con su arte y en pestañas (oct. 2026)
+
+F1, F2 y F4 de la lista de propuestas. La F3 —leer la gráfica con el
+dedo— ya existía: `engancharLectura` (661) con `touch-action: pan-y`, así
+que arrastrar a lo ancho lee el precio de cada día y en vertical desplaza.
+
+En un iPhone la ficha eran 2.600 px seguidos. Ahora, solo en el móvil, por
+`import()` desde `js/carta.js` (`js/carta-movil.js`):
+
+- **F1 — la cabecera inmersiva**: detrás de la carta va su propio arte,
+  difuminado y apagándose hacia abajo (`.carta-articulo::before` con
+  `--arte`, que el módulo saca de la imagen ya cargada), y bajo el nombre
+  el precio en una línea (`.carta-precio-corto`), COPIADO del bloque de
+  precio (`.pv-burbuja-principal`): una sola fuente, no un segundo cálculo.
+- **F2 — pestañas**: Resumen, Precio, Historial y Versiones, en una barra
+  que se pega bajo la de arriba (y arriba del todo cuando aquella se
+  aparta, 709). **Las pestañas solo ESCONDEN** (`main[data-pestana]` y
+  CSS): no se mueve ni se borra nada, así que la página entera sigue en el
+  HTML —es lo que lee Google— y en el escritorio no cambia nada. Una
+  pestaña sin contenido no sale (sin histórico, sin otras versiones). Los
+  títulos de sección que repiten la pestaña quedan para la lectura en voz
+  alta.
+- **F4 — las otras versiones, en carrusel** (fila que se desliza).
+
+El núcleo se repinta entero a veces (cuando llega la ficha de TCGdex,
+332), así que la línea de precio y la barra se vuelven a meter con un
+`MutationObserver` que no se dispara a sí mismo (solo mira `class` y
+`src`, y no reescribe un texto que no ha cambiado).
+
+**Ficheros**: `js/carta-movil.js` (nuevo), `js/carta.js`, `css/carta.css`.
+Prueba 716-pantalla. Y en `pruebas`, las 160 pruebas que tenían el servidor
+escrito a mano aceptan ya `PD_BASE`: se puede probar contra una segunda
+copia mientras la primera corre un subconjunto.
