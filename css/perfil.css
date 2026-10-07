@@ -1293,3 +1293,15 @@ body:not([data-pnivel="vitrina"]) #perfilVitrina { display: none; }
 
 .perfil-cuenta-borrar .subtext { margin-bottom: var(--e-sm); }
 .perfil-cuenta-borrar .subtext:empty { display: none; }
+
+/* El nivel ya dice «Vitrina»: el título se queda para quien lee en voz alta. */
+#perfilVitrina .vitrina-cabeza .section-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+#perfilVitrina .vitrina-cabeza { justify-content: flex-end; }
