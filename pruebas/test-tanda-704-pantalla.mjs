@@ -67,7 +67,9 @@ console.log('── 2. La portada en un iPhone ──')
   check('la burbuja de la sección flota encima de la barra con Inicio (activa) y Noticias, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias' && bu.iconos === 2, JSON.stringify({ bu, barraTop }))
   check('  …cada hueco mide 44 o más', (await page.$$eval('.bm-burbuja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
   check('  …y no hay hoja ni doble toque: la pestaña activa es un enlace normal', (await page.locator('.bm-hoja').count()) === 0 && !(await page.locator('.bm a[aria-current="page"]').getAttribute('aria-haspopup')))
-  check('la hoja se inyecta sola', (await page.locator('link[href="css/movil.css"]').count()) === 1)
+  // Desde la raíz (718): relativa, en /carta/<slug> se pedía
+  // /carta/css/movil.css, que Netlify reescribe a carta.html.
+  check('la hoja se inyecta sola, y desde la raíz', (await page.locator('link[href="/css/movil.css"]').count()) === 1 && (await page.locator('link[href="css/movil.css"]').count()) === 0)
   await ctx.close()
 }
 
@@ -107,7 +109,7 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   check('sin cuenta, Cartas lleva al catálogo', (await barra(page)).some((x) => x === 'Cartas:/cartas'), (await barra(page)).join(' | '))
   await ctx.close()
   const d = await abrir('/index.html', { movil: false })
-  check('en el escritorio no hay barra, ni burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href="css/movil.css"]').count()) === 0)
+  check('en el escritorio no hay barra, ni burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 0 && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href$="css/movil.css"]').count()) === 0)
   check('  …y la barra de arriba sigue con sus desplegables', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 4)
   await d.ctx.close()
 }
