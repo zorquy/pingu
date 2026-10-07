@@ -39,6 +39,14 @@ function applyHeroVisuals(profile, name) {
 async function loadProfile(session) {
   const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
   currentProfile = profile
+  // «Ajustes» de la hoja «Tú» (748) llega con `?editar=1`: el editor se abre
+  // solo, y se quita el parámetro para que recargar no lo vuelva a abrir.
+  if (new URLSearchParams(window.location.search).get('editar')) {
+    const limpia = new URL(window.location.href)
+    limpia.searchParams.delete('editar')
+    window.history.replaceState({}, '', limpia)
+    setTimeout(() => document.getElementById('btnEditProfile')?.click(), 0)
+  }
   const name = displayName(profile, session.user.email)
   const xp = profile?.total_xp || 0
   const progress = levelProgress(xp)

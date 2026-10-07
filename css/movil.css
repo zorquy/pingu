@@ -418,48 +418,6 @@
     backdrop-filter: none;
     background: var(--white);
   }
-  .bm-tu-filas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--e-sm);
-    padding: var(--e-sm) var(--e-md);
-  }
-  .bm-tu-filas > * {
-    display: flex;
-    align-items: center;
-    gap: var(--e-sm);
-    min-height: 48px;
-    padding: 0 var(--e-md);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    color: var(--text);
-    font: inherit;
-    font-size: var(--t-sm);
-    font-weight: 700;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  .bm-tu-filas > [data-tu='tema'] {
-    grid-column: 1 / -1;
-  }
-  .bm-tu-cuenta {
-    margin-left: auto;
-    min-width: 20px;
-    padding: 0 var(--e-xs);
-    border-radius: var(--radius-pill);
-    background: var(--danger-solid);
-    color: var(--blanco-fijo);
-    font-size: var(--t-2xs);
-    line-height: 20px;
-    text-align: center;
-  }
-  .bm-tu-extra .nav-bell-dropdown {
-    position: static;
-    width: auto;
-    margin: 0 var(--e-md);
-    box-shadow: none;
-  }
 }
 
 /* ── 732: instalar PokeDoc y tirar para refrescar (SCHEMA 732) ── */

@@ -198,67 +198,14 @@ function montarTu(doc, win) {
     if (punto.textContent !== n) punto.textContent = n
     btn.setAttribute('aria-label', `Tu cuenta (${n} sin leer)`)
   }
-  const filasDeTu = () => {
-    const d = doc.getElementById('navUserDropdown')
-    const enlaces = d?.querySelector('.nav-user-links')
-    if (!enlaces) return
-    let extra = d.querySelector('.bm-tu-extra')
-    if (!extra) {
-      extra = doc.createElement('div')
-      extra.className = 'bm-tu-extra'
-      enlaces.insertAdjacentElement('beforebegin', extra)
-      extra.addEventListener('click', (e) => {
-        const b = e.target.closest('[data-tu]')
-        if (!b) return
-        // El repintado, DESPUÉS de este clic: si la fila que se acaba de
-        // tocar sale del árbol antes de que el clic llegue al documento, el
-        // menú lo cuenta como «pulsado fuera» y se cierra.
-        if (b.dataset.tu === 'tema') { pulsarSinCerrar(doc.getElementById('navThemeToggle')); win.setTimeout(pintarFilas, 0); return }
-        if (b.dataset.tu === 'avisos') {
-          // El desplegable de la campana, DENTRO de la hoja: se mueve el
-          // nodo (con sus oyentes) y se abre después de este toque, o el
-          // «cerrar al pulsar fuera» de la campana lo volvería a cerrar.
-          const lista = doc.getElementById('navBellDropdown')
-          if (lista && lista.parentElement !== extra) extra.appendChild(lista)
-          win.setTimeout(() => pulsarSinCerrar(doc.getElementById('navBellBtn')), 0)
-        }
-      })
-    }
-    pintarFilas()
-  }
-  // Pulsar un botón escondido de la barra SIN que la hoja se cierre: su
-  // clic sube hasta el documento, y el menú del usuario cierra con
-  // cualquier clic fuera de él. Un oyente de una vez, puesto DESPUÉS del
-  // suyo, deja que el botón haga lo suyo y corta la subida.
-  const pulsarSinCerrar = (boton) => {
-    if (!boton) return
-    boton.addEventListener('click', (e) => e.stopPropagation(), { once: true })
-    boton.click()
-  }
-  const pintarFilas = () => {
-    const extra = doc.querySelector('#navUserDropdown .bm-tu-extra')
-    if (!extra) return
-    const msg = doc.getElementById('navMsgBadge'), bell = doc.getElementById('navBellBadge')
-    const cuenta = (b) => (b && !b.classList.contains('hidden') && b.textContent !== '0' ? `<span class="bm-tu-cuenta">${b.textContent}</span>` : '')
-    const oscuro = doc.documentElement.dataset.theme === 'dark'
-    const filas = []
-    if (bell) filas.push(`<button type="button" data-tu="avisos">${icons.bell?.(18) || ''}<span>Avisos</span>${cuenta(bell)}</button>`)
-    if (msg) filas.push(`<a href="/mensajes.html" data-tu="mensajes">${icons.mail?.(18) || ''}<span>Mensajes</span>${cuenta(msg)}</a>`)
-    filas.push(`<button type="button" data-tu="tema">${(oscuro ? icons.sun : icons.moon)?.(18) || ''}<span>${oscuro ? 'Tema claro' : 'Tema oscuro'}</span></button>`)
-    const html = filas.join('')
-    // Sin tocar lo que ya está bien: la lista de avisos movida vive aquí
-    // dentro y repintar a lo bruto se la llevaría por delante.
-    let caja = extra.querySelector('.bm-tu-filas')
-    if (!caja) { caja = doc.createElement('div'); caja.className = 'bm-tu-filas'; extra.prepend(caja) }
-    if (caja.dataset.html !== html) { caja.dataset.html = html; caja.innerHTML = html }
-  }
+  // Avisos, mensajes y el tema van DENTRO de la hoja desde la 748 (la N8
+  // de su maqueta, js/menu-tu.js): aquí solo queda el velo y el número.
   // La hoja se abre y se cierra con la MISMA clase de siempre (`hidden` en
   // el desplegable); aquí solo se pone el velo detrás y las filas dentro.
   const vigilarHoja = () => {
     const d = doc.getElementById('navUserDropdown')
     const abierta = !!d && !d.classList.contains('hidden')
     doc.documentElement.classList.toggle('bm-tu-abierta', abierta)
-    if (abierta) filasDeTu()
   }
   if (!doc.querySelector('.bm-velo')) {
     const velo = doc.createElement('div')
@@ -270,7 +217,7 @@ function montarTu(doc, win) {
   new win.MutationObserver(() => {
     if (pendiente) return
     pendiente = true
-    win.requestAnimationFrame(() => { pendiente = false; pintarPunto(); vigilarHoja(); pintarFilas() })
+    win.requestAnimationFrame(() => { pendiente = false; pintarPunto(); vigilarHoja() })
   }).observe(derecha || doc.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] })
   pintarPunto()
 }

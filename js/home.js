@@ -499,14 +499,11 @@ async function cargarBienvenida(session) {
   if (!seccion || !hueco) return
   try {
     // sin rango: el «Hola, X» es TEXTO, no un enlace al perfil.
-    const [{ data: profile }, { calculateLevel, levelBadgeHtml }] = await Promise.all([
-      supabase
-        .from('user_profiles')
-        .select('id, username, display_name, avatar_url, current_streak, total_xp')
-        .eq('id', session.user.id)
-        .maybeSingle(),
-      import('./gamification.js'),
-    ])
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id, username, display_name, avatar_url, current_streak, total_xp')
+      .eq('id', session.user.id)
+      .maybeSingle()
     if (!profile) return document.documentElement.classList.remove('con-sesion')
 
     const nombre = profile.display_name || profile.username || ''
@@ -528,18 +525,19 @@ async function cargarBienvenida(session) {
       if (salvada) sessionStorage.removeItem('pokedoc-racha-protegida')
     } catch {}
 
+    // El saludo de su maqueta (748, J5): el día y «Buenos días» en grande,
+    // la racha a la derecha. El avatar, el nivel y «Tu perfil» viven en la
+    // hoja «Tú», a un toque.
+    const h = new Date().getHours()
     hueco.innerHTML = `
-      ${avatarHtml(profile, 44)}
       <div class="bienvenida-texto">
-        <strong>Hola${nombre ? `, ${escapeHtml(nombre)}` : ''}</strong>
-        <span class="subtext">Tu reto y lo último de la comunidad, aquí abajo.</span>
+        <small>${new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</small>
+        <strong>${h >= 6 && h < 14 ? 'Buenos días' : h >= 14 && h < 21 ? 'Buenas tardes' : 'Buenas noches'}${nombre ? `, ${escapeHtml(nombre)}` : ''}</strong>
       </div>
       <div class="bienvenida-chips">
-        ${racha > 0 ? `<span class="bienvenida-chip">${icons.flame(14)} ${racha} ${racha === 1 ? 'día' : 'días'}</span>` : ''}
+        ${racha > 0 ? `<span class="bienvenida-chip" title="Días seguidos">${icons.flame(16)} ${racha}</span>` : ''}
         ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
         ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
-        ${levelBadgeHtml(calculateLevel(profile.total_xp || 0))}
-        <a class="btn-secondary bienvenida-perfil" href="/perfil.html">Tu perfil →</a>
       </div>`
     // El hero se esconde SOLO cuando la bienvenida está lista: si algo
     // de arriba fallara, la portada de siempre sigue entera. La clase

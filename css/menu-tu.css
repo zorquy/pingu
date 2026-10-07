@@ -1,0 +1,243 @@
+/* La hoja «Tú» de su maqueta (748, N8; el porqué en SCHEMA 748). La
+   inyecta js/menu-tu.js al abrirla: la portada no la baja. */
+#navUserDropdown {
+  width: 340px;
+  padding: var(--e-md);
+}
+
+.tu-tirador {
+  display: none;
+}
+
+.tu-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-xs) var(--e-xs) var(--e-md);
+}
+
+.tu-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.tu-quien {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tu-quien strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tu-quien span {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.tu-perfil {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tu-perfil:hover {
+  color: var(--navy);
+  border-color: var(--navy);
+}
+
+.tu-dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+
+.tu-dos > * {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 52px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tu-dos > :hover {
+  border-color: var(--navy);
+}
+
+.tu-dos svg {
+  flex: none;
+  color: var(--navy);
+}
+
+.tu-cuenta {
+  min-width: 22px;
+  margin-left: auto;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  line-height: 22px;
+  text-align: center;
+}
+
+.tu-avisos-sitio .nav-bell-dropdown {
+  position: static;
+  width: auto;
+  margin: 0 0 var(--e-sm);
+  box-shadow: none;
+}
+
+.tu-lista {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--e-sm);
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.tu-lista a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 52px;
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tu-lista a + a {
+  border-top: 1px solid var(--border);
+}
+
+.tu-lista a svg {
+  flex: none;
+  color: var(--text-mid);
+}
+
+.tu-lista a span {
+  flex: 1 1 auto;
+}
+
+/* La flecha de cada fila, dibujada con dos bordes: no hay icono de
+   «chevron» en js/icons.js y meter uno lo bajaría la portada. */
+.tu-lista a::after {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--e-xs);
+  border-top: 2px solid var(--text-dim);
+  border-right: 2px solid var(--text-dim);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.tu-lista a:hover span {
+  color: var(--navy);
+}
+
+.tu-pie {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.tu-tema {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.tu-tema button {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tu-tema button[aria-pressed='true'] {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.tu-salir {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 48px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--danger);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tu-salir:hover {
+  border-color: var(--danger);
+}
+
+@media (max-width: 900px) {
+  #navUserDropdown {
+    padding: var(--e-sm) var(--e-lg) var(--e-lg);
+  }
+  .tu-tirador {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto var(--e-md);
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+  }
+}

@@ -35493,6 +35493,36 @@ coinciden. Esta tanda trae cuatro.
   hay progreso que enseñar y lo que se mira es el set. El catálogo NO se
   escondió en «Orden» a propósito (se probó): quien colecciona japonés no
   sabría por dónde se llega a sus sets, que es la regla de la 648.
+- **La hoja «Tú» (N8)**: «el menú del perfil… se ve horrible, demasiada
+  información desestructurada». Eran dos cifras sueltas (XP y nivel) en
+  una rejilla, la racha debajo, el tema como una fila y seis enlaces con
+  el mismo peso que «Cerrar sesión». Queda la de su maqueta, en el
+  ordenador colgada del avatar y en el móvil desde abajo: QUIÉN eres en una
+  línea («@usuario · Novato · 3 días de racha») con «Ver perfil»; Avisos y
+  Mensajes en dos losetas con su número; la lista de lo tuyo con su flecha
+  (Guardados, Mis mazos, Mis partidas, Escribir una guía, Ajustes), y
+  abajo el tema en tres —Claro, Oscuro, **Auto** (borra la elección y sigue
+  al sistema)— y «Salir» aparte. «Ajustes» es `/perfil.html?editar=1`, que
+  abre el editor del perfil y limpia la dirección. Vive en `js/menu-tu.js`
+  con `css/menu-tu.css` y entra por `import()` al tocar el avatar: de
+  `app.js` se fueron el dibujo y sus comentarios, y de `components.css`
+  las reglas del menú viejo, así que **la portada baja de 169,7 a 168,2
+  KB**. Las filas que añadía `barra-movil.js` (avisos, mensajes, tema) se
+  van: ya están en la hoja. Avisos en el móvil sigue abriendo la lista de
+  la campana dentro de la hoja; en el ordenador abre la de la barra.
+- **La portada «Hoy» (J5 y N1)**: el saludo es el de su maqueta —el día en
+  versalitas y «Buenos días / tardes / noches, Admin» en grande, con la
+  racha a la derecha— sin tarjeta, sin avatar, sin nivel y sin «Tu
+  perfil», que viven en la hoja «Tú». El bloque «Hoy» pierde su rótulo a la
+  vista (queda para quien escucha) y su esqueleto tiene ya la forma de lo
+  que llega. Tu colección: la cifra con el punto de los miles, la flecha y
+  «este mes», y la línea con su relleno a la derecha. Las cuatro fichas
+  son las de la maqueta (icono arriba, qué es en grande, el detalle
+  debajo: «Reto del día · Sin hacer · 7 h», «Torneo en 2 días · Liga de
+  otoño», «Sale mañana · Héroes Ascendentes», «2 respuestas · en tus hilos
+  del foro»), con el reto que te toca en azul. Y **«Sigue donde lo
+  dejaste»**: la guía que tienes empezada y sin acabar (`user_progress`,
+  la más reciente) con su barra, que no sale si no hay ninguna.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35504,11 +35534,14 @@ coinciden. Esta tanda trae cuatro.
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`, generado),
 `js/mi-coleccion.js`, `js/mi-coleccion/grafica-valor.js`,
 `js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/iconos.js`,
+`js/menu-tu.js` y `css/menu-tu.css` (nuevos), `js/app.js`,
+`js/barra-movil.js`, `css/movil.css`, `css/components.css`, `js/home.js`,
+`js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (siete bloques) y 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (nueve bloques) y 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

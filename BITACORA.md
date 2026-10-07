@@ -4,30 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
-## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: seleccionar, añadir, filtros, Pokédex)
+## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y
-tenía razón. Se rehacen una a una con la captura al lado. Van seis:
+tenía razón. Se rehacen una a una con la captura al lado. Van ocho:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
 cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
 con el tipo de cada especie aunque no tengas su carta, el Panel como la
 cartera de su maqueta (lo que vale, la línea, los rangos, tres fichas y
-«Las que más se mueven» en lista), y las Expansiones como lista por era
+«Las que más se mueven» en lista), las Expansiones como lista por era
 con código, «n/total» y anillo, tres chapas y «Orden» (el catálogo /cartas
-conserva la tarjeta grande con el valor). De paso, un salto al cargar en el
+conserva la tarjeta grande con el valor), la hoja «Tú» (quién eres en una
+línea, avisos y mensajes, tu lista y el tema claro/oscuro/auto) y la
+portada «Hoy» (saludo con la fecha, tu colección con su línea, cuatro
+fichas y «Sigue donde lo dejaste»). La portada baja a 168,2 KB. De paso, un salto al cargar en el
 ordenador: la columna de filtros se enfocaba y bajaba la página.
 
 **Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
 `js/mi-coleccion.js`, `js/mi-coleccion/{segmentado,energias,pokedex}.js`,
 `js/mi-coleccion/{grafica-valor,filtros-columna,iconos}.js`,
+`js/menu-tu.js` y `css/menu-tu.css` (nuevos), `js/app.js`, `js/home.js`,
+`js/hoy.js`, `css/hoy.css`, `js/barra-movil.js`, `css/movil.css`,
+`css/components.css`, `js/perfil.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
-`CLAUDE.md` (la regla de la 650), `SCHEMA.md`. Prueba 748-pantalla y
-treinta y ocho más al día en `pruebas`.
+`CLAUDE.md` (la regla de la 650 y el presupuesto), `SCHEMA.md`. Prueba
+748-pantalla y cuarenta y cuatro más al día en `pruebas`.
 
-**Pendiente**: seguir rehaciendo — la hoja «Tú», la
-portada, foro, ficha de carta, meta, escritorio y la sensación de app. El
+**Pendiente**: seguir rehaciendo — foro, ficha de carta, meta, escritorio
+y la sensación de app. El
 rango de precio dentro de una expansión no se hace (ver SCHEMA 748).
 
 ## 2026-10-07 (noche, 1) — PINGU-Claude (747 — cuatro arreglos de Mi colección en el móvil)

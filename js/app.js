@@ -505,86 +505,11 @@ async function renderNavUser(session) {
   const dropdown = document.getElementById('navUserDropdown')
   let loaded = false
 
-  // El módulo de gamificación se pide YA, no al pulsar: si se espera al
-  // clic, abrir el menú obliga a bajar un fichero antes de enseñar nada.
-  const gamificacion = import('./gamification.js').catch(() => null)
-
-  function statsHtml(g, approvedGuidesCount) {
-    if (!g) return ''
-    const tier = g.contributorTier(approvedGuidesCount || 0)
-    return `
-      <div><strong>${profile?.total_xp || 0}</strong><span>XP</span></div>
-      <div><strong style="display:flex; justify-content:center;">${g.levelBadgeHtml(g.calculateLevel(profile?.total_xp), 11)}</strong><span>Nivel</span></div>
-      ${(profile?.current_streak || 0) > 0 ? `<div><strong style="display:flex; align-items:center; justify-content:center; gap:3px;">${icons.flame(14)} ${profile.current_streak}</strong><span>Racha</span></div>` : ''}
-      ${(approvedGuidesCount || 0) > 0 ? `<div><strong style="display:flex; justify-content:center;">${tier.icon}</strong><span>${escapeHtml(tier.title)}</span></div>` : ''}`
-  }
-
-  // El menú se pinta ENTERO al momento con lo que ya se sabe (el perfil
-  // se cargó al arrancar la página), y el recuento de guías aprobadas
-  // —lo único que falta— se rellena cuando llega.
-  //
-  // Antes se esperaba a esa consulta antes de pintar nada, así que el
-  // menú tardaba en desplegarse aunque el 90% de lo que enseña ya
-  // estuviera disponible.
+  // El menú es la hoja «Tú» de su maqueta (748): su dibujo, su hoja y la
+  // gamificación (el nombre del nivel) entran por `import()` al tocarlo.
   async function loadDropdown() {
-    const g = await gamificacion
-
-    dropdown.innerHTML = `
-      <div class="nav-user-header">
-        <span class="nav-user-avatar-lg" style="${estiloAvatar}">${profile?.avatar_url ? '' : getInitial(name)}</span>
-        <div>
-          <strong>${escapeHtml(name)}</strong>
-          ${profile?.username ? `<span class="subtext">@${escapeHtml(profile.username)}</span>` : ''}
-        </div>
-      </div>
-      <div class="nav-user-stats" id="navUserStats">${statsHtml(g, null)}</div>
-      <!-- Ocho cosas era demasiado para un menú que se abre de paso
-           (tanda 309). Ahora son cinco, en dos grupos: LO TUYO y lo de
-           ESCRIBIR, con «Cerrar sesión» separado por una raya para que
-           no se pulse sin querer.
-
-           Dos que salieron:
-            · «Mis torneos» llevaba a /perfil#torneos, que desde la
-              tanda 308 es una pestaña con su contador, y además se llega
-              antes desde «Jugar». Encima solo salía a admins, así que
-              ocupaba sitio para casi nadie.
-            · «Enviar feedback» se va AL PIE (ver montarFeedbackEnElPie).
-              Quitar el botón del menú es gratis; quitar la vía de que
-              alguien te cuente algo, no. -->
-      <div class="nav-user-links">
-        <a href="/perfil.html">${icons.user(16)} Mi perfil</a>
-        <a href="/guardados.html">${icons.bookmark(16)} Guardados</a>
-        <!-- «Mis partidas» va para TODO el mundo, no solo para admins:
-             el registro de enfrentamientos sirve igual jugando en TCG
-             Live que en un torneo de aquí, y de hecho es de lo poco de
-             la sección de juego que ya vale antes de abrirla. -->
-        <a href="/mis-partidas">${icons.layers(16)} Mis partidas</a>
-        <a href="/mazos">${icons.cards(16)} Mis mazos</a>
-        <!-- Escribir una guía estaba SOLO dentro de una pestaña de
-             Comunidad y de otra del perfil: había que saber que existía
-             para encontrarlo. Aquí está en todas las páginas, en el menú
-             que la gente ya abre. No se pone en la barra de navegación a
-             propósito — se dejó en tres enlaces justamente para que no
-             se llenara, y la inmensa mayoría de las visitas vienen a
-             leer, no a escribir. -->
-        <a class="nav-user-grupo" href="/editor-guia.html">${icons.edit(16)} Escribir una guía</a>
-        <button type="button" class="nav-user-grupo" id="navUserSignOut">${icons.logOut(16)} Cerrar sesión</button>
-      </div>`
-
-    // El recuento, cuando llegue. Solo repinta la fila de estadísticas,
-    // así que no se pierde el foco ni se mueve nada de sitio.
-    supabase
-      .from('guides')
-      .select('*', { count: 'exact', head: true })
-      .eq('author_id', session.user.id)
-      .eq('review_status', 'approved')
-      .then(({ count }) => {
-        const fila = document.getElementById('navUserStats')
-        if (fila && count) fila.innerHTML = statsHtml(g, count)
-      })
-      .catch(() => {})
-
-    document.getElementById('navUserSignOut').addEventListener('click', signOut)
+    const [m, g] = await Promise.all([import('./menu-tu.js'), import('./gamification.js').catch(() => null)])
+    m.pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial: profile?.avatar_url ? '' : getInitial(name), nivel: g?.calculateLevel(profile?.total_xp), signOut })
   }
 
   document.getElementById('navUserBtn').addEventListener('click', async () => {

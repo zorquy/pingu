@@ -1,24 +1,26 @@
-/* La portada «Hoy» (744). La inyecta js/hoy.js. */
+/* La portada «Hoy» (744; como su maqueta desde la 748, J5 y N1). La
+   inyecta js/hoy.js. */
 .hoy {
-  margin-top: var(--e-lg);
-}
-
-.hoy-titulo {
-  margin: 0 0 var(--e-sm);
-  font-size: var(--t-lg);
+  margin-top: var(--e-md);
 }
 
 .hoy-rejilla {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr));
   gap: var(--e-md);
+}
+
+.hoy-esq-valor,
+.hoy-esq-ficha {
+  min-height: 132px;
+  border-radius: var(--radius-lg);
 }
 
 .hoy-valor,
 .hoy-ficha {
   display: flex;
   min-width: 0;
-  padding: var(--e-md);
+  padding: var(--e-lg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -27,27 +29,51 @@
 }
 
 .hoy-valor {
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--e-md);
 }
 
-.hoy-valor small,
-.hoy-ficha-texto small {
+.hoy-valor-texto {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hoy-valor small {
   color: var(--text-mid);
-  font-size: var(--t-2xs);
+  font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hoy-valor b {
-  font-size: var(--t-2xl);
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-.hoy-valor span {
+.hoy-valor-texto > span {
   color: var(--text-mid);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
+}
+
+.hoy-valor-mes {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hoy-valor-mes span {
+  color: var(--text-mid);
+  font-weight: 400;
 }
 
 .hoy-valor-mes.sube {
@@ -58,49 +84,72 @@
   color: var(--danger);
 }
 
+.hoy-flecha {
+  width: 0;
+  height: 0;
+  border-inline: 6px solid transparent;
+  border-bottom: 8px solid currentColor;
+}
+
+.baja .hoy-flecha {
+  border-top: 8px solid currentColor;
+  border-bottom: 0;
+}
+
 .hoy-chispa {
-  width: 100%;
-  height: 32px;
-  margin-top: var(--e-xs);
-  color: var(--navy);
-}
-
-.hoy-ficha {
-  align-items: flex-start;
-  gap: var(--e-sm);
-}
-
-.hoy-ficha-icono {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--navy);
-}
-
-.hoy-hecho .hoy-ficha-icono {
+  flex: 0 1 160px;
+  min-width: 48px;
+  width: 160px;
+  height: 56px;
   color: var(--success);
 }
 
-.hoy-ficha-texto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.hoy-chispa-area {
+  fill: currentColor;
+  opacity: 0.14;
 }
 
-.hoy-ficha-texto b {
+.hoy-ficha {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hoy-ficha-icono {
+  display: block;
+  margin-bottom: var(--e-sm);
+  color: var(--navy);
+}
+
+.hoy-ficha b {
   overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hoy-ficha > span:not(.hoy-ficha-icono) {
+  overflow: hidden;
+  color: var(--text-mid);
   font-size: var(--t-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hoy-ficha-texto span {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
+/* El reto que te toca hacer va de color: es lo que cambia cada día. */
+.hoy-ficha.hoy-destaca {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--navy-solid), var(--navy-solid-light));
+}
+
+.hoy-destaca,
+.hoy-destaca .hoy-ficha-icono,
+.hoy-destaca > span:not(.hoy-ficha-icono) {
+  color: var(--blanco-fijo);
+}
+
+.hoy-hecho .hoy-ficha-icono {
+  color: var(--success);
 }
 
 .hoy-valor:hover,
@@ -108,12 +157,85 @@
   border-color: var(--navy);
 }
 
+.hoy-sigue {
+  margin-top: var(--e-xl);
+}
+
+.hoy-sigue-cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--e-sm);
+}
+
+.hoy-sigue-cabeza h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.hoy-sigue-cabeza a {
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.hoy-sigue-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 72px;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.hoy-sigue-fila .hoy-ficha-icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+}
+
+.hoy-sigue-texto {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.hoy-sigue-barra {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.hoy-sigue-barra i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  background: var(--success);
+}
+
 @media (max-width: 900px) {
   .hoy-rejilla {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .hoy-valor {
+  .hoy-valor,
+  .hoy-esq-valor {
     grid-column: 1 / -1;
+  }
+
+  .hoy-chispa {
+    width: 120px;
   }
 }

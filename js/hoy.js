@@ -34,15 +34,15 @@ export function cambioDelMes(filas, ahora = Date.now()) {
   return { cambio, pct: Number(antes.valor) > 0 ? (cambio / Number(antes.valor)) * 100 : null }
 }
 
-// La línea del valor: un trazo de 120×32 con los últimos puntos. Puro.
-export function chispaSvg(filas, { ancho = 120, alto = 32 } = {}) {
+// La línea del valor con su relleno, como la de la maqueta (748). Puro.
+export function chispaSvg(filas, { ancho = 160, alto = 56 } = {}) {
   const v = (filas || []).map((f) => Number(f.valor)).filter(Number.isFinite)
   if (v.length < 2) return ''
   const min = Math.min(...v)
   const max = Math.max(...v)
   const y = (x) => (max === min ? alto / 2 : alto - 2 - ((x - min) / (max - min)) * (alto - 4))
   const d = v.map((x, i) => `${i ? 'L' : 'M'}${((i / (v.length - 1)) * ancho).toFixed(1)},${y(x).toFixed(1)}`).join(' ')
-  return `<svg class="hoy-chispa" viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" aria-hidden="true" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
+  return `<svg class="hoy-chispa" viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" aria-hidden="true" preserveAspectRatio="none"><path class="hoy-chispa-area" d="${d} L${ancho},${alto} L0,${alto} Z"/><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
 }
 
 // «hoy», «mañana», «en 3 días» o la fecha. Puro.
@@ -55,40 +55,64 @@ export function cuandoEs(fecha, ahora = Date.now()) {
   return new Date(`${String(fecha).slice(0, 10)}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
-const ficha = ({ href, icono, rotulo, titular, sub, hecho = false }) => `
-  <a class="hoy-ficha${hecho ? ' hoy-hecho' : ''}" href="${escapeHtml(href)}">
-    <span class="hoy-ficha-icono" aria-hidden="true">${icons[icono]?.(18) || ''}</span>
-    <span class="hoy-ficha-texto"><small>${escapeHtml(rotulo)}</small><b>${escapeHtml(titular)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}</span>
+// Una ficha de la maqueta (748): el icono arriba, lo que es en grande y el
+// detalle debajo. `rotulo` se queda para quien escucha: «Reto de hoy:
+// Hecho, 4 de 5».
+const ficha = ({ href, icono, rotulo, titular, sub, hecho = false, destaca = false }) => `
+  <a class="hoy-ficha${hecho ? ' hoy-hecho' : ''}${destaca ? ' hoy-destaca' : ''}" href="${escapeHtml(href)}" aria-label="${escapeHtml([rotulo, titular, sub].filter(Boolean).join(': '))}">
+    <span class="hoy-ficha-icono" aria-hidden="true">${icons[icono]?.(22) || ''}</span>
+    <b>${escapeHtml(titular)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}
   </a>`
+
+// Las horas que le quedan al reto de hoy (se cambia a medianoche).
+const horasHastaMañana = (ahora = Date.now()) => {
+  const d = new Date(ahora)
+  return Math.max(1, Math.ceil((new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1) - d) / 3600e3))
+}
 
 // Las cuatro fichas, con lo que se sepa de cada una. Puro.
 export function fichasHtml({ reto = null, torneo = null, lanzamiento = null, respuestas = null } = {}, ahora = Date.now()) {
+  const quedan = `${horasHastaMañana(ahora)} h`
+  const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
   return [
     ficha(
-      reto === null
-        ? { href: '/retos', icono: 'zap', rotulo: 'Reto de hoy', titular: 'Cinco preguntas', sub: 'Juégalo en un minuto' }
-        : reto
-          ? { href: '/retos', icono: 'checkCircle', rotulo: 'Reto de hoy', titular: `Hecho: ${reto.correct ?? 0} de ${reto.total ?? 5}`, sub: 'Vuelve mañana', hecho: true }
-          : { href: '/retos', icono: 'zap', rotulo: 'Reto de hoy', titular: 'Te toca jugar', sub: 'Cinco preguntas, un minuto' }
+      reto
+        ? { href: '/retos', icono: 'checkCircle', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: `Hecho: ${reto.correct ?? 0} de ${reto.total ?? 5}`, hecho: true }
+        : { href: '/retos', icono: 'lightbulb', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: reto === null ? 'Cinco preguntas' : `Sin hacer · ${quedan}`, destaca: true }
     ),
     ficha(
       torneo
-        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: torneo.name, sub: cuandoEs(torneo.start_at, ahora) }
-        : { href: '/torneos.html', icono: 'trophy', rotulo: 'Torneos', titular: 'Ninguno a la vista', sub: 'Mira el calendario' }
+        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}`, sub: torneo.name }
+        : { href: '/torneos.html', icono: 'trophy', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
     ficha(
       lanzamiento
-        ? { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Próximo lanzamiento', titular: lanzamiento.nombre, sub: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}` }
-        : { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Lanzamientos', titular: 'El calendario', sub: '' }
+        ? { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Próximo lanzamiento', titular: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}`, sub: lanzamiento.nombre }
+        : { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Lanzamientos', titular: 'Lanzamientos', sub: 'El calendario' }
     ),
     ficha({
       href: '/foro.html',
       icono: 'messageSquare',
       rotulo: 'Tus hilos',
-      titular: respuestas == null ? 'El foro' : respuestas ? `${respuestas} ${respuestas === 1 ? 'respuesta nueva' : 'respuestas nuevas'}` : 'Nada nuevo',
-      sub: respuestas ? 'Sin leer' : '',
+      titular: respuestas == null ? 'El foro' : respuestas ? `${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}` : 'Nada nuevo',
+      sub: respuestas == null ? 'De lo que se habla' : 'en tus hilos del foro',
     }),
   ].join('')
+}
+
+// «SIGUE DONDE LO DEJASTE» (748, la N1 de su maqueta): la guía que tienes
+// empezada y sin acabar, con su barra. Sin ninguna, no sale. Puro.
+export function sigueHtml(guia, fila) {
+  if (!guia || !fila) return ''
+  const bloques = Array.isArray(guia.blocks) ? guia.blocks.length : 0
+  const pct = bloques ? Math.round((Math.min(fila.current_block || 0, bloques) / bloques) * 100) : 0
+  return `<section class="hoy-sigue">
+    <div class="hoy-sigue-cabeza"><h2>Sigue donde lo dejaste</h2><a href="/aprender.html">Ver todo</a></div>
+    <a class="hoy-sigue-fila" href="/guia/${encodeURIComponent(guia.slug)}">
+      <span class="hoy-ficha-icono" aria-hidden="true">${icons.bookOpen(22)}</span>
+      <span class="hoy-sigue-texto"><b>Guía · ${escapeHtml(guia.title || '')}</b><span class="hoy-sigue-barra" role="img" aria-label="${pct} % leído"><i style="--ancho:${pct}%"></i></span></span>
+    </a>
+  </section>`
 }
 
 // El valor de tu colección: la última foto, su línea y lo que se ha movido
@@ -97,19 +121,24 @@ export function fichasHtml({ reto = null, torneo = null, lanzamiento = null, res
 export function valorHtml(filas) {
   if (!filas) return ''
   if (!filas.length) {
-    return `<a class="hoy-valor" href="/mi-coleccion"><small>Tu colección</small><b>Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></a>`
+    return `<a class="hoy-valor" href="/mi-coleccion"><span class="hoy-valor-texto"><small>Tu colección</small><b>Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></span></a>`
   }
   const ultimo = filas[filas.length - 1]
   const mes = cambioDelMes(filas)
   const tono = mes ? (mes.cambio > 0 ? 'sube' : mes.cambio < 0 ? 'baja' : 'igual') : ''
-  const signo = mes && mes.cambio > 0 ? '+' : mes && mes.cambio < 0 ? '−' : ''
+  const sentido = mes && mes.cambio > 0 ? 'Sube ' : mes && mes.cambio < 0 ? 'Baja ' : ''
   return `<a class="hoy-valor" href="/mi-coleccion">
-    <small>Tu colección</small>
-    <b>${escapeHtml(euros(Number(ultimo.valor)))}</b>
-    ${mes ? `<span class="hoy-valor-mes ${tono}">${signo}${escapeHtml(euros(Math.abs(mes.cambio)))}${mes.pct != null ? ` (${signo}${Math.abs(Math.round(mes.pct))} %)` : ''} en 30 días</span>` : '<span>Todavía sin un mes de historia</span>'}
+    <span class="hoy-valor-texto">
+      <small>Tu colección</small>
+      <b>${escapeHtml(conMiles.format(Number(ultimo.valor)))}</b>
+      ${mes ? `<span class="hoy-valor-mes ${tono}">${sentido ? `<i class="hoy-flecha" aria-hidden="true"></i><span class="sr-only">${sentido}</span>` : ''}${escapeHtml(euros(Math.abs(mes.cambio)))} <span>este mes</span></span>` : '<span>Todavía sin un mes de historia</span>'}
+    </span>
     ${chispaSvg(filas.slice(-30))}
   </a>`
 }
+
+// La cifra con el punto de los miles SIEMPRE (747): «4817,20 €» se lee mal.
+const conMiles = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
 async function intentar(fn) {
   try { return await fn() } catch { return undefined }
@@ -124,11 +153,13 @@ export async function montarHoy(session, { doc = document } = {}) {
   caja.className = 'hoy'
   caja.id = 'hoyPortada'
   caja.setAttribute('aria-label', 'Hoy')
-  caja.innerHTML = `<h2 class="hoy-titulo">Hoy</h2><div class="hoy-rejilla"><div class="skeleton" style="height:96px"></div></div>`
+  // El hueco con la forma de lo que llega (la tarjeta y las cuatro fichas):
+  // si llegara de golpe, lo de debajo pegaría un salto.
+  caja.innerHTML = `<h2 class="sr-only">Hoy</h2><div class="hoy-rejilla"><div class="skeleton hoy-esq-valor"></div>${'<div class="skeleton hoy-esq-ficha"></div>'.repeat(4)}</div>`
   seccion.appendChild(caja)
 
   const hoy = hoyISO()
-  const [valor, reto, mio, abierto, sets, respuestas] = await Promise.all([
+  const [valor, reto, mio, abierto, sets, sigue, respuestas] = await Promise.all([
     intentar(async () => {
       const { data, error } = await supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true })
       return error ? null : data || []
@@ -155,6 +186,12 @@ export async function montarHoy(session, { doc = document } = {}) {
       return (data || []).filter((s) => !s.oculto && s.release_date)
     }),
     intentar(async () => {
+      const { data: fila } = await supabase.from('user_progress').select('guide_id, current_block, status, started_at').eq('user_id', uid).neq('status', 'completed').not('started_at', 'is', null).order('started_at', { ascending: false }).limit(1).maybeSingle()
+      if (!fila) return null
+      const { data: guia } = await supabase.from('guides').select('id, slug, title, blocks').eq('id', fila.guide_id).maybeSingle()
+      return guia ? { guia, fila } : null
+    }),
+    intentar(async () => {
       const { count, error } = await supabase.from('user_notifications').select('id', { count: 'exact', head: true }).eq('recipient_id', uid).eq('type', 'forum_reply').is('read_at', null)
       return error ? null : count ?? null
     }),
@@ -162,5 +199,6 @@ export async function montarHoy(session, { doc = document } = {}) {
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null
   caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null) + fichasHtml({ reto: reto === undefined ? null : reto, torneo, lanzamiento, respuestas: respuestas ?? null })
+  if (sigue) caja.insertAdjacentHTML('beforeend', sigueHtml(sigue.guia, sigue.fila))
   return caja
 }
