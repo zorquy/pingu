@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 12) — PINGU-Claude (732 — instalar PokeDoc y, instalada, tirar para refrescar)
+
+**Hecho**: A1 y X4 de la lista. En el móvil, desde la segunda visita, la
+portada ofrece instalar PokeDoc (en el iPhone, con los dos pasos de
+Safari; «Ahora no» la calla un mes). Y ya instalada, tirar hacia abajo
+desde arriba recarga la página.
+
+**Ficheros**: `js/instalar.js`, `js/tirar-refrescar.js`,
+`js/barra-movil.js`, `css/movil.css`, `SCHEMA.md`. Prueba 732-pantalla en
+`pruebas`.
+
+**Pendiente**: V7 (sin conexión) necesita decidir con PINGU si el service
+worker pasa a guardar caché. Y J1, J4, J5, D1, D2, V3 (antetítulo), X6,
+X7, X8, X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 11) — PINGU-Claude (731 — pellizcar la rejilla cambia las columnas)
 
 **Hecho**: X3 de la lista. En el móvil, pellizcar la rejilla de una

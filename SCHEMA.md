@@ -34860,3 +34860,35 @@ el escritorio, donde caben once, en cuatro columnas.
 
 **Ficheros**: `js/mi-coleccion/pellizco.js` (nuevo), `js/mi-coleccion.js`,
 `css/mi-coleccion.css`. Prueba 731-pantalla, con dos dedos de verdad por CDP.
+
+## Tanda 732 — instalar PokeDoc y, instalada, tirar para refrescar (oct. 2026)
+
+A1 y X4 de la lista. Las dos entran por `barra-movil.js` (solo el móvil).
+
+- **A1 — instalar** (`js/instalar.js`). La web ya era instalable
+  —manifiesto con `display: standalone`, iconos y los avisos push con su
+  service worker—, pero nadie lo sabía: en el iPhone Safari no lo ofrece
+  nunca. Ahora sale una banda en la PORTADA, bajo la barra de arriba:
+  «Instala PokeDoc en tu móvil · se abre a pantalla completa y te llegan
+  los avisos». En el iPhone «Cómo» enseña los dos pasos (Compartir →
+  «Añadir a pantalla de inicio»); donde el navegador sabe instalar
+  (`beforeinstallprompt`, Chrome y Android) el botón «Instalar» lo hace.
+  Reglas (`tocaOfrecer`, pura): desde la SEGUNDA visita —una visita es
+  una sesión del navegador, no cada página—, nunca si ya está instalada, y
+  «Ahora no» la calla un mes. Solo en la portada: en una ficha o un hilo
+  estás haciendo otra cosa.
+- **X4 — tirar para refrescar** (`js/tirar-refrescar.js`). En Safari y
+  Chrome ya existe: es del navegador. Lo que no existía es en PokeDoc
+  INSTALADA, que no tiene barra: ahí no había forma de recargar el foro,
+  los avisos o un torneo en juego. Así que se monta solo instalada: desde
+  lo alto de la página, arrastrar hacia abajo enseña una flecha que gira,
+  y a 80 px (`tocaRefrescar`) se suelta y recarga. Con un diálogo abierto
+  o empezando en la burbuja, nada.
+
+El sin conexión (V7) NO va aquí: pide guardar la colección en el móvil y
+una cola de lo que se añade sin red, y el service worker se dejó a
+propósito sin caché («un fallo aquí jamás puede dejar la web sirviendo
+ficheros viejos»). Es una decisión que hay que tomar con PINGU.
+
+**Ficheros**: `js/instalar.js` y `js/tirar-refrescar.js` (nuevos),
+`js/barra-movil.js`, `css/movil.css`. Prueba 732-pantalla.

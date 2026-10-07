@@ -299,6 +299,11 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   vigilarBajada(doc, window)
   recordarPosicion(doc, window)
   montarTu(doc, window)
+  // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
+  // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732.
+  import('./instalar.js')
+    .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar()))
+    .catch(() => {})
 
   // LA BURBUJA DE LA SECCIÓN (704d). PINGU probó la hoja al volver a
   // tocar la pestaña («súper poco intuitivo, la gente no lo va a

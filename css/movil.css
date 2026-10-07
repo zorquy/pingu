@@ -461,3 +461,98 @@
     box-shadow: none;
   }
 }
+
+/* ── 732: instalar PokeDoc y tirar para refrescar (SCHEMA 732) ── */
+@media (max-width: 900px) {
+  .bm-instalar {
+    position: fixed;
+    top: calc(72px + env(safe-area-inset-top));
+    right: var(--e-md);
+    left: var(--e-md);
+    z-index: 95;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--e-md);
+    padding: var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    box-shadow: var(--shadow-lg);
+  }
+  .bm-instalar img {
+    flex: none;
+    border-radius: var(--radius-md);
+  }
+  .bm-instalar-texto {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--e-xs);
+    min-width: 0;
+    font-size: var(--t-sm);
+  }
+  .bm-instalar-texto > span {
+    color: var(--text-mid);
+  }
+  .bm-instalar-pasos {
+    margin: var(--e-xs) 0 0;
+    padding-left: var(--e-lg);
+  }
+  .bm-instalar-pasos svg {
+    vertical-align: middle;
+  }
+  .bm-instalar-botones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-xs);
+  }
+  .bm-instalar-no {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--text-mid);
+    font: inherit;
+    font-size: var(--t-sm);
+    cursor: pointer;
+  }
+  .bm-refrescar {
+    position: fixed;
+    top: calc(80px + env(safe-area-inset-top));
+    left: calc(50% - 20px);
+    z-index: 96;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: var(--shadow-md);
+    color: var(--navy);
+    font-size: var(--t-lg);
+    opacity: var(--tirado, 0);
+    transform: rotate(calc(var(--tirado, 0) * 270deg));
+    pointer-events: none;
+  }
+  .bm-refrescar.lista,
+  .bm-refrescar.recargando {
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+  }
+  .bm-refrescar.recargando {
+    opacity: 1;
+    animation: bm-girar 0.8s linear infinite;
+  }
+}
+
+@keyframes bm-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bm-refrescar.recargando {
+    animation: none;
+  }
+}
+
