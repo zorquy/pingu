@@ -116,17 +116,19 @@ console.log('\n── 3. Quien manda es quien mira ──')
   // se vuelve a pedir la apertura automática. Si la guarda funciona, no
   // se mueve. El módulo se importa desde la propia página, así que es la
   // MISMA instancia y el mismo estado — no una copia.
+  // Desde la 752 «Acerca» es el nivel Medallas: lo que se pulsa es el
+  // Muro, que la apertura automática cambiaría por el Foro (13).
   const { page: asentada } = await abrir('/perfil')
-  await asentada.locator('.tab-btn[data-ptab="about"]').click()
+  await asentada.locator('.tab-btn[data-ptab="wall"]').click()
   await asentada.waitForTimeout(300)
-  check('al pulsar, se va a Acerca', (await activa(asentada)) === 'Acerca', await activa(asentada))
+  check('al pulsar, se va al Muro', (await activa(asentada)) === 'Muro', await activa(asentada))
   await asentada.evaluate(async () => {
     const m = await import('/js/perfil-pestanias.js')
     m.abrirLaQueTengaAlgo()
   })
   await asentada.waitForTimeout(300)
   const sigue = await activa(asentada)
-  check('  …y ya no te mueve de ahí aunque vuelva a tocarle', sigue === 'Acerca', String(sigue))
+  check('  …y ya no te mueve de ahí aunque vuelva a tocarle', sigue === 'Muro', String(sigue))
   await asentada.close()
 }
 

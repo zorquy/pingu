@@ -96,19 +96,20 @@ for (const ancho of [390, 1280]) {
       titulo: e?.querySelector('.pdx-titulo')?.textContent, sub: e?.querySelector('.pdx-sub')?.textContent,
       anillo: a?.textContent, redondo: ra && Math.round(ra.width) === Math.round(ra.height),
       tira: document.querySelectorAll('#mcPokedexPanel .mc-tira-datos').length,
-      regiones: [...document.querySelectorAll('.pdx-region')].map((b) => b.textContent),
+      regiones: [...document.querySelectorAll('.pdx-region .pdx-region-nombre')].map((b) => b.textContent),
+      kanto: document.querySelector('.pdx-region.activa .pdx-region-cuenta')?.textContent,
       primerPokemon: primero ? Math.round(primero.top) : null,
       ancho: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
     }
   })
-  check(`[${ancho}] «Pokédex», la región con lo que llevas de ella y el anillo del total`, r.titulo === 'Pokédex' && r.sub === 'Kanto · 3 de 151' && /0,3 %/.test(r.anillo) && r.redondo, JSON.stringify(r))
+  check(`[${ancho}] «Pokédex», la región con lo que llevas de ella y el anillo del total`, r.titulo === 'Pokédex' && /^\d+ de [\d.]+ especies$/.test(r.sub) && r.kanto === '3/151' && /0,3 %/.test(r.anillo) && r.redondo, JSON.stringify(r))
   check(`[${ancho}]   …sin la tira de antes`, r.tira === 0)
   check(`[${ancho}]   …las nueve regiones, de Kanto a Paldea`, r.regiones.join() === 'Kanto,Johto,Hoenn,Sinnoh,Teselia,Kalos,Alola,Galar,Paldea', r.regiones.join())
   check(`[${ancho}]   …y el primer Pokémon a la vista sin bajar`, r.primerPokemon !== null && r.primerPokemon < 700, String(r.primerPokemon))
   check(`[${ancho}] la página no se va de ancho`, r.ancho)
   await page.locator('.pdx-region', { hasText: 'Johto' }).click()
   await page.waitForTimeout(400)
-  check(`[${ancho}] tocar Johto enseña Johto: 100, del #152`, (await page.locator('.pdx-especie').count()) === 100 && (await page.locator('.pdx-especie').first().getAttribute('data-dex')) === '152' && /Johto · 0 de 100/.test(await page.textContent('.pdx-sub')))
+  check(`[${ancho}] tocar Johto enseña Johto: 100, del #152`, (await page.locator('.pdx-especie').count()) === 100 && (await page.locator('.pdx-especie').first().getAttribute('data-dex')) === '152' && (await page.textContent('.pdx-region.activa .pdx-region-cuenta')) === '0/100')
   await page.close()
 }
 

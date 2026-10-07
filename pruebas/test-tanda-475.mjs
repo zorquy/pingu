@@ -60,7 +60,8 @@ const enLaBarra = await page.evaluate(() =>
   // solo salen en el ordenador de tres columnas.
   [...document.querySelectorAll('#mcArchivadorZona .mc-album-barra > *')].filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id || e.tagName))
 check('dos cosas y nada más', enLaBarra.length === 2, enLaBarra.join(','))
-check('el título y el menú', enLaBarra.includes('mcAlbumTitulo') && enLaBarra.includes('mcAlbumMenu'), enLaBarra.join(','))
+// Desde la 749 el título va dentro de su bloque, con el logo al lado.
+check('el título y el menú', (await page.evaluate(() => !!document.querySelector('#mcArchivadorZona .mc-album-barra > .mc-album-nombre #mcAlbumTitulo'))) && enLaBarra.includes('mcAlbumMenu'), enLaBarra.join(','))
 // La fila de cuatro iconos ya no existe.
 check('ya no hay fila de iconos', (await page.locator('.mc-album-iconos').count()) === 0)
 check('ni el engranaje suelto de «al añadir»', (await page.locator('#mcTocarCaja').count()) === 0)

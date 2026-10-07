@@ -54,10 +54,11 @@ const browser = await chromium.launch()
 
   // Desde la 748 las generaciones son REGIONES en chips (la C3 de su
   // maqueta) y se mira una a la vez: la cabecera dice cuántas llevas de esa.
-  const rotulos = await page.locator('.pdx-region').allTextContents()
+  const rotulos = await page.locator('.pdx-region .pdx-region-nombre').allTextContents()
   check('hay una chapa por región', rotulos.length >= 9 && rotulos[0] === 'Kanto', rotulos.join(' | '))
-  const sub = (await page.locator('.pdx-sub').textContent())?.replace(/\s+/g, ' ') || ''
-  check('  …y la cabecera dice cuántos llevas de la que miras', /Kanto · 3 de 151/.test(sub), sub)
+  // Desde la 750 (K7) la cuenta de cada región va en su chapa.
+  const cuenta = (await page.locator('.pdx-region.activa .pdx-region-cuenta').textContent()) || ''
+  check('  …y la chapa de la que miras dice cuántos llevas de ella', cuenta === '3/151', cuenta)
 
   // Con un buscador puesto, un rótulo encima de nada es ruido.
   await page.fill('#mcPdxBuscar', 'pikachu')

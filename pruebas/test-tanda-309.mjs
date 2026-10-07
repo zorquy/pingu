@@ -162,11 +162,12 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   // losetas, una lista de cinco y «Salir» aparte, junto al tema.
   await page.waitForTimeout(600)
   const opciones = (await page.locator('#navUserDropdown .tu-lista a').allTextContents()).map((t) => t.trim())
-  check('la lista de lo tuyo tiene cinco', opciones.length === 5, JSON.stringify(opciones))
+  // Seis desde la 751: «La quiero» va la primera.
+  check('la lista de lo tuyo tiene seis', opciones.length === 6, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   check('  …y sigue estando lo que sí se usa',
-    ['Guardados', 'Mis partidas', 'Mis mazos', 'Escribir una guía', 'Ajustes'].every((x) => opciones.includes(x)) && (await page.locator('#navUserDropdown .tu-perfil').count()) === 1,
+    ['La quiero', 'Guardados', 'Mis partidas', 'Mis mazos', 'Escribir una guía', 'Ajustes'].every((x) => opciones.includes(x)) && (await page.locator('#navUserDropdown .tu-perfil').count()) === 1,
     JSON.stringify(opciones))
   // «Salir» fuera de la lista: es lo que evita pulsarlo yendo a por lo de
   // arriba.

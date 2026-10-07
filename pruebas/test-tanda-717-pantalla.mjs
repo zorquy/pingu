@@ -57,7 +57,7 @@ console.log('── 2. En un iPhone: la barra de arriba ──')
   // tema en tres (claro, oscuro, auto) y «Salir».
   const filas = limpio(await page.locator('#navUserDropdown .tu-dos').innerText())
   check('arriba: avisos (3) y mensajes (2)', /Avisos\s*3/.test(filas) && /Mensajes\s*2/.test(filas), filas)
-  check('y debajo, «Ver perfil», lo tuyo y «Salir»', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserDropdown .tu-lista a').count()) === 5 && (await page.locator('#navUserSignOut').count()) === 1)
+  check('y debajo, «Ver perfil», lo tuyo y «Salir»', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserDropdown .tu-lista a').count()) === 6 && (await page.locator('#navUserSignOut').count()) === 1)
   await page.click('#navUserDropdown [data-tema="dark"]')
   await page.waitForTimeout(300)
   check('el tema cambia desde la hoja, y la chapa se queda puesta', (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark' && (await page.getAttribute('#navUserDropdown [data-tema="dark"]', 'aria-pressed')) === 'true')

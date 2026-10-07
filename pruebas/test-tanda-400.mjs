@@ -76,7 +76,10 @@ console.log('\n── 2. En la pantalla ──')
   // sigue; el «el que más tienes» se fue con la tira.
   check('la cabecera está', (await page.locator('#mcPdxEncabezado .pdx-encabezado').count()) === 1)
   const texto = (await page.locator('#mcPdxEncabezado').textContent())?.replace(/\s+/g, ' ') || ''
-  check('dice cuántos llevas de la región', /Pokédex/.test(texto) && /Kanto · 2 de 151/.test(texto), texto.slice(0, 120))
+  // Desde la 750 (K7) la cabecera dice el total de especies y cada región
+  // lleva su cuenta en su chapa.
+  const kanto = ((await page.locator('.pdx-region').first().textContent()) || '').replace(/\s+/g, '')
+  check('dice cuántos llevas: el total arriba y la región en su chapa', /Pokédex/.test(texto) && /\d+ de [\d.]+ especies/.test(texto) && kanto === 'Kanto2/151', texto.slice(0, 120) + ' | ' + kanto)
   check('  …y el anillo, de la Pokédex entera y sin redondear a cero', /0,2 %/.test(texto), texto.slice(0, 160))
   // `especiePorDex` devuelve el NOMBRE, no un objeto: pedirle `.nombre`
   // daba undefined y salía «#25» en vez de «Pikachu».

@@ -99,7 +99,9 @@ console.log('\n── 3. Un relleno que falla cuenta intentos y para ──')
 console.log('\n── 4. Lo estático ──')
 {
   const js = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
-  check('el panel resume los huecos (rellenados, parados, último error) en vez de volcar el mapa', /HUECOS \(sets sin cartas, 670\)/.test(js) && /huecos: undefined/.test(js))
+  check('el panel resume los huecos (rellenados, parados, último error) en vez de volcar el mapa', /HUECOS \(sets sin cartas, 670\)/.test(js) && !/JSON\.stringify\(\{ \.\.\.\(de\('tcggo_reemplazos'\)/.test(js))
+  // Desde la 697 el estado de los reemplazos ya no se vuelca en JSON (antes
+  // se vaciaba `huecos` del volcado): lo que se mira es que no vuelva.
 }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK')

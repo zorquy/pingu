@@ -209,7 +209,8 @@ console.log('\n── 6. El idioma: «me da igual» no es «en español» ──
 
 console.log('\n── 7. Apuntar y quitar una carta de la lista ──')
 {
-  const { page, errores } = await abrir({ coleccion: [linea({ id: 'm1', user_id: 'admin-1', card_id: 'sv1-1', cantidad: 1 })] })
+  // Desde la 751 la lista vive en su pantalla, «La quiero».
+  const { page, errores } = await abrir({ coleccion: [linea({ id: 'm1', user_id: 'admin-1', card_id: 'sv1-1', cantidad: 1 })], pestania: 'quiero' })
   await page.fill('#mcDeseoBuscar', 'carta 3')
   await page.waitForTimeout(900)
   check('el buscador encuentra la carta', (await page.locator('[data-desear]').count()) > 0,
@@ -220,7 +221,7 @@ console.log('\n── 7. Apuntar y quitar una carta de la lista ──')
     String(await page.locator('.mc-deseos .mc-fila-carta').count()))
   check('  …con su prioridad', (await page.locator('.mc-deseo-prioridad').count()) === 1)
   check('  …y diciendo que la ve todo el mundo',
-    /la ve todo el mundo/.test(limpio(await page.locator('#mcCambiosPanel').textContent())))
+    /la ve todo el mundo/.test(limpio(await page.locator('#mcQuieroPanel').textContent())))
 
   // Y no se puede apuntar dos veces la misma: el buscador la enseña
   // desactivada en vez de esconderla, que haría pensar que no existe.
@@ -260,7 +261,7 @@ console.log('\n── 7b. En el móvil, el nombre de la carta se lee ──')
     window.__FAKE_COLECCION__ = []
     window.__FAKE_DESEOS__ = [{ id: 'd1', user_id: 'admin-1', card_id: 'sv1-2', idioma: null, prioridad: 3, notas: null, created_at: new Date().toISOString() }]
   }, PERFILES)
-  await movil.goto(`${BASE}/mi-coleccion.html?ver=cambios`, { waitUntil: 'domcontentloaded' })
+  await movil.goto(`${BASE}/mi-coleccion.html?ver=quiero`, { waitUntil: 'domcontentloaded' })
   await movil.waitForTimeout(2800)
   const ancho = await movil.locator('.mc-deseos .mc-fila-nombre').first().evaluate((e) => Math.round(e.getBoundingClientRect().width))
   check('el nombre de la carta no se encoge a nada', ancho > 120, `${ancho}px`)

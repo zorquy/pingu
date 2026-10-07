@@ -191,6 +191,12 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 // Cada gancho rellena una tabla; los campos que no se digan toman un
 // valor por defecto razonable, para que una prueba solo tenga que
 // escribir lo que le importa.
+// Los `default` de las columnas que el cliente no manda al insertar.
+const DEFECTOS_AL_INSERTAR = {
+  user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
+  user_wants: { idioma: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
+}
+
 function sembrar(gancho, tabla, porDefecto) {
   const filas = typeof window !== 'undefined' ? window[gancho] : null
   if (!Array.isArray(filas)) return
@@ -1087,8 +1093,12 @@ function consulta(tabla, estado = {}) {
       // y la siguiente lectura `eq('user_id', …)` no la veía: un verde en
       // la escritura y una colección que no crece, sin ningún error.
       const conDueno = TABLAS_CON_DUENO.includes(tabla) && sesion?.user?.id ? { user_id: sesion.user.id } : {}
+      // Y los `default` de la migración (751): un aviso de precio nace
+      // `activo`, y sin esto `eq('activo', true)` no veía el recién puesto.
+      const defectos = DEFECTOS_AL_INSERTAR[tabla] || {}
       const filas = (Array.isArray(st.cuerpo) ? st.cuerpo : [st.cuerpo]).map((f, i) => ({
         id: f.id || `${tabla}-nuevo-${(T[tabla] || []).length + i + 1}`,
+        ...defectos,
         ...conDueno,
         ...f,
       }))

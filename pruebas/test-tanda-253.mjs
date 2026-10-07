@@ -42,8 +42,15 @@ const abrir = async (ruta, semillas = MUNDO) => {
   await page.waitForTimeout(2400)
   return { page, errores }
 }
+// Desde la 752 «Acerca» es el nivel Medallas, no un filtro de Actividad:
+// la pestaña activa es la del nivel cuando el nivel no es Actividad.
 const pestanaActiva = (page) =>
-  page.evaluate(() => document.querySelector('#profileTabs .tab-btn.active')?.dataset.ptab || null)
+  page.evaluate(() => {
+    const nivel = document.querySelector('#perfilNiveles .active')?.dataset.pnivel
+    if (nivel === 'medallas') return 'about'
+    if (nivel && nivel !== 'actividad') return nivel
+    return document.querySelector('#profileTabs .tab-btn.active')?.dataset.ptab || null
+  })
 
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 1. Sin hash, el perfil abre por donde siempre ──')
