@@ -7536,3 +7536,171 @@ input.mc-alb-titulo:not([readonly]):focus {
     padding-top: 0;
   }
 }
+
+/* ── 748: los filtros como en su maqueta (C6; SCHEMA 748) ── */
+.mc-panel-filtros .mc-panel-cabecera {
+  gap: var(--e-sm);
+}
+
+.mc-panel-borrar {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 var(--e-sm);
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-panel-filtros .mc-panel-pie .btn-primary {
+  flex: 1;
+  min-height: 52px;
+  font-size: var(--t-lg);
+}
+
+/* En el móvil, el aspa es el tirador de la hoja. */
+@media (max-width: 900px) {
+  .mc-panel-filtros .mc-panel-cabecera {
+    padding-top: var(--e-xl);
+    border-bottom: 0;
+  }
+
+  .mc-panel-filtros .mc-panel-cerrar {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 64px;
+    min-height: 24px;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    font-size: 0;
+    transform: translateX(-50%);
+  }
+
+  .mc-panel-filtros .mc-panel-cerrar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Qué cartas: todas, las tengo, me faltan. */
+.mc-seg-que button {
+  flex: 1 1 0;
+}
+
+.mc-seg button[aria-pressed='true'] {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* El precio, con dos tiradores sobre una sola barra. */
+.mc-rango-doble {
+  --desde: 0%;
+  --hasta: 100%;
+  position: relative;
+  height: 44px;
+  margin: 0 var(--e-sm) var(--e-xs);
+}
+
+.mc-rango-doble::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, var(--border) var(--desde), var(--navy-solid) var(--desde), var(--navy-solid) var(--hasta), var(--border) var(--hasta));
+  transform: translateY(-50%);
+}
+
+.mc-rango-doble input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.mc-rango-doble input[type='range']::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--navy-solid);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-appearance: none;
+}
+
+.mc-rango-doble input[type='range']::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--navy-solid);
+  border-radius: 50%;
+  background: var(--white);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.mc-rango-doble input[type='range']:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--shadow-ring);
+}
+
+/* En los paneles de filtros, las opciones son pastillas sueltas —como los
+   chips de «Cartas»— y no un bloque oscuro; las energías, en redondo. */
+.mc-panel-filtros .mc-seg-chips {
+  gap: var(--e-sm);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mc-panel-filtros .mc-seg-chips button {
+  flex: none;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.mc-panel-filtros .mc-seg-chips button[aria-checked='true'] {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  box-shadow: none;
+}
+
+.mc-panel-filtros .mc-seg-energias .mc-seg-dibujo {
+  padding: 0;
+  border-radius: 50%;
+}
+
+.mc-panel-filtros .mc-seg-energias .mc-seg-dibujo[aria-checked='true'] {
+  border-color: var(--navy);
+  background: var(--ice);
+  box-shadow: 0 0 0 1px var(--navy);
+}
+
+@media (max-width: 900px) {
+  .mc-panel-filtros .mc-panel-cabecera {
+    padding-bottom: var(--e-xs);
+  }
+}

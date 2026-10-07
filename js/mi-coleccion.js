@@ -1819,9 +1819,21 @@ function pintarHojaOrden() {
 function pintarGruposDeChips() {
   const hueco = $('mcGruposChips')
   if (!hueco) return
-  hueco.innerHTML = GRUPOS.map((g) => {
+  // Las energías y la rareza, PRIMERO (748, la C6 de su maqueta): son lo
+  // que más se filtra, y las energías van como su símbolo en redondo.
+  const primero = ['energia', 'rareza']
+  const enOrden = [...GRUPOS].sort((a, b) => (primero.indexOf(a.id) + 1 || 9) - (primero.indexOf(b.id) + 1 || 9))
+  hueco.innerHTML = enOrden.map((g) => {
     const valores = valoresDeGrupo(g)
     if (valores.length < 2) return ''
+    if (g.id === 'energia') {
+      return `<div class="mc-grupo-filtro"><h3>Tipo</h3><div class="mc-chips-filtro mc-chips-energia">${valores
+        .map((v) => {
+          const puesto = filtros[g.id].has(v)
+          return `<button type="button" class="chip-filtro chip-energia${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}" aria-label="${escapeHtml(v)}" title="${escapeHtml(v)}">${simboloDeTipoHtml(v, { tam: 28 }) || escapeHtml(v)}</button>`
+        })
+        .join('')}</div></div>`
+    }
     return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${valores
       .map((v) => {
         const puesto = filtros[g.id].has(v)
@@ -1854,6 +1866,44 @@ function rangoDePrecio() {
   if (desde !== null && hasta !== null && desde > hasta) [desde, hasta] = [hasta, desde]
   return { desde, hasta, puesto: desde !== null || hasta !== null }
 }
+// LOS DOS TIRADORES del precio (748, la C6 de su maqueta). El tope es lo
+// que vale la copia más cara que tienes, redondeado: un deslizador de 0 a
+// 10.000 € para una colección de cartas de 2 € no deja elegir nada. Los
+// campos de «Desde» y «Hasta» siguen mandando —se pueden escribir— y los
+// tiradores se ponen a lo que digan; en un extremo, el campo queda vacío,
+// que es «sin límite».
+function topeDePrecio() {
+  let tope = 0
+  for (const l of lineas) {
+    const total = valorDeLinea(l, precioDe(l))
+    if (total) tope = Math.max(tope, total / (Number(l.cantidad) || 1))
+  }
+  return Math.max(10, Math.ceil(tope / 5) * 5)
+}
+function pintarTiradores() {
+  const min = $('mcPrecioTiradorMin'), max = $('mcPrecioTiradorMax')
+  if (!min || !max) return
+  const tope = topeDePrecio()
+  const { desde, hasta } = rangoDePrecio()
+  for (const t of [min, max]) t.max = String(tope)
+  min.value = String(Math.min(desde ?? 0, tope))
+  max.value = String(Math.min(hasta ?? tope, tope))
+  const caja = $('mcRangoDoble')
+  caja?.style.setProperty('--desde', `${(Number(min.value) / tope) * 100}%`)
+  caja?.style.setProperty('--hasta', `${(Number(max.value) / tope) * 100}%`)
+}
+function moverTirador(cual) {
+  const min = $('mcPrecioTiradorMin'), max = $('mcPrecioTiradorMax')
+  const tope = Number(max.max)
+  let a = Number(min.value), b = Number(max.value)
+  // Los tiradores no se cruzan: el que se mueve empuja hasta el otro.
+  if (a > b) { if (cual === 'min') a = b; else b = a }
+  $('mcFiltroPrecioDesde').value = a > 0 ? String(a) : ''
+  $('mcFiltroPrecioHasta').value = b < tope ? String(b) : ''
+  pintarTiradores()
+  pintarCartas()
+  pintarCuentaDeFiltros()
+}
 function pasaElPrecio(l, rango) {
   if (!rango.puesto) return true
   const total = valorDeLinea(l, precioDe(l))
@@ -1878,6 +1928,7 @@ function limpiarFiltros() {
   $('mcFiltroIdioma').value = ''
   if ($('mcFiltroPrecioDesde')) $('mcFiltroPrecioDesde').value = ''
   if ($('mcFiltroPrecioHasta')) $('mcFiltroPrecioHasta').value = ''
+  pintarTiradores()
   pintarGruposDeChips()
   pintarCartas()
   pintarCuentaDeFiltros()
@@ -3242,10 +3293,23 @@ function pintarFiltrosDeAlbum() {
     idioma.dataset.vista = vista
     album.idioma = ''
   }
-  if (rareza.dataset.set !== album.set) {
+  // La llave es el set Y cuántas cartas trae (748): si un repintado llega
+  // ANTES que las cartas —la colección se carga a la vez que la
+  // expansión—, se apuntaba el set con la lista vacía y las opciones se
+  // quedaban vacías para siempre, con los tres grupos escondidos.
+  const llave = `${album.set}|${album.cartas.length}`
+  if (rareza.dataset.set !== llave) {
     rareza.innerHTML = opcionesDe((c) => rarezaDeCarta(c), 'Cualquier rareza')
     tipo.innerHTML = opcionesDe((c) => (c.category ? categoriaEs(c.category) : null), 'Cualquier categoría')
-    rareza.dataset.set = album.set
+    // El tipo de energía (748): una carta puede tener dos, así que se
+    // cuentan todas.
+    const energia = $('mcAlbumEnergia')
+    if (energia) {
+      const tipos = [...new Set(album.cartas.flatMap((c) => (Array.isArray(c.types) ? c.types.map(tipoEs) : [])))].sort((a, b) => a.localeCompare(b, 'es'))
+      energia.innerHTML = '<option value="">Todos</option>' + tipos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')
+      $('mcAlbumGrupoEnergia')?.classList.toggle('hidden', tipos.length < 2)
+    }
+    rareza.dataset.set = llave
     // Y si la colección no tiene ni rarezas ni categorías guardadas —el
     // engorde todavía no ha llegado— se esconde el GRUPO ENTERO y no solo
     // el desplegable (tanda 473): desde que viven dentro del panel cada uno
@@ -3262,6 +3326,7 @@ function cartasDelAlbumFiltradas() {
   album.idioma = $('mcAlbumIdioma')?.value || ''
   const rareza = $('mcAlbumRareza').value
   const tipo = $('mcAlbumTipo').value
+  const energia = $('mcAlbumEnergia')?.value || ''
   // Por nombre O por número (tanda 417): en Dex se busca «por nombre de
   // carta, número o ilustrador», y el número es como se busca una carta
   // dentro de un set — «la 102» —, que es justo lo que no se podía.
@@ -3271,6 +3336,7 @@ function cartasDelAlbumFiltradas() {
     if (album.soloTengo && !tengoEnAlbum(c.id)) return false
     if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
+    if (energia && !(Array.isArray(c.types) && c.types.map(tipoEs).includes(energia))) return false
     if (texto && !normalizeSearch(`${nombreDe(c)} ${c.local_id || ''}`).includes(texto)) return false
     return true
   })
@@ -3331,6 +3397,7 @@ function pintarVistaVariantes() {
 function cuantosFiltrosDeAlbum() {
   return ($('mcAlbumRareza')?.value ? 1 : 0) +
     ($('mcAlbumTipo')?.value ? 1 : 0) +
+    ($('mcAlbumEnergia')?.value ? 1 : 0) +
     (album.soloFaltan ? 1 : 0) +
     (album.soloTengo ? 1 : 0) +
     (album.idioma ? 1 : 0) +
@@ -3354,6 +3421,7 @@ function pintarCuentaDeFiltrosDeAlbum() {
 function limpiarFiltrosDeAlbum() {
   if ($('mcAlbumRareza')) $('mcAlbumRareza').value = ''
   if ($('mcAlbumTipo')) $('mcAlbumTipo').value = ''
+  if ($('mcAlbumEnergia')) $('mcAlbumEnergia').value = ''
   if ($('mcAlbumOrden')) $('mcAlbumOrden').value = 'numero'
   if ($('mcAlbumIdioma')) $('mcAlbumIdioma').value = ''
   album.idioma = ''
@@ -3376,6 +3444,8 @@ function pintarSoloFaltan() {
   const t = $('mcAlbumSoloTengo')
   t?.classList.toggle('activo', Boolean(album.soloTengo))
   t?.setAttribute('aria-pressed', album.soloTengo ? 'true' : 'false')
+  // «Todas» (748) está puesta cuando no lo está ninguna de las otras dos.
+  $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo ? 'true' : 'false')
 }
 
 // La CUADRÍCULA: el escaneo y nada más. Sin mandos a propósito — si
@@ -5805,6 +5875,7 @@ function enganchar() {
   $('mcAbrirFiltros').addEventListener('click', () => {
     pintarGruposDeChips()
     $('mcPanelFiltros').showModal()
+    pintarTiradores()
   })
   $('mcFiltrosCerrar').addEventListener('click', () => $('mcPanelFiltros').close())
   $('mcFiltrosVer').addEventListener('click', () => $('mcPanelFiltros').close())
@@ -5817,8 +5888,10 @@ function enganchar() {
     if (!dentro) e.currentTarget.close()
   })
   for (const id of ['mcFiltroPrecioDesde', 'mcFiltroPrecioHasta']) {
-    $(id)?.addEventListener('input', () => { pintarCartas(); pintarCuentaDeFiltros() })
+    $(id)?.addEventListener('input', () => { pintarCartas(); pintarCuentaDeFiltros(); pintarTiradores() })
   }
+  $('mcPrecioTiradorMin')?.addEventListener('input', () => moverTirador('min'))
+  $('mcPrecioTiradorMax')?.addEventListener('input', () => moverTirador('max'))
   $('mcGruposChips').addEventListener('click', (e) => {
     const chip = e.target.closest('[data-grupo]')
     if (!chip) return
@@ -5874,7 +5947,7 @@ function enganchar() {
   })
   $('mcFiltroSet').addEventListener('change', pintarColumnaSets)
   // En el ordenador, el panel es una columna fija junto a la rejilla (738).
-  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: pintarGruposDeChips })
+  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: () => { pintarGruposDeChips(); pintarTiradores() } })
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
   // lado: dejarlo puesto haría que la lista siguiera recortada después de
   // pulsar «quitar» y parecería que no ha hecho nada.
@@ -6342,7 +6415,7 @@ function enganchar() {
       pintarPokedex()
     }
   })
-  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumOrden', 'mcAlbumIdioma']) {
+  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma']) {
     $(id).addEventListener('change', () => {
       // Al filtrar se vuelve a la primera página: seguir en la 7 de una
       // lista que ahora tiene 2 deja el archivador en blanco.
@@ -6353,6 +6426,13 @@ function enganchar() {
   $('mcAlbumSoloFaltan').addEventListener('click', () => {
     album.soloFaltan = !album.soloFaltan
     if (album.soloFaltan) album.soloTengo = false
+    pintarSoloFaltan()
+    album.pagina = 0
+    pintarAlbum()
+  })
+  $('mcAlbumTodas')?.addEventListener('click', () => {
+    album.soloFaltan = false
+    album.soloTengo = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -6370,6 +6450,8 @@ function enganchar() {
   segmentar($('mcAlbumRareza'), { etiqueta: 'Rareza', chips: true })
   segmentar($('mcAlbumTipo'), { etiqueta: 'Categoría', chips: true })
   segmentar($('mcAlbumIdioma'), { etiqueta: 'Idioma en que cuentan tus copias', chips: true })
+  segmentar($('mcAlbumEnergia'), { etiqueta: 'Tipo de energía', chips: true, dibujo: (o) => (o.value ? simboloDeTipoHtml(o.value, { tam: 28 }) : ''), soloDibujo: true })
+  segmentar($('mcAlbumOrden'), { etiqueta: 'Cómo se ordenan', chips: true })
 
   // ── El panel de filtros de una expansión (tanda 473) ──
   //

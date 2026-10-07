@@ -279,6 +279,7 @@
         <dialog class="mc-panel-filtros" id="mcPanelFiltros" aria-labelledby="mcPanelFiltrosTitulo">
           <div class="mc-panel-cabecera">
             <h2 id="mcPanelFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-borrar" id="mcFiltrosLimpiar">Borrar todo</button>
             <button type="button" class="mc-panel-cerrar" id="mcFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
           </div>
           <div class="mc-panel-cuerpo">
@@ -296,6 +297,26 @@
               <h3>Tus expansiones</h3>
               <div class="mc-columna-sets-lista" id="mcColumnaSets"></div>
             </div>
+            <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
+                 colección: una lista escrita a mano ofrece rarezas que no
+                 tienes y se queda sin las que salgan mañana. -->
+            <div id="mcGruposChips"></div>
+            <!-- 714 (C6): lo que vale CADA copia, en euros. Una carta sin
+                 precio no entra cuando hay un límite puesto: «no se sabe»
+                 no cumple ningún rango. Desde la 748, con DOS tiradores como
+                 en su maqueta; los dos campos de debajo siguen mandando (se
+                 pueden escribir) y los tiradores se mueven con ellos. -->
+            <div class="mc-grupo-filtro">
+              <h3>Precio por copia</h3>
+              <div class="mc-rango-doble" id="mcRangoDoble">
+                <input type="range" id="mcPrecioTiradorMin" min="0" max="100" step="1" value="0" aria-label="Precio mínimo" />
+                <input type="range" id="mcPrecioTiradorMax" min="0" max="100" step="1" value="100" aria-label="Precio máximo" />
+              </div>
+              <div class="mc-rango-precio">
+                <label>Desde <input type="number" id="mcFiltroPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0 €" /></label>
+                <label>Hasta <input type="number" id="mcFiltroPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
+              </div>
+            </div>
             <div class="mc-grupo-filtro mc-grupo-set">
               <h3>Colección</h3>
               <select id="mcFiltroSet" aria-label="Colección"></select>
@@ -304,23 +325,8 @@
               <h3>Idioma</h3>
               <select id="mcFiltroIdioma" aria-label="Idioma"></select>
             </div>
-            <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
-                 colección: una lista escrita a mano ofrece rarezas que no
-                 tienes y se queda sin las que salgan mañana. -->
-            <div id="mcGruposChips"></div>
-            <!-- 714 (C6): lo que vale CADA copia, en euros. Una carta sin
-                 precio no entra cuando hay un límite puesto: «no se sabe»
-                 no cumple ningún rango. -->
-            <div class="mc-grupo-filtro">
-              <h3>Precio por copia (€)</h3>
-              <div class="mc-rango-precio">
-                <label>Desde <input type="number" id="mcFiltroPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0" /></label>
-                <label>Hasta <input type="number" id="mcFiltroPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
-              </div>
-            </div>
           </div>
           <div class="mc-panel-pie">
-            <button type="button" class="mc-chip-mando" id="mcFiltrosLimpiar">Limpiar</button>
             <button type="button" class="btn-primary" id="mcFiltrosVer">Ver resultados</button>
           </div>
         </dialog>
@@ -601,19 +607,26 @@
           <dialog class="mc-panel-filtros" id="mcAlbumPanelFiltros" aria-labelledby="mcAlbumFiltrosTitulo">
             <div class="mc-panel-cabecera">
               <h2 id="mcAlbumFiltrosTitulo">Filtros</h2>
+              <button type="button" class="mc-panel-borrar" id="mcAlbumFiltrosLimpiar">Borrar todo</button>
               <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
             </div>
             <div class="mc-panel-cuerpo">
-              <!-- Cómo se ordena (tanda 427). Una expansión se mira de
-                   cuatro maneras según lo que vayas a hacer: por número
-                   cuando la repasas en la mano, por nombre cuando buscas
-                   una, por rareza cuando miras lo que vale, y «lo que te
-                   falta» cuando vas a comprar o a cambiar. Las opciones las
-                   pone el JavaScript desde `orden.js`, que es quien sabe
-                   ordenar: dos listas iguales en dos sitios se separan. -->
+              <!-- QUÉ CARTAS, arriba y segmentado (748, la C6 de su maqueta):
+                   todas, las que tienes o las que te faltan. Es lo primero
+                   que se decide al mirar una expansión. -->
               <div class="mc-grupo-filtro">
-                <h3>Ordenar por</h3>
-                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+                <h3>Qué cartas</h3>
+                <div class="mc-seg mc-seg-que" role="group" aria-label="Qué cartas ver">
+                  <button type="button" id="mcAlbumTodas" aria-pressed="true">Todas</button>
+                  <button type="button" id="mcAlbumSoloTengo" aria-pressed="false">Las tengo</button>
+                  <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Me faltan</button>
+                </div>
+              </div>
+              <!-- El tipo de energía, con su símbolo (748). Como la rareza:
+                   sale de las cartas de ESTA colección. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoEnergia">
+                <h3>Tipo</h3>
+                <select id="mcAlbumEnergia" aria-label="Filtrar por tipo de energía"></select>
               </div>
               <!-- Las opciones salen de las cartas que hay DE VERDAD en esta
                    colección, no de una lista escrita a mano: un set con una
@@ -629,17 +642,6 @@
                 <h3>Categoría</h3>
                 <select id="mcAlbumTipo" aria-label="Filtrar por categoría"></select>
               </div>
-              <div class="mc-grupo-filtro">
-                <h3>Qué cartas</h3>
-                <!-- CHAPA Y NO CASILLA (tanda 459). Es el mismo control que
-                     «Solo las empezadas» de la estantería, así que es la
-                     misma pieza. -->
-                <div class="mc-chips-filtro">
-                  <button type="button" class="chip-filtro mc-chip-mando" id="mcAlbumSoloFaltan" aria-pressed="false">Solo las que me faltan</button>
-                  <!-- 714: la otra mitad. Pulsar una suelta la otra. -->
-                  <button type="button" class="chip-filtro mc-chip-mando" id="mcAlbumSoloTengo" aria-pressed="false">Solo las que tengo</button>
-                </div>
-              </div>
               <!-- EN QUÉ IDIOMA CUENTA «la tengo» (tanda 577). PINGU: «en las
                    expansiones, filtrar por las que faltan y también por el
                    idioma». Con «español» puesto, una carta que solo tienes en
@@ -650,9 +652,19 @@
                 <h3>Contar solo las que tengo en</h3>
                 <select id="mcAlbumIdioma" aria-label="En qué idioma cuentan tus copias"></select>
               </div>
+              <!-- Cómo se ordena (tanda 427). Una expansión se mira de
+                   cuatro maneras según lo que vayas a hacer: por número
+                   cuando la repasas en la mano, por nombre cuando buscas
+                   una, por rareza cuando miras lo que vale, y «lo que te
+                   falta» cuando vas a comprar o a cambiar. Las opciones las
+                   pone el JavaScript desde `orden.js`, que es quien sabe
+                   ordenar: dos listas iguales en dos sitios se separan. -->
+              <div class="mc-grupo-filtro">
+                <h3>Ordenar por</h3>
+                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+              </div>
             </div>
             <div class="mc-panel-pie">
-              <button type="button" class="mc-chip-mando" id="mcAlbumFiltrosLimpiar">Limpiar</button>
               <button type="button" class="btn-primary" id="mcAlbumFiltrosVer">Ver resultados</button>
             </div>
           </dialog>
@@ -832,13 +844,13 @@
       <dialog class="mc-panel-filtros" id="mcPdxPanelFiltros" aria-labelledby="mcPdxFiltrosTitulo">
         <div class="mc-panel-cabecera">
           <h2 id="mcPdxFiltrosTitulo">Filtros</h2>
+          <button type="button" class="mc-panel-borrar" id="mcPdxFiltrosLimpiar">Borrar todo</button>
           <button type="button" class="mc-panel-cerrar" id="mcPdxFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
         </div>
         <div class="mc-panel-cuerpo">
           <div id="mcPdxGrupos"></div>
         </div>
         <div class="mc-panel-pie">
-          <button type="button" class="mc-chip-mando" id="mcPdxFiltrosLimpiar">Limpiar</button>
           <button type="button" class="btn-primary" id="mcPdxFiltrosVer">Ver resultados</button>
         </div>
       </dialog>
@@ -1056,13 +1068,13 @@
         <dialog class="mc-panel-filtros" id="mcBuscarPanelFiltros" aria-labelledby="mcBuscarFiltrosTitulo">
           <div class="mc-panel-cabecera">
             <h2 id="mcBuscarFiltrosTitulo">Filtros</h2>
+            <button type="button" class="mc-panel-borrar" id="mcBuscarFiltrosLimpiar">Borrar todo</button>
             <button type="button" class="mc-panel-cerrar" id="mcBuscarFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
           </div>
           <div class="mc-panel-cuerpo">
             <div id="mcBuscarGrupos"></div>
           </div>
           <div class="mc-panel-pie">
-            <button type="button" class="mc-chip-mando" id="mcBuscarFiltrosLimpiar">Limpiar</button>
             <button type="button" class="btn-primary" id="mcBuscarFiltrosVer">Ver resultados</button>
           </div>
         </dialog>

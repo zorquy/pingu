@@ -12,7 +12,10 @@
 // por el `change` del select.
 import { escapeHtml } from '../html.js'
 
-export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent, conNombre = false, chips = false } = {}) {
+// `dibujo` (748): HTML que va delante del rótulo —el símbolo de una
+// energía—, y con `soloDibujo` el botón es SOLO el dibujo y su nombre va en
+// `aria-label`, que es lo que lee quien no lo ve.
+export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent, conNombre = false, chips = false, dibujo = null, soloDibujo = false } = {}) {
   if (!select || select.dataset.segmentado) return null
   select.dataset.segmentado = '1'
   select.classList.add('mc-seg-select')
@@ -21,7 +24,7 @@ export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent,
   const caja = document.createElement('div')
   // `chips`: cada botón mide lo que su palabra (rarezas largas), no un
   // reparto a partes iguales que las recortaría.
-  caja.className = chips ? 'mc-seg mc-seg-chips' : 'mc-seg'
+  caja.className = `${chips ? 'mc-seg mc-seg-chips' : 'mc-seg'}${soloDibujo ? ' mc-seg-energias' : ''}`
   caja.setAttribute('role', 'radiogroup')
   if (etiqueta) caja.setAttribute('aria-label', etiqueta)
   select.insertAdjacentElement('afterend', caja)
@@ -36,7 +39,9 @@ export function segmentar(select, { etiqueta = '', corto = (o) => o.textContent,
     caja.innerHTML = ops
       .map((o) => {
         const si = o.value === select.value
-        return `<button type="button" role="radio" aria-checked="${si}" tabindex="${si ? 0 : -1}" data-valor="${escapeHtml(o.value)}" title="${escapeHtml(o.textContent)}">${escapeHtml(corto(o))}</button>`
+        const d = dibujo ? dibujo(o) : ''
+        const solo = soloDibujo && d
+        return `<button type="button" role="radio" aria-checked="${si}" tabindex="${si ? 0 : -1}" data-valor="${escapeHtml(o.value)}" title="${escapeHtml(o.textContent)}"${solo ? ` aria-label="${escapeHtml(o.textContent)}" class="mc-seg-dibujo"` : ''}>${d}${solo ? '' : escapeHtml(corto(o))}</button>`
       })
       .join('')
     if (nombre) nombre.textContent = select.selectedOptions[0]?.textContent || ''

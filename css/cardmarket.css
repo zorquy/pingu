@@ -1220,3 +1220,29 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
     border-radius: var(--radius-xl);
   }
 }
+
+/* Las energías, su símbolo en redondo (748): las usan el segmentado de
+   /carta y los filtros de Mi colección, así que van con `.mc-seg`. */
+.chip-energia,
+.mc-seg .mc-seg-dibujo {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.chip-energia.activa,
+.mc-seg .mc-seg-dibujo[aria-checked='true'] {
+  background: var(--ice);
+  box-shadow: 0 0 0 2px var(--navy);
+}
+
+.chip-energia img,
+.mc-seg-dibujo img {
+  width: 28px;
+  height: 28px;
+}
+
