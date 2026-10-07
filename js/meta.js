@@ -2,7 +2,7 @@
 // los torneos online de Estándar, sacado de Limitless por la función
 // programada meta-limitless. Cada fila lleva a la ficha del arquetipo.
 import { escapeHtml } from './html.js'
-import { resumen, totales, tiposDeArquetipos } from './meta/datos.js'
+import { resumen, totales, tiposDeArquetipos, tiposDeEspecies } from './meta/datos.js'
 import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
 import {
   periodoDe,
@@ -42,8 +42,8 @@ function filaHtml(f, i, maximo) {
   if (dias !== 14) q.set('dias', String(dias))
   if (fuente) q.set('fuente', fuente)
   const href = `/meta/${encodeURIComponent(f.arquetipo)}${q.toString() ? `?${q}` : ''}`
-  // Incoloro no tiñe: su gris sobre el fondo de la barra no se vería.
-  const tipo = tipos.get(f.arquetipo) !== 'Colorless' ? tipos.get(f.arquetipo) : null
+  // Incoloro tiñe desde la 748, con un gris que se ve (meta.css).
+  const tipo = tipos.get(f.arquetipo) || null
   return `
     <li class="meta-fila">
       <a class="meta-fila-enlace" href="${href}">
@@ -58,7 +58,8 @@ function filaHtml(f, i, maximo) {
           <span class="meta-uso-num">${porcentaje(f.cuota)}</span>
         </span>
         <span class="meta-tend meta-tend-${t?.tipo || 'igual'}" title="${t?.tipo === 'nuevo' ? 'Sin datos del periodo anterior' : 'Diferencia de uso con el periodo anterior, en puntos'}">${escapeHtml(textoTendencia(t))}</span>
-        <span class="meta-victorias${claseV}" title="${entero(f.victorias)}-${entero(f.derrotas)}-${entero(f.empates)}">${porcentaje(f.porcentaje_victorias)}</span>
+        <span class="meta-victorias${claseV}" title="${entero(f.victorias)}-${entero(f.derrotas)}-${entero(f.empates)}">${porcentaje(f.porcentaje_victorias)}<small class="meta-gana">gana</small></span>
+        <span class="meta-de-listas">${porcentaje(f.cuota)} de las listas</span>
       </a>
     </li>`
 }
@@ -110,6 +111,8 @@ async function cargar() {
       t.pokedoc ? `${entero(t.pokedoc)} de PokeDoc` : '',
     ].filter(Boolean)
     $('metaTotales').textContent = `${entero(t.torneos)} torneos${partes.length > 1 ? ` (${partes.join(', ')})` : ''} · ${entero(t.jugadores)} jugadores · actualizado ${haceCuanto(t.ultima_lectura)}`
+    // El de la especie, ya; el de las cartas, cuando llegue (748).
+    tipos = tiposDeEspecies(filas)
     pintar()
     tiposDeArquetipos(filas)
       .then((m) => {

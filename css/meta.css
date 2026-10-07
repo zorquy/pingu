@@ -680,3 +680,101 @@
   height: 40px;
   margin: 0;
 }
+
+/* ── 748: el meta de su maqueta (J3; SCHEMA 748) ── */
+.meta-barra[data-tipo='Colorless'] { --tipo-energia: #9a978c; }
+
+.meta-de-listas,
+.meta-gana {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .meta-lema {
+    display: none;
+  }
+
+  /* Las filas son tarjetas sueltas, como en su maqueta: la caja de la
+     tabla deja de serlo. */
+  .meta-tabla {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+}
+
+@container (max-width: 640px) {
+  .meta-ranking {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-sm);
+    border: 0;
+    background: transparent;
+  }
+
+  .meta-fila {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+  }
+
+  .meta-fila-enlace {
+    grid-template-columns: 16px 80px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'pos iconos nombre vict'
+      'pos iconos uso vict'
+      'pos iconos listas vict';
+    row-gap: 2px;
+    padding: var(--e-md);
+  }
+
+  .meta-fila-enlace .meta-iconos {
+    width: 80px;
+    height: 44px;
+  }
+
+  .meta-fila-enlace .meta-icono {
+    width: 40px;
+    height: 40px;
+  }
+
+  .meta-sub,
+  .meta-tend,
+  .meta-uso-num {
+    display: none;
+  }
+
+  .meta-uso {
+    display: flex;
+    margin: var(--e-xs) 0;
+  }
+
+  .meta-de-listas {
+    display: block;
+    grid-area: listas;
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+  }
+
+  .meta-victorias {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: var(--font-display);
+    font-size: var(--t-xl);
+    font-weight: 800;
+  }
+
+  .meta-victorias::before {
+    content: none;
+  }
+
+  .meta-gana {
+    display: block;
+    color: var(--text-mid);
+    font-family: 'Inter', sans-serif;
+    font-size: var(--t-xs);
+    font-weight: 400;
+  }
+}

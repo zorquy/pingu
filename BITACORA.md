@@ -7,7 +7,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y
-tenía razón. Se rehacen una a una con la captura al lado. Van diez:
+tenía razón. Se rehacen una a una con la captura al lado. Van once:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
 cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
@@ -21,7 +21,9 @@ portada «Hoy» (saludo con la fecha, tu colección con su línea, cuatro
 fichas y «Sigue donde lo dejaste») y el foro (la lista de conversaciones
 de la maqueta, «Leído», lupa y botón de escribir; el hilo con sus «⋯») y
 la ficha de carta en el móvil (pantalla de detalle con volver y compartir
-flotando, tarjeta de precio, «Tienes N» y Añadir + Avísame abajo).
+flotando, tarjeta de precio, «Tienes N» y Añadir + Avísame abajo) y el
+meta (todas las barras con su color, también las que no tenían, y filas en
+tarjeta como su maqueta).
 La portada baja a 168,2 KB. De paso, un salto al cargar en el
 ordenador: la columna de filtros se enfocaba y bajaba la página.
 
@@ -32,13 +34,16 @@ ordenador: la columna de filtros se enfocaba y bajaba la página.
 `js/hoy.js`, `css/hoy.css`, `js/barra-movil.js`, `css/movil.css`,
 `css/components.css`, `js/perfil.js`, `js/foro.js`,
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
-`js/carta-movil.js`, `css/carta.css`,
+`js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
+`css/meta.css`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
 `CLAUDE.md` (la regla de la 650 y el presupuesto), `SCHEMA.md`. Prueba
 748-pantalla y cuarenta y cuatro más al día en `pruebas`.
 
-**Pendiente**: seguir rehaciendo — meta, escritorio y la sensación de app. El
+**Pendiente**: seguir rehaciendo — el escritorio (barra de arriba y Mi
+colección en tres columnas) y la sensación de app (transiciones, sin
+saltos). El
 rango de precio dentro de una expansión no se hace (ver SCHEMA 748).
 
 ## 2026-10-07 (noche, 1) — PINGU-Claude (747 — cuatro arreglos de Mi colección en el móvil)

@@ -35553,6 +35553,18 @@ coinciden. Esta tanda trae cuatro.
   /carta no hay camino a la lista de «busco» de Cambios, y un botón que
   no hace nada miente. El orden lo pone el CSS (`display: contents` en el
   cuerpo): el núcleo es el mismo HTML que pinta el borde.
+- **El meta (J3)**: «hay otros que no tienen color». El color de la barra
+  salía del tipo más repetido de las CARTAS de la especie del primer icono,
+  con una consulta, y faltaba en cuanto el icono no casaba con ninguna
+  carta; y el Incoloro no teñía a propósito. Ahora el tipo de la especie
+  (`js/tipos-de-especie.js`, `tiposDeEspecies`) se pinta YA y las cartas lo
+  corrigen al llegar (un Charizard ex de Llamas Obsidianas es Oscuro), y el
+  Incoloro va en un gris propio que se ve (#9a978c; la 384 vigila que sea
+  suyo y no el casi blanco de la ficha). En el móvil cada mazo es una
+  tarjeta como la de su maqueta: puesto, sprites más grandes, el nombre,
+  la barra, «14,2 % de las listas» y a la derecha «54,1 %» con «gana»
+  debajo; fuera la tendencia y «120 mazos · 30 top 8», que siguen en el
+  ordenador y en la ficha del mazo, y fuera el párrafo de presentación.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35568,12 +35580,13 @@ coinciden. Esta tanda trae cuatro.
 `js/barra-movil.js`, `css/movil.css`, `css/components.css`, `js/home.js`,
 `js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
-`js/carta-movil.js`, `css/carta.css`, `CLAUDE.md`,
+`js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
+`css/meta.css`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (once bloques) y 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (doce bloques) y 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

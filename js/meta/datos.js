@@ -2,6 +2,7 @@
 // la base (supabase-migration-meta.sql): el ranking y la lista media se
 // calculan al leer, no hay nada guardado que se pueda quedar viejo.
 import { supabase } from '../supabase.js'
+import { tipoDeEspecie } from '../tipos-de-especie.js'
 import { dexExacto } from '../torneos/sprites-pokemon.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-meta.sql'
@@ -127,11 +128,22 @@ export function tipoMasRepetido(cartas, dex) {
   return mejor?.[0] || null
 }
 
+// EL TIPO DE LA ESPECIE, YA (748). PINGU: «en el meta… hay otros que no
+// tienen color». El de las cartas es mejor —un Charizard ex de Llamas
+// Obsidianas es Oscuro, no Fuego— pero llega con una consulta y falta en
+// cuanto el icono no casa con ninguna carta. La especie (js/tipos-de-
+// especie.js) se sabe sin preguntar: va primero y las cartas la corrigen.
+const TIPO_DE_LETRA = { G: 'Grass', R: 'Fire', W: 'Water', L: 'Lightning', P: 'Psychic', F: 'Fighting', D: 'Darkness', M: 'Metal', N: 'Dragon', C: 'Colorless', Y: 'Fairy' }
+export function tiposDeEspecies(filas) {
+  return new Map((filas || []).map((f) => [f.arquetipo, TIPO_DE_LETRA[tipoDeEspecie(dexDeIcono((f.iconos || [])[0]))]]).filter(([, t]) => t))
+}
+
 export async function tiposDeArquetipos(filas) {
   const dexDe = new Map((filas || []).map((f) => [f.arquetipo, dexDeIcono((f.iconos || [])[0])]).filter(([, d]) => d))
   const dexes = [...new Set(dexDe.values())]
-  if (!dexes.length) return new Map()
+  if (!dexes.length) return tiposDeEspecies(filas)
   const { data, error } = await supabase.from('tcg_cards').select('dex_ids, types').eq('market', 'WEST').overlaps('dex_ids', dexes).limit(4000)
   if (error) throw traducir(error)
-  return new Map([...dexDe].map(([a, d]) => [a, tipoMasRepetido(data, d)]).filter(([, t]) => t))
+  const deCartas = new Map([...dexDe].map(([a, d]) => [a, tipoMasRepetido(data, d)]).filter(([, t]) => t))
+  return new Map([...tiposDeEspecies(filas), ...deCartas])
 }
