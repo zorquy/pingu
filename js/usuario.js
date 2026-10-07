@@ -5,6 +5,7 @@ import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, ti
 import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
+import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
@@ -110,17 +111,17 @@ async function loadReputationAndGuides() {
 
   const tier = contributorTier(approvedCount || 0)
 
-  // Dos cifras nada más: las otras tres (seguidores, siguiendo,
-  // trofeos) ya vienen en el HTML y se reparten la misma fila.
-  document.getElementById('profileStats').innerHTML = `
-    <div class="perfil-cifra">
-      <span class="valor">${approvedCount || 0}</span>
-      <span class="rotulo">Guías</span>
-    </div>
-    <div class="perfil-cifra" title="${totalNotas} ${totalNotas === 1 ? 'voto' : 'votos'}">
-      <span class="valor">${avgRating ? avgRating.toFixed(1) : '—'}</span>
-      <span class="rotulo">Nota</span>
-    </div>`
+  // Las cuatro de la 743 (J4), las mismas que en tu perfil. Las otras
+  // tres (seguidores, siguiendo, trofeos) ya vienen en el HTML.
+  const { cartas, torneos } = await contarCartasYTorneos(supabase, profileId)
+  document.getElementById('profileStats').innerHTML = cifrasHtml({
+    cartas,
+    racha: profile?.current_streak ?? null,
+    guias: approvedCount ?? null,
+    nota: avgRating,
+    votos: totalNotas,
+    torneos,
+  })
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
   // a la fila de chapas, junto al nivel, en vez de desentonar entre

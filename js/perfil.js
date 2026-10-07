@@ -10,6 +10,7 @@ import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.j
 import { renderWall } from './wall.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash } from './perfil-pestanias.js'
 import { showToast } from './toast.js'
+import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
@@ -68,17 +69,13 @@ async function loadProfile(session) {
 }
 
 async function loadStats(session, profile) {
-  const [{ count: completedCount }, { count: approvedGuidesCount }] = await Promise.all([
-    supabase
-      .from('user_progress')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
-      .eq('status', 'completed'),
+  const [{ count: approvedGuidesCount }, { cartas, torneos }] = await Promise.all([
     supabase
       .from('guides')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', session.user.id)
       .eq('review_status', 'approved'),
+    contarCartasYTorneos(supabase, session.user.id),
   ])
 
   // La nota es la de SUS GUÍAS, no una nota puesta a la persona.
@@ -87,25 +84,16 @@ async function loadStats(session, profile) {
 
   montarInvitacion(profile).catch(() => {})
 
-  // Cuatro cifras: las otras tres (seguidores, siguiendo, trofeos) ya
-  // vienen en el HTML y se reparten la misma fila.
-  document.getElementById('profileStats').innerHTML = `
-    <div class="perfil-cifra">
-      <span class="valor">${completedCount || 0}</span>
-      <span class="rotulo">Cursos</span>
-    </div>
-    <div class="perfil-cifra">
-      <span class="valor">${profile?.quiz_correct_count || 0}</span>
-      <span class="rotulo">Aciertos</span>
-    </div>
-    <div class="perfil-cifra" title="${totalNotas} ${totalNotas === 1 ? 'voto' : 'votos'}">
-      <span class="valor">${avgRating ? `${icons.star(16)} ${avgRating.toFixed(1)}` : '—'}</span>
-      <span class="rotulo">Nota</span>
-    </div>
-    <div class="perfil-cifra">
-      <span class="valor">${icons.flame(16)} ${profile?.current_streak || 0}</span>
-      <span class="rotulo">Racha</span>
-    </div>`
+  // Las cuatro de la 743 (J4): cartas, racha, guías y torneos. Las otras
+  // tres (seguidores, siguiendo, trofeos) ya vienen en el HTML.
+  document.getElementById('profileStats').innerHTML = cifrasHtml({
+    cartas,
+    racha: profile?.current_streak ?? 0,
+    guias: approvedGuidesCount ?? null,
+    nota: avgRating,
+    votos: totalNotas,
+    torneos,
+  })
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
   // a la fila de chapas, junto al nivel, en vez de desentonar entre

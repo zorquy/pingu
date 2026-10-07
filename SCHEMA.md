@@ -35227,11 +35227,15 @@ los demás (`js/vitrina.js`, CSS en `css/perfil.css`).
   apagan. Guardar borra tu vitrina y escribe las elegidas en ese orden.
 - **El perfil de otra persona**: solo lo que tiene, sin huecos ni botón; y
   si no tiene nada, no sale.
-- Las cifras del perfil NO se tocan: la propuesta pedía cuatro (cartas,
-  racha, guías y torneos) en lugar de las de ahora, y eso quitaría
-  «Cursos», «Aciertos» y «Nota». Queda para decidirlo con PINGU.
+- **Las cuatro cifras** de la propuesta, en los dos perfiles y con UNA
+  definición (`js/perfil-cifras.js`): Cartas (líneas de la colección),
+  Racha, Guías (aprobadas, con la nota de sus guías pegada en pequeño) y
+  Torneos (en cuántos se ha apuntado). Se fueron «Cursos» y «Aciertos»
+  (PINGU: «cambia todo a como tenías propuesto»). Lo que no se ha podido
+  contar —la RLS de otra persona puede no dejar— sale «—», no un cero.
+  La 306 cuenta ya siete cifras también en el perfil ajeno.
 
-**Ficheros**: `js/vitrina.js` y `supabase-migration-vitrina.sql` (nuevos),
-`js/perfil.js`, `js/usuario.js`, `perfil.html`, `usuario.html`,
-`css/perfil.css`. Prueba 743-pantalla; el doble tiene `user_showcase` y
-`__FAKE_VITRINA__`.
+**Ficheros**: `js/vitrina.js`, `js/perfil-cifras.js` y
+`supabase-migration-vitrina.sql` (nuevos), `js/perfil.js`, `js/usuario.js`,
+`perfil.html`, `usuario.html`, `css/perfil.css`. Prueba 743-pantalla y la
+306 al día; el doble tiene `user_showcase` y `__FAKE_VITRINA__`.

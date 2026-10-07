@@ -9,11 +9,12 @@ antes de cada push (ver CLAUDE.md). Formato:
 **Hecho**: J4 de la lista. Seis cartas que eliges de tu colección salen en
 tu perfil y en el que ven los demás. **Falta ejecutar
 `supabase-migration-vitrina.sql`** en el SQL Editor: sin ella la vitrina
-no sale y el resto del perfil sigue igual. Las cifras del perfil no se
-han tocado (la propuesta quitaría Cursos, Aciertos y Nota): por decidir.
+no sale y el resto del perfil sigue igual. Y las cifras del perfil son
+ya las cuatro de la propuesta: cartas, racha, guías (con su nota) y
+torneos, en los dos perfiles.
 
-**Ficheros**: `js/vitrina.js`, `supabase-migration-vitrina.sql` (nuevos),
-`js/perfil.js`, `js/usuario.js`, `perfil.html`, `usuario.html`,
+**Ficheros**: `js/vitrina.js`, `js/perfil-cifras.js`,
+`supabase-migration-vitrina.sql` (nuevos), `js/perfil.js`, `js/usuario.js`, `perfil.html`, `usuario.html`,
 `css/perfil.css`, `SCHEMA.md`. Prueba 743-pantalla y el doble al día en
 `pruebas`.
 
