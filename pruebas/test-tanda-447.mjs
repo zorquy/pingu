@@ -86,13 +86,14 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
   ok(await p.isVisible('#mcBuscarVacio'), 'sin buscar nada sale el estado vacío')
-  ok(await p.isVisible('#mcEscanear'), 'y dentro, el botón de escanear')
+  // PINGU (747): «el escáner lo quitaría de buscar porque ya tienes el
+  // escáner en el menú».
+  ok((await p.locator('#mcEscanear').count()) === 0 && !/Escanear/.test(await p.innerText('#mcBuscarVacio')), 'y dentro, sin botón de escanear (está en el menú)')
   await p.fill('#mcBuscarTodo', 'Charizard')
   await p.waitForTimeout(900)
   ok(!(await p.isVisible('#mcBuscarVacio')), 'al buscar, el vacío se va')
   const cuantas = await p.$$eval('#mcBuscarResultados > *', (ns) => ns.length)
   ok(cuantas === 3, 'salen las tres Charizard', String(cuantas))
-  ok(!(await p.isVisible('#mcEscanear')), 'y el escáner ya no estorba')
   await p.close()
 }
 
@@ -109,7 +110,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   const p = await pagina(420, 900)
   await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
-  await p.click('#mcEscanear')
+  // Desde la 747 el escáner no tiene botón en Buscar: lo pide el aviso
+  // que manda el «Escanear» de la burbuja del móvil.
+  await p.evaluate(() => document.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true })))
   await p.waitForTimeout(1500)
   const estado = await p.evaluate(() => {
     const v = document.getElementById('mcEscanerVideo')
@@ -160,7 +163,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   })
   await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
-  await p.click('#mcEscanear')
+  // Desde la 747 el escáner no tiene botón en Buscar: lo pide el aviso
+  // que manda el «Escanear» de la burbuja del móvil.
+  await p.evaluate(() => document.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true })))
   await p.waitForTimeout(1500)
   await p.click('#mcEscanerDisparo')
   await p.waitForTimeout(1800)
@@ -220,7 +225,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   }))
   await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
-  await p.click('#mcEscanear')
+  // Desde la 747 el escáner no tiene botón en Buscar: lo pide el aviso
+  // que manda el «Escanear» de la burbuja del móvil.
+  await p.evaluate(() => document.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true })))
   await p.waitForTimeout(1500)
   await p.click('#mcEscanerDisparo')
   await p.waitForTimeout(1500)

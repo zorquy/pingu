@@ -96,7 +96,9 @@ const escanear = async (textos) => {
   await p.addInitScript(semilla)
   await p.goto(`${BASE}/mi-coleccion.html?ver=buscar`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2600)
-  await p.click('#mcEscanear')
+  // Desde la 747 el escáner no tiene botón en Buscar: lo pide el aviso
+  // que manda el «Escanear» de la burbuja del móvil.
+  await p.evaluate(() => document.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true })))
   await p.waitForTimeout(1500)
   await p.click('#mcEscanerDisparo')
   await p.waitForTimeout(2200)
