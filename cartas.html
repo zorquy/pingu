@@ -1342,8 +1342,15 @@
         <button type="button" class="mc-panel-cerrar" id="mcAdCerrar" aria-label="Cerrar">✕</button>
       </div>
       <div class="mc-panel-cuerpo">
-        <div class="mc-ad-carta" id="mcAdCarta"></div>
-        <p class="mc-ad-nombre" id="mcAdNombre"></p>
+        <!-- 712: la carta en miniatura y su nombre en una fila, y cuántas
+             tienes ya: la hoja entera cabe sin desplazarse. -->
+        <div class="mc-ad-cabeza">
+          <div class="mc-ad-carta" id="mcAdCarta"></div>
+          <div class="mc-ad-cabeza-texto">
+            <p class="mc-ad-nombre" id="mcAdNombre"></p>
+            <p class="mc-ad-tienes hidden" id="mcAdTienes"></p>
+          </div>
+        </div>
         <div class="mc-ad-ya hidden" id="mcAdYa">
           <p class="mc-ad-ya-titulo">Ya en tu colección</p>
           <div class="mc-ad-ya-lista" id="mcAdYaLista"></div>
@@ -1358,8 +1365,11 @@
             <div class="mc-idioma-chips" id="mcAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
           </fieldset>
           <div class="mc-editor-campos mc-ad-campos">
-            <label>Estado <select id="mcAdEstado"></select></label>
-            <label id="mcAdVarianteLabel">Versión <select id="mcAdVariante"></select></label>
+            <!-- Estado y versión, de un toque (712): el select se queda como
+                 fuente del valor y los botones se pintan desde él
+                 (js/mi-coleccion/segmentado.js). -->
+            <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="mcAdEstado"></select></div>
+            <div class="mc-ad-campo" id="mcAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="mcAdVariante"></select></div>
             <label class="mc-contador">Copias
               <span class="mc-contador-mando">
                 <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
@@ -1371,7 +1381,7 @@
           </div>
           <div class="mc-ad-botones">
             <button type="button" class="btn-secondary" id="mcAdCancelar">Cancelar</button>
-            <button type="submit" class="btn-primary" id="mcAdGuardar">Guardar</button>
+            <button type="submit" class="btn-primary" id="mcAdGuardar">Añadir 1 copia</button>
           </div>
         </form>
       </div>

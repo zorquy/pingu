@@ -6595,3 +6595,52 @@ input.mc-alb-titulo:not([readonly]):focus {
   filter: brightness(0) invert(1);
   opacity: 0.22;
 }
+
+/* ── 712: «añadida», con Deshacer ── (js/mi-coleccion/deshacer.js) */
+.mc-deshacer {
+  position: fixed;
+  z-index: 96;
+  inset-inline: var(--e-md);
+  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--navy-solid-dark);
+  color: var(--blanco-fijo);
+  box-shadow: var(--shadow-md);
+  font-size: var(--t-sm);
+}
+.mc-deshacer-texto {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+.mc-deshacer-texto img {
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+}
+.mc-deshacer-boton {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* En el móvil, encima de la burbuja de Mi colección y de la barra. */
+@media (max-width: 900px) {
+  .mc-deshacer {
+    bottom: calc(80px + 76px + env(safe-area-inset-bottom) + var(--e-sm));
+  }
+}

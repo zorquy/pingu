@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 4) — PINGU-Claude (712 — añadir más corto, y Deshacer)
+
+**Hecho**: C5 y C7 de la lista. La hoja de añadir lleva la carta en
+miniatura con «Ya tienes N», el estado y la versión de un toque, y el botón
+dice «Añadir 2 copias». Al añadir sale un aviso abajo con Deshacer, que
+borra la línea nueva o resta las copias sumadas. Y cuatro pruebas que
+estaban en rojo desde antes (385, 406, 474, 546), una de ellas por un fallo
+pequeño de verdad en `imagen-datos.js`.
+
+**Ficheros**: `js/mi-coleccion/segmentado.js`, `js/mi-coleccion/deshacer.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/imagen-datos.js`,
+`mi-coleccion.html`, `cartas.html`, `css/cardmarket.css`,
+`css/mi-coleccion.css`, `SCHEMA.md`. Pruebas en `pruebas`.
+
+**Pendiente**: la 713 (seleccionar varias).
+
 ## 2026-10-07 (mañana, 3) — PINGU-Claude (711 — la Pokédex con el color de su tipo)
 
 **Hecho**: C3 y V1 de la lista. En la Pokédex, cada Pokémon que tienes

@@ -34295,3 +34295,42 @@ tienes van en silueta (se lee el nombre, no el dibujo).
 **Ficheros**: `js/mi-coleccion/pokedex.js`, `js/mi-coleccion.js`,
 `css/mi-coleccion.css`. Pruebas 711-pantalla y 384 (la tercera copia de la
 paleta) en `pruebas`.
+
+## Tanda 712 — la hoja de añadir, corta, y «añadida» con Deshacer (oct. 2026)
+
+C5 y C7 de la lista de propuestas.
+
+- **La hoja corta** (`#mcAnadirDialogo`): la miniatura (56 px) y el nombre
+  en una fila con «Ya tienes N copias» debajo; el estado y la versión de
+  un toque, y el botón diciendo lo que hará («Añadir 2 copias», no
+  «Guardar»). Los botones los pinta `js/mi-coleccion/segmentado.js` DESDE
+  el `<select>`, que se queda como fuente del valor: lo rellena
+  `caraDeAnadir`, lo lee `guardarAnadir`, y las pruebas viejas eligen con
+  él. Mide un píxel, sin foco (`tabIndex = -1`) y con `aria-hidden`; el
+  control que se toca y se lee es el `radiogroup` de botones, con las
+  flechas. Un `MutationObserver` repinta los botones cuando cambian las
+  opciones: no hay forma de que digan otra cosa que el select. Dos
+  detalles del CSS: `.mc-editor-campos select` le daba el ancho entero y
+  pesaba más que una clase sola, y aun a 1 px el relleno y el borde lo
+  dejaban en 50; el escondido va sin relleno, sin borde y sin mínimos.
+- **«Añadida», con Deshacer** (`js/mi-coleccion/deshacer.js`): un aviso
+  abajo —encima de la burbuja en el móvil— con la carta, «ya tienes N» y
+  Deshacer durante seis segundos (por temporizador, no por
+  `animationend`, 313). Lo que se deshace lo decide `comoDeshacer` con lo
+  que DEVOLVIÓ la base: si la línea vuelve con más copias de las pedidas
+  es que se sumaron a otra (la misma clave de idioma, estado y versión) y
+  deshacer las resta; si no, es nueva y se borra. Fiarse de la memoria
+  fallaría justo cuando la carta entró desde otro dispositivo.
+
+Y de paso, cuatro rojos que ya estaban antes de la 709 y que salieron al
+pasar el subconjunto de Mi colección: la 385 buscaba el nombre viejo de un
+argumento (la 688 lo cambió), la 406 y la 474 medían cosas que la 704 y la
+706 cambiaron a propósito (la burbuja va encima de la barra de secciones;
+la miga se esconde en el móvil), y la 546 cazó de verdad un
+`name_es || ''` sobrante en `js/mi-coleccion/imagen-datos.js`.
+
+**Ficheros**: `js/mi-coleccion/segmentado.js` y `js/mi-coleccion/deshacer.js`
+(nuevos), `js/mi-coleccion.js`, `js/mi-coleccion/imagen-datos.js`,
+`mi-coleccion.html` (y `cartas.html`, generado), `css/cardmarket.css`,
+`css/mi-coleccion.css`. Prueba 712-pantalla; al día 385, 406, 474, 564 y
+646-pantalla.

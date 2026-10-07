@@ -61,6 +61,8 @@ import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarT
 import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { especiePorDex } from './pokedex-especies.js'
+import { segmentar } from './mi-coleccion/segmentado.js'
+import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
 
@@ -415,6 +417,9 @@ function abrirAnadir(cardId, variante = null) {
   const set = c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets
   $('mcAdNombre').innerHTML = `Añadiendo <b>${escapeHtml(nombreDe(c))}</b> · ${escapeHtml(nombreDeSet(set) || c.set_id)} ${escapeHtml(c.local_id || '')}`
   const mias = misLineasDe(cardId)
+  const copias = mias.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  $('mcAdTienes').textContent = copias ? `Ya tienes ${copias} ${copias === 1 ? 'copia' : 'copias'}` : ''
+  $('mcAdTienes').classList.toggle('hidden', !copias)
   if (mias.length) {
     $('mcAdYaLista').innerHTML = mias.map((l) => `<div class="mc-ad-ya-linea"><span class="mc-ficha-chapas">${chipsDe(l)}</span><b>${l.cantidad} ${l.cantidad === 1 ? 'copia' : 'copias'}</b></div>`).join('')
   }
@@ -444,6 +449,13 @@ function caraDeAnadir(cara) {
   $('mcAdCantidad').value = '1'
   $('mcAdCompra').value = ''
   $('mcAdGuardar').disabled = false
+  rotularGuardar()
+}
+
+// El botón dice lo que va a hacer (712): «Añadir 3 copias», no «Guardar».
+function rotularGuardar() {
+  const n = Math.max(1, Math.min(999, Math.round(Number($('mcAdCantidad')?.value) || 1)))
+  $('mcAdGuardar').textContent = `Añadir ${n} ${n === 1 ? 'copia' : 'copias'}`
 }
 
 // Los idiomas, con su bandera y de un toque: un `<select>` no admite la
@@ -476,7 +488,7 @@ async function guardarAnadir(e) {
     const nueva = await datos.anadir(sesion.user.id, linea, mercado)
     meterLinea(nueva, c)
     $('mcAnadirDialogo').close()
-    showToast(`${nombreDe(c)} añadida en ${idiomaDe(nueva.idioma).nombre.toLowerCase()}.`, 'success')
+    avisarAnadida(c, linea, nueva)
     repintar()
     // Y si la ficha de esa carta está abierta, pasa a ser la de la copia
     // que acabas de meter: lo que se acaba de hacer es tener la carta.
@@ -485,6 +497,33 @@ async function guardarAnadir(e) {
     showToast(err.message, 'error')
     boton.disabled = false
   }
+}
+
+// El aviso de «añadida» con su Deshacer (712, C7). Lo que se deshace lo
+// decide `comoDeshacer` con lo que devolvió la base (ver el módulo).
+function avisarAnadida(c, linea, nueva) {
+  const total = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  const plan = comoDeshacer(linea, nueva)
+  avisoConDeshacer({
+    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ya tienes ${total}</span>`,
+    alDeshacer: async () => {
+      if (!plan) return
+      try {
+        if (plan.tipo === 'borrar') {
+          await datos.borrar(plan.id)
+          quitarLinea(plan.id)
+        } else {
+          const vuelta = await datos.actualizar(plan.id, { cantidad: plan.cantidad })
+          cambiarLinea(plan.id, vuelta)
+        }
+        repintar()
+        showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
+      } catch (err) {
+        showToast(`No se ha podido deshacer: ${err.message}`, 'error')
+      }
+    },
+  })
 }
 
 // El bloque de precio de la ficha (589), suelto desde la 651 porque se
@@ -5141,6 +5180,11 @@ function enganchar() {
     if (otra) abrirEditor(otra)
   })
   for (const id of ['mcAdCerrar', 'mcAdYaCerrar', 'mcAdCancelar']) $(id)?.addEventListener('click', () => $('mcAnadirDialogo').close())
+  // Estado y versión de un toque (712). El estado se rotula con su sigla
+  // (NM, EX…) y el nombre entero debajo; la versión, con su nombre.
+  segmentar($('mcAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value, conNombre: true })
+  segmentar($('mcAdVariante'), { etiqueta: 'Versión de la copia' })
+  for (const ev of ['input', 'change']) $('mcAdCantidad')?.addEventListener(ev, rotularGuardar)
   $('mcAdMas')?.addEventListener('click', () => caraDeAnadir('form'))
   $('mcAdIdiomas')?.addEventListener('click', (e) => {
     const chip = e.target.closest('.mc-idioma-chip')

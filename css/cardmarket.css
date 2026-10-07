@@ -758,6 +758,87 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   text-align: center;
 }
 
+/* 712: la cabecera en una fila —miniatura, nombre y cuántas tienes— y el
+   estado y la versión de un toque (js/mi-coleccion/segmentado.js). */
+.mc-ad-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+.mc-ad-cabeza .mc-ad-carta img {
+  width: 56px;
+}
+.mc-ad-cabeza .mc-ad-nombre {
+  color: var(--text);
+  text-align: left;
+}
+.mc-ad-tienes {
+  margin: var(--e-xs) 0 0;
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.mc-ad-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+.mc-ad-rotulo {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+/* El select se queda como fuente del valor, a un píxel y sin foco. Con
+   el campo delante: `.mc-editor-campos select` le da el ancho entero y
+   pesa más que una clase sola. */
+.mc-ad-campo select.mc-seg-select,
+.mc-seg-select {
+  position: absolute;
+  width: 1px;
+  min-width: 0;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.mc-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+.mc-seg button {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mc-seg button[aria-checked='true'] {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.mc-seg-nombre {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
 .mc-ad-ya-titulo {
   margin: 0 0 var(--e-sm);
   font-family: var(--font-display);

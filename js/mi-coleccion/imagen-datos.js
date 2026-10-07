@@ -30,7 +30,7 @@ export const REGIONES = [
 
 const especiesDe = (carta) => {
   const dex = (carta?.dex_ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
-  return dex.length ? dex : especiesDeCarta(carta?.name || carta?.name_es || '')
+  return dex.length ? dex : especiesDeCarta(carta?.name || carta?.name_es)
 }
 
 const fecha = (iso) => {
