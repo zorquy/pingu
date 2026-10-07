@@ -1,0 +1,197 @@
+/* Comparar dos cartas (735). La inyecta js/carta-comparar.js al abrir. */
+.comparar {
+  width: min(720px, calc(100vw - 2 * var(--e-lg)));
+  max-height: calc(100dvh - 2 * var(--e-2xl));
+  margin: auto;
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.comparar[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.comparar::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.comparar-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comparar-cabeza h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.comparar-cerrar {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+}
+
+.comparar-cerrar:hover {
+  background: var(--ice);
+}
+
+.comparar-lados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-lg);
+  align-items: start;
+}
+
+.comparar-lado,
+.comparar-lado-b {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.comparar-foto {
+  width: 120px;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  object-fit: cover;
+}
+
+.comparar-foto.comparar-sin-foto {
+  visibility: hidden;
+}
+
+.comparar-lado figcaption,
+.comparar-lado-b figcaption {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.comparar-lado figcaption b,
+.comparar-lado-b figcaption b,
+.comparar-lado figcaption small,
+.comparar-lado-b figcaption small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparar-lado figcaption small,
+.comparar-lado-b figcaption small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.comparar-lado[data-lado='b'] {
+  align-items: stretch;
+  text-align: left;
+}
+
+.comparar-buscar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+
+.comparar-buscar input.bs-input[type='search'] {
+  min-height: 44px;
+}
+
+.comparar-resultados {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.comparar-aviso,
+.comparar-nota {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.comparar-cambiar {
+  align-self: center;
+  min-height: 44px;
+}
+
+.comparar-resumen {
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.comparar-resumen:empty {
+  display: none;
+}
+
+.comparar-tabla-caja {
+  overflow-x: auto;
+}
+
+.comparar-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.comparar-tabla th,
+.comparar-tabla td {
+  padding: var(--e-sm);
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.comparar-tabla thead th {
+  overflow: hidden;
+  max-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.comparar-tabla tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-mid);
+}
+
+.comparar-tabla .comparar-menor {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+@media (max-width: 480px) {
+  .comparar {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .comparar-foto {
+    width: 96px;
+  }
+}

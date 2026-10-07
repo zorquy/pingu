@@ -138,6 +138,8 @@ export async function pintarMercado(carta) {
         <select id="cmVariante" class="pv-select-oculto" aria-label="Versión">${opciones(VARIANTES.filter((v) => variantes.includes(v.id)), estado.variante)}</select>
       </div>
       <div id="cmPrecios"></div>
+      <!-- Comparar con otra (735): un diálogo, js/carta-comparar.js. -->
+      <button type="button" class="link-btn carta-comparar-abrir" id="cmComparar">${icons.layers(16)}<span>Comparar con otra carta</span></button>
       <!-- El histórico (643): lo pinta js/carta-historial.js por import()
            al tener el precio; sin filas no se ve. -->
       <div class="carta-historial hidden" id="cmHistorial"></div>
@@ -174,6 +176,10 @@ export async function pintarMercado(carta) {
     if (!chip) return
     $('cmIdioma').value = chip.dataset.idioma
     $('cmIdioma').dispatchEvent(new Event('change'))
+  })
+
+  $('cmComparar').addEventListener('click', () => {
+    import('./carta-comparar.js').then((m) => m.abrirComparar(carta, { idioma: estado.idioma })).catch(() => showToast('No se ha podido abrir la comparación.', 'error'))
   })
 
   let repintarHistorial = null

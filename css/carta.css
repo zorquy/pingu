@@ -977,6 +977,15 @@
   min-height: 44px;
 }
 
+/* Comparar con otra carta (735): abre js/carta-comparar.js. */
+.carta-comparar-abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  margin-top: var(--e-sm);
+}
+
 /* Las losetas, dentro del `figure` de la carta: en escritorio acompañan
    al escaneo pegajoso; en el móvil quedan justo bajo la foto. */
 .carta-scan .carta-acciones {
@@ -1161,6 +1170,7 @@
   main[data-pestana='precio'] #cmHistorial,
   main[data-pestana='historial'] #cmPrecios,
   main[data-pestana='historial'] #cmCambios,
+  main[data-pestana='historial'] #cmComparar,
   main[data-pestana='historial'] .carta-mercado-pie {
     display: none;
   }

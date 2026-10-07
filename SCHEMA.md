@@ -34935,3 +34935,33 @@ iPhone. La escala (305) estaba en px y no crecía con nada. Ahora:
 Cuesta 0,2 KB de la portada (queda 0,2) y la 305 lee ya los pasos en rem.
 
 **Ficheros**: `css/style.css`. Prueba 734-pantalla; 305 al día.
+
+## Tanda 735 — comparar dos cartas lado a lado (oct. 2026)
+
+X8 de la lista. En /carta, bajo el precio, «Comparar con otra carta» abre
+un diálogo (`js/carta-comparar.js`, su hoja `css/comparar.css` inyectada
+al abrir): la de la ficha a la izquierda, un buscador a la derecha (el de
+la 718, solo cartas occidentales, sin ofrecer la misma) y, al elegir, una
+tabla con lo de las dos.
+
+- **Desde** es el mínimo en el idioma que tienes elegido en el bloque de
+  precio (`precioParaIdioma`); si una no lo tiene en ese idioma sale el
+  general con un asterisco y la nota lo explica: comparar el español de
+  una con el general de la otra sin avisar sería trampa.
+- **Tendencia** y **media de 30 días**, de la fila guardada.
+- **Últimos 30 y 90 días**, de `tcg_card_history` con `cambioEnDias` (la
+  653): si el histórico no cubre esos días, «Sin histórico», no una cifra.
+- **Versiones**: las de `variants`, o «No se sabe».
+- La más barata va en negrita y azul (nunca verde ni rojo), y solo si las
+  dos tienen cifra. La frase de arriba («X cuesta N € más (×2,5)») no
+  afirma nada si falta una de las dos.
+
+Es un diálogo y no una página: una página es un pie más que contar (312)
+y la pregunta «¿esta o aquella?» se hace desde una ficha. Las reglas son
+puras (`datosDeLado`, `filasDeComparacion`, `resumenDeComparacion`) y lo
+que toca la base entra por `import()` al abrir. En el móvil el botón vive
+en la pestaña de precio y no en la de histórico.
+
+**Ficheros**: `js/carta-comparar.js` y `css/comparar.css` (nuevos),
+`js/carta-mercado.js`, `css/carta.css`. Prueba 735-pantalla. De paso, el
+icono del aviso de instalar (732) lleva `loading`, que la 310 pedía.

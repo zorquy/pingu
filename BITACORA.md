@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 15) — PINGU-Claude (735 — comparar dos cartas)
+
+**Hecho**: X8 de la lista. En la ficha de una carta, «Comparar con otra
+carta» abre un diálogo con las dos lado a lado: mínimo en tu idioma,
+tendencia, media de 30 días, cambio en 30 y 90 días y versiones, con la
+más barata marcada. Y el icono del aviso de instalar lleva `loading`.
+
+**Ficheros**: `js/carta-comparar.js`, `css/comparar.css` (nuevos),
+`js/carta-mercado.js`, `css/carta.css`, `js/instalar.js`, `SCHEMA.md`.
+Prueba 735-pantalla en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X11, X13, X14, X16.
+
 ## 2026-10-07 (tarde, 14) — PINGU-Claude (734 — la letra crece con la del sistema)
 
 **Hecho**: X6 de la lista. La escala de letra pasa a rem (a tamaño normal

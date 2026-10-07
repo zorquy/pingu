@@ -61,7 +61,7 @@ export function montarInstalar({ doc = document, win = window, almacen = win.loc
   hoja.setAttribute('role', 'region')
   hoja.setAttribute('aria-label', 'Instalar PokeDoc')
   hoja.innerHTML = `
-    <img src="/assets/icon-192.png" alt="" width="40" height="40">
+    <img src="/assets/icon-192.png" alt="" loading="lazy" width="40" height="40">
     <div class="bm-instalar-texto">
       <b>Instala PokeDoc en tu móvil</b>
       <span>Se abre a pantalla completa, como una app, y te llegan los avisos.</span>
