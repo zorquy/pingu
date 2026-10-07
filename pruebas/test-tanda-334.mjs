@@ -180,7 +180,10 @@ console.log('\n── 5. En el móvil el escaneo NO se queda pegado ──')
       // Y sigue topado: en una columna, a pantalla completa se comía el
       // sitio de todo lo demás.
       const img = await page.locator('.carta-scan img').evaluate((n) => Math.round(n.getBoundingClientRect().width))
-      check('…y sigue topado a 260 px', img === 260, `${img}px`)
+      // Con la barra de abajo (707) la foto baja a 200 a propósito: las
+      // acciones van fijas y nombre, foto y datos tienen que caber juntos.
+      const conBarra = await page.evaluate(() => document.documentElement.classList.contains('con-barra-movil'))
+      check(`…y sigue topado a ${conBarra ? 200 : 260} px`, img === (conBarra ? 200 : 260), `${img}px`)
     }
     await page.close()
   }

@@ -1322,7 +1322,13 @@ function consulta(tabla, estado = {}) {
     // arreglos no se pueden probar.
     then: (ok, mal) => {
       const ms = (typeof window !== 'undefined' && window.__FAKE_RETRASO__?.[tabla]) || 0
-      const valor = st.columnaQueFalta
+      // `window.__FAKE_FALLA__ = { forum_threads: true }` hace FALLAR esa
+      // tabla (tanda 718): «no se ha podido preguntar» es un estado de la
+      // pantalla, y una prueba que nunca lo provoca no lo está mirando.
+      const falla = typeof window !== 'undefined' && window.__FAKE_FALLA__?.[tabla]
+      const valor = falla
+        ? { data: null, error: { code: '500', message: `stub: ${tabla} falla a propósito` } }
+        : st.columnaQueFalta
         ? { data: null, error: { code: '42703', message: `column ${tabla}.${st.columnaQueFalta} does not exist` } }
         : resolver()
       const p = ms ? new Promise((r) => setTimeout(() => r(valor), ms)) : Promise.resolve(valor)

@@ -169,6 +169,12 @@ console.log('\n── 5. Los enlaces que se apartan siguen siendo alcanzables �
             [...document.querySelectorAll('.nav-menu-grupo[open] a')].filter((a) => a.offsetParent !== null).length)
           check(`[${ancho}${conChip ? ' con torneo' : ''}] el acordeón se abre y enseña sus enlaces`,
             dentro >= 2, `enlaces del apartado a la vista: ${dentro}`)
+        } else if (await page.locator('.bm').count()) {
+          // Desde la 704 en el móvil no hay hamburguesa: las secciones van
+          // en la barra de abajo, y sus páginas en la burbuja de cada una.
+          visibles = await page.evaluate(() =>
+            [...document.querySelectorAll('.bm a')].filter((a) => a.getBoundingClientRect().height > 0).length)
+          pulsado = true
         }
       } else {
         // Con la barra a la vista, un grupo se abre y enseña lo suyo.

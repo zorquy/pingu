@@ -283,6 +283,9 @@ console.log('\n── 7. El CSS de los perfiles deja de bajarlo todo el mundo �
       vistos.add(js)
       const txt = leer(js)
       usadas = new Set([...usadas, ...clasesDeTexto(txt)])
+      // Una hoja que el módulo INYECTA cuenta como cargada (704: movil.css;
+      // 718: buscador.css de la paleta). Es el mismo marcador que lee la 299.
+      for (const h of txt.matchAll(/hojaInyectada\('([^']+\.css)'\)/g)) if (!suyas.includes(h[1])) suyas.push(h[1])
       const dir = js.slice(0, js.lastIndexOf('/') + 1)
       // `from './x.js'` E `import('./x.js')`: foro-actividad.js entra por
       // el dinámico y por eso se escapó (tanda 307).

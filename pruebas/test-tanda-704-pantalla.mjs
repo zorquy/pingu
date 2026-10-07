@@ -84,7 +84,7 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   check('la burbuja de Mi colección sigue flotando, justo ENCIMA de la barra (704c)', mc.pos === 'fixed' && mc.alto > 0 && mc.bottom <= barraTop && mc.bottom >= barraTop - 24, JSON.stringify({ mc, barraTop }))
   check('  …y la página reserva sitio para las dos', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom))) >= 160)
   const ajenas = await page.$$eval('.mc-pestanias .bm-ajena', (as) => as.map((a) => `${a.textContent.trim()}:${a.getAttribute('href')}`))
-  check('en Mi colección no hay segunda burbuja: las otras páginas de Cartas van al final de la suya', (await page.locator('.bm-burbuja').count()) === 0 && ajenas.join() === 'Catálogo:/cartas,Lanzamientos:/lanzamientos.html' && (await page.locator('.mc-pestanias.bm-con-ajenas').count()) === 1, ajenas.join())
+  check('en Mi colección no hay segunda burbuja: las otras páginas de Cartas van al final de la suya', (await page.locator('.bm-burbuja').count()) === 0 && ajenas.filter((a) => !a.startsWith('Escanear:')).join() === 'Catálogo:/cartas,Lanzamientos:/lanzamientos.html' && (await page.locator('.mc-pestanias.bm-con-ajenas').count()) === 1, ajenas.join())
   await ctx.close()
 }
 

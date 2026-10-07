@@ -177,6 +177,7 @@ const pagina = async (ancho = 1280, alto = 1000) => {
     const filas = [...document.querySelectorAll('#mcBuscarResultados > *')]
     return {
       cerrado: !document.getElementById('mcEscanerCaja').open,
+      bandeja: document.querySelectorAll('#mcEscanerCandidatas .mc-escaner-candidata').length,
       campo: document.getElementById('mcBuscarTodo').value,
       cuantas: filas.length,
       orden: filas.map((n) => n.querySelector('.mc-resultado-set')?.textContent.split('·').pop().trim()),
@@ -184,7 +185,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
       cuenta: document.getElementById('mcBuscarCuantas').textContent,
     }
   })
-  ok(tras.cerrado, 'al leer, el escáner se cierra y deja ver el resultado')
+  // Desde la 719 (N4, en ráfaga) leer NO cierra: la búsqueda se rellena
+  // por detrás y lo primero sale en la bandeja de la cámara.
+  ok(!tras.cerrado && tras.bandeja === 1, 'al leer, el escáner sigue abierto con la carta en su bandeja', JSON.stringify({ cerrado: tras.cerrado, bandeja: tras.bandeja }))
   // El NOMBRE LIMPIO más el NÚMERO (tanda 451). Lo que NO puede pasar es
   // que vaya el texto entero de la franja: «Charizard ex SSP 125» exigiría
   // que «SSP» estuviera en el nombre y daría CERO. Lo de la franja de
