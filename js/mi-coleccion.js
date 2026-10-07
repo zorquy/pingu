@@ -69,7 +69,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/ge
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
-import { CONSULTA as FICHA_AL_LADO, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
+import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
 
@@ -2358,7 +2358,11 @@ function abrirEditor(l) {
   // En una pantalla ancha, desde la rejilla de Cartas, a la derecha y sin
   // modal (740): la rejilla sigue a la vista y se puede abrir otra.
   const yaAbierta = d.open
-  abrirFichaDonde(d, { alLado: vaAlLado({ ancha: window.matchMedia?.(FICHA_AL_LADO).matches, vista: pestania }) })
+  const alLado = vaAlLado({ ancha: window.matchMedia?.(FICHA_AL_LADO).matches, anchaExpansion: window.matchMedia?.(FICHA_AL_LADO_EXPANSION).matches, vista: pestania })
+  abrirFichaDonde(d, { alLado })
+  // La abierta se marca en la rejilla (748, D2): con la ficha al lado, la
+  // rejilla sigue a la vista y hay que ver cuál de ellas es la de la derecha.
+  marcarAbierta(alLado && c ? c.id : null)
   // Y al cambiar de carta, arriba: la ficha es otra, y quedarse a media
   // altura de la anterior deja la carta nueva fuera de la pantalla.
   if (yaAbierta) d.scrollTop = 0
@@ -2819,14 +2823,7 @@ async function pintarEstanteria() {
   // ella tiene que sumarse a la del padre. Si solo se hiciera lo primero,
   // las cartas del hijo desaparecerían del recuento y el álbum diría que
   // tienes menos de las que tienes.
-  const cuantas = new Map()
-  for (const id of new Set(lineas.map((l) => l.card_id))) {
-    const s = cartas.get(id)?.set_id
-    if (s) {
-      const suyo = padreDeColeccion(s) || s
-      cuantas.set(suyo, (cuantas.get(suyo) || 0) + 1)
-    }
-  }
+  const cuantas = cuantasPorSet()
   // ── EL DESPLEGABLE DE ERAS SE REHACE AL CAMBIAR DE CATÁLOGO (tanda 546) ──
   //
   // PINGU: «el filtro está fatal, debería cambiar al escoger otro idioma;
@@ -2906,6 +2903,54 @@ async function pintarEstanteria() {
         ? `${hay.toLocaleString('es-ES')} ${hay === 1 ? 'colección' : 'colecciones'}`
         : `${visibles.length.toLocaleString('es-ES')} de ${hay.toLocaleString('es-ES')}`
   }
+}
+
+function cuantasPorSet() {
+  const cuantas = new Map()
+  for (const id of new Set(lineas.map((l) => l.card_id))) {
+    const s = cartas.get(id)?.set_id
+    if (s) {
+      const suyo = padreDeColeccion(s) || s
+      cuantas.set(suyo, (cuantas.get(suyo) || 0) + 1)
+    }
+  }
+  return cuantas
+}
+
+// LAS DE SU ERA, A LA IZQUIERDA (748, D2). En el ordenador, dentro de una
+// expansión, la columna de la izquierda son las demás de su era —código,
+// nombre, barra y «n/total»— para pasar de una a otra sin volver a la
+// estantería. Se agrupa con la MISMA función que la estantería: así «su
+// era» es la que la estantería dice, también con las eras puestas a mano.
+// En el móvil no se ve (lo esconde la hoja), y pintarla cuesta lo que una
+// lista de veinte filas.
+async function pintarHermanos(setId) {
+  const caja = $('mcAlbumHermanos')
+  if (!caja) return
+  const sets = todosLosSets || []
+  const cuantas = cuantasPorSet()
+  const seVe = (s) => modoCatalogo || esMia || cuantas.has(s.id)
+  const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter(seVe)
+  const eras = await cargarEras().catch(() => null)
+  if (album.set !== setId) return
+  const grupo = gruposDeEstanteria(visibles, new Set(), eras).find((g) => g.sets.some((x) => x.id === setId))
+  if (!grupo) {
+    caja.innerHTML = ''
+    return
+  }
+  const mia = esMia && sesion
+  caja.innerHTML = `<h3 class="mc-hermanos-era">${escapeHtml(grupo.titulo || '')}</h3><ul>${grupo.sets.map((x) => {
+    const total = totalDe(x)
+    const tengo = cuantas.get(x.id) || 0
+    const codigo = x.tcg_online_code || (/^tcggo-/i.test(String(x.id)) ? '' : String(x.id).toUpperCase().slice(0, 6))
+    const pct = total ? Math.min(100, Math.round((tengo / total) * 100)) : 0
+    const actual = x.id === setId
+    return `<li><button type="button" class="mc-hermano${actual ? ' actual' : ''}${mia && total && tengo >= total ? ' completo' : ''}" data-hermano="${escapeHtml(x.id)}"${actual ? ' aria-current="page"' : ''}>
+      <span class="mc-set-codigo">${escapeHtml(codigo)}</span>
+      <span class="mc-hermano-info"><span class="mc-hermano-nombre">${escapeHtml(nombreDeSet(x) || x.id)}</span>${mia && total ? `<span class="mc-hermano-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>
+      <span class="mc-hermano-cuenta">${!total ? '' : mia ? `${tengo}/${total}` : total}</span>
+    </button></li>`
+  }).join('')}</ul>`
 }
 
 // Cuántas cartas tiene una colección. `card_count_official` es la
@@ -3139,7 +3184,19 @@ async function cambiarFavorita() {
 }
 
 // ── Abrir y cerrar el archivador ──
+// La ficha de al lado es de la expansión que estabas mirando (748).
+function cerrarFichaAlLado() {
+  if ($('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
+}
+
+function marcarAbierta(id) {
+  for (const e of document.querySelectorAll('.mc-abierta')) e.classList.remove('mc-abierta')
+  if (!id) return
+  for (const e of document.querySelectorAll(`#mcAlbum [data-carta="${CSS.escape(id)}"], #mcRejilla [data-carta="${CSS.escape(id)}"]`)) e.classList.add('mc-abierta')
+}
+
 function volverALaEstanteria({ push = true } = {}) {
+  cerrarFichaAlLado()
   if (push) irA({ set: null })
   album.set = null
   album.pagina = 0
@@ -3158,6 +3215,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // una rejilla pasa por aquí—, y una guarda con red de repuesto no se
   // puede probar, porque quitarla no cambia nada (CLAUDE.md).
   if (marcadas) modoMarcar(false)
+  if (album.set !== setId) cerrarFichaAlLado()
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -3166,6 +3224,9 @@ async function abrirAlbum(setId, { push = true } = {}) {
   $('mcArchivadorZona').classList.remove('hidden')
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = nombreDeSet(set) || ''
+  // Sin sesión no hay «las tuyas» que separar.
+  $('mcAlbumQue')?.classList.toggle('hidden', !sesion)
+  if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = ''
   pintarEstrella()
   pintarSoloFaltan()
   // La miga se pinta aquí y no una vez al arrancar: su botón vive dentro
@@ -3173,6 +3234,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // (ver `mcArchivadorZona`), así que no hay oyente que volver a colgar.
   $('mcAlbumMigas').innerHTML = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
   $('mcAlbum').innerHTML = esqueletoDeAlbum()
+  void pintarHermanos(setId)
   try {
     // Una expansión PLEGADA se abre entera (649): la tarjeta dice «1 de
     // 128» contando las dos mitades del 30 aniversario, y abrirla tenía
@@ -3529,6 +3591,7 @@ function pintarSoloFaltan() {
   t?.setAttribute('aria-pressed', album.soloTengo ? 'true' : 'false')
   // «Todas» (748) está puesta cuando no lo está ninguna de las otras dos.
   $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo ? 'true' : 'false')
+  for (const b of document.querySelectorAll('#mcAlbumQue [data-que]')) b.setAttribute('aria-pressed', $(b.dataset.que)?.getAttribute('aria-pressed') || 'false')
 }
 
 // La CUADRÍCULA: el escaneo y nada más. Sin mandos a propósito — si
@@ -3701,6 +3764,17 @@ function pintarTiraDeSet(elSet) {
     tipos.set(t, (tipos.get(t) || 0) + 1)
   }
   const porTipo = [...tipos.entries()].sort((a, b) => b[1] - a[1])
+  // La línea de debajo del título (748, D2): en el ordenador de tres
+  // columnas la tira se queda fuera y esto es lo que dice su maqueta,
+  // «8 de 12 · 67 %», con lo que valen las tuyas si hay algo que decir.
+  const linea = $('mcAlbumLinea')
+  if (linea) {
+    linea.textContent = [
+      `${completo.tengo.toLocaleString('es-ES')} de ${completo.total.toLocaleString('es-ES')}`,
+      `${pct} %`,
+      ...(mias.length && valor ? [`${euros(valor)} las tuyas`] : []),
+    ].join(' · ')
+  }
 
   // ── UNA TIRA QUE SE DESLIZA DE VERDAD (tanda 467) ──
   //
@@ -4825,7 +4899,9 @@ async function anadirSeleccion(e) {
 function cambiarPestania(nueva, { push = true } = {}) {
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
   // se quedaría flotando encima de lo que no es suyo.
-  if (nueva !== 'cartas' && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
+  // Y desde la 748 también es de una expansión: se cierra al cambiar de
+  // pestaña, sea a la que sea.
+  if (nueva !== pestania && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
   const otra = nueva !== pestania
   // Lo seleccionado es de la rejilla que estabas mirando.
   if (otra && marcadas) modoMarcar(false)
@@ -6312,6 +6388,7 @@ function enganchar() {
   // Y al cerrar, lo que quedara en el aire se manda: si no, escribir una
   // nota y pulsar fuera antes de los 600 ms la perdería.
   $('mcEditor').addEventListener('close', () => {
+    marcarAbierta(null)
     if (guardadoPendiente) {
       clearTimeout(guardadoPendiente)
       guardadoPendiente = null
@@ -6677,6 +6754,16 @@ function enganchar() {
   // clic, así que se iban a la página. En el ordenador no se veía porque
   // ahí se usa el archivador; en el móvil, la cuadrícula.
   engancharFicha('mcAlbum', '.mc-bolsillo-enlace, .mc-rejilla-celda, .mc-album-fila')
+  $('mcAlbumHermanos')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-hermano]')
+    if (b && b.dataset.hermano !== album.set) void abrirAlbum(b.dataset.hermano)
+  })
+  // Todas / Tengo / Faltan junto al título (748, D2): pulsan los del panel
+  // de filtros, que son los que mandan.
+  $('mcAlbumQue')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-que]')
+    if (b) $(b.dataset.que)?.click()
+  })
   // Pellizcar para cambiar de 2 a 4 columnas (731, X3).
   engancharPellizco($('mcAlbum'))
   // El «+» de cada carta (657), en CAPTURA: va dentro del enlace que abre

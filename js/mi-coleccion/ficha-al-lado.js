@@ -10,10 +10,17 @@
 // columna de filtros, por debajo de eso a la rejilla le quedaban dos cartas.
 export const CONSULTA = '(min-width: 1600px) and (pointer: fine)'
 
-// ¿Al lado? Pantalla ancha y la ficha se abre desde la rejilla de Cartas.
-// Desde una expansión, la Pokédex o un álbum, la ficha sigue siendo la de
-// siempre: esas pantallas no tienen tres columnas que hacer. Puro.
-export function vaAlLado({ ancha, vista }) {
+// Y DENTRO DE UNA EXPANSIÓN, desde 1.400 (748, la D2 de su maqueta, que es
+// justo esa pantalla): sus expansiones a la izquierda, las cartas en el
+// centro y la abierta a la derecha. Aquí no hay columna de filtros (van en
+// su panel), así que con 1.400 caben tres o cuatro cartas por fila.
+export const CONSULTA_EXPANSION = '(min-width: 1400px) and (pointer: fine)'
+
+// ¿Al lado? Pantalla ancha y la ficha se abre desde la rejilla de Cartas o
+// desde una expansión. Desde la Pokédex o un álbum, la ficha sigue siendo
+// la de siempre: esas pantallas no tienen tres columnas que hacer. Puro.
+export function vaAlLado({ ancha, anchaExpansion = ancha, vista }) {
+  if (vista === 'album') return Boolean(anchaExpansion)
   return Boolean(ancha) && vista === 'cartas'
 }
 

@@ -7464,17 +7464,17 @@ input.mc-alb-titulo:not([readonly]):focus {
 /* LA CARTA ABIERTA A LA DERECHA (740, D2). El mismo `<dialog>` de la
    ficha, sin modal, pegado al borde derecho; la página se aparta. El
    porqué, en SCHEMA.md: tanda 740. */
-@media (min-width: 1600px) and (pointer: fine) {
+@media (min-width: 1400px) and (pointer: fine) {
   html.con-ficha-al-lado body {
-    padding-right: 440px;
+    padding-right: 360px;
   }
 
   .mc-editor.mc-ficha-al-lado[open] {
     position: fixed;
     inset: 0 0 0 auto;
     z-index: 102;
-    width: 440px;
-    max-width: 440px;
+    width: 360px;
+    max-width: 360px;
     height: 100vh;
     max-height: 100vh;
     margin: 0;
@@ -7498,6 +7498,29 @@ input.mc-alb-titulo:not([readonly]):focus {
     margin: 0 auto;
     padding-top: 0;
   }
+
+  .mc-ficha-al-lado .mc-ficha-atajos {
+    display: block;
+  }
+}
+
+@media (min-width: 1600px) and (pointer: fine) {
+  html.con-ficha-al-lado body {
+    padding-right: 440px;
+  }
+
+  .mc-editor.mc-ficha-al-lado[open] {
+    width: 440px;
+    max-width: 440px;
+  }
+}
+
+.mc-ficha-atajos {
+  display: none;
+  margin: var(--e-md) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: center;
 }
 
 /* ── 748: los filtros como en su maqueta (C6; SCHEMA 748) ── */
@@ -8155,5 +8178,155 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
   .mc-set-fila .mc-set-corta {
     font-size: var(--t-xs);
+  }
+}
+
+/* ── 748: la expansión en tres columnas (D2; SCHEMA 748) ── */
+.mc-hermanos,
+.mc-album-que,
+.mc-album-linea {
+  display: none;
+}
+
+@media (min-width: 1400px) and (pointer: fine) {
+  #mcArchivadorZona:not(.hidden) {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--e-xl);
+  }
+
+  #mcArchivadorZona > * {
+    grid-column: 2;
+  }
+
+  #mcArchivadorZona > .mc-hermanos {
+    display: block;
+    position: sticky;
+    top: 88px;
+    grid-row: 1 / span 30;
+    grid-column: 1;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    padding-right: var(--e-md);
+    border-right: 1px solid var(--border);
+  }
+
+  .mc-hermanos-era {
+    margin: 0 0 var(--e-sm);
+    padding-left: var(--e-sm);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mc-hermanos ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mc-hermano {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+    width: 100%;
+    min-height: 52px;
+    padding: var(--e-sm);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mc-hermano:hover {
+    background: var(--bg);
+  }
+
+  .mc-hermano.actual {
+    background: var(--ice);
+  }
+
+  .mc-hermano .mc-set-codigo {
+    flex: none;
+    min-width: 44px;
+    padding: var(--e-xs);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .mc-hermano-info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--e-xs);
+    min-width: 0;
+  }
+
+  .mc-hermano-nombre {
+    overflow: hidden;
+    font-size: var(--t-sm);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mc-hermano-barra {
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: var(--border);
+  }
+
+  .mc-hermano-barra i {
+    display: block;
+    width: var(--ancho);
+    height: 100%;
+    background: var(--navy);
+  }
+
+  .mc-hermano.completo .mc-hermano-barra i {
+    background: var(--success);
+  }
+
+  .mc-hermano-cuenta {
+    flex: none;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mc-album-que {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .mc-album-linea {
+    display: block;
+    margin: 0 0 var(--e-md);
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+  }
+
+  #mcArchivadorZona .mc-album-titulo {
+    font-size: var(--t-2xl);
+  }
+
+  /* La tira de tres tarjetas la dice la línea de debajo del título. */
+  #mcAlbumProgreso {
+    display: none;
+  }
+
+  #mcAlbum .mc-abierta {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
   }
 }

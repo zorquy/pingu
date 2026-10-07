@@ -450,6 +450,8 @@
                El identificador `mcAlbumVolver` se queda igual a propósito:
                es por el que lo busca quien engancha el clic, y cambiarlo
                sería romper media docena de sitios para no ganar nada. -->
+          <!-- Las de su era, a la izquierda (748, D2): solo en el ordenador. -->
+          <nav class="mc-hermanos" id="mcAlbumHermanos" aria-label="Las expansiones de su era"></nav>
           <div id="mcAlbumMigas"></div>
           <!-- LA CABECERA, COMO LA DE DEX (tanda 461). PINGU: «fíjate en
                Dex: tiene unos botones arriba, el de seleccionar múltiples
@@ -460,6 +462,11 @@
                nombre, es además donde se buscan. -->
           <div class="mc-album-barra">
             <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
+            <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
+              <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
+              <button type="button" data-que="mcAlbumSoloTengo" aria-pressed="false">Tengo</button>
+              <button type="button" data-que="mcAlbumSoloFaltan" aria-pressed="false">Faltan</button>
+            </div>
             <!-- LOS CUATRO, DETRÁS DE UN ⋮ (tanda 475). PINGU: «estás
                  ocupando mucho espacio arriba… he pensado en poner tres
                  puntos como pasa en la aplicación de Dex».
@@ -531,6 +538,7 @@
               </div>
             </details>
           </div>
+          <p class="mc-album-linea" id="mcAlbumLinea"></p>
           <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que
                le faltaba a esta pantalla frente a la app de TCGdex: en
                un set de 200 cartas, «enséñame solo las ultra raras que
@@ -1413,6 +1421,7 @@
              bajar las copias a cero. Lo único que queda es el aviso de
              que ha ido bien, que se apaga solo. -->
         <p class="mc-ed-guardado" id="mcEdEstadoGuardado" role="status" aria-live="polite"></p>
+        <p class="mc-ficha-atajos" aria-hidden="true">← → para pasar de carta · Esc para cerrar</p>
       </form>
     </dialog>
 

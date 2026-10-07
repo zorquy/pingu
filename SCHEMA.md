@@ -35582,6 +35582,22 @@ coinciden. Esta tanda trae cuatro.
   para siempre. Las Expansiones de Mi colección, en el ordenador, son
   baldosas en rejilla (código, anillo, nombre y «n/total»), las mismas
   filas del móvil colocadas de otra forma.
+- **Una expansión en tres columnas (D2)**: la maqueta D2 es justo una
+  expansión abierta, y la 740 había hecho las tres columnas solo para la
+  rejilla de Cartas. Ahora, desde 1.400 px con ratón
+  (`CONSULTA_EXPANSION` en `js/mi-coleccion/ficha-al-lado.js`; Cartas sigue
+  desde 1.600, que lleva además la columna de filtros): a la izquierda las
+  de SU ERA (`pintarHermanos`, agrupadas con la misma `gruposDeEstanteria`
+  que la estantería, así que «su era» es la misma también con las eras a
+  mano), con código, barra y «n/total»; en el centro el título, «16 de 24 ·
+  67 % · 1.475,90 € las tuyas» y Todas / Tengo / Faltan (que pulsan los del
+  panel de filtros, que siguen mandando), sin la tira de tres tarjetas; y a
+  la derecha la carta abierta, la misma ficha sin modal, con la suya
+  marcada en la rejilla (`.mc-abierta`) y «← → para pasar de carta · Esc
+  para cerrar» debajo. La ficha es de la expansión que mirabas: cambiar de
+  expansión, volver a la estantería o cambiar de pestaña la cierra (antes
+  solo se cerraba al salir de Cartas). Por debajo de 1.400, todo como
+  siempre.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35593,6 +35609,7 @@ coinciden. Esta tanda trae cuatro.
 **Ficheros**: `mi-coleccion.html` (y `cartas.html`, generado),
 `js/mi-coleccion.js`, `js/mi-coleccion/grafica-valor.js`,
 `js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/iconos.js`,
+`js/mi-coleccion/ficha-al-lado.js`,
 `js/menu-tu.js` y `css/menu-tu.css` (nuevos), `js/app.js`,
 `js/barra-movil.js`, `css/movil.css`, `css/components.css`, `js/home.js`,
 `js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
@@ -35603,7 +35620,7 @@ coinciden. Esta tanda trae cuatro.
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (doce bloques) y 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (catorce bloques) y 740, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

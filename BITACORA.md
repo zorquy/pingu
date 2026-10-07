@@ -7,7 +7,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y
-tenía razón. Se rehacen una a una con la captura al lado. Van doce:
+tenía razón. Se rehacen una a una con la captura al lado. Van trece:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
 cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
@@ -24,7 +24,10 @@ la ficha de carta en el móvil (pantalla de detalle con volver y compartir
 flotando, tarjeta de precio, «Tienes N» y Añadir + Avísame abajo) y el
 meta (todas las barras con su color, también las que no tenían, y filas en
 tarjeta como su maqueta) y el escritorio (el buscador en pastilla con
-«Ctrl K», tu cuenta abajo en la lateral y las expansiones en baldosas).
+«Ctrl K», tu cuenta abajo en la lateral y las expansiones en baldosas) y
+una expansión en tres columnas en el ordenador (las de su era a la
+izquierda, las cartas con Todas / Tengo / Faltan y la carta abierta a la
+derecha).
 La portada baja a 168,2 KB. De paso, un salto al cargar en el
 ordenador: la columna de filtros se enfocaba y bajaba la página.
 
@@ -37,13 +40,12 @@ ordenador: la columna de filtros se enfocaba y bajaba la página.
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
 `js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
 `css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`,
-`js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
+`js/mi-coleccion/ficha-al-lado.js`, `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
 `CLAUDE.md` (la regla de la 650 y el presupuesto), `SCHEMA.md`. Prueba
 748-pantalla y cuarenta y cuatro más al día en `pruebas`.
 
-**Pendiente**: seguir rehaciendo — Mi colección en tres columnas en el
-ordenador y la sensación de app (transiciones, sin
+**Pendiente**: seguir rehaciendo — la sensación de app (transiciones, sin
 saltos). El
 rango de precio dentro de una expansión no se hace (ver SCHEMA 748).
 
