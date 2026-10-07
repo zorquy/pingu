@@ -244,8 +244,10 @@ console.log('\n── 7. La clasificación: dónde estás y quién gana ──')
 {
   const { page } = await abrir()
   check('se abre la clasificación', await pestana(page, 'clasificacion'))
-  check('los tres primeros llevan medalla', (await page.locator('.torneo-pos-1').count()) === 1 &&
-    (await page.locator('.torneo-pos-2').count()) === 1 && (await page.locator('.torneo-pos-3').count()) === 1)
+  // En la TABLA: desde la 722 «Cómo vas» (en Jugar) pinta también su puesto.
+  const tabla = '.torneo-clasificacion-tabla'
+  check('los tres primeros llevan medalla', (await page.locator(`${tabla} .torneo-pos-1`).count()) === 1 &&
+    (await page.locator(`${tabla} .torneo-pos-2`).count()) === 1 && (await page.locator(`${tabla} .torneo-pos-3`).count()) === 1)
   check('y tu fila va marcada', (await page.locator('tr.torneo-fila-yo').count()) === 1)
   check('  …y es la tuya', (await page.locator('tr.torneo-fila-yo').textContent())?.includes('Ash'),
     await page.locator('tr.torneo-fila-yo').textContent())
