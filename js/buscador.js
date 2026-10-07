@@ -14,6 +14,7 @@ import { supabase } from './supabase.js'
 import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
+import { COLUMNAS_RANGO } from './rangos.js'
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
@@ -72,7 +73,8 @@ const CONSULTAS = {
     if (!plegado) return []
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, username, display_name, avatar_url')
+      // Con el rango: el nombre se pinta con su color (la 386).
+      .select(`id, username, display_name, avatar_url, ${COLUMNAS_RANGO}`)
       // `*` es el comodín de PostgREST dentro de un `or` (el `%` también
       // vale, pero en una URL hay que escaparlo).
       .or(`username.ilike.${escrito || plegado}*,search_norm.ilike.*${plegado}*`)

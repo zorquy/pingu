@@ -314,15 +314,27 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   if (seccion && enLista && seccion.enlaces.length > 1) {
     const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }
     const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
+    // ESCANEAR TIENE BOTÓN PROPIO en la burbuja de Cartas (719, N4), y
+    // solo con cuenta: lo leído se añade a TU colección. En Mi colección
+    // abre la cámara ahí mismo; desde otra página, va y la abre.
+    const escanear = (clase) => (seccion.nombre === 'Cartas' && conSesion
+      ? `<a class="${clase} bm-escanear" href="/mi-coleccion?ver=buscar&amp;escanear=1" title="Escanear una carta">${icons.scan?.(24) || ''}<span class="bm-texto">Escanear</span></a>`
+      : '')
     if (propia) {
-      propia.insertAdjacentHTML('beforeend', seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
+      propia.insertAdjacentHTML('beforeend', escanear('mc-pestania bm-ajena') + seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
+      propia.querySelector('.bm-escanear')?.addEventListener('click', (ev) => {
+        const boton = doc.getElementById('mcEscanear')
+        if (!boton) return
+        ev.preventDefault()
+        boton.click()
+      })
       propia.classList.add('bm-con-ajenas')
       vigilarDesborde(propia)
     } else {
       const burbuja = doc.createElement('nav')
       burbuja.className = 'bm-burbuja'
       burbuja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
-      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('')
+      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('') + escanear('bm-burbuja-item')
       doc.body.appendChild(burbuja)
       doc.documentElement.classList.add('con-burbuja-movil')
       vigilarDesborde(burbuja)

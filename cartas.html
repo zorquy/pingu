@@ -1093,6 +1093,12 @@
           <button type="button" class="mc-escaner-redondo" id="mcEscanerCerrar" aria-label="Cerrar el escáner">✕</button>
           <p class="mc-escaner-ayuda" id="mcEscanerAyuda">Encuadra la carta dentro del marco</p>
         </div>
+        <!-- La bandeja de la ráfaga (719): lo leído sale aquí con su «+» y
+             se sigue escaneando sin salir de la cámara. -->
+        <div class="mc-escaner-bandeja hidden" id="mcEscanerBandeja">
+          <div class="mc-escaner-candidatas" id="mcEscanerCandidatas" aria-live="polite"></div>
+          <button type="button" class="mc-escaner-ver" id="mcEscanerVer">Ver todas en Buscar</button>
+        </div>
         <div class="mc-escaner-abajo">
           <select class="mc-chapa-select" id="mcEscanerIdioma" aria-label="Idioma de la carta"></select>
           <button type="button" class="mc-escaner-disparo" id="mcEscanerDisparo" aria-label="Capturar la carta"></button>

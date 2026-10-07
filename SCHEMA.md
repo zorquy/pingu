@@ -34550,3 +34550,47 @@ diferida.
 `js/nav-search.js`, `js/carta-mercado.js` (`#anadir`), `js/mi-coleccion.js`
 (`escanear=1`), `css/components.css`, `css/movil.css`, `css/carta.css`.
 Prueba 718-pantalla; en el doble, `__FAKE_FALLA__` hace fallar una tabla.
+
+## Tanda 719 — escanear a un toque y en ráfaga (oct. 2026)
+
+N4 de la lista. El escáner vivía dentro de Buscar, en Mi colección, y cada
+carta leída te sacaba de la cámara.
+
+- **Un botón propio en la burbuja de Cartas** (`.bm-escanear`, en
+  `js/barra-movil.js`), solo con cuenta: lo leído se añade a TU colección.
+  En Mi colección va detrás de sus pestañas y abre la cámara ahí mismo
+  (pulsa `#mcEscanear`); en el catálogo o en Lanzamientos lleva a
+  `/mi-coleccion?ver=buscar&escanear=1`, que la abre al cargar. Hace falta
+  por otra razón: el botón grande de Buscar vive en su estado VACÍO, así
+  que con resultados a la vista no había por dónde volver a escanear.
+- **En ráfaga**: leer ya no cierra. La búsqueda de siempre —con sus cuatro
+  aflojes (451, 558, 561)— rellena Buscar por detrás, y las tres primeras
+  salen en una bandeja dentro de la cámara (`#mcEscanerBandeja`), cada una
+  con su set, su número, cuántas tienes y un «+». El «+» añade UNA copia
+  por `datos.anadir` con el idioma del escáner si el catálogo lo admite
+  (si no, el de añadir de siempre, la 472) y el estado por defecto, y deja
+  un Deshacer en su sitio; la ayuda cuenta las de la ráfaga. Tocar la carta
+  abre el diálogo de añadir de la 650 ENCIMA de la cámara (la capa de
+  arriba admite dos). «Ver todas en Buscar» cierra y deja la lista entera.
+  El aviso de «he leído» se dice en la propia cámara: un toast queda
+  debajo de ella. El Deshacer es una función (`deshacerAnadida`), que
+  comparten el aviso de la 712 y la bandeja.
+
+**Dos fallos de la 718, arreglados aquí**: el `?escanear=1` se había
+enganchado en el arranque del CATÁLOGO (`iniciarCatalogo`, el de /cartas)
+y no en el de Mi colección, así que la dirección no abría la cámara —y
+ninguna prueba lo miraba—; ahora va en `cargarColeccion` al entrar. Y la
+gente del buscador se pedía sin su rango (la 386): ahora con
+`COLUMNAS_RANGO` y pintada con `atributosDeRango`.
+
+**Y cuatro pruebas que llevaban rojas desde antes**, cazadas por la suite
+entera: la 306 no sabía de las hojas inyectadas (`hojaInyectada`, como la
+299); la 320 buscaba la hamburguesa, que en el móvil no existe desde la
+704 (las secciones van en la barra de abajo); la 334 pedía la foto de la
+carta a 260 px, que la 707 bajó a 200 a propósito; y la 704 no esperaba
+el botón de escanear en la burbuja.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html` (y `cartas.html`
+generado), `css/mi-coleccion.css`, `js/barra-movil.js`, `js/buscador.js`,
+`js/buscador-filas.js`. Prueba 719-pantalla; 306, 320, 334, 447 y 704 al
+día.

@@ -9,6 +9,7 @@ import { rutaDeCarta } from './carta-ruta.js'
 import { cadenaDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { euros } from './cardmarket.js'
+import { atributosDeRango } from './rangos.js'
 
 // Adónde lleva cada fila. Va aparte del HTML porque la paleta navega con
 // el teclado y necesita la dirección sin pintar nada.
@@ -41,7 +42,7 @@ export function interiorDe(grupo, f) {
   if (grupo === 'gente') {
     const nombre = f.display_name || f.username || 'Entrenador'
     return `<span class="bs-avatar" style="${avatarStyle(f)}" aria-hidden="true">${f.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-      <span class="bs-texto"><b>${escapeHtml(nombre)}</b>${f.username ? `<small>@${escapeHtml(f.username)}</small>` : ''}</span>`
+      <span class="bs-texto"><b${atributosDeRango(f)}>${escapeHtml(nombre)}</b>${f.username ? `<small>@${escapeHtml(f.username)}</small>` : ''}</span>`
   }
   return `<span class="bs-icono" aria-hidden="true">${f.icono ? icons[f.icono]?.(18) || '' : ''}</span>
     <span class="bs-texto"><b>${escapeHtml(f.nombre)}</b>${f.detalle ? `<small>${escapeHtml(f.detalle)}</small>` : ''}</span>`

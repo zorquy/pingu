@@ -5542,6 +5542,148 @@ input.mc-alb-titulo:not([readonly]):focus {
   color: var(--blanco-fijo);
 }
 
+/* La bandeja de la ráfaga (719): encima de los mandos, sobre la cámara. */
+.mc-escaner-bandeja {
+  position: absolute;
+  right: var(--e-md);
+  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  left: var(--e-md);
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  background: rgb(0 0 0 / 72%);
+}
+
+/* Con la bandeja, el marco arriba y algo más pequeño: el recorte lee el
+   marco donde ESTÉ (`marcoEnElVideo`), así que moverlo no lo descuadra. */
+.mc-escaner.con-bandeja .mc-escaner-velo {
+  place-items: start center;
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
+}
+
+.mc-escaner.con-bandeja .mc-escaner-marco {
+  width: min(64vw, 34vh);
+}
+
+/* Las leídas, en UNA fila que se desliza: tres filas apiladas subían la
+   bandeja hasta la mitad de la pantalla. */
+.mc-escaner-candidatas {
+  display: flex;
+  gap: var(--e-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.mc-escaner-candidata {
+  display: flex;
+  flex: 0 0 min(320px, 88%);
+  align-items: center;
+  gap: var(--e-sm);
+  padding-right: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 8%);
+  scroll-snap-align: start;
+}
+
+.mc-escaner-candidata:only-child {
+  flex-basis: 100%;
+}
+
+.mc-escaner-cand-carta {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-escaner-cand-foto {
+  flex: none;
+  width: 40px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 12%);
+}
+
+.mc-escaner-cand-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-escaner-cand-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mc-escaner-cand-texto b,
+.mc-escaner-cand-texto small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-escaner-cand-texto small {
+  color: rgb(255 255 255 / 75%);
+  font-size: var(--t-sm);
+}
+
+.mc-escaner-mas,
+.mc-escaner-hecha {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-escaner-mas {
+  background: var(--blanco-fijo);
+  color: var(--navy-solid);
+  font-size: var(--t-xl);
+}
+
+.mc-escaner-hecha {
+  padding: 0 var(--e-md);
+  background: rgb(255 255 255 / 18%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+}
+
+.mc-escaner-ver {
+  width: 100%;
+  min-height: 44px;
+  margin-top: var(--e-xs);
+  border: 0;
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mc-escaner-nada {
+  margin: var(--e-sm);
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-sm);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mc-escaner-disparo {
     transition: none;

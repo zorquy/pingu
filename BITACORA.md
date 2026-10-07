@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 12) — PINGU-Claude (719 — escanear a un toque y en ráfaga)
+
+**Hecho**: N4 de la lista. La burbuja de Cartas lleva «Escanear» (con
+cuenta), y la cámara ya no se cierra al leer: lo leído sale en una bandeja
+con su «+», que añade una copia con su Deshacer, y se sigue escaneando.
+Arreglados dos fallos de la 718 (la dirección `?escanear=1` no abría la
+cámara; la gente del buscador salía sin su rango) y puestas al día cuatro
+pruebas que estaban rojas desde antes (306, 320, 334, 704).
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`, `cartas.html`,
+`css/mi-coleccion.css`, `js/barra-movil.js`, `js/buscador.js`,
+`js/buscador-filas.js`, `SCHEMA.md`. Pruebas en `pruebas`.
+
+**Pendiente**: la 720 (deslizar entre cartas y la carta que crece).
+
 ## 2026-10-07 (mañana, 11) — PINGU-Claude (718 — un buscador para todo y la paleta con Ctrl+K)
 
 **Hecho**: N2 y D3 de la lista. /buscar busca a la vez cartas (con foto y

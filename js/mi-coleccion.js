@@ -509,22 +509,29 @@ function avisarAnadida(c, linea, nueva) {
   avisoConDeshacer({
     html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ya tienes ${total}</span>`,
     alDeshacer: async () => {
-      if (!plan) return
-      try {
-        if (plan.tipo === 'borrar') {
-          await datos.borrar(plan.id)
-          quitarLinea(plan.id)
-        } else {
-          const vuelta = await datos.actualizar(plan.id, { cantidad: plan.cantidad })
-          cambiarLinea(plan.id, vuelta)
-        }
-        repintar()
-        showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
-      } catch (err) {
-        showToast(`No se ha podido deshacer: ${err.message}`, 'error')
-      }
+      if (await deshacerAnadida(plan, c)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
     },
   })
+}
+
+// Lo que deshace un «añadida» (712): la decisión la tomó `comoDeshacer`
+// con lo que devolvió la base. Devuelve si se pudo.
+async function deshacerAnadida(plan, c) {
+  if (!plan) return false
+  try {
+    if (plan.tipo === 'borrar') {
+      await datos.borrar(plan.id)
+      quitarLinea(plan.id)
+    } else {
+      const vuelta = await datos.actualizar(plan.id, { cantidad: plan.cantidad })
+      cambiarLinea(plan.id, vuelta)
+    }
+    repintar()
+    return true
+  } catch (err) {
+    showToast(`No se ha podido deshacer: ${err.message}`, 'error')
+    return false
+  }
 }
 
 // El bloque de precio de la ficha (589), suelto desde la 651 porque se
@@ -4017,6 +4024,95 @@ function cerrarEscaner() {
   }
   if (video) video.srcObject = null
   if (caja?.open) caja.close()
+  $('mcEscanerBandeja')?.classList.add('hidden')
+  caja?.classList.remove('con-bandeja')
+  enRafaga = { cartas: new Map(), hechas: 0 }
+}
+
+// ── LA BANDEJA DE LA RÁFAGA (719) ──
+//
+// Las tres primeras de lo que encontró la búsqueda, cada una con su «+».
+// El «+» añade UNA copia con lo que el escáner ya sabe —el idioma en el
+// que está escrita, si el catálogo lo admite— y el estado por defecto: es
+// el camino rápido, y por eso lleva su Deshacer al lado. Para elegir
+// estado, versión o copias, la carta se toca y abre el diálogo de siempre.
+// Las dos van por `datos.anadir` (la 650).
+let enRafaga = { cartas: new Map(), hechas: 0 }
+
+function pintarBandejaEscaner(lista) {
+  const bandeja = $('mcEscanerBandeja')
+  if (!bandeja) return
+  bandeja.classList.remove('hidden')
+  // Con la bandeja puesta el marco sube y encoge: la bandeja no puede tapar
+  // la franja de abajo, que es la que hay que encuadrar para la siguiente.
+  $('mcEscanerCaja')?.classList.add('con-bandeja')
+  enRafaga.cartas = new Map(lista.map((c) => [c.id, c]))
+  $('mcEscanerCandidatas').innerHTML = lista.length
+    ? lista.map((c) => {
+        const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+        const tengo = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+        return `<div class="mc-escaner-candidata" data-carta="${escapeHtml(c.id)}">
+          <button type="button" class="mc-escaner-cand-carta" data-escaner-abrir="${escapeHtml(c.id)}">
+            <span class="mc-escaner-cand-foto">${escaneo ? `<img ${escaneo} alt="" width="40" height="56" loading="lazy" />` : ''}</span>
+            <span class="mc-escaner-cand-texto"><b>${escapeHtml(nombreDe(c))}</b><small>${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}${tengo ? ` · tienes ${tengo}` : ''}</small></span>
+          </button>
+          <button type="button" class="mc-escaner-mas" data-escaner-anadir="${escapeHtml(c.id)}" aria-label="Añadir ${escapeHtml(nombreDe(c))} a tu colección">+</button>
+        </div>`
+      }).join('')
+    : '<p class="mc-escaner-nada">No la encuentro en el catálogo. Encuádrala otra vez, o cierra y búscala a mano.</p>'
+}
+
+function idiomaDeRafaga() {
+  const leido = $('mcEscanerIdioma')?.value
+  const vale = idiomasDeLaVista()
+  if (vale.some((i) => i.id === leido)) return leido
+  const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
+  return vale.some((i) => i.id === recordado) ? recordado : vale[0]?.id || idiomaDeLaVista()
+}
+
+async function anadirDesdeEscaner(id, boton) {
+  const c = enRafaga.cartas.get(id)
+  if (!c || !sesion || !esMia) return
+  const vs = variantesParaEditar(c, null)
+  const linea = {
+    card_id: c.id,
+    idioma: idiomaDeRafaga(),
+    estado: $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO,
+    variante: vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id || 'normal',
+    cantidad: 1,
+  }
+  boton.disabled = true
+  try {
+    const nueva = await datos.anadir(sesion.user.id, linea, mercado)
+    meterLinea(nueva, c)
+    repintar()
+    enRafaga.hechas++
+    const plan = comoDeshacer(linea, nueva)
+    const fila = boton.closest('.mc-escaner-candidata')
+    const total = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+    fila.querySelector('small').textContent = `${nombreDeSet(c.tcg_sets) || c.set_id} · ${c.local_id} · tienes ${total}`
+    const hecho = document.createElement('button')
+    hecho.type = 'button'
+    hecho.className = 'mc-escaner-hecha'
+    hecho.textContent = 'Deshacer'
+    hecho.setAttribute('aria-label', `Deshacer: quitar la copia de ${nombreDe(c)} que acabas de añadir`)
+    hecho.addEventListener('click', async () => {
+      hecho.disabled = true
+      if (await deshacerAnadida(plan, c)) {
+        enRafaga.hechas = Math.max(0, enRafaga.hechas - 1)
+        hecho.replaceWith(boton)
+        boton.disabled = false
+        const resto = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+        fila.querySelector('small').textContent = `${nombreDeSet(c.tcg_sets) || c.set_id} · ${c.local_id}${resto ? ` · tienes ${resto}` : ''}`
+        $('mcEscanerAyuda').textContent = `Deshecho: ${nombreDe(c)} vuelve a como estaba.`
+      } else hecho.disabled = false
+    })
+    boton.replaceWith(hecho)
+    $('mcEscanerAyuda').textContent = `${nombreDe(c)} añadida · ${enRafaga.hechas === 1 ? 'una en esta ráfaga' : `${enRafaga.hechas} en esta ráfaga`}. Encuadra la siguiente.`
+  } catch (err) {
+    $('mcEscanerAyuda').textContent = err.message
+    boton.disabled = false
+  }
 }
 
 // DISPARAR. Se recortan las dos franjas en el navegador y se mandan a
@@ -4112,7 +4208,10 @@ async function dispararEscaner() {
     // El número impreso viene como «22/99»: lo de delante de la barra es
     // la carta, lo de detrás cuántas tiene el set.
     const numero = escaner.numeroDeLaFranja(datos?.textos?.codigo)
-    cerrarEscaner()
+    // EN RÁFAGA (719, N4): leer ya NO cierra la cámara. La búsqueda de
+    // siempre —con sus cuatro aflojes— rellena Buscar por detrás, y lo
+    // primero de lo que encuentre sale en la bandeja con su «+»: se añade
+    // y se sigue encuadrando la siguiente. Cerrar deja ver la lista entera.
     cambiarPestania('buscar')
     // PRIMERO CON EL NÚMERO, Y SI NO SALE NADA, SIN ÉL. Desde la tanda 450
     // el buscador entiende «Mewtwo 64», así que la búsqueda más fina es
@@ -4187,6 +4286,11 @@ async function dispararEscaner() {
       }
     }
     showToast(`He leído: ${nombreLeido}${aflojado}`)
+    // El aviso se queda DEBAJO de la cámara (la capa de arriba es suya),
+    // así que lo leído se dice también aquí.
+    if (ayuda) ayuda.textContent = `He leído: ${nombreLeido}${aflojado}`
+    const hay = $('mcBuscarResultados').querySelector('.mc-resultado')
+    pintarBandejaEscaner(hay ? ultimaBusqueda.slice(0, 3) : [])
   } catch {
     if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
   } finally {
@@ -5809,6 +5913,17 @@ function enganchar() {
   }
   // El escáner (tanda 447).
   $('mcEscanear')?.addEventListener('click', () => void abrirEscaner())
+  $('mcEscanerVer')?.addEventListener('click', () => cerrarEscaner())
+  $('mcEscanerCandidatas')?.addEventListener('click', (e) => {
+    const mas = e.target.closest('[data-escaner-anadir]')
+    if (mas) return void anadirDesdeEscaner(mas.dataset.escanerAnadir, mas)
+    // Tocar la carta abre el diálogo de añadir de siempre, ENCIMA de la
+    // cámara (la capa de arriba admite dos): al guardar o cerrar, se
+    // vuelve a encuadrar.
+    const abrir = e.target.closest('[data-escaner-abrir]')
+    const c = abrir && enRafaga.cartas.get(abrir.dataset.escanerAbrir)
+    if (c) abrirAnadir(c.id)
+  })
   $('mcEscanerCerrar')?.addEventListener('click', cerrarEscaner)
   $('mcEscanerDisparo')?.addEventListener('click', () => void dispararEscaner())
   // Y con la tecla de escape, que es como se cierra un diálogo. El evento
@@ -6483,9 +6598,6 @@ async function iniciarCatalogo() {
   }
   if (sesion) {
     await cargarColeccion(dueno.id, { primeraVez: true })
-    // «Escanear una carta» desde /buscar o la paleta (718) entra aquí con
-    // la cámara abierta: es lo que se ha pedido.
-    if (pestania === 'buscar' && params.get('escanear') && $('mcEscanear') && !$('mcEscanear').classList.contains('hidden')) void abrirEscaner()
   } else {
     $('mcCargando').classList.add('hidden')
     if (pestania === 'album') await pintarEstanteria()
@@ -6545,6 +6657,10 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // cartas tienes. Solo al entrar: al cambiar de catálogo, el `?album=`
   // de la dirección ya no es dónde estás.
   if (primeraVez && pestania === 'carpetas' && params.get('album')) albumes.abrir(params.get('album'))
+  // «Escanear una carta» desde /buscar, la paleta o la burbuja (718, 719)
+  // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
+  // es lo que la bandeja enseña al lado de cada carta leída.
+  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear') && $('mcEscanear')) void abrirEscaner()
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()
