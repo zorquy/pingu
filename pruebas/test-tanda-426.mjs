@@ -72,7 +72,7 @@ const marcadas = (page) => page.locator('#mcAlbum .mc-bolsillo.marcada').count()
 console.log('\n── 1. Apagado, la rejilla es la de siempre ──')
 {
   const { page, errores } = await abrir()
-  check('la barra no está', await page.locator('#mcMarcarBarra').isHidden())
+  check('la barra no está', await page.locator('#mcMarcarBarra .mc-sel-arriba').isHidden())
   check('  …y el botón no está pulsado', (await page.locator('#mcMarcarAbrir').getAttribute('aria-pressed')) === 'false')
   // Desde la 565 la casilla no lleva − ni +: abre la ficha, como en Dex.
   check('la casilla no lleva − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
@@ -94,7 +94,7 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
   await page.evaluate(() => sessionStorage.removeItem('__escrituras__'))
   await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)
-  check('sale la barra', await page.locator('#mcMarcarBarra').isVisible())
+  check('sale la barra', await page.locator('#mcMarcarBarra .mc-sel-arriba').isVisible())
   check('  …diciendo qué hacer', /Toca las cartas/.test(await page.locator('#mcMarcarCuenta').textContent()))
   check('  …con «Añadir» apagado mientras no haya nada', await page.locator('#mcMarcarGuardar').isDisabled())
   // Cada casilla tiene UN destino: el − y el + se van, y de paso salen del
@@ -109,7 +109,7 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
   // El mismo botón lo apaga: es un interruptor, no un encendedor.
   await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(500)
-  check('el mismo botón lo apaga', await page.locator('#mcMarcarBarra').isHidden())
+  check('el mismo botón lo apaga', await page.locator('#mcMarcarBarra .mc-sel-arriba').isHidden())
   check('  …y lo dice', (await page.locator('#mcMarcarAbrir').getAttribute('aria-pressed')) === 'false')
   check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   await porElMenu(page, '#mcMarcarAbrir')
@@ -118,8 +118,8 @@ console.log('\n── 2. Encendido: se marca, y no se escribe nada ──')
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(1).click()
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(2).click()
   await page.waitForTimeout(400)
-  check('  …y el botón dice CUÁNTAS añade', (await page.locator('#mcMarcarGuardar').textContent()).trim() === 'Añadir 2',
-    await page.locator('#mcMarcarGuardar').textContent())
+  check('  …y el botón dice CUÁNTAS añade', (await page.locator('#mcMarcarGuardarTexto').textContent()).trim() === 'Añadir 2',
+    await page.locator('#mcMarcarGuardarTexto').textContent())
   // Lo marcado vive en memoria: es lo que permite corregirse sin haber
   // escrito nada. Si marcara contra la base, «Cancelar» no podría existir.
   check('todavía no se ha escrito NADA', (await escrituras(page)).length === 0, JSON.stringify(await escrituras(page)))
@@ -147,7 +147,7 @@ console.log('\n── 3. Lo marcado aguanta un repintado ──')
   await page.fill('#mcAlbumBuscar', 'Carta')
   await page.waitForTimeout(900)
   check('siguen marcadas tras buscar', (await marcadas(page)) === 2, String(await marcadas(page)))
-  check('  …y la cuenta no se ha movido', /2 cartas marcadas/.test(await page.locator('#mcMarcarCuenta').textContent()))
+  check('  …y la cuenta no se ha movido', /2 seleccionadas/.test(await page.locator('#mcMarcarCuenta').textContent()))
   await page.close()
 }
 
@@ -162,7 +162,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
   await page.evaluate(() => sessionStorage.removeItem('__escrituras__'))
   await page.click('#mcMarcarCancelar')
   await page.waitForTimeout(600)
-  check('la barra se va', await page.locator('#mcMarcarBarra').isHidden())
+  check('la barra se va', await page.locator('#mcMarcarBarra .mc-sel-arriba').isHidden())
   check('  …sin escribir nada', (await escrituras(page)).length === 0, JSON.stringify(await escrituras(page)))
   check('  …y sin marcas', (await marcadas(page)) === 0)
   check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
@@ -177,7 +177,7 @@ console.log('\n── 4. Cancelar no guarda nada ──')
   // se esconde, que es otra cosa.
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
-  check('entrar en una expansión empieza con el modo apagado', await page.locator('#mcMarcarBarra').isHidden())
+  check('entrar en una expansión empieza con el modo apagado', await page.locator('#mcMarcarBarra .mc-sel-arriba').isHidden())
   check('  …y sigue sin − ni + (565)', (await page.locator('#mcAlbum .mc-bolsillo-mando').count()) === 0)
   await page.close()
 }
@@ -208,7 +208,7 @@ console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
   check('la que ya tenías sigue siendo UNA fila', suyas.length === 1, JSON.stringify(suyas.length))
   check('  …con una copia más', Number(suyas[0].cantidad) === 2, String(suyas[0].cantidad))
   check('en total, cuatro filas', (await page.evaluate(() => window.__TABLAS__.user_collection.length)) === 4)
-  check('la barra se cierra sola', await page.locator('#mcMarcarBarra').isHidden())
+  check('la barra se cierra sola', await page.locator('#mcMarcarBarra .mc-sel-arriba').isHidden())
   // Y lo guardado entra en la lista de la página, no solo en la base: sin
   // eso, la pestaña «Cartas» seguiría enseñando la colección de antes
   // hasta que recargaras, y no daría error en ninguna parte.
@@ -312,7 +312,7 @@ console.log('\n── 7 bis. Si la base no deja escribir, se dice ──')
   const texto = await page.locator('body').textContent()
   check('no dice que las haya añadido', !/cartas añadidas/.test(texto))
   check('  …sino que no ha podido', /No se ha podido guardar/.test(texto), texto.slice(0, 160))
-  check('  …y la barra sigue puesta para reintentar', await page.locator('#mcMarcarBarra').isVisible())
+  check('  …y la barra sigue puesta para reintentar', await page.locator('#mcMarcarBarra .mc-sel-arriba').isVisible())
   check('  …con lo marcado intacto', (await marcadas(page)) === 2, String(await marcadas(page)))
   check('  …y nada en la base', (await page.evaluate(() => window.__TABLAS__.user_collection.length)) === 1)
   await page.close()
@@ -339,14 +339,18 @@ console.log('\n── 8. En el móvil ──')
   // mientras su contenedor está a la vista, y con seis cartas a tres por
   // fila (550) el álbum mide menos de 1200 px en un móvil. Bajar más de
   // la cuenta no prueba el `top`: prueba que la barra se fue con su caja.
-  const natural = (await page.locator('#mcMarcarBarra').boundingBox()).y
-  await page.evaluate((y) => window.scrollTo(0, y), Math.round(natural - 72 + 150))
+  // Desde la 747 (la C4 de su maqueta) la barra es FIJA: tapa la del sitio
+  // arriba, y las acciones flotan abajo. Al bajar, las dos siguen donde
+  // estaban.
+  await page.evaluate(() => window.scrollTo(0, 600))
   await page.waitForTimeout(400)
-  const caja = await page.locator('#mcMarcarBarra').boundingBox()
+  const caja = await page.locator('#mcMarcarBarra .mc-sel-arriba').boundingBox()
   const cabecera = await page.locator('nav.navbar').boundingBox()
-  check('  …y sigue a la vista al bajar', caja.y >= 0 && caja.y < 300, `y=${Math.round(caja.y)}`)
-  check('  …por DEBAJO de la barra del sitio', caja.y >= cabecera.y + cabecera.height - 1,
-    `barra ${Math.round(caja.y)} vs cabecera ${Math.round(cabecera.y + cabecera.height)}`)
+  const abajo = await page.locator('#mcMarcarAcciones').boundingBox()
+  const alto = await page.evaluate(() => innerHeight)
+  check('  …y sigue a la vista al bajar, arriba del todo', Math.round(caja.y) === 0, `y=${Math.round(caja.y)}`)
+  check('  …tapando la barra del sitio', caja.height >= Math.min(cabecera.height, 56) && await page.evaluate(() => getComputedStyle(document.querySelector('.mc-sel-arriba')).position === 'fixed'), `barra ${Math.round(caja.height)} vs cabecera ${Math.round(cabecera.height)}`)
+  check('  …y las acciones flotan abajo', abajo.y + abajo.height <= alto && abajo.y > alto / 2, JSON.stringify(abajo))
   for (const id of ['mcMarcarCancelar', 'mcMarcarGuardar']) {
     const c = await page.locator(`#${id}`).boundingBox()
     check(`  …y ${id} se puede tocar (44 px de alto)`, c.height >= 44, `${Math.round(c.width)}×${Math.round(c.height)}`)
