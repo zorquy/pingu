@@ -35729,3 +35729,73 @@ también estaría bien por expansión».
   (`.pdx-region-cuenta`, `.pdx-region-barra`), contado sobre TODAS las
   especies aunque esté puesto «Solo las mías» (si no, sale «15/15»); y la
   cabecera, «N de 1.025 especies».
+
+## Tanda 751 — «La quiero»: el corazón, su pantalla, su aviso y su imagen (oct. 2026)
+
+- **No es una tabla nueva**. La propuesta decía «no hay forma de apuntar
+  las cartas que buscas» y era falso: desde la 376 está `user_wants`
+  («Lo que buscas», en Cambios) y la selección de varias ya tenía «Las
+  quiero». Lo que faltaba era usarla a diario: «La quiero» es esa misma
+  lista, y K4 (quién tiene lo que te falta) ya era el tablón de Cambios.
+  Ninguna migración.
+- **El corazón (K1)**: una loseta más en la ficha de /mi-coleccion
+  (`#mcEdQuiero`) y en /carta (`#cmQuiero`), con `js/la-quiero.js`. Pulsado
+  dice «La quieres» y el corazón va relleno. Apunta «en cualquier idioma»
+  (idioma null, como el buscador) y al quitarlo se van TODAS las filas de
+  esa carta. Sin poder preguntar (null) la loseta no sale: un corazón
+  vacío afirmaría «no la quieres». El icono vive en
+  `js/mi-coleccion/iconos.js`, no en `js/icons.js` (portada).
+- **La lista ya se sabe al entrar**: `deseos` empezaba en `[]` y el Panel
+  decía «0 cartas que buscas» hasta abrir Cambios (la 319 otra vez).
+  Ahora empieza en `null`, `cargarDeseos()` la pide una vez al cargar la
+  colección y la comparten Panel, Cambios, «La quiero» y el corazón.
+- **La pantalla (`?ver=quiero`, `#mcPanelQuiero`)**: subpantalla como
+  Cambios —se llega por el Panel, por la hoja «Tú» y por Cambios—. Arriba
+  «N cartas · unos X €» (y cuántas no tienen precio, que no suman) y
+  «Compartir»; el buscador de siempre; y cada fila en DOS líneas: la
+  carta con su set e idioma y su precio, y debajo prioridad, aviso y
+  quitar (en una no cabían en 390 px: la campana se cortaba). En el
+  ordenador, una línea. Los precios de lo que quieres casi nunca están
+  en memoria (son los de tu colección, la 651): se piden al abrirla.
+- **El aviso (K2)** es el «Avísame» de la 665 con el idioma que buscas y
+  el precio de ahora para proponer el umbral. La fila dice «< 10,00 €»
+  si hay aviso de bajada encendido; sin la migración de avisos no dice
+  nada (null). Al cerrar el diálogo la fila se repinta (`close` no sube:
+  se escucha en la captura del documento).
+- **La imagen (Y3)**: `js/mi-coleccion/imagen-quiero.js`, 1080 × 1350,
+  hasta 15 cartas en cinco columnas (con pocas, más grandes), «LA que me
+  falta» en las de prioridad 3, «y N más» y SIN PRECIOS (en un grupo de
+  cambios una cifra invita a regatear antes de hablar). El texto enlaza a
+  PokeDoc y no a tu lista: «La quiero» solo la abre su dueño, y un enlace
+  que a otro le abre otra cosa es una promesa rota.
+
+## Tanda 752 — El perfil en tres niveles y «En tu álbum» (oct. 2026)
+
+- **P1**: arriba Vitrina · Actividad · Medallas (`#perfilNiveles`,
+  `data-pnivel`), y Muro, Guías, Foro y Torneos pasan a ser los filtros de
+  Actividad, en chips. «Acerca» eran los trofeos y los cursos: es el
+  nivel Medallas (su panel sigue siendo `ptab-about`, y `#about` lleva
+  ahí). Lo de tu cuenta (salir, pedir el borrado) baja al pie del perfil,
+  fuera de los niveles. Qué se ve lo decide `body[data-pnivel]` en
+  css/perfil.css.
+- **Por dónde se abre**: por la Vitrina si tiene cartas; si no, por
+  Actividad con la regla de la 308 (el filtro que tiene algo). Una
+  vitrina vacía no es «la que tiene algo»; la tuya vacía sale en su
+  nivel con los huecos para elegir, la de otro vacía ni sale. La
+  apertura automática del filtro ya no cambia de nivel: si la vitrina se
+  abrió, se queda. `#vitrina` en la dirección se lee otra vez cuando la
+  vitrina llega (al cargar, su nivel aún estaba escondido).
+- **La cifra de Trofeos** lleva a Medallas en vez de abrir un modal con lo
+  mismo.
+- **Y5**: en la ficha de una copia que está en un álbum, bajo las losetas,
+  «En tu álbum Mis Charizard», y tocar el nombre abre ese álbum. Iba a ir
+  en «Tu copia», que está plegada hasta pulsar Editar. El bloque de abajo
+  se llamaba «Carpetas» desde antes de la 579: ahora «En tus álbumes».
+- **El ⋮ de una expansión, otra vez encima** (la 749 lo rompió): la
+  cabecera llevaba `isolation: isolate` para meter el fondo difuminado
+  detrás, y eso hace un contexto de apilado sin `z-index`: el menú, dentro,
+  quedaba POR DEBAJO del buscador y de las diapositivas, que van después.
+  Sin error y sin que se vea en una captura con el menú cerrado; lo cazó
+  la suite (426, 430, 469). Va `z-index: 3`.
+- **Y1, el resto**: dólares, Gente, Meta, la cuenta de los álbumes de la
+  lateral y los caracteres de un enlace largo, también con su punto.
