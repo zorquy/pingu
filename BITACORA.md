@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 2) — PINGU-Claude (722 — «Tu partida» arriba, y debajo cómo vas)
+
+**Hecho**: J2 de la lista. En un torneo en juego, debajo de tu mesa sale
+«Cómo vas»: el primero, tú y los de al lado en la clasificación, con tu
+fila marcada y un enlace a la tabla entera. El resto de J2 (tu mesa
+arriba, el reloj, reportar, el chat a la vista) ya estaba.
+
+**Ficheros**: `torneo.html`, `js/torneos/ronda.js`, `css/torneos.css`,
+`SCHEMA.md`. Prueba 722-pantalla y la 298 al día en `pruebas`.
+
+**Pendiente**: J1 (foro), J4 (perfil), J5 (portada).
+
 ## 2026-10-07 (tarde, 1) — PINGU-Claude (721 — el meta con el color de su tipo)
 
 **Hecho**: J3 de la lista. En /meta la barra de uso de cada mazo lleva el

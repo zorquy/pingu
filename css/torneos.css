@@ -3304,3 +3304,46 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   margin: 0 0 8px;
   color: var(--danger);
 }
+
+/* ── 721: Cómo vas (SCHEMA 721) ── */
+.torneo-como-vas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-sm);
+  padding: 0;
+  list-style: none;
+}
+
+.torneo-como-vas li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-sm);
+}
+
+.torneo-como-vas li.torneo-fila-yo {
+  background: var(--ice);
+  font-weight: 700;
+}
+
+.torneo-como-vas-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.torneo-como-vas-vde {
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.torneo-como-vas .torneo-como-vas-salto {
+  min-height: 0;
+  color: var(--text-mid);
+}
+

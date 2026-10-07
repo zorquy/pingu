@@ -34654,3 +34654,23 @@ vistazo.
 
 **Ficheros**: `js/meta.js`, `js/meta/datos.js`, `css/meta.css`. Prueba
 721-pantalla; la 384 mira la paleta nueva.
+
+## Tanda 722 — «Tu partida» arriba, y debajo cómo vas (oct. 2026)
+
+J2 de la lista. Casi todo estaba ya: si estás jugando la ficha se abre en
+Jugar, tu mesa es un tablero con tu rival, la mesa, la serie y los botones
+de reportar (298), la barra viva va pegada arriba con el reloj de la ronda
+y «Ir a tu mesa», y el chat de mesa se ve sin desplegar. Faltaba lo de
+debajo: **dónde vas en la clasificación**, que estaba en otra pestaña y en
+una tabla de dieciséis filas iguales.
+
+«Cómo vas» (`#torneoComoVas`, `pintarComoVas`) va en Jugar, debajo de tu
+mesa: el primero, el de delante de ti, tú y el de detrás, con «…» donde se
+salta, tu fila marcada y diciendo «Tú». Sale de la MISMA cuenta que la
+tabla (`computeStandings` sobre `montarSnapshot`): dos sitios que calculan
+la posición por su lado acaban sin estar de acuerdo. Sin cuenta, o sin una
+mesa terminada, no sale: no hay nada que contar. «Ver la clasificación
+entera» cambia de pestaña.
+
+**Ficheros**: `torneo.html`, `js/torneos/ronda.js`, `css/torneos.css`.
+Prueba 722-pantalla; la 298 cuenta las medallas solo en la tabla.

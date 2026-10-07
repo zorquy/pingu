@@ -2391,6 +2391,47 @@ async function guardarListaRival(boton, parsed, userId) {
   }
 }
 
+// ── Cómo vas (721, J2) ──
+//
+// En la pestaña Jugar, debajo de tu mesa: tu fila de la clasificación,
+// la del que va primero y las de al lado, con un «…» donde se salta. Lo
+// que se viene a mirar entre ronda y ronda es «¿dónde estoy?», y eso
+// estaba en otra pestaña, en una tabla de dieciséis filas iguales. Sale
+// de la MISMA cuenta que la tabla (`computeStandings`): dos sitios que
+// calcularan la posición podrían no estar de acuerdo.
+export function filasAlrededor(tabla, yo) {
+  const i = tabla.findIndex((e) => e.playerId === yo)
+  if (i < 0) return []
+  const quiero = [...new Set([0, i - 1, i, i + 1])].filter((k) => k >= 0 && k < tabla.length).sort((a, b) => a - b)
+  return quiero.map((k, j) => ({ pos: k + 1, e: tabla[k], yo: k === i, salto: j > 0 && k - quiero[j - 1] > 1 }))
+}
+
+function pintarComoVas() {
+  const caja = $('torneoComoVas')
+  if (!caja) return
+  const yo = miId()
+  const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
+  const filas = yo && hayPuntos ? filasAlrededor(computeStandings(montarSnapshot(rondas.length)), yo) : []
+  caja.classList.toggle('hidden', !filas.length)
+  if (!filas.length) return olvidarPintado('comoVas')
+  const html = `<ol class="torneo-como-vas">${filas
+    .map((f) => `${f.salto ? '<li class="torneo-como-vas-salto" aria-hidden="true">…</li>' : ''}
+      <li class="${f.yo ? 'torneo-fila-yo' : ''}"${f.yo ? ' aria-current="true"' : ''}>
+        <span class="torneo-pos${f.pos <= 3 ? ` torneo-pos-${f.pos}` : ''}">${f.pos}</span>
+        <span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}</span>
+        <span class="torneo-como-vas-vde">${f.e.wins}-${f.e.losses}-${f.e.draws}</span>
+        <strong>${f.e.matchPoints} pts</strong>
+      </li>`)
+    .join('')}</ol>
+    <button type="button" class="link-btn" data-ir-pestana="clasificacion">Ver la clasificación entera</button>`
+  if (yaEstaPintado('comoVas', html)) return
+  $('comoVasContenido').innerHTML = html
+  $('comoVasContenido').querySelector('[data-ir-pestana]')?.addEventListener('click', () => {
+    document.querySelector('#torneoPestanas [data-pestana="clasificacion"]')?.click()
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  })
+}
+
 function pintarClasificacion() {
   const caja = $('torneoClasificacionCaja')
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
@@ -2715,6 +2756,7 @@ function pintarCiclo() {
   pintarRondas()
   pintarMiPartida()
   pintarClasificacion()
+  pintarComoVas()
   pintarMeta()
   ctx.alRepintar?.()
 
