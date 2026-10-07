@@ -94,13 +94,16 @@ console.log('── 2. «Quitar de mi colección», en la ficha ──')
 console.log('── 3. Filtro por ilustrador ──')
 {
   const { page } = await abrir(1200, 'cartas')
-  await page.click('#mcAbrirFiltros')
+  // En el ordenador el panel ya está abierto como columna (738): «Filtros»
+  // solo se pulsa si no lo está, o lo escondería.
+  if (!(await page.evaluate(() => document.getElementById('mcPanelFiltros').open))) await page.click('#mcAbrirFiltros')
   await page.waitForTimeout(600)
   const chips = await page.$$eval('[data-grupo="ilustrador"]', (bs) => bs.map((b) => b.dataset.valor))
   check('el grupo ofrece los ilustradores que tienes', chips.includes('Mitsuhiro Arita') && chips.includes('Kouki Saitou'), chips.join(','))
   await page.click('[data-grupo="ilustrador"][data-valor="Mitsuhiro Arita"]')
   await page.waitForTimeout(600)
-  await page.click('#mcFiltrosVer')
+  // «Ver resultados» solo existe en la hoja; en la columna no hay que cerrar nada.
+  if (await page.locator('#mcFiltrosVer').isVisible()) await page.click('#mcFiltrosVer')
   await page.waitForTimeout(800)
   check('filtrar por Arita deja sus dos', (await page.locator('#mcCartas .mc-carta').count()) === 2, String(await page.locator('#mcCartas .mc-carta').count()))
   await page.close()

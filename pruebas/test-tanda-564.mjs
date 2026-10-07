@@ -156,14 +156,17 @@ console.log('── 4. El filtro por casa de gradeo ──')
     { id: 'l2', card_id: 'sv8-2', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', gradeo: 'BGS 9.5', created_at: '2026-10-02T10:00:00Z' },
     { id: 'l3', card_id: 'sv8-3', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-03T10:00:00Z' },
   ], 'cartas')
-  await page.click('#mcAbrirFiltros')
+  // En el ordenador el panel ya está abierto como columna (738): «Filtros»
+  // solo se pulsa si no lo está, o lo escondería.
+  if (!(await page.evaluate(() => document.getElementById('mcPanelFiltros').open))) await page.click('#mcAbrirFiltros')
   await page.waitForTimeout(700)
   const chips = await page.$$eval('[data-grupo="gradeo"]', (bs) => bs.map((b) => b.dataset.valor))
   check('el grupo ofrece las casas que hay', chips.includes('PSA') && chips.includes('Beckett (BGS)'), chips.join(','))
   check('  …y «Sin gradear», que es un hecho y no una laguna', chips.includes('Sin gradear'), chips.join(','))
   await page.click('[data-grupo="gradeo"][data-valor="PSA"]')
   await page.waitForTimeout(900)
-  await page.click('#mcFiltrosVer').catch(() => {})
+  // «Ver resultados» solo existe en la hoja; en la columna no hay que cerrar nada.
+  if (await page.locator('#mcFiltrosVer').isVisible()) await page.click('#mcFiltrosVer')
   await page.waitForTimeout(900)
   check('filtrar por PSA deja una', (await page.locator('#mcCartas .mc-carta').count()) === 1, String(await page.locator('#mcCartas .mc-carta').count()))
   await page.close()

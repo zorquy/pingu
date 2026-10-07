@@ -61,7 +61,9 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('salen las tres cartas', (await page.locator('.mc-carta').count()) === 3)
-  await page.locator('#mcAbrirFiltros').click()
+  // En el ordenador el panel ya está abierto como columna (738): «Filtros»
+  // solo se pulsa si no lo está, o lo escondería.
+  if (!(await page.evaluate(() => document.getElementById('mcPanelFiltros').open))) await page.locator('#mcAbrirFiltros').click()
   await page.waitForTimeout(500)
   const grupos = await page.locator('#mcGruposChips h3').allTextContents()
   check('hay grupo de tipo, energía y rareza',
@@ -80,7 +82,9 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
 console.log('\n── 2. Dentro suman, entre grupos restan ──')
 {
   const { page } = await abrir()
-  await page.locator('#mcAbrirFiltros').click()
+  // En el ordenador el panel ya está abierto como columna (738): «Filtros»
+  // solo se pulsa si no lo está, o lo escondería.
+  if (!(await page.evaluate(() => document.getElementById('mcPanelFiltros').open))) await page.locator('#mcAbrirFiltros').click()
   await page.waitForTimeout(400)
   const cartas = () => page.locator('.mc-carta').count()
   const chip = (g, v) => page.locator(`.chip-filtro[data-grupo="${g}"][data-valor="${v}"]`)
