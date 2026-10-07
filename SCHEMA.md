@@ -34489,3 +34489,17 @@ hoja; sin cuenta, uno, y la barra sin salirse.
 
 **Ficheros**: `js/barra-movil.js`, `css/movil.css`. Prueba 717-pantalla;
 312 al día.
+
+## Tanda 718 — un buscador para todo y la paleta con Ctrl+K (oct. 2026)
+
+**Primero, un arreglo que salió al preparar esta tanda**: la hoja del
+móvil (`css/movil.css`, 704) se inyectaba con la dirección RELATIVA. En
+/carta/<slug> el navegador pedía /carta/css/movil.css, Netlify lo reescribe
+a carta.html (`/carta/*` → `/carta.html`, 200), y una hoja que llega como
+HTML se descarta SIN ERROR: desde la 704 la barra de abajo salía sin estilo
+en las fichas de carta, de tema, de guía y de persona — justo las páginas a
+las que se llega desde fuera. Las pruebas no podían verlo: el servidor de
+pruebas no reescribe, y `/carta.html?id=` resuelve la relativa bien.
+`hojaInyectada` vive ahora en `js/hoja.js` y pone siempre la dirección
+desde la raíz; la 704 comprueba que el `<link>` empieza por `/`. El
+marcador que lee la 299 sigue siendo el literal `hojaInyectada('css/x.css')`.

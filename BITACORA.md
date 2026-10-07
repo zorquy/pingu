@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (mañana, 10) — PINGU-Claude (718, 1.ª parte — la hoja del móvil desde la raíz)
+
+**Hecho**: la barra de abajo salía sin estilo en /carta/…, /tema/…,
+/guia/… y /usuario/… desde la 704: su hoja se inyectaba con dirección
+relativa y Netlify devolvía la página en su lugar. Ahora va desde la raíz
+(`js/hoja.js`).
+
+**Ficheros**: `js/hoja.js` (nuevo), `js/barra-movil.js`, `SCHEMA.md`.
+Prueba 704 al día en `pruebas`.
+
+**Pendiente**: el resto de la 718 (buscador para todo y Ctrl+K).
+
 ## 2026-10-07 (mañana, 9) — PINGU-Claude (717 — la barra de arriba limpia y la hoja «Tú»)
 
 **Hecho**: N1 y N8 de la lista. En el móvil arriba van el logo, una

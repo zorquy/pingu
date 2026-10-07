@@ -16,16 +16,7 @@
 // comprobar el ancho) y se trae su hoja: en el escritorio no se descarga
 // ni un byte, que es lo que cuida el presupuesto de la portada.
 import { icons } from './icons.js'
-
-// La hoja que este módulo necesita. La prueba 299 lee este marcador para
-// saber que las clases `bm-*` tienen hoja aunque no esté en el HTML.
-export function hojaInyectada(ruta) {
-  if (document.querySelector(`link[href="${ruta}"]`)) return
-  const l = document.createElement('link')
-  l.rel = 'stylesheet'
-  l.href = ruta
-  document.head.appendChild(l)
-}
+import { hojaInyectada } from './hoja.js'
 
 // Qué icono lleva cada sección (por el nombre del desplegable).
 export const ICONOS = { Inicio: 'home', Aprender: 'bookOpen', Cartas: 'cards', Comunidad: 'messageSquare', Jugar: 'trophy' }
