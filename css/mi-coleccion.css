@@ -8737,3 +8737,11 @@ input.mc-alb-titulo:not([readonly]):focus {
   justify-content: center;
   margin-top: var(--e-sm);
 }
+
+.mc-quiero-aviso.cumple {
+  border-color: var(--success);
+  background: var(--success-bg);
+  color: var(--text);
+}
+
+.mc-quiero-aviso.cumple svg { color: var(--success); }

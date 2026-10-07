@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (noche, 4) — PINGU-Claude (753 — instalar, los atajos del icono, la barra de abajo en el HTML con transición y los avisos de lanzamientos)
+
+**Hecho**: **A1**, la hoja de instalar existía (732) pero solo en la
+portada y desde la segunda sesión: ahora sale a la tercera página vista
+o a la segunda visita, en las páginas de lista, y como en la maqueta (en
+el iPhone la hoja con los tres pasos de Safari; en Android la tarjeta con
+«Instalar» cuando el navegador lo permite). **A2**, cinco atajos en el
+manifiesto (OJO: el iPhone no tiene atajos de PWA; la propuesta se
+equivocaba). **A4**, la barra de abajo va ESCRITA en las 36 páginas
+(`generar-barra-movil.mjs`), en el primer pintado, y entre páginas el
+contenido se funde con las barras quietas (`@view-transition`, móvil y
+sin «menos movimiento»). **P2**, «Avísame» en cada lanzamiento (semana
+antes, el día, la preventa si la lista a mano la trae) y una función
+programada diaria que avisa.
+
+**MIGRACIÓN PARA EJECUTAR**: `supabase-migration-avisos-lanzamientos.sql`
+(sin ella el botón sale y al guardar dice qué falta).
+
+**Ficheros**: las 42 páginas (barra generada y metas de iOS),
+`generar-barra-movil.mjs` (nuevo), `js/barra-movil.js`, `js/instalar.js`,
+`css/movil.css`, `css/style.css`, `manifest.webmanifest`,
+`js/lanzamientos.js`, `js/lanzamientos-avisos.js` (nuevo),
+`css/lanzamientos.css`, `admin/js/admin.js`, `admin/css/admin.css`,
+`netlify/functions/avisos-lanzamientos.mjs` (nueva, diaria),
+`supabase-migration-avisos-lanzamientos.sql`, `js/mi-coleccion.js` y
+`css/mi-coleccion.css` («¡Ya por debajo!» en La quiero), `CLAUDE.md`
+(presupuesto: 169,2 KB, quedan 0,8; y la barra generada), `SCHEMA.md`.
+Prueba 753-pantalla (nueva) y 704 y 732 al día; el doble hace `upsert`
+con `onConflict` de verdad.
+
+**Pendiente**: escanear desde la galería (754).
+
 ## 2026-10-07 (noche, 3) — PINGU-Claude (749 a 752 — las expansiones con su logo, el precio dentro de una expansión, «La quiero» y el perfil en tres niveles)
 
 **Hecho**: de la lista que eligió PINGU, cuatro tandas. **749**: cada fila

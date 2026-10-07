@@ -223,17 +223,25 @@ function montarTu(doc, win) {
 }
 
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
-  if (!doc.getElementById('navbar') || doc.querySelector('.bm')) return null
+  if (!doc.getElementById('navbar') || doc.documentElement.classList.contains('con-barra-movil')) return null
   hojaInyectada('css/movil.css')
   const secciones = seccionesDeLaBarra(doc)
   const actual = seccionActual(secciones, clave)
   doc.documentElement.classList.add('con-barra-movil')
 
-  const barra = doc.createElement('nav')
-  barra.className = 'bm'
-  barra.setAttribute('aria-label', 'Secciones')
-  barra.innerHTML = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
-  doc.body.appendChild(barra)
+  // DESDE LA 753 LA BARRA VIENE EN EL HTML (generar-barra-movil.mjs), para
+  // que esté en el primer pintado y en la transición entre páginas. Aquí se
+  // vuelve a escribir con la cuenta (Cartas lleva a Mi colección) solo si
+  // cambia algo; una página sin ella (una vieja en caché) la recibe entera.
+  const html = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
+  let barra = doc.querySelector('nav.bm')
+  if (!barra) {
+    barra = doc.createElement('nav')
+    barra.className = 'bm'
+    barra.setAttribute('aria-label', 'Secciones')
+    doc.body.appendChild(barra)
+  }
+  if (barra.innerHTML !== html) barra.innerHTML = html
 
   // TOCAR LA SECCIÓN EN LA QUE YA ESTÁS TE SUBE ARRIBA (709, X1), como
   // en iOS: volver a cargar la misma página no le sirve a nadie.
@@ -248,9 +256,6 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   montarTu(doc, window)
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732.
-  import('./instalar.js')
-    .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar()))
-    .catch(() => {})
 
   // LA BURBUJA DE LA SECCIÓN (704d). PINGU probó la hoja al volver a
   // tocar la pestaña («súper poco intuitivo, la gente no lo va a
@@ -263,6 +268,12 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   // cuelgan al final de esa misma burbuja: dos burbujas no caben.
   const seccion = secciones.find((s) => s.nombre === actual)
   const enLista = seccion?.enlaces.some((e) => claveDePagina(e.href) === clave)
+  // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
+  // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732; desde la
+  // 753 se ofrece en la portada y en las páginas de la lista de cada sección.
+  import('./instalar.js')
+    .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar({ aqui: clave === 'index' || Boolean(enLista) })))
+    .catch(() => {})
   if (seccion && enLista && seccion.enlaces.length > 1) {
     const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }
     const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null

@@ -45,8 +45,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-07 (748) van 168,4 y queda
-  1,6**: la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que
+  CSS) debe caber en 170 KB gzip. **A 2026-10-07 (753) van 169,2 y queda
+  0,8** (la 753 escribió la barra de abajo del móvil en el HTML y su sitio en
+  `style.css`; antes, 168,4): la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que
   entran al tocar el avatar, y luego volvieron dos décimas para que la
   lateral y «Hoy» tengan su sitio desde el primer pintado. Antes de la 748 iban 169,7
   (medido con `pesar-portada.mjs`; la 718 sacó de `components.css` el
@@ -469,6 +470,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   del generador. Y Mi colección CONSERVA su pestaña de Expansiones: se
   pensó quitarla y PINGU paró («creo que es muy importante»), así que para
   quien tiene cuenta son dos puertas a la misma estantería, a propósito.
+- **La barra de abajo del móvil se GENERA** (tanda 753): va escrita en las
+  36 páginas con barra de arriba, entre `<!-- barra-movil … -->` y
+  `<!-- /barra-movil -->`, para estar en el primer pintado y en la
+  transición entre páginas (`@view-transition`, solo móvil y sin «menos
+  movimiento», en `style.css`). No la edites a mano: si cambias la barra de
+  arriba o las secciones, `node generar-barra-movil.mjs && node
+  generar-cartas.mjs`; `test-tanda-753-pantalla.mjs` comprueba que el repo
+  lleva lo que sale del generador. `js/barra-movil.js` la remata (Cartas →
+  Mi colección con cuenta), no la crea.
 - **Añadir una carta pasa SIEMPRE por `datos.anadir`, nunca por
   `actualizar`** (tanda 650). El bloque de añadir solo salía en la ficha
   de una carta que NO tenías; con una tuya, el único camino era el

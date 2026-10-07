@@ -35799,3 +35799,53 @@ también estaría bien por expansión».
   la suite (426, 430, 469). Va `z-index: 3`.
 - **Y1, el resto**: dólares, Gente, Meta, la cuenta de los álbumes de la
   lateral y los caracteres de un enlace largo, también con su punto.
+
+## Tanda 753 — Instalar, los atajos, la barra en el HTML y los avisos de lanzamientos (oct. 2026)
+
+- **A1, instalar**: existía desde la 732, pero solo en la portada y a
+  partir de la SEGUNDA sesión — PINGU no la había visto nunca. Ahora sale
+  a la segunda visita o a la tercera página vista, en la portada y en las
+  páginas de la lista de cada sección (no en una ficha ni en un hilo; lo
+  decide `barra-movil.js`, que sabe si la página está en su lista). En el
+  iPhone es la hoja de la maqueta: desde abajo, con velo, los tres pasos
+  de Safari a la vista, «Ahora no» y «Entendido» (los dos la callan un
+  mes: quien ya sabe cómo y no lo hace, no quiere). En Android, una
+  tarjeta encima de la barra con «Instalar», que solo sale cuando el
+  navegador dice que se puede (`beforeinstallprompt`): un botón que no
+  haría nada no se ofrece. Y las 42 páginas llevan
+  `apple-mobile-web-app-capable` y su título, y el icono las tres que no
+  lo tenían.
+- **A2, los atajos del icono** (`shortcuts` en el manifiesto): Escanear,
+  Añadir, Reto, La quiero y Colección. OJO: en el iPhone **no hay atajos
+  de PWA** (Safari no los implementa); la propuesta decía que sí y no es
+  verdad. Salen en Android y en el ordenador con la app instalada.
+- **A4, la barra en el HTML**: hasta ahora `barra-movil.js` la creaba
+  cuando ya había sesión, así que cada página se pintaba sin barra y la
+  barra llegaba luego, y una transición no era posible (la página nueva no
+  la tiene cuando el navegador hace la foto). Ahora la escribe
+  `generar-barra-movil.mjs` en cada página (con las mismas funciones de
+  `js/barra-movil.js` y la barra de arriba de esa página), con su sección
+  marcada; el estilo de la barra y el hueco de debajo
+  (`body:has(> .bm)`) pasan a `style.css` (en el escritorio, `display:
+  none`), y el resto sigue en `movil.css`. La transición:
+  `@view-transition { navigation: auto }` con las dos barras con nombre,
+  así que el contenido se funde y las barras se quedan quietas — solo en
+  el móvil y sin «menos movimiento». La burbuja de la sección sigue
+  llegando por JS. Pesa 0,8 KB en la portada (169,2).
+- **P2, avisos de lanzamientos**: «Avísame» en cada set que viene
+  (`js/lanzamientos-avisos.js`, entra por `import()`), con «una semana
+  antes», «el día que sale» y —si la lista a mano de /admin trae la fecha
+  de preventa (campo nuevo, que se casa por nombre también con un set del
+  catálogo)— «cuando abra la preventa». Tabla `user_release_alerts`
+  (**`supabase-migration-avisos-lanzamientos.sql`, la tiene que ejecutar
+  un humano**); sin ella, guardar dice qué falta. La función programada
+  `avisos-lanzamientos` (una vez al día, 6:17 UTC; solo nuestra base, cero
+  coste) lee la fecha CADA día —si un set se retrasa, el aviso también—,
+  avisa con margen (semana: faltan 5–7 días; el día: hoy o ayer, en hora
+  de España) y apunta en `enviados` ANTES de dejar la notificación (la
+  665). Un set de la lista a mano se apunta como `manual:<nombre>`.
+- **El doble** hace ahora un `upsert` de verdad: con `onConflict` funde la
+  fila que choca en vez de añadir otra (guardar dos veces el mismo aviso
+  dejaba dos filas, un verde que en la base no puede pasar).
+- **K1, un detalle**: si una carta de «La quiero» ya está por debajo del
+  aviso que le pusiste, la fila dice «¡Ya por debajo de X!».

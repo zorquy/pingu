@@ -596,6 +596,7 @@ async function loadLanzamientos() {
         <button type="button" class="btn-secondary lanz-subir" title="Subir una imagen">${icons.upload(15)}</button>
       </div>
       <input type="text" class="lanz-notas" placeholder="Notas (opcional)" value="${escapeHtml(s.notas || '')}" />
+      <label class="lanz-preventa-campo"><span>Preventa</span><input type="date" class="lanz-preventa" aria-label="Fecha de la preventa (opcional)" value="${escapeHtml(s.preventa || '')}" /></label>
       <button type="button" class="btn-secondary lanz-quitar" title="Quitar este set">${icons.trash(15)}</button>
     </div>`
 
@@ -609,13 +610,15 @@ async function loadLanzamientos() {
     const malas = []
     for (const fila of cont.querySelectorAll('.lanz-fila')) {
       const v = (sel) => fila.querySelector(sel).value.trim()
-      const [fecha, nombre, imagen, notas] = [v('.lanz-fecha'), v('.lanz-nombre'), v('.lanz-imagen'), v('.lanz-notas')]
+      const [fecha, nombre, imagen, notas, preventa] = [v('.lanz-fecha'), v('.lanz-nombre'), v('.lanz-imagen'), v('.lanz-notas'), v('.lanz-preventa')]
       if (!fecha && !nombre && !imagen && !notas) continue
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !nombre) {
         malas.push(nombre || imagen || notas || fecha)
         continue
       }
-      sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}) })
+      // La preventa (753) es opcional, y también vale para un set que el
+      // catálogo ya tiene: se casa por nombre y activa su aviso.
+      sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}), ...(/^\d{4}-\d{2}-\d{2}$/.test(preventa) ? { preventa } : {}) })
     }
     return { sets, malas }
   }

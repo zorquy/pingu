@@ -1,44 +1,12 @@
 /* La barra inferior del móvil y las píldoras de sección (tanda 704). La
    inyecta js/barra-movil.js solo en el móvil; el porqué, en SCHEMA.md. */
 @media (max-width: 900px) {
-  html.con-barra-movil body {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
-  }
   /* El cajón de la hamburguesa ya no hace falta: todo lo suyo está en la
      barra y en las píldoras. */
   html.con-barra-movil .nav-toggle {
     display: none;
   }
-  .bm {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 95;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
-    background: var(--white);
-    border-top: 1px solid var(--border);
-  }
-  .bm a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-height: 56px;
-    border-radius: var(--radius-md);
-    color: var(--text-mid);
-    font-size: var(--t-2xs);
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .bm a[aria-current='page'] {
-    color: var(--navy);
-  }
-  .bm a[aria-current='page'] svg {
-    stroke-width: 2.5;
-  }
+  /* La barra en sí (.bm) vive en style.css desde la 753: va en el HTML. */
   /* El hueco de 76 px bajo la barra de arriba es de escritorio (704c:
      en un iPhone era media pantalla vacía antes del título). */
   html.con-barra-movil .page-content {
@@ -422,55 +390,104 @@
 
 /* ── 732: instalar PokeDoc y tirar para refrescar (SCHEMA 732) ── */
 @media (max-width: 900px) {
+  /* 753: la hoja del iPhone (desde abajo, con velo) y la tarjeta de
+     Android (encima de la barra). Por encima de la barra (95). */
+  .bm-instalar-velo {
+    position: fixed;
+    inset: 0;
+    z-index: 101;
+    background: rgb(10 20 30 / 45%);
+  }
   .bm-instalar {
     position: fixed;
-    top: calc(72px + env(safe-area-inset-top));
-    right: var(--e-md);
-    left: var(--e-md);
-    z-index: 95;
-    display: flex;
-    align-items: flex-start;
-    gap: var(--e-md);
-    padding: var(--e-md);
+    z-index: 102;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     background: var(--white);
     box-shadow: var(--shadow-lg);
   }
-  .bm-instalar img {
-    flex: none;
-    border-radius: var(--radius-md);
+  .bm-instalar-hoja {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-sm);
+    padding: var(--e-sm) var(--e-md) calc(var(--e-md) + env(safe-area-inset-bottom));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
+  .bm-instalar-asa {
+    align-self: center;
+    width: 40px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+  }
+  .bm-instalar-cabeza {
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+  }
+  .bm-instalar-cabeza img { flex: none; border-radius: var(--radius-md); }
+  .bm-instalar-cabeza div { display: flex; flex-direction: column; gap: var(--e-xs); }
+  .bm-instalar-cabeza b { font-size: var(--t-lg); }
+  .bm-instalar-cabeza span,
+  .bm-instalar-nota { color: var(--text-mid); font-size: var(--t-sm); }
+  .bm-instalar-pasos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .bm-instalar-pasos li {
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+    min-height: 48px;
+    font-size: var(--t-sm);
+  }
+  .bm-instalar-pasos li + li { border-top: 1px solid var(--border); }
+  .bm-instalar-pasos svg { flex: none; color: var(--navy); }
+  .bm-instalar-n {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-xs);
+    font-weight: 700;
+  }
+  .bm-instalar-botones { display: flex; gap: var(--e-sm); }
+  .bm-instalar-botones > * { flex: 1 1 0; min-height: 44px; }
+  .bm-instalar-nota { margin: 0; text-align: center; font-size: var(--t-xs); }
+  .bm-instalar-tarjeta {
+    right: var(--e-md);
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    left: var(--e-md);
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+    padding: var(--e-md);
+    border-radius: var(--radius-lg);
+  }
+  .bm-instalar-tarjeta img { flex: none; border-radius: var(--radius-md); }
   .bm-instalar-texto {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: var(--e-xs);
     min-width: 0;
     font-size: var(--t-sm);
   }
-  .bm-instalar-texto > span {
-    color: var(--text-mid);
-  }
-  .bm-instalar-pasos {
-    margin: var(--e-xs) 0 0;
-    padding-left: var(--e-lg);
-  }
-  .bm-instalar-pasos svg {
-    vertical-align: middle;
-  }
-  .bm-instalar-botones {
-    display: flex;
-    flex-direction: column;
-    gap: var(--e-xs);
-  }
+  .bm-instalar-texto > span { color: var(--text-mid); font-size: var(--t-xs); }
   .bm-instalar-no {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
     min-height: 44px;
     border: 0;
     background: transparent;
     color: var(--text-mid);
-    font: inherit;
-    font-size: var(--t-sm);
     cursor: pointer;
   }
   .bm-refrescar {

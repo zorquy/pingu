@@ -1911,3 +1911,45 @@ button.btn-block {
     animation: none;
   }
 }
+
+/* La barra de abajo del móvil va en el HTML (753, SCHEMA 753); su sitio,
+   aquí, para el primer pintado. Lo demás, en css/movil.css. */
+.bm { display: none; }
+@media (max-width: 900px) {
+  body:has(> .bm) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .bm {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 95;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    background: var(--white);
+    border-top: 1px solid var(--border);
+  }
+  .bm a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    border-radius: var(--radius-md);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .bm a[aria-current='page'] {
+    color: var(--navy);
+  }
+  .bm a[aria-current='page'] svg {
+    stroke-width: 2.5;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .bm { view-transition-name: barra-abajo; }
+  .navbar { view-transition-name: barra-arriba; }
+}

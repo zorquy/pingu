@@ -83,9 +83,13 @@ export function eventosDelCatalogo(filas, mercado = MERCADO_POR_DEFECTO) {
 // sitios saldría dos veces, y el del catálogo es el que lleva su página.
 export function fundirConManuales(eventos, manuales) {
   const nombres = new Set(eventos.map((e) => normalizeSearch(e.nombre)))
+  // La fecha de preventa (753) solo la sabe la lista a mano: se le pone
+  // también al set del catálogo que se llama igual.
+  const preventas = new Map((manuales || []).filter((m) => m?.nombre && FECHA.test(m.preventa || '')).map((m) => [normalizeSearch(m.nombre), m.preventa]))
+  for (const e of eventos) if (preventas.has(normalizeSearch(e.nombre))) e.preventa = preventas.get(normalizeSearch(e.nombre))
   const extra = (manuales || [])
     .filter((m) => m && m.nombre && FECHA.test(m.fecha || '') && !nombres.has(normalizeSearch(m.nombre)))
-    .map((m) => ({ id: null, mercado: null, nombre: m.nombre, fecha: m.fecha, imagen: m.imagen || null, codigo: null, cartas: null, href: null, notas: m.notas || '', manual: true }))
+    .map((m) => ({ id: null, mercado: null, nombre: m.nombre, fecha: m.fecha, imagen: m.imagen || null, codigo: null, cartas: null, href: null, notas: m.notas || '', manual: true, preventa: FECHA.test(m.preventa || '') ? m.preventa : null }))
   return [...eventos, ...extra]
 }
 
@@ -238,6 +242,8 @@ async function pintar(mercado) {
     $('cuantosPasados').textContent = `${pasados.length} ${pasados.length === 1 ? 'expansión' : 'expansiones'}`
     $('seccionPasados').classList.remove('hidden')
   }
+  // «Avísame» en lo que viene (753): llega después, por su cuenta.
+  if (siguiente) import('./lanzamientos-avisos.js').then((m) => m.montarAvisos(cal, mercado)).catch(() => {})
 }
 
 function init() {

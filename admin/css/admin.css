@@ -505,7 +505,7 @@ body {
    logo+notas debajo. */
 .lanz-fila {
   display: grid;
-  grid-template-columns: 150px minmax(140px, 1fr) minmax(180px, 1.4fr) minmax(120px, 1fr) auto;
+  grid-template-columns: 150px minmax(140px, 1fr) minmax(180px, 1.4fr) minmax(120px, 1fr) auto auto;
   gap: 8px;
   align-items: center;
 }
@@ -516,6 +516,17 @@ body {
   }
   .lanz-fila .lanz-imagen-campo { grid-column: 1 / 3; }
   .lanz-fila .lanz-notas { grid-column: 1 / 4; }
+  .lanz-fila .lanz-preventa-campo { grid-column: 1 / 3; }
+}
+
+/* La fecha de preventa (753), con su rótulo: dos fechas seguidas sin decir
+   cuál es cuál no se entienden. */
+.lanz-preventa-campo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
 }
 
 .lanz-imagen-campo {

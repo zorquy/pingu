@@ -5924,6 +5924,9 @@ function deseoHtml(d, precio = precioDeDeseo(d)) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const sel = PRIORIDADES.map((p) => `<option value="${p.valor}"${p.valor === d.prioridad ? ' selected' : ''}>${escapeHtml(p.nombre)}</option>`).join('')
   const baja = (avisosDeQuiero?.get(d.card_id) || []).find((a) => a.tipo === 'baja')
+  // Si ya está por debajo de lo que pusiste, se dice (la maqueta K1): el
+  // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
+  const cumple = baja && precio != null && precio <= Number(baja.umbral)
   const idioma = d.idioma ? idiomaDe(d.idioma).nombre : 'cualquier idioma'
   return `<li class="mc-fila-carta mc-quiero-fila">
     <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
@@ -5933,7 +5936,7 @@ function deseoHtml(d, precio = precioDeDeseo(d)) {
     <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
     <span class="mc-fila-dato">
       <select class="mc-deseo-prioridad" data-deseo="${escapeHtml(d.id)}" aria-label="Cuánto buscas ${escapeHtml(nombre)}">${sel}</select>
-      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>&lt; ${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
+      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya por debajo de ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}${cumple ? '!' : ''}</span>` : ''}</button>
       <button type="button" class="link-btn mc-borrar" data-quitar-deseo="${escapeHtml(d.id)}" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${icons.trash(14)}</button>
     </span>
   </li>`
