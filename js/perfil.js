@@ -909,6 +909,8 @@ async function init() {
   // era siempre la primera y en casi todos los perfiles está vacía.
   abrirLaQueTengaAlgo()
   await loadAchievements(profile)
+  // La vitrina (743): la tuya, con «Elegir cartas».
+  import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast })).catch(() => {})
   await loadAccountDeletionStatus(session)
 
   document.getElementById('btnLogout').addEventListener('click', signOut)

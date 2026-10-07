@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 23) — PINGU-Claude (743 — la vitrina del perfil)
+
+**Hecho**: J4 de la lista. Seis cartas que eliges de tu colección salen en
+tu perfil y en el que ven los demás. **Falta ejecutar
+`supabase-migration-vitrina.sql`** en el SQL Editor: sin ella la vitrina
+no sale y el resto del perfil sigue igual. Las cifras del perfil no se
+han tocado (la propuesta quitaría Cursos, Aciertos y Nota): por decidir.
+
+**Ficheros**: `js/vitrina.js`, `supabase-migration-vitrina.sql` (nuevos),
+`js/perfil.js`, `js/usuario.js`, `perfil.html`, `usuario.html`,
+`css/perfil.css`, `SCHEMA.md`. Prueba 743-pantalla y el doble al día en
+`pruebas`.
+
+**Pendiente**: ejecutar la migración de la vitrina; V7 (decidir la caché
+con PINGU), J1, J5.
+
 ## 2026-10-07 (tarde, 22) — PINGU-Claude (742 — las migas, en antetítulo)
 
 **Hecho**: lo que quedaba de la V3. En el móvil, de las migas de pan queda

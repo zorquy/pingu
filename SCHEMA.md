@@ -35207,3 +35207,31 @@ eran un antetítulo desde la 474:
   recorre Google (la nota de carta.html). En el escritorio, enteras.
 
 **Ficheros**: `css/movil.css`. Prueba 742-pantalla.
+
+## Tanda 743 — la vitrina del perfil (oct. 2026)
+
+J4 de la lista. Seis cartas que eliges tú, en tu perfil y en el que ven
+los demás (`js/vitrina.js`, CSS en `css/perfil.css`).
+
+- **Datos**: tabla propia `user_showcase` (persona, hueco 1–6, carta y
+  mercado), en `supabase-migration-vitrina.sql`. **Hay que ejecutarla en el
+  SQL Editor**: hasta entonces la vitrina no sale y el perfil sigue como
+  estaba. Tabla aparte y no columna de `user_profiles` por la 624 (un
+  `select` con una columna que no existe falla entero), y la política de
+  lectura para todo el mundo va en la misma migración (la 510).
+- Al leer hay tres estados: `ok` (con cartas o sin ellas), `sin-migracion`
+  y `error`; en los dos últimos no se pinta nada, y no se dice «vacía».
+- **Tu perfil**: las cartas, los huecos que quedan («+») y «Elegir cartas»
+  o «Cambiar». El selector enseña las cartas de TU colección (los dos
+  catálogos), con buscador; marcas hasta seis, en orden, y las demás se
+  apagan. Guardar borra tu vitrina y escribe las elegidas en ese orden.
+- **El perfil de otra persona**: solo lo que tiene, sin huecos ni botón; y
+  si no tiene nada, no sale.
+- Las cifras del perfil NO se tocan: la propuesta pedía cuatro (cartas,
+  racha, guías y torneos) en lugar de las de ahora, y eso quitaría
+  «Cursos», «Aciertos» y «Nota». Queda para decidirlo con PINGU.
+
+**Ficheros**: `js/vitrina.js` y `supabase-migration-vitrina.sql` (nuevos),
+`js/perfil.js`, `js/usuario.js`, `perfil.html`, `usuario.html`,
+`css/perfil.css`. Prueba 743-pantalla; el doble tiene `user_showcase` y
+`__FAKE_VITRINA__`.

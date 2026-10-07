@@ -838,3 +838,182 @@ button.perfil-cifra:hover .rotulo {
   white-space: nowrap;
   max-width: 46vw;
 }
+
+/* ── La vitrina (743, J4): seis cartas que eliges tú ── */
+.vitrina:not([hidden]) {
+  display: block;
+  margin: var(--e-xl) 0;
+}
+
+.vitrina-cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.vitrina-editar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.vitrina-rejilla {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--e-md);
+}
+
+.vitrina-carta,
+.vitrina-hueco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.vitrina-carta img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+}
+
+.vitrina-carta span {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vitrina-hueco {
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 63 / 88;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xl);
+}
+
+.vitrina-hueco:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+@media (max-width: 640px) {
+  .vitrina-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* El selector. */
+.vitrina-dialogo {
+  width: min(720px, calc(100vw - 2 * var(--e-lg)));
+  max-height: calc(100dvh - 2 * var(--e-2xl));
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.vitrina-dialogo[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.vitrina-dialogo::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.vitrina-dialogo-cabeza,
+.vitrina-dialogo-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.vitrina-dialogo-cabeza h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.vitrina-dialogo-pie {
+  justify-content: flex-end;
+}
+
+.vitrina-cerrar {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+}
+
+.vitrina-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-md);
+  overflow-y: auto;
+  min-height: 160px;
+}
+
+.vitrina-opcion {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-xs);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: center;
+}
+
+.vitrina-opcion img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  object-fit: cover;
+}
+
+.vitrina-opcion span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vitrina-opcion[aria-pressed='true'] {
+  border-color: var(--navy);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.vitrina-opcion:disabled {
+  opacity: 0.45;
+}
+
+.vitrina-orden {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+}

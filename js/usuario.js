@@ -336,6 +336,8 @@ async function init() {
     loadPalmaresTorneos(),
     contarElForo(),
   ])
+  // La vitrina (743), la de esta persona: solo lo que hay.
+  import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => {})
 
   // Con las cuentas ya puestas, se abre la que tenga algo — y solo si
   // quien mira no ha tocado nada todavía ni ha llegado con un #hash.
