@@ -119,6 +119,59 @@
     border-left: 0;
   }
 
+  /* Los álbumes, colgados de «Álbumes» (741): se pulsan para abrirlos y
+     reciben las cartas que se sueltan encima. */
+  .lat-albumes {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 var(--e-xs) var(--e-lg);
+    padding: 0;
+    list-style: none;
+  }
+
+  .lat-album {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-sm);
+    width: 100%;
+    min-height: 32px;
+    padding: 0 var(--e-sm);
+    border: 1px dashed transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    text-align: left;
+  }
+
+  .lat-album span {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lat-album-hija {
+    padding-left: var(--e-lg);
+  }
+
+  .lat-album:hover {
+    background: var(--ice);
+    color: var(--text);
+  }
+
+  /* Mientras arrastras una carta, los álbumes se marcan como destino. */
+  html.arrastrando-carta .lat-album {
+    border-color: var(--border-strong);
+  }
+
+  .lat-album.sobre {
+    border-style: solid;
+    border-color: var(--navy);
+    background: var(--ice);
+    color: var(--navy);
+  }
+
   .lat [aria-current='page'] {
     background: var(--ice);
     color: var(--navy);

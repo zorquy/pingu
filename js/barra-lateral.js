@@ -71,6 +71,9 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
     doc.documentElement.classList.toggle('mc-menu-al-lado', dentro)
   }
   meterMenu(true)
+  // Quien tenga algo que colgar de la lateral (los álbumes de Mi colección,
+  // 741) se entera aquí: la lateral llega por `import()` y puede ser después.
+  doc.dispatchEvent(new CustomEvent('pokedoc:lateral'))
   // Si la ventana se estrecha, la hoja la esconde (y la barra de arriba
   // vuelve a ser la de siempre); se quita la clase para que lo de arriba
   // reaparezca aunque la hoja no lo sepa.

@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 21) — PINGU-Claude (741 — arrastrar una carta a un álbum)
+
+**Hecho**: X13 de la lista. En el ordenador, tus álbumes salen en la
+barra lateral, debajo del menú de Mi colección: arrastras una carta de la
+rejilla encima de uno y se mete; pulsar uno lo abre. Solo con ratón: en el
+móvil la pulsación larga sigue siendo la de seleccionar.
+
+**Ficheros**: `js/mi-coleccion/arrastrar-a-album.js` (nuevo),
+`js/mi-coleccion.js`, `js/barra-lateral.js`, `css/lateral.css`,
+`SCHEMA.md`. Prueba 741-pantalla en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, V3
+(antetítulo).
+
 ## 2026-10-07 (tarde, 20) — PINGU-Claude (740 — Mi colección en tres columnas)
 
 **Hecho**: D2 de la lista. En el escritorio: tus expansiones (con su

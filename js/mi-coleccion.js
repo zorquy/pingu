@@ -71,6 +71,7 @@ import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-colecci
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
 import { CONSULTA as FICHA_AL_LADO, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
+import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -1918,6 +1919,57 @@ function pintarCartas() {
   $('mcSinResultados').classList.toggle('hidden', !lineas.length || lista.length > 0)
   pintarCuantas(lista.length)
   rotularVer('mcFiltrosVer', lista.length)
+  ponerArrastrables()
+}
+
+// ── Arrastrar a un álbum de la barra lateral (741) ──
+// Solo con el menú en la lateral (pantalla ancha y ratón): en un móvil,
+// `draggable` se comería la pulsación larga de la selección (713).
+const conMenuAlLado = () => document.documentElement.classList.contains('mc-menu-al-lado')
+function ponerArrastrables() {
+  if (!conMenuAlLado()) return
+  for (const a of $('mcCartas').querySelectorAll('.mc-carta[data-linea]')) a.draggable = true
+}
+
+let arrastreEnganchado = false
+async function montarAlbumesLaterales() {
+  if (!conMenuAlLado() || !esMia) return
+  const boton = document.querySelector('#mcMenu [data-pestania="carpetas"]')
+  if (!boton) return
+  if (!carpetas) {
+    try { carpetas = await import('./mi-coleccion/carpetas.js') } catch { return }
+  }
+  const lista = await carpetas.listarCarpetas().catch(() => null)
+  if (!lista) return
+  carpetasLista = lista
+  carpetasResumen = await carpetas.resumenDeCarpetas().catch(() => carpetasResumen)
+  // Detrás del menú y no dentro: el menú es una lista de pestañas, y un
+  // álbum no es una pestaña.
+  let caja = $('mcLatAlbumes')
+  if (!caja) {
+    caja = document.createElement('div')
+    caja.id = 'mcLatAlbumes'
+    $('mcMenu').after(caja)
+  }
+  caja.innerHTML = albumesHtml(albumesDeLaLateral(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen))
+  ponerArrastrables()
+  if (arrastreEnganchado) return
+  arrastreEnganchado = true
+  engancharArrastre({
+    rejilla: $('mcCartas'),
+    caja,
+    avisar: showToast,
+    meter: async (carpeta, linea) => {
+      await carpetas.meterEnCarpeta(carpeta, linea)
+      // La cuenta del álbum, al día: se repinta desde la base.
+      void montarAlbumesLaterales()
+      return carpetasLista.find((c) => c.id === carpeta)?.nombre || 'el álbum'
+    },
+    abrir: (carpeta) => {
+      carpetaAbierta = carpeta
+      cambiarPestania('carpetas')
+    },
+  })
 }
 
 // Cuántas estás viendo (tanda 441). Dice «9 de 12» SOLO cuando hay algo
@@ -5920,6 +5972,7 @@ function enganchar() {
   }
   $('mcEdCerrar')?.addEventListener('click', () => $('mcEditor').close())
   if ($('mcEditor')) engancharFichaAlLado($('mcEditor'), { vecino: (paso) => void abrirVecino(paso) })
+  document.addEventListener('pokedoc:lateral', () => void montarAlbumesLaterales())
   // Y con el teclado, que es como se repasa una lista larga. Solo cuando
   // el foco NO está en un campo: dentro de un desplegable o de un número
   // las flechas ya hacen lo suyo, y robárselas sería cambiar el valor de
@@ -6764,6 +6817,9 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
   if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear') && $('mcEscanear')) void abrirEscaner()
+  // Los álbumes de la barra lateral (741), si ya está puesta; si llega
+  // después, avisa ella (`pokedoc:lateral`).
+  if (primeraVez) void montarAlbumesLaterales()
   // Los precios que falten llegan después y repintan: la lista no espera.
   await completarPrecios()
   repintar()

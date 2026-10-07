@@ -35154,3 +35154,33 @@ quedado con la primera sin decir nada.
 `js/mi-coleccion.js`, `mi-coleccion.html` (y `cartas.html`, generado),
 `css/mi-coleccion.css`, `js/barra-lateral.js`, `css/lateral.css`. Prueba
 740-pantalla; 738 al día.
+
+## Tanda 741 — arrastrar una carta a un álbum de la barra lateral (oct. 2026)
+
+X13 de la lista. Meter una carta en un álbum era abrir su ficha, bajar
+hasta «Álbumes» y tocar el chip, carta a carta. En el ordenador, con la
+barra lateral (739) y el menú de Mi colección dentro (740), tus álbumes
+cuelgan del menú —el primer nivel y sus hijas, con su cuenta, doce como
+mucho— y cada uno recibe cartas: coges una de la rejilla de Cartas y la
+sueltas encima (`js/mi-coleccion/arrastrar-a-album.js`). Pulsar un álbum
+lo abre.
+
+- Arrastre NATIVO de HTML (`draggable`, `dataTransfer` con un tipo propio,
+  `application/x-pokedoc-linea`): mientras dura, los álbumes se marcan con
+  un borde de destino y el que está debajo se enciende. Al soltar se guarda
+  por `meterEnCarpeta` —el mismo camino que el chip de la ficha—, se dice
+  «Dentro de «X».» y la cuenta se repinta desde la base.
+- **Solo con ratón**: las cartas se vuelven `draggable` únicamente con el
+  menú en la lateral (pantalla ancha y `pointer: fine`). En un iPhone,
+  `draggable` convierte la pulsación larga en un arrastre y se comería la
+  selección múltiple de la 713. Con el teclado o el dedo, el camino es el
+  de siempre: la ficha → Álbumes.
+- La lista va DETRÁS del menú y no dentro: el menú es una lista de
+  pestañas (`role="tablist"`) y un álbum no es una pestaña.
+- La lateral llega por `import()` y puede montarse después de que la
+  colección cargue: avisa con `pokedoc:lateral` y Mi colección cuelga ahí
+  sus álbumes (y también lo intenta al cargar, por si ya estaba).
+
+**Ficheros**: `js/mi-coleccion/arrastrar-a-album.js` (nuevo),
+`js/mi-coleccion.js`, `js/barra-lateral.js`, `css/lateral.css`. Prueba
+741-pantalla.
