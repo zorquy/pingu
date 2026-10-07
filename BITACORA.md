@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-07 (tarde, 17) — PINGU-Claude (737 — el foco se ve, y en orden)
+
+**Hecho**: X16 de la lista. Recorridas doce páginas con Tab: el orden ya
+estaba bien, pero el foco de los campos casi no se veía (el anillo de la
+casa era un azul al 16 %). Ahora es un anillo macizo de 2 px y lo llevan
+todos los campos, sin anillos dobles en las cajas con lupa.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/foro.css`,
+`css/mi-coleccion.css`, `css/constructor.css`, `css/laboratorio.css`,
+`CLAUDE.md`, `SCHEMA.md`. Prueba 737-pantalla en `pruebas`.
+
+**Pendiente**: V7 (decidir la caché con PINGU), J1, J4, J5, D1, D2, V3
+(antetítulo), X13, X14.
+
 ## 2026-10-07 (tarde, 16) — PINGU-Claude (736 — la campana agrupada)
 
 **Hecho**: X11 de la lista. La campana junta los avisos que hablan de lo

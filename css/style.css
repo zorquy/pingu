@@ -130,7 +130,7 @@
      pedía el token con un respaldo detrás, o sea que se esperaba desde
      antes y nadie lo había definido (tanda 310). */
   --shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);
-  --shadow-ring: 0 0 0 3px rgba(30, 81, 117, 0.16);
+  --shadow-ring: 0 0 0 2px var(--navy);
 
   --navbar-bg: rgba(255, 255, 255, 0.92);
 
@@ -349,6 +349,7 @@ input[type='date']:focus,
 textarea:focus,
 select:focus {
   border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
 }
 
 /* Los desplegables, con la cara del sitio (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */

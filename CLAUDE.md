@@ -45,13 +45,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-07 van 169,5 y queda 0,5**
+  CSS) debe caber en 170 KB gzip. **A 2026-10-07 van 169,6 y queda 0,4**
   (medido con `pesar-portada.mjs`; la 718 sacó de `components.css` el
   desplegable viejo de la lupa y bajó a 169,5, la 723 y la 734 se
   comieron tres décimas y la 736 las devolvió sacando el pintado de la
   campana a un `import()`: `notifications.js` lo baja la portada por
-  `guide-rating.js`, así que lo que se pinta AL ABRIRLA no va ahí). O sea:
-  QUINIENTOS BYTES. Una tanda que meta algo de verdad en la portada no cabe —tiene
+  `guide-rating.js`, así que lo que se pinta AL ABRIRLA no va ahí; la 737
+  puso el anillo de foco a los campos). O sea: CUATROCIENTOS BYTES. Una tanda que meta algo de verdad en la portada no cabe —tiene
   que empezar por hacer sitio—. Historia: el pie de
   la tanda 312 está en las 22 páginas y suma, la 313 sacó el editor de
   texto rico a `css/editor-texto.css` para hacer sitio, y la 319 le metió
@@ -603,6 +603,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   gráfica estirada van en HTML, no en el SVG** —con
   `preserveAspectRatio="none"` un `<text>` se deforma y un `<circle>`
   sale ovalado—, colocados en tanto por ciento del lienzo.
+- **El foco se VE** (tanda 737): el anillo es `--shadow-ring` (2 px de
+  `--navy`, macizo; antes era un 3 px al 16 % que sobre blanco no llegaba a
+  1,5:1). Un campo con `outline: none` lleva ese anillo en su `:focus`, y
+  si la caja de fuera hace de contorno (la de la lupa), el anillo va en la
+  caja y el campo de dentro no lleva NINGUNO, o salen dos. Lo vigila
+  `test-tanda-737-pantalla.mjs`, que recorre doce páginas con Tab.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

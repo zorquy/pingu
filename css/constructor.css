@@ -257,6 +257,10 @@
   outline: none;
 }
 
+.cm-menu-lista button:focus-visible {
+  box-shadow: inset var(--shadow-ring);
+}
+
 .cm-ajustes {
   display: flex;
   flex-wrap: wrap;

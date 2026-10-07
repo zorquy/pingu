@@ -34997,3 +34997,43 @@ la campana, con su hoja `css/avisos.css` inyectada; la portada queda en
 **Ficheros**: `js/avisos-grupos.js` y `css/avisos.css` (nuevos),
 `js/notifications.js`, `CLAUDE.md`. Prueba 736-pantalla; el doble siembra
 la campana con `__FAKE_NOTIFICACIONES__`.
+
+## Tanda 737 — el foco se ve, y en orden (oct. 2026)
+
+X16 de la lista: el repaso del foco y del orden de tabulación. Se recorrió
+con Tab doce páginas (portada, /cartas, /mi-coleccion, foro, torneos, una
+carta, /aprender, /buscar, noticias, perfil, meta y lanzamientos), midiendo
+en cada parada si se ve, si se nota y si el orden salta hacia atrás.
+
+Lo que salió:
+
+- **El orden estaba bien** en las doce: ningún salto hacia atrás salvo la
+  vuelta del pie al «Saltar al contenido», y ningún `tabindex` positivo en
+  el código.
+- **El indicador de los campos era casi invisible.** La base de los campos
+  (`style.css`) lleva `outline: none` y al enfocarse solo cambiaba el color
+  de su borde de 1 px. Y `--shadow-ring`, el anillo que usaban las cajas
+  que sí lo ponían, era `0 0 0 3px rgba(30, 81, 117, .16)`: un 16 % de
+  azul que sobre blanco no llega a 1,5:1. Ahora el token es **2 px de
+  `--navy` macizo** (en oscuro se aclara solo, porque `--navy` se aclara) y
+  lo llevan en su `:focus` la base de los campos, `.form-group`, el muro
+  (`.simple-card textarea`), el buscador de /mi-coleccion (que se ponía
+  `box-shadow: none` y ganaba por orden) y la caja del buscador del foro.
+- **Dos anillos no**: donde la CAJA de fuera hace de contorno (la de la
+  lupa de /buscar y la paleta, la del foro), el campo de dentro se queda
+  sin el suyo.
+- Los menús del constructor y del laboratorio solo cambiaban el fondo al
+  enfocar una opción (`--ice` sobre blanco, casi lo mismo): llevan el
+  anillo por dentro (`inset`).
+- **Al cerrar un diálogo el foco vuelve** a quien lo abrió (la paleta, la
+  ayuda de atajos, comparar dos cartas): lo hace el `<dialog>` del
+  navegador, y la prueba lo vigila para que nadie lo rompa repintando el
+  botón que lo abrió.
+
+La prueba mide el indicador CON y SIN foco: una sombra que ya estaba no
+cuenta, y si el elemento no lleva nada se mira si cambia su caja (hasta
+tres antepasados), que es el caso de la lupa.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/foro.css`,
+`css/mi-coleccion.css`, `css/constructor.css`, `css/laboratorio.css`,
+`CLAUDE.md`. Prueba 737-pantalla.

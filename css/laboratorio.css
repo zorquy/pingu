@@ -2247,6 +2247,10 @@ button.lab-pila:hover {
   outline: none;
 }
 
+.lab-menu-op:focus-visible {
+  box-shadow: inset var(--shadow-ring);
+}
+
 .lab-menu-op[aria-disabled='true'] {
   cursor: not-allowed;
   color: var(--text-dim);

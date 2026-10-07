@@ -348,6 +348,7 @@
 
 .simple-card textarea:focus {
   border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
 }
 
 .wall-empty {
@@ -1280,6 +1281,7 @@ tcg-deck {
 .form-group textarea:focus,
 .form-group select:focus {
   border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
 }
 
 .form-group textarea {

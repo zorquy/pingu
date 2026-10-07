@@ -969,6 +969,7 @@
 
 .foro-buscador:focus-within {
   border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
 }
 
 .foro-buscador input {
@@ -985,6 +986,7 @@
 
 .foro-buscador input:focus {
   outline: none;
+  box-shadow: none;
 }
 
 /* El botón es la lupa, dibujada con CSS para no meter otro SVG: la

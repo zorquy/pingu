@@ -732,6 +732,7 @@
 .mc-buscador input[type="search"]:focus {
   border-color: var(--navy);
   background: var(--white);
+  box-shadow: var(--shadow-ring);
 }
 
 @media (pointer: coarse) {
