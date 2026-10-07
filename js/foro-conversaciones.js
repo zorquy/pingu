@@ -7,6 +7,7 @@
 // «Todo», «Para ti» (donde has escrito), «Siguiendo» y uno por foro. El
 // índice de siempre sigue debajo, para quien quiere ir por foros.
 import { escapeHtml } from './html.js'
+import { icons } from './icons.js'
 import { avatarStyle, getInitial } from './app.js'
 import { haceCuanto, nombreDe, urlTema, perfilesPorId } from './foro-comun.js'
 import { estaSinLeer } from './foro-lecturas.js'
@@ -58,13 +59,21 @@ export function filaHtml(t, { perfiles = {}, foros = new Map(), ultimos = new Ma
   const sinLeer = estaSinLeer(t, marcas)
   const destino = sinLeer ? `${urlTema(t.id)}?nuevo=1` : urlTema(t.id)
   const trozo = ultimo ? fragmento(ultimo.body_html) : ''
+  // La fila de su maqueta (748): de qué foro es y cuándo, el título en
+  // grande (hasta dos renglones), quién dijo lo último y, a la derecha, el
+  // punto de lo no leído y cuántas respuestas lleva.
+  const respuestas = Math.max(0, (Number(t.post_count) || 1) - 1)
   return `<a class="foro-conv${sinLeer ? ' foro-conv-nueva' : ''}" href="${destino}">
-    ${avatarSpan(quien, 40)}
+    ${avatarSpan(quien, 44)}
     <span class="foro-conv-cuerpo">
-      <span class="foro-conv-arriba"><b>${escapeHtml(t.title)}</b><time datetime="${escapeHtml(t.last_post_at || '')}">${escapeHtml(haceCuanto(t.last_post_at))}</time></span>
-      <span class="foro-conv-abajo">${foros.get(t.board_id) ? `<span class="foro-conv-foro">${escapeHtml(foros.get(t.board_id))}</span>` : ''}<span class="foro-conv-trozo">${trozo ? `${escapeHtml(nombreDe(quien))}: ${escapeHtml(trozo)}` : ''}</span></span>
+      <span class="foro-conv-arriba">${foros.get(t.board_id) ? `<span class="foro-conv-foro">${escapeHtml(foros.get(t.board_id))}</span>` : ''}<time datetime="${escapeHtml(t.last_post_at || '')}">${escapeHtml(haceCuanto(t.last_post_at))}</time></span>
+      <b class="foro-conv-titulo">${escapeHtml(t.title)}</b>
+      ${trozo ? `<span class="foro-conv-trozo">${escapeHtml(nombreDe(quien))}: ${escapeHtml(trozo)}</span>` : ''}
     </span>
-    ${sinLeer ? '<span class="foro-conv-punto" aria-label="Sin leer"></span>' : ''}
+    <span class="foro-conv-lado">
+      ${sinLeer ? '<span class="foro-conv-punto" aria-label="Sin leer"></span>' : ''}
+      <span class="foro-conv-resp" aria-label="${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}">${icons.messageSquare(14)}${respuestas}</span>
+    </span>
   </a>`
 }
 
@@ -107,7 +116,7 @@ export async function montarConversaciones(caja, { supabase, sesion = null, marc
   let filtro = 'todo'
   const pintar = () => {
     const vistas = filtrar(lista, filtro, { mios, sigo })
-    caja.innerHTML = `<h2 class="foro-seccion-titulo">Conversaciones</h2>
+    caja.innerHTML = `<h2 class="foro-seccion-titulo foro-conv-h">Conversaciones</h2>
       <div class="foro-conv-chips" role="group" aria-label="Qué conversaciones ver">${chipsHtml(filtro, { conSesion: !!uid, foros: conAlgo })}</div>
       <div class="foro-conv-lista">${vistas.length ? vistas.map((t) => filaHtml(t, { perfiles, foros: nombres, ultimos, marcas })).join('') : `<p class="subtext foro-conv-vacio">${filtro === 'para-ti' ? 'Todavía no has escrito en ninguna de estas.' : filtro === 'siguiendo' ? 'No sigues ninguna de estas. Dale a «Seguir» dentro de un tema.' : 'Nada por aquí.'}</p>`}</div>`
   }

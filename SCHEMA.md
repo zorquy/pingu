@@ -35523,6 +35523,24 @@ coinciden. Esta tanda trae cuatro.
   del foro»), con el reto que te toca en azul. Y **«Sigue donde lo
   dejaste»**: la guía que tienes empezada y sin acabar (`user_progress`,
   la más reciente) con su barra, que no sale si no hay ninguna.
+- **El foro (J1)**: «el foro no está exactamente como me lo has dicho». En
+  el móvil el índice ES la lista de conversaciones: arriba «Foro» con
+  «Leído» y una lupa (el buscador sale con ella; en el ordenador sigue a
+  la vista), sin subtítulo y sin la franja de lo caliente, que repetía lo
+  que dice la lista (en el ordenador se queda: la 299 la quiere). Cada fila
+  es la de la maqueta: el avatar cuadrado, «Dudas de reglas · hace 5 min»,
+  el título en grande hasta dos renglones, «Misty: es una H…» y a la
+  derecha el punto rojo de lo no leído y cuántas respuestas lleva. Un
+  botón rosa flotante abre un tema: pregunta en qué foro y deja en ese
+  foro con el formulario abierto (`?nuevo=1`); sin cuenta, a entrar.
+  Dentro del hilo, en el móvil, la cabecera queda en dos renglones —título
+  y quién/cuándo/Seguir— y Compartir, Editar título y la moderación van
+  tras un «⋯»; cada mensaje lleva su «⋯» con editar, borrar, solución y
+  denunciar (eran cuatro enlaces subrayados por burbuja); el enlace, el
+  número y «Abrió el tema» se van de la burbuja. Lo tuyo va en el azul de
+  la maqueta con blanco fijo encima, y la caja de responder, recogida, es
+  una fila con el botón de enviar redondo. En el ordenador, todo a la
+  vista como estaba.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35536,12 +35554,13 @@ coinciden. Esta tanda trae cuatro.
 `js/mi-coleccion/filtros-columna.js`, `js/mi-coleccion/iconos.js`,
 `js/menu-tu.js` y `css/menu-tu.css` (nuevos), `js/app.js`,
 `js/barra-movil.js`, `css/movil.css`, `css/components.css`, `js/home.js`,
-`js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `CLAUDE.md`,
+`js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
+`js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (nueve bloques) y 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (diez bloques) y 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

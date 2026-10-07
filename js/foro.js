@@ -96,7 +96,9 @@ function ultimoHtml({ titulo, url, fecha, perfil }) {
 // para marcar como leído lo que ya lo está es ruido.
 function botonMarcarTodoHtml(hayAlgoSinLeer) {
   if (!sesion || !hayAlgoSinLeer) return ''
-  return `<button type="button" class="foro-btn-leido" id="btnMarcarLeido">${icons.checkCircle(15)} Marcar todo como leído</button>`
+  // En el móvil dice «Leído», como su maqueta (748); el rótulo largo, para
+  // quien escucha y en el ordenador.
+  return `<button type="button" class="foro-btn-leido" id="btnMarcarLeido" aria-label="Marcar todo como leído">${icons.checkCircle(15)} <span class="foro-largo">Marcar todo como leído</span><span class="foro-corto" aria-hidden="true">Leído</span></button>`
 }
 
 // La chapa de "3 nuevos" de un foro.
@@ -325,9 +327,46 @@ async function pintarIndice() {
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
   // foro, así que para quitarte el "todo sin leer" de encima tenías que
   // entrar en uno cualquiera y buscarlo allí.
-  acciones.innerHTML = botonMarcarTodoHtml(foros.some((f) => nuevosPorForo[f.id]))
+  // EL ÍNDICE DE SU MAQUETA (748, J1): en el móvil, «Foro» con «Leído» y la
+  // lupa, la lista de conversaciones y un botón para escribir. El buscador
+  // sale con la lupa; la franja de lo caliente se queda en el ordenador
+  // (en el móvil repetía lo que dice la lista).
+  document.body.classList.add('foro-en-indice')
+  acciones.innerHTML = `${botonMarcarTodoHtml(foros.some((f) => nuevosPorForo[f.id]))}<button type="button" class="foro-lupa" id="foroLupa" aria-expanded="false" aria-controls="foroBuscador" aria-label="Buscar en el foro">${icons.search(18)}</button>`
   engancharMarcarTodo()
+  document.getElementById('foroLupa')?.addEventListener('click', (e) => {
+    const abierto = document.querySelector('.foro-cabecera')?.classList.toggle('foro-busca-abierta')
+    e.currentTarget.setAttribute('aria-expanded', abierto ? 'true' : 'false')
+    if (abierto) document.getElementById('foroBuscadorTexto')?.focus()
+  })
+  montarEscribir(foros)
   await pintarLateral()
+}
+
+// EL BOTÓN DE ESCRIBIR (748): flotante, como en su maqueta. Abrir un tema
+// pide saber en qué foro, así que pregunta eso y te deja en ese foro con el
+// formulario abierto (`?nuevo=1`). Sin cuenta, a entrar.
+function montarEscribir(foros) {
+  if (document.getElementById('foroEscribir')) return
+  const boton = document.createElement(sesion ? 'button' : 'a')
+  boton.className = 'foro-fab'
+  boton.id = 'foroEscribir'
+  boton.setAttribute('aria-label', 'Abrir un tema')
+  boton.innerHTML = icons.edit(22)
+  if (!sesion) {
+    boton.href = `/auth.html?volver=${encodeURIComponent('/foro.html')}`
+    document.body.appendChild(boton)
+    return
+  }
+  boton.type = 'button'
+  const hoja = document.createElement('dialog')
+  hoja.className = 'foro-elegir'
+  hoja.setAttribute('aria-labelledby', 'foroElegirTitulo')
+  hoja.innerHTML = `<div class="foro-elegir-cabeza"><h2 id="foroElegirTitulo">¿En qué foro?</h2><button type="button" class="foro-elegir-cerrar" aria-label="Cerrar">${icons.xCircle(20)}</button></div>
+    <nav class="foro-elegir-lista">${foros.filter((f) => !f.is_locked).map((f) => `<a href="${urlForo(f.slug)}?nuevo=1">${icons.messageSquare(18)}<span>${escapeHtml(f.name)}</span></a>`).join('')}</nav>`
+  document.body.append(boton, hoja)
+  boton.addEventListener('click', () => hoja.showModal())
+  hoja.addEventListener('click', (e) => { if (e.target === hoja || e.target.closest('.foro-elegir-cerrar')) hoja.close() })
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -506,6 +545,8 @@ async function pintarForo() {
   await pintarLateral()
 
   document.getElementById('btnNuevoTema')?.addEventListener('click', () => abrirFormularioTema(foro))
+  // Desde el botón de escribir del índice (748): el formulario, ya abierto.
+  if (new URLSearchParams(location.search).get('nuevo')) document.getElementById('btnNuevoTema')?.click()
   engancharMarcarTodo()
 }
 

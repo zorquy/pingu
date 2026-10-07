@@ -1866,7 +1866,7 @@ a.foro-cita-quien:hover {
   align-items: center;
   gap: var(--e-md);
   min-height: 64px;
-  padding: var(--e-sm) var(--e-lg);
+  padding: var(--e-md) var(--e-lg);
   border-bottom: 1px solid var(--border);
   color: var(--text);
   text-decoration: none;
@@ -1882,7 +1882,8 @@ a.foro-cita-quien:hover {
 
 .foro-conv .mini-avatar {
   flex-shrink: 0;
-  border-radius: 50%;
+  align-self: flex-start;
+  border-radius: var(--radius-md);
 }
 
 .foro-conv-cuerpo {
@@ -1893,59 +1894,83 @@ a.foro-cita-quien:hover {
   min-width: 0;
 }
 
-.foro-conv-arriba,
-.foro-conv-abajo {
+.foro-conv-arriba {
   display: flex;
   align-items: baseline;
-  gap: var(--e-sm);
+  gap: var(--e-xs);
   min-width: 0;
-}
-
-.foro-conv-arriba b {
-  flex: 1;
-  overflow: hidden;
-  min-width: 0;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.foro-conv-nueva .foro-conv-arriba b {
-  font-weight: 800;
+  font-size: var(--t-xs);
 }
 
 .foro-conv-arriba time {
   flex-shrink: 0;
   color: var(--text-mid);
-  font-size: var(--t-2xs);
+}
+
+.foro-conv-arriba time::before {
+  content: '· ';
+}
+
+.foro-conv-arriba time:first-child::before {
+  content: '';
 }
 
 .foro-conv-foro {
-  flex-shrink: 0;
-  padding: 0 var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--ice);
+  overflow: hidden;
   color: var(--navy);
-  font-size: var(--t-2xs);
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-conv-titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--t-md);
+  font-weight: 700;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.foro-conv-nueva .foro-conv-titulo {
+  font-weight: 800;
 }
 
 .foro-conv-trozo {
   overflow: hidden;
   min-width: 0;
   color: var(--text-mid);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.foro-conv-lado {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--e-sm);
+  align-self: flex-start;
+  padding-top: var(--e-xs);
+}
+
+.foro-conv-resp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 .foro-conv-punto {
   flex-shrink: 0;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--navy-solid);
+  background: var(--danger-solid);
 }
 
 .foro-conv-vacio {
@@ -2066,4 +2091,299 @@ html:has(#temaResponder) {
   .foro-mensaje {
     max-width: 94%;
   }
+}
+
+/* ── 748: el foro de su maqueta (J1; SCHEMA 748) ── */
+.foro-corto,
+.foro-lupa,
+.tema-mas-btn,
+.foro-mensaje-mas {
+  display: none;
+}
+
+.foro-fab {
+  position: fixed;
+  right: var(--e-xl);
+  bottom: var(--e-xl);
+  z-index: 92;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: var(--shadow-lg);
+  color: var(--blanco-fijo);
+  cursor: pointer;
+}
+
+.foro-elegir[open] {
+  width: min(420px, calc(100vw - 32px));
+  padding: var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+}
+
+.foro-elegir::backdrop {
+  background: rgb(10 20 30 / 45%);
+}
+
+.foro-elegir-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--e-md);
+}
+
+.foro-elegir-cabeza h2 {
+  margin: 0;
+  font-size: var(--t-xl);
+}
+
+.foro-elegir-cerrar {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.foro-elegir-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.foro-elegir-lista a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 52px;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.foro-elegir-lista a + a {
+  border-top: 1px solid var(--border);
+}
+
+.foro-elegir-lista svg {
+  color: var(--navy);
+}
+
+.tema-mas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.tema-mas .tema-moderacion {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  /* El índice: «Foro», «Leído» y la lupa en una fila; sin subtítulo, sin
+     la franja (lo dice la lista) y el buscador tras la lupa. */
+  .foro-en-indice #foroSubtitulo,
+  .foro-en-indice #foroDestacado,
+  .foro-en-indice .foro-conv-h,
+  .foro-en-indice .foro-cabecera:not(.foro-busca-abierta) .foro-buscador {
+    display: none;
+  }
+
+  .foro-en-indice .foro-cabecera {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .foro-en-indice .foro-cabecera-derecha {
+    display: contents;
+  }
+
+  .foro-en-indice .foro-cabecera-acciones {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+  }
+
+  .foro-en-indice .foro-buscador {
+    order: 3;
+    width: 100%;
+  }
+
+  .foro-largo {
+    display: none;
+  }
+
+  .foro-corto {
+    display: inline;
+  }
+
+  .foro-lupa {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--text-mid);
+    cursor: pointer;
+  }
+
+  /* La lista, a lo ancho y sin caja: es la pantalla. */
+  .foro-en-indice .foro-conversaciones:not([hidden]) {
+    margin-inline: calc(-1 * var(--e-xl));
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .foro-en-indice .foro-conv-chips {
+    padding: 0 var(--e-xl) var(--e-sm);
+    border-bottom: 0;
+  }
+
+  .foro-en-indice .foro-conv-chip {
+    min-height: 40px;
+    padding: 0 var(--e-lg);
+    font-size: var(--t-sm);
+  }
+
+  .foro-en-indice .foro-conv-chip[aria-pressed='false'] {
+    background: var(--white);
+  }
+
+  .foro-en-indice .foro-conv {
+    margin-inline: var(--e-xl);
+    padding-inline: 0;
+  }
+
+  .foro-fab {
+    bottom: calc(72px + var(--e-xl) + env(safe-area-inset-bottom));
+  }
+
+  /* El hilo: la cabecera en dos renglones y lo demás tras «⋯». */
+  .tema-mas-btn,
+  .foro-mensaje-mas {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 0;
+    background: none;
+    color: var(--text-mid);
+    cursor: pointer;
+  }
+
+  .foro-mensaje-mas {
+    min-width: 32px;
+    min-height: 32px;
+    margin-left: auto;
+  }
+
+  .tema-mas:not(.abierto) {
+    display: none;
+  }
+
+  .foro-mensaje-cabecera .foro-copiar-enlace,
+  .foro-mensaje-cabecera .foro-mensaje-num,
+  .foro-mensaje-cabecera .foro-chapa,
+  .foro-mensaje-autor .foro-chapa-rango {
+    display: none;
+  }
+
+  .foro-mensaje:not(.foro-mensaje-abierto) .foro-mensaje-izq {
+    display: none;
+  }
+
+  .foro-mensaje-izq .link-btn {
+    text-decoration: none;
+  }
+
+  .foro-mensaje-pie {
+    padding-top: var(--e-xs);
+    border-top: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .tema-cabecera h1,
+  #temaCabecera h1 {
+    font-size: var(--t-xl);
+  }
+
+  .foro-mensaje-cabecera {
+    padding-top: var(--e-sm);
+  }
+
+  /* La caja de responder, recogida, es una fila: el campo y el botón de
+     enviar redondo, como un chat. Al escribir vuelve a ser la entera. */
+  #temaResponder .foro-form:not(:focus-within) {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+    padding: var(--e-sm);
+  }
+
+  #temaResponder .foro-form:not(:focus-within) .rte-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #temaResponder .foro-form:not(:focus-within) .foro-form-acciones {
+    flex: none;
+    margin: 0;
+  }
+
+  #temaResponder .foro-form:not(:focus-within) #btnVistaPrevia {
+    display: none;
+  }
+
+  #temaResponder .foro-form:not(:focus-within) #btnResponder {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+  }
+
+  #temaResponder .foro-form:not(:focus-within) #btnResponder svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Lo tuyo, en el azul de su maqueta (748): blanco fijo encima (la 315). */
+.foro-mensaje-mio .foro-mensaje-cuerpo {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.foro-mensaje-mio .foro-mensaje-cuerpo .subtext,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto a,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion,
+.foro-mensaje-mio .foro-mensaje-cuerpo .link-btn,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-mas,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-copiar-enlace,
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-num {
+  color: var(--blanco-fijo);
+}
+
+.foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion {
+  border-color: rgb(255 255 255 / 40%);
+  background: transparent;
 }

@@ -190,6 +190,12 @@ function pintarCabecera(perfilAutor) {
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
       · ${icons.eye(13)} ${tema.view_count || 0}
       ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
+      <button type="button" class="tema-mas-btn" id="temaMasBtn" aria-expanded="false" aria-controls="temaMas" aria-label="Más opciones del tema">${icons.moreHorizontal(18)}</button>
+    </p>
+    <!-- Compartir, editar y moderar (748): en el ordenador, a la vista; en
+         el móvil, tras el «⋯» de arriba, que es lo que deja la cabecera
+         del hilo en dos renglones como en su maqueta. -->
+    <div class="tema-mas" id="temaMas">
       ${
         // Compartir SIN pedir cuenta, a diferencia de "Seguir": es la
         // mitad de la gracia. Alguien llega a un hilo desde fuera, le
@@ -197,8 +203,12 @@ function pintarCabecera(perfilAutor) {
         `<button type="button" class="tema-seguir" id="btnCompartirTema">${icons.share(13)} Compartir</button>`
       }
       ${puedoEditarTema() ? `<button type="button" class="tema-seguir" id="btnEditarTema">${icons.edit(13)} Editar título</button>` : ''}
-    </p>
-    ${soyStaff || puedoBorrarTema() ? panelModeracionHtml() : ''}`
+      ${soyStaff || puedoBorrarTema() ? panelModeracionHtml() : ''}
+    </div>`
+  document.getElementById('temaMasBtn')?.addEventListener('click', (e) => {
+    const abierto = document.getElementById('temaMas')?.classList.toggle('abierto')
+    e.currentTarget.setAttribute('aria-expanded', abierto ? 'true' : 'false')
+  })
 
   engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
@@ -670,6 +680,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
         ${chapaDeAutorDelTema(m.author_id && m.author_id === tema.author_id)}
         <button type="button" class="foro-copiar-enlace" data-copiar-enlace="${m.id}" data-num="${numero}" title="Copiar el enlace a este mensaje" aria-label="Copiar el enlace a este mensaje">${icons.link(13)}</button>
         <a class="foro-mensaje-num" href="#mensaje-${m.id}" title="Enlace a este mensaje">#${numero}</a>
+        <button type="button" class="foro-mensaje-mas" data-mas-mensaje="${m.id}" aria-expanded="false" aria-label="Más opciones del mensaje">${icons.moreHorizontal(16)}</button>
       </header>
       ${esLaSolucion ? `<p class="foro-solucion-banda">${icons.checkCircle(14)} Esta respuesta resolvió el tema</p>` : ''}
       ${
@@ -745,6 +756,14 @@ let citandoA = null
 let citadosExtra = new Set()
 
 function enganchar(perfiles) {
+  // El «⋯» de cada mensaje (748): en el móvil saca editar, borrar, marcar
+  // como solución y denunciar, que en una burbuja eran cuatro enlaces.
+  elMensajes.querySelectorAll('[data-mas-mensaje]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const abierto = b.closest('.foro-mensaje')?.classList.toggle('foro-mensaje-abierto')
+      b.setAttribute('aria-expanded', abierto ? 'true' : 'false')
+    })
+  )
   elMensajes.querySelectorAll('[data-reaccion]').forEach((b) =>
     b.addEventListener('click', () => alternarReaccion(b.dataset.reaccion, b.dataset.kind, b))
   )
