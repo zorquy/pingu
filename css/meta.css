@@ -48,8 +48,15 @@
 /* ── Los selectores de fuente y periodo ── */
 .meta-filtros-cab {
   display: flex;
+  flex: 1 0 100%;
   flex-wrap: wrap;
   gap: var(--e-sm);
+}
+
+/* Los chips llegan por JS: en su fila y con su alto desde el principio
+   (748): vacíos cabían al lado del lema y, llenos, bajaban. */
+.meta-filtros-cab .seg:empty {
+  min-height: 44px;
 }
 
 /* La etiqueta de un torneo oficial o de PokeDoc en su lista. */

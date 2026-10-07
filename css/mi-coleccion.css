@@ -8330,3 +8330,20 @@ input.mc-alb-titulo:not([readonly]):focus {
     outline-offset: 2px;
   }
 }
+
+/* Sin su columna desde el primer pintado: el menú se va a la lateral. */
+@media (min-width: 1400px) and (pointer: fine) {
+  #mcContenido {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #mcContenido > #mcMenu {
+    display: none;
+  }
+
+  #mcContenido > section[role="tabpanel"] {
+    grid-column: 1;
+    padding-left: 0;
+    border-left: 0;
+  }
+}

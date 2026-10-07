@@ -35598,6 +35598,29 @@ coinciden. Esta tanda trae cuatro.
   expansión, volver a la estantería o cambiar de pestaña la cierra (antes
   solo se cerraba al salir de Cartas). Por debajo de 1.400, todo como
   siempre.
+- **Sin saltos al cargar (la «carga rara» de PINGU)**: medido con el
+  desplazamiento acumulado del navegador (`layout-shift`), el MÓVIL daba
+  0 en las diez páginas grandes y el ORDENADOR entre 0,5 y 0,9 en todas
+  (por debajo de 0,1 es «bueno»). Era la lateral (739), con dos saltos:
+  llega por `import()` cuando ya se sabe la sesión y entonces la página
+  se apartaba 240 px; y como su hoja también llega después, durante un
+  instante era un bloque EN EL FLUJO que empujaba todo 230 px hacia
+  abajo. Arreglo: (1) el sitio va en `style.css` y se pide por la media
+  y no por la clase — `body:has(> #navbar)` deja 240 px y pinta el fondo
+  de la columna desde el primer pintado, y el logo y los desplegables de
+  arriba no salen ni un instante; (2) `hojaInyectada` devuelve una
+  promesa que se cumple con la hoja puesta (o si falla, o a los 3 s, para
+  no dejar nada escondido) y la lateral espera escondida; la hoja «Tú» y
+  el hueco de «Hoy» esperan igual; (3) con `con-sesion` (que el `<head>`
+  de la portada pone antes de pintar), la bienvenida reserva el alto de
+  «Hoy»; (4) Mi colección ya no tiene su columna de menú en el ordenador
+  ni un instante (se va a la lateral); y los chips del meta van en su
+  fila y con su alto antes de llegar. Queda: aprender, carta, foro y
+  noticias ≤ 0,05; lo que queda en el meta y la portada en la prueba es
+  del doble (secciones sin datos que se pliegan). Lo vigila
+  `748-pantalla` bloque 15. Sin JavaScript, en el ordenador la columna
+  queda vacía y la navegación es el pie: el sitio sin JS no funciona de
+  todas formas, y es el precio de no saltar.
 - **Un salto al cargar en el ordenador**: la columna de filtros (738) se
   abre con `dialog.show()`, que ENFOCA lo primero que se pulsa dentro y lo
   trae a la vista con el desplazamiento suave de la casa. Desde que «Borrar
@@ -35615,12 +35638,13 @@ coinciden. Esta tanda trae cuatro.
 `js/hoy.js`, `css/hoy.css`, `js/perfil.js`, `js/foro.js`,
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
 `js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
-`css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`, `CLAUDE.md`,
+`css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`, `js/hoja.js`,
+`css/style.css`, `CLAUDE.md`,
 `js/mi-coleccion/segmentado.js`,
 `js/mi-coleccion/energias.js`, `js/mi-coleccion/pokedex.js`,
 `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`.
-Prueba 748-pantalla (catorce bloques) y 740, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
+Prueba 748-pantalla (quince bloques) y 740, 710, 721, 707, 716, 733, 309, 312, 415, 438, 717, 744, 372, 377, 381, 384, 385, 399, 400,
 405, 406, 414, 426, 429, 434, 437, 440, 443, 444, 447, 464, 465, 468, 475,
 476, 546, 582, 589, 646, 650, 653, 657, 692, 710, 711, 712, 713, 714, 715 y
 747 al día en `pruebas`.

@@ -7,11 +7,25 @@
 // lo reescribe a carta.html, y una hoja que llega como HTML se descarta
 // sin error. La barra de abajo salía sin estilo en las fichas de carta, de
 // tema, de guía y de persona.
+//
+// Y devuelve una promesa que se cumple cuando la hoja YA está (748): lo que
+// se pinta antes que su hoja sale un instante sin estilo —la lateral, en el
+// flujo de la página, empujaba todo 230 px hacia abajo— y eso es un salto.
+// Se cumple también si falla o tarda, para no dejar nada escondido.
 export function hojaInyectada(ruta) {
   const href = ruta.startsWith('/') ? ruta : `/${ruta}`
-  if (document.querySelector(`link[href="${href}"], link[href="${ruta}"]`)) return
-  const l = document.createElement('link')
-  l.rel = 'stylesheet'
-  l.href = href
-  document.head.appendChild(l)
+  const ya = document.querySelector(`link[href="${href}"], link[href="${ruta}"]`)
+  if (ya?.sheet) return Promise.resolve()
+  const l = ya || document.createElement('link')
+  const lista = new Promise((ok) => {
+    l.addEventListener('load', ok, { once: true })
+    l.addEventListener('error', ok, { once: true })
+    setTimeout(ok, 3000)
+  })
+  if (!ya) {
+    l.rel = 'stylesheet'
+    l.href = href
+    document.head.appendChild(l)
+  }
+  return lista
 }

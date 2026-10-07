@@ -45,9 +45,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-07 (748) van 168,2 y queda
-  1,8**: la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que
-  entran al tocar el avatar. Antes de la 748 iban 169,7
+  CSS) debe caber en 170 KB gzip. **A 2026-10-07 (748) van 168,4 y queda
+  1,6**: la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que
+  entran al tocar el avatar, y luego volvieron dos décimas para que la
+  lateral y «Hoy» tengan su sitio desde el primer pintado. Antes de la 748 iban 169,7
   (medido con `pesar-portada.mjs`; la 718 sacó de `components.css` el
   desplegable viejo de la lupa y bajó a 169,5, la 723 y la 734 se
   comieron tres décimas y la 736 las devolvió sacando el pintado de la

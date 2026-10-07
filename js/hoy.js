@@ -147,7 +147,7 @@ async function intentar(fn) {
 export async function montarHoy(session, { doc = document } = {}) {
   const seccion = doc.getElementById('bienvenidaSeccion')
   if (!session || !seccion || doc.getElementById('hoyPortada')) return null
-  hojaInyectada('css/hoy.css')
+  const hoja = hojaInyectada('css/hoy.css')
   const uid = session.user.id
   const caja = doc.createElement('div')
   caja.className = 'hoy'
@@ -156,6 +156,10 @@ export async function montarHoy(session, { doc = document } = {}) {
   // El hueco con la forma de lo que llega (la tarjeta y las cuatro fichas):
   // si llegara de golpe, lo de debajo pegaría un salto.
   caja.innerHTML = `<h2 class="sr-only">Hoy</h2><div class="hoy-rejilla"><div class="skeleton hoy-esq-valor"></div>${'<div class="skeleton hoy-esq-ficha"></div>'.repeat(4)}</div>`
+  // Con su hoja ya puesta (748): sin ella el hueco no mide nada y crece al
+  // llegar, que es un salto más.
+  await hoja
+  if (doc.getElementById('hoyPortada')) return null
   seccion.appendChild(caja)
 
   const hoy = hoyISO()

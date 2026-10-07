@@ -7,7 +7,7 @@ antes de cada push (ver CLAUDE.md). Formato:
 ## 2026-10-07 (noche, 2) — PINGU-Claude (748 — rehacer contra la maqueta: Mi colección, la hoja «Tú» y la portada)
 
 **Hecho**: PINGU dijo que muchas de las 53 no estaban como en su maqueta, y
-tenía razón. Se rehacen una a una con la captura al lado. Van trece:
+tenía razón. Se rehacen una a una con la captura al lado. Van catorce:
 seleccionar varias con el dedo (también en Cartas, y en iOS), la hoja corta
 de añadir (la misma en /carta), los filtros (energías en redondo, «Qué
 cartas», precio con dos tiradores, «Borrar todo»), la Pokédex por regiones
@@ -27,8 +27,10 @@ tarjeta como su maqueta) y el escritorio (el buscador en pastilla con
 «Ctrl K», tu cuenta abajo en la lateral y las expansiones en baldosas) y
 una expansión en tres columnas en el ordenador (las de su era a la
 izquierda, las cartas con Todas / Tengo / Faltan y la carta abierta a la
-derecha).
-La portada baja a 168,2 KB. De paso, un salto al cargar en el
+derecha) y los saltos al cargar: en el ordenador cada página saltaba
+(0,5–0,9; el móvil, 0) porque la lateral llegaba tarde; ahora tiene su
+sitio desde el primer pintado y espera a su hoja (≤ 0,05 en casi todas).
+La portada baja a 168,4 KB. De paso, un salto al cargar en el
 ordenador: la columna de filtros se enfocaba y bajaba la página.
 
 **Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
@@ -39,14 +41,14 @@ ordenador: la columna de filtros se enfocaba y bajaba la página.
 `css/components.css`, `js/perfil.js`, `js/foro.js`,
 `js/foro-conversaciones.js`, `js/tema.js`, `css/foro.css`,
 `js/carta-movil.js`, `css/carta.css`, `js/meta.js`, `js/meta/datos.js`,
-`css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`,
+`css/meta.css`, `js/barra-lateral.js`, `css/lateral.css`, `js/hoja.js`, `css/style.css`,
 `js/mi-coleccion/ficha-al-lado.js`, `js/tipos-de-especie.js` (nuevo), `js/carta-mercado.js`,
 `css/mi-coleccion.css`, `css/cardmarket.css`, `assets/energias/{N,C,Y}.svg`,
 `CLAUDE.md` (la regla de la 650 y el presupuesto), `SCHEMA.md`. Prueba
 748-pantalla y cuarenta y cuatro más al día en `pruebas`.
 
-**Pendiente**: seguir rehaciendo — la sensación de app (transiciones, sin
-saltos). El
+**Pendiente**: transiciones entre páginas (no se han puesto: la barra de
+abajo y la lateral llegan por JS y en una transición parpadearían). El
 rango de precio dentro de una expansión no se hace (ver SCHEMA 748).
 
 ## 2026-10-07 (noche, 1) — PINGU-Claude (747 — cuatro arreglos de Mi colección en el móvil)

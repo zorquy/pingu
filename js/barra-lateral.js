@@ -42,12 +42,15 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   if (!navbar || doc.querySelector('.lat')) return null
   const secciones = seccionesDeLaBarra(doc)
   if (!secciones.length) return null
-  hojaInyectada('css/lateral.css')
+  const hoja = hojaInyectada('css/lateral.css')
   const actual = seccionActual(secciones, clave)
   const logo = navbar.querySelector('.nav-logo')
   const barra = doc.createElement('nav')
   barra.className = 'lat'
   barra.setAttribute('aria-label', 'Secciones')
+  // Escondida hasta que llegue su hoja: sin ella es un bloque en el flujo.
+  barra.hidden = true
+  hoja.then(() => { barra.hidden = false })
   barra.innerHTML = `${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}<ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul>`
   // Delante de todo en el orden de tabulación, justo después del «Saltar
   // al contenido»: es la navegación, y la de arriba se esconde.

@@ -3058,6 +3058,14 @@ body.portada-compacta .page-content {
 
 :root.con-sesion #bienvenidaSeccion {
   display: block;
+  min-height: 164px;
+}
+
+/* El hueco de «Hoy» (748), que llega después. */
+@media (max-width: 900px) {
+  :root.con-sesion #bienvenidaSeccion {
+    min-height: 384px;
+  }
 }
 
 :root.con-sesion .hero {

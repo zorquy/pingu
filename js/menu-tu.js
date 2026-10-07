@@ -50,7 +50,10 @@ const cuentaDe = (doc, id) => {
 }
 
 export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, nivel, signOut, doc = document, win = window }) {
-  hojaInyectada('css/menu-tu.css')
+  // La primera vez, invisible hasta que llegue su hoja (748): si no, la
+  // hoja se pinta un instante como una lista suelta a lo ancho.
+  dropdown.style.visibility = 'hidden'
+  hojaInyectada('css/menu-tu.css').then(() => dropdown.style.removeProperty('visibility'))
   const quien = lineaDeQuien({ usuario: profile?.username, nivel, racha: Number(profile?.current_streak) || 0 })
   const tema = temaGuardado()
   const fila = (href, icono, texto) => `<a href="${href}">${icono}<span>${texto}</span></a>`
