@@ -46,7 +46,10 @@ async function abrir(sesion) {
   await ctx.addInitScript((s) => {
     window.__FAKE_SESSION__ = s
     const d = (n) => new Date(Date.now() - n * 86400e3).toISOString().slice(0, 10)
-    window.__FAKE_VALOR__ = [{ user_id: 'user-1', dia: d(45), valor: 200 }, { user_id: 'user-1', dia: d(31), valor: 200 }, { user_id: 'user-1', dia: d(10), valor: 220 }, { user_id: 'user-1', dia: d(1), valor: 250 }]
+    window.__FAKE_VALOR__ = [{ user_id: 'user-1', dia: d(45), valor: 200 }, { user_id: 'user-1', dia: d(31), valor: 200 }, { user_id: 'user-1', dia: d(10), valor: 220 }, { user_id: 'user-1', dia: d(1), valor: 240 }]
+    // Desde la 756 la cifra es la del Panel (la suma de ahora), no la foto
+    // de anoche: una línea con su precio a mano de 250.
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'user-1', card_id: 'sv1-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', valor_manual: 250 }]
     window.__FAKE_RETOS__ = [{ user_id: 'user-1', correct: 4, total: 5 }]
     window.__FAKE_TORNEOS__ = [{ id: 'torneo-1', slug: 'liga-otono', name: 'Liga de otoño', status: 'registration_open', start_at: new Date(Date.now() + 2 * 86400e3).toISOString() }]
     window.__FAKE_INSCRIPCIONES__ = [{ tournament_id: 'torneo-1', user_id: 'user-1', status: 'active' }]

@@ -137,7 +137,9 @@ console.log('── 2. La función: occidental y japonés ──')
   const r2 = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
   check('la segunda pasada de la semana no pide nada', r2.ok && r2.hecho === true && b.urls.length === antes && r2.peticionesEstaPasada === 0)
   const r3 = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: new Date('2026-10-13T12:00:00Z') })
-  check('a la semana siguiente vuelve a empezar (y las expansiones JP, aún frescas, no se piden)', r3.ok && r3.hechas.WEST === 3 && r3.peticionesEstaPasada === 4, String(r3.peticionesEstaPasada))
+  // Desde la 756 la lista japonesa se pide cada día: a la semana, una
+  // petición más (la lista) que antes.
+  check('a la semana siguiente vuelve a empezar (y la lista JP, de hace una semana, se vuelve a pedir)', r3.ok && r3.hechas.WEST === 3 && r3.peticionesEstaPasada === 5, String(r3.peticionesEstaPasada))
   // Sin tiempo: deja para la siguiente.
   let tic = 0
   const b4 = montar()
