@@ -1,7 +1,7 @@
 // Las consultas de «Mi colección» (tanda 365). Lo usan /mi-coleccion y
 // el bloque de precio y colección de la ficha de una carta.
 import { supabase } from '../supabase.js'
-import { urlDePrecio, precioDe, precioDeFila, claveDeLinea } from '../cardmarket.js'
+import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from '../cardmarket.js'
 // El mercado por defecto NO se escribe aquí a mano (tanda 485): `market` es
 // `not null default 'WEST'` en la base, así que una línea que no diga nada ES
 // occidental, y una copia de ese valor que se separe dejaría el Panel
@@ -391,6 +391,15 @@ export function precioDeLinea(linea, guardados, vivos) {
   // que es lo que hace que el enlace a Cardmarket lleve a la carta y no
   // a una búsqueda por nombre.
   return guardado || vivo
+}
+
+// Lo que vale un montón de líneas (756): UNA definición para el Panel y
+// para la portada. La portada enseñaba la foto de anoche y el Panel la
+// suma de ahora, y PINGU vio 15.691 € arriba y 16.607 € dentro.
+export function valorDeLineas(lineas, guardados, vivos = new Map()) {
+  let total = 0
+  for (const l of lineas || []) total += valorDeLinea(l, precioDeLinea(l, guardados, vivos)) || 0
+  return total
 }
 
 // Un precio con `idProduct` y nada más sirve para el ENLACE, no para

@@ -35936,3 +35936,44 @@ también estaría bien por expansión».
   `scrydex-huecos` se salta un set que ya lleva `tcggo_id`.
 - Prueba 755 (huella, número, «¿es la misma?», `procesar` con su doble de
   la RPC, la fusión y el calco de punta a punta).
+
+## Tanda 756 — La portada dice lo del Panel, y los próximos lanzamientos (oct. 2026)
+
+- **El valor de la portada es el del Panel.** PINGU vio 15.691,31 € en
+  «Hoy» y 16.607,31 € en el Panel de Mi colección. «Hoy» (744) enseñaba la
+  ÚLTIMA FOTO de `user_collection_value` —la de anoche, que toma una
+  función programada con su propia cuenta— y el Panel la suma de AHORA:
+  cada línea con el mínimo de su idioma o el precio que pusiste a mano.
+  Ahora la suma es UNA, `valorDeLineas(lineas, guardados, vivos)` en
+  `js/mi-coleccion/datos.js`, y la llaman los dos: el Panel
+  (`valorDeAhora`) y «Hoy», que pide tus líneas (`lineasDeTodo`) y sus
+  precios guardados (`preciosGuardados`) y pone el resultado como el punto
+  de HOY del histórico (`conElValorDeAhora`: cambia la foto de hoy o la
+  añade), así que la cifra, la línea y el «este mes» salen de lo mismo. Sin
+  la suma (la consulta falla), la foto, como antes; sin líneas, la
+  invitación. Lo único que el Panel puede sumar de más son los precios EN
+  VIVO de TCGdex (40 por visita) de cartas que todavía no tienen fila
+  guardada: «Hoy» no los pide.
+- **Lo que va a salir, en el calendario.** PINGU: «TCGGO tiene los
+  próximos; Delta Reign sale el 6 de noviembre». En su lista la expansión
+  viene con fecha futura y `cards_total: 0` (en `/cards` solo hay sobres y
+  cajas), y `tcggo-catalogo` apuntaba las de cero cartas como hechas sin
+  más. Ahora, si la fecha es FUTURA, le crea su set (`filaDeSetNuevo`:
+  nombre, código, fecha, logo y serie, con su `tcggo_id`) y lo deja
+  `oculto`: el catálogo no enseña una expansión vacía. Las viejas de cero
+  cartas (energías, galerías) siguen sin crear nada.
+- **Cuando salen sus cartas, entran solas.** Las de cero cartas quedan en
+  `estado.vacias`; cuando la lista (que ahora se pide CADA DÍA, en
+  `tcggo-emparejar` y en la japonesa del catálogo: `DIAS_DE_EPISODIOS = 1`)
+  dice `cartas > 0`, dejan de contar como hechas esa semana; el destino se
+  busca también por `tcggo_id` (el set que se creó), las cartas entran ahí y
+  el set se ENSEÑA (cualquier destino escondido que recibe cartas). El
+  calco japonés hace lo mismo con sus apuntadas «vacía en TCGGO». El
+  `pedir` del catálogo ignoraba las opciones —un PATCH salía como GET—: ya
+  no.
+- **El calendario** (`eventosDelCatalogo`) enseña las escondidas que
+  llevan `tcggo_id` —las próximas— y sin enlace (todavía no tienen
+  página); los cascarones escondidos sin expansión siguen fuera. La
+  miniatura de la portada y la ficha de «Hoy» usan la misma regla.
+- Pruebas 756 (nueva) y 640, 744-pantalla al día (la lista japonesa se pide
+  cada día; «Hoy» enseña la suma de ahora y no la foto).

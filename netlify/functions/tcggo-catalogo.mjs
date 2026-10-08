@@ -25,6 +25,19 @@
 // [...], JP: [...] }, episodiosJp, gasto }) dice por dónde va. Mismos
 // frenos que las demás: tope diario, pausa del plan, parar en 429/403.
 //
+// ── LO QUE VA A SALIR (tanda 756) ──
+//
+// PINGU: «en lanzamientos quiero los próximos; TCGGO los tiene». Una
+// expansión anunciada viene en su lista con fecha FUTURA y CERO cartas
+// (Delta Reign: 2026-11-06, `cards_total: 0`, y en `/cards` solo sobres y
+// cajas), y aquí una expansión de cero cartas se apuntaba sin más. Ahora,
+// si su fecha es futura, se le crea su set —con nombre, código, fecha,
+// logo y serie— ESCONDIDO: el catálogo no enseña una expansión vacía, el
+// calendario sí (lee los escondidos futuros). Cuando TCGGO publica sus
+// cartas, la lista lo dice (`cartas > 0`), la expansión deja de contar
+// como hecha esa semana y sus cartas entran en ese set —por su `tcggo_id`—,
+// que se enseña. Las dos listas de expansiones se piden cada día.
+//
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
@@ -36,7 +49,7 @@ import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-empa
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_catalogo'
 const MS_DE_MARGEN = 20_000
-const DIAS_DE_EPISODIOS = 7
+export const DIAS_DE_EPISODIOS = 1
 export const MERCADOS = ['WEST', 'JP']
 // Cuántas veces se intenta escribir una expansión cuya escritura falla
 // antes de saltarla (655). Ver el comentario en el `catch` de abajo.
@@ -76,7 +89,7 @@ export async function procesar({
   const bases = { WEST: base, JP: baseJpDe(base) }
   const arranque = reloj()
   const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
-  const pedir = restImpl || ((ruta) => rest(ruta, clave))
+  const pedir = restImpl || ((ruta, opciones = null) => rest(ruta, clave, opciones))
   const guardarCartas = guardarCartasImpl || ((filas, mercado) => rest('rpc/tcggo_guardar_cartas', clave, { method: 'POST', body: JSON.stringify({ p_cartas: filas, p_market: mercado }) }))
   const crearSets = crearSetsImpl || ((filas, mercado) => rest('rpc/tcggo_crear_sets', clave, { method: 'POST', body: JSON.stringify({ p_sets: filas, p_market: mercado }) }))
   // EL NOMBRE INGLÉS DE UN SET QUE NO LO TIENE (659). IBAI: «algunas
@@ -203,7 +216,7 @@ export async function procesar({
     // (en WEST lo dijo el emparejador; en JP se decide aquí por el código).
     let sets
     try {
-      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en&market=eq.${mercado}&limit=2000`)) || []
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto&market=eq.${mercado}&limit=2000`)) || []
     } catch (e) {
       return { ...resumen(), ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
@@ -216,6 +229,18 @@ export async function procesar({
       }
     }
     const idsNuestros = new Set(sets.map((s) => s.id))
+    // Las que se apuntaron VACÍAS y ya traen cartas (756) vuelven a estar
+    // pendientes: es la expansión que acaba de salir.
+    if (!estado.vacias || typeof estado.vacias !== 'object') estado.vacias = {}
+    if (!Array.isArray(estado.vacias[mercado])) estado.vacias[mercado] = []
+    const yaConCartas = estado.vacias[mercado].filter((id) => episodios.some((e) => e.id === id && e.cartas > 0))
+    if (yaConCartas.length) {
+      estado.hechos[mercado] = estado.hechos[mercado].filter((id) => !yaConCartas.includes(id))
+      estado.vacias[mercado] = estado.vacias[mercado].filter((id) => !yaConCartas.includes(id))
+    }
+    // El set que ya lleva su expansión (756): el de una futura que se creó
+    // vacía, o el de un calco japonés que casó por la huella.
+    const porTcggoId = (id) => sets.filter((s) => Number(s.tcggo_id) === id).map((s) => s.id)
     const pendientes = episodios.filter((e) => !estado.hechos[mercado].includes(e.id))
     quedanTotal += pendientes.length
     for (const episodio of pendientes) {
@@ -223,8 +248,30 @@ export async function procesar({
       // Una expansión que su lista da con CERO cartas (las Trainer Gallery,
       // las energías) se apunta sin pedirla: no hay nada que casar.
       if (episodio.cartas === 0) {
+        // Si es FUTURA, su set, escondido, para el calendario (756).
+        let proxima = null
+        if (typeof episodio.fecha === 'string' && episodio.fecha.slice(0, 10) > dia) {
+          const yaEsta = porTcggoId(episodio.id)[0] || setDeEpisodio(episodio, sets).set?.id || null
+          proxima = { set: yaEsta, creado: false }
+          if (!yaEsta) {
+            const fila = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets))
+            try {
+              const n = Number(await crearSets([fila], mercado)) || 0
+              if (n) await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(fila.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
+              setsCreados += n
+            } catch (e) {
+              const m = String(e?.message || e)
+              if (/tcggo_crear_sets|42883|PGRST202/.test(m)) return { ...resumen(), saltado: 'falta ejecutar supabase-migration-tcggo-catalogo.sql (tcggo_crear_sets)' }
+              return { ...resumen(), ok: false, error: `nuestra base al crear el set de una próxima (${episodio.nombre}): ${m.slice(0, 160)}` }
+            }
+            idsNuestros.add(fila.id)
+            sets.push({ id: fila.id, name: fila.name, name_en: fila.name_en, tcg_online_code: fila.tcg_online_code, serie_id: fila.serie_id, serie_name: fila.serie_name, serie_name_en: fila.serie_name_en, tcggo_id: episodio.id, oculto: true })
+            proxima = { set: fila.id, creado: true }
+          }
+        }
         estado.hechos[mercado].push(episodio.id)
-        esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: 0, nota: 'vacía' })
+        if (!estado.vacias[mercado].includes(episodio.id)) estado.vacias[mercado].push(episodio.id)
+        esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: 0, nota: proxima ? `próxima (${episodio.fecha.slice(0, 10)})` : 'vacía', ...(proxima ? { set: proxima.set, setCreado: proxima.creado } : {}) })
         await persistir()
         continue
       }
@@ -248,6 +295,7 @@ export async function procesar({
       // A qué set nuestro van: el emparejado, o el que case por código /
       // nombre, o uno nuevo.
       let destinos = setsPorEpisodio.get(episodio.id) || []
+      if (!destinos.length) destinos = porTcggoId(episodio.id)
       let setNuevo = null
       if (!destinos.length) {
         const r = setDeEpisodio(episodio, sets)
@@ -357,6 +405,16 @@ export async function procesar({
         return { ...resumen(), ok: false, error: `nuestra base al escribir cartas (${mercado} #${episodio.id} ${episodio.nombre}, intento ${f.intentos} de ${MAXIMO_INTENTOS_EPISODIO}): ${m.slice(0, 160)}` }
       }
       escritas += escritasAqui
+      // Un destino escondido que ya tiene cartas se enseña (756): la
+      // próxima que acaba de salir, o un cascarón que se ha llenado.
+      if (escritasAqui) {
+        for (const s of sets.filter((x) => destinos.includes(x.id) && x.oculto)) {
+          try {
+            await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(s.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: false }) })
+            s.oculto = false
+          } catch { /* la semana que viene */ }
+        }
+      }
       // Y una escritura que escribe CERO filas de una lista que no está
       // vacía se apunta: no es un error, y es justo por eso que hay que
       // decirlo. (Si escribe alguna, deja de contar como vacía.)

@@ -46,7 +46,9 @@ import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_pares'
 const MS_DE_MARGEN = 20_000
-const DIAS_DE_EPISODIOS = 7
+// Cada día (756): una expansión anunciada tiene que llegar al calendario
+// sin esperar una semana. Son cinco peticiones.
+const DIAS_DE_EPISODIOS = 1
 export const PETICIONES_POR_DEFECTO = 8
 export const PETICIONES_MAXIMO = 60
 export const TOPE_DIARIO = 95

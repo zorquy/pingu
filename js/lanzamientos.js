@@ -67,14 +67,17 @@ export function eventoDeSet(s, mercado = MERCADO_POR_DEFECTO) {
     imagen: s.logo_scrydex || s.logo_tcggo || urlDeLogo(s.logo_path, mercado) || urlDeLogoPorPartes(s.serie_id, s.id, mercado) || null,
     codigo: s.tcg_online_code || null,
     cartas: s.card_count_official || s.card_count_total || null,
-    href: `/cartas.html?ver=album&set=${encodeURIComponent(String(s.id))}&catalogo=${encodeURIComponent(mercado)}`,
+    // Escondida (una próxima sin cartas todavía) no tiene página a la que ir.
+    href: s.oculto ? null : `/cartas.html?ver=album&set=${encodeURIComponent(String(s.id))}&catalogo=${encodeURIComponent(mercado)}`,
   }
 }
 
-// Las filas del catálogo, limpias: con fecha, sin las escondidas, sin
-// Pocket, y con los hermanos plegados (30th + Classic son UNA expansión).
+// Las filas del catálogo, limpias: con fecha, sin Pocket, y con los
+// hermanos plegados (30th + Classic son UNA expansión). Las escondidas
+// fuera, MENOS las de TCGGO (756): una próxima nace escondida —sin cartas
+// no va al catálogo— y es justo la que tiene que salir aquí.
 export function eventosDelCatalogo(filas, mercado = MERCADO_POR_DEFECTO) {
-  const sets = (filas || []).filter((s) => s && s.id && !s.oculto && FECHA.test(String(s.release_date || '').slice(0, 10)) && esDelTCG(s))
+  const sets = (filas || []).filter((s) => s && s.id && (!s.oculto || s.tcggo_id != null) && FECHA.test(String(s.release_date || '').slice(0, 10)) && esDelTCG(s))
   return plegarHermanos(sets.map((s) => ({ ...s }))).map((s) => eventoDeSet(s, mercado))
 }
 

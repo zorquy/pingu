@@ -844,10 +844,10 @@ async function cargarLanzamiento() {
     // adelante (sin Pocket, que no es el TCG), y la lista a mano por si hay
     // un anuncio que TCGGO aún no tiene. Gana el que salga antes.
     const [{ data: sets }, { data }] = await Promise.all([
-      supabase.from('tcg_sets').select('name,name_en,release_date,logo_tcggo,logo_scrydex,oculto').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(5),
+      supabase.from('tcg_sets').select('name,name_en,release_date,logo_tcggo,logo_scrydex,oculto,tcggo_id').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(5),
       supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle(),
     ])
-    const delCatalogo = (sets || []).filter((s) => !s.oculto && s.release_date).map((s) => ({ nombre: s.name || s.name_en, fecha: String(s.release_date).slice(0, 10), imagen: s.logo_scrydex || s.logo_tcggo || '' }))
+    const delCatalogo = (sets || []).filter((s) => (!s.oculto || s.tcggo_id) && s.release_date).map((s) => ({ nombre: s.name || s.name_en, fecha: String(s.release_date).slice(0, 10), imagen: s.logo_scrydex || s.logo_tcggo || '' }))
     const proximo = [...delCatalogo, ...(data?.value?.sets || [])]
       .filter((s) => s && s.nombre && /^\d{4}-\d{2}-\d{2}$/.test(s.fecha || '') && s.fecha >= hoy)
       .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))[0]

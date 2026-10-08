@@ -17,6 +17,7 @@ import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { hojaInyectada } from './hoja.js'
+import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/datos.js'
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -115,6 +116,24 @@ export function sigueHtml(guia, fila) {
   </section>`
 }
 
+// Lo que vale tu colección AHORA, como lo suma el Panel (756): tus líneas
+// con los precios guardados. La foto diaria es de anoche y no lleva el
+// precio que pusiste a mano ni lo que subió hoy; arriba tiene que decir
+// lo mismo que dentro.
+async function valorDeAhora(uid) {
+  const lineas = await lineasDeTodo(uid)
+  if (!lineas.length) return { total: 0, lineas: 0 }
+  return { total: valorDeLineas(lineas, await preciosGuardados(lineas.map((l) => l.card_id))), lineas: lineas.length }
+}
+
+// El histórico con el valor de ahora como punto de HOY: el de la foto de
+// hoy, si la hay, se cambia; si no, se añade. Puro.
+export function conElValorDeAhora(filas, ahora, hoy = hoyISO()) {
+  if (ahora == null || !Number.isFinite(Number(ahora))) return filas
+  const dias = [...(filas || [])].filter((f) => String(f.dia) < hoy)
+  return [...dias, { dia: hoy, valor: Number(ahora) }]
+}
+
 // El valor de tu colección: la última foto, su línea y lo que se ha movido
 // en 30 días. Sin fotos todavía, la tarjeta invita a Mi colección; sin la
 // migración del histórico, no sale.
@@ -165,8 +184,15 @@ export async function montarHoy(session, { doc = document } = {}) {
   const hoy = hoyISO()
   const [valor, reto, mio, abierto, sets, sigue, respuestas] = await Promise.all([
     intentar(async () => {
-      const { data, error } = await supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true })
-      return error ? null : data || []
+      const [historia, ahora] = await Promise.all([
+        supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
+        valorDeAhora(uid).catch(() => null),
+      ])
+      // Sin la suma de ahora, la foto, que es lo que había; sin las dos,
+      // la tarjeta no sale. Sin líneas, la invitación.
+      if (!ahora) return historia
+      if (!ahora.lineas) return []
+      return conElValorDeAhora(historia || [], ahora.total, hoy)
     }),
     intentar(async () => {
       const { data, error } = await supabase.from('daily_challenge_results').select('correct, total').eq('user_id', uid).eq('day', hoy).maybeSingle()
@@ -186,8 +212,10 @@ export async function montarHoy(session, { doc = document } = {}) {
       return (data || [])[0] || null
     }),
     intentar(async () => {
-      const { data } = await supabase.from('tcg_sets').select('name,name_en,release_date,oculto').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(3)
-      return (data || []).filter((s) => !s.oculto && s.release_date)
+      const { data } = await supabase.from('tcg_sets').select('name,name_en,release_date,oculto,tcggo_id').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(3)
+      // Las próximas de TCGGO nacen escondidas (756) y cuentan, como en
+      // el calendario.
+      return (data || []).filter((s) => (!s.oculto || s.tcggo_id) && s.release_date)
     }),
     intentar(async () => {
       const { data: fila } = await supabase.from('user_progress').select('guide_id, current_block, status, started_at').eq('user_id', uid).neq('status', 'completed').not('started_at', 'is', null).order('started_at', { ascending: false }).limit(1).maybeSingle()

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (2) — PINGU-Claude (756 — la portada dice lo del Panel, y los próximos lanzamientos)
+
+**Hecho**: «Hoy» enseña lo que vale tu colección AHORA, sumado con la
+misma función que el Panel (`valorDeLineas`), y no la foto de anoche. Y el
+catálogo de TCGGO crea las expansiones anunciadas (fecha futura, cero
+cartas, como Delta Reign) escondidas para el calendario, y cuando salen sus
+cartas las mete en ese set y lo enseña; las listas de expansiones se piden
+cada día. Detalle en SCHEMA.md, tanda 756.
+
+**Ficheros**: `js/hoy.js`, `js/home.js`, `js/lanzamientos.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`netlify/functions/tcggo-catalogo.mjs`,
+`netlify/functions/tcggo-emparejar.mjs`,
+`netlify/functions/tcggo-calco-jp.mjs`, `SCHEMA.md`. Prueba 756 (nueva);
+640 y 744-pantalla al día. Portada: 169,1 KB.
+
+**Pendiente**: nada. Sin migración nueva (sigue la de la 753).
+
 ## 2026-10-08 — PINGU-Claude (755 — el logo que se salía y los japoneses antiguos, de TCGGO)
 
 **Hecho**: el logo de una expansión ya no se sale de su caja ni tapa el

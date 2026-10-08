@@ -137,7 +137,10 @@ export async function pasada({
 
   // ── 2. Una expansión por pasada ──
   const dudaReciente = (id) => { const d = estado.dudosos[id]; return d?.fecha && (ahora.getTime() - new Date(d.fecha).getTime()) / 86_400_000 < DIAS_DE_DUDA }
-  const pendiente = episodios.find((e) => !estado.hechos[e.id] && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
+  // Una apuntada VACÍA cuya lista de hoy ya trae cartas es la que acaba de
+  // salir (756): vuelve a estar pendiente.
+  const hecha = (e) => estado.hechos[e.id] && !(estado.hechos[e.id].nota === 'vacía en TCGGO' && e.cartas > 0)
+  const pendiente = episodios.find((e) => !hecha(e) && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
   const SELECT_SETS = `tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date,card_count_total,card_count_official,scrydex_id&market=eq.${MERCADO}&limit=2000`
   // Lo que se borra o se reescribe le quita la expansión a los hechos del
   // día de la pasada de precios (la 697): si ya la hizo hoy, no volvería
@@ -156,7 +159,7 @@ export async function pasada({
   }
   const resumen = () => ({
     expansiones: episodios.length, hechas: Object.keys(estado.hechos).length, dudosas: Object.keys(estado.dudosos).length,
-    paradas: episodios.filter((e) => !estado.hechos[e.id] && (Number(estado.intentos[e.id]) || 0) >= MAXIMO_INTENTOS).map((e) => e.id),
+    paradas: episodios.filter((e) => !hecha(e) && (Number(estado.intentos[e.id]) || 0) >= MAXIMO_INTENTOS).map((e) => e.id),
   })
   if (pendiente) {
     // Las que su lista da con CERO cartas (energías, promos sin sueltas)

@@ -785,9 +785,7 @@ async function completarPrecios() {
 // último punto. No daba error: daba una gráfica que parecía decir que
 // acabas de perder tu colección.
 function valorDeAhora() {
-  let total = 0
-  for (const l of (lineasTodo.length ? lineasTodo : lineas)) total += valorDeLinea(l, precioDe(l)) || 0
-  return total
+  return datos.valorDeLineas(lineasTodo.length ? lineasTodo : lineas, guardados, vivos)
 }
 
 // Quién eres y desde cuándo, que es lo que abre el panel de Dex y lo que
