@@ -95,6 +95,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   que cada una de las ~1.600 importaciones con nombre apunta a algo que de
   verdad se exporta. **Correrla antes de cada push cuesta un segundo y se
   come esta familia entera de fallos.**
+- **Una reescritura de Netlify NO le pasa la consulta a una función v2**
+  (tanda 633). `/escaneo/:set/:n → /.netlify/functions/escaneo?set=:set&n=:n`
+  llega a la función con la URL ORIGINAL (`/escaneo/TWM/151`, sin `?`), así
+  que `searchParams.get('set')` era null y /escaneo y /sprite contestaban
+  404 a TODO en producción — Hassel sin foto al exportar, sin un error en
+  la web porque la cadena de respaldos se lo comía. Una función que va
+  detrás de una reescritura lee la RUTA (y la consulta, para llamarla a
+  pelo).
+- **Una carta sin `regulation_mark` no es ilegal: es de TCGGO** (tanda
+  633). Las `tcggo-*` (el 30 aniversario) nacen sin letra, y el filtro de
+  Estándar por marca las escondía — en el constructor solo salía el Mew ex
+  de 151. Cuenta como legal la que no tiene letra y es de una colección
+  igual o más nueva que la primera con la marca legal más vieja
+  (`coleccionesRecientes`).
 - **Un REEXPORT no es un IMPORT** (tanda 624). `export { normalizeSearch }
   from './texto.js'` deja que otros la importen de `js/tcgdex.js`, pero NO
   crea el nombre dentro de ese fichero — y `searchCards` la llamaba. Desde la

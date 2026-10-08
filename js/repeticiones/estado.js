@@ -102,6 +102,27 @@ function aMano(p, cartas, n = cartas.length) {
   p.mano += n
   p.manoConocida.push(...cartas)
 }
+// ── El estadio que se va y la banca que sobra (tanda 633) ──
+//
+// Rubén: «cuando le pega 60 al Kanga, no es a ese: ese ya no está, porque
+// se ha quitado el estadio y lo he descartado». Un estadio que amplía la
+// banca (Área Cero) se va sin que llegue otro —lo descarta un efecto—, y su
+// dueño descarta de la banca hasta quedarse con cinco. La repetición no
+// sabía ninguna de las dos cosas: el estadio seguía puesto, el Kangaskhan
+// descartado seguía en la banca, y el daño de después caía en él.
+function quitarEstadio(s) {
+  if (!s.estadio) return
+  s.jugadores[s.estadio.dueno]?.descarte.push(s.estadio.carta)
+  s.estadio = null
+  s.estadioFuera = s.turno
+}
+// ¿Le sobra banca? Más de cinco sin un estadio que lo permita: el que había
+// se ha ido (o ha cambiado) en este turno.
+const sobraBanca = (s, p) => p.banca.length > 5 && (!s.estadio || s.estadioFuera === s.turno)
+// El de la banca que se descarta por nombre: el último en llegar de los que
+// se llaman así (el registro no dice cuál).
+const deLaBancaQueSeLlama = (p, nombre) => [...p.banca].reverse().find((x) => igual(arriba(x), nombre)) || null
+
 function quitarSlot(p, slot) {
   if (p.activo === slot) p.activo = null
   else p.banca = p.banca.filter((s) => s !== slot)
@@ -245,6 +266,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       if (s.estadio) {
         s.jugadores[s.estadio.dueno]?.descarte.push(s.estadio.carta)
         s.estadioQuitado = { ...s.estadio }
+        s.estadioFuera = s.turno
       }
       s.estadio = { carta: e.carta, dueno: e.jugador }
       quitarDeMano(p, e.carta)
@@ -413,7 +435,9 @@ export function aplicar(estado, e, { psDe = null } = {}) {
         s.caido = null
         break
       }
-      const slot = buscar(p, e.pokemon)
+      // Con banca de más, el que se va entero es uno de la banca (el activo
+      // no se descarta por sobrar banca): `buscar` miraba primero el activo.
+      const slot = (sobraBanca(s, p) && !e.cartas?.length && deLaBancaQueSeLlama(p, e.pokemon)) || buscar(p, e.pokemon)
       if (!slot) break
       // Con la lista debajo, son ESAS cartas y el Pokémon se queda: «Se han
       // descartado 2 cartas del Greninja ex • Energía Agua, Energía Fuego»
@@ -511,11 +535,51 @@ export function aplicar(estado, e, { psDe = null } = {}) {
         s.foco = { tipo: 'descarta', jugador: e.jugador }
         break
       }
+      // El estadio en juego, descartado por un efecto (sin que llegue otro):
+      // se va de la mesa, no de la mano. Salvo que quien descarta lo tenga
+      // en la mano a la vista (entonces es una copia suya).
+      const delEstadio = s.estadio && e.cartas?.length === 1 && igual(e.cartas[0], s.estadio.carta) && !p.manoConocida.some((c) => igual(c, s.estadio.carta))
+      if (delEstadio) {
+        quitarEstadio(s)
+        s.foco = { tipo: 'descarta', jugador: e.jugador }
+        break
+      }
+      // Con banca de más (el estadio que la ampliaba se ha ido), lo que se
+      // descarta es de la banca: un Pokémon entero con lo suyo, o uno por
+      // su nombre.
+      if (sobraBanca(s, p)) {
+        // Mirando solo la banca: «Kangaskhan» a secas también es EXACTAMENTE
+        // el activo si es un Kangaskhan sin nada unido, y ese no se va.
+        const clave = (l) => l.map(plano).sort().join('|')
+        const entero = e.cartas?.length ? [...p.banca].reverse().find((x) => clave(cartasDe(x)) === clave(e.cartas)) : null
+        const slot = entero || (e.cartas?.length === 1 ? deLaBancaQueSeLlama(p, e.cartas[0]) : null)
+        if (slot) {
+          quitarSlot(p, slot)
+          p.descarte.push(...cartasDe(slot))
+          s.foco = { tipo: 'descarta', jugador: e.jugador }
+          break
+        }
+      }
       const cartas = e.cartas || []
       const n = cartas.length || e.n || 1
       for (let i = 0; i < n; i++) quitarDeMano(p, cartas[i] || '')
       p.descarte.push(...cartas)
       s.foco = { tipo: 'descarta', jugador: e.jugador }
+      break
+    }
+    case 'descartadoSuelto': {
+      // «Se ha descartado Área Cero» / «Area Zero Underdepths was
+      // discarded», sin decir de dónde: si es el estadio, es el estadio.
+      if (s.estadio && igual(e.carta, s.estadio.carta)) quitarEstadio(s)
+      else {
+        const dueno = Object.values(s.jugadores).find((j) => sobraBanca(s, j) && deLaBancaQueSeLlama(j, e.carta))
+        const slot = dueno && deLaBancaQueSeLlama(dueno, e.carta)
+        if (slot) {
+          quitarSlot(dueno, slot)
+          dueno.descarte.push(...cartasDe(slot))
+        }
+      }
+      s.foco = { tipo: 'descarta', jugador: s.estadio?.dueno || s.deQuien }
       break
     }
     case 'alMazo': {

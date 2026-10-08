@@ -51,10 +51,22 @@ export async function traerSprite(nombre, { fetchImpl = fetch, alFallar = () => 
   }
 }
 
+// El nombre, de la consulta o de la ruta (tanda 633): la reescritura de
+// netlify.toml pone `?n=`, pero la función recibe la dirección ORIGINAL
+// (`/sprite/charizard`) y la consulta venía vacía — todas contestaban 404
+// («nombre»). Lo mismo que /escaneo.
+export function nombreDeSprite(direccion) {
+  const url = new URL(direccion, 'https://pokedoc.es')
+  const ruta = url.pathname.match(/^\/sprite\/([^/]+)\/?$/)
+  let deRuta = null
+  try { deRuta = ruta ? decodeURIComponent(ruta[1]) : null } catch {}
+  return url.searchParams.get('n') || deRuta
+}
+
 export default async (request) => {
   // /sprite/<NOMBRE>, que netlify.toml reescribe a ?n=.
   let motivo = 'desconocido'
-  const sprite = await traerSprite(new URL(request.url).searchParams.get('n'), { alFallar: (m) => (motivo = m) })
+  const sprite = await traerSprite(nombreDeSprite(request.url), { alFallar: (m) => (motivo = m) })
   if (!sprite) {
     return new Response('Sin sprite', { status: 404, headers: { 'cache-control': 'public, max-age=3600', 'x-motivo': motivo } })
   }

@@ -513,6 +513,9 @@ body:has(> .footer) .page-content {
     background: var(--white);
   }
 
+  html.lat-plegada body:has(> #navbar) { padding-left: 72px; }
+  html.lat-plegada body:has(> #navbar)::before { width: 72px; }
+
   #navbar .nav-logo,
   #navbar .nav-links {
     display: none;

@@ -96,9 +96,50 @@ export async function cargarSets() {
     idDeCodigo.set(String(codigo).toUpperCase(), id)
     codigoDeId.set(id, String(codigo).toUpperCase())
   }
-  setsCache = { sets, codigoDeId, idDeCodigo, porId: new Map(sets.map((s) => [s.id, s])) }
+  // Todos los sets de un código (tanda 633): «LOR» es Origen Perdido Y su
+  // Galería de Entrenadores (`swsh11tg`), y la TG24 vive en la segunda.
+  const idsDeCodigo = new Map()
+  for (const [id, codigo] of codigoDeId) idsDeCodigo.set(codigo, [...(idsDeCodigo.get(codigo) || []), id])
+  setsCache = { sets, codigoDeId, idDeCodigo, idsDeCodigo, porId: new Map(sets.map((s) => [s.id, s])) }
   return setsCache
 }
+
+// ── Las colecciones nuevas sin marca (tanda 633) ──
+//
+// PINGU: «Mew solo enseña el de 151 en el constructor y en las
+// repeticiones». El Mew ex que se juega hoy es el del 30 aniversario, y
+// desde la 666 esas cartas son las de TCGGO, que NO trae la letra de
+// reglamento: con la marca a null, el filtro de Estándar las escondía y
+// «el más legal y más nuevo» elegía el de 151 (G, que ya rotó), que por lo
+// menos tenía letra. Una carta sin marca de una colección que salió DESPUÉS
+// de que empezara la marca legal más vieja se da por legal: no hay
+// colección nueva que no lo sea.
+//
+// La fecha de corte: la colección más vieja con alguna carta de la marca
+// legal más vieja. Una consulta, la primera vez.
+let recientesCache = null
+export function setsRecientesSinMarca(sets, setsConMarcaVieja) {
+  const fechas = (setsConMarcaVieja || []).map((id) => sets.find((s) => s.id === id)?.release_date).filter(Boolean).sort()
+  const corte = fechas[0]
+  if (!corte) return new Set()
+  return new Set(sets.filter((s) => s.release_date && String(s.release_date) >= String(corte)).map((s) => s.id))
+}
+export async function coleccionesRecientes() {
+  if (recientesCache) return recientesCache
+  try {
+    const [{ sets }, legales] = await Promise.all([cargarSets(), marcasLegales()])
+    const vieja = [...legales].sort()[0]
+    const { data, error } = await supabase.from('tcg_cards').select('set_id').eq('market', MERCADO).eq('regulation_mark', vieja).limit(2000)
+    if (error) throw error
+    recientesCache = setsRecientesSinMarca(sets, [...new Set((data || []).map((r) => r.set_id))])
+  } catch {
+    // Sin poder preguntar, nada se da por legal sin su letra: lo de antes.
+    recientesCache = new Set()
+  }
+  return recientesCache
+}
+// ¿Legal en Estándar? Por su letra, o sin letra y de una colección nueva.
+export const esLegalPorMarca = (c, legales, recientes) => legales.includes(c?.regulation_mark) || (!c?.regulation_mark && !!recientes?.has(c?.set_id))
 
 // ── Buscar ──
 //
@@ -132,7 +173,7 @@ export const TIPOS = [
 ]
 const SERIES_EXPANDIDO = ['bw', 'xy', 'sm', 'swsh', 'sv', 'me']
 
-function aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales }) {
+function aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales, recientes = new Set() }) {
   if (categoria && CATEGORIAS[categoria]) q = q.in('category', CATEGORIAS[categoria])
   // Las energías, por colección y no por `energy_type`, que en el espejo
   // marca «Básico» a especiales como la Prisma o la Ignición (ver
@@ -150,7 +191,9 @@ function aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales }) 
   if (formato === 'standard') {
     // Las básicas no rotan nunca, pero muchas llevan marca G: sin el `or`
     // el filtro de Estándar las escondería. Van las de MEE (ver arriba).
-    q = q.or(`regulation_mark.in.(${legales.join(',')}),set_id.eq.mee`)
+    // Y las de una colección nueva sin letra (las de TCGGO: ver arriba).
+    const nuevas = [...recientes].filter((id) => /^[\w.-]+$/.test(id))
+    q = q.or(`regulation_mark.in.(${legales.join(',')}),set_id.eq.mee${nuevas.length ? `,and(regulation_mark.is.null,set_id.in.(${nuevas.join(',')}))` : ''}`)
   } else if (formato === 'expanded') {
     q = q.or(SERIES_EXPANDIDO.map((s) => `set_id.like.${s}*`).join(','))
   }
@@ -161,13 +204,13 @@ function aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales }) 
 // filtro (una colección entera, todos los partidarios de Estándar…),
 // que es como más se construye.
 export async function buscarCartas({ texto = '', categoria = '', subtipo = '', tipo = '', set = '', formato = 'standard', desde = 0, limite = 60 } = {}) {
-  const legales = await marcasLegales()
+  const [legales, recientes] = await Promise.all([marcasLegales(), formato === 'standard' ? coleccionesRecientes() : new Set()])
   const palabras = normalizeSearch(texto).split(/\s+/).filter(Boolean)
   if (!palabras.length && !categoria && !subtipo && !tipo && !set) return { cartas: [], total: 0, sinFiltro: true }
 
   let q = supabase.from('tcg_cards').select(COLUMNAS, { count: 'exact' }).eq('market', MERCADO)
   for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  q = aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales })
+  q = aplicarFiltros(q, { categoria, subtipo, tipo, set, formato, legales, recientes })
   // Dentro de una colección, por su número (así se ve como el álbum);
   // fuera, por nombre, para que las versiones de una carta salgan juntas.
   // (y las básicas, en el orden de siempre: Planta, Fuego, Agua…).
@@ -297,7 +340,13 @@ export async function nombresConReimpresionLegal(cartas) {
           .catch(() => [])
       : Promise.resolve([])
   try {
-    const filas = (await Promise.all([pedir('name', nombres), pedir('name_key', claves), pedir('name_es', traducidos)])).flat()
+    // Y las gemelas sin letra de una colección nueva (tanda 633: el Mew ex
+    // del 30 aniversario es la reimpresión legal del de 151).
+    const recientes = [...(await coleccionesRecientes())]
+    const sinLetra = recientes.length && nombres.length
+      ? supabase.from('tcg_cards').select('name,name_es,name_key').eq('market', MERCADO).in('name', nombres).is('regulation_mark', null).in('set_id', recientes).limit(1000).then(({ data }) => data || []).catch(() => [])
+      : Promise.resolve([])
+    const filas = (await Promise.all([pedir('name', nombres), pedir('name_key', claves), pedir('name_es', traducidos), sinLetra])).flat()
     const nombresLegales = new Set(filas.flatMap((r) => [r.name, r.name_es]).filter(Boolean))
     const clavesLegales = new Set(filas.map((r) => r.name_key))
     const fuera = new Set()
@@ -323,7 +372,7 @@ export async function nombresConReimpresionLegal(cartas) {
 // Lo que no se resuelve vuelve en `sinResolver`: nunca se pierde una
 // línea sin decirlo.
 export async function resolverLineas(lineas) {
-  const { idDeCodigo } = await cargarSets()
+  const { idDeCodigo, idsDeCodigo } = await cargarSets()
   const legales = await marcasLegales()
   const resueltas = []
   const sinResolver = []
@@ -357,6 +406,15 @@ export async function resolverLineas(lineas) {
         const ids = [`${setId}-${num}`, `${setId}-${num.padStart(3, '0')}`, `${setId}-${num.replace(/^0+(?=\d)/, '')}`]
         const pre = PREFIJO_PROMO[setId]
         if (pre && /^\d+$/.test(num)) ids.push(`${setId}-${pre}${num}`, `${setId}-${pre}${num.padStart(2, '0')}`, `${setId}-${pre}${num.padStart(3, '0')}`)
+        // Una de galería (TG24, GG05) está en el set hermano del mismo
+        // código (`swsh11tg`), no en el principal: se prueba en todos.
+        const galeria = /^(TG|GG)0*(\d+)$/i.exec(num)
+        if (galeria) {
+          for (const otro of idsDeCodigo?.get(l.set) || []) {
+            const g = galeria[1].toUpperCase()
+            ids.push(`${otro}-${g}${galeria[2]}`, `${otro}-${g}${galeria[2].padStart(2, '0')}`)
+          }
+        }
         candidatos.set(l, ids)
       }
     }
@@ -414,6 +472,8 @@ export function letraDeEnergiaPorNumero(set, numero) {
 async function mejorPorNombre(nombre, legales) {
   const objetivo = normalizeSearch(nombre)
   const { sets } = await cargarSets()
+  const recientes = await coleccionesRecientes()
+  const legal = (c) => esLegalPorMarca(c, legales, recientes)
   const orden = new Map(sets.map((s, i) => [s.id, i]))
   // Exacta en cualquiera de los dos idiomas: la lista puede venir de TCG
   // Live (inglés) o escrita a mano en español.
@@ -426,9 +486,12 @@ async function mejorPorNombre(nombre, legales) {
     const exactas = yaExactas ? lista : lista.filter(esExacta)
     const pool = exactas.length ? exactas : lista
     return [...pool].sort((a, b) => {
-      const la = legales.includes(a.regulation_mark) ? 1 : 0
-      const lb = legales.includes(b.regulation_mark) ? 1 : 0
+      const la = legal(a) ? 1 : 0
+      const lb = legal(b) ? 1 : 0
       if (la !== lb) return lb - la
+      // Dos legales: si alguna va sin letra (TCGGO), manda la colección más
+      // nueva; comparar la letra pondría delante cualquiera que la tenga.
+      if (la && (!a.regulation_mark || !b.regulation_mark)) return (orden.get(a.set_id) ?? 9999) - (orden.get(b.set_id) ?? 9999)
       const ma = String(a.regulation_mark || '')
       const mb = String(b.regulation_mark || '')
       if (ma !== mb) return mb.localeCompare(ma)

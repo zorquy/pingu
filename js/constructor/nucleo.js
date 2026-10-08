@@ -534,6 +534,7 @@ export function decodificarMazo(texto) {
 const LINEA = /^\*?\s*(\d{1,2})\s*x?\s+(.+?)\s*$/i
 // El código de set va en mayúsculas o dígitos (2–6), o «PR-XX», o la
 // palabra «Energy» con la que TCG Live exporta las básicas antiguas.
+const GALERIA = /^(.*\S)\s+([A-Z0-9]{2,6})-(TG|GG)\s*(\d{1,3})$/i
 const COLA = /^(.*\S)\s+([A-Z0-9]{2,6}|PR-[A-Z]{2,5}|Energy)\s+([A-Za-z0-9]{1,6})$/
 
 export function leerLista(texto) {
@@ -551,6 +552,15 @@ export function leerLista(texto) {
     }
     const n = Number(m[1])
     if (!n) continue
+    // «Boss's Orders LOR-TG 24» (tanda 633): la Galería de Entrenadores
+    // (TG) y la Galería de Galar (GG) se exportan con el sufijo pegado al
+    // código y el número aparte. Es la carta TG24 de Origen Perdido: sin
+    // esto la línea entera era el nombre y no casaba con nada.
+    const galeria = GALERIA.exec(m[2])
+    if (galeria) {
+      lineas.push({ n, nombre: galeria[1], set: galeria[2].toUpperCase(), numero: `${galeria[3].toUpperCase()}${galeria[4]}`, original: linea })
+      continue
+    }
     const cola = COLA.exec(m[2])
     if (cola) lineas.push({ n, nombre: cola[1], set: cola[2].toUpperCase(), numero: cola[3], original: linea })
     else lineas.push({ n, nombre: m[2], set: null, numero: null, original: linea })

@@ -51,11 +51,29 @@ export async function traerEscaneo(set, numero, { fetchImpl = fetch, alFallar = 
   }
 }
 
+// De dónde salen el set y el número (tanda 633). La reescritura de
+// netlify.toml los pone en `?set=&n=`… pero la función recibe la dirección
+// ORIGINAL (`/escaneo/TWM/151`), sin esa consulta: `searchParams` venía
+// vacío, cada petición contestaba 404 («carta») y la imagen exportada de un
+// mazo se pintaba entera con el respaldo de TCGdex —y la carta que TCGdex
+// no tiene en inglés (Hassel, TWM 151) salía como una caja con su nombre—.
+// Se lee de la ruta, y la consulta queda para quien llame a la función a
+// pelo.
+export function parametrosDeEscaneo(direccion) {
+  const url = new URL(direccion, 'https://pokedoc.es')
+  const ruta = url.pathname.match(/^\/escaneo\/([^/]+)\/([^/]+)\/?$/)
+  const leer = (t) => { try { return decodeURIComponent(t) } catch { return '' } }
+  return {
+    set: url.searchParams.get('set') || (ruta ? leer(ruta[1]) : null),
+    numero: url.searchParams.get('n') || (ruta ? leer(ruta[2]) : null),
+  }
+}
+
 export default async (request) => {
   // /escaneo/<SET>/<NÚMERO>, que netlify.toml reescribe a ?set=&n=.
-  const p = new URL(request.url).searchParams
+  const { set, numero } = parametrosDeEscaneo(request.url)
   let motivo = 'desconocido'
-  const escaneo = await traerEscaneo(p.get('set'), p.get('n'), { alFallar: (m) => (motivo = m) })
+  const escaneo = await traerEscaneo(set, numero, { alFallar: (m) => (motivo = m) })
   if (!escaneo) {
     return new Response('Sin escaneo', { status: 404, headers: { 'cache-control': 'public, max-age=3600', 'x-motivo': motivo } })
   }

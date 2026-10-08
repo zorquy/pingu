@@ -156,6 +156,10 @@ function frases(J) {
     [/^Se ha activado (.+)$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
     [new RegExp(`^Se ha descartado (.+) del (.+) de ${P}$`), (m) => ({ tipo: 'descartarDe', jugador: m[3], carta: nombreDeCarta(m[1]), pokemon: nombreDeCarta(m[2]) })],
     [new RegExp(`^(.+) was discarded from ${P}'s (.+)$`), (m) => ({ tipo: 'descartarDe', jugador: m[2], carta: nombreDeCarta(m[1]), pokemon: nombreDeCarta(m[3]) })],
+    // Lo que se descarta sin decir de dónde (tanda 633): el estadio que quita
+    // un efecto, o el Pokémon que sobra de la banca cuando el estadio se va.
+    [/^Se ha descartado (.+)$/, (m) => ({ tipo: 'descartadoSuelto', carta: nombreDeCarta(m[1]) })],
+    [/^(.+) was discarded$/, (m) => ({ tipo: 'descartadoSuelto', carta: nombreDeCarta(m[1]) })],
     // Lo que llega a la mano sin robarlo: los premios (su nombre va en la
     // línea siguiente) y lo que sale del descarte.
     [new RegExp(`^(?:A card|Una carta) (?:was added to|se ha añadido a la mano de) ${P}(?:'s hand)?$`), (m) => ({ tipo: 'llegaAMano', jugador: m[1] })],

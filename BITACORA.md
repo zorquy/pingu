@@ -4,6 +4,54 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (4) — PINGU-Claude (633 — la barra lateral desplegable, el estadio en las repeticiones, la TG24, Hassel y el Mew del 30 aniversario)
+
+**Hecho**: cinco cosas que pidió PINGU (dos venían de Rubén).
+- **Barra lateral (739) desplegable**: cada sección con páginas lleva una
+  flecha y un cajón que se abre con transición (una a la vez, el resto
+  `inert`); sale abierta la de la página en la que estás. Botón «Plegar la
+  barra» (columna de iconos de 72, se recuerda en
+  `pokedoc-lateral-plegada`, se aplica desde `js/app.js` antes de pintar).
+  Si lo de dentro no cabe en el alto de la ventana se pone `lat-prieta`
+  (renglones de 36, es una lista de ratón): en 1440×560 cabe entera, sin
+  barra de desplazamiento. Todo con «menos movimiento».
+- **Repeticiones: quitar el estadio y la banca que sobra**. Descartar el
+  estadio en juego (sin copia en la mano de quien descarta), «Se ha
+  descartado X» y «X was discarded» lo quitan de la mesa; y si la banca
+  se queda en seis sin estadio, lo descartado sale de la BANCA (nunca del
+  activo). Era el «le pega 60 al Kanga que ya no está».
+- **«Boss's Orders LOR-TG 24»** se lee (TG/GG con espacio) y se busca en
+  TODOS los sets con ese código (LOR son swsh11, swsh11tg y swsh11.5tg).
+- **/escaneo y /sprite daban 404 SIEMPRE en producción**: la reescritura
+  de Netlify no llega como consulta a una función v2. Ahora leen la ruta.
+  Era lo de Hassel al exportar la imagen (y de toda carta sin foto de
+  TCGdex); además, TCGdex en español de respaldo.
+- **Mew del 30 aniversario**: las cartas que creó TCGGO (`tcggo-*`) no
+  tienen `regulation_mark`, y el filtro de Estándar las escondía. Una
+  carta sin letra de una colección igual o más nueva que la primera con
+  la marca legal más vieja cuenta como legal (`coleccionesRecientes`), y
+  entre dos legales gana la colección más nueva.
+
+**Ficheros**: js/barra-lateral.js, css/lateral.css, css/style.css,
+js/app.js, js/repeticiones/estado.js, js/repeticiones/registro.js,
+js/constructor/nucleo.js, js/constructor/datos.js,
+netlify/functions/escaneo.mjs, netlify/functions/sprite.mjs,
+js/torneos/decklist-imagen.js. Pruebas (rama `pruebas`): test-tanda-633
+(+ rigor, 24/24), 739-pantalla al día, el doble entiende `and(…)` en `or`,
+y 492 espera a que la marca del deslizador esté pintada (medía en mitad
+del repintado y fallaba a ratos). Suite entera: todo verde salvo 470 (la
+captura de referencia que no está en el contenedor).
+
+**Pendiente**:
+- **Para la otra sesión**: las cartas `tcggo-*` del 30 aniversario NO
+  traen PS, ataques ni habilidades — en las repeticiones y el motor salen
+  sin vida. Habría que engordarlas (o casarlas con su original).
+- Las repeticiones de Rubén no se pueden leer desde aquí (RLS): el arreglo
+  va contra las frases de TCG Live que conocemos. Si sigue fallando, que
+  pase el enlace o el registro.
+- Sigue pendiente de ejecutar `supabase-migration-partidas-juegos.sql` (632)
+  si no se ha hecho.
+
 ## 2026-10-08 (3) — PINGU-Claude (757 — en una expansión, lo que falta en gris y lo tuyo con su marca)
 
 **Hecho**: la «propuesta 1» que eligió PINGU. Lo que te falta en gris de

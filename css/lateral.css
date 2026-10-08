@@ -313,3 +313,209 @@
     font-size: var(--t-xs);
   }
 }
+
+/* ── 633: desplegable, plegable y que quepa (SCHEMA 633) ── */
+@media (min-width: 1400px) and (pointer: fine) {
+  /* Plegar y desplegar se anima solo al pulsar (`lat-animando`): al
+     cargar una página ya plegada no tiene que verse cerrarse. */
+  html.lat-animando body {
+    transition: padding-left 0.28s ease;
+  }
+
+  html.con-lateral.lat-plegada body {
+    padding-left: 72px;
+  }
+
+  .lat {
+    overflow-x: hidden;
+  }
+
+  html.lat-animando .lat {
+    transition: width 0.28s ease, padding 0.28s ease;
+  }
+
+  html.lat-plegada .lat {
+    width: 72px;
+    padding-right: var(--e-sm);
+    padding-left: var(--e-sm);
+  }
+
+  .lat-cabeza {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-sm);
+    min-height: 44px;
+  }
+
+  .lat-plegar,
+  .lat-flecha {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .lat-plegar:hover,
+  .lat-flecha:hover {
+    background: var(--ice);
+    color: var(--text);
+  }
+
+  .lat-plegar svg {
+    transition: transform 0.28s ease;
+  }
+
+  html.lat-plegada .lat-plegar svg {
+    transform: rotate(180deg);
+  }
+
+  .lat-fila {
+    display: flex;
+    align-items: center;
+    gap: var(--e-xs);
+  }
+
+  .lat-fila .lat-seccion-enlace {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .lat-seccion-enlace,
+  .lat-paginas a {
+    transition: background-color 0.15s ease, color 0.15s ease, min-height 0.2s ease;
+  }
+
+  .lat-seccion-enlace span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .lat-flecha svg {
+    transition: transform 0.28s ease;
+  }
+
+  .lat-flecha[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+
+  /* El cajón se abre y se cierra con su alto de verdad: una rejilla de una
+     fila que va de 0fr a 1fr (con `height` no se puede animar hasta «lo que
+     mida»). */
+  .lat-cajon {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.28s ease, opacity 0.2s ease;
+  }
+
+  .lat-cajon.lat-abierto {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  /* Sin márgenes de arriba y abajo: en una fila de 0fr asomarían. */
+  .lat-cajon > .lat-paginas {
+    min-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
+
+  .lat-cajon.lat-abierto {
+    margin-top: var(--e-xs);
+  }
+
+  .lat-activa .lat-seccion-enlace {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  /* PRIETA: la pone js/barra-lateral.js cuando lo de dentro no cabe en el
+     alto de la ventana. Renglones de 36 y menos aire: es una lista de
+     ratón (la barra solo sale con `pointer: fine`). */
+  .lat.lat-prieta {
+    gap: var(--e-sm);
+    padding-top: var(--e-sm);
+    padding-bottom: var(--e-sm);
+  }
+
+  .lat.lat-prieta .lat-lista,
+  .lat.lat-prieta .lat-paginas {
+    gap: 0;
+  }
+
+  .lat.lat-prieta .lat-seccion-enlace,
+  .lat.lat-prieta .lat-paginas a,
+  .lat.lat-prieta .mc-pestania {
+    min-height: 36px;
+  }
+
+
+  .lat.lat-prieta .lat-yo {
+    min-height: 48px;
+    padding-top: var(--e-xs);
+    padding-bottom: var(--e-xs);
+  }
+
+  .lat.lat-prieta .lat-yo-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* PLEGADA: una columna de iconos. Las palabras se van (siguen en el
+     `title` y en la voz), y los cajones, las flechas y el menú de Mi
+     colección también: para ir a una página se pulsa su sección. */
+  html.lat-plegada .lat-cabeza {
+    flex-direction: column;
+  }
+
+  html.lat-plegada .lat-logo {
+    gap: 0;
+    font-size: 0;
+  }
+
+  html.lat-plegada .lat-seccion-enlace {
+    justify-content: center;
+    padding: 0;
+  }
+
+  html.lat-plegada .lat-seccion-enlace span,
+  html.lat-plegada .lat-flecha,
+  html.lat-plegada .lat-cajon,
+  html.lat-plegada .lat-yo-texto,
+  html.lat-plegada .lat-yo > svg {
+    display: none;
+  }
+
+  html.lat-plegada .lat-yo {
+    justify-content: center;
+    padding: var(--e-xs);
+  }
+
+  html.lat-plegada.lat-con-yo #navUserDropdown {
+    left: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.lat-animando body,
+  html.lat-animando .lat,
+  .lat-plegar,
+  .lat-flecha,
+  .lat-plegar svg,
+  .lat-flecha svg,
+  .lat-seccion-enlace,
+  .lat-paginas a,
+  .lat-cajon {
+    transition: none;
+  }
+}

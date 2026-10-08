@@ -73,7 +73,14 @@ export function fuentesDeCarta(linea) {
   }
   const fuentes = []
   if (linea?.set && linea?.number) fuentes.push(`/escaneo/${encodeURIComponent(String(linea.set).toUpperCase())}/${encodeURIComponent(String(linea.number).replace(/^0+(?=\d)/, ''))}`)
-  if (linea?.carta?.image_path) fuentes.push(cardImageUrl(linea.carta.image_path, 'low'))
+  if (linea?.carta?.image_path) {
+    fuentes.push(cardImageUrl(linea.carta.image_path, 'low'))
+    // Y la de TCGdex en español (tanda 633): hay cartas sin escaneo en
+    // inglés que sí lo tienen en español (Hassel, TWM 151). Mejor la carta
+    // en español que una caja con su nombre.
+    const en = cardImageUrl(linea.carta.image_path, 'low')
+    if (/\/en\//.test(en)) fuentes.push(en.replace('/en/', '/es/'))
+  }
   return [...new Set(fuentes.filter(Boolean))]
 }
 

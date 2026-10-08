@@ -16,26 +16,76 @@ import { ICONOS, claveDePagina, seccionesDeLaBarra, seccionActual, destinoDe, ic
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
 
+// Los dos dibujos que la barra necesita y js/icons.js no tiene (la flecha
+// del desplegable y el de plegar la barra). Viven aquí y no en icons.js
+// porque icons.js lo baja la portada, que no tiene ni un byte de margen.
+const svg = (d, t) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
+export const DIBUJOS = {
+  flecha: (t = 16) => svg('<path d="m6 9 6 6 6-6"/>', t),
+  plegar: (t = 18) => svg('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>', t),
+}
+
 // El HTML de la barra. Puro: lo prueba node con las secciones a mano.
-export function lateralHtml(secciones, actual, clave, { conSesion = false } = {}) {
+//
+// DESPLEGABLE (tanda 633). PINGU: «que el menú nuevo sea desplegable y
+// tenga animaciones y transiciones para hacerlo más clean; y que se ajuste
+// a todas las pantallas, que en la mía el apartado de Jugar sale con barra
+// de desplazamiento». Cada sección con más de una página lleva su cajón y
+// una flecha que lo abre y lo cierra; sale abierto el de la sección en la
+// que estás, y abrir otro cierra el que hubiera (así cabe). Un cajón
+// cerrado es `inert`: lo que no se ve no se tabula.
+export function lateralHtml(secciones, actual, clave, { conSesion = false, abierta = actual } = {}) {
   return secciones
-    .map((s) => {
+    .map((s, i) => {
       const activa = s.nombre === actual
-      const paginas = activa && s.enlaces.length > 1
-        ? `<ul class="lat-paginas">${s.enlaces
+      const conCajon = s.enlaces.length > 1
+      const abierto = conCajon && s.nombre === abierta
+      const id = `lat-cajon-${i}`
+      const cajon = conCajon
+        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${s.enlaces
             .map((e) => {
               const k = claveDePagina(e.href)
               return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span></a></li>`
             })
-            .join('')}</ul>`
+            .join('')}</ul></div>`
+        : ''
+      const flecha = conCajon
+        ? `<button type="button" class="lat-flecha" aria-expanded="${abierto}" aria-controls="${id}" aria-label="${abierto ? 'Plegar' : 'Desplegar'} ${s.nombre}" title="${abierto ? 'Plegar' : 'Desplegar'}">${DIBUJOS.flecha(16)}</button>`
         : ''
       // La sección lleva `aria-current` solo si ES la página (Inicio en la
       // portada); si no, «estás aquí» lo dice la página de debajo.
       const esLaPagina = claveDePagina(destinoDe(s, conSesion)) === clave
-      return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}"${esLaPagina && !paginas ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${paginas}</li>`
+      const aquiDebajo = conCajon && s.enlaces.some((e) => claveDePagina(e.href) === clave)
+      return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><div class="lat-fila"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}" title="${s.nombre}"${esLaPagina && !aquiDebajo ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${flecha}</div>${cajon}</li>`
     })
     .join('')
 }
+
+// Abrir el cajón de una sección (y cerrar los demás), o cerrarlo.
+export function abrirCajon(barra, boton, abrir = boton.getAttribute('aria-expanded') !== 'true') {
+  for (const b of barra.querySelectorAll('.lat-flecha')) {
+    const si = b === boton ? abrir : false
+    const cajon = barra.querySelector(`#${b.getAttribute('aria-controls')}`)
+    const nombre = b.closest('.lat-seccion')?.querySelector('.lat-seccion-enlace span')?.textContent || ''
+    b.setAttribute('aria-expanded', String(si))
+    b.setAttribute('aria-label', `${si ? 'Plegar' : 'Desplegar'} ${nombre}`)
+    b.title = si ? 'Plegar' : 'Desplegar'
+    cajon?.classList.toggle('lat-abierto', si)
+    if (cajon) cajon.inert = !si
+  }
+}
+
+// ¿Se sale de la pantalla? Entonces va PRIETA (renglones más bajos, menos
+// aire): no a un alto de ventana elegido a ojo, sino midiendo lo que ocupa
+// de verdad (la lección de la 320: un punto de corte es una afirmación
+// sobre un ancho que nadie ha medido). Se mide sin prieta y, si no cabe, se
+// pone.
+export function ajustarAlto(barra) {
+  barra.classList.remove('lat-prieta')
+  if (barra.scrollHeight > barra.clientHeight + 1) barra.classList.add('lat-prieta')
+}
+
+const CLAVE_PLEGADA = 'pokedoc-lateral-plegada'
 
 export function montarBarraLateral({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   const navbar = doc.getElementById('navbar')
@@ -51,7 +101,34 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // Escondida hasta que llegue su hoja: sin ella es un bloque en el flujo.
   barra.hidden = true
   hoja.then(() => { barra.hidden = false })
-  barra.innerHTML = `${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}<ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul>`
+  // PLEGADA (tanda 633): la barra se puede quedar en una columna de iconos
+  // (72 px) con el botón de arriba, y se recuerda. Se pone ANTES de pintar,
+  // para que no se vea abrirse y cerrarse al cargar.
+  let plegada = false
+  try { plegada = localStorage.getItem(CLAVE_PLEGADA) === '1' } catch {}
+  doc.documentElement.classList.toggle('lat-plegada', plegada)
+  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}<button type="button" class="lat-plegar" aria-pressed="${plegada}" aria-label="${plegada ? 'Desplegar la barra' : 'Plegar la barra'}" title="${plegada ? 'Desplegar la barra' : 'Plegar la barra'}">${DIBUJOS.plegar(18)}</button></div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul>`
+  barra.addEventListener('click', (e) => {
+    const flecha = e.target.closest('.lat-flecha')
+    if (flecha) {
+      abrirCajon(barra, flecha)
+      // El cajón crece con una transición: se vuelve a medir al acabar.
+      setTimeout(() => ajustarAlto(barra), 320)
+      return
+    }
+    const plegar = e.target.closest('.lat-plegar')
+    if (plegar) {
+      const ahora = !doc.documentElement.classList.contains('lat-plegada')
+      doc.documentElement.classList.add('lat-animando')
+      setTimeout(() => doc.documentElement.classList.remove('lat-animando'), 400)
+      doc.documentElement.classList.toggle('lat-plegada', ahora)
+      plegar.setAttribute('aria-pressed', String(ahora))
+      plegar.setAttribute('aria-label', ahora ? 'Desplegar la barra' : 'Plegar la barra')
+      plegar.title = ahora ? 'Desplegar la barra' : 'Plegar la barra'
+      try { localStorage.setItem(CLAVE_PLEGADA, ahora ? '1' : '0') } catch {}
+      setTimeout(() => ajustarAlto(barra), 320)
+    }
+  })
   // Delante de todo en el orden de tabulación, justo después del «Saltar
   // al contenido»: es la navegación, y la de arriba se esconde.
   const salto = doc.querySelector('.salta-al-contenido')
@@ -111,6 +188,17 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   if (!listo() && globalThis.MutationObserver) {
     const ob = new MutationObserver(() => { if (listo()) ob.disconnect() })
     ob.observe(navbar, { childList: true, subtree: true })
+  }
+  // Que quepa: se mide al llegar la hoja, al cambiar el alto de la ventana
+  // y cuando algo crece dentro (el menú de Mi colección, los álbumes).
+  hoja.then(() => ajustarAlto(barra))
+  globalThis.addEventListener?.('resize', () => ajustarAlto(barra))
+  if (globalThis.MutationObserver) {
+    let t = null
+    new MutationObserver(() => {
+      clearTimeout(t)
+      t = setTimeout(() => ajustarAlto(barra), 60)
+    }).observe(barra, { childList: true, subtree: true })
   }
   // Quien tenga algo que colgar de la lateral (los álbumes de Mi colección,
   // 741) se entera aquí: la lateral llega por `import()` y puede ser después.

@@ -36027,3 +36027,43 @@ que es la del móvil) y la cuadrícula (`.mc-rejilla-celda`).
   cuadrícula: gris y opaco lo que falta, a color lo tuyo, ✓ / ×N arriba a la
   derecha, la versión abajo solo si hay varias, el «+» solo en lo que falta
   y de 44 / 28, y el número solo sin foto.
+
+## Tanda 633 — la barra lateral desplegable, el estadio en las repeticiones, la TG24, /escaneo por la ruta y las cartas sin letra
+
+**Barra lateral** (`js/barra-lateral.js`, `css/lateral.css`). Cada sección
+con más de una página es una fila (enlace + `.lat-flecha`) y un
+`.lat-cajon` (rejilla de `0fr` a `1fr`, con transición). `abrirCajon`
+deja abierto uno solo y pone `inert` a los cerrados; sale abierto el de
+la página actual. `.lat-plegar` alterna `html.lat-plegada` (72 px, solo
+iconos; `css/style.css` reserva 72 en vez de 240) y se recuerda en
+`localStorage['pokedoc-lateral-plegada']`; `js/app.js` la aplica al
+cargar para que no salte. Las transiciones del ancho solo corren bajo
+`html.lat-animando` (al pulsar), no al cargar. `ajustarAlto` pone
+`.lat-prieta` (renglones de 36: la barra es solo de `pointer: fine`)
+cuando lo de dentro no cabe, y se vuelve a medir al cambiar la ventana,
+al abrir un cajón y cuando cambia lo de dentro.
+
+**Repeticiones** (`js/repeticiones/estado.js`). `quitarEstadio` lo manda
+al descarte de su dueño y apunta `estadioFuera = turno`. Un «descartar» de
+UNA carta igual al estadio en juego, sin copia conocida en la mano de
+quien descarta, es el estadio. `sobraBanca`: más de cinco en la banca y
+sin estadio (o quitado este turno); entonces lo descartado se busca SOLO
+en la banca (por el conjunto de cartas o por el nombre). Lecturas nuevas
+en `registro.js`: «Se ha descartado X» / «X was discarded»
+(`descartadoSuelto`).
+
+**Importar listas**. `leerLista` entiende «LOR-TG 24» / «BRS-GG 1»
+(`GALERIA`), y `resolverLineas` prueba `<set>-TG24` en TODOS los sets con
+ese código (`setsCache.idsDeCodigo`).
+
+**/escaneo y /sprite**. Una función v2 de Netlify recibe la URL ORIGINAL
+de una reescritura, no la consulta del destino: `parametrosDeEscaneo` y
+`nombreDeSprite` leen `?set=&n=` o la ruta. `fuentesDeCarta` añade TCGdex
+en español detrás del inglés.
+
+**Cartas sin letra** (`js/constructor/datos.js`). Las cartas `tcggo-*`
+no traen `regulation_mark`. `coleccionesRecientes()` = sets con fecha
+igual o posterior a la primera colección con la marca legal más vieja;
+Estándar deja pasar `and(regulation_mark.is.null,set_id.in.(…))`,
+`mejorPorNombre` las cuenta legales (y entre legales gana la colección más
+nueva) y `nombresConReimpresionLegal` las incluye.

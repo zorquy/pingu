@@ -6,6 +6,8 @@ import { contentIconHtml } from './content-icon.js'
 // para que los ficheros que ya lo importaban de aquí sigan igual.
 export { escapeHtml } from './html.js'
 import { escapeHtml } from './html.js'
+// La lateral plegada (SCHEMA 633), desde el principio: style.css reserva su hueco.
+try { if (localStorage.getItem('pokedoc-lateral-plegada') === '1') document.documentElement.classList.add('lat-plegada') } catch {}
 
 export function getInitial(name) {
   if (!name) return '?'
