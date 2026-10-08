@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (7) — PINGU-Claude (758 ter — Cartas vuelve a tener desplegable en la lateral)
+
+**Hecho**: PINGU, al ver la 758: «la categoría Cartas no tiene desplegable
+y tendría que tener». Con solo «Mi colección» dentro, la lateral del
+ordenador no le pintaba cajón (y el menú de Mi colección de la 740 se
+quedaba fuera, en su columna). Ahora el cajón de Cartas lleva, fuera de
+/mi-coleccion, sus partes (Panel, Expansiones, Pokédex, Álbumes, Buscar) y,
+dentro, la fila de Mi colección con su menú colgado como antes.
+
+**Ficheros**: `js/barra-lateral.js` (`PARTES_DE_LA_COLECCION`). Prueba
+758-pantalla con la lateral; 633, 739 y 740 verdes.
+
+**Pendiente**: la 759 (álbumes), a medias en mi árbol.
+
 ## 2026-10-08 (6) — PINGU-Claude (758 bis — la lateral de la 633 en la escala de duraciones)
 
 **Hecho**: la suite entera cantó la 310 («solo dos duraciones de

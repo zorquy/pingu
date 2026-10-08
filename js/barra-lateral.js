@@ -12,6 +12,7 @@
 // nada por ella (lo único que cuesta es la línea de app.js que la llama).
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { ICONOS, claveDePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto } from './barra-movil.js'
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
@@ -34,15 +35,34 @@ export const DIBUJOS = {
 // una flecha que lo abre y lo cierra; sale abierto el de la sección en la
 // que estás, y abrir otro cierra el que hubiera (así cabe). Un cajón
 // cerrado es `inert`: lo que no se ve no se tabula.
+// LAS PARTES DE MI COLECCIÓN, en el cajón de Cartas (758). Desde que el
+// catálogo salió del menú y Lanzamientos se fue a Inicio, Cartas es solo
+// «Mi colección», y un cajón de un enlace no se pintaba: PINGU, «la
+// categoría Cartas no tiene desplegable y tendría que tener». Fuera de
+// /mi-coleccion el cajón lleva sus partes como enlaces; DENTRO lleva la
+// fila de «Mi colección», y debajo se cuelga su propio menú (`#mcMenu`, la
+// 740), que cambia de pestaña sin recargar.
+export const PARTES_DE_LA_COLECCION = [
+  { ver: 'resumen', texto: 'Panel', icono: () => icons.barChart(18) },
+  { ver: 'album', texto: 'Expansiones', icono: () => icons.layers(18) },
+  { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
+  { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
+  { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
+]
+const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'
+
 export function lateralHtml(secciones, actual, clave, { conSesion = false, abierta = actual } = {}) {
   return secciones
     .map((s, i) => {
       const activa = s.nombre === actual
-      const conCajon = s.enlaces.length > 1
+      const partes = soloLaColeccion(s) && clave !== 'mi-coleccion'
+      const conCajon = s.enlaces.length > 1 || soloLaColeccion(s)
       const abierto = conCajon && s.nombre === abierta
       const id = `lat-cajon-${i}`
       const cajon = conCajon
-        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${s.enlaces
+        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${partes
+          ? PARTES_DE_LA_COLECCION.map((p) => `<li><a href="/mi-coleccion?ver=${p.ver}">${p.icono()}<span>${p.texto}</span></a></li>`).join('')
+          : s.enlaces
             .map((e) => {
               const k = claveDePagina(e.href)
               return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span></a></li>`

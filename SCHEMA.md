@@ -36090,6 +36090,13 @@ M1, M2 y M3 de la ronda 3 (PINGU: «todo»).
   a Inicio; /cartas, /carta y /coleccion siguen en Cartas. La barra en el
   HTML no cambia (cinco secciones, Cartas → /mi-coleccion con cuenta y
   /cartas sin ella, que es lo que `js/barra-movil.js` remata).
+- **Cartas sigue teniendo desplegable en la lateral del ordenador**
+  (`PARTES_DE_LA_COLECCION` en `js/barra-lateral.js`). PINGU, al verla
+  sin flecha: «tendría que tener». Una sección de un solo enlace no pintaba
+  cajón, y el menú de Mi colección (la 740) no tenía dónde colgarse. Fuera
+  de /mi-coleccion el cajón son sus partes como enlaces (`?ver=resumen`,
+  `album`, `pokedex`, `carpetas`, `buscar`); dentro, la fila de Mi colección
+  con su `#mcMenu`, que cambia de pestaña sin recargar.
 - **En Mi colección, la burbuja propia sin ajenas**: ya no quedan otras
   páginas de Cartas que colgar al final (eran Catálogo y Lanzamientos), y el
   camino de la burbuja propia corre aunque la sección tenga un solo enlace.
