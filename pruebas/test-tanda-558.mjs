@@ -116,7 +116,9 @@ console.log('── 5b. Y se DICE lo que se ha leído ──')
   // ven exactamente igual: una lista larga de cartas parecidas. PINGU vio
   // 23 Charizards y tuvo que adivinar cuál de las dos cosas era.
   const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
-  const trozo = mc.split('async function dispararEscaner')[1]?.split('\n}')[0] || ''
+  // Desde la 754 el disparo se parte en recortar y `leerYBuscar` (lo usan
+  // también las fotos de la galería): lo leído se dice en las dos.
+  const trozo = ['async function dispararEscaner', 'async function leerYBuscar'].map((f) => mc.split(f)[1]?.split('\n}')[0] || '').join('\n')
   check('se enseña lo leído', /He leído/.test(trozo))
   check('  …y dice si no se pudo leer el número', /no he podido leer el número/.test(trozo))
   check('  …y si el número no casaba', /no casaba con ninguna/.test(trozo))
