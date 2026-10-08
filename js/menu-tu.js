@@ -81,12 +81,12 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     </div>
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Lo tuyo">
+      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener">${taza(20)}<span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a>
       ${fila('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero')}
       ${fila('/guardados.html', icons.bookmark(20), 'Guardados')}
       ${fila('/mazos', icons.layers(20), 'Mis mazos')}
       ${fila('/mis-partidas', icons.gamepad(20), 'Mis partidas')}
       ${fila('/editor-guia.html', icons.edit(20), 'Escribir una guía')}
-      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener">${taza(20)}<span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a>
       ${fila('/perfil.html?editar=1', icons.settings(20), 'Ajustes')}
     </nav>
     <div class="tu-pie">

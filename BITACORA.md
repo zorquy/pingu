@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (22) — PINGU-Claude (774b — el café, primera fila de la hoja «Tú»)
+
+**Hecho**: lo que quedaba de la 774. Para el móvil PINGU eligió, entre
+cuatro propuestas, «arriba del menú Tú»: «Apoyar PokeDoc» pasa a ser la
+PRIMERA fila de la hoja, encima de «La quiero» (iba al final, antes de
+Ajustes). En el PC ancho sigue sin salir en la hoja: está en la lateral.
+
+**Ficheros**: `js/menu-tu.js` (el orden), `SCHEMA.md` (tanda 774). Pruebas
+al día: 748, 758 y 774.
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-08 (21) — PINGU-Claude (774 — «Apoyar PokeDoc» en la lateral)
 
 **Hecho**: el café sale del menú del perfil en el PC y va en la lateral,

@@ -36798,11 +36798,13 @@ barra, solo el icono; y que sea un enlace, a **ko-fi.com/pokedoc** (antes
 - **El enlace y la taza viven en UN sitio**: `KOFI` y `DIBUJOS.taza` en
   `barra-lateral.js`; `menu-tu.js` los importa. Donde hay lateral (PC ancho
   con ratón) la hoja «Tú» no lo repite (`css/menu-tu.css`); en el móvil y en
-  un PC estrecho, sin lateral, sigue en la hoja.
+  un PC estrecho, sin lateral, sigue en la hoja, y desde que PINGU lo eligió
+  (entre cuatro propuestas para el móvil) es su PRIMERA fila, encima de «La
+  quiero»: antes iba al final, antes de Ajustes, y casi no se veía.
 - **En una pantalla bajita** (la lateral «prieta» de la 633, que a 560 de
   alto ya iba justa) no cabe una fila más: con tu cuenta, la taza se mete
   DENTRO de la fila de la cuenta, donde estaba la rueda (que es decorativa:
   la tarjeta entera abre la hoja), por encima para que se pulse ella.
 - El pie de las 36 páginas, al enlace nuevo (`cartas.html`, regenerado).
 - Prueba 774-pantalla (nueva); al día 633 (sin cambios: vuelve a caber),
-  748 y 758.
+  748 y 758 (el orden de la hoja).
