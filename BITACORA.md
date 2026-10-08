@@ -20,6 +20,11 @@ cada día. Detalle en SCHEMA.md, tanda 756.
 `netlify/functions/tcggo-calco-jp.mjs`, `SCHEMA.md`. Prueba 756 (nueva);
 640 y 744-pantalla al día. Portada: 169,1 KB.
 
+**Suite entera**: 372 verdes y 7 rojos. 748-pantalla era una prueba al
+día con lo nuevo (la cifra de «Hoy» es la suma de ahora: le faltaba una
+línea en la colección), verde; la 305 sale verde sola; 492, 493 y 514
+(ffmpeg), 631 y 632 (sin el PostgreSQL local), como estaban.
+
 **Pendiente**: nada. Sin migración nueva (sigue la de la 753).
 
 ## 2026-10-08 — PINGU-Claude (755 — el logo que se salía y los japoneses antiguos, de TCGGO)
