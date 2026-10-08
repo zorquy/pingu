@@ -5127,9 +5127,9 @@ function variantesDeNumero(n) {
   return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
 }
 
-async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null } = {}) {
+async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado } = {}) {
   const { nombre, numero } = partirBusqueda(texto)
-  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
+  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', market)
   // «151/165» y «MEW 151» (765): la expansión ya la ha dicho quien escribe.
   if (setIds?.length) q = q.in('set_id', setIds)
   if (variantes?.length) {
@@ -5172,10 +5172,10 @@ async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variante
 // obligaría a recorrer las 23.000 cartas EN CADA TECLA. Así el caso
 // normal —buscar un nombre— sigue yendo por su índice, y la pasada cara
 // solo ocurre cuando ya no hay nada que perder.
-async function buscarPorIlustrador(texto, limite = 60) {
+async function buscarPorIlustrador(texto, limite = 60, { market = mercado } = {}) {
   const { nombre } = partirBusqueda(texto)
   if (!nombre.length) return []
-  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
+  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', market)
   for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
@@ -5888,21 +5888,39 @@ const PRIORIDADES = [
 // buscadores en la misma página compartiendo contador se pisarían.
 let turnoDeseo = 0
 
+// EL BUSCADOR DE «LA QUIERO» (768). PINGU: «no funciona, solo busca unas
+// pocas cartas, y no puedes escoger si son japonesas». Pedía 24 por orden
+// alfabético en el catálogo que tuvieras puesto. Ahora es el motor de
+// Buscar —nombre, número, «151/165», «MEW 151» y, si no sale nada, el
+// ilustrador— con su propio catálogo (`deseoMercado`, sin cambiar el de la
+// página) y los resultados por expansión, con su logo.
+let deseoMercado = null
+const TOPE_DESEO = 120
 async function buscarParaDesear() {
   const caja = $('mcDeseoResultados')
-  const texto = normalizeSearch($('mcDeseoBuscar').value)
+  const cuenta = $('mcDeseoCuantas')
+  const crudo = $('mcDeseoBuscar').value
+  const market = deseoMercado || mercado
   const mio = ++turnoDeseo
-  if (texto.length < 2) {
+  const { soloNumero } = partirBusqueda(normalizeSearch(crudo))
+  if (normalizeSearch(crudo).trim().length < 2 && !soloNumero) {
     caja.classList.add('hidden')
     caja.innerHTML = ''
+    if (cuenta) cuenta.textContent = ''
     return
   }
+  caja.classList.remove('hidden')
+  caja.innerHTML = '<div class="skeleton" style="height:160px"></div>'
   let lista
+  let sets = []
   try {
-    lista = await buscarCartas(texto, 24)
+    sets = (await cargarSetsDeTodos().catch(() => [])).filter((x) => (x.market || 'WEST') === market)
+    const leida = entenderBusqueda(crudo, sets)
+    lista = await buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market })
+    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market })
+    if (!lista.length) lista = await buscarPorIlustrador(normalizeSearch(crudo), TOPE_DESEO, { market })
   } catch (err) {
     if (mio !== turnoDeseo) return
-    caja.classList.remove('hidden')
     caja.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
   }
@@ -5910,22 +5928,32 @@ async function buscarParaDesear() {
   // Las que ya están apuntadas se enseñan, pero desactivadas: quitarlas
   // de la lista haría pensar que el buscador no las encuentra.
   const yaEstan = new Set(deseos.map((d) => d.card_id))
-  caja.classList.remove('hidden')
+  if (cuenta) cuenta.textContent = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}${lista.length >= TOPE_DESEO ? ' · hay más, afina la búsqueda' : ''}` : ''
+  const filas = new Map(sets.map((x) => [x.id, x]))
   caja.innerHTML = lista.length
-    ? lista
-        .map((c) => {
-          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-          const ya = yaEstan.has(c.id)
-          return `<button type="button" class="mc-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''}>
-            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-            <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
-            <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}`}</span>
-          </button>`
-        })
-        .join('')
-    : '<p class="subtext">Ninguna carta con ese nombre.</p>'
+    ? gruposPorExpansion(lista).map((g) => {
+        const set = filas.get(g.set.id) || g.set
+        const logos = contexto.logosDeSet({ ...set, market })
+        return `<div class="mc-bus-grupo">
+            <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
+            <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span>
+          </div>${ordenarCartas(g.cartas, 'numero', 'asc', { nombre: (c) => nombreDe(c), valor: () => null, rango: rangoDeRareza, porNumero }).map((c) => {
+            const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+            const ya = yaEstan.has(c.id)
+            return `<button type="button" class="mc-resultado mc-deseo-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''} aria-label="${escapeHtml(`${ya ? 'Ya buscas' : 'Apuntar'} ${nombreDe(c)} (${c.local_id})`)}">
+              <span class="mc-resultado-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}<span class="mc-deseo-corazon${ya ? ' puesto' : ''}" aria-hidden="true">${laQuiero.corazon(16)}</span></span>
+              <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
+              <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.local_id)}`}</span>
+            </button>`
+          }).join('')}`
+      }).join('')
+    : '<p class="subtext">Ninguna carta así en este catálogo. Prueba con menos letras, o en el otro catálogo.</p>'
   // Y al mapa, que es de donde lo saca la lista al repintarse.
-  for (const c of lista) if (!cartas.has(c.id)) cartas.set(c.id, c)
+  for (const c of lista) if (!cartas.has(c.id)) cartas.set(c.id, { ...c, market: c.market || market })
+}
+function pintarCatalogoDeDeseo() {
+  const market = deseoMercado || mercado
+  for (const b of document.querySelectorAll('[data-deseo-mercado]')) b.setAttribute('aria-pressed', String(b.dataset.deseoMercado === market))
 }
 
 // El panel se repinta entero en cada cambio, así que los oyentes van
@@ -6019,6 +6047,7 @@ async function pedirAvisosDeQuiero(ids) {
 async function abrirQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja) return
+  pintarCatalogoDeDeseo()
   if (!Array.isArray(deseos)) caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
   try {
     await cargarDeseos()
@@ -6076,6 +6105,10 @@ async function completarQuiero() {
     pedirAvisosDeQuiero(ids).catch(() => null),
   ])
   for (const [k, v] of nuevas) cartas.set(k, v)
+  // Lo que no está en el catálogo que miras puede ser del otro (768): la
+  // lista mezcla occidentales y japonesas.
+  const deOtro = sinCarta.filter((id) => !cartas.has(id))
+  if (deOtro.length) for (const [k, v] of await datos.cartasPorIds(deOtro, mercado === 'JP' ? 'WEST' : 'JP').catch(() => new Map())) cartas.set(k, v)
   for (const [k, v] of precios) guardados.set(k, v)
   avisosDeQuiero = avisos
 }
@@ -6098,10 +6131,6 @@ function pintarQuiero() {
           </span>
         </div>`
       : ''}
-    <div class="mc-deseo-alta">
-      <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Busca una carta para apuntarla…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
-      <div id="mcDeseoResultados" class="mc-deseo-resultados hidden"></div>
-    </div>
     ${n
       ? `<ul class="mc-lista-cartas mc-deseos">${deseos.map((d, i) => deseoHtml(d, precios[i])).join('')}</ul>
          <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quién te las da, en <button type="button" class="link-btn" data-ir-cambios>Cambios</button>.</p>`
@@ -6116,11 +6145,43 @@ function pintarQuiero() {
 let quieroEnganchado = false
 function engancharQuiero() {
   const caja = $('mcQuieroPanel')
-  // El buscador SÍ se repinta, así que su oyente se pone cada vez; y va
-  // en el elemento nuevo, que es otro objeto.
-  $('mcDeseoBuscar')?.addEventListener('input', buscarParaDesear)
   if (quieroEnganchado) return
   quieroEnganchado = true
+  // El buscador vive fuera de lo que se repinta (768): lo que escribes no
+  // se borra cuando llega el precio o quién la tiene.
+  let esperaDeseo = null
+  $('mcDeseoBuscar')?.addEventListener('input', () => {
+    clearTimeout(esperaDeseo)
+    esperaDeseo = setTimeout(buscarParaDesear, 250)
+  })
+  $('mcDeseoAlta')?.addEventListener('click', async (e) => {
+    const m = e.target.closest('[data-deseo-mercado]')
+    if (m) {
+      deseoMercado = m.dataset.deseoMercado
+      pintarCatalogoDeDeseo()
+      return void buscarParaDesear()
+    }
+    const desear = e.target.closest('[data-desear]')
+    if (!desear) return
+    desear.disabled = true
+    try {
+      const c = cartas.get(desear.dataset.desear)
+      // Una japonesa se busca en japonés: «cualquier idioma» no existe en
+      // ese catálogo.
+      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear, idioma: c?.market === 'JP' ? 'ja' : null })
+      deseos = [d, ...deseos]
+      showToast(`${nombreDe(c) || 'Apuntada'}, en tu lista. Si alguien la da, saldrá en Cambios.`, 'success')
+      // Se queda la búsqueda: lo normal es apuntar varias seguidas.
+      void buscarParaDesear()
+      pintarQuiero()
+      await completarQuiero()
+      pintarQuiero()
+      pintarLoseta()
+    } catch (err) {
+      desear.disabled = false
+      showToast(err.message, err.yaEstaba ? 'info' : 'error')
+    }
+  })
   caja.addEventListener('change', async (e) => {
     const sel = e.target.closest('.mc-deseo-prioridad')
     if (!sel) return
@@ -6144,25 +6205,6 @@ function engancharQuiero() {
       const d = deseos.find((x) => x.id === avisar.dataset.avisarDeseo)
       if (!d) return
       return abrirAviso({ cardId: d.card_id, market: cartas.get(d.card_id)?.market || mercado, idioma: d.idioma || 'es', precio: precioDeDeseo(d) })
-    }
-
-    const desear = e.target.closest('[data-desear]')
-    if (desear) {
-      desear.disabled = true
-      try {
-        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear })
-        deseos = [d, ...deseos]
-        $('mcDeseoBuscar').value = ''
-        showToast('Apuntada. Si alguien la da, saldrá en Cambios.', 'success')
-        pintarQuiero()
-        await completarQuiero()
-        pintarQuiero()
-        pintarLoseta()
-      } catch (err) {
-        desear.disabled = false
-        showToast(err.message, err.yaEstaba ? 'info' : 'error')
-      }
-      return
     }
 
     const quitar = e.target.closest('[data-quitar-deseo]')
@@ -6203,6 +6245,7 @@ function ponerVistaDeseos(v) {
   if (pestania !== 'quiero') cambiarPestania('quiero')
   for (const b of document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg [data-deseos-vista]')) b.setAttribute('aria-pressed', String(b.dataset.deseosVista === v))
   $('mcQuieroPanel')?.classList.toggle('hidden', v !== 'quiero')
+  $('mcDeseoAlta')?.classList.toggle('hidden', v !== 'quiero')
   $('mcDoyPanel')?.classList.toggle('hidden', v !== 'doy')
   if (v === 'doy') void pintarDoy()
 }

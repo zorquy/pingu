@@ -3455,28 +3455,47 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-md);
 }
 
-.mc-deseo-alta input {
-  width: 100%;
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-md);
+/* 768: la barra de apuntar —el buscador de siempre y el catálogo— y los
+   resultados por expansión, como en Buscar. */
+.mc-deseo-alta-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.mc-deseo-alta-barra .mc-buscador {
+  flex: 1 1 280px;
+  max-width: 520px;
 }
 
 .mc-deseo-resultados {
-  display: grid;
-  gap: var(--e-sm);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
-  max-height: 340px;
   margin-top: var(--e-sm);
-  padding: var(--e-sm);
-  overflow-y: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  padding-bottom: var(--e-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.mc-deseo-resultado:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.mc-deseo-corazon {
+  position: absolute;
+  right: var(--e-xs);
+  bottom: var(--e-xs);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   background: var(--white);
+  color: var(--pink);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-deseo-corazon.puesto svg {
+  fill: currentColor;
 }
 
 .mc-deseo-prioridad {

@@ -946,6 +946,23 @@
             <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="false">Cruces</button>
           </span>
           </div>
+          <!-- APUNTAR UNA CARTA (768): el motor de Buscar, con su catálogo
+               (occidental o japonés) y los resultados por expansión. Fuera
+               de lo que se repinta, para no borrar lo que escribes. -->
+          <div class="mc-deseo-alta" id="mcDeseoAlta">
+            <div class="mc-deseo-alta-barra">
+              <div class="mc-buscador">
+                <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+                <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta: Charizard, 151/165, MEW 151…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
+              </div>
+              <span class="seg mc-deseo-catalogo" role="group" aria-label="En qué catálogo se busca">
+                <button type="button" class="seg-btn" data-deseo-mercado="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
+                <button type="button" class="seg-btn" data-deseo-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
+              </span>
+            </div>
+            <p class="mc-cuantas" id="mcDeseoCuantas" role="status" aria-live="polite"></p>
+            <div id="mcDeseoResultados" class="mc-resultados mc-deseo-resultados hidden"></div>
+          </div>
           <div id="mcQuieroPanel"></div>
           <div id="mcDoyPanel" class="hidden"></div>
         </div>
