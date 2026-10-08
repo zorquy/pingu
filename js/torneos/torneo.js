@@ -27,6 +27,7 @@ import {
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces, pendientesDeJuez } from './jueces.js'
+import { cargarJornadas, misJornadas, misJornadasHtml, cambiarJornada } from './jornadas.js'
 import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
@@ -48,6 +49,9 @@ let decklistsEntregadas = [] // {user_id, submitted_at, locked_at}: el admin ve 
 let decklistsTorneo = null // las listas ENTERAS, solo si quien mira es juez u organizador
 let solicitudesJuez = [] // todas las solicitudes de juez del torneo (las usa jueces.js)
 let esJuez = false
+// Las jornadas de una liga (tanda 634): quién falta a cuál y cuáles ya
+// tienen pareos. NULL = no es liga o no se sabe (migración sin poner).
+let jornadas = null
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296). Se
 // lee de las tres variables de arriba, así que cambia sola al recargar.
 const mando = () => puedeLlevar(perfil, torneo, session?.user?.id)
@@ -1415,6 +1419,29 @@ function engancharConfirmarParticipacion() {
   })
 }
 
+// Apuntarse o desapuntarse de una jornada (tanda 634). Lo decide la
+// base: si entretanto se han generado los pareos, su mensaje lo dice.
+function engancharJornadas() {
+  $('torneoMisJornadas')?.addEventListener('click', async (e) => {
+    const boton = e.target.closest('.torneo-jornada-cambiar')
+    if (!boton) return
+    const n = Number(boton.dataset.jornada)
+    const juega = boton.dataset.juega === 'si'
+    boton.disabled = true
+    const error = await cambiarJornada(torneo.id, n, juega)
+    if (error) {
+      boton.disabled = false
+      avisarError(error, juega ? 'No se ha podido apuntarte' : 'No se ha podido desapuntarte')
+      return
+    }
+    showToast(
+      juega ? `Apuntado a la jornada ${n}.` : `Desapuntado de la jornada ${n}: no te emparejarán en ella.`,
+      'success'
+    )
+    await recargar()
+  })
+}
+
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
 
@@ -1450,8 +1477,10 @@ function pintarMiPlaza() {
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
       <div id="cajaEditarTcg"></div>
       ${checklistDosPasos()}
+      ${misJornadasHtml(misJornadas(torneo, ['finished', 'cancelled'].includes(torneo.status) ? null : jornadas, session.user.id), fechaBonita)}
       <button class="btn-secondary" id="btnBaja">Darme de baja</button>`)) return
     engancharConfirmarParticipacion()
+    engancharJornadas()
     engancharEditarTcgLive()
     engancharBaja()
     return
@@ -2096,6 +2125,7 @@ function pintarTodo() {
 
 async function recargar() {
   await cargarInscripciones()
+  jornadas = await cargarJornadas(torneo)
   // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7),
   // y además ve las decklists ajenas: por eso esto va ANTES de cargarlas.
   await cargarJueces()
@@ -2109,6 +2139,7 @@ async function recargar() {
     esJuez,
     solicitudes: solicitudesJuez,
     decklistsTorneo,
+    jornadas,
     recargarFicha: recargar,
     // Los módulos repintan cajas por su cuenta (sondeo, check-in…):
     // que recoloquen también las pestañas al hacerlo.

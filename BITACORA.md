@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (17) — PINGU-Claude (634 — en una liga, apuntarse y desapuntarse de cada jornada)
+
+**Hecho**: PINGU: «que te puedas apuntar o desapuntar a las jornadas
+siempre antes de que den comienzo». En una liga, «Tu plaza» lleva «Tus
+jornadas»: una fila por jornada con «Desapuntarme / Apuntarme» hasta que
+se generen sus pareos. Quien no juega una jornada no se empareja en ella
+(no suma puntos ni cuenta como derrota) y entra solo en la siguiente; no
+es una baja. El organizador ve quién no juega antes de emparejar, y el
+pareo vuelve a leerlo en el momento. El motor no se toca: al snapshot de
+esa ronda le llega como retirado justo antes de ella.
+
+**Ficheros**: supabase-migration-torneos-jornadas.sql (NUEVA),
+js/torneos/jornadas.js (nuevo), js/torneos/torneo.js, js/torneos/ronda.js,
+css/torneos.css. Pruebas (rama `pruebas`): test-tanda-634 + sql-jornadas
+(contra PostgreSQL) + rigor 14/14; el doble tiene la tabla y la RPC.
+
+**Pendiente**:
+- **PINGU: ejecutar `supabase-migration-torneos-jornadas.sql`** en el SQL
+  Editor. Hasta entonces no sale nada nuevo y las ligas siguen como antes.
+- Si el organizador genera los pareos de una jornada días antes, la lista
+  se cierra ese día: el aviso lo dice; lo suyo es emparejar el día de la
+  jornada.
+
 ## 2026-10-08 (16) — PINGU-Claude (765–766 — lo que faltaba de la ronda 3)
 
 **Hecho**: lo que la 758–764 se habían dejado del artifact. **765**: Buscar

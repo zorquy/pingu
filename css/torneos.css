@@ -3372,3 +3372,41 @@ html.torneo-jugando #torneoNombre {
     min-width: 0;
   }
 }
+
+/* Tus jornadas (tanda 634): en una liga, cada uno dice cuáles juega. */
+.torneo-mis-jornadas {
+  margin: var(--e-md) 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-mis-jornadas-titulo { margin: 0 0 var(--e-xs); }
+.torneo-mis-jornadas .subtext { margin: 0 0 var(--e-sm); }
+.torneo-mis-jornadas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.torneo-mis-jornadas-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  font-size: var(--t-sm);
+}
+.torneo-mis-jornadas-cual {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.torneo-mis-jornadas-cual svg { color: var(--text-mid); flex-shrink: 0; }
+.torneo-mis-jornadas-fuera .torneo-mis-jornadas-cual { color: var(--text-mid); }
+/* Misma columna para el botón y el «Ya empezó»: las chapas, alineadas. */
+.torneo-jornada-cambiar,
+.torneo-jornada-cerrada { min-width: 152px; margin: 0; text-align: center; }
+.torneo-aviso-jornada { margin: var(--e-sm) 0 0; }

@@ -36508,3 +36508,36 @@ quedado cortas.
   movimiento»), quién la tiene (con la función y sin ella), el aviso de «Las
   que doy», el texto compartido y el rosa en los dos temas. Puestas al día:
   762 y 763.
+
+## Tanda 634 — en una liga, cada uno se apunta o se desapunta de las jornadas
+
+PINGU: «que te puedas apuntar o desapuntar a las jornadas siempre antes
+de que den comienzo». Antes, quien no podía ir a una jornada o no hacía
+el check-in (su rival esperaba y ganaba por incomparecencia) o se daba
+de baja para siempre.
+
+- **Tabla `tournament_matchday_absences`** (migración
+  `supabase-migration-torneos-jornadas.sql`): `(tournament_id, user_id,
+  matchday)` = «no juega esa jornada». Sin fila, juega: lo normal es ir,
+  y las ligas de antes siguen igual. Se LEE para todo el mundo (el pareo
+  del organizador la necesita; sin la política la RLS daría una lista
+  vacía sin error) y no se escribe directo.
+- **RPC `torneos_jornada(p_torneo, p_jornada, p_juega)`**: solo un
+  inscrito ACTIVO, en una LIGA no terminada, de una jornada de su
+  calendario y **mientras no exista la ronda de esa jornada** (= sus
+  pareos no están generados). Si el organizador deshace los pareos, se
+  vuelve a poder. Probada contra PostgreSQL en `sql-jornadas.sql`.
+- **El pareo** (`js/torneos/ronda.js`): `montarSnapshot(n)` le pasa al
+  motor a quien no juega la jornada n como retirado justo antes de ella
+  (`dropped`, `droppedAfterRoundNumber: n − 1`). El motor no se toca
+  (TrainerArena 1:1), cada snapshot es de UNA ronda, así que en la
+  siguiente vuelve solo; no suma puntos ni se le apunta derrota. Antes
+  de emparejar se vuelven a leer las ausencias (alguien puede haberse
+  quitado después del último refresco). En la J1, quien no la juega no
+  cuenta para «hay suficientes» ni se le retira.
+- **La ficha**: «Tu plaza» lleva «Tus jornadas» (`js/torneos/jornadas.js`)
+  con una fila por jornada — fecha, «Juegas / No juegas» y
+  «Desapuntarme / Apuntarme», o «Ya empezó». El organizador ve, debajo de
+  «Generar pareos de la jornada N», quién no la juega y que la lista se
+  cierra al generar. Sin la migración, `cargarJornadas` da `null`: ni
+  caja ni aviso, y el pareo es el de siempre.

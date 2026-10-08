@@ -1345,6 +1345,14 @@ el sondeo de respaldo detrás (la ficha entera se refresca sola desde
 torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
 automáticos con función programada por minuto.
 
+**En una LIGA cada jugador elige sus jornadas** (tanda 634): una fila en
+`tournament_matchday_absences` = «no juega esa jornada», escrita solo por
+la RPC `torneos_jornada` y solo mientras no existan los pareos de esa
+jornada. Al motor le llega como retirado justo antes de ESA ronda
+(`montarSnapshot`), así que no se toca el motor y en la siguiente vuelve
+solo. Si añades otro camino que empareje (o un pareo manual), que pase
+por `montarSnapshot`: es quien sabe quién no juega.
+
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
 al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda
 equivocar — se ve el mazo de alguien exactamente cuando la base deja ver

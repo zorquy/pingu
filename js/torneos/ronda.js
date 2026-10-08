@@ -29,6 +29,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas } from './mesas.js'
+import { cargarJornadas, ausentesEn } from './jornadas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
@@ -224,14 +225,24 @@ async function cargarHistorial() {
 // El snapshot inmutable que pide el motor (SPEC §5.1): jugadores con su
 // baja y solo las partidas terminales, con el resultado resuelto.
 function montarSnapshot(numeroRonda) {
+  const ausentes = ausentesEn(ctx.jornadas, numeroRonda)
   return {
     pairingSeed: ctx.torneo.pairing_seed,
     currentRoundNumber: numeroRonda,
-    players: ctx.inscripciones.map((i) => ({
-      id: i.user_id,
-      dropped: i.status === 'dropped',
-      droppedAfterRoundNumber: i.dropped_after_round_id ? numeroDeRonda(i.dropped_after_round_id) : null,
-    })),
+    players: ctx.inscripciones.map((i) => {
+      // Quien se desapuntó de ESTA jornada (tanda 634) va al motor como
+      // retirado justo antes de ella: no se le sienta en esta y en la
+      // siguiente vuelve solo, porque cada snapshot se monta para UNA
+      // ronda. El motor no se toca (es TrainerArena 1:1).
+      if (i.status !== 'dropped' && ausentes.has(i.user_id)) {
+        return { id: i.user_id, dropped: true, droppedAfterRoundNumber: numeroRonda - 1 }
+      }
+      return {
+        id: i.user_id,
+        dropped: i.status === 'dropped',
+        droppedAfterRoundNumber: i.dropped_after_round_id ? numeroDeRonda(i.dropped_after_round_id) : null,
+      }
+    }),
     matches: partidas
       .filter((m) => TERMINALES.has(m.status))
       .map((m) => ({
@@ -350,6 +361,17 @@ async function generarPareos() {
     return
   }
 
+  // Quién se ha desapuntado de esta jornada, leído AHORA y no del último
+  // refresco: alguien puede haberse quitado hace cinco segundos, y la
+  // base ya no le deja cambiarlo en cuanto exista la ronda (tanda 634).
+  if (ctx.torneo.format === 'league') {
+    const frescas = await cargarJornadas(ctx.torneo)
+    if (frescas) ctx.jornadas = frescas
+  }
+  const noJuegan = [...ausentesEn(ctx.jornadas, n)].filter((id) =>
+    ctx.inscripciones.some((i) => i.user_id === id && i.status === 'active')
+  )
+
   if (n === 1) {
     const fuera = await retirarNoConfirmados()
     if (fuera.length) {
@@ -360,9 +382,14 @@ async function generarPareos() {
         'info'
       )
     }
-    const sentables = ctx.inscripciones.filter((i) => i.status === 'active').length
+    const sentables = ctx.inscripciones.filter((i) => i.status === 'active' && !noJuegan.includes(i.user_id)).length
     if (sentables < 2) {
-      showToast('No quedan suficientes jugadores confirmados para parear la primera ronda.', 'error')
+      showToast(
+        noJuegan.length
+          ? 'No quedan suficientes jugadores confirmados que jueguen la jornada 1 para emparejarla.'
+          : 'No quedan suficientes jugadores confirmados para parear la primera ronda.',
+        'error'
+      )
       await ctx.recargarFicha()
       return
     }
@@ -407,7 +434,9 @@ async function generarPareos() {
         ? `Ronda ${n} pareada, pero ${repes.length === 1 ? 'una mesa repite cruce' : `${repes.length} mesas repiten cruce`}: ${repes
             .map((m) => `mesa ${m.tableNumber} (${nombreDe(m.playerAId)} vs ${nombreDe(m.playerBId)})`)
             .join(', ')}. No había forma de evitarlo sin dejar a nadie sin sentar.`
-        : `Pareos de la ronda ${n} generados.`,
+        : `Pareos de la ${ctx.torneo.format === 'league' ? 'jornada' : 'ronda'} ${n} generados.${
+            noJuegan.length ? ` No juegan esta jornada: ${noJuegan.map(nombreDe).join(', ')}.` : ''
+          }`,
     sinParear.length || repes.length ? 'error' : 'success'
   )
   // La R1 puede haber retirado inscritos (los dos pasos): ficha entera,
@@ -1268,6 +1297,20 @@ function pintarMesas(ronda) {
   return `<div class="torneo-mesas">${filas}</div>`
 }
 
+// Lo que el organizador tiene que saber antes de emparejar una jornada
+// (tanda 634): quién se ha desapuntado, y que al generar los pareos la
+// lista se cierra — hasta entonces cada uno puede cambiar de idea.
+function avisoDeJornada(n) {
+  if (!ctx.jornadas) return ''
+  const fuera = [...ausentesEn(ctx.jornadas, n)].filter((id) =>
+    ctx.inscripciones.some((i) => i.user_id === id && i.status === 'active')
+  )
+  const quien = fuera.length
+    ? `No ${fuera.length === 1 ? 'juega' : 'juegan'} la jornada ${n}: <strong>${fuera.map((id) => escapeHtml(nombreDe(id))).join(', ')}</strong>.`
+    : `De momento juega la jornada ${n} todo el mundo.`
+  return `<p class="subtext torneo-aviso-jornada">${quien} Hasta que generes los pareos, cada jugador puede apuntarse o desapuntarse; al generarlos, la lista se cierra.</p>`
+}
+
 function pintarRondas() {
   const caja = $('torneoRondasCaja')
   const arrancado = ['registration_closed', 'in_progress', 'finished'].includes(ctx.torneo.status) || rondas.length > 0
@@ -1281,7 +1324,9 @@ function pintarRondas() {
   let admin = ''
   if (mando() && ctx.torneo.status !== 'finished') {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
-      admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
+      admin = ctx.torneo.format === 'league'
+        ? `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la jornada ${rondas.length + 1}</button>${avisoDeJornada(rondas.length + 1)}`
+        : `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
     } else if (actual?.status === 'pending') {
       admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ronda ${actual.round_number}</button>`
     } else if (actual?.status === 'active') {
