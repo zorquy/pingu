@@ -128,7 +128,14 @@ const jugada = (page) => page.evaluate(() => Number(document.getElementById('rep
       r.dispatchEvent(new Event('input', { bubbles: true }))
     }, ms[3].foto)
     const caja = await page.locator('#repProgreso').boundingBox()
-    const marca = await page.locator('#repMarcas .rep-marca').nth(3).boundingBox()
+    // Mover el deslizador repinta la escena: si se mide en ese instante,
+    // la marca está a medio pintar y Playwright devuelve null (tanda 633:
+    // pasaba una vez de cada dos). Se espera a que esté.
+    let marca = null
+    for (let i = 0; !marca && i < 40; i++) {
+      marca = await page.locator('#repMarcas .rep-marca').nth(3).boundingBox()
+      if (!marca) await page.waitForTimeout(50)
+    }
     const esperado = caja.x + 8 + (caja.width - 16) * (ms[3].foto / ultimo)
     check('  …y la marca cae debajo del pulgar (al píxel)', Math.abs(marca.x + marca.width / 2 - esperado) <= 1.5, `${marca.x + marca.width / 2} vs ${esperado}`)
   }

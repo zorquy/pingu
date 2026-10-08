@@ -1246,11 +1246,11 @@ function consulta(tabla, estado = {}) {
     or: (expresion) => {
       // Por comas DE PRIMER NIVEL: un «in.(H,I,J)» lleva comas dentro
       // del paréntesis y esas no separan condiciones (tanda 358).
-      const trozos = []
-      {
+      const partir = (texto) => {
+        const trozos = []
         let nivel = 0
         let actual = ''
-        for (const ch of String(expresion)) {
+        for (const ch of String(texto)) {
           if (ch === '(') nivel++
           if (ch === ')') nivel--
           if (ch === ',' && nivel === 0) {
@@ -1259,8 +1259,17 @@ function consulta(tabla, estado = {}) {
           } else actual += ch
         }
         if (actual) trozos.push(actual)
+        return trozos
       }
-      const pruebas = trozos.map((t) => {
+      const trozos = partir(expresion)
+      const prueba = (t) => {
+        // «and(a.is.null,b.in.(x,y))» dentro de un or (tanda 633: las
+        // colecciones nuevas sin letra, js/constructor/datos.js).
+        const y = /^and\((.*)\)$/.exec(t)
+        if (y) {
+          const partes = partir(y[1]).map(prueba)
+          return (f) => partes.every((p) => p(f))
+        }
         const [col, op, ...resto] = t.split('.')
         const valor = resto.join('.')
         if (op === 'eq') return (f) => String(f[col]) === valor
@@ -1296,7 +1305,8 @@ function consulta(tabla, estado = {}) {
           }
         }
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
-      })
+      }
+      const pruebas = trozos.map(prueba)
       return consulta(tabla, { ...st, filtros: [...st.filtros, (f) => pruebas.some((p) => p(f))] })
     },
     // `contains` de PostgREST sobre una columna ARRAY (`types`): la
