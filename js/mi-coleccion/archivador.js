@@ -105,6 +105,16 @@ function cabeceraHtml(pagina, trozo, numeroDe) {
   )
 }
 
+// La esquina doblada de una hoja (760): la de la izquierda va hacia atrás
+// y la de la derecha (o la única, en el móvil) hacia delante. No se pinta
+// la que no lleva a ninguna parte: una flecha que no lleva a nada miente.
+function esquinaHtml(con, lado, p0, deUnaVez, paginas) {
+  if (!con) return ''
+  if (lado === 'antes' && p0 === 0) return ''
+  if (lado === 'despues' && p0 + deUnaVez >= paginas) return ''
+  return `<button type="button" class="mc-hoja-esquina mc-hoja-esquina-${lado}" data-esquina="${lado}" aria-label="${lado === 'antes' ? 'Página anterior' : 'Página siguiente'}"></button>`
+}
+
 // ── El archivador entero ──
 //
 // `lista` son las cartas ya filtradas y ordenadas; `pintarBolsillo(item,
@@ -127,6 +137,11 @@ export function archivadorHtml({
   porPagina = POR_PAGINA,
   columnas = 3,
   paginasMin = 1,
+  // 760: quien quiera que los bolsillos vacíos del final se puedan tocar
+  // (meter una carta AHÍ, la AL5) pasa cómo se pinta uno con su índice.
+  pintarHueco = null,
+  // Las esquinas de la hoja, para pasar página tocándolas (760, AL4).
+  conEsquinas = false,
 }) {
   const POR_PAGINA = porPagina
   const paginas = Math.max(1, paginasMin, Math.ceil(lista.length / POR_PAGINA))
@@ -140,7 +155,10 @@ export function archivadorHtml({
       `<div class="mc-hoja" aria-label="Página ${p + 1}">` +
         cabeceraHtml(p + 1, trozo, numeroDe) +
         trozo.map((item, i) => pintarBolsillo(item, desde + i)).join('') +
-        '<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length) +
+        (pintarHueco
+          ? Array.from({ length: POR_PAGINA - trozo.length }, (_, k) => pintarHueco(desde + trozo.length + k)).join('')
+          : '<span class="mc-bolsillo mc-bolsillo-vacio" aria-hidden="true"></span>'.repeat(POR_PAGINA - trozo.length)) +
+        esquinaHtml(conEsquinas, deUnaVez > 1 && p === p0 ? 'antes' : 'despues', p0, deUnaVez, paginas) +
         '</div>'
     )
   }

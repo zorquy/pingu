@@ -30,6 +30,14 @@
 // para desplazar y manda `pointercancel`, que aquí solo limpia. Quién
 // puede arrastrar lo dice `puede(evento)`, que es de quien lo usa.
 //
+// ── MANTENER PULSADO, CON EL DEDO (760, AL5) ──
+//
+// Fuera de «Ordenar y quitar» el dedo desplaza, y eso no cambia: pero si se
+// queda QUIETO `pulsacionLarga` ms sobre una carta, la coge (con un toque
+// de vibración). A partir de ahí un `touchmove` no pasivo cancela el
+// desplazamiento, y el navegador no manda `pointercancel`. Si el dedo se
+// mueve antes de tiempo, era desplazar y no se coge nada.
+//
 // Sin Supabase y sin saber qué es un álbum: recibe índices y los devuelve.
 
 // Cuántos píxeles tiene que moverse el puntero para que sea un arrastre
@@ -46,8 +54,15 @@ const ESPERA_EN_BORDE = 600
 // las flechas de pliego. `alSoltar(de, a)` recibe los dos índices, o `a =
 // null` si se soltó sobre un hueco vacío; `alBorde(elemento)` cuando se
 // lleva un rato sobre una flecha.
-export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSoltar, alBorde }) {
+export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSoltar, alBorde, pulsacionLarga = 0, puedeLargo = () => true }) {
   let inicio = null // { x, y, indice, el, pointerId }
+  let pendiente = null // la pulsación larga que todavía no ha cogido nada
+  const sinDesplazar = (ev) => { if (ev.cancelable) ev.preventDefault() }
+  function cancelarPendiente() {
+    if (!pendiente) return
+    clearTimeout(pendiente.t)
+    pendiente = null
+  }
   let fantasma = null
   let destino = null
   let enBorde = null
@@ -115,6 +130,7 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     fantasma = null
     zona.querySelector('.mc-arrastrando')?.classList.remove('mc-arrastrando')
     document.body.classList.remove('mc-arrastrando-carta')
+    document.removeEventListener('touchmove', sinDesplazar)
     inicio = null
   }
 
@@ -126,11 +142,30 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     if (!el || !zona.contains(el)) return
     // Un botón dentro del bolsillo (quitar, mover) se pulsa, no se coge.
     if (e.target.closest('button')) return
-    if (!puede(e)) return
+    if (!puede(e)) {
+      if (!pulsacionLarga || e.pointerType === 'mouse' || !puedeLargo(e)) return
+      cancelarPendiente()
+      pendiente = { x: e.clientX, y: e.clientY, el, pointerId: e.pointerId, ultimo: e }
+      pendiente.t = setTimeout(() => {
+        const p = pendiente
+        pendiente = null
+        if (!p || !p.el.isConnected) return
+        inicio = { x: p.x, y: p.y, indice: Number(p.el.dataset.indice), el: p.el, pointerId: p.pointerId }
+        document.addEventListener('touchmove', sinDesplazar, { passive: false })
+        try { navigator.vibrate?.(12) } catch { /* sin vibración */ }
+        empezar(p.ultimo)
+      }, pulsacionLarga)
+      return
+    }
     inicio = { x: e.clientX, y: e.clientY, indice: Number(el.dataset.indice), el, pointerId: e.pointerId }
   })
 
   zona.addEventListener('pointermove', (e) => {
+    if (pendiente && e.pointerId === pendiente.pointerId) {
+      if (Math.hypot(e.clientX - pendiente.x, e.clientY - pendiente.y) >= UMBRAL) cancelarPendiente()
+      else pendiente.ultimo = e
+      return
+    }
     if (!inicio || e.pointerId !== inicio.pointerId) return
     if (!fantasma) {
       if (Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y) < UMBRAL) return
@@ -139,6 +174,7 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
   })
 
   function soltar(e) {
+    cancelarPendiente()
     if (!inicio || e.pointerId !== inicio.pointerId) return
     if (!fantasma) return limpiar()
     const de = inicio.indice
@@ -150,11 +186,21 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     setTimeout(() => { tragarClic = false }, 0)
     limpiar()
     if (!hueco) return
-    const a = hueco.matches(elemento) ? Number(hueco.dataset.indice) : null
+    // Un hueco con su número (los de un binder, 760) es un sitio: la carta
+    // va AHÍ. Sin número, al final, como siempre.
+    const a = hueco.matches(elemento) || hueco.dataset.indice != null ? Number(hueco.dataset.indice) : null
     if (a !== de) alSoltar(de, a)
   }
   zona.addEventListener('pointerup', soltar)
-  zona.addEventListener('pointercancel', () => limpiar())
+  zona.addEventListener('pointercancel', () => {
+    cancelarPendiente()
+    limpiar()
+  })
+  // El menú del navegador al mantener pulsado (guardar imagen…) no sale
+  // mientras se espera o se lleva una carta.
+  zona.addEventListener('contextmenu', (e) => {
+    if (pendiente || inicio) e.preventDefault()
+  })
 
   // El clic que viene detrás de un arrastre no es un clic.
   zona.addEventListener('click', (e) => {

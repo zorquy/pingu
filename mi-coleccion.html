@@ -1025,10 +1025,17 @@
                cuatro veces. La pinta la rellena `albumes.js` con el molde
                común; el identificador `mcAlbVolver` se queda igual. -->
           <div id="mcAlbMigas"></div>
-          <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
-          <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
-          <p class="mc-progreso" id="mcAlbProgreso"></p>
-          <p class="mc-nota" id="mcAlbFalta"></p>
+          <!-- LA CABECERA (760, AL4): el logo del set o la tapa del binder, el
+               nombre, cuántas tienes y lo que costaría completarlo. -->
+          <div class="mc-alb-cabecera" id="mcAlbCabecera">
+            <span class="mc-alb-cabecera-logo hidden" id="mcAlbCabeceraLogo" aria-hidden="true"></span>
+            <div class="mc-alb-cabecera-texto">
+              <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
+              <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
+              <p class="mc-progreso" id="mcAlbProgreso"></p>
+              <p class="mc-nota" id="mcAlbFalta"></p>
+            </div>
+          </div>
           <div id="mcAlbHerramientas">
             <div class="mc-alb-barra">
               <input type="search" enterkeyhint="search" id="mcAlbBuscar" placeholder="Añade cartas: busca por nombre" aria-label="Buscar cartas para el álbum" />
@@ -1046,6 +1053,7 @@
             <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcAlbAnterior" aria-label="Pliego anterior">‹</button>
             <button type="button" class="mc-tira-flecha mc-tira-der" id="mcAlbSiguiente" aria-label="Pliego siguiente">›</button>
           </div>
+          <div class="mc-alb-puntos" id="mcAlbPuntos" aria-hidden="true"></div>
           <!-- Las flechas A LOS LADOS del archivador y las páginas DEBAJO
                (tanda 418). PINGU: «los botones de anterior y siguiente
                deberían ir a la izquierda y a la derecha, y las páginas
@@ -1608,6 +1616,21 @@
             <button type="submit" class="btn-primary" id="mcAlbNuevoCrear">Crear</button>
           </div>
         </form>
+      </dialog>
+    <!-- LA CARTA DE UN BOLSILLO VACÍO (760, AL5): se busca y va A ESE
+         bolsillo. La maneja js/mi-coleccion/albumes.js. -->
+      <dialog class="mc-albn mc-alb-elegir" id="mcAlbElegir" aria-labelledby="mcAlbElegirTitulo">
+        <div class="mc-panel-cabecera">
+          <h2 id="mcAlbElegirTitulo">Bolsillo</h2>
+          <button type="button" class="mc-panel-cerrar" id="mcAlbElegirCerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="mc-albn-cuerpo">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" enterkeyhint="search" id="mcAlbElegirBuscar" placeholder="Busca la carta por su nombre" aria-label="Busca la carta para este bolsillo" autocomplete="off" />
+          </div>
+          <div class="mc-resultados mc-alb-resultados" id="mcAlbElegirResultados"></div>
+        </div>
       </dialog>
     <!-- SELECCIONAR VARIAS (747, la C4 como en su maqueta). Vale para las
          DOS rejillas —«Cartas», donde se marca cada copia tuya, y una

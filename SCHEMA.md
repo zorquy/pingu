@@ -36197,3 +36197,53 @@ AL1, AL2 y AL3 de la ronda 3 (PINGU: «todo», viendo Holonook).
   diálogo hasta la fila escrita, el binder abierto con sus columnas, sus
   bolsillos, sus páginas y su color, el paso de carpetas a binders y el móvil
   en oscuro.
+
+## Tanda 760 — El archivador abierto: cabecera, pasar páginas y meter una carta en SU bolsillo (oct. 2026)
+
+AL4, AL5 y AL6 de la ronda 3 (PINGU: «todo», viendo Holonook).
+
+- **La cabecera** (`#mcAlbCabecera`, `pintarCabecera`): el logo del set en un
+  álbum de set (la misma cadena que la estantería; los sets se piden al
+  abrir si no estaban), la tapa del binder de fondo en uno personalizado; al
+  lado el nombre, «N de M las tienes» con su barra y lo que costaría
+  completarlo. Y si ninguna de las que faltan tiene precio, lo dice así y no
+  «0,00 €» (la 319). En el móvil el logo va encima.
+- **Pasar páginas, de todas las maneras** (`pasarPagina(±1)`): las flechas y
+  el «Ir a…» de siempre, la **esquina** doblada de cada hoja
+  (`.mc-hoja-esquina`; `archivadorHtml({ conEsquinas })` no pinta la que no
+  lleva a ninguna parte), el **teclado** (← →, si no estás escribiendo y no
+  hay una ventana modal —`dialog:modal` y no `[open]`, porque el panel de
+  filtros del ordenador es un `<dialog>` abierto siempre como columna y
+  tapaba el teclado sin dar error—) y **deslizando** con el dedo (pasivo: un
+  gesto de lado, no de arriba abajo). La hoja que llega entra por su lado
+  (`mc-pasa-adelante` / `mc-pasa-atras`, 0,3 s, apagado con «menos
+  movimiento»).
+- **En el móvil, una hoja y sus puntos** (`#mcAlbPuntos`): uno por pliego,
+  encendido el tuyo. Son un indicador y no botones (cuarenta puntos de 44 px
+  no caben): se pasa deslizando o con las flechas. En el ordenador no salen:
+  está el «Ir a…».
+- **Los huecos de un binder** (AL5): un bolsillo vacío en medio es una
+  entrada sin `id` (`{}`) en `cartas`, y los del final no se guardan
+  (`sinHuecosAlFinal`). Todos los bolsillos vacíos de un binder tuyo —en
+  medio y al final de cada hoja (`archivadorHtml({ pintarHueco })`)— son un
+  botón con su número; tocarlo abre **la hoja de elegir** (`#mcAlbElegir`,
+  la misma búsqueda que la de arriba, `buscar(campo, caja)`) y la carta va
+  **a ese bolsillo** (`ponerEnBolsillo`), rellenando con huecos hasta él. El
+  buscador de arriba mete en el primer hueco, o al final. Quitar en un binder
+  deja el bolsillo vacío y las demás en su sitio; en un álbum de set la lista
+  se cierra. Los álbumes de antes, sin `tipo`, cuentan como binders.
+- **Mover con el dedo, manteniendo pulsado** (`activarArrastre({
+  pulsacionLarga: 450 })`): fuera de «Ordenar y quitar» el dedo sigue
+  desplazando, pero quieto 450 ms sobre una carta la coge (con un toque de
+  vibración); desde ahí un `touchmove` no pasivo cancela el desplazamiento y
+  el navegador no manda `pointercancel`. Si se mueve antes, era desplazar.
+  Sin el menú de «guardar imagen» (`-webkit-touch-callout`, `contextmenu`).
+  Y soltar sobre un hueco con número deja la carta **ahí**
+  (`cambiarBolsillos`), aunque esté más allá del final; antes iba al final.
+- Pruebas al día: 578 (soltar en un hueco la deja en ese bolsillo).
+- Prueba 760-pantalla: lo puro de los huecos; el álbum de set con su logo,
+  lo que falta, las dos hojas con anillas, ✓ y gris; la esquina, ← → y no
+  mientras escribes; en el iPhone una hoja, deslizar y los puntos; el binder
+  con su tapa, los huecos que se tocan (44 px), elegir la carta del bolsillo
+  2 y la del 7 con huecos en medio; mantener pulsado (y que un toque que se
+  mueve no coja nada) y soltar en un hueco.

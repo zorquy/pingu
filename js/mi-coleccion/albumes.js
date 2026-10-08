@@ -313,9 +313,14 @@ export async function abrir(id, { soloVer = false } = {}) {
   editando = false
   soloFaltan = false
   pagina = 0
-  const ids = actual.cartas.map((c) => c.id)
+  const ids = actual.cartas.map((c) => c?.id).filter(Boolean)
   const faltan = ids.filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
   if (faltan.length) for (const [cid, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(cid, c)
+  // El logo de la cabecera de un álbum de set (760): sus sets, si no están.
+  if (esDeSet(actual) && !setsDeTodos.has(claveDeSet(actual.set_id, actual.set_market))) {
+    const todos = await ctx.todosLosSets?.().catch(() => []) || []
+    setsDeTodos = new Map(todos.map((x) => [claveDeSet(x.id, x.market), x]))
+  }
 
   $('mcAlbumesLista').classList.add('hidden')
   $('mcAlbumesDetalle').classList.remove('hidden')
@@ -351,11 +356,42 @@ export async function abrir(id, { soloVer = false } = {}) {
 // La forma del archivador de este álbum: 3×3 si no dice otra.
 const forma = () => rejillaDe(esDeSet(actual) ? '3x3' : actual?.rejilla)
 
+// LOS HUECOS DE UN BINDER (760, AL5). PINGU, viendo Holonook: tocar un
+// bolsillo vacío abre el buscador y la carta va A ESE bolsillo. Un álbum
+// era una lista apretada y la carta caía al final; ahora un bolsillo vacío
+// en medio es una entrada sin `id` (`{}`), y los del final no se guardan.
+const esHueco = (c) => !c?.id
+export function sinHuecosAlFinal(cartas) {
+  const r = [...cartas]
+  while (r.length && esHueco(r[r.length - 1])) r.pop()
+  return r
+}
+// Poner una carta en el bolsillo `i`, rellenando con huecos hasta él.
+export function ponerEnBolsillo(cartas, i, id) {
+  const r = [...cartas]
+  while (r.length < i) r.push({})
+  r[i] = { id }
+  return r
+}
+// Intercambiar dos bolsillos, aunque el de destino esté más allá del final.
+export function cambiarBolsillos(cartas, de, a) {
+  const r = [...cartas]
+  while (r.length <= a) r.push({})
+  ;[r[de], r[a]] = [r[a], r[de]]
+  return sinHuecosAlFinal(r)
+}
+const esBinder = () => Boolean(actual) && !esDeSet(actual)
+
+function huecoHtml(indice) {
+  return `<button type="button" class="mc-bolsillo mc-bolsillo-vacio mc-bolsillo-hueco" data-hueco="${indice}" data-indice="${indice}" aria-label="Bolsillo ${indice + 1}, vacío: elegir una carta"><span aria-hidden="true">+</span></button>`
+}
+
 function cartaDe(id) {
   return ctx.cartas.get(id) || cartasDelAlbum.get(id) || null
 }
 
 function bolsilloHtml(item, indice) {
+  if (esHueco(item)) return esMio() && !editando ? huecoHtml(indice) : `<span class="mc-bolsillo mc-bolsillo-vacio" data-indice="${indice}" aria-hidden="true"></span>`
   const c = cartaDe(item.id)
   const mia = ctx.sesion && actual.user_id === ctx.sesion.user.id && tengo(item.id)
   const marcar = esMio()
@@ -381,8 +417,8 @@ function bolsilloHtml(item, indice) {
 
 function pintarDetalle() {
   const todos = actual.cartas.map((item, i) => ({ item, i }))
-  const lista = soloFaltan && esMio() ? todos.filter(({ item }) => !tengo(item.id)) : todos
-  const ids = actual.cartas.map((c) => c.id)
+  const lista = soloFaltan && esMio() ? todos.filter(({ item }) => !esHueco(item) && !tengo(item.id)) : todos
+  const ids = actual.cartas.map((c) => c?.id).filter(Boolean)
   const mias = ids.filter((id) => tengo(id)).length
   $('mcAlbProgreso').innerHTML =
     esMio() && ids.length
@@ -394,12 +430,13 @@ function pintarDetalle() {
   const conHojas = !soloFaltan && Number(actual.paginas) > 0
   if (!lista.length && !conHojas) {
     $('mcAlbArchivador').innerHTML = `<p class="subtext">${
-      actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
+      ids.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
     }</p>`
     $('mcAlbPaginas').textContent = ''
     $('mcAlbAnterior').hidden = true
     $('mcAlbSiguiente').hidden = true
     $('mcAlbSalto')?.classList.add('hidden')
+    $('mcAlbPuntos').innerHTML = ''
   } else {
     // El mismo archivador que el álbum de una colección (tanda 371): era
     // el mismo dibujo escrito dos veces y ya había empezado a separarse,
@@ -416,10 +453,16 @@ function pintarDetalle() {
       columnas: forma().columnas,
       paginasMin: soloFaltan ? 1 : Number(actual.paginas) || 1,
       pintarBolsillo: ({ item, i }) => bolsilloHtml(item, i),
-      numeroDe: ({ item }) => cartaDe(item.id)?.local_id ?? '',
+      numeroDe: ({ item }) => (esHueco(item) ? '' : cartaDe(item.id)?.local_id ?? ''),
+      // Los bolsillos vacíos del final se tocan para meter una carta AHÍ
+      // (760), en un binder tuyo y con todo a la vista.
+      pintarHueco: esMio() && esBinder() && !soloFaltan && !editando ? huecoHtml : null,
+      conEsquinas: true,
     })
     pagina = armado.pagina
     $('mcAlbArchivador').innerHTML = armado.html
+    animarPaso()
+    pintarPuntos(armado.paginas, deUnaVez)
     $('mcAlbPaginas').textContent = textoDePaginas(pagina, armado.paginas, deUnaVez)
     // Las flechas se APAGAN en los extremos, como las de la tira: una
     // flecha que no lleva a ninguna parte miente (tanda 418).
@@ -439,6 +482,77 @@ function pintarDetalle() {
   $('mcAlbEditar').setAttribute('aria-pressed', String(editando))
   $('mcAlbAyuda')?.classList.toggle('hidden', !editando)
   $('mcAlbArchivador').classList.toggle('mc-ordenando', editando)
+  pintarCabecera()
+}
+
+// LA CABECERA (760, AL4): el logo del set (o la tapa del binder), cuántas
+// te faltan y lo que costaría completarlo, que ya calculaba
+// `calcularLoQueFalta` en su línea.
+function pintarCabecera() {
+  const caja = $('mcAlbCabecera')
+  if (!caja) return
+  const set = esDeSet(actual) ? setsDeTodos.get(claveDeSet(actual.set_id, actual.set_market)) : null
+  const logos = set ? ctx.logosDeSet(set) : []
+  caja.classList.toggle('mc-alb-cabecera-set', Boolean(set))
+  caja.classList.toggle('mc-alb-cabecera-binder', esBinder())
+  if (esBinder()) caja.dataset.tapa = actual.tapa || tapaGuardada()
+  else delete caja.dataset.tapa
+  $('mcAlbCabeceraLogo').innerHTML = logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" />` : ''
+  $('mcAlbCabeceraLogo').classList.toggle('hidden', !logos.length)
+}
+
+// Pasar de página, desde las flechas, las esquinas, el teclado, el dedo y
+// el «Ir a…» (760, AL4 y AL6). `paso` es ±1 pliego.
+let ultimoPaso = 0
+function pasarPagina(paso) {
+  const deUnaVez = Number($('mcAlbAnterior').dataset.paso || 1)
+  const antes = pagina
+  if (paso < 0 && $('mcAlbAnterior').hidden) return
+  if (paso > 0 && $('mcAlbSiguiente').hidden) return
+  pagina = Math.max(0, pagina + paso * deUnaVez)
+  ultimoPaso = Math.sign(pagina - antes)
+  pintarDetalle()
+}
+// La hoja que llega entra por su lado; con «menos movimiento», sin más.
+function animarPaso() {
+  if (!ultimoPaso) return
+  const hojas = $('mcAlbArchivador').querySelector('.mc-archivador')
+  hojas?.classList.add(ultimoPaso > 0 ? 'mc-pasa-adelante' : 'mc-pasa-atras')
+  ultimoPaso = 0
+}
+// Los puntos de debajo, uno por pliego: dónde estás de un vistazo (en el
+// móvil, que pasa hoja a hoja). Son un indicador, no botones: se pasa
+// deslizando o con las flechas.
+function pintarPuntos(paginas, deUnaVez) {
+  const pliegos = Math.ceil(paginas / deUnaVez)
+  const actualP = Math.floor(pagina / deUnaVez)
+  $('mcAlbPuntos').innerHTML = pliegos > 1 && pliegos <= 40
+    ? Array.from({ length: pliegos }, (_, i) => `<i${i === actualP ? ' class="activo"' : ''}></i>`).join('')
+    : ''
+}
+
+// La hoja para elegir la carta de un bolsillo vacío (760, AL5).
+let huecoDestino = null
+function abrirElegir(i) {
+  huecoDestino = i
+  $('mcAlbElegirTitulo').textContent = `Bolsillo ${i + 1}`
+  $('mcAlbElegirBuscar').value = ''
+  $('mcAlbElegirResultados').innerHTML = '<p class="mc-nota">Escribe el nombre de la carta.</p>'
+  $('mcAlbElegir').showModal()
+  $('mcAlbElegirBuscar').focus()
+}
+function ponerEnElHueco(cardId) {
+  const c = ultimas.get(cardId)
+  if (!c || huecoDestino == null) return
+  cartasDelAlbum.set(c.id, c)
+  const i = huecoDestino
+  huecoDestino = null
+  $('mcAlbElegir').close()
+  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, i, c.id) })
+  pagina = Math.floor(i / forma().porPagina)
+  pintarDetalle()
+  calcularLoQueFalta()
+  showToast(`${nombreDe(c)}, en el bolsillo ${i + 1}.`, 'success')
 }
 
 // Intercambiar dos bolsillos, o mandar una carta al final (tanda 578).
@@ -448,11 +562,12 @@ function pintarDetalle() {
 // cada arrastre desharía el orden que ya tenías puesto en el resto del
 // pliego. Es lo mismo que hacen las flechas.
 function moverCarta(de, a) {
-  const cartas = [...actual.cartas]
+  let cartas = [...actual.cartas]
   if (de < 0 || de >= cartas.length) return
   if (a === null) cartas.push(...cartas.splice(de, 1))
-  else if (a < 0 || a >= cartas.length) return
-  else [cartas[de], cartas[a]] = [cartas[a], cartas[de]]
+  else if (a < 0 || a >= MAX_CARTAS) return
+  // Un hueco de un binder (760) es un sitio, aunque esté más allá del final.
+  else cartas = cambiarBolsillos(cartas, de, a)
   guardarLuego({ cartas })
   pintarDetalle()
   calcularLoQueFalta()
@@ -471,9 +586,9 @@ async function calcularLoQueFalta() {
     return
   }
   const mio = ++turnoFalta
-  const faltan = [...new Set(actual.cartas.map((c) => c.id).filter((id) => !tengo(id)))]
+  const faltan = [...new Set(actual.cartas.map((c) => c?.id).filter((id) => id && !tengo(id)))]
   if (!faltan.length) {
-    caja.textContent = actual.cartas.length ? 'Lo tienes completo.' : ''
+    caja.textContent = actual.cartas.some((c) => c?.id) ? 'Lo tienes completo.' : ''
     return
   }
   caja.textContent = `Te faltan ${faltan.length}. Calculando cuánto costaría completarlo…`
@@ -490,7 +605,11 @@ async function calcularLoQueFalta() {
     if (v) total += v
     else sinPrecio++
   }
-  caja.textContent = `Te faltan ${faltan.length}. Completarlo costaría unos ${euros(total)} en Cardmarket (tendencia)${sinPrecio ? `, sin contar ${sinPrecio} sin precio` : ''}.`
+  // «0,00 €» de un total que no se sabe es una cifra inventada (la 319):
+  // si ninguna de las que faltan tiene precio, se dice eso.
+  caja.textContent = total
+    ? `Te faltan ${faltan.length}. Completarlo costaría unos ${euros(total)} en Cardmarket (tendencia)${sinPrecio ? `, sin contar ${sinPrecio} sin precio` : ''}.`
+    : `Te faltan ${faltan.length}. Todavía no hay precio de ellas para decir cuánto costaría completarlo.`
 }
 
 function guardarLuego(cambios) {
@@ -499,7 +618,7 @@ function guardarLuego(cambios) {
   clearTimeout(temporizador)
   temporizador = setTimeout(async () => {
     try {
-      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: actual.cartas, is_public: actual.is_public, ...('tapa' in actual ? { tapa: actual.tapa } : {}) })
+      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: sinHuecosAlFinal(actual.cartas), is_public: actual.is_public, ...('tapa' in actual ? { tapa: actual.tapa } : {}) })
       $('mcAlbEstado').textContent = 'Guardado'
     } catch (err) {
       $('mcAlbEstado').textContent = ''
@@ -511,11 +630,13 @@ function guardarLuego(cambios) {
 // ── Añadir cartas al álbum ──
 let turnoBusqueda = 0
 let ultimas = new Map()
-async function buscar() {
-  const texto = normalizeSearch($('mcAlbBuscar').value)
+// La misma búsqueda para el buscador de arriba y para la hoja de un
+// bolsillo vacío (760): cambian el campo y la caja, no la consulta.
+async function buscar(campo = 'mcAlbBuscar', caja = 'mcAlbResultados') {
+  const texto = normalizeSearch($(campo).value)
   const mio = ++turnoBusqueda
   if (texto.length < 2) {
-    $('mcAlbResultados').innerHTML = ''
+    $(caja).innerHTML = ''
     return
   }
   let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date)').eq('market', 'WEST')
@@ -523,12 +644,12 @@ async function buscar() {
   const { data, error } = await q.order('name_search').limit(48)
   if (mio !== turnoBusqueda) return
   if (error) {
-    $('mcAlbResultados').innerHTML = `<p class="subtext">${escapeHtml(error.message)}</p>`
+    $(caja).innerHTML = `<p class="subtext">${escapeHtml(error.message)}</p>`
     return
   }
   const lista = (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
   ultimas = new Map(lista.map((c) => [c.id, c]))
-  $('mcAlbResultados').innerHTML = lista.length
+  $(caja).innerHTML = lista.length
     ? lista
         .map((c) => {
           const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
@@ -545,11 +666,14 @@ async function buscar() {
 function anadir(cardId) {
   const c = ultimas.get(cardId)
   if (!c) return
-  if (actual.cartas.length >= MAX_CARTAS) return showToast(`Un álbum admite hasta ${MAX_CARTAS} cartas.`, 'error')
+  // En un binder, al primer bolsillo vacío (760); si no hay, al final.
+  const hueco = esBinder() ? actual.cartas.findIndex(esHueco) : -1
+  const sitio = hueco >= 0 ? hueco : actual.cartas.length
+  if (sitio >= MAX_CARTAS) return showToast(`Un álbum admite hasta ${MAX_CARTAS} cartas.`, 'error')
   cartasDelAlbum.set(c.id, c)
-  guardarLuego({ cartas: [...actual.cartas, { id: c.id }] })
-  // Se salta a la última página, que es donde ha caído.
-  pagina = Math.floor((actual.cartas.length - 1) / forma().porPagina)
+  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, sitio, c.id) })
+  // Se salta a la página donde ha caído.
+  pagina = Math.floor(sitio / forma().porPagina)
   pintarDetalle()
   calcularLoQueFalta()
   showToast(`${nombreDe(c)} añadida al álbum.`, 'success')
@@ -641,21 +765,67 @@ export function iniciarAlbumes(contexto) {
     pagina = Number(e.target.value) || 0
     pintarDetalle()
   })
-  $('mcAlbAnterior')?.addEventListener('click', () => {
-    pagina = Math.max(0, pagina - Number($('mcAlbAnterior').dataset.paso || 1))
-    pintarDetalle()
+  $('mcAlbAnterior')?.addEventListener('click', () => pasarPagina(-1))
+  $('mcAlbSiguiente')?.addEventListener('click', () => pasarPagina(1))
+  // Con el teclado (760): ← y →, con el álbum abierto y sin estar
+  // escribiendo ni con una ventana encima.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    if (!actual || $('mcAlbumesDetalle')?.classList.contains('hidden') || $('mcPanelCarpetas')?.classList.contains('hidden')) return
+    // `:modal` y no `[open]`: el panel de filtros del ordenador es un
+    // `<dialog>` abierto siempre como columna, y no tapa nada.
+    if (e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('dialog:modal')) return
+    if (e.altKey || e.ctrlKey || e.metaKey) return
+    e.preventDefault()
+    pasarPagina(e.key === 'ArrowLeft' ? -1 : 1)
   })
-  $('mcAlbSiguiente')?.addEventListener('click', () => {
-    pagina += Number($('mcAlbAnterior').dataset.paso || 1)
-    pintarDetalle()
+  // Deslizando con el dedo (760, AL6): un gesto de lado y no de arriba
+  // abajo pasa la hoja. Pasivo: el desplazamiento vertical sigue siendo
+  // del navegador. Si se está llevando una carta, el dedo es de la carta.
+  let toque = null
+  $('mcAlbArchivador')?.addEventListener('touchstart', (e) => {
+    toque = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null
+  }, { passive: true })
+  $('mcAlbArchivador')?.addEventListener('touchend', (e) => {
+    const t = toque
+    toque = null
+    if (!t || editando || document.body.classList.contains('mc-arrastrando-carta')) return
+    const dx = e.changedTouches[0].clientX - t.x
+    const dy = e.changedTouches[0].clientY - t.y
+    if (Math.abs(dx) >= 48 && Math.abs(dy) < Math.abs(dx) / 2) pasarPagina(dx < 0 ? 1 : -1)
+  }, { passive: true })
+  // La hoja de un bolsillo vacío.
+  $('mcAlbElegirCerrar')?.addEventListener('click', () => $('mcAlbElegir').close())
+  let esperaElegir = null
+  $('mcAlbElegirBuscar')?.addEventListener('input', () => {
+    clearTimeout(esperaElegir)
+    esperaElegir = setTimeout(() => buscar('mcAlbElegirBuscar', 'mcAlbElegirResultados'), 250)
+  })
+  $('mcAlbElegirResultados')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-carta]')
+    if (b) ponerEnElHueco(b.dataset.carta)
+  })
+  $('mcAlbElegir')?.addEventListener('click', (e) => {
+    if (e.target !== e.currentTarget) return
+    const r = e.currentTarget.getBoundingClientRect()
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) e.currentTarget.close()
   })
   $('mcAlbArchivador')?.addEventListener('click', (e) => {
+    const esquina = e.target.closest('[data-esquina]')
+    if (esquina) return pasarPagina(esquina.dataset.esquina === 'antes' ? -1 : 1)
+    const hueco = e.target.closest('[data-hueco]')
+    if (hueco && esMio()) return abrirElegir(Number(hueco.dataset.hueco))
     const caja = e.target.closest('[data-indice]')
     if (!caja || !editando) return
     const i = Number(caja.dataset.indice)
     if (e.target.closest('[data-quitar]')) {
-      const cartas = [...actual.cartas]
-      cartas.splice(i, 1)
+      let cartas = [...actual.cartas]
+      // En un binder, quitar deja el bolsillo vacío y las demás en su
+      // sitio (760); en un álbum de set, la lista se cierra.
+      if (esBinder()) {
+        cartas[i] = {}
+        cartas = sinHuecosAlFinal(cartas)
+      } else cartas.splice(i, 1)
       guardarLuego({ cartas })
       pintarDetalle()
       calcularLoQueFalta()
@@ -669,10 +839,14 @@ export function iniciarAlbumes(contexto) {
   // desplazar la página (el porqué entero, en arrastre.js).
   if ($('mcAlbArchivador')) {
     activarArrastre($('mcAlbArchivador'), {
-      elemento: '.mc-bolsillo[data-indice]',
+      // Un hueco con número no se coge: se suelta encima (760).
+      elemento: '.mc-bolsillo[data-indice]:not(.mc-bolsillo-vacio)',
       huecos: '.mc-bolsillo-vacio',
       bordes: '#mcAlbAnterior, #mcAlbSiguiente',
       puede: (e) => esMio() && (editando || e.pointerType === 'mouse'),
+      // Con el dedo, manteniendo pulsado (760, AL5).
+      pulsacionLarga: 450,
+      puedeLargo: () => esMio(),
       alSoltar: moverCarta,
       alBorde: (flecha) => !flecha.hidden && flecha.click(),
     })
@@ -680,7 +854,7 @@ export function iniciarAlbumes(contexto) {
   let espera = null
   $('mcAlbBuscar')?.addEventListener('input', () => {
     clearTimeout(espera)
-    espera = setTimeout(buscar, 250)
+    espera = setTimeout(() => buscar(), 250)
   })
   $('mcAlbResultados')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-carta]')

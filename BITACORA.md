@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (11) — PINGU-Claude (760 — el archivador abierto: cabecera, pasar páginas y meter una carta en SU bolsillo)
+
+**Hecho**: AL4–AL6 de la ronda 3. El álbum abierto lleva una cabecera con
+el logo del set (o la tapa del binder), cuántas tienes y lo que costaría
+completarlo. Se pasa página con las flechas, el «Ir a…», la esquina de la
+hoja, ← → y deslizando; en el móvil, una hoja con puntos debajo. En un
+binder, tocar un bolsillo vacío abre una hoja para buscar la carta y va a ESE
+bolsillo; manteniendo pulsado con el dedo se mueve una carta, y soltarla en
+un hueco la deja ahí. Detalle en SCHEMA.md, tanda 760.
+
+**Ficheros**: `js/mi-coleccion/albumes.js`, `js/mi-coleccion/archivador.js`,
+`js/mi-coleccion/arrastre.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`SCHEMA.md`. Prueba 760-pantalla (nueva); 578 al día. Verdes también 759,
+369, 371, 417, 418, 299, 305, 309, 310, 311, 312 y 313.
+
+**Pendiente**: la 761 (el «Añadir carta» agrupado por expansión). Siguen
+las migraciones de la 753 y la 759.
+
 ## 2026-10-08 (10) — PINGU-Claude (759 — Mis álbumes: una rejilla, el tipo primero y el binder a medida)
 
 **Hecho**: AL1–AL3 de la ronda 3. Álbumes es UNA rejilla: Mi colección,
