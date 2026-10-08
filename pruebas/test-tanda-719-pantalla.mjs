@@ -7,6 +7,10 @@
 // copia por `datos.anadir` —y otra al volver a leerla—, con su Deshacer al
 // lado; que tocar la carta abra el diálogo de siempre encima de la cámara;
 // y que «Ver todas en Buscar» cierre y deje la búsqueda entera a la vista.
+//
+// Desde la 758 el escáner está ESCONDIDO (PINGU: «ocúltalo, que no funciona
+// muy bien»): no hay botón en ninguna burbuja, y lo de dentro se prueba por
+// las dos puertas que quedan en el código, la dirección y el aviso.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -42,26 +46,22 @@ async function abrir(ruta, { sesion = true, textos = { nombre: 'BÁSICO Reshiram
 }
 const abierto = (page) => page.evaluate(() => !!document.getElementById('mcEscanerCaja')?.open)
 const lineas = (page) => page.evaluate(() => (window.__TABLAS__.user_collection || []).filter((l) => l.user_id === 'user-1').map((l) => ({ card: l.card_id, n: l.cantidad, idioma: l.idioma, estado: l.estado })))
+const escanear = (page) => page.evaluate(() => document.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true })))
 const disparar = async (page) => { await page.click('#mcEscanerDisparo'); await page.waitForTimeout(2200) }
 
-console.log('── 1. El botón en la burbuja de Cartas ──')
+console.log('── 1. Sin botón en ninguna parte (758) ──')
 {
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=album')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const b = await page.$eval('.mc-pestanias .bm-escanear', (a) => ({ texto: a.textContent.trim(), svg: !!a.querySelector('svg'), href: a.getAttribute('href') })).catch(() => null)
-  check('en Mi colección, la burbuja lleva «Escanear» con su icono', b && b.texto === 'Escanear' && b.svg, JSON.stringify(b))
-  await page.click('.mc-pestanias .bm-escanear')
+  check('en Mi colección la burbuja ya no lleva «Escanear»', (await page.locator('.bm-escanear').count()) === 0 && !/Escanear/.test(await page.textContent('.mc-pestanias')))
+  await escanear(page)
   await page.waitForTimeout(1500)
-  check('  …y tocarlo abre la cámara ahí mismo, sin cambiar de página', (await abierto(page)) && /mi-coleccion\.html/.test(page.url()), page.url())
+  check('  …pero el código sigue: el aviso abre la cámara ahí mismo', (await abierto(page)) && /mi-coleccion\.html/.test(page.url()), page.url())
   await ctx.close()
 
   const otra = await abrir('/lanzamientos.html')
-  const h = await otra.page.$eval('.bm-burbuja .bm-escanear', (a) => a.getAttribute('href')).catch(() => null)
-  check('en otra página de Cartas lleva a Mi colección con la cámara pedida', h === '/mi-coleccion?ver=buscar&escanear=1', String(h))
+  check('en otras páginas tampoco', (await otra.page.locator('.bm-escanear').count()) === 0)
   await otra.ctx.close()
-  const sin = await abrir('/lanzamientos.html', { sesion: false })
-  check('sin cuenta no sale: lo leído se añade a TU colección', (await sin.page.locator('.bm-escanear').count()) === 0)
-  await sin.ctx.close()
   const directa = await abrir('/mi-coleccion.html?ver=buscar&escanear=1')
   check('y esa dirección abre la cámara sola', await abierto(directa.page))
   await directa.ctx.close()
@@ -70,7 +70,7 @@ console.log('── 1. El botón en la burbuja de Cartas ──')
 console.log('── 2. Leer no cierra: la bandeja, el «+» y otra vez ──')
 {
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=buscar')
-  await page.click('.mc-pestanias .bm-escanear')
+  await escanear(page)
   await page.waitForTimeout(1500)
   await disparar(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
@@ -103,7 +103,7 @@ console.log('── 2. Leer no cierra: la bandeja, el «+» y otra vez ──')
 console.log('── 3. Tocar la carta y «Ver todas en Buscar» ──')
 {
   const { page, ctx } = await abrir('/mi-coleccion.html?ver=buscar', { textos: { nombre: 'BÁSICO Reshiram pv130', codigo: 'Ilus. Nadie' } })
-  await page.click('.mc-pestanias .bm-escanear')
+  await escanear(page)
   await page.waitForTimeout(1500)
   await disparar(page)
   check('sin número: las dos Reshiram en la bandeja', (await page.locator('#mcEscanerCandidatas .mc-escaner-candidata').count()) === 2)
@@ -118,11 +118,9 @@ console.log('── 3. Tocar la carta y «Ver todas en Buscar» ──')
   check('«Ver todas en Buscar» cierra y deja la lista a la vista', !(await abierto(page)) && (await page.locator('#mcBuscarResultados .mc-resultado').count()) === 2 && (await page.isVisible('#mcBuscarResultados')))
   const video = await page.evaluate(() => !document.getElementById('mcEscanerVideo').srcObject)
   check('  …con la cámara apagada', video)
-  // Con la lista a la vista el botón grande de Buscar se va (vive en el
-  // estado vacío): por eso escanear tiene botón en la burbuja.
-  await page.click('.mc-pestanias .bm-escanear')
+  await escanear(page)
   await page.waitForTimeout(1500)
-  check('al volver a abrir (desde la burbuja), la bandeja empieza vacía', await page.$eval('#mcEscanerBandeja', (b) => b.classList.contains('hidden')))
+  check('al volver a abrir, la bandeja empieza vacía', await page.$eval('#mcEscanerBandeja', (b) => b.classList.contains('hidden')))
   await ctx.close()
 }
 

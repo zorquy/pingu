@@ -64,7 +64,8 @@ console.log('── 2. La portada en un iPhone ──')
   check('arriba no hay píldoras, y el hueco bajo la barra de arriba es el pequeño', (await page.locator('.bm-secc').count()) === 0 && (await page.$eval('.page-content', (m) => parseFloat(getComputedStyle(m).paddingTop))) <= 24)
   const bu = await page.$eval('.bm-burbuja', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), items: [...e.querySelectorAll('a')].map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`), iconos: e.querySelectorAll('a svg').length } })
   const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
-  check('la burbuja de la sección flota encima de la barra con Inicio (activa) y Noticias, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias' && bu.iconos === 2, JSON.stringify({ bu, barraTop }))
+  // Desde la 758 Lanzamientos es de Inicio (PINGU: «como Noticias»).
+  check('la burbuja de la sección flota encima de la barra con Inicio (activa), Noticias y Lanzamientos, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias,Lanzamientos' && bu.iconos === 3, JSON.stringify({ bu, barraTop }))
   check('  …cada hueco mide 44 o más', (await page.$$eval('.bm-burbuja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
   check('  …y no hay hoja ni doble toque: la pestaña activa es un enlace normal', (await page.locator('.bm-hoja').count()) === 0 && !(await page.locator('.bm a[aria-current="page"]').getAttribute('aria-haspopup')))
   // Desde la raíz (718): relativa, en /carta/<slug> se pedía
@@ -84,7 +85,9 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   check('la burbuja de Mi colección sigue flotando, justo ENCIMA de la barra (704c)', mc.pos === 'fixed' && mc.alto > 0 && mc.bottom <= barraTop && mc.bottom >= barraTop - 24, JSON.stringify({ mc, barraTop }))
   check('  …y la página reserva sitio para las dos', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom))) >= 160)
   const ajenas = await page.$$eval('.mc-pestanias .bm-ajena', (as) => as.map((a) => `${a.textContent.trim()}:${a.getAttribute('href')}`))
-  check('en Mi colección no hay segunda burbuja: las otras páginas de Cartas van al final de la suya', (await page.locator('.bm-burbuja').count()) === 0 && ajenas.filter((a) => !a.startsWith('Escanear:')).join() === 'Catálogo:/cartas,Lanzamientos:/lanzamientos.html' && (await page.locator('.mc-pestanias.bm-con-ajenas').count()) === 1, ajenas.join())
+  // 758: Cartas es solo Mi colección (el catálogo salió del menú y
+  // Lanzamientos se fue a Inicio), así que no queda ninguna ajena.
+  check('en Mi colección no hay segunda burbuja, ni ajenas ni escanear al final de la suya', (await page.locator('.bm-burbuja').count()) === 0 && ajenas.length === 0 && (await page.locator('.mc-pestanias.bm-con-ajenas').count()) === 1, ajenas.join())
   await ctx.close()
 }
 
@@ -112,7 +115,7 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   // Desde la 753 la barra viene en el HTML: en el escritorio está, pero no
   // se ve (y su CSS grande sigue sin bajarse).
   check('en el escritorio no se ve la barra, ni hay burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 1 && !(await d.page.locator('.bm').isVisible()) && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href$="css/movil.css"]').count()) === 0)
-  check('  …y la barra de arriba sigue con sus desplegables', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 4)
+  check('  …y la barra de arriba sigue con sus desplegables (tres desde la 758: Aprender, Comunidad y Jugar)', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 3)
   await d.ctx.close()
 }
 

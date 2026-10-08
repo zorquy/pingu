@@ -6,7 +6,7 @@
 // su sección marcada, y que se ve SIN JavaScript (es lo que la pone en el
 // primer pintado); que la transición solo se pide en el móvil y sin «menos
 // movimiento»; que con cuenta Cartas lleva a Mi colección; que el
-// manifiesto trae los cinco atajos; que en Android sale «Instalar» cuando
+// manifiesto trae los atajos (cuatro desde la 758); que en Android sale «Instalar» cuando
 // el navegador dice que se puede y abre su instalador; que en
 // /lanzamientos cada set que viene lleva «Avísame», que se guarda, se
 // cambia y se quita, con la preventa cuando se sabe; y que la función
@@ -60,7 +60,7 @@ console.log('── 2. Los atajos del icono (A2) ──')
 {
   const m = JSON.parse(readFileSync(`${RAIZ}/manifest.webmanifest`, 'utf8'))
   const atajos = m.shortcuts || []
-  check('cinco atajos: escanear, añadir, reto, La quiero y Mi colección', JSON.stringify(atajos.map((a) => a.short_name)) === JSON.stringify(['Escanear', 'Añadir', 'Reto', 'La quiero', 'Colección']), JSON.stringify(atajos.map((a) => a.short_name)))
+  check('cuatro atajos: añadir, reto, La quiero y Mi colección (escanear se fue en la 758)', JSON.stringify(atajos.map((a) => a.short_name)) === JSON.stringify(['Añadir', 'Reto', 'La quiero', 'Colección']), JSON.stringify(atajos.map((a) => a.short_name)))
   check('  …cada uno a una página que existe, con su icono', atajos.every((a) => a.url.startsWith('/') && existsSync(`${RAIZ}/${a.url.slice(1).split('?')[0].replace(/^$/, 'index')}${/\.html$/.test(a.url.split('?')[0]) ? '' : '.html'}`) && a.icons?.every((i) => existsSync(`${RAIZ}${i.src}`))), JSON.stringify(atajos.map((a) => a.url)))
   const pags = readdirSync(RAIZ).filter((f) => f.endsWith('.html') && readFileSync(`${RAIZ}/${f}`, 'utf8').includes('id="navbar"'))
   check('las páginas se abren a pantalla completa en el iPhone, con su nombre', pags.every((f) => /apple-mobile-web-app-capable" content="yes"/.test(readFileSync(`${RAIZ}/${f}`, 'utf8')) && /apple-mobile-web-app-title" content="PokeDoc"/.test(readFileSync(`${RAIZ}/${f}`, 'utf8'))))

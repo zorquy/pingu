@@ -35,13 +35,9 @@ async function abrir() {
     return c ? { ve: !c.classList.contains('hidden'), img: img ? { w: img.getAttribute('width'), h: img.getAttribute('height'), src: img.getAttribute('src') } : null, botones: [...c.querySelectorAll('.mc-vacio-acciones > *')].map((b) => b.textContent.trim()), pie: c.querySelector('.mc-vacio-pie')?.textContent.trim() } : null
   })
   check('sin cartas sale el vacío, con la mascota y su hueco reservado', v?.ve && v.img?.src.includes('mascota') && v.img.w === '96' && v.img.h === '145', JSON.stringify(v))
-  check('  …y dos caminos: escanear o buscar', JSON.stringify(v?.botones) === JSON.stringify(['Escanear una carta', 'Buscar una carta']), JSON.stringify(v?.botones))
+  // 758: el escáner está escondido, así que queda UN camino.
+  check('  …y un camino: buscar', JSON.stringify(v?.botones) === JSON.stringify(['Buscar una carta']), JSON.stringify(v?.botones))
   check('  …y debajo, traerla de otra app', /Collectr o Dex/.test(v?.pie || ''), v?.pie)
-  await page.click('[data-vacio-escanear]')
-  await page.waitForTimeout(1500)
-  check('«Escanear una carta» abre la cámara', await page.evaluate(() => document.getElementById('mcEscanerCaja').open))
-  await page.click('#mcEscanerCerrar')
-  await page.waitForTimeout(400)
   await page.click('#mcCartasVacio .mc-importar-abrir')
   await page.waitForTimeout(1200)
   check('«Tráela de Collectr o Dex» abre el importador', await page.evaluate(() => !!document.getElementById('mcImportarDialogo')?.open))

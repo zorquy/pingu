@@ -68,8 +68,8 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
   check('el hilo lleva a /tema/<id>', gs[2]?.filas[0]?.href === '/tema/tema-9', JSON.stringify(gs[2]))
   check('la persona lleva a su perfil, con su @', gs[3]?.filas[0]?.href === '/usuario/charlie' && /@charlie/.test(gs[3].filas[0].texto), JSON.stringify(gs[3]))
   check('cada fila mide al menos 44 de alto', gs.every((g) => g.filas.every((f) => f.alto >= 44)))
-  const esc = await page.$eval('#bsEscanear', (a) => ({ href: a.getAttribute('href'), w: a.getBoundingClientRect().width, h: a.getBoundingClientRect().height, svg: !!a.querySelector('svg') }))
-  check('el escáner, al lado de la caja: un icono de 44 que abre la cámara en Mi colección', esc.href === '/mi-coleccion?ver=buscar&escanear=1' && esc.w >= 44 && esc.h >= 44 && esc.svg, JSON.stringify(esc))
+  // 758: el escáner se fue de al lado de la caja (escondido, el código sigue).
+  check('sin escáner al lado de la caja', (await page.locator('#bsEscanear, .bs-escanear').count()) === 0)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('la página no se va de ancho', ancho <= 1, String(ancho))
 

@@ -454,7 +454,7 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   check(`[${nombre}] quién eres en una línea, con «Ver perfil»`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
   check(`[${nombre}] avisos (con su número) y mensajes en dos losetas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'La quiero>/mi-coleccion?ver=quiero | Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
+  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'La quiero>/mi-coleccion?ver=quiero | Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Apoyar PokeDocUn café en Ko-fi>https://ko-fi.com/pingucollects | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
   check(`[${nombre}] el tema en tres y «Salir» aparte`, m.tema === 'Claro* Oscuro Auto' && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
   await page.click('#navUserDropdown [data-tema="auto"]')

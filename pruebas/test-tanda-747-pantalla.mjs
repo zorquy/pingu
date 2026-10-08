@@ -130,11 +130,8 @@ console.log('── 5. Buscar, sin el botón de escanear ──')
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=buscar', { camara: true })
   const b = await page.evaluate(() => ({ boton: !!document.getElementById('mcEscanear'), texto: document.getElementById('mcBuscarVacio')?.innerText || '', menu: !!document.querySelector('.mc-pestanias .bm-escanear') }))
   check('el vacío de Buscar no lleva escáner', !b.boton && !/Escanear|Enfoca la carta/.test(b.texto), JSON.stringify(b))
-  check('  …y el menú sí', b.menu)
-  await page.click('.mc-pestanias .bm-escanear')
-  await page.waitForTimeout(1200)
-  const abierto = await page.evaluate(() => { const c = document.getElementById('mcEscanerCaja'); return !!c && c.getBoundingClientRect().height > 0 && location.pathname.startsWith('/mi-coleccion') })
-  check('el «Escanear» del menú abre la cámara ahí mismo', abierto)
+  // 758: tampoco el menú (el escáner está escondido, su código sigue).
+  check('  …ni el menú', !b.menu)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
