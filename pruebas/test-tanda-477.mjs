@@ -43,6 +43,11 @@ const abrir = async (ancho = 390) => {
       id: `l${i}`, card_id: c.id, market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM',
       variante: 'normal', created_at: new Date().toISOString(),
     }))
+    // Desde la 759 las carpetas pasan a binders solas; lo de aquí es lo que
+    // queda cuando NO se puede (la base no deja crear el álbum: la RLS
+    // devuelve vacío sin error). Entonces las carpetas se quedan, y tienen
+    // que verse y abrirse como siempre.
+    window.__SIN_PERMISO__ = ['user_albums']
     // Una carpeta con una SUBcarpeta dentro y tres cartas, que es el caso
     // que la pantalla tiene que saber contar.
     window.__FAKE_CARPETAS__ = [
@@ -69,9 +74,9 @@ check('salen las dos de primer nivel', (await page.locator('#mcCarpetasPanel [da
 // «Nueva carpeta» es una chapa, no un botón azul: es un mando más, y un
 // `btn-primary` solo en una pantalla dice «esto es lo que hay que hacer
 // aquí», que no es verdad cuando ya tienes carpetas.
-const nueva = page.locator('#mcCarpetaNueva')
-check('«Nueva carpeta» es una chapa', await nueva.evaluate((n) => n.classList.contains('mc-chip-mando')))
-check('  …y ya no es un botón azul', await nueva.evaluate((n) => !n.classList.contains('btn-primary')))
+// 759: no se crean carpetas, y si no se han podido pasar no se borran.
+check('sin «Nueva carpeta»: lo que se crea son álbumes', (await page.locator('#mcCarpetaNueva').count()) === 0)
+check('  …y las carpetas siguen en la base', (await page.evaluate(() => window.__TABLAS__.collection_folders.length)) === 3)
 check('fuera no hay ni título ni buscador',
   (await page.locator('#mcCarpetaBarra').isHidden()) && (await page.locator('#mcCarpetaBuscadorCaja').isHidden()))
 // El resumen cuenta lo de la carpeta Y lo de sus subcarpetas: una carpeta
@@ -92,7 +97,6 @@ check('hay buscador', await page.locator('#mcCarpetaBuscadorCaja').isVisible())
 // Dentro, lo que se crea es una SUBcarpeta y eso vive en el ⋮: dos
 // botones que crean cosas distintas con el mismo rótulo es justo cómo se
 // pulsa el que no era.
-check('«Nueva carpeta» se esconde', await page.locator('#mcCarpetasMandos').isHidden())
 check('sale la subcarpeta', (await page.locator('#mcCarpetasPanel [data-abrir="f2"]').count()) === 1)
 check('y las dos cartas de la carpeta', (await page.locator('#mcCarpetaCartas .mc-carta').count()) === 2,
   String(await page.locator('#mcCarpetaCartas .mc-carta').count()))
@@ -103,8 +107,8 @@ check('empieza cerrado', (await menu.evaluate((n) => n.open)) === false)
 await page.click('#mcCarpetaMenu > summary')
 await page.waitForTimeout(400)
 const opciones = await page.locator('#mcCarpetaMenu .mc-menu-opcion').allTextContents()
-check('tiene las dos opciones', opciones.length === 2, JSON.stringify(opciones))
-check('  …con su nombre escrito', /Nueva subcarpeta/.test(opciones[0]) && /Cambiar la carpeta/.test(opciones[1]),
+check('tiene una opción (sin «Nueva subcarpeta» desde la 759)', opciones.length === 1, JSON.stringify(opciones))
+check('  …con su nombre escrito', /Cambiar la carpeta/.test(opciones[0]),
   JSON.stringify(opciones))
 // El cierre va por CLASE desde esta tanda: antes colgaba del
 // identificador del menú de una expansión, así que este se habría quedado
@@ -138,7 +142,6 @@ console.log('\n── 5. Al salir se olvida lo buscado ──')
 await page.click('#mcCarpetaVolver')
 await page.waitForTimeout(800)
 check('vuelve a la lista', (await page.locator('#mcCarpetasPanel [data-abrir]').count()) === 2)
-check('y «Nueva carpeta» vuelve', await page.locator('#mcCarpetasMandos').isVisible())
 await page.click('#mcCarpetasPanel [data-abrir="f1"]')
 await page.waitForTimeout(1000)
 check('al volver a entrar, el buscador está vacío', (await page.inputValue('#mcCarpetaBuscar')) === '')

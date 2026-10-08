@@ -181,8 +181,9 @@ console.log('── 1. Lo que el navegador arrastraba SOLO, apagado ──')
   check('  …y el álbum se ve', carpetas.album === true)
   await page.click('#mcAlbVolver')
   await page.waitForTimeout(500)
-  const vuelta = await page.evaluate(() => document.getElementById('mcCarpetasMandos').getClientRects().length > 0)
-  check('al volver a «Tus álbumes» reaparecen', vuelta === true)
+  // 759: «Nueva carpeta» ya no existe; al volver se ve la rejilla de álbumes.
+  const vuelta = await page.evaluate(() => document.getElementById('mcAlbumesRejilla').getClientRects().length > 0)
+  check('al volver a «Tus álbumes» se ve la rejilla', vuelta === true)
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   await page.close()
 }

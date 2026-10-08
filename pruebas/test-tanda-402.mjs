@@ -94,11 +94,14 @@ console.log('\n── 3. En la pantalla ──')
   check('el enlace directo abre la pestaña',
     !(await page.locator('#mcPanelCarpetas').getAttribute('class'))?.includes('hidden'))
   const texto = (await page.locator('#mcCarpetasPanel').textContent())?.replace(/\s+/g, ' ') || ''
-  check('dice que no tienes ninguna', /Todavía no tienes carpetas/.test(texto), texto.slice(0, 120))
+  // Desde la 759 no hay sección de carpetas (PINGU: «es mejor dejar solo
+  // álbumes»): sin ninguna, este hueco no dice nada y lo de abajo son los
+  // álbumes, con su «Empezar un álbum».
+  check('sin carpetas, el hueco no dice nada (las carpetas se fueron, 759)', texto.trim() === '', texto.slice(0, 120))
   // Y NO dice «no están activadas», que es otra cosa: eso se arregla
   // ejecutando un SQL y lo otro creando una carpeta.
   check('  …y no lo confunde con «no están activadas»', !/no están activadas/.test(texto))
-  check('hay botón para crear una', (await page.locator('#mcCarpetaNueva').count()) === 1)
+  check('ni botón de crear carpetas: lo que se empieza es un álbum', (await page.locator('#mcCarpetaNueva').count()) === 0 && (await page.locator('#mcAlbNuevoAbrir').count()) === 1)
   await browser.close()
 }
 

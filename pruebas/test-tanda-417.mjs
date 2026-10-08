@@ -92,8 +92,10 @@ console.log('\n── 4. El archivador sigue vivo donde SÍ tiene sentido ──
   const { page, errores } = await abrir('/mi-coleccion.html?ver=carpetas')
   await page.locator('#mcAlbNuevoAbrir').click()
   await page.waitForTimeout(600)
-  await page.fill('#mcDlgNombre', 'Mi álbum')
-  await page.locator('#mcDlgGuardar').click()
+  // 759: primero el tipo; un álbum vacío es un binder.
+  await page.click('[data-tipo="binder"]')
+  await page.waitForTimeout(300)
+  await page.locator('#mcAlbNuevoCrear').click()
   await page.waitForTimeout(1300)
   check('el álbum soñado se abre', await page.locator('#mcAlbumesDetalle').evaluate((e) => !e.classList.contains('hidden')))
   check('  …con su archivador', (await page.locator('#mcAlbArchivador').count()) === 1)

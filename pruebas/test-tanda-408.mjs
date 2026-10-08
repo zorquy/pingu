@@ -185,7 +185,7 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
   const { page } = await abrir('/mi-coleccion.html?ver=carpetas')
   check('los álbumes soñados están dentro de Carpetas',
     await page.locator('#mcPanelCarpetas #mcBloqueAlbumes').isVisible())
-  check('  …y con su rótulo', /Álbumes soñados/.test(
+  check('  …y con su rótulo («Mis álbumes» desde la 759)', /Mis álbumes/.test(
     (await page.locator('#mcBloqueAlbumes > h2').textContent()) || ''))
   await page.close()
 }

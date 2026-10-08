@@ -65,7 +65,14 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=carpetas') => {
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
-  await page.locator('#mcCarpetaNueva').click()
+  // Sin «Nueva carpeta» desde la 759 (las carpetas pasan a binders): el
+  // diálogo sigue para cambiar una que no se haya podido pasar, y se abre
+  // con la misma función que usa la página.
+  const abrirDlg = (conBorrar) => page.evaluate(async (conBorrar) => {
+    const m = await import('/js/mi-coleccion/dialogo-adorno.js')
+    m.abrirDialogoAdorno({ titulo: 'Cambiar la carpeta', boton: 'Guardar', valores: conBorrar ? { nombre: window.__guardado?.nombre } : {}, alGuardar: (v) => { window.__guardado = v }, alBorrar: conBorrar ? () => {} : null })
+  }, conBorrar)
+  await abrirDlg(false)
   await page.waitForTimeout(500)
   check('se abre el diálogo', await page.locator('#mcDlgAdorno').evaluate((e) => e.open))
   // Centrado: un `dialog` modal se centra solo, pero cualquier margen a 0
@@ -115,29 +122,25 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=carpetas') => {
   await page.waitForTimeout(200)
   await page.locator('#mcDlgGuardar').click()
   await page.waitForTimeout(800)
-  check('al crear, sale su burbuja', (await page.locator('.mc-burbuja').count()) === 1)
-  check('  …con su nombre', /Para cambiar/.test((await page.locator('.mc-burbuja-nombre').textContent()) || ''))
-  check('  …y con el color elegido',
-    (await page.locator('.mc-burbuja').getAttribute('style'))?.includes(COLORES[2]),
-    await page.locator('.mc-burbuja').getAttribute('style'))
+  const guardado = await page.evaluate(() => window.__guardado)
+  check('al guardar, devuelve su nombre', guardado?.nombre === 'Para cambiar', JSON.stringify(guardado))
+  check('  …y el color elegido', guardado?.color === COLORES[2], JSON.stringify(guardado))
 
   // Y al editarla, el borrar SÍ está.
-  await page.locator('.mc-burbuja-mas').click()
+  await abrirDlg(true)
   await page.waitForTimeout(500)
   check('al editar, el borrar está', await page.locator('#mcDlgBorrar').isVisible())
   check('  …y el nombre viene puesto', (await page.locator('#mcDlgNombre').inputValue()) === 'Para cambiar')
   await page.close()
 }
 
-console.log('\n── 3. Un álbum es la misma burbuja ──')
+console.log('\n── 3. Un álbum se empieza con SU diálogo (759) ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=carpetas')
   await page.locator('#mcAlbNuevoAbrir').click()
   await page.waitForTimeout(600)
-  check('el diálogo es el mismo', await page.locator('#mcDlgAdorno').evaluate((e) => e.open))
-  check('  …pero dice álbum', /álbum/i.test((await page.locator('#mcDlgTitulo').textContent()) || ''))
-  // Lo único que cambia: un álbum nace con cartas dentro o vacío.
-  check('  …y pregunta con qué empezar', await page.locator('#mcDlgOrigen').isVisible())
+  check('«Empezar un álbum» abre el diálogo de los tipos, no el del adorno', (await page.locator('#mcAlbNuevo').evaluate((e) => e.open)) && !(await page.locator('#mcDlgAdorno').evaluate((e) => e.open)))
+  check('  …y el «empezar con» de antes ya no existe', (await page.locator('#mcDlgOrigen').count()) === 0)
   await page.close()
 }
 

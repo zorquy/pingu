@@ -89,9 +89,11 @@ console.log('\n── 3. El color de la tapa ──')
   // Los ocho tienen su regla en el CSS. Sin ella, `--tapa` se queda en el
   // valor por defecto y elegir color no haría nada.
   const css = leer('css/mi-coleccion.css')
-  const sinRegla = TAPAS.filter((t) => !new RegExp(`\\.mc-binder\\[data-tapa='${t.id}'\\]`).test(css))
+  // Desde la 759 la regla es UNA para todo lo que lleve `data-tapa` (el
+  // archivador, su botón, la baldosa del binder y la vista del diálogo).
+  const sinRegla = TAPAS.filter((t) => !new RegExp(`^\\[data-tapa='${t.id}'\\] \\{ --tapa:`, 'm').test(css))
   check('los ocho tienen color en el CSS', sinRegla.length === 0, sinRegla.map((t) => t.id).join(', '))
-  const sinBoton = TAPAS.filter((t) => !new RegExp(`\\.mc-tapa\\[data-tapa='${t.id}'\\]`).test(css))
+  const sinBoton = TAPAS.filter(() => !/\.mc-tapa \{\s*--tapa:/.test(css))
   check('  …y su botón', sinBoton.length === 0, sinBoton.map((t) => t.id).join(', '))
 }
 
@@ -125,10 +127,12 @@ async function abrir(opciones = {}) {
   await page.waitForTimeout(1200)
   await page.locator('#mcAlbNuevoAbrir').click()
   await page.waitForTimeout(700)
-  await page.fill('#mcDlgNombre', 'Álbum de prueba')
-  await page.selectOption('#mcAlbOrigen', 'set')
+  // 759: primero el tipo; «una colección entera» es ahora un álbum de set.
+  await page.click('[data-tipo="set"]')
+  await page.waitForTimeout(500)
+  await page.locator('#mcAlbNuevoSets [data-set]').first().click()
   await page.waitForTimeout(300)
-  await page.locator('#mcDlgGuardar').click()
+  await page.locator('#mcAlbNuevoCrear').click()
   await page.waitForTimeout(1800)
   return { page, errores }
 }
