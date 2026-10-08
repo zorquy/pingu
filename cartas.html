@@ -925,6 +925,68 @@
         </div>
       </dialog>
 
+      <!-- EL MERCADO (tanda 770): todo lo que la gente da, lo busques o no
+           (PINGU: «que salga públicamente lo que la gente tiene para cambio
+           aunque tú no lo desees»). Una baldosa por carta con quién la da;
+           la ficha de cada una, al lado en el PC y desde abajo en el móvil
+           (#mcMercadoFicha). Se ve sin cuenta: /mi-coleccion?ver=mercado.
+           Lo pinta js/mi-coleccion/mercado.js. -->
+      <section id="mcPanelMercado" class="hidden" role="tabpanel" aria-label="Mercado">
+        <div class="mc-bloque-mercado">
+          <div class="mc-deseos-cabeza">
+          <h2 class="mc-subtitulo">Deseos y cambios</h2>
+          <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
+            <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="true"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false"><span>Las que doy</span><span class="mc-deseos-n" data-deseos-n="doy"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="false"><i class="mc-deseos-punto hidden" data-deseos-punto aria-hidden="true"></i><span>Cruces</span><span class="mc-deseos-n" data-deseos-n="cruces"></span></button>
+          </span>
+          </div>
+          <ol class="mc-deseos-pasos hidden" id="mcDeseosPasos">
+            <li><span class="mc-deseos-paso-n">1</span><span>Marca con el corazón las que buscas</span></li>
+            <li><span class="mc-deseos-paso-n">2</span><span>Pon para cambio las que te sobran</span></li>
+            <li><span class="mc-deseos-paso-n">3</span><span>En «Cruces», con quién encajas</span></li>
+          </ol>
+          <p class="mc-mercado-entrar hidden" id="mcMercadoEntrar">Esto es lo que da la gente de PokeDoc. <a href="/auth.html?registro=1" id="mcMercadoEntrarEnlace">Crea tu cuenta</a> para apuntar lo que buscas y escribirles.</p>
+          <div class="mc-mercado-barra">
+            <div class="mc-buscador">
+              <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+              <input type="search" enterkeyhint="search" id="mcMercadoBuscar" placeholder="Busca una carta: Charizard, Iono, 151/165…" autocomplete="off" aria-label="Busca en lo que da la gente" />
+            </div>
+            <div class="mc-mercado-mandos">
+            <span class="seg mc-mercado-catalogo" role="group" aria-label="Qué catálogo">
+              <button type="button" class="seg-btn" data-mercado-catalogo="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
+              <button type="button" class="seg-btn" data-mercado-catalogo="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
+            </span>
+            <label class="mc-mercado-opcion"><span class="sr-only">Idioma</span>
+              <select id="mcMercadoIdioma">
+                <option value="">Cualquier idioma</option>
+                <option value="es">Español</option>
+                <option value="en">Inglés</option>
+                <option value="fr">Francés</option>
+                <option value="de">Alemán</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Portugués</option>
+                <option value="ja">Japonés</option>
+              </select>
+            </label>
+            <label class="mc-mercado-opcion"><span class="sr-only">Orden</span>
+              <select id="mcMercadoOrden">
+                <option value="nuevo">Lo último</option>
+                <option value="gente">Más gente</option>
+                <option value="caro">Más caro</option>
+              </select>
+            </label>
+            <button type="button" class="chip-filtro mc-mercado-mias hidden" id="mcMercadoMias" aria-pressed="false"><span data-icono-quiero aria-hidden="true"></span><span>Solo las que busco</span></button>
+            </div>
+          </div>
+          <button type="button" class="mc-mercado-aviso hidden" id="mcMercadoAviso"></button>
+          <p class="mc-cuantas" id="mcMercadoCuantas" role="status" aria-live="polite"></p>
+          <div class="mc-mercado-rejilla" id="mcMercadoRejilla"></div>
+          <button type="button" class="btn-secondary mc-mercado-mas hidden" id="mcMercadoMas">Ver más</button>
+        </div>
+      </section>
+
       <!-- «LA QUIERO» (tanda 751): lo que buscas, con su precio, lo que
            suma, su aviso y para compartirla. Es la lista de los cambios
            (`user_wants`) en su propia pantalla, como Cambios: se llega por
@@ -937,9 +999,10 @@
           <div class="mc-deseos-cabeza">
           <h2 class="mc-subtitulo">Deseos y cambios</h2>
           <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
-            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="true">La quiero</button>
-            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false">Las que doy</button>
-            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="false">Cruces</button>
+            <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="false"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="true"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false"><span>Las que doy</span><span class="mc-deseos-n" data-deseos-n="doy"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="false"><i class="mc-deseos-punto hidden" data-deseos-punto aria-hidden="true"></i><span>Cruces</span><span class="mc-deseos-n" data-deseos-n="cruces"></span></button>
           </span>
           </div>
           <!-- APUNTAR UNA CARTA (768): el motor de Buscar, con su catálogo
@@ -969,9 +1032,10 @@
           <div class="mc-deseos-cabeza">
           <h2 class="mc-subtitulo">Deseos y cambios</h2>
           <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
-            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false">La quiero</button>
-            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false">Las que doy</button>
-            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="true">Cruces</button>
+            <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="false"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false"><span>Las que doy</span><span class="mc-deseos-n" data-deseos-n="doy"></span></button>
+            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="true"><i class="mc-deseos-punto hidden" data-deseos-punto aria-hidden="true"></i><span>Cruces</span><span class="mc-deseos-n" data-deseos-n="cruces"></span></button>
           </span>
           </div>
           <div id="mcCambiosPanel"></div>
@@ -1698,6 +1762,16 @@
       </dialog>
     <!-- LA FICHA DE UN PRODUCTO (769): al lado en un PC ancho, en ventana
          si no, como la de una carta. -->
+    <!-- La ficha de una carta del Mercado (770): quién la da, con su idioma
+         y su estado, y «La quiero». Al lado en el PC, desde abajo en el
+         móvil. -->
+    <dialog class="mc-prodf mc-merf" id="mcMercadoFicha" aria-labelledby="mcMercadoFichaTitulo">
+      <div class="mc-panel-cabecera">
+        <h2 id="mcMercadoFichaTitulo">Carta</h2>
+        <button type="button" class="mc-panel-cerrar" id="mcMercadoFichaCerrar" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="mc-prodf-cuerpo" id="mcMercadoFichaCuerpo"></div>
+    </dialog>
     <dialog class="mc-prodf" id="mcProdFicha" aria-labelledby="mcProdFichaTitulo">
       <div class="mc-panel-cabecera">
         <h2 id="mcProdFichaTitulo">Producto</h2>

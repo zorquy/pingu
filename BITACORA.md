@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (19) — PINGU-Claude (770–773 — Deseos y cambios, rehecho)
+
+**Hecho**: lo que PINGU aprobó en las maquetas («adelante con todo lo que
+propones»). **770**: la pestaña **Mercado**, la primera de Deseos y cambios:
+todo lo que da la gente, una baldosa por carta con quién la da, idiomas y
+precio, «Cruce» y «La buscas», filtros, y su ficha (al lado en el PC, desde
+abajo en el móvil) con la lista de personas y «Escribir». Se ve SIN cuenta
+(/mi-coleccion?ver=mercado). Lleva migración. **771**: «La quiero» en
+rejilla con quién la da; el idioma se pregunta al apuntar (en todas partes,
+también /carta); fuera la prioridad y la papelera. **772**: «Las que doy» en
+rejilla con − y + y «Poner más para cambio». **773**: los cruces, una
+tarjeta por persona con «Te da / Le das» y su valor, y filtros. Detalle en
+SCHEMA.md, tandas 770 a 773.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/mercado.js` (nuevo),
+`js/idioma-deseo.js` (nuevo), `js/mi-coleccion/tablon.js` (el tablón viejo
+se fue), `js/mi-coleccion/cambios.js`, `js/la-quiero.js`,
+`js/carta-mercado.js` (el corazón pregunta el idioma; enlace al Mercado),
+`js/barra-lateral.js` (una palabra: `ver: 'mercado'`), `mi-coleccion.html`,
+`cartas.html` (regenerado), `css/mi-coleccion.css` (el CSS del tablón viejo,
+fuera), `css/cardmarket.css` (la ventana del idioma),
+`supabase-migration-mercado.sql` (nueva), `SCHEMA.md`. Pruebas 770, 771 y
+772-pantalla (nuevas) y `sql-mercado.sql`; al día 376, 408, 439, 751, 763,
+765, 766 y 768. El doble aprende `intercambios_mercado` y `user_follows`.
+
+**Pendiente**: ejecutar `supabase-migration-mercado.sql` (sin ella el
+Mercado dice que falta; las otras tres vistas van). Siguen pendientes las de
+la 753, 759, 762, 763, 764, 766 y 769. Después: el botón de Ko-fi en la
+lateral (774), que PINGU pidió mientras tanto.
+
 ## 2026-10-08 (18) — PINGU-Claude (767–769 — Buscar, álbumes, deseos y productos)
 
 **Hecho**: lo que PINGU corrigió de la 765-766. **767**: Buscar vuelve a ser

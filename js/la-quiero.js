@@ -5,11 +5,14 @@
 // tanda 376). Una carta que quieres ES una carta que buscas, y dos listas
 // del mismo dato se separan el primer día — la quitas de una y en la otra
 // sigue. Por eso el corazón apunta «en cualquier idioma» (idioma null), que
-// es lo que apunta el buscador, y al quitarlo se van TODAS las filas de esa
-// carta: si quitas el corazón, ya no la quieres en ningún idioma.
+// era lo que apuntaba el buscador, y al quitarlo se van TODAS las filas de
+// esa carta: si quitas el corazón, ya no la quieres en ningún idioma.
+// Desde la 771 se pregunta el idioma al ponerlo (js/idioma-deseo.js).
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { anadirDeseo, borrarDeseo } from './mi-coleccion/cambios.js'
 import { showToast } from './toast.js'
+import { preguntarIdioma } from './idioma-deseo.js'
+import { nombreDeCarta } from './catalogo-series.js'
 
 // En los iconos de la colección y no en js/icons.js, que lo baja la
 // portada (CLAUDE.md).
@@ -35,14 +38,18 @@ export function pintarLoseta(boton, cardId, deseos) {
 // Pone o quita el corazón y devuelve la lista nueva. `deseos` puede ser la
 // lista entera (en /mi-coleccion) o solo los de esta carta (en /carta): se
 // tocan solo los de `cardId`.
-export async function alternar({ userId, cardId, deseos }) {
+// `carta` dice el catálogo y el nombre que pregunta la ventana del idioma;
+// si se cancela, la lista vuelve igual.
+export async function alternar({ userId, cardId, deseos, carta = null }) {
   const suyos = deseos.filter((d) => d.card_id === cardId)
   if (suyos.length) {
     for (const d of suyos) await borrarDeseo(d.id)
     showToast('Quitada de «La quiero».', 'success')
     return deseos.filter((d) => d.card_id !== cardId)
   }
-  const d = await anadirDeseo({ user_id: userId, card_id: cardId })
-  showToast('En «La quiero». Si alguien la da, te saldrá en Cambios.', 'success')
+  const idioma = await preguntarIdioma({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST' })
+  if (idioma === undefined) return deseos
+  const d = await anadirDeseo({ user_id: userId, card_id: cardId, idioma })
+  showToast('En «La quiero». Si alguien la da, te saldrá en Cruces.', 'success')
   return [d, ...deseos]
 }

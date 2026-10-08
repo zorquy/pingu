@@ -49,6 +49,7 @@ import * as datos from './mi-coleccion/datos.js'
 import { engancharAvisos, abrirAviso } from './avisos-precio.js'
 // «La quiero» (751): el corazón de la ficha.
 import * as laQuiero from './la-quiero.js'
+import { preguntarIdioma } from './idioma-deseo.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
@@ -121,7 +122,8 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos']
+// `mercado` (770): lo que da todo el mundo, la primera vista de Deseos y cambios.
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
@@ -5310,7 +5312,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.
     $(id)?.classList.toggle('hidden', nombre !== nueva)
@@ -5370,6 +5372,8 @@ function cambiarPestania(nueva, { push = true } = {}) {
   }
   if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'quiero' && esMia) void abrirQuiero()
+  if (nueva === 'mercado') void abrirMercado()
+  if (['mercado', 'quiero', 'cambios'].includes(nueva)) void contarDeseosYCambios()
   if (nueva === 'carpetas') abrirCarpetas()
   // Los productos (762): su módulo entra al abrir la pestaña.
   if (nueva === 'productos') void import('./mi-coleccion/productos.js').then((m) => m.abrir(contexto)).catch((err) => { $('mcProdRejilla').innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
@@ -5791,14 +5795,17 @@ async function abrirCambios() {
   }
 }
 
-// Una cifra de los cambios. Mismo dibujo que las chapas del resto de la
-// pantalla: el icono, el número y de qué va.
-function chapaDeCambio(n, texto, icono) {
-  return `<div class="mc-cambio-cifra">
-    <span class="mc-cambio-icono" aria-hidden="true">${icons[icono] ? icons[icono](18) : ''}</span>
-    <strong>${n}</strong>
-    <span>${escapeHtml(texto)}</span>
-  </div>`
+// LOS CRUCES (773): una tarjeta por persona con lo que te da y lo que le
+// das, lado a lado y con lo que vale cada lado. Filtros: todos, solo los
+// perfectos y la gente que sigues (con quien más fácil sale un cambio).
+let crucesFiltro = 'todos'
+let seguidosIds = null // Set de a quién sigues · null = no se sabe
+async function pedirSeguidos() {
+  if (seguidosIds || !sesion) return seguidosIds
+  // sin rango: solo se piden ids, para filtrar.
+  const { data, error } = await supabase.from('user_follows').select('following_id').eq('follower_id', sesion.user.id).limit(2000)
+  if (!error) seguidosIds = new Set((data || []).map((f) => f.following_id))
+  return seguidosIds
 }
 
 async function pintarCambios() {
@@ -5810,8 +5817,8 @@ async function pintarCambios() {
     // Las dos direcciones a la vez: son independientes y la pantalla
     // las enseña juntas.
     ;[tiene, busca] = await Promise.all([
-      deseos.length ? cambios.quienTiene() : Promise.resolve([]),
-      doy.length ? cambios.quienBusca() : Promise.resolve([]),
+      deseos.length ? pedirQuienTiene() : Promise.resolve([]),
+      doy.length ? pedirQuienBusca() : Promise.resolve([]),
     ])
   } catch (err) {
     caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
@@ -5822,67 +5829,43 @@ async function pintarCambios() {
   // Las cartas del tablón pueden no estar en el mapa: son de OTRA gente
   // y esta página solo cargó las tuyas.
   const faltan = [...tiene, ...busca, ...deseos].map((f) => f.card_id).filter((id) => !cartas.has(id))
-  if (faltan.length) {
-    const nuevas = await datos.cartasPorIds(faltan, mercado)
-    for (const [id, c] of nuevas) cartas.set(id, c)
-  }
-  // LO PRIMERO, LAS CIFRAS (tanda 415). PINGU: «el tema de los cambios
-  // ponlo mucho más visual, de otra manera». El problema no eran las
-  // tarjetas de quien encaja contigo —esas ya llevan avatar, cartas y un
-  // botón—, era que SIN NADA APUNTADO la pantalla eran cuatro cajas
-  // grises de texto seguidas. Y sin nada apuntado es como la ve todo el
-  // mundo la primera vez.
-  const encajan = tiene.length + busca.length
+  if (faltan.length) await completarCartasDeFuera(faltan, mercado)
+  const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !guardados.has(id))
+  if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) guardados.set(k, v)
+  const seguidos = await pedirSeguidos().catch(() => null)
   const vacio = !doy.length && !deseos.length
-  caja.innerHTML = `
-    ${
-      // Sin nada apuntado, las tres chapas son tres CEROS, y debajo ya
-      // están los tres pasos que explican qué hacer (tanda 439). Una fila
-      // de ceros encima de «así funciona» no informa: ocupa. Con algo
-      // apuntado sí dicen, que es cuando salen.
-      vacio
-        ? ''
-        : `<div class="mc-cambio-cifras">
-      ${chapaDeCambio(encajan, 'encajan contigo', 'refreshCw')}
-      ${chapaDeCambio(doy.length, doy.length === 1 ? 'carta que das' : 'cartas que das', 'package')}
-      ${chapaDeCambio(deseos.length, deseos.length === 1 ? 'carta que quieres' : 'cartas que quieres', 'target')}
-    </div>`
-    }
-    ${
-      vacio
-        // Sin nada apuntado no se enseñan dos tablones vacíos: se enseña
-        // CÓMO funciona, que es lo que hace falta la primera vez.
-        ? `<ol class="mc-cambio-pasos">
-             <li><span class="mc-cambio-paso">1</span><div><strong>Marca lo que das</strong><p class="subtext">Abre una repetida y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.</p></div></li>
-             <li><span class="mc-cambio-paso">2</span><div><strong>Apunta lo que buscas</strong><p class="subtext">En tu lista, <button type="button" class="link-btn" data-ir-quiero>La quiero</button>: con su buscador o con el corazón de cada carta.</p></div></li>
-             <li><span class="mc-cambio-paso">3</span><div><strong>Te decimos quién encaja</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
-           </ol>`
-        : tablon.tablonHtml({ tiene, busca, cartas, deseos, doy })
-    }
-    <section class="mc-cambio-bloque">
-      <h3>Lo que das</h3>
-      ${doy.length
-        ? `<ul class="mc-lista-cartas">${doy.map((l) => filaDeCartaHtml(cartas.get(l.card_id), `das <strong>${l.cambio}</strong> de ${l.cantidad}`)).join('')}</ul>
-           <p class="subtext">Se cambia en cada carta, con «Editar» → «Para cambio».</p>`
-        : `<p class="subtext">Todavía no das ninguna. Abre una carta repetida, dale a «Editar» y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'} — mira el <button type="button" class="link-btn" data-ir-resumen>resumen</button>.` : ''}</p>`}
-    </section>
-    <section class="mc-cambio-bloque">
-      <h3>Lo que buscas</h3>
-      <p class="subtext">${deseos.length
-        ? `Buscas ${deseos.length} ${deseos.length === 1 ? 'carta' : 'cartas'}: las de tu lista, con su precio y su aviso.`
-        : 'Lo que buscas es tu lista de cartas que quieres: apunta las que te faltan y te diremos quién las tiene.'}
-      <button type="button" class="link-btn" data-ir-quiero>${deseos.length ? 'Ver «La quiero»' : 'Abrir «La quiero»'}</button></p>
-    </section>`
+  const gente = tablon.cruzarPorPersona(tiene, busca)
+  const perfectos = gente.filter((p) => p.perfecto).length
+  const deSeguidos = seguidos ? gente.filter((p) => seguidos.has(p.user_id)).length : null
+  const visibles = gente.filter((p) => crucesFiltro === 'perfectos' ? p.perfecto : crucesFiltro === 'seguidos' ? seguidos?.has(p.user_id) : true)
+  const valor = (f) => precioDeDeseo({ card_id: f.card_id, idioma: f.idioma })
+  caja.innerHTML = vacio
+    // Sin nada apuntado no se enseña un tablón vacío: se enseña CÓMO
+    // funciona, que es lo que hace falta la primera vez.
+    ? `<ol class="mc-cambio-pasos">
+         <li><span class="mc-cambio-paso">1</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Con el corazón, en <button type="button" class="link-btn" data-deseos-vista="mercado">el Mercado</button> o en <button type="button" class="link-btn" data-ir-quiero>La quiero</button>.</p></div></li>
+         <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Tus repetidas, con cuántas copias das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
+         <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
+       </ol>`
+    : `<div class="mc-quiero-cabeza">
+         <p class="mc-quiero-cifra"><b>${gente.length}</b> ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo${perfectos ? ` · <b>${perfectos}</b> ${perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos'}` : ''}</p>
+         ${gente.length ? `<span class="seg" role="group" aria-label="Quién">
+           <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos</button>
+           <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Solo perfectos <span class="mc-deseos-n">${perfectos}</span></button>
+           ${deSeguidos === null ? '' : `<button type="button" class="seg-btn" data-cruces-filtro="seguidos" aria-pressed="${crucesFiltro === 'seguidos'}">Gente que sigo <span class="mc-deseos-n">${deSeguidos}</span></button>`}
+         </span>` : ''}
+       </div>
+       ${gente.length
+         ? visibles.length
+           ? `<div class="mc-cruces">${visibles.map((p) => tablon.cruceHtml(p, { cartas, valor, euros })).join('')}</div>`
+           : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`
+         : `<p class="empty-state">${!deseos.length
+           ? 'Apunta lo que buscas y aquí saldrá quién lo da.'
+           : !doy.length
+             ? 'Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.'
+             : 'Todavía nadie encaja contigo. Mira el Mercado: ahí está todo lo que se da.'}</p>`}`
   engancharCambios()
 }
-
-// Las tres prioridades, con la palabra que las explica. El número solo
-// no dice nada: «2» no es «la busco mucho».
-const PRIORIDADES = [
-  { valor: 1, nombre: 'La busco' },
-  { valor: 2, nombre: 'La busco mucho' },
-  { valor: 3, nombre: 'Es LA que me falta' },
-]
 
 // El buscador de la lista de búsqueda, con su propio turno: dos
 // buscadores en la misma página compartiendo contador se pisarían.
@@ -5969,6 +5952,11 @@ function engancharCambios() {
   caja.addEventListener('click', async (e) => {
     const escribir = e.target.closest('[data-escribir]')
     if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
+    const filtro = e.target.closest('[data-cruces-filtro]')
+    if (filtro) {
+      crucesFiltro = filtro.dataset.crucesFiltro
+      return void pintarCambios()
+    }
 
     const alResumen = e.target.closest('[data-ir-resumen]')
     if (alResumen) return cambiarPestania('resumen')
@@ -5991,10 +5979,159 @@ function engancharCambios() {
 // Un botón que manda un mensaje a un desconocido sin enseñárselo es una
 // forma rápida de quedar mal, y encima con el nombre de la casa.
 function abrirMensaje(userId, direccion) {
+  if (direccion === 'cruce') {
+    const conCarta = (filas) => filas.filter((f) => f.user_id === userId).map((f) => ({ ...f, carta: cartas.get(f.card_id) }))
+    const p = tablon.cruzarPorPersona(conCarta(tablonTiene), conCarta(tablonBusca))[0]
+    const texto = tablon.borradorDeCruce(p?.teDa || [], p?.leDas || [])
+    location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
+    return
+  }
   const filas = (direccion === 'tiene' ? tablonTiene : tablonBusca).filter((f) => f.user_id === userId)
   const persona = { reciproco: filas.some((f) => f.reciproco) }
   const texto = tablon.borradorDe(persona, filas.map((f) => ({ ...f, carta: cartas.get(f.card_id) })), direccion)
   location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
+}
+
+// ── EL MERCADO (tanda 770) ──
+//
+// Lo pinta js/mi-coleccion/mercado.js, que entra al abrir la pestaña; aquí
+// queda lo que es de la página: las cartas de otra gente (que no están en
+// memoria), tus deseos y las dos consultas de los cruces, que comparten el
+// Mercado, las cuentas del selector y las tres listas.
+let mercadoMod = null
+async function abrirMercado() {
+  try {
+    mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
+    if (sesion) await cargarDeseos().catch(() => null)
+    await mercadoMod.abrir(contexto)
+  } catch (err) {
+    if ($('mcMercadoRejilla')) $('mcMercadoRejilla').innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
+  }
+}
+
+async function completarCartasDeFuera(ids, market) {
+  const sinCarta = [...new Set(ids)].filter((id) => !cartas.has(id))
+  const sinPrecio = [...new Set(ids)].filter((id) => !guardados.has(id))
+  const [nuevas, precios] = await Promise.all([
+    sinCarta.length ? datos.cartasPorIds(sinCarta, market).catch(() => new Map()) : new Map(),
+    sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
+  ])
+  for (const [k, v] of nuevas) cartas.set(k, { ...v, market: v.market || market })
+  for (const [k, v] of precios) guardados.set(k, v)
+}
+
+// Las dos direcciones del cambio, pedidas UNA vez y compartidas. Se olvidan
+// cuando cambia lo que las decide: tus deseos (quién tiene) o lo que das
+// (quién busca).
+let pidiendoTiene = null
+let pidiendoBusca = null
+async function pedirQuienTiene() {
+  if (!sesion) return []
+  cambios = cambios || (await import('./mi-coleccion/cambios.js'))
+  pidiendoTiene = pidiendoTiene || cambios.quienTiene().catch((err) => { pidiendoTiene = null; throw err })
+  return pidiendoTiene
+}
+async function pedirQuienBusca() {
+  if (!sesion) return []
+  cambios = cambios || (await import('./mi-coleccion/cambios.js'))
+  pidiendoBusca = pidiendoBusca || cambios.quienBusca().catch((err) => { pidiendoBusca = null; throw err })
+  return pidiendoBusca
+}
+
+// Apuntar una carta: SIEMPRE preguntando el idioma (771). Vale para el
+// buscador de «La quiero», el Mercado y su ficha.
+async function quererCarta(c) {
+  if (!sesion) return false
+  await cargarDeseos()
+  const idioma = await preguntarIdioma({ nombre: nombreDe(c), market: c.market || mercado })
+  if (idioma === undefined) return false
+  try {
+    const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: c.id, idioma })
+    deseos = [d, ...deseos]
+    showToast(`${nombreDe(c) || 'Apuntada'}, en «La quiero»${idioma ? ` (en ${idiomaDe(idioma).nombre.toLowerCase()})` : ''}. Si alguien la da, saldrá en Cruces.`, 'success')
+  } catch (err) {
+    showToast(err.message, err.yaEstaba ? 'info' : 'error')
+    return false
+  }
+  alCambiarDeseos()
+  return true
+}
+// Quitar el corazón quita la carta en TODOS sus idiomas, como en la ficha
+// (la 751): si ya no la quieres, no la quieres en ninguno.
+async function quitarDeseosDe(cardId) {
+  await cargarDeseos()
+  try {
+    for (const d of deseos.filter((x) => x.card_id === cardId)) await cambios.borrarDeseo(d.id)
+    deseos = deseos.filter((x) => x.card_id !== cardId)
+    showToast('Quitada de «La quiero».', 'success')
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+  alCambiarDeseos()
+}
+function alCambiarDeseos() {
+  pidiendoTiene = null
+  pintarCuentasDeDeseos()
+  pintarLoseta()
+  if (pestania === 'quiero') pintarQuiero()
+  if (pestania === 'mercado') mercadoMod?.repintar()
+  void contarDeseosYCambios()
+}
+function alCambiarLoQueDoy() {
+  pidiendoBusca = null
+  pidiendoTiene = null
+  void contarDeseosYCambios()
+}
+
+// LAS CUENTAS DEL SELECTOR (770): cuántas da la gente, cuántas quieres,
+// cuántas das y con cuánta gente cruzas. `null` = no se sabe, y entonces el
+// botón no lleva número (un «0» diría que no hay).
+const cuentasDeDeseos = { mercado: null, cruces: null, perfectos: false }
+function pintarCuentasDeDeseos(n = {}) {
+  Object.assign(cuentasDeDeseos, n)
+  const valores = {
+    mercado: cuentasDeDeseos.mercado,
+    quiero: sesion && Array.isArray(deseos) ? deseos.length : null,
+    doy: sesion && esMia ? new Set(loQueDoy().map((l) => l.card_id)).size : null,
+    cruces: sesion ? cuentasDeDeseos.cruces : null,
+  }
+  for (const el of document.querySelectorAll('[data-deseos-n]')) {
+    const v = valores[el.dataset.deseosN]
+    el.textContent = v == null ? '' : v.toLocaleString('es-ES', { useGrouping: 'always' })
+    el.classList.toggle('hidden', v == null)
+  }
+  for (const el of document.querySelectorAll('[data-deseos-punto]')) el.classList.toggle('hidden', !(sesion && cuentasDeDeseos.perfectos))
+  // Sin cuenta solo hay Mercado: las otras tres son TUS listas.
+  for (const b of document.querySelectorAll('.mc-deseos-seg [data-deseos-vista]')) b.classList.toggle('hidden', !sesion && b.dataset.deseosVista !== 'mercado')
+  // Los tres pasos, hasta que tengas algo que buscas Y algo que das.
+  const sabe = Array.isArray(deseos)
+  const completo = sesion && sabe && deseos.length > 0 && loQueDoy().length > 0
+  $('mcDeseosPasos')?.classList.toggle('hidden', Boolean(completo) || (sesion && !sabe))
+}
+async function contarDeseosYCambios() {
+  if (!sesion) return pintarCuentasDeDeseos()
+  await cargarDeseos().catch(() => null)
+  pintarCuentasDeDeseos()
+  const [tiene, busca] = await Promise.all([pedirQuienTiene().catch(() => null), pedirQuienBusca().catch(() => null)])
+  if (tiene && busca) {
+    const todas = [...tiene, ...busca]
+    pintarCuentasDeDeseos({ cruces: new Set(todas.map((f) => f.user_id)).size, perfectos: todas.some((f) => f.reciproco) })
+  }
+}
+
+// /mi-coleccion?ver=mercado SIN CUENTA (770): el escaparate. Sin colección
+// detrás no hay menú (las demás pestañas son tuyas), y el corazón y
+// «Escribir» llevan a crear la cuenta con la vuelta puesta.
+function iniciarMercadoSinCuenta() {
+  dueno = null
+  esMia = false
+  $('mcTitulo').textContent = 'Mercado de cambios'
+  document.title = 'Mercado de cambios — PokeDoc'
+  for (const id of ['mcResumen', 'mcResumenNota', 'mcCargando', 'mcCompartir']) $(id)?.classList.add('hidden')
+  document.querySelector('.mc-pestanias')?.classList.add('hidden')
+  $('mcMercadoEntrar')?.classList.remove('hidden')
+  if ($('mcMercadoEntrarEnlace')) $('mcMercadoEntrarEnlace').href = contexto.urlDeRegistro()
+  cambiarPestania('mercado', { push: false })
 }
 
 // ── «LA QUIERO» (tanda 751) ──
@@ -6093,6 +6230,10 @@ export function textoDeSeguidos(gente) {
 
 async function completarQuiero() {
   const ids = [...new Set(deseos.map((d) => d.card_id))]
+  void pedirQuienTiene().then((tiene) => {
+    dantesDeQuiero = dantesPorCarta(tiene)
+    if (pestania === 'quiero') pintarQuiero()
+  }).catch(() => null)
   void pedirSeguidosQueLaTienen(ids).then((m) => {
     seguidosDeQuiero = m
     if (pestania === 'quiero') pintarQuiero()
@@ -6113,14 +6254,41 @@ async function completarQuiero() {
   avisosDeQuiero = avisos
 }
 
+// «La quiero» en REJILLA (771). PINGU: «que aparezcan las cartas de la
+// gente». Una baldosa por carta (dos idiomas apuntados son una carta), con
+// en qué idioma la quieres, lo que cuesta, su aviso y QUIÉN LA DA, que sale
+// de los cruces (`intercambios_quien_tiene`). La prioridad se fue: «con que
+// esté en favoritos ya está» —la columna sigue en la base, sin enseñarse—.
+let quieroFiltro = 'todas'
+let dantesDeQuiero = null // card_id → [personas] · null = no se sabe
+export function deseosPorCarta(lista = []) {
+  const m = new Map()
+  for (const d of lista) m.set(d.card_id, [...(m.get(d.card_id) || []), d])
+  return [...m.entries()].map(([card_id, filas]) => ({ card_id, filas }))
+}
+// Quién da cada carta de tu lista, una persona una vez.
+export function dantesPorCarta(tiene = []) {
+  const m = new Map()
+  for (const f of tiene) {
+    const lista = m.get(f.card_id) || []
+    if (!lista.some((p) => p.user_id === f.user_id)) lista.push(f)
+    m.set(f.card_id, lista)
+  }
+  return m
+}
 function pintarQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja || !Array.isArray(deseos)) return
-  const precios = deseos.map(precioDeDeseo)
+  const grupos = deseosPorCarta(deseos)
+  const precios = grupos.map((g) => precioDeDeseo(g.filas[0]))
   const conPrecio = precios.filter((v) => v != null)
   const suma = conPrecio.reduce((a, v) => a + v, 0)
-  const n = deseos.length
+  const n = grupos.length
   const sinPrecio = n - conPrecio.length
+  const dan = (g) => dantesDeQuiero?.get(g.card_id)?.length || 0
+  const conAlguien = dantesDeQuiero ? grupos.filter((g) => dan(g) > 0).length : null
+  const visibles = grupos.map((g, i) => ({ g, precio: precios[i] })).filter(({ g }) =>
+    quieroFiltro === 'todas' || !dantesDeQuiero || (quieroFiltro === 'dan' ? dan(g) > 0 : dan(g) === 0))
   caja.innerHTML = `
     ${n
       ? `<div class="mc-quiero-cabeza">
@@ -6129,15 +6297,23 @@ function pintarQuiero() {
             <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto">${icons.share(16)}<span>Compartir lista</span></button>
             <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.image(16)}<span>Imagen</span></button>
           </span>
-        </div>`
+        </div>
+        ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
+          <span class="seg" role="group" aria-label="Cuáles">
+            <button type="button" class="seg-btn" data-quiero-filtro="todas" aria-pressed="${quieroFiltro === 'todas'}">Todas</button>
+            <button type="button" class="seg-btn" data-quiero-filtro="dan" aria-pressed="${quieroFiltro === 'dan'}">Las da alguien <span class="mc-deseos-n">${conAlguien}</span></button>
+            <button type="button" class="seg-btn" data-quiero-filtro="nadie" aria-pressed="${quieroFiltro === 'nadie'}">Nadie aún <span class="mc-deseos-n">${n - conAlguien}</span></button>
+          </span>
+        </div>`}`
       : ''}
     ${n
-      ? `<ul class="mc-lista-cartas mc-deseos">${deseos.map((d, i) => deseoHtml(d, precios[i])).join('')}</ul>
-         <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quién te las da, en <button type="button" class="link-btn" data-ir-cambios>Cambios</button>.</p>`
+      ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${visibles.map(({ g, precio }) => deseoHtml(g, precio)).join('')}</div>
+         ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de tu lista.' : 'Todas las de tu lista las da alguien.'}</p>`}
+         <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.</p>`
       : `<div class="mc-quiero-vacio">
            <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
            <p><strong>Apunta las cartas que te faltan</strong></p>
-           <p class="subtext">Con el buscador de arriba, con el corazón de cada carta o seleccionando varias. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
+           <p class="subtext">Con el buscador de arriba, con el corazón de cada carta o en el <button type="button" class="link-btn" data-deseos-vista="mercado">Mercado</button>. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
          </div>`}`
   engancharQuiero()
 }
@@ -6164,34 +6340,17 @@ function engancharQuiero() {
     const desear = e.target.closest('[data-desear]')
     if (!desear) return
     desear.disabled = true
-    try {
-      const c = cartas.get(desear.dataset.desear)
-      // Una japonesa se busca en japonés: «cualquier idioma» no existe en
-      // ese catálogo.
-      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: desear.dataset.desear, idioma: c?.market === 'JP' ? 'ja' : null })
-      deseos = [d, ...deseos]
-      showToast(`${nombreDe(c) || 'Apuntada'}, en tu lista. Si alguien la da, saldrá en Cambios.`, 'success')
-      // Se queda la búsqueda: lo normal es apuntar varias seguidas.
-      void buscarParaDesear()
-      pintarQuiero()
-      await completarQuiero()
-      pintarQuiero()
-      pintarLoseta()
-    } catch (err) {
+    // Se pregunta el idioma (771); la japonesa, en japonés.
+    const c = cartas.get(desear.dataset.desear)
+    const puesta = c ? await quererCarta(c) : false
+    if (!puesta) {
       desear.disabled = false
-      showToast(err.message, err.yaEstaba ? 'info' : 'error')
+      return
     }
-  })
-  caja.addEventListener('change', async (e) => {
-    const sel = e.target.closest('.mc-deseo-prioridad')
-    if (!sel) return
-    try {
-      const nuevo = await cambios.cambiarPrioridad(sel.dataset.deseo, Number(sel.value))
-      deseos = deseos.map((d) => (d.id === nuevo.id ? nuevo : d))
-      showToast('Guardado.', 'success')
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+    // Se queda la búsqueda: lo normal es apuntar varias seguidas.
+    void buscarParaDesear()
+    await completarQuiero()
+    pintarQuiero()
   })
   caja.addEventListener('click', async (e) => {
     if (e.target.closest('[data-ir-cambios]')) return cambiarPestania('cambios')
@@ -6207,16 +6366,18 @@ function engancharQuiero() {
       return abrirAviso({ cardId: d.card_id, market: cartas.get(d.card_id)?.market || mercado, idioma: d.idioma || 'es', precio: precioDeDeseo(d) })
     }
 
-    const quitar = e.target.closest('[data-quitar-deseo]')
+    const filtro = e.target.closest('[data-quiero-filtro]')
+    if (filtro) {
+      quieroFiltro = filtro.dataset.quieroFiltro
+      return pintarQuiero()
+    }
+    const quien = e.target.closest('[data-ver-quien]')
+    if (quien) return void verQuienDa(quien.dataset.verQuien)
+    // El corazón quita la carta (en todos sus idiomas), como en la ficha.
+    const quitar = e.target.closest('[data-quitar-deseo-carta]')
     if (quitar) {
-      try {
-        await cambios.borrarDeseo(quitar.dataset.quitarDeseo)
-        deseos = deseos.filter((d) => d.id !== quitar.dataset.quitarDeseo)
-        pintarQuiero()
-        pintarLoseta()
-      } catch (err) {
-        showToast(err.message, 'error')
-      }
+      quitar.disabled = true
+      await quitarDeseosDe(quitar.dataset.quitarDeseoCarta)
     }
   })
   // Al cerrar el diálogo de aviso, la fila dice el aviso que acabas de
@@ -6241,6 +6402,7 @@ function engancharQuiero() {
 let vistaDeseos = 'quiero'
 function ponerVistaDeseos(v) {
   if (v === 'cruces') return cambiarPestania('cambios')
+  if (v === 'mercado') return cambiarPestania('mercado')
   vistaDeseos = v
   if (pestania !== 'quiero') cambiarPestania('quiero')
   for (const b of document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg [data-deseos-vista]')) b.setAttribute('aria-pressed', String(b.dataset.deseosVista === v))
@@ -6250,34 +6412,36 @@ function ponerVistaDeseos(v) {
   if (v === 'doy') void pintarDoy()
 }
 
-// «Las que doy»: tus copias puestas a cambio, con su precio, cuántas das y
-// CUÁNTA GENTE LAS BUSCA (que es lo que hace que merezca la pena darlas), y
-// la lista para compartirla en texto.
+// «LAS QUE DOY» EN REJILLA (772): tus copias puestas a cambio, cada una con
+// cuántas das de las que tienes (− y +, sin abrir el editor) y QUIÉN LA
+// BUSCA, que es lo que hace que merezca la pena darla. «Poner más para
+// cambio» abre Buscar en modo elegir: tocas una que tengas y se pone una
+// copia más para cambio.
 async function pintarDoy() {
   const caja = $('mcDoyPanel')
   if (!caja) return
   const doy = loQueDoy()
+  const poner = `<button type="button" class="btn-primary mc-doy-poner" id="mcDoyPoner"><span aria-hidden="true">+</span><span>Poner más para cambio</span></button>`
   if (!doy.length) {
     caja.innerHTML = `<div class="mc-quiero-vacio">
         <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
         <p><strong>Todavía no das ninguna</strong></p>
-        <p class="subtext">Abre una repetida y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.</p>
+        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'}.` : ''}</p>
+        ${poner}
       </div>`
     return
   }
   const ids = [...new Set(doy.map((l) => l.card_id))]
   const sinPrecio = ids.filter((id) => !guardados.has(id))
-  let buscan = new Map()
+  let buscan = null
   try {
-    cambios = cambios || (await import('./mi-coleccion/cambios.js'))
     const [precios, quien] = await Promise.all([
       sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
-      cambios.quienBusca().catch(() => null),
+      pedirQuienBusca().catch(() => null),
     ])
     for (const [k, v] of precios) guardados.set(k, v)
-    // `null` = no se sabe (sin la migración): la fila no dice «nadie».
-    if (quien) for (const f of quien) buscan.set(f.card_id, (buscan.get(f.card_id) || 0) + 1)
-    else buscan = null
+    // `null` = no se sabe (sin la migración): la baldosa no dice «nadie».
+    if (quien) buscan = dantesPorCarta(quien)
   } catch {
     buscan = null
   }
@@ -6287,26 +6451,82 @@ async function pintarDoy() {
   const copias = filas.reduce((a, f) => a + Number(f.l.cambio), 0)
   caja.innerHTML = `<div class="mc-quiero-cabeza">
       <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
-      <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir">${icons.share(16)}<span>Compartir lista</span></button>
+      <span class="mc-quiero-botones">
+        ${poner}
+        <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir">${icons.share(16)}<span>Compartir lista</span></button>
+      </span>
     </div>
-    <ul class="mc-lista-cartas mc-deseos">${filas.map(({ l, c, precio }) => {
+    <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>
+    <div class="mc-mercado-rejilla mc-doy-rejilla" id="mcDoyRejilla">${filas.map(({ l, c, precio }) => {
       const nombre = nombreDe(c) || l.card_id
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-      const n = buscan?.get(l.card_id) || 0
-      return `<li class="mc-fila-carta mc-quiero-fila">
-        <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
-          <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-          <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idiomaDe(l.idioma || 'es').nombre].filter(Boolean).join(' · '))}</small></span>
+      const gente = buscan?.get(l.card_id) || []
+      const das = Number(l.cambio)
+      const tienes = Number(l.cantidad)
+      return `<article class="mc-merc mc-doy-baldosa" data-doy-linea="${escapeHtml(l.id)}">
+        <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
+          <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+          ${gente.length ? `<span class="mc-merc-chapa busca">${gente.length === 1 ? 'La busca 1' : `La buscan ${gente.length}`}</span>` : ''}
         </a>
-        <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
-        <span class="mc-fila-dato">
-          <span class="mc-doy-cuantas">Das ${Number(l.cambio)}</span>
-          <button type="button" class="mc-quiero-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
-          ${buscan === null ? '' : n ? `<button type="button" class="link-btn mc-doy-buscan" data-deseos-vista="cruces">La ${n === 1 ? 'busca 1 persona' : `buscan ${n} personas`}</button>` : '<span class="mc-doy-nadie">Nadie la busca todavía</span>'}
+        <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
+        <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
+        <span class="mc-merc-fila">${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto">${escapeHtml(estadoDe(l.estado).nombre)}</span><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b></span>
+        <span class="mc-merc-fila mc-doy-paso">
+          <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
+          <span class="mc-doy-cuantas">Doy ${das} de ${tienes}</span>
+          <button type="button" class="mc-doy-boton" data-doy-mas="${escapeHtml(l.id)}"${das >= tienes ? ' disabled' : ''} aria-label="Dar una más de ${escapeHtml(nombre)}">+</button>
         </span>
-      </li>`
-    }).join('')}</ul>
-    <p class="subtext">Lo que das lo ve todo el mundo. Quién te da lo que buscas a cambio, en <button type="button" class="link-btn" data-deseos-vista="cruces">Cruces</button>.</p>`
+        ${buscan === null
+          ? ''
+          : gente.length
+            ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-deseos-vista="cruces">${mercadoAvatares(gente)}<span class="mc-merc-texto">Ver en Cruces</span></button>`
+            : '<span class="mc-merc-fila mc-merc-nadie">Nadie la busca aún</span>'}
+        <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
+      </article>`
+    }).join('')}</div>`
+}
+
+// − y + de una baldosa: cuántas copias de esa línea das. Al llegar a 0 la
+// carta sale de la lista (sigue en tu colección).
+async function cambiarLoQueDoy(id, delta) {
+  const l = lineas.find((x) => x.id === id)
+  if (!l) return
+  const cambio = Math.max(0, Math.min(Number(l.cantidad) || 0, (Number(l.cambio) || 0) + delta))
+  if (cambio === Number(l.cambio)) return
+  try {
+    const nueva = await datos.actualizar(id, { cambio })
+    cambiarLinea(id, nueva)
+    if (!cambio) showToast('Ya no la das. Sigue en tu colección.', 'success')
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+  alCambiarLoQueDoy()
+  void pintarDoy()
+}
+
+// «Poner más para cambio»: Buscar en modo elegir. Una que tienes pasa a dar
+// una copia más (la línea con más copias libres); una que no tienes no se
+// puede dar, y se dice.
+function ponerMasParaCambio() {
+  elegirCarta({
+    titulo: 'Toca una carta tuya para ponerla a cambio',
+    alElegir: async (c) => {
+      const mias = lineas.filter((l) => l.card_id === c.id && Number(l.cambio || 0) < Number(l.cantidad || 0))
+        .sort((a, b) => (b.cantidad - (b.cambio || 0)) - (a.cantidad - (a.cambio || 0)))
+      cambiarPestania('quiero')
+      ponerVistaDeseos('doy')
+      if (!mias.length) {
+        showToast(lineas.some((l) => l.card_id === c.id) ? 'Ya das todas las copias que tienes de esa.' : 'Esa no la tienes: añádela a tu colección primero.', 'info')
+        return
+      }
+      await cambiarLoQueDoy(mias[0].id, 1)
+      showToast(`${nombreDe(c)}: das ${Number(lineas.find((l) => l.id === mias[0].id)?.cambio || 0)}.`, 'success')
+    },
+    alCancelar: () => {
+      cambiarPestania('quiero')
+      ponerVistaDeseos('doy')
+    },
+  })
 }
 
 // La lista en TEXTO (763): para pegarla en un grupo o en una red, que es
@@ -6352,7 +6572,7 @@ async function compartirLaQuiero() {
   if (b) b.disabled = true
   try {
     const { compartirLaQuiero: compartir } = await import('./mi-coleccion/imagen-quiero.js')
-    await compartir({ cartas: deseos.map((d) => ({ carta: cartas.get(d.card_id), prioridad: d.prioridad, idioma: d.idioma })), nombre: dueno?.username || '' })
+    await compartir({ cartas: deseos.map((d) => ({ carta: cartas.get(d.card_id), idioma: d.idioma })), nombre: dueno?.username || '' })
   } catch (err) {
     showToast(err.message || 'No se ha podido hacer la imagen.', 'error')
   } finally {
@@ -6367,32 +6587,60 @@ function pintarLoseta(id = $('mcEdQuiero')?.dataset.quiero || null) {
   laQuiero.pintarLoseta(b, id, esMia && sesion ? deseos : null)
 }
 
-// La fila de lo que quieres (751): arriba la carta y su precio, que es
-// lo que se viene a mirar; debajo, lo que se toca. En una sola línea no
-// cabían prioridad, idioma, aviso y quitar con el nombre al lado.
-function deseoHtml(d, precio = precioDeDeseo(d)) {
-  const c = cartas.get(d.card_id)
-  const nombre = nombreDe(c) || d.card_id
+// La baldosa de lo que quieres (771): la del Mercado, con tu idioma, el
+// precio, el aviso y quién la da. La foto abre la ficha de la carta; «Ver
+// quién» abre la del Mercado, con la lista de personas.
+function deseoHtml(g, precio = precioDeDeseo(g.filas[0])) {
+  const c = cartas.get(g.card_id)
+  const nombre = nombreDe(c) || g.card_id
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const sel = PRIORIDADES.map((p) => `<option value="${p.valor}"${p.valor === d.prioridad ? ' selected' : ''}>${escapeHtml(p.nombre)}</option>`).join('')
-  const baja = (avisosDeQuiero?.get(d.card_id) || []).find((a) => a.tipo === 'baja')
+  const d = g.filas[0]
+  const baja = (avisosDeQuiero?.get(g.card_id) || []).find((a) => a.tipo === 'baja')
   // Si ya está por debajo de lo que pusiste, se dice (la maqueta K1): el
   // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
   const cumple = baja && precio != null && precio <= Number(baja.umbral)
-  const idioma = d.idioma ? idiomaDe(d.idioma).nombre : 'cualquier idioma'
-  const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(d.card_id))
-  return `<li class="mc-fila-carta mc-quiero-fila">
-    <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
-      <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-      <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idioma].filter(Boolean).join(' · '))}</small>${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}</span>
+  const idiomas = g.filas.map((x) => x.idioma).filter(Boolean)
+  const idioma = g.filas.some((x) => !x.idioma)
+    ? '<span class="mc-merc-texto">Cualquier idioma</span>'
+    : `${idiomas.slice(0, 3).map((i) => banderaHtml(i)).join('')}<span class="mc-merc-texto">${escapeHtml(idiomas.map((i) => idiomaDe(i).nombre).join(', '))}</span>`
+  const dan = dantesDeQuiero?.get(g.card_id) || []
+  const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
+  return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}">
+    <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
+      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+      ${dan.length ? `<span class="mc-merc-chapa cruce">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span>` : ''}
     </a>
-    <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
-    <span class="mc-fila-dato">
-      <select class="mc-deseo-prioridad" data-deseo="${escapeHtml(d.id)}" aria-label="Cuánto buscas ${escapeHtml(nombre)}">${sel}</select>
-      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya por debajo de ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}${cumple ? '!' : ''}</span>` : ''}</button>
-      <button type="button" class="link-btn mc-borrar" data-quitar-deseo="${escapeHtml(d.id)}" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${icons.trash(14)}</button>
+    <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${laQuiero.corazon(16)}</button>
+    <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
+    <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
+    <span class="mc-merc-fila mc-deseo-idioma">${idioma}</span>
+    <span class="mc-merc-fila">
+      <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
+      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya! ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
     </span>
-  </li>`
+    ${dantesDeQuiero === null
+      ? ''
+      : dan.length
+        ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan)}<span class="mc-merc-texto">Ver quién</span></button>`
+        : '<span class="mc-merc-fila mc-merc-nadie">Nadie la da aún · te avisamos</span>'}
+    ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
+  </article>`
+}
+
+// Los avatares de la gente, con el mismo dibujo que el Mercado (el módulo
+// del Mercado entra por `import()`, así que esto no puede pedírselo).
+function mercadoAvatares(gente = [], max = 4) {
+  return `<span class="mc-gente" aria-hidden="true">${gente.slice(0, max).map((p) => `<span class="mc-gente-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(p.display_name || p.username || '?'))}</span>`).join('')}</span>`
+}
+
+// «Ver quién»: la ficha del Mercado de esa carta, desde cualquier vista.
+async function verQuienDa(cardId) {
+  try {
+    mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
+    await mercadoMod.abrirFichaDe(contexto, cardId)
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
 }
 
 function repintar() {
@@ -6417,6 +6665,8 @@ function repintar() {
   if (pestania === 'resumen') void pintarVistazos()
   if (pestania === 'cambios' && esMia) abrirCambios()
   if (pestania === 'quiero' && esMia) void abrirQuiero()
+  if (pestania === 'mercado') mercadoMod?.repintar()
+  if (['mercado', 'quiero', 'cambios'].includes(pestania)) pintarCuentasDeDeseos()
   if (pestania === 'pokedex') abrirPokedex()
   if (pestania === 'carpetas') albumes.repintarSiAbierto()
 }
@@ -6701,7 +6951,7 @@ function enganchar() {
     if (!id || !Array.isArray(deseos)) return
     b.disabled = true
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null })
     } catch (err) {
       showToast(err.message, err.yaEstaba ? 'info' : 'error')
     } finally {
@@ -7632,7 +7882,7 @@ function enganchar() {
   engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a, a.mc-movida')
   // Deseos y cambios (763): el selector de las tres vistas, en los dos
   // paneles, y lo de «Las que doy».
-  for (const id of ['mcPanelQuiero', 'mcPanelCambios']) {
+  for (const id of ['mcPanelQuiero', 'mcPanelCambios', 'mcPanelMercado']) {
     $(id)?.addEventListener('click', (e) => {
       const b = e.target.closest('[data-deseos-vista]')
       if (b) ponerVistaDeseos(b.dataset.deseosVista)
@@ -7640,6 +7890,11 @@ function enganchar() {
   }
   $('mcDoyPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#mcDoyCompartir')) return void compartirLoQueDoy()
+    if (e.target.closest('#mcDoyPoner')) return ponerMasParaCambio()
+    const menos = e.target.closest('[data-doy-menos]')
+    if (menos) return void cambiarLoQueDoy(menos.dataset.doyMenos, -1)
+    const mas = e.target.closest('[data-doy-mas]')
+    if (mas) return void cambiarLoQueDoy(mas.dataset.doyMas, 1)
     if (e.target.closest('[data-ir-cartas]')) return cambiarPestania('cartas')
     // Su aviso de precio (766, DC1): el mismo de «La quiero», con el idioma
     // de TU copia y su precio de ahora.
@@ -7922,6 +8177,18 @@ const contexto = {
     abrirAnadir(c.id, variante)
   },
   abrirFicha: (c) => abrirCarta(c.id, c),
+  // Lo del Mercado (770): sus cartas son de otra gente y no están en
+  // memoria; el precio, el de la carta en español (como en «La quiero»); y
+  // tus deseos, que solo se tocan desde aquí.
+  completarCartas: (ids, market) => completarCartasDeFuera(ids, market),
+  precioDeCarta: (id) => precioDeDeseo({ card_id: id, idioma: null }),
+  deseos: () => deseos,
+  quererCarta: (c) => quererCarta(c),
+  quitarDeseos: (id) => quitarDeseosDe(id),
+  quienBusca: () => pedirQuienBusca(),
+  quienTiene: () => pedirQuienTiene(),
+  alContar: (n) => pintarCuentasDeDeseos(n),
+  urlDeRegistro: () => `/auth.html?registro=1&volver=${encodeURIComponent(location.pathname + location.search)}`,
   carpetasCambiadas: () => {
     if (!carpetas) return
     carpetasLista = []
@@ -7985,6 +8252,7 @@ async function iniciar() {
         return
       }
     } else {
+      if (!sesion && pestania === 'mercado') return iniciarMercadoSinCuenta()
       if (!sesion) {
         $('mcContenido').classList.add('hidden')
         $('mcEntrar').classList.remove('hidden')

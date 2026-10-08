@@ -36541,6 +36541,7 @@ de baja para siempre.
   «Generar pareos de la jornada N», quién no la juega y que la lista se
   cierra al generar. Sin la migración, `cargarJornadas` da `null`: ni
   caja ni aviso, y el pareo es el de siempre.
+
 ## Tanda 767 — Buscar vuelve a ser pestaña; el álbum, como Expansiones (oct. 2026)
 
 Correcciones de PINGU a la 765-766.
@@ -36633,4 +36634,108 @@ precio, el gráfico y el link a Cardmarket y TCGplayer».
   cuyas clases no carga la portada (lo cantó la 299).
 - Los botones de rango de la gráfica, 44 con el dedo (eran 40).
 - Prueba 769-pantalla (nueva); al día 762 y 766.
+
+## Tanda 770 — El Mercado de Deseos y cambios (oct. 2026)
+
+PINGU: «que salga públicamente lo que la gente tiene para cambio aunque tú
+no lo desees», en una pestaña general antes de «La quiero», «Las que doy» y
+«Cruces». Se propuso en maquetas (artifact «Deseos y cambios, rehecho») y
+PINGU dijo «adelante con todo lo que propones»: nombre «Mercado», se abre
+siempre por él, se ve sin cuenta y el − y + de «Las que doy» en la carta.
+
+- **La pestaña** `mercado` (`#mcPanelMercado`): «Deseos y cambios» del menú
+  (y «Trade» en la burbuja) abre aquí; `quiero` y `cambios` siguen por
+  enlace y el botón sigue encendido (`data-tambien="quiero cambios"`). El
+  selector de las cuatro vistas va en los tres paneles con sus cuentas
+  (`[data-deseos-n]`: cuántas a cambio, cuántas quieres, cuántas das, con
+  cuánta gente cruzas) y un punto verde si hay un cruce perfecto. `null` =
+  no se sabe: el botón va sin número, no con un 0.
+- **Lo pinta `js/mi-coleccion/mercado.js`** (entra por `import()`): una
+  baldosa por CARTA con su foto, el corazón, nombre, set, precio (el de la
+  carta en español, como «La quiero»), las banderas de los idiomas en que
+  se da, los avatares y «La dan N». Chapas: «Cruce» si alguien que la da
+  busca algo tuyo (de `intercambios_quien_busca`), «La buscas» si está en
+  tu lista. Filtros: buscador (con `entenderBusqueda`, así que «151/165» y
+  «MEW 151» valen), catálogo Pokémon / Japón (el idioma no filtra en el
+  japonés), idioma, orden (lo último, más gente, más caro), «Solo las que
+  busco» y el aviso «N de las que buscas están aquí», que lo enciende. Por
+  páginas de 60 («Ver más»).
+- **La ficha** (`#mcMercadoFicha`): al lado en el PC ancho (la consulta de
+  la de productos; los paneles le dejan su sitio con `con-ficha-al-lado`) y
+  desde abajo en el móvil. Precio, «La quiero» (o «La quieres · en qué
+  idiomas»), y quién la da con `intercambios_de_carta` (50): idioma, estado,
+  cuántas, «Cruce» y «Busca N de las tuyas» primero, «Escribir» con el
+  mensaje redactado (`borradorDe`, sin mandarlo) y «Su perfil».
+- **Sin cuenta** (`iniciarMercadoSinCuenta`): /mi-coleccion?ver=mercado ya
+  no enseña la puerta de «entra»: sale el Mercado, sin el menú de tu
+  colección, solo «Mercado» en el selector, la invitación a crear la cuenta
+  y el corazón y «Escribir» llevando al registro con la vuelta puesta. /carta
+  enlaza al Mercado en «Quién la da».
+- **La base**: `supabase-migration-mercado.sql`, la función
+  `intercambios_mercado(p_market, p_idioma, p_texto, p_sets, p_solo_mias,
+  p_orden, p_limite, p_desde)`, security definer, para `anon` y
+  `authenticated`. Una fila por carta: personas (no líneas: dos idiomas de
+  la misma persona son una), copias, idiomas, las ids de quien la da (para
+  «Cruce»), cinco perfiles con su rango para los avatares, lo último y el
+  total. Sin lo tuyo ni lo de un baneado; «solo las que busco» con la regla
+  de idioma de los cruces. No abre nada: `cambio > 0` ya era público en la
+  ficha de cada carta. Probada contra PostgreSQL (`sql-mercado.sql`, 23) y
+  calculada igual en el doble. Sin la migración, la pestaña dice qué falta.
+- Las consultas de los cruces se piden una vez y las comparten el Mercado,
+  las cuentas y las tres listas (`pedirQuienTiene`, `pedirQuienBusca`); se
+  olvidan al cambiar tus deseos o lo que das.
+- Prueba 770-pantalla (nueva, con la base); al día 408, 765.
+
+## Tanda 771 — «La quiero» en rejilla, el idioma al apuntar y sin prioridad (oct. 2026)
+
+- **El idioma, siempre** (`js/idioma-deseo.js`, nuevo): «¿En qué idioma la
+  quieres?», una ventana (desde abajo en el móvil) con «Cualquiera» marcado
+  y las banderas de la hoja de añadir; del catálogo japonés, solo japonés.
+  Devuelve el idioma, `null` (cualquiera) o `undefined` (cancelado). La usan
+  el buscador de «La quiero», el Mercado y su ficha, el corazón de la ficha
+  de una carta y el de /carta (`laQuiero.alternar` recibe la carta). Crea su
+  propio `<dialog>` porque /carta no lo lleva; CSS en `css/cardmarket.css`,
+  que cargan las dos. Los idiomas son los que admite `user_wants` (sin
+  coreano). En /mi-coleccion todo pasa por `quererCarta`.
+- **Sin prioridad** (PINGU: «con que esté en favoritos ya está, yo se lo
+  quitaría»): fuera el desplegable, `cambiarPrioridad` y la papelera. La
+  columna se queda en la base sin enseñarse; la lista se ordena por lo
+  último (ordenar por prioridad dejaba lo viejo delante). Se quita tocando
+  el corazón, en todos sus idiomas (como en la ficha).
+- **En rejilla** (`#mcQuieroRejilla`, la baldosa del Mercado): una por carta
+  (dos idiomas apuntados son una), con en qué idioma la quieres, precio,
+  campana del aviso, «La dan N», los avatares de quien la da (de
+  `intercambios_quien_tiene`) y «Ver quién», que abre la ficha del Mercado
+  (`abrirFichaDe`); «Nadie la da aún · te avisamos» si nadie. Filtro «Todas
+  / Las da alguien / Nadie aún». La foto abre la ficha de la carta.
+- Prueba 771-pantalla (nueva); al día 376, 751, 768.
+
+## Tanda 772 — «Las que doy» en rejilla (oct. 2026)
+
+- Una baldosa por copia que das: foto con «La buscan N», idioma, estado,
+  precio, «Doy N de M» con − y + (`cambiarLoQueDoy`, `datos.actualizar` con
+  `cambio`; a 0 sale de la lista y sigue en tu colección; el + se apaga al
+  tope), los avatares de quien la busca con «Ver en Cruces» y la campana.
+- **«Poner más para cambio»**: Buscar en modo elegir (`elegirCarta`). Una
+  que tienes pasa a dar una copia más (la línea con más copias libres); una
+  que no tienes se dice y no se toca. Cancelar vuelve a «Las que doy».
+- Prueba 772-pantalla (nueva, con la 773); al día 763.
+
+## Tanda 773 — Los cruces, por persona (oct. 2026)
+
+- **Una tarjeta por persona** (`cruzarPorPersona` y `cruceHtml` en
+  `js/mi-coleccion/tablon.js`): «Te da» (de tu lista) y «Le das» (de la
+  suya), lado a lado, con las cartas, cuántas y lo que vale cada lado, y la
+  diferencia en un cruce perfecto. Primero los perfectos, luego quien más
+  mueve. Antes eran dos tablones y la misma persona salía en los dos sin
+  que se viera que el cambio se cerraba. El tablón viejo (`tablonHtml`) y su
+  CSS se fueron.
+- Filtros «Todos / Solo perfectos / Gente que sigo» (`user_follows`; si no
+  se puede preguntar, el filtro no sale). «Escribir» deja escrito un
+  mensaje con las dos listas (`borradorDeCruce`).
+- Sin nada apuntado, los tres pasos; con lista y sin nadie, lo dice y manda
+  al Mercado. Las cifras de arriba y los bloques «Lo que das / Lo que buscas»
+  se fueron: lo dicen las cuentas del selector y sus vistas.
+- El doble aprende `user_follows` (`__FAKE_SEGUIDOS__`).
+- Prueba 772-pantalla (nueva); al día 376, 439, 763.
 

@@ -1251,3 +1251,59 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 .mc-ficha-quiero[aria-pressed="true"] { color: var(--danger); }
 .mc-ficha-quiero[aria-pressed="true"] svg { fill: currentColor; }
 .mc-ficha-quiero[aria-pressed="true"] span { color: var(--text); }
+
+/* ── 771: «¿En qué idioma la quieres?» (js/idioma-deseo.js). El porqué, en
+   SCHEMA.md (tanda 771). ── */
+.mc-idd {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.mc-idd::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.mc-idd-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+}
+
+.mc-idd h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.mc-idd-carta {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-idd-nota {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-idd-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+}
+
+@media (max-width: 599px) {
+  .mc-idd[open] {
+    width: 100%;
+    margin: auto 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}

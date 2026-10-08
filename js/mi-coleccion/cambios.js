@@ -27,7 +27,8 @@ export async function deseosDe(userId) {
     .from('user_wants')
     .select(COLUMNAS_DESEO)
     .eq('user_id', userId)
-    .order('prioridad', { ascending: false })
+    // Lo último primero, y nada más (771): la prioridad ya no se enseña, y
+    // ordenar por ella dejaría lo de antes delante de lo que acabas de poner.
     .order('created_at', { ascending: false })
     .limit(2000)
   if (error) throw traducir(error)
@@ -65,13 +66,6 @@ export async function borrarDeseo(id) {
   if (!data?.length) throw new Error('No se ha podido quitar: ese deseo no es tuyo o ya no existe.')
 }
 
-export async function cambiarPrioridad(id, prioridad) {
-  const { data, error } = await supabase.from('user_wants').update({ prioridad }).eq('id', id).select(COLUMNAS_DESEO)
-  if (error) throw traducir(error)
-  if (!data?.length) throw new Error('No se ha podido guardar: ese deseo no es tuyo o ya no existe.')
-  return data[0]
-}
-
 // ── El tablón ──
 //
 // Las dos direcciones del cambio, con la MISMA forma: quien las pinta
@@ -93,6 +87,29 @@ export async function quienBusca(limite = 200) {
 export async function quienDaEsta(cardId, limite = 20) {
   const { data, error } = await supabase.rpc('intercambios_de_carta', { p_card_id: cardId, p_limite: limite })
   if (error) throw traducir(error)
+  return data || []
+}
+
+// El Mercado (770): todo lo que se da, por carta. Sin sesión también: es el
+// escaparate. Su migración es otra (`supabase-migration-mercado.sql`), y si
+// falta se dice ESA, no la de los intercambios.
+export const FICHERO_MERCADO = 'supabase-migration-mercado.sql'
+export async function mercado({ market = 'WEST', idioma = null, texto = '', sets = null, soloMias = false, orden = 'nuevo', limite = 60, desde = 0 } = {}) {
+  const { data, error } = await supabase.rpc('intercambios_mercado', {
+    p_market: market,
+    p_idioma: idioma || null,
+    p_texto: texto || null,
+    p_sets: sets?.length ? sets : null,
+    p_solo_mias: Boolean(soloMias),
+    p_orden: orden,
+    p_limite: limite,
+    p_desde: desde,
+  })
+  if (error) {
+    const e = traducir(error)
+    if (e.sinMigracion) e.message = `Falta ejecutar ${FICHERO_MERCADO} en Supabase.`
+    throw e
+  }
   return data || []
 }
 

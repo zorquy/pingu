@@ -48,8 +48,9 @@ export const PARTES_DE_LA_COLECCION = [
   { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
   { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
   { ver: 'productos', texto: 'Productos', icono: () => icons.package(18) },
-  // Deseos y cambios (765), que es lo que dice el menú de Mi colección.
-  { ver: 'quiero', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },
+  // Deseos y cambios (765), que es lo que dice el menú de Mi colección; desde
+  // la 770 abre por el Mercado.
+  { ver: 'mercado', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },
   // Y Buscar, que vuelve a ser su pestaña (767).
   { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
 ]

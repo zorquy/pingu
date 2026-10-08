@@ -1902,7 +1902,6 @@
     var(--shadow-md);
 }
 
-
 /* Los botones del color, redondos y del color que ponen. */
 .mc-tapas {
   display: flex;
@@ -1921,7 +1920,6 @@
   background: var(--tapa);
   cursor: pointer;
 }
-
 
 /* Los ocho colores, para todo lo que lleve `data-tapa` (759): el archivador,
    el botón del color, la baldosa de un binder y la vista del diálogo. */
@@ -3302,8 +3300,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-
-
 .mc-alb-borrar-zona {
   margin-top: var(--e-xl);
   text-align: right;
@@ -3316,72 +3312,12 @@ input.mc-alb-titulo:not([readonly]):focus {
    fuera» a X o a Instagram. Aquí se cierran dentro, y la pantalla
    está ordenada para eso: primero quién encaja, después las dos
    listas que lo alimentan. */
-.mc-cambio-cab {
-  margin-bottom: var(--e-xl);
-}
-
-.mc-cambio-cab h2 {
-  margin-bottom: var(--e-sm);
-  font-size: var(--t-xl);
-}
-
-.mc-cambio-bloque {
-  margin-bottom: var(--e-2xl);
-}
-
-.mc-cambio-bloque h3 {
-  margin-bottom: var(--e-md);
-  font-size: var(--t-lg);
-}
 
 /* Se mide a SÍ MISMA y no a la ventana (la lección de la 316): esta
    rejilla vive dentro de un panel con su propio ancho. */
-.mc-cambio-gente {
-  display: grid;
-  gap: var(--e-lg);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-}
-
-.mc-cambio-persona {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
-  padding: var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
 
 /* La doble coincidencia se ve de lejos: es la única que se cierra de un
    mensaje, y es lo que hace volver a la pestaña. */
-.mc-cambio-persona.reciproco {
-  border-color: var(--navy);
-  box-shadow: 0 0 0 1px var(--navy);
-}
-
-.mc-cambio-persona header {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-}
-
-.mc-cambio-persona header > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.mc-cambio-persona header p {
-  margin: 0;
-}
-
-.mc-cambio-quien {
-  display: block;
-  overflow: hidden;
-  color: var(--text);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .mc-chapa-reciproco {
   display: inline-flex;
@@ -3397,48 +3333,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-.mc-cambio-cartas {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-sm);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mc-cambio-carta {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-  min-height: 44px;
-}
-
-.mc-cambio-carta p {
-  margin: 0;
-}
-
 /* El hueco de la miniatura, reservado con la proporción de una carta:
    son ocho por tarjeta y sin esto la lista baila al llegar. */
-.mc-cambio-foto {
-  flex: 0 0 auto;
-  width: 28px;
-  aspect-ratio: 245 / 342;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-}
-
-.mc-cambio-foto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.mc-cambio-nombre {
-  color: var(--text);
-  font-size: var(--t-sm);
-  font-weight: 600;
-}
 
 .mc-cambio-escribir {
   display: inline-flex;
@@ -3498,16 +3394,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   fill: currentColor;
 }
 
-.mc-deseo-prioridad {
-  min-height: 44px;
-  padding: 0 var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-xs);
-}
-
 .mc-deseo-idioma {
   color: var(--text-mid);
   font-size: var(--t-xs);
@@ -3520,29 +3406,6 @@ input.mc-alb-titulo:not([readonly]):focus {
    `min-width: 0` no lo evita: ese es el mínimo de la caja, y lo que se
    pasa de rosca es el REPARTO (la lección de la 320). Lo que lo evita es
    dejar envolver y darle al nombre una base propia. */
-.mc-deseos .mc-fila-carta {
-  flex-wrap: wrap;
-}
-
-.mc-deseos .mc-fila-carta > a {
-  flex: 1 1 180px;
-}
-
-.mc-deseos .mc-fila-dato {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--e-sm);
-}
-
-.mc-deseos .mc-borrar {
-  display: inline-flex;
-  align-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  justify-content: center;
-}
 
 /* ── El valor en el tiempo (tanda 377) ──
    Va arriba y a lo ancho, fuera de la rejilla: es la única cifra que
@@ -4369,10 +4232,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* ── La cabecera de la Pokédex (tanda 400) ── */
 
-
-
-
-
 /* ── Las carpetas (tanda 402) ── */
 /* Aquí vivían `.mc-carpetas-mandos` y `.mc-migas-carpetas` (fuera en la
    tanda 477). La pantalla de dentro de una carpeta usa ahora las MISMAS
@@ -4480,7 +4339,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   justify-content: space-between;
   margin-top: var(--e-sm);
 }
-
 
 /* ── La estrella de una expansión (tanda 409) ── */
 /* ── LOS MANDOS DE ICONO DE LA CABECERA (tanda 461) ──
@@ -5089,41 +4947,6 @@ input.mc-alb-titulo:not([readonly]):focus {
    El problema no eran las tarjetas de quien encaja contigo: era que sin
    nada apuntado la pantalla eran cuatro cajas grises seguidas, que es
    como la ve todo el mundo la primera vez. */
-.mc-cambio-cifras {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-}
-
-.mc-cambio-cifra {
-  display: flex;
-  gap: var(--e-sm);
-  align-items: center;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-}
-
-.mc-cambio-cifra strong {
-  color: var(--text);
-  font-size: var(--t-xl);
-  font-weight: 800;
-}
-
-.mc-cambio-icono {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
 
 .mc-cambio-pasos {
   display: grid;
@@ -6058,7 +5881,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* Y el chip la lleva pegada a su palabra: `.chip-filtro` ya es inline-flex con hueco. */
 
-
 /* ── LAS MIGAS DE PAN (tanda 474) ──
 
    Las cuatro pantallas con un «dentro» —una expansión, un Pokémon, una
@@ -6808,7 +6630,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   color: var(--danger);
 }
 
-
 /* ── Los esqueletos de carga (675): la silueta de lo que va a llegar.
    Comparten el barrido de components.css (@keyframes shimmer). ── */
 .mc-esq i {
@@ -7459,7 +7280,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 #mcAlbum[data-columnas] .mc-album-rejilla {
   grid-template-columns: repeat(var(--mc-columnas), minmax(0, 1fr));
 }
-
 
 /* LA CARTA ABIERTA A LA DERECHA (740, D2). El mismo `<dialog>` de la
    ficha, sin modal, pegado al borde derecho; la página se aparta. El
@@ -8697,37 +8517,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 .mc-quiero-vacio-icono { color: var(--danger); }
 
-.mc-deseos .mc-quiero-fila {
-  gap: var(--e-xs) var(--e-md);
-  padding: var(--e-sm) 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.mc-deseos .mc-quiero-fila > a { flex: 1 1 0; }
-
-.mc-deseos .mc-quiero-fila .mc-fila-dato {
-  flex: 1 0 100%;
-  justify-content: flex-start;
-  padding-left: 44px;
-}
-
-.mc-deseos .mc-quiero-fila .mc-fila-dato { flex-wrap: nowrap; }
-
-.mc-quiero-fila .mc-deseo-prioridad {
-  flex: 0 1 auto;
-  min-width: 0;
-  margin-right: auto;
-}
-
-.mc-quiero-fila .mc-quiero-aviso,
-.mc-quiero-fila .mc-borrar { flex: 0 0 auto; }
-
-@media (min-width: 720px) {
-  .mc-deseos .mc-quiero-fila { flex-wrap: nowrap; }
-  .mc-deseos .mc-quiero-fila .mc-fila-dato { flex: 0 0 auto; order: 1; padding-left: 0; }
-  .mc-quiero-fila .mc-quiero-precio { order: 2; min-width: 88px; text-align: right; }
-}
-
 /* En qué álbum la tienes (752, Y5). */
 .mc-copia-album {
   display: flex;
@@ -9697,11 +9486,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-.mc-doy-nadie {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
 @media (max-width: 599px) {
   .mc-deseos-seg {
     width: 100%;
@@ -10213,5 +9997,785 @@ input.mc-alb-titulo:not([readonly]):focus {
 
   .mc-prodf-foto {
     max-width: 240px;
+  }
+}
+
+/* ── 770: el Mercado y lo común de Deseos y cambios (cuentas del selector,
+   los tres pasos, la baldosa con quién la da). El porqué, en SCHEMA.md
+   (tanda 770). ── */
+.mc-deseos-seg .seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.mc-deseos-n {
+  min-width: 20px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.mc-deseos-seg .seg-btn[aria-pressed='true'] .mc-deseos-n {
+  background: rgb(255 255 255 / 22%);
+  color: inherit;
+}
+
+.mc-deseos-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+@media (max-width: 599px) {
+  .mc-deseos-seg {
+    position: relative;
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-deseos-seg .seg-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+.mc-deseos-pasos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-md);
+  padding: var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  list-style: none;
+}
+
+.mc-deseos-pasos li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-deseos-paso-n {
+  display: grid;
+  flex: 0 0 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 800;
+}
+
+@media (max-width: 599px) {
+  .mc-deseos-pasos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mc-mercado-entrar {
+  margin: 0 0 var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--t-sm);
+}
+
+.mc-mercado-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-mercado-barra .mc-buscador {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.mc-mercado-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+@media (max-width: 599px) {
+  .mc-mercado-mandos {
+    position: relative;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-mercado-mandos > * {
+    flex: 0 0 auto;
+  }
+}
+
+.mc-bloque-mercado .mc-cuantas {
+  margin: 0 0 var(--e-sm);
+}
+
+/* Con la ficha al lado, la rejilla le deja su sitio. */
+#mcPanelMercado.con-ficha-al-lado,
+#mcPanelQuiero.con-ficha-al-lado,
+#mcPanelCambios.con-ficha-al-lado {
+  padding-right: 456px;
+}
+
+.mc-merf .mc-prodf-arriba {
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: start;
+}
+
+.mc-merf-quien .pv-bandera {
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+.mc-mercado-opcion select {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-mercado-mias {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.mc-mercado-mias.activo,
+.mc-mercado-mias[aria-pressed='true'] {
+  border-color: var(--pink);
+  background: var(--pink-bg);
+  color: var(--pink);
+}
+
+.mc-mercado-mias svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mc-mercado-aviso {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--pink-bg);
+  color: var(--pink);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-mercado-aviso-ir {
+  margin-left: auto;
+  text-decoration: underline;
+}
+
+.mc-mercado-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--e-lg) var(--e-md);
+}
+
+@media (max-width: 599px) {
+  .mc-mercado-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-md) var(--e-sm);
+  }
+}
+
+.mc-mercado-rejilla > .mc-quiero-vacio {
+  grid-column: 1 / -1;
+}
+
+.mc-mercado-mas {
+  display: block;
+  min-height: 44px;
+  margin: var(--e-lg) auto 0;
+}
+
+/* La baldosa: la carta, su corazón, y debajo nombre, set, precio, idiomas y
+   quién la da. La usan el Mercado, «La quiero» y «Las que doy». */
+.mc-merc {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.mc-merc-abrir {
+  display: block;
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.mc-merc-foto {
+  display: block;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.mc-merc-foto img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-merc-chapa {
+  position: absolute;
+  bottom: var(--e-sm);
+  left: var(--e-sm);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+.mc-merc-chapa.cruce { background: #0a7a55; }
+.mc-merc-chapa.busca { background: #be185d; }
+.mc-merc-chapa.gris { background: rgb(12 20 30 / 72%); }
+
+.mc-merc-corazon {
+  display: grid;
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  color: #52717f;
+  cursor: pointer;
+}
+
+.mc-merc-corazon.puesto {
+  background: #be185d;
+  color: var(--blanco-fijo);
+}
+
+.mc-merc-corazon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mc-merc-corazon.puesto svg path {
+  fill: currentColor;
+}
+
+@media (pointer: coarse) {
+  .mc-merc-corazon {
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .mc-merc-corazon::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: var(--e-sm);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 92%);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  }
+
+  .mc-merc-corazon.puesto::before {
+    background: #be185d;
+  }
+}
+
+.mc-merc-nombre,
+.mc-merc-set {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-merc-nombre {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.mc-merc-set {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-merc-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-merc-precio {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-merc-idiomas {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.mc-merc-dan,
+.mc-merc-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-gente {
+  display: inline-flex;
+  flex: none;
+}
+
+.mc-gente-av {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  margin-left: -8px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background-color: var(--navy);
+  background-position: center;
+  background-size: cover;
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+.mc-gente-av:first-child {
+  margin-left: 0;
+}
+
+/* La ficha de una carta del Mercado: la de un producto (769), con la lista de
+   quién la da; desde abajo en el móvil. */
+.mc-merf-precio {
+  margin: 0;
+  font-size: var(--t-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-merf-quiero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  width: 100%;
+  min-height: 44px;
+}
+
+.mc-merf-quiero.puesto svg path {
+  fill: currentColor;
+}
+
+.mc-merf-quiero.puesto {
+  color: var(--pink);
+}
+
+.mc-merf-sub {
+  margin: var(--e-sm) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mc-merf-gente {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-merf-persona {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.mc-merf-persona .mini-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.mc-merf-quien p {
+  margin: 0;
+}
+
+.mc-merf-nombre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+  font-weight: 700;
+}
+
+.mc-merf-cruce {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+.mc-merf-busca {
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-merf-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: var(--e-sm);
+}
+
+.mc-merf-acciones > * {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+@media (max-width: 599px) {
+  .mc-merf[open] {
+    width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}
+
+.mc-merf .mc-merf-foto {
+  aspect-ratio: 245 / 342;
+}
+
+/* ── 771-773: «La quiero» y «Las que doy» en rejilla, y los cruces por
+   persona. El porqué, en SCHEMA.md (tandas 771, 772 y 773). ── */
+.mc-quiero-filtro {
+  margin-bottom: var(--e-md);
+}
+
+.mc-quiero-filtro .seg-btn,
+.mc-bloque-cambios .seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.mc-deseo-quien {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--success);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-merc-nadie {
+  color: var(--text-mid);
+}
+
+.mc-deseo-baldosa .mc-deseo-seguidos {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+.mc-deseo-idioma .pv-bandera,
+.mc-doy-baldosa .pv-bandera {
+  display: inline-block;
+}
+
+.mc-deseo-baldosa .mc-quiero-aviso {
+  margin-left: auto;
+}
+
+.mc-doy-poner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.mc-doy-nota {
+  margin: 0 0 var(--e-md);
+}
+
+.mc-doy-baldosa .mc-quiero-precio {
+  margin-left: auto;
+}
+
+.mc-doy-paso {
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.mc-doy-boton {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-lg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-doy-boton:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+@media (pointer: coarse) {
+  .mc-doy-boton {
+    min-height: 44px;
+  }
+}
+
+.mc-doy-cuantas {
+  color: var(--text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mc-doy-aviso {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  background: rgb(255 255 255 / 92%);
+  color: #52717f;
+}
+
+.mc-cruces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: var(--e-lg);
+}
+
+.mc-cruce {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-cruce.perfecto {
+  border-color: var(--success);
+}
+
+.mc-cruce-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.mc-cruce-cabeza .mini-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.mc-cruce-quien {
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-cruce-quien a {
+  font-weight: 700;
+}
+
+.mc-cruce-quien p {
+  margin: 0;
+}
+
+.mc-cruce-lados {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+}
+
+.mc-cruce-flecha {
+  color: var(--text-mid);
+}
+
+@media (max-width: 599px) {
+  .mc-cruce-lados {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mc-cruce-flecha {
+    display: none;
+  }
+}
+
+.mc-cruce-lado {
+  display: grid;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.mc-cruce-titulo {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mc-cruce-total {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-cruce-total b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-cruce-tira {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-cruce-carta {
+  display: block;
+  position: relative;
+  width: 44px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.mc-cruce-carta img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-cruce-mas {
+  display: grid;
+  width: 44px;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-cruce-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.mc-cruce-acciones > a,
+.mc-cruce-acciones > button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.mc-cruce-balanza {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (max-width: 599px) {
+  .mc-quiero-filtro .seg,
+  .mc-bloque-cambios .mc-quiero-cabeza .seg {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-quiero-filtro .seg-btn,
+  .mc-bloque-cambios .mc-quiero-cabeza .seg-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }

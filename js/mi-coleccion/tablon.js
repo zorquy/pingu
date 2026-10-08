@@ -6,17 +6,14 @@
 // no la abre casi nadie en su primera visita, y el barrido de la 299
 // sigue los dinámicos desde la 307, así que esto está contado.
 //
-// ── EL ORDEN DE LA PANTALLA ──
-//
-// Arriba lo que SALE (las coincidencias), abajo lo que hay que meter
-// (lo que doy, lo que busco). Al revés, la pestaña empieza por deberes:
-// dos listas vacías y ninguna razón para rellenarlas.
+// Desde la 773 son los CRUCES: una tarjeta por persona con las dos mitades
+// del trato (`cruzarPorPersona`, `cruceHtml`). Lo que das y lo que buscas
+// tienen su vista propia en Deseos y cambios.
 import { escapeHtml, getInitial, avatarStyle, profileUrl } from '../app.js'
 import { icons } from '../icons.js'
 import { idiomaDe, estadoDe, varianteDe } from '../cardmarket.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
-import { porPersona } from './cambios.js'
 import { atributosDeRango } from '../rangos.js'
 import { nombreDeCarta } from '../catalogo-series.js'
 
@@ -48,78 +45,92 @@ export function borradorDe(persona, cartas, direccion) {
   return `¡Hola! ${cabecera}\n\n${lista}${mas}${cierre}`
 }
 
-function cartaHtml(f) {
-  const c = f.carta
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  return `
-    <li class="mc-cambio-carta">
-      <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" class="mc-cambio-foto" tabindex="-1" aria-hidden="true">
-        ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-      </a>
-      <div>
-        <a class="mc-cambio-nombre" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}">${escapeHtml(nombreDe(c))}</a>
-        <p class="subtext">${escapeHtml(senasDe(f))}${f.cambio > 1 ? ` · da ${f.cambio}` : ''}</p>
-      </div>
-    </li>`
+// ── LOS CRUCES, POR PERSONA (tanda 773) ──
+//
+// Una tarjeta por persona con las DOS mitades del trato lado a lado: lo que
+// te da (de tu lista) y lo que le das (de la suya). Antes eran dos tablones
+// —«dan lo que buscas» y «buscan lo que das»— y la misma persona salía en
+// los dos sin que se viera que era un cambio cerrado. Primero los cruces
+// perfectos (los dos tenéis algo del otro), luego quien más cartas mueve.
+export function cruzarPorPersona(tiene = [], busca = []) {
+  const gente = new Map()
+  const de = (f) => {
+    if (!gente.has(f.user_id)) {
+      gente.set(f.user_id, {
+        user_id: f.user_id,
+        username: f.username,
+        display_name: f.display_name,
+        avatar_url: f.avatar_url,
+        is_admin: f.is_admin,
+        is_moderator: f.is_moderator,
+        teDa: [],
+        leDas: [],
+      })
+    }
+    return gente.get(f.user_id)
+  }
+  const una = (lista, f) => {
+    if (!lista.some((x) => x.card_id === f.card_id && x.idioma === f.idioma)) lista.push(f)
+  }
+  for (const f of tiene) una(de(f).teDa, f)
+  for (const f of busca) una(de(f).leDas, f)
+  return [...gente.values()]
+    .map((p) => ({ ...p, perfecto: p.teDa.length > 0 && p.leDas.length > 0 }))
+    .sort((a, b) => Number(b.perfecto) - Number(a.perfecto) ||
+      (b.teDa.length + b.leDas.length) - (a.teDa.length + a.leDas.length) ||
+      String(a.username || '').localeCompare(String(b.username || ''), 'es'))
 }
 
-function personaHtml(p, direccion) {
+// El mensaje de un cruce: las dos listas en el mismo texto. Se deja
+// escrito, no se manda (lo de siempre).
+export function borradorDeCruce(teDa, leDas) {
+  const linea = (f) => `· ${nombreDe(f.carta)} (${senasDe(f)})`
+  const partes = ['¡Hola!']
+  if (teDa.length) partes.push(`Das estas cartas que estoy buscando:\n${teDa.slice(0, 6).map(linea).join('\n')}${teDa.length > 6 ? `\n…y ${teDa.length - 6} más.` : ''}`)
+  if (leDas.length) partes.push(`Y buscas estas, que tengo para cambio:\n${leDas.slice(0, 6).map(linea).join('\n')}${leDas.length > 6 ? `\n…y ${leDas.length - 6} más.` : ''}`)
+  partes.push(teDa.length && leDas.length ? '¿Hacemos un cambio?' : '¿Te interesa algo de lo mío? Te paso mi lista si quieres.')
+  return partes.join('\n\n')
+}
+
+function tiraHtml(filas, cartas) {
+  return `<ul class="mc-cruce-tira">${filas.slice(0, 6).map((f) => {
+    const c = cartas.get(f.card_id)
+    const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+    const nombre = nombreDe(c)
+    return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(`${nombre} · ${senasDe(f)}`)}" aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</a></li>`
+  }).join('')}${filas.length > 6 ? `<li class="mc-cruce-mas">+${filas.length - 6}</li>` : ''}</ul>`
+}
+
+// `valor(f)` es lo que vale una copia (o null): la página sabe de precios,
+// este módulo no.
+export function cruceHtml(p, { cartas, valor, euros }) {
   const nombre = p.display_name || p.username || 'Alguien'
-  const n = p.cartas.length
-  return `
-    <article class="mc-cambio-persona${p.reciproco ? ' reciproco' : ''}">
-      <header>
-        <a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
-        <div>
-          <a class="mc-cambio-quien" href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
-          <p class="subtext">${n} ${n === 1 ? 'carta' : 'cartas'}${direccion === 'tiene' ? ' que buscas' : ' que das'}</p>
-        </div>
-        ${p.reciproco ? `<span class="mc-chapa-reciproco" title="Tú tienes algo que busca y te da algo que buscas: el cambio se cierra entre vosotros dos.">${icons.refreshCw(14)}Cambio directo</span>` : ''}
-      </header>
-      <ul class="mc-cambio-cartas">${p.cartas.slice(0, 8).map(cartaHtml).join('')}</ul>
-      ${p.cartas.length > 8 ? `<p class="subtext">…y ${p.cartas.length - 8} más.</p>` : ''}
-      <button type="button" class="btn-primary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="${escapeHtml(direccion)}">${icons.mail(15)}Escribir a ${escapeHtml(nombre)}</button>
-    </article>`
-}
-
-// Una lista del tablón, con su vacío propio: «no hay nadie» y «no has
-// apuntado nada» son dos estados distintos y la pantalla tiene que
-// decir cuál de los dos es (la lección de la 319).
-function listaHtml(gente, direccion, tienesLista) {
-  if (!tienesLista) {
-    return `<p class="empty-state">${direccion === 'tiene'
-      ? 'Apunta abajo las cartas que buscas y aquí saldrá quién las tiene.'
-      : 'Marca abajo cuántas copias das de tus repetidas y aquí saldrá quién las busca.'}</p>`
-  }
-  if (!gente.length) {
-    return `<p class="empty-state">${direccion === 'tiene'
-      ? 'Todavía no hay nadie que dé lo que buscas. Cuanta más gente apunte sus repetidas, antes saldrá.'
-      : 'Todavía no hay nadie buscando lo que das.'}</p>`
-  }
-  return `<div class="mc-cambio-gente">${gente.map((p) => personaHtml(p, direccion)).join('')}</div>`
-}
-
-// El tablón entero. `cartas` es el mapa id → fila de `tcg_cards`, que ya
-// tiene la página: las RPC devuelven `card_id` y nada más, porque una
-// función de la base no tiene por qué saber pintar una carta.
-export function tablonHtml({ tiene, busca, cartas, deseos, doy }) {
-  const conCarta = (filas) => filas.map((f) => ({ ...f, carta: cartas.get(f.card_id) }))
-  const losQueTienen = porPersona(conCarta(tiene))
-  const losQueBuscan = porPersona(conCarta(busca))
-  const dobles = losQueTienen.filter((p) => p.reciproco).length
-  return `
-    <div class="mc-cambio-cab">
-      <h2>Quién encaja contigo</h2>
-      <p class="mc-nota">${dobles
-        ? `Tienes <strong>${dobles} ${dobles === 1 ? 'cambio directo' : 'cambios directos'}</strong> a la vista: alguien que da lo que buscas y busca lo que das. Escríbele y lo cerráis.`
-        : 'Un cambio se cierra cuando los dos tenéis algo del otro. Aquí salen primero los que encajan por los dos lados.'}</p>
+  const suma = (filas) => filas.reduce((a, f) => a + (valor(f) || 0), 0)
+  const recibes = suma(p.teDa)
+  const das = suma(p.leDas)
+  const lado = (titulo, filas, total, vacio) => `<div class="mc-cruce-lado">
+      <p class="mc-cruce-titulo">${titulo}</p>
+      ${filas.length ? tiraHtml(filas, cartas) : `<p class="subtext">${vacio}</p>`}
+      <p class="mc-cruce-total">${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
+    </div>`
+  return `<article class="mc-cruce${p.perfecto ? ' perfecto' : ''}" data-cruce="${escapeHtml(p.user_id)}">
+    <header class="mc-cruce-cabeza">
+      <a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
+      <div class="mc-cruce-quien">
+        <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
+        <p class="subtext">${p.perfecto ? 'Las dos listas encajan' : p.teDa.length ? 'Tiene lo que buscas' : 'Busca lo que das'}</p>
+      </div>
+      ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
+    </header>
+    <div class="mc-cruce-lados">
+      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista')}
+      <span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>
+      ${lado('Le das', p.leDas, das, 'Nada de su lista')}
     </div>
-    <section class="mc-cambio-bloque">
-      <h3>Dan lo que buscas</h3>
-      ${listaHtml(losQueTienen, 'tiene', deseos.length > 0)}
-    </section>
-    <section class="mc-cambio-bloque">
-      <h3>Buscan lo que das</h3>
-      ${listaHtml(losQueBuscan, 'busca', doy.length > 0)}
-    </section>`
+    <div class="mc-cruce-acciones">
+      <button type="button" class="btn-primary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir a ${escapeHtml(nombre)}</button>
+      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}">Su perfil</a>
+      ${p.perfecto && recibes && das ? `<span class="mc-cruce-balanza">${Math.abs(recibes - das) < 1 ? 'Valen lo mismo' : `Diferencia: unos ${escapeHtml(euros(Math.abs(recibes - das)))}`}</span>` : ''}
+    </div>
+  </article>`
 }
