@@ -29,7 +29,9 @@ console.log('── 1. El HTML ──')
   ]
   const html = lateralHtml(secciones, 'Comunidad', 'foro', { conSesion: true })
   check('una entrada por sección', (html.match(/<li class="lat-seccion( lat-activa)?">/g) || []).length === 3)
-  check('las páginas, solo de la activa', html.includes('href="/usuarios.html"') && !html.includes('href="/noticias"'))
+  // Desde la 633 cada sección lleva su cajón; abierto, solo el de la activa
+  // (los demás, cerrados e `inert`).
+  check('las páginas: el cajón de la activa abierto y los demás cerrados', /class="lat-cajon lat-abierto" id="lat-cajon-\d+"><ul class="lat-paginas"><li><a href="\/foro.html"/.test(html) && /class="lat-cajon" id="lat-cajon-\d+" inert><ul class="lat-paginas"><li><a href="\/index.html"/.test(html))
   check('«estás aquí» en la página, una vez', (html.match(/aria-current="page"/g) || []).length === 1 && /href="\/foro.html" aria-current="page"/.test(html))
   check('Cartas lleva a Mi colección con cuenta', /class="lat-seccion-enlace" href="\/mi-coleccion"/.test(html))
   check('  …y al catálogo sin ella', /class="lat-seccion-enlace" href="\/cartas"/.test(lateralHtml(secciones, 'Inicio', 'index')))
