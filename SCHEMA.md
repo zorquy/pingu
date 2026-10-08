@@ -36831,3 +36831,34 @@ que se ve en la captura.
   contenedor): la prueba comprueba la regla y que en Chromium nada cambia.
   Si en el iPhone sigue flotando, la causa es otra y hay que volver aquí.
 - Prueba 775 (nueva).
+
+## Tanda 776 — El visor que iOS no devuelve al cerrar el teclado (oct. 2026)
+
+- PINGU, ya con la 775 puesta y en la **app instalada**: la burbuja y la
+  flecha de «volver arriba» a media pantalla en Torneos y en Gente. Medido
+  en sus capturas, las dos están **unos 340 px** por encima de su sitio (la
+  burbuja, que con las barras escondidas va a 38 px del fondo, a ~378; la
+  flecha, que va a 18, a ~357): el mismo desfase para las dos, y es lo que
+  mide el teclado. La 775 (la transición) no era, o no era sola.
+- Es un fallo conocido de iOS en modo instalado: al irse el teclado, el
+  visor se queda **movido** respecto a la página (`visualViewport.offsetTop`
+  no vuelve a 0) o la página se queda **más corta** (`innerHeight` no vuelve
+  a crecer hasta cerrar la app), y lo `position: fixed` se ancla a lo que iOS
+  cree. Sin error y sin irse solo; por eso salía en «más apartados».
+- `desfaseDelVisor` (pura, en `js/barra-movil.js`) dice cuánto falta arriba
+  y abajo; `vigilarVisor` lo mide en cada cambio del visor, al hacer scroll y
+  cuando se va el foco (otra vez a los 400 ms, que el teclado tarda), y lo
+  pone en `--ios-arriba` / `--ios-abajo` con `html.ios-desfase`. En
+  `css/movil.css`, lo fijo de abajo (barra, burbujas, acciones de /carta,
+  flecha, hoja «Tú», tarjeta de instalar) se mueve con `translate` —que NO
+  pisa el `transform` de las barras que se apartan— y lo de arriba (barra,
+  refrescar, avisos, progreso) con el de arriba.
+- Lo que no mueve, a propósito: con un campo enfocado (el teclado está
+  fuera y lo fijo debe quedarse), con zoom, y fuera de iOS. Lo de «más
+  corta» solo en la app instalada, contra el mayor alto visto con ese ancho
+  (`sessionStorage`): en Safari las barras del navegador cambian el alto de
+  verdad al hacer scroll.
+- No se ha podido ver en un iPhone: la prueba 776 finge el visor que
+  describen los informes de iOS y comprueba que la burbuja y la barra bajan
+  340, y que sin iOS no se toca nada. Si sigue flotando, lo que falta saber
+  es qué dicen `innerHeight` y `visualViewport` en ese momento.

@@ -567,3 +567,22 @@
     font-weight: 700;
   }
 }
+
+/* 776: iOS deja el visor movido al cerrar el teclado; lo fijo se mueve lo que falta (js/barra-movil.js, SCHEMA 776). */
+@media (max-width: 900px) {
+  html.ios-desfase .bm,
+  html.ios-desfase .bm-burbuja,
+  html.ios-desfase .mc-pestanias,
+  html.ios-desfase.con-barra-movil .carta-scan .carta-acciones,
+  html.ios-desfase .volver-arriba,
+  html.ios-desfase .bm-instalar-tarjeta,
+  html.ios-desfase.con-barra-movil #navUserDropdown:not(.hidden) {
+    translate: 0 var(--ios-abajo);
+  }
+  html.ios-desfase.con-barra-movil .navbar,
+  html.ios-desfase .bm-refrescar,
+  html.ios-desfase .toast-container,
+  html.ios-desfase .progreso-lectura {
+    translate: 0 var(--ios-arriba);
+  }
+}

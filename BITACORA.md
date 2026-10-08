@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (24) — PINGU-Claude (776 — el visor que iOS no devuelve)
+
+**Hecho**: con la 775 puesta, PINGU sigue viendo en la app instalada la
+burbuja y la flecha de subir a media pantalla (Torneos, Gente), las dos
+~340 px altas: lo que mide el teclado. Es el fallo de iOS que deja el visor
+movido (o la página más corta) al cerrar el teclado. Se mide con
+`visualViewport` y lo fijo se baja lo que falta con `translate`; solo en
+iOS y nunca con un campo enfocado. Detalle en SCHEMA.md, tanda 776.
+
+**Ficheros**: `js/barra-movil.js` (`desfaseDelVisor`, `vigilarVisor`),
+`css/movil.css` (bloque al final), `SCHEMA.md`. Prueba 776 (nueva).
+Portada: 169,5 KB (no la toca: los dos van solo al móvil).
+
+**Pendiente**: que PINGU confirme en el iPhone. La 775 sigue puesta.
+
 ## 2026-10-08 (23) — PINGU-Claude (775 — la burbuja que flota en el iPhone)
 
 **Hecho**: PINGU vio en el iPhone la burbuja de abajo a media pantalla, en

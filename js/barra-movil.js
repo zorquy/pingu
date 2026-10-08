@@ -164,6 +164,63 @@ function recordarPosicion(doc, win) {
   win.setTimeout(intentar, 50)
 }
 
+// EL VISOR QUE iOS NO DEVUELVE (776). En la app instalada, al cerrar el
+// teclado iOS puede dejar el visor movido respecto a la página (o más
+// corto), y todo lo fijo de abajo se queda flotando a media pantalla
+// —PINGU lo vio en Torneos y en Gente, unos 340 px: lo que mide el
+// teclado—. No da error ni se va solo. Se mide el visor de verdad y lo fijo
+// se mueve lo que falta (`translate`, que no pisa el `transform` de las
+// barras que se apartan). Pura para poder probarla; el porqué, SCHEMA 776.
+export function desfaseDelVisor({ alto, visor, maximo = 0, escribiendo = false, instalada = false }) {
+  const nada = { arriba: 0, abajo: 0 }
+  // Con el teclado fuera lo fijo DEBE quedarse donde está, y con zoom el
+  // visor se mueve a propósito.
+  if (escribiendo || !visor || Math.abs((visor.scale || 1) - 1) > 0.01) return nada
+  const arriba = visor.offsetTop > 1 ? Math.round(visor.offsetTop) : 0
+  const fondo = Math.round(visor.offsetTop + visor.height - alto)
+  // Encogido: el alto de la página bajó y el visor bajó con él, así que no
+  // se nota en el visor; se nota contra el mayor alto visto con ese ancho.
+  // Solo instalada: en Safari las barras del navegador cambian el alto de
+  // verdad al hacer scroll.
+  const encogido = instalada && maximo - alto > 1 && Math.abs(visor.height - alto) < 2 ? maximo - alto : 0
+  return { arriba, abajo: Math.max(0, fondo > 1 ? fondo : 0) + encogido }
+}
+
+const CLAVE_ALTO = 'bm-alto-max:'
+function vigilarVisor(doc, win) {
+  const visor = win.visualViewport
+  // Solo en iOS (el mismo filtro que la 775): en los demás, el visor lo
+  // devuelven bien y moverlo sería un fallo nuevo.
+  if (!visor || !win.CSS?.supports?.('-webkit-touch-callout', 'none')) return
+  const html = doc.documentElement
+  const instalada = win.navigator.standalone === true || win.matchMedia('(display-mode: standalone)').matches
+  const escribiendo = () => doc.activeElement?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable="true"]')
+  let pendiente = false
+  const medir = () => {
+    pendiente = false
+    const clave = CLAVE_ALTO + win.innerWidth
+    let maximo = 0
+    try { maximo = Number(win.sessionStorage.getItem(clave)) || 0 } catch {}
+    if (win.innerHeight > maximo && !escribiendo()) {
+      maximo = win.innerHeight
+      try { win.sessionStorage.setItem(clave, String(maximo)) } catch {}
+    }
+    const { arriba, abajo } = desfaseDelVisor({ alto: win.innerHeight, visor, maximo, escribiendo: escribiendo(), instalada })
+    html.classList.toggle('ios-desfase', arriba > 0 || abajo > 0)
+    html.style.setProperty('--ios-arriba', `${arriba}px`)
+    html.style.setProperty('--ios-abajo', `${abajo}px`)
+  }
+  const pedir = () => { if (!pendiente) { pendiente = true; win.requestAnimationFrame(medir) } }
+  visor.addEventListener('resize', pedir)
+  visor.addEventListener('scroll', pedir)
+  win.addEventListener('resize', pedir)
+  win.addEventListener('scroll', pedir, { passive: true })
+  win.addEventListener('pageshow', pedir)
+  // El teclado tarda en irse: se vuelve a mirar cuando ya se ha ido.
+  doc.addEventListener('focusout', () => { pedir(); win.setTimeout(pedir, 400) })
+  medir()
+}
+
 // LA BARRA DE ARRIBA, LIMPIA, Y LA HOJA «TÚ» (717: N1 y N8 de la lista de
 // propuestas, elegidas por PINGU). En el móvil la barra de arriba eran el
 // logo y cinco iconos sin rótulo —buscar, tema, mensajes, avisos, avatar—
@@ -263,6 +320,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   })
   vigilarBajada(doc, window)
   recordarPosicion(doc, window)
+  vigilarVisor(doc, window)
   montarTu(doc, window)
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732.
