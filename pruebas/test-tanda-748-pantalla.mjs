@@ -471,6 +471,9 @@ console.log('── 9. La portada «Hoy» de su maqueta (J5 y N1) ──')
     window.__FAKE_SESSION__ = 'admin-1'
     const hoy = Date.now()
     window.__FAKE_VALOR__ = Array.from({ length: 40 }, (_, i) => ({ user_id: 'admin-1', dia: new Date(hoy - (39 - i) * 864e5).toISOString().slice(0, 10), valor: 1000 + i * 2 }))
+    // Desde la 756 la cifra es la suma de AHORA, como en el Panel: una
+    // línea con su precio a mano que da lo mismo que la última foto.
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'admin-1', card_id: 'sv1-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', valor_manual: 1078 }]
     window.__FAKE_GUIAS__ = [{ id: 'guia-1', slug: 'primer-mazo', title: 'Cómo montar tu primer mazo', blocks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]
     window.__FAKE_PROGRESO__ = [{ user_id: 'admin-1', guide_id: 'guia-1', status: 'in_progress', current_block: 6, started_at: new Date().toISOString() }]
   })
