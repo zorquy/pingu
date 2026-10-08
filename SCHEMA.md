@@ -36010,6 +36010,19 @@ que es la del móvil) y la cuadrícula (`.mc-rejilla-celda`).
 - El número de la casilla (`.mc-bolsillo-num`) solo sale sin foto (la carta
   lleva el suyo impreso) y pasa abajo a la izquierda, que la derecha es del
   «+».
+- **Sumar desde la ficha, con su «Deshacer» que se puede pulsar.** Sin el
+  «+» en las tuyas, una copia más se suma desde la ficha («Añadir»), y ahí
+  salieron dos fallos que ya estaban pero casi nadie pisaba: el aviso de
+  «añadida · Deshacer» se colgaba de `body`, y la ficha es un `<dialog>`
+  modal que deja INERTE todo lo de fuera —el botón se veía y no se podía
+  pulsar, sin error—; ahora va dentro del modal de arriba si lo hay
+  (`capaDeArriba`, en `js/mi-coleccion/deshacer.js`). Y al deshacer, la
+  ficha abierta seguía diciendo «Tienes 2»: ahora se vuelve a abrir
+  (`abrirCarta`) y dice lo que queda.
+- Pruebas al día: 371 (lo que falta, gris y opaco), 705 (el «+» abajo a la
+  derecha y solo en lo que falta), y 657, 692, 712, 725 y 748, que sumaban
+  una copia de una que ya tienes con el «+» de la casilla: ahora por la
+  ficha (`porLaFicha`).
 - Prueba 757-pantalla: las seis casillas en archivador (móvil y ratón) y en
   cuadrícula: gris y opaco lo que falta, a color lo tuyo, ✓ / ×N arriba a la
   derecha, la versión abajo solo si hay varias, el «+» solo en lo que falta

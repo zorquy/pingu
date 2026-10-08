@@ -12,9 +12,14 @@ versión que tienes si la carta tiene varias; el «+» pequeño, en la esquina
 y solo en lo que falta. En el archivador y en la cuadrícula, móvil y
 ordenador, oscuro y claro. Detalle en SCHEMA.md, tanda 757.
 
+Y dos fallos del camino de sumar desde la ficha, que ahora es el único
+para una que ya tienes: el «Deshacer» salía detrás de la ficha (modal) y
+no se podía pulsar, y al deshacer la ficha no se ponía al día.
+
 **Ficheros**: `js/mi-coleccion.js` (`marcaDeTengoHtml`,
-`versionQueTienesHtml`), `css/mi-coleccion.css`, `SCHEMA.md`. Prueba
-757-pantalla (nueva).
+`versionQueTienesHtml`, la ficha tras deshacer), `js/mi-coleccion/deshacer.js`
+(`capaDeArriba`), `css/mi-coleccion.css`, `SCHEMA.md`. Prueba 757-pantalla
+(nueva); 371, 657, 692, 705, 712, 725 y 748 al día.
 
 **Pendiente**: nada. Sin migración nueva (sigue la de la 753).
 

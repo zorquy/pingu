@@ -541,6 +541,9 @@ async function deshacerAnadida(plan, c) {
       cambiarLinea(plan.id, vuelta)
     }
     repintar()
+    // Deshecho desde la ficha abierta (757: es donde se suma una copia de
+    // la que ya tienes), la ficha vuelve a decir lo que queda.
+    if ($('mcEditor').open && cartaAbierta === c.id) abrirCarta(c.id)
     return true
   } catch (err) {
     showToast(`No se ha podido deshacer: ${err.message}`, 'error')
