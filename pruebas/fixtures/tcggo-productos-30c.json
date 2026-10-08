@@ -1,0 +1,1316 @@
+{
+ "lista": {
+  "data": [
+   {
+    "id": 48447,
+    "name": "30th Celebration Booster",
+    "slug": "30th-celebration-booster",
+    "lang": "en",
+    "cardmarket_id": 890360,
+    "tcgplayer_id": 696613,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 10.99,
+      "lowest_EU_only": 10.99,
+      "lowest_DE": 9.99,
+      "lowest_DE_EU_only": 9.99,
+      "lowest_FR": 12.89,
+      "lowest_FR_EU_only": 12.89,
+      "lowest_ES": 8.78,
+      "lowest_ES_EU_only": 8.78,
+      "lowest_IT": 8.15,
+      "lowest_IT_EU_only": 8.15,
+      "30d_average": 13.98,
+      "available_items": 5077,
+      "7d_average": 13.06
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36629/30th-celebration-booster.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-booster",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48447",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48447"
+    }
+   },
+   {
+    "id": 48449,
+    "name": "30th Celebration Booster Bundle",
+    "slug": "30th-celebration-booster-bundle",
+    "lang": "en",
+    "cardmarket_id": 895561,
+    "tcgplayer_id": 704171,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 64.99,
+      "lowest_EU_only": 67.9,
+      "lowest_DE": 50,
+      "lowest_DE_EU_only": 60,
+      "lowest_FR": 68,
+      "lowest_FR_EU_only": 73,
+      "lowest_ES": 50,
+      "lowest_ES_EU_only": 50,
+      "lowest_IT": 44.5,
+      "lowest_IT_EU_only": 44.5,
+      "30d_average": 85.18,
+      "available_items": 2836,
+      "7d_average": 80.81
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10801.87,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36631/30th-celebration-booster-bundle.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-booster-bundle",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48449",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48449"
+    }
+   },
+   {
+    "id": 48450,
+    "name": "30th Celebration: Alolan Exeggutor Tech Sticker Collection",
+    "slug": "30th-celebration-alolan-exeggutor-tech-sticker-collection",
+    "lang": "en",
+    "cardmarket_id": 895554,
+    "tcgplayer_id": 704145,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 36.43,
+      "lowest_EU_only": 44,
+      "lowest_DE": 30,
+      "lowest_DE_EU_only": 30,
+      "lowest_FR": 59.99,
+      "lowest_FR_EU_only": 59.99,
+      "lowest_ES": 28,
+      "lowest_ES_EU_only": 28,
+      "lowest_IT": 25.5,
+      "lowest_IT_EU_only": 25.5,
+      "30d_average": 37.14,
+      "available_items": 295,
+      "7d_average": 34.68
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36632/30th-celebration-alolan-exeggutor-tech-sticker-collection.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-alolan-exeggutor-tech-sticker-collection",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48450",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48450"
+    }
+   },
+   {
+    "id": 48451,
+    "name": "30th Celebration: Lucario Tech Sticker Collection",
+    "slug": "30th-celebration-lucario-tech-sticker-collection",
+    "lang": "en",
+    "cardmarket_id": 895555,
+    "tcgplayer_id": 704146,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 37.99,
+      "lowest_EU_only": 44.99,
+      "lowest_DE": 28.75,
+      "lowest_DE_EU_only": 28.75,
+      "lowest_FR": null,
+      "lowest_FR_EU_only": null,
+      "lowest_ES": 28.95,
+      "lowest_ES_EU_only": 28.95,
+      "lowest_IT": 24.9,
+      "lowest_IT_EU_only": 24.9,
+      "30d_average": 37.57,
+      "available_items": 307,
+      "7d_average": 35.02
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36633/30th-celebration-lucario-tech-sticker-collection.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-lucario-tech-sticker-collection",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48451",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48451"
+    }
+   },
+   {
+    "id": 48452,
+    "name": "30th Celebration: Eevee 2-Pack Blister",
+    "slug": "30th-celebration-eevee-2-pack-blister",
+    "lang": "en",
+    "cardmarket_id": 895556,
+    "tcgplayer_id": 704148,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 23.9,
+      "lowest_EU_only": 23.9,
+      "lowest_DE": 23,
+      "lowest_DE_EU_only": 23,
+      "lowest_FR": 27.3,
+      "lowest_FR_EU_only": 27.3,
+      "lowest_ES": 21.99,
+      "lowest_ES_EU_only": 21.99,
+      "lowest_IT": 15,
+      "lowest_IT_EU_only": 15,
+      "30d_average": 32.93,
+      "available_items": 1111,
+      "7d_average": 37.47
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36634/30th-celebration-eevee-2-pack-blister.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-eevee-2-pack-blister",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48452",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48452"
+    }
+   },
+   {
+    "id": 48453,
+    "name": "30th Celebration: Espeon ex Battle Deck",
+    "slug": "30th-celebration-espeon-ex-battle-deck",
+    "lang": "en",
+    "cardmarket_id": 895562,
+    "tcgplayer_id": 704187,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 57.94,
+      "lowest_EU_only": 57.94,
+      "lowest_DE": 59.9,
+      "lowest_DE_EU_only": 59.9,
+      "lowest_FR": 54,
+      "lowest_FR_EU_only": 54,
+      "lowest_ES": 59.95,
+      "lowest_ES_EU_only": 59.95,
+      "lowest_IT": 35,
+      "lowest_IT_EU_only": 35,
+      "30d_average": 57.31,
+      "available_items": 70,
+      "7d_average": 58.41
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36635/30th-celebration-espeon-ex-battle-deck.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-espeon-ex-battle-deck",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48453",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48453"
+    }
+   },
+   {
+    "id": 48454,
+    "name": "30th Celebration: Umbreon ex Battle Deck",
+    "slug": "30th-celebration-umbreon-ex-battle-deck",
+    "lang": "en",
+    "cardmarket_id": 895563,
+    "tcgplayer_id": 704188,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 54.99,
+      "lowest_EU_only": 54.99,
+      "lowest_DE": 59.9,
+      "lowest_DE_EU_only": 59.9,
+      "lowest_FR": 54,
+      "lowest_FR_EU_only": 54,
+      "lowest_ES": 59.95,
+      "lowest_ES_EU_only": 59.95,
+      "lowest_IT": 35,
+      "lowest_IT_EU_only": 35,
+      "30d_average": 56.91,
+      "available_items": 68,
+      "7d_average": 56.38
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36636/30th-celebration-umbreon-ex-battle-deck.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-umbreon-ex-battle-deck",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48454",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48454"
+    }
+   },
+   {
+    "id": 48455,
+    "name": "30th Celebration: Mew & Alolan Exeggutor Mini Tin",
+    "slug": "30th-celebration-mew-alolan-exeggutor-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895564,
+    "tcgplayer_id": 704178,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 25.99,
+      "lowest_EU_only": 25.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 26.99,
+      "lowest_FR_EU_only": 26.99,
+      "lowest_ES": 23.98,
+      "lowest_ES_EU_only": 23.98,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.84,
+      "available_items": 212,
+      "7d_average": 27.76
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36637/30th-celebration-mew-alolan-exeggutor-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-mew-alolan-exeggutor-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48455",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48455"
+    }
+   },
+   {
+    "id": 48456,
+    "name": "30th Celebration: Espeon & Meowth Mini Tin",
+    "slug": "30th-celebration-espeon-meowth-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895565,
+    "tcgplayer_id": 704176,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 24.99,
+      "lowest_EU_only": 24.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 26,
+      "lowest_FR_EU_only": 26,
+      "lowest_ES": 23.99,
+      "lowest_ES_EU_only": 23.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.58,
+      "available_items": 205,
+      "7d_average": 26.96
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36638/30th-celebration-espeon-meowth-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-espeon-meowth-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48456",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48456"
+    }
+   },
+   {
+    "id": 48457,
+    "name": "30th Celebration: Greninja & Volbeat Mini Tin",
+    "slug": "30th-celebration-greninja-volbeat-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895566,
+    "tcgplayer_id": 704185,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 23.99,
+      "lowest_EU_only": 23.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 25.9,
+      "lowest_FR_EU_only": 25.9,
+      "lowest_ES": 19.99,
+      "lowest_ES_EU_only": 19.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.62,
+      "available_items": 249,
+      "7d_average": 27.15
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36639/30th-celebration-greninja-volbeat-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-greninja-volbeat-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48457",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48457"
+    }
+   },
+   {
+    "id": 48458,
+    "name": "30th Celebration: Lapras & Drifloon Mini Tin",
+    "slug": "30th-celebration-lapras-drifloon-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895567,
+    "tcgplayer_id": 704179,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 25.99,
+      "lowest_EU_only": 25.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 24.99,
+      "lowest_FR_EU_only": 24.99,
+      "lowest_ES": 20,
+      "lowest_ES_EU_only": 20,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.54,
+      "available_items": 218,
+      "7d_average": 26.82
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36640/30th-celebration-lapras-drifloon-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-lapras-drifloon-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48458",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48458"
+    }
+   },
+   {
+    "id": 48459,
+    "name": "30th Celebration: Mewtwo & Scraggy Mini Tin",
+    "slug": "30th-celebration-mewtwo-scraggy-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895568,
+    "tcgplayer_id": 704183,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 20,
+      "lowest_EU_only": 20,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 27,
+      "lowest_FR_EU_only": 27,
+      "lowest_ES": 20,
+      "lowest_ES_EU_only": 20,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.51,
+      "available_items": 192,
+      "7d_average": 27.28
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36641/30th-celebration-mewtwo-scraggy-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-mewtwo-scraggy-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48459",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48459"
+    }
+   },
+   {
+    "id": 48460,
+    "name": "30th Celebration: Moltres & Articuno Mini Tin",
+    "slug": "30th-celebration-moltres-articuno-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895569,
+    "tcgplayer_id": 704180,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 26.9,
+      "lowest_EU_only": 26.9,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 24.9,
+      "lowest_FR_EU_only": 24.9,
+      "lowest_ES": 23.99,
+      "lowest_ES_EU_only": 23.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.56,
+      "available_items": 204,
+      "7d_average": 26.55
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36642/30th-celebration-moltres-articuno-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-moltres-articuno-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48460",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48460"
+    }
+   },
+   {
+    "id": 48461,
+    "name": "30th Celebration: Pikachu & Toxtricity Mini Tin",
+    "slug": "30th-celebration-pikachu-toxtricity-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895570,
+    "tcgplayer_id": 704184,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 24.99,
+      "lowest_EU_only": 24.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 27.5,
+      "lowest_FR_EU_only": 27.5,
+      "lowest_ES": 23.99,
+      "lowest_ES_EU_only": 23.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.53,
+      "available_items": 257,
+      "7d_average": 26.8
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10801.87,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36643/30th-celebration-pikachu-toxtricity-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-pikachu-toxtricity-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48461",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48461"
+    }
+   },
+   {
+    "id": 48462,
+    "name": "30th Celebration: Umbreon & Alolan Meowth Mini Tin",
+    "slug": "30th-celebration-umbreon-alolan-meowth-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895571,
+    "tcgplayer_id": 704182,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 26.9,
+      "lowest_EU_only": 26.9,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 27.5,
+      "lowest_FR_EU_only": 27.5,
+      "lowest_ES": 20,
+      "lowest_ES_EU_only": 20,
+      "lowest_IT": 18,
+      "lowest_IT_EU_only": 18,
+      "30d_average": 29.63,
+      "available_items": 192,
+      "7d_average": 27.96
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36644/30th-celebration-umbreon-alolan-meowth-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-umbreon-alolan-meowth-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48462",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48462"
+    }
+   },
+   {
+    "id": 48463,
+    "name": "30th Celebration: Pikachu & Vivillon Mini Tin",
+    "slug": "30th-celebration-pikachu-vivillon-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895572,
+    "tcgplayer_id": 704177,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 24.99,
+      "lowest_EU_only": 24.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 25,
+      "lowest_FR_EU_only": 25,
+      "lowest_ES": 23.99,
+      "lowest_ES_EU_only": 23.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.69,
+      "available_items": 222,
+      "7d_average": 27.08
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10801.87,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36645/30th-celebration-pikachu-vivillon-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-pikachu-vivillon-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48463",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48463"
+    }
+   },
+   {
+    "id": 48464,
+    "name": "30th Celebration: Zapdos & Hisuian Zorua Mini Tin",
+    "slug": "30th-celebration-zapdos-hisuian-zorua-mini-tin",
+    "lang": "en",
+    "cardmarket_id": 895573,
+    "tcgplayer_id": 704181,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 24.99,
+      "lowest_EU_only": 24.99,
+      "lowest_DE": 20.99,
+      "lowest_DE_EU_only": 20.99,
+      "lowest_FR": 25,
+      "lowest_FR_EU_only": 25,
+      "lowest_ES": 22.99,
+      "lowest_ES_EU_only": 22.99,
+      "lowest_IT": 17.9,
+      "lowest_IT_EU_only": 17.9,
+      "30d_average": 28.5,
+      "available_items": 206,
+      "7d_average": 26.82
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36646/30th-celebration-zapdos-hisuian-zorua-mini-tin.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-zapdos-hisuian-zorua-mini-tin",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48464",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48464"
+    }
+   },
+   {
+    "id": 48465,
+    "name": "30th Celebration: Mini Tin Display",
+    "slug": "30th-celebration-mini-tin-display",
+    "lang": "en",
+    "cardmarket_id": 895584,
+    "tcgplayer_id": 704186,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 239.99,
+      "lowest_EU_only": 239.99,
+      "lowest_DE": 240,
+      "lowest_DE_EU_only": 240,
+      "lowest_FR": 290,
+      "lowest_FR_EU_only": 329.9,
+      "lowest_ES": 239.99,
+      "lowest_ES_EU_only": 239.99,
+      "lowest_IT": 179,
+      "lowest_IT_EU_only": 179,
+      "30d_average": 288.26,
+      "available_items": 350,
+      "7d_average": 270.87
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36647/30th-celebration-mini-tin-display.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-mini-tin-display",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48465",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48465"
+    }
+   },
+   {
+    "id": 48466,
+    "name": "30th Celebration Elite Trainer Box",
+    "slug": "30th-celebration-elite-trainer-box",
+    "lang": "en",
+    "cardmarket_id": 895551,
+    "tcgplayer_id": 704143,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 129.95,
+      "lowest_EU_only": 129.95,
+      "lowest_DE": 128.9,
+      "lowest_DE_EU_only": 130,
+      "lowest_FR": 160,
+      "lowest_FR_EU_only": 160,
+      "lowest_ES": 101,
+      "lowest_ES_EU_only": 101,
+      "lowest_IT": 80,
+      "lowest_IT_EU_only": 80,
+      "30d_average": 147.66,
+      "available_items": 2027,
+      "7d_average": 139.3
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36648/30th-celebration-elite-trainer-box.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-elite-trainer-box",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48466",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48466"
+    }
+   },
+   {
+    "id": 48467,
+    "name": "30th Celebration Pokémon Center Elite Trainer Box",
+    "slug": "30th-celebration-pokemon-center-elite-trainer-box",
+    "lang": "en",
+    "cardmarket_id": 895552,
+    "tcgplayer_id": 704144,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest": 400,
+      "lowest_EU_only": 400,
+      "lowest_DE": null,
+      "lowest_DE_EU_only": null,
+      "lowest_FR": null,
+      "lowest_FR_EU_only": null,
+      "lowest_ES": null,
+      "lowest_ES_EU_only": null,
+      "lowest_IT": null,
+      "lowest_IT_EU_only": null,
+      "30d_average": 379.36,
+      "available_items": 16,
+      "7d_average": 399.14
+     }
+    },
+    "episode": {
+     "id": 431,
+     "name": "30th Celebration",
+     "slug": "30th-celebration",
+     "lang": "en",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+     "code": "30C",
+     "cards_total": 128,
+     "cards_printed_total": 128,
+     "prices": {
+      "cardmarket": {
+       "total": 10800.14,
+       "currency": "EUR"
+      },
+      "tcgplayer": {
+       "total": 8774.77,
+       "currency": "EUR"
+      }
+     },
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon"
+     },
+     "series": {
+      "id": 17,
+      "name": "Mega Evolution",
+      "slug": "mega-evolution"
+     }
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/36649/30th-celebration-pokemon-center-elite-trainer-box.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-pokemon-center-elite-trainer-box",
+    "links": {
+     "cardmarket": "https://www.tcggo.com/external/cm/48467",
+     "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48467"
+    }
+   }
+  ],
+  "paging": {
+   "current": 1,
+   "total": 2,
+   "per_page": 20
+  },
+  "results": 32
+ },
+ "uno": {
+  "data": {
+   "id": 48467,
+   "name": "30th Celebration Pokémon Center Elite Trainer Box",
+   "slug": "30th-celebration-pokemon-center-elite-trainer-box",
+   "lang": "en",
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest": 400,
+     "lowest_EU_only": 400,
+     "lowest_DE": null,
+     "lowest_DE_EU_only": null,
+     "lowest_FR": null,
+     "lowest_FR_EU_only": null,
+     "lowest_ES": null,
+     "lowest_ES_EU_only": null,
+     "lowest_IT": null,
+     "lowest_IT_EU_only": null,
+     "30d_average": 379.36,
+     "available_items": 16,
+     "7d_average": 399.14
+    }
+   },
+   "episode": {
+    "id": 431,
+    "name": "30th Celebration",
+    "slug": "30th-celebration",
+    "lang": "en",
+    "released_at": "2026-09-16",
+    "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+    "code": "30C",
+    "cards_total": 128,
+    "cards_printed_total": 128,
+    "prices": {
+     "cardmarket": {
+      "total": 10800.14,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 8774.77,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/36649/30th-celebration-pokemon-center-elite-trainer-box.png",
+   "tcggo_url": "https://www.tcggo.com/pokemon/30th-celebration/30th-celebration-pokemon-center-elite-trainer-box",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/48467",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/48467"
+   },
+   "cardmarket_id": 895552,
+   "tcgplayer_id": 704144
+  }
+ }
+}

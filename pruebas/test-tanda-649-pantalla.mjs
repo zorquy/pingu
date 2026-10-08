@@ -143,7 +143,8 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   const { page, errores } = await abrir('/mi-coleccion.html', { sesion: 'admin-1' })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const pestanas = (await page.locator('#mcMenu .mc-pestania').allInnerTexts()).map(limpio)
-  check('el menú: Panel, Expansiones, Pokédex, Álbumes, Buscar', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Buscar', pestanas.join('|'))
+  // Productos, desde la 762 (PR1).
+  check('el menú: Panel, Expansiones, Pokédex, Álbumes, Productos, Buscar', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Productos|Buscar', pestanas.join('|'))
   // «Solo las empezadas» puesto de antes, y después «Ver todas»: tiene
   // que quitarse, que si no el Panel dice «ver todas» y la estantería
   // enseña una.

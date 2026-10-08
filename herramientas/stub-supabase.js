@@ -45,6 +45,9 @@ const T = {
   collection_folder_cards: [],
   // La vitrina del perfil (743).
   user_showcase: [],
+  // Los productos sellados (762): el catálogo de TCGGO y los de cada uno.
+  tcg_products: [],
+  user_products: [],
   tournament_decklists: [],
   rounds: [],
   tournament_matches: [],
@@ -262,6 +265,15 @@ sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({
   cancel_notified_at: null,
   reminder_notified_at: null,
   delete_after_notice_at: null,
+}))
+
+// Los productos sellados (762).
+sembrar('__FAKE_PRODUCTOS__', 'tcg_products', (i) => ({
+  id: 9000 + i, episode_id: null, lang: 'en', name: `Producto ${i}`, tipo: 'otro', image: null,
+  cm_lowest: null, cm_lowest_eu: null, cm_lowest_es: null, cm_avg30: null, release_date: null, updated_at: new Date().toISOString(),
+}))
+sembrar('__FAKE_MIS_PRODUCTOS__', 'user_products', (i) => ({
+  id: `up-${i + 1}`, user_id: 'admin-1', product_id: 9000, cantidad: 1, pagado: null, created_at: new Date().toISOString(),
 }))
 
 // Los álbumes soñados (tanda 366).
