@@ -95,7 +95,9 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   await p.fill('#mcBuscarTodo', 'Charizard')
   await p.waitForTimeout(900)
   ok(!(await p.isVisible('#mcBuscarVacio')), 'al buscar, el vacío se va')
-  const cuantas = await p.$$eval('#mcBuscarResultados > *', (ns) => ns.length)
+  // `.mc-resultado`: desde la 761 la rejilla lleva también la cabecera de
+  // cada expansión.
+  const cuantas = await p.$$eval('#mcBuscarResultados > .mc-resultado', (ns) => ns.length)
   ok(cuantas === 3, 'salen las tres Charizard', String(cuantas))
   await p.close()
 }
@@ -182,7 +184,7 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   ok(pedido?.idioma === 'es', 'y el idioma elegido')
 
   const tras = await p.evaluate(() => {
-    const filas = [...document.querySelectorAll('#mcBuscarResultados > *')]
+    const filas = [...document.querySelectorAll('#mcBuscarResultados > .mc-resultado')]
     return {
       cerrado: !document.getElementById('mcEscanerCaja').open,
       bandeja: document.querySelectorAll('#mcEscanerCandidatas .mc-escaner-candidata').length,
