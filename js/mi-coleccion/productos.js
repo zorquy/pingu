@@ -26,6 +26,7 @@ let fichas = new Map() // product_id → fila de tcg_products
 let episodiosConProductos = null
 let episodio = null
 let tipo = ''
+let setsPorEpisodio = new Map() // episode_id → nuestro set (con su logo)
 let montado = false
 
 // ── La base ──
@@ -63,6 +64,22 @@ function precioHtml(f) {
   return `<span class="mc-prod-precio">${escapeHtml(euros(p.valor))} <small>mín. ${escapeHtml(p.donde)}</small></span>`
 }
 
+// Lo que tienes, a la vista sobre la foto (766, PR1): ✓ si es uno, «×2» si
+// son más. El − y el + de debajo siguen siendo el mando.
+export function marcaDeTenerlo(cantidad) {
+  const n = Number(cantidad) || 0
+  if (n <= 0) return ''
+  return `<span class="mc-prod-tengo" role="img" aria-label="${n === 1 ? 'Lo tienes' : `Tienes ${n}`}">${n === 1 ? '✓' : `×${n}`}</span>`
+}
+
+// La cabecera de una expansión: su logo (si lo hay) y su nombre.
+function cabezaDeSetHtml(s, extra = '') {
+  if (!s) return ''
+  const logos = ctx?.logosDeSet ? ctx.logosDeSet(s) : []
+  return `<span class="mc-prod-set-logo">${logos.length ? `<img src="${escapeHtml(logos[0])}" alt="" width="120" height="48" loading="lazy" onerror="this.remove()" />` : ''}</span>
+    <span class="mc-prod-set-texto"><b>${escapeHtml(nombreDeSet(s) || s.id)}</b>${extra ? `<small>${extra}</small>` : ''}</span>`
+}
+
 export function tarjetaDeProductoHtml(f, cantidad = 0, { conMando = true } = {}) {
   const media = f.cm_avg30 != null ? `<span class="mc-prod-media">Media 30 días: ${escapeHtml(euros(f.cm_avg30))}</span>` : ''
   const mando = !conMando
@@ -71,7 +88,7 @@ export function tarjetaDeProductoHtml(f, cantidad = 0, { conMando = true } = {})
       ? `<span class="mc-prod-mando"><button type="button" class="mc-prod-boton" data-prod-menos="${f.id}" aria-label="Quitar uno de ${escapeHtml(f.name)}">−</button><b class="mc-prod-cuantos" aria-label="Tienes ${cantidad}">×${cantidad}</b><button type="button" class="mc-prod-boton" data-prod-mas="${f.id}" aria-label="Añadir otro de ${escapeHtml(f.name)}">+</button></span>`
       : `<span class="mc-prod-mando"><button type="button" class="mc-prod-anadir" data-prod-mas="${f.id}" aria-label="Añadir ${escapeHtml(f.name)} a tu colección">+ Añadir</button></span>`
   return `<article class="mc-prod${cantidad ? ' tengo' : ''}" data-prod="${f.id}">
-    <span class="mc-prod-foto">${f.image ? `<img src="${escapeHtml(f.image)}" alt="" width="240" height="240" loading="lazy" onerror="this.remove()" />` : ''}</span>
+    <span class="mc-prod-foto">${f.image ? `<img src="${escapeHtml(f.image)}" alt="" width="240" height="240" loading="lazy" onerror="this.remove()" />` : ''}${marcaDeTenerlo(cantidad)}</span>
     <span class="mc-prod-chapas"><span class="mc-prod-tipo">${escapeHtml(nombreDeTipo(f.tipo))}</span>${esPreventa(f) ? '<span class="mc-prod-preventa">Preventa</span>' : ''}</span>
     <b class="mc-prod-nombre">${escapeHtml(f.name)}</b>
     ${precioHtml(f)}
@@ -97,7 +114,19 @@ function pintarTuyos() {
       <h2 class="mc-subtitulo">Tus productos</h2>
       <p class="mc-prod-valor"><b>${escapeHtml(euros(v.total))}</b> · ${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'}${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</p>
     </div>
-    <div class="mc-prod-rejilla">${lista.map((m) => tarjetaDeProductoHtml(fichas.get(m.product_id), m.cantidad)).join('')}</div>`
+    ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : ''}<div class="mc-prod-rejilla">${g.lista.map((m) => tarjetaDeProductoHtml(fichas.get(m.product_id), m.cantidad)).join('')}</div>`).join('')}`
+}
+
+// Tus productos, por expansión (766, PR1): la más nueva primero, y lo que
+// no sabemos de qué set es, al final y sin cabecera.
+function gruposDeTuyos(lista) {
+  const grupos = new Map()
+  for (const m of lista) {
+    const ep = fichas.get(m.product_id)?.episode_id ?? null
+    if (!grupos.has(ep)) grupos.set(ep, { set: setsPorEpisodio.get(Number(ep)) || null, lista: [] })
+    grupos.get(ep).lista.push(m)
+  }
+  return [...grupos.values()].sort((a, b) => (a.set ? 0 : 1) - (b.set ? 0 : 1) || String(b.set?.release_date || '').localeCompare(String(a.set?.release_date || '')))
 }
 
 async function pintarCatalogo() {
@@ -115,6 +144,14 @@ async function pintarCatalogo() {
   if (tipo && !hay.has(tipo)) tipo = ''
   $('mcProdTipos').innerHTML = chips.map((t) => `<button type="button" class="chip-filtro${t.id === tipo ? ' activa' : ''}" data-prod-tipo="${t.id}" aria-pressed="${t.id === tipo}">${escapeHtml(t.nombre)}</button>`).join('')
   const lista = (data || []).filter((f) => !tipo || (f.tipo || OTRO.id) === tipo)
+  const cabeza = $('mcProdSetCabeza')
+  const s = setsPorEpisodio.get(Number(episodio))
+  if (cabeza) {
+    const preventa = s?.release_date && String(s.release_date) > new Date().toISOString().slice(0, 10)
+    const fecha = s?.release_date ? new Date(`${String(s.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+    cabeza.innerHTML = cabezaDeSetHtml(s, [preventa ? `Sale el ${fecha} · preventa` : fecha, `${(data || []).length} ${(data || []).length === 1 ? 'producto' : 'productos'}`].filter(Boolean).join(' · '))
+    cabeza.classList.toggle('hidden', !s)
+  }
   caja.innerHTML = lista.length
     ? lista.map((f) => tarjetaDeProductoHtml(f, mios?.get(f.id)?.cantidad || 0, { conMando: mios !== null })).join('')
     : '<p class="empty-state">Todavía no hay productos de esta expansión.</p>'
@@ -137,7 +174,7 @@ async function pintarSelector() {
   // Los sets se piden aquí y no con `ctx.sets()`: esa lista deja fuera los
   // ESCONDIDOS, y una expansión anunciada (la 756) está escondida hasta que
   // salen sus cartas — justo la de los productos en preventa.
-  const { data: sets } = await supabase.from('tcg_sets').select('id,market,name,name_en,tcggo_id,release_date,card_count_total').eq('market', ctx.mercado).not('tcggo_id', 'is', null).limit(2000)
+  const { data: sets } = await supabase.from('tcg_sets').select('id,market,name,name_en,tcggo_id,release_date,card_count_total,logo_path,logo_tcggo,logo_scrydex,symbol_scrydex').eq('market', ctx.mercado).not('tcggo_id', 'is', null).limit(2000)
   const porEpisodio = new Map()
   for (const s of sets || []) {
     const id = Number(s.tcggo_id)
@@ -145,6 +182,7 @@ async function pintarSelector() {
     const ya = porEpisodio.get(id)
     if (!ya || Number(s.card_count_total || 0) > Number(ya.card_count_total || 0)) porEpisodio.set(id, s)
   }
+  setsPorEpisodio = porEpisodio
   const opciones = [...porEpisodio.entries()].sort((a, b) => String(b[1].release_date || '').localeCompare(String(a[1].release_date || '')))
   if (!opciones.length) {
     sel.classList.add('hidden')
@@ -212,5 +250,9 @@ export async function abrir(contexto) {
     } catch { /* sin fichas, lo tuyo sale cuando lleguen */ }
   }
   pintarTuyos()
-  if (await pintarSelector()) await pintarCatalogo()
+  if (await pintarSelector()) {
+    // Con los sets ya sabidos, lo tuyo sale con la cabecera de cada uno.
+    pintarTuyos()
+    await pintarCatalogo()
+  }
 }

@@ -1115,11 +1115,20 @@ function fichasDeCartera() {
   </ul>`
 }
 
-// LO QUE VALEN TUS PRODUCTOS, aparte (762, PR2). La cifra grande sigue
-// siendo la de las cartas —la misma que la portada, la 756—, y debajo,
-// cuando tienes productos, «Cartas X · Productos Y». El módulo entra solo
-// si hace falta y una pintada vieja no pisa a la nueva (la 663).
+// LO QUE VALE TODO: CARTAS MÁS PRODUCTOS (766, PR2; era la 762, que los
+// enseñaba aparte). Con productos, la cifra grande es la SUMA —la portada
+// suma lo mismo—, y debajo una franja con lo que pesa cada parte y dos
+// fichas que llevan a cada una. La gráfica sigue siendo la de las cartas,
+// que es de lo que hay historia, y lo dice. El módulo entra solo si hace
+// falta y una pintada vieja no pisa a la nueva (la 663).
 let repartoVersion = 0
+export function repartoDeValor(cartasValor, productos) {
+  const c = Math.max(0, Number(cartasValor) || 0)
+  const p = Math.max(0, Number(productos?.total) || 0)
+  const total = c + p
+  const pct = (x) => (total > 0 ? Math.round((x / total) * 100) : 0)
+  return { total, cartas: c, productos: p, pctCartas: pct(c), pctProductos: total > 0 ? 100 - pct(c) : 0 }
+}
 async function pintarRepartoProductos() {
   const mia = ++repartoVersion
   let v = null
@@ -1129,7 +1138,16 @@ async function pintarRepartoProductos() {
   const caja = $('mcCarteraReparto')
   if (mia !== repartoVersion || !caja) return
   if (!v?.unidades) return caja.classList.add('hidden')
-  caja.innerHTML = `Cartas <b>${escapeHtml(eurosConMiles(valorDeAhora()))}</b> · Productos <b>${escapeHtml(eurosConMiles(v.total))}</b>${v.sinPrecio ? ` <small>(${v.sinPrecio} sin precio)</small>` : ''}`
+  const r = repartoDeValor(valorDeAhora(), v)
+  const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
+  if (cifra) cifra.textContent = eurosConMiles(r.total)
+  const copias = resumenHero?.copias ?? lineas.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  caja.innerHTML = `<span class="mc-reparto-franja" role="img" aria-label="Cartas ${r.pctCartas} %, productos ${r.pctProductos} %"><i class="mc-reparto-cartas" style="--ancho:${r.pctCartas}%"></i><i class="mc-reparto-productos" style="--ancho:${r.pctProductos}%"></i></span>
+    <span class="mc-reparto-fichas">
+      <button type="button" class="mc-reparto-ficha" data-ir-a="cartas"><i class="mc-reparto-punto mc-reparto-cartas" aria-hidden="true"></i><span>Cartas</span><b>${escapeHtml(eurosConMiles(r.cartas))}</b><small>${copias.toLocaleString('es-ES')} ${copias === 1 ? 'carta' : 'cartas'} · ${r.pctCartas} %</small></button>
+      <button type="button" class="mc-reparto-ficha" data-ir-a="productos"><i class="mc-reparto-punto mc-reparto-productos" aria-hidden="true"></i><span>Productos</span><b>${escapeHtml(eurosConMiles(r.productos))}</b><small>${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'} · ${r.pctProductos} %${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</small></button>
+    </span>
+    <small class="mc-reparto-nota">La gráfica es la de las cartas.</small>`
   caja.classList.remove('hidden')
 }
 
@@ -1174,7 +1192,7 @@ function pintarResumenPanel() {
     <section class="mc-cartera" id="mcValorCaja">
       <h2 class="mc-cartera-etiqueta">Lo que vale ${esMia ? 'tu' : 'esta'} colección</h2>
       <p class="mc-cartera-cifra">${escapeHtml(eurosConMiles(valorDeAhora()))}</p>
-      ${esMia ? '<p class="mc-cartera-reparto hidden" id="mcCarteraReparto"></p>' : ''}
+      ${esMia ? '<div class="mc-cartera-reparto hidden" id="mcCarteraReparto"></div>' : ''}
       <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
         <p class="mc-valor-cambio igual"><span class="skeleton mc-cartera-esq-cambio"></span></p>
         <div class="skeleton mc-cartera-esq-lienzo"></div>
@@ -6033,8 +6051,41 @@ async function abrirQuiero() {
   if (pestania === 'quiero') pintarQuiero()
 }
 
+// QUIÉN DE LOS QUE SIGUES LA TIENE (766, DC1): por cada carta de tu lista,
+// la gente a la que sigues que la tiene en su colección pública. Una
+// llamada para toda la lista (`coleccion_seguidos_y_mis_deseos`, migración
+// 766); sin ella, la de la ficha (la 403) carta a carta, solo para las
+// primeras veinte. `null` = no se sabe (la fila no dice nada).
+let seguidosDeQuiero = null
+async function pedirSeguidosQueLaTienen(ids) {
+  if (!ids.length) return new Map()
+  const mapa = new Map()
+  const { data, error } = await supabase.rpc('coleccion_seguidos_y_mis_deseos')
+  if (!error) {
+    for (const f of data || []) mapa.set(f.card_id, [...(mapa.get(f.card_id) || []), f])
+    return mapa
+  }
+  const primeras = ids.slice(0, 20)
+  for (let i = 0; i < primeras.length; i += 4) {
+    const trozo = await Promise.all(primeras.slice(i, i + 4).map((id) => datos.quienLaTiene(id).then((g) => [id, g]).catch(() => [id, null])))
+    for (const [id, g] of trozo) if (g?.length) mapa.set(id, g)
+  }
+  return mapa
+}
+// «La tiene @ana» / «La tienen @ana y 2 más» (de los que sigues).
+export function textoDeSeguidos(gente) {
+  if (!gente?.length) return ''
+  const primero = `@${gente[0].username}`
+  if (gente.length === 1) return `La tiene ${primero}, a quien sigues`
+  return `La tienen ${primero} y ${gente.length - 1} más de los que sigues`
+}
+
 async function completarQuiero() {
   const ids = [...new Set(deseos.map((d) => d.card_id))]
+  void pedirSeguidosQueLaTienen(ids).then((m) => {
+    seguidosDeQuiero = m
+    if (pestania === 'quiero') pintarQuiero()
+  }).catch(() => null)
   const sinCarta = ids.filter((id) => !cartas.has(id))
   const sinPrecio = ids.filter((id) => !guardados.has(id))
   const [nuevas, precios, avisos] = await Promise.all([
@@ -6102,13 +6153,7 @@ function engancharQuiero() {
   caja.addEventListener('click', async (e) => {
     if (e.target.closest('[data-ir-cambios]')) return cambiarPestania('cambios')
     if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
-    if (e.target.closest('#mcQuieroTexto')) {
-      const filas = deseos.map((d) => {
-        const c = cartas.get(d.card_id)
-        return { nombre: nombreDe(c) || d.card_id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · ') }
-      })
-      return compartirTexto(textoDeLista(`Busco (mi lista en PokeDoc${dueno?.username ? `, @${dueno.username}` : ''}):`, filas), 'La quiero')
-    }
+    if (e.target.closest('#mcQuieroTexto')) return compartirMisListas()
 
     // El aviso de precio de la fila (K2) es el «Avísame» de la ficha, con
     // el idioma que buscas y su precio de ahora para proponer el umbral.
@@ -6231,6 +6276,7 @@ async function pintarDoy() {
         <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
         <span class="mc-fila-dato">
           <span class="mc-doy-cuantas">Das ${Number(l.cambio)}</span>
+          <button type="button" class="mc-quiero-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
           ${buscan === null ? '' : n ? `<button type="button" class="link-btn mc-doy-buscan" data-deseos-vista="cruces">La ${n === 1 ? 'busca 1 persona' : `buscan ${n} personas`}</button>` : '<span class="mc-doy-nadie">Nadie la busca todavía</span>'}
         </span>
       </li>`
@@ -6254,13 +6300,27 @@ async function compartirTexto(texto, titulo) {
     if (err?.name !== 'AbortError') showToast('No se ha podido compartir.', 'error')
   }
 }
-function compartirLoQueDoy() {
-  const filas = loQueDoy().map((l) => {
-    const c = cartas.get(l.card_id)
-    return { nombre: nombreDe(c) || l.card_id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '), cuantas: Number(l.cambio) }
-  })
-  return compartirTexto(textoDeLista(`Doy (mi lista en PokeDoc${dueno?.username ? `, @${dueno.username}` : ''}):`, filas), 'Las que doy')
+// «Compartir lista» (766, DC1): UN texto con las dos listas —«Busco…» y
+// «Doy…»— y el enlace a tu perfil, que es donde te escriben. Es lo que se
+// pega en un grupo de cambios: quien lo lee ve las dos mitades del trato.
+export function textoDeCambio({ busco = [], doy = [], enlace = '' }) {
+  const partes = []
+  if (busco.length) partes.push(textoDeLista('Busco:', busco))
+  if (doy.length) partes.push(textoDeLista('Doy:', doy))
+  if (enlace) partes.push(`Escríbeme en PokeDoc: ${enlace}`)
+  return partes.join('\n\n')
 }
+function filaDeTexto(c, id, cuantas = 1) {
+  return { nombre: nombreDe(c) || id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '), cuantas }
+}
+function compartirMisListas() {
+  const busco = (Array.isArray(deseos) ? deseos : []).map((d) => filaDeTexto(cartas.get(d.card_id), d.card_id))
+  const doy = loQueDoy().map((l) => filaDeTexto(cartas.get(l.card_id), l.card_id, Number(l.cambio)))
+  if (!busco.length && !doy.length) return showToast('Apunta primero lo que buscas o lo que das.', 'info')
+  const enlace = dueno?.username ? `${location.origin}/usuario/${encodeURIComponent(dueno.username)}` : location.origin
+  return compartirTexto(textoDeCambio({ busco, doy, enlace }), 'Busco y doy')
+}
+const compartirLoQueDoy = compartirMisListas
 
 async function compartirLaQuiero() {
   const b = $('mcQuieroCompartir')
@@ -6295,10 +6355,11 @@ function deseoHtml(d, precio = precioDeDeseo(d)) {
   // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
   const cumple = baja && precio != null && precio <= Number(baja.umbral)
   const idioma = d.idioma ? idiomaDe(d.idioma).nombre : 'cualquier idioma'
+  const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(d.card_id))
   return `<li class="mc-fila-carta mc-quiero-fila">
     <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
       <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-      <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idioma].filter(Boolean).join(' · '))}</small></span>
+      <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idioma].filter(Boolean).join(' · '))}</small>${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}</span>
     </a>
     <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
     <span class="mc-fila-dato">
@@ -7554,6 +7615,14 @@ function enganchar() {
   $('mcDoyPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#mcDoyCompartir')) return void compartirLoQueDoy()
     if (e.target.closest('[data-ir-cartas]')) return cambiarPestania('cartas')
+    // Su aviso de precio (766, DC1): el mismo de «La quiero», con el idioma
+    // de TU copia y su precio de ahora.
+    const avisar = e.target.closest('[data-avisar-doy]')
+    if (avisar) {
+      const l = loQueDoy().find((x) => x.card_id === avisar.dataset.avisarDoy && (x.idioma || 'es') === avisar.dataset.idioma) || loQueDoy().find((x) => x.card_id === avisar.dataset.avisarDoy)
+      if (!l) return
+      return abrirAviso({ cardId: l.card_id, market: cartas.get(l.card_id)?.market || mercado, idioma: l.idioma || 'es', precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null })
+    }
   })
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()

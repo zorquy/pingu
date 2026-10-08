@@ -137,7 +137,10 @@ export function conElValorDeAhora(filas, ahora, hoy = hoyISO()) {
 // El valor de tu colección: la última foto, su línea y lo que se ha movido
 // en 30 días. Sin fotos todavía, la tarjeta invita a Mi colección; sin la
 // migración del histórico, no sale.
-export function valorHtml(filas) {
+// `productos` (766, PR2): lo que valen tus productos sellados. La cifra es
+// la MISMA que la grande del Panel —cartas más productos—; la línea y «este
+// mes» siguen siendo de las cartas, que es de lo que hay historia.
+export function valorHtml(filas, { productos = 0 } = {}) {
   if (!filas) return ''
   if (!filas.length) {
     return `<a class="hoy-valor" href="/mi-coleccion"><span class="hoy-valor-texto"><small>Tu colección</small><b class="hoy-valor-invita">Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></span></a>`
@@ -149,7 +152,7 @@ export function valorHtml(filas) {
   return `<a class="hoy-valor" href="/mi-coleccion">
     <span class="hoy-valor-texto">
       <small>Tu colección</small>
-      <b>${escapeHtml(conMiles.format(Number(ultimo.valor)))}</b>
+      <b>${escapeHtml(conMiles.format(Number(ultimo.valor) + (Number(productos) || 0)))}</b>
       ${mes ? `<span class="hoy-valor-mes ${tono}">${sentido ? `<i class="hoy-flecha" aria-hidden="true"></i><span class="sr-only">${sentido}</span>` : ''}${escapeHtml(euros(Math.abs(mes.cambio)))} <span>este mes</span></span>` : '<span>Todavía sin un mes de historia</span>'}
     </span>
     ${chispaSvg(filas.slice(-30))}
@@ -182,7 +185,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   seccion.appendChild(caja)
 
   const hoy = hoyISO()
-  const [valor, reto, mio, abierto, sets, sigue, respuestas] = await Promise.all([
+  const [valor, reto, mio, abierto, sets, sigue, respuestas, productos] = await Promise.all([
     intentar(async () => {
       const [historia, ahora] = await Promise.all([
         supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
@@ -227,10 +230,12 @@ export async function montarHoy(session, { doc = document } = {}) {
       const { count, error } = await supabase.from('user_notifications').select('id', { count: 'exact', head: true }).eq('recipient_id', uid).eq('type', 'forum_reply').is('read_at', null)
       return error ? null : count ?? null
     }),
+    // Lo que valen tus productos (766), como lo suma el Panel.
+    intentar(async () => (await import('./mi-coleccion/productos.js')).valorParaElPanel(uid)),
   ])
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null
-  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null) + fichasHtml({ reto: reto === undefined ? null : reto, torneo, lanzamiento, respuestas: respuestas ?? null })
+  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ reto: reto === undefined ? null : reto, torneo, lanzamiento, respuestas: respuestas ?? null })
   if (sigue) caja.insertAdjacentHTML('beforeend', sigueHtml(sigue.guia, sigue.fila))
   return caja
 }

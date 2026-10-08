@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (16) — PINGU-Claude (765–766 — lo que faltaba de la ronda 3)
+
+**Hecho**: lo que la 758–764 se habían dejado del artifact. **765**: Buscar
+ya no es pestaña en Mi colección; es la hoja «Añadir carta», que se abre
+encima desde el menú, desde un bolsillo vacío de un álbum (la carta va a
+ese bolsillo) y con `?ver=buscar`. Entiende «151/165» y «MEW 151». El menú
+es Panel · Expansiones · Pokédex · Álbumes · Productos · Deseos y cambios
+(«Trade» en la burbuja del móvil). **766**: la cifra grande del Panel suma
+cartas y productos, con su franja y dos fichas (la portada suma lo mismo).
+Cada bolsillo vacío lleva su número y su destello, y las fundas tienen
+relieve. Productos lleva el logo de la expansión y ✓ o «×2» en lo tuyo. En
+«La quiero» sale quién de los que sigues tiene cada carta. «Las que doy»
+lleva su aviso, y «Compartir lista» da «Busco… / Doy…» con tu enlace.
+Apoyar PokeDoc va en rosa. Detalle en SCHEMA.md, tandas 765 y 766.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/busqueda.js` (nuevo),
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion/productos.js`, `js/hoy.js`,
+`js/barra-lateral.js`, `mi-coleccion.html`, `cartas.html` (regenerado),
+`css/mi-coleccion.css`, `css/menu-tu.css`,
+`supabase-migration-seguidos-y-deseos.sql` (nueva), `SCHEMA.md`. Pruebas
+765-pantalla y 766-pantalla (nuevas); al día 760, 762, 763, 447, 649 y 408.
+
+**Pendiente — las migraciones sin ejecutar, por orden**:
+`supabase-migration-avisos-lanzamientos.sql` (753),
+`supabase-migration-albumes-tipos.sql` (759),
+`supabase-migration-productos.sql` (762),
+`supabase-migration-cambios-seguidos.sql` (763),
+`supabase-migration-albumes-portada.sql` (764),
+`supabase-migration-seguidos-y-deseos.sql` (766). Ninguna rompe nada si
+falta.
+
 ## 2026-10-08 (15) — PINGU-Claude (764 — extras de los álbumes; la ronda 3, entera)
 
 **Hecho**: Z2, Z4, Z5 y Z6, y con ellas la ronda 3 entera (758–764). Un

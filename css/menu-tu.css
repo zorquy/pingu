@@ -175,8 +175,20 @@
   font-weight: 400;
 }
 
-.tu-lista .tu-apoyar svg {
-  color: var(--warning);
+/* 766 (M3): en ROSA, como pedía la ronda 3 — la taza, el rótulo y un fondo
+   suave; es la única fila que no es tuya y tiene que verse distinta. */
+.tu-lista .tu-apoyar {
+  border-radius: 8px;
+  background: var(--pink-bg);
+}
+
+.tu-lista .tu-apoyar svg,
+.tu-lista .tu-apoyar span {
+  color: var(--pink);
+}
+
+.tu-lista .tu-apoyar:hover span {
+  color: var(--pink);
 }
 
 .tu-pie {

@@ -177,8 +177,8 @@
              (PINGU: «Deseos y cambios es demasiado largo para el móvil»). -->
         <button type="button" role="tab" class="mc-pestania" data-pestania="quiero" data-tambien="cambios" data-icono="corazon" aria-selected="false" aria-controls="mcPanelQuiero"><span class="mc-menu-texto"><span class="mc-texto-largo">Deseos y cambios</span><span class="mc-texto-corto">Trade</span></span></button>
         <!-- BUSCAR YA NO ES UNA PESTAÑA (765, B1): es la hoja «Añadir carta»,
-             que se abre encima de lo que estés mirando —desde aquí, desde un
-             bolsillo vacío de un álbum o desde Productos— y se cierra
+             que se abre encima de lo que estés mirando —desde aquí o desde un
+             bolsillo vacío de un álbum— y se cierra
              dejándote donde estabas. `?ver=buscar` sigue abriéndola. -->
         <button type="button" class="mc-pestania mc-menu-anadir" data-abrir-anadir data-icono="search"><span class="mc-menu-texto"><span class="mc-texto-largo">Añadir carta</span><span class="mc-texto-corto">Añadir</span></span></button>
       </nav>
@@ -1107,6 +1107,8 @@
           <select class="mc-chapa-select" id="mcProdSet" aria-label="Expansión"></select>
           <div class="mc-chips-filtro" id="mcProdTipos" role="group" aria-label="Tipo de producto"></div>
         </div>
+        <!-- La expansión elegida, con su logo (766, PR1). -->
+        <div class="mc-prod-set hidden" id="mcProdSetCabeza"></div>
         <div class="mc-prod-rejilla" id="mcProdRejilla"></div>
       </section>
 

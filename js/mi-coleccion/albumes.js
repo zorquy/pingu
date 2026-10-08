@@ -11,6 +11,7 @@
 import { supabase } from '../supabase.js'
 import { migasHtml } from './migas.js'
 import { escapeHtml } from '../html.js'
+import { icons } from '../icons.js'
 import { showToast } from '../toast.js'
 import { normalizeSearch } from '../tcgdex.js'
 import { rutaDeCarta } from '../carta-ruta.js'
@@ -413,8 +414,10 @@ export function cambiarBolsillos(cartas, de, a) {
 }
 const esBinder = () => Boolean(actual) && !esDeSet(actual)
 
+// Un bolsillo vacío lleva SU número y un destello (766, AL5): se sabe
+// dónde va cada carta sin contar, y el destello dice «aquí se toca».
 function huecoHtml(indice) {
-  return `<button type="button" class="mc-bolsillo mc-bolsillo-vacio mc-bolsillo-hueco" data-hueco="${indice}" data-indice="${indice}" aria-label="Bolsillo ${indice + 1}, vacío: elegir una carta"><span aria-hidden="true">+</span></button>`
+  return `<button type="button" class="mc-bolsillo mc-bolsillo-vacio mc-bolsillo-hueco" data-hueco="${indice}" data-indice="${indice}" aria-label="Bolsillo ${indice + 1}, vacío: elegir una carta"><span class="mc-hueco-destello" aria-hidden="true">${icons.sparkles(18)}</span><b class="mc-hueco-num" aria-hidden="true">${indice + 1}</b></button>`
 }
 
 function cartaDe(id) {

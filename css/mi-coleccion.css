@@ -9803,3 +9803,187 @@ html.mc-hoja-abierta .mc-hoja-cabeza {
     animation: none;
   }
 }
+
+/* ── 766: bolsillos con número y destello (AL5) y fundas con relieve (AL4).
+   El porqué, en SCHEMA.md (tanda 766). ── */
+.mc-bolsillo-hueco {
+  align-content: center;
+  gap: var(--e-xs);
+}
+
+.mc-hueco-num {
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+
+.mc-hueco-destello {
+  display: inline-flex;
+  color: var(--navy);
+  opacity: 0.55;
+  animation: mc-destello 2.4s ease-in-out infinite;
+}
+
+.mc-bolsillo-hueco:hover .mc-hueco-destello {
+  opacity: 1;
+}
+
+@keyframes mc-destello {
+  0%, 100% { transform: scale(0.85); opacity: 0.35; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+}
+
+/* La funda: un brillo de plástico arriba y el canto hundido. */
+#mcAlbArchivador .mc-bolsillo {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -2px 4px rgb(13 27 42 / 10%), 0 1px 2px rgb(13 27 42 / 8%);
+}
+
+#mcAlbArchivador .mc-bolsillo::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgb(255 255 255 / 30%) 0%, rgb(255 255 255 / 0%) 38%, rgb(255 255 255 / 0%) 78%, rgb(255 255 255 / 12%) 100%);
+  content: '';
+  pointer-events: none;
+}
+
+:root[data-theme='dark'] #mcAlbArchivador .mc-bolsillo::before {
+  background: linear-gradient(160deg, rgb(255 255 255 / 14%) 0%, rgb(255 255 255 / 0%) 38%, rgb(255 255 255 / 0%) 78%, rgb(255 255 255 / 6%) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-hueco-destello {
+    animation: none;
+  }
+}
+
+/* 766 (PR1): la expansión con su logo y la marca de lo que tienes. */
+.mc-prod-set {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: var(--e-md) 0 var(--e-sm);
+}
+
+.mc-prod-set-logo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 120px;
+  height: 48px;
+}
+
+.mc-prod-set-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.mc-prod-set-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.mc-prod-set-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-prod-tengo {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  min-width: 28px;
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 766 (PR2): la franja de cartas y productos y sus dos fichas. */
+.mc-reparto-franja {
+  display: flex;
+  overflow: hidden;
+  height: 8px;
+  margin-bottom: var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.mc-reparto-franja i {
+  flex: 0 0 var(--ancho);
+}
+
+.mc-reparto-cartas {
+  background: var(--navy);
+}
+
+.mc-reparto-productos {
+  background: var(--pink);
+}
+
+.mc-reparto-fichas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+
+.mc-reparto-ficha {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-reparto-ficha:hover {
+  border-color: var(--navy);
+}
+
+.mc-reparto-ficha b,
+.mc-reparto-ficha small {
+  grid-column: 2;
+}
+
+.mc-reparto-ficha b {
+  font-size: var(--t-lg);
+}
+
+.mc-reparto-ficha small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-reparto-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.mc-reparto-nota {
+  display: block;
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* 766 (DC1): quién de los que sigues la tiene, bajo el nombre. */
+.mc-fila-nombre .mc-deseo-seguidos {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--navy);
+}

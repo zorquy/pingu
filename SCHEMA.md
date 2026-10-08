@@ -36414,3 +36414,97 @@ Z2, Z4, Z5 y Z6 de la ronda 3 (PINGU: «todo»).
   portada (★, guardada y en la rejilla), la imagen de la lista (su fichero),
   el enlace y el álbum ajeno con su dueño. Verdes también 759, 760, 578,
   369, 371, 417, 418, 477, 649 y las del CSS.
+
+## Tanda 765 — La hoja «Añadir carta» y Deseos y cambios en el menú (oct. 2026)
+
+B1 y M2 de la ronda 3, como los pedía el artifact (PINGU: «¿está todo
+hecho seguro? Hay cosas que faltan»). La 761 había agrupado Buscar por
+expansión, pero seguía siendo una pestaña.
+
+- **Buscar ya no es una pestaña en Mi colección: es la hoja «Añadir
+  carta»** (`abrirHoja` / `cerrarHoja` en `js/mi-coleccion.js`). Es el
+  MISMO panel `#mcPanelBuscar` —mismos resultados por expansión, filtros,
+  orden y afinar—, puesto `position: fixed` encima de lo que estuvieras
+  mirando (`html.mc-hoja-abierta`), con su cabecera (`#mcHojaTitulo`, ✕
+  `#mcHojaCerrar`). `pestania` NO cambia: al cerrarla sigues donde estabas.
+  Se abre desde el botón «Añadir carta» del menú (`[data-abrir-anadir]`; en
+  la burbuja del móvil, «Añadir»), desde un bolsillo vacío de un álbum y con
+  `?ver=buscar` (los enlaces viejos, y el del ilustrador con `&q=`). Se
+  cierra con ✕, Escape (si no hay una ventana modal encima: la ficha se
+  cierra antes) y atrás (abrirla añade `?ver=buscar` al historial). Con el
+  ratón enfoca el campo; con el dedo no (la 452). En /cartas Buscar sigue
+  siendo pestaña: allí no se añade a ninguna parte (`buscarEsHoja`).
+- **Un bolsillo vacío usa la misma hoja**: `ctx.elegirCarta({ titulo,
+  alElegir })`. Con `alElegir`, tocar un resultado lo ELIGE (escucha en
+  captura, para ganarle a la ficha) y la carta va a ese bolsillo; sin él,
+  abre la ficha como siempre. El diálogo propio de la 760 (`#mcAlbElegir`)
+  se fue.
+- **«151/165» y «MEW 151»** (`js/mi-coleccion/busqueda.js`,
+  `entenderBusqueda`, pura): el total de abajo de la carta elige la
+  expansión cuya numeración oficial es esa, y el código de TCG Live
+  (`tcg_online_code`) también, solo si hay un número al lado («mew» a secas
+  es el Pokémon). Si código y total no se cruzan, manda el código; un total
+  que no es de ningún set no filtra. Y si como set no sale nada, se vuelve a
+  probar como nombre («mew 52»). Va a la consulta como `in('set_id', …)`.
+- **El menú de Mi colección**: Panel, Expansiones, Pokédex, Álbumes,
+  Productos y **Deseos y cambios** (`data-pestania="quiero"
+  data-tambien="cambios"`: los cruces viven en `cambios` y el botón sigue
+  encendido), y al final «Añadir carta». En la burbuja del móvil «Deseos y
+  cambios» se lee **«Trade»** (PINGU: «es demasiado largo para el móvil»):
+  dos `<span>` (`.mc-texto-largo` / `.mc-texto-corto`) y la clase
+  `bm-con-ajenas` que pone la burbuja decide. La lateral
+  (`PARTES_DE_LA_COLECCION`) dice lo mismo.
+- Mirando la colección de otra persona, «Añadir carta» no sale, y
+  `?ver=buscar` no abre la hoja.
+- Prueba 765-pantalla: lo puro de «151/165» y «MEW 151», el menú y la
+  lateral, la hoja (encima, a pantalla entera, foco, dirección, las cuatro
+  búsquedas, la ficha por encima, ✕/Escape/atrás), `?ver=buscar&q=`, el
+  bolsillo vacío que elige, el iPhone («Trade», «Añadir», sin teclado) y
+  /cartas con su pestaña. Puestas al día: 760, 447, 649, 408.
+
+## Tanda 766 — Lo que faltaba: la suma del Panel, bolsillos, productos, deseos y el rosa (oct. 2026)
+
+PR2, AL5, AL4, PR1, DC1 y M3 de la ronda 3, en lo que la 758–764 se habían
+quedado cortas.
+
+- **PR2, la cifra grande del Panel suma cartas y productos**: cuando tienes
+  productos, `.mc-cartera-cifra` pasa a ser la suma, y debajo van una franja
+  con lo que pesa cada parte (`.mc-reparto-franja`, cartas en `--navy` y
+  productos en `--pink`; nunca verde ni rojo) y dos fichas («Cartas 40,00 € ·
+  4 cartas · 40 %», «Productos 60,00 € · 3 productos · 60 %») que llevan a
+  cada pestaña (`data-ir-a`). La gráfica sigue siendo la de las cartas,
+  que es de lo que hay historia, y lo dice. `repartoDeValor` es la cuenta.
+  **La portada suma lo mismo**: `valorHtml(filas, { productos })` en
+  js/hoy.js, que pide `valorParaElPanel(uid)` (entra por `import()`, no pesa
+  en la portada); la línea y «este mes» siguen siendo de las cartas.
+- **AL5, cada bolsillo vacío con su número y un destello**
+  (`.mc-hueco-num`, `.mc-hueco-destello` con `icons.sparkles`, que late
+  despacio y se apaga con «menos movimiento»).
+- **AL4, fundas con relieve**: en el archivador, cada bolsillo lleva el
+  canto hundido (`box-shadow` con `inset`) y un brillo de plástico encima
+  (`::before`, sin recibir clics; más tenue en oscuro).
+- **PR1, la expansión con su logo**: la elegida va arriba
+  (`#mcProdSetCabeza`: logo, nombre, fecha o «Sale el … · preventa» y
+  cuántos productos) y «Tus productos» van agrupados por expansión, cada
+  grupo con su logo. Lo que tienes lleva sobre la foto **✓** (uno) o
+  **«×2»** (`marcaDeTenerlo`). El selector pide ya las columnas del logo.
+- **DC1, quién de los que sigues la tiene**: en cada carta de «La quiero»,
+  «La tiene @ana, a quien sigues» o «La tienen @ana y 2 más de los que
+  sigues» (`textoDeSeguidos`). Una llamada para toda la lista
+  (`coleccion_seguidos_y_mis_deseos`, migración nueva
+  `supabase-migration-seguidos-y-deseos.sql`, con las reglas de la ficha de
+  la 403: solo a quien sigues, colección pública, sin baneados); sin ella,
+  la de la ficha carta a carta, para las primeras veinte. El nombre va sin
+  enlace (y la función devuelve el rango igualmente, la 386).
+- **DC1, el aviso en «Las que doy»**: cada carta lleva su campana, que abre
+  el aviso de precio de siempre con el idioma de TU copia y su precio.
+- **DC1, «Compartir lista»**: UN texto con «Busco:», «Doy:» y «Escríbeme en
+  PokeDoc: <tu perfil>» (`textoDeCambio`), el mismo desde las dos vistas.
+- **M3, Apoyar PokeDoc en rosa**: en la hoja «Tú», la taza, el rótulo y un
+  fondo suave en `--pink` / `--pink-bg` (que ya tenían su versión oscura).
+- Prueba 766-pantalla: la migración por su texto, la suma del Panel (cifra,
+  franja, fichas, a dónde llevan) y de la portada, Productos (logo arriba,
+  agrupados, ✓ y «×2»), los bolsillos (número, destello, funda, «menos
+  movimiento»), quién la tiene (con la función y sin ella), el aviso de «Las
+  que doy», el texto compartido y el rosa en los dos temas. Puestas al día:
+  762 y 763.
