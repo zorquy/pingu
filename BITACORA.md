@@ -20,6 +20,8 @@ no se podía pulsar, y al deshacer la ficha no se ponía al día.
 `versionQueTienesHtml`, la ficha tras deshacer), `js/mi-coleccion/deshacer.js`
 (`capaDeArriba`), `css/mi-coleccion.css`, `SCHEMA.md`. Prueba 757-pantalla
 (nueva); 371, 657, 692, 705, 712, 725 y 748 al día.
+Subconjunto de Mi colección: 162 verdes y 1 rojo, la 305 (la guía con
+forma de artículo), intermitente: sola, verde.
 
 **Pendiente**: nada. Sin migración nueva (sigue la de la 753).
 
