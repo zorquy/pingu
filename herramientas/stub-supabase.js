@@ -52,8 +52,10 @@ const T = {
   tcg_products: [],
   user_products: [],
   tournament_decklists: [],
-  // Las jornadas que alguien NO juega en una liga (tanda 634).
-  tournament_matchday_absences: [],
+  // Las jornadas de una liga (tandas 634 y 635): cuáles están cerradas y
+  // la lista de cada uno para cada jornada.
+  tournament_matchday_closures: [],
+  tournament_matchday_decklists: [],
   rounds: [],
   tournament_matches: [],
   match_reports: [],
@@ -380,11 +382,18 @@ sembrar('__FAKE_INSCRIPCIONES__', 'tournament_registrations', (i) => ({
   participation_confirmed_at: null,
 }))
 
-sembrar('__FAKE_AUSENCIAS__', 'tournament_matchday_absences', () => ({
+sembrar('__FAKE_JORNADAS_CERRADAS__', 'tournament_matchday_closures', () => ({
+  tournament_id: 'torneo-1',
+  matchday: 1,
+  closed_at: '2026-10-08T00:00:00Z',
+}))
+sembrar('__FAKE_LISTAS_JORNADA__', 'tournament_matchday_decklists', () => ({
   tournament_id: 'torneo-1',
   user_id: 'user-1',
   matchday: 1,
-  created_at: '2026-10-08T00:00:00Z',
+  raw_text: 'Pokémon: 4\n4 Pikachu SVI 63\n',
+  parsed_cards: { pokemon: [{ quantity: 4, name: 'Pikachu', set: 'SVI', number: '63' }], trainer: [], energy: [], total: 4 },
+  submitted_at: '2026-10-08T00:00:00Z',
 }))
 
 sembrar('__FAKE_DECKLISTS__', 'tournament_decklists', (i) => ({
@@ -1693,33 +1702,65 @@ export const supabase = {
     // jueces.sql): quien lleva el torneo o un juez APROBADO de ese torneo.
     // La que vale es la del SQL, probada contra PostgreSQL en
     // sql-jueces.sql; esta es para que el navegador se comporte igual.
-    // Apuntarse o desapuntarse de una jornada (tanda 634), con las MISMAS
-    // puertas que la función de verdad (supabase-migration-torneos-
-    // jornadas.sql, probada contra PostgreSQL en sql-jornadas.sql).
-    if (nombre === 'torneos_jornada') {
+    // Las jornadas de una liga (tanda 635), con las MISMAS puertas que
+    // las funciones de verdad (supabase-migration-torneos-jornadas.sql,
+    // probadas contra PostgreSQL en sql-jornadas.sql).
+    if (['torneos_lista_jornada', 'torneos_quitar_lista_jornada', 'torneos_cerrar_jornada', 'torneos_publicar_listas_jornada'].includes(nombre)) {
       const yo = sesion?.user?.id || null
       const no = (message) => ({ data: null, error: { code: 'P0001', message } })
-      if (!yo) return no('Entra en tu cuenta para elegir tus jornadas.')
       const t = T.tournaments.find((x) => x.id === args.p_torneo)
       if (!t) return no('Torneo no encontrado.')
-      if (t.format !== 'league') return no('Solo las ligas tienen jornadas.')
-      if (['finished', 'cancelled'].includes(t.status)) return no('La liga ya no está en juego.')
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      const manda = Boolean(perfil.is_admin || perfil.is_tournament_admin || t.admin_id === yo)
       const n = args.p_jornada
-      if (!Number.isInteger(n) || n < 1 || n > t.swiss_rounds) return no('Esa jornada no existe en esta liga.')
-      if (!T.tournament_registrations.some((r) => r.tournament_id === t.id && r.user_id === yo && r.status === 'active')) {
-        return no('Solo los inscritos de la liga eligen sus jornadas.')
+      const empezada = T.rounds.some((r) => (r.tournament_id ?? 'torneo-1') === t.id && r.round_number === n)
+      const cerrada = empezada || T.tournament_matchday_closures.some((c) => c.tournament_id === t.id && c.matchday === n)
+      const enRango = Number.isInteger(n) && n >= 1 && n <= t.swiss_rounds
+      if (nombre === 'torneos_lista_jornada') {
+        if (!yo) return no('Entra en tu cuenta para enviar tu lista.')
+        if (t.format !== 'league') return no('Solo las ligas tienen lista por jornada.')
+        if (['finished', 'cancelled', 'draft'].includes(t.status)) return no('La liga no admite listas ahora.')
+        if (!enRango) return no('Esa jornada no existe en esta liga.')
+        if (!T.tournament_registrations.some((r) => r.tournament_id === t.id && r.user_id === yo && r.status === 'active')) {
+          return no('Solo los inscritos de la liga envían listas.')
+        }
+        if (cerrada) return no(`Las inscripciones de la jornada ${n} están cerradas.`)
+        const ya = T.tournament_matchday_decklists.find((d) => d.tournament_id === t.id && d.user_id === yo && d.matchday === n)
+        const fila = { tournament_id: t.id, user_id: yo, matchday: n, raw_text: args.p_texto, parsed_cards: args.p_cartas, submitted_at: new Date().toISOString() }
+        if (ya) Object.assign(ya, fila)
+        else T.tournament_matchday_decklists.push(fila)
+        return { data: true, error: null }
       }
-      if (T.rounds.some((r) => (r.tournament_id ?? 'torneo-1') === t.id && r.round_number === n)) {
-        return no(`La jornada ${n} ya ha empezado: sus pareos están hechos.`)
+      if (nombre === 'torneos_quitar_lista_jornada') {
+        if (!yo) return no('Entra en tu cuenta.')
+        if (cerrada) return no(`Las inscripciones de la jornada ${n} están cerradas.`)
+        const antes = T.tournament_matchday_decklists.length
+        T.tournament_matchday_decklists = T.tournament_matchday_decklists.filter((d) => !(d.tournament_id === t.id && d.user_id === yo && d.matchday === n))
+        return { data: T.tournament_matchday_decklists.length < antes, error: null }
       }
-      const es = (a) => a.tournament_id === t.id && a.user_id === yo && a.matchday === n
-      const habia = T.tournament_matchday_absences.some(es)
-      if (args.p_juega) {
-        T.tournament_matchday_absences = T.tournament_matchday_absences.filter((a) => !es(a))
+      if (nombre === 'torneos_cerrar_jornada') {
+        if (!manda) return no('Solo quien lleva la liga cierra sus jornadas.')
+        if (t.format !== 'league') return no('Solo las ligas tienen jornadas.')
+        if (!enRango) return no('Esa jornada no existe en esta liga.')
+        const habia = T.tournament_matchday_closures.some((c) => c.tournament_id === t.id && c.matchday === n)
+        if (args.p_cerrar) {
+          if (!habia) T.tournament_matchday_closures.push({ tournament_id: t.id, matchday: n, closed_at: new Date().toISOString() })
+          return { data: !habia, error: null }
+        }
+        if (empezada) return no(`La jornada ${n} ya tiene pareos: deshazlos antes de reabrirla.`)
+        T.tournament_matchday_closures = T.tournament_matchday_closures.filter((c) => !(c.tournament_id === t.id && c.matchday === n))
         return { data: habia, error: null }
       }
-      if (!habia) T.tournament_matchday_absences.push({ tournament_id: t.id, user_id: yo, matchday: n, created_at: new Date().toISOString() })
-      return { data: !habia, error: null }
+      // Publicar: la lista de esa jornada pasa a tournament_decklists.
+      if (!manda) return no('Solo quien lleva la liga publica las listas.')
+      const deJornada = T.tournament_matchday_decklists.filter((d) => d.tournament_id === t.id && d.matchday === n)
+      for (const d of deJornada) {
+        const ya = T.tournament_decklists.find((x) => x.tournament_id === t.id && x.user_id === d.user_id)
+        const fila = { raw_text: d.raw_text, parsed_cards: d.parsed_cards, submitted_at: d.submitted_at, locked_at: new Date().toISOString() }
+        if (ya) Object.assign(ya, fila)
+        else T.tournament_decklists.push({ id: `deck-j${n}-${d.user_id}`, tournament_id: t.id, user_id: d.user_id, ...fila })
+      }
+      return { data: deJornada.length, error: null }
     }
     if (nombre === 'torneos_dar_de_baja' || nombre === 'torneos_resolver_como_juez') {
       const yo = sesion?.user?.id || null
