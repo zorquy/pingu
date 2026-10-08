@@ -142,7 +142,7 @@ console.log('── 1. Lo que el navegador arrastraba SOLO, apagado ──')
   check('  …y el clic llega al enlace sin cancelar: sigue llevando a la carta', JSON.stringify(clics) === '[false]', JSON.stringify(clics))
   check('  …sin irse de la página en la prueba', /mi-coleccion/.test(page.url()), page.url())
 
-  console.log('── 4. Al hueco vacío: al final; y a la flecha: pasa de página ──')
+  console.log('── 4. Al hueco vacío: AHÍ (760); y a la flecha: pasa de página ──')
   // 20 cartas son 3 pliegos: en escritorio se ven dos (18 huecos) y el
   // tercero tiene 2 cartas y 7 vacíos.
   await page.click('#mcAlbSiguiente')
@@ -155,7 +155,9 @@ console.log('── 1. Lo que el navegador arrastraba SOLO, apagado ──')
   await arrastrar(page, b18, vacio)
   await page.waitForTimeout(900)
   const g2 = await guardado(page)
-  check('soltar en un hueco vacío manda la carta al FINAL', g2[g2.length - 1] === 'sv8-19' && g2[18] === 'sv8-20', JSON.stringify(g2.slice(17)))
+  // Desde la 760 un hueco es un SITIO (PINGU, viendo Holonook): la carta
+  // se queda en ese bolsillo y deja el suyo vacío; antes iba al final.
+  check('soltar en un hueco vacío deja la carta EN ESE bolsillo (760)', g2[20] === 'sv8-19' && !g2[18] && g2[19] === 'sv8-20', JSON.stringify(g2.slice(17)))
   // Y de vuelta al principio llevando la carta hasta la flecha «‹».
   const b19 = page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="19"]')
   await arrastrar(page, b19, page.locator('#mcAlbAnterior'), { soltar: false })
@@ -170,7 +172,7 @@ console.log('── 1. Lo que el navegador arrastraba SOLO, apagado ──')
   await page.mouse.up()
   await page.waitForTimeout(900)
   const g3 = await guardado(page)
-  check('  …y se suelta en el pliego nuevo', g3[1] === 'sv8-19' && g3[19] === 'sv8-2', JSON.stringify([g3[1], g3[19]]))
+  check('  …y se suelta en el pliego nuevo', g3[1] === 'sv8-20' && g3[19] === 'sv8-2', JSON.stringify([g3[1], g3[19]]))
 
   console.log('── 5. Dentro de un álbum, las carpetas de encima no se ven ──')
   const carpetas = await page.evaluate(() => {
