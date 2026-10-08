@@ -36884,3 +36884,26 @@ que se ve en la captura.
   cruces la persona que la busca sale con la carta por su nombre; y al revés
   con el japonés puesto. Quitar `lineasTodo` o el segundo catálogo la ponen
   en rojo.
+
+## Tanda 778 — La chapa y el velo de la versión, también en la cuadrícula (oct. 2026)
+
+- PINGU, con el iPhone en una expansión y «separar variantes»: salen las
+  dos casillas, «pero no sale como antes cuál es holo y cuál es reverse
+  holo, y el brillo especial de la reverse». La chapa de la versión y el
+  velo tornasolado del reverse (los dos de la 461) solo los pintaba el
+  ARCHIVADOR (`bolsilloDeVariante`). La cuadrícula (478) llevaba la versión
+  en el rótulo accesible y nada más, y es la vista que PINGU tiene puesta:
+  Tropius y Tropius, dos casillas iguales.
+- `celdaDeCuadriculaHtml` pinta ahora `veloDeVariante` y
+  `chapaDeVarianteHtml` cuando la casilla es de una versión. La cuadrícula
+  lleva el «+» en la esquina de abajo, así que ahí la chapa va a la otra
+  esquina (`.mc-rejilla-celda .mc-chapa-variante`); centrada se montaba
+  sobre él en el móvil. Y la celda mide su ancho (`container-type`) para que
+  en una casilla estrecha la chapa enseñe solo el código, como en el
+  archivador.
+- Es el aviso de la 458 con un pintor más: hay TRES pintores de casilla
+  (archivador, cuadrícula, lista) y lo que distingue dos versiones tiene que
+  estar en los tres. La lista ya lo escribía en su renglón.
+- Prueba 778 (nueva): en la cuadrícula, en el móvil y en el escritorio, cada
+  casilla separada lleva su chapa, se ve, no pisa el «+», y el velo va solo
+  en las reverse; con las versiones juntas no hay chapa.

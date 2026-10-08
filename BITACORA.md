@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (26) — PINGU-Claude (778 — holo y reverse, en la cuadrícula)
+
+**Hecho**: en «separar variantes» la cuadrícula (la vista que PINGU usa en
+el móvil) no decía cuál era la normal y cuál la reverse, ni le ponía el
+velo tornasolado a la reverse: eso solo lo hacía el archivador. Ahora lo
+hace también, con la chapa en la esquina contraria al «+». Detalle en
+SCHEMA.md, tanda 778.
+
+**Ficheros**: `js/mi-coleccion.js` (`celdaDeCuadriculaHtml`),
+`css/mi-coleccion.css` (la chapa en la cuadrícula), `SCHEMA.md`. Prueba
+778 (nueva).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-08 (25) — PINGU-Claude (777 — las japonesas que das)
 
 **Hecho**: PINGU tenía japonesas puestas para cambio y no salían. Estaban

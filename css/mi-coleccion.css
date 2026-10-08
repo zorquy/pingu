@@ -1021,7 +1021,8 @@
    de la 316): en escritorio a siete por fila la casilla es tan estrecha
    como en el móvil a tres. */
 .mc-bolsillo,
-.mc-carta-foto {
+.mc-carta-foto,
+.mc-rejilla-celda {
   container-type: inline-size;
 }
 
@@ -1062,6 +1063,13 @@
 .mc-chapa-variante[data-var='primera'] b {
   background: var(--blanco-fijo);
   color: #10141c;
+}
+
+/* En la cuadrícula el «+» va en la esquina de abajo: la chapa, a la otra (778). */
+.mc-rejilla-celda .mc-chapa-variante {
+  left: var(--e-xs);
+  max-width: calc(100% - 44px);
+  transform: none;
 }
 
 /* ── EL VELO DEL REVERSE (tanda 461) ──

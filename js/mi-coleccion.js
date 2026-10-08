@@ -3797,7 +3797,10 @@ function pintarSoloFaltan() {
   for (const b of document.querySelectorAll('#mcAlbumQue [data-que]')) b.setAttribute('aria-pressed', $(b.dataset.que)?.getAttribute('aria-pressed') || 'false')
 }
 
-// La CUADRÍCULA: el escaneo y nada más. Sin mandos a propósito — si
+// La CUADRÍCULA: el escaneo y nada más. Salvo en «separar variantes»
+// (778): la chapa y el velo del reverse van aquí también, que es la vista
+// del móvil, y sin ellos Tropius y Tropius eran dos casillas iguales. Sin
+// mandos a propósito — si
 // quieres apuntar, la vista de apuntar es el archivador; aquí lo que se
 // quiere es ver el set. El nombre se queda de respaldo para la carta sin
 // escaneo (la lección de la 415: un hueco en blanco se lee como un fallo
@@ -3811,8 +3814,10 @@ function celdaDeCuadriculaHtml(c) {
   return `<a class="mc-rejilla-celda${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(etiqueta)}">
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+    ${v ? veloDeVariante(v.nuestro) : ''}
     ${marcaDeTengoHtml(n)}
     ${n && !v ? versionQueTienesHtml(c) : ''}
+    ${v ? chapaDeVarianteHtml(v.nuestro) : ''}
     ${masHtml(c, nombre, v?.nuestro || null)}
   </a>`
 }
