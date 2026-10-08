@@ -25,7 +25,7 @@ const check = (l, ok, extra = '') => {
 }
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const RAIZ = '/home/user/pingu'
-const KOFI = 'https://ko-fi.com/pingucollects'
+const KOFI = 'https://ko-fi.com/pokedoc'
 
 console.log('── 1. Las páginas, leídas tal cual ──')
 {
