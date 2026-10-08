@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (8) — PINGU-Claude (758 cuater — la barra de arriba con su corte medido)
+
+**Hecho**: la suite cantó la 320 y la 327: con Lanzamientos y Mi colección
+a primer nivel la barra de arriba pide 1219 px y el corte estaba en 1100,
+así que entre 1100 y 1220 los enlaces se salían. El corte pasa a 1240 (las
+dos reglas de `css/style.css`, la normal y la del torneo en juego); por
+debajo, hamburguesa. Y la 327 ya no pide el catálogo en la barra: lo pide
+en el pie, y que NO esté arriba.
+
+**Ficheros**: `css/style.css`. Pruebas: 327 al día; 320, 252, 269, 309,
+704, 717 y 758 verdes.
+
+**Pendiente**: la 759 (álbumes), a medias en mi árbol.
+
 ## 2026-10-08 (7) — PINGU-Claude (758 ter — Cartas vuelve a tener desplegable en la lateral)
 
 **Hecho**: PINGU, al ver la 758: «la categoría Cartas no tiene desplegable

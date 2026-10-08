@@ -36090,6 +36090,9 @@ M1, M2 y M3 de la ronda 3 (PINGU: «todo»).
   a Inicio; /cartas, /carta y /coleccion siguen en Cartas. La barra en el
   HTML no cambia (cinco secciones, Cartas → /mi-coleccion con cuenta y
   /cartas sin ella, que es lo que `js/barra-movil.js` remata).
+- **El corte de la barra de arriba, a 1240** (era 1100): con seis cosas
+  arriba, «Lanzamientos» y «Mi colección» a primer nivel, la barra pide
+  1219 px (medido por la 327); entre 1100 y 1220 se salía (la 320).
 - **Cartas sigue teniendo desplegable en la lateral del ordenador**
   (`PARTES_DE_LA_COLECCION` en `js/barra-lateral.js`). PINGU, al verla
   sin flecha: «tendría que tener». Una sección de un solo enlace no pintaba
