@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (5) — PINGU-Claude (758 — el menú corto, el escáner escondido y «Apoyar PokeDoc»)
+
+**Hecho**: M1, M2 y M3 de la ronda 3. Arriba: Noticias · Lanzamientos ·
+Aprender ▾ · Mi colección · Comunidad ▾ · Jugar ▾ (fuera el desplegable
+«Cartas» y el catálogo; /cartas sigue viva y en el pie). En el móvil,
+Lanzamientos va en la burbuja de Inicio y Mi colección se queda sin ajenas.
+El escáner, escondido en todas partes (burbuja, Ctrl+K, atajo del icono,
+/buscar y el vacío de Mi colección); el código sigue. «Apoyar PokeDoc»
+(Ko-fi) en la hoja Tú y en el pie. Detalle en SCHEMA.md, tanda 758.
+
+**Ficheros**: las 36 páginas con barra de arriba (barra, cajón y pie),
+`cartas.html` regenerado, `js/barra-movil.js` (`seccionesDe`),
+`generar-barra-movil.mjs`, `js/app.js` (`APARTADO_DE`), `js/menu-tu.js`,
+`css/menu-tu.css`, `js/paleta.js`, `js/search.js`, `css/buscador.css`,
+`manifest.webmanifest`, `SCHEMA.md`. Prueba 758-pantalla (nueva); 704, 717,
+718, 719, 729, 747, 748 y 753 al día, todas verdes. Empujado con la suite
+entera A MEDIAS (PINGU: «quiero los cambios cuanto antes»): 51 de 381 sin
+un rojo; sigue corriendo y lo que salga se arregla en la tanda siguiente.
+
+**Pendiente**: la 759 (álbumes). Sin migración nueva (sigue la de la 753).
+
 ## 2026-10-08 (4) — PINGU-Claude (633 — la barra lateral desplegable, el estadio en las repeticiones, la TG24, Hassel y el Mew del 30 aniversario)
 
 **Hecho**: cinco cosas que pidió PINGU (dos venían de Rubén).

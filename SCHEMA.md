@@ -36067,3 +36067,57 @@ igual o posterior a la primera colección con la marca legal más vieja;
 Estándar deja pasar `and(regulation_mark.is.null,set_id.in.(…))`,
 `mejorPorNombre` las cuenta legales (y entre legales gana la colección más
 nueva) y `nombresConReimpresionLegal` las incluye.
+
+## Tanda 758 — El menú corto, el escáner escondido y «Apoyar PokeDoc» (oct. 2026)
+
+M1, M2 y M3 de la ronda 3 (PINGU: «todo»).
+
+- **Arriba, seis cosas**: Noticias · Lanzamientos · Aprender ▾ ·
+  Mi colección · Comunidad ▾ · Jugar ▾, en las 36 páginas con barra (y en
+  el cajón del móvil, igual). PINGU: «el catálogo es demasiado: quítalo del
+  menú, pero que la página siga». El desplegable «Cartas» desaparece:
+  Mi colección es un enlace directo y Lanzamientos sube a primer nivel, al
+  lado de Noticias. **/cartas sigue viva** (la busca Google, y el catálogo
+  de TCGGO sigue creando expansiones solo): sale en el pie, donde ya
+  estaba, y su ficha, /carta y /coleccion marcan «Mi colección» arriba
+  (`APARTADO_DE` de `js/app.js`).
+- **La barra de abajo sale de los enlaces SUELTOS también**
+  (`seccionesDe(grupos, sueltos)` en `js/barra-movil.js`, que usan el
+  navegador y `generar-barra-movil.mjs`). Hasta ahora cada sección era un
+  desplegable; sin el de Cartas, el «Mi colección» suelto ES la sección
+  Cartas (mismo icono, misma clave) y lo demás suelto —Noticias,
+  Lanzamientos— va a la burbuja de Inicio. `SECCION_DE`: Lanzamientos pasa
+  a Inicio; /cartas, /carta y /coleccion siguen en Cartas. La barra en el
+  HTML no cambia (cinco secciones, Cartas → /mi-coleccion con cuenta y
+  /cartas sin ella, que es lo que `js/barra-movil.js` remata).
+- **En Mi colección, la burbuja propia sin ajenas**: ya no quedan otras
+  páginas de Cartas que colgar al final (eran Catálogo y Lanzamientos), y el
+  camino de la burbuja propia corre aunque la sección tenga un solo enlace.
+- **El escáner, escondido EN TODAS PARTES** (PINGU: «ocúltalo, que no
+  funciona muy bien… del móvil también»): fuera de la burbuja, de la paleta
+  (Ctrl+K), del atajo del icono instalado (`manifest.webmanifest`), de al
+  lado de la caja de /buscar (y su CSS) y del estado vacío de Mi colección,
+  que queda con UN camino («Buscar una carta») y la frase cambiada a lo que
+  hace (la 447: un texto que promete una cámara que no hay es mentira). **El
+  código se queda**: `abrirEscaner`, el diálogo `#mcEscanerCaja`, la
+  dirección `?ver=buscar&escanear=1` y el aviso `pokedoc:escanear`, que es
+  por donde lo siguen probando la 719 y la 747.
+- **«Apoyar PokeDoc»**, a `https://ko-fi.com/pingucollects` en pestaña
+  nueva: en la hoja Tú, antes de Ajustes, con «Un café en Ko-fi» debajo y
+  una taza en `--warning`; y en el pie de todas las páginas, detrás de
+  Privacidad. La taza vive en `js/menu-tu.js` (con el `icon` exportado) y
+  no en `js/icons.js`, que lo baja la portada: la hoja Tú entra al tocar el
+  avatar.
+- Portada: 169,2 KB (era 169,1): las tres claves de `APARTADO_DE` y la
+  frase del pie.
+- Pruebas al día: 704 (la burbuja de Inicio lleva Lanzamientos, Mi
+  colección sin ajenas, tres desplegables), 717 y 748 (siete filas en la
+  hoja Tú), 718 (sin escáner en /buscar), 719 (sin botón; lo de dentro por
+  el aviso), 729 (un camino), 747 (ni el menú), 753 (cuatro atajos).
+- Prueba 758-pantalla: el orden de la barra en las 36 páginas y sin
+  catálogo; Ko-fi en el pie; el catálogo en el pie; manifiesto, /buscar y el
+  vacío sin escanear y el escáner aún en el HTML; `seccionesDe`; en el
+  iPhone, la burbuja de Inicio en Lanzamientos, Mi colección sin escanear
+  ni ajenas, /cartas viva, la fila de Ko-fi antes de Ajustes; en el
+  ordenador, /carta marca Mi colección, la paleta sin escanear y los seis
+  caben sin apretar el logo.
