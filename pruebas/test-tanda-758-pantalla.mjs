@@ -71,8 +71,8 @@ const semilla = ({ sesion }) => {
   window.__FAKE_CARTAS__ = [{ id: 'xy5-1', market: 'WEST', set_id: 'xy5', local_id: '1', name: 'Weedle', name_es: 'Weedle', image_path: 'x/2', rarity: 'Common', category: 'Pokemon', dex_ids: [13], tcg_sets: { id: 'xy5', name: 'Duelos Primigenios', serie_id: 'xy' } }]
   window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'xy5-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', created_at: '2026-10-01T10:00:00Z' }]
 }
-async function abrir(ruta, { movil = true, sesion = true } = {}) {
-  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
+async function abrir(ruta, { movil = true, sesion = true, ancho = 1280 } = {}) {
+  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: ancho, height: 900 }, locale: 'es-ES' })
   await ctx.addInitScript(semilla, { sesion })
   await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"></svg>' }))
   await ctx.route(/r2\.limitlesstcg\.net|cdn\.jsdelivr\.net|raw\.githubusercontent\.com|api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
@@ -126,6 +126,29 @@ console.log('── 4. En el ordenador ──')
   const ancho = await n.page.evaluate(() => { const l = document.querySelector('.nav-links'); return { cabe: l.scrollWidth <= l.clientWidth + 1, logo: Math.round(document.querySelector('.nav-logo').getBoundingClientRect().width) } })
   check('los seis caben en la barra de un portátil, sin apretar el logo', ancho.cabe && ancho.logo >= 100, JSON.stringify(ancho))
   await n.ctx.close()
+}
+
+console.log('── 5. La lateral del ordenador: Cartas con su desplegable ──')
+{
+  // PINGU, al ver la 758 en producción: «la categoría Cartas no tiene
+  // desplegable y tendría que tener». Con solo «Mi colección» dentro, la
+  // lateral no le pintaba cajón, y el menú de Mi colección se quedaba fuera.
+  const l = await abrir('/lanzamientos.html', { movil: false, ancho: 1440 })
+  const flecha = l.page.locator('.lat-flecha[aria-label$="Cartas"]')
+  check('fuera de Mi colección, Cartas lleva su flecha', (await flecha.count()) === 1)
+  await flecha.click()
+  await l.page.waitForTimeout(450)
+  const partes = await l.page.$$eval('.lat-seccion', (ss) => {
+    const c = ss.find((x) => x.querySelector('.lat-seccion-enlace span')?.textContent === 'Cartas')
+    return { abierto: c?.querySelector('.lat-cajon')?.classList.contains('lat-abierto'), enlaces: [...(c?.querySelectorAll('.lat-paginas a') || [])].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`) }
+  })
+  check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Expansiones>/mi-coleccion?ver=album,Pokédex>/mi-coleccion?ver=pokedex,Álbumes>/mi-coleccion?ver=carpetas,Buscar>/mi-coleccion?ver=buscar', JSON.stringify(partes))
+  check('  …sin errores', l.errores.length === 0, l.errores.join(' | '))
+  await l.ctx.close()
+  const m = await abrir('/mi-coleccion.html?ver=album', { movil: false, ancho: 1440 })
+  const dentro = await m.page.evaluate(() => ({ menu: !!document.querySelector('.lat .lat-cajon.lat-abierto #mcMenu'), alLado: document.documentElement.classList.contains('mc-menu-al-lado') }))
+  check('en Mi colección, el cajón de Cartas sale abierto con su menú dentro (la 740)', dentro.menu && dentro.alLado, JSON.stringify(dentro))
+  await m.ctx.close()
 }
 
 await browser.close()
