@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (27) — PINGU-Claude (779 — separar variantes, también en Buscar)
+
+**Hecho**: el botón «Variantes juntas / separadas» está también en Buscar
+(con la misma memoria que Expansiones y la Pokédex): separadas, un resultado
+por versión con su chapa, el velo del reverse y el ✓ de la que tienes.
+Buscar no pedía `variants` y ahora sí. Y cambiar de catálogo ya no devuelve
+las variantes a «juntas» ni se olvida de la vista. Detalle en SCHEMA.md,
+tanda 779.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`mi-coleccion.html` (+ `cartas.html` regenerado), `SCHEMA.md`. Prueba 779
+(nueva).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-08 (26) — PINGU-Claude (778 — holo y reverse, en la cuadrícula)
 
 **Hecho**: en «separar variantes» la cuadrícula (la vista que PINGU usa en

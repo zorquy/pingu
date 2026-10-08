@@ -36907,3 +36907,34 @@ que se ve en la captura.
 - Prueba 778 (nueva): en la cuadrícula, en el móvil y en el escritorio, cada
   casilla separada lleva su chapa, se ve, no pisa el «+», y el velo va solo
   en las reverse; con las versiones juntas no hay chapa.
+
+## Tanda 779 — «Separar variantes» también en Buscar, y sin olvidarse (oct. 2026)
+
+- PINGU: «debería estar disponible ese filtro de variantes siempre, en
+  todos los lados donde se debería mostrar». Estaba en una expansión y en
+  la ficha de una especie de la Pokédex (la 692 ya les dio la misma
+  memoria, `mc-split`). Faltaba en **Buscar**, que es donde se buscan las
+  cartas sueltas y donde se elige la carta de un bolsillo o la que se pone
+  para cambio.
+- Buscar lleva ahora «Variantes juntas / separadas» al lado de «Solo las
+  que tengo», con la MISMA memoria: se separa en un sitio y se ve separado
+  en los tres. Separadas, cada versión es un resultado con su chapa, el velo
+  del reverse y su ✓ (o ×N) si tienes ESA versión; el enlace lleva
+  `data-variante`, y al elegir una carta para algo (`elegirCarta`) la
+  versión va de segundo argumento: «Poner más para cambio» da una copia de
+  esa versión.
+- La consulta de Buscar no pedía `variants` (`COLUMNAS_BUSCAR`), así que
+  ninguna carta «tenía varias»: es la 523 en otra columna — una columna que
+  no se pide llega `undefined` y el respaldo (una sola versión) se usa
+  siempre, sin error.
+- Y cambiar de catálogo reiniciaba `album` con `split: false` y sin `vista`:
+  las variantes volvían a «juntas» y la vista a la de por defecto, aunque
+  las dos estén guardadas (solo se leen al arrancar). Ahora se conservan.
+- Lo que NO lleva el botón, a propósito: la pestaña «Cartas» (tu colección)
+  ya es una línea por versión —cada copia lleva su versión y su velo—, y un
+  álbum es lo que tú pones en cada bolsillo.
+- Prueba 779 (nueva): el botón en Buscar en el móvil y en el escritorio,
+  un resultado por versión con chapa, velo y ✓ de la que tienes, la misma
+  memoria que la expansión, y que ir al catálogo japonés y volver no la
+  olvida (lo mira en Buscar, que se repinta; la expansión abierta se queda
+  con su HTML de antes y no diría nada).

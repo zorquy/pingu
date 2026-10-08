@@ -3725,6 +3725,13 @@ function pintarVistaDeAlbum() {
 }
 
 function pintarVistaVariantes() {
+  // El de Buscar (779) va con la misma memoria: se separa en un sitio y se
+  // ve separado en todos.
+  const bb = $('mcBuscarVariantes')
+  if (bb) {
+    bb.setAttribute('aria-pressed', album.split ? 'true' : 'false')
+    bb.textContent = album.split ? 'Variantes separadas' : 'Variantes juntas'
+  }
   const b = $('mcVistaVariantes')
   if (!b) return
   b.classList.toggle('activo', album.split)
@@ -4545,12 +4552,16 @@ async function buscarEnTodo({ variantes = null } = {}) {
 // Y para afinar lo que ha vuelto, sin volver a preguntar: la serie, la
 // expansión y «Solo las que tengo».
 let afinar = { serie: '', set: '', soloMias: false }
-function resultadoHtml(c) {
+// Con `v` (779), el resultado es de UNA versión: su chapa, su velo y su ✓,
+// como la casilla de una expansión en «separar variantes».
+function resultadoHtml(c, v = null) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
+  const n = v ? tengoDe(c.id, v.nuestro) : 0
+  return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.nuestro)}" aria-label="${escapeHtml(`${nombreDe(c)} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ''}`)}"` : ''}>
           <span class="mc-resultado-foto">
             <span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
+            ${v ? `${veloDeVariante(v.nuestro)}${marcaDeTengoHtml(n)}${chapaDeVarianteHtml(v.nuestro)}` : ''}
           </span>
           <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
           <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
@@ -4596,7 +4607,7 @@ function pintarResultadosBuscar() {
     return `<div class="mc-bus-grupo" data-grupo-set="${escapeHtml(g.set.id)}">
         <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
         <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${escapeHtml(partes.join(' · '))}</small></span>
-      </div>${g.cartas.map(resultadoHtml).join('')}`
+      </div>${g.cartas.map((c) => (album.split && tieneVarias(c) ? variantesDeCarta(c).map((v) => resultadoHtml(c, v)).join('') : resultadoHtml(c))).join('')}`
   }).join('')
 }
 // Los desplegables de afinar salen de lo que HA VUELTO: una serie que no
@@ -5104,7 +5115,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
@@ -6525,8 +6536,8 @@ async function cambiarLoQueDoy(id, delta) {
 function ponerMasParaCambio() {
   elegirCarta({
     titulo: 'Toca una carta tuya para ponerla a cambio',
-    alElegir: async (c) => {
-      const deEsa = lineasDeTodas().filter((l) => l.card_id === c.id && (!c.market || !l.market || l.market === c.market))
+    alElegir: async (c, variante = null) => {
+      const deEsa = lineasDeTodas().filter((l) => l.card_id === c.id && (!c.market || !l.market || l.market === c.market) && (!variante || (l.variante || 'normal') === variante))
       const mias = deEsa.filter((l) => Number(l.cambio || 0) < Number(l.cantidad || 0))
         .sort((a, b) => (b.cantidad - (b.cambio || 0)) - (a.cantidad - (a.cambio || 0)))
       cambiarPestania('quiero')
@@ -7508,6 +7519,12 @@ function enganchar() {
     afinar.set = e.target.value
     pintarResultadosBuscar()
   })
+  $('mcBuscarVariantes')?.addEventListener('click', () => {
+    album.split = !album.split
+    try { localStorage.setItem('mc-split', album.split ? '1' : '0') } catch {}
+    pintarVistaVariantes()
+    pintarResultadosBuscar()
+  })
   $('mcBuscarSoloMias')?.addEventListener('click', () => {
     afinar.soloMias = !afinar.soloMias
     pintarResultadosBuscar()
@@ -7997,7 +8014,8 @@ function enganchar() {
     const c = ultimaBusqueda.find((x) => x.id === r.dataset.carta)
     const alElegir = eligiendo.alElegir
     dejarDeElegir()
-    if (c) alElegir(c)
+    // Con las versiones separadas, la elegida va de segundo (779).
+    if (c) alElegir(c, r.dataset.variante || null)
   }, true)
   engancharFicha('mcBuscarResultados', '.mc-resultado')
   $('mcEligiendoCancelar')?.addEventListener('click', () => {
@@ -8513,7 +8531,9 @@ async function cambiarVista(nuevo) {
   // Las eras son POR MERCADO: quedarse con las del anterior rotularía la
   // biblioteca japonesa con los nombres que PINGU puso a las occidentales.
   erasAMano = null
-  album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false }
+  // La vista y «separar variantes» son TUYAS, no del catálogo (779): antes
+  // se volvían a «juntas» y a ninguna vista al cambiar de catálogo.
+  album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: album.split, vista: album.vista, idioma: '' }
   pokedex = null
   pokedexCargada = false
   especieAbierta = null

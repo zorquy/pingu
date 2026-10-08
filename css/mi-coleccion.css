@@ -1022,7 +1022,8 @@
    como en el móvil a tres. */
 .mc-bolsillo,
 .mc-carta-foto,
-.mc-rejilla-celda {
+.mc-rejilla-celda,
+.mc-resultado-foto {
   container-type: inline-size;
 }
 
