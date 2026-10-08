@@ -5775,7 +5775,12 @@ function porSetYNumero(a, b) {
 // Lo que doy sale de las líneas que ya están cargadas (`cambio > 0`);
 // lo que busco y el tablón piden tres consultas, y solo la primera vez
 // que se abre la pestaña.
-const loQueDoy = () => lineas.filter((l) => Number(l.cambio) > 0)
+// DE TODA LA COLECCIÓN (777), como el Panel (485): PINGU puso japonesas
+// para cambio y no salían, porque `lineas` es solo el catálogo elegido en
+// la página. Lo que das lo das en los dos; el servidor ya cruza por id.
+const lineasDeTodas = () => (lineasTodo.length ? lineasTodo : lineas)
+const loQueDoy = () => lineasDeTodas().filter((l) => Number(l.cambio) > 0)
+const cartaDeDoy = (l) => (lineasTodo.length ? cartaDeLineaTodo(l) : null) || cartas.get(l.card_id)
 
 async function abrirCambios() {
   const caja = $('mcCambiosPanel')
@@ -6018,6 +6023,11 @@ async function completarCartasDeFuera(ids, market) {
   ])
   for (const [k, v] of nuevas) cartas.set(k, { ...v, market: v.market || market })
   for (const [k, v] of precios) guardados.set(k, v)
+  // Los cruces y las listas no dicen de qué catálogo es cada carta (777):
+  // la que no está en el elegido se busca en el otro, o sale sin foto.
+  const otro = market === 'JP' ? 'WEST' : 'JP'
+  const siguen = sinCarta.filter((id) => !cartas.has(id))
+  if (siguen.length) for (const [k, v] of await datos.cartasPorIds(siguen, otro).catch(() => new Map())) cartas.set(k, { ...v, market: v.market || otro })
 }
 
 // Las dos direcciones del cambio, pedidas UNA vez y compartidas. Se olvidan
@@ -6426,7 +6436,7 @@ async function pintarDoy() {
     caja.innerHTML = `<div class="mc-quiero-vacio">
         <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
         <p><strong>Todavía no das ninguna</strong></p>
-        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.${repetidas().length ? ` Te sobran copias de ${repetidas().length} ${repetidas().length === 1 ? 'carta' : 'cartas'}.` : ''}</p>
+        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.${repetidas(...pTodo()).length ? ` Te sobran copias de ${repetidas(...pTodo()).length} ${repetidas(...pTodo()).length === 1 ? 'carta' : 'cartas'}.` : ''}</p>
         ${poner}
       </div>`
     return
@@ -6446,7 +6456,7 @@ async function pintarDoy() {
     buscan = null
   }
   if (vistaDeseos !== 'doy') return
-  const filas = doy.map((l) => ({ l, c: cartas.get(l.card_id), precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null }))
+  const filas = doy.map((l) => ({ l, c: cartaDeDoy(l), precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null }))
   const suma = filas.reduce((a, f) => a + (f.precio || 0) * Number(f.l.cambio), 0)
   const copias = filas.reduce((a, f) => a + Number(f.l.cambio), 0)
   caja.innerHTML = `<div class="mc-quiero-cabeza">
@@ -6489,7 +6499,7 @@ async function pintarDoy() {
 // − y + de una baldosa: cuántas copias de esa línea das. Al llegar a 0 la
 // carta sale de la lista (sigue en tu colección).
 async function cambiarLoQueDoy(id, delta) {
-  const l = lineas.find((x) => x.id === id)
+  const l = lineasDeTodas().find((x) => x.id === id)
   if (!l) return
   const cambio = Math.max(0, Math.min(Number(l.cantidad) || 0, (Number(l.cambio) || 0) + delta))
   if (cambio === Number(l.cambio)) return
@@ -6511,16 +6521,17 @@ function ponerMasParaCambio() {
   elegirCarta({
     titulo: 'Toca una carta tuya para ponerla a cambio',
     alElegir: async (c) => {
-      const mias = lineas.filter((l) => l.card_id === c.id && Number(l.cambio || 0) < Number(l.cantidad || 0))
+      const deEsa = lineasDeTodas().filter((l) => l.card_id === c.id && (!c.market || !l.market || l.market === c.market))
+      const mias = deEsa.filter((l) => Number(l.cambio || 0) < Number(l.cantidad || 0))
         .sort((a, b) => (b.cantidad - (b.cambio || 0)) - (a.cantidad - (a.cambio || 0)))
       cambiarPestania('quiero')
       ponerVistaDeseos('doy')
       if (!mias.length) {
-        showToast(lineas.some((l) => l.card_id === c.id) ? 'Ya das todas las copias que tienes de esa.' : 'Esa no la tienes: añádela a tu colección primero.', 'info')
+        showToast(deEsa.length ? 'Ya das todas las copias que tienes de esa.' : 'Esa no la tienes: añádela a tu colección primero.', 'info')
         return
       }
       await cambiarLoQueDoy(mias[0].id, 1)
-      showToast(`${nombreDe(c)}: das ${Number(lineas.find((l) => l.id === mias[0].id)?.cambio || 0)}.`, 'success')
+      showToast(`${nombreDe(c)}: das ${Number(lineasDeTodas().find((l) => l.id === mias[0].id)?.cambio || 0)}.`, 'success')
     },
     alCancelar: () => {
       cambiarPestania('quiero')
@@ -6560,7 +6571,7 @@ function filaDeTexto(c, id, cuantas = 1) {
 }
 function compartirMisListas() {
   const busco = (Array.isArray(deseos) ? deseos : []).map((d) => filaDeTexto(cartas.get(d.card_id), d.card_id))
-  const doy = loQueDoy().map((l) => filaDeTexto(cartas.get(l.card_id), l.card_id, Number(l.cambio)))
+  const doy = loQueDoy().map((l) => filaDeTexto(cartaDeDoy(l), l.card_id, Number(l.cambio)))
   if (!busco.length && !doy.length) return showToast('Apunta primero lo que buscas o lo que das.', 'info')
   const enlace = dueno?.username ? `${location.origin}/usuario/${encodeURIComponent(dueno.username)}` : location.origin
   return compartirTexto(textoDeCambio({ busco, doy, enlace }), 'Busco y doy')

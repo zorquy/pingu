@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (25) — PINGU-Claude (777 — las japonesas que das)
+
+**Hecho**: PINGU tenía japonesas puestas para cambio y no salían. Estaban
+bien marcadas: «Las que doy» (y su cuenta, el Panel y compartir) miraba solo
+las cartas del catálogo elegido en la página. Ahora mira la colección entera,
+y los cruces buscan la carta en los dos catálogos. Detalle en SCHEMA.md,
+tanda 777.
+
+**Ficheros**: `js/mi-coleccion.js` (`lineasDeTodas`, `cartaDeDoy`,
+`completarCartasDeFuera`), `SCHEMA.md`. Prueba 777 (nueva).
+
+**Pendiente**: nada de esta tanda. La 776 sigue esperando a que PINGU la
+mire en el iPhone.
+
 ## 2026-10-08 (24) — PINGU-Claude (776 — el visor que iOS no devuelve)
 
 **Hecho**: con la 775 puesta, PINGU sigue viendo en la app instalada la

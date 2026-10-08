@@ -36862,3 +36862,25 @@ que se ve en la captura.
   describen los informes de iOS y comprueba que la burbuja y la barra bajan
   340, y que sin iOS no se toca nada. Si sigue flotando, lo que falta saber
   es qué dicen `innerHeight` y `visualViewport` en ese momento.
+
+## Tanda 777 — Lo que das, de los dos catálogos (oct. 2026)
+
+- PINGU: «tengo algunas cartas del mercado japonés puestas para cambio,
+  pero no salen en cambios». Estaban bien marcadas (`cambio > 0` en su
+  línea); lo que fallaba era la pantalla. `loQueDoy()` filtraba `lineas`,
+  que son las del CATÁLOGO ELEGIDO en la página (Pokémon, de entrada), así
+  que las japonesas no salían en «Las que doy», ni en su cuenta, ni en el
+  vistazo del Panel, ni en «Compartir lista». En el servidor los cruces sí
+  casaban (cruzan por id, sin mirar el catálogo), pero la carta de un cruce
+  se buscaba solo en el catálogo elegido y salía sin nombre ni foto.
+- Es la 485 otra vez: lo que es de TODA la colección no se mira por
+  catálogo. `lineasDeTodas()` (= `lineasTodo`, o `lineas` si aún no hay) y
+  `cartaDeDoy(l)` (la carta por id + catálogo, de `cartasTodo`) para la
+  rejilla, el − y el +, «Poner más para cambio» y el texto de compartir; y
+  `completarCartasDeFuera` busca en el otro catálogo lo que no encuentra en
+  el elegido.
+- Prueba 777 (nueva): con el catálogo occidental puesto sale la japonesa
+  (nombre, set, foto, quién la busca, + y −), la cuenta dice 3, y en los
+  cruces la persona que la busca sale con la carta por su nombre; y al revés
+  con el japonés puesto. Quitar `lineasTodo` o el segundo catálogo la ponen
+  en rojo.
