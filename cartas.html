@@ -978,9 +978,6 @@
           <details class="mc-menu-caja" id="mcCarpetaMenu">
             <summary class="mc-icono-mando" data-icono="moreHorizontal" aria-label="Más opciones de esta carpeta" title="Más opciones"></summary>
             <div class="mc-menu">
-              <button type="button" class="mc-menu-opcion" id="mcCarpetaSub">
-                <span class="mc-menu-icono" data-icono="folder" aria-hidden="true"></span>Nueva subcarpeta
-              </button>
               <button type="button" class="mc-menu-opcion" id="mcCarpetaEditar">
                 <span class="mc-menu-icono" data-icono="edit" aria-hidden="true"></span>Cambiar la carpeta
               </button>
@@ -995,17 +992,10 @@
           <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
           <input type="search" enterkeyhint="search" id="mcCarpetaBuscar" placeholder="Busca en esta carpeta" aria-label="Buscar en esta carpeta" />
         </div>
-        <!-- «Nueva carpeta», de botón azul a chapa (tanda 477): es un mando
-             más, como «Filtros» o «Variantes juntas», y un `btn-primary`
-             solo en una pantalla dice «esto es lo que hay que hacer aquí»,
-             que no es verdad cuando ya tienes carpetas. Dentro de una
-             carpeta se esconde: ahí lo que se crea es una SUBcarpeta, y
-             eso está en el ⋮. -->
-        <div class="mc-mandos" id="mcCarpetasMandos">
-          <button type="button" class="mc-chip-mando" id="mcCarpetaNueva" data-icono="folder">
-            <span class="mc-chip-texto">Nueva carpeta</span>
-          </button>
-        </div>
+        <!-- Sin «Nueva carpeta» desde la 759: las carpetas pasan a binders
+             solas (PINGU: «quita la sección de carpetas, es mejor dejar
+             solo álbumes»). Lo que queda aquí es para abrir una carpeta que
+             todavía no se haya podido pasar. -->
         <div id="mcCarpetasPanel"></div>
 
         <!-- LOS ÁLBUMES SOÑADOS, AQUÍ (tanda 408). Una carpeta y un álbum
@@ -1013,16 +1003,15 @@
              respuestas: lo que tengo y lo que quiero tener. En Dex una
              carpeta ya lleva su barra de progreso, que es exactamente un
              álbum soñado. Dos pestañas para eso eran una de más. -->
+        <!-- MIS ÁLBUMES EN UNA REJILLA (759, AL1), como Holonook: «Mi
+             colección», cada álbum (el de un set con su logo, el binder con
+             su tapa y sus primeras cartas) y «Empezar un álbum» al final.
+             Las baldosas las pinta js/mi-coleccion/albumes.js. -->
         <div class="mc-bloque-albumes" id="mcBloqueAlbumes">
-          <h2 class="mc-subtitulo">Álbumes soñados</h2>
+          <h2 class="mc-subtitulo">Mis álbumes</h2>
 
         <div id="mcAlbumesLista">
-          <div class="mc-albumes-cab">
-            <p class="mc-nota">Monta el álbum que quieras: con tus cartas, con una colección entera o carta a carta, en el orden que quieras. Verás cuáles ya tienes y cuánto costaría completarlo.</p>
-            <button type="button" class="btn-primary" id="mcAlbNuevoAbrir">Nuevo álbum</button>
-          </div>
-          <div class="mc-burbujas" id="mcAlbumesRejilla"></div>
-          <p class="subtext hidden" id="mcAlbumesVacio">Todavía no tienes ningún álbum soñado.</p>
+          <div class="mc-albts" id="mcAlbumesRejilla"></div>
         </div>
 
         <div id="mcAlbumesDetalle" class="hidden">
@@ -1032,10 +1021,17 @@
                cuatro veces. La pinta la rellena `albumes.js` con el molde
                común; el identificador `mcAlbVolver` se queda igual. -->
           <div id="mcAlbMigas"></div>
-          <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
-          <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
-          <p class="mc-progreso" id="mcAlbProgreso"></p>
-          <p class="mc-nota" id="mcAlbFalta"></p>
+          <!-- LA CABECERA (760, AL4): el logo del set o la tapa del binder, el
+               nombre, cuántas tienes y lo que costaría completarlo. -->
+          <div class="mc-alb-cabecera" id="mcAlbCabecera">
+            <span class="mc-alb-cabecera-logo hidden" id="mcAlbCabeceraLogo" aria-hidden="true"></span>
+            <div class="mc-alb-cabecera-texto">
+              <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
+              <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
+              <p class="mc-progreso" id="mcAlbProgreso"></p>
+              <p class="mc-nota" id="mcAlbFalta"></p>
+            </div>
+          </div>
           <div id="mcAlbHerramientas">
             <div class="mc-alb-barra">
               <input type="search" enterkeyhint="search" id="mcAlbBuscar" placeholder="Añade cartas: busca por nombre" aria-label="Buscar cartas para el álbum" />
@@ -1053,6 +1049,7 @@
             <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcAlbAnterior" aria-label="Pliego anterior">‹</button>
             <button type="button" class="mc-tira-flecha mc-tira-der" id="mcAlbSiguiente" aria-label="Pliego siguiente">›</button>
           </div>
+          <div class="mc-alb-puntos" id="mcAlbPuntos" aria-hidden="true"></div>
           <!-- Las flechas A LOS LADOS del archivador y las páginas DEBAJO
                (tanda 418). PINGU: «los botones de anterior y siguiente
                deberían ir a la izquierda y a la derecha, y las páginas
@@ -1071,6 +1068,21 @@
           <p class="mc-alb-borrar-zona"><button type="button" class="mc-chip-mando mc-chip-peligro" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
         </div>
+      </section>
+
+      <!-- LOS PRODUCTOS SELLADOS (762, PR1 y PR2): arriba los tuyos con lo
+           que valen; debajo, los de una expansión. Lo pinta
+           js/mi-coleccion/productos.js. -->
+      <section id="mcPanelProductos" class="hidden" role="tabpanel" aria-label="Productos">
+        <div id="mcProdTuyos"></div>
+        <div class="mc-prod-cabecera">
+          <h2 class="mc-subtitulo">Productos de una expansión</h2>
+        </div>
+        <div class="mc-prod-mandos">
+          <select class="mc-chapa-select" id="mcProdSet" aria-label="Expansión"></select>
+          <div class="mc-chips-filtro" id="mcProdTipos" role="group" aria-label="Tipo de producto"></div>
+        </div>
+        <div class="mc-prod-rejilla" id="mcProdRejilla"></div>
       </section>
 
       <!-- BUSCAR EN TODO EL CATÁLOGO (tanda 447). No es «añadir a mi
@@ -1104,6 +1116,14 @@
             </button>
           </div>
           <p class="mc-cuantas" id="mcBuscarCuantas" role="status" aria-live="polite"></p>
+          <!-- AFINAR LO QUE HA VUELTO (761, B1): la serie, la expansión y
+               «Solo las que tengo», sin volver a preguntar. Los desplegables
+               salen de los resultados. -->
+          <div class="mc-bus-afinar hidden" id="mcBuscarAfinar">
+            <select class="mc-chapa-select" id="mcBuscarSerie" aria-label="Serie"></select>
+            <select class="mc-chapa-select" id="mcBuscarSet" aria-label="Expansión"></select>
+            <button type="button" class="chip-filtro" id="mcBuscarSoloMias" aria-pressed="false">Solo las que tengo</button>
+          </div>
         </div>
 
         <div class="mc-vacio-buscar" id="mcBuscarVacio">
@@ -1559,19 +1579,6 @@
             <div class="mc-dlg-rejilla hidden" id="mcDlgEmojis"></div>
             <h3 class="mc-dlg-rotulo">Color de fondo</h3>
             <div class="mc-dlg-colores" id="mcDlgColores"></div>
-            <!-- Solo para un álbum NUEVO (tanda 411): un álbum nace con
-                 cartas dentro o vacío, y eso se pregunta una vez. Una
-                 carpeta no, así que esto se esconde. -->
-            <div class="mc-dlg-origen hidden" id="mcDlgOrigen">
-              <label>Empezar con
-                <select id="mcAlbOrigen" class="mc-chapa-select">
-                  <option value="vacio">Un álbum vacío</option>
-                  <option value="mias">Todas mis cartas</option>
-                  <option value="set">Una colección entera</option>
-                </select>
-              </label>
-              <label class="hidden" id="mcAlbSetCampo">Colección <select id="mcAlbSet" class="mc-chapa-select"></select></label>
-            </div>
           </div>
           <div class="mc-panel-pie">
             <button type="button" class="mc-chip-mando mc-chip-peligro mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
@@ -1579,6 +1586,70 @@
             <button type="submit" class="btn-primary" id="mcDlgGuardar">Crear</button>
           </div>
         </form>
+      </dialog>
+    <!-- EMPEZAR UN ÁLBUM (759, AL2 y AL3): primero el tipo y luego lo de
+         cada uno. Lo maneja js/mi-coleccion/album-nuevo.js. -->
+      <dialog class="mc-albn" id="mcAlbNuevo" aria-labelledby="mcAlbNuevoTitulo">
+        <form id="mcAlbNuevoForm">
+          <div class="mc-panel-cabecera">
+            <button type="button" class="mc-albn-atras hidden" id="mcAlbNuevoAtras" aria-label="Volver a elegir el tipo">‹</button>
+            <h2 id="mcAlbNuevoTitulo">Empezar un álbum</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcAlbNuevoCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-albn-cuerpo">
+            <div class="mc-albn-paso" data-paso="tipo">
+              <button type="button" class="mc-albn-tipo" data-tipo="set">
+                <span class="mc-albn-tipo-dibujo" data-icono="layers" aria-hidden="true"></span>
+                <b>Álbum de un set</b>
+                <small>Eliges la expansión y sale lleno y ordenado: a color lo que tienes, en gris lo que te falta.</small>
+              </button>
+              <button type="button" class="mc-albn-tipo" data-tipo="binder">
+                <span class="mc-albn-tipo-dibujo" data-icono="folder" aria-hidden="true"></span>
+                <b>Binder personalizado</b>
+                <small>Eliges el tamaño y tú decides qué carta va en cada bolsillo.</small>
+              </button>
+            </div>
+            <div class="mc-albn-paso hidden" data-paso="set">
+              <div class="mc-buscador">
+                <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+                <input type="search" enterkeyhint="search" id="mcAlbNuevoSetBuscar" placeholder="Busca la expansión" aria-label="Busca la expansión" autocomplete="off" />
+              </div>
+              <div class="mc-albn-sets" id="mcAlbNuevoSets"></div>
+              <div class="mc-albn-opciones mc-albn-modo hidden" id="mcAlbNuevoModo" role="group" aria-label="Qué cartas lleva"></div>
+            </div>
+            <div class="mc-albn-paso hidden" data-paso="binder">
+              <div class="mc-albn-vista" id="mcAlbNuevoVista" aria-hidden="true"></div>
+              <label class="mc-dlg-nombre">Nombre
+                <input type="text" id="mcAlbNuevoNombre" maxlength="80" placeholder="Mi binder" />
+              </label>
+              <h3 class="mc-dlg-rotulo">Bolsillos por página</h3>
+              <div class="mc-albn-opciones" id="mcAlbNuevoRejilla" role="group" aria-label="Bolsillos por página"></div>
+              <h3 class="mc-dlg-rotulo">Páginas</h3>
+              <div class="mc-albn-opciones" id="mcAlbNuevoPaginas" role="group" aria-label="Páginas"></div>
+              <h3 class="mc-dlg-rotulo">Color de la tapa</h3>
+              <div class="mc-tapas" id="mcAlbNuevoTapas" role="group" aria-label="Color de la tapa"></div>
+              <p class="mc-nota" id="mcAlbNuevoCabe"></p>
+            </div>
+          </div>
+          <div class="mc-panel-pie hidden" id="mcAlbNuevoPie">
+            <button type="submit" class="btn-primary" id="mcAlbNuevoCrear">Crear</button>
+          </div>
+        </form>
+      </dialog>
+    <!-- LA CARTA DE UN BOLSILLO VACÍO (760, AL5): se busca y va A ESE
+         bolsillo. La maneja js/mi-coleccion/albumes.js. -->
+      <dialog class="mc-albn mc-alb-elegir" id="mcAlbElegir" aria-labelledby="mcAlbElegirTitulo">
+        <div class="mc-panel-cabecera">
+          <h2 id="mcAlbElegirTitulo">Bolsillo</h2>
+          <button type="button" class="mc-panel-cerrar" id="mcAlbElegirCerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="mc-albn-cuerpo">
+          <div class="mc-buscador">
+            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+            <input type="search" enterkeyhint="search" id="mcAlbElegirBuscar" placeholder="Busca la carta por su nombre" aria-label="Busca la carta para este bolsillo" autocomplete="off" />
+          </div>
+          <div class="mc-resultados mc-alb-resultados" id="mcAlbElegirResultados"></div>
+        </div>
       </dialog>
     <!-- SELECCIONAR VARIAS (747, la C4 como en su maqueta). Vale para las
          DOS rejillas —«Cartas», donde se marca cada copia tuya, y una

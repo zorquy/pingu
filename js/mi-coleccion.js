@@ -120,7 +120,7 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // siguen llegando por enlace: no se borran, se REDIRIGEN a donde se ha
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero']
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
@@ -1103,6 +1103,24 @@ function fichasDeCartera() {
   </ul>`
 }
 
+// LO QUE VALEN TUS PRODUCTOS, aparte (762, PR2). La cifra grande sigue
+// siendo la de las cartas —la misma que la portada, la 756—, y debajo,
+// cuando tienes productos, «Cartas X · Productos Y». El módulo entra solo
+// si hace falta y una pintada vieja no pisa a la nueva (la 663).
+let repartoVersion = 0
+async function pintarRepartoProductos() {
+  const mia = ++repartoVersion
+  let v = null
+  try {
+    v = await (await import('./mi-coleccion/productos.js')).valorParaElPanel(sesion?.user?.id)
+  } catch { v = null }
+  const caja = $('mcCarteraReparto')
+  if (mia !== repartoVersion || !caja) return
+  if (!v?.unidades) return caja.classList.add('hidden')
+  caja.innerHTML = `Cartas <b>${escapeHtml(eurosConMiles(valorDeAhora()))}</b> · Productos <b>${escapeHtml(eurosConMiles(v.total))}</b>${v.sinPrecio ? ` <small>(${v.sinPrecio} sin precio)</small>` : ''}`
+  caja.classList.remove('hidden')
+}
+
 function pintarResumenPanel() {
   const caja = $('mcResumenPanel')
   if (!caja) return
@@ -1144,6 +1162,7 @@ function pintarResumenPanel() {
     <section class="mc-cartera" id="mcValorCaja">
       <h2 class="mc-cartera-etiqueta">Lo que vale ${esMia ? 'tu' : 'esta'} colección</h2>
       <p class="mc-cartera-cifra">${escapeHtml(eurosConMiles(valorDeAhora()))}</p>
+      ${esMia ? '<p class="mc-cartera-reparto hidden" id="mcCarteraReparto"></p>' : ''}
       <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
         <p class="mc-valor-cambio igual"><span class="skeleton mc-cartera-esq-cambio"></span></p>
         <div class="skeleton mc-cartera-esq-lienzo"></div>
@@ -1153,6 +1172,7 @@ function pintarResumenPanel() {
     ${fichasDeCartera()}
     ${esMia ? '<div id="mcMovidasSitio"></div>' : ''}
 `
+  if (esMia && sesion) void pintarRepartoProductos()
 
   const mas = $('mcMasEstadisticas')
   if (mas) {
@@ -5233,8 +5253,10 @@ function cambiarPestania(nueva, { push = true } = {}) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero']]) {
-    $(id).classList.toggle('hidden', nombre !== nueva)
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos']]) {
+    // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
+    // aún no esté en su HTML no puede dejar el catálogo público sin JS.
+    $(id)?.classList.toggle('hidden', nombre !== nueva)
   }
   const url = new URL(location.href)
   // La nota que explica de dónde sale el valor solo hace falta donde se
@@ -5292,6 +5314,8 @@ function cambiarPestania(nueva, { push = true } = {}) {
   if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'quiero' && esMia) void abrirQuiero()
   if (nueva === 'carpetas') abrirCarpetas()
+  // Los productos (762): su módulo entra al abrir la pestaña.
+  if (nueva === 'productos') void import('./mi-coleccion/productos.js').then((m) => m.abrir(contexto)).catch((err) => { $('mcProdRejilla').innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
   if (nueva === 'pokedex') abrirPokedex()
   // Al entrar en Buscar, el foco al campo: se viene a escribir.
   // AQUÍ SE ENFOCABA EL BUSCADOR, y se quita (tanda 452). PINGU: «en móvil,

@@ -47,6 +47,7 @@ export const PARTES_DE_LA_COLECCION = [
   { ver: 'album', texto: 'Expansiones', icono: () => icons.layers(18) },
   { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
   { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
+  { ver: 'productos', texto: 'Productos', icono: () => icons.package(18) },
   { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
 ]
 const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'

@@ -244,3 +244,72 @@ a.lanzamiento-tarjeta:hover { border-color: var(--navy); }
 .lanz-aviso-pie [hidden] { display: none; }
 
 .lanz-aviso-dialogo::backdrop { background: rgb(10 20 30 / 45%); }
+
+/* ── 762, Z1: lo que sale con la próxima expansión. El porqué, en SCHEMA.md. ── */
+.lanz-productos {
+  margin-bottom: var(--e-xl);
+}
+
+.lanz-productos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 152px), 1fr));
+  gap: var(--e-md);
+}
+
+.lanz-producto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.lanz-producto-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.lanz-producto-foto img {
+  position: absolute;
+  inset: var(--e-xs);
+  width: calc(100% - 2 * var(--e-xs));
+  height: calc(100% - 2 * var(--e-xs));
+  object-fit: contain;
+}
+
+.lanz-producto-tipo {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.lanz-producto-nombre {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.lanz-producto-precio {
+  font-weight: 700;
+}
+
+.lanz-producto-precio small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+@media (max-width: 599px) {
+  .lanz-productos-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+}

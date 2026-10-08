@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (13) — PINGU-Claude (762 — los productos sellados)
+
+**Hecho**: PR1, PR2 y Z1 de la ronda 3. Pestaña «Productos» en Mi
+colección (los tuyos con lo que valen; los de cada expansión con foto, tipo,
+mínimo en España, media de 30 días, preventa, y + / ×N), la línea «Cartas ·
+Productos» en el Panel, y en /lanzamientos lo que sale con la próxima
+expansión. Los trae de TCGGO la función nueva `tcggo-productos` (cada hora,
+con tope diario y sus frenos). Detalle en SCHEMA.md, tanda 762.
+
+**Ficheros**: `js/productos.js` (nuevo), `js/mi-coleccion/productos.js`
+(nuevo), `js/lanzamientos-productos.js` (nuevo),
+`netlify/functions/tcggo-productos.mjs` (nueva), `js/mi-coleccion.js`,
+`js/lanzamientos.js`, `js/barra-lateral.js`, `mi-coleccion.html`,
+`cartas.html` (regenerado: llevaba sin regenerar desde la 759),
+`css/mi-coleccion.css`, `css/lanzamientos.css`,
+`supabase-migration-productos.sql` (nueva), `SCHEMA.md`. Prueba
+762-pantalla (nueva); 649, 740 y 758 al día; el doble sabe de
+`tcg_products` y `user_products`.
+
+**Pendiente**:
+- **Ejecutar `supabase-migration-productos.sql`**. Sin ella la pestaña dice
+  que no está activada y la función no gasta nada.
+- **La ruta de productos de TCGGO** no la sé seguro: la función prueba dos y
+  se queda con la que conteste. Si ninguna contesta, se para y lo dice en
+  `scrydex_estado` → `tcggo_productos`; entonces hay que poner la buena en
+  `TCGGO_RUTA_PRODUCTOS` (con `{id}` y `{pagina}`) y borrar `parado`.
+- Siguen las migraciones de la 753 y la 759. La 763 (deseos y cambios).
+
 ## 2026-10-08 (12) — PINGU-Claude (761 — Buscar, por expansión)
 
 **Hecho**: B1 de la ronda 3. Los resultados de Mi colección → Buscar salen

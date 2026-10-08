@@ -67,6 +67,8 @@ export function eventoDeSet(s, mercado = MERCADO_POR_DEFECTO) {
     imagen: s.logo_scrydex || s.logo_tcggo || urlDeLogo(s.logo_path, mercado) || urlDeLogoPorPartes(s.serie_id, s.id, mercado) || null,
     codigo: s.tcg_online_code || null,
     cartas: s.card_count_official || s.card_count_total || null,
+    // Su expansión en TCGGO, para pedir sus productos (762, Z1).
+    tcggo: s.tcggo_id ?? null,
     // Escondida (una próxima sin cartas todavía) no tiene página a la que ir.
     href: s.oculto ? null : `/cartas.html?ver=album&set=${encodeURIComponent(String(s.id))}&catalogo=${encodeURIComponent(mercado)}`,
   }
@@ -247,6 +249,8 @@ async function pintar(mercado) {
   }
   // «Avísame» en lo que viene (753): llega después, por su cuenta.
   if (siguiente) import('./lanzamientos-avisos.js').then((m) => m.montarAvisos(cal, mercado)).catch(() => {})
+  // Y sus productos (762, Z1), si TCGGO los tiene.
+  if (siguiente?.tcggo) import('./lanzamientos-productos.js').then((m) => m.montarProductos(siguiente)).catch(() => {})
 }
 
 function init() {

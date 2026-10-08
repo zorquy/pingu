@@ -36276,3 +36276,63 @@ como tú veas»).
   texto y su logo, las cartas como hijas directas y la cabecera a lo ancho,
   afinar por serie, por expansión y «Solo las que tengo», la búsqueda nueva,
   la ficha al tocar, y el iPhone (sin irse de ancho, 44 px).
+
+## Tanda 762 — Los productos sellados: la pestaña, el Panel y lo que sale con la próxima (oct. 2026)
+
+PR1, PR2 y Z1 de la ronda 3 (PINGU: «una nueva pestaña en Mi colección que
+sea productos… la API se trae productos por expansiones»).
+
+- **Lo puro, en `js/productos.js`** (lo importan la web y la función, la
+  471): `tipoDeProducto` saca el tipo del NOMBRE (TCGGO no lo da; el orden
+  importa: «Booster Bundle» y «Booster Box» antes que «Booster», «Elite
+  Trainer Box» antes que cualquier «Box»), `filaDeProducto` hace la fila con
+  todo lo `not null` (la 526), `precioDeProducto` da **el mínimo en España**
+  y, si nadie lo vende allí, el de Europa o el mínimo a secas **diciendo de
+  dónde es** (un «8,78 €» a secas afirmaría que es el español), y `null` sin
+  ninguno (la 319); `esPreventa` (su expansión sale después de hoy) y
+  `valorDeProductos` (cantidad × precio, lo sin precio aparte).
+- **La base**: `supabase-migration-productos.sql` — `tcg_products` (el
+  catálogo, lectura para todo el mundo con su política en la misma
+  migración, la 510) y `user_products` (los tuyos, `unique (user_id,
+  product_id)`, RLS a lo tuyo).
+- **La función `tcggo-productos`** (cada hora, minuto 23): las expansiones
+  con `tcggo_id`, una por `tcggo_id`, de las más cercanas a su salida a las
+  más lejanas; las de ±60 días de su salida se vuelven a mirar cada día, las
+  demás cada semana. Seis expansiones y tres páginas por pasada como mucho
+  (18 × 24 = 432 al día, con `TCGGO_TOPE_PRODUCTOS` = 400 delante, mirado
+  antes de CADA petición). **La ruta no la sabemos seguro** (PINGU pegó la
+  respuesta, no la dirección): prueba `/episodes/{id}/products` y
+  `/products?episode_id={id}`, apunta la que contesta en el estado y la usa
+  desde entonces; `TCGGO_RUTA_PRODUCTOS` la fija. Los frenos: sin la tabla no
+  se gasta nada (se mira gratis antes); 429/403 del plan, hasta mañana; lo
+  que falla de NUESTRA base, `parado` (lo quita un humano en
+  `scrydex_estado` → `tcggo_productos`); lo del otro se salta a la tercera; y
+  si ninguna ruta contesta, `parado` a la sexta expansión sin ruta.
+- **La pestaña «Productos»** (`js/mi-coleccion/productos.js`, entra por
+  `import()`): arriba «Tus productos» con lo que valen; debajo, el selector de
+  expansiones que TIENEN productos (la de preventa arriba: se piden los sets
+  aquí, porque `ctx.sets()` deja fuera los escondidos y una expansión
+  anunciada lo está, la 756), los tipos que hay como chips (en el móvil, una
+  fila que se desliza), y cada producto con su foto (hueco cuadrado), su
+  tipo, «Preventa», el mínimo en España y la media de 30 días, y «+ Añadir»
+  o «− ×N +». Sin la migración lo dice («no se sabe»). En el menú, en la
+  burbuja del móvil y en el cajón de Cartas de la lateral
+  (`PARTES_DE_LA_COLECCION`).
+- **El Panel (PR2)**: la cifra grande sigue siendo la de las CARTAS —la misma
+  que la portada, la 756—, y debajo, si tienes productos, «Cartas X ·
+  Productos Y» (`pintarRepartoProductos`, con su versión, la 663).
+- **/lanzamientos (Z1)**: debajo de «El siguiente set», «Lo que sale con
+  …» con sus productos (cajas y ETB delante), su tipo, «preventa» y el mínimo
+  en España (`js/lanzamientos-productos.js`, por `import()`; sin productos no
+  se pinta nada). `eventoDeSet` lleva ahora `tcggo`.
+- **Un fallo cazado antes de salir**: `cartas.html` se genera de
+  mi-coleccion.html, y sin regenerarlo, el panel nuevo no estaba en /cartas
+  y `cambiarPestania` hacía `$(id).classList` de un `null` — el catálogo
+  público sin JavaScript. Se regenera, y `cambiarPestania` lleva `?.`. La 649
+  (el generador) llevaba en rojo desde la 759 por lo mismo, sin romper nada
+  todavía.
+- Pruebas al día: 649 (seis en el menú), 740 (seis en la lateral), 758 (el
+  cajón con Productos). Prueba 762-pantalla, con la respuesta REAL de TCGGO
+  que pegó PINGU (`fixtures/tcggo-productos-30c.json`, la 501): lo puro, la
+  función (sin tabla, la ruta, las dos páginas, cada cuánto, el plan, lo
+  nuestro, sin ruta, el tope), la pestaña, el Panel y /lanzamientos.

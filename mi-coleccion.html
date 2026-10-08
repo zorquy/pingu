@@ -170,6 +170,8 @@
              Un álbum es como la gente llama a cualquier manera de juntar
              cartas; una carpeta es una de las dos formas que hay dentro. -->
         <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Álbumes</span></button>
+        <!-- PRODUCTOS (762, PR1): sobres, cajas, ETB… de TCGGO, por expansión. -->
+        <button type="button" role="tab" class="mc-pestania" data-pestania="productos" data-icono="package" aria-selected="false" aria-controls="mcPanelProductos"><span class="mc-menu-texto">Productos</span></button>
         <!-- BUSCAR (tanda 447). PINGU, con Dex delante: «no tiene sentido
              meter en el menú las cartas; yo dejaría panel, expansiones,
              Pokédex, carpetas y al final una nueva sección que sea buscar,
@@ -1072,6 +1074,21 @@
           <p class="mc-alb-borrar-zona"><button type="button" class="mc-chip-mando mc-chip-peligro" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
         </div>
+      </section>
+
+      <!-- LOS PRODUCTOS SELLADOS (762, PR1 y PR2): arriba los tuyos con lo
+           que valen; debajo, los de una expansión. Lo pinta
+           js/mi-coleccion/productos.js. -->
+      <section id="mcPanelProductos" class="hidden" role="tabpanel" aria-label="Productos">
+        <div id="mcProdTuyos"></div>
+        <div class="mc-prod-cabecera">
+          <h2 class="mc-subtitulo">Productos de una expansión</h2>
+        </div>
+        <div class="mc-prod-mandos">
+          <select class="mc-chapa-select" id="mcProdSet" aria-label="Expansión"></select>
+          <div class="mc-chips-filtro" id="mcProdTipos" role="group" aria-label="Tipo de producto"></div>
+        </div>
+        <div class="mc-prod-rejilla" id="mcProdRejilla"></div>
       </section>
 
       <!-- BUSCAR EN TODO EL CATÁLOGO (tanda 447). No es «añadir a mi
