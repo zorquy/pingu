@@ -130,7 +130,8 @@ console.log('── Y los dos caminos de Cambios son BOTONES, no indicaciones �
   const mc = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
   // Entero y entre comillas (la trampa de la 312): `data-ir-cartas` suelto
   // casaría también con un `data-ir-cartas-algo`.
-  check('el paso 1 lleva botón', (mc.match(/data-ir-cartas>/g) || []).length === 2, (mc.match(/data-ir-cartas>/g) || []).length)
+  // Tres desde la 763: el vacío de «Las que doy» también lleva su botón.
+  check('el paso 1 lleva botón', (mc.match(/data-ir-cartas>/g) || []).length === 3, (mc.match(/data-ir-cartas>/g) || []).length)
   check('y hay quien lo atienda', mc.includes("closest('[data-ir-cartas]')"))
   check('va a la pantalla de las cartas', mc.includes("if (aCartas) return cambiarPestania('cartas')"))
   // Y la pantalla existe, que es lo que hace que el botón no sea otro

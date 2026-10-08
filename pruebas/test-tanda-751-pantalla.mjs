@@ -80,7 +80,9 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
     ancho: document.documentElement.scrollWidth <= innerWidth,
   }))
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('?ver=quiero abre «La quiero»', m.visible && m.titulo === 'La quiero', JSON.stringify(m))
+  // Desde la 763 la pantalla se llama «Deseos y cambios» y «La quiero» es su
+  // primera vista.
+  check('?ver=quiero abre «La quiero»', m.visible && m.titulo === 'Deseos y cambios', JSON.stringify(m))
   check('arriba, cuántas y lo que suman (y cuántas no tienen precio)', m.cifra === '3 cartas · unos 1.488,20 € (1 sin precio)', m.cifra)
   check('cada fila con su precio, o «sin precio»', JSON.stringify(m.filas.map((f) => f.precio)) === JSON.stringify(['12,30 €', '1.475,90 €', 'sin precio']), JSON.stringify(m.filas))
   check('el aviso puesto se lee en su fila (K2)', m.filas[0].aviso === '< 10,00 €' && m.filas[1].aviso === '', JSON.stringify(m.filas.map((f) => f.aviso)))
