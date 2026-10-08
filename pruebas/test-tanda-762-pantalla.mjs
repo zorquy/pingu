@@ -204,9 +204,11 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=resumen', { mios: [{ product_id: 48447, cantidad: 3 }] })
   await page.waitForTimeout(800)
-  const r = (await page.textContent('#mcCarteraReparto').catch(() => '')).replace(/\s+/g, ' ')
-  check('el Panel: debajo de la cifra, «Cartas · Productos»', /Cartas 10,00 € · Productos 26,34 €/.test(r) && (await page.isVisible('#mcCarteraReparto')), r)
-  check('  …y la cifra grande sigue siendo la de las cartas (la de la portada)', /10,00/.test(await page.textContent('.mc-cartera-cifra')))
+  const r = (await page.innerText('#mcCarteraReparto').catch(() => '')).replace(/\s+/g, ' ')
+  // Desde la 766 (PR2) la cifra grande es la SUMA y debajo van la franja y
+  // las dos fichas (lo mira entero la 766-pantalla).
+  check('el Panel: debajo de la cifra, «Cartas · Productos»', /Cartas 10,00 €/.test(r) && /Productos 26,34 €/.test(r) && (await page.isVisible('#mcCarteraReparto')), r)
+  check('  …y la cifra grande es la suma (la de la portada también)', /36,34/.test(await page.textContent('.mc-cartera-cifra')), await page.textContent('.mc-cartera-cifra'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

@@ -60,12 +60,13 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   const p = await pagina()
   await p.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
-  const pestanas = await p.$$eval('#mcMenu [role="tab"]', (ns) => ns.map((n) => n.textContent.trim()))
+  const pestanas = await p.$$eval('#mcMenu [role="tab"]', (ns) => ns.map((n) => n.innerText.trim()))
   ok(
     // «Álbumes» desde la 579: dentro hay carpetas y álbumes soñados.
-    // Y «Productos» desde la 762.
-    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Álbumes', 'Productos', 'Buscar']),
-    'el menú es Panel · Expansiones · Pokédex · Álbumes · Productos · Buscar',
+    // Y «Productos» desde la 762. Desde la 765 Buscar es una hoja (no una
+    // pestaña) y entra «Deseos y cambios».
+    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Álbumes', 'Productos', 'Deseos y cambios']),
+    'el menú es Panel · Expansiones · Pokédex · Álbumes · Productos · Deseos y cambios',
     JSON.stringify(pestanas),
   )
   // «Mi colección» solo en el Panel: en las demás pestañas ese hueco está
@@ -75,7 +76,8 @@ const pagina = async (ancho = 1280, alto = 1000) => {
   // Con la colección VACÍA de este fixture, lo que abre es su estado vacío.
   const heroEnPanel = await p.$eval('#mcPanelResumen', (n) => !!n.querySelector('.mc-cartera-cifra, .mc-vacio-titulo') && n.getBoundingClientRect().height > 0).catch(() => null)
   ok(heroEnPanel === true, 'en el Panel va la cartera (o su estado vacío), arriba')
-  await p.click('#mcMenu button[data-pestania="buscar"]')
+  // Buscar ya no es pestaña (765, es una hoja): se mira en Álbumes.
+  await p.click('#mcMenu button[data-pestania="carpetas"]')
   await p.waitForTimeout(400)
   const heroEnBuscar = await p.$eval('.mc-hero', (n) => n.classList.contains('mc-hero-mini'))
   ok(heroEnBuscar === true, 'fuera del Panel la cabecera se encoge')

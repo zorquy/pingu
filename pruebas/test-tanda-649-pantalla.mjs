@@ -143,8 +143,9 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   const { page, errores } = await abrir('/mi-coleccion.html', { sesion: 'admin-1' })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const pestanas = (await page.locator('#mcMenu .mc-pestania').allInnerTexts()).map(limpio)
-  // Productos, desde la 762 (PR1).
-  check('el menú: Panel, Expansiones, Pokédex, Álbumes, Productos, Buscar', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Productos|Buscar', pestanas.join('|'))
+  // Productos, desde la 762 (PR1); desde la 765 Buscar es la hoja «Añadir
+  // carta» (un botón al final) y entra Deseos y cambios.
+  check('el menú: Panel, Expansiones, Pokédex, Álbumes, Productos, Deseos y cambios y «Añadir carta»', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Productos|Deseos y cambios|Añadir carta', pestanas.join('|'))
   // «Solo las empezadas» puesto de antes, y después «Ver todas»: tiene
   // que quitarse, que si no el Panel dice «ver todas» y la estantería
   // enseña una.

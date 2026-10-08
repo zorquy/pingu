@@ -38,13 +38,15 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
 // EL MENÚ, desde la tanda 447. «Cartas» SALE del menú —PINGU, con Dex
 // delante: «no tiene sentido meter en el menú las cartas»— y entra
 // «Buscar», que busca en todo el catálogo. El orden es el del HTML.
-const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'buscar']
+// Desde la 765 Buscar es la hoja «Añadir carta» (sigue abriéndose con
+// `?ver=buscar`, pero no es pestaña) y entra «Deseos y cambios».
+const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'quiero']
 // Pero la PANTALLA de cartas se queda y se abre por enlace: lo apuntan el
 // «Ver todas» del panel y las URLs que la gente tenga guardadas. Quitar la
 // pestaña no es quitar la página, y esta lista es la que lo vigila.
-const POR_ENLACE = [...EN_EL_MENU, 'cartas']
+const POR_ENLACE = [...EN_EL_MENU, 'cartas', 'buscar']
 const PANEL_DE = { resumen: 'mcPanelResumen', album: 'mcPanelAlbum', pokedex: 'mcPanelPokedex',
-  carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas', productos: 'mcPanelProductos' }
+  carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas', productos: 'mcPanelProductos', quiero: 'mcPanelQuiero' }
 
 console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
 {
@@ -200,8 +202,9 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
   // «Deseos y cambios» desde la 763, con su selector al lado.
   check('  …y con su rótulo', /cambios/i.test(
     (await page.locator('#mcBloqueCambios h2').textContent()) || ''))
-  check('  …y no la enciende ninguna pestaña, porque no tiene',
-    (await page.locator('.mc-pestania.activa').count()) === 0)
+  // Desde la 765 la enciende «Deseos y cambios», que es su puerta.
+  check('  …y la enciende «Deseos y cambios», que es su puerta',
+    (await page.locator('.mc-pestania.activa').getAttribute('data-pestania')) === 'quiero')
   await page.close()
 
   // Y el Panel deja una PUERTA: una pantalla sin nadie que enlace a ella

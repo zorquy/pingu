@@ -113,7 +113,8 @@ console.log('── 4. Otra pestaña empieza arriba ──')
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
   await page.waitForTimeout(400)
   const bajado = await page.evaluate(() => window.scrollY)
-  for (const p of ['carpetas', 'buscar', 'pokedex']) {
+  // Buscar ya no es pestaña (765): «Deseos y cambios» ocupa su sitio.
+  for (const p of ['carpetas', 'quiero', 'pokedex']) {
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
     await page.waitForTimeout(300)
     await page.locator(`.mc-pestanias [data-pestania="${p}"]`).first().click()
