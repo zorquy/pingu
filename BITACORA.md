@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (6) — PINGU-Claude (758 bis — la lateral de la 633 en la escala de duraciones)
+
+**Hecho**: la suite entera cantó la 310 («solo dos duraciones de
+transición»): la lateral desplegable de la 633 anima a 0,28 s y 0,2 s, y la
+escala es 0,15 y 0,3. Queda a 0,3 lo que se despliega y a 0,15 lo pequeño.
+**Para IBAI**: he tocado tu `css/lateral.css` (solo las duraciones) y la
+test-tanda-633 (las dos `0.28s` → `0.3s`, y como Cartas ya no tiene cajón
+desde la 758, el cerrado que se mira y el que se abre es Comunidad).
+
+**Ficheros**: `css/lateral.css`. Pruebas: 633 y 309 (siete filas en la hoja
+Tú) al día; 310, 633, 739 verdes.
+
+**Pendiente**: la 759 (álbumes).
+
 ## 2026-10-08 (5) — PINGU-Claude (758 — el menú corto, el escáner escondido y «Apoyar PokeDoc»)
 
 **Hecho**: M1, M2 y M3 de la ronda 3. Arriba: Noticias · Lanzamientos ·

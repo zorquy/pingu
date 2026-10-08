@@ -319,7 +319,7 @@
   /* Plegar y desplegar se anima solo al pulsar (`lat-animando`): al
      cargar una página ya plegada no tiene que verse cerrarse. */
   html.lat-animando body {
-    transition: padding-left 0.28s ease;
+    transition: padding-left 0.3s ease;
   }
 
   html.con-lateral.lat-plegada body {
@@ -331,7 +331,7 @@
   }
 
   html.lat-animando .lat {
-    transition: width 0.28s ease, padding 0.28s ease;
+    transition: width 0.3s ease, padding 0.3s ease;
   }
 
   html.lat-plegada .lat {
@@ -370,7 +370,7 @@
   }
 
   .lat-plegar svg {
-    transition: transform 0.28s ease;
+    transition: transform 0.3s ease;
   }
 
   html.lat-plegada .lat-plegar svg {
@@ -390,7 +390,7 @@
 
   .lat-seccion-enlace,
   .lat-paginas a {
-    transition: background-color 0.15s ease, color 0.15s ease, min-height 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, min-height 0.15s ease;
   }
 
   .lat-seccion-enlace span {
@@ -400,7 +400,7 @@
   }
 
   .lat-flecha svg {
-    transition: transform 0.28s ease;
+    transition: transform 0.3s ease;
   }
 
   .lat-flecha[aria-expanded='true'] svg {
@@ -414,7 +414,7 @@
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
-    transition: grid-template-rows 0.28s ease, opacity 0.2s ease;
+    transition: grid-template-rows 0.3s ease, opacity 0.15s ease;
   }
 
   .lat-cajon.lat-abierto {
