@@ -276,14 +276,13 @@ console.log('\n── 5. Se llega al catálogo sin saberse la URL ──')
   // El corte va hasta nav-right y no hasta el primer </div>: desde la
   // 356 la barra lleva desplegables ANIDADOS y el primer </div> cierra
   // el primer submenú, antes de llegar al grupo de Cartas.
-  const sinBarra = paginas.filter(
-    (f) => !trozo(leer(f), '<div class="nav-links">', '<div class="nav-right">').includes('href="/cartas"')
-  )
-  check('«Cartas» está en la barra de arriba', sinBarra.length === 0, sinBarra.join(', '))
-  const sinMovil = paginas.filter(
-    (f) => !trozo(leer(f), '<div class="nav-menu-mobile"', '</nav>').includes('href="/cartas"')
-  )
-  check('…y en el menú del móvil', sinMovil.length === 0, sinMovil.join(', '))
+  // Desde la 758 el catálogo SALE del menú (PINGU: «es demasiado: quítalo
+  // del menú, pero que la página siga»): se llega por el pie, que es lo
+  // que recorre Google, y por la ficha de cada carta.
+  const sinPie = paginas.filter((f) => !trozo(leer(f), '<footer', '</footer>').includes('href="/cartas"'))
+  check('«Cartas» está en el pie de cada página', sinPie.length === 0, sinPie.join(', '))
+  const enMenu = paginas.filter((f) => trozo(leer(f), '<div class="nav-links">', '<div class="nav-right">').includes('href="/cartas"'))
+  check('…y ya no en la barra de arriba (758)', enMenu.length === 0, enMenu.join(', '))
 }
 
 // ═════════════════════════════════════════════════════════════════════
