@@ -36808,3 +36808,26 @@ barra, solo el icono; y que sea un enlace, a **ko-fi.com/pokedoc** (antes
 - El pie de las 36 páginas, al enlace nuevo (`cartas.html`, regenerado).
 - Prueba 774-pantalla (nueva); al día 633 (sin cambios: vuelve a caber),
   748 y 758 (el orden de la hoja).
+
+## Tanda 775 — Sin transición entre páginas en Safari de Apple (oct. 2026)
+
+PINGU, con una captura del iPhone: la burbuja de abajo «se rompe y flota» a
+media pantalla, en Productos y «en más apartados de la web». En Chromium no
+se reproduce, ni a 390 ni a 430 de ancho, ni bajando con las barras
+escondidas: la burbuja baja a su sitio. Lo que tienen en común todas las
+pantallas es la transición entre páginas del móvil (753: `@view-transition`
+y la barra de abajo y la de arriba con `view-transition-name`), y Safari
+tiene ahí un fallo: tras una transición, lo `position: fixed` puede quedarse
+pegado al DOCUMENTO, no a la pantalla, y moverse con la página — que es lo
+que se ve en la captura.
+
+- Se apaga **solo en Safari de Apple**, al final de `css/style.css` (con
+  `@view-transition` gana la última regla): `@supports
+  (-webkit-touch-callout: none) or (font: -apple-system-body)` —la primera
+  la cumplen el iPhone y el iPad; la segunda, Safari en el Mac, donde la
+  lateral también es fija—. Ahí, `navigation: none` y sin nombre en las dos
+  barras. En Chrome y Android la transición sigue.
+- No se ha podido probar en un iPhone desde aquí (no hay WebKit en el
+  contenedor): la prueba comprueba la regla y que en Chromium nada cambia.
+  Si en el iPhone sigue flotando, la causa es otra y hay que volver aquí.
+- Prueba 775 (nueva).

@@ -1957,3 +1957,8 @@ button.btn-block {
   .bm { view-transition-name: barra-abajo; }
   .navbar { view-transition-name: barra-arriba; }
 }
+/* 775: Safari (Apple) pega lo fijo al documento tras una transición entre páginas; ahí, sin ella (SCHEMA 775). */
+@supports (-webkit-touch-callout: none) or (font: -apple-system-body) {
+  @view-transition { navigation: none; }
+  .bm, .navbar { view-transition-name: none; }
+}

@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (23) — PINGU-Claude (775 — la burbuja que flota en el iPhone)
+
+**Hecho**: PINGU vio en el iPhone la burbuja de abajo a media pantalla, en
+Productos y en otras páginas. En Chromium no pasa. Es (casi seguro) el fallo
+de Safari con la transición entre páginas de la 753, que deja lo fijo pegado
+al documento: se apaga SOLO en Safari de Apple (`@supports` al final de
+`css/style.css`). Detalle en SCHEMA.md, tanda 775.
+
+**Ficheros**: `css/style.css` (cinco líneas al final), `SCHEMA.md`. Prueba
+775 (nueva). Portada: 169,5 KB.
+
+**Pendiente**: que PINGU confirme en el iPhone que ya no flota. Si sigue,
+la causa es otra (ver SCHEMA 775).
+
 ## 2026-10-08 (22) — PINGU-Claude (774b — el café, primera fila de la hoja «Tú»)
 
 **Hecho**: lo que quedaba de la 774. Para el móvil PINGU eligió, entre
