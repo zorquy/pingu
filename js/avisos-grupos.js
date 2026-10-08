@@ -30,6 +30,7 @@ const TITULOS = {
   new_follower: (n) => `Te siguen ${n} personas nuevas`,
   wall_comment: (n) => `${n} comentarios en tu muro`,
   trade_match: (n) => `${n} personas dan cartas que buscas`,
+  trade_match_seguido: (n) => `${n} personas que sigues dan cartas que buscas`,
   torneo_partida: (n) => `${n} avisos de tu partida`,
 }
 

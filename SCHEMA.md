@@ -36336,3 +36336,44 @@ sea productos… la API se trae productos por expansiones»).
   que pegó PINGU (`fixtures/tcggo-productos-30c.json`, la 501): lo puro, la
   función (sin tabla, la ruta, las dos páginas, cada cuánto, el plan, lo
   nuestro, sin ruta, el tope), la pestaña, el Panel y /lanzamientos.
+
+## Tanda 763 — Deseos y cambios en una pantalla, y el aviso de quien sigues (oct. 2026)
+
+DC1 y Z3 de la ronda 3 (PINGU: «¿cómo lo harías? … no quiero meter un menú
+con demasiados submenús»).
+
+- **Una pantalla, tres vistas, sin menú nuevo**: «Deseos y cambios» con el
+  mismo selector (`.seg` de la 678) arriba de las dos pestañas que la forman:
+  **«La quiero»** (lo que buscas, la de la 751: precio, aviso y quién la
+  tiene), **«Las que doy»** (nueva) y **«Cruces»** (la pantalla de Cambios:
+  quién encaja contigo). `ponerVistaDeseos(v)`; las dos primeras son vistas
+  de `?ver=quiero` (`#mcQuieroPanel` y `#mcDoyPanel`) y «Cruces» es
+  `?ver=cambios`. Se llega como antes: el Panel, la hoja Tú y las
+  direcciones. El `aria-pressed` se pone SOLO en el selector: el enlace
+  «Cruces» del texto de abajo lleva el mismo `data-deseos-vista` y no es un
+  botón del selector.
+- **«Las que doy»** (`pintarDoy`): tus copias puestas a cambio, cada una con
+  su precio (o «sin precio»), «Das N» y **cuánta gente la busca** («La buscan
+  2 personas» lleva a los cruces; sin nadie, «Nadie la busca todavía»; sin la
+  migración de los cambios no dice nada, la 319), y arriba cuántas copias das
+  y lo que valen. Sin ninguna, lo dice con un botón a tus cartas.
+- **Compartir lista, en TEXTO** (`textoDeLista`, `compartirTexto`): las dos
+  listas, «Doy (mi lista en PokeDoc, @tú): • Carta (Set · 26) ×2…» y
+  «Busco…», al menú de compartir del sistema o, sin él, al portapapeles. Es lo
+  que se pega en un grupo de cambios. La imagen de la 751 se queda al lado
+  («Imagen»).
+- **Z3, en la base** (`supabase-migration-cambios-seguidos.sql`): el
+  disparador `intercambios_avisar` de la 376 se reemplaza entero con sus tres
+  cuidados (de 0 a algo, tope de 25, sin repetir lo no leído —ahora de
+  cualquiera de los dos tipos—) y una cosa más: si quien da la carta es
+  alguien a quien SIGUES (`user_follows`), el aviso es
+  `trade_match_seguido` y dice «@ana, a quien sigues, da una carta que
+  buscas»; si no, el de siempre. UN aviso por persona, y cada uno con su
+  preferencia (se apagan por separado: `js/notifications.js`), y en la
+  campana se agrupan con su frase (`js/avisos-grupos.js`).
+- Pruebas al día: 408 (seis pestañas, «Deseos y cambios»), 447 (el menú con
+  Productos, que se quedó de la 762), 524 (tres `data-ir-cartas`) y 751 (el
+  título). Prueba 763-pantalla: la migración por su texto (no hay
+  PostgreSQL aquí), las tres vistas desde las dos pestañas, «Las que doy» con
+  precio, cuántas y quién la busca, el texto de las dos listas, el vacío y el
+  iPhone.

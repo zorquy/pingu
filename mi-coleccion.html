@@ -936,15 +936,33 @@
            (`user_wants`) en su propia pantalla, como Cambios: se llega por
            el Panel, por la hoja «Tú» y por `?ver=quiero`. -->
       <section id="mcPanelQuiero" class="hidden" role="tabpanel" aria-label="La quiero">
+        <!-- DESEOS Y CAMBIOS (763, DC1): una pantalla con tres vistas —lo que
+             quieres, lo que das y los cruces— y no tres puertas sueltas.
+             PINGU: «no quiero meter un menú con demasiados submenús». -->
         <div class="mc-bloque-quiero">
-          <h2 class="mc-subtitulo">La quiero</h2>
+          <div class="mc-deseos-cabeza">
+          <h2 class="mc-subtitulo">Deseos y cambios</h2>
+          <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
+            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="true">La quiero</button>
+            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false">Las que doy</button>
+            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="false">Cruces</button>
+          </span>
+          </div>
           <div id="mcQuieroPanel"></div>
+          <div id="mcDoyPanel" class="hidden"></div>
         </div>
       </section>
 
       <section id="mcPanelCambios" class="hidden" role="tabpanel" aria-label="Cambios">
         <div class="mc-bloque-cambios" id="mcBloqueCambios">
-          <h2 class="mc-subtitulo">Cambios</h2>
+          <div class="mc-deseos-cabeza">
+          <h2 class="mc-subtitulo">Deseos y cambios</h2>
+          <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
+            <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false">La quiero</button>
+            <button type="button" class="seg-btn" data-deseos-vista="doy" aria-pressed="false">Las que doy</button>
+            <button type="button" class="seg-btn" data-deseos-vista="cruces" aria-pressed="true">Cruces</button>
+          </span>
+          </div>
           <div id="mcCambiosPanel"></div>
         </div>
       </section>

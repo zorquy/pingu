@@ -6002,7 +6002,10 @@ function pintarQuiero() {
     ${n
       ? `<div class="mc-quiero-cabeza">
           <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
-          <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.share(16)}<span>Compartir</span></button>
+          <span class="mc-quiero-botones">
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto">${icons.share(16)}<span>Compartir lista</span></button>
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.image(16)}<span>Imagen</span></button>
+          </span>
         </div>`
       : ''}
     <div class="mc-deseo-alta">
@@ -6042,6 +6045,13 @@ function engancharQuiero() {
   caja.addEventListener('click', async (e) => {
     if (e.target.closest('[data-ir-cambios]')) return cambiarPestania('cambios')
     if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
+    if (e.target.closest('#mcQuieroTexto')) {
+      const filas = deseos.map((d) => {
+        const c = cartas.get(d.card_id)
+        return { nombre: nombreDe(c) || d.card_id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · ') }
+      })
+      return compartirTexto(textoDeLista(`Busco (mi lista en PokeDoc${dueno?.username ? `, @${dueno.username}` : ''}):`, filas), 'La quiero')
+    }
 
     // El aviso de precio de la fila (K2) es el «Avísame» de la ficha, con
     // el idioma que buscas y su precio de ahora para proponer el umbral.
@@ -6096,6 +6106,105 @@ function engancharQuiero() {
 
 // Tu lista en una imagen (Y3), para pegarla en un grupo de cambios. El
 // dibujo entra al pulsar.
+// ── DESEOS Y CAMBIOS (763, DC1) ──
+//
+// Las tres vistas van con el mismo selector arriba: «La quiero» y «Las que
+// doy» son dos listas de la misma pestaña, y «Cruces» es la de Cambios
+// (quién encaja contigo). Así se llega a las tres desde cualquiera, sin un
+// menú más.
+let vistaDeseos = 'quiero'
+function ponerVistaDeseos(v) {
+  if (v === 'cruces') return cambiarPestania('cambios')
+  vistaDeseos = v
+  if (pestania !== 'quiero') cambiarPestania('quiero')
+  for (const b of document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg [data-deseos-vista]')) b.setAttribute('aria-pressed', String(b.dataset.deseosVista === v))
+  $('mcQuieroPanel')?.classList.toggle('hidden', v !== 'quiero')
+  $('mcDoyPanel')?.classList.toggle('hidden', v !== 'doy')
+  if (v === 'doy') void pintarDoy()
+}
+
+// «Las que doy»: tus copias puestas a cambio, con su precio, cuántas das y
+// CUÁNTA GENTE LAS BUSCA (que es lo que hace que merezca la pena darlas), y
+// la lista para compartirla en texto.
+async function pintarDoy() {
+  const caja = $('mcDoyPanel')
+  if (!caja) return
+  const doy = loQueDoy()
+  if (!doy.length) {
+    caja.innerHTML = `<div class="mc-quiero-vacio">
+        <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
+        <p><strong>Todavía no das ninguna</strong></p>
+        <p class="subtext">Abre una repetida y pon cuántas copias das: <button type="button" class="link-btn" data-ir-cartas>ver tus cartas</button>.</p>
+      </div>`
+    return
+  }
+  const ids = [...new Set(doy.map((l) => l.card_id))]
+  const sinPrecio = ids.filter((id) => !guardados.has(id))
+  let buscan = new Map()
+  try {
+    cambios = cambios || (await import('./mi-coleccion/cambios.js'))
+    const [precios, quien] = await Promise.all([
+      sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
+      cambios.quienBusca().catch(() => null),
+    ])
+    for (const [k, v] of precios) guardados.set(k, v)
+    // `null` = no se sabe (sin la migración): la fila no dice «nadie».
+    if (quien) for (const f of quien) buscan.set(f.card_id, (buscan.get(f.card_id) || 0) + 1)
+    else buscan = null
+  } catch {
+    buscan = null
+  }
+  if (vistaDeseos !== 'doy') return
+  const filas = doy.map((l) => ({ l, c: cartas.get(l.card_id), precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null }))
+  const suma = filas.reduce((a, f) => a + (f.precio || 0) * Number(f.l.cambio), 0)
+  const copias = filas.reduce((a, f) => a + Number(f.l.cambio), 0)
+  caja.innerHTML = `<div class="mc-quiero-cabeza">
+      <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
+      <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir">${icons.share(16)}<span>Compartir lista</span></button>
+    </div>
+    <ul class="mc-lista-cartas mc-deseos">${filas.map(({ l, c, precio }) => {
+      const nombre = nombreDe(c) || l.card_id
+      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+      const n = buscan?.get(l.card_id) || 0
+      return `<li class="mc-fila-carta mc-quiero-fila">
+        <a href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''}>
+          <span class="mc-fila-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+          <span class="mc-fila-nombre">${escapeHtml(nombre)}<small>${escapeHtml([nombreDeSet(c?.tcg_sets), idiomaDe(l.idioma || 'es').nombre].filter(Boolean).join(' · '))}</small></span>
+        </a>
+        <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
+        <span class="mc-fila-dato">
+          <span class="mc-doy-cuantas">Das ${Number(l.cambio)}</span>
+          ${buscan === null ? '' : n ? `<button type="button" class="link-btn mc-doy-buscan" data-deseos-vista="cruces">La ${n === 1 ? 'busca 1 persona' : `buscan ${n} personas`}</button>` : '<span class="mc-doy-nadie">Nadie la busca todavía</span>'}
+        </span>
+      </li>`
+    }).join('')}</ul>
+    <p class="subtext">Lo que das lo ve todo el mundo. Quién te da lo que buscas a cambio, en <button type="button" class="link-btn" data-deseos-vista="cruces">Cruces</button>.</p>`
+}
+
+// La lista en TEXTO (763): para pegarla en un grupo o en una red, que es
+// donde se hacen los cambios de verdad. Sirve para las dos listas.
+export function textoDeLista(titulo, filas) {
+  return [titulo, ...filas.map((f) => `• ${f.nombre}${f.detalle ? ` (${f.detalle})` : ''}${f.cuantas > 1 ? ` ×${f.cuantas}` : ''}`)].join('\n')
+}
+async function compartirTexto(texto, titulo) {
+  try {
+    if (navigator.share) await navigator.share({ title: titulo, text: texto })
+    else {
+      await navigator.clipboard.writeText(texto)
+      showToast('Lista copiada: pégala donde quieras.', 'success')
+    }
+  } catch (err) {
+    if (err?.name !== 'AbortError') showToast('No se ha podido compartir.', 'error')
+  }
+}
+function compartirLoQueDoy() {
+  const filas = loQueDoy().map((l) => {
+    const c = cartas.get(l.card_id)
+    return { nombre: nombreDe(c) || l.card_id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '), cuantas: Number(l.cambio) }
+  })
+  return compartirTexto(textoDeLista(`Doy (mi lista en PokeDoc${dueno?.username ? `, @${dueno.username}` : ''}):`, filas), 'Las que doy')
+}
+
 async function compartirLaQuiero() {
   const b = $('mcQuieroCompartir')
   if (b) b.disabled = true
@@ -7377,6 +7486,18 @@ function enganchar() {
   // Son los dos sitios donde el Panel enseña cartas: la tira de «Tus
   // cartas» y las listas de «te sobran» y «las más valiosas».
   engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a, a.mc-movida')
+  // Deseos y cambios (763): el selector de las tres vistas, en los dos
+  // paneles, y lo de «Las que doy».
+  for (const id of ['mcPanelQuiero', 'mcPanelCambios']) {
+    $(id)?.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-deseos-vista]')
+      if (b) ponerVistaDeseos(b.dataset.deseosVista)
+    })
+  }
+  $('mcDoyPanel')?.addEventListener('click', (e) => {
+    if (e.target.closest('#mcDoyCompartir')) return void compartirLoQueDoy()
+    if (e.target.closest('[data-ir-cartas]')) return cambiarPestania('cartas')
+  })
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
     if (e.target.closest('#pdxSoloFaltan')) {

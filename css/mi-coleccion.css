@@ -9647,3 +9647,42 @@ input.mc-alb-titulo:not([readonly]):focus {
     flex: none;
   }
 }
+
+/* ── 763: Deseos y cambios (DC1). El porqué, en SCHEMA.md (tanda 763). ── */
+.mc-deseos-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-deseos-cabeza .mc-subtitulo {
+  margin: 0;
+}
+
+.mc-quiero-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.mc-doy-cuantas {
+  font-weight: 700;
+}
+
+.mc-doy-nadie {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (max-width: 599px) {
+  .mc-deseos-seg {
+    width: 100%;
+  }
+
+  .mc-deseos-seg .seg-btn {
+    flex: 1 1 0;
+  }
+}

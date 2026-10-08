@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (14) — PINGU-Claude (763 — deseos y cambios en una pantalla)
+
+**Hecho**: DC1 y Z3 de la ronda 3. «Deseos y cambios» es una pantalla con
+tres vistas y el mismo selector arriba: «La quiero», «Las que doy» (nueva:
+cada copia con su precio, cuántas das y cuánta gente la busca) y «Cruces»
+(la de Cambios). Las dos listas se comparten en texto. Y el aviso de los
+cambios dice «@alguien, a quien sigues, da una carta que buscas» cuando es
+así (migración nueva). Detalle en SCHEMA.md, tanda 763.
+
+**Ficheros**: `js/mi-coleccion.js`, `mi-coleccion.html`, `cartas.html`
+(regenerado), `css/mi-coleccion.css`, `js/notifications.js`,
+`js/avisos-grupos.js`, `supabase-migration-cambios-seguidos.sql` (nueva),
+`SCHEMA.md`. Prueba 763-pantalla (nueva); 408, 447, 524 y 751 al día.
+Portada: 169,4 KB.
+
+**Pendiente**: **ejecutar `supabase-migration-cambios-seguidos.sql`** (sin
+ella el aviso sigue siendo el de siempre). Siguen las de la 753, 759 y 762.
+La 764 (extras de álbumes).
+
 ## 2026-10-08 (13) — PINGU-Claude (762 — los productos sellados)
 
 **Hecho**: PR1, PR2 y Z1 de la ronda 3. Pestaña «Productos» en Mi

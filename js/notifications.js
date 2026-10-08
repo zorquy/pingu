@@ -40,6 +40,7 @@ export const NOTIFICATION_TYPES = {
   // preferencias y se pueda apagar — un aviso que no se puede apagar es
   // el que hace que la gente apague TODOS.
   trade_match: 'Cuando alguien da una carta que buscas',
+  trade_match_seguido: 'Cuando alguien a quien sigues da una carta que buscas',
 }
 
 // De qué se avisa TAMBIÉN por correo.
