@@ -76,8 +76,9 @@ console.log('── 706. La expansión compacta ──')
   check('la miga «Expansiones ›» no sale: la burbuja ya dice dónde estás', !(await page.locator('#mcAlbumMigas').isVisible()))
   const primera = await page.$eval('#mcAlbum .mc-bolsillo', (e) => Math.round(e.getBoundingClientRect().top))
   check('la primera carta empieza en la primera pantalla (antes, a pantalla y media)', primera <= 460, String(primera))
-  const mas = await page.$eval('#mcAlbum .mc-bolsillo .mc-mas', (e) => { const r = e.getBoundingClientRect(); const p = e.closest('.mc-bolsillo').getBoundingClientRect(); return { abajo: r.bottom <= p.bottom && r.bottom > p.bottom - 40, izquierda: r.left >= p.left && r.left < p.left + 40, w: Math.round(r.width) } })
-  check('el «+» va abajo a la izquierda de la carta, sin tapar el dibujo', mas.abajo && mas.izquierda && mas.w >= 28, JSON.stringify(mas))
+  // Desde la 757: abajo a la DERECHA y solo en las que faltan.
+  const mas = await page.$eval('#mcAlbum .mc-bolsillo:not(.tengo) .mc-mas', (e) => { const r = e.getBoundingClientRect(); const p = e.closest('.mc-bolsillo').getBoundingClientRect(); return { abajo: r.bottom <= p.bottom + 0.5 && r.bottom > p.bottom - 40, derecha: r.right <= p.right + 0.5 && r.right > p.right - 40, w: Math.round(r.width) } })
+  check('el «+» va abajo a la derecha de la carta que falta, sin tapar el dibujo', mas.abajo && mas.derecha && mas.w >= 28, JSON.stringify(mas))
   await ctx.close()
 }
 

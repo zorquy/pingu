@@ -10,6 +10,15 @@
 // entraba como una normal más, «×2», sin error.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// Desde la 757 el «+» de una que YA tienes no sale en la casilla: se suma
+// desde su ficha, como en Dex.
+const porLaFicha = async (page, id) => {
+  const mas = page.locator(`#mcAlbum .mc-mas[data-anadir="${id}"]`).first()
+  if (await mas.isVisible().catch(() => false)) return mas.click()
+  await page.locator(`#mcAlbum [data-carta="${id}"]`).first().click()
+  await page.waitForTimeout(800)
+  await page.click('#mcEdMas')
+}
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -77,7 +86,7 @@ console.log('── 2. Con las variantes JUNTAS, el «+» va como antes: sin ver
   const { page } = await abrir('/mi-coleccion.html?ver=album&set=xy5', { split: false })
   const mas = page.locator('[data-anadir="xy5-1"]')
   check('el «+» no lleva versión', (await mas.count()) === 1 && (await mas.getAttribute('data-variante')) === null)
-  await mas.click()
+  await porLaFicha(page, 'xy5-1')
   await page.waitForTimeout(600)
   check('y como la tienes, la cabecera lo dice (y el formulario ya está a la vista, 748)', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1' && (await page.locator('#mcAdForm').isVisible()), limpio(await page.locator('#mcAdTienes').innerText()))
   await page.keyboard.press('Escape')

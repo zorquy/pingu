@@ -17,6 +17,15 @@
 //   · y la hoja quita la vista previa del iPhone (`-webkit-touch-callout`).
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// Desde la 757 el «+» de una que YA tienes no sale en la casilla: se suma
+// desde su ficha, como en Dex.
+const porLaFicha = async (page, id) => {
+  const mas = page.locator(`#mcAlbum .mc-mas[data-anadir="${id}"]`).first()
+  if (await mas.isVisible().catch(() => false)) return mas.click()
+  await page.locator(`#mcAlbum [data-carta="${id}"]`).first().click()
+  await page.waitForTimeout(800)
+  await page.click('#mcEdMas')
+}
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -134,7 +143,7 @@ console.log('── 2. En una expansión ──')
 
 console.log('── 3. La hoja de añadir, la de su maqueta (C5), en Mi colección y en /carta ──')
 for (const [donde, ruta, abrirla, pre] of [
-  ['Mi colección', '/mi-coleccion.html?ver=album&set=xy5', async (page) => { await page.locator('#mcAlbum .mc-mas[data-anadir="xy5-1"]').first().click() }, 'mcAd'],
+  ['Mi colección', '/mi-coleccion.html?ver=album&set=xy5', async (page) => { await porLaFicha(page, 'xy5-1') }, 'mcAd'],
   ['/carta', '/carta.html?id=xy5-1', async (page) => { await page.locator('#cmAnadir').click() }, 'cmAd'],
 ]) {
   const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })

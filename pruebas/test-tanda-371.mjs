@@ -223,11 +223,12 @@ console.log('\n── 6. Las que faltan se distinguen de las que tienes ──')
   const tengo = await opacidad('.mc-bolsillo.tengo img')
   const falta = await opacidad('.mc-bolsillo:not(.tengo) img')
   check('la que tienes se ve entera', tengo === 1, String(tengo))
-  check('  …y la que falta, apagada', falta < 0.8 && falta > 0.2, String(falta))
-  // Pero no invisible: el dibujo tiene que reconocerse para saber qué
-  // buscas.
+  // Desde la 757 (la «propuesta en gris» que eligió PINGU) la que falta
+  // va en GRIS y OPACA: al 55 % el nombre de respaldo se transparentaba
+  // encima del dibujo. Lo que la distingue es el gris y la marca de las
+  // tuyas, no la transparencia.
   const filtro = await page.locator('.mc-bolsillo:not(.tengo) img').first().evaluate((e) => getComputedStyle(e).filter)
-  check('  …sin quitarle TODO el color', !/grayscale\(1\)/.test(filtro), filtro)
+  check('  …y la que falta, en gris y opaca (757)', falta === 1 && /grayscale\(1\)/.test(filtro), `${falta} · ${filtro}`)
   await page.close()
 }
 

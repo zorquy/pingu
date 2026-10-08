@@ -35,13 +35,24 @@ async function abrir({ tengo = [1, 2], ctx = null } = {}) {
   await page.waitForTimeout(2600)
   return { page, ctx, errores }
 }
+// Desde la 757 el «+» de una que YA tienes no sale en la casilla: se suma
+// desde su ficha, como en Dex.
+const porLaFicha = async (page, id) => {
+  const mas = page.locator(`#mcAlbum .mc-mas[data-anadir="${id}"]`).first()
+  if (await mas.isVisible().catch(() => false)) return mas.click()
+  await page.locator(`#mcAlbum [data-carta="${id}"]`).first().click()
+  await page.waitForTimeout(800)
+  await page.click('#mcEdMas')
+}
 const anadir = async (page, id) => {
-  await page.locator(`#mcAlbum .mc-mas[data-anadir="${id}"]`).first().click()
+  await porLaFicha(page, id)
   await page.waitForTimeout(500)
   // Si ya la tienes, la hoja abre por «Ya en tu colección»: a añadir más.
   if (await page.locator('#mcAdMas').isVisible().catch(() => false)) await page.click('#mcAdMas')
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1000)
+  // Si se sumó desde la ficha (757), la ficha sigue abierta: se cierra.
+  if (await page.locator('#mcEditor[open]').count()) { await page.keyboard.press('Escape'); await page.waitForTimeout(400) }
 }
 const medalla = (page) => page.evaluate(() => { const d = document.getElementById('mcCompleto'); return d?.open ? d.textContent.replace(/\s+/g, ' ').trim() : null })
 

@@ -11,6 +11,15 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { comoDeshacer } from '/home/user/pingu/js/mi-coleccion/deshacer.js'
 
+// Desde la 757 el «+» de una que YA tienes no sale en la casilla: se suma
+// desde su ficha, como en Dex.
+const porLaFicha = async (page, id) => {
+  const mas = page.locator(`#mcAlbum .mc-mas[data-anadir="${id}"]`).first()
+  if (await mas.isVisible().catch(() => false)) return mas.click()
+  await page.locator(`#mcAlbum [data-carta="${id}"]`).first().click()
+  await page.waitForTimeout(800)
+  await page.click('#mcEdMas')
+}
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -91,7 +100,7 @@ console.log('── 2. Una que no tienes: la hoja corta, añadir dos y deshacer 
 console.log('── 3. Una que ya tienes: sumar una y deshacer devuelve una ──')
 {
   const { page, ctx } = await abrir()
-  await page.locator('#mcAlbum .mc-mas[data-anadir="xy5-150"]').first().click()
+  await porLaFicha(page, 'xy5-150')
   await page.waitForTimeout(500)
   check('la hoja dice «Ya tienes 1»', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1')
   await page.click('#mcAdGuardar')
@@ -99,8 +108,12 @@ console.log('── 3. Una que ya tienes: sumar una y deshacer devuelve una ─�
   check('el aviso dice «ya tienes 2»', /Groudon EX añadida · ya tienes 2/.test(limpio(await page.locator('.mc-deshacer').innerText())), limpio(await page.locator('.mc-deshacer').innerText().catch(() => '')))
   await page.locator('.mc-deshacer button').click()
   await page.waitForTimeout(1200)
-  await page.locator('#mcAlbum .mc-bolsillo-enlace[data-carta="xy5-150"]').click()
-  await page.waitForTimeout(900)
+  // Desde la 757 se ha sumado desde la ficha, que sigue abierta: dice ya
+  // lo que queda. Si no lo estuviera, se abre.
+  if (!(await page.locator('#mcEditor[open]').count())) {
+    await page.locator('#mcAlbum .mc-bolsillo-enlace[data-carta="xy5-150"]').click()
+    await page.waitForTimeout(900)
+  }
   check('Deshacer: sigue siendo tuya, con UNA copia (no se borró la línea)', limpio(await page.locator('#mcEdTienes').innerText()) === 'Tienes 1', limpio(await page.locator('#mcEdTienes').innerText()))
   await ctx.close()
 }

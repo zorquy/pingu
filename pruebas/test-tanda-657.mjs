@@ -56,11 +56,13 @@ console.log('── 1. El «+» en cada carta (657) ──')
   check('  …y NO la ficha', !(await page.locator('#mcEditor').evaluate((d) => d.open)) && /set=xy5/.test(page.url()))
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
-  // Con el teclado.
-  await page.locator('[data-anadir="xy5-150"]').focus()
+  // Con el teclado (sobre la que falta: desde la 757 la que tienes no
+  // enseña el «+» en la casilla, se suma desde su ficha).
+  await page.locator('[data-anadir="xy5-1"]').focus()
   await page.keyboard.press('Enter')
   await page.waitForTimeout(500)
-  check('con Intro también', await page.locator('#mcAnadirDialogo').evaluate((d) => d.open) && /Groudon/.test(limpio(await page.locator('#mcAdNombre').innerText())))
+  check('con Intro también', await page.locator('#mcAnadirDialogo').evaluate((d) => d.open) && /Weedle/.test(limpio(await page.locator('#mcAdNombre').innerText())))
+  check('  …y la que ya tienes (Groudon) no lo enseña en la casilla', !(await page.locator('#mcAlbum .mc-mas[data-anadir="xy5-150"]').isVisible()))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 
