@@ -581,6 +581,7 @@ body:has(> .footer) .page-content {
 .nav-links a {
   position: relative;
   padding: 8px 12px;
+  white-space: nowrap;
   border-radius: var(--radius-pill);
   transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
 }

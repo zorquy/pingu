@@ -4,6 +4,16 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (9) — PINGU-Claude (758 quinquies — «Mi colección» en una línea)
+
+**Hecho**: a 1280 px, con «Mi colección» activa (en negrita), el enlace
+se partía en dos líneas en la barra de arriba. `.nav-links a` lleva
+`white-space: nowrap`. Prueba 758-pantalla mira 1240 y 1280.
+
+**Ficheros**: `css/style.css`.
+
+**Pendiente**: la 759 (álbumes), a medias en mi árbol.
+
 ## 2026-10-08 (8) — PINGU-Claude (758 cuater — la barra de arriba con su corte medido)
 
 **Hecho**: la suite cantó la 320 y la 327: con Lanzamientos y Mi colección
