@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (12) — PINGU-Claude (761 — Buscar, por expansión)
+
+**Hecho**: B1 de la ronda 3. Los resultados de Mi colección → Buscar salen
+en grupos por expansión (de la más nueva a la más vieja), cada uno con su
+logo, su nombre y «tienes X de Y · N resultados». Debajo de los mandos, para
+afinar lo que ha vuelto: serie, expansión y «Solo las que tengo». Detalle en
+SCHEMA.md, tanda 761.
+
+**Ficheros**: `js/mi-coleccion.js` (`pintarResultadosBuscar`,
+`gruposPorExpansion`, `pintarAfinar`), `mi-coleccion.html`,
+`css/mi-coleccion.css`, `SCHEMA.md`. Prueba 761-pantalla (nueva); 447 al
+día. Verdes 450, 451, 557, 719, 299, 310, 311, 312 y 313.
+
+**Pendiente**: la 762 (productos; falta saber la dirección exacta de la
+lista de productos de TCGGO).
+
 ## 2026-10-08 (11) — PINGU-Claude (760 — el archivador abierto: cabecera, pasar páginas y meter una carta en SU bolsillo)
 
 **Hecho**: AL4–AL6 de la ronda 3. El álbum abierto lleva una cabecera con

@@ -4470,10 +4470,28 @@ async function buscarEnTodo({ variantes = null } = {}) {
   // Aquí el tope de la consulta manda: con 120 de vuelta pueden ser más.
   rotularVer('mcBuscarFiltrosVer', lista.length, { mas: lista.length >= TOPE })
   ultimaBusqueda = lista
-  caja.innerHTML = lista.length
-    ? lista.map((c) => {
-        const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-        return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
+  // Lo de afinar vuelve a «todo» con cada búsqueda nueva: una serie que
+  // se queda puesta de la búsqueda anterior deja esta vacía sin decir por qué.
+  afinar = { serie: '', set: '', soloMias: afinar.soloMias }
+  if (!todosLosSets) await cargarSets().catch(() => null)
+  if (mio !== turnoBuscarTodo) return
+  pintarResultadosBuscar()
+}
+
+// LOS RESULTADOS POR EXPANSIÓN (761, B1). PINGU, en la ronda 3: «el añadir
+// carta agrupado por expansiones, hazlo como tú veas». Cada grupo lleva el
+// logo del set, su nombre y «tienes X de Y · N resultados»; los grupos van
+// de la expansión más nueva a la más vieja (al revés con «Fecha ↑») y
+// dentro, el orden elegido. Las cabeceras viven DENTRO de la rejilla, a lo
+// ancho, para que cada `.mc-resultado` siga siendo un hijo directo (lo
+// buscan la ficha, el escáner y las pruebas).
+//
+// Y para afinar lo que ha vuelto, sin volver a preguntar: la serie, la
+// expansión y «Solo las que tengo».
+let afinar = { serie: '', set: '', soloMias: false }
+function resultadoHtml(c) {
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
           <span class="mc-resultado-foto">
             <span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
@@ -4481,8 +4499,73 @@ async function buscarEnTodo({ variantes = null } = {}) {
           <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
           <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
         </a>`
-      }).join('')
-    : '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
+}
+export function gruposPorExpansion(lista, { asc = false } = {}) {
+  const porSet = new Map()
+  for (const c of lista) {
+    const k = c.set_id
+    if (!porSet.has(k)) porSet.set(k, { set: c.tcg_sets || { id: k }, cartas: [] })
+    porSet.get(k).cartas.push(c)
+  }
+  const fecha = (g) => String(g.set?.release_date || '')
+  return [...porSet.values()].sort((a, b) => (asc ? fecha(a).localeCompare(fecha(b)) : fecha(b).localeCompare(fecha(a))) || String(a.set.id).localeCompare(String(b.set.id)))
+}
+function pintarResultadosBuscar() {
+  const caja = $('mcBuscarResultados')
+  if (!caja) return
+  const mias = new Set(lineas.map((l) => l.card_id))
+  const serieDe = (c) => c.tcg_sets?.serie_id || ''
+  let lista = ultimaBusqueda
+  pintarAfinar(lista)
+  if (afinar.serie) lista = lista.filter((c) => serieDe(c) === afinar.serie)
+  if (afinar.set) lista = lista.filter((c) => c.set_id === afinar.set)
+  if (afinar.soloMias) lista = lista.filter((c) => mias.has(c.id))
+  if (!ultimaBusqueda.length) {
+    caja.innerHTML = '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
+    return
+  }
+  if (!lista.length) {
+    // El vacío dice CUÁL es (la 510): ha vuelto algo, y lo esconde lo de afinar.
+    caja.innerHTML = `<p class="empty-state">${afinar.soloMias ? 'No tienes ninguna de estas.' : 'Ninguna de estas es de esa serie o expansión.'}</p>`
+    return
+  }
+  const sets = new Map((todosLosSets || []).map((x) => [x.id, x]))
+  const grupos = gruposPorExpansion(lista, { asc: ordenCatalogo === 'fecha' && sentidoCatalogo === 'asc' })
+  caja.innerHTML = grupos.map((g) => {
+    const set = sets.get(g.set.id) || g.set
+    const logos = contexto.logosDeSet(set)
+    const total = totalDe(set)
+    const tengoDeSet = new Set(lineas.filter((l) => cartas.get(l.card_id)?.set_id === g.set.id).map((l) => l.card_id)).size
+    const partes = [esMia && sesion && total ? `tienes ${tengoDeSet} de ${total}` : total ? `${total} cartas` : '', `${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}`].filter(Boolean)
+    return `<div class="mc-bus-grupo" data-grupo-set="${escapeHtml(g.set.id)}">
+        <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
+        <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${escapeHtml(partes.join(' · '))}</small></span>
+      </div>${g.cartas.map(resultadoHtml).join('')}`
+  }).join('')
+}
+// Los desplegables de afinar salen de lo que HA VUELTO: una serie que no
+// está en los resultados no se ofrece (la 447: lo que se ofrece, funciona).
+function pintarAfinar(lista) {
+  const barra = $('mcBuscarAfinar')
+  if (!barra) return
+  barra.classList.toggle('hidden', !lista.length)
+  // El nombre de la serie, de la fila del set (la era, en español si la
+  // hay: `eraDeSet`); el embebido de la búsqueda no trae `serie_name`.
+  const filas = new Map((todosLosSets || []).map((x) => [x.id, x]))
+  // En el MISMO orden que los grupos: de lo más nuevo a lo más viejo.
+  const enOrden = gruposPorExpansion(lista).flatMap((g) => g.cartas)
+  const series = new Map()
+  for (const c of enOrden) if (c.tcg_sets?.serie_id && !series.has(c.tcg_sets.serie_id)) series.set(c.tcg_sets.serie_id, eraDeSet(filas.get(c.set_id) || c.tcg_sets) || c.tcg_sets.serie_id)
+  const nombreSerie = (id) => series.get(id) || id
+  $('mcBuscarSerie').innerHTML = `<option value="">Todas las series</option>${[...series.keys()].map((id) => `<option value="${escapeHtml(id)}"${id === afinar.serie ? ' selected' : ''}>${escapeHtml(nombreSerie(id))}</option>`).join('')}`
+  const sets = new Map()
+  for (const c of enOrden) if (!afinar.serie || c.tcg_sets?.serie_id === afinar.serie) sets.set(c.set_id, nombreDeSet(c.tcg_sets) || c.set_id)
+  if (afinar.set && !sets.has(afinar.set)) afinar.set = ''
+  $('mcBuscarSet').innerHTML = `<option value="">Todas las expansiones</option>${[...sets].map(([id, nombre]) => `<option value="${escapeHtml(id)}"${id === afinar.set ? ' selected' : ''}>${escapeHtml(nombre)}</option>`).join('')}`
+  const solo = $('mcBuscarSoloMias')
+  solo.setAttribute('aria-pressed', String(afinar.soloMias))
+  solo.classList.toggle('activa', afinar.soloMias)
+  solo.classList.toggle('hidden', !(esMia && sesion))
 }
 
 // ── EL ESCÁNER (tanda 447) ──
@@ -6872,6 +6955,20 @@ function enganchar() {
 
   // El buscador de todo el catálogo (tanda 447).
   $('mcBuscarTodo')?.addEventListener('input', () => void buscarEnTodo())
+  // Afinar lo que ha vuelto (761): sin volver a preguntar a la base.
+  $('mcBuscarSerie')?.addEventListener('change', (e) => {
+    afinar.serie = e.target.value
+    afinar.set = ''
+    pintarResultadosBuscar()
+  })
+  $('mcBuscarSet')?.addEventListener('change', (e) => {
+    afinar.set = e.target.value
+    pintarResultadosBuscar()
+  })
+  $('mcBuscarSoloMias')?.addEventListener('click', () => {
+    afinar.soloMias = !afinar.soloMias
+    pintarResultadosBuscar()
+  })
   // ── Los mandos de Buscar (tanda 450) ──
   $('mcBuscarAbrirOrden')?.addEventListener('click', () => {
     pintarBandejaCatalogo()

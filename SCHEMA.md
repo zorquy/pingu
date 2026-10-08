@@ -36247,3 +36247,32 @@ AL4, AL5 y AL6 de la ronda 3 (PINGU: «todo», viendo Holonook).
   con su tapa, los huecos que se tocan (44 px), elegir la carta del bolsillo
   2 y la del 7 con huecos en medio; mantener pulsado (y que un toque que se
   mueve no coja nada) y soltar en un hueco.
+
+## Tanda 761 — Buscar, por expansión, y afinar lo que ha vuelto (oct. 2026)
+
+B1 de la ronda 3 (PINGU: «el añadir carta agrupado por expansiones, hazlo
+como tú veas»).
+
+- **Los resultados de Buscar, en grupos por expansión**
+  (`pintarResultadosBuscar`, `gruposPorExpansion`): de la más nueva a la más
+  vieja (al revés con «Fecha ↑»), y dentro el orden elegido. Cada grupo
+  lleva el logo del set (la cadena de la estantería, `contexto.logosDeSet`),
+  su nombre y «tienes X de Y · N resultados» (sin cuenta, «Y cartas · N
+  resultados»).
+- **La cabecera vive DENTRO de la rejilla** (`.mc-bus-grupo`, a lo ancho con
+  `grid-column: 1 / -1`) y no en una caja por grupo: cada `.mc-resultado`
+  sigue siendo hijo directo de `#mcBuscarResultados`, que es donde lo buscan
+  la ficha (`engancharFicha`), el escáner y las pruebas. La 447 contaba
+  `#mcBuscarResultados > *` y ahora cuenta `> .mc-resultado`.
+- **Afinar sin volver a preguntar** (`#mcBuscarAfinar`): la serie, la
+  expansión (acotada a la serie elegida) y «Solo las que tengo». Los
+  desplegables salen de lo que HA VUELTO, en el orden de los grupos, y con
+  el nombre de la serie de la fila del set (`eraDeSet`): lo que se ofrece,
+  funciona (la 447). Una búsqueda nueva vuelve a todas las series;
+  «Solo las que tengo» se queda puesto. Y el vacío dice cuál es: «No tienes
+  ninguna de estas» o «Ninguna de estas es de esa serie o expansión», no
+  el «no encuentro ninguna carta así» de cuando no vuelve nada (la 510).
+- Pruebas al día: 447. Prueba 761-pantalla: los tres grupos en orden con su
+  texto y su logo, las cartas como hijas directas y la cabecera a lo ancho,
+  afinar por serie, por expansión y «Solo las que tengo», la búsqueda nueva,
+  la ficha al tocar, y el iPhone (sin irse de ancho, 44 px).

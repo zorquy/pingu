@@ -9401,3 +9401,69 @@ input.mc-alb-titulo:not([readonly]):focus {
     animation: none;
   }
 }
+
+/* ── 761: Buscar, por expansión (B1). El porqué, en SCHEMA.md (tanda 761). ── */
+.mc-bus-grupo {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--e-md);
+  margin-top: var(--e-sm);
+  padding: var(--e-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mc-bus-grupo:first-child {
+  margin-top: 0;
+}
+
+.mc-bus-grupo-logo {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 48px;
+}
+
+.mc-bus-grupo-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mc-bus-grupo-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mc-bus-grupo-texto b {
+  overflow: hidden;
+  font-size: var(--t-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-bus-grupo-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-bus-afinar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
+}
+
+.mc-bus-afinar select {
+  max-width: 100%;
+}
+
+@media (max-width: 599px) {
+  .mc-bus-grupo-logo {
+    width: 72px;
+    height: 36px;
+  }
+}
