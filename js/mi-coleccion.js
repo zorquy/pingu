@@ -3371,6 +3371,24 @@ function chapaDeVarianteHtml(id) {
 
 const CORTO_DE_VARIANTE = { normal: 'N', reverse: 'RH', holo: 'H', primera: '1.ª' }
 
+// LO TUYO SE DICE CON UNA MARCA, NO SOLO CON EL COLOR (757). PINGU, con
+// Dex delante, eligió la propuesta «en gris»: lo que falta en gris, lo tuyo
+// a color con su ✓ arriba a la derecha —o «×N» si tienes más de una—, y
+// abajo la versión que tienes cuando la carta tiene varias. El color solo
+// no lo distingue todo el mundo.
+function marcaDeTengoHtml(n) {
+  if (!n) return ''
+  return n > 1 ? `<span class="mc-cantidad mc-tengo-marca" aria-hidden="true">×${n}</span>` : '<span class="mc-tengo-marca" aria-hidden="true">✓</span>'
+}
+
+function versionQueTienesHtml(c) {
+  if (!tieneVarias(c)) return ''
+  const mias = variantesDeCarta(c).filter((v) => tengoEnAlbum(c.id, v.nuestro))
+  if (!mias.length) return ''
+  const texto = mias.length === 1 ? mias[0].nombre : mias.map((v) => CORTO_DE_VARIANTE[v.nuestro] || v.nombre).join(' + ')
+  return `<span class="mc-tengo-version" aria-hidden="true">${escapeHtml(texto)}</span>`
+}
+
 // EL VELO DEL REVERSE (tanda 461). PINGU: «sé que la carta es la misma
 // imagen para las dos; en Dex sí las diferencian, las reverse son como más
 // oscuras porque tienen el holográfico en toda la carta; igual meterle un
@@ -3415,7 +3433,7 @@ function bolsilloDeVariante(c, v) {
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     ${veloDeVariante(v.nuestro)}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
-    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
+    ${marcaDeTengoHtml(n)}
     ${chapaDeVarianteHtml(v.nuestro)}
     ${masHtml(c, nombre, v.nuestro)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
@@ -3446,7 +3464,8 @@ function bolsilloHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
-    ${n > 1 ? `<span class="mc-cantidad">×${n}</span>` : ''}
+    ${marcaDeTengoHtml(n)}
+    ${n ? versionQueTienesHtml(c) : ''}
     ${masHtml(c, nombre)}`
   // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
   // 564): de esta clave sale lo que `guardarMarcadas` escribe en la base,
@@ -3745,7 +3764,8 @@ function celdaDeCuadriculaHtml(c) {
   return `<a class="mc-rejilla-celda${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(etiqueta)}">
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-    ${n > 1 ? `<span class="mc-rejilla-copias" aria-hidden="true">×${n}</span>` : ''}
+    ${marcaDeTengoHtml(n)}
+    ${n && !v ? versionQueTienesHtml(c) : ''}
     ${masHtml(c, nombre, v?.nuestro || null)}
   </a>`
 }

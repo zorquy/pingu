@@ -35977,3 +35977,40 @@ también estaría bien por expansión».
   miniatura de la portada y la ficha de «Hoy» usan la misma regla.
 - Pruebas 756 (nueva) y 640, 744-pantalla al día (la lista japonesa se pide
   cada día; «Hoy» enseña la suma de ahora y no la foto).
+
+## Tanda 757 — En una expansión, lo que falta en gris y lo tuyo con su marca (oct. 2026)
+
+PINGU comparó la cuadrícula con la de Dex («las tuyas se ponen de color y
+ya está; en Dex llevan un check») y, con tres capturas delante —la de
+ahora, «en gris» y «a color como Dex»—, eligió la propuesta «en gris».
+Vale para las dos vistas que pintan cartas: el archivador (`.mc-bolsillo`,
+que es la del móvil) y la cuadrícula (`.mc-rejilla-celda`).
+
+- **Lo que falta, gris de verdad**: `grayscale(1)` y opaca (en oscuro más
+  apagada, `brightness(0.62)`; en claro, `brightness(1.08) contrast(0.8)`).
+  Antes iba casi sin color, aclarada y al 55 %, así que el nombre de
+  respaldo (`.mc-carta-sinfoto`, que está DEBAJO de la foto) se
+  transparentaba encima del dibujo: «Kyogre 019» medio borrado sobre cada
+  carta que faltaba.
+- **Lo tuyo, con una marca y no solo con el color** (`marcaDeTengoHtml`):
+  ✓ arriba a la derecha con una copia, «×N» en el mismo sitio con más (la
+  `.mc-cantidad` de antes, que iba arriba a la izquierda pisando el nombre;
+  en la cuadrícula era `.mc-rejilla-copias`, abajo, y se ha ido). Verde
+  oscuro fijo (`#0a7a55`) con blanco encima: el `--success` del tema oscuro
+  es claro y con blanco daría 2:1. Seleccionando, la marca se esconde (el
+  círculo de seleccionar va en esa esquina).
+- **La versión que tienes**, abajo (`versionQueTienesHtml`), solo cuando la
+  carta tiene varias (`tieneVarias`): «Normal», «Reverse holo» o, con dos,
+  los cortos («N + RH»). Con las versiones separadas cada casilla ya lleva
+  su chapa de siempre.
+- **El «+», pequeño y en la esquina de abajo a la derecha**, y solo en lo
+  que falta: 28 px con ratón; con el dedo, 44 px que se tocan y el mismo
+  círculo de 28 dibujado en un `::before`. Lo tuyo se suma desde su ficha,
+  como en Dex. Antes eran círculos de 44 px en todas, tapando los ataques.
+- El número de la casilla (`.mc-bolsillo-num`) solo sale sin foto (la carta
+  lleva el suyo impreso) y pasa abajo a la izquierda, que la derecha es del
+  «+».
+- Prueba 757-pantalla: las seis casillas en archivador (móvil y ratón) y en
+  cuadrícula: gris y opaco lo que falta, a color lo tuyo, ✓ / ×N arriba a la
+  derecha, la versión abajo solo si hay varias, el «+» solo en lo que falta
+  y de 44 / 28, y el número solo sin foto.

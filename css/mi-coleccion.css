@@ -6308,20 +6308,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   box-shadow: inset 0 0 0 2px var(--success);
 }
 
-.mc-rejilla-copias {
-  position: absolute;
-  right: var(--e-xs);
-  bottom: var(--e-xs);
-  padding: 0 var(--e-xs);
-  border-radius: var(--radius-pill);
-  background: var(--navy-solid);
-  /* Blanco FIJO: `--white` es la superficie y en oscuro vale #182430
-     (tanda 315). */
-  color: var(--blanco-fijo);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-}
-
 /* ── Lista: un renglón por carta ── */
 .mc-album-lista {
   display: flex;
@@ -8773,3 +8759,126 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-escaner-fotos:disabled { opacity: 0.5; }
+
+/* ── 757: lo que falta en gris, lo tuyo con su marca (SCHEMA 757) ── */
+.mc-bolsillo:not(.tengo) img,
+.mc-rejilla-celda:not(.tengo) img {
+  filter: grayscale(1) brightness(0.62) contrast(0.95);
+  opacity: 1;
+}
+
+:root:not([data-theme='dark']) .mc-bolsillo:not(.tengo) img,
+:root:not([data-theme='dark']) .mc-rejilla-celda:not(.tengo) img {
+  filter: grayscale(1) brightness(1.08) contrast(0.8);
+}
+
+/* La carta ya lleva su número: el de la casilla, solo sin foto. */
+.mc-bolsillo-enlace:has(> img) > .mc-bolsillo-num {
+  display: none;
+}
+
+.mc-bolsillo-num {
+  right: auto;
+  left: var(--e-xs);
+}
+
+.mc-bolsillo .mc-mas,
+.mc-rejilla-celda .mc-mas {
+  inset: auto var(--e-xs) var(--e-xs) auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: rgb(12 20 30 / 72%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 22%);
+  color: var(--blanco-fijo);
+}
+
+.mc-bolsillo .mc-mas svg,
+.mc-rejilla-celda .mc-mas svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Con el dedo, 44 px que se tocan y el mismo círculo de 28 dibujado. */
+@media (pointer: coarse) {
+  .mc-bolsillo .mc-mas,
+  .mc-rejilla-celda .mc-mas {
+    inset: auto 0 0 auto;
+    width: 44px;
+    height: 44px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .mc-bolsillo .mc-mas::before,
+  .mc-rejilla-celda .mc-mas::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: var(--e-sm);
+    border-radius: 50%;
+    background: rgb(12 20 30 / 72%);
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 22%);
+  }
+
+  .mc-bolsillo .mc-mas.mc-mas-hecho,
+  .mc-rejilla-celda .mc-mas.mc-mas-hecho {
+    background: none;
+  }
+
+  .mc-bolsillo .mc-mas.mc-mas-hecho::before,
+  .mc-rejilla-celda .mc-mas.mc-mas-hecho::before {
+    background: var(--success);
+  }
+}
+
+/* La tuya se suma desde su ficha, como en Dex. */
+.mc-bolsillo.tengo .mc-mas,
+.mc-rejilla-celda.tengo .mc-mas {
+  display: none;
+}
+
+.mc-tengo-marca,
+.mc-bolsillo .mc-tengo-marca {
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  inset: var(--e-xs) var(--e-xs) auto auto;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  /* Verde OSCURO fijo: lleva blanco encima (el `--success` de oscuro es
+     claro y daría 2:1). */
+  background: #0a7a55;
+  box-shadow: 0 0 0 2px var(--blanco-fijo), var(--shadow-sm);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.mc-album-marcando .mc-tengo-marca {
+  display: none;
+}
+
+.mc-tengo-version {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--e-xs);
+  left: 50%;
+  max-width: calc(100% - var(--e-sm));
+  overflow: hidden;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(12 20 30 / 78%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}

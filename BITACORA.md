@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (3) — PINGU-Claude (757 — en una expansión, lo que falta en gris y lo tuyo con su marca)
+
+**Hecho**: la «propuesta 1» que eligió PINGU. Lo que te falta en gris de
+verdad; lo tuyo a color con ✓ arriba a la derecha (o «×N»); abajo, la
+versión que tienes si la carta tiene varias; el «+» pequeño, en la esquina
+y solo en lo que falta. En el archivador y en la cuadrícula, móvil y
+ordenador, oscuro y claro. Detalle en SCHEMA.md, tanda 757.
+
+**Ficheros**: `js/mi-coleccion.js` (`marcaDeTengoHtml`,
+`versionQueTienesHtml`), `css/mi-coleccion.css`, `SCHEMA.md`. Prueba
+757-pantalla (nueva).
+
+**Pendiente**: nada. Sin migración nueva (sigue la de la 753).
+
 ## 2026-10-08 (2) — PINGU-Claude (756 — la portada dice lo del Panel, y los próximos lanzamientos)
 
 **Hecho**: «Hoy» enseña lo que vale tu colección AHORA, sumado con la
