@@ -36541,3 +36541,96 @@ de baja para siempre.
   «Generar pareos de la jornada N», quién no la juega y que la lista se
   cierra al generar. Sin la migración, `cargarJornadas` da `null`: ni
   caja ni aviso, y el pareo es el de siempre.
+## Tanda 767 — Buscar vuelve a ser pestaña; el álbum, como Expansiones (oct. 2026)
+
+Correcciones de PINGU a la 765-766.
+
+- **Buscar vuelve a ser su pestaña** (PINGU: «Añadir carta te abre una
+  pestaña entera que se lleva todo el menú; prefiero que se llame Buscar y
+  que sea como antes»). Se fue la hoja a pantalla entera (`abrirHoja`,
+  `.mc-hoja-*`). Lo que se queda de la 765: «151/165» y «MEW 151», el menú
+  con Deseos y cambios («Trade» en la burbuja del móvil) y el modo ELEGIR.
+- **Modo elegir** (`elegirCarta({ titulo, alElegir, alCancelar })`, en el
+  contexto): un bolsillo vacío de un álbum, y el botón «Añadir cartas» del
+  álbum (que sustituye al buscador de nombre de dentro, que solo miraba el
+  catálogo occidental), abren Buscar con una franja arriba (`#mcEligiendo`:
+  «Elige la carta del bolsillo 2 de «Mis favoritas»» y «Cancelar»). Tocar
+  una carta la ELIGE —escucha en captura, gana a la ficha— y vuelves al
+  álbum con su `?album=`. Salir de Buscar deja de elegir.
+- **El catálogo, en el álbum**: como Buscar deja elegir el japonés, una
+  carta de otro catálogo se guarda con su catálogo (`{ id, m: 'JP' }`,
+  `ponerEnBolsillo(..., extra)`) y al abrir el álbum se pide a SU catálogo.
+- **El álbum, como Expansiones** (PINGU: «el mismo menú, con el plus, el
+  check verde, todo igual»): cada bolsillo lleva ✓ (una copia) o «×2»
+  (`marcaDeTengoHtml`, por la versión de la casilla si la tiene), el «+»
+  (`masHtml`, que abre la hoja de añadir de siempre: `anadirCarta` registra
+  la carta en `cartasDeFuera` para que `cartaPorId` la encuentre) y tocar la
+  carta abre su ficha aquí (`abrirFicha`). Al añadir, `repintar()` repinta el
+  álbum abierto (`repintarSiAbierto`). La hoja deja 48 px abajo para la
+  esquina de pasar página, que tapaba el «+» de la última carta.
+- **El menú del PC, sin «Mi colección»** (PINGU: «no hace falta ese
+  submenú»): dentro de /mi-coleccion el cajón de Cartas lleva el menú
+  directamente (`.lat-menu-sitio`), sin la fila de encima. Fuera, las partes
+  como enlaces (`PARTES_DE_LA_COLECCION`, con Buscar de nuevo).
+- Prueba 767-pantalla (nueva); al día 760, 765, 578, 408, 447, 649, 740, 758.
+
+## Tanda 768 — El buscador de «La quiero» (oct. 2026)
+
+PINGU: «el buscador no funciona, solo busca unas pocas cartas, no todas, y no
+puedes escoger si son japonesas; mejórame la interfaz».
+
+- Pedía **24 cartas por orden alfabético** del catálogo de la página. Ahora es
+  el motor de Buscar —nombre (español o inglés), número, «151/165», «MEW 151»
+  y, si no sale nada, el ilustrador— con el tope de Buscar (120, y lo dice).
+- **Su propio catálogo** (`deseoMercado`, botones Pokémon / Pokémon Japón)
+  sin cambiar el de la página. `buscarCartas` y `buscarPorIlustrador` aceptan
+  `market`. Una japonesa se apunta en japonés (`idioma: 'ja'`; «cualquier
+  idioma» no existe en ese catálogo), y la lista carga las cartas que no son
+  del catálogo que miras del otro (`completarQuiero`).
+- **La interfaz**: el buscador vive en el HTML (`#mcDeseoAlta`), fuera de lo
+  que se repinta, así que lo escrito no se borra cuando llega un precio; los
+  resultados van por expansión con su logo (como Buscar), cada carta con su
+  corazón, y la que ya buscas, desactivada y dicho. Tras apuntar, la búsqueda
+  se queda: lo normal es apuntar varias seguidas.
+- Prueba 768-pantalla (nueva).
+
+## Tanda 769 — Productos como Expansiones, y la ficha de un producto (oct. 2026)
+
+PINGU: «productos debería ser lo mismo que cuando buscas una expansión, por
+set y diferenciando occidental y japonés; y al clicar un producto, que se abra
+igual que una carta, en un lateral en el PC y el pop-up en el móvil, con el
+precio, el gráfico y el link a Cardmarket y TCGplayer».
+
+- **La pestaña** (`js/mi-coleccion/productos.js`, rehecho): una ESTANTERÍA
+  —tus productos arriba, por expansión, y una baldosa por expansión con
+  productos: logo, fecha o «Sale el … · Preventa», cuántos hay y «Tienes N»—,
+  con su catálogo (Pokémon / Pokémon Japón, sin cambiar el de la página).
+  Una baldosa abre la expansión (cabecera, tipos, rejilla) y «Todas las
+  expansiones» vuelve. El desplegable de la 762 se fue.
+- **La ficha** (`#mcProdFicha`): la foto y el nombre de cada tarjeta son un
+  botón que la abre; el «+» va aparte. Al lado en un PC ancho
+  (`(min-width: 1400px) and (pointer: fine)`, la regla de la ficha de una
+  expansión) y en ventana si no. Lleva el precio de España (o de dónde sea),
+  tu «+» y cuántos tienes, la tabla de Cardmarket por SITIO —España, Europa,
+  Alemania, Francia, Italia y todo Cardmarket (`preciosPorSitio`)—, las
+  medias de 7 y 30 días y cuántos hay a la venta, los botones a Cardmarket
+  (`?idProduct=`, sin filtro de idioma: el producto ya es de uno) y a
+  TCGplayer (`/product/<id>`), «Ver en TCGGO» y **la gráfica de las cartas**
+  (`montarHistorial(..., { url })`), con una línea de Cardmarket y otra de
+  TCGplayer: sin las de país, que la gráfica rotularía como idiomas.
+- **El histórico, a demanda** (`tcggo-historial-producto`, nueva): la de las
+  cartas para un producto. La primera vez que se abre la ficha, UNA petición
+  a TCGGO (`/history-prices` por el id de Cardmarket), como mucho una vez a
+  la semana por producto y con tope diario (`TCGGO_TOPE_HISTORIAL_PRODUCTOS`,
+  300). Sin la migración devuelve vacío y lo dice, sin gastar.
+- **Migración** `supabase-migration-productos-ficha.sql`: el mínimo de
+  Alemania, Francia e Italia en `tcg_products`, `historial_at`, y
+  `tcg_product_history` con su SELECT. `tcggo-productos` mira si las columnas
+  por país existen antes de mandarlas (un upsert con una columna que no
+  existe se rechaza ENTERO), y el cliente pide los productos con `*` (la 624).
+- **La cuenta de lo tuyo, aparte** (`js/productos-valor.js`): la portada y
+  el Panel la importaban de la pestaña y con ella el molde de las tarjetas,
+  cuyas clases no carga la portada (lo cantó la 299).
+- Los botones de rango de la gráfica, 44 con el dedo (eran 40).
+- Prueba 769-pantalla (nueva); al día 762 y 766.
+

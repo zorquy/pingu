@@ -571,7 +571,7 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 .carta-historial-rango:disabled { color: var(--text-dim); cursor: default; }
 .carta-historial-rango:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 @media (pointer: coarse) {
-  .carta-historial-rango { min-height: 40px; }
+  .carta-historial-rango { min-height: 44px; }
 }
 
 .carta-historial-lectura {

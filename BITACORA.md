@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (18) — PINGU-Claude (767–769 — Buscar, álbumes, deseos y productos)
+
+**Hecho**: lo que PINGU corrigió de la 765-766. **767**: Buscar vuelve a ser
+su pestaña (la hoja a pantalla entera se fue). Un bolsillo vacío, o «Añadir
+cartas» de un álbum, abren Buscar en modo elegir, también con el catálogo
+japonés. El álbum lleva el ✓/«×2», el «+» y la ficha, como Expansiones. En
+el PC, el menú de la lateral va sin la fila «Mi colección». **768**: el
+buscador de «La quiero» busca en todo el catálogo, occidental o japonés, por
+expansión. **769**: Productos como Expansiones (estantería por set y
+catálogo), y la ficha de cada producto, al lado en el PC y en ventana en el
+móvil. Lleva el precio por sitio, las medias, Cardmarket, TCGplayer y la
+gráfica. Detalle en SCHEMA.md, tandas 767, 768 y 769.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/albumes.js`,
+`js/mi-coleccion/productos.js` (rehecho), `js/productos.js`,
+`js/productos-valor.js` (nuevo), `js/carta-historial.js`, `js/hoy.js`,
+`js/barra-lateral.js`, `mi-coleccion.html`, `cartas.html` (regenerado),
+`css/mi-coleccion.css`, `css/lateral.css` (una regla:
+`.lat-menu-sitio`), `css/cardmarket.css` (rangos a 44),
+`netlify/functions/tcggo-productos.mjs`,
+`netlify/functions/tcggo-historial-producto.mjs` (nueva),
+`supabase-migration-productos-ficha.sql` (nueva), `SCHEMA.md`. Pruebas 767,
+768 y 769-pantalla (nuevas); al día 408, 447, 578, 649, 740, 758, 760, 762,
+765 y 766.
+
+**Pendiente — las migraciones sin ejecutar, por orden**:
+`supabase-migration-avisos-lanzamientos.sql` (753),
+`supabase-migration-albumes-tipos.sql` (759),
+`supabase-migration-productos.sql` (762),
+`supabase-migration-cambios-seguidos.sql` (763),
+`supabase-migration-albumes-portada.sql` (764),
+`supabase-migration-seguidos-y-deseos.sql` (766),
+`supabase-migration-productos-ficha.sql` (769). Ninguna rompe nada si falta.
 ## 2026-10-08 (17) — PINGU-Claude (634 — en una liga, apuntarse y desapuntarse de cada jornada)
 
 **Hecho**: PINGU: «que te puedas apuntar o desapuntar a las jornadas

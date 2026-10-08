@@ -231,7 +231,7 @@ export async function montarHoy(session, { doc = document } = {}) {
       return error ? null : count ?? null
     }),
     // Lo que valen tus productos (766), como lo suma el Panel.
-    intentar(async () => (await import('./mi-coleccion/productos.js')).valorParaElPanel(uid)),
+    intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid)),
   ])
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null

@@ -23,7 +23,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_PRODUCTOS, TCGGO_RUTA_PRODUCTOS.
 import { cabeceras, baseDe, hayMasPaginas, esLimiteDelPlan } from '../lib/tcggo.mjs'
-import { filaDeProducto } from '../../js/productos.js'
+import { filaDeProducto, COLUMNAS_POR_PAIS } from '../../js/productos.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_productos'
@@ -89,6 +89,9 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
   } catch (e) {
     return { saltado: `falta supabase-migration-productos.sql (${String(e?.message || e).slice(0, 80)})` }
   }
+  // Las columnas por país (769): si su migración no está, no se mandan.
+  let porPais = true
+  try { await pedir(`tcg_products?select=${COLUMNAS_POR_PAIS.join(',')}&limit=1`) } catch { porPais = false }
   let estado = {}
   try { estado = (await pedir(`scrydex_estado?select=valor&clave=eq.${CLAVE_ESTADO}&limit=1`))?.[0]?.valor || {} } catch { estado = {} }
   estado = { hechos: {}, fallidos: {}, ...estado }
@@ -158,7 +161,9 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
       estado.sinRuta = 0
       for (const p of Array.isArray(respuesta.data) ? respuesta.data : []) {
         const f = filaDeProducto(p, { ahora })
-        if (f) filas.push({ ...f, episode_id: f.episode_id ?? e.id })
+        if (!f) continue
+        if (!porPais) for (const c of COLUMNAS_POR_PAIS) delete f[c]
+        filas.push({ ...f, episode_id: f.episode_id ?? e.id })
       }
       if (!hayMasPaginas(respuesta)) break
     }

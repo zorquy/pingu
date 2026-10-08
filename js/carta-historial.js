@@ -262,11 +262,13 @@ export function engancharLectura(lienzo) {
 // Monta la gráfica en `caja` y devuelve la función para repintarla (al
 // cambiar de idioma). `idiomaActual` se consulta cada vez. `marcas(desde,
 // hasta)` trae los lanzamientos del tramo; sin ella, sin marcas.
-export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', { marcas = null, rango = RANGO_POR_DEFECTO } = {}) {
+// `url` (769): la de un producto sellado, que tiene su propia función; la
+// gráfica es la misma.
+export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', { marcas = null, rango = RANGO_POR_DEFECTO, url = null } = {}) {
   if (!caja || !cardId) return () => {}
   let filas = []
   try {
-    const res = await fetch(`/.netlify/functions/tcggo-historial?card=${encodeURIComponent(cardId)}`, { headers: { accept: 'application/json' } })
+    const res = await fetch(url || `/.netlify/functions/tcggo-historial?card=${encodeURIComponent(cardId)}`, { headers: { accept: 'application/json' } })
     const r = res.ok ? await res.json() : null
     filas = Array.isArray(r?.filas) ? r.filas : []
   } catch {

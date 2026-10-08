@@ -1125,7 +1125,7 @@ async function pintarRepartoProductos() {
   const mia = ++repartoVersion
   let v = null
   try {
-    v = await (await import('./mi-coleccion/productos.js')).valorParaElPanel(sesion?.user?.id)
+    v = await (await import('./productos-valor.js')).valorParaElPanel(sesion?.user?.id)
   } catch { v = null }
   const caja = $('mcCarteraReparto')
   if (mia !== repartoVersion || !caja) return

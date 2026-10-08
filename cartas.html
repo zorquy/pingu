@@ -1111,17 +1111,28 @@
            que valen; debajo, los de una expansión. Lo pinta
            js/mi-coleccion/productos.js. -->
       <section id="mcPanelProductos" class="hidden" role="tabpanel" aria-label="Productos">
-        <div id="mcProdTuyos"></div>
-        <div class="mc-prod-cabecera">
-          <h2 class="mc-subtitulo">Productos de una expansión</h2>
+        <!-- PRODUCTOS COMO EXPANSIONES (769). PINGU: «que se te abran los
+             productos por set, diferenciando entre occidental y japonés; y
+             si clicas uno, que se abra como una carta». La estantería, una
+             expansión y la ficha (#mcProdFicha). Lo pinta
+             js/mi-coleccion/productos.js. -->
+        <div id="mcProdEstante">
+          <div class="mc-prod-barra">
+            <span class="seg mc-prod-catalogo" role="group" aria-label="Qué catálogo se mira">
+              <button type="button" class="seg-btn" data-prod-mercado="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
+              <button type="button" class="seg-btn" data-prod-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
+            </span>
+          </div>
+          <div id="mcProdTuyos"></div>
+          <h2 class="mc-subtitulo">Expansiones</h2>
+          <div class="mc-prod-sets" id="mcProdSets"></div>
         </div>
-        <div class="mc-prod-mandos">
-          <select class="mc-chapa-select" id="mcProdSet" aria-label="Expansión"></select>
+        <div id="mcProdSetVista" class="hidden">
+          <button type="button" class="mc-prod-volver" id="mcProdVolver" data-icono="layers">Todas las expansiones</button>
+          <div class="mc-prod-set hidden" id="mcProdSetCabeza"></div>
           <div class="mc-chips-filtro" id="mcProdTipos" role="group" aria-label="Tipo de producto"></div>
+          <div class="mc-prod-rejilla" id="mcProdRejilla"></div>
         </div>
-        <!-- La expansión elegida, con su logo (766, PR1). -->
-        <div class="mc-prod-set hidden" id="mcProdSetCabeza"></div>
-        <div class="mc-prod-rejilla" id="mcProdRejilla"></div>
       </section>
 
       <!-- BUSCAR EN TODO EL CATÁLOGO (tanda 447). No es «añadir a mi
@@ -1685,6 +1696,15 @@
           </div>
         </form>
       </dialog>
+    <!-- LA FICHA DE UN PRODUCTO (769): al lado en un PC ancho, en ventana
+         si no, como la de una carta. -->
+    <dialog class="mc-prodf" id="mcProdFicha" aria-labelledby="mcProdFichaTitulo">
+      <div class="mc-panel-cabecera">
+        <h2 id="mcProdFichaTitulo">Producto</h2>
+        <button type="button" class="mc-panel-cerrar" id="mcProdFichaCerrar" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="mc-prodf-cuerpo" id="mcProdFichaCuerpo"></div>
+    </dialog>
     <!-- SELECCIONAR VARIAS (747, la C4 como en su maqueta). Vale para las
          DOS rejillas —«Cartas», donde se marca cada copia tuya, y una
          expansión, donde se marca cada carta— y por eso vive fuera de las

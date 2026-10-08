@@ -52,6 +52,11 @@ export function filaDeProducto(p, { ahora = new Date() } = {}) {
     cm_lowest: numero(cm.lowest),
     cm_lowest_eu: numero(cm.lowest_EU_only),
     cm_lowest_es: numero(cm.lowest_ES),
+    // Por país del vendedor (769), para la ficha del producto. Columnas de
+    // supabase-migration-productos-ficha.sql: la función las quita si faltan.
+    cm_lowest_de: numero(cm.lowest_DE),
+    cm_lowest_fr: numero(cm.lowest_FR),
+    cm_lowest_it: numero(cm.lowest_IT),
     cm_avg30: numero(cm['30d_average']),
     cm_avg7: numero(cm['7d_average']),
     cm_disponibles: Number.isInteger(Number(cm.available_items)) ? Number(cm.available_items) : null,
@@ -92,3 +97,40 @@ export function valorDeProductos(mios, porId) {
   }
   return { total: Math.round(total * 100) / 100, sinPrecio, unidades }
 }
+
+// Las columnas que trae la 769 (supabase-migration-productos-ficha.sql).
+// Hasta que esté la migración, `tcggo-productos` no las manda: un upsert
+// con una columna que no existe se rechaza ENTERO.
+export const COLUMNAS_POR_PAIS = ['cm_lowest_de', 'cm_lowest_fr', 'cm_lowest_it']
+
+// LO QUE ENSEÑA LA FICHA DE UN PRODUCTO (769): el mínimo en cada sitio, del
+// más cercano al más lejano, solo los que tienen cifra (lo que no se sabe no
+// se pinta, la 319).
+export const SITIOS = [
+  { id: 'es', columna: 'cm_lowest_es', nombre: 'España' },
+  { id: 'eu', columna: 'cm_lowest_eu', nombre: 'Europa' },
+  { id: 'de', columna: 'cm_lowest_de', nombre: 'Alemania' },
+  { id: 'fr', columna: 'cm_lowest_fr', nombre: 'Francia' },
+  { id: 'it', columna: 'cm_lowest_it', nombre: 'Italia' },
+  { id: 'todo', columna: 'cm_lowest', nombre: 'Todo Cardmarket' },
+]
+export function preciosPorSitio(f) {
+  return SITIOS.map((s) => ({ ...s, valor: numero(f?.[s.columna]) })).filter((s) => s.valor != null)
+}
+
+// Los enlaces: Cardmarket por su id de producto (sin filtro de idioma: un
+// producto sellado ES de un idioma, y el filtro dejaría fuera lo que hay) y
+// TCGplayer por el suyo. `null` si no hay id: un botón que no lleva a
+// ninguna parte no se pinta.
+export function enlaceCardmarketDeProducto(f) {
+  const id = Number(f?.cardmarket_id)
+  return Number.isInteger(id) && id > 0 ? `https://www.cardmarket.com/es/Pokemon/Products?idProduct=${id}` : null
+}
+export function enlaceTcgplayerDeProducto(f) {
+  const id = Number(f?.tcgplayer_id)
+  return Number.isInteger(id) && id > 0 ? `https://www.tcgplayer.com/product/${id}` : null
+}
+
+// El catálogo de un producto (769): japonés si su idioma o su expansión lo
+// son; occidental si no.
+export const mercadoDeProducto = (f, setMarket = null) => (setMarket || (String(f?.lang || '').toLowerCase() === 'ja' ? 'JP' : 'WEST'))
