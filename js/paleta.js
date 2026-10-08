@@ -34,8 +34,9 @@ export function accionesDisponibles(q = '', doc = document) {
   const conCuenta = !!doc.getElementById('navUserBtn')
   const tema = doc.getElementById('navThemeToggle')
   const oscuro = doc.documentElement.dataset.theme === 'dark'
+  // Sin «Escanear una carta» (758): el escáner se queda en el código y
+  // escondido, PINGU: «ocúltalo, que no funciona muy bien».
   const lista = [
-    { nombre: 'Escanear una carta', detalle: 'Con la cámara, a tu colección', icono: 'scan', href: '/mi-coleccion?ver=buscar&escanear=1', palabras: 'camara foto anadir coleccion' },
     { nombre: 'Añadir cartas a mi colección', detalle: 'Buscar y añadir', icono: 'cards', href: `/mi-coleccion?ver=buscar${q ? `&q=${encodeURIComponent(q)}` : ''}`, palabras: 'coleccion anadir' },
     { nombre: 'Crear un mazo', detalle: 'Constructor de mazos', icono: 'layers', href: '/constructor', palabras: 'constructor deck lista' },
   ]

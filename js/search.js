@@ -16,7 +16,6 @@ const EN_TODO = 4
 const EN_UNO = 24
 
 $('bsLupa').innerHTML = icons.search(20)
-$('bsEscanear').innerHTML = icons.scan(20)
 
 const params = new URLSearchParams(location.search)
 let grupo = NOMBRE[params.get('en')] ? params.get('en') : ''

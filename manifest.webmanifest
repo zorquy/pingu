@@ -28,19 +28,6 @@
   ],
   "shortcuts": [
     {
-      "name": "Escanear una carta",
-      "short_name": "Escanear",
-      "description": "Abre la cámara y añade lo que leas a tu colección",
-      "url": "/mi-coleccion?ver=buscar&escanear=1",
-      "icons": [
-        {
-          "src": "/assets/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
       "name": "Añadir a mi colección",
       "short_name": "Añadir",
       "description": "Busca una carta y añádela",

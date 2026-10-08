@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { ICONOS, ORDEN, claveDePagina, seccionActual, destinoDe } from './js/barra-movil.js'
+import { claveDePagina, seccionActual, destinoDe, seccionesDe, ICONOS } from './js/barra-movil.js'
 import { icons } from './js/icons.js'
 
 const RAIZ = dirname(fileURLToPath(import.meta.url))
@@ -32,9 +32,12 @@ export function seccionesDelHtml(html) {
     nombre: m[1].trim(),
     enlaces: [...m[2].matchAll(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g)].map((a) => ({ href: a[1], texto: a[2].trim() })),
   }))
-  const noticias = html.match(/<div class="nav-links"[^>]*>[\s\S]*?<a href="([^"]*noticias[^"]*)"[^>]*>([^<]+)<\/a>/)
-  const inicio = { nombre: 'Inicio', enlaces: [{ href: '/index.html', texto: 'Inicio' }, ...(noticias ? [{ href: noticias[1], texto: noticias[2].trim() }] : [])] }
-  return [inicio, ...grupos].filter((s) => ORDEN.includes(s.nombre)).sort((a, b) => ORDEN.indexOf(a.nombre) - ORDEN.indexOf(b.nombre))
+  // Los enlaces sueltos de la barra: los de primer nivel de .nav-links,
+  // fuera de los desplegables.
+  const barra = (html.match(/<div class="nav-links"[^>]*>([\s\S]*?)<div class="nav-right"/) || [])[1] || ''
+  const sinGrupos = barra.replace(/<div class="nav-grupo[\s\S]*?<\/div>\s*<\/div>/g, '')
+  const sueltos = [...sinGrupos.matchAll(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g)].map((a) => ({ href: a[1], texto: a[2].trim() }))
+  return seccionesDe(grupos, sueltos)
 }
 
 // El HTML de la barra: lo mismo que pintaba el JavaScript, sin cuenta (el

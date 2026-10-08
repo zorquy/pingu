@@ -11,12 +11,17 @@
 // Es el mismo `#navUserDropdown` en el ordenador (colgado del avatar) y en
 // el móvil (desde abajo, css/movil.css). Entra por `import()` al tocar el
 // avatar, con su hoja: la portada no paga ni un byte.
-import { icons } from './icons.js'
+import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
 
 const CLAVE_TEMA = 'pokedoc-theme'
+
+// «Apoyar PokeDoc» (758, PINGU: «mi enlace a Ko-fi»). La taza vive aquí y
+// no en js/icons.js, que lo baja la portada; esta hoja entra al tocar el avatar.
+export const KOFI = 'https://ko-fi.com/pingucollects'
+const taza = (size) => icon('<path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line>', size)
 
 // Lo que hay guardado: 'light', 'dark' o nada (el del sistema).
 function temaGuardado() {
@@ -79,6 +84,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
       ${fila('/mazos', icons.layers(20), 'Mis mazos')}
       ${fila('/mis-partidas', icons.gamepad(20), 'Mis partidas')}
       ${fila('/editor-guia.html', icons.edit(20), 'Escribir una guía')}
+      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener">${taza(20)}<span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a>
       ${fila('/perfil.html?editar=1', icons.settings(20), 'Ajustes')}
     </nav>
     <div class="tu-pie">

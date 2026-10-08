@@ -167,6 +167,18 @@
   color: var(--navy);
 }
 
+/* 758: el enlace de fuera lleva su línea pequeña debajo (por qué, en SCHEMA). */
+.tu-apoyar small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.tu-lista .tu-apoyar svg {
+  color: var(--warning);
+}
+
 .tu-pie {
   display: flex;
   gap: var(--e-sm);

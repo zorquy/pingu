@@ -26,10 +26,10 @@ export const ORDEN = ['Inicio', 'Aprender', 'Cartas', 'Comunidad', 'Jugar']
 // tema del foro, un torneo…) pertenece a la sección de lo que enseña.
 export const SECCION_DE = {
   Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'nueve'],
-  Cartas: ['cartas', 'lanzamientos', 'mi-coleccion', 'carta', 'coleccion'],
+  Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion'],
   Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
-  Inicio: ['index', 'noticias'],
+  Inicio: ['index', 'noticias', 'lanzamientos'],
 }
 
 // «/mi-coleccion», «/mi-coleccion.html» y «mi-coleccion.html?ver=panel»
@@ -47,9 +47,19 @@ export function seccionesDeLaBarra(doc = document) {
     nombre: g.querySelector('.nav-grupo-btn')?.textContent.trim() || '',
     enlaces: [...g.querySelectorAll('.nav-sub a')].map((a) => ({ href: a.getAttribute('href'), texto: a.textContent.trim() })),
   }))
-  const noticias = doc.querySelector('.nav-links > a[href*="noticias"]')
-  const inicio = { nombre: 'Inicio', enlaces: [{ href: '/index.html', texto: 'Inicio' }, ...(noticias ? [{ href: noticias.getAttribute('href'), texto: noticias.textContent.trim() }] : [])] }
-  return [inicio, ...grupos].filter((s) => ORDEN.includes(s.nombre)).sort((a, b) => ORDEN.indexOf(a.nombre) - ORDEN.indexOf(b.nombre))
+  const sueltos = [...doc.querySelectorAll('.nav-links > a')].map((a) => ({ href: a.getAttribute('href'), texto: a.textContent.trim() }))
+  return seccionesDe(grupos, sueltos)
+}
+
+// Los enlaces SUELTOS de la barra de arriba (758): Noticias y Lanzamientos
+// son de Inicio, y «Mi colección», que dejó de ser el desplegable
+// «Cartas», es la sección Cartas. Lo usan la web y el generador.
+export function seccionesDe(grupos, sueltos) {
+  const deCartas = sueltos.filter((e) => claveDePagina(e.href) === 'mi-coleccion')
+  const deInicio = sueltos.filter((e) => !deCartas.includes(e))
+  const inicio = { nombre: 'Inicio', enlaces: [{ href: '/index.html', texto: 'Inicio' }, ...deInicio] }
+  const cartas = deCartas.length && !grupos.some((g) => g.nombre === 'Cartas') ? [{ nombre: 'Cartas', enlaces: deCartas }] : []
+  return [inicio, ...grupos, ...cartas].filter((s) => ORDEN.includes(s.nombre)).sort((a, b) => ORDEN.indexOf(a.nombre) - ORDEN.indexOf(b.nombre))
 }
 
 // La sección de la página actual: por sus enlaces, y si no, por la tabla.
@@ -274,30 +284,21 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   import('./instalar.js')
     .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar({ aqui: clave === 'index' || Boolean(enLista) })))
     .catch(() => {})
-  if (seccion && enLista && seccion.enlaces.length > 1) {
+  const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
+  if (seccion && enLista && (propia || seccion.enlaces.length > 1)) {
     const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }
-    const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
-    // ESCANEAR TIENE BOTÓN PROPIO en la burbuja de Cartas (719, N4), y
-    // solo con cuenta: lo leído se añade a TU colección. En Mi colección
-    // abre la cámara ahí mismo; desde otra página, va y la abre.
-    const escanear = (clase) => (seccion.nombre === 'Cartas' && conSesion
-      ? `<a class="${clase} bm-escanear" href="/mi-coleccion?ver=buscar&amp;escanear=1" title="Escanear una carta">${icons.scan?.(24) || ''}<span class="bm-texto">Escanear</span></a>`
-      : '')
+    // SIN ESCANEAR (758): PINGU, «ocúltalo, que no funciona muy bien». Se
+    // va de la burbuja, de la paleta y del atajo del icono; el código del
+    // escáner se queda en Mi colección, sin ninguna puerta que lleve a él.
     if (propia) {
-      propia.insertAdjacentHTML('beforeend', escanear('mc-pestania bm-ajena') + seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
-      // En tu colección, la cámara se abre ahí mismo (Mi colección escucha
-      // el aviso); en la de otra persona, el enlace te lleva a la tuya.
-      propia.querySelector('.bm-escanear')?.addEventListener('click', (ev) => {
-        const atendido = !doc.dispatchEvent(new CustomEvent('pokedoc:escanear', { cancelable: true }))
-        if (atendido) ev.preventDefault()
-      })
+      propia.insertAdjacentHTML('beforeend', seccion.enlaces.filter((e) => claveDePagina(e.href) !== clave).map((e) => item(e, 'mc-pestania bm-ajena')).join(''))
       propia.classList.add('bm-con-ajenas')
       vigilarDesborde(propia)
     } else {
       const burbuja = doc.createElement('nav')
       burbuja.className = 'bm-burbuja'
       burbuja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
-      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('') + escanear('bm-burbuja-item')
+      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('')
       doc.body.appendChild(burbuja)
       doc.documentElement.classList.add('con-burbuja-movil')
       vigilarDesborde(burbuja)

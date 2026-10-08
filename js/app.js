@@ -603,6 +603,9 @@ const APARTADO_DE = {
   categoria: 'aprender',
   usuario: 'usuarios',
   torneo: 'torneos',
+  carta: 'mi-coleccion',
+  cartas: 'mi-coleccion',
+  coleccion: 'mi-coleccion',
 }
 
 function markActiveLink() {

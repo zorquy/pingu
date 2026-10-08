@@ -149,16 +149,6 @@ input.bs-input[type='search']:focus {
   font-size: var(--t-md);
 }
 
-.bs-escanear {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
 .bs-chips {
   display: flex;
   flex-wrap: wrap;
