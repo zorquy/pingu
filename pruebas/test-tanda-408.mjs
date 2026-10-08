@@ -38,13 +38,13 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
 // EL MENÚ, desde la tanda 447. «Cartas» SALE del menú —PINGU, con Dex
 // delante: «no tiene sentido meter en el menú las cartas»— y entra
 // «Buscar», que busca en todo el catálogo. El orden es el del HTML.
-// Desde la 765 Buscar es la hoja «Añadir carta» (sigue abriéndose con
-// `?ver=buscar`, pero no es pestaña) y entra «Deseos y cambios».
-const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'quiero']
+// Desde la 765 entra «Deseos y cambios»; Buscar fue una hoja en la 765 y
+// vuelve a ser pestaña en la 767.
+const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'quiero', 'buscar']
 // Pero la PANTALLA de cartas se queda y se abre por enlace: lo apuntan el
 // «Ver todas» del panel y las URLs que la gente tenga guardadas. Quitar la
 // pestaña no es quitar la página, y esta lista es la que lo vigila.
-const POR_ENLACE = [...EN_EL_MENU, 'cartas', 'buscar']
+const POR_ENLACE = [...EN_EL_MENU, 'cartas']
 const PANEL_DE = { resumen: 'mcPanelResumen', album: 'mcPanelAlbum', pokedex: 'mcPanelPokedex',
   carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas', productos: 'mcPanelProductos', quiero: 'mcPanelQuiero' }
 
@@ -53,7 +53,7 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   const hay = await page.locator('#mcMenu [data-pestania]').evaluateAll((l) => l.map((e) => e.dataset.pestania))
-  check('son estas seis (Productos desde la 762)', JSON.stringify(hay) === JSON.stringify(EN_EL_MENU), hay.join(','))
+  check('son estas siete (Productos desde la 762, Deseos y cambios y Buscar desde la 767)', JSON.stringify(hay) === JSON.stringify(EN_EL_MENU), hay.join(','))
   // Y cada una tiene su panel: una pestaña sin panel no da error, deja la
   // pantalla en blanco.
   for (const p of hay) {
@@ -65,8 +65,8 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
 {
   // Con cinco ya caben en la barra del móvil sin un «Más» detrás.
   const { page } = await abrir('/mi-coleccion.html', 390, 820)
-  check('en el móvil se ven las seis',
-    (await page.locator('#mcMenu [data-pestania]:visible').count()) === 6)
+  check('en el móvil se ven las siete (Buscar desde la 767)',
+    (await page.locator('#mcMenu [data-pestania]:visible').count()) === 7)
   check('  …y ya no hace falta un «Más»', (await page.locator('#mcMenuMas').count()) === 0)
   // LOS NOMBRES YA NO SE VEN (tanda 452): el menú del móvil es una burbuja
   // de iconos, como la de Dex. Lo que se comprobaba aquí —que «Expansiones»

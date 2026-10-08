@@ -65,8 +65,8 @@ const pagina = async (ancho = 1280, alto = 1000) => {
     // «Álbumes» desde la 579: dentro hay carpetas y álbumes soñados.
     // Y «Productos» desde la 762. Desde la 765 Buscar es una hoja (no una
     // pestaña) y entra «Deseos y cambios».
-    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Álbumes', 'Productos', 'Deseos y cambios']),
-    'el menú es Panel · Expansiones · Pokédex · Álbumes · Productos · Deseos y cambios',
+    JSON.stringify(pestanas) === JSON.stringify(['Panel', 'Expansiones', 'Pokédex', 'Álbumes', 'Productos', 'Deseos y cambios', 'Buscar']),
+    'el menú es Panel · Expansiones · Pokédex · Álbumes · Productos · Deseos y cambios · Buscar',
     JSON.stringify(pestanas),
   )
   // «Mi colección» solo en el Panel: en las demás pestañas ese hueco está

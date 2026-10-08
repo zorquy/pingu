@@ -94,7 +94,9 @@ console.log('── 2. Tus expansiones, a la izquierda ──')
 
   console.log('── 4. El menú de Mi colección, en la barra lateral ──')
   const menu = await page.evaluate(() => { const m = document.getElementById('mcMenu'); return { enLateral: !!m?.closest('.lat'), visible: !!m && m.getBoundingClientRect().height > 0, opciones: [...(m?.querySelectorAll('[data-pestania]') || [])].map((b) => b.textContent.trim()) } })
-  check('cuelga de «Mi colección» en la lateral, con sus seis (Productos desde la 762)', menu.enLateral && menu.visible && menu.opciones.length === 6, JSON.stringify(menu))
+  // Desde la 767 cuelga directamente del cajón de Cartas (sin la fila «Mi
+  // colección»), con siete: Productos (762), Deseos y cambios y Buscar.
+  check('va en la lateral, con sus siete', menu.enLateral && menu.visible && menu.opciones.length === 7, JSON.stringify(menu))
   await page.click('.lat [data-pestania="album"]')
   await page.waitForTimeout(800)
   check('  …y funciona: abre Expansiones', await page.locator('#mcPanelAlbum').isVisible())

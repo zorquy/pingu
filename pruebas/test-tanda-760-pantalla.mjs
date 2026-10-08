@@ -119,8 +119,8 @@ console.log('── 4. Un binder: tocar un bolsillo vacío y elegir la carta ─
   check('  …y miden 44 o más', medida >= 44, String(medida))
   await page.click('#mcAlbArchivador [data-hueco="1"]')
   await page.waitForTimeout(300)
-  // Desde la 765 es LA hoja «Añadir carta» de la pantalla, con su título.
-  check('tocar el bolsillo 2 abre la hoja de elegir', (await page.locator('#mcPanelBuscar').isVisible()) && /Bolsillo 2/.test(await page.textContent('#mcHojaTitulo')))
+  // Desde la 767 es la pestaña Buscar en modo elegir, con su franja.
+  check('tocar el bolsillo 2 abre Buscar para elegir', (await page.locator('#mcPanelBuscar').isVisible()) && /bolsillo 2/.test(await page.textContent('#mcEligiendoTexto')))
   await page.fill('#mcBuscarTodo', 'chispa 9')
   await page.waitForTimeout(900)
   if (CAPS) await page.screenshot({ path: `${CAPS}/760-elegir.png` })

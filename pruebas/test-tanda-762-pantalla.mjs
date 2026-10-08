@@ -163,9 +163,11 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=productos')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('la pestaña está en el menú', (await page.locator('.mc-pestanias [data-pestania="productos"]').count()) === 1 && (await page.isVisible('#mcPanelProductos')))
-  const opciones = await page.$$eval('#mcProdSet option', (os) => os.map((o) => o.textContent))
-  check('el selector: la de preventa arriba (aunque esté escondida), y la otra', opciones.join() === 'Delta Reign (preventa),30 aniversario', JSON.stringify(opciones))
-  await page.selectOption('#mcProdSet', '431')
+  // Desde la 769, una estantería de expansiones (como Expansiones) en vez
+  // del desplegable: la de preventa arriba (aunque esté escondida).
+  const opciones = await page.$$eval('#mcProdSets [data-prod-set]', (os) => os.map((o) => `${o.dataset.prodSet}:${o.querySelector('.mc-prod-baldosa-texto b').textContent}${o.querySelector('.mc-prod-preventa') ? ' (preventa)' : ''}`))
+  check('la estantería: la de preventa arriba (aunque esté escondida), y la otra', opciones.join() === '500:Delta Reign (preventa),431:30 aniversario', JSON.stringify(opciones))
+  await page.click('#mcProdSets [data-prod-set="431"]')
   await page.waitForTimeout(800)
   const tarjetas = await page.$$eval('#mcProdRejilla .mc-prod', (as) => as.map((a) => a.textContent.replace(/\s+/g, ' ').trim()))
   check('los veinte de 30th Celebration', tarjetas.length === 20, String(tarjetas.length))
@@ -220,7 +222,7 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
 }
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=productos', { movil: true })
-  await page.selectOption('#mcProdSet', '431')
+  await page.click('#mcProdSets [data-prod-set="431"]')
   await page.waitForTimeout(800)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('en el iPhone, dos por fila y sin irse de ancho', ancho <= 1 && (await page.$$eval('#mcProdRejilla .mc-prod', (as) => new Set(as.slice(0, 4).map((a) => Math.round(a.getBoundingClientRect().left))).size)) === 2, String(ancho))

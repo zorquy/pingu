@@ -141,6 +141,11 @@ console.log('── 1. Lo que el navegador arrastraba SOLO, apagado ──')
   const clics = await page.evaluate(() => window.__clics)
   check('  …y el clic llega al enlace sin cancelar: sigue llevando a la carta', JSON.stringify(clics) === '[false]', JSON.stringify(clics))
   check('  …sin irse de la página en la prueba', /mi-coleccion/.test(page.url()), page.url())
+  // Desde la 767 el clic abre la ficha de la carta aquí, como en
+  // Expansiones: se cierra para seguir.
+  check('  …y abre la ficha de la carta, como en Expansiones (767)', await page.evaluate(() => !!document.getElementById('mcEditor')?.open))
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
 
   console.log('── 4. Al hueco vacío: AHÍ (760); y a la flecha: pasa de página ──')
   // 20 cartas son 3 pliegos: en escritorio se ven dos (18 huecos) y el

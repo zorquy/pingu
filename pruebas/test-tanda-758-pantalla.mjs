@@ -150,7 +150,7 @@ console.log('── 5. La lateral del ordenador: Cartas con su desplegable ─�
     const c = ss.find((x) => x.querySelector('.lat-seccion-enlace span')?.textContent === 'Cartas')
     return { abierto: c?.querySelector('.lat-cajon')?.classList.contains('lat-abierto'), enlaces: [...(c?.querySelectorAll('.lat-paginas a') || [])].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`) }
   })
-  check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Expansiones>/mi-coleccion?ver=album,Pokédex>/mi-coleccion?ver=pokedex,Álbumes>/mi-coleccion?ver=carpetas,Productos>/mi-coleccion?ver=productos,Deseos y cambios>/mi-coleccion?ver=quiero', JSON.stringify(partes))
+  check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Expansiones>/mi-coleccion?ver=album,Pokédex>/mi-coleccion?ver=pokedex,Álbumes>/mi-coleccion?ver=carpetas,Productos>/mi-coleccion?ver=productos,Deseos y cambios>/mi-coleccion?ver=quiero,Buscar>/mi-coleccion?ver=buscar', JSON.stringify(partes))
   check('  …sin errores', l.errores.length === 0, l.errores.join(' | '))
   await l.ctx.close()
   const m = await abrir('/mi-coleccion.html?ver=album', { movil: false, ancho: 1440 })
