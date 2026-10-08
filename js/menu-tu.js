@@ -11,17 +11,19 @@
 // Es el mismo `#navUserDropdown` en el ordenador (colgado del avatar) y en
 // el móvil (desde abajo, css/movil.css). Entra por `import()` al tocar el
 // avatar, con su hoja: la portada no paga ni un byte.
-import { icons, icon } from './icons.js'
+import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
+import { KOFI, DIBUJOS } from './barra-lateral.js'
 
 const CLAVE_TEMA = 'pokedoc-theme'
 
-// «Apoyar PokeDoc» (758, PINGU: «mi enlace a Ko-fi»). La taza vive aquí y
-// no en js/icons.js, que lo baja la portada; esta hoja entra al tocar el avatar.
-export const KOFI = 'https://ko-fi.com/pingucollects'
-const taza = (size) => icon('<path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line>', size)
+// «Apoyar PokeDoc» (758, PINGU: «mi enlace a Ko-fi»). El enlace y la taza
+// son los de la lateral (774), que en el PC ancho lo enseña siempre: ahí la
+// hoja no lo repite (menu-tu.css). En el móvil y en un PC estrecho, sin
+// lateral, sigue aquí.
+const taza = (size) => DIBUJOS.taza(size)
 
 // Lo que hay guardado: 'light', 'dark' o nada (el del sistema).
 function temaGuardado() {

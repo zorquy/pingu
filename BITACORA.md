@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (21) — PINGU-Claude (774 — «Apoyar PokeDoc» en la lateral)
+
+**Hecho**: el café sale del menú del perfil en el PC y va en la lateral,
+justo encima de tu cuenta, siempre a la vista; plegada, solo la taza. Enlaza
+a ko-fi.com/pokedoc (el pie de todas las páginas también; el viejo
+`pingucollects` ya no está en ninguna parte). En el móvil sigue en la hoja
+«Tú» mientras PINGU elige dónde lo quiere. Detalle en SCHEMA.md, tanda 774.
+
+**Ficheros**: `js/barra-lateral.js`, `js/menu-tu.js`, `css/lateral.css`,
+`css/menu-tu.css`, las 36 páginas con pie (solo el enlace), `cartas.html`
+(regenerado), `SCHEMA.md`. Prueba 774-pantalla (nueva); al día 758.
+
+**Pendiente**: el sitio del café en el móvil (PINGU, «propónme algo»).
+
 ## 2026-10-08 (20) — PINGU-Claude (635 — en una liga, una lista por jornada y cada jornada se cierra aparte)
 
 **Hecho**: PINGU: «en una liga puedes jugar distintas jornadas con

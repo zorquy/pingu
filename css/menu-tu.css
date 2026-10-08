@@ -265,3 +265,10 @@
     background: var(--border-strong);
   }
 }
+
+/* 774: con la lateral a la vista, «Apoyar PokeDoc» va en ella, no aquí. */
+@media (min-width: 1400px) and (pointer: fine) {
+  html.con-lateral .tu-lista > .tu-apoyar {
+    display: none;
+  }
+}

@@ -36783,3 +36783,26 @@ segunda fuente de «quién juega». La migración la quita.
   lista, Cerrar / Reabrir) y no tiene «Cerrar inscripciones» de la liga
   entera. Sin la migración, todo como antes.
 
+## Tanda 774 — «Apoyar PokeDoc» en la lateral (oct. 2026)
+
+PINGU: que el café salga del menú del perfil y esté «justo encima del clic
+del perfil», como una categoría, siempre a la vista en el PC; plegada la
+barra, solo el icono; y que sea un enlace, a **ko-fi.com/pokedoc** (antes
+`pingucollects`).
+
+- **En la lateral** (`.lat-apoyar`, `js/barra-lateral.js`): un enlace en
+  pestaña nueva, «Apoyar PokeDoc · Un café en Ko-fi», en rosa como su fila
+  de la hoja «Tú» (la 766), pegado abajo y justo encima de la tarjeta de tu
+  cuenta; sin cuenta también sale. Plegada, solo la taza, con el nombre en
+  el `title`. CSS en `css/lateral.css`.
+- **El enlace y la taza viven en UN sitio**: `KOFI` y `DIBUJOS.taza` en
+  `barra-lateral.js`; `menu-tu.js` los importa. Donde hay lateral (PC ancho
+  con ratón) la hoja «Tú» no lo repite (`css/menu-tu.css`); en el móvil y en
+  un PC estrecho, sin lateral, sigue en la hoja.
+- **En una pantalla bajita** (la lateral «prieta» de la 633, que a 560 de
+  alto ya iba justa) no cabe una fila más: con tu cuenta, la taza se mete
+  DENTRO de la fila de la cuenta, donde estaba la rueda (que es decorativa:
+  la tarjeta entera abre la hoja), por encima para que se pulse ella.
+- El pie de las 36 páginas, al enlace nuevo (`cartas.html`, regenerado).
+- Prueba 774-pantalla (nueva); al día 633 (sin cambios: vuelve a caber),
+  748 y 758.

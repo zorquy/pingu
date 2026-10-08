@@ -526,3 +526,86 @@
     transition: none;
   }
 }
+
+/* 774: «Apoyar PokeDoc» encima de tu cuenta (SCHEMA, tanda 774). */
+@media (min-width: 1400px) and (pointer: fine) {
+  .lat-apoyar {
+    display: flex;
+    align-items: center;
+    gap: var(--e-md);
+    min-height: 44px;
+    margin-top: auto;
+    padding: var(--e-xs) var(--e-md);
+    border-radius: var(--radius-md);
+    background: var(--pink-bg);
+    color: var(--pink);
+    text-decoration: none;
+  }
+
+  .lat-apoyar:hover {
+    outline: 1px solid var(--pink);
+  }
+
+  .lat-apoyar svg {
+    flex: none;
+  }
+
+  .lat-apoyar-texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: var(--t-sm);
+  }
+
+  .lat-apoyar-texto small {
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+  }
+
+  .lat-apoyar + .lat-yo {
+    margin-top: 0;
+  }
+
+  .lat.lat-prieta .lat-apoyar {
+    min-height: 36px;
+    padding-block: 0;
+  }
+
+  .lat.lat-prieta .lat-apoyar-texto small {
+    display: none;
+  }
+
+  /* Prieta y con tu cuenta, no cabe una fila más: la taza va DENTRO de la
+     fila de la cuenta, donde estaba la rueda. */
+  .lat.lat-prieta .lat-apoyar:has(+ .lat-yo) {
+    order: 1;
+    align-self: flex-end;
+    justify-content: center;
+    width: 44px;
+    min-height: 48px;
+    margin: calc(-48px - var(--e-sm)) var(--e-xs) 0 0;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    background: none;
+  }
+
+  .lat.lat-prieta .lat-apoyar:has(+ .lat-yo) .lat-apoyar-texto,
+  .lat.lat-prieta .lat-yo > svg {
+    display: none;
+  }
+
+  .lat.lat-prieta .lat-apoyar + .lat-yo {
+    margin-top: auto;
+    padding-right: 52px;
+  }
+
+  html.lat-plegada .lat-apoyar {
+    justify-content: center;
+    padding: 0;
+  }
+
+  html.lat-plegada .lat-apoyar-texto {
+    display: none;
+  }
+}
