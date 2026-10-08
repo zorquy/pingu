@@ -9686,3 +9686,52 @@ input.mc-alb-titulo:not([readonly]):focus {
     flex: 1 1 0;
   }
 }
+
+/* ── 764: la portada de un binder (Z4) y lo demás de los álbumes. El porqué,
+   en SCHEMA.md (tanda 764). ── */
+.mc-albt-portada {
+  display: block;
+  width: 40%;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 35%));
+}
+
+.mc-albt-portada > * {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: 6px;
+  background: var(--bg);
+  object-fit: cover;
+}
+
+.mc-bolsillo-portada {
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 55%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-md);
+  cursor: pointer;
+}
+
+.mc-bolsillo-portada[aria-pressed='true'] {
+  background: var(--warning);
+}
+
+.mc-alb-es-portada {
+  position: absolute;
+  bottom: var(--e-xs);
+  left: var(--e-xs);
+  color: var(--warning);
+  font-size: var(--t-md);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+}
+
+.mc-albn-versiones {
+  margin-top: var(--e-xs);
+}

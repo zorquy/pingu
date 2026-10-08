@@ -7749,8 +7749,15 @@ const contexto = {
 
 // /mi-coleccion?album=<id> de OTRA persona: solo ese álbum, para verlo.
 async function verAlbumAjeno(fila) {
-  $('mcTitulo').textContent = 'Álbum soñado'
-  document.title = `${fila.nombre} — Álbum soñado — PokeDoc`
+  // De quién es (764, Z2): un enlace que alguien te manda tiene que decir de
+  // quién es el álbum que abres.
+  let quien = null
+  try {
+    const { data } = await supabase.from('user_profiles').select('username').eq('id', fila.user_id).maybeSingle()
+    quien = data?.username || null
+  } catch { quien = null }
+  $('mcTitulo').textContent = quien ? `El álbum de @${quien}` : 'Álbum'
+  document.title = `${fila.nombre}${quien ? ` — @${quien}` : ''} — PokeDoc`
   for (const id of ['mcResumen', 'mcResumenNota', 'mcCargando', 'mcCompartir']) $(id)?.classList.add('hidden')
   document.querySelector('.mc-pestanias').classList.add('hidden')
   cambiarPestania('carpetas')

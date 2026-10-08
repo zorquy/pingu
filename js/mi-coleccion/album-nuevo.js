@@ -186,7 +186,7 @@ export function iniciarAlbumNuevo(o) {
     e.preventDefault()
     const pedido =
       estado.paso === 'set'
-        ? estado.set && { tipo: 'set', set: estado.set, modo: estado.modo }
+        ? estado.set && { tipo: 'set', set: estado.set, modo: estado.modo, porVersion: $('mcAlbNuevoPorVersion')?.checked === true }
         : { tipo: 'binder', nombre: $('mcAlbNuevoNombre').value.trim().slice(0, 80) || 'Mi binder', rejilla: estado.rejilla, paginas: estado.paginas, tapa: estado.tapa }
     if (!pedido) return
     dlg.close()
@@ -198,6 +198,7 @@ export function abrirAlbumNuevo() {
   estado = { paso: 'tipo', set: null, modo: 'entero', rejilla: '3x3', paginas: 20, tapa: TAPA_POR_DEFECTO }
   $('mcAlbNuevoSetBuscar').value = ''
   $('mcAlbNuevoNombre').value = ''
+  if ($('mcAlbNuevoPorVersion')) $('mcAlbNuevoPorVersion').checked = false
   pasoHtml()
   $('mcAlbNuevo').showModal()
 }

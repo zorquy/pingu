@@ -1062,7 +1062,9 @@
               <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
-              <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Copiar enlace</button>
+              <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Compartir enlace</button>
+              <!-- 764, Z5: la lista del álbum, para imprimirla o mandarla. -->
+              <button type="button" class="mc-chip-mando" id="mcAlbChecklist" data-icono="checkSquare"><span class="mc-chip-texto">Lista para imprimir</span></button>
               <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
             </div>
             <p class="mc-nota hidden" id="mcAlbAyuda">Arrastra una carta hasta otro hueco para cambiarlas de sitio, o usa las flechas. Si la llevas a una flecha de pliego, pasa de página.</p>
@@ -1640,6 +1642,8 @@
               </div>
               <div class="mc-albn-sets" id="mcAlbNuevoSets"></div>
               <div class="mc-albn-opciones mc-albn-modo hidden" id="mcAlbNuevoModo" role="group" aria-label="Qué cartas lleva"></div>
+              <!-- 764, Z6: el set «master», cada versión en su casilla. -->
+              <label class="mc-interruptor mc-albn-versiones"><input type="checkbox" id="mcAlbNuevoPorVersion" /> Una casilla por versión (normal, reverse, holo)</label>
             </div>
             <div class="mc-albn-paso hidden" data-paso="binder">
               <div class="mc-albn-vista" id="mcAlbNuevoVista" aria-hidden="true"></div>

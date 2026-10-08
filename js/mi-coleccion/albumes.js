@@ -28,6 +28,7 @@ const MAX_CARTAS = 1080
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, rejillaDe, TAPAS } from './archivador.js'
 import { activarArrastre } from './arrastre.js'
 import { iniciarAlbumNuevo, abrirAlbumNuevo, esDeLaNumeracion } from './album-nuevo.js'
+import { variantesDeCarta, VARIANTE_POR_DEFECTO } from './variantes.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 const $ = (id) => document.getElementById(id)
 const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
@@ -111,6 +112,13 @@ let temporizador = null
 function tengo(cardId) {
   return ctx.lineas().some((l) => l.card_id === cardId)
 }
+// Un bolsillo con su VERSIÓN (764, Z6: «separar por versión» en un álbum
+// de set) se tiene si tienes ESA versión; sin versión, cualquiera.
+export function tengoElBolsillo(item, lineas) {
+  if (!item?.id) return false
+  return lineas.some((l) => l.card_id === item.id && (!item.v || (l.variante || VARIANTE_POR_DEFECTO) === item.v))
+}
+const tieneItem = (item) => tengoElBolsillo(item, ctx.lineas())
 const esMio = () => Boolean(actual && ctx.sesion && actual.user_id === ctx.sesion.user.id)
 
 // ── La lista de álbumes (759, AL1) ──
@@ -142,8 +150,9 @@ function baldosaHtml({ atributo, clase = '', tapa = null, arriba, nombre, pie, p
 }
 
 function tarjetaHtml(a) {
-  const ids = conCartas(a).map((c) => c.id)
-  const mias = ids.filter((id) => tengo(id)).length
+  const items = conCartas(a)
+  const ids = items.map((c) => c.id)
+  const mias = items.filter(tieneItem).length
   const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
   if (esDeSet(a)) {
     const set = setsDeTodos.get(claveDeSet(a.set_id, a.set_market))
@@ -156,7 +165,12 @@ function tarjetaHtml(a) {
   }
   const r = rejillaDe(a.rejilla)
   const primeras = ids.slice(0, 4).map((id) => cartaDe(id))
-  const arriba = `<span class="mc-albt-hojita">${[0, 1, 2, 3].map((i) => (primeras[i] ? cartaMiniHtml(primeras[i]) : '<i></i>')).join('')}</span>`
+  // La PORTADA (764, Z4): la carta que elegiste, grande, sobre la tapa; sin
+  // portada, la hojita con las cuatro primeras.
+  const portada = a.portada ? cartaDe(a.portada) : null
+  const arriba = portada
+    ? `<span class="mc-albt-portada">${cartaMiniHtml(portada)}</span>`
+    : `<span class="mc-albt-hojita">${[0, 1, 2, 3].map((i) => (primeras[i] ? cartaMiniHtml(primeras[i]) : '<i></i>')).join('')}</span>`
   const forma = a.paginas ? ` · ${r.columnas}×${r.filas}, ${a.paginas} págs.` : ''
   return baldosaHtml({
     atributo: `data-album="${escapeHtml(a.id)}"`,
@@ -264,7 +278,7 @@ async function pintarLista() {
   // Las portadas que no estén en la colección, de una vez: las cuatro
   // primeras de cada binder y la primera de un álbum de set (por si su logo
   // no llega).
-  const faltan = albumes.flatMap((a) => conCartas(a).slice(0, esDeSet(a) ? 1 : 4).map((c) => c.id)).filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
+  const faltan = albumes.flatMap((a) => [...conCartas(a).slice(0, esDeSet(a) ? 1 : 4).map((c) => c.id), a.portada].filter(Boolean)).filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
   if (faltan.length) for (const [id, c] of await datos.cartasPorIds([...new Set(faltan)], ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
   if (albumes.some(esDeSet)) {
     const todos = await ctx.todosLosSets().catch(() => [])
@@ -285,7 +299,7 @@ async function nuevoAlbum(pedido) {
       for (const c of lista) if (!ctx.cartas.has(c.id)) cartasDelAlbum.set(c.id, c)
       fila = {
         nombre: (nombreDeSet(set) || set.id).slice(0, 80),
-        cartas: lista.slice(0, MAX_CARTAS).map((c) => ({ id: c.id })),
+        cartas: (pedido.porVersion ? bolsillosPorVersion(lista) : lista.map((c) => ({ id: c.id }))).slice(0, MAX_CARTAS),
         tipo: 'set', set_id: set.id, set_market: set.market || ctx.mercado, set_modo: modo,
       }
     } else {
@@ -353,6 +367,23 @@ export async function abrir(id, { soloVer = false } = {}) {
   return true
 }
 
+const CORTOS = { normal: 'Normal', reverse: 'Reverse', holo: 'Holo' }
+const nombreCortoDeVersion = (v) => CORTOS[v] || v
+
+// Un álbum de set con UNA CASILLA POR VERSIÓN (764, Z6): la normal, la
+// reverse y la holo de cada carta, seguidas, con su chapa. Es como se
+// completa un set «master»: no basta con tener la carta, hay que tener
+// cada versión. Lo que no dice sus versiones va con una casilla.
+export function bolsillosPorVersion(cartas) {
+  const r = []
+  for (const c of cartas) {
+    const vs = variantesDeCarta(c, null)
+    if (!vs || vs.length < 2) r.push({ id: c.id })
+    else for (const v of vs) r.push({ id: c.id, v: v.nuestro })
+  }
+  return r
+}
+
 // La forma del archivador de este álbum: 3×3 si no dice otra.
 const forma = () => rejillaDe(esDeSet(actual) ? '3x3' : actual?.rejilla)
 
@@ -393,33 +424,36 @@ function cartaDe(id) {
 function bolsilloHtml(item, indice) {
   if (esHueco(item)) return esMio() && !editando ? huecoHtml(indice) : `<span class="mc-bolsillo mc-bolsillo-vacio" data-indice="${indice}" aria-hidden="true"></span>`
   const c = cartaDe(item.id)
-  const mia = ctx.sesion && actual.user_id === ctx.sesion.user.id && tengo(item.id)
+  const mia = ctx.sesion && actual.user_id === ctx.sesion.user.id && tieneItem(item)
   const marcar = esMio()
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const clase = `mc-bolsillo${!marcar || mia ? ' tengo' : ''}`
   const dentro = `
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" draggable="false" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
-    ${marcar && mia ? '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}`
+    ${marcar && mia ? '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}
+    ${item.v ? `<span class="mc-tengo-version">${escapeHtml(nombreCortoDeVersion(item.v))}</span>` : ''}
+    ${actual.portada && actual.portada === item.id && !esDeSet(actual) ? '<span class="mc-alb-es-portada" title="La portada">★</span>' : ''}`
   // `draggable="false"` en la foto y en el enlace, y `data-indice` en los
   // dos modos: la carta se arrastra con el ratón también sin entrar en
   // «Ordenar y quitar» (tanda 578, js/mi-coleccion/arrastre.js).
   if (editando) {
     return `<div class="${clase} mc-bolsillo-editar" data-indice="${indice}" aria-label="${escapeHtml(nombreDe(c))}">${dentro}
       <button type="button" class="mc-bolsillo-quitar" data-quitar aria-label="Quitar del álbum">✕</button>
+      ${esBinder() && 'portada' in actual ? `<button type="button" class="mc-bolsillo-portada" data-portada aria-pressed="${actual.portada === item.id}" aria-label="${actual.portada === item.id ? 'Es la portada' : 'Poner de portada'}" title="Portada">★</button>` : ''}
       <span class="mc-bolsillo-controles">
         <button type="button" data-mover="-1" aria-label="Mover antes" ${indice === 0 ? 'disabled' : ''}>←</button>
         <button type="button" data-mover="1" aria-label="Mover después" ${indice === actual.cartas.length - 1 ? 'disabled' : ''}>→</button>
       </span></div>`
   }
-  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
+  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
 }
 
 function pintarDetalle() {
   const todos = actual.cartas.map((item, i) => ({ item, i }))
-  const lista = soloFaltan && esMio() ? todos.filter(({ item }) => !esHueco(item) && !tengo(item.id)) : todos
+  const lista = soloFaltan && esMio() ? todos.filter(({ item }) => !esHueco(item) && !tieneItem(item)) : todos
   const ids = actual.cartas.map((c) => c?.id).filter(Boolean)
-  const mias = ids.filter((id) => tengo(id)).length
+  const mias = actual.cartas.filter(tieneItem).length
   $('mcAlbProgreso').innerHTML =
     esMio() && ids.length
       ? `<span><strong>${mias}</strong> de ${ids.length} las tienes · ${Math.round((mias / ids.length) * 100)} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${Math.round((mias / ids.length) * 100)}%"></i></span>`
@@ -586,7 +620,7 @@ async function calcularLoQueFalta() {
     return
   }
   const mio = ++turnoFalta
-  const faltan = [...new Set(actual.cartas.map((c) => c?.id).filter((id) => id && !tengo(id)))]
+  const faltan = [...new Set(actual.cartas.filter((c) => c?.id && !tieneItem(c)).map((c) => c.id))]
   if (!faltan.length) {
     caja.textContent = actual.cartas.some((c) => c?.id) ? 'Lo tienes completo.' : ''
     return
@@ -618,7 +652,7 @@ function guardarLuego(cambios) {
   clearTimeout(temporizador)
   temporizador = setTimeout(async () => {
     try {
-      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: sinHuecosAlFinal(actual.cartas), is_public: actual.is_public, ...('tapa' in actual ? { tapa: actual.tapa } : {}) })
+      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: sinHuecosAlFinal(actual.cartas), is_public: actual.is_public, ...('tapa' in actual ? { tapa: actual.tapa } : {}), ...('portada' in actual ? { portada: actual.portada || null } : {}) })
       $('mcAlbEstado').textContent = 'Guardado'
     } catch (err) {
       $('mcAlbEstado').textContent = ''
@@ -730,12 +764,36 @@ export function iniciarAlbumes(contexto) {
     guardarLuego({ is_public: e.target.checked })
     $('mcAlbCopiar').classList.toggle('hidden', !e.target.checked)
   })
+  // El enlace PÚBLICO (764, Z2): al menú de compartir del sistema, que en
+  // el móvil es como se manda algo; sin él, al portapapeles.
   $('mcAlbCopiar')?.addEventListener('click', async () => {
+    const url = `${location.origin}/mi-coleccion?album=${actual.id}`
     try {
-      await navigator.clipboard.writeText(`${location.origin}/mi-coleccion?album=${actual.id}`)
-      showToast('Enlace del álbum copiado.', 'success')
-    } catch {
-      showToast('No se ha podido copiar.', 'error')
+      if (navigator.share) await navigator.share({ title: actual.nombre, text: `Mi álbum «${actual.nombre}» en PokeDoc`, url })
+      else {
+        await navigator.clipboard.writeText(url)
+        showToast('Enlace del álbum copiado.', 'success')
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') showToast('No se ha podido compartir.', 'error')
+    }
+  })
+  // La lista para imprimir (764, Z5): número, nombre y casilla, con lo
+  // tuyo marcado. El módulo del lienzo entra al pulsar.
+  $('mcAlbChecklist')?.addEventListener('click', async () => {
+    const b = $('mcAlbChecklist')
+    b.disabled = true
+    try {
+      const { compartirChecklist } = await import('./imagen-checklist.js')
+      const cartas = actual.cartas.filter((c) => c?.id).map((c) => {
+        const carta = cartaDe(c.id)
+        return { numero: `${carta?.local_id ?? '?'}${c.v ? ` ${c.v === 'reverse' ? 'RH' : c.v === 'holo' ? 'H' : ''}`.trimEnd() : ''}`, nombre: nombreDe(carta), tengo: tieneItem(c) }
+      })
+      await compartirChecklist({ nombre: actual.nombre, cartas })
+    } catch (err) {
+      showToast(err.message || 'No se ha podido hacer la lista.', 'error')
+    } finally {
+      b.disabled = false
     }
   })
   $('mcAlbBorrar')?.addEventListener('click', async () => {
@@ -829,6 +887,11 @@ export function iniciarAlbumes(contexto) {
       guardarLuego({ cartas })
       pintarDetalle()
       calcularLoQueFalta()
+    } else if (e.target.closest('[data-portada]')) {
+      // La portada (764): la carta de este bolsillo, o ninguna si ya lo era.
+      const id = actual.cartas[i]?.id
+      guardarLuego({ portada: actual.portada === id ? null : id })
+      pintarDetalle()
     } else if (e.target.closest('[data-mover]')) {
       moverCarta(i, i + Number(e.target.closest('[data-mover]').dataset.mover))
     }

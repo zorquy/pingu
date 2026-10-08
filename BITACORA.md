@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (15) — PINGU-Claude (764 — extras de los álbumes; la ronda 3, entera)
+
+**Hecho**: Z2, Z4, Z5 y Z6, y con ellas la ronda 3 entera (758–764). Un
+álbum de set puede ir con una casilla por versión (normal, reverse, holo), y
+cada una se tiene si tienes ESA versión. Un binder lleva la carta que elijas
+de portada. «Lista para imprimir» da la imagen del checklist del álbum. El
+enlace público se comparte, y quien lo abre ve de quién es. Detalle en
+SCHEMA.md, tanda 764.
+
+**Ficheros**: `js/mi-coleccion/albumes.js`, `js/mi-coleccion/album-nuevo.js`,
+`js/mi-coleccion/imagen-checklist.js` (nuevo), `js/mi-coleccion.js`
+(`verAlbumAjeno`), `mi-coleccion.html`, `cartas.html` (regenerado),
+`css/mi-coleccion.css`, `supabase-migration-albumes-portada.sql` (nueva),
+`SCHEMA.md`. Prueba 764-pantalla (nueva).
+
+**Pendiente — las migraciones sin ejecutar, por orden**:
+`supabase-migration-avisos-lanzamientos.sql` (753),
+`supabase-migration-albumes-tipos.sql` (759),
+`supabase-migration-productos.sql` (762),
+`supabase-migration-cambios-seguidos.sql` (763),
+`supabase-migration-albumes-portada.sql` (764). Ninguna rompe nada si
+falta; sin ellas, lo nuevo se ve a medias y lo dice.
+
 ## 2026-10-08 (14) — PINGU-Claude (763 — deseos y cambios en una pantalla)
 
 **Hecho**: DC1 y Z3 de la ronda 3. «Deseos y cambios» es una pantalla con

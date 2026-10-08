@@ -36377,3 +36377,40 @@ con demasiados submenús»).
   PostgreSQL aquí), las tres vistas desde las dos pestañas, «Las que doy» con
   precio, cuántas y quién la busca, el texto de las dos listas, el vacío y el
   iPhone.
+
+## Tanda 764 — Extras de los álbumes: versiones, portada, lista para imprimir y enlace público (oct. 2026)
+
+Z2, Z4, Z5 y Z6 de la ronda 3 (PINGU: «todo»).
+
+- **Z6, un álbum de set con una casilla por versión** (el «master set»): al
+  crear un álbum de set, «Una casilla por versión (normal, reverse, holo)».
+  `bolsillosPorVersion` pone una entrada `{ id, v }` por cada versión que la
+  carta dice tener (`variantesDeCarta`); lo que tiene una sola, o no dice
+  nada, va con una. Cada casilla lleva su chapa (`.mc-tengo-version`, la de
+  la 757) y **se tiene si tienes ESA versión** (`tengoElBolsillo`: la
+  `variante` de tu línea, `normal` si no dice); sin `v`, cualquiera. La
+  cuenta, la barra, «Solo las que me faltan» y lo que cuesta completarlo van
+  por casillas (`tieneItem`).
+- **Z4, la portada de un binder**: en «Ordenar y quitar», cada carta lleva su
+  ★ (44 px) y la elegida es la portada (`portada`, el id de la carta; volver
+  a pulsarla la quita). En la rejilla de Mis álbumes, esa carta grande sobre
+  la tapa en vez de la hojita. Columna nueva:
+  `supabase-migration-albumes-portada.sql`; sin ella el ★ no sale (la fila no
+  trae `portada`, se lee con `*` desde la 759).
+- **Z5, la lista para imprimir** (`js/mi-coleccion/imagen-checklist.js`,
+  por `import()`): la imagen del checklist de toda la vida —casilla, número y
+  nombre, lo tuyo marcado en verde y en negrita—, con el título del álbum y
+  «tienes X de Y · %». Fondo blanco (se imprime), 1080 de ancho, de dos a
+  cuatro columnas según el tamaño y el alto que pida el set
+  (`textosDeChecklist`, puro). Se comparte o se descarga con la máquina de
+  js/imagen-compartir.js. En un álbum por versiones, el número lleva «RH» u
+  «H».
+- **Z2, el enlace público**: «Compartir enlace» (era «Copiar enlace») va al
+  menú de compartir del sistema y, sin él, al portapapeles. Y quien lo abre
+  ve **de quién es**: «El álbum de @ana» y el título de la pestaña con el
+  nombre (`verAlbumAjeno` pide el `username`); antes decía «Álbum soñado».
+- Prueba 764-pantalla: lo puro (versiones, tener una casilla, la lista), las
+  dos migraciones por su texto, el álbum por versiones de punta a punta, la
+  portada (★, guardada y en la rejilla), la imagen de la lista (su fichero),
+  el enlace y el álbum ajeno con su dueño. Verdes también 759, 760, 578,
+  369, 371, 417, 418, 477, 649 y las del CSS.
