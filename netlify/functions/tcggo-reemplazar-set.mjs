@@ -59,6 +59,7 @@
 import {
   cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos,
 } from '../lib/tcggo.mjs'
+import { numeroComparable } from '../lib/scrydex.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_CATALOGO } from './tcggo-catalogo.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
@@ -188,9 +189,62 @@ export function setsQueNoCubre(cartasQueSeVan, suyas) {
   return [...porSet.values()].filter((x) => x.cartas >= MINIMO_PARA_COMPROBAR && x.conNombre * 2 < x.cartas)
 }
 
+// Qué carta suya es cada carta nuestra que no lleva `tcggo_id`, por el
+// NÚMERO (755): el número entero, y si no los dígitos, y solo cuando es
+// único en los dos lados. Es para los sets que rellenó Scrydex o TCGdex:
+// sus cartas son las mismas que las de TCGGO, pero sin su id, y sin esto
+// entraban todas como «tcggo-…» y las nuestras se borraban —con la Pokédex,
+// los ataques y la URL— o se quedaban duplicadas si alguien las tenía.
+export function paresPorNumero(nuestras, suyas) {
+  const pares = []
+  const usadasNuestras = new Set()
+  const usadasSuyas = new Set()
+  for (const [clave, por] of [[numeroComparable, 'numero'], [soloDigitos, 'digitos']]) {
+    const agrupar = (xs, numero, usadas) => {
+      const m = new Map()
+      for (const x of xs) {
+        if (usadas.has(x.id)) continue
+        const k = clave(numero(x))
+        if (k) m.set(k, (m.get(k) || []).concat([x]))
+      }
+      return m
+    }
+    const nuestrasPor = agrupar(nuestras || [], (c) => c.local_id, usadasNuestras)
+    const suyasPor = agrupar(suyas || [], (c) => c.card_number, usadasSuyas)
+    for (const [k, ns] of nuestrasPor) {
+      const ss = suyasPor.get(k) || []
+      if (ns.length !== 1 || ss.length !== 1) continue
+      usadasNuestras.add(ns[0].id)
+      usadasSuyas.add(ss[0].id)
+      pares.push({ nuestra: ns[0], suya: ss[0], por })
+    }
+  }
+  return pares
+}
+
+// ¿Es la misma expansión? (755) Cuando el destino se ha elegido por la
+// huella (la fecha), quien escribe lo confirma antes de tocar nada: al
+// menos la mitad de nuestras cartas casan por número, y de las que tienen
+// nombre inglés en los dos lados, al menos la mitad se llaman igual. Dos
+// barajas del mismo día van numeradas las dos del 1 al 30: el número solo
+// no las distingue, el nombre sí.
+export function noEsLaMisma(delDestino, pares) {
+  if (delDestino.length >= MINIMO_PARA_COMPROBAR && pares.length * 2 < delDestino.length) {
+    return `de ${delDestino.length} cartas nuestras solo ${pares.length} casan por número con las suyas`
+  }
+  const legible = (n) => (typeof n === 'string' && n.trim() && !/[\u3040-\u30ff\u4e00-\u9fff]/.test(n) ? nombreComparable(n) : '')
+  const comparables = pares.map((p) => [legible(p.nuestra.name_en) || legible(p.nuestra.name), legible(p.suya.name)]).filter(([a, b]) => a && b)
+  const iguales = comparables.filter(([a, b]) => a === b || a.startsWith(`${b} `) || b.startsWith(`${a} `)).length
+  if (comparables.length >= MINIMO_PARA_COMPROBAR && iguales * 2 < comparables.length) {
+    return `casan por número, pero de ${comparables.length} con nombre inglés solo ${iguales} se llaman igual`
+  }
+  return null
+}
+
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null,
   sets = [], episodio = null, destino = null, mercado = 'WEST', entero = false,
+  conservarPorNumero = false, comprobarQueEsLaMisma = false,
   reloj = () => Date.now(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -254,6 +308,18 @@ export async function procesar({
   // y la foto de TCGGO (666).
   const porTcggoId = new Map()
   if (!entero) for (const c of nuestras) if (c.set_id === setDestino && Number.isInteger(c.tcggo_id)) porTcggoId.set(c.tcggo_id, c)
+  // Y con `conservarPorNumero` (755), las del destino sin su id, por número.
+  let porNumero = []
+  if (conservarPorNumero && !entero) {
+    const yaCasadas = new Set([...porTcggoId.values()].map((c) => c.id))
+    const delDestino = nuestras.filter((c) => c.set_id === setDestino && !yaCasadas.has(c.id))
+    porNumero = paresPorNumero(delDestino, suyas.filter((s) => !porTcggoId.has(s.id)))
+    if (comprobarQueEsLaMisma) {
+      const motivo = noEsLaMisma(delDestino, porNumero)
+      if (motivo) return { ok: false, peticiones, noEsLaMisma: true, error: `«${setDestino}» no parece la expansión ${idEpisodio}: ${motivo}. No se ha tocado nada.` }
+    }
+    for (const p of porNumero) porTcggoId.set(p.suya.id, p.nuestra)
+  }
   const filas = []
   const conservadas = []
   for (const s of suyas) {
@@ -308,6 +374,26 @@ export async function procesar({
     if (/tcggo_guardar_cartas|42883|PGRST202/.test(m)) return { ok: false, peticiones, error: 'falta ejecutar supabase-migration-tcggo-catalogo.sql (tcggo_guardar_cartas)' }
     return { ok: false, peticiones, error: `nuestra base al escribir cartas: ${m.slice(0, 160)}` }
   }
+  // Lo que la RPC no toca en una fila que ya existe (755): el `set_id` —una
+  // «tcggo-…» que vivía en OTRO de los sets que se juntan se quedaba allí,
+  // y al borrar ese set vacío se la llevaba la cascada— y el `name_en` —no
+  // pisa uno que ya hubiera, y el de Scrydex de las casadas por número es el
+  // que PINGU no quiere—. Un upsert con las columnas `not null` repetidas,
+  // que es lo que la fila necesita para formarse (la 526).
+  const nuestraPorId = new Map(nuestras.map((c) => [c.id, c]))
+  const casadasPorNumero = new Set(porNumero.map((p) => p.nuestra.id))
+  const ajustes = filas.filter((f) => {
+    const c = nuestraPorId.get(f.id)
+    return c && (c.set_id !== f.set_id || (casadasPorNumero.has(f.id) && f.name_en && f.name_en !== c.name_en))
+  }).map((f) => {
+    const c = nuestraPorId.get(f.id)
+    return { id: f.id, market: mercado, set_id: f.set_id, local_id: c.local_id, name: c.name, name_en: casadasPorNumero.has(f.id) ? f.name_en : c.name_en ?? f.name_en }
+  })
+  try {
+    for (let k = 0; k < ajustes.length; k += 200) await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(ajustes.slice(k, k + 200)) })
+  } catch (e) {
+    return { ok: false, peticiones, escritas, error: `nuestra base al poner el inglés: ${String(e?.message || e).slice(0, 160)}` }
+  }
   try {
     for (const l of lineas) {
       const e = equiv.get(l.card_id)
@@ -358,7 +444,7 @@ export async function procesar({
 
   return {
     ok: true, mercado, episodio: idEpisodio, destino: setDestino, sets: idsSets, peticiones, entero,
-    suyas: suyas.length, descartadas, escritas, conservadas: conservadas.length, nuevas: filas.length - conservadas.length,
+    suyas: suyas.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
     seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),

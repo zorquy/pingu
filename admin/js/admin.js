@@ -3053,6 +3053,11 @@ async function tcggoEstado() {
       return [
         `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
         ...paradas.map((e) => `  ⚠ parada #${e.id} ${e.nombre}`),
+        // Las que la huella no ha sabido colocar (755): no se crean, para
+        // no duplicar; se vuelven a mirar a la semana.
+        ...Object.entries(k.dudosos || {}).map(([id, d]) => `  ? dudosa #${id} ${d.nombre || ''} (${d.fecha}): ${d.porque}${(d.candidatos || []).length ? ` — candidatos: ${d.candidatos.join(', ')}` : ''}`),
+        // Y las fundidas: creadas de nuevo cuando ya había un set nuestro (755).
+        ...Object.entries(k.hechos || {}).filter(([, h]) => h?.fundidoDe).map(([id, h]) => `  ↣ fundida #${id}: ${h.fundidoDe} → ${h.set} (${h.por}; ${h.porNumero ?? 0} conservadas por número)`),
         k.ultimoError ? `  último error: #${k.ultimoError.episodio ?? '—'} ${k.ultimoError.nombre ?? ''} (${k.ultimoError.fecha}): ${k.ultimoError.error}` : '',
         k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
       ]

@@ -198,7 +198,9 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
       await persistir()
       return { ok: true, ...resumen(), set: set.id, nota: estado.hechos[set.id].nota }
     }
-    const cartasJp = (await pedir(`tcg_cards?select=id,name_en,hp,dex_ids,attacks&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(set.id)}&origen=eq.scrydex&limit=2000`)) || []
+    // Las que ya casó TCGGO (755) tienen SU precio, y el espejo lo borraría
+    // (sus columnas de precio van a null a propósito): fuera.
+    const cartasJp = (await pedir(`tcg_cards?select=id,name_en,hp,dex_ids,attacks&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(set.id)}&origen=eq.scrydex&tcggo_id=is.null&limit=2000`)) || []
     const setsWest = (await pedir(`tcg_sets?select=id,release_date&market=eq.WEST&release_date=gte.${set.release_date}&release_date=lte.${sumarDias(set.release_date, VENTANA_DIAS)}&order=release_date&limit=500`)) || []
     const cartasWest = setsWest.length
       ? (await pedir(`tcg_cards?select=id,set_id,name,name_en,hp,dex_ids,attacks,cm_id_product_propio&market=eq.WEST&set_id=in.(${setsWest.map((s) => `"${s.id}"`).join(',')})&limit=10000`)) || []

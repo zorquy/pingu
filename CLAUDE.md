@@ -545,6 +545,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   lleva, no rellena: los pliega (la 646). Y el barrido va con las frenos de
   la casa: ocho consultas gratis por pasada, UNA expansión de pago, los
   fallos cuentan y paran, lo que no tiene expansión se mira a la semana.
+  **Corrección de la 755**: la RPC `tcggo_guardar_cartas` NO cambia el
+  `set_id` de una fila que ya existe (su `on conflict` no lo toca), así
+  que lo de arriba no mueve: deja la carta en el otro set, y si ese set se
+  borra por vacío, la cascada se la lleva. Quien junta sets
+  (`procesar`) mueve el `set_id` aparte, con un upsert.
+- **Lo que TCGGO tiene, se rellena de TCGGO, y sin duplicar** (tanda 755).
+  El calco japonés pide su lista cada día; si ni el código ni el nombre
+  casan, busca el set nuestro por la HUELLA (día de salida y cuenta) antes
+  de crear, y un empate es «dudoso», no un set nuevo. Las cartas que ya
+  teníamos (Scrydex, TCGdex) se conservan por NÚMERO —mismo id, con el id
+  de Cardmarket y el inglés de TCGGO— y, elegido por la huella, se
+  comprueba que es la misma expansión antes de escribir. Lo viejo
+  (`precios-espejo`, el repaso de `scrydex-huecos`) no toca lo que lleva
+  `tcggo_id`.
 - **Un cambio de DATOS que no quiera SQL va en una función con la clave
   de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
   aniversario («da igual la migración SQL»), y la única forma de escribir

@@ -23,6 +23,22 @@
 //  4. Con todas hechas, los CASCARONES: sets japoneses sin `tcggo_id` y
 //     sin una carta (lo de TCGdex) se esconden, ocho por pasada.
 //
+// Y desde la 755, las que TCGGO añade DESPUÉS (PINGU: «ha metido los
+// japoneses de 2004 a 2008, que ya tenemos de Scrydex pero sin precio»):
+//
+//  5. La lista se vuelve a pedir CADA DÍA (son cinco peticiones), y lo
+//     nuevo es pendiente como lo demás.
+//  6. Si ni el código ni el nombre casan, la HUELLA (`setDeEpisodioPorHuella`:
+//     el día de salida y la cuenta) antes de crear nada; un empate que no
+//     se deshace queda `dudoso` y no se crea (crear sería duplicar).
+//  7. `procesar` conserva por NÚMERO nuestras cartas sin `tcggo_id`, así que
+//     las de Scrydex se quedan con su id, su Pokédex y sus ataques, y ganan
+//     el id de Cardmarket (el precio llega con la pasada de precios) y el
+//     inglés de TCGGO. Elegido por la huella, además se comprueba que es la
+//     misma expansión antes de tocar nada.
+//  8. Las que ANTES de esto se crearon de nuevo (`por: 'nuevo'`) teniendo ya
+//     un set nuestro de esa huella se FUNDEN en él, una por pasada.
+//
 // Frenos de la casa: una expansión por pasada, los fallos cuentan y a
 // `MAXIMO_INTENTOS` se dejan (el error queda en el estado y /admin lo
 // enseña), y con todo hecho una pasada es leer el estado y nada más. Si
@@ -31,15 +47,17 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, filaDeSetNuevo, serieDeEpisodio, setDeEpisodio,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, filaDeSetNuevo, serieDeEpisodio, setDeEpisodio, setDeEpisodioPorHuella,
 } from '../lib/tcggo.mjs'
 import { procesar } from './tcggo-reemplazar-set.mjs'
+import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_calco_jp'
 export const MAXIMO_INTENTOS = 3
 export const MAXIMO_PROBADOS = 8
-export const DIAS_DE_LISTA = 7
+export const DIAS_DE_LISTA = 1
+export const DIAS_DE_DUDA = 7
 const MERCADO = 'JP'
 
 async function rest(ruta, clave, opciones = null) {
@@ -82,10 +100,11 @@ export async function pasada({
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   if (!estado.intentos || typeof estado.intentos !== 'object') estado.intentos = {}
   if (!estado.cascarones || typeof estado.cascarones !== 'object') estado.cascarones = { vistos: {} }
+  if (!estado.dudosos || typeof estado.dudosos !== 'object') estado.dudosos = {}
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
   if (estado.planBloqueado?.dia === dia) return { ok: true, saltado: `el plan no da el japonés hoy: ${estado.planBloqueado.motivo}` }
 
-  // ── 1. La lista de expansiones japonesas, una vez a la semana ──
+  // ── 1. La lista de expansiones japonesas, una vez al día (755) ──
   const edad = estado.lista?.fecha ? (ahora.getTime() - new Date(estado.lista.fecha).getTime()) / 86_400_000 : Infinity
   if (!Array.isArray(estado.lista?.episodios) || !estado.lista.episodios.length || edad > DIAS_DE_LISTA) {
     const episodios = []
@@ -117,9 +136,26 @@ export async function pasada({
   const episodios = estado.lista.episodios
 
   // ── 2. Una expansión por pasada ──
-  const pendiente = episodios.find((e) => !estado.hechos[e.id] && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS)
+  const dudaReciente = (id) => { const d = estado.dudosos[id]; return d?.fecha && (ahora.getTime() - new Date(d.fecha).getTime()) / 86_400_000 < DIAS_DE_DUDA }
+  const pendiente = episodios.find((e) => !estado.hechos[e.id] && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
+  const SELECT_SETS = `tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date,card_count_total,card_count_official,scrydex_id&market=eq.${MERCADO}&limit=2000`
+  // Lo que se borra o se reescribe le quita la expansión a los hechos del
+  // día de la pasada de precios (la 697): si ya la hizo hoy, no volvería
+  // hasta mañana y las cartas estarían el día entero sin precio.
+  const avisarAPrecios = async (idEpisodio) => {
+    try {
+      const precios = await leerEstado(CLAVE_PRECIOS)
+      if (Array.isArray(precios?.hechosJp) && precios.hechosJp.includes(idEpisodio)) {
+        await guardarEstado(CLAVE_PRECIOS, { ...precios, hechosJp: precios.hechosJp.filter((e) => e !== idEpisodio) })
+      }
+    } catch { /* lo peor es esperar a mañana */ }
+  }
+  // Un destino escondido (un cascarón de la 672) que se llena se enseña.
+  const desesconder = async (set) => {
+    if (set?.oculto) await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(set.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: false }) })
+  }
   const resumen = () => ({
-    expansiones: episodios.length, hechas: Object.keys(estado.hechos).length,
+    expansiones: episodios.length, hechas: Object.keys(estado.hechos).length, dudosas: Object.keys(estado.dudosos).length,
     paradas: episodios.filter((e) => !estado.hechos[e.id] && (Number(estado.intentos[e.id]) || 0) >= MAXIMO_INTENTOS).map((e) => e.id),
   })
   if (pendiente) {
@@ -132,7 +168,7 @@ export async function pasada({
     }
     let sets
     try {
-      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto&market=eq.${MERCADO}&limit=2000`)) || []
+      sets = (await pedir(SELECT_SETS)) || []
     } catch (e) {
       return { ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
@@ -144,6 +180,16 @@ export async function pasada({
       const r = setDeEpisodio(pendiente, sets)
       if (r.set) { destino = r.set.id; por = r.por }
     }
+    if (!destino) {
+      const r = setDeEpisodioPorHuella(pendiente, sets)
+      if (r.set) { destino = r.set.id; por = r.por }
+      else if (r.dudoso) {
+        estado.dudosos[pendiente.id] = { fecha: ahora.toISOString(), nombre: pendiente.nombre, candidatos: r.candidatos, porque: r.porque }
+        await persistir()
+        return { ok: true, ...resumen(), dudosa: { episodio: pendiente.id, nombre: pendiente.nombre, ...estado.dudosos[pendiente.id] } }
+      }
+    }
+    const porHuella = /^fecha/.test(String(por))
     let setCreado = null
     if (!destino) {
       const fila = filaDeSetNuevo(pendiente, sets.map((s) => s.id), serieDeEpisodio(pendiente, sets))
@@ -161,10 +207,18 @@ export async function pasada({
       setCreado = fila.id
       por = 'nuevo'
     }
-    const r = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, sets: [destino], destino, mercado: MERCADO, episodio: pendiente.id, pausa, ...resto })
+    const r = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, sets: [destino], destino, mercado: MERCADO, episodio: pendiente.id, pausa, conservarPorNumero: true, comprobarQueEsLaMisma: porHuella, ...resto })
     if (r.ok) {
-      estado.hechos[pendiente.id] = { fecha: ahora.toISOString(), set: destino, por, suyas: r.suyas, escritas: r.escritas, borradas: r.borradas, seQuedan: (r.seQuedan || []).length }
+      estado.hechos[pendiente.id] = { fecha: ahora.toISOString(), set: destino, por, suyas: r.suyas, escritas: r.escritas, porNumero: r.porNumero ?? null, borradas: r.borradas, seQuedan: (r.seQuedan || []).length }
       delete estado.intentos[pendiente.id]
+      delete estado.dudosos[pendiente.id]
+      try { await desesconder(sets.find((s) => s.id === destino)) } catch { /* se enseña en la pasada de la fusión o a mano */ }
+      await avisarAPrecios(pendiente.id)
+    } else if (r.noEsLaMisma) {
+      // La huella propuso y el número dijo que no (755): no se ha gastado
+      // más que la expansión, y reintentar daría lo mismo. Se apunta como
+      // dudosa con el motivo y se vuelve a mirar a la semana.
+      estado.dudosos[pendiente.id] = { fecha: ahora.toISOString(), nombre: pendiente.nombre, candidatos: [destino], porque: r.error }
     } else {
       estado.intentos[pendiente.id] = (Number(estado.intentos[pendiente.id]) || 0) + 1
       estado.ultimoError = { fecha: ahora.toISOString(), episodio: pendiente.id, nombre: pendiente.nombre, intento: estado.intentos[pendiente.id], error: r.error }
@@ -172,6 +226,51 @@ export async function pasada({
     }
     await persistir()
     return { ok: r.ok, ...resumen(), hecha: { episodio: pendiente.id, nombre: pendiente.nombre, set: destino, por, setCreado, suyas: r.suyas, escritas: r.escritas, borradas: r.borradas }, ...(r.ok ? {} : { error: r.error }) }
+  }
+
+  // ── 2b. Las creadas de nuevo que ya tenían set nuestro (755) ──
+  // Gratis hasta que se encuentra una: la huella se calcula de nuestra
+  // tabla. Con una, su expansión entera otra vez (una por pasada) y
+  // `procesar` sobre los dos sets: las nuestras se conservan por número,
+  // las «tcggo-…» del creado se reapuntan a ellas por su `tcggo_id` y el
+  // creado, vacío, se borra.
+  const porRevisar = Object.entries(estado.hechos).filter(([, h]) => h?.por === 'nuevo' && h.set && !h.revisado && (Number(h.intentosFusion) || 0) < MAXIMO_INTENTOS)
+  if (porRevisar.length) {
+    let sets
+    try {
+      sets = (await pedir(SELECT_SETS)) || []
+    } catch (e) {
+      return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+    }
+    for (const [id, h] of porRevisar) {
+      const episodio = episodios.find((e) => String(e.id) === String(id))
+      const otros = sets.filter((s) => s.id !== h.set)
+      const r = episodio ? setDeEpisodioPorHuella(episodio, otros) : { set: null }
+      let gemelo = r.set
+      if (gemelo) {
+        try {
+          const alguna = (await pedir(`tcg_cards?select=id&market=eq.${MERCADO}&set_id=eq.${encodeURIComponent(gemelo.id)}&limit=1`)) || []
+          if (!alguna.length) gemelo = null
+        } catch (e) {
+          return { ok: false, ...resumen(), error: `nuestra base (${gemelo.id}): ${String(e?.message || e).slice(0, 160)}` }
+        }
+      }
+      if (!gemelo) { h.revisado = { fecha: ahora.toISOString(), gemelo: null }; continue }
+      const f = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, sets: [gemelo.id, h.set], destino: gemelo.id, mercado: MERCADO, episodio: episodio.id, pausa, conservarPorNumero: true, comprobarQueEsLaMisma: true, ...resto })
+      if (f.ok) {
+        estado.hechos[id] = { ...h, set: gemelo.id, por: `fundido (${r.por})`, fundidoDe: h.set, revisado: { fecha: ahora.toISOString(), gemelo: gemelo.id }, suyas: f.suyas, escritas: f.escritas, porNumero: f.porNumero ?? null, borradas: f.borradas }
+        try { await desesconder(gemelo) } catch { /* se ve a mano */ }
+        await avisarAPrecios(episodio.id)
+      } else if (f.noEsLaMisma) {
+        h.revisado = { fecha: ahora.toISOString(), gemelo: null, descartado: gemelo.id, porque: f.error }
+      } else {
+        h.intentosFusion = (Number(h.intentosFusion) || 0) + 1
+        estado.ultimoError = { fecha: ahora.toISOString(), episodio: episodio.id, nombre: episodio.nombre, donde: 'fusión', error: f.error }
+      }
+      await persistir()
+      return { ok: f.ok, ...resumen(), fusion: { episodio: episodio.id, nombre: episodio.nombre, de: h.set, en: gemelo.id, por: r.por, porNumero: f.porNumero, borradas: f.borradas }, ...(f.ok ? {} : { error: f.error }) }
+    }
+    await persistir()
   }
 
   // ── 3. Con todo hecho: los cascarones, ocho por pasada ──

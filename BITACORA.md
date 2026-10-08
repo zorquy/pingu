@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 — PINGU-Claude (755 — el logo que se salía y los japoneses antiguos, de TCGGO)
+
+**Hecho**: el logo de una expansión ya no se sale de su caja ni tapa el
+nombre (la estrella de las promos salía a 160×160 en el escritorio). Y el
+calco japonés de TCGGO coge lo que TCGGO añade después —los japoneses de
+2004 a 2008 que teníamos de Scrydex sin precio—: lista cada día, el set
+nuestro por la HUELLA (día de salida y cuenta) antes de crear nada, las
+cartas de Scrydex conservadas por NÚMERO (mismo id, con el id de
+Cardmarket y el inglés de TCGGO), comprobando que es la misma expansión, y
+lo que se hubiera creado de nuevo se funde en el set que ya había. El
+espejo de precios y el repaso de Scrydex ya no pisan lo de TCGGO. Detalle
+en SCHEMA.md, tanda 755.
+
+**Ficheros**: `css/mi-coleccion.css`, `netlify/lib/tcggo.mjs`,
+`netlify/functions/tcggo-calco-jp.mjs`,
+`netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/precios-espejo.mjs`,
+`netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+Pruebas 755 y 755-pantalla (nuevas); 674, 654, 666, 684 y 686 verdes.
+
+**Pendiente**: comprobarlo en /admin → «Estado del catálogo de TCGGO»
+(CALCO JAPONÉS) cuando corra: una expansión cada dos minutos; las
+«dudosas» son las que no se ha sabido colocar y no se crean. Sin
+migración nueva. Sigue por ejecutar la de la 753:
+`supabase-migration-avisos-lanzamientos.sql`.
+
 ## 2026-10-07 (noche, 5) — PINGU-Claude (754 — escanear desde las fotos de la galería)
 
 **Hecho**: «Desde tus fotos» en el escáner (K5): una o varias fotos, cada

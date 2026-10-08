@@ -35869,3 +35869,70 @@ también estaría bien por expansión».
   su «+» y su Deshacer; repetidas, una vez. Y funciona sin cámara: sin
   permiso, o en un ordenador sin ella, el aviso ya manda a «Desde tus
   fotos».
+
+## Tanda 755 — El logo que se salía y los japoneses antiguos, de TCGGO (oct. 2026)
+
+- **El logo de una expansión no se sale de su caja.** PINGU: «algún logo
+  se desborda y se queda por encima del nombre; debería ir por detrás».
+  `.mc-set-marca img` iba con `height: 100%` dentro de una caja de
+  rejilla, donde el tanto por ciento no se resuelve: un logo CUADRADO (la
+  estrella de las promos) salía a su tamaño de ancho, 160×160 en la
+  baldosa del escritorio y 88×88 en la lista del móvil, y tapaba el
+  nombre. Ahora la imagen va `position: absolute; inset: 0` con
+  `object-fit: contain` y la caja con `overflow: hidden`; el bloque del
+  nombre lleva `z-index: 1`. Prueba 755-pantalla (escritorio y móvil, con
+  un logo cuadrado): el logo cabe en su caja y la caja no pisa el nombre.
+- **Lo que TCGGO añade después, de TCGGO.** PINGU: «TCGGO ha metido los
+  japoneses de 2004 a 2008 (el más antiguo, Flight of Legends); ya los
+  tenemos de Scrydex, pero sin precio, y lo que exista en TCGGO se rellena
+  de ahí: el nombre en inglés, el enlace a Cardmarket y su precio». El
+  calco japonés (674) tenía tres agujeros para esto:
+  1. pedía la lista de expansiones **una vez a la semana**: ahora cada día
+     (`DIAS_DE_LISTA = 1`, son cinco peticiones);
+  2. el destino se buscaba por código o por nombre exacto, y los sets de
+     Scrydex no llevan el código de TCGGO ni siempre el mismo inglés: se
+     habría CREADO el set otra vez. Ahora, antes de crear, la **huella**
+     (`setDeEpisodioPorHuella` en `netlify/lib/tcggo.mjs`): los nuestros
+     del mismo día, desempatados por código (el id sin «_ja»), cuenta, ser
+     de Scrydex, estar a la vista y nombre (palabras en común); sin
+     ninguno ese día, uno a `DIAS_DE_HOLGURA` (7) con la cuenta exacta. Un
+     empate que no se deshace (dos barajas del mismo día) es **dudoso**: no
+     se crea nada, se apunta en `estado.dudosos` con los candidatos (/admin
+     lo enseña) y se vuelve a mirar a la semana;
+  3. `procesar` (654) solo conservaba nuestras cartas con `tcggo_id`: las
+     de Scrydex habrían entrado otra vez como «tcggo-…» y las nuestras se
+     habrían borrado —con su Pokédex y sus ataques— o quedado duplicadas
+     si alguien las tenía. Con `conservarPorNumero` (lo pasa el calco) las
+     del destino se casan por número (`paresPorNumero`: el número entero y
+     luego los dígitos, únicos en los dos lados) y se quedan con su id,
+     ganando el `cm_id_product_propio` (el precio lo escribe `tcggo-precios`,
+     que lee los sets por su `tcggo_id`) y el **inglés de TCGGO**, que se
+     escribe encima del de Scrydex con un upsert que repite las `not null`
+     (la RPC no pisa un `name_en` que ya hubiera).
+- **Proponer y disponer (la 508).** Si el destino lo eligió la huella,
+  `procesar` comprueba ANTES de escribir que es la misma expansión
+  (`noEsLaMisma`): al menos la mitad de nuestras cartas casan por número y,
+  de las que tienen inglés legible en los dos lados, al menos la mitad se
+  llaman igual (dos barajas del mismo día van numeradas igual: las separa
+  el nombre). Si no, vuelve `noEsLaMisma` sin tocar nada y el calco la
+  apunta como dudosa en vez de gastar más intentos.
+- **Fundir lo que se creó de nuevo.** Los hechos con `por: 'nuevo'` (sets
+  `tcggo-…` creados por el calco) se revisan una vez: si la huella da un
+  set nuestro CON cartas, se pasa `procesar` sobre los dos con el nuestro
+  de destino; las «tcggo-…» se reapuntan a las nuestras por su `tcggo_id`
+  y el creado, vacío, se borra. Gratis hasta que se encuentra uno; una
+  fusión por pasada; se apunta `fundidoDe` (/admin: «fundida»).
+- **La RPC `tcggo_guardar_cartas` no cambia el `set_id` de una fila que ya
+  existe** (`on conflict` no lo toca). Al juntar sets, una «tcggo-…» sin
+  pareja nuestra se quedaba en el set que se va a borrar, y el borrado del
+  set (`on delete cascade`) se la llevaba con sus líneas colgando.
+  `procesar` la mueve con el mismo upsert del inglés.
+- Tras un calco o una fusión, la expansión se quita de los `hechosJp` del
+  día de `tcggo-precios` (la 697) y un destino escondido (un cascarón de la
+  672) se enseña.
+- Y lo viejo no pisa lo nuevo: `precios-espejo` solo espeja cartas de
+  Scrydex **sin** `tcggo_id` (sus columnas de precio van a null a
+  propósito y borrarían el de TCGGO), y el repaso de nombres de
+  `scrydex-huecos` se salta un set que ya lleva `tcggo_id`.
+- Prueba 755 (huella, número, «¿es la misma?», `procesar` con su doble de
+  la RPC, la fusión y el calco de punta a punta).

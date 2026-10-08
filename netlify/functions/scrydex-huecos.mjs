@@ -330,6 +330,21 @@ export async function pasada({
     const [k, v] = pendienteDeNombres
     const [mercado, setId] = k.split('|')
     const idioma = IDIOMA_DE_MERCADO[mercado]
+    // Un set que ya es de TCGGO (755) no se vuelve a escribir desde aquí:
+    // pisaría su inglés y su precio con los de Scrydex. Gratis: una
+    // consulta a lo nuestro.
+    let deTcggo = false
+    try {
+      deTcggo = Boolean((await pedir(`tcg_sets?select=tcggo_id&market=eq.${mercado}&id=eq.${encodeURIComponent(setId)}&limit=1`))?.[0]?.tcggo_id)
+    } catch (e) {
+      return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+    }
+    if (deTcggo) {
+      v.nombres = VERSION_NOMBRES
+      v.nota = 'de TCGGO: no se reescribe'
+      await persistir()
+      return { ok: true, ...resumen(), nombres: { mercado, set: setId, saltado: 'de TCGGO' } }
+    }
     const cartas = []
     let fallo = null
     for (let pagina = 1; pagina <= MAXIMO_PAGINAS_CARTAS; pagina++) {

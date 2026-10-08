@@ -493,6 +493,67 @@ export function setDeEpisodio(episodio, sets) {
   return { set: null, porque: 'ninguno nuestro con ese código ni ese nombre' }
 }
 
+// LA HUELLA (tanda 755): qué set nuestro es una expansión de TCGGO cuando
+// ni el código ni el nombre lo dicen. PINGU: «TCGGO ha metido los sets
+// japoneses de 2004 a 2008; ya los tenemos, de Scrydex, pero sin precio».
+// Los que rellenó Scrydex no llevan el código de TCGGO y su inglés no
+// siempre es el mismo («Team Rocket Strikes Back» / «Rocket Gang Strikes
+// Back»), así que `setDeEpisodio` no los casaba y el calco habría CREADO
+// el set otra vez. Lo que no depende de cómo lo escriba cada uno es el día
+// de salida: los del MISMO día se desempatan por código, por cuenta, por
+// ser de Scrydex, por estar a la vista y por el nombre; sin ninguno ese
+// día, uno a `DIAS_DE_HOLGURA` con la cuenta exacta. Un empate que no se
+// deshace es `dudoso` y NO se crea nada: crear sería duplicar. Proponer es
+// esto; quien escribe lo confirma por número (la 508).
+export const DIAS_DE_HOLGURA = 7
+const fechaIso = (f) => (typeof f === 'string' && /^\d{4}[-/]\d{2}[-/]\d{2}/.test(f) ? f.slice(0, 10).replace(/\//g, '-') : null)
+const diasEntre = (a, b) => Math.abs(Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86_400_000
+const palabras = (n) => new Set(nombreComparable(n).split(' ').filter((p) => p.length > 1))
+export function parecidoDeNombres(a, b) {
+  const x = palabras(a)
+  const y = palabras(b)
+  if (!x.size || !y.size) return 0
+  let comunes = 0
+  for (const p of x) if (y.has(p)) comunes++
+  return (2 * comunes) / (x.size + y.size)
+}
+export function setDeEpisodioPorHuella(episodio, sets) {
+  const fecha = fechaIso(episodio?.fecha)
+  if (!fecha) return { set: null, porque: 'su expansión no trae fecha' }
+  const codigo = codigoComparable(episodio?.codigo)
+  const cuentas = [episodio?.cartas, episodio?.impresas].filter((n) => Number.isInteger(n) && n > 0)
+  const casaCuenta = (s) => [s.card_count_total, s.card_count_official].some((n) => n != null && cuentas.includes(Number(n)))
+  const libres = (sets || []).filter((s) => s.tcggo_id == null || Number(s.tcggo_id) === episodio.id)
+  const desempatar = (lista) => {
+    let quedan = lista
+    for (const filtro of [
+      (s) => codigo && codigoComparable(String(s.id).replace(/_ja$/i, '')) === codigo,
+      casaCuenta,
+      (s) => Boolean(s.scrydex_id),
+      (s) => !s.oculto,
+    ]) {
+      if (quedan.length === 1) return quedan[0]
+      const f = quedan.filter(filtro)
+      if (f.length) quedan = f
+    }
+    if (quedan.length === 1) return quedan[0]
+    const nota = (s) => Math.max(parecidoDeNombres(episodio?.nombre, s.name_en), parecidoDeNombres(episodio?.nombre, s.name))
+    const orden = [...quedan].sort((a, b) => nota(b) - nota(a))
+    return nota(orden[0]) >= 0.5 && nota(orden[0]) > nota(orden[1]) ? orden[0] : null
+  }
+  const mismoDia = libres.filter((s) => fechaIso(s.release_date) === fecha)
+  if (mismoDia.length) {
+    const s = desempatar(mismoDia)
+    return s ? { set: s, por: 'fecha' } : { set: null, dudoso: true, candidatos: mismoDia.map((x) => x.id), porque: `${mismoDia.length} sets nuestros salen ese día y nada los distingue` }
+  }
+  const cerca = libres.filter((s) => fechaIso(s.release_date) && diasEntre(fechaIso(s.release_date), fecha) <= DIAS_DE_HOLGURA && casaCuenta(s))
+  if (cerca.length) {
+    const s = desempatar(cerca)
+    return s ? { set: s, por: 'fecha cercana y cuenta' } : { set: null, dudoso: true, candidatos: cerca.map((x) => x.id), porque: `${cerca.length} sets nuestros de esos días con esa cuenta` }
+  }
+  return { set: null, porque: 'ninguno nuestro de esa fecha' }
+}
+
 // ── El histórico de precios de una carta (tanda 643) ──
 
 // `/history-prices?cardmarket_id=…`: el histórico por el id de Cardmarket,
