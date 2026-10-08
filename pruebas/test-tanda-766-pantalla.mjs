@@ -165,7 +165,7 @@ console.log('── 6. DC1: quién de los que sigues la tiene ──')
   ] }
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=quiero', { rpc })
   await page.waitForTimeout(800)
-  const filas = await page.$$eval('#mcQuieroPanel .mc-quiero-fila', (fs) => fs.map((f) => f.querySelector('.mc-deseo-seguidos')?.textContent.trim() || ''))
+  const filas = await page.$$eval('#mcQuieroPanel .mc-deseo-baldosa', (fs) => fs.map((f) => f.querySelector('.mc-deseo-seguidos')?.textContent.trim() || ''))
   check('en cada carta, quién de los que sigues la tiene', filas.some((t) => t === 'La tienen @ana y 1 más de los que sigues') && filas.some((t) => t === 'La tiene @ana, a quien sigues'), JSON.stringify(filas))
   await page.click('#mcQuieroTexto')
   await page.waitForTimeout(400)

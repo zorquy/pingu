@@ -55,6 +55,9 @@ console.log('── 1. El corazón de la ficha (K1) ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('la ficha de una carta que no tienes lleva «La quiero», sin pulsar', await b.isVisible() && (await b.getAttribute('aria-pressed')) === 'false' && limpio(await b.textContent()) === 'La quiero', limpio(await b.textContent()))
   await b.click()
+  // Desde la 771 pregunta el idioma: «Cualquiera», que va marcado.
+  await page.waitForTimeout(400)
+  await page.click('#iddApuntar')
   await page.waitForTimeout(900)
   check('  …al tocarlo se pulsa, dice «La quieres» y la carta va a la lista', (await b.getAttribute('aria-pressed')) === 'true' && limpio(await b.textContent()) === 'La quieres' && JSON.stringify(await filasDeLaBase(page)) === '["sv3-2"]', JSON.stringify(await filasDeLaBase(page)))
   await b.click()
@@ -72,10 +75,10 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
     visible: !document.getElementById('mcPanelQuiero').classList.contains('hidden'),
     titulo: document.querySelector('#mcPanelQuiero h2')?.textContent,
     cifra: document.getElementById('mcQuieroCifra')?.textContent.replace(/\s+/g, ' ').trim(),
-    filas: [...document.querySelectorAll('.mc-deseos .mc-fila-carta')].map((f) => ({
+    filas: [...document.querySelectorAll('#mcQuieroRejilla .mc-deseo-baldosa')].map((f) => ({
       precio: f.querySelector('.mc-quiero-precio')?.textContent.replace(/\s/g, ' '),
       aviso: f.querySelector('.mc-quiero-aviso')?.textContent.replace(/\s/g, ' ').trim(),
-      nombre: Math.round(f.querySelector('.mc-fila-nombre').getBoundingClientRect().width),
+      nombre: Math.round(f.querySelector('.mc-merc-nombre').getBoundingClientRect().width),
     })),
     ancho: document.documentElement.scrollWidth <= innerWidth,
   }))
@@ -88,7 +91,7 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
   check('el aviso puesto se lee en su fila (K2)', m.filas[0].aviso === '< 10,00 €' && m.filas[1].aviso === '', JSON.stringify(m.filas.map((f) => f.aviso)))
   check('  …y en el móvil el nombre se lee y nada se sale', m.ancho && m.filas.every((f) => f.nombre > 120), JSON.stringify(m.filas.map((f) => f.nombre)))
 
-  await page.locator('.mc-deseos .mc-fila-carta').nth(1).locator('.mc-quiero-aviso').click()
+  await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').nth(1).locator('.mc-quiero-aviso').click()
   await page.waitForTimeout(500)
   const d = await page.evaluate(() => ({ abierto: document.getElementById('pvAvisoDialogo')?.open, umbral: document.getElementById('pvAvisoUmbral')?.value }))
   check('la campana de una fila abre «Avísame» con un umbral un 10 % por debajo', d.abierto && d.umbral === '1328.31', JSON.stringify(d))
@@ -96,7 +99,7 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
   await page.waitForTimeout(700)
   await page.click('#pvAvisoCancelar')
   await page.waitForTimeout(900)
-  const aviso2 = limpio(await page.locator('.mc-deseos .mc-fila-carta').nth(1).locator('.mc-quiero-aviso').textContent())
+  const aviso2 = limpio(await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').nth(1).locator('.mc-quiero-aviso').textContent())
   check('  …y al cerrarlo, la fila dice el aviso nuevo', aviso2 === '< 1.328,31 €', aviso2)
 
   const descarga = page.waitForEvent('download', { timeout: 8000 }).catch(() => null)
@@ -120,10 +123,11 @@ console.log('── 3. Se llega desde el Panel y desde Cambios ──')
   check('el Panel cuenta lo que quieres (sin abrir Cambios antes)', /1\s*carta que quieres/.test(limpio(await cifra.textContent().catch(() => ''))), limpio(await cifra.textContent().catch(() => '')))
   await cifra.click()
   await page.waitForTimeout(900)
-  check('  …y lleva a «La quiero»', new URL(page.url()).searchParams.get('ver') === 'quiero' && (await page.locator('.mc-deseos .mc-fila-carta').count()) === 1)
+  check('  …y lleva a «La quiero»', new URL(page.url()).searchParams.get('ver') === 'quiero' && (await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').count()) === 1)
   await page.goto(`${BASE}/mi-coleccion.html?ver=cambios`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
-  await page.click('#mcCambiosPanel [data-ir-quiero]')
+  // Desde la 770, por el selector de las cuatro vistas.
+  await page.click('#mcPanelCambios [data-deseos-vista="quiero"]')
   await page.waitForTimeout(900)
   check('en Cambios, «Lo que buscas» lleva a la lista', new URL(page.url()).searchParams.get('ver') === 'quiero')
   await ctx.close()

@@ -30,7 +30,7 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
     window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'sv1-104', cantidad: 1, idioma: 'es',
       estado: 'NM', variante: 'normal', notas: null }]
   })
-  await page.goto('http://localhost:8892' + ruta, { waitUntil: 'domcontentloaded' })
+  await page.goto((process.env.PD_BASE || 'http://localhost:8892') + ruta, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   return { page, errores }
 }
@@ -40,13 +40,14 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
 // «Buscar», que busca en todo el catálogo. El orden es el del HTML.
 // Desde la 765 entra «Deseos y cambios»; Buscar fue una hoja en la 765 y
 // vuelve a ser pestaña en la 767.
-const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'quiero', 'buscar']
+// Desde la 770 «Deseos y cambios» abre el Mercado; «La quiero» sigue por enlace.
+const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'mercado', 'buscar']
 // Pero la PANTALLA de cartas se queda y se abre por enlace: lo apuntan el
 // «Ver todas» del panel y las URLs que la gente tenga guardadas. Quitar la
 // pestaña no es quitar la página, y esta lista es la que lo vigila.
-const POR_ENLACE = [...EN_EL_MENU, 'cartas']
+const POR_ENLACE = [...EN_EL_MENU, 'cartas', 'quiero']
 const PANEL_DE = { resumen: 'mcPanelResumen', album: 'mcPanelAlbum', pokedex: 'mcPanelPokedex',
-  carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas', productos: 'mcPanelProductos', quiero: 'mcPanelQuiero' }
+  carpetas: 'mcPanelCarpetas', buscar: 'mcPanelBuscar', cartas: 'mcPanelCartas', productos: 'mcPanelProductos', quiero: 'mcPanelQuiero', mercado: 'mcPanelMercado' }
 
 console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
 {
@@ -204,7 +205,7 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
     (await page.locator('#mcBloqueCambios h2').textContent()) || ''))
   // Desde la 765 la enciende «Deseos y cambios», que es su puerta.
   check('  …y la enciende «Deseos y cambios», que es su puerta',
-    (await page.locator('.mc-pestania.activa').getAttribute('data-pestania')) === 'quiero')
+    (await page.locator('.mc-pestania.activa').getAttribute('data-pestania')) === 'mercado')
   await page.close()
 
   // Y el Panel deja una PUERTA: una pantalla sin nadie que enlace a ella

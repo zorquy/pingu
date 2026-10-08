@@ -83,7 +83,7 @@ console.log('\n── 2. Tres ceros no informan ──')
   const texto = (await page.locator('#mcCambiosPanel').textContent()) || ''
   check('sin nada apuntado, no salen las chapas de cifras',
     (await page.locator('#mcCambiosPanel .mc-cambio-cifras').count()) === 0)
-  check('  …y sí los tres pasos, que son los que explican', /Marca lo que das/.test(texto), texto.slice(0, 80))
+  check('  …y sí los tres pasos, que son los que explican', /Pon para cambio lo que te sobra/.test(texto), texto.slice(0, 80))
   await page.close()
 }
 

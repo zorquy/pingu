@@ -30,6 +30,9 @@ const T = {
   // Lo que cada uno busca (tanda 376). Lo que DA no es tabla: es la
   // columna `cambio` de su linea de `user_collection`.
   user_wants: [],
+  // A quién sigue cada uno (tanda 773: el filtro «Gente que sigo» de los
+  // cruces). En la base, `user_follows(follower_id, following_id)`.
+  user_follows: [],
   user_release_alerts: [],
   // La foto diaria del valor de una coleccion (tanda 377).
   user_collection_value: [],
@@ -347,6 +350,7 @@ sembrar('__FAKE_AVISOS__', 'user_price_alerts', (i) => ({
 sembrar('__FAKE_AVISOS_LANZAMIENTO__', 'user_release_alerts', (i) => ({
   id: `al-${i + 1}`, user_id: 'admin-1', clave: `set-${i}`, market: 'WEST', nombre: `Set ${i}`, semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-06T00:00:00Z',
 }))
+sembrar('__FAKE_SEGUIDOS__', 'user_follows', (i) => ({ follower_id: 'admin-1', following_id: `user-${i + 1}`, created_at: '2026-10-01T00:00:00Z' }))
 sembrar('__FAKE_DESEOS__', 'user_wants', (i) => ({
   id: `des-${i + 1}`,
   user_id: 'admin-1',
@@ -1557,6 +1561,53 @@ export const supabase = {
           b.cambio - a.cambio || String(a.username).localeCompare(String(b.username))
       )
       return { data: filas.slice(0, args.p_limite || 200), error: null }
+    }
+    // El Mercado (tanda 770): lo que dan los demás, por carta. La MISMA
+    // cuenta que supabase-migration-mercado.sql (probada contra PostgreSQL en
+    // sql-mercado.sql): por persona y no por línea, sin lo mío ni lo de un
+    // baneado, «solo las que busco» con la regla de idioma de los cruces.
+    if (nombre === 'intercambios_mercado') {
+      const yo = sesion?.user?.id || null
+      const perfil = (id) => T.user_profiles.find((p) => p.id === id) || {}
+      const market = args.p_market || 'WEST'
+      const carta = (c) => T.tcg_cards.find((t) => t.id === c.card_id && (t.market || 'WEST') === (c.market || 'WEST'))
+      const lineas = T.user_collection.filter((c) => {
+        if (!(Number(c.cambio) > 0) || (c.market || 'WEST') !== market || c.user_id === yo || perfil(c.user_id).is_banned) return false
+        if (args.p_idioma && c.idioma !== args.p_idioma) return false
+        if (args.p_texto && !String(carta(c)?.name_search || '').includes(args.p_texto)) return false
+        if (args.p_sets && !args.p_sets.includes(carta(c)?.set_id)) return false
+        if (args.p_solo_mias && !T.user_wants.some((w) => w.user_id === yo && w.card_id === c.card_id && (!w.idioma || w.idioma === c.idioma))) return false
+        return true
+      })
+      const cuando = (c) => Date.parse(c.updated_at || c.created_at || 0) || 0
+      const porCarta = new Map()
+      for (const c of lineas) {
+        const k = c.card_id
+        if (!porCarta.has(k)) porCarta.set(k, { card_id: k, market, personas: 0, copias: 0, idiomas: new Set(), gente: new Map(), ultima: 0 })
+        const g = porCarta.get(k)
+        g.copias += Number(c.cambio)
+        g.idiomas.add(c.idioma || 'es')
+        g.ultima = Math.max(g.ultima, cuando(c))
+        g.gente.set(c.user_id, Math.max(g.gente.get(c.user_id) || 0, cuando(c)))
+      }
+      const precio = (id) => { const p = T.tcg_card_prices.find((x) => x.card_id === id); return p ? Number(p.cm_low ?? p.cm_trend ?? NaN) : NaN }
+      const filas = [...porCarta.values()].map((g) => {
+        const orden = [...g.gente.entries()].sort((a, b) => b[1] - a[1]).map(([u]) => u)
+        return {
+          card_id: g.card_id, market: g.market, personas: orden.length, copias: g.copias,
+          idiomas: [...g.idiomas].sort(), dan: orden,
+          gente: orden.slice(0, 5).map((u) => { const p = perfil(u); return { user_id: u, username: p.username || null, display_name: p.display_name || null, avatar_url: p.avatar_url || null, is_admin: Boolean(p.is_admin), is_moderator: Boolean(p.is_moderator) } }),
+          ultima: new Date(g.ultima).toISOString(),
+        }
+      })
+      const orden = args.p_orden || 'nuevo'
+      filas.sort((a, b) =>
+        (orden === 'gente' ? b.personas - a.personas : 0) ||
+        (orden === 'caro' ? (Number.isNaN(precio(b.card_id)) ? -1 : Number.isNaN(precio(a.card_id)) ? 1 : precio(b.card_id) - precio(a.card_id)) : 0) ||
+        Date.parse(b.ultima) - Date.parse(a.ultima) || a.card_id.localeCompare(b.card_id))
+      const desde = Math.max(0, args.p_desde || 0)
+      const limite = Math.max(1, Math.min(args.p_limite || 60, 200))
+      return { data: filas.slice(desde, desde + limite).map((f) => ({ ...f, total: filas.length })), error: null }
     }
     // La Pokédex (tanda 381). Se CALCULA del catálogo, como los
     // resultados de una encuesta: devolverlo a mano haría que «tienes 3

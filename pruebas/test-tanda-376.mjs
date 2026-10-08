@@ -97,7 +97,8 @@ console.log('\n── 1. La doble coincidencia va primero y va marcada ──')
     ],
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const gente = page.locator('.mc-cambio-bloque').first().locator('.mc-cambio-persona')
+  // Desde la 773 los cruces son UNA tarjeta por persona con las dos mitades.
+  const gente = page.locator('#mcCambiosPanel .mc-cruce')
   check('salen las dos personas que la dan', (await gente.count()) === 2, String(await gente.count()))
   check('la recíproca va PRIMERA', /Bea/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 80))
@@ -110,13 +111,12 @@ console.log('\n── 1. La doble coincidencia va primero y va marcada ──')
   check('  …y se distingue en el marco', borde !== bordeOtra, `${borde} vs ${bordeOtra}`)
 
   // Y arriba se dice cuántas hay, que es lo que hace volver.
-  check('la cabecera cuenta los cambios directos', /1 cambio directo/.test(limpio(await page.locator('.mc-cambio-cab').textContent())),
-    limpio(await page.locator('.mc-cambio-cab').textContent()).slice(0, 140))
+  check('la cabecera cuenta los cruces perfectos', /1 cruce perfecto/.test(limpio(await page.locator('#mcCambiosPanel .mc-quiero-cifra').textContent())),
+    limpio(await page.locator('#mcCambiosPanel .mc-quiero-cifra').textContent()).slice(0, 140))
 
-  // Y la otra dirección: Bea busca lo que doy.
-  const buscan = page.locator('.mc-cambio-bloque').nth(1).locator('.mc-cambio-persona')
-  check('la otra dirección también sale', (await buscan.count()) === 1, String(await buscan.count()))
-  check('  …con Bea', /Bea/.test(limpio(await buscan.first().textContent())))
+  // Y la otra dirección: Bea busca lo que doy, en SU tarjeta («Le das»).
+  check('la otra dirección también sale, en la tarjeta de Bea', (await gente.first().locator('.mc-cruce-lado').nth(1).locator('.mc-cruce-carta').count()) === 1)
+  check('  …y Carlos no busca nada mío', /Nada de su lista/.test(limpio(await gente.nth(1).textContent())))
   await page.close()
 }
 
@@ -128,11 +128,11 @@ console.log('\n── 2. Se agrupa por PERSONA, no por carta ──')
     coleccion: [1, 2, 3, 4].map((n) => linea({ id: `b${n}`, user_id: 'user-2', card_id: `sv1-${n}`, cantidad: 2, cambio: 1 })),
     deseos: [1, 2, 3, 4].map((n) => deseo({ id: `d${n}`, user_id: 'admin-1', card_id: `sv1-${n}` })),
   })
-  const gente = page.locator('.mc-cambio-bloque').first().locator('.mc-cambio-persona')
+  const gente = page.locator('#mcCambiosPanel .mc-cruce')
   check('una sola tarjeta', (await gente.count()) === 1, String(await gente.count()))
-  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cambio-carta').count()) === 4,
-    String(await gente.first().locator('.mc-cambio-carta').count()))
-  check('  …y lo dice', /4 cartas que buscas/.test(limpio(await gente.first().textContent())),
+  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 4,
+    String(await gente.first().locator('.mc-cruce-carta').count()))
+  check('  …y lo dice', /4 cartas/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 120))
   check('  …y un solo botón de escribir', (await gente.first().locator('[data-escribir]').count()) === 1)
   await page.close()
@@ -151,7 +151,7 @@ console.log('\n── 3. El mensaje se deja ESCRITO, no enviado ──')
   check('lleva a los mensajes de PokeDoc', /\/mensajes\.html/.test(page.url()), page.url())
   const caja = page.locator('#msgBody')
   const texto = await caja.inputValue().catch(() => '')
-  check('  …con el mensaje ya escrito', /He visto que das estas cartas/.test(texto), texto.slice(0, 120))
+  check('  …con el mensaje ya escrito', /Das estas cartas que estoy buscando/.test(texto), texto.slice(0, 120))
   check('  …nombrando la carta', /Carta 2/.test(texto), texto.slice(0, 160))
   check('  …y sin enviarlo', (await page.locator('.mensaje, .msg-mine, [data-mensaje]').count()) === 0)
   // Y `texto` se quita de la dirección: recargar no puede volver a
@@ -170,7 +170,7 @@ console.log('\n── 4. «No has apuntado nada» no es «no hay nadie» ──'
   // vacíos—, pero lo que se comprueba es lo mismo: que dice qué hacer y
   // no «no hay nadie», que sería mentira y encima desanima.
   check('sin lista de búsqueda, se dice qué hacer', /Apunta lo que buscas/.test(t), t.slice(0, 160))
-  check('  …y sin dar nada, también', /Marca lo que das/.test(t), t.slice(0, 300))
+  check('  …y sin dar nada, también', /Pon para cambio lo que te sobra/.test(t), t.slice(0, 300))
   check('  …y no se dice «no hay nadie»', !/Todavía no hay nadie/.test(t), t.slice(0, 200))
   await page.close()
 }
@@ -182,8 +182,8 @@ console.log('\n── 5. Con lista pero sin nadie enfrente, ahí sí ──')
     deseos: [deseo({ id: 'd1', user_id: 'admin-1', card_id: 'sv1-2' })],
   })
   const t = limpio(await page.locator('#mcCambiosPanel').textContent())
-  check('ahora sí se dice que no hay nadie', /Todavía no hay nadie que dé lo que buscas/.test(t), t.slice(0, 200))
-  check('  …y lo que das sale listado', /das 2 de 3/.test(t), t.slice(0, 400))
+  check('ahora sí se dice que no hay nadie', /Todavía nadie encaja contigo/.test(t), t.slice(0, 200))
+  check('  …y se manda al Mercado, donde está todo lo que se da', /Mercado/.test(t), t.slice(0, 400))
   await page.close()
 }
 
@@ -198,12 +198,12 @@ console.log('\n── 6. El idioma: «me da igual» no es «en español» ──
     ],
     deseos: [deseo({ id: 'd1', user_id: 'admin-1', card_id: 'sv1-2', idioma: 'es' })],
   })
-  const gente = page.locator('.mc-cambio-bloque').first().locator('.mc-cambio-persona')
+  const gente = page.locator('#mcCambiosPanel .mc-cruce')
   check('solo sale quien la tiene en el idioma que busco', (await gente.count()) === 1, String(await gente.count()))
   check('  …y es Carlos', /Carlos/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 80))
-  check('  …con sus señas', /Español · Near Mint/.test(limpio(await gente.first().textContent())),
-    limpio(await gente.first().textContent()).slice(0, 160))
+  const senas = await gente.first().locator('.mc-cruce-carta').first().getAttribute('aria-label')
+  check('  …con sus señas', /Español · Near Mint/.test(senas || ''), senas)
   await page.close()
 }
 
@@ -216,10 +216,13 @@ console.log('\n── 7. Apuntar y quitar una carta de la lista ──')
   check('el buscador encuentra la carta', (await page.locator('[data-desear]').count()) > 0,
     String(await page.locator('[data-desear]').count()))
   await page.locator('[data-desear]').first().click()
+  // Desde la 771 pregunta el idioma: «Cualquiera», que va marcado.
+  await page.waitForTimeout(400)
+  await page.click('#iddApuntar')
   await page.waitForTimeout(1400)
-  check('se apunta', (await page.locator('.mc-deseos .mc-fila-carta').count()) === 1,
-    String(await page.locator('.mc-deseos .mc-fila-carta').count()))
-  check('  …con su prioridad', (await page.locator('.mc-deseo-prioridad').count()) === 1)
+  check('se apunta', (await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').count()) === 1,
+    String(await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').count()))
+  check('  …sin desplegable de prioridad (771)', (await page.locator('#mcQuieroPanel select').count()) === 0)
   check('  …y diciendo que la ve todo el mundo',
     /la ve todo el mundo/.test(limpio(await page.locator('#mcQuieroPanel').textContent())))
 
@@ -231,9 +234,9 @@ console.log('\n── 7. Apuntar y quitar una carta de la lista ──')
   check('  …y no se apunta dos veces', await b.isDisabled(), await b.textContent())
   check('  …diciendo por qué', /Ya la buscas/.test(limpio(await b.textContent())), limpio(await b.textContent()))
 
-  await page.locator('[data-quitar-deseo]').first().click()
+  await page.locator('[data-quitar-deseo-carta]').first().click()
   await page.waitForTimeout(1200)
-  check('y se quita', (await page.locator('.mc-deseos .mc-fila-carta').count()) === 0)
+  check('y se quita', (await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -263,7 +266,8 @@ console.log('\n── 7b. En el móvil, el nombre de la carta se lee ──')
   }, PERFILES)
   await movil.goto(`${BASE}/mi-coleccion.html?ver=quiero`, { waitUntil: 'domcontentloaded' })
   await movil.waitForTimeout(2800)
-  const ancho = await movil.locator('.mc-deseos .mc-fila-nombre').first().evaluate((e) => Math.round(e.getBoundingClientRect().width))
+  // Desde la 771 es una baldosa de la rejilla, con el nombre debajo.
+  const ancho = await movil.locator('#mcQuieroRejilla .mc-merc-nombre').first().evaluate((e) => Math.round(e.getBoundingClientRect().width))
   check('el nombre de la carta no se encoge a nada', ancho > 120, `${ancho}px`)
   const caja = await movil.evaluate(() => ({ doc: document.documentElement.scrollWidth, ventana: window.innerWidth }))
   check('  …y nada se sale de la pantalla', caja.doc <= caja.ventana + 1, JSON.stringify(caja))
