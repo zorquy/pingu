@@ -3406,7 +3406,50 @@ html.torneo-jugando #torneoNombre {
 }
 .torneo-mis-jornadas-cual svg { color: var(--text-mid); flex-shrink: 0; }
 .torneo-mis-jornadas-fuera .torneo-mis-jornadas-cual { color: var(--text-mid); }
-/* Misma columna para el botón y el «Ya empezó»: las chapas, alineadas. */
-.torneo-jornada-cambiar,
-.torneo-jornada-cerrada { min-width: 152px; margin: 0; text-align: center; }
+/* Las acciones de cada jornada, en su columna: las chapas, alineadas. */
+.torneo-mis-jornadas-acciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-xs);
+  min-width: 152px;
+}
+.torneo-jornada-cerrada { margin: 0; text-align: center; min-width: 152px; }
+.torneo-liga-tarde { margin-top: var(--e-sm); }
+.torneo-decklist-jornada {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-sm);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+.torneo-decklist-jornada select { min-height: 44px; max-width: 100%; }
+
+/* Inscripciones por jornada, para quien lleva la liga (tanda 635). */
+.torneo-jornadas-admin {
+  margin-top: var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.torneo-jornadas-admin-titulo { margin: 0 0 var(--e-xs); }
+.torneo-jornadas-admin .subtext { margin: 0 0 var(--e-sm); }
+.torneo-jornadas-admin-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.torneo-jornadas-admin-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  font-size: var(--t-sm);
+}
+.torneo-jornadas-admin-fila > span:first-child { flex: 1 1 140px; min-width: 0; }
+.torneo-jornadas-admin-fila .subtext { margin: 0; }
 .torneo-aviso-jornada { margin: var(--e-sm) 0 0; }

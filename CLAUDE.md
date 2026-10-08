@@ -1345,13 +1345,16 @@ el sondeo de respaldo detrás (la ficha entera se refresca sola desde
 torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
 automáticos con función programada por minuto.
 
-**En una LIGA cada jugador elige sus jornadas** (tanda 634): una fila en
-`tournament_matchday_absences` = «no juega esa jornada», escrita solo por
-la RPC `torneos_jornada` y solo mientras no existan los pareos de esa
-jornada. Al motor le llega como retirado justo antes de ESA ronda
-(`montarSnapshot`), así que no se toca el motor y en la siguiente vuelve
-solo. Si añades otro camino que empareje (o un pareo manual), que pase
-por `montarSnapshot`: es quien sabe quién no juega.
+**En una LIGA cada jornada se juega con SU lista** (tanda 635, que
+sustituye a la 634): jugar la jornada N es tener fila en
+`tournament_matchday_decklists` para N, escrita solo por la RPC
+`torneos_lista_jornada` mientras la jornada esté abierta (sin cierre en
+`tournament_matchday_closures` y sin pareos). Cada jornada se cierra por
+separado y solo se empareja cerrada. Al motor le llega como retirado
+justo antes de ESA ronda quien no tiene lista (`montarSnapshot`), así que
+el motor no se toca; y al emparejar, esas listas pasan a
+`tournament_decklists`, que sigue siendo «la» lista para todo lo demás.
+Si añades otro camino que empareje, que pase por `montarSnapshot`.
 
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
 al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda

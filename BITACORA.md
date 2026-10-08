@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (20) — PINGU-Claude (635 — en una liga, una lista por jornada y cada jornada se cierra aparte)
+
+**Hecho**: PINGU: «en una liga puedes jugar distintas jornadas con
+distintos mazos, por lo tanto tienes que enviar una decklist en cada
+jornada […] y que no se cierren [las inscripciones] para toda la liga, solo
+para la jornada que quieras». Eligió: sin lista no juega esa jornada (no
+es baja); cerrar una jornada congela quién la juega y con qué lista; la
+liga admite gente nueva mientras quede una jornada abierta. **Sustituye a
+la 634** (ausencias): jugar una jornada ES mandar su lista. «Tus jornadas»
+en tu plaza (Enviar lista / Cambiar lista / No juego), «Tu decklist» con
+selector de jornada y la lista anterior ya puesta, y quien lleva la liga
+tiene «Inscripciones por jornada» en Rondas (Cerrar / Reabrir) en vez del
+«Cerrar inscripciones» de la liga entera. Solo se empareja una jornada
+cerrada; al emparejar, sus listas pasan a `tournament_decklists` (que
+sigue siendo «la» lista para meta, rival y jueces). El motor no se toca.
+
+**Ficheros**: supabase-migration-torneos-jornadas.sql (REESCRITA: quita
+lo de la 634, tablas de cierres y listas por jornada, cuatro RPC y
+`torneos_inscribirse` con la puerta de la liga empezada),
+js/torneos/jornadas.js, js/torneos/torneo.js, js/torneos/ronda.js,
+css/torneos.css. Pruebas (rama `pruebas`): test-tanda-635 (sustituye a la
+634) + sql-jornadas (37 contra PostgreSQL) + rigor 25/25; subconjunto de
+torneos (59) en verde.
+
+**Pendiente**:
+- **PINGU: ejecutar `supabase-migration-torneos-jornadas.sql`** en el SQL
+  Editor (si ya ejecutaste la de la 634, esta la sustituye). Hasta
+  entonces las ligas funcionan como antes.
+- Una liga que ya esté en juego al ejecutarla: sus jugadores tienen que
+  mandar lista para las jornadas que queden (sin lista no juegan). Las
+  jornadas ya jugadas no cambian.
+- La línea de tiempo de Rondas sigue diciendo «Ronda N» también en ligas.
+
 ## 2026-10-08 (19) — PINGU-Claude (770–773 — Deseos y cambios, rehecho)
 
 **Hecho**: lo que PINGU aprobó en las maquetas («adelante con todo lo que

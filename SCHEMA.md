@@ -36739,3 +36739,47 @@ siempre por él, se ve sin cuenta y el − y + de «Las que doy» en la carta.
 - El doble aprende `user_follows` (`__FAKE_SEGUIDOS__`).
 - Prueba 772-pantalla (nueva); al día 376, 439, 763.
 
+## Tanda 635 — en una liga, una lista por jornada y cada jornada se cierra por separado
+
+PINGU: «en una liga puedes jugar distintas jornadas con distintos mazos,
+por lo tanto tienes que enviar una decklist en cada jornada […] y a la
+hora de cerrar inscripciones que no se cierren para toda la liga y que
+solo se cierren para la jornada que quieras». Lo que eligió: sin lista no
+juega esa jornada (no es una baja); cerrar una jornada congela quién la
+juega y con qué lista; la liga admite gente nueva mientras quede alguna
+jornada abierta. **Sustituye a la 634** (las ausencias): jugar una
+jornada ES mandar su lista, así que una tabla de ausencias sería una
+segunda fuente de «quién juega». La migración la quita.
+
+- **Migración `supabase-migration-torneos-jornadas.sql`** (reescrita):
+  `tournament_matchday_closures (tournament_id, matchday)` = jornada
+  cerrada (se lee para todos); `tournament_matchday_decklists
+  (tournament_id, user_id, matchday, raw_text, parsed_cards)` = la lista de
+  cada uno para cada jornada (la ven el dueño, quien lleva la liga y sus
+  jueces; `to authenticated`). Nadie escribe directo: cuatro RPC —
+  `torneos_lista_jornada` (inscrito activo, liga en juego, jornada
+  abierta = sin cierre y sin pareos), `torneos_quitar_lista_jornada`,
+  `torneos_cerrar_jornada` (quien lleva la liga; reabrir solo sin pareos)
+  y `torneos_publicar_listas_jornada` (copia las listas de esa jornada a
+  `tournament_decklists`, selladas). Y `torneos_inscribirse` se rehace
+  con una puerta más: una liga en juego admite gente mientras le quede
+  una jornada abierta.
+- **`tournament_decklists` sigue siendo «la» lista** de cada jugador para
+  todo lo demás (arquetipos, meta, lista del rival, jueces, cartas más
+  jugadas) y con su visibilidad de siempre. En una liga es la de la
+  ÚLTIMA jornada emparejada: se copia al emparejar y no al enviarla, para
+  que una lista de una jornada futura no se vea antes de tiempo.
+- **El pareo** (`js/torneos/ronda.js`): en una liga por jornadas solo se
+  empareja una jornada CERRADA, se vuelven a leer las listas en el
+  momento, `montarSnapshot(n)` pasa como retirado justo antes de la
+  jornada a quien no tiene lista para ella (`juegaLaJornada`; una jornada
+  sin ninguna lista —jugada antes de esto— no filtra), no hay «dos pasos»
+  en la J1 y, hechos los pareos, se publican las listas.
+- **La ficha** (`js/torneos/torneo.js`, `js/torneos/jornadas.js`): «Tus
+  jornadas» en tu plaza (Juegas / Sin lista, «Enviar lista», «Cambiar
+  lista», «No juego»); «Tu decklist» con un selector de jornada, que
+  ofrece rellena la lista de la jornada anterior; quien lleva la liga ve
+  «Inscripciones por jornada» en Rondas (abierta/cerrada, cuántos con
+  lista, Cerrar / Reabrir) y no tiene «Cerrar inscripciones» de la liga
+  entera. Sin la migración, todo como antes.
+

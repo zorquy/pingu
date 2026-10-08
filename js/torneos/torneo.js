@@ -27,7 +27,7 @@ import {
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces, pendientesDeJuez } from './jueces.js'
-import { cargarJornadas, misJornadas, misJornadasHtml, cambiarJornada } from './jornadas.js'
+import { cargarJornadas, misJornadas, misJornadasHtml, listaAnterior, enviarListaJornada, quitarListaJornada, primeraAbierta, quienesJuegan } from './jornadas.js'
 import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
@@ -49,9 +49,14 @@ let decklistsEntregadas = [] // {user_id, submitted_at, locked_at}: el admin ve 
 let decklistsTorneo = null // las listas ENTERAS, solo si quien mira es juez u organizador
 let solicitudesJuez = [] // todas las solicitudes de juez del torneo (las usa jueces.js)
 let esJuez = false
-// Las jornadas de una liga (tanda 634): quién falta a cuál y cuáles ya
-// tienen pareos. NULL = no es liga o no se sabe (migración sin poner).
+// Las jornadas de una liga (tandas 634 y 635): cuáles están cerradas,
+// cuáles tienen pareos y las listas por jornada que quien mira puede ver.
+// NULL = no es liga o no se sabe (migración sin poner).
 let jornadas = null
+// En una liga, la jornada cuya lista se está viendo o editando en «Tu
+// decklist» (tanda 635). Null = la primera abierta.
+let jornadaElegida = null
+const esUnaLiga = () => torneo?.format === 'league'
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296). Se
 // lee de las tres variables de arriba, así que cambia sola al recargar.
 const mando = () => puedeLlevar(perfil, torneo, session?.user?.id)
@@ -329,6 +334,10 @@ function pintarFicha() {
   } else if (torneo.status === 'draft') {
     if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'))
       $('btnAbrirInscripciones').addEventListener('click', () => cambiarEstado('registration_open', 'Inscripciones abiertas. ¡A correr la voz!'))
+  } else if (torneo.status === 'registration_open' && esUnaLiga()) {
+    // En una liga no se cierra la liga entera: se cierra cada jornada,
+    // desde «Rondas» (tanda 635).
+    pintarSiCambia(acciones, '')
   } else if (torneo.status === 'registration_open') {
     if (pintarSiCambia(acciones, '<button class="btn-secondary" id="btnCerrarInscripciones">Cerrar inscripciones</button>'))
       $('btnCerrarInscripciones').addEventListener('click', cerrarInscripciones)
@@ -1369,7 +1378,9 @@ function hayColumnaConfirmacion() {
 }
 
 function checklistDosPasos() {
-  if (!hayColumnaConfirmacion()) return ''
+  // En una liga no hay dos pasos: jugar una jornada ES mandar su lista
+  // (tanda 635), y eso lo dice «Tus jornadas».
+  if (esUnaLiga() || !hayColumnaConfirmacion()) return ''
   // Con la R1 ya generada el tren pasó: o estás dentro o estás fuera.
   if (!['draft', 'registration_open', 'registration_closed'].includes(torneo.status)) return ''
   const listaHecha = !!miDecklist
@@ -1419,25 +1430,33 @@ function engancharConfirmarParticipacion() {
   })
 }
 
-// Apuntarse o desapuntarse de una jornada (tanda 634). Lo decide la
-// base: si entretanto se han generado los pareos, su mensaje lo dice.
+// Las jornadas de una liga en tu plaza (tanda 635): «Enviar lista» o
+// «Cambiar lista» llevan a «Tu decklist» con esa jornada elegida; «No
+// juego» retira tu lista de esa jornada. Lo decide la base: si entretanto
+// el organizador la ha cerrado, su mensaje lo dice.
 function engancharJornadas() {
   $('torneoMisJornadas')?.addEventListener('click', async (e) => {
     const boton = e.target.closest('.torneo-jornada-cambiar')
     if (!boton) return
     const n = Number(boton.dataset.jornada)
-    const juega = boton.dataset.juega === 'si'
-    boton.disabled = true
-    const error = await cambiarJornada(torneo.id, n, juega)
-    if (error) {
-      boton.disabled = false
-      avisarError(error, juega ? 'No se ha podido apuntarte' : 'No se ha podido desapuntarte')
+    if (boton.dataset.accion === 'lista') {
+      jornadaElegida = n
+      pintarDecklist()
+      irAPestana('jugar')
+      const editor = document.querySelector('.torneo-decklist-editor')
+      if (editor) editor.open = true
+      $('torneoDecklistCaja')?.scrollIntoView({ block: 'start' })
+      $('decklistTexto')?.focus({ preventScroll: true })
       return
     }
-    showToast(
-      juega ? `Apuntado a la jornada ${n}.` : `Desapuntado de la jornada ${n}: no te emparejarán en ella.`,
-      'success'
-    )
+    boton.disabled = true
+    const error = await quitarListaJornada(torneo.id, n)
+    if (error) {
+      boton.disabled = false
+      avisarError(error, 'No se ha podido quitar tu lista')
+      return
+    }
+    showToast(`No juegas la jornada ${n}: tu lista de esa jornada se ha retirado.`, 'success')
     await recargar()
   })
 }
@@ -1503,7 +1522,12 @@ function pintarMiPlaza() {
     engancharSalirCola()
     return
   }
-  if (torneo.status !== 'registration_open') {
+  // Una liga ya empezada admite gente nueva mientras le quede alguna
+  // jornada abierta (tanda 635): entra con 0 puntos y juega desde la
+  // jornada a la que mande su lista. La base hace la misma cuenta.
+  const ligaAbierta =
+    esUnaLiga() && ['registration_closed', 'in_progress'].includes(torneo.status) ? primeraAbierta(torneo, jornadas) : null
+  if (torneo.status !== 'registration_open' && !ligaAbierta) {
     pintarSiCambia(caja, `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`)
     return
   }
@@ -1531,7 +1555,11 @@ function pintarMiPlaza() {
       torneo.is_private
         ? 'Este torneo se juega con código: pídeselo a quien lo organiza. '
         : ''
-    }Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>`)) return
+    }Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>${
+      ligaAbierta
+        ? `<p class="subtext torneo-liga-tarde">La liga ya ha empezado: entras con 0 puntos y juegas desde la jornada ${ligaAbierta} si envías tu lista antes de que se cierre.</p>`
+        : ''
+    }`)) return
   engancharInscripcion(lleno)
 }
 
@@ -1756,6 +1784,11 @@ function pintarDecklist() {
     return
   }
   caja.classList.remove('hidden')
+  // En una liga, una lista por jornada (tanda 635).
+  if (esUnaLiga() && jornadas && session) {
+    pintarDecklistLiga()
+    return
+  }
 
   const editable = canEditDecklist(session.user.id, {
     tournament: { status: torneo.status },
@@ -1892,7 +1925,67 @@ async function ponerMazoEnLista(mazo) {
   }
 }
 
-function engancharDecklist() {
+// «Tu decklist» en una liga (tanda 635): se elige la jornada y se ve o se
+// edita SU lista. Una jornada sin lista se ofrece rellena con la de la
+// anterior: «no importa si es la misma», así que basta con guardarla.
+function pintarDecklistLiga() {
+  const lista = misJornadas(torneo, jornadas, session.user.id)
+  if (!lista.length) return
+  const valida = (n) => Number.isInteger(n) && n >= 1 && n <= lista.length
+  const n = valida(jornadaElegida) ? jornadaElegida : primeraAbierta(torneo, jornadas) ?? lista.length
+  const fila = lista[n - 1]
+  const editable = fila.abierta && miInscripcion.status === 'active' && !['finished', 'cancelled'].includes(torneo.status)
+  const anterior = !fila.lista && editable ? listaAnterior(lista, n) : null
+  const deDonde = anterior ? lista.find((x) => x.lista === anterior)?.n : null
+  const opciones = lista
+    .map((x) => `<option value="${x.n}"${x.n === n ? ' selected' : ''}>Jornada ${x.n}${x.fecha ? ` · ${escapeHtml(fechaBonita(x.fecha))}` : ''} — ${
+      x.lista ? 'con lista' : x.abierta ? 'sin lista' : 'no la juegas'
+    }</option>`)
+    .join('')
+  const estado = fila.lista
+    ? `<p class="subtext">Lista de la jornada ${n} enviada el ${fechaBonita(fila.lista.submitted_at)} · ${resumenDecklist(fila.lista.parsed_cards)}${
+        editable ? '' : ` <span class="torneo-decklist-sellada">${icons.lock(14)} Jornada cerrada — ya no se puede cambiar</span>`
+      }</p>${botonesExportarHtml()}`
+    : editable
+      ? `<p class="subtext">Aún no has enviado lista para la jornada ${n}: <strong>sin ella no la juegas</strong>.${
+          deDonde ? ` Abajo tienes la de la jornada ${deDonde}: si juegas con la misma, guárdala tal cual.` : ''
+        }</p>`
+      : `<p class="subtext">No enviaste lista para la jornada ${n}: no la juegas.</p>`
+  const texto = fila.lista?.raw_text || anterior?.raw_text || ''
+  const editorAbierto = document.querySelector('.torneo-decklist-editor')?.open
+  if (!pintarSiCambia($('decklistContenido'), `
+    <label class="torneo-decklist-jornada">Jornada
+      <select id="decklistJornada">${opciones}</select>
+    </label>
+    ${estado}
+    <div class="torneo-decklist-visual" id="decklistVisual"></div>
+    ${editable || fila.lista ? `<details class="torneo-decklist-editor" ${(editorAbierto ?? !fila.lista) ? 'open' : ''}>
+      <summary>${fila.lista ? (editable ? 'Editar la lista (texto)' : 'Ver la lista en texto') : 'Pegar la lista'}</summary>
+      ${editable ? `<div class="torneo-desde-mazo">
+        <button type="button" class="btn-secondary" id="btnUsarMazo" aria-expanded="false" aria-controls="decklistMazos">${icons.cards(16)} Usar un mazo del constructor</button>
+        <div class="torneo-mazos hidden" id="decklistMazos"></div>
+      </div>` : ''}
+      <textarea id="decklistTexto" rows="10" maxlength="20000" ${editable ? '' : 'readonly'} placeholder="Pokémon: 8&#10;4 Charizard ex OBF 125&#10;…">${escapeHtml(texto)}</textarea>
+      <p class="torneo-decklist-cuenta" id="decklistCuenta"></p>
+      <ul class="torneo-decklist-errores hidden" id="decklistErrores"></ul>
+      ${editable ? `<button class="btn-primary" id="btnGuardarDecklist">Guardar la lista de la jornada ${n}</button>` : ''}
+    </details>` : ''}`)) return
+  $('decklistJornada').addEventListener('change', (e) => {
+    jornadaElegida = Number(e.target.value)
+    pintarDecklist()
+  })
+  if (editable) engancharDecklist(n)
+  if (fila.lista) {
+    engancharExportar($('decklistContenido'), {
+      nombre: perfil.username || 'Mi decklist',
+      rawText: fila.lista.raw_text,
+      parsed: fila.lista.parsed_cards,
+    })
+    pintarDecklistVisual($('decklistVisual'), fila.lista.parsed_cards)
+  }
+}
+
+function engancharDecklist(jornada = null) {
   let guardando = false
   $('btnUsarMazo')?.addEventListener('click', abrirMazosGuardados)
   $('decklistTexto').addEventListener('input', pintarCuentaDecklist)
@@ -1913,6 +2006,19 @@ function engancharDecklist() {
     if (errores.length) return
 
     guardando = true
+    // En una liga se guarda la lista de ESA jornada, por la base, que es
+    // la que sabe si sigue abierta (tanda 635).
+    if (jornada) {
+      const error = await enviarListaJornada(torneo.id, jornada, texto, parsed)
+      guardando = false
+      if (error) {
+        avisarError(error, 'No se ha podido guardar la lista')
+        return
+      }
+      showToast(`Lista de la jornada ${jornada} guardada: juegas esa jornada.`, 'success')
+      await recargar()
+      return
+    }
     // La entrega tardía (torneo ya en juego) se sella al momento; el
     // resto de guardados no tocan el sello, que pone el arranque de la
     // ronda 1.
@@ -1972,6 +2078,7 @@ function pintarInscritos() {
   textoSiCambia($('inscritosNumero'), String(activos()))
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
   const entregadaPor = new Set(decklistsEntregadas.map((d) => d.user_id))
+  const proxima = esUnaLiga() ? primeraAbierta(torneo, jornadas) : null
   // Los que esperan van APARTE y numerados (tanda 218): mezclarlos con
   // los inscritos haría creer que tienen plaza.
   const htmlInscritos = inscripciones
@@ -1981,13 +2088,18 @@ function pintarInscritos() {
       const retirado = i.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Quién ha entregado lista lo ve solo el organizador: a los demás
       // jugadores no les incumbe (SPEC §9, visibilidad).
-      const decklist = mando()
-        ? `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
-        : ''
+      // En una liga, la lista que importa es la de la próxima jornada
+      // abierta (tanda 635).
+      const juegan = esUnaLiga() && proxima ? quienesJuegan(jornadas, proxima) : null
+      const decklist = !mando()
+        ? ''
+        : juegan
+          ? `<span class="torneo-decklist-marca ${juegan.has(i.user_id) ? 'entregada' : ''}">${juegan.has(i.user_id) ? `lista J${proxima}` : `sin lista J${proxima}`}</span>`
+          : `<span class="torneo-decklist-marca ${entregadaPor.has(i.user_id) ? 'entregada' : ''}">${entregadaPor.has(i.user_id) ? 'decklist entregada' : 'sin decklist'}</span>`
       // Y el paso 2 (tanda 219), también solo para el organizador: sin
       // confirmar antes de la R1, ese jugador no entra en el pareo.
       const confirmado =
-        mando() && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
+        mando() && !esUnaLiga() && i.status === 'active' && 'participation_confirmed_at' in i && !['in_progress', 'finished', 'cancelled'].includes(torneo.status)
           ? `<span class="torneo-decklist-marca ${i.participation_confirmed_at ? 'entregada' : ''}">${i.participation_confirmed_at ? 'confirmado' : 'sin confirmar'}</span>`
           : ''
       // El organizador puede expulsar (misma mecánica que la baja: la
@@ -2114,6 +2226,13 @@ function pintarPestanas() {
   )
 }
 
+// Saltar a una pestaña desde otra caja (tanda 635: de «Tus jornadas» a
+// «Tu decklist»).
+function irAPestana(id) {
+  pestanaActiva = id
+  pintarPestanas()
+}
+
 // ── Arranque ──
 
 function pintarTodo() {
@@ -2125,7 +2244,7 @@ function pintarTodo() {
 
 async function recargar() {
   await cargarInscripciones()
-  jornadas = await cargarJornadas(torneo)
+  jornadas = await cargarJornadas(torneo, { userId: session?.user?.id || null, todas: Boolean(session && mando()) })
   // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7),
   // y además ve las decklists ajenas: por eso esto va ANTES de cargarlas.
   await cargarJueces()

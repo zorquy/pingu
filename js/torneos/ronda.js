@@ -29,7 +29,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas } from './mesas.js'
-import { cargarJornadas, ausentesEn } from './jornadas.js'
+import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada } from './jornadas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
@@ -222,19 +222,28 @@ async function cargarHistorial() {
   historial = data || []
 }
 
+// En una liga, quién juega la jornada n: quien ha mandado su lista
+// (tanda 635). NULL = no aplica (no es liga, no se ven las listas, o es
+// una jornada en la que nadie mandó lista porque se jugó antes de que
+// existieran — ahí juega quien jugaba, como siempre).
+function juegaLaJornada(n) {
+  const juegan = quienesJuegan(ctx.jornadas, n)
+  return juegan && juegan.size ? juegan : null
+}
+
 // El snapshot inmutable que pide el motor (SPEC §5.1): jugadores con su
 // baja y solo las partidas terminales, con el resultado resuelto.
 function montarSnapshot(numeroRonda) {
-  const ausentes = ausentesEn(ctx.jornadas, numeroRonda)
+  const juegan = juegaLaJornada(numeroRonda)
   return {
     pairingSeed: ctx.torneo.pairing_seed,
     currentRoundNumber: numeroRonda,
     players: ctx.inscripciones.map((i) => {
-      // Quien se desapuntó de ESTA jornada (tanda 634) va al motor como
-      // retirado justo antes de ella: no se le sienta en esta y en la
-      // siguiente vuelve solo, porque cada snapshot se monta para UNA
-      // ronda. El motor no se toca (es TrainerArena 1:1).
-      if (i.status !== 'dropped' && ausentes.has(i.user_id)) {
+      // Quien no tiene lista para ESTA jornada (tanda 635) va al motor
+      // como retirado justo antes de ella: no se le sienta en esta y en
+      // la siguiente vuelve si manda lista, porque cada snapshot se monta
+      // para UNA ronda. El motor no se toca (es TrainerArena 1:1).
+      if (juegan && i.status !== 'dropped' && !juegan.has(i.user_id)) {
         return { id: i.user_id, dropped: true, droppedAfterRoundNumber: numeroRonda - 1 }
       }
       return {
@@ -361,18 +370,33 @@ async function generarPareos() {
     return
   }
 
-  // Quién se ha desapuntado de esta jornada, leído AHORA y no del último
-  // refresco: alguien puede haberse quitado hace cinco segundos, y la
-  // base ya no le deja cambiarlo en cuanto exista la ronda (tanda 634).
-  if (ctx.torneo.format === 'league') {
-    const frescas = await cargarJornadas(ctx.torneo)
+  // En una liga, quién juega esta jornada se lee AHORA y no del último
+  // refresco: alguien puede haber mandado su lista hace cinco segundos
+  // (tanda 635). Y la jornada tiene que estar CERRADA: emparejar con las
+  // inscripciones abiertas dejaría fuera al que la manda después.
+  const porJornadas = ctx.torneo.format === 'league' && Boolean(ctx.jornadas)
+  let juegan = null
+  if (porJornadas) {
+    const frescas = await cargarJornadas(ctx.torneo, { userId: ctx.session?.user?.id || null, todas: true })
     if (frescas) ctx.jornadas = frescas
+    if (!jornadaCerrada(ctx.jornadas, n)) {
+      showToast(`Cierra antes las inscripciones de la jornada ${n}: hasta entonces se pueden mandar listas.`, 'error')
+      return
+    }
+    juegan = quienesJuegan(ctx.jornadas, n) || new Set()
+    const sentables = ctx.inscripciones.filter((i) => i.status === 'active' && juegan.has(i.user_id)).length
+    if (sentables < 2) {
+      showToast(
+        `No hay con quién emparejar la jornada ${n}: ${sentables === 1 ? 'solo un jugador ha mandado' : 'nadie ha mandado'} su lista.`,
+        'error'
+      )
+      return
+    }
   }
-  const noJuegan = [...ausentesEn(ctx.jornadas, n)].filter((id) =>
-    ctx.inscripciones.some((i) => i.user_id === id && i.status === 'active')
-  )
 
-  if (n === 1) {
+  // Los dos pasos de la R1 no van en una liga por jornadas: ahí jugar ES
+  // mandar la lista de la jornada, y quien no la manda no se retira.
+  if (n === 1 && !porJornadas) {
     const fuera = await retirarNoConfirmados()
     if (fuera.length) {
       showToast(
@@ -382,14 +406,9 @@ async function generarPareos() {
         'info'
       )
     }
-    const sentables = ctx.inscripciones.filter((i) => i.status === 'active' && !noJuegan.includes(i.user_id)).length
+    const sentables = ctx.inscripciones.filter((i) => i.status === 'active').length
     if (sentables < 2) {
-      showToast(
-        noJuegan.length
-          ? 'No quedan suficientes jugadores confirmados que jueguen la jornada 1 para emparejarla.'
-          : 'No quedan suficientes jugadores confirmados para parear la primera ronda.',
-        'error'
-      )
+      showToast('No quedan suficientes jugadores confirmados para parear la primera ronda.', 'error')
       await ctx.recargarFicha()
       return
     }
@@ -422,6 +441,13 @@ async function generarPareos() {
 
   for (const p of plan.pairings) await crearMesa(ronda.id, p.tableNumber, p.playerAId, p.playerBId)
   if (plan.byePlayerId) await crearBye(ronda.id, plan.pairings.length + 1, plan.byePlayerId)
+  // La lista de esta jornada pasa a ser «la» lista de cada uno: la que
+  // ven el rival, los jueces y el meta, con la regla de visibilidad de
+  // siempre (tanda 635). Antes no, para no enseñar una lista futura.
+  if (porJornadas) {
+    const error = await publicarListasJornada(ctx.torneo.id, n)
+    if (error) showToast(`Pareos hechos, pero las listas de la jornada ${n} no se han podido publicar: ${error.message}`, 'error')
+  }
 
   // Un cruce repetido que nadie sabe que se repite sí sería un problema:
   // se canta, y con los nombres, porque es lo que el juez tiene que poder
@@ -434,9 +460,9 @@ async function generarPareos() {
         ? `Ronda ${n} pareada, pero ${repes.length === 1 ? 'una mesa repite cruce' : `${repes.length} mesas repiten cruce`}: ${repes
             .map((m) => `mesa ${m.tableNumber} (${nombreDe(m.playerAId)} vs ${nombreDe(m.playerBId)})`)
             .join(', ')}. No había forma de evitarlo sin dejar a nadie sin sentar.`
-        : `Pareos de la ${ctx.torneo.format === 'league' ? 'jornada' : 'ronda'} ${n} generados.${
-            noJuegan.length ? ` No juegan esta jornada: ${noJuegan.map(nombreDe).join(', ')}.` : ''
-          }`,
+        : juegan
+          ? `Pareos de la jornada ${n} generados: juegan ${juegan.size} con su lista.`
+          : `Pareos de la ronda ${n} generados.`,
     sinParear.length || repes.length ? 'error' : 'success'
   )
   // La R1 puede haber retirado inscritos (los dos pasos): ficha entera,
@@ -1297,23 +1323,73 @@ function pintarMesas(ronda) {
   return `<div class="torneo-mesas">${filas}</div>`
 }
 
-// Lo que el organizador tiene que saber antes de emparejar una jornada
-// (tanda 634): quién se ha desapuntado, y que al generar los pareos la
-// lista se cierra — hasta entonces cada uno puede cambiar de idea.
+// Las inscripciones de cada jornada, para quien lleva la liga (tanda
+// 635): cuántos han mandado lista y el botón de cerrarla o reabrirla.
+// Cada jornada se cierra por separado: la liga sigue admitiendo listas
+// (y gente nueva) para las demás.
+function jornadasAdminHtml() {
+  if (ctx.torneo.format !== 'league' || !ctx.jornadas || !mando() || ['finished', 'cancelled'].includes(ctx.torneo.status)) return ''
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active')
+  const fechas = Array.isArray(ctx.torneo.matchday_dates) ? ctx.torneo.matchday_dates : []
+  const filas = []
+  for (let n = 1; n <= (ctx.torneo.swiss_rounds || 0); n++) {
+    if (jornadaEmpezada(ctx.jornadas, n)) continue
+    const juegan = quienesJuegan(ctx.jornadas, n) || new Set()
+    const con = activos.filter((i) => juegan.has(i.user_id))
+    const cerrada = jornadaCerrada(ctx.jornadas, n)
+    const fecha = fechas[n - 1] ? ` · ${escapeHtml(fechaCorta(fechas[n - 1]))}` : ''
+    filas.push(`<li class="torneo-jornadas-admin-fila">
+        <span><strong>Jornada ${n}</strong>${fecha}</span>
+        <span class="torneo-chapa ${cerrada ? 'torneo-chapa-neutra' : 'torneo-chapa-exito'}">${cerrada ? 'Cerrada' : 'Abierta'}</span>
+        <span class="subtext">${con.length} de ${activos.length} con lista</span>
+        <button type="button" class="btn-secondary torneo-jornada-cerrar" data-jornada="${n}" data-cerrar="${cerrada ? 'no' : 'si'}">${cerrada ? 'Reabrir' : 'Cerrar inscripciones'}</button>
+      </li>`)
+  }
+  if (!filas.length) return ''
+  return `<div class="torneo-jornadas-admin" id="torneoJornadasAdmin">
+      <p class="torneo-jornadas-admin-titulo"><strong>Inscripciones por jornada</strong></p>
+      <p class="subtext">Cada jugador juega una jornada mandando su lista para ella. Al cerrar una jornada ya nadie puede mandar ni cambiar su lista de esa jornada; las demás siguen abiertas. Para emparejarla, ciérrala.</p>
+      <ul class="torneo-jornadas-admin-lista">${filas.join('')}</ul>
+    </div>`
+}
+
+// Quién juega la jornada que toca, debajo del botón de emparejarla.
 function avisoDeJornada(n) {
-  if (!ctx.jornadas) return ''
-  const fuera = [...ausentesEn(ctx.jornadas, n)].filter((id) =>
-    ctx.inscripciones.some((i) => i.user_id === id && i.status === 'active')
+  const juegan = quienesJuegan(ctx.jornadas, n)
+  if (!juegan) return ''
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active')
+  const con = activos.filter((i) => juegan.has(i.user_id)).map((i) => escapeHtml(nombreDe(i.user_id)))
+  const sin = activos.filter((i) => !juegan.has(i.user_id)).map((i) => escapeHtml(nombreDe(i.user_id)))
+  return `<p class="subtext torneo-aviso-jornada">Juegan la jornada ${n} (${con.length}): <strong>${con.join(', ') || 'nadie'}</strong>.${
+    sin.length ? ` Sin lista, no la juegan: ${sin.join(', ')}.` : ''
+  }</p>`
+}
+
+async function alternarJornada(boton) {
+  const n = Number(boton.dataset.jornada)
+  const cerrar = boton.dataset.cerrar === 'si'
+  boton.disabled = true
+  const error = await cerrarJornada(ctx.torneo.id, n, cerrar)
+  if (error) {
+    boton.disabled = false
+    showToast(`No se ha podido ${cerrar ? 'cerrar' : 'reabrir'} la jornada ${n}: ${error.message}`, 'error')
+    return
+  }
+  showToast(
+    cerrar
+      ? `Inscripciones de la jornada ${n} cerradas. Ya puedes emparejarla cuando toque.`
+      : `Jornada ${n} reabierta: se pueden volver a mandar listas.`,
+    'success'
   )
-  const quien = fuera.length
-    ? `No ${fuera.length === 1 ? 'juega' : 'juegan'} la jornada ${n}: <strong>${fuera.map((id) => escapeHtml(nombreDe(id))).join(', ')}</strong>.`
-    : `De momento juega la jornada ${n} todo el mundo.`
-  return `<p class="subtext torneo-aviso-jornada">${quien} Hasta que generes los pareos, cada jugador puede apuntarse o desapuntarse; al generarlos, la lista se cierra.</p>`
+  await ctx.recargarFicha()
 }
 
 function pintarRondas() {
   const caja = $('torneoRondasCaja')
-  const arrancado = ['registration_closed', 'in_progress', 'finished'].includes(ctx.torneo.status) || rondas.length > 0
+  // Una liga por jornadas se lleva desde aquí desde que abre inscripciones:
+  // cada jornada se cierra por separado (tanda 635).
+  const ligaPorJornadas = ctx.torneo.format === 'league' && Boolean(ctx.jornadas) && mando() && ctx.torneo.status === 'registration_open'
+  const arrancado = ['registration_closed', 'in_progress', 'finished'].includes(ctx.torneo.status) || rondas.length > 0 || ligaPorJornadas
   if (!arrancado) {
     caja.classList.add('hidden')
     return
@@ -1322,11 +1398,23 @@ function pintarRondas() {
 
   const actual = rondaActual()
   let admin = ''
+  // Lo que va DEBAJO de los botones (tanda 635): quién juega la jornada
+  // y las inscripciones de cada una. Fuera de la fila de botones, que es
+  // flexible y no es sitio para un párrafo.
+  let adminAvisos = ''
   if (mando() && ctx.torneo.status !== 'finished') {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
-      admin = ctx.torneo.format === 'league'
-        ? `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la jornada ${rondas.length + 1}</button>${avisoDeJornada(rondas.length + 1)}`
-        : `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${rondas.length + 1}</button>`
+      const n = rondas.length + 1
+      if (ctx.torneo.format === 'league' && ctx.jornadas) {
+        if (jornadaCerrada(ctx.jornadas, n)) {
+          admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la jornada ${n}</button>`
+          adminAvisos = avisoDeJornada(n)
+        } else {
+          adminAvisos = `<p class="subtext torneo-aviso-jornada">Para emparejar la jornada ${n}, cierra antes sus inscripciones.</p>`
+        }
+      } else {
+        admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ${ctx.torneo.format === 'league' ? 'jornada' : 'ronda'} ${n}</button>`
+      }
     } else if (actual?.status === 'pending') {
       admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ronda ${actual.round_number}</button>`
     } else if (actual?.status === 'active') {
@@ -1406,12 +1494,16 @@ function pintarRondas() {
     ${linea}
     <div class="torneo-rondas-cabecera">
       <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
-    </div>`
+    </div>${adminAvisos}${jornadasAdminHtml()}`
   if (!pintarSiCambia($('rondasAdmin'), htmlRondas)) return pintarRondasResto(actual)
   // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
   // es el botón de «a ver si mi rival ya ha hecho algo».
   $('btnActualizarCiclo').addEventListener('click', () => ctx.recargarFicha())
   if ($('btnGenerarPareos')) $('btnGenerarPareos').addEventListener('click', generarPareos)
+  $('torneoJornadasAdmin')?.addEventListener('click', (e) => {
+    const boton = e.target.closest('.torneo-jornada-cerrar')
+    if (boton) void alternarJornada(boton)
+  })
   if ($('btnIniciarRonda')) $('btnIniciarRonda').addEventListener('click', () => iniciarRonda(actual))
   if ($('btnCerrarRonda')) $('btnCerrarRonda').addEventListener('click', () => cerrarRonda(actual))
   if ($('btnDeshacerRonda')) $('btnDeshacerRonda').addEventListener('click', deshacerRonda)
