@@ -1902,14 +1902,6 @@
     var(--shadow-md);
 }
 
-.mc-binder[data-tapa='azul'] { --tapa: var(--navy); }
-.mc-binder[data-tapa='rojo'] { --tapa: var(--danger-solid); }
-.mc-binder[data-tapa='verde'] { --tapa: var(--success); }
-.mc-binder[data-tapa='amarillo'] { --tapa: #d9a521; }
-.mc-binder[data-tapa='morado'] { --tapa: #6d4aa8; }
-.mc-binder[data-tapa='rosa'] { --tapa: #c04a7e; }
-.mc-binder[data-tapa='negro'] { --tapa: #22303d; }
-.mc-binder[data-tapa='crema'] { --tapa: #b9a888; }
 
 /* Los botones del color, redondos y del color que ponen. */
 .mc-tapas {
@@ -1930,14 +1922,17 @@
   cursor: pointer;
 }
 
-.mc-tapa[data-tapa='azul'] { --tapa: var(--navy); }
-.mc-tapa[data-tapa='rojo'] { --tapa: var(--danger-solid); }
-.mc-tapa[data-tapa='verde'] { --tapa: var(--success); }
-.mc-tapa[data-tapa='amarillo'] { --tapa: #d9a521; }
-.mc-tapa[data-tapa='morado'] { --tapa: #6d4aa8; }
-.mc-tapa[data-tapa='rosa'] { --tapa: #c04a7e; }
-.mc-tapa[data-tapa='negro'] { --tapa: #22303d; }
-.mc-tapa[data-tapa='crema'] { --tapa: #b9a888; }
+
+/* Los ocho colores, para todo lo que lleve `data-tapa` (759): el archivador,
+   el botón del color, la baldosa de un binder y la vista del diálogo. */
+[data-tapa='azul'] { --tapa: var(--navy); }
+[data-tapa='rojo'] { --tapa: var(--danger-solid); }
+[data-tapa='verde'] { --tapa: var(--success); }
+[data-tapa='amarillo'] { --tapa: #d9a521; }
+[data-tapa='morado'] { --tapa: #6d4aa8; }
+[data-tapa='rosa'] { --tapa: #c04a7e; }
+[data-tapa='negro'] { --tapa: #22303d; }
+[data-tapa='crema'] { --tapa: #b9a888; }
 
 /* El elegido, con un aro por fuera: el color ya lo lleva dentro, así que
    el borde no puede ser lo que distinga. */
@@ -1980,7 +1975,7 @@
 .mc-hoja {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
   gap: var(--e-sm);
   padding: var(--e-lg) var(--e-md) var(--e-md);
   border: 1px solid var(--border);
@@ -8881,4 +8876,369 @@ input.mc-alb-titulo:not([readonly]):focus {
   white-space: nowrap;
   pointer-events: none;
   transform: translateX(-50%);
+}
+
+/* ── 759: Mis álbumes en una rejilla (AL1) y «Empezar un álbum» (AL2, AL3).
+   El porqué, en SCHEMA.md (tanda 759). ── */
+.mc-albts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--e-md);
+}
+
+.mc-albt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-albt:hover {
+  border-color: var(--border-strong);
+}
+
+.mc-albt-tapa {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.mc-albt-binder .mc-albt-tapa {
+  background: var(--tapa);
+}
+
+.mc-albt-coleccion .mc-albt-tapa {
+  background: var(--navy-solid);
+}
+
+.mc-albt-logo {
+  position: absolute;
+  inset: 0;
+}
+
+.mc-albt-logo img {
+  position: absolute;
+  top: var(--e-md);
+  left: var(--e-md);
+  width: calc(100% - 2 * var(--e-md));
+  height: calc(100% - 2 * var(--e-md));
+  object-fit: contain;
+}
+
+.mc-albt-hojita {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-xs);
+  width: 52%;
+  padding: var(--e-xs);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-albt-hojita > *,
+.mc-albt-abanico > * {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: 4px;
+  background: var(--bg);
+  object-fit: cover;
+}
+
+.mc-albt-abanico {
+  position: relative;
+  width: 64%;
+  height: 84%;
+}
+
+.mc-albt-abanico > * {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 44%;
+  box-shadow: var(--shadow-md);
+  transform-origin: 50% 100%;
+}
+
+.mc-albt-abanico > :nth-child(1) { transform: translateX(-100%) rotate(-12deg); }
+.mc-albt-abanico > :nth-child(2) { z-index: 1; transform: translateX(-50%); }
+.mc-albt-abanico > :nth-child(3) { transform: translateX(0) rotate(12deg); }
+
+.mc-albt-nuevo {
+  border-width: 2px;
+  border-style: dashed;
+}
+
+.mc-albt-nuevo .mc-albt-tapa {
+  background: transparent;
+}
+
+.mc-albt-mas {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+}
+
+.mc-albt-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-sm) var(--e-md) var(--e-md);
+}
+
+.mc-albt-nombre {
+  overflow: hidden;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-albt-pie {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* La barra, sin estirarse: `.mc-barra` nace con `flex: 1 1 200px` (ver
+   arriba), y en una columna flex eso es ALTO. */
+.mc-albt .mc-barra {
+  flex: 0 0 8px;
+  width: 100%;
+}
+
+@media (max-width: 599px) {
+  .mc-albts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+}
+
+/* El diálogo: un `display` solo en `[open]` (la 473). */
+.mc-albn {
+  width: min(560px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(720px, calc(100dvh - 32px));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.mc-albn[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-albn::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.mc-albn form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+}
+
+.mc-albn .mc-panel-cabecera {
+  gap: var(--e-sm);
+}
+
+.mc-albn-atras {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--t-xl);
+  cursor: pointer;
+}
+
+.mc-albn-cuerpo {
+  min-height: 0;
+  padding: var(--e-md);
+  overflow: auto;
+}
+
+.mc-albn-paso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+.mc-albn-tipo {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  column-gap: var(--e-md);
+  align-items: center;
+  min-height: 88px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-albn-tipo:hover {
+  border-color: var(--navy);
+}
+
+.mc-albn-tipo-dibujo {
+  display: grid;
+  grid-row: 1 / 3;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--navy);
+}
+
+.mc-albn-tipo b,
+.mc-albn-opcion b {
+  font-size: var(--t-md);
+}
+
+.mc-albn-tipo small,
+.mc-albn-opcion small,
+.mc-albn-set small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-albn-sets {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.mc-albn-set {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-xs) var(--e-md);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-albn-set + .mc-albn-set {
+  border-top: 1px solid var(--border);
+}
+
+.mc-albn-set[aria-pressed='true'] {
+  background: var(--bg);
+  box-shadow: inset 4px 0 0 var(--navy);
+}
+
+.mc-albn-set-logo {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 36px;
+}
+
+.mc-albn-set-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mc-albn-set-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mc-albn-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--e-sm);
+}
+
+.mc-albn-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 56px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mc-albn-opcion[aria-pressed='true'] {
+  border-color: var(--navy);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+
+/* Los bolsillos dibujados: se elige mirando, como en la tienda. */
+.mc-albn-mini {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 8px);
+  gap: var(--e-xs);
+}
+
+.mc-albn-mini i {
+  width: 8px;
+  height: 12px;
+  border-radius: 1px;
+  background: var(--border-strong);
+}
+
+.mc-albn-vista {
+  --tapa: var(--navy);
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--tapa);
+}
+
+.mc-albn-vista .mc-albn-mini {
+  grid-template-columns: repeat(var(--cols), 16px);
+  gap: var(--e-xs);
+  padding: var(--e-sm);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+}
+
+.mc-albn-vista .mc-albn-mini i {
+  width: 16px;
+  height: 24px;
 }

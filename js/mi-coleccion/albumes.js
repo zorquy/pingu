@@ -25,10 +25,9 @@ export const FICHERO_MIGRACION = 'supabase-migration-albumes.sql'
 const MAX_CARTAS = 1080
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
-import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, POR_PAGINA } from './archivador.js'
+import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, rejillaDe, TAPAS } from './archivador.js'
 import { activarArrastre } from './arrastre.js'
-import { burbujaHtml } from './adorno.js'
-import { abrirDialogoAdorno } from './dialogo-adorno.js'
+import { iniciarAlbumNuevo, abrirAlbumNuevo, esDeLaNumeracion } from './album-nuevo.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 const $ = (id) => document.getElementById(id)
 const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
@@ -40,19 +39,35 @@ function traducir(error) {
 }
 
 // ── La base ──
+//
+// Con `*` desde la 759: las columnas del tipo (set o binder), los bolsillos,
+// las páginas y la tapa llegan con supabase-migration-albumes-tipos.sql, y
+// un `select` que nombra una columna que no existe falla ENTERO (la 624).
+// Con `*` llegan si están y, si no, el álbum se ve como siempre.
 async function misAlbumes(userId) {
-  const { data, error } = await supabase.from('user_albums').select('id,nombre,descripcion,cartas,is_public,updated_at').eq('user_id', userId).order('updated_at', { ascending: false })
+  const { data, error } = await supabase.from('user_albums').select('*').eq('user_id', userId).order('updated_at', { ascending: false })
   if (error) throw traducir(error)
   return data || []
 }
 async function cargarAlbum(id) {
-  const { data, error } = await supabase.from('user_albums').select('id,user_id,nombre,descripcion,cartas,is_public,updated_at').eq('id', id).maybeSingle()
+  const { data, error } = await supabase.from('user_albums').select('*').eq('id', id).maybeSingle()
   if (error) throw traducir(error)
   return data
 }
+// Lo que existía antes de la 759. Si la migración nueva no está, se crea
+// con esto y nada más: un álbum de set sale como un binder, pero sale.
+const BASICAS = ['nombre', 'descripcion', 'cartas', 'is_public', 'icono', 'dex_id', 'emoji', 'color']
+const faltaColumna = (e) => e && (e.code === 'PGRST204' || e.code === '42703' || /column .* does not exist|Could not find the '.*' column/i.test(e.message || ''))
 async function crearAlbum(fila) {
-  const { data, error } = await supabase.from('user_albums').insert(fila).select('id,user_id,nombre,descripcion,cartas,is_public,updated_at').single()
+  let { data, error } = await supabase.from('user_albums').insert(fila).select('*').single()
+  if (faltaColumna(error)) {
+    const basica = Object.fromEntries(Object.entries(fila).filter(([k]) => BASICAS.includes(k)))
+    ;({ data, error } = await supabase.from('user_albums').insert(basica).select('*').single())
+  }
   if (error) throw traducir(error)
+  // Sin fila no hay álbum, aunque no haya error: la RLS no da error, devuelve
+  // vacío (la 510). Y quien pasa una carpeta BORRA después de crear.
+  if (!data?.id) throw new Error('No se ha podido crear el álbum.')
   return data
 }
 async function guardarAlbum(id, cambios) {
@@ -98,76 +113,187 @@ function tengo(cardId) {
 }
 const esMio = () => Boolean(actual && ctx.sesion && actual.user_id === ctx.sesion.user.id)
 
-// ── La lista de álbumes ──
+// ── La lista de álbumes (759, AL1) ──
+//
+// UNA rejilla, como la de Holonook: «Mi colección» delante (todo lo tuyo),
+// luego cada álbum —el de un set con su logo y su barra, el binder con su
+// tapa y sus primeras cartas— y al final «Empezar un álbum». Las carpetas
+// se fueron (PINGU: «quita la sección de carpetas, es mejor dejar solo
+// álbumes») y las que había se pasan a binders solas (`pasarCarpetas`).
+export const esDeSet = (a) => a?.tipo === 'set' && Boolean(a.set_id)
+const conCartas = (a) => (Array.isArray(a?.cartas) ? a.cartas : []).filter((c) => c?.id)
+let setsDeTodos = new Map()
+const claveDeSet = (id, market) => `${market || 'WEST'}|${id}`
+
+function cartaMiniHtml(c) {
+  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  return escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : '<i></i>'
+}
+
+function baldosaHtml({ atributo, clase = '', tapa = null, arriba, nombre, pie, pct = null }) {
+  return `<button type="button" class="mc-albt ${clase}" ${atributo}>
+    <span class="mc-albt-tapa"${tapa ? ` data-tapa="${escapeHtml(tapa)}"` : ''} aria-hidden="true">${arriba}</span>
+    <span class="mc-albt-info">
+      <span class="mc-albt-nombre">${escapeHtml(nombre)}</span>
+      <span class="mc-albt-pie">${escapeHtml(pie)}</span>
+      ${pct != null ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}
+    </span>
+  </button>`
+}
+
 function tarjetaHtml(a) {
-  const ids = (a.cartas || []).map((c) => c.id)
-  const portada = ctx.cartas.get(ids[0]) || cartasDelAlbum.get(ids[0])
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(portada))
+  const ids = conCartas(a).map((c) => c.id)
   const mias = ids.filter((id) => tengo(id)).length
   const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
-  // La MISMA burbuja que una carpeta (tanda 411). PINGU: «para los
-  // álbumes, lo mismo; la única diferencia es que uno es una carpeta y
-  // otro es un álbum».
-  //
-  // Y si no le has puesto adorno, la portada sigue siendo la primera
-  // carta: era lo bueno de la tarjeta vieja y no hay por qué perderlo
-  // para ganar una forma.
-  const sinAdorno = !a.icono && !a.dex_id && !a.emoji
-  const dibujo = sinAdorno && escaneo
-    ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" class="mc-burbuja-portada" />`
-    : null
-  return burbujaHtml({
-    id: a.id,
+  if (esDeSet(a)) {
+    const set = setsDeTodos.get(claveDeSet(a.set_id, a.set_market))
+    const logos = set ? ctx.logosDeSet(set) : []
+    const portada = cartaDe(ids[0])
+    const arriba = logos.length
+      ? `<span class="mc-albt-logo"><img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" loading="lazy" /></span>`
+      : `<span class="mc-albt-logo">${portada ? cartaMiniHtml(portada) : ''}</span>`
+    return baldosaHtml({ atributo: `data-album="${escapeHtml(a.id)}"`, clase: 'mc-albt-set', arriba, nombre: a.nombre, pie: `Tienes ${mias} de ${ids.length}${a.is_public ? ' · público' : ''}`, pct })
+  }
+  const r = rejillaDe(a.rejilla)
+  const primeras = ids.slice(0, 4).map((id) => cartaDe(id))
+  const arriba = `<span class="mc-albt-hojita">${[0, 1, 2, 3].map((i) => (primeras[i] ? cartaMiniHtml(primeras[i]) : '<i></i>')).join('')}</span>`
+  const forma = a.paginas ? ` · ${r.columnas}×${r.filas}, ${a.paginas} págs.` : ''
+  return baldosaHtml({
+    atributo: `data-album="${escapeHtml(a.id)}"`,
+    clase: 'mc-albt-binder',
+    tapa: a.tapa || tapaGuardada(),
+    arriba,
     nombre: a.nombre,
-    pie: `${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} · tienes ${mias}${a.is_public ? ' · público' : ''}`,
-    adorno: a,
-    barra: pct,
-    dibujo,
-    atributo: 'data-album',
+    pie: `${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'}${ids.length ? ` · tienes ${mias}` : ''}${forma}${a.is_public ? ' · público' : ''}`,
+    pct: ids.length ? pct : null,
   })
+}
+
+// «Mi colección» como un álbum más: lo que tienes, con las tres últimas
+// que has metido en abanico.
+function coleccionHtml() {
+  const vistas = new Set()
+  const ultimas = []
+  for (const l of [...ctx.lineas()].sort((x, y) => String(y.created_at || '').localeCompare(String(x.created_at || '')))) {
+    if (vistas.has(l.card_id)) continue
+    vistas.add(l.card_id)
+    const c = ctx.cartas.get(l.card_id)
+    if (c && ultimas.length < 3) ultimas.push(c)
+  }
+  const distintas = new Set(ctx.lineas().map((l) => l.card_id)).size
+  return baldosaHtml({
+    atributo: 'data-alb-coleccion',
+    clase: 'mc-albt-coleccion',
+    arriba: `<span class="mc-albt-abanico">${ultimas.map(cartaMiniHtml).join('')}</span>`,
+    nombre: 'Mi colección',
+    pie: `${distintas} ${distintas === 1 ? 'carta' : 'cartas'}`,
+  })
+}
+
+function empezarHtml() {
+  return `<button type="button" class="mc-albt mc-albt-nuevo" id="mcAlbNuevoAbrir">
+    <span class="mc-albt-tapa" aria-hidden="true"><span class="mc-albt-mas">+</span></span>
+    <span class="mc-albt-info"><span class="mc-albt-nombre">Empezar un álbum</span><span class="mc-albt-pie">De un set o a tu gusto</span></span>
+  </button>`
+}
+
+// LAS CARPETAS PASAN A BINDERS (759), solas y una vez. Cada carpeta —y cada
+// subcarpeta, con el nombre de su madre delante— es un binder con sus
+// cartas (una vez cada una, por colección y número). Se borra la carpeta
+// SOLO cuando su binder ya está escrito, y de las más hondas a las de
+// arriba: borrar una madre se llevaría a sus hijas por la cascada antes de
+// pasarlas. Si algo falla se para ahí y lo que queda sigue siendo carpeta.
+let pasando = null
+async function pasarCarpetas() {
+  if (!pasando) pasando = pasarCarpetasYa().catch((err) => {
+    showToast(`No se han podido pasar tus carpetas a álbumes: ${err.message}`, 'error')
+    return 0
+  })
+  return pasando
+}
+async function pasarCarpetasYa() {
+  const carpetas = await import('./carpetas.js')
+  const lista = await carpetas.listarCarpetas()
+  if (!lista?.length) return 0
+  const porId = new Map(lista.map((c) => [c.id, c]))
+  const ruta = (c) => {
+    const nombres = []
+    for (let x = c, n = 0; x && n < 50; x = porId.get(x.parent_id), n++) nombres.unshift(x.nombre)
+    return nombres.join(' · ')
+  }
+  const orden = [...lista].sort((a, b) => carpetas.hondura(lista, b.id) - carpetas.hondura(lista, a.id))
+  let hechas = 0
+  for (const c of orden) {
+    const lineIds = await carpetas.lineasDeCarpeta(c.id)
+    let ids = []
+    for (let i = 0; i < lineIds.length; i += 150) {
+      const { data, error } = await supabase.from('user_collection').select('id,card_id').in('id', lineIds.slice(i, i + 150))
+      if (error) throw traducir(error)
+      ids.push(...(data || []).map((l) => l.card_id))
+    }
+    ids = [...new Set(ids)]
+    const enMemoria = ids.map((id) => ctx.cartas.get(id)).filter(Boolean)
+    if (enMemoria.length === ids.length) ids = enMemoria.sort((a, b) => String(a.set_id).localeCompare(String(b.set_id)) || ctx.porNumero(a, b)).map((x) => x.id)
+    await crearAlbum({
+      nombre: ruta(c).slice(0, 80) || 'Mi binder',
+      icono: c.icono || null, dex_id: c.dex_id || null, emoji: c.emoji || null, color: c.color || null,
+      cartas: ids.slice(0, MAX_CARTAS).map((id) => ({ id })),
+      tipo: 'binder',
+    })
+    await carpetas.borrarCarpeta(c.id)
+    hechas++
+  }
+  if (hechas) {
+    showToast(hechas === 1 ? 'Tu carpeta ahora es un binder.' : `Tus ${hechas} carpetas ahora son binders.`, 'success')
+    ctx.carpetasCambiadas?.()
+  }
+  return hechas
 }
 
 async function pintarLista() {
   $('mcAlbumesDetalle').classList.add('hidden')
   $('mcAlbumesLista').classList.remove('hidden')
   $('mcPanelCarpetas')?.classList.remove('mc-album-abierto')
+  await pasarCarpetas()
   try {
     albumes = await misAlbumes(ctx.sesion.user.id)
   } catch (err) {
     $('mcAlbumesRejilla').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
   }
-  // Las portadas que no estén en la colección, de una vez.
-  const faltan = albumes.map((a) => a.cartas?.[0]?.id).filter((id) => id && !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
-  if (faltan.length) for (const [id, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
-  $('mcAlbumesRejilla').innerHTML = albumes.map(tarjetaHtml).join('')
-  $('mcAlbumesVacio').classList.toggle('hidden', albumes.length > 0)
+  // Las portadas que no estén en la colección, de una vez: las cuatro
+  // primeras de cada binder y la primera de un álbum de set (por si su logo
+  // no llega).
+  const faltan = albumes.flatMap((a) => conCartas(a).slice(0, esDeSet(a) ? 1 : 4).map((c) => c.id)).filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
+  if (faltan.length) for (const [id, c] of await datos.cartasPorIds([...new Set(faltan)], ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
+  if (albumes.some(esDeSet)) {
+    const todos = await ctx.todosLosSets().catch(() => [])
+    setsDeTodos = new Map(todos.map((s) => [claveDeSet(s.id, s.market), s]))
+  }
+  $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
 }
 
-async function nuevoAlbum({ nombre, icono, dex_id, emoji, color }) {
-  const origen = $('mcAlbOrigen').value
-  let ids = []
+// Lo que sale del diálogo de «Empezar un álbum» (album-nuevo.js).
+async function nuevoAlbum(pedido) {
   try {
-    if (origen === 'mias') {
-      // Tus cartas, una vez cada una, por colección y número: como las
-      // ordenarías en un archivador.
-      const vistas = new Set()
-      const orden = [...ctx.lineas()]
-        .map((l) => ctx.cartas.get(l.card_id))
-        .filter(Boolean)
-        .sort((a, b) => String(b.tcg_sets?.release_date || '').localeCompare(String(a.tcg_sets?.release_date || '')) || String(a.set_id).localeCompare(String(b.set_id)) || ctx.porNumero(a, b))
-      for (const c of orden) if (!vistas.has(c.id)) vistas.add(c.id) && ids.push(c.id)
-    } else if (origen === 'set') {
-      const setId = $('mcAlbSet').value
-      if (setId) ids = (await datos.cartasDeSet(setId, ctx.mercado)).sort(ctx.porNumero).map((c) => c.id)
+    let fila
+    if (pedido.tipo === 'set') {
+      const { set, modo } = pedido
+      const oficial = Number(set.card_count_official) || 0
+      let lista = (await datos.cartasDeSet(set.id, set.market || ctx.mercado)).sort(ctx.porNumero)
+      if (modo === 'oficial' && oficial) lista = lista.filter((c) => esDeLaNumeracion(c, oficial))
+      for (const c of lista) if (!ctx.cartas.has(c.id)) cartasDelAlbum.set(c.id, c)
+      fila = {
+        nombre: (nombreDeSet(set) || set.id).slice(0, 80),
+        cartas: lista.slice(0, MAX_CARTAS).map((c) => ({ id: c.id })),
+        tipo: 'set', set_id: set.id, set_market: set.market || ctx.mercado, set_modo: modo,
+      }
+    } else {
+      fila = { nombre: pedido.nombre, cartas: [], tipo: 'binder', rejilla: pedido.rejilla, paginas: pedido.paginas, tapa: pedido.tapa }
     }
-    const fila = await crearAlbum({
-      nombre: String(nombre).trim().slice(0, 80) || 'Mi álbum',
-      icono, dex_id, emoji, color,
-      cartas: ids.slice(0, MAX_CARTAS).map((id) => ({ id })),
-    })
-    showToast('Álbum creado.', 'success')
-    await abrir(fila.id)
+    const creada = await crearAlbum(fila)
+    showToast(pedido.tipo === 'set' ? 'Álbum creado, con el set entero dentro.' : 'Binder creado.', 'success')
+    await abrir(creada.id)
   } catch (err) {
     showToast(err.message, 'error')
   }
@@ -222,6 +348,9 @@ export async function abrir(id, { soloVer = false } = {}) {
   return true
 }
 
+// La forma del archivador de este álbum: 3×3 si no dice otra.
+const forma = () => rejillaDe(esDeSet(actual) ? '3x3' : actual?.rejilla)
+
 function cartaDe(id) {
   return ctx.cartas.get(id) || cartasDelAlbum.get(id) || null
 }
@@ -260,7 +389,10 @@ function pintarDetalle() {
       ? `<span><strong>${mias}</strong> de ${ids.length} las tienes · ${Math.round((mias / ids.length) * 100)} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${Math.round((mias / ids.length) * 100)}%"></i></span>`
       : `<span>${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'}</span>`
   const deUnaVez = window.matchMedia('(min-width: 900px)').matches ? 2 : 1
-  if (!lista.length) {
+  // Un binder con sus páginas se abre con sus bolsillos aunque esté vacío
+  // (759): es donde se meten las cartas. El aviso es para lo demás.
+  const conHojas = !soloFaltan && Number(actual.paginas) > 0
+  if (!lista.length && !conHojas) {
     $('mcAlbArchivador').innerHTML = `<p class="subtext">${
       actual.cartas.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
     }</p>`
@@ -277,7 +409,12 @@ function pintarDetalle() {
       lista,
       pagina,
       deUnaVez,
-      tapa: tapaGuardada(),
+      // Los bolsillos y las páginas del binder (759); un álbum de set y
+      // los de antes, nueve por hoja y las páginas que pidan sus cartas.
+      tapa: actual.tapa || tapaGuardada(),
+      porPagina: forma().porPagina,
+      columnas: forma().columnas,
+      paginasMin: soloFaltan ? 1 : Number(actual.paginas) || 1,
       pintarBolsillo: ({ item, i }) => bolsilloHtml(item, i),
       numeroDe: ({ item }) => cartaDe(item.id)?.local_id ?? '',
     })
@@ -362,7 +499,7 @@ function guardarLuego(cambios) {
   clearTimeout(temporizador)
   temporizador = setTimeout(async () => {
     try {
-      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: actual.cartas, is_public: actual.is_public })
+      await guardarAlbum(actual.id, { nombre: actual.nombre, descripcion: actual.descripcion || null, cartas: actual.cartas, is_public: actual.is_public, ...('tapa' in actual ? { tapa: actual.tapa } : {}) })
       $('mcAlbEstado').textContent = 'Guardado'
     } catch (err) {
       $('mcAlbEstado').textContent = ''
@@ -412,7 +549,7 @@ function anadir(cardId) {
   cartasDelAlbum.set(c.id, c)
   guardarLuego({ cartas: [...actual.cartas, { id: c.id }] })
   // Se salta a la última página, que es donde ha caído.
-  pagina = Math.floor((actual.cartas.length - 1) / POR_PAGINA)
+  pagina = Math.floor((actual.cartas.length - 1) / forma().porPagina)
   pintarDetalle()
   calcularLoQueFalta()
   showToast(`${nombreDe(c)} añadida al álbum.`, 'success')
@@ -426,20 +563,29 @@ export function repintar() {
   if (actual) pintarDetalle()
 }
 
+// La tapa de ESTE álbum (759): con la migración, cada binder lleva la suya;
+// sin ella (la fila no trae `tapa`), sigue siendo la del navegador.
+export function ponerTapa(id) {
+  if (!actual || !esMio() || !('tapa' in actual) || !TAPAS.some((t) => t.id === id)) return false
+  guardarLuego({ tapa: id })
+  pintarDetalle()
+  return true
+}
+export const tapaDelAbierto = () => (actual && !$('mcAlbumesDetalle')?.classList.contains('hidden') ? actual.tapa || null : null)
+
 export function iniciarAlbumes(contexto) {
   ctx = contexto
-  $('mcAlbNuevoAbrir')?.addEventListener('click', async () => {
-    const sets = await ctx.sets()
-    $('mcAlbSet').innerHTML = sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(nombreDeSet(s) || s.id)}</option>`).join('')
-    abrirDialogoAdorno({
-      titulo: 'Nuevo álbum soñado',
-      boton: 'Crear álbum',
-      conOrigen: true,
-      alGuardar: nuevoAlbum,
-    })
+  iniciarAlbumNuevo({
+    sets: () => ctx.sets(),
+    logosDeSet: (set) => ctx.logosDeSet(set),
+    tengoDeSet: (set) => ctx.tengoDeSet?.(set) || 0,
+    alCrear: nuevoAlbum,
   })
-  $('mcAlbOrigen')?.addEventListener('change', (e) => $('mcAlbSetCampo').classList.toggle('hidden', e.target.value !== 'set'))
+  // DELEGADO: las baldosas se pintan al abrir la pestaña (la lección de
+  // la 474: un `addEventListener` sobre algo que aún no está no engancha).
   $('mcAlbumesRejilla')?.addEventListener('click', (e) => {
+    if (e.target.closest('#mcAlbNuevoAbrir')) return abrirAlbumNuevo()
+    if (e.target.closest('[data-alb-coleccion]')) return ctx.irA?.('cartas')
     const b = e.target.closest('[data-album]')
     if (b) abrir(b.dataset.album)
   })

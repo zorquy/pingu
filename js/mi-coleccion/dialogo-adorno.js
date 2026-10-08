@@ -71,7 +71,7 @@ export function abrirDialogoAdorno({ titulo, boton, valores = {}, alGuardar, alB
   // El borrar solo existe al EDITAR: en «nueva carpeta» no hay nada que
   // borrar y un botón apagado al lado del de crear solo confunde.
   $('mcDlgBorrar').classList.toggle('hidden', !alBorrar)
-  $('mcDlgOrigen').classList.toggle('hidden', !conOrigen)
+  $('mcDlgOrigen')?.classList.toggle('hidden', !conOrigen)
   $('mcDlgTitulo').textContent = titulo
   $('mcDlgGuardar').textContent = boton
   $('mcDlgNombre').value = valores.nombre || ''

@@ -20,6 +20,21 @@ import { escapeHtml } from '../html.js'
 // duplicado en los dos ficheros.
 export const POR_PAGINA = 9
 
+// LOS BOLSILLOS DE UN BINDER (759, AL3). PINGU, viendo Holonook: el binder
+// se elige como el de verdad, de 4, 9, 12 o 16 por hoja. «3×4» son tres
+// columnas y cuatro filas, que es como se venden. Lo que no se reconoce cae
+// en el de nueve, que es lo que eran todos los álbumes antes de la 759.
+export const REJILLAS = [
+  { id: '2x2', columnas: 2, filas: 2 },
+  { id: '3x3', columnas: 3, filas: 3 },
+  { id: '3x4', columnas: 3, filas: 4 },
+  { id: '4x4', columnas: 4, filas: 4 },
+]
+export function rejillaDe(id) {
+  const r = REJILLAS.find((x) => x.id === id) || REJILLAS[1]
+  return { ...r, porPagina: r.columnas * r.filas }
+}
+
 // ── El color de la tapa ──
 //
 // Ocho, y ninguno inventado: son los que ya existen en la escala de la
@@ -106,8 +121,15 @@ export function archivadorHtml({
   pintarBolsillo,
   numeroDe = (c) => c?.local_id ?? '',
   tapa = TAPA_POR_DEFECTO,
+  // 759: un binder lleva sus bolsillos y sus páginas. `paginasMin` son las
+  // que tiene aunque estén vacías (un binder de 20 páginas tiene 20 desde
+  // el primer día); con más cartas que sitio, crece, no se corta.
+  porPagina = POR_PAGINA,
+  columnas = 3,
+  paginasMin = 1,
 }) {
-  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA))
+  const POR_PAGINA = porPagina
+  const paginas = Math.max(1, paginasMin, Math.ceil(lista.length / POR_PAGINA))
   let p0 = Math.min(Math.max(0, pagina), paginas - 1)
   p0 -= p0 % deUnaVez
   const hojas = []
@@ -137,7 +159,7 @@ export function archivadorHtml({
   const anillas = deUnaVez > 1 ? '<span class="mc-anillas" aria-hidden="true"><i></i><i></i><i></i></span>' : ''
   return {
     html:
-      `<div class="mc-binder" data-tapa="${escapeHtml(tapa)}">` +
+      `<div class="mc-binder" data-tapa="${escapeHtml(tapa)}"${columnas !== 3 ? ` style="--cols:${Number(columnas)}"` : ''}>` +
       `<div class="mc-archivador">${hojas.join('')}${anillas}</div>` +
       '</div>',
     paginas,

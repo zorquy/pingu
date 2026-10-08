@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-08 (10) — PINGU-Claude (759 — Mis álbumes: una rejilla, el tipo primero y el binder a medida)
+
+**Hecho**: AL1–AL3 de la ronda 3. Álbumes es UNA rejilla: Mi colección,
+cada álbum (el de un set con su logo y su barra; el binder con su tapa y
+sus primeras cartas) y «Empezar un álbum». Sin carpetas: las que había
+pasan a binders solas al entrar (se borra cada carpeta solo después de
+escribir su binder). Empezar un álbum pregunta el tipo: de un set (eliges
+la expansión, entera o solo la numeración, y sale lleno y ordenado) o
+binder (nombre, bolsillos 2×2–4×4, 10/20/40 páginas, color). Detalle en
+SCHEMA.md, tanda 759.
+
+**Ficheros**: `js/mi-coleccion/albumes.js`, `js/mi-coleccion/album-nuevo.js`
+(nuevo), `js/mi-coleccion/archivador.js`, `js/mi-coleccion/dialogo-adorno.js`,
+`js/mi-coleccion.js`, `mi-coleccion.html`, `css/mi-coleccion.css`,
+`supabase-migration-albumes-tipos.sql` (nueva), `SCHEMA.md`. Prueba
+759-pantalla (nueva); 369, 371, 402, 408, 411, 417, 418, 477 y 578 al día.
+
+**Pendiente**:
+- **Ejecutar `supabase-migration-albumes-tipos.sql`** (no rompe nada sin
+  ella, pero un álbum de set sale como binder y los bolsillos son nueve).
+  Sigue la de la 753 (`avisos-lanzamientos`).
+- La 760: el archivador abierto (hero, pasar páginas, bolsillo vacío →
+  buscar, arrastrar).
+
 ## 2026-10-08 (9) — PINGU-Claude (758 quinquies — «Mi colección» en una línea)
 
 **Hecho**: a 1280 px, con «Mi colección» activa (en negrita), el enlace

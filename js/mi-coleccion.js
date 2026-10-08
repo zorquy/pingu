@@ -5332,8 +5332,9 @@ async function recargarCarpetas() {
   // creando una carpeta, y decir lo que no es manda a la gente a buscar
   // un botón que no existe.
   if (lista === null) {
-    caja.innerHTML = '<p class="empty-state">Las carpetas todavía no están activadas en la base. En cuanto lo estén, aquí podrás ordenar tu colección como quieras.</p>'
-    $('mcCarpetaNueva').disabled = true
+    // Sin carpetas en la base no hay nada que enseñar aquí: los álbumes
+    // son lo de abajo (759).
+    caja.innerHTML = ''
     return
   }
   carpetasLista = lista
@@ -5346,7 +5347,6 @@ function pintarCarpetas() {
   const migas = $('mcCarpetaMigas')
   const barra = $('mcCarpetaBarra')
   const buscador = $('mcCarpetaBuscadorCaja')
-  const mandos = $('mcCarpetasMandos')
   if (carpetaAbierta) {
     const c = carpetasLista.find((x) => x.id === carpetaAbierta)
     if (!c) {
@@ -5364,7 +5364,6 @@ function pintarCarpetas() {
     // Dentro de una carpeta lo que se crea es una SUBcarpeta, y eso vive
     // en el ⋮: dos botones que crean cosas distintas con el mismo rótulo
     // es justo cómo se pulsa el que no era.
-    mandos.classList.add('hidden')
     caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
       '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
     pintarCartasDeCarpeta(c.id)
@@ -5373,11 +5372,13 @@ function pintarCarpetas() {
   migas.textContent = ''
   barra.classList.add('hidden')
   buscador.classList.add('hidden')
-  mandos.classList.remove('hidden')
   // Al salir se olvida lo buscado: un filtro que sobrevive a la pantalla
   // que lo puso deja la siguiente medio vacía sin decir por qué.
   if ($('mcCarpetaBuscar')) $('mcCarpetaBuscar').value = ''
-  caja.innerHTML = carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)
+  // Las que queden son las que no se han podido pasar a binder (759): sin
+  // ninguna, nada (ni el «todavía no tienes carpetas», que mandaba a crear
+  // una con un botón que ya no existe).
+  caja.innerHTML = carpetasLista.length ? carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen) : ''
 }
 
 // Las de dentro se piden UNA vez y se guardan: el buscador de la 477
@@ -6375,29 +6376,14 @@ function enganchar() {
   // que una carpeta nacía sin cara y había que ir a editarla para
   // ponérsela. Ahora el diálogo pregunta las tres cosas de una vez.
   iniciarDialogoAdorno()
-  $('mcCarpetaNueva').addEventListener('click', () => {
-    abrirDialogoAdorno({
-      titulo: 'Nueva carpeta',
-      boton: 'Crear carpeta',
-      alGuardar: async (v) => {
-        try {
-          // Si estás DENTRO de una, la nueva nace dentro: es lo que
-          // esperas al pulsar «nueva» estando en «Vintage».
-          await carpetas.crearCarpeta(sesion.user.id, { ...v, parent_id: carpetaAbierta })
-          await recargarCarpetas()
-        } catch (err) {
-          showToast(err.message, 'error')
-        }
-      },
-    })
-  })
+  // Sin «Nueva carpeta» desde la 759: lo que se crea son álbumes (las
+  // carpetas que había pasan a binders solas, en albumes.js).
   // ── El ⋮ de una carpeta abierta (tanda 477) ──
   //
   // Las dos acciones que antes solo existían desde FUERA: crear dentro
   // —que era pulsar «Nueva carpeta» estando dentro, y no lo decía ninguna
   // palabra— y cambiarla, que pedía salir, buscar su burbuja y pulsar su
   // engranaje.
-  $('mcCarpetaSub')?.addEventListener('click', () => $('mcCarpetaNueva').click())
   $('mcCarpetaEditar')?.addEventListener('click', () => {
     const c = carpetasLista.find((x) => x.id === carpetaAbierta)
     if (c) editarCarpeta(c)
@@ -7166,9 +7152,9 @@ function enganchar() {
     const caja = $('mcAlbumTapas')
     const abierto = caja.classList.toggle('hidden')
     $('mcAlbumTapa').setAttribute('aria-expanded', String(!abierto))
-    if (!abierto && !caja.dataset.montado) {
-      caja.dataset.montado = '1'
-      const puesta = tapaGuardada()
+    // Se pinta cada vez (759): cada binder tiene su tapa y la marcada es la suya.
+    if (!abierto) {
+      const puesta = albumes.tapaDelAbierto?.() || tapaGuardada()
       caja.innerHTML = TAPAS.map(
         (t) =>
           `<button type="button" class="mc-tapa" data-tapa="${t.id}" aria-pressed="${t.id === puesta}" title="${escapeHtml(t.nombre)}">` +
@@ -7179,7 +7165,9 @@ function enganchar() {
   $('mcAlbumTapas').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tapa]')
     if (!b) return
-    guardarTapa(b.dataset.tapa)
+    // El binder abierto guarda la suya (759); si no hay uno abierto, o la
+    // migración no está, sigue siendo la del navegador.
+    if (!albumes.ponerTapa?.(b.dataset.tapa)) guardarTapa(b.dataset.tapa)
     for (const otro of $('mcAlbumTapas').querySelectorAll('[data-tapa]')) {
       otro.setAttribute('aria-pressed', String(otro === b))
     }
@@ -7502,6 +7490,19 @@ const contexto = {
     return mercado
   },
   porNumero,
+  // Lo de la rejilla de Mis álbumes (759): los logos de un set (la misma
+  // cadena que la estantería), cuántas tienes de uno, los sets de todos los
+  // catálogos (un álbum de set puede ser del japonés), ir a otra pestaña y
+  // avisar cuando las carpetas se han pasado a binders.
+  logosDeSet: (s) => [s.logo_tcggo, s.logo_scrydex, urlDeLogo(s.logo_path, s.market || mercado), s.symbol_scrydex].filter(Boolean),
+  tengoDeSet: (s) => (s.market && s.market !== mercado ? 0 : new Set(lineas.filter((l) => cartas.get(l.card_id)?.set_id === s.id).map((l) => l.card_id)).size),
+  todosLosSets: () => cargarSetsDeTodos(),
+  irA: (p) => cambiarPestania(p),
+  carpetasCambiadas: () => {
+    if (!carpetas) return
+    carpetasLista = []
+    void recargarCarpetas()
+  },
 }
 
 // /mi-coleccion?album=<id> de OTRA persona: solo ese álbum, para verlo.

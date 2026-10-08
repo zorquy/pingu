@@ -36131,3 +36131,69 @@ M1, M2 y M3 de la ronda 3 (PINGU: «todo»).
   ni ajenas, /cartas viva, la fila de Ko-fi antes de Ajustes; en el
   ordenador, /carta marca Mi colección, la paleta sin escanear y los seis
   caben sin apretar el logo.
+
+## Tanda 759 — Mis álbumes: una rejilla, el tipo primero y el binder a medida (oct. 2026)
+
+AL1, AL2 y AL3 de la ronda 3 (PINGU: «todo», viendo Holonook).
+
+- **Una sola rejilla, «Mis álbumes»** (`#mcAlbumesRejilla`, las baldosas
+  `.mc-albt` de `js/mi-coleccion/albumes.js`): delante **Mi colección**
+  (tus cartas distintas, con las tres últimas en abanico; lleva a
+  `?ver=cartas`), luego cada álbum y al final **Empezar un álbum**
+  (`#mcAlbNuevoAbrir`, el mismo id que el botón de antes). El de un SET
+  enseña su logo (la cadena de la estantería, `ctx.logosDeSet`) y «Tienes X
+  de Y» con su barra; el BINDER, su tapa de color con sus cuatro primeras
+  cartas en una hojita y su forma («4×4, 20 págs.»). Dos columnas en el
+  móvil.
+- **Sin carpetas** (PINGU: «quita la sección de carpetas, es mejor dejar
+  solo álbumes»). Fuera «Nueva carpeta» y «Nueva subcarpeta»; el «empezar
+  con» del diálogo del adorno (`#mcDlgOrigen`) también. Las que había **pasan
+  a binders solas** al entrar en Álbumes (`pasarCarpetas`), una vez por
+  carga: cada carpeta —y cada subcarpeta, con el nombre de su madre delante,
+  «Vintage · Base»— es un binder con sus cartas (una vez cada una, por set y
+  número) y su adorno. La carpeta se BORRA solo después de escribir su
+  binder, y de las más hondas a las de arriba (borrar una madre se llevaría
+  a sus hijas por la cascada antes de pasarlas). Si algo falla, se para y lo
+  que queda sigue siendo carpeta, con su vista de siempre (la 477 lo prueba
+  así). **Y un álbum sin fila es un fallo** aunque no haya error: con la RLS
+  diciendo que no, el insert vuelve vacío y sin error (la 510), y sin esa
+  guarda la carpeta se borraba sin su binder. Lo cazó la 477 al probar el
+  camino del fallo con `__SIN_PERMISO__`.
+- **Empezar un álbum: el tipo primero** (`js/mi-coleccion/album-nuevo.js`,
+  `#mcAlbNuevo`). **Álbum de un set**: la lista de expansiones del catálogo
+  con su logo, año, cuenta y lo que tienes, con buscador; elegida una, «El
+  set entero» (el total, con las secretas) o «Solo la numeración» (el
+  oficial; `esDeLaNumeracion`: número sin letras y no más allá) si son
+  distintos (`formasDeSet`). Sale con el nombre del set, lleno y ordenado por
+  número. **Binder personalizado**: nombre, bolsillos (2×2, 3×3, 3×4, 4×4,
+  dibujados), páginas (10, 20, 40), los ocho colores de tapa, una vista y
+  «Caben N cartas». Sin topes de plan.
+- **Los bolsillos y las páginas, en el archivador** (`archivadorHtml` toma
+  `porPagina`, `columnas` —que van en `--cols` sobre `.mc-binder`, con el 3
+  de respaldo porque lo pone el JS— y `paginasMin`): un binder de 20 páginas
+  tiene 20 desde el primer día, aunque esté vacío, y si se le meten más
+  cartas crece. `rejillaDe(id)` cae en el de nueve con lo que no reconoce.
+- **La tapa, por álbum**: con la migración cada binder lleva la suya
+  (`tapa`), y el «Personalizar» la guarda en ESE álbum (`ponerTapa`); sin
+  ella, sigue siendo la del navegador. Los ocho colores son una sola regla
+  `[data-tapa='…']` para todo lo que la lleve (archivador, botón, baldosa,
+  vista del diálogo); antes estaban escritos dos veces.
+- **La base**: `supabase-migration-albumes-tipos.sql` (tipo, set_id,
+  set_market, set_modo, rejilla, paginas, tapa, con sus `check`). **No hace
+  falta antes de empujar**: los álbumes se leen con `select('*')` (un
+  `select` que nombra una columna que no existe falla entero, la 624) y se
+  crean con las columnas nuevas y, si la base dice que no las tiene
+  (PGRST204/42703), otra vez sin ellas (`BASICAS`). Sin la migración un
+  álbum de set sale como binder y los bolsillos son nueve.
+- Pruebas al día: 369, 371, 417 y 418 (se empieza por el tipo; «una
+  colección entera» es un álbum de set), 371 (la regla de color única), 402
+  y 408 (sin carpetas, «Mis álbumes»), 411 (el diálogo del adorno se abre con
+  su función, y «Empezar» abre el de los tipos), 477 (las carpetas que NO se
+  han podido pasar, con la base diciendo que no), 578 (al volver, la
+  rejilla).
+- Prueba 759-pantalla: lo puro (formas, numeración, bolsillos, el
+  archivador de un binder vacío con 20 páginas), la migración, la rejilla con
+  un set y un binder, «Mi colección» lleva a las cartas, los dos caminos del
+  diálogo hasta la fila escrita, el binder abierto con sus columnas, sus
+  bolsillos, sus páginas y su color, el paso de carpetas a binders y el móvil
+  en oscuro.
