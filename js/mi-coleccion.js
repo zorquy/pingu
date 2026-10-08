@@ -150,15 +150,6 @@ const PESTANAS_CATALOGO = ['album', 'buscar']
 // lo comparte.
 const PESTANA_POR_DEFECTO = modoCatalogo ? 'album' : 'resumen'
 if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
-// BUSCAR ES UNA HOJA en Mi colección (765, B1): `?ver=buscar` abre la hoja
-// «Añadir carta» encima de la pestaña por defecto. En /cartas sigue siendo
-// una pestaña: allí no se añade nada a ninguna parte.
-const buscarEsHoja = !modoCatalogo
-let hojaAlEntrar = false
-if (buscarEsHoja && pestania === 'buscar') {
-  hojaAlEntrar = true
-  pestania = PESTANA_POR_DEFECTO
-}
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -201,8 +192,6 @@ function aplicarDireccion() {
   const p = new URLSearchParams(location.search)
   const pedidaAhora = p.get('ver')
   const ver = PESTANAS.includes(pedidaAhora) ? pedidaAhora : MUDANZAS[pedidaAhora] || PESTANA_POR_DEFECTO
-  // Atrás con la hoja abierta la cierra (765).
-  if (hoja && ver !== 'buscar') cerrarHoja({ tocarDireccion: false })
   if (ver !== pestania) cambiarPestania(ver, { push: false })
   if (ver === 'album') {
     const set = p.get('set')
@@ -398,8 +387,11 @@ const anadir = { carta: null, variante: null }
 // que no tienes no está en `cartas` (la lección de la 418).
 // Y las de la especie abierta (694): el «+» de la Pokédex de una carta
 // que NO tienes no la encontraba en ningún sitio y no hacía nada.
+// Las cartas de un álbum que no son tuyas (767): las pasa albumes.js al
+// tocar su «+», para que la hoja de añadir las encuentre.
+const cartasDeFuera = new Map()
 function cartaPorId(cardId) {
-  return cartas.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecie.find((x) => x.id === cardId) || null
+  return cartas.get(cardId) || cartasDeFuera.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecie.find((x) => x.id === cardId) || null
 }
 
 const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
@@ -5277,41 +5269,31 @@ async function anadirSeleccion(e) {
 }
 
 // ── Pestañas y repintado ──
-// ── LA HOJA «AÑADIR CARTA» (765, B1 de la ronda 3) ──
+// ── ELEGIR UNA CARTA PARA UN BOLSILLO (767) ──
 //
-// Un solo buscador para añadir, se llegue de donde se llegue: el botón del
-// menú, un bolsillo vacío de un álbum (que pasa `alElegir`: la carta que
-// toques va a ESE bolsillo y no a la ficha) o un enlace con `?ver=buscar`.
-// Es el panel de Buscar de siempre —mismos resultados agrupados, mismos
-// filtros— puesto encima de lo que estuvieras mirando; al cerrarla sigues
-// donde estabas. `hoja` es null con la hoja cerrada.
-let hoja = null
-function abrirHoja({ titulo = 'Añadir carta', alElegir = null } = {}) {
-  const panel = $('mcPanelBuscar')
-  if (!panel) return
-  if ($('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
-  hoja = { alElegir }
-  $('mcHojaTitulo').textContent = titulo
-  panel.classList.remove('hidden')
-  panel.classList.toggle('mc-hoja-eligiendo', Boolean(alElegir))
-  document.documentElement.classList.add('mc-hoja-abierta')
-  // Con el dedo NO se enfoca (la 452: el teclado tapa media pantalla); con
-  // ratón, sí: se viene a escribir.
+// La 765 hizo de Buscar una hoja a pantalla entera, y PINGU: «te abre una
+// pestaña entera que se lleva todo el menú; prefiero que sea como antes».
+// Buscar vuelve a ser su pestaña, y un bolsillo vacío de un álbum la abre
+// en modo ELEGIR: arriba, una franja dice para qué bolsillo es (con
+// «Cancelar»), y tocar una carta la manda a ese bolsillo en vez de abrir su
+// ficha. Es el mismo buscador, con el catálogo occidental o el japonés.
+// `eligiendo` es null cuando se busca sin más.
+let eligiendo = null
+function elegirCarta({ titulo = '', alElegir, alCancelar = null } = {}) {
+  eligiendo = { alElegir, alCancelar }
+  $('mcEligiendoTexto').textContent = titulo
+  $('mcEligiendo')?.classList.remove('hidden')
+  cambiarPestania('buscar')
   if (window.matchMedia?.('(pointer: fine)').matches) $('mcBuscarTodo')?.focus({ preventScroll: true })
-  irA({ ver: 'buscar' })
 }
-function cerrarHoja({ tocarDireccion = true } = {}) {
-  if (!hoja) return
-  hoja = null
-  $('mcPanelBuscar')?.classList.add('hidden')
-  $('mcPanelBuscar')?.classList.remove('mc-hoja-eligiendo')
-  document.documentElement.classList.remove('mc-hoja-abierta')
-  if (tocarDireccion) irA({ ver: pestania }, { push: false })
+function dejarDeElegir() {
+  eligiendo = null
+  $('mcEligiendo')?.classList.add('hidden')
 }
 
 function cambiarPestania(nueva, { push = true } = {}) {
-  if (nueva === 'buscar' && buscarEsHoja) return abrirHoja()
-  if (hoja) cerrarHoja({ tocarDireccion: false })
+  // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
+  if (eligiendo && nueva !== 'buscar') dejarDeElegir()
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
   // se quedaría flotando encima de lo que no es suyo.
   // Y desde la 748 también es de una expansión: se cierra al cambiar de
@@ -6393,6 +6375,7 @@ function repintar() {
   if (pestania === 'cambios' && esMia) abrirCambios()
   if (pestania === 'quiero' && esMia) void abrirQuiero()
   if (pestania === 'pokedex') abrirPokedex()
+  if (pestania === 'carpetas') albumes.repintarSiAbierto()
 }
 
 // Los iconos del menú y de la barra se ponen desde aquí y no en el HTML:
@@ -7689,30 +7672,24 @@ function enganchar() {
   // que el Ctrl+clic y el «abrir en otra pestaña» sigan funcionando —de eso
   // se encarga `abreLaPagina`— y es el enlace que ve Google. Un `<a>` sin
   // destino es un botón disfrazado.
-  // Eligiendo para un bolsillo (765), tocar una carta la ELIGE: en captura,
+  // Eligiendo para un bolsillo (767), tocar una carta la ELIGE: en captura,
   // para ganarle a la ficha.
   $('mcBuscarResultados')?.addEventListener('click', (e) => {
-    if (!hoja?.alElegir) return
+    if (!eligiendo?.alElegir) return
     const r = e.target.closest('.mc-resultado[data-carta]')
     if (!r) return
     e.preventDefault()
     e.stopImmediatePropagation()
     const c = ultimaBusqueda.find((x) => x.id === r.dataset.carta)
-    const alElegir = hoja.alElegir
-    cerrarHoja()
+    const alElegir = eligiendo.alElegir
+    dejarDeElegir()
     if (c) alElegir(c)
   }, true)
   engancharFicha('mcBuscarResultados', '.mc-resultado')
-  $('mcHojaCerrar')?.addEventListener('click', () => cerrarHoja())
-  document.addEventListener('click', (e) => {
-    if (e.target.closest?.('[data-abrir-anadir]')) abrirHoja()
-  })
-  // Escape la cierra, salvo que haya una ventana encima (la ficha, los
-  // filtros): esa se cierra primero, sola.
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !hoja || e.defaultPrevented || document.querySelector('dialog:modal')) return
-    e.preventDefault()
-    cerrarHoja()
+  $('mcEligiendoCancelar')?.addEventListener('click', () => {
+    const volver = eligiendo?.alCancelar
+    dejarDeElegir()
+    if (volver) volver()
   })
 
   // ── El menú de la VISTA (tanda 478) ──
@@ -7890,9 +7867,18 @@ const contexto = {
   tengoDeSet: (s) => (s.market && s.market !== mercado ? 0 : new Set(lineas.filter((l) => cartas.get(l.card_id)?.set_id === s.id).map((l) => l.card_id)).size),
   todosLosSets: () => cargarSetsDeTodos(),
   irA: (p) => cambiarPestania(p),
-  // La hoja «Añadir carta» para elegir una (765): los álbumes la abren
-  // desde un bolsillo vacío y reciben la carta tocada.
-  elegirCarta: (o) => abrirHoja(o),
+  // Buscar en modo elegir (767): los álbumes lo abren desde un bolsillo
+  // vacío y reciben la carta tocada.
+  elegirCarta: (o) => elegirCarta(o),
+  // Lo de Expansiones, para los bolsillos de un álbum (767): el ✓ o «×2»,
+  // el «+», la hoja de añadir y la ficha.
+  marcaDeTengo: (n) => marcaDeTengoHtml(n),
+  masDe: (c, variante = null) => masHtml(c, nombreDe(c), variante),
+  anadirCarta: (c, variante = null) => {
+    cartasDeFuera.set(c.id, c)
+    abrirAnadir(c.id, variante)
+  },
+  abrirFicha: (c) => abrirCarta(c.id, c),
   carpetasCambiadas: () => {
     if (!carpetas) return
     carpetasLista = []
@@ -7999,7 +7985,6 @@ async function iniciar() {
     // Mirando la colección de otro no hay nada que añadir: los bolsillos
     // salen sin mando (bolsilloHtml) y esta línea sobraría en pantalla.
     $('mcTocarOpciones').classList.add('hidden')
-    for (const b of document.querySelectorAll('[data-abrir-anadir]')) b.classList.add('hidden')
   }
   pintarCompartir()
   // La hoja de ordenar se pinta UNA vez al arrancar, no al abrirla: el
@@ -8009,14 +7994,11 @@ async function iniciar() {
   pintarBandejaCatalogo()
   pintarGruposDelCatalogo()
   cambiarPestania(pestania)
-  // `?ver=buscar` (765): la hoja, encima; con `?q=`, con la búsqueda hecha
-  // (el enlace del ilustrador de la ficha, la 667).
-  if (hojaAlEntrar && esMia) {
-    abrirHoja()
-    if (params.get('q')) {
-      $('mcBuscarTodo').value = params.get('q')
-      void buscarEnTodo()
-    }
+  // `?ver=buscar&q=` (667): el enlace del ilustrador de la ficha abre
+  // Buscar con la búsqueda hecha.
+  if (pestania === 'buscar' && params.get('q') && $('mcBuscarTodo')) {
+    $('mcBuscarTodo').value = params.get('q')
+    void buscarEnTodo()
   }
 
   await cargarColeccion(dueno.id, { primeraVez: true })
@@ -8134,7 +8116,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // «Escanear una carta» desde /buscar, la paleta o la burbuja (718, 719)
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
-  if (primeraVez && esMia && hoja && params.get('escanear')) void abrirEscaner()
+  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear')) void abrirEscaner()
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
   if (primeraVez) void montarAlbumesLaterales()

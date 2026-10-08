@@ -176,11 +176,10 @@
              cruces, en una sola puerta. En la burbuja del móvil, «Trade»
              (PINGU: «Deseos y cambios es demasiado largo para el móvil»). -->
         <button type="button" role="tab" class="mc-pestania" data-pestania="quiero" data-tambien="cambios" data-icono="corazon" aria-selected="false" aria-controls="mcPanelQuiero"><span class="mc-menu-texto"><span class="mc-texto-largo">Deseos y cambios</span><span class="mc-texto-corto">Trade</span></span></button>
-        <!-- BUSCAR YA NO ES UNA PESTAÑA (765, B1): es la hoja «Añadir carta»,
-             que se abre encima de lo que estés mirando —desde aquí o desde un
-             bolsillo vacío de un álbum— y se cierra
-             dejándote donde estabas. `?ver=buscar` sigue abriéndola. -->
-        <button type="button" class="mc-pestania mc-menu-anadir" data-abrir-anadir data-icono="search"><span class="mc-menu-texto"><span class="mc-texto-largo">Añadir carta</span><span class="mc-texto-corto">Añadir</span></span></button>
+        <!-- BUSCAR, su pestaña (767). La 765 la hizo una hoja a pantalla
+             entera y PINGU: «se lleva todo el menú; prefiero que sea como
+             antes». Un bolsillo vacío de un álbum la abre en modo elegir. -->
+        <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
       </nav>
 
       <section id="mcPanelCartas" role="tabpanel" aria-label="Cartas">
@@ -1057,7 +1056,8 @@
           </div>
           <div id="mcAlbHerramientas">
             <div class="mc-alb-barra">
-              <input type="search" enterkeyhint="search" id="mcAlbBuscar" placeholder="Añade cartas: busca por nombre" aria-label="Buscar cartas para el álbum" />
+              <!-- 767: abre Buscar (occidental o japonés) para este álbum. -->
+              <button type="button" class="btn-primary" id="mcAlbBuscarAbrir" data-icono="search">Añadir cartas</button>
               <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
@@ -1067,7 +1067,6 @@
               <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
             </div>
             <p class="mc-nota hidden" id="mcAlbAyuda">Arrastra una carta hasta otro hueco para cambiarlas de sitio, o usa las flechas. Si la llevas a una flecha de pliego, pasa de página.</p>
-            <div class="mc-resultados mc-alb-resultados" id="mcAlbResultados"></div>
           </div>
           <div class="mc-archivador-caja">
             <div id="mcAlbArchivador"></div>
@@ -1122,12 +1121,13 @@
            se puede escribir. En cuanto buscas algo, desaparece. El botón de
            escanear que vivía aquí se fue (747, PINGU: «ya tienes el escáner
            en el menú»): lo abre la burbuja de abajo y la paleta (Ctrl+K). -->
-      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar" aria-labelledby="mcHojaTitulo">
-        <!-- La cabecera de la HOJA (765): solo en Mi colección; en /cartas
-             Buscar sigue siendo una pestaña y la esconde el CSS del modo. -->
-        <div class="mc-hoja-cabeza">
-          <h2 id="mcHojaTitulo">Añadir carta</h2>
-          <button type="button" class="mc-panel-cerrar" id="mcHojaCerrar" aria-label="Cerrar">✕</button>
+      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar">
+        <!-- ELIGIENDO PARA UN BOLSILLO (767): la carta que toques va a ese
+             bolsillo del álbum, no a su ficha. -->
+        <div class="mc-eligiendo hidden" id="mcEligiendo" role="status">
+          <span class="mc-eligiendo-icono" data-icono="layers" aria-hidden="true"></span>
+          <p id="mcEligiendoTexto"></p>
+          <button type="button" class="btn-secondary" id="mcEligiendoCancelar">Cancelar</button>
         </div>
         <div class="mc-filtros" id="mcBuscarBarra">
           <div class="mc-buscador">

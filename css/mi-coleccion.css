@@ -9338,6 +9338,12 @@ input.mc-alb-titulo:not([readonly]):focus {
   opacity: 1;
 }
 
+/* 767: los bolsillos llevan su «+» abajo a la derecha, como en Expansiones;
+   la hoja deja sitio debajo para la esquina, y así no se pisan. */
+#mcAlbArchivador .mc-hoja:has(> .mc-hoja-esquina) {
+  padding-bottom: 48px;
+}
+
 .mc-hoja-esquina-despues {
   right: 0;
   border-bottom-right-radius: var(--radius-md);
@@ -9736,8 +9742,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-top: var(--e-xs);
 }
 
-/* ── 765: la hoja «Añadir carta» (B1) y Deseos y cambios en el menú (M2).
-   El porqué, en SCHEMA.md (tanda 765). ── */
+/* ── 765/767: Deseos y cambios en el menú y Buscar eligiendo para un
+   bolsillo. El porqué, en SCHEMA.md (tandas 765 y 767). ── */
 .mc-texto-corto {
   display: none;
 }
@@ -9750,58 +9756,32 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: inline;
 }
 
-.mc-menu-anadir {
-  color: var(--navy);
-  font-weight: 700;
+.mc-eligiendo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--navy);
+  border-radius: var(--radius-md);
+  background: var(--ice);
 }
 
-.mc-hoja-cabeza {
+.mc-eligiendo.hidden {
   display: none;
 }
 
-html.mc-hoja-abierta body {
-  overflow: hidden;
-}
-
-html.mc-hoja-abierta #mcContenido #mcPanelBuscar {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 0 max(var(--e-md), calc((100% - 1080px) / 2)) var(--e-2xl);
-  border: 0;
-  background: var(--bg);
-  animation: mc-hoja-sube 0.3s ease;
-}
-
-html.mc-hoja-abierta .mc-hoja-cabeza {
-  display: flex;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-md);
-  margin-bottom: var(--e-sm);
-  padding: var(--e-md) 0 var(--e-sm);
-  background: var(--bg);
-}
-
-.mc-hoja-cabeza h2 {
+.mc-eligiendo p {
+  flex: 1;
+  min-width: 0;
   margin: 0;
-  font-size: var(--t-xl);
+  color: var(--text);
+  font-weight: 600;
 }
 
-@keyframes mc-hoja-sube {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.mc-hoja-abierta #mcContenido #mcPanelBuscar {
-    animation: none;
-  }
+.mc-eligiendo-icono {
+  display: inline-flex;
+  color: var(--navy);
 }
 
 /* ── 766: bolsillos con número y destello (AL5) y fundas con relieve (AL4).

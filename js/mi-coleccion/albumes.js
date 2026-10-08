@@ -13,12 +13,10 @@ import { migasHtml } from './migas.js'
 import { escapeHtml } from '../html.js'
 import { icons } from '../icons.js'
 import { showToast } from '../toast.js'
-import { normalizeSearch } from '../tcgdex.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 // El escaneo con su respaldo (tanda 370): sin él, una carta de la que
 // TCGdex no tiene imagen deja el bolsillo en blanco.
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
-import { esDelTCG } from '../catalogo-series.js'
 import { euros, valorDe, precioDe, precioDeFila } from '../cardmarket.js'
 import * as datos from './datos.js'
 
@@ -120,6 +118,12 @@ export function tengoElBolsillo(item, lineas) {
   return lineas.some((l) => l.card_id === item.id && (!item.v || (l.variante || VARIANTE_POR_DEFECTO) === item.v))
 }
 const tieneItem = (item) => tengoElBolsillo(item, ctx.lineas())
+// Cuántas copias tienes de lo de un bolsillo (767): de esa versión si la
+// casilla es de una, de la carta si no. Para el ✓ o el «×2» de Expansiones.
+export function copiasDelBolsillo(item, lineas) {
+  if (!item?.id) return 0
+  return lineas.filter((l) => l.card_id === item.id && (!item.v || (l.variante || VARIANTE_POR_DEFECTO) === item.v)).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+}
 const esMio = () => Boolean(actual && ctx.sesion && actual.user_id === ctx.sesion.user.id)
 
 // ── La lista de álbumes (759, AL1) ──
@@ -328,9 +332,15 @@ export async function abrir(id, { soloVer = false } = {}) {
   editando = false
   soloFaltan = false
   pagina = 0
-  const ids = actual.cartas.map((c) => c?.id).filter(Boolean)
-  const faltan = ids.filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id))
-  if (faltan.length) for (const [cid, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(cid, c)
+  // Las que faltan, cada una a SU catálogo (767): un binder puede mezclar
+  // occidentales y japonesas.
+  const porCatalogo = new Map()
+  for (const it of actual.cartas) {
+    if (!it?.id || ctx.cartas.has(it.id) || cartasDelAlbum.has(it.id)) continue
+    const m = it.m || (esDeSet(actual) && actual.set_market) || ctx.mercado || 'WEST'
+    porCatalogo.set(m, [...(porCatalogo.get(m) || []), it.id])
+  }
+  for (const [m, faltan] of porCatalogo) for (const [cid, c] of await datos.cartasPorIds(faltan, m).catch(() => new Map())) cartasDelAlbum.set(cid, c)
   // El logo de la cabecera de un álbum de set (760): sus sets, si no están.
   if (esDeSet(actual) && !setsDeTodos.has(claveDeSet(actual.set_id, actual.set_market))) {
     const todos = await ctx.todosLosSets?.().catch(() => []) || []
@@ -399,12 +409,16 @@ export function sinHuecosAlFinal(cartas) {
   return r
 }
 // Poner una carta en el bolsillo `i`, rellenando con huecos hasta él.
-export function ponerEnBolsillo(cartas, i, id) {
+// `extra` lleva el catálogo de una carta que no es occidental (767: el
+// buscador deja elegir el japonés), `{ m: 'JP' }`, para pedirla a su catálogo
+// al abrir el álbum.
+export function ponerEnBolsillo(cartas, i, id, extra = {}) {
   const r = [...cartas]
   while (r.length < i) r.push({})
-  r[i] = { id }
+  r[i] = { id, ...extra }
   return r
 }
+const extraDe = (c) => (c?.market && c.market !== 'WEST' ? { m: c.market } : {})
 // Intercambiar dos bolsillos, aunque el de destino esté más allá del final.
 export function cambiarBolsillos(cartas, de, a) {
   const r = [...cartas]
@@ -434,7 +448,8 @@ function bolsilloHtml(item, indice) {
   const dentro = `
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" draggable="false" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
-    ${marcar && mia ? '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}
+    ${marcar && mia ? ctx.marcaDeTengo?.(copiasDelBolsillo(item, ctx.lineas())) || '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}
+    ${marcar && !editando && c ? ctx.masDe?.(c, item.v || null) || '' : ''}
     ${item.v ? `<span class="mc-tengo-version">${escapeHtml(nombreCortoDeVersion(item.v))}</span>` : ''}
     ${actual.portada && actual.portada === item.id && !esDeSet(actual) ? '<span class="mc-alb-es-portada" title="La portada">★</span>' : ''}`
   // `draggable="false"` en la foto y en el enlace, y `data-indice` en los
@@ -449,7 +464,9 @@ function bolsilloHtml(item, indice) {
         <button type="button" data-mover="1" aria-label="Mover después" ${indice === actual.cartas.length - 1 ? 'disabled' : ''}>→</button>
       </span></div>`
   }
-  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}" data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
+  // Como en Expansiones (767, PINGU: «todo igual»): tocar la carta abre su
+  // ficha aquí mismo, y el «+» abre la hoja de añadir.
+  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
 }
 
 function pintarDetalle() {
@@ -568,17 +585,38 @@ function pintarPuntos(paginas, deUnaVez) {
     : ''
 }
 
-// Elegir la carta de un bolsillo vacío (760, AL5): desde la 765 es LA hoja
-// «Añadir carta» de toda la pantalla —la misma búsqueda, agrupada por
-// expansión y con sus filtros—, y la carta que se toca vuelve aquí.
+// Elegir la carta de un bolsillo vacío (760, AL5): desde la 767 es la
+// pestaña Buscar en modo elegir —la misma búsqueda, por expansión, con el
+// catálogo occidental o el japonés—, y la carta tocada vuelve aquí.
+// Algo ha cambiado en tu colección (has añadido desde el «+»): el álbum
+// abierto se repinta con sus ✓.
+export function repintarSiAbierto() {
+  if (!actual || $('mcAlbumesDetalle')?.classList.contains('hidden')) return
+  pintarDetalle()
+  calcularLoQueFalta()
+}
+function volverAlAlbum() {
+  ctx.irA('carpetas')
+  if (!actual) return
+  const url = new URL(location.href)
+  url.searchParams.set('album', actual.id)
+  history.replaceState(null, '', url)
+}
 function abrirElegir(i) {
   const album = actual?.id
-  ctx.elegirCarta({ titulo: `Bolsillo ${i + 1}`, alElegir: (c) => { if (actual?.id === album) ponerEnElHueco(c, i) } })
+  ctx.elegirCarta({
+    titulo: `Elige la carta del bolsillo ${i + 1} de «${actual?.nombre || 'tu álbum'}»`,
+    alElegir: (c) => {
+      volverAlAlbum()
+      if (actual?.id === album) ponerEnElHueco(c, i)
+    },
+    alCancelar: volverAlAlbum,
+  })
 }
 function ponerEnElHueco(c, i) {
   if (!c || i == null) return
   cartasDelAlbum.set(c.id, c)
-  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, i, c.id) })
+  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, i, c.id, extraDe(c)) })
   pagina = Math.floor(i / forma().porPagina)
   pintarDetalle()
   calcularLoQueFalta()
@@ -658,50 +696,28 @@ function guardarLuego(cambios) {
 }
 
 // ── Añadir cartas al álbum ──
-let turnoBusqueda = 0
-let ultimas = new Map()
-// La misma búsqueda para el buscador de arriba y para la hoja de un
-// bolsillo vacío (760): cambian el campo y la caja, no la consulta.
-async function buscar(campo = 'mcAlbBuscar', caja = 'mcAlbResultados') {
-  const texto = normalizeSearch($(campo).value)
-  const mio = ++turnoBusqueda
-  if (texto.length < 2) {
-    $(caja).innerHTML = ''
-    return
-  }
-  let q = supabase.from('tcg_cards').select('id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date)').eq('market', 'WEST')
-  for (const p of texto.split(/\s+/).filter(Boolean)) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(48)
-  if (mio !== turnoBusqueda) return
-  if (error) {
-    $(caja).innerHTML = `<p class="subtext">${escapeHtml(error.message)}</p>`
-    return
-  }
-  const lista = (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
-  ultimas = new Map(lista.map((c) => [c.id, c]))
-  $(caja).innerHTML = lista.length
-    ? lista
-        .map((c) => {
-          const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-          return `<button type="button" class="mc-resultado" data-carta="${escapeHtml(c.id)}" title="Añadir al álbum">
-            ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-            <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}${tengo(c.id) ? ' <span class="mc-chip">La tienes</span>' : ''}</span>
-            <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
-          </button>`
-        })
-        .join('')
-    : '<p class="subtext">No encuentro ninguna carta con ese nombre.</p>'
+// Desde la 767, con la pestaña Buscar en modo elegir (PINGU: «el buscador
+// tiene que dejar buscar en la occidental o en la japonesa»): la carta va al
+// primer bolsillo vacío de un binder o, si no hay, al final.
+function abrirAnadirAlAlbum() {
+  const album = actual?.id
+  ctx.elegirCarta({
+    titulo: `Elige una carta para «${actual?.nombre || 'tu álbum'}»`,
+    alElegir: (c) => {
+      volverAlAlbum()
+      if (actual?.id === album) anadir(c)
+    },
+    alCancelar: volverAlAlbum,
+  })
 }
-
-function anadir(cardId) {
-  const c = ultimas.get(cardId)
+function anadir(c) {
   if (!c) return
   // En un binder, al primer bolsillo vacío (760); si no hay, al final.
   const hueco = esBinder() ? actual.cartas.findIndex(esHueco) : -1
   const sitio = hueco >= 0 ? hueco : actual.cartas.length
   if (sitio >= MAX_CARTAS) return showToast(`Un álbum admite hasta ${MAX_CARTAS} cartas.`, 'error')
   cartasDelAlbum.set(c.id, c)
-  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, sitio, c.id) })
+  guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, sitio, c.id, extraDe(c)) })
   // Se salta a la página donde ha caído.
   pagina = Math.floor(sitio / forma().porPagina)
   pintarDetalle()
@@ -853,6 +869,20 @@ export function iniciarAlbumes(contexto) {
     if (esquina) return pasarPagina(esquina.dataset.esquina === 'antes' ? -1 : 1)
     const hueco = e.target.closest('[data-hueco]')
     if (hueco && esMio()) return abrirElegir(Number(hueco.dataset.hueco))
+    // El «+» y la ficha (767), fuera de «Ordenar y quitar».
+    if (!editando) {
+      const mas = e.target.closest('[data-anadir]')
+      const carta = e.target.closest('a.mc-bolsillo[data-carta]')
+      const c = carta ? cartaDe(carta.dataset.carta) : null
+      if (mas && c) {
+        e.preventDefault()
+        return ctx.anadirCarta?.(c, mas.dataset.variante || null)
+      }
+      if (carta && c && ctx.abrirFicha && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1)) {
+        e.preventDefault()
+        return ctx.abrirFicha(c)
+      }
+    }
     const caja = e.target.closest('[data-indice]')
     if (!caja || !editando) return
     const i = Number(caja.dataset.indice)
@@ -894,15 +924,7 @@ export function iniciarAlbumes(contexto) {
       alBorde: (flecha) => !flecha.hidden && flecha.click(),
     })
   }
-  let espera = null
-  $('mcAlbBuscar')?.addEventListener('input', () => {
-    clearTimeout(espera)
-    espera = setTimeout(() => buscar(), 250)
-  })
-  $('mcAlbResultados')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-carta]')
-    if (b) anadir(b.dataset.carta)
-  })
+  $('mcAlbBuscarAbrir')?.addEventListener('click', abrirAnadirAlAlbum)
   window.addEventListener('resize', () => actual && !$('mcAlbumesDetalle').classList.contains('hidden') && pintarDetalle())
 }
 

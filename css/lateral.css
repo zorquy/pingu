@@ -101,6 +101,13 @@
     font-weight: 500;
   }
 
+  /* 767: sin la fila «Mi colección», el menú ES el cajón de Cartas. */
+  .lat .lat-menu-sitio > .mc-pestanias {
+    margin: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
   .lat .mc-pestania.activa,
   .lat .mc-pestania.activa:hover {
     background: var(--ice);

@@ -39,18 +39,19 @@ export const DIBUJOS = {
 // catálogo salió del menú y Lanzamientos se fue a Inicio, Cartas es solo
 // «Mi colección», y un cajón de un enlace no se pintaba: PINGU, «la
 // categoría Cartas no tiene desplegable y tendría que tener». Fuera de
-// /mi-coleccion el cajón lleva sus partes como enlaces; DENTRO lleva la
-// fila de «Mi colección», y debajo se cuelga su propio menú (`#mcMenu`, la
-// 740), que cambia de pestaña sin recargar.
+// /mi-coleccion el cajón lleva sus partes como enlaces; DENTRO lleva su
+// propio menú (`#mcMenu`, la 740), que cambia de pestaña sin recargar, y
+// desde la 767 sin la fila «Mi colección» encima.
 export const PARTES_DE_LA_COLECCION = [
   { ver: 'resumen', texto: 'Panel', icono: () => icons.barChart(18) },
   { ver: 'album', texto: 'Expansiones', icono: () => icons.layers(18) },
   { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
   { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
   { ver: 'productos', texto: 'Productos', icono: () => icons.package(18) },
-  // Buscar ya no es una página (765): es la hoja «Añadir carta». Entra
-  // Deseos y cambios, que es lo que dice el menú de Mi colección.
+  // Deseos y cambios (765), que es lo que dice el menú de Mi colección.
   { ver: 'quiero', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },
+  // Y Buscar, que vuelve a ser su pestaña (767).
+  { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
 ]
 const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'
 
@@ -63,7 +64,11 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
       const abierto = conCajon && s.nombre === abierta
       const id = `lat-cajon-${i}`
       const cajon = conCajon
-        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${partes
+        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${soloLaColeccion(s) && clave === 'mi-coleccion'
+          // Dentro de Mi colección, sin la fila «Mi colección» (767, PINGU:
+          // «no hace falta ese submenú»): su menú va directamente aquí.
+          ? '<li class="lat-menu-sitio"></li>'
+          : partes
           ? PARTES_DE_LA_COLECCION.map((p) => `<li><a href="/mi-coleccion?ver=${p.ver}">${p.icono()}<span>${p.texto}</span></a></li>`).join('')
           : s.enlaces
             .map((e) => {
@@ -165,7 +170,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // mismo nodo —con sus escuchas— debajo de su página, y vuelve a su sitio
   // si la ventana se estrecha.
   const menu = doc.getElementById('mcMenu')
-  const suyo = barra.querySelector('.lat-paginas [aria-current="page"]')?.closest('li')
+  const suyo = barra.querySelector('.lat-menu-sitio') || barra.querySelector('.lat-paginas [aria-current="page"]')?.closest('li')
   const origen = menu ? { padre: menu.parentNode, siguiente: menu.nextSibling } : null
   const meterMenu = (dentro) => {
     if (!menu || !suyo) return
