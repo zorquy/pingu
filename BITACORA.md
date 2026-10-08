@@ -23,6 +23,9 @@ en SCHEMA.md, tanda 755.
 `netlify/functions/precios-espejo.mjs`,
 `netlify/functions/scrydex-huecos.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
 Pruebas 755 y 755-pantalla (nuevas); 674, 654, 666, 684 y 686 verdes.
+Subconjunto de Mi colección: 166 verdes y 1 rojo, la 558, que miraba los
+textos del escáner en `dispararEscaner` y la 754 los mudó a `leerYBuscar`:
+prueba al día, verde.
 
 **Pendiente**: comprobarlo en /admin → «Estado del catálogo de TCGGO»
 (CALCO JAPONÉS) cuando corra: una expansión cada dos minutos; las
