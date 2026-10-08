@@ -128,6 +128,14 @@ console.log('── 4. En el ordenador ──')
   await n.ctx.close()
 }
 
+console.log('── 4b. «Mi colección» en una línea (PINGU lo vio partido a 1280) ──')
+for (const ancho of [1240, 1280]) {
+  const p = await abrir('/mi-coleccion.html?ver=carpetas', { movil: false, ancho })
+  const altos = await p.page.$$eval('.nav-links > *', (as) => as.map((a) => Math.round(a.getBoundingClientRect().height)))
+  check(`a ${ancho}, con «Mi colección» activa, ningún enlace se parte en dos líneas`, altos.length === 6 && altos.every((h) => h === altos[0]), JSON.stringify(altos))
+  await p.ctx.close()
+}
+
 console.log('── 5. La lateral del ordenador: Cartas con su desplegable ──')
 {
   // PINGU, al ver la 758 en producción: «la categoría Cartas no tiene
