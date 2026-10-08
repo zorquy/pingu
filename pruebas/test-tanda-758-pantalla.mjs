@@ -109,7 +109,8 @@ console.log('── 3. En el iPhone ──')
   await t.page.waitForTimeout(900)
   const filas = await t.page.$$eval('#navUserDropdown .tu-lista a', (as) => as.map((a) => ({ t: a.textContent.trim(), href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel'), alto: a.getBoundingClientRect().height, svg: !!a.querySelector('svg') })))
   const i = filas.findIndex((f) => f.href === KOFI)
-  check('la hoja Tú lleva «Apoyar PokeDoc» justo antes de Ajustes', i >= 0 && filas[i + 1]?.t === 'Ajustes' && /^Apoyar PokeDoc/.test(filas[i].t) && /Ko-fi/.test(filas[i].t), JSON.stringify(filas.map((f) => f.t)))
+  // Desde la 774, la PRIMERA fila (PINGU, para el móvil: «arriba del menú Tú»).
+  check('la hoja Tú lleva «Apoyar PokeDoc» la primera', i === 0 && /^Apoyar PokeDoc/.test(filas[i].t) && /Ko-fi/.test(filas[i].t), JSON.stringify(filas.map((f) => f.t)))
   check('  …en pestaña nueva, con su icono y sus 44', filas[i]?.target === '_blank' && /noopener/.test(filas[i]?.rel) && filas[i].svg && filas[i].alto >= 44, JSON.stringify(filas[i]))
   await t.ctx.close()
 }
