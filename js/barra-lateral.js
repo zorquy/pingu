@@ -48,7 +48,9 @@ export const PARTES_DE_LA_COLECCION = [
   { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
   { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
   { ver: 'productos', texto: 'Productos', icono: () => icons.package(18) },
-  { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
+  // Buscar ya no es una página (765): es la hoja «Añadir carta». Entra
+  // Deseos y cambios, que es lo que dice el menú de Mi colección.
+  { ver: 'quiero', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },
 ]
 const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'
 
@@ -157,7 +159,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   else doc.body.prepend(barra)
   doc.documentElement.classList.add('con-lateral')
   // EL MENÚ DE MI COLECCIÓN, DENTRO (740, D2). Panel, Expansiones, Pokédex,
-  // Álbumes y Buscar son las páginas de «Mi colección»: con la lateral
+  // Álbumes, Productos y Deseos y cambios son las páginas de «Mi colección»: con la lateral
   // puesta, su columna propia (216 px) era una segunda barra lateral al
   // lado de la primera, y se comía el sitio de la rejilla. Se MUEVE el
   // mismo nodo —con sus escuchas— debajo de su página, y vuelve a su sitio

@@ -9735,3 +9735,71 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-albn-versiones {
   margin-top: var(--e-xs);
 }
+
+/* ── 765: la hoja «Añadir carta» (B1) y Deseos y cambios en el menú (M2).
+   El porqué, en SCHEMA.md (tanda 765). ── */
+.mc-texto-corto {
+  display: none;
+}
+
+.bm-con-ajenas .mc-texto-largo {
+  display: none;
+}
+
+.bm-con-ajenas .mc-texto-corto {
+  display: inline;
+}
+
+.mc-menu-anadir {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.mc-hoja-cabeza {
+  display: none;
+}
+
+html.mc-hoja-abierta body {
+  overflow: hidden;
+}
+
+html.mc-hoja-abierta #mcContenido #mcPanelBuscar {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 max(var(--e-md), calc((100% - 1080px) / 2)) var(--e-2xl);
+  border: 0;
+  background: var(--bg);
+  animation: mc-hoja-sube 0.3s ease;
+}
+
+html.mc-hoja-abierta .mc-hoja-cabeza {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-sm);
+  padding: var(--e-md) 0 var(--e-sm);
+  background: var(--bg);
+}
+
+.mc-hoja-cabeza h2 {
+  margin: 0;
+  font-size: var(--t-xl);
+}
+
+@keyframes mc-hoja-sube {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.mc-hoja-abierta #mcContenido #mcPanelBuscar {
+    animation: none;
+  }
+}

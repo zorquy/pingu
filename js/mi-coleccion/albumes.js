@@ -565,23 +565,16 @@ function pintarPuntos(paginas, deUnaVez) {
     : ''
 }
 
-// La hoja para elegir la carta de un bolsillo vacío (760, AL5).
-let huecoDestino = null
+// Elegir la carta de un bolsillo vacío (760, AL5): desde la 765 es LA hoja
+// «Añadir carta» de toda la pantalla —la misma búsqueda, agrupada por
+// expansión y con sus filtros—, y la carta que se toca vuelve aquí.
 function abrirElegir(i) {
-  huecoDestino = i
-  $('mcAlbElegirTitulo').textContent = `Bolsillo ${i + 1}`
-  $('mcAlbElegirBuscar').value = ''
-  $('mcAlbElegirResultados').innerHTML = '<p class="mc-nota">Escribe el nombre de la carta.</p>'
-  $('mcAlbElegir').showModal()
-  $('mcAlbElegirBuscar').focus()
+  const album = actual?.id
+  ctx.elegirCarta({ titulo: `Bolsillo ${i + 1}`, alElegir: (c) => { if (actual?.id === album) ponerEnElHueco(c, i) } })
 }
-function ponerEnElHueco(cardId) {
-  const c = ultimas.get(cardId)
-  if (!c || huecoDestino == null) return
+function ponerEnElHueco(c, i) {
+  if (!c || i == null) return
   cartasDelAlbum.set(c.id, c)
-  const i = huecoDestino
-  huecoDestino = null
-  $('mcAlbElegir').close()
   guardarLuego({ cartas: ponerEnBolsillo(actual.cartas, i, c.id) })
   pagina = Math.floor(i / forma().porPagina)
   pintarDetalle()
@@ -852,22 +845,6 @@ export function iniciarAlbumes(contexto) {
     const dy = e.changedTouches[0].clientY - t.y
     if (Math.abs(dx) >= 48 && Math.abs(dy) < Math.abs(dx) / 2) pasarPagina(dx < 0 ? 1 : -1)
   }, { passive: true })
-  // La hoja de un bolsillo vacío.
-  $('mcAlbElegirCerrar')?.addEventListener('click', () => $('mcAlbElegir').close())
-  let esperaElegir = null
-  $('mcAlbElegirBuscar')?.addEventListener('input', () => {
-    clearTimeout(esperaElegir)
-    esperaElegir = setTimeout(() => buscar('mcAlbElegirBuscar', 'mcAlbElegirResultados'), 250)
-  })
-  $('mcAlbElegirResultados')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-carta]')
-    if (b) ponerEnElHueco(b.dataset.carta)
-  })
-  $('mcAlbElegir')?.addEventListener('click', (e) => {
-    if (e.target !== e.currentTarget) return
-    const r = e.currentTarget.getBoundingClientRect()
-    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) e.currentTarget.close()
-  })
   $('mcAlbArchivador')?.addEventListener('click', (e) => {
     const esquina = e.target.closest('[data-esquina]')
     if (esquina) return pasarPagina(esquina.dataset.esquina === 'antes' ? -1 : 1)

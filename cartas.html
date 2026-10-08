@@ -1115,11 +1115,17 @@
            se puede escribir. En cuanto buscas algo, desaparece. El botón de
            escanear que vivía aquí se fue (747, PINGU: «ya tienes el escáner
            en el menú»): lo abre la burbuja de abajo y la paleta (Ctrl+K). -->
-      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar">
+      <section id="mcPanelBuscar" class="hidden" role="tabpanel" aria-label="Buscar" aria-labelledby="mcHojaTitulo">
+        <!-- La cabecera de la HOJA (765): solo en Mi colección; en /cartas
+             Buscar sigue siendo una pestaña y la esconde el CSS del modo. -->
+        <div class="mc-hoja-cabeza">
+          <h2 id="mcHojaTitulo">Añadir carta</h2>
+          <button type="button" class="mc-panel-cerrar" id="mcHojaCerrar" aria-label="Cerrar">✕</button>
+        </div>
         <div class="mc-filtros" id="mcBuscarBarra">
           <div class="mc-buscador">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" enterkeyhint="search" id="mcBuscarTodo" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
+            <input type="search" enterkeyhint="search" id="mcBuscarTodo" placeholder="Charizard, 151/165, MEW 151…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
           </div>
           <div class="mc-mandos">
             <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (tanda
@@ -1160,6 +1166,7 @@
             <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>,
             <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button> o
             <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>.
+            Y también como viene abajo en la carta: <strong>151/165</strong> o <strong>MEW 151</strong>.
           </p>
         </div>
 
@@ -1657,21 +1664,6 @@
             <button type="submit" class="btn-primary" id="mcAlbNuevoCrear">Crear</button>
           </div>
         </form>
-      </dialog>
-    <!-- LA CARTA DE UN BOLSILLO VACÍO (760, AL5): se busca y va A ESE
-         bolsillo. La maneja js/mi-coleccion/albumes.js. -->
-      <dialog class="mc-albn mc-alb-elegir" id="mcAlbElegir" aria-labelledby="mcAlbElegirTitulo">
-        <div class="mc-panel-cabecera">
-          <h2 id="mcAlbElegirTitulo">Bolsillo</h2>
-          <button type="button" class="mc-panel-cerrar" id="mcAlbElegirCerrar" aria-label="Cerrar">✕</button>
-        </div>
-        <div class="mc-albn-cuerpo">
-          <div class="mc-buscador">
-            <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" enterkeyhint="search" id="mcAlbElegirBuscar" placeholder="Busca la carta por su nombre" aria-label="Busca la carta para este bolsillo" autocomplete="off" />
-          </div>
-          <div class="mc-resultados mc-alb-resultados" id="mcAlbElegirResultados"></div>
-        </div>
       </dialog>
     <!-- SELECCIONAR VARIAS (747, la C4 como en su maqueta). Vale para las
          DOS rejillas —«Cartas», donde se marca cada copia tuya, y una

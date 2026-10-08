@@ -71,6 +71,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/ge
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
+import { entenderBusqueda } from './mi-coleccion/busqueda.js'
 import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
@@ -149,6 +150,15 @@ const PESTANAS_CATALOGO = ['album', 'buscar']
 // lo comparte.
 const PESTANA_POR_DEFECTO = modoCatalogo ? 'album' : 'resumen'
 if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
+// BUSCAR ES UNA HOJA en Mi colección (765, B1): `?ver=buscar` abre la hoja
+// «Añadir carta» encima de la pestaña por defecto. En /cartas sigue siendo
+// una pestaña: allí no se añade nada a ninguna parte.
+const buscarEsHoja = !modoCatalogo
+let hojaAlEntrar = false
+if (buscarEsHoja && pestania === 'buscar') {
+  hojaAlEntrar = true
+  pestania = PESTANA_POR_DEFECTO
+}
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -191,6 +201,8 @@ function aplicarDireccion() {
   const p = new URLSearchParams(location.search)
   const pedidaAhora = p.get('ver')
   const ver = PESTANAS.includes(pedidaAhora) ? pedidaAhora : MUDANZAS[pedidaAhora] || PESTANA_POR_DEFECTO
+  // Atrás con la hoja abierta la cierra (765).
+  if (hoja && ver !== 'buscar') cerrarHoja({ tocarDireccion: false })
   if (ver !== pestania) cambiarPestania(ver, { push: false })
   if (ver === 'album') {
     const set = p.get('set')
@@ -4436,7 +4448,11 @@ function pintarBandejaCatalogo() {
 async function buscarEnTodo({ variantes = null } = {}) {
   const campo = $('mcBuscarTodo')
   if (!campo) return
-  const texto = normalizeSearch(campo.value)
+  // «151/165» y «MEW 151» (765, B1): el total y el código dicen de qué
+  // expansión es. Hace falta la lista de sets, que se pide una vez.
+  if (!todosLosSets && /\/|\d/.test(campo.value)) await cargarSets().catch(() => null)
+  const leida = entenderBusqueda(campo.value, todosLosSets || [])
+  const texto = normalizeSearch(leida.texto)
   const mio = ++turnoBuscarTodo
   const vacio = $('mcBuscarVacio')
   const caja = $('mcBuscarResultados')
@@ -4457,7 +4473,10 @@ async function buscarEnTodo({ variantes = null } = {}) {
   let lista
   let porIlustrador = false
   try {
-    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo, variantes })
+    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo, variantes, setIds: leida.setIds })
+    // «mew 151» puede ser el set o el Pokémon: si como set no hay nada,
+    // se prueba como nombre, que es lo que hacía antes.
+    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(campo.value), TOPE, { filtros: filtrosCatalogo, variantes })
     // Si por nombre no sale nada, se prueba por ILUSTRADOR. La pasada cara
     // solo ocurre cuando ya no hay nada que perder.
     if (!lista.length) {
@@ -5098,9 +5117,11 @@ function variantesDeNumero(n) {
   return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
 }
 
-async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null } = {}) {
+async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null } = {}) {
   const { nombre, numero } = partirBusqueda(texto)
   let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', mercado)
+  // «151/165» y «MEW 151» (765): la expansión ya la ha dicho quien escribe.
+  if (setIds?.length) q = q.in('set_id', setIds)
   if (variantes?.length) {
     // ── UNA SOLA CONSULTA PARA TODAS LAS VARIANTES (tanda 561) ──
     //
@@ -5238,7 +5259,41 @@ async function anadirSeleccion(e) {
 }
 
 // ── Pestañas y repintado ──
+// ── LA HOJA «AÑADIR CARTA» (765, B1 de la ronda 3) ──
+//
+// Un solo buscador para añadir, se llegue de donde se llegue: el botón del
+// menú, un bolsillo vacío de un álbum (que pasa `alElegir`: la carta que
+// toques va a ESE bolsillo y no a la ficha) o un enlace con `?ver=buscar`.
+// Es el panel de Buscar de siempre —mismos resultados agrupados, mismos
+// filtros— puesto encima de lo que estuvieras mirando; al cerrarla sigues
+// donde estabas. `hoja` es null con la hoja cerrada.
+let hoja = null
+function abrirHoja({ titulo = 'Añadir carta', alElegir = null } = {}) {
+  const panel = $('mcPanelBuscar')
+  if (!panel) return
+  if ($('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
+  hoja = { alElegir }
+  $('mcHojaTitulo').textContent = titulo
+  panel.classList.remove('hidden')
+  panel.classList.toggle('mc-hoja-eligiendo', Boolean(alElegir))
+  document.documentElement.classList.add('mc-hoja-abierta')
+  // Con el dedo NO se enfoca (la 452: el teclado tapa media pantalla); con
+  // ratón, sí: se viene a escribir.
+  if (window.matchMedia?.('(pointer: fine)').matches) $('mcBuscarTodo')?.focus({ preventScroll: true })
+  irA({ ver: 'buscar' })
+}
+function cerrarHoja({ tocarDireccion = true } = {}) {
+  if (!hoja) return
+  hoja = null
+  $('mcPanelBuscar')?.classList.add('hidden')
+  $('mcPanelBuscar')?.classList.remove('mc-hoja-eligiendo')
+  document.documentElement.classList.remove('mc-hoja-abierta')
+  if (tocarDireccion) irA({ ver: pestania }, { push: false })
+}
+
 function cambiarPestania(nueva, { push = true } = {}) {
+  if (nueva === 'buscar' && buscarEsHoja) return abrirHoja()
+  if (hoja) cerrarHoja({ tocarDireccion: false })
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
   // se quedaría flotando encima de lo que no es suyo.
   // Y desde la 748 también es de una expansión: se cierra al cambiar de
@@ -5249,7 +5304,9 @@ function cambiarPestania(nueva, { push = true } = {}) {
   if (otra && marcadas) modoMarcar(false)
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
-    const activa = b.dataset.pestania === nueva
+    // «Deseos y cambios» (765) es una puerta para dos pestañas: los cruces
+    // viven en `cambios` y el botón sigue encendido.
+    const activa = b.dataset.pestania === nueva || (b.dataset.tambien || '').split(' ').includes(nueva)
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
@@ -7563,7 +7620,31 @@ function enganchar() {
   // que el Ctrl+clic y el «abrir en otra pestaña» sigan funcionando —de eso
   // se encarga `abreLaPagina`— y es el enlace que ve Google. Un `<a>` sin
   // destino es un botón disfrazado.
+  // Eligiendo para un bolsillo (765), tocar una carta la ELIGE: en captura,
+  // para ganarle a la ficha.
+  $('mcBuscarResultados')?.addEventListener('click', (e) => {
+    if (!hoja?.alElegir) return
+    const r = e.target.closest('.mc-resultado[data-carta]')
+    if (!r) return
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    const c = ultimaBusqueda.find((x) => x.id === r.dataset.carta)
+    const alElegir = hoja.alElegir
+    cerrarHoja()
+    if (c) alElegir(c)
+  }, true)
   engancharFicha('mcBuscarResultados', '.mc-resultado')
+  $('mcHojaCerrar')?.addEventListener('click', () => cerrarHoja())
+  document.addEventListener('click', (e) => {
+    if (e.target.closest?.('[data-abrir-anadir]')) abrirHoja()
+  })
+  // Escape la cierra, salvo que haya una ventana encima (la ficha, los
+  // filtros): esa se cierra primero, sola.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !hoja || e.defaultPrevented || document.querySelector('dialog:modal')) return
+    e.preventDefault()
+    cerrarHoja()
+  })
 
   // ── El menú de la VISTA (tanda 478) ──
   //
@@ -7740,6 +7821,9 @@ const contexto = {
   tengoDeSet: (s) => (s.market && s.market !== mercado ? 0 : new Set(lineas.filter((l) => cartas.get(l.card_id)?.set_id === s.id).map((l) => l.card_id)).size),
   todosLosSets: () => cargarSetsDeTodos(),
   irA: (p) => cambiarPestania(p),
+  // La hoja «Añadir carta» para elegir una (765): los álbumes la abren
+  // desde un bolsillo vacío y reciben la carta tocada.
+  elegirCarta: (o) => abrirHoja(o),
   carpetasCambiadas: () => {
     if (!carpetas) return
     carpetasLista = []
@@ -7753,6 +7837,7 @@ async function verAlbumAjeno(fila) {
   // quién es el álbum que abres.
   let quien = null
   try {
+    // sin rango: el nombre va en el título de la página, no es un enlace a un perfil.
     const { data } = await supabase.from('user_profiles').select('username').eq('id', fila.user_id).maybeSingle()
     quien = data?.username || null
   } catch { quien = null }
@@ -7845,6 +7930,7 @@ async function iniciar() {
     // Mirando la colección de otro no hay nada que añadir: los bolsillos
     // salen sin mando (bolsilloHtml) y esta línea sobraría en pantalla.
     $('mcTocarOpciones').classList.add('hidden')
+    for (const b of document.querySelectorAll('[data-abrir-anadir]')) b.classList.add('hidden')
   }
   pintarCompartir()
   // La hoja de ordenar se pinta UNA vez al arrancar, no al abrirla: el
@@ -7854,6 +7940,15 @@ async function iniciar() {
   pintarBandejaCatalogo()
   pintarGruposDelCatalogo()
   cambiarPestania(pestania)
+  // `?ver=buscar` (765): la hoja, encima; con `?q=`, con la búsqueda hecha
+  // (el enlace del ilustrador de la ficha, la 667).
+  if (hojaAlEntrar && esMia) {
+    abrirHoja()
+    if (params.get('q')) {
+      $('mcBuscarTodo').value = params.get('q')
+      void buscarEnTodo()
+    }
+  }
 
   await cargarColeccion(dueno.id, { primeraVez: true })
   window.addEventListener('resize', () => album.set && pintarAlbum())
@@ -7970,7 +8065,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // «Escanear una carta» desde /buscar, la paleta o la burbuja (718, 719)
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
-  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear')) void abrirEscaner()
+  if (primeraVez && esMia && hoja && params.get('escanear')) void abrirEscaner()
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
   if (primeraVez) void montarAlbumesLaterales()
