@@ -35,7 +35,9 @@ export function avisoConDeshacer({ html, alDeshacer, segundos = 6, doc = documen
   const el = doc.createElement('div')
   el.className = 'mc-deshacer'
   el.setAttribute('role', 'status')
-  el.innerHTML = `<span class="mc-deshacer-texto">${html}</span><button type="button" class="mc-deshacer-boton">Deshacer</button>`
+  // La barra de abajo dice cuánto le queda, y pasar el dedo o el ratón por
+  // encima la para, a ella y al temporizador (780, MV11).
+  el.innerHTML = `<span class="mc-deshacer-texto">${html}</span><button type="button" class="mc-deshacer-boton">Deshacer</button><span class="mc-deshacer-tiempo" style="animation-duration:${segundos}s" aria-hidden="true"></span>`
   // Dentro de la ficha si está abierta (757): un `<dialog>` modal deja
   // INERTE todo lo de fuera, y sumar una copia desde la ficha —el único
   // camino para una que ya tienes— sacaba un «Deshacer» que no se podía
@@ -47,7 +49,19 @@ export function avisoConDeshacer({ html, alDeshacer, segundos = 6, doc = documen
     el.remove()
     if (vivo?.el === el) vivo = null
   }
-  const t = setTimeout(quitar, segundos * 1000)
+  let queda = segundos * 1000
+  let desde = Date.now()
+  let t = setTimeout(quitar, queda)
+  el.addEventListener('pointerenter', () => {
+    clearTimeout(t)
+    queda -= Date.now() - desde
+    el.classList.add('parado')
+  })
+  el.addEventListener('pointerleave', () => {
+    desde = Date.now()
+    t = setTimeout(quitar, Math.max(1500, queda))
+    el.classList.remove('parado')
+  })
   el.querySelector('button').addEventListener('click', async () => {
     if (hecho) return
     hecho = true

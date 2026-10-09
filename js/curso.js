@@ -1788,9 +1788,9 @@ async function loadCourse() {
   }
 
   const slug = params.get('slug')
+  // Sin curso no hay nada que enseñar aquí: a la lista de Aprender (780, LO9).
   if (!slug) {
-    stage.innerHTML = `<p class="empty-state">Curso no encontrado.</p>`
-    btnContinue.style.display = 'none'
+    location.replace('/aprender')
     return
   }
 

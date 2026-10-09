@@ -6802,6 +6802,22 @@ input.mc-alb-titulo:not([readonly]):focus {
   box-shadow: var(--shadow-md);
   font-size: var(--t-sm);
 }
+/* La barra de lo que le queda (780, MV11). */
+.mc-deshacer { overflow: hidden; }
+.mc-deshacer-tiempo {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--blanco-fijo);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: mc-deshacer-tiempo linear forwards;
+}
+.mc-deshacer.parado .mc-deshacer-tiempo { animation-play-state: paused; }
+@keyframes mc-deshacer-tiempo { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .mc-deshacer-tiempo { display: none; animation: none; }
+}
 .mc-deshacer-texto {
   display: flex;
   flex: 1;

@@ -507,6 +507,7 @@ async function cargarBienvenida(session) {
     if (!profile) return document.documentElement.classList.remove('con-sesion')
 
     const nombre = profile.display_name || profile.username || ''
+    // En el PC la racha ya va en la barra de arriba (780, LO6): aquí, solo en el móvil.
     const racha = profile.current_streak || 0
 
     // El protector de racha: los escudos guardados van en consulta
@@ -535,7 +536,7 @@ async function cargarBienvenida(session) {
         <strong>${h >= 6 && h < 14 ? 'Buenos días' : h >= 14 && h < 21 ? 'Buenas tardes' : 'Buenas noches'}${nombre ? `, ${escapeHtml(nombre)}` : ''}</strong>
       </div>
       <div class="bienvenida-chips">
-        ${racha > 0 ? `<span class="bienvenida-chip" title="Días seguidos">${icons.flame(16)} ${racha}</span>` : ''}
+        ${racha > 0 && matchMedia('(max-width: 900px)').matches ? `<span class="bienvenida-chip" title="Días seguidos">${icons.flame(16)} ${racha}</span>` : ''}
         ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
         ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
       </div>`

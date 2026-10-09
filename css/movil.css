@@ -586,3 +586,44 @@
     translate: 0 var(--ios-arriba);
   }
 }
+
+/* 780 (PA19): lo de detrás de la barra y la burbuja se lee «debajo», no partido (SCHEMA 780). */
+@media (max-width: 900px) {
+  html.con-barra-movil body::after {
+    content: '';
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 89;
+    height: calc(96px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent, var(--bg) 72%);
+    pointer-events: none;
+    transition: transform 0.3s var(--ease);
+  }
+  html.con-burbuja-movil body::after,
+  html.con-barra-movil:has(.mc-pestanias) body::after {
+    height: calc(160px + env(safe-area-inset-bottom));
+  }
+  html.bm-escondidas.con-barra-movil body::after {
+    transform: translateY(84px);
+  }
+  html.ios-desfase.con-barra-movil body::after {
+    translate: 0 var(--ios-abajo);
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  html.con-barra-movil body::after { transition: none; }
+}
+
+/* 780 (PA20): el pie del móvil, en filas de enlaces y no en tres columnas apiladas. */
+@media (max-width: 900px) {
+  .pie-rejilla { grid-template-columns: 1fr; gap: var(--e-md); }
+  .pie-lema { display: none; }
+  .pie-col { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--e-xs); }
+  .pie-col .pie-titulo { flex: 1 0 100%; margin: 0; }
+  .pie-col a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 var(--e-sm); }
+}
+/* En la app instalada, la barra de abajo ya lleva a todo: del pie, lo legal. */
+@media (max-width: 900px) and (display-mode: standalone) {
+  .pie-rejilla { display: none; }
+}

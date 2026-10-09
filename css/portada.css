@@ -1,41 +1,10 @@
-/* ── La portada: lo que solo gasta la portada (tanda 299) ──
- *
- * La norma de la casa dice que el CSS de una sola página va en su propio
- * fichero, y la portada era la excepción: como es la página del
- * presupuesto de peso, se venía metiendo todo en components.css para no
- * pedirle una hoja más. El razonamiento ya no se sostiene —el rediseño
- * de la 299 trae bastante CSS propio como para que esa hoja exista de
- * todas formas—, así que aquí se junta lo que solo se ve en /:
- * la fila de «hoy», el héroe del reto, el banner de noticias (que se
- * trae de components.css) y el galón de rareza de las guías recientes.
- *
- * Lo que sale de components.css lo deja de bajar TODO EL MUNDO: el
- * banner de noticias eran ~60 líneas que solo pinta la portada. */
+/* S780.160 */
 
 /* ── Lo que te trae hoy: el reto y la última noticia ── */
 
-/* Aquí vivía `.portada-hoy` (tandas 299 a 362): una fila propia con el
-   torneo a la izquierda y la última noticia a la derecha, en las mismas
-   dos columnas que el panel de abajo.
-   La quitó la tanda 368, y el motivo es de los que no se ven hasta que
-   alguien mira la portada en un PC: **una fila mide lo que mida su caja
-   MÁS ALTA**, y estas dos no se parecen en nada — el torneo es una tira
-   de 76 px y la noticia una tarjeta con foto de más de 300. Debajo del
-   torneo quedaba un agujero de unos 250 px hasta «Ahora en el foro», y
-   en el móvil no salía porque ahí van apiladas.
-   La cura no es rellenar el hueco: es no tener fila. Cada caja se fue a
-   la columna del panel que le tocaba (el torneo a la ancha, la noticia a
-   la lateral), y una columna flexible fluye seguida.
-   De paso se va `.portada-hoy:has(> .seccion-recogida)`, que existía
-   solo para que la rejilla no dejara 320 px en blanco cuando una de las
-   dos se recogía. Sin fila no hay nada que encoger. */
+/* S780.161 */
 
-/* Aquí iba la cadena de alturas que estiraba las dos cajas de la fila
-   hasta medir lo mismo. Sin fila que estirar, sobra: cada caja mide
-   ahora lo que mide su contenido, que es justo lo que se quería. Lo
-   único que se conserva es quitarle el margen de abajo a las tarjetas,
-   porque el aire entre secciones lo pone el `gap` de la columna y si no
-   se sumarían los dos. */
+/* S780.162 */
 .portada-principal > section > .destacada,
 .portada-lateral > section > .reto-tarjetas {
   margin-bottom: 0;
@@ -46,11 +15,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  /* El contenido va CENTRADO en vertical, no pegado arriba con el botón
-     abajo del todo: la fila mide lo que mida la noticia de al lado (que
-     lleva foto y puede ser bastante más alta), y con el botón anclado al
-     suelo quedaba medio héroe de azul vacío en medio. Centrado, el hueco
-     se reparte arriba y abajo y se lee como aire, no como un fallo. */
+  /* S780.163 */
   justify-content: center;
   align-items: flex-start;
   gap: 8px;
@@ -62,8 +27,7 @@
   overflow: hidden;
 }
 
-/* La trama de puntos, la misma que la cabecera de un torneo: sin ella el
-   degradado se ve plano. */
+/* S780.164 */
 .reto-hoy::before {
   content: '';
   position: absolute;
@@ -103,9 +67,7 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Los cinco puntos del reto. Vacíos son una invitación —se ve de un
-   vistazo que son cinco preguntas y no diez— y llenos, el resultado de
-   hoy sin tener que leer el número. */
+/* S780.165 */
 .reto-puntos {
   display: flex;
   gap: 8px;
@@ -134,8 +96,7 @@
   min-height: 44px;
 }
 
-/* El botón blanco sobre azul: el .btn-primary de la casa es azul y sobre
-   el degradado desaparecería. */
+/* S780.166 */
 .reto-hoy .btn-primary.reto-hoy-boton {
   background: var(--blanco-fijo);
   color: var(--navy-dark);
@@ -147,9 +108,7 @@
   border-color: var(--ice);
 }
 
-/* El día que ya has jugado no hay nada que pulsar con urgencia: el
-   enlace a la liga va de contorno, para que no compita con el resto de
-   la portada. */
+/* S780.167 */
 .reto-hoy-boton-flojo {
   display: inline-block;
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -181,19 +140,12 @@
   color: var(--blanco-fijo);
 }
 
-/* Jugado: mismo sitio y mismo tamaño, pero apagado. Si el de hoy hecho
-   se viera igual de encendido que el de hoy pendiente, la portada
-   perdería la única señal que distingue «te toca» de «ya está». */
+/* S780.168 */
 .reto-hoy-hecha {
   background: linear-gradient(120deg, #24404f, #2f5468 60%, #3f6b80);
 }
 
-/* ── El banner de la última noticia (tanda 288, aquí desde la 299) ──
- *
- * Va con imagen, a diferencia de la fila fina del torneo, porque una
- * noticia sin foto es un enlace y con foto es una noticia —el mismo
- * razonamiento de css/noticias.css—. La imagen no toca el presupuesto
- * de peso: va en diferido y no es CSS ni JS. */
+/* S780.169 */
 
 .noticia-banner {
   display: block;
@@ -213,8 +165,7 @@ a.noticia-banner:hover {
 .noticia-banner-foto {
   display: block;
   width: 100%;
-  /* La caja reserva su altura ANTES de que cargue la imagen: sin esto la
-     portada pega un salto justo cuando la persona va a pulsar algo. */
+  /* S780.170 */
   aspect-ratio: 16 / 7;
   object-fit: cover;
   background: var(--ice);
@@ -247,11 +198,7 @@ a.noticia-banner:hover {
   color: var(--text-mid);
 }
 
-/* Va FUERA del banner, y no dentro como un renglón más: dentro sería un
- * enlace metido en otro enlace —que ni es HTML válido ni se puede
- * pulsar— y llevaría al artículo, que es justo lo contrario de lo que
- * promete. Esto es lo que convierte el banner en «hay una sección de
- * noticias» en vez de «hay este artículo». */
+/* S780.171 */
 .noticia-banner-todas {
   display: inline-block;
   margin-top: 8px;
@@ -259,10 +206,7 @@ a.noticia-banner:hover {
   font-weight: 600;
 }
 
-/* ── Las tarjetas de categoría, sin marco de color ──
- *
- * El borde de 2px se lo daba `.category-card` para que se viera el color
- * del hash; sin color, 2px de gris solo es una caja más gorda. */
+/* S780.172 */
 #categoriesGrid .category-card {
   border-width: 1px;
 }
@@ -336,10 +280,7 @@ a.noticia-banner:hover {
   line-height: 1.35;
 }
 
-/* Dos líneas y no una (tanda 316). Con `nowrap` un título largo se
-   cortaba con «…» incluso en los 562 px del escritorio, y en el móvil
-   —donde solo le quedaban 160— se cortaban los tres. Un tema que no
-   dice de qué va no invita a entrar a nadie. */
+/* S780.173 */
 .foro-vivo-titulo {
   font-weight: 700;
   color: var(--text);
@@ -358,25 +299,12 @@ a.noticia-banner:hover {
 .foro-vivo-meta {
   font-size: var(--t-xs);
   white-space: nowrap;
-  /* Con nowrap y SIN recorte, «Fulanito de Tal · hace 30 minutos» se
-     salía de su columna y estiraba la portada entera en un móvil de
-     320px. Mismo trato que el título de al lado: se recorta con «…». */
+  /* S780.174 */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── En el móvil el título manda (tanda 316) ──
- *
- * Medido en 390 px: al título le quedaban 160 px y los tres salían
- * cortados —«Mi lista de C…»—, porque la cuenta de mensajes se lleva su
- * columna a la derecha. En 1280 tiene 562 y no se corta ni uno. Un tema
- * que no dice de qué va no invita a entrar a nadie.
- *
- * La cuenta NO se quita: la 300 la puso en grande a propósito, porque es
- * el dato que decide si entras. Lo que cambia es dónde — baja a su
- * propia línea, debajo del autor y la hora, y deja el ancho entero para
- * el título, que se reparte en dos líneas.
- */
+/* S780.175 */
 @media (max-width: 559px) {
   .foro-vivo-fila {
     display: grid;
@@ -403,30 +331,18 @@ a.noticia-banner:hover {
     margin-top: 0;
   }
 
-  /* TRES líneas y no dos: medido, en 390 px al título le quedan 222 y en
-     320 px, 152. Con dos líneas «¿Qué mazo me recomendáis para empezar?»
-     —que no es un título raro— seguía cortándose. */
+  /* S780.176 */
   .foro-vivo-titulo {
     -webkit-line-clamp: 3;
     line-clamp: 3;
   }
 }
 
-/* ── Las dos columnas de verdad (tanda 300) ──
- *
- * La 299 dejó el reto y la noticia arriba, pero de ahí para abajo la
- * portada seguía siendo una torre de bloques a pantalla completa: guía
- * destacada, torneo, foro, atajos, categorías, actividad y guías, uno
- * detrás de otro. Ahora lo que pasa va en la columna ancha y lo tuyo
- * —tu torneo, tus pasos, tu liga— en la estrecha. */
+/* S780.177 */
 
-/* `.seccion-cabecera` vive en css/components.css desde la tanda 303: la
-   usan la portada Y /usuarios, y esas dos no comparten ninguna otra
-   hoja. Tenerla aquí dejaba el título de «Gente de PokeDoc» sin estilo. */
+/* S780.178 */
 
-/* La caja blanca de la columna lateral. Es la misma forma que .top-mes,
-   que ya vive ahí: así los cinco bloques de la lateral se leen como
-   cinco cosas del mismo tipo y no como cinco inventos distintos. */
+/* S780.179 */
 .panel-lateral {
   background: var(--white);
   border: 1px solid var(--border);
@@ -439,10 +355,7 @@ a.noticia-banner:hover {
 .portada-torneo {
   display: flex;
   align-items: center;
-  /* 12 y no 16 (tanda 311): la escala redondeó hacia arriba y esta
-     tarjeta ya iba justa — el nombre del torneo se partía en dos
-     líneas dentro de una columna de 105 px. 12 también es un paso de
-     la escala; aquí es EL paso que le toca. */
+  /* S780.180 */
   gap: 12px;
   padding: 12px;
   border-radius: var(--radius-lg);
@@ -457,8 +370,7 @@ a.noticia-banner:hover {
   color: var(--blanco-fijo);
 }
 
-/* El día, en un recuadro: es lo primero que se mira de una cita, y es lo
-   que distingue esta tarjeta del resto de enlaces de la portada. */
+/* S780.181 */
 .portada-torneo-fecha {
   flex-shrink: 0;
   display: flex;
@@ -545,8 +457,7 @@ a.noticia-banner:hover {
   color: var(--text);
 }
 
-/* El icono se queda con el tinte de la categoría: es el único color que
-   sobrevivió a la tanda 299 y es el que hace reconocible cada tema. */
+/* S780.182 */
 .portada-tema svg {
   flex-shrink: 0;
 }
@@ -581,10 +492,7 @@ a.noticia-banner:hover {
   font-size: var(--t-2xs);
 }
 
-/* Dos columnas, siempre. `.guia-rejilla` se rellena sola con pistas de
-   300 px mínimo contando el ancho que tenga; aquí vive DENTRO de una
-   columna, y con cuatro guías se quieren dos filas de dos —que es lo que
-   además equilibra el alto con la lateral—. */
+/* S780.183 */
 @media (min-width: 640px) {
   #recentGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -613,8 +521,7 @@ a.noticia-banner:hover {
   transition: width 0.3s var(--ease);
 }
 
-/* En una columna de 320px el botón del paso siguiente no cabe al lado
-   del texto: baja debajo y se lleva la fila entera. */
+/* S780.184 */
 @media (min-width: 960px) {
   .portada-lateral .paso {
     flex-wrap: wrap;
@@ -627,9 +534,7 @@ a.noticia-banner:hover {
   }
 }
 
-/* El tinte de la categoría va SOLO en la pastilla del icono. Puesto en
-   el chip entero (primer intento de la 300) devolvía justo lo que la 299
-   quitó: seis pastillas de colores distintos compitiendo en fila. */
+/* S780.185 */
 .portada-tema-icono {
   display: grid;
   place-items: center;
@@ -637,44 +542,18 @@ a.noticia-banner:hover {
   height: 22px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-  /* Sin la sombra de tres píxeles de .icon-tint-*: a 22px es una raya
-     gorda, no un relieve. */
+  /* S780.186 */
   box-shadow: none !important;
 }
 
-/* ── En el móvil, los primeros pasos primero (tanda 316) ──
- *
- * Medido: «Tus primeros pasos» empezaba a 2.401 px de una portada de
- * 3.917 — el 61% hacia abajo. En escritorio está a 470, arriba en la
- * lateral; en el móvil las dos columnas se apilan y la lateral entera
- * cae al final. O sea que el módulo que le dice a alguien RECIÉN
- * LLEGADO qué hacer es de lo último que ve, justo el día que más falta
- * le hace.
- *
- * `display: contents` disuelve las dos columnas y deja todas las
- * secciones como hijas directas del panel, que es lo único que hace que
- * `order` pueda mover una de una columna a la otra. El hueco entre
- * secciones no cambia: el panel tiene el mismo `gap` de 16 px que las
- * columnas que disuelve.
- *
- * No hace falta apagarlo cuando los tres pasos están hechos: ahí la
- * sección se queda `hidden` para siempre (js/primeros-pasos.js) y un
- * elemento sin caja no se coloca en ninguna parte.
- */
+/* S780.187 */
 @media (max-width: 959px) {
   .portada-principal,
   .portada-lateral {
     display: contents;
   }
 
-  /* El orden del móvil, que con las columnas disueltas ya NO es el del
-     HTML (tanda 368). El torneo y la noticia vivían en una fila propia
-     por encima del panel, así que salían los primeros; al mudarlos cada
-     uno a su columna, el DOM los separa —el torneo abre la ancha y la
-     noticia abre la lateral, que va detrás entera— y en el móvil la
-     noticia se habría caído hasta la mitad de la página.
-     Estos tres números reponen exactamente lo que se veía antes: torneo,
-     noticia, primeros pasos y a partir de ahí el orden del documento. */
+  /* S780.188 */
   #torneoPortadaSeccion {
     order: -3;
   }
@@ -688,10 +567,7 @@ a.noticia-banner:hover {
   }
 }
 
-/* ── La foto dentro del rectángulo del héroe (tanda 362) ──
-   El marco ya reservaba su hueco y su giro; la foto lo rellena y hereda
-   el redondeo. Si no llega, el rectángulo se queda como estaba y no se
-   mueve nada de sitio. */
+/* S780.189 */
 .tcg-card-foto {
   width: 100%;
   height: 100%;
@@ -700,9 +576,7 @@ a.noticia-banner:hover {
   display: block;
 }
 
-/* «¿Qué es PokeDoc?» deja de ser un botón que compite con las dos
-   acciones del héroe y pasa a ser lo que es: una pregunta de quien ya se
-   ha parado a mirar. */
+/* S780.190 */
 .hero-que-es {
   margin-top: var(--e-md);
   min-height: 44px;
@@ -711,10 +585,7 @@ a.noticia-banner:hover {
   border: 0;
   font: inherit;
   font-size: var(--t-sm);
-  /* `--text-mid` y no `--ice`: el héroe está sobre el fondo CLARO de la
-     página, no dentro del panel navy. Con el hielo se quedaba en un gris
-     casi invisible — un control que se pulsa hay que poder leerlo
-     (tanda 311). */
+  /* S780.191 */
   color: var(--text-mid);
   text-decoration: underline;
   cursor: pointer;

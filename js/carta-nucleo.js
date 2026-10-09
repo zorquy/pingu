@@ -258,8 +258,11 @@ function puntoDeEnergia(tipo) {
 // lado va el multiplicador, que es el dato que se lee.
 function bloqueCombate(carta) {
   if (!esPokemon(carta)) return ''
+  // `null` es «no se sabe» (la carta aún no está engordada) y no se pinta;
+  // una lista vacía sí: «sin resistencia» es lo que pone la carta (780, LO9).
   const uno = (etiqueta, filas) => {
-    const lista = Array.isArray(filas) ? filas : []
+    if (!Array.isArray(filas)) return ''
+    const lista = filas
     const dentro = lista.length
       ? lista
           .map((f) => `${puntoDeEnergia(f?.type)}<span class="carta-mult">${escapeHtml(f?.value || '')}</span>`)
@@ -278,7 +281,8 @@ function bloqueCombate(carta) {
         : Array.from({ length: carta.retreat }, () => puntoDeEnergia('Colorless')).join('')
     retirada = `<div><dt>Retirada</dt><dd class="carta-combate-dato">${dentro}</dd></div>`
   }
-  return `<dl class="carta-combate">${uno('Debilidad', carta.weaknesses)}${uno('Resistencia', carta.resistances)}${retirada}</dl>`
+  const dentro = `${uno('Debilidad', carta.weaknesses)}${uno('Resistencia', carta.resistances)}${retirada}`
+  return dentro ? `<dl class="carta-combate">${dentro}</dl>` : ''
 }
 
 // La ficha de coleccionista. `set` puede no llegar (la consulta del

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (28) — PINGU-Claude (780 — bloque 1 de «PokeDoc al detalle»)
+
+**Hecho**: PINGU eligió 63 de las 66 propuestas. Bloque 1: los comentarios
+largos de las hojas y el HTML de la portada, a SCHEMA (portada de 169,5 a
+143,8 KB, 26,2 de margen); «Bronce» en las guías; la racha una vez en el PC;
+la burbuja de Mi colección centra la pestaña activa; /curso sin curso va a
+Aprender; la carta del día valida la respuesta; la debilidad que no se sabe
+no se pinta; barra de tiempo en el aviso con Deshacer; degradado bajo la
+burbuja; pie corto en el móvil. Detalle en SCHEMA.md, tanda 780.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/portada.css`,
+`index.html` (solo comentarios), `css/movil.css`, `css/mi-coleccion.css`,
+`js/guia.js`, `js/home.js`, `js/mi-coleccion.js`, `js/mi-coleccion/deshacer.js`,
+`js/curso.js`, `js/carta-del-dia-juego.js`, `js/carta-nucleo.js`,
+`CLAUDE.md` (la cifra del presupuesto), `SCHEMA.md`. Prueba 780 (nueva).
+
+**Pendiente**: los bloques 2 en adelante de la lista de PINGU.
+
 ## 2026-10-08 (27) — PINGU-Claude (779 — separar variantes, también en Buscar)
 
 **Hecho**: el botón «Variantes juntas / separadas» está también en Buscar

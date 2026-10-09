@@ -32,41 +32,18 @@
   --border-strong: #c9dbe2;
   --success: #0d9e6e;
   --success-bg: #e6f7f2;
-  /* PELIGRO: borrar, un error, una derrota (tanda 311). No existía —
-     había --success, --warning, --indigo y --pink, pero el rojo iba a
-     mano 61 veces en tres tonos distintos, incluso dentro de estilos EN
-     LÍNEA del JavaScript. Eso significaba que el rojo de «Eliminar» del
-     muro y el de otra pantalla podían no ser el mismo y, sobre todo,
-     que NINGUNO se adaptaba al tema. */
+  /* S780.1 */
   --danger: #dc2626;
   --danger-bg: #fee2e2;
 
-  /* ── Los rangos (tanda 386) ──
-     El nombre de un admin y el de un moderador se distinguen del de una
-     persona normal, que va en el azul de los enlaces.
-
-     NO salen de la paleta que ya había: el verde significa «completo» y
-     el ROJO ESTÁ RESERVADO PARA PELIGRO desde la 311 — «admin» y
-     «cuidado» no son lo mismo, y además lo cazaría su prueba.
-
-     Elegidos MIDIENDO, no a ojo: ámbar da 5,45 sobre blanco y violeta
-     6,74; en el tema oscuro, 7,66 y 5,79. Los cuatro por encima del 4,5
-     de la WCAG, porque un color de rango que no se lee no es un rango. */
+  /* S780.2 */
   --rango-admin: #a1560a;
   --rango-moderador: #7040b8;
-  /* El rojo que va de FONDO con texto blanco encima: la chapa de «en
-     juego», la marca de una carta ilegal. Es otro token a propósito y
-     NO tiene versión clara para el tema oscuro — al revés que --danger,
-     que es texto y ahí necesita aclararse. Si se aclarara, el blanco de
-     encima se quedaría en 2,4 de contraste. Este se queda quieto y lo
-     que cambia alrededor es el fondo de la página. */
+  /* S780.3 */
   --danger-solid: #dc2626;
   /* El blanco que NO es el del tema (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
   --blanco-fijo: #fff;
-  /* El azul de la casa cuando hace de FONDO SÓLIDO con blanco encima.
-     Mismo caso que --danger-solid: --navy se ACLARA en oscuro para
-     poder leerse como texto, y un fondo aclarado con blanco encima se
-     queda sin contraste. */
+  /* S780.4 */
   --navy-solid: #1e5175;
   /* Y sus dos compañeros de degradado. (el porqué, en SCHEMA.md: tanda 359) */
   --navy-solid-dark: #163d59;
@@ -123,12 +100,7 @@
   --shadow-xs: 0 1px 2px rgba(13, 27, 42, 0.05);
   --shadow-sm: 0 2px 10px rgba(13, 27, 42, 0.05);
   --shadow-md: 0 12px 32px rgba(13, 27, 42, 0.09);
-  /* Lo que FLOTA sobre la página —un menú, una lista de sugerencias, una
-     barra de moderación— necesita más separación que una tarjeta, o se
-     confunde con lo que tiene debajo. Había cuatro versiones casi
-     iguales de esta sombra, una por sitio; y en components.css ya se
-     pedía el token con un respaldo detrás, o sea que se esperaba desde
-     antes y nadie lo había definido (tanda 310). */
+  /* S780.5 */
   --shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);
   --shadow-ring: 0 0 0 2px var(--navy);
 
@@ -139,12 +111,7 @@
   --font-display: 'Fredoka', 'Inter', sans-serif;
 }
 
-/* ── Modo oscuro ──
-   Todo el sitio se construye sobre estas variables (fondo, texto, bordes,
-   tarjetas...), así que redefinirlas aquí basta para la mayor parte de la
-   interfaz. El atributo data-theme lo pone un script en línea en el
-   <head> de cada página, antes de pintar nada, para no dar un parpadeo de
-   tema claro al cargar con el oscuro ya guardado. */
+/* S780.6 */
 :root[data-theme='dark'] {
   /* Aclarado en la 311 y otra vez en la 727 (V2). (el porqué, en SCHEMA.md) */
   --navy: #7cbae4;
@@ -164,8 +131,7 @@
   --border-strong: #3a4b58;
   --success: #34d399;
   --success-bg: #11312a;
-  /* El rojo del tema claro sobre la superficie oscura daba 3,26 de
-     contraste: ilegible. Este da 5,69. */
+  /* S780.7 */
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.14);
   --warning: #f0a940;
@@ -187,10 +153,7 @@
   display: none !important;
 }
 
-/* Para quien usa lector de pantalla y no ve el esqueleto (tanda 305).
-   Un esqueleto es un dibujo: `aria-hidden` lo saca del árbol y esta
-   frase ocupa su sitio, para que «cargando» se siga oyendo. No vale
-   `display: none` — eso lo esconde también del lector. */
+/* S780.8 */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -223,10 +186,7 @@
 
 html {
   scroll-behavior: smooth;
-  /* La barra de arriba es `sticky; top: 0`, así que un ancla o un
-     `scrollIntoView` dejaban su destino TAPADO por ella (tanda 498; la 489
-     ya lo quiso y no cabía — el porqué largo, en SCHEMA.md). Los 72 son los
-     71 MEDIDOS de la barra en la retícula de 4. */
+  /* S780.9 */
   scroll-padding-top: 72px;
 }
 
@@ -273,17 +233,7 @@ button {
   color: inherit;
 }
 
-/* ── Los títulos se reparten las líneas (tanda 316) ──
- *
- * `balance` mira el título entero y parte las líneas para que queden
- * parecidas, en vez de dejar una palabra suelta en la última. El
- * navegador solo lo hace en bloques cortos —de ahí que se pida a los
- * títulos y no al cuerpo del artículo—, y donde no esté soportado el
- * texto sale exactamente como salía.
- *
- * `pretty` en los resúmenes es su pariente barato: evita la línea final
- * de una palabra sin reequilibrar el párrafo entero.
- */
+/* S780.10 */
 h1,
 h2,
 h3,
@@ -314,25 +264,13 @@ input[type='url'],
 input[type='date'],
 textarea,
 select {
-  /* TOKENS, no un blanco a fuego (tanda 445). Esto llevaba
-     `background: #ffffff; color: #0d1b2a` escritos a mano, así que en el
-     tema OSCURO todos los campos y desplegables del sitio eran islas
-     blancas sobre el fondo azul oscuro. Alguien se dio cuenta a medias:
-     más abajo hay una regla que le cambia el color a la FLECHA del
-     desplegable para el tema oscuro — o sea que se pensó en el tema, y el
-     fondo se quedó.
-     Y no lo cantó el medidor de contraste de la 311, porque blanco con
-     letra oscura contrasta de maravilla: lo que estaba mal no era la
-     legibilidad, era que no es la superficie del tema. `--white` es
-     justamente eso —la superficie—, y en oscuro vale #182430. */
+  /* S780.11 */
   background: var(--white);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 12px;
-  /* Los 44 con min-height y no fiados al relleno (tanda 358): la letra
-     no mide lo mismo en todas las plataformas, y con la de Windows el
-     relleno se quedaba en 43. */
+  /* S780.12 */
   min-height: 44px;
   font-size: var(--t-md);
   outline: none;
@@ -356,8 +294,7 @@ select:focus {
 select {
   appearance: none;
   -webkit-appearance: none;
-  /* Sitio a la derecha para la flecha, o el texto largo se le mete
-     debajo. */
+  /* S780.13 */
   padding-right: 36px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2352717f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -365,11 +302,7 @@ select {
   cursor: pointer;
 }
 
-/* En modo oscuro la flecha tiene que verse sobre el fondo oscuro: el
-   color va DENTRO del SVG, así que hace falta otra copia. Y repite el
-   no-repeat y la posición (tanda 356): una hoja de página que pinte el
-   fondo con el atajo `background` los devuelve a `repeat`, y como esta
-   regla gana por especificidad la flecha salía en mosaico (/cartas). */
+/* S780.14 */
 :root[data-theme='dark'] select {
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -417,12 +350,7 @@ body:has(> .footer) {
 body:has(> .footer) .page-content {
   flex: 1 0 auto;
   min-height: 0;
-  /* El `width: 100%` NO es decorativo: `.page-content` es también
-     `.container`, que centra con `margin: 0 auto`. En un contenedor
-     flexible en columna, un margen automático en el eje transversal
-     ANULA el estirado y el elemento pasa a medir su contenido — la
-     columna se encogió de 1080 a 813 px y la página se quedó estrecha
-     sin que nada diera error. */
+  /* S780.15 */
   width: 100%;
 }
 
@@ -432,12 +360,7 @@ body:has(> .footer) .page-content {
   }
 }
 
-/* ── Saltar al contenido (tanda 313) ──
-   Con teclado, llegar al texto de una página costaba pasar por los doce
-   enlaces de la barra, en cada página. Este enlace está SIEMPRE en el
-   documento —un `display: none` lo sacaría del recorrido del tabulador y
-   entonces no existiría— y lo que hace es esconderse fuera de la
-   pantalla hasta que se enfoca. */
+/* S780.16 */
 .salta-al-contenido {
   position: absolute;
   left: 8px;
@@ -445,15 +368,11 @@ body:has(> .footer) .page-content {
   z-index: 200;
   display: inline-flex;
   align-items: center;
-  /* 44 de alto, como todo lo que se pulsa (norma de la tanda 312). Con
-     el padding solo se quedaba en 40 y lo cazó su propia prueba. */
+  /* S780.17 */
   min-height: 44px;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
-  /* Azul FIJO y no `var(--navy)`: en el tema oscuro el token se aclara
-     —para poder leerse como TEXTO— y el blanco de encima se quedaba en
-     2,35. Es el mismo caso que `--danger-solid`: un fondo sólido que
-     lleva blanco encima no se aclara con el tema. */
+  /* S780.18 */
   background: var(--navy-solid);
   color: var(--blanco-fijo);
   font-weight: 700;
@@ -535,13 +454,7 @@ body:has(> .footer) .page-content {
   color: var(--text);
   white-space: nowrap;
   letter-spacing: -0.2px;
-  /* Y NO se encoge (tanda 320). Es un hijo de flex, así que por defecto
-     cede sitio cuando el bloque de al lado crece: con el chip del torneo
-     puesto pasaba de 126 px a 44, y como el texto lleva `nowrap`, «Poke
-     Doc» se amontonaba encima del icono. Un `min-width` no lo salva —eso
-     es el mínimo de la CAJA, y aquí lo que se pasaba de rosca era el
-     reparto—. La 312 ya le puso el mínimo de 44 por lo táctil y se quedó
-     a medias: hacía falta esto. */
+  /* S780.19 */
   flex-shrink: 0;
 }
 
@@ -573,11 +486,7 @@ body:has(> .footer) .page-content {
   color: var(--text-mid);
 }
 
-/* ── El menú (tandas 309 y 356) ──
-   Solo el apartado donde estás lleva pastilla rellena; el resto se
-   oscurece al pasar. Desde la 356 la barra son CINCO entradas —Noticias
-   y cuatro desplegables— en vez de siete enlaces sueltos. El porqué
-   largo, en SCHEMA.md (tanda 356). */
+/* S780.20 */
 .nav-links a {
   position: relative;
   padding: 8px 12px;
@@ -598,11 +507,7 @@ body:has(> .footer) .page-content {
   background: color-mix(in srgb, var(--navy) 12%, transparent);
 }
 
-/* Los desplegables. Con ratón se abren al pasar; con teclado, al llegar
-   con el tabulador; con el dedo, al tocar (js/app.js cambia el
-   aria-expanded). Con `:focus-visible` y no `:focus-within`: si no, un
-   clic dejaba el botón con foco y el menú ya no se cerraba al volver a
-   pulsarlo. */
+/* S780.21 */
 .nav-grupo {
   position: relative;
 }
@@ -664,9 +569,7 @@ body:has(> .footer) .page-content {
   display: flex;
   align-items: center;
   gap: 16px;
-  /* La altura de #nav-user YA RELLENO (botones o avatar): se reserva
-     para que la navbar no crezca cuando el JS los mete — empujaba la
-     página entera (layout shift, PageSpeed). */
+  /* S780.22 */
   min-height: 45px;
 }
 
@@ -677,11 +580,7 @@ body:has(> .footer) .page-content {
   min-height: 44px;
 }
 
-/* El ANCHO solo para los que son un icono y nada más. Un control con
-   texto mide de ancho lo que mide su palabra y estirarlo no arregla
-   nada: la chapa de racha y la del torneo en juego llevan texto, y
-   obligarlas a 44 les quitaba el sitio a las demás — la barra se salía
-   de la pantalla en cuanto había un torneo jugándose. */
+/* S780.23 */
 #navSearchBtn,
 #navThemeToggle,
 #navMsgBtn,
@@ -692,8 +591,7 @@ body:has(> .footer) .page-content {
   min-width: 44px;
 }
 
-/* Los enlaces de navegación no necesitan ancho —ya lo tienen de sobra
-   con su texto— pero sí alto. */
+/* S780.24 */
 .nav-links a,
 .nav-menu-mobile a {
   min-height: 44px;
@@ -711,8 +609,7 @@ body:has(> .footer) .page-content {
   height: 30px;
 }
 
-/* Las tres rayas siguen midiendo 30: lo que crece es el botón, así que
-   hay que devolverle su ancho a lo de dentro. */
+/* S780.25 */
 .nav-toggle span {
   width: 30px;
 }
@@ -739,11 +636,7 @@ body:has(> .footer) .page-content {
   font-size: var(--t-sm);
 }
 
-/* ── El menú del móvil: un cajón lateral (tanda 359) ──
-   Entra por la derecha y tapa la página con un velo (la sombra enorme),
-   con Inicio y Noticias sueltos y los cuatro apartados plegados — antes
-   eran quince enlaces seguidos. Uno abierto cierra los otros
-   (`<details name>`), y se abre solo el del sitio donde estás. */
+/* S780.26 */
 .nav-menu-mobile {
   display: none;
   position: fixed;
@@ -773,8 +666,7 @@ body:has(> .footer) .page-content {
   display: flex;
 }
 
-/* `backdrop-filter` hace de la barra el bloque contenedor de lo fijo: con
-   él puesto, el cajón mediría lo que la barra y no la pantalla. */
+/* S780.27 */
 .navbar:has(.nav-menu-mobile.open) {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -874,12 +766,7 @@ body:has(.nav-menu-mobile.open) {
   }
 }
 
-/* El corte en el que caben los enlaces: MEDIDO, no elegido (tandas 320,
-   327, 356 y 367; la cuenta, en SCHEMA.md). Si añades o quitas algo de la
-   barra, vuelve a medir lo que PIDE y mueve este número: un hijo de flex
-   cede en silencio antes de desbordar. En la 367 la barra pedía 1081 y el
-   corte estaba en 1080: UN píxel, y el síntoma no canta. Desde la 758
-   (Lanzamientos y Mi colección a primer nivel) pide 1219: va a 1240. */
+/* S780.28 */
 @media (min-width: 1240px) {
   .nav-links {
     display: flex;
@@ -892,10 +779,7 @@ body:has(.nav-menu-mobile.open) {
   }
 }
 
-/* Con un torneo EN JUEGO la chapa de la partida no deja sitio a los
-   enlaces a ningún ancho (la barra está topada en --container-w): se
-   van al menú. El `.open` lleva `!important` porque la regla de arriba
-   también (tanda 327; la cuenta, en SCHEMA.md). */
+/* S780.29 */
 @media (min-width: 1240px) {
   body:has(.nav-torneo-vivo) .nav-links {
     display: none;
@@ -909,11 +793,7 @@ body:has(.nav-menu-mobile.open) {
 }
 
 @media (max-width: 979px) {
-  /* Con sesión, nav-right acumula búsqueda + tema + mensajes + campana +
-     avatar + el propio botón de menú: en móvil no caben todos junto al
-     logo sin desbordar la página horizontalmente (el botón de menú
-     quedaba fuera de la pantalla). Se reduce el hueco entre iconos y, por
-     debajo de 480px, se colapsa el texto del logo a solo el icono. */
+  /* S780.30 */
   .nav-right {
     gap: 8px;
   }
@@ -940,11 +820,7 @@ body:has(.nav-menu-mobile.open) {
   }
 }
 
-/* El gemelo se pinta como los enlaces del menú, que es lo que parece.
-   Va ANTES de su `@media`, no después: un `@media` no suma
-   especificidad, así que con la base detrás ganaba ella por orden y el
-   botón salía en las dos partes a la vez. Es la trampa de la tanda 299,
-   que aquí vuelve dentro de una sola hoja. */
+/* S780.31 */
 .nav-tema-menu {
   display: flex;
   align-items: center;
@@ -965,19 +841,8 @@ body:has(.nav-menu-mobile.open) {
   }
 }
 
-/* ── Con un torneo EN JUEGO la barra lleva un pasajero más ──
-   La chapa que te lleva a tu partida se suma a los seis botones, y en un
-   móvil eso ya no cabe con todos a 44 px: la página entera se salía de
-   lado (lo cazó test-torneos-15, que mide justo ese estado).
-   Por debajo de 480 px se retiran los dos que menos falta hacen
-   mientras estás jugando —buscar y tema—; el tema sigue estando, en el
-   menú. Va DESPUÉS del `@media` de arriba porque tiene que poder
-   deshacerlo, y un `@media` no suma especificidad. */
-/* 599 y no 479 (tanda 320): medido, con el chip puesto la barra pide 550
-   px, así que entre 480 y 549 seguía saliéndose. El corte de 479 se
-   eligió a ojo en la 312 y se quedó 70 px corto. 599 es además el mismo
-   corte al que la llamita de la racha se retira, así que las dos piezas
-   que sobran en una pantalla estrecha se van juntas. */
+/* S780.32 */
+/* S780.33 */
 @media (max-width: 599px) {
   .nav-right:has(.nav-torneo-vivo) #navSearchBtn,
   .nav-right:has(.nav-torneo-vivo) #navThemeToggle {
@@ -989,11 +854,7 @@ body:has(.nav-menu-mobile.open) {
 }
 
 
-/* Pantallas MUY estrechas (iPhone SE y compañía, 320-360px): con la
-   sesión abierta, la barra acumula chip de torneo + racha + búsqueda +
-   tema + mensajes + campana + avatar + menú, y a 320px se salía por la
-   derecha arrastrando la página entera. Se aprieta el hueco entre
-   iconos y el bloque derecho puede encogerse. */
+/* S780.34 */
 @media (max-width: 380px) {
   .nav-inner {
     gap: 8px;
@@ -1026,8 +887,7 @@ body:has(.nav-menu-mobile.open) {
   font-weight: 600;
   font-size: var(--t-md);
   line-height: 1;
-  /* Planos desde la 676 (PINGU: «una sola familia de botones, la que
-     queda mejor»): sin el relieve de 4 px ni el hundido. SCHEMA 676. */
+  /* S780.35 */
   transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
   white-space: nowrap;
 }
@@ -1201,8 +1061,7 @@ button.btn-block {
 
 .hero-panel-stats {
   display: grid;
-  /* Tres números desde que el panel habla de la comunidad (miembros,
-     guías, mensajes de la semana), no solo del contenido. */
+  /* S780.36 */
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-top: 16px;
@@ -1354,11 +1213,7 @@ button.btn-block {
   display: flex;
   align-items: center;
   overflow: hidden;
-  /* Mismo motivo que en el banner del modal: el cover_emoji lo escribe
-     quien crea la guía, y si ahí acaba una cadena larga en vez de un
-     emoji, sin este tope estira la tarjeta a lo ancho. Se recorta con
-     "…" igual que allí, para que sea un recorte declarado y no un
-     desborde escondido. */
+  /* S780.37 */
   max-width: 100%;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1421,8 +1276,7 @@ button.btn-block {
   color: var(--success);
 }
 
-/* "Leída" es distinto de "curso completado": una guía puede estar leída
-   sin tener curso, y las dos etiquetas pueden convivir en una tarjeta. */
+/* S780.38 */
 .badge-read {
   background: var(--ice);
   color: var(--navy);
@@ -1505,8 +1359,7 @@ button.btn-block {
   font-size: var(--t-md);
 }
 
-/* Dentro de una tarjeta que YA tiene borde, el punteado sobra: dos
-   bordes concéntricos se leen como un fallo de pintado. */
+/* S780.39 */
 .simple-card > .empty-state,
 .foro-seccion > .empty-state,
 .tab-panel > .empty-state:only-child {
@@ -1717,11 +1570,7 @@ button.btn-block {
 }
 
 /* ── Chunky colored card borders ── */
-/* Las .border-tint-* murieron en la tanda 299: solo las gastaban las
- * tarjetas de categoría de la portada, y allí el marco de color salía de
- * un hash del id —no quería decir nada— y competía con la rejilla de
- * guías de abajo. Las de rareza siguen, que ahí el color SÍ significa
- * algo y las llevan las .guide-card de las listas de categoría. */
+/* S780.40 */
 
 .border-rarity-bronze {
   border-color: var(--rarity-bronze) !important;
@@ -1747,14 +1596,7 @@ button.btn-block {
 }
 
 /* ── Footer ── */
-/* ── El pie (tanda 312) ──
-   Era una línea centrada. El problema no era el aspecto: casi todas las
-   páginas se quedan cortas —/torneos con un torneo deja 500 px de nada—
-   y el pie aparecía al final de un vacío, sin nada que ofrecer. Ahora
-   son cuatro columnas que llenan ese hueco y dan una segunda vía a cada
-   sección desde cualquier página.
-   Va en style.css, que lo baja todo el mundo, porque el pie está en las
-   22 páginas que lo tienen. */
+/* S780.41 */
 .footer {
   /* text-dim se quedaba en 2.2:1 a este cuerpo (PageSpeed, AA). */
   color: var(--text-mid);
@@ -1791,8 +1633,7 @@ button.btn-block {
   line-height: 1.5;
 }
 
-/* No es un <h2>: el pie repite estos tres rótulos en las 22 páginas y no
-   son la jerarquía del documento, son etiquetas de una lista. */
+/* S780.42 */
 .pie-titulo {
   margin: 0 0 12px;
   font-size: var(--t-2xs);
@@ -1830,10 +1671,7 @@ button.btn-block {
   margin: 0;
 }
 
-/* Los enlaces legales vivían en components.css, que carga DESPUÉS de
-   esta hoja: su `margin-top` le ganaba al `margin: 0` de aquí arriba y
-   la línea de abajo quedaba descuadrada. Se mudan aquí, con el resto del
-   pie, que es donde se entienden. */
+/* S780.43 */
 .footer-links a {
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -1842,8 +1680,7 @@ button.btn-block {
   color: var(--navy);
 }
 
-/* En un móvil las tres columnas de enlaces no caben al lado de la marca:
-   la marca ocupa el ancho entero y los enlaces se reparten en dos. */
+/* S780.44 */
 @media (max-width: 720px) {
   .pie-rejilla {
     grid-template-columns: 1fr 1fr;
@@ -1857,8 +1694,7 @@ button.btn-block {
   }
 }
 
-/* Línea secundaria bajo la barra de progreso de una categoría (los
-   cursos), para que no compita con el dato principal, que es la lectura. */
+/* S780.45 */
 .progress-label.subtle {
   opacity: 0.7;
   font-size: var(--t-2xs);
@@ -1875,9 +1711,7 @@ button.btn-block {
 }
 
 /* ── Transiciones entre páginas ── */
-/* La View Transitions API: al navegar, un fundido suave en vez del
-   parpadeo en blanco. Los navegadores que no la conocen ignoran la
-   regla y navegan como siempre — es puro azúcar. */
+/* S780.46 */
 @view-transition {
   navigation: auto;
 }
@@ -1892,8 +1726,7 @@ button.btn-block {
 }
 
 /* ── La barra de progreso de lectura ── */
-/* Una línea finísima pegada al borde de arriba que se llena según bajas.
-   app.js solo la enseña en páginas largas; aquí nace vacía. */
+/* S780.47 */
 .progreso-lectura {
   position: fixed;
   top: 0;
@@ -1907,17 +1740,14 @@ button.btn-block {
   pointer-events: none;
 }
 
-/* El esqueleto genérico también se queda quieto cuando se pide menos
-   movimiento (tanda 313): su barrido es INFINITO, que es el caso que la
-   preferencia existe para apagar. */
+/* S780.48 */
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
     animation: none;
   }
 }
 
-/* La barra de abajo del móvil va en el HTML (753, SCHEMA 753); su sitio,
-   aquí, para el primer pintado. Lo demás, en css/movil.css. */
+/* S780.49 */
 .bm { display: none; }
 @media (max-width: 900px) {
   body:has(> .bm) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
@@ -1957,7 +1787,7 @@ button.btn-block {
   .bm { view-transition-name: barra-abajo; }
   .navbar { view-transition-name: barra-arriba; }
 }
-/* 775: Safari (Apple) pega lo fijo al documento tras una transición entre páginas; ahí, sin ella (SCHEMA 775). */
+/* S780.50 */
 @supports (-webkit-touch-callout: none) or (font: -apple-system-body) {
   @view-transition { navigation: none; }
   .bm, .navbar { view-transition-name: none; }

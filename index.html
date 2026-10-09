@@ -30,13 +30,7 @@
   <meta name="twitter:description" content="Guías, curiosidades y cursos interactivos sobre Pokémon TCG para coleccionistas y jugadores, en español." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
-  <!-- Datos estructurados del SITIO. Aquí van escritos a mano porque la
-       portada no cambia; los de cada guía, categoría, perfil y tema los
-       inyecta netlify/edge-functions/meta-social.js con los datos de la
-       base.
-
-       El SearchAction es lo que hace que Google pueda enseñar una caja de
-       búsqueda de PokeDoc dentro del propio resultado. -->
+  <!-- S780.192 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -70,11 +64,7 @@
   </script>
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <!-- Los seis módulos de TODA página, pedidos a la vez desde el
-       principio: si no, se descubren en cascada (la página pide su .js,
-       ese app.js, ese supabase.js y ese el bundle de 152 KB) y cada salto
-       es un viaje más antes de pintar. Estos y no todo el grafo: no
-       cambian de página a página, así que no se quedan obsoletos. -->
+  <!-- S780.193 -->
   <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
   <link rel="modulepreload" href="/js/supabase.js" />
   <link rel="modulepreload" href="/js/app.js" />
@@ -86,9 +76,7 @@
   <link rel="stylesheet" href="css/portada.css" />
 </head>
 <body>
-  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
-       porque su razón de ser es no tener que tabular por los doce
-       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <!-- S780.194 -->
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
@@ -170,20 +158,13 @@
         <div class="hero-copy">
           <span class="hero-pill">🇪🇸 En español</span>
           <h1>Todo sobre Pokémon TCG. Sin perder el tiempo.</h1>
-          <!-- Los TORNEOS entran en el titular (tanda 362). La portada
-               vendía guías y cursos, y la analítica dice otra cosa: 47 de
-               las 55 personas que vuelven pasan por un torneo, y 436 de
-               las visitas de gente sin cuenta entran directas a la ficha
-               de uno. Se estaba enseñando una web distinta de la que se
-               usa. -->
+          <!-- S780.195 -->
           <p>Guías, cursos interactivos y torneos para coleccionistas y jugadores.</p>
           <div class="hero-actions">
             <a href="/torneos.html" class="btn-primary">Ver los torneos →</a>
             <a href="aprender.html" class="btn-outline">Empezar a aprender</a>
           </div>
-          <!-- «Qué es PokeDoc» deja de competir con las dos acciones: lo
-               pregunta quien ya ha decidido mirar, no quien acaba de
-               llegar. -->
+          <!-- S780.196 -->
           <button class="hero-que-es" id="btnWhatIsPokeDoc">¿Qué es PokeDoc?</button>
         </div>
         <div class="hero-panel">
@@ -193,9 +174,7 @@
             <span class="tcg-card c3"></span>
           </div>
           <span class="eyebrow">Ahora mismo en PokeDoc</span>
-          <!-- Números que hablan de PERSONAS, no solo de contenido: "6
-               categorías" no crece nunca; "67 miembros y 200 mensajes esta
-               semana" es la prueba de que esto está vivo, y crece solo. -->
+          <!-- S780.197 -->
           <div class="hero-panel-stats">
             <div class="hero-panel-stat">
               <div class="value" id="heroStatMiembros">–</div>
@@ -205,13 +184,7 @@
               <div class="value" id="heroStatGuides">–</div>
               <div class="label">guías publicadas</div>
             </div>
-            <!-- Era «mensajes esta semana» (tanda 362). Con un foro que
-                 lleva 105 mensajes en total, ese número iba a ser de un
-                 dígito muchas semanas — y «3 mensajes esta semana» en la
-                 portada es prueba social EN CONTRA: le dice a quien llega
-                 que aquí no hay nadie. El catálogo no puede bajar, y es
-                 lo único de esta lista que ninguna otra web española
-                 tiene. -->
+            <!-- S780.198 -->
             <div class="hero-panel-stat">
               <div class="value" id="heroStatCartas">–</div>
               <div class="label">cartas en español</div>
@@ -226,64 +199,30 @@
       </div>
     </section>
 
-    <!-- La bienvenida del miembro. Con sesión, el hero de marketing de
-         arriba se oculta y en su lugar sale esta barra compacta: quien
-         entra cada día no necesita que le vendan la web — necesita su
-         racha y su reto. La pinta js/home.js. -->
+    <!-- S780.199 -->
     <section class="container" id="bienvenidaSeccion">
       <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
     </section>
 
-    <!-- El panel de la portada. En escritorio, dos columnas: lo ancho
-         (guía destacada, torneo, foro vivo) a la izquierda y la barra
-         lateral (top del mes, atajos) a la derecha, para que todo se vea
-         de un vistazo en vez de en una torre de bloques a pantalla
-         completa. En móvil las dos columnas se apilan y el orden queda
-         prácticamente el de siempre. Las secciones conservan sus ids:
-         js/home.js las rellena y las enseña igual que antes. -->
+    <!-- S780.200 -->
     <div class="container panel-portada" id="panelPortada">
       <div class="portada-principal">
-        <!-- El torneo abre la columna ancha (tanda 362, recolocado en la
-             368). El motivo de que esté arriba del todo son los números:
-             `/torneo` es la segunda página más vista del sitio y la tocan
-             47 de las 55 personas que vuelven; el reto diario lleva 103
-             partidas en toda la historia de la web.
-
-             Y por qué está AQUÍ dentro y no en una fila suya (que es como
-             nació): esa fila era una rejilla de dos columnas con el torneo
-             a la izquierda y la noticia a la derecha, y las dos cajas no
-             miden lo mismo ni de lejos — el torneo es una tira de 76 px y
-             la noticia una tarjeta con foto de 300 y pico. La fila mide lo
-             que mida la MÁS ALTA, así que debajo del torneo quedaba un
-             agujero de 250 px en escritorio antes de «Ahora en el foro».
-             Metiendo cada una en la columna que ya existía, cada columna
-             fluye seguida y no hay hueco que rellenar. -->
+        <!-- S780.201 -->
         <section id="torneoPortadaSeccion">
           <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
         </section>
 
-        <!-- Los bloques que rellena js/home.js nacen VISIBLES con un
-             esqueleto de la altura aproximada del contenido: si nacieran
-             con display:none, al llegar los datos empujarían todo lo de
-             abajo (el layout shift que PageSpeed penalizaba). El camino
-             de «no hay datos» los recoge (recogerSeccion, js/home.js). -->
+        <!-- S780.202 -->
         <section id="destacadaSeccion">
           <div class="destacada" id="destacada"><div class="skeleton" style="height: 92px;"></div></div>
         </section>
 
-        <!-- Lo último del foro, visible SIN sesión: los temas son públicos, y
-             enseñar que hay gente hablando hoy es la mejor prueba de que esto
-             es una comunidad y no una web de leer. La pinta js/home.js y se
-             calla si el foro está vacío o falla. -->
+        <!-- S780.203 -->
         <section id="foroVivoSeccion">
           <div class="foro-vivo" id="foroVivo"><div class="skeleton" style="height: 310px;"></div></div>
         </section>
 
-        <!-- Las guías nuevas suben aquí desde el fondo de la página
-             (tanda 300). Estaban las últimas de todo, detrás de la
-             actividad, en una franja de color a pantalla completa: lo
-             que la web PRODUCE salía después de todo lo demás. Ahora van
-             en la columna principal, justo debajo del foro. -->
+        <!-- S780.204 -->
         <section id="recientesSeccion">
           <div class="seccion-cabecera">
             <h2 class="section-title">Guías nuevas</h2>
@@ -296,14 +235,7 @@
           </div>
         </section>
 
-        <!-- «Explora por tema» deja de ser seis tarjetas grandes y pasa
-             a una fila de chips (tanda 300). El motivo lo puso PINGU: con
-             16 guías repartidas en 6 categorías, entrar en una te deja en
-             una página con dos guías — que es justo el vacío que la
-             tanda 299 quitó de /aprender. Así que estos chips NO llevan a
-             categoria.html: llevan a /aprender con ese tema ya filtrado,
-             donde se ven las suyas y, a un clic, todas. Las páginas de
-             categoría siguen existiendo para enlaces directos. -->
+        <!-- S780.205 -->
         <section id="temasSeccion">
           <div class="portada-temas" id="temasChips"></div>
         </section>
@@ -311,31 +243,17 @@
       </div>
 
       <aside class="portada-lateral">
-        <!-- La última noticia (tanda 277, con banner desde la 288; aquí
-             desde la 368). La sección se estrenó el 2026-09-10 y la
-             portada no la mencionaba: quien entra a pokedoc.es no tiene
-             por qué abrir el menú para enterarse de que hay noticias.
-             Va con la IMAGEN de portada, que es lo que distingue una
-             noticia de un enlace, y con «Ver todas» para que se entienda
-             que Noticias es una sección y no un artículo suelto. Se
-             recoge sola si no hay ninguna. -->
+        <!-- S780.206 -->
         <section id="noticiaPortadaSeccion">
           <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
         </section>
 
-        <!-- El reto del día, que hasta la 362 abría la portada a lo ancho
-             (ver el comentario de arriba). Sigue estando, y arriba de la
-             lateral: 103 partidas en toda la historia no dan para el
-             sitio más caro de la página, pero quien lo juega lo juega a
-             diario y tiene que encontrarlo. -->
+        <!-- S780.207 -->
         <section id="retoSeccion">
           <div class="reto-tarjetas" id="retoTarjetas"><div class="skeleton" style="height: 168px;"></div></div>
         </section>
 
-        <!-- Los primeros pasos y la actividad bajan de bloque ancho a
-             caja de lateral (tanda 300). Los dos son acompañamiento: ni
-             lo primero que vienes a ver ni algo que necesite media
-             pantalla. Empiezan ocultos y los enseña su propio código. -->
+        <!-- S780.208 -->
         <section class="hidden" id="primerosPasos"></section>
 
         <section class="hidden" id="homeActivity">
@@ -348,10 +266,7 @@
           </div>
         </section>
 
-        <!-- La liga de la semana: la clasificación del reto diario de
-             lunes a domingo. Va encima del top del mes porque se mueve
-             más rápido (cada reto jugado la cambia). La pinta
-             js/home.js y sin resultados esta semana no sale. -->
+        <!-- S780.209 -->
         <section id="ligaSeccion">
           <div class="top-mes" id="liga"><div class="skeleton" style="height: 240px;"></div></div>
         </section>
@@ -360,9 +275,7 @@
           <div class="top-mes" id="topMes"><div class="skeleton" style="height: 240px;"></div></div>
         </section>
 
-        <!-- El próximo lanzamiento, con su cuenta atrás. Los datos los
-             mantiene el admin en /admin (site_settings, clave
-             lanzamientos); sin sets futuros, no sale. -->
+        <!-- S780.210 -->
         <section id="lanzamientoSeccion">
           <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"><span class="skeleton" style="height: 40px; width: 100%;"></span></a>
         </section>
@@ -382,14 +295,7 @@
     </section>
   </main>
 
-  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
-       enlaces centrados; el problema no era que fuera feo, era que casi
-       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
-       nada antes de llegar a él. Un pie con columnas llena ese hueco,
-       da una segunda vía a cada sección desde cualquier página y enlaza
-       internamente todo el sitio, que es lo que Google recorre.
-       Va en el HTML y no montado desde JavaScript a propósito: estos
-       enlaces tienen que estar en la página aunque el JS no llegue. -->
+  <!-- S780.211 -->
   <footer class="footer">
     <div class="pie-rejilla">
       <div>
@@ -433,10 +339,7 @@
       <button type="button" class="modal-close" id="whatIsModalClose" aria-label="Cerrar">×</button>
       <h3>¿Qué es PokeDoc?</h3>
       <div class="mascota-fila">
-        <!-- loading="lazy" porque esta imagen vive dentro de un modal que
-               empieza oculto: sin esto el navegador se bajaba sus 112 KB en
-               cada visita a la portada, la abriera alguien o no. Y en WebP,
-               que para un dibujo así pesa un 69 % menos que el PNG. -->
+        <!-- S780.212 -->
           <img src="/assets/images/mascota.webp" class="mascota" alt="" width="523" height="791" loading="lazy" decoding="async" />
         <div class="mascota-texto">
           <p>
@@ -450,9 +353,7 @@
             publicas. Y alrededor hay una comunidad de verdad, con comentarios, mensajes y perfiles.
             <strong>Crea y comparte.</strong>
           </p>
-          <!-- La versión larga, en una página de verdad: es la que se puede
-               enlazar desde fuera (el vídeo, la bio de Instagram) y la que
-               puede indexar Google. Un modal no tiene dirección propia. -->
+          <!-- S780.213 -->
           <p><a href="/sobre.html">Leer más sobre el proyecto →</a></p>
         </div>
       </div>

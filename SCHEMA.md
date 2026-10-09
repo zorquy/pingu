@@ -36938,3 +36938,1647 @@ que se ve en la captura.
   memoria que la expansión, y que ir al catálogo japonés y volver no la
   olvida (lo mira en Buscar, que se repinta; la expansión abierta se queda
   con su HTML de antes y no diría nada).
+
+## Tanda 780 — Los porqués que vivían en las hojas de la portada (oct. 2026)
+
+Medido fichero a fichero ya comprimido, los comentarios eran 65 de los 169 KB de la portada (en `components.css`, el 59 %). Aplicando la regla de la 489 hacia atrás, el porqué largo de `css/style.css`, `css/components.css`, `css/portada.css` e `index.html` vive aquí; en su sitio queda `/* S780.n */` (o `<!-- S780.n -->`) para encontrarlo. Los de una línea se quedan donde estaban, y los marcadores que leen los generadores y la función de borde (`meta-social:`, `articulo:`, `barra-movil`) no se tocan. Al escribir CSS nuevo en estas tres hojas, la regla sigue siendo la de la 489: un renglón allí y el porqué aquí.
+
+**S780.1** · `css/style.css` · antes de `--danger: #dc2626;`
+
+> PELIGRO: borrar, un error, una derrota (tanda 311). No existía —
+>      había --success, --warning, --indigo y --pink, pero el rojo iba a
+>      mano 61 veces en tres tonos distintos, incluso dentro de estilos EN
+>      LÍNEA del JavaScript. Eso significaba que el rojo de «Eliminar» del
+>      muro y el de otra pantalla podían no ser el mismo y, sobre todo,
+>      que NINGUNO se adaptaba al tema.
+
+**S780.2** · `css/style.css` · antes de `--rango-admin: #a1560a;`
+
+> ── Los rangos (tanda 386) ──
+>      El nombre de un admin y el de un moderador se distinguen del de una
+>      persona normal, que va en el azul de los enlaces.
+> 
+>      NO salen de la paleta que ya había: el verde significa «completo» y
+>      el ROJO ESTÁ RESERVADO PARA PELIGRO desde la 311 — «admin» y
+>      «cuidado» no son lo mismo, y además lo cazaría su prueba.
+> 
+>      Elegidos MIDIENDO, no a ojo: ámbar da 5,45 sobre blanco y violeta
+>      6,74; en el tema oscuro, 7,66 y 5,79. Los cuatro por encima del 4,5
+>      de la WCAG, porque un color de rango que no se lee no es un rango.
+
+**S780.3** · `css/style.css` · antes de `--danger-solid: #dc2626;`
+
+> El rojo que va de FONDO con texto blanco encima: la chapa de «en
+>      juego», la marca de una carta ilegal. Es otro token a propósito y
+>      NO tiene versión clara para el tema oscuro — al revés que --danger,
+>      que es texto y ahí necesita aclararse. Si se aclarara, el blanco de
+>      encima se quedaría en 2,4 de contraste. Este se queda quieto y lo
+>      que cambia alrededor es el fondo de la página.
+
+**S780.4** · `css/style.css` · antes de `--navy-solid: #1e5175;`
+
+> El azul de la casa cuando hace de FONDO SÓLIDO con blanco encima.
+>      Mismo caso que --danger-solid: --navy se ACLARA en oscuro para
+>      poder leerse como texto, y un fondo aclarado con blanco encima se
+>      queda sin contraste.
+
+**S780.5** · `css/style.css` · antes de `--shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);`
+
+> Lo que FLOTA sobre la página —un menú, una lista de sugerencias, una
+>      barra de moderación— necesita más separación que una tarjeta, o se
+>      confunde con lo que tiene debajo. Había cuatro versiones casi
+>      iguales de esta sombra, una por sitio; y en components.css ya se
+>      pedía el token con un respaldo detrás, o sea que se esperaba desde
+>      antes y nadie lo había definido (tanda 310).
+
+**S780.6** · `css/style.css` · antes de `:root[data-theme='dark'] {`
+
+> ── Modo oscuro ──
+>    Todo el sitio se construye sobre estas variables (fondo, texto, bordes,
+>    tarjetas...), así que redefinirlas aquí basta para la mayor parte de la
+>    interfaz. El atributo data-theme lo pone un script en línea en el
+>    <head> de cada página, antes de pintar nada, para no dar un parpadeo de
+>    tema claro al cargar con el oscuro ya guardado.
+
+**S780.7** · `css/style.css` · antes de `--danger: #f87171;`
+
+> El rojo del tema claro sobre la superficie oscura daba 3,26 de
+>      contraste: ilegible. Este da 5,69.
+
+**S780.8** · `css/style.css` · antes de `.sr-only {`
+
+> Para quien usa lector de pantalla y no ve el esqueleto (tanda 305).
+>    Un esqueleto es un dibujo: `aria-hidden` lo saca del árbol y esta
+>    frase ocupa su sitio, para que «cargando» se siga oyendo. No vale
+>    `display: none` — eso lo esconde también del lector.
+
+**S780.9** · `css/style.css` · antes de `scroll-padding-top: 72px;`
+
+> La barra de arriba es `sticky; top: 0`, así que un ancla o un
+>      `scrollIntoView` dejaban su destino TAPADO por ella (tanda 498; la 489
+>      ya lo quiso y no cabía — el porqué largo, en SCHEMA.md). Los 72 son los
+>      71 MEDIDOS de la barra en la retícula de 4.
+
+**S780.10** · `css/style.css` · antes de `h1,`
+
+> ── Los títulos se reparten las líneas (tanda 316) ──
+> 
+> `balance` mira el título entero y parte las líneas para que queden
+> parecidas, en vez de dejar una palabra suelta en la última. El
+> navegador solo lo hace en bloques cortos —de ahí que se pida a los
+> títulos y no al cuerpo del artículo—, y donde no esté soportado el
+> texto sale exactamente como salía.
+> 
+> `pretty` en los resúmenes es su pariente barato: evita la línea final
+> de una palabra sin reequilibrar el párrafo entero.
+
+**S780.11** · `css/style.css` · antes de `background: var(--white);`
+
+> TOKENS, no un blanco a fuego (tanda 445). Esto llevaba
+>      `background: #ffffff; color: #0d1b2a` escritos a mano, así que en el
+>      tema OSCURO todos los campos y desplegables del sitio eran islas
+>      blancas sobre el fondo azul oscuro. Alguien se dio cuenta a medias:
+>      más abajo hay una regla que le cambia el color a la FLECHA del
+>      desplegable para el tema oscuro — o sea que se pensó en el tema, y el
+>      fondo se quedó.
+>      Y no lo cantó el medidor de contraste de la 311, porque blanco con
+>      letra oscura contrasta de maravilla: lo que estaba mal no era la
+>      legibilidad, era que no es la superficie del tema. `--white` es
+>      justamente eso —la superficie—, y en oscuro vale #182430.
+
+**S780.12** · `css/style.css` · antes de `min-height: 44px;`
+
+> Los 44 con min-height y no fiados al relleno (tanda 358): la letra
+>      no mide lo mismo en todas las plataformas, y con la de Windows el
+>      relleno se quedaba en 43.
+
+**S780.13** · `css/style.css` · antes de `padding-right: 36px;`
+
+> Sitio a la derecha para la flecha, o el texto largo se le mete
+>      debajo.
+
+**S780.14** · `css/style.css` · antes de `:root[data-theme='dark'] select {`
+
+> En modo oscuro la flecha tiene que verse sobre el fondo oscuro: el
+>    color va DENTRO del SVG, así que hace falta otra copia. Y repite el
+>    no-repeat y la posición (tanda 356): una hoja de página que pinte el
+>    fondo con el atajo `background` los devuelve a `repeat`, y como esta
+>    regla gana por especificidad la flecha salía en mosaico (/cartas).
+
+**S780.15** · `css/style.css` · antes de `width: 100%;`
+
+> El `width: 100%` NO es decorativo: `.page-content` es también
+>      `.container`, que centra con `margin: 0 auto`. En un contenedor
+>      flexible en columna, un margen automático en el eje transversal
+>      ANULA el estirado y el elemento pasa a medir su contenido — la
+>      columna se encogió de 1080 a 813 px y la página se quedó estrecha
+>      sin que nada diera error.
+
+**S780.16** · `css/style.css` · antes de `.salta-al-contenido {`
+
+> ── Saltar al contenido (tanda 313) ──
+>    Con teclado, llegar al texto de una página costaba pasar por los doce
+>    enlaces de la barra, en cada página. Este enlace está SIEMPRE en el
+>    documento —un `display: none` lo sacaría del recorrido del tabulador y
+>    entonces no existiría— y lo que hace es esconderse fuera de la
+>    pantalla hasta que se enfoca.
+
+**S780.17** · `css/style.css` · antes de `min-height: 44px;`
+
+> 44 de alto, como todo lo que se pulsa (norma de la tanda 312). Con
+>      el padding solo se quedaba en 40 y lo cazó su propia prueba.
+
+**S780.18** · `css/style.css` · antes de `background: var(--navy-solid);`
+
+> Azul FIJO y no `var(--navy)`: en el tema oscuro el token se aclara
+>      —para poder leerse como TEXTO— y el blanco de encima se quedaba en
+>      2,35. Es el mismo caso que `--danger-solid`: un fondo sólido que
+>      lleva blanco encima no se aclara con el tema.
+
+**S780.19** · `css/style.css` · antes de `flex-shrink: 0;`
+
+> Y NO se encoge (tanda 320). Es un hijo de flex, así que por defecto
+>      cede sitio cuando el bloque de al lado crece: con el chip del torneo
+>      puesto pasaba de 126 px a 44, y como el texto lleva `nowrap`, «Poke
+>      Doc» se amontonaba encima del icono. Un `min-width` no lo salva —eso
+>      es el mínimo de la CAJA, y aquí lo que se pasaba de rosca era el
+>      reparto—. La 312 ya le puso el mínimo de 44 por lo táctil y se quedó
+>      a medias: hacía falta esto.
+
+**S780.20** · `css/style.css` · antes de `.nav-links a {`
+
+> ── El menú (tandas 309 y 356) ──
+>    Solo el apartado donde estás lleva pastilla rellena; el resto se
+>    oscurece al pasar. Desde la 356 la barra son CINCO entradas —Noticias
+>    y cuatro desplegables— en vez de siete enlaces sueltos. El porqué
+>    largo, en SCHEMA.md (tanda 356).
+
+**S780.21** · `css/style.css` · antes de `.nav-grupo {`
+
+> Los desplegables. Con ratón se abren al pasar; con teclado, al llegar
+>    con el tabulador; con el dedo, al tocar (js/app.js cambia el
+>    aria-expanded). Con `:focus-visible` y no `:focus-within`: si no, un
+>    clic dejaba el botón con foco y el menú ya no se cerraba al volver a
+>    pulsarlo.
+
+**S780.22** · `css/style.css` · antes de `min-height: 45px;`
+
+> La altura de #nav-user YA RELLENO (botones o avatar): se reserva
+>      para que la navbar no crezca cuando el JS los mete — empujaba la
+>      página entera (layout shift, PageSpeed).
+
+**S780.23** · `css/style.css` · antes de `#navSearchBtn,`
+
+> El ANCHO solo para los que son un icono y nada más. Un control con
+>    texto mide de ancho lo que mide su palabra y estirarlo no arregla
+>    nada: la chapa de racha y la del torneo en juego llevan texto, y
+>    obligarlas a 44 les quitaba el sitio a las demás — la barra se salía
+>    de la pantalla en cuanto había un torneo jugándose.
+
+**S780.24** · `css/style.css` · antes de `.nav-links a,`
+
+> Los enlaces de navegación no necesitan ancho —ya lo tienen de sobra
+>    con su texto— pero sí alto.
+
+**S780.25** · `css/style.css` · antes de `.nav-toggle span {`
+
+> Las tres rayas siguen midiendo 30: lo que crece es el botón, así que
+>    hay que devolverle su ancho a lo de dentro.
+
+**S780.26** · `css/style.css` · antes de `.nav-menu-mobile {`
+
+> ── El menú del móvil: un cajón lateral (tanda 359) ──
+>    Entra por la derecha y tapa la página con un velo (la sombra enorme),
+>    con Inicio y Noticias sueltos y los cuatro apartados plegados — antes
+>    eran quince enlaces seguidos. Uno abierto cierra los otros
+>    (`<details name>`), y se abre solo el del sitio donde estás.
+
+**S780.27** · `css/style.css` · antes de `.navbar:has(.nav-menu-mobile.open) {`
+
+> `backdrop-filter` hace de la barra el bloque contenedor de lo fijo: con
+>    él puesto, el cajón mediría lo que la barra y no la pantalla.
+
+**S780.28** · `css/style.css` · antes de `@media (min-width: 1240px) {`
+
+> El corte en el que caben los enlaces: MEDIDO, no elegido (tandas 320,
+>    327, 356 y 367; la cuenta, en SCHEMA.md). Si añades o quitas algo de la
+>    barra, vuelve a medir lo que PIDE y mueve este número: un hijo de flex
+>    cede en silencio antes de desbordar. En la 367 la barra pedía 1081 y el
+>    corte estaba en 1080: UN píxel, y el síntoma no canta. Desde la 758
+>    (Lanzamientos y Mi colección a primer nivel) pide 1219: va a 1240.
+
+**S780.29** · `css/style.css` · antes de `@media (min-width: 1240px) {`
+
+> Con un torneo EN JUEGO la chapa de la partida no deja sitio a los
+>    enlaces a ningún ancho (la barra está topada en --container-w): se
+>    van al menú. El `.open` lleva `!important` porque la regla de arriba
+>    también (tanda 327; la cuenta, en SCHEMA.md).
+
+**S780.30** · `css/style.css` · antes de `.nav-right {`
+
+> Con sesión, nav-right acumula búsqueda + tema + mensajes + campana +
+>      avatar + el propio botón de menú: en móvil no caben todos junto al
+>      logo sin desbordar la página horizontalmente (el botón de menú
+>      quedaba fuera de la pantalla). Se reduce el hueco entre iconos y, por
+>      debajo de 480px, se colapsa el texto del logo a solo el icono.
+
+**S780.31** · `css/style.css` · antes de `.nav-tema-menu {`
+
+> El gemelo se pinta como los enlaces del menú, que es lo que parece.
+>    Va ANTES de su `@media`, no después: un `@media` no suma
+>    especificidad, así que con la base detrás ganaba ella por orden y el
+>    botón salía en las dos partes a la vez. Es la trampa de la tanda 299,
+>    que aquí vuelve dentro de una sola hoja.
+
+**S780.32** · `css/style.css` · antes de `/* 599 y no 479 (tanda 320): medido, con el chip puesto la barra pide 550`
+
+> ── Con un torneo EN JUEGO la barra lleva un pasajero más ──
+>    La chapa que te lleva a tu partida se suma a los seis botones, y en un
+>    móvil eso ya no cabe con todos a 44 px: la página entera se salía de
+>    lado (lo cazó test-torneos-15, que mide justo ese estado).
+>    Por debajo de 480 px se retiran los dos que menos falta hacen
+>    mientras estás jugando —buscar y tema—; el tema sigue estando, en el
+>    menú. Va DESPUÉS del `@media` de arriba porque tiene que poder
+>    deshacerlo, y un `@media` no suma especificidad.
+
+**S780.33** · `css/style.css` · antes de `@media (max-width: 599px) {`
+
+> 599 y no 479 (tanda 320): medido, con el chip puesto la barra pide 550
+>    px, así que entre 480 y 549 seguía saliéndose. El corte de 479 se
+>    eligió a ojo en la 312 y se quedó 70 px corto. 599 es además el mismo
+>    corte al que la llamita de la racha se retira, así que las dos piezas
+>    que sobran en una pantalla estrecha se van juntas.
+
+**S780.34** · `css/style.css` · antes de `@media (max-width: 380px) {`
+
+> Pantallas MUY estrechas (iPhone SE y compañía, 320-360px): con la
+>    sesión abierta, la barra acumula chip de torneo + racha + búsqueda +
+>    tema + mensajes + campana + avatar + menú, y a 320px se salía por la
+>    derecha arrastrando la página entera. Se aprieta el hueco entre
+>    iconos y el bloque derecho puede encogerse.
+
+**S780.35** · `css/style.css` · antes de `transition: background 0.15s var(--ease), border-color 0.15s var(--ease);`
+
+> Planos desde la 676 (PINGU: «una sola familia de botones, la que
+>      queda mejor»): sin el relieve de 4 px ni el hundido. SCHEMA 676.
+
+**S780.36** · `css/style.css` · antes de `grid-template-columns: repeat(3, 1fr);`
+
+> Tres números desde que el panel habla de la comunidad (miembros,
+>      guías, mensajes de la semana), no solo del contenido.
+
+**S780.37** · `css/style.css` · antes de `max-width: 100%;`
+
+> Mismo motivo que en el banner del modal: el cover_emoji lo escribe
+>      quien crea la guía, y si ahí acaba una cadena larga en vez de un
+>      emoji, sin este tope estira la tarjeta a lo ancho. Se recorta con
+>      "…" igual que allí, para que sea un recorte declarado y no un
+>      desborde escondido.
+
+**S780.38** · `css/style.css` · antes de `.badge-read {`
+
+> "Leída" es distinto de "curso completado": una guía puede estar leída
+>    sin tener curso, y las dos etiquetas pueden convivir en una tarjeta.
+
+**S780.39** · `css/style.css` · antes de `.simple-card > .empty-state,`
+
+> Dentro de una tarjeta que YA tiene borde, el punteado sobra: dos
+>    bordes concéntricos se leen como un fallo de pintado.
+
+**S780.40** · `css/style.css` · antes de `.border-rarity-bronze {`
+
+> Las .border-tint-* murieron en la tanda 299: solo las gastaban las
+> tarjetas de categoría de la portada, y allí el marco de color salía de
+> un hash del id —no quería decir nada— y competía con la rejilla de
+> guías de abajo. Las de rareza siguen, que ahí el color SÍ significa
+> algo y las llevan las .guide-card de las listas de categoría.
+
+**S780.41** · `css/style.css` · antes de `.footer {`
+
+> ── El pie (tanda 312) ──
+>    Era una línea centrada. El problema no era el aspecto: casi todas las
+>    páginas se quedan cortas —/torneos con un torneo deja 500 px de nada—
+>    y el pie aparecía al final de un vacío, sin nada que ofrecer. Ahora
+>    son cuatro columnas que llenan ese hueco y dan una segunda vía a cada
+>    sección desde cualquier página.
+>    Va en style.css, que lo baja todo el mundo, porque el pie está en las
+>    22 páginas que lo tienen.
+
+**S780.42** · `css/style.css` · antes de `.pie-titulo {`
+
+> No es un <h2>: el pie repite estos tres rótulos en las 22 páginas y no
+>    son la jerarquía del documento, son etiquetas de una lista.
+
+**S780.43** · `css/style.css` · antes de `.footer-links a {`
+
+> Los enlaces legales vivían en components.css, que carga DESPUÉS de
+>    esta hoja: su `margin-top` le ganaba al `margin: 0` de aquí arriba y
+>    la línea de abajo quedaba descuadrada. Se mudan aquí, con el resto del
+>    pie, que es donde se entienden.
+
+**S780.44** · `css/style.css` · antes de `@media (max-width: 720px) {`
+
+> En un móvil las tres columnas de enlaces no caben al lado de la marca:
+>    la marca ocupa el ancho entero y los enlaces se reparten en dos.
+
+**S780.45** · `css/style.css` · antes de `.progress-label.subtle {`
+
+> Línea secundaria bajo la barra de progreso de una categoría (los
+>    cursos), para que no compita con el dato principal, que es la lectura.
+
+**S780.46** · `css/style.css` · antes de `@view-transition {`
+
+> La View Transitions API: al navegar, un fundido suave en vez del
+>    parpadeo en blanco. Los navegadores que no la conocen ignoran la
+>    regla y navegan como siempre — es puro azúcar.
+
+**S780.47** · `css/style.css` · antes de `.progreso-lectura {`
+
+> Una línea finísima pegada al borde de arriba que se llena según bajas.
+>    app.js solo la enseña en páginas largas; aquí nace vacía.
+
+**S780.48** · `css/style.css` · antes de `@media (prefers-reduced-motion: reduce) {`
+
+> El esqueleto genérico también se queda quieto cuando se pide menos
+>    movimiento (tanda 313): su barrido es INFINITO, que es el caso que la
+>    preferencia existe para apagar.
+
+**S780.49** · `css/style.css` · antes de `.bm { display: none; }`
+
+> La barra de abajo del móvil va en el HTML (753, SCHEMA 753); su sitio,
+>    aquí, para el primer pintado. Lo demás, en css/movil.css.
+
+**S780.50** · `css/style.css` · antes de `@supports (-webkit-touch-callout: none) or (font: -apple-system-body) {`
+
+> 775: Safari (Apple) pega lo fijo al documento tras una transición entre páginas; ahí, sin ella (SCHEMA 775).
+
+**S780.51** · `css/components.css` · antes de `.tabs {`
+
+> La fila de pestañas se desplaza SOLA cuando no caben. Comunidad tiene
+>    cuatro y a 360 px no entran: antes la que se desplazaba de lado era la
+>    página entera, que es de las cosas que peor sientan en el móvil. La
+>    barra de desplazamiento se esconde — se arrastra con el dedo.
+
+**S780.52** · `css/components.css` · antes de `/* El enlace del pie que es un botón (tanda 309): «Enviar feedback» abre`
+
+> ── El contador de cada pestaña (tanda 308) ──
+>    Cinco pestañas sin un número al lado obligan a entrar en todas para
+>    saber dónde está lo que buscas, y en la mayoría de los perfiles casi
+>    todas están vacías. Va en components.css y no en perfil.css porque
+>    `.tab-btn` ya vive aquí: la chapa es parte de la pestaña.
+
+**S780.53** · `css/components.css` · antes de `.pie-enlace {`
+
+> El enlace del pie que es un botón (tanda 309): «Enviar feedback» abre
+>    un modal, así que tiene que ser <button> por accesibilidad, pero en el
+>    pie va en la misma fila que «Términos de uso» y tiene que leerse
+>    igual.
+
+**S780.54** · `css/components.css` · antes de `.seg {`
+
+> ── La cápsula y el chip (tanda 678) ──
+>    UN control para elegir una de pocas (`.seg` + `.seg-btn`: el periodo
+>    del meta, Lista/Calendario, las secciones de un torneo, el catálogo
+>    de Mi colección y Lanzamientos) y UN chip de filtro (`.chip-filtro`:
+>    lo que se pulsa y se queda pulsado). Antes cada pantalla tenía el
+>    suyo, con cinco pintas. Ver SCHEMA 678.
+
+**S780.55** · `css/components.css` · antes de `.seg-btn {`
+
+> El botón de la cápsula no parte su palabra; el chip SÍ puede: «Solo
+>    las que me faltan» en una fila de mandos estrecha cabe en dos líneas
+>    dentro del chip, y si no pudiera, la fila entera se partiría (453).
+
+**S780.56** · `css/components.css` · antes de `[role='link'] {`
+
+> Las tarjetas de guía son un <div> con un click encima, no un <a>. El
+>    navegador no tiene forma de saberlo: sin esto el cursor sale de flecha
+>    sobre el hueco de la tarjeta y de barra de texto sobre el título y la
+>    descripción, que es justo lo contrario de lo que pasa — el texto no se
+>    puede seleccionar de forma útil porque el click abre la guía.
+> 
+>    Se engancha a [role="link"] y no a cada clase porque ese atributo es
+>    exactamente lo que marca "esto se comporta como un enlace": lo llevan
+>    las tarjetas clicables (.guide-card en la lista de una categoría,
+>    .saved-guide-row en guardados, .community-guide-row en el perfil de
+>    cada usuario) y nada más. La de la portada dejó de estar en la lista
+>    en la tanda 316: ahora es un <a> de verdad. Si mañana aparece otra,
+>    hereda el cursor por llevar el rol correcto, sin tocar este fichero.
+> 
+>    `cursor` se hereda, así que los hijos lo cogen solos; los botones y
+>    enlaces de dentro traen el suyo y siguen mandando ellos.
+
+**S780.57** · `css/components.css` · antes de `color: var(--text-mid);`
+
+> --text-dim daba 2,21 de contraste aquí (tanda 311). Es un mensaje
+>      que hay que poder leer, no un metadato de refilón.
+
+**S780.58** · `css/components.css` · antes de `overflow-x: hidden;`
+
+> Poner overflow-y:auto hace que overflow-x pase a `auto` por
+>      especificación, aunque no se escriba. Sin este `hidden`, cualquier
+>      cosa que no quepa dentro convierte el modal en un carrusel
+>      horizontal que se arrastra con el dedo — que es justo lo que
+>      pasaba en móvil con la fila de botones.
+
+**S780.59** · `css/components.css` · antes de `.editor-aviso-revision {`
+
+> El aviso de "esta guía está en revisión". Mismo tono que el banner de
+>    la guía pendiente en guia.html: es información, no una advertencia.
+
+**S780.60** · `css/components.css` · antes de `.modal-box .modal-actions-row {`
+
+> Variante en fila (el modal de guía: Guardar / Guía / Curso / reportar).
+>    `flex-wrap` es lo que evita que en un móvil estrecho el último botón se
+>    salga por la derecha en vez de bajar a la línea siguiente.
+
+**S780.61** · `css/components.css` · antes de `.emoji-big {`
+
+> El "emoji" de portada lo escribe el autor y es texto libre: nada
+>    impide meter ahí una cadena larga. Sin este tope, eso ensancha la
+>    cabecera y hace que la página se arrastre de lado en móvil.
+
+**S780.62** · `css/components.css` · antes de `display: inline-block;`
+
+> inline-block hace falta: `overflow` no tiene ningún efecto sobre un
+>      elemento en línea, así que sin esto el recorte no recorta nada.
+
+**S780.63** · `css/components.css` · antes de `.article-body img {`
+
+> Las imágenes del artículo fluyen CON el texto.
+> 
+> El reset global de style.css pone `img { display: block }`, que está
+> bien en tarjetas y avatares (evita el hueco que deja el descendente de
+> la línea). Pero dentro de un texto corrido rompe la línea SIEMPRE: al
+> escribir "Common ⚪ · círculo negro" el símbolo se iba a su propio
+> renglón, y ese párrafo pasaba de 26px de alto a 104px.
+> 
+> Con `inline-block` el autor no tiene que marcar nada: una imagen suelta
+> sigue fluyendo con el texto. (Cuando el autor le toca el tamaño, la
+> colocación o el pie, el editor la envuelve en un <figure>, y entonces
+> mandan las reglas de .rt-fig de más abajo.)
+> 
+> El tamaño resuelve solo los dos casos, sin reglas ni excepciones:
+>   - Un símbolo pequeño cabe al lado del texto y se queda ahí.
+>   - Una imagen ancha no cabe en el hueco que queda, así que el
+>     navegador la baja a su propia línea, como antes.
+> 
+> `vertical-align: middle` la centra con la altura de la x en vez de
+> dejarla colgando de la línea base, que es como queda bien junto a
+> texto.
+
+**S780.64** · `css/components.css` · antes de `:root {`
+
+> ═══════════════════════════════════════════════════════════════
+>    Formato del contenido de una guía
+>    ═══════════════════════════════════════════════════════════════
+>    Las mismas reglas para lo que se está escribiendo (.rte-surface) y
+>    para la guía ya publicada (.article-body). Tienen que ser LAS MISMAS:
+>    si no, el autor ve una cosa y el lector otra, y no hay forma de
+>    escribir con confianza.
+> 
+>    Las clases (rt-c-*, rt-h-*, rt-al-*, rt-fig-*) son las de la lista
+>    cerrada de js/richtext-format.js. Cambiar un color aquí sin cambiarlo
+>    allí hace que el texto se vea de un color mientras se escribe y de
+>    otro al guardar.
+
+**S780.65** · `css/components.css` · antes de `:root[data-theme='dark'] {`
+
+> En oscuro los mismos colores serían ilegibles sobre el fondo casi
+>    negro, así que cada uno tiene su versión clara. La clase es la misma:
+>    lo que cambia es el valor.
+
+**S780.66** · `css/components.css` · antes de `.rt-h-amarillo,`
+
+> Un resaltado es un rotulador: fondo claro y texto oscuro en los dos
+>    temas. Dejarlo adaptarse al tema oscuro lo convertiría en un fondo
+>    oscuro, que ya no se lee como resaltado.
+
+**S780.67** · `css/components.css` · antes de `.article-body a,`
+
+> ── Enlaces ──
+>    El reset global pone `a { color: inherit; text-decoration: none }`, que
+>    está bien en tarjetas y botones pero dentro de un texto dejaba los
+>    enlaces exactamente iguales que el resto: no había NADA que dijera que
+>    ahí había un enlace. En oscuro --navy ya es un azul claro, así que la
+>    misma regla vale para los dos temas.
+
+**S780.68** · `css/components.css` · antes de `.article-body details,`
+
+> ── Spoiler ──
+>    Un <details> nativo: se pliega y se despliega sin JavaScript y el
+>    teclado lo abre igual que el ratón. Aquí solo se le quita la pinta de
+>    elemento del navegador.
+
+**S780.69** · `css/components.css` · antes de `list-style: none;`
+
+> El triángulo de serie se pinta a mano abajo, para que gire igual en
+>      todos los navegadores y no dependa del de cada uno.
+
+**S780.70** · `css/components.css` · antes de `.article-body details[open] > :not(summary),`
+
+> El contenido, separado de la pestaña por una línea para que se vea
+>    dónde empieza lo que estaba plegado.
+
+**S780.71** · `css/components.css` · antes de `.rt-fig-carta {`
+
+> ── Una imagen con forma de carta ─────────────────────────────────────
+>    Una carta de Pokémon es más alta que ancha. A ancho de artículo mide
+>    unos 950×1330 px, y eso significaba que UNA sola imagen se comía la
+>    pantalla entera:
+> 
+>      "si meto cinco imágenes así y van en vertical una debajo de otra,
+>       quedará demasiado espaciado y no quedará bien"
+> 
+>    Y no había forma de escaparse, porque las cartas que quería no están en
+>    el catálogo y tenía que meterlas como imágenes.
+> 
+>    Así que una carta sale del tamaño de una carta: 230 px de ancho es más o
+>    menos lo que ocupa en la mano, se lee el nombre y el ataque, y ocupa 320
+>    px de alto en vez de 1330. La clase la pone el editor al insertar una
+>    imagen vertical (ver js/richtext-editor.js), y se puede quitar a mano.
+> 
+>    `min()` con un tanto por ciento para que en el móvil no se coma media
+>    pantalla: 42% de 350 px son 147 px, que sigue siendo una carta.
+
+**S780.72** · `css/components.css` · antes de `.rt-fila {`
+
+> ── Una fila de imágenes ──────────────────────────────────────────────
+>    El problema que resuelve: sólo se podía poner UNA imagen por línea. Una
+>    figura centrada es un bloque y se come la línea entera; y "hacerla
+>    pequeña" no ayudaba, porque la línea seguía siendo suya. Para cuatro
+>    cartas seguidas no había manera.
+> 
+>    Aquí las columnas son IGUALES (1fr cada una), así que las cuatro cartas
+>    salen del mismo tamaño sin tener que ajustar el ancho de cada una a
+>    mano. Y el `width` que lleve cada figura se ignora dentro de la fila: lo
+>    que manda es en cuántas columnas la has puesto.
+
+**S780.73** · `css/components.css` · antes de `.rt-fila > .rt-fig,`
+
+> Dentro de la fila la figura no manda su tamaño: lo pone la columna. Sin
+>    esto, una figura al 40% dejaría media columna vacía y la fila saldría
+>    descuadrada.
+
+**S780.74** · `css/components.css` · antes de `.rt-fila > figure > img {`
+
+> Una carta es vertical y una imagen de ejemplo suele ser horizontal. En
+>    una fila mezclada, sin esto, la carta estira la fila hasta su alto y las
+>    horizontales quedan flotando arriba. Igualando el alto del hueco de la
+>    imagen, la fila se lee como una fila.
+
+**S780.75** · `css/components.css` · antes de `.rt-fila > .rt-fig-carta {`
+
+> Una carta tampoco crece sin límite DENTRO de la fila. Dos cartas en un
+>    artículo de 950 px tendrían 465 px de columna cada una, o sea 650 px de
+>    alto: vuelta al problema del principio, con dos imágenes en vez de una.
+>    Se queda a tamaño de carta y centrada en su columna, que es lo que hace
+>    que una fila de dos y una de cuatro se lean igual.
+
+**S780.76** · `css/components.css` · antes de `@media (max-width: 620px) {`
+
+> En el móvil, cuatro imágenes en 360 px son cuatro sellos. Tres o más
+>    columnas bajan a dos, y las de dos se quedan como están: dos cartas
+>    juntas en el móvil todavía se ven.
+
+**S780.77** · `css/components.css` · antes de `.rt-fig-c {`
+
+> Estas tres valen también para una lista de cartas (<tcg-deck>), que no
+>    es una figura pero se coloca igual.
+
+**S780.78** · `css/components.css` · antes de `.article-body::after,`
+
+> Un float que nadie limpia se sale del artículo y se mete en lo que
+>    venga debajo (los comentarios, el pie de página).
+
+**S780.79** · `css/components.css` · antes de `@media (max-width: 640px) {`
+
+> En una pantalla estrecha no hay sitio para que el texto rodee nada:
+>    una imagen al 30% flotando deja columnas de dos palabras. El
+>    `!important` es para ganarle a la anchura que el autor dejó escrita en
+>    el propio elemento.
+
+**S780.80** · `css/components.css` · antes de `.nivel-chapa {`
+
+> ── La chapa de nivel ──
+>    El nivel (Novato, Entrenador…) con su color e icono, como las
+>    etiquetas de los temas. El color viene inline desde NIVEL_ESTILOS
+>    (una lista cerrada del código, no de la base).
+
+**S780.81** · `css/components.css` · antes de `.my-guide-row:has(.my-guide-reason) {`
+
+> La fila de guías rechazadas sí puede ser más alta que el resto —
+>    lleva un motivo de rechazo real, no es solo un título largo.
+
+**S780.82** · `css/components.css` · antes de `@media (max-width: 599px) {`
+
+> En pantallas estrechas la barra ya va justa de sitio (lupa + tema +
+>    mensajes + campana + avatar + menú): la racha es un mimo, no
+>    navegación, así que es lo primero que se sacrifica.
+
+**S780.83** · `css/components.css` · antes de `@media (max-width: 899px) {`
+
+> ── Desplegables de la navbar en móvil ──
+>    Con varios iconos apretados a la derecha (lupa, mensajes, campanita,
+>    avatar), `right: 0` relativo a cada icono individual saca el
+>    desplegable (320px/280px de ancho) fuera de la pantalla por la
+>    izquierda en cualquier icono que no sea el último de la fila. Por
+>    debajo del punto en el que la barra pasa a hamburguesa, se ancla el
+>    desplegable al viewport en vez de al icono que lo abre.
+
+**S780.84** · `css/components.css` · antes de `.inline-content-icon {`
+
+> Un icono pegado a un texto en la misma línea (títulos de guía en las
+>    listas, cabeceras de colección). Ver inlineIconHtml en content-icon.js:
+>    un SVG en línea se apoya en la línea base con toda su caja, así que sin
+>    bajarlo un poco queda flotando por encima de las letras.
+
+**S780.85** · `css/components.css` · antes de `.saved-guide-icon {`
+
+> La fila de una guía guardada: el hueco del icono, del tamaño que tenía
+>    el emoji que había antes.
+
+**S780.86** · `css/components.css` · antes de `.activity-avatar-casa {`
+
+> Lo que publica la casa —una noticia— no lleva avatar de nadie: lleva
+> la marca del sitio. Es la diferencia entre «PINGU ha publicado», que
+> suena a opinión suya, y «Nueva noticia», que es lo que ha pasado.
+
+**S780.87** · `css/components.css` · antes de `min-width: 0;`
+
+> Sin esto, un título de guía largo empuja la fila y se sale por la
+>      derecha en móvil (ver la auditoría de desbordes).
+
+**S780.88** · `css/components.css` · antes de `.activity-tipo {`
+
+> La chapa de tipo de lo que publica la casa (tanda 312). Va en su
+>    propio renglón, encima del titular, para que lo primero que se lee de
+>    cada fila sea lo que cambia y no lo que se repite.
+
+**S780.89** · `css/components.css` · antes de `.activity-tipo + a {`
+
+> Es un elemento en línea dentro del <p>: sin esto el titular se le
+>    pegaría al lado en vez de empezar debajo.
+
+**S780.90** · `css/components.css` · antes de `tcg-deck {`
+
+> Lo que se guarda es <tcg-deck data-cards="id1,id2">; todo lo de dentro
+>    lo genera cards-block.js desde nuestra tabla.
+
+**S780.91** · `css/components.css` · antes de `.deck-empty,`
+
+> ── Las cartas de una guía viven en css/cartas-lista.css (tanda 340) ──
+> 
+> El bloque `.deck-grid` / `.deck-card*` se mudó para hacer sitio en la
+> portada, que estaba a 0,1 KB del presupuesto. Solo lo usan guia.html y
+> editor-guia.html, y `components.css` lo baja TODO el mundo.
+> 
+> `.deck-empty` y `.deck-note` SE QUEDAN aquí y no es un olvido:
+> `js/curso.js` usa `.deck-empty` para el «Falta la imagen» de un
+> ejercicio, y curso.html no carga la hoja de las guías. Llevárselas
+> pegadas al bloque de al lado es exactamente lo que dejó sin estilo a
+> media web en la tanda 316.
+
+**S780.92** · `css/components.css` · antes de `.rating-box {`
+
+> Una sola fila desde la 682: título, estrellas y la media en línea;
+>    la pista y quién valoró, debajo a todo el ancho.
+
+**S780.93** · `css/components.css` · antes de `.rating-summary {`
+
+> El resumen es un BOTÓN cuando hay valoraciones: al pincharlo se
+> despliega quién ha valorado. Se mantiene con aspecto de texto porque
+> sigue siendo, ante todo, el dato de la media.
+
+**S780.94** · `css/components.css` · antes de `padding: 8px 4px;`
+
+> Zona de toque de 24px sin mover el diseño: el relleno agranda el
+>      objetivo y el margen negativo lo descuenta del hueco que ocupa.
+
+**S780.95** · `css/components.css` · antes de `.modal-box-mascota {`
+
+> El pop-up de "¿Qué es PokeDoc?". Es más ancho que un modal normal
+>    porque ahora lleva dibujo y dos párrafos: con los 360px de un modal
+>    corriente el pingüino saldría del tamaño de un sello.
+
+**S780.96** · `css/components.css` · antes de `.mascota {`
+
+> `height: auto` con el width/height puestos en el HTML: el navegador
+>    reserva el hueco con la proporción correcta antes de descargar la
+>    imagen, y así el texto no da un salto cuando termina de cargar.
+
+**S780.97** · `css/components.css` · antes de `@media (max-width: 560px) {`
+
+> En móvil el pingüino se pone arriba y centrado: a 130px de ancho al
+>    lado del texto no quedaría sitio para ninguno de los dos.
+
+**S780.98** · `css/components.css` · antes de `.reto-tarjetas {`
+
+> El banner de noticias de la portada (tanda 288) se fue a
+> css/portada.css en la 299: solo lo pinta la portada, y desde que esa
+> hoja existe tenerlo aquí era hacer que lo bajara todo el mundo.
+
+**S780.99** · `css/components.css` · antes de `/* Los seis degradados salen de la paleta de arte de style.css desde la`
+
+> ── La portada de una guía sin imagen (tanda 299, compartida en la 300) ──
+> Seis degradados que se eligen por el SLUG (arteDe, js/app.js), no al
+> azar: si cambiaran en cada pintada, la rejilla de /aprender
+> parpadearía al filtrar. Viven aquí y no en aprender.css porque desde
+> la tanda 300 los usa también la portada, y esas dos pantallas no
+> comparten ninguna otra hoja.
+
+**S780.100** · `css/components.css` · antes de `.arte-1 { background: var(--arte-verde); }`
+
+> Los seis degradados salen de la paleta de arte de style.css desde la
+>    tanda 315: estaban escritos aquí Y en torneos.css, los mismos seis en
+>    distinto orden. El ORDEN sí es de cada pantalla —a una guía le toca
+>    uno por su identidad y a un torneo otro— pero los colores son los
+>    mismos.
+
+**S780.101** · `css/components.css` · antes de `.seccion-cabecera {`
+
+> La cabecera de cada bloque de la columna ancha: título y su enlace de
+>    «ver todo» en la misma línea, que es lo que dice que hay más detrás.
+
+**S780.102** · `css/components.css` · antes de `.mencion-lista {`
+
+> ── La lista que sale al escribir @ ──
+>    Va colgada de <body> con position:absolute y coordenadas de página:
+>    dentro de la caja de escribir la recortaría el overflow del editor.
+
+**S780.103** · `css/components.css` · antes de `.guia-cta-curso .subtext {`
+
+> La bajada hereda el color del bloque: .subtext a secas se pierde
+>    sobre el fondo oscuro.
+
+**S780.104** · `css/components.css` · antes de `@media (max-width: 520px) {`
+
+> En el móvil el botón pasa a ocupar toda la línea: partido en dos
+>    columnas de 150 px no se lee ni se pulsa bien.
+
+**S780.105** · `css/components.css` · antes de `yt-video {`
+
+> ── Vídeos de YouTube ──
+>    Lo que se ve de entrada es una portada NUESTRA, no el vídeo: hasta que
+>    alguien la pulsa no se pide nada a Google. Ver js/video-youtube.js.
+
+**S780.106** · `css/components.css` · antes de `.yt-miniatura {`
+
+> ── La miniatura de verdad (tanda 276) ──
+> 
+> Va DEBAJO del botón, ocupando la caja entera. La sirve /yt-portada, que
+> es nuestro: el navegador de quien lee no habla con Google (ver
+> netlify/functions/yt-portada.mjs y la política de privacidad).
+> 
+> `object-fit: cover` no es un adorno: `hqdefault.jpg` —la que existe
+> para TODOS los vídeos— viene en 4:3 con bandas negras arriba y abajo, y
+> recortarla es lo que hace que se vea igual que la de alta resolución.
+
+**S780.107** · `css/components.css` · antes de `z-index: 0;`
+
+> Fuera del flujo del botón, que es un flex en columna: si contara,
+>      empujaría el play y el texto fuera de sitio.
+
+**S780.108** · `css/components.css` · antes de `.yt-con-miniatura .yt-portada {`
+
+> Con foto detrás, el degradado de la caja sobra y el texto necesita algo
+>    que lo separe: una cortina oscura, más densa abajo, que deja ver la
+>    portada y mantiene legible lo de encima. Sin esto, un vídeo con la
+>    portada clara dejaba «Ver el vídeo» en blanco sobre blanco.
+
+**S780.109** · `css/components.css` · antes de `.yt-con-miniatura .yt-texto {`
+
+> Con la portada delante, «Ver el vídeo» ya lo dice el triángulo rojo:
+>    el texto grande estorba y tapa la imagen. Se queda la nota pequeña, que
+>    es la que explica que no se ha cargado nada todavía.
+
+**S780.110** · `css/components.css` · antes de `.yt-con-miniatura .yt-play { transform: scale(1.15); transition: transform 0.15s`
+
+> El play, más grande cuando hay foto: compite con una imagen, no con un
+>    fondo liso.
+
+**S780.111** · `css/components.css` · antes de `yt-video .yt-enlace {`
+
+> El enlace de repuesto: si alguien no quiere cargar el marco, o el
+>    navegador lo bloquea, sigue habiendo forma de llegar al vídeo.
+
+**S780.112** · `css/components.css` · antes de `.primeros-pasos {`
+
+> ── Primeros pasos del recién llegado ───────────────────────────────────
+>    Tres acciones concretas para quien acaba de registrarse. Solo aparece
+>    mientras quede alguna sin hacer (ver js/primeros-pasos.js), así que esto
+>    no lo ve nadie pasada la primera semana.
+
+**S780.113** · `css/components.css` · antes de `.paso-siguiente {`
+
+> El siguiente paso es el único con botón y el único destacado: tres
+>    llamadas a la vez son otra vez el problema de "por dónde empiezo".
+
+**S780.114** · `css/components.css` · antes de `.paso-hecho .paso-texto strong {`
+
+> Un paso hecho se apaga, pero se sigue leyendo: es la prueba de lo que ya
+>    has conseguido, no basura que tapar.
+
+**S780.115** · `css/components.css` · antes de `padding: 12px 16px;`
+
+> 12 y no 8 (tanda 312): con 8 el botón medía 29 px de alto y es la
+>      llamada a la acción de «Tus primeros pasos» — lo primero que se le
+>      pide a alguien que acaba de llegar. Un dedo pide 44.
+
+**S780.116** · `css/components.css` · antes de `width: calc(100% - 32px);`
+
+> El 100 % MÁS los 32 de sangría se salía de la tarjeta por la
+>        derecha (708): el ancho descuenta la sangría.
+
+**S780.117** · `css/components.css` · antes de `.article-body img {`
+
+> Las fotos del contenido invitan a ampliarse. En el editor no: ahí el
+>    clic es para seleccionarlas.
+
+**S780.118** · `css/components.css` · antes de `.article-sidebar a.activo {`
+
+> El enlace normal ya trae un borde izquierdo gris: aquí solo se
+>    enciende.
+
+**S780.119** · `css/components.css` · antes de `.top-mes {`
+
+> Mismo radio y sombra que las tarjetas del reto de al lado: la
+>    sección es del mismo bloque visual. OJO: la variable es --radius-lg;
+>    un `--radius` a secas NO existe y deja la esquina cuadrada sin avisar.
+
+**S780.120** · `css/components.css` · antes de `.top-mes-oro {`
+
+> El podio, con el tinte de su metal. Van en rgba SEMITRANSPARENTE
+>    sobre el fondo de la tarjeta a propósito: así el mismo valor funciona
+>    en claro y en oscuro sin duplicar reglas por tema.
+
+**S780.121** · `css/components.css` · antes de `color: #177a52;`
+
+> El verde de siempre oscurecido un punto: 13.5px en negrita no es
+>      «texto grande» para WCAG y el #22a06b se quedaba en 3.4:1.
+
+**S780.122** · `css/components.css` · antes de `#bienvenidaSeccion,`
+
+> ── El panel de la portada ──
+>    El aire entre bloques lo pone el gap de las columnas (así las
+>    secciones con display:none no dejan hueco fantasma), y en escritorio
+>    el panel se parte en dos: lo ancho a la izquierda y la barra lateral
+>    (top del mes, atajos) a la derecha, en vez de una torre de bloques a
+>    pantalla completa. minmax(0, 1fr) y no 1fr a secas: sin el mínimo a
+>    cero, un contenido ancho (un título largo sin espacios, una tabla)
+>    empujaría la rejilla en vez de encogerse.
+
+**S780.123** · `css/components.css` · antes de `.panel-portada {`
+
+> En móvil las dos columnas se apilan: el gap del propio panel es el
+>    que separa la última sección de la principal del top del mes (los
+>    gaps de dentro de cada columna no cubren esa frontera).
+
+**S780.124** · `css/components.css` · antes de `body.portada-compacta .page-content {`
+
+> Con la bienvenida como primer bloque (sesión iniciada, el hero de
+>    marketing escondido) los 76px de aire de .page-content sobran: esa
+>    distancia estaba pensada para el hero. La clase la pone js/home.js
+>    en el mismo momento en que enseña la bienvenida.
+
+**S780.125** · `css/components.css` · antes de `#bienvenidaSeccion {`
+
+> La versión sin salto de lo de arriba: el script en línea del <head>
+>    marca <html class="con-sesion"> ANTES del primer pintado cuando hay
+>    sesión guardada, y estas reglas dejan la portada del miembro ya
+>    colocada (hero fuera, bienvenida con esqueleto, aire compacto). Si la
+>    sesión resulta no valer, cargarBienvenida retira la clase y vuelve la
+>    portada de visitante.
+
+**S780.126** · `css/components.css` · antes de `.portada-lateral {`
+
+> La lateral acompaña al hacer scroll mientras quepa; el tope deja
+>      sitio a la navbar, que es sticky. El align-self es imprescindible:
+>      si la lateral se estirara al alto de la rejilla, el sticky no
+>      tendría recorrido.
+
+**S780.127** · `css/components.css` · antes de `.portada-principal .reto-tarjetas:last-child,`
+
+> Nada de estirar tarjetas para cuadrar las columnas: se probó con
+>      flex en la última sección y dejaba la tarjeta del foro hinchada y
+>      medio vacía. El equilibrio lo pone el reparto de contenido — los
+>      atajos viven en la principal, así que la principal es casi
+>      siempre la columna alta y la lateral puede terminar antes, que
+>      en una barra lateral es lo natural.
+
+**S780.128** · `css/components.css` · antes de `.bienvenida-chip {`
+
+> El mismo truco de tinte que el podio: rgba semitransparente para no
+>    duplicar la regla por tema. El texto sí cambia en oscuro.
+
+**S780.129** · `css/components.css` · antes de `.medalla-chip {`
+
+> ── El medallero de los cursos ──
+>    Chips de medalla compartidos: en la tarjeta de guía, en la tira de
+>    /aprender y donde haga falta. Tintes rgba semitransparentes: mismos
+>    valores en claro y oscuro, con el texto ajustado en oscuro.
+
+**S780.130** · `css/components.css` · antes de `.top-mes-puesto.podio { display: inline-flex; align-items: center; }`
+
+> El podio de medallas SVG (liga y top del mes): oro, plata y bronce
+>    por el color del trazo; el fondo tintado lo pone la fila.
+
+**S780.131** · `css/components.css` · antes de `/* La miniatura de la portada (misma familia que las tarjetas del reto). */`
+
+> La página /lanzamientos tiene su hoja (css/lanzamientos.css): aquí
+>    solo queda la miniatura de la portada.
+
+**S780.132** · `css/components.css` · antes de `.lanzamiento-portada-logo { height: 42px; width: 108px; object-fit: contain; fle`
+
+> Medidas fijas y no máximas (tanda 313): un máximo deja el alto en
+>    `auto` hasta que carga y la tarjeta da un salto.
+
+**S780.133** · `css/components.css` · antes de `/* `.path-list`, `.category-row` y `.row-info` se fueron en la tanda 299:`
+
+> ── El CSS del foro se mudó a css/foro.css (tanda 299) ──
+>    Estas reglas solo las usa foro.html, pero components.css lo baja TODO
+>    el mundo: eran 7 KB gzip viajando en la portada, que tiene un tope de
+>    170 KB (ver CLAUDE.md). Aquí no queda nada del foro salvo dos reglas
+>    que comparte con otras pantallas (la chapa de nivel y las imágenes de
+>    una firma), que por eso se quedan.
+
+**S780.134** · `css/components.css` · antes de `/* ── Esqueletos con la FORMA de lo que viene (tanda 305) ──`
+
+> `.path-list`, `.category-row` y `.row-info` se fueron en la tanda 299:
+>    eran la pantalla de categorías de /aprender, que ya no existe — ahora
+>    las guías se ven directamente y las categorías son filtros.
+
+**S780.135** · `css/components.css` · antes de `.esq-articulo {`
+
+> ── Esqueletos con la FORMA de lo que viene (tanda 305) ──
+> 
+> Un artículo abría con «Cargando guía…» centrado en una página vacía y
+> luego aparecía todo de golpe. Dos problemas: la frase no dice cuánto
+> falta ni qué viene, y el salto de vacío a lleno mueve la página entera
+> justo cuando ya ibas a leer.
+> 
+> Un esqueleto con la forma del contenido reserva el sitio —así no hay
+> salto— y hace que la espera se lea como «esto está llegando» en vez de
+> como «aquí no hay nada». Se usan las mismas piezas en la guía, la
+> noticia y el curso, que es el mismo tipo de página.
+
+**S780.136** · `css/components.css` · antes de `.esq-parrafo .esq-linea:last-child {`
+
+> La última línea de un párrafo nunca llega al margen: sin esto el
+>    esqueleto parece un bloque de color y no un texto.
+
+**S780.137** · `css/components.css` · antes de `/* ── Esqueletos de LISTA (tanda 308) ──`
+
+> Se apaga poco a poco hacia abajo: lo de arriba es lo que vas a leer
+>    primero, y dar a entender que la página sigue sin pintarla entera es
+>    más honesto que rellenarla de gris hasta el pie.
+
+**S780.138** · `css/components.css` · antes de `.esq-tarjeta {`
+
+> ── Esqueletos de LISTA (tanda 308) ──
+>    El de la tanda 305 tiene forma de ARTÍCULO y sirve para una guía o un
+>    curso abiertos. /noticias y /aprender no enseñan un artículo: enseñan
+>    una rejilla de tarjetas, y ahí la silueta correcta es otra — si no, lo
+>    que aparece al cargar no se parece a lo que llega después, que es todo
+>    lo que un esqueleto tiene que hacer.
+> 
+>    Dos formas porque hay dos tarjetas: la noticia es VERTICAL (portada
+>    arriba, texto debajo) y la guía es HORIZONTAL (icono cuadrado a la
+>    izquierda, texto a la derecha).
+
+**S780.139** · `css/components.css` · antes de `aspect-ratio: 16 / 9;`
+
+> La misma proporción que .noticia-portada, para que la tarjeta no
+>      pegue un salto de alto al llegar la de verdad.
+
+**S780.140** · `css/components.css` · antes de `@media (pointer: coarse) {`
+
+> ── Los controles densos, en una pantalla que se toca (tanda 312) ──
+>    La barra de arriba se arregló en style.css para todo el mundo; estos
+>    son los que se quedaban cortos SOLO para un dedo, así que van tras
+>    `pointer: coarse` y no tocan el ratón, donde 44 px sería aire de más
+>    en una fila de chips.
+> 
+>    Aquí van SOLO los que salen en varias pantallas. Lo de una sola —los
+>    del foro, los del perfil, las pestañas del torneo, los chips de
+>    /aprender y de /comunidad— vive en su hoja: es la norma de la tanda
+>    299, que esta misma tanda se saltó de primeras y cazaron sus pruebas.
+> 
+>    Fuera de aquí, a propósito: los enlaces dentro de una frase —los
+>    legales del pie, un @nombre en un mensaje—. La norma de tamaño mínimo
+>    de la WCAG los exenta expresamente, y estirarlos rompería el renglón
+>    que los contiene.
+
+**S780.141** · `css/components.css` · antes de `.card-save-btn,`
+
+> Los que son caja de icono tienen que seguir centrándolo cuando la
+>      caja crece por debajo de ellos.
+
+**S780.142** · `css/components.css` · antes de `.pie-col a {`
+
+> Los del pie van en bloque y no en línea: `inline-flex` los encogía
+>      al ancho de su palabra —«Foro» se quedaba en 28 px— y el objetivo
+>      volvía a ser pequeño por el otro lado.
+
+**S780.143** · `css/components.css` · antes de `@media (prefers-reduced-motion: reduce) {`
+
+> ── Quien pide menos movimiento, lo tiene (tanda 313) ──
+>    Cuatro animaciones vivían aquí sin respetar el ajuste del sistema, y
+>    una de ellas —el barrido de los esqueletos de carga— es INFINITA, que
+>    es justo el caso que la preferencia existe para apagar: algo que se
+>    mueve sin parar en la pantalla mientras intentas leer.
+>    Las otras cuatro hojas del sitio que animan ya lo respetaban; esta era
+>    la que faltaba. No se quita el esqueleto: se queda quieto, que sigue
+>    diciendo «esto está cargando» sin moverse.
+
+**S780.144** · `css/components.css` · antes de `/* ── La rejilla de guías ── */`
+
+> ═══ La tarjeta de una guía (tanda 316) ═══
+> 
+> Vivía en css/aprender.css, y la portada tenía LA SUYA —`.recent-card`
+> en portada.css— para el mismo objeto y sin una clase en común. Al
+> unificarlas, el molde lo pinta js/guia-tarjeta.js y el CSS tiene que
+> estar donde llegue a las DOS pantallas: aquí, que lo baja todo el
+> mundo. Dejarlo en aprender.css era el fallo de la tanda 299 otra vez,
+> pero al revés.
+
+**S780.145** · `css/components.css` · antes de `.guia-tarjeta {`
+
+> ── La tarjeta se mide a SÍ MISMA (tanda 316) ──
+> 
+> Medido, y es la razón de que esto no se pueda hacer con un `@media`:
+> con la ventana en 960 px la MISMA tarjeta mide 264 px en la portada
+> —que la mete en una columna con la lateral al lado— y 432 en
+> /aprender, que la deja a página completa. Y con la ventana en 600 mide
+> 552, o sea que «pantalla más grande» ha llegado a significar «tarjeta
+> más pequeña». Un `@media` solo sabe de la VENTANA: le estaría dando
+> la misma respuesta a los tres casos.
+> 
+> `container-type: inline-size` hace que la tarjeta sea el marco de
+> referencia de lo que lleva dentro, y el `@container` de abajo se
+> dispara por lo que mide ELLA.
+
+**S780.146** · `css/components.css` · antes de `.guia-arte::before {`
+
+> Los seis degradados (.arte-1..6) están unos cientos de líneas más
+>    arriba, en esta misma hoja.
+
+**S780.147** · `css/components.css` · antes de `.guia-arte-info {`
+
+> La fila de arriba de la franja (tanda 312): categoría a la izquierda,
+>    minutos a la derecha. `inset: 0` con `align-items: flex-start` la deja
+>    pegada arriba sin robarle el sitio a la rareza, que sigue abajo.
+>    No recibe pulsaciones: la tarjeta entera es un enlace y un hijo que
+>    los capturase abriría agujeros donde no se puede pulsar.
+
+**S780.148** · `css/components.css` · antes de `.guia-chapa-cat {`
+
+> Sobre los seis degradados, un fondo claro con texto oscuro: el color
+>    de la franja cambia con la guía, así que la chapa no puede fiarse de
+>    él. Es el mismo recurso que ya usa la rareza.
+
+**S780.149** · `css/components.css` · antes de `.guia-rareza { font-weight: 700; }`
+
+> La rareza es una ETIQUETA más desde la 316. En la franja de color se
+>    quedaba sola en una segunda línea —y obligaba a la franja a medir 100
+>    px para hacerle sitio— mientras el nivel y el curso vivían abajo. Son
+>    las tres la misma cosa: cómo es esta guía.
+
+**S780.150** · `css/components.css` · antes de `/* El pie de la tarjeta (tanda 312). Antes era el texto debajo de la`
+
+> El progreso abajo del todo y con `margin-top:auto`: así dos tarjetas
+>    vecinas lo tienen a la misma altura aunque sus títulos midan distinto.
+
+**S780.151** · `css/components.css` · antes de `.guia-progreso {`
+
+> El pie de la tarjeta (tanda 312). Antes era el texto debajo de la
+>    barra y la barra solo aparecía si habías empezado, así que dos
+>    tarjetas seguidas tenían pies de altura distinta. Ahora es una línea:
+>    el estado a la izquierda y la barra ocupando lo que sobre, con una
+>    raya que la separa del resumen.
+
+**S780.152** · `css/components.css` · antes de `.guia-progreso-texto { flex: 0 0 auto; font-size: var(--t-xs); font-weight: 700;`
+
+> --text-dim daba 2,35 aquí y esto es el estado de la guía, no un
+>    metadato de refilón (norma de la tanda 311).
+
+**S780.153** · `css/components.css` · antes de `@container guia (max-width: 299px) {`
+
+> Por debajo de 300 px de TARJETA (no de ventana): la franja de color
+>    se queda en la mitad y el aire de dentro se recorta. A 264 px, 100 px
+>    de degradado son más de un tercio de lo que se ve antes del título.
+
+**S780.154** · `css/components.css` · antes de `.guia-pie {`
+
+> El pie: solo lo pinta la portada, que es donde había un autor y un
+> botón de guardar. Va FUERA del enlace de la tarjeta — un <button>
+> dentro de un <a> no existe en HTML y el navegador lo saca fuera,
+> descolocando la caja.
+
+**S780.155** · `css/components.css` · antes de `/* Botones que se leen como un enlace: el "Ver más" de aquí, el "Editar" y`
+
+> ── El botón que parece un enlace ──
+> Genérico, y por eso aquí: lo usan las encuestas del foro, la
+> moderación en lote y el «ver los 7 de la semana» de la portada, además
+> del buscador de cartas del editor. Se fue por error a
+> css/editor-texto.css en la mudanza de la tanda 316 —viajaba pegado al
+> buscador de cartas— y la portada se quedó sin él.
+
+**S780.156** · `css/components.css` · antes de `.link-btn {`
+
+> Botones que se leen como un enlace: el "Ver más" de aquí, el "Editar" y
+>    "Borrar" de un mensaje del foro, "Quitar la cita", "Cambiar mi voto".
+>    La clase se usaba en cuatro sitios y NO ESTABA DEFINIDA en ninguno: con
+>    el reset de `button` (sin borde, sin fondo y color heredado) salían
+>    como texto normal, y nada indicaba que se podían pinchar.
+
+**S780.157** · `css/components.css` · antes de `/* Etiqueta del tema: [Duda], [Oficial]... */`
+
+> ── La etiqueta de un tema del foro, y sus parientes de color ──
+> Se fue por error a css/comunidad.css en la tanda 316 —viajaba pegada a
+> las peticiones de guía— y la usan la portada, los dos perfiles y la
+> ficha de un torneo, que no bajan esa hoja.
+
+**S780.158** · `css/components.css` · antes de `.foro-etiqueta {`
+
+> El color de cada etiqueta lo pone etiquetaHtml() en línea (texto,
+>    fondo translúcido y borde); esto de aquí es la forma y el respaldo
+>    por si llegara una sin estilo.
+
+**S780.159** · `css/components.css` · antes de `:root[data-theme='dark'] .foro-etiqueta,`
+
+> Los chips de color (etiquetas de tema, chapas de nivel y títulos del
+>    admin) reciben su tono por --chapa y el texto se OSCURECE en tema
+>    claro: la paleta es clara a propósito para el tema oscuro, y tal cual
+>    sobre blanco no contrastaba (PageSpeed, AA). En el oscuro los colores
+>    se usan tal cual, que ahí sí llegan al 4.5:1.
+
+**S780.160** · `css/portada.css` · antes de `/* ── Lo que te trae hoy: el reto y la última noticia ── */`
+
+> ── La portada: lo que solo gasta la portada (tanda 299) ──
+> 
+> La norma de la casa dice que el CSS de una sola página va en su propio
+> fichero, y la portada era la excepción: como es la página del
+> presupuesto de peso, se venía metiendo todo en components.css para no
+> pedirle una hoja más. El razonamiento ya no se sostiene —el rediseño
+> de la 299 trae bastante CSS propio como para que esa hoja exista de
+> todas formas—, así que aquí se junta lo que solo se ve en /:
+> la fila de «hoy», el héroe del reto, el banner de noticias (que se
+> trae de components.css) y el galón de rareza de las guías recientes.
+> 
+> Lo que sale de components.css lo deja de bajar TODO EL MUNDO: el
+> banner de noticias eran ~60 líneas que solo pinta la portada.
+
+**S780.161** · `css/portada.css` · antes de `/* Aquí iba la cadena de alturas que estiraba las dos cajas de la fila`
+
+> Aquí vivía `.portada-hoy` (tandas 299 a 362): una fila propia con el
+>    torneo a la izquierda y la última noticia a la derecha, en las mismas
+>    dos columnas que el panel de abajo.
+>    La quitó la tanda 368, y el motivo es de los que no se ven hasta que
+>    alguien mira la portada en un PC: **una fila mide lo que mida su caja
+>    MÁS ALTA**, y estas dos no se parecen en nada — el torneo es una tira
+>    de 76 px y la noticia una tarjeta con foto de más de 300. Debajo del
+>    torneo quedaba un agujero de unos 250 px hasta «Ahora en el foro», y
+>    en el móvil no salía porque ahí van apiladas.
+>    La cura no es rellenar el hueco: es no tener fila. Cada caja se fue a
+>    la columna del panel que le tocaba (el torneo a la ancha, la noticia a
+>    la lateral), y una columna flexible fluye seguida.
+>    De paso se va `.portada-hoy:has(> .seccion-recogida)`, que existía
+>    solo para que la rejilla no dejara 320 px en blanco cuando una de las
+>    dos se recogía. Sin fila no hay nada que encoger.
+
+**S780.162** · `css/portada.css` · antes de `.portada-principal > section > .destacada,`
+
+> Aquí iba la cadena de alturas que estiraba las dos cajas de la fila
+>    hasta medir lo mismo. Sin fila que estirar, sobra: cada caja mide
+>    ahora lo que mide su contenido, que es justo lo que se quería. Lo
+>    único que se conserva es quitarle el margen de abajo a las tarjetas,
+>    porque el aire entre secciones lo pone el `gap` de la columna y si no
+>    se sumarían los dos.
+
+**S780.163** · `css/portada.css` · antes de `justify-content: center;`
+
+> El contenido va CENTRADO en vertical, no pegado arriba con el botón
+>      abajo del todo: la fila mide lo que mida la noticia de al lado (que
+>      lleva foto y puede ser bastante más alta), y con el botón anclado al
+>      suelo quedaba medio héroe de azul vacío en medio. Centrado, el hueco
+>      se reparte arriba y abajo y se lee como aire, no como un fallo.
+
+**S780.164** · `css/portada.css` · antes de `.reto-hoy::before {`
+
+> La trama de puntos, la misma que la cabecera de un torneo: sin ella el
+>    degradado se ve plano.
+
+**S780.165** · `css/portada.css` · antes de `.reto-puntos {`
+
+> Los cinco puntos del reto. Vacíos son una invitación —se ve de un
+>    vistazo que son cinco preguntas y no diez— y llenos, el resultado de
+>    hoy sin tener que leer el número.
+
+**S780.166** · `css/portada.css` · antes de `.reto-hoy .btn-primary.reto-hoy-boton {`
+
+> El botón blanco sobre azul: el .btn-primary de la casa es azul y sobre
+>    el degradado desaparecería.
+
+**S780.167** · `css/portada.css` · antes de `.reto-hoy-boton-flojo {`
+
+> El día que ya has jugado no hay nada que pulsar con urgencia: el
+>    enlace a la liga va de contorno, para que no compita con el resto de
+>    la portada.
+
+**S780.168** · `css/portada.css` · antes de `.reto-hoy-hecha {`
+
+> Jugado: mismo sitio y mismo tamaño, pero apagado. Si el de hoy hecho
+>    se viera igual de encendido que el de hoy pendiente, la portada
+>    perdería la única señal que distingue «te toca» de «ya está».
+
+**S780.169** · `css/portada.css` · antes de `.noticia-banner {`
+
+> ── El banner de la última noticia (tanda 288, aquí desde la 299) ──
+> 
+> Va con imagen, a diferencia de la fila fina del torneo, porque una
+> noticia sin foto es un enlace y con foto es una noticia —el mismo
+> razonamiento de css/noticias.css—. La imagen no toca el presupuesto
+> de peso: va en diferido y no es CSS ni JS.
+
+**S780.170** · `css/portada.css` · antes de `aspect-ratio: 16 / 7;`
+
+> La caja reserva su altura ANTES de que cargue la imagen: sin esto la
+>      portada pega un salto justo cuando la persona va a pulsar algo.
+
+**S780.171** · `css/portada.css` · antes de `.noticia-banner-todas {`
+
+> Va FUERA del banner, y no dentro como un renglón más: dentro sería un
+> enlace metido en otro enlace —que ni es HTML válido ni se puede
+> pulsar— y llevaría al artículo, que es justo lo contrario de lo que
+> promete. Esto es lo que convierte el banner en «hay una sección de
+> noticias» en vez de «hay este artículo».
+
+**S780.172** · `css/portada.css` · antes de `#categoriesGrid .category-card {`
+
+> ── Las tarjetas de categoría, sin marco de color ──
+> 
+> El borde de 2px se lo daba `.category-card` para que se viera el color
+> del hash; sin color, 2px de gris solo es una caja más gorda.
+
+**S780.173** · `css/portada.css` · antes de `.foro-vivo-titulo {`
+
+> Dos líneas y no una (tanda 316). Con `nowrap` un título largo se
+>    cortaba con «…» incluso en los 562 px del escritorio, y en el móvil
+>    —donde solo le quedaban 160— se cortaban los tres. Un tema que no
+>    dice de qué va no invita a entrar a nadie.
+
+**S780.174** · `css/portada.css` · antes de `overflow: hidden;`
+
+> Con nowrap y SIN recorte, «Fulanito de Tal · hace 30 minutos» se
+>      salía de su columna y estiraba la portada entera en un móvil de
+>      320px. Mismo trato que el título de al lado: se recorta con «…».
+
+**S780.175** · `css/portada.css` · antes de `@media (max-width: 559px) {`
+
+> ── En el móvil el título manda (tanda 316) ──
+> 
+> Medido en 390 px: al título le quedaban 160 px y los tres salían
+> cortados —«Mi lista de C…»—, porque la cuenta de mensajes se lleva su
+> columna a la derecha. En 1280 tiene 562 y no se corta ni uno. Un tema
+> que no dice de qué va no invita a entrar a nadie.
+> 
+> La cuenta NO se quita: la 300 la puso en grande a propósito, porque es
+> el dato que decide si entras. Lo que cambia es dónde — baja a su
+> propia línea, debajo del autor y la hora, y deja el ancho entero para
+> el título, que se reparte en dos líneas.
+
+**S780.176** · `css/portada.css` · antes de `.foro-vivo-titulo {`
+
+> TRES líneas y no dos: medido, en 390 px al título le quedan 222 y en
+>      320 px, 152. Con dos líneas «¿Qué mazo me recomendáis para empezar?»
+>      —que no es un título raro— seguía cortándose.
+
+**S780.177** · `css/portada.css` · antes de `/* `.seccion-cabecera` vive en css/components.css desde la tanda 303: la`
+
+> ── Las dos columnas de verdad (tanda 300) ──
+> 
+> La 299 dejó el reto y la noticia arriba, pero de ahí para abajo la
+> portada seguía siendo una torre de bloques a pantalla completa: guía
+> destacada, torneo, foro, atajos, categorías, actividad y guías, uno
+> detrás de otro. Ahora lo que pasa va en la columna ancha y lo tuyo
+> —tu torneo, tus pasos, tu liga— en la estrecha.
+
+**S780.178** · `css/portada.css` · antes de `/* La caja blanca de la columna lateral. Es la misma forma que .top-mes,`
+
+> `.seccion-cabecera` vive en css/components.css desde la tanda 303: la
+>    usan la portada Y /usuarios, y esas dos no comparten ninguna otra
+>    hoja. Tenerla aquí dejaba el título de «Gente de PokeDoc» sin estilo.
+
+**S780.179** · `css/portada.css` · antes de `.panel-lateral {`
+
+> La caja blanca de la columna lateral. Es la misma forma que .top-mes,
+>    que ya vive ahí: así los cinco bloques de la lateral se leen como
+>    cinco cosas del mismo tipo y no como cinco inventos distintos.
+
+**S780.180** · `css/portada.css` · antes de `gap: 12px;`
+
+> 12 y no 16 (tanda 311): la escala redondeó hacia arriba y esta
+>      tarjeta ya iba justa — el nombre del torneo se partía en dos
+>      líneas dentro de una columna de 105 px. 12 también es un paso de
+>      la escala; aquí es EL paso que le toca.
+
+**S780.181** · `css/portada.css` · antes de `.portada-torneo-fecha {`
+
+> El día, en un recuadro: es lo primero que se mira de una cita, y es lo
+>    que distingue esta tarjeta del resto de enlaces de la portada.
+
+**S780.182** · `css/portada.css` · antes de `.portada-tema svg {`
+
+> El icono se queda con el tinte de la categoría: es el único color que
+>    sobrevivió a la tanda 299 y es el que hace reconocible cada tema.
+
+**S780.183** · `css/portada.css` · antes de `@media (min-width: 640px) {`
+
+> Dos columnas, siempre. `.guia-rejilla` se rellena sola con pistas de
+>    300 px mínimo contando el ancho que tenga; aquí vive DENTRO de una
+>    columna, y con cuatro guías se quieren dos filas de dos —que es lo que
+>    además equilibra el alto con la lateral—.
+
+**S780.184** · `css/portada.css` · antes de `@media (min-width: 960px) {`
+
+> En una columna de 320px el botón del paso siguiente no cabe al lado
+>    del texto: baja debajo y se lleva la fila entera.
+
+**S780.185** · `css/portada.css` · antes de `.portada-tema-icono {`
+
+> El tinte de la categoría va SOLO en la pastilla del icono. Puesto en
+>    el chip entero (primer intento de la 300) devolvía justo lo que la 299
+>    quitó: seis pastillas de colores distintos compitiendo en fila.
+
+**S780.186** · `css/portada.css` · antes de `box-shadow: none !important;`
+
+> Sin la sombra de tres píxeles de .icon-tint-*: a 22px es una raya
+>      gorda, no un relieve.
+
+**S780.187** · `css/portada.css` · antes de `@media (max-width: 959px) {`
+
+> ── En el móvil, los primeros pasos primero (tanda 316) ──
+> 
+> Medido: «Tus primeros pasos» empezaba a 2.401 px de una portada de
+> 3.917 — el 61% hacia abajo. En escritorio está a 470, arriba en la
+> lateral; en el móvil las dos columnas se apilan y la lateral entera
+> cae al final. O sea que el módulo que le dice a alguien RECIÉN
+> LLEGADO qué hacer es de lo último que ve, justo el día que más falta
+> le hace.
+> 
+> `display: contents` disuelve las dos columnas y deja todas las
+> secciones como hijas directas del panel, que es lo único que hace que
+> `order` pueda mover una de una columna a la otra. El hueco entre
+> secciones no cambia: el panel tiene el mismo `gap` de 16 px que las
+> columnas que disuelve.
+> 
+> No hace falta apagarlo cuando los tres pasos están hechos: ahí la
+> sección se queda `hidden` para siempre (js/primeros-pasos.js) y un
+> elemento sin caja no se coloca en ninguna parte.
+
+**S780.188** · `css/portada.css` · antes de `#torneoPortadaSeccion {`
+
+> El orden del móvil, que con las columnas disueltas ya NO es el del
+>      HTML (tanda 368). El torneo y la noticia vivían en una fila propia
+>      por encima del panel, así que salían los primeros; al mudarlos cada
+>      uno a su columna, el DOM los separa —el torneo abre la ancha y la
+>      noticia abre la lateral, que va detrás entera— y en el móvil la
+>      noticia se habría caído hasta la mitad de la página.
+>      Estos tres números reponen exactamente lo que se veía antes: torneo,
+>      noticia, primeros pasos y a partir de ahí el orden del documento.
+
+**S780.189** · `css/portada.css` · antes de `.tcg-card-foto {`
+
+> ── La foto dentro del rectángulo del héroe (tanda 362) ──
+>    El marco ya reservaba su hueco y su giro; la foto lo rellena y hereda
+>    el redondeo. Si no llega, el rectángulo se queda como estaba y no se
+>    mueve nada de sitio.
+
+**S780.190** · `css/portada.css` · antes de `.hero-que-es {`
+
+> «¿Qué es PokeDoc?» deja de ser un botón que compite con las dos
+>    acciones del héroe y pasa a ser lo que es: una pregunta de quien ya se
+>    ha parado a mirar.
+
+**S780.191** · `css/portada.css` · antes de `color: var(--text-mid);`
+
+> `--text-mid` y no `--ice`: el héroe está sobre el fondo CLARO de la
+>      página, no dentro del panel navy. Con el hielo se quedaba en un gris
+>      casi invisible — un control que se pulsa hay que poder leerlo
+>      (tanda 311).
+
+**S780.192** · `index.html` · antes de `<script type="application/ld+json">`
+
+> Datos estructurados del SITIO. Aquí van escritos a mano porque la
+>        portada no cambia; los de cada guía, categoría, perfil y tema los
+>        inyecta netlify/edge-functions/meta-social.js con los datos de la
+>        base.
+> 
+>        El SearchAction es lo que hace que Google pueda enseñar una caja de
+>        búsqueda de PokeDoc dentro del propio resultado.
+
+**S780.193** · `index.html` · antes de `<link rel="modulepreload" href="/js/vendor/supabase-js.js" />`
+
+> Los seis módulos de TODA página, pedidos a la vez desde el
+>        principio: si no, se descubren en cascada (la página pide su .js,
+>        ese app.js, ese supabase.js y ese el bundle de 152 KB) y cada salto
+>        es un viaje más antes de pintar. Estos y no todo el grafo: no
+>        cambian de página a página, así que no se quedan obsoletos.
+
+**S780.194** · `index.html` · antes de `<a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>`
+
+> Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+>        porque su razón de ser es no tener que tabular por los doce
+>        enlaces de la barra en CADA página. Solo se ve al enfocarlo.
+
+**S780.195** · `index.html` · antes de `<p>Guías, cursos interactivos y torneos para coleccionistas y jugadores.</p>`
+
+> Los TORNEOS entran en el titular (tanda 362). La portada
+>                vendía guías y cursos, y la analítica dice otra cosa: 47 de
+>                las 55 personas que vuelven pasan por un torneo, y 436 de
+>                las visitas de gente sin cuenta entran directas a la ficha
+>                de uno. Se estaba enseñando una web distinta de la que se
+>                usa.
+
+**S780.196** · `index.html` · antes de `<button class="hero-que-es" id="btnWhatIsPokeDoc">¿Qué es PokeDoc?</button>`
+
+> «Qué es PokeDoc» deja de competir con las dos acciones: lo
+>                pregunta quien ya ha decidido mirar, no quien acaba de
+>                llegar.
+
+**S780.197** · `index.html` · antes de `<div class="hero-panel-stats">`
+
+> Números que hablan de PERSONAS, no solo de contenido: "6
+>                categorías" no crece nunca; "67 miembros y 200 mensajes esta
+>                semana" es la prueba de que esto está vivo, y crece solo.
+
+**S780.198** · `index.html` · antes de `<div class="hero-panel-stat">`
+
+> Era «mensajes esta semana» (tanda 362). Con un foro que
+>                  lleva 105 mensajes en total, ese número iba a ser de un
+>                  dígito muchas semanas — y «3 mensajes esta semana» en la
+>                  portada es prueba social EN CONTRA: le dice a quien llega
+>                  que aquí no hay nadie. El catálogo no puede bajar, y es
+>                  lo único de esta lista que ninguna otra web española
+>                  tiene.
+
+**S780.199** · `index.html` · antes de `<section class="container" id="bienvenidaSeccion">`
+
+> La bienvenida del miembro. Con sesión, el hero de marketing de
+>          arriba se oculta y en su lugar sale esta barra compacta: quien
+>          entra cada día no necesita que le vendan la web — necesita su
+>          racha y su reto. La pinta js/home.js.
+
+**S780.200** · `index.html` · antes de `<div class="container panel-portada" id="panelPortada">`
+
+> El panel de la portada. En escritorio, dos columnas: lo ancho
+>          (guía destacada, torneo, foro vivo) a la izquierda y la barra
+>          lateral (top del mes, atajos) a la derecha, para que todo se vea
+>          de un vistazo en vez de en una torre de bloques a pantalla
+>          completa. En móvil las dos columnas se apilan y el orden queda
+>          prácticamente el de siempre. Las secciones conservan sus ids:
+>          js/home.js las rellena y las enseña igual que antes.
+
+**S780.201** · `index.html` · antes de `<section id="torneoPortadaSeccion">`
+
+> El torneo abre la columna ancha (tanda 362, recolocado en la
+>              368). El motivo de que esté arriba del todo son los números:
+>              `/torneo` es la segunda página más vista del sitio y la tocan
+>              47 de las 55 personas que vuelven; el reto diario lleva 103
+>              partidas en toda la historia de la web.
+> 
+>              Y por qué está AQUÍ dentro y no en una fila suya (que es como
+>              nació): esa fila era una rejilla de dos columnas con el torneo
+>              a la izquierda y la noticia a la derecha, y las dos cajas no
+>              miden lo mismo ni de lejos — el torneo es una tira de 76 px y
+>              la noticia una tarjeta con foto de 300 y pico. La fila mide lo
+>              que mida la MÁS ALTA, así que debajo del torneo quedaba un
+>              agujero de 250 px en escritorio antes de «Ahora en el foro».
+>              Metiendo cada una en la columna que ya existía, cada columna
+>              fluye seguida y no hay hueco que rellenar.
+
+**S780.202** · `index.html` · antes de `<section id="destacadaSeccion">`
+
+> Los bloques que rellena js/home.js nacen VISIBLES con un
+>              esqueleto de la altura aproximada del contenido: si nacieran
+>              con display:none, al llegar los datos empujarían todo lo de
+>              abajo (el layout shift que PageSpeed penalizaba). El camino
+>              de «no hay datos» los recoge (recogerSeccion, js/home.js).
+
+**S780.203** · `index.html` · antes de `<section id="foroVivoSeccion">`
+
+> Lo último del foro, visible SIN sesión: los temas son públicos, y
+>              enseñar que hay gente hablando hoy es la mejor prueba de que esto
+>              es una comunidad y no una web de leer. La pinta js/home.js y se
+>              calla si el foro está vacío o falla.
+
+**S780.204** · `index.html` · antes de `<section id="recientesSeccion">`
+
+> Las guías nuevas suben aquí desde el fondo de la página
+>              (tanda 300). Estaban las últimas de todo, detrás de la
+>              actividad, en una franja de color a pantalla completa: lo
+>              que la web PRODUCE salía después de todo lo demás. Ahora van
+>              en la columna principal, justo debajo del foro.
+
+**S780.205** · `index.html` · antes de `<section id="temasSeccion">`
+
+> «Explora por tema» deja de ser seis tarjetas grandes y pasa
+>              a una fila de chips (tanda 300). El motivo lo puso PINGU: con
+>              16 guías repartidas en 6 categorías, entrar en una te deja en
+>              una página con dos guías — que es justo el vacío que la
+>              tanda 299 quitó de /aprender. Así que estos chips NO llevan a
+>              categoria.html: llevan a /aprender con ese tema ya filtrado,
+>              donde se ven las suyas y, a un clic, todas. Las páginas de
+>              categoría siguen existiendo para enlaces directos.
+
+**S780.206** · `index.html` · antes de `<section id="noticiaPortadaSeccion">`
+
+> La última noticia (tanda 277, con banner desde la 288; aquí
+>              desde la 368). La sección se estrenó el 2026-09-10 y la
+>              portada no la mencionaba: quien entra a pokedoc.es no tiene
+>              por qué abrir el menú para enterarse de que hay noticias.
+>              Va con la IMAGEN de portada, que es lo que distingue una
+>              noticia de un enlace, y con «Ver todas» para que se entienda
+>              que Noticias es una sección y no un artículo suelto. Se
+>              recoge sola si no hay ninguna.
+
+**S780.207** · `index.html` · antes de `<section id="retoSeccion">`
+
+> El reto del día, que hasta la 362 abría la portada a lo ancho
+>              (ver el comentario de arriba). Sigue estando, y arriba de la
+>              lateral: 103 partidas en toda la historia no dan para el
+>              sitio más caro de la página, pero quien lo juega lo juega a
+>              diario y tiene que encontrarlo.
+
+**S780.208** · `index.html` · antes de `<section class="hidden" id="primerosPasos"></section>`
+
+> Los primeros pasos y la actividad bajan de bloque ancho a
+>              caja de lateral (tanda 300). Los dos son acompañamiento: ni
+>              lo primero que vienes a ver ni algo que necesite media
+>              pantalla. Empiezan ocultos y los enseña su propio código.
+
+**S780.209** · `index.html` · antes de `<section id="ligaSeccion">`
+
+> La liga de la semana: la clasificación del reto diario de
+>              lunes a domingo. Va encima del top del mes porque se mueve
+>              más rápido (cada reto jugado la cambia). La pinta
+>              js/home.js y sin resultados esta semana no sale.
+
+**S780.210** · `index.html` · antes de `<section id="lanzamientoSeccion">`
+
+> El próximo lanzamiento, con su cuenta atrás. Los datos los
+>              mantiene el admin en /admin (site_settings, clave
+>              lanzamientos); sin sets futuros, no sale.
+
+**S780.211** · `index.html` · antes de `<footer class="footer">`
+
+> El pie, de verdad (tanda 312). Antes era un copyright y tres
+>        enlaces centrados; el problema no era que fuera feo, era que casi
+>        todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
+>        nada antes de llegar a él. Un pie con columnas llena ese hueco,
+>        da una segunda vía a cada sección desde cualquier página y enlaza
+>        internamente todo el sitio, que es lo que Google recorre.
+>        Va en el HTML y no montado desde JavaScript a propósito: estos
+>        enlaces tienen que estar en la página aunque el JS no llegue.
+
+**S780.212** · `index.html` · antes de `<img src="/assets/images/mascota.webp" class="mascota" alt="" width="523" height`
+
+> loading="lazy" porque esta imagen vive dentro de un modal que
+>                empieza oculto: sin esto el navegador se bajaba sus 112 KB en
+>                cada visita a la portada, la abriera alguien o no. Y en WebP,
+>                que para un dibujo así pesa un 69 % menos que el PNG.
+
+**S780.213** · `index.html` · antes de `<p><a href="/sobre.html">Leer más sobre el proyecto →</a></p>`
+
+> La versión larga, en una página de verdad: es la que se puede
+>                enlazar desde fuera (el vídeo, la bio de Instagram) y la que
+>                puede indexar Google. Un modal no tiene dirección propia.
+
+
+## Tanda 780 — Bloque 1 de «PokeDoc al detalle»: hacer sitio y lo pequeño (oct. 2026)
+
+PINGU eligió 63 de las 66 propuestas de la revisión del 8 de octubre. Este es
+el primer bloque:
+
+- **LO1, los comentarios a SCHEMA** (arriba, S780.n): la portada pasa de 169,5
+  a 143,8 KB y quedan 26,2 de margen. Comprobado que el navegador lee las
+  mismas reglas antes y después en las tres hojas (CSSOM idéntico).
+- **LO5**: la chapa de la guía pinta el nombre de la rareza (`NOMBRE_RAREZA`),
+  no la clave inglesa («Bronze» → «Bronce»).
+- **LO6**: en el PC la racha va en la barra de arriba; la del saludo de la
+  portada, solo en el móvil.
+- **LO4**: `centrarPestaniaActiva()` en cada `cambiarPestania`: la burbuja de
+  Mi colección enseña la pestaña en la que estás (la misma cuenta que
+  `barra-movil.js`, sin `scrollIntoView`).
+- **LO9**: `/curso` sin curso va a /aprender; la carta del día sin `dia` o sin
+  `carta` en la respuesta enseña el aviso de siempre (no «#NaN»); la
+  debilidad o la resistencia que no se saben (`null`) no se pintan, y una
+  lista vacía sí («—» es lo que pone la carta).
+- **MV11**: el aviso con Deshacer lleva una barra que se vacía en sus
+  segundos; pasar el dedo o el ratón la para a ella y al temporizador.
+- **PA19**: un degradado del color del fondo detrás de la barra y la burbuja
+  (`body::after`, solo móvil), que baja con ellas cuando se esconden.
+- **PA20**: el pie del móvil en filas de enlaces (44 px de alto, como pide la
+  312) y sin el lema; en la app instalada, solo la línea de lo legal.
+- Prueba 780 (nueva).

@@ -235,7 +235,8 @@ async function init() {
   try {
     const res = await fetch('/.netlify/functions/carta-del-dia', { headers: { accept: 'application/json' } })
     r = await res.json()
-    if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
+    // Sin día o sin carta tampoco hay reto: el mismo aviso (780, LO9).
+    if (!res.ok || r.error || !r.dia || !r.carta) throw new Error(r?.error || `HTTP ${res.status}`)
   } catch (err) {
     $('cdSub').textContent = 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
     $('cdAcciones').classList.add('hidden')

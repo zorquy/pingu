@@ -5309,6 +5309,16 @@ function dejarDeElegir() {
   $('mcEligiendo')?.classList.add('hidden')
 }
 
+// La pestaña en la que estás, a la vista en la burbuja del móvil (780, LO4):
+// la misma cuenta que barra-movil.js, sin `scrollIntoView`, que movería la
+// página entera.
+function centrarPestaniaActiva() {
+  const menu = $('mcMenu')
+  const activa = menu?.querySelector('[data-pestania].activa')
+  if (!activa || menu.scrollWidth <= menu.clientWidth) return
+  menu.scrollLeft = Math.max(0, activa.offsetLeft - (menu.clientWidth - activa.offsetWidth) / 2)
+}
+
 function cambiarPestania(nueva, { push = true } = {}) {
   // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
@@ -5328,6 +5338,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
     b.classList.toggle('activa', activa)
     b.setAttribute('aria-selected', String(activa))
   }
+  centrarPestaniaActiva()
   for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.

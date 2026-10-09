@@ -19,6 +19,9 @@ import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
+// La clave es inglesa (la columna); lo que se lee, en español (780, LO5).
+const NOMBRE_RAREZA = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
+
 const slug = slugDeArticuloEnLaUrl()
 
 const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
@@ -291,7 +294,7 @@ async function init() {
           // «básica» ni «de bronce», y ponerle esas chapas la hace
           // parecer lo que no es.
           esNoticia ? '' : `<span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
-        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(guide.guide_rarity || 'bronze')}</span>`
+        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(NOMBRE_RAREZA[guide.guide_rarity] || 'Bronce')}</span>`
         }
         ${MOSTRAR_PLANES && !esNoticia ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
         <!-- Los botones van en su propio grupo, no sueltos entre las
