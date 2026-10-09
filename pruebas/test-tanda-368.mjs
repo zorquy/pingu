@@ -235,9 +235,9 @@ console.log('\n── 4. La carta que se mueve ──')
   // otra deja medio efecto vivo.
   check('el JavaScript mira «menos movimiento»', /prefers-reduced-motion: reduce/.test(js))
   check('y el CSS también lo apaga', /@media \(prefers-reduced-motion: reduce\)[\s\S]{0,600}carta-scan-holo/.test(css))
-  // Con el dedo no: el primer toque ya es el que abre el visor.
-  check('solo con ratón', /\(hover: hover\) and \(pointer: fine\)/.test(js))
-  check('  …y el dedo se descarta explícitamente', /pointerType === 'touch'/.test(js))
+  // Desde la 783 (MV1) también con el dedo: el gesto es de la carta, y el
+  // visor sigue abriéndose con el `click`. La guarda de esa forma, en la 783.
+  check('el dedo cuenta solo mientras está apoyado', /pointerType === 'touch' && e\.buttons === 0/.test(js))
   // Una transformación crea un contexto nuevo y deja el `sticky` sin
   // efecto: por eso el giro va en una caja de dentro y no en el `figure`.
   // Contra el BLOQUE entero (`[^}]*`) y no contra los primeros 400
