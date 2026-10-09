@@ -803,6 +803,14 @@ function pintarRachaEnNavbar(racha) {
   chip.title = `Racha diaria: llevas ${dias} entrando. Entra mañana para no perderla.`
   chip.setAttribute('aria-label', `Racha diaria: ${dias}`)
   chip.innerHTML = `${icons.flame(15)}<span>${racha}</span>`
+  // La llama crece con los días (783, MV10): quieta hasta 2, viva desde 3,
+  // y un destello el día que la renuevas (la racha sube desde la última vista).
+  if (racha >= 3) chip.classList.add('viva')
+  try {
+    const vista = Number(localStorage.getItem('pd-racha-vista'))
+    if (Number.isFinite(vista) && vista > 0 && racha > vista) chip.classList.add('renovada')
+    localStorage.setItem('pd-racha-vista', String(racha))
+  } catch { /* sin memoria, sin destello */ }
   barra.prepend(chip)
 }
 

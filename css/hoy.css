@@ -172,6 +172,20 @@
   margin-bottom: var(--e-sm);
 }
 
+/* La línea se dibuja de izquierda a derecha al contar la cifra (783, MV2). */
+.hoy-chispa[data-dibujando] {
+  animation: hoy-dibujar 0.7s var(--ease) both;
+}
+
+@keyframes hoy-dibujar {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoy-chispa[data-dibujando] { animation: none; }
+}
+
 .hoy-sigue-cabeza h2 {
   margin: 0;
   font-family: var(--font-display);

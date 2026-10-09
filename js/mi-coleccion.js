@@ -1134,7 +1134,10 @@ async function pintarRepartoProductos() {
   if (!v?.unidades) return caja.classList.add('hidden')
   const r = repartoDeValor(valorDeAhora(), v)
   const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-  if (cifra) cifra.textContent = eurosConMiles(r.total)
+  if (cifra) {
+    cifra.textContent = eurosConMiles(r.total)
+    import('./contar.js').then(({ contarCifra }) => contarCifra(cifra, 'valor', r.total, eurosConMiles)).catch(() => {})
+  }
   const copias = resumenHero?.copias ?? lineas.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
   caja.innerHTML = `<span class="mc-reparto-franja" role="img" aria-label="Cartas ${r.pctCartas} %, productos ${r.pctProductos} %"><i class="mc-reparto-cartas" style="--ancho:${r.pctCartas}%"></i><i class="mc-reparto-productos" style="--ancho:${r.pctProductos}%"></i></span>
     <span class="mc-reparto-fichas">
@@ -1197,6 +1200,9 @@ function pintarResumenPanel() {
     ${esMia ? '<div id="mcMovidasSitio"></div>' : ''}
 `
   if (esMia && sesion) void pintarRepartoProductos()
+  // La cifra cuenta desde la de la última vez (783, MV2).
+  const cifraPanel = document.querySelector('#mcValorCaja .mc-cartera-cifra')
+  if (esMia && cifraPanel) import('./contar.js').then(({ contarCifra }) => contarCifra(cifraPanel, 'valor', valorDeAhora(), eurosConMiles)).catch(() => {})
 
   const mas = $('mcMasEstadisticas')
   if (mas) {
@@ -2311,7 +2317,7 @@ function abrirEditor(l) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
   const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
   $('mcEdFoto').innerHTML = escaneo
-    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" /></span>`
+    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}${varianteDe(l?.variante).id === 'reverse' ? ' data-impresion="reverse"' : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" /></span>`
     : ''
   // El holo se monta sobre el envoltorio recién pintado. A demanda, como
   // en /carta: con el dedo o con «menos movimiento» puesto no se monta
@@ -7425,7 +7431,8 @@ function enganchar() {
   // pasar. `once` por tarjeta, que el módulo ya se encarga del resto.
   $('mcCartas').addEventListener('pointerover', (e) => {
     const caja = e.target.closest('.mc-carta-foto')
-    if (!caja || caja.dataset.holoPuesto) return
+    // En la rejilla, solo con ratón: con el dedo, el gesto es desplazarse.
+    if (e.pointerType === 'touch' || !caja || caja.dataset.holoPuesto) return
     caja.dataset.holoPuesto = '1'
     import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
   })
@@ -8260,9 +8267,31 @@ async function verAlbumAjeno(fila) {
   await albumes.abrir(fila.id, { soloVer: true })
 }
 
+// Los anillos se llenan al entrar en pantalla (783, MV10), la PRIMERA vez
+// de la sesión: los que se pintan en los primeros segundos de la primera
+// visita a Expansiones o la Pokédex. Luego, quietos, que si no cansan.
+function llenarAnillosAlVerlos() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return
+  try { if (sessionStorage.getItem('pd-anillos')) return } catch { return }
+  const io = new IntersectionObserver((vistas) => vistas.forEach((v) => {
+    if (!v.isIntersecting) return
+    v.target.classList.add('llenando')
+    io.unobserve(v.target)
+  }))
+  let corte = null
+  const marcar = (raiz) => raiz.querySelectorAll?.('.mc-anillo:not(.por-llenar), .mc-set-anillo:not(.por-llenar)').forEach((a) => {
+    a.classList.add('por-llenar')
+    io.observe(a)
+    if (!corte) corte = setTimeout(() => { mo.disconnect(); try { sessionStorage.setItem('pd-anillos', '1') } catch { /* sin memoria */ } }, 4000)
+  })
+  const mo = new MutationObserver((cambios) => cambios.forEach((c) => c.addedNodes.forEach((n) => n.nodeType === 1 && marcar(n))))
+  mo.observe(document.getElementById('contenido') || document.body, { childList: true, subtree: true })
+}
+
 async function iniciar() {
   prepararOpcionesDeFormulario()
   enganchar()
+  llenarAnillosAlVerlos()
   albumes.iniciarAlbumes(contexto)
   sesion = await getSession().catch(() => null)
   if (modoCatalogo) return iniciarCatalogo()

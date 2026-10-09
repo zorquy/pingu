@@ -10,10 +10,11 @@
 //
 // ── Tres decisiones que no son de gusto ──
 //
-// 1. **Solo con ratón.** Con el dedo no hay «pasar por encima»: el
-//    primer toque ya es el toque que abre el visor, así que la carta
-//    pegaría un salto justo al pulsarla. Y en un móvil el giro se
-//    llevaría por delante el desplazamiento vertical.
+// 1. **Con ratón, y con el dedo desde la 783 (MV1).** Hasta entonces era
+//    solo ratón, porque el giro se llevaba por delante el desplazamiento.
+//    PINGU eligió que el gesto sea de la carta: en la ficha grande lleva
+//    `touch-action: none` y la página se mueve tocando fuera. En la
+//    rejilla sigue siendo solo con ratón (ahí el dedo es para desplazarse).
 //
 // 2. **Apagado con «menos movimiento» puesto**, aquí y en el CSS. Aquí
 //    porque si no seguiríamos escuchando el ratón y escribiendo
@@ -28,15 +29,19 @@
 
 // Cuánto se inclina, en grados, en el borde. Más de esto y deja de
 // parecer una carta en la mano para parecer una puerta abriéndose.
-const GRADOS = 9
+// 12 desde la 783 (MV1), con la vuelta en rebote: sigue pareciendo una carta.
+const GRADOS = 12
 
 export function montarHolo(caja) {
   if (!caja || caja.dataset.holo) return
   // `matchMedia` y no una comprobación suelta: el ajuste del sistema se
   // puede cambiar con la página abierta, y así nos enteramos.
   const quieto = window.matchMedia('(prefers-reduced-motion: reduce)')
-  const conRaton = window.matchMedia('(hover: hover) and (pointer: fine)')
-  if (quieto.matches || !conRaton.matches) return
+  // Con el dedo también desde la 783 (MV1): tocar y arrastrar inclina la
+  // carta. El toque que abre el visor sigue siendo un `click`, que no se
+  // toca; y si el navegador decide que es un desplazamiento de la página,
+  // manda `pointercancel` y la carta vuelve a su sitio.
+  if (quieto.matches) return
   caja.dataset.holo = '1'
   caja.classList.add('holo')
 
@@ -60,8 +65,8 @@ export function montarHolo(caja) {
   }
 
   caja.addEventListener('pointermove', (e) => {
-    // Un lápiz también vale; un dedo no (`pointerType === 'touch'`).
-    if (e.pointerType === 'touch') return
+    // Con el dedo, solo mientras está apoyado (no hay «pasar por encima»).
+    if (e.pointerType === 'touch' && e.buttons === 0) return
     const r = caja.getBoundingClientRect()
     if (!r.width || !r.height) return
     pendiente = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }
@@ -81,6 +86,8 @@ export function montarHolo(caja) {
     caja.classList.remove('holo-activo')
   }
   caja.addEventListener('pointerleave', soltar)
+  caja.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') soltar() })
+  caja.addEventListener('pointercancel', soltar)
   caja.addEventListener('blur', soltar, true)
 
   // Si alguien enciende «menos movimiento» con la página abierta, el

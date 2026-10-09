@@ -236,6 +236,12 @@ export async function montarHoy(session, { doc = document } = {}) {
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null
   caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ reto: reto === undefined ? null : reto, torneo, lanzamiento, respuestas: respuestas ?? null })
+  // La cifra cuenta desde la de la última vez (783, MV2).
+  const cifra = caja.querySelector('.hoy-valor b:not(.hoy-valor-invita)')
+  if (cifra && valor?.length) {
+    const total = Number(valor[valor.length - 1].valor) + (productos?.unidades ? Number(productos.total) || 0 : 0)
+    import('./contar.js').then(({ contarCifra }) => contarCifra(cifra, 'valor', total, (n) => conMiles.format(n), caja.querySelector('.hoy-chispa'))).catch(() => {})
+  }
   if (sigue) caja.insertAdjacentHTML('beforeend', sigueHtml(sigue.guia, sigue.fila))
   return caja
 }

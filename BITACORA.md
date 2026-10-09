@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (31) — PINGU-Claude (783 — bloque 4 de «PokeDoc al detalle»)
+
+**Hecho**: MV1, la carta grande se inclina hasta 12° también con el dedo (el
+gesto es de la carta: `touch-action: none` en la ficha grande; en la rejilla
+sigue solo con ratón), vuelve con rebote, y el reverse lleva su lámina en
+todo el marco. MV2, `js/contar.js`: la cifra de lo que vale tu colección
+cuenta desde la de la última vez (una vez al día, nunca la primera de todas)
+en «Hoy» y en el Panel, y la línea de «Hoy» se dibuja de izquierda a derecha.
+MV10, los anillos de Expansiones y la Pokédex se llenan al entrar en
+pantalla la primera vez de la sesión, y la llama de la racha está viva desde
+3 días y destella el día que sube. Detalle en SCHEMA.md, tanda 783.
+
+**Ficheros**: `js/carta-holo.js`, `css/carta-holo.css`, `js/contar.js`
+(nuevo), `js/hoy.js`, `css/hoy.css`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/app.js`, `css/components.css`, `SCHEMA.md`.
+Prueba 783 (nueva).
+
+**Pendiente**: los bloques 5 en adelante.
+
 ## 2026-10-09 (30) — PINGU-Claude (782 — bloque 3 de «PokeDoc al detalle»)
 
 **Hecho**: SI1, una cabecera común (`.cabecera-pagina`: título a la izquierda

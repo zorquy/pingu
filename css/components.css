@@ -1304,6 +1304,32 @@ tcg-deck {
   color: #fbbf24;
 }
 
+/* La llama viva desde 3 días y con destello al renovarla (783, MV10). */
+.nav-racha svg {
+  transform-origin: 50% 90%;
+}
+
+.nav-racha.viva svg {
+  animation: racha-viva 1.8s ease-in-out infinite;
+}
+
+.nav-racha.renovada svg {
+  animation: racha-destello 0.6s var(--ease) 2, racha-viva 1.8s ease-in-out 1.2s infinite;
+}
+
+@keyframes racha-viva {
+  50% { transform: scale(1.12) rotate(-4deg); }
+}
+
+@keyframes racha-destello {
+  50% { transform: scale(1.5); filter: drop-shadow(0 0 4px #f59e0b); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-racha.viva svg,
+  .nav-racha.renovada svg { animation: none; }
+}
+
 /* S780.82 */
 @media (max-width: 599px) {
   .nav-racha {

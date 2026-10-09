@@ -38658,3 +38658,57 @@ pulsados de los controles segmentados (`.lab-modo`, `.lab-pestania.activa`,
 `.tu-tema`), que sí «salen» del carril, y en los botones que flotan sobre una
 carta. «Ahora en el foro» de la portada pasa de filas sueltas con hueco a una
 lista con un separador entre fila y fila.
+
+
+## Tanda 783 — Bloque 4 de «PokeDoc al detalle»: la carta, las cifras y los anillos
+
+**MV1 · la carta que brilla al moverla, también con el dedo.** El holo de la
+368 era solo con ratón por dos motivos: el primer toque abre el visor y el
+giro se comía el desplazamiento. Lo primero no cambia (el visor va por
+`click` y el giro no lo bloquea); lo segundo lo resolvió la propuesta que
+eligió PINGU: el gesto es de la carta. `.carta-scan-holo.holo` lleva
+`touch-action: none`, así que en la ficha grande (/carta y el editor de una
+línea) arrastrar el dedo inclina la carta y la página se mueve tocando fuera.
+En la rejilla de Mi colección sigue siendo solo ratón —ahí el dedo es para
+desplazarse— y el montaje por `pointerover` se salta los toques. Con el dedo
+solo cuenta mientras está apoyado (`buttons`), y al levantarlo o si el
+navegador manda `pointercancel`, vuelve. `GRADOS` pasa de 9 a 12 y la vuelta
+al reposo es `0.3s cubic-bezier(0.34, 1.56, 0.64, 1)`, un rebote pequeño (la duración
+sigue siendo una de las dos de la casa, la 310).
+El reverse (`data-impresion="reverse"`, lo pone el editor cuando la línea es
+reverse) enciende la lámina de arcoíris aunque la rareza no la tenga, a
+`200% 200%` para que barra todo el marco y no una banda, como el velo de la
+461.
+
+**MV2 · las cifras cuentan.** `js/contar.js` exporta `contarCifra(el, clave,
+hasta, formato, grafica)`. Guarda en `localStorage` (`pd-cifra-<clave>`) la
+última cifra y su día. Cuenta (700 ms, salida cúbica) solo si hay una cifra
+anterior de OTRO día y distinta: la primera vez de todas no hay de dónde
+contar, y contar desde cero sería inventarse una subida. Si bajó, baja. Con
+«menos movimiento» o sin memoria, pone la cifra y ya. Llamarla otra vez
+sobre la misma caja corta la cuenta en curso (`el._contar`), que es lo que
+pasa en el Panel cuando llegan los productos (766) y la cifra cambia; y un
+`setTimeout` deja la cifra buena aunque la pestaña esté en segundo plano y
+no haya fotogramas. «Hoy» y el Panel comparten la clave `valor`, así que la
+cuenta sale en el primero que abras ese día. La línea de «Hoy» se dibuja con
+`clip-path: inset()` animado (`.hoy-chispa[data-dibujando]`: un atributo y no
+una clase, porque `contar.js` lo baja también /mi-coleccion, que no carga
+`hoy.css`, y el barrido de la 299 lo habría dado por huérfano): con
+`vector-effect: non-scaling-stroke` un `stroke-dasharray` no mide lo que
+parece, y un recorte sí.
+
+**MV10 · anillos que se llenan y una racha que arde.** Los anillos
+(`.mc-set-anillo` de Expansiones, `.mc-anillo` de la Pokédex y de los
+conjuntos) se llenan al entrar en pantalla, la primera vez de la sesión:
+`llenarAnillosAlVerlos()` observa con un `MutationObserver` los anillos que
+se pintan, les pone `.por-llenar` y un `IntersectionObserver` les añade
+`.llenando` al verse. Cuatro segundos después del primer anillo deja de
+marcar nuevos y lo apunta en `sessionStorage`. El llenado anima
+`--pct-visto`, registrado con `@property` para que el `conic-gradient` se
+pueda animar; y SOLO lo pinta el anillo con `.por-llenar`, porque una
+propiedad registrada siempre tiene valor (su `initial-value`, 0) y un
+`var(--pct-visto, var(--pct))` en la regla base habría dejado todos los
+anillos a cero. El completo (verde) no se toca. La llama de la barra
+(`.nav-racha`) lleva `.viva` desde 3 días (late suave) y `.renovada` el día
+que la racha sube respecto a la última vista (`pd-racha-vista`): dos
+destellos y luego viva.

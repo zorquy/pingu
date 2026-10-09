@@ -10792,3 +10792,32 @@ input.mc-alb-titulo:not([readonly]):focus {
     white-space: nowrap;
   }
 }
+
+/* Los anillos se llenan al entrar en pantalla, la primera vez de la sesión
+   (783, MV10). Solo el que lleva `.por-llenar` pinta `--pct-visto`. */
+@property --pct-visto {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.mc-anillo.por-llenar {
+  background: conic-gradient(var(--navy-solid) calc(var(--pct-visto) * 1%), var(--border) 0);
+}
+
+.mc-set-anillo.por-llenar:not(.completo) > i {
+  background: conic-gradient(var(--navy) calc(var(--pct-visto) * 1%), var(--border) 0);
+}
+
+.por-llenar.llenando {
+  animation: mc-llenar 0.9s var(--ease) both;
+}
+
+@keyframes mc-llenar {
+  from { --pct-visto: 0; }
+  to { --pct-visto: var(--pct); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .por-llenar.llenando { animation: none; --pct-visto: var(--pct); }
+}
