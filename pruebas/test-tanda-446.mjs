@@ -97,7 +97,7 @@ console.log('\n── 3. «Ver todas» no es un enlace pocho ──')
       alto: Math.round(n.getBoundingClientRect().height) }
   })
   check('no va subrayado', v.subrayado === 'none', JSON.stringify(v))
-  check('  …y tiene cuerpo de control', v.borde !== '0px' && v.alto >= 32, JSON.stringify(v))
+  check('  …y tiene cuerpo de control (sin chapa desde la 781: palabra y flecha)', v.borde === '0px' && v.alto >= 32, JSON.stringify(v))
   // Y la clase global NO se toca: la usa media web y un cambio ahí sería
   // otra tanda entera.
   const otro = await page.evaluate(() => {

@@ -100,7 +100,8 @@ console.log('\n── 1. La casilla es la carta ──')
   // imagen. Lo que esta tanda defiende sigue en pie: que la etiqueta la
   // diga para quien no ve la carta (ahí abajo).
   const chapas = await page.locator('#mcCartas .mc-chapa-variante').allTextContents()
-  check('cada carta lleva su chapa de versión', chapas.length === (await page.locator('#mcCartas .mc-carta').count()),
+  // Desde la 781 (SI9) la normal no lleva «N»: la llevaban todas y tapaba las que distinguen.
+  check('cada carta que no es la normal lleva su chapa de versión', chapas.length >= 1 && !chapas.some((c) => c.startsWith('NNormal')),
     chapas.join(' | '))
   check('  …y una de ellas es la reverse', chapas.some((c) => /Reverse/.test(c)), chapas.join(' | '))
 

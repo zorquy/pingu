@@ -72,7 +72,7 @@ for (const [rotulo, movil, vista, sel] of [['móvil · archivador', true, null, 
   check('más de una: «×N» en su sitio', de(2)?.marca?.texto === '×2' && de(2).marca.arribaDerecha && de(3)?.marca?.texto === '×2', JSON.stringify([de(2)?.marca, de(3)?.marca]))
   check('lo que falta no lleva marca', !de(4)?.marca && !de(5)?.marca)
   if (sel === '.mc-bolsillo' || vista) {
-    check('la versión que tienes, abajo, solo si la carta tiene varias', de(1)?.version === 'Normal' && de(2)?.version === 'Reverse holo' && de(3)?.version === 'N + RH' && de(6)?.version === null && de(4)?.version === null, JSON.stringify([1, 2, 3, 4, 6].map((n) => de(n)?.version)))
+    check('la versión que tienes, abajo, solo si la carta tiene varias (y no es solo la normal, 781)', de(1)?.version === null && de(2)?.version === 'Reverse holo' && de(3)?.version === 'N + RH' && de(6)?.version === null && de(4)?.version === null, JSON.stringify([1, 2, 3, 4, 6].map((n) => de(n)?.version)))
   }
   check('el «+» solo en lo que falta, en la esquina de abajo a la derecha', [4, 5].every((n) => de(n)?.mas?.abajoDerecha) && [1, 2, 3, 6].every((n) => !de(n)?.mas), JSON.stringify(casillas.map((c) => [c.id, c.mas])))
   check(movil ? '  …44 px que se tocan, con un círculo dibujado de 28' : '  …de 28 px con el ratón', movil ? de(4)?.mas?.ancho === 44 : de(4)?.mas?.ancho === 28, JSON.stringify(de(4)?.mas))

@@ -129,8 +129,8 @@ console.log('\n── 3. Y la misma chapa en «Cartas» ──')
 {
   const { page } = await abrir({ ruta: '/mi-coleccion.html?ver=cartas' })
   const chapas = await page.locator('#mcCartas .mc-chapa-variante').allTextContents()
-  check('las tres cartas llevan su chapa', chapas.length === 3, chapas.join(' | '))
-  check('  …incluida la normal', chapas.includes('NNormal'), chapas.join(' | '))
+  check('las dos que no son la normal llevan su chapa', chapas.length === 2, chapas.join(' | '))
+  check('  …y la normal ya no (781, SI9)', !chapas.includes('NNormal'), chapas.join(' | '))
   // Sale SIEMPRE, también en la normal: si solo saliera en la rara, la
   // normal se leería como «no se sabe» y no como «esta es la normal».
   const tapadas = await page.locator('#mcCartas .mc-chapa-variante').evaluateAll((ns) =>

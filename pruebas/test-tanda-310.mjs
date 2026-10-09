@@ -115,14 +115,15 @@ console.log('\n── 3. Un estado vacío parece vacío, no a medio cargar ─�
   })
   // El punteado dice «esto está vacío», que es justo la duda que dejaba
   // una frase gris flotando en medio de la página.
-  check('el estado vacío tiene cuerpo', caja.borde === 'dashed' && caja.ancho !== '0px', JSON.stringify(caja))
-  check('  …y esquinas redondeadas como el resto', caja.radio !== '0px', caja.radio)
+  // Desde la 781 (SI2) el cuerpo no es la caja punteada sino tres cartas
+  // fantasma encima de la frase; la guarda de esa forma vive en la 781.
+  check('el estado vacío ya no es una caja punteada (781)', caja.borde !== 'dashed', JSON.stringify(caja))
   await page.close()
 
   // Dentro de una tarjeta que YA tiene borde, el punteado sobra: dos
   // bordes concéntricos se leen como un fallo de pintado.
   const dentro = leer('css/style.css')
-  check('dentro de una tarjeta no se dobla el borde', /\.simple-card > \.empty-state/.test(dentro))
+  check('dentro de una tarjeta no se dobla el borde (no lo hay desde la 781)', !/dashed/.test((dentro.match(/\n\.empty-state \{[^}]*\}/) || [''])[0]))
 }
 
 // ═════════════════════════════════════════════════════════════════════
