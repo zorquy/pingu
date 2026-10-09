@@ -375,7 +375,7 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
   await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
-  const filas = () => page.$$eval('#mcEstanteriaRejilla .mc-set-fila', (fs) => fs.map((f) => ({ set: f.dataset.set, codigo: f.querySelector('.mc-set-codigo')?.textContent.trim(), cuenta: f.querySelector('.mc-set-corta')?.textContent.replace(/\s+/g, ' ').trim(), anillo: f.querySelector('.mc-set-anillo')?.getAttribute('aria-label'), alto: Math.round(f.getBoundingClientRect().height) })))
+  const filas = () => page.$$eval('#mcEstanteriaRejilla .mc-set-fila', (fs) => fs.map((f) => ({ set: f.dataset.set, codigo: (f.querySelector('.mc-set-codigo')?.textContent || f.querySelector('[data-codigo]')?.dataset.codigo || '').trim(), cuenta: f.querySelector('.mc-set-corta')?.textContent.replace(/\s+/g, ' ').trim(), anillo: f.querySelector('.mc-set-anillo')?.getAttribute('aria-label'), alto: Math.round(f.getBoundingClientRect().height) })))
   const cab = await page.evaluate(() => ({
     titulo: document.querySelector('.mc-estanteria-h')?.textContent,
     orden: !!document.getElementById('mcEstanteriaOrdenAbrir')?.offsetHeight,
@@ -454,7 +454,7 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   check(`[${nombre}] quién eres en una línea, con «Ver perfil»`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
   check(`[${nombre}] avisos (con su número) y mensajes en dos losetas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'Apoyar PokeDocUn café en Ko-fi>https://ko-fi.com/pokedoc | La quiero>/mi-coleccion?ver=quiero | Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
+  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'Apoyar PokeDocUn café en Ko-fi>https://ko-fi.com/pokedoc | La quiero>/mi-coleccion?ver=quiero | Modo feria>/feria | Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
   check(`[${nombre}] el tema en tres y «Salir» aparte`, m.tema === 'Claro* Oscuro Auto' && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
   await page.click('#navUserDropdown [data-tema="auto"]')
@@ -570,10 +570,12 @@ console.log('── 10. El foro de su maqueta (J1) ──')
   await page.waitForTimeout(200)
   check('  …y salen al tocarlo', await vis('#temaMas'))
   const m2 = page.locator('[data-mensaje="m2"]')
-  check('cada mensaje guarda sus acciones tras su «⋯»', !(await m2.locator('.foro-mensaje-izq').isVisible()))
-  await m2.locator('[data-mas-mensaje]').click()
+  // Desde la 789 (PA10) Editar, Borrar, la solución y Reportar van en el
+  // «⋯» del pie de cada mensaje (un <details>).
+  check('cada mensaje guarda sus acciones tras su «⋯»', !(await m2.locator('.foro-mas-menu').isVisible()))
+  await m2.locator('.foro-mas > summary').click()
   await page.waitForTimeout(200)
-  check('  …y las saca al tocarlo', await m2.locator('.foro-mensaje-izq').isVisible())
+  check('  …y las saca al tocarlo', await m2.locator('.foro-mas-menu').isVisible())
   const tuyo = await m2.locator('.foro-mensaje-cuerpo').evaluate((n) => getComputedStyle(n).backgroundColor)
   const azul = await page.evaluate(() => { const d = document.createElement('i'); d.style.color = 'var(--navy-solid)'; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c })
   check('lo tuyo va en el azul de la maqueta', tuyo === azul, `${tuyo} vs ${azul}`)

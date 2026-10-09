@@ -107,53 +107,25 @@ console.log('\n── 2. La nota, plegada ──')
   await page.close()
 }
 
-console.log('\n── 3. Las expansiones, todas del mismo tamaño ──')
+console.log('\n── 3. Las expansiones del catálogo, en fila ──')
 {
-  // La tarjeta grande con su arte vive en el CATÁLOGO desde la 748; en tu
-  // colección la estantería es la lista de su maqueta (C2).
+  // Desde la 788 (PA8) el CATÁLOGO usa la misma fila compacta que tu
+  // colección: el logo a un lado (o el código si no hay), detrás el mismo
+  // logo emborronado, y el nombre como texto.
   const { page } = await abrir('/cartas.html')
   await page.waitForTimeout(800)
-  const t = page.locator('.mc-set-tarjeta').first()
-  // La cabecera se llama `.mc-set-titulo` desde la 458, que rehizo la
-  // tarjeta con el reparto de Dex: el logo pequeño a un lado y el nombre
-  // como TEXTO al otro.
-  check('la tarjeta tiene su cabecera', (await t.locator('.mc-set-titulo').count()) === 1)
-  // El fondo emborronado: el propio logo, ampliado. No hace falta pedir
-  // el arte de una carta —serían doscientas peticiones más— y el
-  // navegador ya tiene la imagen porque la enseña encima.
-  const arte = await t.locator('.mc-set-arte').evaluate((e) => {
-    const c = getComputedStyle(e)
-    return { filtro: c.filter, imagen: c.backgroundImage.slice(0, 40) }
-  }).catch(() => null)
-  check('hay fondo emborronado', Boolean(arte) && /blur/.test(arte.filtro), JSON.stringify(arte))
-  check('  …y sale del propio logo', Boolean(arte) && /url/.test(arte.imagen), arte?.imagen)
-
-  // Lo que se arregla: un `max-height` no contiene nada a lo ANCHO, y
-  // por eso los logos anchos se salían de la tarjeta.
-  const cabe = await t.evaluate((b) => {
-    const img = b.querySelector('.mc-set-logo img')
-    if (!img) return null
-    const a = img.getBoundingClientRect()
-    const c = b.getBoundingClientRect()
-    return a.left >= c.left - 1 && a.right <= c.right + 1
-  })
-  check('el logo no se sale de la tarjeta', cabe !== false, String(cabe))
-  // Y el código del set en su esquina, que es lo que lo identifica.
-  check('el código del set está', (await t.locator('.mc-set-codigo').count()) === 1)
-  check('  …y es el suyo', (await t.locator('.mc-set-codigo').textContent()) === 'ROS',
-    await t.locator('.mc-set-codigo').textContent())
-  // El nombre se lee LLEGUE O NO EL LOGO (tanda 458). Antes iba en
-  // `sr-only` porque un logo occidental lleva su nombre escrito; pero si el
-  // logo no llegaba —aquí nunca llega, la CDN está cortada, y el
-  // 2026-09-20 se cayó de verdad— la tarjeta se quedaba sin nada que leer
-  // y sin dar error. Y con los catálogos japoneses el logo que sí llega
-  // está en kanji, que para quien mira es lo mismo que no llegar.
-  check('si el logo no llega, el nombre se lee',
-    await t.locator('.mc-set-nombre').isVisible())
+  const t = page.locator('.mc-set-fila').first()
+  check('la fila está', (await t.count()) === 1)
+  // Aquí el logo no llega nunca (la CDN está cortada) y su <img> se quita al
+  // fallar; el hueco del fondo emborronado queda, que es lo que se pinta.
+  const fondo = await t.locator('.mc-set-fondo').count()
+  check('hay fondo emborronado, del propio logo', fondo === 1, String(fondo))
+  const codigo = await t.evaluate((f) => (f.querySelector('.mc-set-codigo')?.textContent || f.querySelector('.mc-set-corta-codigo')?.textContent.replace(/·/g, '') || f.querySelector('[data-codigo]')?.dataset.codigo || '').trim())
+  check('el código del set está, y es el suyo', codigo === 'ROS', codigo)
+  // El nombre se lee LLEGUE O NO EL LOGO (tanda 458).
+  check('si el logo no llega, el nombre se lee', await t.locator('.mc-set-nombre').isVisible())
   check('  …y dice cuál es', (await t.locator('.mc-set-nombre').textContent()) === 'Roaring Skies',
     await t.locator('.mc-set-nombre').textContent())
-  // El código viene de `tcg_online_code`, que había que PEDIR: la
-  // consulta de sets no lo traía y la chapa no habría salido nunca.
   check('  …y la consulta lo pide', /card_count_total,tcg_online_code/.test(leer('js/mi-coleccion.js')))
   await page.close()
 }

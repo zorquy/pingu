@@ -36,7 +36,7 @@ check('portada: la racha del saludo, solo en el móvil (LO6)', /racha > 0 && mat
 const curso = leer('js/curso.js')
 check('/curso sin curso va a Aprender (LO9)', /if \(!slug\) \{\s*location\.replace\('\/aprender'\)/.test(curso) && !/Curso no encontrado/.test(curso))
 check('carta del día sin día ni carta: el aviso de siempre (LO9)', /!r\.dia \|\| !r\.carta/.test(leer('js/carta-del-dia-juego.js')))
-check('ficha: debilidad y resistencia que no se saben, sin pintar (LO9)', /if \(!Array\.isArray\(filas\)\) return ''/.test(leer('js/carta-nucleo.js')))
+check('ficha: debilidad y resistencia que no se saben, sin pintar (LO9)', /if \(!Array\.isArray\(filas\) && !sabido\) return ''/.test(leer('js/carta-nucleo.js')))
 
 console.log('── 3. En el navegador ──')
 const b = await chromium.launch()

@@ -135,8 +135,9 @@ console.log('\n── 3. El 30 aniversario es de Mega, y es UN set ──')
     nombres.join(' | ') === 'Pitch Black | 30th Celebration | Mega Evolution | Mega Evolution Energy | MEP Black Star Promos',
     nombres.join(' | '))
   // La fila del 30 cuenta las de las dos mitades (646): 160 + 30. Desde la
-  // 646 la cifra va en una casilla con su rótulo («Cartas» y el número).
-  const cuantas = await mega.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' }).first().locator('.mc-set-cuenta').textContent()
+  // 646 la cifra va en una casilla con su rótulo («Cartas» y el número), y
+  // desde la 788 (/cartas en filas) en la línea corta de la fila.
+  const cuantas = await mega.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' }).first().locator('.mc-set-cuenta, .mc-set-corta').first().textContent()
   check('y la fila del 30 cuenta las de las dos mitades', /190/.test(cuantas), cuantas)
   // La tarjeta abre la expansión AQUÍ (649), y cada hueco enlaza a la ficha.
   await mega.locator('.mc-set-tarjeta').first().click()

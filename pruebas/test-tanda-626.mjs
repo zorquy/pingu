@@ -127,7 +127,9 @@ console.log('\n── 3. En la ficha de una carta ──')
   check('el coste Psíquico lleva su símbolo', de('Psychic').length && de('Psychic').every((p) => p.imagen.includes('/assets/iconos-energia/P.png')), JSON.stringify(de('Psychic')))
   check('la debilidad Oscuridad, el suyo', de('Darkness').length && de('Darkness').every((p) => p.imagen.includes('/assets/iconos-energia/D.png')), JSON.stringify(de('Darkness')))
   check('  …con su color debajo, como antes', de('Darkness').every((p) => p.fondo === 'rgb(61, 74, 87)'), JSON.stringify(de('Darkness')))
-  check('Incolora (coste y retirada) se queda con el punto', de('Colorless').length >= 2 && de('Colorless').every((p) => p.imagen === 'none'), JSON.stringify(de('Colorless')))
+  // Desde la 787 la Incolora, la Dragón y la Hada llevan su símbolo (los de
+  // /assets/energias), que antes no había.
+  check('Incolora (coste y retirada) lleva su símbolo', de('Colorless').length >= 2 && de('Colorless').every((p) => p.imagen.includes('/assets/energias/C.svg')), JSON.stringify(de('Colorless')))
   check('y quien no ve el dibujo sigue oyendo el nombre', de('Psychic')[0]?.etiqueta === 'Psíquico', de('Psychic')[0]?.etiqueta)
   await page.screenshot({ path: '/tmp/t626-carta.png', clip: { x: 0, y: 0, width: 1200, height: 900 } })
   await page.close()

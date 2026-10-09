@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 // Tanda 434 — la ruta del asset de TCGdex, montada a mano.
 //
 // TCGdex tiene un fallo conocido y abierto (cards-database#2362): hay
@@ -159,9 +160,9 @@ const browser = await chromium.launch()
     JSON.stringify(pedidas.filter((u) => /tcgdex/.test(u))))
   // Y el fondo borroso de la tarjeta lo lleva también: ese no lo quita el
   // respaldo, así que sirve para ver que la dirección llegó al HTML.
-  const arte = await page.locator('.mc-set-tarjeta').filter({ hasText: 'SVP' })
-    .locator('.mc-set-arte').getAttribute('style')
-  check('  …y la lleva en el fondo de la tarjeta', /assets\.tcgdex\.net\/en\/sv\/svp\/logo\.webp/.test(arte || ''), arte)
+  // Desde la 788 /cartas pinta FILAS, y la fila pide la misma cadena que la
+  // tarjeta grande (`dibujosDeSet`, 796): sin eso, la de arriba no se pedía.
+  check('  …y la fila usa la cadena entera de la tarjeta', /function filaDeSet[\s\S]{0,400}const dibujos = dibujosDeSet\(set\)/.test(readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')))
   // El que SÍ tiene logo no monta nada a mano: saldría la misma dirección
   // dos veces.
   check('el set con logo usa el SUYO y no monta ninguno de más',

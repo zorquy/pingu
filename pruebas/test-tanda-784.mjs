@@ -21,7 +21,8 @@ check('  …y el confeti respeta «menos movimiento»', /export function burstCo
 check('MV5: la píldora se vigila desde la barra', /vigilarPildoras\(\)/.test(leer('js/app.js')))
 check('MV9: «La quiero» late al ponerse', /latir\(boton\)/.test(leer('js/la-quiero.js')))
 check('  …y el guardar de una guía también', /latir\(saveBtn\)/.test(leer('js/guide-card.js')) && /latir\(btn\)/.test(leer('js/guia.js')))
-check('el botón de guardar de la guía dice cómo QUEDA (estaba al revés)', /!isSaved \? `\$\{icons\.bookmark\(14, true\)\} Guardado`/.test(leer('js/guia.js')))
+// Desde la 787 el botón es solo el icono: el estado lo dicen el dibujo y su aria-label.
+check('el botón de guardar de la guía dice cómo QUEDA (estaba al revés)', /btn\.innerHTML = !isSaved \? icons\.bookmark\(16, true\)/.test(leer('js/guia.js')) && /'Guardada · quitar de guardados'/.test(leer('js/guia.js')))
 
 console.log('── 2. Puro ──')
 const { coloresDePixeles } = await import(`${RAIZ}/js/efectos.js`)

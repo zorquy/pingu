@@ -119,7 +119,8 @@ console.log('── 5. Sin cartas, se dice ──')
   await p2.route('**/.netlify/functions/mas-caro**', (r) => r.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Todavía no hay cartas con precio suficientes.' }) }))
   await p2.goto(`${BASE}/mas-caro.html`, { waitUntil: 'domcontentloaded' })
   await p2.waitForTimeout(1200)
-  check('se avisa y no hay botones', /no se han podido traer/.test(await p2.locator('#mcrSub').innerText()) && !(await p2.locator('#mcrAcciones').isVisible()))
+  // Desde la 787 el aviso es un estado vacío con salida a los otros retos.
+  check('se avisa y no hay botones', /no se han podido traer/.test(await p2.locator('main .empty-state').innerText()) && !(await p2.locator('#mcrAcciones').isVisible()))
   await p2.close()
 }
 

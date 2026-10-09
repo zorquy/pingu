@@ -38,6 +38,9 @@ async function abrir(ruta, opciones = { ...devices['iPhone 13'] }) {
   await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com/, (r) => {
     const u = r.request().url()
     if (/\/roto/.test(u)) return r.fulfill({ status: 404, body: '' })
+    // El set sin logo tampoco lo tiene en la ruta montada a mano: desde la 796
+    // la fila prueba la cadena entera de la tarjeta (dibujosDeSet).
+    if (/\/sv\/sv1\/logo/.test(u)) return r.fulfill({ status: 404, body: '' })
     if (/\/logo/.test(u)) return r.fulfill({ status: 200, contentType: 'image/svg+xml', body: LOGO })
     return r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="837"></svg>' })
   })
@@ -56,7 +59,8 @@ const filas = (page) => page.$$eval('#mcEstanteriaRejilla .mc-set-fila', (fs) =>
   codigo: f.querySelector('.mc-set-marca')?.dataset.codigo || f.querySelector('.mc-set-codigo')?.textContent || null,
   marcaVisible: (() => { const m = f.querySelector('.mc-set-marca, .mc-set-codigo'); return !!m && m.getBoundingClientRect().width > 20 })(),
   fondo: !!f.querySelector('.mc-set-fondo img'),
-  corta: f.querySelector('.mc-set-corta')?.textContent.trim(),
+  // Lo que SE VE: sin logo, el código de la línea se esconde por CSS (796).
+  corta: f.querySelector('.mc-set-corta')?.innerText.replace(/\s+/g, ' ').trim(),
   barra: f.querySelector('.mc-set-barra i')?.style.getPropertyValue('--ancho') || null,
   alto: Math.round(f.getBoundingClientRect().height),
 })))

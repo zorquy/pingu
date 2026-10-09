@@ -123,7 +123,7 @@ console.log('\n── 2. /cartas con cuenta: lo mismo, con tu progreso y tu copi
   const nombres = (await page.locator('.mc-set-tarjeta .mc-set-nombre').allInnerTexts()).map(limpio)
   check('las tres expansiones también (no solo la empezada)', nombres.length === 3, nombres.join(' | '))
   const treinta = page.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' })
-  check('  …y la tuya enseña tu progreso: 1 de 92', /1 de 92/.test(limpio(await treinta.innerText())), limpio(await treinta.innerText()))
+  check('  …y la tuya enseña tu progreso: 1 de 92', /1\/92|1 de 92/.test(limpio(await treinta.innerText())), limpio(await treinta.innerText()))
   check('«Solo las empezadas» sí está con cuenta', await page.locator('#mcEstanteriaEmpezadas').isVisible())
   check('el título sigue siendo el del catálogo, no «Mi colección»', limpio(await page.locator('main h1').innerText()) === 'Cartas de Pokémon TCG')
   await treinta.first().click()

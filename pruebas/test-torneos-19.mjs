@@ -46,6 +46,8 @@ console.log('\n── 2. Cada columna vigilada existe en su fichero ──')
       rotas.push(`${r.fichero} no existe`)
       continue
     }
+    // Desde la 791 una entrada puede vigilar una FUNCIÓN (`rpc`) en vez de una columna.
+    if (r.rpc) { if (!new RegExp(`function public\\.${r.rpc}\\b`).test(sql)) rotas.push(`función ${r.rpc} no está en ${r.fichero}`); continue }
     if (!sql.includes(r.columna)) rotas.push(`${r.tabla}.${r.columna} no está en ${r.fichero}`)
   }
   check('todas las columnas vigiladas existen', rotas.length === 0, rotas.slice(0, 4).join(' · '))

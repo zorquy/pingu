@@ -113,12 +113,16 @@ console.log('── 4. Volver atrás deja la página donde estaba ──')
   const { page } = await abrir(ctx, '/index.html')
   await page.evaluate(() => window.scrollTo({ top: 2100, behavior: 'instant' }))
   await page.waitForTimeout(200)
+  // Desde la 780 la portada es más corta y quizá no llega a 2100: se compara
+  // con donde se quedó de verdad.
+  const y0 = await page.evaluate(() => window.scrollY)
   await page.evaluate(() => { location.href = '/noticias.html' })
   await page.waitForTimeout(1500)
   await page.goBack({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  const y = await page.evaluate(() => window.scrollY)
-  check('de vuelta en la portada, a la altura de antes aunque la página creció después', Math.abs(y - 2100) < 60, `scrollY=${y}`)
+  const { y, max } = await page.evaluate(() => ({ y: window.scrollY, max: document.documentElement.scrollHeight - innerHeight }))
+  // Si la página quedó más corta que la altura de antes, lo más abajo que se puede.
+  check('de vuelta en la portada, a la altura de antes aunque la página creció después', y0 > 600 && Math.abs(y - Math.min(y0, max)) < 60, `scrollY=${y} (antes ${y0}, máximo ${max})`)
   await ctx.close()
 }
 

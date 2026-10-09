@@ -219,7 +219,7 @@ console.log('\n── 6. Y cuando el BORDE ya ha pintado (que es producción) �
     // Lo que el borde puede pintar de una carta SIN engordar.
     nucleo: nucleoDeCarta(EN_LA_BASE, SET),
   })
-  writeFileSync(`${SC}/test-forum/t331-borde.html`, desdeElBorde)
+  writeFileSync(`${process.env.PD_SITIO || `${SC}/test-forum`}/t331-borde.html`, desdeElBorde)
   check('el borde marca la caja como pintada', /data-servidor="1"/.test(desdeElBorde))
   check('…y lo que pinta va SIN ataques, porque no los tiene',
     !/carta-ataques/.test(desdeElBorde))
@@ -251,7 +251,7 @@ console.log('\n── 6. Y cuando el BORDE ya ha pintado (que es producción) �
   const completa = { ...EN_LA_BASE, detalle_at: '2026-09-22T10:00:00Z', category: 'Pokemon',
     hp: 180, stage: 'Basic', types: ['Psychic'],
     attacks: [{ name: 'Impulso Psíquico', cost: ['Psychic'], damage: '180' }] }
-  writeFileSync(`${SC}/test-forum/t331-borde-ok.html`, inyectarMeta(html, {
+  writeFileSync(`${process.env.PD_SITIO || `${SC}/test-forum`}/t331-borde-ok.html`, inyectarMeta(html, {
     url: 'u', titulo: 'Mew ex', descripcion: 'd', imagen: 'i', imagenCuadrada: true,
     nucleo: nucleoDeCarta(completa, SET),
   }))

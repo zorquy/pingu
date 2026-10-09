@@ -188,7 +188,7 @@ console.log('\n── 3. Las DOS mitades dicen lo mismo, y no se pisan ──')
     // código (tanda 335).
     nucleo: nucleoDeCarta(CERULEDGE, SET, null, { marcas: ['H', 'I', 'J'], reimpresion: false }),
   })
-  writeFileSync(`${SC}/test-forum/t324-borde.html`, desdeElBorde)
+  writeFileSync(`${process.env.PD_SITIO || `${SC}/test-forum`}/t324-borde.html`, desdeElBorde)
   check('el borde marca la caja', /id="cartaNucleo" data-servidor="1"/.test(desdeElBorde))
   check('…y se lleva el esqueleto por delante', !desdeElBorde.includes('carta-esqueleto-scan'))
 
@@ -215,7 +215,9 @@ console.log('\n── 3. Las DOS mitades dicen lo mismo, y no se pisan ──')
   // Sin las losetas de Añadir · Editar · Avísame (677): las pone el
   // cliente dentro del `figure` porque necesitan sesión, y el molde no
   // las conoce. Lo que se compara es el MOLDE.
-  const delCliente = limpio(await p2.locator('#cartaNucleo').evaluate((n) => { const c = n.cloneNode(true); c.querySelector('#cartaAcciones')?.remove(); return c.textContent }))
+  // Desde la 788, en el PC el precio (#cartaMercado) se muda al lado de los
+  // datos, dentro de #cartaNucleo: el borde no lo pinta, y no cuenta.
+  const delCliente = limpio(await p2.locator('#cartaNucleo').evaluate((n) => { const c = n.cloneNode(true); c.querySelector('#cartaAcciones')?.remove(); c.querySelector('#cartaMercado')?.remove(); return c.textContent }))
   check('el borde y el cliente pintan el mismo texto', delBorde === delCliente,
     `borde: ${delBorde.slice(0, 90)} || cliente: ${delCliente.slice(0, 90)}`)
   await p2.close()

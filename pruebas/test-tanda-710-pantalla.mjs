@@ -87,8 +87,9 @@ console.log('── 2. En el escritorio, la misma lista (748) y la tarjeta enter
   await ctx.close()
   const cat = await abrir('/cartas.html', { movil: false })
   const tc = await tarjetas(cat.page)
-  check('en el catálogo con cuenta, las cifras y el pie siguen, y el anillo también', tc.length === 2 && tc.every((t) => t.cifras && t.pie && t.anillo), JSON.stringify(tc))
-  check('  …y la cuenta corta no se repite (ya está en la cifra «Tienes»)', tc.every((t) => t.corta === null))
+  // Desde la 788 (PA8) el catálogo usa la MISMA fila: código · año · tu
+  // cuenta, y su anillo; sin las losetas de cifras ni el pie.
+  check('en el catálogo con cuenta, la fila con tu cuenta y su anillo', tc.length === 2 && tc.every((t) => t.anillo && !t.cifras && !t.pie && /\d+\/\d+/.test(t.corta || '')), JSON.stringify(tc))
   await cat.ctx.close()
 }
 
@@ -98,7 +99,7 @@ console.log('── 3. El catálogo sin cuenta: sin anillos ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const ts = await tarjetas(page)
   check('hay expansiones y ninguna lleva anillo', ts.length >= 2 && ts.every((t) => t.anillo === null), JSON.stringify(ts.map((t) => [t.set, t.anillo])))
-  check('  …y la fila dice cuántas cartas tiene el set', ts.find((t) => t.set === 'xy5')?.corta === '4 cartas', JSON.stringify(ts.map((t) => t.corta)))
+  check('  …y la fila dice cuántas cartas tiene el set', /(^|· )4 cartas$/.test(ts.find((t) => t.set === 'xy5')?.corta || ''), JSON.stringify(ts.map((t) => t.corta)))
   await ctx.close()
 }
 

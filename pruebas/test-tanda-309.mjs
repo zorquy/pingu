@@ -163,7 +163,7 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   await page.waitForTimeout(600)
   const opciones = (await page.locator('#navUserDropdown .tu-lista a').allTextContents()).map((t) => t.trim())
   // Seis desde la 751: «La quiero» va la primera.
-  check('la lista de lo tuyo tiene siete (con «Apoyar PokeDoc», 758)', opciones.length === 7, JSON.stringify(opciones))
+  check('la lista de lo tuyo tiene ocho (con «Apoyar PokeDoc», 758, y «Modo feria», 794)', opciones.length === 8, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   check('  …y sigue estando lo que sí se usa',

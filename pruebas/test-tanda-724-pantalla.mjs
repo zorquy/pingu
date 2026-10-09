@@ -55,6 +55,9 @@ console.log('── 2. Los atajos en el navegador ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const antes = await page.evaluate(() => document.documentElement.dataset.theme)
   await page.keyboard.press('t')
+  // Desde la 786 el cambio va dentro de una transición (la ola): llega un
+  // fotograma después, no en el mismo instante.
+  await page.waitForFunction((a) => document.documentElement.dataset.theme !== a, antes, { timeout: 2000 }).catch(() => {})
   check('«T» cambia el tema', (await page.evaluate(() => document.documentElement.dataset.theme)) !== antes)
   await page.keyboard.press('Shift+?')
   await page.waitForTimeout(500)

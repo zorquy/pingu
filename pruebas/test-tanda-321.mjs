@@ -172,9 +172,12 @@ console.log('\n── 3. Con el origen caído, el sprite aparece igual ──')
   const otra = await limpio.newPage()
   await otra.route('**/*', (ruta) => ruta.abort())
   await otra.setContent(`<img id="t" src="${urlDeSprite(887)}"${attr} />`)
-  await otra.waitForFunction(() => document.getElementById('t').style.display === 'none', null, { timeout: 30000 }).catch(() => {})
-  const escondida = await otra.evaluate(() => document.getElementById('t').style.display === 'none')
-  check('sin ningún origen, la imagen se esconde', escondida)
+  // Desde la 787 (PA16) el último paso no esconde: si la imagen sabe su
+  // inicial, pone un círculo con ella (en línea, sin red). Sin inicial, se
+  // sigue escondiendo.
+  await otra.waitForFunction(() => { const t = document.getElementById('t'); return t.style.display === 'none' || t.classList.contains('sprite-inicial') }, null, { timeout: 30000 }).catch(() => {})
+  const final = await otra.evaluate(() => { const t = document.getElementById('t'); return { circulo: t.classList.contains('sprite-inicial') && t.src.startsWith('data:image/svg+xml'), escondida: t.style.display === 'none', inicial: t.dataset.inicial || '' } })
+  check('sin ningún origen, sale el círculo con su inicial (o se esconde si no la tiene)', final.inicial ? final.circulo && !final.escondida : final.escondida, JSON.stringify(final))
   await limpio.close()
 
   await browser.close()

@@ -114,12 +114,13 @@ console.log('── 4. La página de la carta: el mismo bloque, y cambia con el 
 console.log('── 5. El logo de TCGGO, en el álbum de colecciones ──')
 {
   // En el catálogo desde la 748: la lista de tu colección pinta el código.
+  // Desde la 788 /cartas pinta FILAS: su <img> se quita sola al no cargar
+  // (aquí se corta la red a TCGGO), así que se mira que se PIDA.
+  const pedidasTcggo = []
+  page.on('request', (r) => { if (/images\.tcggo\.com\/prc\.png/.test(r.url())) pedidasTcggo.push(r.url()) })
   await page.goto(`${BASE}/cartas.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
-  // La <img> se quita sola al no cargar (aquí se corta la red a TCGGO), así
-  // que lo que se mira es el arte de fondo, que lleva la misma URL.
-  const arte = page.locator('.mc-set-arte[style*="images.tcggo.com/prc.png"]')
-  check('sin logo de Scrydex ni de TCGdex, se pinta el de TCGGO', (await arte.count()) >= 1)
+  check('sin logo de Scrydex ni de TCGdex, se pinta el de TCGGO', pedidasTcggo.length >= 1, String(pedidasTcggo.length))
 }
 
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))

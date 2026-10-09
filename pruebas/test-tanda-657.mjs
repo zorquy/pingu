@@ -81,20 +81,20 @@ console.log('── 1. El «+» en cada carta (657) ──')
 }
 
 console.log('\n── 2. La chispa del mes (658) ──')
-// La tarjeta con su chispa es la del CATÁLOGO desde la 748; en tu colección
+// La chispa va en el CATÁLOGO desde la 748, y desde la 797 en la línea de la fila (PA8); en tu colección
 // la estantería es la lista de su maqueta (C2).
 {
   const { page, errores } = await abrir('/cartas.html')
   const chispa = page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-chispa')
   check('la tarjeta de la expansión lleva su chispa, verde si sube', (await chispa.count()) === 1 && /sube/.test(await chispa.getAttribute('class')) && (await chispa.locator('polyline').getAttribute('points')).split(' ').length >= 3, await chispa.getAttribute('class')) // desde la 668 se pide por semanas + ocho días, no los 30 días seguidos
-  check('  …delante de la cifra y del semanal', /448|487|4\d\d €/.test(limpio(await page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor').innerText())))
+  check('  …delante de la cifra y del semanal', /448|487|4\d\d €/.test(limpio(await page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor, .mc-set-tarjeta[data-set="xy5"] .mc-set-valor-linea').first().innerText())))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
   const baja = await abrir('/cartas.html', { bajada: true })
   check('roja si baja', /baja/.test(await baja.page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-chispa').getAttribute('class')))
   await baja.page.close()
   const pocos = await abrir('/cartas.html', { dias: 2 })
-  check('con dos días no hay chispa (sería una raya) pero sí la cifra', (await pocos.page.locator('.mc-set-chispa').count()) === 0 && /€/.test(limpio(await pocos.page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor').innerText())))
+  check('con dos días no hay chispa (sería una raya) pero sí la cifra', (await pocos.page.locator('.mc-set-chispa').count()) === 0 && /€/.test(limpio(await pocos.page.locator('.mc-set-tarjeta[data-set="xy5"] .mc-set-valor, .mc-set-tarjeta[data-set="xy5"] .mc-set-valor-linea').first().innerText())))
   await pocos.page.close()
   const js = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
   check('la consulta pide nueve meses por semanas (668), y el semanal sigue siendo de ocho días', /fechasDeValor\(\)/.test(js) && /hace8/.test(js))

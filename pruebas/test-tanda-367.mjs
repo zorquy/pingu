@@ -110,10 +110,9 @@ console.log('\n── 4. El navegador manda el código, y no decide él ──')
   // el navegador sobre una fila que puede haber cambiado hace un rato.
   check('…siempre, no solo si el torneo parece privado',
     !/is_private \? \{[\s\S]{0,80}p_codigo/.test(js))
-  // El puente: mientras la migración no esté, la función de cuatro no
-  // existe y esto sería un «no encuentro esa función» para TODO EL
-  // MUNDO, torneos normales incluidos.
-  check('con vuelta atrás a los tres de antes', /const \{ p_codigo: _, \.\.\.tresDeAntes \} = argumentos/.test(js))
+  // El puente de la vuelta atrás a los tres de antes se quitó en la 786
+  // (LO8): la función de cuatro lleva en producción desde septiembre.
+  check('sin el puente: una sola llamada con los cuatro', !/tresDeAntes/.test(js) && /const res = await supabase\.rpc\('torneos_inscribirse', argumentos\)/.test(js))
 
   // El código ya no viaja en la fila del torneo por ningún lado.
   check('la ficha no guarda join_code en tournaments', !/cambios\.join_code/.test(js))

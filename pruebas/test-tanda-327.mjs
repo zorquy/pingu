@@ -305,7 +305,10 @@ console.log('\n── 6. La lista de colecciones se lee de un vistazo ──')
   await page.goto(`${BASE}/cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
 
-  const codigos = (await page.locator('.mc-set-codigo').allTextContents()).map((t) => t.trim())
+  // Desde la 788 (PA8) /cartas usa la fila compacta de Expansiones: con logo,
+  // el código va en la línea («SSP · …»); sin logo, en la insignia.
+  const codigos = await page.evaluate(() => [...document.querySelectorAll('.mc-set-fila')].map((f) =>
+    (f.querySelector('.mc-set-codigo')?.textContent || f.querySelector('.mc-set-corta-codigo')?.textContent.replace(/·/g, '') || f.querySelector('[data-codigo]')?.dataset.codigo || '').trim()))
   check('la que tiene código lo enseña', codigos.includes('SSP'), codigos.join(' | '))
   // La que no tiene código cae al identificador. Lo que NO puede pasar
   // es que se quede sin insignia: entonces la columna se descuadra y la

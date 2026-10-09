@@ -17,6 +17,7 @@ REESCRITURAS = [
     (re.compile(r'^/foro/[^/]+$'), '/foro.html'),
     (re.compile(r'^/noticias/[^/]+$'), '/guia.html'),
     (re.compile(r'^/guia/[^/]+$'), '/guia.html'),
+    (re.compile(r'^/ilustrador/[^/]+$'), '/ilustrador.html'),
 ]
 
 # Y las REDIRECCIONES (302) de netlify.toml (tanda 591): los enlaces cortos.

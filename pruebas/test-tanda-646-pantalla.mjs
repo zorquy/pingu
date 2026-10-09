@@ -61,9 +61,10 @@ console.log('── 1. /cartas: una tarjeta por expansión de TCGGO ──')
   check('dos tarjetas: el 30 aniversario es UNA (la Classic va dentro) y Pitch Black', nombres.join(' | ') === '30th Celebration | Pitch Black', nombres.join(' | '))
   const treinta = page.locator('.mc-set-tarjeta', { hasText: '30th Celebration' })
   const texto = limpio(await treinta.innerText())
-  check('  …con las cartas de las dos (128, y tu Charizard de la Classic cuenta), el valor del set y el semanal (−7 %)', /1 de 128/.test(texto) && /11\.134 €/.test(texto) && /[−-]7 %/.test(texto), texto) // en losetas aparte desde la 668
-  check('  …y el semanal en rojo', (await treinta.locator('.mc-set-cifra .baja').evaluate((el) => getComputedStyle(el).color)) === 'rgb(220, 38, 38)')
-  check('  …la fecha debajo del nombre y la era de rótulo', /16 sept 2026/.test(texto) && (await page.locator('.mc-estanteria-titulo').allTextContents()).includes('Mega Evolution'), texto)
+  check('  …con las cartas de las dos (128, y tu Charizard de la Classic cuenta), el valor del set y el semanal (−7 %)', /1\/128|1 de 128/.test(texto) && /11\.134 €/.test(texto) && /[−-]7 %/.test(texto), texto) // en losetas aparte desde la 668
+  check('  …y el semanal en rojo', (await treinta.locator('.mc-set-valor-linea .baja, .mc-set-cifra .baja').first().evaluate((el) => getComputedStyle(el).color)) === 'rgb(220, 38, 38)')
+  // Desde la 788 (PA8), fila compacta: el año en la línea corta.
+  check('  …la fecha debajo del nombre y la era de rótulo', /2026/.test(texto) && (await page.locator('.mc-estanteria-titulo').allTextContents()).includes('Mega Evolution'), texto)
   const pitch = limpio(await page.locator('.mc-set-tarjeta', { hasText: 'Pitch Black' }).innerText())
   // Sin semanal = sin la loseta «Semanal». No «sin ningún %»: desde la 710
   // la tarjeta lleva el anillo de lo que tienes, que dice «0%».
@@ -93,7 +94,7 @@ console.log('── 2. La estantería de /mi-coleccion: lo mismo, y lo tuyo se c
   check('dos tarjetas, no tres', nombres.length === 2 && nombres.includes('30th Celebration') && !nombres.includes('Classic Collection'), nombres.join(' | '))
   const treinta = tarjetas.filter({ hasText: '30th Celebration' })
   const texto = limpio(await treinta.innerText())
-  check('tu Charizard de la Classic cuenta en el 30 aniversario: 1 de 128', /1 de 128/.test(texto), texto)
+  check('tu Charizard de la Classic cuenta en el 30 aniversario: 1 de 128', /1\/128|1 de 128/.test(texto), texto)
   check('  …y la tarjeta dice lo que vale y cómo va', /11\.134 €/.test(texto) && /[−-]7 %/.test(texto), texto) // losetas aparte desde la 668
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
