@@ -48,8 +48,9 @@ import { canonizarEntradas } from './impresiones-del-set.js'
 
 // Lo que se trae de cada carta de una lista. `name_key` y `category` son
 // para elegir la impresión que se enseña (tanda 413): sin ellos no se
-// sabe si dos líneas son la misma carta.
-export const COLUMNAS_DE_LISTA = 'id, set_id, local_id, name, name_key, category, image_path,image_scrydex,image_tcggo, regulation_mark'
+// sabe si dos líneas son la misma carta. Y `name_es`, para la regla de
+// la reimpresión (800), que cruza también por el nombre traducido.
+export const COLUMNAS_DE_LISTA = 'id, set_id, local_id, name, name_es, name_en, name_key, category, image_path,image_scrydex,image_tcggo, regulation_mark'
 
 const cache = new Map()
 const setsPorCodigo = new Map() // código Live → set_id del espejo (o null)

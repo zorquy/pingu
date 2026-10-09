@@ -927,7 +927,7 @@ async function metaDeTorneo(url) {
 // eso pinta el núcleo entero en el servidor y por eso decide aquí si la
 // página merece salir en Google.
 const COLUMNAS_CARTA =
-  'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
+  'id,set_id,local_id,name,name_es,name_key,name_en,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
   'tcg_sets(id,name,name_en,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code)'
@@ -953,14 +953,41 @@ async function legalidadDeCartaEnElBorde(carta) {
   if (!Array.isArray(marcas) || !marcas.length) return null
   const marca = String(carta?.regulation_mark || '')
   if (marca && marcas.includes(marca)) return { marcas, reimpresion: false }
-  // El nombre INGLÉS, que es la clave con la que se cruzan las
-  // impresiones entre sí (tanda 335): `name_es` es lo que se enseña.
-  if (!carta?.name) return { marcas, reimpresion: false }
-  const otra = await pedir(
-    `tcg_cards?market=eq.WEST&name=eq.${encodeURIComponent(carta.name)}` +
+  // La regla de la reimpresión, la MISMA que js/carta-legalidad.js (tanda
+  // 800): por el inglés, por la clave y por el traducido, y cuentan las
+  // reimpresiones con letra legal y las SIN letra de una colección nueva
+  // (las de TCGGO no traen letra). Antes solo miraba `name` con letra, y la
+  // Ultra Ball vieja salía «fuera del reglamento» teniendo reimpresión.
+  const valor = (v) => `"${encodeURIComponent(String(v).replace(/"/g, '\\"'))}"`
+  const columnas = [['name', carta?.name], ['name_key', carta?.name_key], ['name_es', carta?.name_es]].filter(([, v]) => v)
+  if (!columnas.length) return { marcas, reimpresion: false }
+  const alguna = `or=(${columnas.map(([c, v]) => `${c}.eq.${valor(v)}`).join(',')})`
+  const conLetra = await pedir(
+    `tcg_cards?market=eq.WEST&${alguna}` +
       `&regulation_mark=in.(${marcas.map((m) => `"${encodeURIComponent(m)}"`).join(',')})&select=id&limit=1`
   )
-  return { marcas, reimpresion: Boolean(otra) }
+  if (conLetra) return { marcas, reimpresion: true }
+  const corte = await corteSinLetra(marcas)
+  const sinLetra = corte
+    ? await pedir(`tcg_cards?market=eq.WEST&${alguna}&regulation_mark=is.null&select=id,tcg_sets!inner(release_date)&tcg_sets.release_date=gte.${encodeURIComponent(corte)}&limit=1`)
+    : null
+  return { marcas, reimpresion: Boolean(sinLetra) }
+}
+
+// Desde qué fecha una carta SIN letra cuenta como legal (633): la salida de
+// la colección más vieja con alguna carta de la marca legal más vieja. Una
+// vez por isolate, como las marcas; si no se sabe, null (no se cuenta).
+let corteDelBorde
+async function corteSinLetra(marcas) {
+  if (corteDelBorde !== undefined) return corteDelBorde
+  const vieja = [...marcas].sort()[0]
+  const filas = await pedirVarias(`tcg_cards?market=eq.WEST&regulation_mark=eq.${encodeURIComponent(vieja)}&select=set_id&limit=2000`)
+  const ids = [...new Set(filas.map((f) => f.set_id).filter(Boolean))]
+  const set = ids.length
+    ? await pedir(`tcg_sets?market=eq.WEST&id=in.(${ids.map((i) => `"${encodeURIComponent(i)}"`).join(',')})&release_date=not.is.null&select=release_date&order=release_date.asc&limit=1`)
+    : null
+  corteDelBorde = set?.release_date || null
+  return corteDelBorde
 }
 
 async function metaDeCarta(url) {

@@ -10,6 +10,7 @@
 // `catalogo-series.js` no pinta nada y no importa más que `texto.js`, así
 // que entra sin romper lo de arriba (tanda 546).
 import { nombreDeCarta } from '../catalogo-series.js'
+import { plano, claveDeNombre } from '../clave-de-nombre.js'
 
 // ── Qué es cada carta ──
 //
@@ -18,13 +19,9 @@ import { nombreDeCarta } from '../catalogo-series.js'
 // de la tanda 330 dicen «Pokemon», «Trainer», «Supporter», «Basic»; las
 // de después, «Pokémon», «Entrenador», «Partidario», «Básico». Así que
 // nada se compara con un valor suelto: se normaliza primero.
-export function plano(texto) {
-  return String(texto ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim()
-}
+// `plano` y `claveDeNombre` viven en js/clave-de-nombre.js (800): las usa
+// también la regla de la reimpresión, que no puede arrastrar este fichero.
+export { plano, claveDeNombre }
 
 // 'P' | 'T' | 'E', o null si no se sabe. El null importa: ~190 cartas
 // del espejo aún no tienen categoría, y una carta sin categoría NO es un
@@ -174,16 +171,7 @@ export function esRadiante(carta) {
 // La regla de las 4 copias va por NOMBRE, no por impresión: cuatro
 // «Órdenes de Jefes» de colecciones distintas ya son cuatro.
 //
-// Va por el nombre TRADUCIDO cuando lo hay, y no por `name_key`: mientras
-// dura la reparación de la tanda 335 unas impresiones llevan el inglés en
-// `name` (y en `name_key`) y otras todavía el español, así que la promo
-// de «Boss's Orders» y la «Órdenes de Jefes» moderna no compartían clave
-// y se podían meter 4 + 4. `name_es` lo llevan las dos. Sin él (cartas
-// viejas que nunca se tradujeron), la clave del espejo o el nombre plano.
-export function claveDeNombre(carta) {
-  if (carta?.name_es) return plano(carta.name_es)
-  return String(carta?.name_key || plano(carta?.name))
-}
+// La clave es `claveDeNombre`, en js/clave-de-nombre.js.
 
 // El nombre que se ENSEÑA. Desde la tanda 335 `name` es el inglés (la
 // clave con la que se cruzan las impresiones y lo que entiende TCG Live) y

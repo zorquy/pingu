@@ -13,7 +13,7 @@
 import { supabase } from '../supabase.js'
 import { normalizeSearch } from '../tcgdex.js'
 import { codigoLiveDeNombreDeSet } from '../torneos/comun.js'
-import { marcasLegales } from '../carta-legalidad.js'
+import { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConReimpresionLegal } from '../carta-legalidad.js'
 import { canonizarCarta } from '../carta-detalle.js'
 import { claveDeNombre, esEnergiaBasica, idDeEnergiaBasica, letraDeCartaDeEnergia, letraDeEnergia, plano } from './nucleo.js'
 import { canonizarEntradas } from '../impresiones-del-set.js'
@@ -21,7 +21,7 @@ import { canonizarEntradas } from '../impresiones-del-set.js'
 // Las marcas legales de la temporada salen del mismo sitio que la ficha
 // de carta (site_settings, con respaldo): se reexportan para que la
 // página no tenga que saber de dónde vienen.
-export { marcasLegales }
+export { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConReimpresionLegal }
 
 // `name` es el inglés y `name_es` el que se enseña (tanda 335).
 export const COLUMNAS =
@@ -117,27 +117,8 @@ export async function cargarSets() {
 //
 // La fecha de corte: la colección más vieja con alguna carta de la marca
 // legal más vieja. Una consulta, la primera vez.
-let recientesCache = null
-export function setsRecientesSinMarca(sets, setsConMarcaVieja) {
-  const fechas = (setsConMarcaVieja || []).map((id) => sets.find((s) => s.id === id)?.release_date).filter(Boolean).sort()
-  const corte = fechas[0]
-  if (!corte) return new Set()
-  return new Set(sets.filter((s) => s.release_date && String(s.release_date) >= String(corte)).map((s) => s.id))
-}
-export async function coleccionesRecientes() {
-  if (recientesCache) return recientesCache
-  try {
-    const [{ sets }, legales] = await Promise.all([cargarSets(), marcasLegales()])
-    const vieja = [...legales].sort()[0]
-    const { data, error } = await supabase.from('tcg_cards').select('set_id').eq('market', MERCADO).eq('regulation_mark', vieja).limit(2000)
-    if (error) throw error
-    recientesCache = setsRecientesSinMarca(sets, [...new Set((data || []).map((r) => r.set_id))])
-  } catch {
-    // Sin poder preguntar, nada se da por legal sin su letra: lo de antes.
-    recientesCache = new Set()
-  }
-  return recientesCache
-}
+// La cuenta vive en js/carta-legalidad.js desde la 800 (la usan también
+// los torneos y la ficha): aquí se importa y se reexporta.
 // ¿Legal en Estándar? Por su letra, o sin letra y de una colección nueva.
 export const esLegalPorMarca = (c, legales, recientes) => legales.includes(c?.regulation_mark) || (!c?.regulation_mark && !!recientes?.has(c?.set_id))
 
@@ -308,56 +289,9 @@ export async function detallesDeJuego(ids) {
 }
 
 // ── La regla de la reimpresión ──
-// Qué cartas del mazo tienen ALGUNA impresión con marca legal. Devuelve
-// el conjunto de sus `claveDeNombre`, que es lo que mira `validarMazo`.
-//
-// Se cruza por el nombre INGLÉS (`name`), como `hayReimpresionLegal` de
-// carta-legalidad.js (tanda 335), y también por `name_key` mientras dure
-// la reparación de los nombres: una fila que aún tenga el español en
-// `name` sigue casando por su clave. Dos consultas para el mazo entero,
-// en vez de una por carta como hace la ficha. Y una tercera por
-// `name_es`: con la reparación a medias, la promo vieja de «Boss's
-// Orders» ya tiene el inglés en `name` y las modernas todavía el español,
-// así que por `name` no se encuentran entre sí; el nombre traducido, en
-// cambio, lo llevan las dos.
-export async function nombresConReimpresionLegal(cartas) {
-  const lista = cartas.filter(Boolean)
-  const nombres = [...new Set(lista.map((c) => c.name).filter(Boolean))]
-  const claves = [...new Set(lista.map((c) => c.name_key).filter(Boolean))]
-  const traducidos = [...new Set(lista.map((c) => c.name_es).filter(Boolean))]
-  if (!nombres.length && !claves.length) return new Set()
-  const legales = await marcasLegales()
-  const pedir = (columna, valores) =>
-    valores.length
-      ? supabase
-          .from('tcg_cards')
-          .select('name,name_es,name_key')
-          .eq('market', MERCADO)
-          .in(columna, valores)
-          .in('regulation_mark', legales)
-          .limit(1000)
-          .then(({ data }) => data || [])
-          .catch(() => [])
-      : Promise.resolve([])
-  try {
-    // Y las gemelas sin letra de una colección nueva (tanda 633: el Mew ex
-    // del 30 aniversario es la reimpresión legal del de 151).
-    const recientes = [...(await coleccionesRecientes())]
-    const sinLetra = recientes.length && nombres.length
-      ? supabase.from('tcg_cards').select('name,name_es,name_key').eq('market', MERCADO).in('name', nombres).is('regulation_mark', null).in('set_id', recientes).limit(1000).then(({ data }) => data || []).catch(() => [])
-      : Promise.resolve([])
-    const filas = (await Promise.all([pedir('name', nombres), pedir('name_key', claves), pedir('name_es', traducidos), sinLetra])).flat()
-    const nombresLegales = new Set(filas.flatMap((r) => [r.name, r.name_es]).filter(Boolean))
-    const clavesLegales = new Set(filas.map((r) => r.name_key))
-    const fuera = new Set()
-    for (const c of lista) {
-      if (nombresLegales.has(c.name) || (c.name_es && nombresLegales.has(c.name_es)) || clavesLegales.has(c.name_key)) fuera.add(claveDeNombre(c))
-    }
-    return fuera
-  } catch {
-    return new Set()
-  }
-}
+// Es UNA y vive en js/carta-legalidad.js (tanda 800): hasta entonces el
+// constructor tenía la completa y los torneos una más corta, y la misma
+// Ultra Ball era legal aquí y «fuera del reglamento» en una lista de torneo.
 
 // ── Resolver una lista pegada ──
 //

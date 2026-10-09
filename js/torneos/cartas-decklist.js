@@ -10,7 +10,8 @@
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cardImageUrl } from '../tcgdex.js'
 import { escapeHtml } from '../app.js'
-import { marcasLegales, hayReimpresionLegal } from '../carta-legalidad.js'
+import { marcasLegales, nombresConReimpresionLegal } from '../carta-legalidad.js'
+import { claveDeNombre } from '../clave-de-nombre.js'
 import { spriteDeCarta, respaldoDeSprite } from './sprites-pokemon.js'
 // La imagen de cada línea con su cadena de respaldos, y las energías
 // básicas con las nuestras (tanda 366).
@@ -202,6 +203,14 @@ export async function pintarDecklistVisual(contenedor, parsed) {
   const { porSeccion, sinIdentificar } = await listaParaEnsenar(parsed)
   contenedor.innerHTML = rejilla(porSeccion, true)
 
+  // La regla de la reimpresión, de una vez para toda la lista y la MISMA
+  // que el constructor (tanda 800): las de marca vieja que no son energía
+  // básica se preguntan juntas.
+  const viejas = SECCIONES.flatMap((s) => porSeccion[s.campo])
+    .filter((l) => l.carta?.exacta && l.carta.regulation_mark && !legales.includes(l.carta.regulation_mark) && !esEnergiaBasica(l))
+    .map((l) => l.carta)
+  const conReimpresion = viejas.length ? await nombresConReimpresionLegal(viejas) : new Set()
+
   let fuera = 0
   await Promise.all(
     SECCIONES.flatMap((s) =>
@@ -236,7 +245,7 @@ export async function pintarDecklistVisual(contenedor, parsed) {
           !esEnergiaBasica(linea) &&
           // La regla de la reimpresión: una impresión vieja con versión
           // moderna legal se juega — no se acusa.
-          !(await hayReimpresionLegal(carta.name, legales))
+          !conReimpresion.has(claveDeNombre(carta))
         ) {
           fuera += linea.quantity
           hueco.classList.add('torneo-carta-ilegal')

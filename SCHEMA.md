@@ -39267,3 +39267,31 @@ el fondo de la pestaña activa ahí: la azul oscura dejaba la letra azul sin
 contraste mientras viajaba. Si añades otro sitio con píldora, que su caja sea
 posicionada.
 
+## Tanda 800 — Una sola regla de la reimpresión
+
+Una impresión fuera de reglamento se juega si existe otra carta con el mismo
+nombre que sea legal (la Ultra Ball de letra F, con la Ultra Ball moderna).
+`js/carta-legalidad.js` es el único sitio de la regla:
+
+- `coleccionesRecientes()`: los sets desde la fecha de corte (la salida del
+  set más viejo con alguna carta de la marca legal más vieja), cuyas cartas
+  SIN letra cuentan como legales (633: TCGGO no trae letra). Se guarda la
+  promesa. `setsRecientesSinMarca(sets, setsConMarcaVieja)` es la parte pura.
+- `nombresConReimpresionLegal(cartas)`: cinco consultas para toda la lista
+  (`name`, `name_key` y `name_es` con letra legal; `name` y `name_key` sin
+  letra en una colección reciente). Devuelve el conjunto de `claveDeNombre`.
+  Si algo falla, vacío: se avisa de más, nunca de menos.
+- `hayReimpresionLegal(carta)`: lo mismo para una carta (la ficha), con la
+  promesa guardada por `claveDeNombre`. Acepta todavía un nombre suelto.
+
+El constructor (`js/constructor/datos.js`) las importa y las reexporta. El
+revisor del torneo (`pintarDecklistVisual`) junta las de marca vieja que no
+son energía básica y pregunta una vez. `COLUMNAS_DE_LISTA` pide `name_es`.
+La ficha del servidor (`legalidadDeCartaEnElBorde` en `meta-social.js`)
+replica la regla con PostgREST (`or=(name.eq…,name_key.eq…,name_es.eq…)` y,
+sin letra, `tcg_sets!inner(release_date)` desde `corteSinLetra`, calculado
+una vez por isolate). Si cambias la regla, cámbiala en los dos.
+
+`plano` y `claveDeNombre` viven en `js/clave-de-nombre.js` (sin imports);
+`js/constructor/nucleo.js` las importa y las reexporta.
+

@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (48) — PINGU-Claude (800 — la reimpresión legal en las listas de torneo)
+
+**Hecho**: PINGU: una Ultra Ball de letra F en una lista de torneo salía
+«fuera del reglamento», y se puede jugar porque tiene una impresión
+actual. La regla de la reimpresión estaba escrita DOS veces: la del
+constructor, completa, y la de `js/carta-legalidad.js` —la que usan los
+torneos y la ficha—, que solo buscaba por `name` exacto y solo
+reimpresiones CON letra legal. Las cartas de TCGGO no traen letra, así que
+la Ultra Ball moderna no contaba. Ahora es UNA, en `carta-legalidad.js`
+(`nombresConReimpresionLegal`, `coleccionesRecientes`,
+`setsRecientesSinMarca`): cruza por `name`, `name_key` y `name_es`, y
+cuenta las reimpresiones con letra legal y las sin letra de una colección
+reciente. El constructor la importa y la reexporta; el revisor del torneo
+la pregunta una vez por lista. La ficha de /carta la pinta el servidor
+(`meta-social.js`), que tenía la versión corta, y ahora hace lo mismo.
+`plano` y `claveDeNombre` se mudan a `js/clave-de-nombre.js` (sin
+dependencias) para que /carta y los torneos no se bajen el núcleo del
+constructor; `nucleo.js` las importa y reexporta.
+
+**Ficheros**: `js/carta-legalidad.js`, `js/clave-de-nombre.js` (nuevo),
+`js/constructor/nucleo.js`, `js/constructor/datos.js`,
+`js/torneos/cartas-decklist.js`, `js/lista-canonica.js` (pide `name_es`),
+`netlify/edge-functions/meta-social.js` (pide `name_key`), `SCHEMA.md`.
+Prueba nueva 800 y la 335 al día.
+
+**Pendiente**: si una carta sigue saliendo fuera teniendo impresión
+actual, es que esa impresión no está en nuestro catálogo (o con otro
+nombre en las tres columnas): eso ya no es la regla, es el dato.
+
 ## 2026-10-09 (47) — PINGU-Claude (799 — la píldora del menú en el PC)
 
 **Hecho**: en el ordenador, el bloque azul de la píldora (784) salía fuera
