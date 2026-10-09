@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (32) — PINGU-Claude (784 — bloque 5 de «PokeDoc al detalle»)
+
+**Hecho**: MV3, al añadir una carta su copia vuela a la pestaña del Panel de
+la burbuja, que bota (y vibra 12 ms en Android); una por lote. MV4, el set
+completo tira confeti con los colores de su logo (si el logo se deja leer),
+la medalla entra girando y hay «Compartir» con la lista del set. MV5,
+`js/pildora.js`: una píldora que se desliza detrás de la activa en todos los
+`.seg` y en la burbuja de Mi colección. MV9, «La quiero» late y suelta seis
+chispas al ponerse, y el guardar de una guía también. De paso: el botón
+«Guardar» de la ficha de guía decía lo contrario de lo que pasaba (leía el
+estado de ANTES de pulsar), y `burstConfetti` no miraba «menos movimiento».
+Detalle en SCHEMA.md, tanda 784.
+
+**Ficheros**: `js/efectos.js` (nuevo), `js/pildora.js` (nuevo), `js/app.js`,
+`css/components.css`, `js/mi-coleccion/ensenar.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/la-quiero.js`, `js/guide-card.js`, `js/guia.js`,
+`SCHEMA.md`. Prueba 784 (nueva).
+
+**Pendiente**: los bloques 6 en adelante. La 578 (arrastrar en el álbum, «el hueco
+de origen se atenúa») sale roja en este contenedor también con el commit
+anterior a esta tanda: no es de la 784, pero queda por mirar.
+
 ## 2026-10-09 (31) — PINGU-Claude (783 — bloque 4 de «PokeDoc al detalle»)
 
 **Hecho**: MV1, la carta grande se inclina hasta 12° también con el dedo (el

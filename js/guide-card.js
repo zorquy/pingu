@@ -119,6 +119,7 @@ export async function decorateGuideCards(containerEl, session) {
       saveBtn.innerHTML = icons.bookmark(16, nowSaved)
       saveBtn.setAttribute('aria-label', nowSaved ? 'Quitar de guardados' : 'Guardar')
       saveBtn.classList.toggle('is-saved', nowSaved)
+      if (nowSaved) import('./efectos.js').then(({ latir }) => latir(saveBtn)).catch(() => {})
     })
   })
 }

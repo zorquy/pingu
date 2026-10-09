@@ -30,6 +30,10 @@ export function pintarLoseta(boton, cardId, deseos) {
   boton.dataset.quiero = cardId || ''
   boton.classList.toggle('hidden', !cardId || !Array.isArray(deseos))
   const puesta = Array.isArray(deseos) && deseos.some((d) => d.card_id === cardId)
+  // Late al PONERSE (784, MV9), no al pintarse la primera vez ni al quitarse.
+  const antes = boton.getAttribute('aria-pressed') === 'true'
+  if (puesta && !antes && boton.dataset.quieroVisto === cardId) import('./efectos.js').then(({ latir }) => latir(boton)).catch(() => {})
+  boton.dataset.quieroVisto = cardId || ''
   boton.setAttribute('aria-pressed', String(puesta))
   const rotulo = boton.querySelector('span')
   if (rotulo) rotulo.textContent = puesta ? 'La quieres' : 'La quiero'

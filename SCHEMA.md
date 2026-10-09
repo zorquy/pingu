@@ -38712,3 +38712,62 @@ anillos a cero. El completo (verde) no se toca. La llama de la barra
 (`.nav-racha`) lleva `.viva` desde 3 días (late suave) y `.renovada` el día
 que la racha sube respecto a la última vista (`pd-racha-vista`): dos
 destellos y luego viva.
+
+
+## Tanda 784 — Bloque 5 de «PokeDoc al detalle»: que se note al hacer las cosas
+
+Las piezas nuevas viven en dos módulos que se bajan con `import()` cuando
+hacen falta, `js/efectos.js` y `js/pildora.js`, y su CSS en
+`components.css` (las usan la portada, /carta, /aprender y /mi-coleccion).
+Todas miran «menos movimiento» en el JS y en el CSS, y lo que se quita se
+quita con temporizador (la 313).
+
+**MV3 · la carta vuela a tu colección.** `volarCarta(img, destino)` clona la
+foto de la casilla en una `.vuelo-carta` fija, la lleva en arco (Web
+Animations, 600 ms) hasta el destino y lo hace botar (`.bota`); en Android,
+`navigator.vibrate(12)`. Lo llama `celebrarAnadida` (ensenar.js, la del «+1»
+de la 728) con la foto de la casilla y la pestaña del Panel de la burbuja
+(`[data-pestania="resumen"]`, que es «tu colección»: Mi colección no tiene
+una pestaña «Cartas»). Una por lote: si la anterior salió hace menos de
+900 ms, no sale otra, que con la ráfaga del escáner o la selección múltiple
+marearía.
+
+**MV4 · set completo con confeti del color del logo.** `celebrarSetCompleto`
+recibe `logo` y `compartir`. `coloresDeLogo(url)` pinta el logo a 32×32 en un
+lienzo y saca los cinco colores más repetidos (`coloresDePixeles`, pura: fuera
+lo casi transparente, lo casi blanco y lo casi negro, que son el fondo y el
+contorno). Si el servidor del logo no da CORS el lienzo queda manchado,
+`getImageData` lanza y sale el confeti de siempre. `burstConfetti(count,
+colores)` acepta la lista y, de paso, ya no tira nada con «menos movimiento»
+(antes no lo miraba). La medalla entra girando (`.mc-completo-gira`) y el
+botón «Compartir» monta la imagen de lista del set con `compartirChecklist`
+(la de los álbumes, 764), con todas las cartas marcadas. La región de la
+Pokédex y el top 8 del torneo quedan para cuando tengan su celebración.
+
+**MV5 · la píldora que se desliza.** `vigilarPildoras()` (lo arranca
+`initNavbar`) busca `.seg` y `.mc-pestanias` —también los que se pintan
+después, con un `MutationObserver`— y les mete una `.pildora` detrás de los
+botones (`z-index: -1` dentro de un `isolation: isolate`). La activa sigue
+llevando su `aria-pressed` o su `.activa`; la píldora solo la dibuja: se
+coloca por las cajas (`getBoundingClientRect` más el desplazamiento de la
+caja) y no por `offsetLeft`, porque la burbuja es `fixed` en el móvil y la
+columna del PC no, y copia el radio de la activa. La primera colocación va
+sin viaje y desde ahí se desliza (0,3 s). La activa CONSERVA su fondo y solo
+lo suelta mientras la píldora viaja (`.viajando` en la caja, 300 ms): así en
+reposo se lee igual con píldora que sin ella, y el contraste que mide la 311
+—que mira el fondo del botón y sus padres, no un hermano— sigue siendo verdad. La burbuja de secciones no la lleva: cambiar
+de sección es cambiar de página.
+
+**MV9 · «La quiero» con latido y chispas.** `latir(boton)`: el botón late
+(`.latiendo`) y seis `.chispa` salen en estrella desde su centro. Van
+`fixed` y colgadas del `body`, porque el guardar de una tarjeta de guía es
+`absolute` y el de la ficha no, y así salen igual en los dos; el color es
+`--chispa`: la chispa lo trae puesto a rosa y, si el botón define el suyo
+(ámbar en `.card-save-btn`), `latir` se lo copia en línea. `pintarLoseta`
+late solo al PONERSE —no al pintarse la primera vez (`data-quiero-visto`)
+ni al quitarse—, y el guardar de la tarjeta (guide-card.js) y el de la
+ficha de guía (guia.js) laten al guardar.
+
+**De paso, un fallo de la ficha de guía.** `toggleSave` leía si estaba
+guardada ANTES de pulsar y pintaba ese estado: al guardar decía «Guardar» y
+al quitar, «Guardado». Ahora dice cómo queda.

@@ -941,7 +941,13 @@ function meterLinea(l, carta = null) {
   meterLineaSinMirar(l, carta)
   if (antes === false && albumCompleto()) {
     const elSet = (todosLosSets || []).find((x) => x.id === album.set) || null
-    celebrarSetCompleto({ setId: `${mercado}:${album.set}`, nombre: elSet ? nombreDeSet(elSet) : album.set, total: album.cartas.length })
+    const nombre = elSet ? nombreDeSet(elSet) : album.set
+    const logo = elSet ? [elSet.logo_tcggo, elSet.logo_scrydex, urlDeLogo(elSet.logo_path, elSet.market || mercado)].find(Boolean) : null
+    const lista = album.cartas.map((c) => ({ numero: String(c?.local_id ?? '?'), nombre: nombreDe(c), tengo: true }))
+    const compartir = () => import('./mi-coleccion/imagen-checklist.js')
+      .then(({ compartirChecklist }) => compartirChecklist({ nombre, cartas: lista }))
+      .catch((err) => showToast(err?.message || 'No se ha podido hacer la imagen.', 'error'))
+    celebrarSetCompleto({ setId: `${mercado}:${album.set}`, nombre, total: album.cartas.length, logo, compartir })
   }
 }
 

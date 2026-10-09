@@ -32,7 +32,9 @@ async function toggleSave(session, guideId, btn) {
   const isSaved = saved.includes(guideId)
   const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
   await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
-  btn.innerHTML = isSaved ? `${icons.bookmark(14, true)} Guardado` : `${icons.bookmark(14)} Guardar`
+  // `isSaved` es como estaba ANTES de pulsar: el botón dice cómo queda.
+  btn.innerHTML = !isSaved ? `${icons.bookmark(14, true)} Guardado` : `${icons.bookmark(14)} Guardar`
+  if (!isSaved) import('./efectos.js').then(({ latir }) => latir(btn)).catch(() => {})
 }
 
 // Marcar una guía como leída solo por abrirla sería regalar el XP: se

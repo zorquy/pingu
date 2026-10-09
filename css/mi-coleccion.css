@@ -10821,3 +10821,20 @@ input.mc-alb-titulo:not([readonly]):focus {
 @media (prefers-reduced-motion: reduce) {
   .por-llenar.llenando { animation: none; --pct-visto: var(--pct); }
 }
+
+/* El set completo (784, MV4): la medalla entra girando y el botón de compartir. */
+.mc-completo-gira .mc-completo-medalla {
+  animation: mc-medalla-gira 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes mc-medalla-gira {
+  from { transform: scale(0.2) rotate(-540deg); opacity: 0; }
+}
+
+.mc-completo-compartir {
+  align-self: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-completo-gira .mc-completo-medalla { animation: none; }
+}

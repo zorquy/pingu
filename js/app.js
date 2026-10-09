@@ -171,7 +171,9 @@ export function achievementIconHtml(achievement, size = 24) {
 const CONFETTI_COLORS = ['var(--navy)', 'var(--indigo)', 'var(--warning)', 'var(--success)', 'var(--pink)', 'var(--ice-dark)']
 let confettiStyleInjected = false
 
-export function burstConfetti(count = 28) {
+// `colores` (784, MV4): el set completo lo tira con los colores de su logo.
+export function burstConfetti(count = 28, colores = CONFETTI_COLORS) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   if (!confettiStyleInjected) {
     const style = document.createElement('style')
     style.textContent = `
@@ -199,7 +201,7 @@ export function burstConfetti(count = 28) {
     const piece = document.createElement('div')
     piece.className = 'confetti-piece'
     piece.style.left = `${Math.random() * 100}vw`
-    piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length]
+    piece.style.background = colores[i % colores.length]
     const duration = 2.2 + Math.random() * 1.2
     const delay = Math.random() * 0.3
     piece.style.animationDuration = `${duration}s`
@@ -652,6 +654,8 @@ export async function initNavbar() {
   initScrollShadow()
   initMobileMenu()
   markActiveLink()
+  // La píldora que se desliza en los controles de pastillas (784, MV5).
+  import('./pildora.js').then(({ vigilarPildoras }) => vigilarPildoras()).catch(() => {})
   const session = await getSession()
   if (session) {
     montarFeedbackEnElPie()

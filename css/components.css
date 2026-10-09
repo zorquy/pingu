@@ -1281,6 +1281,92 @@ tcg-deck {
   color: var(--text-mid);
 }
 
+/* La píldora que se desliza (784, MV5; js/pildora.js). */
+.con-pildora {
+  isolation: isolate;
+}
+
+.seg.con-pildora {
+  position: relative;
+}
+
+.pildora {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background: var(--navy-solid);
+  pointer-events: none;
+}
+
+.pildora.lista {
+  transition: transform 0.3s var(--ease), width 0.3s var(--ease), height 0.3s var(--ease);
+}
+
+.viajando .seg-btn[aria-pressed='true'],
+.viajando .seg-btn.activa,
+.viajando .mc-pestania.activa,
+.viajando .mc-pestania.activa:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* La carta que vuela, el bote, el latido y sus chispas (784; js/efectos.js). */
+.vuelo-carta {
+  position: fixed;
+  z-index: 1200;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+
+.bota {
+  animation: efecto-bota 0.3s var(--ease);
+}
+
+@keyframes efecto-bota {
+  50% { transform: scale(1.18); }
+}
+
+.latiendo {
+  animation: efecto-latido 0.3s var(--ease);
+}
+
+@keyframes efecto-latido {
+  50% { transform: scale(1.25); }
+}
+
+.chispa {
+  position: fixed;
+  z-index: 1200;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 50%;
+  --chispa: var(--pink);
+  background: var(--chispa);
+  pointer-events: none;
+  animation: efecto-chispa 0.6s var(--ease) forwards;
+}
+
+@keyframes efecto-chispa {
+  to {
+    transform: rotate(calc(var(--i) * 60deg)) translateY(-24px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pildora.lista { transition: none; }
+  .bota,
+  .latiendo,
+  .chispa { animation: none; }
+}
+
+.card-save-btn {
+  --chispa: var(--warning);
+}
+
 /* ── La llamita de la racha diaria en la barra ── */
 .nav-racha {
   display: inline-flex;

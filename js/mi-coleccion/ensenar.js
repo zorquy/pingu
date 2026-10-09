@@ -108,7 +108,9 @@ function apuntarCelebrado(setId, almacen = globalThis.localStorage) {
   } catch {}
 }
 
-export function celebrarSetCompleto({ setId, nombre, total }, { doc = document } = {}) {
+// `logo` y `compartir` (784, MV4): confeti con los colores del logo, la
+// medalla que gira hasta su sitio y un botón que comparte la lista del set.
+export function celebrarSetCompleto({ setId, nombre, total, logo = null, compartir = null }, { doc = document } = {}) {
   if (!setId || yaCelebrado(setId)) return null
   apuntarCelebrado(setId)
   let d = doc.getElementById('mcCompleto')
@@ -129,7 +131,16 @@ export function celebrarSetCompleto({ setId, nombre, total }, { doc = document }
       <h2 id="mcCompletoTitulo">¡Has completado ${escapeHtml(nombre || 'la colección')}!</h2>
       <p>${total ? `Las ${total} cartas del set, todas tuyas.` : 'Todas las cartas del set, tuyas.'}</p>
     </div>
+    ${compartir ? '<button type="button" class="btn-primary mc-completo-compartir" data-compartir-completo>Compartir</button>' : ''}
     <button type="button" class="mc-completo-cerrar" data-cerrar aria-label="Cerrar">✕</button>`
+  d.querySelector('[data-compartir-completo]')?.addEventListener('click', () => compartir())
+  // Confeti con los colores del logo (si el logo se deja leer) y la medalla
+  // que entra girando (la clase la anima; con «menos movimiento», quieta).
+  import('../efectos.js')
+    .then(({ coloresDeLogo }) => coloresDeLogo(logo))
+    .then((colores) => import('../app.js').then(({ burstConfetti }) => burstConfetti(48, colores?.length ? colores : undefined)))
+    .catch(() => {})
+  d.classList.add('mc-completo-gira')
   // SIN modal (`show`, no `showModal`): la carta que lo completa acaba de
   // entrar con su aviso de Deshacer, y una capa encima lo dejaría sin poder
   // pulsar. Se celebra al lado, no tapando.
@@ -159,6 +170,17 @@ export function celebrarAnadida(raiz, cardId, { win = window } = {}) {
       uno.remove()
     }, 900)
   }
+  // Y la carta vuela a tu colección (784, MV3): a la pestaña del Panel de la
+  // burbuja. Una por lote: si se añaden varias seguidas (ráfaga, selección),
+  // vuela la primera y las demás no marean.
+  const img = botones[0]?.closest('.mc-bolsillo, .mc-rejilla-celda, .mc-resultado')?.querySelector('img')
+  const destino = raiz.ownerDocument.querySelector('#mcMenu [data-pestania="resumen"]')
+  const ahora = Date.now()
+  if (img && destino && ahora - ultimoVuelo > 900) {
+    ultimoVuelo = ahora
+    import('../efectos.js').then(({ volarCarta }) => volarCarta(img, destino)).catch(() => {})
+  }
   return botones.length
 }
+let ultimoVuelo = 0
 
