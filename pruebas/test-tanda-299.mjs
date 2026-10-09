@@ -475,11 +475,14 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
     const d = document.getElementById('destacadaSeccion')
     const reto = document.getElementById('retoSeccion')
     if (!t || !n || !d || !reto) return false
-    // El torneo, antes que la guía destacada en la columna ancha; la
-    // noticia, antes que el reto en la lateral.
+    // Desde la 785 (PA2) el torneo abre la columna de la derecha («lo
+    // próximo»), por delante de la noticia y el reto; la destacada abre la
+    // ancha.
     return (
-      t.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING &&
-      n.compareDocumentPosition(reto) & Node.DOCUMENT_POSITION_FOLLOWING
+      t.parentElement === n.parentElement &&
+      t.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING &&
+      n.compareDocumentPosition(reto) & Node.DOCUMENT_POSITION_FOLLOWING &&
+      d === d.parentElement.querySelector(':scope > section')
     )
   })
   check('  …y lo de «hoy» abre cada columna', Boolean(arriba))

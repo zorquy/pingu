@@ -98,11 +98,12 @@ console.log('\n── 1. La portada ya no tiene una fila que deje hueco ──')
     return {
       torneoAntesDeDestacada: antes('torneoPortadaSeccion', 'destacadaSeccion'),
       noticiaAntesDelReto: antes('noticiaPortadaSeccion', 'retoSeccion'),
-      mismaColumna: id('torneoPortadaSeccion').parentElement === id('destacadaSeccion').parentElement,
+      mismaColumna: id('torneoPortadaSeccion').parentElement === id('noticiaPortadaSeccion').parentElement,
       lateral: id('noticiaPortadaSeccion').parentElement === id('retoSeccion').parentElement,
     }
   })
-  check('el torneo abre la columna ancha', orden.torneoAntesDeDestacada && orden.mismaColumna, JSON.stringify(orden))
+  // Desde la 785 (PA2) el torneo abre la columna de la derecha, por delante de la noticia.
+  check('el torneo abre la columna de la derecha', orden.mismaColumna && orden.noticiaAntesDelReto, JSON.stringify(orden))
   check('y la noticia, la lateral', orden.noticiaAntesDelReto && orden.lateral)
   await page.close()
 }

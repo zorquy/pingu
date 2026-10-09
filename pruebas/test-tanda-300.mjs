@@ -95,7 +95,8 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
     // así que cada uno se fue a la columna que le tocaba. Lo que este
     // reparto dice no cambia — el torneo en lo ancho, la noticia en la
     // lateral—, solo deja de haber un tercer sitio donde caer.
-    ['torneoPortadaSeccion', 'principal'],
+    // Desde la 785 (PA2), el torneo abre la de «lo de todos».
+    ['torneoPortadaSeccion', 'lateral'],
     ['noticiaPortadaSeccion', 'lateral'],
     ['foroVivoSeccion', 'principal'],
     ['recientesSeccion', 'principal'],

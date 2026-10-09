@@ -61,10 +61,12 @@ async function abrir({ ancho = 1280, torneos = TORNEOS } = {}) {
 console.log('\n── 1. El titular dice a qué se juega aquí ──')
 {
   const html = leer('index.html')
-  check('los torneos entran en el subtítulo', /cursos interactivos y torneos/.test(html))
-  check('y el botón principal lleva a los torneos',
-    /class="btn-primary">Ver los torneos/.test(html))
-  check('«empezar a aprender» sigue estando', /Empezar a aprender/.test(html))
+  // Desde la 785 (PA3) el escaparate dice las tres cosas en el subtítulo y
+  // los botones son «Crear mi cuenta» y «Ver el catálogo»; los torneos y
+  // aprender tienen su puerta debajo («Juega», «Aprende»).
+  check('los torneos entran en el subtítulo', /y torneos cada semana/.test(html))
+  check('y el botón principal es crear la cuenta', /href="\/auth\.html\?registro=1" class="btn-primary">Crear mi cuenta/.test(html))
+  check('aprender y jugar tienen su puerta', /<b>Aprende<\/b>/.test(html) && /<b>Juega<\/b>/.test(html))
   // No desaparece: baja a enlace de texto, que es quien lo pregunta.
   check('y «qué es PokeDoc» también', /id="btnWhatIsPokeDoc"/.test(html))
 }
@@ -80,11 +82,13 @@ console.log('\n── 2. El torneo ocupa el sitio caro ──')
   const enHoy = await page.evaluate(() => {
     const t = document.getElementById('torneoPortadaSeccion')
     const d = document.getElementById('destacadaSeccion')
-    if (!t || !d || !t.closest('.portada-principal')) return 0
-    return t.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING ? 1 : 0
+    // Desde la 785 (PA2) el torneo abre la columna de la derecha.
+    const l = t?.closest('.portada-lateral')
+    if (!t || !d || !l) return 0
+    return l.querySelector(':scope > section') === t ? 1 : 0
   })
   const enLateral = await page.locator('.portada-lateral #retoSeccion').count()
-  check('el torneo abre la columna ancha', enHoy === 1)
+  check('el torneo abre la columna de la derecha (785)', enHoy === 1)
   check('y el reto en la lateral', enLateral === 1)
   // Lo que cazó el fallo: las reglas del estirón estaban escritas con el
   // id del reto, así que al cambiarlos la caja se encogió. Desde la 368
