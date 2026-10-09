@@ -38771,3 +38771,45 @@ ficha de guía (guia.js) laten al guardar.
 **De paso, un fallo de la ficha de guía.** `toggleSave` leía si estaba
 guardada ANTES de pulsar y pintaba ese estado: al guardar decía «Guardar» y
 al quitar, «Guardado». Ahora dice cómo queda.
+
+
+## Tanda 785 — Bloque 6 de «PokeDoc al detalle»: la portada
+
+**PA3 · el escaparate para quien llega sin cuenta.** El hero de la portada
+lleva ahora la clase `hero-portada`, y todo lo nuevo cuelga de ella para no
+tocar los otros dos `.hero` (404 y Sobre). El titular va a la izquierda
+también en el móvil, con menos aire arriba (`--e-lg`; eran 52 px más los 76
+de la página), y los botones pasan a «Crear mi cuenta» (`/auth.html?registro=1`)
+y «Ver el catálogo» (`/cartas`); «¿Qué es PokeDoc?» se queda. El subtítulo dice
+las tres cosas: la colección con lo que vale, guías y cursos, y torneos cada
+semana. Debajo, `.hero-puertas`: tres enlaces en el HTML (Colecciona → /cartas,
+Aprende → /aprender, Juega → /meta), que estén aunque el JS no llegue.
+
+El panel de la derecha pasa a `--navy-solid` con `--blanco-fijo` (en oscuro
+`--navy` es el azul cielo de SI5) y cambia el párrafo de los cursos por
+«Lo que más sube esta semana». Lo rellena `js/escaparate.js`, que home.js
+baja con `import()` SOLO sin sesión (así `carta-ruta.js` no entra en la
+portada de quien tiene cuenta). `lasQueMasSuben(filas)` es pura: la media de
+7 días de Cardmarket sobre la de 30, de las que suben al menos un 5 %. Como
+PostgREST no compara dos columnas, se piden las 120 con el `cm_trend` más
+alto y se ordena en el cliente; luego las cartas (`tcg_cards`, solo WEST y con
+`image_path`). Si no salen tres, no se toca nada y el abanico se queda con
+las tres del set más nuevo de la 362, que ya estaban: mejor eso que medio
+abanico. La cifra viva («hoy se han añadido N cartas») NO se hizo: las
+colecciones de los demás no se pueden leer (RLS) y un `count` daría cero.
+
+**PA2 · el PC como tablero.** `#torneoPortadaSeccion` y `#lanzamientoSeccion`
+se mudan del HTML a la cabeza de `.portada-lateral`: a la izquierda queda lo
+que se lee (la destacada, el foro, las guías) y a la derecha «lo próximo». En
+el móvil no cambia nada, porque ahí las dos columnas son `display: contents`
+y el torneo lleva su `order: -3`. `.portada-torneo` pasa de
+`--navy-dark`→`--navy-light` (cielo en oscuro, con letra blanca encima) a los
+azules fijos, y sin sombra (SI8).
+
+**PA1 · la portada del móvil, más corta.** Por debajo de 600 px: las guías
+nuevas (`#recentGrid`) en un carrusel de una fila con `scroll-snap`, cada
+tarjeta al 80 % para que se vea que hay más; «Ahora en el foro» enseña tres
+temas; y `#topMesSeccion` no sale, porque la liga de la semana ya está justo
+encima diciendo quién va arriba. El pie de la app instalada ya no salía desde
+la 780 (PA20). Queda fuera de esta tanda «Para empezar» dentro de las
+baldosas de «Hoy» y juntar el reto y la liga en una tarjeta.

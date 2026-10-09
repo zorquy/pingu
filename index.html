@@ -153,16 +153,16 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content">
-    <section class="hero container">
+    <section class="hero hero-portada container">
       <div class="hero-grid">
         <div class="hero-copy">
           <span class="hero-pill">🇪🇸 En español</span>
           <h1>Todo sobre Pokémon TCG. Sin perder el tiempo.</h1>
           <!-- S780.195 -->
-          <p>Guías, cursos interactivos y torneos para coleccionistas y jugadores.</p>
+          <p>Tu colección con lo que vale, guías y cursos interactivos, y torneos cada semana.</p>
           <div class="hero-actions">
-            <a href="/torneos.html" class="btn-primary">Ver los torneos →</a>
-            <a href="aprender.html" class="btn-outline">Empezar a aprender</a>
+            <a href="/auth.html?registro=1" class="btn-primary">Crear mi cuenta</a>
+            <a href="/cartas" class="btn-outline">Ver el catálogo</a>
           </div>
           <!-- S780.196 -->
           <button class="hero-que-es" id="btnWhatIsPokeDoc">¿Qué es PokeDoc?</button>
@@ -191,12 +191,19 @@
             </div>
           </div>
           <div class="hero-panel-divider"></div>
-          <p style="font-size: var(--t-sm); color: var(--ice); opacity: 0.9; line-height: 1.55;">
-            Cada guía trae un curso interactivo paso a paso con preguntas y XP, y un artículo de
-            referencia para consultar rápido cuando lo necesites.
-          </p>
+          <!-- Las tres que más suben, de js/escaparate.js (785, PA3). -->
+          <div class="hero-suben hidden">
+            <span class="eyebrow">Lo que más sube esta semana</span>
+            <ol id="heroSuben"></ol>
+          </div>
         </div>
       </div>
+      <!-- Tres puertas, una por sección (785, PA3). -->
+      <nav class="hero-puertas" aria-label="Qué hay en PokeDoc">
+        <a href="/cartas"><b>Colecciona</b><span>Tu colección y lo que vale, cada día</span></a>
+        <a href="/aprender"><b>Aprende</b><span>Guías y cursos para jugar mejor</span></a>
+        <a href="/meta"><b>Juega</b><span>El meta de la semana y los torneos</span></a>
+      </nav>
     </section>
 
     <!-- S780.199 -->
@@ -207,10 +214,6 @@
     <!-- S780.200 -->
     <div class="container panel-portada" id="panelPortada">
       <div class="portada-principal">
-        <!-- S780.201 -->
-        <section id="torneoPortadaSeccion">
-          <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
-        </section>
 
         <!-- S780.202 -->
         <section id="destacadaSeccion">
@@ -243,6 +246,14 @@
       </div>
 
       <aside class="portada-lateral">
+        <!-- S780.201 -->
+        <section id="torneoPortadaSeccion">
+          <div id="torneoPortada"><div class="skeleton" style="height: 76px;"></div></div>
+        </section>
+        <!-- S780.210 -->
+        <section id="lanzamientoSeccion">
+          <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"><span class="skeleton" style="height: 40px; width: 100%;"></span></a>
+        </section>
         <!-- S780.206 -->
         <section id="noticiaPortadaSeccion">
           <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
@@ -275,10 +286,6 @@
           <div class="top-mes" id="topMes"><div class="skeleton" style="height: 240px;"></div></div>
         </section>
 
-        <!-- S780.210 -->
-        <section id="lanzamientoSeccion">
-          <a class="lanzamiento-portada" id="lanzamientoPortada" href="/lanzamientos.html"><span class="skeleton" style="height: 40px; width: 100%;"></span></a>
-        </section>
       </aside>
     </div>
 

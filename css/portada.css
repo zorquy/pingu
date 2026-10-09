@@ -355,9 +355,9 @@ a.noticia-banner:hover {
   gap: 12px;
   padding: 12px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(120deg, var(--navy-dark), var(--navy-light));
+  /* Los azules fijos (785, PA2): `--navy-light` era cielo en oscuro. */
+  background: linear-gradient(120deg, var(--navy-solid-dark), var(--navy-solid-light));
   color: var(--blanco-fijo);
-  box-shadow: var(--shadow-sm);
   transition: transform 0.15s var(--ease);
 }
 
@@ -592,4 +592,34 @@ a.noticia-banner:hover {
 .hero-que-es:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+}
+
+/* La portada del móvil, la mitad de larga (785, PA1; el porqué en SCHEMA). */
+@media (max-width: 599px) {
+  #recentGrid {
+    display: flex;
+    gap: var(--e-sm);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--e-md));
+    padding-inline: var(--e-md);
+  }
+
+  #recentGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  #recentGrid > * {
+    flex: 0 0 80%;
+    scroll-snap-align: start;
+  }
+
+  .foro-vivo-lista > li:nth-child(n + 4) {
+    display: none;
+  }
+
+  #topMesSeccion {
+    display: none;
+  }
 }

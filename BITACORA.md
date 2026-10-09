@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (33) — PINGU-Claude (785 — bloque 6 de «PokeDoc al detalle»: la portada)
+
+**Hecho**: PA3, el escaparate sin cuenta: titular a la izquierda, «Crear mi
+cuenta» y «Ver el catálogo», el panel en azul fijo con las tres cartas que
+más suben esta semana (escaneo, precio y subida; `js/escaparate.js`, solo sin
+sesión) y tres puertas debajo (Colecciona, Aprende, Juega). PA2, en el PC el
+torneo y el lanzamiento suben a la cabeza de la columna de la derecha y el
+torneo deja el azul cielo del oscuro. PA1, en el móvil las guías van en un
+carrusel de una fila, el foro en tres temas y el top del mes no se repite con
+la liga. Detalle en SCHEMA.md, tanda 785.
+
+**Ficheros**: `index.html`, `css/style.css`, `css/portada.css`, `js/home.js`,
+`js/escaparate.js` (nuevo), `CLAUDE.md`, `SCHEMA.md`. Prueba 785 (nueva) y
+362 al día.
+
+**Pendiente**: los bloques 7 en adelante. Lo de PA1 que no entra aquí («Para
+empezar» dentro de «Hoy», el reto y la liga en una tarjeta) y la cifra viva
+de PA3 («hoy se han añadido N cartas») piden datos que la portada no tiene
+sin una función: la colección de los demás no se puede leer (RLS).
+La 386 sale roja por dos botones «Ver perfil» de `js/mi-coleccion/mercado.js`
+y `js/mi-coleccion/tablon.js` (de la 770–773) que no llevan el color de rango:
+no es de esta tanda.
+
 ## 2026-10-09 (32) — PINGU-Claude (784 — bloque 5 de «PokeDoc al detalle»)
 
 **Hecho**: MV3, al añadir una carta su copia vuela a la pestaña del Panel de

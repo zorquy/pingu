@@ -575,6 +575,9 @@ async function init() {
 
   if (!session) {
     document.getElementById('signupBanner').style.display = 'block'
+    // Las tres que más suben, en el hero (785, PA3). Después de las del set
+    // más nuevo, que ya están puestas: si estas no llegan, se quedan aquellas.
+    import('./escaparate.js').then(({ pintarEscaparate }) => pintarEscaparate()).catch(() => {})
   }
 
   // Las claves de lo que pintan los módulos de ARRIBA, para que la

@@ -1034,8 +1034,9 @@ button.btn-block {
 
 .hero-panel {
   display: none;
-  background: var(--navy);
-  color: var(--white);
+  /* Los azules fijos (785, PA3): en oscuro `--navy` era azul cielo. */
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
   border-radius: var(--radius-xl);
   padding: 32px;
   position: relative;
@@ -1806,4 +1807,91 @@ button.btn-block {
 @supports (-webkit-touch-callout: none) or (font: -apple-system-body) {
   @view-transition { navigation: none; }
   .bm, .navbar { view-transition-name: none; }
+}
+
+/* El escaparate sin cuenta (785, PA3; el porqué en SCHEMA). */
+.hero-portada {
+  padding-top: var(--e-lg);
+  text-align: left;
+}
+
+.hero-portada .hero-grid,
+.hero-portada .hero-copy {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.hero-portada h1,
+.hero-portada p {
+  margin-left: 0;
+}
+
+.hero-portada .hero-actions {
+  justify-content: flex-start;
+}
+
+.hero-suben ol {
+  display: grid;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-suben a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  color: inherit;
+}
+
+.hero-suben a span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-suben small {
+  font-weight: 700;
+}
+
+.hero-puertas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--e-sm);
+  margin-top: var(--e-xl);
+}
+
+.hero-puertas a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.hero-puertas a:hover {
+  border-color: var(--navy);
+}
+
+.hero-puertas b {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.hero-puertas span {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+@media (min-width: 900px) {
+  .hero-portada {
+    padding: var(--e-2xl) 0 var(--e-2xl);
+  }
 }
