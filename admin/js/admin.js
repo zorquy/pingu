@@ -847,6 +847,8 @@ const CONDITION_LABELS = {
   collection_sets_complete: 'Expansiones completas',
   collection_top_card_eur: 'Una carta que vale al menos (€)',
   collection_illustrator_cards: 'Cartas de un mismo ilustrador',
+  collection_pokedex_regions: 'Regiones de la Pokédex completas',
+  trades_done_count: 'Cambios hechos',
 }
 
 async function loadAchievements() {
@@ -925,7 +927,7 @@ function openAchievementModal(achievement) {
         <option value="forum_posts_count" ${a.condition?.type === 'forum_posts_count' ? 'selected' : ''}>Mensajes en el foro</option>
         <option value="forum_threads_count" ${a.condition?.type === 'forum_threads_count' ? 'selected' : ''}>Temas abiertos en el foro</option>
         <option value="forum_reactions_received" ${a.condition?.type === 'forum_reactions_received' ? 'selected' : ''}>Reacciones recibidas en el foro</option>
-        ${['collection_cards_count', 'collection_sets_complete', 'collection_top_card_eur', 'collection_illustrator_cards'].map((t) => `<option value="${t}" ${a.condition?.type === t ? 'selected' : ''}>${CONDITION_LABELS[t]}</option>`).join('')}
+        ${['collection_cards_count', 'collection_sets_complete', 'collection_top_card_eur', 'collection_illustrator_cards', 'collection_pokedex_regions', 'trades_done_count'].map((t) => `<option value="${t}" ${a.condition?.type === t ? 'selected' : ''}>${CONDITION_LABELS[t]}</option>`).join('')}
       </select>
     </div>
     <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" inputmode="numeric" value="${a.condition?.count ?? 1}" /></div>

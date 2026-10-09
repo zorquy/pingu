@@ -2,21 +2,25 @@
 // recortarla antes. Se recorta por el centro en el navegador, a 1600 px de
 // ancho como mucho, y se sube eso: la tarjeta de guía y la de noticia son
 // 16:9, y una foto vertical subida a pelo salía con la cara cortada.
-export function cajaDeRecorte(ancho, alto, proporcion = 16 / 9) {
+// Desde la 798 se elige el encuadre (arriba, centro, abajo): en una foto
+// vertical lo que importa suele estar arriba, y el centro cortaba la cara.
+const SITIO = { arriba: 0, centro: 0.5, abajo: 1 }
+export function cajaDeRecorte(ancho, alto, proporcion = 16 / 9, foco = 'centro') {
+  const f = SITIO[foco] ?? 0.5
   if (!ancho || !alto) return null
   if (ancho / alto > proporcion) {
     const w = Math.round(alto * proporcion)
-    return { x: Math.round((ancho - w) / 2), y: 0, w, h: alto }
+    return { x: Math.round((ancho - w) * f), y: 0, w, h: alto }
   }
   const h = Math.round(ancho / proporcion)
-  return { x: 0, y: Math.round((alto - h) / 2), w: ancho, h }
+  return { x: 0, y: Math.round((alto - h) * f), w: ancho, h }
 }
 
-export async function recortarPortada(file, { proporcion = 16 / 9, maxAncho = 1600 } = {}) {
+export async function recortarPortada(file, { proporcion = 16 / 9, maxAncho = 1600, foco = 'centro' } = {}) {
   if (!file?.type?.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') return file
   try {
     const bitmap = await createImageBitmap(file)
-    const c = cajaDeRecorte(bitmap.width, bitmap.height, proporcion)
+    const c = cajaDeRecorte(bitmap.width, bitmap.height, proporcion, foco)
     if (!c || (Math.abs(bitmap.width / bitmap.height - proporcion) < 0.01 && bitmap.width <= maxAncho)) return file
     const escala = Math.min(1, maxAncho / c.w)
     const lienzo = document.createElement('canvas')

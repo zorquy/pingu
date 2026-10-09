@@ -106,7 +106,8 @@ export const REQUISITOS = [
   { tabla: 'tcg_card_history', columna: 'card_id', fichero: 'supabase-migration-tcggo-historial.sql', rompe: 'La gráfica del histórico de una carta no sale.' },
   { tabla: 'tcg_cards', columna: 'tcggo_id', fichero: 'supabase-migration-tcggo-catalogo.sql', rompe: 'El catálogo de TCGGO no se escribe: los sets nuevos no entran.' },
   { tabla: 'tcg_set_valor', columna: 'set_id', fichero: 'supabase-migration-tcggo-expansiones.sql', rompe: 'Las expansiones no enseñan su valor.' },
-  { rpc: 'match_log_mazo_propio', fichero: 'supabase-migration-partidas-mazo-guardado.sql', rompe: 'Mis partidas no puede apuntar el mazo guardado con el que jugaste.' },
+  // match_log_mazo_propio es un DISPARADOR: la API no lo enseña. Se mira su columna.
+  { tabla: 'match_log', columna: 'user_deck_id', fichero: 'supabase-migration-partidas-mazo-guardado.sql', rompe: 'Mis partidas no puede apuntar el mazo guardado con el que jugaste.' },
   { tabla: 'user_price_alerts', columna: 'id', fichero: 'supabase-migration-avisos-precio.sql', rompe: 'Los avisos de precio no se pueden poner.' },
   { tabla: 'tcg_card_prices', columna: 'cm_low_ko', fichero: 'supabase-migration-tcggo-corea-china.sql', rompe: 'Las cartas coreanas y chinas no tienen precio.' },
   { tabla: 'match_log', columna: 'formato', fichero: 'supabase-migration-partidas-juegos.sql', rompe: 'Las partidas no guardan su formato ni sus juegos.' },
@@ -114,7 +115,8 @@ export const REQUISITOS = [
   { tabla: 'user_release_alerts', columna: 'id', fichero: 'supabase-migration-avisos-lanzamientos.sql', rompe: 'No se puede pedir aviso de un lanzamiento.' },
   { tabla: 'user_albums', columna: 'tipo', fichero: 'supabase-migration-albumes-tipos.sql', rompe: 'Los álbumes no guardan su tipo (binder, archivador…).' },
   { tabla: 'tcg_products', columna: 'id', fichero: 'supabase-migration-productos.sql', rompe: 'La pestaña Productos de Mi colección no tiene nada.' },
-  { rpc: 'intercambios_avisar', fichero: 'supabase-migration-cambios-seguidos.sql', rompe: 'No avisa cuando alguien a quien sigues da una carta que buscas.' },
+  // supabase-migration-cambios-seguidos.sql solo cambia un disparador
+  // (intercambios_avisar): desde el navegador no hay forma de mirarlo.
   { tabla: 'user_albums', columna: 'portada', fichero: 'supabase-migration-albumes-portada.sql', rompe: 'Los álbumes no guardan su portada.' },
   { rpc: 'coleccion_seguidos_y_mis_deseos', fichero: 'supabase-migration-seguidos-y-deseos.sql', rompe: 'El bloque de quién tiene lo que te falta no sale.' },
   { tabla: 'tcg_product_history', columna: 'product_id', fichero: 'supabase-migration-productos-ficha.sql', rompe: 'La ficha de un producto sale sin gráfica.' },
@@ -134,29 +136,32 @@ function faltaDeVerdad(error) {
   return /could not find|does not exist|schema cache|unknown column/.test(msg)
 }
 
-// Una función se mira SIN ejecutarla: se la llama con un argumento que no
-// tiene, y PostgREST contesta PGRST202 sin correr nada. Si existe, su pista
-// la nombra («Perhaps you meant to call the function public.x(p_…)»); si no,
-// no. Así una RPC que escribe no escribe por mirar si está.
-export function veredictoDeSonda(nombre, error) {
+// Una función se mira llamándola por GET y sin cuerpo de respuesta (798):
+// PostgREST corre los GET en una transacción de SOLO LECTURA, así que una que
+// escribe falla al intentarlo y no escribe nada. Si no existe, PGRST202; si
+// existe, contesta o se niega por otra cosa (permisos, solo lectura), y
+// cualquiera de las dos dice que está. La de la 791 contaba con una pista
+// («Perhaps you meant…») que Supabase no manda, y daba por perdidas
+// funciones que estaban.
+export function veredictoDeSonda(error) {
   if (!error) return { estado: 'ok' }
-  const texto = `${error.message || ''} ${error.hint || ''} ${error.details || ''}`
-  if (new RegExp(`public\\.${nombre}\\(`).test(error.hint || '')) return { estado: 'ok' }
-  if (error.code === 'PGRST202') return { estado: 'falta', detalle: error.message }
-  return { estado: 'duda', detalle: texto.trim() }
+  if (error.code === 'PGRST202' || /could not find the function/i.test(error.message || '')) return { estado: 'falta', detalle: error.message }
+  return { estado: 'ok', detalle: error.message }
 }
 
-async function sondearFuncion(nombre) {
-  const { error } = await supabase.rpc(nombre, { __sonda_791: 1 })
-  return veredictoDeSonda(nombre, error)
+async function sondearFuncion(nombre, args = {}) {
+  const { error } = await supabase.rpc(nombre, args, { head: true, get: true })
+  return veredictoDeSonda(error)
 }
 
 export async function checkSchema() {
   const resultados = await Promise.all(
     REQUISITOS.map(async (r) => {
-      if (r.rpc) return { ...r, ...(await sondearFuncion(r.rpc)) }
+      if (r.rpc) return { ...r, ...(await sondearFuncion(r.rpc, r.args)) }
       const { error } = await supabase.from(r.tabla).select(r.columna).limit(1)
       if (!error) return { ...r, estado: 'ok' }
+      // «permission denied» es que la tabla EXISTE y no la puedes leer (798).
+      if (error.code === '42501') return { ...r, estado: 'ok', detalle: 'Existe (sin permiso de lectura para tu cuenta).' }
       if (faltaDeVerdad(error)) return { ...r, estado: 'falta', detalle: error.message }
       // Cualquier otro error (permisos, red) no se cuenta como que falte
       // la migración: decir "ejecuta este fichero" cuando el problema es

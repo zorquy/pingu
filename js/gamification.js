@@ -445,6 +445,10 @@ function achievementValue(condition, stats) {
       return stats.coleccion?.cartaMasCara || 0
     case 'collection_illustrator_cards':
       return stats.coleccion?.maxIlustrador || 0
+    case 'collection_pokedex_regions':
+      return stats.coleccion?.regiones || 0
+    case 'trades_done_count':
+      return stats.coleccion?.cambios || 0
     case 'was_referred':
       return stats.invitado
     case 'completed_guides_count':

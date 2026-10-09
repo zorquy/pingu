@@ -149,6 +149,7 @@ async function renderThread(session, conversationId) {
       <h1 style="margin:0; font-size: var(--t-xl);"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
     </div>
     <div class="msg-cambio" id="msgCambio"></div>
+    <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
     <div id="threadMessages" style="display:flex; flex-direction:column; gap:8px; margin:16px 0;"></div>
     <div class="simple-card">
       <textarea id="msgBody" placeholder="Escribe un mensaje…"></textarea>
@@ -157,6 +158,8 @@ async function renderThread(session, conversationId) {
 
   // «Cambio hecho» (795, NU4): solo si la migración está; si no, nada.
   import('./cambio-boton.js').then((m) => m.pintarBotonDeCambio(document.getElementById('msgCambio'), session.user.id, otherProfile.id, name)).catch(() => {})
+  // Lo que os podéis cambiar, encima de la conversación (798, PA13): solo si hay algo.
+  import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('msgCruce'), otherProfile, session, { soloSiHay: true })).catch(() => {})
 
   async function refreshMessages() {
     const messages = await loadThreadMessages(conversationId)

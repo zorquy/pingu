@@ -1372,37 +1372,6 @@ body:not([data-pnivel="vitrina"]) #perfilVitrina { display: none; }
   }
 }
 
-/* El cruce del modo feria (794, NU5). */
-.perfil-cruce {
-  margin-bottom: var(--e-lg);
-  padding: var(--e-lg);
-  border: 2px solid var(--navy);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-
-.perfil-cruce h2 {
-  font-size: var(--t-lg);
-}
-
-.perfil-cruce-lados {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--e-md);
-  margin: var(--e-sm) 0 var(--e-md);
-}
-
-.perfil-cruce h3 {
-  margin-bottom: var(--e-xs);
-  font-size: var(--t-sm);
-}
-
-.perfil-cruce ul {
-  margin: 0;
-  padding-left: var(--e-lg);
-  font-size: var(--t-sm);
-}
-
 /* La confianza en los cambios (795, NU4). */
 .perfil-confianza {
   margin-top: var(--e-xs);

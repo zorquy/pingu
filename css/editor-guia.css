@@ -277,3 +277,6 @@ textarea.be-field {
   background: var(--ice);
   border-radius: var(--radius-sm);
 }
+
+/* El encuadre de la portada (798), al lado de «Subir imagen». */
+.cover-image-upload label { display: inline-flex; align-items: center; gap: var(--e-sm); margin: 0; }

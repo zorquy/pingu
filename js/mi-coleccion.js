@@ -1548,7 +1548,14 @@ async function mirarLogrosDeColeccion() {
   const sets = await cargarSetsDeTodos().catch(() => [])
   const porId = new Map((sets || []).filter((x) => (x.market || 'WEST') === mercado).map((x) => [x.id, x]))
   const { statsDeColeccion, comprobarLogrosDeColeccion } = await import('./logros-coleccion.js')
+  // Las especies que tienes (para las regiones) y tus cambios hechos (798).
+  const { especiesDeLaCarta } = await import('./mi-coleccion/pokedex.js')
+  const especies = new Set()
+  for (const id of new Set(lineas.map((l) => l.card_id))) for (const n of especiesDeLaCarta(cartas.get(id)) || []) especies.add(Number(n))
+  const cambiosHechos = (await import('./cambios-hechos.js').then((m) => m.cambiosDe(sesion.user.id)).catch(() => null))?.hechos || 0
   const stats = statsDeColeccion({
+    especies,
+    cambiosHechos,
     lineas,
     cartaDe: (id) => cartas.get(id),
     cuantasPorSet: cuantasPorSet(),
@@ -5986,6 +5993,8 @@ async function pintarCambios() {
              ? 'Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.'
              : 'Todavía nadie encaja contigo. Mira el Mercado: ahí está todo lo que se da.'}</p>`}`
   engancharCambios()
+  // «12 cambios · todos bien» al lado de cada persona (798, NU4).
+  import('./cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces'))).catch(() => {})
 }
 
 // El buscador de la lista de búsqueda, con su propio turno: dos

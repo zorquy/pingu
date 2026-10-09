@@ -25,6 +25,7 @@ import { nombreDeCarta, nombreDeSet } from '../catalogo-series.js'
 import { normalizeSearch } from '../texto.js'
 import { banderaHtml } from '../precio-vista.js'
 import { euros, idiomaDe } from '../cardmarket.js'
+import { crecerDesde } from './gestos-ficha.js'
 import { entenderBusqueda } from './busqueda.js'
 import { mercado as pedirMercado, quienDaEsta } from './cambios.js'
 import { senasDe, borradorDe } from './tablon.js'
@@ -174,6 +175,7 @@ function personaHtml(p, carta) {
       <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce</span>' : ''}</p>
       <p class="subtext">${banderaHtml(p.idioma || 'es')} ${escapeHtml(senasDe(p))}${Number(p.cambio) > 1 ? ` · da ${Number(p.cambio)}` : ''}</p>
       ${suyas ? `<p class="mc-merf-busca">Busca ${suyas === 1 ? '1 de las tuyas' : `${suyas} de las tuyas`}</p>` : ''}
+      <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
     </div>
     <div class="mc-merf-acciones">
       <button type="button" class="btn-primary" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}">${icons.mail(15)}<span>Escribir</span></button>
@@ -215,6 +217,7 @@ async function pintarFicha(cardId) {
         ? '<p class="subtext">No se ha podido preguntar quién la da.</p>'
         : `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La da 1 persona' : `La dan ${gente.length} personas`}</h3>
            <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c)).join('')}</ul>`}`
+  import('../cambios-hechos.js').then((m) => m.ponerConfianza(cuerpo)).catch(() => {})
 }
 
 async function abrirFicha(cardId) {
@@ -311,7 +314,8 @@ function enganchar() {
     const q = e.target.closest('[data-merc-quiero]')
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
     const f = e.target.closest('[data-merc-ficha]')
-    if (f) return void abrirFicha(f.dataset.mercFicha)
+    // La carta crece desde su hueco hasta la ficha (798, MV12), si no está ya al lado.
+    if (f) return void (window.matchMedia(CONSULTA_AL_LADO).matches || $('mcMercadoFicha')?.open ? abrirFicha(f.dataset.mercFicha) : crecerDesde(f.querySelector('img'), () => abrirFicha(f.dataset.mercFicha), { destino: '#mcMercadoFicha .mc-prodf-foto img' }))
   })
   const d = $('mcMercadoFicha')
   d?.addEventListener('click', (e) => {

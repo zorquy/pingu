@@ -349,19 +349,30 @@ async function init() {
   })
 
   document.getElementById('btnUploadCoverImage').addEventListener('click', () => document.getElementById('mgCoverImageFile').click())
-  document.getElementById('mgCoverImageFile').addEventListener('change', async (e) => {
-    const file = e.target.files[0]
-    e.target.value = ''
-    if (!file) return
+  // El original se guarda para volver a recortar si cambias el encuadre (798).
+  let portadaOriginal = null
+  const subirPortada = async () => {
     try {
       const { recortarPortada } = await import('./recorte-portada.js')
-      coverImageUrl = await uploadGuideImage(currentSession.user.id, await recortarPortada(file))
+      const foco = document.getElementById('mgCoverFoco')?.value || 'centro'
+      coverImageUrl = await uploadGuideImage(currentSession.user.id, await recortarPortada(portadaOriginal, { foco }))
       updateCoverImagePreview()
     } catch (err) {
       showToast('No se pudo subir la imagen: ' + err.message)
     }
+  }
+  document.getElementById('mgCoverImageFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    portadaOriginal = file
+    await subirPortada()
+  })
+  document.getElementById('mgCoverFoco')?.addEventListener('change', () => {
+    if (portadaOriginal) subirPortada()
   })
   document.getElementById('btnRemoveCoverImage').addEventListener('click', () => {
+    portadaOriginal = null
     coverImageUrl = ''
     updateCoverImagePreview()
   })

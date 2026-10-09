@@ -96,7 +96,7 @@ export function entrarPorElLado(el, paso, { win = window } = {}) {
 // ficha, que es lo que hace que el navegador anime la una hasta la otra.
 let ultimoOrigen = null
 
-export function crecerDesde(origen, abrir, { doc = document, win = window } = {}) {
+export function crecerDesde(origen, abrir, { doc = document, win = window, destino: selDestino = '#mcEdFoto img' } = {}) {
   const quieto = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   ultimoOrigen = origen || null
   if (!origen || quieto || typeof doc.startViewTransition !== 'function') return abrir()
@@ -105,7 +105,7 @@ export function crecerDesde(origen, abrir, { doc = document, win = window } = {}
   const t = doc.startViewTransition(() => {
     origen.style.viewTransitionName = ''
     abrir()
-    destino = doc.querySelector('#mcEdFoto img')
+    destino = doc.querySelector(selDestino)
     if (destino) destino.style.viewTransitionName = 'mc-carta-que-crece'
   })
   // Al acabar —o al fallar: una transición se puede saltar— el nombre se

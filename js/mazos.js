@@ -67,10 +67,12 @@ function tarjetaHtml(m) {
           ${m.is_public ? '<span class="cm-chapa cm-chapa-publico">Público</span>' : '<span class="cm-chapa cm-chapa-privado">Privado</span>'}
         </p>
         <p class="cm-mazo-meta subtext">Editado ${haceCuanto(m.updated_at)}</p>
+        <p class="cm-mazo-coste subtext hidden" data-coste-caja aria-live="polite"></p>
         <div class="cm-mazo-acciones">
           <a class="btn-primary cm-btn" href="${enlace}">Abrir</a>
           <a class="btn-secondary cm-btn" href="/laboratorio?mazo=${escapeHtml(m.id)}">Probar</a>
           <button type="button" class="btn-secondary cm-btn" data-portada>Portada</button>
+          <button type="button" class="link-btn" data-coste>¿Cuánto me falta?</button>
           <button type="button" class="link-btn" data-duplicar>Duplicar</button>
           <button type="button" class="link-btn cm-mazo-borrar" data-borrar>Borrar</button>
         </div>
@@ -202,6 +204,23 @@ async function iniciar() {
         showToast('Mazo borrado.', 'success')
       } catch (err) {
         showToast(err.message, 'error')
+      }
+    } else if (e.target.closest('[data-coste]')) {
+      // Lo que te falta para montarlo (798, NU3): el cálculo de /meta y del
+      // constructor, con las cartas del mazo.
+      const caja = e.target.closest('[data-id]').querySelector('[data-coste-caja]')
+      caja.classList.remove('hidden')
+      caja.textContent = 'Mirando tu colección…'
+      try {
+        const ids = (mazo.cards || []).map((c) => c.id)
+        const faltan = ids.filter((id) => !cartas.has(id))
+        if (faltan.length) for (const [id, c] of await cartasPorIds(faltan)) cartas.set(id, c)
+        const { costeDeResueltas } = await import('./coste-mazo.js')
+        const r = await costeDeResueltas((mazo.cards || []).filter((c) => cartas.has(c.id)).map((c) => ({ linea: { n: c.n }, carta: cartas.get(c.id) })), sesion.user.id)
+        const euros = r.euros ? ` · unos ${r.euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} en Cardmarket` : ''
+        caja.textContent = !r.total ? 'Sin cartas que contar (las energías básicas no cuentan).' : !r.faltan ? 'Ya tienes todas (sin contar las energías básicas).' : `Tienes ${r.tienes} de ${r.total} · te faltan ${r.faltan}${euros}.`
+      } catch {
+        caja.textContent = 'No he podido mirar tu colección ahora.'
       }
     } else if (e.target.closest('[data-duplicar]')) {
       try {

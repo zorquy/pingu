@@ -4,6 +4,55 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (46) — PINGU-Claude (798 — las «casi» de la propuesta y la sonda de /admin)
+
+**Hecho**: lo que quedaba a medias de «PokeDoc al detalle».
+- **NU3**: cada mazo de /mis-mazos tiene «¿Cuánto me falta?» (cuántas tienes,
+  cuántas faltan y unos euros, con `costeDeResueltas`, el mismo cálculo que
+  el constructor).
+- **NU4**: la línea de confianza («N cambios hechos…») sale también en el
+  Mercado y en los Cruces (`ponerConfianza` en `js/cambios-hechos.js`, que
+  rellena las cajas `[data-confianza]` vacías, máximo 30, una petición por
+  persona).
+- **NU6**: /ilustrador tiene «Hacer el álbum de X» (con cuenta): crea un
+  álbum con sus cartas y te lleva a él.
+- **NU9**: dos logros más, «Región completa» (una región de la Pokédex
+  entera) y «Cien cambios». **Migración nueva:
+  `supabase-migration-logros-coleccion-2.sql`** (repetible).
+- **PA13**: en una conversación de /mensajes sale el cruce con esa persona
+  (qué te da y qué le das), solo si hay algo. El CSS del cruce sale de
+  `perfil.css` a `css/cruce-persona.css`, que el módulo inyecta.
+- **MV12**: en el Mercado la carta crece hacia la ficha (hoja del móvil).
+- **SI4**: al subir la portada de una guía se elige el encuadre (arriba,
+  centro, abajo); cambiarlo vuelve a recortar el original y lo sube otra vez.
+- Y un rojo de la 578 que venía de antes: si el pliego se repinta a mitad de
+  un arrastre, el hueco de origen perdía su marca (atenuado). `mover()` la
+  vuelve a poner (`js/mi-coleccion/arrastre.js`).
+- **La sonda de /admin → Base de datos** daba «Falta» de funciones que
+  estaban puestas: Supabase no manda la pista «Perhaps you meant…» que leía
+  la 791. Ahora pregunta por GET sin filas (`head: true, get: true`):
+  PGRST202 es que falta y cualquier otro error, que existe. Las dos que no
+  se pueden preguntar así (un disparador y una función con parámetros
+  obligatorios) salen de la lista o se miran por su columna
+  (`match_log.user_deck_id`). Y un «permission denied» de una tabla es que
+  existe (`enlaces_cortos`).
+
+**Ficheros**: `js/mazos.js`, `js/cambios-hechos.js`,
+`js/mi-coleccion/tablon.js`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/gestos-ficha.js`, `js/mi-coleccion.js`, `cartas.html`
+(generado), `css/mi-coleccion.css`, `js/logros-coleccion.js`,
+`js/gamification.js`, `admin/js/admin.js`,
+`supabase-migration-logros-coleccion-2.sql` (nuevo), `css/cruce-persona.css`
+(nuevo), `css/perfil.css`, `js/cruce-persona.js`, `js/mensajes.js`,
+`js/ilustrador.js`, `js/schema-check.js`, `js/recorte-portada.js`,
+`js/editor-guia.js`, `editor-guia.html`, `css/editor-guia.css`,
+`js/mi-coleccion/arrastre.js`, `SCHEMA.md`.
+Pruebas: 798 nueva, 791 y 796 al día.
+
+**Pendiente**: el sitemap de ilustradores, PA11 (el set que más tiene / el mazo que más juega en
+Gente, que pide una RPC para leer datos de otros), PA14 (la «mesa» del
+constructor) y el resto de LO3. Son tandas propias.
+
 ## 2026-10-09 (45) — PINGU-Claude (797 — LO3, primer paso: Productos con su hoja)
 
 **Hecho**: LO3 empieza por la pestaña que menos se abre: las 37 reglas que

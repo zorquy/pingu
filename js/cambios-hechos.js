@@ -55,3 +55,19 @@ export async function valorarCambio(id, valor, nota = null) {
   const { error } = await supabase.rpc('cambio_valorar', { p_id: id, p_valor: valor, p_nota: nota })
   if (error) throw new Error(sinMigracion(error) ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.` : error.message)
 }
+
+// El rótulo al lado de cada persona (798, NU4): en Cruces y en el Mercado.
+// Quien lo pinta deja un `<span data-confianza="<id>">` vacío y llama aquí;
+// una llamada por persona y se recuerda, que una lista de cruces son unas
+// pocas caras. Sin cambios hechos o sin la migración, se queda vacío.
+const yaPedidos = new Map()
+export async function ponerConfianza(raiz) {
+  if (!raiz) return
+  const huecos = [...raiz.querySelectorAll('[data-confianza]:empty')].slice(0, 30)
+  await Promise.all(huecos.map(async (h) => {
+    const id = h.dataset.confianza
+    if (!yaPedidos.has(id)) yaPedidos.set(id, cambiosDe(id).catch(() => null))
+    const t = textoDeConfianza(await yaPedidos.get(id))
+    if (t && h.isConnected) h.textContent = t
+  }))
+}

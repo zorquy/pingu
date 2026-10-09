@@ -115,6 +115,8 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
   }
 
   function mover(e) {
+    // Si el pliego se ha repintado mientras tanto, la de origen se vuelve a marcar.
+    if (!zona.querySelector('.mc-arrastrando')) zona.querySelector(`${elemento}[data-indice="${inicio?.indice}"]`)?.classList.add('mc-arrastrando')
     fantasma.style.transform = `translate(${e.clientX - inicio.dx}px, ${e.clientY - inicio.dy}px)`
     const bajo = elementoBajo(e.clientX, e.clientY)
     const caja = bajo?.closest(`${elemento}, ${huecos}`)

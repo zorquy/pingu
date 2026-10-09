@@ -39212,3 +39212,45 @@ al tocar, con la rueda o con una tecla.
 catálogo, la chispa del valor, el valor de la expansión y el semanal en la
 línea corta de la fila (la tarjeta de la 668 lo tenía en losetas; la fila de
 PA8 lo había perdido).
+
+## Tanda 798 — Las «casi» de la propuesta y la sonda de /admin
+
+- **NU3** `js/mazos.js`: botón `[data-coste]` por mazo; carga las cartas que
+  faltan con `cartasPorIds` y llama a `costeDeResueltas` (de `js/coste-mazo.js`)
+  con `{ linea: { n }, carta }`. Escribe en `[data-coste-caja]` (aria-live).
+- **NU4** `ponerConfianza(raiz)` en `js/cambios-hechos.js`: rellena los
+  `[data-confianza]:empty` (máximo 30) con `textoDeConfianza(await cambiosDe(id))`
+  y guarda lo pedido en un `Map` para no repetir. La llaman el Mercado (al pintar
+  la ficha) y los Cruces (tras `engancharCambios`). Clase `.mc-confianza` en
+  `css/mi-coleccion.css`, escondida vacía.
+- **NU6** `js/ilustrador.js`: «Hacer el álbum de X» inserta en `user_albums`
+  `{ nombre, descripcion, cartas: [{ id }] }` (hasta 1.080)
+  y va a `/mi-coleccion?album=<id>`.
+- **NU9** `REGIONES_DEX` y `regionesCompletas(especies)` en
+  `js/logros-coleccion.js`; `statsDeColeccion(…, especies, cambiosHechos)` da
+  `regiones` y `cambios`. Tipos de condición `collection_pokedex_regions` y
+  `trades_done_count` (gamification.js y /admin). Migración
+  `supabase-migration-logros-coleccion-2.sql`: logros `coleccion_region` y
+  `cambios_100`.
+- **PA13** `pintarCruce(caja, persona, sesion, { soloSiHay })`: con `soloSiHay`
+  no enseña «Mirando…», se esconde si no hay nada y calla los errores. Lo usa
+  /mensajes (`#msgCruce`). Su CSS, `css/cruce-persona.css`, lo inyecta el módulo
+  (`hojaInyectada`); salió de `perfil.css`.
+- **MV12** `crecerDesde(origen, abrir, { destino })`: el selector de la foto de
+  destino es ahora un parámetro (por defecto `#mcEdFoto img`); el Mercado usa
+  `#mcMercadoFicha .mc-prodf-foto img` cuando la ficha va en hoja.
+- **Sonda** `js/schema-check.js`: `veredictoDeSonda(error)` — PGRST202 (o «could
+  not find the function») es `falta`; sin error o con cualquier otro, `ok`. La
+  pregunta es `supabase.rpc(fn, args, { head: true, get: true })`: por GET la
+  función corre en una transacción de solo lectura y no escribe nada. La pista
+  «Perhaps you meant…» en la que se fiaba la 791 no llega desde Supabase, y con
+  un argumento inventado la función nunca casaba: todo salía «Falta». Un
+  disparador no se expone por la API (fuera de la lista) y
+  `match_log_mazo_propio` tiene parámetros obligatorios (se mira su columna,
+  `match_log.user_deck_id`). Un 42501 en una tabla es que existe.
+- **SI4** `cajaDeRecorte(ancho, alto, proporcion, foco)` y `recortarPortada(file,
+  { foco })`: `foco` es `arriba`/`centro`/`abajo` (0, 0,5 y 1 del sobrante, en
+  vertical o en horizontal según sobre). /editor-guia guarda el original
+  (`portadaOriginal`) y, al cambiar `#mgCoverFoco`, lo recorta y sube otra vez.
+- **Arrastre** `js/mi-coleccion/arrastre.js`: `mover()` vuelve a marcar la de
+  origen (`.mc-arrastrando`) si el pliego se ha repintado durante el arrastre.

@@ -10665,3 +10665,5 @@ input.mc-alb-titulo:not([readonly]):focus {
     max-width: 60vw;
   }
 }
+.mc-confianza { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.mc-confianza:empty { display: none; }

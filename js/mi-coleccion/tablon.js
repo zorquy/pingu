@@ -119,6 +119,7 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       <div class="mc-cruce-quien">
         <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
         <p class="subtext">${p.perfecto ? 'Las dos listas encajan' : p.teDa.length ? 'Tiene lo que buscas' : 'Busca lo que das'}</p>
+        <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
       </div>
       ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
     </header>

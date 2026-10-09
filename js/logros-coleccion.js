@@ -7,7 +7,16 @@
 // otra vez desde cualquier página para mirar un trofeo serían miles de filas.
 
 // Puro: lo que cuenta cada tipo de logro, con la colección en la mano.
-export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, unidad }) {
+// Las regiones de la Pokédex (798): Paldea cierra en el 1025 para poder
+// estar «completa»; la décima generación, cuando salga, será otra.
+export const REGIONES_DEX = [[1, 151], [152, 251], [252, 386], [387, 493], [494, 649], [650, 721], [722, 809], [810, 905], [906, 1025]]
+
+export function regionesCompletas(especies) {
+  const tengo = especies instanceof Set ? especies : new Set(especies || [])
+  return REGIONES_DEX.filter(([a, b]) => { for (let n = a; n <= b; n++) if (!tengo.has(n)) return false; return true }).length
+}
+
+export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, unidad, especies = null, cambiosHechos = 0 }) {
   const distintas = new Set(lineas.map((l) => l.card_id))
   let setsCompletos = 0
   for (const [set, n] of cuantasPorSet) {
@@ -26,6 +35,8 @@ export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, u
     setsCompletos,
     cartaMasCara: Math.floor(cartaMasCara),
     maxIlustrador: Math.max(0, ...porIlustrador.values()),
+    regiones: especies ? regionesCompletas(especies) : 0,
+    cambios: Number(cambiosHechos) || 0,
   }
 }
 

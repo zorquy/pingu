@@ -100,8 +100,23 @@ async function iniciar() {
   if (cara && precio.get(cara.id)) trozos.push(`la más cara, ${nombreDeCarta(cara)} (${euros.format(precio.get(cara.id))})`)
   $('ilCifras').textContent = trozos.join(' · ')
   const q = new URLSearchParams({ ver: 'buscar', q: nombre })
-  $('ilAcciones').innerHTML = `<a class="btn-secondary" href="/mi-coleccion?${escapeHtml(q.toString())}">Buscarlas en Mi colección</a>`
+  $('ilAcciones').innerHTML = `${sesion ? `<button type="button" class="btn-primary" id="ilAlbum">Hacer el álbum de ${escapeHtml(nombre)}</button>` : ''}<a class="btn-secondary" href="/mi-coleccion?${escapeHtml(q.toString())}">Buscarlas en Mi colección</a>`
   $('ilAcciones').classList.remove('hidden')
+  // El álbum de un toque (798, NU6): sus cartas por fecha, en un álbum tuyo
+  // (las 1.080 primeras: el tope de un álbum en la base).
+  $('ilAlbum')?.addEventListener('click', async (e) => {
+    const b = e.currentTarget
+    b.disabled = true
+    const { data, error } = await supabase.from('user_albums')
+      .insert({ nombre: `Las cartas de ${nombre}`.slice(0, 80), descripcion: `Todas las cartas de ${nombre}, por fecha.`.slice(0, 500), cartas: cartas.slice(0, 1080).map((c) => ({ id: c.id })) })
+      .select('id').single()
+    if (error || !data?.id) {
+      b.disabled = false
+      b.textContent = 'No se ha podido crear: prueba otra vez'
+      return
+    }
+    location.href = `/mi-coleccion?album=${encodeURIComponent(data.id)}`
+  })
   rejilla.innerHTML = cartas.map((c) => tarjeta(c, tengo.has(c.id), precio.get(c.id))).join('')
 }
 
