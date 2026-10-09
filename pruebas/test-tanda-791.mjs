@@ -45,16 +45,17 @@ const b = await chromium.launch()
         { id: 'a10', set_id: 's1', local_id: '10', tcg_sets: { release_date: '1999-01-09' } },
         { id: 'a2', set_id: 's1', local_id: '2', tcg_sets: { release_date: '1999-01-09' } },
       ]).map((c) => c.id).join(),
-      existe: sc.veredictoDeSonda('intercambios_mercado', { code: 'PGRST202', message: 'Could not find the function public.intercambios_mercado(__sonda_791)', hint: 'Perhaps you meant to call the function public.intercambios_mercado(p_limite)' }).estado,
-      falta: sc.veredictoDeSonda('intercambios_mercado', { code: 'PGRST202', message: 'Could not find the function', hint: null }).estado,
-      parecida: sc.veredictoDeSonda('intercambios_avisar', { code: 'PGRST202', message: 'x', hint: 'Perhaps you meant to call the function public.intercambios_avisar_todos(p)' }).estado,
+      falta: sc.veredictoDeSonda({ code: 'PGRST202', message: 'Could not find the function public.intercambios_mercado in the schema cache' }).estado,
+      soloLectura: sc.veredictoDeSonda({ code: '25006', message: 'cannot execute INSERT in a read-only transaction' }).estado,
+      sinPermiso: sc.veredictoDeSonda({ code: '42501', message: 'permission denied' }).estado,
+      bien: sc.veredictoDeSonda(null).estado,
     }
   })
   check('el trozo de la dirección: sin acentos ni signos', r.slug === 'mitsuhiro-arita' && r.acento === 'ryota-murayama-ebano' && r.ruta === '/ilustrador/kawayoo', JSON.stringify(r))
   check('la búsqueda por partes', r.patron === '%mitsuhiro%arita%', r.patron)
   check('son suyas la firma entera y la compartida, no la parecida', r.suyo && r.dos && !r.otro, JSON.stringify(r))
   check('por fecha y, dentro del set, por número', r.orden === 'a2,a10,b', r.orden)
-  check('una función se da por puesta solo si la pista la NOMBRA', r.existe === 'ok' && r.falta === 'falta' && r.parecida === 'falta', JSON.stringify(r))
+  check('una función falta solo con PGRST202; cualquier otro error dice que existe', r.falta === 'falta' && r.soloLectura === 'ok' && r.sinPermiso === 'ok' && r.bien === 'ok', JSON.stringify(r))
   await p.close()
 }
 

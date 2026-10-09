@@ -20,7 +20,7 @@ check('la «×» de la ficha devuelve la carta a su hueco', /volverAlHueco\(\(\)
 const css = leer('css/mi-coleccion.css')
 check('la hoja gira sobre el lomo', /@keyframes mc-hoja-entra-derecha \{\s*from \{ opacity: 0\.5; transform: perspective\(1600px\) rotateY\(-62deg\); \}/.test(css))
 check('los torneos piden el meta una vez por página', /pedido \|\|= supabase\.rpc\('meta_resumen'/.test(leer('js/torneos/arte-meta.js')))
-check('la portada se recorta antes de subir', /uploadGuideImage\(currentSession\.user\.id, await recortarPortada\(file\)\)/.test(leer('js/editor-guia.js')))
+check('la portada se recorta antes de subir', /uploadGuideImage\(currentSession\.user\.id, await recortarPortada\(portadaOriginal, \{ foco \}\)\)/.test(leer('js/editor-guia.js')))
 
 console.log('── 2. En el navegador ──')
 const b = await chromium.launch()
