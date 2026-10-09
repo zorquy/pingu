@@ -262,10 +262,11 @@ console.log('\n── 5. La chapa de si se puede jugar hoy ──')
   // nombre pasaría lo segundo y no lo primero.
   const importa = revisor.match(/import \{([^}]*)\} from '\.\.\/carta-legalidad\.js'/)?.[1] || ''
   check('el revisor importa las marcas de la temporada', /\bmarcasLegales\b/.test(importa), importa)
-  check('…y la regla de la reimpresión', /\bhayReimpresionLegal\b/.test(importa), importa)
+  // Desde la 800, la de la lista entera de una vez (la misma que el constructor).
+  check('…y la regla de la reimpresión', /\bnombresConReimpresionLegal\b/.test(importa), importa)
   check('…y no se declara ninguna de las dos por su cuenta',
-    !/(const|function|let)\s+(marcasLegales|hayReimpresionLegal)\b/.test(revisor),
-    revisor.match(/.*(const|function|let)\s+(marcasLegales|hayReimpresionLegal)\b.*/)?.[0])
+    !/(const|function|let)\s+(marcasLegales|hayReimpresionLegal|nombresConReimpresionLegal)\b/.test(revisor),
+    revisor.match(/.*(const|function|let)\s+(marcasLegales|hayReimpresionLegal|nombresConReimpresionLegal)\b.*/)?.[0])
 }
 
 // ═════════════════════════════════════════════════════════════════════
