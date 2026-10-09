@@ -160,7 +160,8 @@ console.log('\n── 2. El organizador cierra una jornada y la empareja ──'
   const listas = [['user-1', 2], ['user-2', 2], ['user-3', 2], ['p4', 2], ['user-1', 3]]
   const { page, errores } = await abrir(liga({ listas }), { sesion: 'admin-1' })
   await pestana(page, 'rondas')
-  check('sin cerrar la J2 no hay botón de emparejar, y se dice', !(await page.locator('#btnGenerarPareos').count()) && /cierra antes sus inscripciones/.test(await page.locator('#rondasAdmin').textContent()))
+  // Desde la 801 el botón sale con la J2 abierta: emparejarla la cierra, y se avisa.
+  check('con la J2 abierta ya sale el botón de emparejarla, y se avisa de que la cierra', (await page.locator('#btnGenerarPareos').count()) === 1 && /se cierran sus inscripciones/.test(await page.locator('#rondasAdmin').textContent()))
   const filasAdmin = await page.$$eval('.torneo-jornadas-admin-fila', (fs) => fs.map((f) => f.textContent.replace(/\s+/g, ' ').trim()))
   check('inscripciones por jornada: J2 y J3 (la J1 ya se jugó), cada una con su cuenta', filasAdmin.length === 2 && /Jornada 2.*Abierta.*4 de 6 con lista/.test(filasAdmin[0]) && /Jornada 3.*1 de 6/.test(filasAdmin[1]), filasAdmin.join(' | '))
   check('  …el botón mide 44', await page.$$eval('.torneo-jornada-cerrar', (bs) => bs.every((b) => b.getBoundingClientRect().height >= 44)))
@@ -194,7 +195,7 @@ console.log('\n── 2. El organizador cierra una jornada y la empareja ──'
   await page.waitForTimeout(1200)
   const T = await tablas(page)
   check('con una sola lista en la J2, no se empareja', !T.rounds.some((r) => r.round_number === 2))
-  check('  …y se dice por qué', /solo un jugador ha mandado su lista/.test(await toasts(page)), await toasts(page))
+  check('  …y se dice por qué', /solo Ash ha mandado su lista/.test(await toasts(page)), await toasts(page))
   // Reabrir la J2.
   await page.click('.torneo-jornada-cerrar[data-jornada="2"]')
   await page.waitForTimeout(1000)
@@ -211,7 +212,7 @@ console.log('\n── 2. El organizador cierra una jornada y la empareja ──'
   await page.click('#btnGenerarPareos')
   await page.waitForTimeout(1200)
   check('si la J2 se reabrió entretanto, no se empareja', !(await tablas(page)).rounds.some((r) => r.round_number === 2))
-  check('  …y se dice', /Cierra antes las inscripciones de la jornada 2/.test(await toasts(page)), await toasts(page))
+  check('  …y se dice', /ha reabierto la jornada 2/.test(await toasts(page)), await toasts(page))
   await page.close()
 }
 {
