@@ -893,12 +893,12 @@ body:has(.nav-menu-mobile.open) {
 }
 
 .btn-primary {
-  background: var(--navy);
-  color: var(--white);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
 }
 
 .btn-primary:hover {
-  background: var(--navy-light);
+  background: var(--navy-solid-light);
 }
 
 .btn-secondary {
@@ -1349,22 +1349,37 @@ button.btn-block {
 
 /* ── Empty / loading states ── */
 /* Los estados vacíos (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */
+/* Sin caja punteada y con tres cartas fantasma (781, SI2; el porqué en SCHEMA). */
 .empty-state {
   text-align: center;
   padding: 32px 24px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--navy) 2%, transparent);
   color: var(--text-mid);
   font-size: var(--t-md);
 }
 
-/* S780.39 */
-.simple-card > .empty-state,
-.foro-seccion > .empty-state,
-.tab-panel > .empty-state:only-child {
-  border: none;
-  background: none;
+.empty-state:not([style])::before {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 56px;
+  margin: 0 auto var(--e-md);
+  background: var(--border-strong);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 56'%3E%3Cg fill='%23000'%3E%3Crect x='23' y='8' width='26' height='38' rx='4' fill-opacity='.35' transform='rotate(-18 36 54)'/%3E%3Crect x='23' y='8' width='26' height='38' rx='4' fill-opacity='.35' transform='rotate(18 36 54)'/%3E%3Crect x='23' y='6' width='26' height='38' rx='4' fill-opacity='.7'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 56'%3E%3Cg fill='%23000'%3E%3Crect x='23' y='8' width='26' height='38' rx='4' fill-opacity='.35' transform='rotate(-18 36 54)'/%3E%3Crect x='23' y='8' width='26' height='38' rx='4' fill-opacity='.35' transform='rotate(18 36 54)'/%3E%3Crect x='23' y='6' width='26' height='38' rx='4' fill-opacity='.7'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+#searchResults .empty-state::before {
+  content: none;
+}
+
+.empty-state .btn-primary {
+  margin-top: var(--e-md);
+}
+
+.empty-state a:not([class]) {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .skeleton {

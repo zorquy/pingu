@@ -3,7 +3,7 @@ import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 import { escapeHtml, getInitial, getSession, profileUrl, avatarStyle } from './app.js'
 import { guideHasReference } from './guia-contenido.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
-import { calculateLevel, levelBadgeHtml } from './gamification.js'
+import { calculateLevel, esPrimerNivel, levelBadgeHtml } from './gamification.js'
 import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -37,7 +37,7 @@ function userCardHtml(p) {
       <a class="com-persona-cara" href="${profileUrl(p)}" style="${avatarStyle(p)}" aria-label="${escapeHtml(name)}">${p.avatar_url ? '' : getInitial(name)}</a>
       <div class="com-persona-cuerpo">
         <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
-        ${levelBadgeHtml(calculateLevel(p.total_xp), 11)}
+        ${esPrimerNivel(calculateLevel(p.total_xp)) ? '' : levelBadgeHtml(calculateLevel(p.total_xp), 11)}
         <span class="com-persona-hizo">${hizo.length ? escapeHtml(hizo.join(' · ')) : 'Acaba de llegar'}</span>
       </div>
       ${

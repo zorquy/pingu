@@ -23,7 +23,7 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
-import { calculateLevel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { calculateLevel, esPrimerNivel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { orosPorUsuario } from './medallero.js'
 import { marcarLeido, marcasDeLectura, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
@@ -82,7 +82,7 @@ function migasHtml(trozos) {
 //      lo hay, el rango de colaborador (clicable: abre sus rangos).
 function tituloDe(perfil, guiasAprobadas) {
   const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
-  const trozos = [
+  const trozos = esPrimerNivel(nivel) ? [] : [
     `<button type="button" class="foro-chapa-rango" data-ver-niveles="${perfil?.total_xp || 0}"
        title="Ver todos los niveles">${levelBadgeHtml(nivel)}</button>`,
   ]
@@ -103,7 +103,7 @@ function tituloDe(perfil, guiasAprobadas) {
          title="Ver los rangos de colaborador">${badgeHtml(guiasAprobadas)}</button>`
     )
   }
-  return `<span class="foro-autor-titulo foro-autor-rangos">${trozos.join('')}</span>`
+  return trozos.length ? `<span class="foro-autor-titulo foro-autor-rangos">${trozos.join('')}</span>` : ''
 }
 
 // La chapa de «Abrió el tema», para la CABECERA del mensaje (tanda 390).

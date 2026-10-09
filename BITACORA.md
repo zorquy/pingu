@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (29) — PINGU-Claude (781 — bloque 2 de «PokeDoc al detalle»)
+
+**Hecho**: SI5, el botón principal es el azul sólido con letra blanca también
+en oscuro (en claro no cambia nada). SI3, un solo «Ver todo →» (`.ver-todo`)
+en la portada, «Hoy», el foro y el Panel, con los títulos de sección en
+Fredoka y `--t-xl`. SI2, `.empty-state` sin caja punteada y con tres cartas
+fantasma; `.cm-vacio` y `.wall-empty` sin rayas; Mensajes, los mazos del
+torneo y Laboratorio con botón en vez de enlaces en la frase. SI9, la «N» de
+la normal y el «Normal» de la expansión solo donde distinguen, y «Novato»
+fuera del foro y de Gente (el perfil lo sigue enseñando). Detalle en
+SCHEMA.md, tanda 781.
+
+**Ficheros**: `css/style.css`, `css/components.css`, `css/portada.css`,
+`css/hoy.css`, `css/mi-coleccion.css`, `css/constructor.css`, `index.html`,
+`js/home.js`, `js/hoy.js`, `js/mi-coleccion.js`, `js/gamification.js`,
+`js/tema.js`, `js/usuarios.js`, `js/mensajes.js`, `js/torneos/torneo.js`,
+`js/laboratorio-pagina.js`, `CLAUDE.md`, `SCHEMA.md`. Prueba 781 (nueva) y
+446 al día.
+
+**Pendiente**: los bloques 3 en adelante.
+
 ## 2026-10-09 (28) — PINGU-Claude (780 — bloque 1 de «PokeDoc al detalle»)
 
 **Hecho**: PINGU eligió 63 de las 66 propuestas. Bloque 1: los comentarios

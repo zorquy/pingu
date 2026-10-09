@@ -174,13 +174,8 @@
 
 .hoy-sigue-cabeza h2 {
   margin: 0;
-  font-size: var(--t-lg);
-}
-
-.hoy-sigue-cabeza a {
-  color: var(--navy);
-  font-size: var(--t-sm);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
 }
 
 .hoy-sigue-fila {

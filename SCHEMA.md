@@ -38582,3 +38582,46 @@ el primer bloque:
 - **PA20**: el pie del móvil en filas de enlaces (44 px de alto, como pide la
   312) y sin el lema; en la app instalada, solo la línea de lo legal.
 - Prueba 780 (nueva).
+
+
+## Tanda 781 — Bloque 2 de «PokeDoc al detalle»: vacíos, «Ver todo», chapas y el primario
+
+**SI5 · un solo primario.** `.btn-primary` pasa de `--navy` + `--white` a
+`--navy-solid` + `--blanco-fijo` (hover `--navy-solid-light`). En claro son
+los mismos valores; en oscuro deja de ser el azul cielo `#7cbae4` con letra
+oscura, que competía con el azul de la casa de lo seleccionado. El cielo se
+queda para enlaces y foco.
+
+**SI3 · un solo «Ver todo».** La pieza es `.ver-todo` en `components.css`:
+palabra y `<span class="ver-todo-flecha">→</span>`, color de enlace, sin
+borde ni subrayado; la flecha se mueve 2 px al pasar por encima (apagado con
+«menos movimiento») y mide 44 px tras `pointer: coarse`. La llevan la
+portada (Guías nuevas, En la comunidad), «Ahora en el foro» —que perdió el
+`btn-secondary foro-vivo-boton`—, «Sigue donde lo dejaste» de «Hoy» y los
+vistazos del Panel (que siguen siendo `.link-btn` para no tocar la clase
+global; `.mc-vistazo-cabecera .link-btn` le quita el subrayado y le deja
+32 px de alto). Los títulos de sección dentro de `.seccion-cabecera`,
+`.hoy-sigue-cabeza` y `.foro-vivo-cabecera` van todos en Fredoka a `--t-xl`
+(antes había tres tamaños).
+
+**SI2 · fuera las cajas punteadas.** `.empty-state` pierde el borde de rayas
+y el fondo; encima lleva `::before` con tres cartas en abanico, dibujadas como
+`mask` SVG sobre `--border-strong` (así siguen el tema sin un color a mano).
+No lo llevan los vacíos con `style=` en línea —son los compactos de los
+desplegables de la campana, los mensajes y los avisos— ni los del buscador
+(`#searchResults`). Los enlaces sin clase dentro de un vacío van sin
+subrayado, y donde había dos enlaces metidos en la frase ahora hay un botón:
+Mensajes («Nueva conversación»), la lista de mazos del torneo y Laboratorio
+(«Montar un mazo»; Laboratorio tenía además un segundo botón repetido
+debajo, que se va). `.cm-vacio` (el mazo vacío del constructor) y
+`.wall-empty` pierden las rayas; las zonas de soltar (`.cm-soltar`,
+`.order-answer`, `.clasifica-cubo`, el pareo manual) las conservan, porque
+ahí el punteado dice «suelta aquí».
+
+**SI9 · las chapas dicen algo o no salen.** En Mi colección › Cartas la
+chapa de variante sale solo si la línea no es la normal (la «N» la llevaban
+todas). En una expansión sin separar, `versionQueTienesHtml` calla cuando la
+única que tienes es la normal; separando sigue la chapa de cada versión. Y
+`esPrimerNivel(nivel)` (gamification.js) quita «Novato» de la firma del foro
+(`tituloDe`, que ya no pinta la caja vacía) y de las tarjetas de Gente; el
+perfil, la tarjeta flotante y la escalera de niveles lo siguen enseñando.

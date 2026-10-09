@@ -108,7 +108,7 @@ export function sigueHtml(guia, fila) {
   const bloques = Array.isArray(guia.blocks) ? guia.blocks.length : 0
   const pct = bloques ? Math.round((Math.min(fila.current_block || 0, bloques) / bloques) * 100) : 0
   return `<section class="hoy-sigue">
-    <div class="hoy-sigue-cabeza"><h2>Sigue donde lo dejaste</h2><a href="/aprender.html">Ver todo</a></div>
+    <div class="hoy-sigue-cabeza"><h2>Sigue donde lo dejaste</h2><a class="ver-todo" href="/aprender.html">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a></div>
     <a class="hoy-sigue-fila" href="/guia/${encodeURIComponent(guia.slug)}">
       <span class="hoy-ficha-icono" aria-hidden="true">${icons.bookOpen(22)}</span>
       <span class="hoy-sigue-texto"><b>Guía · ${escapeHtml(guia.title || '')}</b><span class="hoy-sigue-barra" role="img" aria-label="${pct} % leído"><i style="--ancho:${pct}%"></i></span></span>

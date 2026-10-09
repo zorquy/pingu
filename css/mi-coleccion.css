@@ -2363,24 +2363,12 @@
   margin: 0;
 }
 
-/* «Ver todas» era un `.link-btn`: texto azul subrayado, que al lado de un
-   título en negrita se lee como el enlace de un pie de página (tanda 446).
-   PINGU: «es un enlace pocho». Pasa a ser una chapa, que es lo que es: un
-   sitio al que ir. La clase global `.link-btn` no se toca —la usa media
-   web—, esto es una pieza de esta pantalla. */
+/* «Ver todas» no es un `.link-btn` subrayado (446, «un enlace pocho»): desde
+   la 781 es el `.ver-todo` de toda la web, palabra y flecha, sin chapa. */
 .mc-vistazo-cabecera .link-btn {
   min-height: 32px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  color: var(--text-mid);
   font-size: var(--t-sm);
   text-decoration: none;
-}
-
-.mc-vistazo-cabecera .link-btn:hover {
-  border-color: var(--navy);
-  color: var(--navy);
 }
 
 @media (pointer: coarse) {

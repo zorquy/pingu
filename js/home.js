@@ -450,7 +450,7 @@ async function cargarForoVivo() {
         <h2>Ahora en el foro</h2>
         <p class="subtext">De lo que se está hablando hoy. Entra y participa.</p>
       </div>
-      <a class="btn-secondary foro-vivo-boton" href="/foro">Ver el foro →</a>
+      <a class="ver-todo" href="/foro">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a>
     </div>
     <ul class="foro-vivo-lista">
       ${temas

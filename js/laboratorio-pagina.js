@@ -130,8 +130,7 @@ async function pintarMios() {
     return
   }
   if (!mazos.length && !borrador) {
-    caja.innerHTML = `<p class="subtext">Todavía no tienes mazos guardados.</p>
-      <div class="lp-acciones"><a class="btn-secondary" href="/constructor">Montar un mazo</a></div>`
+    caja.innerHTML = `<p class="empty-state">Todavía no tienes mazos guardados.<br><a class="btn-primary" href="/constructor">Montar un mazo</a></p>`
     return
   }
   const filas = mazos.map((m) => filaHtml({ id: m.id, nombre: m.name, total: totalDe(m.cards), detalle: '', editar: `/constructor?mazo=${m.id}` }))

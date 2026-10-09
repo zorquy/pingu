@@ -1876,7 +1876,7 @@ async function abrirMazosGuardados() {
     const { misMazos } = await import('../constructor/datos.js')
     const mazos = await misMazos(session.user.id)
     if (!mazos.length) {
-      caja.innerHTML = '<p class="subtext">Todavía no tienes mazos guardados. <a href="/constructor">Monta uno en el constructor</a>, guárdalo y vuelve aquí.</p>'
+      caja.innerHTML = '<p class="empty-state">Todavía no tienes mazos guardados. Monta uno, guárdalo y vuelve aquí.<br><a class="btn-primary" href="/constructor">Montar un mazo</a></p>'
       return
     }
     const formatos = { standard: 'Estándar', expanded: 'Expandido', libre: 'Libre' }

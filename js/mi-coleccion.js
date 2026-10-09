@@ -1369,7 +1369,7 @@ function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
   return `<section class="mc-vistazo">
     <div class="mc-vistazo-cabecera">
       <h2 class="mc-subtitulo">${escapeHtml(titulo)}</h2>
-      <button type="button" class="link-btn" data-ir-a="${escapeHtml(pestana)}">${escapeHtml(rotulo)}</button>
+      <button type="button" class="link-btn ver-todo" data-ir-a="${escapeHtml(pestana)}">${escapeHtml(rotulo)} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>
     </div>
     ${dentro}
   </section>`
@@ -1835,7 +1835,7 @@ function lineaHtml(l) {
         }
         ${veloDeVariante(l.variante)}
         ${l.cantidad > 1 ? `<span class="mc-cantidad">×${l.cantidad}</span>` : ''}
-        ${chapaDeVarianteHtml(l.variante)}
+        ${varianteDe(l.variante).id === 'normal' ? '' : chapaDeVarianteHtml(l.variante)}
         <span class="mc-sel-marca" aria-hidden="true"></span>
       </button>
     </article>`
@@ -3402,9 +3402,9 @@ const claseMarcada = (cardId, variante = 'normal') =>
 // cubre el bolsillo entero. O sea que estaba pintado y tapado: dos huecos
 // idénticos, y el dato que los distingue debajo de una capa.
 //
-// Ahora es una chapa ENCIMA de la carta, como en Dex, y sale SIEMPRE —
-// también en la normal—: si solo saliera en la rara, la normal se leería
-// como «no se sabe» y no como «esta es la normal».
+// Ahora es una chapa ENCIMA de la carta, como en Dex. Salía también en la
+// normal, y desde la 781 (SI9) la «N» solo sale donde distingue: en las
+// vistas que separan variantes. En Cartas, una «N» en cada carta era ruido.
 //
 // El código corto va dentro y el nombre al lado, que es lo que hace que se
 // entienda sin tener que aprenderse las siglas.
@@ -3431,7 +3431,8 @@ function marcaDeTengoHtml(n) {
 function versionQueTienesHtml(c) {
   if (!tieneVarias(c)) return ''
   const mias = variantesDeCarta(c).filter((v) => tengoEnAlbum(c.id, v.nuestro))
-  if (!mias.length) return ''
+  // Solo la normal no distingue nada: el «Normal» sale en «separar variantes» (781, SI9).
+  if (!mias.length || (mias.length === 1 && mias[0].nuestro === 'normal')) return ''
   const texto = mias.length === 1 ? mias[0].nombre : mias.map((v) => CORTO_DE_VARIANTE[v.nuestro] || v.nombre).join(' + ')
   return `<span class="mc-tengo-version" aria-hidden="true">${escapeHtml(texto)}</span>`
 }

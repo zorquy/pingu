@@ -62,6 +62,10 @@ export const NIVEL_ESTILOS = {
 // La chapa de un nivel. Los colores salen de la tabla de arriba (una
 // lista cerrada nuestra, no de la base), así que pueden ir al style con
 // tranquilidad; el nombre se escapa por costumbre.
+// El primer nivel lo tiene todo el mundo al llegar: en una lista de gente
+// es ruido que tapa lo que sí distingue (781, SI9). El perfil sí lo enseña.
+export const esPrimerNivel = (nivel) => nivel === LEVEL_THRESHOLDS[0].level
+
 export function levelBadgeHtml(nivel, tamanoIcono = 12) {
   const estilo = NIVEL_ESTILOS[nivel]
   if (!estilo) return `<span class="nivel-chapa">${escapeHtml(nivel || '')}</span>`

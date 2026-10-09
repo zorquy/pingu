@@ -234,17 +234,12 @@ a.noticia-banner:hover {
 
 .foro-vivo-cabecera h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--t-xl);
 }
 
 .foro-vivo-cabecera .subtext {
   margin: 2px 0 0;
-}
-
-.foro-vivo-boton {
-  padding: 8px 12px;
-  font-size: var(--t-sm);
-  white-space: nowrap;
 }
 
 .foro-vivo-lista {

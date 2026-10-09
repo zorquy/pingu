@@ -478,8 +478,6 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
 /* ── El mazo ── */
 .cm-vacio {
   padding: var(--e-2xl) var(--e-lg);
-  border: 2px dashed var(--border-strong);
-  border-radius: var(--radius-lg);
   text-align: center;
   color: var(--text-mid);
   font-size: var(--t-md);

@@ -325,8 +325,6 @@
   /* S780.57 */
   color: var(--text-mid);
   font-size: var(--t-md);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
 }
 
 .star-picker {
@@ -2056,22 +2054,40 @@ a.reto-tarjeta:hover {
   margin-bottom: 12px;
 }
 
-.seccion-cabecera a {
-  color: var(--navy);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.seccion-cabecera-sm h2 {
+.seccion-cabecera h2 {
   margin: 0;
-  font-size: var(--t-lg);
+  font-size: var(--t-xl);
   font-family: var(--font-display);
   font-weight: 600;
 }
 
-.seccion-cabecera-sm a {
-  font-size: var(--t-xs);
+/* Un solo «Ver todo» (781, SI3): palabra y flecha, sin borde. */
+.ver-todo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ver-todo-flecha {
+  transition: transform 0.15s var(--ease);
+}
+
+.ver-todo:hover .ver-todo-flecha {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ver-todo-flecha { transition: none; }
 }
 
 /* ── Seguir un tema ── */
@@ -3137,6 +3153,7 @@ body.portada-compacta .page-content {
   .autor-link,
   .pie-col a,
   .seccion-cabecera a,
+  .ver-todo,
   .breadcrumb a {
     min-height: 44px;
   }

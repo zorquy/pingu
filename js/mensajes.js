@@ -34,7 +34,7 @@ async function renderInbox(session) {
   const listEl = document.getElementById('inboxList')
   listEl.innerHTML =
     list.length === 0
-      ? `<p class="empty-state">Todavía no tienes conversaciones. Busca a alguien en <a href="/usuarios.html">Comunidad</a> y escríbele desde su perfil, o <a href="/mensajes.html?new=1">empieza una conversación nueva</a>.</p>`
+      ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
       : list
           .map((c) => {
             const p = c.otherProfile
