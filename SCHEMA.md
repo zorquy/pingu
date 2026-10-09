@@ -39254,3 +39254,16 @@ PA8 lo había perdido).
   (`portadaOriginal`) y, al cambiar `#mgCoverFoco`, lo recorta y sube otra vez.
 - **Arrastre** `js/mi-coleccion/arrastre.js`: `mover()` vuelve a marcar la de
   origen (`.mc-arrastrando`) si el pliego se ha repintado durante el arrastre.
+
+## Tanda 799 — La píldora del menú de Mi colección en la lateral
+
+`js/pildora.js` coloca la píldora con `translate` medido contra la caja del
+menú, y la píldora es `position: absolute`: el menú TIENE que ser su bloque
+contenedor. En la lateral (`css/lateral.css`) el menú iba `static` y la
+píldora caía 216 px más arriba, sobre «Aprender». Va `relative` y `top: auto`
+(si no, el `top: 88px` de la regla pegajosa de `mi-coleccion.css` lo desplaza
+y tapa los álbumes de `#mcLatAlbumes`). En la lateral la píldora es `--ice`,
+el fondo de la pestaña activa ahí: la azul oscura dejaba la letra azul sin
+contraste mientras viajaba. Si añades otro sitio con píldora, que su caja sea
+posicionada.
+

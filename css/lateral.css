@@ -87,7 +87,8 @@
   /* El menú de Mi colección, colgado de su página (740). Es el de la
      columna de siempre; aquí va con la cara de la lateral. */
   .lat .mc-pestanias {
-    position: static;
+    position: relative;
+    top: auto;
     display: flex;
     flex-direction: column;
     gap: var(--e-xs);
@@ -106,6 +107,11 @@
     margin: 0;
     padding-left: 0;
     border-left: 0;
+  }
+
+  /* La píldora (784) se mide contra el menú: tiene que ser su caja (798). */
+  .lat .mc-pestanias .pildora {
+    background: var(--ice);
   }
 
   .lat .mc-pestania.activa,

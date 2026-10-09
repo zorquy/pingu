@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (47) — PINGU-Claude (799 — la píldora del menú en el PC)
+
+**Hecho**: en el ordenador, el bloque azul de la píldora (784) salía fuera
+del menú de Cartas de la lateral, encima de «Aprender». El menú de Mi
+colección va ahí con `position: static`, así que la píldora (absoluta) se
+colocaba contra otra caja. Ahora el menú es `relative` (con `top: auto`: el
+`top: 88px` del menú pegajoso lo bajaba encima de los álbumes) y en la
+lateral la píldora lleva el mismo fondo claro que la pestaña activa.
+
+**Ficheros**: `css/lateral.css`, `SCHEMA.md`. Prueba nueva:
+`test-tanda-799-pantalla.mjs` (falla con lo de antes: 216 px por encima).
+
+**Pendiente**: lo mismo que en la 46.
+
 ## 2026-10-09 (46) — PINGU-Claude (798 — las «casi» de la propuesta y la sonda de /admin)
 
 **Hecho**: lo que quedaba a medias de «PokeDoc al detalle».
