@@ -156,6 +156,28 @@
   padding: 32px 0 16px;
 }
 
+/* Una cabecera para todas (782, SI1): título a la izquierda, una línea debajo. */
+.cabecera-pagina {
+  margin-bottom: var(--e-lg);
+  text-align: left;
+}
+
+.cabecera-pagina h1 {
+  margin: 0 0 var(--e-xs);
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.cabecera-pagina > p:not([class*="sobre"]),
+.cabecera-pagina .subtext {
+  max-width: 64ch;
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
 .page-header h1 {
   font-size: var(--t-2xl);
   font-weight: 800;
@@ -2002,7 +2024,6 @@ a.rater-name:hover {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
   transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
 }
 
@@ -2733,7 +2754,6 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
   padding: 16px 24px;
 }
 
@@ -2954,7 +2974,6 @@ body.portada-compacta .page-content {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
   padding: 12px 16px;
   margin-bottom: 16px;
 }
@@ -3019,7 +3038,6 @@ body.portada-compacta .page-content {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
   padding: 12px 16px;
   color: inherit;
   text-decoration: none;

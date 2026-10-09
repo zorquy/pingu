@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (30) — PINGU-Claude (782 — bloque 3 de «PokeDoc al detalle»)
+
+**Hecho**: SI1, una cabecera común (`.cabecera-pagina`: título a la izquierda
+en Fredoka `--t-3xl`, una línea de subtítulo) en Retos, ¿Qué carta es?, ¿Más
+caro?, Mis 9 cartas, Laboratorio, Repeticiones, Noticias, Guardados, Mis
+partidas y Mensajes. Guardados y Mis partidas van a lo ancho y Retos reparte
+sus tarjetas en columnas. SI8, sin sombra lo que no flota (trece cajas de la
+portada, Comunidad, el constructor, el foro y Lanzamientos) y la lista del
+foro de la portada, plana con separadores. Detalle en SCHEMA.md, tanda 782.
+
+**Ficheros**: `css/components.css`, `css/portada.css`, `css/comunidad.css`,
+`css/constructor.css`, `css/foro.css`, `css/lanzamientos.css`,
+`css/retos.css`, `css/mas-caro.css`, `css/carta-del-dia.css`,
+`css/nueve.css`, `retos.html`, `mas-caro.html`, `carta-del-dia.html`,
+`nueve.html`, `laboratorio.html`, `repeticiones.html`, `noticias.html`,
+`guardados.html`, `mis-partidas.html`, `js/mensajes.js`, `CLAUDE.md`,
+`SCHEMA.md`. Prueba 782 (nueva).
+
+**Pendiente**: los bloques 4 en adelante.
+
 ## 2026-10-09 (29) — PINGU-Claude (781 — bloque 2 de «PokeDoc al detalle»)
 
 **Hecho**: SI5, el botón principal es el azul sólido con letra blanca también

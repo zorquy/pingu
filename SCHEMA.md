@@ -38625,3 +38625,36 @@ todas). En una expansión sin separar, `versionQueTienesHtml` calla cuando la
 `esPrimerNivel(nivel)` (gamification.js) quita «Novato» de la firma del foro
 (`tituloDe`, que ya no pinta la caja vacía) y de las tarjetas de Gente; el
 perfil, la tarjeta flotante y la escalera de niveles lo siguen enseñando.
+
+
+## Tanda 782 — Bloque 3 de «PokeDoc al detalle»: una cabecera y profundidad con intención
+
+**SI1 · una cabecera de página para todas.** Había tres maneras de empezar
+una página: centrada (los retos y sus juegos), en una columna de 720 px en
+mitad del PC (Mensajes, Guardados, Mis partidas) y a lo ancho (Torneos,
+Aprender, Noticias), cada una con su tamaño de título. La pieza es
+`.cabecera-pagina` en `components.css`: el `<h1>` en Fredoka a `--t-3xl`,
+alineado a la izquierda, y el párrafo de debajo (`.subtext` o `<p>` suelto que
+no sea el «sobre» de las migas) a 64 caracteres como mucho. Se AÑADE a la
+cabecera propia de cada página (`rt-`, `mcr-`, `cd-`, `nv-`, `lp-`, `rep-`,
+`noticias-cabecera`, y la `page-header` de Guardados, Mis partidas y las dos
+de Mensajes) y se quitó el `text-align: center` de las hojas de los retos,
+que cargan después y si no lo habrían ganado por orden. Guardados y Mis
+partidas pasan de `container-narrow` a `container`; Mensajes se queda en su
+columna, que para leer una conversación es la medida buena. Retos deja de
+estrecharse a 720 px y reparte sus tarjetas en columnas
+(`repeat(auto-fill, minmax(min(100%, 320px), 1fr))`). Los juegos (¿Qué carta
+es?, ¿Más caro?, Mis 9) siguen en su columna estrecha, porque el tablero lo
+pide, pero con el título a la izquierda como los demás.
+
+**SI8 · profundidad con intención.** Tres niveles: héroe sin borde y con su
+color, tarjeta para lo que se toca entero, y lista plana con separadores
+para lo que se lee en fila. Las sombras, solo para lo que flota. Se quitó
+`--shadow-xs` de trece cajas que no flotan (`.reto-tarjeta`, `.top-mes`,
+`.medallero`, `.lanzamiento-portada`, `.com-cifras`, `.com-caja`,
+`.com-persona`, `.cm-info`, `.foro-caliente`, `.lanzamiento-destacado`,
+`.noticia-banner`, `.foro-vivo`, `.panel-lateral`). Se dejó en los estados
+pulsados de los controles segmentados (`.lab-modo`, `.lab-pestania.activa`,
+`.tu-tema`), que sí «salen» del carril, y en los botones que flotan sobre una
+carta. «Ahora en el foro» de la portada pasa de filas sueltas con hueco a una
+lista con un separador entre fila y fila.

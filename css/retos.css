@@ -1,12 +1,9 @@
 /* Retos diarios (tanda 569). Solo la carga retos.html. */
 
-.rt-pagina {
-  max-width: 720px;
-}
+/* Sin `.rt-pagina` estrecha: a lo ancho, como las demás (782, SI1). */
 
 .rt-cabecera {
   margin-bottom: var(--e-lg);
-  text-align: center;
 }
 
 .rt-cabecera h1 {
@@ -15,6 +12,7 @@
 
 .rt-lista {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: var(--e-md);
 }
 

@@ -24,7 +24,7 @@ function timeAgo(iso) {
 
 async function renderInbox(session) {
   root.innerHTML = `
-    <div class="page-header" style="padding-top: 8px;">
+    <div class="page-header cabecera-pagina" style="padding-top: 8px;">
       <h1>Mensajes</h1>
       <p>Tus conversaciones privadas. <a href="/mensajes.html?new=1" style="display:inline-flex; align-items:center; gap:4px;">${icons.edit(13)} Nueva conversación</a></p>
     </div>
@@ -54,7 +54,7 @@ async function renderInbox(session) {
 
 async function renderNewConversation(session) {
   root.innerHTML = `
-    <div class="page-header" style="padding-top: 8px;">
+    <div class="page-header cabecera-pagina" style="padding-top: 8px;">
       <h1>Nueva conversación</h1>
       <p><a href="/mensajes.html">← Volver a mensajes</a></p>
     </div>

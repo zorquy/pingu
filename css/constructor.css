@@ -765,7 +765,6 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--t-sm);
-  box-shadow: var(--shadow-xs);
 }
 
 @media (pointer: coarse) {
