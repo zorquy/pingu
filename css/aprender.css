@@ -27,8 +27,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.3px);
-  background-size: 16px 16px;
+  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
   opacity: 0.55;
 }
 .aprender-seguir > * { position: relative; z-index: 1; }

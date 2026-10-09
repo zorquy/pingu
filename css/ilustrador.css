@@ -1,0 +1,92 @@
+/* /ilustrador (tanda 791, NU6): la galería de un ilustrador. Solo la carga ilustrador.html. */
+
+.il-antetitulo {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.il-cifras {
+  margin-top: var(--e-xs);
+}
+
+.il-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+}
+
+.il-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--e-lg) var(--e-md);
+  margin-top: var(--e-lg);
+}
+
+.il-esqueleto {
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-md);
+}
+
+.il-carta {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.il-carta img,
+.il-sin-foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  margin-bottom: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+}
+
+.il-carta:not(.tengo) img {
+  opacity: 0.72;
+}
+
+.il-carta-nombre {
+  overflow: hidden;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.il-carta small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.il-tengo {
+  position: absolute;
+  top: var(--e-sm);
+  left: var(--e-sm);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.il-carta:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 600px) {
+  .il-rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+}

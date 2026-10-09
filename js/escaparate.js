@@ -11,6 +11,7 @@
 import { supabase } from './supabase.js'
 import { rutaDeCarta, urlDeImagen } from './carta-ruta.js'
 import { escapeHtml } from './html.js'
+import { nombreDeCarta } from './catalogo-series.js'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
@@ -39,7 +40,7 @@ export async function pintarEscaparate(doc = document) {
   if (suben.length < 3) return false
   const { data: cartas } = await supabase
     .from('tcg_cards')
-    .select('id, name, name_es, image_path, market, set_id, local_id')
+    .select('id, name, name_es, name_en, image_path, market, set_id, local_id')
     .eq('market', 'WEST')
     .in('id', suben.map((s) => s.id))
   const porId = new Map((cartas || []).filter((c) => c.image_path).map((c) => [c.id, c]))
@@ -58,7 +59,7 @@ export async function pintarEscaparate(doc = document) {
   })
   lista.innerHTML = tres.map((s) => {
     const c = porId.get(s.id)
-    return `<li><a href="${escapeHtml(rutaDeCarta(c))}"><span>${escapeHtml(c.name_es || c.name)}</span><b>${escapeHtml(euros.format(s.precio))}</b><small>+${Math.round(s.sube * 100)} %</small></a></li>`
+    return `<li><a href="${escapeHtml(rutaDeCarta(c))}"><span>${escapeHtml(nombreDeCarta(c))}</span><b>${escapeHtml(euros.format(s.precio))}</b><small>+${Math.round(s.sube * 100)} %</small></a></li>`
   }).join('')
   lista.closest('.hero-suben')?.classList.remove('hidden')
   return true

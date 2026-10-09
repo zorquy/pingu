@@ -508,6 +508,21 @@
     transform: rotate(calc(var(--tirado, 0) * 270deg));
     pointer-events: none;
   }
+  .bm-bola-aro {
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--tirado, 0));
+  }
+  .bm-bola-tapa {
+    opacity: calc(var(--tirado, 0) * 0.35);
+  }
+  .bm-refrescar.lista .bm-bola-aro,
+  .bm-refrescar.recargando .bm-bola-aro {
+    stroke-dashoffset: 0;
+  }
+  .bm-refrescar.lista .bm-bola-tapa,
+  .bm-refrescar.recargando .bm-bola-tapa {
+    opacity: 1;
+  }
   .bm-refrescar.lista,
   .bm-refrescar.recargando {
     background: var(--navy-solid);

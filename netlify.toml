@@ -251,6 +251,13 @@
   to = "/carta.html"
   status = 200
 
+# La galería de un ilustrador (tanda 791). La página lee el nombre de la
+# RUTA: una reescritura no le pasa la consulta (la 633).
+[[redirects]]
+  from = "/ilustrador/*"
+  to = "/ilustrador.html"
+  status = 200
+
 # La colección: /coleccion/sv5. Aquí el identificador SÍ es el trozo
 # entero, así que podría ir como `:id` — va como `*` para que las dos
 # rutas del catálogo se lean igual y las dos las parta el mismo módulo.

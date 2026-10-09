@@ -349,6 +349,17 @@
   font-size: var(--t-md);
 }
 
+.sirve-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0;
+}
+
+.sirve-boton {
+  border: 1px solid var(--border);
+}
+
 .star-picker {
   display: flex;
   gap: 4px;
@@ -588,22 +599,40 @@
 
 /* ── Search ── */
 .search-input-wrap {
+  position: relative;
   margin: 16px 0;
 }
 
-.search-input {
+/* El campo en pastilla con su lupa (789, SI7), como los buscadores nuevos. */
+.search-input-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  width: 18px;
+  height: 18px;
+  translate: 0 -50%;
+  background: var(--text-mid);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+
+/* Con el contenedor delante: `input[type='text']` le ganaba (SCHEMA, 789). */
+.search-input-wrap .search-input {
   width: 100%;
-  padding: 16px 16px;
-  font-size: var(--t-xl);
+  min-height: 48px;
+  padding: 12px 16px 12px 44px;
+  font-size: var(--t-md);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text);
   outline: none;
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
-.search-input:focus {
+.search-input-wrap .search-input:focus {
   border-color: var(--navy);
   box-shadow: var(--shadow-ring);
 }
@@ -3367,11 +3396,24 @@ body.portada-compacta .page-content {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.1px, transparent 1.2px);
-  background-size: 14px 14px;
+  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
   opacity: 0.5;
   pointer-events: none;
 }
+.guia-arte.con-energia {
+  overflow: hidden;
+}
+
+.guia-arte.con-energia::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: var(--energia) 0 0 / 40px 40px;
+  opacity: 0.18;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
 .guia-arte img {
   position: absolute;
   inset: 0;

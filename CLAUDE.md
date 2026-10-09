@@ -45,8 +45,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-09 (785) van 146,0 y quedan
-  24,0** (la 784 metió la píldora y los efectos, la 785 el escaparate; la 782 puso la cabecera común; la 781 metió el «Ver todo» y el vacío con abanico); la 780 mudó a SCHEMA los comentarios largos de `style.css`,
+  CSS) debe caber en 170 KB gzip. **A 2026-10-09 (796) van 147,9 y quedan
+  22,1** (de la 786 a la 796, 1,9 más; a la 785 eran 146,0: la 784 metió la píldora y los efectos, la 785 el escaparate; la 782 puso la cabecera común; la 781 metió el «Ver todo» y el vacío con abanico); la 780 mudó a SCHEMA los comentarios largos de `style.css`,
   `components.css`, `portada.css` e `index.html` (eran 65 de los 169 KB). Antes, a 2026-10-07 (753), 169,2 y quedaba
   0,8 (la 753 escribió la barra de abajo del móvil en el HTML y su sitio en
   `style.css`; antes, 168,4): la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que
@@ -1335,9 +1335,11 @@ necesita su RPC — un INSERT que la política rechaza **no da error**: no
 toca nada y vuelve como si todo hubiera ido bien, así que la persona
 pulsa el botón y no pasa nada.
 
-En js/torneos/comun.js hay un PUENTE (`faltaLaRpc`) que deja usar el
-camino viejo mientras la migración no esté puesta. Es temporal: cuando
-lleve un tiempo, quítalo.
+El PUENTE de los torneos ya no existe (tanda 786): el último trozo, el
+reintento de `torneos_inscribirse` con tres parámetros, se quitó. Queda
+`faltaLaRpc` en js/torneos/comun.js, que ya no escribe por ningún camino
+viejo: solo reconoce «esa función no existe» para decir qué migración
+falta en vez de un error de PostgREST.
 
 Decisiones ya tomadas: sin pagos (fuera del porte), el chat de partida
 va A LA VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y

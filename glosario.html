@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Glosario de Pokémon TCG — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="PokeDoc" />
+  <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+  <meta name="description" content="Los términos de Pokémon TCG en español, en inglés y en jerga: SIR, reverse, mulligan, banca, premios, partidario… con un ejemplo de cada uno." />
+  <!-- meta-social:inicio -->
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Glosario de Pokémon TCG — PokeDoc" />
+  <meta property="og:description" content="Los términos del juego en español, en inglés y en jerga, con un ejemplo de cada uno." />
+  <link rel="canonical" href="https://pokedoc.es/glosario" />
+  <meta property="og:url" content="https://pokedoc.es/glosario" />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/fredoka-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/glosario.css" />
+</head>
+<body>
+  <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo
+       porque su razón de ser es no tener que tabular por los doce
+       enlaces de la barra en CADA página. Solo se ve al enfocarlo. -->
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/retos">Retos diarios</a>
+            <a href="/guardados.html">Guardados</a>
+          </div>
+        </div>
+        <a href="/mi-coleccion">Mi colección</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/meta">Mazos del meta</a>
+            <a href="/constructor">Constructor de mazos</a>
+            <a href="/laboratorio">Laboratorio</a>
+            <a href="/mazos">Mis mazos</a>
+            <a href="/mis-partidas">Mis partidas</a>
+            <a href="/repeticiones">Repeticiones</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="/index.html">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <a href="/lanzamientos.html">Lanzamientos</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/retos">Retos diarios</a>
+        <a href="/guardados.html">Guardados</a>
+      </details>
+      <a href="/mi-coleccion">Mi colección</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/laboratorio">Laboratorio</a>
+        <a href="/mazos">Mis mazos</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/repeticiones">Repeticiones</a>
+      </details>
+    </div>
+  </nav>
+  <!-- barra-movil: la escribe generar-barra-movil.mjs -->
+  <nav class="bm" aria-label="Secciones"><a href="/index.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Inicio</span></a><a href="/aprender.html" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Aprender</span></a><a href="/cartas"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path></svg><span>Cartas</span></a><a href="/foro.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comunidad</span></a><a href="/torneos.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Jugar</span></a></nav>
+  <!-- /barra-movil -->
+
+  <main id="contenido" class="page-content container">
+    <header class="cabecera-pagina">
+      <h1>Glosario</h1>
+      <p class="subtext">Los términos del juego en español, en inglés y en jerga, con un ejemplo. En las guías y en el foro, los verás subrayados con puntos: tócalos y sale aquí su definición.</p>
+    </header>
+    <div class="glosario-lista" id="glosarioLista"></div>
+  </main>
+
+  <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
+       enlaces centrados; el problema no era que fuera feo, era que casi
+       todas las páginas se quedan cortas y dejaban entre 400 y 900 px de
+       nada antes de llegar a él. Un pie con columnas llena ese hueco,
+       da una segunda vía a cada sección desde cualquier página y enlaza
+       internamente todo el sitio, que es lo que Google recorre.
+       Va en el HTML y no montado desde JavaScript a propósito: estos
+       enlaces tienen que estar en la página aunque el JS no llegue. -->
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/mi-coleccion">Mi colección</a>
+        <a href="/guardados.html">Guardados</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/laboratorio">Laboratorio</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/retos">Retos diarios</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a> · <a href="https://ko-fi.com/pokedoc" target="_blank" rel="noopener">Apoyar PokeDoc</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/glosario.js"></script>
+</body>
+</html>

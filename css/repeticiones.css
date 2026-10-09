@@ -20,7 +20,6 @@
 
 /* ── Pegar el registro ── */
 .rep-pegar {
-  max-width: 880px;
   margin-top: var(--e-xl);
   padding: var(--e-xl);
   border: 1px solid var(--border);

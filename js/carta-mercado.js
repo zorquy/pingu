@@ -117,6 +117,27 @@ const senasDe = (l) => {
   return p.join(' · ')
 }
 
+// EL PRECIO, AL LADO EN EL PC (788, PA7). Es lo que más se mira, y en el
+// ordenador quedaba debajo de «Dónde se habla». Ahí la sección se muda a la
+// columna de la derecha, encima de los datos; en el móvil se queda al final
+// (677). Se MUEVE, no se copia: es la misma con sus escuchas. Una marca en
+// su sitio de siempre sabe adónde volver si la ventana se estrecha.
+function colocarPrecioAlLado(caja) {
+  if (caja.dataset.colocado) return
+  caja.dataset.colocado = '1'
+  const pc = window.matchMedia('(min-width: 1100px)')
+  const sitio = document.createComment(' el precio, en el móvil ')
+  caja.after(sitio)
+  const colocar = () => {
+    const datos = document.querySelector('#cartaNucleo .carta-datos')
+    if (pc.matches && datos) datos.prepend(caja)
+    else sitio.before(caja)
+    caja.classList.toggle('carta-mercado-al-lado', pc.matches && Boolean(datos))
+  }
+  colocar()
+  pc.addEventListener('change', colocar)
+}
+
 export async function pintarMercado(carta) {
   const caja = $('cartaMercado')
   if (!caja || !carta?.id) return
@@ -151,6 +172,7 @@ export async function pintarMercado(carta) {
       <p class="carta-mercado-pie">${enlaceDeEspecie(carta)}</p>
     </div>`
   caja.classList.remove('hidden')
+  colocarPrecioAlLado(caja)
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'

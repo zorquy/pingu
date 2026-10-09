@@ -68,7 +68,7 @@ import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
 import { progresoDeSet, barrasDeSet, porcentaje } from './mi-coleccion/progreso-set.js'
 import { MERCADO_POR_DEFECTO } from './mercados.js'
-import { engancharGestos, entrarPorElLado, crecerDesde } from './mi-coleccion/gestos-ficha.js'
+import { engancharGestos, entrarPorElLado, crecerDesde, volverAlHueco } from './mi-coleccion/gestos-ficha.js'
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
@@ -1539,7 +1539,28 @@ function vistazoDeAcciones() {
 // pintada anterior —las movidas, que son una consulta— no se mete en la
 // siguiente. Sin esto el bloque salía dos veces.
 let vistazosVersion = 0
+// Los logros de coleccionista (793, NU9): una vez por visita, con la
+// colección que ya está en memoria.
+let logrosMirados = false
+async function mirarLogrosDeColeccion() {
+  if (logrosMirados || !sesion?.user?.id || !lineas.length || modoCatalogo) return
+  logrosMirados = true
+  const sets = await cargarSetsDeTodos().catch(() => [])
+  const porId = new Map((sets || []).filter((x) => (x.market || 'WEST') === mercado).map((x) => [x.id, x]))
+  const { statsDeColeccion, comprobarLogrosDeColeccion } = await import('./logros-coleccion.js')
+  const stats = statsDeColeccion({
+    lineas,
+    cartaDe: (id) => cartas.get(id),
+    cuantasPorSet: cuantasPorSet(),
+    totalDeSet: (id) => totalDe(porId.get(id)),
+    unidad: (l) => { const v = valorDeLinea(l, precioDe(l)); return v ? v / (Number(l.cantidad) || 1) : 0 },
+  })
+  await comprobarLogrosDeColeccion(sesion.user.id, stats).catch(() => {})
+}
+
 async function pintarVistazos() {
+  // Con unos segundos de margen: los precios llegan después de las líneas.
+  if (!logrosMirados) setTimeout(() => void mirarLogrosDeColeccion(), 4000)
   const caja = $('mcVistazos')
   if (!caja || !esMia) return
   const version = ++vistazosVersion
@@ -2064,6 +2085,17 @@ function lineasFiltradas() {
   return ordenarLineas(filtradas, ordenElegido, sentidoElegido, AYUDAS)
 }
 
+// LA LLEGADA ESCALONADA (787, MV6). Cuando la rejilla sale del esqueleto (la
+// primera pintada, no cada repintado), las cartas de la primera pantalla
+// entran una detrás de otra, 45 ms cada una. El hueco ya estaba reservado:
+// solo cambia la opacidad y un desplazamiento de 8 px, cero saltos.
+function escalonarLlegada(caja) {
+  if (!caja || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const cartas = [...caja.querySelectorAll('.mc-bolsillo, .mc-rejilla-celda, .mc-carta')].slice(0, 24)
+  cartas.forEach((c, i) => { c.style.setProperty('--i', String(i)); c.classList.add('llega') })
+  setTimeout(() => cartas.forEach((c) => { c.classList.remove('llega'); c.style.removeProperty('--i') }), 24 * 45 + 400)
+}
+
 // La columna de filtros del ordenador (738): con ella a la vista, los
 // chips se repintan con la colección, que en una hoja se hacía al abrirla.
 let columnaFiltros = null
@@ -2071,7 +2103,9 @@ let columnaFiltros = null
 function pintarCartas() {
   if (columnaFiltros?.enColumna()) pintarGruposDeChips()
   const lista = lineasFiltradas()
+  const primeraVez = !$('mcCartas').children.length
   $('mcCartas').innerHTML = lista.map(lineaHtml).join('')
+  if (primeraVez) escalonarLlegada($('mcCartas'))
   $('mcCartasVacio').classList.toggle('hidden', lineas.length > 0)
   $('mcFiltros').classList.toggle('hidden', !lineas.length)
   $('mcSinResultados').classList.toggle('hidden', !lineas.length || lista.length > 0)
@@ -2944,10 +2978,10 @@ async function pintarEstanteria() {
         : ordenSets === 'nuevas' ? (a, b) => fecha(b) - fecha(a)
           : (a, b) => String(nombreDeSet(a) || a.name).localeCompare(String(nombreDeSet(b) || b.name), 'es')) }]
 
-  // En TU colección (o la de otra persona) es la lista de su maqueta: una
-  // tarjeta por era con una fila por expansión. En el catálogo, la tarjeta
-  // grande de la 668, que es la que enseña el valor de cada una.
-  const lista = !modoCatalogo
+  // La lista de la maqueta: una fila compacta por expansión. Desde la 788
+  // (PA8) también en el catálogo, donde la tarjeta grande de la 668 decía lo
+  // mismo tres veces («TIENES 16 de 252», «252 CARTAS», «Ver →»).
+  const lista = true
   $('mcEstanteriaRejilla').innerHTML = grupos
     .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
       <div class="mc-estanteria${lista ? ' mc-estanteria-lista' : ''}">${g.sets.map((x) => (lista ? filaDeSet : tarjetaDeSet)(x, cuantas.get(x.id) || 0)).join('')}</div>`)
@@ -3178,11 +3212,33 @@ function tarjetaDeSet(set, tengo) {
 // estantería es cuánto te falta de cada una, y en una fila de 64 px caben
 // diez por pantalla donde la tarjeta grande dejaba dos. Sin código (los
 // sets que creó TCGGO), el logo pequeño en el sitio de la chapa.
+// La MISMA cadena de dibujos que la tarjeta grande (415, 434, 454, 507,
+// 589): desde la 788 /cartas usa esta fila, y con una cadena más corta
+// los sets sin logo se quedaban sin el montado a mano ni el símbolo.
+function dibujosDeSet(set) {
+  const suMercado = set.market || mercado
+  const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id, suMercado)
+  const logoIngles = suMercado === 'WEST' ? null : urlDeLogoPorPartes(set.serie_id, set.id, 'WEST')
+  const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
+  return [set.logo_scrydex, set.logo_tcggo, urlDeLogo(set.logo_path, suMercado), logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
+}
+
+// En el CATÁLOGO, lo que vale la expansión y cómo va en la semana (797): la
+// tarjeta de la 668 lo enseñaba en losetas, y la fila de PA8 (788) lo había
+// perdido. Una línea, no tres cajas.
+function valorEnLinea(set) {
+  if (!modoCatalogo) return ''
+  const v = variacionDeSets.get(set?.id)
+  if (!v?.ahora) return ''
+  const pct = v.pct === null || v.pct === undefined ? '' : ` <b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : 'igual'}">${v.pct > 0 ? '+' : v.pct < 0 ? '−' : ''}${Math.abs(v.pct)} %</b>`
+  return `<span class="mc-set-valor-linea"> · ${chispaHtml(seriesDeSets.get(set?.id))}${escapeHtml(fmtEnteroEuros.format(v.ahora))} €${pct}</span>`
+}
+
 function filaDeSet(set, tengo) {
   const total = totalDe(set)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || (/^tcggo-/i.test(String(set.id)) ? '' : String(set.id).toUpperCase().slice(0, 6))
-  const dibujos = [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, set.market || mercado), set.symbol_scrydex].filter(Boolean)
+  const dibujos = dibujosDeSet(set)
   const mia = esMia && sesion
   const cuenta = !total ? 'Sin numeración' : mia ? `${tengo}/${total}` : `${total} cartas`
   // EL LOGO EN LA FILA Y SU COLOR DETRÁS (749, E1 y E2). PINGU: «se les ha
@@ -3207,7 +3263,7 @@ function filaDeSet(set, tengo) {
       ${marca}
       <span class="mc-set-info">
         <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
-        <span class="mc-set-corta">${codigoEnLinea}${escapeHtml(corta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}</span>
+        <span class="mc-set-corta">${codigoEnLinea}${escapeHtml(corta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}${valorEnLinea(set)}</span>
         ${pct !== null ? `<span class="mc-set-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}
       </span>
       ${anilloDeSet(tengo, total)}
@@ -3289,7 +3345,23 @@ function marcarAbierta(id) {
   for (const e of document.querySelectorAll(`#mcAlbum [data-carta="${CSS.escape(id)}"], #mcRejilla [data-carta="${CSS.escape(id)}"]`)) e.classList.add('mc-abierta')
 }
 
+// CON UNA EXPANSIÓN ABIERTA, UN SOLO MENÚ (788, PA9). En el PC la lateral de
+// la web y la lista de sets eran dos columnas de navegación y la rejilla se
+// quedaba en el 60 %: la lateral se pliega sola a iconos mientras miras un
+// set y vuelve como la tenías al salir. No toca la preferencia guardada.
+function plegarLateralSola(si) {
+  const raiz = document.documentElement
+  if (si && !raiz.classList.contains('lat-plegada')) {
+    raiz.classList.add('lat-plegada')
+    raiz.dataset.plegadaSola = '1'
+  } else if (!si && raiz.dataset.plegadaSola) {
+    raiz.classList.remove('lat-plegada')
+    delete raiz.dataset.plegadaSola
+  }
+}
+
 function volverALaEstanteria({ push = true } = {}) {
+  plegarLateralSola(false)
   cerrarFichaAlLado()
   if (push) irA({ set: null })
   album.set = null
@@ -3310,6 +3382,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // puede probar, porque quitarla no cambia nada (CLAUDE.md).
   if (marcadas) modoMarcar(false)
   if (album.set !== setId) cerrarFichaAlLado()
+  plegarLateralSola(true)
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -3905,7 +3978,9 @@ function pintarAlbum() {
   // páginas y tapa— se queda para los álbumes soñados, que es donde el
   // orden lo pones tú.
   const pintor = PINTOR_DE_VISTA[album.vista] || PINTOR_DE_VISTA.archivador
+  const desdeEsqueleto = Boolean($('mcAlbum').querySelector('.mc-esq'))
   $('mcAlbum').innerHTML = `<div class="${pintor.clase}">${paraPintar.map(pintor.celda).join('')}</div>`
+  if (desdeEsqueleto) escalonarLlegada($('mcAlbum'))
   // Lo que hay EN PANTALLA, que es de donde sale la lista de «lo que me
   // falta» (tanda 430). Se guarda aquí y no se recalcula allí: recalcular
   // sería escribir una segunda vez los filtros, el orden y el split, y dos
@@ -5333,6 +5408,7 @@ function centrarPestaniaActiva() {
 }
 
 function cambiarPestania(nueva, { push = true } = {}) {
+  if (nueva !== 'album') plegarLateralSola(false)
   // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
@@ -7405,7 +7481,8 @@ function enganchar() {
     })
     $('mcEditor').addEventListener('close', () => $('mcEditor').classList.remove('mc-editor-entera'))
   }
-  $('mcEdCerrar')?.addEventListener('click', () => $('mcEditor').close())
+  // Al cerrar con la «×», la carta vuelve a su hueco (796, MV12); al lado, no.
+  $('mcEdCerrar')?.addEventListener('click', () => ($('mcEditor').classList.contains('mc-ficha-al-lado') ? $('mcEditor').close() : volverAlHueco(() => $('mcEditor').close())))
   if ($('mcEditor')) engancharFichaAlLado($('mcEditor'), { vecino: (paso) => void abrirVecino(paso) })
   document.addEventListener('pokedoc:lateral', () => void montarAlbumesLaterales())
   // Y con el teclado, que es como se repasa una lista larga. Solo cuando

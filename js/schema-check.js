@@ -91,6 +91,35 @@ export const REQUISITOS = [
   { tabla: 'replays', columna: 'notas', fichero: 'supabase-migration-repeticiones.sql', rompe: 'Las repeticiones guardadas no llevan su mazo ni se les pueden poner notas (guardar y compartir sí funcionan): hay que ejecutar la migración otra vez.' },
   { tabla: 'match_log', columna: 'replay_id', fichero: 'supabase-migration-repeticiones.sql', rompe: 'Guardar una repetición no la apunta en Mis partidas: hay que ejecutar la migración otra vez.' },
   { tabla: 'tournament_match_replays', columna: 'replay_id', fichero: 'supabase-migration-repeticiones.sql', rompe: 'No se puede adjuntar la repetición de una partida de torneo: hay que ejecutar la migración otra vez.' },
+  // Las de la 630 en adelante (tanda 791, LO7): hasta aquí la lista se
+  // había quedado en la 480, y las pendientes se llevaban de memoria en la
+  // bitácora. Las que solo crean funciones se miran con `rpc` (ver abajo).
+  { tabla: 'tcg_eras', columna: 'market', fichero: 'supabase-migration-colecciones-editables.sql', rompe: 'Las eras del catálogo no se pueden editar desde /admin.' },
+  { tabla: 'carta_del_dia', columna: 'day', fichero: 'supabase-migration-carta-del-dia.sql', rompe: 'El reto «¿Qué carta es?» no tiene carta.' },
+  { tabla: 'mas_caro_del_dia', columna: 'day', fichero: 'supabase-migration-mas-caro.sql', rompe: 'El reto «¿Más caro o más barato?» no tiene partida.' },
+  { tabla: 'enlaces_cortos', columna: 'id', fichero: 'supabase-migration-enlaces-cortos.sql', rompe: 'Los enlaces cortos no se crean (el largo sigue funcionando).' },
+  { tabla: 'tcg_card_prices', columna: 'cm_url', fichero: 'supabase-migration-precios-url.sql', rompe: 'Las fichas no enlazan a la página exacta de Cardmarket.' },
+  { tabla: 'tcg_card_prices', columna: 'tp_normal_market', fichero: 'supabase-migration-precios-tcgplayer.sql', rompe: 'Los precios de TCGplayer no se guardan.' },
+  { tabla: 'tcg_cards', columna: 'cm_id_product_propio', fichero: 'supabase-migration-cardmarket-propio.sql', rompe: 'El emparejamiento propio con Cardmarket no se guarda.' },
+  { tabla: 'tcg_card_prices', columna: 'cm_low_en', fichero: 'supabase-migration-tcggo-precios.sql', rompe: 'Los precios por idioma de TCGGO no se guardan.' },
+  { tabla: 'tcg_card_prices', columna: 'cm_low_ja', fichero: 'supabase-migration-tcggo-japones.sql', rompe: 'Las cartas japonesas no tienen precio.' },
+  { tabla: 'tcg_card_history', columna: 'card_id', fichero: 'supabase-migration-tcggo-historial.sql', rompe: 'La gráfica del histórico de una carta no sale.' },
+  { tabla: 'tcg_cards', columna: 'tcggo_id', fichero: 'supabase-migration-tcggo-catalogo.sql', rompe: 'El catálogo de TCGGO no se escribe: los sets nuevos no entran.' },
+  { tabla: 'tcg_set_valor', columna: 'set_id', fichero: 'supabase-migration-tcggo-expansiones.sql', rompe: 'Las expansiones no enseñan su valor.' },
+  { rpc: 'match_log_mazo_propio', fichero: 'supabase-migration-partidas-mazo-guardado.sql', rompe: 'Mis partidas no puede apuntar el mazo guardado con el que jugaste.' },
+  { tabla: 'user_price_alerts', columna: 'id', fichero: 'supabase-migration-avisos-precio.sql', rompe: 'Los avisos de precio no se pueden poner.' },
+  { tabla: 'tcg_card_prices', columna: 'cm_low_ko', fichero: 'supabase-migration-tcggo-corea-china.sql', rompe: 'Las cartas coreanas y chinas no tienen precio.' },
+  { tabla: 'match_log', columna: 'formato', fichero: 'supabase-migration-partidas-juegos.sql', rompe: 'Las partidas no guardan su formato ni sus juegos.' },
+  { tabla: 'user_showcase', columna: 'user_id', fichero: 'supabase-migration-vitrina.sql', rompe: 'La vitrina del perfil no se guarda.' },
+  { tabla: 'user_release_alerts', columna: 'id', fichero: 'supabase-migration-avisos-lanzamientos.sql', rompe: 'No se puede pedir aviso de un lanzamiento.' },
+  { tabla: 'user_albums', columna: 'tipo', fichero: 'supabase-migration-albumes-tipos.sql', rompe: 'Los álbumes no guardan su tipo (binder, archivador…).' },
+  { tabla: 'tcg_products', columna: 'id', fichero: 'supabase-migration-productos.sql', rompe: 'La pestaña Productos de Mi colección no tiene nada.' },
+  { rpc: 'intercambios_avisar', fichero: 'supabase-migration-cambios-seguidos.sql', rompe: 'No avisa cuando alguien a quien sigues da una carta que buscas.' },
+  { tabla: 'user_albums', columna: 'portada', fichero: 'supabase-migration-albumes-portada.sql', rompe: 'Los álbumes no guardan su portada.' },
+  { rpc: 'coleccion_seguidos_y_mis_deseos', fichero: 'supabase-migration-seguidos-y-deseos.sql', rompe: 'El bloque de quién tiene lo que te falta no sale.' },
+  { tabla: 'tcg_product_history', columna: 'product_id', fichero: 'supabase-migration-productos-ficha.sql', rompe: 'La ficha de un producto sale sin gráfica.' },
+  { rpc: 'intercambios_mercado', fichero: 'supabase-migration-mercado.sql', rompe: 'El Mercado sale vacío.' },
+  { tabla: 'tournament_matchday_decklists', columna: 'tournament_id', fichero: 'supabase-migration-torneos-jornadas.sql', rompe: 'En las ligas no se puede entregar la lista de cada jornada.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que
@@ -105,9 +134,27 @@ function faltaDeVerdad(error) {
   return /could not find|does not exist|schema cache|unknown column/.test(msg)
 }
 
+// Una función se mira SIN ejecutarla: se la llama con un argumento que no
+// tiene, y PostgREST contesta PGRST202 sin correr nada. Si existe, su pista
+// la nombra («Perhaps you meant to call the function public.x(p_…)»); si no,
+// no. Así una RPC que escribe no escribe por mirar si está.
+export function veredictoDeSonda(nombre, error) {
+  if (!error) return { estado: 'ok' }
+  const texto = `${error.message || ''} ${error.hint || ''} ${error.details || ''}`
+  if (new RegExp(`public\\.${nombre}\\(`).test(error.hint || '')) return { estado: 'ok' }
+  if (error.code === 'PGRST202') return { estado: 'falta', detalle: error.message }
+  return { estado: 'duda', detalle: texto.trim() }
+}
+
+async function sondearFuncion(nombre) {
+  const { error } = await supabase.rpc(nombre, { __sonda_791: 1 })
+  return veredictoDeSonda(nombre, error)
+}
+
 export async function checkSchema() {
   const resultados = await Promise.all(
     REQUISITOS.map(async (r) => {
+      if (r.rpc) return { ...r, ...(await sondearFuncion(r.rpc)) }
       const { error } = await supabase.from(r.tabla).select(r.columna).limit(1)
       if (!error) return { ...r, estado: 'ok' }
       if (faltaDeVerdad(error)) return { ...r, estado: 'falta', detalle: error.message }

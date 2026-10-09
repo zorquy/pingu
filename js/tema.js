@@ -188,7 +188,7 @@ function pintarCabecera(perfilAutor) {
     <p class="subtext tema-firma">
       ${avatarHtml(perfilAutor, 20)} ${enlacePerfil(perfilAutor)}
       · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
-      · ${icons.eye(13)} ${tema.view_count || 0}
+      ${tema.view_count ? `· ${icons.eye(13)} ${tema.view_count}` : ''}
       ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
       <button type="button" class="tema-mas-btn" id="temaMasBtn" aria-expanded="false" aria-controls="temaMas" aria-label="Más opciones del tema">${icons.moreHorizontal(18)}</button>
     </p>
@@ -526,6 +526,8 @@ async function pintarMensajes() {
   marcarConectados(perfiles).catch(() => {})
   // Los enlaces internos pegados a pelo se convierten en tarjetitas.
   import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(elMensajes)).catch(() => {})
+  // El glosario (792, NU11): la primera vez que sale un término en la página.
+  import('./glosario.js').then((m) => { const vistos = new Set(); elMensajes.querySelectorAll('.foro-mensaje-cuerpo').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>
@@ -568,15 +570,17 @@ async function pintarEncuesta() {
   engancharEncuesta(hueco, tema.id, pintarEncuesta, datos)
 }
 
-// Las reacciones que puede llevar un mensaje. El emoji es solo cómo se
-// pinta: en la base viven como 'like', 'love'..., que la restricción CHECK
-// conoce.
+// Las reacciones que puede llevar un mensaje. En la base viven como 'like',
+// 'love'..., que la restricción CHECK conoce; se pintan con un icono de la
+// casa y no con un emoji (789, PA10: era la única excepción sin declarar a
+// «iconos, nunca emojis»). El tercero es el nombre, para el aviso y el title.
 const REACCIONES = [
-  ['like', '👍'],
-  ['love', '❤️'],
-  ['laugh', '😂'],
-  ['wow', '😮'],
+  ['like', 'thumbsUp', 'me gusta'],
+  ['love', 'heart', 'me encanta'],
+  ['laugh', 'smile', 'me hace gracia'],
+  ['wow', 'zap', 'me sorprende'],
 ]
+const iconoDeReaccion = (nombre) => (icons[nombre] ? icons[nombre](14) : '')
 
 // La fila de reacciones de un mensaje. En los ajenos son botones (la tuya
 // resaltada); en el propio, solo los recuentos — la base prohíbe
@@ -595,7 +599,8 @@ function quienesReaccionaron(filas, perfiles) {
 function reaccionesHtml(m, reacciones, esMio, perfiles) {
   const mia = sesion ? reacciones.find((r) => r.user_id === sesion.user.id)?.kind : null
   return `<div class="foro-reacciones" data-reacciones="${m.id}">
-    ${REACCIONES.map(([kind, emoji]) => {
+    ${REACCIONES.map(([kind, icono, nombre]) => {
+      const emoji = `<span class="foro-reaccion-icono" aria-hidden="true">${iconoDeReaccion(icono)}</span><span class="sr-only">${nombre}</span>`
       const deEsta = reacciones.filter((r) => r.kind === kind)
       const cuenta = deEsta.length
       const quienes = cuenta ? quienesReaccionaron(deEsta, perfiles) : ''
@@ -712,20 +717,29 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
       }
       <footer class="foro-mensaje-pie">
         <div class="foro-mensaje-izq">
-          ${reportButtonHtml('forum_post', m.id)}
-          ${esMio || soyStaff ? `<button type="button" class="link-btn" data-editar="${m.id}">${icons.edit(13)} Editar</button>` : ''}
-          ${esMio || soyStaff ? `<button type="button" class="link-btn" data-borrar="${m.id}">${icons.trash(13)} Borrar</button>` : ''}
-          ${
-            puedeResolver
-              ? `<button type="button" class="link-btn foro-btn-resolver" data-resolver="${m.id}">${icons.checkCircle(13)} ${
-                  esLaSolucion ? 'Quitar la marca de solución' : 'Marcar como solución'
-                }</button>`
-              : ''
-          }
+          ${hayReacciones ? reaccionesHtml(m, reacciones, esMio, perfiles) : ''}
         </div>
         <div class="foro-mensaje-der">
-          ${hayReacciones ? reaccionesHtml(m, reacciones, esMio, perfiles) : ''}
           <button type="button" class="foro-accion" data-citar="${m.id}">${icons.quote(14)} Citar</button>
+          ${
+            // Editar, Borrar, la solución y Reportar, en un «⋯» (789, PA10):
+            // eran cuatro enlaces subrayados debajo de cada mensaje.
+            `<details class="foro-mas">
+              <summary class="foro-accion" aria-label="Más acciones">${icons.moreHorizontal(16)}</summary>
+              <div class="foro-mas-menu">
+                ${esMio || soyStaff ? `<button type="button" class="foro-mas-item" data-editar="${m.id}">${icons.edit(14)} Editar</button>` : ''}
+                ${esMio || soyStaff ? `<button type="button" class="foro-mas-item" data-borrar="${m.id}">${icons.trash(14)} Borrar</button>` : ''}
+                ${
+                  puedeResolver
+                    ? `<button type="button" class="foro-mas-item foro-btn-resolver" data-resolver="${m.id}">${icons.checkCircle(14)} ${
+                        esLaSolucion ? 'Quitar la marca de solución' : 'Marcar como solución'
+                      }</button>`
+                    : ''
+                }
+                ${reportButtonHtml('forum_post', m.id)}
+              </div>
+            </details>`
+          }
         </div>
       </footer>
     </div>
@@ -950,7 +964,7 @@ async function alternarReaccion(postId, kind, boton) {
       recipientId: autor,
       actorId: sesion.user.id,
       type: 'forum_reaction',
-      title: `Han reaccionado ${REACCIONES.find(([k]) => k === kind)?.[1] || ''} a tu mensaje`.trim(),
+      title: `Han reaccionado a tu mensaje: ${REACCIONES.find(([k]) => k === kind)?.[2] || ''}`.trim(),
       body: tema.title,
       link: `${urlTema(tema.id)}#mensaje-${postId}`,
     }).catch(() => {})

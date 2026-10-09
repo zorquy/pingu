@@ -1,9 +1,10 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
+import { barraDeRango } from './rango-barra.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
@@ -27,7 +28,7 @@ function applyHeroVisuals(profile, name) {
   const bannerUrl = profile?.banner_url
   banner.style.background = bannerUrl
     ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
-    : profile?.banner_color || 'var(--arte-rosa)'
+    : profile?.banner_color || bannerPorDefecto(profile)
   // Igual que en la ficha de otro (tanda 263): sin foto, 160 px de color
   // liso son 160 px de nada y empujan todo lo demás hacia abajo. Aquí
   // faltaba — la tuya era la única que seguía con el hueco entero.
@@ -60,7 +61,7 @@ async function loadProfile(session) {
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     ${profile?.username ? `<p class="perfil-arroba">@${escapeHtml(profile?.username)}</p>` : ''}
     <div class="perfil-chapas">
-      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${barraDeRango(xp)}</button>
       <!-- El rango lo rellena loadStats(): depende de cuántas guías
            tienes aprobadas, y eso se cuenta después. El hueco va aquí
            para no tener que recomponer la cabecera. -->
@@ -117,7 +118,7 @@ async function loadStats(session, profile) {
 function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
+      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
         <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
@@ -130,6 +131,7 @@ async function loadAchievements(profile) {
   document.getElementById('achievementsCount').textContent = `${unlocked.length}/${achievementsCache.length}`
   document.getElementById('heroTrophyCount').textContent = unlocked.length
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
+  import('./logros-reparto.js').then((m) => m.ponerReparto(grid)).catch(() => {})
 }
 
 // La cifra de trofeos lleva a las Medallas (752), que es donde viven: el

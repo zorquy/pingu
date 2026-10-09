@@ -26,6 +26,12 @@ function montar(caja, activa) {
       clearTimeout(viaje)
       viaje = setTimeout(() => caja.classList.remove('viajando'), 300)
     }
+    // Si el control no cabe y se desliza, la activa se centra al cambiar
+    // (788, PA10b: «Cruces» se quedaba fuera de la vista en el móvil).
+    if (a && a !== ultima && caja.scrollWidth > caja.clientWidth + 1) {
+      const rc0 = caja.getBoundingClientRect(), ra0 = a.getBoundingClientRect()
+      caja.scrollLeft = Math.max(0, ra0.left - rc0.left + caja.scrollLeft - (caja.clientWidth - ra0.width) / 2)
+    }
     ultima = a
     if (!a || !a.offsetWidth) { p.style.opacity = '0'; return }
     // Por las cajas y no por `offsetLeft`: la burbuja es `fixed` en el móvil y

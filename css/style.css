@@ -1732,8 +1732,26 @@ button.btn-block {
   navigation: auto;
 }
 
+/* El cambio de tema, en círculo desde el botón (786, MV8; js/theme.js). */
+html.ola-tema::view-transition-old(root) {
+  animation: none;
+}
+
+html.ola-tema::view-transition-new(root) {
+  animation: tema-ola 0.3s var(--ease);
+}
+
+@keyframes tema-ola {
+  from { clip-path: circle(0 at var(--ola-x) var(--ola-y)); }
+  to { clip-path: circle(150vmax at var(--ola-x) var(--ola-y)); }
+}
+
 /* A quien pide menos movimiento, ninguna animación de transición. */
 @media (prefers-reduced-motion: reduce) {
+  html.ola-tema::view-transition-old(root),
+  html.ola-tema::view-transition-new(root) {
+    animation: none;
+  }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {

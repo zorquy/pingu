@@ -1,0 +1,58 @@
+/* El modo feria (tanda 794, NU5): el QR en grande y las listas para leer de pie. Solo la carga feria.html. */
+
+.feria-qr {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-sm);
+  margin: var(--e-lg) auto var(--e-sm);
+  padding: var(--e-lg);
+  max-width: 360px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--blanco-fijo);
+  color: var(--navy-solid-dark);
+  font-size: var(--t-lg);
+}
+
+.feria-qr svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+.feria-qr-esqueleto {
+  width: 280px;
+  aspect-ratio: 1;
+}
+
+.feria-guardado {
+  text-align: center;
+}
+
+.feria-listas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--e-lg);
+  margin-top: var(--e-lg);
+}
+
+.feria-lista {
+  display: grid;
+  gap: var(--e-xs);
+  margin: var(--e-sm) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-lg);
+}
+
+.feria-lista li {
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.feria-lista small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}

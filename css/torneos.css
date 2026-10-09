@@ -409,8 +409,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.3px);
-  background-size: 15px 15px;
+  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
   opacity: 0.5;
   pointer-events: none;
 }
@@ -984,8 +983,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.3px);
-  background-size: 16px 16px;
+  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
   opacity: 0.55;
   pointer-events: none;
 }
@@ -3453,3 +3451,68 @@ html.torneo-jugando #torneoNombre {
 .torneo-jornadas-admin-fila > span:first-child { flex: 1 1 140px; min-width: 0; }
 .torneo-jornadas-admin-fila .subtext { margin: 0; }
 .torneo-aviso-jornada { margin: var(--e-sm) 0 0; }
+
+/* La semana de un vistazo (790, PA15). */
+.torneos-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-lg);
+}
+
+.tsem-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 72px;
+  padding: var(--e-sm) var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.tsem-dia.con {
+  color: var(--text);
+}
+
+.tsem-dia.con:hover {
+  border-color: var(--navy);
+}
+
+.tsem-dia b {
+  font-size: var(--t-lg);
+}
+
+.tsem-puntos {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+
+.tsem-puntos i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+}
+
+/* SI4 (796): los tres mazos que más se juegan, en fila, sobre el degradado. */
+.torneo-arte-meta {
+  position: absolute;
+  right: var(--e-md);
+  bottom: var(--e-xs);
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.torneo-arte-sprite {
+  width: 56px;
+  height: 56px;
+  margin-left: -12px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 35%));
+}

@@ -128,10 +128,10 @@
            vistas — Torneos (la principal), Partidas sueltas (su
            «Battle Logs») y Estadísticas (su «Stats»). Mismas pestañas
            que el perfil (components.css). -->
-      <div class="tabs" id="partidasTabs">
-        <button class="tab-btn active" data-vista="torneos">Torneos</button>
-        <button class="tab-btn" data-vista="sueltas">Partidas sueltas</button>
-        <button class="tab-btn" data-vista="stats">Estadísticas</button>
+      <div class="seg partidas-tabs" id="partidasTabs" role="group" aria-label="Qué ver">
+        <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
+        <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas sueltas</button>
+        <button type="button" class="seg-btn" data-vista="stats" aria-pressed="false">Estadísticas</button>
       </div>
 
       <div class="tab-panel active" id="vista-torneos">

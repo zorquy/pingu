@@ -16,6 +16,7 @@
 // que ya se han mandado.
 import { getSession, escapeHtml } from './app.js'
 import { showToast } from './toast.js'
+import { botonPegar } from './boton-pegar.js'
 import { cargarSets, cartasPorIds, cargarMazo, misMazos, resolverLineas } from './constructor/datos.js'
 import { leerLista, leerEnlaceLimitless, decodificarMazo, esBasico } from './constructor/nucleo.js'
 
@@ -246,6 +247,7 @@ async function iniciar() {
       .finally(() => (b.disabled = false))
   })
   $('lpProbarLista').addEventListener('click', probarLista)
+  botonPegar($('lpLista'), $('lpPegar'))
   // Ctrl+Intro en la lista: probar sin ir a por el ratón.
   $('lpLista').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) probarLista()

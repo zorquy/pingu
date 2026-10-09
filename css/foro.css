@@ -2386,3 +2386,62 @@ html:has(#temaResponder) {
   border-color: rgb(255 255 255 / 40%);
   background: transparent;
 }
+
+/* El «⋯» de cada mensaje (789, PA10): Editar, Borrar, la solución y Reportar. */
+.foro-mas {
+  position: relative;
+}
+
+.foro-mas > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.foro-mas > summary::-webkit-details-marker {
+  display: none;
+}
+
+.foro-mas-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--e-xs));
+  z-index: 20;
+  display: grid;
+  min-width: 200px;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.foro-mas-item,
+.foro-mas-menu .report-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.foro-mas-item:hover,
+.foro-mas-menu .report-btn:hover {
+  background: var(--bg);
+}
+
+.foro-mas-menu .report-btn::after {
+  content: 'Reportar';
+}
+
+.foro-reaccion-icono {
+  display: inline-flex;
+  vertical-align: -2px;
+}

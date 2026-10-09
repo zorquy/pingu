@@ -83,6 +83,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     <nav class="tu-lista" aria-label="Lo tuyo">
       <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener">${taza(20)}<span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a>
       ${fila('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero')}
+      ${fila('/feria', icons.scan(20), 'Modo feria')}
       ${fila('/guardados.html', icons.bookmark(20), 'Guardados')}
       ${fila('/mazos', icons.layers(20), 'Mis mazos')}
       ${fila('/mis-partidas', icons.gamepad(20), 'Mis partidas')}
@@ -120,7 +121,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
   dropdown.addEventListener('click', (e) => {
     const t = e.target.closest('[data-tema]')
     if (t) {
-      aplicarTema(t.dataset.tema, doc, win)
+      import('./theme.js').then(({ conOla }) => conOla({ currentTarget: t }, () => aplicarTema(t.dataset.tema, doc, win))).catch(() => aplicarTema(t.dataset.tema, doc, win))
       for (const b of dropdown.querySelectorAll('[data-tema]')) b.setAttribute('aria-pressed', String(b === t))
       return
     }

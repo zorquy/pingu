@@ -1,0 +1,271 @@
+/* La pestaña Productos de /mi-coleccion (tanda 797, LO3): lo que SOLO pinta js/mi-coleccion/productos.js, que la inyecta. */
+
+.mc-prod-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  margin: var(--e-md) 0 var(--e-sm);
+}
+
+.mc-prod-valor {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-prod-valor b {
+  color: var(--text);
+  font-size: var(--t-lg);
+}
+
+.mc-prod {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-prod.tengo {
+  border-color: var(--success);
+}
+
+.mc-prod-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.mc-prod-foto img {
+  position: absolute;
+  inset: var(--e-xs);
+  width: calc(100% - 2 * var(--e-xs));
+  height: calc(100% - 2 * var(--e-xs));
+  object-fit: contain;
+}
+
+.mc-prod-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.mc-prod-tipo,
+.mc-prod-preventa {
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-prod-preventa {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.mc-prod-nombre {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mc-prod-precio {
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+
+.mc-prod-precio small,
+.mc-prod-media {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.mc-prod-sin {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 400;
+}
+
+.mc-prod-mando {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-xs);
+  margin-top: auto;
+  padding-top: var(--e-xs);
+}
+
+.mc-prod-anadir {
+  flex: 1 1 auto;
+  min-height: 44px;
+  border: 1px solid var(--navy);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--navy);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-prod-boton {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-prod-cuantos {
+  color: var(--success);
+  font-size: var(--t-md);
+}
+
+.mc-prod-set-logo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 120px;
+  height: 48px;
+}
+
+.mc-prod-set-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.mc-prod-set-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.mc-prod-set-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-prod-tengo {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  min-width: 28px;
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+.mc-prod-baldosa {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-prod-baldosa:hover {
+  border-color: var(--navy);
+}
+
+.mc-prod-baldosa-logo {
+  display: grid;
+  place-items: center;
+  height: 64px;
+}
+
+.mc-prod-baldosa-logo img {
+  max-width: 100%;
+  max-height: 64px;
+  object-fit: contain;
+}
+
+.mc-prod-baldosa-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.mc-prod-baldosa-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-prod-baldosa .mc-prod-preventa {
+  position: absolute;
+  top: var(--e-sm);
+  left: var(--e-sm);
+}
+
+.mc-prod-baldosa-tuyos {
+  align-self: flex-start;
+  padding: 2px var(--e-sm);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-prod-abrir {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-prod-abrir:hover .mc-prod-nombre {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.mc-prodf-precio {
+  margin: 0;
+}
+
+.mc-prodf-precio b {
+  font-size: var(--t-2xl);
+}
+
+.mc-prodf-precio small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-prodf-tienes {
+  margin: 0;
+  color: var(--success);
+  font-weight: 700;
+}

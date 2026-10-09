@@ -126,3 +126,68 @@
   font-size: var(--t-2xs);
   font-weight: 800;
 }
+
+/* Entrar y registrarse con algo de PokeDoc (790, PA17). */
+.auth-o {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: var(--e-md) 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.auth-o::before,
+.auth-o::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-ventajas {
+  display: grid;
+  gap: var(--e-xs);
+  margin: var(--e-md) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.auth-ventajas li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.auth-ventajas li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.auth-arte {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .auth-page {
+    gap: var(--e-2xl);
+  }
+
+  .auth-arte {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--e-md);
+    max-width: 240px;
+    text-align: center;
+    color: var(--text-mid);
+    font-family: var(--font-display);
+    font-size: var(--t-lg);
+  }
+}

@@ -15,7 +15,7 @@ import { escapeHtml } from './html.js'
 import { normalizarNombre, claveDeCarta } from './normalizar.js'
 // Las direcciones viven aparte para que quien solo quiera enlazar no se
 // lleve el molde —y con él, sus clases— por delante. Ver carta-ruta.js.
-import { rutaDeCarta, urlDeImagen, urlDeLogo } from './carta-ruta.js'
+import { rutaDeCarta, urlDeImagen, urlDeLogo, rutaDeIlustrador } from './carta-ruta.js'
 // El segundo sitio donde buscar un escaneo (tanda 370). Módulo propio y
 // diminuto a propósito: esto lo importa también la función del borde.
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -258,11 +258,13 @@ function puntoDeEnergia(tipo) {
 // lado va el multiplicador, que es el dato que se lee.
 function bloqueCombate(carta) {
   if (!esPokemon(carta)) return ''
-  // `null` es «no se sabe» (la carta aún no está engordada) y no se pinta;
-  // una lista vacía sí: «sin resistencia» es lo que pone la carta (780, LO9).
+  // Sin lista y sin engordar (`detalle_at`) es «no se sabe» y no se pinta
+  // (780, LO9). Engordada, que TCGdex no traiga el campo quiere decir que la
+  // carta no tiene: «—», como pone la carta (lo vigila la 324).
+  const sabido = Boolean(carta.detalle_at)
   const uno = (etiqueta, filas) => {
-    if (!Array.isArray(filas)) return ''
-    const lista = filas
+    if (!Array.isArray(filas) && !sabido) return ''
+    const lista = Array.isArray(filas) ? filas : []
     const dentro = lista.length
       ? lista
           .map((f) => `${puntoDeEnergia(f?.type)}<span class="carta-mult">${escapeHtml(f?.value || '')}</span>`)
@@ -306,12 +308,12 @@ function bloqueFicha(carta, set) {
   const cruda = rarezaCrudaDeCarta(carta)
   if (cruda) filas.push(['Rareza', rarezaEs(cruda), marcaDeCartaHtml(carta)])
   if (carta?.regulation_mark) filas.push(['Marca de regulación', carta.regulation_mark])
-  if (carta?.illustrator) filas.push(['Ilustración', carta.illustrator])
+  if (carta?.illustrator) filas.push(['Ilustración', carta.illustrator, '', rutaDeIlustrador(carta.illustrator)])
   if (set?.release_date) filas.push(['Salió', fechaLarga(set.release_date)])
   if (!filas.length) return ''
   return (
     '<dl class="carta-ficha">' +
-    filas.map(([k, v, marca]) => `<div><dt>${escapeHtml(k)}</dt><dd>${marca || ''}${escapeHtml(v)}</dd></div>`).join('') +
+    filas.map(([k, v, marca, href]) => `<div><dt>${escapeHtml(k)}</dt><dd>${marca || ''}${href ? `<a href="${escapeHtml(href)}">${escapeHtml(v)}</a>` : escapeHtml(v)}</dd></div>`).join('') +
     '</dl>'
   )
 }

@@ -49,6 +49,11 @@
 </head>
 <body>
   <div class="auth-page">
+    <!-- En el PC, al lado de la caja, algo de PokeDoc (790, PA17). -->
+    <aside class="auth-arte" aria-hidden="true">
+      <img src="/assets/images/mascota.webp" alt="" width="160" height="242" />
+      <p>Tu colección, tus guías y tus torneos, en un sitio.</p>
+    </aside>
     <div class="auth-box">
       <div class="auth-logo">Poke<span>Doc</span></div>
       <!-- El título de la pantalla, para quien no la ve: los pasos son <h2>
@@ -56,9 +61,11 @@
       <h1 class="sr-only">Entrar o crear tu cuenta de PokeDoc</h1>
 
       <div id="stepLogin">
-        <h2>Bienvenido de nuevo</h2>
-        <p class="subtext">Inicia sesión con tu email y contraseña.</p>
-        <div class="form-group" style="margin-top: 16px;">
+        <h2>Hola de nuevo</h2>
+        <!-- Google primero (790, PA17): es lo que usa casi todo el mundo. -->
+        <button id="btnGoogleLogin" class="btn-outline btn-block auth-google-btn" style="margin-top: 16px;">Continuar con Google</button>
+        <p class="auth-o"><span>o con tu email</span></p>
+        <div class="form-group">
           <input type="email" id="loginEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" autofocus />
         </div>
         <div class="form-group" style="margin-top: 10px;">
@@ -67,7 +74,6 @@
         <p class="auth-error"></p>
         <button type="button" id="btnResendConfirmation" class="btn-outline btn-block hidden" style="margin-top: 8px;">Reenviar email de confirmación</button>
         <button id="btnLogin" class="btn-primary btn-block" style="margin-top: 8px;">Entrar</button>
-        <button id="btnGoogleLogin" class="btn-outline btn-block auth-google-btn" style="margin-top: 10px;">Continuar con Google</button>
         <p class="auth-switch">
           <button id="btnGoToForgot">¿Olvidaste tu contraseña?</button>
         </p>
@@ -78,8 +84,15 @@
 
       <div id="stepRegister" class="hidden">
         <h2>Crea tu cuenta</h2>
-        <p class="subtext">Solo necesitas un nombre, tu email y una contraseña.</p>
-        <div class="form-group" style="margin-top: 16px;">
+        <!-- Lo que te llevas, en tres líneas (790, PA17). -->
+        <ul class="auth-ventajas">
+          <li>Tu colección, con lo que vale cada día</li>
+          <li>Guías y cursos para jugar mejor</li>
+          <li>Torneos cada semana</li>
+        </ul>
+        <button id="btnGoogleRegister" class="btn-outline btn-block auth-google-btn" style="margin-top: 16px;">Continuar con Google</button>
+        <p class="auth-o"><span>o con tu email</span></p>
+        <div class="form-group">
           <input type="text" id="registerName" class="auth-input" placeholder="Tu nombre" autocomplete="name" />
         </div>
         <div class="form-group" style="margin-top: 10px;">
@@ -96,7 +109,6 @@
         </div>
         <p class="auth-error"></p>
         <button id="btnRegister" class="btn-primary btn-block" style="margin-top: 8px;">Crear cuenta →</button>
-        <button id="btnGoogleRegister" class="btn-outline btn-block auth-google-btn" style="margin-top: 10px;">Continuar con Google</button>
         <p class="auth-switch">
           ¿Ya tienes cuenta? <button id="btnGoToLogin1">Inicia sesión</button>
         </p>

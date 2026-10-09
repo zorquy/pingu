@@ -19,6 +19,7 @@
 // cuando se sabe, y el daño —que sí viene en el registro— siempre.
 import { escapeHtml } from './html.js'
 import { cardImageUrl } from './tcgdex.js'
+import { botonPegar } from './boton-pegar.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { resolverLineas, cargarSets, cartasPorIds, misMazos, COLUMNAS } from './constructor/datos.js'
 import { canonizarEntradas } from './impresiones-del-set.js'
@@ -2774,6 +2775,7 @@ function iniciar() {
     cargar($('repTexto').value)
   })
   $('repEjemplo').addEventListener('click', cargarEjemplo)
+  botonPegar($('repTexto'), $('repPegarBoton'))
 
   $('repSala').addEventListener('click', (e) => {
     const accion = e.target.closest('[data-accion]')?.dataset.accion

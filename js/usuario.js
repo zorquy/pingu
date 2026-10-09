@@ -1,7 +1,8 @@
 import { supabase } from './supabase.js'
 import { authorRatingSummary } from './guide-rating.js'
-import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo } from './app.js'
+import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
 import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
+import { barraDeRango } from './rango-barra.js'
 import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
 import { renderWall } from './wall.js'
 import { showToast } from './toast.js'
@@ -67,7 +68,7 @@ async function loadHeader() {
   const banner = document.getElementById('heroBanner')
   banner.style.background = profile.banner_url
     ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
-    : profile.banner_color || 'var(--arte-rosa)'
+    : profile.banner_color || bannerPorDefecto(profile)
   // Sin imagen, 160 px de color liso son 160 px de nada: la cabecera se
   // veía medio vacía y todo lo de debajo empezaba muy abajo. Con foto se
   // quedan los 160 —ahí sí hay algo que enseñar—; sin ella baja a 96.
@@ -85,7 +86,7 @@ async function loadHeader() {
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
     <div class="perfil-chapas">
-      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${xp} XP</button>
+      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${barraDeRango(xp)}</button>
       <!-- El rango lo rellena loadReputationAndGuides(): depende de
            cuántas guías tiene aprobadas, y eso se cuenta después. El
            hueco va aquí para no tener que recomponer la cabecera. -->
@@ -280,7 +281,7 @@ async function loadFollowSummary() {
 function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}">
+      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
         <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
       </div>`
@@ -291,6 +292,7 @@ async function loadAchievementsGrid() {
   achievementsCache = await getAllAchievements()
   document.getElementById('heroTrophyCount').textContent = unlocked.length
   document.getElementById('achievementsGrid').innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
+  import('./logros-reparto.js').then((m) => m.ponerReparto(document.getElementById('achievementsGrid'))).catch(() => {})
 }
 
 // La cifra de trofeos lleva a las Medallas (752), que es donde viven: el
@@ -329,6 +331,14 @@ async function init() {
   }
 
   loadMessageButton()
+  // «12 cambios · todos bien» (795, NU4): sin cambios o sin la migración, nada.
+  import('./cambios-hechos.js').then(async (m) => {
+    const t = m.textoDeConfianza(await m.cambiosDe(profile.id))
+    if (t) document.getElementById('heroInfo')?.insertAdjacentHTML('beforeend', `<p class="perfil-confianza">${escapeHtml(t)}</p>`)
+  }).catch(() => {})
+  if (new URLSearchParams(location.search).has('cruce')) {
+    import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('perfilCruce'), profile, currentSession)).catch(() => {})
+  }
   await Promise.all([
     loadReputationAndGuides(),
     loadComments(),

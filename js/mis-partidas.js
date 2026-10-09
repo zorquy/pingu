@@ -1647,9 +1647,9 @@ async function init() {
   )
 
   // Las tres vistas, como las pestañas del perfil.
-  document.querySelectorAll('#partidasTabs .tab-btn').forEach((btn) =>
+  document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#partidasTabs .tab-btn').forEach((b) => b.classList.toggle('active', b === btn))
+      document.querySelectorAll('#partidasTabs .seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
       for (const v of ['torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }

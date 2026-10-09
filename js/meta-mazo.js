@@ -233,6 +233,7 @@ function listaHtml(l, i) {
             ${ver ? `<a class="link-btn" href="${escapeHtml(ver.url)}"${ver.fuera ? ' target="_blank" rel="noopener"' : ''}>${ver.texto}</a>` : ''}
           </div>
           <p class="subtext">${totalDeLista(l.lista)} cartas.</p>
+          <div class="meta-coste" data-coste aria-live="polite"></div>
           <div class="meta-lista-cartas"></div>
         </div>
       </details>
@@ -260,6 +261,7 @@ function engancharListas() {
       d.dataset.pintada = '1'
       const l = listas[Number(d.dataset.lista)]
       if (l) pintarDecklistVisual(d.querySelector('.meta-lista-cartas'), comoDecklist(l.lista))
+      if (l) void pintarCoste(d.querySelector('[data-coste]'), l)
     },
     true
   )
@@ -274,6 +276,50 @@ function engancharListas() {
   $('mmCopiarMejor').addEventListener('click', () => {
     if (listas[0]) copiarDecklist(textoTcgLive(listas[0].lista))
   })
+}
+
+// Lo que te cuesta montarla (792, NU3): lo que ya tienes, lo que falta y
+// unos euros, con «Apuntar en La quiero» de golpe. Sin cuenta, la invitación.
+const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+
+async function pintarCoste(caja, l) {
+  if (!caja) return
+  if (!sesion) {
+    caja.innerHTML = `<p class="subtext"><a href="${escapeHtml(enlaceParaEntrar())}">Entra</a> y te digo cuántas de estas ya tienes y cuánto te costaría el resto.</p>`
+    return
+  }
+  caja.innerHTML = '<p class="subtext">Mirando tu colección…</p>'
+  try {
+    const { costeDeLista, apuntarLasQueFaltan } = await import('./coste-mazo.js')
+    const r = await costeDeLista(l.lista, sesion.user.id)
+    if (!r.total) { caja.innerHTML = ''; return }
+    if (!r.faltan) {
+      caja.innerHTML = `<p class="meta-coste-cifras"><strong>Ya la tienes entera</strong> (sin contar las energías básicas).</p>`
+      return
+    }
+    const cuanto = r.euros ? `unos <strong>${euros.format(r.euros)}</strong> en Cardmarket${r.sinPrecio ? ` (y ${r.sinPrecio} sin precio)` : ''}` : 'sin precio todavía'
+    caja.innerHTML = `
+      <p class="meta-coste-cifras"><span><strong>${r.tienes}</strong> ya las tienes</span><span><strong>${r.faltan}</strong> te faltan</span><span>${cuanto}</span></p>
+      <div class="meta-coste-acciones">
+        <button type="button" class="btn-secondary" data-apuntar>Apuntar las ${r.faltan} en La quiero</button>
+        <details class="meta-coste-detalle"><summary>La más barata de cada una</summary>
+          <ul>${r.filas.filter((f) => f.falta).map((f) => `<li><a href="${escapeHtml(rutaDeCarta({ id: f.barata?.id || f.carta.id, name: f.nombre }))}">${f.falta} × ${escapeHtml(f.nombre)}</a>${f.barata ? ` <span>${euros.format(f.barata.precio)}</span>` : ''}</li>`).join('')}</ul>
+        </details>
+      </div>`
+    caja.querySelector('[data-apuntar]').addEventListener('click', async (e) => {
+      const b = e.currentTarget
+      b.disabled = true
+      try {
+        const n = await apuntarLasQueFaltan(r)
+        b.textContent = n ? `Apuntadas ${n} en La quiero` : 'Ya estaban en La quiero'
+      } catch (err) {
+        showToast(err.message || 'No se han podido apuntar.', 'error')
+        b.disabled = false
+      }
+    })
+  } catch {
+    caja.innerHTML = '<p class="subtext">No he podido mirar tu colección ahora. Prueba otra vez en un momento.</p>'
+  }
 }
 
 // Guardar una lista de otro en «Mis mazos» (tanda 413): sin pasar por

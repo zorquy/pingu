@@ -22,11 +22,47 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString('es-ES')
 }
 
+// Una fila de la lista; `actual` marca la conversación abierta (789, PA13).
+function filaDeConversacion(c, actual = null) {
+  const p = c.otherProfile
+  const name = p?.display_name || p?.username || 'Usuario'
+  return `
+      <a class="my-guide-row msg-fila${c.conversationId === actual ? ' activa' : ''}" href="/mensajes.html?c=${c.conversationId}"${c.conversationId === actual ? ' aria-current="page"' : ''} style="text-decoration:none; align-items:center; gap:12px;">
+        <span class="mini-avatar" style="width:44px; height:44px; font-size:16px; flex-shrink:0; ${avatarStyle(p)}">${p?.avatar_url ? '' : getInitial(name)}</span>
+        <div style="flex:1; min-width:0;">
+          <strong style="${c.unread ? 'color:var(--navy);' : ''}">${escapeHtml(name)}</strong>
+          <p class="subtext" style="margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.lastMessage ? escapeHtml(c.lastMessage.body) : ''}</p>
+        </div>
+        ${c.lastMessage ? `<span class="date" style="color:var(--text-dim); font-size: var(--t-xs); flex-shrink:0;">${timeAgo(c.lastMessage.created_at)}</span>` : ''}
+      </a>`
+}
+
+const enPC = () => window.matchMedia('(min-width: 1100px)').matches
+
+// La lista de la izquierda en el PC, al lado de lo que esté abierto.
+async function pintarListaLateral(session, actual) {
+  const caja = document.getElementById('msgLista')
+  if (!caja || !enPC()) return
+  const list = await listConversations(session.user.id).catch(() => [])
+  caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-secondary" href="/mensajes.html?new=1">${icons.edit(14)} Nueva</a></div>${
+    list.length ? list.map((c) => filaDeConversacion(c, actual)).join('') : '<p class="subtext">Todavía no tienes conversaciones.</p>'
+  }`
+  caja.classList.remove('hidden')
+  document.querySelector('.msg-dos')?.classList.add('con-lista')
+}
+
 async function renderInbox(session) {
+  // En el PC la lista ya está a la izquierda: a la derecha, a elegir.
+  if (enPC()) {
+    await pintarListaLateral(session, null)
+    root.innerHTML = `<p class="empty-state">Elige una conversación de la lista o empieza una nueva.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
+    return
+  }
   root.innerHTML = `
     <div class="page-header cabecera-pagina" style="padding-top: 8px;">
       <h1>Mensajes</h1>
-      <p>Tus conversaciones privadas. <a href="/mensajes.html?new=1" style="display:inline-flex; align-items:center; gap:4px;">${icons.edit(13)} Nueva conversación</a></p>
+      <p>Tus conversaciones privadas.</p>
+      <a class="btn-secondary" href="/mensajes.html?new=1">${icons.edit(14)} Nueva conversación</a>
     </div>
     <div id="inboxList"><div class="skeleton" style="height:70px; margin-bottom:12px;"></div></div>`
 
@@ -35,21 +71,7 @@ async function renderInbox(session) {
   listEl.innerHTML =
     list.length === 0
       ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
-      : list
-          .map((c) => {
-            const p = c.otherProfile
-            const name = p?.display_name || p?.username || 'Usuario'
-            return `
-      <a class="my-guide-row" href="/mensajes.html?c=${c.conversationId}" style="text-decoration:none; align-items:center; gap:12px;">
-        <span class="mini-avatar" style="width:44px; height:44px; font-size:16px; flex-shrink:0; ${avatarStyle(p)}">${p?.avatar_url ? '' : getInitial(name)}</span>
-        <div style="flex:1; min-width:0;">
-          <strong style="${c.unread ? 'color:var(--navy);' : ''}">${escapeHtml(name)}</strong>
-          <p class="subtext" style="margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.lastMessage ? escapeHtml(c.lastMessage.body) : ''}</p>
-        </div>
-        ${c.lastMessage ? `<span class="date" style="color:var(--text-dim); font-size: var(--t-xs); flex-shrink:0;">${timeAgo(c.lastMessage.created_at)}</span>` : ''}
-      </a>`
-          })
-          .join('')
+      : list.map((c) => filaDeConversacion(c)).join('')
 }
 
 async function renderNewConversation(session) {
@@ -117,6 +139,7 @@ async function renderThread(session, conversationId) {
   }
 
   await markConversationRead(conversationId, session.user.id)
+  void pintarListaLateral(session, conversationId)
 
   const name = otherProfile.display_name || otherProfile.username || 'Usuario'
   root.innerHTML = `
@@ -125,11 +148,15 @@ async function renderThread(session, conversationId) {
       <a class="mini-avatar" href="${profileUrl(otherProfile)}" style="width:40px; height:40px; font-size:15px; ${avatarStyle(otherProfile)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
       <h1 style="margin:0; font-size: var(--t-xl);"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
     </div>
+    <div class="msg-cambio" id="msgCambio"></div>
     <div id="threadMessages" style="display:flex; flex-direction:column; gap:8px; margin:16px 0;"></div>
     <div class="simple-card">
       <textarea id="msgBody" placeholder="Escribe un mensaje…"></textarea>
       <button class="btn-primary" id="btnSendMsg" style="margin-top:8px;">Enviar</button>
     </div>`
+
+  // «Cambio hecho» (795, NU4): solo si la migración está; si no, nada.
+  import('./cambio-boton.js').then((m) => m.pintarBotonDeCambio(document.getElementById('msgCambio'), session.user.id, otherProfile.id, name)).catch(() => {})
 
   async function refreshMessages() {
     const messages = await loadThreadMessages(conversationId)

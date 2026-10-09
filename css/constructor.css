@@ -324,9 +324,43 @@
 }
 
 .cm-check input {
+  appearance: none;
+  flex: 0 0 auto;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+/* El interruptor de la 790: sí/no se dice con un mando que se ve encendido o apagado. */
+.cm-check input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
   width: 20px;
   height: 20px;
-  accent-color: var(--navy);
+  border-radius: 50%;
+  background: var(--blanco-fijo);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.cm-check input:checked {
+  background: var(--navy-solid);
+}
+
+.cm-check input:checked::after {
+  transform: translateX(16px);
+}
+
+.cm-check input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
 }
 
 .cm-guardado {
@@ -351,8 +385,32 @@
 }
 
 .cm-total {
+  --anillo: var(--navy);
+  --lleno: 0deg;
+  display: inline-flex;
+  align-items: center;
   font-size: var(--t-lg);
   color: var(--text-mid);
+}
+
+.cm-total::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin-right: var(--e-sm);
+  border-radius: 50%;
+  background: conic-gradient(var(--anillo) var(--lleno), var(--border) 0);
+  -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px);
+  mask: radial-gradient(circle, transparent 9px, #000 10px);
+}
+
+.cm-total-ok {
+  --anillo: var(--success);
+}
+
+.cm-total-pasa {
+  --anillo: var(--warning);
 }
 
 .cm-total strong {
@@ -801,7 +859,9 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   }
 
   .cm-resultado-img,
-  .cm-carta-botones {
+  .cm-carta-botones,
+  .cm-check input,
+  .cm-check input::after {
     transition: none;
   }
 }

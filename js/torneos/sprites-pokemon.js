@@ -613,15 +613,30 @@ export function cadenaDeRespaldos(url) {
 // Lo que NO arregla: si la CDN no contesta en vez de dar un 404, cada
 // paso espera a que el navegador se canse, así que en una caída entera
 // los sprites tardan en aparecer. Aparecen, que era el problema.
+// El ÚLTIMO paso ya no es esconder (787, PA16): es un círculo con la
+// inicial del Pokémon, que siempre se ve. Va como imagen en línea para que
+// el hueco y el tamaño sean los de la `<img>`; sin inicial que leer, se
+// esconde como antes.
 export const SALTO_DE_RESPALDO =
   "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);" +
   "if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}" +
+  "else if(this.dataset.inicial){this.onerror=null;this.classList.add('sprite-inicial');" +
+  "this.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 40 40\\'><circle cx=\\'20\\' cy=\\'20\\' r=\\'19\\' fill=\\'#5b7186\\'/><text x=\\'20\\' y=\\'27\\' font-family=\\'sans-serif\\' font-size=\\'20\\' font-weight=\\'700\\' fill=\\'#fff\\' text-anchor=\\'middle\\'>'+this.dataset.inicial+'</text></svg>')}" +
   "else{this.style.display='none'}"
+
+// La inicial sale del nombre del fichero de la PRIMERA dirección (la de
+// Limitless lleva el nombre, «gardevoir.png»); si es un número, no hay.
+export function inicialDeSprite(url) {
+  const nombre = decodeURIComponent(String(url || '').split('?')[0].split('/').pop() || '').replace(/\.\w+$/, '')
+  const letra = nombre.match(/^[a-z]/i)?.[0]
+  return letra ? letra.toUpperCase() : ''
+}
 
 export function atributosDeRespaldo(url) {
   const cadena = cadenaDeRespaldos(url)
   const datos = cadena.length ? ` data-respaldos="${cadena.join(' ')}"` : ''
-  return `${datos} onerror="${SALTO_DE_RESPALDO}"`
+  const inicial = inicialDeSprite(url)
+  return `${datos}${inicial ? ` data-inicial="${inicial}"` : ''} onerror="${SALTO_DE_RESPALDO}"`
 }
 
 // ── Objetos con sprite propio ──

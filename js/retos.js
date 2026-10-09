@@ -17,6 +17,27 @@ function puntosHtml(aciertos, total) {
   return `<span class="rt-puntos" aria-hidden="true">${html}</span>`
 }
 
+// TUS ÚLTIMOS 60 DÍAS (787, PA6): un cuadrito por día, de color si jugaste el
+// reto. Puro, para poder probarlo; el más viejo, arriba a la izquierda.
+export function calendarioHtml(dias, hoy, n = 60) {
+  const jugados = new Set(dias || [])
+  const [y, m, d] = hoy.split('-').map(Number)
+  const celdas = []
+  for (let i = n - 1; i >= 0; i--) {
+    const dia = new Date(Date.UTC(y, m - 1, d - i)).toISOString().slice(0, 10)
+    celdas.push(`<i class="rt-dia${jugados.has(dia) ? ' jugado' : ''}" title="${dia}"></i>`)
+  }
+  const cuantos = celdas.filter((c) => c.includes('jugado')).length
+  return `<h2>Tus últimos ${n} días</h2><p class="subtext">${cuantos} ${cuantos === 1 ? 'reto jugado' : 'retos jugados'}</p><div class="rt-dias" role="img" aria-label="${cuantos} de ${n} días jugados">${celdas.join('')}</div>`
+}
+
+function pintarCalendario(dias) {
+  const caja = $('rtCalendario')
+  if (!caja) return
+  caja.innerHTML = calendarioHtml(dias, hoyISO())
+  caja.classList.remove('hidden')
+}
+
 async function pintarHoy() {
   const caja = $('rtHoyEstado')
   if (!caja) return
@@ -33,6 +54,7 @@ async function pintarHoy() {
   }
   const [jugado, dias] = await Promise.all([yaJugadoHoy(session.user.id), diasJugados(session.user.id)])
   const racha = rachaDeDias(dias, hoyISO())
+  pintarCalendario(dias)
   const rachaHtml = racha >= 2 ? `<span class="rt-chip rt-chip-racha">${icons.flame(14)} ${racha} días seguidos</span>` : ''
   caja.innerHTML = jugado
     ? `

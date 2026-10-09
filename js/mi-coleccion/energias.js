@@ -23,3 +23,4 @@ export function simboloDeTipoHtml(tipo, { tam = 16, solo = false } = {}) {
   if (!letra) return ''
   return `<img class="mc-energia" src="/assets/energias/${letra}.svg" alt="${solo ? NOMBRE_DE_LETRA[letra] : ''}" width="${tam}" height="${tam}" />`
 }
+

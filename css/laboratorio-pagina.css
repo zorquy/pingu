@@ -173,3 +173,18 @@
     flex-basis: 100%;
   }
 }
+
+/* PA14 (790): en el PC, las tres puertas una al lado de otra y a todo lo ancho. */
+@media (min-width: 1100px) {
+  .lp-pagina {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--e-lg);
+    align-items: start;
+    max-width: var(--container-w);
+  }
+
+  .lp-pagina > .lp-cabecera {
+    grid-column: 1 / -1;
+  }
+}

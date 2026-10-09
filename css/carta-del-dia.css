@@ -29,6 +29,7 @@
    desenfoque deja transparente; `--cd-desenfoque` lo pone el JS por
    intento. Sin transición si hay «menos movimiento». */
 .cd-recorte {
+  position: relative;
   width: min(100%, 320px);
   margin: 0 auto;
   aspect-ratio: 245 / 342;
@@ -154,4 +155,82 @@
 
 .cd-leyenda {
   text-align: center;
+}
+
+/* MV7 (796): la carta sale de un sobre al terminar la partida. */
+.cd-sobre {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cd-sobre-tapa,
+.cd-sobre-cuerpo {
+  position: absolute;
+  left: -4%;
+  width: 108%;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 35%) 48%, transparent 66%), var(--arte-morado);
+}
+
+.cd-sobre-tapa {
+  top: -2%;
+  height: 18%;
+  border-bottom: 2px dashed rgb(255 255 255 / 60%);
+  transform-origin: 0 100%;
+  animation: cd-tapa 0.45s ease-in 0.2s both;
+}
+
+.cd-sobre-cuerpo {
+  top: 16%;
+  height: 86%;
+  animation: cd-cuerpo 0.5s ease-in 0.6s both;
+}
+
+.cd-recorte.sale img {
+  animation: cd-sale 0.6s ease-out 0.9s both;
+}
+
+.cd-recorte.sale::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 55%) 50%, transparent 65%);
+  background-size: 250% 100%;
+  pointer-events: none;
+  animation: cd-brillo 0.8s ease-out 1.2s both;
+}
+
+@keyframes cd-tapa {
+  to { opacity: 0; transform: translate(-6%, -120%) rotate(-14deg); }
+}
+
+@keyframes cd-cuerpo {
+  to { transform: translateY(110%); }
+}
+
+@keyframes cd-sale {
+  from { transform: scale(0.94); }
+  60% { transform: scale(1.12); }
+  to { transform: scale(1.08); }
+}
+
+@keyframes cd-brillo {
+  from { background-position: 120% 0; }
+  to { background-position: -40% 0; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-sobre,
+  .cd-recorte.sale::after {
+    display: none;
+  }
+
+  .cd-sobre-tapa,
+  .cd-sobre-cuerpo,
+  .cd-recorte.sale img,
+  .cd-recorte.sale::after {
+    animation: none;
+  }
 }

@@ -17,7 +17,8 @@ export function montarTirarRefrescar({ doc = document, win = window, recargar = 
   const marca = doc.createElement('div')
   marca.className = 'bm-refrescar'
   marca.setAttribute('aria-hidden', 'true')
-  marca.textContent = '↻'
+  // Una Poké Ball que se va cerrando según tiras y gira al soltar (786, MV14).
+  marca.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle class="bm-bola-aro" cx="12" cy="12" r="10" pathLength="1"/><path class="bm-bola-tapa" d="M2 12a10 10 0 0 1 20 0z" fill="currentColor" stroke="none"/><path d="M2 12h7m6 0h7"/><circle cx="12" cy="12" r="3"/></svg>'
   doc.body.appendChild(marca)
   let inicio = null
   doc.addEventListener('touchstart', (e) => {

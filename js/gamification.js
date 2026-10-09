@@ -434,6 +434,17 @@ function achievementValue(condition, stats) {
     // suyo en SU sesión — nada de escrituras cruzadas entre cuentas.
     case 'referrals_count':
       return stats.invitados
+    // Los de coleccionista (793, NU9): solo llegan cuando los mira
+    // /mi-coleccion, que es quien tiene la colección en memoria; desde
+    // cualquier otra página valen 0 y no desbloquean nada.
+    case 'collection_cards_count':
+      return stats.coleccion?.cartas || 0
+    case 'collection_sets_complete':
+      return stats.coleccion?.setsCompletos || 0
+    case 'collection_top_card_eur':
+      return stats.coleccion?.cartaMasCara || 0
+    case 'collection_illustrator_cards':
+      return stats.coleccion?.maxIlustrador || 0
     case 'was_referred':
       return stats.invitado
     case 'completed_guides_count':
@@ -442,7 +453,7 @@ function achievementValue(condition, stats) {
   }
 }
 
-export async function checkAchievements(userId) {
+export async function checkAchievements(userId, extra = null) {
   const [
     { count: completedCount },
     { count: approvedGuidesCount },
@@ -520,6 +531,7 @@ export async function checkAchievements(userId) {
     reaccionesRecibidas: reaccionesForo,
     invitados,
     invitado: profile.referred_by ? 1 : 0,
+    coleccion: extra?.coleccion || null,
     primerosPasos:
       ((leidasCount || 0) > 0 ? 1 : 0) +
       ((completedCount || 0) > 0 ? 1 : 0) +

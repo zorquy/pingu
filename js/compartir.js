@@ -20,6 +20,8 @@ import { icons } from './icons.js'
 const COPIA_OK = 'Enlace copiado'
 
 export function compartirHtml(id, { clase = 'btn-secondary', texto = 'Compartir' } = {}) {
+  // Sin texto es un botón de icono (787, PA5): el nombre va en `aria-label`.
+  if (!texto) return `<button type="button" class="${clase}" id="${id}" aria-label="Compartir">${icons.share(16)}</button>`
   return `<button type="button" class="${clase}" id="${id}">${icons.share(14)} ${texto}</button>`
 }
 

@@ -39,6 +39,14 @@ export function arteDe(algo) {
   return (suma % ARTES) + 1
 }
 
+// El banner de un perfil sin foto (789, PA12): uno de los seis colores de
+// arte, el mismo siempre para la misma persona. Antes todos llevaban el rosa
+// y dos perfiles sin foto eran iguales.
+const ARTES_DE_BANNER = ['--arte-azul', '--arte-verde', '--arte-ambar', '--arte-cian', '--arte-morado', '--arte-rosa']
+export function bannerPorDefecto(perfil) {
+  return `var(${ARTES_DE_BANNER[arteDe(perfil?.id || perfil?.username) - 1] || '--arte-rosa'})`
+}
+
 export function borderRarityClass(rarity) {
   return `border-rarity-${rarity || 'bronze'}`
 }

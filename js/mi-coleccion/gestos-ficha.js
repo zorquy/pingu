@@ -94,8 +94,11 @@ export function entrarPorElLado(el, paso, { win = window } = {}) {
 // N6: la carta crece desde su hueco. `abrir` pinta la ficha; dentro de la
 // transición se le pasa el nombre de la carta de la rejilla a la de la
 // ficha, que es lo que hace que el navegador anime la una hasta la otra.
+let ultimoOrigen = null
+
 export function crecerDesde(origen, abrir, { doc = document, win = window } = {}) {
   const quieto = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  ultimoOrigen = origen || null
   if (!origen || quieto || typeof doc.startViewTransition !== 'function') return abrir()
   origen.style.viewTransitionName = 'mc-carta-que-crece'
   let destino = null
@@ -110,6 +113,32 @@ export function crecerDesde(origen, abrir, { doc = document, win = window } = {}
   const limpiar = () => {
     origen.style.viewTransitionName = ''
     if (destino) destino.style.viewTransitionName = ''
+  }
+  t.finished.then(limpiar, limpiar)
+  return t
+}
+
+// Y al cerrar, VUELVE (796, MV12): la foto de la ficha encoge hasta el hueco
+// del que salió, si ese hueco sigue en la página y a la vista. Si no —la
+// rejilla se repintó, o la carta quedó fuera de pantalla—, se cierra sin más:
+// volar hacia un sitio que no se ve es peor que no volar.
+export function volverAlHueco(cerrar, { doc = document, win = window } = {}) {
+  const origen = ultimoOrigen
+  ultimoOrigen = null
+  const desde = doc.querySelector('#mcEdFoto img')
+  const quieto = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  if (!origen?.isConnected || !desde || quieto || typeof doc.startViewTransition !== 'function') return cerrar()
+  const r = origen.getBoundingClientRect()
+  if (!r.width || r.bottom < 0 || r.top > win.innerHeight) return cerrar()
+  desde.style.viewTransitionName = 'mc-carta-que-crece'
+  const t = doc.startViewTransition(() => {
+    desde.style.viewTransitionName = ''
+    cerrar()
+    origen.style.viewTransitionName = 'mc-carta-que-crece'
+  })
+  const limpiar = () => {
+    desde.style.viewTransitionName = ''
+    origen.style.viewTransitionName = ''
   }
   t.finished.then(limpiar, limpiar)
   return t

@@ -188,6 +188,22 @@ async function compartir() {
   }
 }
 
+// La carta sale de un sobre (796, MV7): al acertar o al gastar los
+// intentos EN ESTA visita —no al volver a la página ya resuelta— el sobre se
+// rasga, baja y la carta sube con un brillo. Con «menos movimiento», nada: la
+// carta ya está nítida. El sobre se quita con un temporizador (la 313: sin
+// animación no hay `animationend`).
+export function abrirSobre(caja) {
+  if (!caja || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  caja.querySelector('.cd-sobre')?.remove()
+  caja.insertAdjacentHTML('beforeend', '<span class="cd-sobre" aria-hidden="true"><span class="cd-sobre-tapa"></span><span class="cd-sobre-cuerpo"></span></span>')
+  caja.classList.remove('sale')
+  void caja.offsetWidth
+  caja.classList.add('sale')
+  setTimeout(() => { caja.querySelector('.cd-sobre')?.remove(); caja.classList.remove('sale') }, 1800)
+  return true
+}
+
 function intentar(carta) {
   if (terminado()) return
   const casillas = compararIntento(carta, respuesta)
@@ -199,6 +215,7 @@ function intentar(carta) {
   guardarEstado()
   $('nvElegir').close()
   pintarTodo()
+  if (terminado()) abrirSobre($('cdRecorte'))
 }
 
 // ── El buscador (el de /nueve, con el catálogo occidental fijo) ──

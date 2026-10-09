@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { createNotification } from './notifications.js'
 import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
+import { icons } from './icons.js'
 
 // Valorar una guía.
 //
@@ -117,10 +118,13 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
     perfilesPorId = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
   }
 
-  const cuantas = `${reviews.length} ${reviews.length === 1 ? 'valoración' : 'valoraciones'}`
+  // «¿Te ha servido?» con dos botones (787, PA5): la nota se sigue guardando
+  // en `rating` (Sí = 5, No tanto = 2), así que las medias de autor de
+  // siempre siguen valiendo; aquí se cuenta a cuántos les sirvió (4 o más).
+  const sirvio = reviews.filter((r) => r.rating >= 4).length
   const resumen = avg
     ? `<button type="button" class="rating-summary" data-ver-quien aria-expanded="false" aria-controls="raterList">
-         ${starsHtml(avg)} <strong>${avg.toFixed(1)}</strong> · ${cuantas}
+         <strong>A ${sirvio} de ${reviews.length}</strong> ${sirvio === 1 ? 'le ha' : 'les ha'} servido
          <span class="rating-summary-caret" aria-hidden="true">▾</span>
        </button>
        <div class="rater-panel hidden" id="raterList">${listaValoradoresHtml(reviews, perfilesPorId)}</div>`
@@ -156,23 +160,22 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
   container.innerHTML = `
     <div class="rating-box">
       <h3>${titulo}</h3>
-      <div class="star-picker" role="group" aria-label="Valorar de 1 a 5 estrellas">
-        ${[1, 2, 3, 4, 5]
-          .map((v) => `<button type="button" class="star-pick" data-value="${v}" aria-label="${v} estrella(s)">★</button>`)
-          .join('')}
+      <div class="sirve-botones" role="group" aria-label="${titulo}">
+        <button type="button" class="seg-btn sirve-boton" data-value="5">${icons.thumbsUp(16)} Sí</button>
+        <button type="button" class="seg-btn sirve-boton" data-value="2">No tanto</button>
       </div>
       ${resumen}
-      <p class="rating-hint" data-rating-hint>${mia ? 'Ya la has valorado. Puedes cambiar tu nota.' : ''}</p>
+      <p class="rating-hint" data-rating-hint>${mia ? 'Ya has contestado. Puedes cambiarlo.' : ''}</p>
     </div>`
 
   wireDesplegable()
 
   const pintar = () => {
-    container.querySelectorAll('.star-pick').forEach((s) => s.classList.toggle('selected', Number(s.dataset.value) <= elegida))
+    container.querySelectorAll('.sirve-boton').forEach((s) => s.setAttribute('aria-pressed', String(Number(s.dataset.value) === (elegida >= 4 ? 5 : elegida ? 2 : 0))))
   }
   pintar()
 
-  container.querySelectorAll('.star-pick').forEach((boton) =>
+  container.querySelectorAll('.sirve-boton').forEach((boton) =>
     boton.addEventListener('click', async () => {
       elegida = Number(boton.dataset.value)
       pintar()
@@ -189,8 +192,8 @@ export async function renderRatingWidget(container, { guideId, session, guide = 
           recipientId: guide.author_id,
           actorId: session.user.id,
           type: 'guide_rating',
-          title: 'Nueva valoración en tu guía',
-          body: `${'★'.repeat(elegida)} en "${guide.title}"`,
+          title: 'Nueva respuesta en tu guía',
+          body: elegida >= 4 ? `A alguien le ha servido «${guide.title}»` : `A alguien no le ha servido del todo «${guide.title}»`,
           link: `/guia/${guide.slug}`,
         }).catch(() => {})
       }

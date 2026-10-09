@@ -35,6 +35,19 @@ export function cuentaAtras(dias) {
   return `Faltan ${dias} días`
 }
 
+// La cuenta atrás que corre (788, PA4): días y horas hasta la medianoche
+// (hora de quien mira) del día de salida. Pura: `ahora` en milisegundos.
+export function relojHasta(fecha, ahora = Date.now()) {
+  const sale = new Date(`${fecha}T00:00:00`).getTime()
+  const ms = sale - ahora
+  if (!Number.isFinite(ms) || ms <= 0) return ''
+  const dias = Math.floor(ms / 864e5)
+  const horas = Math.floor((ms % 864e5) / 36e5)
+  const minutos = Math.floor((ms % 36e5) / 6e4)
+  if (dias >= 1) return `faltan ${dias} ${dias === 1 ? 'día' : 'días'} y ${horas} h`
+  return `faltan ${horas} h y ${minutos} min`
+}
+
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
 export function fechaBonita(fecha) {
@@ -192,7 +205,7 @@ function eventoHtml(e, futuro) {
           <strong>${escapeHtml(e.nombre)}${e.codigo ? ` <span class="lanz-chapa">${escapeHtml(e.codigo)}</span>` : ''}</strong>
           <span class="subtext">${detalleHtml(e)}</span>
         </div>
-        ${futuro ? `<span class="lanzamiento-cuenta">${cuentaAtras(diasHasta(e.fecha))}</span>` : '<span class="lanzamiento-cuenta lanzamiento-cuenta-gris">Ya salió</span>'}
+        ${futuro ? `<span class="lanzamiento-cuenta">${cuentaAtras(diasHasta(e.fecha))}</span>` : e.href ? '<span class="lanzamiento-ver">Ver sus cartas →</span>' : ''}
       </${etiqueta}>
     </div>`
 }
@@ -206,7 +219,7 @@ function destacadoHtml(e) {
         <h2>${e.href ? `<a href="${escapeHtml(e.href)}">${escapeHtml(e.nombre)}</a>` : escapeHtml(e.nombre)}</h2>
         <p class="subtext">${detalleHtml(e)}</p>
       </div>
-      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande">${cuentaAtras(diasHasta(e.fecha))}</span>
+      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande">${cuentaAtras(diasHasta(e.fecha))}<small class="lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${relojHasta(e.fecha)}</small></span>
     </div>`
 }
 
@@ -235,6 +248,12 @@ async function pintar(mercado) {
   if (siguiente) {
     destacadoEl.innerHTML = destacadoHtml(siguiente)
     destacadoEl.classList.remove('hidden')
+    // El reloj corre solo, minuto a minuto, mientras la página está abierta.
+    clearInterval(pintar.reloj)
+    pintar.reloj = setInterval(() => {
+      const r = destacadoEl.querySelector('.lanz-reloj')
+      if (r) r.textContent = relojHasta(r.dataset.fecha)
+    }, 60_000)
   }
   if (proximos.length) {
     $('listaProximos').innerHTML = proximos.map((e) => eventoHtml(e, true)).join('')

@@ -10,7 +10,6 @@ import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
-import { contentIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { montarBotonHelpful } from './guide-helpful.js'
 import { compartirHtml, engancharCompartir } from './compartir.js'
@@ -33,7 +32,8 @@ async function toggleSave(session, guideId, btn) {
   const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
   await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
   // `isSaved` es como estaba ANTES de pulsar: el botón dice cómo queda.
-  btn.innerHTML = !isSaved ? `${icons.bookmark(14, true)} Guardado` : `${icons.bookmark(14)} Guardar`
+  btn.innerHTML = !isSaved ? icons.bookmark(16, true) : icons.bookmark(16)
+  btn.setAttribute('aria-label', !isSaved ? 'Guardada · quitar de guardados' : 'Guardar')
   if (!isSaved) import('./efectos.js').then(({ latir }) => latir(btn)).catch(() => {})
 }
 
@@ -216,7 +216,9 @@ async function init() {
   const headings = []
   const bodyHtml = hasContent
     ? renderReferenceBlocksHtml(guide.reference_blocks, headings)
-    : `<p>${escapeHtml(guide.description || 'Esta guía todavía no tiene contenido de referencia.')}</p>`
+    // La descripción ya va debajo del título: repetirla aquí era decir lo
+    // mismo dos veces en las guías que son solo curso (787, PA5).
+    : `<p class="subtext">${guideHasCourse(guide) ? 'Esta guía se aprende jugando: empieza el curso.' : 'Esta guía todavía no tiene contenido de referencia.'}</p>`
 
   // Los minutos de lectura se calculan del texto de verdad (unas 200
   // palabras por minuto), no del numerito que puso el autor al crearla:
@@ -276,7 +278,6 @@ async function init() {
             }</p>`
           : ''
       }
-      <span class="emoji-big">${contentIconHtml(guide.cover_emoji, 40, 'bookOpen')}</span>
       <span class="guide-label">${esNoticia ? 'Noticia' : escapeHtml(guide.categories?.name || '')}</span>
       <h1>${escapeHtml(guide.title)}</h1>
       <p class="lead">${escapeHtml(guide.description || '')}</p>
@@ -305,12 +306,12 @@ async function init() {
              línea de abajo él solo y con el tamaño de botón grande. El
              grupo se envuelve entero o no se envuelve. -->
         <div class="guia-acciones">
-          <button class="btn-secondary" id="btnSave">${icons.bookmark(14)} Guardar</button>
+          <button class="btn-secondary guia-accion-icono" id="btnSave" aria-label="Guardar">${icons.bookmark(16)}</button>
           ${
             // Compartir va aquí, junto a Guardar, y se le enseña también
             // a quien no tiene cuenta: es justo quien acaba de llegar de
             // fuera y quiere pasársela a alguien.
-            compartirHtml('btnCompartir', { clase: 'btn-secondary' })
+            compartirHtml('btnCompartir', { clase: 'btn-secondary guia-accion-icono', texto: '' })
           }
           ${
             // El hilo del foro de la noticia, que se abre solo al
@@ -384,6 +385,9 @@ async function init() {
       <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
       <div id="forumContainer"></div>
     </section>`
+
+  // El glosario (792, NU11): la primera vez que sale un término, subrayado.
+  import('./glosario.js').then((m) => { const vistos = new Set(); main.querySelectorAll('.article-body').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 
   document.getElementById('articleTabs')?.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -482,7 +486,10 @@ async function init() {
   if (!session) {
     btnSave.addEventListener('click', () => (window.location.href = 'auth.html'))
   } else {
-    if ((profile?.saved_guides || []).includes(guide.id)) btnSave.innerHTML = `${icons.bookmark(14, true)} Guardado`
+    if ((profile?.saved_guides || []).includes(guide.id)) {
+      btnSave.innerHTML = icons.bookmark(16, true)
+      btnSave.setAttribute('aria-label', 'Guardada · quitar de guardados')
+    }
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
 

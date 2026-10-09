@@ -2,6 +2,20 @@ import { icons } from './icons.js'
 
 const STORAGE_KEY = 'pokedoc-theme'
 
+// El tema nuevo se abre en círculo desde lo que tocaste (786, MV8), con una
+// transición de la MISMA página (la que falla en el iPhone es la de entre
+// páginas, 775). Sin la API o con «menos movimiento», cambio directo.
+export function conOla(evento, cambiar) {
+  const raiz = document.documentElement
+  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return cambiar()
+  const r = evento?.currentTarget?.getBoundingClientRect?.()
+  raiz.style.setProperty('--ola-x', `${r ? r.left + r.width / 2 : innerWidth / 2}px`)
+  raiz.style.setProperty('--ola-y', `${r ? r.top + r.height / 2 : 0}px`)
+  raiz.classList.add('ola-tema')
+  const t = document.startViewTransition(cambiar)
+  t.finished.finally(() => raiz.classList.remove('ola-tema'))
+}
+
 // El script en línea del <head> de cada página ya deja document.documentElement.dataset.theme
 // puesto antes de pintar (para evitar el parpadeo de tema claro al cargar
 // con el oscuro guardado) — aquí solo hace falta pintar el icono del botón
@@ -41,8 +55,8 @@ export function renderThemeToggle() {
     localStorage.setItem(STORAGE_KEY, next)
     paint()
   }
-  btn.addEventListener('click', cambiar)
-  enMenu.addEventListener('click', cambiar)
+  btn.addEventListener('click', (e) => conOla(e, cambiar))
+  enMenu.addEventListener('click', (e) => conOla(e, cambiar))
 
   paint()
   navRight.insertBefore(btn, navUser)

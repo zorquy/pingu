@@ -169,6 +169,15 @@ function responder(respuesta) {
   }, pausa)
 }
 
+// Sin cartas, ni marcos vacíos ni «¿?» (787, PA6): parecía roto. Se quita
+// el tablero y queda un vacío que dice qué pasa y adónde ir.
+function sinTablero(texto) {
+  document.querySelector('.mcr-tablero')?.classList.add('hidden')
+  $('mcrAcciones').classList.add('hidden')
+  $('mcrSub').insertAdjacentHTML('afterend', `<p class="empty-state">${texto}<br><a class="btn-primary" href="/retos">Ver los otros retos</a></p>`)
+  $('mcrSub').classList.add('hidden')
+}
+
 async function init() {
   let r
   try {
@@ -176,15 +185,13 @@ async function init() {
     r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
   } catch (err) {
-    $('mcrSub').textContent = 'Hoy no se han podido traer las cartas. Vuelve en un rato.'
-    $('mcrAcciones').classList.add('hidden')
+    sinTablero('Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
   }
   dia = r.dia
   cartas = r.cartas || []
   if (cartas.length < RONDAS + 1) {
-    $('mcrSub').textContent = 'Hoy no hay cartas suficientes con precio. Vuelve mañana.'
-    $('mcrAcciones').classList.add('hidden')
+    sinTablero('Hoy no hay cartas suficientes con precio. Vuelve mañana.')
     return
   }
   cargarEstado()

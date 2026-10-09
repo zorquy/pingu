@@ -60,8 +60,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.1px, transparent 1.2px);
-  background-size: 14px 14px;
+  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
 }
 /* El sello. Es decorativo —el nombre del sitio ya está en la barra— así
    que va por CSS y no por markup: no tiene que leerlo un lector de
@@ -251,4 +250,13 @@
 
 .noticias-cabecera-fila > div:first-child {
   min-width: 0;
+}
+
+/* La noticia de un set, con su logo en grande (787, SI4). */
+.noticia-portada-set img {
+  position: relative;
+  z-index: 1;
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
 }

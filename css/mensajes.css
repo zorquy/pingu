@@ -1,0 +1,66 @@
+/* Mensajes (tanda 789, PA13). Solo la carga mensajes.html. */
+
+.msg-dos {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* En el PC, dos paneles: la lista pegada a la izquierda y lo abierto al lado. */
+@media (min-width: 1100px) {
+  .msg-dos.con-lista {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: var(--e-xl);
+    align-items: start;
+    max-width: none;
+  }
+
+  .msg-lista {
+    position: sticky;
+    top: 88px;
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+  }
+}
+
+.msg-lista-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0;
+}
+
+.msg-lista-cabeza h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.msg-fila.activa {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+/* «Cambio hecho» (795, NU4). */
+.msg-cambio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  margin-top: var(--e-sm);
+}
+
+.msg-cambio:empty {
+  display: none;
+}
+
+.msg-cambio-pregunta {
+  font-weight: 700;
+}
+
+.msg-cambio-error {
+  flex-basis: 100%;
+  color: var(--danger);
+  font-size: var(--t-sm);
+}

@@ -38813,3 +38813,402 @@ temas; y `#topMesSeccion` no sale, porque la liga de la semana ya está justo
 encima diciendo quién va arriba. El pie de la app instalada ya no salía desde
 la 780 (PA20). Queda fuera de esta tanda «Para empezar» dentro de las
 baldosas de «Hoy» y juntar el reto y la liga en una tarjeta.
+
+
+## Tanda 786 — Bloque 7 de «PokeDoc al detalle»: lo de debajo
+
+**LO8 · sin el puente de los torneos.** Lo que quedaba del puente era el
+reintento de la 367: si `torneos_inscribirse` con cuatro parámetros no
+existía, se probaba con los tres de antes. La función de cuatro lleva en
+producción desde septiembre, así que se fue. `faltaLaRpc` NO se quita: ya no
+abre ningún camino viejo, solo reconoce «esa función no existe» (PGRST202 /
+42883) para enseñar «Falta ejecutar …sql» en vez del error de PostgREST.
+
+**LO1 · la app instalada, al instante.** El service worker, que solo
+atendía las navegaciones, sirve ahora `/css/`, `/js/` y `/assets/` (del mismo
+origen, GET) desde la caché `pokedoc-ficheros-<ASSETS_VERSION>` y los
+revisa por detrás con `cache: 'no-cache'`. Las páginas siguen yendo a la red
+primero (y a «Sin conexión» si no hay red). La regla de la casa —nunca dejar
+la web sirviendo ficheros viejos— se cumple con una condición dura: en cuanto
+la revisión de UN fichero trae una firma distinta (`etag`, o la fecha, o el
+contenido si no hay ninguna), se vacía la caché ENTERA y solo entra ese. Así
+lo viejo se sirve como mucho una pantalla, y todo del mismo despliegue; no se
+guarda un módulo nuevo al lado de otros viejos, que es lo que rompe una
+página entera al importar un nombre que ya no existe (la 510). Si una tanda
+no puede convivir ni una pantalla con la anterior (cambia lo que exporta un
+módulo que importan otros que se quedan), se sube `ASSETS_VERSION` en
+`sw.js`. Ojo para las pruebas: con el service worker controlando la página,
+`page.route` no ve las peticiones de `/css`, `/js` y `/assets` que atiende
+él; la prueba que necesite interceptarlas va con `serviceWorkers: 'block'`.
+
+**LO10 · lo que quedó a medias.** La 747 ya pasa. La 324 tenía DOS rojos de
+verdad, de la 780: `bloqueCombate` dejó de pintar debilidad y resistencia
+sin lista («no se sabe»), y eso es verdad solo si la carta no está engordada;
+una engordada sin `resistances` es una carta sin resistencia y lleva su «—».
+Ahora mira `detalle_at`. Su rojo «falso» era otro: escribía su página en
+`${SC}/test-forum`, la carpeta del servidor 8892, aunque se corriera contra
+otra copia. La 324 y la 331 leen `PD_SITIO` para saber dónde está el sitio
+servido.
+
+**MV8 · el tema con una ola.** `conOla(evento, cambiar)` (js/theme.js) envuelve
+el cambio en `document.startViewTransition` y la nueva vista entra con un
+`clip-path: circle()` desde el centro del botón (`--ola-x`, `--ola-y` en
+`:root`, la clase `ola-tema` en `html` solo mientras dura). Es una transición
+de la misma página, no la de entre páginas que falla en Safari (775). Sin la
+API o con «menos movimiento», cambio directo. La usan el botón de la barra,
+su copia del menú y los botones de tema de la hoja «Tú».
+
+**MV13 · detalles de PC.** Con ratón (`hover: hover` y `pointer: fine`), la
+fila de un set sube 2 px con sombra y las cartas de una expansión (rejilla y
+archivador) suben y crecen un 3 %, por encima de sus vecinas; la que se está
+arrastrando no. La tarjeta de guía ya lo hacía desde antes.
+
+**MV14 · la Poké Ball de refrescar.** La marca de la 732 era «↻». Ahora es un
+SVG: el aro (`pathLength="1"`) se dibuja con `stroke-dashoffset` según
+`--tirado` y la tapa de arriba se va llenando; al pasar el umbral está
+entera y al soltar gira como antes.
+
+
+## Tanda 787 — Bloque 8 de «PokeDoc al detalle»: portadas, guías, retos y el meta
+
+**SI4 · portadas con arte.** La trama de puntitos (`radial-gradient` de 1 px
+repetido cada 14–16) estaba en siete `::before`: la guía, el «Sigue donde lo
+dejaste» de Aprender, el podio de Comunidad, la noticia sin foto, el reto de
+hoy y la cabecera y el arte de los torneos. Era lo que más fechaba la web. Los
+siete pasan a un brillo diagonal (`linear-gradient(115deg…)`, el mismo en
+todos). Y dos portadas salen de los datos: la **guía** sin foto cuyo título o
+descripción nombra un tipo (`energiaDeTexto`, en js/energia-de-texto.js, aparte para no arrastrar a la
+portada las clases de Mi colección (la 299):
+«fuego», «agua», «psíquico»…; sin palabra no hay patrón, no se inventa un tipo)
+lleva su símbolo de energía en mosaico girado (`.con-energia`, `--energia` en
+línea); la **noticia** sin foto que nombra un set de los dos últimos años
+(`setDeTitulo`, el nombre más largo primero) lleva su logo grande. Queda
+pendiente el arte de los torneos con los sprites del meta y el recorte 16:9 al
+subir portada.
+
+**SI10 · los tres símbolos que faltaban.** La ficha ya pintaba el símbolo de
+ocho tipos (626); Dragón, Incolora y Hada iban en color liso. Usan los SVG de
+`/assets/energias/` que ya tenían los chips. La rareza ya tenía su dibujo
+(rarezas.js) y no salía con estrellas en ninguna parte.
+
+**PA5 · la ficha de una guía, limpia.** Fuera el icono grande de 70 px al lado
+de la categoría (la decía dos veces). Una guía que es solo curso ya no repite
+en el cuerpo la descripción que acaba de salir bajo el título: dice que se
+aprende jugando. Guardar y Compartir son botones de icono con `aria-label`
+(`compartirHtml(id, { texto: '' })`). Y la valoración es «¿Te ha servido?»
+con «Sí» y «No tanto»: se guarda en la misma columna (`rating` 5 o 2) para que
+las medias de autor de siempre sigan valiendo, y el resumen dice «A N de M les
+ha servido» (4 o más cuenta como sí). La cabecera del servidor (meta-social)
+solo pinta título y entradilla y no cambia: los envoltorios son los mismos.
+El índice pegado que marca por dónde vas ya existía.
+
+**PA6 · los retos.** Debajo de los retos, «Tus últimos 60 días»: un cuadrito
+por día, de color si jugaste el reto de cinco preguntas (`calendarioHtml`,
+con los días que ya pedía `diasJugados`). Y ¿Más caro? sin cartas (la
+función falla o no hay seis con precio) quita el tablero entero
+(`sinTablero`): los dos marcos vacíos con su «¿?» parecían rotos.
+
+**PA16 · el meta, aunque no llegue el sprite.** El último paso de
+`SALTO_DE_RESPALDO` ya no esconde la imagen: si la `<img>` lleva
+`data-inicial` (la saca `inicialDeSprite` del nombre del fichero de Limitless,
+«gardevoir.png» → «G»), pone en línea un SVG de un círculo con esa letra y se
+desengancha el `onerror`. Sin inicial, se esconde como antes. Y las dos filas
+de filtros del meta van en una sola que se desliza.
+
+**MV6 · la llegada escalonada.** `escalonarLlegada(caja)` (mi-coleccion.js):
+cuando la rejilla de una expansión sale del esqueleto, o la de Cartas se pinta
+por primera vez, las 24 primeras entran una detrás de otra (45 ms, opacidad y
+8 px con `translate`, que no choca con el `transform` del ratón). Solo esa
+vez: un repintado no anima. El hueco estaba reservado, así que no hay salto.
+
+
+## Tanda 788 — Bloque 9 de «PokeDoc al detalle»: Lanzamientos, la carta en el PC y Mi colección
+
+**PA4 · lo que viene, en grande.** El siguiente set ya iba arriba con su logo,
+«Avísame» y sus productos. Ahora su chapa grande lleva debajo `relojHasta`
+(pura): días y horas hasta la medianoche, en la hora de quien mira, del día de
+salida («faltan 11 días y 4 h»; el último día, horas y minutos), y un
+`setInterval` de un minuto lo repinta mientras la página está abierta. Lo que
+ya salió deja la chapa gris «Ya salió» —parecía un botón desactivado— y, si
+tiene página, dice «Ver sus cartas →», que es adónde lleva la tarjeta.
+
+**PA7 · el precio, al lado.** En el PC (1.100 px o más) el bloque del precio
+se muda a la columna de la derecha de la ficha, encima de los datos
+(`colocarPrecioAlLado`, carta-mercado.js): es lo que más se mira y quedaba
+debajo de «Dónde se habla». Se MUEVE la sección, no se copia (lleva sus
+escuchas), y un comentario en su sitio de siempre sabe adónde volver si la
+ventana se estrecha. Se puede porque `pintarMercado` corre después de la
+última pintada del núcleo; si un día el núcleo se repintara después, se
+llevaría la sección. En el móvil sigue al final, como lo pidió PINGU en la
+677. «Añadir» pasa a ser el principal, a lo ancho y en azul sólido. La
+debilidad y la resistencia vacías se arreglaron en la 780/786.
+
+**PA8 · /cartas con las filas de Expansiones.** La estantería del catálogo
+dejaba de usar la tarjeta grande de la 668 (que decía «TIENES 16 de 252»,
+«252 CARTAS» y «Ver →») y usa `filaDeSet`, la de Mi colección. Las dos van en
+una rejilla de columnas de 340 px o más en el PC, cada fila con su borde.
+
+**PA9 · un solo menú con una expansión abierta.** `plegarLateralSola(si)`
+pone `lat-plegada` en `html` al abrir un set (si la lateral no estaba ya
+plegada) y lo quita al volver a la estantería o cambiar de pestaña. Marca
+`data-plegada-sola` para quitar solo lo que puso: si la tenías plegada tú, se
+queda plegada. No toca la preferencia guardada (`pokedoc-lateral-plegada`).
+
+**PA10b · pequeños del móvil.** Los cuatro de «Deseos y cambios» (`.mc-deseos-
+seg`) y los desplegables y chips de Buscar (`.mc-bus-afinar`) van en una fila
+que se desliza en vez de partirse, y la píldora de la 784 centra la activa
+cuando el control se desliza y la activa cambia («Cruces» ya no se queda
+fuera). Los chips de rango del Panel NO se bajaron a 36 px: la regla de la 312
+pide 44 con el dedo. Las plantillas de Álbumes quedan para otra tanda.
+
+
+## Tanda 789 — Bloque 10 de «PokeDoc al detalle»: la comunidad
+
+**PA10 · el tema del foro.** Las reacciones se guardan igual ('like',
+'love', 'laugh', 'wow') y se pintan con `icons.thumbsUp`, `icons.heart`
+(nuevo en icons.js), `icons.smile` e `icons.zap`, con su nombre en un
+`sr-only` («me gusta», «me encanta»…); el aviso dice «Han reaccionado a tu
+mensaje: me encanta». Eran emojis, la única excepción sin declarar a la
+norma de los iconos. Debajo de cada mensaje, a la izquierda las reacciones
+y a la derecha «Citar» y un `<details class="foro-mas">` con Editar,
+Borrar, Marcar como solución y Reportar: eran cuatro enlaces subrayados.
+Los manejadores siguen siendo los de siempre (`data-editar`, `data-borrar`,
+`data-resolver`, `.report-btn`), solo cambia dónde están; una prueba que
+los pulse tiene que abrir antes el «⋯». Las visitas solo salen si hay.
+
+**PA11 · Gente.** `pintarVitrinasDeGente(grid)` (js/gente-vitrinas.js, por
+`import()`) pide la vitrina de TODAS las personas de la lista en una
+consulta (`user_showcase` con `.in('user_id', ids)`), se queda con las tres
+primeras de cada una y les pone una tira de miniaturas que llevan a cada
+carta. Sin vitrina no hay tira. El set que más tiene y el mazo que más juega
+quedan pendientes: piden leer colecciones y partidas de otros.
+
+**SI7 · el campo en pastilla.** `.search-input` ya pedía una caja grande,
+pero NUNCA se aplicaba: `input[type='text']` de style.css (0,1,1) le gana a
+una clase sola (0,1,0). Va como `.search-input-wrap .search-input`: pastilla,
+48 px, y la lupa en un `::before` del contenedor con `mask`. Lo usan Gente,
+las guías de la comunidad y el buscador de Mensajes. El interruptor y los
+desplegables propios de SI7 van con Jugar.
+
+**PA12 · el perfil.** `usuario.html` y `perfil.html` pasan a
+`container perfil-pagina`: en el PC una rejilla de 360 px + el resto, con
+`.profile-hero` pegado (`sticky`) a la izquierda y la vitrina y las pestañas
+a la derecha; por debajo de 1.100 px, la columna de 720 de siempre. El
+nivel lleva `barraDeRango(xp)` («5 de 250 XP para Entrenador» y una barra).
+Y el banner sin foto ya no es `--arte-rosa` para todos: `bannerPorDefecto`
+(app.js) elige uno de los seis colores de arte por la persona (`arteDe`), el
+mismo siempre.
+
+**PA13 · Mensajes.** En el PC (1.100 px o más) la página tiene dos paneles:
+`#msgLista` con las conversaciones (la abierta, marcada) y al lado la
+conversación, o «Elige una conversación» si no hay ninguna abierta. Las
+filas siguen siendo enlaces (`?c=`), así que no cambia nada de cómo se
+cargan. En el móvil, una sola columna como antes. Su CSS va en una hoja
+nueva, `css/mensajes.css`. El cruce encima de una conversación que viene de
+Cruces queda pendiente.
+
+
+## Tanda 790 — Bloque 11 de «PokeDoc al detalle»: entrar y Jugar
+**PA17 · entrar.** `auth.html`: «Hola de nuevo», Google primero y el
+separador `.auth-o` («o con tu email») antes del formulario; el registro
+lleva `.auth-ventajas` (tres líneas) y en el PC un `aside.auth-arte` con la
+mascota, con su hueco (`width`/`height`). Todo en `css/auth.css`.
+
+**PA15 · la semana de torneos.** `semanaDeTorneos(torneos, ahora)` (pura, en
+js/torneos/torneos.js) devuelve siete días desde hoy con los torneos de cada
+uno por hora, sin borradores ni cancelados. `#torneosSemana` se pinta antes
+de los grupos y se esconde si la semana está vacía; un día con torneos es un
+enlace al primero.
+
+**SI7 · interruptor y chips.** `.cm-check input` es un interruptor dibujado
+(`appearance: none`, bola en `::after`, 0,15 s y apagado con «menos
+movimiento»): sí/no se ve encendido o apagado. `chipsDeSelect(select)`
+(js/selector-chips.js) pone un `.seg` con un chip por opción al lado de un
+`<select>` corto, que queda `sr-only` y sigue siendo quien manda: el chip
+cambia su valor y lanza `change`, y quien ponga el valor a mano llama a la
+función que devuelve para resincronizar (`pintarCabecera`). El rótulo quita
+el paréntesis («Libre (sin reglas…)» → «Libre»).
+
+**PA14 · Jugar.** `#cmTotal` lleva el anillo en un `::before` con
+`conic-gradient` hasta `--lleno` (lo pone `pintarMazo`), `--anillo` verde en
+60 y ámbar por encima. Mis partidas pasa de `.tabs`/`.tab-btn` (las últimas
+subrayadas de la web) a `.seg` con `aria-pressed`. /laboratorio, a 1.100 px o
+más, es una rejilla de tres columnas a lo ancho del contenedor; Repeticiones
+quita su tope de 880 px. «Pegar» (`botonPegar`, js/boton-pegar.js) lee el
+portapapeles y se quita si el navegador no deja.
+
+
+## Tanda 791 — NU6 /ilustrador y LO7 el estado de la base
+**NU6.** `ilustrador.html` + `js/ilustrador.js` + `css/ilustrador.css`. La
+dirección es `/ilustrador/<slug>` (reescritura en netlify.toml) y la página
+lee el nombre de la RUTA, no de la consulta (la 633). `slugDeIlustrador` y
+`rutaDeIlustrador` viven en `js/carta-ruta.js`, que es puro. La consulta es
+`illustrator ilike '%parte%parte%'` en el catálogo occidental (hasta 1.500)
+y luego `esDelIlustrador` se queda con las suyas: la firma entera o él como
+uno de varios («A & B»), no «Aritaka». Orden por fecha del set y número, en
+el cliente (la 322: no se ordena por una tabla embebida). Precios y lo que
+tienes, en trozos de 150 ids. Los tres estados de la 510: no se ha podido
+preguntar, no hay ninguna, y la galería.
+
+**LO7.** `js/schema-check.js` ya era la tarjeta «Base de datos» de /admin,
+pero su lista acababa en la 480. Lleva las 26 de la 630 en adelante, y una
+entrada puede ser `{ rpc }`: la función se llama con un argumento que no
+tiene (`__sonda_791`), PostgREST contesta PGRST202 SIN ejecutarla, y está
+puesta si su pista la nombra exacta (`public.nombre(`) — `veredictoDeSonda`
+es pura. Cada migración pendiente lleva «Copiar el SQL», que pide el fichero
+a la propia web (se publica con ella) y lo copia: no toca la base.
+
+**546.** La guarda de «nadie se monta el nombre» cazó `escaparate.js` y
+`gente-vitrinas.js` con `name_es || name`: los dos usan `nombreDeCarta`, y la
+consulta del escaparate pide `name_en`.
+
+
+## Tanda 792 — NU3 lo que cuesta un mazo y NU11 el glosario
+**NU3.** `js/coste-mazo.js`: `costeDeLista(lista, userId)` resuelve las
+líneas con el camino del constructor (`lineasDeLista` + `resolverLineas`),
+las agrupa por `name_key` (una lista nombra cartas, no impresiones: la 629)
+sin las energías básicas, pide TODAS las impresiones occidentales de esos
+nombres, y con ellas tus copias (sumadas) y la más barata (`cm_low`, si no
+`cm_trend`). `resumenDeCoste` es pura: lo que tienes no pasa de lo que pide
+la lista, y lo que falta sin precio se cuenta aparte en vez de sumar cero.
+`apuntarLasQueFaltan` usa `anadirDeseo` (idioma «me da igual») y no cuenta
+como error lo que ya estaba. En /meta se pinta al abrir cada lista, como su
+rejilla; sin cuenta, un enlace para entrar.
+
+**NU11.** `js/glosario-datos.js` (puro) lleva los términos y
+`primerasApariciones(texto, formas, vistos)`: sin acentos ni mayúsculas, por
+palabra entera, la forma larga antes que la corta («reverse holo» antes que
+«holo») y una vez por término. `js/glosario.js` recorre los nodos de texto
+(nunca dentro de enlaces, botones, código ni títulos), cambia cada primera
+aparición por un `<button class="glosa">` sin tocar el texto y al tocarlo
+pinta un globo con la definición y el enlace a /glosario#id; trae su hoja con
+`hojaInyectada('css/glosario.css')`. Lo llaman guia.js (sobre los
+`.article-body`, con UN conjunto de vistos para las dos pestañas) y tema.js
+(sobre los `.foro-mensaje-cuerpo` de la página). El texto guardado no cambia:
+es solo la vista. Términos que son palabras corrientes («activo»,
+«básico») van como «Pokémon Activo», «Pokémon Básico».
+
+
+## Tanda 793 — NU9 logros de coleccionista
+Los trofeos son filas de `achievement_definitions` con `condition = {type,
+count}` y los desbloquea `checkAchievements` en el cliente. Cuatro tipos
+nuevos: `collection_cards_count` (cartas DISTINTAS), `collection_sets_complete`
+(expansiones con total y alcanzado, la cuenta de la estantería),
+`collection_top_card_eur` (el valor de UNA copia, como «lo más valioso») y
+`collection_illustrator_cards` (el ilustrador del que más tienes).
+`statsDeColeccion` (js/logros-coleccion.js, pura) los saca de lo que
+/mi-coleccion tiene en memoria y se pasan como `checkAchievements(id, {
+coleccion })`: desde otra página valen 0, porque pedir la colección entera
+para mirar un trofeo serían miles de filas. Se mira una vez por visita, cuatro
+segundos después del Panel (los precios llegan tarde), y nunca en /cartas.
+`logros_reparto()` (security definer, solo cuentas) da cuánta gente tiene
+cada uno en una llamada; `ponerReparto` lo pinta en Medallas y, sin la
+función, no pinta nada en vez de un «0 %».
+
+
+## Tanda 794 — NU5 modo feria y NU7 el lunes
+**El QR (`js/qr.js`).** Modo byte, corrección M, versiones 1–40, la máscara
+de menor penalización (ISO 18004). `matrizQR(texto, mascara?)` y `svgQR`.
+Se comprueba contra segno 1.6.6 módulo a módulo en las ocho máscaras
+(fixture `fixture-qr-794.json` en `pruebas`), con UNA corrección en la
+referencia: segno añade un byte de ceros cuando el flujo ya acaba en
+frontera de byte (`8 - 0 = 8`), válido pero distinto de la norma. La
+elección automática de máscara coincide en 5 de 6 textos; la otra elige una
+máscara distinta e igual de válida (cualquiera se lee).
+
+**/feria.** `js/feria.js` pide lo que das (`user_collection.cambio > 0`) y lo
+que buscas (`user_wants`), lo guarda en `localStorage` (`pd-feria-v1`) y, si
+no puede preguntar, pinta lo guardado con «Sin conexión: … el 11 oct». El
+service worker guarda la página `/feria` (red primero, copia de la última
+vez): es la única página que se guarda. El QR es
+`/usuario/<username>?cruce=1`; con `?cruce=1`, usuario.js pinta
+`#perfilCruce` con `cruceCon(persona, quienTiene, quienBusca)` — los mismos
+datos que el tablón, filtrados por esa persona.
+
+**El lunes (`netlify/functions/lunes.mjs`).** Lunes 06:47 UTC. Lee la foto
+diaria del valor de los últimos 8 días (`cambiosDeValor`: solo si dos fotos
+distan 5 días o más), las cartas de La quiero con su media de 7 días un 10 %
+bajo la de 30 (`haBajado`), quién da cada una (`cambio > 0`, no tú) y los
+sets que salen en 7 días. `textoDelLunes` compone el aviso y devuelve null
+si no hay nada (un lanzamiento solo no basta). No repite (mira si ya hay uno
+de `resumen_lunes` en 6 días) y respeta `notification_prefs_disabled`.
+Coste: consultas a nuestra base, ninguna de pago.
+
+**306 y 309.** `barraDeRango` pasa a `js/rango-barra.js`: pintaba
+`.rango-*`, que viven en perfil.css, desde gamification.js, que baja toda la
+web. El interruptor del constructor usa `--radius-pill`.
+
+
+## Tanda 795 — NU4 confianza en los cambios
+`trade_confirmations`: una fila por cambio entre dos (`user_a < user_b`,
+siempre en ese orden), con `hecho_*_at`, `valoracion_*` («bien» o
+«problema») y `nota_*`. RLS: cada uno lee las suyas y la moderación
+(`is_admin` o `is_moderator`) todas; nadie escribe a pelo. `cambio_marcar(otro)`
+exige una conversación en común (`conversation_participants`), completa el
+cambio a medias que haya o abre uno nuevo; `cambio_valorar(id, valor, nota)`
+solo sobre uno que han marcado los dos; `cambios_de(user)` (anon) devuelve
+`hechos` y `bien`, y NO los problemas. En el cliente, `js/cambios-hechos.js`
+(datos; `textoDeConfianza` y `estadoDelCambio` son puras) y
+`js/cambio-boton.js` (el botón de la conversación, por `import()` desde
+mensajes.js, con sus pasos marcar → esperando/confirmar → valorar → hecho).
+
+
+## Tanda 796 — MV7, MV12, NU12 y el resto de SI4
+**MV7.** `abrirSobre(caja)` (carta-del-dia-juego.js) pone sobre la foto un
+`.cd-sobre` (tapa y cuerpo con el degradado `--arte-morado`), la tapa sale
+volando, el cuerpo baja, la carta crece y pasa un brillo. Solo cuando la
+partida acaba en esta visita (`intentar`); con «menos movimiento» devuelve
+false y no pinta nada. El sobre se quita con un temporizador (la 313).
+
+**MV12.** `volverAlHueco(cerrar)` (gestos-ficha.js) es la vuelta de
+`crecerDesde`: recuerda el hueco del que salió la carta y, si sigue en la
+página y a la vista, hace la transición al revés con el mismo nombre
+(`mc-carta-que-crece`). Si no, cierra sin más. La ficha AL LADO (PC) no
+vuela.
+
+**NU12.** Las animaciones de `mc-pasa-adelante/atras` giran la hoja sobre el
+lomo (`rotateY` con perspectiva y `transform-origin` en el lado del lomo).
+
+**SI4.** `js/torneos/arte-meta.js`: una llamada a `meta_resumen(30)` por
+página, `iconosDelMeta` (pura) se queda con los tres de más cuota sin
+repetir, y cada `.torneo-arte` sin imagen recibe `.torneo-arte-meta` con sus
+sprites (clase propia en torneos.css, no la de /meta). `js/recorte-portada.js`:
+`cajaDeRecorte` (pura) y `recortarPortada(file)` recorta al centro a 16:9 y
+1.600 px como mucho antes de `uploadGuideImage`; un GIF, un SVG o un fallo se
+suben tal cual.
+
+**La cadena de logos de la fila (415, 434).** `dibujosDeSet(set)` es la cadena
+de la tarjeta grande (Scrydex, TCGGO, TCGdex, la ruta montada a mano, el logo
+inglés de un set asiático, el símbolo de Scrydex y el de TCGdex), y la usa
+también `filaDeSet`: desde la 788 /cartas pinta filas, y la fila tenía solo
+cuatro de los siete eslabones.
+
+
+## Tanda 797 — LO3, primer paso: la hoja de Productos
+Se mudan las reglas cuyo selector, en TODAS sus partes, nombra una clase que
+solo pinta `productos.js` (lista sacada barriendo el HTML y el resto de
+módulos, sin compuestas: la 498). Las del HTML fijo (`mc-prod-barra`,
+`-catalogo`, `-sets`), las de la rejilla y las de la ficha que comparte el
+Mercado (`mc-prodf-arriba`, `-datos`, `-foto`, `-set`, `-al-lado`) se quedan
+en mi-coleccion.css. Las de dentro de un `@media` se mudan con su `@media`.
+`abrir()` espera a `hojaInyectada('css/mi-coleccion-productos.css')` antes de
+pintar, así que no hay un fotograma sin estilo; y como la hoja llega DESPUÉS
+de mi-coleccion.css, las reglas mudadas ganan los empates de orden que antes
+ganaban por posición (ninguna regla que se queda apunta a esas clases).
+
+**NU3 en el constructor.** `costeDeResueltas(resueltas, userId)` es el
+cálculo de `costeDeLista` sin el paso de resolver: el constructor ya tiene
+las cartas (`{ carta, n }`, con su `name_key`). Va a demanda, con un botón,
+porque son tres consultas por mazo.
+
+**La vuelta atrás (709) con el service worker.** `recordarPosicion`
+(barra-movil.js) ya no se rinde al llegar: sigue mirando cada 150 ms hasta
+los 4 s y vuelve a bajar si algo la mueve. Con los módulos servidos de la
+caché (786) nuestro `scrollTo` corría antes de la restauración del
+navegador, que la dejaba en el máximo de la página de ese momento. Se para
+al tocar, con la rueda o con una tecla.
+
+**El valor en la fila de /cartas.** `valorEnLinea(set)`: solo en el
+catálogo, la chispa del valor, el valor de la expansión y el semanal en la
+línea corta de la fila (la tarjeta de la 668 lo tenía en losetas; la fila de
+PA8 lo había perdido).

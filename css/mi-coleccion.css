@@ -1778,14 +1778,18 @@
 }
 
 .mc-set-valor .sube,
+.mc-set-valor-linea .sube,
 .mc-set-cifra .sube { color: var(--success); }
 .mc-set-valor .baja,
+.mc-set-valor-linea .baja,
 .mc-set-cifra .baja { color: var(--danger); }
 .mc-set-valor .igual,
+.mc-set-valor-linea .igual,
 .mc-set-cifra .igual { color: var(--text-mid); }
 
 /* La chispa de la expansión (658): la línea del mes, delante de la cifra. */
 .mc-set-chispa { width: 48px; height: 14px; flex-shrink: 0; }
+.mc-set-valor-linea .mc-set-chispa { margin-right: var(--e-xs); vertical-align: middle; }
 .mc-set-chispa polyline { fill: none; stroke: var(--text-mid); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
 .mc-set-chispa.sube polyline { stroke: var(--success); }
 .mc-set-chispa.baja polyline { stroke: var(--danger); }
@@ -9205,20 +9209,23 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* La hoja que llega entra por su lado. */
 .mc-archivador.mc-pasa-adelante {
-  animation: mc-hoja-entra-derecha 0.3s ease;
+  transform-origin: left center;
+  animation: mc-hoja-entra-derecha 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .mc-archivador.mc-pasa-atras {
-  animation: mc-hoja-entra-izquierda 0.3s ease;
+  transform-origin: right center;
+  animation: mc-hoja-entra-izquierda 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* NU12 (796): la hoja GIRA sobre el lomo, como en un binder, en vez de deslizarse. */
 @keyframes mc-hoja-entra-derecha {
-  from { opacity: 0.4; transform: translateX(24px); }
+  from { opacity: 0.5; transform: perspective(1600px) rotateY(-62deg); }
   to { opacity: 1; transform: none; }
 }
 
 @keyframes mc-hoja-entra-izquierda {
-  from { opacity: 0.4; transform: translateX(-24px); }
+  from { opacity: 0.5; transform: perspective(1600px) rotateY(62deg); }
   to { opacity: 1; transform: none; }
 }
 
@@ -9303,26 +9310,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-size: var(--t-sm);
 }
 
-.mc-prod-cabecera {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--e-sm);
-  margin: var(--e-md) 0 var(--e-sm);
-}
-
-.mc-prod-valor {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.mc-prod-valor b {
-  color: var(--text);
-  font-size: var(--t-lg);
-}
-
 .mc-prod-mandos {
   display: flex;
   flex-wrap: wrap;
@@ -9340,120 +9327,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
   gap: var(--e-md);
   margin-bottom: var(--e-lg);
-}
-
-.mc-prod {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  min-width: 0;
-  padding: var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-
-.mc-prod.tengo {
-  border-color: var(--success);
-}
-
-.mc-prod-foto {
-  position: relative;
-  display: block;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-md);
-  background: var(--bg);
-}
-
-.mc-prod-foto img {
-  position: absolute;
-  inset: var(--e-xs);
-  width: calc(100% - 2 * var(--e-xs));
-  height: calc(100% - 2 * var(--e-xs));
-  object-fit: contain;
-}
-
-.mc-prod-chapas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-}
-
-.mc-prod-tipo,
-.mc-prod-preventa {
-  padding: 0 var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--bg);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-.mc-prod-preventa {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
-
-.mc-prod-nombre {
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: var(--t-sm);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.mc-prod-precio {
-  font-size: var(--t-md);
-  font-weight: 700;
-}
-
-.mc-prod-precio small,
-.mc-prod-media {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 400;
-}
-
-.mc-prod-sin {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 400;
-}
-
-.mc-prod-mando {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-xs);
-  margin-top: auto;
-  padding-top: var(--e-xs);
-}
-
-.mc-prod-anadir {
-  flex: 1 1 auto;
-  min-height: 44px;
-  border: 1px solid var(--navy);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--navy);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mc-prod-boton {
-  min-width: 44px;
-  min-height: 44px;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-lg);
-  cursor: pointer;
-}
-
-.mc-prod-cuantos {
-  color: var(--success);
-  font-size: var(--t-md);
 }
 
 @media (max-width: 599px) {
@@ -9662,45 +9535,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: var(--e-md) 0 var(--e-sm);
 }
 
-.mc-prod-set-logo {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  width: 120px;
-  height: 48px;
-}
-
-.mc-prod-set-logo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.mc-prod-set-texto {
-  display: grid;
-  min-width: 0;
-}
-
-.mc-prod-set-texto small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.mc-prod-tengo {
-  position: absolute;
-  top: var(--e-xs);
-  right: var(--e-xs);
-  min-width: 28px;
-  padding: 2px var(--e-sm);
-  border: 1px solid var(--success);
-  border-radius: var(--radius-pill);
-  background: var(--success-bg);
-  color: var(--success);
-  font-size: var(--t-sm);
-  font-weight: 700;
-  text-align: center;
-}
-
 /* 766 (PR2): la franja de cartas y productos y sus dos fichas. */
 .mc-reparto-franja {
   display: flex;
@@ -9802,65 +9636,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin-bottom: var(--e-lg);
 }
 
-.mc-prod-baldosa {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-sm);
-  min-height: 44px;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-prod-baldosa:hover {
-  border-color: var(--navy);
-}
-
-.mc-prod-baldosa-logo {
-  display: grid;
-  place-items: center;
-  height: 64px;
-}
-
-.mc-prod-baldosa-logo img {
-  max-width: 100%;
-  max-height: 64px;
-  object-fit: contain;
-}
-
-.mc-prod-baldosa-texto {
-  display: grid;
-  min-width: 0;
-}
-
-.mc-prod-baldosa-texto small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.mc-prod-baldosa .mc-prod-preventa {
-  position: absolute;
-  top: var(--e-sm);
-  left: var(--e-sm);
-}
-
-.mc-prod-baldosa-tuyos {
-  align-self: flex-start;
-  padding: 2px var(--e-sm);
-  border: 1px solid var(--success);
-  border-radius: var(--radius-pill);
-  background: var(--success-bg);
-  color: var(--success);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
 .mc-prod-volver {
   display: inline-flex;
   align-items: center;
@@ -9875,25 +9650,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-}
-
-.mc-prod-abrir {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-prod-abrir:hover .mc-prod-nombre {
-  color: var(--navy);
-  text-decoration: underline;
 }
 
 .mc-prodf {
@@ -9978,25 +9734,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-prodf-set img {
   max-height: 40px;
   object-fit: contain;
-}
-
-.mc-prodf-precio {
-  margin: 0;
-}
-
-.mc-prodf-precio b {
-  font-size: var(--t-2xl);
-}
-
-.mc-prodf-precio small {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.mc-prodf-tienes {
-  margin: 0;
-  color: var(--success);
-  font-weight: 700;
 }
 
 .mc-prodf-al-lado .mc-prodf-arriba {
@@ -10837,4 +10574,94 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 @media (prefers-reduced-motion: reduce) {
   .mc-completo-gira .mc-completo-medalla { animation: none; }
+}
+
+/* Detalles de PC (786, MV13): con ratón, la fila de un set y la carta de una
+   expansión se levantan 2 px; la carta, además, se separa de sus vecinas. */
+@media (hover: hover) and (pointer: fine) {
+  .mc-set-tarjeta,
+  .mc-rejilla-celda,
+  .mc-bolsillo {
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  }
+
+  .mc-set-tarjeta:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .mc-rejilla-celda:hover,
+  .mc-bolsillo:not(.mc-arrastrando):hover {
+    z-index: 1;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-set-tarjeta:hover,
+  .mc-rejilla-celda:hover,
+  .mc-bolsillo:hover { transform: none; }
+}
+
+/* La llegada escalonada (787, MV6; escalonarLlegada en js/mi-coleccion.js). */
+.llega {
+  animation: mc-llega 0.3s var(--ease) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes mc-llega {
+  from { opacity: 0; translate: 0 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .llega { animation: none; }
+}
+
+/* La estantería en dos o tres columnas en el PC (788, PA8). */
+@media (min-width: 1100px) {
+  .mc-estanteria-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: var(--e-sm) var(--e-md);
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+
+  .mc-estanteria-lista .mc-set-fila {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+  }
+
+  .mc-estanteria-lista .mc-set-fila + .mc-set-fila {
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* Pequeños del móvil (788, PA10b): los cuatro de Deseos y cambios y los
+   desplegables de Buscar, en una fila que se desliza en vez de partirse. */
+@media (max-width: 599px) {
+  .mc-deseos-seg,
+  .mc-bus-afinar {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-deseos-seg::-webkit-scrollbar,
+  .mc-bus-afinar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mc-deseos-seg > *,
+  .mc-bus-afinar > * {
+    flex: 0 0 auto;
+  }
+
+  .mc-bus-afinar select {
+    max-width: 60vw;
+  }
 }

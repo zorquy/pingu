@@ -277,6 +277,39 @@ async function pintarVivo(torneo) {
 // del menú de cuenta llega con #mios para abrir directamente la tuya.
 let pestanaLista = window.location.hash === '#mios' ? 'mios' : null
 
+// LA SEMANA DE UN VISTAZO (790, PA15): los siete días desde hoy, cada uno
+// con sus torneos como puntos y la hora del primero. Pura para la prueba.
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+export function semanaDeTorneos(torneos, ahora = new Date()) {
+  const dias = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + i)
+    const clave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const delDia = (torneos || [])
+      .filter((t) => t.start_at && !['draft', 'cancelled'].includes(t.status))
+      .filter((t) => { const s = new Date(t.start_at); return s.getFullYear() === d.getFullYear() && s.getMonth() === d.getMonth() && s.getDate() === d.getDate() })
+      .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
+    dias.push({ clave, nombre: i === 0 ? 'hoy' : DIAS_CORTOS[d.getDay()], numero: d.getDate(), torneos: delDia, primera: delDia[0] ? new Date(delDia[0].start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '' })
+  }
+  return dias
+}
+
+function pintarSemana(torneos) {
+  const caja = $('torneosSemana')
+  if (!caja) return
+  const dias = semanaDeTorneos(torneos)
+  if (!dias.some((d) => d.torneos.length)) return caja.classList.add('hidden')
+  caja.innerHTML = dias.map((d) => {
+    const primero = d.torneos[0]
+    const dentro = `<span class="tsem-nombre">${d.nombre}</span><b>${d.numero}</b><span class="tsem-puntos" aria-hidden="true">${'<i></i>'.repeat(Math.min(d.torneos.length, 4))}</span><small>${escapeHtml(d.primera)}</small>`
+    const etiqueta = `${d.nombre} ${d.numero}: ${d.torneos.length ? `${d.torneos.length} ${d.torneos.length === 1 ? 'torneo' : 'torneos'}, el primero a las ${d.primera}` : 'sin torneos'}`
+    return primero
+      ? `<a class="tsem-dia con" href="/torneo?slug=${encodeURIComponent(primero.slug)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+      : `<span class="tsem-dia" aria-label="${escapeHtml(etiqueta)}">${dentro}</span>`
+  }).join('')
+  caja.classList.remove('hidden')
+}
+
 function pintarGrupos(grupos) {
   const lista = $('listaTorneos')
   const conAlgo = grupos.filter((g) => g.filas.length)
@@ -434,6 +467,7 @@ async function cargarLista(session, perfil = null) {
   const ocultos = acabados.length - terminados.length
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
+  pintarSemana(torneos)
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
     { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
@@ -447,6 +481,8 @@ async function cargarLista(session, perfil = null) {
     },
     { id: 'borradores', texto: 'Borradores', filas: borradores },
   ])
+  // Los torneos sin imagen llevan los sprites del meta (796, SI4).
+  import('./arte-meta.js').then((m) => m.ponerArteDelMeta(document)).catch(() => {})
 }
 
 // ── El calendario anual (tanda 242, pedido por Ibai) ──

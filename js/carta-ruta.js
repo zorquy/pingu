@@ -158,3 +158,16 @@ export function urlDeLogoPorPartes(serieId, setId, mercado = 'WEST') {
   if ([serieId, setId].some((v) => /[/?#\s]/.test(String(v)))) return null
   return `${ASSETS}/${idiomaDeMercado(mercado)}/${String(serieId).trim()}/${String(setId).trim()}/logo.webp`
 }
+
+// La galería de un ilustrador (tanda 791, NU6): /ilustrador/mitsuhiro-arita.
+// El trozo de la dirección se vuelve a casar con `illustrator` por partes,
+// así que basta con letras y números; los acentos y la puntuación se van.
+export function slugDeIlustrador(nombre) {
+  return String(nombre || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+}
+
+export function rutaDeIlustrador(nombre) {
+  const slug = slugDeIlustrador(nombre)
+  return slug ? `/ilustrador/${slug}` : ''
+}

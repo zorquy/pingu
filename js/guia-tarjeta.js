@@ -13,6 +13,7 @@
 // existe en HTML y el navegador lo escupe fuera, descolocando la caja.
 import { escapeHtml, arteDe } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
+import { energiaDeTexto } from './energia-de-texto.js'
 
 export const NIVELES = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' }
 export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
@@ -52,10 +53,12 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false 
         : hechoPct > 0
           ? `Vas por el ${hechoPct}%`
           : 'Sin empezar'
+  // Sin foto, el patrón del tipo del que habla (787, SI4).
+  const energia = g.cover_image ? null : energiaDeTexto(`${g.title || ''} ${g.description || ''}`)
   return `
   <article class="guia-tarjeta" data-guide-id="${escapeHtml(g.id || '')}" data-author-id="${escapeHtml(g.author_id || '')}">
     <a class="guia-tarjeta-enlace" href="/guia/${encodeURIComponent(g.slug)}">
-      <span class="guia-arte arte-${arteDe(g)}">
+      <span class="guia-arte arte-${arteDe(g)}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''}>
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         <span class="guia-arte-info">
           ${categoria ? `<span class="guia-chapa-cat">${escapeHtml(categoria)}</span>` : '<span></span>'}

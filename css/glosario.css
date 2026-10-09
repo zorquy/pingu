@@ -1,0 +1,87 @@
+/* El glosario (tanda 792, NU11): el subrayado de las guías y el foro, su globo y /glosario. */
+
+.glosa {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--navy);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.glosa:focus-visible {
+  outline: none;
+  border-radius: 2px;
+  box-shadow: var(--shadow-ring);
+}
+
+.glosa-pop {
+  position: absolute;
+  z-index: 60;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.glosa-pop p {
+  margin: var(--e-xs) 0;
+}
+
+.glosa-pop a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.glosa-ejemplo {
+  color: var(--text-mid);
+  font-style: italic;
+}
+
+.glosario-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--e-md);
+  margin-top: var(--e-lg);
+}
+
+.glosario-termino {
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  scroll-margin-top: 96px;
+}
+
+.glosario-termino:target {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.glosario-termino h2 {
+  font-size: var(--t-lg);
+}
+
+.glosario-otros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin: var(--e-xs) 0 var(--e-sm);
+}
+
+.glosario-otros span {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}

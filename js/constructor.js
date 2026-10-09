@@ -11,6 +11,7 @@ import { supabase } from './supabase.js'
 import { showToast } from './toast.js'
 import { cardImageUrl } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
+import { chipsDeSelect } from './selector-chips.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import {
   validarMazo,
@@ -211,6 +212,9 @@ function pintarMazo() {
   const n = total()
   $('cmTotal').innerHTML = `<strong>${n}</strong>/60 cartas`
   $('cmTotal').classList.toggle('cm-total-ok', n === 60)
+  // El anillo de 60 (PA14): se llena, verde justo en 60 y ámbar si te pasas.
+  $('cmTotal').classList.toggle('cm-total-pasa', n > 60)
+  $('cmTotal').style.setProperty('--lleno', `${Math.min(n, 60) / 60 * 360}deg`)
   $('cmTabCuenta').textContent = n
   // Orden ESTABLE: pulsar «+» no puede cambiar de sitio la carta (ver
   // seccionesDelMazo). El texto de TCG Live sí ordena por copias.
@@ -902,12 +906,16 @@ function pintarEstadoGuardado() {
   else el.textContent = estado.cambiado ? 'Cambios sin guardar' : 'Guardado'
 }
 
+let sincronizarFormato = null
+
 function pintarCabecera() {
   $('cmNombre').value = estado.nombre
   $('cmNombre').readOnly = estado.soloLectura
   $('cmFormato').value = estado.formato
+  sincronizarFormato?.()
   $('cmPublico').checked = estado.publico
   $('cmPublicoCampo').classList.toggle('hidden', !estado.sesion || estado.soloLectura)
+  $('cmCoste').classList.toggle('hidden', !estado.sesion)
   $('cmGuardar').textContent = estado.soloLectura ? 'Guardar una copia' : 'Guardar'
   document.title = `${estado.nombre ? `${estado.nombre} — ` : ''}Constructor de mazos — PokeDoc`
 }
@@ -1124,6 +1132,21 @@ function enganchar() {
     guardarBorrador()
     pintarEstadoGuardado()
     pintarCabecera()
+  })
+  sincronizarFormato = chipsDeSelect($('cmFormato'), 'Formato')
+  // Lo que te falta para montarlo (797, NU3): lo de /meta, con tu mazo.
+  $('cmCoste').addEventListener('click', async (e) => {
+    if (!e.target.closest('#cmCosteBoton') || !estado.sesion) return
+    const caja = $('cmCoste')
+    caja.textContent = 'Mirando tu colección…'
+    try {
+      const { costeDeResueltas } = await import('./coste-mazo.js')
+      const r = await costeDeResueltas(lista().map((x) => ({ linea: { n: x.n }, carta: x.carta })), estado.sesion.user.id)
+      const euros = r.euros ? ` · unos ${r.euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} en Cardmarket` : ''
+      caja.textContent = !r.total ? 'Sin cartas que contar (las energías básicas no cuentan).' : !r.faltan ? 'Ya tienes todas (sin contar las energías básicas).' : `Tienes ${r.tienes} de ${r.total} · te faltan ${r.faltan}${euros}.`
+    } catch {
+      caja.textContent = 'No he podido mirar tu colección ahora.'
+    }
   })
   $('cmFormato').addEventListener('change', () => {
     estado.formato = $('cmFormato').value

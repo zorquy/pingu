@@ -354,7 +354,8 @@ async function init() {
     e.target.value = ''
     if (!file) return
     try {
-      coverImageUrl = await uploadGuideImage(currentSession.user.id, file)
+      const { recortarPortada } = await import('./recorte-portada.js')
+      coverImageUrl = await uploadGuideImage(currentSession.user.id, await recortarPortada(file))
       updateCoverImagePreview()
     } catch (err) {
       showToast('No se pudo subir la imagen: ' + err.message)

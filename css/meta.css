@@ -49,8 +49,19 @@
 .meta-filtros-cab {
   display: flex;
   flex: 1 0 100%;
-  flex-wrap: wrap;
   gap: var(--e-sm);
+  /* Una sola fila, que se desliza si no cabe (787, PA16). */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.meta-filtros-cab::-webkit-scrollbar {
+  display: none;
+}
+
+.meta-filtros-cab .seg {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
 }
 
 /* Los chips llegan por JS: en su fila y con su alto desde el principio
@@ -784,4 +795,51 @@
     font-size: var(--t-xs);
     font-weight: 400;
   }
+}
+
+/* NU3 (792): lo que te cuesta montar la lista. */
+.meta-coste {
+  margin: var(--e-sm) 0 var(--e-md);
+}
+
+.meta-coste-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-lg);
+  font-size: var(--t-sm);
+}
+
+.meta-coste-cifras strong {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.meta-coste-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--e-sm) var(--e-md);
+  margin-top: var(--e-sm);
+}
+
+.meta-coste-detalle summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.meta-coste-detalle ul {
+  display: grid;
+  gap: var(--e-xs);
+  margin: 0;
+  padding-left: var(--e-lg);
+  font-size: var(--t-sm);
+}
+
+.meta-coste-detalle span {
+  color: var(--text-mid);
 }

@@ -843,6 +843,10 @@ const CONDITION_LABELS = {
   forum_posts_count: 'Mensajes en el foro',
   forum_threads_count: 'Temas abiertos en el foro',
   forum_reactions_received: 'Reacciones recibidas en el foro',
+  collection_cards_count: 'Cartas distintas en la colección',
+  collection_sets_complete: 'Expansiones completas',
+  collection_top_card_eur: 'Una carta que vale al menos (€)',
+  collection_illustrator_cards: 'Cartas de un mismo ilustrador',
 }
 
 async function loadAchievements() {
@@ -921,6 +925,7 @@ function openAchievementModal(achievement) {
         <option value="forum_posts_count" ${a.condition?.type === 'forum_posts_count' ? 'selected' : ''}>Mensajes en el foro</option>
         <option value="forum_threads_count" ${a.condition?.type === 'forum_threads_count' ? 'selected' : ''}>Temas abiertos en el foro</option>
         <option value="forum_reactions_received" ${a.condition?.type === 'forum_reactions_received' ? 'selected' : ''}>Reacciones recibidas en el foro</option>
+        ${['collection_cards_count', 'collection_sets_complete', 'collection_top_card_eur', 'collection_illustrator_cards'].map((t) => `<option value="${t}" ${a.condition?.type === t ? 'selected' : ''}>${CONDITION_LABELS[t]}</option>`).join('')}
       </select>
     </div>
     <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" inputmode="numeric" value="${a.condition?.count ?? 1}" /></div>
@@ -2020,7 +2025,7 @@ async function loadSchemaCheck() {
              <ul>${pendientes
                .map(
                  ([fichero, rs]) =>
-                   `<li><code>${escapeHtml(fichero)}</code> — ${escapeHtml(rs.map((r) => r.rompe).join(' '))}</li>`
+                   `<li><code>${escapeHtml(fichero)}</code> <button type="button" class="btn-secondary" data-copiar-sql="${escapeHtml(fichero)}">Copiar el SQL</button> — ${escapeHtml(rs.map((r) => r.rompe).join(' '))}</li>`
                )
                .join('')}</ul>
            </div>`
@@ -2032,7 +2037,7 @@ async function loadSchemaCheck() {
         ${resultados
           .map(
             (r) => `<tr>
-              <td>${escapeHtml(r.tabla)}.${escapeHtml(r.columna)} <span class="admin-path">${escapeHtml(r.fichero)}</span></td>
+              <td>${r.rpc ? `función ${escapeHtml(r.rpc)}()` : `${escapeHtml(r.tabla)}.${escapeHtml(r.columna)}`} <span class="admin-path">${escapeHtml(r.fichero)}</span></td>
               <td>${
                 r.estado === 'ok'
                   ? '<span class="badge-ok">OK</span>'
@@ -2046,6 +2051,21 @@ async function loadSchemaCheck() {
           .join('')}
       </tbody>
     </table>`
+
+  // «Copiar el SQL» (791, LO7): el fichero se sirve con la web, así que se
+  // copia tal cual para pegarlo en el SQL Editor. Solo lee: no toca la base.
+  for (const b of document.querySelectorAll('#schemaTable [data-copiar-sql]')) {
+    b.addEventListener('click', async () => {
+      try {
+        const r = await fetch(`/${b.dataset.copiarSql}`, { cache: 'no-cache' })
+        if (!r.ok) throw new Error(String(r.status))
+        await navigator.clipboard.writeText(await r.text())
+        showToast(`Copiado: pégalo en el SQL Editor de Supabase.`)
+      } catch (e) {
+        showToast(`No se ha podido copiar ${b.dataset.copiarSql} (${e.message}).`, 'error')
+      }
+    })
+  }
 
   // Y un aviso en el Dashboard, que es lo primero que se abre. Si solo
   // estuviera en su propia pestaña habría que sospechar antes de mirar,

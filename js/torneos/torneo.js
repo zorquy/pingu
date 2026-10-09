@@ -1629,16 +1629,10 @@ function engancharInscripcion(aLaCola = false) {
       p_cola: Boolean(aLaCola),
       p_codigo: codigo || null,
     }
-    let res = await supabase.rpc('torneos_inscribirse', argumentos)
-    // El PUENTE de la tanda 367: PostgREST casa la RPC por los NOMBRES
-    // de los parámetros, así que mientras la migración no esté puesta la
-    // función de cuatro no existe y esto sería un «no encuentro esa
-    // función» para todo el mundo, torneos normales incluidos. Se
-    // reintenta con los tres de antes. Quitar cuando lleve un tiempo.
-    if (faltaLaRpc(res.error)) {
-      const { p_codigo: _, ...tresDeAntes } = argumentos
-      res = await supabase.rpc('torneos_inscribirse', tresDeAntes)
-    }
+    // El puente de la 367 (reintentar con los tres parámetros de antes) se
+    // quitó en la 786: la función de cuatro lleva en producción desde
+    // septiembre. Si faltara, lo de abajo dice qué migración ejecutar.
+    const res = await supabase.rpc('torneos_inscribirse', argumentos)
     enviando = false
     if (faltaLaRpc(res.error)) {
       showToast(avisoDeMigracion('supabase-migration-torneos-cola.sql'), 'error')

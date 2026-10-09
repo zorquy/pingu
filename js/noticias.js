@@ -14,6 +14,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile } from './app.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
+import { urlDeLogo } from './carta-ruta.js'
 
 // Cuántas se piden de golpe. La primera es el titular grande, así que se
 // piden de doce en doce: una arriba y once en la rejilla, que llena tres
@@ -22,7 +23,33 @@ const POR_TANDA = 12
 
 const enlaceDeNoticia = (slug) => rutaDeArticulo('news', slug)
 
+// LA NOTICIA DE UN SET, CON SU LOGO (787, SI4). Las que no traen portada y
+// nombran un set de los dos últimos años llevan su logo en grande. Se casa
+// por el NOMBRE en el título (el más largo primero, que «Chispas
+// Fulgurantes» no se lo lleve «Chispas»), y sin casar se queda el icono.
+let setsConLogo = []
+async function cargarSetsConLogo() {
+  const desde = new Date(Date.now() - 2 * 365 * 864e5).toISOString().slice(0, 10)
+  const { data } = await supabase
+    .from('tcg_sets')
+    .select('id, name, market, logo_tcggo, logo_path')
+    .eq('market', 'WEST')
+    .gte('release_date', desde)
+  setsConLogo = (data || [])
+    .map((s) => ({ nombre: String(s.name || '').toLowerCase(), logo: s.logo_tcggo || urlDeLogo(s.logo_path, s.market) }))
+    .filter((s) => s.nombre.length >= 4 && s.logo)
+    .sort((a, b) => b.nombre.length - a.nombre.length)
+}
+export function setDeTitulo(titulo, sets = setsConLogo) {
+  const t = String(titulo || '').toLowerCase()
+  return sets.find((s) => t.includes(s.nombre)) || null
+}
+
 function portadaHtml(n, tamano) {
+  const set = n.cover_image ? null : setDeTitulo(n.title)
+  if (set) {
+    return `<div class="noticia-portada noticia-portada-${tamano} noticia-portada-vacia noticia-portada-set"><img src="${escapeHtml(set.logo)}" alt="" width="240" height="120" loading="lazy" onerror="this.remove()"></div>`
+  }
   if (n.cover_image) {
     return `<div class="noticia-portada noticia-portada-${tamano}" style="background-image:url('${escapeHtml(n.cover_image)}')" role="presentation"></div>`
   }
@@ -104,7 +131,7 @@ export async function pintarNoticias() {
   const masCaja = document.getElementById('noticiasMasCaja')
   if (!rejilla) return
 
-  const { noticias, hayMas, error } = await pedir(null)
+  const [{ noticias, hayMas, error }] = await Promise.all([pedir(null), cargarSetsConLogo().catch(() => {})])
   if (error) {
     rejilla.innerHTML = `<p class="empty-state">No se han podido cargar las noticias. Vuelve a intentarlo en un momento.</p>`
     return

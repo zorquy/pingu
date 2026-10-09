@@ -33,7 +33,7 @@ function userCardHtml(p) {
   if (p.approvedGuidesCount > 0) hizo.push(`${p.approvedGuidesCount} ${p.approvedGuidesCount === 1 ? 'guía' : 'guías'}`)
   if (p.mensajes > 0) hizo.push(`${p.mensajes} ${p.mensajes === 1 ? 'mensaje' : 'mensajes'}`)
   return `
-    <div class="com-persona">
+    <div class="com-persona" data-user-id="${escapeHtml(p.id || '')}">
       <a class="com-persona-cara" href="${profileUrl(p)}" style="${avatarStyle(p)}" aria-label="${escapeHtml(name)}">${p.avatar_url ? '' : getInitial(name)}</a>
       <div class="com-persona-cuerpo">
         <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
@@ -79,6 +79,7 @@ function render(list) {
   const recorta = !buscando && !genteDesplegada && list.length > GENTE_DE_ENTRADA
   const visibles = recorta ? list.slice(0, GENTE_DE_ENTRADA) : list
   grid.innerHTML = visibles.map(userCardHtml).join('')
+  import('./gente-vitrinas.js').then(({ pintarVitrinasDeGente }) => pintarVitrinasDeGente(grid)).catch(() => {})
 
   if (recorta && pie) {
     const faltan = list.length - GENTE_DE_ENTRADA

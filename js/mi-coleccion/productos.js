@@ -24,6 +24,7 @@
 // supabase-migration-productos.sql (y la 769) y las llena `tcggo-productos`;
 // sin la migración la pestaña lo DICE («no se sabe»), no enseña «no hay».
 import { supabase } from '../supabase.js'
+import { hojaInyectada } from '../hoja.js'
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
@@ -325,6 +326,8 @@ function abrirFicha(id) {
 
 export async function abrir(contexto) {
   ctx = contexto
+  // Su hoja, al abrir la pestaña (797, LO3): quien no la abre no la baja.
+  await hojaInyectada('css/mi-coleccion-productos.css')
   if (!montado) {
     montado = true
     const panel = $('mcPanelProductos')

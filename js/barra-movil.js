@@ -25,8 +25,8 @@ export const ORDEN = ['Inicio', 'Aprender', 'Cartas', 'Comunidad', 'Jugar']
 // Una página que no está en ningún desplegable (la ficha de una carta, un
 // tema del foro, un torneo…) pertenece a la sección de lo que enseña.
 export const SECCION_DE = {
-  Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'nueve'],
-  Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion'],
+  Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'nueve', 'glosario'],
+  Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'feria'],
   Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
   Inicio: ['index', 'noticias', 'lanzamientos'],
@@ -155,10 +155,14 @@ function recordarPosicion(doc, win) {
   const parar = () => { tocado = true }
   win.addEventListener('touchstart', parar, { once: true, passive: true })
   win.addEventListener('wheel', parar, { once: true, passive: true })
+  win.addEventListener('keydown', parar, { once: true })
+  // Se sigue mirando hasta el tope aunque ya se haya llegado (797): desde
+  // que el service worker sirve los módulos de la caché (786), esto corre
+  // ANTES de que el navegador restaure la suya —recortada a lo que medía la
+  // página— y la del navegador pisaba la buena.
   const intentar = () => {
     if (tocado || Date.now() - empezo > 4000) return
-    if (Math.abs(win.scrollY - guardada) < 40) return
-    if (doc.documentElement.scrollHeight - win.innerHeight >= guardada) { win.scrollTo({ top: guardada, behavior: 'instant' }); return }
+    if (Math.abs(win.scrollY - guardada) >= 40 && doc.documentElement.scrollHeight - win.innerHeight >= guardada) win.scrollTo({ top: guardada, behavior: 'instant' })
     win.setTimeout(intentar, 150)
   }
   win.setTimeout(intentar, 50)

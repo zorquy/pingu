@@ -331,8 +331,11 @@
 .carta-energia[data-tipo='Fighting'] { --icono-energia: url('/assets/iconos-energia/F.png'); }
 .carta-energia[data-tipo='Darkness'] { --icono-energia: url('/assets/iconos-energia/D.png'); }
 .carta-energia[data-tipo='Metal'] { --icono-energia: url('/assets/iconos-energia/M.png'); }
+.carta-energia[data-tipo='Dragon'] { --icono-energia: url('/assets/energias/N.svg'); }
+.carta-energia[data-tipo='Colorless'] { --icono-energia: url('/assets/energias/C.svg'); }
+.carta-energia[data-tipo='Fairy'] { --icono-energia: url('/assets/energias/Y.svg'); }
 
-.carta-energia:is([data-tipo='Grass'], [data-tipo='Fire'], [data-tipo='Water'], [data-tipo='Lightning'], [data-tipo='Psychic'], [data-tipo='Fighting'], [data-tipo='Darkness'], [data-tipo='Metal']) {
+.carta-energia:is([data-tipo='Grass'], [data-tipo='Fire'], [data-tipo='Water'], [data-tipo='Lightning'], [data-tipo='Psychic'], [data-tipo='Fighting'], [data-tipo='Darkness'], [data-tipo='Metal'], [data-tipo='Dragon'], [data-tipo='Colorless'], [data-tipo='Fairy']) {
   background-image: var(--icono-energia);
   background-size: cover;
 }
@@ -1418,5 +1421,29 @@
 
   html.ficha-movil.bm-escondidas.con-barra-movil .carta-scan .carta-acciones {
     transform: none;
+  }
+}
+
+/* El precio al lado en el PC y «Añadir» como botón principal (788, PA7). */
+.carta-mercado-al-lado {
+  margin: 0 0 var(--e-lg);
+}
+
+.carta-mercado-al-lado .section-title {
+  margin-top: 0;
+}
+
+@media (min-width: 1100px) {
+  .carta-acciones {
+    flex-wrap: wrap;
+  }
+
+  .carta-acciones .mc-ficha-mas {
+    flex: 1 0 100%;
+    flex-direction: row;
+    gap: var(--e-sm);
+    border-color: var(--navy-solid);
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
   }
 }

@@ -358,3 +358,9 @@
     width: 100%;
   }
 }
+/* Guardar y Compartir, como iconos (787, PA5). */
+.guia-accion-icono {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}

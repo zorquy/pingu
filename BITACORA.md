@@ -4,6 +4,297 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (45) — PINGU-Claude (797 — LO3, primer paso: Productos con su hoja)
+
+**Hecho**: LO3 empieza por la pestaña que menos se abre: las 37 reglas que
+SOLO pinta `js/mi-coleccion/productos.js` salen de `css/mi-coleccion.css` a
+`css/mi-coleccion-productos.css`, que el módulo inyecta al abrir la pestaña
+(`hojaInyectada`, como el móvil). Quien no abre Productos no la baja
+(~1,1 KB comprimidos menos para todo el mundo). No cambia nada de lo que se
+ve: barrido 299 y pruebas 762, 766 y 769 en verde. Detalle en SCHEMA.md,
+tanda 797.
+
+Y un fallo mío de la 786 que cazó la 709: con el service worker sirviendo los
+módulos de la caché, volver atrás dejaba la portada más arriba (el navegador
+restauraba SU posición, recortada, después de la nuestra); ahora la vuelta
+vigila hasta los 4 s. Y en /cartas la fila vuelve a decir lo que vale la
+expansión y cómo va en la semana (con su chispa), que la 788 había quitado
+al pasar a filas.
+
+Y NU3 llega al constructor: «¿Cuánto me falta para montarlo?» debajo del
+total (con cuenta) dice cuántas tienes, cuántas faltan y unos euros, con el
+mismo cálculo que /meta (`costeDeResueltas`, sin volver a resolver). Y
+/glosario entra en el sitemap.
+
+**Ficheros**: `css/mi-coleccion.css`, `css/mi-coleccion-productos.css`
+(nuevo), `js/mi-coleccion/productos.js`, `js/mi-coleccion.js`, `cartas.html`
+(generado), `js/barra-movil.js`, `js/coste-mazo.js`,
+`constructor.html`, `js/constructor.js`, `netlify/functions/sitemap.mjs`,
+`SCHEMA.md`. Pruebas al día con las filas de /cartas, el «⋯» del foro, el
+menú «Tú» con Modo feria y la portada más corta: 309, 583, 589, 626, 646,
+649, 657, 709, 710, 748, 749.
+
+**Pendiente (LO3)**: Pokédex, Álbumes y Buscar. No es mudar reglas de un
+sitio a otro: sus clases están también en el HTML fijo de mi-coleccion.html
+(que el barrido exige con la hoja cargada desde el principio) y algunas las
+comparten otros módulos (la ficha del Mercado usa las `mc-prodf-*`). Cada
+una pide primero sacar su HTML fijo al módulo. Y partir `js/mi-coleccion.js`
+(8.700 líneas) en pestañas es una tanda propia con la suite de Mi colección
+detrás.
+
+## 2026-10-09 (44) — PINGU-Claude (796 — MV7 el sobre, MV12 la carta vuelve, NU12 la hoja gira, SI4 el resto)
+
+**Hecho**: MV7, en «¿Qué carta es?» la carta sale de un sobre que se rasga
+al acertar o al gastar los intentos (en esa visita, no al volver). MV12, al
+cerrar la ficha con la «×» la carta encoge hasta su hueco de la rejilla (abrir
+ya crecía desde la 720). NU12, en el archivador la hoja gira sobre el lomo al
+pasar página (el enlace público del álbum ya existía, 764). SI4, los torneos
+sin imagen llevan en la tarjeta los sprites de los tres mazos que más se
+juegan, y la portada que sube alguien a una guía se recorta sola a 16:9.
+Todo con «menos movimiento» apagado. Y un fallo mío de la 788 que cazó la
+suite (415, 434): la fila compacta que /cartas usa desde entonces tenía una
+cadena de logos más corta que la tarjeta, sin el montado a mano ni el
+símbolo; ahora las dos usan `dibujosDeSet`. Cinco pruebas viejas al día con
+lo de la 788 y las páginas nuevas (324, 326, 327, 346, 405). Detalle en SCHEMA.md,
+tanda 796.
+
+**Ficheros**: `js/carta-del-dia-juego.js`, `css/carta-del-dia.css`,
+`js/mi-coleccion/gestos-ficha.js`, `js/mi-coleccion.js`, `cartas.html`
+(generado), `css/mi-coleccion.css`, `js/torneos/arte-meta.js` (nuevo),
+`js/torneos/torneos.js`, `css/torneos.css`, `js/recorte-portada.js`
+(nuevo), `js/editor-guia.js`, `editor-guia.html`, `SCHEMA.md`. Prueba 796
+(nueva).
+
+**Pendiente**: MV12 en la ficha del Mercado (es otra ficha); en el recorte,
+elegir qué parte de la foto se queda (hoy, el centro).
+
+## 2026-10-09 (43) — PINGU-Claude (795 — NU4 confianza en los cambios) · MIGRACIÓN NUEVA
+
+**Hecho**: NU4, en una conversación de Mensajes sale «Cambio hecho»; cuando
+las dos personas lo marcan, cada una dice «Todo bien» o «Hubo un problema»
+(con una nota que solo lee la moderación). En el perfil de cada uno:
+«12 cambios · todos bien». Solo entre dos que han hablado por Mensajes; sin
+estrellas ni reseñas. Detalle en SCHEMA.md, tanda 795.
+
+**MIGRACIÓN**: `supabase-migration-cambios-hechos.sql` (la tabla
+`trade_confirmations` con su RLS, y `cambio_marcar`, `cambio_valorar` y
+`cambios_de`). Sin ella, ni el botón ni el rótulo salen; nada se rompe.
+
+**Ficheros**: `js/cambios-hechos.js` (nuevo), `js/cambio-boton.js` (nuevo),
+`js/mensajes.js`, `css/mensajes.css`, `js/usuario.js`, `css/perfil.css`,
+`supabase-migration-cambios-hechos.sql` (nueva), `SCHEMA.md`. Prueba 795
+(nueva).
+
+**Pendiente**: el rótulo en el Mercado y en Cruces (al lado de cada
+persona), y el logro de los 100 cambios de NU9, que ya tiene de dónde contar.
+
+## 2026-10-09 (42) — PINGU-Claude (794 — NU5 modo feria con QR y NU7 el lunes de PokeDoc)
+
+**Hecho**: NU5, /feria (en «Tú» → Modo feria): tu QR en grande y tus listas
+de «Doy» y «Busco», guardadas en el móvil; sin cobertura enseña lo último
+guardado y lo dice, y el service worker guarda la página para abrirla sin
+red. El QR lleva a tu perfil con `?cruce=1`, y quien lo escanea ve encima
+«Vuestro cruce»: lo que le puedes dar y lo que te puede dar. El QR es nuestro
+(`js/qr.js`, sin dependencias), comprobado módulo a módulo contra una
+librería de referencia. NU7, una función programada los lunes deja UN aviso
+en la campanita con tu semana (valor de la colección, bajadas de tu lista,
+quién da lo que buscas, lo que sale), solo si hay algo, sin repetirse y con
+su casilla para apagarlo en Ajustes. Y dos rojos de la suite: `barraDeRango`
+se muda a `js/rango-barra.js` (sus clases son de perfil.css y gamification.js
+lo baja toda la web: 306) y un `999px` del interruptor pasa a
+`--radius-pill` (309). Detalle en SCHEMA.md, tanda 794.
+
+**Ficheros**: `js/qr.js` (nuevo), `feria.html` (nuevo), `js/feria.js`
+(nuevo), `css/feria.css` (nuevo), `js/cruce-persona.js` (nuevo),
+`usuario.html`, `js/usuario.js`, `css/perfil.css`, `js/menu-tu.js`,
+`sw.js`, `js/barra-movil.js`, `netlify/functions/lunes.mjs` (nueva),
+`js/notifications.js`, `js/rango-barra.js` (nuevo), `js/gamification.js`,
+`js/perfil.js`, `css/constructor.css`, `SCHEMA.md`. Prueba 794 (nueva, con
+`fixture-qr-794.json`); 312 cuenta 40 páginas con pie; 789 importa la barra
+de su módulo.
+
+**Pendiente**: nada de esto pide migración. El lunes cuenta con
+`user_collection_value` (la foto diaria) y `user_wants`: sin ellas, no avisa.
+
+## 2026-10-09 (41) — PINGU-Claude (793 — NU9 logros de coleccionista) · MIGRACIÓN NUEVA
+
+**Hecho**: NU9, trofeos de coleccionista: 100 y 1.000 cartas distintas, un
+set completo y cinco, una carta de más de 100 € y 50 cartas de un mismo
+ilustrador. Los cuenta /mi-coleccion una vez por visita con la colección que
+ya tiene en memoria; /admin los ofrece como tipos de condición. Debajo de
+cada medalla del perfil, «La tiene el N %». Detalle en SCHEMA.md, tanda 793.
+
+**MIGRACIÓN**: `supabase-migration-logros-coleccion.sql` (siembra los seis
+trofeos y crea `logros_reparto()`). Sin ella no se desbloquea ninguno y el
+porcentaje no sale; nada se rompe.
+
+**Ficheros**: `js/logros-coleccion.js` (nuevo), `js/logros-reparto.js`
+(nuevo), `js/gamification.js`, `js/mi-coleccion.js`, `cartas.html`
+(generado), `admin/js/admin.js`, `js/perfil.js`, `js/usuario.js`,
+`css/perfil.css`, `supabase-migration-logros-coleccion.sql` (nueva),
+`SCHEMA.md`. Prueba 793 (nueva).
+
+**Pendiente**: de NU9, la región de la Pokédex y los 100 cambios (piden
+NU4, que apunta los cambios hechos).
+
+## 2026-10-09 (40) — PINGU-Claude (792 — NU3 lo que cuesta montarte un mazo y NU11 el glosario)
+
+**Hecho**: NU3, cada lista de /meta (al abrirla) dice cuántas de sus cartas
+ya tienes, cuántas te faltan y unos euros en Cardmarket con la impresión más
+barata de cada una, con «Apuntar las N en La quiero» de golpe y la lista de
+las más baratas; sin cuenta, la invitación a entrar. NU11, /glosario (32
+términos en español, inglés y jerga, con ejemplo) y, en las guías y en los
+temas del foro, la primera vez que sale cada término va subrayada con puntos
+y al tocarla sale su definición. /aprender enlaza al glosario. Detalle en
+SCHEMA.md, tanda 792.
+
+**Ficheros**: `js/coste-mazo.js` (nuevo), `js/meta-mazo.js`, `css/meta.css`,
+`js/glosario-datos.js` (nuevo), `js/glosario.js` (nuevo),
+`css/glosario.css` (nuevo), `glosario.html` (nuevo), `js/guia.js`,
+`js/tema.js`, `aprender.html`, `js/barra-movil.js`, `SCHEMA.md`. Prueba 792
+(nueva); 312 cuenta 39 páginas con pie.
+
+**Pendiente**: de NU3, el mismo bloque en el constructor y en Mis mazos.
+
+## 2026-10-09 (39) — PINGU-Claude (791 — NU6 la página de cada ilustrador y LO7 el estado de la base)
+
+**Hecho**: NU6, /ilustrador/<nombre> (p. ej. /ilustrador/mitsuhiro-arita):
+todas sus cartas del catálogo occidental por fecha, cuántas tienes, la más
+cara y «Buscarlas en Mi colección»; la ficha de carta enlaza ahí desde
+«Ilustración». LO7, la comprobación de la base de /admin (que existía y se
+había quedado en la 480) llega a las 26 migraciones de la 630 en adelante,
+mira las que solo crean funciones SIN ejecutarlas y tiene «Copiar el SQL».
+Y la 546 en rojo: `js/escaparate.js` (785) y `js/gente-vitrinas.js` (789) se
+montaban el nombre de la carta a mano; ahora `nombreDeCarta`. Detalle en
+SCHEMA.md, tanda 791.
+
+**Ficheros**: `ilustrador.html` (nuevo), `js/ilustrador.js` (nuevo),
+`css/ilustrador.css` (nuevo), `netlify.toml`, `js/carta-ruta.js`,
+`js/carta-nucleo.js`, `js/barra-movil.js`, `js/schema-check.js`,
+`admin/js/admin.js`, `js/escaparate.js`, `js/gente-vitrinas.js`,
+`SCHEMA.md`. Prueba 791 (nueva); 312 cuenta 38 páginas con pie; el
+`servir.py` de herramientas sabe de /ilustrador/*.
+
+**Pendiente**: de NU6, «Hacer el álbum de Arita» de un toque y meter las
+páginas en el sitemap.
+
+## 2026-10-09 (38) — PINGU-Claude (790 — bloque 11 de «PokeDoc al detalle»: entrar y Jugar)
+
+**Hecho**: PA17, entrar dice «Hola de nuevo», Google va primero con «o con tu
+email» debajo, el registro cuenta en tres líneas para qué sirve la cuenta y
+en el PC sale la mascota al lado. PA15, /torneos lleva arriba la semana
+(siete días, puntos por torneo y la hora del primero, que lleva a él). SI7,
+las casillas de sí/no del constructor son interruptores y el formato va en
+chips (`js/selector-chips.js`, el `<select>` sigue mandando). PA14, el mazo
+lleva un anillo de 60 (verde en 60, ámbar si te pasas), Mis partidas tiene
+las pestañas en pastilla como el resto, /laboratorio pone sus tres puertas
+en fila en el PC, Repeticiones va a lo ancho y las dos llevan «Pegar»
+(`js/boton-pegar.js`). Detalle en SCHEMA.md, tanda 790.
+
+**Ficheros**: `auth.html`, `css/auth.css`, `torneos.html`,
+`js/torneos/torneos.js`, `css/torneos.css`, `js/constructor.js`, `css/constructor.css`, `js/selector-chips.js` (nuevo),
+`mis-partidas.html`, `js/mis-partidas.js`, `laboratorio.html`,
+`js/laboratorio-pagina.js`, `css/laboratorio-pagina.css`,
+`repeticiones.html`, `js/repeticiones.js`, `css/repeticiones.css`,
+`js/boton-pegar.js` (nuevo), `SCHEMA.md`. Prueba 790 (nueva).
+
+**Pendiente**: de PA14, el constructor como «mesa» entera (mazo agrupado en
+filas con − y + a la izquierda, barra de Guardar/Probar/Compartir pegada
+abajo) y los filtros del buscador en chips con hoja.
+
+## 2026-10-09 (37) — PINGU-Claude (789 — bloque 10 de «PokeDoc al detalle»: la comunidad)
+
+**Hecho**: PA10, en un tema del foro las reacciones van con iconos de la
+casa (eran la única excepción sin declarar a «nunca emojis») y Editar,
+Borrar, la solución y Reportar se juntan en un «⋯»; sin «0» visitas. PA11,
+cada persona de Gente lleva las tres primeras cartas de su vitrina. SI7 (el
+campo), el buscador de Gente, de las guías de la comunidad y de Mensajes es
+una pastilla con su lupa (la regla nunca se aplicaba: `input[type='text']`
+le ganaba). PA12, el perfil a dos columnas en el PC con la identidad pegada,
+el rango en barra («5 de 250 XP para Entrenador») y el banner sin foto de un
+color propio por persona. PA13, Mensajes en dos paneles en el PC. Detalle en
+SCHEMA.md, tanda 789.
+
+**Ficheros**: `js/tema.js`, `css/foro.css`, `js/icons.js` (corazón),
+`js/usuarios.js`, `js/gente-vitrinas.js` (nuevo), `css/comunidad.css`,
+`css/components.css`, `js/app.js`, `js/gamification.js`, `js/usuario.js`,
+`js/perfil.js`, `usuario.html`, `perfil.html`, `css/perfil.css`,
+`mensajes.html`, `js/mensajes.js`, `css/mensajes.css` (nuevo), `SCHEMA.md`.
+Prueba 789 (nueva).
+
+**Pendiente**: de PA11, el set que más tiene y el mazo que más juega cada
+persona (piden leer colecciones y partidas de otros); de PA13, el cruce
+encima de la conversación que viene de Cruces.
+
+## 2026-10-09 (36) — PINGU-Claude (788 — bloque 9 de «PokeDoc al detalle»)
+
+**Hecho**: PA4, Lanzamientos con la cuenta atrás que corre («faltan 11 días
+y 4 h», minuto a minuto) y lo que ya salió con «Ver sus cartas →» en vez de
+la chapa «Ya salió». PA7, en el PC el precio pasa a la columna de la
+derecha, encima de los datos, y «Añadir» es el principal a lo ancho (en el
+móvil todo sigue como en la 677). PA8, /cartas usa la fila compacta de
+Expansiones, y las dos estanterías van en varias columnas en el PC. PA9, con
+una expansión abierta la lateral se pliega sola a iconos y vuelve al salir.
+PA10b, «Deseos y cambios» y los desplegables de Buscar van en una fila que se
+desliza en el móvil, y la píldora centra la activa. Detalle en SCHEMA.md,
+tanda 788.
+
+**Ficheros**: `js/lanzamientos.js`, `css/lanzamientos.css`,
+`js/carta-mercado.js`, `css/carta.css`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `js/pildora.js`, `SCHEMA.md`. Prueba 788 (nueva).
+
+**Pendiente**: de PA10b no se hizo encoger los chips de rango del Panel a
+36 px (la norma de la 312 pide 44 con el dedo), ni las plantillas de
+Álbumes; de PA4, el precio medio del sobre de lo que ya salió.
+
+## 2026-10-09 (35) — PINGU-Claude (787 — bloque 8 de «PokeDoc al detalle»)
+
+**Hecho**: SI4, fuera la trama de puntitos de las siete portadas (un brillo
+diagonal en su lugar); la guía sin foto que nombra un tipo lleva el patrón
+de su energía y la noticia sin foto que nombra un set reciente, su logo.
+SI10, Dragón, Incolora y Hada con su símbolo en la ficha (los otros ocho ya
+lo tenían). PA5, la ficha de guía con la categoría una vez, sin repetir la
+descripción en el cuerpo, Guardar y Compartir como iconos y «¿Te ha
+servido?» con «Sí» y «No tanto» en vez de cinco estrellas. PA6, Retos con
+tus últimos 60 días en cuadritos y ¿Más caro? sin cartas sin marcos vacíos.
+PA16, el último paso de un sprite es un círculo con su inicial y los
+filtros del meta van en una fila. MV6, las cartas de la primera pantalla
+llegan escalonadas al abrir una expansión o Cartas. Detalle en SCHEMA.md,
+tanda 787.
+
+**Ficheros**: `css/aprender.css`, `css/components.css`, `css/comunidad.css`,
+`css/noticias.css`, `css/portada.css`, `css/torneos.css`, `css/carta.css`,
+`css/meta.css`, `css/guia.css`, `css/retos.css`, `css/mi-coleccion.css`,
+`js/guia-tarjeta.js`, `js/energia-de-texto.js` (nuevo), `js/noticias.js`,
+`js/guia.js`, `js/guide-rating.js`, `js/compartir.js`, `js/retos.js`,
+`retos.html`, `js/mas-caro-juego.js`, `js/torneos/sprites-pokemon.js`,
+`js/mi-coleccion.js`, `SCHEMA.md`. Prueba 787 (nueva).
+
+**Pendiente**: los bloques 9 en adelante. De SI4 queda el arte de los
+torneos con los sprites del meta y «Subir portada» con recorte en el editor.
+
+## 2026-10-09 (34) — PINGU-Claude (786 — bloque 7 de «PokeDoc al detalle»)
+
+**Hecho**: LO8, fuera el último trozo del puente de los torneos (el
+reintento de `torneos_inscribirse` con tres parámetros); `faltaLaRpc` se
+queda solo para decir qué migración falta. LO1, el service worker sirve
+`/css/`, `/js/` y `/assets/` desde su caché y los revisa por detrás, y al
+primer fichero que cambia vacía la caché entera (`ASSETS_VERSION` para
+forzarlo). LO10, la 747 ya pasa; la 324 tenía dos rojos de verdad que eran
+míos (la 780 dejó sin pintar «Resistencia —» de una carta engordada sin
+resistencia; arreglado), y su falso rojo era que escribía su página en la
+carpeta del servidor de otra copia (ahora `PD_SITIO`, igual que la 331).
+MV8, el tema se abre en círculo desde el botón; MV13, sets y cartas se
+levantan con el ratón; MV14, la marca de tirar para refrescar es una Poké
+Ball que se cierra según tiras. Detalle en SCHEMA.md, tanda 786.
+
+**Ficheros**: `sw.js`, `js/torneos/torneo.js`, `js/carta-nucleo.js`,
+`js/theme.js`, `js/menu-tu.js`, `css/style.css`, `js/tirar-refrescar.js`,
+`css/movil.css`, `css/mi-coleccion.css`, `CLAUDE.md` (el puente),
+`SCHEMA.md`. Prueba 786 (nueva); 367, 780, 324 y 331 al día.
+
+**Pendiente**: los bloques 8 en adelante.
+
 ## 2026-10-09 (33) — PINGU-Claude (785 — bloque 6 de «PokeDoc al detalle»: la portada)
 
 **Hecho**: PA3, el escaparate sin cuenta: titular a la izquierda, «Crear mi
