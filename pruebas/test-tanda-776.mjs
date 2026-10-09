@@ -42,7 +42,8 @@ check('sin visualViewport, nada', r.arriba === 0 && r.abajo === 0, JSON.stringif
 
 console.log('── 2. Las reglas ──')
 const css = readFileSync(`${RAIZ}/css/movil.css`, 'utf8')
-const bloque = css.slice(css.indexOf('/* 776:'))
+// Solo su bloque: lo que venga detrás (la 780) es de otra tanda.
+const bloque = css.slice(css.indexOf('/* 776:'), css.indexOf('/* 780') > 0 ? css.indexOf('/* 780') : undefined)
 for (const sel of ['.bm,', '.bm-burbuja,', '.mc-pestanias,', '.volver-arriba,', '.carta-acciones,']) {
   check(`${sel.replace(',', '')} se baja con --ios-abajo`, bloque.includes(`html.ios-desfase ${sel}`) || bloque.includes(sel), sel)
 }
