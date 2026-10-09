@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-09 (49) — PINGU-Claude (801 — la liga no se queda parada tras la jornada 1)
+
+**Hecho**: PINGU: «se ha jugado una ronda y ¿qué? ¿Se ha acabado?». En una
+liga, tras cerrar la ronda 1 la vista de rondas no enseñaba ningún botón:
+solo una línea pequeña («cierra antes sus inscripciones») que mandaba a
+«Cerrar inscripciones» de la J2, más abajo; y si nadie había mandado lista
+PARA LA J2 —una liga que se juega con la lista de siempre, o de antes de la
+635—, aun cerrándola salía «nadie ha mandado su lista» y no había forma de
+seguir. Ahora, en `js/torneos/ronda.js`:
+- «Generar pareos de la jornada N» sale siempre; si la jornada está
+  abierta, emparejarla la cierra (y se avisa debajo).
+- Si NADIE tiene lista para esa jornada, juegan todos los activos con su
+  lista de la liga (lo mismo que ya hacía `montarSnapshot`) y no se
+  publican listas de jornada. Si solo una persona la mandó, no se empareja
+  y se dice quién.
+- Se conserva la guarda de la 635: si la página veía la jornada cerrada y
+  otra persona la acaba de reabrir, no se cierra por encima.
+
+**Ficheros**: `js/torneos/ronda.js`, `SCHEMA.md`. Prueba nueva 801; 635 al
+día (el botón con la J2 abierta, y los dos mensajes nuevos).
+
+**Pendiente**: varias rondas por jornada (una jornada con 3 suizas) no
+existe: necesitaría una columna y tocar las funciones de la base. Solo si
+PINGU lo pide.
+
 ## 2026-10-09 (48) — PINGU-Claude (800 — la reimpresión legal en las listas de torneo)
 
 **Hecho**: PINGU: una Ultra Ball de letra F en una lista de torneo salía

@@ -39295,3 +39295,21 @@ una vez por isolate). Si cambias la regla, cámbiala en los dos.
 `plano` y `claveDeNombre` viven en `js/clave-de-nombre.js` (sin imports);
 `js/constructor/nucleo.js` las importa y las reexporta.
 
+## Tanda 801 — La liga sigue después de la jornada 1
+
+`generarPareos` (`js/torneos/ronda.js`), con una liga por jornadas:
+1. Si la página veía la jornada `n` cerrada y al releer está abierta, otra
+   persona la ha reabierto: no se empareja (la guarda de la 635).
+2. Si está abierta, se cierra con `cerrarJornada(id, n, true)` y se sigue:
+   emparejar una jornada ES cerrarla.
+3. `quienesJuegan(n)` vacío → `juegan = null`: juegan todos los activos con
+   su lista de la liga (`montarSnapshot` ya trataba igual una jornada sin
+   listas) y no se llama a `torneos_publicar_listas_jornada`. Una sola
+   lista → no se empareja y se dice de quién es.
+
+`pintarRondas` enseña siempre el botón de la jornada siguiente; debajo,
+`avisoDeJornada` (sin listas: «la juegan todos los activos con su lista de
+la liga») y, si sigue abierta, que al emparejarla se cierran sus
+inscripciones. Hasta la 801 no había botón con la jornada abierta, y tras la
+ronda 1 la liga parecía terminada.
+
