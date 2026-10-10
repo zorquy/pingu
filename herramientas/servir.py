@@ -11,6 +11,8 @@ RAIZ = '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad
 # Lo mismo que dice netlify.toml. Si se añade una ahí, se añade aquí.
 REESCRITURAS = [
     (re.compile(r'^/carta/[^/]+$'), '/carta.html'),
+    # La 568: la barra se queda en /reto, sin la consulta (802).
+    (re.compile(r'^/reto/?$'), '/curso.html'),
     (re.compile(r'^/coleccion/[^/]+$'), '/coleccion.html'),
     (re.compile(r'^/usuario/[^/]+$'), '/usuario.html'),
     (re.compile(r'^/tema/[^/]+$'), '/tema.html'),
