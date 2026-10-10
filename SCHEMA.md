@@ -39313,3 +39313,11 @@ la liga») y, si sigue abierta, que al emparejarla se cierran sus
 inscripciones. Hasta la 801 no había botón con la jornada abierta, y tras la
 ronda 1 la liga parecía terminada.
 
+
+## Tanda 802 — /reto lee la ruta
+
+`/reto` se reescribe (status 200) a `curso.html?reto=hoy`, pero el navegador
+ve `/reto` sin consulta. `loadCourse` toma `reto = 'hoy'` si la ruta es
+`/reto`; sin ello, la vuelta a /aprender de la 780 (curso sin `slug`) se
+llevaba el reto del día. Si añades otra reescritura a una página que lee
+`location.search`, la página tiene que leer también la ruta.

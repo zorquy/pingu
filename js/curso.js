@@ -1780,7 +1780,10 @@ async function cargarReto() {
 
 async function loadCourse() {
   const params = new URLSearchParams(window.location.search)
-  const reto = params.get('reto')
+  // /reto es una REESCRITURA de Netlify a curso.html?reto=hoy (568): la
+  // barra se queda en /reto, sin la consulta, así que se lee la ruta. Sin
+  // esto, desde la 780 el reto de /retos acababa en /aprender (802).
+  const reto = params.get('reto') || (/^\/reto\/?$/.test(window.location.pathname) ? 'hoy' : null)
   if (reto === 'hoy' || reto === 'repaso') {
     modo = reto === 'hoy' ? 'diario' : 'repaso'
     await cargarReto()

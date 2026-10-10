@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-10 (50) — PINGU-Claude (802 — el reto del día ya no te manda a /aprender)
+
+**Hecho**: PINGU: «el reto diario redirige a la página de aprender». `/reto`
+(el enlace de /retos y el que se comparte) es una REESCRITURA de Netlify a
+`curso.html?reto=hoy`: la barra se queda en `/reto`, sin la consulta, y desde
+la 780 un curso sin `slug` manda a /aprender. `loadCourse` (`js/curso.js`)
+lee también la ruta. Es la lección de la 633 en el navegador: lo que va
+detrás de una reescritura lee la RUTA. El servidor de pruebas no tenía esa
+reescritura y por eso ninguna prueba lo vio (añadida en `servir.py`).
+
+**Ficheros**: `js/curso.js`. Prueba nueva 802.
+
+**Pendiente**: nada.
+
 ## 2026-10-09 (49) — PINGU-Claude (801 — la liga no se queda parada tras la jornada 1)
 
 **Hecho**: PINGU: «se ha jugado una ronda y ¿qué? ¿Se ha acabado?». En una
