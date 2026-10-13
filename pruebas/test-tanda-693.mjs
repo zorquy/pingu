@@ -82,7 +82,7 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
     if (ruta.startsWith('tcg_sets?select=')) return SETS
     return []
   }
-  const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ env: scrydex ? { ...ENV, SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 'e' } : ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
+  const correr = (ahora = new Date('2026-10-06T18:00:00Z')) => pasada({ conScrydex: true, env: scrydex ? { ...ENV, SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 'e' } : ENV, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = v }, ahora, pausa: async () => {} })
   return { estados, urls, parches, borrados, rutas, correr }
 }
 {

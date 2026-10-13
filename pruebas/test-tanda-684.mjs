@@ -106,7 +106,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       throw new Error('ruta no prevista ' + ruta)
     }
     const env = { SUPABASE_SERVICE_ROLE_KEY: 'k', SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 't' }
-    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ mercados: ['JP', 'WEST'], env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {}, ...(crear ? { crear } : {}) })
+    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ retirado: false, mercados: ['JP', 'WEST'], env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {}, ...(crear ? { crear } : {}) })
     return { correr, escrito, estados, peticiones, sets, aMedias }
   }
   {
@@ -214,7 +214,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
     check('si el listado con precios viene sin traducción ni Pokédex, se pide también a secas y se juntan: nombre inglés Y precio (700)', r.ok && r.rellenado?.set === 'BASE1_' && ja.length === 2 && /include=prices/.test(ja[0]) && !/include=prices/.test(ja[1]) && escrito.cartas[0]?.name_en === 'Charizard' && escrito.cartas[0].dex_ids?.[0] === 6 && escrito.precios.length === 1 && r.creditos === 3 && estados[CLAVE_ESTADO].listadoSinTraduccion === 1, JSON.stringify([r, ja, escrito.cartas.map((c) => [c.name_en, c.dex_ids]), escrito.precios.length]))
   }
   check('el respaldo de la Pokédex conoce los apellidos de HGSS (703): Prime y LEGEND', nombreInglesDe({ national_pokedex_numbers: [171], subtypes: ['Prime'] }) === 'Lanturn Prime' && nombreInglesDe({ national_pokedex_numbers: [250], subtypes: ['LEGEND'] }) === 'Ho-Oh LEGEND' && nombreInglesDe({ national_pokedex_numbers: [171], subtypes: ['Stage 1'] }) === 'Lanturn')
-  check('sin claves de Scrydex se salta y lo dice', (await pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
+  check('sin claves de Scrydex se salta y lo dice', (await pasada({ retirado: false, env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') } })).saltado?.includes('SCRYDEX_API_KEY'))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
