@@ -422,6 +422,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   burbuja sale solo en las páginas de la lista de la sección, no en una
   ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
+- **Supabase corta TODA respuesta a 1.000 filas, sin error** (tanda 808).
+  La estantería de Productos contaba con `.select('episode_id').limit(10000)`
+  y recibía 1.000: solo salían las expansiones de esas filas («hasta Stellar
+  Crown, y hacia abajo hasta Evolutions»). Un `.limit()` mayor de 1.000 no
+  pide más: es una promesa que la base no cumple. Lo que cuenta o recorre
+  una tabla grande lo hace la base (una RPC que agrupa) o va a trozos con
+  `.range()`. Y los ids de expansión y de producto de TCGGO del japonés son
+  OTRA numeración: `tcg_products.market` y `ID_JP` en `tcggo-productos`.
 - **Una VERSIÓN de TCGGO solo se encuentra por su id** (tanda 807): la
   Reverse del Snorlax de Plasma Storm (43552) no sale en el listado del set
   ni en la búsqueda, y ningún campo dice qué versión es. `tcggo-versiones`

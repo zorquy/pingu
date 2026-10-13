@@ -46,6 +46,7 @@ let ctx = null
 let mios = null // Map product_id → { id, product_id, cantidad }; null = no se sabe
 let fichas = new Map() // product_id → fila de tcg_products
 let cuentaPorEpisodio = null // episode_id → cuántos productos; null = sin migración
+const cuentasPorCatalogo = new Map() // 'WEST' | 'JP' → su cuentaPorEpisodio (808)
 let setsPorEpisodio = new Map() // episode_id → nuestro set (con su logo)
 let episodio = null // la expansión abierta, o null en la estantería
 let tipo = ''
@@ -133,7 +134,9 @@ function pintarTuyos() {
 function gruposDeTuyos(lista) {
   const grupos = new Map()
   for (const m of lista) {
-    const ep = fichas.get(m.product_id)?.episode_id ?? null
+    const f = fichas.get(m.product_id)
+    // Un producto del OTRO catálogo no es de un set de este (808).
+    const ep = f && mercadoDe(f) === catalogoActual() ? f.episode_id ?? null : `otro:${mercadoDe(f)}`
     if (!grupos.has(ep)) grupos.set(ep, { set: setsPorEpisodio.get(Number(ep)) || null, lista: [] })
     grupos.get(ep).lista.push(m)
   }
@@ -143,7 +146,10 @@ function gruposDeTuyos(lista) {
 // Cuántos de los tuyos son de una expansión (para su baldosa).
 function tuyosDe(ep) {
   let n = 0
-  for (const m of mios?.values() || []) if (Number(fichas.get(m.product_id)?.episode_id) === Number(ep)) n += Number(m.cantidad) || 0
+  for (const m of mios?.values() || []) {
+    const f = fichas.get(m.product_id)
+    if (f && mercadoDe(f) === catalogoActual() && Number(f.episode_id) === Number(ep)) n += Number(m.cantidad) || 0
+  }
   return n
 }
 
@@ -187,7 +193,7 @@ async function pintarCatalogo() {
   const caja = $('mcProdRejilla')
   if (!caja || episodio == null) return
   caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-  const { data, error } = await supabase.from('tcg_products').select(COLUMNAS).eq('episode_id', episodio).order('name').limit(500)
+  const { data, error } = await productosDeExpansion(supabase, episodio, catalogoActual())
   if (error) {
     caja.innerHTML = '<p class="empty-state">No se han podido leer los productos. Prueba otra vez en un rato.</p>'
     return
@@ -210,16 +216,53 @@ async function pintarCatalogo() {
     : '<p class="empty-state">Todavía no hay productos de esta expansión.</p>'
 }
 
+// Cuántos productos tiene cada expansión del catálogo (808). La cuenta la
+// hace la base: pedir `episode_id` de toda la tabla volvía cortado a 1.000
+// filas SIN error (el tope de Supabase), y solo salían las expansiones de
+// esas filas — «hasta Stellar Crown, y hacia abajo hasta Evolutions».
+export async function cuentaDeProductos(cliente, mercado) {
+  const { data, error } = await cliente.rpc('productos_por_expansion', { p_market: mercado })
+  if (!error) return new Map((data || []).map((f) => [Number(f.episode_id), Number(f.productos) || 0]))
+  // Sin la migración de la 808: no hay `market`, todo es occidental, y se
+  // cuenta a trozos de 1.000 para no quedarse con el primero.
+  if (mercado !== 'WEST') return new Map()
+  const cuenta = new Map()
+  for (let desde = 0; desde < 100_000; desde += 1000) {
+    const r = await cliente.from('tcg_products').select('episode_id').order('id').range(desde, desde + 999)
+    if (r.error) return null
+    for (const f of r.data || []) cuenta.set(Number(f.episode_id), (cuenta.get(Number(f.episode_id)) || 0) + 1)
+    if ((r.data || []).length < 1000) break
+  }
+  return cuenta
+}
+
+// Los productos de una expansión de un catálogo: los ids de expansión de
+// TCGGO del japonés son otros que los del occidental, y sin el `market` un
+// japonés y un occidental con el mismo número se mezclarían.
+export async function productosDeExpansion(cliente, ep, mercado, columnas = COLUMNAS) {
+  const r = await cliente.from('tcg_products').select(columnas).eq('episode_id', ep).eq('market', mercado).order('name').limit(500)
+  // 42703: la columna todavía no existe (falta la migración): lo de antes,
+  // que era todo occidental.
+  if (r.error && (r.error.code === '42703' || /market/.test(r.error.message || ''))) {
+    if (mercado !== 'WEST') return { data: [], error: null }
+    return cliente.from('tcg_products').select(columnas).eq('episode_id', ep).order('name').limit(500)
+  }
+  return r
+}
+
+const mercadoDe = (f) => f?.market || 'WEST'
+
 async function cargarSets() {
-  if (cuentaPorEpisodio === null) {
-    const { data, error } = await supabase.from('tcg_products').select('episode_id').limit(10000)
-    if (error) {
+  const cat = catalogoActual()
+  if (!cuentasPorCatalogo.has(cat)) {
+    const cuenta = await cuentaDeProductos(supabase, cat)
+    if (cuenta === null) {
       cuentaPorEpisodio = null
       return false
     }
-    cuentaPorEpisodio = new Map()
-    for (const f of data || []) cuentaPorEpisodio.set(Number(f.episode_id), (cuentaPorEpisodio.get(Number(f.episode_id)) || 0) + 1)
+    cuentasPorCatalogo.set(cat, cuenta)
   }
+  cuentaPorEpisodio = cuentasPorCatalogo.get(cat)
   // Los sets se piden aquí y no con `ctx.sets()`: esa lista deja fuera los
   // ESCONDIDOS, y una expansión anunciada (la 756) está escondida hasta que
   // salen sus cartas — justo la de los productos en preventa. Y por

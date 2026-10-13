@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (57) — PINGU-Claude (808 — los productos que no salían)
+
+**Hecho**: PINGU: «solo están hasta Stellar Crown y hacia abajo hasta
+Evolutions; el catálogo japonés de productos, vacío». (1) La estantería
+contaba los productos pidiendo `episode_id` de toda la tabla con
+`.limit(10000)`, y Supabase corta a 1.000 filas sin error: solo salían las
+expansiones de esas 1.000. Ahora cuenta la base (`productos_por_expansion`);
+sin la migración, a trozos de 1.000. (2) La función pedía los productos de
+los sets japoneses a la puerta OCCIDENTAL de TCGGO, y la tabla no decía de
+qué catálogo es cada producto. Ahora cada catálogo va por su puerta,
+`tcg_products.market` lo dice, y los ids japoneses llevan un desplazamiento
+(`ID_JP`) para no pisar a los occidentales. (3) Seis páginas por expansión
+en vez de tres, tope de 800 al día, y una vuelta entera otra vez.
+
+**Ficheros**: `supabase-migration-productos-mercado.sql` (NUEVA, hay que
+ejecutarla), `netlify/functions/tcggo-productos.mjs`,
+`js/mi-coleccion/productos.js`, `js/lanzamientos-productos.js`,
+`js/schema-check.js`, `SCHEMA.md`, `CLAUDE.md`. Prueba nueva 808; 769 al
+día (su producto japonés ya dice `market: 'JP'`); el doble cuenta la RPC.
+
+**Pendiente**: si TCGGO no tiene productos japoneses en ninguna ruta, la
+pasada lo aparta una semana y lo enseña en el estado (`jpSinRuta`).
+
 ## 2026-10-13 (56) — PINGU-Claude (807 bis — Neo Discovery y las versiones paradas)
 
 **Hecho**: con el estado de /admin que pegó PINGU. (1) La pasada de

@@ -13,11 +13,16 @@ const ORDEN = new Map(TIPOS.map((t, i) => [t.id, i]))
 
 export async function montarProductos(siguiente, doc = document) {
   if (!siguiente?.tcggo) return
-  const { data, error } = await supabase
-    .from('tcg_products')
-    .select('id,name,tipo,image,cm_lowest,cm_lowest_eu,cm_lowest_es,cm_avg30,release_date')
-    .eq('episode_id', siguiente.tcggo)
-    .limit(60)
+  const columnas = 'id,name,tipo,image,cm_lowest,cm_lowest_eu,cm_lowest_es,cm_avg30,release_date'
+  const pedir = (conMercado) => {
+    let q = supabase.from('tcg_products').select(columnas).eq('episode_id', siguiente.tcggo)
+    if (conMercado) q = q.eq('market', siguiente.mercado || 'WEST')
+    return q.limit(60)
+  }
+  // Por catálogo (808): el id de expansión japonés de TCGGO no es el
+  // occidental. Sin la columna todavía, lo de antes, que era occidental.
+  let { data, error } = await pedir(true)
+  if (error && (error.code === '42703' || /market/.test(error.message || '')) && (siguiente.mercado || 'WEST') === 'WEST') ({ data, error } = await pedir(false))
   if (error || !data?.length) return
   const lista = [...data].sort((a, b) => (ORDEN.get(a.tipo) ?? 99) - (ORDEN.get(b.tipo) ?? 99) || String(a.name).localeCompare(String(b.name)))
   const caja = doc.createElement('section')

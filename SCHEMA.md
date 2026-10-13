@@ -39563,3 +39563,43 @@ adelante, «Reverse Holo»; si no se puede saber, «otra versión».
 - `tcggo-versiones`: la parada «falta ejecutar supabase-migration-versiones.sql»
   se quita sola en la pasada siguiente si `tcg_card_versions` ya contesta
   (una consulta a lo nuestro). Las demás paradas siguen hasta mañana.
+
+## Tanda 808 — Los productos que no salían
+
+PINGU: «no están todos: solo hasta Stellar Crown y hacia abajo hasta
+Evolutions; y el catálogo japonés de productos está vacío».
+
+**La estantería contaba mal.** `cargarSets` (js/mi-coleccion/productos.js)
+pedía `episode_id` de TODA `tcg_products` con `.limit(10000)` y contaba en el
+navegador. Supabase corta cualquier respuesta a 1.000 filas sin decir nada,
+así que solo salían las expansiones de las 1.000 primeras filas: un tramo del
+medio. Ahora `cuentaDeProductos(cliente, mercado)` llama a la RPC
+`productos_por_expansion(p_market)` (supabase-migration-productos-mercado.sql,
+invoker, una fila por expansión); sin la migración, cuenta a trozos de 1.000
+con `.range()` y solo el occidental.
+
+**Lo japonés no se traía.** `tcggo-productos` pedía los productos de cada set
+con `tcggo_id` a la puerta OCCIDENTAL, también los japoneses (cuyo
+`tcggo_id` es de la numeración japonesa: la 807), y la tabla no decía de qué
+catálogo era cada producto. Desde la 808:
+- `tcg_products.market` (`not null default 'WEST'`): lo de antes es
+  occidental, que es lo que era.
+- Cada catálogo va por su puerta (`baseJpDe`), con su ruta apuntada aparte
+  (`ruta` / `rutaJp`) y su clave en `hechos` (`'93'` / `'JP:93'`, la
+  occidental como antes).
+- Un producto japonés se guarda con `id = ID_JP + su id` (1.000.000.000):
+  `tcg_products.id` es la llave, también de `user_products`, y los ids de
+  producto del catálogo japonés son otra numeración.
+- Sin la columna `market` el japonés NO se pide: no se podría guardar como
+  japonés.
+- Si seis expansiones japonesas seguidas dan 404 en todas las rutas, el
+  japonés se aparta una semana (`jpSinRuta`) y lo occidental sigue: que
+  TCGGO no tenga productos japoneses no es una parada.
+- Seis páginas por expansión (antes tres: una expansión nueva pasa de 60
+  productos) y tope de 800 al día: 6 × 6 × 24 = 864 como mucho, con el tope
+  delante. `REVISION = 808` hace una vuelta entera otra vez.
+
+La pestaña pide los productos de una expansión con `productosDeExpansion`
+(filtra por `market`; sin la columna, lo de antes y el japonés vacío), y
+/lanzamientos filtra por el catálogo de su expansión. Tus productos de otro
+catálogo no se cuelgan del set de este con el mismo número.

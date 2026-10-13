@@ -122,6 +122,7 @@ export const REQUISITOS = [
   { tabla: 'tcg_product_history', columna: 'product_id', fichero: 'supabase-migration-productos-ficha.sql', rompe: 'La ficha de un producto sale sin gráfica.' },
   { rpc: 'intercambios_mercado', fichero: 'supabase-migration-mercado.sql', rompe: 'El Mercado sale vacío.' },
   { tabla: 'tournament_matchday_decklists', columna: 'tournament_id', fichero: 'supabase-migration-torneos-jornadas.sql', rompe: 'En las ligas no se puede entregar la lista de cada jornada.' },
+  { tabla: 'tcg_products', columna: 'market', fichero: 'supabase-migration-productos-mercado.sql', rompe: 'Los productos japoneses no se traen y la estantería de Productos cuenta a trozos.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

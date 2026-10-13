@@ -22,14 +22,27 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_PRODUCTOS, TCGGO_RUTA_PRODUCTOS.
-import { cabeceras, baseDe, hayMasPaginas, esLimiteDelPlan } from '../lib/tcggo.mjs'
+import { cabeceras, baseDe, baseJpDe, hayMasPaginas, esLimiteDelPlan } from '../lib/tcggo.mjs'
 import { filaDeProducto, COLUMNAS_POR_PAIS } from '../../js/productos.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_productos'
-export const TOPE_DIARIO = 400
+// 808: el tope pasa de 400 a 800 y las páginas de 3 a 6 (una expansión
+// nueva tiene más de 60 productos). Como mucho 6 × 6 = 36 por pasada × 24 =
+// 864 al día, con el tope delante; el plan da 15.000 para todo.
+export const TOPE_DIARIO = 800
 export const MAX_EXPANSIONES = 6
-export const MAX_PAGINAS = 3
+export const MAX_PAGINAS = 6
+// Los ids de producto del catálogo japonés de TCGGO son de OTRA numeración
+// que los del occidental, y `tcg_products.id` es la llave (y la de
+// `user_products`): un japonés se guarda con este desplazamiento para que
+// no pise nunca a un occidental con el mismo número.
+export const ID_JP = 1_000_000_000
+// Al subirla se vuelve a mirar todo una vez (808: con más páginas y el japonés).
+export const REVISION = 808
+// Si el catálogo japonés no contesta en ninguna ruta, no se vuelve a probar
+// hasta pasados estos días (y lo occidental sigue: no es una parada).
+const DIAS_SIN_JP = 7
 // Cada cuánto se vuelve a mirar una expansión (días): las de cerca de su
 // salida cambian cada día (precios de preventa, productos nuevos).
 export const DIAS_CERCA = 1
@@ -53,19 +66,27 @@ async function rest(ruta, clave, opciones = null) {
 
 const diasEntre = (a, b) => Math.abs(new Date(`${a}T00:00:00Z`) - new Date(`${b}T00:00:00Z`)) / 86_400_000
 
+// La clave de una expansión en `hechos`: la occidental, su id a secas (como
+// antes de la 808); la japonesa, «JP:id» — los dos catálogos numeran sus
+// expansiones por separado y un 93 japonés no es el 93 occidental.
+export const claveDe = (mercado, id) => (mercado === 'JP' ? `JP:${id}` : String(id))
+
 // Qué expansiones tocan hoy, de las más cercanas a su salida a las más
-// lejanas, una por `tcggo_id` (un set plegado y su hermano son UNA: la 646).
+// lejanas, una por `tcggo_id` y catálogo (un set plegado y su hermano son
+// UNA: la 646).
 export function expansionesQueTocan(sets, hechos = {}, hoy) {
   const porId = new Map()
   for (const s of sets || []) {
     const id = Number(s.tcggo_id)
     if (!Number.isInteger(id) || id <= 0) continue
+    const mercado = s.market === 'JP' ? 'JP' : 'WEST'
+    const clave = claveDe(mercado, id)
     const fecha = /^\d{4}-\d{2}-\d{2}/.test(String(s.release_date || '')) ? String(s.release_date).slice(0, 10) : null
-    const ya = porId.get(id)
-    if (!ya || (fecha && (!ya.fecha || fecha > ya.fecha))) porId.set(id, { id, fecha })
+    const ya = porId.get(clave)
+    if (!ya || (fecha && (!ya.fecha || fecha > ya.fecha))) porId.set(clave, { id, mercado, clave, fecha })
   }
   const lista = [...porId.values()].filter((e) => {
-    const ultima = hechos[e.id]
+    const ultima = hechos[e.clave]
     if (!ultima) return true
     const cada = e.fecha && diasEntre(e.fecha, hoy) <= CERCA ? DIAS_CERCA : DIAS_LEJOS
     return diasEntre(ultima, hoy) >= cada
@@ -92,11 +113,19 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
   // Las columnas por país (769): si su migración no está, no se mandan.
   let porPais = true
   try { await pedir(`tcg_products?select=${COLUMNAS_POR_PAIS.join(',')}&limit=1`) } catch { porPais = false }
+  // El catálogo de cada producto (808). Sin la columna, todo lo que se
+  // escribe es occidental, así que el japonés NO se pide: escribirlo sin
+  // decir de qué catálogo es lo mezclaría con el occidental.
+  let conMercado = true
+  try { await pedir('tcg_products?select=market&limit=1') } catch { conMercado = false }
   let estado = {}
   try { estado = (await pedir(`scrydex_estado?select=valor&clave=eq.${CLAVE_ESTADO}&limit=1`))?.[0]?.valor || {} } catch { estado = {} }
   estado = { hechos: {}, fallidos: {}, ...estado }
   const guardarEstado = () => pedir('scrydex_estado', { method: 'POST', body: JSON.stringify([{ clave: CLAVE_ESTADO, valor: estado, updated_at: ahora.toISOString() }]) }).catch(() => null)
   if (estado.parado) return { saltado: `parado: ${estado.parado}` }
+  // Una vuelta entera otra vez (808): con seis páginas por expansión, y el
+  // japonés por su puerta. Solo cuando ya se puede escribir el catálogo.
+  if (conMercado && estado.revision !== REVISION) Object.assign(estado, { hechos: {}, fallidos: {}, revision: REVISION })
   if (estado.dia !== hoy) Object.assign(estado, { dia: hoy, peticiones: 0, sinPlanHasta: estado.sinPlanHasta === hoy ? hoy : null })
   if (estado.sinPlanHasta === hoy) return { saltado: 'el plan de TCGGO no da más por hoy' }
   const tope = Math.max(1, Number(env.TCGGO_TOPE_PRODUCTOS) || TOPE_DIARIO)
@@ -109,16 +138,26 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     await guardarEstado()
     return { error: estado.parado }
   }
-  const toca = expansionesQueTocan(sets, estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
+  const jpEnPausa = estado.jpSinRuta?.hasta && estado.jpSinRuta.hasta > hoy
+  const sirve = (s) => (s.market === 'JP' ? conMercado && !jpEnPausa : s.market === 'WEST' || !s.market)
+  const toca = expansionesQueTocan((sets || []).filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
   const { base, host } = baseDe(env)
-  const rutas = env.TCGGO_RUTA_PRODUCTOS ? [String(env.TCGGO_RUTA_PRODUCTOS)] : estado.ruta ? [estado.ruta] : RUTAS
-  const resumen = { expansiones: 0, productos: 0, peticiones: 0 }
+  const bases = { WEST: base, JP: baseJpDe(base) }
+  // La ruta de cada catálogo, apuntada por separado: que la occidental
+  // conteste no dice nada de la japonesa.
+  const campoRuta = (m) => (m === 'JP' ? 'rutaJp' : 'ruta')
+  const campoSinRuta = (m) => (m === 'JP' ? 'sinRutaJp' : 'sinRuta')
+  const rutasDe = (m) => (env.TCGGO_RUTA_PRODUCTOS && m === 'WEST' ? [String(env.TCGGO_RUTA_PRODUCTOS)] : estado[campoRuta(m)] ? [estado[campoRuta(m)]] : RUTAS)
+  const resumen = { expansiones: 0, productos: 0, peticiones: 0, porCatalogo: { WEST: 0, JP: 0 } }
 
   for (const e of toca) {
     if (estado.peticiones >= tope) break
+    if (e.mercado === 'JP' && estado.jpSinRuta?.hasta > hoy) continue
     const filas = []
     let pagina = 1
     let ok = false
+    const rutas = rutasDe(e.mercado)
+    const fija = e.mercado === 'WEST' && env.TCGGO_RUTA_PRODUCTOS
     for (; pagina <= MAX_PAGINAS && estado.peticiones < tope; pagina++) {
       let respuesta = null
       let todas404 = true
@@ -128,7 +167,7 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         if (estado.peticiones >= tope) break
         estado.peticiones++
         resumen.peticiones++
-        const res = await fetchImpl(urlDeProductos(plantilla, e.id, pagina, base), { headers: cabeceras(env.TCGGO_API_KEY, host) })
+        const res = await fetchImpl(urlDeProductos(plantilla, e.id, pagina, bases[e.mercado]), { headers: cabeceras(env.TCGGO_API_KEY, host) })
         const texto = await res.text()
         if (esLimiteDelPlan(res.status, texto)) {
           estado.sinPlanHasta = hoy
@@ -137,40 +176,52 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         }
         if (res.status === 404) continue
         todas404 = false
-        if (!res.ok) { estado.ultimoError = `TCGGO ${res.status} en la expansión ${e.id}`; break }
-        try { respuesta = JSON.parse(texto) } catch { estado.ultimoError = `TCGGO contestó algo que no es JSON (${e.id})`; break }
-        if (!estado.ruta && !env.TCGGO_RUTA_PRODUCTOS) estado.ruta = plantilla
+        if (!res.ok) { estado.ultimoError = `TCGGO ${res.status} en la expansión ${e.clave}`; break }
+        try { respuesta = JSON.parse(texto) } catch { estado.ultimoError = `TCGGO contestó algo que no es JSON (${e.clave})`; break }
+        if (!estado[campoRuta(e.mercado)] && !fija) estado[campoRuta(e.mercado)] = plantilla
         break
       }
       if (!respuesta) {
         // Sin ruta apuntada y con 404 en todas: puede que la ruta sea otra.
-        // A la sexta expansión así se PARA, que si no cada pasada pagaría
-        // dos peticiones por expansión para nada (la 510: un freno que
-        // pregunta «¿queda algo?» no frena).
-        if (todas404 && !estado.ruta && !env.TCGGO_RUTA_PRODUCTOS && pagina === 1) {
-          estado.sinRuta = (estado.sinRuta || 0) + 1
-          if (estado.sinRuta >= 6) {
-            estado.parado = 'ninguna ruta de productos contesta: pon la buena en TCGGO_RUTA_PRODUCTOS ({id} y {pagina})'
-            await guardarEstado()
-            return { ...resumen, error: estado.parado }
+        // A la sexta expansión así se para ESE catálogo (la 510: un freno
+        // que pregunta «¿queda algo?» no frena). El occidental, del todo,
+        // hasta que un humano ponga la ruta; el japonés, una semana, y lo
+        // occidental sigue (808): que TCGGO no tenga productos japoneses no
+        // es un fallo de nadie.
+        if (todas404 && !estado[campoRuta(e.mercado)] && !fija && pagina === 1) {
+          const k = campoSinRuta(e.mercado)
+          estado[k] = (estado[k] || 0) + 1
+          if (estado[k] >= 6) {
+            if (e.mercado === 'JP') {
+              const hasta = new Date(ahora.getTime() + DIAS_SIN_JP * 86_400_000).toISOString().slice(0, 10)
+              estado.jpSinRuta = { desde: hoy, hasta, porque: 'ninguna ruta de productos contesta en el catálogo japonés de TCGGO' }
+              estado[k] = 0
+            } else {
+              estado.parado = 'ninguna ruta de productos contesta: pon la buena en TCGGO_RUTA_PRODUCTOS ({id} y {pagina})'
+              await guardarEstado()
+              return { ...resumen, error: estado.parado }
+            }
           }
         }
         break
       }
       ok = true
-      estado.sinRuta = 0
+      estado[campoSinRuta(e.mercado)] = 0
       for (const p of Array.isArray(respuesta.data) ? respuesta.data : []) {
         const f = filaDeProducto(p, { ahora })
         if (!f) continue
         if (!porPais) for (const c of COLUMNAS_POR_PAIS) delete f[c]
-        filas.push({ ...f, episode_id: f.episode_id ?? e.id })
+        const fila = { ...f, episode_id: f.episode_id ?? e.id }
+        if (conMercado) fila.market = e.mercado
+        if (e.mercado === 'JP') fila.id = ID_JP + f.id
+        filas.push(fila)
       }
       if (!hayMasPaginas(respuesta)) break
     }
     if (!ok) {
       // Lo del OTRO se salta: a la tercera, se da por mirada hasta la próxima vuelta.
-      estado.fallidos[e.id] = (estado.fallidos[e.id] || 0) + 1
-      if (estado.fallidos[e.id] >= 3) { estado.hechos[e.id] = hoy; delete estado.fallidos[e.id] }
+      estado.fallidos[e.clave] = (estado.fallidos[e.clave] || 0) + 1
+      if (estado.fallidos[e.clave] >= 3) { estado.hechos[e.clave] = hoy; delete estado.fallidos[e.clave] }
       continue
     }
     if (filas.length) {
@@ -183,10 +234,11 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         return { ...resumen, error: estado.parado }
       }
     }
-    estado.hechos[e.id] = hoy
-    delete estado.fallidos[e.id]
+    estado.hechos[e.clave] = hoy
+    delete estado.fallidos[e.clave]
     resumen.expansiones++
     resumen.productos += filas.length
+    resumen.porCatalogo[e.mercado] += filas.length
   }
   estado.ultimaPasada = { ...resumen, at: ahora.toISOString() }
   await guardarEstado()
