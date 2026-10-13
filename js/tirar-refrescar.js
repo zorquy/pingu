@@ -6,7 +6,8 @@
 //
 // Desde lo alto de la página, arrastrar hacia abajo enseña una flecha que
 // gira; a 80 px se suelta y recarga. Con un diálogo abierto, o si se empezó
-// a desplazar algo de dentro, no hace nada.
+// a desplazar algo de dentro, no hace nada. Tampoco desde la hoja «Tú»,
+// que no es un diálogo y se cierra arrastrándola hacia abajo (804).
 export const UMBRAL = 80
 
 export function tocaRefrescar({ arriba, dy, dx }) {
@@ -23,7 +24,7 @@ export function montarTirarRefrescar({ doc = document, win = window, recargar = 
   let inicio = null
   doc.addEventListener('touchstart', (e) => {
     const t = e.touches[0]
-    const dentro = e.target.closest?.('dialog[open], [data-sin-refrescar], .bm-burbuja, .mc-pestanias')
+    const dentro = e.target.closest?.('dialog[open], [data-sin-refrescar], .bm-burbuja, .mc-pestanias, .nav-user-dropdown')
     inicio = e.touches.length === 1 && win.scrollY <= 0 && !dentro && !doc.querySelector('dialog[open]') ? { x: t.clientX, y: t.clientY } : null
   }, { passive: true })
   doc.addEventListener('touchmove', (e) => {

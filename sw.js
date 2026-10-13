@@ -103,7 +103,7 @@ self.addEventListener('push', (e) => {
   e.waitUntil(
     self.registration.showNotification(datos.title || 'PokeDoc', {
       body: datos.body || '',
-      icon: '/assets/icon-192.png',
+      icon: '/assets/app-icon-192.png',
       badge: '/assets/icon-192.png',
       data: { link: datos.link || '/' },
       // Dos avisos del mismo tipo no se apilan hasta el infinito.

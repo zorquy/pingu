@@ -1823,66 +1823,71 @@ a.foro-cita-quien:hover {
 
 /* ── El foro como una app de mensajes (746, J1). El porqué, en SCHEMA.md ── */
 
-/* La lista de conversaciones del índice. */
-.foro-conversaciones:not([hidden]) {
-  display: block;
-  margin-bottom: var(--e-xl);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  overflow: hidden;
-}
-
-.foro-conv-chips {
+/* La fila de tema de un foro, como una conversación (804). El porqué, en
+   SCHEMA.md. Va con tres clases para ganar a las rejillas de
+   `.foro-tema-fila` y de la lista moderable. */
+.foro-seccion .foro-tema-fila.foro-tema-conv {
   display: flex;
-  gap: var(--e-sm);
-  padding: var(--e-sm) var(--e-lg);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.foro-conv-chip {
-  flex-shrink: 0;
-  min-height: 32px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.foro-conv-chip[aria-pressed='true'] {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-.foro-conv {
-  display: flex;
+  position: relative;
   align-items: center;
   gap: var(--e-md);
   min-height: 64px;
   padding: var(--e-md) var(--e-lg);
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  text-decoration: none;
 }
 
-.foro-conv:last-child {
-  border-bottom: 0;
-}
-
-.foro-conv:hover {
+.foro-seccion .foro-tema-fila.foro-tema-conv:hover {
   background: var(--ice);
 }
 
-.foro-conv .mini-avatar {
+.foro-tema-conv .mini-avatar {
   flex-shrink: 0;
   align-self: flex-start;
   border-radius: var(--radius-md);
+}
+
+/* Toda la fila lleva al tema; lo que tiene destino propio, por encima. */
+.foro-tema-conv .foro-conv-titulo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.foro-tema-conv .foro-conv-titulo a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.foro-tema-conv .foro-mod-casilla,
+.foro-tema-conv .foro-mod-menu-btn,
+.foro-tema-conv .foro-etiqueta-enlace,
+.foro-tema-conv .foro-conv-punto,
+.foro-tema-conv .foro-mod-form {
+  position: relative;
+  z-index: 1;
+}
+
+/* El formulario de moderar (mover, editar) se abre DENTRO de la fila: en
+   una línea suya, debajo. */
+.foro-seccion .foro-tema-fila.foro-tema-conv {
+  flex-wrap: wrap;
+}
+
+.foro-tema-conv .foro-mod-form {
+  flex-basis: 100%;
+}
+
+.foro-tema-conv .foro-conv-arriba .foro-chapa {
+  padding: 0 var(--e-sm);
+  font-size: var(--t-2xs);
+}
+
+.foro-tema-nuevo .foro-conv-titulo {
+  font-weight: 800;
+}
+
+.foro-tema-leido .foro-conv-titulo {
+  color: var(--text-mid);
+  font-weight: 600;
 }
 
 .foro-conv-cuerpo {
@@ -1914,14 +1919,6 @@ a.foro-cita-quien:hover {
   content: '';
 }
 
-.foro-conv-foro {
-  overflow: hidden;
-  color: var(--navy);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .foro-conv-titulo {
   display: -webkit-box;
   overflow: hidden;
@@ -1930,10 +1927,6 @@ a.foro-cita-quien:hover {
   line-height: 1.3;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-}
-
-.foro-conv-nueva .foro-conv-titulo {
-  font-weight: 800;
 }
 
 .foro-conv-trozo {
@@ -1970,10 +1963,6 @@ a.foro-cita-quien:hover {
   height: 10px;
   border-radius: 50%;
   background: var(--danger-solid);
-}
-
-.foro-conv-vacio {
-  padding: var(--e-lg);
 }
 
 /* El tema: cada mensaje es una burbuja, y los tuyos van a la derecha. */
@@ -2192,8 +2181,6 @@ html:has(#temaResponder) {
   /* El índice: «Foro», «Leído» y la lupa en una fila; sin subtítulo, sin
      la franja (lo dice la lista) y el buscador tras la lupa. */
   .foro-en-indice #foroSubtitulo,
-  .foro-en-indice #foroDestacado,
-  .foro-en-indice .foro-conv-h,
   .foro-en-indice .foro-cabecera:not(.foro-busca-abierta) .foro-buscador {
     display: none;
   }
@@ -2240,32 +2227,30 @@ html:has(#temaResponder) {
     cursor: pointer;
   }
 
-  /* La lista, a lo ancho y sin caja: es la pantalla. */
-  .foro-en-indice .foro-conversaciones:not([hidden]) {
+  /* Lo que se está hablando, en una fila que se desliza (804). */
+  .foro-calientes-rejilla {
+    display: flex;
     margin-inline: calc(-1 * var(--e-xl));
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    padding-inline: var(--e-xl);
+    overflow-x: auto;
+    scroll-padding-inline: var(--e-xl);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
 
-  .foro-en-indice .foro-conv-chips {
-    padding: 0 var(--e-xl) var(--e-sm);
-    border-bottom: 0;
+  /* En el índice, los números de cada foro sobran en el móvil: dice más
+     el último tema, que sí se queda. */
+  .foro-en-indice .foro-fila .foro-fila-numeros {
+    display: none;
   }
 
-  .foro-en-indice .foro-conv-chip {
-    min-height: 40px;
-    padding: 0 var(--e-lg);
-    font-size: var(--t-sm);
+  .foro-caliente {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
   }
 
-  .foro-en-indice .foro-conv-chip[aria-pressed='false'] {
-    background: var(--white);
-  }
-
-  .foro-en-indice .foro-conv {
-    margin-inline: var(--e-xl);
-    padding-inline: 0;
+  .foro-seccion .foro-tema-fila.foro-tema-conv {
+    padding-inline: var(--e-md);
   }
 
   .foro-fab {

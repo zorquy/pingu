@@ -448,7 +448,6 @@ body:has(> .footer) .page-content {
 .nav-logo {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
   font-weight: 800;
   font-size: var(--t-xl);
   color: var(--text);
@@ -471,6 +470,8 @@ body:has(> .footer) .page-content {
   font-size: var(--t-md);
   font-weight: 800;
   transform: rotate(-6deg);
+  /* El hueco va aquí y no como `gap`: con `gap`, «Poke» y «Doc» se separaban (804). */
+  margin-right: 12px;
 }
 
 .nav-logo span {

@@ -39347,3 +39347,50 @@ política de inserción no admite `approved`) y se publica en una segunda
 escritura; luego se relee la fila y, si está publicada, se abre su hilo y se
 va a `/noticias/<slug>`. El panel de usuarios pide `is_news_writer` en una
 consulta aparte; si falla, la tabla sale sin esa columna.
+
+## Tanda 804 — El foro vuelve a su sitio, el icono de la app y las hojas que se arrastran
+
+**El foro.** PINGU: «es un poco lioso… para eso mantener mejor el foro como
+estaba antes, y cada tema que sea como lo nuevo». Desde la 746 el índice
+abría con una lista de conversaciones de todos los foros y unos chips
+(«Todo», «Para ti», «Siguiendo», uno por foro); debajo seguía el índice
+clásico, y dentro de cada foro los temas iban en la fila vieja (Respuestas /
+Visitas / «Ir al último»). Tres pantallas con tres formas.
+- El índice es el de secciones y foros, sin la lista ni los chips. Arriba,
+  «Lo que se está hablando» (`calientesHtml`), ahora también en el móvil,
+  como una fila que se desliza de lado (con `scroll-padding` para que la
+  primera no quede pegada al borde). En el móvil los números de cada foro
+  se esconden: dice más su último tema.
+- La lista de temas de un foro va en filas de conversación
+  (`.foro-tema-fila.foro-tema-conv`): el avatar de quien escribió lo
+  último, las chapas, la etiqueta y la hora, el título, «Misty: un trozo»
+  (o «Lo abrió X» si no hay respuestas) y, a la derecha, el punto de lo no
+  leído y las respuestas. Una consulta por página trae los últimos mensajes
+  (`ultimosPorTema`). La fila sigue siendo `.foro-tema-fila` con el título
+  en `h3` y la casilla y el «⋯» de moderar (la 256 y test-foro-1 los
+  buscan así); toda ella lleva al tema estirando el enlace del título
+  (`::after`), y la casilla, el menú, la etiqueta y el punto van por encima.
+- `js/foro-conversaciones.js` se queda con lo puro (`fragmento`,
+  `ultimosPorTema`, `avatarSpan`). `filtrar`, los chips y
+  `montarConversaciones` se fueron.
+
+**El icono de la app.** El manifiesto ofrecía `favicon.svg` con
+`purpose: any` y el móvil lo cogía. Ahora: `app-icon-192/512` (any) y
+`app-icon-maskable-192/512` (con la P dentro de la zona segura), con el
+fondo de la foto de perfil; `apple-touch-icon.png` (180, sin transparencia)
+en las 46 páginas; el aviso push y la tarjeta de instalar usan el nuevo.
+Nombres nuevos a propósito: iOS guarda el icono viejo por la dirección.
+
+**Arrastrar una hoja para cerrarla** (`js/hoja-arrastre.js`, lo monta
+barra-movil.js: el escritorio no lo baja). Vale para la hoja «Tú» y los
+diálogos que suben desde abajo (`.mc-bandeja`, `.mc-panel-filtros`,
+`.mc-editor`, `.mc-dlg-adorno`, `.foro-elegir`). Solo con la hoja arriba
+del todo y el gesto más vertical que horizontal; cierra pasado un cuarto de
+la hoja (o 140 px) o con un tirón (≥ 0,8 px/ms, con 16 ms como intervalo
+mínimo entre toques). Con «menos movimiento», sin animación; con ella, un
+temporizador remata si `transitionend` no llega. Tirar para refrescar (732)
+no salta desde la hoja «Tú», que no es un diálogo.
+
+**El logo de la barra** salía «Poke Doc»: `.nav-logo` es un `inline-flex`
+con `gap`, y el hueco caía también entre el texto y su `<span>`. El margen
+va en el `::before`.

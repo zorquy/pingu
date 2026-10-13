@@ -76,7 +76,7 @@ function hojaDeSafari(doc, callar) {
   hoja.innerHTML = `
     <span class="bm-instalar-asa" aria-hidden="true"></span>
     <div class="bm-instalar-cabeza">
-      <img src="/assets/icon-192.png" alt="" loading="lazy" width="56" height="56">
+      <img src="/assets/app-icon-192.png" alt="" loading="lazy" width="56" height="56">
       <div><b id="bmInstalarTitulo">Ten PokeDoc como una app</b><span>En tu pantalla de inicio, a pantalla completa y con los avisos en el móvil.</span></div>
     </div>
     <ol class="bm-instalar-pasos">
@@ -117,7 +117,7 @@ function avisoDeInstalar(doc, win, callar) {
     tarjeta.setAttribute('role', 'region')
     tarjeta.setAttribute('aria-label', 'Instalar PokeDoc')
     tarjeta.innerHTML = `
-      <img src="/assets/icon-192.png" alt="" loading="lazy" width="44" height="44">
+      <img src="/assets/app-icon-192.png" alt="" loading="lazy" width="44" height="44">
       <div class="bm-instalar-texto"><b>Instala PokeDoc</b><span>Se abre como una app, sin el navegador.</span></div>
       <button type="button" class="btn-primary" data-instalar="si">Instalar</button>
       <button type="button" class="bm-instalar-no" data-instalar="no" aria-label="Ahora no">${icons.xCircle(18)}</button>`

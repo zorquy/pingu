@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (52) — PINGU-Claude (804 — el foro como antes, el icono de la app y las hojas que se arrastran)
+
+**Hecho**: PINGU: el foro «es un poco lioso» → el índice vuelve a ser el de
+secciones y foros (fuera la lista de conversaciones con «Para ti» y
+«Siguiendo»), con «Lo que se está hablando» arriba también en el móvil; y
+dentro de cada foro los temas van como conversaciones (avatar, quién dijo
+lo último y un trozo, punto de no leído, respuestas). El icono de la app
+instalada es el de la foto de perfil (manifiesto con any + maskable, y
+apple-touch-icon nuevo en las 46 páginas). Las hojas de abajo del móvil (la
+«Tú» y los diálogos de Mi colección) se cierran arrastrándolas. Y el logo
+de la barra ya no sale «Poke Doc».
+
+**Ficheros**: `js/foro.js`, `js/foro-conversaciones.js`, `css/foro.css`,
+`js/hoja-arrastre.js` (nuevo), `js/barra-movil.js`, `js/tirar-refrescar.js`,
+`css/style.css`, `manifest.webmanifest`, `sw.js`, `js/instalar.js`,
+`assets/app-icon-*.png` y `assets/apple-touch-icon.png` (nuevos), las 46
+páginas con `apple-touch-icon`, `SCHEMA.md`. Prueba nueva 804; 746 y 748 al
+día.
+
+**Pendiente**: nada.
+
 ## 2026-10-13 (51) — PINGU-Claude (803 — el rol de redactor de noticias)
 
 **Hecho**: PINGU: «un rol para una persona que quiero darle permisos pero

@@ -21,6 +21,7 @@ import {
 import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
 import { plegarTexto } from './texto.js'
+import { fragmento, ultimosPorTema, avatarSpan } from './foro-conversaciones.js'
 import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
 
 // El foro. Esta página hace dos cosas según la URL:
@@ -312,25 +313,21 @@ async function pintarIndice() {
   const destacado = document.getElementById('foroDestacado')
   if (destacado) destacado.innerHTML = calientes
 
+  // El índice es el de siempre, por secciones (804): la lista de
+  // conversaciones con chips que lo encabezaba desde la 746 repetía lo que
+  // dice el índice y escondía la estructura. Lo que se está hablando va en
+  // la franja de arriba; la forma de conversación, dentro de cada foro.
   principal.innerHTML = bloques
-    ? `<section class="foro-conversaciones" id="foroConversaciones" hidden></section>` + sinResponder + bloques
+    ? sinResponder + bloques
     : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
-  // Las conversaciones, arriba (746): los hilos con movimiento de todos
-  // los foros, como una app de mensajes. El índice sigue debajo.
-  if (bloques) {
-    import('./foro-conversaciones.js')
-      .then((m) => m.montarConversaciones(document.getElementById('foroConversaciones'), { supabase, sesion, marcas, foros }))
-      .catch(() => {})
-  }
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
   // foro, así que para quitarte el "todo sin leer" de encima tenías que
   // entrar en uno cualquiera y buscarlo allí.
-  // EL ÍNDICE DE SU MAQUETA (748, J1): en el móvil, «Foro» con «Leído» y la
-  // lupa, la lista de conversaciones y un botón para escribir. El buscador
-  // sale con la lupa; la franja de lo caliente se queda en el ordenador
-  // (en el móvil repetía lo que dice la lista).
+  // EL ÍNDICE EN EL MÓVIL (748, 804): «Foro» con «Leído» y la lupa, la
+  // franja de lo que se está hablando, el índice y un botón para escribir.
+  // El buscador sale con la lupa.
   document.body.classList.add('foro-en-indice')
   acciones.innerHTML = `${botonMarcarTodoHtml(foros.some((f) => nuevosPorForo[f.id]))}<button type="button" class="foro-lupa" id="foroLupa" aria-expanded="false" aria-controls="foroBuscador" aria-label="Buscar en el foro">${icons.search(18)}</button>`
   engancharMarcarTodo()
@@ -584,61 +581,70 @@ async function pintarListaDeTemas(foro) {
   ])
   const totalPaginas = Math.max(1, Math.ceil((count || 0) / PAGINA))
 
+  // El último mensaje de cada tema de la página, para la fila de
+  // conversación (804): quién lo dijo y un trozo. Una consulta para toda la
+  // página; si falla, la fila dice quién abrió el tema y sigue.
+  const ultimos = lista.length
+    ? await supabase
+        .from('forum_posts')
+        .select('thread_id, author_id, body_html, created_at')
+        .in('thread_id', lista.map((t) => t.id))
+        .order('created_at', { ascending: false })
+        .limit(lista.length * 6)
+        .then((r) => ultimosPorTema(r.data || []), () => new Map())
+    : new Map()
+  const faltan = [...ultimos.values()].map((p) => p.author_id).filter((id) => id && !perfiles[id])
+  if (faltan.length) Object.assign(perfiles, await perfilesPorId(faltan))
+
+  // LA FILA DE TEMA COMO UNA CONVERSACIÓN (804). PINGU: «cada tema que sea
+  // como lo nuevo». El avatar de quien escribió lo último, las chapas y la
+  // etiqueta con la hora, el título y «Misty: lo que dijo». A la derecha el
+  // punto de lo no leído y las respuestas. Toda la fila lleva al tema (el
+  // enlace del título se estira con CSS); la etiqueta, el punto y lo de
+  // moderar quedan por encima y siguen siendo suyos.
   const filaTema = (t) => {
-    // Un tema "sin leer" tiene mensajes posteriores a tu última visita.
-    // Se marca con una clase (el título en negrita y un punto delante),
-    // no con un color distinto: en una lista larga, el peso de la letra
-    // se ve de un vistazo y el color no siempre.
+    // Un tema "sin leer" tiene mensajes posteriores a tu última visita, y
+    // el leído se apaga solo cuando las marcas han contestado (sin cuenta
+    // no se apaga nada: no hay nada que hayas leído).
     const sinLeer = estaSinLeer(t, marcas)
-    // Y el leído se APAGA, igual que un foro leído en el índice: la
-    // negrita sola (700 frente a 800) apenas se distinguía. Solo cuando
-    // las marcas de lectura han contestado: a quien llega sin cuenta no
-    // se le apaga la lista entera — no hay nada que él haya leído.
     const leido = !sinLeer && marcas?.hayDatos
-    // En un tema con novedades, el título Y el punto llevan directo al
-    // primer mensaje sin leer (?nuevo=1, lo resuelve tema.js). El clásico
-    // de los foros de toda la vida: no volver a bajar buscando dónde te
-    // quedaste. En uno ya leído, el título abre por el principio.
+    // Con novedades, al primer mensaje sin leer (?nuevo=1, lo resuelve
+    // tema.js): no volver a bajar buscando dónde te quedaste.
     const destino = sinLeer ? `${urlTema(t.id)}?nuevo=1` : urlTema(t.id)
+    const ultimo = ultimos.get(t.id)
+    // `last_post_author_id` llega de supabase-migration-foro-ultimo-autor.sql;
+    // sin ella, el autor del tema (en uno sin respuestas es el mismo).
+    const quien = perfiles[ultimo?.author_id || t.last_post_author_id] || perfiles[t.author_id]
+    const trozo = ultimo ? fragmento(ultimo.body_html) : ''
+    const respuestas = Math.max(0, (t.post_count || 1) - 1)
     return `
-    <div class="foro-tema-fila ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
+    <div class="foro-tema-fila foro-tema-conv ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
       ${soyStaff ? casillaHtml(t) : ''}
-      <div class="foro-fila-icono" aria-hidden="true">${
-        sinLeer ? `<a class="foro-punto-nuevo" href="${destino}" title="Ir al primer mensaje sin leer" tabindex="-1"></a>` : ''
-      }${t.is_pinned ? icons.pin?.(18) || icons.star(18) : icons.messageSquare(18)}</div>
-      <div class="foro-fila-cuerpo">
-        <h3>
-          ${t.is_pinned ? '<span class="foro-chapa">Fijado</span>' : ''}
+      ${avatarSpan(quien, 44)}
+      <div class="foro-conv-cuerpo">
+        <span class="foro-conv-arriba">
+          ${t.is_pinned ? `<span class="foro-chapa">Fijado</span>` : ''}
           ${t.is_locked ? '<span class="foro-chapa foro-chapa-cerrado">Cerrado</span>' : ''}
           ${t.solved_post_id ? `<span class="foro-chapa foro-chapa-resuelto">${icons.checkCircle(12)} Resuelto</span>` : ''}
           ${
-            // La etiqueta es un enlace: pincharla filtra la lista a los
-            // temas que la llevan.
+            // La etiqueta filtra la lista a los temas que la llevan.
             t.prefix
               ? `<a class="foro-etiqueta-enlace" href="${urlForo(foro.slug)}?et=${encodeURIComponent(t.prefix)}" title="Ver solo los temas con la etiqueta ${escapeHtml(t.prefix)}">${etiquetaHtml(t.prefix)}</a>`
               : ''
           }
-          <a href="${destino}">${escapeHtml(t.title)}</a>
-        </h3>
-        <p class="subtext">${avatarHtml(perfiles[t.author_id], 18)} ${enlacePerfil(perfiles[t.author_id])} · <span title="${escapeHtml(
-          fechaLarga(t.created_at)
-        )}">${escapeHtml(haceCuanto(t.created_at))}</span></p>
+          <time datetime="${escapeHtml(t.last_post_at || '')}" title="${escapeHtml(fechaLarga(t.last_post_at))}">${escapeHtml(haceCuanto(t.last_post_at))}</time>
+        </span>
+        <h3 class="foro-conv-titulo"><a href="${destino}">${escapeHtml(t.title)}</a></h3>
+        <span class="foro-conv-trozo">${
+          trozo
+            ? `${escapeHtml(nombreDe(quien))}: ${escapeHtml(trozo)}`
+            : `Lo abrió ${escapeHtml(nombreDe(perfiles[t.author_id]))}`
+        }</span>
       </div>
-      <div class="foro-fila-numeros">
-        <span><small>Respuestas</small><strong>${Math.max(0, (t.post_count || 1) - 1)}</strong></span>
-        <span><small>Visitas</small><strong>${t.view_count || 0}</strong></span>
-      </div>
-      ${ultimoHtml({
-        titulo: 'Ir al último',
-        url: urlTema(t.id),
-        fecha: t.last_post_at,
-        // `last_post_author_id` llega de supabase-migration-foro-ultimo-autor.sql.
-        // Sin esa migración es `undefined` y aquí se cae al autor del
-        // tema: en un tema sin respuestas es exactamente el mismo, y en
-        // uno con respuestas es una aproximación mucho mejor que el
-        // "Alguien" que salía antes.
-        perfil: perfiles[t.last_post_author_id] || perfiles[t.author_id],
-      })}
+      <span class="foro-conv-lado">
+        ${sinLeer ? `<a class="foro-punto-nuevo foro-conv-punto" href="${destino}" aria-label="Ir al primer mensaje sin leer" tabindex="-1"></a>` : ''}
+        <span class="foro-conv-resp" aria-label="${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}">${icons.messageSquare(14)}${respuestas}</span>
+      </span>
       ${soyStaff ? botonMenuHtml(t) : ''}
     </div>`
   }

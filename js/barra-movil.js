@@ -17,6 +17,7 @@
 // ni un byte, que es lo que cuida el presupuesto de la portada.
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
+import { montarArrastreDeHojas } from './hoja-arrastre.js'
 
 // Qué icono lleva cada sección (por el nombre del desplegable).
 export const ICONOS = { Inicio: 'home', Aprender: 'bookOpen', Cartas: 'cards', Comunidad: 'messageSquare', Jugar: 'trophy' }
@@ -326,6 +327,8 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   recordarPosicion(doc, window)
   vigilarVisor(doc, window)
   montarTu(doc, window)
+  // Las hojas de abajo se cierran arrastrándolas (804).
+  montarArrastreDeHojas({ doc, win: window })
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732.
 
