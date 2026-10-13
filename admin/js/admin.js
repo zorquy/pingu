@@ -3126,6 +3126,9 @@ async function tcggoEstado() {
           Object.keys(k.escondidosAlFinal || {}).length ? `  escondidos al final (sin tcggo_id): ${Object.entries(k.escondidosAlFinal).map(([id, x]) => `${id} «${x.nombre}»`).join(' · ')}` : '',
           ...Object.entries(k.vueltas || {}).map(([n, v]) => `  vuelta ${n}: ${v.hechas} hechas, ${v.dudosas} dudosas (hasta ${v.hasta})`),
         ] : []),
+        // Lo que va primero (809), y si TCGGO lo tiene.
+        k.primero ? `  primero: ${(k.primero.buscados || []).join(', ')} → ${(k.primero.encontrados || []).length ? k.primero.encontrados.map((e) => `#${e.id} ${e.nombre}${e.codigo ? ` (${e.codigo})` : ''}: ${e.rehecha ? 'rehecha' : 'en cola'}`).join(' · ') : 'TCGGO no tiene ninguna con ese nombre'}` : '',
+        ...Object.entries(k.hechos || {}).filter(([, h]) => (h?.viejosEscondidos || []).length).map(([id, h]) => `  ⤓ #${id} → ${h.set}: escondidos los viejos ${h.viejosEscondidos.join(', ')}`),
         ...paradas.map((e) => `  ⚠ parada #${e.id} ${e.nombre}`),
         // Las que la huella no ha sabido colocar (755): no se crean, para
         // no duplicar; se vuelven a mirar a la semana.

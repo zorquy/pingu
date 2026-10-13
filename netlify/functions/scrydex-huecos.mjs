@@ -176,10 +176,18 @@ export { faseDe, idNuestro, baseDeFoto, nombreInglesDe, filaDeCartaScrydex, prec
 const esDeSuscripcion = (status) => status === 401 || status === 403 || status === 402
 
 // ── La pasada ──
+// RETIRADA ENTERA en la 809. PINGU: «la suscripción de Scrydex está fuera;
+// Scrydex, nada, y todo de la API de TCGGO». Quedaba el occidental, que
+// seguía pidiéndole a Scrydex cada cuatro minutos. Sin red y sin escribir:
+// la lógica se queda para las pruebas, que pasan `retirado: false`.
+export const RETIRADO = true
+
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), mercados = MERCADOS_DE_LA_PASADA, crear = CREAR_SETS,
+  retirado = RETIRADO,
 } = {}) {
+  if (retirado) return { ok: true, saltado: 'retirado (809): Scrydex ya no se usa; todo sale de TCGGO' }
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
   const sc = cabecerasDe(env)

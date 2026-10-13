@@ -72,6 +72,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY.
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, filaDeSetNuevo, serieDeEpisodio, setDeEpisodio, setDeEpisodioPorHuella,
+  nombreComparable, codigoComparable,
 } from '../lib/tcggo.mjs'
 import { procesar } from './tcggo-reemplazar-set.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
@@ -85,6 +86,29 @@ export const DIAS_DE_DUDA = 7
 // La vuelta en curso (806). Subirla vuelve a hacer el japonés entero.
 export const VUELTA = 2
 export const ESCONDER_POR_PASADA = 20
+// LO QUE VA PRIMERO (809). PINGU: «Abyss Eye, el Pitch Black japonés, trae
+// las cartas con el nombre en japonés: son de Scrydex; empieza por ese set
+// y así lo compruebo». Las expansiones cuyo nombre contiene uno de estos van
+// delante de las demás y se rehacen UNA vez aunque ya estuvieran hechas en
+// esta vuelta (`rehechas`).
+export const PRIMERO = ['abyss eye']
+export const esPrimero = (e) => PRIMERO.some((n) => nombreComparable(e?.nombre).includes(nombreComparable(n)))
+
+// Los sets VIEJOS de una expansión ya rehecha (809): los nuestros sin
+// `tcggo_id` que son la misma —su nombre o su código son los de la
+// expansión, o la huella los propuso— y que no son el destino. Esperar a
+// esconderlos al final de la vuelta (el paso 12) dejaba a la vista, durante
+// horas, el set de Scrydex con las cartas en japonés al lado del bueno.
+export function setsViejosDe(episodio, sets, destino, candidatos = []) {
+  const nombre = nombreComparable(episodio?.nombre)
+  const codigo = codigoComparable(episodio?.codigo)
+  return (sets || []).filter((s) => {
+    if (!s || s.id === destino || s.tcggo_id != null || s.oculto) return false
+    if (candidatos.includes(s.id)) return true
+    if (nombre && [s.name_en, s.name].some((n) => nombreComparable(n) === nombre)) return true
+    return Boolean(codigo) && codigoComparable(s.tcg_online_code) === codigo
+  }).map((s) => s.id)
+}
 const MERCADO = 'JP'
 
 async function rest(ruta, clave, opciones = null) {
@@ -185,7 +209,13 @@ export async function pasada({
   // Una apuntada VACÍA cuya lista de hoy ya trae cartas es la que acaba de
   // salir (756): vuelve a estar pendiente.
   const hecha = (e) => estado.hechos[e.id] && !(estado.hechos[e.id].nota === 'vacía en TCGGO' && e.cartas > 0)
-  const pendiente = episodios.find((e) => !hecha(e) && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
+  if (!estado.rehechas || typeof estado.rehechas !== 'object') estado.rehechas = {}
+  const porRehacer = (e) => entera && esPrimero(e) && !estado.rehechas[e.id]
+  const enOrden = [...episodios.filter(esPrimero), ...episodios.filter((e) => !esPrimero(e))]
+  // Lo que se buscó primero y si TCGGO lo tiene: si no sale, /admin lo dice.
+  const apuntarPrimero = () => { estado.primero = { buscados: PRIMERO, encontrados: episodios.filter(esPrimero).map((e) => ({ id: e.id, nombre: e.nombre, codigo: e.codigo, rehecha: Boolean(estado.rehechas[e.id]) })) } }
+  apuntarPrimero()
+  const pendiente = enOrden.find((e) => (porRehacer(e) || !hecha(e)) && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
   const SELECT_SETS = `tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date,card_count_total,card_count_official,scrydex_id&market=eq.${MERCADO}&limit=2000`
   // Lo que se borra o se reescribe le quita la expansión a los hechos del
   // día de la pasada de precios (la 697): si ya la hizo hoy, no volvería
@@ -271,6 +301,19 @@ export async function pasada({
       delete estado.intentos[pendiente.id]
       if (!estado.dudosos[pendiente.id]?.creada) delete estado.dudosos[pendiente.id]
       try { await desesconder(sets.find((s) => s.id === destino)) } catch { /* se enseña en la pasada de la fusión o a mano */ }
+      if (esPrimero(pendiente)) { estado.rehechas[pendiente.id] = { fecha: ahora.toISOString(), set: destino }; apuntarPrimero() }
+      // Los viejos de la misma expansión, escondidos YA (809).
+      if (entera) {
+        const viejos = setsViejosDe(pendiente, sets, destino, estado.dudosos[pendiente.id]?.candidatos || []).filter((id) => !hermanos.includes(id))
+        try {
+          for (const id of viejos) {
+            await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
+            const s = sets.find((x) => x.id === id)
+            estado.escondidosAlFinal[id] = { fecha: ahora.toISOString(), nombre: s?.name_en || s?.name || id, por: `viejo de la expansión ${pendiente.id} (${destino})` }
+          }
+          if (viejos.length) estado.hechos[pendiente.id].viejosEscondidos = viejos
+        } catch { /* se esconden al final de la vuelta (paso 12) */ }
+      }
       await avisarAPrecios(pendiente.id)
     } else if (r.noEsLaMisma) {
       // La huella propuso y el número dijo que no (755): no se ha gastado

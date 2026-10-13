@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (58) — PINGU-Claude (809 — Scrydex fuera, y Abyss Eye primero)
+
+**Hecho**: PINGU: «Abyss Eye (el Pitch Black japonés) trae las cartas con
+el nombre en japonés: es Scrydex. Scrydex, nada; todo de TCGGO; empieza por
+ese set». (1) `scrydex-huecos` retirada entera: seguía pidiéndole a Scrydex
+el occidental cada cuatro minutos. (2) `tcggo-sueltas` ya no le pide fotos
+a Scrydex (`CON_SCRYDEX = false`). (3) El calco japonés pone delante las
+expansiones de `PRIMERO` (Abyss Eye) y la rehace una vez aunque ya
+estuviera hecha. (4) Al rehacer una expansión en la vuelta entera, los sets
+VIEJOS de la misma (sin `tcggo_id`, con su nombre o su código, o propuestos
+por la huella) se esconden ya, en vez de al final de la vuelta: eran los
+que se veían con las cartas de Scrydex en japonés al lado del bueno.
+
+**Ficheros**: `netlify/functions/scrydex-huecos.mjs`,
+`netlify/functions/tcggo-sueltas.mjs`, `netlify/functions/tcggo-calco-jp.mjs`,
+`admin/js/admin.js`, `SCHEMA.md`, `CLAUDE.md`. Prueba nueva 809; 684 y 693
+piden ahora Scrydex a propósito (`retirado: false`, `conScrydex: true`).
+
+**Pendiente**: si en /admin «primero» dice que TCGGO no tiene ninguna con
+ese nombre, hay que ver cómo la llama TCGGO y ponerlo en `PRIMERO`.
+
 ## 2026-10-13 (57) — PINGU-Claude (808 — los productos que no salían)
 
 **Hecho**: PINGU: «solo están hasta Stellar Crown y hacia abajo hasta

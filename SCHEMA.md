@@ -39603,3 +39603,27 @@ La pestaña pide los productos de una expansión con `productosDeExpansion`
 (filtra por `market`; sin la columna, lo de antes y el japonés vacío), y
 /lanzamientos filtra por el catálogo de su expansión. Tus productos de otro
 catálogo no se cuelgan del set de este con el mismo número.
+
+## Tanda 809 — Scrydex fuera, y Abyss Eye primero
+
+PINGU: «Abyss Eye, el Pitch Black japonés, trae las cartas con el nombre en
+japonés: las estás cogiendo de Scrydex. Scrydex, nada (la suscripción está
+fuera); todo de TCGGO. Empieza por ese set y así lo compruebo».
+
+- **`scrydex-huecos`, retirada entera** (`RETIRADO`): desde la 806 ya no
+  hacía el japonés, pero seguía con el occidental cada cuatro minutos. Sin
+  red y sin escribir; la lógica se queda para las pruebas (`retirado: false`).
+- **`tcggo-sueltas` sin Scrydex** (`CON_SCRYDEX = false`, inyectable como
+  `conScrydex`): lo que TCGGO no tiene se queda sin foto.
+- **El calco japonés, lo primero primero** (`PRIMERO = ['abyss eye']`,
+  `esPrimero`): esas expansiones van delante y se rehacen UNA vez en la
+  vuelta entera aunque ya estuvieran hechas (`rehechas`). `estado.primero`
+  dice qué se buscó y si TCGGO lo tiene; /admin lo enseña.
+- **Los sets viejos se esconden al rehacer, no al final** (`setsViejosDe`):
+  los nuestros sin `tcggo_id`, no ocultos, que no son el destino y que son
+  la misma expansión —el mismo nombre (inglés o propio), el mismo código, o
+  los que propuso la huella—. Antes se escondían al acabar las 256
+  expansiones, y mientras tanto el set de Scrydex, con sus cartas en
+  japonés, seguía a la vista al lado del de TCGGO. Esconder, no borrar
+  (`escondidosAlFinal`, con `por`), y si un oculto acaba siendo destino de
+  otra expansión, `desesconder` lo vuelve a enseñar.

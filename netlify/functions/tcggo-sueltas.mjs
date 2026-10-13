@@ -31,6 +31,9 @@
 // opcionales TCGGO_BASE, TCGGO_PAUSA_MS.
 import { cabeceras, baseDe, esCartaSuelta, esLimiteDelPlan, nombreComparable, filaDeCartaTcggo, separarVersiones } from '../lib/tcggo.mjs'
 import { cabecerasDe as cabecerasScrydex, urlDeSonda, baseDeFoto, precioDeScrydex } from '../lib/scrydex.mjs'
+// Scrydex, fuera (809): PINGU dio de baja la suscripción. Lo que TCGGO no
+// tiene se queda sin foto en vez de pedírsela a Scrydex.
+export const CON_SCRYDEX = false
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_sueltas'
@@ -127,7 +130,7 @@ export function parcheDeScrydex(nuestra, suya) {
 }
 
 // ── La pasada ──
-export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), conScrydex = CON_SCRYDEX } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
   const claveTcggo = env.TCGGO_API_KEY
@@ -254,7 +257,7 @@ export async function pasada({ env = process.env, fetchImpl = fetch, restImpl = 
       // (`tcg_sets.scrydex_id`). Los «My First Battle» gastaron cuarenta
       // créditos en 404.
       const setConScrydex = sets.some((s) => s.id === c.set_id && s.scrydex_id)
-      const porScrydex = !sc.faltan && !/^(tcggo|scrydex)-/.test(c.id) && (PRIORIDAD.includes(c.id) || setConScrydex) && (estado.scrydexHoy || 0) < TOPE_SCRYDEX_DIARIO ? await desdeScrydex(c) : null
+      const porScrydex = conScrydex && !sc.faltan && !/^(tcggo|scrydex)-/.test(c.id) && (PRIORIDAD.includes(c.id) || setConScrydex) && (estado.scrydexHoy || 0) < TOPE_SCRYDEX_DIARIO ? await desdeScrydex(c) : null
       if (porScrydex?.parche) {
         try {
           await pedir(`tcg_cards?market=eq.${MERCADO}&id=eq.${encodeURIComponent(c.id)}`, { method: 'PATCH', body: JSON.stringify(porScrydex.parche) })

@@ -398,7 +398,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`tcggo-<id>`, `origen = 'tcggo'`, que TCGdex no visita). Nada se pulsa:
   `tcggo-emparejar-auto` casa los sets nuevos cada hora. **Scrydex ya no
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
-  con datos y `netlify/lib/scrydex.mjs`.
+  con datos y `netlify/lib/scrydex.mjs`. **Desde la 809 no le pide NADA a
+  Scrydex ninguna función programada** (PINGU dio de baja la suscripción):
+  `scrydex-huecos` retirada, `tcggo-sueltas` sin su camino. No lo vuelvas a
+  meter como respaldo.
   **Desde la 806 el japonés sale ENTERO de TCGGO** (`tcggo-calco-jp`,
   vuelta 2): ni espejo occidental ni Scrydex ni TCGdex escriben en él. Y
   TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número
