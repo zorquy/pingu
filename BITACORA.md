@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (61) — PINGU-Claude (812 — dos fallos del foro en el móvil)
+
+**Hecho**: empieza la tanda de la noche (la propuesta «siguiente ronda»).
+La lupa del buscador de un foro salía rota con dedo: el botón crece a 44 px
+y el dibujo iba anclado a las esquinas; ahora va desde el centro. Y la cita
+que escribe «Citar» (un `<blockquote>`) se pintaba como texto normal en el
+mensaje y en el editor: lleva su barra a la izquierda y su fondo.
+
+**Ficheros**: `css/foro.css`, `BITACORA.md`, `SCHEMA.md`. Prueba nueva 812
+(rama `pruebas`).
+
+**Pendiente**: nada de esto; sigue la noche (VE1, FO1…).
+
 ## 2026-10-13 (60) — PINGU-Claude (811 — el nombre inglés de las cartas japonesas)
 
 **Hecho**: PINGU, con el Tropius de Abyss Eye (M5 001/081): «sigue en

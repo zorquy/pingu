@@ -39680,3 +39680,16 @@ nombre es CJK (la 537) y el «inglés» era el mismo japonés.
   /admin la enseña. No se había visto NUNCA una carta japonesa suya.
 - El calco: `VUELTA = 4` (la 3 otra vez, para que todo entre con el nombre
   bueno) y Abyss Eye también por su código (`PRIMERO_CODIGOS = ['M5']`).
+
+## Tanda 812 — La lupa del foro y la cita, en el móvil
+
+- `.foro-buscador-btn::before/::after`: el círculo y el mango se colocan con
+  `calc(50% ± …)` desde el centro del botón y no desde una esquina. Con
+  `pointer: coarse` el botón mide 44 px (la 312) y el dibujo, anclado arriba
+  a la izquierda, se quedaba en una esquina con el mango fuera.
+- `.foro-mensaje-texto blockquote` y `.rte-surface blockquote`: «Citar»
+  escribe un `<blockquote>` y ninguna hoja le daba forma, así que la cita se
+  leía como parte del mensaje. Barra de 3 px (una barra de cita, no un
+  contorno: la 309), fondo `--bg`, letra `--t-sm`.
+- Lo vigila `test-tanda-812.mjs`: el centro del dibujo dentro del botón con
+  el ratón y con el dedo, y la barra de la cita en /tema.
