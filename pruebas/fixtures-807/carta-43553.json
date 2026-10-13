@@ -1,0 +1,85 @@
+{
+    "data": {
+        "id": 43553,
+        "name": "Togepi",
+        "name_numbered": "Togepi 102",
+        "slug": "togepi",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 102,
+        "card_code_number": "PLS 102",
+        "hp": 40,
+        "rarity": "Common",
+        "supertype": "Pokémon",
+        "tcgid": "bw8-102",
+        "flavor_text": "It transforms the kindness and joy of others into happiness, which it stores in its shell.",
+        "abilities": null,
+        "attacks": null,
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 17,
+                "lowest_near_mint_EU_only": 17,
+                "lowest_near_mint_DE": null,
+                "lowest_near_mint_DE_EU_only": null,
+                "lowest_near_mint_FR": 1.5,
+                "lowest_near_mint_FR_EU_only": 2.49,
+                "lowest_near_mint_ES": null,
+                "lowest_near_mint_ES_EU_only": null,
+                "lowest_near_mint_IT": 0.5,
+                "lowest_near_mint_IT_EU_only": 0.5,
+                "30d_average": 2.95,
+                "7d_average": 4.81,
+                "available_items": 43,
+                "graded": []
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 2.01
+            }
+        },
+        "episode": {
+            "id": 93,
+            "name": "Plasma Storm",
+            "slug": "plasma-storm",
+            "lang": "en",
+            "released_at": "2013-02-06",
+            "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+            "code": "PLS",
+            "cards_total": 138,
+            "cards_printed_total": 135,
+            "prices": {
+                "cardmarket": {
+                    "total": 7698.69,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 3986.98,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 6,
+                "name": "Black & White",
+                "slug": "black-white"
+            }
+        },
+        "artist": {
+            "id": 593,
+            "name": "Kanako Eo",
+            "slug": "kanako-eo"
+        },
+        "image": null,
+        "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/togepi-6",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/43553",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/43553"
+        },
+        "cardmarket_id": 280842,
+        "tcgplayer_id": 89937
+    }
+}

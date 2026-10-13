@@ -1,0 +1,1707 @@
+{
+    "data": [
+        {
+            "id": 12674,
+            "name": "Turtwig",
+            "name_numbered": "Turtwig 1",
+            "slug": "turtwig",
+            "card_code_number": "PLS 1",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 1,
+            "hp": 70,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-1",
+            "cardmarket_id": 280741,
+            "tcgplayer_id": 90081,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.1,
+                    "lowest_near_mint_EU_only": 0.1,
+                    "lowest_near_mint_DE": 0.1,
+                    "lowest_near_mint_DE_EU_only": 0.1,
+                    "lowest_near_mint_FR": 0.1,
+                    "lowest_near_mint_FR_EU_only": 0.1,
+                    "lowest_near_mint_ES": 0.09,
+                    "lowest_near_mint_ES_EU_only": 0.09,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.19,
+                    "7d_average": 0.21,
+                    "available_items": 532,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 10.5,
+                    "mid_price": 0.32
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 378,
+                "name": "Kouki Saitou",
+                "slug": "kouki-saitou"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12773/turtwig-pls-1-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/turtwig-1",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12674",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12674"
+            }
+        },
+        {
+            "id": 12675,
+            "name": "Grotle",
+            "name_numbered": "Grotle 2",
+            "slug": "grotle",
+            "card_code_number": "PLS 2",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 2,
+            "hp": 100,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-2",
+            "cardmarket_id": 280742,
+            "tcgplayer_id": 85920,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.23,
+                    "lowest_near_mint_EU_only": 0.23,
+                    "lowest_near_mint_DE": 0.22,
+                    "lowest_near_mint_DE_EU_only": 0.22,
+                    "lowest_near_mint_FR": 0.5,
+                    "lowest_near_mint_FR_EU_only": 0.5,
+                    "lowest_near_mint_ES": 0.09,
+                    "lowest_near_mint_ES_EU_only": 0.09,
+                    "lowest_near_mint_IT": 0.25,
+                    "lowest_near_mint_IT_EU_only": 0.25,
+                    "30d_average": 0.29,
+                    "7d_average": 0.37,
+                    "available_items": 293,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 4.97,
+                    "mid_price": 0.37
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 530,
+                "name": "Sumiyoshi Kizuki",
+                "slug": "sumiyoshi-kizuki"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12774/grotle-pls-2-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/grotle-2",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12675",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12675"
+            }
+        },
+        {
+            "id": 12676,
+            "name": "Torterra",
+            "name_numbered": "Torterra 3",
+            "slug": "torterra",
+            "card_code_number": "PLS 3",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 3,
+            "hp": 150,
+            "rarity": "rare",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-3",
+            "cardmarket_id": 804349,
+            "tcgplayer_id": 89988,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 5.5,
+                    "lowest_near_mint_EU_only": 5.5,
+                    "lowest_near_mint_DE": null,
+                    "lowest_near_mint_DE_EU_only": null,
+                    "lowest_near_mint_FR": 4.5,
+                    "lowest_near_mint_FR_EU_only": 4.5,
+                    "lowest_near_mint_ES": 5,
+                    "lowest_near_mint_ES_EU_only": 5,
+                    "lowest_near_mint_IT": 1.49,
+                    "lowest_near_mint_IT_EU_only": 1.49,
+                    "30d_average": 4,
+                    "7d_average": 3.18,
+                    "available_items": 68,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 12.28,
+                    "mid_price": 4.8
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 380,
+                "name": "5ban Graphics",
+                "slug": "5ban-graphics"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12775/torterra-pls-3-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/torterra-3",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12676",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12676"
+            }
+        },
+        {
+            "id": 12677,
+            "name": "Combee",
+            "name_numbered": "Combee 4",
+            "slug": "combee",
+            "card_code_number": "PLS 4",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 4,
+            "hp": 30,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-4",
+            "cardmarket_id": 280744,
+            "tcgplayer_id": 84398,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.13,
+                    "lowest_near_mint_EU_only": 0.15,
+                    "lowest_near_mint_DE": 0.1,
+                    "lowest_near_mint_DE_EU_only": 0.1,
+                    "lowest_near_mint_FR": 0.49,
+                    "lowest_near_mint_FR_EU_only": 0.49,
+                    "lowest_near_mint_ES": 0.05,
+                    "lowest_near_mint_ES_EU_only": 0.05,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.17,
+                    "7d_average": 0.14,
+                    "available_items": 449,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.77,
+                    "mid_price": 0.24
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 425,
+                "name": "Yukiko Baba",
+                "slug": "yukiko-baba"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12776/combee-pls-4-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/combee-4",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12677",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12677"
+            }
+        },
+        {
+            "id": 12678,
+            "name": "Vespiquen",
+            "name_numbered": "Vespiquen 5",
+            "slug": "vespiquen",
+            "card_code_number": "PLS 5",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 5,
+            "hp": 100,
+            "rarity": "rare",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-5",
+            "cardmarket_id": 280745,
+            "tcgplayer_id": 90330,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.91,
+                    "lowest_near_mint_EU_only": 0.95,
+                    "lowest_near_mint_DE": 1.89,
+                    "lowest_near_mint_DE_EU_only": 1.89,
+                    "lowest_near_mint_FR": 1.5,
+                    "lowest_near_mint_FR_EU_only": 1.5,
+                    "lowest_near_mint_ES": 0.99,
+                    "lowest_near_mint_ES_EU_only": 0.99,
+                    "lowest_near_mint_IT": 0.5,
+                    "lowest_near_mint_IT_EU_only": 0.5,
+                    "30d_average": 0.9,
+                    "7d_average": 1.04,
+                    "available_items": 153,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 1.31,
+                    "mid_price": 0.54
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 600,
+                "name": "Hajime Kusajima",
+                "slug": "hajime-kusajima"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12778/vespiquen-pls-5-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/vespiquen-5",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12678",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12678"
+            }
+        },
+        {
+            "id": 12679,
+            "name": "Cherubi",
+            "name_numbered": "Cherubi 6",
+            "slug": "cherubi",
+            "card_code_number": "PLS 6",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 6,
+            "hp": 40,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-6",
+            "cardmarket_id": 280746,
+            "tcgplayer_id": 84265,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.1,
+                    "lowest_near_mint_EU_only": 0.1,
+                    "lowest_near_mint_DE": 0.08,
+                    "lowest_near_mint_DE_EU_only": 0.08,
+                    "lowest_near_mint_FR": 0.05,
+                    "lowest_near_mint_FR_EU_only": 0.05,
+                    "lowest_near_mint_ES": 0.1,
+                    "lowest_near_mint_ES_EU_only": 0.1,
+                    "lowest_near_mint_IT": 0.09,
+                    "lowest_near_mint_IT_EU_only": 0.09,
+                    "30d_average": 0.16,
+                    "7d_average": 0.19,
+                    "available_items": 412,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.59,
+                    "mid_price": 0.21
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 503,
+                "name": "sui",
+                "slug": "sui"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12777/cherubi-pls-6-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/cherubi-6",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12679",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12679"
+            }
+        },
+        {
+            "id": 12680,
+            "name": "Cherrim",
+            "name_numbered": "Cherrim 7",
+            "slug": "cherrim",
+            "card_code_number": "PLS 7",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 7,
+            "hp": 70,
+            "rarity": "rare",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-7",
+            "cardmarket_id": 280747,
+            "tcgplayer_id": 84258,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 1,
+                    "lowest_near_mint_EU_only": 1,
+                    "lowest_near_mint_DE": 0.95,
+                    "lowest_near_mint_DE_EU_only": 1.5,
+                    "lowest_near_mint_FR": 6.49,
+                    "lowest_near_mint_FR_EU_only": 6.49,
+                    "lowest_near_mint_ES": null,
+                    "lowest_near_mint_ES_EU_only": null,
+                    "lowest_near_mint_IT": 0.99,
+                    "lowest_near_mint_IT_EU_only": 0.99,
+                    "30d_average": 1.12,
+                    "7d_average": 1.18,
+                    "available_items": 86,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 2.58,
+                    "mid_price": 0.96
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 484,
+                "name": "Kagemaru Himeno",
+                "slug": "kagemaru-himeno"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12779/cherrim-pls-7-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/cherrim-7",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12680",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12680"
+            }
+        },
+        {
+            "id": 12681,
+            "name": "Sewaddle",
+            "name_numbered": "Sewaddle 8",
+            "slug": "sewaddle",
+            "card_code_number": "PLS 8",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 8,
+            "hp": 40,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-8",
+            "cardmarket_id": 280748,
+            "tcgplayer_id": 89092,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.15,
+                    "lowest_near_mint_EU_only": 0.15,
+                    "lowest_near_mint_DE": 0.2,
+                    "lowest_near_mint_DE_EU_only": 0.2,
+                    "lowest_near_mint_FR": 0.2,
+                    "lowest_near_mint_FR_EU_only": 0.2,
+                    "lowest_near_mint_ES": 0.1,
+                    "lowest_near_mint_ES_EU_only": 0.1,
+                    "lowest_near_mint_IT": 0.1,
+                    "lowest_near_mint_IT_EU_only": 0.1,
+                    "30d_average": 0.26,
+                    "7d_average": 0.29,
+                    "available_items": 409,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.73,
+                    "mid_price": 0.26
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 514,
+                "name": "Atsuko Nishida",
+                "slug": "atsuko-nishida"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12780/sewaddle-pls-8-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/sewaddle-8",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12681",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12681"
+            }
+        },
+        {
+            "id": 12682,
+            "name": "Swadloon",
+            "name_numbered": "Swadloon 9",
+            "slug": "swadloon",
+            "card_code_number": "PLS 9",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 9,
+            "hp": 80,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-9",
+            "cardmarket_id": 280749,
+            "tcgplayer_id": 89668,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.23,
+                    "lowest_near_mint_EU_only": 0.23,
+                    "lowest_near_mint_DE": 0.25,
+                    "lowest_near_mint_DE_EU_only": 0.25,
+                    "lowest_near_mint_FR": 1.2,
+                    "lowest_near_mint_FR_EU_only": 1.2,
+                    "lowest_near_mint_ES": 0.2,
+                    "lowest_near_mint_ES_EU_only": 0.2,
+                    "lowest_near_mint_IT": 0.13,
+                    "lowest_near_mint_IT_EU_only": 0.13,
+                    "30d_average": 0.33,
+                    "7d_average": 0.27,
+                    "available_items": 199,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 4.27,
+                    "mid_price": 0.27
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 483,
+                "name": "Kyoko Umemoto",
+                "slug": "kyoko-umemoto"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12781/swadloon-pls-9-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/swadloon-9",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12682",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12682"
+            }
+        },
+        {
+            "id": 12683,
+            "name": "Leavanny",
+            "name_numbered": "Leavanny 10",
+            "slug": "leavanny",
+            "card_code_number": "PLS 10",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 10,
+            "hp": 140,
+            "rarity": "rare",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-10",
+            "cardmarket_id": 280750,
+            "tcgplayer_id": 86688,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.95,
+                    "lowest_near_mint_EU_only": 0.95,
+                    "lowest_near_mint_DE": 0.89,
+                    "lowest_near_mint_DE_EU_only": 4.5,
+                    "lowest_near_mint_FR": 3.49,
+                    "lowest_near_mint_FR_EU_only": 3.49,
+                    "lowest_near_mint_ES": 0.5,
+                    "lowest_near_mint_ES_EU_only": 0.5,
+                    "lowest_near_mint_IT": 1.9,
+                    "lowest_near_mint_IT_EU_only": 1.9,
+                    "30d_average": 0.65,
+                    "7d_average": 0.75,
+                    "available_items": 100,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.89,
+                    "mid_price": 0.43
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 375,
+                "name": "Mitsuhiro Arita",
+                "slug": "mitsuhiro-arita"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12782/leavanny-pls-10-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/leavanny-10",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12683",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12683"
+            }
+        },
+        {
+            "id": 12684,
+            "name": "Maractus",
+            "name_numbered": "Maractus 11",
+            "slug": "maractus",
+            "card_code_number": "PLS 11",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 11,
+            "hp": 90,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-11",
+            "cardmarket_id": 280751,
+            "tcgplayer_id": 87191,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.15,
+                    "lowest_near_mint_EU_only": 0.15,
+                    "lowest_near_mint_DE": 0.26,
+                    "lowest_near_mint_DE_EU_only": 0.26,
+                    "lowest_near_mint_FR": 0.5,
+                    "lowest_near_mint_FR_EU_only": 0.5,
+                    "lowest_near_mint_ES": 0.15,
+                    "lowest_near_mint_ES_EU_only": 0.15,
+                    "lowest_near_mint_IT": 0.1,
+                    "lowest_near_mint_IT_EU_only": 0.1,
+                    "30d_average": 0.36,
+                    "7d_average": 0.31,
+                    "available_items": 201,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 1.56,
+                    "mid_price": 0.26
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 437,
+                "name": "Shigenori Negishi",
+                "slug": "shigenori-negishi"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12783/maractus-pls-11-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/maractus-11",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12684",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12684"
+            }
+        },
+        {
+            "id": 12685,
+            "name": "Foongus",
+            "name_numbered": "Foongus 12",
+            "slug": "foongus",
+            "card_code_number": "PLS 12",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 12,
+            "hp": 40,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-12",
+            "cardmarket_id": 280752,
+            "tcgplayer_id": 85540,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.11,
+                    "lowest_near_mint_EU_only": 0.11,
+                    "lowest_near_mint_DE": 0.18,
+                    "lowest_near_mint_DE_EU_only": 0.18,
+                    "lowest_near_mint_FR": 0.08,
+                    "lowest_near_mint_FR_EU_only": 0.08,
+                    "lowest_near_mint_ES": 0.05,
+                    "lowest_near_mint_ES_EU_only": 0.05,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.11,
+                    "7d_average": 0.11,
+                    "available_items": 657,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.61,
+                    "mid_price": 0.21
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 375,
+                "name": "Mitsuhiro Arita",
+                "slug": "mitsuhiro-arita"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12784/foongus-pls-12-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/foongus-12-1",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12685",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12685"
+            }
+        },
+        {
+            "id": 12686,
+            "name": "Amoonguss",
+            "name_numbered": "Amoonguss 13",
+            "slug": "amoonguss",
+            "card_code_number": "PLS 13",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 13,
+            "hp": 90,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-13",
+            "cardmarket_id": 280753,
+            "tcgplayer_id": 83533,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.1,
+                    "lowest_near_mint_EU_only": 0.1,
+                    "lowest_near_mint_DE": 0.2,
+                    "lowest_near_mint_DE_EU_only": 0.22,
+                    "lowest_near_mint_FR": 0.04,
+                    "lowest_near_mint_FR_EU_only": 0.04,
+                    "lowest_near_mint_ES": 0.09,
+                    "lowest_near_mint_ES_EU_only": 0.09,
+                    "lowest_near_mint_IT": 0.16,
+                    "lowest_near_mint_IT_EU_only": 0.16,
+                    "30d_average": 0.2,
+                    "7d_average": 0.22,
+                    "available_items": 443,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 2.28,
+                    "mid_price": 0.26
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 380,
+                "name": "5ban Graphics",
+                "slug": "5ban-graphics"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12785/amoonguss-pls-13-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/amoonguss-13-1",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12686",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12686"
+            }
+        },
+        {
+            "id": 12687,
+            "name": "Moltres-EX",
+            "name_numbered": "Moltres-EX 14",
+            "slug": "moltres-ex",
+            "card_code_number": "PLS 14",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 14,
+            "hp": 170,
+            "rarity": "Rare Holo EX",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-14",
+            "cardmarket_id": 280754,
+            "tcgplayer_id": 87568,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 9,
+                    "lowest_near_mint_EU_only": 9,
+                    "lowest_near_mint_DE": 36.5,
+                    "lowest_near_mint_DE_EU_only": 36.5,
+                    "lowest_near_mint_FR": 30,
+                    "lowest_near_mint_FR_EU_only": 30,
+                    "lowest_near_mint_ES": 59,
+                    "lowest_near_mint_ES_EU_only": 59,
+                    "lowest_near_mint_IT": 12,
+                    "lowest_near_mint_IT_EU_only": 12,
+                    "30d_average": 9.25,
+                    "7d_average": 13.34,
+                    "available_items": 128,
+                    "graded": {
+                        "psa": {
+                            "psa8": 31
+                        }
+                    }
+                },
+                "ebay": {
+                    "currency": "USD",
+                    "graded": {
+                        "ace": {
+                            "8": {
+                                "median_price": 43.73,
+                                "sample_size": 1
+                            }
+                        },
+                        "psa": {
+                            "10": {
+                                "median_price": 500.79,
+                                "sample_size": 3
+                            },
+                            "9": {
+                                "median_price": 52.68,
+                                "sample_size": 3
+                            },
+                            "8": {
+                                "median_price": 46.49,
+                                "sample_size": 2
+                            },
+                            "7": {
+                                "median_price": 35.63,
+                                "sample_size": 1
+                            }
+                        }
+                    }
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 16.15,
+                    "mid_price": 7.85
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 457,
+                "name": "Eske Yoshinob",
+                "slug": "eske-yoshinob"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12786/moltres-ex-pls-14-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/moltres-ex-14",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12687",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12687"
+            }
+        },
+        {
+            "id": 12688,
+            "name": "Chimchar",
+            "name_numbered": "Chimchar 15",
+            "slug": "chimchar",
+            "card_code_number": "PLS 15",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 15,
+            "hp": 50,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-15",
+            "cardmarket_id": 280755,
+            "tcgplayer_id": 84291,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.1,
+                    "lowest_near_mint_EU_only": 0.1,
+                    "lowest_near_mint_DE": 0.32,
+                    "lowest_near_mint_DE_EU_only": 0.32,
+                    "lowest_near_mint_FR": 0.19,
+                    "lowest_near_mint_FR_EU_only": 0.19,
+                    "lowest_near_mint_ES": 0.15,
+                    "lowest_near_mint_ES_EU_only": 0.15,
+                    "lowest_near_mint_IT": 0.03,
+                    "lowest_near_mint_IT_EU_only": 0.03,
+                    "30d_average": 0.21,
+                    "7d_average": 0.23,
+                    "available_items": 618,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 2.83,
+                    "mid_price": 0.21
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 503,
+                "name": "sui",
+                "slug": "sui"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12787/chimchar-pls-15-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/chimchar-15",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12688",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12688"
+            }
+        },
+        {
+            "id": 12689,
+            "name": "Monferno",
+            "name_numbered": "Monferno 16",
+            "slug": "monferno",
+            "card_code_number": "PLS 16",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 16,
+            "hp": 80,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-16",
+            "cardmarket_id": 280756,
+            "tcgplayer_id": 87573,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.19,
+                    "lowest_near_mint_EU_only": 0.2,
+                    "lowest_near_mint_DE": 2.5,
+                    "lowest_near_mint_DE_EU_only": 2.5,
+                    "lowest_near_mint_FR": 0.3,
+                    "lowest_near_mint_FR_EU_only": 0.3,
+                    "lowest_near_mint_ES": 0.2,
+                    "lowest_near_mint_ES_EU_only": 0.2,
+                    "lowest_near_mint_IT": 0.09,
+                    "lowest_near_mint_IT_EU_only": 0.09,
+                    "30d_average": 0.27,
+                    "7d_average": 0.33,
+                    "available_items": 340,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 2.69,
+                    "mid_price": 0.34
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 488,
+                "name": "Masakazu Fukuda",
+                "slug": "masakazu-fukuda"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12788/monferno-pls-16-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/monferno-16",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12689",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12689"
+            }
+        },
+        {
+            "id": 12690,
+            "name": "Infernape",
+            "name_numbered": "Infernape 17",
+            "slug": "infernape",
+            "card_code_number": "PLS 17",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 17,
+            "hp": 130,
+            "rarity": "Rare Holo",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-17",
+            "cardmarket_id": 280757,
+            "tcgplayer_id": 86278,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 1.5,
+                    "lowest_near_mint_EU_only": 1.95,
+                    "lowest_near_mint_DE": 8.5,
+                    "lowest_near_mint_DE_EU_only": 8.5,
+                    "lowest_near_mint_FR": 5,
+                    "lowest_near_mint_FR_EU_only": 5,
+                    "lowest_near_mint_ES": 5,
+                    "lowest_near_mint_ES_EU_only": 5,
+                    "lowest_near_mint_IT": 1.99,
+                    "lowest_near_mint_IT_EU_only": 1.99,
+                    "30d_average": 2.76,
+                    "7d_average": 3.61,
+                    "available_items": 227,
+                    "graded": []
+                },
+                "ebay": {
+                    "currency": "USD",
+                    "graded": {
+                        "cgc": {
+                            "9": {
+                                "median_price": 67.49,
+                                "sample_size": 2
+                            },
+                            "8": {
+                                "median_price": 14.1,
+                                "sample_size": 1
+                            }
+                        },
+                        "psa": {
+                            "9": {
+                                "median_price": 190.25,
+                                "sample_size": 2
+                            },
+                            "8": {
+                                "median_price": 79.95,
+                                "sample_size": 5
+                            },
+                            "7": {
+                                "median_price": 22.49,
+                                "sample_size": 4
+                            }
+                        }
+                    }
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 15.2,
+                    "mid_price": 5.83
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 380,
+                "name": "5ban Graphics",
+                "slug": "5ban-graphics"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12789/infernape-pls-17-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/infernape-17",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12690",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12690"
+            }
+        },
+        {
+            "id": 12691,
+            "name": "Victini-EX",
+            "name_numbered": "Victini-EX 18",
+            "slug": "victini-ex",
+            "card_code_number": "PLS 18",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 18,
+            "hp": 110,
+            "rarity": "Rare Holo EX",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-18",
+            "cardmarket_id": 280758,
+            "tcgplayer_id": 90350,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 9.03,
+                    "lowest_near_mint_EU_only": 15,
+                    "lowest_near_mint_DE": null,
+                    "lowest_near_mint_DE_EU_only": null,
+                    "lowest_near_mint_FR": 29.9,
+                    "lowest_near_mint_FR_EU_only": 29.9,
+                    "lowest_near_mint_ES": 8.99,
+                    "lowest_near_mint_ES_EU_only": 8.99,
+                    "lowest_near_mint_IT": 9.9,
+                    "lowest_near_mint_IT_EU_only": 9.9,
+                    "30d_average": 8.94,
+                    "7d_average": 9.3,
+                    "available_items": 65,
+                    "graded": []
+                },
+                "ebay": {
+                    "currency": "USD",
+                    "graded": {
+                        "psa": {
+                            "10": {
+                                "median_price": 1088.18,
+                                "sample_size": 1
+                            },
+                            "7": {
+                                "median_price": 7.82,
+                                "sample_size": 1
+                            }
+                        }
+                    }
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 10.87,
+                    "mid_price": 8.55
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 457,
+                "name": "Eske Yoshinob",
+                "slug": "eske-yoshinob"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12790/victini-ex-pls-18-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/victini-ex-18",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12691",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12691"
+            }
+        },
+        {
+            "id": 12692,
+            "name": "Pansear",
+            "name_numbered": "Pansear 19",
+            "slug": "pansear",
+            "card_code_number": "PLS 19",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 19,
+            "hp": 70,
+            "rarity": "Common",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-19",
+            "cardmarket_id": 280759,
+            "tcgplayer_id": 87944,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.05,
+                    "lowest_near_mint_EU_only": 0.05,
+                    "lowest_near_mint_DE": 0.08,
+                    "lowest_near_mint_DE_EU_only": 0.08,
+                    "lowest_near_mint_FR": 0.14,
+                    "lowest_near_mint_FR_EU_only": 0.14,
+                    "lowest_near_mint_ES": 0.09,
+                    "lowest_near_mint_ES_EU_only": 0.09,
+                    "lowest_near_mint_IT": 0.03,
+                    "lowest_near_mint_IT_EU_only": 0.03,
+                    "30d_average": 0.15,
+                    "7d_average": 0.18,
+                    "available_items": 700,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.58,
+                    "mid_price": 0.21
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 514,
+                "name": "Atsuko Nishida",
+                "slug": "atsuko-nishida"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12791/pansear-pls-19-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/pansear-19",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12692",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12692"
+            }
+        },
+        {
+            "id": 12693,
+            "name": "Simisear",
+            "name_numbered": "Simisear 20",
+            "slug": "simisear",
+            "card_code_number": "PLS 20",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 20,
+            "hp": 90,
+            "rarity": "Uncommon",
+            "supertype": "Pokémon",
+            "tcgid": "bw8-20",
+            "cardmarket_id": 280760,
+            "tcgplayer_id": 89229,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.05,
+                    "lowest_near_mint_EU_only": 0.05,
+                    "lowest_near_mint_DE": 0.15,
+                    "lowest_near_mint_DE_EU_only": 0.15,
+                    "lowest_near_mint_FR": 1,
+                    "lowest_near_mint_FR_EU_only": 1,
+                    "lowest_near_mint_ES": 0.15,
+                    "lowest_near_mint_ES_EU_only": 0.15,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.22,
+                    "7d_average": 0.27,
+                    "available_items": 326,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": 0.79,
+                    "mid_price": 0.22
+                }
+            },
+            "episode": {
+                "id": 93,
+                "name": "Plasma Storm",
+                "slug": "plasma-storm",
+                "lang": "en",
+                "released_at": "2013-02-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+                "code": "PLS",
+                "cards_total": 138,
+                "cards_printed_total": 135,
+                "prices": {
+                    "cardmarket": {
+                        "total": 7698.69,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 3986.98,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 6,
+                    "name": "Black & White",
+                    "slug": "black-white"
+                }
+            },
+            "artist": {
+                "id": 463,
+                "name": "Naoki Saito",
+                "slug": "naoki-saito"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/12792/simisear-pls-20-plasma-storm-pokemon.png",
+            "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/simisear-20",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/12693",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/12693"
+            }
+        }
+    ],
+    "paging": {
+        "current": 1,
+        "total": 7,
+        "per_page": 20
+    },
+    "results": 138
+}

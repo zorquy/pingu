@@ -1,0 +1,85 @@
+{
+    "data": {
+        "id": 43551,
+        "name": "Dodrio",
+        "name_numbered": "Dodrio 100",
+        "slug": "dodrio",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 100,
+        "card_code_number": "PLS 100",
+        "hp": 90,
+        "rarity": "rare",
+        "supertype": "Pokémon",
+        "tcgid": "bw8-100",
+        "flavor_text": "When Doduo evolves into this odd breed, one of its heads splits into two. It runs at nearly 40 mph.",
+        "abilities": null,
+        "attacks": null,
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 0.79,
+                "lowest_near_mint_EU_only": 0.79,
+                "lowest_near_mint_DE": 0.5,
+                "lowest_near_mint_DE_EU_only": 0.5,
+                "lowest_near_mint_FR": 4,
+                "lowest_near_mint_FR_EU_only": 4,
+                "lowest_near_mint_ES": 4.95,
+                "lowest_near_mint_ES_EU_only": 4.95,
+                "lowest_near_mint_IT": 0.99,
+                "lowest_near_mint_IT_EU_only": 0.99,
+                "30d_average": 0.87,
+                "7d_average": 1.11,
+                "available_items": 108,
+                "graded": []
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 0.5
+            }
+        },
+        "episode": {
+            "id": 93,
+            "name": "Plasma Storm",
+            "slug": "plasma-storm",
+            "lang": "en",
+            "released_at": "2013-02-06",
+            "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+            "code": "PLS",
+            "cards_total": 138,
+            "cards_printed_total": 135,
+            "prices": {
+                "cardmarket": {
+                    "total": 7698.69,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 3986.98,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 6,
+                "name": "Black & White",
+                "slug": "black-white"
+            }
+        },
+        "artist": {
+            "id": 408,
+            "name": "kawayoo",
+            "slug": "kawayoo"
+        },
+        "image": null,
+        "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/dodrio-5",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/43551",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/43551"
+        },
+        "cardmarket_id": 280840,
+        "tcgplayer_id": 84855
+    }
+}

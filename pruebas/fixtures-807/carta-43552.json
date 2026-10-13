@@ -1,0 +1,116 @@
+{
+    "data": {
+        "id": 43552,
+        "name": "Snorlax",
+        "name_numbered": "Snorlax 101",
+        "slug": "snorlax",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 101,
+        "card_code_number": "PLS 101",
+        "hp": 130,
+        "rarity": "rare",
+        "supertype": "Pokémon",
+        "tcgid": "bw8-101",
+        "flavor_text": "When its belly is full, it becomes too lethargic to even lift a finger, so it is safe to bounce on its belly.",
+        "abilities": null,
+        "attacks": null,
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 90.24,
+                "lowest_near_mint_EU_only": null,
+                "lowest_near_mint_DE": 45,
+                "lowest_near_mint_DE_EU_only": 45,
+                "lowest_near_mint_FR": 30,
+                "lowest_near_mint_FR_EU_only": 30,
+                "lowest_near_mint_ES": null,
+                "lowest_near_mint_ES_EU_only": null,
+                "lowest_near_mint_IT": 20,
+                "lowest_near_mint_IT_EU_only": 20,
+                "30d_average": 24.12,
+                "7d_average": 21.79,
+                "available_items": 22,
+                "graded": []
+            },
+            "ebay": {
+                "currency": "USD",
+                "graded": {
+                    "ace": {
+                        "9": {
+                            "median_price": 229.5,
+                            "sample_size": 3
+                        }
+                    },
+                    "cgc": {
+                        "9": {
+                            "median_price": 208.47,
+                            "sample_size": 1
+                        }
+                    },
+                    "psa": {
+                        "9": {
+                            "median_price": 204.71,
+                            "sample_size": 5
+                        },
+                        "8": {
+                            "median_price": 80.62,
+                            "sample_size": 5
+                        },
+                        "7": {
+                            "median_price": 116.14,
+                            "sample_size": 5
+                        }
+                    }
+                }
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 25.57
+            }
+        },
+        "episode": {
+            "id": 93,
+            "name": "Plasma Storm",
+            "slug": "plasma-storm",
+            "lang": "en",
+            "released_at": "2013-02-06",
+            "logo": "https://images.tcggo.com/tcggo/storage/12771/plasma-storm-logo.png",
+            "code": "PLS",
+            "cards_total": 138,
+            "cards_printed_total": 135,
+            "prices": {
+                "cardmarket": {
+                    "total": 7705.78,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 3952.4,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 6,
+                "name": "Black & White",
+                "slug": "black-white"
+            }
+        },
+        "artist": {
+            "id": 380,
+            "name": "5ban Graphics",
+            "slug": "5ban-graphics"
+        },
+        "image": null,
+        "tcggo_url": "https://www.tcggo.com/pokemon/plasma-storm/snorlax-20",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/43552",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/43552"
+        },
+        "cardmarket_id": 280841,
+        "tcgplayer_id": 89396
+    }
+}
