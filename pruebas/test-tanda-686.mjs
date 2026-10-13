@@ -75,7 +75,7 @@ console.log('── 2. La pasada ──')
     throw new Error('ruta no prevista ' + ruta)
   }
   estados.scrydex_huecos = { vistos: { 'JP|base1_ja': { estado: 'rellenado', nombres: 1 } } }
-  const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora })
+  const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ retirado: false, env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora })
   const r1 = await correr()
   check('primera pasada: el Expansion Pack, 1 espejada y 1 sin par', r1.ok && r1.set === 'base1_ja' && r1.espejadas === 1 && r1.sinPar === 1 && r1.setsWest.join() === 'base1', JSON.stringify(r1))
   check('  …y la fila escrita lleva el producto de la gemela y NINGÚN precio suyo (688)', escrito[0]?.card_id === 'scrydex-base1-6' && escrito[0].cm_id_product === 273699 && escrito[0].origen === 'espejo' && escrito[0].cm_low === null && estados[CLAVE_ESTADO].hechos.base1_ja.version === VERSION_ESPEJO, JSON.stringify(escrito[0]))

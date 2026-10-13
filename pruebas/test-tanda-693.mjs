@@ -21,7 +21,10 @@ const SOBRE = { id: 7778, name: 'Ancient Mew', type: 'sealed', episode: { id: 90
 
 console.log('── 1. La única ──')
 check('una suelta con el nombre exacto, y los sobres no cuentan', laUnica({ data: [MEW, SOBRE] }, 'Ancient Mew')?.carta?.id === 7777)
-check('con dos sueltas, nada y el motivo', laUnica({ data: [MEW, { ...MEW, id: 1 }] }, 'Ancient Mew').carta === null && /2 cartas/.test(laUnica({ data: [MEW, { ...MEW, id: 1 }] }, 'Ancient Mew').motivo))
+// Dos cartas distintas llevan producto propio en Cardmarket; con el MISMO
+// producto son dos VERSIONES de una carta (806) y cuenta la principal.
+check('con dos sueltas, nada y el motivo', laUnica({ data: [MEW, { ...MEW, id: 1, cardmarket_id: 124 }] }, 'Ancient Mew').carta === null && /2 cartas/.test(laUnica({ data: [MEW, { ...MEW, id: 1, cardmarket_id: 124 }] }, 'Ancient Mew').motivo))
+check('dos versiones de la misma carta (mismo producto) son UNA: la principal (806)', laUnica({ data: [{ ...MEW, id: 9000, image: null }, MEW] }, 'Ancient Mew')?.carta?.id === 7777)
 check('con otras cartas pero ninguna del nombre, nada', /ninguna con ese nombre/.test(laUnica({ data: [{ ...MEW, name: 'Mew' }] }, 'Ancient Mew').motivo))
 check('sin nada, nada', /no devuelve nada/.test(laUnica({ data: [] }, 'Ancient Mew').motivo))
 // 697: la primera pasada real casó el Charizard de la Classic del 30
@@ -61,7 +64,7 @@ const montar = ({ searchContesta = true, limite = false, baseFalla = false, scry
     const u = new URL(url)
     const q = u.searchParams.get('search') ?? u.searchParams.get('name')
     if (u.searchParams.has('search') && !searchContesta) return { ok: true, status: 200, text: async () => JSON.stringify({ data: [] }) }
-    const data = /ancient/i.test(q) ? [MEW, SOBRE] : /pikachu/i.test(q) ? [{ ...MEW, id: 1, name: 'Pikachu' }, { ...MEW, id: 2, name: 'Pikachu' }] : []
+    const data = /ancient/i.test(q) ? [MEW, SOBRE] : /pikachu/i.test(q) ? [{ ...MEW, id: 1, name: 'Pikachu' }, { ...MEW, id: 2, name: 'Pikachu', cardmarket_id: 124 }] : []
     return { ok: true, status: 200, text: async () => JSON.stringify({ data }) }
   }
   const rutas = []

@@ -192,18 +192,18 @@ console.log('\n── 5. El calco: la lista cada día, la huella, lo dudoso y la
     procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 100, escritas: 100, porNumero: 95, borradas: 0, seQuedan: [] } },
   }
   const AHORA = new Date('2026-10-08T10:00:00Z')
-  const r1 = await calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r1 = await calco.pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   const e = () => estados[calco.CLAVE_ESTADO]
   check('la lista de hace dos días se vuelve a pedir (una vez al DÍA) y trae las nuevas', urls.filter((u) => /episodes/.test(u)).length === 1 && e().lista.episodios.length === 3 && calco.DIAS_DE_LISTA === 1, JSON.stringify(r1).slice(0, 200))
   check('Rocket Gang (otro inglés que el de Scrydex) va al pcg4_ja por la HUELLA, sin crear set', creados.length === 0 && hechas[0]?.destino === 'pcg4_ja' && e().hechos[900]?.por === 'fecha', JSON.stringify(hechas[0] && { d: hechas[0].destino }))
   check('  …conservando por número y comprobando que es la misma', hechas[0]?.conservarPorNumero === true && hechas[0]?.comprobarQueEsLaMisma === true)
-  const r2 = await calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r2 = await calco.pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('Entry Pack: dos barajas ese día y nada las distingue → DUDOSA: ni se crea ni se pide', creados.length === 0 && hechas.length === 1 && e().dudosos?.[902]?.candidatos?.length === 2, JSON.stringify(r2).slice(0, 200))
-  const r3 = await calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r3 = await calco.pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('la creada de nuevo (tcggo-800) se FUNDE en el de Scrydex de su huella', hechas[1]?.destino === 'pcg5_ja' && JSON.stringify(hechas[1]?.sets) === '["pcg5_ja","tcggo-800"]' && hechas[1]?.comprobarQueEsLaMisma === true && e().hechos[800]?.fundidoDe === 'tcggo-800' && e().hechos[800]?.set === 'pcg5_ja', JSON.stringify(r3).slice(0, 300))
   check('  …el de Scrydex, que estaba escondido, se enseña', parches.some((p) => /id=eq\.pcg5_ja/.test(p.ruta) && p.cuerpo.oculto === false), JSON.stringify(parches))
   check('  …y a la pasada de precios se le quita del día, para que lo escriba ya', !estados.tcggo_precios.hechosJp.includes(800) && estados.tcggo_precios.hechosJp.includes(5), JSON.stringify(estados.tcggo_precios))
-  const r4 = await calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r4 = await calco.pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('después no se vuelve a fundir nada ni a pedir la dudosa', hechas.length === 2 && !r4.fusion, JSON.stringify(r4).slice(0, 200))
 }
 

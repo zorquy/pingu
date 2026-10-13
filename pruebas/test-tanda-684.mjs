@@ -106,7 +106,7 @@ console.log('── 3. La pasada, con Scrydex y base de mentira ──')
       throw new Error('ruta no prevista ' + ruta)
     }
     const env = { SUPABASE_SERVICE_ROLE_KEY: 'k', SCRYDEX_API_KEY: 's', SCRYDEX_TEAM_ID: 't' }
-    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {}, ...(crear ? { crear } : {}) })
+    const correr = (ahora = new Date('2026-10-06T12:00:00Z')) => pasada({ mercados: ['JP', 'WEST'], env, fetchImpl, restImpl, estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) }, ahora, pausa: async () => {}, ...(crear ? { crear } : {}) })
     return { correr, escrito, estados, peticiones, sets, aMedias }
   }
   {

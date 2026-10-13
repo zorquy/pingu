@@ -58,32 +58,32 @@ const SETS = () => [
 console.log('── 1. Expansión a expansión: la que ya lleva tcggo_id, la que casa por nombre, la que se crea ──')
 {
   const b = montar({ sets: SETS(), llenos: ['M6'] })
-  const r1 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r1 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('la primera pasada trae la lista japonesa (una vez a la semana) y hace la PRIMERA expansión', r1.ok && b.estados[CLAVE_ESTADO].lista.episodios.length === 4 && b.urls.filter((u) => /episodes/.test(u)).length === 1 && b.hechas.length === 1, JSON.stringify(r1).slice(0, 300))
   check('  …la Storm Emerald va al set que ya lleva su tcggo_id (M6)', b.hechas[0].destino === 'M6' && b.hechas[0].mercado === 'JP' && b.hechas[0].episodio === 552 && b.estados[CLAVE_ESTADO].hechos[552].por === 'tcggo_id')
-  const r2 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r2 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('la segunda: el Expansion Pack casa por NOMBRE con nuestro BASE1_ (vacío de TCGdex) y se rellena ahí', r2.ok && b.hechas[1].destino === 'BASE1_' && b.hechas[1].episodio === 100 && b.estados[CLAVE_ESTADO].hechos[100].por === 'nombre', JSON.stringify(r2).slice(0, 200))
-  const r3 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r3 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('la tercera: Jungle no existe aquí: se CREA el set (jungle, con su serie) y se rellena', r3.ok && b.creados.length === 1 && b.creados[0].id === 'jungle' && b.creados[0].tcggo_id === 101 && b.hechas[2].destino === 'jungle' && r3.hecha.setCreado === 'jungle', JSON.stringify(b.creados))
   check('  …sin volver a pedir la lista', b.urls.filter((u) => /episodes/.test(u)).length === 1)
-  const r4 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r4 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('la cuarta: las Energías (cero cartas en su lista) se apuntan sin pedir nada', r4.ok && r4.hecha?.nota === 'vacía' && b.hechas.length === 3 && b.estados[CLAVE_ESTADO].hechos[102]?.nota === 'vacía en TCGGO')
   // Con todo hecho: los cascarones.
-  const r5 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r5 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('con todo hecho, los cascarones: XY1 (sin tcggo_id y sin cartas) se esconde; nada más se pide a TCGGO', r5.ok && r5.cascarones?.escondidos === 1 && b.llamadas.some((l) => l.metodo === 'PATCH' && /id=eq\.XY1/.test(l.ruta) && l.cuerpo.oculto === true) && b.hechas.length === 3, JSON.stringify(r5))
-  const r6 = await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const r6 = await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   check('  …y después, hecho: leer el estado y nada más', r6.hecho === true && b.urls.length === 1, JSON.stringify(r6))
 }
 
 console.log('\n── 2. Lo que falla cuenta y para; el plan bloquea el día ──')
 {
   const b = montar({ sets: SETS(), falla: (o) => (o.episodio === 552 ? 'TCGGO 500' : null) })
-  for (let k = 0; k < MAXIMO_INTENTOS + 2; k++) await pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  for (let k = 0; k < MAXIMO_INTENTOS + 2; k++) await pasada({ vuelta: 1, env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
   const e = b.estados[CLAVE_ESTADO]
   check(`a los ${MAXIMO_INTENTOS} fallos la expansión queda parada con su error y se pasa a la siguiente`, e.intentos[552] === MAXIMO_INTENTOS && e.ultimoError?.error === 'TCGGO 500' && b.hechas.filter((h) => h.episodio === 552).length === MAXIMO_INTENTOS && b.hechas.some((h) => h.episodio === 100), JSON.stringify({ i: e.intentos, n: b.hechas.length }))
   const p = montar({ sets: SETS(), plan: true })
-  const rp = await pasada({ env: ENV, ...p, ahora: AHORA, pausa: async () => {} })
-  check('si TCGGO dice que el japonés pide otro plan, se apunta, se bloquea el día y no se vuelve a pedir', rp.ok === false && p.estados[CLAVE_ESTADO].planBloqueado?.dia === '2026-10-06' && (await pasada({ env: ENV, ...p, ahora: AHORA })).saltado && p.urls.length === 1, JSON.stringify(rp).slice(0, 200))
+  const rp = await pasada({ vuelta: 1, env: ENV, ...p, ahora: AHORA, pausa: async () => {} })
+  check('si TCGGO dice que el japonés pide otro plan, se apunta, se bloquea el día y no se vuelve a pedir', rp.ok === false && p.estados[CLAVE_ESTADO].planBloqueado?.dia === '2026-10-06' && (await pasada({ vuelta: 1, env: ENV, ...p, ahora: AHORA })).saltado && p.urls.length === 1, JSON.stringify(rp).slice(0, 200))
 }
 
 console.log('\n── 3. Lo estático ──')
