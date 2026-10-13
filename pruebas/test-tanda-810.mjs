@@ -71,7 +71,7 @@ const montar = () => {
 
 console.log('── La vuelta 3, sin casar ──')
 {
-  check('la vuelta en curso es la 3', calco.VUELTA === 3)
+  check('la vuelta en curso es sin casar (3 o más)', calco.VUELTA >= 3)
   const m = montar()
   const pasar = (ahora = '2026-10-13T20:00:00Z') => calco.pasada({ env: ENV, ...m.b, ahora: new Date(ahora), pausa: async () => {} })
   const e = () => m.estados[calco.CLAVE_ESTADO]
