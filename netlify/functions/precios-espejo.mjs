@@ -160,7 +160,15 @@ export function filaEspejo(cardIdJp, precioWest, ahora = new Date()) {
 const sumarDias = (iso, dias) => { const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + dias); return d.toISOString().slice(0, 10) }
 
 // ── La pasada ──
-export async function pasada({ env = process.env, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, ahora = new Date() } = {}) {
+// RETIRADO en la 806. PINGU: «TCGGO ha metido todos los sets japoneses,
+// con sus precios y sus enlaces a Cardmarket; no, ya está». El japonés sale
+// entero de TCGGO (tcggo-calco-jp, vuelta 2), y el espejo de la gemela
+// occidental solo dejaría el enlace de la carta que no es. La lógica se
+// queda (las pruebas la llaman con `retirado: false`).
+export const RETIRADO = true
+
+export async function pasada({ env = process.env, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, ahora = new Date(), retirado = RETIRADO } = {}) {
+  if (retirado) return { ok: true, saltado: 'retirado (806): el japonés sale entero de TCGGO' }
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
   const pedir = restImpl || ((ruta, opciones = null) => rest(ruta, clave, opciones))

@@ -39,6 +39,30 @@
 //  8. Las que ANTES de esto se crearon de nuevo (`por: 'nuevo'`) teniendo ya
 //     un set nuestro de esa huella se FUNDEN en él, una por pasada.
 //
+// Y desde la 806, LA VUELTA ENTERA. PINGU: «TCGGO ha metido TODOS los sets
+// japoneses que faltaban, con todas sus cartas, sus precios y todo —hasta
+// las Miscellaneous Promos de 1996, Expansion Pack, Jungle, Rocket—;
+// sustituye todos los sets que tenemos y coge el japonés siempre de la
+// API». Lo de antes conservaba nuestras cartas de Scrydex y les ponía
+// encima el id de Cardmarket de TCGGO, pero la RPC no pisa uno que ya
+// hubiera (el del espejo occidental, el emparejamiento de la 587), y lo
+// que una vez quedó «hecho» no se volvía a mirar. Así que:
+//
+//  9. `VUELTA` sube a 2: el estado se reinicia (lo de antes se guarda en
+//     `vueltas`) y TODAS las expansiones se vuelven a hacer, en el modo
+//     ENTERO de `procesar` (666): toda carta entra como la tiene TCGGO
+//     —«tcggo-<id>», con su número, su foto, su inglés, su id de
+//     Cardmarket y su precio—, y lo nuestro del set se va.
+// 10. Lo que la gente tiene se recoloca por `tcggo_id`, por NÚMERO (nuestras
+//     cartas de Scrydex se llaman en japonés) y por nombre; una carta con
+//     dueño que no tenga pareja se queda, apuntada (`seQuedan`).
+// 11. Un empate de la huella no deja la expansión fuera: se crea la de TCGGO
+//     (la fuente es él) y los candidatos se quedan como estaban.
+// 12. Con todas hechas, se ESCONDEN los sets japoneses sin `tcggo_id`
+//     (veinte por pasada, apuntados en `escondidosAlFinal`): el catálogo
+//     japonés queda siendo el de TCGGO. Esconder y no borrar: con cartas de
+//     alguien dentro, se puede deshacer.
+//
 // Frenos de la casa: una expansión por pasada, los fallos cuentan y a
 // `MAXIMO_INTENTOS` se dejan (el error queda en el estado y /admin lo
 // enseña), y con todo hecho una pasada es leer el estado y nada más. Si
@@ -58,6 +82,9 @@ export const MAXIMO_INTENTOS = 3
 export const MAXIMO_PROBADOS = 8
 export const DIAS_DE_LISTA = 1
 export const DIAS_DE_DUDA = 7
+// La vuelta en curso (806). Subirla vuelve a hacer el japonés entero.
+export const VUELTA = 2
+export const ESCONDER_POR_PASADA = 20
 const MERCADO = 'JP'
 
 async function rest(ruta, clave, opciones = null) {
@@ -74,7 +101,7 @@ async function rest(ruta, clave, opciones = null) {
 
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null, procesarImpl = null, crearSetsImpl = null,
-  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), ...resto
+  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), vuelta = VUELTA, ...resto
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
@@ -102,6 +129,23 @@ export async function pasada({
   if (!estado.cascarones || typeof estado.cascarones !== 'object') estado.cascarones = { vistos: {} }
   if (!estado.dudosos || typeof estado.dudosos !== 'object') estado.dudosos = {}
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
+  // Una vuelta nueva (806): lo de la anterior se resume y se guarda, y se
+  // empieza de cero con la lista de HOY (la de ayer no traería lo nuevo).
+  if ((Number(estado.vuelta) || 1) < vuelta) {
+    const anterior = Number(estado.vuelta) || 1
+    estado.vueltas = { ...(estado.vueltas || {}), [anterior]: { hasta: ahora.toISOString(), hechas: Object.keys(estado.hechos).length, dudosas: Object.keys(estado.dudosos).length } }
+    estado.vuelta = vuelta
+    estado.hechos = {}
+    estado.intentos = {}
+    estado.dudosos = {}
+    estado.cascarones = { vistos: {} }
+    estado.escondidosAlFinal = {}
+    if (estado.lista) estado.lista.fecha = null
+    delete estado.ultimoError
+    await persistir()
+  }
+  const entera = (Number(estado.vuelta) || 1) >= 2
+  if (!estado.escondidosAlFinal || typeof estado.escondidosAlFinal !== 'object') estado.escondidosAlFinal = {}
   if (estado.planBloqueado?.dia === dia) return { ok: true, saltado: `el plan no da el japonés hoy: ${estado.planBloqueado.motivo}` }
 
   // ── 1. La lista de expansiones japonesas, una vez al día (755) ──
@@ -136,7 +180,8 @@ export async function pasada({
   const episodios = estado.lista.episodios
 
   // ── 2. Una expansión por pasada ──
-  const dudaReciente = (id) => { const d = estado.dudosos[id]; return d?.fecha && (ahora.getTime() - new Date(d.fecha).getTime()) / 86_400_000 < DIAS_DE_DUDA }
+  // Una dudosa que en la vuelta entera ya se creó no espera la semana.
+  const dudaReciente = (id) => { const d = estado.dudosos[id]; return d?.fecha && !d.creada && (ahora.getTime() - new Date(d.fecha).getTime()) / 86_400_000 < DIAS_DE_DUDA }
   // Una apuntada VACÍA cuya lista de hoy ya trae cartas es la que acaba de
   // salir (756): vuelve a estar pendiente.
   const hecha = (e) => estado.hechos[e.id] && !(estado.hechos[e.id].nota === 'vacía en TCGGO' && e.cartas > 0)
@@ -186,7 +231,11 @@ export async function pasada({
     if (!destino) {
       const r = setDeEpisodioPorHuella(pendiente, sets)
       if (r.set) { destino = r.set.id; por = r.por }
-      else if (r.dudoso) {
+      else if (r.dudoso && entera) {
+        // En la vuelta entera la fuente es TCGGO: se crea la suya (abajo) y
+        // los candidatos se quedan como estaban, apuntados.
+        estado.dudosos[pendiente.id] = { fecha: ahora.toISOString(), nombre: pendiente.nombre, candidatos: r.candidatos, porque: r.porque, creada: true }
+      } else if (r.dudoso) {
         estado.dudosos[pendiente.id] = { fecha: ahora.toISOString(), nombre: pendiente.nombre, candidatos: r.candidatos, porque: r.porque }
         await persistir()
         return { ok: true, ...resumen(), dudosa: { episodio: pendiente.id, nombre: pendiente.nombre, ...estado.dudosos[pendiente.id] } }
@@ -210,11 +259,17 @@ export async function pasada({
       setCreado = fila.id
       por = 'nuevo'
     }
-    const r = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, sets: [destino], destino, mercado: MERCADO, episodio: pendiente.id, pausa, conservarPorNumero: true, comprobarQueEsLaMisma: porHuella, ...resto })
+    // Los otros sets nuestros con su MISMO `tcggo_id` (la 646 los pliega)
+    // se juntan en el destino: es TCGGO quien dice que son la misma.
+    const hermanos = entera ? sets.filter((s) => s.id !== destino && Number(s.tcggo_id) === pendiente.id).map((s) => s.id).slice(0, 4) : []
+    const opciones = entera
+      ? { sets: [destino, ...hermanos], entero: true, recolocarPorNumero: true, borrarSinDestino: false, mismaExpansion: true, comprobarQueEsLaMisma: porHuella }
+      : { sets: [destino], conservarPorNumero: true, comprobarQueEsLaMisma: porHuella }
+    const r = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, destino, mercado: MERCADO, episodio: pendiente.id, pausa, ...opciones, ...resto })
     if (r.ok) {
-      estado.hechos[pendiente.id] = { fecha: ahora.toISOString(), set: destino, por, suyas: r.suyas, escritas: r.escritas, porNumero: r.porNumero ?? null, borradas: r.borradas, seQuedan: (r.seQuedan || []).length }
+      estado.hechos[pendiente.id] = { fecha: ahora.toISOString(), set: destino, por, suyas: r.suyas, escritas: r.escritas, porNumero: r.porNumero ?? null, recolocadas: r.recolocadasPorNumero ?? null, lineasMovidas: r.lineasMovidas ?? null, borradas: r.borradas, seQuedan: (r.seQuedan || []).length, ...(hermanos.length ? { juntados: hermanos, setsBorrados: r.setsBorrados } : {}), ...(entera ? { entera: true } : {}) }
       delete estado.intentos[pendiente.id]
-      delete estado.dudosos[pendiente.id]
+      if (!estado.dudosos[pendiente.id]?.creada) delete estado.dudosos[pendiente.id]
       try { await desesconder(sets.find((s) => s.id === destino)) } catch { /* se enseña en la pasada de la fusión o a mano */ }
       await avisarAPrecios(pendiente.id)
     } else if (r.noEsLaMisma) {
@@ -237,7 +292,9 @@ export async function pasada({
   // `procesar` sobre los dos sets: las nuestras se conservan por número,
   // las «tcggo-…» del creado se reapuntan a ellas por su `tcggo_id` y el
   // creado, vacío, se borra.
-  const porRevisar = Object.entries(estado.hechos).filter(([, h]) => h?.por === 'nuevo' && h.set && !h.revisado && (Number(h.intentosFusion) || 0) < MAXIMO_INTENTOS)
+  // En la vuelta entera no se funde nada: lo creado ES lo de TCGGO, y lo
+  // nuestro que no casó se esconde al final (paso 3).
+  const porRevisar = entera ? [] : Object.entries(estado.hechos).filter(([, h]) => h?.por === 'nuevo' && h.set && !h.revisado && (Number(h.intentosFusion) || 0) < MAXIMO_INTENTOS)
   if (porRevisar.length) {
     let sets
     try {
@@ -278,6 +335,23 @@ export async function pasada({
 
   // ── 3. Con todo hecho: los cascarones, ocho por pasada ──
   if (estado.cascarones.listo) return { ok: true, ...resumen(), hecho: true }
+  // En la vuelta entera, TODO set japonés sin `tcggo_id` se esconde, tenga
+  // cartas o no (806): el catálogo japonés es el de TCGGO.
+  if (entera) {
+    let sueltos
+    try {
+      sueltos = (await pedir(`tcg_sets?select=id,name,name_en&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&order=id&limit=${ESCONDER_POR_PASADA}`)) || []
+      for (const s of sueltos) {
+        await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(s.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
+        estado.escondidosAlFinal[s.id] = { fecha: ahora.toISOString(), nombre: s.name_en || s.name || s.id }
+      }
+    } catch (e) {
+      return { ok: false, ...resumen(), error: `nuestra base al esconder: ${String(e?.message || e).slice(0, 160)}` }
+    }
+    if (sueltos.length < ESCONDER_POR_PASADA) estado.cascarones.listo = true
+    await persistir()
+    return { ok: true, ...resumen(), escondidos: sueltos.length, listo: Boolean(estado.cascarones.listo) }
+  }
   let sets
   try {
     sets = (await pedir(`tcg_sets?select=id,tcggo_id,oculto&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&order=id&limit=2000`)) || []

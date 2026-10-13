@@ -3118,7 +3118,14 @@ async function tcggoEstado() {
       const hechas = Object.keys(k.hechos || {}).length
       const paradas = (k.lista?.episodios || []).filter((e) => !k.hechos?.[e.id] && (Number(k.intentos?.[e.id]) || 0) >= 3)
       return [
-        `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
+        `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: vuelta ${k.vuelta || 1}${(k.vuelta || 1) >= 2 ? ' (entera, todo de TCGGO: 806)' : ''} · ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
+        // La vuelta entera (806): cuánto de lo que tenía alguien se recolocó,
+        // lo que se quedó sin pareja y lo que se escondió al final.
+        ...((k.vuelta || 1) >= 2 ? [
+          `  recolocadas por número: ${Object.values(k.hechos || {}).reduce((t, h) => t + (Number(h?.recolocadas) || 0), 0)} · líneas movidas: ${Object.values(k.hechos || {}).reduce((t, h) => t + (Number(h?.lineasMovidas) || 0), 0)} · cartas con dueño sin pareja (se quedan): ${Object.values(k.hechos || {}).reduce((t, h) => t + (Number(h?.seQuedan) || 0), 0)}`,
+          Object.keys(k.escondidosAlFinal || {}).length ? `  escondidos al final (sin tcggo_id): ${Object.entries(k.escondidosAlFinal).map(([id, x]) => `${id} «${x.nombre}»`).join(' · ')}` : '',
+          ...Object.entries(k.vueltas || {}).map(([n, v]) => `  vuelta ${n}: ${v.hechas} hechas, ${v.dudosas} dudosas (hasta ${v.hasta})`),
+        ] : []),
         ...paradas.map((e) => `  ⚠ parada #${e.id} ${e.nombre}`),
         // Las que la huella no ha sabido colocar (755): no se crean, para
         // no duplicar; se vuelven a mirar a la semana.

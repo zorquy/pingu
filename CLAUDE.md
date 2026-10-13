@@ -398,7 +398,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`tcggo-<id>`, `origen = 'tcggo'`, que TCGdex no visita). Nada se pulsa:
   `tcggo-emparejar-auto` casa los sets nuevos cada hora. **Scrydex ya no
   existe** (641): sus funciones y botones se fueron; quedan sus columnas
-  con datos y `netlify/lib/scrydex.mjs`. **La numeración de tandas de
+  con datos y `netlify/lib/scrydex.mjs`.
+  **Desde la 806 el japonés sale ENTERO de TCGGO** (`tcggo-calco-jp`,
+  vuelta 2): ni espejo occidental ni Scrydex ni TCGdex escriben en él. Y
+  TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número
+  y el mismo `cardmarket_id`: lo que lea cartas suyas pasa por
+  `separarVersiones` (una carta, la principal), o duplica cartas y mezcla
+  precios. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
 - **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
   inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +

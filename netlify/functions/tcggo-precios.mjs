@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 // Solo la clave: importar la función sería un ciclo.
@@ -280,10 +280,15 @@ export async function procesar({
       parado = `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: no se escribe nada`
       break
     }
+    // Dos entradas suyas con el mismo producto son dos VERSIONES de la misma
+    // carta (806): el precio es el de la principal, no el de la que llegue
+    // primero (la Reverse Holo del Snorlax ponía 90 € a la normal).
     const porProducto = new Map()
     for (const s of suyas) {
       const id = Number(s.cardmarket_id)
-      if (Number.isInteger(id) && id > 0 && !porProducto.has(id)) porProducto.set(id, s)
+      if (!Number.isInteger(id) || id <= 0) continue
+      const ya = porProducto.get(id)
+      if (!ya || esMasPrincipal(s, ya)) porProducto.set(id, s)
     }
     // Nuestras cartas de los sets que cuelgan de esta expansión.
     const sets = mapa.get(idEpisodio) || []

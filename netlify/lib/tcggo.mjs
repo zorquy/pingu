@@ -192,6 +192,47 @@ export function esCartaSuelta(c) {
   return !c?.type || String(c.type).toLowerCase() === 'singles'
 }
 
+// LAS VERSIONES DE UNA CARTA (806). TCGGO ha empezado a dar cada impresión
+// como una carta aparte: la Reverse Holo del Snorlax de Plasma Storm es la
+// 43552 y la normal la 12774 — mismo número, mismo nombre, el MISMO
+// `cardmarket_id`, sin foto ni ataques, y NINGÚN campo que diga qué versión
+// es (PINGU pasó las dos fichas). Sin esto, el catálogo creaba la segunda
+// como carta nueva («tcggo-43552», un Snorlax duplicado) y los precios se
+// quedaban con la primera que llegara, que podía ser la de la Reverse.
+// Hasta saber cuál es cuál, la carta es UNA: la principal es la que trae
+// foto, luego la que trae ataques o habilidades, y luego la de id más bajo
+// (la que existía antes de las versiones). Las demás se devuelven aparte.
+export function esMasPrincipal(a, b) {
+  const foto = (c) => (typeof c?.image === 'string' && c.image ? 1 : 0)
+  const juego = (c) => ((Array.isArray(c?.attacks) && c.attacks.length) || (Array.isArray(c?.abilities) && c.abilities.length) ? 1 : 0)
+  if (foto(a) !== foto(b)) return foto(a) > foto(b)
+  if (juego(a) !== juego(b)) return juego(a) > juego(b)
+  return Number(a?.id) < Number(b?.id)
+}
+
+export function separarVersiones(suyas) {
+  const grupos = new Map()
+  const sueltas = []
+  for (const s of suyas || []) {
+    // Una versión es la MISMA carta en Cardmarket (mismo producto): una
+    // sello de staff o de presentación lleva producto propio y es otra.
+    const numero = String(s?.card_number ?? '').trim()
+    const nombre = nombreComparable(s?.name)
+    const producto = Number(s?.cardmarket_id)
+    if (!numero || !nombre || !Number.isInteger(producto) || producto <= 0) { sueltas.push(s); continue }
+    const k = `${numero}#${nombre}#${producto}`
+    grupos.set(k, (grupos.get(k) || []).concat([s]))
+  }
+  const principales = [...sueltas]
+  const versiones = []
+  for (const g of grupos.values()) {
+    const [p, ...resto] = [...g].sort((a, b) => (esMasPrincipal(a, b) ? -1 : esMasPrincipal(b, a) ? 1 : 0))
+    principales.push(p)
+    for (const v of resto) versiones.push({ de: p.id, id: v.id, numero: p.card_number, nombre: p.name })
+  }
+  return { principales, versiones }
+}
+
 export function emparejarPorNumero(cartas, todasSuyas, { setId = '' } = {}) {
   const suyas = (todasSuyas || []).filter(esCartaSuelta)
   const pares = []

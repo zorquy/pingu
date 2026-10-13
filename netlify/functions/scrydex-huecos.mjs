@@ -82,6 +82,12 @@ export const MAXIMO_SUELTAS = 200
 // expansión suya que no casa es casi siempre la misma con otro nombre:
 // ahí solo se apunta.
 export const MERCADOS_QUE_SE_CREAN = ['JP']
+// Desde la 806 el JAPONÉS no pasa por aquí: sale entero de TCGGO
+// (tcggo-calco-jp, vuelta 2), que ya tiene hasta el Expansion Pack, y
+// rellenar o desesconder un set suyo desde Scrydex volvería a meter lo que
+// la vuelta entera esconde. La lógica japonesa se queda para las pruebas,
+// que pasan `mercados` a mano.
+export const MERCADOS_DE_LA_PASADA = ['WEST']
 export const MAXIMO_CREADOS_POR_PASADA = 10
 
 // La expansión de la lista que nombra una entrada de CREAR_SETS: por id, o
@@ -172,7 +178,7 @@ const esDeSuscripcion = (status) => status === 401 || status === 403 || status =
 // ── La pasada ──
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null,
-  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), mercados = ['JP', 'WEST'], crear = CREAR_SETS,
+  ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), mercados = MERCADOS_DE_LA_PASADA, crear = CREAR_SETS,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }

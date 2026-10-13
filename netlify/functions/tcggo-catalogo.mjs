@@ -42,7 +42,7 @@
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS,
-  emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta,
+  emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta, separarVersiones,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 
@@ -292,6 +292,12 @@ export async function procesar({
         pagina++
       }
       if (!completo) break
+      // Las versiones de una carta (806) cuentan como UNA: sin esto la
+      // Reverse Holo entraba como carta nueva al lado de la normal.
+      const { principales, versiones } = separarVersiones(suyas)
+      suyas.length = 0
+      suyas.push(...principales)
+      if (versiones.length) estado.versiones = { ...(estado.versiones || {}), [`${mercado}:${episodio.id}`]: versiones.length }
       // A qué set nuestro van: el emparejado, o el que case por código /
       // nombre, o uno nuevo.
       let destinos = setsPorEpisodio.get(episodio.id) || []

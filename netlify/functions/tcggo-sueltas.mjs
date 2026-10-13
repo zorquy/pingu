@@ -29,7 +29,7 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_PAUSA_MS.
-import { cabeceras, baseDe, esCartaSuelta, esLimiteDelPlan, nombreComparable, filaDeCartaTcggo } from '../lib/tcggo.mjs'
+import { cabeceras, baseDe, esCartaSuelta, esLimiteDelPlan, nombreComparable, filaDeCartaTcggo, separarVersiones } from '../lib/tcggo.mjs'
 import { cabecerasDe as cabecerasScrydex, urlDeSonda, baseDeFoto, precioDeScrydex } from '../lib/scrydex.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -82,7 +82,8 @@ export function laUnica(respuesta, nombre) {
   const paginas = Number(respuesta?.paging?.total ?? 1)
   if (total > MAXIMO_RESULTADOS || paginas > 1) return { carta: null, motivo: `TCGGO devuelve ${total || `${paginas} páginas de`} cartas para ese nombre: no se elige ninguna` }
   const k = nombreComparable(nombre)
-  const sueltas = lista.filter((c) => esCartaSuelta(c) && nombreComparable(c?.name) === k)
+  // Las versiones de una misma carta (806) cuentan como una.
+  const sueltas = separarVersiones(lista.filter((c) => esCartaSuelta(c) && nombreComparable(c?.name) === k)).principales
   if (sueltas.length === 1) return { carta: sueltas[0] }
   return { carta: null, motivo: sueltas.length ? `TCGGO tiene ${sueltas.length} cartas con ese nombre` : lista.length ? 'TCGGO devuelve cartas, pero ninguna con ese nombre exacto' : 'TCGGO no devuelve nada' }
 }

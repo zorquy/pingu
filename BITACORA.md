@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (54) — PINGU-Claude (806 — el japonés, entero de TCGGO, y las versiones de una carta)
+
+**Hecho**: PINGU: TCGGO ya tiene todo el japonés (hasta 1996), «sustitúyelo
+todo y cógelo de la API». El calco japonés empieza la VUELTA 2: rehace cada
+expansión entera desde TCGGO (cartas, números, fotos, Cardmarket y precio),
+recolocando lo que tiene la gente por número; lo dudoso se crea; al final
+se esconden los sets japoneses que no son de TCGGO. Retirados el espejo
+occidental y el japonés de scrydex-huecos. Y las VERSIONES: TCGGO da la
+Reverse Holo como otra carta con el mismo número y el mismo id de
+Cardmarket; el catálogo la habría creado duplicada y los precios podían
+coger el de la Reverse. Ahora es una carta (la principal) en todas las
+pasadas.
+
+**Ficheros**: `netlify/functions/tcggo-calco-jp.mjs`,
+`netlify/functions/tcggo-reemplazar-set.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`netlify/functions/tcggo-catalogo.mjs`, `netlify/functions/tcggo-sueltas.mjs`,
+`netlify/functions/precios-espejo.mjs`, `netlify/functions/scrydex-huecos.mjs`,
+`netlify/lib/tcggo.mjs`, `admin/js/admin.js`, `SCHEMA.md`, `CLAUDE.md`.
+Prueba nueva 806; 674, 684, 686, 755 al día.
+
+**Pendiente**: el campo que dice qué versión es cada entrada de TCGGO (lo
+mira PINGU) para enseñar la Reverse con su precio. Los duplicados de
+versiones que el catálogo occidental haya creado ya («tcggo-…» con el mismo
+número y producto que otra) no se han borrado: hace falta el mismo campo.
+
 ## 2026-10-13 (53) — PINGU-Claude (805 — el informe de seguridad de Luisfe)
 
 **Hecho**: revisado el informe que le mandaron a PINGU. Real y arreglado:

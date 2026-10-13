@@ -39436,3 +39436,52 @@ Queda abierto: la racha (`current_streak`, `last_active_date`,
 `streak_shields`) la sigue escribiendo el navegador. La migración termina
 enseñando las políticas de `user_profiles`, que se pusieron a mano y no
 están en ninguna migración.
+
+## Tanda 806 — El japonés, entero de TCGGO, y las versiones de una carta
+
+**El catálogo japonés.** PINGU: «TCGGO ha metido TODOS los sets japoneses que
+faltaban, con sus cartas, sus precios y todo —hasta las Miscellaneous Promos
+de 1996, Expansion Pack, Jungle, Rocket—; sustituye todos los sets que
+tenemos y coge el japonés siempre de la API». Lo que había: el calco (674,
+755) conservaba nuestras cartas de Scrydex y les ponía el id de Cardmarket de
+TCGGO, pero `tcggo_guardar_cartas` NO pisa un `cm_id_product_propio` que ya
+hubiera (el del emparejamiento de la 587), el espejo (686) había dejado en
+`tcg_card_prices` el enlace de la gemela occidental, y lo que una vez quedó
+«hecho» no se volvía a mirar.
+
+- `tcggo-calco-jp`, **vuelta 2** (`VUELTA`; `pasada({ vuelta })` para las
+  pruebas): el estado se reinicia (lo de antes, resumido en `vueltas`), se
+  pide la lista de hoy y TODAS las expansiones se rehacen con `procesar` en
+  el modo **entero**: toda carta entra como la tiene TCGGO («tcggo-<id>»,
+  número, foto, inglés, Cardmarket; el precio, con `tcggo-precios`), y lo
+  nuestro del set se va con su precio y su histórico.
+- Lo que alguien tiene se recoloca por `tcggo_id`, por **NÚMERO**
+  (`recolocarPorNumero`: nuestras cartas de Scrydex se llaman en japonés, y
+  el entero de antes las casaba por nombre — habría borrado sus líneas) y por
+  nombre; con `borrarSinDestino: false`, una carta con dueño sin pareja se
+  QUEDA y se apunta (`seQuedan`). Elegido por la huella, se comprueba antes
+  que es la misma expansión (`noEsLaMisma`), también en el entero.
+- Los sets nuestros con el MISMO `tcggo_id` se juntan en el destino
+  (`mismaExpansion`: lo dice TCGGO, no se compara el nombre).
+- Un empate de la huella ya no deja la expansión fuera: se CREA la de TCGGO
+  (`dudosos[id].creada`). En la vuelta entera no se funde nada.
+- Con todas hechas, se **esconden** los sets japoneses sin `tcggo_id`
+  (veinte por pasada, `escondidosAlFinal`). Esconder y no borrar.
+- `precios-espejo` está **retirado** (`RETIRADO`) y `scrydex-huecos` ya no
+  pasa por el japonés (`MERCADOS_DE_LA_PASADA = ['WEST']`); las importaciones
+  de TCGdex ya lo saltaban (`esDeTcggo('JP')`).
+- /admin enseña la vuelta, lo recolocado, lo que se quedó y lo escondido.
+
+**Las versiones de una carta.** PINGU pasó las dos fichas del Snorlax de
+Plasma Storm: la normal (12774) y la Reverse Holo (43552) tienen el mismo
+número, el mismo nombre y el MISMO `cardmarket_id` (280841); la Reverse llega
+sin foto ni ataques y **ningún campo dice qué versión es**. Sin saberlo, el
+catálogo creaba la segunda como carta nueva («tcggo-43552», un Snorlax
+duplicado) y `tcggo-precios` se quedaba con la primera que llegara por
+producto, que podía ser la Reverse (90 € a la normal). Desde aquí la carta es
+UNA (`separarVersiones` / `esMasPrincipal` en `netlify/lib/tcggo.mjs`: foto,
+luego ataques o habilidades, luego el id más bajo) en el catálogo, los
+precios, `procesar` y las sueltas; las demás se cuentan (`versiones`).
+Integrar las versiones con su precio (la Reverse en la ficha, en «variantes
+separadas» y en el desplegable de añadir) necesita saber cuál es cuál: falta
+el campo, y lo tiene que mirar PINGU en su playground.

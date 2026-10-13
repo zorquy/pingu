@@ -57,7 +57,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY; opcionales
 // TCGGO_BASE y TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos,
+  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos, separarVersiones,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
@@ -137,7 +137,12 @@ const idDeSet = (s) => String(s || '').trim()
 // y tenga alguna suya del mismo nombre va a la del número más cercano
 // (666: PINGU quiere el set entero de TCGGO y nada nuestro dentro).
 // Devuelve un mapa id viejo → id nuevo.
-export function equivalencias(viejas, nuevas, { aproximar = false } = {}) {
+//
+// `previas` (806): equivalencias ya decididas por otra vía —el NÚMERO, en el
+// japonés entero, donde nuestras cartas de Scrydex se llaman en japonés y
+// por el nombre no casarían nunca—; van después del `tcggo_id` y antes que
+// el nombre.
+export function equivalencias(viejas, nuevas, { aproximar = false, previas = [] } = {}) {
   const cuenta = (xs, clave) => {
     const m = new Map()
     for (const x of xs) { const k = clave(x); if (k) m.set(k, (m.get(k) || []).concat([x])) }
@@ -150,6 +155,12 @@ export function equivalencias(viejas, nuevas, { aproximar = false } = {}) {
   for (const v of viejas) {
     const n = Number.isInteger(v.tcggo_id) ? porTcggo.get(v.tcggo_id) : null
     if (n && n.id !== v.id) resultado.set(v.id, { a: n.id, por: 'tcggo_id' })
+  }
+  const ocupadas = new Set([...resultado.values()].map((e) => e.a))
+  for (const p of previas) {
+    if (!p?.de || !p?.a || p.de === p.a || resultado.has(p.de) || ocupadas.has(p.a)) continue
+    resultado.set(p.de, { a: p.a, por: p.por || 'numero' })
+    ocupadas.add(p.a)
   }
   for (const [clave, rotulo] of [[nombreDe, 'nombre'], [nombreYNumero, 'nombre+numero']]) {
     const porViejo = cuenta(viejas.filter((v) => !resultado.has(v.id)), clave)
@@ -245,6 +256,13 @@ export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null,
   sets = [], episodio = null, destino = null, mercado = 'WEST', entero = false,
   conservarPorNumero = false, comprobarQueEsLaMisma = false,
+  // El japonés entero (806): en el modo entero, lo que la gente tiene se
+  // recoloca también por NÚMERO, y una carta con dueño que no tenga a dónde
+  // ir se QUEDA (no se borra con sus líneas, como en el 30 aniversario).
+  // `mismaExpansion`: los otros sets llevan el mismo `tcggo_id` que el
+  // destino, así que es TCGGO quien dice que son la misma expansión y no
+  // se comprueba por el nombre (en japonés no casaría).
+  recolocarPorNumero = false, borrarSinDestino = entero, mismaExpansion = false,
   reloj = () => Date.now(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -291,6 +309,10 @@ export async function procesar({
     pagina++
   }
   if (!suyas.length) return { ok: false, peticiones, error: `TCGGO no da ninguna carta en la expansión ${idEpisodio}: no se reemplaza nada por nada.` }
+  // Las versiones de una carta (806) son UNA carta: la principal.
+  const { principales, versiones } = separarVersiones(suyas)
+  suyas.length = 0
+  suyas.push(...principales)
 
   // ── 2. Lo nuestro ──
   let nuestras
@@ -310,15 +332,19 @@ export async function procesar({
   if (!entero) for (const c of nuestras) if (c.set_id === setDestino && Number.isInteger(c.tcggo_id)) porTcggoId.set(c.tcggo_id, c)
   // Y con `conservarPorNumero` (755), las del destino sin su id, por número.
   let porNumero = []
-  if (conservarPorNumero && !entero) {
+  let paresDelDestino = []
+  if ((conservarPorNumero && !entero) || (entero && (recolocarPorNumero || comprobarQueEsLaMisma))) {
     const yaCasadas = new Set([...porTcggoId.values()].map((c) => c.id))
     const delDestino = nuestras.filter((c) => c.set_id === setDestino && !yaCasadas.has(c.id))
-    porNumero = paresPorNumero(delDestino, suyas.filter((s) => !porTcggoId.has(s.id)))
+    paresDelDestino = paresPorNumero(delDestino, suyas.filter((s) => !porTcggoId.has(s.id)))
     if (comprobarQueEsLaMisma) {
-      const motivo = noEsLaMisma(delDestino, porNumero)
+      const motivo = noEsLaMisma(delDestino, paresDelDestino)
       if (motivo) return { ok: false, peticiones, noEsLaMisma: true, error: `«${setDestino}» no parece la expansión ${idEpisodio}: ${motivo}. No se ha tocado nada.` }
     }
-    for (const p of porNumero) porTcggoId.set(p.suya.id, p.nuestra)
+    if (!entero) {
+      porNumero = paresDelDestino
+      for (const p of porNumero) porTcggoId.set(p.suya.id, p.nuestra)
+    }
   }
   const filas = []
   const conservadas = []
@@ -329,13 +355,16 @@ export async function procesar({
   }
   const idsNuevos = new Set(filas.map((f) => f.id))
   const seVan = nuestras.filter((c) => !idsNuevos.has(c.id))
-  if (entero) {
+  if (entero && !mismaExpansion) {
     const fuera = setsQueNoCubre(nuestras.filter((c) => c.set_id !== setDestino), suyas)
     if (fuera.length) return { ok: false, peticiones, error: `TCGGO no trae las cartas de ${fuera.map((f) => `«${f.set}» (${f.conNombre} de ${f.cartas} con una suya del mismo nombre)`).join(', ')}: no es la misma expansión y no se reemplaza nada.` }
   }
 
   // ── 4. Lo que la gente tiene apuntado de las que se van ──
-  const equiv = equivalencias(seVan, filas, { aproximar: entero })
+  // En el entero, el número: la suya de cada par va como «tcggo-<id>».
+  const filaDeSuya = new Map(suyas.map((s, i) => [s.id, filas[i].id]))
+  const previas = entero && recolocarPorNumero ? paresDelDestino.map((p) => ({ de: p.nuestra.id, a: filaDeSuya.get(p.suya.id), por: 'numero' })) : []
+  const equiv = equivalencias(seVan, filas, { aproximar: entero, previas })
   const idsQueSeVan = seVan.map((c) => c.id)
   const traer = async (tabla, columnas) => (idsQueSeVan.length ? (await pedir(`${tabla}?select=${columnas}&card_id=in.(${lista(idsQueSeVan)})&limit=10000`)) || [] : [])
   let lineas
@@ -357,10 +386,10 @@ export async function procesar({
   // escritas en el resumen (quién, qué, cuántas): se borra, pero no en
   // silencio.
   const conLineas = new Set([...lineas, ...deseos].map((l) => l.card_id))
-  const seQuedan = entero ? [] : seVan.filter((c) => conLineas.has(c.id) && !equiv.has(c.id))
+  const seQuedan = borrarSinDestino ? [] : seVan.filter((c) => conLineas.has(c.id) && !equiv.has(c.id))
   const seBorran = seVan.filter((c) => !seQuedan.some((q) => q.id === c.id))
   const nombreDe = (id) => { const c = seVan.find((x) => x.id === id); return c ? c.name_en || c.name : id }
-  const lineasSinDestino = entero ? [...lineas.map((l) => ({ ...l, tabla: 'user_collection' })), ...deseos.map((l) => ({ ...l, tabla: 'user_wants' }))].filter((l) => !equiv.has(l.card_id)).map((l) => ({ tabla: l.tabla, id: l.id, usuario: l.user_id || null, carta: l.card_id, nombre: nombreDe(l.card_id), copias: l.cantidad ?? null })) : []
+  const lineasSinDestino = borrarSinDestino ? [...lineas.map((l) => ({ ...l, tabla: 'user_collection' })), ...deseos.map((l) => ({ ...l, tabla: 'user_wants' }))].filter((l) => !equiv.has(l.card_id)).map((l) => ({ tabla: l.tabla, id: l.id, usuario: l.user_id || null, carta: l.card_id, nombre: nombreDe(l.card_id), copias: l.cantidad ?? null })) : []
 
   // ── Escribir, en el orden que no deja nada colgando ──
   let escritas = 0
@@ -444,7 +473,7 @@ export async function procesar({
 
   return {
     ok: true, mercado, episodio: idEpisodio, destino: setDestino, sets: idsSets, peticiones, entero,
-    suyas: suyas.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
+    suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
     seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
