@@ -251,8 +251,14 @@ console.log('\n── 4. El punto de corte de la barra se MIDE ──')
   await p2.addInitScript(() => { window.__FAKE_SESSION__ = 'user-1' })
   await p2.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await p2.waitForTimeout(2200)
-  const logo = await p2.evaluate(() => Math.round(document.querySelector('.nav-logo').getBoundingClientRect().width))
-  check('justo en el corte, el logo no se aplasta', logo >= 120, `${logo} px`)
+  // Aplastado = más estrecho que lo que lleva dentro. Hasta la 804 se pedían
+  // 120 px a pelo, pero 12 de ellos eran un hueco que no debía estar (el
+  // `gap` caía entre «Poke» y «Doc»); sin él, el logo entero mide 114.
+  const logo = await p2.evaluate(() => {
+    const l = document.querySelector('.nav-logo')
+    return { ancho: Math.round(l.getBoundingClientRect().width), contenido: l.scrollWidth }
+  })
+  check('justo en el corte, el logo no se aplasta', logo.ancho >= 100 && logo.ancho >= logo.contenido - 1, JSON.stringify(logo))
   await p2.close()
 }
 

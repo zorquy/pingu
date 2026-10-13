@@ -544,14 +544,15 @@ console.log('── 10. El foro de su maqueta (J1) ──')
   await page.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
   const vis = (s) => page.locator(s).first().isVisible().catch(() => false)
+  // Desde la 804 el índice es el de secciones y foros: la fila del foro
+  // dice cuál fue su último tema; la franja de lo que se habla vuelve.
   const fila = await page.evaluate(() => {
-    const f = document.querySelector('.foro-conv[href*="tema-1"]')
-    const t = (s) => (f?.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim()
-    return { foro: t('.foro-conv-foro'), titulo: t('.foro-conv-titulo'), trozo: t('.foro-conv-trozo'), resp: t('.foro-conv-resp'), punto: !!f?.querySelector('.foro-conv-punto') }
+    const f = [...document.querySelectorAll('.foro-fila')].find((x) => /Dudas de reglas/.test(x.textContent))
+    return { texto: (f?.textContent || '').replace(/\s+/g, ' ').trim(), visible: !!f && f.getBoundingClientRect().height > 0 }
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la fila: de qué foro, el título, quién dijo lo último y cuántas respuestas', fila.foro === 'Dudas de reglas' && /Pikachu/.test(fila.titulo) && /: Es una H, así que sí\./.test(fila.trozo) && fila.resp === '2' && fila.punto, JSON.stringify(fila))
-  check('arriba solo «Foro», «Leído» y la lupa: sin subtítulo, sin franja y sin buscador a la vista', !(await vis('#foroSubtitulo')) && !(await vis('#foroDestacado')) && !(await vis('#foroBuscadorTexto')) && (await vis('#foroLupa')))
+  check('la fila del foro, con su último tema', fila.visible && /Pikachu/.test(fila.texto), JSON.stringify(fila))
+  check('arriba «Foro», «Leído» y la lupa, sin subtítulo ni buscador a la vista; la franja, sí (804)', !(await vis('#foroSubtitulo')) && (await vis('#foroDestacado .foro-calientes')) && !(await vis('#foroBuscadorTexto')) && (await vis('#foroLupa')))
   await page.click('#foroLupa')
   await page.waitForTimeout(200)
   check('  …y la lupa saca el buscador', await vis('#foroBuscadorTexto'))

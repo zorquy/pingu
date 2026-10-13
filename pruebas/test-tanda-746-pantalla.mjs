@@ -2,13 +2,12 @@
 // propuestas, elegidas por PINGU).
 //
 // Lo que se mira:
-//   · lo puro: el trozo de un mensaje sin etiquetas ni citas, el último por
-//     tema y lo que deja pasar cada chip;
-//   · el índice: arriba, «Conversaciones» con los hilos de todos los foros,
-//     el punto en lo que no has leído (y el enlace a lo nuevo), quién
-//     escribió lo último y un trozo; los chips «Todo», «Para ti»,
-//     «Siguiendo» y uno por foro, que filtran; sin cuenta no hay «Para ti»
-//     ni «Siguiendo»; el índice de siempre sigue debajo;
+//   · lo puro: el trozo de un mensaje sin etiquetas ni citas y el último
+//     por tema;
+//   · la lista de temas de un foro, como conversaciones (desde la 804; en
+//     la 746 era una lista aparte encima del índice, con chips): el punto
+//     en lo que no has leído (y el enlace a lo nuevo), quién escribió lo
+//     último y un trozo;
 //   · el tema: cada mensaje es una burbuja, los tuyos a la derecha con otro
 //     fondo; la caja de responder se queda abajo al bajar y, en el móvil,
 //     encima de la barra sin que asome nada entre las dos.
@@ -61,73 +60,46 @@ async function abrir(ruta, { sesion = 'admin-1', movil = false } = {}) {
   await page.waitForTimeout(2800)
   return { page, ctx, errores }
 }
-const filas = (page) => page.$$eval('#foroConversaciones .foro-conv', (as) => as.map((a) => ({ t: a.querySelector('b')?.textContent, href: a.getAttribute('href'), nueva: a.classList.contains('foro-conv-nueva'), punto: !!a.querySelector('.foro-conv-punto'), foro: a.querySelector('.foro-conv-foro')?.textContent, trozo: a.querySelector('.foro-conv-trozo')?.textContent, alto: a.getBoundingClientRect().height })))
+// Desde la 804 la forma de conversación la lleva la lista de temas de CADA
+// foro (el índice volvió a ser el de secciones): las filas se miran ahí.
+const filas = (page) => page.$$eval('.foro-tema-conv', (fs) => fs.map((f) => ({ t: f.querySelector('h3')?.textContent.trim(), href: f.querySelector('h3 a')?.getAttribute('href'), nueva: f.classList.contains('foro-tema-nuevo'), punto: !!f.querySelector('.foro-conv-punto'), trozo: f.querySelector('.foro-conv-trozo')?.textContent.trim(), alto: f.getBoundingClientRect().height })))
 
 console.log('── 1. Lo puro ──')
 {
   // En el navegador: el módulo cuelga de app.js, que no se deja importar en Node.
   const { page, ctx } = await abrir('/foro')
   const r = await page.evaluate(async () => {
-    const { fragmento, filtrar, ultimosPorTema } = await import('/js/foro-conversaciones.js')
-    const temas = [{ id: 'a', board_id: 'f1', author_id: 'yo' }, { id: 'b', board_id: 'f2', author_id: 'otro' }, { id: 'c', board_id: 'f1', author_id: 'otro' }]
-    const mios = new Set(['b'])
-    mios.yo = 'yo'
-    const ids = (l) => l.map((t) => t.id).join(',')
+    const { fragmento, ultimosPorTema } = await import('/js/foro-conversaciones.js')
     const u = ultimosPorTema([{ thread_id: 't1', id: 'nuevo' }, { thread_id: 't2', id: 'b' }, { thread_id: 't1', id: 'viejo' }])
     return {
       trozo: fragmento('<blockquote>lo de antes</blockquote><p>Hola &amp; <b>adiós</b></p>'),
       corto: fragmento('a'.repeat(200), 20),
       ultimo: u.get('t1').id, cuantos: u.size,
-      paraTi: ids(filtrar(temas, 'para-ti', { mios })),
-      sigo: ids(filtrar(temas, 'siguiendo', { sigo: new Set(['c']) })),
-      foro: ids(filtrar(temas, 'foro:f1')),
-      todo: ids(filtrar(temas, 'todo')),
     }
   })
   check('el trozo quita etiquetas, citas y entidades', r.trozo === 'Hola & adiós', r.trozo)
   check('  …y recorta con puntos suspensivos', r.corto.length === 20 && r.corto.endsWith('…'))
   check('el último de cada tema es el primero que llega', r.ultimo === 'nuevo' && r.cuantos === 2)
-  check('«Para ti»: donde escribiste o que abriste tú', r.paraTi === 'a,b')
-  check('«Siguiendo» y por foro', r.sigo === 'c' && r.foro === 'a,c' && r.todo === 'a,b,c')
   await ctx.close()
 }
 
-console.log('── 2. El índice, con cuenta ──')
+console.log('── 2. Los temas de un foro, como conversaciones (804) ──')
 {
-  const { page, ctx, errores } = await abrir('/foro')
+  const { page, ctx, errores } = await abrir('/foro?f=dudas')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const f = await filas(page)
-  check('arriba, las conversaciones de todos los foros, la más reciente primero', f.map((x) => x.t).join('|') === '¿Esta Pikachu es legal?|Cambio Charizard|Duda con Boss', JSON.stringify(f.map((x) => x.t)))
-  const orden = await page.evaluate(() => {
-    const c = document.getElementById('foroConversaciones')
-    const resto = [...document.querySelectorAll('#foroPrincipal > *, main section')].find((s) => s !== c && !c.contains(s) && s.getBoundingClientRect().height > 0 && c.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING)
-    return { titulo: c.querySelector('h2')?.textContent, indiceDebajo: !!resto, foros: /Dudas de reglas/.test(document.body.innerText) && /Mercadillo/.test(document.body.innerText) }
-  })
-  check('  …con su título, y el índice de siempre debajo', orden.titulo === 'Conversaciones' && orden.indiceDebajo && orden.foros, JSON.stringify(orden))
-  check('lo no leído lleva punto y va a lo nuevo; lo leído no', f[0].punto && f[0].nueva && /\?nuevo=1$/.test(f[0].href) && !f[1].punto && !/nuevo/.test(f[1].href), JSON.stringify(f.slice(0, 2)))
-  check('cada fila dice de qué foro es y quién dijo qué (sin la cita)', f[0].foro === 'Dudas de reglas' && f[1].foro === 'Mercadillo' && f[0].trozo === 'Misty: Es de una promo vieja', JSON.stringify(f[0]))
+  check('los temas de ESE foro, el más reciente primero', f.map((x) => x.t).join('|') === '¿Esta Pikachu es legal?|Duda con Boss', JSON.stringify(f.map((x) => x.t)))
+  check('lo no leído lleva punto y va a lo nuevo', f[0].punto && f[0].nueva && /\?nuevo=1$/.test(f[0].href), JSON.stringify(f[0]))
+  check('quién dijo lo último y qué (sin la cita)', f[0].trozo === 'Misty: Es de una promo vieja', f[0].trozo)
   check('las filas se pulsan con 44 o más', f.every((x) => x.alto >= 44))
-  check('una fila es UN enlace (sin enlaces dentro)', await page.$$eval('#foroConversaciones .foro-conv', (as) => as.every((a) => !a.querySelector('a'))))
-  const chips = await page.$$eval('#foroConversaciones [data-conv-filtro]', (bs) => bs.map((b) => `${b.textContent}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`))
-  check('chips: Todo (puesto), Para ti, Siguiendo y uno por foro', chips.join('|') === 'Todo*|Para ti|Siguiendo|Dudas de reglas|Mercadillo', chips.join('|'))
-  const pulsar = async (txt) => {
-    await page.click(`#foroConversaciones [data-conv-filtro]:text-is("${txt}")`)
-    await page.waitForTimeout(150)
-    return (await filas(page)).map((x) => x.t).join('|')
-  }
-  check('«Para ti»: donde has escrito', (await pulsar('Para ti')) === '¿Esta Pikachu es legal?|Cambio Charizard')
-  check('  …y el chip queda marcado', (await page.getAttribute('#foroConversaciones [data-conv-filtro="para-ti"]', 'aria-pressed')) === 'true')
-  check('«Siguiendo»: lo que sigues', (await pulsar('Siguiendo')) === 'Duda con Boss')
-  check('un foro: solo los suyos', (await pulsar('Mercadillo')) === 'Cambio Charizard')
-  check('«Todo» vuelve a enseñarlo todo', (await pulsar('Todo')).split('|').length === 3)
   await ctx.close()
 }
 
-console.log('── 3. El índice, sin cuenta ──')
+console.log('── 3. Sin cuenta ──')
 {
-  const { page, ctx, errores } = await abrir('/foro', { sesion: 'none' })
-  const chips = await page.$$eval('#foroConversaciones [data-conv-filtro]', (bs) => bs.map((b) => b.textContent))
-  check('salen las conversaciones, sin «Para ti» ni «Siguiendo» y sin puntos', errores.length === 0 && (await filas(page)).length === 3 && !chips.includes('Para ti') && !chips.includes('Siguiendo') && !(await filas(page)).some((x) => x.punto), chips.join('|') + errores.join(' | '))
+  const { page, ctx, errores } = await abrir('/foro?f=dudas', { sesion: 'none' })
+  const f = await filas(page)
+  check('salen los temas, sin puntos de no leído', errores.length === 0 && f.length === 2 && !f.some((x) => x.punto), errores.join(' | '))
   await ctx.close()
 }
 
