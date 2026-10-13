@@ -19,7 +19,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== ASSETS && k !== LECTURA).map((k) => caches.delete(k))))
       .catch(() => {})
       .then(() => self.clients.claim())
   )
@@ -61,6 +61,39 @@ async function revisar(peticion, cache, guardada) {
   return fresca
 }
 
+// LAS PÁGINAS DE LEER (819, VE4): una guía o una noticia ya leída se abre
+// aunque la red vaya mal. Red primero; si en dos segundos y medio no ha
+// contestado y hay copia de la última vez, la copia (y la red sigue por
+// detrás para la siguiente). Sin copia se espera a la red, como siempre: un
+// fallo de red sin copia es la página «Sin conexión». El texto del artículo
+// viene ya en el HTML (lo pinta meta-social en el servidor), así que la copia
+// se lee. Se guardan las últimas MAX_LECTURA, no todas.
+const LECTURA = 'pokedoc-lectura-1'
+const MAX_LECTURA = 30
+const ESPERA_LECTURA_MS = 2500
+const esDeLeer = (url) => url.origin === self.location.origin && /^\/(guia|noticias)\/[^/]+$/.test(url.pathname)
+
+async function guardarLectura(req, r) {
+  // Una respuesta que viene de una redirección no sirve para una navegación.
+  if (!r.ok || r.redirected) return
+  const cache = await caches.open(LECTURA)
+  await cache.put(req, r)
+  const claves = await cache.keys()
+  for (const k of claves.slice(0, Math.max(0, claves.length - MAX_LECTURA))) await cache.delete(k)
+}
+
+async function paginaDeLeer(req, e) {
+  const red = fetch(req).then((r) => {
+    e.waitUntil(guardarLectura(req, r.clone()).catch(() => {}))
+    return r
+  })
+  const copia = await caches.match(req, { cacheName: LECTURA })
+  if (!copia) return red.catch(async () => (await caches.match(PAGINA)) || Response.error())
+  const tarde = new Promise((ok) => setTimeout(() => ok(null), ESPERA_LECTURA_MS))
+  e.waitUntil(red.catch(() => {}))
+  return (await Promise.race([red.catch(() => null), tarde])) || copia
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request
   if (req.mode === 'navigate') {
@@ -72,6 +105,10 @@ self.addEventListener('fetch', (e) => {
           .then(async (r) => { if (r.ok) await (await caches.open(CACHE)).put('/feria', r.clone()); return r })
           .catch(async () => (await caches.match('/feria')) || (await caches.match(PAGINA)) || Response.error())
       )
+      return
+    }
+    if (esDeLeer(new URL(req.url))) {
+      e.respondWith(paginaDeLeer(req, e))
       return
     }
     e.respondWith(fetch(req).catch(async () => (await caches.match(PAGINA)) || Response.error()))

@@ -426,6 +426,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   burbuja sale solo en las páginas de la lista de la sección, no en una
   ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
+- **La estantería de sets sale de la CDN** (tanda 813): `setsDelCatalogo`
+  (`js/sets-catalogo.js`) pide `/.netlify/functions/sets` y cae a Supabase.
+  Una columna nueva de la estantería va en LOS DOS (`COLUMNAS`), y lo que lea
+  `todosLosSets` al abrir una pantalla por su dirección tiene que esperar a
+  `cargarSets()`: ahora llega más tarde (la 748 lo cazó). Y el semáforo de
+  /admin (`admin/js/semaforo.js`, 817) es la lista de claves de estado de
+  TCGGO: una pasada nueva va en `PASADAS`.
 - **Supabase corta TODA respuesta a 1.000 filas, sin error** (tanda 808).
   La estantería de Productos contaba con `.select('episode_id').limit(10000)`
   y recibía 1.000: solo salían las expansiones de esas filas («hasta Stellar

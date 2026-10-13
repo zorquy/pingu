@@ -708,6 +708,8 @@ export async function initNavbar() {
       .catch(() => {})
   }
   import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
+  // La velocidad de verdad (SCHEMA 821): una visita de cada cuatro.
+  import('./vitales.js').then((m) => m.medirVitales()).catch(() => {})
   // El latido de "usuarios en línea" (js/en-linea.js). Igual que la
   // visita: sin esperar, y si falla no toca nada.
   import('./en-linea.js').then(({ latidoEnLinea }) => latidoEnLinea()).catch(() => {})

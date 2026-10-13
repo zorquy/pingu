@@ -12,6 +12,8 @@ import { contentIconHtml, inlineIconHtml } from '../../js/content-icon.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
+import { PASADAS, semaforoDe } from './semaforo.js'
+import { notaDeVital } from '../../js/vitales.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
@@ -1818,6 +1820,27 @@ function dayKey(d) {
   return new Date(d).toISOString().slice(0, 10)
 }
 
+// Lo que tarda DE VERDAD cada página (821): el p75 de LCP, INP y CLS de
+// las visitas medidas, con el color de los umbrales de Google (bueno / a
+// mejorar / malo). Lo cuenta la base (`vitales_resumen`).
+async function pintarVitales(days) {
+  const caja = document.getElementById('analyticsVitales')
+  if (!caja) return
+  const { data, error } = await supabase.rpc('vitales_resumen', { p_dias: days })
+  if (error) {
+    caja.innerHTML = `<p class="admin-note">No se puede leer: ${escapeHtml(error.message)}. ¿Falta ejecutar <code>supabase-migration-vitales.sql</code>?</p>`
+    return
+  }
+  if (!data?.length) {
+    caja.innerHTML = '<p class="empty-state">Todavía no hay medidas: se apunta una visita de cada cuatro, al salir de la página.</p>'
+    return
+  }
+  const celda = (tipo, v, txt) => `<td><span class="vital vital-${notaDeVital(tipo, v)}">${txt}</span></td>`
+  caja.innerHTML = `<table class="admin-table"><thead><tr><th>Página</th><th>Medidas</th><th>LCP p75</th><th>INP p75</th><th>CLS p75</th><th>Móvil</th></tr></thead><tbody>${data
+    .map((f) => `<tr><td>${escapeHtml(f.path)}</td><td>${f.visitas}</td>${celda('lcp', f.lcp_p75, f.lcp_p75 == null ? '—' : `${(f.lcp_p75 / 1000).toFixed(1)} s`)}${celda('inp', f.inp_p75, f.inp_p75 == null ? '—' : `${f.inp_p75} ms`)}${celda('cls', f.cls_p75 == null ? null : Number(f.cls_p75), f.cls_p75 == null ? '—' : Number(f.cls_p75).toFixed(2))}<td>${f.movil_pct ?? 0} %</td></tr>`)
+    .join('')}</tbody></table>`
+}
+
 async function loadAnalytics() {
   const days = Number(document.getElementById('analyticsDays')?.value) || 7
   const since = new Date(Date.now() - days * 86400_000).toISOString()
@@ -1976,6 +1999,7 @@ async function loadAnalytics() {
       value,
     }))
   document.getElementById('analyticsTable').innerHTML = rankTableHtml(pathRows, ['Página', 'Visitas'])
+  pintarVitales(days).catch(() => {})
 
   // ── Guías más vistas ──
   const guideRows = guides
@@ -3079,9 +3103,21 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo', 'tcggo_sueltas', 'tcggo_versiones'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', PASADAS.map(([k]) => k))
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
+  // El semáforo (817), encima de la caja: una luz por pasada.
+  let luces = document.getElementById('tcggoSemaforo')
+  if (!luces) {
+    luces = document.createElement('div')
+    luces.id = 'tcggoSemaforo'
+    luces.className = 'semaforo'
+    caja.before(luces)
+  }
+  luces.innerHTML = PASADAS.map(([k, nombre]) => {
+    const s = semaforoDe(de(k))
+    return `<div class="semaforo-pasada" data-luz="${s.luz}"><span class="semaforo-luz" aria-hidden="true"></span><strong>${escapeHtml(nombre)}</strong><small>${escapeHtml(s.motivo)}</small></div>`
+  }).join('')
   const cat = de('tcggo_catalogo')
   const v = cat?.valor || {}
   const lista = (obj, f) => Object.entries(obj || {}).map(([id, x]) => `  · #${id} ${f(x)}`)
@@ -3142,52 +3178,19 @@ async function tcggoEstado() {
         k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
       ]
     })(),
-    // Los huecos desde Scrydex (684): los sets vacíos que TCGGO no tiene.
+    // Las cartas japonesas que se quedaron en sets escondidos (824): adónde
+    // irían. Solo el informe; reapuntar lo decide PINGU.
     ...(() => {
-      const h = de('scrydex_huecos')?.valor
-      if (!h) return ['HUECOS DESDE SCRYDEX (scrydex_huecos, 684): todavía no ha corrido']
-      const v = Object.entries(h.vistos || {})
-      const cuenta = (e) => v.filter(([, x]) => x.estado === e).length
+      const e = de('jp_lineas_viejas')?.valor
+      if (!e) return ['LÍNEAS JAPONESAS EN SETS ESCONDIDOS (jp_lineas_viejas, 824): todavía no ha corrido']
+      if (e.ultimoError && !e.dia) return [`LÍNEAS JAPONESAS EN SETS ESCONDIDOS (824): ⚠ ${e.ultimoError.error}`]
       return [
-        `HUECOS DESDE SCRYDEX (scrydex_huecos, 684) — ${de('scrydex_huecos')?.updated_at || 'nunca'}: ${cuenta('rellenado')} rellenados · ${cuenta('lleno')} llenos · ${cuenta('sinPar')} sin expansión suya · ${cuenta('vacioEnScrydex')} vacíos en Scrydex · ${cuenta('parado')} parados · créditos gastados: ${h.gasto?.creditos ?? 0}`,
-        ...v.filter(([, x]) => x.estado === 'rellenado').map(([k, x]) => `  ✓ ${k} ← ${x.expansion} «${x.nombre || ''}» (${x.cartas ?? x.conNombreIngles ?? '?'} cartas, por ${x.por}; nombres v${x.nombres ?? 0}${x.conNombreIngles != null ? `, ${x.conNombreIngles} con nombre inglés` : ''}${x.conPrecio != null ? `, ${x.conPrecio} con precio de TCGplayer` : ''})`),
-        ...v.filter(([, x]) => x.estado === 'parado').map(([k, x]) => `  ⚠ parado ${k}: ${x.error}`),
-        // Lo que NO se ha podido rellenar, con su motivo (696): sin esto el
-        // bloque decía «12 sin expansión suya» y no cuáles.
-        ...v.filter(([, x]) => x.estado === 'sinPar').map(([k, x]) => `  · sin expansión suya ${k} «${x.nombre || ''}»${(x.candidatas || []).length ? ` (candidatas: ${x.candidatas.slice(0, 3).map((c) => `${c.id || c}${c.nombre ? ` «${c.nombre}»` : ''}`).join(', ')})` : ''}`),
-        ...v.filter(([, x]) => x.estado === 'vacioEnScrydex').map(([k, x]) => `  · vacío también en Scrydex ${k} «${x.nombre || ''}» (su ${x.expansion})`),
-        // Lo que se ha creado de una expansión de Scrydex sin set nuestro
-        // (698), y lo que Scrydex tiene y nosotros no: de aquí sale lo que
-        // hay que meter en CREAR_SETS.
-        ...(() => { const c = Object.entries(h.creados || {}); const creados = c.filter(([, x]) => x.estado === 'creado'); return [
-          creados.length ? `  sets creados de Scrydex (699): ${creados.length} · ${creados.map(([, x]) => `${x.set} «${x.nombre || ''}»${x.por === 'lista' ? ' (lista)' : ''}`).join(' · ')}` : '',
-          ...c.filter(([, x]) => x.estado !== 'creado').map(([k, x]) => `  ${x.estado === 'yaExiste' ? '· ya existía' : '✗ no está en Scrydex'} ${k}${x.set ? ` → ${x.set}` : ''}`),
-        ] })(),
-        // Las sueltas: las libres se crean solas en el japonés; las que
-        // tienen un set nuestro con la misma fecha se quedan aquí, para mirar.
-        ...Object.entries(h.sueltas || {}).map(([m, x]) => `  Scrydex tiene y nosotros no (${m}, ${(x.lista || []).length}): ${(x.lista || []).map((e) => `${e.id} «${e.name_en || e.name}» (${e.total ?? '?'}, ${e.release_date || 'sin fecha'}${e.ocupadaPor ? `; ese día sale nuestro ${e.ocupadaPor}` : ''})`).join(' · ') || '—'}`),
-        h.listadoSinTraduccion ? `  listados con precios que vinieron sin traducción ni Pokédex y se pidieron dos veces (700): ${h.listadoSinTraduccion}` : '',
-        h.ultimoError ? `  último error (${h.ultimoError.fecha}): ${h.ultimoError.mercado || ''} ${h.ultimoError.set || h.ultimoError.donde || ''}: ${h.ultimoError.error}` : '',
-        h.parado ? `  ⚠ PARADO ${h.parado.dia}: ${h.parado.motivo}` : '',
+        `LÍNEAS JAPONESAS EN SETS ESCONDIDOS (jp_lineas_viejas, 824) — ${e.dia}: ${e.huerfanas} de ${e.lineasJp} líneas japonesas están en un set escondido · ${e.casadas} tienen carta de TCGGO con el mismo número · ${e.aplicar ? 'SE REAPUNTAN' : 'no se toca nada (solo informe)'}`,
+        ...Object.entries(e.porSet || {}).map(([id, x]) => `  ${x.casadas === x.lineas ? '✓' : '·'} ${id} «${x.nombre || ''}»: ${x.lineas} líneas → ${x.destino?.set ? `${x.destino.set} (por ${x.destino.por}), ${x.casadas} casan` : x.destino?.dudoso ? `dudoso entre ${x.destino.dudoso.join(', ')}` : 'sin set de TCGGO'}${(x.ejemplos || []).length ? ` · p. ej. ${x.ejemplos.join(', ')}` : ''}${(x.sinCarta || []).length ? ` · sin carta: ${x.sinCarta.join(', ')}` : ''}`),
       ]
     })(),
-    // El espejo de precios (686): las japonesas antiguas con el producto de
-    // su gemela occidental.
-    ...(() => {
-      const e = de('precios_espejo')?.valor
-      if (!e) return ['ESPEJO DE PRECIOS (precios_espejo, 686): todavía no ha corrido']
-      const h = Object.entries(e.hechos || {})
-      return [
-        `ESPEJO DE PRECIOS (precios_espejo, 686) — ${de('precios_espejo')?.updated_at || 'nunca'}: ${h.length} sets · ${h.reduce((a, [, x]) => a + (x.espejadas || 0), 0)} cartas con el producto de su gemela · ${h.reduce((a, [, x]) => a + (x.sinPar || 0), 0)} sin gemela`,
-        ...h.flatMap(([k, x]) => [
-          `  ${x.nota ? '·' : '✓'} ${k} «${x.nombre || ''}»: ${x.nota || `${x.espejadas} de ${x.cartas} (gemelas en ${(x.setsWest || []).join(', ') || '—'}; sin par ${x.sinPar}${x.sinPrecio ? `, sin precio la gemela ${x.sinPrecio}` : ''})`}`,
-          // Lo que cae fuera del set principal y lo que no casa, con ejemplos (687).
-          ...(x.cruzadas ? [`      fuera de ${x.principal}: ${x.cruzadas} · ${(x.ejemplosCruzadas || []).map((e) => `${e.id} → ${e.gemela}`).join(', ')}`] : []),
-          ...((x.ejemplosSinPar || []).length ? [`      sin par: ${x.ejemplosSinPar.map((e) => `${e.id} (${e.motivo})`).join(' · ')}`] : []),
-        ]),
-        e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.error}` : '',
-      ]
-    })(),
+    // Los huecos desde Scrydex (684) y el espejo de precios (686) ya no
+    // existen (817): se retiraron en la 806 y la 809 y se borraron después.
     // Las cartas sueltas sin foto, buscadas en TCGGO por nombre (693).
     ...(() => {
       const e = de('tcggo_sueltas')?.valor
@@ -3216,7 +3219,7 @@ async function tcggoEstado() {
         ...ej('sinPrincipal', 'sin id de TCGGO en la nuestra'),
         ...ej('sinCarta', 'sin carta nuestra'),
         ...ej('dudosa', 'dudosas'),
-        e.sonda ? '' : '  (todavía no ha comprobado la ruta de «Get card»)',
+        e.sonda ? '' : '  (todavía no ha comprobado la ruta Get card de TCGGO)',
         e.parado ? `  ⚠ PARADO ${e.parado.dia}: ${e.parado.motivo}` : '',
         e.planBloqueado ? `  ⚠ PLAN ${e.planBloqueado.dia}: ${e.planBloqueado.motivo}` : '',
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.donde}: ${e.ultimoError.error}` : '',

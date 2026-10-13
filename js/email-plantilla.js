@@ -352,7 +352,21 @@ export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, t
 // enlace directo, la guía nueva va con el suyo, y el pie dice la verdad
 // («una vez por semana») en vez del genérico «alguien se ha dirigido a
 // ti».
-export function renderResumenSemanal({ temas = [], guia = null, noticias = [], siteUrl, unsubscribeUrl }) {
+// «Tu semana» (821): el valor de tu colección y lo que te han contestado.
+// Solo lo que se sabe: sin foto de hace una semana, no hay «cambio».
+export function lineasDeTuSemana(tu) {
+  const lineas = []
+  if (!tu) return lineas
+  const eur = (n) => `${Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+  if (Number.isFinite(tu.valor)) {
+    const cambio = Number.isFinite(tu.cambio) && tu.cambio !== 0 ? ` (${tu.cambio > 0 ? '+' : '−'}${eur(Math.abs(tu.cambio))} en la semana)` : ''
+    lineas.push({ texto: `Tu colección vale ${eur(tu.valor)}${cambio}`, ruta: '/mi-coleccion' })
+  }
+  if (tu.respuestas > 0) lineas.push({ texto: `${tu.respuestas} ${tu.respuestas === 1 ? 'mensaje nuevo' : 'mensajes nuevos'} en temas que sigues`, ruta: '/foro' })
+  return lineas
+}
+
+export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], tu = null, siteUrl, unsubscribeUrl }) {
   const asunto = sanitizeHeader('Lo mejor de PokeDoc esta semana')
   const { cta: verbo, pie } = textosDeTipo('weekly_digest')
   const urlForo = absoluteUrl(siteUrl, '/foro')
@@ -373,9 +387,15 @@ export function renderResumenSemanal({ temas = [], guia = null, noticias = [], s
     url: absoluteUrl(siteUrl, `/noticias/${encodeURIComponent(String(n.slug ?? ''))}`),
   }))
 
+  const filasTuyas = lineasDeTuSemana(tu).map((l) => ({ titulo: sanitizeHeader(l.texto, 160), url: absoluteUrl(siteUrl, l.ruta) }))
+  const filasLanzamientos = (lanzamientos || []).map((x) => ({ titulo: sanitizeHeader(x.nombre, 160), url: absoluteUrl(siteUrl, '/lanzamientos'), fecha: String(x.fecha || '').slice(0, 10) }))
+  const diaBonito = (f) => { const d = new Date(`${f}T12:00:00Z`); return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }) }
+
   const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
   const text =
     `${asunto}\n\n` +
+    (filasTuyas.length ? filasTuyas.map((t) => `· ${t.titulo}\n  ${t.url}`).join('\n') + '\n' : '') +
+    (filasLanzamientos.length ? filasLanzamientos.map((x) => `· Sale el ${diaBonito(x.fecha)}: ${x.titulo}\n  ${x.url}`).join('\n') + '\n' : '') +
     (filasNoticias.length ? filasNoticias.map((n) => `· Noticia: ${n.titulo}\n  ${n.url}`).join('\n') + '\n' : '') +
     filas.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
     (filaGuia ? `\n· Guía nueva: ${filaGuia.titulo}\n  ${filaGuia.url}` : '') +
@@ -401,7 +421,9 @@ export function renderResumenSemanal({ temas = [], guia = null, noticias = [], s
           <h1 style="margin:0 0 4px;font-family:${FUENTE};font-size:20px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
           <p style="margin:0 0 20px;font-family:${FUENTE};font-size:13.5px;line-height:1.5;color:#6b7280;">${escapeHtml(filasNoticias.length ? 'Las noticias de la semana y lo que más se ha movido en el foro.' : 'Lo que más se ha movido en el foro estos días.')}</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${filasTuyas.map((t) => filaHtml(t.url, t.titulo, 'Tu semana')).join('')}
             ${filasNoticias.map((n) => filaHtml(n.url, n.titulo, 'Noticia de esta semana')).join('')}
+            ${filasLanzamientos.map((x) => filaHtml(x.url, x.titulo, `Sale el ${diaBonito(x.fecha)}`)).join('')}
             ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
             ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
           </table>
@@ -412,7 +434,7 @@ export function renderResumenSemanal({ temas = [], guia = null, noticias = [], s
 
   // El preheader es lo que se lee en la bandeja de entrada, antes de
   // abrir: si hay noticia, manda la noticia.
-  const cabezas = [...filasNoticias, ...filas]
+  const cabezas = [...filasTuyas, ...filasNoticias, ...filasLanzamientos, ...filas]
   const preheader = cabezas.length
     ? `${cabezas[0].titulo}${cabezas.length > 1 ? ` y ${cabezas.length - 1} más` : ''}`
     : 'El resumen de la semana en el foro.'
@@ -430,7 +452,7 @@ export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl }) {
     try {
       const carga = JSON.parse(fila.preview)
       if (carga && Array.isArray(carga.temas)) {
-        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], siteUrl, unsubscribeUrl })
+        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], lanzamientos: carga.lanzamientos || [], tu: carga.tu || null, siteUrl, unsubscribeUrl })
       }
     } catch {}
   }

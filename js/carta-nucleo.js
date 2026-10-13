@@ -623,7 +623,7 @@ export function nucleoDeCarta(cartaCruda, set, play = null, legalidad = null) {
       // 600×825 son las medidas reales de la imagen de TCGdex. Van
       // puestas para que el hueco esté reservado antes de que llegue:
       // sin ellas la página pega un salto de 800 px al cargarse.
-      ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async"></span>`
+      ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}><img ${escaneo} alt="${escapeHtml(alt)}" width="600" height="825" loading="eager" decoding="async" fetchpriority="high"></span>`
       : '<div class="carta-scan-vacio">Sin imagen</div>') +
     '</figure>' +
     '<div class="carta-datos">' +

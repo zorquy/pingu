@@ -122,6 +122,7 @@ export const icons = {
   // mundo ya conoce, y así el menú de moderación no necesita una palabra
   // que ocupe sitio en cada fila de la lista.
   moreHorizontal: (size) => icon('<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>', size),
+  arrowDown: (size) => icon('<path d="M12 5v14M19 12l-7 7-7-7"></path>', size),
 }
 
 // Los nombres válidos, sacados del propio objeto: si se añade un icono

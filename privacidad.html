@@ -127,7 +127,7 @@
   <main id="contenido" class="page-content container-narrow legal-page">
     <div class="page-header" style="padding-top: 8px;">
       <h1>Privacidad</h1>
-      <p class="subtext">Última actualización: agosto de 2026. Somos un proyecto pequeño en fase beta — esto resume, en lenguaje claro, qué datos guardamos y por qué.</p>
+      <p class="subtext">Última actualización: octubre de 2026. Somos un proyecto pequeño en fase beta — esto resume, en lenguaje claro, qué datos guardamos y por qué.</p>
     </div>
 
     <h2>1. Quién es responsable de tus datos</h2>
@@ -183,7 +183,18 @@
     <p>Los mensajes que envías a otro usuario solo los puede leer esa persona. El equipo de moderación solo puede acceder a un mensaje concreto si alguien lo ha reportado — nunca al resto de la conversación.</p>
 
     <h2>9. Cookies y almacenamiento local</h2>
-    <p>No usamos cookies de rastreo ni de publicidad. Usamos el almacenamiento local de tu navegador (localStorage) únicamente para recordar tu sesión y tu tema (claro/oscuro).</p>
+    <p><strong>No usamos cookies.</strong> Ni de rastreo, ni de publicidad, ni de analítica de terceros. Por eso no te sale ningún aviso de cookies: no hay nada que aceptar.</p>
+    <p>Lo que sí guarda PokeDoc <strong>en tu propio dispositivo</strong> —y no sale de él— es lo necesario para que la web funcione como la dejaste:</p>
+    <ul>
+      <li><strong>Tu sesión</strong>, para no pedirte la contraseña cada vez.</li>
+      <li><strong>Tus preferencias</strong>: el tema claro u oscuro, el catálogo y el orden que elegiste en Mi colección, la vista de los torneos, si plegaste la barra lateral y cosas parecidas.</li>
+      <li><strong>Una copia de los ficheros de la web</strong> (hojas de estilo, código e imágenes propias), para que abra más rápido y para enseñarte la página «Sin conexión» cuando no hay red. Se vacía sola en cuanto publicamos una versión nueva. Y de las <strong>últimas 30 guías y noticias que has abierto</strong>, para poder leerlas aunque la red vaya mal.</li>
+      <li><strong>El permiso de notificaciones</strong>, solo si lo activas. Tu navegador nos da una dirección para mandarte avisos; la guardamos con tu cuenta y la borramos si los desactivas.</li>
+    </ul>
+    <p>Todo eso es estrictamente necesario para el servicio que pides y no necesita consentimiento. Aun así, puedes borrarlo cuando quieras:</p>
+    <p><button type="button" class="btn-secondary" id="borrarLocal">Borrar lo que guarda PokeDoc en este dispositivo</button></p>
+    <p class="subtext" id="borrarLocalAviso" role="status"></p>
+    <p>Las fotos de las cartas y los sprites vienen de servidores de terceros (TCGdex, TCGGO, Limitless, pokemontcg.io, jsDelivr y GitHub), que reciben tu dirección IP al servirlas, como cualquier imagen de internet. Los vídeos se incrustan desde <em>youtube-nocookie.com</em>, que no guarda nada hasta que le das a reproducir.</p>
 
     <h2>10. Tus derechos</h2>
     <p>Tienes derecho a <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>suprimirlos</strong>, <strong>limitar</strong> u <strong>oponerte</strong> a su tratamiento, y a la <strong>portabilidad</strong> (recibirlos en un formato legible por una máquina). También puedes <strong>retirar tu consentimiento</strong> a los avisos por correo en cualquier momento, sin que eso afecte a nada de lo anterior.</p>
@@ -248,5 +259,6 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/privacidad.js"></script>
 </body>
 </html>

@@ -4,6 +4,71 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (62) — PINGU-Claude (813–824 — la tanda de la noche)
+
+**Hecho** (la propuesta «siguiente ronda», PINGU: «dale con todo esta noche»):
+- **813 (VE1)** La estantería de /mi-coleccion y /cartas y el Panel piden los
+  sets a `netlify/functions/sets.mjs` (CDN, 10 min) y caen a Supabase a trozos
+  si no contesta (`js/sets-catalogo.js`). De paso: el Panel pedía `limit(2000)`
+  y recibía 1.000. `abrirAlbum` y `pintarHermanos` esperan a la estantería.
+- **814 (CK1+CK2)** /privacidad cuenta lo que se guarda en el dispositivo (sin
+  cookies) y tiene «Borrar lo que guarda PokeDoc en este dispositivo», que deja
+  la sesión.
+- **815 (VE2)** El tiempo real cierra su websocket al salir y lo reabre al
+  volver de la caché de ir y volver (`js/vivo.js`): «Atrás» ya no recarga.
+- **816 (FO1–FO3)** Foro en el móvil: índice con chips por sección y foros en
+  baldosas de colores; dentro de un foro, filtros Recientes / Sin respuesta /
+  Siguiendo / Míos, sin las cifras laterales y «Abrir un tema» en el botón
+  rosa; el tema con la hora junto al nombre, seguidos agrupados, «Reaccionar»
+  en el pie y la píldora «N nuevos». El ordenador, igual que estaba.
+- **817 (QU1+QU2)** Borradas `scrydex-huecos` y `precios-espejo` (retiradas en
+  806/809) y sus bloques de /admin; semáforo por pasada de TCGGO en /admin.
+- **818 (VE3)** YA EXISTÍA (723, `js/precarga.js`): la propuesta la daba por
+  pendiente y no lo era. Solo se añade `/baja-correo` a lo que no se precarga.
+- **819 (FO4)** `[[Arven]]` en un mensaje se pinta como minicarta con foto y
+  precio (la impresión más nueva); el tema rellena también los `<tcg-deck>`.
+- **820 (VE4)** El service worker abre las guías y noticias ya leídas
+  aunque la red vaya mal: red primero y, a los 2,5 s, la copia (las 30
+  últimas). **VE5** ya estaba casi entera; solo prioridad alta a la foto
+  principal de la ficha.
+- **821 (VE6)** Lo que tarda de verdad cada página (LCP, INP, CLS) en una
+  visita de cada cuatro, a `page_vitals`, y «Lo que tarda de verdad» en
+  /admin → Analítica. **Pide `supabase-migration-vitales.sql`**; sin ella
+  no se apunta nada y /admin lo dice.
+- **822 (PO2)** Las otras versiones de TCGGO (807) en la pestaña Precio de
+  /carta: numeradas (TCGGO no dice cuál es cuál), con precio y el enlace que
+  abre Cardmarket con su filtro.
+- **823 (PO1)** El resumen del lunes lleva «Tu semana» (valor de tu
+  colección y su cambio, mensajes nuevos en lo que sigues) y lo que sale esa
+  semana. Y llegaba solo a los 1.000 primeros perfiles: ahora a todos.
+- **824 (PO3)** `jp-lineas-viejas`: informe diario de las líneas japonesas
+  que se quedaron en sets escondidos y a qué carta de TCGGO irían. **No toca
+  ninguna colección** (`APLICAR = false`): lo decide PINGU con el informe en
+  /admin.
+
+**Ficheros**: `netlify/functions/sets.mjs`, `js/sets-catalogo.js`,
+`js/mi-coleccion.js`, `privacidad.html`, `js/privacidad.js`, `js/vivo.js`,
+`js/foro.js`, `js/tema.js`, `js/foro-cartas.js`, `js/icons.js` (arrowDown),
+`css/foro.css`, `admin/js/admin.js`, `admin/js/semaforo.js`,
+`admin/css/admin.css`, `js/precarga.js`, `sw.js`, `js/carta-nucleo.js`,
+`js/vitales.js`, `js/app.js`, `admin/index.html`, `js/schema-check.js`,
+`js/carta-versiones.js`, `js/carta-mercado.js`, `css/cardmarket.css`,
+`netlify/functions/resumen-semanal.mjs`, `js/email-plantilla.js`,
+`netlify/functions/jp-lineas-viejas.mjs`, `supabase-migration-vitales.sql`;
+borrados
+`netlify/functions/scrydex-huecos.mjs` y `precios-espejo.mjs`. Pruebas nuevas
+813–824; al día 386, 405, 646, 717, 755, 806, 807, 809; fuera 684 y 686.
+
+**Suite**: entera, en tres partes (la de siempre hasta la 319, de la 700 en
+adelante en otra copia y el resto en tres carriles, `herramientas/suite-carriles.sh`
+de la rama `pruebas`), y repetidas sobre la versión final las que tocaban lo
+cambiado después. Rojos solo 493 y 514: piden `ffprobe`, que no está en este
+contenedor. Al día además 286, 655, 717 (rojas desde la 805, la 817 y la 794).
+
+**Pendiente**: ejecutar `supabase-migration-vitales.sql` (821). Mirar el
+informe de 824 en /admin y decidir si se reapunta. Pruebas al día además:
+386, 717 (rojas desde la 798 y la 794, no de esta noche).
+
 ## 2026-10-13 (61) — PINGU-Claude (812 — dos fallos del foro en el móvil)
 
 **Hecho**: empieza la tanda de la noche (la propuesta «siguiente ronda»).

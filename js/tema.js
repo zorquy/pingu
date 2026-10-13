@@ -417,7 +417,45 @@ async function moderar(cambios) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// La píldora «N nuevos» (813, FO3): lo que llega por el tiempo real mientras
+// lees más arriba no te mueve la página; se avisa abajo y te lleva al
+// primero al tocarla.
+const CERCA_DEL_FINAL = 160
+const cercaDelFinal = () => innerHeight + scrollY >= document.documentElement.scrollHeight - CERCA_DEL_FINAL
+
+function pintarPildoraDeNuevos(ids) {
+  let pildora = document.getElementById('temaNuevos')
+  if (!ids.length) {
+    pildora?.remove()
+    return
+  }
+  if (!pildora) {
+    pildora = document.createElement('button')
+    pildora.type = 'button'
+    pildora.id = 'temaNuevos'
+    pildora.className = 'tema-nuevos'
+    document.body.appendChild(pildora)
+    pildora.addEventListener('click', () => {
+      document.getElementById(`mensaje-${pildora.dataset.primero}`)?.scrollIntoView({ block: 'center' })
+      pildora.remove()
+    })
+    const alBajar = () => {
+      if (!document.getElementById('temaNuevos')) return removeEventListener('scroll', alBajar)
+      if (cercaDelFinal()) {
+        pildora.remove()
+        removeEventListener('scroll', alBajar)
+      }
+    }
+    addEventListener('scroll', alBajar, { passive: true })
+  }
+  pildora.dataset.primero = ids[0]
+  pildora.innerHTML = `${ids.length} ${ids.length === 1 ? 'nuevo' : 'nuevos'} ${icons.arrowDown(16)}`
+  pildora.setAttribute('aria-label', `${ids.length} ${ids.length === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}: ir al primero`)
+}
+
 async function pintarMensajes() {
+  const yaPintados = new Set([...elMensajes.querySelectorAll('[data-mensaje]')].map((e) => e.dataset.mensaje))
+  const estabaAbajo = cercaDelFinal()
   const totalPaginas = Math.max(1, Math.ceil((tema.post_count || 1) / PAGINA))
   pagina = Math.min(Math.max(1, pagina), totalPaginas)
   const desde = (pagina - 1) * PAGINA
@@ -505,6 +543,7 @@ async function pintarMensajes() {
   elMensajes.innerHTML = lista
     .map((m, i) =>
       mensajeHtml(m, desde + i + 1, perfiles, cuentas, citadoPorId, {
+        seguido: esSeguido(lista[i - 1], m),
         reacciones: reaccionesPorMensaje[m.id] || [],
         hayReacciones,
         mencionados,
@@ -526,8 +565,21 @@ async function pintarMensajes() {
   marcarConectados(perfiles).catch(() => {})
   // Los enlaces internos pegados a pelo se convierten en tarjetitas.
   import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(elMensajes)).catch(() => {})
+  // Las cartas escritas como [[Nombre]], con foto y precio (819, FO4), y las
+  // listas de cartas (<tcg-deck>) que se pegan en un mensaje: el tema no las
+  // rellenaba y salían como un hueco.
+  import('./foro-cartas.js')
+    .then((m) => {
+      const marcados = m.marcarCartas(elMensajes)
+      glosario()
+      return m.rellenarCartas(marcados)
+    })
+    .catch(() => glosario())
+  if (elMensajes.querySelector('tcg-deck')) import('./cards-block.js').then((m) => m.hydrateDecks(elMensajes)).catch(() => {})
   // El glosario (792, NU11): la primera vez que sale un término en la página.
-  import('./glosario.js').then((m) => { const vistos = new Set(); elMensajes.querySelectorAll('.foro-mensaje-cuerpo').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
+  // El glosario va DESPUÉS de marcar las cartas (819): envuelve palabras en
+  // botones y, antes, partía un «[[Herramienta Inventada]]» en trozos.
+  const glosario = () => import('./glosario.js').then((m) => { const vistos = new Set(); elMensajes.querySelectorAll('.foro-mensaje-cuerpo').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 
   elPaginacion.innerHTML = paginacionHtml(totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>
@@ -539,6 +591,13 @@ async function pintarMensajes() {
       pintarMensajes()
     })
   )
+
+  // Lo nuevo que no es tuyo, solo si ya había algo pintado (no al abrir) y
+  // no estabas abajo del todo, que es donde se ve solo.
+  if (yaPintados.size) {
+    const nuevos = lista.filter((m) => !yaPintados.has(m.id) && !(sesion && m.author_id === sesion.user.id)).map((m) => m.id)
+    pintarPildoraDeNuevos(estabaAbajo ? [] : nuevos)
+  }
 
   enganchar(perfiles)
   pintarCabecera(perfiles[tema.author_id])
@@ -638,7 +697,17 @@ async function marcarConectados(perfiles) {
   })
 }
 
-function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, hayReacciones, mencionados, gracias, oros }) {
+// Dos mensajes seguidos de la misma persona en menos de diez minutos van
+// juntos, como en un chat: el segundo sin su nombre (813, FO3). Una cita o
+// la solución lo cortan: son mensajes que se leen por separado.
+const MS_SEGUIDO = 10 * 60 * 1000
+function esSeguido(anterior, m) {
+  if (!anterior || !m.author_id || anterior.author_id !== m.author_id) return false
+  if (m.reply_to_id || (tema.solved_post_id && (tema.solved_post_id === m.id || tema.solved_post_id === anterior.id))) return false
+  return new Date(m.created_at) - new Date(anterior.created_at) < MS_SEGUIDO
+}
+
+function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = false, reacciones, hayReacciones, mencionados, gracias, oros }) {
   const perfil = perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
@@ -649,10 +718,11 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
   const puedeResolver = puedoEditarTema() && numero > 1
 
   return `
-  <article class="foro-mensaje${esLaSolucion ? ' foro-mensaje-solucion' : ''}${esMio ? ' foro-mensaje-mio' : ''}" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
+  <article class="foro-mensaje${esLaSolucion ? ' foro-mensaje-solucion' : ''}${esMio ? ' foro-mensaje-mio' : ''}${seguido ? ' foro-mensaje-seguido' : ''}" id="mensaje-${m.id}" data-mensaje="${m.id}" data-autor="${escapeHtml(m.author_id || '')}">
     <div class="foro-mensaje-autor">
       ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
+      <time class="foro-autor-hora" datetime="${escapeHtml(m.created_at || '')}" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${m.edited_at ? ' · editado' : ''}</time>
       ${tituloDe(perfil, cuentas[m.author_id] || 0)}
       ${
         // El clásico "Mensajes: 336". Number.isFinite y no truthiness: el
@@ -679,7 +749,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
     </div>
     <div class="foro-mensaje-cuerpo">
       <header class="foro-mensaje-cabecera">
-        <span class="subtext" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${
+        <span class="subtext foro-mensaje-hora" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${
           m.edited_at ? ' · editado' : ''
         }</span>
         ${chapaDeAutorDelTema(m.author_id && m.author_id === tema.author_id)}
@@ -720,6 +790,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { reacciones, ha
           ${hayReacciones ? reaccionesHtml(m, reacciones, esMio, perfiles) : ''}
         </div>
         <div class="foro-mensaje-der">
+          ${hayReacciones ? `<button type="button" class="foro-accion foro-reaccionar" data-mas-mensaje="${m.id}" aria-expanded="false" aria-label="Reaccionar">${icons.smile(14)}</button>` : ''}
           <button type="button" class="foro-accion" data-citar="${m.id}">${icons.quote(14)} Citar</button>
           ${
             // Editar, Borrar, la solución y Reportar, en un «⋯» (789, PA10):
@@ -1036,6 +1107,7 @@ async function montarRespuesta() {
         <span class="foro-previa-eti">Así se va a ver</span>
         <div class="article-body foro-mensaje-texto" id="respuestaPreviaCuerpo"></div>
       </div>
+      <p class="foro-ayuda-cartas">Escribe <b>[[Arven]]</b> y se verá la carta, con su precio.</p>
       <div class="foro-form-acciones">
         <button type="submit" class="btn-primary" id="btnResponder">${icons.send(14)} Responder</button>
         <button type="button" class="btn-secondary" id="btnVistaPrevia">${icons.eye(14)} Vista previa</button>

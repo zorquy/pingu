@@ -378,6 +378,55 @@
   color: var(--text);
 }
 
+/* Los filtros de la lista de temas (813, FO2). */
+.foro-vistas {
+  display: flex;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.foro-vistas .chip-filtro {
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+/* El botón rosa dentro de un foro es del móvil; en el ordenador está
+   «Abrir un tema» en la cabecera. */
+@media (min-width: 901px) {
+  .foro-fab.foro-fab-foro {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  body:has(.foro-fab-foro) #btnNuevoTema {
+    display: none;
+  }
+
+  .foro-vistas {
+    margin-inline: calc(-1 * var(--e-xl));
+    padding-inline: var(--e-xl);
+  }
+
+  .foro-vistas .chip-filtro {
+    min-height: 44px;
+  }
+}
+
+/* Los chips de sección y el resumen de la baldosa son del móvil (813). */
+.foro-chips-secciones,
+.foro-fila-resumen {
+  display: none;
+}
+
+.foro-fila[data-tono='0'] { --tono: var(--navy); --tono-bg: var(--ice); }
+.foro-fila[data-tono='1'] { --tono: var(--success); --tono-bg: var(--success-bg); }
+.foro-fila[data-tono='2'] { --tono: var(--warning); --tono-bg: var(--warning-bg); }
+.foro-fila[data-tono='3'] { --tono: var(--indigo); --tono-bg: var(--indigo-bg); }
+.foro-fila[data-tono='4'] { --tono: var(--pink); --tono-bg: var(--pink-bg); }
+
 /* Una fila de foro o de tema: icono, cuerpo, números y último mensaje. */
 /* El reparto del ancho (tanda 299): el ÚLTIMO TEMA pasa de 210 px a
    llevarse tanto como el nombre del foro, y los números bajan de 120 a
@@ -2048,6 +2097,81 @@ a.foro-cita-quien:hover {
   border-bottom: 0;
 }
 
+/* La hora va junto al nombre y los seguidos van juntos (813, FO3): ver
+   SCHEMA, tanda 813. En la burbuja queda la hora solo del que va seguido. */
+.foro-autor-hora {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.foro-mensaje:not(.foro-mensaje-seguido) .foro-mensaje-hora {
+  display: none;
+}
+
+.foro-mensaje-seguido {
+  margin-top: calc(-1 * var(--e-sm));
+}
+
+.foro-mensaje-seguido .foro-mensaje-autor {
+  display: none;
+}
+
+.foro-mensaje-seguido .foro-mensaje-cuerpo {
+  border-top-left-radius: var(--radius-xl);
+}
+
+.foro-mensaje-mio.foro-mensaje-seguido .foro-mensaje-cuerpo {
+  border-top-right-radius: var(--radius-xl);
+}
+
+/* «Reaccionar» en el pie es del móvil (813): allí la cabecera de la
+   burbuja se va y con ella su «⋯», que era lo que sacaba las reacciones. */
+.foro-reaccionar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .foro-reaccionar {
+    display: inline-flex;
+  }
+
+  .foro-mensaje-cabecera {
+    display: none;
+  }
+
+  .foro-mensaje-texto {
+    padding-top: var(--e-sm);
+  }
+}
+
+.tema-nuevos {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  box-shadow: var(--shadow-md);
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 900px) {
+  .tema-nuevos {
+    bottom: calc(72px + 88px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Y la caja de responder, fija abajo como la de un chat: recogida hasta
    que escribes en ella. */
 #temaResponder {
@@ -2268,6 +2392,103 @@ html:has(#temaResponder) {
     scroll-snap-align: start;
   }
 
+  /* El índice del móvil (813, FO1): las secciones en chips y los foros en
+     baldosas de dos en dos, cada uno con su color. Ver SCHEMA, tanda 813. */
+  .foro-chips-secciones {
+    display: flex;
+    gap: var(--e-sm);
+    margin: 0 calc(-1 * var(--e-xl)) var(--e-lg);
+    padding-inline: var(--e-xl);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .foro-chips-secciones .chip-filtro {
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+
+  .foro-en-indice .foro-seccion {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+
+  .foro-en-indice .foro-seccion[hidden] {
+    display: none;
+  }
+
+  .foro-en-indice .foro-seccion-titulo {
+    grid-column: 1 / -1;
+    padding: 0;
+    background: none;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .foro-en-indice .foro-seccion > .foro-fila {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--e-sm);
+    min-height: 132px;
+    padding: var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+  }
+
+  .foro-en-indice .foro-fila .foro-fila-icono {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--tono-bg);
+    color: var(--tono);
+    opacity: 1;
+  }
+
+  .foro-en-indice .foro-fila .foro-punto-nuevo {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+  }
+
+  .foro-en-indice .foro-fila .foro-fila-cuerpo {
+    width: 100%;
+  }
+
+  .foro-en-indice .foro-fila-cuerpo .subtext {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .foro-en-indice .foro-fila .foro-ultimo {
+    display: none;
+  }
+
+  /* «Por aquí hoy» y «El foro en números» (813, FO2): en el ordenador van
+     al lado; en el móvil eran dos pantallas de cifras debajo de lo que se
+     viene a leer. */
+  .foro-lateral {
+    display: none;
+  }
+
+  .foro-en-indice .foro-fila-resumen {
+    display: block;
+    margin: var(--e-xs) 0 0;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    font-weight: 600;
+  }
+
   .foro-seccion .foro-tema-fila.foro-tema-conv {
     padding-inline: var(--e-md);
   }
@@ -2448,4 +2669,68 @@ html:has(#temaResponder) {
 .foro-reaccion-icono {
   display: inline-flex;
   vertical-align: -2px;
+}
+
+/* Las cartas escritas como [[Nombre]] (819, FO4). */
+.foro-carta {
+  font-weight: 600;
+}
+
+.foro-mensaje-texto a.foro-carta-lista {
+  text-decoration: none;
+}
+
+.foro-carta-lista {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  max-width: 100%;
+  padding: 0 var(--e-sm) 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.foro-carta-lista img {
+  width: 20px;
+  height: 28px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.foro-carta-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foro-carta-precio {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.foro-mensaje-mio .foro-carta-lista {
+  border-color: rgb(255 255 255 / 40%);
+  background: transparent;
+}
+
+.foro-mensaje-mio .foro-carta-lista,
+.foro-mensaje-mio .foro-carta-precio {
+  color: var(--blanco-fijo);
+}
+
+/* La pista de [[carta]] (819): solo con la caja abierta, que recogida no cabe. */
+.foro-ayuda-cartas {
+  display: none;
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+#temaResponder .foro-form:focus-within .foro-ayuda-cartas {
+  display: block;
 }

@@ -15,6 +15,7 @@ import { urlParaCss } from './html.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
+import { setsDelCatalogo } from './sets-catalogo.js'
 import { normalizeSearch } from './tcgdex.js'
 // Del módulo puro: `tcgdex.js` lo reexporta, pero esto no necesita nada de
 // aquel y pedírselo arrastraría el cliente de Supabase a quien lo importe.
@@ -2365,7 +2366,7 @@ function abrirEditor(l) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
   const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
   $('mcEdFoto').innerHTML = escaneo
-    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}${varianteDe(l?.variante).id === 'reverse' ? ' data-impresion="reverse"' : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" /></span>`
+    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}${varianteDe(l?.variante).id === 'reverse' ? ' data-impresion="reverse"' : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" fetchpriority="high" /></span>`
     : ''
   // El holo se monta sobre el envoltorio recién pintado. A demanda, como
   // en /carta: con el dedo o con «menos movimiento» puesto no se monta
@@ -2723,40 +2724,28 @@ async function cargarEras() {
 let setsDeTodos = null
 async function cargarSetsDeTodos() {
   if (setsDeTodos) return setsDeTodos
-  const { data } = await supabase
-    .from('tcg_sets')
-    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id')
-    .order('release_date', { ascending: false, nullsFirst: false })
-    .order('id')
-    .limit(2000)
-  setsDeTodos = (data || []).filter((s) => esDelTCG(s) && !s.oculto)
+  // Desde la CDN y, si no contesta, de Supabase a trozos (813): con
+  // un límite de 2.000 venían 1.000, que es lo que Supabase da como mucho (la 808).
+  // Si fallan las dos, lista vacía como antes, pero SIN guardarla: la
+  // siguiente vez se vuelve a preguntar.
+  const sets = await setsDelCatalogo('todos', { cliente: supabase }).catch(() => null)
+  if (!sets) return []
+  setsDeTodos = sets.filter((s) => esDelTCG(s) && !s.oculto)
   return setsDeTodos
 }
 
 async function cargarSets() {
   if (todosLosSets) return todosLosSets
-  const { data } = await supabase
-    .from('tcg_sets')
-    // El logo y la serie viajan desde la tanda 372: la estantería se ve
-    // por los logos, y agrupar por serie es lo que hace navegable una
-    // lista de 220 colecciones.
-    // `orden` y `oculto` son de la 550: una columna que no se pide llega
-    // `undefined` y el orden a mano no se usaría, sin dar error (la 523).
-    .select('id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id')
-    .eq('market', mercado)
-    .order('release_date', { ascending: false, nullsFirst: false })
-    // Y un desempate (tanda 510): un `order` por fecha a secas deja los
-    // sets del MISMO día en el orden que quiera Postgres, que además
-    // puede cambiar entre dos cargas de la misma página. Y salen el mismo
-    // día más de los que parece: un set principal y su galería de
-    // entrenador, o un set y sus promos. `id` no es el orden ideal, pero
-    // es ESTABLE, que es lo que hace que la lista no baile.
-    .order('id')
-    .limit(1000)
+  // La estantería entera, igual para todo el mundo: la sirve la CDN (813) y
+  // cae a Supabase si no contesta. Las columnas y el orden (fecha y, de
+  // desempate, el id: la 510) los fija `js/sets-catalogo.js`; si hace falta
+  // otra columna, va allí y en `netlify/functions/sets.mjs` (la 523).
   // Un set ESCONDIDO no sale en la biblioteca (tanda 550). Es lo que se
   // usa en vez de borrar: un borrado se lleva por delante las cartas, y
   // con ellas las de la colección de quien las tuviera.
-  todosLosSets = (data || []).filter((s) => esDelTCG(s) && !s.oculto)
+  const sets = await setsDelCatalogo(mercado, { cliente: supabase }).catch(() => null)
+  if (!sets) return []
+  todosLosSets = sets.filter((s) => esDelTCG(s) && !s.oculto)
   return todosLosSets
 }
 
@@ -3041,7 +3030,11 @@ function cuantasPorSet() {
 async function pintarHermanos(setId) {
   const caja = $('mcAlbumHermanos')
   if (!caja) return
-  const sets = todosLosSets || []
+  // Si se entra a una expansión por su dirección, la estantería puede no
+  // haber llegado todavía (desde la 813 viene de la CDN): se espera, no se
+  // pinta vacía.
+  const sets = todosLosSets || (await cargarSets().catch(() => null)) || []
+  if (album.set !== setId) return
   const cuantas = cuantasPorSet()
   const seVe = (s) => modoCatalogo || esMia || cuantas.has(s.id)
   const visibles = plegarHermanos(sets.map((s) => ({ ...s }))).filter(seVe)
@@ -3397,6 +3390,12 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // en la misma pestaña, como en los álbumes soñados.
   $('mcEstanteriaZona').classList.add('hidden')
   $('mcArchivadorZona').classList.remove('hidden')
+  // Entrando por la dirección, la estantería puede estar llegando todavía
+  // (desde la 813, de la CDN): el título, el logo y la cuenta salen de ella.
+  if (!todosLosSets) {
+    await cargarSets().catch(() => null)
+    if (album.set !== setId) return
+  }
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = nombreDeSet(set) || ''
   pintarLogoDeAlbum(set)

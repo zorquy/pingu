@@ -38,6 +38,10 @@ const PAGINA = 20
 const params = new URLSearchParams(window.location.search)
 const slugForo = foroDeLaRuta()
 const paginaActual = Math.max(1, Number(params.get('p') || 1))
+// El filtro de la lista de temas (813, FO2): '' = recientes, 'sin' = sin
+// respuesta, 'sigo' = los que sigues, 'mios' = los que abriste.
+const VISTAS = ['', 'sin', 'sigo', 'mios']
+const vistaTemas = VISTAS.includes(params.get('v') || '') ? params.get('v') || '' : ''
 const consulta = (params.get('q') || '').trim()
 // El filtro por etiqueta (?et=Duda): pinchar la etiqueta de un tema
 // enseña solo los temas que la llevan.
@@ -250,11 +254,16 @@ async function pintarIndice() {
   const nuevosDe = (f) =>
     (nuevosPorForo[f.id] || 0) + hijosDe(f.id).reduce((t, s) => t + (nuevosPorForo[s.id] || 0), 0)
 
+  // El color de cada foro en el móvil (813, FO1): por su sitio en la lista,
+  // para que no cambie de una visita a otra.
+  const tonoDe = new Map(foros.filter((f) => !f.parent_id).map((f, i) => [f.id, i % 5]))
+
   const filaForo = (f) => {
     const subforos = hijosDe(f.id)
     const nuevos = nuevosDe(f)
+    const temas = f.thread_count || 0
     return `
-    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}">
+    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}" data-tono="${tonoDe.get(f.id) ?? 0}">
       <div class="foro-fila-icono" aria-hidden="true">${
         nuevos ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
       }${icons.messageSquare(18)}</div>
@@ -264,6 +273,7 @@ async function pintarIndice() {
           ${chapaNuevosHtml(nuevos)}
         </h3>
         ${f.description ? `<p class="subtext">${escapeHtml(f.description)}</p>` : ''}
+        <p class="foro-fila-resumen">${temas ? `${temas} ${temas === 1 ? 'tema' : 'temas'}${f.last_post_at ? ` · ${escapeHtml(haceCuanto(f.last_post_at))}` : ''}` : 'Sé el primero'}</p>
         ${
           subforos.length
             ? `<p class="foro-subforos">${subforos
@@ -295,7 +305,7 @@ async function pintarIndice() {
       const suyos = foros.filter((f) => f.section_id === s.id && !f.parent_id).sort((a, b) => a.position - b.position)
       if (suyos.length === 0) return ''
       return `
-      <section class="foro-seccion">
+      <section class="foro-seccion" data-seccion="${escapeHtml(String(s.id))}">
         <h2 class="foro-seccion-titulo">${escapeHtml(s.name)}</h2>
         ${suyos.map(filaForo).join('')}
       </section>`
@@ -317,9 +327,24 @@ async function pintarIndice() {
   // conversaciones con chips que lo encabezaba desde la 746 repetía lo que
   // dice el índice y escondía la estructura. Lo que se está hablando va en
   // la franja de arriba; la forma de conversación, dentro de cada foro.
+  // Las secciones en chips (813, FO1): en el móvil el índice entero son
+  // varias pantallas, y con ellos se ve solo la que interesa. En el
+  // ordenador no salen: ahí el índice cabe y se queda como siempre (804).
+  const conForos = secciones.filter((s) => foros.some((f) => f.section_id === s.id && !f.parent_id))
+  const chips = conForos.length > 1
+    ? `<div class="foro-chips-secciones" role="group" aria-label="Secciones del foro"><button type="button" class="chip-filtro" data-seccion="" aria-pressed="true">Todo</button>${conForos.map((s) => `<button type="button" class="chip-filtro" data-seccion="${escapeHtml(String(s.id))}" aria-pressed="false">${escapeHtml(s.name)}</button>`).join('')}</div>`
+    : ''
   principal.innerHTML = bloques
-    ? sinResponder + bloques
+    ? chips + sinResponder + bloques
     : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
+  principal.querySelector('.foro-chips-secciones')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-seccion]')
+    if (!chip) return
+    const elegida = chip.dataset.seccion
+    for (const c of principal.querySelectorAll('.foro-chips-secciones [data-seccion]')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false')
+    for (const sec of principal.querySelectorAll('section.foro-seccion')) sec.hidden = !!elegida && sec.dataset.seccion !== elegida
+    principal.querySelector('.foro-sin-responder')?.toggleAttribute('hidden', !!elegida)
+  })
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
@@ -542,6 +567,26 @@ async function pintarForo() {
   await pintarLateral()
 
   document.getElementById('btnNuevoTema')?.addEventListener('click', () => abrirFormularioTema(foro))
+  // En el móvil, «Abrir un tema» es el botón rosa (813, FO2), como en el
+  // índice; el de la cabecera se esconde con CSS. Sin cuenta, a entrar.
+  if (puedeEscribir && !document.getElementById('foroEscribir')) {
+    const fab = document.createElement(sesion ? 'button' : 'a')
+    fab.className = 'foro-fab foro-fab-foro'
+    fab.id = 'foroEscribir'
+    fab.setAttribute('aria-label', 'Abrir un tema')
+    fab.innerHTML = icons.edit(22)
+    if (sesion) {
+      fab.type = 'button'
+      fab.addEventListener('click', () => {
+        document.getElementById('btnNuevoTema')?.click()
+        // El formulario sale arriba de la lista: que se vea al tocar.
+        setTimeout(() => document.getElementById('formularioTema')?.scrollIntoView({ block: 'start' }), 300)
+      })
+    } else {
+      fab.href = `/auth.html?volver=${encodeURIComponent(location.pathname)}`
+    }
+    document.body.appendChild(fab)
+  }
   // Desde el botón de escribir del índice (748): el formulario, ya abierto.
   if (new URLSearchParams(location.search).get('nuevo')) document.getElementById('btnNuevoTema')?.click()
   engancharMarcarTodo()
@@ -564,6 +609,25 @@ async function pintarListaDeTemas(foro) {
   if (etiquetaFiltro) {
     qCuenta = qCuenta.eq('prefix', etiquetaFiltro)
     qTemas = qTemas.eq('prefix', etiquetaFiltro)
+  }
+  // Los filtros de arriba (813). Sin cuenta, «Siguiendo» y «Míos» no salen,
+  // y si llegan en la dirección se tratan como «Recientes».
+  const vista = sesion || !['sigo', 'mios'].includes(vistaTemas) ? vistaTemas : ''
+  if (vista === 'sin') {
+    qCuenta = qCuenta.eq('post_count', 1)
+    qTemas = qTemas.eq('post_count', 1)
+  } else if (vista === 'mios') {
+    qCuenta = qCuenta.eq('author_id', sesion.user.id)
+    qTemas = qTemas.eq('author_id', sesion.user.id)
+  } else if (vista === 'sigo') {
+    // Los que sigues, de todos los foros: la RLS solo deja ver los tuyos.
+    const { data: sigo } = await supabase.from('forum_subscriptions').select('thread_id').eq('user_id', sesion.user.id).limit(1000)
+    const ids = (sigo || []).map((x) => x.thread_id)
+    // Un id que no existe para que `in` no vaya vacío (un `in.()` vacío es
+    // un error de PostgREST, no una lista vacía).
+    const filtro = ids.length ? ids : ['00000000-0000-0000-0000-000000000000']
+    qCuenta = qCuenta.in('id', filtro)
+    qTemas = qTemas.in('id', filtro)
   }
   const [{ data: subforos }, { count }, { data: temas }] = await Promise.all([
     supabase.from('forum_boards_resumen').select('*').eq('parent_id', foro.id).order('position'),
@@ -679,14 +743,34 @@ async function pintarListaDeTemas(foro) {
          <a href="${urlForo(foro.slug)}">quitar el filtro</a></p>`
     : ''
 
+  const enlaceVista = (v) => {
+    const u = new URLSearchParams()
+    if (etiquetaFiltro) u.set('et', etiquetaFiltro)
+    if (v) u.set('v', v)
+    const q = u.toString()
+    return `${urlForo(foro.slug)}${q ? `?${q}` : ''}`
+  }
+  const vistas = [['', 'Recientes'], ['sin', 'Sin respuesta'], ...(sesion ? [['sigo', 'Siguiendo'], ['mios', 'Míos']] : [])]
+  const vistasHtml = `<nav class="foro-vistas" aria-label="Qué temas ver">${vistas
+    .map(([v, t]) => `<a class="chip-filtro${v === vista ? ' activa' : ''}" href="${enlaceVista(v)}"${v === vista ? ' aria-current="true"' : ''}>${t}</a>`)
+    .join('')}</nav>`
+  const vacioDeVista = {
+    sin: 'Todos los temas de aquí tienen respuesta. ¡Bien!',
+    sigo: 'No sigues ningún tema de este foro. Dale a «Seguir» dentro de uno y saldrá aquí.',
+    mios: 'Todavía no has abierto ningún tema en este foro.',
+  }
+
   principal.innerHTML = `
     ${subforosHtml}
     <div id="formularioTema"></div>
+    ${vistasHtml}
     ${filtroHtml}
     <section class="foro-seccion${soyStaff ? ' foro-lista-moderable' : ''}" id="foroTemas">
       ${
         lista.length === 0
-          ? etiquetaFiltro
+          ? vacioDeVista[vista]
+            ? `<p class="empty-state">${vacioDeVista[vista]}</p>`
+            : etiquetaFiltro
             ? `<p class="empty-state">No hay ningún tema con esta etiqueta.</p>`
             : `<p class="empty-state">Aquí no hay ningún tema todavía. Si tienes una duda o algo que enseñar, ábrelo tú — alguien lo leerá.</p>`
           : lista.map(filaTema).join('')

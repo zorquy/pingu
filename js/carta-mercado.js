@@ -169,10 +169,13 @@ export async function pintarMercado(carta) {
       <div class="carta-historial hidden" id="cmHistorial"></div>
       <!-- Quién da ESTA carta (376), sin cuenta también: es el escaparate. -->
       <div class="carta-cambios hidden" id="cmCambios"></div>
+      <!-- Las otras versiones de TCGGO (822): js/carta-versiones.js. -->
+      <div class="carta-versiones hidden" id="cmVersiones"></div>
       <p class="carta-mercado-pie">${enlaceDeEspecie(carta)}</p>
     </div>`
   caja.classList.remove('hidden')
   colocarPrecioAlLado(caja)
+  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'))).catch(() => {})
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'

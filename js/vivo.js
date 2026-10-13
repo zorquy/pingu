@@ -61,6 +61,16 @@ async function cliente() {
   return clientePrometido
 }
 
+// LA CACHÉ DE IR Y VOLVER (tanda 815, VE2). Con un websocket abierto el
+// navegador no guarda la página al salir de ella, así que «Atrás» la
+// recargaba entera (el torneo, el tema del foro, la campanita). Al
+// esconderse la página se cierra el websocket y, si vuelve de esa caché, se
+// abren otra vez las mismas escuchas y cada una pide lo suyo UNA vez: lo que
+// cambió mientras tanto no llegó por el canal.
+const activas = new Set()
+let montajes = 0
+let escondida = false
+
 // ── La suscripción ──
 //
 // `escuchar` devuelve una función para dejar de escuchar. Se llama así:
@@ -77,14 +87,18 @@ async function cliente() {
 // algo cambia de verdad, en vez de una cada diez segundos pase lo que
 // pase. Y así el DELETE no importa (ver decisión 2 de arriba).
 export function escuchar({ nombre, tablas, alCambiar, alEstado }) {
-  let canal = null
-  let cortado = false
+  const escucha = { canal: null, cortado: false }
 
-  ;(async () => {
+  escucha.montar = async () => {
     const rt = await cliente()
-    if (!rt || cortado) return
+    if (!rt || escucha.cortado || escondida || escucha.canal) return
     try {
-      canal = rt.channel(nombre)
+      if (typeof rt.isConnected === 'function' && !rt.isConnected()) rt.connect?.()
+      // Un nombre NUEVO cada vez: `rt.channel()` devuelve el canal que ya
+      // haya con ese nombre, y uno soltado al esconder la página podía
+      // seguir en su lista con sus manejadores puestos (se duplicarían).
+      const canal = rt.channel(`${nombre}-${++montajes}`)
+      escucha.rt = rt
       for (const { tabla, filtro, evento } of tablas) {
         canal.on(
           'postgres_changes',
@@ -98,21 +112,63 @@ export function escuchar({ nombre, tablas, alCambiar, alEstado }) {
         // vuelva a su sondeo normal.
         alEstado?.(estado === 'SUBSCRIBED')
       })
+      escucha.canal = canal
     } catch (e) {
       console.warn(`No se pudo escuchar «${nombre}»:`, e?.message || e)
       alEstado?.(false)
     }
-  })()
+  }
+  escucha.soltar = () => {
+    if (!escucha.canal) return
+    const canal = escucha.canal
+    escucha.canal = null
+    try {
+      if (escucha.rt?.removeChannel) escucha.rt.removeChannel(canal).catch(() => {})
+      else canal.unsubscribe()
+    } catch {}
+  }
+  escucha.alVolver = () => alCambiar?.(null)
+  escucha.alEstado = alEstado
+
+  activas.add(escucha)
+  escucha.montar()
 
   return () => {
-    cortado = true
-    if (canal) {
-      try {
-        canal.unsubscribe()
-      } catch {}
-      canal = null
-    }
+    escucha.cortado = true
+    activas.delete(escucha)
+    escucha.soltar()
   }
+}
+
+export async function alEsconder() {
+  escondida = true
+  if (!activas.size) return
+  for (const e of activas) {
+    e.soltar()
+    e.alEstado?.(false)
+  }
+  const rt = await clientePrometido
+  try {
+    rt?.disconnect?.()
+  } catch {}
+}
+
+export function alVolverDeLaCache() {
+  escondida = false
+  for (const e of activas) {
+    e.montar()
+    e.alVolver()
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    alEsconder()
+  })
+  window.addEventListener('pageshow', (ev) => {
+    if (ev.persisted) alVolverDeLaCache()
+    else escondida = false
+  })
 }
 
 // El sondeo de respaldo vive en su propio fichero (js/sondeo.js) y se

@@ -11,7 +11,8 @@
 // Solo lo del propio sitio y solo páginas: nada de /admin, /auth (abrir el
 // formulario de entrar no es entrar, pero mejor no), descargas ni enlaces
 // que se abren fuera. Y nada con «ahorro de datos» puesto.
-const NUNCA = ['/admin', '/auth', '/.netlify/', '/reset-password']
+// Y la baja del correo (818): es un GET que HACE algo.
+const NUNCA = ['/admin', '/auth', '/.netlify/', '/reset-password', '/baja-correo']
 
 export function sePuedePrecargar(href, origen = location.origin, aqui = location.href) {
   let u

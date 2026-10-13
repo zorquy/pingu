@@ -39693,3 +39693,142 @@ nombre es CJK (la 537) y el «inglés» era el mismo japonés.
   contorno: la 309), fondo `--bg`, letra `--t-sm`.
 - Lo vigila `test-tanda-812.mjs`: el centro del dibujo dentro del botón con
   el ratón y con el dedo, y la barra de la cita en /tema.
+
+## Tanda 813 — La lista de sets, desde la CDN (VE1)
+
+- `netlify/functions/sets.mjs?market=WEST|JP|TW|CN|todos`: la lista de sets
+  NO escondidos (`oculto=not.is.true`) con las columnas de la estantería
+  (`COLUMNAS`), a trozos de 1.000 (Supabase corta ahí, la 808), con
+  `Netlify-CDN-Cache-Control: public, durable, max-age=600,
+  stale-while-revalidate=86400` y un minuto en el navegador. Un fallo es 502
+  con `no-store`: la CDN no guarda un error diez minutos. Se llama a pelo, no
+  detrás de una reescritura (la 633).
+- `js/sets-catalogo.js` → `setsDelCatalogo(mercado, { cliente })`: la CDN
+  primero (4 s) y, si no contesta (en las pruebas no existe), Supabase con
+  `.range()`. Las MISMAS columnas que la función; dos llamadas a la vez
+  comparten la petición y un fallo no se queda guardado.
+- `/mi-coleccion` (y `/cartas`): `cargarSets` y `cargarSetsDeTodos` salen de
+  ahí. Si fallan las dos, lista vacía SIN guardarla. El Panel pedía
+  `limit(2000)` y Supabase daba 1.000.
+- Lo que la CDN añade es tiempo: `abrirAlbum` y `pintarHermanos` usaban
+  `todosLosSets` sin esperarla y, entrando por la dirección, el título y la
+  lista de su era salían vacíos (lo cazó la 748). Ahora la esperan.
+- /lanzamientos NO lo usa: enseña sets escondidos con `tcggo_id`.
+
+## Tanda 814 — Lo que se guarda en tu dispositivo (CK1 + CK2)
+
+- /privacidad §9: sin cookies; sesión, preferencias, la copia de la web del
+  service worker y el permiso de avisos. Sin aviso de cookies porque no hay
+  nada que consentir (LSSI 22.2: lo estrictamente necesario).
+- `js/privacidad.js` → `borrarLoGuardado`: borra el `localStorage` salvo la
+  sesión (`sb-…`), el `sessionStorage` y las cachés `pokedoc-*`. El service
+  worker se queda (sin él no hay avisos).
+
+## Tanda 815 — «Atrás» al momento con el tiempo real (VE2)
+
+- Con un websocket abierto el navegador no guarda la página en la caché de ir
+  y volver. `js/vivo.js` apunta las escuchas activas; en `pagehide` suelta
+  los canales y desconecta, y en `pageshow` con `persisted` los vuelve a abrir
+  y llama una vez a `alCambiar` (lo de mientras tanto no llegó por el canal).
+- Cada montaje usa un nombre de canal NUEVO (`nombre-N`): `rt.channel()`
+  devuelve el que haya con ese nombre, con sus manejadores puestos.
+
+## Tanda 816 — El foro en el móvil (FO1, FO2, FO3)
+
+- Índice (≤ 900 px): chips `.foro-chips-secciones` (Todo + una por sección)
+  que esconden secciones con `hidden` (`.foro-seccion[hidden]` lleva su
+  `display: none` porque la sección es `grid`); cada foro es una baldosa de
+  dos en dos con su color `data-tono` 0–4 (pares de tokens de texto y fondo)
+  y `.foro-fila-resumen` («N temas · hace…» o «Sé el primero»). En el
+  ordenador no salen ni los chips ni el resumen.
+- Un foro: `?v=sin|sigo|mios` (`.foro-vistas`). «Siguiendo» lee
+  `forum_subscriptions`; sin cuenta solo Recientes y Sin respuesta. En el
+  móvil `#foroLateral` no sale y «Abrir un tema» es `.foro-fab-foro`
+  (`#btnNuevoTema` se esconde con `body:has(.foro-fab-foro)`).
+- Un tema: `.foro-autor-hora` junto al nombre; `esSeguido` (misma persona,
+  < 10 min, sin cita ni solución) marca `.foro-mensaje-seguido`, que no
+  repite el nombre. En el móvil la cabecera de la burbuja no sale y
+  `.foro-reaccionar` (pie) hace lo que hacía su «⋯». La píldora `#temaNuevos`
+  sale cuando el repintado trae mensajes ajenos y no estabas abajo.
+
+## Tanda 817 — Lo retirado, fuera, y el semáforo (QU1 + QU2)
+
+- Borradas `scrydex-huecos` y `precios-espejo`; sus filas de
+  `scrydex_estado` se quedan (las lee `sonda-origenes`).
+- `admin/js/semaforo.js`: `PASADAS` (las claves que lee /admin) y
+  `semaforoDe(fila)`: rojo si está parada (sin día, o con el de hoy) o el plan
+  bloqueado hoy; ámbar si hay un error de menos de un día o lleva más de un
+  día sin escribir; verde; gris si no ha corrido nunca.
+
+## Tanda 818 — Precargar al tocar ya estaba (VE3)
+
+- Era la 723 (`js/precarga.js`, reglas de especulación con respaldo a mano).
+  Se añade `/baja-correo` a `NUNCA`: es un GET que hace algo.
+
+## Tanda 819 — Cartas dentro del foro (FO4)
+
+- `js/foro-cartas.js` → `pintarCartasDelForo(raiz)`: los `[[Nombre]]` de
+  `.foro-mensaje-texto` (fuera de enlaces y listas, seis por mensaje) pasan a
+  `<a class="foro-carta">` a `/buscar?en=cartas&q=…`; si la carta existe
+  (`name_key` inglés o `name_es` exacto, la impresión más nueva) pasa a
+  `.foro-carta-lista` con foto y precio, a su ficha. Lo guardado no cambia.
+- El tema rellena los `<tcg-deck>` de los mensajes (`hydrateDecks`).
+- El ORDEN importa: `marcarCartas` va antes del glosario (792), que envuelve
+  palabras en botones y partía «[[Herramienta Inventada]]» en trozos que ya
+  no casaban (salía una de cada dos veces). El glosario no entra en enlaces,
+  así que una carta marcada queda a salvo. Y la pista «[[Arven]]» va debajo
+  de la caja de responder, solo abierta: en el placeholder no cabía.
+
+## Tanda 820 — Guías y noticias aunque la red vaya mal (VE4, y VE5)
+
+- `sw.js`: las navegaciones a `/guia/<x>` y `/noticias/<x>` van a
+  `paginaDeLeer`: red primero; si a los `ESPERA_LECTURA_MS` (2,5 s) no ha
+  contestado y hay copia en `pokedoc-lectura-1`, la copia (la red sigue por
+  detrás y guarda la nueva). Sin copia se espera a la red; sin red ni copia,
+  «Sin conexión». Se guardan las `MAX_LECTURA` (30) últimas, sin las que
+  vienen de una redirección. `activate` no borra esa caché. El texto viene en
+  el HTML (meta-social), así que la copia se lee.
+- VE5 ya estaba (rejillas con la foto pequeña, perezosa y `decoding=async`;
+  la ficha con la grande): solo `fetchpriority="high"` en la foto principal
+  de /carta y de la ficha de /mi-coleccion.
+
+## Tanda 821 — Lo que tarda de verdad (VE6)
+
+- `supabase-migration-vitales.sql`: `page_vitals` (path, `lcp_ms`, `inp_ms`,
+  `cls_mil`, `movil`), inserta cualquiera y lee el equipo, con cotas por
+  columna; `vitales_resumen(p_dias)` da el p75 por página (lo cuenta la base:
+  la 808).
+- `js/vitales.js` → `medirVitales()`: una visita de cada cuatro (`MUESTRA`),
+  sin robots; observa LCP, el peor toque (aproximación del INP) y CLS, y manda
+  UNA fila al esconderse la página con `fetch` `keepalive`, con la dirección y
+  la clave del propio cliente (sin ellas —el doble— no manda nada). Entra por
+  `import()` desde app.js. `notaDeVital` lleva los umbrales de Google.
+- /admin → Analítica: «Lo que tarda de verdad» (`#analyticsVitales`).
+
+## Tanda 822 — Las versiones de cada carta, en /carta (PO2)
+
+- `js/carta-versiones.js` → `pintarVersiones(carta, caja)`: las filas de
+  `tcg_card_versions` de la carta (807), numeradas «Versión 2, 3…» porque
+  TCGGO no dice qué versión es; precio = `cm_low_es` o `cm_low`; enlace = el
+  de TCGGO (abre Cardmarket con el filtro) o `enlaceCardmarket`. Sin filas,
+  el bloque `#cmVersiones` (pestaña Precio) no sale.
+
+## Tanda 823 — El resumen del lunes, tuyo (PO1)
+
+- `resumen-semanal`: `lanzamientosDeLaSemana` (sets occidentales de hoy a
+  siete días) para todos, y `tuSemana` (valor de `user_collection_value` de
+  ayer contra hace ocho días, y mensajes de OTROS en tus
+  `forum_subscriptions`) por persona, en `preview.tu`. Lo que no se sabe no
+  sale. `todas()` pide a trozos: con `limit=10000` Supabase daba 1.000 y el
+  correo solo llegaba a los mil primeros perfiles. Se escribe a trozos de 500.
+- `js/email-plantilla.js` → `lineasDeTuSemana`, y el correo pinta «Tu semana»
+  primero y «Sale el …» con su día.
+
+## Tanda 824 — Las cartas japonesas en sets escondidos (PO3)
+
+- `netlify/functions/jp-lineas-viejas.mjs` (cada hora, una lectura al día):
+  las líneas de `user_collection` japonesas cuya carta está en un set
+  escondido; propone el set de TCGGO (`setNuevoDe`: único por nombre inglés,
+  si no único por código; dos es «dudoso») y la carta (`cartaNuevaDe`: única
+  con el mismo número). Lo escribe en `scrydex_estado.jp_lineas_viejas`, y
+  /admin lo enseña. `APLICAR = false`: no reapunta nada.
