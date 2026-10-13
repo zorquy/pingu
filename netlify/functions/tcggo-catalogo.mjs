@@ -54,6 +54,9 @@ export const MERCADOS = ['WEST', 'JP']
 // Cuántas veces se intenta escribir una expansión cuya escritura falla
 // antes de saltarla (655). Ver el comentario en el `catch` de abajo.
 export const MAXIMO_INTENTOS_EPISODIO = 3
+// Cada vez que un arreglo deja escribir lo que fallaba, se sube y lo que
+// estaba en `fallidos` se vuelve a pedir una vez.
+export const REABRIR_FALLIDOS = 807
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -118,6 +121,18 @@ export async function procesar({
   if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false, fallidos: {} }
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   for (const m of MERCADOS) if (!Array.isArray(estado.hechos[m])) estado.hechos[m] = []
+  // Lo que falló por las filas repetidas (807) se vuelve a intentar UNA
+  // vez, ya con el arreglo, sin esperar a la semana que viene.
+  if (estado.reabiertosFallidos !== REABRIR_FALLIDOS && estado.fallidos && typeof estado.fallidos === 'object') {
+    for (const m of MERCADOS) {
+      for (const id of Object.keys(estado.fallidos[m] || {})) {
+        estado.hechos[m] = estado.hechos[m].filter((x) => String(x) !== String(id))
+        delete estado.fallidos[m][id]
+        estado.hecho = false
+      }
+    }
+    estado.reabiertosFallidos = REABRIR_FALLIDOS
+  }
   // LO QUE HA IDO MAL, APUNTADO (655). PINGU abrió el «Expansion Pack»
   // japonés —set creado, «0 de 102»— y dentro no había ni una carta. Esta
   // función solo creaba el set si TCGGO le había dado cartas, así que las
@@ -346,13 +361,29 @@ export async function procesar({
       } catch (e) {
         return { ...resumen(), ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
       }
+      // 0. La nuestra que YA lleva su id de TCGGO es ella (807). Sin esto,
+      //    otra suya con el mismo producto de Cardmarket se quedaba con
+      //    nuestra «tcggo-X», la X de verdad salía como carta nueva con el
+      //    MISMO id y el lote entero rebotaba (21000: «ON CONFLICT DO
+      //    UPDATE command cannot affect row a second time»): Neo Discovery
+      //    llevaba así desde el 8 de octubre, tres intentos cada semana.
+      const porTcggo = new Map()
+      for (const c of nuestras) if (Number.isInteger(Number(c.tcggo_id)) && Number(c.tcggo_id) > 0) porTcggo.set(Number(c.tcggo_id), c)
       // 1. Por el id de Cardmarket que ya tienen (los pares del emparejador).
       const porProducto = new Map()
       for (const c of nuestras) if (c.cm_id_product_propio) porProducto.set(Number(c.cm_id_product_propio), c)
       const filas = []
       const usadas = new Set()
       const sinCasar = []
+      const pendientes = []
       for (const s of suyas) {
+        const n = porTcggo.get(Number(s.id))
+        if (n && !usadas.has(n.id)) {
+          usadas.add(n.id)
+          filas.push(filaDeCartaTcggo(s, { setId: n.set_id, nuestra: n }))
+        } else pendientes.push(s)
+      }
+      for (const s of pendientes) {
         const n = porProducto.get(Number(s.cardmarket_id))
         if (n && !usadas.has(n.id)) {
           usadas.add(n.id)
@@ -380,6 +411,13 @@ export async function procesar({
         filas.push(filaDeCartaTcggo(s, { setId: destinos[0] }))
         nuevas++
       }
+      // Y una sentencia no puede llevar dos filas con el mismo id: la
+      // primera manda (la casada con una nuestra va antes que la nueva).
+      const vistasId = new Set()
+      const sinRepetir = filas.filter((f) => (vistasId.has(f.id) ? false : (vistasId.add(f.id), true)))
+      if (sinRepetir.length < filas.length) estado.repetidas = { ...(estado.repetidas || {}), [`${mercado}:${episodio.id}`]: filas.length - sinRepetir.length }
+      filas.length = 0
+      filas.push(...sinRepetir)
       let escritasAqui = 0
       try {
         for (let k = 0; k < filas.length; k += 300) escritasAqui += Number(await guardarCartas(filas.slice(k, k + 300), mercado)) || 0

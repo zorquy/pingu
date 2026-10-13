@@ -140,6 +140,12 @@ export async function procesar({
     if (/42P01|scrydex_estado/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-scrydex-cartas.sql (scrydex_estado)' }
     return { ok: false, error: m.slice(0, 200) }
   }
+  // Parada por la migración que faltaba: en cuanto la tabla contesta (una
+  // consulta a lo nuestro, gratis), se sigue. Esperar a mañana era perder
+  // el día por una tabla que alguien ya ha creado.
+  if (estado.parado?.dia === dia && /supabase-migration-versiones\.sql/.test(estado.parado.motivo || '')) {
+    try { await pedir('tcg_card_versions?select=tcggo_id&limit=1'); estado.parado = null; estado.fallosBase = 0 } catch { /* sigue faltando */ }
+  }
   if (estado.parado?.dia === dia) return { ok: true, saltado: `parado hoy: ${estado.parado.motivo}` }
   if (estado.planBloqueado?.dia === dia) return { ok: true, saltado: `el plan de TCGGO no da más hoy: ${estado.planBloqueado.motivo}` }
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }

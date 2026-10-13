@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (56) — PINGU-Claude (807 bis — Neo Discovery y las versiones paradas)
+
+**Hecho**: con el estado de /admin que pegó PINGU. (1) La pasada de
+versiones corrió antes del SQL y se quedó parada TODO el día; ahora, si la
+parada es por esa migración, mira si la tabla ya contesta y sigue. (2) Neo
+Discovery no se escribía desde el 8 de octubre (21000: dos filas con el
+mismo id en un lote): otra carta de TCGGO con el mismo producto de
+Cardmarket se quedaba con nuestra «tcggo-X» y la X salía como nueva con el
+mismo id. El catálogo casa primero por el id de TCGGO que ya tiene la
+nuestra y quita repetidas antes de escribir; lo que estaba en `fallidos`
+se reintenta una vez ya. (3) En /admin, «undefined cartas» en los huecos de
+Scrydex.
+
+**Ficheros**: `netlify/functions/tcggo-catalogo.mjs`,
+`netlify/functions/tcggo-versiones.mjs`, `admin/js/admin.js`, `SCHEMA.md`.
+Prueba 807 ampliada (con el código de antes da el mismo 21000).
+
+**Pendiente**: lo de la entrada 55.
+
 ## 2026-10-13 (55) — PINGU-Claude (807 — las versiones de cada carta, primera mitad: encontrarlas)
 
 **Hecho**: PINGU, con el Snorlax de Plasma Storm: TCGGO enseña «Standard

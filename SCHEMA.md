@@ -39548,3 +39548,18 @@ separadas» de la expansión, y el valor de una línea Reverse. Hoy las
 impresiones salen de `tcg_cards.variants` (TCGdex) y nadie lee la tabla
 nueva. Etiqueta propuesta: con UNA versión en un set de 2002-05-24 en
 adelante, «Reverse Holo»; si no se puede saber, «otra versión».
+
+### 807 bis — Neo Discovery y la parada por la migración
+
+- `tcggo-catalogo` casa ANTES que nada cada carta suya con la nuestra que ya
+  lleva su `tcggo_id` (paso 0), y quita las filas repetidas por id antes de
+  mandar el lote (`estado.repetidas` cuenta las quitadas). Sin el paso 0,
+  otra suya con el mismo producto de Cardmarket y otro número se quedaba con
+  nuestra «tcggo-X» por producto, la X salía como carta nueva «tcggo-X» y el
+  lote entero rebotaba con 21000 («ON CONFLICT DO UPDATE command cannot
+  affect row a second time»). Neo Discovery, tres intentos cada semana desde
+  el 8 de octubre. `REABRIR_FALLIDOS` (807): al subirlo, lo que estaba en
+  `fallidos` se vuelve a pedir UNA vez sin esperar a la semana siguiente.
+- `tcggo-versiones`: la parada «falta ejecutar supabase-migration-versiones.sql»
+  se quita sola en la pasada siguiente si `tcg_card_versions` ya contesta
+  (una consulta a lo nuestro). Las demás paradas siguen hasta mañana.
