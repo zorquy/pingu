@@ -84,7 +84,15 @@ export const MAXIMO_PROBADOS = 8
 export const DIAS_DE_LISTA = 1
 export const DIAS_DE_DUDA = 7
 // La vuelta en curso (806). Subirla vuelve a hacer el japonés entero.
-export const VUELTA = 2
+// La 3 (810) es SIN CASAR: PINGU, «simplemente trae los sets de TCGGO y
+// sustituye todo lo que haya en el catálogo japonés». Ver `pasada`.
+export const VUELTA = 3
+// Cuántas expansiones caben en una ejecución (810): `pasada` hace una, y la
+// función la llama otra vez mientras quede tiempo. ~256 en unas tres horas.
+export const POR_EJECUCION = 3
+// Solo se empieza otra si van menos de estos ms: una expansión tarda hasta
+// ~10 s y Netlify corta a los 30.
+const MS_POR_EJECUCION = 10_000
 export const ESCONDER_POR_PASADA = 20
 // LO QUE VA PRIMERO (809). PINGU: «Abyss Eye, el Pitch Black japonés, trae
 // las cartas con el nombre en japonés: son de Scrydex; empieza por ese set
@@ -164,11 +172,27 @@ export async function pasada({
     estado.dudosos = {}
     estado.cascarones = { vistos: {} }
     estado.escondidosAlFinal = {}
+    estado.rehechas = {}
+    estado.limpieza = null
     if (estado.lista) estado.lista.fecha = null
     delete estado.ultimoError
     await persistir()
   }
   const entera = (Number(estado.vuelta) || 1) >= 2
+  // LA VUELTA 3, SIN CASAR (810). Las vueltas de antes buscaban qué set
+  // nuestro era cada expansión (código, nombre, huella) y conservaban lo
+  // nuestro que casara, y por ahí se colaba lo de Scrydex: un set que no
+  // casaba se quedaba a la vista con sus cartas en japonés. Ahora:
+  //   · lo primero, se esconden TODOS los sets japoneses sin `tcggo_id`;
+  //   · el destino de cada expansión es el set que ya lleva su `tcggo_id`
+  //     o uno NUEVO, nunca uno que «se parezca»;
+  //   · el set se rotula con lo de TCGGO (nombre, logo, fecha, cuentas);
+  //   · y al final se esconde también lo que lleve un `tcggo_id` que ya no
+  //     está en su lista.
+  // Lo de la gente no se borra: las cartas viejas con dueño se reapuntan
+  // por número dentro del mismo set, y las que no, se quedan en su set
+  // escondido.
+  const sinCasar = (Number(estado.vuelta) || 1) >= 3
   if (!estado.escondidosAlFinal || typeof estado.escondidosAlFinal !== 'object') estado.escondidosAlFinal = {}
   if (estado.planBloqueado?.dia === dia) return { ok: true, saltado: `el plan no da el japonés hoy: ${estado.planBloqueado.motivo}` }
 
@@ -202,6 +226,17 @@ export async function pasada({
     await persistir()
   }
   const episodios = estado.lista.episodios
+
+  if (sinCasar && !estado.limpieza?.hecha) {
+    try {
+      const escondidos = (await pedir(`tcg_sets?market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&select=id,name,name_en`, { method: 'PATCH', body: JSON.stringify({ oculto: true }), headers: { Prefer: 'return=representation' } })) || []
+      for (const s of Array.isArray(escondidos) ? escondidos : []) estado.escondidosAlFinal[s.id] = { fecha: ahora.toISOString(), nombre: s.name_en || s.name || s.id, por: 'sin tcggo_id, al empezar la vuelta 3' }
+      estado.limpieza = { hecha: true, fecha: ahora.toISOString(), escondidos: Array.isArray(escondidos) ? escondidos.length : null }
+      await persistir()
+    } catch (e) {
+      return { ok: false, error: `nuestra base al esconder lo viejo: ${String(e?.message || e).slice(0, 160)}` }
+    }
+  }
 
   // ── 2. Una expansión por pasada ──
   // Una dudosa que en la vuelta entera ya se creó no espera la semana.
@@ -254,11 +289,11 @@ export async function pasada({
     // nombre, o uno nuevo.
     let destino = sets.find((s) => Number(s.tcggo_id) === pendiente.id)?.id || null
     let por = destino ? 'tcggo_id' : null
-    if (!destino) {
+    if (!destino && !sinCasar) {
       const r = setDeEpisodio(pendiente, sets)
       if (r.set) { destino = r.set.id; por = r.por }
     }
-    if (!destino) {
+    if (!destino && !sinCasar) {
       const r = setDeEpisodioPorHuella(pendiente, sets)
       if (r.set) { destino = r.set.id; por = r.por }
       else if (r.dudoso && entera) {
@@ -293,7 +328,7 @@ export async function pasada({
     // se juntan en el destino: es TCGGO quien dice que son la misma.
     const hermanos = entera ? sets.filter((s) => s.id !== destino && Number(s.tcggo_id) === pendiente.id).map((s) => s.id).slice(0, 4) : []
     const opciones = entera
-      ? { sets: [destino, ...hermanos], entero: true, recolocarPorNumero: true, borrarSinDestino: false, mismaExpansion: true, comprobarQueEsLaMisma: porHuella }
+      ? { sets: [destino, ...hermanos], entero: true, recolocarPorNumero: true, borrarSinDestino: false, mismaExpansion: true, comprobarQueEsLaMisma: porHuella && !sinCasar }
       : { sets: [destino], conservarPorNumero: true, comprobarQueEsLaMisma: porHuella }
     const r = await (procesarImpl || procesar)({ env, fetchImpl, restImpl, destino, mercado: MERCADO, episodio: pendiente.id, pausa, ...opciones, ...resto })
     if (r.ok) {
@@ -302,6 +337,12 @@ export async function pasada({
       if (!estado.dudosos[pendiente.id]?.creada) delete estado.dudosos[pendiente.id]
       try { await desesconder(sets.find((s) => s.id === destino)) } catch { /* se enseña en la pasada de la fusión o a mano */ }
       if (esPrimero(pendiente)) { estado.rehechas[pendiente.id] = { fecha: ahora.toISOString(), set: destino }; apuntarPrimero() }
+      // El set, rotulado como lo tiene TCGGO (810): un set nuestro que una
+      // vuelta de antes casó con esta expansión conservaba su nombre y su
+      // logo (los de Scrydex o TCGdex).
+      if (sinCasar && !setCreado) {
+        try { await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(destino)}`, { method: 'PATCH', body: JSON.stringify(rotuloDeTcggo(pendiente)) }) } catch { /* el rótulo no para el calco */ }
+      }
       // Los viejos de la misma expansión, escondidos YA (809).
       if (entera) {
         const viejos = setsViejosDe(pendiente, sets, destino, estado.dudosos[pendiente.id]?.candidatos || []).filter((id) => !hermanos.includes(id))
@@ -391,6 +432,19 @@ export async function pasada({
     } catch (e) {
       return { ok: false, ...resumen(), error: `nuestra base al esconder: ${String(e?.message || e).slice(0, 160)}` }
     }
+    // Y los que llevan un `tcggo_id` que ya no está en su lista (810).
+    if (sinCasar && sueltos.length < ESCONDER_POR_PASADA) {
+      try {
+        const vivos = new Set(episodios.map((e) => Number(e.id)))
+        const conId = (await pedir(`tcg_sets?select=id,name,name_en,tcggo_id&market=eq.${MERCADO}&tcggo_id=not.is.null&oculto=is.false&limit=2000`)) || []
+        for (const s of conId.filter((x) => !vivos.has(Number(x.tcggo_id)))) {
+          await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(s.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
+          estado.escondidosAlFinal[s.id] = { fecha: ahora.toISOString(), nombre: s.name_en || s.name || s.id, por: `su tcggo_id (${s.tcggo_id}) ya no está en TCGGO` }
+        }
+      } catch (e) {
+        return { ok: false, ...resumen(), error: `nuestra base al esconder lo que no está en TCGGO: ${String(e?.message || e).slice(0, 160)}` }
+      }
+    }
     if (sueltos.length < ESCONDER_POR_PASADA) estado.cascarones.listo = true
     await persistir()
     return { ok: true, ...resumen(), escondidos: sueltos.length, listo: Boolean(estado.cascarones.listo) }
@@ -424,8 +478,30 @@ export async function pasada({
   return { ok: true, ...resumen(), cascarones: { probados: porVer.length, escondidos, listo: Boolean(estado.cascarones.listo) } }
 }
 
+// Lo que TCGGO dice de su expansión, para el set nuestro que la lleva.
+export function rotuloDeTcggo(episodio) {
+  const f = filaDeSetNuevo(episodio, [])
+  const fila = { name: f.name, name_en: f.name_en, tcggo_id: f.tcggo_id }
+  for (const k of ['tcg_online_code', 'release_date', 'card_count_total', 'card_count_official', 'logo_tcggo']) if (f[k] != null) fila[k] = f[k]
+  return fila
+}
+
+// Varias expansiones por ejecución (810), mientras quede tiempo: cada
+// `pasada` lee el estado de nuevo y hace UNA.
+export async function ejecucion({ pasadaImpl = pasada, reloj = () => Date.now(), veces = POR_EJECUCION } = {}) {
+  const arranque = reloj()
+  const hechas = []
+  let r = null
+  for (let i = 0; i < veces; i++) {
+    r = await pasadaImpl()
+    hechas.push(r)
+    if (!r?.ok || !r.hecha || reloj() - arranque > MS_POR_EJECUCION) break
+  }
+  return { ...r, enEstaEjecucion: hechas.length }
+}
+
 export default async () => {
-  const r = await pasada()
+  const r = await ejecucion()
   if (!r.ok) console.warn('tcggo-calco-jp:', JSON.stringify(r).slice(0, 800))
   return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }

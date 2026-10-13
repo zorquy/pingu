@@ -39627,3 +39627,33 @@ fuera); todo de TCGGO. Empieza por ese set y así lo compruebo».
   japonés, seguía a la vista al lado del de TCGGO. Esconder, no borrar
   (`escondidosAlFinal`, con `por`), y si un oculto acaba siendo destino de
   otra expansión, `desesconder` lo vuelve a enseñar.
+
+## Tanda 810 — El catálogo japonés, sustituido entero por TCGGO
+
+PINGU: «simplemente trae los sets de TCGGO, sustituye todo lo que haya en el
+catálogo japonés por lo que traes de TCGGO». `tcggo-calco-jp`, **vuelta 3,
+sin casar** (`VUELTA = 3`; `pasada({ vuelta: 2 })` sigue haciendo la de
+antes para las pruebas):
+
+- **Al empezar**, un PATCH en bloque esconde todos los sets japoneses sin
+  `tcggo_id` (`estado.limpieza`, y cada uno en `escondidosAlFinal`).
+- **El destino** de cada expansión es el set con su `tcggo_id` o uno NUEVO
+  (`filaDeSetNuevo`). Ya no se busca por código, nombre ni huella: era por
+  donde un set de Scrydex «parecido» se quedaba con la expansión (o se
+  quedaba fuera y a la vista). Sin `comprobarQueEsLaMisma`: la fuente es
+  TCGGO.
+- **Las cartas**, como en la vuelta 2: modo entero, todo «tcggo-<id>»,
+  reapuntando por número lo que la gente tenía en ese mismo set y juntando
+  los sets con el mismo `tcggo_id`.
+- **El set se rotula** con lo de TCGGO (`rotuloDeTcggo`: nombre, nombre
+  inglés, logo, código, fecha y cuentas): un set que una vuelta de antes casó
+  con la expansión conservaba el nombre y el logo de Scrydex o TCGdex.
+- **Al final**, además de los sin `tcggo_id`, se esconde lo que lleve un
+  `tcggo_id` que ya no está en la lista de TCGGO.
+- **Varias por ejecución** (`ejecucion`, `POR_EJECUCION = 3`): la función
+  llama a `pasada` otra vez mientras no falle, haya hecho una y vayan menos
+  de 10 s. ~256 expansiones en unas tres horas. Lo primero sigue siendo
+  `PRIMERO` (Abyss Eye).
+
+Lo de la gente no se borra: lo que tenía en un set que no era el de TCGGO
+se queda en ese set, escondido.

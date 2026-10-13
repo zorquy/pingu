@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (59) — PINGU-Claude (810 — el japonés, sustituido entero por TCGGO)
+
+**Hecho**: PINGU: «simplemente trae los sets de TCGGO y sustituye todo lo
+que haya en el catálogo japonés». La vuelta 3 del calco, SIN CASAR: al
+empezar esconde de una vez todos los sets japoneses sin `tcggo_id`; cada
+expansión de TCGGO va al set que ya lleva su `tcggo_id` o a uno NUEVO
+(nunca a uno que se le parezca por nombre, código o huella, que es por
+donde se colaba lo de Scrydex), con todas sus cartas en modo entero y el
+set rotulado como TCGGO (nombre, logo, código, fecha, cuentas); al final
+esconde lo que lleve un `tcggo_id` que TCGGO ya no tiene. Hasta tres
+expansiones por ejecución: ~256 en unas tres horas, Abyss Eye la primera.
+
+**Ficheros**: `netlify/functions/tcggo-calco-jp.mjs`, `admin/js/admin.js`,
+`SCHEMA.md`. Prueba nueva 810; 806 y 809 llaman ya con `vuelta: 2`.
+
+**Pendiente**: las cartas japonesas que la gente tenía de Scrydex o TCGdex
+en sets que no eran el de TCGGO se quedan en su set escondido (no se borra
+nada); si hace falta, pasarlas por número a las de TCGGO.
+
 ## 2026-10-13 (58) — PINGU-Claude (809 — Scrydex fuera, y Abyss Eye primero)
 
 **Hecho**: PINGU: «Abyss Eye (el Pitch Black japonés) trae las cartas con

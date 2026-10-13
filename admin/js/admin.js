@@ -3118,7 +3118,7 @@ async function tcggoEstado() {
       const hechas = Object.keys(k.hechos || {}).length
       const paradas = (k.lista?.episodios || []).filter((e) => !k.hechos?.[e.id] && (Number(k.intentos?.[e.id]) || 0) >= 3)
       return [
-        `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: vuelta ${k.vuelta || 1}${(k.vuelta || 1) >= 2 ? ' (entera, todo de TCGGO: 806)' : ''} · ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
+        `CALCO JAPONÉS (tcggo_calco_jp, 674) — ${de('tcggo_calco_jp')?.updated_at || 'nunca'}: vuelta ${k.vuelta || 1}${(k.vuelta || 1) >= 3 ? ' (sin casar: todo de TCGGO, 810)' : (k.vuelta || 1) >= 2 ? ' (entera, todo de TCGGO: 806)' : ''} · ${hechas} de ${total} expansiones hechas · ${paradas.length} paradas · cascarones: ${Object.values(k.cascarones?.vistos || {}).filter((v) => v.estado === 'escondido').length} escondidos${k.cascarones?.listo ? ' (listo)' : ''}`,
         // La vuelta entera (806): cuánto de lo que tenía alguien se recolocó,
         // lo que se quedó sin pareja y lo que se escondió al final.
         ...((k.vuelta || 1) >= 2 ? [
@@ -3126,6 +3126,7 @@ async function tcggoEstado() {
           Object.keys(k.escondidosAlFinal || {}).length ? `  escondidos al final (sin tcggo_id): ${Object.entries(k.escondidosAlFinal).map(([id, x]) => `${id} «${x.nombre}»`).join(' · ')}` : '',
           ...Object.entries(k.vueltas || {}).map(([n, v]) => `  vuelta ${n}: ${v.hechas} hechas, ${v.dudosas} dudosas (hasta ${v.hasta})`),
         ] : []),
+        k.limpieza ? `  al empezar se escondieron ${k.limpieza.escondidos ?? '?'} sets japoneses sin tcggo_id (${k.limpieza.fecha})` : '',
         // Lo que va primero (809), y si TCGGO lo tiene.
         k.primero ? `  primero: ${(k.primero.buscados || []).join(', ')} → ${(k.primero.encontrados || []).length ? k.primero.encontrados.map((e) => `#${e.id} ${e.nombre}${e.codigo ? ` (${e.codigo})` : ''}: ${e.rehecha ? 'rehecha' : 'en cola'}`).join(' · ') : 'TCGGO no tiene ninguna con ese nombre'}` : '',
         ...Object.entries(k.hechos || {}).filter(([, h]) => (h?.viejosEscondidos || []).length).map(([id, h]) => `  ⤓ #${id} → ${h.set}: escondidos los viejos ${h.viejosEscondidos.join(', ')}`),
