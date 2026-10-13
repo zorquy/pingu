@@ -39485,3 +39485,66 @@ precios, `procesar` y las sueltas; las demás se cuentan (`versiones`).
 Integrar las versiones con su precio (la Reverse en la ficha, en «variantes
 separadas» y en el desplegable de añadir) necesita saber cuál es cuál: falta
 el campo, y lo tiene que mirar PINGU en su playground.
+
+## Tanda 807 — Las versiones de cada carta (primera mitad: encontrarlas)
+
+PINGU, con el Snorlax de Plasma Storm: en la web de TCGGO salen «Standard
+24,95 €» y «Reverse Holo 90,24 €», y aquí solo la normal. Lo que se vio con
+las fichas que pegó (están tal cual en `pruebas/fixtures-807/`):
+
+- La Reverse es OTRA carta de la API (43552; la normal, 12774) con el mismo
+  número, `card_code_number`, `tcgid`, `cardmarket_id` y `tcgplayer_id`, sin
+  foto ni ataques y con su propio precio. Ningún campo dice qué versión es
+  (`tcggo_url` acaba en un número que no significa nada: «snorlax-20»).
+- NO sale en el listado del set: Plasma Storm da 138 cartas, las de
+  `cards_total`, y ninguna es una versión. Por eso la 806 no encontró
+  duplicados: no los había.
+- Las versiones van en BLOQUE de ids seguidos en el orden del set: 43551
+  Dodrio 100, 43552 Snorlax 101, 43553 Togepi 102.
+- `links.cardmarket` (`https://www.tcggo.com/external/cm/<id>`) lleva a
+  Cardmarket con el filtro de esa versión puesto.
+
+**`tcg_card_versions`** (`supabase-migration-versiones.sql`): una fila por
+versión, con `tcggo_id` de llave, `card_id` (NUESTRA carta, la principal),
+número, nombre, producto, `link_cm`, los mínimos por idioma, las medias, las
+disponibles y TCGplayer en euros. `etiqueta` queda vacía: el nombre de la
+versión lo decide la web al pintarla. Se lee sin cuenta (política de SELECT
+en la misma migración, la 510); la escribe solo la función.
+
+**`tcggo-versiones`** (programada, `0-58/2`): recorre IDS, porque es el único
+camino que lleva a una versión.
+- Sube desde el 43551 hasta 2.000 ids seguidos sin carta; luego baja desde
+  el 43550 y para a los 3.000 pedidos seguidos sin una sola versión (abajo
+  siempre queda algo: el freno no puede ser «¿queda?», la 510). Con todo
+  recorrido, refresca las versiones de más de una semana (la que ya no
+  existe se quita y se cuenta) y una vez a la semana vuelve a subir desde lo
+  último visto.
+- No pide lo que ya conocemos: un id que está en `tcg_cards.tcggo_id`
+  (occidental), en una fila de precio de una carta OCCIDENTAL (el japonés
+  tiene sus propios ids de TCGGO, y una fila de precio no dice de qué
+  catálogo es) o en `tcg_card_versions`. Son consultas a lo nuestro.
+- Coteja con `decidirVersion` (`netlify/lib/tcggo.mjs`): las candidatas
+  salen por el producto de Cardmarket (de la carta o de su fila de precio) y,
+  si no, por el set con ese `tcggo_id`; el NÚMERO se exige siempre. Es
+  versión si casa con una carta nuestra cuyo id de TCGGO (el de su fila de
+  precio, o el de la carta) es OTRO. Si la nuestra no sabe todavía su id,
+  `sinPrincipal`: no se adivina cuál de las dos es la principal.
+- Frenos: 8 peticiones por pasada (sonda incluida), `TCGGO_TOPE_VERSIONES`
+  (5.000 al día de serie: 8 × 720 pasadas = 5.760, y el plan son 15.000 para
+  todo), `TCGGO_PAUSA_MS`, un 429/403 del plan para hasta mañana, un id que
+  falla tres veces se salta, lo que no dio tiempo a pedir va delante en la
+  pasada siguiente (`reintentar`), y si falla NUESTRA base la pasada se corta
+  (lo pedido se aplaza) y a la tercera seguida se para el día. Sin la tabla,
+  para y dice qué migración falta.
+- La ruta de «Get card» se da por `/cards/{id}`. La primera petición de todas
+  es la 43552, que se sabe que existe: si no contesta, la ruta está mal y se
+  para el día con UNA petición, en vez de gastar 2.000 en «vacíos».
+- Estado en `scrydex_estado` → `tcggo_versiones`; /admin → «Estado de TCGGO»
+  enseña el recorrido, las cuentas y ejemplos de cada caso.
+
+**La segunda mitad (la web) va aparte**, cuando haya datos: las versiones en
+la ficha (con su precio y su enlace), en el diálogo de añadir, en «variantes
+separadas» de la expansión, y el valor de una línea Reverse. Hoy las
+impresiones salen de `tcg_cards.variants` (TCGdex) y nadie lee la tabla
+nueva. Etiqueta propuesta: con UNA versión en un set de 2002-05-24 en
+adelante, «Reverse Holo»; si no se puede saber, «otra versión».

@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (55) — PINGU-Claude (807 — las versiones de cada carta, primera mitad: encontrarlas)
+
+**Hecho**: PINGU, con el Snorlax de Plasma Storm: TCGGO enseña «Standard
+24,95 €» y «Reverse Holo 90,24 €». Su API da la Reverse como otra carta
+(43552) que NO sale en el listado del set ni en la búsqueda; solo por id,
+y en bloque (43551 Dodrio, 43552 Snorlax, 43553 Togepi). Pasada nueva
+`tcggo-versiones` (cada 2 min, minutos pares): recorre los ids de TCGGO
+desde el 43551 hacia arriba y luego hacia abajo, salta lo que ya es carta
+nuestra, coteja cada carta con las nuestras (producto de Cardmarket +
+número) y guarda las versiones con su precio y su enlace a Cardmarket (el
+de TCGGO, que lleva el filtro de la versión) en `tcg_card_versions`. 8
+peticiones por pasada, 5.000 al día como mucho; unos diez días para
+recorrerlo todo y luego refresco semanal. /admin → Estado de TCGGO lo
+enseña.
+
+**Ficheros**: `supabase-migration-versiones.sql` (NUEVA, hay que
+ejecutarla), `netlify/functions/tcggo-versiones.mjs` (nueva),
+`netlify/lib/tcggo.mjs`, `admin/js/admin.js`, `SCHEMA.md`, `CLAUDE.md`.
+Prueba nueva 807, con las fichas que pegó PINGU tal cual.
+
+**Pendiente**: la segunda mitad, la web: las versiones en la ficha de la
+carta (con su precio), en el diálogo de añadir y en «variantes separadas»
+de la expansión, y el valor de una línea Reverse con el precio de su
+versión. Va cuando la pasada haya juntado datos de verdad. El japonés no
+se recorre todavía.
+
 ## 2026-10-13 (54) — PINGU-Claude (806 — el japonés, entero de TCGGO, y las versiones de una carta)
 
 **Hecho**: PINGU: TCGGO ya tiene todo el japonés (hasta 1996), «sustitúyelo

@@ -422,6 +422,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   burbuja sale solo en las páginas de la lista de la sección, no en una
   ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
+- **Una VERSIÓN de TCGGO solo se encuentra por su id** (tanda 807): la
+  Reverse del Snorlax de Plasma Storm (43552) no sale en el listado del set
+  ni en la búsqueda, y ningún campo dice qué versión es. `tcggo-versiones`
+  recorre ids y las guarda en `tcg_card_versions` colgadas de NUESTRA carta;
+  el nombre de la versión lo pone la web. Una fila de precio no dice de qué
+  catálogo es: los ids de TCGGO del japonés son otros.
 - **Un reemplazo que BORRA filas de precio tiene que avisar a la pasada
   que las escribe** (tanda 697). `30th-entero` borró las cartas viejas con
   sus `tcg_card_prices` y escribió las nuevas; `tcggo-precios` ya había

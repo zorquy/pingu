@@ -3079,7 +3079,7 @@ async function tcggoEstado() {
   const caja = document.getElementById('cardsDiagnostico')
   caja.classList.remove('hidden')
   caja.value = 'Leyendo el estado…'
-  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo', 'tcggo_sueltas'])
+  const { data, error } = await supabase.from('scrydex_estado').select('clave,valor,updated_at').in('clave', ['tcggo_catalogo', 'tcggo_pares', 'tcggo_precios', 'tcggo_reemplazos', 'tcggo_calco_jp', 'scrydex_huecos', 'precios_espejo', 'tcggo_sueltas', 'tcggo_versiones'])
   if (error) { caja.value = `No se ha podido leer el estado: ${error.message}`; return }
   const de = (k) => (data || []).find((f) => f.clave === k)
   const cat = de('tcggo_catalogo')
@@ -3194,6 +3194,26 @@ async function tcggoEstado() {
         ...sinPar.slice(0, 6).map(([k, x]) => `  · ${k} «${x.nombre || ''}»: ${x.motivo} (intento ${x.intentos})`),
         e.parado ? `  ⚠ PARADO ${e.parado.dia}: ${e.parado.motivo}` : '',
         e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.carta || ''} ${e.ultimoError.error}` : '',
+      ]
+    })(),
+    // Las versiones de cada carta (807): el recorrido de ids de TCGGO.
+    ...(() => {
+      const e = de('tcggo_versiones')?.valor
+      if (!e) return ['VERSIONES (tcggo_versiones, 807): todavía no ha corrido']
+      const c = e.cuentas || {}
+      const tramo = (t, n) => (t?.acabado ? `${n} acabado (${t.porque || ''})` : `${n} por el ${t?.siguiente ?? '—'}`)
+      const ej = (tipo, titulo) => (e.ejemplos?.[tipo] || []).length ? [`  ${titulo}: ${e.ejemplos[tipo].map((x) => `${x.id} ${x.nombre || ''} ${x.numero ?? ''}${x.carta ? ` → ${x.carta}` : ''}${x.porque ? ` (${x.porque})` : ''}`).join(' · ')}`] : []
+      return [
+        `VERSIONES (tcggo_versiones, 807) — ${de('tcggo_versiones')?.updated_at || 'nunca'}: ${tramo(e.subiendo, 'subiendo')} · ${tramo(e.bajando, 'bajando')} · peticiones hoy: ${e.gasto?.peticiones ?? 0} · pendientes de repetir: ${(e.reintentar || []).length}`,
+        `  pedidas ${c.pedidas ?? 0} · versiones ${c.versiones ?? 0} · refrescadas ${c.refrescadas ?? 0} · ya eran nuestras ${c.principal ?? 0} · sin id de TCGGO en la nuestra ${c.sinPrincipal ?? 0} · sin carta nuestra ${c.sinCarta ?? 0} · otro producto ${c.otraCarta ?? 0} · dudosas ${c.dudosa ?? 0} · ajenas ${c.ajena ?? 0} · vacías ${c.vacias ?? 0} · saltadas ${c.saltadas ?? 0} · retiradas ${c.retiradas ?? 0}`,
+        ...ej('version', 'últimas versiones'),
+        ...ej('sinPrincipal', 'sin id de TCGGO en la nuestra'),
+        ...ej('sinCarta', 'sin carta nuestra'),
+        ...ej('dudosa', 'dudosas'),
+        e.sonda ? '' : '  (todavía no ha comprobado la ruta de «Get card»)',
+        e.parado ? `  ⚠ PARADO ${e.parado.dia}: ${e.parado.motivo}` : '',
+        e.planBloqueado ? `  ⚠ PLAN ${e.planBloqueado.dia}: ${e.planBloqueado.motivo}` : '',
+        e.ultimoError ? `  último error (${e.ultimoError.fecha}): ${e.ultimoError.donde}: ${e.ultimoError.error}` : '',
       ]
     })(),
     // Los reemplazos, legibles (697): antes era el JSON cortado a 1.500

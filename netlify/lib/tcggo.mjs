@@ -628,3 +628,79 @@ export function filasDeHistorial(cardId, respuesta) {
   }
   return fuera.sort((a, b) => a.dia.localeCompare(b.dia))
 }
+
+// ── Las versiones de una carta, una a una (tanda 807) ──
+//
+// Una versión (la Reverse del Snorlax de Plasma Storm, la 43552) no sale en
+// el listado de su expansión ni en la búsqueda: solo se llega a ella por su
+// id, con «Get card». Así que se recorren los ids y cada carta que conteste
+// se coteja con las nuestras.
+export const urlCarta = (id, base = URL_BASE) => `${base}/cards/${id}`
+
+// La carta de una respuesta de «Get card»: `{ data: {…} }`, o la carta a
+// pelo si algún día cambia el envoltorio. Lo que no es una carta, null.
+export function cartaDeRespuesta(r) {
+  const c = r && typeof r === 'object' && r.data && typeof r.data === 'object' && !Array.isArray(r.data) ? r.data : r
+  return c && typeof c === 'object' && Number.isInteger(c.id) && c.id > 0 ? c : null
+}
+
+// ¿Qué es esta carta suya para nosotros? `candidatas` son cartas nuestras
+// que pueden ser ella —por su producto de Cardmarket o por su expansión—:
+// { id, set_id, local_id, producto, principal }, donde `principal` es el id
+// de TCGGO con el que ya la conocemos (el de su fila de precio o el de la
+// carta) y `producto` su `cardmarket_id`. Contesta un `tipo`:
+//   · 'version'      → es otra impresión de `carta` (lo que se guarda);
+//   · 'principal'    → es la carta misma (ya la tenemos);
+//   · 'sinPrincipal' → casa con una carta nuestra cuyo id de TCGGO no se
+//                      sabe todavía: sin él no se puede decir cuál de las
+//                      dos es la principal, y no se adivina;
+//   · 'sinCarta'     → no casa con ninguna nuestra;
+//   · 'otraCarta'    → mismo número, otro producto (un sello de staff);
+//   · 'dudosa'       → casa con varias y ninguna la conoce;
+//   · 'ajena'        → no es una carta suelta occidental.
+// El número se exige SIEMPRE, también cuando casa por producto: un producto
+// de Cardmarket mal emparejado no puede colgar una versión de otra carta.
+export function decidirVersion(suya, candidatas = []) {
+  if (!suya || !Number.isInteger(suya.id)) return { tipo: 'ajena', porque: 'no es una carta' }
+  if (!esCartaSuelta(suya)) return { tipo: 'ajena', porque: `no es una carta suelta (${suya.type})` }
+  if (suya.lang && String(suya.lang).toLowerCase() !== 'en') return { tipo: 'ajena', porque: `idioma ${suya.lang}` }
+  const numero = soloDigitos(suya.card_number)
+  if (!numero) return { tipo: 'sinCarta', porque: 'sin número' }
+  const producto = Number(suya.cardmarket_id)
+  const mismas = (candidatas || []).filter((c) => c && soloDigitos(c.local_id) === numero)
+  const unicas = [...new Map(mismas.map((c) => [c.id, c])).values()]
+  if (!unicas.length) return { tipo: 'sinCarta', porque: `ninguna nuestra con el número ${suya.card_number}` }
+  if (unicas.some((c) => Number(c.principal) === suya.id)) return { tipo: 'principal', carta: unicas.find((c) => Number(c.principal) === suya.id) }
+  // De las que casan por número, las del MISMO producto: una con otro
+  // producto es otra carta (la sellada lleva el suyo).
+  const delProducto = unicas.filter((c) => !c.producto || Number(c.producto) === producto)
+  if (!delProducto.length) return { tipo: 'otraCarta', porque: `el número casa con ${unicas.map((c) => c.id).join(', ')}, con otro producto de Cardmarket` }
+  if (delProducto.length > 1) return { tipo: 'dudosa', porque: `casa con ${delProducto.map((c) => c.id).join(', ')}` }
+  const carta = delProducto[0]
+  if (!Number.isInteger(Number(carta.principal)) || !Number(carta.principal)) return { tipo: 'sinPrincipal', carta }
+  return { tipo: 'version', carta }
+}
+
+// La fila de `tcg_card_versions` de una versión, con los precios que da
+// «Get card» (los mismos campos que la fila de precio de la carta).
+export function filaDeVersion(suya, carta, { ahora = new Date() } = {}) {
+  const p = filaDePreciosTcggo(carta.id, suya, { ahora })
+  const enlace = String(suya?.links?.cardmarket || '')
+  return {
+    tcggo_id: suya.id,
+    market: 'WEST',
+    card_id: carta.id,
+    set_id: carta.set_id ?? null,
+    numero: suya.card_number != null ? String(suya.card_number) : null,
+    nombre: suya.name ?? null,
+    cm_id_product: p.cm_id_product ?? null,
+    // El enlace de TCGGO a Cardmarket lleva puesto el filtro de la versión
+    // (PINGU: «te aplica ya el filtro de reverse»); solo si es suyo.
+    link_cm: /^https:\/\/www\.tcggo\.com\/external\/cm\/\d+$/.test(enlace) ? enlace : null,
+    cm_low: p.cm_low, cm_low_en: p.cm_low_en, cm_low_de: p.cm_low_de, cm_low_fr: p.cm_low_fr,
+    cm_low_es: p.cm_low_es, cm_low_it: p.cm_low_it, cm_low_ja: p.cm_low_ja,
+    cm_avg7: p.cm_avg7, cm_avg30: p.cm_avg30, cm_disponibles: p.cm_disponibles,
+    tp_market_eur: p.tp_market_eur, tp_mid_eur: p.tp_mid_eur,
+    actualizado_at: ahora.toISOString(),
+  }
+}
