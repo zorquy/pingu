@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { authorRatingSummary } from './guide-rating.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
+import { urlParaCss } from './html.js'
 import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
 import { barraDeRango } from './rango-barra.js'
 import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
@@ -66,8 +67,8 @@ async function loadHeader() {
   document.title = `${name} — PokeDoc`
 
   const banner = document.getElementById('heroBanner')
-  banner.style.background = profile.banner_url
-    ? `url('${profile.banner_url.replace(/'/g, '%27')}') center/cover`
+  banner.style.background = urlParaCss(profile.banner_url)
+    ? `url('${urlParaCss(profile.banner_url)}') center/cover`
     : profile.banner_color || bannerPorDefecto(profile)
   // Sin imagen, 160 px de color liso son 160 px de nada: la cabecera se
   // veía medio vacía y todo lo de debajo empezaba muy abajo. Con foto se

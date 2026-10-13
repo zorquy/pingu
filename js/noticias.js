@@ -12,6 +12,7 @@
 // es media noticia. Así que aquí sí.
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, getProfile } from './app.js'
+import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
 import { urlDeLogo } from './carta-ruta.js'
@@ -51,7 +52,7 @@ function portadaHtml(n, tamano) {
     return `<div class="noticia-portada noticia-portada-${tamano} noticia-portada-vacia noticia-portada-set"><img src="${escapeHtml(set.logo)}" alt="" width="240" height="120" loading="lazy" onerror="this.remove()"></div>`
   }
   if (n.cover_image) {
-    return `<div class="noticia-portada noticia-portada-${tamano}" style="background-image:url('${escapeHtml(n.cover_image)}')" role="presentation"></div>`
+    return `<div class="noticia-portada noticia-portada-${tamano}" style="background-image:url('${urlParaCss(n.cover_image)}')" role="presentation"></div>`
   }
   // Sin portada no se deja un hueco gris: se pinta el icono de la
   // noticia sobre el color de la casa. Pasará poco, pero cuando pase no

@@ -19,3 +19,18 @@ export function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
 }
+
+// Una dirección para meterla en `url('…')`, dentro de un `style="…"` o de
+// `el.style` (804). El informe de seguridad de Luisfe: `avatarStyle` solo
+// cambiaba la comilla simple, y `avatar_url` lo escribe cada uno en su
+// fila, así que un `"` cerraba el atributo y colaba un `onmouseover` en el
+// avatar de esa persona, en todas las páginas donde sale. Solo pasan
+// https, una ruta nuestra (`/…`), `blob:` y una imagen `data:` en base64;
+// lo demás sale vacío. Y lo que podría romper el atributo o el `url()` va
+// codificado (`"` → %22): para una dirección es el mismo sitio.
+export function urlParaCss(url) {
+  const s = String(url ?? '').trim()
+  if (/^data:image\/(png|jpe?g|gif|webp|avif);base64,[a-z0-9+/=]+$/i.test(s)) return s
+  if (!/^(https:\/\/|blob:https:\/\/|\/(?!\/))/i.test(s)) return ''
+  return s.replace(/[\s"'()\\<>&`]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`)
+}

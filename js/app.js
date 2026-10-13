@@ -5,7 +5,7 @@ import { contentIconHtml } from './content-icon.js'
 // Vive en html.js para romper el ciclo con content-icon.js. Se reexporta
 // para que los ficheros que ya lo importaban de aquí sigan igual.
 export { escapeHtml } from './html.js'
-import { escapeHtml } from './html.js'
+import { escapeHtml, urlParaCss } from './html.js'
 // La lateral plegada (SCHEMA 633), desde el principio: style.css reserva su hueco.
 try { if (localStorage.getItem('pokedoc-lateral-plegada') === '1') document.documentElement.classList.add('lat-plegada') } catch {}
 
@@ -122,9 +122,8 @@ export function avatarColorForKey(key) {
 }
 
 export function avatarStyle(profile) {
-  if (profile?.avatar_url) {
-    return `background-image:url('${String(profile.avatar_url).replace(/'/g, '%27')}'); background-color:transparent;`
-  }
+  const foto = urlParaCss(profile?.avatar_url)
+  if (foto) return `background-image:url('${foto}'); background-color:transparent;`
   return `background-color:${avatarColorForKey(profile?.id || profile?.username || '')};`
 }
 
@@ -135,8 +134,9 @@ export function avatarStyle(profile) {
 // ficheros pintando el azul por defecto.
 export function applyAvatarTo(el, profile, inicial = '') {
   if (!el) return
-  if (profile?.avatar_url) {
-    el.style.backgroundImage = `url('${String(profile.avatar_url).replace(/'/g, '%27')}')`
+  const foto = urlParaCss(profile?.avatar_url)
+  if (foto) {
+    el.style.backgroundImage = `url('${foto}')`
     el.style.backgroundColor = 'transparent'
     el.textContent = ''
     return
@@ -147,8 +147,9 @@ export function applyAvatarTo(el, profile, inicial = '') {
 }
 
 export function cardMediaHtml(imageUrl, emoji) {
-  if (!imageUrl) return ''
-  return `<div class="card-media" style="background-image:url('${imageUrl.replace(/'/g, '%27')}')"><span class="card-media-badge">${contentIconHtml(emoji, 16, 'bookOpen')}</span></div>`
+  const imagen = urlParaCss(imageUrl)
+  if (!imagen) return ''
+  return `<div class="card-media" style="background-image:url('${imagen}')"><span class="card-media-badge">${contentIconHtml(emoji, 16, 'bookOpen')}</span></div>`
 }
 
 // Contenido para el cuadradito de icono de una categoría (.category-icon,
@@ -303,8 +304,11 @@ export function passwordStrengthError(password) {
 
 export async function uploadProfileImage(userId, file, kind) {
   validateImageFile(file)
-  const ext = (file.name.split('.').pop() || 'png').toLowerCase()
-  const path = `${userId}/${kind}-${Date.now()}.${ext}`
+  // La extensión, del TIPO y no del nombre que puso cada uno (804): el
+  // nombre llegaba entero a la dirección pública de la foto.
+  const ext = extensionDeImagen(file)
+  const tipo = ['avatar', 'banner', 'torneo', 'torneo-banner'].includes(kind) ? kind : 'imagen'
+  const path = `${userId}/${tipo}-${Date.now()}.${ext}`
   const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
   if (error) throw error
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)

@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
+import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
@@ -26,8 +27,8 @@ function displayName(profile, fallbackEmail) {
 function applyHeroVisuals(profile, name) {
   const banner = document.getElementById('heroBanner')
   const bannerUrl = profile?.banner_url
-  banner.style.background = bannerUrl
-    ? `url('${bannerUrl.replace(/'/g, '%27')}') center/cover`
+  banner.style.background = urlParaCss(bannerUrl)
+    ? `url('${urlParaCss(bannerUrl)}') center/cover`
     : profile?.banner_color || bannerPorDefecto(profile)
   // Igual que en la ficha de otro (tanda 263): sin foto, 160 px de color
   // liso son 160 px de nada y empujan todo lo demás hacia abajo. Aquí

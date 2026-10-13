@@ -7,6 +7,7 @@
 // a propósito: en una categoría puede haber decenas de guías y se leen
 // mejor en filas anchas.
 import { escapeHtml, borderRarityClass } from './app.js'
+import { urlParaCss } from './html.js'
 import { guideHasCourse, guideHasReference } from './guia-contenido.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
@@ -26,7 +27,7 @@ export function renderGuideCardHtml(guide, { statusBadge = 'none', categoryLabel
   return `
   <div class="guide-card ${borderRarityClass(guide.guide_rarity)}" data-guide-id="${guide.id}" data-author-id="${escapeHtml(guide.author_id || '')}" data-slug="${escapeHtml(guide.slug || '')}" data-has-guide="${hasGuide ? '1' : ''}" data-has-course="${hasCourse ? '1' : ''}" tabindex="0" role="link">
     <div class="guide-card-icon${guide.cover_image ? ' has-cover' : ''}"${
-      guide.cover_image ? ` style="background-image:url('${guide.cover_image.replace(/'/g, '%27')}')"` : ''
+      urlParaCss(guide.cover_image) ? ` style="background-image:url('${urlParaCss(guide.cover_image)}')"` : ''
     }>${guide.cover_image ? '' : contentIconHtml(guide.cover_emoji, 22, 'bookOpen')}</div>
     <div class="guide-card-info">
       ${categoryLabel ? `<span class="guide-label">${escapeHtml(categoryLabel)}</span>` : ''}

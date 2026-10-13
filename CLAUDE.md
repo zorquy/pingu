@@ -654,6 +654,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   si la caja de fuera hace de contorno (la de la lupa), el anillo va en la
   caja y el campo de dentro no lleva NINGUNO, o salen dos. Lo vigila
   `test-tanda-737-pantalla.mjs`, que recorre doce páginas con Tab.
+- **Una dirección que escribe alguien se mete en `url(…)` SOLO con
+  `urlParaCss`** (`js/html.js`, tanda 805). `avatar_url` lo escribe cada
+  uno en su fila, y la web lo pintaba dentro de `style="…"` cambiando solo
+  la comilla simple: una comilla doble ejecutaba código en su avatar en
+  todas las páginas. Lo vigila `test-tanda-805.mjs`. Y una columna nueva de
+  `user_profiles` que no deba escribirse uno mismo va en
+  `perfil_guarda_columnas` (supabase-migration-seguridad-perfil.sql).
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

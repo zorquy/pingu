@@ -39394,3 +39394,45 @@ no salta desde la hoja «Tú», que no es un diálogo.
 **El logo de la barra** salía «Poke Doc»: `.nav-logo` es un `inline-flex`
 con `gap`, y el hueco caía también entre el texto y su `<span>`. El margen
 va en el `::before`.
+
+## Tanda 805 — El informe de seguridad de Luisfe
+
+Un usuario (Luisfe) mandó un informe hecho leyendo solo el código público.
+Revisado punto por punto contra el repositorio:
+
+1. **XSS por el avatar — real, y el más serio.** `avatarStyle` metía
+   `avatar_url` en `style="…"` cambiando solo la comilla simple, y
+   `avatar_url` lo escribe cada uno en su fila con una llamada a la API.
+   Una comilla doble colaba un `onmouseover` en su avatar en todas las
+   páginas (la 805 lo reproduce con el código viejo: el código se ejecuta).
+   Ahora todo `url(…)` montado con un dato pasa por `urlParaCss`
+   (`js/html.js`, sin dependencias): solo https, `/ruta`, `blob:https` o
+   `data:image` en base64, y `"'()\<>&` espacios y comilla invertida van
+   codificados. En avatares, banners, portadas de guía y noticia y el arte
+   de las expansiones. Y la base (supabase-migration-seguridad-perfil.sql)
+   no deja escribir en `avatar_url` ni `banner_url` lo que no sea una
+   dirección https limpia (`url_de_imagen_segura`). La foto de perfil saca
+   la extensión del tipo (`extensionDeImagen`), no del nombre del fichero.
+2. **`is_admin` a uno mismo — ya estaba cerrado** (`solo_admin_da_titulos`
+   desde la 295). **Pero había otro hueco del mismo tipo:** `is_banned`,
+   `is_muted`, `is_pro`, `total_xp`, `level` y `forum_title_color` se
+   podían escribir en la propia fila. Los cierra `perfil_guarda_columnas`
+   (antes de insertar y de actualizar). Es `security invoker` A PROPÓSITO:
+   mira `current_user`, que es `authenticated`/`anon` en una llamada de la
+   web y el dueño en una función `security definer` (las que reparten XP:
+   `xp_sumar`, foro, sugerencias, autor, torneos), el SQL Editor o la clave
+   de servicio. Un admin pasa. Al INSERTAR (el `upsert` del onboarding con
+   Google) la fila nace sin mando, sin castigo y con 0 XP.
+3. **XP desde el cliente — en parte.** El XP ya lo sumaba la base
+   (`xp_sumar`, 388) pero aceptaba hasta 500 por llamada sin límite de
+   llamadas: tope de **2.000 al día** por persona (`xp_diario`); pasado el
+   tope no suma y contesta el total (el cliente no se rompe). Moverlo de
+   verdad al servidor es decidir cada premio allí: otra tanda grande.
+4. **Guías ajenas sin publicar — no pasa:** `guides_select` solo deja ver
+   los borradores y las rechazadas a su autor y a los admins; las de
+   revisión son públicas a propósito (la sección Comunidad las lista).
+
+Queda abierto: la racha (`current_streak`, `last_active_date`,
+`streak_shields`) la sigue escribiendo el navegador. La migración termina
+enseñando las políticas de `user_profiles`, que se pusieron a mano y no
+están en ninguna migración.

@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (53) — PINGU-Claude (805 — el informe de seguridad de Luisfe)
+
+**Hecho**: revisado el informe que le mandaron a PINGU. Real y arreglado:
+un avatar con una comilla doble ejecutaba código en cualquier página donde
+saliera (`urlParaCss` en todos los `url(…)`, y la base ya no acepta fotos
+que no sean https limpias). Otro hueco que el informe no vio: cada uno
+podía quitarse el baneo o el silencio, hacerse Pro o escribirse el XP en
+su fila; lo cierra el disparador `perfil_guarda_columnas`. `xp_sumar`
+lleva tope diario (2.000). `is_admin` y las guías ya estaban bien.
+
+**Ficheros**: `supabase-migration-seguridad-perfil.sql` (NUEVA, hay que
+ejecutarla), `js/html.js`, `js/app.js`, `js/perfil.js`, `js/usuario.js`,
+`js/tarjeta-guia-ancha.js`, `js/noticias.js`, `js/mi-coleccion.js`,
+`CLAUDE.md`, `SCHEMA.md`. Prueba nueva 805 (12 casos contra PostgreSQL y
+un avatar malicioso en una página de verdad).
+
+**Pendiente**: ejecutar la migración y mirar la tabla de políticas que
+saca al final. La racha sigue escribiéndose desde el navegador.
+
 ## 2026-10-13 (52) — PINGU-Claude (804 — el foro como antes, el icono de la app y las hojas que se arrastran)
 
 **Hecho**: PINGU: el foro «es un poco lioso» → el índice vuelve a ser el de

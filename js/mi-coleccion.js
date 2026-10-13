@@ -11,6 +11,7 @@
 // /mi-coleccion?u=<usuario> enseña la de otra persona si la ha hecho
 // pública, sin nada que se pueda tocar.
 import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './app.js'
+import { urlParaCss } from './html.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
 import { supabase } from './supabase.js'
@@ -3190,7 +3191,7 @@ function tarjetaDeSet(set, tengo) {
   return `
     <button type="button" class="mc-set-tarjeta${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(set.market || mercado)}">
       <span class="mc-set-cab">
-        ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${escapeHtml(dibujos[0])}')" aria-hidden="true"></span>` : ''}
+        ${dibujos.length ? `<span class="mc-set-arte" style="--arte:url('${urlParaCss(dibujos[0])}')" aria-hidden="true"></span>` : ''}
         <span class="mc-set-mini"><span class="mc-set-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span></span>
         <span class="mc-set-info">
           <span class="mc-set-titulo">
