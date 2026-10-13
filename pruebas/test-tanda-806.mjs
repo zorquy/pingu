@@ -132,9 +132,9 @@ console.log('\n── 2. El calco, vuelta 2 ──')
     procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 100, escritas: 100, recolocadasPorNumero: 7, lineasMovidas: 3, borradas: 90, seQuedan: [], setsBorrados: o.sets.slice(1) } },
   }
   const AHORA = new Date('2026-10-13T18:00:00Z')
-  const pasar = () => calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {} })
+  const pasar = () => calco.pasada({ env: ENV, ...b, ahora: AHORA, pausa: async () => {}, vuelta: 2 })
   const e = () => estados[calco.CLAVE_ESTADO]
-  check('la vuelta en curso es la 2', calco.VUELTA === 2)
+  check('la vuelta 2 sigue existiendo (la 3 es la de la 810)', calco.VUELTA >= 2)
   const r1 = await pasar()
   check('empieza la vuelta 2: lo de la 1 se guarda y se vuelve a pedir la lista de HOY', e().vuelta === 2 && e().vueltas?.[1]?.hechas === 1 && urls.filter((u) => /episodes/.test(u)).length === 1 && e().lista.episodios.length === 2, JSON.stringify(r1).slice(0, 200))
   check('la que ya estaba «hecha» se vuelve a hacer, ENTERA', hechas[0]?.episodio === 900 && hechas[0]?.entero === true && hechas[0]?.recolocarPorNumero === true && hechas[0]?.borrarSinDestino === false, JSON.stringify(hechas[0] && { e: hechas[0].entero, r: hechas[0].recolocarPorNumero }))

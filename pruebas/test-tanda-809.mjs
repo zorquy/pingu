@@ -72,7 +72,7 @@ console.log('\n── 3. El calco japonés: Abyss Eye primero ──')
     crearSetsImpl: async (f) => f.length,
     procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 110, escritas: 110, borradas: 110, seQuedan: [] } },
   }
-  const pasar = () => calco.pasada({ env: ENV, ...b, ahora: new Date('2026-10-13T18:00:00Z'), pausa: async () => {} })
+  const pasar = () => calco.pasada({ env: ENV, ...b, ahora: new Date('2026-10-13T18:00:00Z'), pausa: async () => {}, vuelta: 2 })
   const e = () => estados[calco.CLAVE_ESTADO]
   await pasar()
   check('la primera pasada es Abyss Eye, ENTERA, aunque ya estuviera hecha (y la de delante en la lista espera)', hechas[0]?.episodio === 1200 && hechas[0]?.entero === true && hechas[0]?.destino === 'tcggo-1200', JSON.stringify(hechas.map((h) => h.episodio)))
