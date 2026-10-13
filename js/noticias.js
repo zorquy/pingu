@@ -105,7 +105,9 @@ async function pedir(desde) {
   return { noticias: (data || []).slice(0, POR_TANDA), hayMas, error: null }
 }
 
-// El botón de escribir, solo para administración.
+// El botón de escribir, para administración y para quien redacta
+// noticias (tanda 803). El admin va a su editor; el redactor, al de la
+// comunidad, que es el que puede usar sin entrar al panel.
 //
 // Va AQUÍ y no escondido en /admin porque es donde se está cuando se te
 // ocurre que algo es noticia: mirando las de hoy. Lleva `?tipo=noticia`,
@@ -121,8 +123,9 @@ async function pintarBotonEscribir() {
   const sesion = await getSession()
   if (!sesion) return
   const perfil = await getProfile(sesion.user.id)
-  if (!perfil?.is_admin) return
-  caja.innerHTML = `<a class="btn-primary" href="/admin/editor-guia.html?tipo=noticia">${icons.edit(15)} Escribir noticia</a>`
+  if (!perfil?.is_admin && !perfil?.is_news_writer) return
+  const editor = perfil.is_admin ? '/admin/editor-guia.html' : '/editor-guia.html'
+  caja.innerHTML = `<a class="btn-primary" href="${editor}?tipo=noticia">${icons.edit(15)} Escribir noticia</a>`
 }
 
 export async function pintarNoticias() {

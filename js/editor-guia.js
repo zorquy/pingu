@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, slugify, uploadGuideImage } from './app.js'
+import { escapeHtml, getProfile, requireAuth, slugify, uploadGuideImage } from './app.js'
 import {
   renderCourseBlockEditor,
   renderReferenceBlocksHtml,
@@ -10,6 +10,7 @@ import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 import { showToast } from './toast.js'
 import { loadDraft, clearDraft, startAutosave } from './editor-autosave.js'
 import { attachEmojiPicker } from './emoji-picker.js'
+import { abrirHiloDeNoticia } from './noticias-foro.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -24,6 +25,11 @@ let stopAutosave = () => {}
 // Si quien edita es del equipo. Decide si se enseña —y se manda— el tipo
 // de artículo; el candado de verdad está en la base.
 let soyAdmin = false
+// Admin o redactor de noticias (`is_news_writer`, tanda 803): puede marcar
+// su artículo como noticia y publicarlo sin pasar por la cola. Lo de
+// publicar lo decide la base (supabase-migration-redactor-noticias.sql).
+let soyRedactor = false
+const esNoticia = () => soyRedactor && document.getElementById('mgKind').value === 'news'
 
 function updateCoverImagePreview() {
   document.getElementById('mgCoverImagePreview').src = coverImageUrl
@@ -131,8 +137,36 @@ function marcarPublicada() {
 // queda como está. La base lo respalda — el disparador de
 // supabase-migration-editar-publicada.sql no deja que el autor mueva el
 // estado de una guía publicada ni aunque se lo pida a mano.
+//
+// Una noticia de un redactor se publica directamente: es lo que da el rol.
 const estadoDelBotonPrincipal = () =>
-  existingGuide?.review_status === 'approved' ? 'approved' : 'pending'
+  existingGuide?.review_status === 'approved' || esNoticia() ? 'approved' : 'pending'
+
+// El botón, el título y el aviso dicen lo que va a pasar al guardar, que
+// con una noticia de redactor es «se publica», no «se manda a revisión».
+function vestirSegunElTipo() {
+  const noticia = esNoticia()
+  const estado = existingGuide?.review_status
+  const editando = !!existingGuide?.id
+  document.getElementById('editorTitle').textContent =
+    `${editando ? 'Editar' : 'Nueva'} ${noticia ? 'noticia' : 'guía'}`
+  document.getElementById('mgTitle').placeholder = noticia ? 'Titular de la noticia' : 'Título de la guía'
+  document.getElementById('btnSubmit').textContent =
+    estado === 'approved' ? 'Guardar cambios'
+      : noticia ? 'Publicar noticia'
+        : estado === 'pending' ? 'Guardar cambios'
+          : 'Enviar a revisión'
+  const aviso = document.getElementById('editorAvisoRevision')
+  if (noticia && estado === 'approved') {
+    aviso.textContent = 'Esta noticia está publicada. Lo que guardes aquí se ve en la web al momento, así que revísalo antes.'
+  } else if (noticia && estado === 'pending') {
+    aviso.textContent = 'Esta noticia está en la cola de revisión. Como redactor/a, puedes publicarla tú.'
+  } else if (estado === 'approved') {
+    marcarPublicada()
+  } else if (estado === 'pending') {
+    marcarEnRevision()
+  }
+}
 
 function renderCourse() {
   renderCourseBlockEditor(document.getElementById('blockEditorList'), courseBlocks, (file) => uploadGuideImage(currentSession.user.id, file))
@@ -183,7 +217,7 @@ function buildPayload(reviewStatus) {
     level: document.getElementById('mgLevel').value,
     // Solo se manda si quien edita es del equipo: para todos los demás la
     // fila se queda como está y no se pisa el valor que ya tuviera.
-    ...(soyAdmin ? { kind: document.getElementById('mgKind').value } : {}),
+    ...(soyRedactor ? { kind: document.getElementById('mgKind').value } : {}),
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     // El buscador busca en `search_content`, no dentro de
@@ -249,7 +283,13 @@ async function save(reviewStatus) {
   document.getElementById('btnSaveDraft').disabled = true
   document.getElementById('btnSubmit').disabled = true
 
-  const payload = buildPayload(reviewStatus)
+  // Una noticia NUEVA que se publica entra como borrador y se publica en
+  // un segundo paso: la política de inserción solo admite borrador y
+  // revisión (que nadie cree de cero algo ya publicado), y la que da paso
+  // al redactor es el disparador de actualización. Como borrador y no en
+  // revisión, para no mandarle al equipo el aviso de «guía nueva».
+  const publicarNueva = !existingGuide?.id && reviewStatus === 'approved'
+  const payload = buildPayload(publicarNueva ? 'draft' : reviewStatus)
 
   // Guía que ya existe: UPDATE. Guía nueva: INSERT. Nunca `upsert`.
   //
@@ -264,9 +304,18 @@ async function save(reviewStatus) {
   //
   // Separando las dos operaciones, cada una pasa por la política que le
   // toca y el agujero de la inserción se queda cerrado.
-  const { error } = existingGuide?.id
-    ? await supabase.from('guides').update(payload).eq('id', existingGuide.id)
-    : await supabase.from('guides').insert(payload)
+  let id = existingGuide?.id || null
+  let error = null
+  if (id) {
+    ;({ error } = await supabase.from('guides').update(payload).eq('id', id))
+  } else {
+    const r = await supabase.from('guides').insert(payload).select('id').single()
+    error = r.error
+    id = r.data?.id || null
+  }
+  if (!error && publicarNueva && id) {
+    ;({ error } = await supabase.from('guides').update({ review_status: 'approved' }).eq('id', id))
+  }
   if (error) {
     showToast('No se pudo guardar la guía: ' + error.message)
     saving = false
@@ -276,6 +325,20 @@ async function save(reviewStatus) {
   }
   stopAutosave()
   clearDraft(draftScope)
+  if (reviewStatus === 'approved' && esNoticia() && id) {
+    // Se lee de la base lo que ha quedado: si sale sin publicar, no se
+    // abre hilo ni se presume de nada.
+    const { data: fila } = await supabase
+      .from('guides')
+      .select('id, kind, title, description, slug, cover_image, published_at, forum_thread_id')
+      .eq('id', id)
+      .maybeSingle()
+    if (fila?.kind === 'news' && fila.published_at) {
+      await abrirHiloDeNoticia(supabase, { guia: fila, autorId: currentSession.user.id })
+      window.location.href = `/noticias/${encodeURIComponent(fila.slug)}`
+      return
+    }
+  }
   window.location.href = 'perfil.html'
 }
 
@@ -299,21 +362,26 @@ async function init() {
 
   if (guideId) await loadExistingGuide(currentSession)
 
-  // El interruptor de «esto es una noticia», solo para administración.
+  // El interruptor de «esto es una noticia», para administración y para
+  // quien redacta noticias.
   //
   // El candado de verdad NO está aquí: lo pone la base, con un disparador
-  // que devuelve la fila a guía si quien la escribe no es del equipo (ver
-  // supabase-migration-noticias.sql). Esto es para no enseñar un mando
-  // que no se puede usar — un `if` en el navegador no protege nada.
-  const { data: miPerfil } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', currentSession.user.id)
-    .maybeSingle()
+  // que devuelve la fila a guía si quien la escribe no puede (ver
+  // supabase-migration-redactor-noticias.sql). Esto es para no enseñar un
+  // mando que no se puede usar — un `if` en el navegador no protege nada.
+  // Antes se preguntaba a `profiles`, que en esta base no existe: el
+  // interruptor no salía nunca, ni al admin.
+  const miPerfil = await getProfile(currentSession.user.id)
   soyAdmin = !!miPerfil?.is_admin
-  if (soyAdmin) {
+  soyRedactor = soyAdmin || !!miPerfil?.is_news_writer
+  if (soyRedactor) {
+    const tipo = document.getElementById('mgKind')
     document.getElementById('mgKindCampo').classList.remove('hidden')
-    document.getElementById('mgKind').value = existingGuide?.kind || 'guide'
+    tipo.value = existingGuide?.kind || (params.get('tipo') === 'noticia' ? 'news' : 'guide')
+    // Una noticia publicada no vuelve a guía (la base tampoco lo deja).
+    tipo.disabled = !soyAdmin && existingGuide?.kind === 'news' && existingGuide?.review_status === 'approved'
+    tipo.addEventListener('change', vestirSegunElTipo)
+    vestirSegunElTipo()
   }
 
   // Se llega aquí desde una petición de guía ("Escribir esta guía"): el

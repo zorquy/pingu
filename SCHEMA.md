@@ -39321,3 +39321,29 @@ ve `/reto` sin consulta. `loadCourse` toma `reto = 'hoy'` si la ruta es
 `/reto`; sin ello, la vuelta a /aprender de la 780 (curso sin `slug`) se
 llevaba el reto del día. Si añades otra reescritura a una página que lee
 `location.search`, la página tiene que leer también la ruta.
+
+## Tanda 803 — El redactor de noticias
+
+`user_profiles.is_news_writer` (supabase-migration-redactor-noticias.sql):
+escribe y publica noticias, y nada más. Lo da el admin en /admin → Usuarios
+(«Hacer redactor/a»); `solo_admin_da_titulos` impide dárselo uno mismo.
+
+En la base (`soy_redactor_de_noticias()` = admin o redactor):
+- `guides_solo_admin_publica_noticias`: el redactor puede poner
+  `kind = 'news'`; una noticia publicada no vuelve a guía salvo por un
+  admin; sin sesión (SQL Editor) no se toca nada.
+- `guardar_lo_que_no_es_del_autor`: el redactor puede pasar SU noticia a
+  `approved`; `published_at` lo pone la base (`now()`). Sus guías siguen
+  pasando por revisión.
+- `forum_threads_insert`: el redactor abre temas en el foro `noticias`
+  (el hilo de cada noticia) y en ningún otro de `staff`.
+
+En la web: «Escribir noticia» de /noticias sale también al redactor y va a
+`/editor-guia.html?tipo=noticia` (el admin sigue en `/admin/editor-guia`).
+El editor de la comunidad lee el perfil con `getProfile` —antes preguntaba
+a `profiles`, que no existe, y el tipo no salía ni al admin—. Con noticia,
+el botón dice «Publicar noticia»: una nueva se inserta como borrador (la
+política de inserción no admite `approved`) y se publica en una segunda
+escritura; luego se relee la fila y, si está publicada, se abre su hilo y se
+va a `/noticias/<slug>`. El panel de usuarios pide `is_news_writer` en una
+consulta aparte; si falla, la tabla sale sin esa columna.

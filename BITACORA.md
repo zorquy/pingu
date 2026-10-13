@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (51) — PINGU-Claude (803 — el rol de redactor de noticias)
+
+**Hecho**: PINGU: «un rol para una persona que quiero darle permisos pero
+solo para escribir las noticias». Nueva columna `is_news_writer` (se da en
+/admin → Usuarios, «Hacer redactor/a»). Quien la tiene puede marcar sus
+artículos como noticia, PUBLICARLOS sin pasar por la cola, corregirlos y
+abrir su hilo en el foro Noticias. No entra al panel, sus guías siguen
+yendo a revisión y una noticia publicada no la puede convertir en guía.
+Todo lo decide la base. De paso: el editor de la comunidad preguntaba a
+`profiles` (no existe) y el selector de tipo no le salía ni al admin.
+
+**Ficheros**: `supabase-migration-redactor-noticias.sql` (NUEVA, hay que
+ejecutarla), `js/editor-guia.js`, `js/noticias.js`, `admin/js/admin.js`,
+`SCHEMA.md`. Prueba nueva 803 (14 casos contra PostgreSQL + la web).
+
+**Pendiente**: ejecutar la migración. Sin ella, el botón de /admin dice que
+falta.
+
 ## 2026-10-10 (50) — PINGU-Claude (802 — el reto del día ya no te manda a /aprender)
 
 **Hecho**: PINGU: «el reto diario redirige a la página de aprender». `/reto`

@@ -1046,6 +1046,13 @@ async function loadUsers() {
   const conForo = escalon.foro
   const conTorneos = escalon.torneos
   const users = data || []
+  // El redactor de noticias (tanda 803) se pide APARTE y no como otro
+  // escalón: con cuatro columnas opcionales la escalera serían dieciséis
+  // escalones. Si la columna no existe, la consulta falla sola y la tabla
+  // sale igual, sin la columna.
+  const redactores = await supabase.from('user_profiles').select('id, is_news_writer')
+  const conNoticias = !redactores.error
+  const esRedactor = new Set((redactores.data || []).filter((r) => r.is_news_writer).map((r) => r.id))
 
   document.getElementById('usersTable').innerHTML = `
     ${
@@ -1059,6 +1066,11 @@ async function loadUsers() {
              un torneo como oficial de PokeDoc.`
                  : ' Para dar el rol de organizador de torneos, falta ejecutar supabase-migration-torneos-organizadores.sql.'
              }${
+               conNoticias
+                 ? ` <strong>Noticias</strong> deja escribir y publicar noticias sin pasar por revisión, y nada más: ni
+             este panel, ni las guías de otros. Sus guías siguen yendo a la cola.`
+                 : ' Para dar el rol de redactor de noticias, falta ejecutar supabase-migration-redactor-noticias.sql.'
+             }${
                conColor
                  ? ' El color pinta el título en el foro — el dorado de un veterano se ve de lejos.'
                  : ' Para poder darles color, falta ejecutar supabase-migration-titulos-color.sql.'
@@ -1066,7 +1078,7 @@ async function loadUsers() {
         : `<p class="admin-note">Para los títulos de foro y la moderación, falta ejecutar supabase-migration-foro-titulos.sql.</p>`
     }
     <table class="admin-table">
-      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th>${conTorneos ? '<th>Torneos</th>' : ''}<th>Pro</th>${
+      <thead><tr><th>Nombre</th><th>Nivel</th><th>XP</th><th>Admin</th>${conTorneos ? '<th>Torneos</th>' : ''}${conNoticias ? '<th>Noticias</th>' : ''}<th>Pro</th>${
         conForo ? '<th>Título de foro</th>' : ''
       }<th>Estado</th><th></th></tr></thead>
       <tbody>
@@ -1079,6 +1091,7 @@ async function loadUsers() {
             <td>${u.total_xp || 0}</td>
             <td>${u.is_admin ? '✓' : ''}</td>
             ${conTorneos ? `<td>${u.is_tournament_admin ? '✓' : ''}</td>` : ''}
+            ${conNoticias ? `<td>${esRedactor.has(u.id) ? '✓' : ''}</td>` : ''}
             <td>${u.is_pro ? '✓' : ''}</td>
             ${
               conForo
@@ -1103,6 +1116,13 @@ async function loadUsers() {
                 conTorneos
                   ? `<button data-toggle-torneos="${u.id}" data-current="${u.is_tournament_admin ? '1' : '0'}" title="Manda en la sección Jugar y en nada más. No da acceso a este panel.">${
                       u.is_tournament_admin ? 'Quitar torneos' : 'Hacer organizador/a'
+                    }</button>`
+                  : ''
+              }
+              ${
+                conNoticias
+                  ? `<button data-toggle-noticias="${u.id}" data-current="${esRedactor.has(u.id) ? '1' : '0'}" title="Escribe y publica noticias, y nada más. No da acceso a este panel.">${
+                      esRedactor.has(u.id) ? 'Quitar noticias' : 'Hacer redactor/a'
                     }</button>`
                   : ''
               }
@@ -1180,6 +1200,31 @@ async function loadUsers() {
         showToast(
           /column|schema cache/i.test(error.message || '')
             ? 'Falta ejecutar supabase-migration-torneos-organizadores.sql en Supabase.'
+            : 'No se ha podido cambiar: ' + error.message,
+          'error'
+        )
+        return
+      }
+      loadUsers()
+    })
+  )
+  // El redactor de noticias (tanda 803): quien decide de verdad es la
+  // base (supabase-migration-redactor-noticias.sql); esto solo lo pone.
+  document.querySelectorAll('[data-toggle-noticias]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const dar = btn.dataset.current !== '1'
+      const aviso = dar
+        ? 'Podrá escribir noticias y publicarlas sin pasar por revisión (en nombre de PokeDoc). No entra a este panel ni toca las guías de otros. ¿Continuar?'
+        : '¿Le quitas el rol de redactor de noticias? Lo que ya ha publicado se queda.'
+      if (!confirm(aviso)) return
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ is_news_writer: dar })
+        .eq('id', btn.dataset.toggleNoticias)
+      if (error) {
+        showToast(
+          /column|schema cache/i.test(error.message || '')
+            ? 'Falta ejecutar supabase-migration-redactor-noticias.sql en Supabase.'
             : 'No se ha podido cambiar: ' + error.message,
           'error'
         )
