@@ -7,7 +7,7 @@
 //   2. tcggo-sueltas, sin el camino de Scrydex.
 //   3. El calco japonés: Abyss Eye va primero (y se rehace aunque ya
 //      estuviera hecha) y el set viejo de la misma expansión se esconde ya.
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 
 const RAIZ = '/home/user/pingu'
 let fails = 0
@@ -15,17 +15,13 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
-const huecos = await import(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`)
 const sueltas = await import(`${RAIZ}/netlify/functions/tcggo-sueltas.mjs`)
 const calco = await import(`${RAIZ}/netlify/functions/tcggo-calco-jp.mjs`)
 const ENV = { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k', SCRYDEX_API_KEY: 'x', SCRYDEX_TEAM_ID: 'y' }
 
-console.log('── 1. scrydex-huecos, retirada ──')
+console.log('── 1. scrydex-huecos, retirada (y borrada en la 817) ──')
 {
-  const pedidas = []
-  const r = await huecos.pasada({ env: ENV, fetchImpl: async (u) => { pedidas.push(u); throw new Error('no') }, restImpl: async (u) => { pedidas.push(u); return [] } })
-  check('con las claves puestas, no pide nada ni a Scrydex ni a nuestra base', pedidas.length === 0 && /retirado/.test(r.saltado || ''), JSON.stringify(r))
-  check('  …ni en el occidental, que era lo que le quedaba', huecos.RETIRADO === true)
+  check('no existe: no puede pedir nada a nadie', !existsSync(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`))
 }
 
 console.log('\n── 2. tcggo-sueltas, sin Scrydex ──')

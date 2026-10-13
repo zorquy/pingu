@@ -126,7 +126,8 @@ console.log('\n── 3. Las expansiones del catálogo, en fila ──')
   check('si el logo no llega, el nombre se lee', await t.locator('.mc-set-nombre').isVisible())
   check('  …y dice cuál es', (await t.locator('.mc-set-nombre').textContent()) === 'Roaring Skies',
     await t.locator('.mc-set-nombre').textContent())
-  check('  …y la consulta lo pide', /card_count_total,tcg_online_code/.test(leer('js/mi-coleccion.js')))
+  // Desde la 813 la estantería la pide js/sets-catalogo.js (y la función de la CDN).
+  check('  …y la consulta lo pide', /card_count_total,tcg_online_code/.test(leer('js/sets-catalogo.js')) && /card_count_total,tcg_online_code/.test(leer('netlify/functions/sets.mjs')))
   await page.close()
 }
 

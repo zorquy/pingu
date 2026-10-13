@@ -166,6 +166,9 @@ console.log('\n── 2. Quién se olvida de traerse el rango ──')
       const tag = m[0]
       if (tag.includes('atributosDeRango')) continue
       if (/class="[^"]*(avatar|-cara|com-puesto)/.test(tag)) continue
+      // Un enlace con texto FIJO («Su perfil», 798) tampoco lleva nombre:
+      // se mira lo que va justo detrás de la etiqueta.
+      if (/^(Su perfil|Ver perfil)</.test(s.slice(m.index + tag.length))) continue
       sinColor.push(`${p.slice(RAIZ.length + 1)}: ${tag.slice(0, 100)}`)
     }
   }

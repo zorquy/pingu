@@ -39,6 +39,8 @@ const T = {
   // Los precios guardados de Cardmarket (tanda 585): `cm_url` es el
   // enlace exacto que trae pokemontcg.io cuando TCGdex no tiene precio.
   tcg_card_prices: [],
+  // Las otras versiones de TCGGO (807; la web las pinta desde la 822).
+  tcg_card_versions: [],
   // Las CARPETAS (tandas 402 y 411), que el doble no tenia hasta la 477:
   // `listarCarpetas` daba un 42P01, el cliente lo lee como «falta la
   // migracion» y la pestaña salia vacia en TODAS las pruebas. O sea que
@@ -573,6 +575,10 @@ sembrar('__FAKE_NOTIFICACIONES__', 'user_notifications', (i) => ({
 }))
 sembrar('__FAKE_VITRINA__', 'user_showcase', (i) => ({
   user_id: 'user-1', posicion: i + 1, card_id: `carta-${i}`, market: 'WEST', created_at: new Date().toISOString(),
+}))
+sembrar('__FAKE_VERSIONES__', 'tcg_card_versions', (i) => ({
+  tcggo_id: 90000 + i, market: 'WEST', card_id: `set1-${i + 1}`, set_id: 'set1', numero: String(i + 1), nombre: null, etiqueta: null,
+  cm_id_product: null, link_cm: null, cm_low: null, cm_low_es: null, actualizado_at: new Date().toISOString(),
 }))
 sembrar('__FAKE_ERAS__', 'tcg_eras', (i) => ({
   market: 'WEST', id: `era-${i}`, nombre: `Era ${i}`, orden: 0,

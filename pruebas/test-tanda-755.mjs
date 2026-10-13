@@ -10,7 +10,7 @@
 // antes que es la misma expansión; el calco pide la lista cada día, no crea
 // lo dudoso y FUNDE lo que creó de nuevo cuando ya había set; y el espejo y
 // el repaso de Scrydex no pisan lo que ya es de TCGGO.
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -209,10 +209,8 @@ console.log('\n── 5. El calco: la lista cada día, la huella, lo dudoso y la
 
 console.log('\n── 6. Lo estático ──')
 {
-  const espejo = readFileSync(`${RAIZ}/netlify/functions/precios-espejo.mjs`, 'utf8')
-  check('el espejo no toca las que ya casó TCGGO (borraría su precio)', /origen=eq\.scrydex&tcggo_id=is\.null/.test(espejo))
-  const huecos = readFileSync(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`, 'utf8')
-  check('el repaso de nombres de Scrydex se salta los sets que ya son de TCGGO', /de TCGGO: no se reescribe/.test(huecos))
+  // El espejo y scrydex-huecos ya no existen (817): no pueden tocar nada.
+  check('el espejo y scrydex-huecos, borrados', !existsSync(`${RAIZ}/netlify/functions/precios-espejo.mjs`) && !existsSync(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`))
   check('/admin enseña las dudosas y las fundidas', /dudosa #/.test(readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')) && /fundida #/.test(readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')))
   void resumirEpisodio
 }

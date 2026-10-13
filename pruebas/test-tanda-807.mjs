@@ -259,7 +259,9 @@ console.log('\n── 3d. Lo que cuesta ──')
   const alDia = fn.POR_PASADA * 30 * 24
   check(`8 por pasada × 720 pasadas = ${alDia}, y el tope (${fn.TOPE_DIARIO}) lo deja por debajo del plan (15.000)`, fn.POR_PASADA <= 8 && fn.TOPE_DIARIO <= 5000)
   const admin = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
-  check('/admin lee y enseña su estado', /'tcggo_versiones'\]\)/.test(admin) && /VERSIONES \(tcggo_versiones, 807\)/.test(admin))
+  // Desde la 817 las claves que lee /admin son las del semáforo (PASADAS).
+  const semaforo = readFileSync(`${RAIZ}/admin/js/semaforo.js`, 'utf8')
+  check('/admin lee y enseña su estado', /'tcggo_versiones'/.test(semaforo) && /PASADAS\.map/.test(admin) && /VERSIONES \(tcggo_versiones, 807\)/.test(admin))
 }
 
 console.log('\n── 3e. Parada por la migración: se quita sola en cuanto hay tabla ──')

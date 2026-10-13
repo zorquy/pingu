@@ -135,8 +135,11 @@ console.log('\n── 6. La subida usa el fichero convertido ──')
   // El orden importa: si la extensión se sacara ANTES de convertir, la
   // imagen se guardaría como .avif siendo un JPEG — que es el fallo de la
   // tanda 281 otra vez, por la puerta de al lado.
+  // Desde la 805 la subida del avatar saca también la extensión (del tipo,
+  // sin convertir): lo que se mira es la de la subida de imágenes de guía,
+  // la que va justo detrás de convertir.
   const i = app.indexOf('file = await convertirImagenRara(file)')
-  const j = app.indexOf('const ext = extensionDeImagen(file)')
+  const j = app.indexOf('const ext = extensionDeImagen(file)', i)
   check('se convierte antes de sacar la extensión', i > 0 && j > i, `${i}/${j}`)
   const r = await page.evaluate(async () => {
     const { extensionDeImagen, convertirImagenRara } = await import('/js/app.js')

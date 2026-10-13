@@ -13,7 +13,7 @@
 //      los sets con su mismo tcggo_id se juntan; y al final se esconde todo
 //      set japonés sin tcggo_id.
 //   3. El espejo y el japonés de scrydex-huecos, apagados.
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -23,8 +23,6 @@ const check = (l, ok, extra = '') => {
 const RAIZ = '/home/user/pingu'
 const { procesar } = await import(`${RAIZ}/netlify/functions/tcggo-reemplazar-set.mjs`)
 const calco = await import(`${RAIZ}/netlify/functions/tcggo-calco-jp.mjs`)
-const espejo = await import(`${RAIZ}/netlify/functions/precios-espejo.mjs`)
-const huecos = await import(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`)
 const ENV = { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k', TCGGO_PAUSA_MS: '0' }
 
 // El doble de la base para `procesar` (el de la 755, con las líneas que se borran).
@@ -175,8 +173,8 @@ console.log('\n── 4. Las versiones de una carta (el Snorlax de PINGU) ──
 
 console.log('\n── 3. Las fuentes viejas del japonés, apagadas ──')
 {
-  check('el espejo de la gemela occidental está retirado', espejo.RETIRADO === true && (await espejo.pasada({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' } })).saltado?.includes('806'))
-  check('scrydex-huecos ya no pasa por el japonés', JSON.stringify(huecos.MERCADOS_DE_LA_PASADA) === '["WEST"]')
+  // Retirados en la 806 y BORRADOS en la 817.
+  check('el espejo y scrydex-huecos ya no existen', !existsSync(`${RAIZ}/netlify/functions/precios-espejo.mjs`) && !existsSync(`${RAIZ}/netlify/functions/scrydex-huecos.mjs`))
   const mercados = await import(`${RAIZ}/js/mercados.js`)
   check('y el japonés sigue fuera de las importaciones de TCGdex (es de TCGGO)', mercados.esDeTcggo('JP'))
   const admin = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
