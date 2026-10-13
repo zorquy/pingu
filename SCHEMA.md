@@ -39657,3 +39657,26 @@ antes para las pruebas):
 
 Lo de la gente no se borra: lo que tenía en un set que no era el de TCGGO
 se queda en ese set, escondido.
+
+## Tanda 811 — El nombre inglés de las cartas japonesas
+
+PINGU, con el Tropius de Abyss Eye (M5 001/081) en la ficha: «sigue en
+japonés». La carta tenía precio japonés de Cardmarket del día, o sea que su
+set ya estaba enlazado con TCGGO: el fallo no era de Scrydex sino nuestro.
+`filaDeCartaTcggo` copiaba `name` como `name_en`, y el catálogo japonés de
+TCGGO da `name` en japonés; `nombreDeCarta` enseña el inglés cuando el
+nombre es CJK (la 537) y el «inglés» era el mismo japonés.
+
+- `nombreInglesDe(carta)`: el primer campo que no sea CJK de `name_en`,
+  `name_english`, `english_name`, `en_name`, `name_translated` y `name`; si
+  ninguno, `nombreDeSlug(slug)` («tropius» → «Tropius»,
+  «mega-charizard-x-ex» → «Mega Charizard X ex», «-s-» → «'s»); y si no,
+  null.
+- `tcggo_guardar_cartas` NO pisa un `name_en` que ya hubiera, así que en el
+  modo entero `procesar` lo corrige en su upsert de ajustes cuando el nuevo
+  existe y el viejo falta o es CJK (`inglesNuevo`).
+- `muestraDeCarta` (name, slug, name_numbered, lang, el inglés deducido y los
+  campos): `procesar` la devuelve, el calco la guarda (`estado.muestra`) y
+  /admin la enseña. No se había visto NUNCA una carta japonesa suya.
+- El calco: `VUELTA = 4` (la 3 otra vez, para que todo entre con el nombre
+  bueno) y Abyss Eye también por su código (`PRIMERO_CODIGOS = ['M5']`).

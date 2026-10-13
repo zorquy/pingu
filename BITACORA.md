@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-13 (60) — PINGU-Claude (811 — el nombre inglés de las cartas japonesas)
+
+**Hecho**: PINGU, con el Tropius de Abyss Eye (M5 001/081): «sigue en
+japonés». La carta ya tenía precio de TCGGO, así que el set estaba enlazado:
+lo que fallaba es que TCGGO da `name` en japonés y nosotros lo copiábamos
+tal cual como `name_en`. Ahora `nombreInglesDe` coge el primer campo que no
+sea CJK o, si no hay, el `slug` («tropius» → Tropius), y el reemplazo entero
+pisa el `name_en` viejo cuando estaba en japonés (la RPC no lo pisa). El
+calco empieza la VUELTA 4 (la 3 otra vez, con el nombre bueno), Abyss Eye
+también por su código M5, y apunta en /admin una MUESTRA de cómo llega una
+carta de TCGGO (name, slug, campos) para no volver a suponer.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/tcggo-calco-jp.mjs`, `admin/js/admin.js`, `SCHEMA.md`,
+`CLAUDE.md`. Prueba nueva 811; 810 al día.
+
+**Pendiente**: mirar la muestra en /admin; si TCGGO no trae `slug` latino
+ni ningún campo inglés, el inglés tendrá que salir de otro sitio.
+
 ## 2026-10-13 (59) — PINGU-Claude (810 — el japonés, sustituido entero por TCGGO)
 
 **Hecho**: PINGU: «simplemente trae los sets de TCGGO y sustituye todo lo

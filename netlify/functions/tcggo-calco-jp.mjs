@@ -86,7 +86,10 @@ export const DIAS_DE_DUDA = 7
 // La vuelta en curso (806). Subirla vuelve a hacer el japonés entero.
 // La 3 (810) es SIN CASAR: PINGU, «simplemente trae los sets de TCGGO y
 // sustituye todo lo que haya en el catálogo japonés». Ver `pasada`.
-export const VUELTA = 3
+// La 4 (811) es la 3 otra vez, con el nombre inglés de cada carta sacado
+// de lo que TCGGO trae en alfabeto latino (`nombreInglesDe`): la 3 copiaba
+// el japonés como inglés.
+export const VUELTA = 4
 // Cuántas expansiones caben en una ejecución (810): `pasada` hace una, y la
 // función la llama otra vez mientras quede tiempo. ~256 en unas tres horas.
 export const POR_EJECUCION = 3
@@ -100,7 +103,10 @@ export const ESCONDER_POR_PASADA = 20
 // delante de las demás y se rehacen UNA vez aunque ya estuvieran hechas en
 // esta vuelta (`rehechas`).
 export const PRIMERO = ['abyss eye']
-export const esPrimero = (e) => PRIMERO.some((n) => nombreComparable(e?.nombre).includes(nombreComparable(n)))
+// Y por código (811): en la carta pone «M5», y TCGGO puede llamar a la
+// expansión de otra manera.
+export const PRIMERO_CODIGOS = ['M5']
+export const esPrimero = (e) => PRIMERO.some((n) => nombreComparable(e?.nombre).includes(nombreComparable(n))) || PRIMERO_CODIGOS.includes(codigoComparable(e?.codigo))
 
 // Los sets VIEJOS de una expansión ya rehecha (809): los nuestros sin
 // `tcggo_id` que son la misma —su nombre o su código son los de la
@@ -248,7 +254,7 @@ export async function pasada({
   const porRehacer = (e) => entera && esPrimero(e) && !estado.rehechas[e.id]
   const enOrden = [...episodios.filter(esPrimero), ...episodios.filter((e) => !esPrimero(e))]
   // Lo que se buscó primero y si TCGGO lo tiene: si no sale, /admin lo dice.
-  const apuntarPrimero = () => { estado.primero = { buscados: PRIMERO, encontrados: episodios.filter(esPrimero).map((e) => ({ id: e.id, nombre: e.nombre, codigo: e.codigo, rehecha: Boolean(estado.rehechas[e.id]) })) } }
+  const apuntarPrimero = () => { estado.primero = { buscados: [...PRIMERO, ...PRIMERO_CODIGOS], encontrados: episodios.filter(esPrimero).map((e) => ({ id: e.id, nombre: e.nombre, codigo: e.codigo, rehecha: Boolean(estado.rehechas[e.id]) })) } }
   apuntarPrimero()
   const pendiente = enOrden.find((e) => (porRehacer(e) || !hecha(e)) && (Number(estado.intentos[e.id]) || 0) < MAXIMO_INTENTOS && !dudaReciente(e.id))
   const SELECT_SETS = `tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date,card_count_total,card_count_official,scrydex_id&market=eq.${MERCADO}&limit=2000`
@@ -334,6 +340,11 @@ export async function pasada({
     if (r.ok) {
       estado.hechos[pendiente.id] = { fecha: ahora.toISOString(), set: destino, por, suyas: r.suyas, escritas: r.escritas, porNumero: r.porNumero ?? null, recolocadas: r.recolocadasPorNumero ?? null, lineasMovidas: r.lineasMovidas ?? null, borradas: r.borradas, seQuedan: (r.seQuedan || []).length, ...(hermanos.length ? { juntados: hermanos, setsBorrados: r.setsBorrados } : {}), ...(entera ? { entera: true } : {}) }
       delete estado.intentos[pendiente.id]
+      // Cómo llega una carta suya (811), la última y la de lo primero.
+      if (r.muestra) {
+        estado.muestra = { episodio: pendiente.id, nombre: pendiente.nombre, fecha: ahora.toISOString(), ...r.muestra }
+        if (esPrimero(pendiente)) estado.hechos[pendiente.id].muestra = r.muestra
+      }
       if (!estado.dudosos[pendiente.id]?.creada) delete estado.dudosos[pendiente.id]
       try { await desesconder(sets.find((s) => s.id === destino)) } catch { /* se enseña en la pasada de la fusión o a mano */ }
       if (esPrimero(pendiente)) { estado.rehechas[pendiente.id] = { fecha: ahora.toISOString(), set: destino }; apuntarPrimero() }

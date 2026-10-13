@@ -407,7 +407,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número
   y el mismo `cardmarket_id`: lo que lea cartas suyas pasa por
   `separarVersiones` (una carta, la principal), o duplica cartas y mezcla
-  precios. **La numeración de tandas de
+  precios. Y su `name` japonés va EN JAPONÉS (811): el inglés sale de
+  `nombreInglesDe` (un campo no CJK o el `slug`), nunca de copiar `name`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
 - **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
   inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +

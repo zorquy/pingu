@@ -17,7 +17,7 @@
 //
 // VARIABLES DE ENTORNO (de la función, no de aquí): TCGGO_API_KEY.
 import { numeroComparable } from './scrydex.mjs'
-import { normalizeSearch } from '../../js/texto.js'
+import { normalizeSearch, tieneCJK } from '../../js/texto.js'
 import { rarezaCanonica } from '../../js/rarezas-nombres.js'
 
 // La puerta de RapidAPI, que costó cuatro peticiones de 404 encontrar: el
@@ -493,6 +493,31 @@ export function filaDeSetNuevo(episodio, idsNuestros, serie = null) {
 // (la carta que ya tenemos) se conserva NUESTRO id, número y nombre —son
 // la llave de las colecciones— y solo se añade lo de TCGGO; sin ella, la
 // carta se crea con id «tcggo-<id suyo>».
+// EL NOMBRE INGLÉS DE UNA CARTA SUYA (811). PINGU, con el Tropius de Abyss
+// Eye: «sigue en japonés». El catálogo japonés de TCGGO da `name` en
+// japonés, y aquí se copiaba tal cual como `name_en`, así que la web —que
+// enseña el inglés cuando el nombre propio es CJK (la 537)— no tenía nada
+// que enseñar. Se coge el primer campo que NO sea CJK; y si no hay ninguno,
+// su `slug`, que va en alfabeto latino («tropius», «mega-charizard-x-ex»).
+// Sin nada de eso, null: un inglés en japonés no es un inglés.
+const PALABRAS_DE_TCG = { ex: 'ex', gx: 'GX', v: 'V', vmax: 'VMAX', vstar: 'VSTAR', vunion: 'V-UNION', lv: 'LV.', tag: 'TAG', team: 'Team', break: 'BREAK', prime: 'Prime', legend: 'LEGEND', star: 'Star', tera: 'Tera' }
+export function nombreDeSlug(slug) {
+  const s = String(slug || '').trim().toLowerCase()
+  if (!s || !/^[a-z0-9-]+$/.test(s)) return null
+  const palabras = s.replace(/-s-/g, "'s-").replace(/-s$/, "'s").split('-').filter(Boolean)
+  return palabras.map((p) => PALABRAS_DE_TCG[p] ?? (/^\d+$/.test(p) ? p : p.charAt(0).toUpperCase() + p.slice(1))).join(' ') || null
+}
+export function nombreInglesDe(carta) {
+  for (const k of ['name_en', 'name_english', 'english_name', 'en_name', 'name_translated', 'name']) {
+    const v = carta?.[k]
+    if (typeof v === 'string' && v.trim() && !tieneCJK(v)) return v.trim()
+  }
+  return nombreDeSlug(carta?.slug)
+}
+// Cómo llega una carta suya, para /admin (811): sin un JSON delante, «el
+// japonés de TCGGO viene en inglés» era una suposición.
+export const muestraDeCarta = (c) => (c ? { id: c.id ?? null, name: c.name ?? null, slug: c.slug ?? null, name_numbered: c.name_numbered ?? null, lang: c.lang ?? null, ingles: nombreInglesDe(c), campos: Object.keys(c).slice(0, 40) } : null)
+
 export function filaDeCartaTcggo(carta, { setId, nuestra = null } = {}) {
   const cm = Number(carta?.cardmarket_id)
   const tp = Number(carta?.tcgplayer_id)
@@ -502,7 +527,7 @@ export function filaDeCartaTcggo(carta, { setId, nuestra = null } = {}) {
     set_id: nuestra?.set_id || setId,
     local_id: nuestra?.local_id ?? String(carta?.card_number ?? ''),
     name: nuestra?.name || carta?.name || `tcggo-${carta?.id}`,
-    name_en: carta?.name || null,
+    name_en: nombreInglesDe(carta),
     tcggo_id: Number.isInteger(carta?.id) ? carta.id : null,
     image_tcggo: typeof carta?.image === 'string' && /^https?:\/\//.test(carta.image) ? carta.image : null,
     cm_id_product: Number.isInteger(cm) && cm > 0 ? cm : null,

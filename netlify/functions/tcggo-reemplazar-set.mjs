@@ -57,9 +57,10 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY; opcionales
 // TCGGO_BASE y TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos, separarVersiones,
+  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos, separarVersiones, muestraDeCarta,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
+import { tieneCJK } from '../../js/texto.js'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_CATALOGO } from './tcggo-catalogo.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
@@ -410,13 +411,16 @@ export async function procesar({
   // que PINGU no quiere—. Un upsert con las columnas `not null` repetidas,
   // que es lo que la fila necesita para formarse (la 526).
   const nuestraPorId = new Map(nuestras.map((c) => [c.id, c]))
+  // En el modo entero el inglés es el de TCGGO (811): la RPC no pisa un
+  // `name_en` que ya hubiera, y el que había era el japonés copiado tal cual.
+  const inglesNuevo = (c, f) => entero && f.name_en && f.name_en !== c.name_en && (!c.name_en || tieneCJK(c.name_en))
   const casadasPorNumero = new Set(porNumero.map((p) => p.nuestra.id))
   const ajustes = filas.filter((f) => {
     const c = nuestraPorId.get(f.id)
-    return c && (c.set_id !== f.set_id || (casadasPorNumero.has(f.id) && f.name_en && f.name_en !== c.name_en))
+    return c && (c.set_id !== f.set_id || (casadasPorNumero.has(f.id) && f.name_en && f.name_en !== c.name_en) || inglesNuevo(c, f))
   }).map((f) => {
     const c = nuestraPorId.get(f.id)
-    return { id: f.id, market: mercado, set_id: f.set_id, local_id: c.local_id, name: c.name, name_en: casadasPorNumero.has(f.id) ? f.name_en : c.name_en ?? f.name_en }
+    return { id: f.id, market: mercado, set_id: f.set_id, local_id: c.local_id, name: c.name, name_en: casadasPorNumero.has(f.id) || inglesNuevo(c, f) ? f.name_en : c.name_en ?? f.name_en }
   })
   try {
     for (let k = 0; k < ajustes.length; k += 200) await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(ajustes.slice(k, k + 200)) })
@@ -480,6 +484,7 @@ export async function procesar({
     aproximadas: [...equiv].filter(([, e]) => e.por === 'nombre aproximado').map(([de, e]) => ({ de, a: e.a, nombre: nombreDe(de) })),
     lineasSinDestino,
     setsBorrados, setsQueSeQuedan,
+    muestra: muestraDeCarta(suyas[0]),
   }
 }
 
