@@ -262,6 +262,71 @@ console.log('\n── 3d. Lo que cuesta ──')
   check('/admin lee y enseña su estado', /'tcggo_versiones'\]\)/.test(admin) && /VERSIONES \(tcggo_versiones, 807\)/.test(admin))
 }
 
+console.log('\n── 3e. Parada por la migración: se quita sola en cuanto hay tabla ──')
+{
+  const b = montar(NUESTRAS())
+  const t = tcggo()
+  const { r, estado } = await pasada(b, t, { sonda: { fecha: 'x' }, parado: { dia: '2026-10-13', motivo: 'falta ejecutar supabase-migration-versiones.sql' } })
+  check('la tabla ya contesta: sigue el mismo día, sin esperar a mañana', r.modo === 'subiendo' && !estado().parado && t.pedidas.length > 0, JSON.stringify(r))
+  const b2 = montar(NUESTRAS())
+  b2.romperCon(/^tcg_card_versions\?select=tcggo_id&limit=1$/)
+  const t2 = tcggo()
+  const r2 = await pasada(b2, t2, { sonda: { fecha: 'x' }, parado: { dia: '2026-10-13', motivo: 'falta ejecutar supabase-migration-versiones.sql' } })
+  check('  …y si sigue faltando, no pide nada', t2.pedidas.length === 0 && /parado/.test(r2.r.saltado || ''), JSON.stringify(r2.r))
+  const r3 = await pasada(montar(NUESTRAS()), tcggo(), { sonda: { fecha: 'x' }, parado: { dia: '2026-10-13', motivo: 'nuestra base ha fallado 3 veces seguidas' } })
+  check('  …una parada por otra cosa no se quita sola', /parado/.test(r3.r.saltado || ''))
+}
+
+console.log('\n── 5. El catálogo: dos filas con el mismo id en un lote (Neo Discovery) ──')
+{
+  const cat = await import(`${RAIZ}/netlify/functions/tcggo-catalogo.mjs`)
+  const { CLAVE_ESTADO: CLAVE_PARES } = await import(`${RAIZ}/netlify/functions/tcggo-emparejar.mjs`)
+  // Nuestra «tcggo-101» la creó el catálogo con su id de TCGGO. Otra suya
+  // (la 999) comparte producto de Cardmarket y llega PRIMERO en la página.
+  const montarCat = (estadoCat = {}) => {
+    const estados = { [CLAVE_PARES]: { episodios: { fecha: '2026-10-13T00:00:00Z', lista: [] }, hechos: {} }, [cat.CLAVE_ESTADO]: estadoCat }
+    const lotes = []
+    const fetchImpl = async (url) => {
+      const u = new URL(url)
+      const page = (data) => ({ ok: true, status: 200, text: async () => JSON.stringify({ data, paging: { current: 1, total: 1, per_page: 100 } }) })
+      if (u.pathname.endsWith('/episodes')) return page(/pokemon-jp/.test(u.pathname) ? [{ id: 1, name: 'Neo Discovery', code: 'N2_', cards_total: 2, released_at: '2001-06-01' }] : [])
+      return page([
+        { id: 999, name: 'Unown', card_number: '15', cardmarket_id: 5000, type: 'singles' },
+        { id: 101, name: 'Unown', card_number: '14', cardmarket_id: 5000, type: 'singles', image: 'https://images.tcggo.com/101.png' },
+      ])
+    }
+    const restImpl = async (ruta) => {
+      if (ruta.startsWith('tcg_sets?')) return [{ id: 'neo2_ja', name: 'Neo Discovery', name_en: 'Neo Discovery', tcg_online_code: 'N2_', tcggo_id: 1 }]
+      if (/set_id=in\./.test(ruta)) return [{ id: 'tcggo-101', set_id: 'neo2_ja', local_id: '14', name: 'Unown', tcggo_id: 101, cm_id_product_propio: 5000 }]
+      return []
+    }
+    return {
+      estados, lotes,
+      b: {
+        env: { ...ENV, TCGGO_TOPE_DIARIO: '1000' }, fetchImpl, restImpl, pausa: async () => {}, ahora: new Date('2026-10-13T10:00:00Z'),
+        guardarCartasImpl: async (filas) => {
+          const ids = filas.map((f) => f.id)
+          if (new Set(ids).size !== ids.length) throw new Error('Supabase 500: {"code":"21000","message":"ON CONFLICT DO UPDATE command cannot affect row a second time"}')
+          lotes.push(filas); return filas.length
+        },
+        crearSetsImpl: async (f) => f.length, nombrarSetImpl: async () => {},
+        estadoImpl: async (k) => estados[k], guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) },
+      },
+    }
+  }
+  const m = montarCat()
+  const r = await cat.procesar(m.b)
+  const filas = m.lotes.flat()
+  check('el lote se escribe (sin el 21000)', r.ok !== false && filas.length >= 1, JSON.stringify(r).slice(0, 300))
+  check('  …nuestra «tcggo-101» se queda con SU carta (la 101), no con la que llega antes', filas.find((f) => f.id === 'tcggo-101')?.tcggo_id === 101, JSON.stringify(filas.map((f) => [f.id, f.tcggo_id])))
+  check('  …y no hay dos filas con el mismo id', new Set(filas.map((f) => f.id)).size === filas.length)
+  // Lo que ya estaba en `fallidos` (el Neo Discovery de antes) se reabre una vez.
+  const m2 = montarCat({ semana: cat.semanaDe ? cat.semanaDe(new Date('2026-10-13T10:00:00Z')) : undefined, hechos: { WEST: [], JP: [1] }, fallidos: { WEST: {}, JP: { 1: { intentos: 3, error: '21000' } } }, hecho: true })
+  if (!cat.semanaDe) m2.estados[cat.CLAVE_ESTADO].semana = undefined
+  await cat.procesar(m2.b)
+  check('la expansión que falló se vuelve a intentar sin esperar a la semana', m2.lotes.length > 0 && m2.estados[cat.CLAVE_ESTADO].reabiertosFallidos === cat.REABRIR_FALLIDOS, JSON.stringify(m2.estados[cat.CLAVE_ESTADO].hechos))
+}
+
 console.log('\n── 4. La migración, contra PostgreSQL ──')
 {
   const PG = ['-h', '/var/tmp', '-p', '5433', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q']
