@@ -126,7 +126,7 @@ const SETS = [
 const PRODUCTOS = [
   { ...filaDeProducto(REAL.lista.data[0]), id: 48447, episode_id: 431 },
   { id: 9001, episode_id: 300, lang: 'en', name: 'Obsidian Flames Booster', tipo: 'sobre', image: null, cardmarket_id: 700001, tcgplayer_id: 500001, cm_lowest: 5, cm_lowest_eu: 5, cm_lowest_es: 5.5, cm_lowest_de: 4.9, cm_avg30: 4.8, cm_avg7: 5.1, cm_disponibles: 812, release_date: '2023-08-11' },
-  { id: 9900, episode_id: 900, lang: 'ja', name: 'Pokémon Card 151 Booster Box (JP)', tipo: 'caja', image: null, cardmarket_id: 700900, cm_lowest: 120, cm_lowest_eu: 125, release_date: '2023-06-16' },
+  { id: 1_000_009_900, market: 'JP', episode_id: 900, lang: 'ja', name: 'Pokémon Card 151 Booster Box (JP)', tipo: 'caja', image: null, cardmarket_id: 700900, cm_lowest: 120, cm_lowest_eu: 125, release_date: '2023-06-16' },
 ]
 async function abrir(ruta, { ancho = 1280, movil = false } = {}) {
   const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: ancho, height: 900 }, locale: 'es-ES' })

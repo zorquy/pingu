@@ -276,6 +276,8 @@ sembrar('__FAKE_TORNEOS__', 'tournaments', (i) => ({
 
 // Los productos sellados (762).
 sembrar('__FAKE_PRODUCTOS__', 'tcg_products', (i) => ({
+  // `market` es `not null default 'WEST'` (808): un producto que no diga nada es occidental.
+  market: 'WEST',
   id: 9000 + i, episode_id: null, lang: 'en', name: `Producto ${i}`, tipo: 'otro', image: null,
   cm_lowest: null, cm_lowest_eu: null, cm_lowest_es: null, cm_avg30: null, release_date: null, updated_at: new Date().toISOString(),
 }))
@@ -1483,6 +1485,14 @@ export const supabase = {
     // Postgres. Devolverlos a mano desde cada prueba haría que «no se
     // enseñan los resultados antes de votar» comprobara la semilla y no
     // la pantalla.
+    // La cuenta de productos por expansión (808), CALCULADA de la tabla
+    // como en Postgres: devolverla a mano probaría la semilla.
+    if (nombre === 'productos_por_expansion') {
+      const m = args.p_market || 'WEST'
+      const cuenta = new Map()
+      for (const p of T.tcg_products) if ((p.market || 'WEST') === m && p.episode_id != null) cuenta.set(p.episode_id, (cuenta.get(p.episode_id) || 0) + 1)
+      return { data: [...cuenta].map(([episode_id, productos]) => ({ episode_id, productos })), error: null }
+    }
     if (nombre === 'forum_poll_resultados') {
       const opciones = T.forum_poll_options.filter((o) => o.thread_id === args.p_thread)
       return {
