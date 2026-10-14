@@ -37,12 +37,12 @@ console.log('── 1. Las páginas, leídas tal cual ──')
     const links = h.slice(h.indexOf('class="nav-links"'), h.indexOf('class="nav-menu-mobile"'))
     // Lo de primer nivel, en orden: enlaces sueltos y los botones de grupo.
     const arriba = [...links.replace(/<div class="nav-sub">[\s\S]*?<\/div>/g, '').matchAll(/<a href="([^"]+)">([^<]+)<\/a>|class="nav-grupo-btn"[^>]*>([^<]+)</g)].map((m) => m[3] ? `${m[3]}▾` : m[2])
-    if (arriba.join() !== 'Noticias,Lanzamientos,Aprender▾,Mi colección,Comunidad▾,Jugar▾') malas.push(`${f}: ${arriba.join()}`)
+    if (arriba.join() !== 'Noticias,Lanzamientos,Novedades,Aprender▾,Mi colección,Comunidad▾,Jugar▾') malas.push(`${f}: ${arriba.join()}`)
     if (/href="\/cartas"/.test(links) || /Catálogo de cartas/.test(h.slice(h.indexOf('class="nav-menu-mobile"'), h.indexOf('</nav>', h.indexOf('class="nav-menu-mobile"'))))) malas.push(`${f}: catálogo en el menú`)
     const pie = h.match(/<p class="footer-links">[\s\S]*?<\/p>/)?.[0]
     if (pie && !pie.includes(`<a href="${KOFI}" target="_blank" rel="noopener">Apoyar PokeDoc</a>`)) sinKofi.push(f)
   }
-  check(`la barra de arriba de las ${paginas.length} páginas: Noticias · Lanzamientos · Aprender ▾ · Mi colección · Comunidad ▾ · Jugar ▾, sin el catálogo`, paginas.length >= 36 && malas.length === 0, malas.join(' | '))
+  check(`la barra de arriba de las ${paginas.length} páginas: Noticias · Lanzamientos · Novedades · Aprender ▾ · Mi colección · Comunidad ▾ · Jugar ▾, sin el catálogo (Novedades desde la 829)`, paginas.length >= 36 && malas.length === 0, malas.join(' | '))
   check('el pie lleva «Apoyar PokeDoc» a Ko-fi, en pestaña nueva', sinKofi.length === 0, sinKofi.join())
   const pie = readFileSync(`${RAIZ}/index.html`, 'utf8')
   check('  …y el catálogo sigue en el pie, que es lo que recorre Google', /<footer[\s\S]*href="\/cartas"[\s\S]*<\/footer>/.test(pie))
@@ -91,7 +91,7 @@ console.log('── 3. En el iPhone ──')
   const l = await abrir('/lanzamientos.html')
   check('sin errores', l.errores.length === 0, l.errores.join(' | '))
   check('en Lanzamientos, Inicio activa', (await barra(l.page)).some((x) => x.startsWith('Inicio*:')), (await barra(l.page)).join(' | '))
-  check('  …y su burbuja: Inicio, Noticias y Lanzamientos (activa)', (await burbuja(l.page)).join() === 'Inicio,Noticias,Lanzamientos*', (await burbuja(l.page)).join())
+  check('  …y su burbuja: Inicio, Noticias, Lanzamientos (activa) y Novedades', (await burbuja(l.page)).join() === 'Inicio,Noticias,Lanzamientos*,Novedades', (await burbuja(l.page)).join())
   await l.ctx.close()
 
   const m = await abrir('/mi-coleccion.html?ver=album')
@@ -133,7 +133,7 @@ console.log('── 4b. «Mi colección» en una línea (PINGU lo vio partido a 
 for (const ancho of [1240, 1280]) {
   const p = await abrir('/mi-coleccion.html?ver=carpetas', { movil: false, ancho })
   const altos = await p.page.$$eval('.nav-links > *', (as) => as.map((a) => Math.round(a.getBoundingClientRect().height)))
-  check(`a ${ancho}, con «Mi colección» activa, ningún enlace se parte en dos líneas`, altos.length === 6 && altos.every((h) => h === altos[0]), JSON.stringify(altos))
+  check(`a ${ancho}, con «Mi colección» activa, ningún enlace se parte en dos líneas`, altos.length === 7 /* con Novedades, 829 */ && altos.every((h) => h === altos[0]), JSON.stringify(altos))
   await p.ctx.close()
 }
 
