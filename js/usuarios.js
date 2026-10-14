@@ -433,6 +433,10 @@ async function cargarPeticiones() {
   initPeticiones(document.getElementById('peticionesPanel'), await getSession())
 }
 
+// Antes de init(): si la página llega con #activity, init() abre esa pestaña
+// y cargarActividad() lee esto. Declarada más abajo, era un ReferenceError.
+let actividadCargada = false
+
 async function init() {
   wireTabs()
   // Con qué pestaña se llega: la del ancla si la hay (por recargar, por
@@ -446,8 +450,6 @@ async function init() {
 
 init()
 
-
-let actividadCargada = false
 
 async function cargarActividad() {
   if (actividadCargada) return

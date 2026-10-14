@@ -4,6 +4,65 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (77) — PINGU-Claude (844 — la portada nueva)
+
+**Hecho** (PINGU vio la propuesta en imágenes —«mola, dale todo»—; lo de
+arriba, el saludo, las fichas y «Tus retos de hoy», se queda como estaba):
+- **Sigue donde lo dejaste**: hasta tres tarjetas en la columna ancha —las
+  guías y cursos empezados y sin acabar (curso = guía con preguntas), con su
+  anillo, «Bloque 2 de 4 · 3 min para acabar», y el último mazo que tocaste si
+  no está a 60 («52 de 60 · te faltan 8»)—. En el móvil se pasan con el dedo.
+- **Ahora en el foro**: delante, el tema que más mensajes ha tenido HOY («Lo
+  más hablado hoy»; si ninguno, «Lo último») con su último mensaje citado, las
+  caras de quien participa y cuántos tienes sin leer; los otros tres en filas
+  con quién respondió y dónde. Arriba, «N personas escribiendo hoy» y
+  «Participar».
+- **Aprende**: los temas son ahora los filtros del bloque («Novedades» y los
+  cinco con más guías); la grande es la tarjeta de guía de siempre y las otras
+  tres, en fila (`filaDeGuia`, en `js/portada-bloques.js`). La destacada de
+  /admin va la grande en «Novedades». Se fue la fila suelta «Busca por tema» y
+  la sección aparte de la destacada.
+- **Noticias**: la última con el titular sobre su foto y dos más en filas.
+- **Clasificación**: la liga de la semana y el top del mes, juntos, con
+  pestañas, y los dos cuentan la XP de los seis retos (`portada_clasificacion`).
+  Podio, 4.º y 5.º, y tu puesto con «40 XP para pasar a Gary». Para todo el
+  mundo, con cuenta y sin ella.
+- **En la comunidad**: a la columna ancha, en dos columnas, una línea por
+  suceso con un iconito en la cara. A lo de siempre se suman cuatro sucesos que
+  no se apuntaban (`portada_comunidad`): hizo los seis retos del día, compartió
+  un mazo, ganó un torneo y completó una expansión (esto último solo con la
+  colección pública).
+- **Orden del móvil**: torneo, retos, primeros pasos, sigue, foro, noticias,
+  aprende, lanzamiento, clasificación y comunidad. La columna derecha del PC ya
+  no es «pegajosa» (ahora es más alta que la pantalla).
+- **Peso**: todo lo nuevo entra por `import()` con su hoja
+  (`css/portada-bloques.css`), y home.js ya no arrastra el hilo de actividad
+  ni la tarjeta de guía al abrir: la portada pasa de 149,2 a **112,3 KB**. De
+  `components.css` y `portada.css` se fue el CSS de la liga, el top del mes, la
+  destacada, el foro, la noticia y los temas de antes.
+
+**Ficheros**: `supabase-migration-portada.sql` (nueva), `js/portada-bloques.js`
+y `css/portada-bloques.css` (nuevos), `js/home.js`, `js/hoy.js`, `css/hoy.css`,
+`index.html`, `css/portada.css`, `css/components.css`, `css/style.css`,
+`css/foro.css`, `js/usuarios.js`. En `pruebas`: `test-tanda-844.mjs` (contra PostgreSQL),
+`test-tanda-844-pantalla.mjs`, las dos funciones en el doble y las pruebas
+viejas de la portada al día.
+
+**Pruebas**: 844 contra PostgreSQL y 844-pantalla verdes, imports y peso
+(112,3 KB). Suite entera (4 carriles): 455 verdes y 7 rojos. 493, 514 y 834
+son del contenedor (sin `ffprobe` ni `qpdf`); 533, 748, 778 y 779 pasan
+solas (carga de los carriles; la medida de saltos de /mi-coleccion de la 748
+va justa, 0,14 contra un límite de 0,15, también sin esta tanda). Quince
+pruebas viejas que miraban la portada de antes están al día (269, 277, 288,
+289, 299, 300, 316, 319, 362, 368, 387, 748, 781, 782, 785, 843). Y un fallo
+que ya estaba: abrir /usuarios con `#activity` daba un ReferenceError
+(`actividadCargada` declarada después de `init()`) y la pestaña se quedaba
+vacía; arreglado en `js/usuarios.js`, y lo vigila la 289, que ahora mira el
+hilo de actividad ahí.
+
+**Pendiente**: **PINGU, ejecuta `supabase-migration-portada.sql`**. Hasta
+entonces la clasificación no sale y la comunidad enseña solo lo de siempre.
+
 ## 2026-10-14 (76) — PINGU-Claude (842–843 — «Hoy en PokeDoc» en /retos y los seis retos en la portada)
 
 **Hecho** (PINGU vio las dos propuestas con imágenes: «sí, haz las dos, la

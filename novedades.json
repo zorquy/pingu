@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "La portada, rehecha: lo que tienes a medias (guías, cursos y el mazo que montas), el tema del foro más hablado hoy, las guías por tema, las noticias con foto y la comunidad en una línea por cosa.", "enlace": "/" },
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "La clasificación de la semana y la del mes, juntas en la portada y con la experiencia de los seis retos: el podio y lo que te falta para pasar al de delante.", "enlace": "/" },
     { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En Retos, «Hoy en PokeDoc»: cuánta gente ha jugado hoy, quién lleva más experiencia, cómo va cada reto y la racha más larga. Si prefieres no salir con tu nombre, se quita con una casilla.", "enlace": "/retos" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "La portada te enseña tus seis retos de hoy: cuáles llevas, cuál te toca ahora y cuánta gente ha jugado.", "enlace": "/" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Mis mazos, rehecho: cada mazo con el color de su Pokémon, si es legal, cómo te va con él y lo que te falta de tu colección, sin tener que preguntarlo.", "enlace": "/mazos" },

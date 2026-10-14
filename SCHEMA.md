@@ -40418,3 +40418,40 @@ la vieja si no se lo pasan. En el móvil `#retoSeccion` lleva `order: -3`
 pasar la 362. `portada-retos.js` no importa `app.js` (la importa `hoy.js`):
 `bloqueRetosHtml(e, comunidad, repaso, cara)` recibe quién pinta las caras.
 
+## Tanda 844 — La portada nueva
+
+**Datos** (`supabase-migration-portada.sql`, `security definer`, para `anon` y
+`authenticated`):
+- `portada_clasificacion(p_periodo text)`: `'semana'` (del lunes, `isodow`, a
+  hoy) o `'mes'` (del día 1). La XP es `retos_resultados.xp` + `retos_bonos.xp`
+  del periodo, como en /retos (842). Devuelve `periodo`, `desde`, `jugadores`
+  (todos), `ranking` (los 10 primeros que salen con nombre: sin `retos_oculto`
+  ni `hide_activity`; el `puesto` es entre TODOS, así que puede saltar un
+  número) y `tu` (`puesto`, `xp`, `faltan` = XP del de delante − la tuya + 1, y
+  `pasarA`, su nombre solo si sale con nombre).
+- `portada_comunidad(p_limite int)`: los sucesos que no se apuntaban, lo más
+  nuevo primero (tope 40): `perfecto` (el bono `perfecto` de la 835, últimos 7
+  días), `mazo` (el último mazo público que tocó cada persona, 30 días, por
+  `updated_at`: se dice «compartió»), `campeon` (`tournaments.champion_id` de un
+  torneo `finished`, 30 días) y `coleccion` (una expansión con todas sus cartas
+  numeradas `1..card_count_official`, mirando solo las que alguien tocó en 30
+  días, la fecha es la de la última carta, y solo con `coleccion_publica`).
+  Nadie con `hide_activity`.
+
+**Cliente**: `js/portada-bloques.js` entra por `import()` desde home.js con su
+hoja (`hojaInyectada('css/portada-bloques.css')`) y pinta en los huecos de
+index.html (`#foroVivo`, `#aprende`, `#noticiaPortada`, `#clasificacion`,
+`#homeActivityFeed`). Cada bloque recoge su sección si no hay datos o falla; si
+el módulo entero no llega, home.js recoge las cuatro. Las clases van con
+prefijo `pb-` (el choque de la maqueta con `.chispa`). El foro elige delante el
+tema de los cuatro más recientes con más mensajes de hoy (`forum_posts` desde
+medianoche, tope 1.000) y cuenta los no leídos con `marcasDeLectura`. «Aprende»
+pide 4 guías por tema al pulsar y guarda lo pedido; gana la última pulsación.
+La clasificación guarda semana y mes ya pedidos. La comunidad junta
+`loadActivity` (sin noticias y sin lo que ya está arriba) con
+`portada_comunidad`, seis como mucho. «Sigue» lo pinta `js/hoy.js`
+(`aMedias`, `sigueHtml`) en `#sigueSeccion`.
+
+**Orden del móvil** (`portada.css`, `@media (max-width: 959px)`): `order` de −9
+a −1 por id, la comunidad la última. `.portada-lateral` ya no es `sticky`.
+

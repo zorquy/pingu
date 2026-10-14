@@ -238,8 +238,7 @@ h1,
 h2,
 h3,
 .guia-titulo,
-.torneo-nombre,
-.foro-vivo-titulo {
+.torneo-nombre {
   text-wrap: balance;
 }
 

@@ -144,207 +144,11 @@
   background: linear-gradient(120deg, #24404f, #2f5468 60%, #3f6b80);
 }
 
-/* S780.169 */
-
-.noticia-banner {
-  display: block;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
-}
-
-a.noticia-banner:hover {
-  border-color: var(--navy);
-  transform: translateY(-1px);
-}
-
-.noticia-banner-foto {
-  display: block;
-  width: 100%;
-  /* S780.170 */
-  aspect-ratio: 16 / 7;
-  object-fit: cover;
-  background: var(--ice);
-}
-
-.noticia-banner-texto {
-  padding: 16px 16px;
-}
-
-.noticia-banner-etiqueta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--navy);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.noticia-banner-texto strong {
-  display: block;
-  margin-top: 4px;
-  line-height: 1.3;
-}
-
-.noticia-banner-texto small {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-mid);
-}
-
-/* S780.171 */
-.noticia-banner-todas {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-/* S780.172 */
-#categoriesGrid .category-card {
-  border-width: 1px;
-}
-
-#categoriesGrid .category-card:hover {
-  border-color: var(--navy);
-}
-
-/* ── Lo último del foro, en la portada ── */
-.foro-vivo {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 24px;
-}
-
-.foro-vivo-cabecera {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.foro-vivo-cabecera h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-}
-
-.foro-vivo-cabecera .subtext {
-  margin: 2px 0 0;
-}
-
-.foro-vivo-lista {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Lista plana con separadores, no cajas (782, SI8). */
-.foro-vivo-lista > li + li {
-  border-top: 1px solid var(--border);
-}
-
-.foro-vivo-fila {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-}
-
-.foro-vivo-fila:hover {
-  background: var(--ice);
-}
-
-.foro-vivo-fila > .mini-avatar {
-  flex-shrink: 0;
-}
-
-.foro-vivo-texto {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
-
-/* S780.173 */
-.foro-vivo-titulo {
-  font-weight: 700;
-  color: var(--text);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.foro-vivo-titulo:hover {
-  color: var(--navy);
-  text-decoration: underline;
-}
-
-.foro-vivo-meta {
-  font-size: var(--t-xs);
-  white-space: nowrap;
-  /* S780.174 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* S780.175 */
-@media (max-width: 559px) {
-  .foro-vivo-fila {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 12px;
-    align-items: start;
-  }
-  .foro-vivo-fila > .mini-avatar { grid-row: 1 / span 2; }
-  .foro-vivo-texto { grid-column: 2; }
-  .foro-vivo-cuenta {
-    grid-column: 2;
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    text-align: left;
-    margin-top: 4px;
-  }
-  .foro-vivo-cuenta b {
-    display: inline;
-    font-size: var(--t-sm);
-  }
-  .foro-vivo-cuenta small {
-    display: inline;
-    margin-top: 0;
-  }
-
-  /* S780.176 */
-  .foro-vivo-titulo {
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
-}
 
 /* S780.177 */
 
 /* S780.178 */
-
-/* S780.179 */
-.panel-lateral {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 16px;
-}
 
 /* ── El próximo torneo: una cita, no un enlace ── */
 .portada-torneo {
@@ -418,81 +222,7 @@ a.noticia-banner:hover {
   font-weight: 700;
 }
 
-/* ── Los temas, en fila de chips ── */
-.portada-temas {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.portada-temas-rotulo {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  margin-right: 2px;
-}
-
-.portada-tema {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 8px 16px;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  color: var(--text);
-  transition: border-color 0.15s var(--ease);
-}
-
-.portada-tema:hover {
-  border-color: var(--navy);
-  color: var(--text);
-}
-
-/* S780.182 */
-.portada-tema svg {
-  flex-shrink: 0;
-}
-
-.portada-tema b {
-  background: var(--ice);
-  color: var(--navy);
-  border-radius: var(--radius-pill);
-  padding: 1px 8px;
-  font-size: var(--t-2xs);
-  font-weight: 700;
-}
-
-/* ── El foro, con la cuenta de mensajes a la derecha ── */
-.foro-vivo-cuenta {
-  flex-shrink: 0;
-  text-align: right;
-  line-height: 1;
-}
-
-.foro-vivo-cuenta b {
-  display: block;
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-  font-weight: 600;
-}
-
-.foro-vivo-cuenta small {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-dim);
-  font-size: var(--t-2xs);
-}
-
 /* S780.183 */
-@media (min-width: 640px) {
-  #recentGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 
 /* ── Los primeros pasos, en la lateral ── */
 .portada-lateral .primeros-pasos {
@@ -529,18 +259,6 @@ a.noticia-banner:hover {
   }
 }
 
-/* S780.185 */
-.portada-tema-icono {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  /* S780.186 */
-  box-shadow: none !important;
-}
-
 /* S780.187 */
 @media (max-width: 959px) {
   .portada-principal,
@@ -548,23 +266,16 @@ a.noticia-banner:hover {
     display: contents;
   }
 
-  /* S780.188 */
-  #torneoPortadaSeccion {
-    order: -4;
-  }
-
-  /* 843: los retos, detrás del torneo. */
-  #retoSeccion {
-    order: -3;
-  }
-
-  #noticiaPortadaSeccion {
-    order: -2;
-  }
-
-  #primerosPasos {
-    order: -1;
-  }
+  /* S780.188 · el orden del móvil, 844: lo de hoy arriba y la comunidad al final. */
+  #torneoPortadaSeccion { order: -9; }
+  #retoSeccion { order: -8; }
+  #primerosPasos { order: -7; }
+  #sigueSeccion { order: -6; }
+  #foroVivoSeccion { order: -5; }
+  #noticiaPortadaSeccion { order: -4; }
+  #recientesSeccion { order: -3; }
+  #lanzamientoSeccion { order: -2; }
+  #clasificacionSeccion { order: -1; }
 }
 
 /* S780.189 */
@@ -599,31 +310,3 @@ a.noticia-banner:hover {
 }
 
 /* La portada del móvil, la mitad de larga (785, PA1; el porqué en SCHEMA). */
-@media (max-width: 599px) {
-  #recentGrid {
-    display: flex;
-    gap: var(--e-sm);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    margin-inline: calc(-1 * var(--e-md));
-    padding-inline: var(--e-md);
-  }
-
-  #recentGrid::-webkit-scrollbar {
-    display: none;
-  }
-
-  #recentGrid > * {
-    flex: 0 0 80%;
-    scroll-snap-align: start;
-  }
-
-  .foro-vivo-lista > li:nth-child(n + 4) {
-    display: none;
-  }
-
-  #topMesSeccion {
-    display: none;
-  }
-}

@@ -1,58 +1,9 @@
 import { supabase } from './supabase.js'
-import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
-import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml, avatarStyle, getInitial } from './app.js'
-import { decorateGuideCards } from './guide-card.js'
-import { tarjetaDeGuia } from './guia-tarjeta.js'
+import { conVueltaAtrasDeTipo } from './articulos.js'
+import { escapeHtml, getSession, avatarStyle, getInitial } from './app.js'
 import { icons } from './icons.js'
-import { contentIconHtml } from './content-icon.js'
-import { loadActivity, renderActivityHtml } from './activity.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
-import { haceCuanto, nombreDe, perfilesPorId, urlTema, avatarHtml, etiquetaHtml } from './foro-comun.js'
-import { clasificacionSemanal } from './liga.js'
-import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
-
-// Los temas, de seis tarjetas a una fila de chips (tanda 300)
-//
-// «Explora por tema» ocupaba un bloque entero de la portada con seis
-// tarjetas de 140 px. El problema no era el tamaño: era adónde llevaban.
-// Con 16 guías repartidas en 6 categorías, entrar en una te deja en una
-// página con dos guías — el mismo vacío que la tanda 299 le quitó a
-// /aprender.
-//
-// Así que los chips NO llevan a categoria.html. Llevan a /aprender con
-// ese tema ya puesto en el filtro: ahí se ven las suyas y, a un clic,
-// todas. Las páginas de categoría siguen existiendo para enlaces
-// directos y para los buscadores; lo que cambia es por dónde entra la
-// gente desde la portada.
-//
-// Se ordenan por número de guías: un tema con una sola guía no merece
-// salir antes que el que tiene seis.
-async function loadCategories() {
-  const hueco = document.getElementById('temasChips')
-  if (!hueco) return
-  const { data, error } = await supabase.from('categories').select('*').order('order_pos')
-  if (error || !data?.length) return recogerSeccion('temasSeccion')
-
-  const conGuias = data.filter((c) => (c.guide_count ?? 0) > 0).sort((a, b) => (b.guide_count ?? 0) - (a.guide_count ?? 0))
-  if (!conGuias.length) return recogerSeccion('temasSeccion')
-
-  hueco.innerHTML = `
-    <span class="portada-temas-rotulo">Busca por tema</span>
-    ${conGuias
-      .map(
-        (c) => `
-      <a class="portada-tema" href="/aprender.html?tema=${encodeURIComponent(c.slug)}">
-        <span class="portada-tema-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 14)}</span>
-        <span>${escapeHtml(c.name)}</span>
-        <b>${c.guide_count ?? 0}</b>
-      </a>`
-      )
-      .join('')}`
-
-  const heroCategories = document.getElementById('heroStatCategories')
-  if (heroCategories) heroCategories.textContent = data.length
-}
 
 async function loadHeroGuideCount() {
   const el = document.getElementById('heroStatGuides')
@@ -163,108 +114,6 @@ async function cartasDelHeroe() {
   } catch {}
 }
 
-async function loadRecent() {
-  const grid = document.getElementById('recentGrid')
-  // Solo GUÍAS. Las noticias son mucho más frecuentes que las guías: sin
-  // este filtro, tres noticias de la misma tarde tapan en la portada las
-  // guías que le han costado a alguien una semana.
-  const consulta = (filtrar) => {
-    let q = supabase
-      .from('guides')
-      .select('*, categories(name)')
-      .not('published_at', 'is', null)
-      .order('published_at', { ascending: false })
-      // Cuatro y no tres desde la tanda 300: la rejilla vive ahora en la
-      // columna ancha, no a pantalla completa, así que van de dos en dos
-      // — y tres dejaban una tarjeta suelta en la segunda fila.
-      .limit(4)
-    return filtrar ? q.eq('kind', 'guide') : q
-  }
-  const { data, error } = await conVueltaAtrasDeTipo(() => consulta(true), () => consulta(false))
-
-  if (error || !data || data.length === 0) {
-    grid.innerHTML = `<p class="empty-state">Todavía no hay guías publicadas.</p>`
-    return
-  }
-
-  // La MISMA tarjeta que /aprender (tanda 316), con PIE —el autor y el
-  // botón de guardar, que es lo que la portada aportaba de más— y el
-  // nombre de la categoría, que ya venía en la consulta sin usarse.
-  //
-  // Y con progreso desde la 319: solo el de las cuatro que se enseñan
-  // (`.in`), no la tabla entera como /aprender —allí hace falta para
-  // filtrar por «sin leer»—. Sin sesión se le pasa `null`, que es el
-  // valor que no afirma nada; el porqué, en js/guia-tarjeta.js.
-  let progreso = null
-  const sesion = await getSession()
-  if (sesion) {
-    progreso = {}
-    const { data: filas } = await supabase
-      .from('user_progress')
-      .select('guide_id, status, read_at, current_block, started_at')
-      .eq('user_id', sesion.user.id)
-      .in('guide_id', data.map((g) => g.id))
-    for (const f of filas || []) progreso[f.guide_id] = f
-  }
-
-  grid.innerHTML = data
-    .map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '', pie: true }))
-    .join('')
-}
-
-// Solo para quien ha iniciado sesión. Alguien que llega buscando si su
-// carta es falsa no quiere ver quién se ha apuntado hoy; un miembro sí
-// agradece ver que aquello está vivo.
-// Lo que un evento de actividad SEÑALA, con el mismo nombre que usan
-// los módulos de arriba al decir qué han pintado. Un evento que no
-// señala a nada concreto (un alta, una petición) no tiene clave y nunca
-// se descarta.
-function claveDeEvento(e) {
-  if (e.tipo === 'tema') return `tema:${String(e.enlace || '').split('/').pop()}`
-  if (e.tipo === 'noticia') return `noticia:${e.guideId}`
-  return null
-}
-
-// «En la comunidad» traía EXACTAMENTE los mismos tres temas que «Ahora
-// en el foro» y la misma noticia del banner (tanda 316, medido). Bajabas
-// la portada y lo que veías era lo de arriba otra vez.
-//
-// Así que la actividad se pinta con lo que NO esté ya en pantalla. Se
-// piden más eventos de los que caben porque unos cuantos se van a caer
-// por el camino.
-//
-// Las GUÍAS no entran en el descarte, y es una decisión: la tarjeta de
-// «Guías nuevas» es una ficha del catálogo, y «Fulano ha publicado la
-// guía X» es un SUCESO con su firma — que es el pago de haberla escrito
-// (tanda 289). Además `loadActivity` trae como mucho tres guías por
-// fuente, y esas tres son siempre las que están arriba: descartarlas
-// dejaba el bloque vacío en cuanto la comunidad tuviera un día tranquilo.
-async function loadHomeActivity(session, clavesDeArriba) {
-  if (!session) return
-  try {
-    const actividad = await loadActivity(12)
-    // Si la promesa de arriba falla, mejor no filtrar nada que dejar la
-    // portada sin bloque: un duplicado se perdona, un hueco no.
-    const yaEstan = await clavesDeArriba.catch(() => new Set())
-    const eventos = actividad.eventos.filter((e) => !yaEstan.has(claveDeEvento(e))).slice(0, 4)
-    // En la home, si no hay nada que enseñar el bloque no se abre — ni
-    // para decir que está vacío ni para decir que ha fallado. Es un
-    // extra de la portada, no la pantalla de actividad. Y desde la 316
-    // también se recoge cuando lo único que había ya estaba arriba.
-    if (eventos.length === 0) return
-    document.getElementById('homeActivityFeed').innerHTML = renderActivityHtml({ ...actividad, eventos })
-    document.getElementById('homeActivity').classList.remove('hidden')
-  } catch {
-    // Si falla, la home se queda como siempre. No es contenido crítico.
-  }
-}
-
-// ── Lo último del foro, para TODO el mundo ──
-//
-// Es la prueba de vida de la portada: los temas son públicos, y un
-// visitante que ve «hace 20 min» entiende al momento que aquí hay gente
-// hablando hoy — que es justo lo que ninguna lista de guías puede
-// demostrar. Si el foro está vacío o algo falla, la sección no sale.
 // Los bloques de la portada nacen VISIBLES con un esqueleto dentro
 // (index.html) para que el hueco esté reservado desde el primer pintado:
 // antes nacían con display:none y al llegar los datos empujaban todo lo
@@ -300,67 +149,6 @@ function recogerSeccion(id) {
 // Si no hay ninguno abierto, la sección se recoge y la portada queda
 // exactamente como estaba. Sin torneos que ofrecer, un hueco que diga
 // «no hay torneos» solo ocupa sitio.
-
-// La última noticia, en la portada (tanda 277).
-//
-// Una sola, la más reciente, con la misma pinta que la tarjeta del reto
-// y la del torneo: es la forma de añadir algo a la portada sin gastar ni
-// un byte de CSS ni tocar el presupuesto de peso.
-//
-// Se recoge sola si no hay noticias —o si la migración de `kind` no está
-// puesta— en vez de dejar un hueco que no explica nada.
-async function cargarNoticiaPortada() {
-  const seccion = document.getElementById('noticiaPortadaSeccion')
-  const hueco = document.getElementById('noticiaPortada')
-  if (!seccion || !hueco) return
-  try {
-    const { data, error } = await supabase
-      .from('guides')
-      .select('id, slug, title, published_at, cover_image')
-      .eq('kind', 'news')
-      .not('published_at', 'is', null)
-      .order('published_at', { ascending: false })
-      .limit(1)
-    const noticia = !error && data?.[0]
-    if (!noticia) return recogerSeccion('noticiaPortadaSeccion')
-
-    // Con portada va el banner; sin ella, la fila fina de siempre. Una
-    // caja de imagen vacía en la primera pantalla es peor que no tener
-    // imagen, y hay noticias que no llevan.
-    const enlace = rutaDeArticulo('news', noticia.slug)
-    const cuando = escapeHtml(cuandoFue(noticia.published_at))
-    hueco.innerHTML = noticia.cover_image
-      ? `
-      <a class="noticia-banner" href="${enlace}">
-        <img class="noticia-banner-foto" src="${escapeHtml(noticia.cover_image)}" alt="" loading="lazy" decoding="async" />
-        <div class="noticia-banner-texto">
-          <span class="noticia-banner-etiqueta">${icons.newspaper(15)} Noticias</span>
-          <strong>${escapeHtml(noticia.title)}</strong>
-          <small>${cuando}</small>
-        </div>
-      </a>
-      <a class="noticia-banner-todas" href="/noticias">Ver todas las noticias →</a>`
-      : `
-      <div class="reto-tarjetas">
-        <a class="reto-tarjeta" href="${enlace}">
-          <span class="reto-icono">${icons.newspaper(20)}</span>
-          <div class="reto-texto">
-            <strong>${escapeHtml(noticia.title)}</strong>
-            <small>Lo último en noticias · ${cuando}</small>
-          </div>
-          <span class="reto-flecha">→</span>
-        </a>
-      </div>`
-    // Si la portada no carga, el banner se quedaría con un hueco gris en
-    // la primera pantalla: se cae a la fila fina antes de que se vea.
-    const foto = hueco.querySelector('.noticia-banner-foto')
-    if (foto) foto.onerror = () => foto.remove()
-    seccion.style.display = ''
-    return [`noticia:${noticia.id}`, `guia:${noticia.id}`]
-  } catch {
-    recogerSeccion('noticiaPortadaSeccion')
-  }
-}
 
 async function cargarTorneoPortada() {
   const seccion = document.getElementById('torneoPortadaSeccion')
@@ -428,59 +216,6 @@ function cuandoSeJuega(iso) {
   if (dias === 1) return `Mañana a las ${hora}`
   if (dias < 7) return `El ${cuando.toLocaleDateString('es-ES', { weekday: 'long' })} a las ${hora}`
   return cuando.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
-}
-
-async function cargarForoVivo() {
-  const seccion = document.getElementById('foroVivoSeccion')
-  const hueco = document.getElementById('foroVivo')
-  if (!seccion || !hueco) return
-
-  const { data: temas, error } = await supabase
-    .from('forum_threads')
-    .select('id, title, prefix, post_count, created_at, last_post_at, author_id, last_post_author_id')
-    .order('last_post_at', { ascending: false })
-    .limit(4)
-  if (error || !temas || temas.length === 0) return recogerSeccion('foroVivoSeccion')
-
-  const perfiles = await perfilesPorId(temas.flatMap((t) => [t.last_post_author_id, t.author_id]))
-
-  hueco.innerHTML = `
-    <div class="foro-vivo-cabecera">
-      <div>
-        <h2>Ahora en el foro</h2>
-        <p class="subtext">De lo que se está hablando hoy. Entra y participa.</p>
-      </div>
-      <a class="ver-todo" href="/foro">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a>
-    </div>
-    <ul class="foro-vivo-lista">
-      ${temas
-        .map((t) => {
-          // La cara de quien habló último: es lo que hace que la lista
-          // parezca gente y no un índice.
-          const perfil = perfiles[t.last_post_author_id] || perfiles[t.author_id]
-          const quien = nombreDe(perfil) || 'Alguien'
-          const mensajes = t.post_count || 1
-          // La cuenta de mensajes se saca de la línea de texto y se pone
-          // a la derecha, en grande (tanda 300). Es el dato que decide si
-          // entras —un tema con 24 mensajes es una conversación; uno con
-          // 1, un aviso— y perdido entre el nombre y la hora no se leía.
-          return `
-        <li class="foro-vivo-fila">
-          ${avatarHtml(perfil, 34)}
-          <div class="foro-vivo-texto">
-            <a class="foro-vivo-titulo" href="${urlTema(t.id)}">${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</a>
-            <span class="subtext foro-vivo-meta">${escapeHtml(quien)} · ${haceCuanto(t.last_post_at || t.created_at)}</span>
-          </div>
-          <span class="foro-vivo-cuenta">
-            <b>${mensajes}</b>
-            <small>${mensajes === 1 ? 'mensaje' : 'mensajes'}</small>
-          </span>
-        </li>`
-        })
-        .join('')}
-    </ul>`
-  seccion.style.display = ''
-  return temas.map((t) => `tema:${t.id}`)
 }
 
 // ── La bienvenida del miembro ──
@@ -580,75 +315,19 @@ async function init() {
     import('./escaparate.js').then(({ pintarEscaparate }) => pintarEscaparate()).catch(() => {})
   }
 
-  // Las claves de lo que pintan los módulos de ARRIBA, para que la
-  // actividad no lo repita. No serializa la portada: las consultas
-  // siguen saliendo todas a la vez y lo único que espera es el PINTADO
-  // de la actividad, que está muy por debajo del primer pantallazo.
-  const arriba = Promise.all([cargarForoVivo(), cargarNoticiaPortada()]).then(
-    (listas) => new Set(listas.flat().filter(Boolean))
-  )
-
+  // El foro, «Aprende», las noticias, la clasificación y la comunidad los
+  // pinta js/portada-bloques.js (844), que entra por import() al final.
   await Promise.all([
-    loadCategories(),
-    loadRecent(),
     loadHeroGuideCount(),
     cargarNumerosComunidad(),
     cartasDelHeroe(),
-    arriba,
     cargarTorneoPortada(),
     cargarBienvenida(session),
-    loadHomeActivity(session, arriba),
-    // Va dentro del mismo grupo: es una consulta corta y así no añade una
-    // espera más antes de que la portada esté entera.
     montarPrimerosPasos(document.getElementById('primerosPasos'), session),
   ])
-  // Desde la 316 la tarjeta ES un <a>, así que no hace falta
-  // wireGuideCardClicks: con los dos, un clic navegaba dos veces.
-  await decorateGuideCards(document.getElementById('recentGrid'), session)
 }
 
 init()
-
-// ── La guía destacada de la semana ──
-//
-// La elige una persona desde /admin, no un algoritmo. Es la recompensa
-// más alta que se le puede dar a quien escribe: alguien ha leído su guía
-// y ha decidido ponerla en la portada.
-//
-// Si no hay ninguna elegida, la sección no existe — mejor eso que un
-// hueco con "próximamente".
-async function cargarDestacada() {
-  const seccion = document.getElementById('destacadaSeccion')
-  if (!seccion) return
-
-  const { data: config } = await supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle()
-  const elegida = config?.blocks?.destacada
-  if (!elegida?.guide_id) return recogerSeccion('destacadaSeccion')
-
-  const { data: guia } = await supabase
-    .from('guides')
-    .select('id, slug, title, description, cover_emoji, author_id')
-    .eq('id', elegida.guide_id)
-    .not('published_at', 'is', null)
-    .maybeSingle()
-  if (!guia) return recogerSeccion('destacadaSeccion')
-
-  let autor = null
-  if (guia.author_id) {
-    const { data } = await supabase.from('user_profiles').select(`id, username, display_name, ${COLUMNAS_RANGO}`).eq('id', guia.author_id).maybeSingle()
-    autor = data
-  }
-
-  document.getElementById('destacada').innerHTML = `
-    <span class="destacada-sello">${icons.star(13)} Guía destacada</span>
-    <a class="destacada-titulo" href="/guia/${encodeURIComponent(guia.slug)}">
-      ${contentIconHtml(guia.cover_emoji, 22, 'bookOpen')} ${escapeHtml(guia.title)}
-    </a>
-    ${elegida.nota ? `<p class="destacada-nota">“${escapeHtml(elegida.nota)}”</p>` : `<p class="destacada-nota">${escapeHtml(guia.description || '')}</p>`}
-    ${autor ? `<p class="destacada-autor">De <a href="${profileUrl(autor)}"${atributosDeRango(autor)}>${escapeHtml(autor.display_name || autor.username)}</a></p>` : ''}`
-  seccion.style.display = ''
-}
-cargarDestacada().catch(() => recogerSeccion('destacadaSeccion'))
 
 // ── El reto del día y el repaso ──
 //
@@ -754,76 +433,6 @@ async function cargarReto() {
 cargarReto().catch(() => recogerSeccion('retoSeccion'))
 
 
-// ── La liga de la semana ──
-//
-// La clasificación del reto diario de lunes a domingo (js/liga.js, sin
-// tabla propia: se agrega en el navegador). Se enseña a todo el mundo
-// —es la prueba de que aquí se juega— pero la línea de «tú vas N.º»
-// solo con sesión. Sin resultados esta semana, la sección no sale.
-async function cargarLiga(session) {
-  const seccion = document.getElementById('ligaSeccion')
-  const hueco = document.getElementById('liga')
-  if (!seccion || !hueco) return
-
-  const filas = await clasificacionSemanal()
-  if (!filas.length) return recogerSeccion('ligaSeccion')
-
-  const { data: perfiles } = await supabase
-    .from('user_profiles')
-    .select(`id, username, display_name, avatar_url, banner_color, ${COLUMNAS_RANGO}`)
-    .in('id', filas.slice(0, 30).map((f) => f.user_id))
-  const perfilPor = Object.fromEntries((perfiles || []).map((p) => [p.id, p]))
-
-  const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
-  // El podio va con el icono de medalla tintado, no con el emoji 🥇: la
-  // norma de la casa (iconos SVG en la UI, test-iconos-contenido vigila).
-  const puestoHtml = (i) =>
-    i < 3
-      ? `<span class="top-mes-puesto podio podio-${i + 1}">${icons.medal(15)}</span>`
-      : `<span class="top-mes-puesto">${i + 1}.</span>`
-  const filaHtml = (f, i) => {
-    const perfil = perfilPor[f.user_id]
-    const soyYo = session && f.user_id === session.user.id
-    return `
-      <li class="top-mes-fila ${CLASES_PODIO[i] || ''} ${soyYo ? 'liga-yo' : ''}">
-        ${puestoHtml(i)}
-        ${avatarHtml(perfil, 26)}
-        <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(perfil?.username || '')}"${atributosDeRango(perfil)}>${escapeHtml(
-          perfil?.display_name || perfil?.username || 'Usuario'
-        )}</a>
-        <strong class="top-mes-xp">${f.puntos} pts</strong>
-      </li>`
-  }
-
-  const miPuesto = session ? filas.findIndex((f) => f.user_id === session.user.id) : -1
-  const pintar = (todas) => {
-    const visibles = todas ? filas : filas.slice(0, 5)
-    hueco.innerHTML = `
-      <div class="top-mes-cabecera">
-        <h2>Liga de la semana</h2>
-        <p class="subtext">Los puntos del reto diario, de lunes a domingo. El lunes, borrón y cuenta nueva.</p>
-      </div>
-      <ol class="top-mes-lista">${visibles.map(filaHtml).join('')}</ol>
-      ${
-        // Tu puesto, cuando no estás entre los visibles: para eso se
-        // mira la liga. Si aún no has jugado esta semana, la invitación.
-        session && miPuesto >= visibles.length
-          ? `<p class="liga-mi-puesto">Tú vas ${miPuesto + 1}.º con ${filas[miPuesto].puntos} pts</p>`
-          : session && miPuesto === -1
-            ? `<p class="liga-mi-puesto">Esta semana todavía no puntúas — <a href="/curso.html?reto=hoy">juega el reto de hoy</a></p>`
-            : ''
-      }
-      ${
-        filas.length > 5
-          ? `<button type="button" class="link-btn liga-ver-todos" id="ligaVerTodos">${todas ? 'Ver menos' : `Ver los ${filas.length} de la semana`}</button>`
-          : ''
-      }`
-    document.getElementById('ligaVerTodos')?.addEventListener('click', () => pintar(!todas))
-  }
-  pintar(false)
-  seccion.style.display = ''
-}
-
 // ── El próximo lanzamiento ──
 //
 // La miniatura de /lanzamientos: el siguiente set y cuántos días
@@ -871,62 +480,8 @@ async function cargarLanzamiento() {
 }
 cargarLanzamiento().catch(() => recogerSeccion('lanzamientoSeccion'))
 
-// ── El top del mes ──
-//
-// La clasificación por XP total la ganan siempre los veteranos; esta es
-// la liga que un recién llegado sí puede ganar: XP ganado DESDE el día 1
-// del mes (total_xp − la foto de xp_mes que toma la función programada
-// top-del-mes). Sin la migración o sin fotos todavía, la sección no sale.
-async function cargarTopDelMes() {
-  const seccion = document.getElementById('topMesSeccion')
-  const hueco = document.getElementById('topMes')
-  if (!seccion || !hueco) return
-
-  const mes = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`
-  const { data: fotos, error } = await supabase.from('xp_mes').select('user_id, xp_inicio').eq('mes', mes).limit(2000)
-  if (error || !fotos || fotos.length === 0) return recogerSeccion('topMesSeccion')
-
-  const { data: perfiles } = await supabase
-    .from('user_profiles')
-    .select(`id, username, display_name, avatar_url, banner_color, total_xp, level, ${COLUMNAS_RANGO}`)
-    .limit(2000)
-  if (!perfiles) return recogerSeccion('topMesSeccion')
-
-  const inicioPorId = Object.fromEntries(fotos.map((f) => [f.user_id, f.xp_inicio || 0]))
-  const filas = perfiles
-    .map((p) => ({ perfil: p, ganado: Math.max(0, (p.total_xp || 0) - (inicioPorId[p.id] ?? 0)) }))
-    .filter((f) => f.ganado > 0)
-    .sort((a, b) => b.ganado - a.ganado)
-    .slice(0, 5)
-  if (filas.length === 0) return recogerSeccion('topMesSeccion')
-
-  const CLASES_PODIO = ['top-mes-oro', 'top-mes-plata', 'top-mes-bronce']
-  // Mismo podio de medalla SVG que la liga (la norma de los iconos).
-  const puestoHtml = (i) =>
-    i < 3
-      ? `<span class="top-mes-puesto podio podio-${i + 1}">${icons.medal(15)}</span>`
-      : `<span class="top-mes-puesto">${i + 1}.</span>`
-  hueco.innerHTML = `
-    <div class="top-mes-cabecera">
-      <h2>Top del mes</h2>
-      <p class="subtext">Quien más XP ha ganado desde el día 1. Cada mes, borrón y cuenta nueva.</p>
-    </div>
-    <ol class="top-mes-lista">
-      ${filas
-        .map(
-          (f, i) => `
-        <li class="top-mes-fila ${CLASES_PODIO[i] || ''}">
-          ${puestoHtml(i)}
-          ${avatarHtml(f.perfil, 26)}
-          <a class="top-mes-nombre" href="/usuario/${encodeURIComponent(f.perfil.username || '')}"${atributosDeRango(f.perfil)}>${escapeHtml(
-            f.perfil.display_name || f.perfil.username || 'Usuario'
-          )}</a>
-          <strong class="top-mes-xp">+${f.ganado} XP</strong>
-        </li>`
-        )
-        .join('')}
-    </ol>`
-  seccion.style.display = ''
-}
-cargarTopDelMes().catch(() => recogerSeccion('topMesSeccion'))
-getSession().then((s) => cargarLiga(s)).catch(() => recogerSeccion('ligaSeccion'))
+// Si el módulo no llega, los huecos se recogen: un esqueleto girando para
+// siempre no dice nada.
+getSession()
+  .then((s) => import('./portada-bloques.js').then((m) => m.montarPortada(s)))
+  .catch(() => ['foroVivoSeccion', 'recientesSeccion', 'noticiaPortadaSeccion', 'clasificacionSeccion'].forEach(recogerSeccion))

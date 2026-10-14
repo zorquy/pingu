@@ -2091,62 +2091,6 @@ a.rater-name:hover {
   font-weight: 600;
 }
 
-/* ── Guía destacada de la portada ── */
-.destacada {
-  margin: 24px 0 8px;
-  padding: 24px 24px;
-  background: var(--ice);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-xl);
-}
-
-.destacada-sello {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  background: var(--navy);
-  color: var(--white);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.destacada-titulo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-
-.destacada-titulo:hover {
-  color: var(--navy);
-}
-
-.destacada-nota {
-  margin: 8px 0 0;
-  font-size: var(--t-md);
-  line-height: 1.6;
-  color: var(--text-mid);
-}
-
-.destacada-autor {
-  margin: 8px 0 0;
-  font-size: var(--t-sm);
-  color: var(--text-dim);
-}
-
-.destacada-autor a {
-  color: var(--navy);
-  font-weight: 600;
-}
-
 /* ── El reto del día en la home ── */
 /* S780.98 */
 
@@ -2890,80 +2834,6 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
   border-left-color: var(--navy);
 }
 
-/* S780.119 */
-.top-mes {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 24px;
-}
-
-.top-mes-cabecera h2 {
-  margin: 0;
-  font-size: var(--t-xl);
-}
-
-.top-mes-lista {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.top-mes-fila {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-}
-
-/* S780.120 */
-.top-mes-oro {
-  background: rgba(245, 158, 11, 0.12);
-}
-
-.top-mes-plata {
-  background: rgba(148, 163, 184, 0.16);
-}
-
-.top-mes-bronce {
-  background: rgba(205, 127, 50, 0.12);
-}
-
-.top-mes-puesto {
-  width: 28px;
-  text-align: center;
-  font-weight: 800;
-}
-
-.top-mes-nombre {
-  font-weight: 700;
-  color: var(--text);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.top-mes-nombre:hover {
-  color: var(--navy);
-  text-decoration: underline;
-}
-
-.top-mes-xp {
-  /* S780.121 */
-  color: #177a52;
-  font-size: var(--t-sm);
-}
-
-:root[data-theme='dark'] .top-mes-xp {
-  color: #2fbf82;
-}
-
 /* S780.122 */
 #bienvenidaSeccion,
 .panel-portada {
@@ -2981,7 +2851,7 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
 .portada-lateral {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--e-xl);
   min-width: 0;
 }
 
@@ -3018,15 +2888,9 @@ body.portada-compacta .page-content {
 @media (min-width: 960px) {
   .panel-portada {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 16px;
-  }
-
-  /* S780.126 */
-  .portada-lateral {
-    position: sticky;
-    top: 78px;
-    align-self: start;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--e-xl);
+    align-items: start;
   }
 
   /* S780.127 */
@@ -3131,31 +2995,6 @@ body.portada-compacta .page-content {
   font-size: var(--t-xs);
   color: var(--text-mid);
 }
-
-/* ── La liga de la semana (reutiliza la tarjeta del top del mes) ── */
-.liga-yo {
-  outline: 2px solid var(--navy);
-  outline-offset: -2px;
-  border-radius: var(--radius-sm);
-}
-.liga-mi-puesto {
-  margin: 12px 0 0;
-  font-size: var(--t-sm);
-  font-weight: 600;
-}
-.liga-ver-todos {
-  margin-top: 8px;
-  font-size: var(--t-xs);
-}
-
-/* S780.130 */
-.top-mes-puesto.podio { display: inline-flex; align-items: center; }
-.podio-1 { color: #b45309; }
-.podio-2 { color: #64748b; }
-.podio-3 { color: #a05a2c; }
-:root[data-theme='dark'] .podio-1 { color: #fbbf24; }
-:root[data-theme='dark'] .podio-2 { color: #cbd5e1; }
-:root[data-theme='dark'] .podio-3 { color: #e8a869; }
 
 /* ── El protector de racha en la bienvenida ── */
 .bienvenida-escudo {

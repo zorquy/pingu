@@ -19,6 +19,7 @@ import { euros } from './cardmarket.js'
 import { hojaInyectada } from './hoja.js'
 import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/datos.js'
 import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
+import { guideHasCourse } from './guia-contenido.js'
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -105,19 +106,53 @@ export function fichasHtml({ reto = null, retos, torneo = null, lanzamiento = nu
   ].join('')
 }
 
-// «SIGUE DONDE LO DEJASTE» (748, la N1 de su maqueta): la guía que tienes
-// empezada y sin acabar, con su barra. Sin ninguna, no sale. Puro.
-export function sigueHtml(guia, fila) {
-  if (!guia || !fila) return ''
-  const bloques = Array.isArray(guia.blocks) ? guia.blocks.length : 0
-  const pct = bloques ? Math.round((Math.min(fila.current_block || 0, bloques) / bloques) * 100) : 0
-  return `<section class="hoy-sigue">
-    <div class="hoy-sigue-cabeza"><h2>Sigue donde lo dejaste</h2><a class="ver-todo" href="/aprender.html">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a></div>
-    <a class="hoy-sigue-fila" href="/guia/${encodeURIComponent(guia.slug)}">
-      <span class="hoy-ficha-icono" aria-hidden="true">${icons.bookOpen(22)}</span>
-      <span class="hoy-sigue-texto"><b>Guía · ${escapeHtml(guia.title || '')}</b><span class="hoy-sigue-barra" role="img" aria-label="${pct} % leído"><i style="--ancho:${pct}%"></i></span></span>
-    </a>
-  </section>`
+// «SIGUE DONDE LO DEJASTE» (748; desde la 844, hasta tres tarjetas): las
+// guías y los cursos que tienes empezados y sin acabar, y el mazo que estás
+// montando, cada uno con su anillo y lo que le queda. Sin nada, no sale. Puro.
+const anillo = (pct, texto) => `<span class="hoy-sg-anillo" style="--p:${Math.max(0, Math.min(100, pct))}" aria-hidden="true"><b>${escapeHtml(texto)}</b></span>`
+export function tarjetaSigueHtml(x) {
+  if (x.tipo === 'mazo') {
+    const n = x.cartas
+    return `<a class="hoy-sg" href="/constructor.html?mazo=${encodeURIComponent(x.id)}">
+      <span class="hoy-sg-arte arte-5" aria-hidden="true">${icons.layers(22)}${anillo((n / 60) * 100, String(n))}</span>
+      <span class="hoy-sg-texto"><small>Mazo</small><b>${escapeHtml(x.nombre || 'Mazo sin nombre')}</b><span>${n} de 60 · ${n < 60 ? `te faltan ${60 - n}` : `sobran ${n - 60}`}</span></span>
+      <span class="btn-secondary hoy-sg-boton">Abrir</span>
+    </a>`
+  }
+  const g = x.guia
+  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const voy = Math.min(x.fila.current_block || 0, bloques)
+  const pct = bloques ? Math.round((voy / bloques) * 100) : 0
+  const mins = g.estimated_mins && bloques ? Math.max(1, Math.round((g.estimated_mins * (bloques - voy)) / bloques)) : 0
+  return `<a class="hoy-sg" href="/guia/${encodeURIComponent(g.slug)}">
+    <span class="hoy-sg-arte arte-${x.curso ? 1 : 3}" aria-hidden="true">${(x.curso ? icons.graduationCap : icons.bookOpen)(22)}${anillo(pct, `${pct}%`)}</span>
+    <span class="hoy-sg-texto"><small>${x.curso ? 'Curso' : 'Guía'}</small><b>${escapeHtml(g.title || '')}</b><span>${bloques ? `Bloque ${Math.max(1, voy)} de ${bloques}` : 'Empezada'}${mins ? ` · ${mins} min para acabar` : ''}</span></span>
+    <span class="btn-${x.primera ? 'primary' : 'secondary'} hoy-sg-boton">Seguir</span>
+  </a>`
+}
+export function sigueHtml(items) {
+  if (!items?.length) return ''
+  return `<div class="hoy-sigue-cabeza"><h2>Sigue donde lo dejaste</h2><a class="ver-todo" href="/aprender.html">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a></div>
+    <div class="hoy-sg-fila">${items.slice(0, 3).map((x, i) => tarjetaSigueHtml({ ...x, primera: i === 0 })).join('')}</div>`
+}
+
+// Lo que tienes a medias: hasta dos guías o cursos empezados (los últimos que
+// abriste) y el último mazo que tocaste si no llega a 60.
+async function aMedias(uid) {
+  const [{ data: filas }, { data: mazos }] = await Promise.all([
+    supabase.from('user_progress').select('guide_id, current_block, status, started_at, read_at').eq('user_id', uid).neq('status', 'completed').not('started_at', 'is', null).order('started_at', { ascending: false }).limit(4),
+    supabase.from('user_decks').select('id, name, cards, updated_at').eq('user_id', uid).order('updated_at', { ascending: false }).limit(3),
+  ])
+  const ids = (filas || []).map((f) => f.guide_id)
+  const { data: guias } = ids.length ? await supabase.from('guides').select('id, slug, title, blocks, estimated_mins').in('id', ids) : { data: [] }
+  const porId = Object.fromEntries((guias || []).map((g) => [g.id, g]))
+  const items = (filas || [])
+    .filter((f) => porId[f.guide_id] && !f.read_at)
+    .slice(0, 2)
+    .map((f) => ({ tipo: 'guia', guia: porId[f.guide_id], fila: f, curso: guideHasCourse(porId[f.guide_id]) }))
+  const mazo = (mazos || []).map((m) => ({ ...m, n: (m.cards || []).reduce((t, c) => t + (Number(c.n) || 0), 0) })).find((m) => m.n > 0 && m.n !== 60)
+  if (mazo) items.push({ tipo: 'mazo', id: mazo.id, nombre: mazo.name, cartas: mazo.n })
+  return items
 }
 
 // Lo que vale tu colección AHORA, como lo suma el Panel (756): tus líneas
@@ -224,12 +259,7 @@ export async function montarHoy(session, { doc = document } = {}) {
       // el calendario.
       return (data || []).filter((s) => (!s.oculto || s.tcggo_id) && s.release_date)
     }),
-    intentar(async () => {
-      const { data: fila } = await supabase.from('user_progress').select('guide_id, current_block, status, started_at').eq('user_id', uid).neq('status', 'completed').not('started_at', 'is', null).order('started_at', { ascending: false }).limit(1).maybeSingle()
-      if (!fila) return null
-      const { data: guia } = await supabase.from('guides').select('id, slug, title, blocks').eq('id', fila.guide_id).maybeSingle()
-      return guia ? { guia, fila } : null
-    }),
+    intentar(() => aMedias(uid)),
     intentar(async () => {
       const { count, error } = await supabase.from('user_notifications').select('id', { count: 'exact', head: true }).eq('recipient_id', uid).eq('type', 'forum_reply').is('read_at', null)
       return error ? null : count ?? null
@@ -248,6 +278,12 @@ export async function montarHoy(session, { doc = document } = {}) {
     const total = Number(valor[valor.length - 1].valor) + (productos?.unidades ? Number(productos.total) || 0 : 0)
     import('./contar.js').then(({ contarCifra }) => contarCifra(cifra, 'valor', total, (n) => conMiles.format(n), caja.querySelector('.hoy-chispa'))).catch(() => {})
   }
-  if (sigue) caja.insertAdjacentHTML('beforeend', sigueHtml(sigue.guia, sigue.fila))
+  // En su hueco de la columna ancha (844); sin el hueco, debajo, como antes.
+  const hueco = doc.getElementById('sigueSeccion')
+  if (sigue?.length && hueco) {
+    hueco.innerHTML = sigueHtml(sigue)
+    hueco.classList.add('hoy-sigue')
+    hueco.classList.remove('hidden')
+  } else if (sigue?.length) caja.insertAdjacentHTML('beforeend', `<section class="hoy-sigue">${sigueHtml(sigue)}</section>`)
   return caja
 }

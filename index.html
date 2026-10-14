@@ -217,32 +217,21 @@
     <div class="container panel-portada" id="panelPortada">
       <div class="portada-principal">
 
-        <!-- S780.202 -->
-        <section id="destacadaSeccion">
-          <div class="destacada" id="destacada"><div class="skeleton" style="height: 92px;"></div></div>
-        </section>
+        <!-- Lo que tienes a medias (844): lo rellena js/hoy.js, solo con cuenta. -->
+        <section class="hidden" id="sigueSeccion"></section>
 
-        <!-- S780.203 -->
+        <!-- S780.203 · del 844 en adelante lo pinta js/portada-bloques.js -->
         <section id="foroVivoSeccion">
-          <div class="foro-vivo" id="foroVivo"><div class="skeleton" style="height: 310px;"></div></div>
+          <div class="pb-caja" id="foroVivo"><div class="skeleton" style="height: 360px;"></div></div>
         </section>
 
-        <!-- S780.204 -->
+        <!-- S780.204 · «Aprende», con los temas dentro (844) -->
         <section id="recientesSeccion">
-          <div class="seccion-cabecera">
-            <h2 class="section-title">Guías nuevas</h2>
-            <a class="ver-todo" href="/aprender.html">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a>
-          </div>
-          <div class="guia-rejilla" id="recentGrid">
-            <div class="skeleton" style="height: 120px;"></div>
-            <div class="skeleton" style="height: 120px;"></div>
-            <div class="skeleton" style="height: 120px;"></div>
-          </div>
+          <div id="aprende"><div class="skeleton" style="height: 380px;"></div></div>
         </section>
 
-        <!-- S780.205 -->
-        <section id="temasSeccion">
-          <div class="portada-temas" id="temasChips"></div>
+        <section class="hidden" id="homeActivity">
+          <div class="pb-caja" id="homeActivityFeed"></div>
         </section>
 
       </div>
@@ -258,7 +247,7 @@
         </section>
         <!-- S780.206 -->
         <section id="noticiaPortadaSeccion">
-          <div id="noticiaPortada"><div class="skeleton" style="height: 84px;"></div></div>
+          <div class="pb-caja pb-caja-noticias" id="noticiaPortada"><div class="skeleton" style="height: 300px;"></div></div>
         </section>
 
         <!-- S780.207 -->
@@ -269,23 +258,9 @@
         <!-- S780.208 -->
         <section class="hidden" id="primerosPasos"></section>
 
-        <section class="hidden" id="homeActivity">
-          <div class="panel-lateral">
-            <div class="seccion-cabecera seccion-cabecera-sm">
-              <h2>En la comunidad</h2>
-              <a class="ver-todo" href="/usuarios.html">Ver todo <span class="ver-todo-flecha" aria-hidden="true">→</span></a>
-            </div>
-            <div id="homeActivityFeed"></div>
-          </div>
-        </section>
-
-        <!-- S780.209 -->
-        <section id="ligaSeccion">
-          <div class="top-mes" id="liga"><div class="skeleton" style="height: 240px;"></div></div>
-        </section>
-
-        <section id="topMesSeccion">
-          <div class="top-mes" id="topMes"><div class="skeleton" style="height: 240px;"></div></div>
+        <!-- La liga de la semana y el top del mes, juntos (844) -->
+        <section id="clasificacionSeccion">
+          <div class="pb-caja" id="clasificacion"><div class="skeleton" style="height: 340px;"></div></div>
         </section>
 
       </aside>

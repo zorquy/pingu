@@ -1459,10 +1459,7 @@ a.foro-cita-quien:hover {
   max-width: 100%;
 }
 
-/* Lo último del foro EN LA PORTADA (.foro-vivo*) vive en
- * css/portada.css desde la tanda 299: la portada no baja esta hoja, así
- * que tenerlo aquí dejaba la sección «Ahora en el foro» sin estilo. Lo
- * pinta js/home.js y no se ve en ninguna otra pantalla. */
+/* Lo del foro en la PORTADA lo pinta js/portada-bloques.js con su hoja (844). */
 
 /* Los oros en la columna del autor del foro: mismo formato que
    «Mensajes:» y «Gracias:», con su tinte de oro. */

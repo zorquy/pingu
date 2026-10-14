@@ -192,50 +192,23 @@
   font-size: var(--t-xl);
 }
 
-.hoy-sigue-fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  min-height: 72px;
-  padding: var(--e-md) var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-  text-decoration: none;
-}
+/* Las tres tarjetas de «Sigue» (844): el arte con su anillo, lo que es y el botón. */
+#sigueSeccion.hoy-sigue { margin-top: 0; }
+.hoy-sg-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--e-md); }
+.hoy-sg { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: 1fr auto; gap: var(--e-md); align-items: center; padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); text-decoration: none; }
+.hoy-sg:hover { border-color: var(--navy); }
+.hoy-sg-arte { position: relative; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-md); color: var(--blanco-fijo); }
+.hoy-sg-anillo { position: absolute; right: -8px; bottom: -8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--border) 0); }
+.hoy-sg-anillo b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--white); color: var(--text); font-size: var(--t-2xs); }
+.hoy-sg-texto { display: grid; gap: 2px; min-width: 0; }
+.hoy-sg-texto small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.hoy-sg-texto b { font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; }
+.hoy-sg-texto span { color: var(--text-mid); font-size: var(--t-xs); }
+.hoy-sg-boton { grid-column: 1 / -1; width: 100%; }
 
-.hoy-sigue-fila .hoy-ficha-icono {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  border-radius: var(--radius-md);
-  background: var(--ice);
-}
-
-.hoy-sigue-texto {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--e-sm);
-  min-width: 0;
-}
-
-.hoy-sigue-barra {
-  height: 6px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--border);
-}
-
-.hoy-sigue-barra i {
-  display: block;
-  width: var(--ancho);
-  height: 100%;
-  background: var(--success);
+@media (max-width: 900px) {
+  .hoy-sg-fila { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(var(--e-md) * -1); padding: 0 var(--e-md) var(--e-xs); scrollbar-width: none; }
+  .hoy-sg { flex: 0 0 78%; scroll-snap-align: start; }
 }
 
 @media (max-width: 900px) {
