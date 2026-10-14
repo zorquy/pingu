@@ -1979,6 +1979,12 @@ export const supabase = {
     // verdad: la forma, el tamaño y la misma carga, el mismo id.
     // «Tus números» de los retos (841): lo que siembre la prueba, para ver
     // que una partida jugada en otro aparato baja al navegador.
+    // «Hoy en PokeDoc» (842): lo que siembre la prueba; sin semilla, como
+    // sin la migración (la función no existe).
+    if (nombre === 'retos_comunidad') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_RETOS_COMUNIDAD__ : null
+      return d ? { data: d, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.retos_comunidad' } }
+    }
     if (nombre === 'retos_mis_numeros' && typeof window !== 'undefined' && window.__FAKE_RETOS_NUMEROS__) {
       return { data: window.__FAKE_RETOS_NUMEROS__, error: null }
     }
