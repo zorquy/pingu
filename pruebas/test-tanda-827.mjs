@@ -53,9 +53,10 @@ const restImpl = async (ruta) => {
   const r = decodeURIComponent(ruta)
   if (/^tcg_sets\?select=id,tcggo_id&market=eq\.JP/.test(r)) return [{ id: 'tg-723', tcggo_id: 723 }]
   if (/market=eq\.JP/.test(r)) {
-    const m = r.match(/cm_id_product_propio=in\.\(([^)]*)\)/)
+    // Desde la 830 el japonés pregunta por producto O por `tcggo_id`.
+    const m = r.match(/cm_id_product_propio(?:=in|\.in)\.\(([^)]*)\)/)
     porProducto.push(Boolean(m))
-    const ids = m ? m[1].split(',').map(Number) : []
+    const ids = m ? m[1].split(',').map(Number).filter((x) => x > 0) : []
     return ids.map((cm) => ({ id: `tcggo-c${cm}`, cm_id_product_propio: cm }))
   }
   return [{ id: 'sv1-1', cm_id_product_propio: 500 }]
