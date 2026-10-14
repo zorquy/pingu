@@ -9,7 +9,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { urlDeLogo } from './carta-ruta.js'
 import { RONDAS, numeroDelDia, textoParaCompartir } from './que-expansion.js'
 import { xpDe, mejorQue } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros } from './retos-datos.js'
+import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras } from './retos-ui.js'
 import { rachaDeDias } from './reto-compartir.js'
 
@@ -180,6 +180,8 @@ async function init() {
   dia = r.dia
   rondas = (r.rondas || []).slice(0, RONDAS)
   if (rondas.length < RONDAS) { sinTablero('Hoy no hay cartas para este reto. Vuelve mañana.'); return }
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  await traerPartidaDeHoy('expansion', dia).catch(() => false)
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.elegidas) ? g : { dia, elegidas: [] }
   sesion = await getSession().catch(() => null)

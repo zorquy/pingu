@@ -40366,3 +40366,19 @@ rondas (`swiss_rounds`) en pastillas.
 negativo; ahora 600 y 0, como `.cabecera-pagina h1`. Las páginas con las dos
 clases (Mis partidas, Guardados) se quedaban con la de `.page-header` por ir
 después en la hoja.
+
+## Tanda 841 — La partida del reto viaja entre aparatos
+
+`retos_resultados.estado jsonb` (check: objeto y ≤ 8.000 bytes) es la partida
+tal cual la guarda cada página en `localStorage` (la clave de cada juego está
+en `RETOS[].local`, `js/retos-xp.js`). `retos_guardar(…, p_estado jsonb)` la
+mete al INSERTAR (si pasa del tope se guarda el resultado sin ella: el tope no
+tumba la XP) y nunca en el `on conflict do nothing`, que es lo que impide la
+XP doble. La firma cambia, así que la vieja se quita con `drop function if
+exists` antes del `create`: con las dos, PostgREST no sabría a cuál llamar.
+`retos_mis_numeros` devuelve `hoy[juego].estado`. En el cliente,
+`guardarResultado` manda la partida y, si la función no tiene ese parámetro
+(migración vieja), repite sin él; `traerPartidaDeHoy(juego, dia)` baja la
+partida al navegador ANTES de que la página lea la suya, y solo si el
+navegador no tiene la de hoy (lo local manda: es lo más nuevo). Una partida a
+medias no se sube: solo se guarda al terminar.

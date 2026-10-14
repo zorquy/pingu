@@ -12,7 +12,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { euros } from './cardmarket.js'
 import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, enSuSitio, textoParaCompartir } from './ordena-precio.js'
 import { xpDe, xpSiAciertasOrdena } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros } from './retos-datos.js'
+import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
 import { rachaDeDias } from './reto-compartir.js'
 
@@ -194,6 +194,8 @@ async function init() {
   cartas = (r.cartas || []).slice(0, CARTAS)
   if (cartas.length < CARTAS) { sinTablero('Hoy no hay cartas suficientes con precio. Vuelve mañana.'); return }
   porId = new Map(cartas.map((c) => [c.id, c]))
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  await traerPartidaDeHoy('ordena', dia).catch(() => false)
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.intentos) ? g : { dia, intentos: [], acertada: false }
   sesion = await getSession().catch(() => null)

@@ -44,6 +44,18 @@ create table if not exists public.retos_resultados (
   constraint retos_resultados_xp check (xp between 0 and 100)
 );
 
+-- La partida tal cual (841): lo que el navegador guarda del reto de hoy, para
+-- que al abrirlo en OTRO aparato salga hecho y no se vuelva a jugar. Pequeño:
+-- unos intentos o unas rondas; lo que pase de 8 KB no se guarda.
+alter table public.retos_resultados add column if not exists estado jsonb;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'retos_resultados_estado') then
+    alter table public.retos_resultados add constraint retos_resultados_estado
+      check (estado is null or (jsonb_typeof(estado) = 'object' and octet_length(estado::text) <= 8000));
+  end if;
+end $$;
+
 create index if not exists retos_resultados_juego_dia_idx on public.retos_resultados (juego, day);
 
 alter table public.retos_resultados enable row level security;
@@ -176,9 +188,13 @@ $$;
 revoke all on function public.retos_racha_de(uuid, date) from public, anon, authenticated;
 
 -- ── Guardar un resultado: la única puerta ──
+-- Con la partida (841) cambia la firma: la vieja se quita para que no
+-- queden dos y PostgREST no sepa a cuál llamar.
+drop function if exists public.retos_guardar(text, date, int, int, int, boolean, boolean[]);
 create or replace function public.retos_guardar(
   p_juego text, p_dia date, p_aciertos int default 0, p_total int default 0,
-  p_intentos int default null, p_acertada boolean default false, p_tira boolean[] default null
+  p_intentos int default null, p_acertada boolean default false, p_tira boolean[] default null,
+  p_estado jsonb default null
 )
 returns jsonb
 language plpgsql
@@ -202,8 +218,9 @@ begin
   end if;
 
   v_xp := public.retos_xp(p_juego, p_aciertos, p_total, p_intentos, p_acertada, p_tira);
-  insert into public.retos_resultados (user_id, juego, day, aciertos, total, intentos, acertada, xp)
-  values (v_uid, p_juego, p_dia, greatest(0, coalesce(p_aciertos, 0)), greatest(0, coalesce(p_total, 0)), p_intentos, coalesce(p_acertada, false), v_xp)
+  insert into public.retos_resultados (user_id, juego, day, aciertos, total, intentos, acertada, xp, estado)
+  values (v_uid, p_juego, p_dia, greatest(0, coalesce(p_aciertos, 0)), greatest(0, coalesce(p_total, 0)), p_intentos, coalesce(p_acertada, false), v_xp,
+    case when jsonb_typeof(p_estado) = 'object' and octet_length(p_estado::text) <= 8000 then p_estado end)
   on conflict (user_id, juego, day) do nothing;
   get diagnostics v_filas = row_count;
 
@@ -237,8 +254,8 @@ begin
   );
 end;
 $$;
-revoke all on function public.retos_guardar(text, date, int, int, int, boolean, boolean[]) from public, anon;
-grant execute on function public.retos_guardar(text, date, int, int, int, boolean, boolean[]) to authenticated;
+revoke all on function public.retos_guardar(text, date, int, int, int, boolean, boolean[], jsonb) from public, anon;
+grant execute on function public.retos_guardar(text, date, int, int, int, boolean, boolean[], jsonb) to authenticated;
 
 -- ── Lo de todos, agregado: cuántos han jugado, cuántos han acertado y el
 -- reparto por intentos y por aciertos. Nadie sale con nombre. ──
@@ -292,7 +309,7 @@ begin
     'caroPerfectos', coalesce((select count(*) from public.retos_resultados where user_id = v_uid and juego = 'caro' and aciertos = 5), 0),
     'xpHoy', coalesce((select sum(xp) from public.retos_resultados where user_id = v_uid and day = current_date), 0)
              + coalesce((select sum(xp) from public.retos_bonos where user_id = v_uid and day = current_date), 0),
-    'hoy', coalesce((select jsonb_object_agg(juego, jsonb_build_object('aciertos', aciertos, 'total', total, 'intentos', intentos, 'acertada', acertada, 'xp', xp)) from public.retos_resultados where user_id = v_uid and day = current_date), '{}'::jsonb),
+    'hoy', coalesce((select jsonb_object_agg(juego, jsonb_build_object('aciertos', aciertos, 'total', total, 'intentos', intentos, 'acertada', acertada, 'xp', xp, 'estado', estado)) from public.retos_resultados where user_id = v_uid and day = current_date), '{}'::jsonb),
     'cartaIntentos', coalesce((select jsonb_object_agg(i, n) from (select intentos as i, count(*) as n from public.retos_resultados where user_id = v_uid and juego = 'carta' and acertada and intentos is not null group by intentos) x), '{}'::jsonb)
   );
 end;

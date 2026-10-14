@@ -13,7 +13,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { euros } from './cardmarket.js'
 import { RONDAS, numeroDelDia, acierta, textoParaCompartir, rachaDeDias, ENLACE } from './mas-caro.js'
 import { xpDe, xpDelSiguienteCaro, mejorQue } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros } from './retos-datos.js'
+import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras } from './retos-ui.js'
 
 const $ = (id) => document.getElementById(id)
@@ -293,6 +293,8 @@ async function init() {
     sinTablero('Hoy no hay cartas suficientes con precio. Vuelve mañana.')
     return
   }
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  await traerPartidaDeHoy('caro', dia).catch(() => false)
   cargarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()

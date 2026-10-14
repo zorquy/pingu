@@ -18,7 +18,7 @@ import {
 } from './carta-del-dia.js'
 import { mismaFamilia } from './familias-pokemon.js'
 import { xpDe, xpSiAciertasCarta } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros } from './retos-datos.js'
+import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, repartoHtml, cuentaAtras, genteHtml } from './retos-ui.js'
 
 const $ = (id) => document.getElementById(id)
@@ -370,6 +370,8 @@ async function init() {
   dia = r.dia
   respuesta = r.carta
   ayer = r.ayer || null
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  await traerPartidaDeHoy('carta', dia).catch(() => false)
   cargarEstado()
   // «Ayer era X»: lo que hace volver a quien no jugó ayer.
   if (ayer?.name) {

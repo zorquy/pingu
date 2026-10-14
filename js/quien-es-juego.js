@@ -9,7 +9,7 @@ import { POKEMON_POR_DEX } from './torneos/sprites-pokemon.js'
 import { hoyISO } from './reto-diario.js'
 import { INTENTOS, numeroDelDia, pokemonDelDia, opcionesDelDia, urlsDelDibujo, textoParaCompartir } from './quien-es.js'
 import { xpDe, xpSiAciertasSilueta } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros } from './retos-datos.js'
+import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
 import { rachaDeDias } from './reto-compartir.js'
 
@@ -139,6 +139,8 @@ async function compartir() {
 }
 
 async function init() {
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  await traerPartidaDeHoy('silueta', dia).catch(() => false)
   cargarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()

@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (75) — PINGU-Claude (841 — un reto hecho en el móvil sale hecho en el PC)
+
+**Hecho** (PINGU: «hago los retos en móvil pero en el PC no están hechos»):
+dos causas. (1) Sin `supabase-migration-retos-xp.sql` ejecutada, lo de hoy solo
+vive en el navegador de cada aparato. (2) Con ella, la base guardaba el
+RESULTADO (aciertos, intentos, XP) pero no la partida, y cada página lee la
+suya del navegador: en el PC salía sin jugar (y se podía repetir, sin XP).
+Ahora `retos_resultados.estado` guarda la partida tal cual (lo que la página
+tiene en `localStorage`, hasta 8 KB), `retos_guardar` la recibe en
+`p_estado` y `retos_mis_numeros` la devuelve en `hoy`. Cada reto, antes de
+leer su partida, llama a `traerPartidaDeHoy(juego, dia)`: si el navegador no
+tiene la de hoy y la base sí, la baja. Si la función vieja no tiene
+`p_estado`, se vuelve a llamar sin él (el resultado y la XP valen más). La
+migración se puede ejecutar otra vez encima: añade la columna y cambia la firma
+de `retos_guardar` (quita la vieja).
+
+**Ficheros**: `supabase-migration-retos-xp.sql`, `js/retos-datos.js` y los
+cinco `js/*-juego.js`. En `pruebas`: `test-tanda-841-pantalla.mjs` (nueva),
+`test-tanda-835.mjs` + `sql-tanda-835.sql` (la partida contra PostgreSQL) y
+`retos_mis_numeros` en el doble.
+
+**Pruebas**: 835 contra PostgreSQL (con la partida y el tope de 8 KB), 841,
+835-pantalla, 569, 570, 583, imports y migraciones: verdes.
+
+**Pendiente**: **PINGU, (re)ejecuta `supabase-migration-retos-xp.sql`**. Una
+partida a medias no viaja (solo la terminada); el reto del curso ya viajaba.
+
 ## 2026-10-14 (74) — PINGU-Claude (836–840 — «Jugar» rehecho: mazos, constructor, partidas, torneos y títulos)
 
 **Hecho** (PINGU vio la propuesta con imágenes de las cuatro pantallas y: «me

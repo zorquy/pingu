@@ -9,6 +9,7 @@ import { supabase } from './supabase.js'
 import { getSession } from './app.js'
 import { showToast } from './toast.js'
 import { checkAchievements, celebrarSiSubeDeNivel } from './gamification.js'
+import { RETOS } from './retos-xp.js'
 
 const noHayFuncion = (e) => /PGRST202|42883|does not exist|Could not find the function/i.test(`${e?.code || ''} ${e?.message || ''}`)
 
@@ -17,7 +18,7 @@ const noHayFuncion = (e) => /PGRST202|42883|does not exist|Could not find the fu
 export async function guardarResultado(juego, dia, r = {}) {
   const session = await getSession().catch(() => null)
   if (!session) return { sinCuenta: true }
-  const { data, error } = await supabase.rpc('retos_guardar', {
+  const args = {
     p_juego: juego,
     p_dia: dia,
     p_aciertos: Number(r.aciertos) || 0,
@@ -25,7 +26,14 @@ export async function guardarResultado(juego, dia, r = {}) {
     p_intentos: r.intentos == null ? null : Number(r.intentos),
     p_acertada: Boolean(r.acertada),
     p_tira: Array.isArray(r.tira) ? r.tira.map(Boolean) : null,
-  })
+  }
+  // La partida tal cual (841), para verla hecha en otro aparato. Con la
+  // migración de la 835 sin la parte de la 841, la función no tiene ese
+  // parámetro y PostgREST no la encuentra: se repite sin él, que el
+  // resultado y la XP valen más que la partida.
+  const partida = partidaLocal(juego, dia)
+  let { data, error } = await supabase.rpc('retos_guardar', partida ? { ...args, p_estado: partida } : args)
+  if (error && partida && noHayFuncion(error)) ({ data, error } = await supabase.rpc('retos_guardar', args))
   if (error) return noHayFuncion(error) ? { faltaMigracion: true } : { error: error.message }
   if (data?.nuevo) {
     const ganado = (data.xp || 0) + (data.xpPerfecto || 0) + (data.xpRacha || 0)
@@ -39,6 +47,36 @@ export async function guardarResultado(juego, dia, r = {}) {
     }
   }
   return data || {}
+}
+
+// La partida de hoy de un juego, como la guarda su página en el navegador.
+function partidaLocal(juego, dia) {
+  const clave = RETOS.find((x) => x.juego === juego)?.local
+  if (!clave) return null
+  try {
+    const g = JSON.parse(localStorage.getItem(clave) || 'null')
+    return g && g.dia === dia ? g : null
+  } catch {
+    return null
+  }
+}
+
+// Si hoy ya jugaste este reto EN OTRO aparato (841), su partida baja de la
+// base al navegador antes de que la página la lea: así sale hecho y no se
+// juega dos veces. Sin cuenta, sin migración o sin partida guardada, no
+// hace nada y la página sigue como siempre.
+export async function traerPartidaDeHoy(juego, dia) {
+  const clave = RETOS.find((x) => x.juego === juego)?.local
+  if (!clave || partidaLocal(juego, dia)) return false
+  const n = await misNumeros(1).catch(() => null)
+  const g = n?.hoy?.[juego]?.estado
+  if (!g || g.dia !== dia) return false
+  try {
+    localStorage.setItem(clave, JSON.stringify(g))
+    return true
+  } catch {
+    return false
+  }
 }
 
 // Tus días, tu racha y lo de hoy. null sin cuenta o sin migración.
