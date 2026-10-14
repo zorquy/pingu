@@ -54,6 +54,8 @@ const T = {
   tcg_products: [],
   user_products: [],
   tournament_decklists: [],
+  // Los datos de Play! Pokémon de cada uno, privados (tanda 834).
+  user_play_pokemon: [],
   // Las jornadas de una liga (tandas 634 y 635): cuáles están cerradas y
   // la lista de cada uno para cada jornada.
   tournament_matchday_closures: [],
@@ -384,6 +386,14 @@ sembrar('__FAKE_INSCRIPCIONES__', 'tournament_registrations', (i) => ({
   dropped_at: null,
   dropped_after_round_id: null,
   participation_confirmed_at: null,
+}))
+
+sembrar('__FAKE_PLAY__', 'user_play_pokemon', () => ({
+  user_id: 'user-1',
+  player_id: null,
+  player_name: null,
+  birth_date: null,
+  updated_at: '2026-10-14T00:00:00Z',
 }))
 
 sembrar('__FAKE_JORNADAS_CERRADAS__', 'tournament_matchday_closures', () => ({
