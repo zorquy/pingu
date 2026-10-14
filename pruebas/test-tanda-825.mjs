@@ -62,6 +62,9 @@ check('lo que alguien movió a mano después no se pisa', !otra.cambios.some((c)
 const EP2 = [
   { id: 1, nombre: 'Expansion Pack', serie: null }, { id: 2, nombre: 'Pokemon Jungle', serie: null }, { id: 3, nombre: 'Neo Genesis', serie: null },
   { id: 4, nombre: 'PCG1', serie: null }, { id: 5, nombre: 'PCG2', serie: null }, { id: 6, nombre: 'Raro', serie: null },
+  { id: 7, nombre: 'Fossil', serie: null }, { id: 8, nombre: 'Team Rocket', serie: null }, { id: 9, nombre: 'Pokémon VS', serie: null },
+  { id: 10, nombre: 'PCG-P Promos', serie: null }, { id: 11, nombre: 'Southern Islands', serie: null }, { id: 12, nombre: 'Algo del 2005', serie: null },
+  { id: 13, nombre: 'DP1', serie: null }, { id: 14, nombre: 'DP2', serie: null },
 ]
 const SETS2 = [
   { id: 'tg-1', name_en: 'Expansion Pack', tcggo_id: 1, serie_id: null, release_date: '1996-10-20' },
@@ -69,24 +72,39 @@ const SETS2 = [
   { id: 'tg-3', name_en: 'Neo Genesis', tcggo_id: 3, serie_id: null, release_date: '2000-02-04' },
   { id: 'pcg1_ja', name_en: 'PCG1', tcggo_id: 4, serie_id: 'pcg', serie_name: 'PCG', release_date: '2004-09-10' },
   { id: 'pcg2_ja', name_en: 'PCG2', tcggo_id: 5, serie_id: 'pcg', serie_name: 'PCG', release_date: '2005-01-10' },
-  { id: 'tg-6', name_en: 'Raro', tcggo_id: 6, serie_id: null, release_date: '2030-01-01' },
+  { id: 'tg-6', name_en: 'Raro', tcggo_id: 6, serie_id: null, release_date: '1990-01-01' },
+  { id: 'tg-7', name_en: 'Fossil', tcggo_id: 7, serie_id: null, release_date: '1997-06-21' },
+  { id: 'tg-8', name_en: 'Team Rocket', tcggo_id: 8, serie_id: null, release_date: '1997-11-21' },
+  { id: 'vs1_ja', name_en: 'Pokémon VS', tcggo_id: 9, serie_id: 'vs', serie_name: 'VS', release_date: '2001-08-19' },
+  { id: 'pcg-p', name_en: 'PCG-P Promos', tcggo_id: 10, serie_id: null, release_date: '2004-08-01' },
+  { id: 'tg-11', name_en: 'Southern Islands', tcggo_id: 11, serie_id: 'other', release_date: '2001-06-01' },
+  { id: 'tg-12', name_en: 'Algo del 2005', tcggo_id: 12, serie_id: 'pcg', release_date: '2005-01-01' },
+  { id: 'dp1_ja', name_en: 'DP1', tcggo_id: 13, serie_id: 'dp', release_date: '2004-12-01' },
+  { id: 'dp2_ja', name_en: 'DP2', tcggo_id: 14, serie_id: 'dp', release_date: '2006-01-01' },
 ]
 const VIEJOS = [
   { id: 'base1_ja', name_en: 'Expansion Pack', serie_id: 'base', serie_name: 'Base', oculto: true, release_date: '1996-10-20' },
+  { id: 'base3_ja', name_en: 'Fossil', serie_id: 'base', serie_name: 'Base', oculto: true, release_date: '1997-06-21' },
   { id: 'base4_ja', name_en: 'Rocket Gang', serie_id: 'base', serie_name: 'Base', oculto: true, release_date: '1997-11-21' },
+  { id: 'otros', name_en: 'Cajón', serie_id: 'other', oculto: true, release_date: '1999-01-01' },
   { id: 'neo1_ja', name_en: 'Gold, Silver, to a New World', serie_id: 'neo', serie_name: 'Neo', oculto: true, release_date: '2000-02-04' },
   { id: 'neo4_ja', name_en: 'Darkness, and to Light', serie_id: 'neo', serie_name: 'Neo', oculto: true, release_date: '2001-03-09' },
 ]
-const r2 = lib.erasDeTcggo(SETS2, EP2, { viejos: VIEJOS })
+const r2 = lib.erasDeTcggo(SETS2, EP2, { viejos: VIEJOS, puestas: { 'tg-12': 'pcg' } })
 const de2 = (id) => r2.cambios.find((c) => c.id === id)
 check('sin serie de TCGGO: el set viejo del MISMO nombre dice su era', de2('tg-1')?.a.serie_id === 'base' && de2('tg-1').por === 'nombre', JSON.stringify(r2.cambios))
-check('  …y Jungle (suelto, en una era suya) entra en la misma por la fecha', de2('tg-2')?.a.serie_id === 'base' && /^fecha/.test(de2('tg-2').por))
+check('  …y Jungle (solo en una era suya) entra en la que cubre su fecha', de2('tg-2')?.a.serie_id === 'base' && de2('tg-2').por === 'fecha', JSON.stringify(de2('tg-2')))
+check('una era de UN set que cae en un hueco (VS) se queda', !de2('vs1_ja'))
+check('Team Rocket, en el hueco tras Original, va a la era anterior', de2('tg-8')?.a.serie_id === 'base' && /anterior/.test(de2('tg-8').por), JSON.stringify(de2('tg-8')))
+check('los promos van a la era que empieza después (PCG-P antes del primer PCG)', de2('pcg-p')?.a.serie_id === 'pcg' && /promos/.test(de2('pcg-p').por), JSON.stringify(de2('pcg-p')))
+check('el cajón «Other» no es una era: lo de dentro se recoloca', de2('tg-11')?.a.serie_id === 'neo', JSON.stringify(de2('tg-11')))
+check('lo que puso esta pasada se vuelve a decidir: dos eras lo cubren y gana la más nueva', de2('tg-12')?.a.serie_id === 'dp' && /más nueva/.test(de2('tg-12').por), JSON.stringify(de2('tg-12')))
 check('  …una era que hoy no tiene nada a la vista vuelve por las fechas de los viejos', de2('tg-3')?.a.serie_id === 'neo' && de2('tg-3').por === 'fecha de los viejos' && de2('tg-3').a.serie_name === 'Neo')
 check('  …un set que ya está en una era con otros no se toca', !de2('pcg1_ja') && !de2('pcg2_ja'))
-check('  …y lo que ninguna era cubre se queda, con el porqué', !de2('tg-6') && r2.sinEra.some((x) => x.id === 'tg-6' && x.porque === 'ninguna era cubre su fecha'))
-check('la estantería que queda se cuenta era a era', r2.estanteria.some((e) => e.serie_id === 'base' && e.sets === 2) && r2.estanteria.some((e) => e.serie_id === 'pcg' && e.sets === 2) && r2.conSerieDeTcggo === 0, JSON.stringify(r2.estanteria))
+check('  …y lo de antes de todas las eras se queda, con el porqué', !de2('tg-6') && r2.sinEra.some((x) => x.id === 'tg-6' && x.porque === 'antes de todas las eras'), JSON.stringify(r2.sinEra))
+check('la estantería que queda se cuenta era a era', r2.estanteria.some((e) => e.serie_id === 'base' && e.sets === 4) && r2.estanteria.some((e) => e.serie_id === 'pcg' && e.sets === 3) && r2.conSerieDeTcggo === 0, JSON.stringify(r2.estanteria))
 const dosEras = lib.erasDeTcggo([{ id: 'x', tcggo_id: 9, release_date: '2000-01-01' }], [{ id: 9 }], { viejos: [{ id: 'a', serie_id: 'a', release_date: '1999-01-01' }, { id: 'b', serie_id: 'a', release_date: '2001-01-01' }, { id: 'c', serie_id: 'b', release_date: '1999-06-01' }, { id: 'd', serie_id: 'b', release_date: '2000-06-01' }] })
-check('si dos eras cubren la fecha, no se elige ninguna', !dosEras.cambios.length && dosEras.sinEra[0]?.porque === 'dos eras cubren su fecha')
+check('si dos eras viejas cubren la fecha, gana la que empezó más tarde', dosEras.cambios[0]?.a.serie_id === 'b', JSON.stringify(dosEras))
 
 // El set NUEVO coge la era de un hermano de su serie, no una propia.
 const nuevo = lib.serieDeEpisodio({ id: 712, nombre: 'Team Rocket', serie: 'Original Era', serieId: 'original-era' }, despues, EPISODIOS)
