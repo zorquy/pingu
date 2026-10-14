@@ -4,6 +4,63 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (78) — PINGU-Claude (845–846 — la pestaña Actividad como la portada, y /aprender compacto)
+
+**Hecho** (PINGU: «en la portada se ven más cosas que hace la gente que en la
+parte de comunidad-actividad»; era verdad, cada una tenía su lista):
+- **Un solo molde**: `js/comunidad-sucesos.js` (+ `css/comunidad-sucesos.css`,
+  por `import()` con su hoja) pinta los sucesos para la portada («En la
+  comunidad», seis) y para /usuarios (la pestaña Actividad y la caja «Lo que
+  acaba de pasar» de la lateral). Una línea por suceso, la cara con su
+  iconito, el nombre con su rango y «hace cuánto».
+- **Más sucesos** en `portada_comunidad`: se apuntó a un torneo, empezó a
+  seguir a alguien, respondió en un tema (uno por persona y tema, 7 días, sin
+  contar el mensaje que lo abre) y tiene cartas para cambiar (14 días, con
+  cuántas). Tope de 40 a 60.
+- **/usuarios → Actividad**: filtros (Todo, Retos, Torneos, Colección, Mazos,
+  Foro, Guías, Gente; solo salen los que tienen algo), 20 cada vez y «Ver
+  más», en dos columnas en el PC. Las noticias salen aquí como «de la casa»
+  (sin cara, con la chapa «Noticia»); en la portada no, que ya tienen bloque.
+  Sin nada, distingue «no se ha podido cargar» de «todavía no hay actividad».
+- `js/activity.js` se queda solo con `loadActivity`; las 13 reglas
+  `.activity-*` de `components.css` y las `.pb-comu*` de `portada-bloques.css`
+  se van. Los títulos del foro de la portada ya no se cortan.
+
+- **846 /aprender** (PINGU, con dos capturas del móvil: «los filtros ocupan
+  demasiado y las guías están muy muy abajo… hazmelo más moderno»): la
+  primera guía estaba a ~1.800 px; ahora entra en la primera pantalla.
+  «Sigue donde lo dejaste» es una fila (en el móvil, el botón es la flecha);
+  el medallero, una línea sin caja; un buscador de guías (título y
+  descripción, sin volver a la base); los temas en UNA fila que se desliza y,
+  debajo, la cuenta y los interruptores (nivel, sin leer y el nuevo «Con
+  curso»). En el móvil la primera va en tarjeta y las demás en filas (foto,
+  título, nivel · minutos · curso, por dónde vas); en el PC, la primera es la
+  grande (dos pistas, la foto al lado). El CSS del medallero sale de
+  `components.css` a `css/aprender.css`.
+- De paso (la suite): los filtros de Actividad tenían la clase `com-chip`
+  de /usuarios y la portada no baja esa hoja (`.suc-filtro` propio, la 299);
+  el «empezó a seguir a» pinta el rango del seguido (la 386, y la
+  migración lo trae).
+
+**Ficheros**: `supabase-migration-portada.sql`, `js/comunidad-sucesos.js`,
+`css/comunidad-sucesos.css`, `js/portada-bloques.js`,
+`css/portada-bloques.css`, `js/usuarios.js`, `js/activity.js`,
+`css/components.css`, `aprender.html`, `js/aprender.js`, `css/aprender.css`.
+Pruebas (rama `pruebas`): `test-tanda-845-pantalla.mjs` y
+`test-tanda-846-pantalla.mjs` nuevas, `test-tanda-844.mjs` con los cuatro
+sucesos nuevos contra PostgreSQL, y 289, 312, 316, 387, 829 y 844-pantalla al
+día.
+
+**Pruebas**: suite entera (4 carriles) con la 845: 456 verdes y 7 rojos —493,
+514 y 834 del contenedor (sin `ffprobe` ni `qpdf`), la 748 pasa sola (la
+medida de saltos va justa) y 299, 386 y 723 eran míos y están arreglados—.
+Después, con la 846, las 34 que tocan /aprender, /usuarios y la portada,
+todas en verde; imports y peso (112,1 KB).
+
+**Pendiente**: **PINGU, vuelve a ejecutar `supabase-migration-portada.sql`**
+(se puede repetir). Hasta entonces Actividad enseña lo de siempre y los cuatro
+sucesos de la 844 que ya están.
+
 ## 2026-10-14 (77) — PINGU-Claude (844 — la portada nueva)
 
 **Hecho** (PINGU vio la propuesta en imágenes —«mola, dale todo»—; lo de

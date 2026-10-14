@@ -76,12 +76,17 @@ revoke all on function public.portada_clasificacion(text) from public;
 grant execute on function public.portada_clasificacion(text) to anon, authenticated;
 
 -- ── Lo que pasa en la comunidad y no se apuntaba ──
--- Cuatro clases de suceso, los más nuevos primero:
---   perfecto  · hizo los seis retos de un día (el bono 'perfecto' de la 835)
---   mazo      · tiene un mazo público, el último que tocó
---   campeon   · ganó un torneo terminado
---   coleccion · completó una expansión (todas sus cartas numeradas), solo
---               con la colección pública
+-- Ocho clases de suceso, los más nuevos primero (la portada enseña seis;
+-- la pestaña Actividad de /usuarios, hasta 60 — la 845):
+--   perfecto    · hizo los seis retos de un día (el bono 'perfecto' de la 835)
+--   mazo        · tiene un mazo público, el último que tocó
+--   campeon     · ganó un torneo terminado
+--   coleccion   · completó una expansión (todas sus cartas numeradas), solo
+--                 con la colección pública
+--   inscripcion · se apuntó a un torneo (845)
+--   sigue       · empezó a seguir a alguien; los dos tienen que salir (845)
+--   respuesta   · respondió en un tema del foro, uno por tema y persona (845)
+--   cambio      · tiene cartas marcadas «para cambiar», las de 14 días (845)
 create or replace function public.portada_comunidad(p_limite int default 12)
 returns jsonb
 language sql
@@ -133,8 +138,40 @@ as $$
     group by x.user_id, s.id, s.market, s.name, s.card_count_official
     having count(distinct k.id) >= s.card_count_official
   ),
+  inscripciones as (
+    select 'inscripcion'::text as tipo, r.user_id, r.registered_at as fecha,
+      jsonb_build_object('slug', t.slug, 'nombre', t.name) as datos
+    from public.tournament_registrations r
+    join public.tournaments t on t.id = r.tournament_id
+    where r.status = 'active' and t.status not in ('draft', 'cancelled') and r.registered_at >= now() - interval '30 days'
+  ),
+  seguidos as (
+    select 'sigue'::text as tipo, f.follower_id as user_id, f.created_at as fecha,
+      jsonb_build_object('username', g2.username, 'display_name', g2.display_name, 'is_admin', g2.is_admin, 'is_moderator', g2.is_moderator) as datos
+    from public.user_follows f
+    join gente g2 on g2.id = f.following_id
+    where f.created_at >= now() - interval '30 days'
+  ),
+  -- Una respuesta es un mensaje que no abre el tema; de cada persona, el
+  -- último por tema (una conversación animada no llena la lista sola).
+  respuestas as (
+    select distinct on (p.author_id, p.thread_id) 'respuesta'::text as tipo, p.author_id as user_id, p.created_at as fecha,
+      jsonb_build_object('id', t.id, 'titulo', t.title) as datos
+    from public.forum_posts p
+    join public.forum_threads t on t.id = p.thread_id
+    where p.created_at >= now() - interval '7 days' and p.author_id is not null
+      and (p.author_id <> t.author_id or p.created_at > t.created_at + interval '1 minute')
+    order by p.author_id, p.thread_id, p.created_at desc
+  ),
+  cambios as (
+    select 'cambio'::text as tipo, c.user_id, max(c.updated_at) as fecha, jsonb_build_object('cartas', count(*)) as datos
+    from public.user_collection c
+    where c.cambio > 0 and c.updated_at >= now() - interval '14 days'
+    group by c.user_id
+  ),
   todo as (
     select * from perfectos union all select * from mazos union all select * from campeones union all select * from colecciones
+    union all select * from inscripciones union all select * from seguidos union all select * from respuestas union all select * from cambios
   )
   select coalesce(jsonb_agg(jsonb_build_object(
       'tipo', e.tipo, 'fecha', e.fecha, 'datos', e.datos,
@@ -144,7 +181,7 @@ as $$
     select t.tipo, t.fecha, t.datos, g.username, g.display_name, g.avatar_url, g.is_admin, g.is_moderator
     from todo t join gente g on g.id = t.user_id
     order by t.fecha desc
-    limit greatest(1, least(coalesce(p_limite, 12), 40))
+    limit greatest(1, least(coalesce(p_limite, 12), 60))
   ) e;
 $$;
 revoke all on function public.portada_comunidad(int) from public;

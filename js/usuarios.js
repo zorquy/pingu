@@ -4,7 +4,6 @@ import { escapeHtml, getInitial, getSession, profileUrl, avatarStyle } from './a
 import { guideHasReference } from './guia-contenido.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
 import { calculateLevel, esPrimerNivel, levelBadgeHtml } from './gamification.js'
-import { loadActivity, renderActivityHtml } from './activity.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { plegarTexto, contienePlegado } from './texto.js'
@@ -213,13 +212,12 @@ async function cargarLateral(perfiles) {
     caja.classList.remove('hidden')
   }
 
+  // Con el molde de la portada (845): lo mismo que la pestaña Actividad.
   const ultimo = document.getElementById('comUltimo')
   if (!ultimo) return
   try {
-    const actividad = await loadActivity(5)
-    ultimo.innerHTML = actividad.eventos.length
-      ? renderActivityHtml(actividad)
-      : '<p class="subtext" style="margin:0">Todavía no ha pasado nada por aquí.</p>'
+    const { montarUltimo } = await import('./comunidad-sucesos.js')
+    await montarUltimo(ultimo, 5)
   } catch {
     ultimo.innerHTML = '<p class="subtext" style="margin:0">No hemos podido cargar la actividad.</p>'
   }
@@ -456,8 +454,10 @@ async function cargarActividad() {
   actividadCargada = true
   const cont = document.getElementById('activityFeed')
   cont.innerHTML = `<div class="skeleton" style="height: 90px;"></div>`
+  // Lo mismo que la portada y más (845): filtros por tipo y «Ver más».
   try {
-    cont.innerHTML = renderActivityHtml(await loadActivity(30))
+    const { montarActividad } = await import('./comunidad-sucesos.js')
+    await montarActividad(cont)
   } catch {
     actividadCargada = false
     cont.innerHTML = `<p class="empty-state">No hemos podido cargar la actividad. Vuelve a intentarlo.</p>`

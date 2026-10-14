@@ -630,61 +630,6 @@
   font-size: var(--t-xs);
 }
 
-/* ── En la comunidad ── */
-.pb-comu {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--e-sm) var(--e-xl);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pb-comu li {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  min-width: 0;
-  padding: var(--e-xs) 0;
-}
-
-.pb-comu-cara {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.pb-comu-ic {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  display: grid;
-  width: 20px;
-  height: 20px;
-  place-items: center;
-  border: 2px solid var(--white);
-  border-radius: 50%;
-  color: var(--blanco-fijo);
-}
-
-.pb-comu-ic.tono-verde { background: var(--arte-verde); }
-.pb-comu-ic.tono-morado { background: var(--arte-morado); }
-.pb-comu-ic.tono-ambar { background: var(--arte-ambar); }
-.pb-comu-ic.tono-azul { background: var(--arte-azul); }
-.pb-comu-ic.tono-cian { background: var(--arte-cian); }
-.pb-comu-ic.tono-rosa { background: var(--arte-rosa); }
-
-.pb-comu p {
-  margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.4;
-}
-
-.pb-comu p > a {
-  color: var(--navy);
-  font-weight: 600;
-  text-decoration: none;
-}
-
 /* ── El móvil ── */
 @media (max-width: 760px) {
   .pb-caja {
@@ -701,8 +646,7 @@
     display: none;
   }
 
-  .pb-aprende-rejilla,
-  .pb-comu {
+  .pb-aprende-rejilla {
     grid-template-columns: minmax(0, 1fr);
   }
 

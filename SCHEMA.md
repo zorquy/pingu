@@ -40455,3 +40455,59 @@ La clasificación guarda semana y mes ya pedidos. La comunidad junta
 **Orden del móvil** (`portada.css`, `@media (max-width: 959px)`): `order` de −9
 a −1 por id, la comunidad la última. `.portada-lateral` ya no es `sticky`.
 
+## Tanda 845 — La pestaña Actividad, con el molde de la portada
+
+**Por qué**: la portada («En la comunidad») juntaba `loadActivity` con
+`portada_comunidad`; /usuarios → Actividad pintaba solo `loadActivity` con su
+propio molde (`renderActivityHtml`). Enseñaban cosas distintas. Ahora los dos
+usan `js/comunidad-sucesos.js`.
+
+**Datos** (`portada_comunidad`, misma migración, tope 60): cuatro tipos más.
+`inscripcion` (`tournament_registrations.status = 'active'`, torneo ni `draft`
+ni `cancelled`, 30 días; datos `slug`, `nombre`), `sigue` (`user_follows`, 30
+días, el seguido también sin `hide_activity`; datos `username`,
+`display_name`), `respuesta` (`forum_posts` de 7 días, `distinct on (author_id,
+thread_id)` con el más nuevo, quitando el mensaje que abre el tema: mismo autor
+y a menos de un minuto de `forum_threads.created_at`; datos `id`, `titulo`) y
+`cambio` (`user_collection.cambio > 0` tocadas en 14 días, una fila por
+persona con `count(*)` en `cartas`). Cada fila trae `is_admin` e
+`is_moderator` para pintar el rango.
+
+**Cliente**: `SUCESOS` (tipo → `grupo`, icono, tono, texto) y `FILTROS`.
+`sucesosDeLaComunidad(actividad, nuevos)` es puro; una noticia es `casa` (sin
+cara ni nombre). La cara es un `<span>` (los 36 px no llegan a 44, la 312) y
+el enlace va en el nombre, con `atributosDeRango` (la 386). `montarActividad`
+pide 60, filtra en memoria (`data-suc-filtro`, `aria-pressed`) y pinta de 20 en
+20 (`data-suc-mas`); `.suc-lista.dos` va con `columns: 2` desde 761 px para que
+se lea por columnas y no en zigzag. `montarUltimo` es la caja de la lateral.
+`js/activity.js` queda con `loadActivity` solo. Los filtros llevan su clase
+(`.suc-filtro`, en `css/comunidad-sucesos.css`): con `com-chip` la portada
+pintaba una clase de `comunidad.css`, que no baja (la 299). `sigue` trae el
+rango del SEGUIDO en `datos` para pintar su enlace con `atributosDeRango`.
+
+## Tanda 846 — /aprender compacto
+
+**Por qué**: en el móvil la primera guía salía a ~1.800 px: el panel de
+«Sigue» (~300 px), el medallero en caja y los chips apilados en seis líneas.
+
+**Arriba** (`js/aprender.js`, `css/aprender.css`): «Sigue» es una fila (aro de
+48 px, título cortado con puntos, botón de 44; en ≤ 640 px solo la flecha); el
+medallero es una línea sin caja que se desliza (su CSS salió de
+`components.css`); el buscador (`#apBuscar`, `enterkeyhint="search"`) filtra
+título + descripción con `normalizeSearch` en memoria. La caja se arma UNA vez
+y solo se repintan `#apChips` y `#apLista`, para que el buscador no pierda el
+foco; los chips van por delegación y el pulsado recupera el foco al repintar.
+
+**Filtros**: `.ap-temas` (uno a la vez) y `.ap-interruptores` (la cuenta
+`#apCuenta`, nivel, «Sin leer» y «Con curso» — `data-concurso`, solo si hay
+cursos), cada uno en una línea con `overflow-x` y `scroll-snap`;
+`scroll-padding-inline` iguala el relleno, o el encaje se comía los 16 px del
+borde. Los interruptores van con borde discontinuo y `aria-pressed`.
+
+**Lista**: `matchMedia('(max-width: 640px)')` decide y repinta al cambiar. En
+el móvil, la primera en `tarjetaDeGuia` y las demás en `.ap-fila` (foto o el
+arte de la guía a 96 × 72, título a dos líneas, nivel · minutos · «Con curso»,
+leída o «Vas por el N %»). En el PC, `.ap-rejilla` dentro de `.ap-lista`
+(`container-type`): desde 632 px de caja la primera ocupa dos pistas y, por
+`@container guia (min-width: 560px)`, pone la foto al lado. La 316 mide ahora
+la SEGUNDA tarjeta de /aprender, que es una de las de siempre.

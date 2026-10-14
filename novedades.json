@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Aprender, más compacto: las guías se ven nada más entrar, los temas en una fila que se desliza, un buscador de guías y el filtro «Con curso». En el móvil, las guías en lista.", "enlace": "/aprender" },
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "En Comunidad → Actividad sale ya todo lo que hace la gente —retos, torneos, colecciones, mazos, foro, guías y a quién sigue cada uno— y se puede filtrar por tipo.", "enlace": "/usuarios#activity" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "La portada, rehecha: lo que tienes a medias (guías, cursos y el mazo que montas), el tema del foro más hablado hoy, las guías por tema, las noticias con foto y la comunidad en una línea por cosa.", "enlace": "/" },
     { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "La clasificación de la semana y la del mes, juntas en la portada y con la experiencia de los seis retos: el podio y lo que te falta para pasar al de delante.", "enlace": "/" },
     { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En Retos, «Hoy en PokeDoc»: cuánta gente ha jugado hoy, quién lleva más experiencia, cómo va cada reto y la racha más larga. Si prefieres no salir con tu nombre, se quita con una casilla.", "enlace": "/retos" },

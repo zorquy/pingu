@@ -1651,93 +1651,6 @@ tcg-deck {
   display: block;
 }
 
-/* ── Hilo de actividad (Comunidad y adelanto de la home) ── */
-.activity-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-avatar {
-  width: 34px;
-  height: 34px;
-  font-size: var(--t-sm);
-  flex-shrink: 0;
-}
-
-/* S780.86 */
-.activity-avatar-casa {
-  background-color: var(--navy);
-  color: var(--white);
-}
-
-.activity-body {
-  flex: 1;
-  /* S780.87 */
-  min-width: 0;
-}
-
-.activity-body p {
-  font-size: var(--t-sm);
-  line-height: 1.4;
-  margin: 0;
-}
-
-.activity-name {
-  font-weight: 700;
-  color: var(--navy);
-}
-
-.activity-body a {
-  color: var(--navy);
-}
-
-.activity-when {
-  font-size: var(--t-2xs);
-  /* text-dim se queda en 2.1:1 sobre blanco a este cuerpo (PageSpeed). */
-  color: var(--text-mid);
-}
-
-.activity-icon {
-  color: var(--text-dim);
-  flex-shrink: 0;
-  display: flex;
-}
-
-/* S780.88 */
-.activity-tipo {
-  display: inline-block;
-  margin-bottom: 4px;
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--navy);
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-/* S780.89 */
-.activity-tipo + a {
-  display: block;
-}
-
 /* ── Listas de cartas dentro de una guía ── */
 /* S780.90 */
 
@@ -2969,32 +2882,6 @@ body.portada-compacta .page-content {
 :root[data-theme='dark'] .medalla-oro { color: #fbbf24; }
 :root[data-theme='dark'] .medalla-plata { color: #cbd5e1; }
 :root[data-theme='dark'] .medalla-bronce { color: #e8a869; }
-
-/* La tira de /aprender: una sola línea con las cuentas y lo que queda. */
-.medallero {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-}
-.medallero-titulo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: var(--t-md);
-  margin-right: 4px;
-}
-.medallero-restante {
-  margin-left: auto;
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
 
 /* ── El protector de racha en la bienvenida ── */
 .bienvenida-escudo {

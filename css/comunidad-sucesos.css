@@ -1,0 +1,162 @@
+/* Lo que pasa en la comunidad, una línea por suceso (845): la portada y la
+ * pestaña Actividad de /usuarios. La inyecta js/comunidad-sucesos.js. */
+
+.suc-lista {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-sm) var(--e-xl);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* En dos columnas se lee de arriba abajo, como el tiempo; una rejilla iría
+ * en zigzag. */
+@media (min-width: 761px) {
+  .suc-lista.dos {
+    display: block;
+    columns: 2;
+    column-gap: var(--e-xl);
+  }
+
+  .suc-lista.dos > li {
+    break-inside: avoid;
+    margin-bottom: var(--e-sm);
+  }
+}
+
+.suc {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+  padding: var(--e-xs) 0;
+}
+
+.suc-cara-caja {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.suc-cara {
+  display: inline-grid;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.suc-cara-casa {
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.suc-ic {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  color: var(--blanco-fijo);
+}
+
+.suc-ic.tono-verde { background: var(--arte-verde); }
+.suc-ic.tono-morado { background: var(--arte-morado); }
+.suc-ic.tono-ambar { background: var(--arte-ambar); }
+.suc-ic.tono-azul { background: var(--arte-azul); }
+.suc-ic.tono-cian { background: var(--arte-cian); }
+.suc-ic.tono-rosa { background: var(--arte-rosa); }
+
+.suc p {
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.4;
+}
+
+.suc p > a {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.suc-quien {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.suc-quien a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.suc-chapa {
+  display: inline-block;
+  margin-right: var(--e-xs);
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.suc-cuando {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.suc-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-lg);
+}
+
+.suc-filtro {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.suc-filtro:hover { border-color: var(--border-strong); color: var(--text); }
+.suc-filtro.activo { background: var(--navy); border-color: var(--navy); color: var(--blanco-fijo); }
+@media (pointer: coarse) {
+  .suc-filtro { min-height: 44px; }
+}
+
+.suc-mas {
+  margin-top: var(--e-lg);
+}
+
+@media (max-width: 760px) {
+  .suc-filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .suc-filtros > * {
+    flex-shrink: 0;
+  }
+}

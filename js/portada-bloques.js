@@ -13,13 +13,12 @@
 // recoge (`recoger`), no se queda un esqueleto girando ni un «no hay nada»
 // que a lo mejor es «no he podido preguntar» (la 510).
 import { supabase } from './supabase.js'
-import { escapeHtml, avatarStyle, getInitial, profileUrl, arteDe } from './app.js'
+import { escapeHtml, avatarStyle, getInitial, arteDe } from './app.js'
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
 import { rutaDeArticulo, cuandoFue, conVueltaAtrasDeTipo } from './articulos.js'
 import { haceCuanto, perfilesPorId, urlTema, etiquetaHtml, nombreDe } from './foro-comun.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
-import { atributosDeRango } from './rangos.js'
 
 export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/portada-bloques.css') : Promise.resolve()
 
@@ -33,10 +32,6 @@ export function caraHtml(p, t = 32) {
   const dentro = p?.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))
   return `<span class="pb-cara" style="width:${t}px;height:${t}px;${avatarStyle(p)}" title="${escapeHtml(nombre(p))}" aria-hidden="true">${dentro}</span>`
 }
-
-// El nombre con enlace a su perfil y el color de su rango (la 386).
-const nombreConEnlace = (p) =>
-  p?.username ? `<b class="pb-quien"><a href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(nombre(p))}</a></b>` : `<b class="pb-quien">${escapeHtml(nombre(p))}</b>`
 
 // El texto de un mensaje del foro, sin etiquetas y cortado. Puro.
 export function extracto(html, largo = 170) {
@@ -376,75 +371,21 @@ async function montarClasificacion(session) {
 
 // ── 7 · En la comunidad ──
 //
-// Una línea por suceso, con un iconito en la cara que dice qué ha hecho. Lo
-// de siempre (loadActivity: guías, temas, comentarios, altas…) más lo que la
-// 844 apunta (`portada_comunidad`: días perfectos, mazos, campeones,
-// colecciones completas). Sin esa función, lo de siempre.
-const SUCESOS = {
-  perfecto: { icono: 'crown', tono: 'verde', texto: () => 'hizo los seis retos del día' },
-  mazo: { icono: 'layers', tono: 'morado', texto: (d) => `compartió su mazo <a href="/constructor.html?mazo=${encodeURIComponent(d.id)}">${escapeHtml(d.nombre || 'sin nombre')}</a>` },
-  campeon: { icono: 'trophy', tono: 'ambar', texto: (d) => `ganó el torneo <a href="/torneo?slug=${encodeURIComponent(d.slug)}">${escapeHtml(d.nombre)}</a>` },
-  coleccion: { icono: 'cards', tono: 'rosa', texto: (d) => `completó <a href="/cartas.html?ver=album&set=${encodeURIComponent(d.set)}&catalogo=${encodeURIComponent(d.market || 'WEST')}">${escapeHtml(d.nombre)}</a>` },
-  guia: { icono: 'bookOpen', tono: 'azul', texto: (d) => `publicó la guía ${d.enlace}` },
-  curso: { icono: 'graduationCap', tono: 'verde', texto: (d) => `terminó el curso ${d.enlace}` },
-  lectura: { icono: 'bookOpen', tono: 'azul', texto: (d) => `se leyó ${d.enlace}` },
-  guia_enviada: { icono: 'edit', tono: 'azul', texto: (d) => `envió a revisión ${d.enlace}` },
-  comentario: { icono: 'messageSquare', tono: 'cian', texto: (d) => `comentó en ${d.enlace}` },
-  tema: { icono: 'messageSquare', tono: 'cian', texto: (d) => `abrió el tema ${d.enlace}` },
-  alta: { icono: 'user', tono: 'morado', texto: () => 'se unió a PokeDoc' },
-  peticion: { icono: 'helpCircle', tono: 'ambar', texto: (d) => `pidió una guía sobre ${d.enlace}` },
-}
-
-// Los dos orígenes en una lista de { tipo, fecha, perfil, datos }. Puro.
-export function sucesosDeLaComunidad(actividad = [], nuevos = []) {
-  const deSiempre = actividad
-    .filter((e) => SUCESOS[e.tipo] && e.perfil)
-    .map((e) => ({
-      tipo: e.tipo,
-      fecha: e.fecha,
-      perfil: e.perfil,
-      datos: {
-        enlace: e.guia
-          ? `<a href="${rutaDeArticulo(e.guia.kind, e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
-          : e.enlace && e.texto
-            ? `<a href="${e.enlace}">${escapeHtml(e.texto)}</a>`
-            : e.texto
-              ? `<a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
-              : '',
-      },
-    }))
-  const deLa844 = (nuevos || []).filter((e) => SUCESOS[e.tipo]).map((e) => ({ tipo: e.tipo, fecha: e.fecha, perfil: { username: e.username, display_name: e.display_name, avatar_url: e.avatar_url, is_admin: e.is_admin, is_moderator: e.is_moderator }, datos: e.datos || {} }))
-  return [...deLa844, ...deSiempre].sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
-}
-
-export function comunidadHtml(sucesos) {
-  if (!sucesos?.length) return ''
-  return `${cabecera('En la comunidad', verTodo('/usuarios.html'))}
-    <ul class="pb-comu">${sucesos
-      .map((s) => {
-        const t = SUCESOS[s.tipo]
-        return `<li><span class="pb-comu-cara">${caraHtml(s.perfil, 36)}<span class="pb-comu-ic tono-${t.tono}" aria-hidden="true">${ic(t.icono, 10)}</span></span><p>${nombreConEnlace(s.perfil)} ${t.texto(s.datos)} <small class="pb-tenue">· ${escapeHtml(haceCuanto(s.fecha))}</small></p></li>`
-      })
-      .join('')}</ul>`
-}
-
+// Una línea por suceso, con el molde de js/comunidad-sucesos.js (el mismo que
+// la pestaña Actividad de /usuarios, 845). Aquí, seis como mucho, sin las
+// noticias —van en su bloque— y sin lo que ya está arriba.
 async function montarComunidad(session, yaEnPantalla) {
   const caja = document.getElementById('homeActivityFeed')
   if (!session || !caja) return
   try {
-    const [{ loadActivity }, nuevos] = await Promise.all([
-      import('./activity.js'),
-      supabase.rpc('portada_comunidad', { p_limite: 12 }).then(({ data, error }) => (error ? [] : data || [])),
-    ])
-    const actividad = await loadActivity(12)
-    const fuera = await yaEnPantalla.catch(() => new Set())
+    const m = await import('./comunidad-sucesos.js')
+    const [{ actividad, nuevos }, fuera] = await Promise.all([m.cargarSucesos(12), yaEnPantalla.catch(() => new Set())])
     const clave = (e) => (e.tipo === 'tema' ? `tema:${String(e.enlace || '').split('/').pop()}` : e.tipo === 'noticia' ? `noticia:${e.guideId}` : null)
-    // Las noticias no son de nadie (la 289) y van en su bloque.
-    const deSiempre = actividad.eventos.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
-    const sucesos = sucesosDeLaComunidad(deSiempre, nuevos).slice(0, 6)
+    const deSiempre = actividad.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
+    const sucesos = m.sucesosDeLaComunidad(deSiempre, nuevos).slice(0, 6)
     if (!sucesos.length) return
-    await hoja
-    caja.innerHTML = comunidadHtml(sucesos)
+    await Promise.all([hoja, m.hoja])
+    caja.innerHTML = `${cabecera('En la comunidad', verTodo('/usuarios.html#activity'))}${m.listaHtml(sucesos, { dos: true })}`
     document.getElementById('homeActivity').classList.remove('hidden')
   } catch {}
 }

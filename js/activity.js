@@ -1,9 +1,7 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, profileUrl, avatarStyle } from './app.js'
-import { icons } from './icons.js'
-import { rutaDeArticulo, conVueltaAtrasDeTipo } from './articulos.js'
+import { conVueltaAtrasDeTipo } from './articulos.js'
 import { logClientError } from './error-log.js'
-import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
+import { COLUMNAS_RANGO } from './rangos.js'
 
 // Hilo de actividad reciente. No hay tabla de eventos: se arma leyendo
 // lo que ya existe (progreso, guías —publicadas y en revisión—,
@@ -226,82 +224,4 @@ export async function loadActivity(limite = 20) {
   return { eventos: lista, fallos: fallos.map(([tabla]) => tabla) }
 }
 
-const TEXTOS = {
-  curso: { icono: 'graduationCap', verbo: 'ha completado el curso' },
-  lectura: { icono: 'bookOpen', verbo: 'se ha leído' },
-  guia: { icono: 'sparkles', verbo: 'ha publicado la guía' },
-  // Sin verbo y sin nombre: lo pinta la rama impersonal de eventoHtml.
-  // `etiqueta` es lo que va en la chapa desde la tanda 312: cinco filas
-  // seguidas que empezaban por «Nueva noticia:» hacían que lo primero
-  // que leías cinco veces fuera lo único que no cambiaba. La chapa dice
-  // lo mismo, ocupa un renglón aparte y deja el titular al principio.
-  noticia: { icono: 'newspaper', verbo: 'Nueva noticia:', etiqueta: 'Noticia', deLaCasa: true },
-  guia_enviada: { icono: 'edit', verbo: 'ha enviado a revisión la guía' },
-  comentario: { icono: 'messageSquare', verbo: 'ha comentado en' },
-  alta: { icono: 'user', verbo: 'se ha unido a PokeDoc' },
-  peticion: { icono: 'helpCircle', verbo: 'ha pedido una guía sobre' },
-  tema: { icono: 'messageSquare', verbo: 'ha abierto un tema en el foro:' },
-}
-
-function eventoHtml(e) {
-  const t = TEXTOS[e.tipo]
-  const nombre = e.perfil?.display_name || e.perfil?.username || 'Alguien'
-  const estiloAvatar = avatarStyle(e.perfil)
-  // El destino depende del tipo: una guía enlaza a la guía; lo que trae
-  // `enlace` propio (un tema del foro) va a lo suyo; y lo que solo tiene
-  // texto es una petición, que vive en la pestaña de la comunidad.
-  const destino = e.guia
-    ? ` <a href="${rutaDeArticulo(e.guia.kind, e.guia.slug)}">${escapeHtml(e.guia.title)}</a>`
-    : e.enlace && e.texto
-      ? ` <a href="${e.enlace}">${escapeHtml(e.texto)}</a>`
-      : e.texto
-        ? ` <a href="/usuarios.html#peticiones">${escapeHtml(e.texto)}</a>`
-        : ''
-  // Lo de la casa no lo firma nadie: en vez del avatar y el nombre de
-  // una persona va la marca del sitio. Es la diferencia entre «PINGU ha
-  // publicado» —que suena a opinión suya— y «Nueva noticia», que es lo
-  // que de verdad ha pasado.
-  const cabeza = t.deLaCasa
-    ? `<span class="mini-avatar activity-avatar activity-avatar-casa" aria-hidden="true">${icons[t.icono](16)}</span>`
-    : `<a class="mini-avatar activity-avatar" href="${profileUrl(e.perfil)}" style="${estiloAvatar}">${
-        e.perfil?.avatar_url ? '' : getInitial(nombre)
-      }</a>`
-  const quien = t.deLaCasa
-    ? `<span class="activity-tipo">${escapeHtml(t.etiqueta || t.verbo)}</span>`
-    : `<a href="${profileUrl(e.perfil)}" class="activity-name"${atributosDeRango(e.perfil)}>${escapeHtml(
-        nombre
-      )}</a> ${t.verbo}`
-  // El icono de la derecha dice DE QUÉ tipo es el evento, y eso solo
-  // aporta cuando a la izquierda hay la cara de una persona. En lo de la
-  // casa la izquierda YA es ese mismo icono: dos copias del mismo dibujo
-  // en la misma fila, una a cada lado.
-  const iconoDerecha = t.deLaCasa ? '' : `<span class="activity-icon" aria-hidden="true">${icons[t.icono](15)}</span>`
-  return `
-    <li class="activity-item">
-      ${cabeza}
-      <div class="activity-body">
-        <p>${quien}${destino}</p>
-        <span class="activity-when">${haceCuanto(e.fecha)}</span>
-      </div>
-      ${iconoDerecha}
-    </li>`
-}
-
-// `resultado` es lo que devuelve loadActivity(): { eventos, fallos }.
-//
-// La regla es una sola: solo se dice "todavía no hay actividad" cuando
-// TODAS las fuentes han contestado. Si alguna falló, el hilo vacío puede
-// ser eso, y afirmar que no hay nada sería mentir — que es exactamente
-// lo que hacía antes.
-export function renderActivityHtml(resultado, { vacio = 'Todavía no hay actividad. ¡Sé el primero!' } = {}) {
-  const eventos = resultado?.eventos || []
-  const fallos = resultado?.fallos || []
-
-  if (eventos.length === 0) {
-    // Sin detalles técnicos: esto lo lee cualquiera que entre, no el
-    // equipo. El detalle va al registro de errores desde loadActivity().
-    const texto = fallos.length ? 'No se ha podido cargar la actividad ahora mismo. Inténtalo en un momento.' : vacio
-    return `<p class="empty-state">${escapeHtml(texto)}</p>`
-  }
-  return `<ul class="activity-list">${eventos.map(eventoHtml).join('')}</ul>`
-}
+// Lo pinta js/comunidad-sucesos.js (845), con el molde de la portada.

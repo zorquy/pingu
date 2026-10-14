@@ -1,10 +1,12 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, arteDe } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
+import { energiaDeTexto } from './energia-de-texto.js'
+import { normalizeSearch } from './texto.js'
 
 // El medallero: convierte los cursos en un álbum por completar. Solo
 // con sesión y solo si hay cursos publicados; el que aún no ha jugado
@@ -22,11 +24,11 @@ function pintarMedallero(cursosConCurso, medallas) {
   }
   const porJugar = cursosConCurso.length - jugados
   hueco.innerHTML = `
-    <span class="medallero-titulo">${icons.trophy(16)} Tu medallero</span>
+    <span class="medallero-titulo">${icons.trophy(16)}<span class="medallero-palabra">Medallero</span></span>
     <span class="medalla-chip medalla-oro">${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}</span>
     <span class="medalla-chip medalla-plata">${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}</span>
     <span class="medalla-chip medalla-bronce">${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}</span>
-    <span class="medallero-restante">${porJugar === 0 ? '¡Todos jugados! A por el pleno de oros' : `${porJugar} ${porJugar === 1 ? 'curso por jugar' : 'cursos por jugar'}`}</span>`
+    <span class="medallero-restante">${porJugar === 0 ? '¡Todos jugados! A por el pleno de oros' : `${porJugar} por jugar`}</span>`
   hueco.classList.remove('hidden')
 }
 
@@ -58,9 +60,18 @@ try {
 let filtroNivel = null
 let soloSinLeer = false
 
+let conCurso = false
+let busqueda = ''
+
+// En el móvil la primera va en grande y las demás en FILAS (tanda 846):
+// PINGU, «las guías están muy muy abajo». Una tarjeta entera por guía son
+// 400 px de pantalla cada una; una fila, 88.
+const movil = typeof matchMedia === 'function' ? matchMedia('(max-width: 640px)') : { matches: false, addEventListener() {} }
+
 // La franja de «sigue donde lo dejaste»: el curso empezado y sin
 // terminar más reciente. Es lo que hace volver — sin ella, quien dejó un
-// curso a medias tiene que acordarse de cuál era y buscarlo.
+// curso a medias tiene que acordarse de cuál era y buscarlo. Desde la 846
+// es una fila y no un panel: en el móvil se comía la pantalla entera.
 function seguirHtml(guias, progreso) {
   const empezados = guias
     .map((g) => ({ g, p: progreso[g.id] }))
@@ -78,29 +89,67 @@ function seguirHtml(guias, progreso) {
       <strong>${escapeHtml(g.title)}</strong>
       <span class="aprender-seguir-sub">Bloque ${Math.min(p.current_block, bloques)} de ${bloques}</span>
     </span>
-    <span class="btn-primary aprender-seguir-boton">Continuar →</span>
+    <span class="aprender-seguir-boton"><span class="aprender-seguir-palabra">Continuar</span> →</span>
   </a>`
 }
 
-function chipsHtml(categorias, guias, porCategoria) {
-  const chip = (activo, texto, datos, cuenta) =>
-    `<button type="button" class="aprender-chip ${activo ? 'activa' : ''}" ${datos}>${escapeHtml(texto)}${
-      cuenta !== undefined ? `<span class="aprender-chip-n">${cuenta}</span>` : ''
-    }</button>`
+const chip = (activo, texto, datos, cuenta) =>
+  `<button type="button" class="aprender-chip ${activo ? 'activa' : ''}" ${datos} aria-pressed="${activo}">${escapeHtml(texto)}${
+    cuenta !== undefined ? `<span class="aprender-chip-n">${cuenta}</span>` : ''
+  }</button>`
+
+// Dos filas que se deslizan con el dedo en vez de seis que se apilan: los
+// temas (uno a la vez) y, debajo, los interruptores (nivel, sin leer, con
+// curso).
+function chipsHtml(categorias, guias, porCategoria, hayCursos, visibles) {
   return `
-  <div class="aprender-filtros">
+  <div class="aprender-filtros ap-temas" role="group" aria-label="Temas">
     ${chip(filtroCategoria === 'todas', 'Todas', 'data-cat="todas"', guias.length)}
     ${categorias
       .filter((c) => porCategoria[c.id])
       .map((c) => chip(filtroCategoria === c.id, c.name, `data-cat="${escapeHtml(c.id)}"`, porCategoria[c.id]))
       .join('')}
-    <span class="aprender-filtros-sep"></span>
+  </div>
+  <div class="aprender-filtros ap-interruptores" role="group" aria-label="Más filtros">
+    <span class="ap-cuenta" id="apCuenta">${cuantasHtml(visibles)}</span>
     ${Object.entries(NIVELES)
       .map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`))
       .join('')}
     ${chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"')}
+    ${hayCursos ? chip(conCurso, 'Con curso', 'data-concurso="1"') : ''}
   </div>`
 }
+
+// La guía en una fila, para el móvil: la foto (o su arte) en pequeño, el
+// título, nivel · minutos · curso y por dónde vas. Es la tarjeta de siempre
+// en corto, así que dice lo mismo (la 316).
+function filaHtml(g, progreso) {
+  const p = progreso[g.id] || null
+  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const leida = Boolean(p?.read_at) || p?.status === 'completed'
+  const pct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
+  const meta = [NIVELES[g.level], g.estimated_mins ? `${g.estimated_mins} min` : '', guideHasCourse(g) ? 'Con curso' : ''].filter(Boolean).join(' · ')
+  const energia = g.cover_image ? null : energiaDeTexto(`${g.title || ''} ${g.description || ''}`)
+  return `
+  <a class="ap-fila" href="/guia/${encodeURIComponent(g.slug)}">
+    <span class="ap-fila-arte guia-arte arte-${arteDe(g)}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''} aria-hidden="true">${
+      g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" width="96" height="72" onerror="this.style.display='none'" />` : ''
+    }</span>
+    <span class="ap-fila-texto">
+      <strong>${escapeHtml(g.title)}</strong>
+      <small>${escapeHtml(meta)}</small>
+      ${
+        leida
+          ? `<span class="ap-fila-estado guia-hecha">✓ ${p?.status === 'completed' ? 'Curso hecho' : 'Leída'}</span>`
+          : pct > 0
+            ? `<span class="ap-fila-estado">Vas por el ${pct}%<span class="guia-barra"><i style="width:${pct}%"></i></span></span>`
+            : ''
+      }
+    </span>
+  </a>`
+}
+
+const cuantasHtml = (n) => `${n} ${n === 1 ? 'guía' : 'guías'}`
 
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
@@ -162,43 +211,62 @@ async function loadCategories(session) {
     temaDeLaUrl = null
   }
 
+  const hayCursos = guias.some((g) => guideHasCourse(g))
+  // La caja se arma UNA vez: el buscador no se repinta mientras escribes
+  // (perdería el foco a cada letra). Lo que cambia son los chips y la lista.
+  list.innerHTML = `
+    ${seguirHtml(guias, progreso)}
+    <div class="ap-herramientas">
+      <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
+      <div id="apChips"></div>
+    </div>
+    <div class="ap-lista" id="apLista"></div>`
+  const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista') }
+
   const pintar = () => {
+    const q = normalizeSearch(busqueda)
     const visibles = guias.filter((g) => {
       if (filtroCategoria !== 'todas' && g.category_id !== filtroCategoria) return false
       if (filtroNivel && g.level !== filtroNivel) return false
       if (soloSinLeer && (progreso[g.id]?.read_at || progreso[g.id]?.status === 'completed')) return false
+      if (conCurso && !guideHasCourse(g)) return false
+      if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
       return true
     })
-    list.innerHTML = `
-      ${seguirHtml(guias, progreso)}
-      ${chipsHtml(categories || [], guias, porCategoria)}
-      ${
-        visibles.length
-          ? `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
-          : '<p class="empty-state">No hay ninguna guía con esos filtros. Prueba a quitar alguno.</p>'
-      }`
-    list.querySelectorAll('[data-cat]').forEach((b) =>
-      b.addEventListener('click', () => {
-        filtroCategoria = b.dataset.cat
-        pintar()
-      })
-    )
-    // Los de nivel y «sin leer» son INTERRUPTORES: volver a pulsarlos los
-    // quita. Si no, una vez puesto un nivel no habría forma de volver a
-    // verlas todas sin recargar.
-    list.querySelectorAll('[data-nivel]').forEach((b) =>
-      b.addEventListener('click', () => {
-        filtroNivel = filtroNivel === b.dataset.nivel ? null : b.dataset.nivel
-        pintar()
-      })
-    )
-    list.querySelectorAll('[data-sinleer]').forEach((b) =>
-      b.addEventListener('click', () => {
-        soloSinLeer = !soloSinLeer
-        pintar()
-      })
-    )
+    caja.chips.innerHTML = chipsHtml(categories || [], guias, porCategoria, hayCursos, visibles.length)
+    if (!visibles.length) {
+      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía habla de eso.' : 'No hay ninguna guía con esos filtros.'} Prueba a quitar alguno.</p>`
+      return
+    }
+    const [primera, ...resto] = visibles
+    caja.lista.innerHTML = movil.matches
+      ? `${tarjetaDeGuia(primera, { progreso })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaHtml(g, progreso)).join('')}</div>` : ''}`
+      : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
   }
+
+  // Delegado, una sola vez: los chips se repintan y no hay que volver a
+  // engancharlos. El de tema es UNO; los de nivel, «sin leer» y «con curso»
+  // son INTERRUPTORES: volver a pulsarlos los quita, o no habría forma de
+  // volver a verlas todas sin recargar.
+  caja.chips.addEventListener('click', (e) => {
+    const b = e.target.closest('button')
+    const clave = b && ['cat', 'nivel', 'sinleer', 'concurso'].find((k) => b.dataset[k] !== undefined)
+    if (!clave) return
+    const valor = b.dataset[clave]
+    if (clave === 'cat') filtroCategoria = valor
+    else if (clave === 'nivel') filtroNivel = filtroNivel === valor ? null : valor
+    else if (clave === 'sinleer') soloSinLeer = !soloSinLeer
+    else conCurso = !conCurso
+    pintar()
+    // El chip pulsado es otro nodo tras repintar: el foco vuelve a él, que
+    // con el teclado no se pierda la posición.
+    caja.chips.querySelector(`[data-${clave}="${CSS.escape(valor)}"]`)?.focus()
+  })
+  list.querySelector('#apBuscar').addEventListener('input', (e) => {
+    busqueda = e.target.value
+    pintar()
+  })
+  movil.addEventListener?.('change', pintar)
   pintar()
 }
 
