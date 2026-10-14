@@ -39971,3 +39971,39 @@ que se rellene todo». Dos cosas:
   costaba tres pasadas paradas.
 - `tcggo-precios` corre cada dos minutos (antes cinco): ~25 expansiones por
   pasada, el día entero en media hora. Las peticiones del día no cambian.
+
+## Tanda 829 — /novedades: lo que cambia en PokeDoc, contado corto
+
+PINGU: «el registro de cambios lo tenemos como un post en el foro que voy
+actualizando a mano; ¿podríamos hacer un apartado?», y con la maqueta: «en el
+inicio junto con noticias y lanzamientos; menos info técnica y más visual, con
+las mejores mejoras; tres destacadas».
+
+- **Los datos** son `/novedades.json`, en el repo: `destacadas` (por `mes`
+  «AAAA-MM»: `tipo`, `titulo`, `texto`, `enlace`, `boton`, `dibujo`, `fondo`
+  —uno de los `--arte-*`—) y `entradas` (`fecha`, `tipo`, `texto`, `enlace`).
+  Sin base de datos ni formulario: lo escribe quien sube el cambio (norma en
+  CLAUDE.md). `[[x]]` en el texto de una destacada se pinta como `<code>`.
+- `js/novedades-datos.js` (puro): `lunesDe` (sin husos: las fechas son días),
+  `porSemanas` (la más nueva arriba; dentro, por fecha y en el orden del
+  fichero), `destacadasDelMes` (las del último mes, tres como mucho),
+  `semanasNuevas` / `hayNovedades` contra `pokedoc-novedades-visto` (la fecha
+  de la última entrada que viste; la primera vez no se marca nada en la página,
+  pero el menú sí lleva punto).
+- `js/novedades.js` pinta: las destacadas con su DIBUJO (una miniatura en
+  HTML de la pantalla: `estanteria-jp`, `foro-carta`, `sin-conexion`; uno que
+  no esté sale con el icono del tipo) —no una captura, que se queda vieja y
+  pesa—; los filtros con `.chip-filtro` (el control único, 678); dos semanas
+  de entrada y seis filas por semana, con «Ver N más de esta semana» y «Ver
+  semanas anteriores». Un enlace solo si empieza por `/` (ni `javascript:`
+  ni `//fuera`). Lo de la página corre solo con `document` (node lo prueba).
+- `css/novedades.css`: en el móvil las destacadas se pasan con el dedo
+  (scroll-snap). Los dibujos son tarjetas `--blanco-fijo` sobre el degradado.
+- **En Inicio**: `<a href="/novedades">Novedades</a>` detrás de Lanzamientos
+  en las 40 páginas con barra (arriba, menú del móvil y pie); de ahí sale
+  sola en la lateral y en la burbuja de Inicio (`seccionesDe`). `SECCION_DE`
+  Inicio y su icono (`sparkles`). `/novedades` va sin regla en netlify.toml,
+  como `/glosario`. En el mapa del sitio.
+- **El punto del menú «Tú»** (`js/menu-tu.js`): la fila «Novedades» con un
+  punto rosa si hay algo después de tu última visita. Se pregunta al abrir el
+  menú (`import()` de lo puro + el JSON): la portada no paga nada.

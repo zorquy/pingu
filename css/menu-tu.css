@@ -272,3 +272,7 @@
     display: none;
   }
 }
+
+/* El punto de Novedades (829): hay alguna desde tu última visita. */
+.tu-punto { width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: var(--pink); flex-shrink: 0; }
+.tu-punto[hidden] { display: none; }

@@ -1,0 +1,58 @@
+{
+  "foro": "/foro",
+  "destacadas": [
+    {
+      "mes": "2026-10",
+      "tipo": "nuevo",
+      "titulo": "El catálogo japonés, entero y con precio",
+      "texto": "Todas las expansiones japonesas, ordenadas por eras, con sus logos y el precio japonés de Cardmarket al día.",
+      "enlace": "/cartas?catalogo=JP",
+      "boton": "Verlo",
+      "dibujo": "estanteria-jp",
+      "fondo": "rosa"
+    },
+    {
+      "mes": "2026-10",
+      "tipo": "nuevo",
+      "titulo": "Cartas en el foro",
+      "texto": "Escribe [[Arven]] en un mensaje y sale la carta con su foto y su precio.",
+      "enlace": "/foro",
+      "boton": "Ir al foro",
+      "dibujo": "foro-carta",
+      "fondo": "azul"
+    },
+    {
+      "mes": "2026-10",
+      "tipo": "mejora",
+      "titulo": "Tus guías, también sin cobertura",
+      "texto": "Las guías y noticias que ya has leído se abren aunque estés en el metro.",
+      "enlace": "/aprender.html",
+      "boton": "Ver guías",
+      "dibujo": "sin-conexion",
+      "fondo": "verde"
+    }
+  ],
+  "entradas": [
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Las expansiones japonesas, cada una en su era: Jungle ya está con Expansion Pack.", "enlace": "/cartas?catalogo=JP" },
+    { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Los logos de las expansiones japonesas antiguas.", "enlace": "/cartas?catalogo=JP" },
+    { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "El Pokédex y el buscador ya no enseñan cartas repetidas de catálogos viejos.", "enlace": "/mi-coleccion?ver=pokedex" },
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En la ficha de una carta, sus otras versiones con su precio.", "enlace": "/cartas" },
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "El foro en el móvil: los foros en baldosas y filtros de «Sin respuesta», «Siguiendo» y «Míos».", "enlace": "/foro" },
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Volver atrás es instantáneo." },
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "El correo del lunes trae tu semana: cuánto ha cambiado tu colección y lo que sale." },
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En Privacidad, un botón para borrar lo que PokeDoc guarda en tu dispositivo.", "enlace": "/privacidad.html" },
+    { "fecha": "2026-10-13", "tipo": "mejora", "texto": "El foro vuelve a su índice de siempre, y los temas se leen como una conversación.", "enlace": "/foro" },
+    { "fecha": "2026-10-13", "tipo": "nuevo", "texto": "PokeDoc tiene su propio icono al instalarla en el móvil." },
+    { "fecha": "2026-10-13", "tipo": "arreglo", "texto": "Los productos que faltaban en la estantería de Productos.", "enlace": "/mi-coleccion?ver=productos" },
+    { "fecha": "2026-10-10", "tipo": "arreglo", "texto": "El reto del día ya no te saca a otra página al acabarlo.", "enlace": "/retos" },
+    { "fecha": "2026-10-09", "tipo": "arreglo", "texto": "Las ligas ya no se quedan paradas después de la primera jornada.", "enlace": "/torneos.html" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Modo feria: tu QR y tus listas de «Doy» y «Busco», también sin cobertura.", "enlace": "/feria.html" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "«Cambio hecho» en Mensajes: después de un cambio, cada uno dice si fue bien.", "enlace": "/mensajes.html" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Logros de coleccionista: 100 y 1.000 cartas, sets completos y más.", "enlace": "/mi-coleccion" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Cada lista del meta te dice cuántas cartas te faltan y cuánto te costarían.", "enlace": "/meta.html" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "El glosario: los términos del juego, y en guías y foro se explican al tocarlos.", "enlace": "/glosario" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "La página de cada ilustrador, con todas sus cartas.", "enlace": "/ilustrador/mitsuhiro-arita" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "En el archivador, la hoja gira al pasar página.", "enlace": "/mi-coleccion?ver=carpetas" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "En «¿Qué carta es?» la carta sale de un sobre que se rasga al acertar.", "enlace": "/retos" }
+  ]
+}

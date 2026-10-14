@@ -46,6 +46,8 @@ const ESTATICAS = [
   ['/mas-caro', '0.7'],
   // El glosario (792): contenido propio que se busca palabra por palabra.
   ['/glosario', '0.6'],
+  // Las novedades de la web (829): cambian cada semana.
+  ['/novedades', '0.5'],
   // El índice del catálogo: es la puerta a las colecciones y, por ellas,
   // a las fichas de carta.
   ['/cartas', '0.8'],

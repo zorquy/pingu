@@ -433,6 +433,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `cargarSets()`: ahora llega más tarde (la 748 lo cazó). Y el semáforo de
   /admin (`admin/js/semaforo.js`, 817) es la lista de claves de estado de
   TCGGO: una pasada nueva va en `PASADAS`.
+- **Cada cambio que se NOTA lleva su línea en `novedades.json`** (tanda
+  829, /novedades). PINGU llevaba el registro de cambios a mano en un hilo
+  del foro; ahora lo escribe quien sube el cambio, en el mismo push que la
+  bitácora. Una frase para quien usa la web —nada técnico: ni tandas ni
+  nombres de función—, su tipo (`nuevo`, `mejora`, `arreglo`) y, si se
+  puede, un `enlace` a donde probarlo (que exista: lo comprueba
+  `test-tanda-829-pantalla.mjs`). Lo interno que nadie nota no va. Y cada
+  mes, tres `destacadas` con su `dibujo` (los de `js/novedades.js`) —las
+  elige quien escribe; si PINGU prefiere otras, se cambian—. La bitácora
+  sigue siendo para nosotros; esto es para la gente.
 - **La ERA de un set japonés es la SERIE de TCGGO** (tanda 825):
   `erasDeTcggo` agrupa por su serie y solo elige el `serie_id` (el de la
   mayoría, o el de una era a mano), y `pasoDeEras` lo aplica una vez al día.

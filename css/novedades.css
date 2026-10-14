@@ -1,0 +1,68 @@
+/* /novedades (tanda 829). El porqué, en SCHEMA.md → 829. */
+.nv-destacadas { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--e-lg); margin-bottom: var(--e-2xl); }
+.nv-dest { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }
+.nv-dest-dibujo { height: 168px; display: flex; align-items: center; justify-content: center; padding: var(--e-lg); }
+.nv-fondo-rosa { background: var(--arte-rosa); }
+.nv-fondo-azul { background: var(--arte-azul); }
+.nv-fondo-verde { background: var(--arte-verde); }
+.nv-fondo-ambar { background: var(--arte-ambar); }
+.nv-fondo-cian { background: var(--arte-cian); }
+.nv-fondo-morado { background: var(--arte-morado); }
+.nv-dest-texto { padding: var(--e-lg); display: flex; flex-direction: column; gap: var(--e-sm); flex: 1; }
+.nv-dest-texto h3 { margin: 0; font-size: var(--t-lg); }
+.nv-dest-texto p { margin: 0; color: var(--text-mid); font-size: var(--t-sm); flex: 1; }
+.nv-dest-texto code { background: var(--bg); padding: 0 var(--e-xs); border-radius: var(--radius-sm); }
+.nv-ir { align-self: flex-start; margin-top: var(--e-xs); }
+.nv-chip { display: inline-block; align-self: flex-start; flex-shrink: 0; font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px var(--e-sm); border-radius: var(--radius-pill); white-space: nowrap; }
+.nv-nuevo { background: var(--pink-bg); color: var(--pink); }
+.nv-mejora { background: var(--ice); color: var(--navy); }
+.nv-arreglo { background: var(--success-bg); color: var(--success); }
+
+/* Los dibujos: una tarjeta blanca sobre el degradado, igual en los dos
+   temas (va sobre color, como los `--arte-*`). */
+.nv-mini { background: var(--blanco-fijo); color: var(--navy-solid-dark); border-radius: var(--radius-md); padding: var(--e-md); width: 100%; max-width: 260px; box-shadow: var(--shadow-lg); font-size: var(--t-xs); }
+.nv-mini-estante { display: flex; flex-direction: column; }
+.nv-mini-era { font-weight: 700; font-size: var(--t-2xs); text-transform: uppercase; color: var(--navy-solid-light); margin: var(--e-xs) 0; }
+.nv-mini-fila { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; }
+.nv-mini-fila i { width: 24px; height: 16px; border-radius: var(--radius-sm); flex-shrink: 0; }
+.nv-mini-fila span { flex: 1; }
+.nv-mini-fila b { color: var(--navy-solid); }
+.nv-tono-1 { background: var(--arte-ambar); }
+.nv-tono-2 { background: var(--arte-verde); }
+.nv-tono-3 { background: var(--arte-cian); }
+.nv-mini-msg { display: flex; gap: var(--e-sm); align-items: flex-start; }
+.nv-mini-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--arte-rosa); color: var(--blanco-fijo); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.nv-mini-bocadillo { background: var(--ice); border-radius: var(--radius-md); padding: var(--e-sm) var(--e-md); line-height: 1.8; color: var(--navy-solid-dark); }
+:root[data-theme='dark'] .nv-mini-bocadillo { background: #e1f0f4; }
+.nv-mini-carta { display: inline-flex; align-items: center; gap: var(--e-xs); background: var(--blanco-fijo); border: 1px solid var(--navy-solid-light); border-radius: var(--radius-sm); padding: 0 var(--e-xs); font-weight: 600; }
+.nv-mini-carta i { width: 12px; height: 16px; border-radius: 2px; background: var(--arte-rosa); }
+.nv-mini-carta b { color: var(--navy-solid); font-weight: 600; }
+.nv-mini-sinred { display: inline-block; background: var(--navy-solid-dark); color: var(--blanco-fijo); border-radius: var(--radius-pill); padding: 2px var(--e-sm); font-size: var(--t-2xs); margin-bottom: var(--e-sm); }
+.nv-mini-lineas i { display: block; width: var(--largo, 80%); height: 8px; background: var(--navy-solid-light); opacity: 0.25; border-radius: var(--radius-sm); margin: var(--e-sm) 0; }
+.nv-mini-icono { color: var(--blanco-fijo); }
+
+/* La lista. */
+.nv-filtros { display: flex; gap: var(--e-sm); margin-bottom: var(--e-lg); flex-wrap: wrap; }
+.nv-semana { margin-bottom: var(--e-xl); }
+.nv-semana-titulo { font-size: var(--t-sm); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-mid); margin: 0 0 var(--e-sm); display: flex; align-items: center; gap: var(--e-sm); }
+.nv-punto { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--pink); font-size: var(--t-xs); display: inline-flex; align-items: center; gap: var(--e-xs); }
+.nv-punto::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--pink); }
+.nv-fila { display: flex; align-items: center; gap: var(--e-md); padding: var(--e-md); background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--e-sm); color: inherit; text-decoration: none; min-height: 56px; }
+a.nv-fila:hover { border-color: var(--border-strong); }
+.nv-fila .nv-chip { min-width: 72px; text-align: center; align-self: center; }
+.nv-fila-texto { flex: 1; min-width: 0; }
+.nv-ver { color: var(--navy); font-weight: 600; font-size: var(--t-sm); white-space: nowrap; }
+.nv-ver::after { content: ' →'; }
+.nv-mas { display: block; margin: 0 auto var(--e-2xl); }
+
+/* En el móvil, las destacadas se pasan con el dedo, una a una. */
+@media (max-width: 600px) {
+  .nv-destacadas { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: var(--e-md); margin-inline: calc(-1 * var(--e-lg)); padding-inline: var(--e-lg); scrollbar-width: none; }
+  .nv-dest { flex: 0 0 84%; scroll-snap-align: start; }
+  .nv-dest-dibujo { height: 140px; }
+  .nv-fila { flex-wrap: wrap; }
+  .nv-fila .nv-chip { min-width: 0; align-self: flex-start; }
+  .nv-fila-texto { flex-basis: 100%; order: 2; }
+  .nv-ver { order: 1; margin-left: auto; }
+}
+.nv-mas-semana { background: none; border: 0; padding: var(--e-sm) 0; min-height: 44px; color: var(--navy); font: inherit; font-weight: 600; font-size: var(--t-sm); cursor: pointer; }

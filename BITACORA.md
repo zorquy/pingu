@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (69) — PINGU-Claude (829 — /novedades)
+
+**Hecho** (PINGU: el registro de cambios, que llevaba a mano en un hilo del
+foro, como apartado propio; con la maqueta aprobada y tres destacadas):
+/novedades en Inicio, junto a Noticias y Lanzamientos (barra de arriba,
+lateral, burbuja del móvil, menú y pie de las 40 páginas). Arriba «Lo mejor
+de octubre» con tres tarjetas dibujadas; debajo, las semanas con chips
+Nuevo / Mejora / Arreglo, filtros, seis filas por semana y «nuevo para ti».
+Punto en «Tú» si hay algo que no has visto. Los datos son `novedades.json`.
+
+**NORMA NUEVA (para las dos sesiones)**: cada cambio que se NOTA lleva su
+línea en `novedades.json` en el mismo push que la bitácora, en lenguaje de
+quien usa la web. Ver CLAUDE.md.
+
+**Ficheros**: `novedades.html`, `novedades.json`, `js/novedades.js`,
+`js/novedades-datos.js`, `css/novedades.css` (nuevos); las 40 páginas con
+barra y `cartas.html` (generado); `js/barra-movil.js`, `js/menu-tu.js`,
+`css/menu-tu.css`, `netlify/functions/sitemap.mjs`, CLAUDE.md, SCHEMA.
+Pruebas: `test-tanda-829-pantalla.mjs`; la suite entera.
+
+**Pendiente**: PINGU puede cerrar el hilo del foro o dejarlo para comentar
+(la página enlaza al foro).
+
 ## 2026-10-14 (68) — PINGU-Claude (828 — los precios se rellenan solos)
 
 **Hecho** (PINGU: «no quiero estar apretando un botón; hazlo tú y que se

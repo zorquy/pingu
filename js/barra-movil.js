@@ -30,7 +30,7 @@ export const SECCION_DE = {
   Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'feria'],
   Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
-  Inicio: ['index', 'noticias', 'lanzamientos'],
+  Inicio: ['index', 'noticias', 'lanzamientos', 'novedades'],
 }
 
 // «/mi-coleccion», «/mi-coleccion.html» y «mi-coleccion.html?ver=panel»
@@ -78,7 +78,7 @@ export function destinoDe(seccion, conSesion) {
 }
 
 // El icono de cada página de una sección (lo que hay en js/icons.js).
-export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', 'mi-coleccion': 'layers', foro: 'messageSquare', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
+export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', novedades: 'sparkles', 'mi-coleccion': 'layers', foro: 'messageSquare', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
 export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
 // En una burbuja la palabra es corta: «Constructor de mazos» pide 160 px
 // y «Constructor» dice lo mismo debajo de un lápiz.

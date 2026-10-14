@@ -25,6 +25,18 @@ const CLAVE_TEMA = 'pokedoc-theme'
 // lateral, sigue aquí.
 const taza = (size) => DIBUJOS.taza(size)
 
+async function pintarPuntoDeNovedades(dropdown, win) {
+  try {
+    const [{ hayNovedades, CLAVE_VISTO }, res] = await Promise.all([import('./novedades-datos.js'), win.fetch('/novedades.json')])
+    if (!res.ok) return
+    const { entradas } = await res.json()
+    let visto = null
+    try { visto = win.localStorage.getItem(CLAVE_VISTO) } catch { /* sin almacenamiento */ }
+    const punto = dropdown.querySelector('.tu-punto')
+    if (punto) punto.hidden = !hayNovedades(entradas, visto)
+  } catch { /* sin punto */ }
+}
+
 // Lo que hay guardado: 'light', 'dark' o nada (el del sistema).
 function temaGuardado() {
   try { return localStorage.getItem(CLAVE_TEMA) || 'auto' } catch { return 'auto' }
@@ -82,6 +94,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Lo tuyo">
       <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener">${taza(20)}<span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a>
+      <a href="/novedades" data-tu="novedades">${icons.sparkles(20)}<span>Novedades</span><i class="tu-punto" hidden aria-label="Hay novedades"></i></a>
       ${fila('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero')}
       ${fila('/feria', icons.scan(20), 'Modo feria')}
       ${fila('/guardados.html', icons.bookmark(20), 'Guardados')}
@@ -106,6 +119,10 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     }
   }
   pintarCuentas()
+  // El punto de NOVEDADES (829): si hay alguna después de la última vez que
+  // abriste /novedades. Se pregunta al abrir el menú, que ya llega por
+  // `import()`: la portada no paga nada. Sin red o sin almacenamiento, sin punto.
+  pintarPuntoDeNovedades(dropdown, win)
   // Las chapas de la campana y del sobre llegan cuando llegan: se miran
   // mientras viva el menú.
   const derecha = doc.querySelector('.nav-right')
