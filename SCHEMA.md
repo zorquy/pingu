@@ -39958,3 +39958,16 @@ incluso el enlace a Cardmarket va mal». Dos fallos que se juntaban:
   (`cartasDeEspecie`), del buscador de /mi-coleccion (nombre e ilustrador),
   de `buscarEnCatalogo` (salvo si se pide un set concreto) y del buscador
   global; los embebidos piden `oculto`. Lo TUYO sale siempre.
+
+## Tanda 828 — Los precios se rellenan solos, sin botón
+
+PINGU: «no quiero estar apretando un botón cada x; hazlo tú automáticamente y
+que se rellene todo». Dos cosas:
+
+- Una expansión sin ningún `cardmarket_id` ya no PARA la pasada: se salta
+  (`saltadasSinCm` en la respuesta), queda en `ultimoParado` y se sigue con
+  las demás en la misma pasada; la siguiente la vuelve a mirar y a la tercera
+  del día se da por hecha (`sinCm`). Con la 526 y la 610 delante, cada una
+  costaba tres pasadas paradas.
+- `tcggo-precios` corre cada dos minutos (antes cinco): ~25 expansiones por
+  pasada, el día entero en media hora. Las peticiones del día no cambian.

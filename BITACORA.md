@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (68) — PINGU-Claude (828 — los precios se rellenan solos)
+
+**Hecho** (PINGU: «no quiero estar apretando un botón; hazlo tú y que se
+rellene todo»): una expansión sin ids de Cardmarket se salta y la pasada sigue
+(se da por hecha a la tercera del día), y `tcggo-precios` corre cada dos
+minutos en vez de cada cinco. Mismas peticiones al día.
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`, SCHEMA. Pruebas: 589 al
+día, 827 y las de precios en verde.
+
+**Pendiente**: nada que pulsar; el día se llena solo.
+
 ## 2026-10-14 (67) — PINGU-Claude (827 — precios del japonés y cartas de sets escondidos)
 
 **Hecho** (PINGU, con el Charizard de Expansion Pack: sin precio y el enlace

@@ -293,6 +293,9 @@ export async function procesar({
   // producto de Cardmarket, la entrada principal vista hasta ahora (lo que
   // `esMasPrincipal` mira: foto, ataques, id). Si una página posterior trae
   // una más principal, su precio pisa al de antes; si trae una versión, no.
+  // Las que se saltan en esta pasada por no traer ids (no vuelven a entrar
+  // en la misma pasada).
+  const saltadasSinCm = []
   const comoCarta = (e) => ({ id: e.id, image: e.foto ? 'x' : '', attacks: e.juego ? [1] : [] })
   for (const { mercado, pendientes: lista0, mapa, hechos } of tandas) {
     const enCursoAqui = estado.enCurso?.mercado === mercado ? estado.enCurso.episodio : null
@@ -365,19 +368,22 @@ export async function procesar({
     if (!terminada) { await persistir(); break }
     const elegidas = Object.values(enCurso.elegidas)
     // Una expansión sin NINGÚN id de Cardmarket puede ser un tropiezo suyo
-    // (la 589: se para diciéndolo y no se da por hecha). Pero parar para
-    // siempre deja la pasada clavada en ella cada cinco minutos: a la
-    // tercera vez del día se da por hecha y queda apuntada (`sinCm`).
+    // (la 589: no se da por hecha a la primera). Pero no PARA la pasada: se
+    // salta y se sigue con las demás (PINGU: «no quiero estar apretando un
+    // botón; hazlo tú automáticamente»), se vuelve a mirar en la pasada
+    // siguiente y a la tercera vez del día se da por hecha (`sinCm`). Antes
+    // paraba la pasada entera, y con la 526 y la 610 delante, las de detrás
+    // esperaban quince minutos por cada una.
     if (enCurso.suyas && !elegidas.length) {
       const clave = `${mercado}:${idEpisodio}`
       const veces = (estado.sinCmIntentos?.dia === dia ? Number(estado.sinCmIntentos[clave]) || 0 : 0) + 1
       estado.sinCmIntentos = { ...(estado.sinCmIntentos?.dia === dia ? estado.sinCmIntentos : { dia }), [clave]: veces }
       estado.enCurso = null
       if (veces < 3) {
-        parado = `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: no se escribe nada (vez ${veces} de 3 hoy)`
-        estado.ultimoParado = { fecha: ahora.toISOString(), motivo: parado }
+        estado.ultimoParado = { fecha: ahora.toISOString(), motivo: `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: se salta y se vuelve a mirar (vez ${veces} de 3 hoy)` }
+        saltadasSinCm.push(idEpisodio)
         await persistir()
-        break
+        continue
       }
       estado.sinCm = { ...(estado.sinCm || {}), [clave]: dia }
     }
@@ -408,7 +414,7 @@ export async function procesar({
   await persistir()
   return {
     ok: true, dia, hecho: !quedan && !parado, fotoHistorial, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
-    episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado,
+    episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado, ...(saltadasSinCm.length ? { saltadasSinCm } : {}),
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }
 }
@@ -428,9 +434,10 @@ export default async () => {
   return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
-// Cada cinco minutos: cuando el día está hecho, una pasada es una lectura
-// del estado y nada más. Medido el 2026-10-05: en 20 s caben ~6
-// expansiones (lo que tarda no es TCGGO, son las tres idas a nuestra base
-// por expansión), así que las ~170 son ~28 pasadas: dos horas y media
-// solas, o nueve minutos desde el botón de /admin, que las encadena.
-export const config = { schedule: '*/5 * * * *' }
+// Cada DOS minutos (828; antes cinco). PINGU: «no quiero estar apretando un
+// botón cada x; hazlo tú y que se rellene todo». Una pasada hace unas 25
+// expansiones (pausa de 250 ms en Netlify), así que las ~424 del día son ~17
+// pasadas: media hora y no hora y media. No gasta más: las peticiones del
+// día son las mismas, y con el día hecho una pasada es leer el estado.
+// En los pares, como `tcggo-versiones`; el calco va en los impares.
+export const config = { schedule: '*/2 * * * *' }
