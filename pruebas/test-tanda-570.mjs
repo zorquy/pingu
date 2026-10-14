@@ -117,10 +117,12 @@ console.log('── 3. En el navegador ──')
   check('  …y el número no es negativo ni cero', numeroDelDia(hoy) >= 1, String(numeroDelDia(hoy)))
   check('seis huecos de intento', (await page.locator('.cd-intento').count()) === 6)
   // El botón, pegado a la carta y no al final (573).
-  check('«Adivinar» va justo debajo de la carta', await page.evaluate(() => {
-    const carta = document.getElementById('cdRecorte')
-    const boton = document.getElementById('cdAcciones')
-    return Boolean(carta.compareDocumentPosition(boton) & Node.DOCUMENT_POSITION_FOLLOWING) && carta.nextElementSibling === boton
+  // Desde la 835 va AL LADO de la carta en el ordenador (arriba de la
+  // columna del juego): sigue a la vista sin bajar, que es lo de la 573.
+  check('«Adivinar» va a la vista, a la altura de la carta', await page.evaluate(() => {
+    const carta = document.getElementById('cdRecorte').getBoundingClientRect()
+    const boton = document.getElementById('cdAcciones').getBoundingClientRect()
+    return boton.top >= carta.top - 1 && boton.top < carta.bottom && boton.left > carta.right
   }))
   check('las cinco pistas, cerradas', (await page.locator('.cd-pista-cerrada').count()) === 5)
   // La carta entera, borrosa (572): la foto grande se pide y el
@@ -167,14 +169,15 @@ console.log('── 3. En el navegador ──')
   // Otra impresión del mismo nombre acierta.
   await intentar('pikachu', 'sv8-3')
   check('acertar el nombre acaba la partida', !(await page.locator('#cdFinal').evaluate((e) => e.classList.contains('hidden'))))
-  check('  …y dice cuál era', /Pikachu ex/.test(await page.locator('.cd-final-titulo').innerText()))
+  check('  …y lo dice en grande: «¡Acertada en 3!», con cuál era', /¡Acertada en 3!/.test(await page.locator('.cd-final-titulo').innerText()) && /Pikachu ex/.test(await page.locator('#cdFinal').innerText()), await page.locator('#cdFinal').innerText())
+  check('  …y la fila del acierto es verde entera, «¡Es esta!» (835: antes salía en rojo con otra impresión)', (await page.locator('.cd-intento.acierto').count()) === 1 && /¡Es esta!/.test(await page.locator('.cd-intento.acierto').innerText()))
   check('  …con todas las pistas abiertas', (await page.locator('.cd-pista-cerrada').count()) === 0)
   check('  …y la carta nítida', (await desenfoque()) === 0 || Number.isNaN(await desenfoque()), String(await desenfoque()))
   await page.locator('#cdCompartir').click()
   await page.waitForTimeout(400)
   const texto = (await page.evaluate(() => window.__compartido))?.text || ''
   check('el texto compartido lleva el número y 3/6', texto.includes(`¿Qué carta es? #${numeroDelDia(hoy)} · 3/6`), texto)
-  check('  …las tres filas', texto.includes('🟥🟩🟥🟥\n🟥🟩🟩🟩\n🟩🟩🟩🟥'), texto)
+  check('  …las tres filas (la del acierto, verde entera)', texto.includes('🟥🟩🟥🟥\n🟥🟩🟩🟩\n🟩🟩🟩🟩'), texto)
   check('  …y el enlace', texto.includes(ENLACE))
   await browser.close()
 }

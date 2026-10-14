@@ -51,19 +51,22 @@ console.log('── 1. La primera pregunta ──')
 console.log('── 2. Responder: se destapa, se marca y se pasa ──')
 {
   await page.click('#mcrAcciones [data-respuesta="mas"]')
-  await page.waitForTimeout(200)
+  // Desde la 835 el precio sube contando (0,7 s) y la pausa para leer el
+  // veredicto es de 1,5 s.
+  await page.waitForTimeout(900)
   const b = await page.locator('#mcrB').innerText()
   check('al responder se destapa el precio de B', /12,00\s?€/.test(b), b.replace(/\n/g, ' | '))
   check('  …en verde porque era «más»', (await page.locator('#mcrB.bien').count()) === 1)
-  await page.waitForTimeout(1200)
+  await page.waitForTimeout(900)
   const a = await page.locator('#mcrA').innerText()
   check('después, B pasa a ser A', /Carta 2/.test(a) && /12,00/.test(a), a.replace(/\n/g, ' | '))
   check('  …y la tira marca un acierto', (await page.locator('#mcrTira li.bien').count()) === 1)
   // Fallar a propósito.
   await page.click('#mcrAcciones [data-respuesta="mas"]')
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(300)
   check('un fallo se marca en rojo', (await page.locator('#mcrB.mal').count()) === 1)
-  await page.waitForTimeout(1200)
+  check('  …y lo dice: «¡Vaya!»', /¡Vaya!/.test(await page.locator('#mcrVeredicto').innerText()))
+  await page.waitForTimeout(1500)
   check('  …y en la tira', (await page.locator('#mcrTira li.mal').count()) === 1)
 }
 
@@ -80,7 +83,7 @@ console.log('── 4. Acabar y compartir ──')
 {
   for (const r of BUENAS.slice(2)) {
     await page.click(`#mcrAcciones [data-respuesta="${r}"]`)
-    await page.waitForTimeout(1200)
+    await page.waitForTimeout(1800)
   }
   const final = page.locator('#mcrFinal')
   check('al acabar sale el resultado', await final.isVisible() && /4 de 5/.test(await final.innerText()), (await final.innerText()).slice(0, 80))
@@ -130,14 +133,14 @@ console.log('── 6. En /retos y en los otros dos retos ──')
   await p3.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
   await p3.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
   await p3.waitForTimeout(1200)
-  check('el índice lista TRES retos', (await p3.locator('.rt-reto').count()) === 3)
+  check('el índice lista SEIS retos (835)', (await p3.locator('.rt-reto').count()) === 6)
   const caja = p3.locator('#rtMasCaroEstado')
   check('  …con el tercero sin jugar: número y «Jugar»', new RegExp(`#${numeroDelDia(hoy)}`).test(await caja.innerText()) && /Jugar/.test(await caja.innerText()), await caja.innerText())
   // Con una partida a medias guardada en el navegador, lo dice.
   await p3.evaluate((d) => localStorage.setItem('pokedoc-mas-caro', JSON.stringify({ dia: d, respuestas: [true, false] })), hoy)
   await p3.reload({ waitUntil: 'domcontentloaded' })
   await p3.waitForTimeout(1000)
-  check('  …y a medias dice por dónde vas', /pregunta 3 de 5/.test(await caja.innerText()) && /Seguir/.test(await caja.innerText()), await caja.innerText())
+  check('  …y a medias dice por dónde vas', /(pregunta|ronda) 3 de 5/i.test(await caja.innerText()) && /Seguir/.test(await caja.innerText()), await caja.innerText())
   await p3.close()
   // Los otros dos retos llevan el botón de imagen (se dibuja con la misma
   // pieza, reto-imagen.js). Aquí se mira que exista y use la pieza; la

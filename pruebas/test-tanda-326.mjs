@@ -110,8 +110,9 @@ console.log('\n── 3. El pie enlaza el catálogo ──')
   // /constructor y /mazos).
   // 36 desde la 583 (/mas-caro); 37 desde la 621 (/laboratorio); 38, 39 y
   // 40 desde la 791, la 792 y la 794 (/ilustrador, /glosario, /feria); 41
-  // desde la 829, con /novedades.
-  check('las 41 páginas con pie enlazan a /cartas', conPie.length === 41 && sinEnlace.length === 0,
+  // desde la 829, con /novedades; 44 desde la 835 (/quien-es,
+  // /ordena-precio, /que-expansion).
+  check('las 44 páginas con pie enlazan a /cartas', conPie.length === 44 && sinEnlace.length === 0,
     `${conPie.length} con pie, sin enlace: ${sinEnlace.join(', ')}`)
 }
 

@@ -53,8 +53,8 @@ console.log('── 2. Sin cuenta ──')
   const { page, errores } = await abrir({ sesion: 'none' })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('hay un h1 «Retos diarios»', (await page.locator('h1').textContent()).trim() === 'Retos diarios')
-  // Tres desde la 583 («¿Más caro o más barato?»).
-  check('tres retos en la lista', (await page.locator('.rt-reto').count()) === 3)
+  // Tres desde la 583 («¿Más caro o más barato?»); seis desde la 835.
+  check('seis retos en la lista', (await page.locator('.rt-reto').count()) === 6)
   const boton = page.locator('#rtHoyEstado a')
   check('el de hoy manda a crear cuenta', /auth\.html/.test((await boton.getAttribute('href')) || ''), await boton.getAttribute('href'))
   check('  …y dice el número del día', (await page.locator('#rtHoyEstado').innerText()).includes(`Reto #${numeroDelDia(hoy)}`))
