@@ -40075,3 +40075,36 @@ la pasada de precios buscándola en el set de la expansión.
 Pruebas: `test-tanda-831.mjs` (las dos mitades; las dos mutaciones —no buscar
 fuera en el reemplazo, y tomar por bueno un set escondido de la lista— se
 cazan); 589, 671, 827 y 830 con los dobles al día.
+
+## Tanda 832 — Las japonesas que TCGGO da SIN id de Cardmarket
+
+PINGU pegó la pasada con la 831 ya puesta: de la #610 hacia atrás, «0 de 0
+nuestras» igual, y Lost Link «10 de 40». La causa estaba una línea antes de
+todo lo que tocaron la 830 y la 831: la pasada se SALTABA toda entrada de
+TCGGO sin `cardmarket_id`, y TCGGO da las japonesas antiguas con precio pero,
+muchas, sin ese id (su ficha del Gengar: 1.300 €, «TCGGo ID 69408», y ningún
+producto). Lost Link: diez lo traen y treinta no. Y una expansión sin ninguno
+iba por el camino de «sin id de Cardmarket» (se salta dos veces y a la tercera
+se da por hecha) sin haber buscado nada.
+
+- `tcggo-precios`, en el japonés, una entrada sin `cardmarket_id` cuenta igual:
+  en `elegidas` va con su propia clave (`t<id>`: no comparte producto con
+  nadie) y en `porTcggo`, así que casa por su `tcggo_id`. `conCm` del resumen
+  cuenta solo las que traen producto (`elegidas[…].cm`).
+- La fila de precio de una japonesa sin producto lleva `cm_id_product: null`:
+  el que había era el de antes (a veces el occidental del espejo, 686), y un
+  enlace a otra carta es peor que una búsqueda. El `cm_id_product_propio` de la
+  CARTA no se toca si TCGGO no da otro.
+- Las correcciones sin producto van sin sus tres columnas de Cardmarket, y
+  `porColumnas` manda cada forma de fila en su lote: PostgREST rechaza ENTERO
+  un POST cuyas filas no tienen las mismas columnas («All object keys must
+  match»). Vale para las correcciones y para los precios.
+- En el casado por número, la principal del grupo es la de `esMasPrincipal`
+  (sin producto no hay `elegidas` que lo diga), y `sinCarta` cuenta números,
+  no entradas (las versiones comparten número).
+- `VERSION_JP = 832`. /admin ya no dice «TCGGO no da el id de Cardmarket de
+  ninguna» de una expansión que se ha escrito por `tcggo_id`.
+
+Pruebas: `test-tanda-832.mjs` (el doble rechaza como PostgREST un lote de
+filas desiguales; se cazan las mutaciones de volver a saltarse las que no
+traen producto y de mandar las correcciones en un solo lote).

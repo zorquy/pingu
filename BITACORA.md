@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (72) — PINGU-Claude (832 — japonesas sin id de Cardmarket)
+
+**Hecho** (PINGU pegó la pasada con la 831 puesta: lo antiguo seguía a cero):
+TCGGO da precio a las japonesas antiguas pero muchas sin `cardmarket_id`, y la
+pasada se saltaba toda entrada sin él. Ahora en el japonés casan por su
+`tcggo_id`; su fila de precio va sin el producto viejo (el occidental del
+espejo), y las filas de forma distinta se mandan en lotes separados. Lo
+japonés de hoy se rehace una vez (`VERSION_JP`).
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`, `admin/js/admin.js`,
+SCHEMA. Pruebas: `test-tanda-832.mjs`. (La línea de /novedades de la 831 ya
+cuenta esto.)
+
+**Pendiente**: PINGU mira que Platinum, DP, Lost Link y lo de antes salgan con
+«N filas de N nuestras» en la pasada, y el Gengar con sus 1.300 €.
+
 ## 2026-10-14 (71) — PINGU-Claude (831 — japonesas que viven en otro set)
 
 **Hecho** (PINGU pegó la pasada de precios: de la #610 hacia atrás, «0 de 0

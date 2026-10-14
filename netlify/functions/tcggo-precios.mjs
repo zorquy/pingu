@@ -38,7 +38,7 @@ const CLAVE_CATALOGO = 'tcggo_catalogo'
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_precios'
 // Sube cuando cambia cómo se escribe el japonés: la pasada lo rehace ese día.
-export const VERSION_JP = 831
+export const VERSION_JP = 832
 const MS_DE_MARGEN = 20_000
 
 async function rest(ruta, clave, opciones = null) {
@@ -341,11 +341,19 @@ export async function procesar({
       for (const s of pagina) {
         enCurso.suyas++
         const id = Number(s.cardmarket_id)
-        if (!Number.isInteger(id) || id <= 0) continue
-        const ya = enCurso.elegidas[id]
+        const conCm = Number.isInteger(id) && id > 0
+        // SIN ID DE CARDMARKET, EN EL JAPONÉS (832). TCGGO da precio a las
+        // japonesas antiguas (el Gengar de Lost Link, 1.300 €) pero muchas
+        // vienen sin `cardmarket_id`, y aquí se saltaban: de la #610 hacia
+        // atrás, «0 de 0 nuestras» con la 830 y la 831 puestas. En el
+        // japonés se casan por su `tcggo_id`, así que van con su propia
+        // clave (no comparten producto con nadie).
+        if (!conCm && !(mercado === 'JP' && Number.isInteger(Number(s.id)) && Number(s.id) > 0)) continue
+        const clave = conCm ? id : `t${s.id}`
+        const ya = enCurso.elegidas[clave]
         if (!ya || esMasPrincipal(s, comoCarta(ya))) {
-          enCurso.elegidas[id] = { id: s.id, foto: Boolean(typeof s.image === 'string' && s.image), juego: Boolean((Array.isArray(s.attacks) && s.attacks.length) || (Array.isArray(s.abilities) && s.abilities.length)), p: tienePrecio(s) }
-          ahoraVan.set(id, s)
+          enCurso.elegidas[clave] = { id: s.id, cm: conCm, foto: Boolean(typeof s.image === 'string' && s.image), juego: Boolean((Array.isArray(s.attacks) && s.attacks.length) || (Array.isArray(s.abilities) && s.abilities.length)), p: tienePrecio(s) }
+          if (conCm) ahoraVan.set(id, s)
         }
       }
       // Nuestras cartas de ESOS productos (por producto y no el set entero:
@@ -361,7 +369,7 @@ export async function procesar({
       // japonés sale entero de TCGGO, 806). En el occidental no: ahí los ids
       // son los de nuestro emparejamiento (587).
       const porTcggo = new Map()
-      if (mercado === 'JP') for (const s of pagina) if (Number.isInteger(Number(s.id)) && Number(s.cardmarket_id) > 0) porTcggo.set(Number(s.id), s)
+      if (mercado === 'JP') for (const s of pagina) if (Number.isInteger(Number(s.id)) && Number(s.id) > 0) porTcggo.set(Number(s.id), s)
       if ((ahoraVan.size || porTcggo.size) && sets.length) {
         let cartas
         const enSets = `set_id=in.(${sets.map((x) => `"${encodeURIComponent(x)}"`).join(',')})`
@@ -433,9 +441,9 @@ export async function procesar({
             let sinCarta = 0
             for (const [n, ss] of huerfanos) {
               const c = porNumero.get(n)
-              if (!c) { sinCarta += ss.length; continue }
+              if (!c) { sinCarta++; continue }
               // La principal del producto, si ya se ha visto; si no, la primera.
-              const principal = ss.find((s) => enCurso.elegidas[Number(s.cardmarket_id)]?.id === s.id) || ss[0]
+              const principal = ss.reduce((a, b) => (esMasPrincipal(b, a) ? b : a))
               const enLista = cartas.find((x) => x.id === c.id) || (cartas.push(c), c)
               enLista.tcggo_id = Number(principal.id)
               enLista.adoptar = true
@@ -460,9 +468,11 @@ export async function procesar({
           let s = ahoraVan.get(Number(c.cm_id_product_propio))
           if (suya) {
             const bueno = Number(suya.cardmarket_id)
-            if (Number(c.cm_id_product_propio) !== bueno || c.mover || c.adoptar) {
-              // Todas las filas con las MISMAS columnas (PostgREST no mezcla).
-              corregir.push({ id: c.id, market: mercado, set_id: c.mover || c.set_id, local_id: c.local_id, name: c.name, tcggo_id: Number(c.tcggo_id), cm_id_product_propio: bueno, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() })
+            const conCm = Number.isInteger(bueno) && bueno > 0
+            if ((conCm && Number(c.cm_id_product_propio) !== bueno) || c.mover || c.adoptar) {
+              // Sin id de Cardmarket de TCGGO (832) no se toca el nuestro:
+              // esas filas van sin sus tres columnas (y en su propio lote).
+              corregir.push({ id: c.id, market: mercado, set_id: c.mover || c.set_id, local_id: c.local_id, name: c.name, tcggo_id: Number(c.tcggo_id), ...(conCm ? { cm_id_product_propio: bueno, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() } : {}) })
               if (c.mover) enCurso.movidas = (enCurso.movidas || 0) + 1
               if (c.adoptar) enCurso.adoptadas = (enCurso.adoptadas || 0) + 1
             }
@@ -472,11 +482,17 @@ export async function procesar({
           }
           if (!s) continue
           yaVan.add(c.id)
-          filas.push(filaDePreciosTcggo(c.id, s, { ahora, mercado }))
+          const fila = filaDePreciosTcggo(c.id, s, { ahora, mercado })
+          // Sin id de Cardmarket de TCGGO (832), el de la fila se VACÍA en el
+          // japonés: el que quedaba era el de antes —a veces el de la carta
+          // occidental (el espejo, 686)—, y un enlace a otra carta es peor
+          // que una búsqueda.
+          if (mercado === 'JP' && !('cm_id_product' in fila)) fila.cm_id_product = null
+          filas.push(fila)
         }
         if (corregir.length) {
           try {
-            await corregirCartas(corregir)
+            for (const lote of porColumnas(corregir)) await corregirCartas(lote)
           } catch (e) {
             fallo = `nuestra base al corregir el id de Cardmarket: ${String(e?.message || e).slice(0, 160)}`
             break
@@ -485,7 +501,7 @@ export async function procesar({
         }
         if (filas.length) {
           try {
-            for (let k = 0; k < filas.length; k += 500) await escribir(filas.slice(k, k + 500))
+            for (const grupo of porColumnas(filas)) for (let k = 0; k < grupo.length; k += 500) await escribir(grupo.slice(k, k + 500))
           } catch (e) {
             const m = String(e?.message || e)
             if (/cm_low_es|PGRST204|42703/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql', dia }
@@ -533,7 +549,7 @@ export async function procesar({
     // tiene precios» no se podía contestar sin saber si TCGGO no los da, si
     // nuestras cartas no tienen su id de Cardmarket o si no se escribió nada.
     if (mercado === 'JP') {
-      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: enCurso.suyas, conCm: elegidas.length, conPrecio: elegidas.filter((e) => e.p).length, nuestras: enCurso.nuestras, escritas: enCurso.escritas, corregidas: enCurso.corregidas || 0, movidas: enCurso.movidas || 0, deDonde: enCurso.deDonde || [], adoptadas: enCurso.adoptadas || 0, repetidas: enCurso.repetidas || 0, sinCarta: enCurso.sinCarta || 0, sets, paginas: enCurso.pagina } }
+      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: enCurso.suyas, conCm: elegidas.filter((e) => e.cm !== false).length, conPrecio: elegidas.filter((e) => e.p).length, nuestras: enCurso.nuestras, escritas: enCurso.escritas, corregidas: enCurso.corregidas || 0, movidas: enCurso.movidas || 0, deDonde: enCurso.deDonde || [], adoptadas: enCurso.adoptadas || 0, repetidas: enCurso.repetidas || 0, sinCarta: enCurso.sinCarta || 0, sets, paginas: enCurso.pagina } }
     }
     hechos.push(idEpisodio)
     hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: enCurso.suyas, nuestras: enCurso.nuestras, escritas: enCurso.escritas, paginas: enCurso.pagina })
@@ -559,6 +575,19 @@ export async function procesar({
     episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado, ...(saltadasSinCm.length ? { saltadasSinCm } : {}),
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }
+}
+
+// Un POST de PostgREST con varias filas pide las MISMAS columnas en todas
+// (si no, rechaza el lote entero). Una carta japonesa sin id de Cardmarket
+// (832) da una fila de precio sin `cm_id_product`: se manda en su lote.
+export function porColumnas(filas) {
+  const grupos = new Map()
+  for (const f of filas) {
+    const k = Object.keys(f).sort().join()
+    if (!grupos.has(k)) grupos.set(k, [])
+    grupos.get(k).push(f)
+  }
+  return [...grupos.values()]
 }
 
 // Una carta suya trae ALGUNA cifra: un mínimo de Cardmarket en cualquier

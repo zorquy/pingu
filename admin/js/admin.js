@@ -3840,7 +3840,7 @@ function lineasDePreciosJp(resumen, episodios) {
   const malas = filas.filter(([, x]) => !x.escritas || x.conPrecio < x.suyas / 2)
   const porque = (x) =>
     !x.suyas ? 'TCGGO no da ninguna carta'
-      : !x.conCm ? 'TCGGO no da el id de Cardmarket de ninguna'
+      : !x.conCm && !x.escritas ? 'TCGGO no da el id de Cardmarket de ninguna (y no casa ninguna por su id de TCGGO)'
         : !x.conPrecio ? 'TCGGO no da precio de ninguna'
           : !x.nuestras && x.sinCarta ? `TCGGO tiene ${x.sinCarta} cartas que no están en nuestra base (las tiene que escribir el calco)`
           : !x.nuestras ? `nuestras cartas no tienen id de Cardmarket (${(x.sets || []).join(', ')})`
