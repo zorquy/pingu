@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En el constructor, «Imprimir decklist oficial»: la hoja de Play! Pokémon con tu mazo, tu Player ID y tu categoría ya escritos, en PDF para imprimir.", "enlace": "/constructor" },
+    { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Las ligas ya no se atascan en una jornada que no se jugó en PokeDoc: quien la organiza puede saltarla y emparejar la siguiente.", "enlace": "/torneos" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Las cartas japonesas de Platinum, Diamante y Perla, Lost Link y las barajas de esos años, con su precio.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Más cartas japonesas antiguas con su precio, y su enlace a Cardmarket lleva a la carta buena.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Las expansiones japonesas, cada una en su era: Jungle ya está con Expansion Pack.", "enlace": "/cartas?catalogo=JP" },

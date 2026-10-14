@@ -154,6 +154,7 @@
                 <button type="button" role="menuitem" data-accion="enlace">Copiar enlace del mazo</button>
                 <button type="button" role="menuitem" data-accion="tcglive">Copiar para TCG Live</button>
                 <button type="button" role="menuitem" data-accion="imagen">Descargar imagen de la lista</button>
+                <button type="button" role="menuitem" data-accion="decklist">Imprimir decklist oficial</button>
               </div>
             </div>
             <div class="cm-menu">
@@ -315,6 +316,62 @@
         <button type="button" class="btn-secondary cm-btn" data-cerrar>Cancelar</button>
         <button type="button" class="btn-primary cm-btn" id="cmImportarBoton">Importar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- La decklist oficial de Play! Pokémon (tanda 834): lo que la hoja pide
+       y el mazo no sabe. Lo rellena y lo engancha js/constructor/hoja-oficial.js,
+       que se carga al pulsar «Imprimir decklist oficial». -->
+  <div class="modal-overlay hidden" id="cmModalHoja" role="dialog" aria-modal="true" aria-labelledby="cmHojaTitulo">
+    <div class="modal-box modal-box-wide">
+      <button type="button" class="modal-close cm-cerrar" data-cerrar aria-label="Cerrar">×</button>
+      <h3 id="cmHojaTitulo">Imprimir la decklist oficial</h3>
+      <p class="subtext">La hoja de Play! Pokémon con tu mazo ya escrito: Pokémon con colección, número y marca; entrenadores y energías con su nombre. Completa tus datos y sale en PDF, listo para imprimir en A4.</p>
+      <form id="cmHojaForm" class="cm-hoja" novalidate>
+        <div class="cm-hoja-campos">
+          <div class="form-group">
+            <label for="cmHojaNombre">Nombre y apellidos</label>
+            <input id="cmHojaNombre" type="text" maxlength="80" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="cmHojaPlayerId">Player ID</label>
+            <input id="cmHojaPlayerId" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Si aún no tienes, déjalo vacío" />
+          </div>
+          <div class="form-group">
+            <label for="cmHojaNacimiento">Fecha de nacimiento</label>
+            <input id="cmHojaNacimiento" type="date" min="1900-01-01" />
+          </div>
+        </div>
+        <fieldset class="cm-hoja-grupo">
+          <legend>Categoría</legend>
+          <label class="checkbox-row"><input type="radio" name="cmHojaDivision" value="junior" /> <span data-division-texto="junior">Junior</span></label>
+          <label class="checkbox-row"><input type="radio" name="cmHojaDivision" value="senior" /> <span data-division-texto="senior">Senior</span></label>
+          <label class="checkbox-row"><input type="radio" name="cmHojaDivision" value="masters" /> <span data-division-texto="masters">Masters</span></label>
+        </fieldset>
+        <fieldset class="cm-hoja-grupo">
+          <legend>Formato</legend>
+          <label class="checkbox-row"><input type="radio" name="cmHojaFormato" value="standard" /> Estándar</label>
+          <label class="checkbox-row"><input type="radio" name="cmHojaFormato" value="expanded" /> Expandido</label>
+        </fieldset>
+        <fieldset class="cm-hoja-grupo">
+          <legend>Nombres de las cartas</legend>
+          <label class="checkbox-row"><input type="radio" name="cmHojaIdioma" value="en" /> En inglés, como en TCG Live</label>
+          <label class="checkbox-row"><input type="radio" name="cmHojaIdioma" value="es" /> En español</label>
+        </fieldset>
+        <div id="cmHojaRecordarCaja">
+          <label class="cm-check">
+            <input type="checkbox" id="cmHojaRecordar" checked />
+            Guardar nombre, Player ID y fecha en mi perfil (solo los ves tú)
+          </label>
+          <p class="subtext" id="cmHojaRecordarAviso" role="status"></p>
+        </div>
+        <div class="cm-hoja-resumen" id="cmHojaResumen" role="status"></div>
+        <div class="cm-modal-botones">
+          <button type="button" class="btn-secondary cm-btn" data-cerrar>Cancelar</button>
+          <button type="button" class="btn-secondary cm-btn" id="cmHojaAbrir">Abrir para imprimir</button>
+          <button type="submit" class="btn-primary cm-btn" id="cmHojaGenerar">Descargar PDF</button>
+        </div>
+      </form>
     </div>
   </div>
 

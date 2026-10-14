@@ -1087,6 +1087,56 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   display: none;
 }
 
+/* La decklist oficial (834): los tres datos en fila, las elecciones en
+   grupos con su leyenda y el resumen como el de importar. */
+.cm-hoja-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0 var(--e-md);
+}
+
+.cm-hoja-grupo {
+  margin: 0 0 var(--e-md);
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-lg);
+}
+
+.cm-hoja-grupo legend {
+  width: 100%;
+  margin-bottom: var(--e-xs);
+  padding: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.cm-hoja-grupo .checkbox-row {
+  min-height: 44px;
+}
+
+.cm-hoja-resumen {
+  margin: var(--e-sm) 0 var(--e-lg);
+  padding: var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  font-size: var(--t-sm);
+}
+
+.cm-hoja-resumen ul {
+  margin: 0;
+  padding-left: var(--e-lg);
+  list-style: disc;
+}
+
+.cm-hoja-resumen .cm-hoja-avisos {
+  margin-top: var(--e-sm);
+  color: var(--danger);
+}
+
 .cm-modal-botones {
   display: flex;
   justify-content: flex-end;

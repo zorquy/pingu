@@ -36,19 +36,28 @@ export async function cargarJornadas(torneo, { userId = null, todas = false } = 
     : Promise.resolve({ data: [], error: null })
   const [cerradas, rondas, mias] = await Promise.all([
     supabase.from('tournament_matchday_closures').select('matchday').eq('tournament_id', torneo.id),
-    supabase.from('rounds').select('round_number').eq('tournament_id', torneo.id),
+    supabase.from('rounds').select('round_number, phase, status, started_at').eq('tournament_id', torneo.id),
     listas,
   ])
   if (cerradas.error || rondas.error || mias.error) return null
   return {
     cerradas: new Set((cerradas.data || []).map((c) => c.matchday)),
     empezadas: new Set((rondas.data || []).map((r) => r.round_number)),
+    // Las que se saltaron sin jugarse (tanda 833).
+    saltadas: new Set((rondas.data || []).filter(esRondaSaltada).map((r) => r.round_number)),
     listas: mias.data || [],
     todas,
   }
 }
 
 export const jornadaEmpezada = (j, n) => Boolean(j?.empezadas.has(n))
+
+// Una jornada SALTADA (tanda 833): su ronda está cerrada y nunca empezó.
+// Toda ronda jugada pasa por «Iniciar», que le pone `started_at`; saltar
+// una jornada crea la ronda ya cerrada y sin él. Es la ÚNICA regla, la usan
+// el panel de rondas (ronda.js) y «Tus jornadas»: sin columna nueva, sin
+// migración.
+export const esRondaSaltada = (r) => Boolean(r) && r.phase === 'swiss' && r.status === 'finished' && !r.started_at
 export const jornadaCerrada = (j, n) => Boolean(j?.cerradas.has(n)) || jornadaEmpezada(j, n)
 
 // Quién juega la jornada n: quien tiene lista para ella. Solo lo sabe
@@ -78,6 +87,7 @@ export function misJornadas(torneo, j, userId) {
       lista: j.listas.find((l) => l.matchday === n && l.user_id === userId) || null,
       abierta: !jornadaCerrada(j, n),
       empezada: jornadaEmpezada(j, n),
+      saltada: Boolean(j.saltadas?.has(n)),
     }
   })
 }
@@ -96,12 +106,15 @@ export function misJornadasHtml(lista, fechaBonita) {
   const filas = lista
     .map((j) => {
       const fecha = j.fecha ? ` · ${escapeHtml(fechaBonita(j.fecha))}` : ''
-      const estado = j.lista
-        ? `<span class="torneo-chapa torneo-chapa-exito">${icons.checkCircle(14)} Juegas</span>`
-        : `<span class="torneo-chapa torneo-chapa-neutra">${j.abierta ? 'Sin lista' : 'No juegas'}</span>`
+      // Una jornada saltada no la jugó nadie, tuviera lista o no (833).
+      const estado = j.saltada
+        ? `<span class="torneo-chapa torneo-chapa-neutra">No se jugó</span>`
+        : j.lista
+          ? `<span class="torneo-chapa torneo-chapa-exito">${icons.checkCircle(14)} Juegas</span>`
+          : `<span class="torneo-chapa torneo-chapa-neutra">${j.abierta ? 'Sin lista' : 'No juegas'}</span>`
       let acciones
       if (!j.abierta) {
-        acciones = `<span class="subtext torneo-jornada-cerrada">${j.empezada ? 'Ya empezó' : 'Cerrada'}</span>`
+        acciones = `<span class="subtext torneo-jornada-cerrada">${j.saltada ? 'Se saltó' : j.empezada ? 'Ya empezó' : 'Cerrada'}</span>`
       } else if (j.lista) {
         acciones = `<button type="button" class="btn-secondary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="lista">Cambiar lista</button>
           <button type="button" class="btn-secondary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="quitar"
@@ -109,7 +122,7 @@ export function misJornadasHtml(lista, fechaBonita) {
       } else {
         acciones = `<button type="button" class="btn-primary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="lista">Enviar lista</button>`
       }
-      return `<li class="torneo-mis-jornadas-fila${j.lista ? '' : ' torneo-mis-jornadas-fuera'}">
+      return `<li class="torneo-mis-jornadas-fila${j.lista && !j.saltada ? '' : ' torneo-mis-jornadas-fuera'}">
           <span class="torneo-mis-jornadas-cual">${icons.calendar(14)} <strong>Jornada ${j.n}</strong>${fecha}</span>
           ${estado}<span class="torneo-mis-jornadas-acciones">${acciones}</span>
         </li>`

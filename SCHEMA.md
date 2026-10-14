@@ -40108,3 +40108,111 @@ se da por hecha) sin haber buscado nada.
 Pruebas: `test-tanda-832.mjs` (el doble rechaza como PostgREST un lote de
 filas desiguales; se cazan las mutaciones de volver a saltarse las que no
 traen producto y de mandar las correcciones en un solo lote).
+
+## Tanda 833 — Saltar una jornada de liga que no se jugó en PokeDoc
+
+Ibai: «cuando quieres iniciar la jornada 2, no hay botón […] ya sea la 2 o
+cualquiera de las siguientes». En producción, la **Liga FDN [Oct-Dic]**: la J1
+cerrada el 9 de octubre (`tournament_matchday_closures`) y **sin ninguna fila en
+`rounds`** —no se emparejó en PokeDoc—. `pintarRondas` solo sabe ofrecer la ronda
+`rondas.length + 1`, así que el panel decía «Generar pareos de la jornada 1»
+para siempre y la J2 no tenía camino. La 801 arregló el caso de una J1 jugada;
+este es el de una J1 que no se jugó aquí.
+
+- **Saltar** (`saltarJornada`, `js/torneos/ronda.js`): al lado de «Generar
+  pareos de la jornada N», «Saltar la jornada N» (con confirmación) inserta la
+  ronda N **ya cerrada y sin mesas** (`status 'finished'`, `started_at` nulo,
+  `closed_at` ahora). Así sigue valiendo lo que todo el código da por hecho
+  —ronda N = jornada N, en orden— y la base ya trata la jornada como cerrada
+  para las listas (`torneos_lista_jornada` mira si hay ronda). Nadie suma
+  puntos: no hay mesas. La liga pasa a `in_progress` (lo mismo que hace
+  «Iniciar»; sin ello, saltar la ÚLTIMA dejaría la liga sin «Terminar»), y
+  saltar la última hace lo de `cerrarRonda`: corte o final.
+- **Cómo se reconoce una saltada**: `esRondaSaltada` (`js/torneos/jornadas.js`)
+  = suiza, cerrada y sin `started_at`. Toda ronda jugada pasa por
+  `iniciarRonda`, que lo pone. Sin columna nueva ni migración. La usan el panel
+  («No se jugó» en la línea de tiempo, el texto de sus mesas, «Recuperar la
+  jornada N» en vez de «Deshacer») y «Tus jornadas» del jugador (la jornada sale
+  «No se jugó» aunque mandaras lista).
+- **Recuperar** es el «Deshacer» de siempre (borra la ronda). Deshacer la
+  primera ronda de una LIGA la devuelve a `registration_open`, que es como se
+  lleva una liga antes de su primera jornada (635); un torneo de un día sigue
+  volviendo a `registration_closed`.
+- **El aviso de fecha** (`avisoDeFecha`): si la jornada que toca emparejar era
+  hace más de un día, el panel lo dice y explica la salida.
+- En una liga, los rótulos dicen jornada: «Jornada N» en la línea de tiempo,
+  «Iniciar la jornada N», «Cerrar la jornada N», «Mesas de la jornada N». Los
+  ids de los botones no cambian.
+
+Prueba: `test-tanda-833.mjs` (la Liga FDN en pequeño: saltar la J1, jugar la
+J2 entera, recuperar, saltar la última, «Tus jornadas» y que un torneo de un día
+no tenga «Saltar»). 635 y 801 al día.
+
+## Tanda 834 — La decklist oficial de Play! Pokémon, rellena
+
+Ibai: «imprimir decklist, que te dé el documento para imprimir la decklist
+directamente con la plantilla oficial de Play! Pokémon», con las preguntas de
+antes (nombre, Player ID —«un campo en el perfil para que se haga
+automáticamente»—, fecha de nacimiento, categoría) y los Pokémon con número y
+abreviatura de colección (entrenadores y energías, con el nombre).
+
+**Dónde**: constructor → Compartir → «Imprimir decklist oficial». Diálogo
+`#cmModalHoja` (en `constructor.html`), lógica en `js/constructor/hoja-oficial.js`
+(se carga al pulsar), la hoja en `js/decklist-oficial.js` (sin DOM, se prueba
+en Node).
+
+**La plantilla** (`assets/decklist/play-pokemon-decklist-a4.pdf`, 151 KB) es el
+PDF oficial de TPCi («2026 Pokémon TCG Tournament Season through 30th
+Celebration», A4) preparado UNA vez con `herramientas/preparar-plantilla-decklist.py`
+(rama `pruebas`):
+- fuera el equipaje de InDesign (metadatos XMP en cada objeto, `PieceInfo`,
+  árbol de estructura): de 3,2 MB a 151 KB, y se pinta IDÉNTICA (comparado píxel
+  a píxel con poppler);
+- `/PDH` (Helvetica estándar, WinAnsi, sin incrustar) en las fuentes de la página;
+- la página con `/Contents [ «q» plantilla «Q» HUECO ]`, donde HUECO es el
+  **objeto 8**, un flujo vacío.
+
+**Rellenar sin librerías** (aquí no hay npm para el cliente) y **sin servidor**
+(nombre, Player ID y fecha no salen del navegador): `rellenarPlantilla` hace una
+**actualización incremental** — añade al final del fichero una versión nueva del
+objeto 8 con el texto, una xref que solo habla de él y un trailer con `/Prev`.
+La plantilla queda intacta delante y vectorial. El texto es Helvetica
+(`aWinAnsi`: acentos y ’ con su byte, ♀ → « F», lo que no cabe → «?»; el flujo
+es ASCII puro, lo demás en octal) y encoge con la métrica estándar de Helvetica
+(`ANCHOS`) hasta caber en su celda. Las casillas se marcan DIBUJANDO un ✔ (con
+ZapfDingbats, poppler pintaba otro símbolo).
+
+**Las medidas** (`TABLAS`, `COLUMNAS`, `CAMPOS`, `CASILLAS`) salen del PDF con
+pdfplumber: filas de 13,116 pt; 10 renglones de Pokémon, 18 de entrenadores y 4
+de energías. Con más líneas que renglones, se reparten en el alto de la tabla
+con letra más pequeña (`porFila`): 12 Pokémon caben legibles en los 10 renglones.
+Si TPCi cambia la plantilla, hay que volver a medir y volver a preparar.
+
+**Lo que se escribe** (`lineasDeLaHoja`): en el orden del export de TCG Live
+(`seccionesDelMazo`). Pokémon con abreviatura (`abreviaturaDeSet`: el código de
+TCG Live; las promos SV y ME como SVP y MEP y las anteriores como «PR», como en
+la tabla de la hoja), número sin ceros y marca de regulación; sin código de TCG
+Live va el id del catálogo y el diálogo pide corregirlo a mano. Entrenadores y
+energías, solo nombre; las básicas del mismo tipo en una línea («Basic Fire
+Energy»). Nombres en inglés (los de TCG Live) o en español, a elegir; se
+recuerda en `pokedoc-decklist-idioma`.
+
+**La categoría** sale del año de nacimiento con la temporada de la plantilla
+(`TEMPORADA = 2026`: Junior ≥ 2014, Senior 2010–2013, Masters ≤ 2009 =
+temporada − 12 y − 16). Cuando llegue la plantilla de 2027, se cambian el PDF y
+ese número a la vez.
+
+**Tus datos de Play! Pokémon** (`user_play_pokemon`, migración
+`supabase-migration-play-pokemon.sql`, **hay que ejecutarla**): `player_id`
+(cifras, `^[0-9]{1,10}$`), `player_name`, `birth_date`. Tabla APARTE porque
+`user_profiles` la lee cualquiera; RLS de la fila propia en las cuatro
+operaciones, `anon` sin nada. Se editan en «Editar perfil» → «Play! Pokémon
+(privado)» y desde el diálogo («Guardar … en mi perfil»). `js/play-pokemon.js`
+distingue al leer `falta` (sin migración: se dice, y la hoja sale igual sin
+guardar), `error` y `ok`. Sin fecha guardada, el diálogo ofrece el `birthday`
+del perfil (el del foro), si lo hay. `limpiarPlayerId` vive en `js/player-id.js`
+(sin dependencias) para que el perfil no se baje el núcleo del constructor.
+
+Prueba: `test-tanda-834.mjs` (las reglas, el PDF de verdad con qpdf/pdftotext/
+poppler, el diálogo con y sin cuenta y sin la migración, el perfil, y que la
+tabla sea privada).

@@ -766,6 +766,20 @@ async function accionCompartir(accion) {
     const { descargarImagenDecklist } = await import('./torneos/decklist-imagen.js')
     descargarImagenDecklist(estado.nombre || 'Mazo sin nombre', comoDecklist(lista(), codigoDeSet))
   }
+  if (accion === 'decklist') {
+    // La hoja oficial de Play! Pokémon (tanda 834): el diálogo y el PDF se
+    // cargan al pedirlos, que casi nadie imprime cada vez que entra.
+    const { abrirHojaOficial } = await import('./constructor/hoja-oficial.js')
+    await abrirHojaOficial({
+      entradas: lista(),
+      codigoDeSet,
+      formato: estado.formato,
+      nombreMazo: estado.nombre,
+      sesion: estado.sesion,
+      abrirModal,
+      cerrarModal,
+    })
+  }
 }
 
 async function accionHerramienta(accion) {
@@ -1289,7 +1303,7 @@ function enganchar() {
   $('cmMas').addEventListener('click', () => buscar({ mas: true }))
 
   // Modales.
-  for (const m of ['cmModalCarta', 'cmModalImportar']) {
+  for (const m of ['cmModalCarta', 'cmModalImportar', 'cmModalHoja']) {
     $(m).addEventListener('click', (e) => {
       if (e.target === $(m) || e.target.closest('[data-cerrar]')) cerrarModal()
     })

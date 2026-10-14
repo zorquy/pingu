@@ -4,6 +4,56 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 — IBAI-Claude (833 y 834 — saltar jornadas de liga, y la decklist oficial)
+
+**Hecho** (Ibai: «cuando quieres iniciar la jornada 2, no hay botón […] ya sea
+la 2 o cualquiera de las siguientes» y «imprimir decklist con la plantilla
+oficial de Play! Pokémon», con las preguntas de antes y el Player ID en el
+perfil):
+- **833** Lo que había en producción: la **Liga FDN [Oct-Dic]** (de laiafdn)
+  cerró la J1 el 9 de octubre y **no la emparejó en PokeDoc** (cero rondas).
+  El panel solo ofrece `rondas.length + 1`, así que decía «Generar pareos de la
+  jornada 1» para siempre. Ahora, al lado, «Saltar la jornada N» (con
+  confirmación): crea esa ronda ya cerrada y sin mesas («No se jugó», nadie
+  suma), la liga pasa a en juego y el panel va a la siguiente; «Recuperar la
+  jornada N» lo deshace. Aviso cuando la jornada que toca ya pasó de fecha. En
+  una liga los rótulos dicen jornada («Iniciar la jornada 2»…). Deshacer la
+  primera ronda de una liga la deja en inscripciones abiertas (antes,
+  cerradas). La 801 (J1 jugada) seguía bien: lo he comprobado con el ciclo
+  entero J1→J3 contra el doble.
+- **834** Constructor → Compartir → «Imprimir decklist oficial»: diálogo con
+  nombre, Player ID, fecha de nacimiento (la categoría sale sola por el año),
+  formato e idioma de los nombres, y descarga el PDF oficial de TPCi relleno
+  (Pokémon con colección, número y marca; entrenadores y energías con nombre).
+  Sin librerías ni servidor: actualización incremental sobre la plantilla
+  preparada (`assets/decklist/`, 151 KB). Los datos de Play! Pokémon se
+  guardan en una tabla PRIVADA (`user_play_pokemon`) y se editan en «Editar
+  perfil». Detalle en SCHEMA (833 y 834).
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/jornadas.js` (833);
+`js/decklist-oficial.js`, `js/constructor/hoja-oficial.js`, `js/play-pokemon.js`,
+`js/player-id.js`, `assets/decklist/play-pokemon-decklist-a4.pdf`,
+`supabase-migration-play-pokemon.sql` (NUEVOS), `constructor.html`,
+`css/constructor.css`, `js/constructor.js`, `js/perfil.js`, `js/schema-check.js`,
+`privacidad.html` (834); `novedades.json`, `SCHEMA.md`. En `pruebas`:
+`test-tanda-833.mjs`, `test-tanda-834.mjs`, `sql-tanda-834*.sql`, sus rigores,
+`herramientas/preparar-plantilla-decklist.py` y la tabla en el doble.
+
+**Pruebas**: 833 y 834 en verde (la 834 también contra PostgreSQL: la tabla es
+privada de verdad), y 107 más que tocan torneos, el constructor, el perfil, la
+privacidad, /admin y las guardas de CSS (299, 305, 310–313, 524, 737, 753, 829,
+imports): todas verdes. Las que salían rojas eran del contenedor (faltaba
+PostgreSQL, `web-push` y los `sql-*.sql` en el scratchpad) y la 457, que con
+cuatro carriles en dos núcleos va justa de tiempo y sola pasa.
+
+**Para PINGU**: he tocado `js/torneos/ronda.js` y `jornadas.js` (tu 801), solo
+para añadir el salto y los rótulos de liga; el emparejar de la 801 no cambia.
+
+**Pendiente**: ejecutar `supabase-migration-play-pokemon.sql` (sin ella la
+decklist sale igual, pero no se guarda el Player ID; el diálogo y el perfil lo
+dicen). Avisar a laiafdn de que su J1 se puede saltar desde «Rondas». Cuando
+TPCi publique la plantilla de 2027: el PDF nuevo por el script y `TEMPORADA`.
+
 ## 2026-10-14 (72) — PINGU-Claude (832 — japonesas sin id de Cardmarket)
 
 **Hecho** (PINGU pegó la pasada con la 831 puesta: lo antiguo seguía a cero):

@@ -678,6 +678,17 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       <input type="date" id="peBirthday" value="${escapeHtml(currentProfile?.birthday || '')}" />
       <p class="subtext" style="margin:2px 0 0;">Si lo pones, el día señalado el foro te felicita en «El foro en números». Bórralo cuando quieras.</p>
     </div>
+    <div class="form-group" id="pePlayZona">
+      <label>Play! Pokémon (privado)</label>
+      <p class="subtext" style="margin:0 0 6px;">Para que la decklist oficial del constructor salga ya rellena. Esto no se ve en tu perfil: solo lo ves tú.</p>
+      <label for="pePlayerId">Player ID</label>
+      <input id="pePlayerId" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Por ejemplo, 1234567" disabled />
+      <label for="pePlayNombre">Nombre y apellidos (como en la decklist)</label>
+      <input id="pePlayNombre" type="text" maxlength="80" autocomplete="name" disabled />
+      <label for="pePlayNacimiento">Fecha de nacimiento (la pide la decklist)</label>
+      <input id="pePlayNacimiento" type="date" min="1900-01-01" disabled />
+      <p class="subtext" id="pePlayAviso" style="margin:2px 0 0;" role="status">Cargando…</p>
+    </div>
     <div class="form-group">
       <label>Privacidad</label>
       <label class="checkbox-row"><input type="checkbox" id="peHideActivity" ${currentProfile?.hide_activity ? 'checked' : ''} /> No mostrar mi actividad en Comunidad</label>
@@ -709,6 +720,32 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
       })
     } catch {}
+  })()
+
+  // Tus datos de Play! Pokémon (tanda 834), de su tabla PRIVADA: se leen
+  // aparte y se guardan aparte, para que si falta su migración el resto del
+  // perfil se guarde igual.
+  let play = { estado: 'error', fila: null }
+  ;(async () => {
+    const { leerDatosPlay, MIGRACION_PLAY } = await import('./play-pokemon.js')
+    play = await leerDatosPlay(currentSession.user.id)
+    const aviso = document.getElementById('pePlayAviso')
+    if (!aviso) return
+    if (play.estado !== 'ok') {
+      aviso.textContent =
+        play.estado === 'falta'
+          ? `Todavía no se puede guardar: falta ejecutar ${MIGRACION_PLAY}.`
+          : 'No se ha podido leer lo que tenías guardado. Vuelve a abrir el editor en un rato.'
+      return
+    }
+    const f = play.fila
+    for (const [id, valor] of [['pePlayerId', f.player_id], ['pePlayNombre', f.player_name], ['pePlayNacimiento', f.birth_date]]) {
+      const campo = document.getElementById(id)
+      if (!campo) continue
+      campo.value = valor || ''
+      campo.disabled = false
+    }
+    aviso.textContent = ''
   })()
 
   // El interruptor de push, con su estado real. Va aparte del Guardar
@@ -833,6 +870,25 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     if (error) {
       showToast('No se pudo guardar el perfil: ' + error.message)
       return
+    }
+    // Play! Pokémon, solo si se pudo leer (si no, guardar a ciegas pisaría
+    // lo que hubiera) y si algo ha cambiado.
+    if (play.estado === 'ok') {
+      const nuevo = {
+        playerId: document.getElementById('pePlayerId')?.value.trim() || '',
+        nombre: document.getElementById('pePlayNombre')?.value.trim() || '',
+        nacimiento: document.getElementById('pePlayNacimiento')?.value || '',
+      }
+      const f = play.fila
+      if (nuevo.playerId !== (f.player_id || '') || nuevo.nombre !== (f.player_name || '') || nuevo.nacimiento !== (f.birth_date || '')) {
+        const { guardarDatosPlay } = await import('./play-pokemon.js')
+        const errorPlay = await guardarDatosPlay(currentSession.user.id, nuevo)
+        if (errorPlay) {
+          // El perfil ya está guardado; esto se dice y el editor sigue abierto.
+          showToast('Tu perfil se ha guardado, pero tus datos de Play! Pokémon no: ' + errorPlay.message)
+          return
+        }
+      }
     }
     closeModal()
     currentProfile = { ...currentProfile, ...payload }
