@@ -151,6 +151,8 @@ console.log('\n── 6. El buscador y el estado ──')
   check('«ver más» los enseña todos', (await page.locator('.partidas-torneo').count()) === 12)
 
   // Buscar sin tilde tiene que encontrar «Cádiz».
+  // Desde la 838 los filtros van plegados tras «Filtrar».
+  await page.click('#torneoFiltrar')
   await page.locator('#torneoBuscar').fill('cadiz')
   await page.waitForTimeout(400)
   check('el buscador ignora las tildes', (await page.locator('.partidas-torneo').count()) === 1)

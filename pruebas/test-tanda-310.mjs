@@ -72,6 +72,8 @@ console.log('\n── 2. Los desplegables son del sitio, no del sistema ──')
   // No se comprueba «lleva appearance: none»: se MIDE que un desplegable
   // se vea como el campo de al lado, que es lo que se notaba.
   const { page, errores } = await abrir('/mis-partidas')
+  // Desde la 838 los filtros de Torneos van tras «Filtrar»: se abren para comparar.
+  await page.click('#torneoFiltrar').catch(() => {})
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
   const medidas = await page.evaluate(() => {
     const visible = (n) => n.getBoundingClientRect().height > 0

@@ -17,8 +17,9 @@ const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 
 console.log('── 1. En el código ──')
 const mazos = leer('js/mazos.js')
-check('cada mazo pregunta cuánto falta, con su caja', /data-coste>¿Cuánto me falta\?</.test(mazos) && /data-coste-caja aria-live="polite"/.test(mazos))
-check('el coste sale del mismo cálculo que el constructor', /costeDeResueltas\(/.test(mazos))
+// Desde la 836 ya no se pregunta: lo que falta sale solo, de todos los mazos a la vez.
+check('cada mazo dice cuánto falta, con su caja', /costeDeVarias/.test(mazos) && /data-coste-caja aria-live="polite"/.test(mazos))
+check('el coste sale del mismo cálculo que el constructor (836: el de varios a la vez, que comparte resumenDeCoste)', /costeDeVarias\(/.test(mazos) && /resumenDeCoste\(p, tengo, barata\)/.test(readFileSync(`${RAIZ}/js/coste-mazo.js`, 'utf8')))
 check('la confianza va en el Mercado y en los Cruces', /class="mc-confianza" data-confianza=/.test(leer('js/mi-coleccion/mercado.js')) && /class="mc-confianza" data-confianza=/.test(leer('js/mi-coleccion/tablon.js')) && /m\.ponerConfianza\(document\.querySelector\('\.mc-cruces'\)\)/.test(leer('js/mi-coleccion.js')))
 check('el Mercado crece la carta hacia la foto de su ficha', /crecerDesde\(f\.querySelector\('img'\), \(\) => abrirFicha\(f\.dataset\.mercFicha\), \{ destino: '#mcMercadoFicha \.mc-prodf-foto img' \}\)/.test(leer('js/mi-coleccion/mercado.js')))
 check('el cruce de los mensajes sale solo si hay algo', /pintarCruce\(document\.getElementById\('msgCruce'\), otherProfile, session, \{ soloSiHay: true \}\)/.test(leer('js/mensajes.js')))
