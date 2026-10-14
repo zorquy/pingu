@@ -411,6 +411,21 @@ export async function procesar({
   // que PINGU no quiere—. Un upsert con las columnas `not null` repetidas,
   // que es lo que la fila necesita para formarse (la 526).
   const nuestraPorId = new Map(nuestras.map((c) => [c.id, c]))
+  // Y las «tcggo-…» que ya existen en un set que NO es de los que se juntan
+  // (831): la de una vuelta anterior que quedó en otro set (escondido
+  // después) no salía en `nuestras`, así que no se recolocaba, y el set de
+  // su expansión se quedaba sin ella —la pasada de precios leía «0
+  // nuestras» de la #610 hacia atrás—. Se piden por id y entran en los
+  // ajustes como las demás.
+  try {
+    const deFuera = filas.map((f) => f.id).filter((id) => !nuestraPorId.has(id))
+    for (let k = 0; k < deFuera.length; k += 150) {
+      const halladas = (await pedir(`tcg_cards?select=id,set_id,local_id,name,name_en,tcggo_id&market=eq.${mercado}&id=in.(${lista(deFuera.slice(k, k + 150))})`)) || []
+      for (const c of Array.isArray(halladas) ? halladas : []) if (c?.id && !nuestraPorId.has(c.id)) nuestraPorId.set(c.id, c)
+    }
+  } catch (e) {
+    return { ok: false, peticiones, escritas, error: `nuestra base al buscar las de otros sets: ${String(e?.message || e).slice(0, 160)}` }
+  }
   // En el modo entero el inglés es el de TCGGO (811): la RPC no pisa un
   // `name_en` que ya hubiera, y el que había era el japonés copiado tal cual.
   const inglesNuevo = (c, f) => entero && f.name_en && f.name_en !== c.name_en && (!c.name_en || tieneCJK(c.name_en))

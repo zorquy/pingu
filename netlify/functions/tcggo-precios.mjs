@@ -30,6 +30,7 @@
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal,
 } from '../lib/tcggo.mjs'
+import { numeroComparable } from '../lib/scrydex.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 // Solo la clave: importar la función sería un ciclo.
 const CLAVE_CATALOGO = 'tcggo_catalogo'
@@ -37,7 +38,7 @@ const CLAVE_CATALOGO = 'tcggo_catalogo'
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_precios'
 // Sube cuando cambia cómo se escribe el japonés: la pasada lo rehace ese día.
-export const VERSION_JP = 830
+export const VERSION_JP = 831
 const MS_DE_MARGEN = 20_000
 
 async function rest(ruta, clave, opciones = null) {
@@ -137,13 +138,22 @@ export async function procesar({
   // sets no entraban aquí y sus cartas no tenían precio — «las japonesas
   // no tienen precio; algunas sí, algunas no» (PINGU). La fila del set es
   // la fuente que no se queda vieja (y es una consulta a lo nuestro).
+  // De paso, los VISIBLES de cada expansión (831): es adonde se lleva una
+  // carta suya que vive en otro set. Sin la consulta no se mueve nada.
+  const visiblesJp = new Map()
   try {
-    const filasJp = (await pedir('tcg_sets?select=id,tcggo_id&market=eq.JP&tcggo_id=not.is.null&limit=2000')) || []
+    const filasJp = (await pedir('tcg_sets?select=id,tcggo_id,oculto&market=eq.JP&tcggo_id=not.is.null&limit=2000')) || []
     for (const s of filasJp) {
       const id = Number(s.tcggo_id)
       if (!Number.isInteger(id) || id <= 0 || !s.id) continue
       const lista = setsPorEpisodioJp.get(id) || []
       if (!lista.includes(s.id)) setsPorEpisodioJp.set(id, lista.concat([s.id]))
+      if (!s.oculto) visiblesJp.set(id, [...(visiblesJp.get(id) || []), s.id])
+    }
+    // El primero, el que el catálogo apuntó para esa expansión (si se ve).
+    for (const [id, lista] of visiblesJp) {
+      const delCatalogo = (catalogo?.setsPorEpisodio?.JP?.[id] || []).find((x) => lista.includes(x))
+      if (delCatalogo) visiblesJp.set(id, [delCatalogo, ...lista.filter((x) => x !== delCatalogo)])
     }
   } catch { /* sin la consulta se sigue con el mapa del catálogo */ }
   // El japonés bloqueado por el PLAN (671): si TCGGO contesta que el
@@ -364,6 +374,83 @@ export async function procesar({
           fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
           break
         }
+        // LAS QUE VIVEN EN OTRO SET (831). PINGU pegó la pasada: de la #610
+        // hacia atrás, «0 nuestras» en todas, y Lost Link 10 de 40. El calco
+        // escribe con `tcggo_guardar_cartas`, que no cambia el `set_id` de
+        // una «tcggo-…» que ya existía, y solo la recoloca si estaba en uno
+        // de los sets que reemplaza: una que quedó en el set de otra vuelta
+        // (escondido después) se quedó allí, y aquí se buscaba en el set de
+        // su expansión. Así que:
+        //  · las que faltan se buscan por `tcggo_id` en TODO el japonés, y
+        //    la que no está en un set VISIBLE de su expansión se lleva al
+        //    primero de ellos (`mover`);
+        //  · la que no está en ninguna parte se busca por NÚMERO entre las
+        //    nuestras del set visible que no llevan `tcggo_id` (las de
+        //    Scrydex que alguien tenía y se quedaron): si casa una y solo
+        //    una, se queda con su `tcggo_id` y su id de Cardmarket;
+        //  · y lo que queda se cuenta (`sinCarta`): eso lo tiene que
+        //    escribir el calco.
+        if (mercado === 'JP' && porTcggo.size) {
+          const visibles = visiblesJp.get(idEpisodio) || []
+          const destino = visibles[0] || null
+          const vistas = new Set(cartas.map((c) => Number(c.tcggo_id)).filter(Boolean))
+          const faltan = [...porTcggo.keys()].filter((id) => !vistas.has(id))
+          let sueltas = []
+          try {
+            if (faltan.length) {
+              const fuera = (await pedir(`tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.JP&tcggo_id=in.(${faltan.join(',')})&limit=1000`)) || []
+              const ya = new Set(cartas.map((c) => c.id))
+              for (const c of fuera) if (!ya.has(c.id)) cartas.push(c)
+            }
+            if (destino) {
+              for (const c of cartas) {
+                if (!porTcggo.has(Number(c.tcggo_id)) || visibles.includes(c.set_id)) continue
+                c.mover = destino
+                enCurso.deDonde = [...new Set([...(enCurso.deDonde || []), c.set_id])].slice(0, 5)
+              }
+            }
+            // Por número: un grupo es un número de TCGGO (las versiones
+            // comparten número); si ninguna de sus entradas tiene carta
+            // nuestra, se busca la del número en el destino.
+            const halladas = new Set(cartas.map((c) => Number(c.tcggo_id)).filter(Boolean))
+            const grupos = new Map()
+            for (const [id, s] of porTcggo) {
+              const n = numeroComparable(s.card_number)
+              if (!n) continue
+              if (!grupos.has(n)) grupos.set(n, [])
+              grupos.get(n).push(s)
+            }
+            const huerfanos = [...grupos].filter(([, ss]) => !ss.some((s) => halladas.has(Number(s.id))))
+            const movidasAqui = cartas.filter((c) => c.mover)
+            if (destino && (huerfanos.length || movidasAqui.length)) {
+              sueltas = (await pedir(`tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.JP&set_id=eq.${encodeURIComponent(destino)}&tcggo_id=is.null&limit=1000`)) || []
+            }
+            const porNumero = new Map()
+            for (const c of sueltas) {
+              const n = numeroComparable(c.local_id)
+              if (n) porNumero.set(n, porNumero.has(n) ? null : c)
+            }
+            let sinCarta = 0
+            for (const [n, ss] of huerfanos) {
+              const c = porNumero.get(n)
+              if (!c) { sinCarta += ss.length; continue }
+              // La principal del producto, si ya se ha visto; si no, la primera.
+              const principal = ss.find((s) => enCurso.elegidas[Number(s.cardmarket_id)]?.id === s.id) || ss[0]
+              const enLista = cartas.find((x) => x.id === c.id) || (cartas.push(c), c)
+              enLista.tcggo_id = Number(principal.id)
+              enLista.adoptar = true
+              porNumero.delete(n)
+            }
+            // Una que se trae y que ya tiene una nuestra con su número en el
+            // destino: no se borra nada (la otra puede tener dueño), se cuenta.
+            const repetidas = movidasAqui.filter((c) => porNumero.get(numeroComparable(c.local_id))).length
+            enCurso.sinCarta = (enCurso.sinCarta || 0) + sinCarta
+            if (repetidas) enCurso.repetidas = (enCurso.repetidas || 0) + repetidas
+          } catch (e) {
+            fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
+            break
+          }
+        }
         const filas = []
         const corregir = []
         const yaVan = new Set()
@@ -373,8 +460,11 @@ export async function procesar({
           let s = ahoraVan.get(Number(c.cm_id_product_propio))
           if (suya) {
             const bueno = Number(suya.cardmarket_id)
-            if (Number(c.cm_id_product_propio) !== bueno) {
-              corregir.push({ id: c.id, market: mercado, set_id: c.set_id, local_id: c.local_id, name: c.name, cm_id_product_propio: bueno, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() })
+            if (Number(c.cm_id_product_propio) !== bueno || c.mover || c.adoptar) {
+              // Todas las filas con las MISMAS columnas (PostgREST no mezcla).
+              corregir.push({ id: c.id, market: mercado, set_id: c.mover || c.set_id, local_id: c.local_id, name: c.name, tcggo_id: Number(c.tcggo_id), cm_id_product_propio: bueno, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() })
+              if (c.mover) enCurso.movidas = (enCurso.movidas || 0) + 1
+              if (c.adoptar) enCurso.adoptadas = (enCurso.adoptadas || 0) + 1
             }
             // El precio, el de la principal de ese producto si ha salido en
             // esta página; si no, el de su propia entrada.
@@ -443,7 +533,7 @@ export async function procesar({
     // tiene precios» no se podía contestar sin saber si TCGGO no los da, si
     // nuestras cartas no tienen su id de Cardmarket o si no se escribió nada.
     if (mercado === 'JP') {
-      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: enCurso.suyas, conCm: elegidas.length, conPrecio: elegidas.filter((e) => e.p).length, nuestras: enCurso.nuestras, escritas: enCurso.escritas, corregidas: enCurso.corregidas || 0, sets, paginas: enCurso.pagina } }
+      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: enCurso.suyas, conCm: elegidas.length, conPrecio: elegidas.filter((e) => e.p).length, nuestras: enCurso.nuestras, escritas: enCurso.escritas, corregidas: enCurso.corregidas || 0, movidas: enCurso.movidas || 0, deDonde: enCurso.deDonde || [], adoptadas: enCurso.adoptadas || 0, repetidas: enCurso.repetidas || 0, sinCarta: enCurso.sinCarta || 0, sets, paginas: enCurso.pagina } }
     }
     hechos.push(idEpisodio)
     hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: enCurso.suyas, nuestras: enCurso.nuestras, escritas: enCurso.escritas, paginas: enCurso.pagina })

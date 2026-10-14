@@ -40034,3 +40034,44 @@ que esa carta no casaba nunca: sin precio y con el enlace a otra carta.
 - `VERSION_JP` (830): con una regla nueva, lo japonés hecho HOY se rehace una
   vez (~600 peticiones de 14.000). `resumenJp[…].corregidas` y /admin dice
   cuántas se han cambiado.
+
+## Tanda 831 — Las japonesas que viven en OTRO set
+
+PINGU pegó la pasada de precios después de la 830: de la #610 hacia atrás
+(Platinum, DP, las barajas de BW y Legend) «0 filas de 0 nuestras» en todas, y
+Lost Link 10 de 40. La causa: `tcggo_guardar_cartas` no cambia el `set_id` de
+una fila que ya existe, y `tcggo-reemplazar-set` (el modo entero que usa el
+calco) solo recolocaba las «tcggo-…» que estaban en los sets que reemplazaba.
+Una que una vuelta anterior dejó en otro set —escondido después por no llevar
+`tcggo_id`— se quedó allí: la expansión «hecha», su set visible sin la carta, y
+la pasada de precios buscándola en el set de la expansión.
+
+- `tcggo-precios`, en el japonés:
+  - `visiblesJp`: por expansión, sus sets con `tcggo_id` y `oculto = false`
+    (el primero, el que el catálogo apuntó si se ve). Es el destino.
+  - Las entradas de la página que no salen en los sets de la expansión se
+    buscan por `tcggo_id` en TODO el japonés; la que no está en un set
+    visible de su expansión se lleva al destino (`mover`).
+  - Un número de TCGGO (las versiones comparten número) sin ninguna carta
+    nuestra en ninguna parte se busca entre las del destino SIN `tcggo_id`
+    (las de Scrydex que se quedaron por tener dueño): si casa una y solo una
+    por `numeroComparable`, gana el `tcggo_id` de la principal y su id de
+    Cardmarket (`adoptar`).
+  - Lo demás se cuenta: `sinCarta` (lo tiene que escribir el calco) y
+    `repetidas` (una traída que encuentra otra con su número en el destino:
+    no se borra nada, la otra puede tener dueño).
+  - Todo va por `corregirCartas`, ahora con `tcggo_id` en TODAS las filas
+    (PostgREST no mezcla filas con columnas distintas en un POST).
+  - Sin set visible de la expansión no se mueve ni se casa nada.
+  - `VERSION_JP = 831`: lo japonés de hoy se rehace una vez.
+- `tcggo-reemplazar-set`: antes de los ajustes pide por id las «tcggo-…» de
+  las filas que no están en `nuestras` (de 150 en 150) y entran en los
+  ajustes como las demás: la próxima vuelta del calco ya no deja ninguna
+  fuera.
+- /admin, «japonés de hoy»: traídas (y de qué sets), casadas por número, sin
+  carta, repetidas; y el motivo «TCGGO tiene N cartas que no están en nuestra
+  base» cuando una expansión se queda en cero por eso.
+
+Pruebas: `test-tanda-831.mjs` (las dos mitades; las dos mutaciones —no buscar
+fuera en el reemplazo, y tomar por bueno un set escondido de la lista— se
+cazan); 589, 671, 827 y 830 con los dobles al día.

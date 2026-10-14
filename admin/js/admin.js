@@ -3842,12 +3842,18 @@ function lineasDePreciosJp(resumen, episodios) {
     !x.suyas ? 'TCGGO no da ninguna carta'
       : !x.conCm ? 'TCGGO no da el id de Cardmarket de ninguna'
         : !x.conPrecio ? 'TCGGO no da precio de ninguna'
+          : !x.nuestras && x.sinCarta ? `TCGGO tiene ${x.sinCarta} cartas que no están en nuestra base (las tiene que escribir el calco)`
           : !x.nuestras ? `nuestras cartas no tienen id de Cardmarket (${(x.sets || []).join(', ')})`
             : !x.escritas ? 'los ids de Cardmarket no casan con los nuestros'
               : 'TCGGO da precio de menos de la mitad'
   const corregidas = filas.reduce((t, [, x]) => t + (Number(x.corregidas) || 0), 0)
+  const movidas = filas.reduce((t, [, x]) => t + (Number(x.movidas) || 0), 0)
+  const sinCarta = filas.reduce((t, [, x]) => t + (Number(x.sinCarta) || 0), 0)
+  const adoptadas = filas.reduce((t, [, x]) => t + (Number(x.adoptadas) || 0), 0)
+  const repetidas = filas.reduce((t, [, x]) => t + (Number(x.repetidas) || 0), 0)
+  const deDonde = [...new Set(filas.flatMap(([, x]) => x.deDonde || []))].slice(0, 12)
   return [
-    `  japonés de hoy: ${filas.length} expansiones con precio mirado · ${malas.length} sin precio o con menos de la mitad${corregidas ? ` · ${corregidas} cartas con el id de Cardmarket de antes, cambiado por el de TCGGO (830)` : ''}`,
+    `  japonés de hoy: ${filas.length} expansiones con precio mirado · ${malas.length} sin precio o con menos de la mitad${corregidas ? ` · ${corregidas} cartas con el id de Cardmarket de antes, cambiado por el de TCGGO (830)` : ''}${movidas ? ` · ${movidas} estaban en otro set y se han llevado al de su expansión (831; venían de ${deDonde.join(', ')})` : ''}${adoptadas ? ` · ${adoptadas} nuestras sin id de TCGGO casadas por número` : ''}${repetidas ? ` · ${repetidas} traídas que ya tenían otra con su número (no se borra nada)` : ''}${sinCarta ? ` · ${sinCarta} cartas de TCGGO no están en nuestra base` : ''}`,
     ...malas.slice(0, 40).map(([id, x]) => `  · #${id} ${nombres.get(id) || ''}: ${porque(x)} — TCGGO ${x.suyas} cartas, ${x.conCm} con id de Cardmarket, ${x.conPrecio} con precio · nuestras ${x.nuestras} · escritas ${x.escritas}`),
   ]
 }
