@@ -40007,3 +40007,11 @@ las mejores mejoras; tres destacadas».
 - **El punto del menú «Tú»** (`js/menu-tu.js`): la fila «Novedades» con un
   punto rosa si hay algo después de tu última visita. Se pregunta al abrir el
   menú (`import()` de lo puro + el JSON): la portada no paga nada.
+
+**La barra de arriba, con un enlace más (S829 en `style.css`).** De 1.240 a
+1.399 px la barra va en línea (por debajo, menú; por encima, la lateral), y
+con «Novedades» no cabía: medido, sobraban 98 px a 1.240, 78 a 1.280 y 18 a
+1.399 (lo cazaron la 251, la 301, la 306 y la 311 con el desborde de la
+página). En ese tramo los enlaces llevan 8 px a los lados en vez de 12, el
+hueco entre ellos baja a 4 y la barra a 32 px de margen: 0 px de más en todo
+el tramo, con sesión y sin ella. La regla de la 320: se mide, no se mira.

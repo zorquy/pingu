@@ -780,6 +780,14 @@ body:has(.nav-menu-mobile.open) {
   }
 }
 
+/* S829: con Novedades la barra no cabía de 1240 a 1399 (78 px a 1280). */
+@media (min-width: 1240px) and (max-width: 1399px) {
+  .nav-inner { padding-inline: 32px; }
+  .nav-links { gap: 4px; }
+  .nav-links > a, .nav-grupo-btn { padding-inline: 8px; }
+  .nav-grupo-btn { gap: 4px; }
+}
+
 /* S780.29 */
 @media (min-width: 1240px) {
   body:has(.nav-torneo-vivo) .nav-links {
