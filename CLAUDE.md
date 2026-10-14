@@ -433,6 +433,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `cargarSets()`: ahora llega más tarde (la 748 lo cazó). Y el semáforo de
   /admin (`admin/js/semaforo.js`, 817) es la lista de claves de estado de
   TCGGO: una pasada nueva va en `PASADAS`.
+- **La ERA de un set japonés es la SERIE de TCGGO** (tanda 825):
+  `erasDeTcggo` agrupa por su serie y solo elige el `serie_id` (el de la
+  mayoría, o el de una era a mano), y `pasoDeEras` lo aplica una vez al día.
+  Comparar NOMBRES de serie entre catálogos repartía una serie en varias eras
+  (Jungle fuera de Base). Lo que alguien mueve a mano después se respeta
+  (`puestas`); si cambias la era desde otra función, que pase por ahí.
 - **Supabase corta TODA respuesta a 1.000 filas, sin error** (tanda 808).
   La estantería de Productos contaba con `.select('episode_id').limit(10000)`
   y recibía 1.000: solo salían las expansiones de esas filas («hasta Stellar

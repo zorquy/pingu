@@ -3144,6 +3144,9 @@ async function tcggoEstado() {
         p.ultimoParado ? `  ⚠ ÚLTIMO PARÓN (${p.ultimoParado.fecha}): ${p.ultimoParado.motivo}` : '  sin parones apuntados',
         p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
         p.faltaMigracionKoZh ? `  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql (visto el ${p.faltaMigracionKoZh}): el coreano y el chino se están tirando; se vuelve a probar mañana` : '',
+        // Cada expansión japonesa de hoy (825): de quién es la culpa de que
+        // una se quede sin precio.
+        ...lineasDePreciosJp(p.resumenJp, de('tcggo_calco_jp')?.valor?.lista?.episodios),
       ]
     })(),
     // El calco japonés (674): expansión a expansión desde TCGGO.
@@ -3175,6 +3178,7 @@ async function tcggoEstado() {
         // Y las fundidas: creadas de nuevo cuando ya había un set nuestro (755).
         ...Object.entries(k.hechos || {}).filter(([, h]) => h?.fundidoDe).map(([id, h]) => `  ↣ fundida #${id}: ${h.fundidoDe} → ${h.set} (${h.por}; ${h.porNumero ?? 0} conservadas por número)`),
         k.ultimoError ? `  último error: #${k.ultimoError.episodio ?? '—'} ${k.ultimoError.nombre ?? ''} (${k.ultimoError.fecha}): ${k.ultimoError.error}` : '',
+        ...lineasDeErasJp(k.eras),
         k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
       ]
     })(),
@@ -3816,3 +3820,36 @@ async function loadColabora() {
 }
 
 init()
+
+// Las expansiones japonesas de la pasada de precios de hoy (825): solo las
+// que se han quedado sin precio o con menos de la mitad, y por qué.
+function lineasDePreciosJp(resumen, episodios) {
+  const filas = Object.entries(resumen || {})
+  if (!filas.length) return []
+  const nombres = new Map((episodios || []).map((e) => [String(e.id), e.nombre]))
+  const malas = filas.filter(([, x]) => !x.escritas || x.conPrecio < x.suyas / 2)
+  const porque = (x) =>
+    !x.suyas ? 'TCGGO no da ninguna carta'
+      : !x.conCm ? 'TCGGO no da el id de Cardmarket de ninguna'
+        : !x.conPrecio ? 'TCGGO no da precio de ninguna'
+          : !x.nuestras ? `nuestras cartas no tienen id de Cardmarket (${(x.sets || []).join(', ')})`
+            : !x.escritas ? 'los ids de Cardmarket no casan con los nuestros'
+              : 'TCGGO da precio de menos de la mitad'
+  return [
+    `  japonés de hoy: ${filas.length} expansiones con precio mirado · ${malas.length} sin precio o con menos de la mitad`,
+    ...malas.slice(0, 40).map(([id, x]) => `  · #${id} ${nombres.get(id) || ''}: ${porque(x)} — TCGGO ${x.suyas} cartas, ${x.conCm} con id de Cardmarket, ${x.conPrecio} con precio · nuestras ${x.nuestras} · escritas ${x.escritas}`),
+  ]
+}
+
+// Las eras del japonés según TCGGO (825).
+function lineasDeErasJp(eras) {
+  const u = eras?.ultima
+  if (!u) return ['  eras (825): todavía no se han mirado (van cuando el calco está entero, una vez al día)']
+  return [
+    `  eras (825, ${u.fecha}): ${u.sets} sets en ${(u.eras || []).length} series de TCGGO · movidos en la última pasada: ${u.movidosAhora} · quedan: ${u.quedan} · sin era: ${(u.sinEra || []).length} · respetados por estar cambiados a mano: ${(u.respetadas || []).length}`,
+    ...(u.eras || []).map((e) => `    ${e.nombre || '—'} → ${e.serie_id} (${e.sets} sets)`),
+    (u.sinEra || []).length ? `    sin serie en TCGGO ni fechas que la decidan: ${u.sinEra.join(', ')}` : '',
+    ...(eras.movidos || []).slice(0, 30).map((m) => `    ↦ ${m.id} «${m.nombre}»: ${m.de || 'sin era'} → ${m.a}${m.por === 'fecha' ? ' (por la fecha)' : ''}`),
+    eras.ultimoError ? `    ⚠ último error (${eras.ultimoError.fecha}): ${eras.ultimoError.set ? `${eras.ultimoError.set}: ` : ''}${eras.ultimoError.error}` : '',
+  ]
+}

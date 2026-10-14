@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (63) — PINGU-Claude (825 — las eras del japonés y su precio)
+
+**Hecho** (PINGU: «Expansion Pack no tiene precios, Jungle no está en la era
+de Base, sale suelto, y hay un montón de sets fuera de era»):
+- **825** Las eras del catálogo japonés salen de la SERIE de TCGGO: una vez al
+  día, cuando el calco está entero, `pasoDeEras` (`tcggo-calco-jp`) junta cada
+  serie suya en una era nuestra (`erasDeTcggo`: el `serie_id` de la mayoría,
+  gana el de una era a mano; sin serie, la era cuyas fechas lo cubren). Lo
+  movido queda apuntado con su era de antes y lo que se cambie a mano después
+  no se pisa. Los sets NUEVOS cogen la era de un hermano de su serie.
+- La pasada de precios apunta cada expansión japonesa del día (`resumenJp`) y
+  /admin dice por qué una se queda sin precio (TCGGO sin id de Cardmarket,
+  TCGGO sin precio, nuestras sin id, o no casan). Desde aquí no se ve la base
+  ni TCGGO: el porqué de Expansion Pack sale ahí.
+- El «último error» de Neo Discovery del catálogo (21000, 8 de octubre) es
+  viejo: lo arregló la 807 y la expansión se reintenta la semana que viene.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-calco-jp.mjs`,
+`netlify/functions/tcggo-catalogo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`admin/js/admin.js`, SCHEMA, CLAUDE.md. Pruebas: `test-tanda-825.mjs` y las
+del catálogo, el calco y los precios (640–674, 755–811, 817, 824), en verde.
+
+**Pendiente**: PINGU mira en /admin (estado de TCGGO) las eras movidas y las
+japonesas sin precio cuando la pasada de hoy acabe; si una serie de TCGGO
+junta lo que no debe, se coloca a mano en /admin → Colecciones y la pasada lo
+respeta.
+
 ## 2026-10-14 (62) — PINGU-Claude (813–824 — la tanda de la noche)
 
 **Hecho** (la propuesta «siguiente ronda», PINGU: «dale con todo esta noche»):

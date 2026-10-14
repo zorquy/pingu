@@ -72,7 +72,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY.
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, filaDeSetNuevo, serieDeEpisodio, setDeEpisodio, setDeEpisodioPorHuella,
-  nombreComparable, codigoComparable,
+  nombreComparable, codigoComparable, erasDeTcggo,
 } from '../lib/tcggo.mjs'
 import { procesar } from './tcggo-reemplazar-set.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
@@ -315,7 +315,7 @@ export async function pasada({
     const porHuella = /^fecha/.test(String(por))
     let setCreado = null
     if (!destino) {
-      const fila = filaDeSetNuevo(pendiente, sets.map((s) => s.id), serieDeEpisodio(pendiente, sets))
+      const fila = filaDeSetNuevo(pendiente, sets.map((s) => s.id), serieDeEpisodio(pendiente, sets, episodios))
       try {
         await crearSets([fila], MERCADO)
       } catch (e) {
@@ -429,7 +429,12 @@ export async function pasada({
   }
 
   // ── 3. Con todo hecho: los cascarones, ocho por pasada ──
-  if (estado.cascarones.listo) return { ok: true, ...resumen(), hecho: true }
+  // Y con los cascarones listos, las ERAS (825): una vez al día y gratis
+  // (solo nuestra base y la lista de TCGGO que ya está en el estado).
+  if (estado.cascarones.listo) {
+    const eras = await pasoDeEras({ pedir, estado, episodios, dia, ahora, persistir })
+    return { ok: eras.ok !== false, ...resumen(), hecho: true, eras }
+  }
   // En la vuelta entera, TODO set japonés sin `tcggo_id` se esconde, tenga
   // cartas o no (806): el catálogo japonés es el de TCGGO.
   if (entera) {
@@ -487,6 +492,50 @@ export async function pasada({
   if (!candidatos.some((s) => !estado.cascarones.vistos[s.id])) estado.cascarones.listo = true
   await persistir()
   return { ok: true, ...resumen(), cascarones: { probados: porVer.length, escondidos, listo: Boolean(estado.cascarones.listo) } }
+}
+
+// LAS ERAS (825): `erasDeTcggo` decide y esto escribe, unas pocas por
+// pasada. Lo movido se apunta con su era de antes para poder deshacerlo, y
+// lo que esta pasada pone se recuerda (`puestas`) para no pisar después lo
+// que alguien cambie a mano desde /admin → Colecciones.
+export const ERAS_POR_PASADA = 60
+export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persistir }) {
+  if (!estado.eras || typeof estado.eras !== 'object') estado.eras = {}
+  if (!estado.eras.puestas || typeof estado.eras.puestas !== 'object') estado.eras.puestas = {}
+  if (estado.eras.dia === dia) return { saltado: 'las eras ya se miraron hoy' }
+  let sets
+  try {
+    sets = (await pedir(`tcg_sets?select=id,name,name_en,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date&market=eq.${MERCADO}&oculto=is.false&tcggo_id=not.is.null&limit=1000`)) || []
+  } catch (e) {
+    estado.eras.ultimoError = { fecha: ahora.toISOString(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+    await persistir()
+    return { ok: false, error: estado.eras.ultimoError.error }
+  }
+  // Las eras colocadas a mano; sin la tabla (o sin permiso) se sigue sin ellas.
+  let aMano = new Set()
+  try {
+    aMano = new Set(((await pedir(`tcg_eras?select=id&market=eq.${MERCADO}&limit=1000`)) || []).map((e) => e.id))
+  } catch { /* sin eras a mano, decide la mayoría */ }
+  const r = erasDeTcggo(sets, episodios, { aMano, puestas: estado.eras.puestas })
+  const movidos = []
+  let fallo = null
+  for (const c of r.cambios.slice(0, ERAS_POR_PASADA)) {
+    try {
+      await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(c.id)}`, { method: 'PATCH', body: JSON.stringify(c.a) })
+    } catch (e) {
+      fallo = { fecha: ahora.toISOString(), set: c.id, error: String(e?.message || e).slice(0, 160) }
+      break
+    }
+    estado.eras.puestas[c.id] = c.a.serie_id
+    movidos.push({ id: c.id, nombre: c.nombre, de: c.de, a: c.a.serie_id, por: c.por, fecha: ahora.toISOString() })
+  }
+  const quedan = r.cambios.length - movidos.length
+  if (fallo) estado.eras.ultimoError = fallo
+  else if (!quedan) estado.eras.dia = dia
+  estado.eras.movidos = [...movidos, ...(estado.eras.movidos || [])].slice(0, 300)
+  estado.eras.ultima = { fecha: ahora.toISOString(), sets: sets.length, eras: r.eras.slice(0, 80), sinEra: r.sinEra.slice(0, 40), respetadas: r.respetadas.slice(0, 40), movidosAhora: movidos.length, quedan }
+  await persistir()
+  return { ok: !fallo, movidos: movidos.length, quedan, sinEra: r.sinEra.length, ...(fallo ? { error: fallo.error } : {}) }
 }
 
 // Lo que TCGGO dice de su expansión, para el set nuestro que la lleva.

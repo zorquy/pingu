@@ -464,12 +464,119 @@ export function idDeSetNuevo(episodio, idsNuestros) {
 // lo que cruza con `tcg_eras`). Si no, la serie es nueva y entra con su
 // slug por id y su nombre como inglés: mejor una era nueva con nombre que
 // «Sin clasificar».
-export function serieDeEpisodio(episodio, sets) {
+// Con `episodios` (la lista de TCGGO), primero la era de un HERMANO (825):
+// un set nuestro a la vista cuya expansión es de la MISMA serie de TCGGO.
+// Comparar el nombre de su serie con los de las nuestras falla en cuanto
+// los dos catálogos la llaman distinto, y entonces cada set nuevo abría su
+// propia era: Jungle suelto, fuera de la de Expansion Pack.
+export function serieDeEpisodio(episodio, sets, episodios = null) {
+  const clave = claveDeSerie(episodio)
+  if (clave && Array.isArray(episodios)) {
+    const porId = new Map(episodios.map((e) => [Number(e.id), e]))
+    const hermano = (sets || []).find((s) => !s.oculto && s.serie_id && s.tcggo_id != null && Number(s.tcggo_id) !== Number(episodio.id) && claveDeSerie(porId.get(Number(s.tcggo_id))) === clave)
+    if (hermano) return { serie_id: hermano.serie_id, serie_name: hermano.serie_name || null, serie_name_en: hermano.serie_name_en || episodio.serie || null, por: 'hermano' }
+  }
   const nombre = nombreComparable(episodio?.serie)
   if (!nombre) return null
   const nuestro = (sets || []).find((s) => [s.serie_name_en, s.serie_name].map(nombreComparable).includes(nombre) && s.serie_id)
   if (nuestro) return { serie_id: nuestro.serie_id, serie_name: nuestro.serie_name || null, serie_name_en: nuestro.serie_name_en || null, por: 'nuestra' }
   return { serie_id: episodio?.serieId || null, serie_name: null, serie_name_en: episodio.serie, por: 'nueva' }
+}
+
+// La serie de una expansión suya, como CLAVE: el slug si lo trae y si no
+// el nombre. Sin ninguna de las dos, null (no se sabe, no «otra serie»).
+export function claveDeSerie(episodio) {
+  if (episodio?.serieId) return `id:${String(episodio.serieId).toLowerCase()}`
+  const n = nombreComparable(episodio?.serie)
+  return n ? `n:${n}` : null
+}
+
+const PROMO = /\bpromos?\b/i
+const slugDe = (x) => normalizeSearch(String(x || '')).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const mismaSerie = (s, e) => (s.serie_id || null) === e.serie_id && (s.serie_name || null) === (e.serie_name || null) && (s.serie_name_en || null) === (e.serie_name_en || null)
+
+// LAS ERAS DEL JAPONÉS, COMO LAS TIENE TCGGO (825). PINGU: «Jungle no está
+// en la era de Base, sale suelto, y hay un montón de sets fuera de era». La
+// era de un set japonés se decidía UNA vez, al crearlo, comparando el NOMBRE
+// de su serie con los nuestros (`serieDeEpisodio`), y lo que no casaba
+// abría una era propia; los sets que ya existían conservaban la suya (de
+// TCGdex o de Scrydex). Así que la misma serie de TCGGO acababa repartida en
+// varias eras.
+//
+// Aquí la serie de TCGGO es la que AGRUPA, y lo nuestro solo pone el
+// identificador: cada serie suya se queda con el `serie_id` que ya lleve la
+// mayoría de sus sets —el que tenga era colocada a mano en /admin
+// (`tcg_eras`, `aMano`) gana—, de modo que lo configurado no se pierde. Dos
+// series suyas no comparten identificador (la más grande elige primero), y
+// una serie en la que ningún set tiene uno estrena `tg-<slug>`.
+//
+// Un set cuya expansión no trae serie va a la era cuyas fechas lo cubren,
+// solo si es UNA (los promos no cuentan para el tramo: siguen saliendo
+// durante años). Si no, se queda como esté y sale en `sinEra`.
+//
+// Y lo que alguien movió A MANO no se pisa: `puestas` es lo que esta pasada
+// escribió la última vez; si el set ya no lo tiene, lo ha cambiado una
+// persona (/admin → Colecciones) y se respeta.
+export function erasDeTcggo(sets, episodios, { aMano = new Set(), puestas = {} } = {}) {
+  const porId = new Map((episodios || []).map((e) => [Number(e.id), e]))
+  const grupos = new Map()
+  const sinSerie = []
+  for (const s of sets || []) {
+    if (!s || s.oculto || s.tcggo_id == null) continue
+    const e = porId.get(Number(s.tcggo_id))
+    if (!e) continue
+    const clave = claveDeSerie(e)
+    if (!clave) { sinSerie.push(s); continue }
+    if (!grupos.has(clave)) grupos.set(clave, { clave, nombre: e.serie || null, slug: slugDe(e.serieId || e.serie), sets: [] })
+    grupos.get(clave).sets.push(s)
+  }
+  const cogidos = new Set()
+  const orden = [...grupos.values()].sort((a, b) => b.sets.length - a.sets.length || a.clave.localeCompare(b.clave))
+  for (const g of orden) {
+    const cuenta = new Map()
+    for (const s of g.sets) if (s.serie_id) cuenta.set(s.serie_id, (cuenta.get(s.serie_id) || 0) + 1)
+    const candidatos = [...cuenta.entries()]
+      .filter(([id]) => !cogidos.has(id))
+      .sort((a, b) => (aMano.has(b[0]) ? 1 : 0) - (aMano.has(a[0]) ? 1 : 0) || b[1] - a[1] || a[0].localeCompare(b[0]))
+    let id = candidatos[0]?.[0] || null
+    if (!id) {
+      const base = `tg-${g.slug || 'serie'}`
+      id = base
+      for (let n = 2; cogidos.has(id); n++) id = `${base}-${n}`
+    }
+    cogidos.add(id)
+    // El nombre propio (el de TCGdex o Scrydex, a veces en español) se
+    // conserva del set que ya llevaba ese identificador; el inglés es el de
+    // TCGGO, que es quien agrupa.
+    const ref = g.sets.find((s) => s.serie_id === id && s.serie_name) || null
+    g.serie = { serie_id: id, serie_name: ref?.serie_name || null, serie_name_en: g.nombre || ref?.serie_name_en || null }
+    const fechas = g.sets.filter((s) => !PROMO.test(`${s.name || ''} ${s.name_en || ''}`)).map((s) => Date.parse(s.release_date || '')).filter(Number.isFinite)
+    g.desde = fechas.length ? Math.min(...fechas) : null
+    g.hasta = fechas.length ? Math.max(...fechas) : null
+  }
+  const destino = new Map()
+  for (const g of orden) for (const s of g.sets) destino.set(s.id, { serie: g.serie, por: 'tcggo' })
+  const sinEra = []
+  for (const s of sinSerie) {
+    const d = Date.parse(s.release_date || '')
+    const cubren = Number.isFinite(d) ? orden.filter((g) => g.desde != null && g.desde <= d && d <= g.hasta) : []
+    if (cubren.length === 1) destino.set(s.id, { serie: cubren[0].serie, por: 'fecha' })
+    else sinEra.push(s.id)
+  }
+  const cambios = []
+  const respetadas = []
+  for (const s of sets || []) {
+    const d = destino.get(s?.id)
+    if (!d || mismaSerie(s, d.serie)) continue
+    if (Object.prototype.hasOwnProperty.call(puestas, s.id) && puestas[s.id] !== (s.serie_id || null)) { respetadas.push(s.id); continue }
+    cambios.push({ id: s.id, nombre: s.name_en || s.name || s.id, de: s.serie_id || null, a: d.serie, por: d.por })
+  }
+  return {
+    cambios,
+    respetadas,
+    sinEra,
+    eras: orden.map((g) => ({ serie_id: g.serie.serie_id, nombre: g.nombre, sets: g.sets.length })),
+  }
 }
 
 export function filaDeSetNuevo(episodio, idsNuestros, serie = null) {

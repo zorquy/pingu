@@ -269,7 +269,7 @@ export async function procesar({
           const yaEsta = porTcggoId(episodio.id)[0] || setDeEpisodio(episodio, sets).set?.id || null
           proxima = { set: yaEsta, creado: false }
           if (!yaEsta) {
-            const fila = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets))
+            const fila = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets, mercado === 'JP' ? episodios : null))
             try {
               const n = Number(await crearSets([fila], mercado)) || 0
               if (n) await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(fila.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
@@ -322,7 +322,7 @@ export async function procesar({
         const r = setDeEpisodio(episodio, sets)
         if (r.set) destinos = [r.set.id]
         else if (suyas.length) {
-          setNuevo = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets))
+          setNuevo = filaDeSetNuevo(episodio, idsNuestros, serieDeEpisodio(episodio, sets, mercado === 'JP' ? episodios : null))
           try {
             setsCreados += Number(await crearSets([setNuevo], mercado)) || 0
           } catch (e) {

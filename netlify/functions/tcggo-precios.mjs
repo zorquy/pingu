@@ -99,7 +99,7 @@ export async function procesar({
   if (!Object.keys(hechosPares).length) return { ok: true, saltado: 'todavía no hay sets emparejados con TCGGO (/admin → Cartas → Emparejar con TCGGO)' }
 
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false }
+  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false, resumenJp: {} }
   if (!Array.isArray(estado.hechos)) estado.hechos = []
   if (!Array.isArray(estado.hechosJp)) estado.hechosJp = []
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
@@ -333,6 +333,13 @@ export async function procesar({
       }
       escritas += filas.length
     }
+    // Lo de cada expansión japonesa, apuntado (825): «Expansion Pack no
+    // tiene precios» no se podía contestar sin saber si TCGGO no los da, si
+    // nuestras cartas no tienen su id de Cardmarket o si no se escribió nada.
+    if (mercado === 'JP') {
+      const conPrecio = [...porProducto.values()].filter(tienePrecio).length
+      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: suyas.length, conCm: porProducto.size, conPrecio, nuestras: (cartas || []).length, escritas: filas.length, sets } }
+    }
     hechos.push(idEpisodio)
     hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: suyas.length, nuestras: (cartas || []).length, escritas: filas.length })
     await persistir()
@@ -355,6 +362,15 @@ export async function procesar({
     episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado,
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }
+}
+
+// Una carta suya trae ALGUNA cifra: un mínimo de Cardmarket en cualquier
+// idioma, una media o TCGplayer.
+export function tienePrecio(carta) {
+  const cm = carta?.prices?.cardmarket || {}
+  const tp = carta?.prices?.tcg_player || {}
+  const num = (v) => typeof v === 'number' && Number.isFinite(v) && v > 0
+  return Object.entries(cm).some(([k, v]) => /^(lowest_near_mint|30d_average|7d_average)/.test(k) && num(v)) || num(tp.market_price) || num(tp.mid_price)
 }
 
 export default async () => {

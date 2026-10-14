@@ -39832,3 +39832,44 @@ nombre es CJK (la 537) y el «inglés» era el mismo japonés.
   si no único por código; dos es «dudoso») y la carta (`cartaNuevaDe`: única
   con el mismo número). Lo escribe en `scrydex_estado.jp_lineas_viejas`, y
   /admin lo enseña. `APLICAR = false`: no reapunta nada.
+
+## Tanda 825 — Las eras del japonés como las tiene TCGGO, y por qué una expansión se queda sin precio
+
+PINGU, revisando el catálogo japonés: «Expansion Pack no tiene precios,
+Jungle no está en la era de Base, sale suelto, y hay un montón de sets fuera
+de era».
+
+- **Por qué pasaba lo de las eras.** La era de un set japonés se decidía UNA
+  vez, al crearlo, en `serieDeEpisodio`: el nombre de la serie de TCGGO contra
+  el `serie_name_en`/`serie_name` de los nuestros. Si no casaba, el set abría
+  una era propia (el slug de TCGGO, o `null` si la serie no traía slug), y los
+  sets que ya existían conservaban la de TCGdex o Scrydex. La misma serie de
+  TCGGO acababa repartida en varias eras, y nadie la volvía a mirar.
+- `netlify/lib/tcggo.mjs` → `claveDeSerie(episodio)` (el slug, o el nombre) y
+  `erasDeTcggo(sets, episodios, { aMano, puestas })`, pura: la serie de TCGGO
+  AGRUPA y lo nuestro pone el identificador. Cada serie suya toma el
+  `serie_id` de la mayoría de sus sets (gana el que tenga era a mano en
+  `tcg_eras`), dos series no comparten identificador (la más grande elige
+  primero) y una serie sin ninguno estrena `tg-<slug>`. El nombre propio se
+  conserva del set que ya llevaba ese id; el inglés es el de TCGGO. Un set
+  cuya expansión no trae serie va a la era cuyas fechas lo cubren si es UNA
+  (los promos no cuentan para el tramo); si no, `sinEra`. Lo que esta pasada
+  escribió y alguien cambió después a mano (/admin → Colecciones) se respeta:
+  `puestas` guarda lo escrito.
+- `serieDeEpisodio(episodio, sets, episodios)`: con la lista de TCGGO, un set
+  NUEVO coge primero la era de un hermano a la vista de su misma serie. Lo
+  usan el calco y `tcggo-catalogo` (solo en JP).
+- `tcggo-calco-jp` → `pasoDeEras`: cuando el calco está entero (cascarones
+  listos), una vez al día, gratis (nuestra base y la lista de TCGGO del
+  estado), hasta `ERAS_POR_PASADA` (60) PATCH por pasada. Apunta en
+  `estado.eras`: `movidos` (con la era de antes, para deshacer), `puestas`,
+  `ultima` (las series y su id, `sinEra`, `respetadas`) y `ultimoError`. Un
+  fallo no da el día por hecho.
+- `tcggo-precios`: por cada expansión japonesa del día, `resumenJp[id] =
+  { suyas, conCm, conPrecio, nuestras, escritas, sets }` (se reinicia cada
+  día; `tienePrecio` = algún mínimo o media de Cardmarket, o TCGplayer).
+  /admin (`lineasDePreciosJp`) enseña solo las que se quedan sin precio o con
+  menos de la mitad, con el porqué: TCGGO no da id de Cardmarket, TCGGO no da
+  precio, nuestras cartas no tienen el id, o los ids no casan.
+- /admin, bloque del calco: `lineasDeErasJp` (las series, lo movido, lo que
+  queda sin era).
