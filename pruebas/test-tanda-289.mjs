@@ -15,6 +15,9 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 150) : ''}`)
 }
 
+// NOTA de la tanda 845: desde aquí /usuarios pinta con el molde de la portada
+// (js/comunidad-sucesos.js): la chapa es .suc-chapa y la cara, .suc-cara.
+//
 // NOTA de la tanda 844: la portada ya no pinta este hilo —su «En la
 // comunidad» es otro molde y deja fuera las noticias, que van en su bloque—,
 // así que lo que defiende esta prueba se mira donde vive el hilo: la pestaña
@@ -50,15 +53,15 @@ console.log('\n── 1. Una noticia no se anuncia como una guía ──')
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#activityFeed .activity-item').first()
+  const fila = page.locator('#activityFeed .suc-lista li').first()
   const texto = (await fila.textContent())?.replace(/\s+/g, ' ').trim()
-  check('no dice «ha publicado la guía»', !/publicado la guía/.test(texto || ''), texto)
+  check('no dice «publicó la guía»', !/publicó la guía/.test(texto || ''), texto)
   // Desde la tanda 312 el tipo va en una CHAPA y no en un «Nueva
   // noticia:» delante del titular — cinco filas seguidas empezaban por
   // lo mismo. Lo que esta prueba defiende no era la frase, era que la
   // fila diga QUÉ es: se comprueba la chapa, que es donde vive ahora.
-  check('dice que es una noticia', (await fila.locator('.activity-tipo').count()) === 1, texto)
-  check('  …y la chapa lo dice', /^Noticia/i.test((await fila.locator('.activity-tipo').textContent()) || ''), texto)
+  check('dice que es una noticia', (await fila.locator('.suc-chapa').count()) === 1, texto)
+  check('  …y la chapa lo dice', /^Noticia/i.test((await fila.locator('.suc-chapa').textContent()) || ''), texto)
   check('con el titular', /Binder Collection/.test(texto || ''))
   // El enlace bueno es /noticias/<slug>, no el de guía.
   const href = await fila.locator('a').last().getAttribute('href')
@@ -77,10 +80,10 @@ console.log('\n── 2. Y no la firma nadie ──')
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#activityFeed .activity-item').first()
-  check('no sale el nombre de nadie', (await fila.locator('.activity-name').count()) === 0)
-  check('ni su avatar', (await fila.locator('a.activity-avatar').count()) === 0)
-  check('sino la marca de la casa', (await fila.locator('.activity-avatar-casa').count()) === 1)
+  const fila = page.locator('#activityFeed .suc-lista li').first()
+  check('no sale el nombre de nadie', (await fila.locator('.suc-quien a').count()) === 0)
+  check('ni su avatar', (await fila.locator('.suc-cara:not(.suc-cara-casa)').count()) === 0)
+  check('sino la marca de la casa', (await fila.locator('.suc-cara-casa').count()) === 1)
   await page.close()
 }
 
@@ -94,11 +97,11 @@ console.log('\n── 3. Una guía SÍ la firma quien la escribe ──')
     __FAKE_NOTICIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#activityFeed .activity-item').first()
+  const fila = page.locator('#activityFeed .suc-lista li').first()
   const texto = (await fila.textContent())?.replace(/\s+/g, ' ').trim()
-  check('sigue diciendo «ha publicado la guía»', /ha publicado la guía/.test(texto || ''), texto)
-  check('con el nombre de quien la escribió', (await fila.locator('.activity-name').count()) === 1)
-  check('y su avatar', (await fila.locator('a.activity-avatar').count()) === 1)
+  check('sigue diciendo «publicó la guía»', /publicó la guía/.test(texto || ''), texto)
+  check('con el nombre de quien la escribió', (await fila.locator('.suc-quien a').count()) === 1)
+  check('y su avatar', (await fila.locator('.suc-cara:not(.suc-cara-casa)').count()) === 1)
   const href = await fila.locator('a').last().getAttribute('href')
   // Cuál de las cinco sobra depende del orden del doble; lo que importa
   // es que la fila lleve a la guía y no a otra parte.
@@ -121,12 +124,12 @@ console.log('\n── 4. La misma noticia no sale dos veces ──')
     // comprueba igual.
     __FAKE_TEMAS__: [{ id: 'tema-1', title: 'Noticia: Se retrasa el Binder Collection' }],
   })
-  const filas = await page.locator('#activityFeed .activity-item').allTextContents()
+  const filas = await page.locator('#activityFeed .suc-lista li').allTextContents()
   const juntas = filas.join(' | ').replace(/\s+/g, ' ')
   check('solo una entrada', filas.length === 1, juntas)
   check('y es la de la noticia',
-    (await page.locator('#activityFeed .activity-tipo').count()) === 1, juntas)
-  check('no la del hilo del foro', !/ha abierto un tema/.test(juntas), juntas)
+    (await page.locator('#activityFeed .suc-chapa').count()) === 1, juntas)
+  check('no la del hilo del foro', !/abrió el tema/.test(juntas), juntas)
   await page.close()
 }
 
@@ -166,7 +169,7 @@ console.log('\n── 6. Un tema normal del foro sigue saliendo ──')
     ],
   })
   const texto = (await page.locator('#activityFeed').textContent())?.replace(/\s+/g, ' ')
-  check('con su persona delante', /ha abierto un tema en el foro/.test(texto || ''), texto)
+  check('con su persona delante', /abrió el tema/.test(texto || ''), texto)
   check('y su título', /regional/.test(texto || ''))
   await page.close()
 }

@@ -33,7 +33,11 @@ if (hay.status === 0) {
     create table public.tournaments (id uuid primary key default gen_random_uuid(), slug text, name text, status text, champion_id uuid, updated_at timestamptz not null default now());
     create table public.tcg_sets (id text, market text default 'WEST', name text, card_count_official int, primary key (id, market));
     create table public.tcg_cards (id text, market text default 'WEST', set_id text, local_id text, primary key (id, market));
-    create table public.user_collection (id uuid primary key default gen_random_uuid(), user_id uuid, card_id text, market text default 'WEST', created_at timestamptz not null default now());`])
+    create table public.user_collection (id uuid primary key default gen_random_uuid(), user_id uuid, card_id text, market text default 'WEST', cambio int not null default 0, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+    create table public.tournament_registrations (id uuid primary key default gen_random_uuid(), tournament_id uuid, user_id uuid, status text default 'active', registered_at timestamptz not null default now());
+    create table public.user_follows (follower_id uuid, following_id uuid, created_at timestamptz not null default now());
+    create table public.forum_threads (id uuid primary key default gen_random_uuid(), title text, author_id uuid, created_at timestamptz not null default now());
+    create table public.forum_posts (id uuid primary key default gen_random_uuid(), thread_id uuid, author_id uuid, body_html text default '', created_at timestamptz not null default now());`])
   check('el andamio carga', r.status === 0, r.stderr)
   r = psql(['-d', BD, '-f', join(REPO, 'supabase-migration-retos-xp.sql')])
   r = psql(['-d', BD, '-f', join(REPO, 'supabase-migration-retos-comunidad.sql')])
@@ -84,6 +88,28 @@ if (hay.status === 0) {
   check('con la colección pública: misty completó Base Set y brock también; Jungle no (le falta la 3)', col.includes('misty:Base Set') && col.includes('brock:Base Set') && !col.some((x) => x.includes('Jungle')), col.join(' '))
   check('  …lo más nuevo primero', e.every((x, i) => !i || e[i - 1].fecha >= x.fecha))
   check('  …y el límite se respeta', (json(como(null, `select public.portada_comunidad(2)`, 'anon')) || []).length === 2)
+  console.log('── Los cuatro de la 845 ──')
+  sql(`insert into tournament_registrations (tournament_id, user_id, status) select id, '${A}', 'active' from tournaments where slug = 'otono';
+    insert into tournament_registrations (tournament_id, user_id, status) select id, '${B}', 'dropped' from tournaments where slug = 'otono';
+    insert into user_follows (follower_id, following_id) values ('${A}', '${B}');
+    insert into forum_threads (id, title, author_id, created_at) values ('00000000-0000-0000-0000-00000000aaaa', '¿Qué mazo llevo?', '${A}', now() - interval '1 hour');
+    insert into forum_posts (thread_id, author_id, created_at) values
+      ('00000000-0000-0000-0000-00000000aaaa', '${A}', now() - interval '1 hour'),
+      ('00000000-0000-0000-0000-00000000aaaa', '${B}', now() - interval '50 minutes'),
+      ('00000000-0000-0000-0000-00000000aaaa', '${B}', now() - interval '40 minutes');
+    update user_collection set cambio = 1 where user_id = '${C}' and card_id in ('base1-1', 'base1-2');`)
+  e = json(como(null, `select public.portada_comunidad(60)`, 'anon')) || []
+  const t = (tipo) => e.filter((x) => x.tipo === tipo)
+  check('ash se apuntó a la Liga de otoño (y la que se dio de baja no sale)', t('inscripcion').length === 1 && t('inscripcion')[0].username === 'ash' && t('inscripcion')[0].datos.nombre === 'Liga de otoño', JSON.stringify(t('inscripcion')))
+  check('  …ash empezó a seguir a misty', t('sigue').length === 1 && t('sigue')[0].username === 'ash' && t('sigue')[0].datos.username === 'misty')
+  check('  …con el rango del seguido, para pintarle el color (la 386)', 'is_admin' in t('sigue')[0].datos && 'is_moderator' in t('sigue')[0].datos)
+  check('  …misty respondió en el tema, una sola vez aunque escribiera dos (y abrir el tema no cuenta)', t('respuesta').length === 1 && t('respuesta')[0].username === 'misty' && t('respuesta')[0].datos.titulo === '¿Qué mazo llevo?', JSON.stringify(t('respuesta')))
+  check('  …y brock tiene 2 cartas para cambiar', t('cambio').length === 1 && t('cambio')[0].datos.cartas === 2)
+  check('  …hasta 60', e.length <= 60)
+  sql(`update user_profiles set hide_activity = true where id = '${B}'`)
+  e = json(como(null, `select public.portada_comunidad(60)`, 'anon')) || []
+  check('si el seguido oculta su actividad, el «sigue a» no sale', !e.some((x) => x.tipo === 'sigue'))
+  sql(`update user_profiles set hide_activity = false where id = '${B}'`)
   sql(`update user_profiles set hide_activity = true where id = '${C}'`)
   e = json(como(null, `select public.portada_comunidad(20)`, 'anon')) || []
   check('quien oculta su actividad no sale en nada', !e.some((x) => x.username === 'brock'), e.map((x) => x.username).join(' '))

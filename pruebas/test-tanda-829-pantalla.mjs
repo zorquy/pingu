@@ -41,7 +41,7 @@ check('el mes más reciente tiene exactamente tres destacadas, cada una con su d
 // escrito es un enlace que nadie comprueba).
 const RUTAS = new Set(['/', '/foro', '/retos', '/glosario', '/cartas', '/mi-coleccion', '/feria', '/novedades', '/noticias'])
 const existe = (h) => {
-  const ruta = h.split('?')[0]
+  const ruta = h.split(/[?#]/)[0]
   if (RUTAS.has(ruta) || /^\/ilustrador\/[a-z0-9-]+$/.test(ruta)) return true
   return existsSync(`${RAIZ}${ruta.endsWith('.html') ? ruta : `${ruta}.html`}`)
 }

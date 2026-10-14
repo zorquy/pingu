@@ -163,7 +163,7 @@ console.log('\n── 3. La portada no cuenta lo mismo dos veces ──')
     // El ÚLTIMO enlace de cada fila es su destino: el primero es el
     // avatar, cuyo texto es una inicial suelta y casaría con cualquier
     // título si se comparase por trozos.
-    const enActividad = [...document.querySelectorAll('#homeActivityFeed .pb-comu li')]
+    const enActividad = [...document.querySelectorAll('#homeActivityFeed .suc-lista li')]
       .map((f) => [...f.querySelectorAll('a')].pop()?.textContent.trim())
       .filter((x) => x && x.length > 3)
     const enForo = [...document.querySelectorAll('.pb-foro-titulo, .pb-foro-fila-texto b')].map((n) => n.textContent.trim())
@@ -267,19 +267,21 @@ console.log('\n── 7. La tarjeta se mide a sí misma, no a la ventana ──'
 {
   // El dato que obliga a `@container` y no a `@media`: con la ventana en
   // 960 la misma tarjeta mide 264 px en la portada y 432 en /aprender.
-  const anchoDe = async (url, ancho) => {
+  // En /aprender la PRIMERA es la grande desde la 846 (dos pistas y la foto
+  // al lado): la que se mide es la segunda, una de las de siempre.
+  const anchoDe = async (url, ancho, sel = '.guia-tarjeta') => {
     const { page } = await abrir(url, ancho)
-    const r = await page.evaluate(() => {
-      const c = document.querySelector('.guia-tarjeta')
+    const r = await page.evaluate((sel) => {
+      const c = document.querySelector(sel)
       if (!c) return null
       const arte = c.querySelector('.guia-arte')
       return { tarjeta: Math.round(c.getBoundingClientRect().width), arte: Math.round(arte.getBoundingClientRect().height) }
-    })
+    }, sel)
     await page.close()
     return r
   }
   const portada960 = await anchoDe('/index.html', 960)
-  const aprender960 = await anchoDe('/aprender', 960)
+  const aprender960 = await anchoDe('/aprender', 960, '.ap-rejilla .guia-tarjeta:nth-child(2)')
   check('hay tarjeta en las dos', !!portada960 && !!aprender960, JSON.stringify({ portada960, aprender960 }))
   if (portada960 && aprender960) {
     // La MISMA ventana da dos anchos distintos: eso es lo que un @media

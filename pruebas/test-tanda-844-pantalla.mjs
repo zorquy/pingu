@@ -152,10 +152,10 @@ console.log('── 1. Con cuenta, en el ordenador ──')
   check('«Mes» cambia a la del mes, contigo dentro del podio («Tú»)', /desde el día 1/.test(await texto(p, '#clasificacion')) && /Tú/.test(await texto(p, '.pb-podio-2')) && !(await p.locator('.pb-clas-tu').count()))
 
   console.log('  · En la comunidad')
-  const comu = await p.$$eval('.pb-comu li', (xs) => xs.map((x) => x.innerText.replace(/\s+/g, ' ')))
+  const comu = await p.$$eval('.suc-lista li', (xs) => xs.map((x) => x.innerText.replace(/\s+/g, ' ')))
   check('los sucesos nuevos: seis retos, mazo, torneo y colección', ['hizo los seis retos del día', 'compartió su mazo Charizard ex', 'ganó el torneo Liga de otoño', 'completó Base Set'].every((t) => comu.some((x) => x.includes(t))), comu.join(' / '))
   check('  …seis como mucho, en la columna ancha', comu.length <= 6 && (await p.locator('.portada-principal #homeActivity').count()) === 1)
-  const enlaces = await p.$$eval('.pb-comu a[href]', (xs) => xs.map((x) => x.getAttribute('href')))
+  const enlaces = await p.$$eval('.suc-lista a[href]', (xs) => xs.map((x) => x.getAttribute('href')))
   const existe = (h) => { const r = h.split('?')[0]; return ['/torneo', '/usuarios.html'].includes(r) || r.startsWith('/usuario/') || r.startsWith('/guia/') || r.startsWith('/tema/') || existsSync(`${RAIZ}${r.endsWith('.html') ? r : `${r}.html`}`) }
   check('  …y cada enlace lleva a una página que existe', enlaces.length > 0 && enlaces.every(existe), enlaces.filter((h) => !existe(h)).join(' '))
   check('  …las noticias no se cuelan (van en su bloque)', !comu.some((x) => /Mew RGB/.test(x)))
@@ -166,7 +166,7 @@ console.log('── 2. Sin las funciones de la 844 (la migración sin correr) �
 {
   const { p, ctx, errores } = await abrir({ clas: null, suc: null })
   check('la clasificación no sale (no se sabe, no «nadie»), y la portada sigue sin errores', !(await p.locator('#clasificacionSeccion').isVisible()) && !errores.length, errores.join(' | '))
-  check('  …y la comunidad sale con lo de siempre', (await p.locator('.pb-comu li').count()) > 0 && !(await texto(p, '.pb-comu')).includes('Charizard ex'))
+  check('  …y la comunidad sale con lo de siempre', (await p.locator('.suc-lista li').count()) > 0 && !(await texto(p, '.suc-lista')).includes('Charizard ex'))
   await ctx.close()
 }
 

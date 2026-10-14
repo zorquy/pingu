@@ -219,13 +219,14 @@ console.log('\n── 4. La actividad no repite la misma palabra ni el mismo ico
     semillas: { ...SEMILLA, __FAKE_NOTICIAS__: [1, 2, 3].map((i) => ({ id: `n${i}`, slug: `n${i}`, title: `Noticia ${i}`, description: 'x' })) },
   })
   const r = await page.evaluate(() => {
-    const filas = [...document.querySelectorAll('.activity-item')]
+    // Desde la 845, el molde de la portada (js/comunidad-sucesos.js).
+    const filas = [...document.querySelectorAll('.suc-lista li')]
     return filas.map((f) => ({
-      chapa: f.querySelector('.activity-tipo')?.textContent.trim() || null,
+      chapa: f.querySelector('.suc-chapa')?.textContent.trim() || null,
       // El icono de tipo a la derecha solo aporta cuando a la izquierda
       // hay la cara de una persona.
       iconos: f.querySelectorAll('svg').length,
-      deLaCasa: !!f.querySelector('.activity-avatar-casa'),
+      deLaCasa: !!f.querySelector('.suc-cara-casa'),
       empieza: (f.querySelector('p')?.textContent || '').trim().slice(0, 14),
     }))
   })
@@ -285,7 +286,7 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
   // Si mañana alguien mete un botón de verdad en uno de esos sitios,
   // esta prueba no lo verá: por eso se lee aquí en vez de esconderse.
   const EXENTOS = /pie-enlace|footer-links|com-persona-nombre|guia-tarjeta-enlace/
-  const EN_HILO = '.activity-item, .activity-list'
+  const EN_HILO = '.suc-lista li, .suc-lista'
   const cortos = new Map()
   let medidos = 0
   for (const ruta of ['/index.html', '/aprender', '/foro', '/usuarios', '/torneos', '/perfil', '/mis-partidas', '/noticias']) {
