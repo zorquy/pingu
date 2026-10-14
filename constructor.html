@@ -141,64 +141,73 @@
       <!-- ── El mazo ── -->
       <section class="cm-panel cm-panel-mazo" aria-labelledby="cmTituloMazo">
         <h2 class="sr-only" id="cmTituloMazo">Tu mazo</h2>
-        <div class="cm-barra">
-          <label class="sr-only" for="cmNombre">Nombre del mazo</label>
-          <input id="cmNombre" class="cm-nombre" type="text" maxlength="80" placeholder="Mazo sin nombre" autocomplete="off" />
-          <div class="cm-acciones">
-            <button type="button" class="btn-primary cm-btn" id="cmGuardar">Guardar</button>
-            <button type="button" class="btn-secondary cm-btn" id="cmDeshacer" disabled title="Deshacer el último cambio">Deshacer</button>
-            <button type="button" class="btn-secondary cm-btn" id="cmProbar" title="Jugar partidas de prueba con este mazo y ver las probabilidades de robo">Probar</button>
-            <div class="cm-menu">
-              <button type="button" class="btn-secondary cm-btn" id="cmBtnCompartir" aria-haspopup="true" aria-expanded="false">Compartir</button>
-              <div class="cm-menu-lista hidden" id="cmMenuCompartir" role="menu">
-                <button type="button" role="menuitem" data-accion="enlace">Copiar enlace del mazo</button>
-                <button type="button" role="menuitem" data-accion="tcglive">Copiar para TCG Live</button>
-                <button type="button" role="menuitem" data-accion="imagen">Descargar imagen de la lista</button>
-                <button type="button" role="menuitem" data-accion="decklist">Imprimir decklist oficial</button>
-              </div>
-            </div>
-            <div class="cm-menu">
-              <button type="button" class="btn-secondary cm-btn" id="cmBtnHerramientas" aria-haspopup="true" aria-expanded="false">Herramientas</button>
-              <div class="cm-menu-lista hidden" id="cmMenuHerramientas" role="menu">
-                <button type="button" role="menuitem" data-accion="importar">Importar una lista</button>
-                <button type="button" role="menuitem" data-accion="importar-imagen">Importar desde una imagen</button>
-                <button type="button" role="menuitem" data-accion="laboratorio">Laboratorio de pruebas</button>
-                <button type="button" role="menuitem" data-accion="nuevo">Empezar un mazo nuevo</button>
-                <button type="button" role="menuitem" data-accion="vaciar">Vaciar el mazo</button>
-              </div>
-            </div>
+        <!-- La cabecera del mazo (837): el anillo de 60, el nombre y sus
+             chapas, sobre el color de su Pokémon principal. -->
+        <div class="cm-hero" id="cmHero">
+          <span class="cm-hero-arte" id="cmHeroArte" aria-hidden="true"></span>
+          <p class="cm-total" id="cmTotal"><strong>0</strong>/60 cartas</p>
+          <div class="cm-hero-texto">
+            <label class="sr-only" for="cmNombre">Nombre del mazo</label>
+            <input id="cmNombre" class="cm-nombre" type="text" maxlength="80" placeholder="Mazo sin nombre" autocomplete="off" />
+            <p class="cm-hero-chapas">
+              <span class="cm-hero-chapa" id="cmChapaFormato">Estándar</span>
+              <span class="cm-hero-chapa hidden" id="cmChapaPublico">Privado</span>
+              <span class="cm-coste hidden" id="cmCoste" aria-live="polite"><button type="button" class="link-btn" id="cmCosteBoton">¿Cuánto me falta para montarlo?</button></span>
+              <span class="cm-guardado" id="cmEstadoGuardado" aria-live="polite"></span>
+            </p>
           </div>
         </div>
 
-        <div class="cm-ajustes">
-          <label class="cm-campo">Formato
-            <select id="cmFormato">
-              <option value="standard">Estándar</option>
-              <option value="expanded">Expandido</option>
-              <option value="libre">Libre (sin reglas de formato)</option>
-            </select>
-          </label>
-          <label class="cm-check hidden" id="cmPublicoCampo">
-            <input type="checkbox" id="cmPublico" />
-            Público (lo ve quien tenga el enlace)
-          </label>
-          <span class="cm-guardado subtext" id="cmEstadoGuardado" aria-live="polite"></span>
-          <!-- Aquí y no en la fila del recuento: en esa fila no cabía y
-               bajaba a una línea propia, que era mazo que no se veía. -->
-          <div class="cm-vistas" role="group" aria-label="Cómo ver el mazo">
-            <button type="button" class="cm-vista activa" data-modo="rejilla" aria-pressed="true">Cartas</button>
-            <button type="button" class="cm-vista" data-modo="lista" aria-pressed="false">Lista</button>
+        <div class="cm-acciones" id="cmAcciones">
+          <button type="button" class="btn-primary cm-btn cm-guardar" id="cmGuardar">Guardar</button>
+          <button type="button" class="btn-secondary cm-btn cm-solo-movil" id="cmAnadirMovil" aria-label="Añadir cartas"><span data-icono="search"></span></button>
+          <button type="button" class="btn-secondary cm-btn" id="cmProbar" aria-label="Probar" title="Jugar partidas de prueba con este mazo y ver las probabilidades de robo"><span data-icono="gamepad"></span><span class="cm-btn-texto">Probar</span></button>
+          <div class="cm-menu">
+            <button type="button" class="btn-secondary cm-btn" id="cmBtnCompartir" aria-label="Compartir" aria-haspopup="true" aria-expanded="false"><span data-icono="share"></span><span class="cm-btn-texto">Compartir</span></button>
+            <div class="cm-menu-lista hidden" id="cmMenuCompartir" role="menu">
+              <button type="button" role="menuitem" data-accion="enlace">Copiar enlace del mazo</button>
+              <button type="button" role="menuitem" data-accion="tcglive">Copiar para TCG Live</button>
+              <button type="button" role="menuitem" data-accion="imagen">Descargar imagen de la lista</button>
+              <button type="button" role="menuitem" data-accion="decklist">Imprimir decklist oficial</button>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary cm-btn cm-icono" id="cmDeshacer" disabled aria-label="Deshacer" title="Deshacer el último cambio"><span data-icono="refreshCw"></span></button>
+          <div class="cm-menu">
+            <button type="button" class="btn-secondary cm-btn cm-icono" id="cmBtnHerramientas" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false"><span data-icono="moreHorizontal"></span></button>
+            <div class="cm-menu-lista cm-menu-mas hidden" id="cmMenuHerramientas">
+              <button type="button" data-accion="importar">Importar una lista</button>
+              <button type="button" data-accion="importar-imagen">Importar desde una imagen</button>
+              <button type="button" data-accion="laboratorio">Laboratorio de pruebas</button>
+              <button type="button" data-accion="nuevo">Empezar un mazo nuevo</button>
+              <button type="button" data-accion="vaciar">Vaciar el mazo</button>
+              <!-- Lo que no se toca a cada rato (837): el formato y si es público. -->
+              <div class="cm-ajustes">
+                <label class="cm-campo">Formato
+                  <select id="cmFormato">
+                    <option value="standard">Estándar</option>
+                    <option value="expanded">Expandido</option>
+                    <option value="libre">Libre (sin reglas de formato)</option>
+                  </select>
+                </label>
+                <label class="cm-check hidden" id="cmPublicoCampo">
+                  <input type="checkbox" id="cmPublico" />
+                  Público (lo ve quien tenga el enlace)
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="cm-resumen">
-          <p class="cm-total" id="cmTotal"><strong>0</strong>/60 cartas</p>
           <p class="cm-reparto subtext" id="cmReparto"></p>
-          <p class="cm-coste subtext hidden" id="cmCoste" aria-live="polite"><button type="button" class="link-btn" id="cmCosteBoton">¿Cuánto me falta para montarlo?</button></p>
           <!-- El sello abre la lista de avisos, que flota encima del mazo:
                si fuera una lista fija, cada aviso nuevo empujaría las
                cartas hacia abajo mientras se construye. -->
           <button type="button" class="cm-sello" id="cmSello" aria-expanded="false" aria-controls="cmProblemas" disabled></button>
+          <div class="cm-vistas" role="group" aria-label="Cómo ver el mazo">
+            <button type="button" class="cm-vista activa" data-modo="rejilla" aria-pressed="true">Cartas</button>
+            <button type="button" class="cm-vista" data-modo="lista" aria-pressed="false">Lista</button>
+          </div>
           <ul class="cm-problemas hidden" id="cmProblemas"></ul>
         </div>
 

@@ -4,6 +4,63 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (74) — PINGU-Claude (836–840 — «Jugar» rehecho: mazos, constructor, partidas, torneos y títulos)
+
+**Hecho** (PINGU vio la propuesta con imágenes de las cuatro pantallas y: «me
+gusta, dale»; Mis 9 cartas sigue aparcada —de volver, iría en la Vitrina del
+perfil, que ya son cartas elegidas por ti—):
+- **836 /mazos**: cada mazo con su portada del color de su tipo, la chapa de
+  estado («Faltan 8 para 60», «Sobran 2», «60/60 · legal» o «revisar», con la
+  regla de reimpresión), su récord en Mis partidas (`match_log.user_deck_id`,
+  la 627), la barra Pokémon/Entrenadores/Energías y lo que te falta, que ya no
+  se pregunta: sale solo para todos los mazos con TRES consultas
+  (`costeDeVarias` en `coste-mazo.js`, que comparte `resumenDeCoste`). Primero
+  el que más juegas. Portada, Duplicar y Borrar van en «⋯». Sin mazos, «Monta
+  tu primer mazo» con tres caminos (cero, pegar lista, copiar del meta, con los
+  tres del meta en el abanico). El CSS de /mazos sale de `constructor.css` a
+  `css/mazos.css`.
+- **837 constructor**: cabecera con el anillo de 60 en grande, el nombre y sus
+  chapas (formato, público, lo que te falta, guardado) sobre el color y el
+  dibujo del Pokémon con más copias. Acciones en una fila: Guardar, Probar,
+  Compartir, Deshacer y «⋯» (las herramientas, y debajo el formato y si es
+  público). En el móvil la fila va pegada abajo ENCIMA de la burbuja de Jugar
+  (y baja con ella cuando las barras se esconden), con «Añadir cartas»; las
+  cartas, tres por fila con el − y el + debajo (con 44 px no caben cuatro). El
+  número de copias, en un círculo en la esquina. `?importar=1` abre «Importar
+  una lista» (lo usa /mazos).
+- **838 Mis partidas**: arriba, el resumen de todo lo jugado (anillo de
+  victorias con la cuenta de siempre, V-D-E, partidas, torneos, tus últimas 10
+  y tu mazo más jugado). Cada torneo con su fecha en grande y de dónde viene
+  (PokeDoc o apuntado). Los filtros de Torneos y de Sueltas, tras «Filtrar».
+- **839 Torneos**: fuera «Mis partidas» y «Constructor» de la cabecera (están en
+  Jugar y en la burbuja); las tarjetas sin imagen, con la franja corta (64 px
+  en vez de 112 de degradado vacío); la barra del torneo en juego, con las
+  rondas en pastillas.
+- **840 títulos**: `.page-header`, `.category-header` y el de Torneos, a 600 y
+  sin apretar, como la cabecera común.
+
+**Ficheros**: NUEVOS `css/mazos.css`, `js/mazos-nucleo.js`. Tocados
+`mazos.html`, `js/mazos.js`, `js/coste-mazo.js`, `constructor.html`,
+`js/constructor.js`, `css/constructor.css`, `mis-partidas.html`,
+`js/mis-partidas.js`, `css/partidas.css`, `torneos.html`,
+`js/torneos/torneos.js`, `css/torneos.css`, `css/components.css`,
+`novedades.json`, `SCHEMA.md`. En `pruebas`: `test-tanda-836-pantalla.mjs`
+(nueva) y al día 251, 413, 628 y 798.
+
+**Para IBAI**: he tocado `js/torneos/torneos.js` (una clase en la tarjeta y
+las pastillas de rondas en la barra en juego) y `css/torneos.css`; nada de la
+lógica de torneos ni de `ronda.js`/`jornadas.js`.
+
+**Pruebas**: suite entera en cuatro carriles: 451 verdes y 6 rojos, mirados uno a
+uno. Dos eran míos (un 6 px en `mazos.css` y la 310, que medía un campo que
+ahora va tras «Filtrar») y están arreglados y en verde. 493 y 514 piden
+`ffprobe` y 834 `qpdf`, que este contenedor no tiene; la 748 (el salto de la
+lateral en Álbumes) falla IGUAL sin mis cambios —lo he comprobado con el
+árbol limpio—, así que viene de antes. La nueva `test-tanda-836-pantalla.mjs`,
+verde. Portada: 149,2 KB de 170.
+
+**Pendiente**: nada en curso.
+
 ## 2026-10-14 (73) — PINGU-Claude (835 — los retos diarios, nuevos de arriba abajo)
 
 **Hecho** (PINGU: «más visual, esto es una mierda ahora mismo», «abres,

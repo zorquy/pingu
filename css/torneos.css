@@ -17,8 +17,8 @@
 .torneos-heroe-texto { min-width: 0; }
 .torneos-heroe h1 {
   font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.4rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: 0;
   line-height: 1.1;
   margin: 0;
 }
@@ -44,9 +44,8 @@
     padding: 24px 0 16px;
   }
   .torneos-heroe-acciones { margin-left: 0; }
-  /* Los dos botones a mitad y mitad: en un móvil estrecho, si no, el
-     segundo cae solo a una línea y queda huérfano. */
-  .torneos-heroe-acciones > * { flex: 1; text-align: center; }
+  /* Desde la 839 queda uno solo («Crear torneo»): a su tamaño, no a lo ancho. */
+  .torneos-heroe-acciones > * { text-align: center; }
 }
 
 /* ── La barra del torneo que estás jugando AHORA (tanda 297) ──
@@ -3516,3 +3515,17 @@ html.torneo-jugando #torneoNombre {
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgb(0 0 0 / 35%));
 }
+
+/* Sin imagen, la franja de color se queda en lo justo para colgar la
+   fecha: 112 px de degradado vacío hacían cada tarjeta enorme en el móvil
+   (839). Con imagen, sigue siendo la portada entera. */
+.torneo-tarjeta-sin-imagen .torneo-arte { height: 64px; padding: var(--e-sm) var(--e-md); }
+/* …y las chapas se apartan a la derecha de la fecha, que cuelga encima. */
+.torneo-tarjeta-sin-imagen .torneo-arte-chapas { padding-left: 64px; }
+
+/* Las rondas del torneo en juego, en pastillas: hechas, la de ahora y las
+   que quedan. */
+.torneo-vivo-rondas { display: flex; gap: var(--e-xs); margin: var(--e-xs) 0 2px; }
+.torneo-vivo-rondas i { width: 28px; height: 6px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.28); }
+.torneo-vivo-rondas i.hecha { background: #4ade80; }
+.torneo-vivo-rondas i.ahora { background: var(--blanco-fijo); }

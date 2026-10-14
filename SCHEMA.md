@@ -40309,3 +40309,60 @@ con un botón a registrarse en el panel final.
 149,2 KB, quedan 20,8. Y una trampa de la tanda: la leyenda del calendario
 usaba `.rt-dia` para sus muestras, así que «los 60 días» eran 63 para quien
 los contara con un selector; la leyenda va con `.rt-ley`.
+
+## Tandas 836–840 — «Jugar» rehecho
+
+Propuesta con imágenes y PINGU: «me gusta, dale». Las cuatro pantallas de la
+sección que más atrás se habían quedado.
+
+**836 /mazos.** Lo puro va en `js/mazos-nucleo.js` (`estadoDelMazo`,
+`textoDeRecord`, `ordenarMazos`, `tipoDelMazo`, `reparto`), aparte de la
+página porque `js/mazos.js` arranca solo al importarlo. Para la chapa se
+piden TODAS las cartas de todos los mazos (`cartasPorIds`, en tandas de 100),
+`marcasLegales()` y la reimpresión legal de las cartas con marca vieja, y se
+pasa `validarMazo`; mientras no tenga 60 no se habla de legal (se dice lo que
+falta o lo que sobra). El récord sale de `match_log` con `user_deck_id` (la
+627): solo las partidas que se apuntaron con ESE mazo guardado; sin la
+columna, la consulta falla y no se pinta nada. Lo que te falta ya no es un
+botón: `costeDeVarias(listas, userId)` junta los nombres de todos los mazos y
+hace las mismas tres consultas que `costeDeResueltas` una sola vez
+(`tengoYBarata`), y luego un `resumenDeCoste` por mazo. El color de la portada
+es la paleta de identidad de /meta (`--tipo-energia` por `data-tipo`). «⋯» es
+un `<details>`: se cierra al tocar fuera, con Escape, y al elegir; el foco
+vuelve a su `summary` al cerrar la ventana de portada. El CSS de /mazos se
+mudó a `css/mazos.css` (solo lo carga /mazos; las clases `cm-mazo-*` y
+`cm-portada-*` no las pinta nadie más, comprobado a mano).
+
+**837 constructor.** La cabecera (`#cmHero`) pinta el Pokémon con más copias
+(`pintarHero`, que solo cambia la imagen cuando cambia ese Pokémon: repintarla
+a cada «+» la haría parpadear) y las chapas (`pintarChapas`, en cada
+`pintarMazo` y al cambiar guardado/público). `#cmTotal` sube a la cabecera y
+se dibuja como anillo grande: la cifra en el `strong`, «de 60» en el `::after`
+y el texto «/60 cartas» sigue en el nodo para el lector de pantalla. El
+formato y «Público» viven dentro de «⋯» (`#cmMenuHerramientas`, que deja de
+ser `role="menu"` porque ya no solo tiene acciones): un clic en el menú que no
+sea `[data-accion]` hace `stopPropagation` para no cerrarlo. En el móvil
+`.cm-panel-mazo` es una columna y `.cm-acciones` va `order: 99` y `sticky` a
+`bottom: 150px + safe-area` (encima de la burbuja de Jugar, que está a 88 y
+mide ~54); con las barras escondidas baja lo mismo que la burbuja. Tres cartas
+por fila por debajo de 600 px: el − y el + miden 44 y van DEBAJO, así que cuatro
+no caben (la regla de los 44 manda sobre la maqueta). `?importar=1` se lee al
+principio de `iniciar()` porque `?nuevo=1` limpia la dirección con
+`replaceState` antes de llegar al final.
+
+**838 Mis partidas.** `pintarHero(todas.filter(seJugo))` en cada `repintar`,
+SIN los filtros de Estadísticas (es lo que se ve al entrar) y con `porcentaje`
+(empate = media victoria, la 628). Los filtros de Torneos y Sueltas se pliegan
+tras «Filtrar» (`#torneoFiltrar`, `#listaFiltrar`); los de Estadísticas no,
+que ahí son la herramienta.
+
+**839 Torneos.** `torneo-tarjeta-sin-imagen` deja la franja en 64 px (la
+prueba de la 15 pide que siga siendo una tarjeta: franja > 40 y alto > 200) y
+las chapas se apartan a la derecha de la fecha. La barra en juego dibuja las
+rondas (`swiss_rounds`) en pastillas.
+
+**840 títulos.** La «otra letra» era el grosor: `.page-header h1`,
+`.category-header h1` y `.torneos-heroe h1` iban a 800 con `letter-spacing`
+negativo; ahora 600 y 0, como `.cabecera-pagina h1`. Las páginas con las dos
+clases (Mis partidas, Guardados) se quedaban con la de `.page-header` por ir
+después en la hoja.

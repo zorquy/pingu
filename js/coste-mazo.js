@@ -49,16 +49,20 @@ export async function costeDeLista(lista, userId) {
   return costeDeResueltas(resueltas, userId)
 }
 
-// Con las cartas ya en la mano ({ linea: { n }, carta }): el constructor no
-// tiene que volver a resolver lo que ya resolvió.
-export async function costeDeResueltas(resueltas, userId) {
+// Lo que pide una lista por nombre (las energías básicas fuera).
+function pideDe(resueltas) {
   const pide = new Map()
   for (const { linea, carta } of resueltas) {
     if (!carta?.name_key || esEnergiaBasica(carta)) continue
     const antes = pide.get(carta.name_key)
     pide.set(carta.name_key, { n: (antes?.n || 0) + linea.n, nombre: nombreDeCarta(carta), carta: antes?.carta || carta })
   }
-  const claves = [...pide.keys()]
+  return pide
+}
+
+// Lo que tienes y la impresión más barata de cada nombre, en tres consultas
+// para todos los nombres a la vez (/mazos lo pide para todos tus mazos).
+async function tengoYBarata(claves, userId) {
   const impresiones = await enTrozos(claves, (t) => supabase.from('tcg_cards').select('id,name_key,market').eq('market', 'WEST').in('name_key', t).limit(3000))
   const claveDe = new Map(impresiones.map((c) => [c.id, c.name_key]))
   const ids = [...claveDe.keys()]
@@ -78,7 +82,23 @@ export async function costeDeResueltas(resueltas, userId) {
     if (!k || !precio) continue
     if (!barata.has(k) || precio < barata.get(k).precio) barata.set(k, { id: p.card_id, precio })
   }
+  return { tengo, barata }
+}
+
+// Con las cartas ya en la mano ({ linea: { n }, carta }): el constructor no
+// tiene que volver a resolver lo que ya resolvió.
+export async function costeDeResueltas(resueltas, userId) {
+  const pide = pideDe(resueltas)
+  const { tengo, barata } = await tengoYBarata([...pide.keys()], userId)
   return resumenDeCoste(pide, tengo, barata)
+}
+
+// Varias listas de una vez (836): un resumen por lista, en su orden.
+export async function costeDeVarias(listas, userId) {
+  const pides = listas.map(pideDe)
+  const claves = [...new Set(pides.flatMap((p) => [...p.keys()]))]
+  const { tengo, barata } = await tengoYBarata(claves, userId)
+  return pides.map((p) => resumenDeCoste(p, tengo, barata))
 }
 
 // «Apuntar las que faltan en La quiero», de golpe: la impresión más barata

@@ -1,0 +1,384 @@
+/* /mazos (836): cada mazo con su portada del color de su tipo, si es
+   legal, cómo te va con él y lo que te falta. El porqué, en SCHEMA. */
+.mz-cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--e-md); flex-wrap: wrap; margin-bottom: var(--e-lg); }
+.mz-cabecera h1 { margin: 0; }
+.mz-cabecera .subtext { margin: var(--e-xs) 0 0; }
+.mz-botones { display: flex; gap: var(--e-sm); flex-wrap: wrap; }
+.mz-botones .cm-btn { display: inline-flex; align-items: center; gap: var(--e-sm); min-height: 44px; }
+
+.cm-mazos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--e-md);
+}
+
+.cm-mazo-tarjeta {
+  --tipo-energia: var(--navy-solid);
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.cm-mazo-tarjeta:hover {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-mazo-tarjeta { transition: none; }
+}
+
+/* Los colores de tipo son los de /meta (la paleta de identidad). */
+.cm-mazo-tarjeta[data-tipo='Grass'] { --tipo-energia: #4faa5a; }
+.cm-mazo-tarjeta[data-tipo='Fire'] { --tipo-energia: #e8564a; }
+.cm-mazo-tarjeta[data-tipo='Water'] { --tipo-energia: #3aa2dd; }
+.cm-mazo-tarjeta[data-tipo='Lightning'] { --tipo-energia: #e9c227; }
+.cm-mazo-tarjeta[data-tipo='Psychic'] { --tipo-energia: #a06bc4; }
+.cm-mazo-tarjeta[data-tipo='Fighting'] { --tipo-energia: #c8722f; }
+.cm-mazo-tarjeta[data-tipo='Darkness'] { --tipo-energia: #3d4a57; }
+.cm-mazo-tarjeta[data-tipo='Metal'] { --tipo-energia: #8c9aa5; }
+.cm-mazo-tarjeta[data-tipo='Fairy'] { --tipo-energia: #e07bb0; }
+.cm-mazo-tarjeta[data-tipo='Dragon'] { --tipo-energia: #b59433; }
+
+/* La portada: el color del tipo y, a la derecha, la ilustración de la
+   carta, que se funde hacia la izquierda. */
+.cm-mazo-portada {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tipo-energia) 70%, #000), var(--tipo-energia));
+}
+
+.cm-mazo-portada img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 78%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  transform: scale(1.25);
+  transform-origin: 50% 26%;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%);
+  mask-image: linear-gradient(90deg, transparent, #000 40%);
+}
+
+.cm-mazo-portada::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.45), transparent 45%);
+  pointer-events: none;
+}
+
+.cm-mazo-portada-chip {
+  position: absolute;
+  top: var(--e-md);
+  left: var(--e-md);
+  z-index: 1;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.cm-mazo-portada-nombre {
+  position: absolute;
+  left: var(--e-md);
+  right: var(--e-md);
+  bottom: var(--e-sm);
+  z-index: 1;
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cm-mazo-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  min-width: 0;
+  flex: 1;
+}
+
+.cm-mazo-nombre {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-lg);
+  line-height: 1.25;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cm-mazo-nombre:hover { color: var(--navy); }
+
+.cm-mazo-chapas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.mz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mz-chip-ok { background: var(--success-bg); color: var(--success); }
+.mz-chip-aviso { background: var(--warning-bg); color: var(--warning); }
+.mz-chip-mal { background: var(--danger-bg); color: var(--danger); }
+.mz-record b { color: var(--text); }
+
+/* Pokémon, Entrenadores y Energías, en una barra. */
+.mz-barra { display: flex; height: 8px; border-radius: var(--radius-sm); overflow: hidden; background: var(--border); }
+.mz-barra i { display: block; height: 100%; }
+.mz-barra .mz-p, .mz-leyenda .mz-p::before { background: var(--arte-rosa); }
+.mz-barra .mz-t, .mz-leyenda .mz-t::before { background: var(--arte-cian); }
+.mz-barra .mz-e, .mz-leyenda .mz-e::before { background: var(--arte-ambar); }
+.mz-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-md); margin: 0; font-size: var(--t-xs); color: var(--text-mid); }
+.mz-leyenda span::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: var(--e-xs); }
+
+.cm-mazo-meta { font-size: var(--t-xs); margin: 0; }
+
+.cm-mazo-pie {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
+.cm-mazo-coste { flex: 1; min-width: 0; margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.cm-mazo-coste b { color: var(--warning); }
+.cm-mazo-coste.entero b { color: var(--success); }
+
+.cm-mazo-pie .cm-btn { min-height: 44px; padding: 0 var(--e-md); font-size: var(--t-sm); }
+
+/* «⋯»: lo que no se toca a cada rato. */
+.cm-mazo-mas { position: relative; }
+.cm-mazo-mas summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; padding: 0; }
+.cm-mazo-mas summary::-webkit-details-marker { display: none; }
+.cm-mazo-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--e-xs));
+  z-index: 5;
+  display: grid;
+  min-width: 200px;
+  padding: var(--e-xs);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.cm-mazo-menu > * {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--t-sm);
+  text-align: left;
+}
+
+.cm-mazo-menu > *:hover,
+.cm-mazo-menu > *:focus-visible { background: var(--bg); }
+.cm-mazo-menu .cm-mazo-borrar { color: var(--danger); }
+
+/* Sin mazos: tres caminos, con los mazos del meta a la vista. */
+.mz-vacio {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--e-xl);
+  align-items: center;
+  padding: var(--e-xl) var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.mz-vacio h2 { margin: 0 0 var(--e-sm); font-size: var(--t-xl); }
+.mz-vacio p { margin: 0; color: var(--text-mid); }
+.mz-abanico { position: relative; height: 200px; }
+.mz-abanico-carta {
+  --tipo-energia: var(--navy-solid);
+  position: absolute;
+  left: 50%;
+  top: var(--e-sm);
+  width: 112px;
+  aspect-ratio: 245 / 342;
+  display: grid;
+  place-items: center;
+  padding: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: linear-gradient(160deg, #f8e27a, #d9b43a);
+  box-shadow: var(--shadow-lg);
+}
+
+.mz-abanico-carta span {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tipo-energia) 65%, #000), var(--tipo-energia));
+  color: var(--blanco-fijo);
+}
+
+.mz-abanico-carta img { width: 84px; height: 84px; image-rendering: pixelated; }
+.mz-abanico-carta:nth-child(1) { transform: translateX(-110%) rotate(-12deg); }
+.mz-abanico-carta:nth-child(2) { transform: translateX(-50%); top: 0; z-index: 1; }
+.mz-abanico-carta:nth-child(3) { transform: translateX(10%) rotate(12deg); }
+
+.mz-caminos { display: grid; gap: var(--e-sm); margin-top: var(--e-md); }
+.mz-camino {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 64px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.mz-camino:hover { border-color: var(--navy); }
+.mz-camino-icono { flex-shrink: 0; width: 40px; height: 40px; border-radius: var(--radius-md); display: grid; place-items: center; background: var(--navy-solid); color: var(--blanco-fijo); }
+.mz-camino-icono.cian { background: var(--arte-cian); }
+.mz-camino-icono.rosa { background: var(--arte-rosa); }
+.mz-camino-texto { flex: 1; min-width: 0; }
+.mz-camino-texto b { display: block; }
+.mz-camino-texto small { color: var(--text-mid); }
+.mz-sprites { display: flex; flex-shrink: 0; }
+.mz-sprites img { width: 40px; height: 40px; margin-left: -8px; }
+
+@media (max-width: 700px) {
+  .mz-vacio { grid-template-columns: 1fr; gap: var(--e-sm); padding: var(--e-lg) var(--e-md); text-align: center; }
+  .mz-camino { text-align: left; }
+  .mz-abanico { height: 168px; }
+  .mz-abanico-carta { width: 96px; }
+  .mz-abanico-carta img { width: 72px; height: 72px; }
+}
+
+/* ── Elegir la portada ── */
+.cm-portada-modal {
+  max-width: 760px;
+  gap: var(--e-sm);
+}
+
+.cm-portada-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.cm-portada-cabecera h3 {
+  margin: 0;
+}
+
+.cm-portada-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-sm);
+}
+
+.cm-portada-rejilla:empty {
+  display: none;
+}
+
+/* En el móvil, tres por fila: a dos, las cartas del mazo ocupaban la
+   pantalla entera y el buscador se quedaba fuera de la vista. */
+@media (max-width: 480px) {
+  .cm-portada-rejilla { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+}
+
+.cm-portada-rejilla > .subtext {
+  grid-column: 1 / -1;
+}
+
+.cm-portada-opcion {
+  position: relative;
+  display: block;
+  aspect-ratio: 245 / 342;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.cm-portada-opcion img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.cm-portada-opcion:hover,
+.cm-portada-opcion:focus-visible {
+  border-color: var(--navy-light);
+}
+
+.cm-portada-opcion.elegida {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px var(--ice);
+}
+
+.cm-portada-buscar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  margin-top: var(--e-sm);
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+/* El campo, como el del buscador del constructor: sin esto se quedaba
+   con el blanco del navegador también en el tema oscuro. */
+.cm-portada-buscar input {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  font-size: var(--t-md);
+}
+.cm-portada-buscar input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}

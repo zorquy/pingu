@@ -130,6 +130,9 @@
            vistas — Torneos (la principal), Partidas sueltas (su
            «Battle Logs») y Estadísticas (su «Stats»). Mismas pestañas
            que el perfil (components.css). -->
+      <!-- El resumen de todo lo jugado (838): lo pinta mis-partidas.js. -->
+      <section class="partidas-hero hidden" id="partidasHero" aria-label="Tu resumen"></section>
+
       <div class="seg partidas-tabs" id="partidasTabs" role="group" aria-label="Qué ver">
         <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
         <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas sueltas</button>
@@ -139,9 +142,10 @@
       <div class="tab-panel active" id="vista-torneos">
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarTorneo">+ Apuntar un torneo</button>
-        <!-- Buscar y filtrar (tanda 251). Con quince torneos apuntados
-             la lista era un scroll sin fin y encontrar el de la semana
-             pasada costaba más que apuntarlo. -->
+        <!-- Buscar y filtrar (tanda 251), plegado tras «Filtrar» desde la
+             838: sin torneos que buscar, tres campos eran ruido. -->
+        <button type="button" class="btn-secondary partidas-filtrar" id="torneoFiltrar" aria-expanded="false" aria-controls="torneoFiltros">Filtrar</button>
+        <div class="partidas-filtros-plegados hidden" id="torneoFiltros">
         <label id="torneoBuscarCampo">Buscar
           <input type="search" enterkeyhint="search" id="torneoBuscar" placeholder="Nombre o dónde se jugó…" autocomplete="off" />
         </label>
@@ -158,6 +162,7 @@
             <option value="antiguas">Más antiguos primero</option>
           </select>
         </label>
+        </div>
       </div>
 
       <!-- Apuntar un torneo (tanda 236, pedido por Ibai): el torneo de
@@ -208,6 +213,7 @@
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
         <button class="btn-secondary" id="btnDesdeRepeticion">+ Desde una repetición</button>
+        <button type="button" class="btn-secondary partidas-filtrar" id="listaFiltrar" aria-expanded="false" aria-controls="listaFiltros">Filtrar</button>
       </div>
 
       <!-- Apuntar desde una de tus repeticiones guardadas (tanda 627): lo
@@ -300,7 +306,7 @@
       </div>
 
       <!-- Ordenar y filtrar la lista (tanda 628). -->
-      <div class="partidas-barra partidas-filtros" id="listaFiltros">
+      <div class="partidas-barra partidas-filtros hidden" id="listaFiltros">
         <label>Orden
           <select id="listaOrden">
             <option value="recientes">Más recientes primero</option>

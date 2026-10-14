@@ -480,6 +480,14 @@ let editandoTorneo = null
 // dato — solo esconde los botones —, y por eso reabrirlo es gratis.
 // Editar una ronda solo se ofrece con el torneo ABIERTO: eso es lo que
 // le da sentido a «Reabrir», que si no sería un botón sin consecuencia.
+// El día en grande a la izquierda de la tarjeta (838), como un calendario.
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+function fechaDeTarjetaHtml(fecha) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(fecha || ''))
+  if (!m) return '<span class="partidas-torneo-fecha" aria-hidden="true"></span>'
+  return `<span class="partidas-torneo-fecha" aria-hidden="true"><b>${Number(m[3])}</b><small>${MESES_CORTOS[Number(m[2]) - 1]}</small></span>`
+}
+
 function tarjetaTorneoHtml(t) {
   const rondas = t.rondas
     .slice()
@@ -505,10 +513,11 @@ function tarjetaTorneoHtml(t) {
   return `
     <div class="partidas-torneo${t.cerrado ? ' cerrado' : ''}">
       <button type="button" class="partidas-torneo-cab" data-abrir-torneo="${escapeHtml(t.id)}" aria-expanded="${abierto}">
+        ${fechaDeTarjetaHtml(t.fecha)}
         <span class="partidas-torneo-sprites">${spritesDeMazoHtml(t.mazo, t.mazoClave) || '<span class="partidas-sprite-hueco"></span>'}</span>
         <span class="partidas-torneo-titulo">
           <strong>${escapeHtml(t.nombre)}</strong>
-          <span class="subtext">${[t.donde, t.fecha].filter(Boolean).map(escapeHtml).join(' · ')}</span>
+          <span class="partidas-torneo-sub"><span class="partidas-origen${t.aMano ? '' : ' pokedoc'}">${t.aMano ? 'Apuntado por ti' : 'PokeDoc'}</span>${t.aMano && t.donde ? `<span class="subtext">${escapeHtml(t.donde)}</span>` : ''}</span>
         </span>
         ${t.cerrado ? '<span class="partidas-chapa-cerrado">Cerrado</span>' : ''}
         <span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>
@@ -743,6 +752,7 @@ function repintar() {
   $('filtroCuenta').textContent = filtrado ? `${n} de ${todas.filter(seJugo).length} partidas con estos filtros.` : ''
   pintarResumen(m)
   pintarExtra(jugadas)
+  pintarHero(todas.filter(seJugo))
   ultimasJugadas = jugadas
   pintarGraficos()
   pintarMatriz(m)
@@ -781,6 +791,46 @@ function rellenarFiltroYSugerencias() {
 // ── Las cifras de más (tanda 628) ──
 const TEXTO_RACHA = { win: ['victoria', 'victorias'], loss: ['derrota', 'derrotas'], draw: ['empate', 'empates'] }
 const enPalabras = (n, r) => `${n} ${TEXTO_RACHA[r][n === 1 ? 0 : 1]}`
+
+// El resumen de arriba (838): de TODO lo jugado, sin los filtros de
+// Estadísticas, para que se vea al entrar sin tocar nada. Mismas cuentas
+// que la pestaña (`porcentaje` cuenta el empate como media victoria).
+function pintarHero(jugadas) {
+  const caja = $('partidasHero')
+  if (!jugadas.length) {
+    caja.classList.add('hidden')
+    caja.innerHTML = ''
+    return
+  }
+  const c = { ganadas: 0, perdidas: 0, empatadas: 0, total: jugadas.length }
+  for (const p of jugadas) {
+    if (p.resultado === 'win') c.ganadas++
+    else if (p.resultado === 'loss') c.perdidas++
+    else c.empatadas++
+  }
+  const pctTotal = porcentaje(c)
+  const torneos = new Set(jugadas.filter((p) => p.deTorneo || p.torneoId).map((p) => p.torneoId)).size
+  const diez = ultimas(jugadas, 10).reverse()
+  const r = rachas(jugadas)
+  const masJugado = porGrupo(jugadas, (p) => p.mio, (p) => p.mioNombre)[0]
+  const grados = Math.round((c.ganadas / c.total) * 360)
+  const gradosE = Math.round(((c.ganadas + c.empatadas) / c.total) * 360)
+  caja.innerHTML = `
+    <div class="partidas-hero-anillo" style="--v:${grados}deg;--e:${gradosE}deg" role="img" aria-label="${pctTotal == null ? '' : `${Math.round(pctTotal * 100)} % de victorias`}">
+      <b>${pctTotal == null ? '—' : `${Math.round(pctTotal * 100)} %`}<small>victorias</small></b>
+    </div>
+    <div class="partidas-hero-datos">
+      <div class="partidas-hero-cifras">
+        <div><b>${c.ganadas}-${c.perdidas}-${c.empatadas}</b><small>V-D-E</small></div>
+        <div><b>${c.total}</b><small>${c.total === 1 ? 'partida' : 'partidas'}</small></div>
+        <div><b>${torneos}</b><small>${torneos === 1 ? 'torneo' : 'torneos'}</small></div>
+      </div>
+      <span class="partidas-forma" aria-label="${escapeHtml(`Últimas ${diez.length}: ${diez.map((p) => TEXTO_RESULTADO[p.resultado]).join(', ')}`)}">${diez.map((p) => `<span class="partidas-ronda-res partidas-ronda-${p.resultado}" aria-hidden="true">${LETRA_RESULTADO[p.resultado] || '?'}</span>`).join('')}</span>
+      <small class="subtext">Tus últimas ${diez.length}${r.actual && r.actual.n > 1 ? ` · ${escapeHtml(enPalabras(r.actual.n, r.actual.resultado))} seguidas` : ''}</small>
+    </div>
+    ${masJugado ? `<div class="partidas-hero-mazo">${spritesDeMazoHtml(masJugado.nombre, masJugado.clave) || ''}<div><small class="subtext">Tu mazo más jugado</small><b>${escapeHtml(masJugado.nombre)}</b><small class="subtext">${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'}${masJugado.pct == null ? '' : ` · ${Math.round(masJugado.pct * 100)} %`}</small></div></div>` : ''}`
+  caja.classList.remove('hidden')
+}
 
 function pintarExtra(jugadas) {
   const caja = $('partidasExtra')
@@ -1607,6 +1657,14 @@ async function cargar() {
 }
 
 async function init() {
+  // «Filtrar» (838): abre y cierra los filtros de su pestaña.
+  for (const [boton, caja] of [['torneoFiltrar', 'torneoFiltros'], ['listaFiltrar', 'listaFiltros']]) {
+    $(boton).addEventListener('click', () => {
+      const abrir = $(caja).classList.contains('hidden')
+      $(caja).classList.toggle('hidden', !abrir)
+      $(boton).setAttribute('aria-expanded', String(abrir))
+    })
+  }
   session = await getSession()
   if (!session) {
     $('partidasContenido').classList.add('hidden')

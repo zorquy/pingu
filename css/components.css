@@ -180,8 +180,8 @@
 
 .page-header h1 {
   font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.6px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .page-header p {
@@ -210,8 +210,8 @@
 
 .category-header h1 {
   font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.4px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .category-header p {

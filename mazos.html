@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/constructor.css" />
+  <link rel="stylesheet" href="/css/mazos.css" />
 </head>
 <body>
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
@@ -100,20 +101,31 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container cm-pagina">
-    <div class="cm-cabecera-pagina">
+    <div class="mz-cabecera">
       <div>
         <h1>Mis mazos</h1>
         <p class="subtext cm-mazos-cuenta" id="mzCuenta"></p>
       </div>
-      <a class="btn-primary cm-btn" href="/constructor?nuevo=1">Nuevo mazo</a>
+      <div class="mz-botones">
+        <a class="btn-secondary cm-btn" href="/constructor?nuevo=1&amp;importar=1" id="mzImportar"><span data-icono="upload"></span>Importar lista</a>
+        <a class="btn-primary cm-btn" href="/constructor?nuevo=1"><span data-icono="sparkles"></span>Nuevo mazo</a>
+      </div>
     </div>
     <div id="cmAviso" class="cm-aviso hidden" role="status"></div>
     <p class="subtext" id="mzCargando">Cargando tus mazos…</p>
     <div class="cm-mazos" id="mzLista"></div>
-    <div class="cm-vacio hidden" id="mzVacio">
-      <p><strong>Todavía no has guardado ningún mazo.</strong></p>
-      <p>Móntalo en el <a class="link-btn" href="/constructor?nuevo=1">constructor</a> y pulsa «Guardar»: aparecerá aquí. También puedes guardarte cualquier lista de un torneo o de los <a class="link-btn" href="/meta">mazos del meta</a>.</p>
-    </div>
+    <section class="mz-vacio hidden" id="mzVacio" aria-labelledby="mzVacioTitulo">
+      <div class="mz-abanico" id="mzAbanico" aria-hidden="true"></div>
+      <div>
+        <h2 id="mzVacioTitulo">Monta tu primer mazo</h2>
+        <p>Te decimos si es legal, cuánto te falta de tu colección y lo puedes probar en el laboratorio.</p>
+        <div class="mz-caminos">
+          <a class="mz-camino" href="/constructor?nuevo=1"><span class="mz-camino-icono" data-icono="sparkles"></span><span class="mz-camino-texto"><b>Empezar de cero</b><small>Busca cartas y ve sumando</small></span></a>
+          <a class="mz-camino" href="/constructor?nuevo=1&amp;importar=1"><span class="mz-camino-icono cian" data-icono="upload"></span><span class="mz-camino-texto"><b>Pegar una lista</b><small>De TCG Live o de Limitless, o desde una foto</small></span></a>
+          <a class="mz-camino" href="/meta"><span class="mz-camino-icono rosa" data-icono="trophy"></span><span class="mz-camino-texto"><b>Copiar uno del meta</b><small>Los mazos que ganan ahora</small></span><span class="mz-sprites" id="mzSpritesMeta" aria-hidden="true"></span></a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Elegir la portada de un mazo (tanda 413): cualquier carta del

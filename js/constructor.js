@@ -12,6 +12,7 @@ import { showToast } from './toast.js'
 import { cardImageUrl } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { chipsDeSelect } from './selector-chips.js'
+import { icons } from './icons.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import {
   validarMazo,
@@ -220,6 +221,8 @@ function pintarMazo() {
   // seccionesDelMazo). El texto de TCG Live sí ordena por copias.
   const secciones = seccionesDelMazo(entradas, { estable: true })
   const suma = (l) => l.reduce((s, e) => s + e.n, 0)
+  pintarHero(secciones.P)
+  pintarChapas()
   $('cmReparto').textContent = entradas.length
     ? `${suma(secciones.P)} Pokémon · ${suma(secciones.T) + suma(secciones.X)} Entrenador · ${suma(secciones.E)} Energía`
     : ''
@@ -914,6 +917,7 @@ function elegirPortada() {
 }
 
 function pintarEstadoGuardado() {
+  pintarChapas()
   const el = $('cmEstadoGuardado')
   if (estado.soloLectura) el.textContent = ''
   else if (!estado.id) el.textContent = lista().length ? 'Sin guardar' : ''
@@ -921,6 +925,29 @@ function pintarEstadoGuardado() {
 }
 
 let sincronizarFormato = null
+
+// La cabecera (837): el color y el dibujo del Pokémon con más copias. Solo
+// se cambia la imagen cuando cambia ese Pokémon: repintarla a cada «+»
+// la haría parpadear.
+let heroDe = null
+function pintarHero(pokemon) {
+  const principal = [...(pokemon || [])].sort((a, b) => b.n - a.n)[0]?.carta || null
+  const hero = $('cmHero')
+  const tipo = principal?.types?.[0] || ''
+  if (tipo) hero.dataset.tipo = tipo
+  else delete hero.dataset.tipo
+  if ((principal?.id || null) === heroDe) return
+  heroDe = principal?.id || null
+  const attrs = principal ? atributosDeEscaneo(cadenaDeImagen(principal, 'high')) : ''
+  $('cmHeroArte').innerHTML = attrs ? `<img ${attrs} alt="" width="245" height="342" loading="lazy" />` : ''
+}
+
+function pintarChapas() {
+  $('cmChapaFormato').textContent = { standard: 'Estándar', expanded: 'Expandido', libre: 'Libre' }[estado.formato] || 'Estándar'
+  const publico = $('cmChapaPublico')
+  publico.textContent = estado.publico ? 'Público' : 'Privado'
+  publico.classList.toggle('hidden', !estado.id || estado.soloLectura)
+}
 
 function pintarCabecera() {
   $('cmNombre').value = estado.nombre
@@ -931,6 +958,7 @@ function pintarCabecera() {
   $('cmPublicoCampo').classList.toggle('hidden', !estado.sesion || estado.soloLectura)
   $('cmCoste').classList.toggle('hidden', !estado.sesion)
   $('cmGuardar').textContent = estado.soloLectura ? 'Guardar una copia' : 'Guardar'
+  pintarChapas()
   document.title = `${estado.nombre ? `${estado.nombre} — ` : ''}Constructor de mazos — PokeDoc`
 }
 
@@ -1200,6 +1228,11 @@ function enganchar() {
   document.addEventListener('click', cerrarAvisos)
 
   $('cmVacioImportar').addEventListener('click', () => accionHerramienta('importar'))
+  for (const el of document.querySelectorAll('#cmAcciones [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(18) || ''
+  $('cmAnadirMovil').addEventListener('click', () => {
+    $('cmTabBuscar').click()
+    $('cmTexto').focus()
+  })
 
   // Los dos menús desplegables.
   const menus = [
@@ -1219,7 +1252,9 @@ function enganchar() {
     })
     $(menu).addEventListener('click', (e) => {
       const b = e.target.closest('[data-accion]')
-      if (!b) return
+      // Lo que no es una acción (el formato y «Público», en «⋯» desde la
+      // 837) se toca sin que el menú se cierre.
+      if (!b) return e.stopPropagation()
       cerrarMenus()
       accion(b.dataset.accion)
     })
@@ -1394,6 +1429,8 @@ function cerrarMenus() {
 
 // ── Arranque ──
 async function iniciar() {
+  // Se lee antes de cargar: «?nuevo=1» limpia la dirección (836).
+  const pedirImportar = new URLSearchParams(location.search).get('importar') === '1'
   try {
     estado.modo = localStorage.getItem('pokedoc-constructor-modo') === 'lista' ? 'lista' : 'rejilla'
   } catch {}
@@ -1422,6 +1459,8 @@ async function iniciar() {
   const nueva = estado.sets.sets.find((s) => s.release_date && s.release_date <= hoy && estado.sets.codigoDeId.get(s.id) && (s.card_count_official || 0) > 20)
   if (nueva) $('cmSet').value = nueva.id
   buscar()
+  // Desde «Importar lista» de /mazos (836) se llega con la ventana abierta.
+  if (pedirImportar && !estado.soloLectura) accionHerramienta('importar')
 
   // «Probar en el laboratorio» desde /meta: el mazo llega por la
   // dirección y el laboratorio se abre solo.

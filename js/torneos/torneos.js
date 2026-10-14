@@ -140,7 +140,7 @@ function tarjetaHtml(t, datos) {
   const sobran = Math.max(0, ocupadas - caras.length)
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   return `
-  <article class="torneo-tarjeta torneo-tarjeta-${t.status === 'in_progress' ? 'viva' : 'normal'}">
+  <article class="torneo-tarjeta torneo-tarjeta-${t.status === 'in_progress' ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}">
     <a class="torneo-tarjeta-enlace" href="${url}">
       <span class="torneo-arte torneo-arte-${arteDe(t)}">
         ${
@@ -253,6 +253,7 @@ async function pintarVivo(torneo) {
     <span class="torneo-vivo-texto">
       <span class="torneo-vivo-chapa"><span class="torneo-punto"></span>En juego</span>
       <strong>${escapeHtml(torneo.name)}</strong>
+      ${total ? `<span class="torneo-vivo-rondas" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${ronda && i + 1 < ronda.round_number ? 'hecha' : ronda && i + 1 === ronda.round_number ? 'ahora' : ''}"></i>`).join('')}</span>` : ''}
       <span class="torneo-vivo-sub">${ronda ? `Ronda ${ronda.round_number}${total ? ` de ${total}` : ''}` : 'Entre rondas'}</span>
     </span>
     <span class="torneo-vivo-der">

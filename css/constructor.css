@@ -175,29 +175,6 @@
   line-height: 20px;
 }
 
-/* ── La barra del mazo ── */
-.cm-barra {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-  align-items: center;
-}
-
-.cm-barra .cm-nombre {
-  flex: 1 1 200px;
-  min-width: 0;
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--t-lg);
-}
-
-.cm-barra .cm-nombre:focus,
 .cm-buscador .cm-texto:focus,
 .cm-campo select:focus,
 .cm-importar-texto:focus {
@@ -1202,255 +1179,7 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-size: var(--t-sm);
 }
 
-/* ── /mazos (rehecho en la tanda 413) ──
-   Cada mazo es su PORTADA: la ilustración de la carta elegida, en
-   grande, con el nombre debajo. Antes era una miniatura de 72 px al lado
-   del texto y todas las tarjetas se parecían. */
-.cm-mazos-cuenta { margin: 0; }
-
-.cm-mazos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
-  gap: var(--e-lg);
-}
-
-.cm-mazo-tarjeta {
-  display: flex;
-  flex-direction: column;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
-}
-
-.cm-mazo-tarjeta:hover {
-  border-color: var(--navy);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cm-mazo-tarjeta {
-    transition: none;
-  }
-  .cm-mazo-tarjeta:hover {
-    transform: none;
-  }
-}
-
-/* La portada: un recorte de la carta a la altura de su ilustración. Se
-   amplía un poco para que el marco de la carta quede fuera, y debajo va
-   un fondo azul por si la imagen no llega. */
-.cm-mazo-portada {
-  position: relative;
-  display: block;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--navy-solid-dark), var(--navy-solid-light));
-}
-
-.cm-mazo-portada img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 24%;
-  transform: scale(1.22);
-  transform-origin: 50% 28%;
-}
-
-/* Un velo abajo, para que el nombre de la carta se lea sobre cualquier
-   dibujo. */
-.cm-mazo-portada::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 48px;
-  background: linear-gradient(transparent, rgba(13, 27, 42, 0.62));
-}
-
-.cm-mazo-portada-nombre {
-  position: absolute;
-  left: var(--e-md);
-  right: var(--e-md);
-  bottom: var(--e-sm);
-  z-index: 1;
-  color: var(--blanco-fijo);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cm-mazo-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-sm);
-  padding: var(--e-md);
-  min-width: 0;
-  flex: 1;
-}
-
-.cm-mazo-nombre {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--t-lg);
-  line-height: 1.25;
-  color: var(--text);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.cm-mazo-nombre:hover {
-  color: var(--navy);
-}
-
-.cm-mazo-chapas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-  margin: 0;
-}
-
-.cm-mazo-meta {
-  font-size: var(--t-xs);
-  margin: 0;
-}
-
-.cm-mazo-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-  margin-top: auto;
-  padding-top: var(--e-sm);
-  border-top: 1px solid var(--border);
-}
-
-.cm-mazo-acciones .cm-btn {
-  min-height: 36px;
-  padding: var(--e-xs) var(--e-md);
-  font-size: var(--t-sm);
-}
-
-.cm-mazo-acciones .link-btn {
-  min-height: 36px;
-  font-size: var(--t-sm);
-}
-
-/* Borrar, apartado a la derecha y en el rojo que se lee: es lo único de
-   la fila que no se deshace. */
-.cm-mazo-acciones .cm-mazo-borrar {
-  margin-left: auto;
-  color: var(--danger);
-}
-
-@media (pointer: coarse) {
-  .cm-mazo-acciones .cm-btn,
-  .cm-mazo-acciones .link-btn {
-    min-height: 44px;
-  }
-}
-
-/* ── Elegir la portada ── */
-.cm-portada-modal {
-  max-width: 760px;
-  gap: var(--e-sm);
-}
-
-.cm-portada-cabecera {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--e-md);
-}
-
-.cm-portada-cabecera h3 {
-  margin: 0;
-}
-
-.cm-portada-rejilla {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: var(--e-sm);
-}
-
-.cm-portada-rejilla:empty {
-  display: none;
-}
-
-/* En el móvil, tres por fila: a dos, las cartas del mazo ocupaban la
-   pantalla entera y el buscador se quedaba fuera de la vista. */
-@media (max-width: 480px) {
-  .cm-portada-rejilla { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
-}
-
-.cm-portada-rejilla > .subtext {
-  grid-column: 1 / -1;
-}
-
-.cm-portada-opcion {
-  position: relative;
-  display: block;
-  aspect-ratio: 245 / 342;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--bg);
-  cursor: pointer;
-}
-
-.cm-portada-opcion img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 1;
-}
-
-.cm-portada-opcion:hover,
-.cm-portada-opcion:focus-visible {
-  border-color: var(--navy-light);
-}
-
-.cm-portada-opcion.elegida {
-  border-color: var(--navy);
-  box-shadow: 0 0 0 2px var(--ice);
-}
-
-.cm-portada-buscar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  margin-top: var(--e-sm);
-  font-weight: 600;
-  font-size: var(--t-sm);
-}
-/* El campo, como el del buscador del constructor: sin esto se quedaba
-   con el blanco del navegador también en el tema oscuro. */
-.cm-portada-buscar input {
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-weight: 400;
-  font-size: var(--t-md);
-}
-.cm-portada-buscar input:focus {
-  outline: none;
-  border-color: var(--navy);
-  box-shadow: var(--shadow-ring);
-}
+/* Lo de /mazos vive en css/mazos.css desde la 836. */
 
 .cm-chapa {
   display: inline-block;
@@ -1477,4 +1206,249 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
 .cm-chapa-completo {
   background: var(--success-bg);
   color: var(--success);
+}
+
+/* ── La cabecera del mazo y sus acciones (837). El porqué, en SCHEMA. ── */
+.cm-hero {
+  --tipo-energia: var(--navy-solid);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tipo-energia) 55%, #000), var(--tipo-energia));
+  color: var(--blanco-fijo);
+}
+
+.cm-hero[data-tipo='Grass'] { --tipo-energia: #4faa5a; }
+.cm-hero[data-tipo='Fire'] { --tipo-energia: #e8564a; }
+.cm-hero[data-tipo='Water'] { --tipo-energia: #3aa2dd; }
+.cm-hero[data-tipo='Lightning'] { --tipo-energia: #e9c227; }
+.cm-hero[data-tipo='Psychic'] { --tipo-energia: #a06bc4; }
+.cm-hero[data-tipo='Fighting'] { --tipo-energia: #c8722f; }
+.cm-hero[data-tipo='Darkness'] { --tipo-energia: #3d4a57; }
+.cm-hero[data-tipo='Metal'] { --tipo-energia: #8c9aa5; }
+.cm-hero[data-tipo='Fairy'] { --tipo-energia: #e07bb0; }
+.cm-hero[data-tipo='Dragon'] { --tipo-energia: #b59433; }
+
+.cm-hero-arte {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 60%;
+  pointer-events: none;
+}
+
+.cm-hero-arte img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  transform: scale(1.3);
+  transform-origin: 50% 24%;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 55%);
+  mask-image: linear-gradient(90deg, transparent, #000 55%);
+}
+
+.cm-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent 75%);
+  pointer-events: none;
+}
+
+.cm-hero > :not(.cm-hero-arte) { position: relative; z-index: 1; }
+
+/* El anillo de 60, en grande: la cifra dentro y «de 60» debajo. El texto
+   «/60 cartas» sigue ahí para quien lo lee con lector de pantalla. */
+.cm-hero .cm-total {
+  flex: 0 0 auto;
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  font-size: 0;
+  color: transparent;
+}
+
+.cm-hero .cm-total::before {
+  position: absolute;
+  inset: 0;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  background: conic-gradient(var(--anillo) var(--lleno), rgba(255, 255, 255, 0.25) 0);
+  -webkit-mask: radial-gradient(circle, transparent 25px, #000 26px);
+  mask: radial-gradient(circle, transparent 25px, #000 26px);
+}
+
+.cm-hero .cm-total::after {
+  content: 'de 60';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 36px;
+  text-align: center;
+  font-size: var(--t-2xs);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cm-hero .cm-total strong {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 14px;
+  text-align: center;
+  font-size: var(--t-xl);
+  color: var(--blanco-fijo);
+}
+
+.cm-hero .cm-total-ok { --anillo: #4ade80; }
+.cm-hero .cm-total-pasa { --anillo: #fbbf24; }
+.cm-hero .cm-total:not(.cm-total-ok):not(.cm-total-pasa) { --anillo: var(--blanco-fijo); }
+
+.cm-hero-texto { flex: 1; min-width: 0; display: grid; gap: var(--e-xs); }
+
+.cm-hero .cm-nombre {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  margin-left: calc(-1 * var(--e-sm));
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-2xl);
+}
+
+.cm-hero .cm-nombre::placeholder { color: rgba(255, 255, 255, 0.7); }
+.cm-hero .cm-nombre:hover { border-color: rgba(255, 255, 255, 0.35); }
+.cm-hero .cm-nombre:focus { outline: none; border-color: var(--blanco-fijo); box-shadow: var(--shadow-ring); }
+
+.cm-hero-chapas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); margin: 0; }
+.cm-hero-chapa,
+.cm-hero .cm-coste {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.cm-hero .cm-coste { background: rgba(245, 197, 24, 0.92); color: #3b2a05; }
+.cm-hero .cm-coste .link-btn { color: inherit; font-size: inherit; font-weight: 700; text-decoration: none; }
+.cm-hero .cm-guardado { margin-left: 0; color: rgba(255, 255, 255, 0.8); font-size: var(--t-xs); }
+
+.cm-acciones {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: var(--e-md) 0 var(--e-sm);
+}
+
+.cm-acciones > .cm-btn,
+.cm-acciones > .cm-menu > .cm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+.cm-acciones > .cm-guardar { flex: 1 1 auto; max-width: 200px; }
+.cm-acciones .cm-icono { min-width: 44px; padding: 0; }
+.cm-solo-movil { display: none !important; }
+
+/* «⋯»: las herramientas, y debajo el formato y si es público. */
+.cm-menu-mas { min-width: 300px; }
+.cm-menu-mas .cm-ajustes {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--e-sm);
+  margin: var(--e-xs) 0 0;
+  padding: var(--e-sm) var(--e-md) var(--e-xs);
+  border-top: 1px solid var(--border);
+}
+
+.cm-menu-mas .cm-ajustes .cm-campo { flex-direction: column; align-items: stretch; }
+.cm-menu-mas .cm-check { color: var(--text); }
+.cm-resumen .cm-vistas { margin-left: auto; }
+
+/* El número de copias, en un círculo en la esquina: abajo tapaba el texto. */
+.cm-carta .cm-carta-n {
+  left: auto;
+  right: calc(-1 * var(--e-xs));
+  top: calc(-1 * var(--e-xs));
+  bottom: auto;
+  transform: none;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--e-xs);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  border: 2px solid var(--white);
+  font-size: var(--t-sm);
+  z-index: 2;
+}
+
+.cm-carta-mal .cm-carta-n { background: var(--danger-solid); }
+
+@media (max-width: 900px) {
+  .cm-solo-movil { display: inline-flex !important; }
+  .cm-acciones .cm-btn-texto { display: none; }
+  .cm-acciones > .cm-btn,
+  .cm-acciones > .cm-menu > .cm-btn { min-width: 44px; padding: 0 var(--e-sm); }
+  .cm-acciones > .cm-guardar { max-width: none; padding: 0 var(--e-sm); }
+  .cm-panel-mazo .cm-acciones { gap: var(--e-xs); }
+
+  /* En el móvil, las acciones van pegadas abajo, encima de la burbuja de
+     Jugar (y bajan con ella cuando las barras se esconden). */
+  .cm-panel-mazo { display: flex; flex-direction: column; }
+  .cm-panel-mazo .cm-acciones {
+    order: 99;
+    position: sticky;
+    bottom: calc(150px + env(safe-area-inset-bottom));
+    z-index: 30;
+    margin: var(--e-md) calc(-1 * var(--e-sm)) 0;
+    padding: var(--e-sm);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s var(--ease);
+  }
+
+  html.bm-escondidas .cm-panel-mazo .cm-acciones { transform: translateY(calc(80px + var(--e-xs))); }
+
+  .cm-acciones .cm-menu-lista { top: auto; bottom: calc(100% + var(--e-sm)); }
+  .cm-hero .cm-nombre { font-size: var(--t-xl); }
+  .cm-hero-arte { width: 55%; }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .cm-panel-mazo .cm-acciones { transition: none; }
+}
+
+/* En el móvil, tres por fila y el − y el + DEBAJO de la carta: encima
+   tapaban media carta. */
+@media (max-width: 600px) {
+  .cm-cartas { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md) var(--e-sm); }
+  .cm-carta-botones {
+    position: static;
+    opacity: 1;
+    justify-content: center;
+    gap: var(--e-xs);
+    margin-top: var(--e-xs);
+  }
+  .cm-menu-mas { min-width: min(300px, calc(100vw - 32px)); }
 }
