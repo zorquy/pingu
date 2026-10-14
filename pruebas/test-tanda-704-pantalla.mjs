@@ -64,8 +64,9 @@ console.log('── 2. La portada en un iPhone ──')
   check('arriba no hay píldoras, y el hueco bajo la barra de arriba es el pequeño', (await page.locator('.bm-secc').count()) === 0 && (await page.$eval('.page-content', (m) => parseFloat(getComputedStyle(m).paddingTop))) <= 24)
   const bu = await page.$eval('.bm-burbuja', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), items: [...e.querySelectorAll('a')].map((a) => `${a.textContent.trim()}${a.getAttribute('aria-current') ? '*' : ''}`), iconos: e.querySelectorAll('a svg').length } })
   const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
-  // Desde la 758 Lanzamientos es de Inicio (PINGU: «como Noticias»).
-  check('la burbuja de la sección flota encima de la barra con Inicio (activa), Noticias y Lanzamientos, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias,Lanzamientos' && bu.iconos === 3, JSON.stringify({ bu, barraTop }))
+  // Desde la 758 Lanzamientos es de Inicio (PINGU: «como Noticias»), y desde
+  // la 829 Novedades («en el inicio junto con noticias y lanzamientos»).
+  check('la burbuja de la sección flota encima de la barra con Inicio (activa), Noticias, Lanzamientos y Novedades, cada una con su icono', bu.pos === 'fixed' && bu.bottom <= barraTop && bu.bottom >= barraTop - 24 && bu.items.join() === 'Inicio*,Noticias,Lanzamientos,Novedades' && bu.iconos === 4, JSON.stringify({ bu, barraTop }))
   check('  …cada hueco mide 44 o más', (await page.$$eval('.bm-burbuja a', (as) => as.every((a) => a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().width >= 44))))
   check('  …y no hay hoja ni doble toque: la pestaña activa es un enlace normal', (await page.locator('.bm-hoja').count()) === 0 && !(await page.locator('.bm a[aria-current="page"]').getAttribute('aria-haspopup')))
   // Desde la raíz (718): relativa, en /carta/<slug> se pedía
