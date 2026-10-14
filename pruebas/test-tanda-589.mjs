@@ -96,7 +96,8 @@ console.log('── 2. La función programada ──')
   const b = montar()
   const r = await procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
   check('una pasada: las dos expansiones occidentales (el set sospechoso no cuenta) y la japonesa, 3 peticiones', r.ok && r.hecho === true && r.episodios === 3 && r.peticionesEstaPasada === 3 && r.quedan === 0, JSON.stringify(r).slice(0, 300))
-  check('escribe una fila por carta nuestra con carta suya: 3 de Pitch Black + 1 de Chaos Rising + 1 japonesa', r.escritas === 5 && b.escritas.length === 5 && r.sinPar === 1, JSON.stringify([r.escritas, r.sinPar]))
+  // `sinPar` ya no se sabe desde la 826 (nuestras cartas se piden por producto): null, no 0.
+  check('escribe una fila por carta nuestra con carta suya: 3 de Pitch Black + 1 de Chaos Rising + 1 japonesa', r.escritas === 5 && b.escritas.length === 5 && r.sinPar === null, JSON.stringify([r.escritas, r.sinPar]))
   check('  …la japonesa con su mínimo japonés (12) por la puerta /pokemon-jp', b.escritas.find((f) => f.card_id === 'SV1a-001')?.cm_low_ja === 12 && b.urls.some((u) => /pokemon-jp\/cards\?episode_id=701/.test(u)), JSON.stringify(b.escritas.find((f) => f.card_id === 'SV1a-001')))
   const tropius = b.escritas.find((f) => f.card_id === 'me05-1')
   check('  …el Tropius con sus idiomas y su origen', tropius?.cm_low_es === 0.02 && tropius.cm_id_product === 895789 && tropius.origen === 'tcggo', JSON.stringify(tropius))
@@ -137,6 +138,10 @@ console.log('── 2. La función programada ──')
   }
   const r8 = await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
   check('cartas sin cardmarket_id: para diciéndolo y no da la expansión por hecha', /sin cardmarket_id/.test(r8.parado || '') && !b8.estados[CLAVE_ESTADO].hechos.includes(415) && b8.escritas.length === 0, JSON.stringify(r8.parado))
+  // …pero no para siempre (826): a la tercera del día se da por hecha y se apunta.
+  await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
+  const r8c = await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
+  check('  …a la tercera vez del día la da por hecha, apuntada, y sigue con las demás', b8.estados[CLAVE_ESTADO].hechos.includes(415) && b8.estados[CLAVE_ESTADO].sinCm?.['WEST:415'] === '2026-10-05' && !r8c.parado, JSON.stringify([r8c.parado, b8.estados[CLAVE_ESTADO].sinCm]))
 }
 
 console.log('── 3. El precio de una copia según su idioma ──')

@@ -141,7 +141,7 @@ check('tiene precio: un mínimo en cualquier idioma', precios.tienePrecio({ pric
 check('  …o TCGplayer', precios.tienePrecio({ prices: { tcg_player: { market_price: 2 } } }))
 check('  …y no con todo a cero o vacío', !precios.tienePrecio({ prices: { cardmarket: { lowest_near_mint: 0, available_items: 4 } } }) && !precios.tienePrecio({}))
 const fuente = (await import('node:fs')).readFileSync(`${RAIZ}/netlify/functions/tcggo-precios.mjs`, 'utf8')
-check('la pasada apunta cada expansión japonesa y lo reinicia cada día', /resumenJp = \{ \.\.\.\(estado\.resumenJp/.test(fuente) && /resumenJp: \{\} \}/.test(fuente))
+check('la pasada apunta cada expansión japonesa y lo reinicia cada día', /resumenJp = \{ \.\.\.\(estado\.resumenJp/.test(fuente) && /resumenJp: \{\}, enCurso: null \}/.test(fuente))
 const admin = (await import('node:fs')).readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
 check('/admin enseña las dos cosas', /lineasDePreciosJp\(p\.resumenJp/.test(admin) && /lineasDeErasJp\(k\.eras\)/.test(admin))
 console.log(fails ? `\n❌ ${fails} FALLA(S)` : '\n✅ TODO BIEN')

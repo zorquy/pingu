@@ -166,7 +166,7 @@ console.log('\n── 4. Las versiones de una carta (el Snorlax de PINGU) ──
   const r = await procesar({ env: ENV, fetchImpl: fetchSnorlax, ...b, sets: ['bw8'], destino: 'bw8', mercado: 'WEST', episodio: 93, entero: true, pausa: async () => {} })
   check('`procesar` escribe UN Snorlax 101, el de la normal, y lo dice', r.ok && b.guardadas.length === 1 && b.guardadas[0].tcggo_id === 12774 && r.versiones === 1, JSON.stringify(b.guardadas.map((g) => g.id)))
   const precios = readFileSync(`${RAIZ}/netlify/functions/tcggo-precios.mjs`, 'utf8')
-  check('la pasada de precios elige la principal y no la primera que llega', /esMasPrincipal\(s, ya\)/.test(precios))
+  check('la pasada de precios elige la principal y no la primera que llega', /esMasPrincipal\(s, comoCarta\(ya\)\)/.test(precios))
   const catalogo = readFileSync(`${RAIZ}/netlify/functions/tcggo-catalogo.mjs`, 'utf8')
   check('el catálogo semanal tampoco crea la Reverse como carta nueva', /separarVersiones\(suyas\)/.test(catalogo))
 }
