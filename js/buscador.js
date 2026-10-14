@@ -32,12 +32,13 @@ const CONSULTAS = {
     if (!palabras.length) return []
     let q = supabase
       .from('tcg_cards')
-      .select('id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en)')
+      .select('id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, oculto)')
       .eq('market', 'WEST')
     for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
     const { data, error } = await q.order('name_search').limit(limite)
     if (error) throw error
-    const cartas = data || []
+    // Las de un set escondido, fuera (826).
+    const cartas = (data || []).filter((c) => !c.tcg_sets?.oculto)
     // El precio, en una segunda consulta y con la regla de siempre (el
     // mínimo en español, y si no el general: `valorDe`). Si falla, las
     // cartas salen igual y sin cifra: el precio es un extra de la fila.

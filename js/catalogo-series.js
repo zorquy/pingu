@@ -334,6 +334,16 @@ export function nombresDeCartaParaBuscar(carta) {
   return [carta?.name, carta?.name_es, carta?.name_en].filter(Boolean).join(' ')
 }
 
+// UNA CARTA DE UN SET ESCONDIDO NO SALE EN EL CATÁLOGO (826). El calco
+// japonés esconde los sets viejos (Scrydex, TCGdex) que sustituye, pero sus
+// cartas siguen en `tcg_cards`, y el Pokédex y los buscadores las pedían por
+// número o por nombre sin mirar el set: el Charizard de PINGU era el
+// `base1_ja-021` viejo —sin precio y con el producto OCCIDENTAL de
+// Cardmarket que le copió el espejo (686)— en vez del de TCGGO. Quien la
+// tiene la sigue viendo: lo tuyo sale siempre, venga de donde venga. Pide
+// `oculto` en el embebido de `tcg_sets`; sin él, deja pasar (como antes).
+export const deSetVisible = (c) => !c?.tcg_sets?.oculto
+
 // LOS DOS LOGOS DE PAGO, en el orden de SU catálogo (825). En el
 // occidental Scrydex va delante (la 507: tiene los que a TCGdex le faltan);
 // en el japonés no, porque sale entero de TCGGO (806) y los sets que el

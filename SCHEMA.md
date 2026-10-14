@@ -39923,3 +39923,38 @@ delante del de TCGGO desde la 507.
 - /admin, bloque del calco: «logos: N de 256 expansiones traen logo en la
   lista de TCGGO», con las que no lo traen. Esas se quedan con el de Scrydex o
   sin él: el orden no las arregla.
+
+## Tanda 827 — Los precios del japonés, página a página, y fuera las cartas de los sets escondidos
+
+PINGU, con el Charizard de Expansion Pack: «en PokeDoc no sale el precio e
+incluso el enlace a Cardmarket va mal». Dos fallos que se juntaban:
+
+- **La pasada de precios se clavaba.** `tcggo-precios` pedía todas las
+  páginas de una expansión en la MISMA pasada (20 s) y, si no le daba tiempo,
+  tiraba lo pedido y la siguiente volvía a la página 1. Una expansión grande
+  (las promos japonesas son miles de cartas) no cabía nunca: en /admin estuvo
+  horas en «JP 81» con las peticiones subiendo, y ninguna japonesa de detrás
+  tuvo precio. Es la 509 (una pasada que vuelve a empezar) dentro de una
+  expansión. Ahora `estado.enCurso = { mercado, episodio, pagina, elegidas,
+  suyas, nuestras, escritas }`: cada página escribe sus precios al llegar y
+  la pasada siguiente sigue por la página que toca (la expansión en curso va
+  primera). Las VERSIONES se deciden entre páginas con `elegidas` (por
+  producto de Cardmarket, la principal vista: foto, ataques, id), así que una
+  Reverse en una página posterior no pisa el precio de la normal. Nuestras
+  cartas se piden POR PRODUCTO (`cm_id_product_propio=in.(…)`), no el set
+  entero, que con más de mil cartas chocaba con el tope de Supabase (808).
+  `sinPar` deja de saberse (null). `enCurso` se borra al cambiar de día.
+- **Una expansión sin ningún `cardmarket_id`** paraba la pasada (589) y la
+  siguiente la volvía a pedir para siempre: ahora para y lo apunta en
+  `ultimoParado` hasta tres veces al día (`sinCmIntentos`), y a la tercera se
+  da por hecha y queda en `sinCm`. /admin enseña la expansión en curso y las
+  `sinCm`.
+- **La ficha era la del Charizard VIEJO.** El calco esconde los sets que
+  sustituye, pero sus cartas siguen en `tcg_cards`, y el Pokédex y los
+  buscadores las pedían por número o por nombre sin mirar el set:
+  `base1_ja-021` (Scrydex) en vez de `tcggo-73805`, sin precio y con el
+  producto OCCIDENTAL de Cardmarket que le copió el espejo (686).
+  `deSetVisible` (`js/catalogo-series.js`) las quita del Pokédex
+  (`cartasDeEspecie`), del buscador de /mi-coleccion (nombre e ilustrador),
+  de `buscarEnCatalogo` (salvo si se pide un set concreto) y del buscador
+  global; los embebidos piden `oculto`. Lo TUYO sale siempre.

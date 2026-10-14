@@ -3,7 +3,7 @@
 // carta es?» pide lo mismo: un buscador para escribir la respuesta.
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './texto.js'
-import { ID_DE_POCKET, esDelTCG } from './catalogo-series.js'
+import { ID_DE_POCKET, esDelTCG, deSetVisible } from './catalogo-series.js'
 
 // Lo que echa a TCG Pocket de una consulta (tanda 573). PINGU: «salen
 // cartas del TCG Pocket, y esas no deberían estar». Es la misma regla que
@@ -16,7 +16,7 @@ export function sinPocket(q) {
 
 // Lo justo para pintar un resultado y una carta. Sin `rarity`: pedirla
 // obliga a pedir también `rarity_en` (tanda 523), y aquí no se enseña.
-export const COLUMNAS_RESULTADO = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,tcg_sets(name,name_en,tcg_online_code,serie_id)'
+export const COLUMNAS_RESULTADO = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,tcg_sets(name,name_en,tcg_online_code,serie_id,oculto)'
 
 const setsPorMercado = new Map()
 
@@ -50,5 +50,7 @@ export async function buscarEnCatalogo({ mercado, set = '', texto = '', limite =
   for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
-  return data || []
+  // Las de un set escondido, fuera (826); si se pide un set concreto, lo
+  // que haya dentro (quien lo pide sabe cuál es).
+  return set ? data || [] : (data || []).filter(deSetVisible)
 }

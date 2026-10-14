@@ -99,7 +99,7 @@ export async function procesar({
   if (!Object.keys(hechosPares).length) return { ok: true, saltado: 'todavía no hay sets emparejados con TCGGO (/admin → Cartas → Emparejar con TCGGO)' }
 
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false, resumenJp: {} }
+  if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false, resumenJp: {}, enCurso: null }
   if (!Array.isArray(estado.hechos)) estado.hechos = []
   if (!Array.isArray(estado.hechosJp)) estado.hechosJp = []
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
@@ -252,97 +252,146 @@ export async function procesar({
 
   // ── Expansión a expansión: primero las occidentales, luego las japonesas ──
   let escritas = 0
-  let sinPar = 0
+  // Nuestras cartas sin carta suya: desde la 826 se piden por producto, así
+  // que esa cuenta ya no se sabe (null, no 0: la 319).
+  const sinPar = null
   const hechasAhora = []
   const tandas = [
     { mercado: 'WEST', pendientes, mapa: setsPorEpisodio, hechos: estado.hechos },
     { mercado: 'JP', pendientes: pendientesJp, mapa: setsPorEpisodioJp, hechos: estado.hechosJp },
   ]
-  for (const { mercado, pendientes: lista, mapa, hechos } of tandas) for (const idEpisodio of lista) {
+  // Sin la migración del coreano y el chino (671) la base rechaza la fila
+  // ENTERA (la lección de la 624): se quitan esas dos columnas, se apunta
+  // para /admin y se escribe lo demás. La marca vale UN DÍA (687): con
+  // `true` para siempre, PINGU ejecutó la migración y las dos columnas se
+  // siguieron tirando, sin error.
+  const sinKoZh = (f) => { const { cm_low_ko, cm_low_zh, ...resto } = f; return resto }
+  const escribir = async (lote) => {
+    try {
+      await guardar(estado.faltaMigracionKoZh === dia ? lote.map(sinKoZh) : lote)
+    } catch (e) {
+      const m = String(e?.message || e)
+      if (/cm_low_ko|cm_low_zh/.test(m) && estado.faltaMigracionKoZh !== dia) {
+        estado.faltaMigracionKoZh = dia
+        await guardar(lote.map(sinKoZh))
+        return
+      }
+      throw e
+    }
+  }
+  // LA EXPANSIÓN EN CURSO SE GUARDA PÁGINA A PÁGINA (826). Antes se pedían
+  // todas sus páginas en la MISMA pasada y, si se acababa el tiempo (20 s) a
+  // mitad, se tiraba lo pedido y la pasada siguiente empezaba por la página 1
+  // otra vez. Una expansión grande (las promos japonesas son miles de
+  // cartas) no cabía nunca: la pasada se quedó clavada en «JP 81» gastando
+  // peticiones cada cinco minutos, y ninguna japonesa de detrás tuvo precio
+  // (el Charizard de Expansion Pack, PINGU). Es la factura de la 509 —una
+  // pasada que vuelve a empezar— dentro de una expansión. Ahora cada página
+  // escribe sus precios al llegar y `enCurso` dice por cuál se sigue.
+  //
+  // Las VERSIONES (806) se deciden entre páginas: `elegidas` guarda, por
+  // producto de Cardmarket, la entrada principal vista hasta ahora (lo que
+  // `esMasPrincipal` mira: foto, ataques, id). Si una página posterior trae
+  // una más principal, su precio pisa al de antes; si trae una versión, no.
+  const comoCarta = (e) => ({ id: e.id, image: e.foto ? 'x' : '', attacks: e.juego ? [1] : [] })
+  for (const { mercado, pendientes: lista0, mapa, hechos } of tandas) {
+    const enCursoAqui = estado.enCurso?.mercado === mercado ? estado.enCurso.episodio : null
+    const lista = enCursoAqui != null && lista0.includes(enCursoAqui) ? [enCursoAqui, ...lista0.filter((x) => x !== enCursoAqui)] : lista0
+    for (const idEpisodio of lista) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
-    const suyas = []
-    let pagina = 1
-    let completo = false
+    const sigue = estado.enCurso?.mercado === mercado && estado.enCurso?.episodio === idEpisodio
+    const enCurso = sigue ? estado.enCurso : { mercado, episodio: idEpisodio, pagina: 1, elegidas: {}, suyas: 0, nuestras: 0, escritas: 0 }
+    estado.enCurso = enCurso
+    const sets = mapa.get(idEpisodio) || []
+    let terminada = false
     let planJp = false
+    let fallo = null
     for (;;) {
-      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, pagina, bases[mercado]))
+      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, enCurso.pagina, bases[mercado]))
       if (r.fin === 'plan-jp') { planJp = true; break }
       if (!r.datos) break
-      suyas.push(...(r.datos.data || []))
-      if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
-      pagina++
-    }
-    // El plan no da el japonés: se deja apuntado y lo occidental no se
-    // entera (lo occidental ya ha ido antes, y `parado` no se queda).
-    if (planJp) { parado = null; break }
-    if (!completo) break
-    if (suyas.length && !suyas.some((s) => s.cardmarket_id)) {
-      parado = `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: no se escribe nada`
-      break
-    }
-    // Dos entradas suyas con el mismo producto son dos VERSIONES de la misma
-    // carta (806): el precio es el de la principal, no el de la que llegue
-    // primero (la Reverse Holo del Snorlax ponía 90 € a la normal).
-    const porProducto = new Map()
-    for (const s of suyas) {
-      const id = Number(s.cardmarket_id)
-      if (!Number.isInteger(id) || id <= 0) continue
-      const ya = porProducto.get(id)
-      if (!ya || esMasPrincipal(s, ya)) porProducto.set(id, s)
-    }
-    // Nuestras cartas de los sets que cuelgan de esta expansión.
-    const sets = mapa.get(idEpisodio) || []
-    let cartas
-    try {
-      cartas = await pedir(`tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&cm_id_product_propio=not.is.null&set_id=in.(${sets.map((s) => `"${encodeURIComponent(s)}"`).join(',')})&limit=5000`)
-    } catch (e) {
-      return { ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}`, dia }
-    }
-    const filas = []
-    for (const c of cartas || []) {
-      const s = porProducto.get(Number(c.cm_id_product_propio))
-      if (!s) { sinPar++; continue }
-      filas.push(filaDePreciosTcggo(c.id, s, { ahora, mercado }))
-    }
-    if (filas.length) {
-      // Sin la migración del coreano y el chino (671) la base rechaza la
-      // fila ENTERA (la lección de la 624): se quitan esas dos columnas,
-      // se apunta para /admin y se escribe lo demás. La marca vale UN DÍA
-      // (687): con `true` para siempre, PINGU ejecutó la migración y las dos
-      // columnas se siguieron tirando, sin error.
-      const sinKoZh = (f) => { const { cm_low_ko, cm_low_zh, ...resto } = f; return resto }
-      const escribir = async (lote) => {
-        try {
-          await guardar(estado.faltaMigracionKoZh === dia ? lote.map(sinKoZh) : lote)
-        } catch (e) {
-          const m = String(e?.message || e)
-          if (/cm_low_ko|cm_low_zh/.test(m) && estado.faltaMigracionKoZh !== dia) {
-            estado.faltaMigracionKoZh = dia
-            await guardar(lote.map(sinKoZh))
-            return
-          }
-          throw e
+      const pagina = r.datos.data || []
+      const ahoraVan = new Map()
+      for (const s of pagina) {
+        enCurso.suyas++
+        const id = Number(s.cardmarket_id)
+        if (!Number.isInteger(id) || id <= 0) continue
+        const ya = enCurso.elegidas[id]
+        if (!ya || esMasPrincipal(s, comoCarta(ya))) {
+          enCurso.elegidas[id] = { id: s.id, foto: Boolean(typeof s.image === 'string' && s.image), juego: Boolean((Array.isArray(s.attacks) && s.attacks.length) || (Array.isArray(s.abilities) && s.abilities.length)), p: tienePrecio(s) }
+          ahoraVan.set(id, s)
         }
       }
-      try {
-        for (let k = 0; k < filas.length; k += 500) await escribir(filas.slice(k, k + 500))
-      } catch (e) {
-        const m = String(e?.message || e)
-        if (/cm_low_es|PGRST204|42703/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql', dia }
-        return { ok: false, error: `nuestra base al escribir: ${m.slice(0, 160)}`, dia }
+      // Nuestras cartas de ESOS productos (por producto y no el set entero:
+      // así una expansión de más de mil cartas no choca con el tope de
+      // Supabase, la 808).
+      if (ahoraVan.size && sets.length) {
+        let cartas
+        try {
+          cartas = (await pedir(`tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&set_id=in.(${sets.map((x) => `"${encodeURIComponent(x)}"`).join(',')})&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+        } catch (e) {
+          fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
+          break
+        }
+        const filas = []
+        for (const c of cartas) {
+          const s = ahoraVan.get(Number(c.cm_id_product_propio))
+          if (s) filas.push(filaDePreciosTcggo(c.id, s, { ahora, mercado }))
+        }
+        if (filas.length) {
+          try {
+            for (let k = 0; k < filas.length; k += 500) await escribir(filas.slice(k, k + 500))
+          } catch (e) {
+            const m = String(e?.message || e)
+            if (/cm_low_es|PGRST204|42703/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql', dia }
+            fallo = `nuestra base al escribir: ${m.slice(0, 160)}`
+            break
+          }
+        }
+        enCurso.nuestras += cartas.length
+        enCurso.escritas += filas.length
+        escritas += filas.length
       }
-      escritas += filas.length
+      if (!hayMasPaginas(r.datos) || pagina.length < POR_PAGINA_CARTAS) { terminada = true; break }
+      enCurso.pagina++
+      await persistir()
+    }
+    // Lo NUESTRO falla: se para y lo que se lleva se queda (la 526).
+    if (fallo) { await persistir(); return { ok: false, error: fallo, dia, enCurso: { episodio: idEpisodio, pagina: enCurso.pagina } } }
+    // El plan no da el japonés: se deja apuntado y lo occidental no se
+    // entera (lo occidental ya ha ido antes, y `parado` no se queda).
+    if (planJp) { parado = null; estado.enCurso = null; break }
+    // Sin tiempo o sin peticiones: la pasada siguiente sigue por esta página.
+    if (!terminada) { await persistir(); break }
+    const elegidas = Object.values(enCurso.elegidas)
+    // Una expansión sin NINGÚN id de Cardmarket puede ser un tropiezo suyo
+    // (la 589: se para diciéndolo y no se da por hecha). Pero parar para
+    // siempre deja la pasada clavada en ella cada cinco minutos: a la
+    // tercera vez del día se da por hecha y queda apuntada (`sinCm`).
+    if (enCurso.suyas && !elegidas.length) {
+      const clave = `${mercado}:${idEpisodio}`
+      const veces = (estado.sinCmIntentos?.dia === dia ? Number(estado.sinCmIntentos[clave]) || 0 : 0) + 1
+      estado.sinCmIntentos = { ...(estado.sinCmIntentos?.dia === dia ? estado.sinCmIntentos : { dia }), [clave]: veces }
+      estado.enCurso = null
+      if (veces < 3) {
+        parado = `TCGGO devuelve la expansión ${idEpisodio} sin cardmarket_id: no se escribe nada (vez ${veces} de 3 hoy)`
+        estado.ultimoParado = { fecha: ahora.toISOString(), motivo: parado }
+        await persistir()
+        break
+      }
+      estado.sinCm = { ...(estado.sinCm || {}), [clave]: dia }
     }
     // Lo de cada expansión japonesa, apuntado (825): «Expansion Pack no
     // tiene precios» no se podía contestar sin saber si TCGGO no los da, si
     // nuestras cartas no tienen su id de Cardmarket o si no se escribió nada.
     if (mercado === 'JP') {
-      const conPrecio = [...porProducto.values()].filter(tienePrecio).length
-      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: suyas.length, conCm: porProducto.size, conPrecio, nuestras: (cartas || []).length, escritas: filas.length, sets } }
+      estado.resumenJp = { ...(estado.resumenJp || {}), [idEpisodio]: { suyas: enCurso.suyas, conCm: elegidas.length, conPrecio: elegidas.filter((e) => e.p).length, nuestras: enCurso.nuestras, escritas: enCurso.escritas, sets, paginas: enCurso.pagina } }
     }
     hechos.push(idEpisodio)
-    hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: suyas.length, nuestras: (cartas || []).length, escritas: filas.length })
+    hechasAhora.push({ mercado, episodio: idEpisodio, sets, suyas: enCurso.suyas, nuestras: enCurso.nuestras, escritas: enCurso.escritas, paginas: enCurso.pagina })
+    estado.enCurso = null
     await persistir()
+    }
   }
   const quedan = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id)).length + [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id)).length
   let fotoHistorial = null

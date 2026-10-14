@@ -3142,6 +3142,9 @@ async function tcggoEstado() {
       return [
         `PRECIOS (tcggo_precios) — ${de('tcggo_precios')?.updated_at || 'nunca'}: día ${p.dia || '—'} · hecho: ${p.hecho ? 'sí' : 'no'} · expansiones hechas hoy: WEST ${p.hechos?.length ?? 0}, JP ${p.hechosJp?.length ?? 0} · peticiones hoy: ${p.gasto?.peticiones ?? 0}`,
         p.ultimoParado ? `  ⚠ ÚLTIMO PARÓN (${p.ultimoParado.fecha}): ${p.ultimoParado.motivo}` : '  sin parones apuntados',
+        // La expansión a medias (826): se sigue página a página.
+        p.enCurso ? `  en curso: ${p.enCurso.mercado} #${p.enCurso.episodio} ${de('tcggo_calco_jp')?.valor?.lista?.episodios?.find((e) => e.id === p.enCurso.episodio)?.nombre || ''}, por la página ${p.enCurso.pagina} (${p.enCurso.suyas} cartas suyas, ${p.enCurso.escritas} precios escritos)` : '',
+        Object.keys(p.sinCm || {}).length ? `  sin id de Cardmarket en TCGGO (dadas por hechas a la tercera): ${Object.keys(p.sinCm).join(', ')}` : '',
         p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
         p.faltaMigracionKoZh ? `  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql (visto el ${p.faltaMigracionKoZh}): el coreano y el chino se están tirando; se vuelve a probar mañana` : '',
         // Cada expansión japonesa de hoy (825): de quién es la culpa de que

@@ -30,7 +30,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, idsDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar, logosDePago } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, idsDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar, logosDePago, deSetVisible } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -5211,7 +5211,7 @@ function variantesDeValor(clave) {
   return [...new Set([clave, ...traducciones, ...formasDeRareza(clave)])]
 }
 
-const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code)'
+const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code,oculto)'
 
 // UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
 // de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
@@ -5277,7 +5277,8 @@ async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variante
   }
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
-  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
+  // Ni TCG Pocket (694) ni las cartas de un set escondido (826).
+  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
 }
 
 // Y si por nombre no sale nada, se prueba por ILUSTRADOR. Va como segunda
@@ -5293,7 +5294,8 @@ async function buscarPorIlustrador(texto, limite = 60, { market = mercado } = {}
   for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)
   if (error) throw error
-  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }))
+  // Ni TCG Pocket (694) ni las cartas de un set escondido (826).
+  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
 }
 
 // El catálogo que se enseña DEBAJO de tus cartas (tanda 408): mismo

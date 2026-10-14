@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (67) — PINGU-Claude (827 — precios del japonés y cartas de sets escondidos)
+
+**Hecho** (PINGU, con el Charizard de Expansion Pack: sin precio y el enlace
+a Cardmarket mal; y el botón de /admin: «PARADO: TCGGO devuelve la expansión
+526 sin cardmarket_id» — esa era la que clavaba la pasada, sin apuntarse):
+- La pasada de precios llevaba horas clavada en «JP 81»: una expansión que no
+  cabía en una pasada se volvía a pedir desde la página 1 cada cinco minutos.
+  Ahora sigue página a página (`enCurso`), escribe cada página al llegar,
+  decide las versiones entre páginas y pide nuestras cartas por producto.
+  Una expansión sin ids de Cardmarket se da por hecha a la tercera vez del día.
+- El Pokédex y los buscadores enseñaban las cartas de los sets escondidos (el
+  Charizard viejo de Scrydex, sin precio y con el producto occidental): fuera,
+  salvo las tuyas (`deSetVisible`).
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`, `js/catalogo-series.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js`, `js/catalogo-buscar.js`,
+`js/buscador.js`, `admin/js/admin.js`, SCHEMA. Pruebas: `test-tanda-827.mjs`;
+589, 806 y 825 al día; el subconjunto de /mi-coleccion.
+
+**Pendiente**: PINGU mira en /admin que «JP» de PRECIOS avanza y la línea
+«en curso»; el Charizard de TCGGO tendrá precio cuando la pasada llegue a su
+expansión.
+
 ## 2026-10-14 (66) — PINGU-Claude (826 — el logo de TCGGO delante en el japonés)
 
 **Hecho** (PINGU: «se han corregido eras y sets, pero veo algunos sin logo»,
