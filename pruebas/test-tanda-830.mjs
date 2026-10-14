@@ -35,7 +35,7 @@ const montar = (estado = {}) => {
   const restImpl = async (ruta) => {
     const r = decodeURIComponent(ruta)
     rutas.push(r)
-    if (/^tcg_sets\?select=id,tcggo_id&market=eq\.JP/.test(r)) return [{ id: 'll1_ja', tcggo_id: 647 }]
+    if (/^tcg_sets\?select=id,tcggo_id(?:,oculto)?&market=eq\.JP/.test(r)) return [{ id: 'll1_ja', tcggo_id: 647 }]
     if (/market=eq\.JP/.test(r)) {
       // El Gengar es suyo (tcggo_id 69408) con el id de Cardmarket de ANTES
       // (el occidental, 99999); la otra ya estaba bien.

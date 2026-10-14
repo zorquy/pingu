@@ -68,7 +68,7 @@ console.log('\n── 3. La pasada: el mapa japonés sale de NUESTROS sets, y el
       return { ok: false, status: 404, text: async () => 'no' }
     }
     const restImpl = async (ruta) => {
-      if (/^tcg_sets\?select=id,tcggo_id&market=eq\.JP/.test(ruta)) return [{ id: 'M6', tcggo_id: 552 }]
+      if (/^tcg_sets\?select=id,tcggo_id(?:,oculto)?&market=eq\.JP/.test(ruta)) return [{ id: 'M6', tcggo_id: 552 }]
       if (/market=eq\.JP/.test(ruta)) return /"M6"/.test(decodeURIComponent(ruta)) ? [{ id: 'M6-080', cm_id_product_propio: 900105 }] : []
       return [{ id: 'sv1-1', cm_id_product_propio: 500 }]
     }

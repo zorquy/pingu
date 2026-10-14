@@ -51,7 +51,9 @@ const fetchImpl = async (url) => {
 const porProducto = []
 const restImpl = async (ruta) => {
   const r = decodeURIComponent(ruta)
-  if (/^tcg_sets\?select=id,tcggo_id&market=eq\.JP/.test(r)) return [{ id: 'tg-723', tcggo_id: 723 }]
+  if (/^tcg_sets\?select=id,tcggo_id(?:,oculto)?&market=eq\.JP/.test(r)) return [{ id: 'tg-723', tcggo_id: 723 }]
+  // Las que faltan, por `tcggo_id` en todo el japonés (831): aquí ninguna.
+  if (/market=eq\.JP&tcggo_id=in\./.test(r) || /tcggo_id=is\.null/.test(r)) return []
   if (/market=eq\.JP/.test(r)) {
     // Desde la 830 el japonés pregunta por producto O por `tcggo_id`.
     const m = r.match(/cm_id_product_propio(?:=in|\.in)\.\(([^)]*)\)/)

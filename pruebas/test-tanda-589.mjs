@@ -77,6 +77,8 @@ console.log('── 2. La función programada ──')
       return { ok: false, status: 404, text: async () => 'no' }
     }
     const restImpl = async (ruta) => {
+      // Las que faltan, buscadas por `tcggo_id` en todo el japonés (831): ninguna.
+      if (/^tcg_cards\?.*market=eq\.JP&tcggo_id=in\./.test(ruta)) return []
       const m = ruta.match(/set_id=in\.\(([^)]*)\)/)
       if (!m) throw new Error(`ruta inesperada ${ruta}`)
       const ids = m[1].split(',').map((x) => decodeURIComponent(x.replace(/"/g, '')))
