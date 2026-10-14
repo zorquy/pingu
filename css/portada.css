@@ -550,6 +550,11 @@ a.noticia-banner:hover {
 
   /* S780.188 */
   #torneoPortadaSeccion {
+    order: -4;
+  }
+
+  /* 843: los retos, detrás del torneo. */
+  #retoSeccion {
     order: -3;
   }
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo, rutaDeArticulo, cuandoFue } from './articulos.js'
-import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml } from './app.js'
+import { escapeHtml, getSession, profileUrl, tintClassForKey, categoryIconHtml, avatarStyle, getInitial } from './app.js'
 import { decorateGuideCards } from './guide-card.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { icons } from './icons.js'
@@ -719,44 +719,36 @@ async function cargarReto() {
     return
   }
 
-  const [{ yaJugadoHoy, PREGUNTAS_POR_RETO }, { cuantasParaRepasar }] = await Promise.all([
-    import('./reto-diario.js'),
-    import('./curso-datos.js'),
+  // Los seis retos de hoy (843): el bloque habla de todos, y lleva al
+  // siguiente que te falta. El repaso de preguntas sigue de segunda línea.
+  const [retos, { cuantasParaRepasar }] = await Promise.all([import('./portada-retos.js'), import('./curso-datos.js')])
+  const [estado, porRepasar, comunidad] = await Promise.all([
+    retos.estadoDeHoy(session.user.id),
+    cuantasParaRepasar(session.user.id).catch(() => 0),
+    retos.comunidadDeHoy().catch(() => null),
   ])
-
-  const [jugado, porRepasar] = await Promise.all([
-    yaJugadoHoy(session.user.id),
-    cuantasParaRepasar(session.user.id),
-  ])
-
-  // El repaso deja de ser una tarjeta hermana y pasa a ser la segunda
-  // línea del héroe: es lo mismo —preguntas del reto— y como tarjeta
-  // aparte duplicaba el bloque los días que había algo que repasar.
   const repaso =
     porRepasar > 0
-      ? `<a class="reto-hoy-repaso" href="/curso.html?reto=repaso">
+      ? `<a class="reto-hoy-repaso tr-repaso" href="/curso.html?reto=repaso">
            ${icons.refreshCw(15)} ${porRepasar} ${porRepasar === 1 ? 'pregunta' : 'preguntas'} por repasar
          </a>`
       : ''
-
-  document.getElementById('retoTarjetas').innerHTML = jugado
-    ? heroeReto({
-        hecho: true,
-        rotulo: 'Reto de hoy',
-        titular: `${jugado.correct} de ${jugado.total}`,
-        puntos: puntosHtml(jugado.correct, jugado.total),
-        sub: 'Ya está el de hoy. Mañana hay cinco preguntas nuevas.',
-        boton: '<a class="reto-hoy-boton reto-hoy-boton-flojo" href="/usuarios.html">Ver la liga de la semana →</a>',
-        repaso,
-      })
-    : heroeReto({
-        rotulo: 'Reto de hoy',
-        titular: 'Te toca jugar',
-        puntos: puntosHtml(0, PREGUNTAS_POR_RETO),
-        sub: `${PREGUNTAS_POR_RETO} preguntas, las mismas para todos. Un minuto.`,
-        boton: '<a class="btn-primary reto-hoy-boton" href="/curso.html?reto=hoy">Jugar el reto →</a>',
-        repaso,
-      })
+  if (!estado) {
+    document.getElementById('retoTarjetas').innerHTML = heroeReto({
+      rotulo: 'Retos de hoy',
+      titular: 'Seis retos al día',
+      puntos: '',
+      sub: 'Preguntas, cartas, precios y siluetas. Cada uno suma XP.',
+      boton: '<a class="btn-primary reto-hoy-boton" href="/retos">Ver los retos →</a>',
+      repaso,
+    })
+  } else {
+    await retos.hoja
+    document.getElementById('retoTarjetas').innerHTML = retos.bloqueRetosHtml(estado, comunidad, repaso, (p) => {
+      const nombre = p?.display_name || p?.username || '?'
+      return `<span class="tr-cara" style="${avatarStyle(p)}" title="${escapeHtml(nombre)}">${p?.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>`
+    })
+  }
   seccion.style.display = ''
 }
 cargarReto().catch(() => recogerSeccion('retoSeccion'))

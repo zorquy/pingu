@@ -1,0 +1,75 @@
+/* El bloque de los seis retos en la portada (843). Lo mete js/portada-retos.js. */
+.tr-bloque {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.tr-cabeza {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-lg);
+  background: linear-gradient(135deg, var(--navy-solid-dark), var(--navy-solid-light));
+  color: var(--blanco-fijo);
+}
+
+.tr-bloque.perfecto .tr-cabeza { background: linear-gradient(135deg, #0d7a57, #10a374); }
+.tr-rotulo { display: flex; align-items: center; gap: var(--e-xs); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.tr-titular { font-family: var(--font-display); font-size: var(--t-xl); }
+.tr-casillas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--e-xs); }
+
+.tr-casilla {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--blanco-fijo);
+}
+
+.tr-casilla.hecha { background: var(--blanco-fijo); color: var(--navy-solid-dark); }
+.tr-casilla.hecha::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--navy-solid);
+  background: var(--success);
+}
+
+.tr-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.tr-chip { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgba(0, 0, 0, 0.25); font-size: var(--t-xs); font-weight: 600; }
+
+.tr-cuerpo { display: grid; gap: var(--e-md); padding: var(--e-md) var(--e-lg); }
+.tr-siguiente { display: flex; align-items: center; gap: var(--e-md); }
+.tr-sig-icono { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-md); color: var(--blanco-fijo); }
+.tr-siguiente > div { flex: 1; min-width: 0; display: grid; }
+.tr-siguiente small { color: var(--text-mid); font-size: var(--t-xs); }
+.tr-siguiente b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-jugar { min-height: 44px; display: inline-flex; align-items: center; padding: 0 var(--e-md); }
+
+.tr-gente { display: flex; align-items: center; gap: var(--e-md); padding-top: var(--e-md); border-top: 1px solid var(--border); color: var(--text); font-size: var(--t-sm); }
+.tr-caras { display: flex; }
+.tr-cara {
+  width: 28px;
+  height: 28px;
+  margin-left: -8px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  background-size: cover;
+  background-position: center;
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.tr-cara:first-child { margin-left: 0; }
+.tr-repaso { display: flex; align-items: center; gap: var(--e-xs); }

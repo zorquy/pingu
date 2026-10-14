@@ -40382,3 +40382,39 @@ exists` antes del `create`: con las dos, PostgREST no sabría a cuál llamar.
 partida al navegador ANTES de que la página lea la suya, y solo si el
 navegador no tiene la de hoy (lo local manda: es lo más nuevo). Una partida a
 medias no se sube: solo se guarda al terminar.
+
+## Tandas 842–843 — «Hoy en PokeDoc» y los seis retos en la portada
+
+**842.** `supabase-migration-retos-comunidad.sql`: `user_profiles.retos_oculto
+boolean not null default false` y `retos_comunidad(p_dia date default null)
+returns jsonb` (security definer, para `anon` y `authenticated`). `p_dia`
+solo vale si está a un día de `current_date` (el «hoy» del navegador puede ir
+un día por delante o por detrás del de la base); si no, es `current_date`: no
+es un histórico. Lo
+que devuelve: `dia`, `jugadores`, `ayer`, `oculto` (el tuyo), `caras` (hasta
+8 con nombre), `ranking` (los 5 primeros por XP de hoy, solo `visibles`), `tu`
+(puesto, xp, juegos y tu perfil, aunque estés oculto), `porJuego`
+(jugadores, acertaron, aciertos, total por juego), `dias` (14, con 0 los días
+sin nadie) y `rachaMax` (la más larga de los visibles, si pasa de 1). Visible
+= sin `retos_oculto` y sin `hide_activity`; los demás se cuentan en los
+números pero no salen con nombre. El interruptor de /retos
+(`#rtComunidadSalir`) escribe `retos_oculto` con un `update` del propio
+perfil; si `retos_oculto` entrara alguna vez en `perfil_guarda_columnas`,
+haría falta una RPC. El cliente es `js/retos-comunidad.js` (entra por
+`import()` desde `js/retos.js`); sin la RPC la sección se queda escondida.
+
+**843.** `js/portada-retos.js`: `estadoDeHoy(uid)` (una vez por visita: la
+piden la ficha de «Hoy» y el bloque a la vez) junta `retos_mis_numeros` (la
+835), lo del navegador (`RETOS[].local`, por si la migración no está) y el de
+preguntas de `daily_challenge_results` (día LOCAL, como `reto-diario.js`).
+`resumenDelDia` es puro: hechos, total, xp, racha y el siguiente sin hacer
+(en el orden de `RETOS`). `fichaRetosHtml` pinta la ficha con el anillo
+(`--lleno` en grados) y `bloqueRetosHtml` el bloque (`.tr-*`, en
+`css/portada-retos.css`, inyectada con `hojaInyectada`). `fichasHtml` de
+`js/hoy.js` usa la ficha nueva cuando le pasan `retos` (aunque sea `null`) y
+la vieja si no se lo pasan. En el móvil `#retoSeccion` lleva `order: -3`
+(detrás del torneo, `-4`, y delante de la noticia, `-2`) dentro del `@media
+(max-width: 959px)` de `portada.css`; es la única regla con ese id que deja
+pasar la 362. `portada-retos.js` no importa `app.js` (la importa `hoy.js`):
+`bloqueRetosHtml(e, comunidad, repaso, cara)` recibe quién pinta las caras.
+

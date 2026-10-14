@@ -186,6 +186,7 @@ async function arrancar() {
   // Lo del navegador se pinta YA (sin esperar a la base).
   for (const j of Object.keys(ID_ESTADO)) pintarJuego(j, resumenDe(j, null))
   const session = await getSession().catch(() => null)
+  import('./retos-comunidad.js').then(({ pintarComunidad }) => pintarComunidad($('rtComunidad'), session)).catch(() => {})
   const [quiz, numeros] = await Promise.all([
     pintarHoy(session).catch(() => {
       const caja = $('rtHoyEstado')

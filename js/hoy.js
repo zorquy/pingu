@@ -18,6 +18,7 @@ import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { hojaInyectada } from './hoja.js'
 import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/datos.js'
+import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -72,15 +73,18 @@ const horasHastaMañana = (ahora = Date.now()) => {
 }
 
 // Las cuatro fichas, con lo que se sepa de cada una. Puro.
-export function fichasHtml({ reto = null, torneo = null, lanzamiento = null, respuestas = null } = {}, ahora = Date.now()) {
+export function fichasHtml({ reto = null, retos, torneo = null, lanzamiento = null, respuestas = null } = {}, ahora = Date.now()) {
   const quedan = `${horasHastaMañana(ahora)} h`
   const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
   return [
-    ficha(
-      reto
-        ? { href: '/retos', icono: 'checkCircle', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: `Hecho: ${reto.correct ?? 0} de ${reto.total ?? 5}`, hecho: true }
-        : { href: '/retos', icono: 'lightbulb', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: reto === null ? 'Cinco preguntas' : `Sin hacer · ${quedan}`, destaca: true }
-    ),
+    // Los seis retos (843) cuando se sabe lo de hoy; si no, la de antes.
+    retos !== undefined
+      ? fichaRetosHtml(retos)
+      : ficha(
+          reto
+            ? { href: '/retos', icono: 'checkCircle', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: `Hecho: ${reto.correct ?? 0} de ${reto.total ?? 5}`, hecho: true }
+            : { href: '/retos', icono: 'lightbulb', rotulo: 'Reto de hoy', titular: 'Reto del día', sub: reto === null ? 'Cinco preguntas' : `Sin hacer · ${quedan}`, destaca: true }
+        ),
     ficha(
       torneo
         ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}`, sub: torneo.name }
@@ -185,7 +189,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   seccion.appendChild(caja)
 
   const hoy = hoyISO()
-  const [valor, reto, mio, abierto, sets, sigue, respuestas, productos] = await Promise.all([
+  const [valor, reto, mio, abierto, sets, sigue, respuestas, productos, retos] = await Promise.all([
     intentar(async () => {
       const [historia, ahora] = await Promise.all([
         supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
@@ -232,10 +236,12 @@ export async function montarHoy(session, { doc = document } = {}) {
     }),
     // Lo que valen tus productos (766), como lo suma el Panel.
     intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid)),
+    // Los seis retos de hoy (843).
+    intentar(() => estadoDeHoy(uid)),
   ])
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null
-  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ reto: reto === undefined ? null : reto, torneo, lanzamiento, respuestas: respuestas ?? null })
+  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ reto: reto === undefined ? null : reto, retos: retos ?? null, torneo, lanzamiento, respuestas: respuestas ?? null })
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifra = caja.querySelector('.hoy-valor b:not(.hoy-valor-invita)')
   if (cifra && valor?.length) {

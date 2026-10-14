@@ -252,3 +252,28 @@
     width: 120px;
   }
 }
+
+/* La ficha de los seis retos (843): el anillo con los hechos en vez del icono. */
+.hoy-retos-anillo {
+  --lleno: 0deg;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--e-sm);
+  border-radius: 50%;
+  background: conic-gradient(var(--success) var(--lleno), color-mix(in srgb, currentColor 22%, transparent) 0);
+}
+
+.hoy-retos-anillo strong {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--white);
+  font-size: var(--t-xs);
+}
+
+.hoy-destaca .hoy-retos-anillo strong { background: var(--navy-solid); }

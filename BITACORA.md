@@ -4,6 +4,57 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (76) — PINGU-Claude (842–843 — «Hoy en PokeDoc» en /retos y los seis retos en la portada)
+
+**Hecho** (PINGU vio las dos propuestas con imágenes: «sí, haz las dos, la
+privacidad así está bien»):
+- **842 /retos → «Hoy en PokeDoc»**: cuánta gente ha jugado hoy (y la
+  diferencia con ayer), quién lleva más XP de retos hoy (con tu puesto aunque
+  no estés arriba), cómo va cada reto (cuántos jugaron, cuántos acertaron o la
+  media), los últimos 14 días en barras y la racha más larga. Sale de la RPC
+  nueva `retos_comunidad(p_dia)` (siempre HOY: no es un histórico), para
+  todo el mundo, con y sin cuenta. **Privacidad**: con nombre sale todo el
+  mundo menos quien quita «Salir con mi nombre en esta lista» (columna nueva
+  `user_profiles.retos_oculto`, el interruptor va en la misma tarjeta) o
+  tiene oculta su actividad (`hide_activity`); a esos se les cuenta igual,
+  sin nombre. Sin la migración, la sección no sale (no dice «nadie»).
+- **843 portada**: la ficha de arriba es «Retos de hoy · N/6» con su anillo
+  (antes era solo el de preguntas), y el bloque de la derecha («Tus retos de
+  hoy») lleva las seis casillas, cada una a su reto y marcada si está hecha,
+  la XP de hoy, la racha, las horas que quedan, el SIGUIENTE que te falta con
+  «Jugar» y «N personas han jugado hoy» con caras. En el móvil el bloque va
+  justo debajo de las fichas. Lo nuevo entra por `import()` con su hoja
+  (`css/portada-retos.css`): la portada sigue en 149,1 KB.
+
+**Ficheros**: `supabase-migration-retos-comunidad.sql` (nueva),
+`js/retos-comunidad.js` (nuevo), `retos.html`, `js/retos.js`, `css/retos.css`,
+`js/portada-retos.js` + `css/portada-retos.css` (nuevos), `js/hoy.js`,
+`js/home.js`, `css/hoy.css`, `css/portada.css`. En `pruebas`:
+`test-tanda-842.mjs` (contra PostgreSQL: cuentas, orden, privacidad, que se
+pueda ejecutar dos veces) y `test-tanda-843-pantalla.mjs` (las dos pantallas,
+sin la migración, sin nadie, móvil), y `retos_comunidad` en el doble.
+
+**Pruebas**: 842, 843-pantalla, imports, migraciones y 631 verdes. Suite
+entera (4 carriles): 449 verdes y 11 rojos; siete eran míos y están
+arreglados y repasados uno a uno —299, 362, 368, 744 (esperaban el héroe y la
+ficha viejos del reto de preguntas, o el orden viejo del móvil), 311 (el
+número del anillo se medía sobre el verde: ahora va en un `<strong>` con su
+fondo), 386 (el avatar de la lista se llama `rt-com-avatar`) y 829 (`/` como
+enlace de una novedad)—; 517 pasa sola (flojera de tiempos), y 493, 514 y 834
+fallan porque este contenedor no tiene `ffprobe` ni `qpdf`. Y una cosa que
+cazó la 744: `portada-retos.js` no puede importar `app.js` (lo importa
+`hoy.js`, y `app.js` monta la barra al cargarse); las caras del bloque las
+pinta `home.js` y se le pasan.
+
+En el móvil el orden queda: torneo en juego, tus retos, la noticia y los
+primeros pasos (antes del torneo no va nada: un torneo en juego corre más
+prisa que los retos).
+
+**Pendiente**: **PINGU, ejecuta `supabase-migration-retos-comunidad.sql`**
+(y `supabase-migration-retos-xp.sql` si no la has vuelto a ejecutar tras la
+841). Hasta entonces /retos no enseña la sección y la portada cuenta tus retos
+con lo del navegador.
+
 ## 2026-10-14 (75) — PINGU-Claude (841 — un reto hecho en el móvil sale hecho en el PC)
 
 **Hecho** (PINGU: «hago los retos en móvil pero en el PC no están hechos»):
