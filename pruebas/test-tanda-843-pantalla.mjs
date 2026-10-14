@@ -36,7 +36,7 @@ const NUMEROS = { hoy: { carta: { aciertos: 1, total: 1, intentos: 2, acertada: 
 const b = await chromium.launch()
 async function abrir(ruta, { sesion = 'user-1', comunidad, numeros, quiz = 0, movil = false } = {}) {
   const ctx = await b.newContext({ ...(movil ? devices['iPhone 13'] : { viewport: { width: 1280, height: 900 } }), locale: 'es-ES' })
-  await ctx.addInitScript(([s, c, n, q]) => { window.__FAKE_SESSION__ = s; if (q) window.__FAKE_RETOS__ = [{}]; if (c) window.__FAKE_RETOS_COMUNIDAD__ = c; if (n) window.__FAKE_RETOS_NUMEROS__ = n }, [sesion, comunidad, numeros, quiz])
+  await ctx.addInitScript(([s, c, n, q]) => { window.__FAKE_SESSION__ = s; window.__FAKE_GUIAS__ = [{}, {}, {}, {}]; if (q) window.__FAKE_RETOS__ = [{}]; if (c) window.__FAKE_RETOS_COMUNIDAD__ = c; if (n) window.__FAKE_RETOS_NUMEROS__ = n }, [sesion, comunidad, numeros, quiz])
   const p = await ctx.newPage()
   const errores = []
   p.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
@@ -119,7 +119,8 @@ console.log('── 2. La portada ──')
   const { p, ctx, errores } = await abrir('/', { comunidad: COMUNIDAD, numeros: NUMEROS, movil: true })
   const orden = await p.evaluate(() => {
     const r = document.getElementById('retoSeccion')?.getBoundingClientRect().top
-    const g = [...document.querySelectorAll('h2')].find((h) => /Guías nuevas/.test(h.textContent))?.getBoundingClientRect().top
+    // Desde la 844 las guías son «Aprende».
+    const g = document.getElementById('recientesSeccion')?.getBoundingClientRect().top
     return { r, g }
   })
   check('en el móvil el bloque va arriba, antes de las guías', orden.r != null && orden.g != null && orden.r < orden.g, JSON.stringify(orden))

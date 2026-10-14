@@ -140,7 +140,8 @@ console.log('\n── 2. En el móvil se lee de qué va cada tema ──')
   for (const ancho of [320, 390, 1280]) {
     const { page } = await abrir('/index.html', ancho)
     const titulos = await page.evaluate(() =>
-      [...document.querySelectorAll('.foro-vivo-titulo')].map((n) => ({
+      // Desde la 844: el tema de delante (.pb-foro-titulo) y los de las filas.
+      [...document.querySelectorAll('.pb-foro-titulo, .pb-foro-fila-texto b')].map((n) => ({
         w: Math.round(n.clientWidth),
         corta: n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1,
         t: n.textContent.trim(),
@@ -162,10 +163,10 @@ console.log('\n── 3. La portada no cuenta lo mismo dos veces ──')
     // El ÚLTIMO enlace de cada fila es su destino: el primero es el
     // avatar, cuyo texto es una inicial suelta y casaría con cualquier
     // título si se comparase por trozos.
-    const enActividad = [...document.querySelectorAll('#homeActivityFeed .activity-item')]
+    const enActividad = [...document.querySelectorAll('#homeActivityFeed .pb-comu li')]
       .map((f) => [...f.querySelectorAll('a')].pop()?.textContent.trim())
       .filter((x) => x && x.length > 3)
-    const enForo = [...document.querySelectorAll('.foro-vivo-titulo')].map((n) => n.textContent.trim())
+    const enForo = [...document.querySelectorAll('.pb-foro-titulo, .pb-foro-fila-texto b')].map((n) => n.textContent.trim())
     const noticia = document.querySelector('#noticiaPortada strong')?.textContent.trim() || ''
     return { enForo, enActividad, noticia }
   })

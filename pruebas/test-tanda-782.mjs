@@ -21,7 +21,8 @@ for (const f of ['retos', 'mas-caro', 'carta-del-dia', 'nueve']) {
   const css = leer(`css/${f}.css`)
   check(`${f}.css: la cabecera ya no se centra`, !/-cabecera \{[^}]*text-align: center/.test(css))
 }
-check('SI8: la lista del foro de la portada, plana con separadores', /\.foro-vivo-lista > li \+ li \{\s*border-top: 1px solid var\(--border\)/.test(leer('css/portada.css')))
+// Desde la 844 el foro de la portada vive en css/portada-bloques.css.
+check('SI8: la lista del foro de la portada, plana con separadores', /\.pb-foro-fila \{[^}]*border-bottom: 1px solid var\(--border\)/.test(leer('css/portada-bloques.css')) && !/\.pb-foro-fila \{[^}]*box-shadow/.test(leer('css/portada-bloques.css')))
 
 console.log('── 2. En el navegador ──')
 const b = await chromium.launch()

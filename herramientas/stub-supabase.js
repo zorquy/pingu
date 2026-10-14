@@ -1985,6 +1985,17 @@ export const supabase = {
       const d = typeof window !== 'undefined' ? window.__FAKE_RETOS_COMUNIDAD__ : null
       return d ? { data: d, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.retos_comunidad' } }
     }
+    // La portada nueva (844): la clasificación por periodo y los sucesos de
+    // la comunidad. Sin semilla, como sin la migración.
+    if (nombre === 'portada_clasificacion') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_CLASIFICACION__ : null
+      const p = args.p_periodo === 'mes' ? 'mes' : 'semana'
+      return d ? { data: { periodo: p, ...(d[p] || d) }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_clasificacion' } }
+    }
+    if (nombre === 'portada_comunidad') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_COMUNIDAD_SUCESOS__ : null
+      return d ? { data: d.slice(0, args.p_limite || 12), error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_comunidad' } }
+    }
     if (nombre === 'retos_mis_numeros' && typeof window !== 'undefined' && window.__FAKE_RETOS_NUMEROS__) {
       return { data: window.__FAKE_RETOS_NUMEROS__, error: null }
     }

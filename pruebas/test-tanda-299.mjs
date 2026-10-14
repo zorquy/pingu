@@ -459,7 +459,7 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
   // solo el de preguntas); el héroe viejo queda para quien no tiene cuenta.
   const heroe = page.locator('.tr-bloque')
   check('  …con el bloque de los retos de hoy', await heroe.isVisible())
-  check('  …y la noticia al lado', await page.locator('.noticia-banner').isVisible())
+  check('  …y la noticia al lado', await page.locator('#noticiaPortada .pb-noticia').isVisible())
   const alto = await heroe.evaluate((e) => e.getBoundingClientRect().height)
   check('  …y es de verdad grande', alto > 150, `${Math.round(alto)}px`)
   // Y ARRIBA DEL TODO en su columna. Hasta la tanda 368 esto se
@@ -472,7 +472,9 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
   const arriba = await page.evaluate(() => {
     const t = document.getElementById('torneoPortadaSeccion')
     const n = document.getElementById('noticiaPortadaSeccion')
-    const d = document.getElementById('destacadaSeccion')
+    // La destacada aparte se fue en la 844: la ancha la abre lo que tienes a
+    // medias («Sigue») y, detrás, el foro.
+    const d = document.getElementById('sigueSeccion')
     const reto = document.getElementById('retoSeccion')
     if (!t || !n || !d || !reto) return false
     // Desde la 785 (PA2) el torneo abre la columna de la derecha («lo
@@ -546,14 +548,13 @@ console.log('\n── 8. F · El color deja de gritar en las rejillas ──')
   // sigue siendo lo mismo — que ningún color salga de un hash y que
   // ninguno pinte el marco entero.
   const { page } = await abrir('/index.html')
-  const chip = page.locator('.portada-tema').first()
+  // Desde la 844 los temas son los filtros de «Aprende» (.pb-tema): sin
+  // color de ningún hash y del blanco de las cajas, que es lo que se vigila.
+  const chip = page.locator('#aprende .pb-tema:not(.activo)').first()
   check('el tema es un chip, no una tarjeta con marco de color',
     !(await chip.evaluate((e) => e.className)).includes('icon-tint'), await chip.evaluate((e) => e.className))
-  // El tinte sí, pero SOLO en la pastilla del icono.
-  check('  …y el tinte se queda en la pastilla del icono',
-    (await page.locator('.portada-tema-icono').first().evaluate((e) => e.className)).includes('icon-tint'))
   const fondoChip = await chip.evaluate((e) => getComputedStyle(e).backgroundColor)
-  const fondoCaja = await page.evaluate(() => getComputedStyle(document.querySelector('.foro-vivo')).backgroundColor)
+  const fondoCaja = await page.evaluate(() => getComputedStyle(document.querySelector('#foroVivo')).backgroundColor)
   check('  …y el chip es blanco como el resto de cajas', fondoChip === fondoCaja, `${fondoChip} vs ${fondoCaja}`)
 
   // Desde la tanda 316 la tarjeta de la portada es la MISMA que la de
@@ -561,15 +562,15 @@ console.log('\n── 8. F · El color deja de gritar en las rejillas ──')
   // etiquetas en vez de flotando sobre la franja de color. Lo que esta
   // comprobación defiende no cambia: que la rareza no pinte el marco de
   // la tarjeta y que se diga en español.
-  const guia = page.locator('#recentGrid .guia-tarjeta').first()
+  const guia = page.locator('#aprende .guia-tarjeta').first()
   check('la guía reciente no lleva marco de rareza', !(await guia.evaluate((e) => e.className)).includes('border-rarity'),
     await guia.evaluate((e) => e.className))
   const grosor = await guia.evaluate((e) => getComputedStyle(e).borderTopWidth)
   check('  …y su borde es fino', grosor === '1px', grosor)
   check('  …pero la rareza se sigue diciendo',
-    (await page.locator('#recentGrid .guia-rareza').count()) > 0)
+    (await page.locator('#aprende .guia-rareza').count()) > 0)
   // Y en español: la columna guarda «gold» y eso no lo dice nadie aquí.
-  const rareza = await page.locator('#recentGrid .guia-rareza').first().textContent()
+  const rareza = await page.locator('#aprende .guia-rareza').first().textContent()
   check('  …y en español', /Oro|Plata|Bronce|Platino/.test(rareza || ''), rareza)
   // Las .border-tint-* solo las usaba esto: si quedaron, es CSS muerto.
   check('y el CSS muerto se fue', !/\.border-tint-\d \{/.test(leer('css/style.css')))

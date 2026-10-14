@@ -23,9 +23,12 @@ check('  …y Mensajes y los mazos con botón, no con enlaces en la frase',
   /empty-state">Todavía no tienes mazos guardados[^']*class="btn-primary" href="\/constructor"/.test(leer('js/torneos/torneo.js')))
 check('SI5: el primario es el azul sólido con el blanco fijo', /background: var\(--navy-solid\);\s*color: var\(--blanco-fijo\)/.test(regla(style, '.btn-primary')))
 const idx = leer('index.html')
-check('SI3: la portada dice «Ver todo» con su flecha, las dos veces', (idx.match(/class="ver-todo"[^>]*>Ver todo <span class="ver-todo-flecha"/g) || []).length === 2)
-check('  …y el foro, «Hoy» y el Panel también', /class="ver-todo" href="\/foro"/.test(leer('js/home.js')) && /class="ver-todo"/.test(leer('js/hoy.js')) && /link-btn ver-todo/.test(leer('js/mi-coleccion.js')))
-check('  …sin el botón con borde del foro', !/foro-vivo-boton/.test(leer('js/home.js') + leer('css/portada.css')))
+// Desde la 844 los «Ver todo» de la portada los pinta js/portada-bloques.js
+// (un solo `verTodo`, con su flecha), no index.html.
+const pb = leer('js/portada-bloques.js')
+check('SI3: la portada dice «Ver todo» con su flecha, con un solo molde', /const verTodo = \(href, texto = 'Ver todo'\) => `<a class="ver-todo" href="\$\{href\}">\$\{texto\} <span class="ver-todo-flecha"/.test(pb) && (pb.match(/verTodo\(/g) || []).length >= 4)
+check('  …y el foro, «Hoy» y el Panel también', /verTodo\('\/foro'/.test(pb) && /class="ver-todo"/.test(leer('js/hoy.js')) && /link-btn ver-todo/.test(leer('js/mi-coleccion.js')))
+check('  …sin el botón con borde del foro', !/foro-vivo-boton/.test(leer('js/home.js') + leer('css/portada.css') + pb))
 const mc = leer('js/mi-coleccion.js')
 check('SI9: la «N» solo si no es la normal', /varianteDe\(l\.variante\)\.id === 'normal' \? '' : chapaDeVarianteHtml\(l\.variante\)/.test(mc))
 check('  …y el «Normal» de la expansión, solo separando', /mias\.length === 1 && mias\[0\]\.nuestro === 'normal'/.test(mc))

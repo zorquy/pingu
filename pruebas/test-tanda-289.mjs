@@ -15,6 +15,13 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 150) : ''}`)
 }
 
+// NOTA de la tanda 844: la portada ya no pinta este hilo —su «En la
+// comunidad» es otro molde y deja fuera las noticias, que van en su bloque—,
+// así que lo que defiende esta prueba se mira donde vive el hilo: la pestaña
+// Actividad de /usuarios, con el MISMO js/activity.js. Y lo de la portada, al
+// final (sección 8). Lo de la 316 de abajo ya no aplica: /usuarios no
+// descarta lo que esté arriba.
+//
 // NOTA de la tanda 316: la portada dejó de repetir en «En la comunidad»
 // lo que ya está pintado más arriba —la noticia del banner, las cuatro
 // guías nuevas y los temas de «Ahora en el foro»—. Así que aquí las
@@ -34,19 +41,16 @@ const abrir = async (ruta, semillas) => {
 
 console.log('\n── 1. Una noticia no se anuncia como una guía ──')
 {
-  const { page, errores } = await abrir('/', {
+  const { page, errores } = await abrir('/usuarios.html#activity', {
     // DOS noticias desde la tanda 316: la más reciente es la del banner
     // de la portada y la actividad ya no la repite, así que la que se
     // mira aquí tiene que ser OTRA. Con una sola, el bloque de actividad
     // se quedaba vacío y se recogía — que es justo lo que la 316 quería.
-    __FAKE_NOTICIAS__: [
-      { title: 'La del banner, que no se repite' },
-      { title: 'El Binder Collection se retrasa hasta diciembre' },
-    ],
+    __FAKE_NOTICIAS__: [{ id: 'noticia-2', slug: 'noticia-2', title: 'El Binder Collection se retrasa hasta diciembre' }],
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#homeActivityFeed .activity-item').first()
+  const fila = page.locator('#activityFeed .activity-item').first()
   const texto = (await fila.textContent())?.replace(/\s+/g, ' ').trim()
   check('no dice «ha publicado la guía»', !/publicado la guía/.test(texto || ''), texto)
   // Desde la tanda 312 el tipo va en una CHAPA y no en un «Nueva
@@ -67,13 +71,13 @@ console.log('\n── 2. Y no la firma nadie ──')
 {
   // Que ponga «PINGU ha publicado» hace que una noticia parezca la
   // opinión de alguien en vez de lo que ha pasado.
-  const { page } = await abrir('/', {
+  const { page } = await abrir('/usuarios.html#activity', {
     // La primera es la del banner; la segunda, la que se mira aquí.
-    __FAKE_NOTICIAS__: [{ title: 'La del banner' }, { title: 'Noticia de prueba' }],
+    __FAKE_NOTICIAS__: [{ title: 'Noticia de prueba' }],
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#homeActivityFeed .activity-item').first()
+  const fila = page.locator('#activityFeed .activity-item').first()
   check('no sale el nombre de nadie', (await fila.locator('.activity-name').count()) === 0)
   check('ni su avatar', (await fila.locator('a.activity-avatar').count()) === 0)
   check('sino la marca de la casa', (await fila.locator('.activity-avatar-casa').count()) === 1)
@@ -83,14 +87,14 @@ console.log('\n── 2. Y no la firma nadie ──')
 console.log('\n── 3. Una guía SÍ la firma quien la escribe ──')
 {
   // Lo de la firma es el pago de escribir una guía: no se toca.
-  const { page } = await abrir('/', {
+  const { page } = await abrir('/usuarios.html#activity', {
     // CINCO: «Guías nuevas» se queda con cuatro y la quinta es la que
     // llega al hilo de actividad.
     __FAKE_GUIAS__: Array.from({ length: 5 }, (_, i) => ({ title: `Cómo saber si una carta es falsa ${i + 1}` })),
     __FAKE_NOTICIAS__: [],
     __FAKE_TEMAS__: [],
   })
-  const fila = page.locator('#homeActivityFeed .activity-item').first()
+  const fila = page.locator('#activityFeed .activity-item').first()
   const texto = (await fila.textContent())?.replace(/\s+/g, ' ').trim()
   check('sigue diciendo «ha publicado la guía»', /ha publicado la guía/.test(texto || ''), texto)
   check('con el nombre de quien la escribió', (await fila.locator('.activity-name').count()) === 1)
@@ -108,11 +112,8 @@ console.log('\n── 4. La misma noticia no sale dos veces ──')
   // El hilo del foro de una noticia lo abre el mismo botón de publicar:
   // no es un tema que haya abierto nadie. Contarlo aparte llenaba el
   // hilo con la misma noticia dos veces seguidas.
-  const { page } = await abrir('/', {
-    __FAKE_NOTICIAS__: [
-      { title: 'La del banner' },
-      { title: 'Se retrasa el Binder Collection', forum_thread_id: 'tema-1' },
-    ],
+  const { page } = await abrir('/usuarios.html#activity', {
+    __FAKE_NOTICIAS__: [{ title: 'Se retrasa el Binder Collection', forum_thread_id: 'tema-1' }],
     __FAKE_GUIAS__: [],
     // El hilo va con un id que NO está entre los que pinta «Ahora en el
     // foro»… salvo que sea de los cuatro más nuevos. Como solo hay uno,
@@ -120,11 +121,11 @@ console.log('\n── 4. La misma noticia no sale dos veces ──')
     // comprueba igual.
     __FAKE_TEMAS__: [{ id: 'tema-1', title: 'Noticia: Se retrasa el Binder Collection' }],
   })
-  const filas = await page.locator('#homeActivityFeed .activity-item').allTextContents()
+  const filas = await page.locator('#activityFeed .activity-item').allTextContents()
   const juntas = filas.join(' | ').replace(/\s+/g, ' ')
   check('solo una entrada', filas.length === 1, juntas)
   check('y es la de la noticia',
-    (await page.locator('#homeActivityFeed .activity-tipo').count()) === 1, juntas)
+    (await page.locator('#activityFeed .activity-tipo').count()) === 1, juntas)
   check('no la del hilo del foro', !/ha abierto un tema/.test(juntas), juntas)
   await page.close()
 }
@@ -136,7 +137,7 @@ console.log('\n── 5. La consulta pide lo que hace falta ──')
   // pero en producción sí: sin `kind` toda noticia volvería a ser una
   // guía, y sin `forum_thread_id` volvería a salir dos veces. El doble
   // apunta las columnas que se le piden, y eso es lo que se mira.
-  const { page } = await abrir('/', {
+  const { page } = await abrir('/usuarios.html#activity', {
     __FAKE_NOTICIAS__: [{ title: 'Una noticia', forum_thread_id: 'tema-1' }],
     __FAKE_GUIAS__: [],
     __FAKE_TEMAS__: [{ id: 'tema-1', title: 'Noticia: Una noticia' }],
@@ -150,7 +151,7 @@ console.log('\n── 5. La consulta pide lo que hace falta ──')
 
 console.log('\n── 6. Un tema normal del foro sigue saliendo ──')
 {
-  const { page } = await abrir('/', {
+  const { page } = await abrir('/usuarios.html#activity', {
     __FAKE_NOTICIAS__: [],
     __FAKE_GUIAS__: [],
     // CINCO temas, y el que se mira va el PRIMERO —el doble los siembra
@@ -164,7 +165,7 @@ console.log('\n── 6. Un tema normal del foro sigue saliendo ──')
       ...Array.from({ length: 4 }, (_, i) => ({ id: `tema-${i + 1}`, title: `Tema de relleno ${i + 1}` })),
     ],
   })
-  const texto = (await page.locator('#homeActivityFeed').textContent())?.replace(/\s+/g, ' ')
+  const texto = (await page.locator('#activityFeed').textContent())?.replace(/\s+/g, ' ')
   check('con su persona delante', /ha abierto un tema en el foro/.test(texto || ''), texto)
   check('y su título', /regional/.test(texto || ''))
   await page.close()
@@ -186,6 +187,21 @@ console.log('\n── 8. Una guía sigue llevando su firma ──')
   const { page } = await abrir('/guia?slug=guia-1', { __FAKE_GUIAS__: [{ title: 'Una guía cualquiera' }] })
   const firma = (await page.locator('.guide-author').textContent())?.replace(/\s+/g, ' ').trim()
   check('pone quién la publicó', /Publicada por/.test(firma || ''), firma)
+  await page.close()
+}
+
+console.log('\n── 8. En la portada, las noticias van en su bloque y no en la comunidad (844) ──')
+{
+  const { page, errores } = await abrir('/', {
+    __FAKE_NOTICIAS__: [{ title: 'La primera' }, { title: 'La segunda' }, { title: 'La tercera' }, { title: 'La cuarta, que no cabe' }],
+    __FAKE_GUIAS__: Array.from({ length: 6 }, (_, i) => ({ title: `Guía ${i + 1}` })),
+    __FAKE_TEMAS__: [],
+  })
+  const comu = (await page.locator('#homeActivityFeed').textContent().catch(() => ''))?.replace(/\s+/g, ' ') || ''
+  check('ninguna noticia en «En la comunidad»', !/La (primera|segunda|tercera|cuarta)/.test(comu), comu.slice(0, 200))
+  check('  …pero sí lo que firma alguien (una guía)', /publicó la guía/.test(comu), comu.slice(0, 200))
+  check('  …y las noticias, en su bloque (tres)', (await page.locator('#noticiaPortada .pb-noticia, #noticiaPortada .pb-noticias-mas li').count()) === 3)
+  check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
 

@@ -166,14 +166,15 @@ console.log('\n── 4. El hilo de actividad va LIMPIO ──')
   })
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  const filas = await page.locator('#homeActivityFeed .activity-item').count()
+  // Desde la 844 la portada pinta su «En la comunidad» con su molde (.pb-comu).
+  const filas = await page.locator('#homeActivityFeed .pb-comu li').count()
   check('el hilo de actividad tiene filas', filas > 0, `${filas}`)
   check('y ninguna lleva chapa de nivel',
     (await page.locator('#homeActivityFeed .nivel-chapa').count()) === 0)
   // El NOMBRE sí sigue llevando el color de su rango: eso son tres
   // valores, no cinco, y no se repite en cada línea.
-  const fila = page.locator('#homeActivityFeed .activity-item').first()
-  const color = await fila.locator('.activity-name').evaluate((e) => getComputedStyle(e).color)
+  const fila = page.locator('#homeActivityFeed .pb-comu li').filter({ hasText: 'Oak' }).first()
+  const color = await fila.locator('.pb-quien a').evaluate((e) => getComputedStyle(e).color)
   const token = await page.evaluate(() => {
     const d = document.createElement('i')
     d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--rango-admin')

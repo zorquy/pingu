@@ -68,16 +68,20 @@ const semilla = () => {
 }
 {
   const ctx = await b.newContext({ ...devices['iPhone 13'] })
-  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1' })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1'; window.__FAKE_GUIAS__ = [{}, {}, {}, {}] })
   const p = await ctx.newPage()
   await p.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
+  // Desde la 844 «Aprende» va así en el móvil: una tarjeta y tres filas (lo
+  // que PINGU aprobó en imágenes), en vez del carrusel de la PA1; y la liga y
+  // el top del mes son UN bloque con pestañas, así que no se repiten.
   const m = await p.evaluate(() => ({
-    guias: getComputedStyle(document.getElementById('recentGrid')).overflowX,
-    top: getComputedStyle(document.getElementById('topMesSeccion')).display,
+    grande: document.querySelectorAll('#aprende .guia-tarjeta').length,
+    filas: document.querySelectorAll('#aprende .guia-fila').length,
+    viejos: document.querySelectorAll('#recentGrid, #topMesSeccion, #ligaSeccion').length,
   }))
-  check('PA1: en el móvil las guías van en un carrusel', m.guias === 'auto', JSON.stringify(m))
-  check('  …y el top del mes no se repite con la liga', m.top === 'none', JSON.stringify(m))
+  check('PA1 (844): en el móvil, una guía grande y las demás en fila', m.grande === 1 && m.filas >= 1, JSON.stringify(m))
+  check('  …y la liga y el top del mes ya no son dos bloques', m.viejos === 0, JSON.stringify(m))
   await ctx.close()
 }
 await b.close()

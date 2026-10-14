@@ -68,6 +68,22 @@ const tarjetas = (page, contenedor) =>
     relleno: n.querySelector('.guia-barra i')?.style.width ?? null,
   })), contenedor)
 
+// La portada desde la 844: UNA tarjeta y tres filas (filaDeGuia, en
+// js/portada-bloques.js). Las dos dicen lo mismo de cuatro maneras: hecho,
+// leído, a medias (con su barra) o nada.
+const portada = (page) =>
+  page.evaluate(() => {
+    const estadoTarjeta = (t) => (/Curso hecho/.test(t) ? 'hecho' : /Leída/.test(t) ? 'leida' : /Vas por el (\d+)%/.test(t) ? `${t.match(/(\d+)%/)[1]}%` : /Sin empezar/.test(t) ? 'sin' : null)
+    const t = [...document.querySelectorAll('#aprende .guia-tarjeta')].map((n) => ({ titulo: n.querySelector('.guia-titulo')?.textContent.trim(), estado: estadoTarjeta(n.querySelector('.guia-progreso-texto')?.textContent || '') }))
+    const f = [...document.querySelectorAll('#aprende .guia-fila')].map((n) => {
+      const txt = n.querySelector('small')?.textContent || ''
+      const barra = n.querySelector('.guia-fila-barra i')?.style.width
+      return { titulo: n.querySelector('strong')?.textContent.trim(), estado: /✓ hecha/.test(txt) ? 'hecho' : /✓ leída/.test(txt) ? 'leida' : barra || 'sin' }
+    })
+    return [...t, ...f]
+  })
+const ESPERADO_PORTADA = { 'Guía número 1': 'leida', 'Guía número 2': '50%', 'Guía número 3': 'hecho', 'Guía número 4': 'sin' }
+
 const ESPERADO = {
   'Guía número 1': ['✓ Leída', '100%'],
   'Guía número 2': ['Vas por el 50%', '50%'],
@@ -80,13 +96,12 @@ console.log('\n── 1. La portada dice el progreso de VERDAD ──')
 {
   const { page, errores } = await abrir('/index.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const cartas = await tarjetas(page, '#recentGrid')
+  const cartas = await portada(page)
   check('salen las cuatro guías', cartas.length === 4, String(cartas.length))
   for (const c of cartas) {
-    const esperado = ESPERADO[c.titulo]
+    const esperado = ESPERADO_PORTADA[c.titulo]
     if (!esperado) { check(`guía inesperada: ${c.titulo}`, false); continue }
-    check(`«${c.titulo}» dice «${esperado[0]}»`, c.estado === esperado[0], `dice «${c.estado}»`)
-    check(`  …y la barra va al ${esperado[1]}`, c.relleno === esperado[1], c.relleno)
+    check(`«${c.titulo}» dice «${esperado}»`, c.estado === esperado, `dice «${c.estado}»`)
   }
   await page.close()
 }
@@ -114,8 +129,10 @@ console.log('\n── 3. Sin sesión no hay barra, que no es lo mismo que cero �
   // distintas, y la segunda no se afirma: se calla.
   const { page, errores } = await abrir('/index.html', 'none')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const cartas = await tarjetas(page, '#recentGrid')
-  check('salen las cuatro guías igual', cartas.length === 4, String(cartas.length))
+  const cartas = await tarjetas(page, '#aprende')
+  const filas = await page.evaluate(() => [...document.querySelectorAll('#aprende .guia-fila')].map((n) => n.textContent))
+  check('salen las cuatro guías igual', cartas.length + filas.length === 4, String(cartas.length + filas.length))
+  check('  …y ninguna fila afirma nada (ni barra ni ✓)', !(await page.locator('#aprende .guia-fila-barra, #aprende .guia-fila-hecha').count()))
   const conBarra = cartas.filter((c) => c.estado !== null)
   check('  …y ninguna enseña barra', conBarra.length === 0, conBarra.map((c) => `${c.titulo}: ${c.estado}`).join(' | '))
   await page.close()

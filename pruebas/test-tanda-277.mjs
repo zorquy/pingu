@@ -88,15 +88,16 @@ console.log('\n── 3. El editor pide solo lo de una noticia ──')
 console.log('\n── 4. La última noticia, en la portada ──')
 {
   const { page, errores } = await abrir('/')
-  check('sale la tarjeta', (await page.locator('#noticiaPortada a').count()) === 1)
+  // Desde la 844, la grande es .pb-noticia (y el enlace a todas, aparte).
+  check('sale la tarjeta', (await page.locator('#noticiaPortada a.pb-noticia').count()) === 1)
   check('con su titular', (await page.locator('#noticiaPortada').textContent()).includes('Cartas del 30 aniversario'))
-  check('y lleva a la noticia', (await page.locator('#noticiaPortada a').getAttribute('href')) === '/noticias/noticia-1')
+  check('y lleva a la noticia', (await page.locator('#noticiaPortada a.pb-noticia').getAttribute('href')) === '/noticias/noticia-1')
   check('sin errores', errores.length === 0, errores[0] || '')
   await page.close()
 
   // Sin noticias no se deja un hueco que no explica nada.
   const vacia = await abrir('/', { __FAKE_NOTICIAS__: [] })
-  check('sin noticias, la sección se recoge', (await vacia.page.locator('#noticiaPortada a').count()) === 0)
+  check('sin noticias, la sección se recoge', (await vacia.page.locator('#noticiaPortada a').count()) === 0 && !(await vacia.page.locator('#noticiaPortadaSeccion').isVisible()))
   check('sin errores', vacia.errores.length === 0, vacia.errores[0] || '')
   await vacia.page.close()
 }

@@ -504,7 +504,8 @@ console.log('── 9. La portada «Hoy» de su maqueta (J5 y N1) ──')
       area: !!document.querySelector('.hoy-chispa .hoy-chispa-area'),
       reto: document.querySelector('.hoy-ficha[href="/retos"]')?.className,
       sigue: t(document.querySelector('.hoy-sigue')),
-      barra: document.querySelector('.hoy-sigue-barra i')?.style.getPropertyValue('--ancho'),
+      // Desde la 844, una tarjeta por cosa a medias con su anillo (--p).
+      barra: document.querySelector('.hoy-sg-anillo')?.style.getPropertyValue('--p'),
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
     }
   })
@@ -512,7 +513,7 @@ console.log('── 9. La portada «Hoy» de su maqueta (J5 y N1) ──')
   check('el saludo: el día y «Buenos días / tardes / noches», sin tarjeta ni avatar', /^(lunes|martes|miércoles|jueves|viernes|sábado|domingo), \d+ de /.test(m.fecha) && /^Buen(os días|as tardes|as noches), Admin$/.test(m.saludo) && !m.viejo && m.tarjeta === '0px', JSON.stringify(m))
   check('tu colección: la cifra con su punto, la flecha y la línea con su relleno', /^TU COLECCIÓN|^Tu colección/i.test(m.valor) && /1\.078,00 €/.test(m.valor) && /este mes/.test(m.valor) && m.flecha && m.area, m.valor)
   check('el reto que te toca, de color', /hoy-destaca/.test(m.reto || ''), m.reto)
-  check('«Sigue donde lo dejaste»: la guía empezada con su barra', /Sigue donde lo dejaste/.test(m.sigue) && /Guía · Cómo montar tu primer mazo/.test(m.sigue) && m.barra === '60%', JSON.stringify(m))
+  check('«Sigue donde lo dejaste»: la guía empezada con su anillo', /Sigue donde lo dejaste/.test(m.sigue) && /(Guía|Curso) ?Cómo montar tu primer mazo/.test(m.sigue) && m.barra === '60', JSON.stringify(m))
   check('la portada no se va de ancho', m.ancho)
   await ctx.close()
 }

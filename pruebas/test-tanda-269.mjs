@@ -100,7 +100,8 @@ console.log('\n── 2. La fecha, que es media noticia ──')
 console.log('\n── 3. Las noticias NO tapan las guías ──')
 {
   const { page, errores } = await abrir('/')
-  const recientes = await page.locator('#recentGrid .guia-titulo').allTextContents()
+  // Desde la 844 «Aprende»: una tarjeta (.guia-titulo) y las demás en fila.
+  const recientes = await page.locator('#aprende .guia-titulo, #aprende .guia-fila strong').allTextContents()
   check('sin errores', errores.length === 0, errores[0] || '')
   check('la portada solo enseña guías', recientes.every((t) => GUIAS.some((g) => g.title === t)), recientes.join(' | '))
   check('y las enseña todas', recientes.length === GUIAS.length, String(recientes.length))
@@ -114,7 +115,7 @@ console.log('\n── 4. El puente: desplegar ANTES de ejecutar el SQL ──')
   // empujar, y la migración la ejecuta una persona más tarde.
   const { page, errores } = await abrir('/', { __COLUMNAS_QUE_FALTAN__: ['kind'] })
   check('la portada no se cae', errores.length === 0, errores[0] || '')
-  const recientes = await page.locator('#recentGrid .guia-titulo').allTextContents()
+  const recientes = await page.locator('#aprende .guia-titulo, #aprende .guia-fila strong').allTextContents()
   check('y sigue enseñando artículos', recientes.length > 0, String(recientes.length))
   check('el contador no se queda en cero', (await page.locator('#heroStatGuides').textContent()) !== '0')
   await page.close()

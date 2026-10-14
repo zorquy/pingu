@@ -52,6 +52,8 @@ async function abrir({ ancho = 1280, torneos = TORNEOS } = {}) {
     window.__FAKE_SETS__ = d.sets
     window.__FAKE_CARTAS__ = d.cartas
     window.__FAKE_TORNEOS__ = d.torneos
+    // Algo en la columna ancha para medirla (844: sin guías ni foro, vacía).
+    window.__FAKE_GUIAS__ = [{}, {}, {}, {}]
   }, { sets: SETS, cartas: CARTAS, torneos })
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
@@ -81,10 +83,9 @@ console.log('\n── 2. El torneo ocupa el sitio caro ──')
   // delante de la guía destacada— y el reto se queda en la lateral.
   const enHoy = await page.evaluate(() => {
     const t = document.getElementById('torneoPortadaSeccion')
-    const d = document.getElementById('destacadaSeccion')
     // Desde la 785 (PA2) el torneo abre la columna de la derecha.
     const l = t?.closest('.portada-lateral')
-    if (!t || !d || !l) return 0
+    if (!t || !l) return 0
     return l.querySelector(':scope > section') === t ? 1 : 0
   })
   const enLateral = await page.locator('.portada-lateral #retoSeccion').count()
@@ -97,15 +98,15 @@ console.log('\n── 2. El torneo ocupa el sitio caro ──')
   // a media anchura con un claro al lado.
   const [fila, caja, panel] = await page.evaluate(() => [
     document.querySelector('.portada-principal').getBoundingClientRect().width,
-    document.querySelector('.portada-principal > section:not(.seccion-recogida) > *').getBoundingClientRect().width,
-    document.querySelector('.foro-vivo')?.getBoundingClientRect().right ?? null,
+    document.querySelector('.portada-principal > section:not(.seccion-recogida):not(.hidden) > *').getBoundingClientRect().width,
+    document.querySelector('#foroVivo')?.getBoundingClientRect().right ?? null,
   ])
   check('la caja se estira en su columna', caja > fila * 0.9, `${Math.round(caja)} de ${Math.round(fila)}`)
   // Con `> 0`: en este fixture el foro está vacío y su caja mide cero, y
   // comparar contra un cero es comparar contra nada.
   if (panel > 0) {
     const dcho = await page.evaluate(() =>
-      document.querySelector('.portada-principal > section:not(.seccion-recogida) > *').getBoundingClientRect().right)
+      document.querySelector('.portada-principal > section:not(.seccion-recogida):not(.hidden) > *').getBoundingClientRect().right)
     check('…y cuadra con lo de abajo', Math.abs(dcho - panel) <= 2, `${Math.round(dcho)} vs ${Math.round(panel)}`)
   }
   // Y las reglas van por POSICIÓN, no por el id de quien las ocupa: quien

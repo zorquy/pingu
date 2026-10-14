@@ -100,11 +100,13 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
     ['noticiaPortadaSeccion', 'lateral'],
     ['foroVivoSeccion', 'principal'],
     ['recientesSeccion', 'principal'],
-    ['temasSeccion', 'principal'],
     ['retoSeccion', 'lateral'],
     ['primerosPasos', 'lateral'],
-    ['homeActivity', 'lateral'],
-    ['ligaSeccion', 'lateral'],
+    // 844: los temas van dentro de «Aprende», la comunidad baja a la ancha
+    // (en dos columnas) y la liga y el top del mes son la clasificación.
+    ['sigueSeccion', 'principal'],
+    ['homeActivity', 'principal'],
+    ['clasificacionSeccion', 'lateral'],
   ]) {
     check(`${id} → ${donde}`, (await columnaDe(page, id)) === donde, await columnaDe(page, id))
   }
@@ -121,8 +123,8 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
   // la primera caja de la columna ancha contra otra de más abajo — que es
   // la misma pregunta con la fila quitada de en medio.
   const bordes = await page.evaluate(() => {
-    const caja = document.querySelector('.portada-principal > section:not(.seccion-recogida) > *')
-    const b = document.querySelector('.foro-vivo').getBoundingClientRect().right
+    const caja = document.querySelector('.portada-principal > section:not(.seccion-recogida):not(.hidden) > *')
+    const b = document.querySelector('#foroVivo').getBoundingClientRect().right
     return [Math.round(caja.getBoundingClientRect().right), Math.round(b)]
   })
   check('lo de arriba cuadra con lo de abajo', Math.abs(bordes[0] - bordes[1]) <= 2, bordes.join(' vs '))
@@ -151,23 +153,22 @@ console.log('\n── 2. El torneo es una cita, no un enlace más ──')
 console.log('\n── 3. Los temas NO llevan a una página vacía ──')
 {
   const { page } = await abrir('/index.html')
-  const chips = page.locator('.portada-tema')
+  // Desde la 844 los temas son los filtros de «Aprende»: se quedan en la
+  // portada y «Todas las guías» lleva a /aprender con ESE tema. Lo que la 300
+  // defendía —ni un camino a categoria.html, ni temas vacíos, de más a menos—
+  // sigue igual.
+  const chips = page.locator('#aprende .pb-tema[data-tema]:not([data-tema=""])')
   check('hay chips de tema', (await chips.count()) > 0, String(await chips.count()))
-  // LO IMPORTANTE de la tanda: ni un solo enlace a categoria.html.
-  const hrefs = await chips.evaluateAll((as) => as.map((a) => a.getAttribute('href')))
-  check('  …y NINGUNO lleva a categoria.html', !hrefs.some((h) => /categoria/.test(h || '')), hrefs.join(' | '))
-  check('  …todos llevan a /aprender con su tema', hrefs.every((h) => /aprender\.html\?tema=/.test(h || '')), hrefs.join(' | '))
-  // La categoría sin guías no sale: es justo la pantalla vacía que se
-  // viene a quitar.
-  check('  …y la categoría sin guías no sale', !hrefs.some((h) => /tema=vacia/.test(h || '')), hrefs.join(' | '))
-  // Ordenados por número de guías: un tema con una guía no va primero.
-  const cuentas = await chips.locator('b').evaluateAll((bs) => bs.map((b) => Number(b.textContent)))
+  const enlaces = await page.locator('#aprende a').evaluateAll((as) => as.map((a) => a.getAttribute('href')))
+  check('  …y NINGÚN enlace lleva a categoria.html', !enlaces.some((h) => /categoria/.test(h || '')), enlaces.join(' | '))
+  const nombres = await chips.allTextContents()
+  check('  …y la categoría sin guías no sale', !nombres.some((t) => /vac/i.test(t)), nombres.join(' | '))
+  const cuentas = await chips.locator('small').evaluateAll((bs) => bs.map((b) => Number(b.textContent)))
   check('  …y van de más guías a menos', cuentas.every((n, i) => i === 0 || cuentas[i - 1] >= n), cuentas.join(' > '))
-  // El color de cada tema se queda en la pastilla del icono: es lo único
-  // que hace reconocible un tema de un vistazo. En el chip entero sería
-  // volver a los seis marcos de colores que quitó la 299.
-  const iconos = await page.locator('.portada-tema-icono').evaluateAll((es) => es.map((e) => e.className))
-  check('  …con su color en la pastilla del icono', iconos.every((c) => /icon-tint-\d/.test(c)), iconos.join(' | '))
+  await chips.first().click()
+  await page.waitForTimeout(600)
+  const todas = await page.locator('#aprende .pb-cab .ver-todo').getAttribute('href')
+  check('  …y con un tema puesto, «Todas las guías» lleva a /aprender con su tema', /aprender\.html\?tema=[a-z]/.test(todas || ''), todas)
   check('  …y no en el chip entero', !(await chips.first().evaluate((e) => e.className)).includes('icon-tint'),
     await chips.first().evaluate((e) => e.className))
   await page.close()
@@ -208,20 +209,15 @@ console.log('\n── 4. /aprender sabe leer el tema de la URL ──')
 console.log('\n── 5. El foro dice cuánta conversación hay ──')
 {
   const { page } = await abrir('/index.html')
-  const cuentas = page.locator('.foro-vivo-cuenta')
-  // Se exige que se VEAN, no solo que estén: un elemento escondido
-  // cuenta igual, y entonces esconder la cuenta pasaría la prueba.
-  check('cada tema lleva su cuenta de mensajes', (await cuentas.count()) === TEMAS.length, String(await cuentas.count()))
+  // Desde la 844: el tema de delante dice «24 mensajes» en su pie, y las
+  // filas llevan la cuenta a la derecha (con la frase entera al pasar por
+  // encima, en singular cuando es uno).
+  check('el de delante, con su cuenta y la palabra', /24 mensajes/.test((await page.locator('.pb-foro-pie').textContent()) || ''))
+  const cuentas = page.locator('.pb-foro-n')
+  check('cada fila lleva su cuenta de mensajes', (await cuentas.count()) === TEMAS.length - 1, String(await cuentas.count()))
   check('  …y se ven', await cuentas.first().isVisible())
-  check('  …con el número del tema más hablado', (await cuentas.first().locator('b').textContent())?.trim() === '24',
-    await cuentas.first().locator('b').textContent())
-  // Singular y plural: «1 mensajes» canta.
-  const textos = await cuentas.allTextContents()
-  check('  …y en singular cuando es uno', textos.some((t) => /1\s*mensaje$/.test(t.replace(/\s+/g, ' ').trim())), textos.join(' | '))
-  // Y sale de la línea de texto, que es de donde venía.
-  check('  …y ya no va escondida entre el nombre y la hora',
-    !(await page.locator('.foro-vivo-meta').first().textContent())?.includes('mensaje'),
-    await page.locator('.foro-vivo-meta').first().textContent())
+  const titulos = await cuentas.evaluateAll((es) => es.map((e) => e.getAttribute('title')))
+  check('  …y en singular cuando es uno', titulos.includes('1 mensaje') && !titulos.includes('1 mensajes'), titulos.join(' | '))
   await page.close()
 }
 
@@ -229,12 +225,14 @@ console.log('\n── 6. Las guías nuevas, con su portada ──')
 {
   const { page } = await abrir('/index.html')
   // Desde la tanda 316 la portada usa la MISMA tarjeta que /aprender.
-  const tarjetas = page.locator('#recentGrid .guia-tarjeta')
+  // Desde la 844: una con la tarjeta de siempre y tres en fila, las cuatro
+  // con su color de arte.
+  const tarjetas = page.locator('#aprende .guia-tarjeta, #aprende .guia-fila')
   check('salen cuatro guías', (await tarjetas.count()) === 4, String(await tarjetas.count()))
-  check('  …cada una con su portada de color', (await page.locator('#recentGrid .guia-arte').count()) === 4)
+  check('  …cada una con su portada de color', (await page.locator('#aprende .guia-arte').count()) === 4)
   // El degradado sale del SLUG, no al azar: si cambiara en cada pintada
   // la rejilla parpadearía. Se comprueba recargando.
-  const artes = () => page.locator('#recentGrid .guia-arte').evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
+  const artes = () => page.locator('#aprende .guia-arte').evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
   const antes = await artes()
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
@@ -251,8 +249,8 @@ console.log('\n── 6. Las guías nuevas, con su portada ──')
   // La rareza baja de la franja a la fila de etiquetas en la tanda 316,
   // con el nivel y el curso: son las tres cómo es esta guía. Lo que
   // defiende esta comprobación —que se diga, y en español— no cambia.
-  const rarezas = await page.locator('#recentGrid .guia-rareza').allTextContents()
-  check('  …y cada una dice su rareza', rarezas.length === 4, String(rarezas.length))
+  const rarezas = await page.locator('#aprende .guia-rareza').allTextContents()
+  check('  …y la grande dice su rareza', rarezas.length === 1, String(rarezas.length))
   check('  …en español', rarezas.every((r) => /^(Bronce|Plata|Oro|Platino)$/.test(r.trim())), rarezas.join(' | '))
   await page.close()
 }

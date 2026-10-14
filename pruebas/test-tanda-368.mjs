@@ -96,7 +96,8 @@ console.log('\n── 1. La portada ya no tiene una fila que deje hueco ──')
     const id = (x) => document.getElementById(x)
     const antes = (a, b) => Boolean(id(a).compareDocumentPosition(id(b)) & Node.DOCUMENT_POSITION_FOLLOWING)
     return {
-      torneoAntesDeDestacada: antes('torneoPortadaSeccion', 'destacadaSeccion'),
+      // La destacada aparte se fue en la 844 (va dentro de «Aprende»).
+      torneoAntesDeLaNoticia: antes('torneoPortadaSeccion', 'noticiaPortadaSeccion'),
       noticiaAntesDelReto: antes('noticiaPortadaSeccion', 'retoSeccion'),
       mismaColumna: id('torneoPortadaSeccion').parentElement === id('noticiaPortadaSeccion').parentElement,
       lateral: id('noticiaPortadaSeccion').parentElement === id('retoSeccion').parentElement,
