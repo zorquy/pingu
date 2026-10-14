@@ -3845,8 +3845,9 @@ function lineasDePreciosJp(resumen, episodios) {
           : !x.nuestras ? `nuestras cartas no tienen id de Cardmarket (${(x.sets || []).join(', ')})`
             : !x.escritas ? 'los ids de Cardmarket no casan con los nuestros'
               : 'TCGGO da precio de menos de la mitad'
+  const corregidas = filas.reduce((t, [, x]) => t + (Number(x.corregidas) || 0), 0)
   return [
-    `  japonés de hoy: ${filas.length} expansiones con precio mirado · ${malas.length} sin precio o con menos de la mitad`,
+    `  japonés de hoy: ${filas.length} expansiones con precio mirado · ${malas.length} sin precio o con menos de la mitad${corregidas ? ` · ${corregidas} cartas con el id de Cardmarket de antes, cambiado por el de TCGGO (830)` : ''}`,
     ...malas.slice(0, 40).map(([id, x]) => `  · #${id} ${nombres.get(id) || ''}: ${porque(x)} — TCGGO ${x.suyas} cartas, ${x.conCm} con id de Cardmarket, ${x.conPrecio} con precio · nuestras ${x.nuestras} · escritas ${x.escritas}`),
   ]
 }

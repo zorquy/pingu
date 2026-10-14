@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (70) — PINGU-Claude (830 — japonesas con el id de Cardmarket de antes)
+
+**Hecho** (PINGU, con el Gengar de Lost Link: TCGGO 1.300 €, nosotros nada):
+en el japonés la pasada de precios busca también nuestras cartas por su
+`tcggo_id`; la que tiene un id de Cardmarket de antes (Scrydex, el espejo
+occidental) pasa al de TCGGO y recibe su precio. Lo japonés de hoy se rehace
+una vez (`VERSION_JP`). Su línea en /novedades.
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`, `admin/js/admin.js`,
+`novedades.json`, SCHEMA. Pruebas: `test-tanda-830.mjs`; 827 al día.
+
+**Pendiente**: PINGU mira en /admin, PRECIOS, «N cartas con el id de
+Cardmarket de antes, cambiado» y el Gengar con su precio.
+
 ## 2026-10-14 (69) — PINGU-Claude (829 — /novedades)
 
 **Hecho** (PINGU: el registro de cambios, que llevaba a mano en un hilo del

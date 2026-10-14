@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Más cartas japonesas antiguas con su precio, y su enlace a Cardmarket lleva a la carta buena.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Las expansiones japonesas, cada una en su era: Jungle ya está con Expansion Pack.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Los logos de las expansiones japonesas antiguas.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "El Pokédex y el buscador ya no enseñan cartas repetidas de catálogos viejos.", "enlace": "/mi-coleccion?ver=pokedex" },

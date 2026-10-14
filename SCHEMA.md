@@ -40015,3 +40015,22 @@ con «Novedades» no cabía: medido, sobraban 98 px a 1.240, 78 a 1.280 y 18 a
 página). En ese tramo los enlaces llevan 8 px a los lados en vez de 12, el
 hueco entre ellos baja a 4 y la barra a 32 px de margen: 0 px de más en todo
 el tramo, con sesión y sin ella. La regla de la 320: se mide, no se mira.
+
+## Tanda 830 — Las japonesas con el id de Cardmarket de antes
+
+PINGU, con el Gengar de Lost Link (LL 015): TCGGO le da 1.300 € (japonés) y
+PokeDoc ninguno. La carta es la de TCGGO —lleva su `tcggo_id`— pero su
+`cm_id_product_propio` es uno de antes (Scrydex, o el producto occidental que
+copió el espejo, 686), y `tcggo_guardar_cartas` no pisa un id que ya está
+(`coalesce(tcg_cards…, excluded…)`). La pasada de precios casa por producto, así
+que esa carta no casaba nunca: sin precio y con el enlace a otra carta.
+
+- `tcggo-precios`, solo en el JAPONÉS: nuestras cartas se piden por producto O
+  por `tcggo_id` (`or=(cm_id_product_propio.in.(…),tcggo_id.in.(…))`). La que
+  casa por `tcggo_id` con otro id de Cardmarket se corrige al de TCGGO
+  (`corregirCartas`: upsert a `tcg_cards?on_conflict=id,market` con `set_id`,
+  `local_id` y `name` repetidos —la 526— y `cm_por = 'tcggo'`) y recibe su
+  precio. En el occidental no: ahí los ids son los del emparejamiento (587).
+- `VERSION_JP` (830): con una regla nueva, lo japonés hecho HOY se rehace una
+  vez (~600 peticiones de 14.000). `resumenJp[…].corregidas` y /admin dice
+  cuántas se han cambiado.
