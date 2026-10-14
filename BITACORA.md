@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (66) — PINGU-Claude (826 — el logo de TCGGO delante en el japonés)
+
+**Hecho** (PINGU: «se han corregido eras y sets, pero veo algunos sin logo»,
+con Golden Sky, Silvery Ocean): en el catálogo japonés el logo de TCGGO va
+delante del de Scrydex (`logosDePago`), que en los sets antiguos que el calco
+reaprovechó es el genérico «Pokémon Trading Card Game». El occidental, igual.
+/admin dice cuántas expansiones japonesas traen logo en la lista de TCGGO.
+
+**Ficheros**: `js/catalogo-series.js`, `js/mi-coleccion.js`,
+`js/carta-nucleo.js`, `js/lanzamientos.js`, `admin/js/admin.js`, SCHEMA.
+Pruebas: `test-tanda-826-pantalla.mjs` y las de logos y estantería.
+
+**Pendiente**: si /admin dice que alguna expansión no trae logo en TCGGO, esa
+sigue con el de Scrydex.
+
 ## 2026-10-14 (65) — PINGU-Claude (825, tercera pasada — promos, solapes, huecos)
 
 **Hecho**: mirando la estantería japonesa que dejó la segunda pasada, los

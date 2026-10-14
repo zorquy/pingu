@@ -25,7 +25,7 @@ export { cadenaDeEscaneo, atributosDeEscaneo }
 // pintar, para que las 2.811 ya guardadas se vean bien sin tener que
 // reengordarlas (tanda 334).
 import { canonizarCarta, esEnergiaBasica, esPokemon } from './carta-detalle.js'
-import { nombreDeSet, eraDeSet, nombreDeCarta } from './catalogo-series.js'
+import { nombreDeSet, eraDeSet, nombreDeCarta, logosDePago } from './catalogo-series.js'
 import { tieneCJK } from './texto.js'
 import { impresionesDe } from './coleccion-filtros.js'
 
@@ -729,8 +729,9 @@ export function rejillaDeCartas(cartas, codigoDeSet = null, extraDe = null) {
 // cartas tiene. Lo que no se sepa no se dice.
 export function cabeceraDeColeccion(set, cuantasHay = null) {
   if (!set) return ''
-  // Scrydex primero y TCGdex detrás (tanda 507): su URL va entera.
-  const logo = set.logo_scrydex || set.logo_tcggo || urlDeLogo(set.logo_path)
+  // Scrydex primero y TCGdex detrás (tanda 507): su URL va entera. En el
+  // japonés, TCGGO delante (825).
+  const logo = logosDePago(set)[0] || urlDeLogo(set.logo_path)
   const datos = []
   if (eraDeSet(set)) datos.push(eraDeSet(set))
   if (set.release_date) datos.push(fechaLarga(set.release_date))

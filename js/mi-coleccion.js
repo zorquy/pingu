@@ -30,7 +30,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 // rareza dejaba seis clases de `carta.css` huérfanas en esta página, que
 // no carga esa hoja.
 import { rarezaEs, rarezaDeCarta, rarezaCrudaDeCarta, marcaDeCartaHtml, categoriaEs, tipoEs, entrenadorEs, familiaDeBrillo, formasDeRareza, marcaDeRarezaHtml, CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES } from './carta-traducciones.js'
-import { esDelTCG, padreDeColeccion, idsDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar } from './catalogo-series.js'
+import { esDelTCG, padreDeColeccion, idsDeColeccion, plegarHermanos, registrarEpisodios, variacionSemanal, eraDeSet, nombreDeSet, nombreDeCarta, nombresDeCartaParaBuscar, logosDePago } from './catalogo-series.js'
 import {
   IDIOMAS,
   ESTADOS,
@@ -3149,8 +3149,9 @@ function tarjetaDeSet(set, tengo) {
   // DETRÁS y no se borra: un respaldo que vive en el mismo sitio no es un
   // respaldo (tanda 321), y el día que su CDN no conteste se sigue viendo
   // algo. Su URL va entera y sin extensión, que es como la publican.
-  // El de TCGGO (589) detrás del de Scrydex y delante del montado a mano.
-  const dibujos = [set.logo_scrydex, set.logo_tcggo, logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
+  // El de TCGGO (589) detrás del de Scrydex y delante del montado a mano;
+  // en el japonés, delante (825, `logosDePago`).
+  const dibujos = [...logosDePago({ market: suMercado, ...set }), logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   // Sin código de TCG Live, el identificador en mayúsculas (649; lo hacía
   // el /cartas viejo): una tarjeta sin chapa descuadra la fila y el
@@ -3221,7 +3222,7 @@ function dibujosDeSet(set) {
   const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id, suMercado)
   const logoIngles = suMercado === 'WEST' ? null : urlDeLogoPorPartes(set.serie_id, set.id, 'WEST')
   const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
-  return [set.logo_scrydex, set.logo_tcggo, urlDeLogo(set.logo_path, suMercado), logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
+  return [...logosDePago({ market: suMercado, ...set }), urlDeLogo(set.logo_path, suMercado), logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
 }
 
 // En el CATÁLOGO, lo que vale la expansión y cómo va en la semana (797): la

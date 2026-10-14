@@ -20,7 +20,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
-import { nombreDeSet, plegarHermanos, esDelTCG } from './catalogo-series.js'
+import { nombreDeSet, plegarHermanos, esDelTCG, logosDePago } from './catalogo-series.js'
 import { MERCADOS_VISIBLES, MERCADO_POR_DEFECTO } from './mercados.js'
 import { normalizeSearch } from './texto.js'
 
@@ -77,7 +77,7 @@ export function eventoDeSet(s, mercado = MERCADO_POR_DEFECTO) {
     mercado,
     nombre: nombreDeSet(s),
     fecha: String(s.release_date || '').slice(0, 10),
-    imagen: s.logo_scrydex || s.logo_tcggo || urlDeLogo(s.logo_path, mercado) || urlDeLogoPorPartes(s.serie_id, s.id, mercado) || null,
+    imagen: logosDePago({ market: mercado, ...s })[0] || urlDeLogo(s.logo_path, mercado) || urlDeLogoPorPartes(s.serie_id, s.id, mercado) || null,
     codigo: s.tcg_online_code || null,
     cartas: s.card_count_official || s.card_count_total || null,
     // Su expansión en TCGGO, para pedir sus productos (762, Z1).

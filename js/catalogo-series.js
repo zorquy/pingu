@@ -334,6 +334,17 @@ export function nombresDeCartaParaBuscar(carta) {
   return [carta?.name, carta?.name_es, carta?.name_en].filter(Boolean).join(' ')
 }
 
+// LOS DOS LOGOS DE PAGO, en el orden de SU catálogo (825). En el
+// occidental Scrydex va delante (la 507: tiene los que a TCGdex le faltan);
+// en el japonés no, porque sale entero de TCGGO (806) y los sets que el
+// calco reaprovechó de Scrydex traen el logo GENÉRICO de «Pokémon Trading
+// Card Game» que Scrydex pone a lo antiguo: Golden Sky, Silvery Ocean salía
+// así con el suyo de verdad guardado detrás.
+export function logosDePago(set) {
+  const japones = Boolean(set?.market) && set.market !== 'WEST'
+  return (japones ? [set?.logo_tcggo, set?.logo_scrydex] : [set?.logo_scrydex, set?.logo_tcggo]).filter(Boolean)
+}
+
 // Lo mismo con la ERA, que en los sets japoneses de TCGdex viene vacía o
 // en japonés y en Scrydex viene en inglés («Mega Evolution»).
 export function eraDeSet(set) {

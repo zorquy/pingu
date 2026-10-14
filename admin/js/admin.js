@@ -3179,6 +3179,13 @@ async function tcggoEstado() {
         ...Object.entries(k.hechos || {}).filter(([, h]) => h?.fundidoDe).map(([id, h]) => `  ↣ fundida #${id}: ${h.fundidoDe} → ${h.set} (${h.por}; ${h.porNumero ?? 0} conservadas por número)`),
         k.ultimoError ? `  último error: #${k.ultimoError.episodio ?? '—'} ${k.ultimoError.nombre ?? ''} (${k.ultimoError.fecha}): ${k.ultimoError.error}` : '',
         ...lineasDeErasJp(k.eras),
+        // Los logos (825): cuántas expansiones japonesas traen el suyo en la
+        // lista de TCGGO. La que no lo trae se queda con el de Scrydex o sin él.
+        (() => {
+          const eps = k.lista?.episodios || []
+          const sin = eps.filter((e) => !e.logo)
+          return eps.length ? `  logos: ${eps.length - sin.length} de ${eps.length} expansiones traen logo en la lista de TCGGO${sin.length ? ` · sin logo: ${sin.slice(0, 30).map((e) => `#${e.id} ${e.nombre}`).join(' · ')}` : ''}` : ''
+        })(),
         k.planBloqueado ? `  ⚠ PLAN: ${k.planBloqueado.dia} — ${k.planBloqueado.motivo}` : '',
       ]
     })(),

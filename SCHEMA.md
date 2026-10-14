@@ -39904,3 +39904,22 @@ son CAJONES (`CAJON`): no hacen tramo y lo que tienen dentro se recoloca. Lo
 que colocó esta pasada antes (`puestas` igual a lo que tiene) se vuelve a
 decidir; un set SOLO en su era se mueve únicamente si otra lo cubre por fechas
 o por nombre (VS y Web son eras de un set). `ERAS_VERSION` 3.
+
+## Tanda 826 — En el japonés, el logo de TCGGO delante
+
+PINGU, con Golden Sky, Silvery Ocean (`PCG4_J`): en la estantería salía el
+logo genérico de «Pokémon Trading Card Game», y en TCGGO la expansión tiene el
+suyo. El set es uno de los de Scrydex que el calco reaprovechó (806), y
+Scrydex pone ese logo genérico a lo antiguo; la cadena de dibujos lo ponía
+delante del de TCGGO desde la 507.
+
+- `js/catalogo-series.js` → `logosDePago(set)`: los dos logos de pago en el
+  orden de SU catálogo — en el occidental Scrydex y luego TCGGO (la 507); en
+  los demás, TCGGO primero, porque el japonés sale entero de TCGGO (806).
+  Necesita `market` (la estantería lo trae; quien no, se lo pasa).
+- Lo usan la tarjeta y la fila de la estantería de /mi-coleccion y /cartas
+  (`dibujosDeSet`), la cabecera de una colección (`cabeceraDeColeccion`) y
+  /lanzamientos. Las cadenas que ya iban con TCGGO delante no cambian.
+- /admin, bloque del calco: «logos: N de 256 expansiones traen logo en la
+  lista de TCGGO», con las que no lo traen. Esas se quedan con el de Scrydex o
+  sin él: el orden no las arregla.
