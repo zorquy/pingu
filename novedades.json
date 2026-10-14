@@ -23,16 +23,21 @@
     },
     {
       "mes": "2026-10",
-      "tipo": "mejora",
-      "titulo": "Tus guías, también sin cobertura",
-      "texto": "Las guías y noticias que ya has leído se abren aunque estés en el metro.",
-      "enlace": "/aprender.html",
-      "boton": "Ver guías",
-      "dibujo": "sin-conexion",
+      "tipo": "nuevo",
+      "titulo": "Seis retos cada día, con experiencia",
+      "texto": "Tres retos nuevos, los de siempre rehechos, experiencia por jugar y logros por no fallar ni un día.",
+      "enlace": "/retos",
+      "boton": "Jugar",
+      "dibujo": "retos",
       "fondo": "verde"
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "Tres retos diarios nuevos: «¿Quién es ese Pokémon?» con su silueta, «Ordena por precio» y «¿De qué expansión es?».", "enlace": "/retos" },
+    { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "Los retos diarios dan experiencia, y hay logros por rachas, por días perfectos y por acertar a la primera.", "enlace": "/retos" },
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Los retos diarios, rehechos: tu día de un vistazo, cada reto con su dibujo y el calendario de lo que has jugado.", "enlace": "/retos" },
+    { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "En «¿Qué carta es?», acertar la carta ya sale en verde y dice que la has acertado, y hay pistas en amarillo cuando te acercas.", "enlace": "/carta-del-dia" },
+    { "fecha": "2026-10-14", "tipo": "mejora", "texto": "«¿Más caro o más barato?», más visual: las dos cartas frente a frente, el precio que se descubre y combo por aciertos seguidos.", "enlace": "/mas-caro" },
     { "fecha": "2026-10-14", "tipo": "nuevo", "texto": "En el constructor, «Imprimir decklist oficial»: la hoja de Play! Pokémon con tu mazo, tu Player ID y tu categoría ya escritos, en PDF para imprimir.", "enlace": "/constructor" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Las ligas ya no se atascan en una jornada que no se jugó en PokeDoc: quien la organiza puede saltarla y emparejar la siguiente.", "enlace": "/torneos" },
     { "fecha": "2026-10-14", "tipo": "arreglo", "texto": "Las cartas japonesas de Platinum, Diamante y Perla, Lost Link y las barajas de esos años, con su precio.", "enlace": "/cartas?catalogo=JP" },

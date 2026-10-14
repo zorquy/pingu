@@ -1,8 +1,13 @@
-/* Retos diarios (tanda 569). Solo la carga retos.html. */
-
-/* Sin `.rt-pagina` estrecha: a lo ancho, como las demás (782, SI1). */
+/* Retos diarios (tanda 569; rehecha en la 835 con la maqueta que aprobó
+   PINGU). Solo la carga retos.html; lo común de los retos está en
+   retos-juego.css. Sin `.rt-pagina` estrecha: a lo ancho, como las demás
+   (782, SI1). */
 
 .rt-cabecera {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--e-lg);
+  align-items: end;
   margin-bottom: var(--e-lg);
 }
 
@@ -10,53 +15,263 @@
   margin-bottom: var(--e-xs);
 }
 
-.rt-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: var(--e-md);
+.rt-cabecera .subtext {
+  margin: 0;
 }
 
-.rt-reto {
-  display: grid;
+/* «Tu día»: el anillo de los seis, la XP de hoy, la racha y la cuenta atrás. */
+.rt-tudia {
+  display: flex;
+  align-items: center;
   gap: var(--e-md);
-  padding: var(--e-lg);
+  padding: var(--e-md) var(--e-lg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: var(--white);
 }
 
-.rt-reto h2 {
-  margin: 0 0 var(--e-xs);
+.rt-anillo {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: conic-gradient(var(--success) 0 calc(var(--hecho) * 1%), var(--border) calc(var(--hecho) * 1%) 100%);
+}
+
+.rt-anillo::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--white);
+}
+
+.rt-anillo b {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rt-anillo small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rt-tudia-datos {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.rt-tudia-datos > * {
+  margin: 0;
+}
+
+.rt-tudia-datos strong {
+  font-family: var(--font-display);
   font-size: var(--t-lg);
+}
+
+.rt-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rt-fila span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.rt-xp {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.rt-fuego {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+/* El día perfecto: los seis retos de hoy. */
+.rt-perfecto {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--warning) 18%, transparent), color-mix(in srgb, var(--warning) 4%, transparent));
+}
+
+.rt-perfecto.hecho {
+  border-color: color-mix(in srgb, var(--success) 50%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--success) 22%, transparent), color-mix(in srgb, var(--success) 4%, transparent));
+}
+
+.rt-perfecto-icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--warning);
+  color: var(--blanco-fijo);
+}
+
+.rt-perfecto.hecho .rt-perfecto-icono {
+  background: var(--success);
+}
+
+.rt-perfecto p {
+  flex: 1;
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+.rt-perfecto p b {
+  font-size: var(--t-md);
+}
+
+.rt-pasos {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--e-xs);
+}
+
+.rt-pasos i {
+  width: 24px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--border);
+}
+
+.rt-pasos i.si {
+  background: var(--warning);
+}
+
+.rt-perfecto.hecho .rt-pasos i.si {
+  background: var(--success);
+}
+
+/* Las seis tarjetas, con su dibujo arriba. */
+.rt-lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-md);
+  margin-bottom: var(--e-xl);
+}
+
+.rt-reto {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.rt-arte {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 152px;
+  overflow: hidden;
+  color: var(--blanco-fijo);
+  text-decoration: none;
+}
+
+.rt-arte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 10%, rgb(255 255 255 / 25%), transparent 50%);
+  pointer-events: none;
+}
+
+.rt-sello {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 45%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.rt-sello.ok {
+  background: var(--rj-si);
+}
+
+.rt-cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+}
+
+.rt-cuerpo h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.rt-cuerpo h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rt-cuerpo > .subtext {
+  flex: 1;
+  margin: 0;
+  font-size: var(--t-sm);
 }
 
 .rt-reto-estado {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--e-sm);
+  min-height: 44px;
 }
 
 .rt-reto-estado .subtext {
-  width: 100%;
+  margin: 0;
 }
 
 .rt-reto-num {
   margin: 0;
-  width: 100%;
   color: var(--text-mid);
   font-size: var(--t-sm);
 }
 
-/* El que todavía no se puede jugar: apagado, pero se ve que viene. */
-.rt-reto-pronto {
-  opacity: 0.7;
+.rt-hecho {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  color: var(--success);
+  font-weight: 700;
 }
 
 .rt-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--e-xs);
   padding: 2px var(--e-sm);
   border-radius: var(--radius-pill);
   background: var(--bg);
@@ -66,8 +281,8 @@
 }
 
 .rt-chip-racha {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 /* Los cinco puntos del reto, como en la portada. */
@@ -87,31 +302,333 @@
   background: var(--success);
 }
 
-/* Tus últimos 60 días (787, PA6). */
-.rt-calendario {
-  margin-top: var(--e-xl);
+/* Los dibujos de las tarjetas: una miniatura del juego hecha con HTML. */
+.rt-d-pregunta {
+  display: grid;
+  gap: var(--e-xs);
+  width: 196px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 96%);
+  color: #13212e;
+  font-size: var(--t-xs);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 30%);
+  transform: rotate(-3deg) scale(0.92);
 }
 
-.rt-calendario h2 {
+.rt-d-pregunta b {
+  font-size: var(--t-sm);
+}
+
+.rt-d-pregunta span {
+  padding: 2px var(--e-sm);
+  border: 1px solid #d5dde4;
+  border-radius: var(--radius-sm);
+}
+
+.rt-d-pregunta span.si {
+  border-color: #0d9e6e;
+  background: #e6f7f2;
+  color: #0b7a55;
+  font-weight: 700;
+}
+
+.rt-d-borrosa,
+.rt-d-silueta {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-md);
+  background: radial-gradient(circle at 40% 30%, #f472b6, #7c3aed 55%, #312e81);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 40%);
+  filter: saturate(1.2);
+  transform: rotate(4deg);
+}
+
+.rt-d-borrosa b,
+.rt-d-silueta b {
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  text-shadow: 0 4px 16px rgb(0 0 0 / 50%);
+}
+
+.rt-d-silueta {
+  width: 112px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgb(255 255 255 / 14%) 0deg 8deg, transparent 8deg 24deg), radial-gradient(circle, #7dd3fc, #0369a1 70%);
+  transform: none;
+}
+
+.rt-d-vs {
+  display: flex;
+  align-items: center;
+}
+
+.rt-d-vs i,
+.rt-d-expansion i {
+  width: 72px;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(160deg, #fde68a, #f59e0b 60%, #b45309);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 35%);
+}
+
+.rt-d-vs i:first-child {
+  transform: rotate(-6deg);
+}
+
+.rt-d-vs i:last-child {
+  background: linear-gradient(160deg, #bfdbfe, #3b82f6 60%, #1e3a8a);
+  transform: rotate(6deg);
+}
+
+.rt-d-vs b {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 -12px;
+  border-radius: 50%;
+  background: var(--blanco-fijo);
+  color: #13212e;
+  font-family: var(--font-display);
+}
+
+.rt-d-orden {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.rt-d-orden i {
+  display: grid;
+  place-items: start;
+  width: 48px;
+  aspect-ratio: 245 / 342;
+  padding: var(--e-xs);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(160deg, #d1fae5, #10b981);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);
+  color: #13212e;
+  font-size: var(--t-xs);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.rt-d-expansion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+
+.rt-d-expansion i {
+  background: linear-gradient(160deg, #fbcfe8, #db2777 60%, #831843);
+}
+
+.rt-d-expansion span {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.rt-d-expansion b {
+  width: 88px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 90%);
+}
+
+.rt-d-expansion b.si {
+  background: #34d399;
+}
+
+/* Tus logros de retos. */
+.rt-seccion {
+  margin-bottom: var(--e-xl);
+}
+
+.rt-seccion h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--t-xl);
 }
 
-.rt-dias {
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  gap: var(--e-xs);
-  max-width: 560px;
-  margin-top: var(--e-sm);
+.rt-seccion > .subtext {
+  margin: var(--e-xs) 0 var(--e-md);
 }
 
-.rt-dia {
-  aspect-ratio: 1;
+.rt-logros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--e-sm);
+}
+
+.rt-logro {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: var(--e-xs) var(--e-sm);
+  align-items: center;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.rt-medalla {
+  display: grid;
+  grid-row: span 3;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-mid);
+}
+
+.rt-logro.hecho .rt-medalla {
+  border-color: transparent;
+  background: var(--chapa);
+  color: var(--blanco-fijo);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--chapa) 25%, transparent);
+}
+
+.rt-logro b {
+  font-size: var(--t-sm);
+}
+
+.rt-logro small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rt-barra {
+  height: 6px;
+  overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--border);
 }
 
-.rt-dia.jugado {
-  background: var(--navy-solid);
+.rt-barra i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--chapa);
+}
+
+/* Tus últimos 60 días (787, PA6): una columna por semana, en tonos por
+   cuántos retos jugaste ese día (835). */
+.rt-calendario-caja {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--e-xl);
+  align-items: center;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.rt-dias {
+  display: grid;
+  grid-auto-columns: 16px;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 16px);
+  gap: var(--e-xs);
+}
+
+:is(.rt-dia, .rt-ley) {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+:is(.rt-dia, .rt-ley).jugado {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--success) 35%, var(--bg));
+}
+
+:is(.rt-dia, .rt-ley).n2 {
+  background: color-mix(in srgb, var(--success) 65%, var(--bg));
+}
+
+:is(.rt-dia, .rt-ley).n3 {
+  background: var(--success);
+}
+
+.rt-dia.hoy {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+.rt-leyenda {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin-top: var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rt-leyenda i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+
+.rt-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--e-md);
+}
+
+.rt-cifra b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+}
+
+.rt-cifra small {
+  color: var(--text-mid);
+}
+
+@media (max-width: 960px) {
+  .rt-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .rt-cabecera {
+    grid-template-columns: 1fr;
+  }
+
+  .rt-tudia {
+    padding: var(--e-sm) var(--e-md);
+  }
+
+  .rt-pasos i {
+    width: 12px;
+  }
+
+  .rt-lista {
+    grid-template-columns: 1fr;
+  }
+
+  .rt-arte {
+    height: 128px;
+  }
+
+  .rt-calendario-caja {
+    grid-template-columns: 1fr;
+    gap: var(--e-md);
+    padding: var(--e-md);
+  }
+
+  .rt-dias {
+    grid-auto-columns: 1fr;
+    grid-template-rows: repeat(7, 24px);
+  }
 }

@@ -88,6 +88,12 @@ function celebrarSubidaDeNivel(nivel) {
 }
 
 
+// Para quien suma XP por su cuenta en la base (los retos, 835): con el total
+// de antes y el de después, la misma fiesta si se cruza un nivel.
+export function celebrarSiSubeDeNivel(antes, despues) {
+  if (calculateLevel(antes) !== calculateLevel(despues)) celebrarSubidaDeNivel(calculateLevel(despues))
+}
+
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).
 export const CONTRIBUTOR_TIERS = [
@@ -451,6 +457,20 @@ function achievementValue(condition, stats) {
       return stats.coleccion?.cambios || 0
     case 'was_referred':
       return stats.invitado
+    // Los de los retos diarios (835): salen de `retos_mis_numeros`, que solo
+    // se pide si alguno de estos está activo.
+    case 'retos_racha':
+      return stats.retos?.mejorRacha || 0
+    case 'retos_perfectos':
+      return stats.retos?.diasPerfectos || 0
+    case 'carta_primera':
+      return stats.retos?.cartaPrimera || 0
+    case 'carta_aciertos':
+      return stats.retos?.cartaAciertos || 0
+    case 'caro_perfectos':
+      return stats.retos?.caroPerfectos || 0
+    case 'retos_jugados':
+      return stats.retos?.jugados || 0
     case 'completed_guides_count':
     default:
       return stats.completedCount
@@ -522,6 +542,18 @@ export async function checkAchievements(userId, extra = null) {
     reaccionesForo = count || 0
   }
 
+  // Los números de los retos (835), una consulta y solo si hace falta. Sin
+  // la migración la función no existe: valen 0 y no desbloquean nada.
+  let retos = extra?.retos || null
+  if (!retos && ['retos_racha', 'retos_perfectos', 'carta_primera', 'carta_aciertos', 'caro_perfectos', 'retos_jugados'].some((t) => tiposActivos.has(t))) {
+    try {
+      const { data } = await supabase.rpc('retos_mis_numeros', { p_dias: 1 })
+      retos = data || null
+    } catch {
+      retos = null
+    }
+  }
+
   if (!profile) return []
 
   const unlocked = profile.achievements || []
@@ -536,6 +568,7 @@ export async function checkAchievements(userId, extra = null) {
     invitados,
     invitado: profile.referred_by ? 1 : 0,
     coleccion: extra?.coleccion || null,
+    retos,
     primerosPasos:
       ((leidasCount || 0) > 0 ? 1 : 0) +
       ((completedCount || 0) > 0 ? 1 : 0) +

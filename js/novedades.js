@@ -26,6 +26,12 @@ const DIBUJOS = {
     <span class="nv-mini-avatar">P</span>
     <span class="nv-mini-bocadillo">Para mí la clave es <span class="nv-mini-carta"><i></i>Arven <b>0,40 €</b></span> en el turno uno</span>
   </div>`,
+  retos: () => `<div class="nv-mini nv-mini-estante" aria-hidden="true">
+    <span class="nv-mini-era">Tu día · 4 de 6</span>
+    <span class="nv-mini-fila"><i class="nv-tono-2"></i><span>¿Qué carta es?</span><b>+45 XP</b></span>
+    <span class="nv-mini-fila"><i class="nv-tono-1"></i><span>¿Quién es ese Pokémon?</span><b>+20 XP</b></span>
+    <span class="nv-mini-fila"><i class="nv-tono-3"></i><span>Ordena por precio</span><b>Jugar</b></span>
+  </div>`,
   'sin-conexion': () => `<div class="nv-mini nv-mini-guia" aria-hidden="true">
     <span class="nv-mini-sinred">Sin conexión</span>
     <span class="nv-mini-lineas"><i style="--largo: 80%"></i><i style="--largo: 96%"></i><i style="--largo: 60%"></i><i style="--largo: 88%"></i></span>

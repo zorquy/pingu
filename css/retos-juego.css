@@ -1,0 +1,257 @@
+/* Lo común de los retos diarios (tanda 835): las chapas de XP, los pasos,
+   el panel del final, el reparto y la cuenta atrás. Lo cargan /retos y las
+   seis páginas de juego; lo de cada juego, en su hoja. El porqué, en SCHEMA. */
+
+/* Los tres estados de una casilla, macizos y con blanco encima: no se
+   aclaran en el tema oscuro (como --danger-solid, la 311). */
+:root {
+  --rj-si: #0d7a57;
+  --rj-casi: #b45f06;
+  --rj-no: var(--danger-solid);
+}
+
+.rj-migas {
+  margin: 0 0 var(--e-xs);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rj-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.rj-cabecera h1 {
+  margin: 0 0 var(--e-xs);
+}
+
+.rj-cabecera .subtext {
+  margin: 0;
+}
+
+.rj-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.rj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rj-chip.xp {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.rj-chip.racha {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+/* Los pasos de un reto de rondas: hecho bien, mal, el de ahora y los que
+   quedan. */
+.rj-pasos {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.rj-paso {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font-weight: 700;
+}
+
+.rj-paso.si {
+  border-color: transparent;
+  background: var(--rj-si);
+  color: var(--blanco-fijo);
+}
+
+.rj-paso.no {
+  border-color: transparent;
+  background: var(--rj-no);
+  color: var(--blanco-fijo);
+}
+
+.rj-paso.ahora {
+  border: 2px solid var(--navy);
+  color: var(--text);
+}
+
+/* El panel del final: el resultado grande, lo que has ganado y lo que
+   viene. */
+.rj-final {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.rj-final::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 30%, color-mix(in srgb, var(--success) 22%, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+.rj-final.fallado::before {
+  background: radial-gradient(circle at 15% 30%, color-mix(in srgb, var(--warning) 18%, transparent), transparent 55%);
+}
+
+.rj-final > * {
+  position: relative;
+}
+
+.rj-final-titulo {
+  margin: 0;
+  color: var(--success);
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  line-height: 1.1;
+}
+
+.rj-final.fallado .rj-final-titulo {
+  color: var(--text);
+}
+
+.rj-premios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.rj-premio {
+  display: grid;
+  min-width: 120px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.rj-premio b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.rj-premio small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rj-premio.xp b {
+  color: var(--success);
+}
+
+.rj-premio.racha b {
+  color: var(--warning);
+}
+
+.rj-premio a {
+  font-weight: 700;
+}
+
+/* El reparto: cuántas veces en 1, 2, 3… intentos. */
+.rj-reparto {
+  display: grid;
+  gap: var(--e-xs);
+  max-width: 360px;
+}
+
+.rj-reparto-fila {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: var(--e-sm);
+  align-items: center;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rj-reparto-barra {
+  min-width: 24px;
+  height: 20px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-sm);
+  background: var(--border);
+  color: var(--text);
+  font-weight: 700;
+  line-height: 20px;
+  text-align: right;
+}
+
+.rj-reparto-barra.tuyo {
+  background: var(--rj-si);
+  color: var(--blanco-fijo);
+}
+
+.rj-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.rj-cuenta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rj-cuenta b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Las fichas que se dan la vuelta al aparecer (una casilla, un precio). */
+.rj-voltea {
+  animation: rj-voltea 0.45s var(--ease) both;
+}
+
+@keyframes rj-voltea {
+  from { opacity: 0; transform: rotateX(90deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rj-voltea {
+    animation: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rj-final {
+    padding: var(--e-md);
+  }
+
+  .rj-final-titulo {
+    font-size: var(--t-2xl);
+  }
+}

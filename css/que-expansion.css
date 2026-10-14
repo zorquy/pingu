@@ -1,0 +1,203 @@
+/* ¿De qué expansión es? (tanda 835). Solo la carga que-expansion.html; lo
+   común de los retos está en retos-juego.css. */
+
+.qx-pagina {
+  max-width: 1080px;
+}
+
+.qx-pasos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qx-tablero {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--e-xl);
+  align-items: start;
+}
+
+.qx-carta {
+  width: min(100%, 320px);
+  aspect-ratio: 245 / 342;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 35%);
+}
+
+.qx-carta img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qx-lado {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.qx-opciones {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.qx-opcion {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: var(--e-md);
+  align-items: center;
+  min-height: 72px;
+  padding: var(--e-sm) var(--e-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qx-opcion:hover:not(:disabled) {
+  border-color: var(--navy);
+}
+
+.qx-opcion:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.qx-logo {
+  display: grid;
+  place-items: center;
+  height: 48px;
+}
+
+.qx-logo img {
+  max-width: 96px;
+  max-height: 48px;
+  object-fit: contain;
+}
+
+.qx-opcion b {
+  display: block;
+  font-size: var(--t-md);
+}
+
+.qx-opcion small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.qx-opcion.acierto {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 16%, var(--white));
+}
+
+.qx-opcion.fallo {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, var(--white));
+}
+
+.qx-opcion:disabled {
+  cursor: default;
+}
+
+.qx-opcion:disabled:not(.acierto):not(.fallo) {
+  opacity: 0.55;
+}
+
+.qx-veredicto {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--success-bg);
+  color: var(--success);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.qx-veredicto.mal {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.qx-final {
+  grid-column: 1 / -1;
+}
+
+.qx-repaso {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qx-repaso li {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  font-size: var(--t-xs);
+  text-align: center;
+}
+
+.qx-repaso .qx-mini {
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border: 2px solid var(--rj-no);
+  border-radius: var(--radius-sm);
+}
+
+.qx-repaso .si .qx-mini {
+  border-color: var(--rj-si);
+}
+
+.qx-repaso img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qx-repaso span {
+  overflow: hidden;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 760px) {
+  .qx-tablero {
+    grid-template-columns: 1fr;
+    gap: var(--e-md);
+  }
+
+  .qx-carta {
+    width: min(56vw, 220px);
+  }
+
+  .qx-opcion {
+    grid-template-columns: 64px 1fr;
+    min-height: 60px;
+    padding: var(--e-sm);
+  }
+
+  .qx-logo img {
+    max-width: 64px;
+    max-height: 40px;
+  }
+
+  .qx-opcion b {
+    font-size: var(--t-sm);
+  }
+}

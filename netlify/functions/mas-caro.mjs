@@ -25,7 +25,7 @@ export function segundosHastaManana(ahora = new Date()) {
   return Math.max(60, Math.floor((manana - ahora.getTime()) / 1000))
 }
 
-async function rest(ruta, clave, { metodo = 'GET', cuerpo = null, cabeceras = {} } = {}) {
+export async function rest(ruta, clave, { metodo = 'GET', cuerpo = null, cabeceras = {} } = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
     method: metodo,
     headers: { apikey: clave, authorization: `Bearer ${clave}`, ...(cuerpo ? { 'content-type': 'application/json' } : {}), ...cabeceras },
@@ -40,7 +40,8 @@ const enLista = (ids) => ids.map((id) => `"${String(id).replace(/"/g, '')}"`).jo
 
 // Las cartas de una lista de ids, con su precio, en el orden pedido y
 // sin las de Pocket (la regla de `esDelTCG`).
-async function cartasConPrecio(ids, pedir) {
+// La usan también ordena-precio y que-expansion (835).
+export async function cartasConPrecio(ids, pedir) {
   if (!ids.length) return []
   const [cartas, precios] = await Promise.all([
     pedir(`tcg_cards?select=${COLUMNAS_CARTA}&id=in.(${enLista(ids)})&market=eq.WEST&set_id=not.imatch.${encodeURIComponent(ID_DE_POCKET.source)}`),

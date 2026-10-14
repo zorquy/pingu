@@ -36,11 +36,13 @@ export function numeroDelDia(dia) {
 // `cuantos` índices DISTINTOS entre 0 y total-1, deterministas por día.
 // Se piden más de los que hacen falta porque alguna carta elegida puede
 // no valer (sin foto, de Pocket, mismo precio que la anterior).
-export function indicesDelDia(dia, total, cuantos) {
+// `salBase` (835): «Ordena por precio» elige con la misma regla, pero no
+// las mismas cartas que «Más caro».
+export function indicesDelDia(dia, total, cuantos, salBase = 0) {
   const n = Math.max(0, Math.min(Number(total) || 0, cuantos))
   const vistos = new Set()
-  let sal = 0
-  while (vistos.size < n && sal < cuantos * 20) {
+  let sal = salBase
+  while (vistos.size < n && sal < salBase + cuantos * 20) {
     vistos.add(Math.floor(azarDelDia(dia, sal) * total) % total)
     sal++
   }

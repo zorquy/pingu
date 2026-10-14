@@ -38,14 +38,18 @@ export async function setsDelMercado(mercado) {
 
 // Devuelve las cartas, o `null` si no hay nada que buscar (sin texto y
 // sin expansión): el que llama decide qué decir en cada caso.
-export async function buscarEnCatalogo({ mercado, set = '', texto = '', limite = 60, soloTCG = false }) {
+// `columnas` y `categoria` (835): «¿Qué carta es?» compara el tipo, la
+// rareza, la familia y la fecha de lo que dices, y sin pedirlas salían
+// SIEMPRE en rojo. Solo lo pide quien las usa.
+export async function buscarEnCatalogo({ mercado, set = '', texto = '', limite = 60, soloTCG = false, columnas = COLUMNAS_RESULTADO, categoria = '' }) {
   // NFC después de normalizar (tanda 557): sin él, una búsqueda en
   // japonés con dakuten no casa con lo que guarda Postgres.
   const limpio = normalizeSearch(texto).normalize('NFC').trim()
   const palabras = limpio.split(/\s+/).filter(Boolean).slice(0, 4)
   if (!palabras.length && !set) return null
-  let q = supabase.from('tcg_cards').select(COLUMNAS_RESULTADO).eq('market', mercado)
+  let q = supabase.from('tcg_cards').select(columnas).eq('market', mercado)
   if (soloTCG) q = sinPocket(q)
+  if (categoria) q = q.eq('category', categoria)
   if (set) q = q.eq('set_id', set)
   for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   const { data, error } = await q.order('name_search').limit(limite)

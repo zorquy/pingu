@@ -1,53 +1,52 @@
-/* ¿Más caro o más barato? (tanda 583). Solo la carga mas-caro.html. */
+/* ¿Más caro o más barato? (tanda 583; rehecha en la 835). Solo la carga
+   mas-caro.html; lo común de los retos está en retos-juego.css. */
 
 .mcr-pagina {
-  max-width: 640px;
+  max-width: 1080px;
 }
 
-.mcr-cabecera {
-  margin-bottom: var(--e-md);
+.mcr-progreso {
+  display: grid;
+  justify-items: end;
+  gap: var(--e-sm);
 }
 
-.mcr-sobre {
-  margin: 0 0 var(--e-xs);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.mcr-cabecera h1 {
-  margin-bottom: var(--e-xs);
+.mcr-tira {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .mcr-tablero {
   display: grid;
-  gap: var(--e-md);
+  gap: var(--e-lg);
 }
 
-/* Las dos cartas, lado a lado también en el móvil: la pregunta es una
-   comparación y se compara con las dos a la vista. */
+/* Las dos cartas frente a frente, con el VS en medio, también en el móvil:
+   la pregunta es una comparación y se compara con las dos a la vista. */
 .mcr-par {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--e-sm);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
 }
 
 .mcr-carta {
   display: grid;
+  justify-items: center;
   gap: var(--e-xs);
-  padding: var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
+  min-width: 0;
   text-align: center;
 }
 
 .mcr-foto {
+  width: min(100%, 280px);
   aspect-ratio: 245 / 342;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 35%);
+  transition: box-shadow 0.3s ease;
 }
 
 .mcr-foto img {
@@ -57,98 +56,314 @@
   object-fit: cover;
 }
 
+.mcr-carta.bien .mcr-foto {
+  box-shadow: 0 0 0 4px var(--success), 0 0 50px color-mix(in srgb, var(--success) 45%, transparent);
+}
+
+.mcr-carta.mal .mcr-foto {
+  box-shadow: 0 0 0 4px var(--rj-no), 0 0 50px color-mix(in srgb, var(--rj-no) 40%, transparent);
+}
+
 .mcr-nombre {
-  overflow: hidden;
-  margin: 0;
+  margin: var(--e-xs) 0 0;
+  font-size: var(--t-lg);
   font-weight: 700;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .mcr-set {
-  overflow: hidden;
   margin: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .mcr-precio {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--t-xl);
+  font-size: var(--t-3xl);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-/* La carta B, con el precio destapado: verde si acertaste, rojo si no. */
 .mcr-carta.bien .mcr-precio {
   color: var(--success);
 }
 
-.mcr-carta.mal .mcr-precio {
-  color: var(--danger);
+/* El precio escondido: una placa a rayas con la interrogación. */
+.mcr-precio.oculto {
+  display: inline-grid;
+  place-items: center;
+  width: 160px;
+  height: 56px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 8px, var(--white) 8px, var(--white) 16px);
+  color: var(--text-mid);
+  font-size: var(--t-2xl);
 }
 
+.mcr-diferencia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 24px;
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-md);
+}
+
+.mcr-carta.bien .mcr-diferencia {
+  color: var(--success);
+}
+
+.mcr-vs {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--arte-ambar);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  box-shadow: 0 0 0 6px var(--bg), 0 0 30px color-mix(in srgb, var(--warning) 50%, transparent);
+}
+
+/* Los dos botones grandes: verde para «más», rosa para «menos». */
 .mcr-acciones {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--e-sm);
+  gap: var(--e-md);
 }
 
-.mcr-acciones button {
-  min-height: 44px;
-}
-
-/* La tira de cinco: la misma forma que la del reto. */
-.mcr-tira {
+.mcr-boton {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: var(--e-xs);
+  gap: var(--e-sm);
+  min-height: 64px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.mcr-boton.mas {
+  background: linear-gradient(135deg, #0d7a57, #10a374);
+  box-shadow: 0 6px 0 #075e43;
+}
+
+.mcr-boton.menos {
+  background: linear-gradient(135deg, #be185d, #d6336c);
+  box-shadow: 0 6px 0 color-mix(in srgb, #be185d 65%, #000);
+}
+
+.mcr-boton:active {
+  transform: translateY(4px);
+}
+
+.mcr-boton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mcr-boton,
+  .mcr-foto {
+    transition: none;
+  }
+}
+
+/* Lo que pasó al contestar. */
+.mcr-veredicto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--success) 28%, transparent), color-mix(in srgb, var(--success) 8%, transparent));
+}
+
+.mcr-veredicto b {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  color: var(--success);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.mcr-veredicto.mal {
+  border-color: var(--danger);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 22%, transparent), color-mix(in srgb, var(--danger) 6%, transparent));
+}
+
+.mcr-veredicto.mal b {
+  color: var(--danger);
+}
+
+/* El final: la nota grande a un lado, las cinco rondas al otro. */
+.mcr-final {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-lg);
+  align-items: start;
+}
+
+.mcr-final-cab {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-lg);
+  border-radius: var(--radius-xl);
+  background: var(--arte-ambar);
+  color: var(--blanco-fijo);
+}
+
+.mcr-final-cab small {
+  opacity: 0.9;
+}
+
+.mcr-final-titulo {
+  margin: 0;
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+}
+
+.mcr-final-cab .rj-paso {
+  border: 0;
+}
+
+.mcr-final-cab .rj-premio {
+  background: rgb(0 0 0 / 22%);
+}
+
+.mcr-final-cab .rj-premio b,
+.mcr-final-cab .rj-premio small,
+.mcr-final-cab .rj-premio a,
+.mcr-final-cab .rj-cuenta,
+.mcr-final-cab .rj-cuenta b {
+  color: var(--blanco-fijo);
+}
+
+.mcr-rondas {
+  display: grid;
+  gap: var(--e-sm);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.mcr-tira li {
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-}
-
-.mcr-tira li.bien {
-  border-color: transparent;
-  background: var(--success);
-}
-
-.mcr-tira li.mal {
-  border-color: transparent;
-  background: var(--danger-solid);
-}
-
-.mcr-final {
+.mcr-ronda {
   display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 16px minmax(0, 1fr);
   gap: var(--e-sm);
-  padding: var(--e-lg);
-  border-radius: var(--radius-lg);
-  background: var(--bg);
-  text-align: center;
+  align-items: center;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--t-sm);
 }
 
-.mcr-final-titulo {
-  margin: 0;
-  font-size: var(--t-xl);
-  font-weight: 700;
+.mcr-ronda .ok {
+  color: var(--success);
 }
 
-.mcr-final-botones {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--e-sm);
+.mcr-ronda .mal {
+  color: var(--danger);
+}
+
+.mcr-ronda span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mcr-ronda span:nth-child(2) {
+  text-align: right;
+}
+
+.mcr-ronda em {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-style: normal;
 }
 
 .mcr-leyenda {
   margin: 0;
   text-align: center;
+}
+
+@media (max-width: 760px) {
+  .mcr-progreso {
+    justify-items: start;
+  }
+
+  .mcr-par {
+    gap: var(--e-xs);
+  }
+
+  .mcr-vs {
+    width: 44px;
+    height: 44px;
+    font-size: var(--t-md);
+  }
+
+  .mcr-nombre {
+    font-size: var(--t-sm);
+  }
+
+  .mcr-set {
+    font-size: var(--t-xs);
+  }
+
+  .mcr-precio {
+    font-size: var(--t-xl);
+  }
+
+  .mcr-precio.oculto {
+    width: 96px;
+    height: 40px;
+    font-size: var(--t-lg);
+  }
+
+  .mcr-diferencia {
+    font-size: var(--t-xs);
+  }
+
+  .mcr-acciones {
+    gap: var(--e-sm);
+  }
+
+  .mcr-boton {
+    min-height: 56px;
+    font-size: var(--t-md);
+  }
+
+  .mcr-final {
+    grid-template-columns: 1fr;
+  }
+
+  .mcr-final-cab {
+    padding: var(--e-md);
+  }
+
+  .mcr-final-titulo {
+    font-size: var(--t-2xl);
+  }
+
+  .mcr-ronda {
+    grid-template-columns: 20px minmax(0, 1fr) 12px minmax(0, 1fr);
+    gap: var(--e-xs);
+    padding: var(--e-sm);
+    font-size: var(--t-xs);
+  }
 }

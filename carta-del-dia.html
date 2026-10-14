@@ -43,6 +43,7 @@
        barrido de la 299 canta una clase huérfana — y tiene razón. -->
   <link rel="stylesheet" href="css/carta-holo.css" />
   <link rel="stylesheet" href="css/elegir-carta.css" />
+  <link rel="stylesheet" href="css/retos-juego.css" />
   <link rel="stylesheet" href="css/carta-del-dia.css" />
 </head>
 <body>
@@ -125,34 +126,41 @@
   <!-- /barra-movil -->
 
     <main id="contenido" class="page-content container cd-pagina">
-    <!-- ¿QUÉ CARTA ES? (tanda 570). Un recorte de una carta al día —la
-         misma para todo el mundo— y seis intentos para adivinar cuál.
-         Cada intento compara cuatro cosas (nombre, era, tipo, rareza) y
-         abre una pista. El porqué, en SCHEMA.md. -->
-    <header class="cd-cabecera cabecera-pagina">
-      <p class="cd-sobre"><a href="/retos">Retos diarios</a></p>
-      <h1>¿Qué carta es?</h1>
-      <p class="subtext" id="cdSub">Un recorte de una carta de Pokémon TCG. Adivínala en seis intentos.</p>
+    <!-- ¿QUÉ CARTA ES? (tanda 570; rehecho en la 835 con la maqueta que
+         aprobó PINGU). Una carta borrosa al día —la misma para todo el
+         mundo— y seis intentos. Cada intento compara nombre, era, tipo y
+         rareza, con «casi» y flechas, y abre una pista. El porqué, en
+         SCHEMA.md. -->
+    <header class="rj-cabecera cabecera-pagina">
+      <div>
+        <p class="rj-migas"><a href="/retos">Retos diarios</a></p>
+        <h1>¿Qué carta es?</h1>
+        <p class="subtext" id="cdSub">Una carta borrosa de Pokémon TCG. Adivínala en seis intentos.</p>
+        <p class="subtext cd-ayer" id="cdAyer" hidden></p>
+      </div>
     </header>
 
     <section class="cd-tablero">
-      <!-- La carta entera, BORROSA (tanda 572): un <img> con filtro CSS
-           que se afloja con cada intento. Sin canvas: una foto de otro
-           dominio se desenfoca igual, y funciona en todos los móviles. -->
-      <div class="cd-recorte" id="cdRecorte">
-        <img id="cdFoto" alt="La carta del día, borrosa" width="245" height="342" />
+      <div class="cd-lado-carta">
+        <!-- La carta entera, BORROSA (tanda 572): un <img> con filtro CSS
+             que se afloja con cada intento. -->
+        <div class="cd-recorte" id="cdRecorte">
+          <img id="cdFoto" alt="La carta del día, borrosa" width="245" height="342" />
+          <span class="cd-bote hidden" id="cdBote"></span>
+          <span class="cd-gastados" id="cdGastados" aria-hidden="true"></span>
+        </div>
       </div>
-      <!-- El botón, PEGADO a la carta (tanda 573). PINGU: «tienes que ir
-           hasta abajo del todo para adivinar». Lo que se pulsa va donde
-           se mira. -->
-      <div class="cd-acciones" id="cdAcciones">
-        <button type="button" class="btn-primary" id="cdAdivinar">Adivinar la carta</button>
+      <div class="cd-lado-juego">
+        <div class="cd-final hidden" id="cdFinal"></div>
+        <!-- El botón, PEGADO a la carta (tanda 573), con forma de buscador. -->
+        <div class="cd-acciones" id="cdAcciones">
+          <button type="button" class="cd-adivinar" id="cdAdivinar"><span aria-hidden="true" id="cdLupa"></span> Escribe el nombre de la carta…</button>
+        </div>
+        <ol class="cd-pistas" id="cdPistas" aria-label="Pistas"></ol>
+        <div class="cd-cabeza" aria-hidden="true"><span></span><span>Nombre</span><span>Era</span><span>Tipo</span><span>Rareza</span></div>
+        <ol class="cd-intentos" id="cdIntentos" aria-label="Tus intentos"></ol>
+        <p class="cd-leyenda subtext"><span><i class="si"></i> Coincide</span><span><i class="casi"></i> Casi: misma familia, menos de un año, rareza vecina</span><span><i class="no"></i> No</span><span>La flecha dice por dónde ir</span></p>
       </div>
-      <div class="cd-final hidden" id="cdFinal"></div>
-      <p class="subtext cd-ayer" id="cdAyer" hidden></p>
-      <ol class="cd-pistas" id="cdPistas" aria-label="Pistas"></ol>
-      <ol class="cd-intentos" id="cdIntentos" aria-label="Tus intentos"></ol>
-      <p class="cd-leyenda subtext">Cada intento dice si aciertas el <strong>nombre</strong>, la <strong>era</strong>, el <strong>tipo</strong> y la <strong>rareza</strong>.</p>
     </section>
 
     <dialog class="nv-dialogo" id="nvElegir" aria-labelledby="nvElegirTitulo">

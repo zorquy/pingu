@@ -1,42 +1,43 @@
-/* ¿Qué carta es? (tanda 570). Solo la carga carta-del-dia.html. */
+/* ¿Qué carta es? (tanda 570; rehecha en la 835). Solo la carga
+   carta-del-dia.html; lo común de los retos está en retos-juego.css. */
 
 .cd-pagina {
-  max-width: 560px;
+  max-width: 1080px;
 }
 
-.cd-cabecera {
-  margin-bottom: var(--e-md);
-}
-
-.cd-sobre {
-  margin: 0 0 var(--e-xs);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.cd-cabecera h1 {
-  margin-bottom: var(--e-xs);
+.cd-ayer {
+  margin-top: var(--e-xs);
 }
 
 .cd-tablero {
   display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: var(--e-xl);
+  align-items: start;
+}
+
+.cd-lado-carta {
+  position: sticky;
+  top: 88px;
+}
+
+.cd-lado-juego {
+  display: grid;
   gap: var(--e-md);
+  min-width: 0;
 }
 
 /* La carta borrosa (tanda 572). El `scale` tapa el borde que el
-   desenfoque deja transparente; `--cd-desenfoque` lo pone el JS por
-   intento. Sin transición si hay «menos movimiento». */
+   desenfoque deja transparente; `--cd-desenfoque` lo pone el JS. */
 .cd-recorte {
   position: relative;
-  width: min(100%, 320px);
+  width: min(100%, 340px);
   margin: 0 auto;
   aspect-ratio: 245 / 342;
   overflow: hidden;
   border-radius: var(--radius-lg);
   background: var(--bg);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 35%);
 }
 
 .cd-recorte img {
@@ -49,47 +50,164 @@
   transition: filter 0.3s ease;
 }
 
+.cd-recorte.resuelta {
+  box-shadow: 0 0 0 4px var(--success), 0 0 60px color-mix(in srgb, var(--success) 45%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cd-recorte img {
     transition: none;
   }
 }
 
-.cd-ayer {
-  margin: 0;
-  text-align: center;
+/* Lo que vale acertar ahora, encima de la carta. */
+.cd-bote {
+  position: absolute;
+  top: var(--e-sm);
+  left: var(--e-sm);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 60%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  backdrop-filter: blur(4px);
 }
 
-.cd-pistas,
-.cd-intentos {
-  display: grid;
+.cd-bote b {
+  color: #6ee7b7;
+}
+
+/* Los intentos gastados, abajo de la carta. */
+.cd-gastados {
+  position: absolute;
+  right: 0;
+  bottom: var(--e-sm);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
   gap: var(--e-xs);
+}
+
+.cd-gastados i {
+  width: 24px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 40%);
+}
+
+.cd-gastados i.gastado {
+  background: var(--rj-no);
+}
+
+.cd-recorte.resuelta .cd-gastados,
+.cd-recorte.resuelta .cd-bote {
+  display: none;
+}
+
+/* El botón con forma de buscador. */
+.cd-adivinar {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--e-md);
+  border: 2px solid var(--navy);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cd-adivinar:hover {
+  color: var(--text);
+}
+
+.cd-adivinar:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+/* Las pistas, en baldosas: abiertas en ámbar, cerradas a rayas. */
+.cd-pistas {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--e-sm);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .cd-pista {
-  display: flex;
-  align-items: center;
+  display: grid;
+  align-content: center;
+  justify-items: center;
   gap: var(--e-xs);
-  padding: var(--e-xs) var(--e-sm);
+  min-height: 80px;
+  padding: var(--e-sm);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--t-xs);
+  text-align: center;
+}
+
+.cd-pista b {
+  color: var(--text);
   font-size: var(--t-sm);
+  overflow-wrap: anywhere;
 }
 
 .cd-pista-cerrada {
+  border: 1px dashed var(--border);
+  background: var(--white);
   color: var(--text-mid);
 }
 
+.cd-pista-cerrada b {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+
+/* Las filas de intentos: quién dijiste y las cuatro casillas. */
+.cd-cabeza,
 .cd-intento {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(4, 80px);
   gap: var(--e-sm);
-  min-height: 44px;
+  align-items: center;
+}
+
+.cd-cabeza {
   padding: 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cd-intentos {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cd-intento {
+  min-height: 72px;
+  padding: var(--e-sm);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--white);
@@ -97,64 +215,203 @@
 
 .cd-intento-vacio {
   border-style: dashed;
-  color: var(--text-dim);
+  background: transparent;
+}
+
+.cd-quien {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.cd-mini {
+  flex-shrink: 0;
+  width: 36px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.cd-mini img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cd-quien-texto {
+  min-width: 0;
 }
 
 .cd-intento-nombre {
+  display: block;
   overflow: hidden;
-  min-width: 0;
-  font-weight: 600;
+  font-size: var(--t-sm);
+  font-weight: 700;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-/* Las cuatro casillas: nombre, era, tipo y rareza. */
-.cd-casillas {
-  display: inline-flex;
-  flex: 0 0 auto;
-  gap: 4px;
+.cd-quien small {
+  display: block;
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .cd-casilla {
-  width: 20px;
-  height: 20px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--e-xs);
   border-radius: var(--radius-sm);
-  background: var(--danger-solid);
+  background: var(--rj-no);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .cd-casilla.bien {
-  background: var(--success);
+  background: var(--rj-si);
 }
 
-.cd-acciones {
+.cd-casilla.casi {
+  background: var(--rj-casi);
+}
+
+.cd-casilla small {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+/* Un intento que ACIERTA el nombre es verde entero (835): era la carta. */
+.cd-intento.acierto {
+  border-color: var(--success);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--success) 22%, transparent), color-mix(in srgb, var(--success) 6%, transparent));
+}
+
+.cd-acierto-texto {
+  grid-column: 2 / -1;
   display: flex;
-  justify-content: center;
-}
-
-.cd-final {
-  display: grid;
-  gap: var(--e-sm);
-  padding: var(--e-lg);
-  border-radius: var(--radius-lg);
-  background: var(--bg);
-  text-align: center;
-}
-
-.cd-final-titulo {
-  margin: 0;
-  font-size: var(--t-xl);
-  font-weight: 700;
-}
-
-.cd-final-botones {
-  display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
   gap: var(--e-sm);
+  min-height: 52px;
+  border-radius: var(--radius-sm);
+  background: var(--rj-si);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
 }
 
 .cd-leyenda {
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+  margin: 0;
+  font-size: var(--t-xs);
+}
+
+.cd-leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.cd-leyenda i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+
+.cd-leyenda i.si { background: var(--rj-si); }
+.cd-leyenda i.casi { background: var(--rj-casi); }
+.cd-leyenda i.no { background: var(--rj-no); }
+
+.cd-final-sub {
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .cd-tablero {
+    grid-template-columns: 1fr;
+    gap: var(--e-md);
+  }
+
+  .cd-lado-carta {
+    position: static;
+  }
+
+  .cd-recorte {
+    width: min(64vw, 260px);
+  }
+
+  .cd-pistas {
+    gap: var(--e-xs);
+  }
+
+  .cd-pista {
+    min-height: 64px;
+    padding: var(--e-xs);
+    font-size: var(--t-2xs);
+  }
+
+  .cd-pista b {
+    font-size: var(--t-2xs);
+  }
+
+  /* En el móvil, quién dijiste va en su fila y las cuatro casillas debajo,
+     a lo ancho: a 48 px «HeartGold y SoulSilver» se partía a trozos. */
+  .cd-cabeza,
+  .cd-intento {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--e-xs);
+  }
+
+  .cd-cabeza span:first-child {
+    display: none;
+  }
+
+  .cd-quien,
+  .cd-acierto-texto {
+    grid-column: 1 / -1;
+  }
+
+  .cd-cabeza {
+    padding: 0 var(--e-xs);
+    font-size: var(--t-2xs);
+    letter-spacing: 0;
+  }
+
+  .cd-intento {
+    min-height: 60px;
+    padding: var(--e-xs);
+  }
+
+  .cd-intento-vacio {
+    min-height: 44px;
+  }
+
+  .cd-casilla {
+    min-height: 44px;
+  }
+
+  .cd-casilla {
+    overflow-wrap: break-word;
+  }
 }
 
 /* MV7 (796): la carta sale de un sobre al terminar la partida. */

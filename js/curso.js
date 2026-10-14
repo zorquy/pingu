@@ -1505,6 +1505,12 @@ async function cerrarYGuardarReto(resumen) {
         rachaDeHoy = rachaDeDias(dias, hoyISO())
       }).catch(() => {})
       pintarSaltoLiga(ligaAntes).catch(() => {})
+      // Y en la tabla de los retos (835), para el día perfecto y la racha
+      // de retos: sin XP (la del reto es la de abajo, la de siempre). Por
+      // `import()`: solo lo baja quien acaba el reto.
+      import('./retos-datos.js')
+        .then(({ guardarResultado }) => guardarResultado('reto', hoyISO(), { aciertos: resumen.correct, total: resumen.total }))
+        .catch(() => {})
       try {
         await addXP(session.user.id, XP_RETO_DIARIO)
         decir(`+${XP_RETO_DIARIO} XP por el reto de hoy`)

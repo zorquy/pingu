@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="PokeDoc" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-  <meta name="description" content="Los minijuegos diarios de PokeDoc: el reto de cinco preguntas de Pokémon TCG, con liga semanal y rachas, y los que vienen. Los mismos para todo el mundo, cada día." />
+  <meta name="description" content="Los seis retos diarios de PokeDoc: preguntas de Pokémon TCG, ¿qué carta es?, ¿más caro o más barato?, la silueta, ordenar por precio y ¿de qué expansión es? Con XP, rachas y logros." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/retos" />
   <meta property="og:url" content="https://pokedoc.es/retos" />
@@ -38,6 +38,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/retos-juego.css" />
   <link rel="stylesheet" href="css/retos.css" />
 </head>
 <body>
@@ -120,44 +121,113 @@
   <!-- /barra-movil -->
 
     <main id="contenido" class="page-content container rt-pagina">
-    <!-- RETOS DIARIOS (tanda 569). PINGU: «en Aprender, en vez de ir al
-         reto de hoy, una página que sea un índice de los minijuegos que
-         tenemos, que se llamen retos diarios». Una tarjeta por juego, con
-         su estado de HOY —jugado o no, tu marca, tu racha— y el botón.
-         Lo que cambia cada día se pinta desde js/retos.js; lo que no, va
-         aquí para que esté aunque el JS no llegue. -->
+    <!-- RETOS DIARIOS (tanda 569; rehecho en la 835 con la maqueta que
+         aprobó PINGU). Seis juegos al día, los mismos para todo el mundo:
+         arriba «Tu día» (cuántos llevas, la XP de hoy, la racha), el «día
+         perfecto», una tarjeta por juego con su dibujo y su estado de hoy,
+         tus logros de retos y tus últimos 60 días. Las tarjetas van aquí
+         para que estén aunque el JS no llegue; su estado lo pinta js/retos.js. -->
     <header class="rt-cabecera cabecera-pagina">
-      <h1>Retos diarios</h1>
-      <p class="subtext">Cada día, los mismos para todo el mundo. Juega, presume del resultado y vuelve mañana.</p>
+      <div>
+        <h1>Retos diarios</h1>
+        <p class="subtext">Seis juegos al día, los mismos para todo el mundo. Juega, gana XP y vuelve mañana.</p>
+      </div>
+      <div class="rt-tudia" id="rtDia" aria-live="polite">
+        <span class="rt-anillo" id="rtAnillo" style="--hecho: 0"><b>0<small>/6</small></b></span>
+        <span class="rt-tudia-datos">
+          <strong>Tu día</strong>
+          <span class="rt-fila" id="rtDiaFila"></span>
+          <span class="rt-fila rj-cuenta" id="rtCuenta"></span>
+        </span>
+      </div>
     </header>
 
+    <div class="rt-perfecto" id="rtPerfecto">
+      <span class="rt-perfecto-icono" id="rtPerfectoIcono" aria-hidden="true"></span>
+      <p id="rtPerfectoTexto"><b>Día perfecto</b><br>Completa los seis retos de hoy y llévate +25 XP extra.</p>
+      <span class="rt-pasos" id="rtPerfectoPasos" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+
     <section class="rt-lista" id="rtLista" aria-label="Los retos">
-      <article class="rt-reto" id="rtHoy">
-        <div class="rt-reto-cabecera">
-          <h2>El reto de hoy</h2>
+      <article class="rt-reto" id="rtHoy" data-juego="reto">
+        <a class="rt-arte" href="/reto" tabindex="-1" aria-hidden="true" style="background: var(--arte-azul)">
+          <span class="rt-sello hidden" id="rtSello-reto"></span>
+          <span class="rt-d-pregunta"><b>¿Cuántas cartas tiene un mazo?</b><span>40</span><span class="si">60</span><span>80</span></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/reto">El reto de hoy</a></h2>
           <p class="subtext">Cinco preguntas sacadas de los cursos. Liga semanal y rachas.</p>
+          <div class="rj-chips"><span class="rj-chip xp">+15 XP</span><span class="rj-chip">5 preguntas</span></div>
+          <div class="rt-reto-estado" id="rtHoyEstado"><a class="btn-primary" href="/reto">Jugar el reto de hoy →</a></div>
         </div>
-        <div class="rt-reto-estado" id="rtHoyEstado"><span class="skeleton" style="display:block;height:44px"></span></div>
       </article>
-      <article class="rt-reto" id="rtCarta">
-        <div class="rt-reto-cabecera">
-          <h2>¿Qué carta es?</h2>
-          <p class="subtext">Un recorte de una carta al día. Adivínala en seis intentos, con pistas.</p>
+      <article class="rt-reto" id="rtCarta" data-juego="carta">
+        <a class="rt-arte" href="/carta-del-dia" tabindex="-1" aria-hidden="true" style="background: var(--arte-morado)">
+          <span class="rt-sello hidden" id="rtSello-carta"></span>
+          <span class="rt-d-borrosa"><b>?</b></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/carta-del-dia">¿Qué carta es?</a></h2>
+          <p class="subtext">Una carta borrosa que se aclara con cada intento. Tienes seis.</p>
+          <div class="rj-chips"><span class="rj-chip xp">Hasta +50 XP</span><span class="rj-chip">6 intentos</span></div>
+          <div class="rt-reto-estado" id="rtCartaEstado"><a class="btn-primary" href="/carta-del-dia">Jugar →</a></div>
         </div>
-        <div class="rt-reto-estado" id="rtCartaEstado"><a class="btn-primary" href="/carta-del-dia">Jugar →</a></div>
       </article>
-      <!-- El tercero (tanda 583): dos cartas, ¿cuál vale más? -->
-      <article class="rt-reto" id="rtMasCaro">
-        <div class="rt-reto-cabecera">
-          <h2>¿Más caro o más barato?</h2>
-          <p class="subtext">Dos cartas con precio real de Cardmarket. ¿La segunda vale más o menos? Cinco al día.</p>
+      <article class="rt-reto" id="rtMasCaro" data-juego="caro">
+        <a class="rt-arte" href="/mas-caro" tabindex="-1" aria-hidden="true" style="background: var(--arte-ambar)">
+          <span class="rt-sello hidden" id="rtSello-caro"></span>
+          <span class="rt-d-vs"><i></i><b>VS</b><i></i></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/mas-caro">¿Más caro o más barato?</a></h2>
+          <p class="subtext">Dos cartas con precio real de Cardmarket. ¿Cuál vale más? Cinco al día.</p>
+          <div class="rj-chips"><span class="rj-chip xp">Hasta +30 XP</span><span class="rj-chip">5 rondas</span></div>
+          <div class="rt-reto-estado" id="rtMasCaroEstado"><a class="btn-primary" href="/mas-caro">Jugar →</a></div>
         </div>
-        <div class="rt-reto-estado" id="rtMasCaroEstado"><a class="btn-primary" href="/mas-caro">Jugar →</a></div>
+      </article>
+      <article class="rt-reto" id="rtSilueta" data-juego="silueta">
+        <a class="rt-arte" href="/quien-es" tabindex="-1" aria-hidden="true" style="background: var(--arte-cian)">
+          <span class="rt-sello hidden" id="rtSello-silueta"></span>
+          <span class="rt-d-silueta"><b>?</b></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/quien-es">¿Quién es ese Pokémon?</a></h2>
+          <p class="subtext">La silueta de siempre, como en la tele. Elige entre cuatro.</p>
+          <div class="rj-chips"><span class="rj-chip xp">Hasta +20 XP</span><span class="rj-chip">3 intentos</span></div>
+          <div class="rt-reto-estado" id="rtSiluetaEstado"><a class="btn-primary" href="/quien-es">Jugar →</a></div>
+        </div>
+      </article>
+      <article class="rt-reto" id="rtOrdena" data-juego="ordena">
+        <a class="rt-arte" href="/ordena-precio" tabindex="-1" aria-hidden="true" style="background: var(--arte-verde)">
+          <span class="rt-sello hidden" id="rtSello-ordena"></span>
+          <span class="rt-d-orden"><i>1</i><i>2</i><i>3</i><i>4</i></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/ordena-precio">Ordena por precio</a></h2>
+          <p class="subtext">Cuatro cartas: ponlas de la más barata a la más cara.</p>
+          <div class="rj-chips"><span class="rj-chip xp">Hasta +25 XP</span><span class="rj-chip">3 intentos</span></div>
+          <div class="rt-reto-estado" id="rtOrdenaEstado"><a class="btn-primary" href="/ordena-precio">Jugar →</a></div>
+        </div>
+      </article>
+      <article class="rt-reto" id="rtExpansion" data-juego="expansion">
+        <a class="rt-arte" href="/que-expansion" tabindex="-1" aria-hidden="true" style="background: var(--arte-rosa)">
+          <span class="rt-sello hidden" id="rtSello-expansion"></span>
+          <span class="rt-d-expansion"><i></i><span><b></b><b class="si"></b><b></b></span></span>
+        </a>
+        <div class="rt-cuerpo">
+          <h2><a href="/que-expansion">¿De qué expansión es?</a></h2>
+          <p class="subtext">Sale una carta: ¿de qué colección es? Para los que se saben las eras.</p>
+          <div class="rj-chips"><span class="rj-chip xp">Hasta +20 XP</span><span class="rj-chip">5 rondas</span></div>
+          <div class="rt-reto-estado" id="rtExpansionEstado"><a class="btn-primary" href="/que-expansion">Jugar →</a></div>
+        </div>
       </article>
     </section>
 
-    <!-- Tus últimos 60 días del reto (787, PA6). Lo pinta js/retos.js con cuenta. -->
-    <section class="rt-calendario hidden" id="rtCalendario" aria-label="Tus últimos 60 días"></section>
+    <!-- Tus logros de retos (835): los diez de supabase-migration-retos-xp.sql. -->
+    <section class="rt-seccion hidden" id="rtLogros" aria-label="Tus logros de retos"></section>
+
+    <!-- Tus últimos 60 días (787, PA6; con tonos por cuántos retos, 835). -->
+    <section class="rt-seccion rt-calendario hidden" id="rtCalendario" aria-label="Tus últimos 60 días"></section>
   </main>
 
   <footer class="footer">

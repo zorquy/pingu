@@ -40216,3 +40216,96 @@ del perfil (el del foro), si lo hay. `limpiarPlayerId` vive en `js/player-id.js`
 Prueba: `test-tanda-834.mjs` (las reglas, el PDF de verdad con qpdf/pdftotext/
 poppler, el diálogo con y sin cuenta y sin la migración, el perfil, y que la
 tabla sea privada).
+
+## Tanda 835 — Los retos diarios: seis retos, XP y logros
+
+PINGU pidió los retos «más visuales», que dieran experiencia y logros, y que
+«¿Qué carta es?» dijera «acertado» al acertar. Se hizo con propuesta en
+imágenes primero; luego, todo.
+
+**El fallo de «¿Qué carta es?» era de datos, no de pintado.** El intento se
+buscaba con `buscarEnCatalogo`, cuyas columnas son las del buscador
+(`COLUMNAS_RESULTADO`: nombre, set, foto…), sin `types`, `rarity` ni
+`dex_ids`. Comparar tipo y rareza era comparar `undefined` con lo de la carta
+buena: rojo SIEMPRE, también con la carta acertada. Y ninguna prueba lo vio
+porque **el doble de Supabase devuelve la fila entera, pida lo que pida el
+`select`**: en las pruebas la carta llegaba con su tipo. Es la 523 por el otro
+lado (una columna que nadie pide no existe para la web). Ahora
+`buscarEnCatalogo` acepta `columnas` y el juego pide `COLUMNAS_INTENTO`; la
+prueba lee el código y exige que `COLUMNAS_INTENTO` NOMBRE esas columnas, no
+que la casilla salga verde (eso el doble lo daría por bueno igual).
+
+**Comparar**: `compararDetallado(intento, respuesta, { familia })` devuelve por
+casilla `{ estado: 'si'|'casi'|'no', flecha }`. «Casi» es misma familia
+evolutiva (`js/familias-pokemon.js`, `CADENA_POR_DEX` generado de la
+`pokemon_species.csv` de PokeAPI, 1.025 especies) o rareza vecina
+(`rangoDeRareza`); la flecha en era y rareza dice hacia dónde. Acertar el
+nombre pinta la fila entera en verde aunque una casilla discrepe (dos
+impresiones de la misma carta son la carta). `filaEmoji` acepta booleanos
+(los intentos guardados de antes) o estados.
+
+**Las páginas**: `css/retos-juego.css` es lo común a los seis (migas, cabecera
+con chips, tira de pasos, panel final, premios, reparto, cuenta atrás);
+`js/retos-ui.js` lo pinta. Cada reto lleva su hoja y su módulo. Los tres
+nuevos se generaron desde `mas-caro.html` (misma cabecera, pie y barra; la
+barra se regeneró con `generar-barra-movil.mjs`, y en el móvil van en la
+burbuja de Aprender).
+
+- **¿Quién es ese Pokémon?** (`/quien-es`): sin servidor ni tabla. El
+  Pokémon y las cuatro opciones salen de la fecha (`azarDelDia` con sal
+  propia) y de la Pokédex Nacional; las cuatro son de familias distintas
+  (con Haunter al lado de Gengar no es un juego de reconocer). El dibujo es
+  el oficial de PokeAPI por jsDelivr y GitHub a pelo (la 321: dos orígenes).
+- **Ordena por precio** (`/ordena-precio`): 4 cartas, cada una al menos un
+  15 % más cara que la anterior (`DIFERENCIA_MINIMA`), para que se pueda
+  ordenar sin adivinar céntimos. Función `ordena-precio` (sal 9000).
+- **¿De qué expansión es?** (`/que-expansion`): 5 rondas, 4 logos de la
+  misma era y fechas cercanas (`opcionesDeExpansion`). Función
+  `que-expansion`, solo sets no ocultos (`tcg_sets!inner`).
+
+Las dos funciones nuevas guardan lo elegido en `retos_reto_del_dia (juego,
+day, datos)` como hace `mas_caro_del_dia`; **sin la tabla eligen y no
+guardan** (el mismo día da lo mismo porque la elección sale de la fecha).
+`mas-caro.mjs` exporta `rest` y `cartasConPrecio` para ellas, e
+`indicesDelDia` lleva una sal opcional.
+
+**XP en el servidor** (`supabase-migration-retos-xp.sql`):
+`retos_resultados (user_id, juego, day)` es la llave: un reto por persona y
+día, así que repetir no suma. Se escribe SOLO por `retos_guardar` (security
+definer, `auth.uid()`, día de hoy o ±1 por los husos), que calcula los XP con
+`retos_xp` y los suma con `xp_sumar` (el tope diario de siempre). Bonos en
+`retos_bonos`: +25 por día perfecto (los seis) y +50 cada 7 días de racha. La
+racha cuenta también los días de `daily_challenge_results` (el reto del curso
+de antes de la tanda), por `retos_dias_de`. Reglas de `retos_xp`:
+
+| Reto | XP |
+|---|---|
+| reto (curso) | 0 (ya da lo suyo en el curso) |
+| carta | 50/45/40/30/20/15 por intento; 5 si fallas |
+| caro | 3 por acierto, 6 desde el tercero seguido, +6 si 5/5 (máx. 30) |
+| silueta | 20/10/5; 0 si fallas |
+| ordena | 25/15/8; 2 si fallas |
+| expansion | 4 por acierto |
+
+Las mismas reglas viven en `js/retos-xp.js` (para enseñar el bote y el «+XP»
+antes de guardar), y `test-tanda-835.mjs` compara 90 casos del JS contra el
+SQL en PostgreSQL. Si cambias una, cambia las dos.
+
+`retos_estadisticas(juego, dia)` (también sin cuenta) da cuántos jugaron,
+cuántos acertaron y el reparto por intentos o aciertos, y `retos_mis_numeros
+(p_dias)` lo de cada uno: días jugados, racha, mejor racha, días perfectos,
+lo de hoy por reto y el reparto de intentos de la carta. Con eso se cuentan
+los diez logros nuevos (`retos_racha`, `retos_perfectos`, `carta_primera`,
+`carta_aciertos`, `caro_perfectos`, `retos_jugados` en `gamification.js`), y
+solo se pide si hay alguno de esos tipos activo.
+
+**Sin la migración** todo se juega: `guardarResultado` contesta
+`{ faltaMigracion: true }` y la página enseña lo de hoy desde el navegador
+(las claves locales de siempre), sin XP ni «la gente». **Sin cuenta**, igual,
+con un botón a registrarse en el panel final.
+
+**Sitio**: la portada no baja nada de los retos salvo lo nuevo de
+`gamification.js` (los seis tipos de logro y `celebrarSiSubeDeNivel`): 147,9 →
+149,2 KB, quedan 20,8. Y una trampa de la tanda: la leyenda del calendario
+usaba `.rt-dia` para sus muestras, así que «los 60 días» eran 63 para quien
+los contara con un selector; la leyenda va con `.rt-ley`.

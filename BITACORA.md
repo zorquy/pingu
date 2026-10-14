@@ -4,6 +4,71 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (73) — PINGU-Claude (835 — los retos diarios, nuevos de arriba abajo)
+
+**Hecho** (PINGU: «más visual, esto es una mierda ahora mismo», «abres,
+descubres la carta la primera y te da rojo, no te dice acertado», «deberían dar
+experiencia… logros por completar retos, retos seguidos», «propónmelas con
+imágenes»; vio la propuesta y: «hazlo todo, venga, dale caña»):
+- **/retos** rehecho: «Tu día» con anillo de 6, la fila de los seis retos de
+  hoy, la cuenta atrás y los XP del día; seis tarjetas con dibujo y su estado
+  (jugado, aciertos, XP); los logros de retos con su barra; y el calendario
+  con tres tonos según cuántos retos jugaste ese día.
+- **¿Qué carta es?**: el fallo de PINGU era de DATOS: el buscador del intento
+  devolvía las columnas del buscador del catálogo, sin `types` ni `rarity`, así
+  que tipo y rareza comparaban `undefined` y salían rojas aunque acertaras la
+  carta. El doble devuelve la fila entera pida lo que pida y por eso ninguna
+  prueba lo vio. Ahora el intento pide sus columnas (`COLUMNAS_INTENTO`), el
+  acierto pinta la fila entera en verde y dice «¡Acertada en N!», y hay
+  «casi» (amarillo: misma familia evolutiva, rareza vecina) con flecha. Rediseño
+  en dos columnas, bote de XP que baja con cada intento, reparto de tus intentos
+  y el porcentaje de la gente.
+- **¿Más caro o más barato?**: dos cartas cara a cara, el precio que cuenta,
+  la tira de 5, el combo (×2 desde el tercer acierto seguido) y el final con
+  las cinco rondas.
+- **Tres retos nuevos**: «¿Quién es ese Pokémon?» (silueta, 4 opciones de
+  familias distintas, 3 intentos; sin servidor: sale de la fecha), «Ordena por
+  precio» (4 cartas, de la más barata a la más cara) y «¿De qué expansión es?»
+  (5 rondas, 4 logos de la misma era). Los dos últimos con su función que elige
+  y guarda en `retos_reto_del_dia` (y sin la tabla, eligen sin guardar).
+- **XP y logros** en el SERVIDOR: `retos_guardar` calcula los XP con
+  `retos_xp` (y `xp_sumar`), una fila por persona, reto y día —repetir no da
+  más—; +25 por día perfecto (los seis) y +50 cada 7 días de racha. Las mismas
+  reglas en `js/retos-xp.js`, y la prueba compara 90 casos JS contra SQL. Diez
+  logros nuevos (rachas de 7/30/100, días perfectos, carta a la primera,
+  tasador…), contados con `retos_mis_numeros`. El reto del curso también guarda.
+
+**Ficheros**: NUEVOS `quien-es.html`, `ordena-precio.html`, `que-expansion.html`,
+`css/retos-juego.css`, `css/quien-es.css`, `css/ordena-precio.css`,
+`css/que-expansion.css`, `js/retos-xp.js`, `js/retos-datos.js`, `js/retos-ui.js`,
+`js/familias-pokemon.js`, `js/quien-es.js`, `js/quien-es-juego.js`,
+`js/ordena-precio.js`, `js/ordena-precio-juego.js`, `js/que-expansion.js`,
+`js/que-expansion-juego.js`, `netlify/functions/ordena-precio.mjs`,
+`netlify/functions/que-expansion.mjs`, `supabase-migration-retos-xp.sql`.
+Tocados: `retos.html`, `css/retos.css`, `js/retos.js`, `carta-del-dia.html`,
+`css/carta-del-dia.css`, `js/carta-del-dia.js`, `js/carta-del-dia-juego.js`,
+`mas-caro.html`, `css/mas-caro.css`, `js/mas-caro.js`, `js/mas-caro-juego.js`,
+`netlify/functions/carta-del-dia.mjs`, `netlify/functions/mas-caro.mjs`,
+`netlify/functions/sitemap.mjs`, `js/catalogo-buscar.js`, `js/gamification.js`,
+`js/curso.js`, `js/barra-movil.js`, `js/novedades.js`, `novedades.json`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-835.mjs` + `sql-tanda-835.sql` (contra
+PostgreSQL), `test-tanda-835-pantalla.mjs`, y al día 570, 583 y las que pedían
+el diseño viejo.
+
+**Pruebas**: suite entera en cuatro carriles: 440 verdes y 13 rojos, y los 13
+mirados: 9 eran pruebas que contaban tres retos o 41 páginas con pie, o
+reglas de la casa que me salté (dos duraciones de transición, un rojo a mano
+en una sombra, una imagen sin `loading`, la leyenda del calendario con la
+clase de los días, `serie_name_en` en el intento, la llamada de la migración
+que la guarda tomaba por tabla) — arreglados y otra vez en verde; la 748
+sola pasa (tiempos con cuatro carriles), y la 493 y la 514 piden `ffprobe`,
+que este contenedor no tiene. La 835 contra PostgreSQL, 22 de 22 (con los 90
+casos de XP), y la de pantalla, verde. Portada: 149,2 KB de 170.
+
+**Pendiente**: **PINGU, ejecuta `supabase-migration-retos-xp.sql`**. Sin ella
+los seis retos se juegan igual (y lo de hoy se recuerda en el navegador), pero
+no dan XP, no cuentan para los logros ni enseñan «lo que ha hecho la gente».
+
 ## 2026-10-14 — IBAI-Claude (833 y 834 — saltar jornadas de liga, y la decklist oficial)
 
 **Hecho** (Ibai: «cuando quieres iniciar la jornada 2, no hay botón […] ya sea

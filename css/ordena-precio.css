@@ -1,0 +1,191 @@
+/* Ordena por precio (tanda 835). Solo la carga ordena-precio.html; lo
+   común de los retos está en retos-juego.css. */
+
+.op-pagina {
+  max-width: 1080px;
+}
+
+.op-tablero {
+  display: grid;
+  gap: var(--e-lg);
+}
+
+.op-cartas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-md);
+}
+
+.op-carta {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.op-foto {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 30%);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.op-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.op-carta:hover .op-foto {
+  transform: translateY(-4px);
+}
+
+.op-carta:focus-visible {
+  outline: none;
+}
+
+.op-carta:focus-visible .op-foto {
+  box-shadow: var(--shadow-ring);
+}
+
+/* El número que le has dado, en una chapa redonda encima. */
+.op-numero {
+  position: absolute;
+  top: var(--e-sm);
+  left: var(--e-sm);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
+}
+
+.op-carta.fija .op-foto {
+  box-shadow: 0 0 0 4px var(--success), 0 0 40px color-mix(in srgb, var(--success) 40%, transparent);
+}
+
+.op-carta.fija .op-numero {
+  background: var(--rj-si);
+}
+
+.op-carta.fija {
+  cursor: default;
+}
+
+.op-carta.mal .op-foto {
+  box-shadow: 0 0 0 4px var(--rj-no);
+}
+
+.op-nombre {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.op-precio {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+}
+
+.op-acciones {
+  display: flex;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+.op-intentos {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.op-intento {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--t-sm);
+}
+
+.op-intento-mini {
+  display: flex;
+  gap: var(--e-xs);
+}
+
+.op-intento-mini span {
+  width: 32px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border: 2px solid var(--rj-no);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.op-intento-mini span.si {
+  border-color: var(--rj-si);
+}
+
+.op-intento-mini img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.op-leyenda {
+  margin: 0;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .op-foto {
+    transition: none;
+  }
+
+  .op-carta:hover .op-foto {
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .op-cartas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+
+  .op-foto {
+    max-width: 168px;
+  }
+
+  .op-precio {
+    font-size: var(--t-lg);
+  }
+}

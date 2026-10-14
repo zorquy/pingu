@@ -22,7 +22,8 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // día tiene que ser del TCG de verdad. La misma regla que `esDelTCG`.
 export const FILTRO_ELEGIBLES = `market=eq.WEST&category=eq.Pokemon&rarity=not.is.null&or=(image_path.not.is.null,image_scrydex.not.is.null)&set_id=not.imatch.${encodeURIComponent(ID_DE_POCKET.source)}`
 // Con `rarity_en` al lado de `rarity`, que es la regla de la 523.
-export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,types,illustrator,hp,tcg_sets(name,name_en,tcg_online_code,serie_id,release_date)'
+// Y `dex_ids` (835): el «casi» del nombre es la misma familia evolutiva.
+export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,types,illustrator,hp,dex_ids,tcg_sets(name,name_en,tcg_online_code,serie_id,release_date)'
 
 export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 

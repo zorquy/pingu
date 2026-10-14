@@ -78,9 +78,73 @@ export function compararIntento(intento, respuesta) {
 
 export const ORDEN_CASILLAS = ['nombre', 'era', 'tipo', 'rareza']
 
+// La fila de cuadrados que se comparte. Vale con las casillas de antes
+// (verdadero/falso) y con las de la 835 ('si'/'casi'/'no'); y una fila que
+// ACIERTA el nombre es verde entera (835): era la carta, aunque la que
+// dijiste fuera otra impresión con otra rareza.
 export function filaEmoji(comparacion) {
-  return ORDEN_CASILLAS.map((k) => (comparacion[k] ? '🟩' : '🟥')).join('')
+  const estado = (v) => (v === true || v === 'si' || v?.estado === 'si' ? 'si' : v === 'casi' || v?.estado === 'casi' ? 'casi' : 'no')
+  if (estado(comparacion?.nombre) === 'si') return '🟩🟩🟩🟩'
+  return ORDEN_CASILLAS.map((k) => ({ si: '🟩', casi: '🟨', no: '🟥' })[estado(comparacion?.[k])]).join('')
 }
+
+// ── LAS CASILLAS CON LO QUE DICEN (tanda 835) ──
+//
+// PINGU: «abres, descubres la carta la primera y te da como rojo, no te
+// dice acertado». Dos cosas: el buscador no traía el tipo ni la rareza de
+// la carta que dices (salían SIEMPRE en rojo), y una casilla roja no decía
+// nada más. Ahora cada casilla dice su estado —sí, casi o no— y por dónde
+// ir: la flecha de la era (la buena es más nueva o más antigua) y la de la
+// rareza (más rara o más común). «Casi» es la misma familia evolutiva
+// (dices Haunter y era Gengar), una expansión de menos de un año de
+// diferencia, o una rareza vecina.
+//
+// El rango de una rareza, de común a la más rara, por su nombre en inglés
+// (`rarity_en` antes que `rarity`, la regla de la 523). null si no se sabe.
+export function rangoDeRareza(texto) {
+  const r = String(texto || '').toLowerCase()
+  if (!r) return null
+  if (/mega hyper/.test(r)) return 8
+  if (/special illustration|hyper|rainbow|secret|shining|star|legend|gold/.test(r)) return 7
+  if (/ultra|illustration|shiny|radiant|amazing|full art|character|trainer gallery/.test(r)) return 6
+  if (/double|\bex\b|\bgx\b|\bv\b|vmax|vstar|prime|lv\.?x|break|ace/.test(r)) return 5
+  if (/holo/.test(r)) return 4
+  if (/uncommon/.test(r)) return 2
+  if (/common/.test(r)) return 1
+  if (/rare|promo/.test(r)) return 3
+  return null
+}
+
+const fechaDe = (c) => String(c?.tcg_sets?.release_date || c?.release_date || '').slice(0, 10)
+const diasEntre = (a, b) => Math.abs((Date.parse(a) - Date.parse(b)) / 86400000)
+
+// Las cuatro casillas con su estado, su flecha y lo que se pinta. `familia`
+// = (dexA, dexB) → bool (js/familias-pokemon.js; se inyecta para que esto
+// siga sin depender de una tabla de 4 KB).
+export function compararDetallado(intento, respuesta, { familia = () => false } = {}) {
+  const nombre = claveDeNombre(intento?.name) === claveDeNombre(respuesta?.name)
+    ? 'si'
+    : familia(intento?.dex_ids, respuesta?.dex_ids) ? 'casi' : 'no'
+  const fi = fechaDe(intento)
+  const fr = fechaDe(respuesta)
+  const mismaEra = Boolean(eraDe(intento)) && eraDe(intento) === eraDe(respuesta)
+  const era = {
+    estado: mismaEra ? 'si' : fi && fr && diasEntre(fi, fr) <= 365 ? 'casi' : 'no',
+    flecha: !mismaEra && fi && fr && fi !== fr ? (fr > fi ? 'nueva' : 'antigua') : null,
+  }
+  const tipo = { estado: Boolean(tipoDe(intento)) && tipoDe(intento) === tipoDe(respuesta) ? 'si' : 'no', flecha: null }
+  const ri = rangoDeRareza(rarezaDe(intento))
+  const rr = rangoDeRareza(rarezaDe(respuesta))
+  const mismaRareza = Boolean(rarezaDe(intento)) && rarezaDe(intento) === rarezaDe(respuesta)
+  const rareza = {
+    estado: mismaRareza ? 'si' : ri != null && rr != null && Math.abs(ri - rr) === 1 ? 'casi' : 'no',
+    flecha: !mismaRareza && ri != null && rr != null && ri !== rr ? (rr > ri ? 'rara' : 'comun') : null,
+  }
+  return { nombre: { estado: nombre, flecha: null }, era, tipo, rareza }
+}
+
+// De las casillas detalladas a las de antes (para lo que aún las espera).
+export const comoBooleanas = (d) => Object.fromEntries(ORDEN_CASILLAS.map((k) => [k, d?.[k]?.estado === 'si']))
 
 // Las pistas, en el orden en que se abren: una por fallo.
 export const PISTAS = ['era', 'tipo', 'rareza', 'ilustrador', 'inicial']

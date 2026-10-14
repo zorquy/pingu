@@ -45,8 +45,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
-  CSS) debe caber en 170 KB gzip. **A 2026-10-09 (796) van 147,9 y quedan
-  22,1** (de la 786 a la 796, 1,9 más; a la 785 eran 146,0: la 784 metió la píldora y los efectos, la 785 el escaparate; la 782 puso la cabecera común; la 781 metió el «Ver todo» y el vacío con abanico); la 780 mudó a SCHEMA los comentarios largos de `style.css`,
+  CSS) debe caber en 170 KB gzip. **A 2026-10-14 (835) van 149,2 y quedan
+  20,8** (la 835 metió 1,3 con los logros de los retos en `gamification.js`; a la 796 eran 147,9; de la 786 a la 796, 1,9 más; a la 785 eran 146,0: la 784 metió la píldora y los efectos, la 785 el escaparate; la 782 puso la cabecera común; la 781 metió el «Ver todo» y el vacío con abanico); la 780 mudó a SCHEMA los comentarios largos de `style.css`,
   `components.css`, `portada.css` e `index.html` (eran 65 de los 169 KB). Antes, a 2026-10-07 (753), 169,2 y quedaba
   0,8 (la 753 escribió la barra de abajo del móvil en el HTML y su sitio en
   `style.css`; antes, 168,4): la hoja «Tú» se fue a `js/menu-tu.js` + `css/menu-tu.css`, que

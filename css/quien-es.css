@@ -1,0 +1,121 @@
+/* ¿Quién es ese Pokémon? (tanda 835). Solo la carga quien-es.html; lo
+   común de los retos está en retos-juego.css. */
+
+.qe-pagina {
+  max-width: 760px;
+}
+
+.qe-tablero {
+  display: grid;
+  gap: var(--e-lg);
+}
+
+/* La escena de la tele: rayos azules y el dibujo en negro encima. */
+.qe-escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 10%) 0deg 8deg, transparent 8deg 24deg),
+    radial-gradient(circle at 50% 50%, #7dd3fc, #0369a1 70%);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 30%);
+}
+
+.qe-dibujo {
+  width: 72%;
+  height: 86%;
+  object-fit: contain;
+  filter: brightness(0) drop-shadow(0 12px 18px rgb(0 0 0 / 35%));
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.qe-escena.revelado .qe-dibujo {
+  filter: drop-shadow(0 12px 18px rgb(0 0 0 / 35%));
+  transform: scale(1.04);
+}
+
+.qe-escena.revelado::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgb(255 255 255 / 80%), transparent 60%);
+  pointer-events: none;
+  animation: qe-destello 0.7s ease-out both;
+}
+
+@keyframes qe-destello {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qe-dibujo {
+    transition: none;
+  }
+
+  .qe-escena.revelado .qe-dibujo {
+    transform: none;
+  }
+
+  .qe-escena.revelado::after {
+    display: none;
+    animation: none;
+  }
+}
+
+/* Las cuatro opciones, dos por fila. */
+.qe-opciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+}
+
+.qe-opcion {
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qe-opcion:hover:not(:disabled) {
+  border-color: var(--navy);
+}
+
+.qe-opcion:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.qe-opcion.fallo {
+  border-color: transparent;
+  background: var(--rj-no);
+  color: var(--blanco-fijo);
+  cursor: default;
+}
+
+.qe-opcion.acierto {
+  border-color: transparent;
+  background: var(--rj-si);
+  color: var(--blanco-fijo);
+}
+
+.qe-opcion:disabled:not(.fallo):not(.acierto) {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .qe-opcion {
+    min-height: 52px;
+    font-size: var(--t-md);
+  }
+}

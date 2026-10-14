@@ -44,6 +44,9 @@ const ESTATICAS = [
   ['/retos', '0.7'],
   ['/carta-del-dia', '0.7'],
   ['/mas-caro', '0.7'],
+  ['/quien-es', '0.7'],
+  ['/ordena-precio', '0.7'],
+  ['/que-expansion', '0.7'],
   // El glosario (792): contenido propio que se busca palabra por palabra.
   ['/glosario', '0.6'],
   // Las novedades de la web (829): cambian cada semana.
