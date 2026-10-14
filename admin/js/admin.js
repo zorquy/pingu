@@ -3845,11 +3845,13 @@ function lineasDePreciosJp(resumen, episodios) {
 function lineasDeErasJp(eras) {
   const u = eras?.ultima
   if (!u) return ['  eras (825): todavía no se han mirado (van cuando el calco está entero, una vez al día)']
+  const sinEra = u.sinEra || []
   return [
-    `  eras (825, ${u.fecha}): ${u.sets} sets en ${(u.eras || []).length} series de TCGGO · movidos en la última pasada: ${u.movidosAhora} · quedan: ${u.quedan} · sin era: ${(u.sinEra || []).length} · respetados por estar cambiados a mano: ${(u.respetadas || []).length}`,
-    ...(u.eras || []).map((e) => `    ${e.nombre || '—'} → ${e.serie_id} (${e.sets} sets)`),
-    (u.sinEra || []).length ? `    sin serie en TCGGO ni fechas que la decidan: ${u.sinEra.join(', ')}` : '',
-    ...(eras.movidos || []).slice(0, 30).map((m) => `    ↦ ${m.id} «${m.nombre}»: ${m.de || 'sin era'} → ${m.a}${m.por === 'fecha' ? ' (por la fecha)' : ''}`),
+    `  eras (825, ${u.fecha}): ${u.sets} sets a la vista, ${u.conSerieDeTcggo ?? '?'} con serie de TCGGO, ${u.viejos ?? '?'} viejos escondidos con era · movidos en la última pasada: ${u.movidosAhora} · quedan: ${u.quedan} · sin era: ${u.sinEraTotal ?? sinEra.length} · respetados por estar cambiados a mano: ${(u.respetadas || []).length}`,
+    '    series de TCGGO: ' + ((u.eras || []).map((e) => `${e.nombre || '—'} → ${e.serie_id} (${e.sets})`).join(' · ') || 'ninguna'),
+    ...((u.estanteria || []).length ? ['    la estantería japonesa queda así:', ...u.estanteria.map((e) => `      ${e.serie_id}${e.nombre ? ` «${e.nombre}»` : ''}: ${e.sets} sets${e.desde ? `, ${e.desde} → ${e.hasta}` : ''}`)] : []),
+    ...(sinEra.length ? ['    sin era (se quedan como están):', ...sinEra.map((x) => (typeof x === 'string' ? `      ${x}` : `      ${x.id} «${x.nombre}» (${x.fecha || 'sin fecha'}): ${x.porque}`))] : []),
+    ...(eras.movidos || []).slice(0, 60).map((m) => `    ↦ ${m.id} «${m.nombre}»: ${m.soloNombre ? `${m.a} (solo el nombre de la era)` : `${m.de || 'sin era'} → ${m.a}`}${m.por === 'tcggo' ? '' : ` (por ${m.por})`}`),
     eras.ultimoError ? `    ⚠ último error (${eras.ultimoError.fecha}): ${eras.ultimoError.set ? `${eras.ultimoError.set}: ` : ''}${eras.ultimoError.error}` : '',
   ]
 }

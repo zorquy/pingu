@@ -39873,3 +39873,19 @@ de era».
   precio, nuestras cartas no tienen el id, o los ids no casan.
 - /admin, bloque del calco: `lineasDeErasJp` (las series, lo movido, lo que
   queda sin era).
+
+### 825, segunda pasada — lo que TCGGO trae sin serie
+
+La primera pasada en producción dijo: 255 sets a la vista, **68** con serie de
+TCGGO (Black & White, Scarlet & Violet, HeartGold & SoulSilver → `legend`,
+Mega Evolution); todo lo antiguo viene sin ella. Así que `erasDeTcggo` coloca
+también los SUELTOS sin serie (sin era, o con una que no comparte ningún otro
+set a la vista; lo que ya está en una era con otros se queda): 1) el set VIEJO
+escondido con el mismo nombre (`viejos`, los de TCGdex y Scrydex que el calco
+sustituyó; `pasoDeEras` los pide con `oculto=is.true&serie_id=not.is.null`),
+2) la era a la vista cuyas fechas lo cubren, si es una, 3) la de los viejos
+cuyas fechas lo cubren, si es una. Si no, `sinEra` con el porqué (sin fecha,
+ninguna era, dos eras). `estanteria` cuenta cómo queda cada era (sets y
+fechas) y /admin la enseña. `ERAS_VERSION` (2) hace que una regla nueva se
+aplique el mismo día; los movidos que solo cambian el nombre de la era llevan
+`soloNombre`.

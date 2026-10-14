@@ -510,14 +510,14 @@ const mismaSerie = (s, e) => (s.serie_id || null) === e.serie_id && (s.serie_nam
 // series suyas no comparten identificador (la más grande elige primero), y
 // una serie en la que ningún set tiene uno estrena `tg-<slug>`.
 //
-// Un set cuya expansión no trae serie va a la era cuyas fechas lo cubren,
-// solo si es UNA (los promos no cuentan para el tramo: siguen saliendo
-// durante años). Si no, se queda como esté y sale en `sinEra`.
+// Un set cuya expansión no trae serie, y que está suelto, se coloca por los
+// sets viejos (`viejos`) y por las fechas: ver más abajo.
 //
 // Y lo que alguien movió A MANO no se pisa: `puestas` es lo que esta pasada
 // escribió la última vez; si el set ya no lo tiene, lo ha cambiado una
 // persona (/admin → Colecciones) y se respeta.
-export function erasDeTcggo(sets, episodios, { aMano = new Set(), puestas = {} } = {}) {
+export function erasDeTcggo(sets, episodios, opciones = {}) {
+  const { aMano = new Set(), puestas = {} } = opciones
   const porId = new Map((episodios || []).map((e) => [Number(e.id), e]))
   const grupos = new Map()
   const sinSerie = []
@@ -556,26 +556,94 @@ export function erasDeTcggo(sets, episodios, { aMano = new Set(), puestas = {} }
   }
   const destino = new Map()
   for (const g of orden) for (const s of g.sets) destino.set(s.id, { serie: g.serie, por: 'tcggo' })
-  const sinEra = []
-  for (const s of sinSerie) {
-    const d = Date.parse(s.release_date || '')
-    const cubren = Number.isFinite(d) ? orden.filter((g) => g.desde != null && g.desde <= d && d <= g.hasta) : []
-    if (cubren.length === 1) destino.set(s.id, { serie: cubren[0].serie, por: 'fecha' })
-    else sinEra.push(s.id)
+
+  // LOS QUE TCGGO NO DICE DE QUÉ SERIE SON (la segunda pasada de la 825). En
+  // producción TCGGO trae serie para 68 de los 255 sets japoneses: todo lo
+  // antiguo —Expansion Pack, Jungle, Neo, ADV, PCG— viene sin ella. A esos
+  // solo se les busca era si están SUELTOS (sin era, o con una que no
+  // comparte ningún otro set a la vista): un set que ya está en una era con
+  // otros se queda donde está, que es lo que dijo TCGdex o Scrydex.
+  // Para los sueltos, por este orden:
+  //   1. un set VIEJO escondido (`viejos`, los de TCGdex y Scrydex que el
+  //      calco sustituyó) con el mismo nombre: su era;
+  //   2. la era A LA VISTA cuyas fechas lo cubren, si es una;
+  //   3. la era de los sets VIEJOS cuyas fechas lo cubren, si es una (así
+  //      vuelve una era antigua entera que hoy no tiene ningún set a la vista).
+  // Si no, se queda y sale en `sinEra`. Las fechas de los promos no cuentan.
+  const visibles = (sets || []).filter((s) => s && !s.oculto)
+  const usoDeId = new Map()
+  for (const s of visibles) if (s.serie_id) usoDeId.set(s.serie_id, (usoDeId.get(s.serie_id) || 0) + 1)
+  const suelto = (s) => !s.serie_id || usoDeId.get(s.serie_id) === 1
+  const sueltos = sinSerie.filter(suelto)
+  const tramosDe = (lista, serieDe) => {
+    const m = new Map()
+    for (const s of lista) {
+      const serie = serieDe(s)
+      if (!serie?.serie_id) continue
+      if (!m.has(serie.serie_id)) m.set(serie.serie_id, { serie, desde: null, hasta: null })
+      const t = m.get(serie.serie_id)
+      if (!t.serie.serie_name && serie.serie_name) t.serie = serie
+      const d = Date.parse(s.release_date || '')
+      if (PROMO.test(`${s.name || ''} ${s.name_en || ''}`) || !Number.isFinite(d)) continue
+      t.desde = t.desde == null ? d : Math.min(t.desde, d)
+      t.hasta = t.hasta == null ? d : Math.max(t.hasta, d)
+    }
+    return [...m.values()].filter((t) => t.desde != null)
   }
+  const serieDeFila = (s) => (s.serie_id ? { serie_id: s.serie_id, serie_name: s.serie_name || null, serie_name_en: s.serie_name_en || null } : null)
+  const viejos = (opciones.viejos || []).filter((s) => s?.serie_id)
+  const porNombreViejo = new Map()
+  for (const v of viejos) for (const n of new Set([v.name_en, v.name].map(nombreComparable).filter(Boolean))) {
+    if (!porNombreViejo.has(n)) porNombreViejo.set(n, new Map())
+    porNombreViejo.get(n).set(v.serie_id, serieDeFila(v))
+  }
+  for (const s of sueltos) {
+    const series = new Map()
+    for (const n of new Set([s.name_en, s.name].map(nombreComparable).filter(Boolean))) for (const [id, serie] of porNombreViejo.get(n) || []) series.set(id, serie)
+    if (series.size === 1) destino.set(s.id, { serie: [...series.values()][0], por: 'nombre' })
+  }
+  const final = (s) => destino.get(s.id)?.serie || (suelto(s) ? null : serieDeFila(s))
+  const tramosVisibles = tramosDe(visibles, final)
+  const tramosViejos = tramosDe(viejos, serieDeFila)
+  const cubre = (tramos, d) => tramos.filter((t) => t.desde <= d && d <= t.hasta)
+  const sinEra = []
+  for (const s of sueltos) {
+    if (destino.has(s.id)) continue
+    const d = Date.parse(s.release_date || '')
+    const aLaVista = Number.isFinite(d) ? cubre(tramosVisibles, d) : []
+    const deLosViejos = Number.isFinite(d) && !aLaVista.length ? cubre(tramosViejos, d) : []
+    if (aLaVista.length === 1) destino.set(s.id, { serie: aLaVista[0].serie, por: 'fecha' })
+    else if (deLosViejos.length === 1) destino.set(s.id, { serie: deLosViejos[0].serie, por: 'fecha de los viejos' })
+    else sinEra.push({ id: s.id, nombre: s.name_en || s.name || s.id, fecha: s.release_date || null, porque: !Number.isFinite(d) ? 'sin fecha' : aLaVista.length + deLosViejos.length ? 'dos eras cubren su fecha' : 'ninguna era cubre su fecha' })
+  }
+
   const cambios = []
   const respetadas = []
   for (const s of sets || []) {
     const d = destino.get(s?.id)
     if (!d || mismaSerie(s, d.serie)) continue
     if (Object.prototype.hasOwnProperty.call(puestas, s.id) && puestas[s.id] !== (s.serie_id || null)) { respetadas.push(s.id); continue }
-    cambios.push({ id: s.id, nombre: s.name_en || s.name || s.id, de: s.serie_id || null, a: d.serie, por: d.por })
+    cambios.push({ id: s.id, nombre: s.name_en || s.name || s.id, de: s.serie_id || null, a: d.serie, por: d.por, ...(s.serie_id === d.serie.serie_id ? { soloNombre: true } : {}) })
+  }
+  // Cómo queda la estantería japonesa, era a era: para mirarla en /admin sin
+  // tener que abrir la web.
+  const estanteria = new Map()
+  for (const s of visibles) {
+    const serie = destino.get(s.id)?.serie || serieDeFila(s)
+    const id = serie?.serie_id || '(sin era)'
+    if (!estanteria.has(id)) estanteria.set(id, { serie_id: id, nombre: serie?.serie_name_en || serie?.serie_name || null, sets: 0, desde: null, hasta: null })
+    const e = estanteria.get(id)
+    e.sets++
+    const f = String(s.release_date || '').slice(0, 10)
+    if (f) { if (!e.desde || f < e.desde) e.desde = f; if (!e.hasta || f > e.hasta) e.hasta = f }
   }
   return {
     cambios,
     respetadas,
     sinEra,
+    conSerieDeTcggo: orden.reduce((t, g) => t + g.sets.length, 0),
     eras: orden.map((g) => ({ serie_id: g.serie.serie_id, nombre: g.nombre, sets: g.sets.length })),
+    estanteria: [...estanteria.values()].sort((a, b) => String(a.desde || '9').localeCompare(String(b.desde || '9'))),
   }
 }
 

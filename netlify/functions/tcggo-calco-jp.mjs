@@ -499,10 +499,13 @@ export async function pasada({
 // lo que esta pasada pone se recuerda (`puestas`) para no pisar después lo
 // que alguien cambie a mano desde /admin → Colecciones.
 export const ERAS_POR_PASADA = 60
+// Sube cuando cambia la regla: la pasada se repite ese mismo día. La 2 coloca
+// también los sets a los que TCGGO no da serie (casi todo lo antiguo).
+export const ERAS_VERSION = 2
 export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persistir }) {
   if (!estado.eras || typeof estado.eras !== 'object') estado.eras = {}
   if (!estado.eras.puestas || typeof estado.eras.puestas !== 'object') estado.eras.puestas = {}
-  if (estado.eras.dia === dia) return { saltado: 'las eras ya se miraron hoy' }
+  if (estado.eras.dia === dia && estado.eras.version === ERAS_VERSION) return { saltado: 'las eras ya se miraron hoy' }
   let sets
   try {
     sets = (await pedir(`tcg_sets?select=id,name,name_en,serie_id,serie_name,serie_name_en,tcggo_id,oculto,release_date&market=eq.${MERCADO}&oculto=is.false&tcggo_id=not.is.null&limit=1000`)) || []
@@ -511,12 +514,18 @@ export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persist
     await persistir()
     return { ok: false, error: estado.eras.ultimoError.error }
   }
+  // Los viejos escondidos (TCGdex, Scrydex) con su era: dicen de qué era es
+  // lo antiguo que TCGGO trae sin serie. Sin ellos se sigue con las fechas.
+  let viejos = []
+  try {
+    viejos = (await pedir(`tcg_sets?select=id,name,name_en,serie_id,serie_name,serie_name_en,release_date&market=eq.${MERCADO}&oculto=is.true&serie_id=not.is.null&limit=1000`)) || []
+  } catch { /* sin los viejos, solo las fechas de lo que se ve */ }
   // Las eras colocadas a mano; sin la tabla (o sin permiso) se sigue sin ellas.
   let aMano = new Set()
   try {
     aMano = new Set(((await pedir(`tcg_eras?select=id&market=eq.${MERCADO}&limit=1000`)) || []).map((e) => e.id))
   } catch { /* sin eras a mano, decide la mayoría */ }
-  const r = erasDeTcggo(sets, episodios, { aMano, puestas: estado.eras.puestas })
+  const r = erasDeTcggo(sets, episodios, { aMano, puestas: estado.eras.puestas, viejos })
   const movidos = []
   let fallo = null
   for (const c of r.cambios.slice(0, ERAS_POR_PASADA)) {
@@ -527,13 +536,17 @@ export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persist
       break
     }
     estado.eras.puestas[c.id] = c.a.serie_id
-    movidos.push({ id: c.id, nombre: c.nombre, de: c.de, a: c.a.serie_id, por: c.por, fecha: ahora.toISOString() })
+    movidos.push({ id: c.id, nombre: c.nombre, de: c.de, a: c.a.serie_id, por: c.por, ...(c.soloNombre ? { soloNombre: true } : {}), fecha: ahora.toISOString() })
   }
   const quedan = r.cambios.length - movidos.length
   if (fallo) estado.eras.ultimoError = fallo
-  else if (!quedan) estado.eras.dia = dia
+  else if (!quedan) { estado.eras.dia = dia; estado.eras.version = ERAS_VERSION }
   estado.eras.movidos = [...movidos, ...(estado.eras.movidos || [])].slice(0, 300)
-  estado.eras.ultima = { fecha: ahora.toISOString(), sets: sets.length, eras: r.eras.slice(0, 80), sinEra: r.sinEra.slice(0, 40), respetadas: r.respetadas.slice(0, 40), movidosAhora: movidos.length, quedan }
+  estado.eras.ultima = {
+    fecha: ahora.toISOString(), version: ERAS_VERSION, sets: sets.length, viejos: viejos.length, conSerieDeTcggo: r.conSerieDeTcggo,
+    eras: r.eras.slice(0, 80), estanteria: r.estanteria.slice(0, 80), sinEraTotal: r.sinEra.length, sinEra: r.sinEra.slice(0, 80),
+    respetadas: r.respetadas.slice(0, 40), movidosAhora: movidos.length, quedan,
+  }
   await persistir()
   return { ok: !fallo, movidos: movidos.length, quedan, sinEra: r.sinEra.length, ...(fallo ? { error: fallo.error } : {}) }
 }

@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (64) — PINGU-Claude (825, segunda pasada — eras de lo que TCGGO trae sin serie)
+
+**Hecho**: la primera pasada de las eras enseñó en /admin que TCGGO solo da
+serie a 68 de los 255 sets japoneses (BW, SV, HGSS → `legend`, Mega). Los
+sueltos sin serie se colocan ahora por el set viejo escondido del mismo
+nombre, y si no por las fechas (de las eras a la vista y, si ninguna, de los
+sets viejos); lo que ya está en una era con otros no se toca. /admin enseña la
+estantería japonesa era a era y los que se quedan sin era con el porqué. Se
+repite hoy mismo (`ERAS_VERSION` 2).
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-calco-jp.mjs`,
+`admin/js/admin.js`, SCHEMA. Pruebas: `test-tanda-825.mjs` y las del calco.
+
+**Pendiente**: PINGU mira «la estantería japonesa queda así» en /admin.
+
 ## 2026-10-14 (63) — PINGU-Claude (825 — las eras del japonés y su precio)
 
 **Hecho** (PINGU: «Expansion Pack no tiene precios, Jungle no está en la era
