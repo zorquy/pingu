@@ -39,7 +39,7 @@ check('todas las entradas valen (tipo, fecha y texto)', json.entradas.length > 0
 check('el mes más reciente tiene exactamente tres destacadas, cada una con su dibujo', d.destacadasDelMes(json.destacadas).lista.length === 3 && d.destacadasDelMes(json.destacadas).lista.every((x) => x.dibujo && x.enlace))
 // Cada enlace lleva a una página que existe (la regla de la 510: un camino
 // escrito es un enlace que nadie comprueba).
-const RUTAS = new Set(['/foro', '/retos', '/glosario', '/cartas', '/mi-coleccion', '/feria', '/novedades', '/noticias'])
+const RUTAS = new Set(['/', '/foro', '/retos', '/glosario', '/cartas', '/mi-coleccion', '/feria', '/novedades', '/noticias'])
 const existe = (h) => {
   const ruta = h.split('?')[0]
   if (RUTAS.has(ruta) || /^\/ilustrador\/[a-z0-9-]+$/.test(ruta)) return true

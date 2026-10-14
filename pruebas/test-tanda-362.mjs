@@ -112,7 +112,10 @@ console.log('\n── 2. El torneo ocupa el sitio caro ──')
   // se ponga ahí mañana las hereda sin que nadie se acuerde. Era la
   // lección de esta tanda y sigue valiendo con la fila quitada (368).
   const css = leer('css/portada.css').replace(/\/\*[\s\S]*?\*\//g, '')
-  check('las reglas no llevan el id del reto', !/#retoSeccion/.test(css), (css.match(/[^\n]*#retoSeccion[^\n]*/) || [])[0])
+  // Lo único que sí va por id es el ORDEN del móvil (843: los retos detrás
+  // del torneo), que es decir QUIÉN va primero: ahí el id es la respuesta.
+  const conId = [...css.matchAll(/#retoSeccion\s*\{([^}]*)\}/g)].map((m) => m[1].trim())
+  check('las reglas no llevan el id del reto (solo su orden en el móvil)', /#retoSeccion/.test(css) ? conId.length === (css.match(/#retoSeccion/g) || []).length && conId.every((d) => /^order:\s*-?\d+;?$/.test(d)) : true, conId.join(' | '))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

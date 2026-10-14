@@ -455,11 +455,11 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
 {
   const { page, errores } = await abrir('/index.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const heroe = page.locator('.reto-hoy')
-  check('  …con el héroe del reto', await heroe.isVisible())
+  // Desde la 843 el héroe con cuenta es el bloque de los SEIS retos (antes,
+  // solo el de preguntas); el héroe viejo queda para quien no tiene cuenta.
+  const heroe = page.locator('.tr-bloque')
+  check('  …con el bloque de los retos de hoy', await heroe.isVisible())
   check('  …y la noticia al lado', await page.locator('.noticia-banner').isVisible())
-  // En grande: el héroe tiene que ser bastante más alto que la fila fina
-  // que era antes (84px de esqueleto).
   const alto = await heroe.evaluate((e) => e.getBoundingClientRect().height)
   check('  …y es de verdad grande', alto > 150, `${Math.round(alto)}px`)
   // Y ARRIBA DEL TODO en su columna. Hasta la tanda 368 esto se
@@ -486,25 +486,23 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
     )
   })
   check('  …y lo de «hoy» abre cada columna', Boolean(arriba))
-  // Los cinco puntos: sin jugar, los cinco vacíos.
-  const puntos = page.locator('.reto-punto')
-  check('salen los cinco puntos', (await puntos.count()) === 5, String(await puntos.count()))
-  check('  …vacíos si no has jugado', (await page.locator('.reto-punto.acertado').count()) === 0)
-  check('  …y el botón lleva al reto', /reto=hoy/.test((await page.locator('.reto-hoy-boton').getAttribute('href')) || ''),
-    await page.locator('.reto-hoy-boton').getAttribute('href'))
+  // Las seis casillas: sin jugar, ninguna hecha, y «Jugar» lleva al primero.
+  const casillas = page.locator('.tr-casilla')
+  check('salen las seis casillas', (await casillas.count()) === 6, String(await casillas.count()))
+  check('  …ninguna hecha si no has jugado', (await page.locator('.tr-casilla.hecha').count()) === 0)
+  check('  …y «Jugar» lleva al reto de preguntas, el primero', (await page.locator('.tr-jugar').getAttribute('href')) === '/reto',
+    await page.locator('.tr-jugar').getAttribute('href'))
   await page.close()
 }
 
-console.log('\n── 6. F · Los puntos cuentan lo que acertaste ──')
+console.log('\n── 6. F · Lo jugado cuenta ──')
 {
   const { page } = await abrir('/index.html', { retos: [{ user_id: 'user-1', correct: 3, total: 5, score: 30 }] })
-  check('el titular da el resultado', (await page.locator('.reto-hoy-titular').textContent())?.includes('3 de 5'),
-    await page.locator('.reto-hoy-titular').textContent())
-  check('  …y hay 3 puntos encendidos de 5', (await page.locator('.reto-punto.acertado').count()) === 3 && (await page.locator('.reto-punto').count()) === 5)
-  check('  …y el héroe se apaga', (await page.locator('.reto-hoy-hecha').count()) === 1)
-  // Jugado no puede llevar otra vez al reto de hoy: se juega una vez.
-  const hrefs = await page.locator('.reto-hoy a').evaluateAll((as) => as.map((a) => a.getAttribute('href')))
-  check('  …y ya no invita a jugar el de hoy', !hrefs.some((h) => /reto=hoy/.test(h || '')), hrefs.join(' | '))
+  check('el titular da lo hecho', /1 de 6 hechos/.test((await page.locator('.tr-titular').textContent()) || ''),
+    await page.locator('.tr-titular').textContent())
+  check('  …con la casilla del reto de preguntas hecha', (await page.locator('.tr-casilla.hecha[href="/reto"]').count()) === 1 && (await page.locator('.tr-casilla.hecha').count()) === 1)
+  // Jugado no puede llevar otra vez al de preguntas: se juega una vez.
+  check('  …y «Jugar» ya lleva a otro', (await page.locator('.tr-jugar').getAttribute('href')) !== '/reto', await page.locator('.tr-jugar').getAttribute('href'))
   await page.close()
 }
 

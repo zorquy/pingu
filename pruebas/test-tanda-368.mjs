@@ -135,7 +135,9 @@ console.log('\n── 2. Y en el móvil el orden NO ha cambiado ──')
     return { torneo: donde('torneoPortadaSeccion'), noticia: donde('noticiaPortadaSeccion'), reto: donde('retoSeccion') }
   })
   check('el torneo sigue el primero', y.torneo !== null && y.torneo < y.noticia, JSON.stringify(y))
-  check('y la noticia, justo detrás', y.noticia !== null && y.noticia < y.reto, JSON.stringify(y))
+  // Desde la 843 los retos van justo debajo del torneo (la propuesta que
+  // aprobó PINGU: «debajo de las fichas»), y la noticia detrás.
+  check('y los retos, justo detrás; la noticia después', y.reto !== null && y.torneo < y.reto && y.reto < y.noticia, JSON.stringify(y))
   await page.close()
 }
 
