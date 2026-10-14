@@ -39889,3 +39889,18 @@ ninguna era, dos eras). `estanteria` cuenta cómo queda cada era (sets y
 fechas) y /admin la enseña. `ERAS_VERSION` (2) hace que una regla nueva se
 aplique el mismo día; los movidos que solo cambian el nombre de la era llevan
 `soloNombre`.
+
+### 825, tercera pasada — promos, solapes, huecos y el cajón
+
+Con la estantería de la segunda pasada delante: los PROMOS salen antes que el
+primer set de su era (PCG-P 2004-02 contra PCG 2004-04; DPt Promos 2008-10-01
+contra Platinum 2008-10-10), así que van a la era que EMPIEZA en los seis
+meses siguientes; si dos eras cubren una fecha (XY y Sun & Moon en
+2016-2017, PCG y DP en 2007) gana la que empezó más tarde; un set sin era en
+un hueco (Team Rocket, 1997-11, entre Original y Vending) va a la era
+anterior si el hueco es de menos de un año, y si no a la de los viejos que lo
+cubra o, al final, a la anterior contando las de los viejos. «Other» y «misc»
+son CAJONES (`CAJON`): no hacen tramo y lo que tienen dentro se recoloca. Lo
+que colocó esta pasada antes (`puestas` igual a lo que tiene) se vuelve a
+decidir; un set SOLO en su era se mueve únicamente si otra lo cubre por fechas
+o por nombre (VS y Web son eras de un set). `ERAS_VERSION` 3.

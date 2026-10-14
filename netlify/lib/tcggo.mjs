@@ -559,62 +559,109 @@ export function erasDeTcggo(sets, episodios, opciones = {}) {
 
   // LOS QUE TCGGO NO DICE DE QUÉ SERIE SON (la segunda pasada de la 825). En
   // producción TCGGO trae serie para 68 de los 255 sets japoneses: todo lo
-  // antiguo —Expansion Pack, Jungle, Neo, ADV, PCG— viene sin ella. A esos
-  // solo se les busca era si están SUELTOS (sin era, o con una que no
-  // comparte ningún otro set a la vista): un set que ya está en una era con
-  // otros se queda donde está, que es lo que dijo TCGdex o Scrydex.
-  // Para los sueltos, por este orden:
-  //   1. un set VIEJO escondido (`viejos`, los de TCGdex y Scrydex que el
-  //      calco sustituyó) con el mismo nombre: su era;
-  //   2. la era A LA VISTA cuyas fechas lo cubren, si es una;
-  //   3. la era de los sets VIEJOS cuyas fechas lo cubren, si es una (así
-  //      vuelve una era antigua entera que hoy no tiene ningún set a la vista).
-  // Si no, se queda y sale en `sinEra`. Las fechas de los promos no cuentan.
+  // antiguo —Expansion Pack, Jungle, Neo, ADV, PCG— viene sin ella. Un set
+  // que ya está en una era con otros se queda donde está (es lo que dijeron
+  // TCGdex o Scrydex). Los demás:
+  //   · SIN ERA: sin `serie_id`, en un cajón («Other»: no es una era, se
+  //     tragaba de 1999 a 2007) o colocado por esta pasada antes (`puestas`):
+  //     se decide del todo.
+  //   · SOLOS en su era: solo se mueven si otra era los CUBRE por fechas
+  //     (Jungle dentro de Original) o por nombre; si caen en un hueco son
+  //     una era de un set de verdad (VS, Web) y se quedan.
+  // Por este orden:
+  //   1. un set VIEJO escondido con el mismo nombre (`viejos`, los de
+  //      TCGdex y Scrydex que el calco sustituyó): su era;
+  //   2. un PROMO va a la era que empieza en los seis meses siguientes: los
+  //      promos de una era salen antes que su primer set (PCG-P, DPt Promos);
+  //   3. la era a la vista que cubre su fecha; si son dos (XY y Sun & Moon
+  //      se solapan en 2016-2017), la que empezó más tarde;
+  //   4. (solo los sin era) la era a la vista anterior, si el hueco es de
+  //      menos de un año: una era dura hasta que empieza la siguiente (Team
+  //      Rocket, 1997-11, entre Original y Vending);
+  //   5. (solo los sin era) la de los sets viejos que cubre su fecha (una era
+  //      entera que hoy no tiene nada a la vista), y si no, la anterior
+  //      contando las de los viejos.
+  // Si no, `sinEra` con el porqué. Las fechas de los promos no hacen tramo.
+  const CAJON = /^(other|others|misc|miscellaneous)$/i
   const visibles = (sets || []).filter((s) => s && !s.oculto)
   const usoDeId = new Map()
   for (const s of visibles) if (s.serie_id) usoDeId.set(s.serie_id, (usoDeId.get(s.serie_id) || 0) + 1)
-  const suelto = (s) => !s.serie_id || usoDeId.get(s.serie_id) === 1
-  const sueltos = sinSerie.filter(suelto)
+  const puestaPorEsta = (s) => Object.prototype.hasOwnProperty.call(puestas, s.id) && puestas[s.id] === (s.serie_id || null)
+  const sinEraPropia = (s) => !s.serie_id || CAJON.test(s.serie_id) || puestaPorEsta(s)
+  const solo = (s) => !sinEraPropia(s) && usoDeId.get(s.serie_id) === 1
+  const enGrupo = new Set(orden.flatMap((g) => g.sets.map((x) => x.id)))
+  const sinEraLista = sinSerie.filter(sinEraPropia)
+  const solos = sinSerie.filter(solo)
+  const esPromo = (s) => PROMO.test(`${s.name || ''} ${s.name_en || ''}`)
   const tramosDe = (lista, serieDe) => {
     const m = new Map()
     for (const s of lista) {
       const serie = serieDe(s)
-      if (!serie?.serie_id) continue
+      if (!serie?.serie_id || CAJON.test(serie.serie_id)) continue
       if (!m.has(serie.serie_id)) m.set(serie.serie_id, { serie, desde: null, hasta: null })
       const t = m.get(serie.serie_id)
       if (!t.serie.serie_name && serie.serie_name) t.serie = serie
       const d = Date.parse(s.release_date || '')
-      if (PROMO.test(`${s.name || ''} ${s.name_en || ''}`) || !Number.isFinite(d)) continue
+      if (esPromo(s) || !Number.isFinite(d)) continue
       t.desde = t.desde == null ? d : Math.min(t.desde, d)
       t.hasta = t.hasta == null ? d : Math.max(t.hasta, d)
     }
     return [...m.values()].filter((t) => t.desde != null)
   }
   const serieDeFila = (s) => (s.serie_id ? { serie_id: s.serie_id, serie_name: s.serie_name || null, serie_name_en: s.serie_name_en || null } : null)
-  const viejos = (opciones.viejos || []).filter((s) => s?.serie_id)
+  const viejos = (opciones.viejos || []).filter((s) => s?.serie_id && !CAJON.test(s.serie_id))
   const porNombreViejo = new Map()
   for (const v of viejos) for (const n of new Set([v.name_en, v.name].map(nombreComparable).filter(Boolean))) {
     if (!porNombreViejo.has(n)) porNombreViejo.set(n, new Map())
     porNombreViejo.get(n).set(v.serie_id, serieDeFila(v))
   }
-  for (const s of sueltos) {
+  for (const s of [...solos, ...sinEraLista]) {
     const series = new Map()
     for (const n of new Set([s.name_en, s.name].map(nombreComparable).filter(Boolean))) for (const [id, serie] of porNombreViejo.get(n) || []) series.set(id, serie)
     if (series.size === 1) destino.set(s.id, { serie: [...series.values()][0], por: 'nombre' })
   }
-  const final = (s) => destino.get(s.id)?.serie || (suelto(s) ? null : serieDeFila(s))
-  const tramosVisibles = tramosDe(visibles, final)
+  const DIAS = 86_400_000
+  const masNueva = (tramos) => [...tramos].sort((a, b) => b.desde - a.desde)[0] || null
+  const porFecha = (s, tramos, { entera }) => {
+    const d = Date.parse(s.release_date || '')
+    if (!Number.isFinite(d)) return { porque: 'sin fecha' }
+    if (esPromo(s)) {
+      const siguiente = tramos.filter((t) => t.desde >= d && t.desde - d <= 183 * DIAS).sort((a, b) => a.desde - b.desde)[0]
+      if (siguiente) return { serie: siguiente.serie, por: 'fecha (promos de la era siguiente)' }
+    }
+    const cubren = tramos.filter((t) => t.desde <= d && d <= t.hasta)
+    if (cubren.length) return { serie: masNueva(cubren).serie, por: cubren.length > 1 ? 'fecha (la más nueva de dos)' : 'fecha' }
+    if (!entera) return { porque: 'en un hueco entre eras: es una era de un set' }
+    // La anterior solo si el hueco es de menos de un año: más, y lo que falta
+    // es una era entera que hoy no tiene nada a la vista (la dicen los viejos).
+    const anterior = masNueva(tramos.filter((t) => t.desde <= d))
+    if (anterior && d - anterior.hasta <= 365 * DIAS) return { serie: anterior.serie, por: 'fecha (la era anterior)' }
+    const vieja = masNueva(cubre(tramosViejos, d))
+    if (vieja) return { serie: vieja.serie, por: 'fecha de los viejos' }
+    // Y como último recurso, la anterior contando también las de los viejos:
+    // la era que falta a la vista puede estar entre las dos.
+    const ultima = masNueva([...tramos, ...tramosViejos].filter((t) => t.desde <= d))
+    if (ultima) return { serie: ultima.serie, por: 'fecha (la era anterior)' }
+    return { porque: 'antes de todas las eras' }
+  }
   const tramosViejos = tramosDe(viejos, serieDeFila)
   const cubre = (tramos, d) => tramos.filter((t) => t.desde <= d && d <= t.hasta)
+  // Primero los solos, contra las eras firmes; los que se quedan cuentan
+  // como era para los sin era (VS es una era aunque tenga un set).
+  const firme = (s) => (enGrupo.has(s.id) ? destino.get(s.id).serie : !sinEraPropia(s) && !solo(s) ? serieDeFila(s) : null)
   const sinEra = []
-  for (const s of sueltos) {
+  const tramosFirmes = tramosDe(visibles, (s) => destino.get(s.id)?.serie || firme(s))
+  for (const s of solos) {
     if (destino.has(s.id)) continue
-    const d = Date.parse(s.release_date || '')
-    const aLaVista = Number.isFinite(d) ? cubre(tramosVisibles, d) : []
-    const deLosViejos = Number.isFinite(d) && !aLaVista.length ? cubre(tramosViejos, d) : []
-    if (aLaVista.length === 1) destino.set(s.id, { serie: aLaVista[0].serie, por: 'fecha' })
-    else if (deLosViejos.length === 1) destino.set(s.id, { serie: deLosViejos[0].serie, por: 'fecha de los viejos' })
-    else sinEra.push({ id: s.id, nombre: s.name_en || s.name || s.id, fecha: s.release_date || null, porque: !Number.isFinite(d) ? 'sin fecha' : aLaVista.length + deLosViejos.length ? 'dos eras cubren su fecha' : 'ninguna era cubre su fecha' })
+    const r = porFecha(s, tramosFirmes, { entera: false })
+    if (r.serie && r.serie.serie_id !== s.serie_id) destino.set(s.id, { serie: r.serie, por: r.por })
+  }
+  const tramosVisibles = tramosDe(visibles, (s) => destino.get(s.id)?.serie || (sinEraPropia(s) ? null : serieDeFila(s)))
+  for (const s of sinEraLista) {
+    if (destino.has(s.id)) continue
+    const r = porFecha(s, tramosVisibles, { entera: true })
+    if (r.serie) destino.set(s.id, { serie: r.serie, por: r.por })
+    else sinEra.push({ id: s.id, nombre: s.name_en || s.name || s.id, fecha: s.release_date || null, porque: r.porque })
   }
 
   const cambios = []

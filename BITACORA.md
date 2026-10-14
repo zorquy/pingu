@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-14 (65) — PINGU-Claude (825, tercera pasada — promos, solapes, huecos)
+
+**Hecho**: mirando la estantería japonesa que dejó la segunda pasada, los
+promos van a la era que empieza justo después (salen antes que su primer
+set), en un solape gana la era más nueva, un hueco de menos de un año es de la
+era anterior, «Other» deja de contar como era, y lo que colocó la pasada se
+vuelve a decidir con la regla nueva (`ERAS_VERSION` 3, se repite hoy).
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-calco-jp.mjs`,
+SCHEMA. Pruebas: `test-tanda-825.mjs`.
+
+**Pendiente**: PINGU vuelve a mirar «la estantería japonesa queda así».
+
 ## 2026-10-14 (64) — PINGU-Claude (825, segunda pasada — eras de lo que TCGGO trae sin serie)
 
 **Hecho**: la primera pasada de las eras enseñó en /admin que TCGGO solo da

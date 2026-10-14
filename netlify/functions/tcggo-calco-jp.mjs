@@ -500,8 +500,9 @@ export async function pasada({
 // que alguien cambie a mano desde /admin → Colecciones.
 export const ERAS_POR_PASADA = 60
 // Sube cuando cambia la regla: la pasada se repite ese mismo día. La 2 coloca
-// también los sets a los que TCGGO no da serie (casi todo lo antiguo).
-export const ERAS_VERSION = 2
+// también los sets a los que TCGGO no da serie (casi todo lo antiguo); la 3,
+// los promos, los solapes, los huecos entre eras y el cajón «Other».
+export const ERAS_VERSION = 3
 export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persistir }) {
   if (!estado.eras || typeof estado.eras !== 'object') estado.eras = {}
   if (!estado.eras.puestas || typeof estado.eras.puestas !== 'object') estado.eras.puestas = {}
