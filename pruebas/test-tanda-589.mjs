@@ -137,7 +137,8 @@ console.log('── 2. La función programada ──')
     return { ok: true, status: 200, text: async () => JSON.stringify(j) }
   }
   const r8 = await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
-  check('cartas sin cardmarket_id: para diciéndolo y no da la expansión por hecha', /sin cardmarket_id/.test(r8.parado || '') && !b8.estados[CLAVE_ESTADO].hechos.includes(415) && b8.escritas.length === 0, JSON.stringify(r8.parado))
+  // Desde la 828 no PARA: la salta, sigue con las demás y lo apunta.
+  check('cartas sin cardmarket_id: no la da por hecha, lo apunta y SIGUE con las demás', /sin cardmarket_id/.test(b8.estados[CLAVE_ESTADO].ultimoParado?.motivo || '') && !r8.parado && (r8.saltadasSinCm || []).includes(415) && !b8.estados[CLAVE_ESTADO].hechos.includes(415) && b8.estados[CLAVE_ESTADO].hechos.includes(413) && !b8.escritas.some((f) => /^me05/.test(f.card_id)), JSON.stringify({ parado: r8.parado, saltadas: r8.saltadasSinCm, hechos: b8.estados[CLAVE_ESTADO].hechos }))
   // …pero no para siempre (826): a la tercera del día se da por hecha y se apunta.
   await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
   const r8c = await procesar({ env: ENV, ...b8, fetchImpl: fetch8, pausa: sinPausa, ahora: AHORA })
