@@ -1977,6 +1977,11 @@ export const supabase = {
     // torneo o un juez aprobado, con las mismas puertas que la función.
     // Los enlaces cortos (tanda 591), con las puertas de las funciones de
     // verdad: la forma, el tamaño y la misma carga, el mismo id.
+    // «Tus números» de los retos (841): lo que siembre la prueba, para ver
+    // que una partida jugada en otro aparato baja al navegador.
+    if (nombre === 'retos_mis_numeros' && typeof window !== 'undefined' && window.__FAKE_RETOS_NUMEROS__) {
+      return { data: window.__FAKE_RETOS_NUMEROS__, error: null }
+    }
     if (nombre === 'enlace_corto_crear') {
       const tipo = args.p_tipo
       const carga = String(args.p_carga || '')

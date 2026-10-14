@@ -20,6 +20,7 @@ const psql = (args) => spawnSync('psql', [...PG, ...args], { encoding: 'utf8', t
 const BD = 'prueba_835'
 const A = '00000000-0000-0000-0000-0000000000a1'
 const B = '00000000-0000-0000-0000-0000000000b2'
+const C = '00000000-0000-0000-0000-0000000000c3' // la de la 841, aparte para no tocar las cuentas de B
 // Una consulta como `authenticated` con la sesión de `uid` (o como anon).
 const como = (uid, sql, rol = 'authenticated') => {
   const r = psql(['-t', '-A', '-d', BD, '-c', `begin; set local role ${rol}; ${uid ? `set local prueba.uid = '${uid}';` : ''} ${sql}; commit;`])
@@ -53,6 +54,15 @@ if (hay.status === 0) {
   check('un día que no es el de hoy no se acepta', !g.ok && /no es el de hoy/.test(g.err), g.err)
   g = como(A, `select public.retos_guardar('trampa', current_date, 0, 0, 1, true, null)`)
   check('un juego que no existe no se acepta', !g.ok, g.err)
+
+  // La partida tal cual (841): se guarda con el resultado y vuelve en «tus
+  // números» de hoy, para verla hecha en otro aparato.
+  g = como(C, `select public.retos_guardar('silueta', current_date, 0, 0, 1, true, null, jsonb_build_object('dia', current_date::text, 'elegidos', jsonb_build_array(25), 'acertada', true))`)
+  const nbHoy = JSON.parse((como(C, `select public.retos_mis_numeros(1)`).out.split('\n').find((l) => l.startsWith('{'))) || '{}')
+  check('841: la partida se guarda y vuelve en lo de hoy', g.ok && nbHoy.hoy?.silueta?.estado?.elegidos?.[0] === 25 && nbHoy.hoy.silueta.estado.dia === hoy, JSON.stringify(nbHoy.hoy))
+  g = como(C, `select public.retos_guardar('ordena', current_date, 0, 0, 1, true, null, jsonb_build_object('relleno', repeat('x', 9000)))`)
+  check('  …una de más de 8 KB no tumba el guardado: se guarda el resultado sin ella', g.ok && sql(`select estado is null from retos_resultados where user_id = '${C}' and juego = 'ordena'`) === 't', g.err)
+  check('  …y queda UNA función retos_guardar (la vieja se quitó)', sql(`select count(*) from pg_proc where proname = 'retos_guardar'`) === '1')
 
   console.log('\n── 2. El día perfecto y la racha ──')
   for (const [j, a, t, i, ac, tira] of [['caro', 5, 5, null, false, "array[true,true,true,true,true]"], ['silueta', 0, 0, 1, true, 'null'], ['ordena', 0, 0, 2, true, 'null']]) {
