@@ -3,30 +3,32 @@
    compacto para que las guías se vean al entrar (PINGU: «los filtros
    ocupan demasiado y las guías están muy abajo»). El porqué, en SCHEMA. */
 
-/* ── El medallero: una línea, sin caja ── */
-.medallero {
+/* ── La cabecera (865): el título y el medallero de píldora al lado ── */
+.ap-cab {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: -8px 0 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  white-space: nowrap;
+  gap: var(--e-sm) var(--e-md);
 }
-.medallero::-webkit-scrollbar { display: none; }
-.medallero-titulo {
+.medallero {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 700;
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-}
-.medallero .medalla-chip { font-size: var(--t-xs); }
-.medallero-restante {
+  gap: 6px;
   margin-left: auto;
-  font-size: var(--t-xs);
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
   color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.medallero:hover { border-color: var(--navy); }
+.medallero-titulo { display: inline-flex; color: var(--text-mid); }
+.medallero .medalla-chip { font-size: var(--t-2xs); }
+@media (max-width: 640px) {
+  .medallero { margin-left: 0; }
 }
 
 /* ── Sigue donde lo dejaste: una fila ──
@@ -117,9 +119,20 @@
 /* ── Buscador y filtros ── */
 .ap-herramientas {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   margin-bottom: 12px;
+}
+#apChips { flex: 1 1 320px; }
+/* Todo hijo de la fila cede (la 320): sin esto el buscador del tema no
+   se encoge por debajo de su `<input>` y a 320 px desborda. */
+.ap-herramientas > * { min-width: 0; }
+.ap-tema-filtros { flex: 1 1 100%; }
+/* En el PC la fila de chips no se sale de su caja (el margen negativo es
+   el truco del móvil para deslizar a sangre). */
+@media (min-width: 641px) {
+  .aprender-filtros { margin: 0; padding: 2px 0; }
 }
 .ap-buscar {
   display: flex;
@@ -131,7 +144,11 @@
   border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text-mid);
-  max-width: 420px;
+  flex: 0 1 300px;
+  min-width: 200px;
+}
+@media (max-width: 640px) {
+  .ap-buscar { flex-basis: 100%; }
 }
 .ap-buscar:focus-within { box-shadow: var(--shadow-ring); }
 .ap-buscar input {
@@ -144,7 +161,6 @@
   color: var(--text);
   outline: none;
 }
-#apChips { display: flex; flex-direction: column; gap: 8px; }
 /* Cada fila de chips va en UNA línea que se desliza: antes se apilaban en
    seis líneas en el móvil. */
 .aprender-filtros {
@@ -266,22 +282,27 @@
   .ap-tema-icono { width: 48px; height: 48px; }
 }
 
-/* ── La puerta: los temas como baldosas (864; SCHEMA 864) ── */
-.ap-seccion {
-  margin: 0 0 var(--e-sm);
-  font-size: var(--t-lg);
-}
+/* ── La puerta: los temas como baldosas (864 y 865; SCHEMA 865) ──
+   Una fila compacta a cualquier ancho: seis caben en 1080 px; con más, se
+   desliza. */
 .ap-baldosas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--e-sm);
-  margin-bottom: var(--e-xl);
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  margin-bottom: var(--e-lg);
 }
+.ap-baldosas::-webkit-scrollbar { display: none; }
 .ap-baldosa {
-  display: grid;
-  gap: 4px;
+  flex: 1 0 150px;
+  max-width: 240px;
   min-width: 0;
-  padding: var(--e-sm) var(--e-md);
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -291,47 +312,37 @@
 }
 .ap-baldosa:hover { border-color: var(--navy); }
 .ap-baldosa-icono {
-  width: 36px;
-  height: 36px;
+  flex: none;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
   display: grid;
   place-items: center;
-  margin-bottom: 4px;
 }
+.ap-baldosa-texto { display: grid; gap: 1px; min-width: 0; flex: 1; }
 .ap-baldosa-nombre {
   font-family: var(--font-display);
-  font-size: var(--t-md);
+  font-size: var(--t-sm);
   font-weight: 600;
   line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.ap-baldosa-sub { font-size: var(--t-xs); color: var(--text-mid); }
+.ap-baldosa-sub { font-size: var(--t-2xs); color: var(--text-mid); white-space: nowrap; }
 .ap-baldosa-barra {
-  height: 4px;
-  margin-top: 4px;
+  height: 3px;
+  margin-top: 3px;
   border-radius: 2px;
   background: var(--ice);
   overflow: hidden;
 }
 .ap-baldosa-barra i { display: block; height: 100%; background: var(--navy); }
-/* En el móvil, una fila que se desliza (como los chips): la lista sigue
-   cerca. */
 @media (max-width: 640px) {
   .ap-baldosas {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
     scroll-padding-inline: 16px;
-    margin: 0 -16px var(--e-lg);
+    margin: 0 -16px var(--e-md);
     padding: 2px 16px;
   }
-  .ap-baldosas::-webkit-scrollbar { display: none; }
-  /* Más prietas: la primera guía tiene que seguir en la primera pantalla (846). */
-  .ap-baldosas { margin-bottom: var(--e-md); }
-  .ap-baldosa { flex: 0 0 148px; scroll-snap-align: start; padding: var(--e-sm); gap: 2px; }
-  .ap-baldosa-icono { width: 32px; height: 32px; margin-bottom: 2px; }
-  .ap-seccion { font-size: var(--t-md); margin-bottom: 4px; }
-  /* Con baldosas, los chips de tema de la lista sobran en el móvil. */
-  .con-baldosas .aprender-filtros.ap-temas { display: none; }
+  .ap-baldosa { flex: 0 0 168px; }
 }

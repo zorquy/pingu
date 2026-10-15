@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (97) — PINGU-Claude (865 — la puerta de Aprender en cuatro capas)
+
+**Hecho** (PINGU: «ahora es más lío incluso»; propuesta «Aprender en
+cuatro capas», adelante con las dos tandas):
+- /aprender: el título con el medallero de píldora al lado (lleva a tus
+  medallas), sin texto; «sigue donde lo dejaste»; los temas en UNA fila
+  compacta; y UNA fila de mandos (buscador, «N guías», nivel, Sin leer,
+  Con curso) antes de las guías. Sin chips de tema ni títulos de sección.
+- «Glosario» en el menú de Aprender (PC y móvil) y en el pie de las 43
+  páginas; la burbuja del móvil lo coge sola.
+
+**Ficheros**: `aprender.html`, `js/aprender.js`, `css/aprender.css`, las
+43 páginas con menú (tres líneas cada una), `cartas.html` (generado),
+`novedades.json`, `SCHEMA.md`. En `pruebas`: `test-tanda-865-pantalla.mjs`
+nueva; `864`, `863`, `846`, `299` y `737` al día.
+
+**Pruebas**: 865, 864, 863, 846, 847, 300, 299, 312, 313, 305, 704, 737,
+753, 758, 717 e imports en verde.
+
+**Pendiente**: nada. Sigue la 866 (el mapa de enlaces: la chapa del tema
+como enlace, «Más de este tema» al final de la guía, el curso vuelve al
+tema).
+
 ## 2026-10-15 (96) — PINGU-Claude (864 — la puerta de Aprender con los temas)
 
 **Hecho** (segunda tanda de «Aprender por temas»):

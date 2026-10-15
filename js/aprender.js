@@ -23,12 +23,15 @@ function pintarMedallero(cursosConCurso, medallas) {
     if (m in cuenta) cuenta[m]++
   }
   const porJugar = cursosConCurso.length - jugados
+  // Una píldora al lado del título (865): las cifras, y el texto entero
+  // para quien no ve los colores. Lleva a tus medallas del perfil.
+  hueco.setAttribute('aria-label', `Medallero: ${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}, ${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}, ${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}; ${porJugar === 0 ? 'todos los cursos jugados' : `${porJugar} ${porJugar === 1 ? 'curso' : 'cursos'} por jugar`}`)
   hueco.innerHTML = `
-    <span class="medallero-titulo">${icons.trophy(16)}<span class="medallero-palabra">Medallero</span></span>
-    <span class="medalla-chip medalla-oro">${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}</span>
-    <span class="medalla-chip medalla-plata">${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}</span>
-    <span class="medalla-chip medalla-bronce">${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}</span>
-    <span class="medallero-restante">${porJugar === 0 ? '¡Todos jugados! A por el pleno de oros' : `${porJugar} por jugar`}</span>`
+    <span class="medallero-titulo">${icons.trophy(14)}</span>
+    <span class="medalla-chip medalla-oro">${cuenta.oro}</span>
+    <span class="medalla-chip medalla-plata">${cuenta.plata}</span>
+    <span class="medalla-chip medalla-bronce">${cuenta.bronce}</span>
+    <span class="medallero-restante">${porJugar === 0 ? 'todos jugados' : `${porJugar} por jugar`}</span>`
   hueco.classList.remove('hidden')
 }
 
@@ -52,7 +55,6 @@ function pintarMedallero(cursosConCurso, medallas) {
 // que nadie caiga en una página de categoría con dos guías. Se guarda el
 // SLUG porque es lo que viaja en la URL; el id de la categoría no se
 // sabe hasta que responde la consulta.
-let filtroCategoria = 'todas'
 let temaDeLaUrl = null
 try {
   temaDeLaUrl = new URLSearchParams(location.search).get('tema') || null
@@ -99,19 +101,12 @@ const chip = (activo, texto, datos, cuenta) =>
     cuenta !== undefined ? `<span class="aprender-chip-n">${cuenta}</span>` : ''
   }</button>`
 
-// Dos filas que se deslizan con el dedo en vez de seis que se apilan: los
-// temas (uno a la vez) y, debajo, los interruptores (nivel, sin leer, con
-// curso).
-function chipsHtml(categorias, guias, porCategoria, hayCursos, visibles) {
+// UNA fila que se desliza con el dedo (865): la cuenta y los
+// interruptores (nivel, sin leer, con curso). Los temas ya no van aquí:
+// son las baldosas de arriba, y tocar una abre su página.
+function chipsHtml(hayCursos, visibles) {
   return `
-  <div class="aprender-filtros ap-temas" role="group" aria-label="Temas">
-    ${chip(filtroCategoria === 'todas', 'Todas', 'data-cat="todas"', guias.length)}
-    ${categorias
-      .filter((c) => porCategoria[c.id])
-      .map((c) => chip(filtroCategoria === c.id, c.name, `data-cat="${escapeHtml(c.id)}"`, porCategoria[c.id]))
-      .join('')}
-  </div>
-  <div class="aprender-filtros ap-interruptores" role="group" aria-label="Más filtros">
+  <div class="aprender-filtros ap-interruptores" role="group" aria-label="Filtros">
     <span class="ap-cuenta" id="apCuenta">${cuantasHtml(visibles)}</span>
     ${Object.entries(NIVELES)
       .map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`))
@@ -175,33 +170,17 @@ async function loadCategories(session) {
     medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
   }
 
-  const porCategoria = {}
-  for (const g of guias) if (g.category_id) porCategoria[g.category_id] = (porCategoria[g.category_id] || 0) + 1
-
-  // id → nombre, para la chapa de la tarjeta. Se arma una vez y no una
-  // búsqueda por tarjeta en cada repintado: cambiar de filtro repinta
-  // todas las guías y eso serían decenas de recorridos por nada.
-
-  // El tema que venía en la URL se traduce a su id ahora que hay
-  // categorías. Si el slug no existe —enlace viejo, categoría borrada—
-  // no se filtra nada: se ven todas, que es mejor que una pantalla vacía
-  // sin explicación.
-  if (temaDeLaUrl) {
-    const cat = (categories || []).find((c) => c.slug === temaDeLaUrl)
-    if (cat && porCategoria[cat.id]) filtroCategoria = cat.id
-    temaDeLaUrl = null
-  }
+  // Un `?tema=` que no casa con ningún tema (enlace viejo, tema borrado)
+  // no filtra nada: se ven todas, que es mejor que una pantalla vacía.
+  temaDeLaUrl = null
 
   const hayCursos = guias.some((g) => guideHasCourse(g))
   // La caja se arma UNA vez: el buscador no se repinta mientras escribes
   // (perdería el foco a cada letra). Lo que cambia son los chips y la lista.
-  const baldosas = temasHtml(categories || [], guias, progreso, session)
-  // Con baldosas, en el móvil la fila de chips de tema sobra (hacen lo mismo).
-  list.classList.toggle('con-baldosas', Boolean(baldosas))
+  // Cuatro capas (865): lo tuyo, los temas, una fila de mandos, las guías.
   list.innerHTML = `
     ${seguirHtml(guias, progreso)}
-    ${baldosas}
-    <h2 class="ap-seccion">Todas las guías</h2>
+    ${temasHtml(categories || [], guias, progreso, session)}
     <div class="ap-herramientas">
       <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
       <div id="apChips"></div>
@@ -212,14 +191,13 @@ async function loadCategories(session) {
   const pintar = () => {
     const q = normalizeSearch(busqueda)
     const visibles = guias.filter((g) => {
-      if (filtroCategoria !== 'todas' && g.category_id !== filtroCategoria) return false
       if (filtroNivel && g.level !== filtroNivel) return false
       if (soloSinLeer && (progreso[g.id]?.read_at || progreso[g.id]?.status === 'completed')) return false
       if (conCurso && !guideHasCourse(g)) return false
       if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
       return true
     })
-    caja.chips.innerHTML = chipsHtml(categories || [], guias, porCategoria, hayCursos, visibles.length)
+    caja.chips.innerHTML = chipsHtml(hayCursos, visibles.length)
     if (!visibles.length) {
       caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía habla de eso.' : 'No hay ninguna guía con esos filtros.'} Prueba a quitar alguno.</p>`
       return
@@ -231,16 +209,14 @@ async function loadCategories(session) {
   }
 
   // Delegado, una sola vez: los chips se repintan y no hay que volver a
-  // engancharlos. El de tema es UNO; los de nivel, «sin leer» y «con curso»
-  // son INTERRUPTORES: volver a pulsarlos los quita, o no habría forma de
-  // volver a verlas todas sin recargar.
+  // engancharlos. Son INTERRUPTORES: volver a pulsarlos los quita, o no
+  // habría forma de volver a verlas todas sin recargar.
   caja.chips.addEventListener('click', (e) => {
     const b = e.target.closest('button')
-    const clave = b && ['cat', 'nivel', 'sinleer', 'concurso'].find((k) => b.dataset[k] !== undefined)
+    const clave = b && ['nivel', 'sinleer', 'concurso'].find((k) => b.dataset[k] !== undefined)
     if (!clave) return
     const valor = b.dataset[clave]
-    if (clave === 'cat') filtroCategoria = valor
-    else if (clave === 'nivel') filtroNivel = filtroNivel === valor ? null : valor
+    if (clave === 'nivel') filtroNivel = filtroNivel === valor ? null : valor
     else if (clave === 'sinleer') soloSinLeer = !soloSinLeer
     else conCurso = !conCurso
     pintar()
@@ -275,14 +251,16 @@ function temasHtml(categorias, guias, progreso, session) {
     const leidas = suyas.filter((g) => leida(g, progreso)).length
     const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
     return `<a class="ap-baldosa" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
-      <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 22)}</span>
-      <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
-      <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
-      ${session ? `<span class="ap-baldosa-barra" aria-hidden="true"><i style="width:${Math.round((leidas / suyas.length) * 100)}%"></i></span>` : ''}
+      <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 18)}</span>
+      <span class="ap-baldosa-texto">
+        <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
+        <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
+        ${session ? `<span class="ap-baldosa-barra" aria-hidden="true"><i style="width:${Math.round((leidas / suyas.length) * 100)}%"></i></span>` : ''}
+      </span>
     </a>`
   }).join('')
   if (!baldosas) return ''
-  return `<h2 class="ap-seccion">Temas</h2><div class="ap-baldosas" id="apTemas">${baldosas}</div>`
+  return `<nav class="ap-baldosas" id="apTemas" aria-label="Temas">${baldosas}</nav>`
 }
 
 // ── LA PÁGINA DE UN TEMA (tanda 863) ──

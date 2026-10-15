@@ -71,6 +71,7 @@
             <a href="/aprender.html">Guías y cursos</a>
             <a href="/retos">Retos diarios</a>
             <a href="/guardados.html">Guardados</a>
+            <a href="/glosario">Glosario</a>
           </div>
         </div>
         <a href="/mi-coleccion">Mi colección</a>
@@ -109,6 +110,7 @@
         <a href="/aprender.html">Guías y cursos</a>
         <a href="/retos">Retos diarios</a>
         <a href="/guardados.html">Guardados</a>
+        <a href="/glosario">Glosario</a>
       </details>
       <a href="/mi-coleccion">Mi colección</a>
       <details class="nav-menu-grupo" name="nav-menu">
@@ -133,15 +135,14 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <div class="page-header">
+    <!-- La cabecera en una fila (865): el título y, al lado, el medallero
+         como píldora (cuántos cursos en oro/plata/bronce y cuántos por
+         jugar; lo pinta js/aprender.js solo con sesión y si hay cursos).
+         Sin texto de bienvenida: el glosario va en el menú de Aprender. -->
+    <div class="page-header ap-cab">
       <h1>Aprender</h1>
-      <p>Guías y cursos gratis, escritos por la comunidad. ¿Una palabra rara? Mira el <a href="/glosario">glosario</a>.</p>
+      <a class="medallero hidden" id="medallero" href="/perfil?ver=medallas"></a>
     </div>
-
-    <!-- Tu medallero: cuántos cursos tienes en oro/plata/bronce y
-         cuántos te quedan por jugar. Lo pinta js/aprender.js solo con
-         sesión y solo si hay cursos; sin eso, ni aparece. -->
-    <div class="medallero hidden" id="medallero"></div>
 
     <!-- Ya no es una rejilla de categorías (tanda 299): dentro van la
          franja de «sigue donde lo dejaste», los filtros y la rejilla de
@@ -216,6 +217,7 @@
         <a href="/novedades">Novedades</a>
         <a href="/mi-coleccion">Mi colección</a>
         <a href="/guardados.html">Guardados</a>
+        <a href="/glosario">Glosario</a>
       </div>
       <div class="pie-col">
         <p class="pie-titulo">Comunidad</p>

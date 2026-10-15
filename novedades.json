@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Aprender, más limpio: el medallero al lado del título, los temas en una sola fila, y una única fila de filtros antes de las guías. El glosario está ahora en el menú de Aprender.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Aprender empieza por los temas: cada uno con sus guías y cursos y la barra de lo que llevas leído. Tocar uno abre su página; debajo siguen todas las guías con sus filtros.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "La página de cada tema de Aprender, renovada: cabecera con lo que llevas leído, Guías y Cursos por separado, filtros de nivel y las tarjetas de siempre. Es a donde vuelves desde una guía.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Las versiones de Cardmarket de cada carta, en tu colección: Standard, Reverse Holo y los patrones de Mega Evolution (Energy Symbol Pattern, Quick Ball…). «Separar variantes» abre una casilla por versión, el «+» de cada una apunta esa, y cada copia vale lo de su versión. Tener cualquiera cuenta como tener la carta.", "enlace": "/mi-coleccion?ver=album" },

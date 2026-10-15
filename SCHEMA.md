@@ -41007,3 +41007,39 @@ captura, no en una prueba).
 
 Queda la 865 (recordar el último tema abierto en la burbuja del móvil y el
 filtro Guías · Cursos), si apetece. Prueba: `test-tanda-864-pantalla.mjs`.
+
+## Tanda 865 — La puerta de Aprender en cuatro capas
+
+PINGU, con la 864 delante: «ahora es más lío incluso». Eran nueve bloques
+antes de la primera guía (título, texto, medallero, «sigue», temas, otro
+título, buscador, chips de tema, chips de nivel). La regla que faltaba:
+cada cosa una vez y una sola fila de mandos. Es la propuesta «Aprender en
+cuatro capas» (el artifact de la sesión).
+
+**Las cuatro capas** (`aprender.html` + `js/aprender.js`): (1) la cabecera
+`.page-header.ap-cab`: el `<h1>` y el medallero como PÍLDORA al lado
+(`<a id="medallero" href="/perfil?ver=medallas">`: el trofeo, las tres
+cifras con sus chapas y «N por jugar»; el texto entero va en el
+`aria-label`), sin párrafo de bienvenida; (2) «sigue donde lo dejaste», si
+hay; (3) los temas en UNA fila compacta (`.ap-baldosas` como `<nav>`:
+icono de 32, nombre, «N guías · M cursos» y la barra; seis caben en 1080
+px, con más se desliza, en el móvil a sangre); (4) las guías con UNA fila
+de mandos (`.ap-herramientas` en fila: el buscador y `#apChips` con
+«N guías» de rótulo y los interruptores nivel / Sin leer / Con curso).
+Sin chips de tema (tocar una baldosa ES filtrar por tema, y abre su
+página) ni títulos de sección: `filtroCategoria` y la fila `.ap-temas` se
+fueron del módulo; un `?tema=` que no casa se ignora. Todo hijo de la fila
+de mandos lleva `min-width: 0` (a 320 px el buscador del tema desbordaba:
+la 320, otra vez, y la 300 lo cazó).
+
+**El glosario** perdía su único enlace con el texto: va detrás de
+«Guardados» en el menú de Aprender del PC, en el `<details>` del móvil y
+en el pie de las 43 páginas (tres sitios por página); la burbuja del
+móvil lo coge sola del desplegable. La prueba de foco (737) tolera ahora
+200 px de vuelta arriba entre desplegables (uno de cuatro entradas).
+
+Resultado: en el PC la primera guía a 371 px (antes, 600 y pico); en el
+iPhone a 439 (antes, fuera de pantalla). Pruebas:
+`test-tanda-865-pantalla.mjs`; `864`, `863`, `846`, `299` y `737` al día.
+La tanda «recordar tema y filtro» se descarta: con esto el tema está a un
+toque.
