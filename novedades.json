@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Celebrations vuelve a ser 25 cartas y la Classic Collection otras 25, cada una en su set y en su orden.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se encuentran mientras escribes: «Pikachu XY», «Pikachu XY1»… ya enseñan la XY124 por el camino, en los dos buscadores.", "enlace": "/buscar?q=Pikachu%20XY" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se ordenan como en el álbum: XY10, XY11… XY100, y no XY10, XY100, XY101.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las Trainer Gallery (y las galerías parecidas) ya no salen dos veces, una «normal» que no existe y otra holo.", "enlace": "/cartas" },

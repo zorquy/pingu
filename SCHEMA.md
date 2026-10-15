@@ -40679,3 +40679,22 @@ copias con suma, carpetas, deseos, álbumes, avisos, vitrina, versiones,
 precios, histórico, carta del día, más caro) y se borra. Pruebas:
 `test-tanda-853.mjs` (puro + la forma de la migración) y los casos nuevos de
 `test-tanda-852-pantalla.mjs`.
+
+## Tanda 854 — La Classic Collection de Celebrations, en su set
+
+TCGGO tiene UNA expansión «Celebrations» (35) con la Classic dentro; la 687
+reemplazó `cel25` entero por ella: las 25 de siempre se conservaron
+(`cel25-N`) y las 25 de la Classic entraron como `tcggo-N` en `cel25`, al
+lado de las 25 de TCGdex en `cel25cc` (`CC001`–`CC025`). PINGU: «25 en un
+lado y 25 en otro». `HERMANOS_SOLO_DE_CATALOGO` (`js/catalogo-series.js`)
+es la lista de sets que van dentro de la expansión de TCGGO pero NO se
+pliegan en la estantería (`{ padre: 'cel25', hijos: ['cel25cc', 'cel25c'] }`);
+`setsHermanos` la suma a los `hijos` de `COLECCIONES_JUNTAS`, así que el
+catálogo y los precios tratan `cel25cc` como hermano y `/cartas` sigue
+enseñando dos filas. `REEMPLAZOS.cel25-entero` se queda con `sets: ['cel25']`
+(ya está hecho; se quita la Classic por si alguna vez se repitiera).
+`supabase-migration-celebrations-classic.sql`: cada `tcggo-*` de `cel25` se
+funde en su gemela de `cel25cc` por nombre inglés único en los dos lados
+(mismo procedimiento que la 853), y la que no tenga gemela se mueve a
+`cel25cc` tal cual (la comprobación final las lista). Prueba:
+`test-tanda-854.mjs`; la 666 espera `sets: ['cel25']`.

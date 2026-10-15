@@ -101,8 +101,12 @@ export const REEMPLAZOS = [
   // Collection iba aparte en `cel25c` con los números de la carta original
   // y TCGGO la lleva dentro de su expansión 35 (de la respuesta de PINGU).
   // La Classic es `cel25cc` en nuestra tabla (`cel25c` es el id de Scrydex,
-  // la 505): con `cel25c` solo, el reemplazo no la tocaba (697).
-  { clave: 'cel25-entero', sets: ['cel25', 'cel25c', 'cel25cc'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
+  // la 505): con `cel25c` solo, el reemplazo no la tocaba (697). Y desde la
+  // 854 la Classic NO se toca: PINGU la quiere aparte («25 en un lado y 25
+  // en otro»), la migración de la 854 la saca de `cel25`, y el catálogo la
+  // cuenta como set hermano. Esta entrada ya está hecha y no se repite;
+  // los sets de la Classic se quitan por si alguna vez se volviera a hacer.
+  { clave: 'cel25-entero', sets: ['cel25'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos

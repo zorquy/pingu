@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (86) — PINGU-Claude (854 — la Classic Collection de Celebrations, en su set)
+
+**Hecho** (PINGU: «en TCGGO solo hay un set, Celebrations, y mezclan la
+Classic con lo normal […] yo las sacaría y las metería en la Classic
+Collection: 25 en un lado y 25 en otro»):
+- La 687 reemplazó Celebrations entero por la lista de TCGGO: las 25 de
+  siempre se conservaron y las 25 de la Classic entraron nuevas en `cel25`,
+  con la Classic de TCGdex (`cel25cc`) todavía aparte. De ahí los 50 con
+  números repetidos. La 697 añadió `cel25cc` al reemplazo para que se
+  llevara también la Classic, pero el reemplazo ya estaba hecho y no se
+  repite — y ahora PINGU la quiere aparte, así que mejor así.
+- **Migración `supabase-migration-celebrations-classic.sql`** (vista previa
+  primero): las de TCGGO de `cel25` se funden en su gemela de la Classic por
+  nombre (la gemela se queda con el id de TCGGO, foto, ids de Cardmarket y lo
+  apuntado por la gente) y las que no tengan gemela se mueven tal cual.
+  Queda 25 y 25.
+- El catálogo y los precios cuentan `cel25cc` como hermano de `cel25` (no se
+  vuelven a crear), sin plegarlo en la estantería; el reemplazo entero ya no
+  nombra la Classic.
+
+**Ficheros**: `js/catalogo-series.js` (`HERMANOS_SOLO_DE_CATALOGO`),
+`netlify/functions/tcggo-reemplazar-set.mjs`,
+`supabase-migration-celebrations-classic.sql`. En `pruebas`:
+`test-tanda-854.mjs` nueva; la 666 espera el reemplazo sin la Classic.
+
+**Pruebas**: 854 verde (hermanos solo de catálogo, el reemplazo sin la Classic, la forma de la migración), y 666, 853, imports, 536, 588, 640, 654, 670, 693, 646, 652, 756 y 827 en verde. El SQL no se ha ejecutado contra ninguna base: lleva vista previa y comprobación final.
+
+**Pendiente**: **ejecutar `supabase-migration-celebrations-classic.sql`**
+(vista previa y luego el `do`; la comprobación final dice 25 y 25 y lista lo
+que se movió sin gemela).
+
 ## 2026-10-15 (85) — PINGU-Claude (853 — promos mientras escribes, su orden y las galerías duplicadas)
 
 **Hecho** (PINGU, tres cosas de la ficha del Pikachu EX XY124):
