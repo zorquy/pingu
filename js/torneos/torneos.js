@@ -14,7 +14,7 @@ import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from 
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
-import { ESTADOS, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
+import { ESTADOS, estadoDeTorneo, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 
@@ -102,13 +102,15 @@ function caraHtml(perfil) {
 // verdad se hace en la FICHA (ahí está el aviso de decklist, el código
 // del torneo privado y la lista de espera): esto lleva allí, no hace el
 // trabajo. Un botón que promete más de lo que hace es peor que ninguno.
-function accionDe(t, miEstado) {
+function accionDe(t, miEstado, pausa = false) {
   if (t.status === 'draft') return { texto: 'Seguir editando', clase: 'btn-secondary' }
   if (t.status === 'registration_open') {
     return miEstado === 'active'
       ? { texto: 'Ver el torneo', clase: 'btn-secondary' }
       : { texto: 'Apuntarme', clase: 'torneo-btn-apuntarse' }
   }
+  // Entre jornadas no hay directo que ver (850): se va a la liga.
+  if (t.status === 'in_progress' && pausa) return { texto: 'Ver la liga', clase: 'btn-secondary' }
   if (t.status === 'in_progress') {
     return { texto: 'Ver el directo', clase: miEstado === 'active' ? 'btn-primary' : 'btn-secondary' }
   }
@@ -125,8 +127,10 @@ function estructuraCorta(t) {
 }
 
 function tarjetaHtml(t, datos) {
-  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false } = datos || {}
-  const estado = ESTADOS[t.status] || ESTADOS.draft
+  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false, rondas = null } = datos || {}
+  // Una liga entre jornadas se dice así, sin el punto que late (850).
+  const estado = estadoDeTorneo(t, rondas)
+  const viva = t.status === 'in_progress' && !estado.pausa
   const fecha = new Date(t.start_at)
   const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
   const hora = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
@@ -137,11 +141,11 @@ function tarjetaHtml(t, datos) {
   // La barra se pone naranja cuando quedan pocas plazas: es lo que
   // convierte «12/32» en «corre, que se llena».
   const apurado = !sinLimite && porcentaje >= 80
-  const accion = accionDe(t, miEstado)
+  const accion = accionDe(t, miEstado, estado.pausa)
   const sobran = Math.max(0, ocupadas - caras.length)
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   return `
-  <article class="torneo-tarjeta torneo-tarjeta-${t.status === 'in_progress' ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}">
+  <article class="torneo-tarjeta torneo-tarjeta-${viva ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}">
     <a class="torneo-tarjeta-enlace" href="${url}">
       <span class="torneo-arte torneo-arte-${arteDe(t)}">
         ${
@@ -153,7 +157,7 @@ function tarjetaHtml(t, datos) {
             : ''
         }
         <span class="torneo-arte-chapas">
-          <span class="torneo-estado ${estado.clase}">${t.status === 'in_progress' ? `<span class="torneo-punto"></span>` : ''}${estado.texto}</span>
+          <span class="torneo-estado ${estado.clase}">${viva ? `<span class="torneo-punto"></span>` : ''}${estado.texto}${estado.pausa && estado.proxima ? ` · J${estado.proxima.n}` : ''}</span>
           <span class="torneo-arte-chapas-der">
             ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
@@ -395,6 +399,24 @@ async function cargarLista(session, perfil = null) {
     if (session?.user && i.user_id === session.user.id) miEstado[i.tournament_id] = i.status
   }
 
+  // Las rondas de las ligas en juego (850), para saber cuáles están ENTRE
+  // JORNADAS: en la base siguen `in_progress` toda la temporada, pero entre
+  // una jornada y la siguiente no se está jugando nada. Si falla, se queda
+  // en «no se sabe» y se pintan como siempre.
+  const rondasDe = {}
+  const ligasEnJuego = torneos.filter((t) => t.format === 'league' && t.status === 'in_progress').map((t) => t.id)
+  if (ligasEnJuego.length) {
+    const { data: rondasLigas, error: errRondas } = await supabase
+      .from('rounds')
+      .select('tournament_id, round_number, status, phase')
+      .in('tournament_id', ligasEnJuego)
+    if (!errRondas) {
+      for (const id of ligasEnJuego) rondasDe[id] = []
+      for (const r of rondasLigas || []) rondasDe[r.tournament_id].push(r)
+    }
+  }
+  const enPausa = (t) => Boolean(estadoDeTorneo(t, rondasDe[t.id] || null).pausa)
+
   // UNA consulta de perfiles para tres cosas: quién de los creadores es
   // admin del sitio (→ torneos oficiales), cómo se llama quien organiza
   // y quién ganó, y las caras de los inscritos. Antes era una consulta
@@ -446,12 +468,13 @@ async function cargarLista(session, perfil = null) {
       organiza: esOficial(t) ? 'Organiza el equipo' : gente[t.admin_id]?.username ? `Organiza ${gente[t.admin_id].username}` : '',
       campeon: t.status === 'finished' ? gente[t.champion_id]?.username || null : null,
       puedeBorrar: puedeBorrarTorneo(perfil, t, session?.user?.id),
+      rondas: rondasDe[t.id] || null,
     })
   // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
   // (raro pero posible), el que empezó antes — es el que lleva prisa.
   pintarVivo(
     torneos
-      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active')
+      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t))
       .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
   )
 
@@ -462,8 +485,10 @@ async function cargarLista(session, perfil = null) {
   // salía bajo la pestaña «En juego» días antes de jugarse, mientras su
   // propia chapa decía «Inscripciones cerradas». La misma pantalla se
   // contradecía. En juego es lo que tiene la R1 arrancada, y nada más.
-  const porEmpezar = torneos.filter((t) => t.status === 'registration_closed').map((t) => tarjeta(t))
-  const enJuego = torneos.filter((t) => t.status === 'in_progress').map((t) => tarjeta(t))
+  // Una liga entre jornadas está esperando a la siguiente (850): va con lo
+  // que está por empezar, no con lo que se juega ahora.
+  const porEmpezar = torneos.filter((t) => t.status === 'registration_closed' || (t.status === 'in_progress' && enPausa(t))).map((t) => tarjeta(t))
+  const enJuego = torneos.filter((t) => t.status === 'in_progress' && !enPausa(t)).map((t) => tarjeta(t))
   const acabados = torneos.filter((t) => ['finished', 'cancelled'].includes(t.status))
   const terminados = (verTodosLosTerminados ? acabados : acabados.slice(0, TERMINADOS_DE_GOLPE)).map((t) => tarjeta(t))
   const ocultos = acabados.length - terminados.length

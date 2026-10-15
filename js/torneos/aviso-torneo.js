@@ -10,6 +10,7 @@
 import { supabase } from '../supabase.js'
 import { escapeHtml } from '../app.js'
 import { icons } from '../icons.js'
+import { entreJornadas } from './rondas-jornada.js'
 
 const ESTILOS = `
 .nav-torneo-vivo {
@@ -91,12 +92,23 @@ export async function montarAvisoTorneo(session) {
 
   const { data: torneos } = await supabase
     .from('tournaments')
-    .select('slug, name, start_at')
+    .select('*')
     .in('id', ids)
     .eq('status', 'in_progress')
     .order('start_at', { ascending: false })
-    .limit(1)
-  const torneo = torneos?.[0]
+    .limit(5)
+  // Una liga ENTRE JORNADAS no se está jugando (850): sin «Jugar» en la
+  // barra hasta que empiece la siguiente. Se mira solo si hay alguna liga.
+  const ligas = (torneos || []).filter((t) => t.format === 'league').map((t) => t.id)
+  let rondasDe = null
+  if (ligas.length) {
+    const { data: rondas, error } = await supabase.from('rounds').select('tournament_id, round_number, status, phase').in('tournament_id', ligas)
+    if (!error) {
+      rondasDe = {}
+      for (const r of rondas || []) (rondasDe[r.tournament_id] ||= []).push(r)
+    }
+  }
+  const torneo = (torneos || []).find((t) => !(rondasDe && entreJornadas(t, rondasDe[t.id] || [])))
   if (!torneo) return
 
   const estilo = document.createElement('style')

@@ -1,7 +1,7 @@
 // Piezas que comparten las páginas de torneos (/torneos y /torneo):
 // el vocabulario de estados y el formato de fechas. Nada de lógica de
 // juego — eso vive en motor.js.
-import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
+import { numJornadas, rondasPorJornada, entreJornadas, proximaJornada } from './rondas-jornada.js'
 
 export const ESTADOS = {
   draft: { texto: 'Borrador', clase: 'torneo-estado-borrador' },
@@ -68,6 +68,15 @@ export function faltaLaRpc(error) {
 export function fechaBonita(iso) {
   const f = new Date(iso)
   return f.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+// El estado que se ENSEÑA (tanda 850): el de la base, salvo una liga en
+// juego que está entre jornadas, que se dice así y con la próxima.
+// `rondas` null = no se sabe → lo de siempre.
+export const ESTADO_ENTRE_JORNADAS = { texto: 'Entre jornadas', clase: 'torneo-estado-cerrado', pausa: true }
+export function estadoDeTorneo(t, rondas = null) {
+  if (rondas && entreJornadas(t, rondas)) return { ...ESTADO_ENTRE_JORNADAS, proxima: proximaJornada(t, rondas) }
+  return ESTADOS[t?.status] || ESTADOS.draft
 }
 
 // «4 suizas BO1 + top 8 BO3 · 30 min/ronda», con el corte fuera si no

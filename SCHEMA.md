@@ -40602,3 +40602,17 @@ tiempo, un paso por jornada cuando k > 1.
 migración); editar enseña el campo solo si la fila trae la columna y lo bloquea
 si la liga tiene rondas (`jornadas.empezadas`). Telegram lee `select=*` para
 que la columna llegue cuando exista sin tumbar la consulta antes (la 624).
+
+## Tanda 850 — «Entre jornadas»
+
+`tournaments.status` NO cambia: una liga sigue `in_progress` de su primera
+jornada a la última (las funciones de listas y de apuntarse lo dan por hecho).
+Lo que cambia es lo que se pinta. `entreJornadas(t, rondas)` es verdad en una
+liga `in_progress` sin ninguna ronda que no esté `finished`, sin top cut, y con
+la última suiza múltiplo de las rondas por jornada (jornada completa) y menor
+que `swiss_rounds`. `proximaJornada` da `{ n, fecha }` de `matchday_dates`.
+`estadoDeTorneo(t, rondas)` (comun.js) devuelve `ESTADO_ENTRE_JORNADAS`
+(`pausa: true`, clase de «cerrado», sin punto) o el de siempre; con `rondas`
+null no se sabe y sale lo de siempre. Las rondas las traen `cargarJornadas`
+(ficha), una consulta a `rounds` de las ligas en juego (lista de /torneos) y
+otra en `aviso-torneo.js` (solo si hay alguna liga).

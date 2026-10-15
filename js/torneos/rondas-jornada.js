@@ -19,3 +19,26 @@ export function nombreDeRondaDeLiga(t, ronda, { corto = false } = {}) {
   const k = rondaEnJornada(t, ronda)
   return corto ? `J${j}·R${k}` : `ronda ${k} de la jornada ${j}`
 }
+
+// ENTRE JORNADAS (tanda 850). PINGU: «no está en juego entre jornadas». En la
+// base una liga sigue `in_progress` toda la temporada (así admite listas y
+// gente nueva), pero lo que se ENSEÑA es otra cosa: si ninguna ronda está
+// viva y la última jornada empezada ya ha jugado todas sus rondas, la liga
+// está esperando a la siguiente. Entre dos rondas de la MISMA jornada sí se
+// está jugando. `rondas` son filas de `rounds` (round_number, status, phase);
+// sin ellas no se sabe y se dice lo de siempre.
+const ultimaSuiza = (rondas) => Math.max(0, ...rondas.filter((r) => r.phase !== 'top_cut').map((r) => Number(r.round_number) || 0))
+
+export function entreJornadas(t, rondas) {
+  if (t?.format !== 'league' || t.status !== 'in_progress' || !Array.isArray(rondas)) return false
+  if (rondas.some((r) => r.status !== 'finished' || r.phase === 'top_cut')) return false
+  const hechas = ultimaSuiza(rondas)
+  return hechas % rondasPorJornada(t) === 0 && hechas < (Number(t.swiss_rounds) || 0)
+}
+
+// La jornada que toca después de las rondas hechas, con su fecha si la tiene.
+export function proximaJornada(t, rondas) {
+  const n = jornadaDeRonda(t, ultimaSuiza(rondas || []) + 1)
+  const fechas = Array.isArray(t?.matchday_dates) ? t.matchday_dates : []
+  return { n, fecha: fechas[n - 1] || null }
+}

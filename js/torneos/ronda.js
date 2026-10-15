@@ -573,7 +573,9 @@ async function generarPareos() {
   // La R1 puede haber retirado inscritos (los dos pasos): ficha entera,
   // que la caja de Inscritos también les cambie la cara sin esperar al
   // refresco de los 10 s.
-  if (n === 1) {
+  // En una liga también: la chapa de arriba deja de decir «Entre jornadas»
+  // en cuanto la jornada tiene pareos (850), y eso vive en la ficha.
+  if (n === 1 || esLiga()) {
     await ctx.recargarFicha()
     return
   }

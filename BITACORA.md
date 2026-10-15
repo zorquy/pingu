@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (82) — PINGU-Claude (850 — «Entre jornadas» en vez de «En juego»)
+
+**Hecho** (PINGU, con la liga ya a 3 rondas por jornada: «acabo de saltar la
+jornada 1 […] ahora pone que el torneo está en juego. Y eso es un error […] no
+está en juego entre jornadas»):
+- **Lo que se enseña, no lo que se guarda**: en la base la liga sigue
+  `in_progress` toda la temporada —es lo que deja mandar listas y apuntarse
+  tarde—. Pero si ninguna ronda está viva y la última jornada empezada ya jugó
+  todas sus rondas, la chapa dice **«Entre jornadas · jornada 2, vie 16 oct»**,
+  sin el punto que late. En cuanto la jornada tiene pareos vuelve a «En juego»;
+  entre dos rondas de la MISMA jornada sigue «En juego».
+- **La regla** es una (`entreJornadas` y `proximaJornada` en
+  `js/torneos/rondas-jornada.js`) y la usan la ficha, la lista de /torneos y el
+  aviso «Jugar» de la barra de arriba.
+- **/torneos**: una liga entre jornadas va a «Por empezar» (no a «En juego»),
+  con «Ver la liga» en vez de «Ver el directo», y no manda la barra de «tu
+  torneo en juego». El «Jugar» de la barra de arriba tampoco sale por ella.
+- Al emparejar una ronda de liga se refresca la ficha entera (antes solo el
+  panel), para que la chapa cambie en el acto.
+
+**Ficheros**: `js/torneos/rondas-jornada.js`, `js/torneos/jornadas.js`
+(devuelve también las rondas), `js/torneos/comun.js` (`estadoDeTorneo`),
+`js/torneos/torneo.js` (la chapa; la variable de fechas de `pintarFicha` se
+llamaba `jornadas` y tapaba la del módulo), `js/torneos/torneos.js`,
+`js/torneos/aviso-torneo.js`, `js/torneos/ronda.js`. Prueba nueva
+`test-tanda-850-pantalla.mjs`.
+
+**Pruebas**: 850-pantalla verde (la ficha por toda la J2 y la lista de /torneos), y la 849 y la 833 siguen verdes. Las de torneos (130) iban 114 verdes y ningún rojo al empujar (PINGU tenía prisa); el resto sigue corriendo y se apunta en la entrada siguiente.
+
+**Pendiente**: nada (sin migración).
+
 ## 2026-10-15 (81) — PINGU-Claude (849 — rondas por jornada en las ligas)
 
 **Hecho** (PINGU: «tengo una liga con 10 jornadas, pero en cada jornada quiero

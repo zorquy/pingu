@@ -16,8 +16,8 @@ import { icons } from '../icons.js'
 import { escapeHtml } from '../app.js'
 // Las cuentas de rondas por jornada (849) viven aparte, sin dependencias,
 // para que las use también comun.js; aquí se importan Y se reexportan (la 624).
-import { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga } from './rondas-jornada.js'
-export { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga }
+import { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './rondas-jornada.js'
+export { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga, entreJornadas, proximaJornada }
 
 // Lo que la ficha necesita saber de las jornadas, de una tacada: cuáles
 // están cerradas, cuáles tienen pareos y las listas que quien mira puede
@@ -56,6 +56,8 @@ export async function cargarJornadas(torneo, { userId = null, todas = false } = 
     saltadas: new Set([...empezadas].filter((n) => !jugadas.has(n))),
     listas: mias.data || [],
     todas,
+    // Las rondas tal cual, para saber si la liga está entre jornadas (850).
+    rondas: rondas.data || [],
   }
 }
 

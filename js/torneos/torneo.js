@@ -12,6 +12,7 @@ import { icons } from '../icons.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed, officialStructure } from './motor.js'
 import {
   ESTADOS,
+  estadoDeTorneo,
   fechaBonita,
   textoFormato,
   puedeBorrarTorneo,
@@ -230,8 +231,13 @@ function montarCompartir() {
   })
 }
 
+// La fecha corta de la próxima jornada, para la chapa: «vie 16 oct».
+const diaCorto = (f) => new Date(f).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')
+
 function pintarFicha() {
-  const estado = ESTADOS[torneo.status] || ESTADOS.draft
+  // Una liga en juego sin ronda viva y con su jornada acabada está ENTRE
+  // JORNADAS (850): ni punto que late ni «En juego».
+  const estado = estadoDeTorneo(torneo, jornadas?.rondas || null)
   document.title = `${torneo.name} — PokeDoc`
   // El banner (tanda 242): solo si lo hay; si no carga, se esconde —
   // nunca el icono roto del navegador presidiendo la ficha.
@@ -247,7 +253,8 @@ function pintarFicha() {
   const pill = $('torneoEstado')
   // El punto que late solo en «En juego»: lo mismo que en la lista
   // (tanda 297). No es una etiqueta más, es algo que está pasando.
-  pintarSiCambia(pill, `${torneo.status === 'in_progress' ? '<span class="torneo-punto"></span>' : ''}${escapeHtml(estado.texto)}`)
+  const proxima = estado.pausa && estado.proxima ? ` · jornada ${estado.proxima.n}${estado.proxima.fecha ? `, ${diaCorto(estado.proxima.fecha)}` : ''}` : ''
+  pintarSiCambia(pill, `${torneo.status === 'in_progress' && !estado.pausa ? '<span class="torneo-punto"></span>' : ''}${escapeHtml(estado.texto + proxima)}`)
   pill.className = `torneo-estado ${estado.clase}`
   // El sello de OFICIAL, al lado del estado. Se pinta aquí y no en el
   // HTML porque depende del torneo.
@@ -297,11 +304,13 @@ function pintarFicha() {
     .join(''))
   // El calendario de la liga: una chapa por jornada con su fecha.
   document.getElementById('torneoJornadas')?.remove()
-  const jornadas = Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []
-  if (esLiga && jornadas.length) {
+  // `fechasLiga` y no `jornadas`: ese nombre es el estado de las jornadas
+  // del módulo, que pintarFicha usa arriba para la chapa (850).
+  const fechasLiga = Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []
+  if (esLiga && fechasLiga.length) {
     $('torneoFormato').insertAdjacentHTML(
       'afterend',
-      `<div class="torneo-jornadas" id="torneoJornadas">${jornadas
+      `<div class="torneo-jornadas" id="torneoJornadas">${fechasLiga
         .map((f, i) => `<span class="torneo-jornada-chip">${icons.calendar(14)} J${i + 1} · ${escapeHtml(fechaBonita(f))}</span>`)
         .join('')}</div>`
     )

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Una liga entre jornadas ya no sale como «En juego»: dice «Entre jornadas» y cuándo es la próxima.", "enlace": "/torneos" },
     { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Las ligas pueden tener varias rondas por jornada: por ejemplo, 10 jornadas de 3 rondas, con una sola lista por jornada.", "enlace": "/torneos" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Guardados, rehecho: lo que te queda por leer arriba y lo leído aparte, con foto y por dónde vas. Si quitas una sin querer, se deshace.", "enlace": "/guardados" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Aprender, más compacto: las guías se ven nada más entrar, los temas en una fila que se desliza, un buscador de guías y el filtro «Con curso». En el móvil, las guías en lista.", "enlace": "/aprender" },
