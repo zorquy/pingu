@@ -1,6 +1,6 @@
 // Lo COMPARTIDO de las tarjetas de guía: guardar, valorar, la autoría y
 // el enganche de clics. El molde de la tarjeta ANCHA se fue a
-// js/tarjeta-guia-ancha.js en la tanda 316 — lo pintaba solo /categoria,
+// js/tarjeta-guia-ancha.js en la tanda 316 (se fue con /categoria en la 863),
 // y mientras viviera aquí, cualquier pantalla que importara este fichero
 // «usaba» sus clases a ojos del barrido de la tanda 299 y se le exigía
 // una hoja que no necesita.

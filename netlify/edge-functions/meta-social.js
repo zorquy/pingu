@@ -523,7 +523,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   if (esNoticia) {
     camino.push({ nombre: 'Noticias', url: `${SITIO}/noticias` })
   } else if (categoria?.name && categoria?.slug) {
-    camino.push({ nombre: categoria.name, url: `${SITIO}/categoria.html?slug=${encodeURIComponent(categoria.slug)}` })
+    camino.push({ nombre: categoria.name, url: `${SITIO}/aprender?tema=${encodeURIComponent(categoria.slug)}` })
   }
   camino.push({ nombre: guia.title, url: canonica })
 
@@ -587,7 +587,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
 }
 
 async function metaDeCategoria(url) {
-  const slug = url.searchParams.get('slug')
+  const slug = url.searchParams.get('tema') || url.searchParams.get('slug')
   if (!slug) return null
   const cat = await pedir(`categories?slug=eq.${encodeURIComponent(slug)}&select=name,description&limit=1`)
   if (!cat?.name) return null
@@ -1205,6 +1205,8 @@ async function calcularMeta(url) {
   if (ruta.startsWith('/guia')) return metaDeGuia(url, false)  // /guia, /guia.html y /guia/<slug>
   if (ruta.startsWith('/curso')) return metaDeGuia(url, true)
   if (ruta.startsWith('/categoria')) return metaDeCategoria(url)
+  // El tema vive en /aprender?tema=… desde la 863 (/categoria redirige).
+  if (/^\/aprender(\.html)?$/.test(ruta) && url.searchParams.get('tema')) return metaDeCategoria(url)
   if (ruta.startsWith('/usuario')) return metaDePerfil(url)
   if (ruta.startsWith('/tema')) return metaDeTema(url)
   if (ruta.startsWith('/foro')) return metaDeForo(url)
@@ -1263,6 +1265,8 @@ export const config = {
     '/guia/*',
     '/curso.html',
     '/categoria.html',
+    '/aprender.html',
+    '/aprender',
     '/usuario.html',
     '/usuario/*',
     '/tema.html',

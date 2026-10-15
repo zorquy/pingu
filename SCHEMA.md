@@ -40938,3 +40938,47 @@ migración contra PostgreSQL, la expansión separada con el «+» de la Quick
 Ball y el diálogo, Cartas, y /carta); `test-tanda-383` al día (un id
 desconocido ya no es «Normal»; cierra los diálogos en vez de dos Escape,
 que desde la 856 suben un nivel).
+
+## Tanda 863 — La página de un tema, renovada y dentro de /aprender
+
+PINGU: «si el botón de para atrás te lleva a la categoría, deberíamos
+tener la categoría renovada, no con la vista antigua». Primera tanda de la
+propuesta «Aprender por temas» (el artifact de la sesión): el tema es
+`/aprender?tema=<slug>` y `/categoria.html` desaparece.
+
+**Qué pinta** (`pintarTema` en `js/aprender.js`, cuando el `?tema=` casa
+con una categoría; si no casa, la lista de siempre, como antes): las migas
+`Inicio › Aprender › Tema` (en el móvil, el botón «‹ Aprender» de la 857)
+delante de la cabecera; la `.page-header` se sustituye por `.ap-tema-cab`
+(icono con su tinte, nombre, descripción, «N de M guías leídas · X de Y
+cursos hechos» —sin cuenta, «M guías · Y cursos»— y el aro `.aprender-aro`
+de «sigue donde lo dejaste» con lo leído); Guías · Cursos en un `.seg` si
+hay cursos; chips de nivel y «Sin leer» (solo con cuenta); el buscador
+«Busca en este tema»; las guías en la rejilla de `tarjetaDeGuia` (PC) o en
+filas de `filaDeGuia` (móvil), ordenadas por `collection_order` y luego
+por fecha (el temario de la vieja); el medallero y «sigue donde lo
+dejaste» no salen (son de la puerta). En el móvil, la barra pegada (858)
+con el nombre y «N de M leídas» cuando la cabecera se va. `document.title`
+es «Tema · Aprender · PokeDoc». CSS en `aprender.css` (`.ap-tema-*`); el
+buscador en fila lleva `flex: 1 1 200px; min-width: 0`, porque un hijo de
+flex no se encoge por debajo de su `<input>` y a 320 px desbordaba (lo
+cazó la 300).
+
+**Lo que se fue**: `categoria.html`, `js/categoria.js`, `css/categoria.css`
+y `js/tarjeta-guia-ancha.js` (solo los usaba esa página), y `.category-header`
+de `components.css` (lo bajaba todo el mundo). Las migas de la vieja
+llevaban un `<a href="/cartas">Cartas</a>` colado, que en el móvil era el
+botón de volver («‹ Cartas» en la captura de PINGU). `netlify.toml`
+redirige `/categoria.html?slug=x` y `/categoria?slug=x` a
+`/aprender?tema=x` (301, por `query`), y sin slug a `/aprender`. Apuntan
+al tema nuevo: las migas y la barra pegada de `guia.js`, el «volver» de
+`curso.js`, el camino de datos estructurados y el sitemap; la edge
+function `meta-social` sirve la vista previa del tema en
+`/aprender?tema=` (`metaDeCategoria` lee `tema` o `slug`; `/aprender` y
+`/aprender.html` entran en su `path`).
+
+**Lo que queda** (tandas siguientes de la propuesta): la puerta de
+/aprender con los temas como baldosas, «Lo último» y «Todas las guías»
+(864); recordar el último tema y el filtro (865). Pruebas:
+`test-tanda-863-pantalla.mjs`; `300` (el `?tema=` es la página del tema),
+`312` (43 páginas con pie), `857` y `858` (`?tema=`) al día.

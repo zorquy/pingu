@@ -226,3 +226,42 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+/* ── La página de un tema (863; SCHEMA 863) ──
+   Cabecera compacta: icono, nombre, descripción, cuenta y el aro de lo
+   leído (el mismo de «sigue donde lo dejaste»). */
+.ap-tema-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+.ap-tema-icono {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-items: center;
+}
+.ap-tema-texto { min-width: 0; flex: 1; }
+.ap-tema-texto h1 { font-size: var(--t-2xl); line-height: 1.1; margin: 0; }
+.ap-tema-texto p { margin: 2px 0 0; color: var(--text-mid); font-size: var(--t-sm); }
+.ap-tema-cuenta { font-weight: 600; color: var(--text); }
+.ap-tema-aro { background: conic-gradient(var(--navy) calc(var(--vuelta) * 360deg), var(--ice) 0); }
+.ap-tema-aro b { background: var(--white); color: var(--navy); }
+.ap-tema-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+/* En fila, el buscador cede: un hijo de flex no se encoge por debajo de lo
+   que mide su `<input>` (la 320), y a 320 px desbordaba la página. */
+.ap-tema-filtros .ap-buscar { flex: 1 1 200px; min-width: 0; }
+.ap-seg .aprender-chip-n { margin-left: 2px; }
+.seg-btn[aria-pressed='true'] .aprender-chip-n { background: rgba(255, 255, 255, 0.22); color: var(--blanco-fijo); }
+@media (max-width: 640px) {
+  .ap-tema-cab { align-items: flex-start; }
+  .ap-tema-icono { width: 48px; height: 48px; }
+}

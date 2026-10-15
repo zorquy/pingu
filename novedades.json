@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "La página de cada tema de Aprender, renovada: cabecera con lo que llevas leído, Guías y Cursos por separado, filtros de nivel y las tarjetas de siempre. Es a donde vuelves desde una guía.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Las versiones de Cardmarket de cada carta, en tu colección: Standard, Reverse Holo y los patrones de Mega Evolution (Energy Symbol Pattern, Quick Ball…). «Separar variantes» abre una casilla por versión, el «+» de cada una apunta esa, y cada copia vale lo de su versión. Tener cualquiera cuenta como tener la carta.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Las versiones de una carta en Cardmarket salen con su nombre y su precio: Standard, Reverse Holo y los patrones nuevos de Mega Evolution (Energy Symbol Pattern, Quick Ball…). Van llegando a lo largo de un par de días.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Al acabar un reto, un botón «Siguiente: …» te lleva al que te quede por jugar hoy, y debajo «Volver a los retos»: los seis seguidos sin pasar por el menú.", "enlace": "/retos" },

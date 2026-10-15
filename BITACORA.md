@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (95) — PINGU-Claude (863 — la página de un tema, renovada)
+
+**Hecho** (primera tanda de la propuesta «Aprender por temas»; PINGU:
+«adelante con lo que propones»):
+- `/aprender?tema=<slug>` es la página del tema: «‹ Aprender» en el móvil
+  (migas en el PC), cabecera compacta con icono, descripción, «N de M
+  guías leídas · X de Y cursos hechos» y el aro, Guías · Cursos, chips de
+  nivel y «Sin leer», buscador del tema, las tarjetas de siempre, y la
+  barra pegada al bajar.
+- `/categoria.html` se va (con su JS, su CSS, la tarjeta ancha y la
+  cabecera vieja de `components.css`); Netlify la redirige al tema. El
+  «‹ Cartas» de la captura era un enlace colado en sus migas: fuera.
+- La guía, el curso, el sitemap y la vista previa social apuntan al tema
+  nuevo.
+
+**Ficheros**: `js/aprender.js`, `css/aprender.css`, `css/components.css`,
+`js/guia.js`, `js/curso.js`, `js/guide-card.js`, `netlify.toml`,
+`netlify/edge-functions/meta-social.js`, `netlify/functions/sitemap.mjs`,
+`novedades.json`, `SCHEMA.md`; borrados `categoria.html`, `js/categoria.js`,
+`css/categoria.css`, `js/tarjeta-guia-ancha.js`. En `pruebas`:
+`test-tanda-863-pantalla.mjs` nueva; `300`, `312`, `857` y `858` al día.
+
+**Pruebas**: 863, 300, 312, 857, 858, 299, 313, 305, 308, 311, 316, 737,
+753, 829, 846, 847 e imports en verde.
+
+**Pendiente**: nada que ejecutar. Siguen la 864 (la puerta con baldosas) y
+la 865.
+
 ## 2026-10-15 (94) — PINGU-Claude (862 — las versiones de TCGGO en la colección)
 
 **Hecho** (PINGU, con Dex: «que se pueda apuntar la Quick Ball; que salgan

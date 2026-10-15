@@ -190,36 +190,6 @@
   font-size: var(--t-md);
 }
 
-.category-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 24px 0;
-}
-
-.category-header .emoji-big {
-  font-size: var(--t-3xl);
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.category-header h1 {
-  font-size: var(--t-2xl);
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.category-header p {
-  color: var(--text-mid);
-  margin-top: 4px;
-  font-size: var(--t-md);
-}
-
 /* ── Breadcrumb ── */
 .breadcrumb {
   display: flex;

@@ -1910,7 +1910,7 @@ btnBack.addEventListener('click', () => {
   if (window.history.length > 1) {
     window.history.back()
   } else {
-    window.location.href = categorySlug ? `categoria.html?slug=${encodeURIComponent(categorySlug)}` : 'aprender.html'
+    window.location.href = categorySlug ? `/aprender?tema=${encodeURIComponent(categorySlug)}` : '/aprender'
   }
 })
 

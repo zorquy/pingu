@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
@@ -130,7 +130,7 @@ async function loadCategories(session) {
   // «Aprender» es de guías y cursos: las noticias tienen su sección. Con
   // vuelta atrás mientras la migración de noticias no esté puesta — sin
   // ella la consulta falla y esta página se queda a cero.
-  const COLUMNAS = 'id, slug, title, description, category_id, blocks, level, estimated_mins, cover_image, guide_rarity, published_at'
+  const COLUMNAS = 'id, slug, title, description, category_id, collection_id, collection_order, blocks, level, estimated_mins, cover_image, guide_rarity, published_at'
   const pedirGuias = (filtrar) => {
     const q = supabase.from('guides').select(COLUMNAS).not('published_at', 'is', null).order('published_at', { ascending: false })
     return filtrar ? q.eq('kind', 'guide') : q
@@ -152,11 +152,6 @@ async function loadCategories(session) {
     return
   }
 
-  if (session) {
-    const conCurso = guias.filter((g) => guideHasCourse(g))
-    medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
-  }
-
   const progreso = {}
   if (session) {
     const { data: filas } = await supabase
@@ -164,6 +159,20 @@ async function loadCategories(session) {
       .select('guide_id, status, read_at, current_block, started_at')
       .eq('user_id', session.user.id)
     for (const f of filas || []) progreso[f.guide_id] = f
+  }
+
+  // UN TEMA (863): /aprender?tema=<slug> es la página del tema, a la que
+  // vuelve una guía. Antes era /categoria.html, la vista vieja. Si el slug
+  // no existe —enlace viejo, tema borrado— se sigue como siempre: todas.
+  const tema = temaDeLaUrl ? (categories || []).find((c) => c.slug === temaDeLaUrl) : null
+  if (tema) {
+    temaDeLaUrl = null
+    return pintarTema({ tema, guias: guias.filter((g) => g.category_id === tema.id), progreso, session, list })
+  }
+
+  if (session) {
+    const conCurso = guias.filter((g) => guideHasCourse(g))
+    medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
   }
 
   const porCategoria = {}
@@ -240,6 +249,127 @@ async function loadCategories(session) {
   })
   movil.addEventListener?.('change', pintar)
   pintar()
+}
+
+// ── LA PÁGINA DE UN TEMA (tanda 863) ──
+//
+// PINGU: «si el botón de para atrás te lleva a la categoría, deberíamos
+// tener la categoría renovada, no con la vista antigua». La vieja
+// (/categoria.html) tenía su cabecera grande, su barra y unas tarjetas de
+// antes de la 676. Esto es el mismo contenido con las piezas de ahora: las
+// migas (en el móvil, «‹ Aprender»), una cabecera compacta con el icono,
+// el nombre, la descripción y el aro de lo leído, Guías · Cursos en un
+// segmentado, los chips de nivel y «Sin leer», la MISMA tarjeta de guía
+// que el resto de la web y, al bajar en el móvil, la barra pegada (858).
+// Los grupos («colecciones») del tema se conservan como títulos.
+let vistaTema = 'guias'
+
+const leida = (g, progreso) => Boolean(progreso[g.id]?.read_at) || progreso[g.id]?.status === 'completed'
+
+function cabeceraDeTemaHtml(tema, guias, progreso, session) {
+  const cursos = guias.filter((g) => guideHasCourse(g))
+  const leidas = guias.filter((g) => leida(g, progreso)).length
+  const hechos = cursos.filter((g) => progreso[g.id]?.status === 'completed').length
+  const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`
+  const cuenta = session
+    ? `${leidas} de ${n(guias.length, 'guía leída', 'guías leídas')}${cursos.length ? ` · ${hechos} de ${n(cursos.length, 'curso hecho', 'cursos hechos')}` : ''}`
+    : `${n(guias.length, 'guía', 'guías')}${cursos.length ? ` · ${n(cursos.length, 'curso', 'cursos')}` : ''}`
+  return `
+    <div class="ap-tema-cab" id="apTemaCab">
+      <span class="ap-tema-icono ${tintClassForKey(tema.id)}">${categoryIconHtml(tema, 28)}</span>
+      <div class="ap-tema-texto">
+        <h1>${escapeHtml(tema.name)}</h1>
+        ${tema.description ? `<p>${escapeHtml(tema.description)}</p>` : ''}
+        <p class="ap-tema-cuenta">${escapeHtml(cuenta)}</p>
+      </div>
+      ${session && guias.length ? `<span class="aprender-aro ap-tema-aro" style="--vuelta:${(leidas / guias.length).toFixed(3)}" aria-hidden="true"><b>${leidas}/${guias.length}</b></span>` : ''}
+    </div>`
+}
+
+function pintarTema({ tema, guias, progreso, session, list }) {
+  document.title = `${tema.name} · Aprender · PokeDoc`
+  const cabecera = document.querySelector('.page-header')
+  if (cabecera) {
+    cabecera.insertAdjacentHTML('beforebegin', `<nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/aprender">Aprender</a> <span>›</span> <span>${escapeHtml(tema.name)}</span></nav>`)
+    cabecera.outerHTML = cabeceraDeTemaHtml(tema, guias, progreso, session)
+  }
+  document.getElementById('medallero')?.classList.add('hidden')
+  if (!guias.length) {
+    list.innerHTML = '<p class="empty-state">Todavía no hay guías en este tema.</p>'
+    return
+  }
+  const cursos = guias.filter((g) => guideHasCourse(g))
+  // Dentro del tema, el orden es el del temario (la vieja lo respetaba):
+  // primero las ordenadas, luego las nuevas.
+  const ordenadas = [...guias].sort((a, b) => {
+    const oa = a.collection_order ?? Infinity
+    const ob = b.collection_order ?? Infinity
+    return oa !== ob ? oa - ob : new Date(b.published_at || 0) - new Date(a.published_at || 0)
+  })
+  list.innerHTML = `
+    <div class="ap-herramientas">
+      <div class="ap-tema-filtros">
+        ${cursos.length ? `<div class="seg ap-seg" role="group" aria-label="Guías o cursos" id="apSeg">
+          <button type="button" class="seg-btn" data-vista="guias" aria-pressed="true">Guías <span class="aprender-chip-n">${guias.length}</span></button>
+          <button type="button" class="seg-btn" data-vista="cursos" aria-pressed="false">Cursos <span class="aprender-chip-n">${cursos.length}</span></button>
+        </div>` : ''}
+        <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca en este tema" aria-label="Buscar en este tema" autocomplete="off" /></label>
+      </div>
+      <div id="apChips"></div>
+    </div>
+    <div class="ap-lista" id="apLista"></div>`
+  const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista'), seg: list.querySelector('#apSeg') }
+  const pintar = () => {
+    const q = normalizeSearch(busqueda)
+    const visibles = ordenadas.filter((g) => {
+      if (vistaTema === 'cursos' && !guideHasCourse(g)) return false
+      if (filtroNivel && g.level !== filtroNivel) return false
+      if (soloSinLeer && leida(g, progreso)) return false
+      if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
+      return true
+    })
+    caja.chips.innerHTML = `<div class="aprender-filtros ap-interruptores" role="group" aria-label="Filtros">
+      <span class="ap-cuenta" id="apCuenta">${cuantasHtml(visibles.length)}</span>
+      ${Object.entries(NIVELES).map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`)).join('')}
+      ${session ? chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"') : ''}
+    </div>`
+    if (!visibles.length) {
+      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía de este tema habla de eso.' : 'No hay ninguna guía con esos filtros.'} Prueba a quitar alguno.</p>`
+      return
+    }
+    caja.lista.innerHTML = movil.matches
+      ? `<div class="ap-filas">${visibles.map((g) => filaDeGuia(g, { progreso })).join('')}</div>`
+      : `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
+  }
+  caja.chips.addEventListener('click', (e) => {
+    const b = e.target.closest('button')
+    const clave = b && ['nivel', 'sinleer'].find((k) => b.dataset[k] !== undefined)
+    if (!clave) return
+    if (clave === 'nivel') filtroNivel = filtroNivel === b.dataset.nivel ? null : b.dataset.nivel
+    else soloSinLeer = !soloSinLeer
+    pintar()
+    caja.chips.querySelector(`[data-${clave}="${CSS.escape(b.dataset[clave])}"]`)?.focus()
+  })
+  caja.seg?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-vista]')
+    if (!b) return
+    vistaTema = b.dataset.vista
+    for (const x of caja.seg.querySelectorAll('[data-vista]')) x.setAttribute('aria-pressed', String(x === b))
+    pintar()
+  })
+  list.querySelector('#apBuscar').addEventListener('input', (e) => { busqueda = e.target.value; pintar() })
+  movil.addEventListener?.('change', pintar)
+  pintar()
+  // La barra pegada del móvil (858): la flecha a Aprender, el tema y lo leído.
+  if (matchMedia('(max-width: 900px)').matches) {
+    import('./barra-pegada.js').then((m) => m.montarBarraPegada({
+      cabecera: document.getElementById('apTemaCab'),
+      titulo: tema.name,
+      volverHref: '/aprender',
+      volverTexto: 'Volver a Aprender',
+      cifra: () => (session ? `${guias.filter((g) => leida(g, progreso)).length} de ${guias.length} leídas` : `${guias.length} ${guias.length === 1 ? 'guía' : 'guías'}`),
+    })).catch(() => {})
+  }
 }
 
 async function init() {

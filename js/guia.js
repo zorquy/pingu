@@ -247,7 +247,7 @@ async function init() {
         // enlace vacío que en el móvil era el paso de volver — y no se veía.
         esNoticia
           ? `<a href="/noticias">Noticias</a>`
-          : `<a href="/aprender">Guías</a>${guide.categories?.slug ? ` <span>›</span> <a href="/categoria.html?slug=${encodeURIComponent(guide.categories.slug)}">${escapeHtml(guide.categories.name || guide.categories.slug)}</a>` : ''}`
+          : `<a href="/aprender">Guías</a>${guide.categories?.slug ? ` <span>›</span> <a href="/aprender?tema=${encodeURIComponent(guide.categories.slug)}">${escapeHtml(guide.categories.name || guide.categories.slug)}</a>` : ''}`
       }
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
     </nav>
@@ -398,7 +398,7 @@ async function init() {
       m.montarBarraPegada({
         cabecera: main.querySelector('.article-header'),
         titulo: guide.title,
-        volverHref: esNoticia ? '/noticias' : guide.categories?.slug ? `/categoria.html?slug=${encodeURIComponent(guide.categories.slug)}` : '/aprender',
+        volverHref: esNoticia ? '/noticias' : guide.categories?.slug ? `/aprender?tema=${encodeURIComponent(guide.categories.slug)}` : '/aprender',
         volverTexto: esNoticia ? 'Volver a Noticias' : 'Volver a las guías',
         cifra: () => (cuerpo ? m.loQueQueda(minutosLectura, m.fraccionDe(cuerpo)) : ''),
         progreso: cuerpo,

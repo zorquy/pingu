@@ -218,7 +218,7 @@ export default async () => {
     for (const c of categorias) {
       if (c.slug) {
         urls.push({
-          loc: `${SITIO}/categoria.html?slug=${encodeURIComponent(c.slug)}`,
+          loc: `${SITIO}/aprender?tema=${encodeURIComponent(c.slug)}`,
           priority: '0.7',
           changefreq: 'weekly',
         })

@@ -224,6 +224,34 @@
   status = 301
   force = true
 
+# La página de categoría se fue en la 863: el tema vive en /aprender?tema=…
+# Los enlaces viejos (correos, avisos, Google) llegan igual.
+[[redirects]]
+  from = "/categoria.html"
+  query = {slug = ":slug"}
+  to = "/aprender?tema=:slug"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/categoria"
+  query = {slug = ":slug"}
+  to = "/aprender?tema=:slug"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/categoria.html"
+  to = "/aprender"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/categoria"
+  to = "/aprender"
+  status = 301
+  force = true
+
 [[redirects]]
   from = "/guia/:slug"
   to = "/guia.html?slug=:slug"
