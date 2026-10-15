@@ -106,11 +106,31 @@ export function variantesDeNumero(n) {
 // y con un prefijo escrito a propósito no se mira la Pokédex: «xy124» no
 // es ningún Pokémon. Solo letras y dígitos llegan aquí (`partirBusqueda`),
 // así que no se cuela sintaxis del `or` ni de la expresión.
+//
+// Y CON PREFIJO SE BUSCA MIENTRAS SE ESCRIBE (853). PINGU: «Pikachu XY1 me
+// saca otras tantas, pero el XY124 no está; XY12 tampoco; y con 124 ya
+// sale». Un número a secas es exacto («Mewtwo 64» es la 64, no la 640);
+// pero quien escribe «xy1» va camino de «xy124», así que con letras delante
+// el número es el PRINCIPIO del impreso: «xy1» da XY1, XY10… y XY124.
 export function filtroDeNumero(numero, prefijo = null) {
   const limpio = String(numero).replace(/^0+/, '') || '0'
   const letras = prefijo ? String(prefijo).replace(/[^a-z]/gi, '') : '[a-z]*'
-  const impreso = `local_id.imatch.^${letras}[ -]?0*${limpio}$`
-  return prefijo ? impreso : [impreso, `dex_ids.cs.{${Number(numero)}}`].join(',')
+  if (prefijo) return `local_id.imatch.^${letras}[ -]?0*${limpio}`
+  return [`local_id.imatch.^${letras}[ -]?0*${limpio}$`, `dex_ids.cs.{${Number(numero)}}`].join(',')
+}
+
+// «Pikachu XY», las letras del prefijo sin ningún dígito todavía (853): la
+// primera pasada las toma por una palabra del nombre y no da nada. Si la
+// ÚLTIMA palabra son de una a cinco letras y hay otra delante, se devuelve
+// el filtro de `local_id` que empieza por ellas y el texto sin esa palabra,
+// para una segunda pasada. Solo de respaldo: «pikachu ex» o «mew ex» tienen
+// que seguir buscando el nombre entero primero.
+export function prefijoSuelto(texto) {
+  const palabras = String(texto || '').trim().split(/\s+/).filter(Boolean)
+  if (palabras.length < 2) return null
+  const ultima = palabras[palabras.length - 1]
+  if (!/^[a-z]{1,5}$/i.test(ultima)) return null
+  return { texto: palabras.slice(0, -1).join(' '), filtro: `local_id.imatch.^${ultima.toLowerCase()}[a-z]*[ -]?\\d` }
 }
 
 // ¿Lleva esta carta ese número impreso? Para ordenar lo que vuelve: con

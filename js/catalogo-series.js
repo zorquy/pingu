@@ -154,6 +154,27 @@ export function padresPorEpisodio(sets) {
   return padres
 }
 
+// ── LOS SETS QUE VAN DENTRO DE UNA EXPANSIÓN DE TCGGO (tanda 853) ──
+//
+// TCGGO lista la Trainer Gallery, la Galarian Gallery y la Shiny Vault
+// DENTRO de su expansión (Lost Origin trae las TG01–TG30); nosotros las
+// tenemos como set aparte (`swsh11tg`), que es como PINGU las quiere ver
+// (la 534). El catálogo escribía lo que no casaba en el set principal, así
+// que cada TG de TCGGO nacía como `tcggo-N` en Lost Origin, al lado de la
+// de TCGdex en `swsh11tg`: la misma carta dos veces, una «Normal» (sin
+// `variants`) y otra «Holo». Esto dice qué sets nuestros son los hermanos
+// de uno: los de la lista a mano de arriba y los que llevan su id con
+// `tg`, `gg` o `sv` detrás (con o sin «.5»). Lo usan el catálogo (para
+// casar antes de crear) y la pasada de precios (para no dejarlos sin).
+export function setsHermanos(padre, ids) {
+  const x = String(padre || '')
+  if (!x) return []
+  const lista = [...(ids || [])].map(String)
+  const aMano = COLECCIONES_JUNTAS.find((c) => c.padre === x)?.hijos || []
+  const patron = new RegExp(`^${x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\.5)?(tg|gg|sv)$`, 'i')
+  return lista.filter((id) => id !== x && (aMano.includes(id) || patron.test(id)))
+}
+
 export function registrarEpisodios(sets) {
   padresRegistrados = padresPorEpisodio(sets)
   return padresRegistrados

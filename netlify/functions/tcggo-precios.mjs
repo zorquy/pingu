@@ -31,6 +31,7 @@ import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
+import { setsHermanos } from '../../js/catalogo-series.js'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 // Solo la clave: importar la función sería un ciclo.
 const CLAVE_CATALOGO = 'tcggo_catalogo'
@@ -127,6 +128,16 @@ export async function procesar({
     if (!setsPorEpisodio.has(h.episodio)) setsPorEpisodio.set(h.episodio, [])
     setsPorEpisodio.get(h.episodio).push(setId)
   }
+  // Y los sets HERMANOS de cada uno (853): la Trainer Gallery de Lost
+  // Origin es `swsh11tg`, sin par propio con TCGGO, y sus cartas llevan el
+  // id de Cardmarket de la expansión de TCGGO (el catálogo las casa desde
+  // la 853). Sin esto, no entraban en `enSets` y se quedaban sin precio.
+  try {
+    const idsWest = ((await pedir('tcg_sets?select=id&market=eq.WEST&limit=2000')) || []).map((s) => s.id)
+    for (const lista of setsPorEpisodio.values()) {
+      for (const setId of [...lista]) for (const h of setsHermanos(setId, idsWest)) if (!lista.includes(h)) lista.push(h)
+    }
+  } catch { /* sin la consulta, los sets de los pares y ya */ }
   // Y las japonesas (642): las que `tcggo-catalogo` ha casado con un set…
   const setsPorEpisodioJp = new Map()
   for (const [id, sets] of Object.entries(catalogo?.setsPorEpisodio?.JP || {})) {

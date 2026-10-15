@@ -45,6 +45,7 @@ import {
   emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta, separarVersiones,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
+import { setsHermanos } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_catalogo'
@@ -335,6 +336,12 @@ export async function procesar({
           destinos = [setNuevo.id]
         }
       }
+      // Y los sets HERMANOS del destino (853): la Trainer Gallery, la
+      // Galarian Gallery, la Shiny Vault. TCGGO las trae dentro de la
+      // expansión y nosotros las tenemos aparte; sin esto, sus cartas no
+      // casaban con nada y se creaban en el set principal, al lado de las
+      // de TCGdex — «sale el Pikachu dos veces» (PINGU, Lost Origin).
+      for (const h of setsHermanos(destinos[0], idsNuestros)) if (!destinos.includes(h)) destinos.push(h)
       if (!suyas.length) {
         estado.hechos[mercado].push(episodio.id)
         esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: 0, nota: 'vacía' })

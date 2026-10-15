@@ -15,12 +15,12 @@ import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, llevaElNumero } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, llevaElNumero } from './mi-coleccion/busqueda.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
 import { esDelTCG, deSetVisible } from './catalogo-series.js'
 
 // Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket).
-const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, oculto, serie_id)'
+const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, serie_id, oculto)'
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
@@ -48,13 +48,14 @@ const CONSULTAS = {
       // De más, para quitar las de Pocket y de sets escondidos sin quedarse corto.
       return q.order('name_search').limit(limite * 3)
     }
-    const porNombre = async (texto, setIds) => {
+    const porNombre = async (texto, setIds, filtroLocal = null) => {
       const { nombre, numero, prefijo } = partirBusqueda(normalizeSearch(texto))
       if (!nombre.length && !numero) return { filas: [], numero: null, prefijo: null }
       const { data, error } = await consulta((q) => {
         if (setIds?.length) q = q.in('set_id', setIds)
         for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
         if (numero) q = q.or(filtroDeNumero(numero, prefijo))
+        if (filtroLocal) q = q.or(filtroLocal)
         return q
       })
       if (error) throw error
@@ -63,6 +64,9 @@ const CONSULTAS = {
     let r = await porNombre(leida.texto, leida.setIds)
     // «Pikachu XY 124» con el prefijo suelto (852): pegados, segunda pasada.
     if (!r.filas.length && conPrefijoPegado(leida.texto)) r = await porNombre(conPrefijoPegado(leida.texto), leida.setIds)
+    // Y «Pikachu XY», las letras solas (853): las cartas de Pikachu cuyo número empieza por XY.
+    const suelto = r.filas.length ? null : prefijoSuelto(normalizeSearch(leida.texto))
+    if (suelto) r = await porNombre(suelto.texto, leida.setIds, suelto.filtro)
     // «mew 151» puede ser el set o el Pokémon: si como set no hay nada, como nombre.
     if (!r.filas.length && leida.codigo) r = await porNombre(crudo, null)
     // Y si por nombre nada, por ilustrador (la pasada cara, solo entonces).

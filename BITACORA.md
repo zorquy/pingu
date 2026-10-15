@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (85) — PINGU-Claude (853 — promos mientras escribes, su orden y las galerías duplicadas)
+
+**Hecho** (PINGU, tres cosas de la ficha del Pikachu EX XY124):
+- **«Pikachu XY1 me saca otras, pero el XY124 no; XY12 tampoco»**: con
+  letras delante el número es el PRINCIPIO del impreso (XY1 → XY1, XY10,
+  XY124…), y «Pikachu XY» —las letras solas— saca las de Pikachu cuyo número
+  empieza por XY. Un número sin letras sigue siendo exacto. En los dos
+  buscadores.
+- **«XY10 y de repente XY100, XY101»**: las promos se ordenaban como texto.
+  Ahora como en el álbum: XY10, XY11… XY100.
+- **«Las Trainer Gallery las tenemos dos veces, una normal y otra holo»**:
+  TCGGO trae las TG dentro de su expansión y nosotros las tenemos aparte
+  (`swsh11tg`); el catálogo escribía lo que no casaba en el set principal,
+  así que cada TG nació como `tcggo-N` en Lost Origin (sin `variants` →
+  «Normal») al lado de la de TCGdex («Holo»). Desde ahora el catálogo casa
+  contra los sets hermanos (TG, Galarian Gallery, Shiny Vault, y las parejas
+  a mano) antes de crear nada, y la pasada de precios los incluye. Lo ya
+  duplicado lo funde la migración: la de TCGdex se queda con el id de TCGGO,
+  su foto, sus ids de Cardmarket y lo que la gente tuviera apuntado; la de
+  TCGGO se borra. **No puedo mirar la base desde aquí**: la causa es la que
+  encaja con lo que cuenta PINGU; la vista previa de la migración lo
+  confirma antes de tocar nada.
+
+**Ficheros**: `js/mi-coleccion/busqueda.js`, `js/buscador.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/orden.js`, `js/catalogo-series.js`
+(`setsHermanos`), `netlify/functions/tcggo-catalogo.mjs`,
+`netlify/functions/tcggo-precios.mjs`,
+`supabase-migration-trainer-gallery-duplicados.sql`. En `pruebas`:
+`test-tanda-853.mjs` nueva, casos nuevos en la 852, la 827 acepta
+`deSetVisible` en el buscador (lo cambió la 851).
+
+**Pruebas**: 853 verde (filtros, orden, `setsHermanos`, el catálogo y los precios lo usan, la forma de la migración) y 852-pantalla con los casos nuevos («pikachu xy», «xy1», «xy12» en los dos buscadores). El subconjunto del buscador, el orden, el catálogo de TCGGO y los sets (52 verdes, con 807 y 631 contra PostgreSQL); la 827 y la 561 al día. El SQL no se ha ejecutado contra ninguna base: va con vista previa y comprobación final.
+
+**Pendiente**: **ejecutar `supabase-migration-trainer-gallery-duplicados.sql`**
+(primero la vista previa, luego el `do`). Hasta entonces los duplicados
+siguen; el catálogo ya no crea más.
+
 ## 2026-10-15 (84) — PINGU-Claude (852 — el número de una promo lleva letras delante)
 
 **Hecho** (PINGU: «el Pikachu EX XY124 […] si busco Pikachu XY124 o Pikachu

@@ -40652,3 +40652,30 @@ con el reintento pegado dentro de `buscarCartas` y la consulta en
 `buscarCartasUnaVez`) y `CONSULTAS.cartas` (/buscar y Ctrl+K). El doble
 entiende `match`/`imatch` en `.or()` desde esta tanda. Prueba:
 `test-tanda-852-pantalla.mjs`.
+
+## Tanda 853 — Promos mientras se escriben, orden de las promos y las galerías duplicadas
+
+**Buscador**: con prefijo, `filtroDeNumero(numero, prefijo)` ya no cierra la
+expresión con `$`: «xy1» es `^xy[ -]?0*1` y casa XY1, XY10 y XY124 (quien
+escribe «xy1» va camino de «xy124»); sin prefijo sigue exacto (`$`), que
+«Mewtwo 64» es la 64 y no la 640. `prefijoSuelto(texto)` cubre «Pikachu XY»
+(la última palabra de una a cinco letras, con otra delante): devuelve el
+texto sin ella y el filtro `local_id.imatch.^xy[a-z]*[ -]?\d`, que
+`buscarCartas` (/mi-coleccion, tercera pasada tras la pegada) y
+`CONSULTAS.cartas` (/buscar) aplican con `.or()` solo si las dos pasadas
+anteriores no dan nada. **Orden**: `porNumero` (`js/mi-coleccion/orden.js`)
+compara el tramo con letras con `{ numeric: true }` (XY10 < XY11 < XY100).
+**Galerías**: `setsHermanos(padre, ids)` (`js/catalogo-series.js`) da los
+sets nuestros que van dentro de una expansión de TCGGO: los `hijos` de
+`COLECCIONES_JUNTAS` y los ids `<padre>(.5)?(tg|gg|sv)`. `tcggo-catalogo`
+los mete en `destinos` antes de pedir `nuestras` (así las TG de TCGGO casan
+por número con las de `swsh11tg` en vez de crearse como `tcggo-N` en
+`swsh11`), y `tcggo-precios` los añade a los sets de cada expansión (la
+gemela lleva el `cm_id_product_propio` y entra en `enSets`).
+`supabase-migration-trainer-gallery-duplicados.sql` funde lo ya duplicado:
+cada `tcggo-*` de un set principal con gemela de mismo número impreso en un
+set hermano pasa a la gemela (id de TCGGO, foto, ids de Cardmarket/TCGplayer,
+copias con suma, carpetas, deseos, álbumes, avisos, vitrina, versiones,
+precios, histórico, carta del día, más caro) y se borra. Pruebas:
+`test-tanda-853.mjs` (puro + la forma de la migración) y los casos nuevos de
+`test-tanda-852-pantalla.mjs`.

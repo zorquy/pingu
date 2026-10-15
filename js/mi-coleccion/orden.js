@@ -32,7 +32,10 @@ export function porNumero(a, b) {
   const nb = parseInt(b.local_id, 10)
   const ea = tramoDeNumero(a.local_id)
   const eb = tramoDeNumero(b.local_id)
-  return ea - eb || (ea === 0 && Number.isFinite(na) && Number.isFinite(nb) ? na - nb : 0) || String(a.local_id).localeCompare(String(b.local_id))
+  // Con letras, el número de dentro cuenta como número (853): «XY10» iba
+  // antes que «XY100» y este antes que «XY11», porque se comparaban como
+  // texto. `numeric` lo ordena como en el álbum: XY10, XY11… XY100.
+  return ea - eb || (ea === 0 && Number.isFinite(na) && Number.isFinite(nb) ? na - nb : 0) || String(a.local_id).localeCompare(String(b.local_id), 'es', { numeric: true })
 }
 
 // La escala de rareza vive en js/rareza-escala.js desde la tanda 624: es

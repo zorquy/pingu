@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se encuentran mientras escribes: «Pikachu XY», «Pikachu XY1»… ya enseñan la XY124 por el camino, en los dos buscadores.", "enlace": "/buscar?q=Pikachu%20XY" },
+    { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se ordenan como en el álbum: XY10, XY11… XY100, y no XY10, XY100, XY101.", "enlace": "/cartas" },
+    { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las Trainer Gallery (y las galerías parecidas) ya no salen dos veces, una «normal» que no existe y otra holo.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se encuentran por su número: «Pikachu 124» o «Pikachu XY124» dan con la XY124, y «TG5» con la TG05, en el buscador de arriba y en el de Mi colección.", "enlace": "/buscar?q=Pikachu%20XY124" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El buscador de arriba encuentra cartas como el de Cartas: por nombre y número («Pikachu 277»), por expansión y número («MEW 151») y por ilustrador.", "enlace": "/buscar?q=Pikachu%20277" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Una liga entre jornadas ya no sale como «En juego»: dice «Entre jornadas» y cuándo es la próxima.", "enlace": "/torneos" },
