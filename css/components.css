@@ -3018,6 +3018,7 @@ body.portada-compacta .page-content {
 }
 /* S780.145 */
 .guia-tarjeta {
+  position: relative;
   container-type: inline-size;
   container-name: guia;
   background: var(--white);
@@ -3103,6 +3104,24 @@ body.portada-compacta .page-content {
 .guia-chapa-cat {
   background: rgba(255, 255, 255, 0.94);
   color: #0d1b2a;
+}
+/* La chapa del tema como enlace (866): fuera del <a> de la tarjeta, encima
+   del arte, en el sitio de la de texto. El <a> es la caja que se pulsa
+   (44 px, la 312) y la píldora de dentro mide lo de siempre. */
+.guia-chapa-tema {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px;
+  text-decoration: none;
+}
+.guia-chapa-tema:hover .guia-chapa-cat {
+  background: var(--blanco-fijo);
+  text-decoration: underline;
 }
 .guia-chapa-min {
   background: rgba(13, 27, 42, 0.46);

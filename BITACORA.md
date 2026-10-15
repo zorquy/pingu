@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (98) — PINGU-Claude (866 — el mapa de enlaces de Aprender)
+
+**Hecho** (segunda tanda de «Aprender en cuatro capas»):
+- La chapa del tema de cada tarjeta (en /aprender y en el bloque «Aprende»
+  de la portada) es un enlace al tema; las filas llevan el tema de texto
+  delante del nivel (también en /guardados).
+- Al acabar una guía, «Más de este tema»: tres del mismo tema y «Todo el
+  tema →», antes de la valoración.
+- El curso, al terminar, vuelve al tema.
+
+**Ficheros**: `js/guia-tarjeta.js`, `js/guia-fila.js`, `js/aprender.js`,
+`js/portada-bloques.js`, `js/guardados.js`, `js/guia.js`, `js/curso.js`,
+`css/components.css`, `css/guia.css`, `novedades.json`, `SCHEMA.md`. En
+`pruebas`: `test-tanda-866-pantalla.mjs` nueva; `test-ficha-guia.mjs` y
+`test-tanda-316.mjs` al día.
+
+**Pruebas**: 866, 865, 864, 863, 846, 847, 300, 299, 312, 313, 316, 308,
+857, 858, 829, 844, ficha-guia e imports en verde.
+
+**Pendiente**: nada. Con esto, la propuesta «Aprender en cuatro capas»
+está entera.
+
 ## 2026-10-15 (97) — PINGU-Claude (865 — la puerta de Aprender en cuatro capas)
 
 **Hecho** (PINGU: «ahora es más lío incluso»; propuesta «Aprender en

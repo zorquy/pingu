@@ -41043,3 +41043,35 @@ iPhone a 439 (antes, fuera de pantalla). Pruebas:
 `test-tanda-865-pantalla.mjs`; `864`, `863`, `846`, `299` y `737` al día.
 La tanda «recordar tema y filtro» se descarta: con esto el tema está a un
 toque.
+
+## Tanda 866 — El mapa de enlaces de Aprender
+
+Segunda tanda de «Aprender en cuatro capas»: todo lo que lleva a una guía
+o a un tema acaba en la puerta (/aprender) o en el tema (/aprender?tema=).
+
+**La chapa del tema de la tarjeta es un enlace** (`js/guia-tarjeta.js`):
+`tarjetaDeGuia(g, { tema: { nombre, slug } })`, o lo que traiga
+`g.categories` (`categories(name, slug)` en la portada y /guardados desde
+esta tanda). Con slug, la chapa va FUERA del `<a>` de la tarjeta —un
+enlace dentro de otro no existe en HTML— como `a.guia-chapa-tema`
+absoluta encima del arte, en el sitio de la de texto: el `<a>` es la caja
+que se pulsa (44 px, la 312) y la píldora `.guia-chapa-cat` va dentro.
+Sin slug, la chapa de texto de siempre. La 682 había quitado la chapa de
+texto de /aprender por ruido; vuelve porque ahora es un camino (la 316 lo
+apunta). `/aprender` pasa el tema de cada guía desde las categorías
+cargadas (`temaDe`); la página del tema no lo pasa (todas son del mismo).
+**La fila** (`filaDeGuia(g, { tema })`) lleva el tema de texto delante del
+nivel («Mazos & estrategia · Principiante · 5 min»): una fila es un solo
+enlace.
+
+**«Más de este tema»** (`pintarMasDelTema` en `js/guia.js`): al acabar
+una guía (no una noticia) con tema, hasta tres del mismo tema —la más
+nueva primero, nunca ella misma— en filas, y «Todo el tema →»; va en
+`#guiaMasDelTema`, antes de la valoración; sin otras guías del tema no
+sale. Es el «siguiente reto» de la 860 llevado a las guías. CSS en
+`guia.css` (`.guia-mas-tema-*`; nada de `ap-filas`, que es de la hoja de
+/aprender: la 299 lo cazó). **El curso**, al terminar, «Más de este tema
+→» al tema (`categorySlug`) y, sin tema, /aprender.
+
+Pruebas: `test-tanda-866-pantalla.mjs`; `test-ficha-guia` (la miga va al
+tema) y `316` (la chapa de /aprender es un enlace) al día.

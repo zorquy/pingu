@@ -188,6 +188,8 @@ async function loadCategories(session) {
     <div class="ap-lista" id="apLista"></div>`
   const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista') }
 
+  // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
+  const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug }]))
   const pintar = () => {
     const q = normalizeSearch(busqueda)
     const visibles = guias.filter((g) => {
@@ -204,8 +206,8 @@ async function loadCategories(session) {
     }
     const [primera, ...resto] = visibles
     caja.lista.innerHTML = movil.matches
-      ? `${tarjetaDeGuia(primera, { progreso })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso })).join('')}</div>` : ''}`
-      : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
+      ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
+      : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
   }
 
   // Delegado, una sola vez: los chips se repintan y no hay que volver a

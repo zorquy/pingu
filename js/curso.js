@@ -598,7 +598,7 @@ function renderReward(b) {
           // siguiente reto que te quede, o al menú de los retos.
           modo === 'diario'
             ? siguienteRetoHtml(siguienteReto('reto', hechoHoy(hoyISO())))
-            : `<a href="/aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>`
+            : `<a href="${categorySlug ? `/aprender?tema=${encodeURIComponent(categorySlug)}` : '/aprender'}" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">${categorySlug ? 'Más de este tema →' : 'Seguir explorando →'}</a>`
         }
       </div>
     </div>`

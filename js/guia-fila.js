@@ -24,9 +24,12 @@ export function estadoDeGuia(g, progreso) {
   return { hecha, leida, pct }
 }
 
-export function filaDeGuia(g, { progreso = null } = {}) {
+// `tema` (866): { nombre } o lo que traiga `g.categories`; en una fila —que
+// es un solo enlace— el tema va de texto, delante del nivel.
+export function filaDeGuia(g, { progreso = null, tema = null } = {}) {
   const { hecha, leida, pct } = estadoDeGuia(g, progreso)
-  const meta = [g.kind === 'news' ? 'Noticia' : NIVELES[g.level], g.estimated_mins ? `${g.estimated_mins} min` : '', guideHasCourse(g) ? 'Con curso' : '']
+  const nombreTema = tema?.nombre || g.categories?.name || ''
+  const meta = [g.kind === 'news' ? '' : nombreTema, g.kind === 'news' ? 'Noticia' : NIVELES[g.level], g.estimated_mins ? `${g.estimated_mins} min` : '', guideHasCourse(g) ? 'Con curso' : '']
     .filter(Boolean)
     .join(' · ')
   const energia = g.cover_image ? null : energiaDeTexto(`${g.title || ''} ${g.description || ''}`)

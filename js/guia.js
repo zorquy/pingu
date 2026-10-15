@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { rutaDeArticulo, fechaLarga, fechaMaquina, slugDeArticuloEnLaUrl } from './articulos.js'
+import { rutaDeArticulo, fechaLarga, fechaMaquina, slugDeArticuloEnLaUrl, conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, avatarStyle } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { renderReferenceBlocksHtml } from './bloques-lectura.js'
@@ -84,6 +84,26 @@ function setupReadTracking(session, guide, esNoticia = false) {
     if (!timer) timer = setTimeout(marcar, falta)
   })
   observer.observe(sentinel)
+}
+
+async function pintarMasDelTema(guide) {
+  const caja = document.getElementById('guiaMasDelTema')
+  if (!caja) return
+  const COLS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, published_at'
+  const pedir = (filtrar) => {
+    const q = supabase.from('guides').select(COLS).eq('category_id', guide.category_id).neq('id', guide.id).not('published_at', 'is', null).order('published_at', { ascending: false }).limit(3)
+    return filtrar ? q.eq('kind', 'guide') : q
+  }
+  const { data } = await conVueltaAtrasDeTipo(() => pedir(true), () => pedir(false))
+  if (!data?.length) return
+  const { filaDeGuia } = await import('./guia-fila.js')
+  const tema = guide.categories || {}
+  const nombre = tema.name || tema.slug || 'este tema'
+  caja.innerHTML = `
+    <h2 class="guia-mas-tema-titulo">Más de ${escapeHtml(nombre)}</h2>
+    <div class="guia-mas-tema-lista">${data.map((g) => filaDeGuia(g, { progreso: null })).join('')}</div>
+    ${tema.slug ? `<a class="link-btn guia-mas-tema-todo" href="/aprender?tema=${encodeURIComponent(tema.slug)}">Todo el tema →</a>` : ''}`
+  caja.classList.remove('hidden')
 }
 
 async function init() {
@@ -382,6 +402,7 @@ async function init() {
     }
     <div id="guideHelpful"></div>
     <div id="guideSuggestion"></div>
+    <div class="guia-mas-tema hidden" id="guiaMasDelTema"></div>
     <div id="guideRating"></div>
     <div id="guideWriteInvite"></div>
     <section class="guide-forum">
@@ -447,6 +468,11 @@ async function init() {
   // debajo de que han anunciado una película: una guía se valora porque
   // te ha enseñado algo o no, y una noticia solo cuenta lo que ha
   // pasado. Para opinar está el hilo del foro.
+  // MÁS DE ESTE TEMA (866): al acabar de leer, tres guías más del mismo
+  // tema y el enlace al tema entero; es el «siguiente reto» de la 860
+  // llevado a las guías. Antes una guía terminaba en la valoración.
+  if (!esNoticia && guide.category_id) void pintarMasDelTema(guide)
+
   if (!esNoticia) {
     renderRatingWidget(document.getElementById('guideRating'), {
       guideId: guide.id,

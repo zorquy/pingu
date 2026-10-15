@@ -364,3 +364,21 @@
   min-height: 44px;
   padding: 0;
 }
+
+/* ── Más de este tema (866; SCHEMA 866): al acabar de leer ── */
+.guia-mas-tema {
+  margin-top: var(--e-xl);
+  padding-top: var(--e-lg);
+  border-top: 1px solid var(--border);
+}
+.guia-mas-tema-titulo {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-lg);
+}
+.guia-mas-tema-lista {
+  display: grid;
+  gap: 8px;
+}
+.guia-mas-tema-todo {
+  margin-top: var(--e-sm);
+}

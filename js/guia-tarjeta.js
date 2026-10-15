@@ -33,7 +33,12 @@ export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinu
 // igual, así que a quien ya se había leído la guía le decía «Sin
 // empezar». Una barra vacía por no saber es peor que no tener barra:
 // afirma algo falso en vez de callarse.
-export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false } = {}) {
+// `tema` (866): { nombre, slug }, o lo que traiga `g.categories`; con slug,
+// la chapa del tema es un ENLACE a /aprender?tema=…, y va fuera del <a> de
+// la tarjeta (un enlace dentro de otro no existe en HTML), colocado encima
+// del arte en el mismo sitio. Sin slug, la chapa de texto de siempre.
+export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null, pie = false } = {}) {
+  const t = tema || (g.categories?.slug ? { nombre: g.categories.name || g.categories.slug, slug: g.categories.slug } : null)
   const seSabe = progreso !== null && progreso !== undefined
   const p = (seSabe && progreso[g.id]) || null
   const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
@@ -61,7 +66,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false 
       <span class="guia-arte arte-${arteDe(g)}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''}>
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         <span class="guia-arte-info">
-          ${categoria ? `<span class="guia-chapa-cat">${escapeHtml(categoria)}</span>` : '<span></span>'}
+          ${!t?.slug && (categoria || t?.nombre) ? `<span class="guia-chapa-cat">${escapeHtml(categoria || t.nombre)}</span>` : '<span></span>'}
           ${g.estimated_mins ? `<span class="guia-chapa-min">${g.estimated_mins} min</span>` : ''}
         </span>
       </span>
@@ -83,6 +88,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', pie = false 
         }
       </span>
     </a>
+    ${t?.slug ? `<a class="guia-chapa-tema" href="/aprender?tema=${encodeURIComponent(t.slug)}" aria-label="${escapeHtml(`Tema: ${t.nombre}`)}"><span class="guia-chapa-cat">${escapeHtml(t.nombre)}</span></a>` : ''}
     ${
       pie
         ? `<div class="guia-pie">
