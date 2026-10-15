@@ -58,24 +58,14 @@
    Una fila de iconos con el color de su rareza. Centrada como el resto
    de la cabecera y con `flex-wrap`, que con diez medallas y un móvil
    estrecho la fila tiene que poder partirse. */
-/* La fila del palmarés va DEBAJO del bloque de avatar y nombre, a todo
-   el ancho de la tarjeta: dentro de la columna del nombre no cabe (en
-   móvil son unos 200 px) y dentro de .profile-hero-body aplastaba esa
-   columna en escritorio, donde ese contenedor no hace wrap.
-   El padding repite el del body para que las medallas queden alineadas
-   con el avatar. */
+/* La fila del palmarés abre la pestaña Torneos (867; antes colgaba de la
+   cabecera de la ficha de otro). */
 .palmares-fila {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
   align-items: center;
-  padding: 0 24px 16px;
-}
-
-@media (max-width: 420px) {
-  .palmares-fila {
-    padding: 0 16px 16px;
-  }
+  padding: 0 0 16px;
 }
 
 .palmares-vitrina {
@@ -150,11 +140,6 @@
 
 .profile-level:hover {
   text-decoration: underline;
-}
-
-.profile-xp-bar {
-  width: 100%;
-  max-width: 280px;
 }
 
 /* ── Profile hero (perfil.html propio) ── */
@@ -296,54 +281,6 @@
   font-size: var(--t-xl);
   font-weight: 800;
   word-break: break-word;
-}
-
-/* ── Acordeón (Logros, Reseñas...) ── */
-.accordion {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
-  overflow: hidden;
-  background: var(--white);
-}
-
-.accordion-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 16px;
-  font-weight: 700;
-  font-size: var(--t-lg);
-  color: var(--navy);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.accordion-header .chevron {
-  transition: transform 0.15s var(--ease);
-  font-size: var(--t-sm);
-}
-
-.accordion.open .accordion-header .chevron {
-  transform: rotate(180deg);
-}
-
-.accordion-body {
-  display: none;
-  padding: 0 16px 16px;
-}
-
-.accordion.open .accordion-body {
-  display: block;
-}
-
-.profile-xp-bar .xp-label {
-  font-size: var(--t-2xs);
-  color: var(--text-dim);
-  margin-top: 4px;
 }
 
 .achievements-grid {
@@ -811,41 +748,6 @@ button.perfil-cifra:hover .rotulo {
   font-size: var(--t-sm);
 }
 
-/* ── Tanda crecimiento: invitar, top del mes ── */
-
-.panel-invitar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.panel-invitar h3 {
-  margin: 0 0 2px;
-  font-size: var(--t-lg);
-}
-
-.panel-invitar-enlace {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.panel-invitar-enlace code {
-  background: var(--ice);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  font-size: var(--t-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 46vw;
-}
-
 /* ── La vitrina (743, J4): seis cartas que eliges tú ── */
 .vitrina:not([hidden]) {
   display: block;
@@ -1110,10 +1012,6 @@ button.perfil-cifra:hover .rotulo {
   display: none;
 }
 
-.profile-hero-info .profile-xp-bar {
-  display: none;
-}
-
 .perfil-acciones {
   margin-top: var(--e-sm);
 }
@@ -1128,21 +1026,25 @@ button.perfil-cifra:hover .rotulo {
   backdrop-filter: none;
 }
 
-.perfil-acciones .profile-hero-edit-btn svg {
+.perfil-acciones .profile-hero-edit-btn:not(.perfil-compartir) svg {
   display: none;
 }
 
-/* Las cuatro, grandes; seguidores, siguiendo y trofeos, una línea debajo. */
+/* Las cinco cifras iguales (867), cada una tocable: Cartas abre tu
+   colección, Guías y Torneos su pestaña, Seguidores y Siguiendo su lista. */
 .perfil-cifras {
   border-top: 0;
 }
 
-.perfil-cifras-lote .perfil-cifra {
-  flex: 1 1 25%;
+.perfil-cifra {
+  flex: 1 1 20%;
+  min-height: 44px;
   padding: var(--e-md) var(--e-xs);
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.perfil-cifras-lote .perfil-cifra .valor {
+.perfil-cifra .valor {
   color: var(--text);
   font-family: var(--font-display);
   font-size: var(--t-2xl);
@@ -1155,18 +1057,29 @@ button.perfil-cifra:hover .rotulo {
   letter-spacing: 0;
 }
 
-button.perfil-cifra {
-  flex: 0 0 auto;
-  flex-direction: row;
-  align-items: baseline;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: 0 var(--e-md) 0 var(--e-xs);
+.perfil-cifra:hover .rotulo {
+  color: var(--navy);
 }
 
-button.perfil-cifra .valor {
-  color: var(--text);
-  font-size: var(--t-md);
+/* La racha, en la línea de la cabecera (867): un estado, no una cifra. */
+.perfil-racha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.perfil-racha svg {
+  color: var(--warning);
+}
+
+/* Compartir: solo el icono, 44 de ancho (la 312: lo que es un icono pide ancho). */
+.perfil-compartir {
+  min-width: 44px;
+  padding: 0 !important;
+  justify-content: center;
 }
 
 @media (pointer: coarse) {
@@ -1220,86 +1133,25 @@ button.perfil-cifra .valor {
   }
 }
 
-/* ── Los tres niveles: Vitrina, Actividad y Medallas (752). Ver SCHEMA 752. ── */
-.perfil-niveles {
-  display: flex;
-  gap: var(--e-xs);
+/* ── UNA fila de pestañas (867): Vitrina · Guías · Foro · Torneos · Medallas,
+   con el control de pestañas de toda la web (678). En el móvil se desliza. */
+.perfil-pestanas {
   margin: var(--e-lg) 0 var(--e-md);
-  padding: var(--e-xs);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--bg);
 }
 
-.perfil-nivel {
-  flex: 1 1 0;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 700;
+.perfil-pestanas .tab-btn {
+  margin-right: var(--e-md);
 }
 
-.perfil-nivel.active {
-  background: var(--white);
-  color: var(--navy);
-  box-shadow: var(--shadow-sm);
-}
-
-.perfil-nivel[hidden] { display: none; }
-
-body[data-pnivel="vitrina"] #profileTabs,
-body[data-pnivel="medallas"] #profileTabs,
-body[data-pnivel="vitrina"] .tab-panel[id^="ptab-"],
-body[data-pnivel="medallas"] .tab-panel[id^="ptab-"] { display: none; }
-
-body[data-pnivel="medallas"] #ptab-about { display: block; }
-
-body:not([data-pnivel="vitrina"]) #perfilVitrina { display: none; }
-
-/* Los filtros de Actividad, en chips. */
-#profileTabs {
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-  border-bottom: 0;
-}
-
-#profileTabs .tab-btn {
-  min-height: 36px;
-  margin-right: 0;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  font-size: var(--t-sm);
-}
-
-#profileTabs .tab-btn.active {
-  border-color: transparent;
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-#profileTabs .tab-btn.active .pest-cuenta {
-  background: color-mix(in srgb, var(--blanco-fijo) 22%, transparent);
-  color: var(--blanco-fijo);
-}
+.perfil-pestanas .tab-btn[hidden] { display: none; }
 
 @media (pointer: coarse) {
-  #profileTabs .tab-btn { min-height: 44px; }
+  .perfil-pestanas .tab-btn { min-height: 44px; }
 }
 
-.perfil-cuenta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--e-lg);
-  margin-top: var(--e-2xl);
-  padding-top: var(--e-md);
-  border-top: 1px solid var(--border);
+#perfilVitrina:not([hidden]) {
+  margin: 0 0 var(--e-xl);
 }
-
-.perfil-cuenta-borrar .subtext { margin-bottom: var(--e-sm); }
-.perfil-cuenta-borrar .subtext:empty { display: none; }
 
 /* El nivel ya dice «Vitrina»: el título se queda para quien lee en voz alta. */
 #perfilVitrina .vitrina-cabeza .section-title {
@@ -1313,8 +1165,75 @@ body:not([data-pnivel="vitrina"]) #perfilVitrina { display: none; }
 
 #perfilVitrina .vitrina-cabeza { justify-content: flex-end; }
 
-/* El rojo de peligro, del token: a mano no se leía en oscuro (752). */
-.perfil-borrar { border-color: var(--danger); color: var(--danger); }
+/* Medallas (867): el medallero de los cursos como la píldora de Aprender,
+   el logro destacado en una línea, y los trofeos. */
+.perfil-medallero:not([hidden]) {
+  display: flex;
+  margin-bottom: var(--e-md);
+}
+
+.perfil-medallero .medallero {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.perfil-medallero .medallero:hover { border-color: var(--navy); }
+.perfil-medallero .medallero-titulo { display: inline-flex; color: var(--text-mid); }
+.perfil-medallero .medalla-chip { font-size: var(--t-2xs); }
+
+.perfil-logro-destacado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-lg);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.perfil-logro-destacado .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
+}
+
+.perfil-logro-destacado .link-btn { min-height: 44px; }
+
+.perfil-trofeos-cuenta {
+  margin-left: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 400;
+}
+
+#completedCourses:not([hidden]) { margin-top: var(--e-xl); }
+
+/* El logro destacado en la ficha de otro (en la cabecera). */
+.perfil-logro-chapa {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  margin-top: 8px;
+  padding: 4px 12px;
+}
+
+.perfil-logro-chapa .icon { width: 28px; height: 28px; }
 
 /* El rango como barra (789, PA12). */
 .rango-texto {

@@ -4,13 +4,12 @@ import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
-import { getAllAchievements, levelProgress, contributorTier, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
-import { barraDeRango } from './rango-barra.js'
-import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
+import { getAllAchievements, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { authorRatingSummary, starsHtml } from './guide-rating.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
-import { renderWall } from './wall.js'
-import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
+import { pintarTorneosDe } from './perfil-torneos.js'
+import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
 import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
@@ -51,7 +50,6 @@ async function loadProfile(session) {
   }
   const name = displayName(profile, session.user.email)
   const xp = profile?.total_xp || 0
-  const progress = levelProgress(xp)
 
   applyHeroVisuals(profile, name)
 
@@ -61,17 +59,7 @@ async function loadProfile(session) {
          ficha de persona es la persona. -->
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     ${profile?.username ? `<p class="perfil-arroba">@${escapeHtml(profile?.username)}</p>` : ''}
-    <div class="perfil-chapas">
-      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${barraDeRango(xp)}</button>
-      <!-- El rango lo rellena loadStats(): depende de cuántas guías
-           tienes aprobadas, y eso se cuenta después. El hueco va aquí
-           para no tener que recomponer la cabecera. -->
-      <span id="rangoHueco"></span>
-    </div>
-    <div class="profile-xp-bar">
-      <div class="progress-track"><div class="fill" style="width: ${progress.pct}%"></div></div>
-      <div class="xp-label">${progress.next ? `${progress.next - xp} XP para el siguiente nivel` : 'Nivel máximo'}</div>
-    </div>
+    ${lineaDeQuienHtml({ xp, racha: profile?.current_streak })}
     ${profile?.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}`
 
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
@@ -93,27 +81,21 @@ async function loadStats(session, profile) {
   const { media: avgRating, total: totalNotas } = await authorRatingSummary(session.user.id)
   const tier = contributorTier(approvedGuidesCount || 0)
 
-  montarInvitacion(profile).catch(() => {})
-
-  // Las cuatro de la 743 (J4): cartas, racha, guías y torneos. Las otras
-  // tres (seguidores, siguiendo, trofeos) ya vienen en el HTML.
-  document.getElementById('profileStats').innerHTML = cifrasHtml({
-    cartas,
-    racha: profile?.current_streak ?? 0,
-    guias: approvedGuidesCount ?? null,
-    nota: avgRating,
-    votos: totalNotas,
-    torneos,
-  })
+  // Las cifras (867): cartas, guías y torneos; seguidores y siguiendo ya
+  // vienen en el HTML. Guías y Torneos abren su pestaña.
+  const lote = document.getElementById('profileStats')
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedGuidesCount ?? null, nota: avgRating, votos: totalNotas, torneos, propia: true })
+  for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
   // a la fila de chapas, junto al nivel, en vez de desentonar entre
   // números.
+  // «Miembro» (cero guías) no se enseña: solo cuando hay rango que contar.
   const hueco = document.getElementById('rangoHueco')
-  if (hueco) {
+  if (hueco && approvedGuidesCount > 0) {
     hueco.outerHTML = `<button type="button" class="perfil-rango" id="btnTierInfo">${tier.icon}${escapeHtml(tier.title)}</button>`
     document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedGuidesCount || 0)))
-  }
+  } else hueco?.remove()
 }
 
 function achievementTileHtml(a, unlocked) {
@@ -129,22 +111,33 @@ async function loadAchievements(profile) {
   const unlocked = profile?.achievements || []
   const grid = document.getElementById('achievementsGrid')
   achievementsCache = await getAllAchievements()
-  document.getElementById('achievementsCount').textContent = `${unlocked.length}/${achievementsCache.length}`
-  document.getElementById('heroTrophyCount').textContent = unlocked.length
+  document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
   import('./logros-reparto.js').then((m) => m.ponerReparto(grid)).catch(() => {})
+  contarPestania('medallas', unlocked.length)
+  // Tu logro destacado (867): el que sale junto a tu nombre en el foro. Se
+  // elige en «Editar perfil», y desde aquí se llega.
+  const destacado = achievementsCache.find((a) => a.id === profile?.showcase_achievement)
+  const linea = document.getElementById('logroDestacado')
+  if (linea) {
+    linea.hidden = false
+    linea.innerHTML = destacado
+      ? `<span class="icon rarity-${escapeHtml(destacado.rarity || 'bronze')}">${achievementIconHtml(destacado, 16)}</span><span>Logro destacado: <strong>${escapeHtml(destacado.title)}</strong></span><button type="button" class="link-btn" data-editar-perfil>Cambiar</button>`
+      : `<span>Sin logro destacado.</span><button type="button" class="link-btn" data-editar-perfil>Elegir uno</button>`
+    linea.querySelector('[data-editar-perfil]').addEventListener('click', () => document.getElementById('btnEditProfile')?.click())
+  }
 }
 
-// La cifra de trofeos lleva a las Medallas (752), que es donde viven: el
-// modal enseñaba lo mismo encima de la página.
-document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
-  abrirPestania('medallas')
-  document.getElementById('perfilNiveles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-})
-
-document.getElementById('achievementsToggle')?.addEventListener('click', () => {
-  document.getElementById('achievementsAccordion').classList.toggle('open')
-})
+// El medallero de los cursos (867), como la píldora de Aprender: tus oros,
+// platas y bronces. Sin partidas, sin medallero.
+async function loadMedallero(session) {
+  const caja = document.getElementById('medalleroPerfil')
+  if (!caja) return
+  const { medallasPorCurso } = await import('./medallero.js')
+  const html = medalleroHtml(await medallasPorCurso(session.user.id))
+  caja.hidden = !html
+  caja.innerHTML = html
+}
 
 // La actividad del foro se carga la PRIMERA vez que se abre su pestaña, y
 // no al entrar al perfil: son varias consultas y la mayoría de las visitas
@@ -157,79 +150,25 @@ async function cargarForoUnaVez() {
   await pintarActividadDelForo(document.getElementById('foroActividad'), currentSession.user.id, { esMio: true })
 }
 
-// «Mis torneos» (tanda 236): en qué torneos de PokeDoc estás — jugando,
-// apuntado o ya jugados con tu puesto. Se carga la primera vez que se
-// abre la pestaña, como el foro: son dos consultas que la mayoría de
-// visitas al perfil no necesita.
+// Torneos (236; desde la 867 en js/perfil-torneos.js, con el palmarés).
+// Se pinta la primera vez que se abre la pestaña.
 let torneosCargado = false
 async function cargarMisTorneosUnaVez() {
   if (torneosCargado || !currentSession) return
   torneosCargado = true
-  const caja = document.getElementById('misTorneos')
-
-  const { data: inscripciones, error } = await supabase
-    .from('tournament_registrations')
-    .select('tournament_id, status')
-    .eq('user_id', currentSession.user.id)
-  if (error || !inscripciones?.length) {
-    caja.innerHTML = `<p class="subtext">Todavía no estás en ningún torneo. Pásate por <a href="/torneos.html">Jugar</a> para apuntarte al próximo.</p>`
-    return
-  }
-  const estadoInscripcion = new Map(inscripciones.map((i) => [i.tournament_id, i.status]))
-  const { data: torneos } = await supabase
-    .from('tournaments')
-    .select('id, slug, name, status, start_at, champion_id, podium')
-    .in('id', inscripciones.map((i) => i.tournament_id))
-    .order('start_at', { ascending: false })
-
-  const jugando = []
-  const apuntado = []
-  const jugados = []
-  for (const t of torneos || []) {
-    const inscrito = estadoInscripcion.get(t.id)
-    if (t.status === 'finished') jugados.push(t)
-    // «Jugando ahora» es solo lo que se está jugando de verdad (tanda
-    // 248). Un torneo con las inscripciones cerradas todavía no ha
-    // empezado: sigues APUNTADO a él, aunque ya no se pueda entrar.
-    else if (t.status === 'in_progress' && inscrito !== 'dropped') jugando.push(t)
-    else if (['registration_open', 'registration_closed'].includes(t.status) && inscrito !== 'dropped') apuntado.push(t)
-    // Cancelados y bajas: fuera. Un torneo que no se jugó no es
-    // historial de nadie.
-  }
-
-  const fila = (t, detalle) => `
-    <a class="mis-torneos-fila" href="/torneo?slug=${encodeURIComponent(t.slug)}">
-      <span class="mis-torneos-nombre">${escapeHtml(t.name)}</span>
-      <span class="subtext">${escapeHtml(String(t.start_at || '').slice(0, 10))}</span>
-      ${detalle}
-    </a>`
-  const puestoDe = (t) => {
-    if (t.champion_id === currentSession.user.id) return '<span class="mis-torneos-puesto oro">Campeón</span>'
-    const p = Array.isArray(t.podium) ? t.podium.indexOf(currentSession.user.id) : -1
-    if (p > 0) return `<span class="mis-torneos-puesto">${p + 1}º</span>`
-    return '<span class="mis-torneos-puesto subtext">Jugado</span>'
-  }
-  const grupo = (titulo, filas) =>
-    filas.length ? `<h3 class="mis-torneos-grupo">${titulo}</h3>${filas.join('')}` : ''
-
-  caja.innerHTML =
-    grupo('Jugando ahora', jugando.map((t) => fila(t, '<span class="mis-torneos-puesto vivo">En juego</span>'))) +
-      grupo('Apuntado', apuntado.map((t) => fila(t, `<span class="mis-torneos-puesto subtext">${estadoInscripcion.get(t.id) === 'waitlisted' ? 'En lista de espera' : 'Inscrito'}</span>`))) +
-      grupo('Jugados', jugados.map((t) => fila(t, puestoDe(t)))) ||
-    `<p class="subtext">Todavía no estás en ningún torneo. Pásate por <a href="/torneos.html">Jugar</a> para apuntarte al próximo.</p>`
+  await pintarTorneosDe(document.getElementById('misTorneos'), { userId: currentSession.user.id, propia: true, logros: currentProfile?.achievements || [] })
 }
 
 // ── Pestañas del perfil ──
 // (tanda 308: la mecánica vive en js/perfil-pestanias.js, que comparten
 // esta página y la ficha de otra persona.)
 montarPestanias({
+  propia: true,
   alAbrir: (cual) => {
     if (cual === 'foro') cargarForoUnaVez()
     if (cual === 'torneos') cargarMisTorneosUnaVez()
   },
 })
-
-abrirLaDelHash()
 
 // ── Siguiendo / Seguidores ──
 function followChipHtml(p) {
@@ -285,13 +224,11 @@ async function loadCompletedCourses(session) {
     .eq('status', 'completed')
     .order('completed_at', { ascending: false })
 
+  // Solo si hay alguno (867): es un historial, no un hueco que llenar.
   const container = document.getElementById('completedCourses')
-  if (!data || data.length === 0) {
-    container.innerHTML = `<p class="empty-state">Todavía no has completado ningún curso.</p>`
-    return
-  }
-
-  container.innerHTML = data
+  if (!data || data.length === 0) return
+  container.hidden = false
+  container.innerHTML = `<h2 class="section-title">Cursos hechos</h2>` + data
     .filter((row) => row.guides)
     .map(
       (row) => `
@@ -592,9 +529,11 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modal?.classList.contains('hidden')) closeModal()
 })
 
-document.getElementById('btnNewMyGuide')?.addEventListener('click', () => (window.location.href = 'editor-guia.html'))
-
-// ── Editar biografía ──
+// ── Editar perfil (867: solo lo que ven los demás) ──
+//
+// Nombre, usuario, sobre ti, firma del foro, color de cabecera y logro
+// destacado. Los avisos, el cumpleaños, Play! Pokémon y la privacidad son
+// cómo funciona tu cuenta, no cómo te ven: viven en /ajustes.
 document.getElementById('btnEditProfile')?.addEventListener('click', () => {
   const BANNER_COLORS = ['var(--ice)', 'var(--navy)', 'var(--indigo)', 'var(--success)', 'var(--warning)', 'var(--pink)']
   const unlocked = currentProfile?.achievements || []
@@ -644,56 +583,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         ${unlockedAchievements.map((a) => `<option value="${a.id}" ${a.id === currentProfile?.showcase_achievement ? 'selected' : ''}>${escapeHtml(a.title)}</option>`).join('')}
       </select>
     </div>
-    <div class="form-group">
-      <label>Avisos en la campanita</label>
-      ${Object.entries(NOTIFICATION_TYPES)
-        .map(([type, label]) => {
-          const disabled = (currentProfile?.notification_prefs_disabled || []).includes(type)
-          return `<label class="checkbox-row"><input type="checkbox" data-notif-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`
-        })
-        .join('')}
-    </div>
-    <div class="form-group">
-      <label>Avisos por correo</label>
-      <p class="subtext" style="margin:0 0 6px;">Solo te escribimos cuando alguien se dirige a ti directamente. Aunque lo desactives, lo seguirás viendo al entrar en la web.</p>
-      ${Object.entries({
-        ...EMAIL_TYPES,
-        // Los del equipo solo se le enseñan al equipo: al resto le
-        // saldría una casilla para algo que no va a recibir nunca.
-        ...(currentProfile?.is_admin ? EMAIL_TYPES_EQUIPO : {}),
-      })
-        .map(([type, label]) => {
-          const disabled = (currentProfile?.notification_email_disabled || []).includes(type)
-          return `<label class="checkbox-row"><input type="checkbox" data-email-pref="${type}" ${disabled ? '' : 'checked'} /> ${escapeHtml(label)}</label>`
-        })
-        .join('')}
-    </div>
-    <div class="form-group">
-      <label>Avisos en este dispositivo (push)</label>
-      <p class="subtext" style="margin:0 0 6px;">Los avisos de la campanita, en el escritorio o el móvil aunque PokeDoc esté cerrado. Se activa POR dispositivo: este interruptor manda solo en el navegador donde lo toques.</p>
-      <div id="pePushZona"><p class="subtext">Comprobando este navegador…</p></div>
-    </div>
-    <div class="form-group">
-      <label>Cumpleaños (opcional)</label>
-      <input type="date" id="peBirthday" value="${escapeHtml(currentProfile?.birthday || '')}" />
-      <p class="subtext" style="margin:2px 0 0;">Si lo pones, el día señalado el foro te felicita en «El foro en números». Bórralo cuando quieras.</p>
-    </div>
-    <div class="form-group" id="pePlayZona">
-      <label>Play! Pokémon (privado)</label>
-      <p class="subtext" style="margin:0 0 6px;">Para que la decklist oficial del constructor salga ya rellena. Esto no se ve en tu perfil: solo lo ves tú.</p>
-      <label for="pePlayerId">Player ID</label>
-      <input id="pePlayerId" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Por ejemplo, 1234567" disabled />
-      <label for="pePlayNombre">Nombre y apellidos (como en la decklist)</label>
-      <input id="pePlayNombre" type="text" maxlength="80" autocomplete="name" disabled />
-      <label for="pePlayNacimiento">Fecha de nacimiento (la pide la decklist)</label>
-      <input id="pePlayNacimiento" type="date" min="1900-01-01" disabled />
-      <p class="subtext" id="pePlayAviso" style="margin:2px 0 0;" role="status">Cargando…</p>
-    </div>
-    <div class="form-group">
-      <label>Privacidad</label>
-      <label class="checkbox-row"><input type="checkbox" id="peHideActivity" ${currentProfile?.hide_activity ? 'checked' : ''} /> No mostrar mi actividad en Comunidad</label>
-      <p class="subtext" style="margin:2px 0 0;">Si lo activas, lo que leas y los cursos que hagas dejan de aparecer en el hilo de actividad y dejan de ser visibles para el resto.</p>
-    </div>
+    <p class="subtext">Los avisos, tu cuenta y la privacidad están en <a href="/ajustes">Ajustes</a>.</p>
     <button class="btn-primary btn-block" id="btnSaveProfileEdit">Guardar</button>`)
 
   // La firma usa el MISMO editor que los mensajes del foro (a demanda:
@@ -720,66 +610,6 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
         uploadImage: (file) => uploadGuideImage(currentSession.user.id, file),
       })
     } catch {}
-  })()
-
-  // Tus datos de Play! Pokémon (tanda 834), de su tabla PRIVADA: se leen
-  // aparte y se guardan aparte, para que si falta su migración el resto del
-  // perfil se guarde igual.
-  let play = { estado: 'error', fila: null }
-  ;(async () => {
-    const { leerDatosPlay, MIGRACION_PLAY } = await import('./play-pokemon.js')
-    play = await leerDatosPlay(currentSession.user.id)
-    const aviso = document.getElementById('pePlayAviso')
-    if (!aviso) return
-    if (play.estado !== 'ok') {
-      aviso.textContent =
-        play.estado === 'falta'
-          ? `Todavía no se puede guardar: falta ejecutar ${MIGRACION_PLAY}.`
-          : 'No se ha podido leer lo que tenías guardado. Vuelve a abrir el editor en un rato.'
-      return
-    }
-    const f = play.fila
-    for (const [id, valor] of [['pePlayerId', f.player_id], ['pePlayNombre', f.player_name], ['pePlayNacimiento', f.birth_date]]) {
-      const campo = document.getElementById(id)
-      if (!campo) continue
-      campo.value = valor || ''
-      campo.disabled = false
-    }
-    aviso.textContent = ''
-  })()
-
-  // El interruptor de push, con su estado real. Va aparte del Guardar
-  // del formulario: suscribirse pide permiso al navegador y escribe su
-  // propia fila — no es un campo del perfil.
-  ;(async () => {
-    const zona = document.getElementById('pePushZona')
-    if (!zona) return
-    try {
-      const push = await import('./push.js')
-      const pintarZona = async () => {
-        const { soportado, permiso, suscrito } = await push.estadoPush()
-        if (!soportado) {
-          zona.innerHTML = `<p class="subtext">Este navegador no soporta notificaciones push.</p>`
-          return
-        }
-        if (permiso === 'denied' && !suscrito) {
-          zona.innerHTML = `<p class="subtext">Las notificaciones están bloqueadas para PokeDoc en los ajustes del navegador. Desbloquéalas ahí y vuelve.</p>`
-          return
-        }
-        zona.innerHTML = `<button type="button" class="btn-secondary" id="btnPushToggle">${
-          suscrito ? 'Desactivar los avisos en este dispositivo' : 'Activar los avisos en este dispositivo'
-        }</button>`
-        document.getElementById('btnPushToggle').addEventListener('click', async () => {
-          const r = suscrito ? await push.desactivarPush() : await push.activarPush(currentSession.user.id)
-          if (r.ok) showToast(suscrito ? 'Avisos desactivados en este dispositivo.' : '¡Hecho! Te avisaremos por aquí.', 'success')
-          else showToast(r.motivo || 'No se ha podido cambiar.')
-          await pintarZona()
-        })
-      }
-      await pintarZona()
-    } catch {
-      zona.innerHTML = `<p class="subtext">No se ha podido comprobar el estado de los avisos.</p>`
-    }
   })()
 
   let selectedBanner = currentProfile?.banner_color || 'var(--ice)'
@@ -815,25 +645,12 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       }
     }
 
-    const notificationPrefsDisabled = Array.from(modalContent.querySelectorAll('[data-notif-pref]'))
-      .filter((cb) => !cb.checked)
-      .map((cb) => cb.dataset.notifPref)
-
-    // Columna aparte de la campanita: "quiero el aviso pero no el correo"
-    // es la preferencia más común y con un solo array no se puede decir.
-    const notificationEmailDisabled = Array.from(modalContent.querySelectorAll('[data-email-pref]'))
-      .filter((cb) => !cb.checked)
-      .map((cb) => cb.dataset.emailPref)
-
     const payload = {
       display_name: document.getElementById('peDisplayName').value.trim() || null,
       username: desiredUsername,
       bio: document.getElementById('peBio').value.trim(),
       banner_color: selectedBanner,
       showcase_achievement: document.getElementById('peShowcase').value || null,
-      notification_prefs_disabled: notificationPrefsDisabled,
-      notification_email_disabled: notificationEmailDisabled,
-      hide_activity: document.getElementById('peHideActivity').checked,
     }
 
     // La firma se guarda SANEADA, con el mismo saneador que los mensajes
@@ -853,58 +670,25 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       return
     }
     payload.forum_signature = firmaTexto || /<img|<tcg/.test(firmaLimpia) ? firmaLimpia : null
-    // El cumpleaños es opcional: vacío = quitarlo (null).
-    payload.birthday = document.getElementById('peBirthday')?.value || null
     // Si una columna aún no existe (la web desplegada antes de ejecutar
-    // su migración — forum_signature o birthday), el update falla ENTERO:
-    // se reintenta quitando la columna que el error nombra, las veces
-    // que haga falta, para no bloquear el resto del perfil.
+    // su migración — forum_signature), el update falla ENTERO: se reintenta
+    // sin ella para no bloquear el resto del perfil.
     let intento = { ...payload }
     let { error } = await supabase.from('user_profiles').update(intento).eq('id', currentSession.user.id)
-    for (const columna of ['forum_signature', 'birthday']) {
-      if (error && new RegExp(columna).test(error.message || '')) {
-        delete intento[columna]
-        ;({ error } = await supabase.from('user_profiles').update(intento).eq('id', currentSession.user.id))
-      }
+    if (error && /forum_signature/.test(error.message || '')) {
+      delete intento.forum_signature
+      ;({ error } = await supabase.from('user_profiles').update(intento).eq('id', currentSession.user.id))
     }
     if (error) {
       showToast('No se pudo guardar el perfil: ' + error.message)
       return
     }
-    // Play! Pokémon, solo si se pudo leer (si no, guardar a ciegas pisaría
-    // lo que hubiera) y si algo ha cambiado.
-    if (play.estado === 'ok') {
-      const nuevo = {
-        playerId: document.getElementById('pePlayerId')?.value.trim() || '',
-        nombre: document.getElementById('pePlayNombre')?.value.trim() || '',
-        nacimiento: document.getElementById('pePlayNacimiento')?.value || '',
-      }
-      const f = play.fila
-      if (nuevo.playerId !== (f.player_id || '') || nuevo.nombre !== (f.player_name || '') || nuevo.nacimiento !== (f.birth_date || '')) {
-        const { guardarDatosPlay } = await import('./play-pokemon.js')
-        const errorPlay = await guardarDatosPlay(currentSession.user.id, nuevo)
-        if (errorPlay) {
-          // El perfil ya está guardado; esto se dice y el editor sigue abierto.
-          showToast('Tu perfil se ha guardado, pero tus datos de Play! Pokémon no: ' + errorPlay.message)
-          return
-        }
-      }
-    }
     closeModal()
     currentProfile = { ...currentProfile, ...payload }
-    loadProfile(currentSession)
+    await loadProfile(currentSession)
+    loadAchievements(currentProfile)
   })
 })
-
-async function loadWall(session) {
-  const n = await renderWall({
-    listEl: document.getElementById('commentsList'),
-    formEl: document.getElementById('commentForm'),
-    profileId: session.user.id,
-    currentSession: session,
-  })
-  contarPestania('wall', typeof n === 'number' ? n : 0)
-}
 
 // Las dos pestañas que se PINTAN con pereza necesitan su número antes
 // de abrirse: para la chapa y para decidir cuál se abre. Son consultas
@@ -922,122 +706,46 @@ async function contarMisTorneos(session) {
   contarPestania('torneos', count || 0)
 }
 
-async function loadAccountDeletionStatus(session) {
-  const { data } = await supabase
-    .from('account_deletion_requests')
-    .select('status')
-    .eq('user_id', session.user.id)
-    .eq('status', 'pending')
-    .maybeSingle()
-
-  const btn = document.getElementById('btnRequestAccountDeletion')
-  const statusEl = document.getElementById('deleteAccountStatus')
-  if (data) {
-    btn.classList.add('hidden')
-    statusEl.textContent = 'Ya tienes una solicitud de borrado pendiente de revisión.'
-  } else {
-    btn.classList.remove('hidden')
-    statusEl.textContent = ''
-  }
-}
-
 async function init() {
   const session = await requireAuth()
   if (!session) return
   currentSession = session
-
-  // Si se llegó con #torneos, el click de abajo corrió ANTES de tener
-  // sesión y la carga se quedó esperando: ahora que la hay, va.
-  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
 
   const profile = await loadProfile(session)
   await Promise.all([
     loadStats(session, profile),
     loadCompletedCourses(session),
     loadMyGuides(session),
-    loadWall(session),
     loadFollowSummary(session),
     contarElForo(session),
     contarMisTorneos(session),
+    loadMedallero(session),
   ])
-
-  // Con las cuentas puestas, se abre la pestaña que tenga algo: «Muro»
-  // era siempre la primera y en casi todos los perfiles está vacía.
-  abrirLaQueTengaAlgo()
   await loadAchievements(profile)
-  // La vitrina (743): la tuya, con «Elegir cartas».
-  // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
+  // Si se llegó con la pestaña de torneos puesta, el clic corrió ANTES de
+  // tener sesión y la carga se quedó esperando: ahora que la hay, va.
+  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
+  // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
+  // cuanto existe (867: aunque esté vacía, que invita a elegir).
   import('./vitrina.js')
     .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast }))
-    .then((r) => vitrinaLista({ visible: r?.estado === 'ok' && (true), conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
+    .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
     .catch(() => vitrinaLista({ visible: false, conCartas: false }))
-  await loadAccountDeletionStatus(session)
-
-  document.getElementById('btnLogout').addEventListener('click', signOut)
-  document.getElementById('btnRequestAccountDeletion').addEventListener('click', async () => {
-    if (
-      !confirm(
-        'Vas a solicitar el borrado de tu cuenta y de tus datos. No se borra al instante — el equipo lo revisa y lo confirma a mano. ¿Continuar?'
-      )
-    )
-      return
-    const { error } = await supabase.from('account_deletion_requests').insert({ user_id: session.user.id, status: 'pending' })
-    showToast(error ? 'No se pudo enviar la solicitud: ' + error.message : 'Solicitud enviada. Te confirmaremos cuando esté procesada.', error ? 'error' : 'success')
-    if (!error) await loadAccountDeletionStatus(session)
-  })
+  abrirLaQueTengaAlgo()
 }
+
+// Compartir tu perfil (867): la dirección pública, con la hoja del sistema
+// donde la hay y al portapapeles donde no.
+document.getElementById('btnCompartirPerfil')?.addEventListener('click', async () => {
+  const url = new URL(profileUrl(currentProfile || {}), window.location.origin).href
+  const name = displayName(currentProfile, '')
+  try {
+    if (navigator.share) await navigator.share({ title: `${name} en PokeDoc`, url })
+    else {
+      await navigator.clipboard.writeText(url)
+      showToast('Enlace copiado.', 'success')
+    }
+  } catch {}
+})
 
 init()
-
-
-// ── Invita a un amigo ──
-//
-// Tu enlace personal (/r/<usuario>) y cuánta gente ha llegado con él.
-// Quien se registre con tu enlace te cuenta como invitado en cuanto
-// termina su onboarding, y los trofeos de Embajador llegan solos (los
-// comprueba tu propia sesión). Sin la migración de referidos, la
-// tarjeta sale igual — solo que el contador no puede contar.
-async function montarInvitacion(profile) {
-  if (!profile?.username) return
-  // Va justo DEBAJO de la tarjeta de perfil. Antes se colgaba de
-  // #profileStats, pero desde la tanda 306 ese lote vive DENTRO de la
-  // tira de cifras y con `display: contents`: colgarle nada ahí mete el
-  // panel en la fila de números como si fuera una cifra más.
-  const tarjeta = document.getElementById('profileHero')
-  if (!tarjeta || document.getElementById('panelInvitar')) return
-
-  const enlace = `${window.location.origin}/r/${encodeURIComponent(profile.username)}`
-  let traidos = null
-  try {
-    const { count, error } = await supabase
-      .from('user_profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('referred_by', currentSession.user.id)
-    if (!error) traidos = count || 0
-  } catch {}
-
-  const panel = document.createElement('div')
-  panel.className = 'simple-card panel-invitar'
-  panel.id = 'panelInvitar'
-  panel.innerHTML = `
-    <div class="panel-invitar-texto">
-      <h3>${icons.users(18)} Invita a un amigo</h3>
-      <p class="subtext">Comparte tu enlace: quien se una con él y tú os lleváis trofeos y XP.${
-        traidos === null ? '' : ` Has traído a <strong>${traidos}</strong> ${traidos === 1 ? 'persona' : 'personas'}.`
-      }</p>
-    </div>
-    <div class="panel-invitar-enlace">
-      <code id="enlaceInvitar">${escapeHtml(enlace)}</code>
-      <button type="button" class="btn-secondary" id="btnCopiarInvitar">Copiar</button>
-    </div>`
-  tarjeta.after(panel)
-
-  document.getElementById('btnCopiarInvitar').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(enlace)
-      showToast('Enlace copiado. ¡A repartirlo!', 'success')
-    } catch {
-      showToast('No se ha podido copiar. Selecciónalo a mano.')
-    }
-  })
-}

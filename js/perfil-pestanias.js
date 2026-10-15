@@ -1,85 +1,62 @@
-// Las pestañas de una ficha de persona (Muro, Guías, Foro, Torneos,
-// Acerca), que hasta la tanda 308 estaban copiadas en perfil.js y en
-// usuario.js con la misma lógica escrita dos veces.
+// Las pestañas de una ficha de persona, en UNA fila (867): Vitrina, Guías,
+// Foro, Torneos y Medallas. Hasta la 866 eran dos filas, una dentro de
+// otra (tres «niveles» y, dentro de Actividad, cuatro «filtros»): nueve
+// destinos para elegir uno, y el que se abría por defecto era un muro casi
+// siempre vacío. El muro se fue con la 867; «Actividad» no era un sitio,
+// era una carpeta, y desaparece con él.
 //
-// Hacen dos cosas que no hacían:
-//
-//  · Enseñar CUÁNTO hay en cada una. Cinco pestañas sin un número al
-//    lado obligan a entrar en todas para saber dónde está lo que
-//    buscas — y en la mayoría de los perfiles casi todas están vacías.
-//  · Abrirse por la que TIENE algo. «Muro» era siempre la primera y en
-//    casi todos los perfiles está vacía: quien entra se encuentra un
-//    «todavía no hay nada escrito» aunque esa persona tenga 58 mensajes
-//    en el foro, a una pestaña de distancia.
+// Lo que siguen haciendo (desde la 308):
+//  · Enseñar CUÁNTO hay en cada una (`contarPestania`).
+//  · Abrirse por la que TIENE algo (`abrirLaQueTengaAlgo`): en la ficha de
+//    otra persona, su vitrina si tiene cartas y, si no, lo primero con
+//    algo; en la tuya, siempre la vitrina (vacía, invita a elegir).
+//  · Llegar con la pestaña puesta: `?ver=medallas` (859) o `#foro`.
 
 const CONTENEDOR = 'profileTabs'
 
-// ── LOS TRES NIVELES (tanda 752, P1) ──
-//
-// Arriba van tres, como en la maqueta: Vitrina, Actividad y Medallas. Las
-// pestañas de siempre (Muro, Guías, Foro, Torneos) no se pierden: son los
-// filtros de Actividad. «Acerca» era los trofeos y los cursos, o sea las
-// Medallas, y su panel (`ptab-about`) es el de ese nivel. Qué se ve lo
-// decide `body[data-pnivel]` en css/perfil.css.
-const NIVELES = 'perfilNiveles'
-const NIVEL_DE = { about: 'medallas', medallas: 'medallas', vitrina: 'vitrina' }
-let alAbrirNivel = null
+// Nombres viejos que siguen llegando por enlaces guardados: «about» eran
+// los trofeos; «actividad», «wall» y «muro» ya no son nada y abren lo que
+// toque.
+const ALIAS = { about: 'medallas', actividad: null, wall: null, muro: null }
 
-export function abrirNivel(nivel) {
-  const caja = document.getElementById(NIVELES)
-  const btn = caja?.querySelector(`[data-pnivel="${nivel}"]`)
-  if (!btn || btn.hidden) return false
-  for (const b of caja.querySelectorAll('[data-pnivel]')) {
-    b.classList.toggle('active', b === btn)
-    b.setAttribute('aria-selected', String(b === btn))
-  }
-  document.body.dataset.pnivel = nivel
-  alAbrirNivel?.(nivel === 'medallas' ? 'about' : nivel)
-  return true
-}
+// El orden para «la que tenga algo» NO es el de la fila: lo que más dice de
+// alguien es lo que escribe, luego lo que habla, luego lo que juega.
+const ORDEN = ['guides', 'foro', 'torneos', 'medallas']
 
-// La vitrina, cuando llega (la pinta js/vitrina.js aparte): su nivel sale
-// si hay algo que enseñar —o si es la tuya, para elegir—, y se abre por
-// ella si tiene cartas y no has tocado nada: es lo primero de la maqueta,
-// pero una vitrina vacía no es «la que tiene algo».
-export function vitrinaLista({ visible, conCartas }) {
-  const btn = document.querySelector(`#${NIVELES} [data-pnivel="vitrina"]`)
-  if (!btn) return
-  btn.hidden = !visible
-  if (!visible && document.body.dataset.pnivel === 'vitrina') abrirNivel('actividad')
-  // Con #vitrina en la dirección, ahora que el nivel existe: el hash se
-  // leyó al cargar, cuando todavía estaba escondido.
-  const pedida = new URLSearchParams(location.search).get('ver')
-  if (visible && !laHaTocado && (window.location.hash === '#vitrina' || pedida === 'vitrina' || (conCartas && !window.location.hash && !pedida))) abrirNivel('vitrina')
-}
+const cuentas = {}
+let laHaTocado = false
+let alAbrir = null
+let propia = false
 
 const botones = () => [...document.querySelectorAll(`#${CONTENEDOR} .tab-btn`)]
 const botonDe = (nombre) => botones().find((b) => b.dataset.ptab === nombre)
-
-// Lo que ya se ha contado, para poder decidir qué pestaña abrir cuando
-// terminen de llegar las cuentas (llegan por separado).
-const cuentas = {}
-let laHaTocado = false
+const pedidaEnDireccion = () => new URLSearchParams(location.search).get('ver') || window.location.hash.replace('#', '') || ''
+const nombreReal = (nombre) => (nombre in ALIAS ? ALIAS[nombre] : nombre)
 
 export function abrirPestania(nombre) {
-  if (NIVEL_DE[nombre] || nombre === 'actividad') return abrirNivel(NIVEL_DE[nombre] || 'actividad')
-  const btn = botonDe(nombre)
-  if (!btn) return false
-  abrirNivel('actividad')
-  btn.click()
+  const n = nombreReal(nombre)
+  if (!n) return false
+  const btn = botonDe(n)
+  if (!btn || btn.hidden) return false
+  for (const b of botones()) {
+    b.classList.toggle('active', b === btn)
+    b.setAttribute('aria-selected', String(b === btn))
+  }
+  for (const p of document.querySelectorAll('.tab-panel[id^="ptab-"]')) p.classList.toggle('active', p.id === `ptab-${n}`)
+  alAbrir?.(n)
   return true
 }
 
 // El número al lado del nombre. Se llama según va llegando cada cuenta:
 // una pestaña sin contar todavía no enseña nada, que es mejor que
-// enseñar un cero que a lo mejor no es cero.
+// enseñar un cero que a lo mejor no es cero. El cero tampoco se pinta:
+// «Foro 0» ocupa sitio para decir que no hay nada, y para eso ya está el
+// propio panel cuando entras.
 export function contarPestania(nombre, n) {
   cuentas[nombre] = n
   const btn = botonDe(nombre)
   if (!btn) return
   btn.querySelector('.pest-cuenta')?.remove()
-  // El cero tampoco se pinta: «Muro 0» ocupa sitio para decir que no hay
-  // nada, y para eso ya está el propio panel cuando entras.
   if (!n) return
   const chapa = document.createElement('span')
   chapa.className = 'pest-cuenta'
@@ -87,72 +64,67 @@ export function contarPestania(nombre, n) {
   btn.appendChild(chapa)
 }
 
-// Cuál se abre. El orden NO es el de las pestañas: el Muro va primero
-// porque es donde se escribe a esa persona, pero si está vacío lo
-// interesante es lo que ha hecho, y eso suele estar en el foro.
-const ORDEN = ['wall', 'foro', 'guides', 'torneos']
+// La vitrina, cuando llega (la pinta js/vitrina.js aparte): su pestaña sale
+// si hay algo que enseñar —o si es la tuya, para elegir— y se abre si no
+// has tocado nada: en la tuya siempre; en la de otro, si tiene cartas (una
+// vitrina vacía no es «la que tiene algo»).
+export function vitrinaLista({ visible, conCartas }) {
+  const btn = botonDe('vitrina')
+  if (!btn) return
+  btn.hidden = !visible
+  if (!visible && btn.classList.contains('active')) abrirLaQueTengaAlgo({ aunqueVacia: true })
+  const pedida = nombreReal(pedidaEnDireccion())
+  if (visible && !laHaTocado && (pedida === 'vitrina' || (!pedida && (conCartas || propia)))) abrirPestania('vitrina')
+}
 
-export function abrirLaQueTengaAlgo() {
-  // Si ya has tocado tú una pestaña, o has llegado con un #hash, mandas
-  // tú: cambiarte de sitio la página cuando ya estás leyendo es peor que
-  // dejarte donde estabas.
-  if (laHaTocado || window.location.hash || new URLSearchParams(location.search).get('ver')) return
+// Cuál se abre cuando han llegado las cuentas. Si ya has tocado tú una
+// pestaña, o has llegado con `?ver=` o un #hash, mandas tú: cambiarte de
+// sitio la página cuando ya estás leyendo es peor que dejarte donde
+// estabas. Y si la vitrina ya se ha abierto (la tuya, o una con cartas),
+// se queda.
+export function abrirLaQueTengaAlgo({ aunqueVacia = false } = {}) {
+  if (laHaTocado || nombreReal(pedidaEnDireccion())) return
+  const vitrina = botonDe('vitrina')
+  if (vitrina && !vitrina.hidden && vitrina.classList.contains('active')) return
   const conAlgo = ORDEN.find((n) => cuentas[n] > 0 && botonDe(n))
-  // Solo el filtro de dentro: si la vitrina ya se ha abierto, se queda.
-  if (conAlgo && conAlgo !== 'wall') botonDe(conAlgo)?.click()
+  if (conAlgo) abrirPestania(conAlgo)
+  else if (aunqueVacia) abrirPestania(ORDEN.find((n) => botonDe(n)))
 }
 
 // `alAbrir` recibe el nombre de la pestaña: es donde cada página engancha
-// lo que carga con pereza (el foro, los torneos).
-export function montarPestanias({ alAbrir } = {}) {
+// lo que carga con pereza (el foro, los torneos). `propia` dice si es tu
+// ficha, que abre por la vitrina aunque esté vacía.
+export function montarPestanias({ alAbrir: cb, propia: esMia = false } = {}) {
   const caja = document.getElementById(CONTENEDOR)
   if (!caja) return
-  alAbrirNivel = alAbrir
-  if (!document.body.dataset.pnivel) document.body.dataset.pnivel = 'actividad'
-  for (const b of document.querySelectorAll(`#${NIVELES} [data-pnivel]`)) {
-    b.addEventListener('click', (e) => {
+  alAbrir = cb
+  propia = esMia
+  for (const btn of botones()) {
+    btn.addEventListener('click', (e) => {
+      // `isTrusted` distingue el clic de una persona del `.click()` que
+      // hace esta misma página: abrir una pestaña automáticamente no
+      // cuenta como «la ha tocado».
       if (e.isTrusted) laHaTocado = true
-      abrirNivel(b.dataset.pnivel)
-      // El nivel en la dirección (859, `?ver=medallas`), SUSTITUYENDO la
-      // entrada: recargar o compartir enseña el mismo, y atrás no pasa por
-      // él (la regla de la 856). Solo cuando lo tocas tú: la página se abre
-      // sola por donde toque sin ensuciar la dirección.
+      abrirPestania(btn.dataset.ptab)
+      // La pestaña en la dirección (859, `?ver=medallas`), SUSTITUYENDO la
+      // entrada: recargar o compartir enseña la misma, y atrás no pasa por
+      // ella (la regla de la 856). Solo cuando la tocas tú.
       if (e.isTrusted) {
         const url = new URL(location.href)
-        if (b.dataset.pnivel === 'actividad') url.searchParams.delete('ver')
-        else url.searchParams.set('ver', b.dataset.pnivel)
+        url.searchParams.set('ver', btn.dataset.ptab)
+        url.hash = ''
         history.replaceState(null, '', url)
       }
     })
   }
-  // Y al llegar con `?ver=`: Medallas o Actividad ya; la vitrina, cuando
-  // exista (`vitrinaLista`).
-  const verPedida = new URLSearchParams(location.search).get('ver')
-  if (verPedida === 'medallas' || verPedida === 'actividad') abrirNivel(verPedida)
-  for (const btn of botones()) {
-    btn.addEventListener('click', (e) => {
-      // `isTrusted` distingue el clic de una persona del `.click()` que
-      // hace esta misma página al abrir la pestaña que toca. Sin esto,
-      // abrir una pestaña automáticamente contaría como «la ha tocado»
-      // y el hash dejaría de funcionar.
-      if (e.isTrusted) laHaTocado = true
-      for (const b of botones()) b.classList.remove('active')
-      for (const p of document.querySelectorAll('.tab-panel[id^="ptab-"]')) p.classList.remove('active')
-      btn.classList.add('active')
-      document.getElementById(`ptab-${btn.dataset.ptab}`)?.classList.add('active')
-      alAbrir?.(btn.dataset.ptab)
-    })
-  }
+  abrirLaDelHash()
 }
 
-// Llegar con la pestaña puesta: /perfil.html#torneos, #guides, #foro…
-//
+// Llegar con la pestaña puesta: /perfil?ver=medallas, /usuario/x#foro…
 // Genérico y no una lista de casos (tanda 253): cualquier pestaña que
-// exista se abre por su nombre, así que el siguiente aviso que enlace
-// aquí ya funciona sin tocar nada. Se busca entre los botones que HAY,
-// que además es lo que impide que un hash inventado deje la página sin
-// ninguna pestaña activa.
+// exista se abre por su nombre; una inventada no deja la página sin
+// ninguna activa. La vitrina se abre cuando exista (`vitrinaLista`).
 export function abrirLaDelHash() {
-  const nombre = window.location.hash.replace('#', '')
-  if (nombre) abrirPestania(nombre)
+  const nombre = nombreReal(pedidaEnDireccion())
+  if (nombre && nombre !== 'vitrina') abrirPestania(nombre)
 }

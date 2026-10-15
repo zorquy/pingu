@@ -17,7 +17,6 @@ export const NOTIFICATION_TYPES = {
   forum_reply: 'Respuestas en tus temas del foro',
   forum_reaction: 'Reacciones a tus mensajes del foro',
   new_follower: 'Nuevos seguidores',
-  wall_comment: 'Comentarios en tu muro',
   followed_guide_published: 'Guías nuevas de quien sigues',
   guide_approved: 'Tu guía ha sido aprobada',
   guide_rejected: 'Tu guía ha sido rechazada',

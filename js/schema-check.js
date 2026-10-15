@@ -29,7 +29,6 @@ export const REQUISITOS = [
   { tabla: 'categories', columna: 'icon_image', fichero: 'supabase-migration-category-icon-image.sql', rompe: 'Los iconos de categoría no se ven.' },
   { tabla: 'guide_reviews', columna: 'rating', fichero: 'supabase-migration-guide-reviews.sql', rompe: 'No se pueden valorar las guías.' },
   { tabla: 'user_follows', columna: 'follower_id', fichero: 'supabase-migration-follows.sql', rompe: 'No se puede seguir a nadie.' },
-  { tabla: 'profile_comments', columna: 'body', fichero: 'supabase-migration-social.sql', rompe: 'El muro de los perfiles no funciona.' },
   { tabla: 'content_reports', columna: 'status', fichero: 'supabase-migration-content-reports.sql', rompe: 'No se puede reportar contenido.' },
   { tabla: 'app_feedback', columna: 'body', fichero: 'supabase-migration-app-feedback.sql', rompe: 'El botón de feedback no guarda nada.' },
   { tabla: 'client_errors', columna: 'message', fichero: 'supabase-migration-client-errors.sql', rompe: 'Los errores de los usuarios no se registran.' },

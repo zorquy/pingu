@@ -2,17 +2,16 @@ import { supabase } from './supabase.js'
 import { authorRatingSummary } from './guide-rating.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
 import { urlParaCss } from './html.js'
-import { levelProgress, contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml, levelBadgeHtml } from './gamification.js'
-import { barraDeRango } from './rango-barra.js'
-import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
-import { renderWall } from './wall.js'
+import { contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { pintarTorneosDe } from './perfil-torneos.js'
+import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
 import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
-import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirLaDelHash, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
+import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
@@ -64,7 +63,6 @@ async function loadHeader() {
   const miga = document.getElementById('migaNombre')
   if (miga) miga.textContent = name
   const xp = profile.total_xp || 0
-  const progress = levelProgress(xp)
 
   document.title = `${name} — PokeDoc`
 
@@ -88,15 +86,9 @@ async function loadHeader() {
          ficha de persona es la persona. -->
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
-    <div class="perfil-chapas">
-      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${barraDeRango(xp)}</button>
-      <!-- El rango lo rellena loadReputationAndGuides(): depende de
-           cuántas guías tiene aprobadas, y eso se cuenta después. El
-           hueco va aquí para no tener que recomponer la cabecera. -->
-      <span id="rangoHueco"></span>
-    </div>
+    ${lineaDeQuienHtml({ xp, racha: profile.current_streak })}
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-    ${showcase ? `<div class="achievement-tile" style="display:inline-flex; margin-top:8px; width:auto; flex-direction:row; gap:8px; align-items:center; padding:6px 12px;"><span class="icon rarity-${showcase.rarity || 'bronze'}" style="width:28px;height:28px;">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
+    ${showcase ? `<div class="achievement-tile perfil-logro-chapa"><span class="icon rarity-${showcase.rarity || 'bronze'}">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
@@ -116,26 +108,23 @@ async function loadReputationAndGuides() {
 
   const tier = contributorTier(approvedCount || 0)
 
-  // Las cuatro de la 743 (J4), las mismas que en tu perfil. Las otras
-  // tres (seguidores, siguiendo, trofeos) ya vienen en el HTML.
+  // Las cifras (867), las mismas que en tu perfil; Guías y Torneos abren
+  // su pestaña. Seguidores y siguiendo ya vienen en el HTML.
   const { cartas, torneos } = await contarCartasYTorneos(supabase, profileId)
-  document.getElementById('profileStats').innerHTML = cifrasHtml({
-    cartas,
-    racha: profile?.current_streak ?? null,
-    guias: approvedCount ?? null,
-    nota: avgRating,
-    votos: totalNotas,
-    torneos,
-  })
+  const lote = document.getElementById('profileStats')
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, nota: avgRating, votos: totalNotas, torneos })
+  for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
+  contarPestania('torneos', torneos || 0)
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
   // a la fila de chapas, junto al nivel, en vez de desentonar entre
   // números.
+  // «Miembro» (cero guías) no se enseña: solo cuando hay rango que contar.
   const hueco = document.getElementById('rangoHueco')
-  if (hueco) {
+  if (hueco && approvedCount > 0) {
     hueco.outerHTML = `<button type="button" class="perfil-rango" id="btnTierInfo">${tier.icon}${escapeHtml(tier.title)}</button>`
     document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
-  }
+  } else hueco?.remove()
 
   const { data: guides } = await supabase
     .from('guides')
@@ -173,10 +162,20 @@ async function cargarForoUnaVez() {
   await pintarActividadDelForo(document.getElementById('foroActividad'), profileId, { esMio: false })
 }
 
+// Los torneos (867, js/perfil-torneos.js): el palmarés y en cuáles está,
+// la primera vez que se abre la pestaña.
+let torneosCargado = false
+async function cargarTorneosUnaVez() {
+  if (torneosCargado || !profileId) return
+  torneosCargado = true
+  await pintarTorneosDe(document.getElementById('misTorneos'), { userId: profileId, propia: false, logros: profile?.achievements || [] })
+}
+
 // ── Pestañas del perfil (tanda 308: en js/perfil-pestanias.js) ──
 montarPestanias({
   alAbrir: (cual) => {
     if (cual === 'foro') cargarForoUnaVez()
+    if (cual === 'torneos') cargarTorneosUnaVez()
   },
 })
 
@@ -293,28 +292,21 @@ function achievementTileHtml(a, unlocked) {
 async function loadAchievementsGrid() {
   const unlocked = profile?.achievements || []
   achievementsCache = await getAllAchievements()
-  document.getElementById('heroTrophyCount').textContent = unlocked.length
+  document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
+  contarPestania('medallas', unlocked.length)
   document.getElementById('achievementsGrid').innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
   import('./logros-reparto.js').then((m) => m.ponerReparto(document.getElementById('achievementsGrid'))).catch(() => {})
 }
 
-// La cifra de trofeos lleva a las Medallas (752), que es donde viven: el
-// modal enseñaba lo mismo encima de la página.
-document.getElementById('btnShowTrophies')?.addEventListener('click', () => {
-  abrirPestania('medallas')
-  document.getElementById('perfilNiveles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-})
-
-// ── Muro ──
-async function loadComments() {
-  const n = await renderWall({
-    listEl: document.getElementById('commentsList'),
-    formEl: document.getElementById('commentForm'),
-    profileId,
-    currentSession,
-    isAdmin: isViewerAdmin,
-  })
-  contarPestania('wall', typeof n === 'number' ? n : 0)
+// El medallero de los cursos (867): sus oros, platas y bronces. Las
+// partidas son públicas (salvo actividad oculta), así que se puede contar.
+async function loadMedallero() {
+  const caja = document.getElementById('medalleroPerfil')
+  if (!caja) return
+  const { medallasPorCurso } = await import('./medallero.js')
+  const html = medalleroHtml(await medallasPorCurso(profileId))
+  caja.hidden = !html
+  caja.innerHTML = html
 }
 
 async function init() {
@@ -342,15 +334,8 @@ async function init() {
   if (new URLSearchParams(location.search).has('cruce')) {
     import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('perfilCruce'), profile, currentSession)).catch(() => {})
   }
-  await Promise.all([
-    loadReputationAndGuides(),
-    loadComments(),
-    loadFollowButton(),
-    loadFollowSummary(),
-    loadAchievementsGrid(),
-    loadPalmaresTorneos(),
-    contarElForo(),
-  ])
+  await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
+  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()
   // La vitrina (743), la de esta persona: solo lo que hay.
   // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
   import('./vitrina.js')
@@ -370,100 +355,4 @@ async function contarElForo() {
   contarPestania('foro', await contarActividadDelForo(profileId))
 }
 
-// El palmarés de torneos (tanda 211). MIENTRAS DURE LA PRUEBA solo lo
-// ven admins: la sección «Jugar» no existe para nadie más y la RLS de
-// torneos tampoco dejaría leer las inscripciones. Al abrir al público,
-// Sin guarda desde la tanda 252: la sección de torneos es pública y
-// el palmarés de alguien es parte de su perfil.
-async function loadPalmaresTorneos() {
-  const { data: inscripciones } = await supabase
-    .from('tournament_registrations')
-    .select('tournament_id')
-    .eq('user_id', profileId)
-  const ids = [...new Set((inscripciones || []).map((i) => i.tournament_id))]
-  if (!ids.length) return
-  // El podio va CONGELADO en la fila del torneo (tanda 217): aquí solo
-  // se cuenta en qué puesto sale esta persona, sin recalcular brackets.
-  const { data: jugados } = await supabase
-    .from('tournaments')
-    .select('id, podium')
-    .in('id', ids)
-    .eq('status', 'finished')
-  if (!jugados?.length) return
-
-  let campeonatos = 0
-  let podios = 0
-  for (const t of jugados) {
-    const puesto = Array.isArray(t.podium) ? t.podium.indexOf(profileId) : -1
-    if (puesto === 0) campeonatos++
-    else if (puesto > 0) podios++
-  }
-  // Con `join('')` y sin separador salía «Torneos jugados: 1Podio»
-  // pegado. Van con espacio Y con margen en el CSS: el espacio solo se
-  // lo come el navegador al partir la línea.
-  // ── La vitrina (tanda 262) ──
-  //
-  // Antes esto era una línea de texto —«Torneos jugados: 1 Podio»— que
-  // ni decía mucho ni se veía bien (las chapas ni siquiera tenían
-  // estilo: vivían en css/torneos.css, que esta página no carga).
-  //
-  // Ahora se enseñan las MEDALLAS que tiene la persona, con su color de
-  // rareza, y el resumen debajo en pequeño. Se leen de sus logros y no
-  // se recalculan: la medalla la concede la ficha del torneo, y aquí
-  // solo se enseña lo que ya se ganó — así el perfil no puede decir una
-  // cosa y el apartado de trofeos otra.
-  const definiciones = await getAllAchievements()
-  const suyos = new Set(profile?.achievements || [])
-  const medallas = definiciones.filter((d) => esLogroDeTorneo(d.id) && suyos.has(d.id))
-
-  // Y qué falta para la siguiente medalla de participación: un número a
-  // secas no invita a nada, «a 3 de Veterano» sí.
-  const falta = siguienteHito({ jugados: jugados.length })
-  const nombreHito = definiciones.find((d) => d.id === falta?.id)?.title
-  const resumen = [
-    // Corto a propósito: es una línea que convive con las medallas y con
-    // el resto de la cabecera, y «torneos jugados» ya se entiende con
-    // «torneos» al lado de un trofeo.
-    `${jugados.length} ${jugados.length === 1 ? 'torneo' : 'torneos'}`,
-    campeonatos ? `${campeonatos} ${campeonatos === 1 ? 'campeonato' : 'campeonatos'}` : '',
-    podios ? `${podios} ${podios === 1 ? 'podio' : 'podios'}` : '',
-    falta && nombreHito ? `a ${falta.faltan} de ${nombreHito}` : '',
-  ]
-    .filter(Boolean)
-    .join(' · ')
-
-  const vitrina = medallas.length
-    ? `<div class="palmares-vitrina">${medallas
-        .map(
-          (m) => `<span class="palmares-medalla rarity-${escapeHtml(m.rarity || 'bronze')}" title="${escapeHtml(m.title)} — ${escapeHtml(
-            m.description || ''
-          )}" aria-label="${escapeHtml(m.title)}">${achievementIconHtml(m, 20)}</span>`
-        )
-        .join('')}</div>`
-    : ''
-
-  // El palmarés va en su PROPIA FILA, DESPUÉS del bloque de avatar y
-  // nombre. Dos intentos antes de dar con esto:
-  //
-  //   · Dentro de la columna del nombre: en móvil esa columna comparte
-  //     sitio con el avatar de 96 px y se queda en unos 200, así que las
-  //     medallas salían descolgadas en el centro y el resumen se partía
-  //     en tres renglones.
-  //   · Como último hijo de .profile-hero-body con `flex-basis: 100%`:
-  //     ese contenedor solo hace `wrap` por debajo de 640 px, así que en
-  //     escritorio se metía en la MISMA línea y aplastaba la columna del
-  //     nombre hasta dejar «Ash» en vertical, una letra por renglón.
-  //
-  // Fuera del body y antes de la barra de seguidores es una fila de
-  // verdad, a todo el ancho, y no depende de cómo esté configurado el
-  // flex de nadie.
-  document
-    .querySelector('.profile-hero-body')
-    .insertAdjacentHTML(
-      'afterend',
-      `<div class="palmares-fila">${vitrina}<p class="subtext torneo-palmares">${escapeHtml(resumen)}</p></div>`
-    )
-}
-
 init()
-abrirLaDelHash()

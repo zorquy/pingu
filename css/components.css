@@ -311,14 +311,6 @@
   box-shadow: var(--shadow-ring);
 }
 
-.wall-empty {
-  text-align: center;
-  padding: 32px 24px;
-  /* S780.57 */
-  color: var(--text-mid);
-  font-size: var(--t-md);
-}
-
 .sirve-botones {
   display: flex;
   flex-wrap: wrap;

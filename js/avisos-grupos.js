@@ -28,7 +28,6 @@ const TITULOS = {
   forum_reply: (n) => `${n} mensajes nuevos para ti en este tema`,
   forum_reaction: (n) => `${n} reacciones a tu mensaje`,
   new_follower: (n) => `Te siguen ${n} personas nuevas`,
-  wall_comment: (n) => `${n} comentarios en tu muro`,
   trade_match: (n) => `${n} personas dan cartas que buscas`,
   trade_match_seguido: (n) => `${n} personas que sigues dan cartas que buscas`,
   torneo_partida: (n) => `${n} avisos de tu partida`,
