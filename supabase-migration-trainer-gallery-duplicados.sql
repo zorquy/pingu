@@ -24,6 +24,9 @@
 --
 -- 1) Ejecuta primero la vista previa. 2) Luego el bloque `do`.
 -- Es re-ejecutable: sin duplicados no hace nada.
+-- (Las columnas de Cardmarket y TCGplayer son `cm_id_product_propio` y
+-- `tp_id_product_propio`, con `cm_por` y `cm_emparejado_at`: la primera
+-- versión nombraba `cm_id_product`, que no existe, y el `do` falló entero.)
 -- ─────────────────────────────────────────────────────────────────────
 
 -- ── 1. Vista previa: qué carta de TCGGO se funde en qué gemela ──
@@ -46,7 +49,7 @@ declare
   dup record;
 begin
   for r in
-    select t.id as id_tcggo, g.id as id_gemela, t.tcggo_id, t.image_tcggo, t.cm_id_product, t.tp_id_product, t.cm_id_product_propio,
+    select t.id as id_tcggo, g.id as id_gemela, t.tcggo_id, t.image_tcggo, t.cm_id_product_propio, t.tp_id_product_propio, t.cm_por, t.cm_emparejado_at,
            t.rarity_en, t.hp, t.illustrator
       from public.tcg_cards t
       join public.tcg_cards g
@@ -62,9 +65,10 @@ begin
     update public.tcg_cards g
        set tcggo_id = coalesce(g.tcggo_id, r.tcggo_id),
            image_tcggo = coalesce(g.image_tcggo, r.image_tcggo),
-           cm_id_product = coalesce(g.cm_id_product, r.cm_id_product),
-           tp_id_product = coalesce(g.tp_id_product, r.tp_id_product),
            cm_id_product_propio = coalesce(g.cm_id_product_propio, r.cm_id_product_propio),
+           tp_id_product_propio = coalesce(g.tp_id_product_propio, r.tp_id_product_propio),
+           cm_por = coalesce(g.cm_por, r.cm_por),
+           cm_emparejado_at = coalesce(g.cm_emparejado_at, r.cm_emparejado_at),
            rarity_en = coalesce(g.rarity_en, r.rarity_en),
            hp = coalesce(g.hp, r.hp),
            illustrator = coalesce(g.illustrator, r.illustrator)
