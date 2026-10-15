@@ -102,6 +102,13 @@ export async function buscarTodo(crudo, { limite = 4, grupos = GRUPOS.map(([g]) 
       }
     })
   )
+  // Para el panel (848): cuántas salieron, solo si todos los grupos han
+  // contestado (un fallo no es «no hay»). Por `import()`: no pesa en la
+  // barra de arriba hasta que alguien busca.
+  if (Object.values(salida).every((g) => !g.error)) {
+    const total = Object.values(salida).reduce((n, g) => n + (g.filas?.length || 0), 0)
+    import('./busquedas-apunte.js').then((m) => m.apuntarBusqueda(texto, total)).catch(() => {})
+  }
   return salida
 }
 

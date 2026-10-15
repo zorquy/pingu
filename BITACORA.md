@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (80) — PINGU-Claude (848 — analítica mejor, sin cookies, y el panel en visual)
+
+**Hecho** (PINGU preguntó si meter cookies; la respuesta fue que no —un
+identificador por navegador pide banner en España y lo que hacía falta saber se
+puede contar sin él— y «dale, hazla toda y ponme el panel en el admin mucho más
+bonito y visual»):
+- **De dónde llega la gente**: cada visita lleva `origen` (solo el dominio ya
+  traducido: google, instagram, telegram, x…; «directo»; o «interno» si viene
+  de otra página nuestra) y `campana` (el `utm_source` de los enlaces que
+  compartes). Y `aparato` (móvil / tableta / ordenador, por el ancho).
+- **Qué se busca**: el buscador común (/buscar, la lupa y Ctrl+K) apunta en
+  `busquedas` el texto y cuántos resultados salieron, sin usuario, una vez por
+  texto y solo cuando se queda quieto 2 s.
+- **Páginas rotas**: la 404 apunta en `enlaces_rotos` la dirección y desde
+  dónde se llegó (si es una página nuestra, el enlace roto es nuestro).
+- **/admin → Analítica, en visual**: lo cuenta la base (`admin_analitica`):
+  la ficha grande de personas con su chispa y la variación contra el periodo
+  anterior, cinco fichas más (entradas, con cuenta, altas, % móvil, vuelven a
+  la semana), la gráfica de líneas por día con tooltip (ratón y teclado), de
+  dónde llegan, la barra de aparatos, el mapa de calor día × hora con la hora
+  punta en palabras, la retención de ocho semanas, lo más buscado, lo buscado
+  sin resultado, las campañas, las páginas rotas y las más visitadas. Debajo,
+  lo de siempre (velocidad, guías, cursos, comunidad) en las mismas tarjetas.
+  Colores validados para daltonismo en los dos temas; cada gráfica con su
+  tabla de datos.
+- **/privacidad** dice lo nuevo: de qué web vienes (solo el nombre) y que las
+  búsquedas se guardan sin saber quién.
+
+**Ficheros**: `supabase-migration-analitica.sql` (NUEVA), `js/page-views.js`,
+`js/buscador.js`, `js/busquedas-apunte.js` y `js/pagina-rota.js` (nuevos),
+`404.html`, `privacidad.html`, `admin/js/analitica.js` (nuevo),
+`admin/js/admin.js`, `admin/index.html`, `admin/css/admin.css`. Pruebas
+`test-tanda-848.mjs` (PostgreSQL y ayudantes) y `test-tanda-848-pantalla.mjs`;
+`admin_analitica` en el doble.
+
+**Pruebas**: 848 y 848-pantalla verdes; imports, 821, 336, 341, 278, 276, 814,
+827, 718, 723, 299, 305, 309–315, 386, 737, 829, 847 y noticias, en verde.
+Peso de la portada, 111,9 KB.
+
+**Pendiente**: **PINGU, ejecuta `supabase-migration-analitica.sql`**. Hasta
+entonces la web apunta las visitas sin las columnas nuevas (no se pierde
+ninguna) y el panel enseña lo de antes con un aviso. Los orígenes, aparatos y
+búsquedas empiezan a contar desde que se ejecute.
+
 ## 2026-10-15 (79) — PINGU-Claude (847 — Guardados, rehecha, y una sola fila de guía)
 
 **Hecho** (PINGU, con captura: «¿te parece algo útil? ¿lo deberíamos quitar?

@@ -1820,6 +1820,10 @@ function dayKey(d) {
   return new Date(d).toISOString().slice(0, 10)
 }
 
+function logAnaliticaRota(e) {
+  import('../../js/error-log.js').then(({ logClientError }) => logClientError(`Panel de analítica: ${e?.message || e}`, null)).catch(() => {})
+}
+
 // Lo que tarda DE VERDAD cada página (821): el p75 de LCP, INP y CLS de
 // las visitas medidas, con el color de los umbrales de Google (bueno / a
 // mejorar / malo). Lo cuenta la base (`vitales_resumen`).
@@ -1845,6 +1849,36 @@ async function loadAnalytics() {
   const days = Number(document.getElementById('analyticsDays')?.value) || 7
   const since = new Date(Date.now() - days * 86400_000).toISOString()
 
+  // El panel en visual (848): lo cuenta la base. Mientras recarga, se queda
+  // lo de antes medio apagado (sin esqueleto ni salto). Si la función no
+  // está —falta la migración— se pinta lo de siempre y se dice.
+  const panel = document.getElementById('anPanel')
+  const viejo = document.getElementById('anViejo')
+  panel?.classList.add('cargando')
+  const { data: an, error: anError } = await supabase.rpc('admin_analitica', { p_dias: days })
+  const nuevo = Boolean(panel && !anError && an)
+  if (nuevo) {
+    try {
+      const { pintarAnalitica } = await import('./analitica.js')
+      pintarAnalitica(panel, an, { pageLabel })
+      panel.hidden = false
+      viejo.hidden = true
+    } catch (e) {
+      panel.hidden = true
+      viejo.hidden = false
+      logAnaliticaRota(e)
+    }
+  } else if (panel) {
+    panel.hidden = false
+    viejo.hidden = false
+    panel.innerHTML = `<div class="admin-warning"><strong>El panel nuevo no está.</strong> ${
+      /PGRST202|Could not find the function/i.test(`${anError?.code} ${anError?.message}`)
+        ? 'Falta ejecutar <code>supabase-migration-analitica.sql</code> en el SQL Editor; mientras, abajo tienes lo de siempre.'
+        : `No se ha podido leer: ${escapeHtml(anError?.message || 'error desconocido')}.`
+    }</div>`
+  }
+  panel?.classList.remove('cargando')
+
   // Las visitas se piden POR PÁGINAS. PostgREST corta cualquier consulta en
   // 1.000 filas aunque no pongas límite: con tráfico de verdad, pedirlas de
   // una vez enseñaría "1.000 visitas" para siempre, sin ningún aviso de que
@@ -1869,7 +1903,8 @@ async function loadAnalytics() {
   }
 
   const [viewsRes, profilesRes, guidesRes, progressRes, guideCommentsRes, wallCommentsRes] = await Promise.all([
-    todasLasVisitas(),
+    // Con el panel nuevo las visitas ya vienen contadas: no se bajan.
+    nuevo ? Promise.resolve({ data: [], error: null }) : todasLasVisitas(),
     supabase.from('user_profiles').select('id, created_at, current_streak'),
     supabase.from('guides').select('id, title, slug, view_count, blocks').not('published_at', 'is', null),
     supabase.from('user_progress').select('guide_id, user_id, status, read_at'),
@@ -1918,6 +1953,9 @@ async function loadAnalytics() {
   const guides = guidesRes.data || []
   const progress = progressRes.data || []
 
+  if (nuevo) {
+    pintarVitales(days).catch(() => {})
+  } else {
   // ── Personas y robots, por separado ──
   //
   // Google (y otros) ejecutan JavaScript al indexar, así que cada pasada
@@ -2000,6 +2038,7 @@ async function loadAnalytics() {
     }))
   document.getElementById('analyticsTable').innerHTML = rankTableHtml(pathRows, ['Página', 'Visitas'])
   pintarVitales(days).catch(() => {})
+  }
 
   // ── Guías más vistas ──
   const guideRows = guides

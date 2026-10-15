@@ -732,3 +732,191 @@ body {
 .vital-bien { background: var(--success-bg); color: var(--success); }
 .vital-regular { background: var(--warning-bg); color: var(--warning); }
 .vital-mal { background: var(--danger-bg); color: var(--danger); }
+
+/* ── Analítica en visual (848) ──
+   Los colores de las gráficas son tokens propios con su versión oscura,
+   validados para daltonismo (SCHEMA, tanda 848). El texto nunca lleva el
+   color de la serie: va con los de texto, y al lado una marca de color. */
+.an-panel {
+  --an-s1: #2a78d6;
+  --an-s2: #eb6834;
+  --an-s3: #1baf7a;
+  --an-neutro: #d5dde2;
+  --an-rejilla: var(--border);
+  --an-superficie: var(--white);
+}
+:root[data-theme='dark'] .an-panel {
+  --an-s1: #3987e5;
+  --an-s2: #d95926;
+  --an-s3: #199e70;
+  --an-neutro: #3a4a56;
+}
+.an-panel { display: grid; gap: var(--e-lg); margin-bottom: var(--e-xl); transition: opacity 0.2s; }
+.an-panel.cargando { opacity: 0.55; }
+
+.an-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--e-md); }
+.an-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+/* La de las personas, a lo ancho: la cifra a la izquierda y su chispa al lado. */
+.an-tile-grande {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: var(--e-xl);
+  align-items: end;
+}
+.an-tile-grande > :not(.an-chispa) { grid-column: 1; }
+.an-tile-grande .an-chispa { grid-column: 2; grid-row: 1 / 4; height: 64px; align-self: stretch; }
+.an-tile-etiqueta { font-size: var(--t-xs); font-weight: 600; color: var(--text-mid); }
+.an-tile-valor { font-size: var(--t-3xl); font-weight: 700; line-height: 1.1; color: var(--text); }
+.an-tile-grande .an-tile-valor { font-size: calc(var(--t-3xl) * 1.5); }
+.an-tile-nota { font-size: var(--t-xs); color: var(--text-mid); }
+.an-delta { font-size: var(--t-xs); font-weight: 700; color: var(--text-mid); }
+.an-delta small { font-weight: 400; }
+.an-delta-sube { color: var(--success); }
+.an-delta-baja { color: var(--danger); }
+.an-chispa { width: 100%; height: 36px; margin-top: auto; }
+.an-chispa polyline { fill: none; stroke: var(--an-s1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+
+.an-rejilla-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-lg); }
+.an-card {
+  position: relative;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--e-lg) var(--e-lg) var(--e-md);
+  min-width: 0;
+}
+.an-ancha { grid-column: 1 / -1; }
+.an-card-cab { margin-bottom: var(--e-md); }
+.an-card-cab h2 { font-size: var(--t-lg); margin: 0; }
+.an-card-cab p { margin: 4px 0 0; font-size: var(--t-xs); color: var(--text-mid); }
+.an-vacio { color: var(--text-mid); font-size: var(--t-sm); margin: var(--e-sm) 0; }
+.an-titular { margin: 0 0 var(--e-md); font-size: var(--t-sm); color: var(--text-mid); }
+.an-titular strong { color: var(--text); }
+
+/* Las marcas de color de leyendas y tooltips: raya para líneas, caja para fills. */
+.an-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-lg); list-style: none; margin: 0 0 var(--e-sm); padding: 0; font-size: var(--t-xs); color: var(--text-mid); }
+.an-leyenda li { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.an-leyenda strong { color: var(--text); }
+.an-clave { display: inline-block; width: 16px; height: 2px; border-radius: 2px; background: var(--an-s1); }
+.an-clave.an-s2 { background: var(--an-s2); }
+.an-clave-caja { display: inline-block; width: 12px; height: 12px; border-radius: 4px; background: var(--an-s1); }
+.an-clave-caja.an-s2 { background: var(--an-s2); }
+.an-clave-caja.an-s3 { background: var(--an-s3); }
+.an-clave-caja.an-neutro { background: var(--an-neutro); }
+
+/* Líneas */
+.an-lienzo { position: relative; min-height: 240px; }
+.an-lineas { display: block; overflow: visible; }
+.an-rejilla { stroke: var(--an-rejilla); stroke-width: 1; }
+.an-eje { fill: var(--text-mid); font-size: var(--t-2xs); font-variant-numeric: tabular-nums; }
+.an-area { fill: var(--an-s1); opacity: 0.1; }
+.an-linea { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.an-linea.an-s1 { stroke: var(--an-s1); }
+.an-linea.an-s2 { stroke: var(--an-s2); }
+.an-fin { fill: var(--text); font-size: var(--t-xs); font-weight: 700; }
+.an-cruz-linea { stroke: var(--text-mid); stroke-width: 1; }
+.an-punto { stroke: var(--an-superficie); stroke-width: 2; }
+.an-punto.an-s1 { fill: var(--an-s1); }
+.an-punto.an-s2 { fill: var(--an-s2); }
+.an-toque { fill: transparent; cursor: crosshair; }
+.an-toque:focus, .an-toque:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2; }
+.an-tip {
+  position: absolute;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  min-width: 140px;
+  max-width: 200px;
+  padding: var(--e-sm) var(--e-md);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  pointer-events: none;
+}
+.an-tip[hidden] { display: none; }
+.an-tip b { color: var(--text); text-transform: capitalize; }
+.an-tip span { display: flex; align-items: center; gap: var(--e-xs); }
+.an-tip strong { color: var(--text); font-size: var(--t-sm); }
+
+/* Barras horizontales */
+.an-barras { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-sm); }
+.an-barras li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) auto; align-items: center; gap: var(--e-md); font-size: var(--t-sm); }
+.an-barra-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.an-barra-pista { height: 12px; }
+.an-barra-pista i { display: block; height: 100%; background: var(--an-s1); border-radius: 0 4px 4px 0; }
+.an-barra-n { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.an-barra-n small { display: inline-block; min-width: 40px; font-weight: 400; color: var(--text-mid); }
+.an-sin { color: var(--danger) !important; }
+
+/* La pila de aparatos: tres trozos con su hueco de 2 px. */
+.an-pila { display: flex; gap: 2px; height: 24px; margin: var(--e-sm) 0 var(--e-md); }
+.an-pila i { border-radius: 0; min-width: 4px; }
+.an-pila i:first-child { border-radius: 4px 0 0 4px; }
+.an-pila i:last-child { border-radius: 0 4px 4px 0; }
+.an-pila i:only-child { border-radius: 4px; }
+.an-pila .an-s1 { background: var(--an-s1); }
+.an-pila .an-s2 { background: var(--an-s2); }
+.an-pila .an-s3 { background: var(--an-s3); }
+
+/* Mapa de calor: un tono, de la superficie al azul. */
+.an-calor { display: grid; grid-template-columns: 24px repeat(24, minmax(0, 1fr)); gap: 2px; font-size: var(--t-2xs); color: var(--text-mid); }
+.an-calor > span:not(.an-calor-celda) { text-align: center; }
+.an-calor-dia { text-align: left !important; font-weight: 600; line-height: 24px; }
+.an-calor-celda { height: 24px; border-radius: 4px; background: color-mix(in srgb, var(--an-s1) var(--i), var(--bg)); outline: none; }
+.an-calor-celda:hover, .an-calor-celda:focus-visible { box-shadow: 0 0 0 2px var(--text); }
+.an-calor-escala { display: flex; align-items: center; justify-content: flex-end; gap: var(--e-sm); margin-top: var(--e-sm); font-size: var(--t-2xs); color: var(--text-mid); }
+.an-calor-escala i { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--bg), var(--an-s1)); }
+
+/* Retención: columnas apiladas, lo que vuelve abajo. */
+.an-columnas { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--e-md); align-items: end; height: 220px; margin-bottom: var(--e-sm); }
+.an-col { display: grid; grid-template-rows: auto 1fr auto; height: 100%; text-align: center; outline: none; }
+.an-col:focus-visible .an-col-barra { box-shadow: 0 0 0 2px var(--text); }
+.an-col-pct { font-size: var(--t-xs); font-weight: 700; min-height: 20px; }
+.an-col-barra { align-self: end; justify-self: center; width: min(100%, 24px); display: flex; flex-direction: column-reverse; gap: 2px; background: var(--an-neutro); border-radius: 4px 4px 0 0; overflow: hidden; }
+.an-col-barra i { display: block; background: var(--an-s1); }
+.an-col-barra.en-curso { opacity: 0.6; }
+.an-col-eje { font-size: var(--t-2xs); color: var(--text-mid); margin-top: var(--e-xs); white-space: nowrap; }
+
+.an-chapa { display: inline-block; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--danger-bg); color: var(--danger); font-size: var(--t-2xs); font-weight: 700; }
+.an-rotos code { overflow-wrap: anywhere; }
+.an-tabla { margin-top: var(--e-sm); font-size: var(--t-xs); }
+.an-tabla summary { cursor: pointer; color: var(--text-mid); min-height: 44px; display: flex; align-items: center; }
+.an-tabla table { margin-top: var(--e-sm); }
+
+@media (max-width: 900px) {
+  .an-rejilla-cards { grid-template-columns: minmax(0, 1fr); }
+  .an-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .an-tile-grande { grid-template-columns: minmax(0, 1fr); }
+  .an-tile-grande .an-chispa { grid-column: 1; grid-row: auto; height: 36px; }
+}
+@media (max-width: 600px) {
+  .an-calor { grid-template-columns: 16px repeat(24, minmax(0, 1fr)); gap: 1px; }
+  .an-calor-celda { height: 16px; border-radius: 2px; }
+  .an-columnas { gap: var(--e-xs); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .an-panel { transition: none; }
+}
+
+/* Lo de siempre de debajo (velocidad, guías, cursos, comunidad), en las
+   mismas tarjetas que el panel. */
+.an-extra .admin-subtitle { margin-top: 0; font-size: var(--t-lg); }
+.an-extra .empty-state { padding: var(--e-lg) 0; }
+.an-extra .empty-state:not([style])::before { display: none; }

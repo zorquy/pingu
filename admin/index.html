@@ -281,35 +281,51 @@
             <option value="90">Últimos 90 días</option>
           </select>
         </div>
-        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Datos propios, sin cookies ni servicios externos.</p>
+        <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Datos propios, sin cookies ni servicios externos: nadie lleva un identificador, solo se cuenta.</p>
 
         <!-- Sale solo si alguna consulta ha fallado. Un cero puede
              significar "no ha entrado nadie" o "no he podido leerlo", y
              sin decirlo no hay forma de distinguirlos. -->
         <div id="analyticsErrores"></div>
 
-        <div class="admin-stats-grid" id="analyticsSummary"></div>
+        <!-- El panel en visual (848), contado en la base por admin_analitica.
+             Sin la migración sale lo de abajo, que es lo de antes. -->
+        <div class="an-panel" id="anPanel" hidden></div>
 
-        <h2 class="admin-subtitle">Visitas por día</h2>
-        <div id="analyticsChart"></div>
+        <div id="anViejo">
+          <div class="admin-stats-grid" id="analyticsSummary"></div>
 
-        <h2 class="admin-subtitle">Páginas más visitadas</h2>
-        <div id="analyticsTable"></div>
+          <h2 class="admin-subtitle">Visitas por día</h2>
+          <div id="analyticsChart"></div>
 
-        <h2 class="admin-subtitle">Lo que tarda de verdad</h2>
-        <p class="admin-note">El percentil 75 en los navegadores de la gente (una visita de cada cuatro): LCP es cuándo se ve lo principal, INP lo que tarda en responder a un toque y CLS cuánto salta. Verde, ámbar y rojo son los umbrales de Google.</p>
-        <div id="analyticsVitales"></div>
+          <h2 class="admin-subtitle">Páginas más visitadas</h2>
+          <div id="analyticsTable"></div>
+        </div>
 
-        <h2 class="admin-subtitle">Guías más vistas</h2>
-        <p class="admin-note">Contador acumulado de <code>guides.view_count</code>, desde siempre — no se filtra por periodo.</p>
-        <div id="analyticsGuides"></div>
+        <div class="an-rejilla-cards an-extra">
+          <section class="an-card an-ancha">
+            <h2 class="admin-subtitle">Lo que tarda de verdad</h2>
+            <p class="admin-note">El percentil 75 en los navegadores de la gente (una visita de cada cuatro): LCP es cuándo se ve lo principal, INP lo que tarda en responder a un toque y CLS cuánto salta. Verde, ámbar y rojo son los umbrales de Google.</p>
+            <div id="analyticsVitales"></div>
+          </section>
 
-        <h2 class="admin-subtitle">Cursos: empezados y completados</h2>
-        <p class="admin-note" id="analyticsCoursesNote"></p>
-        <div id="analyticsCourses"></div>
+          <section class="an-card">
+            <h2 class="admin-subtitle">Guías más vistas</h2>
+            <p class="admin-note">Contador acumulado de <code>guides.view_count</code>, desde siempre — no se filtra por periodo.</p>
+            <div id="analyticsGuides"></div>
+          </section>
 
-        <h2 class="admin-subtitle">Actividad de la comunidad</h2>
-        <div id="analyticsCommunity"></div>
+          <section class="an-card">
+            <h2 class="admin-subtitle">Cursos: empezados y completados</h2>
+            <p class="admin-note" id="analyticsCoursesNote"></p>
+            <div id="analyticsCourses"></div>
+          </section>
+
+          <section class="an-card an-ancha">
+            <h2 class="admin-subtitle">Actividad de la comunidad</h2>
+            <div id="analyticsCommunity"></div>
+          </section>
+        </div>
       </section>
 
       <section class="admin-section" id="section-account-deletions">

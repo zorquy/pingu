@@ -130,6 +130,58 @@ export function pareceRobot(ua = navigator.userAgent, webdriver = navigator.webd
   return /bot|crawl|spider|slurp|preview|headless|lighthouse|scrap|python-requests|curl\//i.test(String(ua || ''))
 }
 
+// De dónde llega la gente (tanda 848), SOLO el dominio y ya traducido a un
+// nombre: la dirección entera de la página de origen puede llevar datos de
+// quien la mira (una búsqueda, un perfil). «interno» si viene de otra página
+// nuestra (eso no es una entrada), «directo» si no hay de dónde.
+const ORIGENES = [
+  [/(^|\.)google\./, 'google'],
+  [/(^|\.)bing\.com$/, 'bing'],
+  [/(^|\.)duckduckgo\.com$/, 'duckduckgo'],
+  [/(^|\.)(instagram\.com|l\.instagram\.com)$/, 'instagram'],
+  [/(^|\.)(t\.me|telegram\.org|telegram\.me)$/, 'telegram'],
+  [/(^|\.)(x\.com|twitter\.com|t\.co)$/, 'x'],
+  [/(^|\.)(facebook\.com|fb\.com|l\.facebook\.com|m\.facebook\.com)$/, 'facebook'],
+  [/(^|\.)(youtube\.com|youtu\.be)$/, 'youtube'],
+  [/(^|\.)tiktok\.com$/, 'tiktok'],
+  [/(^|\.)reddit\.com$/, 'reddit'],
+  [/(^|\.)(discord\.com|discord\.gg|discordapp\.com)$/, 'discord'],
+  [/(^|\.)(whatsapp\.com|wa\.me)$/, 'whatsapp'],
+  [/(^|\.)ko-fi\.com$/, 'ko-fi'],
+]
+export function origenDe(referrer = '', host = '') {
+  if (!referrer) return 'directo'
+  let h
+  try {
+    h = new URL(referrer).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return 'directo'
+  }
+  if (!h) return 'directo'
+  if (h === String(host || '').toLowerCase().replace(/^www\./, '')) return 'interno'
+  for (const [re, nombre] of ORIGENES) if (re.test(h)) return nombre
+  return h.slice(0, 60)
+}
+
+// La etiqueta de campaña de un enlace que compartes (`?utm_source=telegram`).
+export function campanaDe(search = '') {
+  try {
+    const v = new URLSearchParams(search).get('utm_source')
+    const limpia = String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40)
+    return limpia || null
+  } catch {
+    return null
+  }
+}
+
+// Tres grupos por el ancho (y el puntero, para la tableta): no identifica a
+// nadie y es lo que hace falta para saber dónde se mira la web.
+export function aparatoDe(ancho = 0, tactil = false) {
+  if (ancho < 768) return 'movil'
+  if (ancho < 1200 && tactil) return 'tablet'
+  return 'pc'
+}
+
 export async function logPageView(session) {
   try {
     // supabase-js NO lanza excepciones: los fallos vienen en `error`, y
@@ -141,8 +193,17 @@ export async function logPageView(session) {
       path: normalizePath(window.location.pathname, window.location.search),
       user_id: session?.user?.id || null,
       is_bot: pareceRobot(),
+      origen: origenDe(document.referrer, location.hostname),
+      campana: campanaDe(location.search),
+      aparato: aparatoDe(window.innerWidth, matchMedia?.('(pointer: coarse)').matches),
     }
     let { error } = await supabase.from('page_views').insert(fila)
+    // Sin la migración de la 848 las tres columnas no existen: se vuelve a
+    // mandar sin ellas, que la visita no se pierda (como con is_bot).
+    if (error && /origen|campana|aparato/.test(error.message || '')) {
+      const { origen: _o, campana: _c, aparato: _a, ...sinNuevas } = fila
+      ;({ error } = await supabase.from('page_views').insert(sinNuevas))
+    }
     // Si la base aún no tiene la columna (la web se despliega antes de
     // ejecutar la migración), la visita NO se pierde: se registra sin
     // clasificar, que es como quedaban todas hasta ahora.

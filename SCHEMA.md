@@ -40531,3 +40531,43 @@ escribe al momento (leyendo antes la lista de la base para no pisar otra
 pestaña) y deja la fila con «Deshacer», que la vuelve a meter en su POSICIÓN
 (`data-pos`). «Quitar las leídas» con `confirm`. Las acciones van delegadas y
 enganchadas una vez en `init`, porque limpiar repinta la lista.
+
+## Tanda 848 — Analítica sin cookies y el panel en visual
+
+**Por qué no cookies**: un identificador por navegador (visitantes únicos,
+quién vuelve) es una cookie de analítica, y en España la AEPD pide
+consentimiento: banner, y números a medias de todas formas. Lo que se quería
+saber se cuenta sin identificar a nadie.
+
+**Datos** (`supabase-migration-analitica.sql`): `page_views.origen` (≤ 60),
+`campana` (≤ 40) y `aparato` (`movil|tablet|pc`), con `check`. Tablas
+`busquedas (q 2–80, resultados, donde)` y `enlaces_rotos (ruta ≤ 200, desde)`:
+insert para `anon`/`authenticated`, select solo `is_admin()` (la política de
+leer en la misma migración, la 510). `admin_analitica(p_dias)` (`security
+definer`, falla con 42501 si no eres del equipo) devuelve `resumen` (y el
+periodo anterior para las variaciones), `por_dia`, `origenes` (solo entradas:
+sin `interno`), `campanas`, `aparatos`, `paginas` (normalizadas: sin `.html`,
+`/usuario/*` y `/tema/*` juntos), `retencion` (8 semanas lunes-domingo en hora
+de Madrid; `vuelven` = de los con cuenta de esa semana, cuántos tienen visita
+la siguiente; `null` en la semana en curso), `horas` (isodow × hora),
+`busquedas` (total, vacías, top con sus vacías, sin resultado) y `rotos` (con el
+«desde» que más se repite). Personas = `is_bot = false`.
+
+**Navegador**: `origenDe(referrer, host)`, `campanaDe(search)` y
+`aparatoDe(ancho, táctil)` en `js/page-views.js`; si la base no tiene las
+columnas, la visita se reintenta sin ellas (como `is_bot`). `buscarTodo` llama
+por `import()` a `js/busquedas-apunte.js` solo si todos los grupos contestaron;
+se apunta lo que queda quieto 2 s, ≥ 3 letras, una vez por texto y pestaña.
+`js/pagina-rota.js` en la 404: ruta sin consulta, «desde» = ruta propia o
+dominio, sin robots.
+
+**Panel** (`admin/js/analitica.js`, `.an-*` en `admin/css/admin.css`): SVG a
+mano. Colores `--an-s1..3` (#2a78d6 / #eb6834 / #1baf7a; en oscuro #3987e5 /
+#d95926 / #199e70) validados con el validador de la skill de gráficas contra
+`--white` de los dos temas (todos los pares pasan; el aqua en claro queda bajo
+3:1 y por eso la pila de aparatos lleva su leyenda con las cifras). La línea
+se dibuja con el ancho de su caja y se repinta con `ResizeObserver` (la
+sección nace escondida, la 628); el tooltip va por `textContent`; las celdas y
+columnas llevan `data-tip` y foco. Sin la función (PGRST202) sale lo de antes
+(`#anViejo`) con el aviso de qué migración falta; con ella, las visitas ya no
+se bajan al navegador.
