@@ -88,7 +88,10 @@ export const VARIANTES = [
 
 export const idiomaDe = (id) => IDIOMAS.find((i) => i.id === id) || IDIOMAS[0]
 export const estadoDe = (id) => ESTADOS.find((e) => e.id === id) || ESTADOS.find((e) => e.id === ESTADO_POR_DEFECTO)
-export const varianteDe = (id) => VARIANTES.find((v) => v.id === id) || VARIANTES[0]
+// Una versión de TCGGO (862: `quick-ball`) no es ninguna de las cuatro y
+// tampoco es «normal»: su nombre se saca del id (el exacto, con acentos,
+// lo tiene js/mi-coleccion/variantes.js).
+export const varianteDe = (id) => VARIANTES.find((v) => v.id === id) || (id ? { id, nombre: String(id).split('-').map((p) => (p ? p[0].toUpperCase() + p.slice(1) : p)).join(' ') } : VARIANTES[0])
 
 // ── El precio ──
 

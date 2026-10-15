@@ -42,7 +42,8 @@ import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
 import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
-import { variantesDeCarta, TODAS } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, versionDeVariante, TODAS } from './mi-coleccion/variantes.js'
+import { versionesDe as versionesDeTcggo } from './carta-versiones.js'
 import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
@@ -61,8 +62,10 @@ const CLAVE_IDIOMA = 'mcTocarIdioma-es'
 // (`TODAS`) solo las ofrece el diálogo de añadir, donde la carta la tienes
 // en la mano. PINGU: «no tiene sentido que tengas todas esas versiones y
 // encima no puedes clicar en ellas porque no existen».
-function variantesDe(v, siNoSeSabe = undefined) {
-  return variantesDeCarta({ variants: v }, siNoSeSabe).map((x) => x.nuestro)
+// Y con las versiones de TCGGO pegadas (862): la Quick Ball es una
+// impresión más, con su precio.
+function variantesDe(v, siNoSeSabe = undefined, versiones = []) {
+  return variantesDeCarta({ variants: v, versiones }, siNoSeSabe).map((x) => ({ id: x.nuestro, nombre: x.nombre }))
 }
 
 // Los idiomas de una carta occidental: la misma regla que la vista «es»
@@ -141,12 +144,13 @@ function colocarPrecioAlLado(caja) {
 export async function pintarMercado(carta) {
   const caja = $('cartaMercado')
   if (!caja || !carta?.id) return
-  const [vivo, guardadas] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map())])
+  const [vivo, guardadas, versiones] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map()), versionesDeTcggo(carta).catch(() => [])])
   const guardada = guardadas.get(carta.id) || null
   // Las impresiones: lo que diga TCGdex en vivo y, si no contesta, lo que
-  // guardamos de él en la carta (645).
-  const variantes = variantesDe(vivo?.variants ?? carta.variants)
-  const variantesParaAnadir = variantesDe(vivo?.variants ?? carta.variants, TODAS)
+  // guardamos de él en la carta (645); y las versiones de TCGGO (862).
+  const listaDeVariantes = variantesDe(vivo?.variants ?? carta.variants, undefined, versiones)
+  const variantes = listaDeVariantes.map((v) => v.id)
+  const variantesParaAnadir = variantesDe(vivo?.variants ?? carta.variants, TODAS, versiones).map((v) => v.id)
   const idiomas = idiomasDeCarta()
   const estado = { idioma: idiomaRecordado(idiomas), estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
   let ultimoPrecio = null
@@ -159,7 +163,7 @@ export async function pintarMercado(carta) {
         <div class="mc-idioma-chips" id="cmIdiomas" role="radiogroup" aria-label="Idioma del precio">${chipsDeIdioma(idiomas, estado.idioma)}</div>
         <label class="carta-mercado-estado">Estado <select id="cmEstado">${opciones(ESTADOS, estado.estado)}</select></label>
         <select id="cmIdioma" class="pv-select-oculto" aria-label="Idioma">${opciones(idiomas, estado.idioma)}</select>
-        <select id="cmVariante" class="pv-select-oculto" aria-label="Versión">${opciones(VARIANTES.filter((v) => variantes.includes(v.id)), estado.variante)}</select>
+        <select id="cmVariante" class="pv-select-oculto" aria-label="Versión">${opciones(listaDeVariantes, estado.variante)}</select>
       </div>
       <div id="cmPrecios"></div>
       <!-- Comparar con otra (735): un diálogo, js/carta-comparar.js. -->
@@ -175,19 +179,21 @@ export async function pintarMercado(carta) {
     </div>`
   caja.classList.remove('hidden')
   colocarPrecioAlLado(caja)
-  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'), { precio: guardada, variants: vivo?.variants ?? carta.variants ?? null })).catch(() => {})
+  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'), { precio: guardada, variants: vivo?.variants ?? carta.variants ?? null, filas: versiones })).catch(() => {})
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'
     const enVivo = precioDe(vivo?.pricing, { reverse, variante: estado.variante })
-    const guardado = precioDeFila(guardada, { reverse, variante: estado.variante })
+    // Una versión de TCGGO (862) tiene su propia fila de precio.
+    const version = versionDeVariante({ versiones }, estado.variante)
+    const guardado = version ? precioDeFila(version, { reverse: false, variante: 'normal' }) : precioDeFila(guardada, { reverse, variante: estado.variante })
     // El guardado manda (TCGGO, por idioma); el vivo de TCGdex solo si el
     // guardado no dice nada; y sin cifras, el que traiga el enlace (375).
     const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
     ultimoPrecio = precio
     $('cmPrecios').innerHTML = bloqueDePrecio(precio, {
       idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null,
-      variantes: VARIANTES.filter((v) => variantes.includes(v.id)), impresionesPulsables: true, rotuloActivo: 'elegido',
+      variantes: listaDeVariantes, impresionesPulsables: true, rotuloActivo: 'elegido',
     })
   }
   pintarPrecio()
@@ -409,7 +415,8 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
   idiomasDeLaHoja = idiomas
   $('cmAdIdiomas').innerHTML = chipsDeAnadir(idiomas, idiomaRecordado(idiomas))
   $('cmAdEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
-  const vs = VARIANTES.filter((v) => variantes.includes(v.id))
+  // `varianteDe` sabe también de las versiones de TCGGO (862).
+  const vs = variantes.map((id) => varianteDe(id))
   $('cmAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
   $('cmAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
   $('cmAdCantidad').value = '1'

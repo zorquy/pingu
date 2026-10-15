@@ -40872,3 +40872,69 @@ primera); apuntar «tengo la Quick Ball» pide una migración que admita las
 etiquetas de TCGGO y el selector de añadir leyendo `tcg_card_versions`.
 Pruebas: `test-tanda-861.mjs` (fixtures-861/: las tres fichas de PINGU tal
 cual), y `test-tanda-807` / `822-pantalla` al día.
+
+## Tanda 862 — Las versiones de TCGGO en la colección
+
+PINGU, con Dex delante: «Normal, Reverse Holo y Quick Ball Holo, cada una
+su casilla; tener cualquiera cuenta como tener ese Drakloak 159, pero la
+copia dice cuál es, y al separar versiones salen todas». Hasta aquí las
+impresiones de una carta eran las cuatro de TCGdex (`variants`:
+normal/reverse/holo/primera) y la colección solo admitía esas
+(`user_collection_variante`).
+
+**Qué es una versión en la colección.** `js/mi-coleccion/variantes.js`:
+`varianteDeEtiqueta(etiqueta)` pasa lo que TCGGO llama la versión a
+nuestro id —sin etiqueta (o «Reverse Holo») es `reverse`, «Holo» es `holo`,
+«Standard» es `normal`, «1st Edition» es `primera`, y lo demás su etiqueta
+en minúsculas sin acentos y con guiones (`quick-ball`,
+`energy-symbol-pattern`), de hasta 40—. `pegarVersiones(cartas, filas)`
+cuelga las filas de `tcg_card_versions` de cada carta (`carta.versiones`)
+y apunta el nombre exacto de cada id (`NOMBRES`, para «Poké Ball» con su
+acento); `variantesDeCarta` devuelve las de TCGdex y detrás las de TCGGO,
+sin repetir (la reverse puede venir de las dos), y si solo hay versiones
+de TCGGO, la normal delante (la Standard es la carta misma). De ahí salen
+solas «separar variantes» (una casilla por versión, con su «+» que lleva
+`data-variante`), el diálogo de añadir y el editor, la Pokédex, el maestro
+de `progreso-set` y las opciones de filtro. `nombreDeVariante(id)` y
+`cortoDeVariante(id)` («ESP», «QB») valen para cualquier id, también uno
+guardado cuyas filas no se han traído (se deshace del id); `varianteDe` de
+`cardmarket.js` ya no toma por normal lo que no conoce.
+
+**De dónde salen las filas.** `datos.versionesDeSets(ids, mercado)` al
+abrir una expansión (una consulta por set, antes de pintar) y
+`datos.versionesDeCartas(ids)` para una carta suelta: el diálogo de añadir,
+el editor y la ficha de Buscar las piden después de pintarse y amplían el
+desplegable si llegan (`completarVersionesDe`); al cargar la colección se
+piden solo las de las copias que SON una versión de TCGGO (pocas), no las
+de toda la colección. Todas pasan por `registrarVersiones`, y
+`precioDeLinea` mira ahí primero: una copia `quick-ball` vale lo de SU fila
+(con su producto de Cardmarket y su mínimo por idioma), y una `reverse`
+con fila de TCGGO vale lo de esa fila y no la cuenta sobre la normal. Lo
+que no tiene fila cae a la carta, como antes. Sin la tabla (la migración
+de la 807) todo devuelve [] sin error.
+
+**/carta.** `carta-mercado.js` trae las versiones con el precio
+(`versionesDe` de `carta-versiones.js`, que ahora devuelve las filas
+enteras) y las mete como impresiones que se eligen —el desplegable y las
+chapas—; elegida una versión de TCGGO, el bloque de precio es
+`precioDeFila` de su fila. El bloque «Versiones en Cardmarket» (861) recibe
+las filas ya traídas (`filas`) y no vuelve a consultar.
+
+**La base.** `supabase-migration-variantes-tcggo.sql`: la restricción
+pasa de las cuatro a `^[a-z0-9]+(-[a-z0-9]+)*$` de hasta 40. Lo guardado
+cumple la forma. Las funciones de SQL que valoran una línea
+(`valor_de_linea` y las de TCGGO, `p_variante`) tratan una versión de
+TCGGO como la normal: la foto diaria del valor va por ahí, y el Panel por
+`precioDeLinea`, que sí sabe. Si se nota, la versión entra en esas
+funciones (SELECT a `tcg_card_versions` por carta y etiqueta).
+
+**Lo que no cambia.** La casilla «juntas» cuenta todas las versiones como
+la carta (`tengoEnAlbum(c.id)` sin versión), que es lo que pidió PINGU; el
+velo oscuro de la reverse lo llevan también las versiones de TCGGO (los
+patrones brillan en todo el marco); la chapa de una de TCGGO lleva un
+degradado propio en `mi-coleccion.css`. Importar CSV sigue reconociendo
+solo las cuatro. Prueba: `test-tanda-862.mjs` (lo puro, el precio, la
+migración contra PostgreSQL, la expansión separada con el «+» de la Quick
+Ball y el diálogo, Cartas, y /carta); `test-tanda-383` al día (un id
+desconocido ya no es «Normal»; cierra los diálogos en vez de dos Escape,
+que desde la 856 suben un nivel).

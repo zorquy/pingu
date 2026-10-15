@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (94) — PINGU-Claude (862 — las versiones de TCGGO en la colección)
+
+**Hecho** (PINGU, con Dex: «que se pueda apuntar la Quick Ball; que salgan
+todas las versiones al separar; tener cualquiera cuenta como tener la
+carta, y la copia dice cuál es»):
+- Las filas de `tcg_card_versions` se pegan a cada carta
+  (`pegarVersiones`) y `variantesDeCarta` las devuelve detrás de las de
+  TCGdex: «separar variantes» abre una casilla por versión (N, RH, ESP,
+  QB…), el «+» de cada una apunta esa, el diálogo de añadir, el editor y
+  Buscar las ofrecen, y /carta las tiene como impresiones con su precio.
+- El id en la colección es la etiqueta de TCGGO en minúsculas con guiones
+  (`quick-ball`); sin etiqueta es la `reverse` de siempre.
+- Una copia que es una versión vale lo de su fila (`precioDeLinea`); una
+  reverse con fila de TCGGO también.
+- **Migración** `supabase-migration-variantes-tcggo.sql`: la restricción
+  de `user_collection.variante` admite esos ids. Hasta que se ejecute,
+  añadir una Quick Ball falla con el error de la restricción (lo demás
+  funciona: ver y elegir sí, guardar no).
+
+**Ficheros**: `js/mi-coleccion/variantes.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion.js`, `js/cardmarket.js`, `js/carta-mercado.js`,
+`js/carta-versiones.js`, `css/mi-coleccion.css`,
+`supabase-migration-variantes-tcggo.sql` (nueva), `novedades.json`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-862.mjs` nueva; `test-tanda-383.mjs`
+al día (un id desconocido ya no es «Normal», y cierra los diálogos en vez
+de dos Escape: desde la 856 un Escape sin diálogo sube un nivel y la
+prueba llevaba roja desde entonces).
+
+**Pruebas**: 862 (con PostgreSQL), 383, 564, 692, 779, 712, 822, 861, 299,
+827, 523, 757, 856, 461, 650 e imports en verde (650 se cae a veces en
+carriles por tiempo; sola, verde).
+
+**Pendiente (PINGU)**: ejecutar `supabase-migration-variantes-tcggo.sql`
+en el SQL Editor (dos sentencias). Y las versiones del Drakloak llegan
+cuando la pasada de la 861 pase por sus ids.
+
 ## 2026-10-15 (93) — PINGU-Claude (861 — las versiones con nombre de TCGGO)
 
 **Hecho** (PINGU, con el Drakloak de Ascended Heroes: TCGGO lo tiene tres

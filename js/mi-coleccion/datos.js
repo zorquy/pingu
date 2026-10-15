@@ -8,6 +8,7 @@ import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from 
 // buscando cartas con una clave que no existe.
 import { MERCADO_POR_DEFECTO } from '../mercados.js'
 import { deSetVisible } from '../catalogo-series.js'
+import { varianteDeEtiqueta } from './variantes.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
@@ -383,6 +384,14 @@ export function precioDeLinea(linea, guardados, vivos) {
   const reverse = linea.variante === 'reverse'
   // La versión entera (586): TCGplayer da un precio por cada una.
   const variante = linea.variante || 'normal'
+  // Una VERSIÓN de TCGGO (862: la Quick Ball, la Reverse de un set viejo)
+  // tiene su propia fila de precio, con las mismas columnas que la de la
+  // carta; si se ha traído, manda sobre la cuenta de la reverse.
+  const version = versionesPorCarta.get(linea.card_id)?.find((f) => varianteDeEtiqueta(f.etiqueta) === variante)
+  if (version) {
+    const p = precioDeFila(version, { reverse: false, variante: 'normal' })
+    if (tieneCifras(p)) return p
+  }
   const guardado = precioDeFila(guardados.get(linea.card_id), { reverse, variante })
   if (tieneCifras(guardado)) return guardado
   const v = vivos.get(linea.card_id)
@@ -392,6 +401,45 @@ export function precioDeLinea(linea, guardados, vivos) {
   // que es lo que hace que el enlace a Cardmarket lleve a la carta y no
   // a una búsqueda por nombre.
   return guardado || vivo
+}
+
+// ── Las versiones de TCGGO (862) ──
+//
+// `tcg_card_versions` (861): una fila por versión, colgada de la carta,
+// con su etiqueta y su precio. Se piden por set (al abrir una expansión)
+// o por carta (un diálogo, las copias que son una versión) y se recuerdan
+// aquí para el precio de las líneas. Sin la tabla (la migración de la 807
+// sin ejecutar) no hay versiones, no hay error.
+const COLUMNAS_VERSION = 'tcggo_id,card_id,set_id,etiqueta,cm_id_product,link_cm,cm_low,cm_low_en,cm_low_de,cm_low_fr,cm_low_es,cm_low_it,cm_avg7,cm_avg30,cm_disponibles,tp_market_eur,tp_mid_eur,actualizado_at'
+const versionesPorCarta = new Map()
+export function registrarVersiones(filas) {
+  for (const f of filas || []) {
+    if (!f?.card_id) continue
+    const l = versionesPorCarta.get(f.card_id) || []
+    if (!l.some((x) => x.tcggo_id === f.tcggo_id)) l.push(f)
+    versionesPorCarta.set(f.card_id, l)
+  }
+  return filas || []
+}
+export const versionesRegistradas = (cardId) => versionesPorCarta.get(cardId) || []
+
+export async function versionesDeSets(setIds, mercado = MERCADO_POR_DEFECTO) {
+  const ids = [...new Set((setIds || []).filter(Boolean))]
+  if (!ids.length) return []
+  const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).eq('market', mercado).in('set_id', ids).order('tcggo_id').limit(1000)
+  if (error) return []
+  return registrarVersiones(data || [])
+}
+
+export async function versionesDeCartas(cardIds) {
+  const ids = [...new Set((cardIds || []).filter(Boolean))]
+  const todas = []
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).in('card_id', ids.slice(i, i + 150)).order('tcggo_id').limit(1000)
+    if (error) break
+    todas.push(...(data || []))
+  }
+  return registrarVersiones(todas)
 }
 
 // Lo que vale un montón de líneas (756): UNA definición para el Panel y

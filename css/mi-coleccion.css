@@ -1066,6 +1066,12 @@
   color: #10141c;
 }
 
+/* Las versiones de TCGGO (862: Energy Symbol Pattern, Quick Ball…). */
+.mc-chapa-variante:not([data-var='normal']):not([data-var='reverse']):not([data-var='holo']):not([data-var='primera']) b {
+  background: linear-gradient(120deg, #c084fc, #60a5fa 50%, #34d399);
+  color: #10141c;
+}
+
 /* En la cuadrícula el «+» va en la esquina de abajo: la chapa, a la otra (778). */
 .mc-rejilla-celda .mc-chapa-variante {
   left: var(--e-xs);

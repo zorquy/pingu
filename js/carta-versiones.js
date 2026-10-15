@@ -54,19 +54,27 @@ export function versionesHtml(versiones, { variants = null, precioPrincipal = nu
     <ul class="cv-lista"><li><span class="cv-fila cv-principal"><span class="cv-nombre">Standard</span><span class="cv-precio">${cifra(precioPrincipal)}</span></span></li>${filas.join('')}</ul>`
 }
 
-// `precio` es la fila de precio de la carta (la Standard); `variants`, sus
-// impresiones de TCGdex.
-export async function pintarVersiones(carta, caja, { cliente = supabase, precio = null, variants = null } = {}) {
-  if (!caja || !carta?.id) return
+// Las versiones de una carta, con sus precios enteros (862: la ficha las
+// usa también como impresiones que se eligen). Sin tabla o sin filas, [].
+export async function versionesDe(carta, { cliente = supabase } = {}) {
+  if (!carta?.id) return []
   const { data, error } = await cliente
     .from('tcg_card_versions')
-    .select('tcggo_id, card_id, etiqueta, cm_id_product, link_cm, cm_low, cm_low_es')
+    .select('tcggo_id, card_id, set_id, etiqueta, cm_id_product, link_cm, cm_low, cm_low_en, cm_low_de, cm_low_fr, cm_low_es, cm_low_it, cm_avg7, cm_avg30, cm_disponibles, tp_market_eur, tp_mid_eur, actualizado_at')
     .eq('card_id', carta.id)
     .eq('market', carta.market || 'WEST')
     .order('tcggo_id')
     .limit(12)
+  return error ? [] : data || []
+}
+
+// `precio` es la fila de precio de la carta (la Standard); `variants`, sus
+// impresiones de TCGdex; `filas`, las versiones si ya se han traído.
+export async function pintarVersiones(carta, caja, { cliente = supabase, precio = null, variants = null, filas = null } = {}) {
+  if (!caja || !carta?.id) return
+  const data = filas || await versionesDe(carta, { cliente })
   // Sin tabla (la migración de la 807) o sin versiones, no hay nada que decir.
-  if (error || !data?.length) return
+  if (!data?.length) return
   caja.innerHTML = versionesHtml(data, { variants: variants ?? carta.variants ?? null, precioPrincipal: precioDeVersion(precio) })
   caja.classList.remove('hidden')
 }

@@ -63,7 +63,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
@@ -480,6 +480,14 @@ function abrirAnadir(cardId, variante = null) {
   $('mcAdTienes').classList.toggle('hidden', !copias)
   prepararAnadir()
   if (!d.open) d.showModal()
+  // Las versiones de TCGGO llegan después y amplían el desplegable (862).
+  void completarVersionesDe(c).then((hay) => {
+    if (!hay || anadir.carta !== c || !d.open) return
+    const puesta = $('mcAdVariante').value
+    const vs = variantesParaEditar(c, puesta)
+    $('mcAdVariante').innerHTML = opciones(vs, puesta)
+    $('mcAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
+  })
 }
 
 // El formulario: con el idioma que se recuerda para este catálogo (el del
@@ -685,13 +693,25 @@ function pintarOtrasCopias(l) {
 function variantesQueExisten(carta, variante) {
   const hay = variantesDeCarta(carta, []).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
   if (!variante || hay.some((v) => v.id === variante)) return hay
-  return [...hay, ...VARIANTES.filter((v) => v.id === variante)]
+  return [...hay, { id: variante, nombre: nombreDeVariante(variante) }]
 }
 
 function variantesParaEditar(carta, variante) {
   const hay = variantesDeCarta(carta, TODAS_LAS_VARIANTES).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
   if (!variante || hay.some((v) => v.id === variante)) return hay
-  return [...hay, ...VARIANTES.filter((v) => v.id === variante)]
+  // La que la línea ya tiene, aunque no se ofrezca (la 472): también una
+  // versión de TCGGO cuyas filas no se han traído (862).
+  return [...hay, { id: variante, nombre: nombreDeVariante(variante) }]
+}
+
+// Las versiones de TCGGO de UNA carta (862), si no vinieron con su set:
+// para el diálogo de añadir y el editor. Dice si había alguna.
+async function completarVersionesDe(c) {
+  if (!c?.id || c.versiones !== undefined) return false
+  const filas = await datos.versionesDeCartas([c.id]).catch(() => [])
+  pegarVersiones([c], filas)
+  if (c.versiones === undefined) c.versiones = []
+  return filas.length > 0
 }
 
 // El gradeo son dos desplegables y un escape (tanda 563). El escape no
@@ -2451,6 +2471,11 @@ function abrirEditor(l) {
   // que es lo que ya hacía la ficha: ahí la carta la tienes tú en la
   // mano y sabes mejor que nosotros en qué versión está.
   $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, l.variante), l.variante)
+  void completarVersionesDe(c).then((hay) => {
+    if (!hay || !$('mcEditor')?.open) return
+    const puesta = $('mcEdVariante').value
+    $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, puesta), puesta)
+  })
   $('mcEdCantidad').value = l.cantidad
   // `?? 0` y no `|| 0`: son lo mismo hoy, pero el día que la columna no
   // esté (la migración sin ejecutar) `undefined || 0` y `undefined ?? 0`
@@ -3481,6 +3506,10 @@ async function abrirAlbum(setId, { push = true } = {}) {
     const ids = idsDeColeccion(setId)
     const lista = ids.length > 1 ? await datos.cartasDeSets(ids, mercado) : await datos.cartasDeSet(setId, mercado)
     album.cartas = lista.sort(porNumero)
+    // Las versiones de TCGGO del set (862), pegadas a cada carta antes de
+    // pintar: con ellas «separar variantes» abre una casilla por versión.
+    pegarVersiones(album.cartas, await datos.versionesDeSets(ids.length ? ids : [setId], mercado).catch(() => []))
+    if (album.set !== setId) return
     void cargarPreciosDelAlbum(setId)
   } catch (err) {
     $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
@@ -3563,14 +3592,12 @@ const claseMarcada = (cardId, variante = 'normal') =>
 // El código corto va dentro y el nombre al lado, que es lo que hace que se
 // entienda sin tener que aprenderse las siglas.
 function chapaDeVarianteHtml(id) {
-  const v = varianteDe(id)
-  const corto = CORTO_DE_VARIANTE[v.id] || 'N'
+  const v = { id: id || 'normal', nombre: nombreDeVariante(id || 'normal') }
+  const corto = cortoDeVariante(v.id)
   // El nombre va en su propia caja para que pueda recortarse sin empujar al
   // código: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
   return `<span class="mc-chapa-variante" data-var="${escapeHtml(v.id)}" aria-hidden="true"><b>${escapeHtml(corto)}</b><span>${escapeHtml(v.nombre)}</span></span>`
 }
-
-const CORTO_DE_VARIANTE = { normal: 'N', reverse: 'RH', holo: 'H', primera: '1.ª' }
 
 // LO TUYO SE DICE CON UNA MARCA, NO SOLO CON EL COLOR (757). PINGU, con
 // Dex delante, eligió la propuesta «en gris»: lo que falta en gris, lo tuyo
@@ -3587,7 +3614,7 @@ function versionQueTienesHtml(c) {
   const mias = variantesDeCarta(c).filter((v) => tengoEnAlbum(c.id, v.nuestro))
   // Solo la normal no distingue nada: el «Normal» sale en «separar variantes» (781, SI9).
   if (!mias.length || (mias.length === 1 && mias[0].nuestro === 'normal')) return ''
-  const texto = mias.length === 1 ? mias[0].nombre : mias.map((v) => CORTO_DE_VARIANTE[v.nuestro] || v.nombre).join(' + ')
+  const texto = mias.length === 1 ? mias[0].nombre : mias.map((v) => cortoDeVariante(v.nuestro)).join(' + ')
   return `<span class="mc-tengo-version" aria-hidden="true">${escapeHtml(texto)}</span>`
 }
 
@@ -3606,7 +3633,9 @@ function versionQueTienesHtml(c) {
 // brillo de la rareza (css/carta-holo.css). Dos dueños para el mismo
 // pseudo es un apaño que se rompe al tocar cualquiera de los dos.
 function veloDeVariante(id) {
-  return id === 'reverse' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''
+  // También las versiones de TCGGO (862): los patrones llevan el brillo en
+  // todo el marco, como la reverse.
+  return id && id !== 'normal' && id !== 'holo' && id !== 'primera' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''
 }
 
 function bolsilloDeVariante(c, v) {
@@ -5397,6 +5426,11 @@ async function elegir(cardId) {
   // ANTES de enseñar el formulario para que no se vea el cambio.
   const vs = variantesParaEditar(c, null)
   $('mcAnadirVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
+  void completarVersionesDe(c).then((hay) => {
+    if (!hay || seleccion !== c) return
+    const puesta = $('mcAnadirVariante').value
+    $('mcAnadirVariante').innerHTML = opciones(variantesParaEditar(c, puesta), puesta)
+  })
   $('mcAnadirForm').classList.remove('hidden')
   $('mcAnadirForm').scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   const v = await datos.preciosEnVivo(c.id)
@@ -8629,6 +8663,10 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
       datos.cartasPorClaves(lineasTodo).catch(() => new Map()),
       datos.preciosGuardados(idsTodo),
     ])
+    // Las copias que son una VERSIÓN de TCGGO (862) valen lo de su fila:
+    // se traen solo las de esas (pocas), no las de toda la colección.
+    const conVersion = [...new Set(lineas.filter((l) => l.variante && !esClasica(l.variante)).map((l) => l.card_id))]
+    if (conVersion.length) pegarVersiones([...cartas.values()], await datos.versionesDeCartas(conVersion).catch(() => []))
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
     if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
