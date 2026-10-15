@@ -166,19 +166,11 @@ export function padresPorEpisodio(sets) {
 // de uno: los de la lista a mano de arriba y los que llevan su id con
 // `tg`, `gg` o `sv` detrás (con o sin «.5»). Lo usan el catálogo (para
 // casar antes de crear) y la pasada de precios (para no dejarlos sin).
-//
-// Y los que van dentro de la expansión de TCGGO pero NO se pliegan en la
-// estantería (854): la Classic Collection de Celebrations. PINGU: «yo las
-// sacaría y las metería en la Classic Collection: 25 en un lado y 25 en
-// otro». Son hermanos para el catálogo y los precios, y dos filas en /cartas.
-export const HERMANOS_SOLO_DE_CATALOGO = [
-  { padre: 'cel25', hijos: ['cel25cc', 'cel25c'] },
-]
 export function setsHermanos(padre, ids) {
   const x = String(padre || '')
   if (!x) return []
   const lista = [...(ids || [])].map(String)
-  const aMano = [...(COLECCIONES_JUNTAS.find((c) => c.padre === x)?.hijos || []), ...(HERMANOS_SOLO_DE_CATALOGO.find((c) => c.padre === x)?.hijos || [])]
+  const aMano = COLECCIONES_JUNTAS.find((c) => c.padre === x)?.hijos || []
   const patron = new RegExp(`^${x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\.5)?(tg|gg|sv)$`, 'i')
   return lista.filter((id) => id !== x && (aMano.includes(id) || patron.test(id)))
 }

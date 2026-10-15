@@ -107,6 +107,15 @@ export const REEMPLAZOS = [
   // cuenta como set hermano. Esta entrada ya está hecha y no se repite;
   // los sets de la Classic se quitan por si alguna vez se volviera a hacer.
   { clave: 'cel25-entero', sets: ['cel25'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
+  // Y OTRA VEZ, JUNTO (855). La 854 quiso sacar la Classic a su set con un
+  // SQL y lo dejó al revés: Celebrations vacío y la Classic con las 50.
+  // PINGU: «hazme un solo set que sea Celebrations y mete todas, pero
+  // déjate de líos. Y no quiero ejecutar SQLs, hazlo tú». Así que lo mismo
+  // que la 687, por el mismo camino: la expansión 35 de TCGGO entera en
+  // `cel25`, la Classic (`cel25cc`; `cel25c` por si acaso) se vacía y se
+  // borra, y lo que la gente tenga apuntado pasa a la carta de TCGGO (por
+  // su id de TCGGO, que las de la Classic ya llevan desde la 854).
+  { clave: 'cel25-junto', sets: ['cel25', 'cel25cc', 'cel25c'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos

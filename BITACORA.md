@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (87) — PINGU-Claude (855 — Celebrations, un solo set; la 854 deshecha)
+
+**Hecho** (PINGU: «Celebrations está vacío y la Classic tiene las 50, al
+revés […] hazme un solo set que sea Celebrations y mete todas, pero déjate de
+líos. Y no quiero ejecutar SQLs, hazlo tú»):
+- Lo de la 854 fue culpa mía: di por hecho que las 25 de siempre llevaban id
+  `cel25-N` y tras el reemplazo de la 687 todas eran `tcggo-N`, así que el
+  paso «lo que no tiene gemela se mueve a la Classic» se llevó también las 25
+  de siempre.
+- Se deshace SIN SQL, por el camino de la 687: una entrada nueva en
+  `REEMPLAZOS` (`cel25-junto`) que la función programada ejecuta sola en su
+  próxima pasada (cada 5 minutos): la expansión 35 de TCGGO entera en
+  Celebrations, la Classic se vacía y se borra, y lo que la gente tuviera
+  apuntado pasa a la carta de TCGGO. Queda UN set, Celebrations, con las 50.
+- Fuera los «hermanos solo de catálogo» de la 854 y su SQL.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`js/catalogo-series.js`, `supabase-migration-celebrations-classic.sql`
+(borrado). En `pruebas`: `test-tanda-854.mjs` reescrita para esto.
+
+**Pruebas**: 854 (reescrita) verde, y 666, 693, 654, 853, 640 e imports en verde.
+
+**Pendiente**: nada que ejecutar. Mirar en /admin → «Reemplazos» que
+`cel25-junto` sale como hecho en la próxima pasada, y /cartas: Celebrations
+con 50 y la Classic desaparecida.
+
 ## 2026-10-15 (86) — PINGU-Claude (854 — la Classic Collection de Celebrations, en su set)
 
 **Hecho** (PINGU: «en TCGGO solo hay un set, Celebrations, y mezclan la

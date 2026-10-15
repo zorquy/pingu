@@ -40698,3 +40698,22 @@ funde en su gemela de `cel25cc` por nombre inglés único en los dos lados
 (mismo procedimiento que la 853), y la que no tenga gemela se mueve a
 `cel25cc` tal cual (la comprobación final las lista). Prueba:
 `test-tanda-854.mjs`; la 666 espera `sets: ['cel25']`.
+
+## Tanda 855 — Celebrations, un solo set (la 854 deshecha)
+
+La migración de la 854 daba por hecho que las 25 de siempre de `cel25`
+llevaban id `cel25-N`; tras el reemplazo entero de la 687 TODAS eran
+`tcggo-N`, así que el paso «lo que no tiene gemela se mueve a la Classic»
+se llevó también las 25 de siempre: `cel25` vacío y `cel25cc` con 50. PINGU:
+«hazme un solo set que sea Celebrations y mete todas, pero déjate de líos.
+Y no quiero ejecutar SQLs, hazlo tú». Se deshace por el camino de la 687:
+`REEMPLAZOS` lleva `cel25-junto` (`sets: ['cel25', 'cel25cc', 'cel25c']`,
+destino `cel25`, expansión 35, entero), que `tcggo-reemplazar-set` ejecuta
+sola en su pasada (cada 5 min; una expansión a TCGGO): las 50 de TCGGO en
+`cel25` con id `tcggo-N` (las que ya están, se les mueve el `set_id`), las
+de TCGdex de la Classic se van con lo apuntado reapuntado a su carta de
+TCGGO (por `tcggo_id`, que llevan desde la 854), y `cel25cc` se borra al
+quedarse vacío. `HERMANOS_SOLO_DE_CATALOGO` se quita y el SQL de la 854 sale
+del repo. Lección: **una migración que decide por la FORMA de un id
+(`tcggo-%`) tiene que comprobar antes cuántas filas no la tienen** — la
+vista previa solo enseñaba las que sí.
