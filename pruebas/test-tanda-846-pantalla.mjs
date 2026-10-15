@@ -62,16 +62,16 @@ console.log('── 1. En el móvil ──')
   }
   const sale = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   check('  …y deslizan sin sacar la página de la pantalla', sale <= 1, `${sale}px`)
-  check('la primera en tarjeta y las otras 11 en filas', (await p.locator('#apLista .guia-tarjeta').count()) === 1 && (await p.locator('.ap-fila').count()) === 11)
-  const fila = await p.locator('.ap-fila').first().boundingBox()
+  check('la primera en tarjeta y las otras 11 en filas', (await p.locator('#apLista .guia-tarjeta').count()) === 1 && (await p.locator('.guia-fila').count()) === 11)
+  const fila = await p.locator('.guia-fila').first().boundingBox()
   check('  …cada fila mide menos de 110 px y se pulsa entera', fila && fila.height < 110 && fila.height >= 44, String(fila?.height))
-  check('  …lleva a su guía', /^\/guia\/guia-/.test((await p.locator('.ap-fila').first().getAttribute('href')) || ''))
+  check('  …lleva a su guía', /^\/guia\/guia-/.test((await p.locator('.guia-fila').first().getAttribute('href')) || ''))
   check('  …y dice si la hiciste', /Curso hecho/.test(await p.locator('#apLista').innerText()))
   await p.screenshot({ path: '/tmp/claude-0/ap-846-movil.png' })
   // El buscador: filtra y no pierde el foco.
   await p.locator('#apBuscar').fill('carta')
   await p.waitForTimeout(200)
-  const n = await p.locator('#apLista .guia-tarjeta, .ap-fila').count()
+  const n = await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()
   const esperadas = GUIAS.filter((g) => /carta/i.test(g.title + g.description)).length
   check('el buscador filtra por título y descripción', n === esperadas, `${n} vs ${esperadas}`)
   check('  …sin perder el foco', await p.evaluate(() => document.activeElement?.id === 'apBuscar'))
@@ -84,11 +84,11 @@ console.log('── 1. En el móvil ──')
   await p.locator('[data-concurso]').click()
   await p.waitForTimeout(200)
   const cursos = GUIAS.filter((g) => g.blocks.length).length
-  check('«Con curso» deja solo las que tienen curso', (await p.locator('#apLista .guia-tarjeta, .ap-fila').count()) === cursos)
+  check('«Con curso» deja solo las que tienen curso', (await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()) === cursos)
   check('  …y su chip dice que está puesto', (await p.locator('[data-concurso]').getAttribute('aria-pressed')) === 'true')
   await p.locator('[data-concurso]').click()
   await p.waitForTimeout(200)
-  check('  …y se quita', (await p.locator('#apLista .guia-tarjeta, .ap-fila').count()) === GUIAS.length)
+  check('  …y se quita', (await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()) === GUIAS.length)
   await ctx.close()
 }
 
@@ -96,7 +96,7 @@ console.log('── 2. En el PC ──')
 {
   const { p, ctx, errores } = await abrir()
   check('sin errores', !errores.length, errores.join(' | '))
-  check('todas en tarjeta, sin filas', (await p.locator('.guia-tarjeta').count()) === GUIAS.length && !(await p.locator('.ap-fila').count()))
+  check('todas en tarjeta, sin filas', (await p.locator('.guia-tarjeta').count()) === GUIAS.length && !(await p.locator('.guia-fila').count()))
   const [g1, g2] = await p.$$eval('.ap-rejilla .guia-tarjeta', (ts) => ts.slice(0, 2).map((t) => t.getBoundingClientRect().width))
   check('la primera es la grande (dos pistas)', g1 > g2 * 1.8, `${g1} / ${g2}`)
   const dir = await p.$eval('.ap-rejilla .guia-tarjeta-enlace', (e) => getComputedStyle(e).flexDirection)
@@ -106,7 +106,7 @@ console.log('── 2. En el PC ──')
 }
 {
   const { p, ctx, errores } = await abrir({ movil: true, sesion: 'none' })
-  check('sin cuenta: sin «Sigue», sin medallero, y las guías igual', !errores.length && !(await p.locator('.aprender-seguir').count()) && !(await p.locator('#medallero').isVisible()) && (await p.locator('.ap-fila').count()) === 11, errores.join(' | '))
+  check('sin cuenta: sin «Sigue», sin medallero, y las guías igual', !errores.length && !(await p.locator('.aprender-seguir').count()) && !(await p.locator('#medallero').isVisible()) && (await p.locator('.guia-fila').count()) === 11, errores.join(' | '))
   await ctx.close()
 }
 await b.close()
