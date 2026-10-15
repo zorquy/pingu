@@ -896,7 +896,9 @@ export function cartaDeRespuesta(r) {
 // { id, set_id, local_id, producto, principal }, donde `principal` es el id
 // de TCGGO con el que ya la conocemos (el de su fila de precio o el de la
 // carta) y `producto` su `cardmarket_id`. Contesta un `tipo`:
-//   · 'version'      → es otra impresión de `carta` (lo que se guarda);
+//   · 'version'      → es otra impresión de `carta` (lo que se guarda):
+//                      del mismo producto de Cardmarket o, con `version`
+//                      en la ficha (861), del mismo nombre;
 //   · 'principal'    → es la carta misma (ya la tenemos);
 //   · 'sinPrincipal' → casa con una carta nuestra cuyo id de TCGGO no se
 //                      sabe todavía: sin él no se puede decir cuál de las
@@ -907,6 +909,11 @@ export function cartaDeRespuesta(r) {
 //   · 'ajena'        → no es una carta suelta occidental.
 // El número se exige SIEMPRE, también cuando casa por producto: un producto
 // de Cardmarket mal emparejado no puede colgar una versión de otra carta.
+// La etiqueta de una versión, si TCGGO la da (861): «Energy Symbol
+// Pattern», «Quick Ball»… Las viejas (la Reverse del Snorlax, la del
+// Tangrowth de Lost Thunder) vienen SIN el campo: ahí la web decide.
+export const etiquetaDeVersion = (suya) => (typeof suya?.version === 'string' && suya.version.trim() ? suya.version.trim() : null)
+
 export function decidirVersion(suya, candidatas = []) {
   if (!suya || !Number.isInteger(suya.id)) return { tipo: 'ajena', porque: 'no es una carta' }
   if (!esCartaSuelta(suya)) return { tipo: 'ajena', porque: `no es una carta suelta (${suya.type})` }
@@ -919,9 +926,18 @@ export function decidirVersion(suya, candidatas = []) {
   if (!unicas.length) return { tipo: 'sinCarta', porque: `ninguna nuestra con el número ${suya.card_number}` }
   if (unicas.some((c) => Number(c.principal) === suya.id)) return { tipo: 'principal', carta: unicas.find((c) => Number(c.principal) === suya.id) }
   // De las que casan por número, las del MISMO producto: una con otro
-  // producto es otra carta (la sellada lleva el suyo).
-  const delProducto = unicas.filter((c) => !c.producto || Number(c.producto) === producto)
-  if (!delProducto.length) return { tipo: 'otraCarta', porque: `el número casa con ${unicas.map((c) => c.id).join(', ')}, con otro producto de Cardmarket` }
+  // producto es otra carta (la sellada lleva el suyo)…
+  let delProducto = unicas.filter((c) => !c.producto || Number(c.producto) === producto)
+  // …SALVO que TCGGO diga que es una versión (861): a los patrones de Mega
+  // Evolution (Energy Symbol Pattern, Quick Ball) Cardmarket les da
+  // producto propio, y la ficha lleva `version`. Entonces vale la carta
+  // nuestra del mismo número y el MISMO NOMBRE (el número solo se repite
+  // entre galerías hermanas, y ahí el nombre distingue).
+  if (!delProducto.length && etiquetaDeVersion(suya)) {
+    const nombre = nombreComparable(suya.name)
+    delProducto = unicas.filter((c) => c.nombre != null && nombre && nombreComparable(c.nombre) === nombre)
+  }
+  if (!delProducto.length) return { tipo: 'otraCarta', porque: `el número casa con ${unicas.map((c) => c.id).join(', ')}, con otro producto de Cardmarket${etiquetaDeVersion(suya) ? ' y otro nombre' : ''}` }
   if (delProducto.length > 1) return { tipo: 'dudosa', porque: `casa con ${delProducto.map((c) => c.id).join(', ')}` }
   const carta = delProducto[0]
   if (!Number.isInteger(Number(carta.principal)) || !Number(carta.principal)) return { tipo: 'sinPrincipal', carta }
@@ -940,6 +956,8 @@ export function filaDeVersion(suya, carta, { ahora = new Date() } = {}) {
     set_id: carta.set_id ?? null,
     numero: suya.card_number != null ? String(suya.card_number) : null,
     nombre: suya.name ?? null,
+    // Lo que TCGGO llama la versión (861), o null: lo decide la web.
+    etiqueta: etiquetaDeVersion(suya),
     cm_id_product: p.cm_id_product ?? null,
     // El enlace de TCGGO a Cardmarket lleva puesto el filtro de la versión
     // (PINGU: «te aplica ya el filtro de reverse»); solo si es suyo.

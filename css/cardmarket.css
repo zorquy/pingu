@@ -1349,6 +1349,12 @@ a.cv-fila:hover {
   border-color: var(--border-strong);
 }
 
+/* La Standard, esta carta (861): sin enlace, marcada. */
+.cv-fila.cv-principal {
+  border-color: var(--border-strong);
+  background: var(--ice);
+}
+
 .cv-precio {
   font-weight: 700;
 }

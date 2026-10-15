@@ -175,7 +175,7 @@ export async function pintarMercado(carta) {
     </div>`
   caja.classList.remove('hidden')
   colocarPrecioAlLado(caja)
-  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'))).catch(() => {})
+  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'), { precio: guardada, variants: vivo?.variants ?? carta.variants ?? null })).catch(() => {})
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'

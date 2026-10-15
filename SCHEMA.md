@@ -40824,3 +40824,51 @@ pestaña (`?ver=`) se queda porque es una pestaña, no un filtro. Prueba:
 `test-tanda-860-pantalla.mjs` (el siguiente sin navegador, la silueta
 acabada en el iPhone con «Ordena» hecho, el constructor en los dos, y los
 tres toques de la barra).
+
+## Tanda 861 — Las versiones con nombre (y con producto propio) de TCGGO
+
+PINGU, con el Drakloak de Ascended Heroes (ASC 159): TCGGO lo tiene TRES
+veces —la Standard (31610, producto de Cardmarket 869770), la «Energy Symbol
+Pattern» (50937, producto 870385) y la «Quick Ball» (50939, producto
+870386)— y el listado de la expansión (`/episodes/396/cards`) da UNA. Las
+dos versiones llevan un campo `version` que la Standard no lleva, `tcgid`
+null, `hp` null y sin ataques. En cambio la Reverse del Tangrowth de Lost
+Thunder (40760) viene como en la 807: SIN `version` y con el MISMO producto
+que la normal (365605). Dos formas, y la de siempre solo cubría la vieja:
+`decidirVersion` exigía el mismo producto, así que los patrones de Mega
+Evolution se contaban como «otra carta» (`cuentas.otraCarta`) y no se
+apuntaban.
+
+**Servidor.** `decidirVersion` (lib/tcggo.mjs): si ninguna candidata del
+mismo número tiene el mismo producto PERO la ficha trae `version`
+(`etiquetaDeVersion`), vale la del mismo número y el mismo nombre
+(`nombreComparable`): el número solo se repite entre galerías hermanas
+(TG159 → 159 con `soloDigitos`) y ahí el nombre distingue. Sin `version`,
+otro producto sigue siendo otra carta (la sellada). Para eso las candidatas
+llevan `nombre` (`name` en `COLS` de `candidatasDe`). `filaDeVersion`
+guarda `etiqueta` (la columna existía desde la migración de la 807). Y
+**el repaso, una sola vez**: lo ya recorrido por arriba se vuelve a
+recorrer desde `INICIO` con la regla nueva (`estado.repaso861`, puesto en
+la primera pasada; lo que ya es carta nuestra o versión guardada se salta,
+gratis). Son unos 7.000 ids de pago, uno o dos días a 5.000 diarios; después,
+el refresco semanal renueva etiqueta y precio de cada versión. El listado del
+set NO trae las versiones (comprobado otra vez en Ascended Heroes), así que
+el camino sigue siendo por id.
+
+**Web** (`js/carta-versiones.js`): `etiquetaDe(v, i, { total, variants })`
+= la `etiqueta` de TCGGO; sin ella, con UNA sola versión «Reverse Holo»
+(en un set viejo es lo único que Cardmarket vende aparte dentro del mismo
+producto, salvo que `variants.reverse === false`), y con varias «Versión N».
+`versionesHtml` pone primero la Standard (esta carta, `.cv-principal`, con
+`precioPrincipal`) y luego cada versión con su nombre, su precio mínimo (en
+español si lo hay) y el enlace de TCGGO con el filtro puesto; el título es
+«Versiones en Cardmarket». `carta-mercado.js` le pasa la fila de precio
+guardada y las `variants`. Así Sol y Luna, donde TCGdex no da impresiones,
+enseña «Reverse Holo» con su precio en cuanto la pasada la encuentre.
+
+**Lo que NO hace** (siguiente paso, si PINGU lo quiere): la colección sigue
+con cuatro variantes (`user_collection_variante`: normal, reverse, holo,
+primera); apuntar «tengo la Quick Ball» pide una migración que admita las
+etiquetas de TCGGO y el selector de añadir leyendo `tcg_card_versions`.
+Pruebas: `test-tanda-861.mjs` (fixtures-861/: las tres fichas de PINGU tal
+cual), y `test-tanda-807` / `822-pantalla` al día.

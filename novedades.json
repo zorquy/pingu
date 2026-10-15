@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Las versiones de una carta en Cardmarket salen con su nombre y su precio: Standard, Reverse Holo y los patrones nuevos de Mega Evolution (Energy Symbol Pattern, Quick Ball…). Van llegando a lo largo de un par de días.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Al acabar un reto, un botón «Siguiente: …» te lleva al que te quede por jugar hoy, y debajo «Volver a los retos»: los seis seguidos sin pasar por el menú.", "enlace": "/retos" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "En el móvil, tocar en la barra de abajo la sección en la que ya estás quita el filtro que tuvieras puesto (en Mi colección, sube un nivel o limpia los filtros); y el constructor lleva «‹ Mis mazos» como todas las fichas.", "enlace": "/constructor" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "La pestaña del perfil, del torneo y de Mis partidas va en la dirección: al recargar o compartir el enlace se abre la misma, y el botón de atrás no pasa por las pestañas.", "enlace": "/perfil?ver=medallas" },

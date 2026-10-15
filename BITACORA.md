@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (93) — PINGU-Claude (861 — las versiones con nombre de TCGGO)
+
+**Hecho** (PINGU, con el Drakloak de Ascended Heroes: TCGGO lo tiene tres
+veces, Standard / Energy Symbol Pattern / Quick Ball, cada una con su
+producto de Cardmarket, y aquí solo salía la normal):
+- `decidirVersion` acepta una versión con OTRO producto cuando la ficha de
+  TCGGO trae `version`, casando por número Y nombre; sin `version`, como
+  antes. La fila guarda `etiqueta` (la columna ya existía).
+- `tcggo-versiones` repasa UNA vez lo ya recorrido por arriba con la regla
+  nueva (`estado.repaso861`; unos 7.000 ids, uno o dos días). Hasta que
+  pase por el 50937–50939 el Drakloak no las tendrá: es normal.
+- /carta: «Versiones en Cardmarket» con la Standard primero y cada versión
+  con su nombre y precio; la única sin nombre es «Reverse Holo» (sets
+  viejos, donde TCGdex no da impresiones).
+- Lo que queda apuntado en SCHEMA: la colección sigue con cuatro variantes;
+  apuntar «tengo la Quick Ball» pide migración.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-versiones.mjs`,
+`js/carta-versiones.js`, `js/carta-mercado.js`, `css/cardmarket.css`,
+`novedades.json`, `SCHEMA.md`. En `pruebas`: `test-tanda-861.mjs` +
+`fixtures-861/` nuevos; `test-tanda-807.mjs` y `test-tanda-822-pantalla.mjs`
+al día.
+
+**Pruebas**: 861, 807 (con PostgreSQL), 822-pantalla, imports, 299, 523,
+640, 806 y 853 en verde.
+
+**Pendiente**: nada que ejecutar (sin migración). Vigilar en /admin →
+«tcggo_versiones» que el repaso avanza y que aparecen ejemplos con etiqueta.
+
 ## 2026-10-15 (92) — PINGU-Claude (860 — los tres pequeños de la segunda propuesta)
 
 **Hecho** (segunda propuesta, punto 5; con esto, la propuesta entera):

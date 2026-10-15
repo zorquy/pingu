@@ -26,7 +26,11 @@
 // su producto de Cardmarket y, si no, por su expansión; el número se exige
 // siempre. Si casa con una carta nuestra cuyo id de TCGGO es OTRO, es una
 // versión y se guarda en `tcg_card_versions` con sus precios. El nombre de
-// la versión («Reverse Holo») no lo da la API: lo decide la web al pintarla.
+// la versión lo da la API solo a veces (861): los patrones de Mega
+// Evolution («Energy Symbol Pattern», «Quick Ball») llegan con `version` Y
+// con producto propio de Cardmarket, así que ahí casa por nombre; la
+// Reverse de un set viejo llega sin el campo y con el mismo producto, y su
+// nombre lo decide la web al pintarla.
 //
 // Los frenos de la casa: 8 peticiones por pasada, tope diario
 // (`TCGGO_TOPE_VERSIONES`, 5.000 de serie: con el plan Ultra son 15.000 al
@@ -201,6 +205,16 @@ export async function procesar({
     estado.sonda = { fecha: ahora.toISOString(), ruta: urlCarta('{id}', base) }
   }
 
+  // EL REPASO DE LA 861, una sola vez: hasta entonces una versión con OTRO
+  // producto de Cardmarket (los patrones de Mega Evolution) se contaba
+  // como «otra carta» y no se apuntaba en ningún sitio, así que lo ya
+  // recorrido por arriba se vuelve a recorrer desde el principio con la
+  // regla nueva. Lo que ya es carta nuestra o versión guardada se sigue
+  // saltando (gratis): son unos 7.000 ids de pago, uno o dos días.
+  if (!estado.repaso861) {
+    estado.subiendo = { ...estado.subiendo, acabado: false, vaciosSeguidos: 0, siguiente: INICIO }
+    estado.repaso861 = ahora.toISOString()
+  }
   // Reabrir el recorrido de arriba una vez a la semana, con todo recorrido.
   const hace = (iso) => (iso ? (ahora.getTime() - new Date(iso).getTime()) / 86_400_000 : Infinity)
   if (estado.subiendo.acabado && estado.bajando.acabado && hace(estado.subiendo.acabadoAt) >= DIAS_DE_FRESCURA) {
@@ -348,7 +362,7 @@ async function conocidosEntre(pedir, a, b) {
 // Cardmarket y, si por ahí no sale ninguna con su número, por su expansión.
 async function candidatasDe(pedir, suyas) {
   const productos = [...new Set(suyas.map((s) => Number(s.cardmarket_id)).filter((n) => Number.isInteger(n) && n > 0))]
-  const COLS = 'id,set_id,local_id,tcggo_id,cm_id_product_propio'
+  const COLS = 'id,set_id,local_id,name,tcggo_id,cm_id_product_propio'
   const porProducto = productos.length ? (await pedir(`tcg_cards?select=${COLS}&market=eq.WEST&cm_id_product_propio=in.(${productos.join(',')})&limit=1000`)) || [] : []
   // Y las que tienen el producto solo en su fila de precio.
   const deprecio = productos.length ? (await pedir(`tcg_card_prices?select=card_id&cm_id_product=in.(${productos.join(',')})&limit=1000`)) || [] : []
@@ -377,7 +391,7 @@ async function candidatasDe(pedir, suyas) {
   const precios = ids.length ? (await pedir(`tcg_card_prices?select=card_id,tcggo_id,cm_id_product&card_id=in.(${ids.map((id) => `"${encodeURIComponent(id)}"`).join(',')})&limit=1000`)) || [] : []
   const precioDe = new Map(precios.map((p) => [p.card_id, p]))
   const nuestras = cartas.map((c) => ({
-    id: c.id, set_id: c.set_id, local_id: c.local_id,
+    id: c.id, set_id: c.set_id, local_id: c.local_id, nombre: c.name ?? null,
     producto: Number(c.cm_id_product_propio) || Number(precioDe.get(c.id)?.cm_id_product) || null,
     principal: Number(precioDe.get(c.id)?.tcggo_id) || Number(c.tcggo_id) || null,
   }))
