@@ -25,12 +25,17 @@
 --
 -- 1) Ejecuta primero la vista previa. 2) Luego el bloque `do`.
 -- Es re-ejecutable: sin `tcggo-*` en `cel25` no hace nada.
+--
+-- (Sin `case … end` en la vista previa: el SQL Editor cuenta los `end` para
+-- saber dónde acaba un bloque, y con uno suelto partió el `do` por la mitad:
+-- «unterminated dollar-quoted string at or near "$$;"». Un `end` fuera de
+-- un bloque, ni en una consulta de vista previa.)
 -- ─────────────────────────────────────────────────────────────────────
 
 -- ── 1. Vista previa: qué carta de TCGGO en Celebrations va a qué gemela ──
 select t.id as de_tcggo, t.local_id as numero, coalesce(t.name_en, t.name) as nombre,
        g.id as a_gemela, g.local_id as numero_gemela, coalesce(g.name_en, g.name) as nombre_gemela,
-       case when g.id is null then 'SE MUEVE tal cual (sin gemela por el nombre)' else 'se funde' end as que_pasa,
+       (g.id is null) as se_mueve_sin_gemela,
        (select count(*) from public.user_collection u where u.card_id = t.id) as lineas_que_se_mueven
   from public.tcg_cards t
   left join public.tcg_cards g
