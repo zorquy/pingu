@@ -70,7 +70,9 @@ export function vitrinaHtml(cartas, { propia = false } = {}) {
     .map((c) => `<a class="vitrina-carta" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(`${nombreDeCarta(c)} · ${nombreDeSet(c.tcg_sets) || ''}`)}">${foto(c, 120)}<span>${escapeHtml(nombreDeCarta(c))}</span></a>`)
     .join('')
   const vacios = propia ? Array.from({ length: HUECOS - cartas.length }, () => '<button type="button" class="vitrina-hueco" data-vitrina-elegir aria-label="Elegir una carta para la vitrina">+</button>').join('') : ''
-  return `<div class="vitrina-cabeza"><h2 class="section-title">Vitrina</h2>${propia ? `<button type="button" class="link-btn vitrina-editar" data-vitrina-elegir>${icons.edit(14)}<span>${cartas.length ? 'Cambiar' : 'Elegir cartas'}</span></button>` : ''}</div>
+  // «Compartir» (873) solo en la tuya y con cartas: una vitrina vacía no se enseña.
+  const compartir = propia && cartas.length ? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir>${icons.share(14)}<span>Compartir</span></button>` : ''
+  return `<div class="vitrina-cabeza"><h2 class="section-title">Vitrina</h2><span class="vitrina-acciones">${compartir}${propia ? `<button type="button" class="link-btn vitrina-editar" data-vitrina-elegir>${icons.edit(14)}<span>${cartas.length ? 'Cambiar' : 'Elegir cartas'}</span></button>` : ''}</span></div>
     <div class="vitrina-rejilla">${llenos}${vacios}</div>`
 }
 
@@ -90,7 +92,7 @@ function engancharFotos(caja) {
 
 // Monta la vitrina en `caja`. Con `propia`, «Elegir» abre el selector con
 // las cartas de TU colección.
-export async function montarVitrina(caja, userId, { propia = false, avisar = () => {} } = {}) {
+export async function montarVitrina(caja, userId, { propia = false, avisar = () => {}, usuario = '' } = {}) {
   if (!caja || !userId) return null
   const r = await leerVitrina(userId).catch(() => ({ estado: 'error' }))
   if (r.estado !== 'ok') {
@@ -106,6 +108,10 @@ export async function montarVitrina(caja, userId, { propia = false, avisar = () 
   engancharFotos(caja)
   if (propia) {
     caja.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-vitrina-compartir]')) {
+        import('./vitrina-imagen.js').then((m) => m.compartirVitrina({ cartas, usuario })).catch((err) => avisar(err?.message || 'No se ha podido compartir.', 'error'))
+        return
+      }
       if (!e.target.closest('[data-vitrina-elegir]')) return
       const elegidas = await elegirCartas(userId, cartas)
       if (!elegidas) return

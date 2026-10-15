@@ -2731,6 +2731,8 @@ async function guardarEditor({ retardo = 0 } = {}) {
 //
 // Un archivador de nueve bolsillos: páginas de 3×3, de dos en dos en
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
+// Lo último que pintó pintarAlbum, para compartirlo (873).
+let albumResumen = null
 let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false, vista: 'archivador', idioma: '' }
 
 // ── LAS TRES FORMAS DE VER UNA EXPANSIÓN (tanda 478) ──
@@ -4178,6 +4180,11 @@ function pintarTiraDeSet(elSet) {
   // La línea de debajo del título (748, D2): en el ordenador de tres
   // columnas la tira se queda fuera y esto es lo que dice su maqueta,
   // «8 de 12 · 67 %», con lo que valen las tuyas si hay algo que decir.
+  // Lo que comparte «Compartir la expansión» (873), tal como se pinta aquí.
+  albumResumen = elSet
+    ? { nombre: nombreDeSet(elSet) || album.set, logoUrl: [elSet.logo_tcggo, elSet.logo_scrydex, urlDeLogo(elSet.logo_path, elSet.market || mercado)].find(Boolean) || null, tengo: completo.tengo, total: completo.total, pct, valor: mias.length && valor ? valor : 0 }
+    : null
+  $('mcAlbumCompartir')?.classList.toggle('hidden', !(albumResumen && esMia && sesion))
   const linea = $('mcAlbumLinea')
   if (linea) {
     linea.textContent = [
@@ -7421,6 +7428,13 @@ function enganchar() {
     else crecerDesde(e.target.closest('[data-linea]').querySelector('img'), () => abrirEditor(l))
   })
   $('mcFaltanCopiar')?.addEventListener('click', () => void copiarLoQueFalta())
+  $('mcAlbumCompartir')?.addEventListener('click', () => {
+    $('mcAlbumMenu')?.removeAttribute('open')
+    if (!albumResumen) return
+    import('./mi-coleccion/imagen-expansion.js')
+      .then(({ compartirExpansion }) => compartirExpansion(albumResumen))
+      .catch((err) => showToast(err?.message || 'No se ha podido compartir.', 'error'))
+  })
   // Enseñar las que tengo (725, X15): a pantalla completa, en el orden del
   // álbum.
   $('mcAlbumEnsenar')?.addEventListener('click', () => {

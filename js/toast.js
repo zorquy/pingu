@@ -10,14 +10,25 @@ function getContainer() {
   return container
 }
 
-export function showToast(message, type = 'error') {
+// `accion` (873): un botón dentro del aviso («Compartir» al subir de
+// nivel). Con acción el aviso dura más, que hay que poder pulsarla.
+export function showToast(message, type = 'error', { accion = null } = {}) {
   const el = document.createElement('div')
   el.className = `toast toast-${type}`
   el.textContent = message
+  if (accion) {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'toast-accion'
+    b.textContent = accion.texto
+    b.addEventListener('click', () => { accion.alPulsar(); quitar() })
+    el.appendChild(b)
+  }
   getContainer().appendChild(el)
   requestAnimationFrame(() => el.classList.add('toast-visible'))
-  setTimeout(() => {
+  const quitar = () => {
     el.classList.remove('toast-visible')
     el.addEventListener('transitionend', () => el.remove(), { once: true })
-  }, 4200)
+  }
+  setTimeout(quitar, accion ? 9000 : 4200)
 }

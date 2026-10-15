@@ -728,7 +728,7 @@ async function init() {
   // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
   // cuanto existe (867: aunque esté vacía, que invita a elegir).
   import('./vitrina.js')
-    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast }))
+    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
     .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
     .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   abrirLaQueTengaAlgo()

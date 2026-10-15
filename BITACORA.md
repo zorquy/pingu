@@ -4,6 +4,60 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (100) — PINGU-Claude (870–873 — compartir: «Mi día», la hoja común, las tarjetas de los retos y lo demás)
+
+**Hecho** (propuesta «Cosas para compartir»; PINGU: «quiero cosas más
+compartibles en Twitter o en Instagram… que los retos sean compartibles
+según el resultado, tipo Wordle»; «adelante con las cuatro tandas»):
+- **870, «Mi día» y un número para los seis**: `numeroDelDia` es UNA
+  función (el del reto de preguntas, estreno 2026-08-01) y los cinco
+  juegos la reexportan; sus `DIA_UNO` propios se fueron (el `numero` que
+  devuelven las funciones de Netlify cambia con ellos). Cabecera única
+  «PokeDoc #77 · ¿Qué carta es? · 3/6». `js/mi-dia.js` (puro) arma el
+  texto de los seis retos de hoy (una línea por reto, ⬜ sin jugar, corona,
+  racha, pokedoc.es/retos) y `js/mi-dia-compartir.js` lo abre con lo del
+  navegador y lo de la base. «Compartir mi día» en el final de los seis
+  retos y en «Tu día» de /retos.
+- **871, la hoja de compartir común** (`js/compartir-hoja.js` +
+  `css/compartir-hoja.css`): Texto · Historia (1080×1350) · Para X
+  (1200×630) con vista previa, «Compartir…» y «Copiar»/«Descargar». Las
+  seis pantallas y el cuestionario van por ella con UN botón; «¿Quién
+  es?», «Ordena» y «¿Qué expansión?» estrenan imagen.
+- **872, las tarjetas sociales**: `metaDeReto` en el edge, con el número de
+  hoy y siete PNG fijos en `assets/social/`.
+- **873, lo demás**: la expansión que llevas (⋮ del álbum), la vitrina
+  (perfil), el logro (tarjeta) y el nivel (aviso con acción «Compartir»;
+  `showToast` admite `{ accion }`), tu puesto del podio (ronda.js pinta el
+  botón; **para IBAI**: solo pintado y delegado a
+  `js/torneos/podio-compartir.js`, el motor no se toca) y «Mi mes»
+  (calendario de /retos).
+
+**Ficheros**: `js/reto-compartir.js`, `js/mi-dia.js` (nuevo),
+`js/mi-dia-compartir.js` (nuevo), `js/compartir-hoja.js` (nuevo),
+`css/compartir-hoja.css` (nueva), `js/reto-imagen.js`, `js/carta-del-dia.js`,
+`js/mas-caro.js`, `js/quien-es.js`, `js/que-expansion.js`,
+`js/ordena-precio.js`, los cinco `*-juego.js`, `js/curso.js`, `js/retos.js`,
+`js/retos-siguiente.js`, `css/retos.css`, `js/logro-compartir.js` (nuevo),
+`js/vitrina-imagen.js` (nuevo), `js/vitrina.js`, `js/perfil.js`,
+`css/perfil.css`, `js/mi-coleccion/imagen-expansion.js` (nuevo),
+`js/mi-coleccion.js`, `mi-coleccion.html` → `cartas.html`,
+`js/gamification.js`, `js/toast.js`, `css/components.css`,
+`js/torneos/podio-compartir.js` (nuevo), `js/torneos/ronda.js`,
+`css/torneos.css`, `netlify/edge-functions/meta-social.js`,
+`assets/social/*.png` (siete, nuevos), `novedades.json`, `SCHEMA.md`
+(870–873). En `pruebas`: `test-tanda-870.mjs`, `871-pantalla`, `872`,
+`873`, `873-pantalla` nuevas; `568`, `570`, `583`, `583-mas-caro`, `835`
+al día; `herramientas/tarjetas-872.mjs` (genera los PNG).
+
+**Pruebas**: 870, 871, 872, 873, 568, 570, 583, 583-mas-caro, 835, 860,
+299, 305, 309, 310, 311, 312, 313, 649, 753, 737, 523, 805 e imports en
+verde. La portada mide 112,4 KB gzip (`pesar-portada.mjs`; la 873 metió
+`.toast-accion` en components.css y ~200 bytes en toast.js).
+
+**Pendiente**: nada en curso. Si PINGU quiere otras tres destacadas de
+octubre en `novedades.json` (hoy: catálogo japonés, cartas en el foro,
+seis retos), se cambian.
+
 ## 2026-10-15 (99) — PINGU-Claude (867–869 — el perfil en tres capas, /ajustes y la hoja «Tú»)
 
 **Hecho** (propuesta «Perfil en tres capas»; PINGU: «adelante con todo, como

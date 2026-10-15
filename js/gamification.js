@@ -81,7 +81,10 @@ export function levelBadgeHtml(nivel, tamanoIcono = 12) {
 function celebrarSubidaDeNivel(nivel) {
   try {
     burstConfetti()
-    showToast(`¡Has subido de nivel! Ahora eres ${nivel}.`, 'success')
+    // Con «Compartir» (873): la hoja común, por import(), solo si se pulsa.
+    showToast(`¡Has subido de nivel! Ahora eres ${nivel}.`, 'success', {
+      accion: { texto: 'Compartir', alPulsar: () => import('./logro-compartir.js').then((m) => m.compartirNivel(nivel)).catch(() => {}) },
+    })
   } catch {
     /* nada: era solo la fiesta */
   }
@@ -615,9 +618,16 @@ export function showAchievementModal(achievement) {
         <p id="achievementDesc"></p>
         <div class="achievement-xp">+<span id="achievementXP"></span> XP</div>
         <button class="btn-primary btn-block" id="achievementCloseBtn">¡Genial!</button>
+        <button type="button" class="btn-secondary btn-block" id="achievementShareBtn">Compartir</button>
       </div>`
     document.body.appendChild(modal)
     modal.querySelector('#achievementCloseBtn').addEventListener('click', closeAchievementModal)
+    // Compartir el logro (873): la hoja común, por import(), con lo que
+    // la tarjeta tiene puesto en ese momento.
+    modal.querySelector('#achievementShareBtn').addEventListener('click', () => {
+      const logro = modal.__logro
+      if (logro) import('./logro-compartir.js').then((m) => m.compartirLogro(logro)).catch(() => {})
+    })
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeAchievementModal()
     })
@@ -632,6 +642,7 @@ export function showAchievementModal(achievement) {
   modal.querySelector('#achievementName').textContent = achievement.title
   modal.querySelector('#achievementDesc').textContent = achievement.description || ''
   modal.querySelector('#achievementXP').textContent = achievement.xp_reward || 0
+  modal.__logro = achievement
   modal.classList.remove('hidden')
 }
 

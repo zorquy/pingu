@@ -2473,6 +2473,13 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 /* El campeón, primero y más grande — también en móvil, donde la fila se
    apila: el orden manda y el oro va arriba. */
+.torneo-podio-compartir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
 .torneo-podio-1 {
   order: -1;
   padding: 16px 24px;

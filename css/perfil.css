@@ -761,7 +761,13 @@ button.perfil-cifra:hover .rotulo {
   gap: var(--e-md);
 }
 
-.vitrina-editar {
+.vitrina-acciones {
+  display: inline-flex;
+  gap: var(--e-md);
+}
+
+.vitrina-editar,
+.vitrina-compartir {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);

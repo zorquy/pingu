@@ -33,6 +33,10 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-15", "tipo": "nuevo", "texto": "Comparte tu día de retos como en Wordle: los seis retos de hoy en un texto con cuadrados o en una imagen, desde el final de cualquier reto o desde «Tu día» en el menú de retos. No desvela ninguna respuesta.", "enlace": "/retos"},
+    {"fecha": "2026-10-15", "tipo": "mejora", "texto": "Al compartir un reto ves antes lo que vas a mandar: el texto, la imagen vertical para una historia o la apaisada para X. Y los seis retos llevan ahora el mismo número de día.", "enlace": "/retos"},
+    {"fecha": "2026-10-15", "tipo": "mejora", "texto": "Un enlace a un reto sale en WhatsApp y en X con su propia tarjeta y el número del día.", "enlace": "/retos"},
+    {"fecha": "2026-10-15", "tipo": "nuevo", "texto": "Más cosas para presumir: la expansión que llevas (desde el ⋮ de la expansión), tu vitrina, un logro, una subida de nivel, tu puesto en un torneo y tu mes de retos, en texto o en imagen.", "enlace": "/perfil"},
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El menú de tu avatar, más corto: tu nombre lleva a tu perfil, debajo Avisos y Mensajes, y lo tuyo con su número (Guardados, La quiero, Mis mazos, Mis partidas) y Ajustes. El tema se cambia con un botón; el Modo feria está en el Panel de Mi colección.", "enlace": "/" },
     { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Ajustes, con todo lo de tu cuenta en su sitio: los avisos agrupados por canal (campanita, correo, push), contraseña, cumpleaños, Play! Pokémon, privacidad, tema, exportar e importar la colección, tu enlace de invitación y el borrado de la cuenta. Se guarda al tocar cada cosa.", "enlace": "/ajustes" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El perfil, en tres capas: quién eres (nivel, rango y racha en una línea), tus cifras (todas se tocan) y una sola fila de pestañas: Vitrina, Guías, Foro, Torneos y Medallas. Se fue el muro; puedes compartir tu perfil con un botón. «Editar perfil» se queda con lo que ven los demás.", "enlace": "/perfil" },

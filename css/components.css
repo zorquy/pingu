@@ -1203,6 +1203,16 @@ tcg-deck {
   background: var(--success);
 }
 
+.toast-accion {
+  margin-left: var(--e-sm);
+  min-height: 32px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.22);
+  color: inherit;
+  font: inherit;
+}
+
 /* ── Reportar contenido ── */
 .report-btn {
   display: inline-flex;

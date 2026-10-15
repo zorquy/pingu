@@ -2856,6 +2856,7 @@ function pintarClasificacion() {
             <span class="torneo-podio-icono">${i === 0 ? icons.trophy(26) : icons.medal(20)}</span>
             <strong>${escapeHtml(nombreDe(id))}</strong>
             <span class="subtext">${PUESTOS[i]}</span>
+            ${id === miId() ? `<button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${i}">${icons.share(14)} Compartir</button>` : ''}
           </div>`
           )
           .join('')}
@@ -3156,4 +3157,16 @@ export async function montarCiclo(contexto) {
   ctx = contexto
   await cargarCiclo()
   pintarCiclo()
+}
+
+// «Compartir» en TU puesto del podio (873): abre la hoja común con el
+// nombre del torneo y el puesto. Delegado: la clasificación se repinta.
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-podio-compartir]')
+    if (!b || !ctx?.torneo) return
+    import('./podio-compartir.js')
+      .then((m) => m.compartirPodio({ nombre: ctx.torneo.name, slug: ctx.torneo.slug, puesto: Number(b.dataset.podioCompartir) }))
+      .catch(() => {})
+  })
 }

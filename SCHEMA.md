@@ -41220,3 +41220,127 @@ pie con `flex-wrap` para que «Salir» no se salga en el PC.
 
 Pruebas: `test-tanda-869-pantalla.mjs`; al día `748`, `309`, `312`, `717`,
 `758`, `766`, `774`, `651`.
+
+## Tanda 870 — «Mi día» y la cabecera única de los seis retos
+
+PINGU: «quiero cosas más compartibles en Twitter o en Instagram… que los
+retos sean compartibles según el resultado, tipo Wordle: hoy he hecho todos
+los retos pero el de qué carta es lo he fallado, y lo comparto».
+
+· **Un número para los seis.** Cada juego llevaba su estreno (`DIA_UNO`
+  propio) y el mismo día salían «#77», «#12» y «#2»: quien veía dos tuits no
+  sabía si eran del mismo día. Desde aquí `numeroDelDia` es UNA función
+  (`reto-compartir.js`, estreno 2026-08-01, que no se mueve) y los cinco
+  módulos puros la **reexportan e importan** (la 624: un reexport no crea el
+  nombre dentro). Los `DIA_UNO` de `carta-del-dia.js`, `mas-caro.js`,
+  `quien-es.js`, `ordena-precio.js` y `que-expansion.js` se fueron; el azar
+  de cada juego no los usaba (va por la fecha). Sí cambia el `numero` que
+  devuelven las funciones de Netlify y los «Reto #N» de las pantallas (ya no
+  «Carta #N»).
+· **Una cabecera**: `cabeceraDeReto({ dia, nombre, cuenta, extra })` →
+  «PokeDoc #77 · ¿Qué carta es? · 3/6 🥇», con `NOMBRE_CORTO` (el reto,
+  ¿Qué carta es?, Más caro o barato, ¿Quién es?, Ordena por precio, ¿Qué
+  expansión?). Los seis `textoParaCompartir` la usan.
+· **«Mi día»** (`js/mi-dia.js`, puro): una línea por reto con su emoji, su
+  nombre corto y su tira (`tiraLocal` de la partida del navegador —las
+  mismas formas que `resumenLocal`— o `tiraDeBase` de
+  `retos_mis_numeros().hoy`), ⬜ del tamaño del reto si no se ha jugado, «✗»
+  en los de una respuesta fallados, la corona con los seis, la racha y
+  `pokedoc.es/retos`. El reto de preguntas no guardaba partida en el
+  navegador: el cuestionario deja `{ dia, tira }` en `pokedoc-reto-hoy`
+  (`CLAVE_RETO_LOCAL`) al pintar el resultado. `textoCortoDeMiDia` es la
+  versión de una línea (🟩 perfecto/acertado, 🟨 parte, 🟥 nada, ⬜ sin
+  jugar). Lo abre `js/mi-dia-compartir.js` (por `import()`): junta lo local
+  (manda, trae el orden) con lo de la base (completa lo de otro aparato y
+  pone la racha) y dibuja `pintarMiDia` (reto-imagen.js).
+· **Dónde**: «Compartir mi día» en el bloque del siguiente reto de las seis
+  pantallas (`siguienteRetoHtml(siguiente, { dia })` pinta el botón
+  `[data-mi-dia]`; la delegación vive en retos-siguiente.js) y en «Tu día»
+  de /retos con un reto hecho (`.rt-compartir-dia`).
+
+Pruebas: `test-tanda-870.mjs`; al día `568`, `570`, `583`, `583-mas-caro`,
+`835`.
+
+## Tanda 871 — La hoja de compartir común: Texto · Historia · Para X
+
+Cada pantalla tenía sus botones («Presumir de resultado», «Compartir como
+imagen», «Como imagen»…) y ninguno enseñaba antes lo que iba a mandar.
+`js/compartir-hoja.js` + `css/compartir-hoja.css` (entran por `import()` y
+la hoja se inyecta: la portada no paga nada):
+
+· `abrirHojaCompartir({ titulo, texto, imagen, nombre })`: un `<dialog>`
+  con tres pestañas —**Texto** (lo que se pega, con sus emojis),
+  **Historia** (1080×1350) y **Para X** (1200×630, apaisada)—, la vista
+  previa de cada una y dos botones: «Compartir…» (la hoja del sistema con el
+  texto o el PNG; sin ella, al portapapeles) y «Copiar» / «Descargar».
+  `imagen(formato)` devuelve un canvas (o una promesa) y se pide UNA vez por
+  formato; sin `imagen`, solo Texto. Desde abajo en el móvil (≤ 640, con
+  tirador), centrado en el PC: **`margin: auto` va explícito** porque el
+  `* { margin: 0 }` de style.css se come el centrado del navegador y el
+  diálogo salía pegado a la esquina.
+· `pintarResultadoReto` (reto-imagen.js) admite `formato` ('historia' |
+  'apaisada'; `MEDIDAS`, `medidasDe`), `fotoProporcion` (1 para el dibujo
+  de «¿Quién es?») y `arriba` (la línea pequeña de cabecera). El `cuenta`
+  grande se **ajusta** al ancho (`ajustada`): un nivel o un logro son
+  palabras, no un «4/5».
+· Las seis pantallas van por la hoja con UN botón «Compartir» (se fueron
+  `#cdImagen`, `#mcrImagen`, `#btnPresumirImagen` y el `<canvas>` oculto de
+  Más caro); `quien-es`, `ordena-precio` y `que-expansion` estrenan imagen.
+  Los nombres de fichero: `<reto>-<n>.png` y `<reto>-<n>-x.png`.
+
+Pruebas: `test-tanda-871-pantalla.mjs` (la hoja entera en móvil y PC, los
+dos formatos, descargar, «Mi día» desde el final y desde /retos); al día
+`568`, `570`, `583`, `835`.
+
+## Tanda 872 — Las tarjetas sociales de los retos
+
+Un enlace a /reto, /retos o a un juego salía en WhatsApp y en X con la
+tarjeta genérica del sitio. `metaDeReto(url, hoy)` en
+`netlify/edge-functions/meta-social.js` (exportada, pura): el título con el
+nombre del reto y **el número de hoy** («¿Qué carta es? · PokeDoc #77»),
+la descripción del menú de retos (`RETOS[].texto`, de retos-xp.js, que el
+borde importa junto a `numeroDelDia`) más la invitación, y la imagen FIJA
+`assets/social/reto-<juego>.png` (1200×630; `imagenAncha: true` hace que
+`bloqueMeta` declare las medidas, como con la genérica). Sin consulta a la
+base. Las trece rutas (con y sin `.html`) van en `config.path`, y en
+`calcularMeta` los retos se miran ANTES que la ficha de carta
+(`/carta-del-dia` empieza por `/carta`). Las siete imágenes se generaron
+con Playwright desde HTML con las fuentes de la casa (el guion vive en la
+rama `pruebas`, `herramientas/tarjetas-872.mjs`): si cambia el texto de un
+reto en `RETOS`, se regeneran.
+
+Pruebas: `test-tanda-872.mjs` (la función, el edge entero, las rutas y las
+medidas de los PNG).
+
+## Tanda 873 — Lo demás que se comparte
+
+Todo por la hoja de la 871, con texto puro (se prueba en Node) e imagen en
+los dos formatos:
+
+· **La expansión que llevas**: «Compartir la expansión» en el ⋮ del álbum
+  (`#mcAlbumCompartir`, solo en la tuya: `esMia && sesion`; en /cartas no
+  sale). `pintarAlbum` deja `albumResumen` (nombre, logo, tengo, total, pct,
+  valor) tal como lo pinta, y `js/mi-coleccion/imagen-expansion.js` dibuja
+  el anillo, el logo (`cargarImagen`, si deja CORS; si no, el nombre), «N de
+  M» y lo que valen las tuyas. Texto: «📦 Set: llevo 3 de 4 (75 %) en
+  PokeDoc». `mi-coleccion.html` → `node generar-cartas.mjs`.
+· **La vitrina**: «Compartir» junto a «Cambiar» en la tuya con cartas
+  (`[data-vitrina-compartir]`); `js/vitrina-imagen.js` pinta las seis (3×2
+  en historia, 6 en fila en apaisada) con `fotoParaElLienzo`. `montarVitrina`
+  admite `usuario` (el enlace es `pokedoc.es/usuario/<usuario>`).
+· **Logro y nivel** (`js/logro-compartir.js`): la tarjeta del logro
+  (`showAchievementModal`) lleva «Compartir» debajo de «¡Genial!» (guarda el
+  logro en `modal.__logro`); la subida de nivel avisa con un toast CON
+  ACCIÓN. `showToast(mensaje, tipo, { accion: { texto, alPulsar } })` pinta
+  un botón `.toast-accion` (components.css, ~120 bytes) y el aviso dura 9 s
+  en vez de 4,2.
+· **El podio del torneo** (para IBAI: solo pintado, no toca el motor):
+  ronda.js pinta «Compartir» en TU puesto (`[data-podio-compartir=i]`) y lo
+  delega a `js/torneos/podio-compartir.js` (🏆 Campeón / 🥈 Finalista / 🥉
+  Semifinalista de <torneo> + `pokedoc.es/torneo?slug=`).
+· **«Mi mes»**: en el calendario de /retos (con `numeros.jugados`),
+  `textoDeMiMes` (mi-dia.js): los últimos 30 días en filas de diez (⬜ sin
+  jugar, 🟨 uno o dos retos, 🟩 tres o más) y las cifras del calendario;
+  `pintarMiMes` (reto-imagen.js, `tonoDeDia`) con la misma regla.
+
+Pruebas: `test-tanda-873.mjs` y `test-tanda-873-pantalla.mjs`.
