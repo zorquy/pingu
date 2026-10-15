@@ -38,7 +38,7 @@ const semilla = () => {
   const nombres = { xyp: 'XY Black Star Promos', sv3pt5: '151', swsh12tg: 'Silver Tempest TG', base1: 'Set Básico' }
   const series = { xyp: 'xy', sv3pt5: 'sv', swsh12tg: 'swsh', base1: 'base' }
   const c = (setId, n, nombre, dex) => ({ id: `${setId}-${n}`, market: 'WEST', set_id: setId, local_id: String(n), name: nombre, name_es: nombre, image_path: `x/${setId}/${n}`, rarity: 'Rare', category: 'Pokemon', dex_ids: dex, tcg_sets: { id: setId, name: nombres[setId], serie_id: series[setId] } })
-  window.__FAKE_CARTAS__ = [c('xyp', 'XY124', 'Pikachu EX', [25]), c('sv3pt5', 25, 'Pikachu', [25]), c('swsh12tg', 'TG05', 'Pikachu VMAX', [25]), c('base1', 124, 'Jynx', [124]), c('sv3pt5', 124, 'Slowpoke', [79])]
+  window.__FAKE_CARTAS__ = [c('xyp', 'XY124', 'Pikachu EX', [25]), c('xyp', 'XY1', 'Xerneas', [716]), c('xyp', 'XY12', 'Pikachu', [25]), c('sv3pt5', 25, 'Pikachu', [25]), c('swsh12tg', 'TG05', 'Pikachu VMAX', [25]), c('base1', 124, 'Jynx', [124]), c('sv3pt5', 124, 'Slowpoke', [79])]
   window.__FAKE_PRECIOS__ = []
   window.__FAKE_GUIAS__ = []
   window.__FAKE_TEMAS__ = []
@@ -68,6 +68,11 @@ for (const [q, esperado, l] of [
   ['124', ['base1-124', 'sv3pt5-124', 'xyp-XY124'], '«124» a secas: las tres que llevan el 124 impreso, con letras o sin ellas (y Jynx por la Pokédex)'],
   ['XY124', ['xyp-XY124'], '«XY124» a secas: solo la promo'],
   ['pikachu tg5', ['swsh12tg-TG05'], '«pikachu tg5» encuentra la TG05 (ceros delante)'],
+  // 853: mientras se escribe «Pikachu XY124», letra a letra, la carta no se va.
+  ['pikachu xy', ['xyp-XY12', 'xyp-XY124'], '«pikachu xy»: las de Pikachu cuyo número empieza por XY (853)'],
+  ['pikachu xy1', ['xyp-XY12', 'xyp-XY124'], '«pikachu xy1»: XY12 y XY124, no Xerneas (XY1, que no es Pikachu)'],
+  ['pikachu xy12', ['xyp-XY12', 'xyp-XY124'], '«pikachu xy12»: XY12 y XY124'],
+  ['xy1', ['xyp-XY1', 'xyp-XY12', 'xyp-XY124'], '«xy1» a secas: todas las XY que empiezan por 1'],
 ]) {
   const { page, ctx, errores } = await abrir(`/buscar.html?q=${encodeURIComponent(q)}&en=cartas`)
   const hs = ids(await arriba(page))
@@ -85,6 +90,8 @@ console.log('── 3. La pestaña Buscar de /mi-coleccion ──')
     ['pikachu xy124', ['xyp-XY124'], '«pikachu xy124» también'],
     ['pikachu xy 124', ['xyp-XY124'], '«pikachu xy 124» también'],
     ['tg05', ['swsh12tg-TG05'], '«tg05» a secas: la Trainer Gallery'],
+    ['pikachu xy', ['xyp-XY12', 'xyp-XY124'], '«pikachu xy»: las de Pikachu cuyo número empieza por XY (853)'],
+    ['pikachu xy12', ['xyp-XY12', 'xyp-XY124'], '«pikachu xy12»: XY12 y XY124'],
   ]) {
     await page.fill('#mcBuscarTodo', q)
     await page.dispatchEvent('#mcBuscarTodo', 'input')

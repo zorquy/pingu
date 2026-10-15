@@ -93,7 +93,8 @@ for (const [f, patron] of [
   ['js/mi-coleccion/datos.js', /return \(data \|\| \[\]\)\.filter\(deSetVisible\)/],
   ['js/mi-coleccion.js', /&& deSetVisible\(c\)\)/],
   ['js/catalogo-buscar.js', /\.filter\(deSetVisible\)/],
-  ['js/buscador.js', /\.filter\(\(c\) => !c\.tcg_sets\?\.oculto\)/],
+  // Desde la 851 el buscador de arriba lo hace con `deSetVisible` (la de aquí mismo).
+  ['js/buscador.js', /deSetVisible\(c\)/],
 ]) {
   const src = readFileSync(`${RAIZ}/${f}`, 'utf8')
   check(`${f}: filtra y pide \`oculto\` en el embebido`, patron.test(src) && /tcg_sets\([^)]*oculto\)/.test(src))
