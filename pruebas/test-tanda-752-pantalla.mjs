@@ -1,5 +1,5 @@
-// Tanda 752 — el perfil en tres niveles (P1: Vitrina, Actividad, Medallas)
-// y «en qué álbum la tienes» en la ficha de una carta (Y5).
+// Tanda 752 — «en qué álbum la tienes» en la ficha de una carta (Y5). (Los
+// tres niveles del perfil, P1, se fueron en la 867.)
 //
 // Lo que se mira: que arriba hay tres niveles y que Muro, Guías, Foro y
 // Torneos son los filtros de Actividad; que se abre por la Vitrina cuando
@@ -53,55 +53,8 @@ const estado = (page) => page.evaluate(() => {
   }
 })
 
-console.log('── 1. Tu perfil: tres niveles y los filtros de Actividad ──')
-{
-  const { page, ctx, errores } = await abrir('/perfil.html')
-  let m = await estado(page)
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  check('arriba, Vitrina · Actividad · Medallas', m.niveles.join(' · ') === 'Vitrina · Actividad · Medallas', JSON.stringify(m))
-  check('  …y «Acerca» ya no es un filtro: Muro, Guías, Foro (y Torneos)', !m.filtrosLista.includes('about') && ['wall', 'guides', 'foro'].every((x) => m.filtrosLista.includes(x)), JSON.stringify(m.filtrosLista))
-  check('con la vitrina vacía se abre por Actividad, con el muro', m.activo === 'actividad' && m.filtros && m.muro && !m.vitrina && !m.medallas, JSON.stringify(m))
-  await page.click('#perfilNiveles [data-pnivel="medallas"]')
-  await page.waitForTimeout(300)
-  m = await estado(page)
-  check('Medallas enseña los trofeos y esconde los filtros', m.medallas && !m.filtros && !m.muro && await page.locator('#achievementsAccordion').isVisible(), JSON.stringify(m))
-  await page.click('#perfilNiveles [data-pnivel="vitrina"]')
-  await page.waitForTimeout(300)
-  m = await estado(page)
-  check('Vitrina enseña tus huecos para elegir', m.vitrina && !m.filtros && (await page.locator('#perfilVitrina .vitrina-hueco').count()) === 6, JSON.stringify(m))
-  await page.click('#perfilNiveles [data-pnivel="actividad"]')
-  await page.click('#profileTabs [data-ptab="foro"]')
-  await page.waitForTimeout(300)
-  m = await estado(page)
-  check('Foro es un filtro de Actividad', m.activo === 'actividad' && m.foro && !m.muro, JSON.stringify(m))
-  await page.evaluate(() => scrollTo(0, 0))
-  await page.click('#btnShowTrophies')
-  await page.waitForTimeout(400)
-  check('la cifra de Trofeos lleva a Medallas', (await estado(page)).activo === 'medallas' && (await page.locator('.modal-overlay, #modalOverlay').filter({ visible: true }).count()) === 0)
-  check('lo de tu cuenta sigue en la página, fuera de los niveles', await page.locator('.perfil-cuenta #btnLogout').isVisible())
-  await ctx.close()
-}
-
-console.log('── 2. Los enlaces con # siguen llegando ──')
-for (const [hash, nivel, panel] of [['#about', 'medallas', 'medallas'], ['#foro', 'actividad', 'foro'], ['#vitrina', 'vitrina', 'vitrina']]) {
-  const { page, ctx } = await abrir(`/perfil.html${hash}`)
-  const m = await estado(page)
-  check(`${hash} → ${nivel}`, m.activo === nivel && m[panel], JSON.stringify(m))
-  await ctx.close()
-}
-
-console.log('── 3. El perfil de otra persona con su vitrina ──')
-{
-  const { page, ctx, errores } = await abrir('/usuario.html?id=user-2', { vitrina: [{ user_id: 'user-2', posicion: 1, card_id: 'xy5-1', market: 'WEST' }] })
-  const m = await estado(page)
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  check('con cartas en la vitrina, se abre por ella', m.activo === 'vitrina' && m.vitrina && !m.filtros, JSON.stringify(m))
-  await ctx.close()
-  const b = await abrir('/usuario.html?id=user-2', { vitrina: [] })
-  const n = await estado(b.page)
-  check('sin cartas, el nivel Vitrina ni sale', n.niveles.join(' · ') === 'Actividad · Medallas' && n.activo === 'actividad', JSON.stringify(n))
-  await b.ctx.close()
-}
+// Los tres niveles (P1) se fueron en la 867: el perfil es UNA fila de
+// pestañas y lo prueba test-tanda-867-pantalla.mjs. Aquí queda la Y5.
 
 console.log('── 4. En qué álbum la tienes (Y5) ──')
 {

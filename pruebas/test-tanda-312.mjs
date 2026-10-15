@@ -164,8 +164,8 @@ console.log('\n── 2. El pie de página ofrece algo, y las páginas cortas no
   check('las 32 páginas con pie lo tienen nuevo',
     // Y 33 desde la 566, con /nueve; 34 desde la 569, con /retos; 35 desde
     // la 570, con /carta-del-dia; 36 desde la 583, con /mas-caro; 37 desde
-    // la 621, con /laboratorio; 38 desde la 791, con /ilustrador; 39 desde la 792, con /glosario; 40 desde la 794, con /feria; 41 desde la 829, con /novedades; 44 desde la 835, con /quien-es, /ordena-precio y /que-expansion; 43 desde la 863, que se llevó /categoria.
-    PAGINAS.length - sinPie.length === 43, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
+    // la 621, con /laboratorio; 38 desde la 791, con /ilustrador; 39 desde la 792, con /glosario; 40 desde la 794, con /feria; 41 desde la 829, con /novedades; 44 desde la 835, con /quien-es, /ordena-precio y /que-expansion; 43 desde la 863, que se llevó /categoria; 44 desde la 868, con /ajustes.
+    PAGINAS.length - sinPie.length === 44, `${PAGINAS.length - sinPie.length} de ${PAGINAS.length}`)
   // En CADA página, y con sus piezas contadas. Mirar solo si aparece la
   // palabra «pie-rejilla» dejaba pasar una página con la rejilla pero
   // sin columnas — el rigor metió justo esa y salió verde.
@@ -351,7 +351,7 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
       await page.waitForTimeout(300)
       // En la hoja «Tú» de su maqueta (748): claro, oscuro o auto.
       await page.waitForTimeout(400)
-      const enHoja = await page.locator('#navUserDropdown .tu-tema [data-tema="dark"]').isVisible().catch(() => false)
+      const enHoja = await page.locator('#navUserDropdown .tu-tema-boton').isVisible().catch(() => false)
       check(`[${ancho}px] el tema, uno: en la hoja «Tú» y no en la barra`, cuantos === 0 && enHoja, `${cuantos} en la barra, hoja: ${enHoja}`)
     } else check(`[${ancho}px] hay exactamente un botón de tema`, cuantos === 1, String(cuantos))
     await page.close()

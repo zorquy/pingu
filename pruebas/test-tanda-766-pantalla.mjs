@@ -208,8 +208,8 @@ for (const tema of ['light', 'dark']) {
     document.head.appendChild(l)
     await new Promise((ok) => { l.onload = ok; setTimeout(ok, 1500) })
     const caja = document.createElement('ul')
-    caja.className = 'tu-lista'
-    caja.innerHTML = '<li><a class="tu-apoyar" href="#"><svg></svg><span>Apoyar PokeDoc<small>Un café en Ko-fi</small></span></a></li>'
+    caja.className = 'tu-pie'
+    caja.innerHTML = '<li><a class="tu-apoyar" href="#"><svg></svg><span>Apoyar</span></a></li>'
     document.body.appendChild(caja)
     const ref = document.createElement('i')
     ref.style.color = 'var(--pink)'

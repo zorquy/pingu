@@ -278,7 +278,7 @@ console.log('── 6. Sin cuenta, y sin la migración ──')
   await page.close()
 }
 
-console.log('── 7. El perfil: Play! Pokémon, privado ──')
+console.log('── 7. Ajustes › Cuenta: Play! Pokémon, privado (desde la 868 ahí) ──')
 async function perfil({ play = null, sinTablas = [] } = {}) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } })
   const errores = []
@@ -290,41 +290,39 @@ async function perfil({ play = null, sinTablas = [] } = {}) {
     if (play) window.__FAKE_PLAY__ = [play]
     window.__SIN_TABLAS__ = sinTablas
   }, [PERFILES, play, sinTablas])
-  await page.goto(`${BASE}/perfil.html`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/ajustes.html?ver=cuenta`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
-  await page.click('#btnEditProfile')
-  await page.waitForTimeout(900)
   return { page, errores }
 }
 {
   const { page, errores } = await perfil({ play: { user_id: 'user-1', player_id: '555', player_name: 'Ash Ketchum', birth_date: '2001-01-01' } })
-  check('«Editar perfil» trae tus datos de Play! Pokémon', (await page.locator('#pePlayerId').inputValue()) === '555' && (await page.locator('#pePlayNombre').inputValue()) === 'Ash Ketchum' && (await page.locator('#pePlayNacimiento').inputValue()) === '2001-01-01')
-  check('  …dice que son privados', /solo lo ves tú/.test(await page.locator('#pePlayZona').innerText()))
-  await page.fill('#pePlayerId', '9988776')
-  await page.click('#btnSaveProfileEdit')
+  check('Ajustes › Cuenta trae tus datos de Play! Pokémon', (await page.locator('#ajPlayerId').inputValue()) === '555' && (await page.locator('#ajPlayNombre').inputValue()) === 'Ash Ketchum' && (await page.locator('#ajPlayNacimiento').inputValue()) === '2001-01-01')
+  check('  …dice que son privados', /solo lo ves tú/.test(await page.locator('#ajPanel').innerText()))
+  await page.fill('#ajPlayerId', '9988776')
+  await page.click('#ajPlayGuardar')
   await page.waitForTimeout(1200)
   const fila = (await tablas(page)).user_play_pokemon.find((f) => f.user_id === 'user-1')
-  check('guardar el perfil guarda el Player ID nuevo', fila?.player_id === '9988776' && fila?.player_name === 'Ash Ketchum', JSON.stringify(fila))
+  check('Guardar escribe el Player ID nuevo', fila?.player_id === '9988776' && fila?.player_name === 'Ash Ketchum', JSON.stringify(fila))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
 {
   const { page, errores } = await perfil({ play: { user_id: 'user-1', player_id: '555', player_name: 'Ash', birth_date: null } })
-  await page.fill('#pePlayerId', 'no-es-un-id')
-  await page.click('#btnSaveProfileEdit')
+  await page.fill('#ajPlayerId', 'no-es-un-id')
+  await page.click('#ajPlayGuardar')
   await page.waitForTimeout(1000)
   check('un Player ID con letras no se guarda y se dice', /solo cifras/.test(await toasts(page)) && (await tablas(page)).user_play_pokemon[0].player_id === '555', await toasts(page))
-  check('  …y el editor sigue abierto para corregirlo', await page.isVisible('#pePlayerId'))
+  check('  …y el campo sigue ahí para corregirlo', await page.isVisible('#ajPlayerId'))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
 {
   const { page, errores } = await perfil({ sinTablas: ['user_play_pokemon'] })
-  check('sin la migración, los campos quietos y el aviso', (await page.locator('#pePlayerId').isDisabled()) && /falta ejecutar supabase-migration-play-pokemon\.sql/.test(await page.locator('#pePlayAviso').innerText()))
-  await page.fill('#peBio', 'Entreno en Ciudad Celeste')
-  await page.click('#btnSaveProfileEdit')
-  await page.waitForTimeout(1200)
-  check('  …y el resto del perfil se guarda igual', !(await page.isVisible('#btnSaveProfileEdit')), await toasts(page))
+  check('sin la migración, los campos quietos y el aviso', (await page.locator('#ajPlayerId').isDisabled()) && /falta ejecutar supabase-migration-play-pokemon\.sql/.test(await page.locator('#ajPlayAviso').innerText()))
+  await page.fill('#ajCumple', '1999-05-20')
+  await page.dispatchEvent('#ajCumple', 'change')
+  await page.waitForTimeout(900)
+  check('  …y el resto de la cuenta se guarda igual (el cumpleaños)', (await tablas(page)).user_profiles.find((p) => p.id === 'user-1')?.birthday === '1999-05-20', await toasts(page))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

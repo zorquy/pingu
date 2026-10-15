@@ -163,11 +163,12 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   await page.waitForTimeout(600)
   const opciones = (await page.locator('#navUserDropdown .tu-lista a').allTextContents()).map((t) => t.trim())
   // Seis desde la 751: «La quiero» va la primera.
-  check('la lista de lo tuyo tiene nueve (con «Apoyar PokeDoc», 758, «Modo feria», 794, y «Novedades», 829)', opciones.length === 9 && opciones.includes('Novedades'), JSON.stringify(opciones))
+  // Cinco desde la 869: Guardados, La quiero, Mis mazos, Mis partidas y Ajustes.
+  check('la lista de lo tuyo tiene cinco (869)', opciones.length === 5, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   check('  …y sigue estando lo que sí se usa',
-    ['La quiero', 'Guardados', 'Mis partidas', 'Mis mazos', 'Escribir una guía', 'Ajustes'].every((x) => opciones.includes(x)) && (await page.locator('#navUserDropdown .tu-perfil').count()) === 1,
+    ['La quiero', 'Guardados', 'Mis partidas', 'Mis mazos', 'Ajustes'].every((x) => opciones.some((o) => o.startsWith(x))) && (await page.locator('#navUserDropdown a.tu-cabeza').count()) === 1,
     JSON.stringify(opciones))
   // «Salir» fuera de la lista: es lo que evita pulsarlo yendo a por lo de
   // arriba.
@@ -225,12 +226,12 @@ console.log('\n── 5. Los bordes tienen escala ──')
 
   // Y las tarjetas, todas del mismo grosor: la de guía llevaba 2px y la
   // de perfil 1, y juntas se veían de dos épocas distintas.
-  // `.guide-card` la pinta /categoria y /guardados (js/guide-card.js);
-  // /aprender tiene su propia tarjeta.
-  const { page } = await abrir('/categoria?slug=basico', {
-    semillas: { __FAKE_GUIAS__: [{ id: 'g1', slug: 'g1', title: 'Guía', category_id: 'cat-1' }] },
+  // Desde la 316 la tarjeta de guía es UNA (`.guia-tarjeta`, js/guia-tarjeta.js)
+  // y /categoria se fue en la 863: se mira en /aprender.
+  const { page } = await abrir('/aprender', {
+    semillas: { __FAKE_GUIAS__: [{ id: 'g1', slug: 'g1', title: 'Guía', category_id: 'cat-1', published_at: '2026-10-01T10:00:00Z', blocks: [{ type: 'paragraph', text: 'x' }] }] },
   })
-  const borde = await page.locator('.guide-card').first().evaluate((n) => getComputedStyle(n).borderTopWidth)
+  const borde = await page.locator('.guia-tarjeta').first().evaluate((n) => getComputedStyle(n).borderTopWidth)
   check('la tarjeta de guía tiene el borde fino', borde === '1px', String(borde))
   // Y la de la ficha de persona, el mismo: eran las dos que se veían de
   // épocas distintas una al lado de la otra.

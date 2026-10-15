@@ -442,25 +442,26 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
     const t = (s) => (d.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim()
     return {
       quien: t('.tu-quien'),
-      perfil: d.querySelector('.tu-perfil')?.getAttribute('href'),
+      perfil: d.querySelector('a.tu-cabeza')?.getAttribute('href'),
       dos: [...d.querySelectorAll('.tu-dos > *')].map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
       lista: [...d.querySelectorAll('.tu-lista a')].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`),
-      tema: [...d.querySelectorAll('[data-tema]')].map((b) => b.textContent.trim() + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
+      tema: d.querySelector('[data-tema-ciclo]')?.getAttribute('aria-label') || '',
       salir: t('#navUserSignOut'),
       viejo: !!d.querySelector('.nav-user-stats, .bm-tu-filas'),
       dentro: (() => { const r = d.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 })(),
     }
   })
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
-  check(`[${nombre}] quién eres en una línea, con «Ver perfil»`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
+  check(`[${nombre}] quién eres en una línea, y la cabecera es el enlace al perfil (869)`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
   check(`[${nombre}] avisos (con su número) y mensajes en dos losetas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final`, m.lista.join(' | ') === 'Apoyar PokeDocUn café en Ko-fi>https://ko-fi.com/pokedoc | Novedades>/novedades | La quiero>/mi-coleccion?ver=quiero | Modo feria>/feria | Guardados>/guardados.html | Mis mazos>/mazos | Mis partidas>/mis-partidas | Escribir una guía>/editor-guia.html | Ajustes>/perfil.html?editar=1', m.lista.join(' | '))
-  check(`[${nombre}] el tema en tres y «Salir» aparte`, m.tema === 'Claro* Oscuro Auto' && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
+  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final (869: cuatro cosas y Ajustes)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Mis partidas>/mis-partidas | AjustesAvisos, cuenta, tema>/ajustes', m.lista.join(' | '))
+  check(`[${nombre}] el tema en un botón (869) y «Salir» aparte`, /^Cambiar al tema/.test(m.tema) && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
-  await page.click('#navUserDropdown [data-tema="auto"]')
-  await page.waitForTimeout(200)
-  const auto = await page.evaluate(() => ({ guardado: localStorage.getItem('pokedoc-theme'), tema: document.documentElement.dataset.theme, sistema: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' }))
-  check(`[${nombre}] «Auto» olvida la elección y sigue al sistema`, auto.guardado === null && auto.tema === 'dark' && auto.sistema === 'dark', JSON.stringify(auto))
+  const temaAntes = await page.evaluate(() => document.documentElement.dataset.theme)
+  await page.click('#navUserDropdown [data-tema-ciclo]')
+  await page.waitForTimeout(300)
+  const auto = await page.evaluate(() => ({ guardado: localStorage.getItem('pokedoc-theme'), tema: document.documentElement.dataset.theme }))
+  check(`[${nombre}] el botón del tema cambia al otro y lo guarda (869; «el del sistema» vive en Ajustes)`, auto.tema !== temaAntes && auto.guardado === auto.tema, JSON.stringify({ temaAntes, ...auto }))
   await ctx.close()
 }
 {
@@ -700,7 +701,7 @@ console.log('── 13. El escritorio de su maqueta (D1) ──')
   const h = await page.evaluate(() => {
     const d = document.querySelector('#navUserDropdown')
     const b = d?.getBoundingClientRect(), y = document.querySelector('.lat-yo').getBoundingClientRect()
-    return { abierta: !!d && !d.classList.contains('hidden') && b.height > 0, dentro: b && b.top >= 0 && b.bottom <= innerHeight && b.left >= y.right - 4, ver: !!d?.querySelector('a.tu-perfil') }
+    return { abierta: !!d && !d.classList.contains('hidden') && b.height > 0, dentro: b && b.top >= 0 && b.bottom <= innerHeight && b.left >= y.right - 4, ver: !!d?.querySelector('a.tu-cabeza') }
   })
   check('la tarjeta abre la hoja «Tú» a su lado y dentro de la pantalla', h.abierta && h.dentro && h.ver, JSON.stringify(h))
   await ctx.close()
@@ -837,7 +838,7 @@ console.log('── 16. El perfil de su maqueta (J4) ──')
       botonAlLado: Math.abs(e.top - a.top) < a.height && e.left > a.right,
       nombreDebajo: n.top > a.top && n.width > 200,
       arroba: document.querySelector('.perfil-arroba')?.textContent || null,
-      cuatro: lote.length === 4 && new Set(lote.map((x) => Math.round(x.getBoundingClientRect().top))).size === 1,
+      cuatro: lote.length === 3 && new Set([...lote, document.getElementById('btnShowFollowers')].map((x) => Math.round(x.getBoundingClientRect().top))).size === 1,
       rotulos: lote.map((x) => x.querySelector('.rotulo').textContent + '/' + getComputedStyle(x.querySelector('.rotulo')).textTransform),
       gente: (document.getElementById('btnShowFollowers').innerText || '').replace(/\s+/g, ' ').trim(),
     }
@@ -846,7 +847,7 @@ console.log('── 16. El perfil de su maqueta (J4) ──')
   check('el banner va a sangre y, sin foto, con su degradado', m.banner.izq === 0 && m.banner.ancho === m.banner.ventana && /gradient/.test(m.banner.fondo), JSON.stringify(m.banner))
   check('el avatar, cuadrado redondeado y montado en el banner; «Editar perfil» a su lado', m.avatarCuadrado && m.botonAlLado, JSON.stringify(m))
   check('el nombre debajo, a lo ancho, con su @', m.nombreDebajo && /^@/.test(m.arroba || ''), JSON.stringify(m))
-  check('las cuatro cifras en una fila, en minúscula, y la gente en una línea («0 seguidores»)', m.cuatro && m.rotulos.every((x) => /lowercase$/.test(x)) && /^0 seguidores$/i.test(m.gente), JSON.stringify(m))
+  check('las cinco cifras en una fila (867), en minúscula, y «0 seguidores»', m.cuatro && m.rotulos.every((x) => /lowercase$/.test(x)) && /^0 seguidores$/i.test(m.gente), JSON.stringify(m))
   await ctx.close()
 }
 

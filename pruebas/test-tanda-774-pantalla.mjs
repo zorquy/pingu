@@ -93,7 +93,7 @@ console.log('── 3. En el móvil, en la hoja «Tú» ──')
   await page.waitForTimeout(900)
   const t = await page.$eval('#navUserDropdown .tu-apoyar', (a) => ({ href: a.getAttribute('href'), alto: a.getBoundingClientRect().height }))
   check('  …y sí en la hoja «Tú», al nuevo Ko-fi', t.href === KOFI && t.alto >= 44, JSON.stringify(t))
-  check('  …la primera fila, encima de «La quiero»', await page.$eval('#navUserDropdown .tu-lista', (l) => l.firstElementChild?.classList.contains('tu-apoyar')))
+  check('  …en el pie de la hoja (869)', await page.$eval('#navUserDropdown .tu-apoyar', (a) => !!a.closest('.tu-pie')))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

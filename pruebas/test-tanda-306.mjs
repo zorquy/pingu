@@ -69,7 +69,8 @@ console.log('\n── 2. Las cifras van todas en la MISMA fila ──')
   // La tira mezcla lo que pinta el JS (#profileStats) con los tres
   // contadores que ya vienen en el HTML. Si `display: contents` fallara,
   // el lote sería una caja y las cifras saldrían en dos bloques.
-  for (const [ruta, sesion, cuantas] of [['/usuario?u=Ash', 'user-2', 7], ['/perfil', 'user-1', 7]]) {
+  // Cinco desde la 867: cartas, guías y torneos + seguidores y siguiendo.
+  for (const [ruta, sesion, cuantas] of [['/usuario?u=Ash', 'user-2', 5], ['/perfil', 'user-1', 5]]) {
     const { page, errores } = await abrir(ruta, { sesion })
     check(`${ruta}: sin errores de JavaScript`, errores.length === 0, errores[0] || '')
     const n = await page.locator('.perfil-cifra').count()
@@ -84,7 +85,7 @@ console.log('\n── 2. Las cifras van todas en la MISMA fila ──')
     const filas = await page.locator('.perfil-cifra').evaluateAll((ns) => [...new Set(ns.map((x) => Math.round(x.getBoundingClientRect().top)))])
     // Desde la 748 (J4) son DOS renglones a propósito: las cuatro grandes
     // y, debajo, «0 seguidores · 0 siguiendo · 0 trofeos» en pequeño.
-    check(`${ruta}: en escritorio, las cuatro en un renglón y las tres de la gente en otro`, filas.length === 2, `${filas.length} renglones`)
+    check(`${ruta}: en escritorio, las cinco en un renglón (867)`, filas.length === 1, `${filas.length} renglones`)
     // La tarjeta las contiene: si la tira se saliera, esto cambiaría.
     const dentro = await page.evaluate(() => !!document.querySelector('.profile-hero .perfil-cifras'))
     check(`${ruta}: la tira va dentro de la tarjeta`, dentro)
@@ -151,15 +152,20 @@ console.log('\n── 4. El banner sin foto sigue midiendo 64 px (679; eran 96) 
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 5. El rango sube a la fila de chapas ──')
 {
+  // Desde la 867 el rango solo sale con guías aprobadas («Miembro» con cero
+  // no cuenta nada): se mira contra lo que el doble tiene de Ash.
   const { page } = await abrir('/usuario?u=Ash', { sesion: 'user-2' })
-  check('sale la chapa de rango', (await page.locator('.perfil-rango').count()) === 1)
-  const juntos = await page.evaluate(() => !!document.querySelector('.perfil-chapas .profile-level') && !!document.querySelector('.perfil-chapas .perfil-rango'))
-  check('  …junto al nivel, en la misma fila', juntos)
-  // Y sigue abriendo la escalera de rangos: era un botón y tiene que
-  // seguir siéndolo.
-  await page.locator('.perfil-rango').click()
-  await page.waitForTimeout(400)
-  check('  …y al pulsarla se abre la escalera', await page.locator('#profileModal .ladder-list').isVisible())
+  const aprobadas = await page.evaluate(() => (window.__TABLAS__?.guides || []).filter((g) => g.author_id === 'user-1' && g.review_status === 'approved').length)
+  check(`la chapa de rango sale ${aprobadas ? 'porque tiene guías aprobadas' : 'solo si hay guías aprobadas (y Ash no tiene)'}`, (await page.locator('.perfil-rango').count()) === (aprobadas ? 1 : 0), `${aprobadas} aprobadas`)
+  if (aprobadas) {
+    const juntos = await page.evaluate(() => !!document.querySelector('.perfil-chapas .profile-level') && !!document.querySelector('.perfil-chapas .perfil-rango'))
+    check('  …junto al nivel, en la misma fila', juntos)
+    // Y sigue abriendo la escalera de rangos: era un botón y tiene que
+    // seguir siéndolo.
+    await page.locator('.perfil-rango').click()
+    await page.waitForTimeout(400)
+    check('  …y al pulsarla se abre la escalera', await page.locator('#profileModal .ladder-list').isVisible())
+  }
   await page.close()
 }
 

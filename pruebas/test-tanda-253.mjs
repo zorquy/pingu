@@ -42,29 +42,23 @@ const abrir = async (ruta, semillas = MUNDO) => {
   await page.waitForTimeout(2400)
   return { page, errores }
 }
-// Desde la 752 «Acerca» es el nivel Medallas, no un filtro de Actividad:
-// la pestaña activa es la del nivel cuando el nivel no es Actividad.
-const pestanaActiva = (page) =>
-  page.evaluate(() => {
-    const nivel = document.querySelector('#perfilNiveles .active')?.dataset.pnivel
-    if (nivel === 'medallas') return 'about'
-    if (nivel && nivel !== 'actividad') return nivel
-    return document.querySelector('#profileTabs .tab-btn.active')?.dataset.ptab || null
-  })
+// Desde la 867 el perfil es UNA fila de pestañas; «about» es un alias
+// viejo de Medallas, y sin hash se abre por la Vitrina.
+const pestanaActiva = (page) => page.evaluate(() => document.querySelector('#profileTabs .tab-btn.active')?.dataset.ptab || null)
 
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 1. Sin hash, el perfil abre por donde siempre ──')
 {
   const { page, errores } = await abrir('/perfil')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  check('empieza en el Muro', (await pestanaActiva(page)) === 'wall', String(await pestanaActiva(page)))
+  check('empieza en la Vitrina', (await pestanaActiva(page)) === 'vitrina', String(await pestanaActiva(page)))
   await page.close()
 }
 
 console.log('\n── 2. El hash abre SU pestaña, no solo la de torneos ──')
 {
   // Esto es lo que estaba roto: solo `#torneos` funcionaba.
-  for (const [hash, esperada] of [['#guides', 'guides'], ['#foro', 'foro'], ['#torneos', 'torneos'], ['#about', 'about']]) {
+  for (const [hash, esperada] of [['#guides', 'guides'], ['#foro', 'foro'], ['#torneos', 'torneos'], ['#about', 'medallas']]) {
     const { page } = await abrir(`/perfil${hash}`)
     check(`${hash} abre «${esperada}»`, (await pestanaActiva(page)) === esperada, String(await pestanaActiva(page)))
     await page.close()
@@ -75,7 +69,7 @@ console.log('\n── 3. Un hash inventado no deja la página sin pestaña ─�
 {
   const { page, errores } = await abrir('/perfil#loquesea')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  check('se queda en el Muro', (await pestanaActiva(page)) === 'wall', String(await pestanaActiva(page)))
+  check('se queda en la Vitrina', (await pestanaActiva(page)) === 'vitrina', String(await pestanaActiva(page)))
   await page.close()
 }
 {
