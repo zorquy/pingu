@@ -183,15 +183,19 @@ console.log('\n── 4. /aprender sabe leer el tema de la URL ──')
   // .html se comprueba arriba, en el bloque 3.
   const { page, errores } = await abrir('/aprender?tema=mazos')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const activo = await page.locator('.aprender-chip.activa').first().textContent()
-  check('el chip del tema viene ya puesto', (activo || '').includes('Construir mazos'), activo)
+  // Desde la 863, ?tema= es la PÁGINA del tema (la vieja /categoria se fue):
+  // cabecera con su nombre, solo sus guías, y «‹ Aprender» para verlas todas.
+  const h1 = await page.locator('#apTemaCab h1').textContent().catch(() => null)
+  check('el tema viene ya puesto: la cabecera lleva su nombre', (h1 || '').includes('Construir mazos'), h1)
   const titulos = await page.locator('.guia-titulo').allTextContents()
   const deMazos = GUIAS.filter((g) => g.category_id === 'cat-3').map((g) => g.title)
   check('  …y solo se ven las suyas', titulos.length === deMazos.length && titulos.every((t) => deMazos.includes(t)),
     titulos.join(' | '))
   // Y a un clic se ven todas: la puerta no puede ser una trampa.
-  await page.locator('[data-cat="todas"]').click()
-  await page.waitForTimeout(300)
+  const volver = await page.evaluate(() => [...document.querySelectorAll('.breadcrumb a')].pop()?.getAttribute('href'))
+  check('  …y el volver lleva a /aprender, donde están todas', volver === '/aprender', String(volver))
+  await page.goto(`${BASE}/aprender`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1500)
   check('  …y a un clic se ven todas', (await page.locator('.guia-tarjeta').count()) === GUIAS.length,
     String(await page.locator('.guia-tarjeta').count()))
   await page.close()

@@ -64,7 +64,7 @@ for (const movil of [false, true]) {
     } else {
       check('guía: «Inicio › Guías › Mazos › Cómo jugar Charizard ex», sin huecos', m?.visible && m.vistos.join('|') === 'Inicio|›|Guías|›|Mazos|›|Cómo jugar Charizard ex' && m.vacios === 0, JSON.stringify(m))
     }
-    check('  …y el tema lleva a su página', /slug=mazos/.test(m?.href || ''), String(m?.href))
+    check('  …y el tema lleva a su página', /tema=mazos/.test(m?.href || ''), String(m?.href))
     await ctx.close()
   }
   {
