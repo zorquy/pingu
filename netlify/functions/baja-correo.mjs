@@ -90,7 +90,7 @@ export default async (req) => {
 
   // Un token con formato raro no llega ni a consultarse.
   if (!UUID.test(token)) {
-    return respuestaHtml(pagina('Enlace no válido', 'Este enlace de baja no es correcto o ha caducado. Puedes cambiar tus avisos desde <b>Editar perfil</b> en la web.', false), 400)
+    return respuestaHtml(pagina('Enlace no válido', 'Este enlace de baja no es correcto o ha caducado. Puedes cambiar tus avisos desde <b>Ajustes › Avisos</b> en la web.', false), 400)
   }
 
   const cabeceras = { apikey: clave, authorization: `Bearer ${clave}`, 'content-type': 'application/json' }
@@ -101,7 +101,7 @@ export default async (req) => {
   )
   const [perfil] = res.ok ? await res.json() : []
   if (!perfil) {
-    return respuestaHtml(pagina('Enlace no válido', 'Este enlace de baja no es correcto o ha caducado. Puedes cambiar tus avisos desde <b>Editar perfil</b> en la web.', false), 404)
+    return respuestaHtml(pagina('Enlace no válido', 'Este enlace de baja no es correcto o ha caducado. Puedes cambiar tus avisos desde <b>Ajustes › Avisos</b> en la web.', false), 404)
   }
 
   // Sin tipo (o con uno que no existe) se desactiva TODO. Es lo que
@@ -117,7 +117,7 @@ export default async (req) => {
     body: JSON.stringify({ notification_email_disabled: nuevos }),
   })
   if (!upd.ok) {
-    return respuestaHtml(pagina('No se ha podido completar', 'Inténtalo otra vez en un momento, o cámbialo desde <b>Editar perfil</b>.', false), 500)
+    return respuestaHtml(pagina('No se ha podido completar', 'Inténtalo otra vez en un momento, o cámbialo desde <b>Ajustes › Avisos</b>.', false), 500)
   }
 
   // La baja de un clic espera un 200 a secas, sin HTML: el cliente de
@@ -131,7 +131,7 @@ export default async (req) => {
   return respuestaHtml(
     pagina(
       'Listo, no te escribiremos más',
-      `Has dejado de recibir por correo <b>${escapeHtml(queTipo)}</b>. Los seguirás viendo en la campanita al entrar en la web.<br /><br />Si te arrepientes, puedes volver a activarlos desde <b>Editar perfil</b>.`
+      `Has dejado de recibir por correo <b>${escapeHtml(queTipo)}</b>. Los seguirás viendo en la campanita al entrar en la web.<br /><br />Si te arrepientes, puedes volver a activarlos desde <b>Ajustes › Avisos</b>.`
     )
   )
 }

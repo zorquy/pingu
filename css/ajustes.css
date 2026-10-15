@@ -1,0 +1,286 @@
+/* /ajustes (868): la lista de apartados a la izquierda y el apartado a la
+   derecha en el PC; en el móvil, la lista, y cada apartado es una pantalla
+   con «‹ Ajustes». El porqué en SCHEMA 868. */
+.aj-pagina {
+  max-width: 960px;
+}
+
+.aj-cuerpo {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  column-gap: var(--e-xl);
+  align-items: start;
+}
+
+.aj-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 88px;
+}
+
+.aj-lista a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.aj-lista a svg {
+  flex: none;
+}
+
+.aj-lista a:hover {
+  color: var(--text);
+  background: var(--ice);
+}
+
+.aj-lista a[aria-current='page'] {
+  color: var(--navy);
+  background: var(--ice);
+}
+
+.aj-lista a.aj-peligro,
+.aj-lista a.aj-peligro:hover {
+  color: var(--danger);
+}
+
+.aj-lista .aj-sub {
+  display: none;
+}
+
+.aj-panel {
+  min-width: 0;
+}
+
+.aj-panel h2 {
+  margin: 0 0 var(--e-md);
+  font-size: var(--t-xl);
+}
+
+.aj-panel h3 {
+  margin: var(--e-lg) 0 var(--e-sm);
+  font-size: var(--t-md);
+}
+
+.aj-panel > p,
+.aj-nota {
+  margin: 0 0 var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.aj-canales {
+  margin-bottom: var(--e-md);
+}
+
+/* Un interruptor por fila: el texto a la izquierda, el mando a la derecha.
+   Se guarda al tocarlo; no hay «Guardar». */
+.aj-filas {
+  display: flex;
+  flex-direction: column;
+}
+
+.aj-interruptor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  min-height: 48px;
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.aj-interruptor span {
+  flex: 1 1 auto;
+}
+
+.aj-interruptor small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.aj-interruptor input {
+  appearance: none;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  margin: 0;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+
+.aj-interruptor input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--blanco-fijo);
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s var(--ease);
+}
+
+.aj-interruptor input:checked {
+  background: var(--navy-solid);
+}
+
+.aj-interruptor input:checked::after {
+  transform: translateX(20px);
+}
+
+.aj-interruptor input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.aj-interruptor input:disabled {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj-interruptor input,
+  .aj-interruptor input::after {
+    transition: none;
+  }
+}
+
+/* Un dato con su mando: el correo, la contraseña, el enlace de invitación. */
+.aj-dato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--t-sm);
+}
+
+.aj-dato > span:first-child {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.aj-dato code {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.aj-dato .btn-secondary,
+.aj-dato .btn-outline {
+  min-height: 44px;
+}
+
+.aj-form {
+  display: grid;
+  gap: var(--e-sm);
+  max-width: 420px;
+}
+
+.aj-form .btn-primary {
+  justify-self: start;
+  min-height: 44px;
+}
+
+.aj-tema .seg-btn {
+  min-height: 44px;
+}
+
+.aj-borrar {
+  border-color: var(--danger);
+  color: var(--danger);
+  min-height: 44px;
+}
+
+.aj-migas {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .aj-cuerpo {
+    display: block;
+  }
+
+  .aj-lista {
+    position: static;
+    gap: var(--e-sm);
+  }
+
+  .aj-lista a {
+    min-height: 60px;
+    padding: 0 var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    color: var(--text);
+  }
+
+  .aj-lista a[aria-current='page'] {
+    background: var(--white);
+    color: var(--text);
+  }
+
+  .aj-lista .aj-texto {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .aj-lista .aj-sub {
+    display: block;
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+    font-weight: 400;
+  }
+
+  /* La flecha, con dos bordes (sin icono nuevo, como en la hoja «Tú»). */
+  .aj-lista a::after {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: var(--e-xs);
+    border-top: 2px solid var(--text-dim);
+    border-right: 2px solid var(--text-dim);
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  body[data-aj='lista'] .aj-panel,
+  body[data-aj='lista'] .aj-migas {
+    display: none;
+  }
+
+  body[data-aj='seccion'] .aj-lista,
+  body[data-aj='seccion'] .aj-cab {
+    display: none;
+  }
+
+  body[data-aj='seccion'] .aj-migas {
+    display: flex;
+  }
+}
