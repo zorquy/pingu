@@ -31,6 +31,7 @@ import {
   XP_POR_RECUPERADA,
 } from './reto-diario.js'
 import { textoParaCompartir, numeroDelDia, rachaDeDias, ENLACE as ENLACE_RETO } from './reto-compartir.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
 import { clasificacionSemanal } from './liga.js'
 import { puestoDe, textoSaltoLiga } from './liga-salto.js'
@@ -592,7 +593,13 @@ function renderReward(b) {
             ? `<a href="/guia/${encodeURIComponent(guide.slug)}" class="btn-secondary">${icons.bookOpen(15)} Repasar la teoría</a>`
             : ''
         }
-        <a href="/aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>
+        ${
+          // El reto de hoy acababa mandando a /aprender (860): ahora al
+          // siguiente reto que te quede, o al menú de los retos.
+          modo === 'diario'
+            ? siguienteRetoHtml(siguienteReto('reto', hechoHoy(hoyISO())))
+            : `<a href="/aprender.html" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">Seguir explorando →</a>`
+        }
       </div>
     </div>`
 }

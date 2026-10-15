@@ -40785,3 +40785,42 @@ quita). **Mis partidas**: `?ver=sueltas|stats` al llegar hace clic en su
 botón; el clic escribe `?ver=` (Torneos lo quita). Los mazos del meta ya
 llevaban `?fuente` y `?dias` (`js/meta/pintar.js`). Prueba:
 `test-tanda-859-pantalla.mjs`.
+
+## Tanda 860 — Los tres pequeños de la segunda propuesta
+
+**Al acabar un reto, a dónde ir.** `js/retos-siguiente.js` (módulo aparte
+de `retos-ui.js` a propósito: lo importa el cuestionario desde `curso.js`,
+que no carga `retos-juego.css`, y arrastrar `retos-ui.js` le llevaría las
+clases de los premios sin su hoja, que es lo que canta la 299).
+`siguienteReto(actual, hecho)` es puro: el primero de `RETOS` después del
+actual que no esté hecho, dando la vuelta, nunca el mismo, `null` con
+todos hechos. `hechoHoy(dia, numerosHoy)` lee lo que guarda el navegador
+(`resumenLocal`, lo mismo que el menú de /retos) y, si se le dan, los
+números de la base. `siguienteRetoHtml` pinta «Siguiente: <título> →»
+(`btn-primary rj-siguiente`) y «Volver a los retos» (`btn-secondary
+rj-volver-retos`); sin siguiente, solo la vuelta y lo dice. Los cinco
+juegos lo meten en `.rj-adonde` (CSS en `retos-juego.css`: columna con
+borde arriba; en el móvil, a lo ancho) debajo de `.rj-botones`, y
+Compartir pasa a secundario para que el grande sea uno. El cuestionario
+(/reto, `modo === 'diario'` en `curso.js`) lo pone donde iba «Seguir
+explorando → /aprender», que para un reto no llevaba a ninguna parte.
+
+**Constructor.** `<nav class="breadcrumb">Inicio › Mis mazos</nav>` encima
+de `.cm-cabecera-pagina`, como las fichas de la 857: en el móvil el botón
+«‹ Mis mazos» de 44 px a la izquierda; en el PC las migas. `.cm-enlace-mazos`
+(el enlace a la derecha) se va del HTML y del CSS. Lo de «al guardar,
+volver al mazo» de la propuesta NO se hace: no hay página de mazo (el meta
+tiene la suya), /mazos es la lista, y salir del editor al guardar es
+perder el sitio a quien sigue editando.
+
+**La barra de abajo con un filtro.** En `js/barra-movil.js`, tocar la
+sección en la que ya estás dispara `pokedoc:seccion-otra-vez` (cancelable)
+en `document`; si nadie lo cancela y hay `location.search` o `hash`, el
+enlace sigue su camino (la lista limpia: /aprender sin `?tema`, el foro
+sin `?q`); si no, sube arriba como en la 709. Mi colección lo cancela
+siempre: `subirNivel()` si hay un nivel abierto, si no `limpiarFiltros()`
+y vacía `#mcBuscar` cuando hay algo puesto (`cuantosFiltros()`); la
+pestaña (`?ver=`) se queda porque es una pestaña, no un filtro. Prueba:
+`test-tanda-860-pantalla.mjs` (el siguiente sin navegador, la silueta
+acabada en el iPhone con «Ordena» hecho, el constructor en los dos, y los
+tres toques de la barra).

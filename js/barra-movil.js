@@ -317,9 +317,17 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
 
   // TOCAR LA SECCIÓN EN LA QUE YA ESTÁS TE SUBE ARRIBA (709, X1), como
   // en iOS: volver a cargar la misma página no le sirve a nadie.
+  // Y DESDE LA 860, TAMBIÉN TE QUITA LO QUE TENGAS PUESTO: con un filtro
+  // en la dirección (/aprender?tema=…, el foro buscando) solo subir parecía
+  // que no hacía nada, así que se deja ir al enlace, que es la lista limpia.
+  // Una página con «dentro» (Mi colección) se queda el toque con el evento
+  // y sube un nivel o quita sus filtros ella.
   barra.addEventListener('click', (ev) => {
     const a = ev.target.closest('a')
     if (!a || claveDePagina(a.getAttribute('href'), location.origin) !== clave) return
+    const propio = new CustomEvent('pokedoc:seccion-otra-vez', { cancelable: true })
+    doc.dispatchEvent(propio)
+    if (!propio.defaultPrevented && (location.search || location.hash)) return
     ev.preventDefault()
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
   })

@@ -243,6 +243,18 @@ function subirNivel() {
 
 window.addEventListener('popstate', aplicarDireccion)
 
+// Tocar «Cartas» en la barra de abajo estando ya aquí (860): sube un nivel
+// si hay uno abierto; si no, quita los filtros y lo buscado. La pestaña se
+// queda: es una pestaña, no un filtro. La barra sube arriba después.
+document.addEventListener('pokedoc:seccion-otra-vez', (e) => {
+  e.preventDefault()
+  if (subirNivel()) return
+  if (cuantosFiltros() || $('mcBuscar')?.value) {
+    if ($('mcBuscar')) $('mcBuscar').value = ''
+    limpiarFiltros()
+  }
+})
+
 // ── QUÉ CATÁLOGO SE MIRA (tanda 437) ──
 //
 // PINGU: «vamos a hacer que tengamos dos catálogos distintos… y después,

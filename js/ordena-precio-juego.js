@@ -14,6 +14,7 @@ import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, enSuSitio, textoParaCompart
 import { xpDe, xpSiAciertasOrdena } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 
 const $ = (id) => document.getElementById(id)
@@ -94,9 +95,10 @@ function pintarFinal() {
     <p class="subtext" style="margin:0">De la más barata a la más cara, con su precio de hoy<span id="opGente"></span></p>
     <div id="opPremios"></div>
     <div class="rj-botones">
-      <button type="button" class="btn-primary" id="opCompartir">${icons.share(16)} Compartir</button>
+      <button type="button" class="btn-secondary" id="opCompartir">${icons.share(16)} Compartir</button>
       <span class="rj-cuenta" id="opCuenta"></span>
-    </div>`
+    </div>
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('ordena', hechoHoy(dia)))}</div>`
   f.classList.remove('hidden')
   $('opCompartir').addEventListener('click', compartir)
   cuentaAtras($('opCuenta'), 'Otras cuatro en')

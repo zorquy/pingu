@@ -209,6 +209,16 @@
   gap: var(--e-sm);
 }
 
+/* A dónde ir al acabar (860): el siguiente reto grande y la vuelta debajo. */
+.rj-adonde {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  align-items: flex-start;
+  padding-top: var(--e-sm);
+  border-top: 1px solid var(--border);
+}
+
 .rj-cuenta {
   display: inline-flex;
   align-items: center;
@@ -241,6 +251,11 @@
 @media (max-width: 760px) {
   .rj-final {
     padding: var(--e-md);
+  }
+
+  .rj-adonde {
+    align-items: stretch;
+    text-align: center;
   }
 
   .rj-final-titulo {

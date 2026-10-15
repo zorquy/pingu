@@ -11,6 +11,7 @@ import { RONDAS, numeroDelDia, textoParaCompartir } from './que-expansion.js'
 import { xpDe, mejorQue } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras } from './retos-ui.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 
 const $ = (id) => document.getElementById(id)
@@ -81,9 +82,10 @@ function pintarFinal() {
     <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r.carta)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreDeSet(r.carta.tcg_sets) || r.carta.set_id)}</span></li>`).join('')}</ol>
     <div id="qxPremios"></div>
     <div class="rj-botones">
-      <button type="button" class="btn-primary" id="qxCompartir">${icons.share(16)} Compartir</button>
+      <button type="button" class="btn-secondary" id="qxCompartir">${icons.share(16)} Compartir</button>
       <span class="rj-cuenta" id="qxCuenta"></span>
-    </div>`
+    </div>
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('expansion', hechoHoy(dia)))}</div>`
   f.classList.remove('hidden')
   $('qxCompartir').addEventListener('click', compartir)
   cuentaAtras($('qxCuenta'), 'Cinco más en')

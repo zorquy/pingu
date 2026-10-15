@@ -11,6 +11,7 @@ import { INTENTOS, numeroDelDia, pokemonDelDia, opcionesDelDia, urlsDelDibujo, t
 import { xpDe, xpSiAciertasSilueta } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 
 const $ = (id) => document.getElementById(id)
@@ -73,10 +74,11 @@ function pintarFinal() {
     <p class="subtext" style="margin:0">${estado.acertada ? `Acertado ${n === 1 ? 'a la primera' : `en ${n} intentos`}` : 'Esta vez no'} · n.º ${buena} de la Pokédex<span id="qeGente"></span></p>
     <div id="qePremios"></div>
     <div class="rj-botones">
-      <button type="button" class="btn-primary" id="qeCompartir">${icons.share(16)} Compartir</button>
+      <button type="button" class="btn-secondary" id="qeCompartir">${icons.share(16)} Compartir</button>
       <a class="btn-secondary" href="/mi-coleccion?ver=pokedex&amp;dex=${buena}">Sus cartas</a>
       <span class="rj-cuenta" id="qeCuenta"></span>
-    </div>`
+    </div>
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('silueta', hechoHoy(dia)))}</div>`
   f.classList.remove('hidden')
   $('qeCompartir').addEventListener('click', compartir)
   cuentaAtras($('qeCuenta'), 'El siguiente en')

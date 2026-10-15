@@ -15,6 +15,7 @@ import { RONDAS, numeroDelDia, acierta, textoParaCompartir, rachaDeDias, ENLACE 
 import { xpDe, xpDelSiguienteCaro, mejorQue } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras } from './retos-ui.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 
 const $ = (id) => document.getElementById(id)
 const CLAVE = 'pokedoc-mas-caro'
@@ -150,6 +151,7 @@ function pintarFinal() {
         <button type="button" class="btn-secondary" id="mcrImagen">Como imagen</button>
         <span class="rj-cuenta" id="mcrCuenta"></span>
       </div>
+      <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('caro', hechoHoy(dia)))}</div>
     </div>
     <ol class="mcr-rondas" aria-label="Las cinco rondas">${rondas}</ol>
     <canvas id="mcrLienzo" class="hidden" width="1080" height="1350" aria-hidden="true"></canvas>`

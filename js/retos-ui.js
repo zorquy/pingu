@@ -54,3 +54,4 @@ export function genteHtml(stats, texto = 'lo ha acertado') {
   if (j < 5) return ''
   return ` · hoy ${texto} el ${Math.round(((Number(stats.acertaron) || 0) / j) * 100)} % de la gente`
 }
+

@@ -21,17 +21,6 @@
   font-size: var(--t-2xl);
 }
 
-.cm-enlace-mazos {
-  flex-shrink: 0;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--navy);
-  font-weight: 700;
-  font-size: var(--t-md);
-}
-
 .cm-aviso {
   margin-bottom: var(--e-lg);
   padding: var(--e-md) var(--e-lg);

@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (92) — PINGU-Claude (860 — los tres pequeños de la segunda propuesta)
+
+**Hecho** (segunda propuesta, punto 5; con esto, la propuesta entera):
+- Al acabar cualquiera de los seis retos: «Siguiente: <el que te quede> →»
+  grande y «Volver a los retos» debajo (`js/retos-siguiente.js`, puro y sin
+  CSS para que el cuestionario lo importe sin arrastrar la hoja de los
+  juegos). Compartir pasa a secundario. El cuestionario ya no manda a
+  /aprender.
+- El constructor lleva «Inicio › Mis mazos» (`.breadcrumb`, como las fichas
+  de la 857): en el móvil, «‹ Mis mazos» a la izquierda; se va el enlace de
+  la derecha. Lo de «volver al mazo al guardar» no: no hay página de mazo y
+  salir del editor al guardar perdería el sitio.
+- Barra de abajo: tocar la sección en la que estás con un filtro en la
+  dirección va a la lista limpia (evento `pokedoc:seccion-otra-vez`,
+  cancelable); Mi colección lo cancela y sube un nivel o quita filtros y
+  búsqueda sin recargar (la pestaña se queda).
+
+**Ficheros**: `js/retos-siguiente.js` (nuevo), `js/retos-ui.js`,
+`js/quien-es-juego.js`, `js/carta-del-dia-juego.js`, `js/mas-caro-juego.js`,
+`js/ordena-precio-juego.js`, `js/que-expansion-juego.js`, `js/curso.js`,
+`css/retos-juego.css`, `constructor.html`, `css/constructor.css`,
+`js/barra-movil.js`, `js/mi-coleccion.js`, `novedades.json`, `SCHEMA.md`.
+En `pruebas`: `test-tanda-860-pantalla.mjs` nueva.
+
+**Pruebas**: `test-tanda-860-pantalla` verde. Subconjunto verde (18 + 8):
+imports, constructor, 299 (en el primer intento cantó `curso.html` con las
+clases de `retos-ui.js` sin hoja: de ahí el módulo aparte), 312, 313, 570,
+704, 709, 742, 753, 796, 835 (las dos), 856, 857, 858, 859.
+
+**Pendiente**: nada (sin migración).
+
 ## 2026-10-15 (91) — PINGU-Claude (859 — las pestañas en la dirección, sin rastro)
 
 **Hecho** (segunda propuesta, punto 4):

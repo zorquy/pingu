@@ -20,6 +20,7 @@ import { mismaFamilia } from './familias-pokemon.js'
 import { xpDe, xpSiAciertasCarta } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, repartoHtml, cuentaAtras, genteHtml } from './retos-ui.js'
+import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
 
 const $ = (id) => document.getElementById(id)
 const CLAVE = 'pokedoc-carta-del-dia'
@@ -185,11 +186,12 @@ function pintarFinal() {
     <div id="cdPremios"></div>
     <div id="cdReparto"></div>
     <div class="rj-botones">
-      <button type="button" class="btn-primary" id="cdCompartir">${icons.share(16)} Compartir</button>
+      <button type="button" class="btn-secondary" id="cdCompartir">${icons.share(16)} Compartir</button>
       <button type="button" class="btn-secondary" id="cdImagen">Como imagen</button>
       <a class="btn-secondary" href="${escapeHtml(rutaDeCarta(respuesta))}">Ver la carta</a>
       <span class="rj-cuenta" id="cdCuenta"></span>
-    </div>`
+    </div>
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('carta', hechoHoy(dia)))}</div>`
   final.classList.remove('hidden')
   $('cdCompartir').addEventListener('click', compartir)
   $('cdImagen').addEventListener('click', compartirImagen)
