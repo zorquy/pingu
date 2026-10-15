@@ -210,6 +210,35 @@ function aplicarDireccion() {
       pintarPokedex()
     }
   }
+  // Y el álbum abierto (856): atrás desde dentro de uno vuelve a la lista.
+  if (ver === 'carpetas' && albumesAbiertos) {
+    const a = p.get('album') || null
+    if (a !== albumes.abiertoId()) void albumes.entrar(a)
+  }
+}
+
+// SUBIR UN NIVEL (856): lo que hace el botón de volver de cada pantalla con
+// «dentro», y también Esc y tocar la pestaña en la que ya estás. Devuelve
+// si había algo que cerrar.
+function subirNivel() {
+  if (pestania === 'album' && album.set) {
+    volverALaEstanteria()
+    return true
+  }
+  if (pestania === 'pokedex' && especieAbierta != null) {
+    especieAbierta = null
+    // Y fuera de la dirección: si se queda, recargar vuelve a abrir la
+    // especie que acabas de cerrar. Con `pushState` desde la 468, para
+    // que el botón de atrás del navegador haga lo mismo que este.
+    irA({ dex: null })
+    pintarPokedex()
+    return true
+  }
+  if (pestania === 'carpetas' && albumes.abiertoId()) {
+    albumes.salir()
+    return true
+  }
+  return false
 }
 
 window.addEventListener('popstate', aplicarDireccion)
@@ -3046,7 +3075,8 @@ async function pintarHermanos(setId) {
     return
   }
   const mia = esMia && sesion
-  caja.innerHTML = `<h3 class="mc-hermanos-era">${escapeHtml(grupo.titulo || '')}</h3><ul>${grupo.sets.map((x) => {
+  // La fila de volver va la primera (856): donde estaban las pestañas.
+  caja.innerHTML = `<button type="button" class="mc-hermanos-volver" id="mcHermanosVolver"><span class="mc-miga-flecha" aria-hidden="true"></span>Expansiones</button><h3 class="mc-hermanos-era">${escapeHtml(grupo.titulo || '')}</h3><ul>${grupo.sets.map((x) => {
     const total = totalDe(x)
     const tengo = cuantas.get(x.id) || 0
     const codigo = x.tcg_online_code || (/^tcggo-/i.test(String(x.id)) ? '' : String(x.id).toUpperCase().slice(0, 6))
@@ -3362,7 +3392,24 @@ function plegarLateralSola(si) {
   }
 }
 
+// LA BARRA PEGADA DEL MÓVIL (856): cuando la cabecera de la expansión se va
+// por arriba, sale una barra fija con la flecha y el nombre; al volver a
+// verse la cabecera, se esconde. Lo decide el `IntersectionObserver` sobre
+// la cabecera, que es gratis; en el PC la barra no existe (CSS).
+function vigilarCabeceraDeAlbum() {
+  const cabecera = document.querySelector('#mcArchivadorZona .mc-album-barra')
+  const pegada = $('mcAlbumPegada')
+  if (!cabecera || !pegada || !('IntersectionObserver' in window)) return
+  const io = new IntersectionObserver((vistas) => {
+    const v = vistas[vistas.length - 1]
+    const zonaVisible = !$('mcArchivadorZona').classList.contains('hidden')
+    pegada.classList.toggle('hidden', !zonaVisible || v.isIntersecting || v.boundingClientRect.top > 0)
+  })
+  io.observe(cabecera)
+}
+
 function volverALaEstanteria({ push = true } = {}) {
+  $('mcAlbumPegada')?.classList.add('hidden')
   plegarLateralSola(false)
   cerrarFichaAlLado()
   if (push) irA({ set: null })
@@ -3399,6 +3446,8 @@ async function abrirAlbum(setId, { push = true } = {}) {
   }
   const set = (todosLosSets || []).find((s) => s.id === setId)
   $('mcAlbumTitulo').textContent = nombreDeSet(set) || ''
+  if ($('mcAlbumPegadaNombre')) $('mcAlbumPegadaNombre').textContent = nombreDeSet(set) || ''
+  if ($('mcAlbumPegadaCuenta')) $('mcAlbumPegadaCuenta').textContent = ''
   pintarLogoDeAlbum(set)
   // Sin sesión no hay «las tuyas» que separar.
   $('mcAlbumQue')?.classList.toggle('hidden', !sesion)
@@ -4068,6 +4117,8 @@ function pintarTiraDeSet(elSet) {
   // de la 398 (numeradas, maestro, adicionales) siguen debajo.
   const completo = { tengo: album.cartas.filter((c) => tengoEnAlbum(c.id) > 0).length, total: album.cartas.length }
   const pct = porcentaje(completo) ?? 0
+  // La barra pegada del móvil (856) lleva la misma cuenta.
+  if ($('mcAlbumPegadaCuenta')) $('mcAlbumPegadaCuenta').textContent = esMia && sesion ? `${completo.tengo}/${completo.total}` : String(completo.total || '')
   // Lo que valen TUS copias de esta colección, que es lo que se puede
   // decir con lo que hay en memoria: el precio del set entero pediría el
   // de todas las cartas, las tengas o no.
@@ -5461,9 +5512,13 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // volver abriría una expansión que no habías pedido.
   if (nueva !== 'album') url.searchParams.delete('set')
   if (nueva !== 'pokedex') url.searchParams.delete('dex')
-  // Cambiar de pestaña ES un paso: el botón de atrás vuelve a la anterior.
-  if (push && url.href !== location.href) history.pushState(null, '', url)
-  else history.replaceState(null, '', url)
+  // CAMBIAR DE PESTAÑA NO DEJA RASTRO (856; antes, desde la 468, era un
+  // paso). PINGU: «si estoy abriendo muchas cosas y cambiando entre las
+  // pestañas y le voy dando para atrás, va a la pestaña anterior y no me
+  // lleva a las expansiones». Las pestañas sustituyen la entrada; los
+  // NIVELES (una expansión, un Pokémon, un álbum) la añaden. Así atrás,
+  // el gesto del iPhone y el botón de Android siempre suben un nivel.
+  history.replaceState(null, '', url)
   // Otra pestaña empieza ARRIBA (747). PINGU: con la de antes bajada, al
   // tocar Álbumes o Buscar «te empieza más hacia abajo», a media página de
   // algo que no has visto. Solo al pulsar (`push`): con «atrás» el
@@ -6820,7 +6875,12 @@ function enganchar() {
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     sel.addEventListener('change', () => void cambiarVista(sel.value))
   }
-  for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => cambiarPestania(b.dataset.pestania))
+  for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => {
+    // Tocar la pestaña en la que ya estás, con algo abierto dentro, SUBE a
+    // su lista (856): es lo que hace cualquier app con su barra de abajo.
+    if (b.dataset.pestania === pestania && subirNivel()) return
+    cambiarPestania(b.dataset.pestania)
+  })
   // Los ATAJOS a una pestaña (los del estado vacío) llevan su propio
   // gancho: hacen lo mismo que la barra, pero no SON la barra, y mezclar
   // los dos deja `[data-pestania]` sin identificar a nadie.
@@ -7781,7 +7841,21 @@ function enganchar() {
   // sobre un elemento que no está no engancha nada — y no da error, que es
   // lo peor: el botón sale y no hace nada.
   $('mcArchivadorZona').addEventListener('click', (e) => {
-    if (e.target.closest('#mcAlbumVolver')) volverALaEstanteria()
+    // Los tres botones de volver (856): la miga, la fila de la lateral del
+    // PC y la barra pegada del móvil.
+    if (e.target.closest('#mcAlbumVolver, #mcHermanosVolver, #mcAlbumPegadaVolver')) volverALaEstanteria()
+  })
+  vigilarCabeceraDeAlbum()
+  // ESC SUBE UN NIVEL (856), en el PC: lo mismo que el botón de volver. No
+  // si hay un diálogo abierto (ya lo cierra Esc) ni escribiendo en un campo.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented) return
+    // Solo los MODALES: un `<dialog open>` sin modal (la ficha de al lado,
+    // un aviso) no se lleva el Esc.
+    if (document.querySelector('dialog:modal')) return
+    const t = e.target
+    if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
+    if (subirNivel()) e.preventDefault()
   })
 
   // ── La Pokédex (tanda 381) ──
@@ -7817,14 +7891,7 @@ function enganchar() {
     }
     const especie = e.target.closest('[data-dex]')
     if (especie) return pintarEspecie(Number(especie.dataset.dex))
-    if (e.target.closest('#pdxVolver')) {
-      especieAbierta = null
-      // Y fuera de la dirección: si se queda, recargar vuelve a abrir la
-      // especie que acabas de cerrar. Con `pushState` desde la 468, para
-      // que el botón de atrás del navegador haga lo mismo que este.
-      irA({ dex: null })
-      pintarPokedex()
-    }
+    if (e.target.closest('#pdxVolver')) subirNivel()
   })
   for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma']) {
     $(id).addEventListener('change', () => {

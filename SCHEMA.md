@@ -40717,3 +40717,35 @@ quedarse vacío. `HERMANOS_SOLO_DE_CATALOGO` se quita y el SQL de la 854 sale
 del repo. Lección: **una migración que decide por la FORMA de un id
 (`tcggo-%`) tiene que comprobar antes cuántas filas no la tienen** — la
 vista previa solo enseñaba las que sí.
+
+## Tanda 856 — Volver en Mi colección: el botón y el historial por niveles
+
+PINGU: «para irme atrás tengo que darle a "Expansiones" arriba y es muy poco
+intuitivo […] si cambio entre pestañas y le voy dando para atrás, va a la
+pestaña anterior y no a las expansiones». Dos cosas. **El botón**:
+`migasHtml` (`js/mi-coleccion/migas.js`) pinta cada paso con id como
+`<button class="mc-miga">` con `.mc-miga-flecha` delante y el «›» solo ENTRE
+pasos; el CSS (`mi-coleccion.css`) lo hace de 44 px con contorno. En la
+expansión `#mcAlbumMigas` vive DENTRO de `.mc-album-barra` (a la izquierda
+del logo en el PC; en el móvil `flex-basis: 100%`, su línea encima), y
+`movil.css` ya no lo esconde (lo escondía la 706). En el PC (≥1400 y ratón)
+`pintarHermanos` pone la primera fila `#mcHermanosVolver` (`.mc-hermanos-volver`)
+arriba de la lista de su era. En el móvil, `#mcAlbumPegada`
+(`.mc-album-pegada`, `position: fixed`, bajo `.navbar` salvo con
+`html.bm-escondidas`) sale cuando `.mc-album-barra` se va por arriba
+(`vigilarCabeceraDeAlbum`, un `IntersectionObserver`), con la flecha
+(`#mcAlbumPegadaVolver`, 44×44), el nombre y la cuenta «tengo/total» que
+escribe `pintarTiraDeSet`. Los tres botones van por el clic delegado de
+`#mcArchivadorZona` → `volverALaEstanteria`. **El historial**:
+`cambiarPestania` hace SIEMPRE `replaceState` (desde la 468 era `pushState`):
+las pestañas no dejan rastro y los niveles sí (`abrirAlbum`, `pintarEspecie`
+y, desde ahora, `albumes.abrir` con `push`, que `entrar` llama con
+`push: false`). `aplicarDireccion` (popstate) mira también `album=` contra
+`albumes.abiertoId()`. `subirNivel()` es el único «un nivel arriba»:
+expansión → `volverALaEstanteria`, Pokémon → `irA({ dex: null })` +
+`pintarPokedex`, álbum → `albumes.salir()`; lo llaman el botón de la
+Pokédex, <kbd>Esc</kbd> (si no hay `dialog:modal` ni foco en un campo) y
+tocar la pestaña en la que ya estás. Productos y Mercado se quedan como
+estaban (sin dirección propia). Pruebas: `test-tanda-856-pantalla.mjs`
+(PC e iPhone); la 468 mide `history.length` en vez de «atrás vuelve al
+Panel»; la 474 y la 705 esperan el botón con contorno y visible en el móvil.

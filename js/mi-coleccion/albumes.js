@@ -319,7 +319,7 @@ async function nuevoAlbum(pedido) {
 }
 
 // ── Un álbum ──
-export async function abrir(id, { soloVer = false } = {}) {
+export async function abrir(id, { soloVer = false, push = true } = {}) {
   let fila
   try {
     fila = await cargarAlbum(id)
@@ -372,7 +372,10 @@ export async function abrir(id, { soloVer = false } = {}) {
   // llega (se redirige), pero no se SIGUE escribiendo.
   url.searchParams.set('ver', 'carpetas')
   url.searchParams.set('album', actual.id)
-  history.replaceState(null, '', url)
+  // Abrir un álbum es bajar un NIVEL (856): deja su entrada, para que atrás
+  // vuelva a la lista. Desde la dirección (`entrar`) no se empuja nada.
+  if (push && url.href !== location.href) history.pushState(null, '', url)
+  else history.replaceState(null, '', url)
   pintarDetalle()
   calcularLoQueFalta()
   return true
@@ -764,11 +767,7 @@ export function iniciarAlbumes(contexto) {
   // algo que no está no engancha nada — sin dar error, que es lo peor: el
   // botón sale y no hace nada.
   $('mcAlbumesDetalle')?.addEventListener('click', (e) => {
-    if (!e.target.closest('#mcAlbVolver')) return
-    const url = new URL(location.href)
-    url.searchParams.delete('album')
-    history.replaceState(null, '', url)
-    pintarLista()
+    if (e.target.closest('#mcAlbVolver')) salir()
   })
   $('mcAlbTitulo')?.addEventListener('input', (e) => esMio() && guardarLuego({ nombre: e.target.value.trim().slice(0, 80) || 'Mi álbum' }))
   $('mcAlbDescripcion')?.addEventListener('input', (e) => esMio() && guardarLuego({ descripcion: e.target.value.slice(0, 500) }))
@@ -928,10 +927,25 @@ export function iniciarAlbumes(contexto) {
   window.addEventListener('resize', () => actual && !$('mcAlbumesDetalle').classList.contains('hidden') && pintarDetalle())
 }
 
-// La pestaña al abrirse: la lista, o el álbum que diga la dirección.
+// La pestaña al abrirse: la lista, o el álbum que diga la dirección. Sin
+// empujar nada: la dirección ya es la que es (también al dar atrás).
 export async function entrar(idDeLaUrl) {
-  if (idDeLaUrl && (await abrir(idDeLaUrl))) return
+  if (idDeLaUrl && (await abrir(idDeLaUrl, { push: false }))) return
   await pintarLista()
+}
+
+// El álbum abierto, o null si se ve la lista (856): lo mira `popstate` para
+// saber si la dirección y la pantalla dicen lo mismo.
+export const abiertoId = () => (actual && !$('mcAlbumesDetalle')?.classList.contains('hidden') ? actual.id : null)
+
+// Subir a la lista (856): el botón de volver, Esc y la pestaña activa van
+// por aquí. Deja su entrada, como el volver de la Pokédex (la 468).
+export function salir({ push = true } = {}) {
+  const url = new URL(location.href)
+  url.searchParams.delete('album')
+  if (push && url.href !== location.href) history.pushState(null, '', url)
+  else history.replaceState(null, '', url)
+  pintarLista()
 }
 
 // Para /mi-coleccion?album=<id> de OTRA persona: el álbum y nada más.

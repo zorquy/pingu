@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Volver en Mi colección: un botón «‹ Expansiones» que se ve, también en el móvil (y al bajar por la lista se queda arriba); y el botón de atrás del navegador o el gesto del móvil vuelven siempre a la lista, no a la pestaña anterior.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Celebrations es un solo set con sus 50 cartas (las 25 de siempre y la Classic Collection), como en Cardmarket, sin repetidas.", "enlace": "/cartas" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se encuentran mientras escribes: «Pikachu XY», «Pikachu XY1»… ya enseñan la XY124 por el camino, en los dos buscadores.", "enlace": "/buscar?q=Pikachu%20XY" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se ordenan como en el álbum: XY10, XY11… XY100, y no XY10, XY100, XY101.", "enlace": "/cartas" },

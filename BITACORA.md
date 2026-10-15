@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (88) — PINGU-Claude (856 — volver en Mi colección: el botón y el historial por niveles)
+
+**Hecho** (PINGU, con la propuesta delante: «me gusta mucho; en móvil con eso
+mejora muchísimo, cuando bajas y se queda arriba»):
+- **El botón «‹ Expansiones»**: la miga pasa a ser un botón de 44 px con
+  flecha y contorno, en la misma fila que el logo (sin una fila más). El
+  mismo en la Pokédex («‹ Pokédex») y en los álbumes. En el PC, además, la
+  fila «‹ Expansiones» arriba de la lista de su era. En el móvil vuelve a
+  verse (la 706 lo escondía) y, al bajar por la rejilla, una barra pegada
+  arriba con la flecha, el nombre y «tienes/total».
+- **Atrás sube un nivel, siempre**: cambiar de pestaña ya no deja entrada en
+  el historial; abrir una expansión, un Pokémon o un álbum sí. Así atrás, el
+  gesto del iPhone y el botón de Android vuelven a la lista. `Esc` en el PC
+  sube un nivel, y tocar la pestaña en la que ya estás con algo abierto sube
+  a su lista.
+
+**Ficheros**: `js/mi-coleccion/migas.js`, `js/mi-coleccion.js`
+(`subirNivel`, `vigilarCabeceraDeAlbum`, `cambiarPestania` con `replaceState`,
+`aplicarDireccion` con los álbumes), `js/mi-coleccion/albumes.js` (`abrir` con
+`push`, `salir`, `abiertoId`), `mi-coleccion.html` (la miga dentro de la fila
+del logo, `#mcAlbumPegada`) y `cartas.html` generado, `css/mi-coleccion.css`,
+`css/movil.css`. En `pruebas`: `test-tanda-856-pantalla.mjs` nueva; la 468,
+la 474 y la 705 al día.
+
+**Pruebas**: 856-pantalla verde (PC: botón, fila de la lateral, historial, Esc, pestaña activa; Pokédex; iPhone: botón, barra pegada, atrás). El subconjunto de Mi colección, CSS y navegación (31: imports, 468, 474, 475, 459, 477, 461, 705, 709, 299, 305, 309–313, 316, 649, 753, 748, 737, 408, 427, 440, 444, 759, 760, 767, 781, 829) en verde; la 748 falló con carga en los carriles y pasó sola. Un susto por el camino: una expresión regular que quitaba el bloque viejo de la miga se llevó también el CSS del menú ⋮ y de las carpetas (la 461 y la 477 lo cantaron); la hoja se rehízo desde HEAD con solo los cambios de la tanda.
+
+**Pendiente**: nada (sin migración). Productos y Mercado no tienen dirección
+propia y siguen como estaban.
+
 ## 2026-10-15 (87) — PINGU-Claude (855 — Celebrations, un solo set; la 854 deshecha)
 
 **Hecho** (PINGU: «Celebrations está vacío y la Classic tiene las 50, al

@@ -172,10 +172,8 @@
    Antes de ver una carta pasabas por la miga, el título, el buscador,
    los chips y un carrusel de estadísticas con aire de escritorio. */
 @media (max-width: 900px) {
-  /* La miga «Expansiones ›» repite la pestaña de la burbuja. */
-  html.con-barra-movil #mcAlbumMigas {
-    display: none;
-  }
+  /* La miga volvió al móvil en la 856, como botón «‹ Expansiones»: la
+     burbuja dice dónde estás, pero no es la salida. */
   .mc-album-barra {
     margin-bottom: var(--e-xs);
   }

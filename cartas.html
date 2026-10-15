@@ -446,7 +446,6 @@
                sería romper media docena de sitios para no ganar nada. -->
           <!-- Las de su era, a la izquierda (748, D2): solo en el ordenador. -->
           <nav class="mc-hermanos" id="mcAlbumHermanos" aria-label="Las expansiones de su era"></nav>
-          <div id="mcAlbumMigas"></div>
           <!-- LA CABECERA, COMO LA DE DEX (tanda 461). PINGU: «fíjate en
                Dex: tiene unos botones arriba, el de seleccionar múltiples
                cartas, el corazón para marcar el set como favorito y uno de
@@ -455,6 +454,10 @@
                decir lo que dicen tres iconos. Aquí arriba, junto al
                nombre, es además donde se buscan. -->
           <div class="mc-album-barra">
+            <!-- La miga, convertida en botón de volver (856), va en ESTA fila:
+                 a la izquierda del logo en el PC y en su propia línea encima
+                 en el móvil. Ni una fila más (la 474). -->
+            <div class="mc-album-migas" id="mcAlbumMigas"></div>
             <!-- El logo primero y el nombre pequeño al lado (749, E5). PINGU:
                  «si tiene logo, no pongas el título porque ya se lee en el
                  logo; y si lo pones, muy pequeño». -->
@@ -541,6 +544,14 @@
                 </div>
               </div>
             </details>
+          </div>
+          <!-- LA BARRA PEGADA DEL MÓVIL (856): al bajar por la rejilla, el
+               nombre y la flecha se quedan arriba. La enseña y la esconde
+               `vigilarCabeceraDeAlbum`; en el PC no existe (CSS). -->
+          <div class="mc-album-pegada hidden" id="mcAlbumPegada">
+            <button type="button" class="mc-album-pegada-volver" id="mcAlbumPegadaVolver" aria-label="Volver a Expansiones"><span class="mc-miga-flecha" aria-hidden="true"></span></button>
+            <span class="mc-album-pegada-nombre" id="mcAlbumPegadaNombre"></span>
+            <span class="mc-album-pegada-cuenta" id="mcAlbumPegadaCuenta"></span>
           </div>
           <p class="mc-album-linea" id="mcAlbumLinea"></p>
           <!-- Los filtros DENTRO de una colección (tanda 382). Es lo que

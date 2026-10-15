@@ -5899,14 +5899,21 @@ input.mc-alb-titulo:not([readonly]):focus {
   align-items: center;
   gap: var(--e-xs);
   margin: 0 0 var(--e-sm);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
 }
 
+/* Un BOTÓN (856, SCHEMA 856): 44 de alto, borde y flecha; antes era un
+   rótulo de 12 px que nadie veía. `--text-mid` y no `--text-dim`: se pulsa. */
 .mc-miga {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text-mid);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-md) 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
   font-size: inherit;
   font-weight: 700;
   font-family: inherit;
@@ -5914,12 +5921,19 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-miga:hover {
-  color: var(--text);
+  background: var(--ice);
 }
 
-/* `--text-mid` y no `--text-dim`: esto SE PULSA, y el gris apagado da 2,35
-   de contraste (la regla de la 311). El apagado es para un metadato de
-   refilón, no para la única salida de la pantalla. */
+.mc-miga-flecha {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 0 0 4px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
 .mc-miga-sep {
   color: var(--text-dim);
 }
@@ -5929,14 +5943,81 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-/* Lo que se pulsa mide 44 px en una pantalla táctil (regla de la 312).
-   Se le pide ALTO y no ancho: una miga es texto, y estirarla a 44 de ancho
-   dejaría un área invisible pisando a la de al lado. */
-@media (pointer: coarse) {
-  .mc-miga {
-    min-height: 44px;
+/* En la expansión, la miga va DENTRO de la fila del logo (856): en el PC a
+   la izquierda del logo, y en el móvil en su propia línea encima. */
+.mc-album-barra > .mc-album-migas {
+  flex: 0 0 auto;
+}
+.mc-album-barra > .mc-album-migas .mc-migas {
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .mc-album-barra > .mc-album-migas {
+    flex-basis: 100%;
   }
 }
+
+/* LA BARRA PEGADA DEL MÓVIL (856). Al bajar por una expansión, el nombre y
+   la flecha se quedan arriba, donde la barra del sitio acaba de apartarse
+   (la 709): volver no obliga a subir toda la lista. Solo en el móvil. */
+.mc-album-pegada {
+  display: none;
+}
+@media (max-width: 900px) {
+  .mc-album-pegada:not(.hidden) {
+    display: flex;
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    right: 0;
+    left: 0;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 56px;
+    padding: 0 var(--e-md) 0 var(--e-sm);
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    transition: transform 0.3s var(--ease);
+  }
+  html:not(.bm-escondidas) .mc-album-pegada:not(.hidden) {
+    transform: translateY(56px);
+  }
+  .mc-album-pegada-volver {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ice);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .mc-album-pegada-volver .mc-miga-flecha {
+    margin: 0 0 0 4px;
+  }
+  .mc-album-pegada-nombre {
+    overflow: hidden;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mc-album-pegada-cuenta {
+    margin-left: auto;
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+    white-space: nowrap;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .mc-album-pegada:not(.hidden) {
+    transition: none;
+  }
+}
+
 
 /* ── EL MENÚ DE ⋮ DE UNA EXPANSIÓN (tanda 475) ──
 
@@ -8047,6 +8128,30 @@ input.mc-alb-titulo:not([readonly]):focus {
     overflow-y: auto;
     padding-right: var(--e-md);
     border-right: 1px solid var(--border);
+  }
+
+  /* La fila de volver arriba de la lista (856): donde estaban las pestañas
+     antes de entrar, que es donde se busca la salida. */
+  .mc-hermanos-volver {
+    display: flex;
+    align-items: center;
+    gap: var(--e-xs);
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 var(--e-sm);
+    padding: 0 var(--e-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--t-sm);
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+  }
+  .mc-hermanos-volver:hover {
+    background: var(--ice);
   }
 
   .mc-hermanos-era {

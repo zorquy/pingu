@@ -34,22 +34,26 @@
 export function migasHtml(pasos) {
   const escapar = (t) =>
     String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  // UN BOTÓN DE VOLVER, NO UN RÓTULO (856). PINGU, dos tandas después de
+  // pedir la miga: «para irme atrás tengo que darle a "Expansiones" arriba
+  // y es muy poco intuitivo». La miga se queda —dice de dónde vienes—,
+  // pero con una flecha delante, 44 px de alto y borde, en la fila donde
+  // ya están los chips: un botón que se ve y se pulsa, sin una fila más.
+  // El «›» solo va ENTRE dos pasos; detrás del último no hay nada.
+  const lista = (pasos || []).filter((p) => p?.texto)
   const trozos = []
-  for (const paso of pasos || []) {
-    if (!paso?.texto) continue
+  lista.forEach((paso, i) => {
     if (paso.id) {
-      trozos.push(
-        `<button type="button" class="mc-miga" id="${escapar(paso.id)}">${escapar(paso.texto)}</button>`,
-        // `aria-hidden` en el separador: un lector de pantalla no tiene
-        // que leer «mayor que» entre dos sitios.
-        '<span class="mc-miga-sep" aria-hidden="true">›</span>'
-      )
+      trozos.push(`<button type="button" class="mc-miga" id="${escapar(paso.id)}"><span class="mc-miga-flecha" aria-hidden="true"></span>${escapar(paso.texto)}</button>`)
     } else {
       // `aria-current="page"` es lo que distingue «dónde estoy» de «a
       // dónde puedo ir» para quien no ve la pinta.
       trozos.push(`<span class="mc-miga-aqui" aria-current="page">${escapar(paso.texto)}</span>`)
     }
-  }
+    // `aria-hidden` en el separador: un lector de pantalla no tiene que
+    // leer «mayor que» entre dos sitios.
+    if (i < lista.length - 1) trozos.push('<span class="mc-miga-sep" aria-hidden="true">›</span>')
+  })
   if (!trozos.length) return ''
   return `<nav class="mc-migas" aria-label="Dónde estás">${trozos.join('')}</nav>`
 }
