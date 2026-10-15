@@ -40982,3 +40982,28 @@ function `meta-social` sirve la vista previa del tema en
 (864); recordar el último tema y el filtro (865). Pruebas:
 `test-tanda-863-pantalla.mjs`; `300` (el `?tema=` es la página del tema),
 `312` (43 páginas con pie), `857` y `858` (`?tema=`) al día.
+
+## Tanda 864 — La puerta de Aprender: los temas como baldosas
+
+Segunda tanda de «Aprender por temas». `temasHtml` (js/aprender.js), en
+la lista de siempre y antes de las herramientas: «Temas» con una baldosa
+por categoría (`.ap-baldosa`, enlace a `/aprender?tema=<slug>`): el icono
+con su tinte (`tintClassForKey` + `categoryIconHtml`), el nombre, «N guías
+· M cursos» y, con cuenta, la barra de lo leído (`.ap-baldosa-barra`). Las
+cuentas salen de las guías ya cargadas: ninguna consulta más. Un tema sin
+guías publicadas no sale (la caja de «0 de 2» que quitó la 299). Debajo,
+«Todas las guías» con el buscador, los chips y la lista como estaban.
+
+**En el móvil** (≤ 640): las baldosas van en UNA fila que se desliza (el
+mismo truco que los chips: `margin: 0 -16px; padding: 2px 16px`), más
+prietas (148 px, icono de 32), y la fila de chips de tema de la lista se
+esconde (`.con-baldosas .aprender-filtros.ap-temas`), porque las baldosas
+hacen lo mismo. Todo para que la primera guía siga en la primera pantalla
+(la 846 lo vigila y cantó con 24 px de margen de más). **Ojo con el
+nombre**: la fila de chips de tema ya se llamaba `.ap-temas`; las
+baldosas son `.ap-baldosas` (el primer intento les puso `.ap-temas` y en
+el PC los chips salieron en rejilla de cinco columnas: se vio en la
+captura, no en una prueba).
+
+Queda la 865 (recordar el último tema abierto en la burbuja del móvil y el
+filtro Guías · Cursos), si apetece. Prueba: `test-tanda-864-pantalla.mjs`.

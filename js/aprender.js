@@ -195,8 +195,13 @@ async function loadCategories(session) {
   const hayCursos = guias.some((g) => guideHasCourse(g))
   // La caja se arma UNA vez: el buscador no se repinta mientras escribes
   // (perdería el foco a cada letra). Lo que cambia son los chips y la lista.
+  const baldosas = temasHtml(categories || [], guias, progreso, session)
+  // Con baldosas, en el móvil la fila de chips de tema sobra (hacen lo mismo).
+  list.classList.toggle('con-baldosas', Boolean(baldosas))
   list.innerHTML = `
     ${seguirHtml(guias, progreso)}
+    ${baldosas}
+    <h2 class="ap-seccion">Todas las guías</h2>
     <div class="ap-herramientas">
       <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
       <div id="apChips"></div>
@@ -249,6 +254,35 @@ async function loadCategories(session) {
   })
   movil.addEventListener?.('change', pintar)
   pintar()
+}
+
+// ── LOS TEMAS COMO BALDOSAS (tanda 864) ──
+//
+// La puerta de Aprender (la propuesta «Aprender por temas»): encima de la
+// lista, cada tema con su icono, cuántas guías y cursos tiene y, con
+// cuenta, la barra de lo que llevas leído. Tocarlo abre la página del tema
+// (863). En el móvil van en una fila que se desliza, para que la lista
+// siga cerca (la 846: «las guías están muy muy abajo»); en el PC, en
+// rejilla. Las cuentas salen de las guías ya cargadas: ninguna consulta
+// más. Un tema sin guías publicadas no sale: una baldosa vacía es la caja
+// de «0 de 2» que la 299 quitó.
+function temasHtml(categorias, guias, progreso, session) {
+  const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`
+  const baldosas = categorias.map((c) => {
+    const suyas = guias.filter((g) => g.category_id === c.id)
+    if (!suyas.length) return ''
+    const cursos = suyas.filter((g) => guideHasCourse(g)).length
+    const leidas = suyas.filter((g) => leida(g, progreso)).length
+    const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
+    return `<a class="ap-baldosa" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
+      <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 22)}</span>
+      <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
+      <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
+      ${session ? `<span class="ap-baldosa-barra" aria-hidden="true"><i style="width:${Math.round((leidas / suyas.length) * 100)}%"></i></span>` : ''}
+    </a>`
+  }).join('')
+  if (!baldosas) return ''
+  return `<h2 class="ap-seccion">Temas</h2><div class="ap-baldosas" id="apTemas">${baldosas}</div>`
 }
 
 // ── LA PÁGINA DE UN TEMA (tanda 863) ──

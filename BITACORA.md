@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (96) — PINGU-Claude (864 — la puerta de Aprender con los temas)
+
+**Hecho** (segunda tanda de «Aprender por temas»):
+- /aprender empieza por «Temas»: una baldosa por categoría con icono,
+  «N guías · M cursos» y la barra de lo leído; tocarla abre la página del
+  tema (863). En el móvil, una fila que se desliza y sin la fila de chips
+  de tema (las baldosas hacen lo mismo). Debajo, «Todas las guías» como
+  estaba.
+
+**Ficheros**: `js/aprender.js`, `css/aprender.css`, `novedades.json`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-864-pantalla.mjs` nueva.
+
+**Pruebas**: 864, 863, 846, 847, 300, 299, 312, 313, 305, 316, 737 e
+imports en verde.
+
+**Pendiente**: nada. La 865 (recordar tema y filtro) queda para cuando
+PINGU la quiera.
+
 ## 2026-10-15 (95) — PINGU-Claude (863 — la página de un tema, renovada)
 
 **Hecho** (primera tanda de la propuesta «Aprender por temas»; PINGU:

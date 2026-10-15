@@ -265,3 +265,73 @@
   .ap-tema-cab { align-items: flex-start; }
   .ap-tema-icono { width: 48px; height: 48px; }
 }
+
+/* ── La puerta: los temas como baldosas (864; SCHEMA 864) ── */
+.ap-seccion {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-lg);
+}
+.ap-baldosas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xl);
+}
+.ap-baldosa {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.ap-baldosa:hover { border-color: var(--navy); }
+.ap-baldosa-icono {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+}
+.ap-baldosa-nombre {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 600;
+  line-height: 1.15;
+}
+.ap-baldosa-sub { font-size: var(--t-xs); color: var(--text-mid); }
+.ap-baldosa-barra {
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--ice);
+  overflow: hidden;
+}
+.ap-baldosa-barra i { display: block; height: 100%; background: var(--navy); }
+/* En el móvil, una fila que se desliza (como los chips): la lista sigue
+   cerca. */
+@media (max-width: 640px) {
+  .ap-baldosas {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 16px;
+    margin: 0 -16px var(--e-lg);
+    padding: 2px 16px;
+  }
+  .ap-baldosas::-webkit-scrollbar { display: none; }
+  /* Más prietas: la primera guía tiene que seguir en la primera pantalla (846). */
+  .ap-baldosas { margin-bottom: var(--e-md); }
+  .ap-baldosa { flex: 0 0 148px; scroll-snap-align: start; padding: var(--e-sm); gap: 2px; }
+  .ap-baldosa-icono { width: 32px; height: 32px; margin-bottom: 2px; }
+  .ap-seccion { font-size: var(--t-md); margin-bottom: 4px; }
+  /* Con baldosas, los chips de tema de la lista sobran en el móvil. */
+  .con-baldosas .aprender-filtros.ap-temas { display: none; }
+}
