@@ -71,7 +71,7 @@ export async function procesar({ env = process.env, restImpl = rest, fetchImpl =
       `tournaments?status=eq.registration_open&telegram_sent_at=is.null` +
         `&or=(is_private.is.null,is_private.is.false)` +
         `&start_at=gte.${encodeURIComponent(ahora.toISOString())}` +
-        `&select=id,slug,name,description,banner_url,start_at,format,swiss_rounds,top_cut_size,max_players` +
+        `&select=*` +
         `&order=start_at.asc&limit=${POR_PASADA}`,
       clave
     )

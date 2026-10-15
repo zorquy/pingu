@@ -195,7 +195,7 @@
             <option value="standard" selected>Torneo de un día (suizas seguidas)</option>
             <option value="league">Liga (una jornada por fecha)</option>
           </select>
-          <span class="torneo-campo-pista">En la liga cada ronda es una jornada con su fecha, y la clasificación se puede ver en general o jornada a jornada.</span>
+          <span class="torneo-campo-pista">En la liga cada jornada tiene su fecha (y una o varias rondas), y la clasificación se puede ver en general o jornada a jornada.</span>
         </label>
         <div class="torneos-form-rejilla">
           <!-- «Sin límite» apaga el campo de plazas y guarda NULL
@@ -208,6 +208,17 @@
           </div>
           <label id="torneoRondasEtiqueta">Rondas suizas
             <input type="number" inputmode="numeric" id="torneoRondas" min="1" max="12" value="4" />
+          </label>
+          <!-- Solo en una liga (849): cuántas rondas suizas se juegan cada
+               jornada, con la misma lista. -->
+          <label id="torneoRondasJornadaCampo" class="hidden">Rondas por jornada
+            <select id="torneoRondasJornada">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
           </label>
           <label>Top cut
             <select id="torneoCorte">

@@ -16,6 +16,7 @@ import { icons } from '../icons.js'
 import { officialStructure } from './motor.js'
 import { ESTADOS, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
+import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -120,7 +121,7 @@ function accionDe(t, miEstado) {
 // tarjeta se lee como un trabalenguas, así que aquí va troceada en
 // etiquetas sueltas y esta es la primera.
 function estructuraCorta(t) {
-  return t.format === 'league' ? `Liga de ${t.swiss_rounds} jornadas` : `${t.swiss_rounds} rondas suizas`
+  return t.format === 'league' ? `Liga de ${numJornadas(t)} jornadas${rondasPorJornada(t) > 1 ? ` × ${rondasPorJornada(t)} rondas` : ''}` : `${t.swiss_rounds} rondas suizas`
 }
 
 function tarjetaHtml(t, datos) {
@@ -688,6 +689,7 @@ function irAPaso(n) {
 function esLigaElegida() {
   return $('torneoTipo').value === 'league'
 }
+const rondasPorJornadaElegidas = () => Math.max(1, Number($('torneoRondasJornada')?.value) || 1)
 
 // ── El aforo sin límite (tanda 228) ──
 // Marcar «Sin límite» apaga el campo de plazas y guarda max_players a
@@ -707,6 +709,7 @@ function pintarCamposJornadas(fechas = null) {
   const liga = esLigaElegida()
   caja.classList.toggle('hidden', !liga)
   $('torneoRondasEtiqueta').firstChild.textContent = liga ? 'Jornadas' : 'Rondas suizas'
+  $('torneoRondasJornadaCampo')?.classList.toggle('hidden', !liga)
   if (!liga) return
   const cuantas = Math.min(12, Math.max(1, Number($('torneoRondas').value) || 1))
   const lista = $('torneoJornadasLista')
@@ -795,7 +798,7 @@ function pintarResumen() {
     ['Tipo', liga ? 'Liga por jornadas' : 'Torneo de un día'],
     ['Inicio', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
     ['Plazas', sinLimiteElegido() ? 'Sin límite' : $('torneoPlazas').value],
-    [liga ? 'Jornadas' : 'Suizas', `${$('torneoRondas').value} · BO${$('torneoSwissBo').value}`],
+    [liga ? 'Jornadas' : 'Suizas', `${$('torneoRondas').value}${liga && rondasPorJornadaElegidas() > 1 ? ` de ${rondasPorJornadaElegidas()} rondas` : ''} · BO${$('torneoSwissBo').value}`],
     ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
     ['Ronda', `${$('torneoMinutos').value} min`],
     ['Check-in', `${$('torneoCheckin').value} min`],
@@ -944,7 +947,9 @@ function engancharFormulario(session, perfil) {
     $('torneoSinLimite').checked = viejo.max_players == null
     $('torneoPlazas').value = viejo.max_players ?? 16
     pintarSinLimite()
-    $('torneoRondas').value = viejo.swiss_rounds
+    // En una liga el campo cuenta jornadas, no rondas (849).
+    $('torneoRondas').value = viejo.format === 'league' ? numJornadas(viejo) : viejo.swiss_rounds
+    if ($('torneoRondasJornada')) $('torneoRondasJornada').value = String(viejo.format === 'league' ? rondasPorJornada(viejo) : 1)
     $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
     pintarCorteBo()
     if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
@@ -1076,7 +1081,8 @@ function engancharFormulario(session, perfil) {
       matchday_dates: liga ? fechasDeJornadas().map((f) => new Date(f).toISOString()) : null,
       show_opponent_decklists: modoListas === 'en_juego',
       max_players: sinLimiteElegido() ? null : Number($('torneoPlazas').value),
-      swiss_rounds: Number($('torneoRondas').value),
+      // En una liga, el total de rondas es jornadas × rondas por jornada (849).
+      swiss_rounds: Number($('torneoRondas').value) * (liga ? rondasPorJornadaElegidas() : 1),
       round_time_minutes: Number($('torneoMinutos').value),
       checkin_minutes: Number($('torneoCheckin').value),
       swiss_bo: Number($('torneoSwissBo').value),
@@ -1088,6 +1094,9 @@ function engancharFormulario(session, perfil) {
       is_official: Boolean($('torneoOficial')?.checked),
       is_private: Boolean($('torneoPrivado')?.checked),
     }
+    // Solo si son varias (849): así crear una liga de una ronda por jornada
+    // no depende de que la columna exista ya en la base.
+    if (liga && rondasPorJornadaElegidas() > 1) fila.rounds_per_matchday = rondasPorJornadaElegidas()
     let { error } = await supabase.from('tournaments').insert(fila)
     // Entre el despliegue y que un humano ejecute las migraciones de
     // las columnas nuevas pueden pasar horas, y en ese rato crear

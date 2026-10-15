@@ -56,9 +56,15 @@ export function soloTexto(html) {
 
 // Cómo se juega, en una línea: «5 rondas suizas + top 8», «liga de 8
 // jornadas». Es lo primero que mira quien decide si se apunta.
-export function comoSeJuega({ format, swiss_rounds: rondas, top_cut_size: top }) {
+export function comoSeJuega({ format, swiss_rounds: rondas, top_cut_size: top, rounds_per_matchday: rpj }) {
   if (!rondas) return ''
-  const base = format === 'league' ? `liga de ${rondas} ${rondas === 1 ? 'jornada' : 'jornadas'}` : `${rondas} ${rondas === 1 ? 'ronda suiza' : 'rondas suizas'}`
+  // En una liga, `swiss_rounds` es el total de rondas y cada jornada puede
+  // tener varias (849): «liga de 10 jornadas de 3 rondas».
+  const k = Math.max(1, Number(rpj) || 1)
+  const j = Math.ceil(rondas / k)
+  const base = format === 'league'
+    ? `liga de ${j} ${j === 1 ? 'jornada' : 'jornadas'}${k > 1 ? ` de ${k} rondas` : ''}`
+    : `${rondas} ${rondas === 1 ? 'ronda suiza' : 'rondas suizas'}`
   return top ? `${base} + top ${top}` : base
 }
 

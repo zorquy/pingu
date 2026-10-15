@@ -29,7 +29,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas } from './mesas.js'
-import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada } from './jornadas.js'
+import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga } from './jornadas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
@@ -222,24 +222,25 @@ async function cargarHistorial() {
   historial = data || []
 }
 
-// En una liga, quién juega la jornada n: quien ha mandado su lista
-// (tanda 635). NULL = no aplica (no es liga, no se ven las listas, o es
-// una jornada en la que nadie mandó lista porque se jugó antes de que
-// existieran — ahí juega quien jugaba, como siempre).
-function juegaLaJornada(n) {
-  const juegan = quienesJuegan(ctx.jornadas, n)
+// En una liga, quién juega la RONDA n: quien ha mandado su lista para la
+// jornada de esa ronda (tanda 635; con varias rondas por jornada, la misma
+// lista vale para todas, 849). NULL = no aplica (no es liga, no se ven las
+// listas, o es una jornada en la que nadie mandó lista porque se jugó antes
+// de que existieran — ahí juega quien jugaba, como siempre).
+function juegaLaRonda(n) {
+  const juegan = quienesJuegan(ctx.jornadas, jornadaDeRonda(ctx.torneo, n))
   return juegan && juegan.size ? juegan : null
 }
 
 // El snapshot inmutable que pide el motor (SPEC §5.1): jugadores con su
 // baja y solo las partidas terminales, con el resultado resuelto.
 function montarSnapshot(numeroRonda) {
-  const juegan = juegaLaJornada(numeroRonda)
+  const juegan = juegaLaRonda(numeroRonda)
   return {
     pairingSeed: ctx.torneo.pairing_seed,
     currentRoundNumber: numeroRonda,
     players: ctx.inscripciones.map((i) => {
-      // Quien no tiene lista para ESTA jornada (tanda 635) va al motor
+      // Quien no tiene lista para la jornada de ESTA ronda (tanda 635) va al motor
       // como retirado justo antes de ella: no se le sienta en esta y en
       // la siguiente vuelve si manda lista, porque cada snapshot se monta
       // para UNA ronda. El motor no se toca (es TrainerArena 1:1).
@@ -282,6 +283,10 @@ function rondaActual() {
 // sin `started_at` (los datos de demostración) se jugó.
 const rondaSaltada = (r) => esRondaSaltada(r) && !partidas.some((m) => m.round_id === r.id)
 const esLiga = () => ctx.torneo.format === 'league'
+// Cómo se llama una ronda en los botones y avisos: en una liga, por su
+// jornada (849: «ronda 2 de la jornada 3» si hay varias por jornada).
+const nombreDeRonda = (n) => (esLiga() ? nombreDeRondaDeLiga(ctx.torneo, n) : `ronda ${n}`)
+const conMayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1)
 
 // ── Saltar una jornada de liga (tanda 833) ──
 //
@@ -298,9 +303,18 @@ async function saltarJornada() {
     showToast('Hay una jornada en marcha: ciérrala antes de saltar la siguiente.', 'error')
     return
   }
-  const n = rondas.length + 1
-  if (!esLiga() || n > ctx.torneo.swiss_rounds) return
-  const ultima = n >= ctx.torneo.swiss_rounds
+  const primera = rondas.length + 1
+  if (!esLiga() || primera > ctx.torneo.swiss_rounds) return
+  // Con varias rondas por jornada (849) se salta la jornada ENTERA, y solo
+  // desde su principio: a media jornada, lo que toca es jugar la ronda que
+  // queda o deshacer.
+  if (rondaEnJornada(ctx.torneo, primera) !== 1) {
+    showToast(`La jornada ${jornadaDeRonda(ctx.torneo, primera)} ya ha empezado: juega la ronda que queda o deshaz la anterior.`, 'error')
+    return
+  }
+  const n = jornadaDeRonda(ctx.torneo, primera)
+  const ultimaRonda = Math.min(primera + rondasPorJornada(ctx.torneo) - 1, ctx.torneo.swiss_rounds)
+  const ultima = ultimaRonda >= ctx.torneo.swiss_rounds
   const aviso =
     `Vas a saltar la jornada ${n}: queda como «no se jugó», sin mesas y sin puntos para nadie, y ya no admite listas. ` +
     (ultima
@@ -308,12 +322,10 @@ async function saltarJornada() {
       : `El panel pasa a la jornada ${n + 1}. Puedes deshacerlo mientras no la emparejes.`)
   if (!window.confirm(aviso)) return
 
-  const { data: ronda, error } = await supabase
-    .from('rounds')
-    .insert({ tournament_id: ctx.torneo.id, round_number: n, phase: 'swiss', status: 'finished', closed_at: ahora() })
-    .select('id')
-    .single()
-  if (error || !ronda) {
+  const filas = []
+  for (let r = primera; r <= ultimaRonda; r++) filas.push({ tournament_id: ctx.torneo.id, round_number: r, phase: 'swiss', status: 'finished', closed_at: ahora() })
+  const { data: hechas, error } = await supabase.from('rounds').insert(filas).select('id')
+  if (error || (hechas || []).length !== filas.length) {
     showToast(`No se ha podido saltar la jornada ${n}: ${error?.message || 'la base no la ha guardado'}`, 'error')
     return
   }
@@ -434,32 +446,36 @@ async function generarPareos() {
   // En una liga, quién juega esta jornada se lee AHORA y no del último
   // refresco: alguien puede haber mandado su lista hace cinco segundos
   // (tanda 635). Y la jornada tiene que estar CERRADA: emparejar con las
-  // inscripciones abiertas dejaría fuera al que la manda después.
+  // inscripciones abiertas dejaría fuera al que la manda después. Con
+  // varias rondas por jornada (849) todo eso pasa en su PRIMERA ronda; las
+  // demás se juegan con las mismas listas y la misma gente.
   const porJornadas = ctx.torneo.format === 'league' && Boolean(ctx.jornadas)
+  const j = jornadaDeRonda(ctx.torneo, n)
+  const abreJornada = rondaEnJornada(ctx.torneo, n) === 1
   let juegan = null
   if (porJornadas) {
-    const laVeiaCerrada = jornadaCerrada(ctx.jornadas, n)
+    const laVeiaCerrada = jornadaCerrada(ctx.jornadas, j)
     const frescas = await cargarJornadas(ctx.torneo, { userId: ctx.session?.user?.id || null, todas: true })
     if (frescas) ctx.jornadas = frescas
     // Si la página la creía cerrada y ya no lo está, alguien la acaba de
     // reabrir a propósito (635): no se cierra por encima de esa decisión.
-    if (laVeiaCerrada && !jornadaCerrada(ctx.jornadas, n)) {
-      showToast(`Alguien ha reabierto la jornada ${n} hace un momento: no la emparejo. Si quieres cerrarla y emparejarla, vuelve a darle.`, 'error')
+    if (abreJornada && laVeiaCerrada && !jornadaCerrada(ctx.jornadas, j)) {
+      showToast(`Alguien ha reabierto la jornada ${j} hace un momento: no la emparejo. Si quieres cerrarla y emparejarla, vuelve a darle.`, 'error')
       pintarRondas()
       return
     }
     // Emparejar una jornada ES cerrarla (tanda 801): antes había que ir
     // abajo a «Cerrar inscripciones» y, tras la ronda 1, arriba no salía
     // ningún botón — la liga parecía terminada.
-    if (!jornadaCerrada(ctx.jornadas, n)) {
-      const error = await cerrarJornada(ctx.torneo.id, n, true)
+    if (!jornadaCerrada(ctx.jornadas, j)) {
+      const error = await cerrarJornada(ctx.torneo.id, j, true)
       if (error) {
-        showToast(`No se ha podido cerrar la jornada ${n}: ${error.message}`, 'error')
+        showToast(`No se ha podido cerrar la jornada ${j}: ${error.message}`, 'error')
         return
       }
-      ctx.jornadas.cerradas.add(n)
+      ctx.jornadas.cerradas.add(j)
     }
-    juegan = quienesJuegan(ctx.jornadas, n) || new Set()
+    juegan = quienesJuegan(ctx.jornadas, j) || new Set()
     const activos = ctx.inscripciones.filter((i) => i.status === 'active')
     const sentables = activos.filter((i) => juegan.has(i.user_id)).length
     if (!juegan.size) {
@@ -469,12 +485,12 @@ async function generarPareos() {
       // con una jornada sin listas —, y no se deja la liga parada.
       juegan = null
       if (activos.length < 2) {
-        showToast(`No hay con quién emparejar la jornada ${n}: quedan menos de dos jugadores activos.`, 'error')
+        showToast(`No hay con quién emparejar la ${nombreDeRonda(n)}: quedan menos de dos jugadores activos.`, 'error')
         return
       }
     } else if (sentables < 2) {
       showToast(
-        `No hay con quién emparejar la jornada ${n}: solo ${nombreDe([...juegan][0])} ha mandado su lista para ella. Que los demás la manden (puede ser la misma), o que la retire para jugar todos con la de la liga.`,
+        `No hay con quién emparejar la ${nombreDeRonda(n)}: solo ${nombreDe([...juegan][0])} ha mandado su lista para la jornada ${j}. Que los demás la manden (puede ser la misma), o que la retire para jugar todos con la de la liga.`,
         'error'
       )
       return
@@ -531,9 +547,9 @@ async function generarPareos() {
   // La lista de esta jornada pasa a ser «la» lista de cada uno: la que
   // ven el rival, los jueces y el meta, con la regla de visibilidad de
   // siempre (tanda 635). Antes no, para no enseñar una lista futura.
-  if (porJornadas && juegan) {
-    const error = await publicarListasJornada(ctx.torneo.id, n)
-    if (error) showToast(`Pareos hechos, pero las listas de la jornada ${n} no se han podido publicar: ${error.message}`, 'error')
+  if (porJornadas && juegan && abreJornada) {
+    const error = await publicarListasJornada(ctx.torneo.id, j)
+    if (error) showToast(`Pareos hechos, pero las listas de la jornada ${j} no se han podido publicar: ${error.message}`, 'error')
   }
 
   // Un cruce repetido que nadie sabe que se repite sí sería un problema:
@@ -544,13 +560,13 @@ async function generarPareos() {
     sinParear.length
       ? `Pareo incompleto: quedan ${sinParear.length} jugadores por sentar a mano.`
       : repes.length
-        ? `Ronda ${n} pareada, pero ${repes.length === 1 ? 'una mesa repite cruce' : `${repes.length} mesas repiten cruce`}: ${repes
+        ? `${conMayuscula(nombreDeRonda(n))} pareada, pero ${repes.length === 1 ? 'una mesa repite cruce' : `${repes.length} mesas repiten cruce`}: ${repes
             .map((m) => `mesa ${m.tableNumber} (${nombreDe(m.playerAId)} vs ${nombreDe(m.playerBId)})`)
             .join(', ')}. No había forma de evitarlo sin dejar a nadie sin sentar.`
         : juegan
-          ? `Pareos de la jornada ${n} generados: juegan ${juegan.size} con su lista.`
+          ? `Pareos de la ${nombreDeRonda(n)} generados: juegan ${juegan.size} con su lista.`
           : porJornadas
-            ? `Pareos de la jornada ${n} generados: nadie mandó lista para ella, así que juegan todos con su lista de la liga.`
+            ? `Pareos de la ${nombreDeRonda(n)} generados: nadie mandó lista para la jornada ${j}, así que juegan todos con su lista de la liga.`
             : `Pareos de la ronda ${n} generados.`,
     sinParear.length || repes.length ? 'error' : 'success'
   )
@@ -601,7 +617,7 @@ async function iniciarRonda(ronda) {
     }
   }
 
-  showToast(`Ronda ${ronda.round_number} en marcha. ${ctx.torneo.round_time_minutes} minutos.`, 'success')
+  showToast(`${conMayuscula(ronda.phase === 'swiss' ? nombreDeRonda(ronda.round_number) : `ronda ${ronda.round_number}`)} en marcha. ${ctx.torneo.round_time_minutes} minutos.`, 'success')
   await ctx.recargarFicha()
 }
 
@@ -630,7 +646,7 @@ async function cerrarRonda(ronda) {
       await sembrarTopCut()
     }
   } else {
-    showToast(`Ronda ${ronda.round_number} cerrada.`, 'success')
+    showToast(`${conMayuscula(ronda.phase === 'swiss' ? nombreDeRonda(ronda.round_number) : `ronda ${ronda.round_number}`)} cerrada.`, 'success')
   }
   await ctx.recargarFicha()
 }
@@ -696,11 +712,18 @@ async function deshacerRonda() {
   const mesas = partidas.filter((m) => m.round_id === ultima.id)
   const conResultado = mesas.filter((m) => TERMINALES.has(m.status)).length
   const saltada = rondaSaltada(ultima)
+  // Una jornada saltada con varias rondas (849) se recupera ENTERA: todas
+  // sus rondas saltadas del final, de una vez.
+  const jSaltada = saltada ? jornadaDeRonda(ctx.torneo, ultima.round_number) : null
+  const aBorrar = saltada
+    ? rondas.filter((r) => r.phase === 'swiss' && rondaSaltada(r) && jornadaDeRonda(ctx.torneo, r.round_number) === jSaltada)
+    : [ultima]
+  const nombre = ultima.phase === 'swiss' ? nombreDeRonda(ultima.round_number) : `ronda ${ultima.round_number}`
   const aviso = saltada
-    ? `Vas a recuperar la jornada ${ultima.round_number}: deja de contar como «no se jugó» y vuelve a poder emparejarse.`
+    ? `Vas a recuperar la jornada ${jSaltada}: deja de contar como «no se jugó» y vuelve a poder emparejarse.`
     : ultima.status === 'pending'
-      ? `Vas a deshacer los pareos de la ronda ${ultima.round_number}. Podrás volver a generarlos cuando quieras.`
-      : `Vas a borrar la ronda ${ultima.round_number} ENTERA: sus ${mesas.length} mesas${
+      ? `Vas a deshacer los pareos de la ${nombre}. Podrás volver a generarlos cuando quieras.`
+      : `Vas a borrar la ${nombre} ENTERA: sus ${mesas.length} mesas${
           conResultado ? ` (${conResultado} con resultado)` : ''
         } y sus reportes se pierden y no se pueden recuperar. ¿Seguro?`
   if (!window.confirm(aviso)) return
@@ -708,16 +731,17 @@ async function deshacerRonda() {
   // El .select() no es un adorno: un DELETE que la RLS rechaza NO da
   // error — vuelve sin filas y sin tocar nada (aviso de CLAUDE.md).
   // Así se distingue «deshecho» de «la base no ha borrado nada».
-  const { data, error } = await supabase.from('rounds').delete().eq('id', ultima.id).select('id')
-  if (error || !data?.length) {
+  const { data, error } = await supabase.from('rounds').delete().in('id', aBorrar.map((r) => r.id)).select('id')
+  if (error || (data || []).length !== aBorrar.length) {
     showToast('No se ha podido deshacer la ronda: ' + (error?.message || 'la base no la ha borrado'), 'error')
+    if ((data || []).length) await ctx.recargarFicha()
     return
   }
 
   // Deshacer la R1 devuelve el torneo a «inscripciones cerradas», y si
   // la ronda llegó a iniciarse, des-sella las decklists (las selló
   // iniciarRonda; sin R1 en marcha la gente debe poder retocarlas).
-  if (rondas.length === 1) {
+  if (rondas.length === aBorrar.length) {
     if (ultima.started_at) {
       await supabase.from('tournament_decklists').update({ locked_at: null }).eq('tournament_id', ctx.torneo.id)
     }
@@ -729,10 +753,10 @@ async function deshacerRonda() {
   }
   showToast(
     saltada
-      ? `Jornada ${ultima.round_number} recuperada: ya se puede emparejar.`
+      ? `Jornada ${jSaltada} recuperada: ya se puede emparejar.`
       : ultima.status === 'pending'
-        ? `Pareos de la ronda ${ultima.round_number} deshechos.`
-        : `Ronda ${ultima.round_number} borrada.`,
+        ? `Pareos de la ${nombre} deshechos.`
+        : `${conMayuscula(nombre)} borrada.`,
     'success'
   )
   await ctx.recargarFicha()
@@ -1191,7 +1215,13 @@ function pintarBarraViva(ronda) {
     : null
   const fase = ronda.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'
   const total = ctx.torneo.swiss_rounds || 0
-  const rotulo = `${fase} ${ronda.round_number}${ronda.phase === 'top_cut' || !total ? '' : ` de ${total}`}`
+  // En una liga, por su jornada (849): «Jornada 2 · ronda 1 de 3».
+  const enLiga = esLiga() && ronda.phase !== 'top_cut'
+  const rotulo = enLiga
+    ? rondasPorJornada(ctx.torneo) > 1
+      ? `Jornada ${jornadaDeRonda(ctx.torneo, ronda.round_number)} de ${numJornadas(ctx.torneo)} · ronda ${rondaEnJornada(ctx.torneo, ronda.round_number)} de ${rondasPorJornada(ctx.torneo)}`
+      : `Jornada ${ronda.round_number} de ${numJornadas(ctx.torneo)}`
+    : `${fase} ${ronda.round_number}${ronda.phase === 'top_cut' || !total ? '' : ` de ${total}`}`
 
   let titular = 'Ronda en marcha'
   let der = ''
@@ -1345,7 +1375,7 @@ function chapaDeMesa(m) {
 function pintarMesas(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id).sort((a, b) => a.table_number - b.table_number)
   if (!mesas.length && rondaSaltada(ronda)) {
-    return `<p class="subtext">La jornada ${ronda.round_number} no se jugó en PokeDoc: se saltó, sin mesas ni puntos para nadie.</p>`
+    return `<p class="subtext">La jornada ${jornadaDeRonda(ctx.torneo, ronda.round_number)} no se jugó en PokeDoc: se saltó, sin mesas ni puntos para nadie.</p>`
   }
   if (!mesas.length) return '<p class="subtext">Sin mesas todavía.</p>'
   const puedeResolver = (mando() || ctx.esJuez) && ronda.status === 'active'
@@ -1433,7 +1463,7 @@ function jornadasAdminHtml() {
   const activos = ctx.inscripciones.filter((i) => i.status === 'active')
   const fechas = Array.isArray(ctx.torneo.matchday_dates) ? ctx.torneo.matchday_dates : []
   const filas = []
-  for (let n = 1; n <= (ctx.torneo.swiss_rounds || 0); n++) {
+  for (let n = 1; n <= numJornadas(ctx.torneo); n++) {
     if (jornadaEmpezada(ctx.jornadas, n)) continue
     const juegan = quienesJuegan(ctx.jornadas, n) || new Set()
     const con = activos.filter((i) => juegan.has(i.user_id))
@@ -1462,7 +1492,7 @@ function jornadasAdminHtml() {
 function avisoDeFecha(n) {
   const fecha = (Array.isArray(ctx.torneo.matchday_dates) ? ctx.torneo.matchday_dates : [])[n - 1]
   if (!fecha || Date.now() - new Date(fecha).getTime() < 86400000) return ''
-  const sigue = n < ctx.torneo.swiss_rounds ? `pasa a la jornada ${n + 1}` : 'cierra la liga'
+  const sigue = n < numJornadas(ctx.torneo) ? `pasa a la jornada ${n + 1}` : 'cierra la liga'
   return `<p class="subtext torneo-aviso-jornada">La jornada ${n} era el ${escapeHtml(fechaCorta(fecha))} y no tiene pareos. Si se jugó fuera de PokeDoc o no llegó a jugarse, «Saltar la jornada ${n}» la deja como no jugada (nadie suma puntos) y ${sigue}.</p>`
 }
 
@@ -1521,27 +1551,38 @@ function pintarRondas() {
     if (!actual && rondas.length < ctx.torneo.swiss_rounds) {
       const n = rondas.length + 1
       if (esLiga()) {
-        // El botón sale siempre (801): si la jornada sigue abierta, emparejarla
-        // la cierra. Y al lado, saltarla (833): una jornada que no se jugó en
-        // PokeDoc dejaba la liga clavada en ella para siempre.
-        admin =
-          `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la jornada ${n}</button>` +
-          `<button class="btn-secondary" id="btnSaltarJornada">Saltar la jornada ${n}</button>`
-        adminAvisos = avisoDeFecha(n)
-        if (ctx.jornadas) {
-          adminAvisos +=
-            avisoDeJornada(n) +
-            (jornadaCerrada(ctx.jornadas, n)
-              ? ''
-              : `<p class="subtext torneo-aviso-jornada">Al emparejar la jornada ${n} se cierran sus inscripciones: ya no se podrá mandar ni cambiar la lista de esa jornada.</p>`)
+        // La ronda que toca dentro de su jornada (849). La PRIMERA es la que
+        // empareja (y cierra) la jornada y la que se puede saltar; las demás
+        // se generan con la misma gente y las mismas listas.
+        const j = jornadaDeRonda(ctx.torneo, n)
+        const k = rondaEnJornada(ctx.torneo, n)
+        const varias = rondasPorJornada(ctx.torneo) > 1
+        if (k === 1) {
+          // El botón sale siempre (801): si la jornada sigue abierta, emparejarla
+          // la cierra. Y al lado, saltarla (833): una jornada que no se jugó en
+          // PokeDoc dejaba la liga clavada en ella para siempre.
+          admin =
+            `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la jornada ${j}${varias ? ` (ronda 1 de ${rondasPorJornada(ctx.torneo)})` : ''}</button>` +
+            `<button class="btn-secondary" id="btnSaltarJornada">Saltar la jornada ${j}</button>`
+          adminAvisos = avisoDeFecha(j)
+          if (ctx.jornadas) {
+            adminAvisos +=
+              avisoDeJornada(j) +
+              (jornadaCerrada(ctx.jornadas, j)
+                ? ''
+                : `<p class="subtext torneo-aviso-jornada">Al emparejar la jornada ${j} se cierran sus inscripciones: ya no se podrá mandar ni cambiar la lista de esa jornada.</p>`)
+          }
+        } else {
+          admin = `<button class="btn-primary" id="btnGenerarPareos">Generar la ronda ${k} de la jornada ${j}</button>`
+          adminAvisos = `<p class="subtext torneo-aviso-jornada">La jornada ${j} sigue: ronda ${k} de ${rondasPorJornada(ctx.torneo)}, con la misma gente y las mismas listas.</p>`
         }
       } else {
         admin = `<button class="btn-primary" id="btnGenerarPareos">Generar pareos de la ronda ${n}</button>`
       }
     } else if (actual?.status === 'pending') {
-      admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ${esLiga() && actual.phase === 'swiss' ? 'la jornada' : 'ronda'} ${actual.round_number}</button>`
+      admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ${actual.phase === 'swiss' && esLiga() ? `la ${nombreDeRonda(actual.round_number)}` : `ronda ${actual.round_number}`}</button>`
     } else if (actual?.status === 'active') {
-      admin = `<button class="btn-secondary" id="btnCerrarRonda">Cerrar ${esLiga() && actual.phase === 'swiss' ? 'la jornada' : 'ronda'} ${actual.round_number}</button>`
+      admin = `<button class="btn-secondary" id="btnCerrarRonda">Cerrar ${actual.phase === 'swiss' && esLiga() ? `la ${nombreDeRonda(actual.round_number)}` : `ronda ${actual.round_number}`}</button>`
     } else if (!actual && rondas.length && ctx.torneo.status === 'in_progress') {
       // Todas las rondas cerradas y sin camino adelante: el estado en
       // el que te deja DESHACER una ronda del cut (o la siembra) tras
@@ -1564,7 +1605,7 @@ function pintarRondas() {
       const ultima = rondas[rondas.length - 1]
       admin += `<button class="btn-secondary torneo-deshacer" id="btnDeshacerRonda">${
         rondaSaltada(ultima)
-          ? `Recuperar la jornada ${ultima.round_number}`
+          ? `Recuperar la jornada ${jornadaDeRonda(ctx.torneo, ultima.round_number)}`
           : `Deshacer ${ultima.status === 'pending' ? `los pareos (R${ultima.round_number})` : `la ronda ${ultima.round_number}`}`
       }</button>`
     }
@@ -1598,8 +1639,23 @@ function pintarRondas() {
   })
   const previstas = ctx.torneo.swiss_rounds || 0
   const pasos = []
-  for (let n = 1; n <= previstas; n++) {
-    pasos.push(pasoDe(`${esLiga() ? 'Jornada' : 'Ronda'} ${n}`, rondas.find((x) => x.phase !== 'top_cut' && x.round_number === n)))
+  if (esLiga() && rondasPorJornada(ctx.torneo) > 1) {
+    // Un paso por JORNADA (849): treinta pasos para diez jornadas no se
+    // leen. Dentro, la ronda que se juega o cuántas van.
+    const k = rondasPorJornada(ctx.torneo)
+    for (let j = 1; j <= numJornadas(ctx.torneo); j++) {
+      const delJ = rondas.filter((x) => x.phase !== 'top_cut' && jornadaDeRonda(ctx.torneo, x.round_number) === j)
+      const viva = delJ.find((x) => x.status !== 'finished')
+      const todas = delJ.length >= k && delJ.every((x) => x.status === 'finished')
+      if (viva) pasos.push(pasoDe(`Jornada ${j} · R${rondaEnJornada(ctx.torneo, viva.round_number)}`, viva))
+      else if (todas) pasos.push(pasoDe(`Jornada ${j}`, delJ[delJ.length - 1]))
+      else if (delJ.length) pasos.push({ rotulo: `Jornada ${j}`, estado: `${delJ.length} de ${k} rondas`, clase: 'lista' })
+      else pasos.push(pasoDe(`Jornada ${j}`, null))
+    }
+  } else {
+    for (let n = 1; n <= previstas; n++) {
+      pasos.push(pasoDe(`${esLiga() ? 'Jornada' : 'Ronda'} ${n}`, rondas.find((x) => x.phase !== 'top_cut' && x.round_number === n)))
+    }
   }
   for (const r of rondas.filter((x) => x.phase === 'top_cut')) pasos.push(pasoDe(`Top cut R${r.round_number}`, r))
   if (ctx.torneo.top_cut_size && !rondas.some((r) => r.phase === 'top_cut')) {
@@ -1676,7 +1732,7 @@ function pintarRondasResto(actual) {
       ? `<div class="torneo-rondas-chips">${rondas
           .map(
             (r) =>
-              `<button class="torneo-ronda-chip ${paraMesas?.id === r.id ? 'activa' : ''}" data-ver-ronda="${r.id}">${r.phase === 'top_cut' ? `Cut R${r.round_number}` : `R${r.round_number}`}</button>`
+              `<button class="torneo-ronda-chip ${paraMesas?.id === r.id ? 'activa' : ''}" data-ver-ronda="${r.id}">${r.phase === 'top_cut' ? `Cut R${r.round_number}` : esLiga() ? nombreDeRondaDeLiga(ctx.torneo, r.round_number, { corto: true }) : `R${r.round_number}`}</button>`
           )
           .join('')}</div>`
       : ''
@@ -1690,7 +1746,7 @@ function pintarRondasResto(actual) {
   const contador =
     paraMesas?.status === 'active' ? contadorDeMesasHtml(progresoDeMesas(partidas.filter((m) => m.round_id === paraMesas.id))) : ''
   const htmlMesas = paraMesas
-    ? `<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${esLiga() ? 'jornada' : 'ronda'} ${paraMesas.round_number}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
+    ? `<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${nombreDeRonda(paraMesas.round_number)}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
     : ''
   // El reloj se rearma SIEMPRE, antes de la guarda: se apaga y se vuelve
   // a poner en cada pasada, y saltárselo lo dejaría parado.
@@ -2310,7 +2366,7 @@ function pintarMiPartida() {
   const cabecera = `
     <div class="torneo-mesa-cab">
       <span class="torneo-mesa-cab-t">Mesa ${mia.table_number}</span>
-      <span class="torneo-chapa torneo-chapa-neutra">${actual.phase === 'top_cut' ? 'Top cut' : 'Ronda suiza'} ${actual.round_number}</span>
+      <span class="torneo-chapa torneo-chapa-neutra">${actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda suiza ${actual.round_number}`}</span>
       <span class="torneo-chapa torneo-chapa-neutra">${bo === 3 ? 'Al mejor de 3' : 'A una partida'}</span>
       <span class="torneo-mesa-cab-tcg">TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></span>
     </div>`
@@ -2487,7 +2543,7 @@ function abrirHistorialJugador(userId) {
           ? '<span class="torneo-historial-rival subtext">Bye — sin rival</span>'
           : `<span class="torneo-historial-rival">vs <strong>${escapeHtml(nombreDe(rival))}</strong>${chapaDe(rival)}</span>`
       return `<li>
-        <span class="torneo-historial-ronda">${esCut ? 'Cut·' : ''}R${n ?? '?'}</span>
+        <span class="torneo-historial-ronda">${esCut ? `Cut·R${n ?? '?'}` : esLiga() && n ? nombreDeRondaDeLiga(ctx.torneo, n, { corto: true }) : `R${n ?? '?'}`}</span>
         <span class="torneo-historial-res torneo-historial-${r.clase}">${r.texto}</span>
         ${contra}
       </li>`
@@ -2511,10 +2567,15 @@ function abrirHistorialJugador(userId) {
   void rellenarChapasArquetipo(overlay)
 }
 
+// Las jornadas (no las rondas, 849) que ya tienen algún resultado.
 function jornadasConPuntos() {
-  return rondas
-    .filter((r) => r.phase === 'swiss' && partidas.some((m) => m.round_id === r.id && TERMINALES.has(m.status)))
-    .map((r) => r.round_number)
+  return [
+    ...new Set(
+      rondas
+        .filter((r) => r.phase === 'swiss' && partidas.some((m) => m.round_id === r.id && TERMINALES.has(m.status)))
+        .map((r) => jornadaDeRonda(ctx.torneo, r.round_number))
+    ),
+  ]
 }
 
 // Cuándo se ven las listas de los demás — y con ellas los arquetipos,
@@ -2734,7 +2795,7 @@ function pintarClasificacion() {
   // las mesas de esa ronda; y solo lista a quien jugó en ella.
   const general = vistaClasificacion === 'general'
   const snapshot = montarSnapshot(rondas.length)
-  if (!general) snapshot.matches = snapshot.matches.filter((m) => m.roundNumber === vistaClasificacion)
+  if (!general) snapshot.matches = snapshot.matches.filter((m) => jornadaDeRonda(ctx.torneo, m.roundNumber) === vistaClasificacion)
   let tabla = computeStandings(snapshot)
   if (!general) tabla = tabla.filter((e) => e.gamesPlayed > 0)
 

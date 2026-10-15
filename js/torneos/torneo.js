@@ -27,7 +27,7 @@ import {
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces, pendientesDeJuez } from './jueces.js'
-import { cargarJornadas, misJornadas, misJornadasHtml, listaAnterior, enviarListaJornada, quitarListaJornada, primeraAbierta, quienesJuegan } from './jornadas.js'
+import { cargarJornadas, misJornadas, misJornadasHtml, listaAnterior, enviarListaJornada, quitarListaJornada, primeraAbierta, quienesJuegan, numJornadas, rondasPorJornada } from './jornadas.js'
 import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
 import { urlTema } from '../foro-comun.js'
@@ -285,7 +285,7 @@ function pintarFicha() {
   // partidas— tenía el mismo peso que los minutos de check-in.
   pintarSiCambia($('torneoFormato'), [
     [icons.calendar(15), fechaBonita(torneo.start_at)],
-    [icons.layers(15), esLiga ? `Liga de ${torneo.swiss_rounds} jornadas · BO${torneo.swiss_bo ?? 1}` : `${torneo.swiss_rounds} rondas suizas · BO${torneo.swiss_bo ?? 1}`],
+    [icons.layers(15), esLiga ? `Liga de ${numJornadas(torneo)} jornadas${rondasPorJornada(torneo) > 1 ? ` · ${rondasPorJornada(torneo)} rondas por jornada` : ''} · BO${torneo.swiss_bo ?? 1}` : `${torneo.swiss_rounds} rondas suizas · BO${torneo.swiss_bo ?? 1}`],
     ...(torneo.top_cut_size ? [[icons.trophy(15), `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}`]] : []),
     // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
     // debe enseñar «undefined min» si a la fila le falta la columna.
@@ -619,6 +619,19 @@ async function pintarEditor() {
   engancharEditor(torneo, estructuraBloqueada, esLiga)
 }
 
+// «Rondas por jornada» de una liga (849). Solo se cambia mientras la liga
+// no tenga NINGUNA ronda —ni jugada ni saltada—: con rondas hechas, cambiar
+// cuántas tiene cada jornada movería las ya jugadas a otra jornada. Y solo
+// sale si la base ya tiene la columna (sin la migración, `undefined`).
+function campoRondasPorJornada(torneo) {
+  if (!('rounds_per_matchday' in torneo)) return ''
+  const conRondas = Boolean(jornadas?.empezadas?.size)
+  const actual = rondasPorJornada(torneo)
+  return `<label>Rondas por jornada<select id="editarRondasJornada" ${conRondas ? 'disabled title="La liga ya tiene rondas: deshazlas para cambiarlo"' : ''}>${[1, 2, 3, 4, 5]
+    .map((n) => `<option value="${n}" ${n === actual ? 'selected' : ''}>${n}</option>`)
+    .join('')}</select></label>`
+}
+
 function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) {
   return (
     `
@@ -630,7 +643,7 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) 
           <input type="number" inputmode="numeric" id="editarPlazas" min="4" max="256" value="${torneo.max_players ?? ''}" ${bloqueo} ${torneo.max_players == null ? 'disabled' : ''} />
           <label class="torneo-sin-limite"><input type="checkbox" id="editarSinLimite" ${torneo.max_players == null ? 'checked' : ''} ${bloqueo} /> Sin límite</label>
         </div>
-        ${esLiga ? '' : `<label>Rondas suizas<input type="number" inputmode="numeric" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
+        ${esLiga ? campoRondasPorJornada(torneo) : `<label>Rondas suizas<input type="number" inputmode="numeric" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
         <label>Minutos por ronda<input type="number" inputmode="numeric" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
         <label>Check-in (min)<input type="number" inputmode="numeric" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
@@ -931,9 +944,18 @@ async function guardarEdicion() {
   // Las fechas de las jornadas se guardan siempre (son informativas);
   // añadir o quitar jornadas cambia swiss_rounds y va con la estructura.
   if (esLiga) cambios.matchday_dates = fechasJornadas.map((f) => new Date(f).toISOString())
+  // Las rondas por jornada (849): con ellas, el total de rondas es jornadas
+  // × rondas. Se guardan aunque la estructura esté cerrada mientras no haya
+  // ninguna ronda (el campo sale desactivado si las hay).
+  const campoRpj = $('editarRondasJornada')
+  const rpj = campoRpj && !campoRpj.disabled ? Number(campoRpj.value) : rondasPorJornada(torneo)
+  if (esLiga && campoRpj && !campoRpj.disabled) {
+    cambios.rounds_per_matchday = rpj
+    cambios.swiss_rounds = fechasJornadas.length * rpj
+  }
   if (torneo.status !== 'registration_closed') {
     cambios.max_players = plazas
-    cambios.swiss_rounds = esLiga ? fechasJornadas.length : Number($('editarRondas').value)
+    cambios.swiss_rounds = esLiga ? fechasJornadas.length * rpj : Number($('editarRondas').value)
     cambios.top_cut_size = Number($('editarCorte').value)
     cambios.round_time_minutes = Number($('editarMinutos').value)
     cambios.swiss_bo = Number($('editarSwissBo').value)

@@ -4,6 +4,64 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (81) — PINGU-Claude (849 — rondas por jornada en las ligas)
+
+**Hecho** (PINGU: «tengo una liga con 10 jornadas, pero en cada jornada quiero
+hacer tres rondas […] no pone tres rondas por jornada»). Hasta ahora una
+jornada ERA una ronda. Ahora una liga dice cuántas rondas suizas tiene cada
+jornada (`tournaments.rounds_per_matchday`, 1 por defecto: lo que ya existe
+sigue igual):
+- **La cuenta**: la jornada N son las rondas (N−1)·k+1 … N·k. `swiss_rounds`
+  sigue siendo el TOTAL de rondas (10 × 3 = 30), así que el motor, los cierres,
+  la clasificación general y el paso al top cut no cambian. Lo que habla de
+  jornadas pasa por `js/torneos/rondas-jornada.js` (puro, sin dependencias) y,
+  en la base, por `torneos_num_jornadas` y `torneos_jornada_con_rondas`.
+- **Una lista por jornada** y vale para sus k rondas. La jornada se cierra al
+  emparejar su PRIMERA ronda; las demás se generan con la misma gente y las
+  mismas listas, sin volver a cerrar ni publicar.
+- **Panel**: «Generar pareos de la jornada 2 (ronda 1 de 3)», luego «Generar la
+  ronda 2 de la jornada 2», «Iniciar/Cerrar la ronda 1 de la jornada 2». Saltar
+  y recuperar van por jornada entera (crea/borra sus k rondas) y solo al
+  principio de una jornada. La línea de tiempo, un paso por jornada («Jornada
+  2 · R1», «1 de 3 rondas»). La barra viva: «Jornada 2 de 10 · ronda 1 de 3».
+  Las pestañas de la clasificación siguen siendo por jornada y suman sus k
+  rondas. «Tus jornadas», una fila por jornada.
+- **Crear y editar**: «Rondas por jornada» (1–5) al lado de «Jornadas». En el
+  editor solo se puede cambiar mientras la liga no tenga ninguna ronda, y solo
+  sale si la base ya tiene la columna. La ficha dice «Liga de 10 jornadas · 3
+  rondas por jornada»; Telegram, «liga de 10 jornadas de 3 rondas».
+- La base tenía un límite de 12 rondas por torneo: pasa a 60 (12 × 5). La
+  migración lo busca por lo que comprueba, no por su nombre.
+
+**La liga de PINGU** (10 jornadas, la J1 cerrada sin jugar): ejecutar la
+migración → Editar → «Rondas por jornada: 3» → Guardar (la liga pasa a 30
+rondas) → en Rondas, «Saltar la jornada 1» (se queda como «no se jugó», sus
+tres rondas) → el viernes, «Generar pareos de la jornada 2 (ronda 1 de 3)».
+
+**Para IBAI**: he tocado `js/torneos/ronda.js` y `js/torneos/jornadas.js` (tu
+833: saltar y recuperar ahora van por jornada entera; con una ronda por jornada
+hacen lo de siempre, y tu `test-tanda-833.mjs` sigue en verde sin tocarlo).
+
+**Ficheros**: `supabase-migration-torneos-rondas-jornada.sql` (NUEVA),
+`js/torneos/rondas-jornada.js` (nuevo), `js/torneos/jornadas.js`,
+`js/torneos/ronda.js`, `js/torneos/torneo.js`, `js/torneos/torneos.js`,
+`js/torneos/comun.js`, `torneos.html`, `netlify/lib/telegram.mjs`,
+`netlify/functions/telegram-torneos.mjs` y `telegram-mandar.mjs` (`select=*`:
+así la columna nueva llega sin romper nada antes de la migración),
+`js/schema-check.js`. Pruebas: `test-tanda-849.mjs` + `sql-tanda-849.sql`
+(PostgreSQL, y la 635 entera con la migración nueva encima) y
+`test-tanda-849-pantalla.mjs` (la liga de PINGU en pequeño, de punta a punta).
+
+**Pruebas**: 849 y 849-pantalla verdes (PostgreSQL: 20 comprobaciones nuevas, y
+las 37 de la 635 con la migración nueva encima); la 833 de Ibai, sin tocarla.
+Todas las que nombran torneos (128) más imports, 299, 305, 310–313, 631 y 829:
+136 verdes y la 748, que es la medida de saltos de /mi-coleccion que va justa
+con los carriles y pasa sola (no toca torneos).
+
+**Pendiente**: **PINGU, ejecuta `supabase-migration-torneos-rondas-jornada.sql`**
+y luego los pasos de arriba con tu liga. Sin la migración todo funciona como
+antes (una ronda por jornada) y el campo no sale.
+
 ## 2026-10-15 (80) — PINGU-Claude (848 — analítica mejor, sin cookies, y el panel en visual)
 
 **Hecho** (PINGU preguntó si meter cookies; la respuesta fue que no —un

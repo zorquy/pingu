@@ -163,7 +163,7 @@ export async function mandarUnTorneo({ id, forzar = false, env = process.env, re
   try {
     const filas = await restImpl(
       `tournaments?id=eq.${encodeURIComponent(id)}` +
-        `&select=id,slug,name,description,banner_url,start_at,status,format,swiss_rounds,top_cut_size,max_players,telegram_sent_at&limit=1`,
+        `&select=*&limit=1`,
       env.SUPABASE_SERVICE_ROLE_KEY
     )
     torneo = filas?.[0]

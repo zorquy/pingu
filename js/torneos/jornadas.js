@@ -14,6 +14,10 @@
 import { supabase } from '../supabase.js'
 import { icons } from '../icons.js'
 import { escapeHtml } from '../app.js'
+// Las cuentas de rondas por jornada (849) viven aparte, sin dependencias,
+// para que las use también comun.js; aquí se importan Y se reexportan (la 624).
+import { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga } from './rondas-jornada.js'
+export { rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, primeraRondaDe, nombreDeRondaDeLiga }
 
 // Lo que la ficha necesita saber de las jornadas, de una tacada: cuáles
 // están cerradas, cuáles tienen pareos y las listas que quien mira puede
@@ -40,11 +44,16 @@ export async function cargarJornadas(torneo, { userId = null, todas = false } = 
     listas,
   ])
   if (cerradas.error || rondas.error || mias.error) return null
+  // Por JORNADA, no por ronda (849): empezada si tiene alguna ronda;
+  // saltada si las que tiene se saltaron todas.
+  const suizas = (rondas.data || []).filter((r) => r.phase !== 'top_cut')
+  const empezadas = new Set(suizas.map((r) => jornadaDeRonda(torneo, r.round_number)))
+  const jugadas = new Set(suizas.filter((r) => !esRondaSaltada(r)).map((r) => jornadaDeRonda(torneo, r.round_number)))
   return {
     cerradas: new Set((cerradas.data || []).map((c) => c.matchday)),
-    empezadas: new Set((rondas.data || []).map((r) => r.round_number)),
+    empezadas,
     // Las que se saltaron sin jugarse (tanda 833).
-    saltadas: new Set((rondas.data || []).filter(esRondaSaltada).map((r) => r.round_number)),
+    saltadas: new Set([...empezadas].filter((n) => !jugadas.has(n))),
     listas: mias.data || [],
     todas,
   }
@@ -70,7 +79,7 @@ export function quienesJuegan(j, n) {
 // La primera jornada que todavía admite listas, o null si no queda ninguna.
 export function primeraAbierta(torneo, j) {
   if (!j) return null
-  for (let n = 1; n <= (Number(torneo.swiss_rounds) || 0); n++) if (!jornadaCerrada(j, n)) return n
+  for (let n = 1; n <= numJornadas(torneo); n++) if (!jornadaCerrada(j, n)) return n
   return null
 }
 
@@ -78,7 +87,7 @@ export function primeraAbierta(torneo, j) {
 export function misJornadas(torneo, j, userId) {
   if (!j || !userId) return []
   const fechas = Array.isArray(torneo.matchday_dates) ? torneo.matchday_dates : []
-  const total = Number(torneo.swiss_rounds) || fechas.length
+  const total = numJornadas(torneo) || fechas.length
   return Array.from({ length: total }, (_, i) => {
     const n = i + 1
     return {

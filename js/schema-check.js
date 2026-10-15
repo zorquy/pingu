@@ -125,6 +125,8 @@ export const REQUISITOS = [
   { tabla: 'tcg_products', columna: 'market', fichero: 'supabase-migration-productos-mercado.sql', rompe: 'Los productos japoneses no se traen y la estantería de Productos cuenta a trozos.' },
   { tabla: 'page_vitals', columna: 'lcp_ms', fichero: 'supabase-migration-vitales.sql', rompe: 'No se apunta lo que tarda cada página y «Lo que tarda de verdad» de /admin sale vacío.' },
   { tabla: 'user_play_pokemon', columna: 'player_id', fichero: 'supabase-migration-play-pokemon.sql', rompe: 'El Player ID no se guarda en el perfil y la decklist oficial del constructor no se rellena sola con tus datos.' },
+  { tabla: 'page_views', columna: 'origen', fichero: 'supabase-migration-analitica.sql', rompe: 'Las visitas no dicen de dónde llegan y el panel nuevo de Analítica no sale.' },
+  { tabla: 'tournaments', columna: 'rounds_per_matchday', fichero: 'supabase-migration-torneos-rondas-jornada.sql', rompe: 'En una liga no se pueden jugar varias rondas por jornada.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

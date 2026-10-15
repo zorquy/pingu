@@ -40571,3 +40571,34 @@ sección nace escondida, la 628); el tooltip va por `textContent`; las celdas y
 columnas llevan `data-tip` y foco. Sin la función (PGRST202) sale lo de antes
 (`#anViejo`) con el aviso de qué migración falta; con ella, las visitas ya no
 se bajan al navegador.
+
+## Tanda 849 — Rondas por jornada en las ligas
+
+**Datos** (`supabase-migration-torneos-rondas-jornada.sql`):
+`tournaments.rounds_per_matchday int not null default 1 check (1..5)`; el
+`check` de `swiss_rounds` pasa de 1..12 a 1..60 (se borra cualquier `check` que
+mencione `swiss_rounds`, se llame como se llame). `torneos_num_jornadas(t)` =
+`ceil(swiss_rounds / k)` y `torneos_jornada_con_rondas(t, j)` = hay ronda suiza
+con `round_number` entre (j−1)·k+1 y j·k. Las cuatro funciones que hablan de
+jornadas (`torneos_lista_jornada`, `torneos_quitar_lista_jornada`,
+`torneos_cerrar_jornada`, `torneos_inscribirse`) son las de la 635 con esas dos
+en lugar de «round_number = p_jornada» y «≤ swiss_rounds»; publicar listas no
+cambia (va por jornada).
+
+**Navegador**: `js/torneos/rondas-jornada.js` (sin imports; lo reexporta
+`jornadas.js`, que también lo importa —la 624—): `rondasPorJornada`,
+`numJornadas`, `jornadaDeRonda`, `rondaEnJornada`, `primeraRondaDe`,
+`nombreDeRondaDeLiga`. `cargarJornadas` cuenta `empezadas` y `saltadas` POR
+JORNADA (saltada = todas sus rondas saltadas). En `ronda.js`: `juegaLaRonda(n)`
+mira la lista de la jornada de esa ronda (así el snapshot de cada ronda deja
+fuera a quien no tiene lista para SU jornada); `generarPareos` cierra y publica
+solo en la primera ronda de la jornada; `saltarJornada` inserta las k rondas a
+la vez y se niega a media jornada; `deshacerRonda` de una saltada borra todas
+las saltadas de esa jornada (`.in()`, y compara cuántas volvieron). La línea de
+tiempo, un paso por jornada cuando k > 1.
+
+**Formularios**: crear guarda `swiss_rounds = jornadas × k` y manda
+`rounds_per_matchday` solo si k > 1 (crear una liga normal no depende de la
+migración); editar enseña el campo solo si la fila trae la columna y lo bloquea
+si la liga tiene rondas (`jornadas.empezadas`). Telegram lee `select=*` para
+que la columna llegue cuando exista sin tumbar la consulta antes (la 624).

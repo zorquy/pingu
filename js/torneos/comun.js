@@ -1,6 +1,7 @@
 // Piezas que comparten las páginas de torneos (/torneos y /torneo):
 // el vocabulario de estados y el formato de fechas. Nada de lógica de
 // juego — eso vive en motor.js.
+import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 
 export const ESTADOS = {
   draft: { texto: 'Borrador', clase: 'torneo-estado-borrador' },
@@ -73,7 +74,9 @@ export function fechaBonita(iso) {
 // hay. Una liga (tanda 219) habla de jornadas, que es lo que son.
 export function textoFormato(t) {
   const corte = t.top_cut_size ? ` + top ${t.top_cut_size} BO${t.top_cut_bo}` : ''
-  const base = t.format === 'league' ? `liga de ${t.swiss_rounds} jornadas BO${t.swiss_bo}` : `${t.swiss_rounds} suizas BO${t.swiss_bo}`
+  // Una liga cuenta jornadas, y si cada una son varias rondas lo dice (849).
+  const rpj = rondasPorJornada(t)
+  const base = t.format === 'league' ? `liga de ${numJornadas(t)} jornadas${rpj > 1 ? ` de ${rpj} rondas` : ''} BO${t.swiss_bo}` : `${t.swiss_rounds} suizas BO${t.swiss_bo}`
   return `${base}${corte} · ${t.round_time_minutes} min/ronda`
 }
 
