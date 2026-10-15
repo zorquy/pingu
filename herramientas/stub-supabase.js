@@ -1992,6 +1992,11 @@ export const supabase = {
       const p = args.p_periodo === 'mes' ? 'mes' : 'semana'
       return d ? { data: { periodo: p, ...(d[p] || d) }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_clasificacion' } }
     }
+    // El panel de analítica (848): lo que diga la prueba, o «no existe».
+    if (nombre === 'admin_analitica') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_ANALITICA__ : null
+      return d ? { data: { ...d, dias: args.p_dias }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_analitica' } }
+    }
     if (nombre === 'portada_comunidad') {
       const d = typeof window !== 'undefined' ? window.__FAKE_COMUNIDAD_SUCESOS__ : null
       return d ? { data: d.slice(0, args.p_limite || 12), error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_comunidad' } }
