@@ -53,8 +53,12 @@ saltos de /mi-coleccion?ver=album (0,30 contra < 0,15), que da lo mismo
 contra el commit anterior: no es de estas tandas. La 834 no corre en este
 contenedor (necesita `qpdf`): su parte de Play! Pokémon la cubre la 868.
 
-**Pendiente**: ejecutar `supabase-migration-sin-muro.sql` si quieres
-borrar la tabla del muro (la web ya no la usa). Nada en curso.
+**Y después** (PINGU ejecutó la migración y /admin › Analítica cantó «no
+existe la tabla»): `admin/js/admin.js` dejaba de contar el muro (la cifra
+«Mensajes en muros» y la vista previa de las denuncias de comentarios de
+muro). Lo vigila la 867; la 848 (Analítica) en verde.
+
+**Pendiente**: nada en curso.
 
 ## 2026-10-15 (98) — PINGU-Claude (866 — el mapa de enlaces de Aprender)
 

@@ -1265,7 +1265,7 @@ async function loadUsers() {
 // ── Reportes de contenido ──
 const REPORT_TYPE_LABELS = {
   guide: `${icons.bookOpen(14)} Guía`,
-  profile_comment: `${icons.messageSquare(14)} Comentario de muro`,
+  profile_comment: `${icons.messageSquare(14)} Comentario de muro (ya no existe)`,
   guide_comment: `${icons.messageSquare(14)} Comentario de guía`,
   profile_review: `${icons.star(14)} Reseña de perfil`,
   private_message: `${icons.mail(14)} Mensaje privado`,
@@ -1321,20 +1321,14 @@ async function loadContentPreviews(reports) {
     })
   }
 
-  if (idsByType.profile_comment?.length > 0 || idsByType.profile_review?.length > 0) {
-    const commentIds = idsByType.profile_comment || []
+  // Los comentarios de muro ya no existen (867): una denuncia vieja de uno
+  // se queda sin vista previa, no sin página.
+  if (idsByType.profile_review?.length > 0) {
     const reviewIds = idsByType.profile_review || []
-    const [{ data: comments }, { data: reviews }] = await Promise.all([
-      commentIds.length > 0 ? supabase.from('profile_comments').select('id, body, profile_id').in('id', commentIds) : Promise.resolve({ data: [] }),
-      reviewIds.length > 0 ? supabase.from('profile_reviews').select('id, body, rating, profile_id').in('id', reviewIds) : Promise.resolve({ data: [] }),
-    ])
-    const profileIds = [...new Set([...(comments || []), ...(reviews || [])].map((r) => r.profile_id))]
+    const { data: reviews } = await supabase.from('profile_reviews').select('id, body, rating, profile_id').in('id', reviewIds)
+    const profileIds = [...new Set((reviews || []).map((r) => r.profile_id))]
     const { data: profiles } = profileIds.length > 0 ? await supabase.from('user_profiles').select('id, username').in('id', profileIds) : { data: [] }
     const profileById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
-    ;(comments || []).forEach((c) => {
-      const p = profileById[c.profile_id]
-      previews[c.id] = { text: snippet(c.body), url: p ? profileUrl(p) : null }
-    })
     ;(reviews || []).forEach((r) => {
       const p = profileById[r.profile_id]
       previews[r.id] = { text: `${'★'.repeat(r.rating)} ${snippet(r.body)}`, url: p ? profileUrl(p) : null }
@@ -1902,14 +1896,13 @@ async function loadAnalytics() {
     return { data: filas, error: null }
   }
 
-  const [viewsRes, profilesRes, guidesRes, progressRes, guideCommentsRes, wallCommentsRes] = await Promise.all([
+  const [viewsRes, profilesRes, guidesRes, progressRes, guideCommentsRes] = await Promise.all([
     // Con el panel nuevo las visitas ya vienen contadas: no se bajan.
     nuevo ? Promise.resolve({ data: [], error: null }) : todasLasVisitas(),
     supabase.from('user_profiles').select('id, created_at, current_streak'),
     supabase.from('guides').select('id, title, slug, view_count, blocks').not('published_at', 'is', null),
     supabase.from('user_progress').select('guide_id, user_id, status, read_at'),
     supabase.from('guide_comments').select('id, created_at').gte('created_at', since),
-    supabase.from('profile_comments').select('id, created_at').gte('created_at', since),
   ])
 
   // Lo que ha fallado se DICE.
@@ -1928,7 +1921,6 @@ async function loadAnalytics() {
     ['guides', guidesRes.error, null],
     ['user_progress', progressRes.error, 'supabase-migration-admin-analytics.sql'],
     ['guide_comments', guideCommentsRes.error, null],
-    ['profile_comments', wallCommentsRes.error, null],
   ].filter(([, error]) => error)
 
   document.getElementById('analyticsErrores').innerHTML = fallos.length
@@ -2098,7 +2090,6 @@ async function loadAnalytics() {
   // ── Comunidad ──
   document.getElementById('analyticsCommunity').innerHTML = `<div class="admin-stats-grid">
     ${statCardHtml((guideCommentsRes.data || []).length, 'Comentarios en guías', `en los últimos ${days} días`)}
-    ${statCardHtml((wallCommentsRes.data || []).length, 'Mensajes en muros', `en los últimos ${days} días`)}
     ${statCardHtml(guides.length, 'Guías publicadas', 'en total')}
     ${statCardHtml(coursesWithBlocks.length, 'De ellas con curso', 'el resto son solo documentación')}
   </div>`
