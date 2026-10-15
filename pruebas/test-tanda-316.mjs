@@ -90,7 +90,9 @@ console.log('\n── 1. Una guía se dibuja IGUAL en la portada y en /aprender 
     const { page } = await abrir(url)
     const chapa = (await page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
     if (nombre === 'portada') check(`  …y en ${nombre} dice de qué es la guía`, !!chapa && CATS.some((c) => c.name === chapa), chapa || '(vacía)')
-    else check(`  …y en ${nombre} ya no repite la categoría (682)`, !chapa, chapa || '(sin chapa)')
+    // La 682 quitó la chapa de TEXTO de /aprender; la 866 la devuelve como
+    // ENLACE al tema (un camino, no un adorno), así que ahora se espera.
+    else check(`  …y en ${nombre} la chapa es un enlace a su tema (866)`, !!chapa && CATS.some((c) => c.name === chapa) && (await page.locator('.guia-tarjeta a.guia-chapa-tema').count()) > 0, chapa || '(sin chapa)')
     const min = (await page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
     check(`  …y cuánto cuesta leerla`, /\d+ min/.test(min || ''), min || '(vacía)')
     await page.close()

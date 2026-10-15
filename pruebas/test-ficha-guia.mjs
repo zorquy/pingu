@@ -60,7 +60,8 @@ console.log('\n── 1. La guía se lee ──')
   check('  …con sus encabezados', (await page.locator('.article-body h2, .article-body h3').count()) >= 2)
   // La miga de pan lleva a su categoría, no a un enlace vacío.
   const miga = await page.locator('.breadcrumb a').last().getAttribute('href')
-  check('la miga de pan lleva a su categoría', /slug=basico/.test(miga || ''), String(miga))
+  // Desde la 863 el tema vive en /aprender?tema=… (la vieja /categoria se fue).
+  check('la miga de pan lleva a su tema', /tema=basico/.test(miga || ''), String(miga))
   await page.close()
 }
 
