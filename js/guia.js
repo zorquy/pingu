@@ -239,15 +239,18 @@ async function init() {
     : ''
 
   main.innerHTML = `
-    <div class="breadcrumb">
+    <nav class="breadcrumb" aria-label="Dónde estás">
       <a href="/index.html">Inicio</a> <span>›</span>
       ${
+        // Con la sección delante (857): «Inicio › Guías › Mazos › Título». Sin
+        // tema, el paso del tema no se pinta: salía «Inicio › › Título», con un
+        // enlace vacío que en el móvil era el paso de volver — y no se veía.
         esNoticia
           ? `<a href="/noticias">Noticias</a>`
-          : `<a href="/categoria.html?slug=${encodeURIComponent(guide.categories?.slug || '')}">${escapeHtml(guide.categories?.name || '')}</a>`
+          : `<a href="/aprender">Guías</a>${guide.categories?.slug ? ` <span>›</span> <a href="/categoria.html?slug=${encodeURIComponent(guide.categories.slug)}">${escapeHtml(guide.categories.name || guide.categories.slug)}</a>` : ''}`
       }
       <span>›</span> <span>${escapeHtml(guide.title)}</span>
-    </div>
+    </nav>
     <div class="article-header">
       ${
         // Una guía sin publicar se veía EXACTAMENTE igual que una

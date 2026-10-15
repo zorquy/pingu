@@ -10,14 +10,6 @@
   --rj-no: var(--danger-solid);
 }
 
-.rj-migas {
-  margin: 0 0 var(--e-xs);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .rj-cabecera {
   display: flex;
   flex-wrap: wrap;

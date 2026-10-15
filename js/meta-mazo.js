@@ -65,6 +65,7 @@ function aviso(html) {
 function pintarCabecera(arq, fila) {
   nombreMazo = arq?.nombre || fila?.nombre || ID
   $('mmNombre').textContent = nombreMazo
+  if ($('mmMiga')) $('mmMiga').textContent = nombreMazo
   $('mmIconos').innerHTML = iconosHtml(arq?.iconos || fila?.iconos || [], { grande: true })
   document.title = `${nombreMazo}: lista, guías y resultados — PokeDoc`
   const desc = fila

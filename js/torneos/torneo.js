@@ -250,6 +250,7 @@ function pintarFicha() {
     }
   }
   textoSiCambia($('torneoNombre'), torneo.name)
+  if ($('torneoMiga')) textoSiCambia($('torneoMiga'), torneo.name)
   const pill = $('torneoEstado')
   // El punto que late solo en «En juego»: lo mismo que en la lista
   // (tanda 297). No es una etiqueta más, es algo que está pasando.

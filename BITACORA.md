@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (89) — PINGU-Claude (857 — una sola pieza de volver en todas las fichas)
+
+**Hecho** (PINGU, con la segunda propuesta: «adelante»):
+- Todas las fichas vuelven igual: en el PC las migas «Inicio › Sección › …
+  › Esto», y en el móvil el botón «‹ Padre» de la 856 (44 px, borde,
+  flecha) encima del título. Guía y curso («‹ Guías» o «‹ el tema»),
+  tema del foro («‹ el foro»), torneo («‹ Torneos»), los cinco juegos de
+  retos («‹ Retos diarios», que antes era un rótulo en mayúsculas sin
+  pulsar), perfil de otra persona («‹ Gente») y mazo del meta («‹ Mazos
+  del meta»). La carta se queda con su ‹ redondo.
+- Dos fallos por el camino: la miga de la guía salía con un hueco
+  («Inicio › › Título») cuando la guía no tenía tema, y no decía «Guías»;
+  y en el móvil estaba escondida.
+
+**Ficheros**: `css/movil.css` (la regla de la 742, reescrita),
+`js/guia.js`, `torneo.html` + `js/torneos/torneo.js` + `css/torneos.css`,
+`quien-es.html`, `carta-del-dia.html`, `mas-caro.html`,
+`ordena-precio.html`, `que-expansion.html` + `css/retos-juego.css`,
+`mazo-meta.html` + `js/meta-mazo.js` + `css/meta.css`, `usuario.html` +
+`js/usuario.js`. En `pruebas`: `test-tanda-857-pantalla.mjs` nueva.
+
+**Para IBAI**: toco `torneo.html`, `js/torneos/torneo.js` y `css/torneos.css`
+solo para la miga de arriba (una línea cada uno).
+
+**Pruebas**: 857-pantalla verde (PC e iPhone: guía con tema y sin él, torneo, reto, perfil ajeno, mazo del meta; la carta igual que estaba). Y 742, ficha-guia, 269, imports, 299, 305, 309–313, 524, 833, 836, 709, 737, 753, 829, 306, 308, 752, meta-torneo, torneos-15, 295 y 296 en verde.
+
+**Pendiente**: nada (sin migración). Siguen la barra pegada en guía, tema y
+torneo (858) y las pestañas en la dirección (859).
+
 ## 2026-10-15 (88) — PINGU-Claude (856 — volver en Mi colección: el botón y el historial por niveles)
 
 **Hecho** (PINGU, con la propuesta delante: «me gusta mucho; en móvil con eso

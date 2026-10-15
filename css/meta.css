@@ -372,11 +372,6 @@
 }
 
 /* ── La ficha de un arquetipo ── */
-.meta-migas {
-  margin-bottom: var(--e-sm);
-  font-size: var(--t-sm);
-}
-
 .meta-ficha-titulo {
   display: flex;
   align-items: center;

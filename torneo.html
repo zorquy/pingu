@@ -148,7 +148,9 @@
   </main>
 
   <main class="page-content container" id="torneoContenido" style="display:none;">
-    <a class="torneo-volver" href="/torneos.html">← Todos los torneos</a>
+    <!-- Las migas de la casa (857): en el PC «Inicio › Torneos › El torneo», en
+         el móvil el botón «‹ Torneos». Antes era un enlace suelto de 12 px. -->
+    <nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/torneos.html">Torneos</a> <span>›</span> <span id="torneoMiga"></span></nav>
 
     <!-- La ficha: siempre a la vista, con el reloj de ronda al lado del
          estado. Debajo, TODO va por pestañas (torneo.js las gobierna):

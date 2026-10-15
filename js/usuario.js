@@ -61,6 +61,8 @@ async function loadHeader() {
   if (!profile) return false
 
   const name = profile.display_name || profile.username || 'Usuario'
+  const miga = document.getElementById('migaNombre')
+  if (miga) miga.textContent = name
   const xp = profile.total_xp || 0
   const progress = levelProgress(xp)
 

@@ -947,16 +947,6 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 :root[data-theme='dark'] .torneo-estado-cerrado { color: #e8b558; }
 
 /* ── La ficha de un torneo (/torneo) ── */
-.torneo-volver {
-  display: inline-block;
-  margin-bottom: 12px;
-  font-size: var(--t-md);
-  font-weight: 600;
-  color: var(--text-dim);
-  text-decoration: none;
-}
-.torneo-volver:hover { color: var(--navy); }
-
 #torneoContenido .simple-card { margin-bottom: 16px; }
 
 /* ── La cabecera de la ficha (tanda 298) ──

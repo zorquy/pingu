@@ -545,13 +545,15 @@
 }
 
 
-/* LAS MIGAS, EN ANTETÍTULO (742, V3). En el móvil la fila «Inicio › Foro ›
-   General › El tema» repite lo que dicen la barra de abajo y el título, y
-   ocupa una línea entera (o dos). Se queda UN paso —el sitio de arriba, el
-   último enlace—, pequeño y en versalitas encima del título; y si el único
-   enlace es «Inicio», nada. Las migas siguen en el HTML para Google. */
+/* LAS MIGAS, EN EL MÓVIL (742 → 857). La 742 las dejó en antetítulo —un
+   paso en versalitas—, y PINGU, con el botón de la 856 delante: «en móvil
+   con eso mejora muchísimo». Así que el paso de arriba (el último enlace)
+   es ahora el botón «‹ Padre»: 44 de alto, borde y flecha, igual que el de
+   Mi colección. Si el único enlace es «Inicio», nada. La carta se queda en
+   antetítulo: su cabecera ya lleva el ‹ redondo (716). Las migas siguen
+   enteras en el HTML para Google. */
 @media (max-width: 900px) {
-  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) {
+  html.con-barra-movil .carta-migas {
     gap: 0;
     margin: 0 0 var(--e-xs);
     color: var(--text-mid);
@@ -560,24 +562,54 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-
-  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) > :not(a:last-of-type) {
+  html.con-barra-movil .carta-migas > :not(a:last-of-type) {
     display: none;
   }
-
-  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas):not(:has(a:nth-of-type(2))) {
+  html.con-barra-movil .carta-migas:not(:has(a:nth-of-type(2))) {
     display: none;
   }
-
-  /* 44 de alto para el dedo sin abrir hueco: el margen negativo devuelve
-     lo que el alto añade. */
-  html.con-barra-movil :is(.breadcrumb, .foro-migas, .carta-migas) > a:last-of-type {
+  html.con-barra-movil .carta-migas > a:last-of-type {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
     margin: -12px 0;
     color: var(--text-mid);
     font-weight: 700;
+  }
+
+  html.con-barra-movil :is(.breadcrumb, .foro-migas) {
+    gap: 0;
+    margin: 0 0 var(--e-sm);
+  }
+  html.con-barra-movil :is(.breadcrumb, .foro-migas) > :not(a:last-of-type) {
+    display: none;
+  }
+  html.con-barra-movil :is(.breadcrumb, .foro-migas):has(> a:first-of-type:last-of-type:is([href="/"], [href="/index.html"], [href="index.html"])) {
+    display: none;
+  }
+  html.con-barra-movil :is(.breadcrumb, .foro-migas) > a:last-of-type {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-xs);
+    min-height: 44px;
+    padding: 0 var(--e-md) 0 var(--e-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    color: var(--text);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+  html.con-barra-movil :is(.breadcrumb, .foro-migas) > a:last-of-type::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    border-bottom: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    transform: rotate(45deg);
   }
 }
 
