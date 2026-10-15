@@ -50,6 +50,8 @@ import {
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
 import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta } from '../../js/catalogo-series.js'
+import { numeroDelDia } from '../../js/reto-compartir.js'
+import { RETOS } from '../../js/retos-xp.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La clave publicable, la misma que ya viaja en js/supabase.js y que
@@ -147,7 +149,7 @@ export function bloqueMeta(meta) {
   // Las medidas solo se declaran cuando se conocen de verdad (la imagen
   // por defecto). Mentir aquí hace que la red reserve un hueco que luego
   // no encaja.
-  if (!cuadrada && meta.imagen === IMAGEN_POR_DEFECTO) {
+  if (!cuadrada && (meta.imagen === IMAGEN_POR_DEFECTO || meta.imagenAncha === true)) {
     lineas.push('<meta property="og:image:width" content="1200" />', '<meta property="og:image:height" content="630" />')
   }
   lineas.push(
@@ -1193,8 +1195,45 @@ async function metaDeRepeticion(url) {
   }
 }
 
+// Las tarjetas de los retos (tanda 872). Un enlace a /reto, /retos o a uno
+// de los seis juegos sale en WhatsApp o en X con SU tarjeta —el nombre del
+// reto, qué es en una frase y el número de hoy— en vez de la genérica del
+// sitio. El número es el común de todos (870) y se calcula aquí, en el
+// borde: la imagen es FIJA (assets/social/reto-<juego>.png, 1200×630) y el
+// título lleva el día. Sin consulta a la base: no hay nada que preguntar.
+const RUTA_DE_RETO = {
+  '/reto': 'reto', '/carta-del-dia': 'carta', '/mas-caro': 'caro', '/quien-es': 'silueta', '/ordena-precio': 'ordena', '/que-expansion': 'expansion',
+}
+
+export function metaDeReto(url, hoy = new Date().toISOString().slice(0, 10)) {
+  const ruta = url.pathname.replace(/\.html$/, '')
+  const n = numeroDelDia(hoy)
+  if (ruta === '/retos') {
+    return {
+      url: `${SITIO}/retos`,
+      titulo: `Los retos diarios de PokeDoc · #${n}`,
+      descripcion: recortar('Seis juegos al día, los mismos para todo el mundo: el reto de preguntas, ¿Qué carta es?, ¿Más caro o más barato?, ¿Quién es ese Pokémon?, Ordena por precio y ¿De qué expansión es? Juega, comparte tu día y vuelve mañana.'),
+      imagen: `${SITIO}/assets/social/reto-retos.png`,
+      imagenAncha: true,
+    }
+  }
+  const juego = RUTA_DE_RETO[ruta]
+  const r = juego ? RETOS.find((x) => x.juego === juego) : null
+  if (!r) return null
+  return {
+    url: `${SITIO}${r.ruta}`,
+    titulo: `${r.titulo} · PokeDoc #${n}`,
+    descripcion: recortar(`${r.texto} El mismo reto para todo el mundo: juega y comparte tu resultado.`),
+    imagen: `${SITIO}/assets/social/reto-${juego}.png`,
+    imagenAncha: true,
+  }
+}
+
 async function calcularMeta(url) {
   const ruta = url.pathname
+  // Los retos van ANTES que la ficha de carta: '/carta-del-dia' empieza
+  // por '/carta' y la guarda de abajo mira el final, pero mejor no fiarse.
+  if (/^\/(reto|retos|carta-del-dia|mas-caro|quien-es|ordena-precio|que-expansion)(\.html)?$/.test(ruta)) return metaDeReto(url)
   // Antes que /guia: una noticia se sirve DESDE guia.html, pero se pide
   // por /noticias/<slug> y es lo que hay que mirar.
   // Con cuidado, que es la trampa de siempre: '/cartas' (el índice)
@@ -1291,5 +1330,19 @@ export const config = {
     // Una repetición compartida, por su enlace corto (tanda 480).
     '/repeticiones',
     '/repeticiones.html',
+    // Los retos diarios (872): cada uno con su tarjeta y el número de hoy.
+    '/reto',
+    '/retos',
+    '/retos.html',
+    '/carta-del-dia',
+    '/carta-del-dia.html',
+    '/mas-caro',
+    '/mas-caro.html',
+    '/quien-es',
+    '/quien-es.html',
+    '/ordena-precio',
+    '/ordena-precio.html',
+    '/que-expansion',
+    '/que-expansion.html',
   ],
 }
