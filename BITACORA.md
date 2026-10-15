@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (83) — PINGU-Claude (851 — el buscador de arriba encuentra cartas como el de Cartas)
+
+**Hecho** (PINGU: «busco Pikachu 277 y no encuentro nada […] debería pasar como
+en el buscador de cartas, que me sale el Pikachu de Ascended Heroes»):
+- El buscador de la barra de arriba (/buscar y la paleta Ctrl+K) pedía que
+  cada palabra estuviera en el NOMBRE, y «277» no lo está. Ahora usa las
+  mismas reglas que el de Cartas: un número suelto es el de la carta (o el de
+  la Pokédex), «MEW 151» o «151/165» dicen la expansión, y si por nombre no
+  sale nada se busca por ilustrador («Arita»). Con número, primero las que lo
+  llevan impreso. TCG Pocket y los sets escondidos, fuera.
+- Sin copiar (la 471): `partirBusqueda` y `variantesDeNumero` se mudaron de
+  `js/mi-coleccion.js` a `js/mi-coleccion/busqueda.js`, con `filtroDeNumero`
+  nueva; las dos pantallas las importan de ahí.
+
+**Ficheros**: `js/buscador.js`, `js/mi-coleccion/busqueda.js`,
+`js/mi-coleccion.js` (solo el import). Prueba nueva `test-tanda-851-pantalla.mjs`;
+la 450 lee `partirBusqueda` del fichero nuevo.
+
+**Pruebas**: 851-pantalla verde («Pikachu 277», «Pikachu 25», «MEW 151», «Arita», Pocket fuera, y la paleta Ctrl+K), y el subconjunto del buscador y de /mi-coleccion (35, con imports, 299, 305, 312, 313, 450, 718, 723 y 829) en verde. **La suite de la 850 acabó** con 131 verdes y un rojo, la 748 (los saltos de /mi-coleccion, que falla a ratos con carga y pasa sola).
+
+**Pendiente**: nada (sin migración).
+
 ## 2026-10-15 (82) — PINGU-Claude (850 — «Entre jornadas» en vez de «En juego»)
 
 **Hecho** (PINGU, con la liga ya a 3 rondas por jornada: «acabo de saltar la

@@ -74,7 +74,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde, volverAlHueco } from './
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
-import { entenderBusqueda } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, variantesDeNumero } from './mi-coleccion/busqueda.js'
 import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
@@ -5213,33 +5213,8 @@ function variantesDeValor(clave) {
 
 const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,types,trainer_type,illustrator,dex_ids,tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,tcg_online_code,oculto)'
 
-// UN NÚMERO SUELTO NO ES PARTE DEL NOMBRE (tanda 450), y esto era un fallo
-// de verdad: PINGU escribió «Mewtwo 64» —el Mega-Mewtwo X de Breakthrough,
-// que es la 64— y no salía NADA. El buscador exigía que «64» estuviera
-// también en `name_search`, que son los dos nombres y nada más.
-//
-// Y un número que alguien escribe junto a un nombre puede querer decir dos
-// cosas, así que vale cualquiera de las dos: el NÚMERO IMPRESO de la carta
-// («la 64 del set») o el NÚMERO NACIONAL de Pokédex («el 25 es Pikachu»).
-// Quedarse solo con uno dejaría media web sin encontrar a la primera.
-//
-// Se acepta como número una palabra de dígitos sola, y se compara también
-// con ceros delante porque hay sets que imprimen «064». Y solo dígitos:
-// esto se monta dentro de un `or=` de PostgREST, donde una coma o un
-// paréntesis del usuario cambiaría la consulta.
-export function partirBusqueda(texto) {
-  const palabras = String(texto || '').split(/\s+/).filter(Boolean)
-  const numeros = palabras.filter((p) => /^\d{1,4}$/.test(p))
-  const nombre = palabras.filter((p) => !/^\d{1,4}$/.test(p))
-  // Si SOLO se escribe un número, ese número es la búsqueda entera y no
-  // un afinado: «64» a secas quiere decir «enséñame las 64».
-  return { nombre, numero: numeros[0] || null, soloNumero: numeros.length > 0 && nombre.length === 0 }
-}
-
-function variantesDeNumero(n) {
-  const limpio = String(n).replace(/^0+/, '') || '0'
-  return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
-}
+// `partirBusqueda` y `variantesDeNumero` viven en js/mi-coleccion/busqueda.js
+// desde la 851: las usa también el buscador de la barra de arriba.
 
 async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado } = {}) {
   const { nombre, numero } = partirBusqueda(texto)

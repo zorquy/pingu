@@ -40616,3 +40616,21 @@ que `swiss_rounds`. `proximaJornada` da `{ n, fecha }` de `matchday_dates`.
 null no se sabe y sale lo de siempre. Las rondas las traen `cargarJornadas`
 (ficha), una consulta a `rounds` de las ligas en juego (lista de /torneos) y
 otra en `aviso-torneo.js` (solo si hay alguna liga).
+
+## Tanda 851 — El buscador de arriba busca cartas como el de Cartas
+
+`CONSULTAS.cartas` (`js/buscador.js`, que usan /buscar y la paleta Ctrl+K)
+exigía que cada palabra estuviera en `name_search`, así que «Pikachu 277» no
+daba nada. Ahora usa las mismas piezas que el buscador de /mi-coleccion, que
+se mudaron de `js/mi-coleccion.js` a `js/mi-coleccion/busqueda.js` para no
+arrastrar la pantalla entera: `partirBusqueda` (un número suelto no es parte
+del nombre), `variantesDeNumero` y la nueva `filtroDeNumero` (el `or` de
+`local_id.eq.<variante>` y `dex_ids.cs.{n}`), más `entenderBusqueda` (código
+de TCG Live y «151/165»), que necesita los sets: se piden con
+`setsDelCatalogo('WEST')` SOLO si lo escrito lleva una cifra. El orden de las
+pasadas: con expansión → si nada y había código, como nombre («mew 151» puede
+ser el Pokémon) → si nada, por `illustrator ilike`. Se piden `limite × 3`
+filas para quitar luego Pocket (`esDelTCG`, por eso se pide
+`tcg_sets.serie_id`) y los sets escondidos (`deSetVisible`) sin quedarse
+cortos; con número, primero las que lo llevan impreso. Prueba:
+`test-tanda-851-pantalla.mjs`; la 450 lee `partirBusqueda` del fichero nuevo.

@@ -15,6 +15,12 @@ import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
 import { COLUMNAS_RANGO } from './rangos.js'
+import { entenderBusqueda, partirBusqueda, variantesDeNumero, filtroDeNumero } from './mi-coleccion/busqueda.js'
+import { setsDelCatalogo } from './sets-catalogo.js'
+import { esDelTCG, deSetVisible } from './catalogo-series.js'
+
+// Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket).
+const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, oculto, serie_id)'
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
@@ -27,18 +33,56 @@ export const GRUPOS = [
 // tumba la consulta entera (42703, la 624), así que aquí solo van las que
 // ya piden otras pantallas.
 const CONSULTAS = {
+  // Las cartas, con las MISMAS reglas que el buscador de Cartas (851).
+  // PINGU: «busco Pikachu 277 y no encuentro nada […] en el buscador de
+  // cartas me sale el Pikachu de Ascended Heroes». Aquí cada palabra tenía
+  // que estar en el NOMBRE, y «277» no lo está. Ahora un número suelto es el
+  // número de la carta (o el de Pokédex), «151/165» y «MEW 151» dicen la
+  // expansión, y si por nombre no sale nada se prueba por ilustrador.
   async cartas(crudo, limite) {
-    const palabras = normalizeSearch(crudo).split(/\s+/).filter(Boolean)
-    if (!palabras.length) return []
-    let q = supabase
-      .from('tcg_cards')
-      .select('id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, oculto)')
-      .eq('market', 'WEST')
-    for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-    const { data, error } = await q.order('name_search').limit(limite)
-    if (error) throw error
-    // Las de un set escondido, fuera (826).
-    const cartas = (data || []).filter((c) => !c.tcg_sets?.oculto)
+    const sets = /\d/.test(crudo) ? await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => []) : []
+    const leida = entenderBusqueda(crudo, sets)
+    const consulta = (aplicar) => {
+      let q = supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', 'WEST')
+      q = aplicar(q)
+      // De más, para quitar las de Pocket y de sets escondidos sin quedarse corto.
+      return q.order('name_search').limit(limite * 3)
+    }
+    const porNombre = async (texto, setIds) => {
+      const { nombre, numero } = partirBusqueda(normalizeSearch(texto))
+      if (!nombre.length && !numero) return { filas: [], numero: null }
+      const { data, error } = await consulta((q) => {
+        if (setIds?.length) q = q.in('set_id', setIds)
+        for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+        if (numero) q = q.or(filtroDeNumero(numero))
+        return q
+      })
+      if (error) throw error
+      return { filas: data || [], numero }
+    }
+    let r = await porNombre(leida.texto, leida.setIds)
+    // «mew 151» puede ser el set o el Pokémon: si como set no hay nada, como nombre.
+    if (!r.filas.length && leida.codigo) r = await porNombre(crudo, null)
+    // Y si por nombre nada, por ilustrador (la pasada cara, solo entonces).
+    if (!r.filas.length) {
+      const { nombre } = partirBusqueda(normalizeSearch(crudo))
+      if (nombre.length) {
+        const { data, error } = await consulta((q) => {
+          for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
+          return q
+        })
+        if (error) throw error
+        r = { filas: data || [], numero: null }
+      }
+    }
+    // Ni TCG Pocket ni sets escondidos (694, 826). Y con un número, primero
+    // las que lo llevan IMPRESO: «Pikachu 25» es antes la 25 que todos los
+    // Pikachu (que son el 25 de la Pokédex).
+    const impreso = r.numero ? new Set(variantesDeNumero(r.numero)) : null
+    const cartas = r.filas
+      .filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
+      .sort((x, y) => (impreso ? Number(impreso.has(y.local_id)) - Number(impreso.has(x.local_id)) : 0))
+      .slice(0, limite)
     // El precio, en una segunda consulta y con la regla de siempre (el
     // mínimo en español, y si no el general: `valorDe`). Si falla, las
     // cartas salen igual y sin cifra: el precio es un extra de la fila.
