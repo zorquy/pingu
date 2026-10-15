@@ -40769,3 +40769,19 @@ vuelve al tema o a /aprender, o a /noticias), `tema.js` (`#temaCabecera`,
 vez al primer `pintarFicha`). La de Mi colección sigue siendo la suya
 (`#mcAlbumPegada`): vive en el HTML y no se inyecta. Prueba:
 `test-tanda-858-pantalla.mjs`.
+
+## Tanda 859 — Las pestañas de las demás páginas, en la dirección y sin rastro
+
+La regla de la 856 (la pestaña SUSTITUYE la entrada, el nivel la añade)
+en las tres páginas con pestañas que no escribían la dirección: **perfil**
+(`js/perfil-pestanias.js`): el clic de una persona en un nivel escribe
+`?ver=<nivel>` (Actividad lo quita) con `replaceState`; al llegar con
+`?ver=medallas|actividad` se abre ese, y `?ver=vitrina` cuenta como
+`#vitrina` en `vitrinaLista` (y frena `abrirLaQueTengaAlgo`, como el hash);
+la página que se abre sola por donde toque no ensucia la dirección.
+**Torneo** (`pintarPestanas`): la pestaña inicial es la de `?ver=` si está
+visible, si no Jugar/Torneo como antes; el clic escribe `?ver=` (Torneo lo
+quita). **Mis partidas**: `?ver=sueltas|stats` al llegar hace clic en su
+botón; el clic escribe `?ver=` (Torneos lo quita). Los mazos del meta ya
+llevaban `?fuente` y `?dias` (`js/meta/pintar.js`). Prueba:
+`test-tanda-859-pantalla.mjs`.

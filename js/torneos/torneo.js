@@ -2231,8 +2231,12 @@ function pintarPestanas() {
     return [...panel.children].some((caja) => !caja.classList.contains('hidden'))
   })
   if (!pestanaActiva) {
+    // La que diga la dirección (859: `?ver=rondas`, para compartir «la
+    // clasificación de este torneo» y para que recargar no te devuelva a
+    // la primera); si no, Jugar si estás jugando, y si no, Torneo.
+    const pedida = new URLSearchParams(location.search).get('ver')
     const jugando = !document.getElementById('torneoMiPartida').classList.contains('hidden')
-    pestanaActiva = jugando && visibles.some((p) => p.id === 'jugar') ? 'jugar' : 'torneo'
+    pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : jugando && visibles.some((p) => p.id === 'jugar') ? 'jugar' : 'torneo'
   }
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
 
@@ -2266,6 +2270,12 @@ function pintarPestanas() {
   nav.querySelectorAll('[data-pestana]').forEach((b) =>
     b.addEventListener('click', () => {
       pestanaActiva = b.dataset.pestana
+      // En la dirección, SUSTITUYENDO la entrada (859): una pestaña no es
+      // un paso del historial, igual que en Mi colección (la 856).
+      const url = new URL(location.href)
+      if (pestanaActiva === 'torneo') url.searchParams.delete('ver')
+      else url.searchParams.set('ver', pestanaActiva)
+      history.replaceState(null, '', url)
       pintarPestanas()
     })
   )

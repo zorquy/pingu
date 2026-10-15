@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (91) — PINGU-Claude (859 — las pestañas en la dirección, sin rastro)
+
+**Hecho** (segunda propuesta, punto 4):
+- El perfil (Vitrina · Actividad · Medallas), el torneo (Torneo · Jugar ·
+  Rondas · Clasificación…) y Mis partidas (Torneos · Sueltas · Estadísticas)
+  llevan la pestaña en la dirección (`?ver=`): recargar o compartir enseña la
+  misma, y cambiar de pestaña no deja entrada en el historial (atrás no pasa
+  por ella, como en Mi colección). El meta ya lo hacía con `?fuente` y
+  `?dias` — la propuesta se equivocaba en eso.
+
+**Ficheros**: `js/perfil-pestanias.js`, `js/torneos/torneo.js`
+(`pintarPestanas`), `js/mis-partidas.js`. En `pruebas`:
+`test-tanda-859-pantalla.mjs` nueva.
+
+**Para IBAI**: `pintarPestanas` de `js/torneos/torneo.js` lee y escribe
+`?ver=`; nada más del torneo.
+
+**Pruebas**: `test-tanda-859-pantalla` verde (perfil, torneo y Mis partidas: la pestaña de la dirección se abre, tocar otra la escribe sin alargar el historial, la de siempre la limpia). Subconjunto de 24 verdes: imports, 752, 306, 316, torneos-15…23, 394, 635, 849, 850, 628, partidas-pagina, 299, 312, 313, meta-torneo, 848 (con PostgreSQL en el 5433) y 709.
+
+**Pendiente**: nada (sin migración). Quedan los tres pequeños (860).
+
 ## 2026-10-15 (90) — PINGU-Claude (858 — la barra pegada en guía, tema y torneo)
 
 **Hecho** (segunda propuesta, punto 3; PINGU: «cuando bajas y se queda arriba,

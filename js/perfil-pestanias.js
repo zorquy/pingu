@@ -49,7 +49,8 @@ export function vitrinaLista({ visible, conCartas }) {
   if (!visible && document.body.dataset.pnivel === 'vitrina') abrirNivel('actividad')
   // Con #vitrina en la dirección, ahora que el nivel existe: el hash se
   // leyó al cargar, cuando todavía estaba escondido.
-  if (visible && !laHaTocado && (window.location.hash === '#vitrina' || (conCartas && !window.location.hash))) abrirNivel('vitrina')
+  const pedida = new URLSearchParams(location.search).get('ver')
+  if (visible && !laHaTocado && (window.location.hash === '#vitrina' || pedida === 'vitrina' || (conCartas && !window.location.hash && !pedida))) abrirNivel('vitrina')
 }
 
 const botones = () => [...document.querySelectorAll(`#${CONTENEDOR} .tab-btn`)]
@@ -95,7 +96,7 @@ export function abrirLaQueTengaAlgo() {
   // Si ya has tocado tú una pestaña, o has llegado con un #hash, mandas
   // tú: cambiarte de sitio la página cuando ya estás leyendo es peor que
   // dejarte donde estabas.
-  if (laHaTocado || window.location.hash) return
+  if (laHaTocado || window.location.hash || new URLSearchParams(location.search).get('ver')) return
   const conAlgo = ORDEN.find((n) => cuentas[n] > 0 && botonDe(n))
   // Solo el filtro de dentro: si la vitrina ya se ha abierto, se queda.
   if (conAlgo && conAlgo !== 'wall') botonDe(conAlgo)?.click()
@@ -112,8 +113,22 @@ export function montarPestanias({ alAbrir } = {}) {
     b.addEventListener('click', (e) => {
       if (e.isTrusted) laHaTocado = true
       abrirNivel(b.dataset.pnivel)
+      // El nivel en la dirección (859, `?ver=medallas`), SUSTITUYENDO la
+      // entrada: recargar o compartir enseña el mismo, y atrás no pasa por
+      // él (la regla de la 856). Solo cuando lo tocas tú: la página se abre
+      // sola por donde toque sin ensuciar la dirección.
+      if (e.isTrusted) {
+        const url = new URL(location.href)
+        if (b.dataset.pnivel === 'actividad') url.searchParams.delete('ver')
+        else url.searchParams.set('ver', b.dataset.pnivel)
+        history.replaceState(null, '', url)
+      }
     })
   }
+  // Y al llegar con `?ver=`: Medallas o Actividad ya; la vitrina, cuando
+  // exista (`vitrinaLista`).
+  const verPedida = new URLSearchParams(location.search).get('ver')
+  if (verPedida === 'medallas' || verPedida === 'actividad') abrirNivel(verPedida)
   for (const btn of botones()) {
     btn.addEventListener('click', (e) => {
       // `isTrusted` distingue el clic de una persona del `.click()` que

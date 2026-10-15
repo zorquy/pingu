@@ -1704,17 +1704,26 @@ async function init() {
     b.addEventListener('click', () => marcarTipo(b.dataset.tipo))
   )
 
-  // Las tres vistas, como las pestañas del perfil.
+  // Las tres vistas, como las pestañas del perfil. Y en la dirección
+  // (859, `?ver=stats`), sustituyendo la entrada: recargar o compartir
+  // enseña la misma vista, y atrás no pasa por ella.
   document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
       document.querySelectorAll('#partidasTabs .seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
       for (const v of ['torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }
+      const url = new URL(location.href)
+      if (btn.dataset.vista === 'torneos') url.searchParams.delete('ver')
+      else url.searchParams.set('ver', btn.dataset.vista)
+      history.replaceState(null, '', url)
       // Los gráficos se miden al verse (escondidos, su caja mide 0).
       if (btn.dataset.vista === 'stats') pintarGraficos()
     })
   )
+  const verPedida = new URLSearchParams(location.search).get('ver')
+  const botonPedido = verPedida && document.querySelector(`#partidasTabs .seg-btn[data-vista="${CSS.escape(verPedida)}"]`)
+  if (botonPedido) botonPedido.click()
 
   $('btnApuntarPartida').addEventListener('click', () => {
     // Si ya está abierto en modo suelto, el botón lo cierra; si está en
