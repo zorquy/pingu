@@ -67,7 +67,7 @@ console.log('── 3. Lo que NO puede hacer ──')
 console.log('── 4. Una consulta, no trece ──')
 {
   const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
-  const buscar = mc.split('async function buscarCartas')[1]?.split('\n}')[0] || ''
+  const buscar = mc.split('async function buscarCartasUnaVez')[1]?.split('\n}')[0] || ''
   check('las variantes van en un `or`', /\.or\(/.test(buscar) && /variantes/.test(buscar), buscar.slice(0, 160))
   // La coma y el paréntesis son la sintaxis del propio `or`: un nombre con
   // una coma partiría la condición en dos.

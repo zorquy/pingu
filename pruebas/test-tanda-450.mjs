@@ -57,7 +57,7 @@ console.log('\n── 2. Cómo se parte lo que se escribe ──')
   const cuerpo = fuente.match(/export function partirBusqueda\(texto\) \{([\s\S]*?)\n\}/)?.[1] || ''
   ok(cuerpo.includes('numeros'), 'se ha encontrado la función', cuerpo.slice(0, 40))
   const partir = new Function('texto', cuerpo)
-  ok(JSON.stringify(partir('Mewtwo 64')) === JSON.stringify({ nombre: ['Mewtwo'], numero: '64', soloNumero: false }),
+  ok(JSON.stringify(partir('Mewtwo 64')) === JSON.stringify({ nombre: ['Mewtwo'], numero: '64', prefijo: null, soloNumero: false }),
     '«Mewtwo 64» = nombre Mewtwo + número 64', JSON.stringify(partir('Mewtwo 64')))
   ok(partir('64').soloNumero === true, '«64» a secas es una búsqueda por número')
   ok(partir('Mewtwo').numero === null, 'y un nombre sin número no inventa ninguno')

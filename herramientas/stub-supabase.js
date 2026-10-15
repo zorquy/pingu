@@ -1356,6 +1356,12 @@ function consulta(tabla, estado = {}) {
             return lista.every((v) => suyos.includes(String(v)))
           }
         }
+        // `match`/`imatch` son el `~`/`~*` de Postgres (852): el número de
+        // una carta con las letras de una promo delante («XY124»).
+        if (op === 'match' || op === 'imatch') {
+          const r = new RegExp(valor, op === 'imatch' ? 'i' : '')
+          return (f) => f[col] != null && r.test(String(f[col]))
+        }
         throw new Error(`stub: .or() no entiende «${t}». Añádelo si el cliente lo usa.`)
       }
       const pruebas = trozos.map(prueba)
