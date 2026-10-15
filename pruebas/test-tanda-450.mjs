@@ -53,7 +53,7 @@ console.log('\n── 2. Cómo se parte lo que se escribe ──')
   // `js/app.js`, que toca el DOM al cargarse. Se lee como TEXTO y se monta
   // la función con `new Function`, que es lo mismo que hace la prueba de
   // `IDIOMA_POR_MERCADO` y por el mismo motivo.
-  const fuente = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const fuente = readFileSync('/home/user/pingu/js/mi-coleccion/busqueda.js', 'utf8')
   const cuerpo = fuente.match(/export function partirBusqueda\(texto\) \{([\s\S]*?)\n\}/)?.[1] || ''
   ok(cuerpo.includes('numeros'), 'se ha encontrado la función', cuerpo.slice(0, 40))
   const partir = new Function('texto', cuerpo)
