@@ -4,6 +4,7 @@
 // clases de los premios sin su hoja (la guarda de la 299). Aquí no hay CSS
 // propio: los dos botones son los de siempre.
 import { escapeHtml } from './html.js'
+import { icons } from './icons.js'
 import { RETOS, resumenLocal, resumenDeBase } from './retos-xp.js'
 
 // Antes la pantalla del resultado se
@@ -27,8 +28,21 @@ export function hechoHoy(dia, numerosHoy = null) {
   }
 }
 
-// Los dos botones: el siguiente (grande) y la vuelta al menú. Sin siguiente
-// —todos hechos—, solo la vuelta, y lo dice.
-export function siguienteRetoHtml(siguiente) {
-  return `${siguiente ? `<a class="btn-primary rj-siguiente" href="${escapeHtml(siguiente.ruta)}">Siguiente: ${escapeHtml(siguiente.titulo)} →</a>` : ''}<a class="btn-secondary rj-volver-retos" href="/retos">${siguiente ? 'Volver a los retos' : 'Todos hechos por hoy · Volver a los retos'}</a>`
+// Los botones: el siguiente (grande), «Compartir mi día» (870: los seis de
+// hoy en un texto o una imagen; con `dia`) y la vuelta al menú. Sin
+// siguiente —todos hechos—, solo la vuelta, y lo dice.
+export function siguienteRetoHtml(siguiente, { dia = null } = {}) {
+  const miDia = dia ? `<button type="button" class="btn-secondary rj-mi-dia" data-mi-dia="${escapeHtml(dia)}">${icons.share(16)} Compartir mi día</button>` : ''
+  return `${siguiente ? `<a class="btn-primary rj-siguiente" href="${escapeHtml(siguiente.ruta)}">Siguiente: ${escapeHtml(siguiente.titulo)} →</a>` : ''}${miDia}<a class="btn-secondary rj-volver-retos" href="/retos">${siguiente ? 'Volver a los retos' : 'Todos hechos por hoy · Volver a los retos'}</a>`
+}
+
+// El botón de arriba, en cualquier pantalla que lo pinte: abre la hoja con
+// lo de hoy. Lo que la pantalla acaba de jugar ya está en localStorage
+// cuando se pinta el final, así que no hay que pasarle nada.
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mi-dia]')
+    if (!b) return
+    import('./mi-dia-compartir.js').then(({ compartirMiDia }) => compartirMiDia({ dia: b.dataset.miDia })).catch(() => {})
+  })
 }

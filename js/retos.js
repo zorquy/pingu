@@ -7,9 +7,6 @@ import { icons } from './icons.js'
 import { supabase } from './supabase.js'
 import { yaJugadoHoy, diasJugados, hoyISO, PREGUNTAS_POR_RETO } from './reto-diario.js'
 import { rachaDeDias, numeroDelDia } from './reto-compartir.js'
-import { numeroDelDia as numeroDelDiaCarta } from './carta-del-dia.js'
-import { numeroDelDia as numeroDelDiaMasCaro } from './mas-caro.js'
-import { numeroDelDia as numeroDelDiaNuevos } from './quien-es.js'
 import { RETOS, XP_DIA_PERFECTO, resumenLocal, resumenDeBase } from './retos-xp.js'
 import { misNumeros } from './retos-datos.js'
 import { cuentaAtras } from './retos-ui.js'
@@ -18,7 +15,8 @@ import { getAllAchievements } from './gamification.js'
 const $ = (id) => document.getElementById(id)
 const hoy = hoyISO()
 const ID_ESTADO = { carta: 'rtCartaEstado', caro: 'rtMasCaroEstado', silueta: 'rtSiluetaEstado', ordena: 'rtOrdenaEstado', expansion: 'rtExpansionEstado' }
-const NUMERO = { carta: () => `Carta #${numeroDelDiaCarta(hoy)}`, caro: () => `Reto #${numeroDelDiaMasCaro(hoy)}`, silueta: () => `Reto #${numeroDelDiaNuevos(hoy)}`, ordena: () => `Reto #${numeroDelDiaNuevos(hoy)}`, expansion: () => `Reto #${numeroDelDiaNuevos(hoy)}` }
+// Un solo número para los seis (870): el del reto de preguntas.
+const NUMERO = () => `Reto #${numeroDelDia(hoy)}`
 // Los tipos de logro que son de los retos (los de la migración retos-xp).
 const TIPOS_DE_RETOS = ['retos_racha', 'retos_perfectos', 'carta_primera', 'carta_aciertos', 'caro_perfectos', 'retos_jugados']
 const COLOR_DE_RAREZA = { bronze: 'var(--rarity-bronze)', silver: 'var(--rarity-silver)', gold: 'var(--rarity-gold)', platinum: 'var(--rarity-platinum)' }
@@ -84,7 +82,7 @@ function pintarJuego(juego, r) {
   } else if (r?.empezado) {
     caja.innerHTML = `<span class="subtext">${escapeHtml(r.texto)}</span><a class="btn-primary" href="${reto.ruta}">Seguir →</a>`
   } else {
-    caja.innerHTML = `<p class="rt-reto-num">${NUMERO[juego]()}</p><a class="btn-primary" href="${reto.ruta}">Jugar →</a>`
+    caja.innerHTML = `<p class="rt-reto-num">${NUMERO()}</p><a class="btn-primary" href="${reto.ruta}">Jugar →</a>`
   }
 }
 
@@ -129,7 +127,13 @@ function pintarDia(hechos, numeros, session) {
   if (numeros) partes.push(`<span class="rt-xp">${icons.zap(14)} +${numeros.xpHoy || 0} XP hoy</span>`)
   if (numeros?.racha >= 1) partes.push(`<span class="rt-fuego">${icons.flame(14)} ${numeros.racha} ${numeros.racha === 1 ? 'día' : 'días seguidos'}</span>`)
   if (!session) partes.push('<span><a href="/auth.html?registro=1&amp;volver=/retos">Crea tu cuenta</a> y cada reto da XP</span>')
+  // «Compartir mi día» (870): los retos de hoy en un texto tipo Wordle o en
+  // una imagen. Con uno hecho ya hay algo que enseñar.
+  if (hechos >= 1) partes.push(`<button type="button" class="btn-secondary rt-compartir-dia" data-mi-dia="${hoy}">${icons.share(14)} Compartir mi día</button>`)
   $('rtDiaFila').innerHTML = partes.join('')
+  $('rtDiaFila').querySelector('[data-mi-dia]')?.addEventListener('click', () => {
+    import('./mi-dia-compartir.js').then(({ compartirMiDia }) => compartirMiDia({ dia: hoy })).catch(() => {})
+  })
   cuentaAtras($('rtCuenta'), 'Nuevos retos en')
   // El día perfecto.
   const p = $('rtPerfecto')
@@ -175,6 +179,13 @@ function pintarCalendario(numeros, diasReto) {
   if (!caja) return
   if (numeros?.dias) {
     caja.innerHTML = calendarioHtml(numeros.dias, hoy, 60, { cifras: [[numeros.jugados || 0, 'retos jugados'], [numeros.mejorRacha || 0, 'tu mejor racha'], [numeros.diasPerfectos || 0, 'días perfectos']] })
+    // «Compartir mi mes» (873): los últimos 30 días en un texto o una imagen.
+    if (numeros.jugados) {
+      caja.insertAdjacentHTML('beforeend', `<p class="rt-mes-compartir"><button type="button" class="btn-secondary rt-compartir-mes">${icons.share(14)} Compartir mi mes</button></p>`)
+      caja.querySelector('.rt-compartir-mes')?.addEventListener('click', () => {
+        import('./mi-dia-compartir.js').then(({ compartirMiMes }) => compartirMiMes({ hoy, numeros })).catch(() => {})
+      })
+    }
   } else if (diasReto?.length) {
     // Sin la migración de la 835: los días del reto de preguntas, como antes.
     caja.innerHTML = calendarioHtml(diasReto, hoy)

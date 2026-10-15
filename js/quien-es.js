@@ -6,26 +6,20 @@
 // La silueta de la serie de la tele: el dibujo oficial en negro, cuatro
 // nombres y tres intentos. El dibujo es el de PokeAPI (por número), por las
 // mismas dos puertas que los minisprites (jsDelivr y GitHub a pelo).
+// El número del día es el COMÚN de todos los retos (870): un solo «#77»
+// para los seis. Se reexporta para quien lo pedía de aquí.
+import { numeroDelDia, cabeceraDeReto, NOMBRE_CORTO } from './reto-compartir.js'
 import { azarDelDia } from './carta-del-dia.js'
 import { cadenaDe } from './familias-pokemon.js'
 
-// El estreno. No se mueve: renumeraría lo ya compartido.
-export const DIA_UNO = '2026-10-14'
+export { numeroDelDia }
+
 export const INTENTOS = 3
 export const OPCIONES = 4
 export const TOTAL_POKEDEX = 1025
 export const ENLACE = 'pokedoc.es/quien-es'
 // Una sal propia para no sacar los mismos números que los otros retos.
 const SAL = 7001
-
-function utc(dia) {
-  const [y, m, d] = String(dia).split('-').map(Number)
-  return Date.UTC(y, m - 1, d)
-}
-
-export function numeroDelDia(dia) {
-  return Math.round((utc(dia) - utc(DIA_UNO)) / 86400000) + 1
-}
 
 export function pokemonDelDia(dia) {
   return 1 + (Math.floor(azarDelDia(dia, SAL) * TOTAL_POKEDEX) % TOTAL_POKEDEX)
@@ -63,5 +57,5 @@ export function urlsDelDibujo(dex) {
 
 export function textoParaCompartir({ dia, fallos = [], acertada }) {
   const filas = [...fallos.map(() => '🟥'), ...(acertada ? ['🟩'] : [])].join('')
-  return [`¿Quién es ese Pokémon? PokeDoc #${numeroDelDia(dia)} · ${acertada ? `${fallos.length + 1}/${INTENTOS}` : `X/${INTENTOS}`}`, filas, ENLACE].join('\n')
+  return [cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.silueta, cuenta: acertada ? `${fallos.length + 1}/${INTENTOS}` : `X/${INTENTOS}` }), filas, ENLACE].join('\n')
 }

@@ -3,11 +3,10 @@
 // js/retos-xp.js y en la base.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
-import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { POKEMON_POR_DEX } from './torneos/sprites-pokemon.js'
 import { hoyISO } from './reto-diario.js'
-import { INTENTOS, numeroDelDia, pokemonDelDia, opcionesDelDia, urlsDelDibujo, textoParaCompartir } from './quien-es.js'
+import { INTENTOS, numeroDelDia, pokemonDelDia, opcionesDelDia, urlsDelDibujo, textoParaCompartir, ENLACE } from './quien-es.js'
 import { xpDe, xpSiAciertasSilueta } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
@@ -78,7 +77,7 @@ function pintarFinal() {
       <a class="btn-secondary" href="/mi-coleccion?ver=pokedex&amp;dex=${buena}">Sus cartas</a>
       <span class="rj-cuenta" id="qeCuenta"></span>
     </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('silueta', hechoHoy(dia)))}</div>`
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('silueta', hechoHoy(dia)), { dia })}</div>`
   f.classList.remove('hidden')
   $('qeCompartir').addEventListener('click', compartir)
   cuentaAtras($('qeCuenta'), 'El siguiente en')
@@ -125,19 +124,31 @@ function elegir(dex) {
   if (terminado()) guardar()
 }
 
+// La hoja de compartir (871): el texto y, desde aquí, también la imagen,
+// con el dibujo del Pokémon ya destapado (no desvela nada: se comparte al
+// acabar).
 async function compartir() {
+  const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   const texto = textoParaCompartir({ dia, fallos: fallos(), acertada: estado.acertada })
-  try {
-    if (navigator.share) { await navigator.share({ text: texto }); return }
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-  }
-  try {
-    await navigator.clipboard.writeText(texto)
-    showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-  } catch {
-    showToast('No se ha podido copiar el resultado.')
-  }
+  await abrirHojaCompartir({ titulo: '¿Quién es ese Pokémon?', texto, imagen: imagenDelResultado, nombre: `quien-es-${numeroDelDia(dia)}` })
+}
+
+async function imagenDelResultado(formato) {
+  const [{ pintarResultadoReto }, { fotoParaElLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
+  const foto = await fotoParaElLienzo(urlsDelDibujo(buena))
+  const n = fallos().length
+  return pintarResultadoReto(document.createElement('canvas'), {
+    titulo: '¿Quién es ese Pokémon?',
+    cuenta: `${estado.acertada ? n + 1 : 'X'}/${INTENTOS}`,
+    detalle: `Reto #${numeroDelDia(dia)} · ${nombre(buena)}`,
+    tira: [...Array.from({ length: n }, () => false), ...(estado.acertada ? [true] : [])],
+    racha: rachaDeDias(diasAcertados(), dia),
+    enlace: ENLACE,
+    foto,
+    fotoNombre: '',
+    fotoProporcion: 1,
+    formato,
+  })
 }
 
 async function init() {

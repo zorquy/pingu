@@ -10,28 +10,20 @@
 // Lo que se puede probar sin navegador vive aquí: el número del día, qué
 // índices toca hoy, qué cartas sirven, si una respuesta acierta y el
 // texto que se comparte.
+// El número del día es el COMÚN de todos los retos (870): un solo «#77»
+// para los seis. Se reexporta para quien lo pedía de aquí.
+import { numeroDelDia, cabeceraDeReto, NOMBRE_CORTO, rachaDeDias, tiraEmoji } from './reto-compartir.js'
 import { azarDelDia } from './carta-del-dia.js'
-import { rachaDeDias, tiraEmoji } from './reto-compartir.js'
+
+export { numeroDelDia }
 
 export { rachaDeDias, tiraEmoji }
 
-// El estreno. De aquí NO SE MUEVE: cambiarlo renumeraría los retos que la
-// gente ya ha publicado.
-export const DIA_UNO = '2026-10-04'
 export const RONDAS = 5
 export const CARTAS_POR_DIA = RONDAS + 1
 export const ENLACE = 'pokedoc.es/mas-caro'
 // Por debajo de un euro todo vale lo mismo y la pregunta no tiene gracia.
 export const PRECIO_MINIMO = 1
-
-function utc(dia) {
-  const [y, m, d] = String(dia).split('-').map(Number)
-  return Date.UTC(y, m - 1, d)
-}
-
-export function numeroDelDia(dia) {
-  return Math.round((utc(dia) - utc(DIA_UNO)) / 86400000) + 1
-}
 
 // `cuantos` índices DISTINTOS entre 0 y total-1, deterministas por día.
 // Se piden más de los que hacen falta porque alguna carta elegida puede
@@ -77,7 +69,7 @@ export function acierta(precioA, precioB, respuesta) {
 export function textoParaCompartir({ dia, tira, rachaDias = 0 }) {
   const aciertos = (tira || []).filter(Boolean).length
   const lineas = [
-    `¿Más caro o más barato? PokeDoc #${numeroDelDia(dia)} · ${aciertos}/${RONDAS} ${aciertos === RONDAS ? '🏆' : '💶'}`,
+    cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.caro, cuenta: `${aciertos}/${RONDAS}`, extra: aciertos === RONDAS ? '🏆' : '💶' }),
     tiraEmoji(tira),
   ]
   if (rachaDias >= 2) lineas.push(`🔥 ${rachaDias} días seguidos`)

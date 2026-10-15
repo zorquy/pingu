@@ -8,18 +8,18 @@
 // como los cuadrados de Wordle: enseña cómo has llegado sin desvelar la
 // carta. El porqué largo, en SCHEMA.md.
 
-// Desde cuándo se cuenta. Fijo: cambiarlo renumeraría lo ya publicado.
-export const DIA_UNO = '2026-10-04'
+// El número del día es el COMÚN de todos los retos (870): un solo «#77»
+// para los seis. Se reexporta para quien lo pedía de aquí.
+import { numeroDelDia, cabeceraDeReto, NOMBRE_CORTO } from './reto-compartir.js'
+
+export { numeroDelDia }
+
 export const INTENTOS = 6
 export const ENLACE = 'pokedoc.es/carta-del-dia'
 
 function utc(dia) {
   const [y, m, d] = String(dia).split('-').map(Number)
   return Date.UTC(y, m - 1, d)
-}
-
-export function numeroDelDia(dia) {
-  return Math.round((utc(dia) - utc(DIA_UNO)) / 86400000) + 1
 }
 
 // Un número del día que no se adivina mirando el calendario (mulberry32
@@ -152,7 +152,7 @@ export const PISTAS = ['era', 'tipo', 'rareza', 'ilustrador', 'inicial']
 export function textoParaCompartir({ dia, comparaciones, acertada, rachaDias = 0 }) {
   const n = comparaciones.length
   const lineas = [
-    `¿Qué carta es? #${numeroDelDia(dia)} · ${acertada ? `${n}/${INTENTOS}` : `X/${INTENTOS}`}`,
+    cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.carta, cuenta: acertada ? `${n}/${INTENTOS}` : `X/${INTENTOS}` }),
     ...comparaciones.map(filaEmoji),
   ]
   if (rachaDias >= 2) lineas.push(`🔥 ${rachaDias} días seguidos`)

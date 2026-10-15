@@ -32,6 +32,7 @@ import {
 } from './reto-diario.js'
 import { textoParaCompartir, numeroDelDia, rachaDeDias, ENLACE as ENLACE_RETO } from './reto-compartir.js'
 import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
+import { CLAVE_RETO_LOCAL } from './mi-dia.js'
 import { sonar, vibrar, estallido, comboGrande, mascotaDice, silenciado, alternarSilencio } from './curso-estimulos.js'
 import { clasificacionSemanal } from './liga.js'
 import { puestoDe, textoSaltoLiga } from './liga-salto.js'
@@ -535,6 +536,11 @@ function medallaHtml(medalla) {
 function renderReward(b) {
   const resumen = cerrarPartida(partida)
   ultimoResumen = resumen
+  // La tira de hoy se deja en el navegador (870): «Mi día» la lee de ahí
+  // sin esperar a la base, igual que la partida de los otros cinco retos.
+  if (modo === 'diario' && resumen.tira?.length) {
+    try { localStorage.setItem(CLAVE_RETO_LOCAL, JSON.stringify({ dia: hoyISO(), tira: resumen.tira })) } catch {}
+  }
 
   return `
     <div class="block block-reward">
@@ -571,7 +577,7 @@ function renderReward(b) {
           // para pegar en WhatsApp o donde sea, con el enlace al reto —
           // quien lo reciba puede intentar superarte hoy mismo.
           modo === 'diario'
-            ? '<button class="btn-primary" id="btnPresumir">🎴 Presumir de resultado</button><button class="btn-secondary" id="btnPresumirImagen">Compartir como imagen</button>'
+            ? `<button class="btn-primary" id="btnPresumir">${icons.share(16)} Compartir</button>`
             : ''
         }
         ${
@@ -597,7 +603,7 @@ function renderReward(b) {
           // El reto de hoy acababa mandando a /aprender (860): ahora al
           // siguiente reto que te quede, o al menú de los retos.
           modo === 'diario'
-            ? siguienteRetoHtml(siguienteReto('reto', hechoHoy(hoyISO())))
+            ? siguienteRetoHtml(siguienteReto('reto', hechoHoy(hoyISO())), { dia: hoyISO() })
             : `<a href="${categorySlug ? `/aprender?tema=${encodeURIComponent(categorySlug)}` : '/aprender'}" class="${modo === 'curso' && resumen.medal !== 'oro' ? 'btn-secondary' : 'btn-primary'}">${categorySlug ? 'Más de este tema →' : 'Seguir explorando →'}</a>`
         }
       </div>
@@ -1616,49 +1622,31 @@ async function setupBlockLogic(block) {
     const btnRepetir = document.getElementById('btnRepetir')
     if (btnRepetir) btnRepetir.addEventListener('click', () => window.location.reload())
 
-    // El texto de presumir: resultado + enlace al reto. En móvil abre la
-    // hoja de compartir del sistema; sin ella, va al portapapeles.
+    // Compartir (871): la hoja común, con el texto de Wordle y la imagen en
+    // dos formatos. Todo se arma AL PULSAR y no al pintar: la racha llega
+    // por su cuenta después de guardar, y armarlo antes la dejaría fuera.
     const btnPresumir = document.getElementById('btnPresumir')
     if (btnPresumir && ultimoResumen) {
       btnPresumir.addEventListener('click', async () => {
-        // El texto se arma AL PULSAR y no al pintar: la racha llega por
-        // su cuenta después de guardar, y armarlo antes la dejaría fuera.
+        const { abrirHojaCompartir } = await import('./compartir-hoja.js')
         const texto = textoParaCompartir({ dia: hoyISO(), tira: ultimoResumen.tira, correct: ultimoResumen.correct, total: ultimoResumen.total, medal: ultimoResumen.medal, rachaDias: rachaDeHoy })
-        try {
-          if (navigator.share) {
-            await navigator.share({ text: texto })
-            return
-          }
-        } catch {
-          // Compartir cancelado: no es un error.
-          return
-        }
-        try {
-          await navigator.clipboard.writeText(texto)
-          showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-        } catch {
-          showToast('No se ha podido copiar el resultado.')
-        }
-      })
-    }
-
-    // Y la IMAGEN (tanda 583): lo que se sube a una historia, donde un
-    // texto con emojis no luce. Se dibuja al pulsar, con lo mismo que el
-    // texto (racha incluida), y se comparte o se descarga.
-    const btnImagen = document.getElementById('btnPresumirImagen')
-    if (btnImagen && ultimoResumen) {
-      btnImagen.addEventListener('click', async () => {
-        const [{ pintarResultadoReto }, { compartirLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
-        const lienzo = pintarResultadoReto(document.createElement('canvas'), {
+        await abrirHojaCompartir({
           titulo: 'El reto de hoy',
-          cuenta: `${ultimoResumen.correct}/${ultimoResumen.total}`,
-          detalle: `Reto #${numeroDelDia(hoyISO())}`,
-          tira: ultimoResumen.tira,
-          racha: rachaDeHoy,
-          enlace: ENLACE_RETO,
+          texto,
+          nombre: `reto-${numeroDelDia(hoyISO())}`,
+          imagen: async (formato) => {
+            const { pintarResultadoReto } = await import('./reto-imagen.js')
+            return pintarResultadoReto(document.createElement('canvas'), {
+              titulo: 'El reto de hoy',
+              cuenta: `${ultimoResumen.correct}/${ultimoResumen.total}`,
+              detalle: `Reto #${numeroDelDia(hoyISO())}`,
+              tira: ultimoResumen.tira,
+              racha: rachaDeHoy,
+              enlace: ENLACE_RETO,
+              formato,
+            })
+          },
         })
-        const texto = textoParaCompartir({ dia: hoyISO(), tira: ultimoResumen.tira, correct: ultimoResumen.correct, total: ultimoResumen.total, medal: ultimoResumen.medal, rachaDias: rachaDeHoy })
-        await compartirLienzo(lienzo, { nombreFichero: `reto-${numeroDelDia(hoyISO())}.png`, texto })
       })
     }
 

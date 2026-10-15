@@ -2,7 +2,6 @@
 // maqueta que aprobó PINGU). Lo puro está en js/carta-del-dia.js; aquí, el
 // tablero. El porqué largo, en SCHEMA.md.
 import { escapeHtml, getSession } from './app.js'
-import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { supabase } from './supabase.js'
 import { cadenaDeEscaneo } from './escaneo-carta.js'
@@ -187,14 +186,12 @@ function pintarFinal() {
     <div id="cdReparto"></div>
     <div class="rj-botones">
       <button type="button" class="btn-secondary" id="cdCompartir">${icons.share(16)} Compartir</button>
-      <button type="button" class="btn-secondary" id="cdImagen">Como imagen</button>
       <a class="btn-secondary" href="${escapeHtml(rutaDeCarta(respuesta))}">Ver la carta</a>
       <span class="rj-cuenta" id="cdCuenta"></span>
     </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('carta', hechoHoy(dia)))}</div>`
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('carta', hechoHoy(dia)), { dia })}</div>`
   final.classList.remove('hidden')
   $('cdCompartir').addEventListener('click', compartir)
-  $('cdImagen').addEventListener('click', compartirImagen)
   pararCuenta()
   pararCuenta = cuentaAtras($('cdCuenta'))
   pintarPremios()
@@ -236,21 +233,22 @@ async function guardar() {
 }
 
 // La imagen del resultado (tanda 583): la carta ya resuelta, las filas
-// de casillas y la racha. Como el texto, se arma al pulsar.
-async function compartirImagen() {
-  const [{ pintarResultadoReto }, { compartirLienzo, fotoParaElLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
+// de casillas y la racha. Se dibuja cuando la hoja la pide (871), en el
+// formato que se elija.
+async function imagenDelResultado(formato) {
+  const [{ pintarResultadoReto }, { fotoParaElLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
   const foto = await fotoParaElLienzo(cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high'))
-  const lienzo = pintarResultadoReto(document.createElement('canvas'), {
+  return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Qué carta es?',
     cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
-    detalle: `Carta #${numeroDelDia(dia)} · ${nombreDeCarta(respuesta)}`,
+    detalle: `Reto #${numeroDelDia(dia)} · ${nombreDeCarta(respuesta)}`,
     filas: estado.intentos.map((it) => (esAcierto(it) ? [true, true, true, true] : ORDEN_CASILLAS.map((k) => estadoDe(it, k) === 'si'))),
     racha: rachaDeDias(diasAcertados(), dia),
     enlace: ENLACE,
     foto,
     fotoNombre: '',
+    formato,
   })
-  await compartirLienzo(lienzo, { nombreFichero: `carta-del-dia-${numeroDelDia(dia)}.png`, texto: textoCompartido() })
 }
 
 const textoCompartido = () => textoParaCompartir({
@@ -265,25 +263,14 @@ function pintarTodo() {
   pintarPistas()
   pintarIntentos()
   pintarFinal()
-  $('cdSub').textContent = `Carta #${numeroDelDia(dia)} · ${terminado() ? 'resuelta' : `intento ${estado.intentos.length + 1} de ${INTENTOS}`}`
+  $('cdSub').textContent = `Reto #${numeroDelDia(dia)} · ${terminado() ? 'resuelta' : `intento ${estado.intentos.length + 1} de ${INTENTOS}`}`
 }
 
+// La hoja de compartir (871): el texto y la imagen en dos formatos, con
+// vista previa; el texto se arma al pulsar, que la racha llega después.
 async function compartir() {
-  const texto = textoCompartido()
-  try {
-    if (navigator.share) {
-      await navigator.share({ text: texto })
-      return
-    }
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-  }
-  try {
-    await navigator.clipboard.writeText(texto)
-    showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-  } catch {
-    showToast('No se ha podido copiar el resultado.')
-  }
+  const { abrirHojaCompartir } = await import('./compartir-hoja.js')
+  await abrirHojaCompartir({ titulo: '¿Qué carta es?', texto: textoCompartido(), imagen: imagenDelResultado, nombre: `carta-del-dia-${numeroDelDia(dia)}` })
 }
 
 // La carta sale de un sobre (796, MV7): al acertar o al gastar los

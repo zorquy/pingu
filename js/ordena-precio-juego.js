@@ -5,12 +5,11 @@
 // quedan fijas en verde y el resto se vuelve a ordenar: tres intentos.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
-import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { nombreDeCarta } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { euros } from './cardmarket.js'
-import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, enSuSitio, textoParaCompartir } from './ordena-precio.js'
+import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, enSuSitio, textoParaCompartir, ENLACE } from './ordena-precio.js'
 import { xpDe, xpSiAciertasOrdena } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras, genteHtml } from './retos-ui.js'
@@ -98,7 +97,7 @@ function pintarFinal() {
       <button type="button" class="btn-secondary" id="opCompartir">${icons.share(16)} Compartir</button>
       <span class="rj-cuenta" id="opCuenta"></span>
     </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('ordena', hechoHoy(dia)))}</div>`
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('ordena', hechoHoy(dia)), { dia })}</div>`
   f.classList.remove('hidden')
   $('opCompartir').addEventListener('click', compartir)
   cuentaAtras($('opCuenta'), 'Otras cuatro en')
@@ -160,19 +159,25 @@ function comprobar() {
   if (terminado()) guardar()
 }
 
+// La hoja de compartir (871): el texto y la imagen, con una fila de cuatro
+// casillas por intento.
 async function compartir() {
+  const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   const texto = textoParaCompartir({ dia, intentos: estado.intentos, cartas, acertada: estado.acertada })
-  try {
-    if (navigator.share) { await navigator.share({ text: texto }); return }
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-  }
-  try {
-    await navigator.clipboard.writeText(texto)
-    showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-  } catch {
-    showToast('No se ha podido copiar el resultado.')
-  }
+  await abrirHojaCompartir({ titulo: 'Ordena por precio', texto, imagen: imagenDelResultado, nombre: `ordena-precio-${numeroDelDia(dia)}` })
+}
+
+async function imagenDelResultado(formato) {
+  const { pintarResultadoReto } = await import('./reto-imagen.js')
+  return pintarResultadoReto(document.createElement('canvas'), {
+    titulo: 'Ordena por precio',
+    cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
+    detalle: `Reto #${numeroDelDia(dia)}`,
+    filas: estado.intentos.map((o) => enSuSitio(o, cartas)),
+    racha: rachaDeDias(diasAcertados(), dia),
+    enlace: ENLACE,
+    formato,
+  })
 }
 
 function sinTablero(texto) {

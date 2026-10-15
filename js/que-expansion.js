@@ -1,22 +1,16 @@
 // «¿De qué expansión es?» (tanda 835), lo PURO: el número del día, las
 // cuatro expansiones de cada ronda y el texto que se comparte. Las cinco
 // cartas las elige netlify/functions/que-expansion.mjs.
+// El número del día es el COMÚN de todos los retos (870): un solo «#77»
+// para los seis. Se reexporta para quien lo pedía de aquí.
+import { numeroDelDia, cabeceraDeReto, NOMBRE_CORTO, tiraEmoji } from './reto-compartir.js'
 import { azarDelDia } from './carta-del-dia.js'
-import { tiraEmoji } from './reto-compartir.js'
 
-export const DIA_UNO = '2026-10-14'
+export { numeroDelDia }
+
 export const RONDAS = 5
 export const OPCIONES = 4
 export const ENLACE = 'pokedoc.es/que-expansion'
-
-function utc(dia) {
-  const [y, m, d] = String(dia).split('-').map(Number)
-  return Date.UTC(y, m - 1, d)
-}
-
-export function numeroDelDia(dia) {
-  return Math.round((utc(dia) - utc(DIA_UNO)) / 86400000) + 1
-}
 
 const dias = (a, b) => Math.abs((Date.parse(a || '1990-01-01') - Date.parse(b || '1990-01-01')) / 86400000)
 
@@ -47,5 +41,5 @@ export function opcionesDeExpansion(bueno, sets, dia, ronda = 0) {
 
 export function textoParaCompartir({ dia, tira }) {
   const aciertos = (tira || []).filter(Boolean).length
-  return [`¿De qué expansión es? PokeDoc #${numeroDelDia(dia)} · ${aciertos}/${RONDAS}`, tiraEmoji(tira), ENLACE].join('\n')
+  return [cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.expansion, cuenta: `${aciertos}/${RONDAS}` }), tiraEmoji(tira), ENLACE].join('\n')
 }

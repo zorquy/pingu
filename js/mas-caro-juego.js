@@ -6,7 +6,6 @@
 // al acabar se manda el resultado a `retos_guardar`, que da la XP.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
-import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -148,16 +147,13 @@ function pintarFinal() {
       <div id="mcrPremios"></div>
       <div class="rj-botones">
         <button type="button" class="btn-secondary" id="mcrCompartir">${icons.share(16)} Compartir</button>
-        <button type="button" class="btn-secondary" id="mcrImagen">Como imagen</button>
         <span class="rj-cuenta" id="mcrCuenta"></span>
       </div>
-      <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('caro', hechoHoy(dia)))}</div>
+      <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('caro', hechoHoy(dia)), { dia })}</div>
     </div>
-    <ol class="mcr-rondas" aria-label="Las cinco rondas">${rondas}</ol>
-    <canvas id="mcrLienzo" class="hidden" width="1080" height="1350" aria-hidden="true"></canvas>`
+    <ol class="mcr-rondas" aria-label="Las cinco rondas">${rondas}</ol>`
   final.classList.remove('hidden')
-  $('mcrCompartir').addEventListener('click', compartirTexto)
-  $('mcrImagen').addEventListener('click', compartirImagen)
+  $('mcrCompartir').addEventListener('click', compartir)
   pararCuenta()
   pararCuenta = cuentaAtras($('mcrCuenta'), 'Cinco más en')
   pintarPremios()
@@ -203,36 +199,25 @@ function textoDeHoy() {
   return textoParaCompartir({ dia, tira: estado.respuestas, rachaDias: rachaDeDias(diasJugados(), dia) })
 }
 
-async function compartirTexto() {
-  const texto = textoDeHoy()
-  try {
-    if (navigator.share) {
-      await navigator.share({ text: texto })
-      return
-    }
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-  }
-  try {
-    await navigator.clipboard.writeText(texto)
-    showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-  } catch {
-    showToast('No se ha podido copiar el resultado.')
-  }
+// La hoja de compartir (871): texto e imagen (historia y apaisada) con
+// vista previa. Se arma al pulsar, que la racha llega después de guardar.
+async function compartir() {
+  const { abrirHojaCompartir } = await import('./compartir-hoja.js')
+  await abrirHojaCompartir({ titulo: '¿Más caro o más barato?', texto: textoDeHoy(), imagen: imagenDelResultado, nombre: `mas-caro-${numeroDelDia(dia)}` })
 }
 
-async function compartirImagen() {
-  const [{ pintarResultadoReto }, { compartirLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
+async function imagenDelResultado(formato) {
+  const { pintarResultadoReto } = await import('./reto-imagen.js')
   const aciertos = estado.respuestas.filter(Boolean).length
-  const lienzo = pintarResultadoReto($('mcrLienzo'), {
+  return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Más caro o más barato?',
     cuenta: `${aciertos}/${RONDAS}`,
     detalle: `Reto #${numeroDelDia(dia)}`,
     tira: estado.respuestas,
     racha: rachaDeDias(diasJugados(), dia),
     enlace: ENLACE,
+    formato,
   })
-  await compartirLienzo(lienzo, { nombreFichero: `mas-caro-${numeroDelDia(dia)}.png`, texto: textoDeHoy() })
 }
 
 // Responder: el precio de B sube contando, la carta se ilumina, se dice lo

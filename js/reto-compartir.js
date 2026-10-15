@@ -26,6 +26,17 @@ export const ENLACE = 'pokedoc.es/reto'
 
 const MEDALLA = { oro: '🥇', plata: '🥈', bronce: '🥉' }
 
+// Desde la 870 este número es EL de todos los retos (los otros cinco
+// llevaban cada uno su estreno y salían tres numeraciones distintas el
+// mismo día), y la cabecera es una: «PokeDoc #77 · ¿Qué carta es? · 3/6».
+// El nombre corto de cada reto, el que cabe en un tuit y en una fila de
+// «Mi día» (mi-dia.js).
+export const NOMBRE_CORTO = { reto: 'El reto', carta: '¿Qué carta es?', caro: 'Más caro o barato', silueta: '¿Quién es?', ordena: 'Ordena por precio', expansion: '¿Qué expansión?' }
+
+export function cabeceraDeReto({ dia, nombre, cuenta, extra = '' }) {
+  return `PokeDoc #${numeroDelDia(dia)} · ${nombre} · ${cuenta}${extra ? ` ${extra}` : ''}`
+}
+
 function diasDesde(desde, hasta) {
   const a = Date.UTC(...desde.split('-').map(Number).map((n, i) => (i === 1 ? n - 1 : n)))
   const b = Date.UTC(...hasta.split('-').map(Number).map((n, i) => (i === 1 ? n - 1 : n)))
@@ -58,7 +69,7 @@ export function rachaDeDias(diasJugados, hoy) {
 
 export function textoParaCompartir({ dia, tira, correct, total, medal, rachaDias = 0 }) {
   const lineas = [
-    `Reto PokeDoc #${numeroDelDia(dia)} · ${correct}/${total} ${MEDALLA[medal] || '🎯'}`,
+    cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.reto, cuenta: `${correct}/${total}`, extra: MEDALLA[medal] || '🎯' }),
     tiraEmoji(tira),
   ]
   if (rachaDias >= 2) lineas.push(`🔥 ${rachaDias} días seguidos`)

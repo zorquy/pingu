@@ -89,6 +89,15 @@
   gap: var(--e-xs);
 }
 
+.rt-compartir-dia,
+.rt-compartir-mes {
+  min-height: 44px;
+}
+
+.rt-mes-compartir {
+  margin: var(--e-md) 0 0;
+}
+
 .rt-xp {
   color: var(--success);
   font-weight: 700;

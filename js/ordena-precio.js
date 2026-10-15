@@ -2,7 +2,12 @@
 // bueno, qué está en su sitio y el texto que se comparte. Las cuatro del día
 // las elige netlify/functions/ordena-precio.mjs (como «Más caro»: la lista de
 // cartas con precio cambia en el día y una semilla sobre ella no valdría).
-export const DIA_UNO = '2026-10-14'
+// El número del día es el COMÚN de todos los retos (870): un solo «#77»
+// para los seis. Se reexporta para quien lo pedía de aquí.
+import { numeroDelDia, cabeceraDeReto, NOMBRE_CORTO } from './reto-compartir.js'
+
+export { numeroDelDia }
+
 export const CARTAS = 4
 export const INTENTOS = 3
 export const ENLACE = 'pokedoc.es/ordena-precio'
@@ -10,15 +15,6 @@ export const PRECIO_MINIMO = 1
 // Dos cartas a menos de un 15 % la una de la otra no se distinguen: el
 // juego sería adivinar los céntimos.
 export const DIFERENCIA_MINIMA = 1.15
-
-function utc(dia) {
-  const [y, m, d] = String(dia).split('-').map(Number)
-  return Date.UTC(y, m - 1, d)
-}
-
-export function numeroDelDia(dia) {
-  return Math.round((utc(dia) - utc(DIA_UNO)) / 86400000) + 1
-}
 
 // De las candidatas (con `precio`), las cuatro primeras que sirven: con
 // foto, de un euro para arriba y lejos en precio de las ya elegidas.
@@ -46,5 +42,5 @@ export function enSuSitio(orden, cartas) {
 
 export function textoParaCompartir({ dia, intentos = [], cartas = [], acertada }) {
   const filas = intentos.map((o) => enSuSitio(o, cartas).map((b) => (b ? '🟩' : '🟥')).join(''))
-  return [`Ordena por precio · PokeDoc #${numeroDelDia(dia)} · ${acertada ? `${intentos.length}/${INTENTOS}` : `X/${INTENTOS}`}`, ...filas, ENLACE].join('\n')
+  return [cabeceraDeReto({ dia, nombre: NOMBRE_CORTO.ordena, cuenta: acertada ? `${intentos.length}/${INTENTOS}` : `X/${INTENTOS}` }), ...filas, ENLACE].join('\n')
 }

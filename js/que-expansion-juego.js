@@ -2,12 +2,11 @@
 // js/que-expansion.js; las cinco rondas, en netlify/functions/que-expansion.mjs.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
-import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { nombreDeCarta, nombreDeSet, logosDePago } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { urlDeLogo } from './carta-ruta.js'
-import { RONDAS, numeroDelDia, textoParaCompartir } from './que-expansion.js'
+import { RONDAS, numeroDelDia, textoParaCompartir, ENLACE } from './que-expansion.js'
 import { xpDe, mejorQue } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
 import { premiosHtml, cuentaAtras } from './retos-ui.js'
@@ -85,7 +84,7 @@ function pintarFinal() {
       <button type="button" class="btn-secondary" id="qxCompartir">${icons.share(16)} Compartir</button>
       <span class="rj-cuenta" id="qxCuenta"></span>
     </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('expansion', hechoHoy(dia)))}</div>`
+    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('expansion', hechoHoy(dia)), { dia })}</div>`
   f.classList.remove('hidden')
   $('qxCompartir').addEventListener('click', compartir)
   cuentaAtras($('qxCuenta'), 'Cinco más en')
@@ -147,19 +146,25 @@ function elegir(setId) {
   }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 600 : 1400)
 }
 
+// La hoja de compartir (871): el texto y la imagen con la tira de cinco.
 async function compartir() {
+  const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   const texto = textoParaCompartir({ dia, tira: tira() })
-  try {
-    if (navigator.share) { await navigator.share({ text: texto }); return }
-  } catch (err) {
-    if (err?.name === 'AbortError') return
-  }
-  try {
-    await navigator.clipboard.writeText(texto)
-    showToast('Resultado copiado. ¡Pégalo donde quieras presumir!', 'success')
-  } catch {
-    showToast('No se ha podido copiar el resultado.')
-  }
+  await abrirHojaCompartir({ titulo: '¿De qué expansión es?', texto, imagen: imagenDelResultado, nombre: `que-expansion-${numeroDelDia(dia)}` })
+}
+
+async function imagenDelResultado(formato) {
+  const { pintarResultadoReto } = await import('./reto-imagen.js')
+  const t = tira()
+  return pintarResultadoReto(document.createElement('canvas'), {
+    titulo: '¿De qué expansión es?',
+    cuenta: `${t.filter(Boolean).length}/${RONDAS}`,
+    detalle: `Reto #${numeroDelDia(dia)}`,
+    tira: t,
+    racha: rachaDeDias(diasJugados(), dia),
+    enlace: ENLACE,
+    formato,
+  })
 }
 
 function sinTablero(texto) {
