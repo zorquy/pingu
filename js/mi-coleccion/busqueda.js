@@ -63,13 +63,34 @@ export function entenderBusqueda(texto, sets = []) {
 // con ceros delante porque hay sets que imprimen «064». Y solo dígitos:
 // esto se monta dentro de un `or=` de PostgREST, donde una coma o un
 // paréntesis del usuario cambiaría la consulta.
+//
+// Y UNA PROMO LLEVA LETRAS DELANTE DEL NÚMERO (852): el Pikachu EX de las
+// promos de XY es la «XY124», las de Espada y Escudo son «SWSH001», las
+// Trainer Gallery «TG01». PINGU buscó «Pikachu 124» y «Pikachu XY124» y no
+// salió nada: «124» se comparaba con `local_id` ENTERO (y el suyo es
+// «XY124»), y «xy124» se tomaba por una palabra del nombre. Así que
+// «xy124» es un número con prefijo, y un número a secas vale con cualquier
+// prefijo delante (lo decide `filtroDeNumero`).
 export function partirBusqueda(texto) {
   const palabras = String(texto || '').split(/\s+/).filter(Boolean)
-  const numeros = palabras.filter((p) => /^\d{1,4}$/.test(p))
-  const nombre = palabras.filter((p) => !/^\d{1,4}$/.test(p))
+  const esNumero = (p) => /^[a-z]{0,5}\d{1,4}$/i.test(p)
+  const numeros = palabras.filter(esNumero)
+  const nombre = palabras.filter((p) => !esNumero(p))
+  const m = numeros.length ? numeros[0].match(/^([a-z]*)(\d+)$/i) : null
   // Si SOLO se escribe un número, ese número es la búsqueda entera y no
   // un afinado: «64» a secas quiere decir «enséñame las 64».
-  return { nombre, numero: numeros[0] || null, soloNumero: numeros.length > 0 && nombre.length === 0 }
+  return { nombre, numero: m ? m[2] : null, prefijo: m && m[1] ? m[1].toLowerCase() : null, soloNumero: numeros.length > 0 && nombre.length === 0 }
+}
+
+// «Pikachu XY 124», con el prefijo separado del número: la primera pasada
+// lo toma por una palabra del nombre y no encuentra nada. Esto devuelve el
+// texto con los dos pegados («pikachu xy124») para una SEGUNDA pasada, y
+// null si no hay nada que pegar. Solo de respaldo, nunca de primeras: «Mew
+// 151» u «Onix 62» son un nombre corto y un número, no un prefijo.
+export function conPrefijoPegado(texto) {
+  const t = String(texto || '')
+  const pegado = t.replace(/(^|\s)([a-z]{1,5})\s+(\d{1,4})(?=\s|$)/i, '$1$2$3')
+  return pegado !== t ? pegado : null
 }
 
 export function variantesDeNumero(n) {
@@ -77,10 +98,26 @@ export function variantesDeNumero(n) {
   return [...new Set([limpio, limpio.padStart(2, '0'), limpio.padStart(3, '0'), String(n)])]
 }
 
-// El filtro de número para un `or=` de PostgREST (851): la carta con ese
-// número impreso (con y sin ceros delante) o el Pokémon con ese número de
-// Pokédex. Solo dígitos llegan aquí (`partirBusqueda`), así que no se cuela
-// sintaxis del `or`.
-export function filtroDeNumero(numero) {
-  return [...variantesDeNumero(numero).map((v) => `local_id.eq.${v}`), `dex_ids.cs.{${Number(numero)}}`].join(',')
+// El filtro de número para un `or=` de PostgREST (851, con prefijos desde
+// la 852): la carta con ese número IMPRESO —con ceros delante o sin ellos,
+// y con las letras de una promo delante («XY124», «SWSH001», «TG01») o sin
+// ellas— o el Pokémon con ese número de Pokédex. Va como expresión regular
+// (`imatch`, el `~*` de Postgres) porque las letras pueden ser cualquiera;
+// y con un prefijo escrito a propósito no se mira la Pokédex: «xy124» no
+// es ningún Pokémon. Solo letras y dígitos llegan aquí (`partirBusqueda`),
+// así que no se cuela sintaxis del `or` ni de la expresión.
+export function filtroDeNumero(numero, prefijo = null) {
+  const limpio = String(numero).replace(/^0+/, '') || '0'
+  const letras = prefijo ? String(prefijo).replace(/[^a-z]/gi, '') : '[a-z]*'
+  const impreso = `local_id.imatch.^${letras}[ -]?0*${limpio}$`
+  return prefijo ? impreso : [impreso, `dex_ids.cs.{${Number(numero)}}`].join(',')
+}
+
+// ¿Lleva esta carta ese número impreso? Para ordenar lo que vuelve: con
+// «Pikachu 25» primero la 25 y luego los demás Pikachu (el 25 de la Pokédex).
+export function llevaElNumero(localId, numero, prefijo = null) {
+  const m = String(localId || '').match(/^([a-z]*)[ -]?0*(\d+)$/i)
+  if (!m) return false
+  const limpio = String(numero).replace(/^0+/, '') || '0'
+  return m[2] === limpio && (!prefijo || m[1].toLowerCase() === String(prefijo).toLowerCase())
 }

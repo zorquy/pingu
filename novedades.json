@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Las promos se encuentran por su número: «Pikachu 124» o «Pikachu XY124» dan con la XY124, y «TG5» con la TG05, en el buscador de arriba y en el de Mi colección.", "enlace": "/buscar?q=Pikachu%20XY124" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El buscador de arriba encuentra cartas como el de Cartas: por nombre y número («Pikachu 277»), por expansión y número («MEW 151») y por ilustrador.", "enlace": "/buscar?q=Pikachu%20277" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Una liga entre jornadas ya no sale como «En juego»: dice «Entre jornadas» y cuándo es la próxima.", "enlace": "/torneos" },
     { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Las ligas pueden tener varias rondas por jornada: por ejemplo, 10 jornadas de 3 rondas, con una sola lista por jornada.", "enlace": "/torneos" },

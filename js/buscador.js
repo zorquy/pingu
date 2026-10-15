@@ -15,7 +15,7 @@ import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { entenderBusqueda, partirBusqueda, variantesDeNumero, filtroDeNumero } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, llevaElNumero } from './mi-coleccion/busqueda.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
 import { esDelTCG, deSetVisible } from './catalogo-series.js'
 
@@ -49,18 +49,20 @@ const CONSULTAS = {
       return q.order('name_search').limit(limite * 3)
     }
     const porNombre = async (texto, setIds) => {
-      const { nombre, numero } = partirBusqueda(normalizeSearch(texto))
-      if (!nombre.length && !numero) return { filas: [], numero: null }
+      const { nombre, numero, prefijo } = partirBusqueda(normalizeSearch(texto))
+      if (!nombre.length && !numero) return { filas: [], numero: null, prefijo: null }
       const { data, error } = await consulta((q) => {
         if (setIds?.length) q = q.in('set_id', setIds)
         for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-        if (numero) q = q.or(filtroDeNumero(numero))
+        if (numero) q = q.or(filtroDeNumero(numero, prefijo))
         return q
       })
       if (error) throw error
-      return { filas: data || [], numero }
+      return { filas: data || [], numero, prefijo }
     }
     let r = await porNombre(leida.texto, leida.setIds)
+    // «Pikachu XY 124» con el prefijo suelto (852): pegados, segunda pasada.
+    if (!r.filas.length && conPrefijoPegado(leida.texto)) r = await porNombre(conPrefijoPegado(leida.texto), leida.setIds)
     // «mew 151» puede ser el set o el Pokémon: si como set no hay nada, como nombre.
     if (!r.filas.length && leida.codigo) r = await porNombre(crudo, null)
     // Y si por nombre nada, por ilustrador (la pasada cara, solo entonces).
@@ -72,16 +74,16 @@ const CONSULTAS = {
           return q
         })
         if (error) throw error
-        r = { filas: data || [], numero: null }
+        r = { filas: data || [], numero: null, prefijo: null }
       }
     }
     // Ni TCG Pocket ni sets escondidos (694, 826). Y con un número, primero
     // las que lo llevan IMPRESO: «Pikachu 25» es antes la 25 que todos los
     // Pikachu (que son el 25 de la Pokédex).
-    const impreso = r.numero ? new Set(variantesDeNumero(r.numero)) : null
+    const impreso = (c) => Number(llevaElNumero(c.local_id, r.numero, r.prefijo))
     const cartas = r.filas
       .filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
-      .sort((x, y) => (impreso ? Number(impreso.has(y.local_id)) - Number(impreso.has(x.local_id)) : 0))
+      .sort((x, y) => (r.numero ? impreso(y) - impreso(x) : 0))
       .slice(0, limite)
     // El precio, en una segunda consulta y con la regla de siempre (el
     // mínimo en español, y si no el general: `valorDe`). Si falla, las

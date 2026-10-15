@@ -74,7 +74,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde, volverAlHueco } from './
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
-import { entenderBusqueda, partirBusqueda, variantesDeNumero } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado } from './mi-coleccion/busqueda.js'
 import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
@@ -5216,8 +5216,16 @@ const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_pa
 // `partirBusqueda` y `variantesDeNumero` viven en js/mi-coleccion/busqueda.js
 // desde la 851: las usa también el buscador de la barra de arriba.
 
-async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado } = {}) {
-  const { nombre, numero } = partirBusqueda(texto)
+async function buscarCartas(texto, limite = 60, opciones = {}) {
+  const lista = await buscarCartasUnaVez(texto, limite, opciones)
+  // «Pikachu XY 124» con el prefijo suelto (852): la primera pasada lo toma
+  // por una palabra del nombre. Si no sale nada, otra con los dos pegados.
+  const pegado = lista.length ? null : conPrefijoPegado(texto)
+  return pegado ? buscarCartasUnaVez(pegado, limite, opciones) : lista
+}
+
+async function buscarCartasUnaVez(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado } = {}) {
+  const { nombre, numero, prefijo } = partirBusqueda(texto)
   let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', market)
   // «151/165» y «MEW 151» (765): la expansión ya la ha dicho quien escribe.
   if (setIds?.length) q = q.in('set_id', setIds)
@@ -5237,10 +5245,7 @@ async function buscarCartas(texto, limite = 60, { filtros: fcat = null, variante
   } else {
     for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
   }
-  if (numero) {
-    const comoLocal = variantesDeNumero(numero).map((v) => `local_id.eq.${v}`)
-    q = q.or([...comoLocal, `dex_ids.cs.{${Number(numero)}}`].join(','))
-  }
+  if (numero) q = q.or(filtroDeNumero(numero, prefijo))
   // Los filtros del catálogo van EN LA CONSULTA, no después: el catálogo
   // tiene 21.000 cartas y esto trae 120, así que filtrar lo que vuelve
   // sería filtrar la muestra y no el catálogo.

@@ -40634,3 +40634,21 @@ filas para quitar luego Pocket (`esDelTCG`, por eso se pide
 `tcg_sets.serie_id`) y los sets escondidos (`deSetVisible`) sin quedarse
 cortos; con número, primero las que lo llevan impreso. Prueba:
 `test-tanda-851-pantalla.mjs`; la 450 lee `partirBusqueda` del fichero nuevo.
+
+## Tanda 852 — El número de una promo lleva letras delante
+
+`local_id` de una promo es «XY124», «SWSH001», «TG01», «CC002»: letras y
+dígitos. `partirBusqueda` (`js/mi-coleccion/busqueda.js`) acepta como número
+una palabra de hasta cinco letras seguidas de hasta cuatro dígitos y devuelve
+`numero` (los dígitos) y `prefijo` (las letras, en minúsculas, o null).
+`filtroDeNumero(numero, prefijo)` monta `local_id.imatch.^<letras>[ -]?0*<n>$`
+(`imatch` es el `~*` de Postgres; sin prefijo, `[a-z]*`), y solo sin prefijo
+añade `dex_ids.cs.{n}`: «xy124» no es ningún Pokémon. `conPrefijoPegado`
+pega «xy 124» → «xy124» para una SEGUNDA pasada cuando la primera no da nada
+(nunca de primeras: «Mew 151» u «Onix 62» son nombre corto + número).
+`llevaElNumero(localId, numero, prefijo)` es el «lo lleva impreso» de la
+ordenación del buscador de arriba. Lo usan `buscarCartas` (/mi-coleccion,
+con el reintento pegado dentro de `buscarCartas` y la consulta en
+`buscarCartasUnaVez`) y `CONSULTAS.cartas` (/buscar y Ctrl+K). El doble
+entiende `match`/`imatch` en `.or()` desde esta tanda. Prueba:
+`test-tanda-852-pantalla.mjs`.

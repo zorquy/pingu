@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (84) — PINGU-Claude (852 — el número de una promo lleva letras delante)
+
+**Hecho** (PINGU: «el Pikachu EX XY124 […] si busco Pikachu XY124 o Pikachu
+124 no sale, en todos los buscadores»):
+- El número impreso de una promo es «XY124», «SWSH001», «TG01»: letras y
+  dígitos. «124» se comparaba con el número ENTERO y «xy124» se tomaba por una
+  palabra del nombre, así que ninguna de las dos formas encontraba la carta.
+- Ahora, en los dos buscadores (el de arriba y la pestaña Buscar de Mi
+  colección): un número a secas vale con cualquier letra delante («Pikachu
+  124» → la XY124), «xy124» es número con prefijo (y no se mira la Pokédex),
+  «XY 124» separado se prueba pegado si lo primero no da nada, y «tg5»
+  encuentra la TG05.
+
+**Ficheros**: `js/mi-coleccion/busqueda.js` (`partirBusqueda` con
+`prefijo`, `filtroDeNumero` por `imatch`, `conPrefijoPegado`,
+`llevaElNumero`), `js/mi-coleccion.js` (`buscarCartas` reintenta pegado;
+la consulta en `buscarCartasUnaVez`), `js/buscador.js`. En `pruebas`: el
+doble entiende `match`/`imatch` en `.or()`; prueba nueva
+`test-tanda-852-pantalla.mjs`; la 450 espera el campo `prefijo`.
+
+**Pruebas**: 852-pantalla verde (siete lecturas puras, seis búsquedas en /buscar y cuatro en la pestaña Buscar), y el subconjunto del buscador y de /mi-coleccion (38: imports, 299, 305, 312, 313, 450, 561, 718, 723, 767, 768, 829, 851…) en verde. La 561 leía el cuerpo de `buscarCartas` como texto: ahora lee `buscarCartasUnaVez`.
+
+**Pendiente**: nada (sin migración). Si `imatch` fallara en PostgREST de
+producción (no se puede probar desde aquí), el síntoma sería «no hay
+resultados» en toda búsqueda con número: avisar y se cambia a `ilike`.
+
 ## 2026-10-15 (83) — PINGU-Claude (851 — el buscador de arriba encuentra cartas como el de Cartas)
 
 **Hecho** (PINGU: «busco Pikachu 277 y no encuentro nada […] debería pasar como
