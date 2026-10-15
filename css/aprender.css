@@ -220,51 +220,9 @@
   .ap-rejilla .guia-titulo { font-size: var(--t-2xl); }
 }
 
-/* En el móvil: la primera en tarjeta y las demás en filas. */
+/* En el móvil: la primera en tarjeta y las demás en filas (css/guia-fila.css). */
 .ap-filas {
-  display: flex;
-  flex-direction: column;
-  margin-top: 12px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-.ap-fila {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  color: inherit;
-  text-decoration: none;
-}
-.ap-fila + .ap-fila { border-top: 1px solid var(--border); }
-.ap-fila:active { background: var(--bg); }
-.ap-fila .ap-fila-arte {
-  flex: none;
-  width: 96px;
-  height: 72px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-.ap-fila-texto { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
-.ap-fila-texto strong {
-  font-family: var(--font-display);
-  font-size: var(--t-md);
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-.ap-fila-texto small { font-size: var(--t-xs); color: var(--text-mid); }
-.ap-fila-estado {
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 8px;
-  font-size: var(--t-xs);
-  font-weight: 700;
-  color: var(--text-mid);
+  margin-top: 12px;
 }
-.ap-fila-estado .guia-barra { max-width: 96px; }

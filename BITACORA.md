@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (79) — PINGU-Claude (847 — Guardados, rehecha, y una sola fila de guía)
+
+**Hecho** (PINGU, con captura: «¿te parece algo útil? ¿lo deberíamos quitar?
+Y si no… hay que mejorarla»). Se queda —va en la burbuja de Aprender y
+«guardar para luego» se usa—, pero era una lista de títulos en cualquier orden
+que no decía si ya la habías leído:
+- **Por leer / Ya leídas**: dos bloques con su cuenta, y arriba el resumen
+  («3 por leer · 2 leídas»). Lo último que guardaste, primero.
+- **La fila de siempre**: la foto (o el arte), nivel · minutos · «Con curso» o
+  «Noticia», la barra si vas a medias y «✓ leída». Una noticia guardada lleva
+  a /noticias. La que ya no está publicada no sale.
+- **Quitar sin miedo**: la fila se queda con «Quitada · Deshacer», y deshacer
+  la devuelve a su sitio (no como la última guardada). «Quitar las leídas»
+  limpia el segundo bloque de una vez.
+- **Vacío** con un botón a las guías; si fallan las consultas, lo dice (la 510).
+- **Una sola fila de guía** (`js/guia-fila.js` + `css/guia-fila.css`): había
+  tres (portada, /aprender en el móvil y Guardados). La portada y /aprender
+  usan ahora esta; sus clases son las de la portada (`guia-fila`…), así que las
+  pruebas viejas siguen valiendo. Fuera `.saved-guide-row` de `components.css`.
+
+**Ficheros**: `js/guia-fila.js` y `css/guia-fila.css` (nuevos),
+`js/guardados.js`, `css/guardados.css` (nueva), `guardados.html`,
+`js/portada-bloques.js`, `css/portada-bloques.css`, `js/aprender.js`,
+`css/aprender.css`, `aprender.html`, `css/components.css`. Prueba nueva
+`test-tanda-847-pantalla.mjs`; la 846, a la clase común.
+
+**Pruebas**: las 28 que tocan portada, /aprender y /guardados (299, 312, 316,
+319, 785, 844–847…), en verde; la 748 salió roja en carriles y verde sola dos
+veces (la medida de saltos de /mi-coleccion va justa, ya pasaba antes).
+
+**Pendiente**: nada.
+
 ## 2026-10-14 (78) — PINGU-Claude (845–846 — la pestaña Actividad como la portada, y /aprender compacto)
 
 **Hecho** (PINGU: «en la portada se ven más cosas que hace la gente que en la

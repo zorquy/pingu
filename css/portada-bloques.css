@@ -337,66 +337,6 @@
   gap: var(--e-md);
 }
 
-/* La guía en fila (js/guia-tarjeta.js, filaDeGuia). */
-.guia-fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-  text-decoration: none;
-}
-
-.guia-fila:hover {
-  border-color: var(--navy);
-}
-
-.guia-fila-arte {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
-}
-
-.guia-fila-texto {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-}
-
-.guia-fila-texto strong {
-  font-size: var(--t-md);
-  line-height: 1.3;
-}
-
-.guia-fila-texto small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.guia-fila-hecha {
-  color: var(--success);
-  font-weight: 600;
-}
-
-.guia-fila-barra {
-  height: 4px;
-  margin-top: var(--e-xs);
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--border);
-}
-
-.guia-fila-barra i {
-  display: block;
-  height: 100%;
-  background: var(--success);
-}
-
 /* ── Noticias ── */
 .pb-noticia {
   position: relative;

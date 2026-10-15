@@ -1,11 +1,11 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, arteDe } from './app.js'
+import { escapeHtml, getSession } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
 import { medallasPorCurso } from './medallero.js'
-import { energiaDeTexto } from './energia-de-texto.js'
+import { filaDeGuia } from './guia-fila.js'
 import { normalizeSearch } from './texto.js'
 
 // El medallero: convierte los cursos en un álbum por completar. Solo
@@ -63,7 +63,8 @@ let soloSinLeer = false
 let conCurso = false
 let busqueda = ''
 
-// En el móvil la primera va en grande y las demás en FILAS (tanda 846):
+// En el móvil la primera va en grande y las demás en FILAS (tanda 846; la
+// fila es la de js/guia-fila.js desde la 847):
 // PINGU, «las guías están muy muy abajo». Una tarjeta entera por guía son
 // 400 px de pantalla cada una; una fila, 88.
 const movil = typeof matchMedia === 'function' ? matchMedia('(max-width: 640px)') : { matches: false, addEventListener() {} }
@@ -118,35 +119,6 @@ function chipsHtml(categorias, guias, porCategoria, hayCursos, visibles) {
     ${chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"')}
     ${hayCursos ? chip(conCurso, 'Con curso', 'data-concurso="1"') : ''}
   </div>`
-}
-
-// La guía en una fila, para el móvil: la foto (o su arte) en pequeño, el
-// título, nivel · minutos · curso y por dónde vas. Es la tarjeta de siempre
-// en corto, así que dice lo mismo (la 316).
-function filaHtml(g, progreso) {
-  const p = progreso[g.id] || null
-  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
-  const leida = Boolean(p?.read_at) || p?.status === 'completed'
-  const pct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
-  const meta = [NIVELES[g.level], g.estimated_mins ? `${g.estimated_mins} min` : '', guideHasCourse(g) ? 'Con curso' : ''].filter(Boolean).join(' · ')
-  const energia = g.cover_image ? null : energiaDeTexto(`${g.title || ''} ${g.description || ''}`)
-  return `
-  <a class="ap-fila" href="/guia/${encodeURIComponent(g.slug)}">
-    <span class="ap-fila-arte guia-arte arte-${arteDe(g)}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''} aria-hidden="true">${
-      g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" width="96" height="72" onerror="this.style.display='none'" />` : ''
-    }</span>
-    <span class="ap-fila-texto">
-      <strong>${escapeHtml(g.title)}</strong>
-      <small>${escapeHtml(meta)}</small>
-      ${
-        leida
-          ? `<span class="ap-fila-estado guia-hecha">✓ ${p?.status === 'completed' ? 'Curso hecho' : 'Leída'}</span>`
-          : pct > 0
-            ? `<span class="ap-fila-estado">Vas por el ${pct}%<span class="guia-barra"><i style="width:${pct}%"></i></span></span>`
-            : ''
-      }
-    </span>
-  </a>`
 }
 
 const cuantasHtml = (n) => `${n} ${n === 1 ? 'guía' : 'guías'}`
@@ -240,7 +212,7 @@ async function loadCategories(session) {
     }
     const [primera, ...resto] = visibles
     caja.lista.innerHTML = movil.matches
-      ? `${tarjetaDeGuia(primera, { progreso })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaHtml(g, progreso)).join('')}</div>` : ''}`
+      ? `${tarjetaDeGuia(primera, { progreso })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso })).join('')}</div>` : ''}`
       : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
   }
 

@@ -1204,37 +1204,6 @@ tcg-deck {
   min-height: 80px;
 }
 
-/* ── Saved / guardados ── */
-.saved-guide-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 16px;
-  transition: border-color 0.15s var(--ease);
-}
-
-.saved-guide-row:hover {
-  border-color: var(--border-strong);
-}
-
-.saved-guide-row .info {
-  flex: 1;
-  min-width: 0;
-}
-
-.saved-guide-row h3 {
-  font-size: var(--t-md);
-  font-weight: 700;
-}
-
-.saved-guide-row .unsave-btn {
-  color: var(--text-mid);
-  font-size: var(--t-xl);
-}
-
 /* ── Toasts ── */
 .toast-container {
   position: fixed;
@@ -1632,15 +1601,6 @@ tcg-deck {
   align-items: center;
   vertical-align: -0.15em;
   margin-right: 8px;
-  flex-shrink: 0;
-}
-
-/* S780.85 */
-.saved-guide-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
   flex-shrink: 0;
 }
 

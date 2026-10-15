@@ -40511,3 +40511,23 @@ leída o «Vas por el N %»). En el PC, `.ap-rejilla` dentro de `.ap-lista`
 (`container-type`): desde 632 px de caja la primera ocupa dos pistas y, por
 `@container guia (min-width: 560px)`, pone la foto al lado. La 316 mide ahora
 la SEGUNDA tarjeta de /aprender, que es una de las de siempre.
+
+## Tanda 847 — Guardados y la fila de guía común
+
+**La fila** (`js/guia-fila.js`, `css/guia-fila.css`): `filaDeGuia(g, {progreso})`
+y `estadoDeGuia(g, progreso)` → `{hecha, leida, pct}`. Enlace por
+`rutaDeArticulo(kind, slug)`; meta = nivel (o «Noticia») · minutos · «Con
+curso»; «✓ hecha/leída» dentro del `<small>` y `.guia-fila-barra` solo a medias
+y sin leer (los formatos que ya miraban la 319 y la 844). La hoja se inyecta
+(`hojaInyectada`); /aprender y /guardados la llevan además en su `<link>` para
+el primer pintado. La pintan la portada (Aprende), /aprender (móvil) y
+/guardados; la caja de fuera es de cada página.
+
+**/guardados** (`js/guardados.js`, `css/guardados.css`): `saved_guides` del
+perfil, al revés (se guardan al final). Una consulta a `guides` con `kind` y
+`cover_image` y otra a `user_progress`; lo que no vuelve (despublicado) se
+calla. «Por leer» / «Ya leídas» (`.gd-leidas`) por `estadoDeGuia`. Quitar
+escribe al momento (leyendo antes la lista de la base para no pisar otra
+pestaña) y deja la fila con «Deshacer», que la vuelve a meter en su POSICIÓN
+(`data-pos`). «Quitar las leídas» con `confirm`. Las acciones van delegadas y
+enganchadas una vez en `init`, porque limpiar repinta la lista.

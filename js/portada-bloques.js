@@ -18,7 +18,8 @@ import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
 import { rutaDeArticulo, cuandoFue, conVueltaAtrasDeTipo } from './articulos.js'
 import { haceCuanto, perfilesPorId, urlTema, etiquetaHtml, nombreDe } from './foro-comun.js'
-import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
+import { tarjetaDeGuia } from './guia-tarjeta.js'
+import { filaDeGuia, hoja as hojaFila } from './guia-fila.js'
 
 export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/portada-bloques.css') : Promise.resolve()
 
@@ -177,27 +178,6 @@ export function aprendeHtml({ guias, temas = [], activo = '', progreso = null, d
     <div class="pb-aprende-cuerpo">${cuerpo}</div>`
 }
 
-// La MISMA guía en una fila: el arte en pequeño (el de la tarjeta, `arteDe`),
-// el título, el nivel y los minutos, y por dónde vas. Vive aquí y no en
-// js/guia-tarjeta.js porque solo la pinta la portada, y su CSS va en la hoja
-// de la portada: /aprender importa guia-tarjeta.js y no baja esta hoja.
-export function filaDeGuia(g, { progreso = null } = {}) {
-  const p = (progreso && progreso[g.id]) || null
-  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
-  const leida = Boolean(p?.read_at) || p?.status === 'completed'
-  const pct = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
-  const meta = [NIVELES[g.level], g.estimated_mins ? `${g.estimated_mins} min` : ''].filter(Boolean).join(' · ')
-  return `
-  <a class="guia-fila" href="/guia/${encodeURIComponent(g.slug)}">
-    <span class="guia-fila-arte guia-arte arte-${arteDe(g)}" aria-hidden="true"></span>
-    <span class="guia-fila-texto">
-      <strong>${escapeHtml(g.title)}</strong>
-      <small>${escapeHtml(meta)}${leida ? ` · <span class="guia-fila-hecha">✓ ${p?.status === 'completed' ? 'hecha' : 'leída'}</span>` : ''}</small>
-      ${!leida && pct > 0 ? `<span class="guia-fila-barra" role="img" aria-label="${pct} % leído"><i style="width:${pct}%"></i></span>` : ''}
-    </span>
-  </a>`
-}
-
 const COLUMNAS_GUIA = 'id, slug, title, description, kind, category_id, level, guide_rarity, estimated_mins, blocks, cover_image, author_id, published_at, categories(name)'
 
 async function guiasDe(tema) {
@@ -247,7 +227,7 @@ async function montarAprende(session) {
     // El autor y el guardar de la tarjeta grande, como en /aprender (la 316).
     import('./guide-card.js').then(({ decorateGuideCards }) => decorateGuideCards(caja, session)).catch(() => {})
   }
-  await hoja
+  await Promise.all([hoja, hojaFila])
   pintar('')
   document.getElementById('recientesSeccion').style.display = ''
   caja.addEventListener('click', async (e) => {

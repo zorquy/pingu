@@ -1,0 +1,89 @@
+/* ── Guardados (tanda 847) ──
+   Hoja propia: solo la baja /guardados. La fila es la de css/guia-fila.css. */
+.gd-caja { max-width: 760px; }
+
+.gd-bloque + .gd-bloque { margin-top: var(--e-xl); }
+
+.gd-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-sm);
+}
+
+.gd-cab h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  font-size: var(--t-lg);
+}
+
+.gd-n {
+  background: var(--ice);
+  color: var(--navy);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--e-sm);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.gd-lista {
+  display: grid;
+  gap: var(--e-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* La fila y su «quitar» en una caja: el botón no puede ir dentro del enlace. */
+.gd-item {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.gd-item > .guia-fila { flex: 1; min-width: 0; }
+
+.gd-quitar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--text-mid);
+}
+
+.gd-quitar:hover { color: var(--danger); background: var(--danger-bg); }
+
+.gd-quitada {
+  justify-content: space-between;
+  min-height: 84px;
+  padding: 0 var(--e-lg);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.gd-quitada .link-btn { min-height: 44px; }
+
+/* Lo ya leído, un paso por detrás. */
+.gd-leidas .guia-fila { background: transparent; }
+
+.gd-todo-leido {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xl);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.gd-todo-leido a { color: var(--navy); }
+
+.gd-limpiar {
+  font-size: var(--t-sm);
+  min-height: 44px;
+}

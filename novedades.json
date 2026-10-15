@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Guardados, rehecho: lo que te queda por leer arriba y lo leído aparte, con foto y por dónde vas. Si quitas una sin querer, se deshace.", "enlace": "/guardados" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "Aprender, más compacto: las guías se ven nada más entrar, los temas en una fila que se desliza, un buscador de guías y el filtro «Con curso». En el móvil, las guías en lista.", "enlace": "/aprender" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "En Comunidad → Actividad sale ya todo lo que hace la gente —retos, torneos, colecciones, mazos, foro, guías y a quién sigue cada uno— y se puede filtrar por tipo.", "enlace": "/usuarios#activity" },
     { "fecha": "2026-10-14", "tipo": "mejora", "texto": "La portada, rehecha: lo que tienes a medias (guías, cursos y el mazo que montas), el tema del foro más hablado hoy, las guías por tema, las noticias con foto y la comunidad en una línea por cosa.", "enlace": "/" },
