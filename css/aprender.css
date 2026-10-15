@@ -13,7 +13,7 @@
 .medallero {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--e-xs);
   margin-left: auto;
   padding: 4px 12px;
   border: 1px solid var(--border);
@@ -331,8 +331,8 @@
 }
 .ap-baldosa-sub { font-size: var(--t-2xs); color: var(--text-mid); white-space: nowrap; }
 .ap-baldosa-barra {
-  height: 3px;
-  margin-top: 3px;
+  height: 4px;
+  margin-top: 4px;
   border-radius: 2px;
   background: var(--ice);
   overflow: hidden;

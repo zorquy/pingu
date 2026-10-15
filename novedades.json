@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El menú de tu avatar, más corto: tu nombre lleva a tu perfil, debajo Avisos y Mensajes, y lo tuyo con su número (Guardados, La quiero, Mis mazos, Mis partidas) y Ajustes. El tema se cambia con un botón; el Modo feria está en el Panel de Mi colección.", "enlace": "/" },
+    { "fecha": "2026-10-15", "tipo": "nuevo", "texto": "Ajustes, con todo lo de tu cuenta en su sitio: los avisos agrupados por canal (campanita, correo, push), contraseña, cumpleaños, Play! Pokémon, privacidad, tema, exportar e importar la colección, tu enlace de invitación y el borrado de la cuenta. Se guarda al tocar cada cosa.", "enlace": "/ajustes" },
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "El perfil, en tres capas: quién eres (nivel, rango y racha en una línea), tus cifras (todas se tocan) y una sola fila de pestañas: Vitrina, Guías, Foro, Torneos y Medallas. Se fue el muro; puedes compartir tu perfil con un botón. «Editar perfil» se queda con lo que ven los demás.", "enlace": "/perfil" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Al acabar una guía, «Más de este tema»: tres guías más del mismo tema y el enlace al tema entero. Y la chapa del tema de cada tarjeta se pulsa y lleva al tema.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Aprender, más limpio: el medallero al lado del título, los temas en una sola fila, y una única fila de filtros antes de las guías. El glosario está ahora en el menú de Aprender.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Aprender empieza por los temas: cada uno con sus guías y cursos y la barra de lo que llevas leído. Tocar uno abre su página; debajo siguen todas las guías con sus filtros.", "enlace": "/aprender" },

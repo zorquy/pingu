@@ -4,6 +4,58 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (99) — PINGU-Claude (867–869 — el perfil en tres capas, /ajustes y la hoja «Tú»)
+
+**Hecho** (propuesta «Perfil en tres capas»; PINGU: «adelante con todo, como
+tú prefieras»):
+- **867, el perfil**: /perfil y /usuario con la misma ficha. Cabecera con
+  nivel · rango (solo con guías aprobadas) · racha en una línea, sin barra
+  de XP; cinco cifras iguales y tocables (Cartas, Guías, Torneos,
+  Seguidores, Siguiendo); UNA fila de pestañas (Vitrina · Guías · Foro ·
+  Torneos · Medallas) con `?ver=` y los alias viejos (#about). La tuya
+  abre por la Vitrina; la de otro, por la Vitrina si tiene cartas y, si
+  no, por lo primero con algo. Torneos con el palmarés y la lista en las
+  dos fichas (`js/perfil-torneos.js`); Medallas con el medallero de los
+  cursos, el logro destacado y los trofeos sin acordeón. Compartir tu
+  perfil. **Se fueron**: el muro (y `js/wall.js`, el tipo de aviso; la
+  tabla la borra `supabase-migration-sin-muro.sql`, cuando quieras), la
+  tarjeta de invitar, Cerrar sesión y el borrado (a Ajustes). «Editar
+  perfil» se queda con lo que se ve.
+- **868, /ajustes**: avisos agrupados por canal (campanita, correo, push;
+  `js/avisos-prefs.js`), cuenta (correo, contraseña, cumpleaños, Play!
+  Pokémon), privacidad, apariencia (tema), tus datos (exportar/importar),
+  invitar a un amigo y borrar la cuenta. Se guarda al tocar. En el móvil,
+  lista y pantallas con «‹ Ajustes». La página de baja de los correos
+  manda aquí.
+- **869, la hoja «Tú»**: la cabecera es el enlace al perfil; Avisos y
+  Mensajes; Guardados, La quiero, Mis mazos y Mis partidas con su cuenta;
+  Ajustes; y el pie con el tema en un botón, Apoyar, Novedades y Salir.
+  Modo feria pasa a una loseta del Panel de Mi colección.
+
+**Ficheros**: `perfil.html`, `usuario.html`, `ajustes.html` (nueva),
+`js/perfil.js`, `js/usuario.js`, `js/perfil-pestanias.js`,
+`js/perfil-cifras.js`, `js/perfil-cabecera.js` (nuevo),
+`js/perfil-torneos.js` (nuevo), `js/ajustes.js` (nuevo),
+`js/avisos-prefs.js` (nuevo), `js/menu-tu.js`, `js/mi-coleccion.js`,
+`js/notifications.js`, `js/avisos-grupos.js`, `js/schema-check.js`,
+`js/wall.js` (borrado), `css/perfil.css`, `css/ajustes.css` (nueva),
+`css/menu-tu.css`, `css/components.css`, `css/aprender.css` (dos medidas
+a la escala), `netlify/functions/baja-correo.mjs`,
+`supabase-migration-sin-muro.sql` (nueva, opcional), `novedades.json`,
+`SCHEMA.md` (867–869). En `pruebas`: `test-tanda-867-pantalla.mjs`,
+`868-pantalla`, `869-pantalla` nuevas; `752`, `748`, `859`, `743`, `306`,
+`312`, `253`, `834`, `309`, `717`, `758`, `766`, `774`, `651` al día.
+
+**Pruebas**: 867, 868, 869, 752, 748, 859, 743, 306, 312, 253, 309, 717,
+758, 766, 774, 651, 299, 300, 305, 311, 313, 316, 737, 753, 865, 804,
+805, 829, 262, 386 e imports en verde. La 748 en verde salvo su medida de
+saltos de /mi-coleccion?ver=album (0,30 contra < 0,15), que da lo mismo
+contra el commit anterior: no es de estas tandas. La 834 no corre en este
+contenedor (necesita `qpdf`): su parte de Play! Pokémon la cubre la 868.
+
+**Pendiente**: ejecutar `supabase-migration-sin-muro.sql` si quieres
+borrar la tabla del muro (la web ya no la usa). Nada en curso.
+
 ## 2026-10-15 (98) — PINGU-Claude (866 — el mapa de enlaces de Aprender)
 
 **Hecho** (segunda tanda de «Aprender en cuatro capas»):

@@ -1,7 +1,7 @@
 /* La hoja «Tú» de su maqueta (748, N8; el porqué en SCHEMA 748). La
    inyecta js/menu-tu.js al abrirla: la portada no la baja. */
 #navUserDropdown {
-  width: 340px;
+  width: 360px;
   padding: var(--e-md);
 }
 
@@ -14,6 +14,25 @@
   align-items: center;
   gap: var(--e-md);
   padding: var(--e-xs) var(--e-xs) var(--e-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* La cabecera entera es el enlace al perfil (869): con su flecha, como las
+   filas de la lista. */
+.tu-cabeza::after {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--e-xs);
+  border-top: 2px solid var(--text-dim);
+  border-right: 2px solid var(--text-dim);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.tu-cabeza:hover strong {
+  color: var(--navy);
 }
 
 .tu-avatar {
@@ -43,25 +62,6 @@
 .tu-quien span {
   color: var(--text-mid);
   font-size: var(--t-sm);
-}
-
-.tu-perfil {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.tu-perfil:hover {
-  color: var(--navy);
-  border-color: var(--navy);
 }
 
 .tu-dos {
@@ -150,6 +150,24 @@
   flex: 1 1 auto;
 }
 
+/* Lo que hay dentro de Ajustes, en pequeño (869). */
+.tu-lista a small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+/* La cuenta de cada cosa tuya (869): el mismo chip que las pestañas. */
+.tu-lista .tu-n {
+  flex: none;
+  margin-right: var(--e-xs);
+}
+
+.tu-lista .tu-n[hidden] {
+  display: none;
+}
+
 /* La flecha de cada fila, dibujada con dos bordes: no hay icono de
    «chevron» en js/icons.js y meter uno lo bajaría la portada. */
 .tu-lista a::after {
@@ -167,68 +185,60 @@
   color: var(--navy);
 }
 
-/* 758: el enlace de fuera lleva su línea pequeña debajo (por qué, en SCHEMA). */
-.tu-apoyar small {
-  display: block;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 400;
-}
-
-/* 766 (M3): en ROSA, como pedía la ronda 3 — la taza, el rótulo y un fondo
-   suave; es la única fila que no es tuya y tiene que verse distinta. */
-.tu-lista .tu-apoyar {
-  border-radius: 8px;
-  background: var(--pink-bg);
-}
-
-.tu-lista .tu-apoyar svg,
-.tu-lista .tu-apoyar span {
-  color: var(--pink);
-}
-
-.tu-lista .tu-apoyar:hover span {
-  color: var(--pink);
-}
-
 .tu-pie {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--e-sm);
 }
 
-.tu-tema {
-  display: flex;
-  flex: 1 1 auto;
-  gap: var(--e-xs);
-  min-width: 0;
-  padding: var(--e-xs);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg);
+.tu-pie .tu-salir {
+  margin-left: auto;
 }
 
-.tu-tema button {
+/* El tema en UN botón (869): un icono, 44 de ancho. */
+.tu-tema-boton {
   display: inline-flex;
-  flex: 1 1 0;
+  flex: none;
   align-items: center;
   justify-content: center;
-  gap: var(--e-xs);
-  min-width: 0;
-  min-height: 40px;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
   color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
   cursor: pointer;
 }
 
-.tu-tema button[aria-pressed='true'] {
-  background: var(--white);
-  color: var(--text);
-  box-shadow: var(--shadow-xs);
+.tu-tema-boton:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+/* Apoyar (758, 766: en rosa, con la taza) y Novedades (829, con su punto),
+   pequeños en el pie. */
+.tu-pie .tu-apoyar,
+.tu-pie .tu-novedades {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tu-pie .tu-apoyar {
+  color: var(--pink);
+  background: var(--pink-bg);
+}
+
+.tu-pie .tu-novedades:hover {
+  color: var(--navy);
 }
 
 .tu-salir {
@@ -266,13 +276,13 @@
   }
 }
 
-/* 774: con la lateral a la vista, «Apoyar PokeDoc» va en ella, no aquí. */
+/* 774: con la lateral a la vista, «Apoyar» va en ella, no aquí. */
 @media (min-width: 1400px) and (pointer: fine) {
-  html.con-lateral .tu-lista > .tu-apoyar {
+  html.con-lateral .tu-pie > .tu-apoyar {
     display: none;
   }
 }
 
 /* El punto de Novedades (829): hay alguna desde tu última visita. */
-.tu-punto { width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: var(--pink); flex-shrink: 0; }
+.tu-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); flex-shrink: 0; }
 .tu-punto[hidden] { display: none; }

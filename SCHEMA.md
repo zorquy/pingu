@@ -41075,3 +41075,148 @@ sale. Es el «siguiente reto» de la 860 llevado a las guías. CSS en
 
 Pruebas: `test-tanda-866-pantalla.mjs`; `test-ficha-guia` (la miga va al
 tema) y `316` (la chapa de /aprender es un enlace) al día.
+
+
+## Tanda 867 — El perfil en tres capas
+
+Propuesta «Perfil en tres capas» (PINGU: «pestañas dentro de otras
+pestañas», «el muro… no hay que utilizar», «el enlace este de referido que
+quizá no sirve para nada»; «adelante con todo, como tú prefieras»). La regla:
+**el perfil es tu ficha pública vista por ti**. Lo que no vería otra persona
+(avisos, cuenta, privacidad, borrar) se va a /ajustes (868); lo que sí ve
+queda en tres capas, iguales en /perfil y /usuario.
+
+**Capa 1, quién eres** (`js/perfil-cabecera.js`, `lineaDeQuienHtml`): nombre,
+@usuario y UNA línea con el nivel (la píldora con su barrita de la 789;
+tocarla abre la escalera), el rango de colaborador —solo si hay guías
+aprobadas: «Miembro» con cero guías no cuenta nada— y la racha (`.perfil-
+racha`, solo si la hay; venía como cifra y es un estado). La barra de XP con
+«N XP para el siguiente nivel» se fue: lo dice la píldora. «Editar perfil»
+y **Compartir** (`#btnCompartirPerfil`: `navigator.share` o portapapeles con
+la dirección pública) en la tuya; Seguir y Mensaje en la de otro, en el mismo
+sitio.
+
+**Capa 2, cinco cifras iguales** (`cifrasHtml({ cartas, guias, nota, votos,
+torneos, propia })`): Cartas (en la tuya, enlace a Mi colección; la colección
+de otro no se abre), Guías y Torneos (`data-ver`, abren su pestaña),
+Seguidores y Siguiendo (su lista). Todas `.perfil-cifra`, mismo tamaño; la
+cifra de Trofeos se fue (es la cuenta de la pestaña Medallas).
+
+**Capa 3, UNA fila de pestañas** (`js/perfil-pestanias.js`, reescrito):
+Vitrina · Guías · Foro · Torneos · Medallas, con el control de pestañas de
+toda la web (678) y su cuenta. «Actividad» no era un sitio, era una carpeta:
+desaparece con los niveles de la 752 (`perfilNiveles`, `body[data-pnivel]`).
+La dirección lleva la pestaña (`?ver=medallas`, 859; ahora cualquiera, al
+tocarla) y los alias viejos siguen llegando (`#about` → medallas; `#wall`,
+`actividad` → lo que toque). **Cuál se abre**: la tuya, la Vitrina siempre
+(vacía, con sus seis huecos, invita a elegir: `propia` en
+`montarPestanias`); la de otro, la Vitrina si tiene cartas y, si no, lo
+primero con algo (guías, foro, torneos, medallas). La vitrina llega tarde
+(`import()`), así que `vitrinaLista` decide cuando existe.
+
+**Torneos** (`js/perfil-torneos.js`, `pintarTorneosDe`): la misma pestaña
+para los dos: el palmarés arriba (las medallas de torneo y «4 torneos jugados
+· 1 campeonato · a 3 de Veterano»; venía colgado de la cabecera de /usuario
+desde la 262) y debajo jugando ahora, apuntado y jugados con su puesto (era
+«Mis torneos», 236, solo en la tuya). Se pinta al abrirla.
+
+**Medallas**: el medallero de los cursos como la píldora de Aprender
+(`medalleroHtml`, de `course_attempts`; sin partidas no sale), tu logro
+destacado en una línea con «Cambiar»/«Elegir uno» (abre Editar perfil), los
+trofeos sin acordeón («Trofeos 3 de 40») y, si hay, «Cursos hechos». En la
+de otro, el logro destacado sigue en la cabecera.
+
+**Lo que se fue**: el **muro** (`js/wall.js` borrado, el tipo de aviso
+`wall_comment`, la fila de `schema-check`, `.wall-empty`; la tabla la borra
+`supabase-migration-sin-muro.sql`, con los avisos de ese tipo: casi siempre
+vacío, para hablar están los mensajes y el foro, y era lo único del perfil
+que había que moderar); **Invita a un amigo** (a Ajustes, 868: el enlace
+`/r/usuario` y los trofeos de Embajador siguen); **Cerrar sesión** (ya está
+en «Tú») y el **borrado** (a Ajustes). «Editar perfil» se queda con lo que
+se ve: nombre, usuario, sobre ti, firma del foro, color de cabecera y logro
+destacado; `?editar=1` sigue abriéndolo.
+
+CSS en `perfil.css`: fuera los niveles, el acordeón, la invitación y
+`.perfil-cuenta`; `.perfil-pestanas`, `.perfil-racha`, `.perfil-compartir`
+(44 de ancho, el icono a la vista: la regla que esconde el svg de los botones
+de la cabecera lo exceptúa), `.perfil-medallero`, `.perfil-logro-destacado`,
+`.perfil-trofeos-cuenta`, `.perfil-logro-chapa`. El palmarés ya no lleva el
+padding de la cabecera. Las dos columnas del PC (789) siguen.
+
+Pruebas: `test-tanda-867-pantalla.mjs`; al día `752` (queda la Y5), `748`,
+`859`, `743`, `306`, `253`.
+
+## Tanda 868 — /ajustes y «Editar perfil» partido
+
+`ajustes.html` + `js/ajustes.js` + `css/ajustes.css`: cómo funciona tu
+cuenta, en siete apartados con su `?ver=`: **Avisos** (campanita, correo y
+push como tres chips `.seg`), **Cuenta** (correo de acceso, cambiar la
+contraseña con `supabase.auth.updateUser`, cumpleaños, Play! Pokémon de su
+tabla privada), **Privacidad** (no mostrar mi actividad), **Apariencia** (el
+tema: claro, oscuro o el del sistema; `aplicarTema` de menu-tu.js),
+**Tus datos** (exportar e importar la colección: enlaces al Panel y a
+`?importar=1`), **Invitar a un amigo** (el enlace, Copiar y «has traído a
+N») y **Borrar mi cuenta** (la solicitud de siempre, al final). Cada mando
+se guarda al tocarlo (`guardar(campos)`); no hay «Guardar» salvo en los
+formularios (contraseña, Play!).
+
+**Los avisos, agrupados** (`js/avisos-prefs.js`, puro): la campanita tiene
+veinticinco tipos y el correo catorce, y eran casillas una por una; la gente
+apaga TODO antes que leer veinticinco líneas. `GRUPOS_CAMPANITA` y
+`GRUPOS_CORREO` los agrupan por lo que significan («lo de tus guías», «tu
+torneo»); `gruposDe(tipos, grupos)` devuelve los grupos con tipos de esa
+lista y un grupo propio para cada tipo que nadie agrupó (un aviso nuevo
+sale igual, no se pierde). Un grupo está activo mientras quede un tipo sin
+apagar (`estaActivo`); el interruptor escribe TODOS los tipos del grupo en
+la columna de siempre (`conGrupo` → `notification_prefs_disabled` /
+`notification_email_disabled`): ni la base ni quien manda los avisos
+cambian.
+
+**PC y móvil**: en el PC la lista a la izquierda (pegada) y el apartado a la
+derecha, abriendo por Avisos; en el móvil (`max-width: 900px`, el mismo
+corte que la hoja) la lista con el texto pequeño de cada apartado, y cada
+apartado es una pantalla con «‹ Ajustes» (las migas de la 857:
+`#ajMigas`), con una entrada de historial por apartado para que «atrás»
+vuelva a la lista (`pushState` en el móvil, `replaceState` en el PC). El
+corte se mira con `matchMedia`, no con `html.con-barra-movil`: esa clase la
+pone app.js después y la primera pintada la encontraba sin poner.
+
+La página de baja de los correos (`baja-correo.mjs`) manda a «Ajustes ›
+Avisos» en vez de a «Editar perfil». Sin migración: son las mismas columnas
+de `user_profiles`. La barra de abajo del móvil se generó
+(`generar-barra-movil.mjs`): son 37 páginas; con pie, 44.
+
+Pruebas: `test-tanda-868-pantalla.mjs`; `834` (Play! Pokémon vive aquí) al
+día.
+
+## Tanda 869 — La hoja «Tú», de quince cosas a doce
+
+PINGU: «el menú del perfil quizá muestra demasiadas cosas y debería ser más
+sencillo». La regla de la hoja: **quién eres, lo que te espera, lo tuyo, y
+cómo salir**; lo que tiene sitio en una sección no se repite aquí.
+
+· **La cabecera es el enlace** al perfil (`a.tu-cabeza`, con su flecha):
+  «Ver perfil» como botón aparte sobraba.
+· **Avisos · Mensajes**, como estaban.
+· **Lo tuyo con su cuenta** (`contarLoTuyo`): Guardados (`saved_guides` del
+  perfil), La quiero (`user_wants`), Mis mazos (`user_decks`), Mis partidas
+  (`match_log`): cuatro cuentas de cabecera al abrir la hoja, que ya llega
+  por `import()`; lo que no se puede contar no enseña nada (la 319). El chip
+  es `.pest-cuenta` (global). Y **Ajustes** a /ajustes, con «Avisos, cuenta,
+  tema» debajo.
+· **El pie**: el tema en UN botón (`[data-tema-ciclo]`, claro ↔ oscuro; «el
+  del sistema» vive en Ajustes › Apariencia; el icono se cambia en un
+  `setTimeout` porque cambiarlo mientras el clic sube deja el svg pulsado
+  fuera de la página y el cierre «por clic fuera» de app.js lo toma por un
+  clic fuera), «Apoyar» pequeño (758/766: en rosa, con la taza; con la
+  lateral a la vista sigue sin repetirse, 774), «Novedades» con su punto
+  (829) y «Salir».
+· **Se van**: Modo feria (a una loseta del Panel de Mi colección,
+  `#mcModoFeria`: es un modo de la colección), Escribir una guía (Aprender ›
+  Colabora y la pestaña Guías del perfil), y los tres botones de tema.
+
+De quince cosas que tocar a doce; `#navUserDropdown` a 360 de ancho y el
+pie con `flex-wrap` para que «Salir» no se salga en el PC.
+
+Pruebas: `test-tanda-869-pantalla.mjs`; al día `748`, `309`, `312`, `717`,
+`758`, `766`, `774`, `651`.
