@@ -88,32 +88,36 @@ console.log('── 4. Acabar y compartir ──')
   const final = page.locator('#mcrFinal')
   check('al acabar sale el resultado', await final.isVisible() && /4 de 5/.test(await final.innerText()), (await final.innerText()).slice(0, 80))
   check('  …y los botones se esconden', !(await page.locator('#mcrAcciones').isVisible()))
-  check('  …con compartir en texto y en imagen', (await page.locator('#mcrCompartir').count()) === 1 && (await page.locator('#mcrImagen').count()) === 1)
+  check('  …con UN «Compartir» (871: texto e imagen van en la misma hoja)', (await page.locator('#mcrCompartir').count()) === 1 && (await page.locator('#mcrImagen').count()) === 0)
   if (CAPS) await page.screenshot({ path: `${CAPS}/movil-mas-caro-2.png` })
-  // El texto, por el portapapeles (sin navigator.share en Chromium headless).
+  // El texto, por el portapapeles (sin navigator.share en Chromium headless):
+  // «Compartir» abre la hoja (871), y «Copiar» en la pestaña de texto copia.
   await page.evaluate(() => {
     window.__copiado = null
     navigator.clipboard.writeText = async (t) => { window.__copiado = t }
   })
   await page.click('#mcrCompartir')
+  await page.waitForTimeout(800)
+  check('«Compartir» abre la hoja con la vista previa del texto', (await page.locator('.ch-hoja[open] .ch-texto').count()) === 1)
+  await page.click('[data-ch-copiar]')
   await page.waitForTimeout(400)
   const texto = await page.evaluate(() => window.__copiado)
-  check('el texto lleva número, 4/5, la tira y el enlace', new RegExp(`#${numeroDelDia(hoy)} · 4/5`).test(texto || '') && /🟩🟥🟩🟩🟩/.test(texto || '') && /pokedoc\.es\/mas-caro/.test(texto || ''), JSON.stringify(texto))
-  // La imagen: se pinta en el lienzo y se intenta compartir o descargar.
+  check('el texto lleva número, 4/5, la tira y el enlace', new RegExp(`#${numeroDelDia(hoy)} · Más caro o barato · 4/5`).test(texto || '') && /🟩🟥🟩🟩🟩/.test(texto || '') && /pokedoc\.es\/mas-caro/.test(texto || ''), JSON.stringify(texto))
+  // La imagen: la pestaña «Historia» la dibuja a 1080×1350 y «Descargar» la baja.
+  await page.click('[data-ch-pestana="historia"]')
+  await page.waitForTimeout(1000)
+  const previa = await page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
+  check('la imagen se pinta a 1080×1350', previa?.w === 1080 && previa?.h === 1350, JSON.stringify(previa))
   const [descarga] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }).catch(() => null),
-    page.click('#mcrImagen'),
+    page.click('[data-ch-copiar]'),
   ])
-  await page.waitForTimeout(800)
-  const lienzo = await page.evaluate(() => {
-    const c = document.getElementById('mcrLienzo')
-    if (!c) return null
-    const ctx = c.getContext('2d')
-    const d = ctx.getImageData(540, 100, 1, 1).data
-    return { w: c.width, h: c.height, pintado: d[3] > 0 }
-  })
-  check('la imagen se pinta a 1080×1350', lienzo?.w === 1080 && lienzo?.h === 1350 && lienzo?.pintado, JSON.stringify(lienzo))
   check('  …y se descarga (sin hoja de compartir)', !!descarga && /mas-caro-\d+\.png/.test(descarga.suggestedFilename()), descarga?.suggestedFilename())
+  await page.click('[data-ch-pestana="apaisada"]')
+  await page.waitForTimeout(1000)
+  const apaisada = await page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
+  check('«Para X» la pinta a 1200×630', apaisada?.w === 1200 && apaisada?.h === 630, JSON.stringify(apaisada))
+  await page.click('[data-ch-cerrar]')
 }
 
 console.log('── 5. Sin cartas, se dice ──')
@@ -148,8 +152,8 @@ console.log('── 6. En /retos y en los otros dos retos ──')
   const { readFileSync } = await import('node:fs')
   const curso = readFileSync('/home/user/pingu/js/curso.js', 'utf8')
   const carta = readFileSync('/home/user/pingu/js/carta-del-dia-juego.js', 'utf8')
-  check('el reto diario ofrece «Compartir como imagen» con reto-imagen.js', /btnPresumirImagen/.test(curso) && /reto-imagen\.js/.test(curso) && /pintarResultadoReto\(/.test(curso))
-  check('«¿Qué carta es?» también, con la foto de la carta', /cdImagen/.test(carta) && /fotoParaElLienzo\(/.test(carta) && /filas: estado\.intentos/.test(carta))
+  check('el reto diario abre la hoja de compartir con la imagen de reto-imagen.js', /compartir-hoja\.js/.test(curso) && /reto-imagen\.js/.test(curso) && /pintarResultadoReto\(/.test(curso))
+  check('«¿Qué carta es?» también, con la foto de la carta', /compartir-hoja\.js/.test(carta) && /fotoParaElLienzo\(/.test(carta) && /filas: estado\.intentos/.test(carta))
 }
 
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))

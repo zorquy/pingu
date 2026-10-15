@@ -1,7 +1,8 @@
 // Tanda 583 — «¿Más caro o más barato?»: lo puro y la función del día.
 import {
-  DIA_UNO, RONDAS, CARTAS_POR_DIA, numeroDelDia, indicesDelDia, cartasQueSirven, acierta, textoParaCompartir, rachaDeDias,
+  RONDAS, CARTAS_POR_DIA, numeroDelDia, indicesDelDia, cartasQueSirven, acierta, textoParaCompartir, rachaDeDias,
 } from '/home/user/pingu/js/mas-caro.js'
+import { DIA_UNO } from '/home/user/pingu/js/reto-compartir.js'
 import { elegirMasCaro, FILTRO_PRECIOS, CANDIDATAS } from '/home/user/pingu/netlify/functions/mas-caro.mjs'
 import { readFileSync } from 'node:fs'
 
@@ -45,7 +46,7 @@ console.log('── 3. Acertar y compartir ──')
   check('«menos» acierta si B vale menos', acierta(10, 5, 'menos') === true && acierta(5, 10, 'menos') === false)
   check('otra cosa no acierta', acierta(5, 10, 'igual') === false)
   const t = textoParaCompartir({ dia: '2026-10-07', tira: [true, true, false, true, true], rachaDias: 3 })
-  check('el texto lleva el número, la cuenta, la tira, la racha y el enlace', t === '¿Más caro o más barato? PokeDoc #4 · 4/5 💶\n🟩🟩🟥🟩🟩\n🔥 3 días seguidos\npokedoc.es/mas-caro', JSON.stringify(t))
+  check('el texto lleva el número, la cuenta, la tira, la racha y el enlace', t === `PokeDoc #${numeroDelDia('2026-10-07')} · Más caro o barato · 4/5 💶\n🟩🟩🟥🟩🟩\n🔥 3 días seguidos\npokedoc.es/mas-caro`, JSON.stringify(t))
   check('cinco de cinco lleva el trofeo', /5\/5 🏆/.test(textoParaCompartir({ dia: DIA_UNO, tira: [1, 1, 1, 1, 1] })))
   check('sin racha no se dice', !/días seguidos/.test(textoParaCompartir({ dia: DIA_UNO, tira: [1, 0, 0, 0, 0], rachaDias: 1 })))
   check('la racha se comparte con los otros retos', rachaDeDias(['2026-10-06', '2026-10-07'], '2026-10-07') === 2)
@@ -77,7 +78,7 @@ console.log('── 4. La función: elige, guarda y repite ──')
   }
   const guardar = async (tabla, fila) => { guardadas.push(fila) }
   const r = await elegirMasCaro({ dia: '2026-10-07', pedir, guardar })
-  check('devuelve el día, el número y seis cartas', r.dia === '2026-10-07' && r.numero === 4 && r.cartas?.length === 6, JSON.stringify(r).slice(0, 200))
+  check('devuelve el día, el número y seis cartas', r.dia === '2026-10-07' && r.numero === numeroDelDia('2026-10-07') && r.cartas?.length === 6, JSON.stringify(r).slice(0, 200))
   check('  …cada una con su precio', r.cartas.every((c) => typeof c.precio === 'number' && c.precio >= 1), JSON.stringify(r.cartas.map((c) => c.precio)))
   check('  …sin dos seguidas iguales', r.cartas.every((c, i) => i === 0 || c.precio !== r.cartas[i - 1].precio))
   check('  …y se guardan los seis ids', guardadas.length === 1 && guardadas[0].card_ids.length === 6 && guardadas[0].day === '2026-10-07', JSON.stringify(guardadas))

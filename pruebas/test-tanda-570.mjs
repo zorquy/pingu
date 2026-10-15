@@ -11,7 +11,8 @@
 //     número, las filas y el enlace corto.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-import { numeroDelDia, indiceDelDia, compararIntento, textoParaCompartir, filaEmoji, rachaDeDias, claveDeNombre, DIA_UNO, INTENTOS, ENLACE } from '/home/user/pingu/js/carta-del-dia.js'
+import { numeroDelDia, indiceDelDia, compararIntento, textoParaCompartir, filaEmoji, rachaDeDias, claveDeNombre, INTENTOS, ENLACE } from '/home/user/pingu/js/carta-del-dia.js'
+import { DIA_UNO, numeroDelDia as numeroComun } from '/home/user/pingu/js/reto-compartir.js'
 import { elegirCartaDelDia, segundosHastaManana, FILTRO_ELEGIBLES } from '/home/user/pingu/netlify/functions/carta-del-dia.mjs'
 
 let fails = 0
@@ -24,7 +25,7 @@ const hoy = new Date().toISOString().slice(0, 10)
 
 console.log('── 1. Lo puro ──')
 {
-  check('el día uno es el #1', numeroDelDia(DIA_UNO) === 1)
+  check('el número del día es el COMÚN de todos los retos (870)', numeroDelDia(DIA_UNO) === 1 && numeroDelDia === numeroComun)
   check('la elección es determinista', indiceDelDia('2026-10-07', 12000) === indiceDelDia('2026-10-07', 12000))
   check('  …distinta de un día a otro', indiceDelDia('2026-10-07', 12000) !== indiceDelDia('2026-10-08', 12000))
   check('  …y dentro del total', [1, 7, 12000].every((t) => indiceDelDia('2026-10-07', t) < t))
@@ -36,7 +37,7 @@ console.log('── 1. Lo puro ──')
   check('otra impresión del mismo nombre acierta', compararIntento({ name: 'pikachu EX', tcg_sets: { serie_id: 'swsh' } }, resp).nombre === true)
   check('la fila son cuatro cuadrados', filaEmoji({ nombre: false, era: true, tipo: false, rareza: true }) === '🟥🟩🟥🟩')
   const t = textoParaCompartir({ dia: hoy, comparaciones: [{ nombre: false, era: true, tipo: false, rareza: false }, { nombre: true, era: true, tipo: true, rareza: true }], acertada: true, rachaDias: 4 })
-  check('el texto lleva número, intentos, filas, racha y enlace', t.includes(`¿Qué carta es? #${numeroDelDia(hoy)} · 2/${INTENTOS}`) && t.includes('🟥🟩🟥🟥\n🟩🟩🟩🟩') && t.includes('🔥 4 días') && t.trim().endsWith(ENLACE), t)
+  check('el texto lleva número, intentos, filas, racha y enlace', t.includes(`PokeDoc #${numeroDelDia(hoy)} · ¿Qué carta es? · 2/${INTENTOS}`) && t.includes('🟥🟩🟥🟥\n🟩🟩🟩🟩') && t.includes('🔥 4 días') && t.trim().endsWith(ENLACE), t)
   check('  …y sin acertar, X de 6', /X\/6/.test(textoParaCompartir({ dia: hoy, comparaciones: Array(6).fill({ nombre: false, era: false, tipo: false, rareza: false }), acertada: false })))
   check('la racha cuenta hasta hoy', rachaDeDias([hoy, '2000-01-01'], hoy) === 1)
   check('la caché muere a medianoche UTC', segundosHastaManana(new Date('2026-10-06T23:59:00Z')) === 60 && segundosHastaManana(new Date('2026-10-06T00:00:00Z')) === 86400)
@@ -113,7 +114,7 @@ console.log('── 3. En el navegador ──')
   // La foto, cargada antes de tocar nada: mientras llega, Playwright ve
   // la página «moverse» y se niega a pulsar.
   await page.waitForFunction(() => document.getElementById('cdFoto')?.complete, null, { timeout: 5000 }).catch(() => {})
-  check('dice el número del día y el intento', (await page.locator('#cdSub').innerText()).includes(`Carta #${numeroDelDia(hoy)} · intento 1 de 6`), await page.locator('#cdSub').innerText())
+  check('dice el número del día y el intento', (await page.locator('#cdSub').innerText()).includes(`Reto #${numeroDelDia(hoy)} · intento 1 de 6`), await page.locator('#cdSub').innerText())
   check('  …y el número no es negativo ni cero', numeroDelDia(hoy) >= 1, String(numeroDelDia(hoy)))
   check('seis huecos de intento', (await page.locator('.cd-intento').count()) === 6)
   // El botón, pegado a la carta y no al final (573).
@@ -174,9 +175,12 @@ console.log('── 3. En el navegador ──')
   check('  …con todas las pistas abiertas', (await page.locator('.cd-pista-cerrada').count()) === 0)
   check('  …y la carta nítida', (await desenfoque()) === 0 || Number.isNaN(await desenfoque()), String(await desenfoque()))
   await page.locator('#cdCompartir').click()
+  await page.waitForTimeout(800)
+  check('«Compartir» abre la hoja común (871) con sus tres pestañas', (await page.locator('.ch-hoja[open] [data-ch-pestana]').count()) === 3)
+  await page.locator('[data-ch-compartir]').click()
   await page.waitForTimeout(400)
   const texto = (await page.evaluate(() => window.__compartido))?.text || ''
-  check('el texto compartido lleva el número y 3/6', texto.includes(`¿Qué carta es? #${numeroDelDia(hoy)} · 3/6`), texto)
+  check('el texto compartido lleva el número y 3/6', texto.includes(`PokeDoc #${numeroDelDia(hoy)} · ¿Qué carta es? · 3/6`), texto)
   check('  …las tres filas (la del acierto, verde entera)', texto.includes('🟥🟩🟥🟥\n🟥🟩🟩🟩\n🟩🟩🟩🟩'), texto)
   check('  …y el enlace', texto.includes(ENLACE))
   await browser.close()
