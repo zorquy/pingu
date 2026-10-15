@@ -61,7 +61,8 @@ console.log('\n── 1. Qué versiones tiene una carta ──')
   check('con una sola no merece selector', tieneVarias({ variants: { holo: true } }) === false)
   check('  …y con dos sí', tieneVarias({ variants: { normal: true, reverse: true } }) === true)
   check('los nombres largos están', nombreDeVariante('reverse') === 'Reverse holo' &&
-    nombreDeVariante('primera') === '1.ª edición' && nombreDeVariante('loquesea') === 'Normal')
+    // Desde la 862 un id desconocido es una versión de TCGGO guardada (`quick-ball`): su nombre sale del id, no «Normal».
+    nombreDeVariante('primera') === '1.ª edición' && nombreDeVariante('loquesea') === 'Loquesea' && nombreDeVariante('quick-ball') === 'Quick Ball')
 }
 
 console.log('\n── 2. En el bolsillo ──')
@@ -75,6 +76,7 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA }))
   await page.addInitScript(() => {
     window.__FAKE_SESSION__ = 'admin-1'
+    try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch { /* la hoja de instalar (753), callada */ }
     window.__FAKE_SETS__ = [{ id: 'sv1', name: 'SV', market: 'WEST', serie_id: 'sv', serie_name: 'SV', card_count_official: 4, card_count_total: 4, release_date: '2023-03-31' }]
     const c = (n, variants) => ({
       id: `sv1-${n}`, set_id: 'sv1', local_id: String(n).padStart(3, '0'), name: `C${n}`, name_es: `C${n}`,
@@ -104,10 +106,10 @@ async function abrir(viewport = { width: 1280, height: 1200 }) {
   // donde se ofrecen ahora.
   check('ninguna casilla lleva botones de versión', (await page.locator('.mc-variante, .mc-variantes').count()) === 0)
   const abrirFicha = async (id) => {
-    // Dos Escape (650): uno cierra el diálogo de añadir y otro la ficha.
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(150)
-    await page.keyboard.press('Escape')
+    // Se cierran los diálogos abiertos (el de añadir y la ficha). Antes
+    // eran dos Escape, y desde la 856 un Escape sin diálogo modal sube un
+    // nivel: te sacaba de la expansión y la casilla dejaba de verse.
+    await page.evaluate(() => { for (const d of document.querySelectorAll('dialog[open]')) if (d.matches(':modal')) d.close() })
     await page.waitForTimeout(300)
     await page.locator(`.mc-bolsillo-enlace[data-carta="${id}"]`).click()
     await page.waitForTimeout(900)
@@ -161,6 +163,7 @@ console.log('\n── 4. Con el dedo, nada se sale ──')
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA }))
   await page.addInitScript(() => {
     window.__FAKE_SESSION__ = 'admin-1'
+    try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch { /* la hoja de instalar (753), callada */ }
     window.__FAKE_SETS__ = [{ id: 'sv1', name: 'SV', market: 'WEST', card_count_official: 2, card_count_total: 2, release_date: '2023-03-31' }]
     window.__FAKE_CARTAS__ = [1, 2].map((n) => ({
       id: `sv1-${n}`, set_id: 'sv1', local_id: String(n), name: `C${n}`, name_es: `C${n}`,
