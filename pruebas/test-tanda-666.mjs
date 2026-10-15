@@ -24,7 +24,8 @@ console.log('── 1. La lista: el 30 va otra vez, entero y con su expansión e
   check('hay un segundo reemplazo del 30, entero, con la Classic, al 30th y con la expansión 431 (de la respuesta de PINGU)', r && r.entero === true && r.sets.join() === '30th,30th-c' && r.destino === '30th' && r.episodio === 431 && r.mercado === 'WEST', JSON.stringify(r))
   check('  …y el primero sigue (hecho, no se repite)', REEMPLAZOS.findIndex((x) => x.clave === '30th') < REEMPLAZOS.findIndex((x) => x.clave === '30th-entero'))
   const c = REEMPLAZOS.find((x) => x.clave === 'cel25-entero')
-  check('Celebrations va igual (687): entero, con la Classic (cel25cc en nuestra tabla, 697; cel25c por si acaso), al cel25 y con la expansión 35 de TCGGO', c && c.entero === true && c.sets.join() === 'cel25,cel25c,cel25cc' && c.destino === 'cel25' && c.episodio === 35 && c.mercado === 'WEST', JSON.stringify(c))
+  // Desde la 854 la Classic (cel25cc) va APARTE y el reemplazo no la toca: PINGU la quiere en su set.
+  check('Celebrations va igual (687): entero, al cel25 y con la expansión 35 de TCGGO — y sin la Classic (854)', c && c.entero === true && c.sets.join() === 'cel25' && c.destino === 'cel25' && c.episodio === 35 && c.mercado === 'WEST', JSON.stringify(c))
   // La guarda del modo entero: un set que se va y cuyas cartas TCGGO no
   // trae no es la misma expansión.
   const suyas = [{ name: 'Ho-Oh' }, { name: 'Pikachu' }, { name: 'Mew' }]
