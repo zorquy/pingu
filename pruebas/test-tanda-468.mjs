@@ -68,16 +68,28 @@ console.log('\n── 1. Atrás vuelve, y no sale de la página ──')
     (await page.locator('#mcEstanteriaZona').isVisible()) && !(await page.locator('#mcArchivadorZona').isVisible()))
   check('  …sin salir de la página', /mi-coleccion/.test(page.url()), page.url())
 
-  await page.goBack()
-  await page.waitForTimeout(1200)
-  check('ATRÁS otra vez vuelve al Panel', (await donde(page)) === '' && (await page.locator('#mcPanelResumen').isVisible()), await donde(page))
-
-  // Y adelante, que es la otra mitad: un historial que solo va hacia atrás
-  // está a medias.
-  await page.goForward()
-  await page.waitForTimeout(1200)
-  check('ADELANTE vuelve a Expansiones', (await donde(page)) === '?ver=album' && (await page.locator('#mcPanelAlbum').isVisible()), await donde(page))
+  // Desde la 856 CAMBIAR DE PESTAÑA NO DEJA RASTRO: atrás sube un nivel y
+  // nunca va a la pestaña anterior (PINGU: «va a la pestaña anterior y no
+  // me lleva a las expansiones»). Así que aquí no hay «otra vez atrás al
+  // Panel»: se comprueba que ir de pestaña en pestaña no alarga el
+  // historial y abrir una expansión sí.
   await page.close()
+  // En una página NUEVA: tras un «atrás» queda una entrada por delante, y
+  // el siguiente `pushState` la sustituye sin alargar nada.
+  const otra = (await abrir()).page
+  const largo = () => otra.evaluate(() => history.length)
+  await otra.click('[data-pestania="album"]')
+  await otra.waitForTimeout(800)
+  const antes = await largo()
+  await otra.click('[data-pestania="pokedex"]')
+  await otra.waitForTimeout(600)
+  await otra.click('[data-pestania="album"]')
+  await otra.waitForTimeout(600)
+  check('cambiar de pestaña no alarga el historial (856)', (await largo()) === antes, `${antes} → ${await largo()}`)
+  await otra.click('.mc-set-tarjeta[data-set="sv8"]')
+  await otra.waitForTimeout(1200)
+  check('  …y abrir una expansión sí: es un nivel', (await largo()) === antes + 1, `${antes} → ${await largo()}`)
+  await otra.close()
 }
 
 console.log('\n── 2. Lo mismo dentro de la Pokédex ──')

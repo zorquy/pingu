@@ -59,7 +59,8 @@ const enLaBarra = await page.evaluate(() =>
   // Las que SE VEN (748): Todas / Tengo / Faltan viven en la barra pero
   // solo salen en el ordenador de tres columnas.
   [...document.querySelectorAll('#mcArchivadorZona .mc-album-barra > *')].filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.id || e.tagName))
-check('dos cosas y nada más', enLaBarra.length === 2, enLaBarra.join(','))
+// Desde la 856 son TRES: el botón «‹ Expansiones» va el primero en esta fila.
+check('tres cosas y nada más: el volver, el nombre y el menú (856)', enLaBarra.length === 3 && enLaBarra[0] === 'mcAlbumMigas', enLaBarra.join(','))
 // Desde la 749 el título va dentro de su bloque, con el logo al lado.
 check('el título y el menú', (await page.evaluate(() => !!document.querySelector('#mcArchivadorZona .mc-album-barra > .mc-album-nombre #mcAlbumTitulo'))) && enLaBarra.includes('mcAlbumMenu'), enLaBarra.join(','))
 // La fila de cuatro iconos ya no existe.

@@ -27,7 +27,8 @@ console.log('── 1. El molde, sin navegador ──')
 // sección y una copia por pantalla es justo lo que había.
 {
   const uno = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
-  check('un solo paso sale con su «›» detrás', /Expansiones<\/button><span class="mc-miga-sep"[^>]*>›/.test(uno), uno)
+  // Desde la 856 la miga es un botón de volver con flecha: el «›» va solo ENTRE pasos.
+  check('un solo paso sale con su flecha delante y sin «›» detrás', /<span class="mc-miga-flecha"[^>]*><\/span>Expansiones<\/button>$/.test(uno.replace(/<\/nav>$/, '')) && !uno.includes('mc-miga-sep'), uno)
   check('y es un BOTÓN, no un <a>', uno.includes('<button type="button" class="mc-miga" id="mcAlbumVolver">'), uno)
   const dos = migasHtml([{ texto: 'Carpetas', id: 'x' }, { texto: 'Mis dúos' }])
   check('el último paso sin id no se pulsa', dos.includes('<span class="mc-miga-aqui" aria-current="page">Mis dúos</span>'), dos)
@@ -89,7 +90,8 @@ console.log('\n── 2. Dentro de una expansión ──')
   check('el título sigue estando', (await page.locator('#mcAlbumTitulo').textContent()).includes('Mega Evolution'))
   const p = await pinta(page, '#mcAlbumVolver')
   check('no es un enlace pocho: sin subrayar', p.deco === 'none', JSON.stringify(p))
-  check('  …y sin contorno de chapa', p.borde === '0px', JSON.stringify(p))
+  // Desde la 856 SÍ lleva contorno: es un botón de volver de 44 px (lo pidió PINGU).
+  check('  …y con el contorno de un botón (856)', p.borde === '1px', JSON.stringify(p))
   // Y lleva de vuelta de verdad: el clic va DELEGADO, porque la miga se
   // pinta con la pantalla y al arrancar no existe. Un `addEventListener`
   // sobre algo que no está no engancha nada y no da error — el botón sale
@@ -108,7 +110,8 @@ console.log('\n── 3. Dentro de un Pokémon de la Pokédex ──')
   check('y dice «Pokédex»', (await page.locator('#pdxVolver').textContent()).trim() === 'Pokédex',
     await page.locator('#pdxVolver').textContent())
   const p = await pinta(page, '#pdxVolver')
-  check('sin subrayar y sin contorno', p.deco === 'none' && p.borde === '0px', JSON.stringify(p))
+  // Desde la 856 lleva contorno: es un botón de volver de 44 px.
+  check('sin subrayar, y con el contorno de un botón (856)', p.deco === 'none' && p.borde === '1px', JSON.stringify(p))
   await page.click('#pdxVolver')
   await page.waitForTimeout(900)
   check('y vuelve a la lista', await page.locator('#mcPdxMandos').isVisible())
@@ -137,7 +140,8 @@ console.log('\n── 5. En el móvil, lo que se pulsa mide 44 ──')
   // está escondida a propósito— y los 44 se miden donde sí se ve: una
   // tableta de 1.000 px con el dedo.
   const escondida = await page.evaluate(() => document.documentElement.classList.contains('con-barra-movil') && getComputedStyle(document.getElementById('mcAlbumMigas')).display === 'none')
-  check('en el móvil la miga se esconde a propósito (706: la burbuja ya dice dónde estás)', escondida)
+  // Desde la 856 la miga SÍ sale en el móvil: es el botón «‹ Expansiones».
+  check('en el móvil la miga SE VE, como botón de volver (856)', !escondida)
   const tableta = await browser.newPage({ viewport: { width: 1000, height: 900 }, hasTouch: true, isMobile: true })
   await tableta.route('**assets.tcgdex.net/**', (r) => r.abort())
   await tableta.route('**limitlesstcg**', (r) => r.abort())

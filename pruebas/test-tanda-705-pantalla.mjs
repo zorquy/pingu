@@ -73,7 +73,8 @@ console.log('── 705. Las hojas desde abajo ──')
 console.log('── 706. La expansión compacta ──')
 {
   const { page, ctx } = await abrir('/mi-coleccion.html?ver=album&set=xy5')
-  check('la miga «Expansiones ›» no sale: la burbuja ya dice dónde estás', !(await page.locator('#mcAlbumMigas').isVisible()))
+  // Desde la 856 la miga SÍ sale en el móvil, como botón de volver («‹ Expansiones»): PINGU, «en móvil con eso mejora muchísimo».
+  check('el botón «‹ Expansiones» sale también en el móvil (856)', await page.locator('#mcAlbumMigas .mc-miga').isVisible())
   const primera = await page.$eval('#mcAlbum .mc-bolsillo', (e) => Math.round(e.getBoundingClientRect().top))
   check('la primera carta empieza en la primera pantalla (antes, a pantalla y media)', primera <= 460, String(primera))
   // Desde la 757: abajo a la DERECHA y solo en las que faltan.
