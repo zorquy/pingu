@@ -139,7 +139,8 @@ console.log('── 3. Sin cuenta, y un tema que no existe ──')
   await ctx.close()
   const otro = await abrir('/aprender.html?tema=no-existe')
   const l = await lista(otro.page)
-  check('un tema que no existe: la lista de siempre, con todas', l.n === 4 && l.chipsTema > 0 && !(await cabecera(otro.page)), JSON.stringify(l))
+  // (Desde la 865 la lista ya no lleva chips de tema: son las baldosas.)
+  check('un tema que no existe: la lista de siempre, con todas', l.n === 4 && !(await cabecera(otro.page)), JSON.stringify(l))
   await otro.ctx.close()
 }
 

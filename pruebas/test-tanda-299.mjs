@@ -424,22 +424,18 @@ console.log('\n── 4. E · Las categorías son filtros, y filtran sin ir a la
   // aunque el filtro volviera a la base en cada clic.
   const antes = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
   check('el doble deja contar sus consultas', antes >= 0, String(antes))
-  const chipCat = page.locator('[data-cat]:not([data-cat="todas"])').first()
-  const cuenta = Number((await chipCat.locator('.aprender-chip-n').textContent()) || 0)
-  await chipCat.click()
-  await page.waitForTimeout(400)
-  check('al pulsar una categoría quedan solo las suyas', (await page.locator('.guia-tarjeta').count()) === cuenta,
-    `${await page.locator('.guia-tarjeta').count()} vs ${cuenta}`)
-  const despues = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
-  check('  …sin volver a la base', despues === antes, `${antes} → ${despues}`)
-  // El nivel y «sin leer» son INTERRUPTORES: volver a pulsar los quita.
-  await page.locator('[data-cat="todas"]').click()
-  await page.waitForTimeout(300)
+  // Desde la 863/865 el tema no es un chip que filtra en sitio: es una
+  // baldosa que abre su página (/aprender?tema=…). Lo que filtra en sitio
+  // son el nivel y «sin leer», y eso sigue sin volver a la base.
+  const baldosas = await page.locator('#apTemas .ap-baldosa').count()
+  check('los temas son baldosas que llevan a su página', baldosas > 0 && /\/aprender\?tema=/.test((await page.locator('#apTemas .ap-baldosa').first().getAttribute('href')) || ''), String(baldosas))
   const nivel = page.locator('[data-nivel="beginner"]')
   await nivel.click()
   await page.waitForTimeout(300)
   const conNivel = await page.locator('.guia-tarjeta').count()
   check('el nivel filtra', conNivel > 0 && conNivel < 7, String(conNivel))
+  const despues = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
+  check('  …sin volver a la base', despues === antes, `${antes} → ${despues}`)
   await nivel.click()
   await page.waitForTimeout(300)
   check('  …y volver a pulsarlo lo quita', (await page.locator('.guia-tarjeta').count()) === 7, String(await page.locator('.guia-tarjeta').count()))

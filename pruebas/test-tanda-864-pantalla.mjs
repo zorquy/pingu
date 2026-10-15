@@ -14,6 +14,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 const browser = await chromium.launch()
+const document_sinSeccion = (n) => n === 0
 const semilla = ({ sesion }) => {
   window.__FAKE_SESSION__ = sesion
   try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch { /* sin memoria */ }
@@ -56,7 +57,6 @@ const baldosas = (page) => page.evaluate(() => {
     desliza: z ? z.scrollWidth > z.clientWidth + 10 : null,
     alto: z ? Math.round(z.getBoundingClientRect().height) : 0,
     listaY: lista ? Math.round(lista.getBoundingClientRect().top) : null,
-    titulos: [...document.querySelectorAll('.ap-seccion')].map((h) => h.textContent.trim()),
   }
 })
 
@@ -67,7 +67,8 @@ console.log('── 1. La puerta en el PC ──')
   const b = await baldosas(page)
   check('tres baldosas (la vacía no sale), en el orden de los temas, con icono, «N guías · M cursos» y el enlace al tema', b.hay && b.temas.map((t) => t.nombre).join('|') === 'Primeros pasos|Mazos & estrategia|Reglas' && b.temas[0].sub === '2 guías · 1 curso' && b.temas[1].sub === '3 guías · 1 curso' && b.temas[2].sub === '1 guía' && b.temas[1].href === '/aprender?tema=mazos' && b.temas.every((t) => t.icono), JSON.stringify(b.temas))
   check('  …con la barra de lo leído: 100 %, 33 % y 0 %', b.temas.map((t) => t.barra).join() === '100%,33%,0%', JSON.stringify(b.temas.map((t) => t.barra)))
-  check('  …y debajo, «Todas las guías» con la lista de siempre', b.titulos.join('|') === 'Temas|Todas las guías' && (await page.locator('#apLista .guia-tarjeta').count()) === 6)
+  // Desde la 865 no hay títulos de sección: las baldosas, la fila de mandos y las guías.
+  check('  …y debajo, la lista de siempre, sin títulos de sección', document_sinSeccion(await page.evaluate(() => document.querySelectorAll('.ap-seccion').length)) && (await page.locator('#apLista .guia-tarjeta').count()) === 6)
   await page.click('#apTemas .ap-baldosa[href="/aprender?tema=mazos"]')
   await page.waitForTimeout(1800)
   const t = await page.evaluate(() => ({ h1: document.querySelector('#apTemaCab h1')?.textContent, baldosas: Boolean(document.getElementById('apTemas')) }))
@@ -80,7 +81,7 @@ console.log('── 2. En el iPhone ──')
   const { page, ctx, errores } = await abrir('/aprender.html', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await baldosas(page)
-  check('una fila que se desliza, de menos de 140 px, y la lista empieza en la primera pantalla', b.hay && b.desliza && b.alto < 140 && b.listaY < 760, JSON.stringify({ desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
+  check('una fila que se desliza, de menos de 80 px (865), y la lista empieza en la primera pantalla', b.hay && b.desliza && b.alto < 80 && b.listaY < 700, JSON.stringify({ desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
   const toca = await page.evaluate(() => { const r = document.querySelector('#apTemas .ap-baldosa').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })
   check('  …y cada baldosa se puede tocar (≥ 44 px)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
   await ctx.close()

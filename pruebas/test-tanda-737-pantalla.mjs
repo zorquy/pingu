@@ -100,7 +100,9 @@ for (const ruta of PAGINAS) {
     if (!r) continue
     // La vuelta del pie al «Saltar al contenido» es el final del recorrido.
     if (antes && /salta-al-contenido/.test(r.desc)) vueltas++
-    else if (antes && !antes.fijo && !r.fijo && r.y < antes.y - 150) saltos.push(`${antes.desc} → ${r.desc}`)
+    // Un desplegable de cuatro entradas (Glosario, 865) vuelve arriba al
+    // pasar al grupo siguiente: eso es el menú, no un salto del orden.
+    else if (antes && !antes.fijo && !r.fijo && r.y < antes.y - 200) saltos.push(`${antes.desc} → ${r.desc}`)
     antes = r
     if (vistos.has(r.desc)) continue
     vistos.add(r.desc)

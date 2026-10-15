@@ -56,7 +56,8 @@ console.log('── 1. En el móvil ──')
   const sigue = await p.locator('.aprender-seguir').boundingBox()
   check('«Sigue donde lo dejaste» es una fila (menos de 100 px)', sigue && sigue.height < 100, String(sigue?.height))
   check('  …con el curso a medias y su bloque', /Bloque 3 de 4/.test(await p.locator('.aprender-seguir').innerText()))
-  for (const sel of ['.ap-temas', '.ap-interruptores']) {
+  // Desde la 865 los temas son baldosas (.ap-baldosas), no chips.
+  for (const sel of ['.ap-baldosas', '.ap-interruptores']) {
     const filas = await p.$eval(sel, (el) => new Set([...el.children].map((c) => { const r = c.getBoundingClientRect(); return Math.round((r.top + r.bottom) / 2) })).size)
     check(`${sel}: los chips van en UNA línea`, filas === 1, String(filas))
   }
