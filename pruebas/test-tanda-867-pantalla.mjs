@@ -31,6 +31,7 @@ console.log('── 0. Lo estático ──')
   check('perfil.html: sin Cerrar sesión, sin borrado, sin Trofeos como cifra, sin acordeón', !/btnLogout|btnRequestAccountDeletion|heroTrophyCount|accordion/.test(perfil))
   const js = readFileSync(`${RAIZ}/js/perfil.js`, 'utf8')
   check('perfil.js: sin invitación, sin muro, sin avisos en el editor', !/montarInvitacion|panelInvitar|renderWall|NOTIFICATION_TYPES|data-notif-pref|peHideActivity|pePlayerId/.test(js))
+  check('ni /admin pregunta por el muro (la analítica cantaba «no existe la tabla» en cuanto PINGU la borró)', !/profile_comments|wallCommentsRes/.test(readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')))
   check('js/wall.js ya no existe; el tipo «comentarios en tu muro» tampoco; hay migración que borra la tabla', !existsSync(`${RAIZ}/js/wall.js`) && !/wall_comment/.test(readFileSync(`${RAIZ}/js/notifications.js`, 'utf8')) && /drop table if exists public\.profile_comments/.test(readFileSync(`${RAIZ}/supabase-migration-sin-muro.sql`, 'utf8')))
   check('las cifras son una función sin racha, con Cartas enlazada y Guías/Torneos a su pestaña', /propia \? '\/mi-coleccion'/.test(readFileSync(`${RAIZ}/js/perfil-cifras.js`, 'utf8')) && !/racha/.test(readFileSync(`${RAIZ}/js/perfil-cifras.js`, 'utf8').replace(/\/\/[^\n]*/g, '')))
 }
