@@ -12,7 +12,8 @@ const m = await import(`${RAIZ}/js/carta-versiones.js`)
 check('el precio: el mínimo en español y, si no, el general; un cero no es precio', m.precioDeVersion({ cm_low_es: 2.5, cm_low: 1 }) === 2.5 && m.precioDeVersion({ cm_low: 1 }) === 1 && m.precioDeVersion({ cm_low: 0 }) === null)
 check('el enlace: el de TCGGO (lleva el filtro de la versión) y, si no, el producto', m.enlaceDeVersion({ link_cm: 'https://www.tcggo.com/external/cm/43552' }) === 'https://www.tcggo.com/external/cm/43552' && /idProduct=777/.test(m.enlaceDeVersion({ cm_id_product: 777 })) && m.enlaceDeVersion({ link_cm: 'https://malo.example/x' }) === null)
 check('sin versiones, nada', m.versionesHtml([]) === '')
-check('no se inventa qué versión es: se numeran', /Versión 2/.test(m.versionesHtml([{ cm_low: 1 }])) && !/Reverse Holo</.test(m.versionesHtml([{ cm_low: 1 }])))
+// Desde la 861 la única sin nombre es la Reverse Holo, y con varias sin nombre se numeran.
+check('una sola sin nombre es la Reverse Holo; varias sin nombre se numeran', /Reverse Holo</.test(m.versionesHtml([{ cm_low: 1 }])) && /Versión 2<.*Versión 3</.test(m.versionesHtml([{ cm_low: 1 }, { cm_low: 2 }])))
 
 const browser = await chromium.launch()
 for (const conVersiones of [true, false]) {
@@ -39,9 +40,9 @@ for (const conVersiones of [true, false]) {
   })
   if (conVersiones) {
     check('sin errores', errores.length === 0, errores.join(' | '))
-    check('con versiones: el bloque sale con una fila por versión', r?.visible && r.filas.length === 2, JSON.stringify(r))
-    check('  …la primera con su precio en español y el enlace de TCGGO', /Versión 2/.test(r?.filas[0]?.texto) && /1,20/.test(r.filas[0].texto) && r.filas[0].href === 'https://www.tcggo.com/external/cm/43552', JSON.stringify(r?.filas[0]))
-    check('  …y la que no tiene precio lo dice, con el producto de Cardmarket', /sin precio/.test(r?.filas[1]?.texto) && /idProduct=999/.test(r.filas[1].href || ''), JSON.stringify(r?.filas[1]))
+    check('con versiones: el bloque sale con la Standard (esta carta, con su precio) y una fila por versión (861)', r?.visible && r.filas.length === 3 && /^Standard\s?0,30/.test(r.filas[0].texto) && !r.filas[0].href, JSON.stringify(r))
+    check('  …la primera versión con su precio en español y el enlace de TCGGO', /Versión 2/.test(r?.filas[1]?.texto) && /1,20/.test(r.filas[1].texto) && r.filas[1].href === 'https://www.tcggo.com/external/cm/43552', JSON.stringify(r?.filas[1]))
+    check('  …y la que no tiene precio lo dice, con el producto de Cardmarket', /sin precio/.test(r?.filas[2]?.texto) && /idProduct=999/.test(r.filas[2].href || ''), JSON.stringify(r?.filas[2]))
   } else {
     check('sin versiones, el bloque no sale', r && !r.visible, JSON.stringify(r))
   }

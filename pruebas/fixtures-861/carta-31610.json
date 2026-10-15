@@ -1,0 +1,97 @@
+{
+    "data": {
+        "id": 31610,
+        "name": "Drakloak",
+        "name_numbered": "Drakloak 159",
+        "slug": "drakloak",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 159,
+        "card_code_number": "ASC 159",
+        "hp": 90,
+        "rarity": "Common",
+        "supertype": "Pokémon",
+        "tcgid": "me2pt5-159",
+        "flavor_text": "This Pokémon stores up energy in its lungs, then shoots it out. It takes care of Dreepy and battles alongside them until they’re all grown up.",
+        "abilities": [
+            {
+                "name": "Recon Directive",
+                "damage": null,
+                "description": "Once during your turn, you may look at the top 2 cards of your deck and put 1 of them into your hand. Put the other card on the bottom of your deck."
+            }
+        ],
+        "attacks": [
+            {
+                "name": "Dragon Headbutt",
+                "damage": 70,
+                "description": null
+            }
+        ],
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 0.02,
+                "lowest_near_mint_EU_only": 0.02,
+                "lowest_near_mint_DE": 0.02,
+                "lowest_near_mint_DE_EU_only": 0.02,
+                "lowest_near_mint_FR": 0.02,
+                "lowest_near_mint_FR_EU_only": 0.02,
+                "lowest_near_mint_ES": 0.02,
+                "lowest_near_mint_ES_EU_only": 0.02,
+                "lowest_near_mint_IT": 0.02,
+                "lowest_near_mint_IT_EU_only": 0.02,
+                "30d_average": 0.05,
+                "7d_average": 0.05,
+                "available_items": 4478,
+                "graded": []
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 0.17
+            }
+        },
+        "episode": {
+            "id": 396,
+            "name": "Ascended Heroes",
+            "slug": "ascended-heroes",
+            "lang": "en",
+            "released_at": "2026-01-30",
+            "logo": "https://images.tcggo.com/tcggo/storage/34000/ascended_heroes.png",
+            "code": "ASC",
+            "cards_total": 295,
+            "cards_printed_total": 217,
+            "prices": {
+                "cardmarket": {
+                    "total": 4052.03,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 3689.04,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 17,
+                "name": "Mega Evolution",
+                "slug": "mega-evolution"
+            }
+        },
+        "artist": {
+            "id": 448,
+            "name": "cochi8i",
+            "slug": "cochi8i"
+        },
+        "image": "https://images.tcggo.com/tcggo/storage/31857/drakloak-asc-159-ascended-heroes.png",
+        "tcggo_url": "https://www.tcggo.com/pokemon/ascended-heroes/drakloak-159",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/31610",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31610"
+        },
+        "cardmarket_id": 869770,
+        "tcgplayer_id": 675971
+    }
+}

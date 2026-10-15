@@ -1,0 +1,85 @@
+{
+    "data": {
+        "id": 50939,
+        "name": "Drakloak",
+        "name_numbered": "Drakloak 159",
+        "slug": "drakloak",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 159,
+        "card_code_number": "ASC 159",
+        "hp": null,
+        "rarity": "Common",
+        "version": "Quick Ball",
+        "supertype": null,
+        "tcgid": null,
+        "flavor_text": null,
+        "abilities": null,
+        "attacks": null,
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 0.07,
+                "lowest_near_mint_DE": 0.04,
+                "lowest_near_mint_DE_EU_only": 0.04,
+                "lowest_near_mint_FR": 0.05,
+                "lowest_near_mint_FR_EU_only": 0.05,
+                "lowest_near_mint_ES": 0.02,
+                "lowest_near_mint_ES_EU_only": 0.02,
+                "lowest_near_mint_IT": 0.02,
+                "lowest_near_mint_IT_EU_only": 0.02,
+                "30d_average": 0.15,
+                "7d_average": 0.13,
+                "available_items": 1804,
+                "graded": []
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 0.21
+            }
+        },
+        "episode": {
+            "id": 396,
+            "name": "Ascended Heroes",
+            "slug": "ascended-heroes",
+            "lang": "en",
+            "released_at": "2026-01-30",
+            "logo": "https://images.tcggo.com/tcggo/storage/34000/ascended_heroes.png",
+            "code": "ASC",
+            "cards_total": 295,
+            "cards_printed_total": 217,
+            "prices": {
+                "cardmarket": {
+                    "total": 4052.03,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 3689.04,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 17,
+                "name": "Mega Evolution",
+                "slug": "mega-evolution"
+            }
+        },
+        "artist": {
+            "id": 448,
+            "name": "cochi8i",
+            "slug": "cochi8i"
+        },
+        "image": "https://images.tcggo.com/tcggo/storage/39412/drakloak-asc-159-ascended-heroes.png",
+        "tcggo_url": "https://www.tcggo.com/pokemon/ascended-heroes/drakloak-8",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/50939",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/50939"
+        },
+        "cardmarket_id": 870386,
+        "tcgplayer_id": 676977
+    }
+}

@@ -243,7 +243,8 @@ console.log('\n── 3c. Con todo recorrido: el refresco ──')
   ]
   const b = montar(datos)
   const t = tcggo()
-  const hecho = { sonda: { fecha: 'x' }, subiendo: { acabado: true, acabadoAt: '2026-10-12T00:00:00Z' }, bajando: { acabado: true, acabadoAt: '2026-10-12T00:00:00Z' } }
+  // `repaso861` hecho: si no, la pasada vuelve a subir desde el 43551 (el repaso de la 861, probado en test-tanda-861).
+  const hecho = { sonda: { fecha: 'x' }, repaso861: 'hecho', subiendo: { acabado: true, acabadoAt: '2026-10-12T00:00:00Z' }, bajando: { acabado: true, acabadoAt: '2026-10-12T00:00:00Z' } }
   const { r } = await pasada(b, t, hecho)
   check('pide solo las de más de una semana, la más vieja primero', r.modo === 'refresco' && t.pedidas.join() === '43552,49999', JSON.stringify(t.pedidas))
   check('  …renueva el precio sin volver a decidir la carta', b.db.versiones.find((v) => v.tcggo_id === 43552)?.cm_low === 90.24 && b.db.versiones.find((v) => v.tcggo_id === 43552)?.card_id === 'bw8-101')

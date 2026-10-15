@@ -1,0 +1,85 @@
+{
+    "data": {
+        "id": 40760,
+        "name": "Tangrowth",
+        "name_numbered": "Tangrowth 2",
+        "slug": "tangrowth",
+        "type": "singles",
+        "lang": "en",
+        "card_number": 2,
+        "card_code_number": "LOT 2",
+        "hp": 140,
+        "rarity": "rare",
+        "supertype": "Pokémon",
+        "tcgid": "sm8-2",
+        "flavor_text": "Its vines grow so profusely that, in the warm season, you can't even see its eyes.",
+        "abilities": null,
+        "attacks": null,
+        "prices": {
+            "cardmarket": {
+                "currency": "EUR",
+                "lowest_near_mint": 0.85,
+                "lowest_near_mint_EU_only": 0.85,
+                "lowest_near_mint_DE": 0.4,
+                "lowest_near_mint_DE_EU_only": 0.4,
+                "lowest_near_mint_FR": 1,
+                "lowest_near_mint_FR_EU_only": 1,
+                "lowest_near_mint_ES": 0.25,
+                "lowest_near_mint_ES_EU_only": 0.25,
+                "lowest_near_mint_IT": 1,
+                "lowest_near_mint_IT_EU_only": 1,
+                "30d_average": 0.95,
+                "7d_average": 0.78,
+                "available_items": 46,
+                "graded": []
+            },
+            "tcg_player": {
+                "currency": "EUR",
+                "market_price": 0.26
+            }
+        },
+        "episode": {
+            "id": 58,
+            "name": "Lost Thunder",
+            "slug": "lost-thunder",
+            "lang": "en",
+            "released_at": "2018-11-02",
+            "logo": "https://images.tcggo.com/tcggo/storage/8578/lost-thunder-logo.png",
+            "code": "LOT",
+            "cards_total": 240,
+            "cards_printed_total": 214,
+            "prices": {
+                "cardmarket": {
+                    "total": 2478.34,
+                    "currency": "EUR"
+                },
+                "tcgplayer": {
+                    "total": 2702.89,
+                    "currency": "EUR"
+                }
+            },
+            "game": {
+                "name": "Pokémon",
+                "slug": "pokemon"
+            },
+            "series": {
+                "id": 4,
+                "name": "Sun & Moon",
+                "slug": "sun-moon"
+            }
+        },
+        "artist": {
+            "id": 514,
+            "name": "Atsuko Nishida",
+            "slug": "atsuko-nishida"
+        },
+        "image": null,
+        "tcggo_url": "https://www.tcggo.com/pokemon/lost-thunder/tangrowth-11",
+        "links": {
+            "cardmarket": "https://www.tcggo.com/external/cm/40760",
+            "tcgplayer": "https://www.tcggo.com/external/tcgplayer/40760"
+        },
+        "cardmarket_id": 365605,
+        "tcgplayer_id": 178799
+    }
+}
