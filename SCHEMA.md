@@ -40749,3 +40749,23 @@ tocar la pestaña en la que ya estás. Productos y Mercado se quedan como
 estaban (sin dirección propia). Pruebas: `test-tanda-856-pantalla.mjs`
 (PC e iPhone); la 468 mide `history.length` en vez de «atrás vuelve al
 Panel»; la 474 y la 705 esperan el botón con contorno y visible en el móvil.
+
+## Tanda 858 — La barra pegada del móvil en lo que se lee largo
+
+`js/barra-pegada.js` (hoja `css/barra-pegada.css` por `hojaInyectada`): la
+pieza de la expansión (856), compartida. `montarBarraPegada({ cabecera,
+titulo, volverHref, volverTexto, cifra, progreso })` crea `#barraPegada`
+(`.barra-pegada`, fija arriba; bajo `.navbar` salvo `html.bm-escondidas`)
+con la flecha (`<a>` de 44×44 a `volverHref`), el título y `cifra()` a la
+derecha; un `IntersectionObserver` sobre `cabecera` la enseña cuando esta se
+va por ARRIBA y la esconde al volver, y con `progreso` (un elemento) pinta
+la línea de abajo con `fraccionDe(cuerpo)` en cada scroll (un
+`requestAnimationFrame`). `loQueQueda(min, fraccion)` es el «N min más» /
+«Leída» de la guía. Lo montan, solo si `(max-width: 900px)` y por
+`import()`: `guia.js` (cabecera `.article-header`, cuerpo `.article-body`,
+vuelve al tema o a /aprender, o a /noticias), `tema.js` (`#temaCabecera`,
+«N mensajes» de `post_count`, vuelve a `/foro.html?foro=<id>`) y
+`torneo.js` (`#torneoCabecera`, el `texto` de `estadoDeTorneo`, una sola
+vez al primer `pintarFicha`). La de Mi colección sigue siendo la suya
+(`#mcAlbumPegada`): vive en el HTML y no se inyecta. Prueba:
+`test-tanda-858-pantalla.mjs`.

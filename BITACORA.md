@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-15 (90) — PINGU-Claude (858 — la barra pegada en guía, tema y torneo)
+
+**Hecho** (segunda propuesta, punto 3; PINGU: «cuando bajas y se queda arriba,
+esas cosas me gustan mucho»):
+- En el móvil, al bajar por una guía, un tema del foro o un torneo, se queda
+  arriba una barra con la flecha de volver, el título y una cifra: en la
+  guía «N min más» con la línea de lo leído, en el tema «N mensajes», en el
+  torneo el estado. Se esconde al volver arriba. En el ordenador no existe.
+- Es la pieza de la expansión (856) hecha módulo compartido, que cada
+  página pide por `import()` solo en el móvil.
+
+**Ficheros**: `js/barra-pegada.js` y `css/barra-pegada.css` (nuevos),
+`js/guia.js`, `js/tema.js`, `js/torneos/torneo.js`. En `pruebas`:
+`test-tanda-858-pantalla.mjs` nueva.
+
+**Para IBAI**: `js/torneos/torneo.js` lleva `montarBarraPegadaDelTorneo`
+(se llama desde `pintarFicha`); nada más.
+
+**Pruebas**: 858-pantalla verde (las cuentas, la guía con lo leído, el tema, el torneo, y nada en el PC). Y imports, 299, 305, 309–313, ficha-guia, 314, 742, 856, 857, torneos-15, meta-torneo, 849, 850, 709, 737 y 746 en verde.
+
+**Pendiente**: nada (sin migración). Sigue la 859 (pestañas en la dirección).
+
 ## 2026-10-15 (89) — PINGU-Claude (857 — una sola pieza de volver en todas las fichas)
 
 **Hecho** (PINGU, con la segunda propuesta: «adelante»):

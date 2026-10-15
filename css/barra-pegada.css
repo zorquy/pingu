@@ -1,0 +1,85 @@
+/* La barra pegada del móvil para lo que se lee largo (858; SCHEMA 858). La
+   inyecta js/barra-pegada.js solo en el móvil. Es la misma pieza que
+   `.mc-album-pegada` de la expansión (856). */
+.barra-pegada {
+  display: none;
+}
+@media (max-width: 900px) {
+  .barra-pegada:not(.hidden) {
+    display: flex;
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    right: 0;
+    left: 0;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 56px;
+    padding: 0 var(--e-md) 0 var(--e-sm);
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    transition: transform 0.3s var(--ease);
+  }
+  /* Debajo de la barra del sitio mientras se vea; cuando se aparta al
+     bajar (la 709), arriba del todo. */
+  html:not(.bm-escondidas) .barra-pegada:not(.hidden) {
+    transform: translateY(56px);
+  }
+  .barra-pegada-volver {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ice);
+    color: var(--text);
+  }
+  .barra-pegada-flecha {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    border-bottom: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .barra-pegada-titulo {
+    overflow: hidden;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .barra-pegada-cifra {
+    flex: none;
+    margin-left: auto;
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+    white-space: nowrap;
+  }
+  /* Lo leído, como una línea en el borde de abajo. */
+  .barra-pegada-progreso {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: var(--border);
+  }
+  .barra-pegada-progreso i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--navy);
+    transition: width 0.15s linear;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .barra-pegada:not(.hidden),
+  .barra-pegada-progreso i {
+    transition: none;
+  }
+}

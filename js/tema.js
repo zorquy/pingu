@@ -601,6 +601,17 @@ async function pintarMensajes() {
 
   enganchar(perfiles)
   pintarCabecera(perfiles[tema.author_id])
+  // La barra pegada del móvil (858): la flecha al foro, el título y los
+  // mensajes. Solo en el móvil y por `import()`.
+  if (window.matchMedia?.('(max-width: 900px)').matches) {
+    import('./barra-pegada.js').then((m) => m.montarBarraPegada({
+      cabecera: elCabecera,
+      titulo: tema.title,
+      volverHref: foro?.id ? `/foro.html?foro=${encodeURIComponent(foro.id)}` : '/foro.html',
+      volverTexto: 'Volver al foro',
+      cifra: () => { const n = Number(tema.post_count) || 1; return `${n} ${n === 1 ? 'mensaje' : 'mensajes'}` },
+    })).catch(() => {})
+  }
   wireReportButtons(elMensajes, sesion)
   pintarEncuesta()
 }

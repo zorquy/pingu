@@ -389,6 +389,23 @@ async function init() {
       <div id="forumContainer"></div>
     </section>`
 
+  // LA BARRA PEGADA DEL MÓVIL (858): al bajar por la guía, la flecha de
+  // volver, el título y lo que queda de lectura. Solo en el móvil, y por
+  // `import()` para que el ordenador no la baje.
+  if (window.matchMedia?.('(max-width: 900px)').matches) {
+    import('./barra-pegada.js').then((m) => {
+      const cuerpo = main.querySelector('.article-body')
+      m.montarBarraPegada({
+        cabecera: main.querySelector('.article-header'),
+        titulo: guide.title,
+        volverHref: esNoticia ? '/noticias' : guide.categories?.slug ? `/categoria.html?slug=${encodeURIComponent(guide.categories.slug)}` : '/aprender',
+        volverTexto: esNoticia ? 'Volver a Noticias' : 'Volver a las guías',
+        cifra: () => (cuerpo ? m.loQueQueda(minutosLectura, m.fraccionDe(cuerpo)) : ''),
+        progreso: cuerpo,
+      })
+    }).catch(() => {})
+  }
+
   // El glosario (792, NU11): la primera vez que sale un término, subrayado.
   import('./glosario.js').then((m) => { const vistos = new Set(); main.querySelectorAll('.article-body').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 

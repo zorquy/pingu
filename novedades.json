@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-15", "tipo": "mejora", "texto": "En el móvil, al bajar por una guía, un tema del foro o un torneo, el título y la flecha de volver se quedan arriba; en las guías, con lo que te queda por leer.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Volver es igual en toda la web: en el móvil, un botón «‹ Guías», «‹ Torneos», «‹ Retos diarios»… encima de cada ficha; en el ordenador, las migas con la sección. Y la miga de las guías ya no sale con un hueco.", "enlace": "/aprender" },
     { "fecha": "2026-10-15", "tipo": "mejora", "texto": "Volver en Mi colección: un botón «‹ Expansiones» que se ve, también en el móvil (y al bajar por la lista se queda arriba); y el botón de atrás del navegador o el gesto del móvil vuelven siempre a la lista, no a la pestaña anterior.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-15", "tipo": "arreglo", "texto": "Celebrations es un solo set con sus 50 cartas (las 25 de siempre y la Classic Collection), como en Cardmarket, sin repetidas.", "enlace": "/cartas" },

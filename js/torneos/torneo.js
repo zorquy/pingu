@@ -238,6 +238,7 @@ function pintarFicha() {
   // Una liga en juego sin ronda viva y con su jornada acabada está ENTRE
   // JORNADAS (850): ni punto que late ni «En juego».
   const estado = estadoDeTorneo(torneo, jornadas?.rondas || null)
+  montarBarraPegadaDelTorneo()
   document.title = `${torneo.name} — PokeDoc`
   // El banner (tanda 242): solo si lo hay; si no carga, se esconde —
   // nunca el icono roto del navegador presidiendo la ficha.
@@ -398,6 +399,24 @@ function pintarFicha() {
 // Quién lo ve: el admin del SITIO, no quien LLEVA el torneo. Escribir en
 // el canal oficial de PokeDoc es un acto del sitio, del mismo tipo que el
 // sello de OFICIAL — `torneos_mando` no llega hasta ahí (ver CLAUDE.md).
+// La barra pegada del móvil (858): la flecha a /torneos, el nombre y el
+// estado («En juego», «Entre jornadas»…). Se monta una vez, al primer
+// pintado; el estado se lee al refrescar, que la ficha se repinta sola.
+let barraPegada = null
+function montarBarraPegadaDelTorneo() {
+  if (barraPegada || !torneo || !window.matchMedia?.('(max-width: 900px)').matches) return
+  barraPegada = true
+  import('../barra-pegada.js').then((m) => {
+    barraPegada = m.montarBarraPegada({
+      cabecera: $('torneoCabecera'),
+      titulo: torneo.name,
+      volverHref: '/torneos.html',
+      volverTexto: 'Volver a los torneos',
+      cifra: () => estadoDeTorneo(torneo, jornadas?.rondas || null).texto || '',
+    }) || true
+  }).catch(() => { barraPegada = null })
+}
+
 function pintarTelegram(acciones) {
   // Un torneo CON CÓDIGO sí puede salir por el canal desde la tanda 367:
   // ya se ve en la web, así que esconderlo aquí no escondía nada. Lo que
