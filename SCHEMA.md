@@ -41490,3 +41490,47 @@ administración también los escondidos: se quitan por `is_hidden`) y los
 temas con `in('board_id', visibles)`; si la lista no llega, como antes. Y lo
 mismo el grupo «Foro» de `js/buscador.js` (/buscar y Ctrl+K): un hilo
 escondido salía al buscar su título. La prueba 876 lo mira en los dos.
+
+## Tanda 877 — La barra de estado del torneo: la web cuenta la ronda sola
+
+PINGU: «hay gente que cuando hay torneo y no lo retransmito en twitch,
+pierden un poco el hilo de cuando se cierra ronda, de qué está pasando».
+Cada jugador sabía lo suyo (su mesa, su reloj, su chat) y nadie sabía qué
+pasaba en el conjunto. Es la capa 1 de la propuesta (maquetas en el
+artefacto «Torneo en vivo, sin directo»); la capa 2, el tablón, es la 878.
+
+**La barra viva (298) crece**, en `pintarBarraViva` (`js/torneos/ronda.js`):
+· **Qué falta, con nombre**: una segunda línea (`#torneoVivaEstado`, región
+  `status`) con las disputas en rojo («Disputa en la mesa 2 · un juez está
+  en ello», `.torneo-viva-alerta`, tokens de peligro) y las mesas sin
+  reportar en gris («Falta 1 mesa por reportar · mesa 1»; con más de cuatro,
+  sin la lista). Sale de `mesasQueFaltan(mesas)` y `fraseDeMesas(numeros)`
+  (`js/torneos/mesas.js`, puras: «mesa 4», «mesas 1 y 4», «mesas 1, 2, 3 y 3
+  más»; el bye no cuenta). Para todo el mundo, sin cuenta también.
+· **Has terminado**: con tu mesa cerrada, el titular deja de decir «Tu
+  partida contra X» y dice «Has terminado · esperando a N mesas» (o «todas
+  las mesas también»), con «Ver tu mesa» secundario y sin pedirte nada. Es el
+  momento en que más gente perdía el hilo.
+· **Fuera del corte**: inscrito y sin mesa en una ronda de top cut, «Te
+  quedaste fuera del top N (P.º) · mira las mesas» (`posicionMia()` sobre
+  `computeStandings`; sin puesto si falla).
+· **Entre rondas** (`pintarBarraEntreRondas`): con el torneo `in_progress` y
+  ninguna ronda viva, la barra ya no se va. Rótulo «Ronda N de M · cerrada»
+  y titular según lo que haya: «Pareos de la ronda N+1 listos · a punto de
+  empezar» (ronda `pending` con mesas), «Preparando la ronda N+1…» (ronda
+  `pending` sin mesas), «Preparando el top N…» (tras la última suiza con
+  corte), «Pareando la ronda N+1…» (nada creado) o «Preparando la primera
+  ronda…». El anillo se queda quieto con «—» (`.torneo-viva-anillo-quieto`)
+  y «Los pareos salen aquí y te llega un aviso» a la derecha. Lo decide
+  `arrancarReloj` cuando no hay ronda activa; con el torneo terminado o sin
+  empezar, la barra sigue escondida como antes.
+
+La clave de `yaEstaPintado('barraViva', …)` lleva el estado nuevo. CSS en
+`css/torneos.css` (la hoja de la ficha, no `components.css`).
+
+**Pruebas**: `test-tanda-877-pantalla.mjs` (lo puro, jugando con el número
+de la mesa que falta, has terminado con la disputa en rojo, entre rondas en
+sus tres formas, fuera del corte con el puesto, sin cuenta y en el móvil).
+Al día: 298 (entre rondas la barra se queda: antes se exigía que se fuera),
+394 (quien ha terminado lee «Has terminado»). Verdes: 722, 849, 748, 299,
+857, 858, 555, test-imports.

@@ -28,7 +28,7 @@ import {
 import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } from './cartas-decklist.js'
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
-import { TERMINALES, progresoDeMesas } from './mesas.js'
+import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
 import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga } from './jornadas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
@@ -1225,10 +1225,24 @@ function pintarBarraViva(ronda) {
       : `Jornada ${ronda.round_number} de ${numJornadas(ctx.torneo)}`
     : `${fase} ${ronda.round_number}${ronda.phase === 'top_cut' || !total ? '' : ` de ${total}`}`
 
+  const mesasRonda = partidas.filter((m) => m.round_id === ronda.id)
+  const progreso = progresoDeMesas(mesasRonda)
+  const faltan = mesasQueFaltan(mesasRonda)
   let titular = 'Ronda en marcha'
   let der = ''
   if (mia && mia.status === 'bye') {
     titular = 'Tienes bye esta ronda'
+  } else if (mia && TERMINALES.has(mia.status)) {
+    // HAS TERMINADO (877): la barra deja de hablar de tu partida —ya no hay
+    // nada que hacer en ella— y dice a quién se espera. Es el momento en
+    // que más gente pierde el hilo: «he acabado, ¿y ahora qué?».
+    const quedan = faltan.pendientes.length + faltan.disputas.length
+    titular = progreso.todas ? 'Has terminado · todas las mesas también' : `Has terminado · esperando a ${quedan} ${quedan === 1 ? 'mesa' : 'mesas'}`
+    der = '<a class="btn-secondary torneo-viva-boton" href="#torneoMiPartida">Ver tu mesa</a>'
+  } else if (!mia && yo && ronda.phase === 'top_cut' && ctx.inscripciones?.some((i) => i.user_id === yo)) {
+    // FUERA DEL CORTE (877): inscrito, sin mesa en el top. Antes la barra
+    // decía «Ronda en marcha», como a quien pasa por la calle.
+    titular = `Te quedaste fuera del top ${ctx.torneo.top_cut_size || ''}${posicionMia() ? ` (${posicionMia()}.º)` : ''} · mira las mesas`.replace('  ', ' ')
   } else if (mia) {
     const soyA = mia.player_a_id === yo
     const rivalId = soyA ? mia.player_b_id : mia.player_a_id
@@ -1247,11 +1261,13 @@ function pintarBarraViva(ronda) {
   // suya lo único que quiere saber es cuánto falta para la siguiente.
   // Se pone al día solo: la ficha se refresca con cada cambio de una
   // mesa (tiempo real, con el sondeo detrás) y esto se repinta con ella.
-  const progreso = progresoDeMesas(partidas.filter((m) => m.round_id === ronda.id))
-  if (!mia) titular = progreso.todas ? 'Todas las mesas han terminado' : 'Ronda en marcha'
+  if (!mia && titular === 'Ronda en marcha') titular = progreso.todas ? 'Todas las mesas han terminado' : 'Ronda en marcha'
   const mesasHtml = contadorDeMesasHtml(progreso)
+  // QUÉ FALTA, con nombre (877): las mesas sin reportar y las disputas. Para
+  // todo el mundo: es la respuesta a «¿por qué no se cierra la ronda?».
+  const estadoHtml = estadoDeRondaHtml(faltan, progreso)
 
-  const html = `${rotulo}|${titular}|${der}|${mesasHtml}`
+  const html = `${rotulo}|${titular}|${der}|${mesasHtml}|${estadoHtml}`
   caja.classList.remove('hidden')
   // MIENTRAS JUEGAS, LA RONDA PRIMERO (748, J2): la cabecera se queda en el
   // nombre y lo de inscribirse —formato, plazas, calendario— se aparta,
@@ -1266,10 +1282,86 @@ function pintarBarraViva(ronda) {
     contador.innerHTML = mesasHtml
     contador.classList.toggle('hidden', !mesasHtml)
   }
+  const estado = $('torneoVivaEstado')
+  if (estado) {
+    estado.innerHTML = estadoHtml
+    estado.classList.toggle('hidden', !estadoHtml)
+  }
   // El anillo se monta una vez; el tictac solo le cambia la cifra y la
   // vuelta. Repintarlo cada segundo sería rehacer un SVG por segundo.
   const anillo = $('torneoVivaAnillo')
   if (anillo && !anillo.querySelector('b')) anillo.innerHTML = '<b>–:––</b>'
+  anillo?.classList.remove('torneo-viva-anillo-quieto')
+}
+
+// Las chapas de «qué falta» (877): disputas en rojo, mesas sin reportar en
+// gris; con pocas, por su número. Con todas cerradas, lo que viene.
+function estadoDeRondaHtml(faltan, progreso) {
+  const trozos = []
+  if (faltan.disputas.length) {
+    trozos.push(`<span class="torneo-viva-alerta">${faltan.disputas.length === 1 ? 'Disputa en la' : 'Disputas en las'} ${escapeHtml(fraseDeMesas(faltan.disputas))} · un juez está en ello</span>`)
+  }
+  if (faltan.pendientes.length) {
+    const n = faltan.pendientes.length
+    trozos.push(`<span class="torneo-viva-espera">${n === 1 ? 'Falta 1 mesa por reportar' : `Faltan ${n} mesas por reportar`}${n <= 4 ? ` · ${escapeHtml(fraseDeMesas(faltan.pendientes))}` : ''}</span>`)
+  }
+  if (!trozos.length && progreso.todas) trozos.push('<span class="torneo-viva-espera">Todas las mesas han reportado · la ronda se cierra en cuanto el organizador la cierre</span>')
+  return trozos.join('')
+}
+
+// Tu puesto en la clasificación de ahora mismo, o null si no se sabe.
+function posicionMia() {
+  try {
+    const yo = miId()
+    const i = computeStandings(montarSnapshot(rondas.length)).findIndex((e) => e.playerId === yo)
+    return i >= 0 ? i + 1 : null
+  } catch {
+    return null
+  }
+}
+
+// ENTRE RONDAS (877): con el torneo en juego y ninguna ronda viva, la barra
+// no se va —antes desaparecía y la ficha se quedaba muda justo cuando más
+// se pregunta «¿y ahora?»—: dice qué ronda se cerró y qué viene.
+function pintarBarraEntreRondas() {
+  const caja = $('torneoBarraViva')
+  if (!caja) return
+  const cerradas = rondas.filter((r) => r.status === 'finished')
+  const ultima = cerradas[cerradas.length - 1] || null
+  const siguiente = rondas.find((r) => r.status === 'pending') || null
+  const total = ctx.torneo.swiss_rounds || 0
+  const nombre = (r) => (r.phase === 'top_cut' ? `top cut (ronda ${r.round_number})` : nombreDeRonda(r.round_number))
+  const rotulo = ultima
+    ? `${conMayuscula(nombre(ultima))}${ultima.phase === 'top_cut' || !total || esLiga() ? '' : ` de ${total}`} · cerrada`
+    : 'Torneo en juego'
+  let titular
+  if (siguiente && partidas.some((m) => m.round_id === siguiente.id)) titular = `Pareos de la ${nombre(siguiente)} listos · a punto de empezar`
+  else if (siguiente) titular = `Preparando la ${nombre(siguiente)}…`
+  else if (ultima && ultima.phase === 'swiss' && total && ultima.round_number >= total && ctx.torneo.top_cut_size > 0) titular = `Preparando el top ${ctx.torneo.top_cut_size}…`
+  else if (ultima) titular = `Pareando la ${esLiga() ? nombreDeRondaDeLiga(ctx.torneo, ultima.round_number + 1) : `ronda ${ultima.round_number + 1}`}…`
+  else titular = 'Preparando la primera ronda…'
+  const der = '<span class="torneo-viva-espera">Los pareos salen aquí y te llega un aviso</span>'
+  const html = `${rotulo}|${titular}|${der}`
+  caja.classList.remove('hidden')
+  document.documentElement.classList.remove('torneo-jugando')
+  if (yaEstaPintado('barraViva', html)) return
+  $('torneoVivaRotulo').textContent = rotulo
+  $('torneoVivaTitular').textContent = titular
+  $('torneoVivaDer').innerHTML = der
+  for (const id of ['torneoVivaMesas', 'torneoVivaEstado']) {
+    const el = $(id)
+    if (el) {
+      el.innerHTML = ''
+      el.classList.add('hidden')
+    }
+  }
+  const anillo = $('torneoVivaAnillo')
+  if (anillo) {
+    anillo.innerHTML = '<b>—</b>'
+    anillo.style.setProperty('--vuelta', '0')
+    anillo.classList.remove('agotandose')
+    anillo.classList.add('torneo-viva-anillo-quieto')
+  }
 }
 
 // El contador de mesas, el mismo en la barra viva y en la pestaña de
@@ -1299,8 +1391,11 @@ function arrancarReloj(ronda) {
     // viva (tanda 298) se va con él: una barra vacía pegada arriba
     // ocuparía sitio sin decir nada.
     marcador.classList.add('hidden')
-    $('torneoBarraViva')?.classList.add('hidden')
-    document.documentElement.classList.remove('torneo-jugando')
+    if (ctx.torneo.status === 'in_progress') pintarBarraEntreRondas()
+    else {
+      $('torneoBarraViva')?.classList.add('hidden')
+      document.documentElement.classList.remove('torneo-jugando')
+    }
     return
   }
   pintarBarraViva(ronda)

@@ -26,6 +26,28 @@ export function progresoDeMesas(mesas) {
   }
 }
 
+// Qué mesas FALTAN (877): las que no han terminado, por número, y aparte
+// las que están en disputa. Es lo que mira quien ya ha jugado y no sabe
+// por qué la ronda no se cierra: «falta la mesa 4» dice más que «3/4».
+export function mesasQueFaltan(mesas) {
+  const vivas = (mesas || []).filter((m) => esMesaDeVerdad(m) && !TERMINALES.has(m.status))
+  const numeros = (xs) => xs.map((m) => Number(m.table_number)).filter((n) => Number.isFinite(n)).sort((a, b) => a - b)
+  return {
+    pendientes: numeros(vivas.filter((m) => m.status !== 'disputed')),
+    disputas: numeros(vivas.filter((m) => m.status === 'disputed')),
+  }
+}
+
+// «mesa 4», «mesas 1 y 4», «mesas 1, 4 y 7», y a partir de cinco «mesas 1,
+// 4, 7 y 2 más»: una ristra de doce números no la lee nadie.
+export function fraseDeMesas(numeros, tope = 4) {
+  const ns = (numeros || []).map(String)
+  if (!ns.length) return ''
+  if (ns.length === 1) return `mesa ${ns[0]}`
+  if (ns.length <= tope) return `mesas ${ns.slice(0, -1).join(', ')} y ${ns[ns.length - 1]}`
+  return `mesas ${ns.slice(0, tope - 1).join(', ')} y ${ns.length - (tope - 1)} más`
+}
+
 // Cuándo se cierra el check-in de una ronda, en milisegundos. Null si la
 // ronda no ha arrancado (sin `started_at` no hay ventana que contar).
 export function cierreDeCheckin(ronda, checkinMinutes) {

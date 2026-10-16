@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (106) — PINGU-Claude (877 — la barra de estado del torneo: qué falta, has terminado, entre rondas, fuera del corte)
+
+**Hecho** (PINGU: «pierden un poco el hilo de cuando se cierra ronda, de
+qué está pasando»; «me parece genial todo, vamos»): capa 1 de la propuesta.
+La barra viva dice qué mesas faltan (y las disputas, en rojo), «Has
+terminado · esperando a N mesas», qué pasa entre rondas (antes
+desaparecía) y, fuera del corte, tu puesto. Detalle en SCHEMA 877. Una
+línea en `novedades.json`. La capa 2 (el tablón del organizador, con
+migración y push) va en la 878, a continuación.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/mesas.js`, `torneo.html`,
+`css/torneos.css`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-877-pantalla.mjs` nueva, verde;
+298 y 394 al día; 722, 849, 748, 299, 857, 858, 555 y test-imports verdes.
+
+**Pendiente**: la 878 (en curso: `js/torneos/tablon.js` nuevo, migración
+`supabase-migration-878-tablon-torneo.sql`).
+
 ## 2026-10-16 (105) — PINGU-Claude (876, remate: los hilos del foro escondido tampoco salen en la portada ni al buscar)
 
 **Hecho** (PINGU: «has escondido todo pero parece que aquí siguen

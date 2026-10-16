@@ -1174,6 +1174,20 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-viva-pide { background: var(--warning-bg); color: var(--warning); }
 .torneo-viva-espera { background: var(--bg); color: var(--text-mid); }
 .torneo-viva-boton { text-decoration: none; }
+/* Qué falta (877): una segunda línea de la barra, a lo ancho. SCHEMA 877. */
+.torneo-viva-estado { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+.torneo-viva-alerta {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.torneo-viva-anillo-quieto { background: var(--ice); }
+:root[data-theme='dark'] .torneo-viva-anillo-quieto { background: var(--ice-dark); }
 /* El reloj de texto de siempre sigue ahí para quien lea con lector de
    pantalla, pero en pantalla manda el anillo. */
 .torneo-viva .torneo-reloj { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
