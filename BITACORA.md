@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (101) — PINGU-Claude (noticia del «Special Deck Set» de Mega Dragonite, Gengar y Feraligatr)
+
+**Hecho**: la noticia redactada como fila de `guides` (`kind = 'news'`, sin
+firma, texto en `reference_blocks` como `richtext`), en
+`supabase-noticia-special-deck-set-mega.sql`. La ejecuta PINGU en el SQL
+Editor; apaga y enciende el disparador de «solo admin publica noticias»
+porque allí no hay sesión. No abre el hilo del foro (eso lo hace el botón
+del editor). Sin portada: las fotos son de PokeBeach.
+
+**Ficheros**: `supabase-noticia-special-deck-set-mega.sql` (nuevo).
+
+**Pruebas**: no toca la web.
+
+**Pendiente**: nada en curso.
+
 ## 2026-10-15 (100) — PINGU-Claude (870–873 — compartir: «Mi día», la hoja común, las tarjetas de los retos y lo demás)
 
 **Hecho** (propuesta «Cosas para compartir»; PINGU: «quiero cosas más
