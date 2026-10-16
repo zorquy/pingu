@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (109) — PINGU-Claude (volcar la jornada 1 de la Liga FDN desde el Excel y las capturas)
+
+**Hecho**: `supabase-liga-fdn-jornada-1.sql` (**PINGU lo ejecuta UNA vez** en
+el SQL Editor). La jornada 1 se saltó en PokeDoc (sus rondas 1–3 están
+cerradas y vacías); el fichero mete las 17 mesas de las rondas 1 y 2 (8 + 9,
+sacadas de las dos capturas de pareos y comprobadas contra el Excel jugador
+a jugador: las victorias, derrotas y empates de los 18 cuadran), con su
+resultado, el histórico de cruces y la hora; la ronda 3 se queda saltada.
+Dos incomparecencias van como tal. Quien no esté inscrito en la liga se
+inscribe con su TCG Live del Excel (bandera `v_inscribir_faltantes`); la
+lista de la jornada 1 de quien no tenga lista de liga pasa a serlo. Antes
+de escribir comprueba que la liga es una sola (o `v_slug`), que los
+usuarios existen y que las rondas están vacías; la segunda ejecución se
+para sola. Probado contra un PostgreSQL local con el esquema mínimo y una
+liga de mentira.
+
+**Ficheros**: `supabase-liga-fdn-jornada-1.sql` (nuevo).
+
+**Pruebas**: no toca la web.
+
+**Pendiente**: que PINGU lo ejecute; y la migración 878 si no está.
+
 ## 2026-10-16 (108) — PINGU-Claude (879 — una jornada de liga es un día de torneo: portada y barra entre jornadas)
 
 **Hecho** (PINGU, con la Liga FDN delante: la portada no decía que hoy hay
