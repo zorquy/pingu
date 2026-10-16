@@ -130,6 +130,7 @@ const T = {
   daily_challenge_results: [],
   user_progress: [],
   profile_comments: [],
+  guide_comments: [],
   xp_mes: [],
 }
 
@@ -684,6 +685,11 @@ sembrar('__FAKE_GUIAS__', 'guides', (i) => ({
 // pestaña que se abre: sin esta tabla el muro estaba SIEMPRE vacío en el
 // doble, así que «se queda en el muro cuando tiene algo» no se podía
 // comprobar — y ese es justo el caso en que la página NO debe moverte.
+// Los comentarios de una guía o noticia (876): van debajo del artículo y
+// desde la 876 cuentan como conversación en el foro y en el perfil.
+sembrar('__FAKE_COMENTARIOS_GUIA__', 'guide_comments', (i) => ({
+  id: `gc-${i + 1}`, guide_id: 'noticia-1', author_id: 'user-1', body: `Comentario ${i + 1}`, reply_to_id: null, created_at: new Date(Date.now() - i * 60000).toISOString(),
+}))
 sembrar('__FAKE_MURO__', 'profile_comments', (i) => ({
   id: `muro-${i + 1}`,
   profile_id: 'user-1',

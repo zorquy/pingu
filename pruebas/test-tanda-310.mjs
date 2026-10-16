@@ -201,20 +201,13 @@ console.log('\n── 5. Una barra de UNA pestaña no es una barra ──')
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 6. Las imágenes de una lista no se piden todas de golpe ──')
 {
-  // DOS EXCEPCIONES, y las dos las encontró la suite cuando el barrido
-  // de la tanda 310 metió el atributo a lo bruto en todas:
-  //
-  //  · js/noticias-foro.js arma el cuerpo de un mensaje de foro, que se
-  //    GUARDA en `forum_posts.body_html`. Eso no es markup de una
-  //    página: es contenido de la base, y el atributo se lo llevaría
-  //    puesto cada anuncio futuro. Lo cazó test-tanda-273.
+  // UNA EXCEPCIÓN (eran dos: js/noticias-foro.js armaba el cuerpo de un
+  // mensaje que se GUARDABA en la base, y se fue en la 876):
   //  · js/lightbox.js pinta la imagen que ACABAS de pulsar. Diferir eso
   //    es retrasar lo único que has pedido.
-  //
-  // Van declaradas aquí, no silenciadas: si mañana alguien mete una
-  // imagen de lista en uno de esos dos ficheros, esta prueba no la verá,
-  // y conviene que se lea.
-  const EXCEPCIONES = new Set(['js/noticias-foro.js', 'js/lightbox.js'])
+  // Va declarada aquí, no silenciada: si mañana alguien mete una imagen
+  // de lista en ese fichero, esta prueba no la verá, y conviene que se lea.
+  const EXCEPCIONES = new Set(['js/lightbox.js'])
   const sinDiferir = []
   for (const dir of ['js', 'js/torneos']) {
     for (const f of readdirSync(`${RAIZ}/${dir}`)) {
@@ -226,10 +219,6 @@ console.log('\n── 6. Las imágenes de una lista no se piden todas de golpe �
   }
   check('toda imagen que pinta el JavaScript pide carga diferida',
     sinDiferir.length === 0, [...new Set(sinDiferir)].slice(0, 5).join(', '))
-
-  // Y el cuerpo que se guarda en la base NO lleva atributos de pintado.
-  check('  …salvo lo que se guarda en la base, que no lleva ninguno',
-    !/loading=/.test(sinComentarios(leer('js/noticias-foro.js'))))
 }
 
 await browser.close()
