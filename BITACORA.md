@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (110) — PINGU-Claude (880 — compartir una noticia en X: texto que cabe, la portada y «Publicar en X»)
+
+**Hecho** (PINGU: «compartir las noticias en twitter de manera correcta,
+que ponga un poco y la portada»): el botón de compartir de una noticia abre
+la hoja común (871) con el título + la entradilla recortada para caber en
+280 con el enlace, las dos imágenes con LA PORTADA dibujada (título encima,
+velo oscuro) y «Publicar en X», que abre el cuadro de X con el texto y el
+enlace; X le pone la portada por la tarjeta de `meta-social.js`, que ahora,
+sin portada, usa la primera foto del cuerpo en vez del logo. Las guías
+siguen como antes. Detalle en SCHEMA 880. Una línea en `novedades.json`.
+
+**Para PINGU**: en X la foto de la tarjeta es la PORTADA de la noticia (o la
+primera foto del cuerpo si no hay portada): una noticia sin ninguna de las
+dos sale con el logo. Y X cachea la tarjeta de cada enlace: si cambias la
+portada después de publicarla, X puede seguir enseñando la vieja un tiempo.
+
+**Ficheros**: `js/compartir-x.js` (nuevo), `js/noticia-compartir.js`
+(nuevo), `js/compartir-hoja.js`, `css/compartir-hoja.css`, `js/guia.js`,
+`js/icons.js`, `netlify/edge-functions/meta-social.js`, `SCHEMA.md`,
+`novedades.json`.
+
+**Pruebas** (rama `pruebas`): nuevas `test-tanda-880.mjs` y
+`test-tanda-880-pantalla.mjs`; verdes 871-pantalla, 872, 324, 270, 272,
+309, 305, 312, 299, ficha-guia, 353, 829-pantalla, test-imports. La 780
+sigue roja desde la 866 (comentario de varias líneas en `components.css`).
+
+**Pendiente**: que PINGU ejecute la migración 878 y
+`supabase-liga-fdn-jornada-1.sql` si no lo ha hecho.
+
 ## 2026-10-16 (109) — PINGU-Claude (volcar la jornada 1 de la Liga FDN desde el Excel y las capturas)
 
 **Hecho**: `supabase-liga-fdn-jornada-1.sql` (**PINGU lo ejecuta UNA vez** en

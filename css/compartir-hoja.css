@@ -103,6 +103,16 @@
   min-height: 44px;
 }
 
+/* «Publicar en X» (880): a lo ancho, debajo de los dos de siempre. */
+.ch-x {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  text-decoration: none;
+}
+
 .ch-nota {
   margin: 0;
   color: var(--text-mid);

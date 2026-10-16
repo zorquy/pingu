@@ -41633,3 +41633,57 @@ sí es verdad.
 **Pruebas**: `test-tanda-879-pantalla.mjs` (lo puro; la portada con la liga
 y su jornada de hoy; la ficha con la jornada hoy, mañana, sin fecha y
 pasada). Verdes: 744, 877, 878, 298, 849, 850, test-imports.
+
+## Tanda 880 — Compartir una noticia en X: el texto, la portada y «Publicar en X»
+
+PINGU: «me gustaría poder compartir las noticias en twitter de manera
+correcta, es decir, que ponga un poco y la portada». Hasta aquí el botón de
+compartir de una noticia hacía lo de una guía: la hoja del sistema con el
+título y la dirección, y en el PC copiar el enlace. En X eso era el enlace
+pelado.
+
+Tres piezas, y conviene tener claro qué hace cada una, porque X no deja
+adjuntar una imagen por enlace:
+
+**El texto** (`js/compartir-x.js`, puro, lo prueba Node): `textoParaX({
+titulo, descripcion })` es el título, línea en blanco y la entradilla
+recortada por una palabra entera, de forma que con el enlace detrás quepa en
+280 (X cuenta cualquier enlace como 23). Si el título solo no deja sitio
+para dos docenas de letras, va el título a secas; si es larguísimo, se
+recorta él. `direccionDeX({ texto, url })` monta
+`https://x.com/intent/post?text=…&url=…` con `encodeURIComponent` (el `url`
+va aparte para que X lo cuente como enlace y le pinte la tarjeta).
+`textoConEnlace` es lo que se pega en WhatsApp: lo mismo con el enlace al
+final.
+
+**La portada en X la pone X** con la tarjeta `summary_large_image` que ya
+escribía `meta-social.js` desde `cover_image`. Lo que faltaba: una noticia
+SIN portada caía al logo de PokeDoc, que no dice de qué va. Ahora
+`imagenDeArticulo(guia)` = portada → `primeraImagenDe(reference_blocks)` (un
+bloque `image`, o la primera `<img>` de un bloque de texto rico; solo
+http(s) o rutas del sitio, un `data:` no vale para una tarjeta) → la del
+sitio. Las medidas solo se declaran para la del sitio, como siempre.
+
+**La hoja** (`js/noticia-compartir.js`, entra por `import()` al pulsar):
+`compartirNoticia(guide)` abre la hoja común de la 871 con «Compartir la
+noticia», el texto con enlace, las dos imágenes (`pintarNoticia`: la
+portada cubriendo el lienzo con un velo oscuro de abajo arriba, «PokeDoc ·
+Noticias» arriba, el título en Fredoka y la entradilla pegados abajo, y
+`pokedoc.es/noticias`; sin portada, el degradado de los retos) y la opción
+nueva de la hoja, `x: { texto, url }`, que pinta «Publicar en X» (`.ch-x`,
+a lo ancho debajo de «Compartir…» y «Copiar», `target="_blank"`). La
+portada se carga con `cargarImagen` (Supabase Storage la sirve con CORS);
+si no carga, se dibuja sin foto. `envolver(ctx, texto, maxAncho, maximo)`
+parte en líneas y pone puntos suspensivos en la última. Una guía sigue
+como antes (`engancharCompartir`). El icono es `icons.xLogo` (relleno: es
+una marca, no un trazo de Feather).
+
+**Pruebas**: `test-tanda-880.mjs` (el texto cabe, la dirección, la primera
+foto del cuerpo y la tarjeta) y `test-tanda-880-pantalla.mjs` (la hoja desde
+la ficha: texto, «Publicar en X», las dos imágenes con la portada leída
+píxel a píxel; sin portada y en el móvil; una guía como antes). Verdes
+también: 871-pantalla, 872, 324, 270, 272, 309, 305, 312, 299, ficha-guia,
+353, 829-pantalla, test-imports; la portada sigue en 112,6 KB. La 780
+está roja desde la 866 por un comentario de varias líneas en
+`components.css` (no es de esta tanda).
+

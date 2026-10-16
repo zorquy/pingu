@@ -98,6 +98,28 @@ export function urlAbsoluta(url) {
   return `${SITIO}${v.startsWith('/') ? '' : '/'}${v}`
 }
 
+// La primera foto del cuerpo de un artículo (880): un bloque `image` o
+// la primera `<img>` de un bloque de texto rico. Para la tarjeta de X de
+// una noticia sin portada: la foto de la carta revelada es mejor tarjeta
+// que el logo de PokeDoc, que no dice de qué va la noticia.
+export function primeraImagenDe(bloques) {
+  if (!Array.isArray(bloques)) return ''
+  for (const b of bloques) {
+    if (b?.type === 'image' && b.url && /^(https?:\/\/|\/)/i.test(b.url)) return urlAbsoluta(b.url)
+    if (b?.type === 'richtext' && b.html) {
+      const m = String(b.html).match(/<img\b[^>]*\ssrc=["']([^"']+)["']/i)
+      if (m && /^(https?:\/\/|\/)/i.test(m[1])) return urlAbsoluta(m[1].replace(/&amp;/g, '&'))
+    }
+  }
+  return ''
+}
+
+// La imagen de la tarjeta de una guía o noticia: la portada; sin ella, la
+// primera foto del cuerpo; sin ninguna, la del sitio.
+export function imagenDeArticulo(guia) {
+  return urlAbsoluta(guia?.cover_image) || primeraImagenDe(guia?.reference_blocks) || IMAGEN_POR_DEFECTO
+}
+
 // ── Datos estructurados (schema.org) ──
 //
 // Lo mismo que el Open Graph pero para BUSCADORES en vez de para redes
@@ -513,7 +535,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
     recortar(guia.search_content) ||
     (esNoticia ? 'Noticia de Pokémon TCG en español.' : 'Guía de la comunidad de PokeDoc sobre Pokémon TCG.')
 
-  const imagen = urlAbsoluta(guia.cover_image) || IMAGEN_POR_DEFECTO
+  const imagen = imagenDeArticulo(guia)
   // A una noticia se puede llegar por dos direcciones (la limpia y la de
   // guía, desde un enlace viejo o desde la búsqueda). La canónica es
   // SIEMPRE la limpia: si no, Google ve dos páginas con el mismo texto y

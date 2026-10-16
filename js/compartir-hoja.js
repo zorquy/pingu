@@ -13,6 +13,9 @@
 //     imagen: (formato) => canvas | Promise<canvas>, con formato 'historia'
 //             o 'apaisada'; sin `imagen`, solo la pestaña de texto
 //     nombre: el del fichero, sin extensión («mi-dia-77»)
+//     x:      { texto, url } (880): añade «Publicar en X», que abre el
+//             cuadro de X con ese texto y ese enlace (X le pinta la
+//             tarjeta de la página: la portada, para una noticia)
 //
 // Es un <dialog>: desde abajo en el móvil, centrado en el PC. Entra por
 // `import()` y mete su hoja: la portada no paga nada.
@@ -53,13 +56,18 @@ async function copiar(texto) {
   }
 }
 
-export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc' } = {}) {
+export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null } = {}) {
   await hojaInyectada('css/compartir-hoja.css')
   const d = asegurarDialogo()
   const conImagen = typeof imagen === 'function'
   const pestanas = conImagen ? PESTANAS : PESTANAS.slice(0, 1)
   let activa = 'texto'
   const lienzos = {}
+  let direccionX = ''
+  if (x?.texto) {
+    const { direccionDeX } = await import('./compartir-x.js')
+    direccionX = direccionDeX(x)
+  }
 
   d.innerHTML = `
     <div class="ch-caja">
@@ -79,6 +87,7 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
       <div class="ch-acciones">
         <button type="button" class="btn-primary ch-compartir" data-ch-compartir>${icons.share(16)} Compartir…</button>
         <button type="button" class="btn-secondary ch-copiar" data-ch-copiar>${icons.link(16)} Copiar</button>
+        ${direccionX ? `<a class="btn-secondary ch-x" data-ch-x href="${escapeHtml(direccionX)}" target="_blank" rel="noopener">${icons.xLogo(16)} Publicar en X</a>` : ''}
       </div>
       <p class="ch-nota" id="chNota"></p>
     </div>`
@@ -97,7 +106,7 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
     if (activa === 'texto') {
       previa.innerHTML = `<pre class="ch-texto">${escapeHtml(texto)}</pre>`
       btnCopiar.innerHTML = `${icons.link(16)} Copiar`
-      nota.textContent = 'El texto, tal cual se pega en WhatsApp o en X.'
+      nota.textContent = direccionX ? 'El texto, tal cual se pega en WhatsApp. En X, con el enlace sale la portada sola.' : 'El texto, tal cual se pega en WhatsApp o en X.'
       return
     }
     previa.innerHTML = `<p class="ch-cargando">Dibujando la imagen…</p>`

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-16", "tipo": "mejora", "texto": "Compartir una noticia en X: el botón de compartir abre una hoja con el texto listo (título y entradilla), la portada como imagen y «Publicar en X», que abre X con todo puesto.", "enlace": "/noticias"},
     {"fecha": "2026-10-16", "tipo": "arreglo", "texto": "La jornada de una liga cuenta como torneo del día: la portada dice «Torneo hoy a las 19:00» con la jornada, y entre jornadas la ficha dice cuándo es la siguiente en vez de «pareando».", "enlace": "/torneos"},
     {"fecha": "2026-10-16", "tipo": "nuevo", "texto": "Tablón del torneo: quien organiza (y sus jueces) deja avisos cortos durante el torneo, con aviso push a los inscritos, y la web apunta sola cuándo empieza y se cierra cada ronda. Lo ve todo el mundo, también sin cuenta.", "enlace": "/torneos"},
     {"fecha": "2026-10-16", "tipo": "mejora", "texto": "En un torneo en juego, la barra de arriba cuenta la ronda: qué mesas faltan por reportar, si hay una disputa con un juez, «has terminado, esperando a 2 mesas», y entre rondas qué viene. También sin cuenta.", "enlace": "/torneos"},

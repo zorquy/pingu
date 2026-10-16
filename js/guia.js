@@ -530,7 +530,16 @@ async function init() {
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
   }
 
-  engancharCompartir(document.getElementById('btnCompartir'), { titulo: guide.title })
+  // Una noticia se comparte con su hoja (880): el texto para X, la
+  // portada dibujada y «Publicar en X». Una guía, como siempre.
+  if (esNoticia) {
+    document.getElementById('btnCompartir')?.addEventListener('click', async () => {
+      const { compartirNoticia } = await import('./noticia-compartir.js')
+      compartirNoticia(guide)
+    })
+  } else {
+    engancharCompartir(document.getElementById('btnCompartir'), { titulo: guide.title })
+  }
 
   setupReadTracking(session, guide, esNoticia)
 
