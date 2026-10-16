@@ -41534,3 +41534,66 @@ sus tres formas, fuera del corte con el puesto, sin cuenta y en el móvil).
 Al día: 298 (entre rondas la barra se queda: antes se exigía que se fuera),
 394 (quien ha terminado lee «Has terminado»). Verdes: 722, 849, 748, 299,
 857, 858, 555, test-imports.
+
+## Tanda 878 — El tablón del torneo
+
+Capa 2 de la propuesta (la 877 es la barra). PINGU: «¿un chat para que los
+organizadores pongan updates? algo así?». No es un chat: una lista de avisos
+cortos de quien organiza y de sus jueces, con hora, que ve todo el mundo
+(sin cuenta también), y en la misma lista los sucesos que la web apunta
+sola. El último aviso humano va pegado en la barra de estado.
+
+**La base** (`supabase-migration-878-tablon-torneo.sql`, PINGU la ejecuta):
+`tournament_updates` (id, tournament_id → tournaments en cascada, author_id
+null en los automáticos, `kind` 'aviso'|'auto', `body` de 1 a 500,
+created_at; índice por torneo y fecha). RLS: leer todo el mundo; insertar
+NADIE a pelo; borrar un aviso (no un automático) quien lo escribió o quien
+lleva el torneo. **Escribir** es `torneos_tablon_escribir(p_torneo, p_texto,
+p_avisar = true, p_auto = false)` (security definer): exige sesión y
+`torneos_mando` o `repeticiones_juez_de` (juez aprobado, la 555); con
+`p_auto` apunta el suceso sin autor y sin avisar; con `p_avisar` y humano,
+deja una `user_notifications` tipo `torneo_aviso` a cada inscrito activo
+que no lo tenga en `notification_prefs_disabled`, sin avisarse a sí mismo
+(título «Aviso del torneo — <nombre>», enlace a la ficha). `enviar-push`
+la empuja sola, como todas. La tabla entra en la publicación
+`supabase_realtime` (la ficha ya escucha por websocket).
+
+**La web**:
+· `js/torneos/tablon.js`: `cargarTablon` (los 30 últimos y los perfiles de
+  quien firma), `montarTablon(contexto)` (desde `recargar()` de torneo.js,
+  después de los jueces: `esJuez` decide si quien mira escribe), la caja de
+  escribir (una línea, «avisar también por push» marcado, Publicar; se
+  monta UNA vez para no pisar lo que alguien teclea; `faltaLaRpc` →
+  `avisoDeMigracion`), la lista (cinco a la vista y «Ver los N»; lo
+  automático en gris con rayo; cada aviso con cara, nombre y su papel:
+  organizador / juez / organización; «Borrar» en los tuyos o, con mando, en
+  todos), el pie «Lo automático lo escribe la web…», y `pintarEnBarra`: el
+  último aviso humano de hace menos de tres horas en `#torneoVivaAviso`
+  (`avisoPegado`, pura en `js/torneos/tablon-pegado.js`). Sin avisos y sin
+  poder escribir, la caja ni ocupa; sin migración (error al leer), tampoco.
+· `torneo.html`: `#torneoTablon` entre la barra viva y las acciones de
+  administración; `#torneoVivaAviso` dentro de la barra.
+· `js/torneos/ronda.js`: `apuntarEnTablon` (nunca lanza) en `iniciarRonda`
+  («Ronda N en marcha · pareos publicados · M mesas · T min»),
+  `cerrarRonda` («Ronda N cerrada · M mesas», antes de lo que venga),
+  `sembrarTopCut` («Suizas completas · top N sembrado…») y `terminarTorneo`
+  («Torneo terminado · campeón: X»). Los cierres los hace siempre el
+  organizador desde la ficha (el barredor solo avisa), así que el que firma
+  la llamada tiene mando.
+· `js/notifications.js`: tipo `torneo_aviso` («Avisos del organizador
+  durante un torneo») en las dos listas, para Ajustes.
+· `css/torneos.css`: `.torneo-tablon*` y `.torneo-viva-aviso`.
+· `js/torneos/torneo.js`: escucha `tournament_updates` del torneo.
+
+**El doble** (`stub-supabase.js`): tabla `tournament_updates`, semilla
+`__FAKE_TABLON__` y la RPC `torneos_tablon_escribir` con la misma regla
+(mando o juez aprobado; notificaciones a los inscritos activos que no lo
+tengan apagado, menos quien escribe).
+
+**Pruebas**: `test-tanda-878-pantalla.mjs` (lo puro y lo estático; un
+jugador lo ve con el aviso en la barra y sin poder escribir ni borrar; el
+organizador escribe, aparece, la barra lo lleva, los otros tres inscritos
+reciben su notificación, y lo borra; el juez escribe sin push al desmarcar;
+un jugador sin avisos no ve la caja; al cerrar una ronda la web apunta
+«Ronda 2 cerrada · 2 mesas» como automático; el móvil). Verdes: 877, 298,
+394, 722, 849, 555, 299, 311, 312, 313, 305, 310, 868, test-imports.

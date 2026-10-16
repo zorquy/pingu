@@ -29,6 +29,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
+import { apuntarEnTablon } from './tablon.js'
 import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga } from './jornadas.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
@@ -620,6 +621,9 @@ async function iniciarRonda(ronda) {
   }
 
   showToast(`${conMayuscula(ronda.phase === 'swiss' ? nombreDeRonda(ronda.round_number) : `ronda ${ronda.round_number}`)} en marcha. ${ctx.torneo.round_time_minutes} minutos.`, 'success')
+  // Al tablón (878): la web apunta sola lo que acaba de pasar.
+  const mesasDeLaRonda = partidas.filter((m) => m.round_id === ronda.id && m.player_a_id && m.player_b_id && m.status !== 'bye').length
+  await apuntarEnTablon(ctx.torneo.id, `${conMayuscula(ronda.phase === 'swiss' ? nombreDeRonda(ronda.round_number) : `top cut, ronda ${ronda.round_number}`)} en marcha · pareos publicados${mesasDeLaRonda ? ` · ${mesasDeLaRonda} ${mesasDeLaRonda === 1 ? 'mesa' : 'mesas'}` : ''}${ronda.phase === 'swiss' ? ` · ${ctx.torneo.round_time_minutes} min` : ''}`)
   await ctx.recargarFicha()
 }
 
@@ -638,6 +642,9 @@ async function cerrarRonda(ronda) {
     return
   }
   await supabase.from('rounds').update({ status: 'finished', closed_at: ahora() }).eq('id', ronda.id)
+  // Al tablón (878), antes de lo que venga: el cierre es un hecho ya.
+  const jugadas = mesas.filter((m) => m.player_a_id && m.player_b_id && m.status !== 'bye').length
+  await apuntarEnTablon(ctx.torneo.id, `${conMayuscula(ronda.phase === 'swiss' ? nombreDeRonda(ronda.round_number) : `top cut, ronda ${ronda.round_number}`)} cerrada${jugadas ? ` · ${jugadas} ${jugadas === 1 ? 'mesa' : 'mesas'}` : ''}`)
 
   if (ronda.phase === 'top_cut') {
     await avanzarBracket(ronda)
@@ -692,6 +699,7 @@ async function terminarTorneo(mensaje) {
     // ficha lo volverá a intentar.
     if (!error) Object.assign(ctx.torneo, cambios)
   }
+  await apuntarEnTablon(ctx.torneo.id, podio.length ? `Torneo terminado · campeón: ${nombreDe(podio[0])}` : 'Torneo terminado')
   showToast(mensaje, 'success')
 }
 
@@ -795,6 +803,7 @@ async function sembrarTopCut() {
     return
   }
   await crearRondaDeCut(siembra)
+  await apuntarEnTablon(ctx.torneo.id, `Suizas completas · top ${siembra.length * 2} sembrado, los cruces ya están en Rondas`)
   showToast(`Suizas completas: top ${siembra.length * 2} sembrado. Inicia la ronda cuando estén listos.`, 'success')
 }
 

@@ -25,6 +25,8 @@ export const NOTIFICATION_TYPES = {
   // funciona a todo el mundo: no hay que conceder permisos ni depende
   // de que el correo esté bien configurado.
   torneo_ronda: 'Cuando empieza tu ronda de torneo',
+  // El tablón (878): lo que escribe quien organiza durante el torneo.
+  torneo_aviso: 'Avisos del organizador durante un torneo',
   torneo_partida: 'Tu partida: check-in, rival que reporta, mesa resuelta',
   torneo_final: 'Cuando termina un torneo que has jugado',
   torneo_cancelado: 'Si se cancela un torneo en el que estás',
@@ -100,6 +102,7 @@ export const EMAIL_TYPES = {
   torneo_cancelado: 'Si se cancela un torneo en el que estás',
   torneo_plaza: 'Cuando la lista de espera te da plaza',
   torneo_ronda: 'Cuando empieza tu ronda',
+  torneo_aviso: 'Avisos del organizador durante un torneo',
   // `torneo_apertura` ya no está: desde el 2026-09-02 la apertura de un
   // torneo NO manda correo a nadie (era un email a toda la comunidad
   // por cada torneo que abría — spam). El anuncio queda en campanita y

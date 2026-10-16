@@ -210,10 +210,17 @@
       <!-- Qué falta, con nombre (877): las mesas sin reportar y las disputas.
            Lo escribe ronda.js; sin nada que decir, ni ocupa. -->
       <div class="torneo-viva-estado hidden" id="torneoVivaEstado" role="status"></div>
+      <!-- El último aviso del organizador (878), pegado mientras sea reciente. -->
+      <div class="torneo-viva-aviso hidden" id="torneoVivaAviso"></div>
       <!-- El reloj de siempre: lo escribe arrancarReloj() y aquí es lo
            que se lee dentro del anillo. -->
       <span class="torneo-reloj hidden" id="torneoReloj"></span>
     </div>
+
+    <!-- El tablón del torneo (878): avisos del organizador y sus jueces, y
+         los sucesos que la web apunta sola. Lo monta js/torneos/tablon.js;
+         sin nada que decir, ni ocupa. -->
+    <section class="torneo-tablon hidden" id="torneoTablon" aria-labelledby="torneoTablonTitulo"></section>
 
     <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
 

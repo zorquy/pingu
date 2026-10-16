@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (107) — PINGU-Claude (878 — el tablón del torneo: avisos del organizador y sucesos de la web, con push)
+
+**Hecho** (capa 2 de «Torneo en vivo, sin directo»): `tournament_updates`
++ `torneos_tablon_escribir` en
+`supabase-migration-878-tablon-torneo.sql` (**PINGU: ejecútala**; hasta
+entonces el tablón no sale y publicar avisa de la migración). La ficha
+monta el tablón (`js/torneos/tablon.js`): organizador y jueces escriben,
+todo el mundo lee, el último aviso va pegado en la barra de estado, la web
+apunta sola rondas en marcha/cerradas, top cut y final, y «avisar también
+por push» deja una notificación `torneo_aviso` a los inscritos (se apaga
+en Ajustes). Detalle en SCHEMA 878. Una línea en `novedades.json`.
+
+**Ficheros**: `js/torneos/tablon.js`, `js/torneos/tablon-pegado.js`,
+`supabase-migration-878-tablon-torneo.sql` (nuevos); `js/torneos/ronda.js`,
+`js/torneos/torneo.js`, `torneo.html`, `css/torneos.css`,
+`js/notifications.js`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-878-pantalla.mjs` nueva, verde;
+el doble gana la tabla y la RPC. Verdes: 877, 298, 394, 722, 849, 555, 299,
+311, 312, 313, 305, 310, 868, test-imports.
+
+**Pendiente**: ejecutar la migración 878. Nada en curso.
+
 ## 2026-10-16 (106) — PINGU-Claude (877 — la barra de estado del torneo: qué falta, has terminado, entre rondas, fuera del corte)
 
 **Hecho** (PINGU: «pierden un poco el hilo de cuando se cierra ronda, de

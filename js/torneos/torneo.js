@@ -28,6 +28,7 @@ import {
 } from './comun.js'
 import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces, pendientesDeJuez } from './jueces.js'
+import { montarTablon } from './tablon.js'
 import { cargarJornadas, misJornadas, misJornadasHtml, listaAnterior, enviarListaJornada, quitarListaJornada, primeraAbierta, quienesJuegan, numJornadas, rondasPorJornada } from './jornadas.js'
 import { contarPalmares, hitosMerecidos } from './palmares.js'
 import { getAllAchievements, addXP } from '../gamification.js'
@@ -2321,6 +2322,9 @@ async function recargar() {
   }
   await montarCiclo(contexto)
   await montarJueces(contexto)
+  // El tablón (878): después de los jueces, que es quien sabe si quien
+  // mira puede escribir en él.
+  await montarTablon(contexto)
   // Las tres de abajo ESCRIBEN (logros, XP, el podio congelado, el
   // anuncio en el foro) o celebran algo tuyo: nada que hacer si quien
   // mira no tiene cuenta.
@@ -2442,6 +2446,7 @@ function arrancarSondeoFicha() {
         tablas: [
           { tabla: 'rounds', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'judge_calls', filtro: `tournament_id=eq.${torneo.id}` },
+          { tabla: 'tournament_updates', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'tournament_matches' },
           { tabla: 'match_messages' },
           { tabla: 'match_reports' },

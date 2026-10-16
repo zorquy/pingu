@@ -3540,3 +3540,30 @@ html.torneo-jugando #torneoNombre {
 .torneo-vivo-rondas i { width: 28px; height: 6px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.28); }
 .torneo-vivo-rondas i.hecha { background: #4ade80; }
 .torneo-vivo-rondas i.ahora { background: var(--blanco-fijo); }
+
+/* ── El tablón del torneo (878) · SCHEMA 878 ── */
+.torneo-viva-aviso { flex-basis: 100%; display: flex; align-items: center; gap: var(--e-xs); flex-wrap: wrap; font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-viva-aviso b { color: var(--text); }
+.torneo-viva-aviso-texto { color: var(--text); }
+.torneo-tablon { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--e-md); margin: 0 0 var(--e-md); display: grid; gap: var(--e-sm); }
+.torneo-tablon-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.torneo-tablon-cab h3 { display: flex; align-items: center; gap: var(--e-xs); margin: 0; font-size: var(--t-lg); }
+.torneo-tablon-escribir { display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; }
+.torneo-tablon-escribir input[type='text'] { flex: 1; min-width: 200px; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 var(--e-md); font: inherit; background: var(--bg); color: var(--text); }
+.torneo-tablon-escribir input[type='text']:focus { outline: none; box-shadow: var(--shadow-ring); }
+.torneo-tablon-push { display: inline-flex; align-items: center; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); min-height: 44px; }
+.torneo-tablon-items { list-style: none; margin: 0; padding: 0; }
+.torneo-tablon-fila { display: grid; grid-template-columns: 52px 1fr; gap: var(--e-sm); padding: var(--e-xs) 0; border-top: 1px solid var(--border); align-items: start; }
+.torneo-tablon-fila:first-child { border-top: 0; }
+.torneo-tablon-fila time { font-size: var(--t-xs); color: var(--text-mid); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.torneo-tablon-cuerpo { display: grid; gap: 2px; min-width: 0; }
+.torneo-tablon-quien { display: flex; align-items: center; gap: var(--e-xs); flex-wrap: wrap; font-size: var(--t-sm); }
+.torneo-tablon-cara { width: 22px; height: 22px; border-radius: 6px; display: inline-grid; place-items: center; font-size: var(--t-2xs); font-weight: 700; color: var(--blanco-fijo); background-size: cover; flex: none; }
+.torneo-tablon-texto { font-size: var(--t-md); }
+.torneo-tablon-auto { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--text-mid); font-size: var(--t-sm); }
+.torneo-tablon-borrar { margin-left: auto; font-size: var(--t-xs); }
+.torneo-tablon-pie { margin: 0; font-size: var(--t-xs); }
+@media (max-width: 640px) {
+  .torneo-tablon-escribir input[type='text'] { min-width: 100%; }
+  .torneo-tablon-fila { grid-template-columns: 44px 1fr; }
+}
