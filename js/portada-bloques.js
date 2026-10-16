@@ -95,21 +95,26 @@ export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribien
 async function montarForo(session) {
   const hueco = document.getElementById('foroVivo')
   if (!hueco) return []
-  const { data: temas, error } = await supabase
+  // Primero los foros que se VEN (876): la lectura de los temas es abierta,
+  // así que sin esto los hilos viejos del subforo de Noticias —escondido
+  // desde la 876— seguían encabezando la portada. Administración recibe
+  // también los escondidos: se quitan por `is_hidden`. Si la lista no llega
+  // (o viene vacía), se pide como siempre: mejor el foro que un hueco.
+  const { data: forosTodos } = await supabase.from('forum_boards').select('id, name, is_hidden')
+  const visibles = (forosTodos || []).filter((f) => !f.is_hidden)
+  let q = supabase
     .from('forum_threads')
     .select('id, title, prefix, post_count, created_at, last_post_at, author_id, last_post_author_id, board_id')
-    .order('last_post_at', { ascending: false })
-    .limit(4)
+  if (visibles.length) q = q.in('board_id', visibles.map((f) => f.id))
+  const { data: temas, error } = await q.order('last_post_at', { ascending: false }).limit(4)
   if (error || !temas?.length) {
     recoger('foroVivoSeccion')
     return []
   }
   const medianoche = new Date()
   medianoche.setHours(0, 0, 0, 0)
-  const [{ data: deHoy }, { data: foros }] = await Promise.all([
-    supabase.from('forum_posts').select('thread_id, author_id').gte('created_at', medianoche.toISOString()).limit(1000),
-    supabase.from('forum_boards').select('id, name').in('id', [...new Set(temas.map((t) => t.board_id).filter(Boolean))]),
-  ])
+  const { data: deHoy } = await supabase.from('forum_posts').select('thread_id, author_id').gte('created_at', medianoche.toISOString()).limit(1000)
+  const foros = visibles.length ? visibles : forosTodos || []
   const hoy = {}
   for (const m of deHoy || []) hoy[m.thread_id] = (hoy[m.thread_id] || 0) + 1
   // Delante, el de la lista que más mensajes ha tenido hoy (a igualdad, el

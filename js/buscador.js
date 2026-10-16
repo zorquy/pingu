@@ -124,9 +124,14 @@ const CONSULTAS = {
   },
   async temas(crudo, limite) {
     const patron = `%${terminoParaFiltro(crudo)}%`
+    // Solo temas de foros que se ven (876): sin esto los hilos del subforo
+    // escondido de Noticias salían al buscar. Sin lista de foros, como siempre.
+    const { data: foros } = await supabase.from('forum_boards').select('id, is_hidden')
+    const visibles = (foros || []).filter((f) => !f.is_hidden).map((f) => f.id)
+    const base = () => (visibles.length ? supabase.from('forum_threads').select('id, title').in('board_id', visibles) : supabase.from('forum_threads').select('id, title'))
     const { data, error } = await conVueltaAtras(
-      () => supabase.from('forum_threads').select('id, title').ilike('search_norm', patron).limit(limite),
-      () => supabase.from('forum_threads').select('id, title').ilike('title', `%${crudo.replace(/[,()%]/g, ' ')}%`).limit(limite)
+      () => base().ilike('search_norm', patron).limit(limite),
+      () => base().ilike('title', `%${crudo.replace(/[,()%]/g, ' ')}%`).limit(limite)
     )
     if (error) throw error
     return data || []

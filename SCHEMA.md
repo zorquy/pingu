@@ -41479,3 +41479,14 @@ abre la pestaña que tiene algo») falla igual sin estos cambios: desde la
 867 el perfil propio abre por la Vitrina aunque esté vacía, y la prueba
 sigue esperando el Foro y hablando del «muro», que ya no existe. Queda
 apuntado para ponerla al día.
+
+### 876, remate: la portada y el buscador
+
+PINGU, con la portada delante: «has escondido todo pero parece que aquí
+siguen saliendo». «Ahora en el foro» (`montarForo`, `js/portada-bloques.js`)
+pedía los cuatro temas con mensaje más reciente sin mirar el foro, y los
+hilos viejos de Noticias lo eran. Ahora pide primero los foros (la RLS da a
+administración también los escondidos: se quitan por `is_hidden`) y los
+temas con `in('board_id', visibles)`; si la lista no llega, como antes. Y lo
+mismo el grupo «Foro» de `js/buscador.js` (/buscar y Ctrl+K): un hilo
+escondido salía al buscar su título. La prueba 876 lo mira en los dos.

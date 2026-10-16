@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (105) — PINGU-Claude (876, remate: los hilos del foro escondido tampoco salen en la portada ni al buscar)
+
+**Hecho** (PINGU: «has escondido todo pero parece que aquí siguen
+saliendo», con «Ahora en el foro» delante): la portada y el grupo «Foro»
+del buscador piden solo temas de foros visibles. SCHEMA 876 (remate).
+
+**Ficheros**: `js/portada-bloques.js`, `js/buscador.js`, `SCHEMA.md`.
+
+**Pruebas**: 876-pantalla ampliada (portada y /buscar), verde; al día 289,
+781, 782, 288, 299, 319, 851, 718, 844, 845.
+
+**Pendiente**: ejecutar la migración 876 si no está. Nada en curso.
+
 ## 2026-10-16 (104) — PINGU-Claude (876 — una noticia ya no abre hilo en el foro; se comenta en la noticia y eso cuenta)
 
 **Hecho** (PINGU: «no sé si tiene sentido que las noticias generen un hilo
