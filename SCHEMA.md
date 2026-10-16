@@ -41408,3 +41408,13 @@ Mi colección › Buscar, la paleta precalentada y abierta ya con su hoja —un
 `MutationObserver` sobre `open` apunta si la hoja estaba en ese instante—,
 y con `saveData` nada se precalienta pero la hoja llega antes igual). Al
 día: 851, 852, 853, 718, 765, 761, 768, 450, 570, 299, test-imports.
+
+## Tanda 875 — Fuera la tira «Sin respuesta todavía» del índice del foro
+
+PINGU: «del foro quitaría lo de sin respuesta todavía, creo que ocupa mucha
+pantalla y ya tenemos arriba lo que se está hablando que ocupa menos». Se va
+`sinResponderHtml` de `js/foro.js` (la consulta de `forum_threads` con
+`post_count = 1`, su pintado y el `hidden` que le ponían los chips de
+sección) y su CSS (`.foro-sin-responder`, `.foro-sr-*`) de `css/foro.css`.
+«Lo que se está hablando» (la 299) sigue en la franja de arriba, que es lo
+que la sustituye. Pruebas al día: 746, 804, 813 y 299.

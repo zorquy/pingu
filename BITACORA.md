@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (103) — PINGU-Claude (875 — fuera la tira «Sin respuesta todavía» del foro)
+
+**Hecho** (PINGU: «ocupa mucha pantalla y ya tenemos arriba lo que se está
+hablando»): se quita `sinResponderHtml` y su CSS del índice del foro. Sin
+pantalla nueva ni migración. Una línea en `novedades.json`.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas**: 746-pantalla, 804, 813 y 299 verdes. Nada nuevo (no había
+ninguna que mirara la tira).
+
+**Pendiente**: nada en curso.
+
 ## 2026-10-16 (102) — PINGU-Claude (874 — «Pokémon + expansión» en los buscadores, y la paleta sin salto)
 
 **Hecho** (PINGU: «pikachu ascended heroes o hypno rocket […] si voy

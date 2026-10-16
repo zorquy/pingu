@@ -137,45 +137,9 @@ function engancharMarcarTodo() {
 // ─────────────────────────────────────────────────────────────
 // 1. El índice
 // ─────────────────────────────────────────────────────────────
-// ── Los temas que nadie ha contestado ──
-//
-// Con una comunidad pequeña, un hilo sin respuesta el primer día es alguien
-// que no vuelve. Esta tira los pone donde todo el mundo los ve, para que a
-// nadie se le quede la pregunta colgada.
-//
-// Quedan fuera los cerrados (no se puede contestar) y los fijados (un
-// anuncio de la casa no pide respuestas). Y solo temas de los foros
-// VISIBLES: la política de lectura de forum_threads es abierta, así que sin
-// este filtro un tema de un foro oculto se colaría por aquí.
-async function sinResponderHtml(idsForosVisibles) {
-  if (!idsForosVisibles.length) return ''
-  const { data, error } = await supabase
-    .from('forum_threads')
-    .select('id, title, prefix, created_at, author_id')
-    .in('board_id', idsForosVisibles)
-    .eq('post_count', 1)
-    .eq('is_locked', false)
-    .eq('is_pinned', false)
-    .order('created_at', { ascending: false })
-    .limit(5)
-  if (error || !data || data.length === 0) return ''
-
-  const perfiles = await perfilesPorId(data.map((t) => t.author_id))
-  const filas = data
-    .map(
-      (t) => `<a class="foro-sr-fila" href="${urlTema(t.id)}">
-        <span class="foro-sr-titulo">${etiquetaHtml(t.prefix)} ${escapeHtml(t.title)}</span>
-        <small>${escapeHtml(nombreDe(perfiles[t.author_id]))} · ${escapeHtml(haceCuanto(t.created_at))}</small>
-      </a>`
-    )
-    .join('')
-
-  return `<section class="foro-sin-responder">
-    <h2>${icons.helpCircle(16)} Sin respuesta todavía</h2>
-    <p class="subtext">Nadie ha contestado a ${data.length === 1 ? 'este tema' : 'estos temas'}. Si sabes algo, dentro te esperan.</p>
-    <div class="foro-sr-lista">${filas}</div>
-  </section>`
-}
+// La tira «Sin respuesta todavía» (los temas que nadie había contestado)
+// se quitó en la 875. PINGU: «ocupa mucha pantalla y ya tenemos arriba lo
+// que se está hablando, que ocupa menos».
 
 // ── Lo que se está hablando (tanda 299) ──
 //
@@ -312,10 +276,7 @@ async function pintarIndice() {
     })
     .join('')
 
-  const [sinResponder, calientes] = await Promise.all([
-    sinResponderHtml(foros.map((f) => f.id)),
-    calientesHtml(),
-  ])
+  const calientes = await calientesHtml()
 
   // La franja va en su propio hueco, ancho completo: dentro de la
   // columna principal los títulos se volvían a cortar, que es el fallo
@@ -335,7 +296,7 @@ async function pintarIndice() {
     ? `<div class="foro-chips-secciones" role="group" aria-label="Secciones del foro"><button type="button" class="chip-filtro" data-seccion="" aria-pressed="true">Todo</button>${conForos.map((s) => `<button type="button" class="chip-filtro" data-seccion="${escapeHtml(String(s.id))}" aria-pressed="false">${escapeHtml(s.name)}</button>`).join('')}</div>`
     : ''
   principal.innerHTML = bloques
-    ? chips + sinResponder + bloques
+    ? chips + bloques
     : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
   principal.querySelector('.foro-chips-secciones')?.addEventListener('click', (e) => {
     const chip = e.target.closest('[data-seccion]')
@@ -343,7 +304,6 @@ async function pintarIndice() {
     const elegida = chip.dataset.seccion
     for (const c of principal.querySelectorAll('.foro-chips-secciones [data-seccion]')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false')
     for (const sec of principal.querySelectorAll('section.foro-seccion')) sec.hidden = !!elegida && sec.dataset.seccion !== elegida
-    principal.querySelector('.foro-sin-responder')?.toggleAttribute('hidden', !!elegida)
   })
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
