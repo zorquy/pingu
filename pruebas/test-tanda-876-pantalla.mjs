@@ -109,6 +109,23 @@ console.log('\n── 4. La pestaña Foro del perfil cuenta los comentarios en n
   await ctx.close()
 }
 
+console.log('\n── 5. La portada y el buscador tampoco enseñan los hilos del foro escondido ──')
+{
+  const { page, ctx, errores } = await abrir('/index.html', { sesion: 'admin-1' })
+  check('sin errores', errores.length === 0, errores[0] || '')
+  const enlaces = await page.$$eval('#foroVivo a[href^="/tema/"]', (as) => as.map((a) => a.getAttribute('href')))
+  check('«Ahora en el foro» lleva el tema visible y no el del foro escondido (aunque sea el más reciente)', enlaces.includes('/tema/t1') && !enlaces.some((h) => /t-viejo/.test(h)), JSON.stringify(enlaces))
+  await ctx.close()
+  const b = await abrir('/buscar.html?q=Noticia&en=temas')
+  const hs = await b.page.$$eval('#searchResults .bs-fila', (as) => as.map((a) => a.getAttribute('href')))
+  check('/buscar en el foro no encuentra el hilo del foro escondido', !hs.some((h) => /t-viejo/.test(h || '')), JSON.stringify(hs))
+  const b2 = await b.page.evaluate(() => { const i = document.getElementById('searchInput'); i.value = 'Sevilla'; i.dispatchEvent(new Event('input', { bubbles: true })) })
+  await b.page.waitForTimeout(1200)
+  const hs2 = await b.page.$$eval('#searchResults .bs-fila', (as) => as.map((a) => a.getAttribute('href')))
+  check('  …y sí el tema del foro visible', hs2.includes('/tema/t1'), JSON.stringify(hs2))
+  await b.ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
