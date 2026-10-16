@@ -12,7 +12,6 @@ import { icons } from '../../js/icons.js'
 import { loadDraft, clearDraft, startAutosave } from '../../js/editor-autosave.js'
 import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { inlineIconHtml } from '../../js/content-icon.js'
-import { abrirHiloDeNoticia } from '../../js/noticias-foro.js'
 import { addXP } from '../../js/gamification.js'
 import { createNotification } from '../../js/notifications.js'
 
@@ -397,21 +396,9 @@ async function persistGuide(extraFields = {}) {
   const id = saved?.id || existingGuide?.id
   if (id) await saveGuideRoutes(id, selectedRoutes)
 
-  // El hilo del foro de la noticia, si toca. Va DESPUÉS de guardar y sin
-  // poder tumbar nada: `abrirHiloDeNoticia` no lanza nunca, porque si
-  // fallara el foro justo después de guardar parecería que no se ha
-  // guardado la noticia. Y es idempotente —mira `forum_thread_id`—, así
-  // que guardar diez veces no abre diez hilos.
-  if (id && payload.kind === 'news' && payload.published_at) {
-    const hilo = await abrirHiloDeNoticia(supabase, {
-      guia: { ...payload, id, forum_thread_id: existingGuide?.forum_thread_id || null },
-      autorId: currentSession.user.id,
-    })
-    if (hilo) {
-      existingGuide = { ...(existingGuide || {}), forum_thread_id: hilo }
-      showToast('Noticia publicada, y su hilo abierto en el foro.', 'success')
-    }
-  }
+  // Una noticia ya NO abre hilo en el foro (876): se comenta en la propia
+  // noticia, que tiene sus comentarios debajo. El hilo automático de la 273
+  // se quedaba con un mensaje y la gente comentaba en el artículo.
   if (id && proActive) {
     await supabase.from('guide_pro_content').upsert({ guide_id: id, blocks: proBlocks, published_at: proPublishedAt }, { onConflict: 'guide_id' })
   }

@@ -10,7 +10,6 @@ import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 import { showToast } from './toast.js'
 import { loadDraft, clearDraft, startAutosave } from './editor-autosave.js'
 import { attachEmojiPicker } from './emoji-picker.js'
-import { abrirHiloDeNoticia } from './noticias-foro.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -327,14 +326,13 @@ async function save(reviewStatus) {
   clearDraft(draftScope)
   if (reviewStatus === 'approved' && esNoticia() && id) {
     // Se lee de la base lo que ha quedado: si sale sin publicar, no se
-    // abre hilo ni se presume de nada.
+    // presume de nada. (Ya no se abre hilo en el foro: la 876.)
     const { data: fila } = await supabase
       .from('guides')
-      .select('id, kind, title, description, slug, cover_image, published_at, forum_thread_id')
+      .select('id, kind, slug, published_at')
       .eq('id', id)
       .maybeSingle()
     if (fila?.kind === 'news' && fila.published_at) {
-      await abrirHiloDeNoticia(supabase, { guia: fila, autorId: currentSession.user.id })
       window.location.href = `/noticias/${encodeURIComponent(fila.slug)}`
       return
     }

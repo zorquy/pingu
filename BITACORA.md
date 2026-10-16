@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (104) — PINGU-Claude (876 — una noticia ya no abre hilo en el foro; se comenta en la noticia y eso cuenta)
+
+**Hecho** (PINGU: «no sé si tiene sentido que las noticias generen un hilo
+en el foro... la gente comenta directamente en la noticia»; «hazlo así, las
+tres partes»):
+- Fuera el hilo automático: se borra `js/noticias-foro.js`, los dos
+  editores no lo llaman y la noticia pierde «Comentar en el foro».
+- El subforo «Noticias» se esconde con la migración
+  `supabase-migration-876-foro-noticias-escondido.sql` (**PINGU: ejecútala**;
+  no borra nada). Un foro escondido no sale en el índice para nadie ni en
+  «Lo que se está hablando» ni en la actividad.
+- Los comentarios de las noticias salen en «Lo que se está hablando» (con
+  «N comentarios» y enlace a la noticia), en la actividad de /usuarios (ya
+  lo hacía) y en la pestaña Foro del perfil (lista nueva «Comentarios en
+  noticias y guías», que suma en la chapa).
+- Detalle en SCHEMA 876; una línea en `novedades.json`.
+
+**Ficheros**: `js/noticias-foro.js` (borrado), `js/editor-guia.js`,
+`admin/js/editor-guia.js`, `js/guia.js`, `js/foro.js`, `js/activity.js`,
+`js/foro-actividad.js`, `supabase-migration-876-foro-noticias-escondido.sql`
+(nuevo), `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-876-pantalla.mjs` nueva, verde;
+273 retirada; 310 sin su excepción; el doble gana `guide_comments`. Al día:
+289, 278, 310, 256, 804, 299, 746, 813, 748, 752, test-imports. **308 está
+roja desde la 867** (el perfil propio abre por la Vitrina y la prueba espera
+el Foro); no es de esta tanda, queda por poner al día.
+
+**Pendiente**: ejecutar la migración 876. Nada en curso.
+
 ## 2026-10-16 (103) — PINGU-Claude (875 — fuera la tira «Sin respuesta todavía» del foro)
 
 **Hecho** (PINGU: «ocupa mucha pantalla y ya tenemos arriba lo que se está

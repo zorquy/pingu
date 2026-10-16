@@ -41418,3 +41418,64 @@ pantalla y ya tenemos arriba lo que se está hablando que ocupa menos». Se va
 sección) y su CSS (`.foro-sin-responder`, `.foro-sr-*`) de `css/foro.css`.
 «Lo que se está hablando» (la 299) sigue en la franja de arriba, que es lo
 que la sustituye. Pruebas al día: 746, 804, 813 y 299.
+
+## Tanda 876 — Una noticia ya no abre hilo en el foro: se comenta en la noticia
+
+PINGU: «no sé si tiene sentido que las noticias generen un hilo en el
+foro... normalmente se quedan sin comentarios y la gente comenta
+directamente en la noticia». Y era verdad dos veces: cada noticia tiene sus
+comentarios debajo del artículo (`js/guide-forum.js`), y el subforo
+«Noticias» era diecinueve hilos con un mensaje cada uno, llenando «Lo que
+se está hablando» de conversaciones que no lo eran. Tres partes:
+
+**1. El hilo automático se va.** `js/noticias-foro.js` (la 273) se borra;
+los dos editores (`js/editor-guia.js`, `admin/js/editor-guia.js`) ya no lo
+llaman ni avisan «y su hilo abierto en el foro», y la noticia pierde el
+botón «Comentar en el foro» (`js/guia.js`): para comentar está la sección
+de debajo. `guides.forum_thread_id` se QUEDA: la leen /admin (la chapa
+«hilo» de las noticias viejas) y `js/activity.js`, que sigue sin contar dos
+veces una noticia con hilo.
+
+**2. El subforo se esconde**
+(`supabase-migration-876-foro-noticias-escondido.sql`: `is_hidden = true`,
+no se borra; dentro quedan los hilos viejos, que siguen abriéndose por su
+dirección). Y un foro escondido no sale en el índice **para nadie**
+(`pintarIndice` filtra `is_hidden`; antes la RLS se lo enseñaba a
+administración sin ninguna marca) ni en «Lo que se está hablando»:
+`calientesHtml(idsForosVisibles)` recibe los foros del índice y deja fuera
+los temas de otros, porque la lectura de `forum_threads` es abierta y sin
+eso el mensaje más nuevo de un hilo escondido encabezaba la franja. Y el
+hilo de actividad (`js/activity.js`) deja fuera los temas de foros que no
+están entre los visibles (solo si la lista de foros llegó con algo: las
+pruebas viejas siembran temas sin foros).
+
+**3. Un comentario en una noticia cuenta como conversación.**
+· «Lo que se está hablando» (`js/foro.js`): `comentariosDeNoticias()` pide
+  las 40 noticias publicadas más nuevas y sus 12 últimos comentarios
+  (`guide_comments`), y `calientesHtml` los mezcla por fecha con los
+  mensajes del foro, una entrada por tema o por noticia, tres en total. La
+  de una noticia enlaza a `/noticias/<slug>`, lleva la etiqueta «Noticia»
+  y «N comentarios» (una consulta de cuenta por noticia elegida).
+· La actividad de /usuarios ya lo hacía (`comentario` → «comentó en
+  <noticia>», por `rutaDeArticulo`); se prueba.
+· La pestaña Foro del perfil (`js/foro-actividad.js`): tercera lista,
+  «Comentarios en noticias y guías», con la etiqueta (Noticia / Guía), el
+  título enlazado al artículo y el trozo del comentario; la cifra de arriba
+  y la chapa de la pestaña (`contarActividadDelForo`) los suman.
+
+**Pruebas**: `test-tanda-876-pantalla.mjs` (lo estático: módulo borrado,
+nadie lo importa, sin botón, la migración esconde y no borra; el índice sin
+el foro escondido para user y admin; la franja con la noticia comentada
+delante, el tema visible detrás y el hilo escondido fuera; la actividad de
+/usuarios con «comentó en» enlazando a la noticia; la pestaña Foro del
+perfil con la lista nueva y la chapa). `test-tanda-273.mjs` se retira con
+su módulo; `test-tanda-310.mjs` pierde la excepción de `noticias-foro.js`.
+El doble (`stub-supabase.js`) gana la tabla `guide_comments` y la semilla
+`__FAKE_COMENTARIOS_GUIA__`. Al día: 289, 278, 310, 256, 804, 299, 746,
+813, 748, 752, test-imports.
+
+**Un rojo que NO es de esta tanda**: `test-tanda-308.mjs` (sección 2, «se
+abre la pestaña que tiene algo») falla igual sin estos cambios: desde la
+867 el perfil propio abre por la Vitrina aunque esté vacía, y la prueba
+sigue esperando el Foro y hablando del «muro», que ya no existe. Queda
+apuntado para ponerla al día.

@@ -41,7 +41,7 @@ const publicadas = (columnas) =>
 export async function loadActivity(limite = 20) {
   const desde = new Date(Date.now() - 60 * 86400_000).toISOString()
 
-  const [progreso, guiasNuevas, guiasEnCamino, comentarios, altas, peticiones, temas] = await Promise.all([
+  const [progreso, guiasNuevas, guiasEnCamino, comentarios, altas, peticiones, temas, foros] = await Promise.all([
     supabase
       .from('user_progress')
       .select('user_id, guide_id, status, completed_at, read_at')
@@ -104,9 +104,13 @@ export async function loadActivity(limite = 20) {
     // demás del hilo.
     supabase
       .from('forum_threads')
-      .select('id, title, author_id, created_at')
+      .select('id, title, author_id, created_at, board_id')
       .order('created_at', { ascending: false })
       .limit(POR_FUENTE),
+    // Los foros que se ven (876): la lectura de los temas es abierta, así
+    // que sin esto un tema de un foro ESCONDIDO (el de Noticias) saldría
+    // aquí como actividad. Solo filtra si la lista llegó con algo.
+    supabase.from('forum_boards').select('id, is_hidden'),
   ])
 
   // Qué fuentes NO han contestado.
@@ -166,8 +170,10 @@ export async function loadActivity(limite = 20) {
   for (const r of peticiones.data || []) {
     eventos.push({ tipo: 'peticion', userId: r.requester_id, texto: r.title, fecha: r.created_at })
   }
+  const forosVisibles = new Set((foros?.data || []).filter((f) => !f.is_hidden).map((f) => f.id))
   for (const t of temas.data || []) {
     if (hilosDeNoticia.has(String(t.id))) continue
+    if (forosVisibles.size && t.board_id && !forosVisibles.has(t.board_id)) continue
     eventos.push({ tipo: 'tema', userId: t.author_id, texto: t.title, enlace: `/tema/${t.id}`, fecha: t.created_at })
   }
 

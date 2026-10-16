@@ -154,42 +154,77 @@ function engancharMarcarTodo() {
 // —tenerla dos veces sería peor que no tenerla.
 const CALIENTES = 3
 
-async function calientesHtml() {
-  const { data: mensajes, error } = await supabase
-    .from('forum_posts')
-    .select('id, thread_id, author_id, created_at')
+// Los comentarios en las NOTICIAS cuentan como conversación (876). Una
+// noticia ya no abre hilo en el foro: se comenta debajo del artículo, así
+// que lo que se dice ahí tiene que salir aquí igual que un mensaje del foro.
+// Dos consultas: las noticias publicadas más nuevas y sus comentarios.
+async function comentariosDeNoticias() {
+  const { data: noticias, error } = await supabase
+    .from('guides')
+    .select('id, title, slug')
+    .eq('kind', 'news')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(40)
+  if (error || !noticias?.length) return []
+  const porId = Object.fromEntries(noticias.map((n) => [n.id, n]))
+  const { data: comentarios } = await supabase
+    .from('guide_comments')
+    .select('id, guide_id, author_id, created_at')
+    .in('guide_id', noticias.map((n) => n.id))
     .order('created_at', { ascending: false })
     .limit(12)
-  if (error || !mensajes?.length) return ''
+  return (comentarios || []).filter((c) => porId[c.guide_id]).map((c) => ({ clave: `noticia:${c.guide_id}`, noticia: porId[c.guide_id], author_id: c.author_id, created_at: c.created_at }))
+}
 
-  // Un tema por fila: si alguien contesta cinco veces seguidas, no llena
-  // él solo la franja entera.
+async function calientesHtml(idsForosVisibles = null) {
+  const [{ data: mensajes, error }, deNoticias] = await Promise.all([
+    supabase.from('forum_posts').select('id, thread_id, author_id, created_at').order('created_at', { ascending: false }).limit(12),
+    comentariosDeNoticias().catch(() => []),
+  ])
+  if (error) return ''
+  const { data: temas } = mensajes?.length
+    ? await supabase.from('forum_threads').select('id, title, prefix, post_count, board_id').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
+    : { data: [] }
+  // Solo temas de foros VISIBLES: la lectura de forum_threads es abierta,
+  // así que sin esto un tema de un foro escondido (el de Noticias desde la
+  // 876) se colaría por aquí.
+  const temaPorId = Object.fromEntries((temas || []).filter((t) => !idsForosVisibles || idsForosVisibles.includes(t.board_id)).map((t) => [t.id, t]))
+  const delForo = (mensajes || []).filter((m) => temaPorId[m.thread_id]).map((m) => ({ clave: `tema:${m.thread_id}`, tema: temaPorId[m.thread_id], thread_id: m.thread_id, author_id: m.author_id, created_at: m.created_at }))
+
+  // Un tema (o una noticia) por fila: si alguien contesta cinco veces
+  // seguidas, no llena él solo la franja entera. Mezclados por fecha.
   const vistos = new Set()
-  const elegidos = mensajes.filter((m) => !vistos.has(m.thread_id) && vistos.add(m.thread_id)).slice(0, CALIENTES)
-  const { data: temas } = await supabase
-    .from('forum_threads')
-    .select('id, title, prefix, post_count')
-    .in('id', elegidos.map((m) => m.thread_id))
-  const temaPorId = Object.fromEntries((temas || []).map((t) => [t.id, t]))
+  const elegidos = [...delForo, ...deNoticias]
+    .sort((x, y) => new Date(y.created_at) - new Date(x.created_at))
+    .filter((m) => !vistos.has(m.clave) && vistos.add(m.clave))
+    .slice(0, CALIENTES)
+  if (!elegidos.length) return ''
+  // Cuántos comentarios lleva cada noticia elegida (tres como mucho).
+  const cuentas = await Promise.all(elegidos.map((m) => (m.noticia ? supabase.from('guide_comments').select('id', { count: 'exact', head: true }).eq('guide_id', m.noticia.id).then((r) => r.count || 1) : null)))
   const perfiles = await perfilesPorId(elegidos.map((m) => m.author_id))
 
   const filas = elegidos
-    .map((m) => {
-      const t = temaPorId[m.thread_id]
-      if (!t) return ''
+    .map((m, i) => {
       // Dos enlaces HERMANOS, nunca uno dentro de otro: `avatarHtml` ya
       // devuelve un <a> al perfil, y un <a> dentro de otro <a> no existe
       // en HTML — el navegador cierra el de fuera al toparse con el de
       // dentro, y la tarjeta se parte en pedazos sueltos. Es el mismo
       // aviso que dejó escrito el lateral en su día; me lo comí igual.
+      const t = m.tema
+      const href = t ? urlTema(m.thread_id) : `/noticias/${encodeURIComponent(m.noticia.slug)}`
+      const titulo = t ? t.title : m.noticia.title
+      const prefijo = t ? t.prefix : 'Noticia'
+      const n = t ? t.post_count || 1 : cuentas[i]
+      const palabra = t ? 'mensaje' : 'comentario'
       return `
       <div class="foro-caliente">
         ${avatarHtml(perfiles[m.author_id], 30)}
         <span class="foro-caliente-texto">
-          <a class="foro-caliente-titulo" href="${urlTema(m.thread_id)}">${escapeHtml(t.title)}</a>
+          <a class="foro-caliente-titulo" href="${href}">${escapeHtml(titulo)}</a>
           <span class="foro-caliente-meta">
-            ${t.prefix ? `<span class="foro-caliente-pref">${escapeHtml(t.prefix)}</span>` : ''}
-            <small>${t.post_count || 1} mensaje${(t.post_count || 1) === 1 ? '' : 's'} · ${escapeHtml(haceCuanto(m.created_at))}</small>
+            ${prefijo ? `<span class="foro-caliente-pref">${escapeHtml(prefijo)}</span>` : ''}
+            <small>${n} ${palabra}${n === 1 ? '' : 's'} · ${escapeHtml(haceCuanto(m.created_at))}</small>
           </span>
         </span>
       </div>`
@@ -207,7 +242,10 @@ async function pintarIndice() {
   if (faltaElForo(seccionesRes.error) || faltaElForo(forosRes.error)) return sinActivar()
 
   const secciones = seccionesRes.data || []
-  const foros = forosRes.data || []
+  // Un foro ESCONDIDO no sale en el índice para nadie (876): la RLS se lo
+  // enseña a administración, y verlo aquí sin ninguna marca confunde. El
+  // de Noticias se esconde desde la 876 con sus hilos viejos dentro.
+  const foros = (forosRes.data || []).filter((f) => !f.is_hidden)
   const perfiles = await perfilesPorId(foros.map((f) => f.last_post_author_id))
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
@@ -276,7 +314,7 @@ async function pintarIndice() {
     })
     .join('')
 
-  const calientes = await calientesHtml()
+  const calientes = await calientesHtml(foros.map((f) => f.id))
 
   // La franja va en su propio hueco, ancho completo: dentro de la
   // columna principal los títulos se volvían a cortar, que es el fallo

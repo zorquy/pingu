@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-16", "tipo": "mejora", "texto": "Las noticias se comentan en la propia noticia, y lo que se dice ahí sale en «Lo que se está hablando» del foro y en tu perfil. Ya no se abre un hilo aparte por cada noticia.", "enlace": "/noticias"},
     {"fecha": "2026-10-16", "tipo": "mejora", "texto": "El índice del foro, más corto: se va la tira de temas sin respuesta; lo que se está hablando sigue arriba.", "enlace": "/foro"},
     {"fecha": "2026-10-16", "tipo": "mejora", "texto": "Busca una carta con su expansión, como la dice la gente: «pikachu ascended heroes», «hypno rocket» o, a medio escribir, «pikachu asc». Vale en el buscador de arriba, en /buscar y en los de Mi colección.", "enlace": "/buscar?q=pikachu%20asc"},
     {"fecha": "2026-10-16", "tipo": "arreglo", "texto": "El buscador de arriba (Ctrl+K) abre al instante y ya con su forma: antes salía un momento como una caja blanca y luego saltaba a su sitio.", "enlace": "/buscar"},
