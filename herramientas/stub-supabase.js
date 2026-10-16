@@ -66,6 +66,7 @@ const T = {
   match_results: [],
   pairing_history: [],
   judge_applications: [],
+  tournament_updates: [],
   collab_applications: [],
   judge_calls: [],
   judge_messages: [],
@@ -840,6 +841,10 @@ sembrar('__FAKE_META_ARQUETIPOS__', 'meta_arquetipos', (i) => ({
   visto_at: new Date().toISOString(),
 }))
 
+// El tablón del torneo (878): avisos del organizador y sucesos de la web.
+sembrar('__FAKE_TABLON__', 'tournament_updates', (i) => ({
+  id: `aviso-${i + 1}`, tournament_id: 'torneo-1', author_id: 'admin-1', kind: 'aviso', body: `Aviso ${i + 1}`, created_at: new Date(Date.now() - i * 60000).toISOString(),
+}))
 sembrar('__FAKE_JUECES__', 'judge_applications', (i) => ({
   id: `juez-${i + 1}`,
   tournament_id: 'torneo-1',
@@ -1515,6 +1520,31 @@ export const supabase = {
     // la pantalla.
     // La cuenta de productos por expansión (808), CALCULADA de la tabla
     // como en Postgres: devolverla a mano probaría la semilla.
+    // El tablón del torneo (878): la función de la base escribe la fila y
+    // avisa a los inscritos. Aquí se hace lo mismo con las tablas del doble,
+    // con la misma regla de quién puede (mando o juez aprobado).
+    if (nombre === 'torneos_tablon_escribir') {
+      const yo = sesion?.user?.id || null
+      if (!yo) return { data: null, error: { code: '28000', message: 'Hace falta iniciar sesión.' } }
+      const t = T.tournaments.find((x) => x.id === args.p_torneo)
+      if (!t) return { data: null, error: { code: 'P0002', message: 'Ese torneo no existe.' } }
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      const mando = perfil.is_admin || perfil.is_tournament_admin || t.admin_id === yo
+      const juez = T.judge_applications.some((j) => j.tournament_id === t.id && j.user_id === yo && j.status === 'approved')
+      if (!mando && !juez) return { data: null, error: { code: '42501', message: 'Solo quien lleva el torneo y sus jueces escriben en el tablón.' } }
+      const texto = String(args.p_texto || '').trim()
+      if (!texto || texto.length > 500) return { data: null, error: { code: '22023', message: 'Un aviso tiene entre 1 y 500 letras.' } }
+      const fila = { id: `aviso-nuevo-${T.tournament_updates.length + 1}`, tournament_id: t.id, author_id: args.p_auto ? null : yo, kind: args.p_auto ? 'auto' : 'aviso', body: texto, created_at: new Date().toISOString() }
+      T.tournament_updates.push(fila)
+      if (args.p_avisar && !args.p_auto) {
+        for (const r of T.tournament_registrations.filter((x) => x.tournament_id === t.id && x.status === 'active' && x.user_id !== yo)) {
+          const p = T.user_profiles.find((x) => x.id === r.user_id) || {}
+          if ((p.notification_prefs_disabled || []).includes('torneo_aviso')) continue
+          T.user_notifications.push({ id: `notif-tablon-${T.user_notifications.length + 1}`, recipient_id: r.user_id, type: 'torneo_aviso', title: `Aviso del torneo — ${t.name}`, body: texto, link: `/torneo?slug=${t.slug}`, read_at: null, created_at: new Date().toISOString() })
+        }
+      }
+      return { data: fila.id, error: null }
+    }
     if (nombre === 'productos_por_expansion') {
       const m = args.p_market || 'WEST'
       const cuenta = new Map()
