@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (102) — PINGU-Claude (874 — «Pokémon + expansión» en los buscadores, y la paleta sin salto)
+
+**Hecho** (PINGU: «pikachu ascended heroes o hypno rocket […] si voy
+poniendo pikachu asc, que salga el pikachu de ascended heroes»; y de la
+paleta, «se abre el buscador blanco arriba y después sale el pop up. quiero
+que sea más rápido»):
+- `expansionEnBusqueda` + `tocaProbarExpansion` (puras, en
+  `js/mi-coleccion/busqueda.js`): la cola de lo escrito como expansión
+  (principio de palabra del nombre del set o su código), sin nada por nombre
+  siempre y con poco solo si la cola son palabras enteras. En los cuatro
+  buscadores de cartas: `buscador.js` (/buscar y Ctrl+K), `mi-coleccion.js`
+  (Buscar, Añadir, Deseos), `tcgdex.js` (`searchCards`) y
+  `catalogo-buscar.js`. Lo de por nombre va delante.
+- La paleta espera a su hoja antes de abrirse (`abrirPaleta` async) y
+  `nav-search.js` la precalienta en reposo o al posar el ratón en la lupa
+  (no con ahorro de datos).
+- Detalle en SCHEMA 874; dos líneas en `novedades.json`.
+
+**Ficheros**: `js/mi-coleccion/busqueda.js`, `js/buscador.js`,
+`js/mi-coleccion.js`, `js/tcgdex.js`, `js/catalogo-buscar.js`,
+`js/paleta.js`, `js/nav-search.js`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-874.mjs` y
+`test-tanda-874-pantalla.mjs` nuevas, verdes; al día 851, 852, 853, 718,
+765, 761, 768, 450, 570, 299 y test-imports. Portada: 112,4 KB gzip según
+`pesar-portada.mjs` (los `import()` no cuentan).
+
+**Pendiente**: nada en curso.
+
 ## 2026-10-16 (101) — PINGU-Claude (noticia del «Special Deck Set» de Mega Dragonite, Gengar y Feraligatr)
 
 **Hecho**: la noticia redactada como fila de `guides` (`kind = 'news'`, sin

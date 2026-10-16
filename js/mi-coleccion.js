@@ -74,7 +74,7 @@ import { engancharGestos, entrarPorElLado, crecerDesde, volverAlHueco } from './
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
-import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
 import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
@@ -4670,7 +4670,8 @@ async function buscarEnTodo({ variantes = null } = {}) {
   if (!campo) return
   // «151/165» y «MEW 151» (765, B1): el total y el código dicen de qué
   // expansión es. Hace falta la lista de sets, que se pide una vez.
-  if (!todosLosSets && /\/|\d/.test(campo.value)) await cargarSets().catch(() => null)
+  // Y desde la 874 siempre: la cola de lo escrito puede ser una expansión.
+  if (!todosLosSets) await cargarSets().catch(() => null)
   const leida = entenderBusqueda(campo.value, todosLosSets || [])
   const texto = normalizeSearch(leida.texto)
   const mio = ++turnoBuscarTodo
@@ -5325,7 +5326,29 @@ async function buscarCartas(texto, limite = 60, opciones = {}) {
   // Y «Pikachu XY», las letras solas (853): las de Pikachu cuyo número empieza por XY.
   const suelto = lista.length ? null : prefijoSuelto(texto)
   if (suelto) lista = await buscarCartasUnaVez(suelto.texto, limite, { ...opciones, filtroLocal: suelto.filtro })
+  // «Pikachu asc», «hypno rocket» (874): la cola de lo escrito como
+  // EXPANSIÓN. Sin nada por nombre, siempre; con algo pero poco, solo si la
+  // cola son palabras enteras (`tocaProbarExpansion`). Lo de por nombre va
+  // delante. No cuando la expansión ya la ha dicho un código o un total, ni
+  // con las variantes del escáner, que no son un texto que alguien escribió.
+  if (!opciones.setIds?.length && !opciones.variantes?.length) {
+    const sets = opciones.sets || (await setsPara(opciones.market || mercado))
+    const exp = expansionEnBusqueda(texto, sets)
+    if (tocaProbarExpansion(exp, lista.length, limite)) {
+      const mas = await buscarCartasUnaVez(exp.texto, limite, { ...opciones, setIds: exp.setIds })
+      const vistas = new Set(lista.map((c) => c.id))
+      lista = [...lista, ...mas.filter((c) => !vistas.has(c.id))]
+    }
+  }
   return lista
+}
+
+// Los sets de un catálogo para leer la expansión en lo escrito (874): los
+// de la página si es el suyo, y si no los de todos, filtrados. Si no llegan,
+// lista vacía: se busca como siempre y ya.
+async function setsPara(market) {
+  if (market === mercado) return cargarSets().catch(() => [])
+  return cargarSetsDeTodos().catch(() => []).then((xs) => xs.filter((s) => (s.market || 'WEST') === market))
 }
 
 async function buscarCartasUnaVez(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado, filtroLocal = null } = {}) {
@@ -6126,8 +6149,8 @@ async function buscarParaDesear() {
   try {
     sets = (await cargarSetsDeTodos().catch(() => [])).filter((x) => (x.market || 'WEST') === market)
     const leida = entenderBusqueda(crudo, sets)
-    lista = await buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market })
-    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market })
+    lista = await buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market, sets })
+    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market, sets })
     if (!lista.length) lista = await buscarPorIlustrador(normalizeSearch(crudo), TOPE_DESEO, { market })
   } catch (err) {
     if (mio !== turnoDeseo) return

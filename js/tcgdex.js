@@ -1,4 +1,6 @@
 import { supabase } from './supabase.js'
+import { setsDelCatalogo } from './sets-catalogo.js'
+import { expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
 
 // Cliente de TCGdex (https://tcgdex.dev) — catálogo de cartas Pokémon,
 // gratis, comunitario y sin clave de API. Al no haber clave no hace falta
@@ -165,21 +167,36 @@ export async function searchCards(
   // buscando la Mewtwo X, y tirar la "x" le devolvería las 80 Mewtwo.
   const palabras = texto.split(/\s+/).filter(Boolean)
 
-  let q = supabase
-    .from('tcg_cards')
-    .select('id, market, set_id, local_id, name, image_path,image_scrydex,image_tcggo, regulation_mark, tcg_sets(name, name_en, release_date)', { count: 'exact' })
-    .eq('market', market)
-  // Encadenar varios `like` los une con AND, que es lo que se quiere:
-  // todas las palabras presentes.
-  for (const palabra of palabras) q = q.like('name_search', `%${palabra.replace(/[%_]/g, '')}%`)
-  if (setId) q = q.eq('set_id', setId)
-
-  // Alfabético: así las variantes de una misma carta salen juntas
-  // ("Mewtwo", "Mewtwo ex", "Mewtwo V"...) en vez de en orden aleatorio,
-  // que con 80 resultados es la diferencia entre buscar y rebuscar.
-  const { data, error, count } = await q.order('name_search').range(desde, desde + limite - 1)
-  if (error) throw error
-  return { cartas: data || [], total: count ?? 0 }
+  const pedir = async (nombres, enSets = null) => {
+    let q = supabase
+      .from('tcg_cards')
+      .select('id, market, set_id, local_id, name, image_path,image_scrydex,image_tcggo, regulation_mark, tcg_sets(name, name_en, release_date)', { count: 'exact' })
+      .eq('market', market)
+    // Encadenar varios `like` los une con AND, que es lo que se quiere:
+    // todas las palabras presentes.
+    for (const palabra of nombres) q = q.like('name_search', `%${palabra.replace(/[%_]/g, '')}%`)
+    if (setId) q = q.eq('set_id', setId)
+    if (enSets) q = q.in('set_id', enSets)
+    // Alfabético: así las variantes de una misma carta salen juntas
+    // ("Mewtwo", "Mewtwo ex", "Mewtwo V"...) en vez de en orden aleatorio,
+    // que con 80 resultados es la diferencia entre buscar y rebuscar.
+    const { data, error, count } = await q.order('name_search').range(desde, desde + limite - 1)
+    if (error) throw error
+    return { cartas: data || [], total: count ?? 0 }
+  }
+  const r = await pedir(palabras)
+  // «Pikachu asc», «hypno rocket» (874): la cola de lo escrito como
+  // EXPANSIÓN, con la regla de `tocaProbarExpansion`. Solo en la primera
+  // página y sin set elegido: con menos de una página no hay más que pedir,
+  // así que el total pasa a ser lo que se ve.
+  if (setId || desde > 0) return r
+  const sets = await setsDelCatalogo(market, { cliente: supabase }).catch(() => [])
+  const exp = expansionEnBusqueda(texto, sets)
+  if (!tocaProbarExpansion(exp, r.cartas.length, limite)) return r
+  const mas = await pedir(exp.texto.split(/\s+/).filter(Boolean), exp.setIds)
+  const vistas = new Set(r.cartas.map((c) => c.id))
+  const cartas = [...r.cartas, ...mas.cartas.filter((c) => !vistas.has(c.id))].slice(0, limite)
+  return { cartas, total: cartas.length }
 }
 
 // ── Referenciar una carta desde una guía ──

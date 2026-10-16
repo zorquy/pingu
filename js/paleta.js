@@ -54,8 +54,14 @@ export function casan(lista, q) {
 
 let caja = null
 
-export function abrirPaleta({ texto = '' } = {}) {
-  hojaInyectada('css/buscador.css')
+// La hoja va ANTES de abrir (874). Se pedía y no se esperaba, así que en el
+// escritorio el diálogo salía un instante con el estilo del navegador —una
+// caja blanca arriba— y luego saltaba a su sitio. PINGU: «se abre el
+// buscador blanco arriba y después sale el pop up». Es la 748 otra vez: lo
+// que se pinta antes que su hoja es un salto. Con la hoja ya puesta (la
+// precalienta `js/nav-search.js`) la promesa está cumplida y no espera.
+export async function abrirPaleta({ texto = '' } = {}) {
+  await hojaInyectada('css/buscador.css')
   if (!caja) caja = montar()
   if (!caja.dialogo.open) caja.dialogo.showModal()
   caja.input.value = texto

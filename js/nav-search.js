@@ -1,4 +1,5 @@
 import { icons } from './icons.js'
+import { hojaInyectada } from './hoja.js'
 
 // La lupa de la barra. Desde la 718 abre la PALETA (`js/paleta.js`): una
 // caja que busca en todo —cartas con su precio, guías, el foro, la gente—,
@@ -15,6 +16,22 @@ const abrir = (texto = '') => import('./paleta.js').then((m) => m.abrirPaleta({ 
   location.href = '/buscar.html'
 })
 
+// PRECALENTAR (874). PINGU: «el buscador a veces es lento». Se bajaba todo
+// —el módulo, sus seis importaciones y la hoja— al pulsar, y eso es lo que
+// se esperaba antes de ver la caja. Ahora se piden en cuanto la página está
+// en reposo (y, antes si llega antes, al posar el ratón o el foco en la
+// lupa), así que al abrir ya está todo en caché: la hoja puesta y el
+// módulo cargado. No cuenta en el presupuesto de la portada —es un
+// `import()`— y no se hace con el ahorro de datos puesto.
+let calentada = false
+export function calentarPaleta() {
+  if (calentada) return
+  calentada = true
+  import('./paleta.js').catch(() => { calentada = false })
+  hojaInyectada('css/buscador.css')
+}
+const enReposo = (f) => (globalThis.requestIdleCallback ? requestIdleCallback(f, { timeout: 4000 }) : setTimeout(f, 2500))
+
 export function renderNavSearch() {
   const navRight = document.querySelector('.nav-right')
   const navUser = document.getElementById('nav-user')
@@ -26,7 +43,14 @@ export function renderNavSearch() {
   wrap.id = 'navSearch'
   wrap.innerHTML = `<button type="button" class="nav-search-btn" id="navSearchBtn" aria-label="Buscar" aria-keyshortcuts="${mac ? 'Meta+K' : 'Control+K'} /" title="Buscar (${mac ? '⌘K' : 'Ctrl+K'} o /)">${icons.search(19)}</button>`
   navRight.insertBefore(wrap, navUser)
-  document.getElementById('navSearchBtn').addEventListener('click', () => abrir())
+  const boton = document.getElementById('navSearchBtn')
+  boton.addEventListener('click', () => abrir())
+  boton.addEventListener('pointerenter', calentarPaleta)
+  boton.addEventListener('focus', calentarPaleta)
+  if (!navigator.connection?.saveData) {
+    if (document.readyState === 'complete') enReposo(calentarPaleta)
+    else window.addEventListener('load', () => enReposo(calentarPaleta), { once: true })
+  }
 
   let g = 0
   document.addEventListener('keydown', (e) => {

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-16", "tipo": "mejora", "texto": "Busca una carta con su expansión, como la dice la gente: «pikachu ascended heroes», «hypno rocket» o, a medio escribir, «pikachu asc». Vale en el buscador de arriba, en /buscar y en los de Mi colección.", "enlace": "/buscar?q=pikachu%20asc"},
+    {"fecha": "2026-10-16", "tipo": "arreglo", "texto": "El buscador de arriba (Ctrl+K) abre al instante y ya con su forma: antes salía un momento como una caja blanca y luego saltaba a su sitio.", "enlace": "/buscar"},
     {"fecha": "2026-10-15", "tipo": "nuevo", "texto": "Comparte tu día de retos como en Wordle: los seis retos de hoy en un texto con cuadrados o en una imagen, desde el final de cualquier reto o desde «Tu día» en el menú de retos. No desvela ninguna respuesta.", "enlace": "/retos"},
     {"fecha": "2026-10-15", "tipo": "mejora", "texto": "Al compartir un reto ves antes lo que vas a mandar: el texto, la imagen vertical para una historia o la apaisada para X. Y los seis retos llevan ahora el mismo número de día.", "enlace": "/retos"},
     {"fecha": "2026-10-15", "tipo": "mejora", "texto": "Un enlace a un reto sale en WhatsApp y en X con su propia tarjeta y el número del día.", "enlace": "/retos"},

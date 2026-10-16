@@ -1,3 +1,5 @@
+import { normalizeSearch } from '../texto.js'
+
 // QUÉ QUIERE DECIR LO QUE SE ESCRIBE EN «AÑADIR CARTA» (765, B1 de la
 // ronda 3). Además del nombre y el número de siempre (la 450), dos formas
 // que es como se lee una carta que tienes en la mano:
@@ -140,4 +142,47 @@ export function llevaElNumero(localId, numero, prefijo = null) {
   if (!m) return false
   const limpio = String(numero).replace(/^0+/, '') || '0'
   return m[2] === limpio && (!prefijo || m[1].toLowerCase() === String(prefijo).toLowerCase())
+}
+
+// «PIKACHU ASCENDED HEROES», «HYPNO ROCKET», «PIKACHU ASC» (874). PINGU:
+// «mucha gente hace la búsqueda con pokemon + expansión […] si voy poniendo
+// pikachu asc, que salga el pikachu (o los pikachus) de ascended heroes».
+// Hasta ahora cada palabra tenía que estar en el NOMBRE de la carta, así
+// que «ascended» no casaba con nada y la pantalla salía vacía.
+//
+// La cola de lo escrito —de una a cuatro palabras, la más larga primero— se
+// prueba como expansión: cada palabra tiene que ser el PRINCIPIO de alguna
+// palabra del nombre del set (en español o en inglés), o la cola entera su
+// código de TCG Live. Lo de delante se queda como nombre, y siempre tiene
+// que quedar algo delante: «ascended heroes» a secas no es una carta.
+//
+// Pura: los sets se los pasa quien llama. Devuelve `null` si ninguna cola
+// casa con ningún set; y `corta` avisa de que alguna palabra de la cola
+// tiene menos de tres letras («pikachu ex»): con esas solo se busca si por
+// nombre no ha salido NADA, que si no «mewtwo ex» arrastraría detrás a los
+// Mewtwo de los sets «EX» de 2003.
+const palabrasDeSet = (s) => normalizeSearch(`${s.name || ''} ${s.name_en || ''}`).split(/\s+/).filter(Boolean)
+
+export function expansionEnBusqueda(texto, sets = []) {
+  const palabras = normalizeSearch(texto).split(/\s+/).filter(Boolean)
+  if (palabras.length < 2 || !sets?.length) return null
+  const indice = sets.map((s) => ({ id: s.id, palabras: palabrasDeSet(s), codigo: String(s.tcg_online_code || '').trim().toLowerCase() }))
+  for (let k = Math.min(palabras.length - 1, 4); k >= 1; k--) {
+    const cola = palabras.slice(-k)
+    if (cola.some((p) => p.length < 2)) continue
+    const setIds = indice
+      .filter((s) => cola.every((p) => s.palabras.some((w) => w.startsWith(p))) || (k === 1 && s.codigo && s.codigo === cola[0]))
+      .map((s) => s.id)
+    if (setIds.length) return { texto: palabras.slice(0, -k).join(' '), setIds, expansion: cola.join(' '), corta: cola.some((p) => p.length < 3) }
+  }
+  return null
+}
+
+// ¿Toca probar la expansión? Sin nada por nombre, siempre; con algo pero
+// menos de lo que cabe, solo si la cola es de palabras enteras (la nota de
+// arriba). Con la pantalla llena, no: lo que hay ya es la respuesta.
+export function tocaProbarExpansion(leida, cuantas, limite) {
+  if (!leida) return false
+  if (cuantas === 0) return true
+  return cuantas < limite && !leida.corta
 }

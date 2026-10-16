@@ -4,6 +4,7 @@
 import { supabase } from './supabase.js'
 import { normalizeSearch } from './texto.js'
 import { ID_DE_POCKET, esDelTCG, deSetVisible } from './catalogo-series.js'
+import { expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
 
 // Lo que echa a TCG Pocket de una consulta (tanda 573). PINGU: «salen
 // cartas del TCG Pocket, y esas no deberían estar». Es la misma regla que
@@ -24,7 +25,7 @@ export async function setsDelMercado(mercado) {
   if (setsPorMercado.has(mercado)) return setsPorMercado.get(mercado)
   const { data, error } = await supabase
     .from('tcg_sets')
-    .select('id,name,name_en,release_date')
+    .select('id,name,name_en,release_date,tcg_online_code')
     .eq('market', mercado)
     .order('release_date', { ascending: false, nullsFirst: false })
     .limit(600)
@@ -47,14 +48,30 @@ export async function buscarEnCatalogo({ mercado, set = '', texto = '', limite =
   const limpio = normalizeSearch(texto).normalize('NFC').trim()
   const palabras = limpio.split(/\s+/).filter(Boolean).slice(0, 4)
   if (!palabras.length && !set) return null
-  let q = supabase.from('tcg_cards').select(columnas).eq('market', mercado)
-  if (soloTCG) q = sinPocket(q)
-  if (categoria) q = q.eq('category', categoria)
-  if (set) q = q.eq('set_id', set)
-  for (const p of palabras) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(limite)
-  if (error) throw error
-  // Las de un set escondido, fuera (826); si se pide un set concreto, lo
-  // que haya dentro (quien lo pide sabe cuál es).
-  return set ? data || [] : (data || []).filter(deSetVisible)
+  const consulta = async (nombres, enSets = null) => {
+    let q = supabase.from('tcg_cards').select(columnas).eq('market', mercado)
+    if (soloTCG) q = sinPocket(q)
+    if (categoria) q = q.eq('category', categoria)
+    if (set) q = q.eq('set_id', set)
+    if (enSets) q = q.in('set_id', enSets)
+    for (const p of nombres) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
+    const { data, error } = await q.order('name_search').limit(limite)
+    if (error) throw error
+    // Las de un set escondido, fuera (826); si se pide un set concreto, lo
+    // que haya dentro (quien lo pide sabe cuál es).
+    return set ? data || [] : (data || []).filter(deSetVisible)
+  }
+  let lista = await consulta(palabras)
+  // «Pikachu asc» (874): la cola como EXPANSIÓN cuando no hay set elegido,
+  // con la regla de `tocaProbarExpansion`. Lo de por nombre va delante.
+  if (!set) {
+    const sets = await setsDelMercado(mercado).catch(() => [])
+    const exp = expansionEnBusqueda(limpio, sets)
+    if (tocaProbarExpansion(exp, lista.length, limite)) {
+      const mas = await consulta(exp.texto.split(/\s+/).filter(Boolean), exp.setIds)
+      const vistas = new Set(lista.map((c) => c.id))
+      lista = [...lista, ...mas.filter((c) => !vistas.has(c.id))].slice(0, limite)
+    }
+  }
+  return lista
 }

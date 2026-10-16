@@ -41344,3 +41344,67 @@ los dos formatos:
   `pintarMiMes` (reto-imagen.js, `tonoDeDia`) con la misma regla.
 
 Pruebas: `test-tanda-873.mjs` y `test-tanda-873-pantalla.mjs`.
+
+## Tanda 874 — «Pokémon + expansión» en los buscadores, y la paleta sin salto
+
+PINGU: «mucha gente hace la búsqueda con pokemon + expansión. por ejemplo:
+pikachu ascended heroes o hypno rocket. deberían salir esos pokemon de esas
+expansiones, con búsqueda completa y relativa, por ejemplo si voy poniendo
+pikachu asc, que salga el pikachu (o los pikachus) de ascended heroes». Y de
+la paleta: «a veces es lento y en pc cuando lo abres […] se abre el
+buscador blanco arriba y después sale el pop up. quiero que sea más rápido».
+
+**La cola de lo escrito como expansión.** `expansionEnBusqueda(texto, sets)`
+en `js/mi-coleccion/busqueda.js` (pura; los sets se los pasa quien llama):
+de la cola de lo escrito —de una a cuatro palabras, la más larga primero— se
+prueba cada trozo como expansión. Casa si cada palabra de la cola es el
+PRINCIPIO de alguna palabra del nombre del set (en español o en inglés, sin
+tildes: `normalizeSearch`) o si la cola, de una palabra, es su código de TCG
+Live entero («ASC», «MEW»). Siempre queda algo delante como nombre. Palabras
+de una letra no cuentan («pikachu a» iría a por media estantería). Devuelve
+`{ texto, setIds, expansion, corta }` o `null`.
+
+**Cuándo se pregunta** (`tocaProbarExpansion(leida, cuantas, limite)`): sin
+nada por nombre, siempre; con algo pero menos de lo que cabe, solo si la cola
+son palabras ENTERAS de tres letras o más (`corta` en falso). Es lo que hace
+que «hypno rocket» dé el Team Rocket's Hypno (por nombre) y detrás el Hypno de
+Team Rocket (por expansión), y que «pikachu ex» NO arrastre a los Pikachu de
+los sets «EX» de 2003 detrás de los Pikachu ex. Lo de por nombre va siempre
+delante, y lo repetido se quita por id.
+
+**Dónde se aplica** (los cuatro buscadores de cartas):
+· `js/buscador.js` (`CONSULTAS.cartas`: /buscar y la paleta): después del
+  código-como-nombre y antes del ilustrador, que es la pasada cara. La lista
+  de sets se pide SIEMPRE (antes solo con un dígito): viene de la CDN y se
+  guarda en `sets-catalogo.js`.
+· `js/mi-coleccion.js` (`buscarCartas`, el envoltorio de Buscar, el catálogo
+  de «Añadir» y Deseos): al final de la cadena (pegado, suelto). No cuando la
+  expansión ya la dijo un código o un total (`setIds`) ni con las variantes
+  del escáner. Los sets: `setsPara(market)` (los de la página, o los de todos
+  filtrados); Deseos pasa los suyos en `sets`. `buscarEnTodo` carga los sets
+  siempre.
+· `js/tcgdex.js` (`searchCards`: el selector de cartas del editor, el de
+  mazo, la lista canónica): solo en la primera página y sin `setId`; al
+  mezclar, `total` pasa a ser lo que se ve (con menos de una página no hay
+  más que pedir). Importa `setsDelCatalogo`.
+· `js/catalogo-buscar.js` (`buscarEnCatalogo`: ¿Qué carta es?, carta del
+  día): sin set elegido. `setsDelMercado` pide también `tcg_online_code`.
+
+**La paleta.** `abrirPaleta` (`js/paleta.js`) es ahora `async` y ESPERA a
+`hojaInyectada('css/buscador.css')` antes de `showModal()`: se pedía y no se
+esperaba, así que en el escritorio el diálogo salía con el estilo del
+navegador —una caja blanca arriba— hasta que llegaba la hoja (la 748 otra
+vez). Y `js/nav-search.js` la PRECALIENTA: `calentarPaleta()` pide el módulo
+(`import('./paleta.js')`, que arrastra sus seis importaciones) y pone la
+hoja en cuanto la página está en reposo (`requestIdleCallback` con tope de
+4 s, o 2,5 s), y antes si el ratón o el foco llegan a la lupa. No con
+`navigator.connection.saveData`. No cuenta en el presupuesto de la portada:
+`pesar-portada.mjs` no sigue los `import()`. La hoja inyectada en todas las
+páginas son 1,8 KB gzip, una vez (caché).
+
+**Pruebas**: `test-tanda-874.mjs` (pura: colas, códigos, lo que no es una
+expansión, cuándo se pregunta) y `test-tanda-874-pantalla.mjs` (/buscar,
+Mi colección › Buscar, la paleta precalentada y abierta ya con su hoja —un
+`MutationObserver` sobre `open` apunta si la hoja estaba en ese instante—,
+y con `saveData` nada se precalienta pero la hoja llega antes igual). Al
+día: 851, 852, 853, 718, 765, 761, 768, 450, 570, 299, test-imports.

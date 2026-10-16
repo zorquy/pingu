@@ -15,7 +15,7 @@ import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, llevaElNumero } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, llevaElNumero, expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
 import { esDelTCG, deSetVisible } from './catalogo-series.js'
 
@@ -40,7 +40,9 @@ const CONSULTAS = {
   // número de la carta (o el de Pokédex), «151/165» y «MEW 151» dicen la
   // expansión, y si por nombre no sale nada se prueba por ilustrador.
   async cartas(crudo, limite) {
-    const sets = /\d/.test(crudo) ? await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => []) : []
+    // La lista de sets siempre (874): además del código y el total, la cola
+    // de lo escrito puede ser una expansión. Viene de la CDN y se pide una vez.
+    const sets = await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => [])
     const leida = entenderBusqueda(crudo, sets)
     const consulta = (aplicar) => {
       let q = supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', 'WEST')
@@ -69,6 +71,17 @@ const CONSULTAS = {
     if (suelto) r = await porNombre(suelto.texto, leida.setIds, suelto.filtro)
     // «mew 151» puede ser el set o el Pokémon: si como set no hay nada, como nombre.
     if (!r.filas.length && leida.codigo) r = await porNombre(crudo, null)
+    // «Pikachu asc», «hypno rocket» (874): la cola como EXPANSIÓN. Sin nada
+    // por nombre, siempre; con algo pero poco, solo si la cola son palabras
+    // enteras (`tocaProbarExpansion`). Lo de por nombre va delante.
+    if (!leida.setIds?.length) {
+      const exp = expansionEnBusqueda(leida.texto, sets)
+      if (tocaProbarExpansion(exp, r.filas.length, limite)) {
+        const mas = await porNombre(exp.texto, exp.setIds)
+        const vistas = new Set(r.filas.map((c) => c.id))
+        r = { ...r, filas: [...r.filas, ...mas.filas.filter((c) => !vistas.has(c.id))] }
+      }
+    }
     // Y si por nombre nada, por ilustrador (la pasada cara, solo entonces).
     if (!r.filas.length) {
       const { nombre } = partirBusqueda(normalizeSearch(crudo))
