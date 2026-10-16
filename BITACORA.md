@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-16 (108) — PINGU-Claude (879 — una jornada de liga es un día de torneo: portada y barra entre jornadas)
+
+**Hecho** (PINGU, con la Liga FDN delante: la portada no decía que hoy hay
+torneo, y la ficha decía «pareando» a las 11 de la mañana): `proximaCita` y
+`cuandoLaCita` (puras); la portada ordena tus torneos por su próxima cita
+(«Torneo hoy a las 19:00 · Liga FDN · jornada 2») y la barra entre
+jornadas dice cuándo es la siguiente («Jornada 2 hoy a las 19:00»; «sin
+fecha todavía»; «pareando» solo con la hora pasada). Detalle en SCHEMA 879.
+Una línea en `novedades.json`.
+
+**Ficheros**: `js/torneos/rondas-jornada.js`, `js/hoy.js`,
+`js/torneos/ronda.js`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-879-pantalla.mjs` nueva, verde;
+744, 877, 878, 298, 849, 850 y test-imports verdes.
+
+**Pendiente**: ejecutar la migración 878 si no está. Nada en curso.
+
 ## 2026-10-16 (107) — PINGU-Claude (878 — el tablón del torneo: avisos del organizador y sucesos de la web, con push)
 
 **Hecho** (capa 2 de «Torneo en vivo, sin directo»): `tournament_updates`

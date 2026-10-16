@@ -20,6 +20,7 @@ import { hojaInyectada } from './hoja.js'
 import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/datos.js'
 import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
 import { guideHasCourse } from './guia-contenido.js'
+import { proximaCita } from './torneos/rondas-jornada.js'
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -77,6 +78,8 @@ const horasHastaMañana = (ahora = Date.now()) => {
 export function fichasHtml({ reto = null, retos, torneo = null, lanzamiento = null, respuestas = null } = {}, ahora = Date.now()) {
   const quedan = `${horasHastaMañana(ahora)} h`
   const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
+  // Con la hora si es hoy o mañana (879): «Torneo hoy a las 19:00».
+  const hora = torneo && /^(hoy|mañana)$/.test(cuando) && Number.isFinite(Date.parse(torneo.start_at)) ? ` a las ${new Date(torneo.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}` : ''
   return [
     // Los seis retos (843) cuando se sabe lo de hoy; si no, la de antes.
     retos !== undefined
@@ -88,7 +91,7 @@ export function fichasHtml({ reto = null, retos, torneo = null, lanzamiento = nu
         ),
     ficha(
       torneo
-        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}`, sub: torneo.name }
+        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${torneo.name} · jornada ${torneo.jornada}` : torneo.name }
         : { href: '/torneos.html', icono: 'trophy', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
     ficha(
@@ -246,8 +249,14 @@ export async function montarHoy(session, { doc = document } = {}) {
       const { data: insc } = await supabase.from('tournament_registrations').select('tournament_id').eq('user_id', uid).eq('status', 'active')
       const ids = [...new Set((insc || []).map((r) => r.tournament_id).filter(Boolean))]
       if (!ids.length) return null
-      const { data } = await supabase.from('tournaments').select('id, slug, name, start_at, status').in('id', ids).gte('start_at', new Date(Date.now() - 6 * 3600e3).toISOString()).order('start_at', { ascending: true })
-      return (data || []).find((t) => t.status !== 'finished' && t.status !== 'cancelled') || null
+      // Sin filtrar por `start_at` en la consulta (879): una liga empezó hace
+      // semanas y su cita es la próxima JORNADA (`proximaCita`), que es lo
+      // que se ordena. Son tus torneos vivos: pocos.
+      const { data } = await supabase.from('tournaments').select('id, slug, name, start_at, status, format, matchday_dates').in('id', ids)
+      const conCita = (data || []).map((t) => ({ t, cita: proximaCita(t) })).filter((x) => x.cita)
+      conCita.sort((a, b) => Date.parse(a.cita.fecha) - Date.parse(b.cita.fecha))
+      const x = conCita[0]
+      return x ? { ...x.t, start_at: x.cita.fecha, jornada: x.cita.jornada } : null
     }),
     intentar(async () => {
       const { data } = await supabase.from('tournaments').select('id, slug, name, start_at').eq('status', 'registration_open').gte('start_at', new Date().toISOString()).order('start_at', { ascending: true }).limit(1)

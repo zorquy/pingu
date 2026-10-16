@@ -30,7 +30,8 @@ import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
 import { apuntarEnTablon } from './tablon.js'
-import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga } from './jornadas.js'
+import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
+import { cuandoLaCita } from './rondas-jornada.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
@@ -1340,16 +1341,30 @@ function pintarBarraEntreRondas() {
   const siguiente = rondas.find((r) => r.status === 'pending') || null
   const total = ctx.torneo.swiss_rounds || 0
   const nombre = (r) => (r.phase === 'top_cut' ? `top cut (ronda ${r.round_number})` : nombreDeRonda(r.round_number))
-  const rotulo = ultima
+  let rotulo = ultima
     ? `${conMayuscula(nombre(ultima))}${ultima.phase === 'top_cut' || !total || esLiga() ? '' : ` de ${total}`} · cerrada`
     : 'Torneo en juego'
   let titular
-  if (siguiente && partidas.some((m) => m.round_id === siguiente.id)) titular = `Pareos de la ${nombre(siguiente)} listos · a punto de empezar`
+  let der = '<span class="torneo-viva-espera">Los pareos salen aquí y te llega un aviso</span>'
+  // ENTRE JORNADAS de una liga (879). PINGU: «ahora que son las 11 de la
+  // mañana no dice nada de que está por empezar y por defecto dice que se
+  // están generando los pareos, pero es incorrecto: los pareos no se harán
+  // hasta la hora acordada a las 19:00». La jornada cerrada de rótulo y la
+  // siguiente con su cita; «pareando» solo cuando ya es la hora.
+  const esperandoJornada = esLiga() && entreJornadas(ctx.torneo, rondas) && !(siguiente && partidas.some((m) => m.round_id === siguiente.id))
+  if (esperandoJornada) {
+    const { n, fecha } = proximaJornada(ctx.torneo, rondas)
+    if (ultima) rotulo = `Jornada ${jornadaDeRonda(ctx.torneo, ultima.round_number)} de ${numJornadas(ctx.torneo)} · cerrada`
+    const cita = fecha ? cuandoLaCita(fecha) : ''
+    if (!fecha) titular = `Jornada ${n} · sin fecha todavía`
+    else if (Date.parse(fecha) > Date.now()) titular = `Jornada ${n} ${cita}`
+    else titular = `Pareando la jornada ${n}… (era ${cita})`
+    if (fecha && Date.parse(fecha) > Date.now()) der = '<span class="torneo-viva-espera">A esa hora salen aquí los pareos y te llega un aviso</span>'
+  } else if (siguiente && partidas.some((m) => m.round_id === siguiente.id)) titular = `Pareos de la ${nombre(siguiente)} listos · a punto de empezar`
   else if (siguiente) titular = `Preparando la ${nombre(siguiente)}…`
   else if (ultima && ultima.phase === 'swiss' && total && ultima.round_number >= total && ctx.torneo.top_cut_size > 0) titular = `Preparando el top ${ctx.torneo.top_cut_size}…`
   else if (ultima) titular = `Pareando la ${esLiga() ? nombreDeRondaDeLiga(ctx.torneo, ultima.round_number + 1) : `ronda ${ultima.round_number + 1}`}…`
   else titular = 'Preparando la primera ronda…'
-  const der = '<span class="torneo-viva-espera">Los pareos salen aquí y te llega un aviso</span>'
   const html = `${rotulo}|${titular}|${der}`
   caja.classList.remove('hidden')
   document.documentElement.classList.remove('torneo-jugando')

@@ -41597,3 +41597,39 @@ reciben su notificación, y lo borra; el juez escribe sin push al desmarcar;
 un jugador sin avisos no ve la caja; al cerrar una ronda la web apunta
 «Ronda 2 cerrada · 2 mesas» como automático; el móvil). Verdes: 877, 298,
 394, 722, 849, 555, 299, 311, 312, 313, 305, 310, 868, test-imports.
+
+## Tanda 879 — Una jornada de liga es un día de torneo
+
+PINGU, con la Liga FDN en su jornada 2: «en el panel de siguiente torneo no
+sale el de hoy… debería decir que hoy hay torneo porque aunque sea la
+jornada 2 de una liga, sigue siendo un evento de juego. Y en el apartado del
+torneo, ahora que son las 11 de la mañana no dice nada de que está por
+empezar y por defecto dice que se están generando los pareos, pero es
+incorrecto: los pareos no se harán hasta la hora acordada a las 19:00».
+
+**La cita** (`proximaCita(t, ahora)` en `js/torneos/rondas-jornada.js`,
+pura): para un torneo normal, `start_at`; para una liga, la primera
+`matchday_dates` que no haya pasado, con seis horas de margen (la de hoy a
+las 19:00 sigue siendo «hoy» a las 23:00), con su número de jornada. Null
+si está terminado, cancelado o sin nada por venir. Y `cuandoLaCita(fecha)`:
+«hoy a las 19:00», «mañana a las 19:00», «el jue 23 oct a las 19:00», o
+«hace 40 min» si ya pasó.
+
+**La portada** (`js/hoy.js`): la consulta de tus torneos ya no filtra por
+`start_at` (una liga empezó hace semanas); se ordenan por su cita y la ficha
+dice «Torneo hoy a las 19:00» (la hora solo si es hoy o mañana) con «Liga
+FDN · jornada 2» debajo. Un torneo normal sale como antes.
+
+**La barra entre jornadas** (`pintarBarraEntreRondas`, `js/torneos/ronda.js`):
+en una liga, con `entreJornadas` y sin pareos hechos de la siguiente, el
+rótulo es «Jornada 1 de 10 · cerrada» (no «Ronda 3 de la jornada 1») y el
+titular dice cuándo es la siguiente: «Jornada 2 hoy a las 19:00» (y a la
+derecha «A esa hora salen aquí los pareos y te llega un aviso»), «Jornada 2
+· sin fecha todavía», o, solo cuando la hora ya pasó y no hay pareos,
+«Pareando la jornada 2… (era hace 40 min)». Entre dos rondas de la MISMA
+jornada se sigue diciendo «Pareando la ronda 2 de la jornada 2…», que ahí
+sí es verdad.
+
+**Pruebas**: `test-tanda-879-pantalla.mjs` (lo puro; la portada con la liga
+y su jornada de hoy; la ficha con la jornada hoy, mañana, sin fecha y
+pasada). Verdes: 744, 877, 878, 298, 849, 850, test-imports.

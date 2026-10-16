@@ -42,3 +42,39 @@ export function proximaJornada(t, rondas) {
   const fechas = Array.isArray(t?.matchday_dates) ? t.matchday_dates : []
   return { n, fecha: fechas[n - 1] || null }
 }
+
+// LA PRÓXIMA CITA de un torneo (879). PINGU: «en el panel de siguiente
+// torneo no sale el de hoy, es la jornada 2 de una liga, debería decir que
+// hoy hay torneo». Para un torneo normal la cita es `start_at`; para una
+// liga, la primera jornada que no haya pasado (con un margen de seis horas,
+// como la portada: la de hoy a las 19:00 sigue siendo «hoy» a las 23:00).
+// Sin fechas de jornada, se cae al `start_at`. Pura; null si no hay nada.
+export function proximaCita(t, ahora = Date.now(), margenMs = 6 * 3600e3) {
+  if (!t || t.status === 'finished' || t.status === 'cancelled') return null
+  const desde = ahora - margenMs
+  const vale = (f) => f && Number.isFinite(Date.parse(f)) && Date.parse(f) >= desde
+  if (t.format === 'league' && Array.isArray(t.matchday_dates) && t.matchday_dates.length) {
+    const i = t.matchday_dates.findIndex(vale)
+    if (i >= 0) return { fecha: t.matchday_dates[i], jornada: i + 1 }
+    return null
+  }
+  return vale(t.start_at) ? { fecha: t.start_at, jornada: null } : null
+}
+
+// «hoy a las 19:00», «mañana a las 19:00», «el jue 23 oct a las 19:00»;
+// y «hace 40 min» si ya pasó. Pura (la hora, en la del navegador).
+export function cuandoLaCita(fecha, ahora = Date.now()) {
+  const t = Date.parse(fecha)
+  if (!Number.isFinite(t)) return ''
+  const d = new Date(t)
+  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const diaDe = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const dias = Math.round((diaDe(d) - diaDe(new Date(ahora))) / 86400e3)
+  if (t < ahora) {
+    const min = Math.round((ahora - t) / 60000)
+    return min < 60 ? `hace ${min} min` : dias === 0 ? `hoy a las ${hora}` : `el ${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
+  }
+  if (dias === 0) return `hoy a las ${hora}`
+  if (dias === 1) return `mañana a las ${hora}`
+  return `el ${d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} a las ${hora}`
+}
