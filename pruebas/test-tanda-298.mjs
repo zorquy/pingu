@@ -126,21 +126,18 @@ console.log('\n── 2. La barra viva ──')
   check('  …y va pegada arriba', pegada === 'sticky', pegada)
   await page.close()
 
-  // Sin ronda en marcha no ocupa: una barra vacía arriba sería peor que
-  // no tenerla.
+  // ENTRE RONDAS (877): sin ronda viva la barra ya no se va —con el torneo
+  // en juego dice qué ronda se cerró y qué viene—. Antes desaparecía y la
+  // ficha se quedaba muda justo cuando más se pregunta «¿y ahora?».
   const parado = await abrir({ rondas: [{ id: 'ronda-1', tournament_id: 'torneo-1', round_number: 1, status: 'finished', phase: 'swiss' }] })
-  check('sin ronda en marcha, ni ocupa', !(await parado.page.locator('#torneoBarraViva').isVisible()))
-  // Y si la ronda se CIERRA con la barra ya puesta, se tiene que ir. Con
-  // la página recién cargada esto no se ve —la barra nace escondida—,
-  // así que se la enseña a mano y se pide un refresco, que es justo lo
-  // que pasa el día del torneo cuando el organizador cierra la ronda.
-  await parado.page.evaluate(() => document.getElementById('torneoBarraViva').classList.remove('hidden'))
-  check('  …y con la barra puesta, se ve', await parado.page.locator('#torneoBarraViva').isVisible())
-  // «Actualizar» vive en la pestaña de rondas: hay que abrirla.
+  check('sin ronda en marcha, la barra se queda y dice qué viene', (await parado.page.locator('#torneoBarraViva').isVisible()) && /Pareando la ronda 2…/.test((await parado.page.locator('#torneoVivaTitular').textContent()) || ''), await parado.page.locator('#torneoVivaTitular').textContent())
+  check('  …con la ronda cerrada de rótulo y sin reloj', /[Rr]onda 1 de 3 · cerrada/.test((await parado.page.locator('#torneoVivaRotulo').textContent()) || '') && (await parado.page.locator('#torneoVivaAnillo').textContent()).trim() === '—', await parado.page.locator('#torneoVivaRotulo').textContent())
+  // Y al refrescar sin ronda (lo que pasa el día del torneo cuando el
+  // organizador la cierra), sigue igual: ni se va ni se duplica.
   await pestana(parado.page, 'rondas')
   await parado.page.locator('#btnActualizarCiclo').click()
   await parado.page.waitForTimeout(1200)
-  check('  …pero al refrescar sin ronda, se va', !(await parado.page.locator('#torneoBarraViva').isVisible()))
+  check('  …y al refrescar sigue ahí, con lo mismo', (await parado.page.locator('#torneoBarraViva').isVisible()) && /Pareando la ronda 2…/.test((await parado.page.locator('#torneoVivaTitular').textContent()) || ''))
   await parado.page.close()
 }
 
