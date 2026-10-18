@@ -15,6 +15,11 @@ export const PASADAS = [
   ['tcggo_versiones', 'Versiones'],
   ['tcggo_productos', 'Productos'],
   ['jp_lineas_viejas', 'Líneas JP viejas'],
+  // Lo de Scrydex y a mano (883, 884, 886): sin estar aquí, /admin no lo
+  // lee y su bloque dice «todavía no ha corrido» de algo que corre.
+  ['scrydex_decks_jp', 'Decks JP (Scrydex)'],
+  ['decks_jp_a_mano', 'Decks JP a mano'],
+  ['scrydex_rellenar_set', 'Relleno (Scrydex)'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000

@@ -41785,6 +41785,69 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 886 — Lo que TCGGO no lista de un set, de Scrydex (las 172 de VSTAR Universe)
+
+PINGU: «me metes el set de la API de TCGGO, pero es que ahí solo tiene a
+partir de la 173 y faltan todas las cartas básicas. Cógeme las de Scrydex,
+que ahí sí que están».
+
+### Qué pasaba
+
+TCGGO lista de s12a (VSTAR Universe, JP) solo las 173–262: las AR/SAR/UR.
+Las 172 numeradas no están en su API. La 881 trajo el set «entero» de
+TCGGO y el resultado fue 262 en la cuenta (`card_count_total`, de TCGGO)
+y 90 cartas en la estantería. Scrydex tiene las 262.
+
+### `scrydex-rellenar-set` (netlify/functions/scrydex-rellenar-set.mjs)
+
+Una pasada con una lista escrita, `RELLENOS` (clave, set, mercado, idioma,
+`scrydexId` opcional, motivo). Por entrada y UNA vez:
+
+1. Lee el set y sus cartas (id, local_id).
+2. Decide la expansión de Scrydex: la escrita; si no, `scrydex_id` de la
+   fila; si no, la lista de expansiones que guarda `scrydex-decks-jp`
+   (gratis) por nombre o huella (`expansionDelSet`); y solo sin nada de
+   eso pide la suya (hasta 6 créditos).
+3. Pide sus cartas página a página (100 por página, 6 como mucho) y las
+   convierte con `filaDeCartaScrydex` (id `scrydex-<suyo>`, nombre japonés
+   e inglés, foto de Scrydex, Pokédex, rareza, ataques…), con
+   **`origen = 'relleno'`**.
+4. `cartasQueFaltan`: se queda con las que NO tenemos por NÚMERO
+   (`numeroComparable`, sin ceros: «001» es «1»), sin repetir. Las de
+   TCGGO no se tocan: son las que llevan precio.
+5. Las escribe (upsert por id+market, trozos de 200) y apunta
+   `scrydex_id` al set si no lo tenía.
+6. `hechos[clave]`: fecha, expansión y por qué, suyas, teníamos, escritas,
+   rango de números. La pasada siguiente no pide nada.
+
+Frenos: `TOPE_CREDITOS` 40 para la función entera; tres intentos por
+entrada (una caída de nuestra base cuenta; a la tercera queda `parado` en
+`hechos` y se enseña); parada DEFINITIVA al primer 401/402/403 (la
+suscripción acaba este mes). Estado en `scrydex_estado` →
+`scrydex_rellenar_set`; /admin → Cartas, bloque «RELLENO DE SETS DESDE
+SCRYDEX»; `sonda-origenes` lo enseña por set (`relleno`).
+
+### Que nadie lo borre después
+
+`tcggo-reemplazar-set.procesar`: `ORIGENES_QUE_SE_QUEDAN = {mano,
+relleno}`. Una carta de relleno se queda SIEMPRE, también en el modo
+entero con borrado (y sus líneas de colección no se cuentan entre las que
+se borran); si TCGGO la trae algún día, la casa por número y la mejora.
+Una vieja de Scrydex a secas (`origen = 'scrydex'`) sigue yéndose, como
+decidió la 806.
+
+Sin precio: son cartas sin id de TCGGO. Es lo que PINGU pidió («cógeme las
+de Scrydex»); si TCGGO las lista algún día, entran con su precio.
+
+### Prueba
+
+`test-tanda-886.mjs`: lo puro (qué falta por número, de qué expansión se
+tira), la pasada con el doble de la 883 (262 suyas en tres páginas = tres
+créditos; escribe 171 y ninguna de TCGGO; apunta el `scrydex_id`; con
+`scrydex_id` en la fila no pide la lista; sin lista la pide; 402 para para
+siempre; tres caídas de la base dejan la entrada parada; sin set, sin
+claves) y el reemplazo con una carta `relleno` en modo entero con borrado.
+
 ## Tanda 885 — El catálogo editable en /admin, y lo corregido a mano MANDA
 
 PINGU: «méteme el catálogo de cartas y expansiones en el admin para poder

@@ -410,7 +410,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   japonés e inglés, de qué occidental se copia la ficha), sin foto
   inventada; TCGdex se puede mirar fichero a fichero clonando
   `tcgdex/cards-database` (`data-asia/`), que raw.githubusercontent.com
-  sí se alcanza desde el contenedor.
+  sí se alcanza desde el contenedor. **Y lo que TCGGO LISTA A MEDIAS**
+  (886: de VSTAR Universe solo da las 173–262) se completa de Scrydex con
+  `scrydex-rellenar-set` (lista `RELLENOS`, una vez por entrada, solo las
+  que faltan por NÚMERO, `origen = 'relleno'`, que el reemplazo nunca
+  borra). Para otro set a medias, una entrada más en `RELLENOS`. Y una
+  clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
+  la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
+  meterla y el panel decía «todavía no ha corrido» de algo que corría.
   **Desde la 806 el japonés sale ENTERO de TCGGO** (`tcggo-calco-jp`,
   vuelta 2): ni espejo occidental ni Scrydex ni TCGdex escriben en él. Y
   TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número

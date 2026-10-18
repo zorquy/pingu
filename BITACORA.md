@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (116) — PINGU-Claude (886 — las 172 básicas de VSTAR Universe, de Scrydex)
+
+**Hecho** (PINGU: «TCGGO solo tiene a partir de la 173 y faltan todas las
+básicas; cógeme las de Scrydex»): `scrydex-rellenar-set`, una pasada con
+lista escrita (`RELLENOS`, hoy solo `s12a` JP) que pide a Scrydex las
+cartas de la expansión y escribe SOLO las que no tenemos por número (las
+de TCGGO, con su precio, no se tocan), con `origen = 'relleno'`; el
+reemplazo de TCGGO ya no borra ese origen (ni sus líneas). Una vez hecho,
+no vuelve a pedir nada. Tope de 40 créditos, tres intentos, parada al
+402. Bloque en /admin → Cartas («RELLENO DE SETS DESDE SCRYDEX»). Y un
+fallo de la 883/884 arreglado: sus claves de estado no estaban en
+`PASADAS`, así que /admin decía «todavía no ha corrido» de las dos.
+Detalle en SCHEMA 886.
+
+**Para PINGU**: en diez minutos como mucho VSTAR Universe tiene sus 262
+(las 1–172 de Scrydex, con foto suya; sin precio, que no llevan id de
+TCGGO). Si otro set está a medias en TCGGO, dímelo y va a `RELLENOS`.
+
+**Ficheros**: `netlify/functions/scrydex-rellenar-set.mjs` (nuevo),
+`netlify/functions/tcggo-reemplazar-set.mjs`,
+`netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`,
+`admin/js/semaforo.js`, `novedades.json`, `CLAUDE.md`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-886.mjs`.
+Verdes: 886, imports, 883, 884, 806, 654, 666, 810, 817 (con las doce claves) y 829.
+
+**Pendiente**: lo de la 115 (ejecutar la migración 885; los bloques de
+decks en /admin; la 878 y `supabase-liga-fdn-jornada-1.sql`).
+
 ## 2026-10-18 (115) — PINGU-Claude (885 — el catálogo editable en /admin; lo corregido a mano manda)
 
 **Hecho** (PINGU: «méteme el catálogo de cartas y expansiones en el admin

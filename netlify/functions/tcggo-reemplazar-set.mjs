@@ -408,10 +408,13 @@ export async function procesar({
   // escritas en el resumen (quién, qué, cuántas): se borra, pero no en
   // silencio.
   const conLineas = new Set([...lineas, ...deseos].map((l) => l.card_id))
-  // Una carta escrita A MANO desde /admin (885, `origen = 'mano'`) se queda
-  // siempre, también en el modo entero: TCGGO no la tiene porque no la
-  // tiene, y es justo por eso que alguien la escribió.
-  const aMano = (c) => c.origen === 'mano'
+  // Una carta escrita A MANO desde /admin (885, `origen = 'mano'`) o
+  // RELLENADA desde Scrydex porque TCGGO no la lista (886, `relleno`) se
+  // queda siempre, también en el modo entero: TCGGO no la tiene porque no
+  // la tiene, y es justo por eso que se escribió. Si algún día la trae, la
+  // casa por número y la mejora; lo que nunca hace es borrarla.
+  const ORIGENES_QUE_SE_QUEDAN = new Set(['mano', 'relleno'])
+  const aMano = (c) => ORIGENES_QUE_SE_QUEDAN.has(c.origen)
   const seQuedan = seVan.filter((c) => aMano(c) || (!borrarSinDestino && conLineas.has(c.id) && !equiv.has(c.id)))
   const seBorran = seVan.filter((c) => !seQuedan.some((q) => q.id === c.id))
   const nombreDe = (id) => { const c = seVan.find((x) => x.id === id); return c ? c.name_en || c.name : id }
@@ -521,7 +524,7 @@ export async function procesar({
     suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
-    seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
+    seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: c.origen === 'relleno' ? 'rellenada desde Scrydex (TCGGO no la lista)' : aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
     aproximadas: [...equiv].filter(([, e]) => e.por === 'nombre aproximado').map(([de, e]) => ({ de, a: e.a, nombre: nombreDe(de) })),
     lineasSinDestino,
     setsBorrados, setsQueSeQuedan,
