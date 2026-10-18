@@ -173,7 +173,7 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
     const lista = Array.isArray(cartas.datos) ? cartas.datos : []
     const porOrigen = {}
     for (const c of lista) porOrigen[c.origen || 'sin origen'] = (porOrigen[c.origen || 'sin origen'] || 0) + 1
-    const estados = await pedir(`${SUPABASE_URL}/rest/v1/scrydex_estado?select=clave,valor&clave=in.(scrydex_huecos,tcggo_calco_jp,tcggo_reemplazos,precios_espejo,scrydex_decks_jp)`, cab)
+    const estados = await pedir(`${SUPABASE_URL}/rest/v1/scrydex_estado?select=clave,valor&clave=in.(scrydex_huecos,tcggo_calco_jp,tcggo_reemplazos,precios_espejo,scrydex_decks_jp,decks_jp_a_mano)`, cab)
     const de = (k) => (Array.isArray(estados.datos) ? estados.datos : []).find((x) => x.clave === k)?.valor || {}
     const h = de('scrydex_huecos')
     const calco = de('tcggo_calco_jp')
@@ -186,6 +186,7 @@ export async function sondear({ id, mercado = 'WEST', env = process.env, fetchIm
       reemplazos: { hueco: reempl.huecos?.vistos?.[`${mercado}:${setId}`] || null },
       espejo: de('precios_espejo').hechos?.[setId] ? 'hecho' : null,
       decksJp: { conservado: de('scrydex_decks_jp').conservados?.[setId] || null, creado: de('scrydex_decks_jp').creados?.[setId] || null },
+      aMano: Object.entries(de('decks_jp_a_mano').hechos || {}).find(([, h]) => h?.set === setId)?.[1] || null,
     }
   } catch (e) {
     informe.setNuestro = { error: String(e?.message || e).slice(0, 200) }

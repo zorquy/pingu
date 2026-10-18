@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (114) — PINGU-Claude (884 — el Silver Deck Kit a mano)
+
+**Hecho** (PINGU: «saca la info tú e intenta escribirlo como puedas»):
+`decks-jp-a-mano`, una pasada con la lista ESCRITA del Silver Deck Kit (20
+cartas, nombre japonés e inglés, y la ficha copiada de EX Team Rocket
+Returns, que es de donde se reimprimieron; la Dark Dragonite 014/020 es la
+15/109). Sin fotos: ninguna API las tiene y no se inventan. Espera unas
+pasadas a que la 883 diga si Scrydex lo lista (si lo lista, lo trae
+Scrydex con fotos); si no, lo crea. Queda conservado para el calco. Detalle
+en SCHEMA 884; norma en CLAUDE.md.
+
+**Para PINGU**: el set aparecerá en el catálogo japonés como «Silver Deck
+Kit» (ロケット団ハーフデッキW -silver-) en una hora como mucho; las casillas
+salen con el nombre, sin foto. Si quieres fotos, la única vía es subirlas
+(la tuya de la 014 vale) — dímelo y preparo la subida. Para otro deck,
+basta añadirlo a `DECKS` con su lista.
+
+**Ficheros**: `netlify/functions/decks-jp-a-mano.mjs` (nuevo),
+`admin/js/admin.js`, `netlify/functions/sonda-origenes.mjs`, `CLAUDE.md`,
+`SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-884.mjs`; verdes 883 y
+test-imports.
+
+**Pendiente**: mirar en /admin «DECKS JAPONESES A MANO» y «DE SCRYDEX»;
+`s12a-jp` (881); la migración 878 y `supabase-liga-fdn-jornada-1.sql`.
+
 ## 2026-10-18 (113) — PINGU-Claude (883 — los decks japoneses, de Scrydex, mientras dure la suscripción)
 
 **Hecho** (un Dark Dragonite de un deck de 2004 que no está; PINGU: «mete

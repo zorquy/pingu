@@ -405,7 +405,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   PINGU: «mete de Scrydex, que sigue activa la sub este mes»): trae SOLO
   lo japonés que TCGGO no tiene (los decks), con tope de créditos y
   parada definitiva al primer 401/402/403; lo que enseña o crea queda en
-  `conservados` y el calco no lo esconde.
+  `conservados` y el calco no lo esconde. Y lo que NINGUNA API tiene va
+  a mano en `decks-jp-a-mano` (884): una lista escrita (número, nombre
+  japonés e inglés, de qué occidental se copia la ficha), sin foto
+  inventada; TCGdex se puede mirar fichero a fichero clonando
+  `tcgdex/cards-database` (`data-asia/`), que raw.githubusercontent.com
+  sí se alcanza desde el contenedor.
   **Desde la 806 el japonés sale ENTERO de TCGGO** (`tcggo-calco-jp`,
   vuelta 2): ni espejo occidental ni Scrydex ni TCGdex escriben en él. Y
   TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número

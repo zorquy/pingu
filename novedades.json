@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-18", "tipo": "nuevo", "texto": "El Silver Deck Kit japonés de 2004 (el de la Dark Dragonite 014/020) entra en el catálogo japonés con sus 20 cartas.", "enlace": "/cartas?catalogo=JP"},
     {"fecha": "2026-10-18", "tipo": "nuevo", "texto": "Los decks japoneses antiguos (los que no están en ninguna expansión) van entrando en el catálogo japonés con sus cartas y fotos.", "enlace": "/cartas?catalogo=JP"},
     {"fecha": "2026-10-18", "tipo": "arreglo", "texto": "La Pokédex del catálogo japonés vuelve a rellenarse con tus cartas: salía vacía aunque tuvieras cartas japonesas.", "enlace": "/mi-coleccion?ver=pokedex&catalogo=JP"},
     {"fecha": "2026-10-16", "tipo": "mejora", "texto": "Compartir una noticia en X: el botón de compartir abre una hoja con el texto listo (título y entradilla), la portada como imagen y «Publicar en X», que abre X con todo puesto.", "enlace": "/noticias"},

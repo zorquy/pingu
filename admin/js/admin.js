@@ -3182,6 +3182,15 @@ async function tcggoEstado() {
         ...lineasDePreciosJp(p.resumenJp, de('tcggo_calco_jp')?.valor?.lista?.episodios),
       ]
     })(),
+    // Los decks japoneses a mano (884): la lista escrita en la función.
+    ...(() => {
+      const d = de('decks_jp_a_mano')?.valor
+      if (!d) return ['DECKS JAPONESES A MANO (decks_jp_a_mano, 884): todavía no ha corrido']
+      return [
+        `DECKS JAPONESES A MANO (decks_jp_a_mano, 884) — ${de('decks_jp_a_mano')?.updated_at || 'nunca'}: ${Object.entries(d.hechos || {}).map(([k, h]) => `${k}: ${h.estado}${h.cartas ? ` (${h.cartas} cartas, ${h.copiadas} con ficha copiada)` : ''}${h.expansion ? ` (${h.expansion})` : ''}${h.set && h.estado === 'yaExiste' ? ` (${h.set})` : ''}`).join(' · ') || 'nada hecho todavía'}${Object.keys(d.esperas || {}).length ? ` · esperando a Scrydex: ${JSON.stringify(d.esperas)}` : ''}`,
+        d.ultimoError ? `  último error (${d.ultimoError.fecha}): ${d.ultimoError.error}` : '',
+      ]
+    })(),
     // Los decks japoneses de Scrydex (883): lo que TCGGO no tiene.
     ...(() => {
       const d = de('scrydex_decks_jp')?.valor

@@ -41785,3 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 884 — El Silver Deck Kit, a mano
+
+PINGU: «saca la info tú e intenta escribirlo como puedas». Lo que se sabe
+del deck: Silver Deck Kit (構築済みデッキ ロケット団ハーフデッキW -silver-),
+2004-10-15, solo Japón, dos medios mazos con una numeración de 20
+(001 Psyduck, 002 Magikarp, 003 Dark Golduck, 004 Dark Gyarados, 005
+Magnemite, 006 Dark Magneton, 007 Rattata, 008 y 009 Dratini, 010 Rocket's
+Articuno ex, 011 y 012 Dark Dragonair, 013 y 014 Dark Dragonite —la 014
+holo—, 015 Energy Search, 016 Potion, 017 Rocket's Poké Ball, 018 Rocket's
+Admin., 019 Rocket's Mission, 020 R Energy). Son reimpresiones de EX Team
+Rocket Returns (nuestro `ex7`), comprobado en la base de datos de TCGdex
+(`data/EX/Team Rocket Returns`: 70, 65, 35, 36, 66, 39, 71, 52, 53, 96, 31,
+32, 15, 89, 86, 88, 95); la Dark Dragonite 014/020 ES la 15/109 (Nakaoka,
+120 PS, Dark Trance, Double Wing Attack, Claw Swipe). Potion y Energy
+Search no están en ese set: se copian de cualquier occidental de la era EX.
+
+**Dónde no está**: TCGdex no lo tiene (clonado `tcgdex/cards-database`:
+`data-asia/PCG` trae diez sets, ninguno un deck, y ningún Dragonite en toda
+la era; lo que tiene de Rocket Gang Strikes Back está medio traducido a
+máquina). TCGGO no tiene los decks. Scrydex no se sabe desde aquí (la red
+no llega), y por eso esta función ESPERA a la 883.
+
+**`decks-jp-a-mano`** (programada, `9-59/10`): `DECKS` es la lista escrita
+(set + cartas: número, `ja`, `en`, `de` = carta occidental de la que se
+copia la ficha, o `buscar` = nombre a buscar en la era EX, y lo que se
+escriba a mano manda). `filasDelDeck` arma las filas (`<set>-<número>`,
+mercado JP, `origen = 'mano'`, `COLUMNAS_COPIADAS` de la occidental,
+`variants` holo o normal, las mismas claves en todas: la 391) y SIN foto
+(la 441: la casilla enseña el nombre). El set va a la vista con la serie
+del set japonés del mismo día (`serieDe`). Orden con las otras fuentes:
+`setQueYaExiste` (id, nombre inglés, o fecha + cuenta) → no se crea;
+`loTraeScrydex` contra la lista de `scrydex_decks_jp` → se deja a la 883
+(trae fotos); sin lista y sin `parado`, espera `ESPERAS_MAXIMAS` pasadas y
+luego crea. Lo creado queda en `conservados` (883): el calco no lo esconde
+y, si TCGGO lo trae, lo vuelca encima por número. /admin y
+`sonda-origenes` lo enseñan.
+
+**Pruebas**: `test-tanda-884.mjs` (la lista, las filas con la Dragonite
+copiada, el orden con Scrydex y TCGGO, la pasada y sus frenos).
+
