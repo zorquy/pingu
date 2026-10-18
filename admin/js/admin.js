@@ -3196,7 +3196,7 @@ async function tcggoEstado() {
       const d = de('scrydex_rellenar_set')?.valor
       if (!d) return ['RELLENO DE SETS DESDE SCRYDEX (scrydex_rellenar_set, 886): todavía no ha corrido']
       return [
-        `RELLENO DE SETS DESDE SCRYDEX (scrydex_rellenar_set, 886) — ${de('scrydex_rellenar_set')?.updated_at || 'nunca'}: ${Object.entries(d.hechos || {}).map(([k, h]) => `${k}: ${h.estado}${h.estado === 'hecho' ? ` (${h.escritas} escritas de ${h.suyas} suyas; teníamos ${h.teniamos}${h.numeros ? `; ${h.numeros}` : ''}; expansión ${h.expansion} por ${h.por})` : ''}${h.error ? ` — ${h.error}` : ''}${h.nota ? ` — ${h.nota}` : ''}`).join(' · ') || 'nada hecho todavía'} · créditos gastados: ${d.gasto?.creditos ?? 0}`,
+        `RELLENO DE SETS DESDE SCRYDEX (scrydex_rellenar_set, 886) — ${de('scrydex_rellenar_set')?.updated_at || 'nunca'}: ${Object.entries(d.hechos || {}).map(([k, h]) => `${k}: ${h.estado}${h.estado === 'hecho' ? ` (${h.escritas} escritas de ${h.suyas} suyas; teníamos ${h.teniamos}${h.numeros ? `; ${h.numeros}` : ''}; expansión ${h.expansion} por ${h.por})` : ''}${h.estado === 'sinSet' ? ` (buscado ${JSON.stringify(h.buscado)}; ${h.esperas} veces; se vuelve a mirar)` : ''}${h.error ? ` — ${h.error}` : ''}${h.nota ? ` — ${h.nota}` : ''}`).join(' · ') || 'nada hecho todavía'} · créditos gastados: ${d.gasto?.creditos ?? 0}`,
         d.parado ? `  ⚠ PARADA (${d.parado.fecha}): ${d.parado.motivo}` : '',
         d.ultimoError ? `  último error (${d.ultimoError.fecha}, ${d.ultimoError.clave}, intento ${d.ultimoError.intento}): ${d.ultimoError.error}` : '',
       ]

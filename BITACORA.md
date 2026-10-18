@@ -27,6 +27,11 @@ TCGGO). Si otro set está a medias en TCGGO, dímelo y va a `RELLENOS`.
 `netlify/functions/sonda-origenes.mjs`, `admin/js/admin.js`,
 `admin/js/semaforo.js`, `novedades.json`, `CLAUDE.md`, `SCHEMA.md`.
 
+**886.2** (PINGU enseñó el panel: el reemplazo de la 881 dice cinco veces
+«el set “s12a” no existe»): el relleno ya no busca el set por un id a
+pelo, sino por ids, código y nombre inglés (`consultaDelSet`), elige el
+que está a la vista, y sin set reintenta en vez de darlo por hecho.
+
 **Pruebas** (rama `pruebas`): nueva `test-tanda-886.mjs`.
 Verdes: 886, imports, 883, 884, 806, 654, 666, 810, 817 (con las doce claves) y 829.
 

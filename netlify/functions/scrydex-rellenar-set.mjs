@@ -25,17 +25,25 @@ import { cabecerasDe, urlDeSonda, filaDeCartaScrydex, igualarClaves, expansionDe
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'scrydex_rellenar_set'
 export const CLAVE_DECKS = 'scrydex_decks_jp'
-export const VERSION = '886.1'
+export const VERSION = '886.2'
 export const ORIGEN = 'relleno'
 export const TOPE_CREDITOS = 40
 export const MAXIMO_INTENTOS = 3
 export const MAXIMO_PAGINAS = 6
+// Sin el set en la base no se gasta nada: se vuelve a mirar cada pasada,
+// hasta un día (lo creó el calco con otro id, o aún no está).
+export const MAXIMO_ESPERAS_SIN_SET = 144
 
-// Qué sets se rellenan. `scrydexId` si se sabe; si no, se busca por el
-// `scrydex_id` de la fila, por el nombre o por la huella (fecha + cuenta)
-// en la lista de expansiones que guarda `scrydex-decks-jp`.
+// Qué sets se rellenan. El set NO se nombra por un id a pelo (886.2): el
+// reemplazo de la 881 lleva cinco intentos con «el set “s12a” no existe»
+// —en producción el id es otro: el calco crea `tg-<episodio>` cuando nada
+// casa, y lo de antes venía en mayúsculas de TCGdex o con `_ja` de
+// Scrydex—. Se busca por cualquiera de los ids, por el código o por el
+// nombre inglés, y entre lo que case se elige lo que está a la vista.
+// `scrydexId` si se sabe; si no, el `scrydex_id` de la fila, el nombre o
+// la huella en la lista de expansiones que guarda `scrydex-decks-jp`.
 export const RELLENOS = [
-  { clave: 's12a-jp-basicas', set: 's12a', mercado: 'JP', idioma: 'ja', scrydexId: null, motivo: 'TCGGO solo lista de la 173 en adelante; las 172 numeradas faltan' },
+  { clave: 's12a-jp-basicas', mercado: 'JP', idioma: 'ja', set: { ids: ['s12a', 'S12a', 's12a_ja'], codigo: 's12a', nombre: 'VSTAR Universe' }, scrydexId: null, motivo: 'TCGGO solo lista de la 173 en adelante; las 172 numeradas faltan' },
 ]
 
 const esDeSuscripcion = (status) => status === 401 || status === 402 || status === 403
@@ -71,6 +79,26 @@ export function cartasQueFaltan(filas, nuestras) {
     vistos.add(n)
     return true
   })
+}
+
+// El filtro de PostgREST que encuentra el set de un relleno: por id, por
+// código de TCG Live o por nombre inglés (sin distinguir mayúsculas).
+export function consultaDelSet(relleno) {
+  const b = relleno?.set && typeof relleno.set === 'object' ? relleno.set : { ids: [String(relleno?.set || '')] }
+  const partes = []
+  const ids = (b.ids || []).filter(Boolean)
+  if (ids.length) partes.push(`id.in.(${ids.map((i) => `"${i}"`).join(',')})`)
+  if (b.codigo) partes.push(`tcg_online_code.ilike.${encodeURIComponent(b.codigo)}`)
+  if (b.nombre) partes.push(`name_en.ilike.${encodeURIComponent(b.nombre)}`)
+  return partes.length ? `or=(${partes.join(',')})` : 'id.eq.'
+}
+
+// De lo que case, el set: a la vista antes que escondido, con expansión de
+// TCGGO antes que sin ella, y con más cartas contadas antes que con menos.
+export function elegirSet(filas) {
+  const lista = (filas || []).slice()
+  lista.sort((a, b) => (Number(Boolean(a.oculto)) - Number(Boolean(b.oculto))) || (Number(Boolean(b.tcggo_id)) - Number(Boolean(a.tcggo_id))) || ((Number(b.card_count_total) || 0) - (Number(a.card_count_total) || 0)))
+  return lista[0] || null
 }
 
 // La expansión de Scrydex de un relleno: la escrita, o la que diga la fila
@@ -114,7 +142,8 @@ export async function pasada({
   if (estado.parado && (!estado.parado.version || estado.parado.version === VERSION)) return { ok: true, ...resumen(), saltado: `parado (${estado.parado.fecha}): ${estado.parado.motivo}` }
   if (estado.parado) delete estado.parado
 
-  const pendientes = rellenos.filter((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  // Un «sinSet» de una versión anterior no es un hecho: se vuelve a buscar.
+  const pendientes = rellenos.filter((r) => (!estado.hechos[r.clave] || estado.hechos[r.clave].estado === 'sinSet') && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS && (Number(estado.esperas?.[r.clave]) || 0) < MAXIMO_ESPERAS_SIN_SET)
   if (!pendientes.length) return { ok: true, ...resumen(), saltado: 'nada pendiente' }
   if (estado.gasto.creditos >= TOPE_CREDITOS) return { ok: true, ...resumen(), saltado: `tope de ${TOPE_CREDITOS} créditos gastado: no se pide más a Scrydex` }
 
@@ -144,17 +173,23 @@ export async function pasada({
   const relleno = pendientes[0]
   let set
   let nuestras
+  let candidatos
   try {
-    set = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id,scrydex_id,release_date,card_count_total,card_count_official&market=eq.${relleno.mercado}&id=eq.${encodeURIComponent(relleno.set)}&limit=1`))?.[0] || null
-    nuestras = set ? (await pedir(`tcg_cards?select=id,local_id&market=eq.${relleno.mercado}&set_id=eq.${encodeURIComponent(relleno.set)}&limit=2000`)) || [] : []
+    candidatos = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id,scrydex_id,oculto,release_date,card_count_total,card_count_official&market=eq.${relleno.mercado}&${consultaDelSet(relleno)}&limit=10`)) || []
+    set = elegirSet(candidatos)
+    nuestras = set ? (await pedir(`tcg_cards?select=id,local_id&market=eq.${relleno.mercado}&set_id=eq.${encodeURIComponent(set.id)}&limit=2000`)) || [] : []
   } catch (e) {
     return tropiezo(relleno, `nuestra base: ${String(e?.message || e).slice(0, 160)}`, 'leer')
   }
   if (!set) {
-    estado.hechos[relleno.clave] = { fecha: ahora.toISOString(), estado: 'sinSet', set: relleno.set }
+    // No se gasta nada: se apunta y se vuelve a mirar en la siguiente.
+    if (!estado.esperas || typeof estado.esperas !== 'object') estado.esperas = {}
+    estado.esperas[relleno.clave] = (Number(estado.esperas[relleno.clave]) || 0) + 1
+    estado.hechos[relleno.clave] = { fecha: ahora.toISOString(), estado: 'sinSet', buscado: relleno.set, esperas: estado.esperas[relleno.clave] }
     await persistir()
-    return { ok: true, ...resumen(), saltado: `el set ${relleno.set} (${relleno.mercado}) no existe` }
+    return { ok: true, ...resumen(), saltado: `ningún set de ${relleno.mercado} casa con ${JSON.stringify(relleno.set)}` }
   }
+  if (estado.esperas?.[relleno.clave]) delete estado.esperas[relleno.clave]
 
   // La expansión de Scrydex: escrita, por la fila, o por la lista que
   // guarda `scrydex-decks-jp` (gratis). Sin lista, se pide la suya.
@@ -202,7 +237,7 @@ export async function pasada({
   }
   delete estado.intentos[relleno.clave]
   estado.hechos[relleno.clave] = {
-    fecha: ahora.toISOString(), estado: 'hecho', set: set.id, expansion: expansionId, por,
+    fecha: ahora.toISOString(), estado: 'hecho', set: set.id, candidatos: candidatos.map((c) => c.id), expansion: expansionId, por,
     suyas: todas.length, teniamos: nuestras.length, escritas: faltan.length,
     numeros: faltan.length ? `${faltan[0].local_id}–${faltan[faltan.length - 1].local_id}` : null,
   }

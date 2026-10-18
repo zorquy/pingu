@@ -41803,7 +41803,15 @@ y 90 cartas en la estantería. Scrydex tiene las 262.
 Una pasada con una lista escrita, `RELLENOS` (clave, set, mercado, idioma,
 `scrydexId` opcional, motivo). Por entrada y UNA vez:
 
-1. Lee el set y sus cartas (id, local_id).
+1. Encuentra el set (886.2): NO por un id a pelo —el reemplazo de la 881
+   lleva cinco intentos con «el set “s12a” no existe»: en producción el id
+   es otro (`tg-<episodio>` del calco, `S12a` de TCGdex o `s12a_ja` de
+   Scrydex)—, sino con `consultaDelSet`: un `or` por cualquiera de los ids,
+   el código de TCG Live y el nombre inglés (`ilike`), y `elegirSet` se
+   queda con el que está a la vista, con `tcggo_id`, con más cartas. Sin
+   set no se gasta nada: se apunta `sinSet` con las esperas y se vuelve a
+   mirar cada pasada (hasta un día); un `sinSet` nunca cuenta como hecho.
+   Luego sus cartas (id, local_id).
 2. Decide la expansión de Scrydex: la escrita; si no, `scrydex_id` de la
    fila; si no, la lista de expansiones que guarda `scrydex-decks-jp`
    (gratis) por nombre o huella (`expansionDelSet`); y solo sin nada de
