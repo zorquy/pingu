@@ -20,7 +20,7 @@ const check = (l, ok, extra = '') => {
 const mod = await import(`${RAIZ}/netlify/functions/scrydex-rellenar-set.mjs`)
 const copia = (x) => JSON.parse(JSON.stringify(x))
 
-const SET = { id: 's12a', name: 'VSTARユニバース', name_en: 'VSTAR Universe', tcg_online_code: 'S12a', tcggo_id: 913, scrydex_id: null, release_date: '2022-12-02', card_count_total: 262, card_count_official: 172 }
+const SET = { id: 'tg-913', name: 'VSTARユニバース', name_en: 'VSTAR Universe', tcg_online_code: 'S12a', tcggo_id: 913, scrydex_id: null, release_date: '2022-12-02', card_count_total: 262, card_count_official: 172 }
 const EXPANSIONES = [
   { id: 's12a_ja', name: 'VSTARユニバース', name_en: 'VSTAR Universe', code: 'S12a', total: 262, printed_total: 172, release_date: '2022/12/02' },
   { id: 's12_ja', name: 'パラダイムトリガー', name_en: 'Paradigm Trigger', code: 'S12', total: 98, printed_total: 98, release_date: '2022/10/21' },
@@ -47,6 +47,17 @@ console.log('── 1. Lo puro ──')
   check('  …y sin nada que case, nada', mod.expansionDelRelleno({}, { id: 'zz', name: 'ZZ' }, EXPANSIONES).id === null)
 }
 
+{
+  // El set no se busca por un id a pelo (en producción s12a no existe así).
+  const q = mod.consultaDelSet(mod.RELLENOS[0])
+  check('el set se busca por sus ids, el código y el nombre inglés en un solo `or`', /^or=\(id\.in\.\("s12a","S12a","s12a_ja"\),tcg_online_code\.ilike\.s12a,name_en\.ilike\.VSTAR%20Universe\)$/.test(q), q)
+  check('  …y un relleno viejo con el set como texto sigue valiendo', mod.consultaDelSet({ set: 'abc' }) === 'or=(id.in.("abc"))')
+  const visible = { id: 'tg-913', oculto: false, tcggo_id: 913, card_count_total: 262 }
+  check('entre lo que casa gana lo que está a la vista', mod.elegirSet([{ id: 'S12a', oculto: true, tcggo_id: null, card_count_total: 262 }, visible]).id === 'tg-913')
+  check('  …y a igual vista, lo que tiene expansión de TCGGO', mod.elegirSet([{ id: 's12a_ja', oculto: false, tcggo_id: null }, visible]).id === 'tg-913')
+  check('  …y sin nada, null', mod.elegirSet([]) === null)
+}
+
 console.log('\n── 2. La pasada ──')
 const ENV = { SUPABASE_SERVICE_ROLE_KEY: 's', SCRYDEX_API_KEY: 'k', SCRYDEX_TEAM_ID: 't' }
 function montar({ estado = {}, decks = { lista: { fecha: '2026-10-18T06:00:00Z', expansiones: EXPANSIONES } }, scrydexStatus = 200, set = SET, nuestras = NUESTRAS, fallaEscribir = false } = {}) {
@@ -60,7 +71,7 @@ function montar({ estado = {}, decks = { lista: { fecha: '2026-10-18T06:00:00Z',
     restImpl: async (ruta, opciones = null) => {
       llamadas.push({ ruta: decodeURIComponent(ruta), metodo: opciones?.method || 'GET', cuerpo: opciones?.body ? JSON.parse(opciones.body) : null })
       if (opciones) { if (fallaEscribir && ruta.startsWith('tcg_cards')) throw new Error('Supabase 500: boom'); return null }
-      if (ruta.startsWith('tcg_sets?')) return set ? [copia(set)] : []
+      if (ruta.startsWith('tcg_sets?')) return set ? (Array.isArray(set) ? copia(set) : [copia(set)]) : []
       if (ruta.startsWith('tcg_cards?')) return copia(nuestras)
       return []
     },
@@ -82,16 +93,19 @@ function montar({ estado = {}, decks = { lista: { fecha: '2026-10-18T06:00:00Z',
 {
   const m = montar()
   const r = await mod.pasada(m.b)
-  check('sale bien y queda hecho', r.ok && r.hecho?.estado === 'hecho', JSON.stringify(r).slice(0, 300))
+  check('sale bien y queda hecho, sobre el set encontrado', r.ok && r.hecho?.estado === 'hecho' && r.hecho.set === 'tg-913', JSON.stringify(r).slice(0, 300))
+  const consulta = m.llamadas.find((l) => l.ruta.startsWith('tcg_sets?select='))
+  check('  …buscado por ids, código y nombre, en JP', /market=eq\.JP&or=\(id\.in\./.test(consulta?.ruta || ''), consulta?.ruta)
+  check('  …y las cartas se leen del set ENCONTRADO, no del id escrito', m.llamadas.some((l) => /tcg_cards\?select=id,local_id&market=eq\.JP&set_id=eq\.tg-913/.test(l.ruta)))
   check('pide a Scrydex SOLO las cartas (la expansión sale de la lista de los decks, gratis): tres páginas, tres créditos', m.fetches.length === 3 && m.fetches.every((u) => /ja\/cards\?q=expansion\.id%3As12a_ja/.test(u)) && m.e().gasto.creditos === 3, m.fetches.join(' | '))
   const escritas = m.llamadas.filter((l) => l.metodo === 'POST' && l.ruta.startsWith('tcg_cards?on_conflict=id,market')).flatMap((l) => l.cuerpo)
   check('escribe las 171 que faltan y ninguna de las de TCGGO', escritas.length === 171 && !escritas.some((c) => Number(c.local_id) >= 173) && !escritas.some((c) => c.local_id === '1'), String(escritas.length))
   const una = escritas.find((c) => c.local_id === '25')
-  check('  …con el id de Scrydex, el set nuestro, JP, nombre japonés e inglés, foto, Pokédex y origen «relleno»', una?.id === 'scrydex-s12a_ja-25' && una.set_id === 's12a' && una.market === 'JP' && una.name === 'カード25' && una.name_en === 'Card 25' && /s12a_ja-25/.test(una.image_scrydex || '') && una.dex_ids?.[0] === 25 && una.origen === 'relleno', JSON.stringify(una))
+  check('  …con el id de Scrydex, el set nuestro, JP, nombre japonés e inglés, foto, Pokédex y origen «relleno»', una?.id === 'scrydex-s12a_ja-25' && una.set_id === 'tg-913' && una.market === 'JP' && una.name === 'カード25' && una.name_en === 'Card 25' && /s12a_ja-25/.test(una.image_scrydex || '') && una.dex_ids?.[0] === 25 && una.origen === 'relleno', JSON.stringify(una))
   check('  …ninguna columna obligatoria vacía', escritas.every((c) => c.local_id && c.name && c.set_id))
   check('  …en trozos de 200 como mucho', m.llamadas.filter((l) => l.metodo === 'POST' && l.ruta.startsWith('tcg_cards')).every((l) => l.cuerpo.length <= 200))
   const parche = m.llamadas.find((l) => l.metodo === 'PATCH' && l.ruta.startsWith('tcg_sets?'))
-  check('el set queda apuntado a su expansión de Scrydex', parche?.cuerpo?.scrydex_id === 's12a_ja' && /id=eq\.s12a/.test(parche.ruta), JSON.stringify(parche))
+  check('el set queda apuntado a su expansión de Scrydex', parche?.cuerpo?.scrydex_id === 's12a_ja' && /id=eq\.tg-913/.test(parche.ruta), JSON.stringify(parche))
   check('el estado cuenta: 262 suyas, 91 teníamos, 171 escritas, por nombre', m.e().hechos['s12a-jp-basicas']?.suyas === 262 && m.e().hechos['s12a-jp-basicas'].teniamos === 91 && m.e().hechos['s12a-jp-basicas'].escritas === 171 && m.e().hechos['s12a-jp-basicas'].por === 'nombre', JSON.stringify(m.e().hechos))
   // La pasada siguiente: nada que hacer, cero peticiones.
   const antes = m.fetches.length
@@ -135,6 +149,17 @@ function montar({ estado = {}, decks = { lista: { fecha: '2026-10-18T06:00:00Z',
   const m = montar({ set: null })
   const r = await mod.pasada(m.b)
   check('sin el set en la base, se apunta y no se gasta', r.ok && m.e().hechos['s12a-jp-basicas']?.estado === 'sinSet' && m.fetches.length === 0)
+  await mod.pasada(m.b)
+  check('  …y se vuelve a buscar en la siguiente (no es un hecho)', m.e().esperas['s12a-jp-basicas'] === 2 && m.llamadas.filter((l) => l.ruta.startsWith('tcg_sets?')).length === 2)
+  // Un «sinSet» de la versión anterior (la que buscaba «s12a» a pelo)
+  // tampoco cuenta como hecho: cuando el set aparece, se rellena.
+  const m2 = montar({ estado: { hechos: { 's12a-jp-basicas': { estado: 'sinSet' } }, gasto: { creditos: 0 } } })
+  const r2 = await mod.pasada(m2.b)
+  check('un «sinSet» viejo se rellena en cuanto el set casa', r2.ok && r2.hecho?.estado === 'hecho', JSON.stringify(r2).slice(0, 200))
+  // Dos filas casan (la vieja escondida y la del calco): se elige la viva.
+  const m3 = montar({ set: [{ ...SET, id: 'S12a', oculto: true, tcggo_id: null }, { ...SET, id: 'tg-913', oculto: false }] })
+  const r3 = await mod.pasada(m3.b)
+  check('con dos sets que casan se rellena el que está a la vista', r3.ok && r3.hecho?.set === 'tg-913' && r3.hecho.candidatos.join() === 'S12a,tg-913', JSON.stringify(r3.hecho))
   const sin = await mod.pasada({ ...montar().b, env: { SUPABASE_SERVICE_ROLE_KEY: 's' } })
   check('sin claves de Scrydex se salta diciéndolo', sin.ok && /SCRYDEX/.test(sin.saltado))
 }
