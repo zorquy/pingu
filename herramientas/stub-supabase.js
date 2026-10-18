@@ -89,6 +89,8 @@ const T = {
   tcg_cards: [],
   tcg_archetypes: [],
   tcg_sets: [],
+  // Lo corregido a mano en el catálogo (885).
+  tcg_correcciones: [],
   // Lo que vale cada expansión, día a día (tanda 646).
   tcg_set_valor: [],
   tcg_card_history: [],
@@ -904,6 +906,7 @@ const SIN_TOCAR = (typeof window !== 'undefined' && window.__RLS_SIN_TOCAR__) ||
 
 // Las llamadas a RPC, para que una prueba pueda comprobarlas.
 const RPCS = []
+const SUBIDAS = []
 
 // ── El registro de escrituras ──
 // En sessionStorage y no en una variable porque las páginas navegan
@@ -1545,6 +1548,55 @@ export const supabase = {
       }
       return { data: fila.id, error: null }
     }
+    // El catálogo corregible (885): las tres funciones de la base, con la
+    // misma regla (solo el admin, solo las columnas de la lista) y la misma
+    // forma de escribir: la fila se toca y la corrección se apunta aparte.
+    if (nombre === 'catalogo_corregir' || nombre === 'catalogo_descorregir' || nombre === 'catalogo_borrar_carta') {
+      const yo = sesion?.user?.id || null
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      if (!yo || !perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
+      const tabla = nombre === 'catalogo_borrar_carta' ? 'tcg_cards' : args.p_tabla
+      const filas = T[tabla] || []
+      const fila = filas.find((f) => f.id === args.p_id && (f.market || 'WEST') === args.p_market)
+      if (nombre === 'catalogo_borrar_carta') {
+        if (!fila) return { data: null, error: { code: 'P0002', message: 'Esa carta no existe.' } }
+        if (fila.origen !== 'mano') return { data: null, error: { code: '42501', message: 'Solo se borran las cartas hechas a mano; las demás las trae y quita su pasada.' } }
+        if (T.user_collection.some((l) => l.card_id === fila.id)) return { data: null, error: { code: '23503', message: 'Alguien tiene esa carta apuntada: no se borra.' } }
+        T.tcg_correcciones = T.tcg_correcciones.filter((c) => !(c.tabla === 'tcg_cards' && c.id === fila.id && c.market === args.p_market))
+        T.tcg_cards = T.tcg_cards.filter((f) => f !== fila)
+        return { data: true, error: null }
+      }
+      if (nombre === 'catalogo_descorregir') {
+        const i = T.tcg_correcciones.findIndex((c) => c.tabla === tabla && c.id === args.p_id && c.market === args.p_market && c.columna === args.p_columna)
+        if (i < 0) return { data: null, error: { code: 'P0002', message: 'Esa columna no estaba corregida.' } }
+        const [c] = T.tcg_correcciones.splice(i, 1)
+        if (fila) fila[args.p_columna] = c.anterior
+        return { data: fila ? { ...fila } : null, error: null }
+      }
+      const PERMITIDAS = {
+        tcg_cards: ['name', 'name_en', 'name_es', 'local_id', 'set_id', 'rarity', 'rarity_en', 'category', 'hp', 'types', 'stage', 'evolve_from', 'retreat', 'attacks', 'abilities', 'weaknesses', 'resistances', 'trainer_type', 'energy_type', 'illustrator', 'description', 'dex_ids', 'regulation_mark', 'variants', 'suffix', 'image_path', 'image_tcggo', 'image_scrydex', 'cm_id_product_propio', 'tp_id_product_propio', 'origen'],
+        tcg_sets: ['name', 'name_en', 'serie_id', 'serie_name', 'serie_name_en', 'release_date', 'card_count_official', 'card_count_total', 'tcg_online_code', 'logo_tcggo', 'logo_scrydex', 'logo_path', 'symbol_scrydex', 'oculto', 'orden', 'origen'],
+      }
+      const cambios = args.p_cambios && typeof args.p_cambios === 'object' ? args.p_cambios : {}
+      if (!PERMITIDAS[tabla]) return { data: null, error: { code: '22023', message: `Tabla desconocida: ${tabla}` } }
+      if (!Object.keys(cambios).length) return { data: null, error: { code: '22023', message: 'No hay nada que cambiar.' } }
+      for (const k of Object.keys(cambios)) if (!PERMITIDAS[tabla].includes(k)) return { data: null, error: { code: '22023', message: `La columna ${k} no se puede corregir desde aquí.` } }
+      if (!fila) {
+        if (!args.p_crear) return { data: null, error: { code: 'P0002', message: `No existe ${args.p_id} en ${tabla} (${args.p_market}).` } }
+        if (tabla === 'tcg_cards' && (!cambios.set_id || !cambios.local_id || !cambios.name)) return { data: null, error: { code: '22023', message: 'Una carta nueva necesita set_id, local_id y name.' } }
+        if (tabla === 'tcg_sets' && !cambios.name) return { data: null, error: { code: '22023', message: 'Un set nuevo necesita name.' } }
+        const nueva = generadas(tabla, { origen: 'mano', ...cambios, id: args.p_id, market: args.p_market })
+        T[tabla].push(nueva)
+        return { data: { ...nueva }, error: null }
+      }
+      for (const [k, v] of Object.entries(cambios)) {
+        const c = T.tcg_correcciones.find((x) => x.tabla === tabla && x.id === args.p_id && x.market === args.p_market && x.columna === k)
+        if (c) { c.valor = v; c.updated_at = new Date().toISOString() }
+        else T.tcg_correcciones.push({ tabla, id: args.p_id, market: args.p_market, columna: k, valor: v, anterior: fila[k] === undefined ? null : fila[k], autor: yo, updated_at: new Date().toISOString() })
+        fila[k] = v
+      }
+      return { data: { ...fila }, error: null }
+    }
     if (nombre === 'productos_por_expansion') {
       const m = args.p_market || 'WEST'
       const cuenta = new Map()
@@ -2122,10 +2174,12 @@ export const supabase = {
     signOut: async () => ({ error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
   },
+  // El cubo público: lo subido contesta con una dirección de la forma de
+  // Supabase (885), que es lo que se guarda en `image_path` o en el logo.
   storage: {
-    from: () => ({
-      upload: async () => ({ data: null, error: null }),
-      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+    from: (cubo) => ({
+      upload: async (ruta) => { SUBIDAS.push({ cubo, ruta }); return { data: { path: ruta }, error: null } },
+      getPublicUrl: (ruta) => ({ data: { publicUrl: `https://ejemplo.supabase.co/storage/v1/object/public/${cubo}/${ruta}` } }),
     }),
   },
   channel: () => ({ on: () => ({ subscribe: () => {} }), subscribe: () => {} }),
@@ -2169,6 +2223,7 @@ function valorGenerado(fila, col) {
 // Para que una prueba pueda mirar el estado sin pasar por la API.
 if (typeof window !== 'undefined') {
   window.__TABLAS__ = T
+  window.__SUBIDAS__ = SUBIDAS
   window.__RPCS__ = RPCS
   window.__CONSULTAS__ = CONSULTAS
 }
