@@ -17,6 +17,14 @@ sitio:
 3. **Si vas a tocar un fichero que la última entrada del otro marca
    como «en curso»**, no lo toques: pregunta a tu humano primero.
 
+## Cómo se le proponen cosas a PINGU
+
+**Una propuesta va SIEMPRE con imágenes** (PINGU, 2026-10-18: «siempre que
+te pida propuestas hazmelo con imágenes»): un artifact con las pantallas
+dibujadas (maquetas de móvil y de PC con los colores de `css/style.css`),
+las decisiones que se le piden y lo que entra en la tanda. Nunca solo
+texto, por rápida que sea la propuesta.
+
 ## Qué es esta web
 
 PokeDoc (pokedoc.es): comunidad española de Pokémon TCG. Guías, cursos

@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (121) — PINGU-Claude (norma: las propuestas van con imágenes)
+
+**Hecho**: solo `CLAUDE.md`. PINGU: «siempre que te pida propuestas
+hazmelo con imágenes»; queda escrito arriba del todo. Propuesta de la
+891 (mensajes privados con fotos) entregada como artifact; pendiente de
+su «adelante».
+
+**Ficheros**: `CLAUDE.md`.
+
+**Pendiente**: lo de la 119.
+
 ## 2026-10-18 (120) — PINGU-Claude (890 — las miniaturas que se quitaban solas)
 
 **Hecho** (PINGU: «en VSTAR Universe, a partir del Voltorb de Hisui la
