@@ -2,7 +2,7 @@
 // los torneos online de Estándar, sacado de Limitless por la función
 // programada meta-limitless. Cada fila lleva a la ficha del arquetipo.
 import { escapeHtml } from './html.js'
-import { resumen, totales, tiposDeArquetipos, tiposDeEspecies } from './meta/datos.js'
+import { resumen, totales, tiposDeArquetipos, tiposDeEspecies, TIPOS_CON_BARRA } from './meta/datos.js'
 import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
 import {
   periodoDe,
@@ -43,7 +43,8 @@ function filaHtml(f, i, maximo) {
   if (fuente) q.set('fuente', fuente)
   const href = `/meta/${encodeURIComponent(f.arquetipo)}${q.toString() ? `?${q}` : ''}`
   // Incoloro tiñe desde la 748, con un gris que se ve (meta.css).
-  const tipo = tipos.get(f.arquetipo) || null
+  // Solo un tipo con regla en la hoja (889): otro deja el relleno transparente.
+  const tipo = TIPOS_CON_BARRA.has(tipos.get(f.arquetipo)) ? tipos.get(f.arquetipo) : null
   return `
     <li class="meta-fila">
       <a class="meta-fila-enlace" href="${href}">

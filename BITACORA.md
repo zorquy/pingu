@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (119) — PINGU-Claude (889 — las barras de /meta sin color)
+
+**Hecho** (PINGU: «las barras no cargan en algunos mazos: o no tienen
+color»): el tipo de las cartas llega del catálogo en español («Oscura»)
+y la barra solo tiene color para la grafía inglesa, así que el relleno
+salía transparente. Ahora pasa por la tabla de alias de la ficha
+(`canonizarCarta`) y lo que no se reconoce no tiñe ni pisa el tipo de la
+especie. Detalle en SCHEMA 889.
+
+**Ficheros**: `js/meta/datos.js`, `js/meta.js`, `novedades.json`,
+`CLAUDE.md`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-889.mjs`. Verdes: 889,
+imports, 721, 384 y 299; la portada sigue en 112,6 KB.
+
+**Pendiente**: lo de la 117. Y en la captura de PINGU el periodo de 7
+días enseña 0,0 % de victorias y 0 top 8 en todos los mazos: no lo ha
+pedido y no lo he mirado.
+
 ## 2026-10-18 (118) — PINGU-Claude (888 — los sprites cuando Limitless no contesta)
 
 **Hecho** (PINGU: «no cargan los sprites»; /meta vacío salvo un Ogerpon

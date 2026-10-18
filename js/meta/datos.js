@@ -4,6 +4,7 @@
 import { supabase } from '../supabase.js'
 import { tipoDeEspecie } from '../tipos-de-especie.js'
 import { dexExacto } from '../torneos/sprites-pokemon.js'
+import { canonizarCarta } from '../carta-detalle.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-meta.sql'
 
@@ -116,11 +117,23 @@ export function dexDeIcono(icono) {
   return dexExacto(s.replace(/-/g, ' ')) ?? dexExacto(s.split('-')[0]) ?? null
 }
 
+// Los tipos que la barra sabe teñir: los de `.meta-barra[data-tipo=…]` en
+// css/meta.css, en la grafía inglesa de TCGdex. El catálogo guarda el tipo
+// COMO LE LLEGA —en español para lo engordado en español («Oscura»,
+// «Fuego»), que es la mayoría desde la 330— y un `data-tipo="Oscura"` no
+// casa con ninguna regla: `--tipo-energia` queda sin definir y el relleno
+// sale TRANSPARENTE, que es peor que el azul de «no se sabe». PINGU (889):
+// «las barras no cargan en algunos mazos: o no tienen color o no sé». Lo
+// que llega se pasa por `canonizarCarta` (la misma tabla que la ficha) y lo
+// que ni así se reconoce no cuenta: no tiñe y no pisa el tipo de la especie.
+export const TIPOS_CON_BARRA = new Set(['Grass', 'Fire', 'Water', 'Lightning', 'Psychic', 'Fighting', 'Darkness', 'Metal', 'Fairy', 'Dragon', 'Colorless'])
+
 export function tipoMasRepetido(cartas, dex) {
   const cuenta = new Map()
   for (const c of cartas || []) {
-    const t = (c.types || [])[0]
-    if (!t || !(c.dex_ids || []).includes(dex)) continue
+    if (!(c.dex_ids || []).includes(dex)) continue
+    const t = (canonizarCarta({ types: c.types }).types || [])[0]
+    if (!TIPOS_CON_BARRA.has(t)) continue
     cuenta.set(t, (cuenta.get(t) || 0) + 1)
   }
   let mejor = null

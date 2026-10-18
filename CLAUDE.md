@@ -449,6 +449,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `pestaniaLista(nombre, visible)` (perfil-pestanias.js), no por tocar
   `hidden` a mano; «Su perfil» desde el Mercado y Cruces abre
   `?ver=cambios`.
+- **Un valor TRADUCIDO no es una CLAVE de CSS** (tanda 889). La barra de
+  /meta escribía `types[0]` de `tcg_cards` en `data-tipo`, y la hoja solo
+  tiene regla para «Darkness»: el catálogo guarda «Oscura» (lo engordado en
+  español desde la 330), `--tipo-energia` quedaba sin definir y el relleno
+  salía TRANSPARENTE, sin error. Un `data-*` que elige una regla lleva el
+  valor canónico (`canonizarCarta`) y pasa por la lista de los que tienen
+  regla (`TIPOS_CON_BARRA`); lo que no está en la lista no se escribe.
 - **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
   inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +
   `css/movil.css`) se carga desde app.js solo si la pantalla es de móvil,

@@ -41785,6 +41785,54 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 889 — Las barras de /meta sin color: el tipo venía en español
+
+PINGU: «las barras no cargan en algunos mazos: o no tienen color o no sé».
+En la captura, N's Zoroark, Basic Box, Festival Lead, Hydrapple, Crustle,
+Mega Excadrill, Rocket's Honchkrow y Grimmsnarl Froslass con la barra de
+uso VACÍA; Charizard, Gardevoir o Dragapult con la suya.
+
+**Qué pasaba.** La barra se tiñe con el tipo de las cartas del arquetipo
+(721): `tiposDeArquetipos` pide a `tcg_cards` las de la especie del primer
+icono y se queda con `types[0]` más repetido, y `js/meta.js` lo escribe
+tal cual en `data-tipo`. La hoja solo tiene reglas para la grafía inglesa
+(`.meta-barra[data-tipo='Darkness'] { --tipo-energia: … }`). Pero el
+catálogo guarda el tipo COMO LE LLEGA, y desde la 330 el engorde lo guarda
+en español siempre que TCGdex lo tiene: «Oscura», «Fuego», «Planta». Un
+`data-tipo="Oscura"` no casa con ninguna regla, `--tipo-energia` queda sin
+definir, y `background: var(--tipo-energia)` es un valor inválido en
+tiempo de cálculo: el relleno sale **transparente**. Ni el color del tipo
+ni el azul de «no se sabe» (que solo se usa cuando NO hay `data-tipo`).
+Y como el tipo de las cartas PISA al de la especie (748), ni siquiera
+quedaba el de la Pokédex. Por eso las barras vacías eran justo las de los
+mazos cuyas cartas se engordaron en español: las de Charizard quedaban
+porque alguna sigue en inglés y ganaba la mayoría.
+
+Es la familia de la 334/335 («lo que se GUARDA es canónico; lo que se
+ENSEÑA va traducido») por el lado contrario: aquí un valor traducido se
+estaba usando como CLAVE de una regla de CSS.
+
+**Qué se hace.**
+- `js/meta/datos.js`: `tipoMasRepetido` pasa cada tipo por
+  `canonizarCarta` (`js/carta-detalle.js`, pura y sin imports: la misma
+  tabla de alias que usa la ficha, con «Oscura», «Oscuridad», «Siniestro»,
+  «Relámpago», «Acero»…) y solo cuenta los de `TIPOS_CON_BARRA` (los once
+  que tiñe la hoja). Una grafía que ni así se reconoce **no cuenta**: no
+  tiñe de transparente y no pisa el tipo de la especie.
+- `js/meta.js`: `filaHtml` solo escribe `data-tipo` si el tipo está en
+  `TIPOS_CON_BARRA`. Es la guarda del otro lado: pase lo que pase con los
+  datos, la barra o lleva un tipo con regla o va en azul.
+
+**Prueba** (`test-tanda-889.mjs`): lo puro («Oscura» → Darkness, una grafía
+desconocida no cuenta, el inglés sigue valiendo), que `TIPOS_CON_BARRA` y
+las reglas de `css/meta.css` sean la misma lista en los dos sentidos, y
+en la pantalla tres arquetipos con cartas en español, en inglés y con una
+grafía inventada: ninguna barra con relleno transparente.
+
+**Lo que NO se toca.** La captura también enseña «0,0 %» de victorias y «0
+top 8» en todos los mazos del periodo de 7 días; no lo ha pedido PINGU y es
+otra cosa (los datos del periodo), no la barra.
+
 ## Tanda 888 — El vigilante de los sprites: una CDN que no contesta
 
 PINGU: «no cargan los sprites en pokedoc, ¿por?». En /meta todas las filas
