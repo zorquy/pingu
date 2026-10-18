@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (111) — PINGU-Claude (881 — VSTAR Universe japonés, entero otra vez de TCGGO)
+
+**Hecho** (Asier en el foro: «solo me aparecen las cartas del 172 en
+adelante»; PINGU: «tráete esa expansión de TCGGO y listo»): una entrada
+nueva en `REEMPLAZOS` (`s12a-jp`, JP, entera, por número, sin borrar lo que
+alguien tiene); la expansión de TCGGO sale del `tcggo_id` de la fila del
+set (`episodioDe`, «fila»). Corre sola a los cinco minutos del despliegue.
+Detalle en SCHEMA 881.
+
+**Para PINGU**: mira en /admin → REEMPLAZOS la línea `s12a-jp` en un rato.
+Si `suyas` ronda 262, hecho. Si se queda en ~90, es que TCGGO solo tiene las
+de arte de esa expansión, y entonces las numeradas hay que traerlas de
+TCGdex: dímelo y lo hago.
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-654.mjs` ampliada; verdes 654,
+666, test-imports.
+
+**Pendiente**: la migración 878 y `supabase-liga-fdn-jornada-1.sql`, si no
+están ejecutadas.
+
 ## 2026-10-16 (110) — PINGU-Claude (880 — compartir una noticia en X: texto que cabe, la portada y «Publicar en X»)
 
 **Hecho** (PINGU: «compartir las noticias en twitter de manera correcta,

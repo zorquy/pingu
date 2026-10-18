@@ -41687,3 +41687,27 @@ también: 871-pantalla, 872, 324, 270, 272, 309, 305, 312, 299, ficha-guia,
 está roja desde la 866 por un comentario de varias líneas en
 `components.css` (no es de esta tanda).
 
+## Tanda 881 — VSTAR Universe japonés, entero otra vez de TCGGO
+
+Un usuario del foro (Asier): «en la opción japonesa de VSTAR Universe (s12a)
+solo me aparecen las cartas del 172 en adelante». La baldosa dice 262 porque
+`card_count_total` es lo que TCGGO declara de su expansión, no lo que hay en
+`tcg_cards`; la pantalla no filtra nada: pinta las filas que recibe. Lo que
+hay son las de arte (desde Hisuian Voltorb, la 173): la vuelta entera del
+calco (806) escribió lo que TCGGO listaba entonces y no vuelve a mirar una
+expansión hecha. PINGU: «tráete esa expansión de TCGGO y listo, paso de
+comprobar nada».
+
+Una entrada más en `REEMPLAZOS` (`tcggo-reemplazar-set`): `s12a-jp`, mercado
+JP, entera, `recolocarPorNumero` y `borrarSinDestino: false` (lo que alguien
+tenga de una carta que no case se queda, como en el calco). La expansión
+suya no va escrita a mano: `episodioDe` mira primero el `tcggo_id` de la
+FILA (`por: 'fila'`), que el calco ya puso, y la pasada pide esa columna.
+Las opciones del entero viajan de la entrada a `procesar`. La pasada corre
+sola a los cinco minutos del despliegue; el resultado queda en
+`tcggo_reemplazos.hechos['s12a-jp']` y /admin lo enseña: si `suyas` sigue
+en ~90, TCGGO no tiene las numeradas y hay que traerlas de otro sitio.
+
+**Pruebas**: `test-tanda-654.mjs` (la fila manda, la entrada, la pasada con
+sus opciones y el apunte «fila»); verdes 666 y test-imports.
+

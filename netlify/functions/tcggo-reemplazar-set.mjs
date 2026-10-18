@@ -116,6 +116,14 @@ export const REEMPLAZOS = [
   // borra, y lo que la gente tenga apuntado pasa a la carta de TCGGO (por
   // su id de TCGGO, que las de la Classic ya llevan desde la 854).
   { clave: 'cel25-junto', sets: ['cel25', 'cel25cc', 'cel25c'], destino: 'cel25', mercado: 'WEST', episodio: 35, entero: true },
+  // VSTAR Universe japonés (881). Un usuario del foro: «solo me aparecen
+  // las cartas del 172 en adelante». El set declara 262 (lo que TCGGO dice
+  // de su expansión) y tiene muchas menos: la vuelta entera del calco (806)
+  // se quedó con lo que TCGGO listaba entonces. PINGU: «tráete esa
+  // expansión de TCGGO y listo». La expansión sale de la fila (`tcggo_id`,
+  // que el calco ya escribió); entera, y lo que alguien tenga de una carta
+  // que no case se queda (como en el calco: `borrarSinDestino: false`).
+  { clave: 's12a-jp', sets: ['s12a'], destino: 's12a', mercado: 'JP', entero: true, recolocarPorNumero: true, borrarSinDestino: false },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
@@ -520,6 +528,9 @@ export async function procesar({
 // (`tcggo_pares.hechos[set].episodio`), y si no, la que case por código o
 // nombre contra su lista. Sin lista, no se sabe y se espera a que corra.
 export function episodioDe(set, pares) {
+  // La fila manda (881): un set que ya lleva su `tcggo_id` —los japoneses
+  // del calco, los occidentales emparejados— no necesita lista ni pares.
+  if (Number.isInteger(set?.tcggo_id) && set.tcggo_id > 0) return { episodio: set.tcggo_id, por: 'fila' }
   const h = pares?.hechos?.[set?.id]
   if (h && Number.isInteger(h.episodio) && !h.sospechoso) return { episodio: h.episodio, por: 'pares' }
   const lista = Array.isArray(pares?.episodios?.lista) ? pares.episodios.lista : []
@@ -587,7 +598,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   // El set destino, para resolver su expansión.
   let set = null
   try {
-    set = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code&market=eq.${pendiente.mercado || 'WEST'}&id=eq.${encodeURIComponent(pendiente.destino)}&limit=1`))?.[0] || null
+    set = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id&market=eq.${pendiente.mercado || 'WEST'}&id=eq.${encodeURIComponent(pendiente.destino)}&limit=1`))?.[0] || null
   } catch (e) {
     return { ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
   }
@@ -603,7 +614,11 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   // Sin expansión suya no se cuenta como intento: no se ha gastado nada y
   // el emparejador puede traerla en su próxima pasada.
   if (!episodio) return { ok: true, clave: pendiente.clave, esperando: `sin expansión de TCGGO para «${set.id}»: ${por}` }
-  const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...resto })
+  // Las opciones del entero que lleve la entrada (881): recolocar por
+  // número y no borrar lo que alguien tiene, como hace el calco japonés.
+  const opciones = {}
+  for (const k of ['recolocarPorNumero', 'borrarSinDestino']) if (k in pendiente) opciones[k] = pendiente[k]
+  const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...opciones, ...resto })
   if (r.ok) {
     estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
   } else {
