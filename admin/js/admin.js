@@ -3182,6 +3182,19 @@ async function tcggoEstado() {
         ...lineasDePreciosJp(p.resumenJp, de('tcggo_calco_jp')?.valor?.lista?.episodios),
       ]
     })(),
+    // Los decks japoneses de Scrydex (883): lo que TCGGO no tiene.
+    ...(() => {
+      const d = de('scrydex_decks_jp')?.valor
+      if (!d) return ['DECKS JAPONESES DE SCRYDEX (scrydex_decks_jp, 883): todavía no ha corrido']
+      const creados = Object.entries(d.creados || {})
+      return [
+        `DECKS JAPONESES DE SCRYDEX (scrydex_decks_jp, 883) — ${de('scrydex_decks_jp')?.updated_at || 'nunca'}: ${Object.keys(d.conservados || {}).length} conservados (${Object.values(d.conservados || {}).filter((c) => c.por === 'vuelto').length} vueltos a enseñar, ${creados.filter(([, c]) => c.estado === 'creado').length} creados) · créditos gastados: ${d.gasto?.creditos ?? 0}${d.faltan ? ` · faltan ${d.faltan.cuantas} (${d.faltan.fecha})` : ''}`,
+        d.parado ? `  ⚠ PARADA (${d.parado.fecha}): ${d.parado.motivo}` : '',
+        ...creados.filter(([, c]) => c.estado !== 'creado').map(([id, c]) => `  ${c.estado === 'parado' ? '⚠' : '·'} ${id}: ${c.estado}${c.error ? ` — ${c.error}` : ''}`),
+        d.faltan?.lista?.length ? `  por traer: ${d.faltan.lista.slice(0, 12).map((f) => `${f.id} «${f.nombre}» (${f.total ?? '?'})`).join(' · ')}${d.faltan.lista.length > 12 ? ' …' : ''}` : '',
+        d.ultimoError ? `  último error (${d.ultimoError.fecha}): ${d.ultimoError.error}` : '',
+      ]
+    })(),
     // El calco japonés (674): expansión a expansión desde TCGGO.
     ...(() => {
       const k = de('tcggo_calco_jp')?.valor

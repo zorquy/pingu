@@ -129,6 +129,7 @@ export const TEXTOS_POR_TIPO = {
   torneo_partida: { cta: 'Ir a tu mesa', pie: 'Recibes este correo porque estás jugando este torneo.' },
   torneo_final: { cta: 'Ver la clasificación', pie: 'Recibes este correo porque has jugado este torneo.' },
   torneo_juez: { cta: 'Atender la llamada', pie: 'Recibes este correo porque eres juez u organizador de este torneo.' },
+  torneo_aviso: { cta: 'Ver el torneo', pie: 'Recibes este correo porque estás inscrito en este torneo.' },
 }
 
 // ── De qué va este correo, de un vistazo (tanda 350) ──
@@ -167,6 +168,7 @@ export const FAMILIA_POR_TIPO = {
   torneo_partida: 'torneos',
   torneo_final: 'torneos',
   torneo_juez: 'torneos',
+  torneo_aviso: 'torneos',
 }
 
 export function familiaDeTipo(tipo) {
@@ -586,6 +588,14 @@ export const EJEMPLOS_DE_CORREO = [
     subject: 'Llamada de juez en la mesa 4',
     preview: 'Ibai ha pedido un juez en Pachanga de inauguración.',
     link: '/torneo?slug=pachanga-de-inauguracion',
+  },
+  {
+    // El tablón del torneo (878): un aviso del organizador a los inscritos.
+    type: 'torneo_aviso',
+    donde: 'torneos_tablon_escribir (supabase-migration-878-tablon-torneo.sql)',
+    subject: 'Aviso del torneo — Liga FDN',
+    preview: 'La ronda 2 empieza a las 19:30; id yendo a vuestras mesas.',
+    link: '/torneo?slug=liga-fdn',
   },
   {
     type: 'weekly_digest',

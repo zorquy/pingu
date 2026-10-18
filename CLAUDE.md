@@ -401,7 +401,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   con datos y `netlify/lib/scrydex.mjs`. **Desde la 809 no le pide NADA a
   Scrydex ninguna función programada** (PINGU dio de baja la suscripción):
   `scrydex-huecos` retirada, `tcggo-sueltas` sin su camino. No lo vuelvas a
-  meter como respaldo.
+  meter como respaldo. **La única excepción es `scrydex-decks-jp`** (883,
+  PINGU: «mete de Scrydex, que sigue activa la sub este mes»): trae SOLO
+  lo japonés que TCGGO no tiene (los decks), con tope de créditos y
+  parada definitiva al primer 401/402/403; lo que enseña o crea queda en
+  `conservados` y el calco no lo esconde.
   **Desde la 806 el japonés sale ENTERO de TCGGO** (`tcggo-calco-jp`,
   vuelta 2): ni espejo occidental ni Scrydex ni TCGdex escriben en él. Y
   TCGGO da cada VERSIÓN de una carta como otra entrada con el mismo número

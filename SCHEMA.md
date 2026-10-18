@@ -41738,3 +41738,50 @@ Pokédex no ve.
 el centinela, y la Pokédex japonesa en pantalla con un Bulbasaur de
 TCGGO); verdes 381, 391, 483, 400, 412, 414, 418, test-imports.
 
+## Tanda 883 — Los decks japoneses, de Scrydex, mientras dure la suscripción
+
+Un usuario con un わるいカイリュー (Dark Dragonite) 014/020 de 2004 que no
+está en PokeDoc: es de un deck, y TCGGO no tiene los decks japoneses («ya
+los agregarán»). TCGdex tampoco (eras enteras del japonés sin una carta,
+670 y 698). PINGU: «mete de Scrydex, que sigue estando activa la sub este
+mes; así puedes meter y ya».
+
+**`scrydex-decks-jp`** (programada, `7-59/10`), la excepción a la 809 y
+acotada a propósito: solo el japonés y solo lo que TCGGO NO tiene; tope
+de créditos total (`TOPE_CREDITOS` = 400 de los 5.000 del plan) y por
+pasada (12); un 401/402/403 la PARA del todo (`parado`, sin versión) y la
+vuelve a arrancar un humano borrando `parado` del estado. Dos fases:
+
+- **A, gratis**: los sets japoneses escondidos que vinieron de Scrydex
+  (`scrydex_id`, sin `tcggo_id`) y TCGGO no tiene (`laTieneTcggo`: código,
+  nombre inglés, o día de salida con la misma cuenta, contra la lista del
+  calco) se vuelven a enseñar si tienen cartas (veinte comprobaciones por
+  pasada; `revisados`). La 698 creó muchas expansiones de Scrydex y la
+  vuelta 3 del calco (810) las escondió todas: los decks pueden estar ahí.
+- **B, con créditos**: su lista de expansiones japonesas (una vez a la
+  semana) menos las que casan con un set nuestro (`expansionesQueFaltan`:
+  `scrydex_id`, nombre o la huella de `expansionDelSet`) y menos las que
+  TCGGO tiene; de dos en dos se crean (set a la vista con `scrydex_por =
+  'decks'`, cartas por `filaDeCartaScrydex` con el id de Scrydex, el
+  nombre japonés, el inglés, la foto y la Pokédex; sin pedir precios). Un
+  fallo suyo cuenta intento y a la tercera se deja (`creados[id].estado =
+  'parado'`); uno nuestro para hasta la versión siguiente.
+
+Lo que enseña o crea queda en **`conservados`**, y el calco japonés lo
+respeta (`CLAVE_DECKS`): la limpieza de la vuelta 3 y el escondido de la
+entera llevan `id=not.in.(…)`, y si TCGGO trae un día esa expansión, el
+set conservado es el DESTINO (`por: 'conservado (…)'`), entero y por
+número, para que lo apuntado no se pierda. /admin la enseña («DECKS
+JAPONESES DE SCRYDEX») y `sonda-origenes` dice si un set es conservado.
+Sin precio: no hay fuente, y es lo que PINGU prefiere (686).
+
+De paso, la 350 estaba roja desde la 878: faltaba el ejemplo del correo
+`torneo_aviso` en `EJEMPLOS_DE_CORREO` (y su llamada en `email-plantilla`).
+
+**Pruebas**: `test-tanda-883.mjs` (lo puro; la pasada que enseña el
+Silver y crea el Gold con sus cartas; el 402, el tope y los saltos; el
+calco que respeta los conservados y los usa de destino). Verdes 806, 809,
+810, 811, 755, 756, 670, 674, 683, 825, 654, 655, 805, 807, 821, 350,
+test-imports y el resto de las que tocan el calco. La 848 estaba roja
+antes de esta tanda (analítica contra el PostgreSQL local).
+

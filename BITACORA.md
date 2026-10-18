@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (113) — PINGU-Claude (883 — los decks japoneses, de Scrydex, mientras dure la suscripción)
+
+**Hecho** (un Dark Dragonite de un deck de 2004 que no está; PINGU: «mete
+de Scrydex, que sigue activa la sub este mes»): `scrydex-decks-jp`, la
+excepción a la 809: enseña lo escondido que vino de Scrydex y TCGGO no
+tiene (gratis) y trae de Scrydex las expansiones japonesas que ni tenemos
+ni TCGGO tiene (dos por pasada, tope de 400 créditos, parada definitiva
+al 402); el calco no esconde esos sets y, si TCGGO los trae, los usa de
+destino. /admin lo enseña. Y la 350 vuelve a verde (ejemplo del correo
+`torneo_aviso`). Detalle en SCHEMA 883; norma en CLAUDE.md.
+
+**Para PINGU**: en /admin → «DECKS JAPONESES DE SCRYDEX» verás los
+vueltos a enseñar, los creados, los créditos y la lista de «por traer».
+Si ves un deck que no es un deck (una expansión que TCGGO sí tiene con
+otro nombre), dímelo y lo quito. Cuando acabe la suscripción se para sola
+y lo dice.
+
+**Ficheros**: `netlify/functions/scrydex-decks-jp.mjs` (nuevo),
+`netlify/functions/tcggo-calco-jp.mjs`, `netlify/functions/sonda-origenes.mjs`,
+`admin/js/admin.js`, `js/email-plantilla.js`, `CLAUDE.md`, `SCHEMA.md`,
+`novedades.json`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-883.mjs`; verdes las 30
+que tocan el calco, la sonda y /admin más la 350 y test-imports. La 848
+(analítica contra el PostgreSQL local) estaba roja antes.
+
+**Pendiente**: mirar `s12a-jp` (881) y los decks en /admin; la migración
+878 y `supabase-liga-fdn-jornada-1.sql`, si no están ejecutadas.
+
 ## 2026-10-18 (112) — PINGU-Claude (882 — la Pokédex japonesa vacía: la especie sale también del inglés)
 
 **Hecho** (PINGU: «en la Pokédex (japonés) ningún Pokémon está relleno»):

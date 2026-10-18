@@ -79,6 +79,7 @@ import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_calco_jp'
+export const CLAVE_DECKS = 'scrydex_decks_jp'
 export const MAXIMO_INTENTOS = 3
 export const MAXIMO_PROBADOS = 8
 export const DIAS_DE_LISTA = 1
@@ -154,13 +155,20 @@ export async function pasada({
   const dia = ahora.toISOString().slice(0, 10)
 
   let estado
+  let conservados = {}
   try {
     estado = await leerEstado(CLAVE_ESTADO)
+    // Los sets que `scrydex-decks-jp` enseña o crea (883): lo que TCGGO no
+    // tiene (los decks). No se esconden; y si TCGGO los trae un día, son el
+    // destino de esa expansión (abajo), no un «viejo» que esconder.
+    conservados = (await leerEstado(CLAVE_DECKS))?.conservados || {}
+    if (!conservados || typeof conservados !== 'object') conservados = {}
   } catch (e) {
     const m = String(e?.message || e)
     if (/42P01|scrydex_estado/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-scrydex-cartas.sql (scrydex_estado)' }
     return { ok: false, error: m.slice(0, 200) }
   }
+  const sinConservados = Object.keys(conservados).length ? `&id=not.in.(${Object.keys(conservados).map((id) => `"${id}"`).join(',')})` : ''
   estado = estado && typeof estado === 'object' ? estado : {}
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   if (!estado.intentos || typeof estado.intentos !== 'object') estado.intentos = {}
@@ -235,7 +243,7 @@ export async function pasada({
 
   if (sinCasar && !estado.limpieza?.hecha) {
     try {
-      const escondidos = (await pedir(`tcg_sets?market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&select=id,name,name_en`, { method: 'PATCH', body: JSON.stringify({ oculto: true }), headers: { Prefer: 'return=representation' } })) || []
+      const escondidos = (await pedir(`tcg_sets?market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false${sinConservados}&select=id,name,name_en`, { method: 'PATCH', body: JSON.stringify({ oculto: true }), headers: { Prefer: 'return=representation' } })) || []
       for (const s of Array.isArray(escondidos) ? escondidos : []) estado.escondidosAlFinal[s.id] = { fecha: ahora.toISOString(), nombre: s.name_en || s.name || s.id, por: 'sin tcggo_id, al empezar la vuelta 3' }
       estado.limpieza = { hecha: true, fecha: ahora.toISOString(), escondidos: Array.isArray(escondidos) ? escondidos.length : null }
       await persistir()
@@ -298,6 +306,12 @@ export async function pasada({
     if (!destino && !sinCasar) {
       const r = setDeEpisodio(pendiente, sets)
       if (r.set) { destino = r.set.id; por = r.por }
+    }
+    // Un conservado de Scrydex (883) que TCGGO trae por fin: se vuelca
+    // encima (entera, por número), para que lo apuntado ahí no se pierda.
+    if (!destino) {
+      const r = setDeEpisodio(pendiente, sets.filter((s) => conservados[s.id]))
+      if (r.set) { destino = r.set.id; por = `conservado (${r.por})` }
     }
     if (!destino && !sinCasar) {
       const r = setDeEpisodioPorHuella(pendiente, sets)
@@ -440,7 +454,7 @@ export async function pasada({
   if (entera) {
     let sueltos
     try {
-      sueltos = (await pedir(`tcg_sets?select=id,name,name_en&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&order=id&limit=${ESCONDER_POR_PASADA}`)) || []
+      sueltos = (await pedir(`tcg_sets?select=id,name,name_en&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false${sinConservados}&order=id&limit=${ESCONDER_POR_PASADA}`)) || []
       for (const s of sueltos) {
         await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(s.id)}`, { method: 'PATCH', body: JSON.stringify({ oculto: true }) })
         estado.escondidosAlFinal[s.id] = { fecha: ahora.toISOString(), nombre: s.name_en || s.name || s.id }
