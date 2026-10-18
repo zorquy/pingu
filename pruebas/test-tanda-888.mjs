@@ -47,7 +47,7 @@ async function abrir({ limitless }) {
   await p.evaluate(async () => {
     const m = await import('/js/torneos/sprites-pokemon.js')
     const url = m.urlDeSprite(887)
-    document.body.insertAdjacentHTML('beforeend', `<div id="pruebaSprite"><img id="spr" src="${url}" width="40" height="40" alt=""${m.atributosDeRespaldo(url)}></div>`)
+    document.body.insertAdjacentHTML('afterbegin', `<div id="pruebaSprite" style="position:fixed;top:0;left:0;z-index:9"><img id="spr" src="${url}" width="40" height="40" alt=""${m.atributosDeRespaldo(url)}></div>`)
   })
   return { p, ctx, pedidas }
 }
