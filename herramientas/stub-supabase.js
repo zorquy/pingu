@@ -215,6 +215,20 @@ const DEFECTOS_AL_INSERTAR = {
   user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
   user_wants: { idioma: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
   user_release_alerts: { semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-07T00:00:00Z' },
+  // 891: un mensaje nace con su hora, sin fotos y sin eliminar.
+  private_messages: { adjuntos: [], deleted_at: null },
+}
+
+// Filas a medida en CUALQUIER tabla (tanda 891): `window.__FAKE_FILAS__ =
+// { conversations: [...], private_messages: [...] }`. Para las tablas que
+// no tienen gancho propio (los mensajes privados no lo tenían) y que una
+// prueba quiere sembrar sin tocar el doble.
+const filasAMedida = typeof window !== 'undefined' ? window.__FAKE_FILAS__ : null
+if (filasAMedida && typeof filasAMedida === 'object') {
+  for (const [tabla, filas] of Object.entries(filasAMedida)) {
+    if (!Array.isArray(filas)) continue
+    T[tabla] = (T[tabla] || []).concat(filas.map((f) => ({ ...f })))
+  }
 }
 
 function sembrar(gancho, tabla, porDefecto) {
@@ -907,6 +921,7 @@ const SIN_TOCAR = (typeof window !== 'undefined' && window.__RLS_SIN_TOCAR__) ||
 // Las llamadas a RPC, para que una prueba pueda comprobarlas.
 const RPCS = []
 const SUBIDAS = []
+const BORRADAS = []
 
 // ── El registro de escrituras ──
 // En sessionStorage y no en una variable porque las páginas navegan
@@ -1171,6 +1186,9 @@ function consulta(tabla, estado = {}) {
         id: f.id || `${tabla}-nuevo-${(T[tabla] || []).length + i + 1}`,
         ...defectos,
         ...conDueno,
+        // `created_at default now()` (891): el hilo agrupa por día y pinta la
+        // hora de cada mensaje, y una fila sin fecha salía con el día en blanco.
+        ...(tabla === 'private_messages' && !f.created_at ? { created_at: new Date().toISOString() } : {}),
         ...f,
       }))
       // El índice único de supabase-migration-repeticiones.sql (tanda
@@ -2189,8 +2207,16 @@ export const supabase = {
   // Supabase (885), que es lo que se guarda en `image_path` o en el logo.
   storage: {
     from: (cubo) => ({
-      upload: async (ruta) => { SUBIDAS.push({ cubo, ruta }); return { data: { path: ruta }, error: null } },
+      upload: async (ruta, fichero, opciones) => { SUBIDAS.push({ cubo, ruta, tipo: opciones?.contentType || fichero?.type || null, bytes: fichero?.size ?? null }); return { data: { path: ruta }, error: null } },
       getPublicUrl: (ruta) => ({ data: { publicUrl: `https://ejemplo.supabase.co/storage/v1/object/public/${cubo}/${ruta}` } }),
+      // Un cubo PRIVADO (891) se lee por direcciones firmadas: la forma es
+      // la de Supabase, con su `token`, para que una prueba pueda
+      // interceptarlas por dominio.
+      createSignedUrls: async (rutas, segundos) => ({
+        data: (rutas || []).map((r) => ({ path: r, signedUrl: `https://ejemplo.supabase.co/storage/v1/object/sign/${cubo}/${r}?token=prueba&exp=${segundos}`, error: null })),
+        error: null,
+      }),
+      remove: async (rutas) => { BORRADAS.push(...(rutas || []).map((r) => ({ cubo, ruta: r }))); return { data: rutas, error: null } },
     }),
   },
   channel: () => ({ on: () => ({ subscribe: () => {} }), subscribe: () => {} }),
@@ -2235,6 +2261,7 @@ function valorGenerado(fila, col) {
 if (typeof window !== 'undefined') {
   window.__TABLAS__ = T
   window.__SUBIDAS__ = SUBIDAS
+  window.__BORRADAS__ = BORRADAS
   window.__RPCS__ = RPCS
   window.__CONSULTAS__ = CONSULTAS
 }
