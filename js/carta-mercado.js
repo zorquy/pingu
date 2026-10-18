@@ -44,7 +44,7 @@ import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
 import { variantesDeCarta, versionDeVariante, TODAS } from './mi-coleccion/variantes.js'
 import { versionesDe as versionesDeTcggo } from './carta-versiones.js'
-import { especiesDeCarta, especiePorDex } from './pokedex-especies.js'
+import { especiesPorNombres, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -107,7 +107,7 @@ function marcarChip(caja, id) {
 // Solo si la carta tiene UNA especie: en una TAG TEAM un enlace que
 // elige por ti manda a medio sitio.
 function enlaceDeEspecie(carta) {
-  const dexes = especiesDeCarta(carta?.name || carta?.name_es)
+  const dexes = especiesPorNombres(carta?.name, carta?.name_es, carta?.name_en)
   if (dexes.length !== 1) return ''
   const nombre = especiePorDex(dexes[0])
   if (!nombre) return ''

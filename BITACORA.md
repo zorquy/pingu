@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (112) — PINGU-Claude (882 — la Pokédex japonesa vacía: la especie sale también del inglés)
+
+**Hecho** (PINGU: «en la Pokédex (japonés) ningún Pokémon está relleno»):
+las japonesas de TCGGO llevan `name` en japonés y `dex_ids` a null, y nadie
+las rellenaba. `especiesPorNombres` (puro) prueba el nombre, el español y
+el inglés; la pantalla, la imagen y la ficha lo usan; y `cartas-pokedex`
+rellena también el mercado JP con el nombre inglés. Detalle en SCHEMA 882.
+Una línea en `novedades.json`.
+
+**Para PINGU**: lo tuyo se ve ya; el catálogo entero (las «N de M» y la
+lista de cada especie) se llena solo en unas pasadas de diez minutos.
+
+**Ficheros**: `js/pokedex-especies.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion/imagen-datos.js`, `js/carta-mercado.js`,
+`netlify/functions/cartas-pokedex.mjs`, `SCHEMA.md`, `novedades.json`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-882.mjs`; verdes 381, 391,
+483, 400, 412, 414, 418, test-imports.
+
+**Pendiente**: mirar `s12a-jp` en /admin (881); la migración 878 y
+`supabase-liga-fdn-jornada-1.sql`, si no están ejecutadas.
+
 ## 2026-10-18 (111) — PINGU-Claude (881 — VSTAR Universe japonés, entero otra vez de TCGGO)
 
 **Hecho** (Asier en el foro: «solo me aparecen las cartas del 172 en

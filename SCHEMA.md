@@ -41711,3 +41711,30 @@ en ~90, TCGGO no tiene las numeradas y hay que traerlas de otro sitio.
 **Pruebas**: `test-tanda-654.mjs` (la fila manda, la entrada, la pasada con
 sus opciones y el apunte «fila»); verdes 666 y test-imports.
 
+## Tanda 882 — La Pokédex japonesa vacía: la especie sale también del inglés
+
+PINGU: «en la Pokédex (japonés) ningún Pokémon está relleno, salen todos
+vacíos sin cartas». Tres cosas juntas: las japonesas vienen de TCGGO (806)
+con `name` EN JAPONÉS y `name_en` en inglés (811); `tcggo_guardar_cartas`
+no escribe `dex_ids` y la función que la rellena, `cartas-pokedex`, era solo
+WEST («las columnas que rellena una función programada se rellenan POR
+MERCADO», 483); y el respaldo por nombre de la pantalla no sabe leer
+「フシギダネ」. Resultado: ni la columna ni el nombre, y 13.000 cartas que la
+Pokédex no ve.
+
+- `especiesPorNombres(...nombres)` (`js/pokedex-especies.js`, puro): prueba
+  cada nombre en orden y vale el primero que dé algo. Lo usan la pantalla
+  (`especiesDeLaCarta`: columna → `name`, `name_es`, `name_en`), la imagen
+  de la colección (`imagen-datos.js`) y el enlace «Todas las cartas de X»
+  de la ficha (`carta-mercado.js`).
+- `cartas-pokedex` pasa por `MERCADOS = ['WEST', 'JP']`, pide `name_en` y
+  deduce con `especiesPorNombres(name, name_en)`. Una japonesa sin inglés o
+  un Entrenador se quedan en `{}` (el centinela de la 381). TW y CN no:
+  no tienen nombre inglés. Las ~13.000 japonesas se hacen en unas pasadas
+  de diez minutos; mientras tanto la pantalla ya cuenta lo TUYO por el
+  inglés, y `cartasDeEspecie` (que consulta `dex_ids`) va llenándose.
+
+**Pruebas**: `test-tanda-882.mjs` (lo puro, la función con las dos colas y
+el centinela, y la Pokédex japonesa en pantalla con un Bulbasaur de
+TCGGO); verdes 381, 391, 483, 400, 412, 414, 418, test-imports.
+

@@ -7,7 +7,7 @@
 // Todo se cuenta por cartas DISTINTAS, no por copias (la regla del
 // reparto de la 405): «tengo 40 de Agua» se entiende, «78 contando
 // repetidas» no dice nada de la colección.
-import { especiesDeCarta, especiePorDex } from '../pokedex-especies.js'
+import { especiesPorNombres, especiePorDex } from '../pokedex-especies.js'
 import { TIPOS_ES, familiaDeBrillo } from '../carta-traducciones.js'
 import { rarezaDeCarta } from '../rarezas-nombres.js'
 
@@ -30,7 +30,7 @@ export const REGIONES = [
 
 const especiesDe = (carta) => {
   const dex = (carta?.dex_ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
-  return dex.length ? dex : especiesDeCarta(carta?.name || carta?.name_es)
+  return dex.length ? dex : especiesPorNombres(carta?.name, carta?.name_es, carta?.name_en)
 }
 
 const fecha = (iso) => {

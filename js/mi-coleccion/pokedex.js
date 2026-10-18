@@ -25,7 +25,7 @@ import { migasHtml } from './migas.js'
 import { diapoHtml, tiraHtml } from './diapos.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
-import { especiesDeCarta, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
+import { especiesPorNombres, especiePorDex, POKEMON_POR_DEX } from '../pokedex-especies.js'
 import { urlDeSprite, atributosDeRespaldo } from '../torneos/sprites-pokemon.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 // Un reexport no es un import (624): se importa para usarlo aquí.
@@ -58,7 +58,8 @@ const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
 // las occidentales que aún no la tengan.
 export function especiesDeLaCarta(carta) {
   const dex = (carta?.dex_ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
-  return dex.length ? dex : especiesDeCarta(carta?.name || carta?.name_es)
+  // Y el inglés al final (882): el de las japonesas de TCGGO.
+  return dex.length ? dex : especiesPorNombres(carta?.name, carta?.name_es, carta?.name_en)
 }
 
 export function loMioPorEspecie(lineas, cartas) {

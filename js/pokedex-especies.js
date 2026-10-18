@@ -64,6 +64,20 @@ export function especiesDeCarta(nombre) {
   return [...new Set(bases)].sort((a, b) => a - b)
 }
 
+// La especie de una carta que puede venir con VARIOS nombres (882): el
+// propio, el español y el inglés, en ese orden, y vale el primero que dé
+// algo. Las japonesas de TCGGO llevan `name` en japonés (811), que no casa
+// con ninguna lista, y su `name_en` sí: sin esto la Pokédex japonesa salía
+// vacía con 13.000 cartas dentro.
+export function especiesPorNombres(...nombres) {
+  for (const n of nombres) {
+    if (!n) continue
+    const dexes = especiesDeCarta(n)
+    if (dexes.length) return dexes
+  }
+  return []
+}
+
 // El nombre de una especie por su número, para pintarla.
 export function especiePorDex(dex) {
   const n = Number(dex)

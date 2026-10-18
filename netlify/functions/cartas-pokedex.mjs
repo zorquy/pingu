@@ -30,10 +30,15 @@
 // distingue «no preguntado» de «no hay» no se vacía nunca.
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY (obligatoria).
-import { especiesDeCarta } from '../../js/pokedex-especies.js'
+import { especiesPorNombres } from '../../js/pokedex-especies.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
-const MERCADO = 'WEST'
+// Desde la 882 también el japonés: sus cartas vienen de TCGGO (806) con
+// `name` en japonés y `name_en` en inglés (811), y la especie sale del
+// inglés. Antes era solo WEST («las columnas que rellena una función
+// programada se rellenan POR MERCADO», 483) y la Pokédex japonesa salía
+// vacía con todas las cartas dentro. TW y CN no: no tienen nombre inglés.
+const MERCADOS = ['WEST', 'JP']
 
 // Por lote. Grande porque no hay red de por medio: son una lectura y una
 // escritura a Supabase, no 500 peticiones a un tercero.
@@ -69,9 +74,10 @@ export async function procesar({ env = process.env, fetchImpl = null, reloj = ()
   let conPokemon = 0
   let lotes = 0
   try {
+    for (const MERCADO of MERCADOS) {
     while (reloj() - empezo < PRESUPUESTO_MS) {
       const filas = await pedir(
-        `tcg_cards?select=id,name&market=eq.${MERCADO}&dex_ids=is.null&limit=${POR_LOTE}`
+        `tcg_cards?select=id,name,name_en&market=eq.${MERCADO}&dex_ids=is.null&limit=${POR_LOTE}`
       )
       if (!filas?.length) break
       lotes++
@@ -79,7 +85,8 @@ export async function procesar({ env = process.env, fetchImpl = null, reloj = ()
       // Se escriben en UN upsert y no una a una: 500 PATCH serían 500
       // viajes y la pasada no daría para un lote.
       const cambios = filas.map((f) => {
-        const dexes = especiesDeCarta(f.name)
+        // El nombre propio y, si no casa (japonés), el inglés (882).
+        const dexes = especiesPorNombres(f.name, f.name_en)
         if (dexes.length) conPokemon++
         miradas++
         // El centinela: `{}` para las que no llevan Pokémon. Nunca null,
@@ -103,6 +110,7 @@ export async function procesar({ env = process.env, fetchImpl = null, reloj = ()
         body: JSON.stringify({ p_filas: cambios }),
       })
       if (filas.length < POR_LOTE) break
+    }
     }
   } catch (e) {
     const texto = String(e?.message || e)
