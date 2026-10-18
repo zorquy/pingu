@@ -20,7 +20,19 @@ function lista(filas, cartas) {
   }).join('')
 }
 
-export async function pintarCruce(caja, persona, sesion, { soloSiHay = false } = {}) {
+// El mensaje redactado con las dos listas (887): el mismo borrador que
+// escribe Cruces (`borradorDeCruce`), abierto en la conversación.
+async function enlaceParaEscribir(persona, teDa, leDas, cartas) {
+  let texto = ''
+  try {
+    const { borradorDeCruce } = await import('./mi-coleccion/borrador-cruce.js')
+    const conCarta = (filas) => filas.map((f) => ({ ...f, carta: cartas.get(f.card_id) || { id: f.card_id } }))
+    texto = borradorDeCruce(conCarta(teDa), conCarta(leDas))
+  } catch { /* sin borrador, la conversación se abre vacía */ }
+  return `/mensajes.html?with=${encodeURIComponent(persona.id)}${texto ? `&texto=${encodeURIComponent(texto)}` : ''}`
+}
+
+export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, escribir = false } = {}) {
   if (!caja || !persona) return
   hojaInyectada('css/cruce-persona.css')
   if (!soloSiHay) caja.classList.remove('hidden')
@@ -50,7 +62,10 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false } =
         ${teDa.length ? `<div><h3>Te puede dar · ${new Set(teDa.map((f) => f.card_id)).size}</h3><ul>${lista(teDa, cartas)}</ul></div>` : ''}
         ${leDas.length ? `<div><h3>Le puedes dar · ${new Set(leDas.map((f) => f.card_id)).size}</h3><ul>${lista(leDas, cartas)}</ul></div>` : ''}
       </div>
-      ${teDa.length || leDas.length ? '<a class="btn-secondary" href="/mi-coleccion?ver=cruces">Ver todos tus cruces</a>' : ''}`
+      <div class="perfil-cruce-acciones">
+        ${escribir && (teDa.length || leDas.length) ? `<a class="btn-primary" href="${escapeHtml(await enlaceParaEscribir(persona, teDa, leDas, cartas))}">Escribir a ${nombre}</a>` : ''}
+        ${teDa.length || leDas.length ? '<a class="btn-secondary" href="/mi-coleccion?ver=cruces">Ver todos tus cruces</a>' : ''}
+      </div>`
   } catch (e) {
     if (soloSiHay) return
     caja.innerHTML = `<h2>Vuestro cruce</h2><p class="subtext">${escapeHtml(e.sinMigracion ? 'Los cambios todavía no están puestos en la base.' : 'No se ha podido mirar ahora. Prueba otra vez en un momento.')}</p>`

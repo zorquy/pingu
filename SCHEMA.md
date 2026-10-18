@@ -41785,6 +41785,97 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 887 — La pestaña «Cambios» del perfil: lo que da y lo que busca
+
+soyfedeegb, en el foro de Ayuda: «visualizar las cartas buscadas y
+disponibles para trade por los demás usuarios en su perfil al ingresar a
+ellos». PINGU: «creo que es muy importante»; con la propuesta delante
+(artifact «Cambios en el perfil», A o B), «adelante con la A, con cifras».
+
+### Qué había y qué faltaba
+
+Lo que alguien BUSCA es público desde la 376 (`user_wants`); lo que DA
+(`user_collection.cambio > 0`) también, pero solo por CARTA (el Mercado,
+«Quién la da» en la ficha) o cruzado contigo (Cruces). Y el cruce con una
+persona se pintaba en su perfil solo al llegar por el QR de feria (794).
+Entrar en el perfil de alguien no decía nada de cambios.
+
+### La pestaña (`js/perfil-cambios.js` + `js/perfil-cambios-puro.js` + `css/perfil-cambios.css`)
+
+Una pestaña más en la fila del perfil (867), entre Vitrina y Guías, en
+`usuario.html` y `perfil.html` (`data-ptab="cambios"`, `#perfilCambios`),
+escondida hasta que haya algo; entra por `import()` desde usuario.js y
+perfil.js. Dentro, por este orden:
+
+1. **Vuestro cruce** (si has entrado y no es la tuya): el de la 794
+   (`pintarCruce`), ahora con `escribir: true`: «Escribir a X» abre la
+   conversación con el borrador de Cruces (`borradorDeCruce`, las dos
+   listas) en `?texto=`. Sin cuenta, la invitación a entrar.
+2. **Da N cartas**: una baldosa por CARTA (`porCarta`: dos copias o dos
+   idiomas de la misma son una, con la suma y los idiomas), foto por la
+   cadena de escaneos, nombre, set y número, «Da 2 · Español, Inglés ·
+   Near Mint», precio (`tcg_card_prices.cm_low`, si hay). Sello «La buscas»
+   si está en tu lista (`selloDeLoQueDa`: en cualquier idioma, o en uno
+   que dé).
+3. **Busca N cartas**: igual, con el idioma en que la busca. Sellos «La
+   das» (la tienes puesta para cambio y el idioma cuadra) o «La tienes»
+   (`selloDeLoQueBusca`). Lo mío sale de mis deseos y de mis líneas de
+   SOLO esas cartas (`loMio`: mi colección entera no cabe en una consulta).
+
+Más de 18 por lista (`DE_PRIMERAS`): «Ver las N». La foto abre la ficha de
+la carta, donde está el corazón de «La quiero» (no se duplica aquí).
+
+**La chapa** de la cabecera (`.perfil-chapa-cambia`, en `.perfil-chapas`
+junto al nivel y la racha): «Cambia · da 12 · busca 30» (`textoDeChapa`:
+solo las cifras que no son cero; nada con nada); es un botón que abre la
+pestaña. **La cuenta** de la pestaña es da + busca.
+
+**Cuál se abre**: `ORDEN` de perfil-pestanias.js pone `cambios` DELANTE
+(en la ficha de otro sin vitrina, lo que da y busca es lo que más sirve a
+quien entra: es para lo que se pidió). `pestaniaLista(nombre, visible)`
+es la `vitrinaLista` genérica: la pestaña sale si hay algo —o si es la
+tuya—, se abre si venía en `?ver=`, y si se va estando abierta se abre la
+que tenga algo. En la tuya sale siempre: vacía, «Pon cartas para cambio»
+(/mi-coleccion?ver=cambios) y «Apunta lo que buscas» (?ver=quiero).
+
+**Los caminos**: «Su perfil» desde la ficha del Mercado (`mercado.js`) y
+desde la tarjeta de Cruces (`tablon.js`) abre `?ver=cambios`. El bloque
+`#perfilCruce` de `?cruce=1` (QR de feria) sigue igual.
+
+**El borrador, en su módulo** (`js/mi-coleccion/borrador-cruce.js`:
+`senasDe`, `borradorDe`, `borradorDeCruce`, que tablon.js reexporta).
+cruce-persona.js lo importa de ahí y no de tablon.js: el barrido de la 299
+sigue los `import()` y, con tablon.js, las clases del tablón
+(`mc-cruce-*`) salían «huérfanas» en mensajes.html, perfil.html y
+usuario.html. Y `.perfil-cruce-acciones` va en `css/cruce-persona.css`,
+que es la hoja que inyecta quien la pinta.
+
+### La base (`supabase-migration-887-cambios-perfil.sql`)
+
+`intercambios_de_persona(p_user uuid, p_limite int default 500)`:
+security definer, para `anon` y `authenticated`, devuelve de las líneas con
+`cambio > 0` de esa persona SOLO lo que se enseña (card_id, market, idioma,
+estado, variante, gradeo, cambio; nada de precio_compra, valor_manual ni
+notas, la regla de la 376), sin lo de un baneado, lo último primero. Sin
+la migración (PGRST202), la pestaña enseña lo que busca, la cuenta solo
+cuenta eso y el bloque de «Da» nombra el fichero. Probada sobre el fixture
+del Mercado (`sql-tanda-887-casos.sql`, 6 casos; el fixture gana estado,
+variante y gradeo, que la tabla de verdad tiene).
+
+Privacidad: no se abre nada nuevo. Dar y buscar ya salían, con avatar, en
+el Mercado y en Cruces.
+
+### Prueba
+
+`test-tanda-887-pantalla.mjs`: lo puro, la base, y la pantalla: la ficha
+de otra persona (pestaña con cuenta 5, se abre, chapa «Cambia · da 2 ·
+busca 3», dos rejillas con sus sellos, el cruce arriba con «Escribir» y el
+mensaje redactado, la chapa abre la pestaña), sin cuenta (rejillas sin
+sellos, invitación), sin nada (ni pestaña ni chapa), sin la migración, tu
+perfil vacío (dos caminos) y con cambios («Das/Buscas», sin sellos), el
+móvil (tres por fila, sin desbordar) y los caminos. El doble gana
+`intercambios_de_persona`.
+
 ## Tanda 886 — Lo que TCGGO no lista de un set, de Scrydex (las 172 de VSTAR Universe)
 
 PINGU: «me metes el set de la API de TCGGO, pero es que ahí solo tiene a

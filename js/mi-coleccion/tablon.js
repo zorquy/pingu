@@ -18,32 +18,9 @@ import { atributosDeRango } from '../rangos.js'
 import { nombreDeCarta } from '../catalogo-series.js'
 
 const nombreDe = (c) => nombreDeCarta(c) || '—'
-
-// Lo que distingue una copia de otra, en una línea: «español · Near
-// Mint · Reverse holo». La versión solo se dice si NO es la normal —
-// decir «normal» en el 90 % de las filas es ruido.
-export function senasDe(f) {
-  const partes = [idiomaDe(f.idioma).nombre, estadoDe(f.estado).nombre]
-  if (f.variante && f.variante !== 'normal') partes.push(varianteDe(f.variante).nombre)
-  if (f.gradeo) partes.push(f.gradeo)
-  return partes.join(' · ')
-}
-
-// El mensaje que se escribe solo. NO se envía: se deja escrito en la
-// caja para que quien lo manda lo lea antes. Un botón que manda un
-// mensaje a un desconocido sin enseñárselo es una forma rápida de
-// quedar mal.
-export function borradorDe(persona, cartas, direccion) {
-  const lista = cartas.slice(0, 6).map((f) => `· ${nombreDe(f.carta)} (${senasDe(f)})`).join('\n')
-  const mas = cartas.length > 6 ? `\n…y ${cartas.length - 6} más.` : ''
-  const cabecera = direccion === 'tiene'
-    ? 'He visto que das estas cartas y las estoy buscando:'
-    : 'He visto que buscas estas cartas y las doy:'
-  const cierre = persona.reciproco
-    ? '\n\nY creo que nos encajan las dos listas, así que igual sale un cambio directo. ¿Te va bien?'
-    : '\n\n¿Te interesa algo de lo mío? Te paso mi lista si quieres.'
-  return `¡Hola! ${cabecera}\n\n${lista}${mas}${cierre}`
-}
+// El borrador del mensaje vive aparte (887): lo usa también el cruce del perfil.
+import { senasDe, borradorDe, borradorDeCruce } from './borrador-cruce.js'
+export { senasDe, borradorDe, borradorDeCruce }
 
 // ── LOS CRUCES, POR PERSONA (tanda 773) ──
 //
@@ -81,16 +58,6 @@ export function cruzarPorPersona(tiene = [], busca = []) {
       String(a.username || '').localeCompare(String(b.username || ''), 'es'))
 }
 
-// El mensaje de un cruce: las dos listas en el mismo texto. Se deja
-// escrito, no se manda (lo de siempre).
-export function borradorDeCruce(teDa, leDas) {
-  const linea = (f) => `· ${nombreDe(f.carta)} (${senasDe(f)})`
-  const partes = ['¡Hola!']
-  if (teDa.length) partes.push(`Das estas cartas que estoy buscando:\n${teDa.slice(0, 6).map(linea).join('\n')}${teDa.length > 6 ? `\n…y ${teDa.length - 6} más.` : ''}`)
-  if (leDas.length) partes.push(`Y buscas estas, que tengo para cambio:\n${leDas.slice(0, 6).map(linea).join('\n')}${leDas.length > 6 ? `\n…y ${leDas.length - 6} más.` : ''}`)
-  partes.push(teDa.length && leDas.length ? '¿Hacemos un cambio?' : '¿Te interesa algo de lo mío? Te paso mi lista si quieres.')
-  return partes.join('\n\n')
-}
 
 function tiraHtml(filas, cartas) {
   return `<ul class="mc-cruce-tira">${filas.slice(0, 6).map((f) => {
@@ -130,7 +97,7 @@ export function cruceHtml(p, { cartas, valor, euros }) {
     </div>
     <div class="mc-cruce-acciones">
       <button type="button" class="btn-primary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir a ${escapeHtml(nombre)}</button>
-      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}">Su perfil</a>
+      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
       ${p.perfecto && recibes && das ? `<span class="mc-cruce-balanza">${Math.abs(recibes - das) < 1 ? 'Valen lo mismo' : `Diferencia: unos ${escapeHtml(euros(Math.abs(recibes - das)))}`}</span>` : ''}
     </div>
   </article>`

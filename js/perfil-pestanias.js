@@ -21,7 +21,9 @@ const ALIAS = { about: 'medallas', actividad: null, wall: null, muro: null }
 
 // El orden para «la que tenga algo» NO es el de la fila: lo que más dice de
 // alguien es lo que escribe, luego lo que habla, luego lo que juega.
-const ORDEN = ['guides', 'foro', 'torneos', 'medallas']
+// «Cambios» (887) va delante: en la ficha de otra persona, lo que da y busca
+// es lo que más sirve a quien entra (soyfedeegb lo pidió para eso).
+const ORDEN = ['cambios', 'guides', 'foro', 'torneos', 'medallas']
 
 const cuentas = {}
 let laHaTocado = false
@@ -75,6 +77,18 @@ export function vitrinaLista({ visible, conCartas }) {
   if (!visible && btn.classList.contains('active')) abrirLaQueTengaAlgo({ aunqueVacia: true })
   const pedida = nombreReal(pedidaEnDireccion())
   if (visible && !laHaTocado && (pedida === 'vitrina' || (!pedida && (conCartas || propia)))) abrirPestania('vitrina')
+}
+
+// Una pestaña que llega tarde y puede no tener nada (Cambios, 887): sale
+// si hay algo que enseñar —o si es la tuya—, y si estaba abierta y se va,
+// se abre la que tenga algo.
+export function pestaniaLista(nombre, visible) {
+  const btn = botonDe(nombre)
+  if (!btn) return
+  btn.hidden = !visible
+  if (!visible && btn.classList.contains('active')) abrirLaQueTengaAlgo({ aunqueVacia: true })
+  const pedida = nombreReal(pedidaEnDireccion())
+  if (visible && pedida === nombre && !btn.classList.contains('active')) abrirPestania(nombre)
 }
 
 // Cuál se abre cuando han llegado las cuentas. Si ya has tocado tú una

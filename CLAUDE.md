@@ -440,6 +440,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **El perfil tiene la pestaña «Cambios»** (tanda 887, pedida por
+  soyfedeegb en el foro): lo que da y lo que busca una persona, con
+  vuestro cruce arriba y la chapa «Cambia · da N · busca M» en la
+  cabecera. Lo que da sale de `intercambios_de_persona` (migración 887,
+  security definer: solo lo que se enseña); lo que busca, de `user_wants`.
+  Una pestaña del perfil que llega tarde y puede no tener nada pasa por
+  `pestaniaLista(nombre, visible)` (perfil-pestanias.js), no por tocar
+  `hidden` a mano; «Su perfil» desde el Mercado y Cruces abre
+  `?ver=cambios`.
 - **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
   inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +
   `css/movil.css`) se carga desde app.js solo si la pantalla es de móvil,

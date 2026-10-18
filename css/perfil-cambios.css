@@ -1,0 +1,93 @@
+/* La pestaña «Cambios» del perfil (887). La inyecta js/perfil-cambios.js; el porqué en SCHEMA 887. */
+
+.perfil-chapa-cambia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.perfil-chapa-cambia svg { color: var(--success); }
+
+.pc-bloque { margin-top: var(--e-lg); }
+.pc-bloque .section-title { margin-bottom: var(--e-sm); }
+.pc-cruce { margin-top: var(--e-md); }
+.pc-entra { margin: var(--e-md) 0 0; }
+
+.pc-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-carta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+.pc-carta-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.pc-carta-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pc-carta-sinfoto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e-sm);
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-mid);
+}
+.pc-carta-foto img + .pc-carta-sinfoto, .pc-carta-foto:has(img) .pc-carta-sinfoto { display: none; }
+.pc-sello {
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  z-index: 1;
+  padding: 1px var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--success);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+.pc-sello-das { background: var(--navy-solid); }
+.pc-sello-tienes { background: var(--warning); }
+.pc-carta-nombre {
+  margin-top: var(--e-xs);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pc-carta-set, .pc-carta-senas { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-carta-precio { font-weight: 600; color: var(--text); }
+.pc-ver-todas { margin-top: var(--e-sm); }
+
+.pc-vacio { padding: var(--e-md) 0; color: var(--text-mid); }
+.pc-vacio-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin-top: var(--e-sm); }
+
+@media (max-width: 600px) {
+  .pc-rejilla { grid-template-columns: repeat(3, 1fr); gap: var(--e-xs); }
+}

@@ -727,6 +727,8 @@ async function init() {
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
   // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
   // cuanto existe (867: aunque esté vacía, que invita a elegir).
+  // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.
+  import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), { ...(currentProfile || {}), id: session.user.id }, session, { propia: true })).catch(() => {})
   import('./vitrina.js')
     .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
     .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))

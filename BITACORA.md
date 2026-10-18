@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (117) — PINGU-Claude (887 — la pestaña «Cambios» del perfil)
+
+**Hecho** (soyfedeegb en el foro: «ver las cartas buscadas y disponibles
+para trade en el perfil»; PINGU: «adelante con la A, con cifras»): en el
+perfil de cada persona (y en el tuyo) una pestaña **Cambios** con vuestro
+cruce arriba («Escribir» con el mensaje redactado), «Da N cartas» y
+«Busca N cartas» en baldosas con foto, idioma, estado y precio, y los
+sellos «La buscas» / «La das» / «La tienes» respecto a ti. En la cabecera,
+la chapa «Cambia · da N · busca M» que abre la pestaña. Se abre la primera
+si esa persona no tiene vitrina. «Su perfil» desde el Mercado y desde
+Cruces abre la pestaña. Detalle en SCHEMA 887.
+
+**Para PINGU — HAY QUE EJECUTAR** `supabase-migration-887-cambios-perfil.sql`
+(una función, `intercambios_de_persona`; no toca datos). Hasta entonces la
+pestaña enseña solo lo que busca y avisa de que falta.
+
+**Ficheros**: `supabase-migration-887-cambios-perfil.sql` (nueva),
+`js/perfil-cambios.js`, `js/perfil-cambios-puro.js`, `css/perfil-cambios.css`
+(nuevos), `js/perfil-pestanias.js` (`pestaniaLista`, «cambios» primero en
+`ORDEN`), `js/cruce-persona.js` (`escribir`), `js/usuario.js`, `js/perfil.js`,
+`usuario.html`, `perfil.html`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/tablon.js`, `js/mi-coleccion/borrador-cruce.js` (nuevo:
+el borrador del mensaje, fuera de tablon.js), `css/cruce-persona.css`,
+`novedades.json`, `CLAUDE.md`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-887-pantalla.mjs` y
+`sql-tanda-887-casos.sql`; el doble gana `intercambios_de_persona`.
+Verdes: 887, imports, 299, 306, 867 (al día: seis pestañas), 770, 772, 798, 829, 309, 311,
+312, 253, 752, 743, 859, 305, 310, 313. Rojos de antes, no de esta tanda: 794 («Tú» lleva al
+modo feria: desde la 869 está en su sección) y 748 (salto 0,152 en ?ver=album).
+
+**Pendiente**: ejecutar la 887 (y la 885 ya está); lo de la 116.
+
 ## 2026-10-18 (116) — PINGU-Claude (886 — las 172 básicas de VSTAR Universe, de Scrydex)
 
 **Hecho** (PINGU: «TCGGO solo tiene a partir de la 173 y faltan todas las

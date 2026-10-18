@@ -29,3 +29,10 @@
   padding-left: var(--e-lg);
   font-size: var(--t-sm);
 }
+
+/* Las acciones del cruce (887): «Escribir» y «Ver todos tus cruces». */
+.perfil-cruce-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}

@@ -179,7 +179,7 @@ function personaHtml(p, carta) {
     </div>
     <div class="mc-merf-acciones">
       <button type="button" class="btn-primary" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}">${icons.mail(15)}<span>Escribir</span></button>
-      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}">Su perfil</a>
+      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
     </div>
   </li>`
 }

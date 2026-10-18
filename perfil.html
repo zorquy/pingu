@@ -154,6 +154,7 @@
          tuya abre por la Vitrina aunque esté vacía: invita a elegir. -->
     <div class="tabs perfil-pestanas" id="profileTabs" role="tablist" aria-label="El perfil">
       <button class="tab-btn active" data-ptab="vitrina" role="tab" aria-selected="true">Vitrina</button>
+      <button class="tab-btn" data-ptab="cambios" role="tab" aria-selected="false" hidden>Cambios</button>
       <button class="tab-btn" data-ptab="guides" role="tab" aria-selected="false">Guías</button>
       <button class="tab-btn" data-ptab="foro" role="tab" aria-selected="false">Foro</button>
       <button class="tab-btn" data-ptab="torneos" role="tab" aria-selected="false">Torneos</button>
@@ -165,6 +166,9 @@
     <div class="tab-panel active" id="ptab-vitrina">
       <section class="vitrina" id="perfilVitrina" aria-label="Vitrina" hidden></section>
     </div>
+
+    <!-- Lo que da y lo que busca (887); lo pinta js/perfil-cambios.js. -->
+    <div class="tab-panel" id="ptab-cambios"><div id="perfilCambios"><div class="skeleton" style="height: 90px;"></div></div></div>
 
     <div class="tab-panel" id="ptab-guides">
       <div class="section-header-row">

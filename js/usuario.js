@@ -334,6 +334,8 @@ async function init() {
   if (new URLSearchParams(location.search).has('cruce')) {
     import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('perfilCruce'), profile, currentSession)).catch(() => {})
   }
+  // Lo que da y lo que busca (887): la pestaña Cambios y la chapa de arriba.
+  import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), profile, currentSession)).catch(() => {})
   await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()
   // La vitrina (743), la de esta persona: solo lo que hay.
