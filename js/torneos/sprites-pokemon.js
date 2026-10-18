@@ -632,6 +632,43 @@ export function inicialDeSprite(url) {
   return letra ? letra.toUpperCase() : ''
 }
 
+// ── El vigilante (tanda 888): una CDN que NO CONTESTA no dispara `error` ──
+//
+// El 2026-10-18 r2.limitlesstcg.net volvió a quedarse colgada y el meta
+// salió con las filas vacías: no un 404 (eso salta al siguiente origen al
+// instante), sino una petición que no termina. El navegador tarda entre
+// medio minuto y dos en darla por perdida, y hasta entonces la cadena de
+// respaldos no da ningún paso. Lo único que cargaba era lo que ya estaba
+// en caché (un Ogerpon).
+//
+// Así que cada segundo se mira qué sprites siguen sin cargar: el que lleve
+// más de `MS_DE_ESPERA` sin terminar da el MISMO paso que daría el
+// `onerror` (el siguiente de `data-respaldos`). Lo puro es `saltoPorEspera`;
+// el DOM solo lo recorre. Se arranca solo en el navegador (la función de
+// Netlify importa este módulo y no tiene `document`).
+export const MS_DE_ESPERA = 4000
+
+// Dado el estado de una imagen —sus respaldos pendientes, desde cuándo
+// espera y si ha terminado—, el siguiente paso o null si no toca.
+export function saltoPorEspera({ respaldos = '', desde = 0, completa = false }, ahora = Date.now(), ms = MS_DE_ESPERA) {
+  if (completa || !desde || ahora - desde < ms) return null
+  const r = String(respaldos).split(' ').filter(Boolean)
+  if (!r.length) return null
+  return { src: r[0], respaldos: r.slice(1).join(' ') }
+}
+
+function vigilarSprites(ahora = Date.now()) {
+  for (const img of document.querySelectorAll('img[data-respaldos]')) {
+    if (!img.dataset.desde) { img.dataset.desde = String(ahora); continue }
+    const salto = saltoPorEspera({ respaldos: img.dataset.respaldos, desde: Number(img.dataset.desde), completa: img.complete }, ahora)
+    if (!salto) continue
+    img.dataset.respaldos = salto.respaldos
+    img.dataset.desde = String(ahora)
+    img.src = salto.src
+  }
+}
+if (typeof document !== 'undefined' && typeof setInterval === 'function') setInterval(() => vigilarSprites(), 1000)
+
 export function atributosDeRespaldo(url) {
   const cadena = cadenaDeRespaldos(url)
   const datos = cadena.length ? ` data-respaldos="${cadena.join(' ')}"` : ''

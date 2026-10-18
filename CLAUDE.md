@@ -1102,6 +1102,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (Limitless → jsDelivr → GitHub a pelo → esconder). Si añades una
   imagen de un tercero, pregúntate qué se ve el día que ese tercero no
   conteste — y que la respuesta no sea «nada, sin dar error».
+- **Una CDN que NO CONTESTA no dispara `error`** (tanda 888): el meta se
+  quedó sin sprites con la cadena de respaldos intacta, porque Limitless
+  colgaba la petición en vez de dar 404 y el navegador tarda minutos en
+  rendirse. El vigilante de `sprites-pokemon.js` (`saltoPorEspera`) da el
+  paso a los cuatro segundos. Si añades otra cadena de respaldos de
+  imágenes, pregúntate qué pasa cuando el primer origen no contesta NADA.
 - **Un respaldo tiene que conservar lo que DISTINGUE** (tanda 511). El
   siguiente paso de una mega era su especie base, «que para reconocer un
   mazo sirve igual»… salvo que Mega Gardevoir y Gardevoir son DOS mazos, y

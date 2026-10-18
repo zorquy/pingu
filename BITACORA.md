@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (118) — PINGU-Claude (888 — los sprites cuando Limitless no contesta)
+
+**Hecho** (PINGU: «no cargan los sprites»; /meta vacío salvo un Ogerpon
+de caché): la CDN de Limitless colgada no dispara `error`, así que la
+cadena de respaldos no daba el paso hasta que el navegador se rendía
+(minutos). Ahora un vigilante en `js/torneos/sprites-pokemon.js` salta al
+siguiente origen (PokeAPI) a los cuatro segundos sin cargar. Detalle en
+SCHEMA 888.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js`, `novedades.json`,
+`CLAUDE.md`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-888.mjs`.
+Verdes: 888, imports, 321, 511 y 829; la portada sigue en 112,6 KB.
+
+**Pendiente**: lo de la 117 (la 887 ya está ejecutada).
+
 ## 2026-10-18 (117) — PINGU-Claude (887 — la pestaña «Cambios» del perfil)
 
 **Hecho** (soyfedeegb en el foro: «ver las cartas buscadas y disponibles

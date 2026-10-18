@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 888 — El vigilante de los sprites: una CDN que no contesta
+
+PINGU: «no cargan los sprites en pokedoc, ¿por?». En /meta todas las filas
+salían sin sprite salvo un Ogerpon (el que tenía en caché). No se pudo
+comprobar desde el contenedor (la red no llega a Limitless ni a jsDelivr),
+pero la forma es la del 2026-09-20: `r2.limitlesstcg.net` colgada. No un
+404 —eso salta al siguiente origen al instante— sino una petición que no
+termina, y la cadena de respaldos (321, 511) solo da un paso cuando la
+imagen FALLA: el navegador tarda entre medio minuto y dos en darla por
+perdida, y hasta entonces el hueco está vacío.
+
+**El vigilante** (`js/torneos/sprites-pokemon.js`): cada segundo recorre
+`img[data-respaldos]`; la primera vez apunta `data-desde`; la que lleve
+más de `MS_DE_ESPERA` (4 s) sin terminar (`!img.complete`) da el MISMO
+paso que daría el `onerror`: el primero de `data-respaldos` a `src`, el
+resto se queda, y `data-desde` vuelve a empezar (así cada peldaño tiene
+sus cuatro segundos). Lo puro es `saltoPorEspera({ respaldos, desde,
+completa }, ahora, ms)`; el intervalo solo arranca con `document` (la
+función de Netlify `sprite.mjs` importa este módulo). Una imagen que ya
+cargó o ya falló no se toca; sin respaldos, tampoco (el `onerror` pone la
+inicial). Una Limitless que contesta a tiempo se queda: no se pide nada
+más.
+
+Prueba `test-tanda-888.mjs`: lo puro y, en el navegador, Limitless colgada
+(la ruta no contesta nunca) → al segundo y medio sigue esperando, a los
+cuatro salta a jsDelivr y carga, una petición a cada uno; Limitless rápida
+→ se queda y no pide a jsDelivr.
+
 ## Tanda 887 — La pestaña «Cambios» del perfil: lo que da y lo que busca
 
 soyfedeegb, en el foro de Ayuda: «visualizar las cartas buscadas y
