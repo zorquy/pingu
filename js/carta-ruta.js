@@ -76,6 +76,11 @@ export function candidatosDeRuta(ruta) {
 // pantalla sale entera sin una sola foto y con pinta de estar cargando.
 export function urlDeImagen(imagePath, calidad = 'high', mercado = 'WEST') {
   if (!imagePath) return null
+  // Una foto subida A MANO desde /admin (885) se guarda como dirección
+  // entera en la misma columna: así va la primera de la cadena en todos
+  // los `select` que ya hay, sin una columna nueva que haya que pedir (la
+  // 523). Lo que empieza por http no es un trozo de ruta de TCGdex.
+  if (/^https?:\/\//.test(imagePath)) return imagePath
   return `${ASSETS}/${idiomaDeMercado(mercado)}/${imagePath}/${calidad}.webp`
 }
 

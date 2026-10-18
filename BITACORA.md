@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (115) — PINGU-Claude (885 — el catálogo editable en /admin; lo corregido a mano manda)
+
+**Hecho** (PINGU: «méteme el catálogo de cartas y expansiones en el admin
+para poder editar todos los datos por si alguna está mal; lo que meto a
+mano debería mandar sobre lo automático»): en /admin → Colecciones, el
+editor del set tiene ahora fecha, código, cuentas y un «Ver y editar sus
+cartas →» con la lista de cartas del set y la ficha editable de cada una
+(nombres, número, rareza, PS, tipos, Pokédex, ilustrador, ids de
+Cardmarket/TCGplayer, impresiones, ataques en JSON… y la FOTO, subida o
+pegada). Y «Nueva colección» / «Nueva carta» para lo que ninguna API tiene.
+Lo que se corrige se apunta en `tcg_correcciones` y un disparador lo vuelve
+a poner encima de cualquier escritura automática (calco, precios,
+reemplazos); cada campo corregido se ve y se puede devolver a lo del
+catálogo. Lo creado a mano (`origen = 'mano'`) no lo esconde el calco ni lo
+borran los reemplazos. Detalle en SCHEMA 885; norma en CLAUDE.md.
+
+**Para PINGU — HAY QUE EJECUTAR**
+`supabase-migration-885-catalogo-correcciones.sql` en el SQL Editor (crea
+la tabla, el disparador y tres funciones; no toca datos; se puede ejecutar
+dos veces). Hasta entonces el editor avisa: un set se guarda pero una
+pasada puede pisarlo, y una carta no se guarda. Para el Silver Deck Kit:
+cuando la 884 lo cree (o antes, con «Nueva colección» + «Nueva carta»),
+entra en su editor y sube la foto de cada carta desde la ficha.
+
+**Ficheros**: `supabase-migration-885-catalogo-correcciones.sql` (nueva),
+`admin/js/catalogo-cartas.js` y `admin/js/catalogo-puro.js` (nuevos),
+`admin/js/colecciones.js`, `admin/index.html`, `admin/css/admin.css`,
+`js/carta-ruta.js` (una dirección entera pasa tal cual),
+`netlify/functions/tcggo-calco-jp.mjs`,
+`netlify/functions/tcggo-reemplazar-set.mjs`, `CLAUDE.md`, `SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-885.mjs` (base contra
+PostgreSQL + puro + pasadas + pantalla), `sql-tanda-885*.sql`; el doble
+gana `tcg_correcciones`, las tres RPC y un cubo que contesta direcciones.
+Verdes las 20 que tocan (885, imports, 299, 305, 309, 310, 311, 312, 523, 551,
+552, 654, 666, 753, 805, 806, 809, 810, 883, 884); portada en 112,6 KB.
+
+**Pendiente**: ejecutar la migración 885; lo de la 114 (mirar los bloques
+de decks en /admin, `s12a-jp`, la migración 878 y
+`supabase-liga-fdn-jornada-1.sql`).
+
 ## 2026-10-18 (114) — PINGU-Claude (884 — el Silver Deck Kit a mano)
 
 **Hecho** (PINGU: «saca la info tú e intenta escribirlo como puedas»):

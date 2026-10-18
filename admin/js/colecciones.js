@@ -26,6 +26,7 @@ import { showToast } from '../../js/toast.js'
 import { nombreDeSet, eraDeSet } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
 import { moverEnLista, loQueCambia, dondeCae } from './orden-arrastrable.js'
+import { loQueCambia as cambiosDe, faltaLaMigracion as esFaltaDeRpc } from './catalogo-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -35,9 +36,29 @@ let eras = new Map()
 let filtro = ''
 
 const COLUMNAS =
-  'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,' +
+  'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,' +
   'symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code,' +
-  'orden,oculto,scrydex_manda,scrydex_id'
+  'orden,oculto,scrydex_manda,scrydex_id,tcggo_id,origen'
+
+// ── LO CORREGIDO A MANO MANDA (tanda 885) ──
+//
+// PINGU: «debería ser reemplazable lo que meto a mano sobre lo que está
+// automático». Un `update` a secas lo pisa la siguiente pasada (el calco
+// japonés rotula el set con lo de TCGGO cada día). Así que lo que se
+// cambia desde el editor va por `catalogo_corregir`, que lo apunta como
+// CORRECCIÓN y la base lo vuelve a poner encima de cualquier escritura.
+// Solo las columnas que han CAMBIADO: una corrección sobre una columna
+// que no se tocó la clavaría para siempre en el valor de hoy.
+//
+// Lo que no es dato del catálogo (`scrydex_manda`, un interruptor de las
+// pasadas) y lo que se coloca arrastrando (`orden`, la era) siguen yendo
+// por `update`: eso ya lo escribe solo una persona.
+const CORREGIBLES = new Set(['name', 'name_en', 'serie_id', 'serie_name', 'serie_name_en', 'release_date',
+  'card_count_official', 'card_count_total', 'tcg_online_code', 'logo_tcggo', 'logo_scrydex', 'logo_path',
+  'symbol_scrydex', 'oculto', 'orden', 'origen'])
+const AVISO_MIGRACION = 'Guardado, pero falta ejecutar supabase-migration-885-catalogo-correcciones.sql: hasta entonces una pasada automática puede pisarlo.'
+// id del set → Map(columna → { valor, anterior })
+let correcciones = new Map()
 
 // ¿Está puesta la migración? Una columna que no existe da un 400 de
 // PostgREST con el nombre dentro, y eso se puede CONTAR como lo que es —
@@ -60,6 +81,16 @@ async function cargar() {
   sets = data || []
   const { data: filas } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado)
   eras = new Map((filas || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden }]))
+  // Las correcciones de los sets (885). Si la tabla no está, no hay.
+  correcciones = new Map()
+  const { data: corr, error: e2 } = await supabase
+    .from('tcg_correcciones').select('id,columna,valor,anterior').eq('tabla', 'tcg_sets').eq('market', mercado).limit(5000)
+  if (!e2) {
+    for (const c of corr || []) {
+      if (!correcciones.has(c.id)) correcciones.set(c.id, new Map())
+      correcciones.get(c.id).set(c.columna, { valor: c.valor, anterior: c.anterior })
+    }
+  }
 }
 
 // Las eras de este catálogo, en el orden en que se van a enseñar. Cada una
@@ -113,8 +144,16 @@ function casa(s) {
 
 function logoDe(s) {
   if (s.logo_scrydex) return s.logo_scrydex
+  if (s.logo_tcggo) return s.logo_tcggo
   if (s.logo_path) return `https://assets.tcgdex.net/${mercado === 'JP' ? 'ja' : 'es'}/${s.logo_path}.webp`
   return null
+}
+
+function chapaDe(s) {
+  const n = correcciones.get(s.id)?.size || 0
+  if (s.origen === 'mano') return '<span class="cat-chapa cat-chapa-mano">a mano</span>'
+  if (n) return `<span class="cat-chapa cat-chapa-corregida">${n === 1 ? '1 corrección' : `${n} correcciones`}</span>`
+  return ''
 }
 
 function filaDeSet(s) {
@@ -129,7 +168,7 @@ function filaDeSet(s) {
     <span class="col-set-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
     <span class="col-set-nombre">
       <strong>${escapeHtml(nombreDeSet(s) || s.id)}</strong>
-      <small>${escapeHtml(s.id)}${s.tcg_online_code ? ` · ${escapeHtml(s.tcg_online_code)}` : ''}${s.release_date ? ` · ${escapeHtml(s.release_date)}` : ''} · ${cartas} cartas</small>
+      <small>${escapeHtml(s.id)}${s.tcg_online_code ? ` · ${escapeHtml(s.tcg_online_code)}` : ''}${s.release_date ? ` · ${escapeHtml(s.release_date)}` : ''} · ${cartas} cartas ${chapaDe(s)}</small>
     </span>
     <span class="col-set-acciones">
       <button class="btn-outline btn-small" data-editar="${escapeHtml(s.id)}">Editar</button>
@@ -175,16 +214,29 @@ export function pintarColecciones() {
 // Guardar un puñado de columnas de un set. Devuelve si ha ido bien: una
 // escritura que la política rechaza NO da error, así que se mira la fila
 // que vuelve (la lección de los torneos, tanda 252).
-async function guardarSet(id, campos) {
-  const { data, error } = await supabase
-    .from('tcg_sets')
-    .update(campos)
-    .eq('id', id)
-    .eq('market', mercado)
-    .select('id')
-  if (error) { showToast(error.message.slice(0, 120), 'error'); return false }
-  if (!data?.length) { showToast('No se ha podido guardar: ¿sigues teniendo permiso de admin?', 'error'); return false }
+async function guardarSet(id, campos, { comoCorreccion = false } = {}) {
   const s = sets.find((x) => x.id === id)
+  let directos = campos
+  if (comoCorreccion) {
+    // Lo corregible que ha cambiado, por la RPC; lo demás, directo.
+    const cambios = cambiosDe(s, Object.fromEntries(Object.entries(campos).filter(([k]) => CORREGIBLES.has(k))))
+    directos = Object.fromEntries(Object.entries(campos).filter(([k]) => !CORREGIBLES.has(k)))
+    if (Object.keys(cambios).length) {
+      const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_sets', p_id: id, p_market: mercado, p_cambios: cambios })
+      if (error && !esFaltaDeRpc(error)) { showToast(error.message.slice(0, 120), 'error'); return false }
+      if (error) { showToast(AVISO_MIGRACION, 'error'); directos = { ...directos, ...cambios } }
+    }
+  }
+  if (Object.keys(directos).length) {
+    const { data, error } = await supabase
+      .from('tcg_sets')
+      .update(directos)
+      .eq('id', id)
+      .eq('market', mercado)
+      .select('id')
+    if (error) { showToast(error.message.slice(0, 120), 'error'); return false }
+    if (!data?.length) { showToast('No se ha podido guardar: ¿sigues teniendo permiso de admin?', 'error'); return false }
+  }
   if (s) Object.assign(s, campos)
   return true
 }
@@ -322,7 +374,7 @@ function escuchar() {
   document.querySelectorAll('[data-ocultar]').forEach((b) =>
     b.addEventListener('click', async () => {
       const s = sets.find((x) => x.id === b.dataset.ocultar)
-      if (s && (await guardarSet(s.id, { oculto: !s.oculto }))) pintarColecciones()
+      if (s && (await guardarSet(s.id, { oculto: !s.oculto }, { comoCorreccion: true }))) { await cargar(); pintarColecciones() }
     })
   )
   document.querySelectorAll('[data-editar]').forEach((b) =>
@@ -376,12 +428,23 @@ function abrirEditor(id) {
   const s = sets.find((x) => x.id === id)
   if (!s) return
   const erasDisponibles = [...new Set(sets.map((x) => x.serie_id).filter(Boolean))].sort()
+  const corr = correcciones.get(s.id) || new Map()
+  const quitar = (col, rotulo = 'corregida · quitar') => corr.has(col) ? ` <button type="button" class="cat-quitar" data-quitar-set="${col}" title="Quitar la corrección y volver a lo que traía el catálogo">${rotulo}</button>` : ''
+  const clase = (col) => corr.has(col) ? ' class="cat-campo-corregida"' : ''
+  const logoActual = s.logo_scrydex || s.logo_tcggo || ''
   abrirHoja(`
     <h3>${escapeHtml(nombreDeSet(s) || s.id)}</h3>
-    <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.scrydex_id ? ` · emparejado con Scrydex (<code>${escapeHtml(s.scrydex_id)}</code>)` : ' · sin emparejar con Scrydex'}</p>
-    <label>Nombre<input id="colNombre" type="text" value="${escapeHtml(s.name || '')}"></label>
-    <label>Nombre occidental <small>(el que se enseña si el de arriba lleva kanji)</small>
+    <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.tcggo_id ? ` · TCGGO ${escapeHtml(String(s.tcggo_id))}` : ''}${s.origen === 'mano' ? ' · escrita a mano' : ''}${corr.size ? ` · ${corr.size} ${corr.size === 1 ? 'corrección' : 'correcciones'}` : ''}</p>
+    <p><button class="btn-secondary btn-small" id="colCartas">Ver y editar sus cartas →</button></p>
+    <label${clase('name')}>Nombre${quitar('name')}<input id="colNombre" type="text" value="${escapeHtml(s.name || '')}"></label>
+    <label${clase('name_en')}>Nombre occidental <small>(el que se enseña si el de arriba lleva kanji)</small>${quitar('name_en')}
       <input id="colNombreEn" type="text" value="${escapeHtml(s.name_en || '')}"></label>
+    <div class="cat-campos">
+      <label class="cat-campo-medio${corr.has('release_date') ? ' cat-campo-corregida' : ''}">Fecha de salida${quitar('release_date')}<input id="colFecha" type="date" value="${escapeHtml(s.release_date || '')}"></label>
+      <label class="cat-campo-medio${corr.has('tcg_online_code') ? ' cat-campo-corregida' : ''}">Código (TCG Live)${quitar('tcg_online_code')}<input id="colCodigo" type="text" value="${escapeHtml(s.tcg_online_code || '')}"></label>
+      <label class="cat-campo-medio${corr.has('card_count_official') ? ' cat-campo-corregida' : ''}">Cartas (oficial)${quitar('card_count_official')}<input id="colCuentaOficial" type="number" inputmode="numeric" value="${s.card_count_official ?? ''}"></label>
+      <label class="cat-campo-medio${corr.has('card_count_total') ? ' cat-campo-corregida' : ''}">Cartas (total)${quitar('card_count_total')}<input id="colCuentaTotal" type="number" inputmode="numeric" value="${s.card_count_total ?? ''}"></label>
+    </div>
     <label>Era
       <input id="colEra" type="text" list="colErasLista" value="${escapeHtml(s.serie_id || '')}" placeholder="mcdonalds">
       <datalist id="colErasLista">${erasDisponibles.map((e) => `<option value="${escapeHtml(e)}">`).join('')}</datalist>
@@ -390,14 +453,14 @@ function abrirEditor(id) {
       <input id="colEraNombreNuevo" type="text" maxlength="80" placeholder="McDonald's"></label>
     <label>Orden dentro de la era <small>(vacío = por fecha)</small>
       <input id="colOrden" type="number" inputmode="numeric" value="${s.orden ?? ''}"></label>
-    <label>Logo <small>(vacío = el que traiga el catálogo)</small>
+    <label${corr.has('logo_scrydex') || corr.has('logo_tcggo') ? ' class="cat-campo-corregida"' : ''}>Logo <small>(vacío = el que traiga el catálogo)</small>${quitar('logo_scrydex', 'corregido · quitar')}
       <span class="col-logo-caja">
         <span class="col-logo-ver" id="colLogoVer">${logoDe(s) ? `<img src="${escapeHtml(logoDe(s))}" alt="">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
         <input type="file" id="colLogoFichero" accept="image/*" aria-label="Subir un logo">
       </span>
-      <input id="colLogo" type="url" value="${escapeHtml(s.logo_scrydex || '')}" placeholder="…o pega una dirección"></label>
+      <input id="colLogo" type="url" value="${escapeHtml(logoActual)}" placeholder="…o pega una dirección"></label>
     <label class="col-check"><input id="colScrydexManda" type="checkbox"${s.scrydex_manda ? ' checked' : ''}> Rellenar este set desde Scrydex aunque sea occidental</label>
-    <label class="col-check"><input id="colOculto" type="checkbox"${s.oculto ? ' checked' : ''}> Escondido de la biblioteca</label>
+    <label class="col-check${corr.has('oculto') ? ' cat-campo-corregida' : ''}"><input id="colOculto" type="checkbox"${s.oculto ? ' checked' : ''}> Escondido de la biblioteca${quitar('oculto', 'corregido · quitar')}</label>
     <div class="col-hoja-pie">
       <button class="btn-danger btn-small" id="colBorrar">Borrar la colección…</button>
       <span style="flex:1"></span>
@@ -439,25 +502,53 @@ function abrirEditor(id) {
     }
   })
 
+  $('colCartas').addEventListener('click', async () => {
+    const { abrirCartasDeSet } = await import('./catalogo-cartas.js')
+    abrirCartasDeSet(s, mercado, { abrir: abrirHoja, cerrar: cerrarHoja }, () => abrirEditor(s.id))
+  })
+
+  document.querySelectorAll('[data-quitar-set]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const col = b.dataset.quitarSet
+      // El logo va en las dos columnas: se quitan las dos.
+      const cols = col === 'logo_scrydex' ? ['logo_scrydex', 'logo_tcggo'].filter((c) => corr.has(c)) : [col]
+      for (const c of cols) {
+        const { error } = await supabase.rpc('catalogo_descorregir', { p_tabla: 'tcg_sets', p_id: s.id, p_market: mercado, p_columna: c })
+        if (error) return showToast(error.message.slice(0, 140), 'error')
+      }
+      showToast('Corrección quitada: vuelve lo del catálogo', 'success')
+      await cargar(); pintarColecciones(); abrirEditor(s.id)
+    })
+  )
+
   $('colGuardar').addEventListener('click', async () => {
     const era = $('colEra').value.trim().toLowerCase()
     if (era && !/^[a-z0-9][a-z0-9-]*$/.test(era)) {
       return showToast('El identificador de la era va en minúsculas, sin espacios (p. ej. «mcdonalds»).', 'error')
     }
     const o = $('colOrden').value.trim()
+    const numero = (id) => { const t = $(id).value.trim(); return t === '' ? null : Number(t) }
     const campos = {
       name: $('colNombre').value.trim() || s.name,
       name_en: $('colNombreEn').value.trim() || null,
       serie_id: era || null,
       orden: o === '' ? null : Number(o),
-      logo_scrydex: $('colLogo').value.trim() || null,
+      release_date: $('colFecha').value.trim() || null,
+      tcg_online_code: $('colCodigo').value.trim() || null,
+      card_count_official: numero('colCuentaOficial'),
+      card_count_total: numero('colCuentaTotal'),
       scrydex_manda: $('colScrydexManda').checked,
       oculto: $('colOculto').checked,
     }
+    // El logo puesto a mano va en LAS DOS columnas (885): la biblioteca
+    // mira `logo_tcggo` primero en el japonés y `logo_scrydex` en el
+    // occidental, y las dos las reescriben sus pasadas.
+    const logo = $('colLogo').value.trim() || null
+    if (logo !== (logoActual || null)) { campos.logo_scrydex = logo; campos.logo_tcggo = logo }
     const nombreEra = $('colEraNombreNuevo').value.trim()
     if (era && nombreEra) await guardarEra(era, { nombre: nombreEra })
-    if (await guardarSet(s.id, campos)) {
-      cerrarHoja(); pintarColecciones(); showToast('Colección guardada')
+    if (await guardarSet(s.id, campos, { comoCorreccion: true })) {
+      await cargar(); cerrarHoja(); pintarColecciones(); showToast('Colección guardada', 'success')
     }
   })
 
@@ -514,6 +605,50 @@ async function volverAlOrdenDelCatalogo() {
   showToast(`Hecho: ${n} ${n === 1 ? 'colección vuelve' : 'colecciones vuelven'} al orden del catálogo`)
 }
 
+// ── UNA COLECCIÓN NUEVA, A MANO (885) ──
+//
+// Para lo que ninguna API tiene (el Silver Deck Kit, 884). Nace con
+// `origen = 'mano'`, que el calco japonés y los reemplazos respetan, y
+// luego se le meten las cartas desde su editor.
+function abrirNuevaColeccion() {
+  abrirHoja(`
+    <h3>Nueva colección</h3>
+    <p class="admin-note">Para una colección que ninguna API tiene. Nace «a mano»: ninguna pasada automática la esconderá ni la borrará. Las cartas se le añaden después desde «Ver y editar sus cartas».</p>
+    <label>Identificador <small>(minúsculas, sin espacios; será su dirección)</small><input id="colNuevoId" type="text" placeholder="pcg-silver_ja"></label>
+    <label>Nombre<input id="colNuevoNombre" type="text" placeholder="ロケット団ハーフデッキW -silver-"></label>
+    <label>Nombre occidental<input id="colNuevoNombreEn" type="text" placeholder="Silver Deck Kit"></label>
+    <div class="cat-campos">
+      <label class="cat-campo-medio">Fecha de salida<input id="colNuevoFecha" type="date"></label>
+      <label class="cat-campo-medio">Código (TCG Live)<input id="colNuevoCodigo" type="text"></label>
+      <label class="cat-campo-medio">Cartas (total)<input id="colNuevoCuenta" type="number" inputmode="numeric"></label>
+      <label class="cat-campo-medio">Era<input id="colNuevoEra" type="text" list="colErasLista" placeholder="pcg"></label>
+    </div>
+    <datalist id="colErasLista">${[...new Set(sets.map((x) => x.serie_id).filter(Boolean))].sort().map((e) => `<option value="${escapeHtml(e)}">`).join('')}</datalist>
+    <div class="col-hoja-pie">
+      <span style="flex:1"></span>
+      <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
+      <button class="btn-primary" id="colNuevoCrear">Crear</button>
+    </div>`)
+  $('colNuevoCrear').addEventListener('click', async () => {
+    const id = $('colNuevoId').value.trim().toLowerCase()
+    const name = $('colNuevoNombre').value.trim()
+    if (!/^[a-z0-9][a-z0-9_-]*$/.test(id)) return showToast('El identificador va en minúsculas, sin espacios (letras, números, guion y guion bajo).', 'error')
+    if (!name) return showToast('La colección necesita un nombre.', 'error')
+    if (sets.some((x) => x.id === id)) return showToast(`Ya hay una colección «${id}» en este catálogo.`, 'error')
+    const cuenta = $('colNuevoCuenta').value.trim()
+    const cambios = { name }
+    if ($('colNuevoNombreEn').value.trim()) cambios.name_en = $('colNuevoNombreEn').value.trim()
+    if ($('colNuevoFecha').value) cambios.release_date = $('colNuevoFecha').value
+    if ($('colNuevoCodigo').value.trim()) cambios.tcg_online_code = $('colNuevoCodigo').value.trim()
+    if (cuenta !== '') { cambios.card_count_total = Number(cuenta); cambios.card_count_official = Number(cuenta) }
+    if ($('colNuevoEra').value.trim()) cambios.serie_id = $('colNuevoEra').value.trim().toLowerCase()
+    const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_sets', p_id: id, p_market: mercado, p_cambios: cambios, p_crear: true })
+    if (error) return showToast(esFaltaDeRpc(error) ? 'Falta ejecutar supabase-migration-885-catalogo-correcciones.sql: sin ella no se pueden crear colecciones a mano.' : error.message.slice(0, 140), 'error')
+    await cargar(); pintarColecciones(); showToast('Colección creada', 'success')
+    abrirEditor(id)
+  })
+}
+
 // ── La hoja lateral ──
 function abrirHoja(html) {
   const hoja = $('coleccionesHoja')
@@ -544,6 +679,7 @@ export async function iniciarColecciones() {
   $('coleccionesFiltro')?.addEventListener('input', (e) => { filtro = e.target.value.trim(); pintarColecciones() })
   $('coleccionesRecargar')?.addEventListener('click', async () => { await cargar(); pintarColecciones(); showToast('Recargado') })
   $('coleccionesReordenar')?.addEventListener('click', volverAlOrdenDelCatalogo)
+  $('coleccionesNueva')?.addEventListener('click', abrirNuevaColeccion)
   await cargar()
   pintarColecciones()
 }

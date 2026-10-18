@@ -712,6 +712,36 @@ body {
 .col-hoja .col-check { display: flex; align-items: center; gap: var(--e-xs); }
 .col-hoja .col-check input { width: auto; margin: 0; }
 .col-hoja-pie { display: flex; gap: var(--e-xs); align-items: center; margin-top: var(--e-md); }
+/* El catálogo editable (885): la lista de cartas de un set y su ficha. */
+.col-hoja label textarea, .col-hoja label input[type="date"] { width: 100%; margin-top: 4px; }
+.cat-cab { display: flex; align-items: center; gap: var(--e-sm); margin-bottom: var(--e-sm); }
+.cat-cab h3 { margin: 0; flex: 1; min-width: 0; font-size: var(--t-md); }
+.cat-barra { display: flex; gap: var(--e-xs); align-items: center; margin-bottom: var(--e-sm); }
+.cat-barra input[type="search"] { flex: 1; min-width: 0; min-height: 36px; }
+.cat-lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+.cat-carta { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; border-bottom: 1px solid var(--border); }
+.cat-carta-foto { width: 36px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.cat-carta-foto img { width: 36px; height: 48px; object-fit: cover; }
+.cat-carta-nombre { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cat-carta-nombre strong { font-size: var(--t-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-carta-nombre small { color: var(--text-mid); font-size: var(--t-2xs); }
+.cat-chapa { display: inline-block; padding: 0 var(--e-xs); border-radius: 999px; font-size: var(--t-2xs); line-height: 16px; }
+.cat-chapa-corregida { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cat-chapa-mano { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
+.cat-campos { display: flex; flex-wrap: wrap; gap: 0 var(--e-sm); }
+.cat-campos label { flex: 1 1 100%; }
+.cat-campos .cat-campo-medio { flex: 1 1 calc(50% - var(--e-sm)); min-width: 140px; }
+.cat-campo-corregida { border-left: 2px solid var(--navy); padding-left: var(--e-xs); }
+.cat-quitar { background: none; border: 0; padding: 0; color: var(--navy); font-size: var(--t-2xs); cursor: pointer; text-decoration: underline; min-height: 24px; }
+.cat-foto-caja { display: flex; gap: var(--e-sm); align-items: flex-start; margin-bottom: var(--e-sm); }
+.cat-foto-ver { width: 72px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 6px; overflow: hidden; }
+.cat-foto-ver img { width: 72px; height: 100px; object-fit: cover; }
+.cat-foto-acciones { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--e-xs); }
+.cat-foto-acciones input[type="url"] { width: 100%; }
+.cat-impresiones { border: 1px solid var(--border); border-radius: 8px; padding: var(--e-xs) var(--e-sm); margin: 0 0 var(--e-sm); display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.cat-impresiones legend { font-size: var(--t-xs); color: var(--text-mid); padding: 0 var(--e-xs); }
+.cat-avanzado { margin-bottom: var(--e-sm); }
+.cat-avanzado summary { cursor: pointer; font-size: var(--t-xs); color: var(--text-mid); min-height: 24px; }
 @media (max-width: 720px) {
   .col-set { flex-wrap: wrap; }
   .col-set-logo { width: 48px; }

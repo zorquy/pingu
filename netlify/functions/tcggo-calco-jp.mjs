@@ -168,7 +168,14 @@ export async function pasada({
     if (/42P01|scrydex_estado/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-scrydex-cartas.sql (scrydex_estado)' }
     return { ok: false, error: m.slice(0, 200) }
   }
-  const sinConservados = Object.keys(conservados).length ? `&id=not.in.(${Object.keys(conservados).map((id) => `"${id}"`).join(',')})` : ''
+  // Y lo que se creó A MANO desde /admin (885, `origen = 'mano'`) tampoco
+  // se esconde: no está en TCGGO porque TCGGO no lo tiene, que es por lo
+  // que se escribió a mano. Va como `or` y no como `origen=neq.mano`: un
+  // `<>` contra NULL no es verdadero, y casi todos los sets llevan el
+  // origen a null —se habrían quedado fuera del barrido en silencio—.
+  const sinConservados =
+    (Object.keys(conservados).length ? `&id=not.in.(${Object.keys(conservados).map((id) => `"${id}"`).join(',')})` : '') +
+    '&or=(origen.is.null,origen.neq.mano)'
   estado = estado && typeof estado === 'object' ? estado : {}
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   if (!estado.intentos || typeof estado.intentos !== 'object') estado.intentos = {}
@@ -481,7 +488,7 @@ export async function pasada({
   }
   let sets
   try {
-    sets = (await pedir(`tcg_sets?select=id,tcggo_id,oculto&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false&order=id&limit=2000`)) || []
+    sets = (await pedir(`tcg_sets?select=id,tcggo_id,oculto&market=eq.${MERCADO}&tcggo_id=is.null&oculto=is.false${sinConservados}&order=id&limit=2000`)) || []
   } catch (e) {
     return { ok: false, ...resumen(), error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
   }

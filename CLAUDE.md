@@ -419,6 +419,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   precios. Y su `name` japonés va EN JAPONÉS (811): el inglés sale de
   `nombreInglesDe` (un campo no CJK o el `slug`), nunca de copiar `name`. **La numeración de tandas de
   esta sesión va desde la 640** (590–596 y 620–623 son de la otra).
+- **Lo corregido a mano en el catálogo se apunta en `tcg_correcciones` y
+  un disparador lo repone encima de cualquier escritura** (tanda 885).
+  Desde /admin → Colecciones se edita un set y, con «Ver y editar sus
+  cartas», cada carta (foto, impresiones, ids de Cardmarket, todo); se
+  guarda por `catalogo_corregir` y SOLO las columnas que cambian, que una
+  corrección sobre una columna sin tocar la clava para siempre. No lo
+  «arregles» con un `update` directo desde el panel: duraría hasta la
+  siguiente pasada. Una foto a mano es una dirección entera en
+  `image_path` (`urlDeImagen` la deja pasar); un logo a mano va en
+  `logo_tcggo` y `logo_scrydex`. Lo creado a mano nace con `origen =
+  'mano'`: el calco japonés no lo esconde (`sinConservados` lleva
+  `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
+  NULL no es verdadero) y los reemplazos no lo borran. Si añades una
+  pasada que esconda o borre del catálogo, que respete las dos cosas.
 - **Lo que solo baja el MÓVIL entra por `import()` y con su hoja
   inyectada** (tanda 704). La barra inferior (`js/barra-movil.js` +
   `css/movil.css`) se carga desde app.js solo si la pantalla es de móvil,

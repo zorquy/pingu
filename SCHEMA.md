@@ -41785,6 +41785,129 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 885 — El catálogo editable en /admin, y lo corregido a mano MANDA
+
+PINGU: «méteme el catálogo de cartas y expansiones en el admin para poder
+editar todos los datos de expansiones y cartas por si alguna está mal.
+Debería ser reemplazable lo que meto a mano sobre lo que está automático,
+para correcciones manuales».
+
+### El problema no era editar, era que lo editado DURASE
+
+El admin ya podía escribir en `tcg_sets` y `tcg_cards` (políticas
+`tcg_*_write`, con `is_admin()`), y /admin → Colecciones ya editaba un set
+(550). Lo que no existía era que una corrección SOBREVIVIERA: el calco
+japonés rotula cada set con lo de TCGGO cada día, `tcggo_guardar_cartas`
+hace upsert de la fila entera, `cartas-detalle` reescribe la ficha, y un
+reemplazo borra y vuelve a crear. Un `update` a secas duraba hasta la
+siguiente pasada, sin avisar.
+
+### La solución: las correcciones se apuntan APARTE y un disparador las vuelve a poner
+
+`supabase-migration-885-catalogo-correcciones.sql`:
+
+- **`tcg_correcciones`** (tabla, id, market, columna, `valor` jsonb,
+  `anterior` jsonb, autor, updated_at; clave por las cuatro primeras). Lo
+  lee el admin (RLS: `is_admin()`); lo escriben solo las funciones.
+- **`catalogo_aplicar_correcciones()`**, disparador `before insert or
+  update` en las dos tablas: junta las correcciones de esa fila y hace
+  `new := jsonb_populate_record(new, …)`. Da igual QUIÉN escriba ni CÓMO
+  —un update, un upsert de PostgREST, el rotulado del calco—: lo
+  corregido vuelve a quedar encima y lo demás de la fila entra. Es
+  `security definer` porque corre con el rol de quien escribe (la clave de
+  servicio, el admin) y ese rol no tiene por qué leer la tabla de
+  correcciones.
+- **`catalogo_corregir(p_tabla, p_id, p_market, p_cambios jsonb, p_crear)`**:
+  solo admin (42501 si no); solo las columnas de
+  `catalogo_columnas_corregibles(tabla)` (22023 si no: nada de ids, claves
+  de emparejamiento ni fechas de pasada); apunta cada columna con lo que
+  había ANTES la primera vez (`anterior`) y escribe la fila. Con `p_crear`
+  y la fila sin existir, la crea: nace con `origen = 'mano'` y SIN
+  correcciones, porque nada automático la conoce ni la va a pisar; una
+  carta nueva exige set_id, local_id y name.
+- **`catalogo_descorregir(…, p_columna)`**: borra la corrección y escribe
+  `anterior` en la fila. A partir de ahí lo automático vuelve a mandar.
+- **`catalogo_borrar_carta(p_id, p_market)`**: solo `origen = 'mano'` (las
+  de las APIs las trae y quita su pasada) y solo si nadie la tiene en
+  `user_collection` (una línea sin su carta se queda huérfana sin error,
+  la 654).
+
+Probado contra PostgreSQL de verdad (`sql-tanda-885.sql` + casos, 23 ok):
+un usuario normal no corrige; cuatro columnas de una vez; una pasada que
+reescribe la fila entera NO pisa lo corregido pero SÍ escribe el resto;
+un upsert tampoco; el set corregido aguanta el rotulado; quitar devuelve
+lo de antes y lo automático vuelve a escribir; crear a mano; borrar con
+sus tres reglas; la RLS.
+
+### La foto a mano va en `image_path`, como dirección entera
+
+No hay columna nueva: `urlDeImagen` (`js/carta-ruta.js`) devuelve tal
+cual lo que empiece por `http`, así que la foto subida va la PRIMERA de la
+cadena de escaneos en todos los `select` que ya existen (la lección de la
+523: una columna que ningún select pide no existe para la web). La foto
+se sube al cubo `guide-images` (público, el de los logos de la 551) con
+`uploadGuideImage`. Lo mismo el logo de un set: va en `logo_tcggo` Y
+`logo_scrydex`, porque la biblioteca mira una u otra según el catálogo.
+
+### El editor (admin/js/catalogo-cartas.js, admin/js/catalogo-puro.js)
+
+Desde el editor de un set, «Ver y editar sus cartas →»: la lista
+(número, nombre, miniatura por `cadenaDeEscaneo`, chapa «N correcciones»
+o «a mano»), filtro, y la ficha con los campos de `CAMPOS` (nombres,
+número, rareza, categoría, PS, tipos, fase, evoluciona de, retirada,
+marca, ilustrador, Pokédex, tipo de Entrenador/Energía, ids de
+Cardmarket y TCGplayer, texto; ataques, habilidades, debilidades y
+resistencias como JSON en un desplegable), la foto (subir o pegar
+dirección) y las impresiones como cuatro casillas. **Al guardar solo se
+mandan las columnas que han CAMBIADO** (`loQueCambia`, comparando por
+JSON): una corrección sobre una columna que no se tocó la clavaría para
+siempre en el valor de hoy. Cada campo corregido lleva su marca y un
+«quitar». «Nueva carta» crea con id `mano-<set>-<número>` (y no deja
+repetir número). «Borrar» solo sale en las de mano.
+
+Y el editor del set (`colecciones.js`): fecha, código, cuentas, nombre,
+nombre occidental, logo y escondido van como corrección (`guardarSet(…,
+{ comoCorreccion: true })`, solo lo que cambia); `scrydex_manda` y lo que
+se coloca arrastrando (`orden`, la era) siguen por `update`, que eso ya
+lo escribe solo una persona. «Esconder/Mostrar» de la lista también es
+corrección: así un set que el calco escondió y PINGU muestra se queda a
+la vista. Y **«Nueva colección»** para lo que ninguna API tiene (el
+Silver Deck Kit): nace a mano y se le meten las cartas desde su editor.
+
+Sin la migración: el set se guarda directo y se avisa (una pasada puede
+pisarlo); la carta no se escribe a pelo y el aviso nombra la migración.
+La lista de cartas pide `*` a propósito (una lista de columnas con una
+que no exista tumba la consulta, la 624).
+
+### Las pasadas respetan lo de mano
+
+- `tcggo-calco-jp`: `sinConservados` lleva además
+  `&or=(origen.is.null,origen.neq.mano)` en TODAS las consultas que buscan
+  sets sin `tcggo_id` para esconder. Como `or` y no `origen=neq.mano`: un
+  `<>` contra NULL no es verdadero y casi todos los sets llevan el origen
+  a null (se habrían quedado fuera del barrido en silencio).
+- `tcggo-reemplazar-set`: `procesar` pide `origen` y una carta `mano` se
+  queda SIEMPRE (`seQuedan`, motivo «escrita a mano desde /admin»),
+  también en el modo entero con borrado; y sus líneas de colección no se
+  cuentan entre las que se borran.
+- Lo que tiene correcciones no necesita que ninguna pasada lo sepa: el
+  disparador lo repone. Pero un set escondido por el calco con
+  corrección de `oculto = false` se queda a la vista, que es lo que se
+  quiere.
+
+### Pruebas
+
+`test-tanda-885.mjs`: la base (23 casos, y la migración dos veces); lo
+puro (urlDeImagen con dirección entera y la cadena; loQueCambia,
+leerCampo, variantesDe, faltaLaMigracion; que cada campo de la ficha esté
+en la lista de columnas corregibles de la migración); las dos pasadas
+(el calco con el filtro en cada consulta; `procesar` con el doble de la
+806 y una carta de mano en un reemplazo entero con borrado); y la
+pantalla de punta a punta en /admin con el doble (`catalogo_corregir`,
+`catalogo_descorregir` y `catalogo_borrar_carta` en el stub, con las
+mismas reglas; el cubo contesta una dirección pública de verdad;
+`__SUBIDAS__`).
+
 ## Tanda 884 — El Silver Deck Kit, a mano
 
 PINGU: «saca la info tú e intenta escribirlo como puedas». Lo que se sabe

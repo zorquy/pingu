@@ -341,7 +341,7 @@ export async function procesar({
   let setsNuestros
   try {
     setsNuestros = (await pedir(`tcg_sets?select=id,name,name_en,tcggo_id&market=eq.${mercado}&id=in.(${lista(idsSets)})`)) || []
-    nuestras = (await pedir(`tcg_cards?select=id,set_id,local_id,name,name_en,tcggo_id&market=eq.${mercado}&set_id=in.(${lista(idsSets)})&limit=5000`)) || []
+    nuestras = (await pedir(`tcg_cards?select=id,set_id,local_id,name,name_en,tcggo_id,origen&market=eq.${mercado}&set_id=in.(${lista(idsSets)})&limit=5000`)) || []
   } catch (e) {
     return { ok: false, peticiones, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
   }
@@ -408,10 +408,15 @@ export async function procesar({
   // escritas en el resumen (quién, qué, cuántas): se borra, pero no en
   // silencio.
   const conLineas = new Set([...lineas, ...deseos].map((l) => l.card_id))
-  const seQuedan = borrarSinDestino ? [] : seVan.filter((c) => conLineas.has(c.id) && !equiv.has(c.id))
+  // Una carta escrita A MANO desde /admin (885, `origen = 'mano'`) se queda
+  // siempre, también en el modo entero: TCGGO no la tiene porque no la
+  // tiene, y es justo por eso que alguien la escribió.
+  const aMano = (c) => c.origen === 'mano'
+  const seQuedan = seVan.filter((c) => aMano(c) || (!borrarSinDestino && conLineas.has(c.id) && !equiv.has(c.id)))
   const seBorran = seVan.filter((c) => !seQuedan.some((q) => q.id === c.id))
   const nombreDe = (id) => { const c = seVan.find((x) => x.id === id); return c ? c.name_en || c.name : id }
-  const lineasSinDestino = borrarSinDestino ? [...lineas.map((l) => ({ ...l, tabla: 'user_collection' })), ...deseos.map((l) => ({ ...l, tabla: 'user_wants' }))].filter((l) => !equiv.has(l.card_id)).map((l) => ({ tabla: l.tabla, id: l.id, usuario: l.user_id || null, carta: l.card_id, nombre: nombreDe(l.card_id), copias: l.cantidad ?? null })) : []
+  const idsQueSeQuedan = new Set(seQuedan.map((c) => c.id))
+  const lineasSinDestino = borrarSinDestino ? [...lineas.map((l) => ({ ...l, tabla: 'user_collection' })), ...deseos.map((l) => ({ ...l, tabla: 'user_wants' }))].filter((l) => !equiv.has(l.card_id) && !idsQueSeQuedan.has(l.card_id)).map((l) => ({ tabla: l.tabla, id: l.id, usuario: l.user_id || null, carta: l.card_id, nombre: nombreDe(l.card_id), copias: l.cantidad ?? null })) : []
 
   // ── Escribir, en el orden que no deja nada colgando ──
   let escritas = 0
@@ -516,7 +521,7 @@ export async function procesar({
     suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
-    seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
+    seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
     aproximadas: [...equiv].filter(([, e]) => e.por === 'nombre aproximado').map(([de, e]) => ({ de, a: e.a, nombre: nombreDe(de) })),
     lineasSinDestino,
     setsBorrados, setsQueSeQuedan,
