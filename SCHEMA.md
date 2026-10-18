@@ -41785,6 +41785,47 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 890 — Las miniaturas que desaparecían: el vigilante de sprites contaba lo que no se veía
+
+PINGU: «en VSTAR Universe, a partir del Voltorb de Hisui la miniatura no
+carga, pero cuando la clicas sí. Igual es un bug visual». Lo era, y lo
+había metido yo el día antes con la 888.
+
+**Qué pasaba.** El vigilante de la 888 recorre cada segundo TODOS los
+`img[data-respaldos]` de la página y, al que lleve cuatro segundos sin
+`complete`, le da el paso del `onerror`: siguiente origen. Lo escribí
+pensando en los sprites del meta, pero la cadena de escaneos de las cartas
+usa el mismo atributo, y /mi-coleccion importa `sprites-pokemon.js` (para la
+Pokédex), así que el vigilante corría también sobre la rejilla de una
+expansión. Y esas cartas van con `loading="lazy"`: una que está diez
+pantallas más abajo NO ha empezado a cargar, luego nunca «termina», y cada
+cuatro segundos perdía un respaldo hasta quedarse con el último. Para las
+cartas 1–172 de VSTAR Universe (rellenadas de Scrydex) el último es una
+foto de Scrydex que existe; para las 173+ (las que creó TCGGO) la cadena
+acaba en una dirección que da 404, el `onerror` quitaba el `<img>` y la
+baldosa salía con el nombre en texto. La ficha pinta un `<img>` nuevo y
+eager, así que allí cargaba a la primera. De ahí la línea exacta en la 173.
+
+Es la trampa de la 310/311 otra vez: **una transformación que da por hecho
+que todo lo que se PARECE al caso ES el caso**. «Imagen con cadena de
+respaldos» no era «sprite»; y «sin terminar» no era «colgada».
+
+**Qué se hace.** El reloj solo corre para lo que está A LA VISTA: un
+`IntersectionObserver` pone `data-desde` al entrar en pantalla y lo quita
+al salir. Una imagen visible es una que el navegador ha pedido seguro
+(el umbral de `lazy` es mayor que la ventana), así que cuatro segundos sin
+cargar sí es una petición colgada. Donde no haya `IntersectionObserver`,
+se cuenta desde que se ve en el DOM, como antes. Las de fuera de pantalla
+no se tocan: cuando bajas hasta ellas empieza su cuenta.
+
+**Prueba** (`test-tanda-890.mjs`): una rejilla con una imagen arriba y
+otra siete mil píxeles más abajo, las dos diferidas y con la primera fuente
+colgada. A los seis segundos la de arriba ha saltado al respaldo; la de
+abajo sigue con su `src` original y no se ha pedido su respaldo. Al bajar
+hasta ella, salta y carga. Y la 888 se recoloca dentro de la ventana
+(`position: fixed`): su sprite iba al final del `<body>`, fuera de
+pantalla, y con la 890 ya no cuenta.
+
 ## Tanda 889 — Las barras de /meta sin color: el tipo venía en español
 
 PINGU: «las barras no cargan en algunos mazos: o no tienen color o no sé».

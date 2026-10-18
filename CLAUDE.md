@@ -1115,6 +1115,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   rendirse. El vigilante de `sprites-pokemon.js` (`saltoPorEspera`) da el
   paso a los cuatro segundos. Si añades otra cadena de respaldos de
   imágenes, pregúntate qué pasa cuando el primer origen no contesta NADA.
+  **Y solo cuenta lo que está A LA VISTA** (890): la primera versión contaba
+  desde que la imagen existía, y las cartas diferidas de una rejilla que
+  aún no han empezado a cargar nunca «terminan» — les quemó la cadena hasta
+  el 404 y las miniaturas de VSTAR Universe desaparecían al bajar. Una
+  imagen `lazy` fuera de pantalla no está colgada: no se ha pedido.
 - **Un respaldo tiene que conservar lo que DISTINGUE** (tanda 511). El
   siguiente paso de una mega era su especie base, «que para reconocer un
   mazo sirve igual»… salvo que Mega Gardevoir y Gardevoir son DOS mazos, y

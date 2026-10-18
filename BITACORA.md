@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (120) — PINGU-Claude (890 — las miniaturas que se quitaban solas)
+
+**Hecho** (PINGU: «en VSTAR Universe, a partir del Voltorb de Hisui la
+miniatura no carga, pero cuando la clicas sí»): era el vigilante de
+sprites de la 888, que contaba el tiempo de TODAS las imágenes con
+respaldos, también las cartas diferidas de la rejilla que aún no habían
+empezado a cargar, y les quemaba la cadena hasta el 404. Ahora solo
+cuenta lo que está en pantalla (IntersectionObserver). Detalle en
+SCHEMA 890.
+
+**Ficheros**: `js/torneos/sprites-pokemon.js`, `novedades.json`,
+`SCHEMA.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-890.mjs`; la 888 pone su
+sprite dentro de la ventana. Verdes: 890, 888, imports.
+
+**Pendiente**: lo de la 119.
+
 ## 2026-10-18 (119) — PINGU-Claude (889 — las barras de /meta sin color)
 
 **Hecho** (PINGU: «las barras no cargan en algunos mazos: o no tienen

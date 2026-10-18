@@ -657,9 +657,39 @@ export function saltoPorEspera({ respaldos = '', desde = 0, completa = false }, 
   return { src: r[0], respaldos: r.slice(1).join(' ') }
 }
 
+// EL RELOJ SOLO CORRE PARA LO QUE ESTÁ A LA VISTA (890). La primera
+// versión (888) contaba desde que la imagen existía en el DOM, y casi
+// todas van con `loading="lazy"`: una carta de la rejilla de una expansión
+// que está diez pantallas más abajo NO ha empezado a cargar, así que nunca
+// «termina», y cada cuatro segundos se le quemaba un respaldo hasta el
+// último. En VSTAR Universe las cartas 173+ (las de TCGGO) acababan en una
+// dirección que da 404, el `onerror` las quitaba y la rejilla salía con el
+// nombre y sin foto — y en la ficha, que pinta un <img> nuevo, sí cargaban
+// (PINGU: «en la miniatura no carga, pero cuando la clicas sí»). Una imagen
+// A LA VISTA que lleva cuatro segundos sin cargar sí es una petición
+// colgada: el navegador la ha pedido seguro. Quién está a la vista lo dice
+// un IntersectionObserver (`data-desde` se pone al entrar y se quita al
+// salir); donde no lo haya, se cuenta desde que se ve en el DOM, como antes.
+let observadorDeVista = null
+function observar(img) {
+  if (img.dataset.vigilada) return
+  img.dataset.vigilada = '1'
+  if (!observadorDeVista && typeof IntersectionObserver === 'function') {
+    observadorDeVista = new IntersectionObserver((entradas) => {
+      for (const e of entradas) {
+        if (e.isIntersecting) { if (!e.target.dataset.desde) e.target.dataset.desde = String(Date.now()) }
+        else delete e.target.dataset.desde
+      }
+    })
+  }
+  if (observadorDeVista) observadorDeVista.observe(img)
+  else img.dataset.desde = String(Date.now())
+}
+
 function vigilarSprites(ahora = Date.now()) {
   for (const img of document.querySelectorAll('img[data-respaldos]')) {
-    if (!img.dataset.desde) { img.dataset.desde = String(ahora); continue }
+    if (!img.dataset.vigilada) { observar(img); continue }
+    if (!img.dataset.desde) continue
     const salto = saltoPorEspera({ respaldos: img.dataset.respaldos, desde: Number(img.dataset.desde), completa: img.complete }, ahora)
     if (!salto) continue
     img.dataset.respaldos = salto.respaldos

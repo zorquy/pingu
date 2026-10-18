@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-18", "tipo": "arreglo", "texto": "Las miniaturas de las cartas de una expansión ya no desaparecen al bajar por la rejilla (pasaba con las últimas de VSTAR Universe).", "enlace": "/cartas?catalogo=JP"},
     {"fecha": "2026-10-18", "tipo": "arreglo", "texto": "En el meta, la barra de uso de cada mazo vuelve a llevar el color de su tipo: a varios les salía vacía.", "enlace": "/meta"},
     {"fecha": "2026-10-18", "tipo": "arreglo", "texto": "Los sprites de los mazos ya no se quedan en blanco cuando su fuente tarda en responder: a los cuatro segundos sale el de respaldo.", "enlace": "/meta"},
     {"fecha": "2026-10-18", "tipo": "nuevo", "texto": "En el perfil de cada persona, la pestaña Cambios: lo que da, lo que busca y qué os podéis cambiar, con el mensaje ya redactado.", "enlace": "/usuarios"},
