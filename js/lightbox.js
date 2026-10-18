@@ -16,7 +16,8 @@ function elegible(img) {
   // El escaneo de una ficha de carta también (tanda 332). Antes tenía
   // su propio enlace «Ver en grande», que era una pieza de más para
   // hacer lo que en el resto de la web se hace pulsando la imagen.
-  if (!img.closest('.article-body') && !img.closest('.carta-scan')) return false
+  // Y las fotos de un mensaje privado (891).
+  if (!img.closest('.article-body') && !img.closest('.carta-scan') && !img.closest('.msg-fotos')) return false
   if (img.closest('[contenteditable="true"]')) return false
   if (img.closest('a')) return false
   if (img.closest('tcg-deck, yt-video, .foro-firma')) return false
@@ -27,7 +28,7 @@ function elegible(img) {
 // mensaje (o de la misma guía), no todas las de la página — mezclar las
 // fotos de tres personas en un mismo carrete despista.
 function grupoDe(img) {
-  const raiz = img.closest('.foro-mensaje-texto') || img.closest('.article-body') || img.closest('.carta-scan')
+  const raiz = img.closest('.foro-mensaje-texto') || img.closest('.article-body') || img.closest('.carta-scan') || img.closest('.msg-fotos')
   return [...raiz.querySelectorAll('img')].filter(elegible)
 }
 

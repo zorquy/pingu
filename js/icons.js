@@ -125,6 +125,8 @@ export const icons = {
   // mundo ya conoce, y así el menú de moderación no necesita una palabra
   // que ocupe sitio en cada fila de la lista.
   moreHorizontal: (size) => icon('<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>', size),
+  paperclip: (size) => icon('<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>', size),
+  camera: (size) => icon('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>', size),
   arrowDown: (size) => icon('<path d="M12 5v14M19 12l-7 7-7-7"></path>', size),
 }
 

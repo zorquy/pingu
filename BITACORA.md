@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-18 (122) — PINGU-Claude (891 — mensajes privados con fotos)
+
+**Hecho** (PINGU: «mejora los mensajes privados y mete adjuntar imágenes»;
+propuesta con maquetas aprobada): fotos en los mensajes (hasta 4,
+comprimidas en el navegador, cubo PRIVADO con direcciones firmadas, solo
+para los dos de la conversación), y el chat reescrito: bandeja con número
+de no leídos y «Foto», hilo con días, burbujas agrupadas, «Visto», «1
+nuevo ↓», «Mensaje eliminado», cuadro de escribir pegado abajo, Enter
+envía en PC, borrar con diálogo de la casa, pegar y arrastrar imágenes.
+Detalle en SCHEMA 891.
+
+**Ficheros**: NUEVOS `supabase-migration-891-mensajes-fotos.sql`,
+`js/mensajes-puro.js`, `js/imagen-comprimir.js`, `js/mensajes-adjuntos.js`;
+reescritos `js/mensajes.js`, `css/mensajes.css`; tocados `js/messages.js`
+(adjuntos, borrado blando, `otherLastReadAt`, `noLeidos`),
+`js/nav-messages.js` (resumen), `js/lightbox.js` (`.msg-fotos`),
+`js/icons.js` (`paperclip`, `camera`), `novedades.json`, `CLAUDE.md`,
+`SCHEMA.md`.
+
+**PINGU tiene que ejecutar `supabase-migration-891-mensajes-fotos.sql`**:
+sin ella los mensajes de texto siguen igual y los de fotos avisan «falta la
+migración 891»; el borrado cae al de antes.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-891.mjs` (50 verdes); el
+doble gana `__FAKE_FILAS__` (siembra de cualquier tabla),
+`createSignedUrls`/`remove` en el cubo y `created_at` en los mensajes
+insertados. Verdes: 891, imports, 299, 305, 309, 310, 311, 312, 313, 315,
+306, 737, 805, 829, 888, 890; la portada en 112,7 KB. Rojos de ANTES, no
+de esta tanda: 789 («con el rango en barra», `barraDeRango` ya no está en
+usuario.js/perfil.js desde la 867) y 386 (`js/torneos/tablon.js` de la
+878 pide nombres sin rango y sin su `// sin rango:`).
+
+**Pendiente**: lo de la 119, más la migración 891.
+
 ## 2026-10-18 (121) — PINGU-Claude (norma: las propuestas van con imágenes)
 
 **Hecho**: solo `CLAUDE.md`. PINGU: «siempre que te pida propuestas

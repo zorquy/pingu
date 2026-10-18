@@ -1,4 +1,5 @@
-/* Mensajes (tanda 789, PA13). Solo la carga mensajes.html. */
+/* Mensajes (789, PA13; reescrita en la 891). Solo la carga mensajes.html.
+   El porqué largo está en SCHEMA 891. */
 
 .msg-dos {
   max-width: 720px;
@@ -23,6 +24,7 @@
   }
 }
 
+/* ── La bandeja ── */
 .msg-lista-cabeza {
   display: flex;
   align-items: center;
@@ -31,15 +33,643 @@
   margin: var(--e-sm) 0;
 }
 
+.msg-lista-cabeza h1,
 .msg-lista-cabeza h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--t-xl);
 }
 
+.msg-lista-cabeza-movil {
+  margin-top: var(--e-xs);
+}
+
+.msg-lista-cabeza-movil h1 {
+  font-size: var(--t-2xl);
+}
+
+.msg-buscar {
+  margin-bottom: var(--e-sm);
+}
+
+.msg-filas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+}
+
+.msg-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 64px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.msg-fila:hover {
+  border-color: var(--navy);
+}
+
 .msg-fila.activa {
   border-color: var(--navy);
   background: var(--ice);
+}
+
+.msg-fila-boton {
+  width: 100%;
+}
+
+.msg-fila-avatar {
+  width: 44px;
+  height: 44px;
+  font-size: var(--t-md);
+  flex-shrink: 0;
+}
+
+.msg-fila-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.msg-fila-nombre {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--e-sm);
+}
+
+.msg-fila-nombre time {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: var(--t-xs);
+}
+
+.msg-fila-ultimo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.msg-fila-ultimo > span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msg-fila-ultimo i {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.msg-check {
+  color: var(--success);
+}
+
+.msg-foto-ico {
+  color: var(--text-mid);
+}
+
+.msg-fila.noleida .msg-fila-nombre strong {
+  color: var(--navy);
+}
+
+.msg-fila.noleida .msg-fila-ultimo {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.msg-noleidos {
+  flex-shrink: 0;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--e-xs);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.msg-esqueleto {
+  height: 64px;
+  margin-bottom: var(--e-sm);
+}
+
+.msg-vacio {
+  padding: var(--e-md) 0;
+}
+
+/* ── El hilo ── */
+.msg-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-xs) 0 var(--e-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.msg-atras {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--navy);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.msg-cabecera-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: var(--t-md);
+  flex-shrink: 0;
+}
+
+.msg-cabecera-nombre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-lg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msg-cabecera-nombre a {
+  text-decoration: none;
+}
+
+.msg-ver-perfil {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.msg-mensajes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-md) 0;
+}
+
+.msg-dia {
+  display: flex;
+  justify-content: center;
+  margin: var(--e-sm) 0 var(--e-xs);
+}
+
+.msg-dia span {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.msg-burbuja {
+  position: relative;
+  align-self: flex-start;
+  max-width: min(78%, 480px);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-lg);
+  border-bottom-left-radius: 4px;
+  background: var(--ice);
+  color: var(--text);
+}
+
+.msg-burbuja.mia {
+  align-self: flex-end;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: 4px;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.msg-burbuja.seguida {
+  margin-top: -2px;
+}
+
+.msg-burbuja p {
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msg-burbuja.mia a {
+  color: inherit;
+}
+
+.msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--e-xs);
+  margin-top: 2px;
+  font-size: var(--t-2xs);
+  opacity: 0.7;
+}
+
+.msg-meta .msg-borrar,
+.msg-meta .report-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.msg-burbuja:hover .msg-borrar,
+.msg-burbuja:hover .report-btn,
+.msg-burbuja:focus-within .msg-borrar,
+.msg-burbuja:focus-within .report-btn {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .msg-meta .msg-borrar,
+  .msg-meta .report-btn {
+    opacity: 1;
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
+  }
+}
+
+.msg-eliminado {
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--t-xs);
+  font-style: italic;
+}
+
+.msg-eliminado.mia {
+  align-self: flex-end;
+  color: var(--text-dim);
+}
+
+.msg-visto {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--success);
+  font-size: var(--t-2xs);
+}
+
+/* Las fotos de una burbuja: una sola a su proporción; dos o más en rejilla. */
+.msg-fotos {
+  display: grid;
+  gap: 2px;
+  margin: calc(-1 * var(--e-xs) + 2px) calc(-1 * var(--e-sm) + 2px) var(--e-xs);
+  border-radius: calc(var(--radius-lg) - 2px);
+  overflow: hidden;
+}
+
+.msg-fotos img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--bg);
+  cursor: zoom-in;
+}
+
+.msg-fotos[data-n='1'] img {
+  max-height: 360px;
+  object-fit: contain;
+  background: var(--bg);
+}
+
+.msg-fotos[data-n='2'],
+.msg-fotos[data-n='4'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.msg-fotos[data-n='3'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.msg-fotos[data-n='3'] img:first-child {
+  grid-column: 1 / -1;
+}
+
+.msg-fotos[data-n='2'] img,
+.msg-fotos[data-n='3'] img:not(:first-child),
+.msg-fotos[data-n='4'] img {
+  aspect-ratio: 1;
+}
+
+.msg-burbuja.solo-fotos .msg-fotos {
+  margin-bottom: 0;
+}
+
+.msg-burbuja.solo-fotos .msg-meta {
+  position: absolute;
+  right: var(--e-sm);
+  bottom: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: rgba(13, 27, 42, 0.6);
+  color: var(--blanco-fijo);
+  opacity: 1;
+}
+
+/* La píldora de «1 nuevo ↓» flota encima del cuadro de escribir. */
+.msg-nuevos {
+  position: sticky;
+  bottom: 96px;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto;
+  min-height: 32px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.msg-hilo {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── El cuadro de escribir, pegado abajo ── */
+.msg-compositor {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  padding: var(--e-xs) 0 var(--e-sm);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+/* Con la barra de abajo del móvil (753), el cuadro va justo encima. */
+@media (max-width: 900px) {
+  body:has(> .bm) .msg-compositor {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  body:has(> .bm) .msg-nuevos {
+    bottom: calc(72px + 96px + env(safe-area-inset-bottom));
+  }
+}
+
+.msg-linea {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--e-xs);
+}
+
+.msg-clip,
+.msg-enviar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.msg-enviar {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.msg-enviar:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.msg-caja {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 160px;
+  padding: 12px var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-md);
+  line-height: 1.3;
+  resize: none;
+  outline: none;
+}
+
+.msg-caja:focus {
+  border-color: var(--navy);
+  box-shadow: var(--shadow-ring);
+}
+
+.msg-adjuntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  padding: var(--e-xs) 0 0;
+}
+
+.msg-adjunto {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.msg-adjunto img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.msg-adjunto small {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(13, 27, 42, 0.6);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+}
+
+.msg-adjunto-quitar {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--white);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.msg-compositor.enviando .msg-adjunto img {
+  opacity: 0.5;
+}
+
+/* ── La hoja del clip (cámara o galería) y el diálogo de borrar ── */
+.msg-hoja,
+.msg-dialogo {
+  width: min(100%, 420px);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+}
+
+.msg-hoja::backdrop,
+.msg-dialogo::backdrop {
+  background: rgba(13, 27, 42, 0.45);
+}
+
+.msg-hoja-tirador {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto var(--e-sm);
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.msg-hoja-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--e-xs) 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.msg-hoja-opcion small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.msg-hoja-ico {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.msg-hoja-cerrar {
+  width: 100%;
+  margin-top: var(--e-sm);
+}
+
+.msg-dialogo p {
+  margin: 0 0 var(--e-xs);
+}
+
+.msg-dialogo-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+}
+
+.msg-btn-peligro {
+  background: var(--danger-solid);
+  border-color: var(--danger-solid);
+}
+
+@media (max-width: 900px) {
+  .msg-hoja {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--e-md) + env(safe-area-inset-bottom));
+  }
+}
+
+/* El velo de arrastrar una imagen al hilo (PC). */
+.msg-arrastre {
+  position: fixed;
+  inset: 88px var(--e-md) 120px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  border: 2px dashed var(--navy);
+  border-radius: var(--radius-xl);
+  background: var(--ice);
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  pointer-events: none;
 }
 
 /* «Cambio hecho» (795, NU4). */
@@ -63,4 +693,8 @@
   flex-basis: 100%;
   color: var(--danger);
   font-size: var(--t-sm);
+}
+
+.msg-nueva-cabecera {
+  padding-top: var(--e-xs);
 }

@@ -1,5 +1,6 @@
 import { escapeHtml } from './app.js'
 import { listConversations } from './messages.js'
+import { resumenDeUltimo } from './mensajes-puro.js'
 import { icons } from './icons.js'
 import { anotarEnPestania } from './pestania.js'
 
@@ -15,9 +16,12 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString('es-ES')
 }
 
+// `session` la deja `renderNavMessages` (891): el resumen necesita saber si
+// el último mensaje es tuyo («Tú: …»).
+let session = null
 function conversationItemHtml(c) {
   const name = c.otherProfile?.display_name || c.otherProfile?.username || 'Usuario'
-  const snippet = c.lastMessage ? c.lastMessage.body.slice(0, 60) : ''
+  const snippet = c.lastMessage ? resumenDeUltimo(c.lastMessage, c.lastMessage.sender_id === session?.user?.id).texto.slice(0, 60) : ''
   return `
     <a class="nav-bell-item${c.unread ? ' unread' : ''}" href="/mensajes.html?c=${c.conversationId}">
       <span class="nav-bell-item-title">${escapeHtml(name)}</span>
@@ -26,7 +30,8 @@ function conversationItemHtml(c) {
     </a>`
 }
 
-export async function renderNavMessages(session) {
+export async function renderNavMessages(sesion) {
+  session = sesion
   const navRight = document.querySelector('.nav-right')
   const navUser = document.getElementById('nav-user')
   if (!navRight || !navUser || document.getElementById('navMsg')) return

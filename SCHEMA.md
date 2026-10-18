@@ -41785,6 +41785,93 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 891 — Mensajes privados con fotos, y el chat como un chat
+
+PINGU: «quiero que mejores el apartado de los mensajes privados y además
+metas la opción de poder adjuntar imágenes». Propuesta con maquetas
+(artifact «Mensajes con fotos»), «adelante, dale caña con lo que tú creas».
+
+**Lo que había.** Una lista de conversaciones, un hilo con burbujas
+pintadas con estilos en línea, un `textarea` con botón «Enviar», borrado
+con `confirm()` del navegador que quitaba la fila (y dejaba un hueco a la
+otra persona), nada de fotos, ni «visto», ni días, ni bajar solo al último.
+
+**Las fotos.**
+- `private_messages.adjuntos` (jsonb, lista de `{ruta, w, h}`, hasta 4) y
+  `deleted_at`. Un mensaje puede ser solo fotos (`private_messages_con_algo`,
+  `not valid` para no revisar lo viejo).
+- Cubo `mensajes-adjuntos` **privado**: una carpeta por conversación
+  (`<uuid>/<fichero>`) y `mensajes_adjunto_es_mio(name)` —comprueba la
+  forma del uuid antes del cast y pasa por `is_conversation_participant`—
+  en las políticas de leer, subir y borrar. Al contrario que `guide-images`,
+  nadie con el enlace ve la foto: `js/mensajes-adjuntos.js` pide
+  `createSignedUrls` (una hora; caché en memoria para que el repintado cada
+  diez segundos no pida la firma otra vez) y nunca `getPublicUrl`.
+- Se comprime EN EL NAVEGADOR antes de subir (`js/imagen-comprimir.js`):
+  1.600 px de lado mayor y WebP al 82 % (JPEG si el navegador no escribe
+  WebP; el fichero tal cual si no lo sabe descodificar). Una foto de móvil
+  de 4 MB se queda en 200–300 KB. El cubo acepta 3 MB por fichero por si
+  alguien se salta el cliente. Las medidas se guardan con el mensaje para
+  reservar el hueco (la norma de las imágenes).
+- Se adjunta con el clip (con ratón abre la galería; con el dedo, una hoja
+  desde abajo con «Hacer una foto» —`capture="environment"`— y «Elegir de
+  la galería»), pegando (Ctrl+V) o arrastrando al hilo (velo
+  `.msg-arrastre`). Las pendientes se ven como miniaturas con «×» y peso.
+  `cabenAdjuntos` dice qué entra: 4 por mensaje, 10 MB por foto, solo
+  imágenes; lo que no, un aviso con el motivo.
+- Si una subida falla, se borran las que ya subieron de ese mensaje y no se
+  envía nada: un mensaje con la mitad de las fotos no es lo que alguien
+  quiso mandar. Si la migración no está (columna o cubo inexistentes), el
+  aviso lo dice: «falta la migración 891».
+- Al borrar, primero las fotos del cubo y después la fila; si lo segundo
+  falla queda un mensaje sin fotos, que es mejor que fotos sin mensaje que
+  nadie puede borrar.
+
+**El chat.**
+- `js/mensajes-puro.js` (sin imports, probado en Node): `agruparPorDia`
+  (Hoy / Ayer / «12 oct» / con el año si es otro; `seguido` si el anterior
+  es de la misma persona en menos de cinco minutos), `ultimoVisto` (UN
+  «Visto HH:MM», bajo el último mensaje mío que la otra persona ha leído;
+  `last_read_at` ya existía en `conversation_participants`), `cuentaNoLeidos`
+  (los de la otra persona después de mi última lectura; lo eliminado no
+  cuenta), `resumenDeUltimo` («Tú: …», «Foto», «2 fotos · texto», «Mensaje
+  eliminado»), `enterEnvia` (solo con ratón y sin Mayús).
+- Borrar deja «Mensaje eliminado» (`deleted_at`, texto y fotos vaciados; la
+  política `private_messages_update` solo al que lo escribió). Sin la
+  columna, `deleteMessage` cae al borrado de antes.
+- La bandeja enseña el NÚMERO de no leídos (`noLeidos` en
+  `listConversations`, que ya bajaba todos los mensajes), el doble check
+  verde cuando lo último es tuyo y leído, el icono de foto, y un buscador
+  de conversaciones a partir de diez (filtra en memoria).
+- El cuadro de escribir va pegado abajo (`position: sticky`; con la barra
+  del móvil, `bottom: 72px + safe-area`), crece con el texto hasta seis
+  líneas, Enter envía en PC (Mayús+Enter línea nueva) y no en el móvil.
+- Al abrir y al enviar se baja al último; si llega uno mientras lees
+  arriba, la píldora «1 nuevo ↓» en vez de moverte. Lo que llega estando
+  abajo se marca leído.
+- El visor del foro (`js/lightbox.js`) abre también `.msg-fotos`.
+- Todo el CSS a `css/mensajes.css`; cero estilos en línea en el hilo.
+  Iconos nuevos `paperclip` y `camera` en `js/icons.js`.
+
+**Decisiones** (PINGU no dijo lo contrario): Enter envía en PC; el «Visto»
+siempre; 4 fotos y 10 MB por foto.
+
+**Pruebas** (`test-tanda-891.mjs`, 50 comprobaciones): lo puro, la
+migración (cubo privado, tres políticas por conversación, tope de 4) y la
+pantalla en móvil y PC con la siembra nueva del doble (`__FAKE_FILAS__`,
+gancho genérico para cualquier tabla; `createSignedUrls` y `remove` en el
+cubo doble; `__BORRADAS__`): bandeja con «2 fotos · …» y el número de no
+leídos; hilo con «Ayer»/«Hoy», dos fotos firmadas y CARGADAS con su hueco,
+un solo «Visto», «Mensaje eliminado», el cuadro pegado encima de la barra,
+controles de 44; la hoja del clip con el dedo; tope de 4 con aviso; enviar
+solo fotos (tres subidas a `c1/…`, fila sin texto con sus adjuntos y
+medidas); Enter no envía en móvil; borrar con el diálogo de la casa, fila
+marcada y fotos fuera del cubo; en PC, dos paneles con no leídos, el clip
+abre la galería, Enter envía, Mayús+Enter no, y pegar adjunta.
+
+**Lo que queda fuera** (dibujado en la propuesta para más adelante): adjuntar
+una carta de la colección como tarjeta, reacciones, grupos.
+
 ## Tanda 890 — Las miniaturas que desaparecían: el vigilante de sprites contaba lo que no se veía
 
 PINGU: «en VSTAR Universe, a partir del Voltorb de Hisui la miniatura no

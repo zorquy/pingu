@@ -457,6 +457,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `pestaniaLista(nombre, visible)` (perfil-pestanias.js), no por tocar
   `hidden` a mano; «Su perfil» desde el Mercado y Cruces abre
   `?ver=cambios`.
+- **Las fotos de los mensajes privados van en un cubo PRIVADO y se piden
+  FIRMADAS** (tanda 891). `mensajes-adjuntos` no es público: una carpeta
+  por conversación y `mensajes_adjunto_es_mio(name)` en las tres políticas;
+  el navegador pide `createSignedUrls` (`js/mensajes-adjuntos.js`, con
+  caché) y nunca `getPublicUrl`. Lo que se sube se comprime antes en el
+  navegador (`js/imagen-comprimir.js`, 1.600 px y WebP) — si añades otra
+  subida de fotos de la gente, pasa por ahí. Borrar un mensaje es marcar
+  `deleted_at` («Mensaje eliminado»), no quitar la fila; y lo puro del chat
+  (días, visto, no leídos, resumen) vive en `js/mensajes-puro.js`.
 - **Un valor TRADUCIDO no es una CLAVE de CSS** (tanda 889). La barra de
   /meta escribía `types[0]` de `tcg_cards` en `data-tipo`, y la hoja solo
   tiene regla para «Darkness»: el catálogo guarda «Oscura» (lo engordado en
