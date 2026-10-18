@@ -1691,6 +1691,17 @@ export const supabase = {
       )
       return { data: filas.slice(0, args.p_limite || 200), error: null }
     }
+    // Lo que da UNA persona (887), para su perfil: la misma cuenta que
+    // supabase-migration-887-cambios-perfil.sql (sin lo de un baneado; se
+    // ve sin cuenta).
+    if (nombre === 'intercambios_de_persona') {
+      const perfil = T.user_profiles.find((p) => p.id === args.p_user) || {}
+      if (perfil.is_banned) return { data: [], error: null }
+      const filas = T.user_collection
+        .filter((c) => c.user_id === args.p_user && Number(c.cambio) > 0)
+        .map((c) => ({ card_id: c.card_id, market: c.market || 'WEST', idioma: c.idioma, estado: c.estado, variante: c.variante || null, gradeo: c.gradeo || null, cambio: Number(c.cambio) }))
+      return { data: filas.slice(0, args.p_limite || 500), error: null }
+    }
     // El Mercado (tanda 770): lo que dan los demás, por carta. La MISMA
     // cuenta que supabase-migration-mercado.sql (probada contra PostgreSQL en
     // sql-mercado.sql): por persona y no por línea, sin lo mío ni lo de un
