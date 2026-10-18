@@ -120,6 +120,25 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
   check('la expansión suya sale de los pares del emparejador', episodioDe(SET, { hechos: { '30th': { episodio: 552 } } }).episodio === 552)
   check('  …o de su lista por código/nombre', episodioDe(SET, { episodios: { lista: [{ id: 7, nombre: '30th Celebration', codigo: '30C', cartas: 60 }] } }).episodio === 7)
   check('  …y sin nada, no se inventa', episodioDe(SET, {}).episodio === null && episodioDe(SET, { hechos: { '30th': { episodio: 552, sospechoso: 'x' } } }).episodio === null)
+  // 881: la fila manda. Un set japonés del calco ya lleva su `tcggo_id`.
+  const JP = { id: 's12a', name: 'VSTAR Universe', tcggo_id: 913 }
+  check('un set con `tcggo_id` en la fila lo usa sin lista ni pares (881)', episodioDe(JP, {}).episodio === 913 && episodioDe(JP, {}).por === 'fila' && episodioDe({ ...JP, tcggo_id: null }, {}).episodio === null)
+  check('VSTAR Universe japonés está en la lista: entero, por número y sin borrar lo que alguien tiene', REEMPLAZOS.some((r) => r.clave === 's12a-jp' && r.sets.join() === 's12a' && r.destino === 's12a' && r.mercado === 'JP' && r.entero === true && r.recolocarPorNumero === true && r.borrarSinDestino === false))
+  {
+    const hechas = []
+    const estados = { [CLAVE_ESTADO]: {}, tcggo_pares: {} }
+    const r = await pasada({
+      env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' },
+      reemplazos: REEMPLAZOS.filter((x) => x.clave === 's12a-jp'),
+      estadoImpl: async (k) => estados[k] || {},
+      guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) },
+      restImpl: async (ruta) => (ruta.startsWith('tcg_sets?') ? [JP] : ruta.startsWith('tcg_cards?') ? [{ id: 'una' }] : []),
+      procesarImpl: async (o) => { hechas.push(o); return { ok: true, suyas: 262, escritas: 262, borradas: 0, seQuedan: [] } },
+    })
+    const o = hechas[0]
+    check('  …y la pasada la hace con la expansión de la fila, en JP, entera, por número y sin borrar', r.ok && hechas.length === 1 && o.episodio === 913 && o.mercado === 'JP' && o.entero === true && o.recolocarPorNumero === true && o.borrarSinDestino === false && o.destino === 's12a', JSON.stringify(o && { episodio: o.episodio, mercado: o.mercado, entero: o.entero, r: o.recolocarPorNumero, b: o.borrarSinDestino }))
+    check('  …apuntada con «fila»', estados[CLAVE_ESTADO].hechos['s12a-jp']?.por === 'fila' && estados[CLAVE_ESTADO].hechos['s12a-jp'].episodio === 913)
+  }
   const montar = (estadoInicial = {}, pares = { hechos: { '30th': { episodio: 552 } } }) => {
     const estados = { [CLAVE_ESTADO]: estadoInicial, tcggo_pares: pares }
     const guardados = []
