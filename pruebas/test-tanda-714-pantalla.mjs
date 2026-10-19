@@ -47,6 +47,8 @@ console.log('── 1. Cartas: el botón dice cuántas, los chips de energía co
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.click('#mcAbrirFiltros')
   await page.waitForTimeout(400)
+  // Desde la 898 los bloques de la hoja van plegados en el móvil: se abren.
+  await page.evaluate(() => { for (const d of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) d.open = true })
   check('al abrir: «Ver 3 cartas»', (await ver(page, 'mcFiltrosVer')) === 'Ver 3 cartas', await ver(page, 'mcFiltrosVer'))
   // Desde la 748 el chip es SOLO el símbolo (su nombre, en `aria-label`).
   const planta = page.locator('#mcGruposChips .chip-filtro[data-grupo="energia"][aria-label="Planta"]')

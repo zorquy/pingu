@@ -210,6 +210,8 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
   await page.waitForTimeout(3000)
   await page.click('#mcAbrirFiltros')
   await page.waitForTimeout(600)
+  // Desde la 898 los bloques de la hoja van plegados en el móvil: se abren.
+  await page.evaluate(() => { for (const d of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) d.open = true })
   const c = await page.evaluate(() => {
     const d = document.getElementById('mcPanelFiltros')
     const r = (e) => e.getBoundingClientRect()
