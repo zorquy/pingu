@@ -17,6 +17,9 @@ Retoque: el subtítulo de la portada, más estrecho, para no pisar a la mascota.
 Y los huecos de cartas, logo y sprites son IMÁGENES (PNG), no formas: en
 Canva una foto arrastrada encima de una imagen la sustituye; encima de
 una forma no pasa nada (PINGU lo probó en la 2).
+Y `pokedoc-carrusel-v2.pptx`: la plantilla de las STORIES (chip de
+sección, titular Fredoka a dos tonos, móvil con la captura y chapas
+flotantes) en 4:5, siete páginas; PINGU prefiere ese concepto.
 
 **Ficheros**: `assets/redes/pokedoc-carrusel.pptx` (NUEVO), `BITACORA.md`.
 
