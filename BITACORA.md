@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (139) — PINGU-Claude (903 bis: el carrusel pide `name_en`; repaso de la 905)
+
+**Hecho**: `js/redes-carrusel.js` pedía `name_es` sin `name_en` en sus dos
+consultas de cartas, y la guarda de la 546 lo cantó (toda lista que pide
+uno pide el otro). Repaso de la 905 con las pruebas de Mi colección en
+carriles: 210 verdes, 13 rojos, y ninguno es de la 905 (comprobado con el
+código de antes): 385 (/carta, `variantesDeCarta`), 461 y 475 (el botón
+`mcFaltanCopiar` entre los mandos del álbum), 467, 653, 749 y 893 (alturas
+de cabeceras y losetas), 651 (el icono de descargar en icons.js), 723 (el
+buscador de mensajes sin la tecla «Buscar»), 780 (un comentario largo en
+components.css), 829 (el de siempre) y 578 (suelto: en verde al repetirla).
+
+**Ficheros**: `js/redes-carrusel.js`, `BITACORA.md`.
+
+**Pendiente**: esos rojos viejos, para una tanda de limpieza. Lo de la 138.
+
 ## 2026-10-19 (138) — PINGU-Claude (905 — una gradeada vale lo que vale su nota)
 
 **Hecho** (TCGbycharlie en el foro: las gradeadas salían a precio RAW).

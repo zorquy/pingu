@@ -117,7 +117,7 @@ export async function cargarDatosDelCarrusel(supabase) {
     const { data: precios } = await supabase.from('tcg_card_prices').select('card_id,cm_trend,cm_low').not('cm_trend', 'is', null).order('cm_trend', { ascending: false }).limit(80)
     const ids = (precios || []).map((p) => p.card_id)
     if (ids.length) {
-      const { data: cartas } = await supabase.from('tcg_cards').select('id,name,name_es,local_id,image_path,set_id,market,tcg_sets(name,name_en)').in('id', ids).eq('market', 'WEST')
+      const { data: cartas } = await supabase.from('tcg_cards').select('id,name,name_es,name_en,local_id,image_path,set_id,market,tcg_sets(name,name_en)').in('id', ids).eq('market', 'WEST')
       datos.cartas = cartasQueSirven(cartas, precios, 9)
     }
     if (!datos.cartas.length) avisos.push('no hay cartas con precio y foto: las cartas van de ejemplo')
@@ -128,7 +128,7 @@ export async function cargarDatosDelCarrusel(supabase) {
     const { data: sets } = await supabase.from('tcg_sets').select('id,name,name_en,market,logo_path,logo_scrydex,logo_tcggo,card_count_official,card_count_total,release_date,oculto').eq('market', 'WEST').not('release_date', 'is', null).order('release_date', { ascending: false }).limit(20)
     datos.set = setQueSirve((sets || []).filter((s) => !s.oculto))
     if (datos.set) {
-      const { data: cartas } = await supabase.from('tcg_cards').select('id,name,name_es,local_id,image_path,set_id,market').eq('set_id', datos.set.id).eq('market', 'WEST').not('image_path', 'is', null).order('local_id').limit(8)
+      const { data: cartas } = await supabase.from('tcg_cards').select('id,name,name_es,name_en,local_id,image_path,set_id,market').eq('set_id', datos.set.id).eq('market', 'WEST').not('image_path', 'is', null).order('local_id').limit(8)
       datos.setCartas = cartas || []
     } else avisos.push('ningún set con logo: la expansión va de ejemplo')
   } catch (e) {
