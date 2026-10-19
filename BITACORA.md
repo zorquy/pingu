@@ -14,6 +14,9 @@ rectángulos rotulados para sustituir. Va en el repo para que Canva lo
 importe por su URL pública (pokedoc.es/assets/redes/…); nada de la web
 lo carga. Generado con `pptxgenjs` desde un guion que vive fuera del repo.
 Retoque: el subtítulo de la portada, más estrecho, para no pisar a la mascota.
+Y los huecos de cartas, logo y sprites son IMÁGENES (PNG), no formas: en
+Canva una foto arrastrada encima de una imagen la sustituye; encima de
+una forma no pasa nada (PINGU lo probó en la 2).
 
 **Ficheros**: `assets/redes/pokedoc-carrusel.pptx` (NUEVO), `BITACORA.md`.
 
