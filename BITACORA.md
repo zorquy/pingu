@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (124) — PINGU-Claude (891c — el hilo ocupa la pantalla)
+
+**Hecho** (PINGU, captura: «se abre así, queda raro»: la página bajaba
+hasta el pie y el cuadro de escribir se quedaba a media pantalla con el
+hueco y el pie debajo, y el botón de subir pisaba el de enviar): el hilo
+mide lo que queda de pantalla (`--msg-alto`, medido contra la ventana
+visual y descontando la barra del móvil; se vuelve a medir cuando llega
+la barra, que cambia el relleno de arriba), los mensajes hacen scroll
+DENTRO (`.msg-scroll`, con el aviso de cambio y el cruce dentro, que se
+van hacia arriba con la historia), el cuadro queda abajo del todo, y con
+un hilo abierto en el móvil no se pintan ni el pie ni el botón de subir.
+La píldora «1 nuevo ↓» flota dentro del hilo.
+
+**Ficheros**: `js/mensajes.js`, `css/mensajes.css`, `BITACORA.md`.
+
+**Pruebas**: 891 (el cuadro a menos de 16 px de la barra del móvil, sin
+bajar la página, sin pie ni botón de subir; en PC el cuadro a la vista al
+abrir), 299 y 312 en verde.
+
+**Pendiente**: lo de la 122 (la migración 891).
+
 ## 2026-10-19 (123) — PINGU-Claude (891b — el velo de arrastrar tapaba el hilo)
 
 **Hecho** (PINGU, captura: «cuando abro un mensaje sale esto», con el velo

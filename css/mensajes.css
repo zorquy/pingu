@@ -231,11 +231,21 @@
   text-decoration: none;
 }
 
+/* Lo que hace scroll: el aviso de cambio, el cruce y los mensajes, todo
+   junto, como en cualquier chat (el aviso se va hacia arriba con la
+   historia en vez de comerse media pantalla). */
+.msg-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .msg-mensajes {
   display: flex;
   flex-direction: column;
   gap: var(--e-xs);
-  padding: var(--e-md) 0;
+  padding: var(--e-md) var(--e-xs);
 }
 
 .msg-dia {
@@ -410,13 +420,13 @@
 
 /* La píldora de «1 nuevo ↓» flota encima del cuadro de escribir. */
 .msg-nuevos {
-  position: sticky;
-  bottom: 96px;
-  align-self: center;
+  position: absolute;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin: 0 auto;
   min-height: 32px;
   padding: 0 var(--e-sm);
   border: 0;
@@ -429,15 +439,20 @@
   cursor: pointer;
 }
 
+/* El hilo mide lo que queda de pantalla (891b, PINGU: «se abre así, queda
+   raro»): la altura la pone js/mensajes.js en `--msg-alto` midiendo la
+   ventana visual, los mensajes hacen scroll DENTRO y el cuadro de escribir
+   queda abajo del todo, como en cualquier app de mensajes. */
 .msg-hilo {
+  position: relative;
   display: flex;
   flex-direction: column;
+  height: var(--msg-alto, auto);
+  min-height: 320px;
 }
 
-/* ── El cuadro de escribir, pegado abajo ── */
+/* ── El cuadro de escribir, abajo del todo ── */
 .msg-compositor {
-  position: sticky;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: var(--e-xs);
@@ -446,14 +461,21 @@
   border-top: 1px solid var(--border);
 }
 
-/* Con la barra de abajo del móvil (753), el cuadro va justo encima. */
+/* Con un hilo abierto en el móvil no hay pie ni botón de subir: el cuadro de
+   escribir es lo último de la pantalla y nada se le pone encima. */
 @media (max-width: 900px) {
-  body:has(> .bm) .msg-compositor {
-    bottom: calc(72px + env(safe-area-inset-bottom));
+  body.msg-hilo-abierto .footer,
+  body.msg-hilo-abierto .volver-arriba {
+    display: none;
   }
 
-  body:has(> .bm) .msg-nuevos {
-    bottom: calc(72px + 96px + env(safe-area-inset-bottom));
+  body.msg-hilo-abierto .page-content {
+    min-height: 0;
+    padding-bottom: 0;
+  }
+
+  body.msg-hilo-abierto .msg-compositor {
+    padding-bottom: var(--e-xs);
   }
 }
 

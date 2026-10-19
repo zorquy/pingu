@@ -224,9 +224,11 @@ async function renderThread(session, conversationId) {
         <h1 class="msg-cabecera-nombre"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
         <a class="msg-ver-perfil" href="${profileUrl(otherProfile)}">Ver perfil</a>
       </div>
-      <div class="msg-cambio" id="msgCambio"></div>
-      <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
-      <div class="msg-mensajes" id="threadMessages" aria-live="polite"><div class="skeleton msg-esqueleto"></div></div>
+      <div class="msg-scroll" id="msgScroll">
+        <div class="msg-cambio" id="msgCambio"></div>
+        <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
+        <div class="msg-mensajes" id="threadMessages" aria-live="polite"><div class="skeleton msg-esqueleto"></div></div>
+      </div>
       <button type="button" class="msg-nuevos hidden" id="msgNuevos">${icons.arrowDown(14)} <span>1 nuevo</span></button>
       <form class="msg-compositor" id="msgCompositor">
         <div class="msg-adjuntos" id="msgAdjuntos" hidden></div>
@@ -268,13 +270,45 @@ async function renderThread(session, conversationId) {
   let adjuntosMod = null
   const adjuntos = async () => (adjuntosMod ||= await import('./mensajes-adjuntos.js'))
 
-  const cercaDelFinal = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 160
+  // ── El hilo ocupa la pantalla y los mensajes hacen scroll DENTRO (891b) ──
+  // PINGU: «se abre así, queda raro»: la página bajaba hasta el pie y el
+  // cuadro de escribir se quedaba a media pantalla con el hueco debajo. La
+  // altura se mide contra la ventana VISUAL (con el teclado abierto el
+  // iPhone la encoge) y se descuenta lo que la barra de abajo tape.
+  const hilo = root.querySelector('.msg-hilo')
+  const scroller = document.getElementById('msgScroll')
+  document.body.classList.add('msg-hilo-abierto')
+  function medirHilo() {
+    const vv = window.visualViewport
+    const altoVentana = vv ? vv.height : window.innerHeight
+    const arriba = hilo.getBoundingClientRect().top + window.scrollY - (vv ? vv.offsetTop : 0)
+    const barra = document.querySelector('body > .bm')
+    let abajo = 0
+    if (barra && getComputedStyle(barra).display !== 'none') {
+      const r = barra.getBoundingClientRect()
+      abajo = Math.max(0, Math.min(r.bottom, altoVentana) - r.top)
+    }
+    const alto = Math.max(320, Math.floor(altoVentana - arriba - abajo - 8))
+    hilo.style.setProperty('--msg-alto', `${alto}px`)
+  }
+  window.scrollTo(0, 0)
+  medirHilo()
+  window.addEventListener('resize', medirHilo)
+  window.visualViewport?.addEventListener('resize', () => { medirHilo(); bajarAlFinal() })
+  // La barra del móvil llega por `import()` y cambia el relleno de arriba
+  // de la página (704): el hilo se vuelve a medir cuando el <html> cambia
+  // de clases y un par de veces más por si acaso, que una medida tomada
+  // antes de tiempo deja un hueco de 50 px entre el cuadro y la barra.
+  new MutationObserver(() => { medirHilo(); bajarAlFinal() }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  for (const ms of [250, 1000]) setTimeout(() => { medirHilo(); bajarAlFinal() }, ms)
+
+  const cercaDelFinal = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 160
   const bajarAlFinal = (suave = false) => {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: suave ? 'smooth' : 'auto' })
+    scroller.scrollTo({ top: scroller.scrollHeight, behavior: suave ? 'smooth' : 'auto' })
     pastillaNuevos.classList.add('hidden')
   }
   pastillaNuevos.addEventListener('click', () => bajarAlFinal(true))
-  window.addEventListener('scroll', () => { if (cercaDelFinal()) pastillaNuevos.classList.add('hidden') }, { passive: true })
+  scroller.addEventListener('scroll', () => { if (cercaDelFinal()) pastillaNuevos.classList.add('hidden') }, { passive: true })
 
   let ultimoIdPintado = null
   let primeraPintada = true
@@ -379,6 +413,7 @@ async function renderThread(session, conversationId) {
   }
   caja.addEventListener('input', ajustarAlto)
   ajustarAlto()
+  caja.addEventListener('focus', () => setTimeout(() => bajarAlFinal(), 300))
 
   // ── Las fotos pendientes de enviar ──
   const pendientes = [] // { fichero, url }
