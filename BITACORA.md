@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (136) — PINGU-Claude (el carrusel como PPTX editable, para Canva)
+
+**Hecho** (PINGU: «¿no es mejor que me las hagas para Canva y así meto yo
+las imágenes donde tocan? full editable»). `assets/redes/pokedoc-carrusel.pptx`:
+las diez páginas de 1080 × 1350 con cada texto en su caja, cada panel
+una forma y los huecos de las cartas, los logos y los sprites como
+rectángulos rotulados para sustituir. Va en el repo para que Canva lo
+importe por su URL pública (pokedoc.es/assets/redes/…); nada de la web
+lo carga. Generado con `pptxgenjs` desde un guion que vive fuera del repo.
+
+**Ficheros**: `assets/redes/pokedoc-carrusel.pptx` (NUEVO), `BITACORA.md`.
+
+**Pendiente**: lo de la 135 y la 134.
+
 ## 2026-10-19 (135) — PINGU-Claude (903 — /admin → Redes: el carrusel con las cartas de verdad)
 
 **Hecho** (PINGU: redes a mano al principio, y el primer post un carrusel
