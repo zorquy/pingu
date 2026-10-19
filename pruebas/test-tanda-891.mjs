@@ -89,6 +89,7 @@ const semilla = () => {
   }
 }
 const tiempos = { __T_AYER__: ayer(22), __T_M2__: hace(60), __T_M3__: hace(50), __T_FEDE_LEYO__: hace(45), __T_LEIDO_C1__: hace(40), __T_M4__: hace(30) }
+const puro = await import(`${RAIZ}/js/mensajes-puro.js`)
 const b = await chromium.launch()
 async function abrir(movil, ruta) {
   const ctx = await b.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
@@ -121,7 +122,11 @@ console.log('  · el hilo (móvil)')
   const { p, ctx, errores } = await abrir(true, '/mensajes.html?c=c1')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const dias = await p.$$eval('.msg-dia span', (ds) => ds.map((d) => d.textContent))
-  check('separadores «Ayer» y «Hoy»', JSON.stringify(dias) === '["Ayer","Hoy"]', JSON.stringify(dias))
+  // Las horas de la siembra son relativas a AHORA: pasada la medianoche,
+  // «hace 60 minutos» es ayer y solo hay un separador. Lo esperado se
+  // calcula con la misma función pura, no se escribe a mano.
+  const esperados = [...new Set([tiempos.__T_AYER__, tiempos.__T_M2__, tiempos.__T_M3__, tiempos.__T_M4__].map((t) => puro.etiquetaDeDia(t)))]
+  check(`separadores por día (${esperados.join(', ')})`, JSON.stringify(dias) === JSON.stringify(esperados), JSON.stringify(dias))
   const burbujas = await p.$$eval('#threadMessages .msg-burbuja', (bs) => bs.map((x) => ({ id: x.dataset.id, mia: x.classList.contains('mia'), eliminado: x.classList.contains('msg-eliminado'), fotos: x.querySelectorAll('.msg-fotos img').length, texto: x.querySelector('p')?.textContent || '' })))
   check('cuatro burbujas en orden, la mía borrada como «Mensaje eliminado»', burbujas.length === 4 && burbujas[1].eliminado && burbujas[1].mia && burbujas[2].mia && !burbujas[3].mia, JSON.stringify(burbujas))
   check('las dos fotos de fede, firmadas y CARGADAS, en rejilla de 2', burbujas[3].fotos === 2 && (await p.$eval('.msg-fotos', (f) => f.dataset.n)) === '2' && (await p.$$eval('.msg-fotos img', (is) => is.every((i) => i.complete && i.naturalWidth > 0 && /object\/sign\/mensajes-adjuntos\/c1\//.test(i.src)))))
@@ -129,6 +134,9 @@ console.log('  · el hilo (móvil)')
   const visto = await p.$$eval('.msg-visto', (vs) => vs.map((v) => v.textContent.trim()))
   check('«Visto HH:MM» una sola vez, bajo mi último mensaje leído', visto.length === 1 && /^Visto \d\d:\d\d$/.test(visto[0]) && (await p.$eval('.msg-visto', (v) => v.previousElementSibling?.dataset.id)) === 'm3', JSON.stringify(visto))
   check('al abrir, el hilo queda leído', await p.evaluate(() => { const f = window.__TABLAS__.conversation_participants.find((x) => x.conversation_id === 'c1' && x.user_id === 'admin-1'); return !!f.last_read_at && Date.now() - new Date(f.last_read_at) < 60000 }))
+  // PINGU (2026-10-19, captura): el velo de «Suelta la imagen» tapaba el hilo
+  // al abrirlo. Un `display: flex` en la clase le ganaba al atributo `hidden`.
+  check('ni el velo de arrastrar ni la tira de miniaturas se ven al abrir', await p.$eval('#msgArrastre', (v) => getComputedStyle(v).display === 'none') && (await p.$eval('#msgAdjuntos', (a) => getComputedStyle(a).display === 'none')))
   check('el cuadro de escribir va pegado abajo, encima de la barra del móvil', await p.$eval('#msgCompositor', (c) => getComputedStyle(c).position === 'sticky' && parseFloat(getComputedStyle(c).bottom) >= 72))
   check('el clip, el enviar y la flecha de atrás miden 44', await p.$$eval('#msgClip, #btnSendMsg, .msg-atras', (es) => es.every((e) => e.getBoundingClientRect().height >= 44 && e.getBoundingClientRect().width >= 44)))
 
