@@ -137,7 +137,17 @@ console.log('  · el hilo (móvil)')
   // PINGU (2026-10-19, captura): el velo de «Suelta la imagen» tapaba el hilo
   // al abrirlo. Un `display: flex` en la clase le ganaba al atributo `hidden`.
   check('ni el velo de arrastrar ni la tira de miniaturas se ven al abrir', await p.$eval('#msgArrastre', (v) => getComputedStyle(v).display === 'none') && (await p.$eval('#msgAdjuntos', (a) => getComputedStyle(a).display === 'none')))
-  check('el cuadro de escribir va pegado abajo, encima de la barra del móvil', await p.$eval('#msgCompositor', (c) => getComputedStyle(c).position === 'sticky' && parseFloat(getComputedStyle(c).bottom) >= 72))
+  // 891b (PINGU: «se abre así, queda raro»): el hilo ocupa la pantalla, los
+  // mensajes hacen scroll dentro y el cuadro queda abajo, encima de la barra
+  // del móvil y sin pie ni botón de subir a la vista.
+  const pantalla = await p.evaluate(() => {
+    const c = document.getElementById('msgCompositor').getBoundingClientRect()
+    const bm = document.querySelector('body > .bm')?.getBoundingClientRect()
+    const el = document.getElementById('msgScroll')
+    return { cBottom: c.bottom, bmTop: bm?.top ?? window.innerHeight, alto: window.innerHeight, scrollDentro: getComputedStyle(el).overflowY === 'auto', pie: getComputedStyle(document.querySelector('.footer')).display, subir: getComputedStyle(document.querySelector('.volver-arriba')).display, scrollY: window.scrollY }
+  })
+  check('el cuadro de escribir queda abajo, encima de la barra del móvil, sin bajar la página', pantalla.cBottom <= pantalla.bmTop + 1 && pantalla.cBottom >= pantalla.bmTop - 16 && pantalla.scrollY === 0, JSON.stringify(pantalla))
+  check('…los mensajes hacen scroll dentro, y ni pie ni botón de subir', pantalla.scrollDentro && pantalla.pie === 'none' && pantalla.subir === 'none', JSON.stringify(pantalla))
   check('el clip, el enviar y la flecha de atrás miden 44', await p.$$eval('#msgClip, #btnSendMsg, .msg-atras', (es) => es.every((e) => e.getBoundingClientRect().height >= 44 && e.getBoundingClientRect().width >= 44)))
 
   // Adjuntar: con el dedo, la hoja; de la galería, un fichero.
@@ -187,6 +197,7 @@ console.log('  · el PC')
 {
   const { p, ctx, errores } = await abrir(false, '/mensajes.html?c=c1')
   check('sin errores', errores.length === 0, errores.join(' | '))
+  check('en el PC el cuadro de escribir está a la vista al abrir, sin bajar la página', await p.evaluate(() => { const c = document.getElementById('msgCompositor').getBoundingClientRect(); return c.bottom <= window.innerHeight && c.top > 0 && window.scrollY === 0 }))
   check('dos paneles: la lista a la izquierda con sus no leídos', await p.$eval('.msg-dos', (d) => d.classList.contains('con-lista')) && (await p.$$eval('#msgLista .msg-noleidos', (ns) => ns.map((n) => n.textContent))).includes('2'))
   const [chooser] = await Promise.all([p.waitForEvent('filechooser'), p.click('#msgClip')])
   check('con ratón, el clip abre la galería directamente', chooser.isMultiple())
