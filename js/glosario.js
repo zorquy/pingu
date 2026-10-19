@@ -4,6 +4,7 @@
 import { hojaInyectada } from './hoja.js'
 import { escapeHtml } from './html.js'
 import { GLOSARIO, formasDelGlosario, primerasApariciones } from './glosario-datos.js'
+import { normalizeSearch } from './texto.js'
 
 const POR_ID = new Map(GLOSARIO.map((g) => [g.id, g]))
 const NO_ENTRAR = 'a, button, code, pre, h1, h2, h3, h4, .glosa, .glosa-pop, textarea, input, select'
@@ -74,16 +75,58 @@ function alTocar(e) {
   setTimeout(() => document.addEventListener('click', (ev) => { if (!ev.target.closest('.glosa-pop, .glosa')) cerrar() }, { once: true }), 0)
 }
 
-// La página /glosario: los términos por orden, cada uno con su ancla.
-export function pintarGlosario(caja) {
+// La letra por la que se ordena un término (sin acento: «Ñ» y «N» van juntas).
+export const letraDe = (termino) => normalizeSearch(termino).charAt(0).toUpperCase()
+
+// La página /glosario: los términos por orden, agrupados por letra, cada
+// uno con su ancla. Desde la 896 cada término es un `<details>`: en el PC
+// abiertos (hay sitio); en el móvil plegados a su nombre, que 32 fichas
+// seguidas eran 7.000 px de página. El índice de letras y el buscador van
+// aparte (`pintarMandos`), pegados arriba.
+export function pintarGlosario(caja, { abiertos = true } = {}) {
   const lista = [...GLOSARIO].sort((a, b) => a.termino.localeCompare(b.termino, 'es'))
-  caja.innerHTML = lista.map((g) => `
-    <article class="glosario-termino" id="${escapeHtml(g.id)}">
-      <h2>${escapeHtml(g.termino)}</h2>
-      <p class="glosario-otros">${[g.en, ...g.alias.filter((a) => a.toLowerCase() !== g.termino.toLowerCase() && a !== g.en)].map((a) => `<span>${escapeHtml(a)}</span>`).join('')}</p>
+  let letra = ''
+  caja.innerHTML = lista.map((g) => {
+    const l = letraDe(g.termino)
+    const titulo = l !== letra ? `<h2 class="glosario-letra" id="letra-${l}">${l}</h2>` : ''
+    letra = l
+    return `${titulo}
+    <details class="glosario-termino" id="${escapeHtml(g.id)}" data-letra="${l}"${abiertos ? ' open' : ''}>
+      <summary>
+        <h3>${escapeHtml(g.termino)}</h3>
+        <p class="glosario-otros">${[g.en, ...g.alias.filter((a) => a.toLowerCase() !== g.termino.toLowerCase() && a !== g.en)].map((a) => `<span>${escapeHtml(a)}</span>`).join('')}</p>
+      </summary>
       <p>${escapeHtml(g.def)}</p>
       ${g.ejemplo ? `<p class="glosa-ejemplo">${escapeHtml(g.ejemplo)}</p>` : ''}
-    </article>`).join('')
+    </details>`
+  }).join('')
 }
 
-if (typeof document !== 'undefined' && document.getElementById('glosarioLista')) pintarGlosario(document.getElementById('glosarioLista'))
+// El índice de letras y el buscador (896). Buscar filtra por nombre, inglés,
+// alias y definición, y abre lo que casa; vaciar devuelve la lista entera.
+export function pintarMandos(caja, lista, { letras, buscar }) {
+  const presentes = [...new Set([...GLOSARIO].map((g) => letraDe(g.termino)))].sort()
+  letras.innerHTML = presentes.map((l) => `<a href="#letra-${l}">${l}</a>`).join('')
+  const filtrar = () => {
+    const q = normalizeSearch(buscar.value.trim())
+    for (const d of lista.querySelectorAll('.glosario-termino')) {
+      const g = POR_ID.get(d.id)
+      const casa = !q || normalizeSearch([g.termino, g.en, ...g.alias, g.def].join(' ')).includes(q)
+      d.hidden = !casa
+      if (q && casa) d.open = true
+    }
+    for (const h of lista.querySelectorAll('.glosario-letra')) h.hidden = !lista.querySelector(`.glosario-termino[data-letra="${h.id.slice(6)}"]:not([hidden])`)
+    for (const a of letras.querySelectorAll('a')) a.classList.toggle('glosario-letra-vacia', !lista.querySelector(`.glosario-termino[data-letra="${a.textContent}"]:not([hidden])`))
+  }
+  buscar.addEventListener('input', filtrar)
+  // Llegar por ancla (#sir) abre ese término, esté como esté.
+  const abrirAncla = () => { const d = location.hash.length > 1 && lista.querySelector(`.glosario-termino#${CSS.escape(location.hash.slice(1))}`); if (d) d.open = true }
+  window.addEventListener('hashchange', abrirAncla)
+  abrirAncla()
+}
+
+if (typeof document !== 'undefined' && document.getElementById('glosarioLista')) {
+  const lista = document.getElementById('glosarioLista')
+  pintarGlosario(lista, { abiertos: !window.matchMedia?.('(max-width: 900px)').matches })
+  if (document.getElementById('glosarioLetras')) pintarMandos(document.getElementById('glosarioMandos'), lista, { letras: document.getElementById('glosarioLetras'), buscar: document.getElementById('glosarioBuscar') })
+}

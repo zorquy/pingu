@@ -743,3 +743,20 @@
   .rt-tudia-datos strong { display: none; }
   .rt-tudia .rt-fila { gap: var(--e-xs); font-size: var(--t-2xs); }
 }
+
+/* ── 896: en el móvil, los seis retos en una rejilla de dos columnas (I5 de
+   «Rápida y limpia»): dibujo, nombre y estado; el detalle, al tocar. La
+   página medía 3.100 px con una tarjeta entera por reto. ── */
+@media (max-width: 760px) {
+  .rt-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+  .rt-arte { height: 88px; }
+  .rt-arte > :not(.rt-sello) { transform: scale(0.55); }
+  .rt-sello { top: var(--e-xs); right: var(--e-xs); padding: 2px var(--e-xs); font-size: var(--t-2xs); }
+  .rt-cuerpo { gap: var(--e-xs); padding: var(--e-sm); }
+  .rt-cuerpo h2 { font-size: var(--t-sm); line-height: 1.25; }
+  .rt-cuerpo > .subtext,
+  .rt-cuerpo .rj-chips { display: none; }
+  .rt-reto-estado .btn-primary,
+  .rt-reto-estado .btn-secondary { min-height: 44px; padding: 0 var(--e-sm); font-size: var(--t-xs); }
+  .rt-reto-estado .subtext { font-size: var(--t-2xs); }
+}

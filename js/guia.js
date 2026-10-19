@@ -25,16 +25,25 @@ const slug = slugDeArticuloEnLaUrl()
 
 const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
 
+// CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): el marcador se
+// pinta como queda en el acto y la base lo confirma detrás; antes se
+// esperaban dos consultas antes de cambiar el dibujo.
+const pintarGuardada = (btn, guardada) => {
+  btn.innerHTML = guardada ? icons.bookmark(16, true) : icons.bookmark(16)
+  btn.setAttribute('aria-label', guardada ? 'Guardada · quitar de guardados' : 'Guardar')
+}
 async function toggleSave(session, guideId, btn) {
+  const estaba = btn.getAttribute('aria-label') !== 'Guardar'
+  pintarGuardada(btn, !estaba)
+  if (!estaba) import('./efectos.js').then(({ latir }) => latir(btn)).catch(() => {})
   const profile = await getProfile(session.user.id)
   const saved = profile?.saved_guides || []
-  const isSaved = saved.includes(guideId)
-  const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
-  await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
-  // `isSaved` es como estaba ANTES de pulsar: el botón dice cómo queda.
-  btn.innerHTML = !isSaved ? icons.bookmark(16, true) : icons.bookmark(16)
-  btn.setAttribute('aria-label', !isSaved ? 'Guardada · quitar de guardados' : 'Guardar')
-  if (!isSaved) import('./efectos.js').then(({ latir }) => latir(btn)).catch(() => {})
+  const next = estaba ? saved.filter((id) => id !== guideId) : [...new Set([...saved, guideId])]
+  const { error } = await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+  if (error) {
+    pintarGuardada(btn, estaba)
+    showToast('No se ha podido guardar. Vuelve a intentarlo.')
+  }
 }
 
 // Marcar una guía como leída solo por abrirla sería regalar el XP: se

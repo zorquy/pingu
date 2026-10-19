@@ -88,7 +88,6 @@ let sesion = null
 let dueno = null // { id, username, display_name, coleccion_publica }
 // Las cuatro cifras de la cabecera, tal como se pintaron (tanda 571).
 let resumenHero = null
-let quiereImportar = new URLSearchParams(location.search).get('importar') === '1'
 let esMia = false
 let lineas = []
 let cartas = new Map() // id → fila de tcg_cards
@@ -768,16 +767,13 @@ let favoritos = null
 // primera vez que se abre la pestaña: es la que menos se abre y no
 // tiene por qué pesar en la primera visita de nadie.
 let cambios = null // el módulo de consultas, cuando llegue
-let tablon = null // el módulo que pinta
+ // el módulo que pinta
 // Lo que busco = «La quiero» (751). null = todavía no se sabe: el Panel
 // decía «0 cartas que buscas» hasta abrir Cambios, con la lista llena.
 let deseos = null
-let cambiosCargados = false
 // Lo último que devolvieron las dos RPC. Se guarda porque el botón de
 // escribir necesita las cartas de ESA persona para redactar el mensaje,
 // y volver a pedirlas sería una consulta por clic.
-let tablonTiene = []
-let tablonBusca = []
 
 // La Pokédex (tanda 381). El módulo entra por `import()` la primera vez
 // que se abre: se trae los 1.025 nombres de `sprites-pokemon.js` y no
@@ -1226,611 +1222,185 @@ async function pintarRepartoProductos() {
   caja.classList.remove('hidden')
 }
 
-function pintarResumenPanel() {
-  const caja = $('mcResumenPanel')
-  if (!caja) return
-  const [ls, clave, busca] = pTodo()
-  if (!ls.length) {
-    // UN ESTADO VACÍO CON UNA ACCIÓN (tanda 581). Era una frase gris; es
-    // la primera pantalla de quien se acaba de registrar, y una frase
-    // gris no lleva a ninguna parte.
-    caja.innerHTML = `<section class="mc-vacio">
-      <span class="mc-vacio-icono" aria-hidden="true">${icons.cards(40)}</span>
-      <h2 class="mc-vacio-titulo">Tu colección está vacía</h2>
-      <p class="mc-vacio-texto">Apunta tus cartas y aquí verás cuántas tienes, cuánto valen y qué te falta de cada expansión.</p>
-      <div class="mc-vacio-acciones">
-        <a class="btn-primary" href="/mi-coleccion?ver=buscar">Buscar y añadir una carta</a>
-        <button type="button" class="btn-secondary mc-importar-abrir">Importar un CSV</button>
-      </div>
-    </section>`
-    return
-  }
-  const rep = repetidas(ls, clave, busca)
-  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
-  const valiosas = masValiosas(3, ls, clave, busca)
-  const porRareza = repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
-
-  // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
-  // lo que se entra (la lección de la 416). Las listas de números van
-  // debajo de tus cartas y plegadas, en #mcMasEstadisticas.
-  caja.innerHTML = `
-    <!-- LA GRÁFICA, A LA VISTA (tanda 416). La 410 la metió detrás de
-         «Ver todas las estadísticas» para que el panel no fuera tan
-         largo, y PINGU: «¿y dónde está el gráfico de precios? No
-         existe». Tenía razón: es la ÚNICA cifra que cambia sola, y es la
-         que se viene a mirar. Escondida detrás de un botón, no existe.
-         Lo que sigue detrás del botón es lo demás, que son listas. -->
-    <!-- LA CARTERA (748, la C1 de su maqueta). La cifra grande sale YA,
-         de lo que hay en memoria; la gráfica llega después a un hueco que
-         mide lo mismo que ella, así que nada salta. Las tres fichas y lo
-         que más se mueve van debajo, como en cualquier app de cartera. -->
-    <section class="mc-cartera" id="mcValorCaja">
-      <h2 class="mc-cartera-etiqueta">Lo que vale ${esMia ? 'tu' : 'esta'} colección</h2>
-      <p class="mc-cartera-cifra">${escapeHtml(eurosConMiles(valorDeAhora()))}</p>
-      ${esMia ? '<div class="mc-cartera-reparto hidden" id="mcCarteraReparto"></div>' : ''}
-      <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
-        <p class="mc-valor-cambio igual"><span class="skeleton mc-cartera-esq-cambio"></span></p>
-        <div class="skeleton mc-cartera-esq-lienzo"></div>
-        <div class="mc-valor-rangos" aria-hidden="true">${'<span class="skeleton mc-cartera-esq-rango"></span>'.repeat(5)}</div>
-      </div>
-    </section>
-    ${fichasDeCartera()}
-    ${esMia ? '<div id="mcMovidasSitio"></div>' : ''}
-`
-  if (esMia && sesion) void pintarRepartoProductos()
-  // La cifra cuenta desde la de la última vez (783, MV2).
-  const cifraPanel = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-  if (esMia && cifraPanel) import('./contar.js').then(({ contarCifra }) => contarCifra(cifraPanel, 'valor', valorDeAhora(), eurosConMiles)).catch(() => {})
-
-  const mas = $('mcMasEstadisticas')
-  if (mas) {
-    mas.innerHTML = `
-    <!-- CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (tanda
-         451). Era un botón suelto detrás del último vistazo, y PINGU: «el
-         botón de ver todas es un enlace pocho». Pegado debajo de la
-         tarjeta de Cambios parecía además que era SUYO. Todo lo que hay en
-         este panel es una tarjeta con su título y su enlace a la derecha;
-         esto también, y así se sabe de qué es el botón sin leerlo entero.
-
-         Y lo largo sigue sin enseñarse hasta que se pide: la gráfica del
-         valor es una consulta, y sin abrir esto no se pide. -->
-    <section class="mc-vistazo">
-      <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Estadísticas</h2>
-        <button type="button" class="link-btn" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas</button>
-      </div>
-    </section>
-
-    <div class="mc-estadisticas hidden" id="mcEstadisticas">
-          <div class="mc-diapos">
-      ${
-        // AQUÍ VIVÍAN «Tu colección» y el total de «Lo que vale» (fuera en
-        // la 439). Las cartas, las distintas, las colecciones y el valor ya
-        // están en el listón de arriba, que además se ve desde CUALQUIER
-        // pestaña: repetirlos aquí era decir cuatro números dos veces y
-        // gastar en ello las dos primeras diapositivas, que son las únicas
-        // que se ven sin deslizar. Lo que sí añadía la segunda —CUÁLES son
-        // las que más valen— se queda, que es lo que no estaba en ningún
-        // otro sitio.
-        valiosas.length
-          ? diapoHtml('Las que más valen', `<ul class="mc-diapo-lista">${valiosas
-              .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
-              .join('')}</ul>`)
-          : ''
-      }
-      ${esMia ? diapoDelBalance() : ''}
-      ${diapoHtml('Lo que te sobra', `
-        <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES', { useGrouping: 'always' })}</p>
-        <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
-        ${
-          rep.length
-            ? `<ul class="mc-diapo-lista">${rep
-                .slice(0, 3)
-                .map((r) => `<li><span>${escapeHtml(nombreDe(r.carta))}</span><strong>+${r.sobran}</strong></li>`)
-                .join('')}</ul>`
-            : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
-        }`)}
-      ${diapoHtml('Por rareza', porRareza.length
-        ? barrasHtml(porRareza.slice(0, 5))
-        : '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>')}
-    </div>
-      <div class="mc-resumen-rejilla">
-        <section class="mc-resumen-caja">
-          <h3>Tus repetidas</h3>
-          ${
-            rep.length
-              // El verbo concuerda también (tanda 485): «Te sobran 1 copia»
-              // se leía con una sola repetida, y lo vi en lo que imprimía
-              // la prueba al lado de un `ok`.
-              ? `<p class="subtext">${sobran === 1 ? 'Te sobra' : 'Te sobran'} <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. ${sobran === 1 ? 'Es la que puedes' : 'Son las que puedes'} cambiar.</p>
-                 <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
-              : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
-          }
-        </section>
-        <section class="mc-resumen-caja">
-          <h3>Lo más valioso</h3>
-          ${
-            masValiosas(10, ls, clave, busca).length
-              ? `<ul class="mc-lista-cartas">${masValiosas(10, ls, clave, busca).map((v) => filaDeCartaHtml(v.carta, `<strong>${euros(v.valor)}</strong>`)).join('')}</ul>
-                 <p class="subtext">Por lo que vale UNA copia, no la línea entera.</p>`
-              : '<p class="subtext">Todavía no sabemos el precio de ninguna de tus cartas.</p>'
-          }
-        </section>
-        <section class="mc-resumen-caja">
-          <h3>Por colección</h3>
-          ${barrasHtml(repartoPor((c) => nombreDeSet(c?.tcg_sets), ls, clave, busca).slice(0, 10)) || '<p class="subtext">—</p>'}
-        </section>
-        <section class="mc-resumen-caja">
-          <h3>Por rareza</h3>
-          ${barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
-        </section>
-      </div>
-    </div>`
-  }
-
-  // AQUÍ SE LLAMABA A `engancharTira()` (fuera en la 440): el resumen ya no
-  // es una tira. La del álbum tampoco desde la 459, así que la función se
-  // ha ido con ella.
-  $('mcVerTodo').addEventListener('click', () => {
-    const abierto = !$('mcEstadisticas').classList.toggle('hidden')
-    $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
-    $('mcVerTodo').textContent = abierto ? 'Ocultar' : 'Ver todas'
-  })
-  // La gráfica es una consulta y llega cuando llega: el resto del panel
-  // sale de lo que ya está en memoria y no la espera.
-  pintarValorEnElTiempo()
-}
-
-// Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
-// que llevan dentro, y así la tira se lee como una tira y no como cuatro
-// cajas distintas puestas en fila.
-// ── Lo que te costó (tanda 428) ──
-//
-// Un balance solo vale sobre las MISMAS cartas en los dos lados. Si se
-// compara lo pagado —que solo se sabe de donde lo hayas apuntado— con el
-// valor de la colección entera, sale una ganancia inventada.
-//
-// Y dice SOBRE CUÁNTAS es: «+12,40 €» sin saber si es de tres cartas o de
-// trescientas no es un dato, es un número suelto.
-function diapoDelBalance() {
-  // De toda la colección (tanda 485): «si vas ganando» no es una pregunta
-  // sobre un catálogo, y lo que pagaste por una carta japonesa lo pagaste.
-  const b = balanceDeCompra(lineasTodo.length ? lineasTodo : lineas, (l) => valorDeLinea(l, precioDe(l)))
-  if (!b.hayBalance) {
-    return diapoHtml('Lo que te costó', `
-      <p class="subtext">Apunta lo que pagaste por una carta —al editarla, «Lo que pagaste»— y aquí te decimos si vas ganando.</p>`)
-  }
-  // Redondeado a céntimos ANTES de decidir el signo: una diferencia de
-  // 0,004 € es «ni ganas ni pierdes», y un «+0,00 €» con el signo puesto
-  // se lee como una ganancia que no existe.
-  const dif = Math.round(b.diferencia * 100) / 100
-  // «en las 1 carta» no lo escribe nadie: con una se dice de otra manera.
-  const cuantas = b.copias === 1
-    ? 'la única carta en la que apuntaste lo que pagaste'
-    : `las ${b.copias.toLocaleString('es-ES', { useGrouping: 'always' })} cartas en las que apuntaste lo que pagaste`
-  const clase = dif === 0 ? '' : dif > 0 ? ' mc-gana' : ' mc-pierde'
-  // El signo delante, que es lo que lee quien no distingue el verde del
-  // rojo: el color nunca va solo.
-  const signo = dif === 0 ? '' : dif > 0 ? '+' : '−'
-  return diapoHtml('Lo que te costó', `
-    <p class="mc-diapo-cifra${clase}">${signo}${escapeHtml(euros(Math.abs(dif)))}</p>
-    <p class="mc-diapo-pie">${dif === 0 ? 'ni ganas ni pierdes, ' : ''}en ${escapeHtml(cuantas)}</p>
-    <dl class="mc-diapo-datos">
-      <div><dt>Pagaste</dt><dd>${escapeHtml(euros(b.pagado))}</dd></div>
-      <div><dt>Valen</dt><dd>${escapeHtml(euros(b.valor))}</dd></div>
-    </dl>
-    ${
-      // Las que tienen precio de compra pero no de mercado se dicen, no se
-      // cuentan como cero: un cero diría que no valen nada, y lo que pasa
-      // es que no se sabe.
-      b.sinValorar
-        ? `<p class="subtext">${b.sinValorar} ${b.sinValorar === 1 ? 'carta más tiene' : 'cartas más tienen'} precio de compra pero todavía no de mercado, así que ${b.sinValorar === 1 ? 'no entra' : 'no entran'} en la cuenta.</p>`
-        : ''
-    }`)
-}
-
-// `diapoHtml` y `tiraHtml` se mudaron a `js/mi-coleccion/diapos.js` en la
-// tanda 476: la Pokédex tenía su propio molde de tarjeta de datos
-// (`.mc-pdx-caja`) y dos moldes para el mismo objeto se separan.
-
-// ── Los vistazos del panel (tanda 436) ──
-//
-// PINGU, con el panel de Dex delante: «que el panel se asemeje más a lo
-// que existe en Dex, cogiendo la información de las otras pestañas». Eso
-// es lo que son: un asomo de cada pestaña con su «ver todas», para que el
-// panel sea una PORTADA de la colección y no una pestaña más.
-//
-// Lo que ya está en memoria se pinta al momento; lo que son consultas
-// —las expansiones y las carpetas— llega después, igual que la gráfica. Y
-// se piden una sola vez por visita.
-const DE_VISTAZO = 8
-
-// El rótulo del enlace se puede cambiar (tanda 451): «Ver todas» vale
-// para cartas y para expansiones, pero debajo de «Cambios» suena a que
-// hay una lista de cambios que ver, y lo que hay es una pantalla donde se
-// hacen. Un enlace dice a dónde lleva o no sirve de nada.
-function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
-  return `<section class="mc-vistazo">
-    <div class="mc-vistazo-cabecera">
-      <h2 class="mc-subtitulo">${escapeHtml(titulo)}</h2>
-      <button type="button" class="link-btn ver-todo" data-ir-a="${escapeHtml(pestana)}">${escapeHtml(rotulo)} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>
-    </div>
-    ${dentro}
-  </section>`
-}
-
-// Las últimas que has metido, que es lo que se quiere ver al entrar: «¿qué
-// añadí el otro día?». Por `created_at` y no por nombre — una lista
-// alfabética no cambia nunca y deja de decir nada.
-// Y DE TODA LA COLECCIÓN (tanda 485): «lo último que añadí» es la pregunta
-// que contesta esta tira, y la carta que acabas de meter no deja de ser lo
-// último porque ahora estés mirando otro catálogo. Era justo el caso de
-// PINGU: añadir una japonesa, volver al Panel y no verla.
-function vistazoDeCartas() {
-  const [ls, , busca] = pTodo()
-  const ultimas = [...ls]
-    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
-    .slice(0, DE_VISTAZO)
-  if (!ultimas.length) {
-    return vistazoHtml('Tus cartas', 'cartas', '<p class="empty-state">Todavía no has añadido ninguna carta.</p>')
-  }
-  const cuerpo = ultimas.map((l) => {
-    const c = busca(l)
-    const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-    const nombre = nombreDe(c)
-    // `data-carta` es lo que hace que se abra la ficha EN LA MISMA PÁGINA
-    // (tanda 562): el `href` se queda para el Ctrl+clic, para el «abrir en
-    // otra pestaña» del móvil y para cuando no hay JavaScript.
-    return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${
-      escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
-        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
-    }</a>`
-  }).join('')
-  return vistazoHtml('Tus cartas', 'cartas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`)
-}
-
-// Las expansiones en las que MÁS llevas. No las más nuevas: lo que se
-// quiere ver de un vistazo es dónde estás cerca de algo, que es lo mismo
-// que decidió la tanda 429 para la Pokédex.
-// AQUÍ VIVIÓ «DÓNDE ESTÁS CERCA», de la tanda 440 a la 441, y se va por
-// donde se fueron las dos diapositivas repetidas de la 439: PINGU, al
-// verlo puesto, «no tiene sentido porque abajo ya están las expansiones».
-// Y es el mismo argumento que se usó para quitar aquellas — una pantalla
-// que dice lo mismo dos veces con dos formas distintas no dice más, dice
-// lo mismo más largo. El vistazo de «Expansiones» de aquí abajo ya enseña
-// por dónde vas en cada colección, con su barra y su cuenta.
-//
-// Queda escrito el criterio por si vuelve en otra parte: se ordenaba por
-// CARTAS QUE FALTAN y no por porcentaje, porque un 96 % de un set de 100
-// son 4 cartas y un 80 % de uno de 10 son 2 — el porcentaje dice que vas
-// mejor en el primero y la verdad es que acabas antes el segundo.
-
-function vistazoDeSets(sets) {
-  // GLOBAL desde la 672: se cuentan TUS líneas de todos los catálogos
-  // (`lineasTodo`, con su carta en `cartasTodo`), no las del catálogo
-  // abierto. Las de los hijos cuentan en el padre (646).
-  const lineasBase = lineasTodo.length ? lineasTodo : lineas
-  const busca = lineasTodo.length ? cartaDeLineaTodo : cartaDeLinea
-  const porSet = new Map()
-  for (const l of lineasBase) {
-    const c = busca(l)
-    if (!c?.set_id || !(Number(l.cantidad) > 0)) continue
-    const m = c.market || l.market || mercado
-    const k = `${m}|${padreDeColeccion(c.set_id) || c.set_id}`
-    if (!porSet.has(k)) porSet.set(k, new Set())
-    porSet.get(k).add(l.card_id)
-  }
-  const conAlgo = [...porSet.entries()]
-    .map(([k, ids]) => {
-      const [m, id] = k.split('|')
-      const s = (sets || []).find((x) => x.id === id && (x.market || 'WEST') === m)
-      return s ? { set: s, tengo: ids.size } : null
-    })
-    .filter((x) => x && x.tengo > 0)
-    // LAS MÁS NUEVAS PRIMERO (tanda 451), no las que tienes más llenas.
-    // PINGU: «¿qué ha pasado con las expansiones? ¿Ya no están las más
-    // nuevas? Escarlata y Púrpura se ha ido hacia abajo». Ordenaba por
-    // CUÁNTAS TIENES, y eso en un vistazo de una sola fila esconde justo
-    // lo que acabas de empezar — que es lo que uno viene a mirar. Y además
-    // decía una cosa distinta de la pantalla de Expansiones, que ordena
-    // por fecha: dos listas de lo mismo en dos órdenes distintos parecen
-    // dos webs.
-    //
-    // Sin fecha va al final y no al principio: lo que no se sabe no puede
-    // ser lo más nuevo.
-    .sort((a, b) => {
-      const fa = Date.parse(a.set?.release_date || '')
-      const fb = Date.parse(b.set?.release_date || '')
-      if (Number.isFinite(fa) && Number.isFinite(fb)) return fb - fa
-      if (Number.isFinite(fa)) return -1
-      if (Number.isFinite(fb)) return 1
-      return b.tengo - a.tengo
-    })
-    // SEIS en el DOM, UNA FILA a la vista. PINGU: «muestra cuatro
-    // expansiones y no tiene sentido porque son tres columnas máximo;
-    // debería estar mostrando tres, igual que tus cartas».
-    //
-    // Y por eso no se corta a tres aquí: cuántas caben depende del ancho —
-    // tres en un escritorio, una en un móvil—, así que un número fijo deja
-    // una huérfana en cualquier otro ancho que no sea el que miraste. Se
-    // pide UNA FILA en el CSS y las que sobren caen en filas de alto cero.
-    // Es exactamente lo que ya hace «Tus cartas» desde la tanda 446.
-    .slice(0, 6)
-  if (!conAlgo.length) {
-    return vistazoHtml('Expansiones', 'album', '<p class="empty-state">Cuando añadas cartas, aquí verás por dónde vas en cada colección.</p>')
-  }
-  // «Ver todas» abre la estantería ENTERA (tanda 649; el filtro de «solo
-  // las empezadas» se quita al llegar, en el manejador del vistazo).
-  // PINGU: «cuando le des a ver todas, que no te lleve a solo las
-  // empezadas, que te deje ver todas directamente».
-  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
-}
-
-// La tarjeta de Cambios del Panel: dos cifras y la puerta. Las dos salen
-// de lo que YA está cargado —las líneas de tu colección—, así que no
-// cuesta ni una consulta: el Panel es lo primero que se abre y no puede
-// quedarse esperando a nadie.
-// EN CIFRAS, NO EN PROSA (651). PINGU: «actualizar un poco el panel,
-// que se ve demasiado texto, poco botón, poco visual». Dos números y la
-// puerta; la explicación de cómo se marca una carta para cambiar vive en
-// la pantalla de Cambios, que es donde se hace.
-function vistazoDeCambios() {
-  const doy = loQueDoy().length
-  const busco = Array.isArray(deseos) ? deseos.length : null
-  const dentro = `<div class="mc-panel-cifras">
-    <button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
-    ${busco === null ? '' : `<button type="button" class="mc-panel-cifra" data-ir-a="quiero"><b>${busco}</b><span>${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</span></button>`}
-  </div>`
-  return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
-}
-
-// El icono de descargar, aquí y no en js/icons.js: ese fichero lo baja la
-// portada, que no tiene sitio (CLAUDE.md), y esto solo lo usa el Panel.
-const ICONO_DESCARGAR = (size) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>', size)
-
-// LAS ACCIONES DEL PANEL, EN LOSETAS (651): la imagen para compartir,
-// importar y exportar eran dos tarjetas con un párrafo cada una y un
-// enlace pequeño. Son tres botones; se pintan como tres botones. Los ids
-// se quedan (los manejadores y las pruebas cuelgan de ellos).
-function vistazoDeAcciones() {
-  const hay = lineasTodo.length || lineas.length
-  const loseta = (id, dibujo, texto, extra = '') => `<button type="button" class="mc-accion-loseta" id="${id}"${extra}><span class="mc-accion-icono" aria-hidden="true">${dibujo}</span><span>${texto}</span></button>`
-  return `<section class="mc-vistazo mc-vistazo-imagen mc-vistazo-importar">
-      <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Compartir, importar y exportar</h2>
-      </div>
-      <div class="mc-acciones-rejilla">
-        ${hay ? loseta('mcImagenCrear', icons.image(24), 'Mi colección en una imagen') : ''}
-        ${loseta('mcImportarAbrir', icons.upload(24), 'Importar un CSV')}
-        ${loseta('mcExportar', ICONO_DESCARGAR(24), 'Descargar mi colección (CSV)', hay ? '' : ' disabled')}
-        <a class="mc-accion-loseta" id="mcModoFeria" href="/feria"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(24)}</span><span>Modo feria</span></a>
-      </div>
-    </section>`
-}
-
-// Cuántas veces se ha pintado el Panel (663): lo que llega tarde de una
-// pintada anterior —las movidas, que son una consulta— no se mete en la
-// siguiente. Sin esto el bloque salía dos veces.
-let vistazosVersion = 0
-// Los logros de coleccionista (793, NU9): una vez por visita, con la
-// colección que ya está en memoria.
-let logrosMirados = false
-async function mirarLogrosDeColeccion() {
-  if (logrosMirados || !sesion?.user?.id || !lineas.length || modoCatalogo) return
-  logrosMirados = true
-  const sets = await cargarSetsDeTodos().catch(() => [])
-  const porId = new Map((sets || []).filter((x) => (x.market || 'WEST') === mercado).map((x) => [x.id, x]))
-  const { statsDeColeccion, comprobarLogrosDeColeccion } = await import('./logros-coleccion.js')
-  // Las especies que tienes (para las regiones) y tus cambios hechos (798).
-  const { especiesDeLaCarta } = await import('./mi-coleccion/pokedex.js')
-  const especies = new Set()
-  for (const id of new Set(lineas.map((l) => l.card_id))) for (const n of especiesDeLaCarta(cartas.get(id)) || []) especies.add(Number(n))
-  const cambiosHechos = (await import('./cambios-hechos.js').then((m) => m.cambiosDe(sesion.user.id)).catch(() => null))?.hechos || 0
-  const stats = statsDeColeccion({
-    especies,
-    cambiosHechos,
-    lineas,
-    cartaDe: (id) => cartas.get(id),
-    cuantasPorSet: cuantasPorSet(),
-    totalDeSet: (id) => totalDe(porId.get(id)),
-    unidad: (l) => { const v = valorDeLinea(l, precioDe(l)); return v ? v / (Number(l.cantidad) || 1) : 0 },
-  })
-  await comprobarLogrosDeColeccion(sesion.user.id, stats).catch(() => {})
-}
-
-async function pintarVistazos() {
-  // Con unos segundos de margen: los precios llegan después de las líneas.
-  if (!logrosMirados) setTimeout(() => void mirarLogrosDeColeccion(), 4000)
-  const caja = $('mcVistazos')
-  if (!caja || !esMia) return
-  const version = ++vistazosVersion
-  // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
-  // se abre y no puede quedarse en blanco esperando a dos consultas.
-  caja.innerHTML = vistazoDeCartas()
-  // LAS QUE MÁS SE MUEVEN (663), por su cuenta y en su hueco de debajo de
-  // las fichas (748): es una consulta al histórico y el Panel no la espera.
-  void pintarMovidas(version)
-  // El hueco de las expansiones, en esqueleto hasta que lleguen (675).
-  caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo" id="mcVistazoSetsEsq"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Expansiones</h2></div>${esqueletoDeSets(2)}</section>`)
-  // Los sets y su valor de TODOS los catálogos (672), y el registro de qué
-  // set cuelga de cuál con todos ellos en la mano (646).
-  const [sets] = await Promise.all([cargarSetsDeTodos().catch(() => null), cargarValoresDeSets({ todos: true })])
-  if (pestania !== 'resumen') return
-  if (version !== vistazosVersion) return
-  registrarEpisodios(sets || [])
-  $('mcVistazoSetsEsq')?.remove()
-  caja.insertAdjacentHTML('beforeend', vistazoDeSets(sets))
-  // LA TARJETA DE CAMBIOS (tanda 451). Lo que estaba debajo —la pantalla
-  // entera— se ha ido a la suya; aquí queda lo que el Panel sí tiene que
-  // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
-  // esto, una pantalla que existe deja de tener puerta.
-  caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
-  // MI COLECCIÓN EN UNA IMAGEN (571), IMPORTAR Y EXPORTAR (580): desde la
-  // 651 son tres losetas en una tarjeta (`vistazoDeAcciones`). Importar
-  // sale siempre: es justo quien NO tiene cartas aquí quien lo necesita.
-  if (quiereImportar) {
-    // Desde la bienvenida (581): «¿ya la tienes en otra app? Impórtala».
-    quiereImportar = false
-    setTimeout(() => $('mcImportarAbrir')?.click(), 0)
-  }
-  caja.insertAdjacentHTML('beforeend', vistazoDeAcciones())
-  if (carpetasLista.length) {
-    caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
-      carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
-  }
-  guardarPanel()
-}
-
-// ── LAS QUE MÁS SE MUEVEN ESTA SEMANA (663) ──
-//
-// De la foto diaria del histórico (643) de TUS cartas: las tres que más
-// han subido y las tres que más han bajado en los últimos ocho días, en el
-// idioma de tu copia, con su foto y su porcentaje. Solo las que tienen
-// precio, y como mucho las 600 más valiosas: es lo que cabe en cuatro
-// consultas sin hacer esperar al Panel. Sin dos fotos de ninguna, no sale.
-const TOPE_MOVIDAS = 600
-async function pintarMovidas(version) {
-  const sitio = $('mcMovidasSitio')
-  if (!esMia || !sitio) return
-  try {
-    const [ls, , busca] = pTodo()
-    const conPrecio = ls
-      .map((l) => ({ l, v: valorDeLinea(l, precioDe(l)) || 0 }))
-      .filter((x) => x.v > 0)
-      .sort((a, b) => b.v - a.v)
-      .slice(0, TOPE_MOVIDAS)
-      .map((x) => x.l)
-    if (!conPrecio.length) return
-    // El hueco, en esqueleto mientras llega (748): tres filas del alto de
-    // las de verdad, para que lo de debajo no salte al llegar.
-    sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
-    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
-    const [filas, movidas] = await Promise.all([
-      datos.historicoDeCartas(conPrecio.map((l) => l.card_id), desde),
-      import('./mi-coleccion/movidas.js'),
-    ])
-    if (pestania !== 'resumen' || !sitio.isConnected || version !== vistazosVersion) return
-    const { suben, bajan } = movidas.extremos(movidas.movidasDe(conPrecio, filas, busca), 3)
-    // Las tres que MÁS se mueven, suban o bajen, como en la maqueta: una
-    // lista de tres filas y no dos tiras de seis fotos.
-    const tres = [...suben, ...bajan]
-      .sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0) || Math.abs(b.cambio) - Math.abs(a.cambio))
-      .slice(0, 3)
-    if (!tres.length) { sitio.innerHTML = ''; return }
-    const fila = (m) => {
-      const c = m.carta
-      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-      const signo = m.cambio > 0 ? '+' : '−'
-      const pct = m.pct === null ? `${signo}${euros(Math.abs(m.cambio))}` : `${signo}${Math.abs(Math.round(m.pct))} %`
-      const set = nombreDeSet(c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets) || c.set_id || ''
-      return `<li><a class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">
-        <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-        <span class="mc-movida-nombre"><b>${escapeHtml(nombreDe(c))}</b><small>${escapeHtml(set)}</small></span>
-        <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${escapeHtml(pct)}</small></span>
-      </a></li>`
-    }
-    sitio.innerHTML = vistazoHtml('Las que más se mueven', 'cartas', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
-      .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
-  } catch {
-    // Sin histórico (o sin red), el hueco se va y el Panel sigue.
-    sitio.innerHTML = ''
-  }
-  guardarPanel()
-}
-
-// La gráfica llega DESPUÉS y por su cuenta: el resto del resumen sale de
-// lo que ya está en memoria y no tiene por qué esperar a una consulta.
-// Se pide una sola vez por visita.
 let historico = null
-
-// EN CUÁNTOS DÍAS SE MIRA (tanda 464). PINGU, con Collectr delante:
-// «quiero que pongas en cuántos días quieres ver el gráfico». Se recuerda
-// en el navegador, como el color de la tapa y la vista de variantes: es
-// gusto de quien mira, no un dato de la colección.
-let rangoDelValor = '1M'
-try {
-  const guardado = localStorage.getItem('mc-valor-rango')
-  if (guardado) rangoDelValor = guardado
-} catch {
-  // En una ventana privada `localStorage` LANZA, no devuelve null.
+// ── EL PANEL (895): vive en ./mi-coleccion/panel.js y entra por import() ──
+// Lo que necesita de aquí: el estado (por getter y setter, que cambia) y
+// unas funciones. Las de allí que se llaman desde aquí van por los puentes
+// de abajo, que cargan el módulo la primera vez.
+const ctxPanel = {
+  get panelFiable() {
+    return panelFiable
+  },
+  get esMia() {
+    return esMia
+  },
+  set esMia(x) {
+    esMia = x
+  },
+  get eurosConMiles() {
+    return eurosConMiles
+  },
+  set eurosConMiles(x) {
+    eurosConMiles = x
+  },
+  get sesion() {
+    return sesion
+  },
+  set sesion(x) {
+    sesion = x
+  },
+  get nombreDe() {
+    return nombreDe
+  },
+  set nombreDe(x) {
+    nombreDe = x
+  },
+  get lineasTodo() {
+    return lineasTodo
+  },
+  set lineasTodo(x) {
+    lineasTodo = x
+  },
+  get lineas() {
+    return lineas
+  },
+  set lineas(x) {
+    lineas = x
+  },
+  get precioDe() {
+    return precioDe
+  },
+  set precioDe(x) {
+    precioDe = x
+  },
+  get cartaDeLineaTodo() {
+    return cartaDeLineaTodo
+  },
+  set cartaDeLineaTodo(x) {
+    cartaDeLineaTodo = x
+  },
+  get cartaDeLinea() {
+    return cartaDeLinea
+  },
+  set cartaDeLinea(x) {
+    cartaDeLinea = x
+  },
+  get mercado() {
+    return mercado
+  },
+  set mercado(x) {
+    mercado = x
+  },
+  get loQueDoy() {
+    return loQueDoy
+  },
+  set loQueDoy(x) {
+    loQueDoy = x
+  },
+  get deseos() {
+    return deseos
+  },
+  set deseos(x) {
+    deseos = x
+  },
+  get modoCatalogo() {
+    return modoCatalogo
+  },
+  set modoCatalogo(x) {
+    modoCatalogo = x
+  },
+  get cartas() {
+    return cartas
+  },
+  set cartas(x) {
+    cartas = x
+  },
+  get esqueletoDeSets() {
+    return esqueletoDeSets
+  },
+  set esqueletoDeSets(x) {
+    esqueletoDeSets = x
+  },
+  get pestania() {
+    return pestania
+  },
+  set pestania(x) {
+    pestania = x
+  },
+  get carpetasLista() {
+    return carpetasLista
+  },
+  set carpetasLista(x) {
+    carpetasLista = x
+  },
+  get carpetas() {
+    return carpetas
+  },
+  set carpetas(x) {
+    carpetas = x
+  },
+  get carpetasResumen() {
+    return carpetasResumen
+  },
+  set carpetasResumen(x) {
+    carpetasResumen = x
+  },
+  get todosLosSets() {
+    return todosLosSets
+  },
+  set todosLosSets(x) {
+    todosLosSets = x
+  },
+  get historico() {
+    return historico
+  },
+  set historico(x) {
+    historico = x
+  },
+  get resumenHero() {
+    return resumenHero
+  },
+  set resumenHero(x) {
+    resumenHero = x
+  },
+  get dueno() {
+    return dueno
+  },
+  set dueno(x) {
+    dueno = x
+  },
+  pTodo,
+  repetidas,
+  masValiosas,
+  repartoPor,
+  valorDeAhora,
+  fichasDeCartera,
+  pintarRepartoProductos,
+  barrasHtml,
+  filaDeCartaHtml,
+  tarjetaDeSet,
+  cargarSetsDeTodos,
+  cuantasPorSet,
+  totalDe,
+  cargarValoresDeSets,
+  guardarPanel,
+}
+let panelMod = null
+const panel = () =>
+  panelMod ? Promise.resolve(panelMod) : import('./mi-coleccion/panel.js').then((m) => { m.montar(ctxPanel); panelMod = m; return m })
+function pintarResumenPanel(...a) {
+  return panelMod ? panelMod.pintarResumenPanel(...a) : panel().then((m) => m.pintarResumenPanel(...a))
+}
+function pintarVistazos(...a) {
+  return panelMod ? panelMod.pintarVistazos(...a) : panel().then((m) => m.pintarVistazos(...a))
+}
+function pintarCambioDelMes(...a) {
+  return panelMod ? panelMod.pintarCambioDelMes(...a) : panel().then((m) => m.pintarCambioDelMes(...a))
+}
+function pintarValorEnElTiempo(...a) {
+  return panelMod ? panelMod.pintarValorEnElTiempo(...a) : panel().then((m) => m.pintarValorEnElTiempo(...a))
 }
 
-// «+12,50 € este mes» debajo del valor de la cabecera (tanda 582). La
-// gráfica existe desde la 377, pero vive en el Panel; la cabecera —que se
-// ve en todas las pestañas— decía el valor de hoy y nada más. Un número
-// solo no cuenta nada; el cambio es lo que hace volver a mirar.
-function cambioDelMes() {
-  if (!historico) return null
-  const { resumenDeValor, diasDelRango } = historico.grafica
-  const todo = resumenDeValor(historico.filas, { ahora: valorDeAhora() })
-  if (!todo.bastante) return null
-  const mes = resumenDeValor(diasDelRango(todo.dias, '1M'))
-  if (!mes.bastante) return null
-  return { cambio: mes.cambio, pct: mes.pct, desde: mes.primero.dia }
-}
-
-function textoDelCambio(c) {
-  if (!c) return ''
-  const signo = c.cambio > 0 ? '+' : c.cambio < 0 ? '−' : ''
-  const pct = typeof c.pct === 'number' && Number.isFinite(c.pct) ? ` (${signo}${Math.abs(c.pct).toFixed(1).replace('.', ',')} %)` : ''
-  return `${signo}${euros(Math.abs(c.cambio))}${pct} este mes`
-}
-
-function pintarCambioDelMes() {
-  const sitio = $('mcCifraCambio')
-  const c = cambioDelMes()
-  if (resumenHero) resumenHero.cambioMes = c ? textoDelCambio(c) : null
-  if (!sitio) return
-  sitio.textContent = textoDelCambio(c)
-  sitio.classList.toggle('hidden', !c)
-  sitio.classList.toggle('sube', !!c && c.cambio > 0)
-  sitio.classList.toggle('baja', !!c && c.cambio < 0)
-}
-
-async function pintarValorEnElTiempo() {
-  const caja = $('mcValorCaja')
-  if (!caja) return
-  try {
-    if (!historico) {
-      const [grafica, filas] = await Promise.all([
-        import('./mi-coleccion/grafica-valor.js'),
-        datos.valorHistorico(dueno.id),
-      ])
-      historico = { grafica, filas }
-    }
-    // Con el valor de AHORA, que es el mismo que enseña la cifra de
-    // arriba: la foto diaria es de las 4:07 y sin esto la pantalla
-    // enseñaría dos totales distintos de lo mismo.
-    const sitio = $('mcCarteraGrafica')
-    if (!sitio) return
-    sitio.innerHTML = historico.grafica.carteraHtml(historico.filas, { ahora: valorDeAhora(), rango: rangoDelValor, nombre: esMia ? 'tu colección' : 'esta colección' })
-    sitio.removeAttribute('aria-busy')
-    engancharRangosDelValor()
-    // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
-    historico.grafica.engancharLectura(sitio.querySelector('.mc-valor-lienzo'))
-    pintarCambioDelMes()
-  } catch {
-    // Una gráfica que no llega no puede tumbar el resumen: se quita el
-    // hueco de la gráfica y la cifra de ahora sigue ahí.
-    $('mcCarteraGrafica')?.remove()
-  }
-}
-
-// Los botones de rango. Delegado en la CAJA y enganchado una sola vez: la
-// gráfica se repinta entera en cada cambio, así que un oyente por botón
-// se quedaría colgando de un botón que ya no está.
-function engancharRangosDelValor() {
-  const caja = $('mcValorCaja')
-  if (!caja || caja.dataset.enganchada) return
-  caja.dataset.enganchada = '1'
-  caja.addEventListener('click', (e2) => {
-    const b2 = e2.target.closest('[data-rango]')
-    if (!b2 || b2.disabled) return
-    rangoDelValor = b2.dataset.rango
-    try { localStorage.setItem('mc-valor-rango', rangoDelValor) } catch {}
-    void pintarValorEnElTiempo()
-  })
-}
 
 // ── Pestaña «Cartas» ──
 // La carta que la ficha tiene abierta: el histórico llega tarde y no debe
@@ -4530,14 +4100,16 @@ async function elegirAlbumParaMarcadas() {
 
 async function meterMarcadasEnAlbum(albumId) {
   const ids = idsDeLasMarcadas()
+  // CAMBIA YA (896, R6): el diálogo se cierra y se sale del modo marcar en
+  // el acto; el resultado llega después como aviso.
+  $('mcElegirAlbum').close()
+  modoMarcar(false)
   try {
     const r = await albumes.meterCartas(albumId, ids)
-    $('mcElegirAlbum').close()
     const partes = [`${r.anadidas} ${r.anadidas === 1 ? 'carta' : 'cartas'} a «${r.nombre}»`]
     if (r.yaEstaban) partes.push(`${r.yaEstaban} ya estaban`)
     if (r.sinSitio) partes.push(`${r.sinSitio} no caben`)
     showToast(partes.join(' · ') + '.', r.sinSitio ? 'error' : 'success')
-    modoMarcar(false)
     albumes.repintar?.()
   } catch (err) {
     showToast(err.message, 'error')
@@ -6036,358 +5608,7 @@ const lineasDeTodas = () => (lineasTodo.length ? lineasTodo : lineas)
 const loQueDoy = () => lineasDeTodas().filter((l) => Number(l.cambio) > 0)
 const cartaDeDoy = (l) => (lineasTodo.length ? cartaDeLineaTodo(l) : null) || cartas.get(l.card_id)
 
-async function abrirCambios() {
-  const caja = $('mcCambiosPanel')
-  if (!caja) return
-  if (cambiosCargados) return pintarCambios()
-  caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
-  try {
-    tablon = await import('./mi-coleccion/tablon.js')
-    await cargarDeseos()
-    cambiosCargados = true
-    await pintarCambios()
-  } catch (err) {
-    // Sin la migración no se enseña un tablón vacío, que parecería que
-    // no hay nadie: se dice qué falta. Es el mismo trato que le da el
-    // resto de la página a `sinMigracion`.
-    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-  }
-}
-
-// LOS CRUCES (773): una tarjeta por persona con lo que te da y lo que le
-// das, lado a lado y con lo que vale cada lado. Filtros: todos, solo los
-// perfectos y la gente que sigues (con quien más fácil sale un cambio).
-let crucesFiltro = 'todos'
-let seguidosIds = null // Set de a quién sigues · null = no se sabe
-async function pedirSeguidos() {
-  if (seguidosIds || !sesion) return seguidosIds
-  // sin rango: solo se piden ids, para filtrar.
-  const { data, error } = await supabase.from('user_follows').select('following_id').eq('follower_id', sesion.user.id).limit(2000)
-  if (!error) seguidosIds = new Set((data || []).map((f) => f.following_id))
-  return seguidosIds
-}
-
-async function pintarCambios() {
-  const caja = $('mcCambiosPanel')
-  const doy = loQueDoy()
-  let tiene = []
-  let busca = []
-  try {
-    // Las dos direcciones a la vez: son independientes y la pantalla
-    // las enseña juntas.
-    ;[tiene, busca] = await Promise.all([
-      deseos.length ? pedirQuienTiene() : Promise.resolve([]),
-      doy.length ? pedirQuienBusca() : Promise.resolve([]),
-    ])
-  } catch (err) {
-    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-    return
-  }
-  tablonTiene = tiene
-  tablonBusca = busca
-  // Las cartas del tablón pueden no estar en el mapa: son de OTRA gente
-  // y esta página solo cargó las tuyas.
-  const faltan = [...tiene, ...busca, ...deseos].map((f) => f.card_id).filter((id) => !cartas.has(id))
-  if (faltan.length) await completarCartasDeFuera(faltan, mercado)
-  const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !guardados.has(id))
-  if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) guardados.set(k, v)
-  const seguidos = await pedirSeguidos().catch(() => null)
-  const vacio = !doy.length && !deseos.length
-  const gente = tablon.cruzarPorPersona(tiene, busca)
-  const perfectos = gente.filter((p) => p.perfecto).length
-  const deSeguidos = seguidos ? gente.filter((p) => seguidos.has(p.user_id)).length : null
-  const visibles = gente.filter((p) => crucesFiltro === 'perfectos' ? p.perfecto : crucesFiltro === 'seguidos' ? seguidos?.has(p.user_id) : true)
-  const valor = (f) => precioDeDeseo({ card_id: f.card_id, idioma: f.idioma })
-  caja.innerHTML = vacio
-    // Sin nada apuntado no se enseña un tablón vacío: se enseña CÓMO
-    // funciona, que es lo que hace falta la primera vez.
-    ? `<ol class="mc-cambio-pasos">
-         <li><span class="mc-cambio-paso">1</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Con el corazón, en <button type="button" class="link-btn" data-deseos-vista="mercado">el Mercado</button> o en <button type="button" class="link-btn" data-ir-quiero>La quiero</button>.</p></div></li>
-         <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Tus repetidas, con cuántas copias das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
-         <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
-       </ol>`
-    : `<div class="mc-quiero-cabeza">
-         <p class="mc-quiero-cifra"><b>${gente.length}</b> ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo${perfectos ? ` · <b>${perfectos}</b> ${perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos'}` : ''}</p>
-         ${gente.length ? `<span class="seg" role="group" aria-label="Quién">
-           <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos</button>
-           <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Solo perfectos <span class="mc-deseos-n">${perfectos}</span></button>
-           ${deSeguidos === null ? '' : `<button type="button" class="seg-btn" data-cruces-filtro="seguidos" aria-pressed="${crucesFiltro === 'seguidos'}">Gente que sigo <span class="mc-deseos-n">${deSeguidos}</span></button>`}
-         </span>` : ''}
-       </div>
-       ${gente.length
-         ? visibles.length
-           ? `<div class="mc-cruces">${visibles.map((p) => tablon.cruceHtml(p, { cartas, valor, euros })).join('')}</div>`
-           : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`
-         : `<p class="empty-state">${!deseos.length
-           ? 'Apunta lo que buscas y aquí saldrá quién lo da.'
-           : !doy.length
-             ? 'Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.'
-             : 'Todavía nadie encaja contigo. Mira el Mercado: ahí está todo lo que se da.'}</p>`}`
-  engancharCambios()
-  // «12 cambios · todos bien» al lado de cada persona (798, NU4).
-  import('./cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces'))).catch(() => {})
-}
-
-// El buscador de la lista de búsqueda, con su propio turno: dos
-// buscadores en la misma página compartiendo contador se pisarían.
-let turnoDeseo = 0
-
-// EL BUSCADOR DE «LA QUIERO» (768). PINGU: «no funciona, solo busca unas
-// pocas cartas, y no puedes escoger si son japonesas». Pedía 24 por orden
-// alfabético en el catálogo que tuvieras puesto. Ahora es el motor de
-// Buscar —nombre, número, «151/165», «MEW 151» y, si no sale nada, el
-// ilustrador— con su propio catálogo (`deseoMercado`, sin cambiar el de la
-// página) y los resultados por expansión, con su logo.
-let deseoMercado = null
-const TOPE_DESEO = 120
-async function buscarParaDesear() {
-  const caja = $('mcDeseoResultados')
-  const cuenta = $('mcDeseoCuantas')
-  const crudo = $('mcDeseoBuscar').value
-  const market = deseoMercado || mercado
-  const mio = ++turnoDeseo
-  const { soloNumero } = partirBusqueda(normalizeSearch(crudo))
-  if (normalizeSearch(crudo).trim().length < 2 && !soloNumero) {
-    caja.classList.add('hidden')
-    caja.innerHTML = ''
-    if (cuenta) cuenta.textContent = ''
-    return
-  }
-  caja.classList.remove('hidden')
-  caja.innerHTML = '<div class="skeleton" style="height:160px"></div>'
-  let lista
-  let sets = []
-  try {
-    sets = (await cargarSetsDeTodos().catch(() => [])).filter((x) => (x.market || 'WEST') === market)
-    const leida = entenderBusqueda(crudo, sets)
-    lista = await buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market, sets })
-    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market, sets })
-    if (!lista.length) lista = await buscarPorIlustrador(normalizeSearch(crudo), TOPE_DESEO, { market })
-  } catch (err) {
-    if (mio !== turnoDeseo) return
-    caja.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
-    return
-  }
-  if (mio !== turnoDeseo) return
-  // Las que ya están apuntadas se enseñan, pero desactivadas: quitarlas
-  // de la lista haría pensar que el buscador no las encuentra.
-  const yaEstan = new Set(deseos.map((d) => d.card_id))
-  if (cuenta) cuenta.textContent = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}${lista.length >= TOPE_DESEO ? ' · hay más, afina la búsqueda' : ''}` : ''
-  const filas = new Map(sets.map((x) => [x.id, x]))
-  caja.innerHTML = lista.length
-    ? gruposPorExpansion(lista).map((g) => {
-        const set = filas.get(g.set.id) || g.set
-        const logos = contexto.logosDeSet({ ...set, market })
-        return `<div class="mc-bus-grupo">
-            <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
-            <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span>
-          </div>${ordenarCartas(g.cartas, 'numero', 'asc', { nombre: (c) => nombreDe(c), valor: () => null, rango: rangoDeRareza, porNumero }).map((c) => {
-            const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-            const ya = yaEstan.has(c.id)
-            return `<button type="button" class="mc-resultado mc-deseo-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''} aria-label="${escapeHtml(`${ya ? 'Ya buscas' : 'Apuntar'} ${nombreDe(c)} (${c.local_id})`)}">
-              <span class="mc-resultado-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}<span class="mc-deseo-corazon${ya ? ' puesto' : ''}" aria-hidden="true">${laQuiero.corazon(16)}</span></span>
-              <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
-              <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.local_id)}`}</span>
-            </button>`
-          }).join('')}`
-      }).join('')
-    : '<p class="subtext">Ninguna carta así en este catálogo. Prueba con menos letras, o en el otro catálogo.</p>'
-  // Y al mapa, que es de donde lo saca la lista al repintarse.
-  for (const c of lista) if (!cartas.has(c.id)) cartas.set(c.id, { ...c, market: c.market || market })
-}
-function pintarCatalogoDeDeseo() {
-  const market = deseoMercado || mercado
-  for (const b of document.querySelectorAll('[data-deseo-mercado]')) b.setAttribute('aria-pressed', String(b.dataset.deseoMercado === market))
-}
-
-// El panel se repinta entero en cada cambio, así que los oyentes van
-// UNA vez y sobre la caja de fuera —que no se repinta— y no sobre lo de
-// dentro. Sin esto, apuntar tres deseos deja tres oyentes y el cuarto
-// clic hace la misma cosa cuatro veces.
-let cambiosEnganchados = false
-
-function engancharCambios() {
-  const caja = $('mcCambiosPanel')
-  if (cambiosEnganchados) return
-  cambiosEnganchados = true
-  caja.addEventListener('click', async (e) => {
-    const escribir = e.target.closest('[data-escribir]')
-    if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
-    const filtro = e.target.closest('[data-cruces-filtro]')
-    if (filtro) {
-      crucesFiltro = filtro.dataset.crucesFiltro
-      return void pintarCambios()
-    }
-
-    const alResumen = e.target.closest('[data-ir-resumen]')
-    if (alResumen) return cambiarPestania('resumen')
-
-    // UN CAMINO ESCRITO EN PROSA ES UN ENLACE QUE NADIE COMPRUEBA (tanda
-    // 524, y es la tercera vez). Estos dos textos decían «en la pestaña
-    // “Cartas”», y esa pestaña SALIÓ DEL MENÚ en la 447 — la pantalla
-    // sigue, pero se llega por el panel. O sea que llevaba desde entonces
-    // mandando a buscar una pestaña que no está, en la primera pantalla de
-    // Cambios. Un botón se rompe si su destino se borra; una frase, no.
-    const aCartas = e.target.closest('[data-ir-cartas]')
-    if (aCartas) return cambiarPestania('cartas')
-
-    // Lo que buscas vive en «La quiero» desde la 751.
-    if (e.target.closest('[data-ir-quiero]')) return cambiarPestania('quiero')
-  })
-}
-
-// El mensaje se deja ESCRITO, no enviado: quien lo manda lo lee antes.
-// Un botón que manda un mensaje a un desconocido sin enseñárselo es una
-// forma rápida de quedar mal, y encima con el nombre de la casa.
-function abrirMensaje(userId, direccion) {
-  if (direccion === 'cruce') {
-    const conCarta = (filas) => filas.filter((f) => f.user_id === userId).map((f) => ({ ...f, carta: cartas.get(f.card_id) }))
-    const p = tablon.cruzarPorPersona(conCarta(tablonTiene), conCarta(tablonBusca))[0]
-    const texto = tablon.borradorDeCruce(p?.teDa || [], p?.leDas || [])
-    location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
-    return
-  }
-  const filas = (direccion === 'tiene' ? tablonTiene : tablonBusca).filter((f) => f.user_id === userId)
-  const persona = { reciproco: filas.some((f) => f.reciproco) }
-  const texto = tablon.borradorDe(persona, filas.map((f) => ({ ...f, carta: cartas.get(f.card_id) })), direccion)
-  location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
-}
-
-// ── EL MERCADO (tanda 770) ──
-//
-// Lo pinta js/mi-coleccion/mercado.js, que entra al abrir la pestaña; aquí
-// queda lo que es de la página: las cartas de otra gente (que no están en
-// memoria), tus deseos y las dos consultas de los cruces, que comparten el
-// Mercado, las cuentas del selector y las tres listas.
 let mercadoMod = null
-async function abrirMercado() {
-  try {
-    mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
-    if (sesion) await cargarDeseos().catch(() => null)
-    await mercadoMod.abrir(contexto)
-  } catch (err) {
-    if ($('mcMercadoRejilla')) $('mcMercadoRejilla').innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-  }
-}
-
-async function completarCartasDeFuera(ids, market) {
-  const sinCarta = [...new Set(ids)].filter((id) => !cartas.has(id))
-  const sinPrecio = [...new Set(ids)].filter((id) => !guardados.has(id))
-  const [nuevas, precios] = await Promise.all([
-    sinCarta.length ? datos.cartasPorIds(sinCarta, market).catch(() => new Map()) : new Map(),
-    sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
-  ])
-  for (const [k, v] of nuevas) cartas.set(k, { ...v, market: v.market || market })
-  for (const [k, v] of precios) guardados.set(k, v)
-  // Los cruces y las listas no dicen de qué catálogo es cada carta (777):
-  // la que no está en el elegido se busca en el otro, o sale sin foto.
-  const otro = market === 'JP' ? 'WEST' : 'JP'
-  const siguen = sinCarta.filter((id) => !cartas.has(id))
-  if (siguen.length) for (const [k, v] of await datos.cartasPorIds(siguen, otro).catch(() => new Map())) cartas.set(k, { ...v, market: v.market || otro })
-}
-
-// Las dos direcciones del cambio, pedidas UNA vez y compartidas. Se olvidan
-// cuando cambia lo que las decide: tus deseos (quién tiene) o lo que das
-// (quién busca).
-let pidiendoTiene = null
-let pidiendoBusca = null
-async function pedirQuienTiene() {
-  if (!sesion) return []
-  cambios = cambios || (await import('./mi-coleccion/cambios.js'))
-  pidiendoTiene = pidiendoTiene || cambios.quienTiene().catch((err) => { pidiendoTiene = null; throw err })
-  return pidiendoTiene
-}
-async function pedirQuienBusca() {
-  if (!sesion) return []
-  cambios = cambios || (await import('./mi-coleccion/cambios.js'))
-  pidiendoBusca = pidiendoBusca || cambios.quienBusca().catch((err) => { pidiendoBusca = null; throw err })
-  return pidiendoBusca
-}
-
-// Apuntar una carta: SIEMPRE preguntando el idioma (771). Vale para el
-// buscador de «La quiero», el Mercado y su ficha.
-async function quererCarta(c) {
-  if (!sesion) return false
-  await cargarDeseos()
-  const idioma = await preguntarIdioma({ nombre: nombreDe(c), market: c.market || mercado })
-  if (idioma === undefined) return false
-  try {
-    const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: c.id, idioma })
-    deseos = [d, ...deseos]
-    showToast(`${nombreDe(c) || 'Apuntada'}, en «La quiero»${idioma ? ` (en ${idiomaDe(idioma).nombre.toLowerCase()})` : ''}. Si alguien la da, saldrá en Cruces.`, 'success')
-  } catch (err) {
-    showToast(err.message, err.yaEstaba ? 'info' : 'error')
-    return false
-  }
-  alCambiarDeseos()
-  return true
-}
-// Quitar el corazón quita la carta en TODOS sus idiomas, como en la ficha
-// (la 751): si ya no la quieres, no la quieres en ninguno.
-async function quitarDeseosDe(cardId) {
-  await cargarDeseos()
-  try {
-    for (const d of deseos.filter((x) => x.card_id === cardId)) await cambios.borrarDeseo(d.id)
-    deseos = deseos.filter((x) => x.card_id !== cardId)
-    showToast('Quitada de «La quiero».', 'success')
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-  alCambiarDeseos()
-}
-function alCambiarDeseos() {
-  pidiendoTiene = null
-  pintarCuentasDeDeseos()
-  pintarLoseta()
-  if (pestania === 'quiero') pintarQuiero()
-  if (pestania === 'mercado') mercadoMod?.repintar()
-  void contarDeseosYCambios()
-}
-function alCambiarLoQueDoy() {
-  pidiendoBusca = null
-  pidiendoTiene = null
-  void contarDeseosYCambios()
-}
-
-// LAS CUENTAS DEL SELECTOR (770): cuántas da la gente, cuántas quieres,
-// cuántas das y con cuánta gente cruzas. `null` = no se sabe, y entonces el
-// botón no lleva número (un «0» diría que no hay).
-const cuentasDeDeseos = { mercado: null, cruces: null, perfectos: false }
-function pintarCuentasDeDeseos(n = {}) {
-  Object.assign(cuentasDeDeseos, n)
-  const valores = {
-    mercado: cuentasDeDeseos.mercado,
-    quiero: sesion && Array.isArray(deseos) ? deseos.length : null,
-    doy: sesion && esMia ? new Set(loQueDoy().map((l) => l.card_id)).size : null,
-    cruces: sesion ? cuentasDeDeseos.cruces : null,
-  }
-  for (const el of document.querySelectorAll('[data-deseos-n]')) {
-    const v = valores[el.dataset.deseosN]
-    el.textContent = v == null ? '' : v.toLocaleString('es-ES', { useGrouping: 'always' })
-    el.classList.toggle('hidden', v == null)
-  }
-  for (const el of document.querySelectorAll('[data-deseos-punto]')) el.classList.toggle('hidden', !(sesion && cuentasDeDeseos.perfectos))
-  // Sin cuenta solo hay Mercado: las otras tres son TUS listas.
-  for (const b of document.querySelectorAll('.mc-deseos-seg [data-deseos-vista]')) b.classList.toggle('hidden', !sesion && b.dataset.deseosVista !== 'mercado')
-  // Los tres pasos, hasta que tengas algo que buscas Y algo que das.
-  const sabe = Array.isArray(deseos)
-  const completo = sesion && sabe && deseos.length > 0 && loQueDoy().length > 0
-  $('mcDeseosPasos')?.classList.toggle('hidden', Boolean(completo) || (sesion && !sabe))
-}
-async function contarDeseosYCambios() {
-  if (!sesion) return pintarCuentasDeDeseos()
-  await cargarDeseos().catch(() => null)
-  pintarCuentasDeDeseos()
-  const [tiene, busca] = await Promise.all([pedirQuienTiene().catch(() => null), pedirQuienBusca().catch(() => null)])
-  if (tiene && busca) {
-    const todas = [...tiene, ...busca]
-    pintarCuentasDeDeseos({ cruces: new Set(todas.map((f) => f.user_id)).size, perfectos: todas.some((f) => f.reciproco) })
-  }
-}
-
-// /mi-coleccion?ver=mercado SIN CUENTA (770): el escaparate. Sin colección
-// detrás no hay menú (las demás pestañas son tuyas), y el corazón y
-// «Escribir» llevan a crear la cuenta con la vuelta puesta.
 function iniciarMercadoSinCuenta() {
   dueno = null
   esMia = false
@@ -6399,516 +5620,187 @@ function iniciarMercadoSinCuenta() {
   if ($('mcMercadoEntrarEnlace')) $('mcMercadoEntrarEnlace').href = contexto.urlDeRegistro()
   cambiarPestania('mercado', { push: false })
 }
-
-// ── «LA QUIERO» (tanda 751) ──
-//
-// Es «Lo que buscas» de los cambios en su propia pantalla, con lo que le
-// faltaba para usarla a diario: el precio de cada carta y lo que suma
-// (K1), su aviso de precio (K2, los avisos de la 665) y compartirla como
-// imagen (Y3). Quién te las da sigue en Cambios: es la misma lista
-// cruzada con la de los demás.
-
-// La lista se pide UNA vez y la comparten el Panel, Cambios, «La quiero»
-// y el corazón de la ficha. Si dos piden a la vez, esperan a la misma.
-let cargandoDeseos = null
-function cargarDeseos() {
-  if (Array.isArray(deseos)) return Promise.resolve(deseos)
-  if (!cargandoDeseos) {
-    cargandoDeseos = (async () => {
-      cambios = cambios || (await import('./mi-coleccion/cambios.js'))
-      deseos = await cambios.deseosDe(sesion.user.id)
-      return deseos
-    })().catch((err) => {
-      cargandoDeseos = null
-      throw err
-    })
-  }
-  return cargandoDeseos
-}
-
-// El precio de lo que quieres es el de su idioma; «cualquier idioma»,
-// el de la carta en español, que es el que se pinta en el resto de la
-// pantalla.
 function precioDeDeseo(d) {
   const l = { card_id: d.card_id, cantidad: 1, variante: 'normal', idioma: d.idioma || 'es' }
   return valorDeLinea(l, precioDe(l)) ?? null
 }
-
-// Tus avisos de precio de estas cartas: id → avisos encendidos. null = no
-// se sabe (sin la migración de la 665), y entonces la fila no dice si hay
-// aviso, en vez de decir que no lo hay.
-let avisosDeQuiero = null
-async function pedirAvisosDeQuiero(ids) {
-  if (!ids.length) return new Map()
-  const { data, error } = await supabase.from('user_price_alerts').select('id,card_id,tipo,umbral,activo').eq('user_id', sesion.user.id).eq('activo', true).in('card_id', ids.slice(0, 300))
-  if (error) return null
-  const mapa = new Map()
-  for (const a of data || []) mapa.set(a.card_id, [...(mapa.get(a.card_id) || []), a])
-  return mapa
+// ── LOS DESEOS Y LOS CAMBIOS (895): vive en ./mi-coleccion/deseos.js y entra por import() ──
+// Lo que necesita de aquí: el estado (por getter y setter, que cambia) y
+// unas funciones. Las de allí que se llaman desde aquí van por los puentes
+// de abajo, que cargan el módulo la primera vez.
+const ctxDeseos = {
+  pTodo,
+  get cambios() {
+    return cambios
+  },
+  set cambios(x) {
+    cambios = x
+  },
+  get cartas() {
+    return cartas
+  },
+  set cartas(x) {
+    cartas = x
+  },
+  get deseos() {
+    return deseos
+  },
+  set deseos(x) {
+    deseos = x
+  },
+  get dueno() {
+    return dueno
+  },
+  set dueno(x) {
+    dueno = x
+  },
+  get esMia() {
+    return esMia
+  },
+  set esMia(x) {
+    esMia = x
+  },
+  get favoritos() {
+    return favoritos
+  },
+  set favoritos(x) {
+    favoritos = x
+  },
+  get guardados() {
+    return guardados
+  },
+  set guardados(x) {
+    guardados = x
+  },
+  get mercado() {
+    return mercado
+  },
+  set mercado(x) {
+    mercado = x
+  },
+  get mercadoMod() {
+    return mercadoMod
+  },
+  set mercadoMod(x) {
+    mercadoMod = x
+  },
+  get pestania() {
+    return pestania
+  },
+  set pestania(x) {
+    pestania = x
+  },
+  get sesion() {
+    return sesion
+  },
+  set sesion(x) {
+    sesion = x
+  },
+  get vista() {
+    return vista
+  },
+  set vista(x) {
+    vista = x
+  },
+  get cartaDeDoy() {
+    return cartaDeDoy
+  },
+  set cartaDeDoy(x) {
+    cartaDeDoy = x
+  },
+  get contexto() {
+    return contexto
+  },
+  set contexto(x) {
+    contexto = x
+  },
+  get lineasDeTodas() {
+    return lineasDeTodas
+  },
+  set lineasDeTodas(x) {
+    lineasDeTodas = x
+  },
+  get loQueDoy() {
+    return loQueDoy
+  },
+  set loQueDoy(x) {
+    loQueDoy = x
+  },
+  get nombreDe() {
+    return nombreDe
+  },
+  set nombreDe(x) {
+    nombreDe = x
+  },
+  get precioDe() {
+    return precioDe
+  },
+  set precioDe(x) {
+    precioDe = x
+  },
+  buscarCartas,
+  buscarPorIlustrador,
+  cambiarLinea,
+  cambiarPestania,
+  cargarSetsDeTodos,
+  elegirCarta,
+  gruposPorExpansion,
+  repetidas,
+  precioDeDeseo,
+  iniciarMercadoSinCuenta,
+}
+let deseosMod = null
+const deseosModulo = () =>
+  deseosMod ? Promise.resolve(deseosMod) : import('./mi-coleccion/deseos.js').then((m) => { m.montar(ctxDeseos); deseosMod = m; return m })
+function abrirCambios(...a) {
+  return deseosMod ? deseosMod.abrirCambios(...a) : deseosModulo().then((m) => m.abrirCambios(...a))
+}
+function abrirMercado(...a) {
+  return deseosMod ? deseosMod.abrirMercado(...a) : deseosModulo().then((m) => m.abrirMercado(...a))
+}
+function completarCartasDeFuera(...a) {
+  return deseosMod ? deseosMod.completarCartasDeFuera(...a) : deseosModulo().then((m) => m.completarCartasDeFuera(...a))
+}
+function pedirQuienTiene(...a) {
+  return deseosMod ? deseosMod.pedirQuienTiene(...a) : deseosModulo().then((m) => m.pedirQuienTiene(...a))
+}
+function pedirQuienBusca(...a) {
+  return deseosMod ? deseosMod.pedirQuienBusca(...a) : deseosModulo().then((m) => m.pedirQuienBusca(...a))
+}
+function quererCarta(...a) {
+  return deseosMod ? deseosMod.quererCarta(...a) : deseosModulo().then((m) => m.quererCarta(...a))
+}
+function quitarDeseosDe(...a) {
+  return deseosMod ? deseosMod.quitarDeseosDe(...a) : deseosModulo().then((m) => m.quitarDeseosDe(...a))
+}
+function pintarCuentasDeDeseos(...a) {
+  return deseosMod ? deseosMod.pintarCuentasDeDeseos(...a) : deseosModulo().then((m) => m.pintarCuentasDeDeseos(...a))
+}
+function contarDeseosYCambios(...a) {
+  return deseosMod ? deseosMod.contarDeseosYCambios(...a) : deseosModulo().then((m) => m.contarDeseosYCambios(...a))
+}
+function cargarDeseos(...a) {
+  return deseosMod ? deseosMod.cargarDeseos(...a) : deseosModulo().then((m) => m.cargarDeseos(...a))
+}
+function abrirQuiero(...a) {
+  return deseosMod ? deseosMod.abrirQuiero(...a) : deseosModulo().then((m) => m.abrirQuiero(...a))
+}
+function ponerVistaDeseos(...a) {
+  return deseosMod ? deseosMod.ponerVistaDeseos(...a) : deseosModulo().then((m) => m.ponerVistaDeseos(...a))
+}
+function cambiarLoQueDoy(...a) {
+  return deseosMod ? deseosMod.cambiarLoQueDoy(...a) : deseosModulo().then((m) => m.cambiarLoQueDoy(...a))
+}
+function ponerMasParaCambio(...a) {
+  return deseosMod ? deseosMod.ponerMasParaCambio(...a) : deseosModulo().then((m) => m.ponerMasParaCambio(...a))
+}
+function pintarLoseta(...a) {
+  return deseosMod ? deseosMod.pintarLoseta(...a) : deseosModulo().then((m) => m.pintarLoseta(...a))
+}
+function compartirLoQueDoy(...a) {
+  return deseosMod ? deseosMod.compartirLoQueDoy(...a) : deseosModulo().then((m) => m.compartirLoQueDoy(...a))
 }
 
-async function abrirQuiero() {
-  const caja = $('mcQuieroPanel')
-  if (!caja) return
-  pintarCatalogoDeDeseo()
-  if (!Array.isArray(deseos)) caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
-  try {
-    await cargarDeseos()
-  } catch (err) {
-    caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-    return
-  }
-  pintarQuiero()
-  // La carta, su precio y tus avisos llegan después y repintan: lo que
-  // quieres casi nunca lo tienes, así que no está en memoria.
-  await completarQuiero()
-  if (pestania === 'quiero') pintarQuiero()
-}
-
-// QUIÉN DE LOS QUE SIGUES LA TIENE (766, DC1): por cada carta de tu lista,
-// la gente a la que sigues que la tiene en su colección pública. Una
-// llamada para toda la lista (`coleccion_seguidos_y_mis_deseos`, migración
-// 766); sin ella, la de la ficha (la 403) carta a carta, solo para las
-// primeras veinte. `null` = no se sabe (la fila no dice nada).
-let seguidosDeQuiero = null
-async function pedirSeguidosQueLaTienen(ids) {
-  if (!ids.length) return new Map()
-  const mapa = new Map()
-  const { data, error } = await supabase.rpc('coleccion_seguidos_y_mis_deseos')
-  if (!error) {
-    for (const f of data || []) mapa.set(f.card_id, [...(mapa.get(f.card_id) || []), f])
-    return mapa
-  }
-  const primeras = ids.slice(0, 20)
-  for (let i = 0; i < primeras.length; i += 4) {
-    const trozo = await Promise.all(primeras.slice(i, i + 4).map((id) => datos.quienLaTiene(id).then((g) => [id, g]).catch(() => [id, null])))
-    for (const [id, g] of trozo) if (g?.length) mapa.set(id, g)
-  }
-  return mapa
-}
-// «La tiene @ana» / «La tienen @ana y 2 más» (de los que sigues).
-export function textoDeSeguidos(gente) {
-  if (!gente?.length) return ''
-  const primero = `@${gente[0].username}`
-  if (gente.length === 1) return `La tiene ${primero}, a quien sigues`
-  return `La tienen ${primero} y ${gente.length - 1} más de los que sigues`
-}
-
-async function completarQuiero() {
-  const ids = [...new Set(deseos.map((d) => d.card_id))]
-  void pedirQuienTiene().then((tiene) => {
-    dantesDeQuiero = dantesPorCarta(tiene)
-    if (pestania === 'quiero') pintarQuiero()
-  }).catch(() => null)
-  void pedirSeguidosQueLaTienen(ids).then((m) => {
-    seguidosDeQuiero = m
-    if (pestania === 'quiero') pintarQuiero()
-  }).catch(() => null)
-  const sinCarta = ids.filter((id) => !cartas.has(id))
-  const sinPrecio = ids.filter((id) => !guardados.has(id))
-  const [nuevas, precios, avisos] = await Promise.all([
-    sinCarta.length ? datos.cartasPorIds(sinCarta, mercado).catch(() => new Map()) : new Map(),
-    sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
-    pedirAvisosDeQuiero(ids).catch(() => null),
-  ])
-  for (const [k, v] of nuevas) cartas.set(k, v)
-  // Lo que no está en el catálogo que miras puede ser del otro (768): la
-  // lista mezcla occidentales y japonesas.
-  const deOtro = sinCarta.filter((id) => !cartas.has(id))
-  if (deOtro.length) for (const [k, v] of await datos.cartasPorIds(deOtro, mercado === 'JP' ? 'WEST' : 'JP').catch(() => new Map())) cartas.set(k, v)
-  for (const [k, v] of precios) guardados.set(k, v)
-  avisosDeQuiero = avisos
-}
-
-// «La quiero» en REJILLA (771). PINGU: «que aparezcan las cartas de la
-// gente». Una baldosa por carta (dos idiomas apuntados son una carta), con
-// en qué idioma la quieres, lo que cuesta, su aviso y QUIÉN LA DA, que sale
-// de los cruces (`intercambios_quien_tiene`). La prioridad se fue: «con que
-// esté en favoritos ya está» —la columna sigue en la base, sin enseñarse—.
-let quieroFiltro = 'todas'
-let dantesDeQuiero = null // card_id → [personas] · null = no se sabe
-export function deseosPorCarta(lista = []) {
-  const m = new Map()
-  for (const d of lista) m.set(d.card_id, [...(m.get(d.card_id) || []), d])
-  return [...m.entries()].map(([card_id, filas]) => ({ card_id, filas }))
-}
-// Quién da cada carta de tu lista, una persona una vez.
-export function dantesPorCarta(tiene = []) {
-  const m = new Map()
-  for (const f of tiene) {
-    const lista = m.get(f.card_id) || []
-    if (!lista.some((p) => p.user_id === f.user_id)) lista.push(f)
-    m.set(f.card_id, lista)
-  }
-  return m
-}
-function pintarQuiero() {
-  const caja = $('mcQuieroPanel')
-  if (!caja || !Array.isArray(deseos)) return
-  const grupos = deseosPorCarta(deseos)
-  const precios = grupos.map((g) => precioDeDeseo(g.filas[0]))
-  const conPrecio = precios.filter((v) => v != null)
-  const suma = conPrecio.reduce((a, v) => a + v, 0)
-  const n = grupos.length
-  const sinPrecio = n - conPrecio.length
-  const dan = (g) => dantesDeQuiero?.get(g.card_id)?.length || 0
-  const conAlguien = dantesDeQuiero ? grupos.filter((g) => dan(g) > 0).length : null
-  const visibles = grupos.map((g, i) => ({ g, precio: precios[i] })).filter(({ g }) =>
-    quieroFiltro === 'todas' || !dantesDeQuiero || (quieroFiltro === 'dan' ? dan(g) > 0 : dan(g) === 0))
-  caja.innerHTML = `
-    ${n
-      ? `<div class="mc-quiero-cabeza">
-          <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
-          <span class="mc-quiero-botones">
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto">${icons.share(16)}<span>Compartir lista</span></button>
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.image(16)}<span>Imagen</span></button>
-          </span>
-        </div>
-        ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
-          <span class="seg" role="group" aria-label="Cuáles">
-            <button type="button" class="seg-btn" data-quiero-filtro="todas" aria-pressed="${quieroFiltro === 'todas'}">Todas</button>
-            <button type="button" class="seg-btn" data-quiero-filtro="dan" aria-pressed="${quieroFiltro === 'dan'}">Las da alguien <span class="mc-deseos-n">${conAlguien}</span></button>
-            <button type="button" class="seg-btn" data-quiero-filtro="nadie" aria-pressed="${quieroFiltro === 'nadie'}">Nadie aún <span class="mc-deseos-n">${n - conAlguien}</span></button>
-          </span>
-        </div>`}`
-      : ''}
-    ${n
-      ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${visibles.map(({ g, precio }) => deseoHtml(g, precio)).join('')}</div>
-         ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de tu lista.' : 'Todas las de tu lista las da alguien.'}</p>`}
-         <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.</p>`
-      : `<div class="mc-quiero-vacio">
-           <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
-           <p><strong>Apunta las cartas que te faltan</strong></p>
-           <p class="subtext">Con el buscador de arriba, con el corazón de cada carta o en el <button type="button" class="link-btn" data-deseos-vista="mercado">Mercado</button>. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
-         </div>`}`
-  engancharQuiero()
-}
-
-let quieroEnganchado = false
-function engancharQuiero() {
-  const caja = $('mcQuieroPanel')
-  if (quieroEnganchado) return
-  quieroEnganchado = true
-  // El buscador vive fuera de lo que se repinta (768): lo que escribes no
-  // se borra cuando llega el precio o quién la tiene.
-  let esperaDeseo = null
-  $('mcDeseoBuscar')?.addEventListener('input', () => {
-    clearTimeout(esperaDeseo)
-    esperaDeseo = setTimeout(buscarParaDesear, 250)
-  })
-  $('mcDeseoAlta')?.addEventListener('click', async (e) => {
-    const m = e.target.closest('[data-deseo-mercado]')
-    if (m) {
-      deseoMercado = m.dataset.deseoMercado
-      pintarCatalogoDeDeseo()
-      return void buscarParaDesear()
-    }
-    const desear = e.target.closest('[data-desear]')
-    if (!desear) return
-    desear.disabled = true
-    // Se pregunta el idioma (771); la japonesa, en japonés.
-    const c = cartas.get(desear.dataset.desear)
-    const puesta = c ? await quererCarta(c) : false
-    if (!puesta) {
-      desear.disabled = false
-      return
-    }
-    // Se queda la búsqueda: lo normal es apuntar varias seguidas.
-    void buscarParaDesear()
-    await completarQuiero()
-    pintarQuiero()
-  })
-  caja.addEventListener('click', async (e) => {
-    if (e.target.closest('[data-ir-cambios]')) return cambiarPestania('cambios')
-    if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
-    if (e.target.closest('#mcQuieroTexto')) return compartirMisListas()
-
-    // El aviso de precio de la fila (K2) es el «Avísame» de la ficha, con
-    // el idioma que buscas y su precio de ahora para proponer el umbral.
-    const avisar = e.target.closest('[data-avisar-deseo]')
-    if (avisar) {
-      const d = deseos.find((x) => x.id === avisar.dataset.avisarDeseo)
-      if (!d) return
-      return abrirAviso({ cardId: d.card_id, market: cartas.get(d.card_id)?.market || mercado, idioma: d.idioma || 'es', precio: precioDeDeseo(d) })
-    }
-
-    const filtro = e.target.closest('[data-quiero-filtro]')
-    if (filtro) {
-      quieroFiltro = filtro.dataset.quieroFiltro
-      return pintarQuiero()
-    }
-    const quien = e.target.closest('[data-ver-quien]')
-    if (quien) return void verQuienDa(quien.dataset.verQuien)
-    // El corazón quita la carta (en todos sus idiomas), como en la ficha.
-    const quitar = e.target.closest('[data-quitar-deseo-carta]')
-    if (quitar) {
-      quitar.disabled = true
-      await quitarDeseosDe(quitar.dataset.quitarDeseoCarta)
-    }
-  })
-  // Al cerrar el diálogo de aviso, la fila dice el aviso que acabas de
-  // poner (o quitar). El diálogo lo crea avisos-precio.js al abrirlo por
-  // primera vez, así que se escucha en el documento: `close` no sube, pero
-  // se ve en la captura.
-  document.addEventListener('close', async (e) => {
-    if (e.target?.id !== 'pvAvisoDialogo' || pestania !== 'quiero' || !Array.isArray(deseos)) return
-    avisosDeQuiero = await pedirAvisosDeQuiero([...new Set(deseos.map((d) => d.card_id))]).catch(() => null)
-    pintarQuiero()
-  }, true)
-}
-
-// Tu lista en una imagen (Y3), para pegarla en un grupo de cambios. El
-// dibujo entra al pulsar.
-// ── DESEOS Y CAMBIOS (763, DC1) ──
-//
-// Las tres vistas van con el mismo selector arriba: «La quiero» y «Las que
-// doy» son dos listas de la misma pestaña, y «Cruces» es la de Cambios
-// (quién encaja contigo). Así se llega a las tres desde cualquiera, sin un
-// menú más.
-let vistaDeseos = 'quiero'
-function ponerVistaDeseos(v) {
-  if (v === 'cruces') return cambiarPestania('cambios')
-  if (v === 'mercado') return cambiarPestania('mercado')
-  vistaDeseos = v
-  if (pestania !== 'quiero') cambiarPestania('quiero')
-  for (const b of document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg [data-deseos-vista]')) b.setAttribute('aria-pressed', String(b.dataset.deseosVista === v))
-  $('mcQuieroPanel')?.classList.toggle('hidden', v !== 'quiero')
-  $('mcDeseoAlta')?.classList.toggle('hidden', v !== 'quiero')
-  $('mcDoyPanel')?.classList.toggle('hidden', v !== 'doy')
-  if (v === 'doy') void pintarDoy()
-}
-
-// «LAS QUE DOY» EN REJILLA (772): tus copias puestas a cambio, cada una con
-// cuántas das de las que tienes (− y +, sin abrir el editor) y QUIÉN LA
-// BUSCA, que es lo que hace que merezca la pena darla. «Poner más para
-// cambio» abre Buscar en modo elegir: tocas una que tengas y se pone una
-// copia más para cambio.
-async function pintarDoy() {
-  const caja = $('mcDoyPanel')
-  if (!caja) return
-  const doy = loQueDoy()
-  const poner = `<button type="button" class="btn-primary mc-doy-poner" id="mcDoyPoner"><span aria-hidden="true">+</span><span>Poner más para cambio</span></button>`
-  if (!doy.length) {
-    caja.innerHTML = `<div class="mc-quiero-vacio">
-        <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
-        <p><strong>Todavía no das ninguna</strong></p>
-        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.${repetidas(...pTodo()).length ? ` Te sobran copias de ${repetidas(...pTodo()).length} ${repetidas(...pTodo()).length === 1 ? 'carta' : 'cartas'}.` : ''}</p>
-        ${poner}
-      </div>`
-    return
-  }
-  const ids = [...new Set(doy.map((l) => l.card_id))]
-  const sinPrecio = ids.filter((id) => !guardados.has(id))
-  let buscan = null
-  try {
-    const [precios, quien] = await Promise.all([
-      sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
-      pedirQuienBusca().catch(() => null),
-    ])
-    for (const [k, v] of precios) guardados.set(k, v)
-    // `null` = no se sabe (sin la migración): la baldosa no dice «nadie».
-    if (quien) buscan = dantesPorCarta(quien)
-  } catch {
-    buscan = null
-  }
-  if (vistaDeseos !== 'doy') return
-  const filas = doy.map((l) => ({ l, c: cartaDeDoy(l), precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null }))
-  const suma = filas.reduce((a, f) => a + (f.precio || 0) * Number(f.l.cambio), 0)
-  const copias = filas.reduce((a, f) => a + Number(f.l.cambio), 0)
-  caja.innerHTML = `<div class="mc-quiero-cabeza">
-      <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
-      <span class="mc-quiero-botones">
-        ${poner}
-        <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir">${icons.share(16)}<span>Compartir lista</span></button>
-      </span>
-    </div>
-    <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>
-    <div class="mc-mercado-rejilla mc-doy-rejilla" id="mcDoyRejilla">${filas.map(({ l, c, precio }) => {
-      const nombre = nombreDe(c) || l.card_id
-      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-      const gente = buscan?.get(l.card_id) || []
-      const das = Number(l.cambio)
-      const tienes = Number(l.cantidad)
-      return `<article class="mc-merc mc-doy-baldosa" data-doy-linea="${escapeHtml(l.id)}">
-        <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
-          <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-          ${gente.length ? `<span class="mc-merc-chapa busca">${gente.length === 1 ? 'La busca 1' : `La buscan ${gente.length}`}</span>` : ''}
-        </a>
-        <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
-        <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
-        <span class="mc-merc-fila">${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto">${escapeHtml(estadoDe(l.estado).nombre)}</span><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b></span>
-        <span class="mc-merc-fila mc-doy-paso">
-          <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
-          <span class="mc-doy-cuantas">Doy ${das} de ${tienes}</span>
-          <button type="button" class="mc-doy-boton" data-doy-mas="${escapeHtml(l.id)}"${das >= tienes ? ' disabled' : ''} aria-label="Dar una más de ${escapeHtml(nombre)}">+</button>
-        </span>
-        ${buscan === null
-          ? ''
-          : gente.length
-            ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-deseos-vista="cruces">${mercadoAvatares(gente)}<span class="mc-merc-texto">Ver en Cruces</span></button>`
-            : '<span class="mc-merc-fila mc-merc-nadie">Nadie la busca aún</span>'}
-        <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
-      </article>`
-    }).join('')}</div>`
-}
-
-// − y + de una baldosa: cuántas copias de esa línea das. Al llegar a 0 la
-// carta sale de la lista (sigue en tu colección).
-async function cambiarLoQueDoy(id, delta) {
-  const l = lineasDeTodas().find((x) => x.id === id)
-  if (!l) return
-  const cambio = Math.max(0, Math.min(Number(l.cantidad) || 0, (Number(l.cambio) || 0) + delta))
-  if (cambio === Number(l.cambio)) return
-  try {
-    const nueva = await datos.actualizar(id, { cambio })
-    cambiarLinea(id, nueva)
-    if (!cambio) showToast('Ya no la das. Sigue en tu colección.', 'success')
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-  alCambiarLoQueDoy()
-  void pintarDoy()
-}
-
-// «Poner más para cambio»: Buscar en modo elegir. Una que tienes pasa a dar
-// una copia más (la línea con más copias libres); una que no tienes no se
-// puede dar, y se dice.
-function ponerMasParaCambio() {
-  elegirCarta({
-    titulo: 'Toca una carta tuya para ponerla a cambio',
-    alElegir: async (c, variante = null) => {
-      const deEsa = lineasDeTodas().filter((l) => l.card_id === c.id && (!c.market || !l.market || l.market === c.market) && (!variante || (l.variante || 'normal') === variante))
-      const mias = deEsa.filter((l) => Number(l.cambio || 0) < Number(l.cantidad || 0))
-        .sort((a, b) => (b.cantidad - (b.cambio || 0)) - (a.cantidad - (a.cambio || 0)))
-      cambiarPestania('quiero')
-      ponerVistaDeseos('doy')
-      if (!mias.length) {
-        showToast(deEsa.length ? 'Ya das todas las copias que tienes de esa.' : 'Esa no la tienes: añádela a tu colección primero.', 'info')
-        return
-      }
-      await cambiarLoQueDoy(mias[0].id, 1)
-      showToast(`${nombreDe(c)}: das ${Number(lineasDeTodas().find((l) => l.id === mias[0].id)?.cambio || 0)}.`, 'success')
-    },
-    alCancelar: () => {
-      cambiarPestania('quiero')
-      ponerVistaDeseos('doy')
-    },
-  })
-}
-
-// La lista en TEXTO (763): para pegarla en un grupo o en una red, que es
-// donde se hacen los cambios de verdad. Sirve para las dos listas.
-export function textoDeLista(titulo, filas) {
-  return [titulo, ...filas.map((f) => `• ${f.nombre}${f.detalle ? ` (${f.detalle})` : ''}${f.cuantas > 1 ? ` ×${f.cuantas}` : ''}`)].join('\n')
-}
-async function compartirTexto(texto, titulo) {
-  try {
-    if (navigator.share) await navigator.share({ title: titulo, text: texto })
-    else {
-      await navigator.clipboard.writeText(texto)
-      showToast('Lista copiada: pégala donde quieras.', 'success')
-    }
-  } catch (err) {
-    if (err?.name !== 'AbortError') showToast('No se ha podido compartir.', 'error')
-  }
-}
-// «Compartir lista» (766, DC1): UN texto con las dos listas —«Busco…» y
-// «Doy…»— y el enlace a tu perfil, que es donde te escriben. Es lo que se
-// pega en un grupo de cambios: quien lo lee ve las dos mitades del trato.
-export function textoDeCambio({ busco = [], doy = [], enlace = '' }) {
-  const partes = []
-  if (busco.length) partes.push(textoDeLista('Busco:', busco))
-  if (doy.length) partes.push(textoDeLista('Doy:', doy))
-  if (enlace) partes.push(`Escríbeme en PokeDoc: ${enlace}`)
-  return partes.join('\n\n')
-}
-function filaDeTexto(c, id, cuantas = 1) {
-  return { nombre: nombreDe(c) || id, detalle: [nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '), cuantas }
-}
-function compartirMisListas() {
-  const busco = (Array.isArray(deseos) ? deseos : []).map((d) => filaDeTexto(cartas.get(d.card_id), d.card_id))
-  const doy = loQueDoy().map((l) => filaDeTexto(cartaDeDoy(l), l.card_id, Number(l.cambio)))
-  if (!busco.length && !doy.length) return showToast('Apunta primero lo que buscas o lo que das.', 'info')
-  const enlace = dueno?.username ? `${location.origin}/usuario/${encodeURIComponent(dueno.username)}` : location.origin
-  return compartirTexto(textoDeCambio({ busco, doy, enlace }), 'Busco y doy')
-}
-const compartirLoQueDoy = compartirMisListas
-
-async function compartirLaQuiero() {
-  const b = $('mcQuieroCompartir')
-  if (b) b.disabled = true
-  try {
-    const { compartirLaQuiero: compartir } = await import('./mi-coleccion/imagen-quiero.js')
-    await compartir({ cartas: deseos.map((d) => ({ carta: cartas.get(d.card_id), idioma: d.idioma })), nombre: dueno?.username || '' })
-  } catch (err) {
-    showToast(err.message || 'No se ha podido hacer la imagen.', 'error')
-  } finally {
-    if (b) b.disabled = false
-  }
-}
-
-// El corazón de la ficha (K1): la carta abierta, pulsado si la quieres.
-function pintarLoseta(id = $('mcEdQuiero')?.dataset.quiero || null) {
-  const b = $('mcEdQuiero')
-  if (!b) return
-  laQuiero.pintarLoseta(b, id, esMia && sesion ? deseos : null)
-}
-
-// La baldosa de lo que quieres (771): la del Mercado, con tu idioma, el
-// precio, el aviso y quién la da. La foto abre la ficha de la carta; «Ver
-// quién» abre la del Mercado, con la lista de personas.
-function deseoHtml(g, precio = precioDeDeseo(g.filas[0])) {
-  const c = cartas.get(g.card_id)
-  const nombre = nombreDe(c) || g.card_id
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const d = g.filas[0]
-  const baja = (avisosDeQuiero?.get(g.card_id) || []).find((a) => a.tipo === 'baja')
-  // Si ya está por debajo de lo que pusiste, se dice (la maqueta K1): el
-  // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
-  const cumple = baja && precio != null && precio <= Number(baja.umbral)
-  const idiomas = g.filas.map((x) => x.idioma).filter(Boolean)
-  const idioma = g.filas.some((x) => !x.idioma)
-    ? '<span class="mc-merc-texto">Cualquier idioma</span>'
-    : `${idiomas.slice(0, 3).map((i) => banderaHtml(i)).join('')}<span class="mc-merc-texto">${escapeHtml(idiomas.map((i) => idiomaDe(i).nombre).join(', '))}</span>`
-  const dan = dantesDeQuiero?.get(g.card_id) || []
-  const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
-  return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}">
-    <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
-      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-      ${dan.length ? `<span class="mc-merc-chapa cruce">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span>` : ''}
-    </a>
-    <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${laQuiero.corazon(16)}</button>
-    <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
-    <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
-    <span class="mc-merc-fila mc-deseo-idioma">${idioma}</span>
-    <span class="mc-merc-fila">
-      <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
-      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya! ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
-    </span>
-    ${dantesDeQuiero === null
-      ? ''
-      : dan.length
-        ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan)}<span class="mc-merc-texto">Ver quién</span></button>`
-        : '<span class="mc-merc-fila mc-merc-nadie">Nadie la da aún · te avisamos</span>'}
-    ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
-  </article>`
-}
-
-// Los avatares de la gente, con el mismo dibujo que el Mercado (el módulo
-// del Mercado entra por `import()`, así que esto no puede pedírselo).
-function mercadoAvatares(gente = [], max = 4) {
-  return `<span class="mc-gente" aria-hidden="true">${gente.slice(0, max).map((p) => `<span class="mc-gente-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(p.display_name || p.username || '?'))}</span>`).join('')}</span>`
-}
-
-// «Ver quién»: la ficha del Mercado de esa carta, desde cualquier vista.
-async function verQuienDa(cardId) {
-  try {
-    mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
-    await mercadoMod.abrirFichaDe(contexto, cardId)
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-}
 
 function repintar() {
   pintarResumen()
@@ -8629,9 +7521,22 @@ async function iniciar() {
     void buscarEnTodo()
   }
 
+  // Los módulos del Panel y de los deseos (895) se piden YA para tu
+  // colección: para cuando lleguen las líneas están cargados y los puentes
+  // pintan en el mismo cuadro (sin saltos). /cartas y las colecciones
+  // ajenas no los bajan.
+  if (esMia) {
+    void panel().catch(() => {})
+    if (sesion) void deseosModulo().catch(() => {})
+  }
   // El Panel de la última vez, ya (894), mientras llegan las líneas: es
   // tuyo, así que la clave te lleva, y solo si es lo que se abre.
-  if (esMia && pestania === 'resumen' && pintarUltimaVista(claveDeVista('panel', dueno.id))) $('mcCargando').classList.add('hidden')
+  if (esMia && pestania === 'resumen' && pintarUltimaVista(claveDeVista('panel', dueno.id))) {
+    $('mcCargando').classList.add('hidden')
+    // La marca que el Panel (panel.js) mira para no pisar esto con el
+    // estado vacío de antes de cargar.
+    for (const id of ['mcResumenPanel', 'mcVistazos']) $(id).dataset.ultimaVista = '1'
+  }
   await cargarColeccion(dueno.id, { primeraVez: true })
   window.addEventListener('resize', () => album.set && pintarAlbum())
 }
@@ -8744,7 +7649,15 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     aviso(`<p>${escapeHtml(err.message)}</p>`)
     return
   }
+  // Los módulos del Panel y de los deseos (895) se esperan AQUÍ, no en cada
+  // puente: la cabecera se pinta con su «cambio del mes» en el mismo cuadro
+  // (si no, llegaba después y la página saltaba). Ya vienen pedidos desde
+  // `iniciar`, así que casi siempre están.
+  // El esqueleto se quita ANTES de esperar nada más: la estantería la pinta
+  // también `cambiarPestania` por su cuenta, y si llega con el esqueleto
+  // aún puesto, aparece debajo y luego salta hacia arriba (la 748 lo mide).
   $('mcCargando').classList.add('hidden')
+  if (esMia) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
   panelFiable = true
   repintar()
   if (pestania === 'album') pintarEstanteria()

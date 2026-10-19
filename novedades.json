@@ -33,6 +33,10 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Retos, en el móvil: los seis en una rejilla de dos columnas, con su estado de hoy; el detalle, al tocar.", "enlace": "/retos"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Glosario: buscador e índice por letra siempre a la vista, y en el móvil cada término plegado a su nombre.", "enlace": "/glosario"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Varios botones responden en el acto en vez de esperar a la base: guardar una guía, marcar el foro como leído, «La quiero», confirmar tu plaza en un torneo y meter cartas en un álbum.", "enlace": "/foro"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El catálogo de cartas y las colecciones de otra gente cargan más ligeros: lo que solo usas en tu colección (el panel, tus deseos y cambios) se baja solo cuando hace falta.", "enlace": "/cartas"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El foro, el meta, las noticias, los lanzamientos, los torneos y el panel de tu colección se abren con lo que viste la última vez ya pintado, y un puntito junto al título avisa de que está pidiendo lo nuevo.", "enlace": "/foro"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El foro y la lista de torneos cargan antes: lo que no depende entre sí se pide a la vez.", "enlace": "/torneos"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "En el móvil, las páginas de lista (Cartas, Foro, Torneos, Meta, Retos, Noticias…) empiezan antes: el título en una línea, sin el párrafo de explicación, los filtros en una fila y el botón principal al lado del título.", "enlace": "/cartas"},

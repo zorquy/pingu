@@ -448,6 +448,25 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Un botón que escribe en la base cambia YA, confirma después y deshace
+  si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
+  marcar leído, guardar una guía, «La quiero», el check-in y meter en un
+  álbum. No se apaga a esperar: se pinta como queda, y si la base dice que
+  no, se vuelve (o se recarga, cuando el estado de verdad es la página
+  entera) con su aviso. Un botón nuevo que escriba algo va así.
+- **Un bloque de pantalla que no usa todo el mundo va en su módulo y
+  entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
+  colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del
+  torneo (`js/torneos/torneo-editor.js`). El estado se comparte por un
+  `ctx` con GETTERS Y SETTERS (nunca por copia: cambia a cada momento) y
+  las funciones del módulo que la pantalla llama siguen en el principal
+  como puentes (`panelMod ? panelMod.f(...a) : panel().then(…)`). Lo que
+  otros necesitan síncrono con su valor se queda en el principal. Al mudar
+  código, las rutas de `import()` cambian de carpeta, y lo que la pantalla
+  pinta sola por otro camino (la estantería desde `cambiarPestania`) no
+  puede llegar con el esqueleto puesto o salta. Pasa `libres.mjs` (los
+  identificadores libres, SCHEMA 895) a cada módulo nuevo: un `...pTodo()`
+  se le escapa a cualquier regex.
 - **Una lista que se abre cada día se pinta primero con lo de la última
   vez** (tanda 894, R2): `js/ultima-vista.js` guarda por id el HTML de unos
   huecos y lo pinta al volver con el punto `html.uv-actualizando` hasta que

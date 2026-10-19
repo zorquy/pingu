@@ -67,7 +67,8 @@
   box-shadow: var(--shadow-ring);
 }
 
-.glosario-termino h2 {
+.glosario-termino h2,
+.glosario-termino > summary h3 {
   font-size: var(--t-lg);
 }
 
@@ -84,4 +85,82 @@
   background: var(--ice);
   color: var(--text-mid);
   font-size: var(--t-xs);
+}
+
+/* ── 896: el índice por letra y el buscador, pegados arriba; los términos
+   como <details> (abiertos en el PC, plegados en el móvil) ── */
+.glosario-mandos {
+  position: sticky;
+  top: 72px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+  padding: var(--e-sm) 0;
+  background: var(--bg);
+}
+.glosario-mandos input {
+  flex: 1 1 220px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+}
+.glosario-letras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.glosario-letras a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-pill);
+  color: var(--navy);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-decoration: none;
+}
+.glosario-letras a:hover { background: var(--ice); }
+.glosario-letras a.glosario-letra-vacia { color: var(--text-dim); }
+.glosario-letra {
+  grid-column: 1 / -1;
+  margin: var(--e-md) 0 0;
+  scroll-margin-top: 140px;
+  font-size: var(--t-lg);
+  color: var(--text-mid);
+}
+.glosario-termino { scroll-margin-top: 140px; }
+.glosario-termino > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.glosario-termino > summary::-webkit-details-marker { display: none; }
+.glosario-termino > summary h3 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+.glosario-termino > summary h3::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: var(--e-sm);
+  border-right: 2px solid var(--text-dim);
+  border-bottom: 2px solid var(--text-dim);
+  transform: rotate(45deg) translateY(-3px);
+}
+.glosario-termino[open] > summary h3::after { transform: rotate(-135deg) translateY(-2px); }
+@media (max-width: 900px) {
+  .glosario-mandos { top: 60px; }
+  .glosario-lista { grid-template-columns: 1fr; gap: var(--e-xs); margin-top: var(--e-sm); }
+  .glosario-termino { padding: var(--e-sm) var(--e-md); }
+  .glosario-termino > summary { min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+  .glosario-termino > summary h3 { font-size: var(--t-md); }
+  .glosario-letras a { min-width: 28px; min-height: 28px; }
+}
+@media (pointer: coarse) {
+  .glosario-letras a { min-width: 44px; min-height: 44px; }
 }

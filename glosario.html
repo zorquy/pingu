@@ -117,10 +117,16 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <header class="cabecera-pagina">
+    <header class="cabecera-pagina cab-lista">
       <h1>Glosario</h1>
-      <p class="subtext">Los términos del juego en español, en inglés y en jerga, con un ejemplo. En las guías y en el foro, los verás subrayados con puntos: tócalos y sale aquí su definición.</p>
+      <p class="subtext cab-lema">Los términos del juego en español, en inglés y en jerga, con un ejemplo. En las guías y en el foro, los verás subrayados con puntos: tócalos y sale aquí su definición.</p>
     </header>
+    <!-- El índice por letra y el buscador (896): la lista de 32 términos
+         medía 7.000 px seguidos. Lo pinta js/glosario.js. -->
+    <div class="glosario-mandos" id="glosarioMandos">
+      <input type="search" enterkeyhint="search" id="glosarioBuscar" placeholder="Buscar un término…" aria-label="Buscar en el glosario" autocomplete="off" />
+      <nav class="glosario-letras" id="glosarioLetras" aria-label="Por letra"></nav>
+    </div>
     <div class="glosario-lista" id="glosarioLista"></div>
   </main>
 

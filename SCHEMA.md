@@ -41785,6 +41785,144 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 896 — Pantallas cortas y botones que cambian antes de que conteste la base
+
+I5 y R6 de la propuesta «Rápida y limpia» («adelante con ello»). Sin
+migración.
+
+**Pantallas cortas (I5).**
+- **/retos** en el móvil: los seis retos en una rejilla de dos columnas
+  —dibujo, nombre y estado; el detalle, al tocar—. Cada reto era una
+  tarjeta entera con captura, párrafo y chips, y la página medía 3.100 px;
+  ahora 1.650. Es CSS en `retos.css` (≤ 760 px): el arte a 88 px con su
+  dibujo a escala, el párrafo y los chips fuera, el botón a 44.
+- **/glosario**: índice de letras y buscador pegados arriba
+  (`glosario-mandos`, `position: sticky`), y cada término es un
+  `<details>`: abierto en el PC (hay sitio) y plegado a su nombre en el
+  móvil (eran 7.000 px seguidos; ahora 4.000). Buscar filtra por nombre,
+  inglés, alias y definición, abre lo que casa y esconde las letras sin
+  nada; vaciar devuelve la lista. Llegar por ancla (`#sir`, que es como
+  enlazan el globo de las guías y el foro) abre ese término —y el selector
+  va `#${CSS.escape(hash.slice(1))}`, no `CSS.escape('#sir')`, que escapa
+  la almohadilla y no casa con nada—. Las letras son `<h2>` y los términos
+  `<h3>`; la cabecera lleva `cab-lista`/`cab-lema` como las listas (893).
+- **/comunidad** en el móvil: la gente primero y las cuatro cifras al
+  final (`order` sobre `.page-content:has(> .com-cifras)` en columna).
+
+**Botones que cambian ya (R6): cambia ya, confirma después, deshaz si
+falla.** Es lo que ya hacía «Seguir» un hilo. Se aplica a:
+- **«Marcar todo como leído»** (foro): los puntos, las chapas de «nuevo»
+  y el botón se van en el acto; la base lo confirma detrás. Si dice que
+  no, se recarga —que es el estado de verdad— con su aviso. Antes el botón
+  se apagaba, esperaba y recargaba.
+- **«Guardar» una guía**: el marcador se pinta como queda en el acto
+  (`pintarGuardada`) y se deshace si la escritura falla; antes se
+  esperaban dos consultas antes de cambiar el dibujo.
+- **«La quiero»** (`deseos.js`): al elegir el idioma la carta entra en
+  `ctx.deseos` como fila PROVISIONAL y se repintan cuentas, loseta y lista;
+  cuando llega la de verdad la sustituye, y si falla se quita. Quitar el
+  corazón saca las filas primero y las devuelve si la base no borra.
+- **El check-in del torneo**: el botón dice «Participación confirmada» y
+  se apaga al pulsar; si la base no lo confirma, vuelve a como estaba con
+  el aviso de siempre.
+- **Meter las marcadas en un álbum**: el diálogo se cierra y se sale del
+  modo marcar en el acto; el resultado («3 cartas a «X» · 1 ya estaba»)
+  llega después como aviso. Añadir una carta a un álbum desde el propio
+  álbum ya era así (`guardarLuego`, 760).
+
+**Prueba 896**: lo estático; en el iPhone los retos en parejas y la
+comunidad con la gente antes; el glosario (plegado, índice pegado, buscar
+filtra y abre, vaciar devuelve, la ancla abre; abierto en el PC); y con el
+doble tardando (`__FAKE_RETRASO__`), «Guardar» cambia a los 150 ms y se
+queda, y «Marcar todo como leído» quita puntos y botón a los 150 ms.
+
+**Ficheros**: `css/retos.css`, `css/comunidad.css`, `glosario.html`,
+`js/glosario.js`, `css/glosario.css`, `js/foro.js`, `js/guia.js`,
+`js/mi-coleccion/deseos.js`, `js/torneos/torneo.js`, `js/mi-coleccion.js`.
+
+## Tanda 895 — Mi colección y la ficha de torneo, partidas por bloques
+
+R4 de la propuesta «Rápida y limpia» («adelante con ello»). Sin migración.
+Mucho código que mover, poco que inventar; lo que se inventó fue la forma
+de moverlo sin romperlo.
+
+**Lo que había.** `js/mi-coleccion.js` pesaba 146 KB gzip y lo bajaba
+también /cartas (el catálogo público, que es la misma pantalla en modo
+catálogo) y la colección de cualquier otra persona: el Panel entero (los
+vistazos, las que más se mueven, el cambio del mes, el valor en el tiempo)
+y los deseos (La quiero, Las que doy, Cambios, el Mercado) iban dentro
+aunque solo los usa quien abre SU colección. Y `js/torneos/torneo.js`
+(36 KB) llevaba el editor del torneo, que solo abre quien lo lleva.
+
+**Lo que hay.**
+- `js/mi-coleccion/panel.js` (12 KB gzip): `pintarResumenPanel`,
+  `pintarVistazos`, `pintarMovidas`, `pintarCambioDelMes`,
+  `pintarValorEnElTiempo` y lo suyo.
+- `js/mi-coleccion/deseos.js` (14 KB): `abrirQuiero`, `abrirCambios`,
+  `abrirMercado`, `cargarDeseos`, `pintarCuentasDeDeseos`, `quererCarta`…
+- `js/torneos/torneo-editor.js` (8 KB): el editor entero (`pintarEditor`,
+  `guardarEdicion`, los premios, las jornadas), que entra al pulsar
+  «Editar».
+- `js/mi-coleccion.js` queda en 125 KB y `torneo.js` en 29.
+
+**Cómo se comparten el estado (el patrón, para la próxima vez).** Los
+módulos no copian las variables de la pantalla: las leen y escriben a
+través de un `ctx` que mi-coleccion.js arma con GETTERS Y SETTERS
+(`ctxPanel`, `ctxDeseos`: `get lineas() { return lineas }`, `set lineas(x)
+{ lineas = x }`…) y con las funciones de allí que necesitan. Una copia se
+quedaría con el valor de cuando se montó, y `lineas`, `deseos` o `pestania`
+cambian a cada momento. Lo que solo usa el bloque (sus `let` privados) se
+va con él. Las funciones de los módulos que la pantalla llama siguen
+existiendo en mi-coleccion.js como PUENTES: `function pintarVistazos(...a)
+{ return panelMod ? panelMod.pintarVistazos(...a) : panel().then((m) =>
+m.pintarVistazos(...a)) }` — síncronos cuando el módulo ya está, que es lo
+normal, y una promesa la primera vez. Lo que OTROS necesitan síncrono con
+su valor (`precioDeDeseo`, que el Mercado llama por `contexto`;
+`iniciarMercadoSinCuenta`) se queda en el principal.
+
+El editor del torneo va con el patrón más simple (su estado no cambia
+mientras se edita): `contextoDelEditor()` le pasa el torneo, la sesión, las
+inscripciones, las jornadas y `recargar`/`avisarError`, y el módulo los
+copia al abrir (`sincronizar`); el torneo es el MISMO objeto, así que lo
+que el editor cambia la ficha lo ve.
+
+**Tres cosas que costaron.**
+- **Tu colección pide los dos módulos al arrancar** (`iniciar`, si
+  `esMia`) y `cargarColeccion` los ESPERA antes del primer `repintar`: si
+  no, la cabecera se pintaba sin su «cambio del mes» y lo añadía después
+  —un salto que la 748 mide—. El esqueleto (`mcCargando`) se quita ANTES
+  de esa espera: la estantería la pinta también `cambiarPestania` por su
+  cuenta y, con el esqueleto aún puesto, aparecía debajo y luego saltaba.
+- **El Panel no pisa la última vista (894)**: los puentes llegan en
+  diferido, después de que `iniciar` pinte lo guardado, y el
+  `pintarResumenPanel` de antes de cargar escribía encima el «todavía no
+  has añadido ninguna carta». Con `panelFiable` y la marca
+  `data-ultima-vista` se espera a la colección.
+- **Las rutas de `import()` cambian de carpeta**: `./mi-coleccion/x.js`
+  pasa a `./x.js` y `./x.js` a `../x.js`; la primera versión los reescribió
+  dos veces y `pokedex.js` se pidió en `js/` (404 y el Panel a medias).
+
+**La herramienta.** El corte lo hizo un guion con el AST (acorn, el de
+eslint que ya está en el contenedor): toma un rango de líneas, decide qué
+`let` se van con el bloque y cuáles se comparten, reescribe cada referencia
+al estado compartido como `ctx.x` (solo identificadores de verdad: ni
+propiedades, ni claves, ni lo sombreado por un parámetro o un `const`
+local), arma los imports del módulo y los puentes del principal. Vive en
+el scratchpad de la sesión (`partir.mjs`, `libres.mjs` —los identificadores
+libres de un módulo, que es lo que cazó `pTodo` escrito como `...pTodo()`,
+que un `(?<![.\w$])` no ve detrás de tres puntos—); si hace falta otra
+vez, se vuelve a escribir en una hora con lo de arriba.
+
+**Pruebas al día**: 351, 352, 367 (leen torneo.js + torneo-editor.js),
+524, 662, 798, 869 (leen el módulo donde ahora vive lo que miran).
+Prueba nueva: 895 (lo estático, quién baja qué —/cartas y una colección
+ajena no bajan los módulos; la tuya sí—, el Panel y La quiero por los
+puentes, el editor al pulsar).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/panel.js` (nuevo),
+`js/mi-coleccion/deseos.js` (nuevo), `js/torneos/torneo.js`,
+`js/torneos/torneo-editor.js` (nuevo).
+
 ## Tanda 894 — Lo último que viste, pintado ya; y consultas en paralelo
 
 R2 y R3 de la propuesta «Rápida y limpia» (artifact KHxCQmjk4tps8oED9867dN;

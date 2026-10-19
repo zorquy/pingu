@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (129) — PINGU-Claude (896 — pantallas cortas y botones que cambian ya)
+
+**Hecho** (I5 y R6 de «Rápida y limpia»): /retos en el móvil en rejilla
+de dos columnas (3.100 → 1.650 px); /glosario con índice de letras y
+buscador pegados arriba y los términos plegados en el móvil (7.000 →
+4.000 px); /comunidad con la gente antes que las cifras. Y cinco botones
+que cambian en el acto y deshacen si falla: «Marcar todo como leído»,
+«Guardar» una guía, «La quiero» (poner y quitar), el check-in del torneo y
+meter las marcadas en un álbum.
+
+**Ficheros**: `css/retos.css`, `css/comunidad.css`, `glosario.html`,
+`js/glosario.js`, `css/glosario.css`, `js/foro.js`, `js/guia.js`,
+`js/mi-coleccion/deseos.js`, `js/torneos/torneo.js`, `js/mi-coleccion.js`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 896 (nueva), y 792, 865, 312, 835, 843, 871, 873, 787, 847,
+299, 313, 310 en verde.
+
+**Pendiente**: 897 (la página desde la caché, atada al despliegue), la
+última de la propuesta. Y lo de la 122.
+
+## 2026-10-19 (128) — PINGU-Claude (895 — Mi colección y la ficha de torneo, partidas por bloques)
+
+**Hecho** (R4 de «Rápida y limpia»): el Panel (`js/mi-coleccion/panel.js`,
+12 KB gzip) y los deseos (`js/mi-coleccion/deseos.js`, 14 KB) salen de
+`js/mi-coleccion.js` (146 → 125 KB) y entran por `import()`: /cartas y las
+colecciones ajenas ya no los bajan; la tuya los pide al arrancar. El
+editor del torneo (`js/torneos/torneo-editor.js`, 8 KB) sale de
+`torneo.js` (36 → 29) y entra al pulsar «Editar». El estado se comparte
+por `ctx` con getters y setters y las funciones siguen en el principal
+como puentes (síncronos cuando el módulo ya está). El porqué y el patrón,
+en SCHEMA 895.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/panel.js`,
+`js/mi-coleccion/deseos.js`, `js/torneos/torneo.js`,
+`js/torneos/torneo-editor.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+**Pruebas**: 895 (nueva) y el subconjunto de Mi colección y torneos (239,
+en carriles): resultado abajo, en esta misma entrada. Al día: 351, 352,
+367, 524, 662, 798, 869.
+
+**Pendiente**: 896 y 897 de la propuesta. Y lo de la 122.
+
 ## 2026-10-19 (127) — PINGU-Claude (894 — lo último que viste, pintado ya; consultas en paralelo)
 
 **Hecho** (R2 y R3 de «Rápida y limpia»): `js/ultima-vista.js` guarda en

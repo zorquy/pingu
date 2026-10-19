@@ -121,17 +121,19 @@ function chapaNuevosHtml(nuevos) {
 function engancharMarcarTodo() {
   document.getElementById('btnMarcarLeido')?.addEventListener('click', async (e) => {
     const boton = e.currentTarget
-    boton.disabled = true
+    // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): los puntos, las
+    // chapas de «nuevo» y el botón se van en el acto; la base lo confirma
+    // detrás. Si dice que no, se recarga —que es el estado de verdad— con
+    // su aviso. Antes el botón se apagaba, esperaba y recargaba.
+    boton.remove()
+    for (const el of document.querySelectorAll('.foro-punto-nuevo, .foro-chapa-nuevos')) el.remove()
+    for (const f of document.querySelectorAll('.foro-fila-nueva')) f.classList.replace('foro-fila-nueva', 'foro-fila-leida')
+    for (const t of document.querySelectorAll('.foro-tema-nuevo')) t.classList.replace('foro-tema-nuevo', 'foro-tema-leido')
+    for (const a of document.querySelectorAll('.foro-subforo-nuevo')) a.classList.remove('foro-subforo-nuevo')
     const ok = await marcarTodoLeido(sesion.user.id)
-    if (!ok) {
-      boton.disabled = false
-      showToast('No se ha podido marcar como leído.')
-      return
-    }
-    // Se recarga en vez de repintar a mano: la marca afecta al índice, a
-    // la lista de temas y a los puntos de cada fila, y recargar deja
-    // todo coherente sin tres caminos distintos que mantener.
-    window.location.reload()
+    if (ok) return
+    showToast('No se ha podido marcar como leído.')
+    setTimeout(() => window.location.reload(), 900)
   })
 }
 

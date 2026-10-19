@@ -773,3 +773,9 @@
   /* `display: block` del span de arriba le gana al `cab-largo` común. */
   .com-cifra .cab-largo { display: none; }
 }
+
+/* ── 896: en el móvil la gente va primero y las cifras al final (I5) ── */
+@media (max-width: 900px) {
+  .page-content:has(> .com-cifras) { display: flex; flex-direction: column; }
+  .com-cifras { order: 10; margin: var(--e-lg) 0 0; }
+}
