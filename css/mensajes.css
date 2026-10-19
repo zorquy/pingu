@@ -654,7 +654,14 @@
   }
 }
 
-/* El velo de arrastrar una imagen al hilo (PC). */
+/* El velo de arrastrar una imagen al hilo (PC). Un `display` en la clase le
+   gana al atributo `hidden` (la 473 con otro traje): la regla de abajo lo
+   esconde de verdad. */
+.msg-arrastre[hidden],
+.msg-adjuntos[hidden] {
+  display: none;
+}
+
 .msg-arrastre {
   position: fixed;
   inset: 88px var(--e-md) 120px;

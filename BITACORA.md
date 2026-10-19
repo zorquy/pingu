@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (123) — PINGU-Claude (891b — el velo de arrastrar tapaba el hilo)
+
+**Hecho** (PINGU, captura: «cuando abro un mensaje sale esto», con el velo
+«Suelta la imagen para adjuntarla» encima de todo): `.msg-arrastre` y
+`.msg-adjuntos` llevan `display: flex` en la clase, que le gana al atributo
+`hidden` (la 473 con otro traje). Regla `[hidden] { display: none }` para
+los dos, y la prueba comprueba que ninguno se ve al abrir.
+
+**Ficheros**: `css/mensajes.css`, `BITACORA.md`.
+
+**Pruebas**: 891 (con la comprobación nueva; los separadores por día se
+calculan con la función pura, que pasada la medianoche «hace 60 min» es
+ayer) y 299 en verde.
+
+**Pendiente**: lo de la 122 (la migración 891).
+
 ## 2026-10-18 (122) — PINGU-Claude (891 — mensajes privados con fotos)
 
 **Hecho** (PINGU: «mejora los mensajes privados y mete adjuntar imágenes»;
