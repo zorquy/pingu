@@ -26,7 +26,7 @@ console.log('── 0. Lo estático ──')
   const sinGlosario = conMenu.filter((f) => (readFileSync(`${RAIZ}/${f}`, 'utf8').match(/href="\/glosario">Glosario<\/a>/g) || []).length < 3)
   check(`«Glosario» va detrás de «Guardados» en el menú de Aprender (PC y móvil) y en el pie de las ${conMenu.length} páginas`, conMenu.length >= 40 && sinGlosario.length === 0, sinGlosario.join(', '))
   const html = readFileSync(`${RAIZ}/aprender.html`, 'utf8')
-  check('la cabecera de /aprender es el título y el medallero, sin texto de bienvenida', /<div class="page-header ap-cab">\s*<h1>Aprender<\/h1>\s*<a class="medallero hidden" id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
+  check('la cabecera de /aprender es el título y el medallero, sin texto de bienvenida', /<div class="page-header ap-cab cab-lista">\s*<h1>Aprender<\/h1>\s*<a class="medallero hidden" id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
 }
 
 const browser = await chromium.launch()

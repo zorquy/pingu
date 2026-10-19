@@ -97,7 +97,9 @@ console.log('── 4. Las demás secciones, y una página que no está en ning�
   const { page, ctx } = await abrir('/torneos.html')
   const bj = await page.$eval('.bm-burbuja', (e) => ({ items: [...e.querySelectorAll('a')].map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')), desborda: e.scrollWidth > e.clientWidth + 2, clase: e.classList.contains('desborda-derecha'), ancho: Math.round(e.getBoundingClientRect().width), vw: window.innerWidth }))
   check('Torneos: Jugar activa, y la burbuja lleva las siete páginas de Jugar con Torneos activa', (await barra(page)).some((x) => x.startsWith('Jugar*:')) && bj.items[0] === 'Torneos*' && bj.items.includes('Meta') && bj.items.includes('Constructor') && bj.items.length === 7, JSON.stringify(bj))
-  check('  …no caben siete: la burbuja se desliza a un lado y lo insinúa con el degradado', bj.desborda && bj.clase && bj.ancho <= bj.vw - 32, JSON.stringify(bj))
+  // Desde la 893 (solo iconos) las siete CABEN en un iPhone; si no cupieran,
+  // seguiría deslizándose y diciéndolo con el degradado.
+  check('  …las siete caben sin salirse (893); y si no cupieran, se deslizaría con el degradado', bj.ancho <= bj.vw - 32 && (!bj.desborda || bj.clase), JSON.stringify(bj))
   await ctx.close()
   const f = await abrir('/foro.html')
   check('Foro: Comunidad activa, con burbuja Foro (activa) y Gente', (await barra(f.page)).some((x) => x.startsWith('Comunidad*:')) && (await f.page.$$eval('.bm-burbuja a', (as) => as.map((a) => a.textContent.trim() + (a.getAttribute('aria-current') ? '*' : '')))).join() === 'Foro*,Gente')
