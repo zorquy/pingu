@@ -51,12 +51,17 @@ export function llavesQueFaltan(env = process.env) {
   return LLAVES.filter((k) => !String(env[k] || '').trim())
 }
 
+// Recortadas: un espacio o un salto de línea pegado con la clave en
+// Netlify da un 401 que no dice nada, y no se ve en la pantalla de las
+// variables. Unas comillas alrededor, lo mismo.
+const limpia = (v) => String(v ?? '').trim().replace(/^["']|["']$/g, '')
+
 export function clavesDe(env = process.env) {
   return {
-    apiKey: env.X_API_KEY,
-    apiSecret: env.X_API_SECRET,
-    accessToken: env.X_ACCESS_TOKEN,
-    accessSecret: env.X_ACCESS_SECRET,
+    apiKey: limpia(env.X_API_KEY),
+    apiSecret: limpia(env.X_API_SECRET),
+    accessToken: limpia(env.X_ACCESS_TOKEN),
+    accessSecret: limpia(env.X_ACCESS_SECRET),
   }
 }
 

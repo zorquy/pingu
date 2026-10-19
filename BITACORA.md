@@ -33,6 +33,11 @@ de X tal cual si algo falla. Hasta entonces la función no hace nada.
 **Pruebas**: 902 (nueva); 312, 299, 649, 753, 880, 280, 305, 737, 829 e
 imports pasadas.
 
+**Remate** (mismo día): PINGU probó el botón y X contestó 401; las
+cuatro claves se recortan (espacios, saltos, comillas) por si el fallo
+es de pegar. Lo más probable es el orden: regenerar la Consumer Key
+invalida el Access Token anterior.
+
 **Pendiente**: 903 (Instagram), 904–906 (propuesta «PokeDoc en X e
 Instagram»). Lo de la 122. Contestar a soyfedeegb (900) y al del Kakuna.
 
