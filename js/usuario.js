@@ -215,11 +215,24 @@ async function loadFollowButton() {
   render()
 
   btn.onclick = async () => {
-    btn.disabled = true
-    if (isFollowing) {
-      await supabase.from('user_follows').delete().eq('follower_id', currentSession.user.id).eq('following_id', profileId)
-    } else {
-      await supabase.from('user_follows').insert({ follower_id: currentSession.user.id, following_id: profileId })
+    // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (899, R6): el botón y la
+    // cuenta de seguidores cambian en el acto; la base confirma por detrás.
+    const antes = isFollowing
+    isFollowing = !antes
+    render()
+    const cuenta = document.getElementById('followersCount')
+    if (cuenta) cuenta.textContent = String(Math.max(0, (Number(cuenta.textContent) || 0) + (isFollowing ? 1 : -1)))
+    const { error } = antes
+      ? await supabase.from('user_follows').delete().eq('follower_id', currentSession.user.id).eq('following_id', profileId)
+      : await supabase.from('user_follows').insert({ follower_id: currentSession.user.id, following_id: profileId })
+    if (error) {
+      isFollowing = antes
+      render()
+      showToast('No se ha podido guardar: ' + error.message, 'error')
+      await loadFollowSummary()
+      return
+    }
+    if (!antes) {
       const follower = await getProfile(currentSession.user.id)
       await createNotification({
         recipientId: profileId,
@@ -230,9 +243,6 @@ async function loadFollowButton() {
         link: follower ? profileUrl(follower) : '/usuarios.html',
       })
     }
-    isFollowing = !isFollowing
-    render()
-    btn.disabled = false
     await loadFollowSummary()
   }
 }

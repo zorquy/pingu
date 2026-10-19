@@ -41785,6 +41785,98 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 900 — El precio de la pestaña Cambios es el de la ficha
+
+PINGU (y soyfedeegb en el foro, #3 de «Cartas buscadas en perfil de
+usuario»): «en el perfil, en la parte de cambios salen unos precios pero
+no son los precios reales». Terrakion de Boundaries Crossed: 14,90 € en la
+pestaña, 230 € en la ficha (mínimo en español).
+
+**Lo que pasaba.** `preciosDe` en `js/perfil-cambios.js` pedía
+`tcg_card_prices.cm_low` a secas y lo pintaba: es el mínimo de Cardmarket
+ENTRE TODOS LOS IDIOMAS (ahí entra la italiana a 40 € o una reverse
+suelta), que no es lo que enseña la ficha ni lo que vale la copia (588 y
+589: «el valor de una copia es el mínimo de SU idioma»). Dos pantallas
+con dos números para la misma carta, sin error.
+
+**Lo que se hace.** La fila entera (`select('*')`) montada con
+`precioDeFila`, y cada baldosa pide `valorDe(precio, idioma)` con el
+idioma de la copia —el primero si da varios— o el de la ficha por defecto
+(español) si no hay idioma apuntado; con los mismos respaldos que
+`precio-vista` (sin precio en ese idioma, el general; luego TCGplayer).
+`precioDeFilaDeCambio(precios, f)` lo hace para las dos rejillas.
+
+**Prueba 900**: lo estático y, en el perfil de otra persona, tres cartas
+con precios distintos por idioma: la que da en español vale lo español
+(230, no 14,90), la que no tiene precio en su idioma cae al general, y la
+que busca en inglés vale lo inglés.
+
+**Ficheros**: `js/perfil-cambios.js`.
+
+## Tanda 899 — Ocho botones que responden ya (la segunda tanda de R6)
+
+Lo que quedaba de R6 (artifact 6k9dNf1CkkVCTh214B5E1B, «dale como veas»).
+El patrón de la 896 —cambia ya, confirma después, deshaz si falla— en los
+botones que más se tocaban y seguían apagándose a esperar:
+
+- **Seguir / Dejar de seguir** (`usuario.js`): el botón y la cuenta de
+  seguidores cambian en el acto; si la base falla, vuelven con su aviso y
+  `loadFollowSummary` repone las cifras.
+- **Responder en un hilo** (`tema.js`): la respuesta entra al final de la
+  lista como `<article class="foro-mensaje foro-mensaje-mio
+  foro-mensaje-enviando">` (atenuada, «enviando…», `aria-busy`) con tu
+  avatar y nombre (`perfilesPorId`), y el cuadro se vacía; `pintarMensajes`
+  la sustituye por la de verdad (y `provisional.remove()` por si el
+  repintado no se la llevó). Si falla, se quita y el HTML vuelve al cuadro
+  con la cita que llevara (`escrito`).
+- **Apuntar una partida** (`mis-partidas.js`): la normalización de una
+  fila de `match_log` es ahora `apuntadaDeFila`, y con ella la partida
+  recién escrita entra arriba de `todas` como provisional
+  (`.partidas-fila-provisional`, atenuada) y `repintar()` la suma al
+  resumen antes de que conteste la base; si falla, se quita y el formulario
+  sigue con lo escrito (no se vacía hasta confirmar).
+- **La quiero** en /carta y en la ficha de Mi colección (`la-quiero.js`):
+  `alternar` recibe `alCambiar(lista)` y lo llama con la lista provisional
+  —sin los deseos al quitar, con uno `provisional: true` al poner, después
+  de elegir idioma— y quien llama pinta la loseta con ella; si lanza, se
+  repinta con la de antes. El Mercado (`mercado.js`) deja de apagar la
+  baldosa: `quererCarta` y `quitarDeseosDe` ya eran optimistas (896).
+- **Aviso de precio** (`avisos-precio.js`): entra en «Tus avisos de esta
+  carta» como `.pv-aviso-provisional` (con el título si no lo había); si
+  falla, se quita.
+- **Cambio hecho** (`cambio-boton.js`): el paso siguiente se pinta ya
+  (marcar → «esperando», confirmar → «¿qué tal fue?», valorar → «hecho»)
+  y la base repinta lo de verdad; si falla, vuelve lo de antes con el
+  error debajo. La nota de «hubo un problema» se pide ANTES de pintar.
+- **Salir / volver a la liga de retos** (`retos-comunidad.js`): el
+  interruptor ya no se apaga.
+- **Aceptar / descartar una sugerencia** (`perfil.js`): se va de la lista
+  ya y vuelve a su sitio si falla.
+
+Fuera a propósito: inscribirse a un torneo (la base decide plaza o lista
+de espera), borrar y mandar a Telegram.
+
+**Prueba 899.** Lo estático y, con el doble tardando 1,5 s
+(`__FAKE_RETRASO__`), lo que hay a los 200 ms del toque: «Dejar de seguir»
+y un seguidor más; la respuesta abajo atenuada con el cuadro vacío y, al
+confirmar, la de verdad en su sitio; el corazón quitado sin apagarse; el
+aviso en la lista atenuado y luego de verdad con su papelera; la partida
+arriba atenuada con el resumen sumándola y luego de verdad. Y con el doble
+fallando (`__FAKE_FALLA__`): seguir vuelve con su aviso, y la respuesta se
+quita y el texto vuelve al cuadro. Lo que enseñó: **el cuadro de responder
+es un editor COMPACTO que crece al tener el foco**, así que pulsar
+«Responder» sin haberlo tocado lo enfoca con el `mousedown`, el editor
+crece y el botón se va de debajo del ratón: el clic cae en el formulario
+y no envía nada (dos horas de «el clic no hace nada»). La prueba escribe
+como la gente: enfoca el cuadro primero. Y el botón de apuntar vive en la
+barra de SU pestaña (las sueltas), que no es la primera.
+
+**Ficheros**: `js/usuario.js`, `js/tema.js`, `css/foro.css`,
+`js/mis-partidas.js`, `css/partidas.css`, `js/la-quiero.js`,
+`js/carta-mercado.js`, `js/mi-coleccion.js`, `js/mi-coleccion/mercado.js`,
+`js/avisos-precio.js`, `css/cardmarket.css`, `js/cambio-boton.js`,
+`js/retos-comunidad.js`, `js/perfil.js`.
+
 ## Tanda 898 — La hoja de filtros de Cartas, en cuatro bloques
 
 La I5 de «Rápida y limpia» que se quedó fuera (artifact

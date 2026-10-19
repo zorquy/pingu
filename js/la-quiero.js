@@ -44,15 +44,21 @@ export function pintarLoseta(boton, cardId, deseos) {
 // tocan solo los de `cardId`.
 // `carta` dice el catálogo y el nombre que pregunta la ventana del idioma;
 // si se cancela, la lista vuelve igual.
-export async function alternar({ userId, cardId, deseos, carta = null }) {
+// `alCambiar(lista)` recibe la lista PROVISIONAL en el acto (899, R6): quien
+// llama pinta con ella antes de que la base conteste; si falla, se lanza y
+// quien llama vuelve a pintar con la de antes.
+export async function alternar({ userId, cardId, deseos, carta = null, alCambiar = () => {} }) {
   const suyos = deseos.filter((d) => d.card_id === cardId)
   if (suyos.length) {
+    const sin = deseos.filter((d) => d.card_id !== cardId)
+    alCambiar(sin)
     for (const d of suyos) await borrarDeseo(d.id)
     showToast('Quitada de «La quiero».', 'success')
-    return deseos.filter((d) => d.card_id !== cardId)
+    return sin
   }
   const idioma = await preguntarIdioma({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST' })
   if (idioma === undefined) return deseos
+  alCambiar([{ id: `provisional-${Date.now()}`, user_id: userId, card_id: cardId, idioma, provisional: true }, ...deseos])
   const d = await anadirDeseo({ user_id: userId, card_id: cardId, idioma })
   showToast('En «La quiero». Si alguien la da, te saldrá en Cruces.', 'success')
   return [d, ...deseos]

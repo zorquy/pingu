@@ -6175,13 +6175,13 @@ function enganchar() {
     const b = $('mcEdQuiero')
     const id = b.dataset.quiero
     if (!id || !Array.isArray(deseos)) return
-    b.disabled = true
+    // La loseta cambia ya (899); si la base dice que no, vuelve.
+    const antes = deseos
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null, alCambiar: (d) => { deseos = d; pintarLoseta(id) } })
     } catch (err) {
+      deseos = antes
       showToast(err.message, err.yaEstaba ? 'info' : 'error')
-    } finally {
-      b.disabled = false
     }
     pintarLoseta(id)
     if (pestania === 'quiero') void abrirQuiero()

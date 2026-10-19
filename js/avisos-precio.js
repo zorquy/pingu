@@ -81,11 +81,22 @@ async function guardar() {
   if (!(umbral > 0)) { showToast('Pon un precio mayor que cero.'); return }
   const { data: { session } = {} } = await supabase.auth.getSession()
   if (!session) { showToast('Entra con tu cuenta para pedir avisos.'); return }
-  $('pvAvisoGuardar').disabled = true
+  // EL AVISO ENTRA EN LA LISTA YA (899, R6), atenuado hasta que la base
+  // conteste; si dice que no, se quita.
+  const lista = $('pvAvisoLista')
+  const fila = document.createElement('div')
+  fila.className = 'pv-aviso-fila pv-aviso-provisional'
+  fila.setAttribute('aria-busy', 'true')
+  fila.innerHTML = `<span>${tipo === 'baja' ? 'Si baja de' : 'Si sube de'} <b>${escapeHtml(euros(umbral))}</b> · ${escapeHtml(idiomaDe(abierto.idioma || 'es').nombre.toLowerCase())}</span>`
+  if (lista) {
+    if (!lista.querySelector('.pv-aviso-lista-titulo')) lista.insertAdjacentHTML('afterbegin', '<p class="pv-aviso-lista-titulo">Tus avisos de esta carta</p>')
+    lista.querySelector('.pv-aviso-lista-titulo').after(fila)
+  }
   const { error } = await supabase.from('user_price_alerts').insert({ user_id: session.user.id, card_id: abierto.cardId, market: abierto.market || 'WEST', idioma: abierto.idioma || 'es', tipo, umbral })
-  $('pvAvisoGuardar').disabled = false
   if (error) {
-    showToast(sinMigracion(error) ? 'Falta ejecutar supabase-migration-avisos-precio.sql en Supabase.' : `No se ha podido guardar: ${error.message}`)
+    fila.remove()
+    if (lista && !lista.querySelector('.pv-aviso-fila')) lista.innerHTML = ''
+    showToast(sinMigracion(error) ? 'Falta ejecutar supabase-migration-avisos-precio.sql en Supabase.' : `No se ha podido guardar: ${error.message}`, 'error')
     return
   }
   showToast(`Aviso puesto: te avisaré si ${tipo === 'baja' ? 'baja de' : 'sube de'} ${euros(umbral)}.`, 'success')

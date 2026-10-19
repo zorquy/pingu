@@ -491,16 +491,19 @@ function abrirSugerencias(guia, lista, session) {
         const id = btn.dataset.aceptar || btn.dataset.descartar
         const acepta = !!btn.dataset.aceptar
         const s = lista.find((x) => x.id === id)
-        btn.disabled = true
+        // La sugerencia se va de la lista YA (899, R6); si la base dice que
+        // no, vuelve a su sitio.
+        const donde = lista.indexOf(s)
+        lista.splice(donde, 1)
+        pintar()
         const { error } = await resolverSugerencia(s, acepta, guia.title, guia.slug)
         if (error) {
-          btn.disabled = false
-          showToast('No se ha podido guardar: ' + error.message)
+          lista.splice(donde, 0, s)
+          pintar()
+          showToast('No se ha podido guardar: ' + error.message, 'error')
           return
         }
-        lista.splice(lista.indexOf(s), 1)
         showToast(acepta ? 'Aceptada. Se le ha avisado y aparece acreditado en la guía.' : 'Descartada.', 'success')
-        pintar()
         if (lista.length === 0) loadMyGuides(session)
       })
     )

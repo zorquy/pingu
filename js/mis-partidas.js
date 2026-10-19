@@ -168,7 +168,14 @@ async function partidasApuntadas() {
   // «falta ejecutar tal SQL» tampoco es asunto de quien viene a mirar
   // sus enfrentamientos: de eso ya avisa el comprobador de /admin.
   if (error) return []
-  return (data || []).map((p) => ({
+  return (data || []).map(apuntadaDeFila)
+}
+
+// Una fila de `match_log` tal como la pinta la página. Sirve también para
+// la fila PROVISIONAL de la 899: la que se acaba de apuntar entra en la
+// lista antes de que la base conteste.
+function apuntadaDeFila(p) {
+  return {
     id: p.id,
     // Las claves guardadas se quedan como están en la base; aquí se
     // traducen a la canónica al leer, que es lo que hace que las filas
@@ -197,7 +204,8 @@ async function partidasApuntadas() {
     // Sus juegos (tanda 632). Una fila de antes, o de antes de la
     // migración, no los trae: al mejor de uno y sin detalle.
     ...deColumnas(p),
-  }))
+    provisional: Boolean(p.provisional),
+  }
 }
 
 // Los torneos apuntados a mano. Falla EN SILENCIO como match_log, y por
@@ -329,7 +337,7 @@ function pintarLista(partidas) {
   caja.innerHTML = visibles
     .map(
       (p) => `
-    <div class="partidas-fila partidas-${p.resultado}">
+    <div class="partidas-fila partidas-${p.resultado}${p.provisional ? ' partidas-fila-provisional' : ''}"${p.provisional ? ' aria-busy="true"' : ''}>
       <span class="partidas-fila-mazos">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong>
         <span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}${escapeHtml(p.rivalNombre)}</span>
       <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>${juegosMiniHtml(p)}
@@ -1088,10 +1096,23 @@ async function guardarPartida() {
   // se toca al actualizar: es de quien era, y la política de la base
   // solo deja tocar lo propio de todas formas.
   const { user_id, ...cambios } = fila
+  // LA PARTIDA ENTRA YA (899, R6): al apuntar, la fila sale arriba de la
+  // lista —atenuada— y el resumen la suma antes de que conteste la base;
+  // si la base dice que no, se quita y el formulario sigue con lo escrito.
+  let provisional = null
+  if (!editando) {
+    provisional = apuntadaDeFila({ ...fila, id: `provisional-${Date.now()}`, created_at: new Date().toISOString(), provisional: true })
+    todas = [provisional, ...todas]
+    repintar()
+  }
   const { error } = editando
     ? await supabase.from('match_log').update(cambios).eq('id', editando.id)
     : await supabase.from('match_log').insert(fila)
   if (error) {
+    if (provisional) {
+      todas = todas.filter((p) => p !== provisional)
+      repintar()
+    }
     showToast('No se ha podido guardar: ' + error.message, 'error')
     return
   }

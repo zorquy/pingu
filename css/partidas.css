@@ -255,6 +255,11 @@
 [data-hueco-form] .simple-card { margin: 12px 0 0; }
 .partidas-fila-mazos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
+/* La que se acaba de apuntar, hasta que la base la confirma (899). */
+.partidas-fila-provisional {
+  opacity: 0.55;
+}
+
 .partidas-fila {
   display: flex;
   flex-wrap: wrap;

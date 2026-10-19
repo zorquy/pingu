@@ -21,7 +21,7 @@ import { icons } from './icons.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
-import { idiomaDe, estadoDe } from './cardmarket.js'
+import { idiomaDe, estadoDe, precioDeFila, valorDe } from './cardmarket.js'
 import { contarPestania, pestaniaLista, abrirPestania, abrirLaQueTengaAlgo } from './perfil-pestanias.js'
 
 // Lo puro (qué es una baldosa, la chapa, los sellos) vive aparte y sin
@@ -76,11 +76,20 @@ async function fichasDe(da, busca) {
   return { mapa, claveDeCarta }
 }
 
+// EL PRECIO ES EL DE LA FICHA (900): el mínimo de Cardmarket EN EL IDIOMA
+// de la copia, con los mismos respaldos que `precio-vista` (`valorDe`).
+// Hasta la 900 se pintaba `cm_low` a secas, el mínimo entre todos los
+// idiomas, y PINGU y soyfedeegb lo vieron: «Terrakion 14,90 €» en la
+// pestaña y 230 € (español) en la ficha. Mapa de carta → precio ya
+// montado; quien pinta le pide el idioma que toque.
 async function preciosDe(ids) {
   if (!ids.length) return new Map()
-  const { data } = await supabase.from('tcg_card_prices').select('card_id,cm_low').in('card_id', ids.slice(0, 300))
-  return new Map((data || []).map((p) => [p.card_id, p.cm_low]))
+  const { data } = await supabase.from('tcg_card_prices').select('*').in('card_id', ids.slice(0, 300))
+  return new Map((data || []).map((p) => [p.card_id, precioDeFila(p)]))
 }
+// Lo que vale una fila de la pestaña: en el idioma de la copia (el primero
+// si hay varios); sin idioma apuntado, el de la ficha por defecto.
+const precioDeFilaDeCambio = (precios, f) => valorDe(precios.get(f.card_id) || null, f.idiomas?.[0] || null)
 
 // ── El pintado ──
 
@@ -182,8 +191,8 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   const quien = propia ? 'Das' : 'Da'
   const quienBusca = propia ? 'Buscas' : 'Busca'
 
-  const baldosasDa = filasDa.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null, precio: euros(precios.get(f.card_id)), cuanto: `${f.total === 1 ? 'Da 1' : `Da ${f.total}`} · ` }))
-  const baldosasBusca = filasBusca.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null, precio: euros(precios.get(f.card_id)) }))
+  const baldosasDa = filasDa.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null, precio: euros(precioDeFilaDeCambio(precios, f)), cuanto: `${f.total === 1 ? 'Da 1' : `Da ${f.total}`} · ` }))
+  const baldosasBusca = filasBusca.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null, precio: euros(precioDeFilaDeCambio(precios, f)) }))
 
   caja.innerHTML = `
     ${miId && !propia ? '<section class="perfil-cruce pc-cruce" id="pcCruce" aria-label="Vuestro cruce"></section>' : ''}

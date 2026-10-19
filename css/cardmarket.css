@@ -664,6 +664,8 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   font-size: var(--t-sm);
 }
 .pv-aviso-fila.apagado { color: var(--text-mid); }
+/* El que se acaba de poner, hasta que la base lo confirma (899). */
+.pv-aviso-fila.pv-aviso-provisional { opacity: 0.55; }
 .pv-aviso-quitar {
   display: grid;
   place-items: center;

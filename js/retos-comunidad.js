@@ -99,12 +99,12 @@ export async function pintarComunidad(caja, session) {
   caja.innerHTML = comunidadHtml(data, { conSesion: Boolean(session) })
   caja.classList.remove('hidden')
   caja.querySelector('#rtComunidadSalir')?.addEventListener('change', async (e) => {
+    // El interruptor ya está donde lo has puesto (899): no se apaga a
+    // esperar; si la base dice que no, vuelve.
     const salir = e.target.checked
-    e.target.disabled = true
     const { error: err } = await supabase.from('user_profiles').update({ retos_oculto: !salir }).eq('id', session.user.id)
     if (err) {
       e.target.checked = !salir
-      e.target.disabled = false
       const { showToast } = await import('./toast.js')
       return showToast('No se ha podido cambiar ahora. Prueba otra vez.', 'error')
     }

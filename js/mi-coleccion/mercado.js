@@ -258,13 +258,10 @@ async function alternarQuiero(cardId, boton) {
   if (!ctx.sesion) return void (location.href = ctx.urlDeRegistro())
   const c = ctx.cartas.get(cardId)
   if (!c) return
-  if (boton) boton.disabled = true
-  try {
-    if (deseosDe(cardId).length) await ctx.quitarDeseos(cardId)
-    else await ctx.quererCarta(c)
-  } finally {
-    if (boton) boton.disabled = false
-  }
+  // Las dos funciones repintan la rejilla en el acto (896) y deshacen si
+  // falla; apagar la baldosa mientras tanto era lo que se veía (899).
+  if (deseosDe(cardId).length) await ctx.quitarDeseos(cardId)
+  else await ctx.quererCarta(c)
   repintar()
 }
 

@@ -1170,8 +1170,24 @@ async function montarRespuesta() {
     }
 
     enviando = true
-    const boton = document.getElementById('btnResponder')
-    boton.disabled = true
+
+    // TU RESPUESTA APARECE YA (899, R6): al final de la lista, atenuada y
+    // con «enviando…», y el cuadro se vacía. La de verdad la sustituye
+    // cuando `pintarMensajes` vuelve a pedir la página; si la base dice
+    // que no, se quita y el texto vuelve al cuadro para que no se pierda.
+    const cuadro = document.getElementById('respuestaCuerpo')
+    const escrito = { html: cuadro.innerHTML, cuerpoHtml, citandoA }
+    const [perfilMio] = Object.values(await perfilesPorId([sesion.user.id]))
+    const provisional = document.createElement('article')
+    provisional.className = 'foro-mensaje foro-mensaje-mio foro-mensaje-enviando'
+    provisional.setAttribute('aria-busy', 'true')
+    provisional.innerHTML = `
+    <div class="foro-mensaje-autor">${avatarHtml(perfilMio, 56)}<div class="foro-autor-nombre">${escapeHtml(nombreDe(perfilMio))}</div><time class="foro-autor-hora">enviando…</time></div>
+    <div class="foro-mensaje-cuerpo"><div class="article-body foro-mensaje-texto">${cuerpo}</div></div>`
+    elMensajes.appendChild(provisional)
+    cuadro.innerHTML = '<p><br></p>'
+    cuerpoHtml = ''
+    provisional.scrollIntoView({ block: 'nearest' })
 
     const { error } = await supabase.from('forum_posts').insert({
       thread_id: tema.id,
@@ -1181,9 +1197,12 @@ async function montarRespuesta() {
     })
 
     enviando = false
-    boton.disabled = false
     if (error) {
-      showToast('No se ha podido publicar: ' + error.message)
+      provisional.remove()
+      cuadro.innerHTML = escrito.html
+      cuerpoHtml = escrito.cuerpoHtml
+      citandoA = escrito.citandoA
+      showToast('No se ha podido publicar: ' + error.message, 'error')
       return
     }
 
@@ -1197,14 +1216,15 @@ async function montarRespuesta() {
     citandoA = null
     citadosExtra = new Set()
     borradoSalvado.borrar()
-    document.getElementById('respuestaCuerpo').innerHTML = '<p><br></p>'
-    cuerpoHtml = ''
     pintarAvisoDeCita()
 
     const { data } = await supabase.from('forum_threads').select('post_count').eq('id', tema.id).maybeSingle()
     if (data) tema.post_count = data.post_count
     pagina = Math.max(1, Math.ceil((tema.post_count || 1) / PAGINA))
     await pintarMensajes()
+    // La de verdad ya está pintada; la provisional, si el repintado no se
+    // la llevó por delante, sobra.
+    provisional.remove()
     showToast('Publicado.', 'success')
   })
 }

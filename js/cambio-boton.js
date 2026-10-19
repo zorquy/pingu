@@ -19,21 +19,32 @@ export async function pintarBotonDeCambio(caja, yo, otro, nombre) {
     hecho: `<span class="subtext">Cambio hecho${e.valoracion === 'bien' ? ' · dijiste que fue bien' : ' · lo verá la moderación'}. <button type="button" class="link-btn" data-cambio="marcar">Marcar otro</button></span>`,
   }[e.paso]
   caja.innerHTML = html
+  // EL PASO SIGUIENTE SE PINTA YA (899, R6): marcar deja «esperando»,
+  // confirmar deja «valorar», valorar deja «hecho». La base confirma por
+  // detrás y repinta lo de verdad; si dice que no, vuelve lo de antes con
+  // el error debajo.
+  const siguiente = {
+    marcar: { marcar: html.esperando },
+    confirmar: { marcar: `<span class="msg-cambio-pregunta">¿Qué tal fue el cambio?</span>` },
+    valorar: { bien: `<span class="subtext">Cambio hecho · dijiste que fue bien.</span>`, problema: `<span class="subtext">Cambio hecho · lo verá la moderación.</span>` },
+  }
   caja.onclick = async (ev) => {
     const b = ev.target.closest('[data-cambio]')
     if (!b) return
-    b.disabled = true
+    const accion = b.dataset.cambio
+    const nota = accion === 'problema' ? window.prompt('Cuéntale a la moderación qué pasó (no lo verá nadie más):', '') : null
+    if (accion === 'problema' && nota === null) return
+    const antes = caja.innerHTML
+    const provisional = siguiente[e.paso]?.[accion]
+    if (provisional) caja.innerHTML = provisional
+    else b.disabled = true
     try {
-      if (b.dataset.cambio === 'marcar') await marcarCambio(otro)
-      else {
-        const nota = b.dataset.cambio === 'problema' ? window.prompt('Cuéntale a la moderación qué pasó (no lo verá nadie más):', '') : null
-        if (b.dataset.cambio === 'problema' && nota === null) { b.disabled = false; return }
-        await valorarCambio(e.fila.id, b.dataset.cambio, nota)
-      }
+      if (accion === 'marcar') await marcarCambio(otro)
+      else await valorarCambio(e.fila.id, accion, nota)
       await pintarBotonDeCambio(caja, yo, otro, nombre)
     } catch (err) {
+      caja.innerHTML = antes
       caja.insertAdjacentHTML('beforeend', `<span class="msg-cambio-error" role="alert">${escapeHtml(err.message)}</span>`)
-      b.disabled = false
     }
   }
 }

@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (132) — PINGU-Claude (899 — ocho botones que responden ya; 900 — el precio de Cambios)
+
+**Hecho**. 899 (lo que quedaba de R6): seguir a alguien, responder en un
+hilo (la respuesta entra al momento, atenuada), apuntar una partida (la
+fila entra arriba), «La quiero» en /carta y en la ficha (y el Mercado sin
+apagar la baldosa), aviso de precio, cambio hecho, la liga de retos y
+las sugerencias: cambian en el acto, la base confirma por detrás y si
+falla se deshace. Fuera a propósito inscribirse a un torneo, borrar y
+Telegram. Con esto la propuesta «Rápida y limpia» está ENTERA (892–899).
+
+900 (PINGU: «en el perfil, en la parte de cambios salen unos precios
+pero no son los precios reales»; soyfedeegb lo mismo en el foro): la
+pestaña pintaba `cm_low` a secas —el mínimo entre todos los idiomas—;
+ahora cada carta vale lo que la ficha: el mínimo en el idioma de la copia
+(`valorDe`), con sus respaldos.
+
+**Ficheros**: `js/usuario.js`, `js/tema.js`, `css/foro.css`,
+`js/mis-partidas.js`, `css/partidas.css`, `js/la-quiero.js`,
+`js/carta-mercado.js`, `js/mi-coleccion.js`, `js/mi-coleccion/mercado.js`,
+`js/avisos-precio.js`, `css/cardmarket.css`, `js/cambio-boton.js`,
+`js/retos-comunidad.js`, `js/perfil.js`, `js/perfil-cambios.js`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 899 y 900 (nuevas); 306, 314, 627, 665, 751, 843, 887, 795,
+798, 770, 771, 763, 784, 748, 896, 299, 310–313 e imports pasadas.
+
+**Pendiente**: lo de la 122. Y contestar a soyfedeegb en el hilo cuando
+PINGU lo vea en producción.
+
 ## 2026-10-19 (131) — PINGU-Claude (898 — la hoja de filtros de Cartas en cuatro bloques)
 
 **Hecho** (lo que faltaba de la I5; PINGU, «dale como veas»): la hoja de

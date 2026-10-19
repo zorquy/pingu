@@ -1975,6 +1975,11 @@ a.foro-cita-quien:hover {
   overflow: visible;
 }
 
+/* La respuesta recién enviada, hasta que la base la confirma (899). */
+.foro-mensaje-enviando {
+  opacity: 0.55;
+}
+
 .foro-mensaje-mio {
   margin-left: auto;
 }

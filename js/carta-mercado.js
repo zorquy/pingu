@@ -291,13 +291,11 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
   $('cmQuiero')?.addEventListener('click', async () => {
     const b = $('cmQuiero')
     if (!Array.isArray(deseos)) return
-    b.disabled = true
+    // La loseta cambia ya (899); si la base dice que no, vuelve.
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos, carta })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos, carta, alCambiar: (d) => laQuiero.pintarLoseta(b, carta.id, d) })
     } catch (err) {
       showToast(err.message, err.yaEstaba ? 'info' : 'error')
-    } finally {
-      b.disabled = false
     }
     laQuiero.pintarLoseta(b, carta.id, deseos)
   })

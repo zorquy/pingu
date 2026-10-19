@@ -448,6 +448,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Un precio que se ENSEÑA es el de la ficha** (tanda 900): el mínimo de
+  Cardmarket en el IDIOMA de la copia (`valorDe(precioDeFila(fila),
+  idioma)`), nunca `cm_low` a secas, que es el mínimo entre todos los
+  idiomas y en una carta española puede ser la italiana. La pestaña
+  Cambios del perfil lo pintó así tres días y dos personas lo vieron. Si
+  pintas un precio en una pantalla nueva, pide la fila entera y pasa por
+  `valorDe`; dos pantallas con dos números para la misma carta no dan error.
+- **El cuadro de responder del foro es un editor COMPACTO que crece al
+  tener el foco** (tanda 899): en una prueba, pulsar «Responder» sin haber
+  tocado el cuadro lo enfoca con el `mousedown`, el editor crece y el botón
+  se va de debajo del ratón, así que el clic cae en el formulario y no
+  envía nada. Se escribe como la gente: enfocar el cuadro primero.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un
