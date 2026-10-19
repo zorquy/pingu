@@ -124,7 +124,7 @@
   text-decoration: none;
 }
 .glosario-letras a:hover { background: var(--ice); }
-.glosario-letras a.glosario-letra-vacia { color: var(--text-dim); }
+.glosario-letras a.glosario-letra-vacia.disabled { color: var(--text-dim); }
 .glosario-letra {
   grid-column: 1 / -1;
   margin: var(--e-md) 0 0;

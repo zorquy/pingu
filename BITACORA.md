@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (131) — PINGU-Claude (898 — la hoja de filtros de Cartas en cuatro bloques)
+
+**Hecho** (lo que faltaba de la I5; PINGU, «dale como veas»): la hoja de
+filtros de Mi colección › Cartas en cuatro bloques plegables —Expansión,
+Rareza y tipo, Idioma y estado, Precio— con lo elegido escrito en la
+cabecera de cada uno y su cuenta. En el móvil se abren solo los que tienen
+algo puesto (sin nada, todo plegado y la hoja cabe en media pantalla); en
+la columna del ordenador, todos. Los grupos de chips caen en su bloque por
+`BLOQUE_DE_GRUPO`. Y la letra vacía del índice del glosario marcada como
+control desactivado (la 311 lo cantó).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `js/glosario.js`,
+`css/glosario.css`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+**Pruebas**: 898 (nueva); 449, 714 y 748 al día; 399, 441, 472, 564, 574,
+738, 740, 649, 299, 305, 310, 311, 312, 313, 737, 473, 895, 896 e imports
+en verde.
+
+**Pendiente**: 899 (ocho botones que responden ya: seguir, responder en
+un hilo, apuntar partida, La quiero en /carta y Mercado, aviso de precio,
+cambio hecho, liga de retos, sugerencias). Y lo de la 122.
+
 ## 2026-10-19 (130) — PINGU-Claude (897 — la página desde la caché, atada al despliegue)
 
 **Hecho** (R5, la última de «Rápida y limpia»): el service worker sirve

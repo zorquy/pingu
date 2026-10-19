@@ -4195,6 +4195,102 @@ input.mc-alb-titulo:not([readonly]):focus {
 
 /* Los chips de filtro son el chip compartido (`.chip-filtro`, 678). */
 
+/* Los cuatro bloques plegables de la hoja (898; el porqué, en SCHEMA). */
+.mc-bloque-filtro {
+  margin-bottom: var(--e-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.mc-bloque-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mc-bloque-cab::-webkit-details-marker {
+  display: none;
+}
+
+.mc-bloque-cab:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.mc-bloque-cab b {
+  flex-shrink: 0;
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.mc-bloque-resumen {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-bloque-resumen.con {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.mc-bloque-cuenta {
+  display: grid;
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  place-items: center;
+}
+
+.mc-bloque-flecha {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-right: 2px;
+  border-right: 2px solid var(--text-mid);
+  border-bottom: 2px solid var(--text-mid);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.mc-bloque-filtro[open] > .mc-bloque-cab .mc-bloque-flecha {
+  transform: rotate(-135deg);
+}
+
+.mc-bloque-cuerpo {
+  padding: var(--e-md) var(--e-md) 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.mc-bloque-cuerpo > .mc-grupo-filtro:last-child,
+.mc-grupos-chips > .mc-grupo-filtro:last-child {
+  margin-bottom: var(--e-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-bloque-flecha {
+    transition: none;
+  }
+}
+
 .mc-panel-pie {
   display: flex;
   position: sticky;

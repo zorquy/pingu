@@ -116,7 +116,15 @@ export function pintarMandos(caja, lista, { letras, buscar }) {
       if (q && casa) d.open = true
     }
     for (const h of lista.querySelectorAll('.glosario-letra')) h.hidden = !lista.querySelector(`.glosario-termino[data-letra="${h.id.slice(6)}"]:not([hidden])`)
-    for (const a of letras.querySelectorAll('a')) a.classList.toggle('glosario-letra-vacia', !lista.querySelector(`.glosario-termino[data-letra="${a.textContent}"]:not([hidden])`))
+    // Una letra sin términos es un control DESACTIVADO (la 311 pide el gris
+    // apagado solo para eso): se marca como tal, no solo se atenúa.
+    for (const a of letras.querySelectorAll('a')) {
+      const vacia = !lista.querySelector(`.glosario-termino[data-letra="${a.textContent}"]:not([hidden])`)
+      a.classList.toggle('glosario-letra-vacia', vacia)
+      a.classList.toggle('disabled', vacia)
+      if (vacia) a.setAttribute('aria-disabled', 'true')
+      else a.removeAttribute('aria-disabled')
+    }
   }
   buscar.addEventListener('input', filtrar)
   // Llegar por ancla (#sir) abre ese término, esté como esté.

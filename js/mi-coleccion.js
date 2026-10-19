@@ -1587,14 +1587,28 @@ function pintarHojaOrden() {
   if (flecha) flecha.textContent = sentidoElegido === 'desc' ? '↓' : '↑'
 }
 
+// EN QUÉ BLOQUE CAE CADA GRUPO DE CHIPS (898): lo que describe la CARTA
+// (rareza, energía, tipo, entrenador, versión) va con la rareza; lo que
+// describe TU COPIA (estado, gradeo, notas) y el ilustrador, con el idioma.
+// Un grupo nuevo que no esté aquí cae con la rareza.
+const BLOQUE_DE_GRUPO = { estado: 'estado', notas: 'estado', ilustrador: 'estado', gradeo: 'estado' }
+const NOMBRE_DE_BLOQUE = { expansion: 'Expansión', rareza: 'Rareza y tipo', estado: 'Idioma y estado', precio: 'Precio' }
+
 function pintarGruposDeChips() {
-  const hueco = $('mcGruposChips')
-  if (!hueco) return
+  const huecos = { rareza: $('mcGruposChips'), estado: $('mcGruposChipsEstado') }
+  if (!huecos.rareza) return
   // Las energías y la rareza, PRIMERO (748, la C6 de su maqueta): son lo
   // que más se filtra, y las energías van como su símbolo en redondo.
   const primero = ['energia', 'rareza']
   const enOrden = [...GRUPOS].sort((a, b) => (primero.indexOf(a.id) + 1 || 9) - (primero.indexOf(b.id) + 1 || 9))
-  hueco.innerHTML = enOrden.map((g) => {
+  const html = { rareza: [], estado: [] }
+  for (const g of enOrden) html[BLOQUE_DE_GRUPO[g.id] || 'rareza'].push(grupoDeChipsHtml(g))
+  for (const [bloque, hueco] of Object.entries(huecos)) if (hueco) hueco.innerHTML = html[bloque].join('')
+  pintarResumenesDeBloques()
+}
+
+function grupoDeChipsHtml(g) {
+  {
     const valores = valoresDeGrupo(g)
     if (valores.length < 2) return ''
     if (g.id === 'energia') {
@@ -1618,7 +1632,54 @@ function pintarGruposDeChips() {
         return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
       })
       .join('')}</div></div>`
-  }).join('')
+  }
+}
+
+// LO ELEGIDO, EN LA CABECERA DE CADA BLOQUE (898). Es lo que hace que una
+// hoja plegada no esconda nada: «Rareza y tipo · Doble rara · Fuego» dice
+// qué filtra sin abrirlo, y la cuenta de al lado cuántas cosas son.
+function elegidoPorBloque() {
+  const por = { expansion: [], rareza: [], estado: [], precio: [] }
+  const set = $('mcFiltroSet')
+  if (set?.value) por.expansion.push(set.selectedOptions[0]?.textContent || set.value)
+  const idioma = $('mcFiltroIdioma')
+  if (idioma?.value) por.estado.push(idioma.selectedOptions[0]?.textContent || idioma.value)
+  for (const g of GRUPOS) for (const v of filtros[g.id]) por[BLOQUE_DE_GRUPO[g.id] || 'rareza'].push(v)
+  const { desde, hasta, puesto } = rangoDePrecio()
+  if (puesto) por.precio.push(desde !== null && hasta !== null ? `De ${eurosConMiles(desde)} a ${eurosConMiles(hasta)}` : desde !== null ? `Desde ${eurosConMiles(desde)}` : `Hasta ${eurosConMiles(hasta)}`)
+  return por
+}
+
+function pintarResumenesDeBloques() {
+  const por = elegidoPorBloque()
+  for (const bloque of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) {
+    const lista = por[bloque.dataset.bloque] || []
+    const resumen = bloque.querySelector('[data-resumen]')
+    const cuenta = bloque.querySelector('[data-cuenta]')
+    if (resumen) {
+      resumen.textContent = lista.length ? lista.join(' · ') : 'Cualquiera'
+      resumen.classList.toggle('con', lista.length > 0)
+    }
+    if (cuenta) {
+      cuenta.textContent = lista.length ? String(lista.length) : ''
+      cuenta.classList.toggle('hidden', !lista.length)
+    }
+    bloque.querySelector('summary')?.setAttribute('aria-label', `${NOMBRE_DE_BLOQUE[bloque.dataset.bloque] || ''}: ${lista.length ? lista.join(', ') : 'cualquiera'}`)
+  }
+}
+
+// AL ABRIR LA HOJA, qué bloques salen abiertos (898): en el móvil solo los
+// que tienen algo puesto —llegas a lo que te importa sin bajar— y, sin
+// nada, todos plegados. En la columna del ordenador, todos abiertos: hay
+// sitio, y el resumen de cada cabecera sigue ahí igual. Solo al ABRIR: lo
+// que pliegues o despliegues con la hoja abierta se respeta.
+// `todos` lo pasa la columna al montarse: en ese instante `columnaFiltros`
+// todavía no está asignada (se monta dentro de la llamada que la crea).
+function abrirBloquesDeFiltros(todos = Boolean(columnaFiltros?.enColumna())) {
+  const por = elegidoPorBloque()
+  for (const bloque of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) {
+    bloque.open = todos || (por[bloque.dataset.bloque] || []).length > 0
+  }
 }
 
 // Cuántos filtros hay puestos, para la chapa del botón: sin ella, un
@@ -1706,6 +1767,7 @@ function limpiarFiltros() {
 }
 
 function pintarCuentaDeFiltros() {
+  pintarResumenesDeBloques()
   const chapa = $('mcFiltrosCuenta')
   if (!chapa) return
   const n = cuantosFiltros()
@@ -6255,6 +6317,7 @@ function enganchar() {
   // ── El panel de filtros (tanda 399) ──
   $('mcAbrirFiltros').addEventListener('click', () => {
     pintarGruposDeChips()
+    abrirBloquesDeFiltros()
     $('mcPanelFiltros').showModal()
     pintarTiradores()
   })
@@ -6273,8 +6336,10 @@ function enganchar() {
   }
   $('mcPrecioTiradorMin')?.addEventListener('input', () => moverTirador('min'))
   $('mcPrecioTiradorMax')?.addEventListener('input', () => moverTirador('max'))
-  $('mcGruposChips').addEventListener('click', (e) => {
-    const chip = e.target.closest('[data-grupo]')
+  // Desde la 898 los chips viven en dos bloques, así que se escucha el
+  // panel entero.
+  $('mcPanelFiltros').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip-filtro[data-grupo]')
     if (!chip) return
     const conjunto = filtros[chip.dataset.grupo]
     if (conjunto.has(chip.dataset.valor)) conjunto.delete(chip.dataset.valor)
@@ -6328,7 +6393,7 @@ function enganchar() {
   })
   $('mcFiltroSet').addEventListener('change', pintarColumnaSets)
   // En el ordenador, el panel es una columna fija junto a la rejilla (738).
-  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: () => { pintarGruposDeChips(); pintarTiradores() } })
+  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: () => { pintarGruposDeChips(); pintarTiradores(); abrirBloquesDeFiltros(true) } })
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
   // lado: dejarlo puesto haría que la lista siguiera recortada después de
   // pulsar «quitar» y parecería que no ha hecho nada.

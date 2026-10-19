@@ -282,42 +282,68 @@
                  Un filtro se pone una vez y se olvida; un orden se toca
                  cada dos por tres. Ahora vive en la barra, al lado del
                  buscador. -->
-            <!-- Las expansiones A LA IZQUIERDA (740, D2): en la columna del
-                 ordenador, la colección se elige de una lista con lo que
-                 tienes de cada una, no de un desplegable. En la hoja del
-                 móvil, el desplegable de siempre. -->
-            <div class="mc-grupo-filtro mc-columna-sets">
-              <h3>Tus expansiones</h3>
-              <div class="mc-columna-sets-lista" id="mcColumnaSets"></div>
-            </div>
-            <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
-                 colección: una lista escrita a mano ofrece rarezas que no
-                 tienes y se queda sin las que salgan mañana. -->
-            <div id="mcGruposChips"></div>
-            <!-- 714 (C6): lo que vale CADA copia, en euros. Una carta sin
-                 precio no entra cuando hay un límite puesto: «no se sabe»
-                 no cumple ningún rango. Desde la 748, con DOS tiradores como
-                 en su maqueta; los dos campos de debajo siguen mandando (se
-                 pueden escribir) y los tiradores se mueven con ellos. -->
-            <div class="mc-grupo-filtro">
-              <h3>Precio por copia</h3>
-              <div class="mc-rango-doble" id="mcRangoDoble">
-                <input type="range" id="mcPrecioTiradorMin" min="0" max="100" step="1" value="0" aria-label="Precio mínimo" />
-                <input type="range" id="mcPrecioTiradorMax" min="0" max="100" step="1" value="100" aria-label="Precio máximo" />
+            <!-- CUATRO BLOQUES PLEGABLES (898, la I5 de «Rápida y limpia»):
+                 once grupos y 28 chips del tirón eran una hoja de dos
+                 pantallas en la que lo elegido no se veía sin bajar. Cada
+                 bloque lleva en su cabecera lo que tiene puesto (lo escribe
+                 `pintarResumenesDeBloques`); en el móvil se abren solo los
+                 que tienen algo, en la columna del ordenador todos. -->
+            <details class="mc-bloque-filtro" data-bloque="expansion">
+              <summary class="mc-bloque-cab"><b>Expansión</b><span class="mc-bloque-resumen" data-resumen>Cualquiera</span><span class="mc-bloque-cuenta hidden" data-cuenta></span><span class="mc-bloque-flecha" aria-hidden="true"></span></summary>
+              <div class="mc-bloque-cuerpo">
+                <div class="mc-grupo-filtro mc-grupo-set">
+                  <h3>Colección</h3>
+                  <select id="mcFiltroSet" aria-label="Colección"></select>
+                </div>
+                <!-- Las expansiones A LA IZQUIERDA (740, D2): en la columna del
+                     ordenador, la colección se elige de una lista con lo que
+                     tienes de cada una, no de un desplegable. En la hoja del
+                     móvil, el desplegable de siempre. -->
+                <div class="mc-grupo-filtro mc-columna-sets">
+                  <h3>Tus expansiones</h3>
+                  <div class="mc-columna-sets-lista" id="mcColumnaSets"></div>
+                </div>
               </div>
-              <div class="mc-rango-precio">
-                <label>Desde <input type="number" id="mcFiltroPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0 €" /></label>
-                <label>Hasta <input type="number" id="mcFiltroPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
+            </details>
+            <details class="mc-bloque-filtro" data-bloque="rareza">
+              <summary class="mc-bloque-cab"><b>Rareza y tipo</b><span class="mc-bloque-resumen" data-resumen>Cualquiera</span><span class="mc-bloque-cuenta hidden" data-cuenta></span><span class="mc-bloque-flecha" aria-hidden="true"></span></summary>
+              <!-- Los grupos de chips se pintan solos desde lo que hay EN TU
+                   colección: una lista escrita a mano ofrece rarezas que no
+                   tienes y se queda sin las que salgan mañana. Cada grupo cae
+                   en su bloque (`BLOQUE_DE_GRUPO`). -->
+              <div class="mc-bloque-cuerpo mc-grupos-chips" id="mcGruposChips"></div>
+            </details>
+            <details class="mc-bloque-filtro" data-bloque="estado">
+              <summary class="mc-bloque-cab"><b>Idioma y estado</b><span class="mc-bloque-resumen" data-resumen>Cualquiera</span><span class="mc-bloque-cuenta hidden" data-cuenta></span><span class="mc-bloque-flecha" aria-hidden="true"></span></summary>
+              <div class="mc-bloque-cuerpo">
+                <div class="mc-grupo-filtro">
+                  <h3>Idioma</h3>
+                  <select id="mcFiltroIdioma" aria-label="Idioma"></select>
+                </div>
+                <div class="mc-grupos-chips" id="mcGruposChipsEstado"></div>
               </div>
-            </div>
-            <div class="mc-grupo-filtro mc-grupo-set">
-              <h3>Colección</h3>
-              <select id="mcFiltroSet" aria-label="Colección"></select>
-            </div>
-            <div class="mc-grupo-filtro">
-              <h3>Idioma</h3>
-              <select id="mcFiltroIdioma" aria-label="Idioma"></select>
-            </div>
+            </details>
+            <details class="mc-bloque-filtro" data-bloque="precio">
+              <summary class="mc-bloque-cab"><b>Precio</b><span class="mc-bloque-resumen" data-resumen>Cualquiera</span><span class="mc-bloque-cuenta hidden" data-cuenta></span><span class="mc-bloque-flecha" aria-hidden="true"></span></summary>
+              <div class="mc-bloque-cuerpo">
+                <!-- 714 (C6): lo que vale CADA copia, en euros. Una carta sin
+                     precio no entra cuando hay un límite puesto: «no se sabe»
+                     no cumple ningún rango. Desde la 748, con DOS tiradores como
+                     en su maqueta; los dos campos de debajo siguen mandando (se
+                     pueden escribir) y los tiradores se mueven con ellos. -->
+                <div class="mc-grupo-filtro">
+                  <h3>Precio por copia</h3>
+                  <div class="mc-rango-doble" id="mcRangoDoble">
+                    <input type="range" id="mcPrecioTiradorMin" min="0" max="100" step="1" value="0" aria-label="Precio mínimo" />
+                    <input type="range" id="mcPrecioTiradorMax" min="0" max="100" step="1" value="100" aria-label="Precio máximo" />
+                  </div>
+                  <div class="mc-rango-precio">
+                    <label>Desde <input type="number" id="mcFiltroPrecioDesde" min="0" step="0.5" inputmode="decimal" placeholder="0 €" /></label>
+                    <label>Hasta <input type="number" id="mcFiltroPrecioHasta" min="0" step="0.5" inputmode="decimal" placeholder="sin tope" /></label>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
           <div class="mc-panel-pie">
             <button type="button" class="btn-primary" id="mcFiltrosVer">Ver resultados</button>

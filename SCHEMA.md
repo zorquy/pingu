@@ -41785,6 +41785,64 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 898 — La hoja de filtros de Cartas, en cuatro bloques
+
+La I5 de «Rápida y limpia» que se quedó fuera (artifact
+6k9dNf1CkkVCTh214B5E1B, «dale como veas»). La hoja de filtros de Mi
+colección › Cartas eran once grupos y 28 chips del tirón —dos pantallas en
+el móvil— en la que lo elegido no se veía sin bajar.
+
+**Lo que se hace.** El cuerpo de `#mcPanelFiltros` (`mi-coleccion.html`,
+y /cartas que se genera de ahí) son cuatro `<details class="mc-bloque-
+filtro" data-bloque="…">`: **Expansión** (el desplegable de colección y la
+lista «Tus expansiones» de la 740), **Rareza y tipo** (`#mcGruposChips`:
+energía, rareza, tipo de carta, entrenador, versión), **Idioma y estado**
+(el desplegable de idioma y `#mcGruposChipsEstado`: estado, gradeo, notas,
+ilustrador) y **Precio** (los tiradores y los campos). Cada grupo de chips
+cae en su bloque por `BLOQUE_DE_GRUPO` (lo que describe la CARTA con la
+rareza, lo que describe TU COPIA con el idioma; lo que no esté en el mapa,
+con la rareza), así que un grupo nuevo entra solo.
+
+**Lo elegido, en la cabecera.** `elegidoPorBloque` junta por bloque lo
+puesto (el texto de la opción del desplegable, los valores de los chips,
+«De 2 € a 20 €» / «Desde 5 €» / «Hasta 20 €» del rango) y
+`pintarResumenesDeBloques` lo escribe en el `[data-resumen]` de cada
+cabecera (en azul cuando hay algo; «Cualquiera» si no), con la cuenta en
+`[data-cuenta]` y un `aria-label` en el `summary` que lo lee entero. Va
+dentro de `pintarCuentaDeFiltros`, que ya se llamaba en cada cambio.
+
+**Qué sale abierto** (`abrirBloquesDeFiltros`): al abrir la hoja del móvil,
+solo los bloques con algo puesto (sin nada, todo plegado: cabe en media
+pantalla); en la columna del ordenador, todos. Y SOLO al abrir: lo que se
+pliega a mano con la hoja abierta se respeta aunque cambie un filtro. La
+columna pasa `true` al montarse porque en ese instante `columnaFiltros`
+todavía no está asignada (se monta dentro de la llamada que la crea): sin
+ese parámetro la columna nacía con todo plegado.
+
+**Los chips se escuchan en el panel entero** (`$('mcPanelFiltros')`, con
+`.chip-filtro[data-grupo]`): hay dos huecos. CSS en `mi-coleccion.css`
+(bloque «898»): cabecera de 44 px con el anillo de foco, resumen con
+puntos suspensivos, cuenta en `--navy-solid` con `--blanco-fijo`, flecha
+que gira (con su `prefers-reduced-motion`).
+
+**De paso**: la letra vacía del índice del glosario (896) iba con
+`--text-dim` siendo un enlace, y la 311 lo cantó. Es un control
+DESACTIVADO —no hay términos con esa letra—, así que se marca como tal
+(`.disabled` y `aria-disabled`), que es la excepción que la 311 admite.
+
+**Prueba 898**: lo estático; en el iPhone, la hoja sale plegada y cabe sin
+desplazarse, tocar Fuego escribe «Fuego · 1» en su cabecera y deja los
+demás plegados, idioma y precio escriben las suyas, al volver a abrir
+salen abiertos solo los que tienen algo, plegar uno a mano se respeta y
+«Borrar todo» lo deja en «Cualquiera»; en el ordenador, la columna con los
+cuatro abiertos y la expansión elegida en su cabecera. Al día: 449, 714 y
+748 (abren los bloques antes de tocar; los grupos se leen en
+`.mc-grupos-chips`).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion.js`, `css/mi-coleccion.css`, `js/glosario.js`,
+`css/glosario.css`.
+
 ## Tanda 897 — La página también desde la caché, atada al despliegue
 
 R5 de «Rápida y limpia» (artifact KHxCQmjk4tps8oED9867dN), la última de
