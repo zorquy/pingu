@@ -115,9 +115,14 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <div class="page-header cabecera-pagina" style="padding-top: 8px;">
-      <h1>Mis partidas</h1>
-      <p>Contra qué mazos juegas y cómo te va. Las de los torneos de PokeDoc entran solas; las de fuera las apuntas tú.</p>
+    <div class="page-header cabecera-pagina cab-lista" style="padding-top: 8px;">
+      <div>
+        <h1>Mis partidas</h1>
+        <p class="cab-lema">Contra qué mazos juegas y cómo te va. Las de los torneos de PokeDoc entran solas; las de fuera las apuntas tú.</p>
+      </div>
+      <!-- En el móvil, el botón principal de la pestaña abierta se muda
+           aquí (893); en el PC se queda en su barra. Lo mueve mis-partidas.js. -->
+      <div class="cab-acciones" id="partidasAcciones"></div>
     </div>
 
     <!-- Sin sesión no hay nada que enseñar: esto es el cuaderno de cada
@@ -135,10 +140,14 @@
       <!-- El resumen de todo lo jugado (838): lo pinta mis-partidas.js. -->
       <section class="partidas-hero hidden" id="partidasHero" aria-label="Tu resumen"></section>
 
-      <div class="seg partidas-tabs" id="partidasTabs" role="group" aria-label="Qué ver">
-        <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
-        <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas sueltas</button>
-        <button type="button" class="seg-btn" data-vista="stats" aria-pressed="false">Estadísticas</button>
+      <div class="partidas-mandos">
+        <div class="seg partidas-tabs" id="partidasTabs" role="group" aria-label="Qué ver">
+          <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
+          <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas<span class="cab-largo"> sueltas</span></button>
+          <button type="button" class="seg-btn" data-vista="stats" aria-pressed="false">Estadísticas</button>
+        </div>
+        <!-- «Filtrar» de la pestaña abierta, en el móvil (893). -->
+        <span class="partidas-mandos-extra" id="partidasMandosExtra"></span>
       </div>
 
       <div class="tab-panel active" id="vista-torneos">
@@ -146,7 +155,7 @@
         <button class="btn-primary" id="btnApuntarTorneo">+ Apuntar un torneo</button>
         <!-- Buscar y filtrar (tanda 251), plegado tras «Filtrar» desde la
              838: sin torneos que buscar, tres campos eran ruido. -->
-        <button type="button" class="btn-secondary partidas-filtrar" id="torneoFiltrar" aria-expanded="false" aria-controls="torneoFiltros">Filtrar</button>
+        <button type="button" class="btn-secondary partidas-filtrar" id="torneoFiltrar" aria-expanded="false" aria-controls="torneoFiltros" aria-label="Filtrar"><span data-icono="sliders" aria-hidden="true"></span><span class="cab-palabra">Filtrar</span></button>
         <div class="partidas-filtros-plegados hidden" id="torneoFiltros">
         <label id="torneoBuscarCampo">Buscar
           <input type="search" enterkeyhint="search" id="torneoBuscar" placeholder="Nombre o dónde se jugó…" autocomplete="off" />
@@ -215,7 +224,7 @@
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
         <button class="btn-secondary" id="btnDesdeRepeticion">+ Desde una repetición</button>
-        <button type="button" class="btn-secondary partidas-filtrar" id="listaFiltrar" aria-expanded="false" aria-controls="listaFiltros">Filtrar</button>
+        <button type="button" class="btn-secondary partidas-filtrar" id="listaFiltrar" aria-expanded="false" aria-controls="listaFiltros" aria-label="Filtrar"><span data-icono="sliders" aria-hidden="true"></span><span class="cab-palabra">Filtrar</span></button>
       </div>
 
       <!-- Apuntar desde una de tus repeticiones guardadas (tanda 627): lo

@@ -15,19 +15,19 @@
   /* LA BURBUJA DE LA SECCIÓN (704d): la misma píldora que Mi colección
      (452), flotando encima de la barra, con icono y palabra, deslizable. */
   html.con-burbuja-movil body {
-    padding-bottom: calc(72px + 72px + env(safe-area-inset-bottom));
+    padding-bottom: calc(72px + 64px + env(safe-area-inset-bottom));
   }
   .bm-burbuja {
     display: flex;
     position: fixed;
     z-index: 90;
-    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
+    bottom: calc(72px + env(safe-area-inset-bottom) + var(--e-xs));
     inset-inline: 0;
     width: max-content;
     max-width: calc(100% - var(--e-lg) * 2);
     margin: 0 auto;
-    padding: 4px;
-    gap: 2px;
+    padding: 2px;
+    gap: 0;
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
     background: var(--white);
@@ -46,15 +46,16 @@
       -webkit-backdrop-filter: blur(16px);
     }
   }
+  /* Baja (893): solo iconos, y la activa con su palabra al lado. */
   .bm-burbuja-item {
     flex: 0 0 auto;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    min-width: 64px;
-    min-height: 52px;
+    gap: var(--e-xs);
+    min-width: 44px;
+    min-height: 44px;
     padding: 0 var(--e-sm);
     border-radius: var(--radius-pill);
     color: var(--text-mid);
@@ -74,8 +75,18 @@
     line-height: 1;
   }
   .bm-burbuja-item svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+  }
+  /* La palabra de las que no están activas se esconde para la vista, no
+     para quien escucha (la lección de la 565). */
+  .bm-burbuja-item:not([aria-current='page']) .bm-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
   .bm-burbuja-item[aria-current='page'] {
     background: var(--navy-solid);
@@ -270,10 +281,12 @@
   html.bm-escondidas .bm {
     transform: translateY(100%);
   }
-  html.bm-escondidas .bm-burbuja,
   html.bm-escondidas .mc-pestanias,
   html.bm-escondidas.con-barra-movil .carta-scan .carta-acciones {
     transform: translateY(calc(80px + var(--e-xs)));
+  }
+  html.bm-escondidas .bm-burbuja {
+    transform: translateY(calc(72px + var(--e-xs)));
   }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
@@ -710,4 +723,44 @@
 /* En la app instalada, la barra de abajo ya lleva a todo: del pie, lo legal. */
 @media (max-width: 900px) and (display-mode: standalone) {
   .pie-rejilla { display: none; }
+}
+
+/* ── 893: cabeceras de una línea en las páginas de lista (SCHEMA 893) ──
+   Título en una línea y más pequeño, sin el párrafo, y el botón principal
+   a la derecha del título. Lo lleva cada página con `cab-lista`. */
+@media (max-width: 900px) {
+  .cab-lista {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-xs) var(--e-sm);
+    margin: 0 0 var(--e-sm);
+    padding: var(--e-xs) 0;
+  }
+  .cab-lista > div:first-child,
+  .cab-lista > h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .cab-lista h1 {
+    margin: 0;
+    font-size: var(--t-xl);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cab-lema,
+  .cab-largo {
+    display: none;
+  }
+  .cab-lista .btn-primary,
+  .cab-lista .btn-secondary {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 var(--e-md);
+    font-size: var(--t-sm);
+    white-space: nowrap;
+  }
 }

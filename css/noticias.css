@@ -212,6 +212,9 @@
  * carta revelada es no verla. Bajan a dos, y el titular deja de ser dos
  * columnas para que la imagen grande siga siendo grande. */
 @media (max-width: 900px) {
+  /* 893: la cabecera es una línea (cab-lista, movil.css); solo el aire. */
+  .noticias-cabecera { margin-bottom: var(--e-sm); }
+
   .noticias-rejilla {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

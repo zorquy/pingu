@@ -70,6 +70,50 @@
   min-height: 44px;
 }
 
+/* Desde la 893 la fila de filtros va fuera de la cabecera (en el móvil
+   la cabecera es una línea), así que lleva su propio aire. */
+.meta-filtros-cab {
+  margin-bottom: var(--e-sm);
+}
+
+/* 893: en el móvil el periodo es un menú junto al título (SCHEMA 893) y
+   las fuentes, cuatro huecos iguales que siempre caben. */
+.meta-periodo-menu {
+  display: none;
+}
+@media (max-width: 900px) {
+  .meta-periodo-menu {
+    display: block;
+    flex: 0 0 auto;
+    max-width: 45%;
+    min-height: 44px;
+    padding: 0 40px 0 var(--e-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background-color: var(--white);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+  .meta-filtros-cab {
+    overflow: visible;
+  }
+  .meta-filtros-cab #metaPeriodo {
+    display: none;
+  }
+  .meta-filtros-cab #metaFuente {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .meta-filtros-cab #metaFuente .seg-btn {
+    justify-content: center;
+    min-width: 0;
+    padding: 0 var(--e-xs);
+  }
+}
+
 /* La etiqueta de un torneo oficial o de PokeDoc en su lista. */
 .meta-chapa-fuente {
   margin-left: var(--e-xs);

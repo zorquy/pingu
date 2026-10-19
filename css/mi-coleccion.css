@@ -447,18 +447,28 @@
   /* 52 de alto, el icono encima de la palabra. El ANCHO ya no se le pide:
      con texto, un control mide lo que mide su palabra (la regla de la
      312), y el mínimo lo pone la palabra más corta, «Panel». */
+  /* Baja (893), como la burbuja de las demás secciones: solo iconos, y la
+     activa con su palabra al lado. */
   .mc-pestania {
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    gap: var(--e-xs);
     min-width: 44px;
-    min-height: 52px;
-    padding: 0 var(--e-xs);
+    min-height: 44px;
+    padding: 0 var(--e-sm);
     border-radius: var(--radius-pill);
+  }
+  .mc-pestania:not(.activa) .mc-menu-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .mc-pestania > svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   /* El sitio que ocupa la barra, para que no tape la última fila. Y el
@@ -10778,3 +10788,65 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 .mc-confianza { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
 .mc-confianza:empty { display: none; }
+
+/* ── 893: /cartas en el móvil — título y catálogo en una fila, los mandos
+   en otra que se desliza (SCHEMA 893). mi-coleccion.js muda el selector
+   de catálogo junto al título. ── */
+@media (max-width: 900px) {
+  [data-modo='catalogo'] .mc-hero {
+    margin-bottom: var(--e-sm);
+  }
+  [data-modo='catalogo'] .mc-hero-quien {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: var(--e-sm);
+  }
+  [data-modo='catalogo'] .mc-hero-nombre {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  [data-modo='catalogo'] .mc-hero h1 {
+    margin: 0;
+    font-size: var(--t-xl);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  [data-modo='catalogo'] .mc-catalogo-lema {
+    display: none;
+  }
+  /* El catálogo son los dos botones con bandera que el JS pone detrás
+     del select: en su fila, sin partirse. Y el título se queda en
+     «Cartas» (el resto lleva `cab-largo`), que con los dos no cabe. */
+  [data-modo='catalogo'] .mc-hero-quien .seg {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+  [data-modo='catalogo'] .mc-hero-quien .seg-btn {
+    padding: 0 var(--e-sm);
+  }
+  [data-modo='catalogo'] .mc-estanteria-barra {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--e-sm);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  [data-modo='catalogo'] .mc-estanteria-barra::-webkit-scrollbar {
+    display: none;
+  }
+  [data-modo='catalogo'] .mc-estanteria-barra > * {
+    flex: 0 0 auto;
+  }
+  [data-modo='catalogo'] .mc-estanteria-barra #mcEstanteriaBusca {
+    flex: 1 1 180px;
+    min-width: 180px;
+  }
+  [data-modo='catalogo'] .mc-estanteria-que {
+    flex-wrap: nowrap;
+  }
+  [data-modo='catalogo'] .mc-estanteria-fila2 .mc-cuantas {
+    white-space: nowrap;
+  }
+}

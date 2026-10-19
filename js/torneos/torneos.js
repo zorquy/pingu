@@ -10,6 +10,7 @@
 // base (supabase-migration-torneos-publico.sql). Crear sigue siendo
 // del equipo.
 import { supabase } from '../supabase.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe, vistaAlDia } from '../ultima-vista.js'
 import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
@@ -364,22 +365,32 @@ const recargarLista = () => cargarLista(quienMira.session, quienMira.perfil)
 async function cargarLista(session, perfil = null) {
   quienMira = { session, perfil }
   const vacio = $('torneosVacio')
-  const { data, error } = await supabase
-    .from('tournaments')
-    .select('*')
-    .order('start_at', { ascending: false })
-    .limit(50)
+  // La lista de la última vez, ya (894); la clave lleva a quien mira,
+  // porque la tarjeta dice si ESTÁS inscrito.
+  const clave = claveDeVista('torneos', session?.user?.id)
+  pintarUltimaVista(clave)
+  const guardar = () => {
+    vistaAlDia()
+    guardarVista(clave, tomarPartes(['torneoVivo', 'torneosSemana', 'listaTorneos', 'torneosVacio']), { visibles: visiblesDe(['torneoVivo', 'torneosSemana', 'torneosVacio']) })
+  }
+  // Los torneos y las inscripciones no dependen una de otra: a la vez
+  // (894, R3). Una sola consulta de inscripciones da la ocupación de cada
+  // torneo Y mi estado (la sección es solo-admins: la RLS deja leerlo todo).
+  const [{ data, error }, { data: inscripciones }] = await Promise.all([
+    supabase
+      .from('tournaments')
+      .select('*')
+      .order('start_at', { ascending: false })
+      .limit(50),
+    supabase
+      .from('tournament_registrations')
+      .select('tournament_id, user_id, status'),
+  ])
   const torneos = data || []
   // El calendario pinta sobre esta misma lista: se guarda y, si es la
   // vista activa, se repinta con lo recién traído.
   torneosCargados = torneos
   pintarCalendario()
-
-  // Una sola consulta da la ocupación de cada torneo Y mi estado (la
-  // sección es solo-admins: la RLS deja leerlo todo).
-  const { data: inscripciones } = await supabase
-    .from('tournament_registrations')
-    .select('tournament_id, user_id, status')
   const ocupadasDe = {}
   const miEstado = {}
   // Los primeros inscritos de cada torneo, para las caras de la tarjeta
@@ -405,17 +416,6 @@ async function cargarLista(session, perfil = null) {
   // en «no se sabe» y se pintan como siempre.
   const rondasDe = {}
   const ligasEnJuego = torneos.filter((t) => t.format === 'league' && t.status === 'in_progress').map((t) => t.id)
-  if (ligasEnJuego.length) {
-    const { data: rondasLigas, error: errRondas } = await supabase
-      .from('rounds')
-      .select('tournament_id, round_number, status, phase')
-      .in('tournament_id', ligasEnJuego)
-    if (!errRondas) {
-      for (const id of ligasEnJuego) rondasDe[id] = []
-      for (const r of rondasLigas || []) rondasDe[r.tournament_id].push(r)
-    }
-  }
-  const enPausa = (t) => Boolean(estadoDeTorneo(t, rondasDe[t.id] || null).pausa)
 
   // UNA consulta de perfiles para tres cosas: quién de los creadores es
   // admin del sitio (→ torneos oficiales), cómo se llama quien organiza
@@ -428,17 +428,32 @@ async function cargarLista(session, perfil = null) {
     if (t.champion_id) quienes.add(t.champion_id)
     for (const u of primerosDe[t.id] || []) quienes.add(u)
   }
+  // Las rondas de las ligas y los perfiles salen de lo ya traído y no
+  // dependen una de otra: a la vez (894, R3).
+  const [rondasRes, perfilesRes] = await Promise.all([
+    ligasEnJuego.length
+      ? supabase.from('rounds').select('tournament_id, round_number, status, phase').in('tournament_id', ligasEnJuego)
+      : Promise.resolve(null),
+    quienes.size
+      ? supabase
+          .from('user_profiles')
+          // sin rango: aquí `is_admin` NO es un rango que pintar — es quién
+          // puede poner el sello de OFICIAL de PokeDoc. Y el nombre del
+          // organizador va como texto en la tarjeta (tanda 386).
+          .select('id, username, avatar_url, is_admin')
+          .in('id', [...quienes])
+      : Promise.resolve(null),
+  ])
+  if (rondasRes && !rondasRes.error) {
+    for (const id of ligasEnJuego) rondasDe[id] = []
+    for (const r of rondasRes.data || []) rondasDe[r.tournament_id].push(r)
+  }
+  const enPausa = (t) => Boolean(estadoDeTorneo(t, rondasDe[t.id] || null).pausa)
   const gente = {}
-  if (quienes.size) {
-    const { data: perfiles } = await supabase
-      .from('user_profiles')
-      // sin rango: aquí `is_admin` NO es un rango que pintar — es quién
-      // puede poner el sello de OFICIAL de PokeDoc. Y el nombre del
-      // organizador va como texto en la tarjeta (tanda 386).
-      .select('id, username, avatar_url, is_admin')
-      .in('id', [...quienes])
-    for (const p of perfiles || []) gente[p.id] = p
-    creadoresOficiales = new Set((perfiles || []).filter((p) => p.is_admin).map((p) => p.id))
+  if (perfilesRes) {
+    const perfiles = perfilesRes.data || []
+    for (const p of perfiles) gente[p.id] = p
+    creadoresOficiales = new Set(perfiles.filter((p) => p.is_admin).map((p) => p.id))
   }
 
   // ── EL VACÍO DICE DE QUÉ ES, Y NO NOMBRA UN BOTÓN QUE NO ESTÁ (510) ──
@@ -472,7 +487,7 @@ async function cargarLista(session, perfil = null) {
     })
   // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
   // (raro pero posible), el que empezó antes — es el que lleva prisa.
-  pintarVivo(
+  const vivoListo = pintarVivo(
     torneos
       .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t))
       .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
@@ -508,8 +523,12 @@ async function cargarLista(session, perfil = null) {
     },
     { id: 'borradores', texto: 'Borradores', filas: borradores },
   ])
+  // Lo de ahora, guardado para la próxima vez (894): ya, y otra vez cuando
+  // lleguen la barra del torneo en juego y los sprites del meta.
+  guardar()
+  Promise.resolve(vivoListo).then(guardar, () => {})
   // Los torneos sin imagen llevan los sprites del meta (796, SI4).
-  import('./arte-meta.js').then((m) => m.ponerArteDelMeta(document)).catch(() => {})
+  import('./arte-meta.js').then((m) => m.ponerArteDelMeta(document)).catch(() => {}).then(guardar)
 }
 
 // ── El calendario anual (tanda 242, pedido por Ibai) ──

@@ -11,6 +11,7 @@
 // revelada, el logo del set, el sobre: TODAS llevan imagen, y la imagen
 // es media noticia. Así que aquí sí.
 import { supabase } from './supabase.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { escapeHtml, getSession, getProfile } from './app.js'
 import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
@@ -135,19 +136,30 @@ export async function pintarNoticias() {
   const masCaja = document.getElementById('noticiasMasCaja')
   if (!rejilla) return
 
+  // Las de la última vez, ya (894). Y la rejilla deja de ser la silueta
+  // (`aria-hidden`) en cuanto lleva noticias de verdad, de la caché o de
+  // ahora: antes se quedaba escondida para quien escucha.
+  const clave = claveDeVista('noticias')
+  if (pintarUltimaVista(clave)) rejilla.removeAttribute('aria-hidden')
   const [{ noticias, hayMas, error }] = await Promise.all([pedir(null), cargarSetsConLogo().catch(() => {})])
+  vistaAlDia()
   if (error) {
     rejilla.innerHTML = `<p class="empty-state">No se han podido cargar las noticias. Vuelve a intentarlo en un momento.</p>`
     return
   }
   if (noticias.length === 0) {
+    titular.innerHTML = ''
     rejilla.innerHTML = `<p class="empty-state">Todavía no hay noticias publicadas. Vuelve pronto.</p>`
+    rejilla.removeAttribute('aria-hidden')
+    guardarVista(clave, tomarPartes(['noticiaTitular', 'noticiasRejilla']))
     return
   }
 
   const [primera, ...resto] = noticias
   titular.innerHTML = titularHtml(primera)
   rejilla.innerHTML = resto.map(tarjetaHtml).join('')
+  rejilla.removeAttribute('aria-hidden')
+  guardarVista(clave, tomarPartes(['noticiaTitular', 'noticiasRejilla']))
 
   let ultima = noticias[noticias.length - 1]?.published_at || null
   let quedan = hayMas

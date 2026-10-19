@@ -382,3 +382,10 @@
   border-color: var(--navy);
   box-shadow: var(--shadow-ring);
 }
+
+/* ── 893: «Mis mazos» y sus dos botones en una fila; Importar, solo su icono (SCHEMA 893) ── */
+@media (max-width: 900px) {
+  .mz-botones { flex-wrap: nowrap; }
+  .mz-botones .cab-palabra { display: none; }
+  .mz-botones #mzImportar { min-width: 44px; padding: 0 var(--e-sm); }
+}

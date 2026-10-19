@@ -469,6 +469,8 @@ export async function requireAuth() {
 
 export async function signOut() {
   await supabase.auth.signOut()
+  // Lo pintado la última vez (894) es de quien se va.
+  await import('./ultima-vista.js').then((m) => m.olvidarVistas()).catch(() => {})
   window.location.href = '/index.html'
 }
 

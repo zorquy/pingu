@@ -58,7 +58,7 @@ const CAMBIOS = [
   // cifras, el interruptor de pública) lo esconde el CSS del modo.
   [
     '<h1 id="mcTitulo">Mi colección</h1>',
-    `<h1 id="mcTitulo">${TITULO}</h1>
+    `<h1 id="mcTitulo">Cartas<span class="cab-largo"> de Pokémon TCG</span></h1>
           <p class="mc-catalogo-lema">Todas las expansiones con lo que valen y cómo van esta semana. Entra en una y toca cualquier carta.</p>`,
   ],
 ]

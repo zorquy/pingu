@@ -119,16 +119,20 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container meta-pagina">
-    <header class="meta-cabecera">
+    <header class="meta-cabecera cab-lista">
       <div>
         <h1>Mazos del meta</h1>
-        <p class="meta-lema">Los mazos que más se juegan en Estándar, en los torneos oficiales de Pokémon, en los online de Limitless y en los de PokeDoc: cuánto se usan, cómo les va y, dentro de cada uno, su lista media, listas del top 8 para copiar y guías para aprender a llevarlo.</p>
+        <p class="meta-lema cab-lema">Los mazos que más se juegan en Estándar, en los torneos oficiales de Pokémon, en los online de Limitless y en los de PokeDoc: cuánto se usan, cómo les va y, dentro de cada uno, su lista media, listas del top 8 para copiar y guías para aprender a llevarlo.</p>
       </div>
-      <div class="meta-filtros-cab">
-        <div class="seg" id="metaFuente" role="group" aria-label="Torneos"></div>
-        <div class="seg" id="metaPeriodo" role="group" aria-label="Periodo"></div>
-      </div>
+      <!-- En el móvil el periodo es un menú junto al título (893); en el
+           PC sigue siendo el selector de abajo. Los dos dicen lo mismo:
+           meta.js los mantiene a la par. -->
+      <select class="meta-periodo-menu" id="metaPeriodoMenu" aria-label="Periodo"></select>
     </header>
+    <div class="meta-filtros-cab">
+      <div class="seg" id="metaFuente" role="group" aria-label="Torneos"></div>
+      <div class="seg" id="metaPeriodo" role="group" aria-label="Periodo"></div>
+    </div>
     <p class="meta-totales" id="metaTotales"></p>
     <div id="metaAviso" class="meta-aviso hidden" role="status"></div>
 

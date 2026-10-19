@@ -11,6 +11,7 @@
 // /mi-coleccion?u=<usuario> enseña la de otra persona si la ha hecho
 // pública, sin nada que se pueda tocar.
 import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './app.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { urlParaCss } from './html.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
@@ -154,6 +155,14 @@ const PESTANAS_CATALOGO = ['album', 'buscar']
 // lo comparte.
 const PESTANA_POR_DEFECTO = modoCatalogo ? 'album' : 'resumen'
 if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
+// EN /cartas Y EN EL MÓVIL, EL CATÁLOGO VA JUNTO AL TÍTULO (893): se muda
+// el selector de verdad (con sus manejadores), así que los `querySelectorAll
+// ('.mc-mercado')` de siempre lo siguen encontrando.
+if (modoCatalogo && window.matchMedia?.('(max-width: 900px)').matches) {
+  const sel = document.querySelector('.mc-estanteria-fila2 .mc-mercado')
+  const quien = document.querySelector('.mc-hero-quien')
+  if (sel && quien) quien.appendChild(sel)
+}
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -1669,6 +1678,7 @@ async function pintarVistazos() {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen)))
   }
+  guardarPanel()
 }
 
 // ── LAS QUE MÁS SE MUEVEN ESTA SEMANA (663) ──
@@ -1725,6 +1735,7 @@ async function pintarMovidas(version) {
     // Sin histórico (o sin red), el hueco se va y el Panel sigue.
     sitio.innerHTML = ''
   }
+  guardarPanel()
 }
 
 // La gráfica llega DESPUÉS y por su cuenta: el resto del resumen sale de
@@ -8618,8 +8629,21 @@ async function iniciar() {
     void buscarEnTodo()
   }
 
+  // El Panel de la última vez, ya (894), mientras llegan las líneas: es
+  // tuyo, así que la clave te lleva, y solo si es lo que se abre.
+  if (esMia && pestania === 'resumen' && pintarUltimaVista(claveDeVista('panel', dueno.id))) $('mcCargando').classList.add('hidden')
   await cargarColeccion(dueno.id, { primeraVez: true })
   window.addEventListener('resize', () => album.set && pintarAlbum())
+}
+
+// Lo que el Panel enseña ahora, guardado para la próxima vez (894). Solo con
+// la colección ya cargada: antes, lo que hay en pantalla es «todavía no has
+// añadido ninguna carta» con la colección entera por llegar (la 377).
+let panelFiable = false
+function guardarPanel() {
+  if (!panelFiable || !esMia || !dueno?.id || pestania !== 'resumen') return
+  vistaAlDia()
+  guardarVista(claveDeVista('panel', dueno.id), tomarPartes(['mcResumen', 'mcResumenPanel', 'mcVistazos']))
 }
 
 // ── EL ARRANQUE DEL CATÁLOGO (tanda 649) ──
@@ -8721,6 +8745,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     return
   }
   $('mcCargando').classList.add('hidden')
+  panelFiable = true
   repintar()
   if (pestania === 'album') pintarEstanteria()
   // Y si el enlace trae una expansión abierta, se abre (tanda 468). Es la

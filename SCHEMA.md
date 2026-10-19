@@ -41785,6 +41785,156 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 894 — Lo último que viste, pintado ya; y consultas en paralelo
+
+R2 y R3 de la propuesta «Rápida y limpia» (artifact KHxCQmjk4tps8oED9867dN;
+«adelante con ello»). Sin migración.
+
+**R2, la última vista.** Las listas que se abren cada día —el índice del
+foro, el meta, las noticias, los lanzamientos, los torneos y el Panel de
+Mi colección— se guardan en `localStorage` tal como se pintaron la última
+vez, y al volver se pintan al instante desde ahí, con un punto verde junto
+al título («pidiendo lo nuevo», `html.uv-actualizando`, en `style.css`,
+quieto con «menos movimiento»); en cuanto contesta la base, lo de ahora
+sustituye lo guardado y el punto se apaga. Es lo que hace cualquier app:
+nadie vuelve a ver un esqueleto de algo que ya vio ayer.
+
+El ayudante es `js/ultima-vista.js` (sin imports): `claveDeVista(pagina,
+quien)`, `tomarPartes(ids)` / `visiblesDe(ids)` (el HTML de unos huecos por
+id y qué huecos llevan `hidden`), `guardarVista`, `leerVista`,
+`pintarUltimaVista` (pinta y enciende el punto; devuelve lo pintado o
+null), `vistaAlDia` (apaga el punto) y `olvidarVistas`. Decisiones:
+- **La clave lleva a quien mira** (`…|<user id>` o `…|anon`): el foro
+  enseña TUS no leídos, la tarjeta de un torneo dice si ESTÁS inscrito y
+  el Panel es tuyo; otra cuenta en el mismo navegador no ve lo de la
+  anterior. Lo público (meta, noticias, lanzamientos) va bajo `anon`. Y al
+  salir de la cuenta `signOut` (app.js) las olvida todas.
+- **Caduca a la semana** y **no se guarda lo que no cabe** (200.000
+  caracteres por vista): una vista grande no deja sin sitio a las demás.
+- **Se guarda DESPUÉS de pintar de verdad**, no antes: el Panel de Mi
+  colección solo guarda con la colección cargada (`panelFiable`), porque
+  antes lo que hay en pantalla es «todavía no has añadido ninguna carta»
+  con la colección entera por llegar (la 377). El meta guarda también el
+  aviso de «no hay torneos en este periodo» (es la última vista de ese
+  periodo), los lanzamientos vacían las listas antes de guardar el vacío
+  (escondidas con lo del otro catálogo dentro, lo guardado llevaría lo
+  que no es) y las noticias guardan el vacío con el titular limpio.
+- **Lo pintado desde la caché no lleva manejadores propios** (los chips
+  de sección del foro, «Ver más» de torneos) hasta que llega lo de ahora
+  —unos cientos de milisegundos—; los enlaces, sí. Y las horas relativas
+  («hace 2 h») son las de entonces hasta que se sustituyen.
+- La rejilla de noticias **deja de ser silueta** (`aria-hidden`) en cuanto
+  lleva noticias, de la caché o de ahora: antes se quedaba escondida para
+  quien escucha, siempre.
+
+Dónde: foro (`init` pinta el índice en cuanto hay sesión, con la clase
+`foro-en-indice` puesta antes porque su CSS depende de ella; guarda
+`foroDestacado`, `foroPrincipal`, `foroLateral` al acabar), meta (por
+`fuente:dias`; `metaTotales`, `metaRanking`, `metaAviso` y qué se ve),
+noticias (`noticiaTitular`, `noticiasRejilla`), lanzamientos (por catálogo;
+destacado, listas, cuántas y qué secciones se ven), torneos (`torneoVivo`,
+`torneosSemana`, `listaTorneos`, `torneosVacio`; se guarda otra vez cuando
+llegan la barra del torneo en juego y los sprites del meta) y Mi colección
+(`mcResumen`, `mcResumenPanel`, `mcVistazos`, solo si se abre el Panel y es
+tuyo; se guarda al acabar los vistazos y las «que más se mueven»).
+
+**R3, en paralelo.** El foro pedía en fila el rol, las marcas de lectura y
+los no leídos; ahora rol y marcas van a la vez (los no leídos dependen de
+las marcas), los perfiles del último que escribió y la franja de lo que se
+está hablando van a la vez, y los números de la lateral se piden desde el
+principio y se esperan al final. Los torneos pedían torneos → inscripciones
+→ rondas → perfiles; ahora torneos e inscripciones a la vez, y rondas y
+perfiles a la vez. Noticias, lanzamientos, meta, Mis partidas y Mi
+colección ya iban en paralelo (485, 748, 838).
+
+**La prueba (894)** siembra una vista con una MARCA en el `localStorage`
+y un observador que apunta si la marca llegó a verse: así no depende de
+cuánto tarde en contestar el doble; con `__FAKE_RETRASO__` comprueba
+además que, mientras la base tarda, se ve lo guardado y no el esqueleto.
+Y la 408 se pone al día con la 893 (la palabra solo en la pestaña activa).
+
+**Ficheros**: `js/ultima-vista.js` (nuevo), `css/style.css`, `js/app.js`,
+`js/foro.js`, `js/meta.js`, `js/noticias.js`, `js/lanzamientos.js`,
+`js/torneos/torneos.js`, `js/mi-coleccion.js`, `css/partidas.css` (el alto
+de «Filtrar» en el móvil, que la 312 cazó de la 893).
+
+## Tanda 893 — Cabeceras de una línea en las listas, controles en una fila, burbuja baja
+
+I1, I2 e I4 de la propuesta «Rápida y limpia» (artifact
+KHxCQmjk4tps8oED9867dN; PINGU: «hay menús que ocupan demasiado, filtros que
+ocupan demasiado»; «adelante con ello»). Solo cambia el MÓVIL (≤ 900 px): en
+el PC las once cabeceras siguen como estaban.
+
+**Lo que había.** En un iPhone 13, /cartas tenía título a dos líneas,
+párrafo, «Orden», buscador, tres chips y los dos catálogos —seis filas— antes
+de la primera colección, que empezaba en el 55 % de la pantalla; /torneos,
+/noticias y /mis-partidas ponían el botón principal en su propia fila bajo
+un párrafo; /meta cortaba la fila de fuentes («7 día»); y la burbuja de la
+sección medía 62 px con icono y palabra en cada hueco.
+
+**La regla, para las once páginas de lista** (Cartas, Aprender, Foro,
+Torneos, Meta, Retos, Comunidad, Mis partidas, Mis mazos, Lanzamientos,
+Noticias): título en UNA línea y a `--t-xl`; sin párrafo (quien quiera
+saberlo lo tiene en «Qué es PokeDoc»); los controles en una fila; el botón
+principal a la derecha del título. Se escribe UNA vez, en `movil.css` (que
+solo baja el móvil): la cabecera lleva `cab-lista` (flex, `wrap` para que
+lo que no quepa baje de fila sin romperse), el párrafo `cab-lema`
+(`display: none`), y `cab-largo` esconde un trozo de texto que en el móvil
+sobra (el «de Pokémon TCG» del título de /cartas, el «en el foro» de una
+cifra). Las hojas de cada página solo ponen el aire y lo suyo.
+
+**Lo de cada una.**
+- **/cartas** (se genera de mi-coleccion.html): el título queda en «Cartas»
+  y el catálogo (los dos botones con bandera que el JS pinta detrás del
+  `select .mc-mercado`) se muda junto a él —`mi-coleccion.js` mueve el
+  select de verdad, con sus manejadores, así que los
+  `querySelectorAll('.mc-mercado')` de siempre lo siguen viendo—; los
+  mandos de la estantería («Orden», buscador, Empezadas/Todas/Completas,
+  cuántas) van en una fila que se desliza. Scoped a `[data-modo='catalogo']`:
+  la estantería de Mi colección (la 748, que PINGU eligió) no cambia.
+- **/meta**: el periodo es un `<select>` junto al título
+  (`#metaPeriodoMenu`); elegir ahí PULSA el botón del selector de abajo (que
+  en el móvil no se ve), así que la dirección (`?dias=`) la escribe un solo
+  sitio y los dos van a la par. Las cuatro fuentes son una rejilla de cuatro
+  huecos iguales: siempre caben. La fila de filtros sale de la cabecera (en
+  el móvil la cabecera es una línea) y es su hermana.
+- **/mis-partidas**: en el móvil el botón principal de la pestaña abierta
+  («Apuntar un torneo» / «Apuntar una partida») se MUDA junto al título
+  (`#partidasAcciones`) y «Filtrar» a la fila de las pestañas
+  (`#partidasMandosExtra`), moviendo los botones de verdad; al cambiar de
+  pestaña vuelven a su barra, y en Estadísticas no hay ninguno y el hueco
+  no ocupa (`:empty`). Para que quepan: pestañas más apretadas, «Partidas
+  sueltas» a «Partidas» y «Filtrar» solo con su icono (`sliders`, el de Mi
+  colección, pintado por mis-partidas.js). **La fila se llama
+  `partidas-mandos`**: `partidas-fila` ya era la fila de una partida en
+  partidas.css (con su borde), y la primera versión la pisó.
+- **/torneos**: «Torneos» y «Crear torneo» en una fila; se va la regla de
+  640 px que apilaba las acciones.
+- **/retos**: «Tu día» compacto al lado del título (anillo de 40, sin el
+  rótulo, cifras a `--t-2xs`).
+- **/comunidad**: las cuatro cifras en UNA línea; las palabras largas de los
+  rótulos llevan `cab-largo` (y la regla va en comunidad.css: el
+  `display: block` del span le gana a la común).
+- **/mazos**: «Importar lista» se queda en su icono (con `aria-label`) al
+  lado de «Nuevo mazo»; la cuenta de mazos se esconde.
+- **/lanzamientos**: sin el rótulo «Catálogo», las dos opciones a lo ancho.
+- **/foro, /aprender, /noticias**: la clase y el aire; el resto ya estaba.
+
+**La burbuja de la sección (I4)**, y la de Mi colección igual: solo iconos
+(22 px), la activa con su palabra al lado, 44 por hueco (la regla de la 312
+no deja bajar a los 32 de la maqueta), relleno de 2: pasa de 62 a 50 px, y
+más pegada a la barra (`bottom` 72 + 8). La palabra de las no activas se
+esconde PARA LA VISTA (clip de 1 px), no con `display: none`: es lo que lee
+quien escucha (la lección de la 565) y lo que casan las pruebas por texto.
+Se queda la 709 (al bajar, la burbuja baja a ocupar el sitio de la barra),
+que es lo que PINGU eligió; la propuesta decía esconderla y no se hace.
+
+**Ficheros**: `css/movil.css`, `css/mi-coleccion.css`, `css/meta.css`,
+`css/partidas.css`, `css/torneos.css`, `css/retos.css`, `css/comunidad.css`,
+`css/mazos.css`, `css/lanzamientos.css`, `css/noticias.css`, `js/meta.js`,
+`js/mis-partidas.js`, `js/mi-coleccion.js`, `generar-cartas.mjs`, y las
+once páginas (`cartas.html` regenerada). Prueba: `test-tanda-893.mjs`.
+
 ## Tanda 892 — Que cada toque responda ya, y la banda de instalar
 
 PINGU (antes de dormir): «clicas en algo y la respuesta tiene que ser

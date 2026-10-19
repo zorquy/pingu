@@ -4,6 +4,63 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (127) — PINGU-Claude (894 — lo último que viste, pintado ya; consultas en paralelo)
+
+**Hecho** (R2 y R3 de «Rápida y limpia»): `js/ultima-vista.js` guarda en
+el navegador lo que pintan el índice del foro, el meta, las noticias, los
+lanzamientos, los torneos y el Panel de Mi colección, y al volver lo pinta
+al instante con un punto verde junto al título hasta que llega lo nuevo.
+Clave por persona (y `anon`), caduca a la semana, se olvida al salir de la
+cuenta. El foro y los torneos piden a la vez lo que no depende entre sí.
+Y la rejilla de noticias deja de estar `aria-hidden` cuando lleva noticias.
+
+**Ficheros**: `js/ultima-vista.js`, `css/style.css`, `js/app.js`,
+`js/foro.js`, `js/meta.js`, `js/noticias.js`, `js/lanzamientos.js`,
+`js/torneos/torneos.js`, `js/mi-coleccion.js`, `css/partidas.css`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 894 (nueva: lo puro, lo estático, las seis guardan, al
+volver se pinta lo guardado antes de que conteste la base y lo nuevo lo
+sustituye, la clave es de quien mira, olvidar al salir), 408 al día con
+la 893, 312 en verde (el alto de «Filtrar»). La suite entera en carriles
+con la 893: ver la 126/abajo. Rojas que ya lo estaban sobre la 892
+(comprobado sirviendo ese commit aparte): 269, 308, 255, 385, 391, correos.
+
+**Pendiente**: 895, 896, 897 de la propuesta. Y lo de la 122.
+
+## 2026-10-19 (126) — PINGU-Claude (893 — cabeceras de una línea, controles en una fila, burbuja baja)
+
+**Hecho** (I1, I2 e I4 de la propuesta «Rápida y limpia»; solo móvil):
+las once páginas de lista (Cartas, Aprender, Foro, Torneos, Meta, Retos,
+Comunidad, Mis partidas, Mis mazos, Lanzamientos, Noticias) llevan
+`cab-lista`: título en una línea a `--t-xl`, sin párrafo (`cab-lema`), el
+botón principal a la derecha del título. /cartas: «Cartas» con el catálogo
+al lado y los mandos en una fila que se desliza. /meta: el periodo es un
+menú junto al título y las cuatro fuentes caben siempre. /mis-partidas: el
+botón de apuntar se muda junto al título y «Filtrar» (icono) a la fila de
+pestañas, y vuelven al cambiar de pestaña. /comunidad: las cifras en una
+línea. /mazos: Importar en icono. La burbuja de la sección (y la de Mi
+colección): solo iconos, la activa con su palabra, 44 por hueco: de 62 a
+50 px.
+
+**Ficheros**: `css/movil.css`, `css/mi-coleccion.css`, `css/meta.css`,
+`css/partidas.css`, `css/torneos.css`, `css/retos.css`, `css/comunidad.css`,
+`css/mazos.css`, `css/lanzamientos.css`, `css/noticias.css`, `js/meta.js`,
+`js/mis-partidas.js`, `js/mi-coleccion.js`, `generar-cartas.mjs`,
+`aprender.html`, `foro.html`, `torneos.html`, `meta.html`, `retos.html`,
+`usuarios.html`, `mis-partidas.html`, `mazos.html`, `lanzamientos.html`,
+`noticias.html`, `cartas.html` (regenerada), `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 893 (nueva: lo estático en las once, en el iPhone título en
+una línea sin párrafo y lo primero antes del 25 % de la pantalla, el menú
+del meta mueve el selector y la dirección, los botones de Mis partidas van
+y vuelven, el catálogo junto a «Cartas», las cifras en una línea, la
+burbuja a 50 con 44 por hueco) y la suite entera en carriles: ver abajo.
+
+**Pendiente**: 894 (última vista en caché y consultas en paralelo), 895,
+896, 897 de la propuesta. Y lo de la 122.
+
 ## 2026-10-19 (125) — PINGU-Claude (892 — que cada toque responda ya; banda de instalar)
 
 **Hecho** (PINGU: «clicas en algo y la respuesta tiene que ser

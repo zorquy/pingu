@@ -43,6 +43,7 @@ import {
   ultimas,
 } from './estadisticas-partidas.js'
 import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -1707,12 +1708,37 @@ async function init() {
   // Las tres vistas, como las pestañas del perfil. Y en la dirección
   // (859, `?ver=stats`), sustituyendo la entrada: recargar o compartir
   // enseña la misma vista, y atrás no pasa por ella.
+  // EN EL MÓVIL EL BOTÓN PRINCIPAL VA JUNTO AL TÍTULO y «Filtrar» en la fila
+  // de las pestañas (893). Se mueven los botones de verdad —con sus
+  // manejadores—, y al cambiar de pestaña vuelven a su barra; en el PC no
+  // se toca nada.
+  const movil = window.matchMedia?.('(max-width: 900px)').matches
+  const colocarMandos = (vista) => {
+    if (!movil || !$('partidasAcciones') || !$('partidasMandosExtra')) return
+    for (const v of ['torneos', 'sueltas']) {
+      const barra = $(`vista-${v}`).querySelector('.partidas-barra')
+      const boton = $(v === 'torneos' ? 'btnApuntarTorneo' : 'btnApuntarPartida')
+      const filtrar = $(v === 'torneos' ? 'torneoFiltrar' : 'listaFiltrar')
+      if (!barra || !boton || !filtrar) continue
+      if (v === vista) {
+        $('partidasAcciones').appendChild(boton)
+        $('partidasMandosExtra').appendChild(filtrar)
+      } else {
+        barra.prepend(filtrar)
+        barra.prepend(boton)
+      }
+    }
+  }
+  // El icono de «Filtrar» (893): en el móvil el botón es solo el icono.
+  for (const el of document.querySelectorAll('.partidas-filtrar [data-icono]')) el.innerHTML = ICONOS_COLECCION[el.dataset.icono]?.(16) || ''
+  colocarMandos('torneos')
   document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
       document.querySelectorAll('#partidasTabs .seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
       for (const v of ['torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }
+      colocarMandos(btn.dataset.vista)
       const url = new URL(location.href)
       if (btn.dataset.vista === 'torneos') url.searchParams.delete('ver')
       else url.searchParams.set('ver', btn.dataset.vista)

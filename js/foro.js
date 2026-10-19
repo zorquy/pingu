@@ -20,6 +20,7 @@ import {
 } from './foro-comun.js'
 import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { plegarTexto } from './texto.js'
 import { fragmento, ultimosPorTema, avatarSpan } from './foro-conversaciones.js'
 import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
@@ -234,6 +235,9 @@ async function calientesHtml(idsForosVisibles = null) {
 }
 
 async function pintarIndice() {
+  // Los números de la lateral no dependen de nada de esto: salen ya y se
+  // esperan al final (894, R3).
+  const lateralLista = pintarLateral().catch(() => {})
   const [seccionesRes, forosRes] = await Promise.all([
     supabase.from('forum_sections').select('*').order('position'),
     supabase.from('forum_boards_resumen').select('*').order('position'),
@@ -246,7 +250,9 @@ async function pintarIndice() {
   // enseña a administración, y verlo aquí sin ninguna marca confunde. El
   // de Noticias se esconde desde la 876 con sus hilos viejos dentro.
   const foros = (forosRes.data || []).filter((f) => !f.is_hidden)
-  const perfiles = await perfilesPorId(foros.map((f) => f.last_post_author_id))
+  // Los perfiles del último que escribió y la franja de lo que se está
+  // hablando, a la vez: las dos salen de la lista de foros (894, R3).
+  const [perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id))])
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
 
@@ -314,8 +320,6 @@ async function pintarIndice() {
     })
     .join('')
 
-  const calientes = await calientesHtml(foros.map((f) => f.id))
-
   // La franja va en su propio hueco, ancho completo: dentro de la
   // columna principal los títulos se volvían a cortar, que es el fallo
   // del que venimos.
@@ -360,7 +364,10 @@ async function pintarIndice() {
     if (abierto) document.getElementById('foroBuscadorTexto')?.focus()
   })
   montarEscribir(foros)
-  await pintarLateral()
+  await lateralLista
+  // Lo de ahora, guardado para la próxima vez (894).
+  vistaAlDia()
+  guardarVista(claveDeVista('foro', sesion?.user?.id), tomarPartes(['foroDestacado', 'foroPrincipal', 'foroLateral']))
 }
 
 // EL BOTÓN DE ESCRIBIR (748): flotante, como en su maqueta. Abrir un tema
@@ -1145,9 +1152,17 @@ function engancharBuscador() {
 
 async function init() {
   sesion = await getSession()
+  // El índice de la última vez, ya (894), mientras llega el de ahora. La
+  // clase del móvil va antes de pintarlo: su CSS depende de ella.
+  if (!consulta && !slugForo) {
+    document.body.classList.add('foro-en-indice')
+    pintarUltimaVista(claveDeVista('foro', sesion?.user?.id))
+  }
   if (sesion) {
-    ;({ staff: soyStaff, admin: soyAdmin } = await rolEnElEquipo(sesion))
-    marcas = await marcasDeLectura(sesion.user.id)
+    // El rol y las marcas no dependen una de otra: a la vez (894, R3).
+    let rol
+    ;[rol, marcas] = await Promise.all([rolEnElEquipo(sesion), marcasDeLectura(sesion.user.id)])
+    ;({ staff: soyStaff, admin: soyAdmin } = rol)
     nuevosPorForo = await sinLeerPorForo(marcas)
   }
   engancharBuscador()

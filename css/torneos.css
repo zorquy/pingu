@@ -36,16 +36,10 @@
   margin-left: auto;
   flex-shrink: 0;
 }
-@media (max-width: 640px) {
-  .torneos-heroe {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    padding: 24px 0 16px;
-  }
-  .torneos-heroe-acciones { margin-left: 0; }
-  /* Desde la 839 queda uno solo («Crear torneo»): a su tamaño, no a lo ancho. */
-  .torneos-heroe-acciones > * { text-align: center; }
+/* En el móvil (893) es una fila —«Torneos» y «Crear torneo»— sin párrafo:
+   lo pone `cab-lista` (movil.css); aquí solo el aire. */
+@media (max-width: 900px) {
+  .torneos-heroe { padding: var(--e-xs) 0 var(--e-sm); }
 }
 
 /* ── La barra del torneo que estás jugando AHORA (tanda 297) ──

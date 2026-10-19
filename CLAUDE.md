@@ -448,6 +448,26 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Una lista que se abre cada día se pinta primero con lo de la última
+  vez** (tanda 894, R2): `js/ultima-vista.js` guarda por id el HTML de unos
+  huecos y lo pinta al volver con el punto `html.uv-actualizando` hasta que
+  llega lo nuevo. Si añades una pantalla de lista, pásala por ahí: la clave
+  lleva a QUIEN mira (o `anon`), se guarda DESPUÉS de pintar de verdad
+  (nunca el estado vacío de antes de cargar) y lo pintado desde la caché
+  no tiene manejadores propios hasta que se sustituye. Y al salir de la
+  cuenta se olvidan todas (`signOut`).
+- **Las cabeceras de las páginas de LISTA en el móvil son una línea**
+  (tanda 893, I1 de «Rápida y limpia»): la cabecera lleva `cab-lista`, el
+  párrafo `cab-lema` y un trozo de texto que en el móvil sobra, `cab-largo`
+  (las tres en `movil.css`, que solo baja el móvil; el PC no cambia). Una
+  página de lista nueva lleva lo mismo, y su botón principal a la derecha
+  del título, no debajo. Si un control tiene que cambiar de sitio según el
+  ancho, se MUEVE el elemento de verdad (con sus manejadores), como el
+  select del catálogo en /cartas o los botones de /mis-partidas; no se
+  duplica. Y antes de nombrar una clase nueva, grepa el nombre en la hoja
+  de esa página: `partidas-fila` ya era la fila de una partida —con su
+  borde— y la fila de mandos la pisó sin un solo error (de ahí
+  `partidas-mandos`).
 - **Un enlace que navega enseña que navega en el mismo instante** (tanda
   892, R1 de la propuesta «Rápida y limpia»): `js/progreso.js` (por
   `import()` desde app.js) pone la barra de 3 px arriba y atenúa

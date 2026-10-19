@@ -1840,6 +1840,10 @@ html.navegando .page-content { opacity: 0.72; transition: opacity 0.3s var(--eas
   .progreso-pagina.andando i, .progreso-pagina.lista i { animation: none; transition: none; }
   html.navegando .page-content { transition: none; }
 }
+/* ── 894: la última vista, pintada ya; el punto dice «pidiendo lo nuevo» (SCHEMA 894) ── */
+html.uv-actualizando .page-content h1::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: var(--e-sm); border-radius: 50%; background: var(--success); vertical-align: middle; animation: uv-late 1s ease-in-out infinite; }
+@keyframes uv-late { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { html.uv-actualizando .page-content h1::after { animation: none; } }
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
   .bm { view-transition-name: barra-abajo; }

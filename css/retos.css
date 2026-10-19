@@ -726,3 +726,20 @@
   .rt-com-reto-txt > span:first-child { flex-direction: column; gap: 0; }
   .rt-com-reto-txt small { text-align: left; }
 }
+
+/* ── 893: «Retos diarios» en una línea con «Tu día» compacto al lado (SCHEMA 893) ── */
+@media (max-width: 900px) {
+  .rt-cabecera { margin-bottom: var(--e-sm); }
+  .rt-tudia {
+    gap: var(--e-sm);
+    padding: var(--e-xs) var(--e-sm) var(--e-xs) var(--e-xs);
+    border-radius: var(--radius-pill);
+  }
+  .rt-anillo { width: 40px; height: 40px; }
+  .rt-anillo::before { inset: 4px; }
+  .rt-anillo b { font-size: var(--t-sm); }
+  .rt-anillo small { font-size: var(--t-2xs); }
+  .rt-tudia-datos { gap: 0; }
+  .rt-tudia-datos strong { display: none; }
+  .rt-tudia .rt-fila { gap: var(--e-xs); font-size: var(--t-2xs); }
+}

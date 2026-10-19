@@ -757,3 +757,19 @@
   object-fit: cover;
   background: var(--bg);
 }
+
+/* ── 893: las cuatro cifras en UNA línea en el móvil (SCHEMA 893) ── */
+@media (max-width: 900px) {
+  .com-cifras {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0 0 var(--e-md);
+  }
+  .com-cifra {
+    padding: var(--e-sm) var(--e-xs);
+    border-bottom: 0;
+  }
+  .com-cifra b { font-size: var(--t-lg); }
+  .com-cifra span { font-size: var(--t-2xs); }
+  /* `display: block` del span de arriba le gana al `cab-largo` común. */
+  .com-cifra .cab-largo { display: none; }
+}

@@ -17,6 +17,7 @@
 // Las fechas son AAAA-MM-DD y se comparan como texto contra el día de hoy
 // en UTC (como todas las fechas de la casa): el formato ordena solo.
 import { supabase } from './supabase.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe, vistaAlDia } from './ultima-vista.js'
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
@@ -229,20 +230,33 @@ async function pintar(mercado) {
   const destacadoEl = $('proximoDestacado')
   for (const id of ['proximoDestacado', 'seccionProximos', 'seccionPasados', 'lanzamientosVacio', 'lanzamientosError']) $(id)?.classList.add('hidden')
   $('lanzamientosCargando')?.classList.remove('hidden')
+  // El calendario de la última vez de este catálogo, ya (894).
+  const clave = claveDeVista(`lanzamientos:${mercado}`)
+  if (pintarUltimaVista(clave)) $('lanzamientosCargando')?.classList.add('hidden')
+  const guardar = () => {
+    vistaAlDia()
+    guardarVista(clave, tomarPartes(['proximoDestacado', 'listaProximos', 'listaPasados', 'cuantosPasados']), { visibles: visiblesDe(['proximoDestacado', 'seccionProximos', 'seccionPasados', 'lanzamientosVacio']) })
+  }
   let cal
   try {
     cal = await cargarCalendario(mercado)
   } catch {
     // Tres finales distintos no caben en un `return` (la 510): esto es
     // «no se ha podido preguntar», que no es «no hay nada».
+    vistaAlDia()
     $('lanzamientosCargando')?.classList.add('hidden')
     $('lanzamientosError')?.classList.remove('hidden')
     return
   }
   $('lanzamientosCargando')?.classList.add('hidden')
+  for (const id of ['proximoDestacado', 'seccionProximos', 'seccionPasados']) $(id)?.classList.add('hidden')
   const { siguiente, proximos, pasados } = cal
   if (!siguiente && !pasados.length) {
+    // Las listas se vacían de verdad: escondidas con lo del otro catálogo
+    // dentro, lo guardado llevaría lo que no es.
+    for (const id of ['proximoDestacado', 'listaProximos', 'listaPasados']) $(id).innerHTML = ''
     $('lanzamientosVacio').classList.remove('hidden')
+    guardar()
     return
   }
   if (siguiente) {
@@ -266,6 +280,7 @@ async function pintar(mercado) {
     $('cuantosPasados').textContent = `${pasados.length} ${pasados.length === 1 ? 'expansión' : 'expansiones'}`
     $('seccionPasados').classList.remove('hidden')
   }
+  guardar()
   // «Avísame» en lo que viene (753): llega después, por su cuenta.
   if (siguiente) import('./lanzamientos-avisos.js').then((m) => m.montarAvisos(cal, mercado)).catch(() => {})
   // Y sus productos (762, Z1), si TCGGO los tiene.

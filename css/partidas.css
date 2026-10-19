@@ -734,3 +734,27 @@
   .partidas-torneo-cab .partidas-sprite { width: 28px; height: 28px; }
   .partidas-torneo-sprites { min-width: 28px; }
 }
+
+/* ── 893: pestañas y «Filtrar» en una fila que se desliza; en el móvil el
+   botón principal se va junto al título (SCHEMA 893) ── */
+.partidas-mandos {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.partidas-mandos::-webkit-scrollbar { display: none; }
+.partidas-mandos .partidas-tabs { flex: 0 0 auto; flex-wrap: nowrap; }
+.partidas-mandos-extra { flex: 0 0 auto; margin-left: auto; }
+.partidas-mandos-extra:empty,
+.cab-acciones:empty { display: none; }
+.partidas-filtrar { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; }
+@media (max-width: 900px) {
+  /* Caben las tres pestañas y «Filtrar» (solo su icono) en los 342 px de
+     un iPhone: pestañas más apretadas y «Partidas sueltas» a «Partidas». */
+  .partidas-mandos .seg-btn { padding: 0 var(--e-sm); }
+  .partidas-mandos .partidas-filtrar { min-width: 44px; padding: 0 var(--e-sm); }
+  .partidas-mandos .partidas-filtrar .cab-palabra { display: none; }
+}

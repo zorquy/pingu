@@ -33,6 +33,10 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El foro, el meta, las noticias, los lanzamientos, los torneos y el panel de tu colección se abren con lo que viste la última vez ya pintado, y un puntito junto al título avisa de que está pidiendo lo nuevo.", "enlace": "/foro"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El foro y la lista de torneos cargan antes: lo que no depende entre sí se pide a la vez.", "enlace": "/torneos"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "En el móvil, las páginas de lista (Cartas, Foro, Torneos, Meta, Retos, Noticias…) empiezan antes: el título en una línea, sin el párrafo de explicación, los filtros en una fila y el botón principal al lado del título.", "enlace": "/cartas"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "La burbuja de cada sección en el móvil ocupa menos: solo iconos, y la página en la que estás con su nombre.", "enlace": "/torneos"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Cada toque responde al instante: los botones y enlaces se hunden al pulsarlos, al tocar un enlace sale una barra de progreso arriba mientras llega la página, y en el móvil la pestaña de abajo se marca en el momento.", "enlace": "/"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El aviso para tener PokeDoc como app en el iPhone ya no tapa la página: es una línea discreta encima del contenido, una vez por visita.", "enlace": "/"},
     {"fecha": "2026-10-18", "tipo": "nuevo", "texto": "Ya puedes mandar fotos en los mensajes privados: hasta cuatro por mensaje, desde la cámara, la galería, pegando o arrastrando. Solo las veis los dos.", "enlace": "/mensajes"},

@@ -4,6 +4,7 @@
 import { escapeHtml } from './html.js'
 import { resumen, totales, tiposDeArquetipos, tiposDeEspecies, TIPOS_CON_BARRA } from './meta/datos.js'
 import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
+import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe, vistaAlDia } from './ultima-vista.js'
 import {
   periodoDe,
   fuenteDe,
@@ -13,6 +14,7 @@ import {
   textoTendencia,
   MIN_MAZOS_CON_MUESTRA,
   ARQUETIPO_OTROS,
+  PERIODOS,
 } from './meta/nucleo.js'
 
 const $ = (id) => document.getElementById(id)
@@ -90,6 +92,14 @@ async function cargar() {
   const mio = ++turno
   $('metaRanking').setAttribute('aria-busy', 'true')
   $('metaRanking').classList.add('meta-cargando')
+  // Lo de la última vez con estos filtros, ya (894); lo de ahora, en cuanto
+  // llegue. Es público: la clave no lleva a nadie.
+  const clave = claveDeVista(`meta:${fuente || 'todos'}:${dias}`)
+  pintarUltimaVista(clave)
+  const guardar = () => {
+    vistaAlDia()
+    guardarVista(clave, tomarPartes(['metaTotales', 'metaRanking', 'metaAviso']), { visibles: visiblesDe(['metaCabeceraTabla', 'metaAviso']) })
+  }
   try {
     const [r, t] = await Promise.all([resumen(dias, fuente), totales(dias, fuente)])
     if (mio !== turno) return
@@ -104,6 +114,7 @@ async function cargar() {
         : fuente === 'pokedoc'
           ? '<p><strong>No hay torneos de PokeDoc terminados en este periodo.</strong> <a class="link-btn" href="/torneos.html">Mira los próximos</a>.</p>'
           : '<p><strong>Todavía no hay torneos leídos en este periodo.</strong> Los datos se cargan solos; la primera carga tarda unas horas.</p>')
+      guardar()
       return
     }
     const partes = [
@@ -115,15 +126,18 @@ async function cargar() {
     // El de la especie, ya; el de las cartas, cuando llegue (748).
     tipos = tiposDeEspecies(filas)
     pintar()
+    guardar()
     tiposDeArquetipos(filas)
       .then((m) => {
         if (mio !== turno) return
         tipos = m
         pintar()
+        guardar()
       })
       .catch(() => {})
   } catch (err) {
     if (mio !== turno) return
+    vistaAlDia()
     $('metaRanking').innerHTML = ''
     aviso(`<p>${escapeHtml(err.message)}</p>`)
   } finally {
@@ -139,8 +153,18 @@ function iniciar() {
   })
   const caja = $('metaPeriodo')
   caja.innerHTML = periodoHtml(dias)
+  // En el móvil el periodo es un menú junto al título (893): elegir ahí es
+  // pulsar el botón de abajo, así que los dos van siempre a la par y la
+  // dirección (?dias=) la escribe un solo sitio.
+  const menu = $('metaPeriodoMenu')
+  if (menu) {
+    menu.innerHTML = PERIODOS.map((d) => `<option value="${d}">${d} días</option>`).join('')
+    menu.value = String(dias)
+    menu.addEventListener('change', () => caja.querySelector(`[data-dias="${Number(menu.value)}"]`)?.click())
+  }
   engancharPeriodo(caja, (d) => {
     dias = d
+    if (menu) menu.value = String(d)
     cargar()
   })
   $('metaVerTodos').addEventListener('click', () => {

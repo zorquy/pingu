@@ -329,3 +329,11 @@ a.lanzamiento-tarjeta:hover { border-color: var(--navy); }
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ── 893: sin el rótulo «Catálogo»; las dos opciones a lo ancho (SCHEMA 893) ── */
+@media (max-width: 900px) {
+  .lanz-mandos-rotulo { display: none; }
+  .lanz-mandos { margin-bottom: var(--e-md); }
+  .lanz-mandos .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .lanz-mandos .seg-btn { justify-content: center; }
+}
