@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (138) — PINGU-Claude (905 — una gradeada vale lo que vale su nota)
+
+**Hecho** (TCGbycharlie en el foro: las gradeadas salían a precio RAW).
+Una línea con «PSA 10» y precio de PSA 10 en TCGGO vale eso: Cardmarket
+primero, eBay pasado a euros si no hay otra; «Tu valor» sigue mandando y
+sin precio de esa nota vale la carta sin gradear, y la ficha lo dice
+(«(precio PSA 10)» / «sin gradear»). La foto diaria suma igual
+(`valor_gradeado` en SQL).
+
+**Ficheros**: `js/cardmarket.js`, `js/mi-coleccion.js`,
+`supabase-migration-905-gradeadas.sql` (NUEVO), `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-905.mjs` y
+`sql-tanda-905.sql`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-905-gradeadas.sql` (sin
+ella la web ya suma bien; lo que no, la gráfica del valor). Contestar a
+TCGbycharlie en su hilo. Y lo de la 137.
+
 ## 2026-10-19 (137) — PINGU-Claude (904 — «Otros sets» al fondo de la estantería; e-Card y Prize Pack en su sitio)
 
 **Hecho** (PINGU: los cuatro de e-Card «eso sería e-Card, la era», y los

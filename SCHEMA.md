@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 905 — Una gradeada vale lo que vale su nota
+
+TCGbycharlie, en el foro («Si pongo una gradeada…?»): «cuando añado mis
+cartas gradeadas a mi colección me siguen saliendo los precios de las
+cartas en formato RAW». TCGGO ya daba las gradeadas por casa y nota
+(`cm_gradeadas`, euros; `ebay_gradeadas`, dólares, desde la 589) y la ficha
+las pintaba; la línea ya guardaba «PSA 10» (563). Faltaba juntarlas.
+
+### Qué hay
+
+- **`valorGradeado(precio, gradeo)`** (`js/cardmarket.js`): el precio de
+  esa casa y nota, Cardmarket primero y, si solo hay ventas de eBay, su
+  mediana pasada a euros con `usdAEuros`. Solo casa una nota NUMÉRICA
+  («PSA 10», «BGS 9.5», y «9.5» = «9.50»): «BGS 10 Black Label», «CGC
+  Perfect 10» o «Authentic» no son el 10 de su casa, y un gradeo escrito a
+  mano tampoco. Las claves de TCGGO llevan la casa delante en Cardmarket
+  («psa10») y peladas en eBay («10»).
+- **`valorDeLinea`** va en el orden «Tu valor» → la nota → la carta sin
+  gradear. Como todo lo que suma (cabecera, Panel, portada, rejilla, más
+  valiosas, filtro de precio) pasa por ahí, todo cambia a la vez.
+- **`deDondeSaleElValor(linea, precio)`** dice cuál de los tres
+  (`manual`, `gradeada`, `sin-gradear`, `carta`) y la ficha lo pinta al lado
+  de «vale»: «(precio PSA 10)», «(precio BGS 9.5, ventas en eBay)», o
+  «sin gradear» con su explicación cuando la línea lleva gradeo y no hay
+  precio de esa nota — que es justo lo que TCGbycharlie veía sin que nadie
+  se lo dijera. (Ya había un `origenDelValor(precio)` para Cardmarket o
+  TCGplayer; por eso el nombre nuevo es otro.)
+- **La foto diaria** (`supabase-migration-905-gradeadas.sql`):
+  `valor_gradeado(gradeo, cm, ebay)` en SQL con la misma regla, y
+  `coleccion_foto_diaria` la usa antes de `valor_de_linea` (la 377: la
+  gráfica suma lo mismo que la cabecera). Una gradeada con precio no cuenta
+  como «sin precio».
+
+### Pruebas
+
+`test-tanda-905.mjs`: lo puro; la migración sentencia a sentencia contra
+PostgreSQL con las funciones de precio SACADAS de sus migraciones (no
+copiadas), y la foto diaria da lo mismo que la web con las mismas seis
+líneas (10.474 €); y en pantalla la cabecera y las dos fichas.
+
 ## Tanda 904 — «Otros sets»: un grupo de eras al fondo, y e-Card y Play! Pokémon Prize Pack en su sitio
 
 PINGU, desde /admin → Colecciones, metió sin querer las nueve series de

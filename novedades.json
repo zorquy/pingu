@@ -36,6 +36,12 @@
     {
       "fecha": "2026-10-19",
       "tipo": "mejora",
+      "texto": "Tus cartas gradeadas valen lo que vale su nota: si le pones PSA 10 y hay precio de PSA 10, tu colección lo suma así, y la ficha te dice de dónde sale el número.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-10-19",
+      "tipo": "mejora",
       "texto": "Las expansiones que no son de ninguna era, como las series de Play! Pokémon Prize Pack, tienen su sitio al final de la estantería, bajo «Otros sets»; y las de e-Card vuelven a su era.",
       "enlace": "/cartas"
     },

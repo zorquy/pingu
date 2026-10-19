@@ -41,7 +41,7 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  valorDeLinea, resumenDePrecio , precioParaIdioma } from './cardmarket.js'
+  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma } from './cardmarket.js'
 import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -1417,7 +1417,7 @@ function pintarResumenDeCopia(l, precio) {
   const total = valorDeLinea(l, precio)
   const pagado = Number(l.precio_compra)
   const partes = [`${n} ${n === 1 ? 'copia' : 'copias'}`]
-  if (total) partes.push(`${n === 1 ? 'vale' : 'valen'} <b>${euros(total)}</b>${l.valor_manual ? ' (tu valor)' : ''}`)
+  if (total) partes.push(`${n === 1 ? 'vale' : 'valen'} <b>${euros(total)}</b>${notaDelValor(l, precio)}`)
   if (Number.isFinite(pagado) && pagado > 0) partes.push(`pagaste ${euros(pagado)}`)
   if (l.notas) partes.push('con nota')
   vale.innerHTML = partes.join(' · ')
@@ -1441,6 +1441,17 @@ function chipsDe(l) {
   // están a cambio sin abrirlas una a una.
   const doy = Number(l.cambio) || 0
   return base + (doy > 0 ? `<span class="mc-chip mc-chip-cambio">${icons.refreshCw(11)}doy ${doy}</span>` : '')
+}
+
+// De dónde sale lo que vale tu copia (905): «tu valor», el precio de su
+// nota si es una gradeada con precio, o el aviso de que es una gradeada
+// y el número es el de la carta sin gradear.
+function notaDelValor(l, precio) {
+  const { origen, gradeada } = deDondeSaleElValor(l, precio)
+  if (origen === 'manual') return ' (tu valor)'
+  if (origen === 'gradeada') return ` (precio ${escapeHtml(gradeada.casa)} ${escapeHtml(gradeada.nota)}${gradeada.origen === 'ebay' ? ', ventas en eBay' : ''})`
+  if (origen === 'sin-gradear') return ` <span class="mc-nota-precio" title="No hay precio de ${escapeHtml(l.gradeo)} para esta carta: se enseña el de la carta sin gradear. Puedes poner el tuyo en «Tu valor».">sin gradear</span>`
+  return ''
 }
 
 // De dónde sale el número, cuando no sale de donde debería. Un precio

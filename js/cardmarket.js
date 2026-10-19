@@ -420,10 +420,66 @@ export function textoDelEnlace({ idProduct = null, url = null, dudoso = false, i
 // El valor de una línea de la colección: el precio que haya puesto su
 // dueño a mano manda sobre el de Cardmarket (una gradeada, una firmada:
 // ahí el precio general no dice nada).
+// Y DESDE LA 905, UNA GRADEADA VALE LO QUE VALE SU NOTA. TCGbycharlie,
+// en el foro: «cuando añado mis gradeadas me siguen saliendo los precios
+// en formato RAW». Las gradeadas de TCGGO ya estaban en la ficha (por
+// casa y nota) y la línea ya guarda «PSA 10»: faltaba juntarlas. El orden
+// es manual → gradeada → la carta sin gradear; y quien pinta pregunta a
+// `deDondeSaleElValor` para decir de cuál de los tres sale el número.
 export function valorDeLinea(linea, precio) {
   const manual = typeof linea?.valor_manual === 'number' ? linea.valor_manual : Number(linea?.valor_manual)
-  const unidad = Number.isFinite(manual) && manual > 0 ? manual : valorDe(precio, linea?.idioma || null)
+  const unidad = Number.isFinite(manual) && manual > 0 ? manual : (valorGradeado(precio, linea?.gradeo)?.valor || valorDe(precio, linea?.idioma || null))
   return unidad ? unidad * (Number(linea?.cantidad) || 1) : null
+}
+
+// El precio de UNA gradeada: Cardmarket (euros) y, si solo hay ventas de
+// eBay, sus dólares pasados a euros a ojo, como TCGplayer. Solo una nota
+// NUMÉRICA casa («PSA 10», «BGS 9.5»): «Black Label», «Perfect 10» o
+// «Authentic» no son la misma cosa que el 10 de esa casa, y darles su
+// precio sería inventarlo. Un gradeo libre («grado 9 propio») tampoco.
+//
+// Las claves de TCGGO llevan la casa delante en Cardmarket («psa10») y
+// pelada en eBay («10»): se comparan sin la casa y, si son un número, por
+// su valor (un «9.5» y un «9.50» son la misma nota).
+export function valorGradeado(precio, gradeo) {
+  const g = precio?.gradeadas
+  const t = String(gradeo || '').trim()
+  const sep = t.indexOf(' ')
+  if (!g || sep <= 0) return null
+  const casa = t.slice(0, sep).toLowerCase()
+  const nota = t.slice(sep + 1).trim()
+  if (!/^\d+(\.\d+)?$/.test(nota)) return null
+  const n = parseFloat(nota)
+  const misma = (clave) => {
+    const k = String(clave).toLowerCase().replace(new RegExp(`^${casa}`), '').trim()
+    return k === nota || (/^\d+(\.\d+)?$/.test(k) && parseFloat(k) === n)
+  }
+  const entradas = (obj) => Object.entries(obj?.[casa] && typeof obj[casa] === 'object' ? obj[casa] : {})
+  for (const [k, v] of entradas(g.cardmarket)) {
+    const x = Number(v)
+    if (misma(k) && Number.isFinite(x) && x > 0) return { valor: x, casa: casa.toUpperCase(), nota, origen: 'cardmarket', ventas: null }
+  }
+  for (const [k, v] of entradas(g.ebay)) {
+    const x = Number(v?.median_price)
+    if (misma(k) && Number.isFinite(x) && x > 0) return { valor: usdAEuros(x), casa: casa.toUpperCase(), nota, origen: 'ebay', ventas: Number.isFinite(Number(v?.sample_size)) ? Number(v.sample_size) : null }
+  }
+  return null
+}
+
+// De dónde sale el valor de una línea, para decirlo al lado del número:
+//   · 'manual': lo puso su dueño («Tu valor»).
+//   · 'gradeada': el precio de su casa y nota (con `gradeada` dentro).
+//   · 'sin-gradear': lleva gradeo pero no hay precio de esa nota, así
+//     que se enseña el de la carta sin gradear — y hay que decirlo, que
+//     es justo lo que TCGbycharlie vio sin que nadie se lo dijera.
+//   · 'carta': el precio de la carta, lo normal.
+export function deDondeSaleElValor(linea, precio) {
+  const manual = typeof linea?.valor_manual === 'number' ? linea.valor_manual : Number(linea?.valor_manual)
+  if (Number.isFinite(manual) && manual > 0) return { origen: 'manual' }
+  const gradeada = valorGradeado(precio, linea?.gradeo)
+  if (gradeada) return { origen: 'gradeada', gradeada }
+  if (String(linea?.gradeo || '').trim()) return { origen: 'sin-gradear' }
+  return { origen: 'carta' }
 }
 
 // La clave con la que se funden dos líneas: misma carta, mismo idioma,
