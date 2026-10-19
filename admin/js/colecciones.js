@@ -26,6 +26,7 @@ import { showToast } from '../../js/toast.js'
 import { nombreDeSet, eraDeSet } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
 import { moverEnLista, loQueCambia, dondeCae } from './orden-arrastrable.js'
+import { TITULOS_DE_GRUPO } from '../../js/mi-coleccion/estanteria.js'
 import { loQueCambia as cambiosDe, faltaLaMigracion as esFaltaDeRpc } from './catalogo-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -64,6 +65,8 @@ let correcciones = new Map()
 // PostgREST con el nombre dentro, y eso se puede CONTAR como lo que es —
 // «falta la migración»— en vez de dejar la pantalla en blanco (la 510).
 let faltaLaMigracion = false
+// ¿Existe `tcg_eras.grupo` (904)? Si no, el editor de eras no lo ofrece.
+let hayGrupo = false
 
 async function cargar() {
   faltaLaMigracion = false
@@ -79,8 +82,13 @@ async function cargar() {
     return
   }
   sets = data || []
-  const { data: filas } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado)
-  eras = new Map((filas || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden }]))
+  // `grupo` (904) llega con su migración: hasta entonces pedirla tumba la
+  // consulta entera (42703), así que se vuelve a pedir sin ella y el
+  // editor no la ofrece (`hayGrupo`).
+  let { data: filas, error: eg } = await supabase.from('tcg_eras').select('id,nombre,orden,grupo').eq('market', mercado)
+  hayGrupo = !eg
+  if (eg) ({ data: filas } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado))
+  eras = new Map((filas || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden, grupo: e.grupo || null }]))
   // Las correcciones de los sets (885). Si la tabla no está, no hay.
   correcciones = new Map()
   const { data: corr, error: e2 } = await supabase
@@ -107,6 +115,7 @@ function porEras() {
         nombre: aMano?.nombre || eraDeSet(s) || clave || 'Sin era',
         suya: !!aMano,
         orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
+        grupo: TITULOS_DE_GRUPO[aMano?.grupo] ? aMano.grupo : null,
         sets: [],
       })
     }
@@ -125,6 +134,8 @@ function porEras() {
     })
   }
   lista.sort((a, b) => {
+    // Las de «Otros sets» al fondo, como en la biblioteca (904).
+    if (!!a.grupo !== !!b.grupo) return a.grupo ? 1 : -1
     if (a.orden !== null && b.orden !== null && a.orden !== b.orden) return a.orden - b.orden
     if (a.orden !== null && b.orden === null) return -1
     if (a.orden === null && b.orden !== null) return 1
@@ -193,11 +204,16 @@ export function pintarColecciones() {
       (ocultos ? ` · ${ocultos} escondida${ocultos === 1 ? '' : 's'}` : '') +
       ` · ${sets.filter((s) => !logoDe(s)).length} sin logo`
   }
+  let rotuloPuesto = false
   caja.innerHTML = grupos
     .map((g) => {
       const visibles = g.sets.filter(casa)
       if (!visibles.length) return ''
-      return `<section class="col-era" data-era="${escapeHtml(g.id)}" draggable="true">
+      // El rótulo del grupo, una vez, encima de la primera era que cae en
+      // él. Va FUERA de la sección para que arrastrar una era no lo mueva.
+      let rotulo = ''
+      if (g.grupo && !rotuloPuesto) { rotuloPuesto = true; rotulo = `<h2 class="col-grupo">${escapeHtml(TITULOS_DE_GRUPO[g.grupo])}</h2>` }
+      return `${rotulo}<section class="col-era" data-era="${escapeHtml(g.id)}" draggable="true">
         <header class="col-era-cab">
           <button class="col-asa" data-asa-era="${escapeHtml(g.id)}" aria-label="Mover la era ${escapeHtml(g.nombre)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
           <h3>${escapeHtml(g.nombre)}</h3>
@@ -393,11 +409,14 @@ function escuchar() {
 // editar los sets. Lo contrario —una tabla de la que cuelguen— obligaría a
 // migrar los ~40 identificadores que ya vienen de los catálogos.
 async function guardarEra(id, campos) {
-  const antes = eras.get(id) || { nombre: id, orden: 0 }
+  const antes = eras.get(id) || { nombre: id, orden: 0, grupo: null }
   const fila = { market: mercado, id, nombre: campos.nombre ?? antes.nombre, orden: campos.orden ?? antes.orden ?? 0 }
+  // El grupo solo se escribe si la columna existe (904): un upsert que
+  // nombra una columna que no está falla ENTERO, nombre y orden incluidos.
+  if (hayGrupo) fila.grupo = 'grupo' in campos ? campos.grupo || null : antes.grupo ?? null
   const { error } = await supabase.from('tcg_eras').upsert(fila, { onConflict: 'market,id' })
   if (error) { showToast(error.message.slice(0, 120), 'error'); return false }
-  eras.set(id, { nombre: fila.nombre, orden: fila.orden })
+  eras.set(id, { nombre: fila.nombre, orden: fila.orden, grupo: fila.grupo ?? null })
   return true
 }
 
@@ -410,6 +429,11 @@ function abrirEditorDeEra(id) {
     <label>Cómo se llama<input id="colEraNombre" type="text" maxlength="80" value="${escapeHtml(g.nombre)}"></label>
     <label>En qué orden va <small>(menor = más arriba; vacío = por fecha)</small>
       <input id="colEraOrden" type="number" inputmode="numeric" value="${g.orden ?? ''}"></label>
+    ${hayGrupo ? `<label>Dónde va <small>(«Otros sets» cuelga al fondo, debajo de la última era)</small>
+      <select id="colEraGrupo">
+        <option value=""${g.grupo ? '' : ' selected'}>Entre las eras</option>
+        ${Object.entries(TITULOS_DE_GRUPO).map(([v, t]) => `<option value="${escapeHtml(v)}"${g.grupo === v ? ' selected' : ''}>En «${escapeHtml(t)}»</option>`).join('')}
+      </select></label>` : ''}
     <div class="col-hoja-pie">
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colEraGuardar">Guardar</button>
@@ -418,7 +442,9 @@ function abrirEditorDeEra(id) {
     const nombre = $('colEraNombre').value.trim()
     if (!nombre) return showToast('La era necesita un nombre.', 'error')
     const o = $('colEraOrden').value.trim()
-    if (await guardarEra(id, { nombre, orden: o === '' ? 0 : Number(o) })) {
+    const campos = { nombre, orden: o === '' ? 0 : Number(o) }
+    if (hayGrupo) campos.grupo = $('colEraGrupo').value || null
+    if (await guardarEra(id, campos)) {
       cerrarHoja(); pintarColecciones(); showToast('Era guardada')
     }
   })

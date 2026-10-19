@@ -595,6 +595,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mes, tres `destacadas` con su `dibujo` (los de `js/novedades.js`) —las
   elige quien escribe; si PINGU prefiere otras, se cambian—. La bitácora
   sigue siendo para nosotros; esto es para la gente.
+- **Una era con `grupo` no es una era: cuelga de «Otros sets», al fondo**
+  (tanda 904). `tcg_eras.grupo` (`NULL` / `'otros'`) manda sobre el
+  `orden`: la estantería la pinta detrás de TODAS las eras bajo el rótulo
+  del grupo (`TITULOS_DE_GRUPO`, en `estanteria.js`, el único sitio con
+  los nombres), y los «Sets especiales» caen en el mismo grupo, detrás.
+  Una línea que no es de ninguna era (sobres de premio, colaboraciones)
+  va ahí, no entre las eras con un orden alto. La columna se pide con
+  respaldo (la 624) y /admin solo la escribe si existe.
 - **La ERA de un set japonés es la SERIE de TCGGO** (tanda 825):
   `erasDeTcggo` agrupa por su serie y solo elige el `serie_id` (el de la
   mayoría, o el de una era a mano), y `pasoDeEras` lo aplica una vez al día.

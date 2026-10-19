@@ -80,11 +80,22 @@ const porFecha = (a, b) => cuando(b) - cuando(a)
 // grupo de favoritos: un rótulo encima de nada es ruido.
 // ── Y DESDE LA 550, LO QUE DIGA PINGU MANDA ──
 //
-// `eras` es el mapa de `tcg_eras`: `serie_id → { nombre, orden }`. Lo que
-// hay ahí se respeta tal cual; lo que no esté sigue como siempre —ordenado
-// por su set más nuevo y rotulado con el nombre del catálogo—. Una era a
-// medio configurar no rompe nada: las puestas a mano van primero, en su
-// orden, y las demás detrás con el suyo de siempre.
+// `eras` es el mapa de `tcg_eras`: `serie_id → { nombre, orden, grupo }`.
+// Lo que hay ahí se respeta tal cual; lo que no esté sigue como siempre
+// —ordenado por su set más nuevo y rotulado con el nombre del catálogo—.
+// Una era a medio configurar no rompe nada: las puestas a mano van primero,
+// en su orden, y las demás detrás con el suyo de siempre.
+//
+// ── Y DESDE LA 904, «OTROS SETS» ──
+//
+// Una era con `grupo` ('otros') no es una era de verdad: es una línea que
+// no cabe en ninguna —los Play! Pokémon Prize Pack, que son nueve series
+// de sobres de premio—. Esas van TODAS al fondo, después de la última era
+// (Base), bajo un rótulo común, «Otros sets», que también cubre los sets
+// especiales de siempre: el rótulo lo lleva el primer grupo que cae ahí
+// (`grupoTitulo`), y la pantalla lo pinta como un título por encima.
+export const TITULOS_DE_GRUPO = { otros: 'Otros sets' }
+
 export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   const grupos = []
   const favs = sets.filter((s) => favoritos.has(s.id)).sort(porFecha)
@@ -106,6 +117,7 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
         id: clave,
         titulo: aMano?.nombre || eraDeSet(s) || s.serie_id || 'Sin serie',
         orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
+        grupo: TITULOS_DE_GRUPO[aMano?.grupo] ? aMano.grupo : null,
         sets: [],
       })
     }
@@ -147,6 +159,9 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   // Mientras no tengan fecha no hay forma de saber cuál es más nueva, pero
   // sí se puede dejar un orden ESTABLE en vez de uno al azar.
   listaDeEras.sort((a, b) => {
+    // Lo de «Otros sets» va detrás de todas las eras de verdad, se haya
+    // colocado a mano o no: su orden solo cuenta dentro del grupo.
+    if (!!a.grupo !== !!b.grupo) return a.grupo ? 1 : -1
     // Una era colocada a mano va delante de todas las que no lo están: si
     // compitiera por fecha con las demás, poner una en su sitio obligaría
     // a colocarlas TODAS.
@@ -163,7 +178,12 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   grupos.push(...listaDeEras)
 
   if (especiales.length) {
-    grupos.push({ id: 'especiales', titulo: 'Sets especiales', sets: especiales })
+    grupos.push({ id: 'especiales', titulo: 'Sets especiales', sets: especiales, grupo: 'otros' })
   }
+  // El rótulo del grupo, en el primero que cae en él: así la pantalla no
+  // tiene que saber qué eras son de qué grupo, solo pintar el título cuando
+  // viene.
+  const primero = grupos.find((g) => g.grupo)
+  if (primero) primero.grupoTitulo = TITULOS_DE_GRUPO[primero.grupo]
   return grupos
 }

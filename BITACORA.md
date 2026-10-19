@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (137) — PINGU-Claude (904 — «Otros sets» al fondo de la estantería; e-Card y Prize Pack en su sitio)
+
+**Hecho** (PINGU: los cuatro de e-Card «eso sería e-Card, la era», y los
+Play! Pokémon Prize Pack «abajo, debajo de Base, que ponga Otros sets… y
+dentro, nuevas; una de ellas Play! Pokémon Prize Pack con la serie 1 a la
+9»). `tcg_eras.grupo` (NULL / 'otros'): una era con grupo cae detrás de
+todas las eras, bajo el rótulo «Otros sets», y los sets especiales de
+siempre debajo de ella en el mismo grupo. Mi colección y /admin lo piden
+con respaldo (hasta la migración, todo como antes); el editor de la era en
+/admin ofrece «Dónde va». La migración renombra la era rebautizada a
+«e-Card» conservando su orden, manda los nueve Prize Pack a su era
+`prize-pack` dentro del grupo, todo como correcciones (885).
+
+**Ficheros**: `js/mi-coleccion/estanteria.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `admin/js/colecciones.js`, `admin/css/admin.css`,
+`supabase-migration-904-otros-sets.sql` (NUEVO), `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-904.mjs`
+y `sql-tanda-904.sql`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-904-otros-sets.sql` en el
+SQL Editor y mira la comprobación (e-Card 4, prize-pack 9). Lo de la 135 y
+la 134 (la migración de X sigue sin ejecutar; X parada por falta de
+crédito).
+
 ## 2026-10-19 (136) — PINGU-Claude (el carrusel como PPTX editable, para Canva)
 
 **Hecho** (PINGU: «¿no es mejor que me las hagas para Canva y así meto yo

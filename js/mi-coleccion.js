@@ -2424,8 +2424,12 @@ let erasAMano = null
 // mejor que no pintar nada (y la RLS no da error, devuelve lista vacía).
 async function cargarEras() {
   if (erasAMano) return erasAMano
-  const { data } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado)
-  erasAMano = new Map((data || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden }]))
+  // `grupo` llega con la migración 904; hasta que PINGU la ejecute, pedirla
+  // tumba la consulta ENTERA (42703, la 624), así que se vuelve a pedir sin
+  // ella y la estantería se ordena como antes.
+  let { data, error } = await supabase.from('tcg_eras').select('id,nombre,orden,grupo').eq('market', mercado)
+  if (error) ({ data } = await supabase.from('tcg_eras').select('id,nombre,orden').eq('market', mercado))
+  erasAMano = new Map((data || []).map((e) => [e.id, { nombre: e.nombre, orden: e.orden, grupo: e.grupo || null }]))
   return erasAMano
 }
 
@@ -2692,7 +2696,7 @@ async function pintarEstanteria() {
   // mismo tres veces («TIENES 16 de 252», «252 CARTAS», «Ver →»).
   const lista = true
   $('mcEstanteriaRejilla').innerHTML = grupos
-    .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
+    .map((g) => `${g.grupoTitulo ? `<h2 class="mc-estanteria-grupo">${escapeHtml(g.grupoTitulo)}</h2>` : ''}${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
       <div class="mc-estanteria${lista ? ' mc-estanteria-lista' : ''}">${g.sets.map((x) => (lista ? filaDeSet : tarjetaDeSet)(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
   // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:

@@ -33,6 +33,12 @@
     }
   ],
   "entradas": [
+    {
+      "fecha": "2026-10-19",
+      "tipo": "mejora",
+      "texto": "Las expansiones que no son de ninguna era, como las series de Play! Pokémon Prize Pack, tienen su sitio al final de la estantería, bajo «Otros sets»; y las de e-Card vuelven a su era.",
+      "enlace": "/cartas"
+    },
     {"fecha": "2026-10-19", "tipo": "nuevo", "texto": "PokeDoc está en X e Instagram: las noticias se publican solas en X según salen aquí, y tienes los enlaces a las dos cuentas en el pie de cada página.", "enlace": "/noticias"},
     {"fecha": "2026-10-19", "tipo": "arreglo", "texto": "Laboratorio: si una carta de evolución llega sin saber de qué evoluciona (pasaba con un Kakuna), ya no te deja sin evolucionar: toma el dato de otra impresión y, si ninguna lo sabe, te ofrece los Pokémon en juego y te lo dice.", "enlace": "/laboratorio"},
     {"fecha": "2026-10-19", "tipo": "arreglo", "texto": "En la pestaña Cambios del perfil, cada carta lleva ahora el mismo precio que su ficha: el mínimo de Cardmarket en el idioma de esa copia.", "enlace": "/perfil?ver=cambios"},

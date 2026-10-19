@@ -674,6 +674,8 @@ body {
 .col-era { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .col-era-cab { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-sm); background: var(--bg); }
 .col-era-cab h3 { margin: 0; font-size: var(--t-sm); flex: 1; min-width: 0; }
+/* El rótulo de «Otros sets» (904), encima de las eras que cuelgan de él. */
+.col-grupo { margin: var(--e-xl) 0 var(--e-sm); padding-top: var(--e-md); border-top: 1px solid var(--border); font-size: var(--t-md); }
 .col-era-cuenta { color: var(--text-mid); font-size: var(--t-2xs); }
 /* El asa de arrastre: la fila entera se arrastra, pero el asa es lo que lo
    DICE — y es un botón de verdad para poder moverla con las flechas. */

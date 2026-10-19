@@ -41785,6 +41785,64 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 904 — «Otros sets»: un grupo de eras al fondo, y e-Card y Play! Pokémon Prize Pack en su sitio
+
+PINGU, desde /admin → Colecciones, metió sin querer las nueve series de
+Play! Pokémon Prize Pack en la era de Skyridge, Aquapolis, Best of Game y
+Expedition y la rebautizó «Play! Pokémon Prize Pack». Lo que pidió: esos
+cuatro vuelven a ser «e-Card» (2002–2003, donde estaban); los Prize Pack
+son su propia era; y «que esté abajo, debajo de Base, que ponga Otros
+sets», con nuevas sub-eras dentro, la primera esa.
+
+### Qué hay
+
+- **`tcg_eras.grupo`** (migración `supabase-migration-904-otros-sets.sql`):
+  `NULL` para una era de verdad, `'otros'` para una que cuelga de «Otros
+  sets» (con su `check`). Los títulos de grupo viven en UN sitio,
+  `TITULOS_DE_GRUPO` en `js/mi-coleccion/estanteria.js` (`otros` →
+  «Otros sets»); /admin los importa de ahí.
+- **`gruposDeEstanteria`** lee `grupo` del mapa de eras: una era con grupo
+  cae detrás de TODAS las eras de verdad, se haya colocado a mano o no (su
+  `orden` solo cuenta dentro del grupo), y los «Sets especiales» de siempre
+  caen en el mismo grupo, detrás. El primer grupo que cae ahí lleva
+  `grupoTitulo`, y la pantalla lo pinta como `<h2 class="mc-estanteria-grupo">`
+  (CSS en `css/mi-coleccion.css`, no en las comunes). Un `grupo` que no
+  está en `TITULOS_DE_GRUPO` no es un grupo: la era sigue entre las eras.
+- **Mi colección y /admin piden `grupo` con respaldo** (la 624): si la
+  columna no está —hasta que PINGU ejecute la migración— la consulta
+  entera falla con 42703, así que se vuelve a pedir sin ella y todo sigue
+  como antes. /admin se apunta si existe (`hayGrupo`) y solo entonces
+  escribe la columna en el upsert de la era y ofrece «Dónde va» (Entre las
+  eras / En «Otros sets») en el editor de la era. El rótulo del grupo en
+  /admin va FUERA de la `<section>` de la era, para que arrastrarla no se
+  lo lleve.
+
+### La migración
+
+No se fía del identificador de e-Card (no se sabe seguro cuál es en la
+base): la era de e-Card es **la serie en la que están Expedition, Aquapolis
+y Skyridge** (la más repetida entre ellos, nunca `prize-pack`), que es la
+que se rebautizó y conserva su `orden`. Se renombra con un upsert; si no
+tuviera fila, se crea con el orden de la era de Base menos uno (justo
+encima). Best of Game y cualquiera de los cuatro que se hubiera ido vuelve
+como CORRECCIÓN (885), que un `update` a secas duraría hasta la siguiente
+pasada del catálogo. Los Prize Pack casan por nombre (`Play! Pok_mon Prize
+Pack%`, con «Pokémon» y «Pokemon») y van a `prize-pack`, con `grupo =
+'otros'`, también con su corrección cada uno. Cada sentencia va sola (631)
+y es re-ejecutable. La comprobación del final lista las dos eras con sus
+sets: 4 y 9.
+
+### Pruebas
+
+`test-tanda-904.mjs`: lo puro (el grupo al fondo, el rótulo en el primero,
+los especiales detrás, un grupo desconocido no es un grupo, sin `grupo`
+todo como antes); la migración sentencia a sentencia contra PostgreSQL
+(`sql-tanda-904.sql` es el lío tal cual) en tres escenarios —la era de
+e-Card rebautizada, una era nueva con otro id, y una era nueva llamada
+`prize-pack`—; lo estático; y en pantalla, la estantería y /admin con el
+rótulo y el editor de la era. Pasadas también 552, 535, 409, 551, 885, 631,
+299, 305, 310, 311 e imports.
+
 ## Tanda 903 — /admin → Redes: el carrusel de presentación con las cartas del catálogo
 
 PINGU va a llevar las redes a mano al principio (la API de X cobra 0,20 $
