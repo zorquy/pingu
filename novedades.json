@@ -34,7 +34,7 @@
   ],
   "entradas": [
     {"fecha": "2026-10-19", "tipo": "arreglo", "texto": "Laboratorio: si una carta de evolución llega sin saber de qué evoluciona (pasaba con un Kakuna), ya no te deja sin evolucionar: toma el dato de otra impresión y, si ninguna lo sabe, te ofrece los Pokémon en juego y te lo dice.", "enlace": "/laboratorio"},
-    {"fecha": "2026-10-19", "tipo": "arreglo", "texto": "En la pestaña Cambios del perfil, cada carta lleva ahora el mismo precio que su ficha: el mínimo de Cardmarket en el idioma de esa copia.", "enlace": "/usuario/pingu?ver=cambios"},
+    {"fecha": "2026-10-19", "tipo": "arreglo", "texto": "En la pestaña Cambios del perfil, cada carta lleva ahora el mismo precio que su ficha: el mínimo de Cardmarket en el idioma de esa copia.", "enlace": "/perfil?ver=cambios"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Ocho botones más responden en el acto: seguir a alguien, responder en un hilo (tu respuesta aparece al momento), apuntar una partida, «La quiero» en la ficha de carta y en el Mercado, poner un aviso de precio, marcar un cambio hecho, salir de la liga de retos y resolver una sugerencia.", "enlace": "/foro"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Los filtros de Mi colección › Cartas van en cuatro bloques (Expansión, Rareza y tipo, Idioma y estado, Precio) que se pliegan, con lo que tienes puesto escrito en la cabecera de cada uno.", "enlace": "/mi-coleccion?ver=cartas"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Las páginas de PokeDoc se abren al instante aunque la red vaya lenta: la app guarda cada página en tu dispositivo y la revisa por detrás, así que lo nuevo llega a la siguiente visita.", "enlace": "/"},
