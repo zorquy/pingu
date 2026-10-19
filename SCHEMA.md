@@ -41785,6 +41785,53 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 903 — /admin → Redes: el carrusel de presentación con las cartas del catálogo
+
+PINGU va a llevar las redes a mano al principio (la API de X cobra 0,20 $
+por post con enlace) y pidió el primer post como carrusel que repase
+todas las funciones, «con la misma estructura, colores y todo» que las
+maquetas, y «con imágenes de cartas de verdad, con logos, sacado de la
+web». Desde el contenedor de Claude no se llega a las CDN de las fotos
+(solo a raw.githubusercontent.com), así que el generador vive en la web:
+el navegador del panel sí las tiene.
+
+### Qué hay
+
+- **`js/redes-carrusel.js`**: diez diapositivas de 1080 × 1350 en un
+  lienzo. `DIAPOSITIVAS` (textos y fondo de cada una, exportado para la
+  prueba y para cambiar una frase sin tocar nada más), `FONDOS` (los
+  `--arte-*` de la casa), y el dibujo por tipo: portada (baldosa «P»,
+  marca, mascota), colección (las cuatro cartas más valiosas del catálogo
+  con su precio), expansiones (el set más reciente con logo y sus ocho
+  primeras cartas), cambios y foro (burbujas con una carta real), retos
+  (la silueta de una carta real, como en «¿Qué carta es?»), torneos
+  (podio con sprites), mazos (barras del meta con sprites y cuatro cartas),
+  guías (las dos últimas guías y la última noticia) y cierre. Lo que no
+  sale del catálogo (nombres del podio, ranking del meta) va de ejemplo y
+  el pie lo dice.
+- **Lo puro**: `cartasQueSirven` (con foto, occidentales, por precio
+  descendente, sin repetir nombre), `setQueSirve` (el primero con logo),
+  `urlDelLogo` (por `logosDePago` + `urlDeLogo`), `guiasQueSirven` (dos
+  guías + una noticia). `cargarDatosDelCarrusel(supabase)` hace las cuatro
+  consultas con respaldo: lo que falla sale de ejemplo y se dice.
+- **Las fotos** entran por `fotoParaElLienzo` (571: directas con permiso o
+  por `imagen-carta`); sin foto, `dibujarCarta` pinta el nombre. Las
+  fuentes se cargan antes de dibujar (`document.fonts.load`), que un lienzo
+  no espera a nadie.
+- **`admin/js/redes.js`** (por `import()` al abrir la sección): el botón
+  «Generar el carrusel», la rejilla de vistas previas (`.redes-rejilla`,
+  lienzos con `max-width: 100%` y `min-width: 0`: un lienzo de 1080 px en
+  una celda de 216 se salía y pisaba al de al lado), «Descargar» por
+  diapositiva y «Descargar las diez» (`descargarLienzo`, con 350 ms entre
+  una y otra).
+
+### Lo que aprendió la prueba
+
+Un lienzo en blanco no da error: la prueba muestrea píxeles por toda la
+superficie y cuenta colores distintos (uno = blanco). Las fotos de fuera se
+sirven con `route` como un PNG de 1 × 1 para que haya algo que dibujar; lo
+que no se intercepta, 404 y el respaldo.
+
 ## Tanda 902 — Las noticias, a la cuenta de X (@pokedoc_es)
 
 PINGU abrió las cuentas de PokeDoc en X e Instagram (`@pokedoc_es` en las

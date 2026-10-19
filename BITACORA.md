@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (135) — PINGU-Claude (903 — /admin → Redes: el carrusel con las cartas de verdad)
+
+**Hecho** (PINGU: redes a mano al principio, y el primer post un carrusel
+que repase todas las funciones «con imágenes de cartas de verdad, con
+logos, sacado de la web»). Nueva sección Redes en /admin: «Generar el
+carrusel» dibuja diez diapositivas de 1080 × 1350 (la plantilla de las
+maquetas) con las cuatro cartas más valiosas del catálogo, el set más
+reciente con logo y sus cartas, una carta real en las burbujas y en la
+silueta del reto, sprites en el podio y el meta, y las últimas guías; se
+descargan una a una o las diez. El dibujo en `js/redes-carrusel.js`
+(sin pasar por app.js), la pantalla en `admin/js/redes.js` por `import()`.
+
+**Ficheros**: `js/redes-carrusel.js` (NUEVO), `admin/js/redes.js`
+(NUEVO), `admin/index.html`, `admin/js/admin.js`, `admin/css/admin.css`,
+`SCHEMA.md`, `BITACORA.md`.
+
+**Pruebas**: 903 (nueva: lo puro, lo estático y la pantalla con el doble,
+descarga incluida); imports, 817 y 336 pasadas.
+
+**Pendiente**: que PINGU lo genere en producción y diga qué cambia (una
+frase, una carta). Lo de la 902 sigue: migración, claves (X parada por
+402, sin saldo). 904–906 según la propuesta. Lo de la 122.
+
 ## 2026-10-19 (134) — PINGU-Claude (902 — las noticias, a la cuenta de X)
 
 **Hecho** (PINGU abrió @pokedoc_es en X e Instagram y pidió que las

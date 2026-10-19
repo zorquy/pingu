@@ -761,6 +761,15 @@ body {
 .admin-aviso-parada { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border: 1px solid var(--danger); border-radius: var(--radius-md); background: var(--danger-bg); }
 .admin-aviso-parada p { margin: 0; flex: 1 1 320px; font-size: var(--t-sm); }
 
+/* Redes (903): las diez diapositivas del carrusel, en rejilla, y su descarga. */
+.redes-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: var(--e-md); margin-top: var(--e-md); }
+.redes-diapo { margin: 0; display: grid; gap: var(--e-xs); min-width: 0; }
+.redes-diapo > * { min-width: 0; }
+/* Un lienzo de 1080 px dentro de una columna de 216: `max-width` y `min-width: 0`, o se sale de su celda y pisa a la de al lado. */
+.redes-lienzo { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--ice); }
+.redes-diapo figcaption { display: flex; justify-content: space-between; align-items: center; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); }
+.redes-diapo figcaption span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* La velocidad de verdad (821): la nota de cada cifra. */
 .vital { display: inline-block; padding: 2px var(--e-sm); border-radius: var(--radius-pill); font-weight: 700; }
 .vital-bien { background: var(--success-bg); color: var(--success); }
