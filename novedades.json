@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Cada toque responde al instante: los botones y enlaces se hunden al pulsarlos, al tocar un enlace sale una barra de progreso arriba mientras llega la página, y en el móvil la pestaña de abajo se marca en el momento.", "enlace": "/"},
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "El aviso para tener PokeDoc como app en el iPhone ya no tapa la página: es una línea discreta encima del contenido, una vez por visita.", "enlace": "/"},
     {"fecha": "2026-10-18", "tipo": "nuevo", "texto": "Ya puedes mandar fotos en los mensajes privados: hasta cuatro por mensaje, desde la cámara, la galería, pegando o arrastrando. Solo las veis los dos.", "enlace": "/mensajes"},
     {"fecha": "2026-10-18", "tipo": "mejora", "texto": "Los mensajes privados, como un chat: separados por día, con «Visto», el número de mensajes sin leer en cada conversación y el cuadro de escribir siempre a mano.", "enlace": "/mensajes"},
     {"fecha": "2026-10-18", "tipo": "arreglo", "texto": "Las miniaturas de las cartas de una expansión ya no desaparecen al bajar por la rejilla (pasaba con las últimas de VSTAR Universe).", "enlace": "/cartas?catalogo=JP"},

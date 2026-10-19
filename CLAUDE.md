@@ -448,6 +448,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Un enlace que navega enseña que navega en el mismo instante** (tanda
+  892, R1 de la propuesta «Rápida y limpia»): `js/progreso.js` (por
+  `import()` desde app.js) pone la barra de 3 px arriba y atenúa
+  `.page-content` al hacer clic en un enlace de la casa que navega (en
+  BURBUJA, para que `defaultPrevented` diga la verdad) o al enviar un
+  formulario; `style.css` da a `a[class]`, `button` y `[role=button]` su
+  `:active`. Un botón nuevo que hace algo SIN navegar (un `fetch`, una
+  hoja) no lo cubre: lleva su propio estado de «haciendo» (896). Y para
+  probar lo que pasa MIENTRAS llega una página hay que retrasarla con
+  `route` y callar tres cosas que se la saltan: el Service Worker
+  (`serviceWorkers: 'block'`), la precarga (`navigator.connection.saveData`)
+  y el propio `click` de Playwright (`noWaitAfter`); con la navegación
+  pendiente `evaluate` no contesta, así que lo apunta la página y lo manda
+  con `exposeFunction`. Y `mouse.up` encima de un enlace es un clic.
 - **El perfil tiene la pestaña «Cambios»** (tanda 887, pedida por
   soyfedeegb en el foro): lo que da y lo que busca una persona, con
   vuestro cruce arriba y la chapa «Cambia · da N · busca M» en la

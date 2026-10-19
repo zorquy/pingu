@@ -723,6 +723,8 @@ export async function initNavbar() {
     // Y la lateral del ordenador (SCHEMA 739), igual: solo quien la usa.
     import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: !!session })).catch(() => {})
   }
+  // La barra de progreso al tocar un enlace (SCHEMA 892).
+  import('./progreso.js').then((m) => m.montarProgreso()).catch(() => {})
   // Precarga al posar el dedo (SCHEMA 723).
   import('./precarga.js').then((m) => m.montarPrecarga()).catch(() => {})
   // El aviso de «sin conexión» (SCHEMA 745): se baja con red y se queda escuchando.

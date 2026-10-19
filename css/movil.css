@@ -390,6 +390,45 @@
 @media (max-width: 900px) {
   /* 753: la hoja del iPhone (desde abajo, con velo) y la tarjeta de
      Android (encima de la barra). Por encima de la barra (95). */
+  /* La banda de instalar (892): una línea encima del contenido. */
+  .bm-instalar-banda {
+    display: flex;
+    align-items: center;
+    gap: var(--e-xs);
+    margin: 0 0 var(--e-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--ice);
+    color: var(--navy);
+  }
+  .bm-instalar-banda-abrir {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 44px;
+    padding: 0 var(--e-sm);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .bm-instalar-banda-abrir img { border-radius: 6px; }
+  .bm-instalar-banda-abrir span { flex: 1; }
+  .bm-instalar-banda-no {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 0;
+    background: none;
+    color: var(--text-mid);
+    cursor: pointer;
+  }
   .bm-instalar-velo {
     position: fixed;
     inset: 0;

@@ -59,7 +59,45 @@ export function montarInstalar({ doc = document, win = window, almacen = win.loc
   } catch {}
   if (!aqui || !tocaOfrecer({ instalada: false, visitas, vistas, calladaEn: leer(CALLADA, almacen) })) return null
   const callar = () => escribir(CALLADA, String(Date.now()), almacen)
-  return esIOS(win) ? hojaDeSafari(doc, callar) : avisoDeInstalar(doc, win, callar)
+  if (!esIOS(win)) return avisoDeInstalar(doc, win, callar)
+  // EN EL IPHONE, UNA LÍNEA Y UNA VEZ POR SESIÓN (892, I3). La hoja de la
+  // 753 salía en cada página de lista hasta que la contestabas, tapando
+  // media pantalla a quien la ignoraba (PINGU la vio en todas las capturas).
+  // Ahora: una banda encima del contenido, una vez por sesión del
+  // navegador; al tocarla se abre la hoja con los tres pasos; la «×» la
+  // calla un mes.
+  let yaEnSesion = false
+  try {
+    yaEnSesion = !!win.sessionStorage.getItem(BANDA)
+    win.sessionStorage.setItem(BANDA, '1')
+  } catch {}
+  if (yaEnSesion) return null
+  return bandaDeInstalar(doc, callar)
+}
+
+const BANDA = 'pokedoc-instalar-banda'
+
+function bandaDeInstalar(doc, callar) {
+  const sitio = doc.getElementById('contenido') || doc.querySelector('main') || doc.body
+  const banda = doc.createElement('div')
+  banda.className = 'bm-instalar-banda'
+  banda.setAttribute('role', 'region')
+  banda.setAttribute('aria-label', 'Instalar PokeDoc')
+  banda.innerHTML = `
+    <button type="button" class="bm-instalar-banda-abrir" data-instalar="abrir"><img src="/assets/app-icon-192.png" alt="" loading="lazy" width="24" height="24"><span>Ten PokeDoc como una app</span>${icons.chevronRight(16)}</button>
+    <button type="button" class="bm-instalar-banda-no" data-instalar="no" aria-label="Ahora no">${icons.xCircle(18)}</button>`
+  sitio.prepend(banda)
+  banda.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-instalar]')
+    if (!b) return
+    if (b.dataset.instalar === 'no') {
+      callar()
+      banda.remove()
+      return
+    }
+    hojaDeSafari(doc, () => { callar(); banda.remove() })
+  })
+  return banda
 }
 
 // EN EL IPHONE (753, la maqueta A1): Safari no instala solo, así que una

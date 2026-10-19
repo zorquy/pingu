@@ -1824,6 +1824,22 @@ html.ola-tema::view-transition-new(root) {
     stroke-width: 2.5;
   }
 }
+/* ── 892: que cada toque responda ya (SCHEMA 892) ── */
+a, button, [role='button'] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+a[class]:active, button:active, [role='button']:active { transform: scale(0.97); transition: transform 0.15s var(--ease); }
+.bm a:active, .bm-burbuja a:active { background: var(--ice); transform: none; }
+.progreso-pagina { position: fixed; top: env(safe-area-inset-top, 0px); right: 0; left: 0; z-index: 300; height: 3px; pointer-events: none; }
+.progreso-pagina i { display: block; width: 0; height: 100%; border-radius: 0 2px 2px 0; background: var(--navy); }
+.progreso-pagina.andando i { animation: progreso-avanza 1.8s var(--ease) forwards; }
+.progreso-pagina.lista i { animation: none; width: 100%; transition: width 0.15s linear; }
+@keyframes progreso-avanza { from { width: 0; } to { width: 82%; } }
+html.navegando .page-content { opacity: 0.72; transition: opacity 0.3s var(--ease); }
+@media (prefers-reduced-motion: reduce) {
+  a[class]:active, button:active, [role='button']:active { transform: none; transition: none; }
+  .progreso-pagina i { width: 60%; }
+  .progreso-pagina.andando i, .progreso-pagina.lista i { animation: none; transition: none; }
+  html.navegando .page-content { transition: none; }
+}
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
   .bm { view-transition-name: barra-abajo; }

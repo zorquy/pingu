@@ -324,7 +324,16 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   // y sube un nivel o quita sus filtros ella.
   barra.addEventListener('click', (ev) => {
     const a = ev.target.closest('a')
-    if (!a || claveDePagina(a.getAttribute('href'), location.origin) !== clave) return
+    if (!a) return
+    // EL ICONO SE MARCA YA (892): al tocar otra sección, la pestaña nueva
+    // se pinta activa en el mismo instante, antes de que llegue la página.
+    // Si el clic no acaba navegando, la página sigue aquí y no pasa nada.
+    if (claveDePagina(a.getAttribute('href'), location.origin) !== clave) {
+      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button > 0) return
+      barra.querySelectorAll('a[aria-current]').forEach((x) => x.removeAttribute('aria-current'))
+      a.setAttribute('aria-current', 'page')
+      return
+    }
     const propio = new CustomEvent('pokedoc:seccion-otra-vez', { cancelable: true })
     doc.dispatchEvent(propio)
     if (!propio.defaultPrevented && (location.search || location.hash)) return

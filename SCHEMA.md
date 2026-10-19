@@ -41785,6 +41785,66 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 892 — Que cada toque responda ya, y la banda de instalar
+
+PINGU (antes de dormir): «clicas en algo y la respuesta tiene que ser
+inmediata, porque si no la gente se cree que ha clicado y no ha hecho
+nada… por ejemplo en los menús en el móvil». Es R1 e I3 de la propuesta
+«Rápida y limpia» (artifact KHxCQmjk4tps8oED9867dN); «adelante con ello».
+
+**Lo que pasaba.** Entre el toque y la página nueva hay de 150 ms a un
+segundo (la petición, el HTML, su JS, Supabase), y en ese rato la pantalla
+no cambiaba NADA: ni el enlace se marcaba pulsado (no había `:active` en
+ninguna hoja), ni la pestaña de la barra de abajo se movía hasta que la
+página nueva la pintaba. En el móvil, encima, Safari pinta su resaltado
+gris por su cuenta. Y la hoja de instalar (732) salía ENTERA, tapando la
+página, en la tercera vista y en cada página de lista.
+
+**Lo que se hace, en tres capas, todas en el instante del toque.**
+1. **Pulsado** (`style.css`, bloque «892»): `a[class]:active`,
+   `button:active` y `[role=button]:active` se encogen a 0,97 (0,15 s, la
+   duración de gesto de la casa); las pestañas de la barra y de la burbuja
+   del móvil se pintan con `--ice` en vez de encogerse. Sin
+   `-webkit-tap-highlight-color` y con `touch-action: manipulation` (quita
+   la espera del doble toque en iOS). Con «menos movimiento», nada se mueve.
+2. **La barra de progreso** (`js/progreso.js`, nuevo, sin imports; lo monta
+   `app.js` por `import()` para que la portada no lo pague en el primer
+   pintado). Al hacer clic en un enlace que NAVEGA (`esNavegacion`: de
+   esta web, sin Ctrl/Cmd/Shift/Alt ni botón secundario, sin `target` ni
+   `download`, no la misma página con otra almohadilla, y sin
+   `defaultPrevented` —se escucha en BURBUJA para que los manejadores de
+   cada enlace ya hayan dicho lo suyo—) o al enviar un formulario, sale una
+   barra de 3 px arriba que avanza hasta el 82 % en 1,8 s (una `animation`,
+   que la 310 solo permite dos duraciones de `transition`) y `.page-content`
+   se atenúa a 0,72. En `pagehide` se completa; si en seis segundos la
+   página no se ha ido (`MS_DE_RENDICION`), se retira sola; y al volver
+   desde la bfcache (`pageshow` con `persisted`) se quita lo que quedara.
+3. **La pestaña se marca ya** (`barra-movil.js`): al tocar otra sección de
+   la barra de abajo, `aria-current` pasa al enlace tocado en el mismo
+   instante. Si el clic no navega, la página sigue aquí y no pasa nada.
+
+**La banda de instalar (I3).** En iOS, `montarInstalar` ya no pinta la hoja
+sola: pone `bandaDeInstalar` —una línea encima del contenido, «Ten PokeDoc
+como una app», con un botón que abre la hoja de tres pasos y una X— UNA vez
+por sesión (`sessionStorage` `pokedoc-instalar-banda`), a partir de la
+tercera página vista como antes. «Ahora no» en la hoja sigue callando un
+mes y quita la banda. CSS en `movil.css` (`.bm-instalar-banda`).
+
+**Lo que enseñó la prueba (892).** Para ver lo que pasa MIENTRAS llega la
+página hay que retrasarla con `route`, y tres cosas se la saltaban: el
+Service Worker (`serviceWorkers: 'block'`), la precarga de la 812 (se
+calla con `navigator.connection.saveData`), y el propio `click` de
+Playwright, que espera a que termine la navegación que provoca
+(`noWaitAfter`). Y con la navegación pendiente `evaluate` no contesta
+(«execution context was destroyed»), así que lo que hay a los 250 ms lo
+apunta la página y lo manda fuera con `exposeFunction`. Y al medir el
+pulsado, el dedo se va antes de soltar: `mouse.up` encima del enlace es un
+clic, y un clic en «Cartas» navega.
+
+**Ficheros**: `js/progreso.js` (nuevo), `css/style.css`, `js/app.js`,
+`js/barra-movil.js`, `js/instalar.js`, `css/movil.css`, `js/icons.js`
+(`chevronRight`). Portada: 113,0 KB gzip (quedan 57,0).
+
 ## Tanda 891 — Mensajes privados con fotos, y el chat como un chat
 
 PINGU: «quiero que mejores el apartado de los mensajes privados y además

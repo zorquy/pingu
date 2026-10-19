@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (125) — PINGU-Claude (892 — que cada toque responda ya; banda de instalar)
+
+**Hecho** (PINGU: «clicas en algo y la respuesta tiene que ser
+inmediata… por ejemplo en los menús en el móvil»; es R1 e I3 de la
+propuesta «Rápida y limpia», «adelante con ello»): estado pulsado para
+enlaces con clase y botones (se encogen; las pestañas del móvil se pintan
+`--ice`), sin el resaltado gris de iOS ni la espera del doble toque; barra
+de progreso de 3 px arriba y contenido atenuado en el instante de tocar
+un enlace que navega o enviar un formulario (`js/progreso.js`, por
+`import()` desde app.js), que se completa al irse la página y se retira
+sola a los seis segundos si no se va; la pestaña de la barra de abajo se
+marca al tocarla, antes de que llegue la página. Y la hoja de instalar
+en iOS pasa a ser una banda de una línea encima del contenido, una vez
+por sesión, que abre la hoja al tocarla.
+
+**Ficheros**: `js/progreso.js` (nuevo), `css/style.css`, `js/app.js`,
+`js/barra-movil.js`, `js/instalar.js`, `css/movil.css`, `js/icons.js`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 892 (nueva: lo puro, lo estático, en el iPhone con la
+página de destino retrasada —barra, atenuado y pestaña a los 250 ms—, el
+clic que un script se queda, el pulsado, y la banda: sale, abre la hoja,
+«Ahora no» la quita, una vez por sesión), 732 adaptada a la banda, y
+imports, 299, 310, 311, 312, 313, 315, 737, 753 en verde. Portada 113,0 KB.
+
+**Pendiente**: el resto de la propuesta: 893 (cabeceras y controles
+compactos en las 11 listas, burbuja baja), 894 (última vista en caché y
+consultas en paralelo), 895 (Mi colección y Torneo por trozos), 896
+(botones optimistas y pantallas cortas), 897 (HTML desde caché atado al
+despliegue). Y lo de la 122.
+
 ## 2026-10-19 (124) — PINGU-Claude (891c — el hilo ocupa la pantalla)
 
 **Hecho** (PINGU, captura: «se abre así, queda raro»: la página bajaba
