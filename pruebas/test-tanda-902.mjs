@@ -71,6 +71,9 @@ console.log('\n── 2. El texto: el del botón de compartir, con el enlace ─
   check('  …cabe en 280 con el enlace a 23', t.length - 'https://pokedoc.es/noticias/mega-evolucion'.length + 23 <= 280)
   check('las cuatro llaves se nombran cuando faltan', llavesQueFaltan({ X_API_KEY: 'k' }).join(',') === 'X_API_SECRET,X_ACCESS_TOKEN,X_ACCESS_SECRET')
   check('401, 402 y 403 son definitivos; 429 y 500 no', [401, 402, 403].every(esFalloDefinitivo) && ![429, 500, 0].some(esFalloDefinitivo))
+  const { clavesDe } = await import(`${RAIZ}/netlify/lib/x.mjs`)
+  const c = clavesDe({ X_API_KEY: ' k \n', X_API_SECRET: '"s"', X_ACCESS_TOKEN: "'t'", X_ACCESS_SECRET: 'ts' })
+  check('las claves se recortan: espacios, saltos y comillas de pegar', c.apiKey === 'k' && c.apiSecret === 's' && c.accessToken === 't' && c.accessSecret === 'ts', JSON.stringify(c))
 }
 
 // El doble: Supabase (REST) y X (fetch).
