@@ -41785,6 +41785,72 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 897 — La página también desde la caché, atada al despliegue
+
+R5 de «Rápida y limpia» (artifact KHxCQmjk4tps8oED9867dN), la última de
+la propuesta y la que iba la última a propósito: «es la pieza más delicada
+de las cinco».
+
+**Lo que pasaba.** Desde la 786 el service worker sirve los ficheros
+(`/css`, `/js`, `/assets`) desde su caché y los revisa por detrás, pero la
+PÁGINA iba siempre a la red primero: entre 150 y 400 ms en blanco en 4G
+antes de que empezara a pintar nada, con todos sus ficheros ya guardados.
+La regla de la casa —no servir nunca una web vieja— era el motivo.
+
+**Lo que se hace** (`sw.js`, bloque «897»). Las páginas de la casa tienen
+su caché (`pokedoc-paginas-1`, `PAGINAS`) y entran por la navegación
+(`paginaDeCasa`): si hay copia, se sirve YA y la red se revisa por detrás
+(`e.waitUntil`); si no, la red, con «Sin conexión» de respaldo como antes.
+La revisión es la misma `revisar` de los ficheros (etag o fecha; sin
+firma, el texto).
+
+**Cómo se cumple la regla: las dos cachés van ATADAS.** Un cambio visto en
+cualquier fichero o en cualquier página vacía LAS DOS (`vaciarTodo`), no
+solo la suya. Así lo que hay guardado entró siempre después del último
+cambio visto —del mismo despliegue que lo demás— y lo viejo dura como mucho
+una pantalla: tras un despliegue, la primera navegación sirve la página
+guardada (vieja, entera y coherente con sus ficheros, también viejos), la
+revisión ve el cambio, lo vacía todo y guarda la nueva; la siguiente ya es
+la nueva. Es la misma garantía que tenían los ficheros desde la 786,
+extendida a la página que los pide. ASSETS_VERSION no cambia.
+
+**Qué páginas** (`esPaginaDeCache`): solo la dirección PELADA de una página
+—mismo origen, sin consulta, un solo trozo: `/foro`, `/aprender.html`—.
+Con consulta o con más trozos no se guarda, que ahí el servidor puede
+contestar otra cosa: `meta-social` reescribe la cabecera de /guia, /carta,
+/coleccion, /curso y /categoria según lo que se pide, y /usuario, /tema y
+/foro/:slug llegan por reescritura. Y fuera de la lista (`SIN_PAGINA`) las
+que son otra cosa: /feria y las de leer tienen su caché, /sin-conexion es
+el respaldo, y /auth, /reset-password, /onboarding, /admin, /editor-guia y
+/404 no se abren «al momento» desde ninguna barra.
+
+**Dos cosas de la implementación.** Una petición de navegación no se puede
+volver a hacer con otras opciones (`fetch(req, { cache: 'no-cache' })`
+tira «Cannot construct a Request with a Request object that has mode
+'navigate' and a non-empty RequestInit»), así que la revisión de una página
+va por su DIRECCIÓN, que es también la llave de la caché. Y una respuesta
+que viene de una redirección no se guarda (`fresca.redirected`), que es la
+lección de la 819: no sirve para una navegación.
+
+**Prueba 897.** Lo estático (qué páginas entran, cuáles no, que el vaciado
+es de las dos cachés y que la de páginas sobrevive al `activate`). Y en
+Chromium, con TRES despliegues simulados: la tercera carga de una página
+llega desde el worker (`fromServiceWorker`) con la marca del despliegue A;
+tras el despliegue B (la página cambia), la primera pantalla es la vieja
+—una vez— y a los 1,5 s la guardada es la B; la siguiente ya es la B; y
+tras el despliegue C (cambia SOLO una hoja), pedir la hoja desde la página
+vacía también la caché de páginas. Lo que enseñó: **`route` de Playwright
+NO llega a lo que pide el worker** —la primera versión firmaba la página
+con `fulfill` y el worker guardaba la del servidor de verdad, sin marca—,
+así que los despliegues se ESCRIBEN en el sitio servido (`PD_SITIO`, como
+hacen la 324 y la 331) con una página y una hoja de prueba propias
+(`t897.html`, `css/t897.css`) y la fecha del fichero adelantada a mano
+(`utimesSync`), que es la firma que da el servidor de pruebas (sin etag, la
+`Last-Modified` tiene resolución de un segundo y dos escrituras seguidas
+darían la misma). Se borran al acabar.
+
+**Ficheros**: `sw.js`.
+
 ## Tanda 896 — Pantallas cortas y botones que cambian antes de que conteste la base
 
 I5 y R6 de la propuesta «Rápida y limpia» («adelante con ello»). Sin

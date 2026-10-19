@@ -19,7 +19,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== ASSETS && k !== LECTURA).map((k) => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== ASSETS && k !== LECTURA && k !== PAGINAS).map((k) => caches.delete(k))))
       .catch(() => {})
       .then(() => self.clients.claim())
   )
@@ -42,9 +42,44 @@ const ASSETS_VERSION = 1
 const ASSETS = `pokedoc-ficheros-${ASSETS_VERSION}`
 const esFichero = (url) => url.origin === self.location.origin && /^\/(css|js|assets)\//.test(url.pathname)
 
+// LAS PÁGINAS, TAMBIÉN AL MOMENTO (897, R5). La página HTML iba siempre a
+// la red primero: 150–400 ms en blanco en 4G antes de empezar, con los
+// ficheros ya en caché. Ahora las páginas de la casa se sirven de su caché
+// y se revisan por detrás, como los ficheros. Y la regla de no servir la
+// web vieja se cumple ATANDO las dos cachés: un cambio visto en cualquier
+// fichero o en cualquier página vacía LAS DOS (`vaciarTodo`), así que lo que
+// hay guardado entró siempre después del último cambio visto —del mismo
+// despliegue que lo demás— y lo viejo dura, como mucho, una pantalla.
+//
+// Solo la dirección pelada de una página (`/foro`, `/aprender.html`): con
+// consulta o con más trozos no se guarda, que ahí el servidor puede
+// contestar otra cosa (meta-social reescribe la cabecera de /guia, /carta,
+// /coleccion, /curso y /categoria según lo que se pide; /usuario y /tema
+// llegan por reescritura). Y se quedan fuera las que son otra cosa: la
+// feria y las de leer tienen su propia caché, /sin-conexion es el respaldo,
+// y /auth, /reset-password, /onboarding y /admin no se abren «al momento»
+// desde ninguna barra.
+const PAGINAS = 'pokedoc-paginas-1'
+const SIN_PAGINA = new Set(['feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
+function esPaginaDeCache(url) {
+  if (url.origin !== self.location.origin || url.search) return false
+  const m = /^\/([a-z0-9-]*)(\.html)?$/.exec(url.pathname)
+  return !!m && !SIN_PAGINA.has(m[1])
+}
+
+// Un despliegue nuevo: fuera todo lo de antes, páginas y ficheros, y entra
+// solo lo que llegue desde ahora.
+async function vaciarTodo() {
+  for (const nombre of [ASSETS, PAGINAS]) {
+    const c = await caches.open(nombre)
+    for (const k of await c.keys()) await c.delete(k)
+  }
+}
+
 async function revisar(peticion, cache, guardada) {
   const fresca = await fetch(peticion, { cache: 'no-cache' })
-  if (!fresca.ok || fresca.type !== 'basic') return fresca
+  // Una respuesta que viene de una redirección no sirve para una navegación.
+  if (!fresca.ok || fresca.type !== 'basic' || fresca.redirected) return fresca
   // La firma es el `etag` (Netlify lo pone) o la fecha; sin ninguna de las
   // dos, se compara el contenido, que sin firma no hay otra forma de saberlo.
   const firma = (r) => r.headers.get('etag') || r.headers.get('last-modified')
@@ -53,12 +88,24 @@ async function revisar(peticion, cache, guardada) {
     if (firma(guardada) && firma(fresca)) cambio = firma(guardada) !== firma(fresca)
     else cambio = (await guardada.clone().text()) !== (await fresca.clone().text())
   }
-  if (cambio) {
-    // Un despliegue nuevo: fuera todo lo de antes, y entra solo este.
-    for (const k of await cache.keys()) await cache.delete(k)
-  }
+  if (cambio) await vaciarTodo()
   await cache.put(peticion, fresca.clone())
   return fresca
+}
+
+// Una página de la casa: la copia guardada ya, y la red por detrás (897).
+// La petición de navegación no se puede volver a hacer con otras opciones
+// («Cannot construct a Request with mode navigate and a RequestInit»), así
+// que la revisión va por la dirección, que es también la llave.
+async function paginaDeCasa(req, e) {
+  const cache = await caches.open(PAGINAS)
+  const guardada = await cache.match(req.url)
+  const revision = revisar(req.url, cache, guardada)
+  if (guardada) {
+    e.waitUntil(revision.catch(() => {}))
+    return guardada
+  }
+  return revision.catch(async () => (await caches.match(PAGINA)) || Response.error())
 }
 
 // LAS PÁGINAS DE LEER (819, VE4): una guía o una noticia ya leída se abre
@@ -109,6 +156,10 @@ self.addEventListener('fetch', (e) => {
     }
     if (esDeLeer(new URL(req.url))) {
       e.respondWith(paginaDeLeer(req, e))
+      return
+    }
+    if (esPaginaDeCache(new URL(req.url))) {
+      e.respondWith(paginaDeCasa(req, e))
       return
     }
     e.respondWith(fetch(req).catch(async () => (await caches.match(PAGINA)) || Response.error()))

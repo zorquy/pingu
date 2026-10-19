@@ -824,6 +824,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   todas las páginas. Lo vigila `test-tanda-805.mjs`. Y una columna nueva de
   `user_profiles` que no deba escribirse uno mismo va en
   `perfil_guarda_columnas` (supabase-migration-seguridad-perfil.sql).
+- **El service worker sirve FICHEROS y PÁGINAS desde dos cachés ATADAS**
+  (tanda 897): un cambio visto en cualquiera vacía las dos (`vaciarTodo` en
+  `sw.js`), que es lo que garantiza que lo guardado sea del mismo
+  despliegue y que lo viejo dure una pantalla como mucho. Si añades una
+  caché de cosas de la web, o entra en el vaciado o no es de la web. Solo
+  la dirección PELADA de una página se guarda (`esPaginaDeCache`): una
+  página nueva que meta-social reescriba por su consulta, o que no deba
+  abrirse al momento, va en `SIN_PAGINA`. Y **`route` de Playwright NO
+  llega a lo que pide el worker**: un despliegue se simula escribiendo en
+  el sitio servido (`PD_SITIO`) con la fecha del fichero adelantada
+  (`utimesSync`), no con `fulfill`.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

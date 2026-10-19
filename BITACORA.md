@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (130) — PINGU-Claude (897 — la página desde la caché, atada al despliegue)
+
+**Hecho** (R5, la última de «Rápida y limpia»): el service worker sirve
+también las PÁGINAS de la casa desde su caché (`pokedoc-paginas-1`) y las
+revisa por detrás, como hacía con los ficheros desde la 786. La regla de
+no servir la web vieja se cumple atando las dos cachés: un cambio visto en
+cualquier fichero o página vacía las dos, así que lo guardado es siempre
+del mismo despliegue y lo viejo dura una pantalla como mucho. Solo la
+dirección pelada de una página (sin consulta, un trozo) y fuera las que
+reescribe meta-social, la feria, las de leer, /auth, /admin… Con esto la
+propuesta entera (892–897) está en producción.
+
+**Ficheros**: `sw.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+**Pruebas**: 897 (nueva, tres despliegues simulados escribiendo en el
+sitio servido: `route` no llega al worker), 786 al día (el vaciado es de
+las dos cachés), y 745, 775, 776, 780, 790, 791, 794, 812, 814, 820, 892,
+894, 299 e imports en verde.
+
+**Pendiente**: lo de la 122.
+
 ## 2026-10-19 (129) — PINGU-Claude (896 — pantallas cortas y botones que cambian ya)
 
 **Hecho** (I5 y R6 de «Rápida y limpia»): /retos en el móvil en rejilla

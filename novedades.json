@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Las páginas de PokeDoc se abren al instante aunque la red vaya lenta: la app guarda cada página en tu dispositivo y la revisa por detrás, así que lo nuevo llega a la siguiente visita.", "enlace": "/"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Retos, en el móvil: los seis en una rejilla de dos columnas, con su estado de hoy; el detalle, al tocar.", "enlace": "/retos"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Glosario: buscador e índice por letra siempre a la vista, y en el móvil cada término plegado a su nombre.", "enlace": "/glosario"},
     {"fecha": "2026-10-19", "tipo": "mejora", "texto": "Varios botones responden en el acto en vez de esperar a la base: guardar una guía, marcar el foro como leído, «La quiero», confirmar tu plaza en un torneo y meter cartas en un álbum.", "enlace": "/foro"},
