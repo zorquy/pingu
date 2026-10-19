@@ -41785,6 +41785,51 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 901 — El laboratorio y la evolución que no dice de qué evoluciona
+
+Un usuario a PINGU por Telegram, con capturas del móvil y del portátil:
+«cuando intenté evolucionar un Weedle a Kakuna no me dejó y me salía
+"Kakuna: No tienes en juego nada de lo que evolucione Kakuna"», con dos
+Weedle en la mesa (turno 4, uno de ellos de hace turnos).
+
+**Lo que pasaba.** `evolucionaDe(evo, base)` devolvía `false` cuando
+`evolve_from` venía vacío, así que una evolución cuya fila no está curada
+(el engorde de `cartas-detalle` no la ha visitado, o la impresión la creó
+TCGGO, que TCGdex no visita) no podía evolucionar NUNCA: «no tienes en
+juego nada de lo que evolucione» era en realidad «no sé de qué evoluciona».
+Desde aquí no se puede mirar la fila de ese Kakuna (la red cierra
+Supabase), pero es la única forma de llegar a ese mensaje con un Weedle
+delante, y `faseDe` ya trataba el `evolve_from` vacío como «no se sabe»
+para la fase. Es la 319 (hay tres estados, no dos) en el laboratorio.
+
+**Lo que se hace, en dos capas.**
+1. `detallesDeJuego` (`datos.js`) pide `name_key` con lo demás y, para
+   las evoluciones que llegan sin `evolve_from`, hace UNA consulta más por
+   `name_key` a otras impresiones con `evolve_from` no nulo
+   (`completarEvolveFrom`) y lo copia: de qué evoluciona una carta no
+   depende de la impresión. Lo que ninguna impresión sabe se queda sin.
+2. `evolucionaDe` contesta TRES cosas: `true`, `false` y `null` («no se
+   sabe», solo para una evolución sin `evolve_from`;
+   `evolucionDesconocida`). `motivoNoEvolucionar` solo para en `false`; el
+   menú de la mano (`opcionesDeMano`) ofrece con `null` todos los Pokémon
+   en juego con «el catálogo no dice de qué evoluciona, tú decides», y sin
+   ninguno en juego lo dice así. Los efectos que buscan en el mazo
+   (`efectos.js`, `caminos.js`) siguen tratando el `null` como un no, que
+   es lo prudente para una búsqueda automática. La ficha de la carta en el
+   laboratorio dice «el catálogo no dice de qué evoluciona».
+
+**Prueba 901**: con el motor, un Kakuna sin `evolve_from` en la mano y un
+Weedle de hace turnos en el activo: el menú ofrece evolucionarlo sin
+bloqueo y lo dice, `motivoNoEvolucionar` no para, y `evolucionar` deja al
+Kakuna de activo; `evolucionaDe` da null/true/false según el caso y un
+básico sin `evolve_from` no es «no se sabe». Y en el navegador con el
+doble: `detallesDeJuego` rellena el Kakuna mudo desde la otra impresión,
+no toca la curada ni el básico, y lo que ninguna impresión sabe se queda
+sin.
+
+**Ficheros**: `js/constructor/partida.js`, `js/constructor/datos.js`,
+`js/constructor/laboratorio.js`.
+
 ## Tanda 900 — El precio de la pestaña Cambios es el de la ficha
 
 PINGU (y soyfedeegb en el foro, #3 de «Cartas buscadas en perfil de

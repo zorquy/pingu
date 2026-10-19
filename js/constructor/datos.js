@@ -273,7 +273,7 @@ export async function cartasPorIds(ids) {
 // abrirse, UNA consulta por el mazo entero (de 100 en 100 como arriba).
 // Las cartas que el engorde aún no ha visitado vuelven con esos campos a
 // null, y el laboratorio lo dice al ver la carta en vez de inventárselos.
-const COLUMNAS_DE_JUEGO = 'id,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity,rarity_en'
+const COLUMNAS_DE_JUEGO = 'id,name_key,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity,rarity_en'
 
 export async function detallesDeJuego(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]
@@ -285,7 +285,26 @@ export async function detallesDeJuego(ids) {
     // puede borrar con un null lo que la carta ya traía.
     for (const c of data || []) fuera.set(c.id, Object.fromEntries(Object.entries(c).filter(([, v]) => v != null)))
   }
+  await completarEvolveFrom(fuera)
   return fuera
+}
+
+// DE QUÉ EVOLUCIONA, DESDE OTRA IMPRESIÓN (901). Una evolución cuya fila
+// no trae `evolve_from` (el engorde no la ha visitado, o la impresión vino
+// de TCGGO) dejaba el laboratorio sin poder evolucionarla: «no tienes en
+// juego nada de lo que evolucione Kakuna» con dos Weedle en la mesa. Lo
+// que evoluciona una carta no depende de la impresión, así que se copia
+// de cualquier otra con el mismo nombre que sí lo diga. Una consulta más,
+// solo si hace falta.
+const esEvolucionSinPadre = (c) => c && !c.evolve_from && /(1|2)/.test(String(c.stage || '')) && c.name_key
+async function completarEvolveFrom(fuera) {
+  const faltan = [...fuera.values()].filter(esEvolucionSinPadre)
+  if (!faltan.length) return
+  const claves = [...new Set(faltan.map((c) => c.name_key))]
+  const { data } = await supabase.from('tcg_cards').select('name_key,evolve_from').eq('market', MERCADO).in('name_key', claves.slice(0, 100)).not('evolve_from', 'is', null).limit(300)
+  const padre = new Map()
+  for (const f of data || []) if (f.evolve_from && !padre.has(f.name_key)) padre.set(f.name_key, f.evolve_from)
+  for (const c of faltan) if (padre.has(c.name_key)) c.evolve_from = padre.get(c.name_key)
 }
 
 // ── La regla de la reimpresión ──

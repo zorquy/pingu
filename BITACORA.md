@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (133) — PINGU-Claude (901 — el laboratorio y el Kakuna que no evolucionaba)
+
+**Hecho** (un usuario a PINGU por Telegram, con capturas): «Kakuna: No
+tienes en juego nada de lo que evolucione Kakuna» con dos Weedle en la
+mesa. La fila de ese Kakuna no trae `evolve_from` y el motor lo tomaba por
+«no evoluciona de nada». Ahora `detallesDeJuego` lo rellena desde otra
+impresión con el mismo nombre, y si ninguna lo sabe, el motor no afirma
+un no: ofrece los Pokémon en juego y dice que el catálogo no lo sabe.
+
+**Ficheros**: `js/constructor/partida.js`, `js/constructor/datos.js`,
+`js/constructor/laboratorio.js`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`.
+
+**Pruebas**: 901 (nueva); 461, 462 e imports pasadas.
+
+**Pendiente**: lo de la 122. Y contestar a soyfedeegb (900) y al del
+Kakuna cuando PINGU lo vea en producción.
+
 ## 2026-10-19 (132) — PINGU-Claude (899 — ocho botones que responden ya; 900 — el precio de Cambios)
 
 **Hecho**. 899 (lo que quedaba de R6): seguir a alguien, responder en un

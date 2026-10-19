@@ -448,6 +448,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Un campo del catálogo que falta no es un NO** (tanda 901). Un Kakuna
+  sin `evolve_from` hacía que el laboratorio dijera «no tienes en juego
+  nada de lo que evolucione Kakuna» con dos Weedle delante: `evolucionaDe`
+  contestaba `false` a lo que era «no se sabe». Ahora contesta `null` y
+  quien pregunta decide (el menú de la mano ofrece y lo dice; una búsqueda
+  automática lo trata como no), y `detallesDeJuego` rellena el dato desde
+  otra impresión del mismo nombre. Es la 319 en el motor: si una regla
+  lee una columna que el engorde puede no haber visitado, pregúntate qué
+  hace con el vacío, y que no sea bloquear la partida.
 - **Un precio que se ENSEÑA es el de la ficha** (tanda 900): el mínimo de
   Cardmarket en el IDIOMA de la copia (`valorDe(precioDeFila(fila),
   idioma)`), nunca `cm_low` a secas, que es el mínimo entre todos los

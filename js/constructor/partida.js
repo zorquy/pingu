@@ -140,11 +140,20 @@ export function esDeLaClase(c, clase) {
 // El nombre de la carta de la que evoluciona, en plano. Puede venir en
 // inglés o en español (según de dónde se engordó la carta), así que se
 // compara contra los DOS nombres del Pokémon en juego.
+// TRES respuestas, no dos (901): `true` evoluciona de ese, `false` no, y
+// `null` cuando la carta NO DICE de qué evoluciona (`evolve_from` sin
+// curar: Kakuna llegó así y «no tienes en juego nada de lo que evolucione
+// Kakuna» con dos Weedle delante). Lo que no se sabe no se afirma como un
+// no: quien pregunta decide qué hacer con el `null` — el menú de la mano
+// lo ofrece y lo dice; los efectos que buscan en el mazo lo tratan como
+// un no, que es lo prudente para una búsqueda.
 export function evolucionaDe(evo, base) {
+  if (!base) return false
   const de = plano(evo?.evolve_from)
-  if (!de || !base) return false
+  if (!de) return esEvolucion(evo) ? null : false
   return de === plano(base.name) || (base.name_es && de === plano(base.name_es))
 }
+export const evolucionDesconocida = (c) => esEvolucion(c) && !plano(c?.evolve_from)
 
 // ── La energía ──
 //
@@ -923,7 +932,7 @@ export class Partida {
   motivoNoEvolucionar(uid, slot, { desdeMazo = false } = {}) {
     const evo = this.carta(uid)
     const base = this.cartaDe(slot)
-    if (!evolucionaDe(evo, base)) return `${nombreVisible(evo)} no evoluciona de ${nombreVisible(base)}.`
+    if (evolucionaDe(evo, base) === false) return `${nombreVisible(evo)} no evoluciona de ${nombreVisible(base)}.`
     if (!this.s.estricta) return null
     if (this.esMiPrimerTurno && !desdeMazo) return 'Nadie puede evolucionar en su primer turno.'
     if (!desdeMazo && this.vetado('evolucionar')) return `Este turno no puedes evolucionar desde la mano (${this.vetado('evolucionar')}).`
@@ -951,11 +960,15 @@ export class Partida {
       if (esBasicoEnJuego(c)) {
         op.push({ id: 'banca', texto: 'Bajar a la banca', no: this.huecosBanca <= 0 ? 'La banca está llena.' : null })
       } else {
-        const destinos = this.enJuego.filter((p) => evolucionaDe(c, this.cartaDe(p)))
-        if (!destinos.length) op.push({ id: 'evolucionar', texto: 'Evolucionar', no: `No tienes en juego nada de lo que evolucione ${nombreVisible(c)}.` })
+        // Sin saber de qué evoluciona (901), se ofrecen todos los de la mesa y
+        // se dice: en el laboratorio es mejor que lo decidas tú a quedarte
+        // sin poder evolucionar.
+        const aCiegas = evolucionDesconocida(c)
+        const destinos = this.enJuego.filter((p) => evolucionaDe(c, this.cartaDe(p)) !== false)
+        if (!destinos.length) op.push({ id: 'evolucionar', texto: 'Evolucionar', no: aCiegas ? `El catálogo no dice de qué evoluciona ${nombreVisible(c)} y no tienes ningún Pokémon en juego.` : `No tienes en juego nada de lo que evolucione ${nombreVisible(c)}.` })
         for (const p of destinos) {
           const no = this.motivoNoEvolucionar(uid, p)
-          op.push({ id: 'evolucionar', slot: p.id, texto: `Evolucionar ${nombreVisible(this.cartaDe(p))}${p === s.activo ? ' (activo)' : ''}`, no })
+          op.push({ id: 'evolucionar', slot: p.id, texto: `Evolucionar ${nombreVisible(this.cartaDe(p))}${p === s.activo ? ' (activo)' : ''}${aCiegas ? ' · el catálogo no dice de qué evoluciona, tú decides' : ''}`, no })
         }
       }
     } else if (esEnergia(c)) {
