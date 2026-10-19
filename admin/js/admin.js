@@ -460,7 +460,10 @@ async function loadNoticias() {
   // está, se pide la lista sin ella en vez de dejar el panel en blanco.
   const columnas = 'id, title, slug, published_at, created_at, forum_thread_id'
   const pedir = (sel) => supabase.from('guides').select(sel).eq('kind', 'news').order('created_at', { ascending: false })
-  let { data, error } = await pedir(`${columnas}, telegram_sent_at`)
+  // Y `x_sent_at`/`x_post_id` las trae la de la 902: mismo trato. Se
+  // pide primero con todo y se va quitando lo que la base no tenga.
+  let { data, error } = await pedir(`${columnas}, telegram_sent_at, x_sent_at, x_post_id`)
+  if (error?.code === '42703') ({ data, error } = await pedir(`${columnas}, telegram_sent_at`))
   if (error?.code === '42703') ({ data, error } = await pedir(columnas))
   if (error) {
     caja.innerHTML = `<p class="empty-state">No se han podido cargar las noticias: ${escapeHtml(error.message)}</p>`
@@ -475,7 +478,7 @@ async function loadNoticias() {
 
   caja.innerHTML = `
     <table class="admin-table">
-      <thead><tr><th>Titular</th><th>Publicada</th><th>Estado</th><th>Telegram</th><th></th></tr></thead>
+      <thead><tr><th>Titular</th><th>Publicada</th><th>Estado</th><th>Telegram</th><th>X</th><th></th></tr></thead>
       <tbody>
         ${noticiasCache
           .map(
@@ -499,9 +502,21 @@ async function loadNoticias() {
                   ? `<span class="badge badge-completed">Mandada</span>`
                   : `<span class="badge badge-progress">Sin mandar</span>`
             }</td>
+            <td>${
+              // Lo mismo para X (902): y con el enlace al post, que es la
+              // comprobación de verdad de que salió.
+              !n.published_at
+                ? '—'
+                : n.x_sent_at
+                  ? n.x_post_id
+                    ? `<a class="badge badge-completed" href="https://x.com/pokedoc_es/status/${encodeURIComponent(n.x_post_id)}" target="_blank" rel="noopener">Publicada</a>`
+                    : `<span class="badge badge-completed">Publicada</span>`
+                  : `<span class="badge badge-progress">Sin publicar</span>`
+            }</td>
             <td class="admin-row-actions">
               ${n.published_at ? `<a class="btn-outline" href="/noticias/${encodeURIComponent(n.slug)}" target="_blank" rel="noopener">Ver</a>` : ''}
               ${n.published_at ? `<button class="btn-secondary" data-telegram-noticia="${n.id}" title="Mandar esta noticia al canal de Telegram">${icons.send(15)} Telegram</button>` : ''}
+              ${n.published_at ? `<button class="btn-secondary" data-x-noticia="${n.id}" title="Publicar esta noticia en la cuenta de X">${icons.send(15)} X</button>` : ''}
               <button data-editar-noticia="${n.id}">Editar</button>
               <button class="danger" data-borrar-noticia="${n.id}">Eliminar</button>
             </td>
@@ -514,6 +529,10 @@ async function loadNoticias() {
   caja.querySelectorAll('[data-telegram-noticia]').forEach((btn) =>
     btn.addEventListener('click', () => mandarNoticiaATelegram(btn.dataset.telegramNoticia, btn))
   )
+  caja.querySelectorAll('[data-x-noticia]').forEach((btn) =>
+    btn.addEventListener('click', () => mandarNoticiaAX(btn.dataset.xNoticia, btn))
+  )
+  pintarParadaDeX(caja)
   caja.querySelectorAll('[data-editar-noticia]').forEach((btn) =>
     btn.addEventListener('click', () => (window.location.href = `editor-guia.html?id=${btn.dataset.editarNoticia}`))
   )
@@ -529,6 +548,74 @@ async function loadNoticias() {
       loadNoticias()
     })
   )
+}
+
+// Si la función de X está PARADA (un 401/403/402 de X, 902), se dice
+// encima de la lista y se ofrece quitar la parada. Se lee con la sesión
+// del admin (la política de la 510 deja ver `scrydex_estado`); si la tabla
+// no se deja leer, no se enseña nada: «no se sabe», no «no hay».
+async function pintarParadaDeX(caja) {
+  const { data } = await supabase.from('scrydex_estado').select('valor').eq('clave', 'x_noticias').maybeSingle()
+  const parado = data?.valor?.parado
+  if (!parado) return
+  const aviso = document.createElement('div')
+  aviso.className = 'admin-aviso-parada'
+  aviso.innerHTML = `<p><strong>La publicación automática en X está parada</strong> (${escapeHtml(parado.fecha || '')}): ${escapeHtml(parado.motivo || '')}</p><button class="btn-secondary" id="btnReanudarX">Quitar la parada</button>`
+  caja.prepend(aviso)
+  aviso.querySelector('#btnReanudarX').addEventListener('click', async (e) => {
+    const btn = e.currentTarget
+    btn.disabled = true
+    btn.textContent = 'Quitando…'
+    try {
+      const session = await getSession()
+      const res = await fetch('/.netlify/functions/x-mandar', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ reanudar: true }),
+      })
+      const r = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+      showToast('Parada quitada: la función volverá a intentarlo en su próxima pasada.', 'success')
+      aviso.remove()
+    } catch (err) {
+      btn.disabled = false
+      btn.textContent = 'Quitar la parada'
+      showToast(String(err.message || err), 'error')
+    }
+  })
+}
+
+// Publicar una noticia en X desde el panel (902). Misma forma que el
+// botón de Telegram de abajo: lo que la función programada se calla
+// («Unauthorized», «Forbidden», la variable que falta) sale en un aviso.
+async function mandarNoticiaAX(id, btn, forzar = false) {
+  const n = noticiasCache.find((x) => x.id === id)
+  if (forzar && !confirm(`«${n?.title || 'Esta noticia'}» ya se publicó en X. ¿Publicarla otra vez?`)) return
+
+  const session = await getSession()
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.textContent = 'Publicando…'
+  try {
+    const res = await fetch('/.netlify/functions/x-mandar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, forzar }),
+    })
+    const r = await res.json().catch(() => ({}))
+    if (res.status === 409) {
+      btn.disabled = false
+      btn.innerHTML = original
+      return mandarNoticiaAX(id, btn, true)
+    }
+    if (!res.ok) throw new Error(r.error || `Error ${res.status}`)
+    showToast(r.aviso || 'Publicada en X.', r.aviso ? 'error' : 'success')
+    loadNoticias()
+  } catch (err) {
+    btn.disabled = false
+    btn.innerHTML = original
+    showToast(String(err.message || err), 'error')
+  }
 }
 
 // Empujar una noticia al canal de Telegram desde el panel.

@@ -41785,6 +41785,83 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 902 — Las noticias, a la cuenta de X (@pokedoc_es)
+
+PINGU abrió las cuentas de PokeDoc en X e Instagram (`@pokedoc_es` en las
+dos) y pidió que las noticias se publicaran solas en X según se publican
+en la web, «con la tarjeta que genera para Twitter». Esta tanda es X; la
+903 será Instagram (que pide una imagen vertical en una dirección pública
+y un token que caduca).
+
+### Qué hay
+
+- **`netlify/lib/x.mjs`**: la firma OAuth 1.0a a mano con `node:crypto`
+  (sin dependencias nuevas; probada contra el ejemplo oficial de la
+  documentación de X, que es la única forma de saber que casa con la
+  suya), `publicarEnX(texto)` contra `POST /2/tweets`, y
+  `textoDeNoticia`, que es EXACTAMENTE el texto del botón «Compartir en X»
+  de la noticia (`js/compartir-x.js`, 880) con el enlace al final en su
+  línea. No se sube imagen: X pinta la tarjeta con la portada a partir de
+  las etiquetas `twitter:card` que ya escribe cada página (meta-social).
+- **`netlify/functions/x-noticias.mjs`** (cada 5 minutos): la forma de
+  `telegram-noticias` (280). Mira las noticias publicadas en las últimas
+  48 h con `x_sent_at` a null, tres por pasada, publica, y marca cada una
+  (`x_sent_at`, `x_post_id`) ANTES de seguir con la siguiente. Lo que
+  difiere: escribe en `scrydex_estado` con la clave **`x_noticias`**
+  (`ultimoError`, `ultimaPublicacion`, `parado`), que es lo que lee el
+  semáforo de /admin → Cartas (`PASADAS`).
+- **Un fallo DEFINITIVO para la función**: 401 o 403 (las claves, el
+  permiso de escritura, la app suspendida) y 402 (el plan) escriben
+  `parado`, y la pasada siguiente se sale ANTES de llamar a X. Reintentar
+  cada cinco minutos con las mismas claves es insistir en lo mismo, y con
+  el plan de pago por uso de X, pagar por insistir. Un 429 o un 5xx no
+  paran: se reintenta. Y «publicada pero no apuntada» (el PATCH falla)
+  también para, porque es el único caso que duplica: lo dice en el motivo
+  y pide marcarla a mano antes de quitar la parada.
+- **`netlify/functions/x-mandar.mjs`** (botón del panel, admin por
+  `lib/admin.mjs`): publicar UNA noticia a mano (`{ id, forzar }`, con 409
+  si ya salió) y **quitar la parada** (`{ reanudar: true }`). El error de X
+  se pasa tal cual: «Your client app is not configured with the
+  appropriate oauth1 app permissions» dice exactamente qué arreglar
+  (generar el Access Token DESPUÉS de dar Read and Write).
+- **/admin → Noticias**: columna «X» (Publicada con enlace al post, o Sin
+  publicar), botón «X» por noticia, y un aviso rojo encima de la lista
+  con «Quitar la parada» cuando `x_noticias.parado` existe. La consulta
+  pide `x_sent_at, x_post_id` y cae a la lista sin ellas con 42703 (la
+  624), igual que ya hacía con `telegram_sent_at`.
+- **`supabase-migration-x-noticias.sql`**: las dos columnas, el índice
+  parcial, y lo ya publicado dado por mandado (el estreno de la cuenta no
+  es el archivo entero).
+- **El pie de las 44 páginas** lleva `<p class="pie-redes">` con X e
+  Instagram, debajo del lema, en la primera columna (en el móvil el lema
+  se esconde y los enlaces miden 44, en `movil.css`). Y las 34 páginas con
+  `twitter:card` llevan `<meta name="twitter:site" content="@pokedoc_es">`,
+  también en `generar-cartas.mjs` y en `meta-social.js` (`CUENTA_X`), que
+  sustituye ese bloque entero.
+
+### Las llaves (Netlify → Site configuration → Environment variables)
+
+`X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`: las
+cuatro de «user context» de la app de desarrollador de X, con permiso
+Read and Write. El Access Token se genera DESPUÉS de poner el permiso, o
+sale solo de lectura y X contesta 403. Sin ellas la función no hace nada
+y dice cuáles faltan. Nunca van al repo.
+
+### Por qué OAuth 1.0a y no OAuth 2.0
+
+El OAuth 2.0 de usuario de X da tokens de dos horas con un refresh token
+que hay que guardar y renovar; una función programada que depende de un
+token guardado se muere el día que la renovación falla, sin que nadie lo
+vea. Las cuatro claves de 1.0a no caducan. Y la firma son veinte líneas.
+
+### Pendiente (903–906)
+
+Instagram (imagen vertical generada en el navegador al publicar, cubo
+público, token de 60 días renovado cada semana), novedades importantes
+(`"anunciar": true` en novedades.json), lo diario y semanal (reto del
+día, «sale hoy», lo más leído del lunes), torneos a X. Está en la
+propuesta «PokeDoc en X e Instagram».
+
 ## Tanda 901 — El laboratorio y la evolución que no dice de qué evoluciona
 
 Un usuario a PINGU por Telegram, con capturas del móvil y del portátil:

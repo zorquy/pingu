@@ -448,6 +448,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `or=(origen.is.null,origen.neq.mano)` — como `or`, que un `neq` contra
   NULL no es verdadero) y los reemplazos no lo borran. Si añades una
   pasada que esconda o borre del catálogo, que respete las dos cosas.
+- **Lo que se publica en las redes sale de la base por una función
+  programada con la forma de `telegram-noticias`, y las claves de cada
+  red viven en Netlify** (tanda 902). X: `netlify/lib/x.mjs` firma OAuth
+  1.0a a mano (probada contra el ejemplo oficial; `node:crypto`, sin
+  dependencias), `x-noticias` cada cinco minutos marca `x_sent_at` ANTES
+  de seguir, y un 401/402/403 PARA (`scrydex_estado.x_noticias.parado`,
+  que /admin enseña y quita): reintentar con las mismas claves cada cinco
+  minutos es pagar por insistir en el plan de pago por uso. El texto es el
+  del botón «Compartir en X» (`js/compartir-x.js`): la cuenta y la gente
+  comparten lo mismo. No se sube imagen: X pinta la tarjeta con las
+  etiquetas `twitter:card` de la página (y `twitter:site` desde la 902,
+  en el HTML, en `generar-cartas.mjs` y en `meta-social.js`, que
+  sustituye ese bloque). Una red nueva (Instagram, 903) sigue el mismo
+  patrón: su `lib`, su función, su columna `*_sent_at`, su clave en
+  `PASADAS` y su botón de /admin que enseña el error tal cual.
 - **Un campo del catálogo que falta no es un NO** (tanda 901). Un Kakuna
   sin `evolve_from` hacía que el laboratorio dijera «no tienes en juego
   nada de lo que evolucione Kakuna» con dos Weedle delante: `evolucionaDe`

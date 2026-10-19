@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-19 (134) — PINGU-Claude (902 — las noticias, a la cuenta de X)
+
+**Hecho** (PINGU abrió @pokedoc_es en X e Instagram y pidió que las
+noticias salgan solas en X). `netlify/lib/x.mjs` (firma OAuth 1.0a a
+mano, probada contra el ejemplo oficial; el texto es el del botón
+«Compartir en X»), `netlify/functions/x-noticias.mjs` (cada 5 min, la
+forma de telegram-noticias, estado en `scrydex_estado.x_noticias` para
+el semáforo, parada con 401/402/403) y `x-mandar.mjs` (botón del panel y
+quitar la parada). /admin → Noticias con columna y botón «X» y el aviso
+de parada. Pie de las 44 páginas con X e Instagram; `twitter:site` en las
+34 páginas con tarjeta, en `generar-cartas.mjs` y en `meta-social.js`.
+
+**Ficheros**: `netlify/lib/x.mjs`, `netlify/functions/x-noticias.mjs`,
+`netlify/functions/x-mandar.mjs`, `netlify/edge-functions/meta-social.js`,
+`admin/js/admin.js`, `admin/js/semaforo.js`, `admin/css/admin.css`,
+`css/style.css`, `css/movil.css`, `generar-cartas.mjs`, las 44 páginas
+con pie (`pie-redes`) y las 34 con tarjeta (`twitter:site`),
+`supabase-migration-x-noticias.sql` (NUEVA, pendiente de ejecutar),
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+**Para PINGU**: (1) ejecutar `supabase-migration-x-noticias.sql`; (2) en
+Netlify, `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`
+(el Access Token generado DESPUÉS de dar Read and Write) y redesplegar;
+(3) probar con el botón «X» de una noticia en /admin, que enseña el error
+de X tal cual si algo falla. Hasta entonces la función no hace nada.
+
+**Pruebas**: 902 (nueva); 312, 299, 649, 753, 880, 280, 305, 737, 829 e
+imports pasadas.
+
+**Pendiente**: 903 (Instagram), 904–906 (propuesta «PokeDoc en X e
+Instagram»). Lo de la 122. Contestar a soyfedeegb (900) y al del Kakuna.
+
 ## 2026-10-19 (133) — PINGU-Claude (901 — el laboratorio y el Kakuna que no evolucionaba)
 
 **Hecho** (un usuario a PINGU por Telegram, con capturas): «Kakuna: No

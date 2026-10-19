@@ -718,7 +718,9 @@
   .pie-lema { display: none; }
   .pie-col { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--e-xs); }
   .pie-col .pie-titulo { flex: 1 0 100%; margin: 0; }
-  .pie-col a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 var(--e-sm); }
+  .pie-col a,
+  .pie-redes a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 var(--e-sm); }
+  .pie-redes { margin: 0; gap: 0; }
 }
 /* En la app instalada, la barra de abajo ya lleva a todo: del pie, lo legal. */
 @media (max-width: 900px) and (display-mode: standalone) {

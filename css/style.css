@@ -1656,6 +1656,22 @@ button.btn-block {
   font-size: var(--t-sm);
   line-height: 1.5;
 }
+/* S902 */
+.pie-redes {
+  margin: 12px 0 0;
+  display: flex;
+  gap: var(--e-md);
+}
+.pie-redes a {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+.pie-redes a:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
 
 /* S780.42 */
 .pie-titulo {

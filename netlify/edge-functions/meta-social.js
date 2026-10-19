@@ -61,6 +61,7 @@ const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
 
 const SITIO = 'https://pokedoc.es'
 const IMAGEN_POR_DEFECTO = `${SITIO}/assets/images/og-default.png`
+const CUENTA_X = '@pokedoc_es'
 
 // Si Supabase no contesta en este tiempo, se sirve la página sin
 // personalizar. Un robot de WhatsApp que espera se rinde y no enseña
@@ -176,6 +177,10 @@ export function bloqueMeta(meta) {
   }
   lineas.push(
     `<meta name="twitter:card" content="${cuadrada ? 'summary' : 'summary_large_image'}" />`,
+    // La cuenta de PokeDoc en X (902): con ella X atribuye la tarjeta a
+    // la cuenta. Está también en el HTML de cada página, por si el edge
+    // no corre; aquí porque este bloque sustituye al de la página.
+    `<meta name="twitter:site" content="${CUENTA_X}" />`,
     `<meta name="twitter:title" content="${e(meta.titulo)}" />`,
     `<meta name="twitter:description" content="${e(meta.descripcion)}" />`,
     `<meta name="twitter:image" content="${e(meta.imagen)}" />`
