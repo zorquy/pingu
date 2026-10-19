@@ -80,7 +80,8 @@ console.log('\n── 2. Lo que vale la expansión: ya NO va dentro de la expans
 
 console.log('\n── 4. Lo estático ──')
 {
-  const js = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
+  // Desde la 895 las movidas viven con el Panel, en mi-coleccion/panel.js.
+  const js = readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')
   check('las movidas se acotan a las 600 más valiosas', /TOPE_MOVIDAS = 600/.test(js) && /slice\(0, TOPE_MOVIDAS\)/.test(js))
   check('el histórico se pide por tandas de 150 y calla sin migración', /historicoDeCartas/.test(readFileSync(`${RAIZ}/js/mi-coleccion/datos.js`, 'utf8')) && /i \+= 150/.test(readFileSync(`${RAIZ}/js/mi-coleccion/datos.js`, 'utf8')))
 }

@@ -75,7 +75,7 @@ console.log('\n── 2. La base también lo comprueba ──')
   // (El 'join_code' de esta lista se fue en la tanda 367: el código ya no
   // es una columna de tournaments, vive en su propia tabla.)
   check('crear aguanta sin la columna', /'is_private', 'prizes'\]/.test(leer('js/torneos/torneos.js')))
-  check('editar también', /'is_private', 'prizes'\]/.test(leer('js/torneos/torneo.js')))
+  check('editar también', /'is_private', 'prizes'\]/.test(leer('js/torneos/torneo-editor.js')))
 }
 
 console.log('\n── 3. En la ficha del torneo ──')

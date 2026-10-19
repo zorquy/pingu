@@ -20,7 +20,8 @@ check('  …el gesto es de la carta en la ficha grande', /\.carta-scan-holo\.hol
 check('  …vuelve con rebote', /cubic-bezier\(0\.34, 1\.56/.test(holoCss))
 check('  …y el reverse con su lámina en todo el marco', /data-impresion='reverse'\]\.holo::before/.test(holoCss) && /data-impresion="reverse"/.test(leer('js/mi-coleccion.js')))
 check('  …y en la rejilla sigue siendo solo con ratón', /e\.pointerType === 'touch' \|\| !caja \|\| caja\.dataset\.holoPuesto/.test(leer('js/mi-coleccion.js')))
-check('MV2: «Hoy» y el Panel cuentan la cifra', /contarCifra\(cifra, 'valor'/.test(leer('js/hoy.js')) && /contarCifra\(cifraPanel, 'valor'/.test(leer('js/mi-coleccion.js')))
+// Desde la 895 el Panel vive en js/mi-coleccion/panel.js.
+check('MV2: «Hoy» y el Panel cuentan la cifra', /contarCifra\(cifra, 'valor'/.test(leer('js/hoy.js')) && /contarCifra\(cifraPanel, 'valor'/.test(leer('js/mi-coleccion/panel.js')))
 check('MV10: la llama viva desde 3 y con destello al renovar', /racha >= 3\) chip\.classList\.add\('viva'\)/.test(leer('js/app.js')) && /\.nav-racha\.renovada svg/.test(leer('css/components.css')))
 
 console.log('── 2. En el navegador ──')

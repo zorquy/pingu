@@ -104,7 +104,8 @@ console.log('\n── 3. El candado nuevo: inscribirse ──')
 
 console.log('\n── 4. El navegador manda el código, y no decide él ──')
 {
-  const js = leer('js/torneos/torneo.js')
+  // Desde la 895 el editor vive en torneo-editor.js: se miran los dos.
+  const js = leer('js/torneos/torneo.js') + leer('js/torneos/torneo-editor.js')
   check('la inscripción manda p_codigo', /p_codigo: codigo \|\| null/.test(js))
   // Mandarlo solo «cuando parece que toca» sería fiarse de lo que cree
   // el navegador sobre una fila que puede haber cambiado hace un rato.

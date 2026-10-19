@@ -24,7 +24,7 @@ console.log('── 0. Lo estático ──')
 {
   const js = readFileSync(`${RAIZ}/js/menu-tu.js`, 'utf8').replace(/\/\/[^\n]*/g, '')
   check('la hoja ya no pinta «Ver perfil», «Modo feria» ni «Escribir una guía», y «Ajustes» va a /ajustes', !/Ver perfil|\/feria|editor-guia|data-tema="/.test(js) && /fila\('\/ajustes'/.test(js))
-  check('Modo feria tiene su sitio en el Panel de Mi colección', /id="mcModoFeria" href="\/feria"/.test(readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')))
+  check('Modo feria tiene su sitio en el Panel de Mi colección', /id="mcModoFeria" href="\/feria"/.test(readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')))
 }
 
 const browser = await chromium.launch()

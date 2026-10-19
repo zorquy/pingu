@@ -65,7 +65,8 @@ console.log('\n── Y la caja a la que se cuelga existe ──')
 {
   // El fallo era este: `.torneo-ficha` era la tarjeta de antes de la
   // tanda 298, que rehízo la cabecera y se llevó la clase por delante.
-  const js = readFileSync('/home/user/pingu/js/torneos/torneo.js', 'utf8')
+  // Desde la 895 el editor vive en torneo-editor.js: se miran los dos.
+  const js = readFileSync('/home/user/pingu/js/torneos/torneo.js', 'utf8') + readFileSync('/home/user/pingu/js/torneos/torneo-editor.js', 'utf8')
   const html = readFileSync('/home/user/pingu/torneo.html', 'utf8')
   check('ya no se cuelga de la clase que no existe', !/querySelector\('\.torneo-ficha'\)/.test(js))
   check('se cuelga de un id que SÍ está en el HTML',

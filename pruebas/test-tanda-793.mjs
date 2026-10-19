@@ -22,7 +22,8 @@ const mig = leer('supabase-migration-logros-coleccion.sql')
 check('la migración los siembra y cada uno usa un tipo que se entiende', [...mig.matchAll(/"type": "([a-z_]+)"/g)].every(([, t]) => tipos.includes(t)) && /on conflict \(id\) do update/.test(mig))
 check('  …y el reparto es una función que cualquiera puede leer', /create or replace function public\.logros_reparto\(\)/.test(mig) && /grant execute on function public\.logros_reparto\(\) to anon, authenticated/.test(mig))
 check('  …sin tablas temporales (la 631)', !/temp(orary)? table/i.test(mig))
-check('Mi colección los mira una vez, y no en el catálogo', /if \(logrosMirados \|\| !sesion\?\.user\?\.id \|\| !lineas\.length \|\| modoCatalogo\) return/.test(leer('js/mi-coleccion.js')))
+// Desde la 895 los logros los mira js/mi-coleccion/panel.js, con el `ctx` del principal.
+check('Mi colección los mira una vez, y no en el catálogo', /if \(logrosMirados \|\| !ctx\.sesion\?\.user\?\.id \|\| !ctx\.lineas\.length \|\| ctx\.modoCatalogo\) return/.test(leer('js/mi-coleccion/panel.js')))
 check('/cartas lleva lo que sale del generador', leer('cartas.html').length > 0)
 
 console.log('── 2. Lo puro ──')

@@ -22,7 +22,9 @@ check('MV5: la píldora se vigila desde la barra', /vigilarPildoras\(\)/.test(le
 check('MV9: «La quiero» late al ponerse', /latir\(boton\)/.test(leer('js/la-quiero.js')))
 check('  …y el guardar de una guía también', /latir\(saveBtn\)/.test(leer('js/guide-card.js')) && /latir\(btn\)/.test(leer('js/guia.js')))
 // Desde la 787 el botón es solo el icono: el estado lo dicen el dibujo y su aria-label.
-check('el botón de guardar de la guía dice cómo QUEDA (estaba al revés)', /btn\.innerHTML = !isSaved \? icons\.bookmark\(16, true\)/.test(leer('js/guia.js')) && /'Guardada · quitar de guardados'/.test(leer('js/guia.js')))
+// Desde la 896 lo pinta `pintarGuardada(btn, guardada)` con el estado que QUEDA,
+// y `toggleSave` lo llama con `!estaba` antes de preguntar a la base (optimista).
+check('el botón de guardar de la guía dice cómo QUEDA (estaba al revés)', /btn\.innerHTML = guardada \? icons\.bookmark\(16, true\) : icons\.bookmark\(16\)/.test(leer('js/guia.js')) && /pintarGuardada\(btn, !estaba\)/.test(leer('js/guia.js')) && /'Guardada · quitar de guardados'/.test(leer('js/guia.js')))
 
 console.log('── 2. Puro ──')
 const { coloresDePixeles } = await import(`${RAIZ}/js/efectos.js`)

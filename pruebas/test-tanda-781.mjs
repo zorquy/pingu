@@ -27,7 +27,8 @@ const idx = leer('index.html')
 // (un solo `verTodo`, con su flecha), no index.html.
 const pb = leer('js/portada-bloques.js')
 check('SI3: la portada dice «Ver todo» con su flecha, con un solo molde', /const verTodo = \(href, texto = 'Ver todo'\) => `<a class="ver-todo" href="\$\{href\}">\$\{texto\} <span class="ver-todo-flecha"/.test(pb) && (pb.match(/verTodo\(/g) || []).length >= 4)
-check('  …y el foro, «Hoy» y el Panel también', /verTodo\('\/foro'/.test(pb) && /class="ver-todo"/.test(leer('js/hoy.js')) && /link-btn ver-todo/.test(leer('js/mi-coleccion.js')))
+// Desde la 895 el Panel se pinta desde js/mi-coleccion/panel.js.
+check('  …y el foro, «Hoy» y el Panel también', /verTodo\('\/foro'/.test(pb) && /class="ver-todo"/.test(leer('js/hoy.js')) && /link-btn ver-todo/.test(leer('js/mi-coleccion/panel.js')))
 check('  …sin el botón con borde del foro', !/foro-vivo-boton/.test(leer('js/home.js') + leer('css/portada.css') + pb))
 const mc = leer('js/mi-coleccion.js')
 check('SI9: la «N» solo si no es la normal', /varianteDe\(l\.variante\)\.id === 'normal' \? '' : chapaDeVarianteHtml\(l\.variante\)/.test(mc))
