@@ -10959,3 +10959,28 @@ input.mc-alb-titulo:not([readonly]):focus {
     white-space: nowrap;
   }
 }
+
+/* ── 911: las que quieres y no tienes llevan su corazón (SCHEMA 911) ── */
+.mc-quiero-marca {
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--pink);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+.mc-quiero-marca svg {
+  fill: currentColor;
+}
+
+.mc-album-marcando .mc-quiero-marca {
+  display: none;
+}

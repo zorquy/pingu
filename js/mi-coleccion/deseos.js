@@ -310,7 +310,7 @@ export async function pedirQuienBusca() {
 export async function quererCarta(c) {
   if (!ctx.sesion) return false
   await cargarDeseos()
-  const idioma = await preguntarIdioma({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado })
+  const idioma = await preguntarIdioma({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado, setId: c.set_id })
   if (idioma === undefined) return false
   // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): la carta entra
   // en la lista como fila provisional y se repinta todo; la de verdad la

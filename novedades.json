@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-10-20",
+      "tipo": "mejora",
+      "texto": "Al añadir una carta o apuntarla en «La quiero» solo salen los idiomas en los que salió su expansión: Plasma Blast ya no ofrece el español. Y las japonesas se pueden apuntar también en coreano y en chino cuando existen.",
+      "enlace": "/cartas"
+    },
+    {
+      "fecha": "2026-10-20",
+      "tipo": "nuevo",
+      "texto": "Dentro de una expansión, las cartas que quieres y aún no tienes llevan un corazón, como en Deseos y cambios.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-10-20",
       "tipo": "arreglo",
       "texto": "Al crear una cuenta con tu email, ahora se ve bien el aviso de que te hemos mandado el enlace de confirmación; antes el formulario se quedaba a la vista y parecía que no había pasado nada.",
       "enlace": "/auth?registro=1"

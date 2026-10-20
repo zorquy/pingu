@@ -83,6 +83,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   salía buscando «zapdos». Si una pantalla nueva busca cartas por lo que
   escribe alguien, pasa por ahí con sus columnas y sus filtros; no copies la
   consulta.
+- **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
+  911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
+  ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets
+  viejos (Gym Heroes «solo en inglés») y Cardmarket no tiene columna de
+  portugués. En la web, `idiomasDeSet` + `idiomasParaAnadirEn`; si no se
+  sabe, se ofrecen todos. Un camino nuevo para añadir o apuntar una carta
+  pasa por ahí; editar una copia lleva siempre su idioma (472).
 - **Un nombre de clase COMPUESTO no lo ve ningún barrido** (tanda 498), y
   antes de mudar CSS hay que buscarlo A MANO. `js/medallero.js` escribe
   `class="medalla-chip medalla-${medalla}"`: de ahí se saca «medalla-chip»,

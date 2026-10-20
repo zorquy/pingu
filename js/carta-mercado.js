@@ -37,7 +37,8 @@ import {
 } from './cardmarket.js'
 import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
-import { precioDeFila, precioParaIdioma } from './cardmarket.js'
+import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
+import { idiomasDeSet } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
 import { deseosDeCarta } from './mi-coleccion/cambios.js'
@@ -410,8 +411,19 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
   $('cmAdTienes').classList.toggle('hidden', !copias)
   // El formulario, preparado: el idioma que se recuerda, el estado por
   // defecto, las versiones de ESTA carta (con una sola no hay que elegir).
-  idiomasDeLaHoja = idiomas
-  $('cmAdIdiomas').innerHTML = chipsDeAnadir(idiomas, idiomaRecordado(idiomas))
+  // Los idiomas: los del catálogo de la carta —una japonesa no se apunta en
+  // español— y, cuando la base lo diga, los de su set (911).
+  const market = carta.market || MERCADO
+  const base = idiomasParaAnadirEn(market, idiomas, null)
+  idiomasDeLaHoja = base
+  $('cmAdIdiomas').innerHTML = chipsDeAnadir(base, idiomaRecordado(base))
+  void idiomasDeSet(carta.set_id, market).then((delSet) => {
+    if (!delSet || !d.open) return
+    const lista = idiomasParaAnadirEn(market, idiomas, delSet)
+    const puesto = $('cmAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma
+    idiomasDeLaHoja = lista
+    $('cmAdIdiomas').innerHTML = chipsDeAnadir(lista, lista.some((i) => i.id === puesto) ? puesto : idiomaRecordado(lista))
+  })
   $('cmAdEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
   // `varianteDe` sabe también de las versiones de TCGGO (862).
   const vs = variantes.map((id) => varianteDe(id))
@@ -426,7 +438,7 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
     e.preventDefault()
     const boton = $('cmAdGuardar')
     boton.disabled = true
-    const idioma = $('cmAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomas[0]?.id
+    const idioma = $('cmAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomasDeLaHoja[0]?.id
     const linea = {
       card_id: carta.id,
       idioma,

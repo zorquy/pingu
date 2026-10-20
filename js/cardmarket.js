@@ -63,6 +63,29 @@ export const IDIOMA_POR_DEFECTO = 'es'
 export const IDIOMAS_CON_PRECIO = ['es', 'en', 'de', 'fr', 'it', 'ja', 'ko', 'zh']
 export const columnaDeIdioma = (id) => (IDIOMAS_CON_PRECIO.includes(id) ? `cm_low_${id}` : null)
 
+// Los idiomas que se ofrecen para ESTA carta (911): los del catálogo, menos
+// los que su set no tuvo (`delSet`, de `idiomas_de_set`). Sin saberlo —null
+// o vacío— se ofrecen todos, como antes: «no se sabe» no es «ninguno». Lo
+// de `siempre` se queda aunque el set no lo diga (el japonés en su
+// catálogo), '' («cualquiera») también, y si no quedara ninguno, la lista
+// entera: una hoja sin idiomas no deja añadir nada.
+export function acotarIdiomas(lista, delSet, { siempre = [] } = {}) {
+  if (!Array.isArray(delSet) || !delSet.length) return lista
+  const vale = new Set([...delSet, ...siempre])
+  const quedan = lista.filter((i) => !i.id || vale.has(i.id))
+  return quedan.some((i) => i.id) ? quedan : lista
+}
+
+// Los de AÑADIR una carta o apuntarla en «La quiero» (911), por catálogo.
+// En el occidental, los de siempre (`base`) acotados a su set. En el
+// japonés, la japonesa y —si su set los tiene— la coreana y la china, que
+// Cardmarket vende en el mismo producto; sin saberlo, solo la japonesa.
+export function idiomasParaAnadirEn(market, base, delSet) {
+  if (market !== 'JP') return acotarIdiomas(base, delSet)
+  const asia = IDIOMAS.filter((i) => ['ja', 'ko', 'zh'].includes(i.id))
+  return Array.isArray(delSet) && delSet.length ? acotarIdiomas(asia, delSet, { siempre: ['ja'] }) : asia.filter((i) => i.id === 'ja')
+}
+
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
 // Es «este estado O MEJOR», que es lo que se quiere: si tu carta está
 // en Good, una en Near Mint al mismo precio también es tu precio.

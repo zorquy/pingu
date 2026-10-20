@@ -56,7 +56,7 @@ export async function alternar({ userId, cardId, deseos, carta = null, alCambiar
     showToast('Quitada de «La quiero».', 'success')
     return sin
   }
-  const idioma = await preguntarIdioma({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST' })
+  const idioma = await preguntarIdioma({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST', setId: carta?.set_id || null })
   if (idioma === undefined) return deseos
   alCambiar([{ id: `provisional-${Date.now()}`, user_id: userId, card_id: cardId, idioma, provisional: true }, ...deseos])
   const d = await anadirDeseo({ user_id: userId, card_id: cardId, idioma })

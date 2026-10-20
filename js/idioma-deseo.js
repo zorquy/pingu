@@ -9,19 +9,22 @@
 // ficha) y /carta (su corazón), y por eso crea su propio <dialog>: /carta no
 // lo lleva en su HTML. Su CSS va en css/cardmarket.css, que cargan las dos.
 import { escapeHtml } from './app.js'
-import { IDIOMAS } from './cardmarket.js'
+import { IDIOMAS, idiomasParaAnadirEn } from './cardmarket.js'
 import { banderaHtml } from './precio-vista.js'
+import { idiomasDeSetSinEsperar } from './idiomas-de-set.js'
 
-// Los que admite la base (`user_wants_idioma`): el coreano no está, y del
-// catálogo japonés solo existe la japonesa (como al añadir a la colección,
-// la 472).
-const POR_CATALOGO = { WEST: ['es', 'en', 'fr', 'de', 'it', 'pt'], JP: ['ja'] }
+// Los del catálogo occidental. Del japonés, `idiomasParaAnadirEn` (911): la
+// japonesa y —si su set los tiene— la coreana y la china. El coreano lo
+// admite la base desde la migración 911, la misma que dice qué idiomas tiene
+// un set: sin ella, del japonés solo llega el japonés.
+const OCCIDENTALES = ['es', 'en', 'fr', 'de', 'it', 'pt'].map((id) => IDIOMAS.find((i) => i.id === id))
 
 // '' es «cualquiera»: en el catálogo japonés no se ofrece, porque ahí no hay
-// otro idioma que pueda casar.
-export function opcionesDeDeseo(market = 'WEST') {
-  const ids = POR_CATALOGO[market] || POR_CATALOGO.WEST
-  const lista = ids.map((id) => IDIOMAS.find((i) => i.id === id)).filter(Boolean)
+// otro idioma que pueda casar. `delSet` (911) quita los que el set no tuvo:
+// Plasma Blast no salió en español. Sin saberlo, todos los de antes (y del
+// japonés, solo el japonés).
+export function opcionesDeDeseo(market = 'WEST', delSet = null) {
+  const lista = idiomasParaAnadirEn(market, OCCIDENTALES, delSet)
   return market === 'JP' ? lista : [{ id: '', nombre: 'Cualquiera' }, ...lista]
 }
 
@@ -69,16 +72,16 @@ function marcar(id) {
 
 // Devuelve el idioma ('es', 'ja'…), `null` para «cualquiera» o `undefined`
 // si se cancela: son tres respuestas y quien llama tiene que distinguirlas.
-export function preguntarIdioma({ nombre = '', market = 'WEST' } = {}) {
+export async function preguntarIdioma({ nombre = '', market = 'WEST', setId = null } = {}) {
   const d = crear()
-  const opciones = opcionesDeDeseo(market)
+  const opciones = opcionesDeDeseo(market, await idiomasDeSetSinEsperar(setId, market))
   const entrada = idiomaDeEntrada(market)
   d.querySelector('#iddCarta').textContent = nombre
   d.querySelector('#iddChips').innerHTML = opciones
     .map((i) => `<button type="button" class="mc-idioma-chip${i.id === entrada ? ' activo' : ''}" role="radio" aria-checked="${i.id === entrada}" data-idioma="${escapeHtml(i.id)}">${i.id ? banderaHtml(i.id) : ''}<span>${escapeHtml(i.nombre)}</span></button>`)
     .join('')
   d.querySelector('#iddNota').textContent = market === 'JP'
-    ? 'Del catálogo japonés solo existe en japonés.'
+    ? (opciones.length > 1 ? 'Del catálogo japonés, en los idiomas en los que salió.' : 'Del catálogo japonés solo existe en japonés.')
     : '«Cualquiera» te cruza con más gente. Puedes apuntarla en dos idiomas: son dos deseos.'
   d.returnValue = ''
   return new Promise((resolver) => {

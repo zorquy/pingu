@@ -28,7 +28,7 @@ export function traducir(error) {
   const idioma = error.code === '23514' && /_idioma\b/.test(error.message || '')
   const e = new Error(
     idioma
-      ? 'Falta ejecutar supabase-migration-idioma-chino.sql en Supabase: todavía no se puede guardar una carta en chino.'
+      ? 'Falta ejecutar supabase-migration-911-idiomas-de-set.sql en Supabase: todavía no se puede guardar una carta en ese idioma.'
       : sin
         ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.`
         : error.message || 'No se ha podido consultar.'

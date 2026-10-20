@@ -41785,6 +41785,69 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 911 — Los idiomas en los que salió cada set, y el corazón de «La quiero»
+
+PINGU, con el Virizion-EX de Plasma Blast: al añadirla o al darle a «La
+quiero» salían todos los idiomas, y Plasma Blast salió en inglés, francés,
+alemán, italiano y portugués (el filtro de Cardmarket lo dice). En el
+japonés, al revés: una carta que Cardmarket vende también en coreano y en
+chino solo se podía apuntar en japonés. Y: «cartas que tengo como "la
+quiero", además de estar en gris porque no las tengo, ¿no se podría
+meterles un corazón como en el menú de deseos y cambios?».
+
+**De dónde sale qué idiomas tuvo un set.** Se miraron dos fuentes y
+ninguna basta sola:
+- La ficha del set en tcgdex/cards-database (`data/<serie>/<set>.ts`): las
+  claves de su `name`. Plasma Blast da justo `en fr it de pt`, pero en sets
+  viejos se queda corta: Gym Heroes sale solo en inglés, Legendary Treasures
+  en inglés y portugués, y los dos se imprimieron en más idiomas. Son las
+  traducciones que TCGdex ha metido, no lo que se imprimió.
+- Los anuncios de Cardmarket: un idioma con precio mínimo en alguna carta
+  del set (`cm_low_es…zh` de `tcg_card_prices`, que escribe tcggo-precios)
+  existe. Es la buena, pero el portugués no tiene columna.
+
+Así que se SUMAN, en la base: `supabase-migration-911-idiomas-de-set.sql`
+crea `tcg_set_idiomas` (los 223 sets de la ficha de TCGdex, copiados) y
+`idiomas_de_set(p_set, p_market)`, que devuelve la unión de los anuncios y la
+ficha. Un set occidental sin ficha (los `tcggo-…`) lleva el portugués de
+regalo: no hay de dónde saber que no. Y un set sin nada devuelve `{}`, que
+la web lee como «no se sabe» y ofrece todos, como antes. La misma
+migración admite el coreano en `user_collection` y `user_wants`: la web
+solo lo ofrece cuando la función existe, y la función y el permiso van
+juntos.
+
+**En la web.** `idiomasDeSet(setId, market)` (`js/idiomas-de-set.js`, una vez
+por set y página; null = no se sabe) y dos funciones puras en
+`js/cardmarket.js`: `acotarIdiomas(lista, delSet, { siempre })` (sin saber,
+la lista entera; «cualquiera» se queda; si no quedara ninguno, la lista
+entera) e `idiomasParaAnadirEn(market, base, delSet)`: en el occidental, los
+de siempre acotados; en el japonés, japonés y —si su set los tiene— coreano
+y chino, y sin saber, solo el japonés. Pasan por ahí:
+- la hoja de añadir de Mi colección (se pinta al momento con los de la vista
+  y se acota cuando contesta la base, guardando el elegido si sigue valiendo;
+  `anadir.idiomas` es la lista con la que se repinta al tocar),
+- la hoja de añadir de /carta (que además ya no ofrece los occidentales a una
+  carta de otro catálogo),
+- «¿En qué idioma la quieres?» (`preguntarIdioma` recibe `setId` y espera a
+  la base como mucho 1,5 s: `idiomasDeSetSinEsperar`).
+Editar una copia que ya tienes no cambia: lleva siempre su idioma (472).
+
+**El corazón.** En las tres casillas de una expansión (archivador, versiones
+separadas y cuadrícula), `quieroHtml(c.id, n)` pinta `.mc-quiero-marca`
+—rosa, arriba a la izquierda; a la derecha van el ✓ y el «+»— en las que
+quieres y NO tienes. Los deseos llegan después que la expansión, así que
+`refrescarCorazones()` los pone y los quita en lo ya pintado (con su
+`aria-label`, «te falta y la quieres») y la llaman los setters de `deseos`
+del `ctx`, el corazón de la ficha y «Apuntar en La quiero» de la selección.
+Con `deseos` a null no sale ninguno.
+
+**Pruebas**: `test-tanda-911.mjs` (la migración contra PostgreSQL con
+`sql-tanda-911.sql`: Plasma Blast, Gym Heroes, un `tcggo-…`, el japonés, el
+otro catálogo, el vacío, el coreano en las dos tablas; lo puro; la hoja de
+añadir, «La quiero» y el corazón en Mi colección; sin la migración, como
+antes; una japonesa; /carta). El doble contesta `idiomas_de_set` con
+`__FAKE_IDIOMAS_SET__` y, sin él, como si la función no existiera.
+
 ## Tanda 910 — Los errores del panel, uno a uno
 
 PINGU, con la lista de /admin → Errores: «mira todos estos errores, seguro

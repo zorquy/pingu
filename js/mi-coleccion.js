@@ -41,7 +41,8 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma } from './cardmarket.js'
+  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
+import { idiomasDeSet } from './idiomas-de-set.js'
 import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -434,7 +435,7 @@ function idiomaDeLaVista() {
 // La puerta es el «+» pegado a la carta, que abre este diálogo. Desde la
 // 748 (la C5 de su maqueta) va SIEMPRE al formulario: lo que ya tienes lo
 // dice la cabecera («Ya tienes 2»), sin un paso de «Añadir más» delante.
-const anadir = { carta: null, variante: null }
+const anadir = { carta: null, variante: null, idiomas: null }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
@@ -489,6 +490,15 @@ function abrirAnadir(cardId, variante = null) {
   $('mcAdTienes').classList.toggle('hidden', !copias)
   prepararAnadir()
   if (!d.open) d.showModal()
+  // Los idiomas de SU set (911) llegan después y acotan los de la vista:
+  // Plasma Blast sin español, una japonesa con coreano y chino.
+  void idiomasDeSet(c.set_id, c.market || mercado).then((delSet) => {
+    if (anadir.carta !== c || !d.open || !delSet) return
+    const lista = idiomasParaAnadir(delSet)
+    const puesto = idiomaDeAnadir()
+    anadir.idiomas = lista
+    pintarIdiomasDeAnadir(lista, lista.some((i) => i.id === puesto) ? puesto : lista[0]?.id)
+  })
   // Las versiones de TCGGO llegan después y amplían el desplegable (862).
   void completarVersionesDe(c).then((hay) => {
     if (!hay || anadir.carta !== c || !d.open) return
@@ -506,6 +516,7 @@ function abrirAnadir(cardId, variante = null) {
 function prepararAnadir() {
   const c = anadir.carta
   const idiomas = idiomasDeLaVista()
+  anadir.idiomas = idiomas
   const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
   pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
   $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
@@ -537,6 +548,11 @@ function pintarIdiomasDeAnadir(idiomas, puesto) {
 }
 
 const idiomaDeAnadir = () => $('mcAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomaDeLaVista()
+
+// Los idiomas de la hoja de añadir con los de su set ya sabidos (911).
+function idiomasParaAnadir(delSet) {
+  return idiomasParaAnadirEn(vista === 'ja' ? 'JP' : 'WEST', idiomasDeLaVista(), delSet)
+}
 
 async function guardarAnadir(e) {
   e.preventDefault()
@@ -1303,6 +1319,7 @@ const ctxPanel = {
   },
   set deseos(x) {
     deseos = x
+    refrescarCorazones()
   },
   get modoCatalogo() {
     return modoCatalogo
@@ -3271,6 +3288,32 @@ function marcaDeTengoHtml(n) {
   return n > 1 ? `<span class="mc-cantidad mc-tengo-marca" aria-hidden="true">×${n}</span>` : '<span class="mc-tengo-marca" aria-hidden="true">✓</span>'
 }
 
+// «LA QUIERO» EN LA EXPANSIÓN (911). PINGU: «cartas que tengo como "la
+// quiero", además de estar en gris porque no las tengo, ¿no se podría
+// meterles un corazón como en el menú de deseos y cambios?». Sale en las que
+// NO tienes —en las tuyas manda el ✓—, arriba a la izquierda (a la derecha
+// van el ✓ y el «+»). Con `deseos` a null (no se sabe) no sale ninguno.
+// Los deseos llegan después que la expansión, así que además de pintarse
+// con la casilla se ponen y se quitan solos (`refrescarCorazones`).
+const laQuieres = (cardId) => esMia && Array.isArray(deseos) && deseos.some((d) => d.card_id === cardId)
+const CORAZON_QUIERO = () => `<span class="mc-quiero-marca" aria-hidden="true">${laQuiero.corazon(14)}</span>`
+const quieroHtml = (cardId, n) => (!n && laQuieres(cardId) ? CORAZON_QUIERO() : '')
+function refrescarCorazones() {
+  const raiz = $('mcAlbum')
+  if (!raiz) return
+  for (const a of raiz.querySelectorAll('.mc-bolsillo-enlace[data-carta], .mc-rejilla-celda[data-carta]')) {
+    const casilla = a.classList.contains('mc-rejilla-celda') ? a : a.closest('.mc-bolsillo')
+    const quiere = !casilla?.classList.contains('tengo') && laQuieres(a.dataset.carta)
+    const marca = a.querySelector('.mc-quiero-marca')
+    if (quiere && !marca) a.insertAdjacentHTML('beforeend', CORAZON_QUIERO())
+    else if (!quiere && marca) marca.remove()
+    // Y lo que se lee en voz alta, igual que lo que se ve.
+    const etiqueta = a.getAttribute('aria-label') || ''
+    const nueva = quiere ? etiqueta.replace(/, te falta$/, ', te falta y la quieres') : etiqueta.replace(/, te falta y la quieres$/, ', te falta')
+    if (nueva !== etiqueta) a.setAttribute('aria-label', nueva)
+  }
+}
+
 function versionQueTienesHtml(c) {
   if (!tieneVarias(c)) return ''
   const mias = variantesDeCarta(c).filter((v) => tengoEnAlbum(c.id, v.nuestro))
@@ -3304,7 +3347,7 @@ function bolsilloDeVariante(c, v) {
   const n = tengoEnAlbum(c.id, v.nuestro)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
-  const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ', te falta'}`
+  const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
   // EL NOMBRE SE PINTA SIEMPRE, DEBAJO (tanda 458), y la imagen encima.
   //
   // Antes el nombre salía solo cuando la cadena de escaneos estaba VACÍA.
@@ -3327,6 +3370,7 @@ function bolsilloDeVariante(c, v) {
     ${veloDeVariante(v.nuestro)}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
     ${marcaDeTengoHtml(n)}
+    ${quieroHtml(c.id, n)}
     ${chapaDeVarianteHtml(v.nuestro)}
     ${masHtml(c, nombre, v.nuestro)}`
   const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
@@ -3348,7 +3392,7 @@ function bolsilloHtml(c) {
   const n = tengoEnAlbum(c.id)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
-  const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : ', te falta'}`
+  const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
   // Igual que el bolsillo de arriba (tanda 458): el nombre siempre debajo.
   // Son DOS pintadores de bolsillo —este y el de las variantes— y arreglar
   // uno solo deja medio álbum con el fallo; ni siquiera se nota, porque
@@ -3358,6 +3402,7 @@ function bolsilloHtml(c) {
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
     ${marcaDeTengoHtml(n)}
+    ${quieroHtml(c.id, n)}
     ${n ? versionQueTienesHtml(c) : ''}
     ${masHtml(c, nombre)}`
   // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
@@ -3663,12 +3708,13 @@ function celdaDeCuadriculaHtml(c) {
   const n = tengoEnAlbum(c.id, v?.nuestro || null)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
-  const etiqueta = `${nombre} (${c.local_id})${v ? ` — ${v.nombre}` : ''}${n ? `, tienes ${n}` : ', te falta'}`
+  const etiqueta = `${nombre} (${c.local_id})${v ? ` — ${v.nombre}` : ''}${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
   return `<a class="mc-rejilla-celda${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(etiqueta)}">
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     ${v ? veloDeVariante(v.nuestro) : ''}
     ${marcaDeTengoHtml(n)}
+    ${quieroHtml(c.id, n)}
     ${n && !v ? versionQueTienesHtml(c) : ''}
     ${v ? chapaDeVarianteHtml(v.nuestro) : ''}
     ${masHtml(c, nombre, v?.nuestro || null)}
@@ -4152,6 +4198,7 @@ async function quererMarcadas() {
         if (!err.yaEstaba) throw err
       }
     }
+    refrescarCorazones()
     showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
     modoMarcar(false)
   } catch (err) {
@@ -5670,6 +5717,7 @@ const ctxDeseos = {
   },
   set deseos(x) {
     deseos = x
+    refrescarCorazones()
   },
   get dueno() {
     return dueno
@@ -6101,7 +6149,7 @@ function enganchar() {
   $('mcAdIdiomas')?.addEventListener('click', (e) => {
     const chip = e.target.closest('.mc-idioma-chip')
     if (!chip) return
-    pintarIdiomasDeAnadir(idiomasDeLaVista(), chip.dataset.idioma)
+    pintarIdiomasDeAnadir(anadir.idiomas || idiomasDeLaVista(), chip.dataset.idioma)
     $('mcAdIdiomas').querySelector(`[data-idioma="${CSS.escape(chip.dataset.idioma)}"]`)?.focus()
   })
   $('mcAdForm')?.addEventListener('submit', (e) => void guardarAnadir(e))
@@ -6139,12 +6187,13 @@ function enganchar() {
     // La loseta cambia ya (899); si la base dice que no, vuelve.
     const antes = deseos
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null, alCambiar: (d) => { deseos = d; pintarLoseta(id) } })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null, alCambiar: (d) => { deseos = d; pintarLoseta(id); refrescarCorazones() } })
     } catch (err) {
       deseos = antes
       showToast(err.message, err.yaEstaba ? 'info' : 'error')
     }
     pintarLoseta(id)
+    refrescarCorazones()
     if (pestania === 'quiero') void abrirQuiero()
   })
 

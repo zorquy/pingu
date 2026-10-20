@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (145) — PINGU-Claude (911 — idiomas por set y el corazón de «La quiero»)
+
+**Hecho** (PINGU con el Virizion-EX de Plasma Blast). Al añadir una carta
+o apuntarla en «La quiero» solo salen los idiomas en los que salió su set
+(anuncios de Cardmarket + ficha de TCGdex, sumados en la base); las
+japonesas, también en coreano y chino cuando existen. /carta igual. Y en
+la expansión, las que quieres y no tienes llevan un corazón rosa.
+
+**Ficheros**: `supabase-migration-911-idiomas-de-set.sql` (NUEVO),
+`js/idiomas-de-set.js` (NUEVO), `js/cardmarket.js`, `js/idioma-deseo.js`,
+`js/la-quiero.js`, `js/carta-mercado.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/deseos.js`, `js/mi-coleccion/datos.js`,
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-911.mjs`, `sql-tanda-911.sql` y el
+doble (`idiomas_de_set`).
+
+**Pendiente**: PINGU ejecuta `supabase-migration-911-idiomas-de-set.sql`
+(la comprobación del final: Plasma Blast `{de,en,fr,it,pt}`). Hasta
+entonces la web ofrece los idiomas de siempre. Lo de la 144.
+
 ## 2026-10-20 (144) — PINGU-Claude (910 — los errores del panel)
 
 **Hecho** (PINGU con la lista de /admin → Errores). Las mezclas de dos
