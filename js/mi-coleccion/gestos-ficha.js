@@ -38,6 +38,16 @@ export function decidirGesto({ dx, dy }, { arriba = true } = {}) {
 // leer la gráfica, que se lee arrastrando a lo ancho (661, F3).
 const AJENO = 'input, textarea, select, [contenteditable], .mc-ed-historial, #mcEdHistorial, .mc-editor-campos'
 
+// Lo que se desliza de lado por dentro (las tarjetas de precio, las chapas):
+// ahí el dedo de lado mueve ESO, no cambia de carta (920, PINGU: «te pasa a
+// la siguiente carta, no te pasa el precio»). Abajo sigue cerrando.
+export function seDesplazaDeLado(el, hasta, { win = window } = {}) {
+  for (let n = el; n && n !== hasta && n.nodeType === 1; n = n.parentElement) {
+    if (n.scrollWidth > n.clientWidth + 1 && /auto|scroll/.test(win.getComputedStyle(n).overflowX)) return true
+  }
+  return false
+}
+
 export function engancharGestos(hoja, acciones, { win = window } = {}) {
   let inicio = null
   let tira = false
@@ -47,7 +57,7 @@ export function engancharGestos(hoja, acciones, { win = window } = {}) {
       return
     }
     const t = e.touches[0]
-    inicio = { x: t.clientX, y: t.clientY, arriba: hoja.scrollTop <= 0 }
+    inicio = { x: t.clientX, y: t.clientY, arriba: hoja.scrollTop <= 0, deLado: seDesplazaDeLado(e.target, hoja, { win }) }
     tira = false
   }, { passive: true })
   hoja.addEventListener('touchmove', (e) => {
@@ -67,7 +77,8 @@ export function engancharGestos(hoja, acciones, { win = window } = {}) {
   const soltar = (e) => {
     if (!inicio) return
     const t = e.changedTouches[0]
-    const gesto = decidirGesto({ dx: t.clientX - inicio.x, dy: t.clientY - inicio.y }, { arriba: inicio.arriba })
+    let gesto = decidirGesto({ dx: t.clientX - inicio.x, dy: t.clientY - inicio.y }, { arriba: inicio.arriba })
+    if (inicio.deLado && (gesto === 'anterior' || gesto === 'siguiente')) gesto = null
     inicio = null
     if (tira) hoja.style.transform = ''
     tira = false

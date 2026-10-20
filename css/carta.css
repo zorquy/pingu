@@ -1492,3 +1492,13 @@
   margin-top: 0;
 }
 
+
+/* Las tarjetas de precio van en --bg dentro de la ficha (que es blanca);
+   aquí la página ya es --bg, así que van en blanco para verse (920). */
+#cmPrecios .pv-tarjeta:not(.pv-tarjeta-tuya) {
+  background: var(--white);
+}
+
+#cmPrecios a.pv-tarjeta:not(.pv-tarjeta-tuya):hover {
+  background: var(--ice);
+}

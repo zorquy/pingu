@@ -100,6 +100,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   tarjetas por idioma (`tarjetasDePrecio`). Si pintas un precio de carta
   en otra pantalla, usa esas tarjetas. Y `quienLaTiene` sin `todos` es la
   de los que SIGUES: «La quiero» lo dice así.
+  En el móvil no lleva mando arriba (920): se cierra arrastrando y se pasa
+  de carta de lado; lo que se desliza DENTRO de la ficha se desliza
+  (`seDesplazaDeLado`), y las tarjetas de precio son los enlaces (sin botón).
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-20", "tipo": "mejora", "texto": "La ficha de una carta en el móvil, más limpia: sin barra arriba (se pasa de carta deslizando y se cierra arrastrando hacia abajo), la carta un poco más pequeña y el corazón y compartir flotando a su lado. Los precios se deslizan sin cambiar de carta, en el ordenador caben todos sin barra, y cada tarjeta ya lleva a Cardmarket o TCGplayer, así que el botón aparte se va.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "Al abrir una expansión, todo más a mano: volver, el nombre y «⋯» en una fila, una barra con cuántas tienes y lo que vale lo tuyo, y Archivador y Variantes dentro de Filtros. El detalle del set maestro está en el «⋯».", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "El menú de tu avatar, más sencillo: seis baldosas con su número (avisos, mensajes, guardados, la quiero, mazos y partidas), el tema en un botón al lado de tu nombre y, debajo, Ajustes, Apoyar y Salir.", "enlace": "/perfil" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "Los botones, más sencillos y todos iguales: el principal en azul, el resto en azul claro y sin borde, y los enlaces sueltos pasan a ser botones.", "enlace": "/cartas" },

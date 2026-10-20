@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (154) — PINGU-Claude (920 — el pop-up de la carta, como Dex)
+
+**Hecho** (PINGU, comparando con Dex). En la ficha que se abre al tocar una
+carta:
+- En el móvil, sin barra arriba: ni la X ni «‹ 1 de 3 ›». Se pasa de carta
+  deslizando de lado y se cierra arrastrando hacia abajo; un tirador
+  pequeño arriba dice que se puede arrastrar. Con ratón la X sigue.
+- El corazón y compartir flotan dentro de la hoja, a la derecha de la
+  carta, con fondo de cristal. Antes asomaban por encima de la hoja y se
+  cortaban.
+- La carta, un poco más pequeña en el móvil (247 px en un iPhone 13; antes
+  285).
+- Fuera el botón de Cardmarket debajo de los precios: cada tarjeta ya
+  lleva a Cardmarket en su idioma, y TCGplayer va en su tarjeta (sin cifra,
+  «ver precio»). Vale para la ficha y para /carta.
+- En el PC, las tarjetas de precio en rejilla, sin barra de desplazar.
+- En el móvil, deslizar de lado sobre los precios mueve los precios y ya
+  no cambia de carta (vale para cualquier tira que se deslice dentro de la
+  ficha).
+- En la página de cada carta, las tarjetas de precio van en blanco: con
+  el fondo gris de la página no se distinguían (venía de la 916).
+
+**Ficheros**: `js/precio-vista.js`, `js/mi-coleccion/gestos-ficha.js`,
+`css/cardmarket.css`, `css/mi-coleccion.css`, `css/carta.css`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-920.mjs` (con el dedo de verdad, por CDP);
+al día 368, 369, 563, 586, 589 y 917, que buscaban el botón de Cardmarket,
+y 915, que pedía la carta al 70 % del ancho.
+
+Subconjunto de Mi colección y de /carta más la 920 (254): 234 verdes y 20
+rojos a la primera. De esos, seis eran el PostgreSQL de pruebas, que no
+estaba arrancado (808, 862, 904, 905, 911 y 915); 918 no existe (la 918 no
+tiene prueba propia, la metí en la lista por error); 305 y 748
+eran por la carga de cinco carriles; 368 y 915 sí eran de la tanda (el
+botón de Cardmarket y la carta al 70 % del ancho), ya al día. Pasados uno a
+uno, todos verdes. Los diez que quedan ya estaban rojos (385, 461, 467,
+475, 651, 653, 723, 780, 829, 893). Con el blanco de /carta: imports, 299,
+309, 311, 312, 324, 368, 586, 589, 916, 917 y 920, verdes.
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915.
+- PINGU dijo «luego ya veremos más cosas»: a la espera.
+
 ## 2026-10-20 (153) — PINGU-Claude (919 — la cabecera de una expansión, más sencilla)
 
 **Hecho** (lo último de la propuesta «PokeDoc más sencillo», aprobada). Al

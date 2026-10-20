@@ -234,19 +234,19 @@ export function tarjetasDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado =
   const cab = (id, extra = '') => `<span class="pv-t-cab">${banderaHtml(id)}<b>${escapeHtml(String(id).toUpperCase())}</b>${extra}</span>`
   const titulo = (id) => `Cardmarket, ${idiomaDe(id).nombre.toLowerCase()} · ${e.nombre}`
   const tarjetas = [
-    `<a class="pv-tarjeta pv-tarjeta-tuya" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(titulo(idioma))}">${cab(idioma, `<span class="pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>`)}${
+    `<a class="pv-tarjeta pv-tarjeta-tuya" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(precio?.idProduct && !precio?.dudoso ? titulo(idioma) : 'Buscar en Cardmarket')}">${cab(idioma, `<span class="pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>`)}${
       p
         ? `<span class="pv-cifra">${euros(p.valor)}</span><span class="pv-de">${escapeHtml(deQueEs(p, { idioma, estado, precio }))}</span>`
         : '<span class="pv-cifra pv-sin">Sin precio</span><span class="pv-de">Ni Cardmarket ni TCGplayer la tienen todavía.</span>'
     }</a>`,
     ...otros.map((id) => `<a class="pv-tarjeta${por[id] ? '' : ' pv-tarjeta-sin'}" href="${escapeHtml(enlace(id))}" target="_blank" rel="noopener" title="${escapeHtml(titulo(id))}">${cab(id)}<span class="pv-t-cifra">${por[id] ? euros(por[id]) : 'sin precio'}</span><span class="pv-t-nombre">${escapeHtml(idiomaDe(id).nombre)}</span></a>`),
   ]
+  // TCGplayer, la última. Sin su cifra pero con su enlace, también tarjeta:
+  // desde la 920 no hay botones debajo (PINGU: «los precios ya te llevan»).
   const tp = enlaceTcgplayer(tcgplayerId)
-  if (precio?.tpEur) {
-    const dentro = `<span class="pv-t-cab"><b>TCGplayer</b></span><span class="pv-t-cifra">${euros(precio.tpEur)}</span><span class="pv-t-nombre">EE. UU., en euros</span>`
-    tarjetas.push(tp ? `<a class="pv-tarjeta pv-tarjeta-tcg btn-tcgplayer" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${dentro}</a>` : `<div class="pv-tarjeta pv-tarjeta-tcg">${dentro}</div>`)
+  if (precio?.tpEur || tp) {
+    const dentro = `<span class="pv-t-cab"><b>TCGplayer</b></span><span class="pv-t-cifra">${precio?.tpEur ? euros(precio.tpEur) : 'ver precio'}</span><span class="pv-t-nombre">EE. UU.${precio?.tpEur ? ', en euros' : ''}</span>`
+    tarjetas.push(tp ? `<a class="pv-tarjeta pv-tarjeta-tcg btn-tcgplayer${precio?.tpEur ? '' : ' pv-tarjeta-sin'}" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${dentro}</a>` : `<div class="pv-tarjeta pv-tarjeta-tcg">${dentro}</div>`)
   }
-  const conProducto = Boolean(precio?.idProduct && !precio?.dudoso)
-  const botones = `<a class="btn-cardmarket pv-boton pv-boton-cm" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(conProducto ? titulo(idioma) : 'Buscar en Cardmarket')}">${marcaCardmarket(16)}<span>Cardmarket</span></a>${!precio?.tpEur && tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.zap(14)}<span>TCGplayer</span></a>` : ''}`
-  return `<div class="pv pv-con-tarjetas"><div class="pv-tarjetas">${tarjetas.join('')}</div>${chapasDeGradeadas(precio?.gradeadas)}<div class="pv-botones">${botones}</div></div>`
+  return `<div class="pv pv-con-tarjetas"><div class="pv-tarjetas">${tarjetas.join('')}</div>${chapasDeGradeadas(precio?.gradeadas)}</div>`
 }

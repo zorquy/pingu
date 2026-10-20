@@ -11299,11 +11299,63 @@ button.mc-fila:hover {
   }
 
   .mc-editor .mc-ficha-carta {
-    max-width: min(320px, calc(60vh * 245 / 342));
+    max-width: min(264px, calc(52vh * 245 / 342));
   }
 
   .mc-editor .mc-ficha-chapas {
     justify-content: center;
+  }
+}
+
+/* 920: con el dedo, sin mando arriba (PINGU: «con los gestos funciona»): ni
+   cerrar ni «‹ 1 de 3 ›». Queda el tirador, que dice «arrástrala», y el
+   corazón y compartir flotan sobre la esquina de la carta, dentro de la hoja. */
+@media (max-width: 900px) and (pointer: coarse) {
+  .mc-editor .mc-ficha-mando {
+    position: sticky;
+    top: calc(var(--e-md) * -1);
+    height: 0;
+    margin: calc(var(--e-md) * -1) calc(var(--e-md) * -1) 0;
+    padding: 0;
+    background: none;
+    pointer-events: none;
+  }
+
+  .mc-editor .mc-ficha-mando::before {
+    position: absolute;
+    top: var(--e-sm);
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+    content: '';
+    transform: translateX(-50%);
+  }
+
+  .mc-editor #mcEdCerrar,
+  .mc-editor .mc-ficha-pasos {
+    display: none;
+  }
+
+  .mc-editor .mc-ficha-flotan {
+    position: absolute;
+    top: var(--e-xl);
+    right: var(--e-md);
+    flex-direction: column;
+    gap: var(--e-sm);
+    pointer-events: auto;
+  }
+
+  .mc-editor .mc-ficha-flotan .mc-ficha-redondo {
+    background: color-mix(in srgb, var(--white) 88%, transparent);
+    box-shadow: var(--shadow-sm);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .mc-editor .mc-ficha {
+    padding-top: var(--e-xl);
   }
 }
 

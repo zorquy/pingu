@@ -1553,6 +1553,33 @@ a.pv-tarjeta-tuya:hover {
   margin-left: var(--e-sm);
 }
 
+/* En el móvil se deslizan (y el dedo no cambia de carta: gestos-ficha.js);
+   en el ordenador caben todas, en rejilla, sin barra (920, PINGU). */
+.pv-tarjetas {
+  overscroll-behavior-x: contain;
+}
+
+@media (min-width: 761px) {
+  .pv-tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .pv-tarjeta-tuya {
+    grid-column: span 2;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .pv-tarjeta,
+  .pv-tarjeta-tcg {
+    min-width: 0;
+    margin-left: 0;
+  }
+}
+
 /* La de TCGplayer es un enlace con la clase de su botón (los dos dicen «ahí
    está TCGplayer»), pero se pinta como tarjeta. */
 .pv-tarjeta.btn-tcgplayer {
@@ -1566,31 +1593,6 @@ a.pv-tarjeta-tuya:hover {
 
 .pv-tarjeta.btn-tcgplayer:hover {
   background: var(--ice);
-}
-
-.pv-con-tarjetas .pv-botones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-  margin-top: var(--e-sm);
-}
-
-/* Cardmarket, botón suave: el azul de la marca, solo en su logo. */
-.pv-con-tarjetas .btn-cardmarket,
-.pv-con-tarjetas .pv-botones .btn-tcgplayer {
-  min-height: 44px;
-  background: var(--ice);
-  color: var(--text);
-}
-
-.pv-con-tarjetas .btn-cardmarket .cm-marca path {
-  fill: var(--cm-azul, #00256a);
-  stroke: var(--cm-azul, #00256a);
-}
-
-:root[data-theme='dark'] .pv-con-tarjetas .btn-cardmarket .cm-marca path {
-  fill: var(--text);
-  stroke: var(--text);
 }
 
 .pv-con-tarjetas .pv-gradeadas-fuente {

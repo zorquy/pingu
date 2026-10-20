@@ -41785,6 +41785,50 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 920 — El pop-up de la carta, como Dex
+
+PINGU, con el Dex del móvil delante. Cinco cosas en la ficha
+(`#mcEditor`) y una en las tarjetas de precio, que comparte /carta:
+
+- **Sin mando en el móvil** (`@media (max-width: 900px) and (pointer:
+  coarse)`, en mi-coleccion.css): `#mcEdCerrar` y `.mc-ficha-pasos` no se
+  pintan; se cierra arrastrando hacia abajo y se pasa de carta de lado
+  (`engancharGestos`, 720). `.mc-ficha-mando` queda pegado, sin alto ni
+  fondo y sin recibir el dedo (`pointer-events: none`); su `::before` es el
+  tirador (36 × 4), que es lo que dice «arrástrala». `deLado` sigue
+  mirando `$('mcEdPasos').hidden` y `flecha.disabled`, que el CSS no toca.
+  Con ratón, aunque la ventana sea estrecha, la X sigue: sin dedo no hay
+  gesto.
+- **El corazón y compartir flotan dentro de la hoja**: `.mc-ficha-flotan`
+  absoluto dentro del mando (que, pegado, es su caja), en columna, a
+  `--e-xl` del borde, con fondo de cristal (`color-mix` + `backdrop-filter`).
+  Antes el mando llevaba los márgenes negativos del relleno de escritorio
+  (`--e-xl`) sobre el relleno del móvil (`--e-md`) y asomaba 16 px por
+  encima de la hoja: de ahí que se cortaran.
+- **La carta, más pequeña**: `min(264px, 52vh × 245/342)` (antes 320 y
+  60vh: 285 px en un iPhone 13, ahora 247).
+- **Sin botón de Cardmarket** (`tarjetasDePrecio`, precio-vista.js): cada
+  tarjeta ya es el enlace a Cardmarket en su idioma, así que `.pv-botones`
+  ya no se pinta. TCGplayer sin cifra pero con id era un botón al lado del
+  de Cardmarket; ahora es la tarjeta del final con «ver precio». La de tu
+  copia sin producto dice «Buscar en Cardmarket» en el `title`, que era lo
+  que decía el botón.
+- **En el PC, rejilla** (`@media (min-width: 761px)`, cardmarket.css):
+  `repeat(auto-fill, minmax(112px, 1fr))`, la de tu copia ocupa dos y sin
+  `overflow`. En el móvil siguen deslizándose.
+- **El dedo de lado sobre los precios mueve los precios**:
+  `seDesplazaDeLado(el, hoja)` (gestos-ficha.js) sube desde donde empezó el
+  toque buscando algo con `overflow-x: auto|scroll` que de verdad desborde;
+  si lo hay, el gesto de lado no pasa de carta (abajo sigue cerrando). Es
+  general a propósito: cualquier tira que se deslice dentro de la ficha
+  queda cubierta sin tener que apuntarla.
+
+- **En /carta, en blanco**: la página es `--bg`, el mismo gris que las
+  tarjetas; `#cmPrecios .pv-tarjeta` (carta.css) las pone en `--white`.
+
+Las pruebas que buscaban `.btn-cardmarket` dentro de las tarjetas (369,
+563, 586, 589, 917) miran ahora la tarjeta de tu copia, que es el enlace.
+
 ## Tanda 919 — La cabecera de una expansión, más sencilla
 
 Lo último de la propuesta «PokeDoc más sencillo». En `#mcArchivadorZona`
