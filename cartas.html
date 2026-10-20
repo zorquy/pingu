@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <!-- El esqueleto del Panel, solo en el Panel (912): si la dirección abre otra pestaña, fuera ya en el primer pintado; y si abre Expansiones (o es /cartas), Expansiones ya en su sitio con su esqueleto. -->
+  <script>(function(){var v=(location.search.match(/[?&]ver=([a-z]+)/)||[])[1],c=/^\/cartas/.test(location.pathname),h=document.documentElement.classList;if((v&&v!=='resumen')||c)h.add('mc-sin-esq-panel');if(v==='album'||(c&&!v))h.add('mc-ver-album')})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Cartas de Pokémon TCG en español — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
@@ -146,6 +148,8 @@
       <dl class="mc-resumen" id="mcResumen"></dl>
       <p class="mc-nota" id="mcResumenNota"></p>
     </header>
+    <!-- Fuera del Panel la cabecera va en pequeño (`pintarCabecera`): ya en el primer pintado, o sube 86 px al correr el JS (912). -->
+    <script>if(document.documentElement.classList.contains('mc-sin-esq-panel')&&!/^\/cartas/.test(location.pathname)){document.getElementById('mcHero').classList.add('mc-hero-mini');document.getElementById('mcTitulo').classList.add('sr-only')}</script>
     <div id="mcAviso" class="mc-aviso hidden" role="status"></div>
 
     <div class="mc-entrar hidden" id="mcEntrar">
@@ -457,7 +461,7 @@
               <button type="button" class="btn-primary" id="mcEstanteriaOrdenVer">Ver expansiones</button>
             </div>
           </dialog>
-          <div id="mcEstanteriaRejilla"></div>
+          <div id="mcEstanteriaRejilla"><div class="mc-estanteria mc-esq" aria-hidden="true"><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div><div class="mc-esq-set"><i class="mc-esq-cab"></i><i class="mc-esq-fila"></i><i class="mc-esq-grafica"></i></div></div></div>
         </div>
 
         <div id="mcArchivadorZona" class="hidden">

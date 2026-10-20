@@ -8,9 +8,8 @@
 // La comparten /mi-coleccion (el buscador, el Mercado y el corazón de la
 // ficha) y /carta (su corazón), y por eso crea su propio <dialog>: /carta no
 // lo lleva en su HTML. Su CSS va en css/cardmarket.css, que cargan las dos.
-import { escapeHtml } from './app.js'
 import { IDIOMAS, idiomasParaAnadirEn } from './cardmarket.js'
-import { banderaHtml } from './precio-vista.js'
+import { chipDeIdiomaHtml } from './precio-vista.js'
 import { idiomasDeSetSinEsperar } from './idiomas-de-set.js'
 
 // Los del catálogo occidental. Del japonés, `idiomasParaAnadirEn` (911): la
@@ -77,9 +76,7 @@ export async function preguntarIdioma({ nombre = '', market = 'WEST', setId = nu
   const opciones = opcionesDeDeseo(market, await idiomasDeSetSinEsperar(setId, market))
   const entrada = idiomaDeEntrada(market)
   d.querySelector('#iddCarta').textContent = nombre
-  d.querySelector('#iddChips').innerHTML = opciones
-    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === entrada ? ' activo' : ''}" role="radio" aria-checked="${i.id === entrada}" data-idioma="${escapeHtml(i.id)}">${i.id ? banderaHtml(i.id) : ''}<span>${escapeHtml(i.nombre)}</span></button>`)
-    .join('')
+  d.querySelector('#iddChips').innerHTML = opciones.map((i) => chipDeIdiomaHtml(i, i.id === entrada)).join('')
   d.querySelector('#iddNota').textContent = market === 'JP'
     ? (opciones.length > 1 ? 'Del catálogo japonés, en los idiomas en los que salió.' : 'Del catálogo japonés solo existe en japonés.')
     : '«Cualquiera» te cruza con más gente. Puedes apuntarla en dos idiomas: son dos deseos.'

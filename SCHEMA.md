@@ -41785,6 +41785,63 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 912 — Las chapas de idioma con su sigla, y Mi colección sin saltos al cargar
+
+PINGU: «siempre parece que algunos o el primero sale nombre completo y luego
+los otros con abreviación; prefiero que sean todos bandera + abreviación».
+Y: «cuando yo cargo otra página se va todo a la mierda… prefiero que no se
+mueva tanto al recargar», con capturas de Expansiones.
+
+**Las chapas.** Desde la 748 la elegida llevaba el nombre entero («Japonés»)
+y las demás la sigla, así que la fila cambiaba de ancho al tocar. Ahora hay
+UNA chapa, `chipDeIdiomaHtml(i, activo)` en `js/precio-vista.js`: bandera y
+sigla (`JA`, `KO`, `ZH`), el nombre en `aria-label` y `title`; «Cualquiera»
+va con su palabra y sin bandera. La usan la hoja de añadir de Mi colección,
+la de /carta y «¿En qué idioma la quieres?». Las chapas del bloque de precio
+de /carta (elegir de qué idioma ver el precio) siguen con el nombre: allí no
+se elige qué guardar y caben.
+
+**El salto.** `#mcCargando` es el esqueleto del PANEL (la cifra, la gráfica,
+las fichas: la 730) y salía encima de cualquier pestaña mientras llegaban tus
+cartas. En Expansiones, la estantería —que llega antes, de la CDN— se pintaba
+debajo, y al quitarse el esqueleto todo subía de golpe; al cambiar de
+catálogo volvía a salir (`classList.remove('hidden')` en `cambiarVista`) y
+lo empujaba todo hacia abajo, con la estantería del catálogo anterior
+rotulada con el nuevo. Ahora:
+- `cargandoColeccion` + `esqueletoDelPanel()`: el esqueleto se ve solo si se
+  está cargando Y la pestaña es el Panel. Lo llama `cambiarPestania`, y
+  `coleccionCargada()` sustituye a los tres `add('hidden')` de cuando
+  llegan las cartas (o la última vista, o sin sesión).
+- Al cambiar de catálogo con la estantería delante, la estantería pasa a su
+  propio esqueleto (`esqueletoDeSets(6)`) en su sitio.
+- El primer pintado, antes de que corra el JS: un `<script>` en el `<head>`
+  de mi-coleccion.html pone `mc-sin-esq-panel` en `<html>` si la dirección
+  abre otra pestaña (`?ver=` que no sea `resumen`, o /cartas), y
+  `mc-ver-album` si abre Expansiones (o /cartas sin `?ver=`). Con ellas,
+  `css/mi-coleccion.css` esconde el esqueleto del Panel y ENSEÑA ya
+  Expansiones —su cabecera, y en `#mcEstanteriaRejilla` el esqueleto de la
+  estantería escrito en el HTML—, esconde el panel de Cartas (su hueco
+  movía 24 px) y reserva el alto de la fila del catálogo (46 px, 50 en
+  táctil; en /cartas solo por encima de 900 px, que por debajo el catálogo
+  se muda junto al título). Otro `<script>` justo detrás de la cabecera la
+  pone en pequeño fuera del Panel, que es lo que hace `pintarCabecera` (si
+  no, subía 86 px al correr el JS). `esqueletoDelPanel()` quita las dos
+  marcas y manda el JS. /cartas se regenera (`node generar-cartas.mjs`).
+  Medido en la 748 (1600 px, ?ver=album): 0,17 de desplazamiento con la
+  primera versión de esta tanda y 0,15 antes de ella → 0,07; lo que queda es
+  el pie, que sube cuando la estantería de la prueba resulta casi vacía.
+- En el móvil queda otro salto de 12 px que no es de Mi colección: lo de
+  arriba cambia cuando llega `css/movil.css`, que entra por `import()` (la
+  704). Sin tocar.
+
+**Pruebas**: `test-tanda-912.mjs` (las chapas en las tres hojas; el primer
+pintado de `?ver=album` sin esqueleto, medido en el primer cuadro; cambiar a
+Pokémon Japón sin esqueleto, sin mover la cabecera y sin la estantería vieja,
+en PC y en el iPhone; el Panel con su esqueleto). Al día: 748 (la elegida ya
+no lleva el nombre), 561 (la consulta vive en buscar-cartas.js desde la 909),
+895 (`coleccionCargada()`) y 899 (el corazón de la ficha refresca la
+expansión, 911).
+
 ## Tanda 911 — Los idiomas en los que salió cada set, y el corazón de «La quiero»
 
 PINGU, con el Virizion-EX de Plasma Blast: al añadirla o al darle a «La

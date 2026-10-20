@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (146) — PINGU-Claude (912 — chapas con sigla y Mi colección sin saltos)
+
+**Hecho** (PINGU: «todos bandera + abreviación» y «cuando cargo otra página
+se va todo a la mierda»). Las chapas de idioma de añadir, /carta y «La
+quiero» son una (`chipDeIdiomaHtml`): bandera y sigla en todas. Y el
+esqueleto del Panel ya no sale encima de Expansiones (ni en el primer
+pintado, ni al cambiar de catálogo): cada pestaña carga en su sitio, y
+Expansiones sale ya en su sitio desde el HTML (cabecera, esqueleto de la
+estantería, cabecera de la página en pequeño). La 748 baja de 0,15 a 0,07.
+
+**Ficheros**: `js/precio-vista.js`, `js/mi-coleccion.js`,
+`js/carta-mercado.js`, `js/idioma-deseo.js`, `mi-coleccion.html`,
+`cartas.html` (generado), `css/mi-coleccion.css`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-912.mjs`; 748, 561,
+895 y 899 al día. Suite de Mi colección (244) con la 911: 229 verdes; los
+rojos, de antes (305, 385, 461, 467, 475, 651, 653, 723, 749, 780, 829,
+893) y los tres de mi mano, ya arreglados (561, 895, 899).
+
+**Pendiente**: si los saltos al cargar se ven en otras páginas además de Mi
+colección, que PINGU diga cuáles. Lo de la 145.
+
 ## 2026-10-20 (145) — PINGU-Claude (911 — idiomas por set y el corazón de «La quiero»)
 
 **Hecho** (PINGU con el Virizion-EX de Plasma Blast). Al añadir una carta

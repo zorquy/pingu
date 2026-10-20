@@ -35,7 +35,7 @@ import {
   estadoDe,
   varianteDe,
 } from './cardmarket.js'
-import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
+import { bloqueDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
 import { idiomasDeSet } from './idiomas-de-set.js'
@@ -337,9 +337,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
 // apertura.
 let idiomasDeLaHoja = []
 function chipsDeAnadir(idiomas, puesto) {
-  return idiomas
-    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}">${banderaHtml(i.id)}<span>${escapeHtml(i.id === puesto ? i.nombre : i.id.toUpperCase())}</span></button>`)
-    .join('')
+  return idiomas.map((i) => chipDeIdiomaHtml(i, i.id === puesto)).join('')
 }
 function rotularGuardarCarta() {
   const n = Math.max(1, Math.min(999, Math.round(Number($('cmAdCantidad')?.value) || 1)))

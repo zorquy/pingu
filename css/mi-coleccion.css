@@ -10984,3 +10984,39 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-album-marcando .mc-quiero-marca {
   display: none;
 }
+
+/* ── 912: el esqueleto del Panel, solo en el Panel (SCHEMA 912) ── */
+.mc-sin-esq-panel #mcCargando,
+body[data-modo='catalogo'] #mcCargando {
+  display: none;
+}
+
+/* `.hidden` va con !important (style.css): para ganarle, lo mismo. Y en
+   el primer pintado de Expansiones, lo que el JS pone en el primer cuadro
+   ya tiene su sitio: fuera el panel de Cartas (su hueco eran 24 px) y la
+   fila del catálogo con el alto de sus botones. */
+.mc-ver-album #mcPanelAlbum.hidden {
+  display: block !important;
+}
+
+.mc-ver-album #mcPanelCartas {
+  display: none !important;
+}
+
+.mc-ver-album body:not([data-modo='catalogo']) .mc-estanteria-fila2 {
+  min-height: 46px;
+}
+
+@media (pointer: coarse) {
+  .mc-ver-album body:not([data-modo='catalogo']) .mc-estanteria-fila2 {
+    min-height: 50px;
+  }
+}
+
+/* En /cartas, hasta 900 px el catálogo se muda junto al título (893) y la
+   fila se queda vacía; por encima, lleva sus botones. */
+@media (min-width: 901px) {
+  .mc-ver-album body[data-modo='catalogo'] .mc-estanteria-fila2 {
+    min-height: 46px;
+  }
+}

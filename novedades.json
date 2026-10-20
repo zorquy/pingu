@@ -36,6 +36,12 @@
     {
       "fecha": "2026-10-20",
       "tipo": "mejora",
+      "texto": "Mi colección ya no pega saltos al cargar: en Expansiones no aparece el esqueleto del Panel encima, y al cambiar entre Pokémon y Pokémon Japón la estantería cambia en su sitio. Y los idiomas al añadir una carta van todos con su bandera y su sigla.",
+      "enlace": "/mi-coleccion?ver=album"
+    },
+    {
+      "fecha": "2026-10-20",
+      "tipo": "mejora",
       "texto": "Al añadir una carta o apuntarla en «La quiero» solo salen los idiomas en los que salió su expansión: Plasma Blast ya no ofrece el español. Y las japonesas se pueden apuntar también en coreano y en chino cuando existen.",
       "enlace": "/cartas"
     },

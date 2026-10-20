@@ -106,6 +106,16 @@ export function banderaHtml(idioma) {
   return `<i class="pv-bandera" data-idioma="${escapeHtml(idioma)}" aria-hidden="true"></i>`
 }
 
+// La chapa de un idioma para ELEGIR (912): bandera y sigla, todas iguales
+// (PINGU: «prefiero que sean todos bandera + abreviación»), con el nombre
+// en `aria-label` y `title`. La comparten la hoja de añadir de Mi colección
+// y la de /carta, y «¿En qué idioma la quieres?». «Cualquiera» (id '') no
+// tiene bandera ni sigla: va con su palabra.
+export function chipDeIdiomaHtml(i, activo = false) {
+  const texto = i.id ? i.id.toUpperCase() : i.nombre
+  return `<button type="button" class="mc-idioma-chip${activo ? ' activo' : ''}" role="radio" aria-checked="${activo ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}" title="${escapeHtml(i.nombre)}">${i.id ? banderaHtml(i.id) : ''}<span>${escapeHtml(texto)}</span></button>`
+}
+
 // El rango entre idiomas: el más barato y el más caro, con quién es cada
 // uno. Con menos de dos idiomas no hay rango que valga.
 export function rangoDeIdiomas(precio) {

@@ -43,7 +43,7 @@ import {
   euros,
   valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
 import { idiomasDeSet } from './idiomas-de-set.js'
-import { bloqueDePrecio, banderaHtml } from './precio-vista.js'
+import { bloqueDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
@@ -538,13 +538,12 @@ function rotularGuardar() {
 }
 
 // Los idiomas, con su bandera y de un toque: un `<select>` no admite la
-// bandera dentro, y es la bandera lo que se reconoce. El elegido lleva su
-// nombre y los demás su sigla (748): así caben en UNA fila, como en la
-// maqueta, y el que importa se lee entero.
+// bandera dentro, y es la bandera lo que se reconoce. Todos con su sigla
+// (912, PINGU: «prefiero que sean todos bandera + abreviación»; desde la
+// 748 el elegido llevaba el nombre entero y la fila cambiaba de ancho al
+// tocar). El nombre va en `aria-label` y en `title`.
 function pintarIdiomasDeAnadir(idiomas, puesto) {
-  $('mcAdIdiomas').innerHTML = idiomas
-    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}">${banderaHtml(i.id)}<span>${escapeHtml(i.id === puesto ? i.nombre : i.id.toUpperCase())}</span></button>`)
-    .join('')
+  $('mcAdIdiomas').innerHTML = idiomas.map((i) => chipDeIdiomaHtml(i, i.id === puesto)).join('')
 }
 
 const idiomaDeAnadir = () => $('mcAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomaDeLaVista()
@@ -5204,6 +5203,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
     b.setAttribute('aria-selected', String(activa))
   }
   centrarPestaniaActiva()
+  esqueletoDelPanel()
   for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.
@@ -7607,7 +7607,7 @@ async function iniciar() {
   // El Panel de la última vez, ya (894), mientras llegan las líneas: es
   // tuyo, así que la clave te lleva, y solo si es lo que se abre.
   if (esMia && pestania === 'resumen' && pintarUltimaVista(claveDeVista('panel', dueno.id))) {
-    $('mcCargando').classList.add('hidden')
+    coleccionCargada()
     // La marca que el Panel (panel.js) mira para no pisar esto con el
     // estado vacío de antes de cargar.
     for (const id of ['mcResumenPanel', 'mcVistazos']) $(id).dataset.ultimaVista = '1'
@@ -7620,6 +7620,27 @@ async function iniciar() {
 // la colección ya cargada: antes, lo que hay en pantalla es «todavía no has
 // añadido ninguna carta» con la colección entera por llegar (la 377).
 let panelFiable = false
+
+// EL ESQUELETO ES DEL PANEL (912). PINGU: «cuando cargo otra página se va
+// todo a la mierda». `#mcCargando` tiene la forma del Panel —la cifra, la
+// gráfica, las fichas— y salía encima de CUALQUIER pestaña mientras
+// llegaban tus cartas: en Expansiones, la estantería (que llega antes, de la
+// CDN) se pintaba debajo, y al quitarse el esqueleto todo subía de golpe; al
+// cambiar de catálogo volvía a salir y lo empujaba todo hacia abajo. Ahora
+// solo acompaña al Panel; las demás pestañas enseñan su carga en su sitio
+// (la estantería, `esqueletoDeSets`). El HTML lo esconde ya en el primer
+// pintado si la dirección abre otra pestaña (`mc-sin-esq-panel`, en el
+// <head>) —y si es Expansiones, la enseña ya con su esqueleto
+// (`mc-ver-album`)—, y aquí se quitan las marcas para que mande lo de abajo.
+let cargandoColeccion = true
+function esqueletoDelPanel() {
+  document.documentElement.classList.remove('mc-sin-esq-panel', 'mc-ver-album')
+  $('mcCargando')?.classList.toggle('hidden', !(cargandoColeccion && pestania === 'resumen'))
+}
+function coleccionCargada() {
+  cargandoColeccion = false
+  esqueletoDelPanel()
+}
 function guardarPanel() {
   if (!panelFiable || !esMia || !dueno?.id || pestania !== 'resumen') return
   vistaAlDia()
@@ -7668,7 +7689,7 @@ async function iniciarCatalogo() {
   if (sesion) {
     await cargarColeccion(dueno.id, { primeraVez: true })
   } else {
-    $('mcCargando').classList.add('hidden')
+    coleccionCargada()
     if (pestania === 'album') await pintarEstanteria()
     if (pestania === 'album' && params.get('set')) void abrirAlbum(params.get('set'), { push: false })
   }
@@ -7731,7 +7752,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // El esqueleto se quita ANTES de esperar nada más: la estantería la pinta
   // también `cambiarPestania` por su cuenta, y si llega con el esqueleto
   // aún puesto, aparece debajo y luego salta hacia arriba (la 748 lo mide).
-  $('mcCargando').classList.add('hidden')
+  coleccionCargada()
   if (esMia) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
   panelFiable = true
   repintar()
@@ -7839,7 +7860,12 @@ async function cambiarVista(nuevo) {
   // aquí dejaría el Panel en blanco durante la recarga —y si la recarga
   // falla, para siempre— a cambio de nada. `cargarColeccion` las vuelve a
   // pedir igual, y mientras tanto lo que hay sigue siendo verdad.
-  $('mcCargando')?.classList.remove('hidden')
+  // Lo que se carga, en su sitio (912): el esqueleto del Panel solo en el
+  // Panel, y la estantería del otro catálogo deja paso a la suya sin
+  // empujar nada (antes se quedaba la vieja, rotulada con el catálogo nuevo).
+  cargandoColeccion = true
+  esqueletoDelPanel()
+  if (pestania === 'album' && !album.set && $('mcEstanteriaRejilla')) $('mcEstanteriaRejilla').innerHTML = esqueletoDeSets(6)
   await cargarColeccion(duenoActual)
 }
 
