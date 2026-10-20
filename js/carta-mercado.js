@@ -43,7 +43,8 @@ import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
 import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
-import { variantesDeCarta, versionDeVariante, TODAS } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, versionDeVariante, TODAS, seSabenVariantes } from './mi-coleccion/variantes.js'
+import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { versionesDe as versionesDeTcggo } from './carta-versiones.js'
 import { especiesPorNombres, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
@@ -65,8 +66,10 @@ const CLAVE_IDIOMA = 'mcTocarIdioma-es'
 // encima no puedes clicar en ellas porque no existen».
 // Y con las versiones de TCGGO pegadas (862): la Quick Ball es una
 // impresión más, con su precio.
-function variantesDe(v, siNoSeSabe = undefined, versiones = []) {
-  return variantesDeCarta({ variants: v, versiones }, siNoSeSabe).map((x) => ({ id: x.nuestro, nombre: x.nombre }))
+// Con la carta entera y no solo `variants`: lo que no dice se deduce de
+// su expansión y su rareza (922).
+function variantesDe(carta, v, siNoSeSabe = undefined, versiones = []) {
+  return variantesDeCarta({ ...carta, variants: v, versiones }, siNoSeSabe).map((x) => ({ id: x.nuestro, nombre: x.nombre }))
 }
 
 // Los idiomas de una carta occidental: la misma regla que la vista «es»
@@ -135,9 +138,10 @@ export async function pintarMercado(carta) {
   const guardada = guardadas.get(carta.id) || null
   // Las impresiones: lo que diga TCGdex en vivo y, si no contesta, lo que
   // guardamos de él en la carta (645); y las versiones de TCGGO (862).
-  const listaDeVariantes = variantesDe(vivo?.variants ?? carta.variants, undefined, versiones)
+  const listaDeVariantes = variantesDe(carta, vivo?.variants ?? carta.variants, undefined, versiones)
   const variantes = listaDeVariantes.map((v) => v.id)
-  const variantesParaAnadir = variantesDe(vivo?.variants ?? carta.variants, TODAS, versiones).map((v) => v.id)
+  const variantesParaAnadir = variantesDe(carta, vivo?.variants ?? carta.variants, TODAS, versiones).map((v) => v.id)
+  const seSabe = seSabenVariantes({ ...carta, variants: vivo?.variants ?? carta.variants, versiones })
   const idiomas = idiomasDeCarta()
   const estado = { idioma: idiomaRecordado(idiomas), estado: ESTADO_POR_DEFECTO, variante: variantes[0] }
   let ultimoPrecio = null
@@ -229,7 +233,7 @@ export async function pintarMercado(carta) {
 
   // ── Las acciones bajo la carta ──
   const sesion = await getSession().catch(() => null)
-  montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
+  montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, seSabe, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
 }
 
 // LAS ACCIONES, COMO EN EL POP-UP (916, la ficha de Dex de la 915): bajo la
@@ -238,7 +242,7 @@ export async function pintarMercado(carta) {
 // compartir, en redondo. Van DENTRO del `figure` para que en escritorio
 // acompañen a la carta, que es pegajosa; en el móvil son la barra de abajo.
 // «Avísame si baja» va con el precio, que es de lo que avisa.
-function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActual }) {
+function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, estado, precioActual }) {
   const figura = document.querySelector('#cartaNucleo .carta-scan')
   if (!figura || $('cartaAcciones')) return
   const volver = `/auth.html?volver=${encodeURIComponent(location.pathname)}`
@@ -372,7 +376,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
       },
     })
   }
-  const abrir = () => abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar: refrescarTengo })
+  const abrir = () => abrirAnadir(carta, sesion, { idiomas, variantes, seSabe, mias, alGuardar: refrescarTengo })
   $('cmAnadir').addEventListener('click', () => (laQueSuma() ? pasar(1) : abrir()))
   $('cmMenos').addEventListener('click', () => pasar(-1))
   $('cmAnadirOtra').addEventListener('click', abrir)
@@ -393,6 +397,8 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
 // que ya tienes lo dice la cabecera. Se monta una vez y se rellena en cada
 // apertura.
 let idiomasDeLaHoja = []
+// La lista «¿Cuál tienes?» de la hoja (922), montada con la hoja.
+let eleccionDeVersion = null
 function chipsDeAnadir(idiomas, puesto) {
   return idiomas.map((i) => chipDeIdiomaHtml(i, i.id === puesto)).join('')
 }
@@ -419,8 +425,10 @@ function dialogoDeAnadir() {
           <legend>Idioma</legend>
           <div class="mc-idioma-chips" id="cmAdIdiomas" role="radiogroup" aria-label="Idioma de la copia"></div>
         </fieldset>
+        <div class="vp-lista" id="cmAdElegir" hidden></div>
+        <div class="vp-fija" id="cmAdVersionFija" hidden></div>
         <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="cmAdEstado"></select></div>
-        <div class="mc-ad-campo" id="cmAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="cmAdVariante"></select></div>
+        <div class="mc-ad-campo hidden" id="cmAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="cmAdVariante"></select></div>
         <div class="mc-ad-fila">
           <span class="mc-contador-mando">
             <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>
@@ -441,6 +449,8 @@ function dialogoDeAnadir() {
   })
   segmentar($('cmAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value })
   segmentar($('cmAdVariante'), { etiqueta: 'Versión de la copia' })
+  // La versión se elige antes (922): la lista o la fila, encima del resto.
+  eleccionDeVersion = montarEleccion({ form: $('cmAdForm'), select: $('cmAdVariante'), lista: $('cmAdElegir'), fija: $('cmAdVersionFija') })
   // El contador: suma sobre lo escrito y no baja de una copia (396).
   for (const b of d.querySelectorAll('.mc-contador-btn')) {
     b.addEventListener('click', () => {
@@ -454,7 +464,7 @@ function dialogoDeAnadir() {
   return d
 }
 
-function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
+function abrirAnadir(carta, sesion, { idiomas, variantes, seSabe = true, mias, alGuardar }) {
   const d = dialogoDeAnadir()
   const set = carta.tcg_sets || null
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(carta, set?.tcg_online_code))
@@ -483,7 +493,8 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar }) {
   // `varianteDe` sabe también de las versiones de TCGGO (862).
   const vs = variantes.map((id) => varianteDe(id))
   $('cmAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
-  $('cmAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
+  const deEsa = (id) => mias.filter((l) => (l.variante || 'normal') === id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+  eleccionDeVersion?.abrir({ versiones: vs, seSabe, tienes: deEsa })
   $('cmAdCantidad').value = '1'
   $('cmAdCompra').value = ''
   $('cmAdGuardar').disabled = false

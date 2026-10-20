@@ -41785,6 +41785,75 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 923 — La ficha del ordenador, toda dentro y sin desplazarse
+
+PINGU, con una captura a 1.152 × 711 (pop-up de 1.024 × 663): el botón de
+añadir roto, la gráfica enorme y la columna de datos desplazándose («no
+quiero scrolls»).
+
+- **La regla**: en `@media (min-width: 761px)` la columna `.mc-ficha-datos`
+  tiene que caber en el alto del pop-up (`min(720px, 100vh − 32px)`) con lo
+  más cargado (tres versiones, álbum, dos personas, gráfica, siete
+  atributos). Lo vigila `test-tanda-923.mjs` midiendo `scrollHeight −
+  clientHeight` a tres tamaños. Si añades un bloque a la ficha, mídelo ahí.
+- **El botón de añadir sin copia**: la regla de la 921 `.mc-ficha-datos >
+  #mcEdAcciones` (`44px auto 44px`) le ganaba por orden a
+  `#mcEdAcciones.mc-sin-copias` (misma especificidad): el botón entero se
+  metía en la primera pista de 44 px. Ahora `.mc-ficha-datos >
+  #mcEdAcciones.mc-sin-copias { grid-template-columns: auto }`.
+- **La gráfica baja**: `svgDeHistorial(filas, { alto })` y
+  `montarHistorial(…, { alto })` (por defecto `ALTO`, 200). La ficha pide
+  120 cuando `fichaAncha()`. Se DIBUJA con otra proporción, no se estira:
+  el texto de los ejes no se deforma (la 653). Título, chips y rangos en
+  una fila de la rejilla de `.carta-historial`.
+- **Precios**: `.pv-tarjetas` como una fila (`grid-auto-flow: column`),
+  sin `.pv-de` ni `.pv-t-nombre`; la chapa «tu idioma/tu copia» baja a una
+  segunda línea de la cabecera.
+- **Versiones y acciones en la misma fila**: `#mcEdVersiones` y
+  `#mcEdAcciones` con `grid-row: 2` explícito; las versiones ocupan toda la
+  fila con `padding-right` para el «− Tienes N +». El chip enseña el nombre
+  y el check (`.mc-version-check.si`), sin «No la tienes».
+- **«Ficha completa»** (`#mcEdFicha`) va `position: absolute` abajo a la
+  izquierda del pop-up, sobre la columna de la carta, y el sitio en la
+  lista se va a la derecha de esa columna.
+- **Chapas sin copia**: `#mcEdChapas` se escondía solo con copia tuya; sin
+  ninguna copia (`!l.user_id`) enseñaba lo que se pondría al añadir. Ahora
+  también se esconde.
+
+## Tanda 922 — Solo las versiones que existen, y «¿Cuál tienes?» al añadir
+
+PINGU: el 30 aniversario es todo holo y se ofrecían normal y 1.ª edición;
+«separar variantes» no metía la versión exacta; y Dex pregunta la versión
+antes de añadir. «Todo lo recomendado, adelante» a la propuesta.
+
+- **Deducción** (`variantesDeducidas`, `js/mi-coleccion/variantes.js`):
+  `variantesDeCarta` usa las `variants === true` de la carta y, si no dice
+  ninguna, la deducción; si la deducción es `null`, las cuatro de siempre.
+  El orden de la regla: set todo holo (`SETS_TODO_HOLO`: 30th, 30th-c,
+  cel25, cel25c, cel25cc) → holo; rareza de `SOLO_HOLO` (nombres en
+  español, por `rarezaEs`) → holo; mercado no occidental → `null`; «Rara
+  Holo» → holo + reverse (salvo `SETS_SIN_REVERSE`) + primera (si es de
+  `SETS_PRIMERA`); Común/Infrecuente/Rara → normal + reverse (+ primera
+  igual); lo demás → `null`. `seSabenVariantes(carta)` dice si la lista
+  sale de datos o deducción (false = las cuatro «por si acaso»). Una
+  corrección de `variants` en /admin manda sobre la regla.
+- **La lista «¿Cuál tienes?»** (`js/mi-coleccion/elegir-version.js`,
+  `montarEleccion({ form, select, lista, fija })`): la usan la hoja de
+  añadir de Mi colección (`#mcAdElegir`, `#mcAdVersionFija`) y la de
+  /carta (`#cmAdElegir`, `#cmAdVersionFija`). El `<select>` de versión
+  sigue siendo quien guarda el valor (escondido); el módulo pone
+  `vp-eligiendo` en el formulario mientras se elige
+  (`css/cardmarket.css` esconde lo demás) y, al elegir, cambia el select y
+  dispara `change`. `abrir({ versiones, puesta, seSabe, tienes, precio })`
+  con `puesta` no pregunta; `actualizar(versiones)` es para las de TCGGO
+  que llegan tarde (862). El `.vp-cambiar` mide 44 px con el dedo.
+- **«Variantes» → versión exacta**: el bolsillo de una versión lleva
+  `data-variante`; `abrirCarta(id, carta, variante)` busca TU línea de esa
+  versión y, si no la tienes, abre el editor sin copia con
+  `versionPuesta`. `versionDeLaFicha` la guarda y el «+» de la ficha
+  (`mcEdMas`) la pasa a `abrirAnadir`; con varias versiones, el botón dice
+  «Añadir <versión>».
+
 ## Tanda 921 — La ficha en el ordenador, un pop-up ancho como el de Dex
 
 PINGU, con el Dex del PC delante («antes se abría en un pop-up central,

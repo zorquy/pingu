@@ -32,6 +32,7 @@
 // colección es la etiqueta en minúsculas con guiones (`quick-ball`), y la
 // que no tiene etiqueta —o dice «Reverse Holo»— ES la reverse de siempre.
 import { normalizeSearch } from '../texto.js'
+import { rarezaEs } from '../rarezas-nombres.js'
 
 // De cómo lo llama TCGdex a cómo lo llamamos nosotros
 // (`user_collection.variante`). `wPromo` se deja fuera a propósito: es
@@ -109,7 +110,9 @@ export const TODAS = EQUIVALE.slice()
 // cada pantalla diga en voz alta qué prefiere.
 export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   const v = carta?.variants
-  const base = v && typeof v === 'object' ? EQUIVALE.filter((e) => v[e.suyo] === true) : []
+  const dichas = v && typeof v === 'object' ? EQUIVALE.filter((e) => v[e.suyo] === true) : []
+  // Lo que la carta no dice se deduce de su expansión y su rareza (922).
+  const base = dichas.length ? dichas : variantesDeducidas(carta) || []
   // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir.
   const extras = []
   for (const f of carta?.versiones || []) {
@@ -122,6 +125,53 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // Solo versiones de TCGGO: la Standard (la carta misma) existe seguro.
   const sin = Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
   return [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
+}
+
+// ── LO QUE NO SE SABE, DEDUCIDO (tanda 922) ──
+//
+// PINGU, con el Exeggutor del 30 aniversario ofreciendo Normal, Reverse,
+// Holo y 1.ª edición: «todas las cartas del 30 aniversario son
+// holográficas». Las cartas que crea TCGGO (el 30, Celebrations, lo
+// japonés) y las que TCGdex no ha engordado llegan sin `variants`, y la
+// hoja de añadir ofrecía las cuatro. Pero la expansión y la rareza dicen
+// mucho, y lo que dicen es canónico: una Rara Ilustración Especial solo se
+// imprime en holo, una común de hoy en normal y reverse, y la 1.ª edición
+// solo la tuvieron las de Wizards. Lo que la regla no sabe (una promo, una
+// japonesa sin rareza conocida) sigue siendo «no se sabe»: null.
+//
+// Las expansiones donde TODO es holo, por su id nuestro (los de la 697).
+const SETS_TODO_HOLO = new Set(['30th', '30th-c', 'cel25', 'cel25c', 'cel25cc'])
+// Las de Wizards que tuvieron 1.ª edición; y las de antes de la reverse
+// (Legendary Collection, 2002, fue la primera con ella).
+const SETS_PRIMERA = new Set(['base1', 'base2', 'base3', 'base5', 'gym1', 'gym2', 'neo1', 'neo2', 'neo3', 'neo4'])
+const SETS_SIN_REVERSE = new Set([...SETS_PRIMERA, 'base4', 'basep', 'si1'])
+// Rarezas que solo se imprimen en holo, en su nombre oficial en español.
+const SOLO_HOLO = new Set(['Rara Doble', 'Rara Ultra', 'Rara Ilustración', 'Rara Ilustración Especial', 'Rara Híper', 'Rara Brillante', 'Rara Brillante Ultra', 'Rara Asombrosa', 'Rara Radiante', 'Rara ACE SPEC', 'Rara Ataque Mega', 'Rara Híper Mega', 'Rara Arcoíris', 'Rara Secreta', 'Rara Holo EX', 'Rara Holo GX', 'Rara Holo V', 'Rara Holo VMAX', 'Rara Holo VSTAR', 'Rara Holo LV.X', 'Rara BREAK', 'Rara Prime', 'Rara Prisma Estelar', 'Galería de Entrenadores'])
+const SIN_HOLO = new Set(['Común', 'Infrecuente', 'Rara'])
+const de = (...ids) => ids.map((id) => EQUIVALE.find((e) => e.nuestro === id))
+
+export function variantesDeducidas(carta) {
+  if (!carta) return null
+  const set = String(carta.set_id || '')
+  if (SETS_TODO_HOLO.has(set)) return de('holo')
+  const rareza = rarezaEs(carta.rarity_en || carta.rarity)
+  if (rareza && SOLO_HOLO.has(rareza)) return de('holo')
+  // La reverse y la 1.ª edición son cosa del catálogo occidental: en el
+  // japonés no se deduce más que lo que solo existe en holo.
+  if ((carta.market || 'WEST') !== 'WEST') return null
+  const primera = SETS_PRIMERA.has(set) ? ['primera'] : []
+  const reverse = SETS_SIN_REVERSE.has(set) ? [] : ['reverse']
+  if (rareza === 'Rara Holo') return de('holo', ...reverse, ...primera)
+  if (rareza && SIN_HOLO.has(rareza)) return de('normal', ...reverse, ...primera)
+  return null
+}
+
+// ¿Sabemos qué versiones tiene? Si no, quien la añade elige entre las
+// cuatro y se le dice (922, PINGU: «elige la tuya»).
+export function seSabenVariantes(carta) {
+  const v = carta?.variants
+  if (v && typeof v === 'object' && EQUIVALE.some((e) => v[e.suyo] === true)) return true
+  return Boolean((carta?.versiones || []).length || variantesDeducidas(carta))
 }
 
 // ¿Merece la pena enseñar el selector? Con una sola versión no: sería

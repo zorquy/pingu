@@ -64,7 +64,8 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, seSabenVariantes, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
@@ -503,9 +504,15 @@ function abrirAnadir(cardId, variante = null) {
     const puesta = $('mcAdVariante').value
     const vs = variantesParaEditar(c, puesta)
     $('mcAdVariante').innerHTML = opciones(vs, puesta)
-    $('mcAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
+    eleccionDeVersion().actualizar(vs)
   })
 }
+
+// La lista «¿Cuál tienes?» de la hoja de añadir (922), montada la primera
+// vez que se abre.
+let eleccion = null
+const eleccionDeVersion = () => (eleccion ||= montarEleccion({ form: $('mcAdForm'), select: $('mcAdVariante'), lista: $('mcAdElegir'), fija: $('mcAdVersionFija') }))
+const copiasDeVersion = (cardId, id) => misLineasDe(cardId).filter((x) => (x.variante || 'normal') === id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
 
 // El formulario: con el idioma que se recuerda para este catálogo (el del
 // álbum, tanda 461), el estado por defecto y la versión de la carta —la de
@@ -522,7 +529,9 @@ function prepararAnadir() {
   const vs = variantesParaEditar(c, anadir.variante || null)
   const puesta = anadir.variante && vs.some((v) => v.id === anadir.variante) ? anadir.variante : vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id
   $('mcAdVariante').innerHTML = opciones(vs, puesta)
-  $('mcAdVarianteLabel').classList.toggle('hidden', vs.length < 2)
+  // Y se elige ANTES (922): «¿Cuál tienes?» si hay varias y nadie ha dicho
+  // cuál; directa si solo hay una o si se viene de una versión.
+  eleccionDeVersion().abrir({ versiones: vs, puesta: anadir.variante, seSabe: seSabenVariantes(c), tienes: (id) => copiasDeVersion(c.id, id), precio: (id) => precioDeVersionEnFicha({ card_id: c.id, idioma: idiomaDeAnadir(), variante: vs[0]?.id }, id) })
   $('mcAdCantidad').value = '1'
   $('mcAdCompra').value = ''
   $('mcAdGuardar').disabled = false
@@ -2115,7 +2124,10 @@ function pintarPasosDeLaFicha() {
   $('mcEdSiguiente').disabled = vecindario.i >= vecindario.ids.length - 1
 }
 
-function abrirCarta(cardId, carta = null) {
+// `variante`: la de la casilla que se ha tocado en «Variantes» (922). Abre
+// TU copia de esa versión o, si no la tienes, la ficha EN esa versión —con
+// «Añadir» de esa—; antes abría la que tuvieras y el «+» sumaba otra de esa.
+function abrirCarta(cardId, carta = null, variante = null) {
   // La carta puede no estar en `cartas`: ese mapa es el de TU colección,
   // y aquí se abre cualquiera. Se busca donde esté a la vista —la
   // colección abierta o la especie abierta— y se guarda, que es lo que
@@ -2133,7 +2145,9 @@ function abrirCarta(cardId, carta = null) {
   // Al mapa del catálogo solo entra lo que es de ese catálogo: una
   // española metida en el mapa japonés se pintaría como japonesa.
   if (encontrada && !cartas.has(cardId) && (!encontrada.market || encontrada.market === mercado)) cartas.set(cardId, encontrada)
-  const mia = lineas.find((x) => x.card_id === cardId) || miaDeTodo
+  const mia = variante
+    ? lineas.find((x) => x.card_id === cardId && (x.variante || 'normal') === variante)
+    : lineas.find((x) => x.card_id === cardId) || miaDeTodo
   if (mia) return abrirEditor(mia)
   // El idioma de una carta NUEVA sale del catálogo que miras, no de la
   // primera opción de la lista (tanda 472): en el catálogo japonés
@@ -2142,8 +2156,10 @@ function abrirCarta(cardId, carta = null) {
   // Mint, no Near Mint, así que la ficha de una carta que no tienes
   // enseñaba un estado que no es con el que se iba a añadir; y la versión
   // era «normal» aunque la carta solo exista en holo.
-  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: idiomaDeLaVista(), estado: ESTADO_POR_DEFECTO, variante: varianteDeCarta(encontrada) })
+  abrirEditor({ id: null, card_id: cardId, cantidad: 0, idioma: idiomaDeLaVista(), estado: ESTADO_POR_DEFECTO, variante: variante || varianteDeCarta(encontrada), versionPuesta: variante })
 }
+
+let versionDeLaFicha = null
 
 function abrirEditor(l) {
   // La carta del catálogo que se mira, o la de la colección ENTERA (648):
@@ -2231,7 +2247,9 @@ function abrirEditor(l) {
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
   $('mcEdChapas').innerHTML = chipsDe(l)
-  $('mcEdChapas').classList.toggle('hidden', tuya)
+  // Sin copia de nadie (una carta del catálogo) serían lo que se pondría al
+  // añadir —«ES · NM · Holo»— dicho como si fuera de una copia (923).
+  $('mcEdChapas').classList.toggle('hidden', tuya || !l.user_id)
   // Y la tabla de datos. No es adorno: la rareza, el tipo de energía y el
   // ilustrador son justo por lo que se filtra, así que verlos aquí es lo
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
@@ -2293,7 +2311,7 @@ function abrirEditor(l) {
     historial.innerHTML = ''
     const esta = l.card_id
     import('./carta-historial.js')
-      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma, { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST') }) : null))
+      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma, { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST'), ...(fichaAncha() ? { alto: 120 } : {}) }) : null))
       .catch(() => {})
     cartaAbierta = esta
   }
@@ -2308,6 +2326,11 @@ function abrirEditor(l) {
     ficha.hidden = true
   }
   d.dataset.linea = l.id
+  // La versión de una ficha SIN copia (922): la de la casilla que se tocó
+  // en «Variantes»; «Añadir» añade esa y lo dice.
+  versionDeLaFicha = l.id ? null : l.versionPuesta || null
+  const masTexto = $('mcEdMas')?.querySelector('.mc-mas-texto')
+  if (masTexto) masTexto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : 'Añadir a mi colección'
   pintarPasosDeLaFicha()
   // `showModal()` sobre un diálogo YA abierto revienta (InvalidStateError):
   // con las flechas de la 422 se repinta la misma ficha una y otra vez sin
@@ -3456,7 +3479,7 @@ function bolsilloDeVariante(c, v) {
     ${quieroHtml(c.id, n)}
     ${chapaDeVarianteHtml(v.nuestro)}
     ${masHtml(c, nombre, v.nuestro)}`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" data-variante="${escapeHtml(v.nuestro)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   // SIN MANDO (tanda 565). PINGU, con Dex delante: «Dex no tiene botón de
   // agregar desde ahí: le das a una, te sale la ficha, y ahí eliges la
   // versión y sumas». La casilla era más botones que carta —dos filas de
@@ -6140,7 +6163,7 @@ function enganchar() {
     if (!cartaAbierta) return
     const l = lineaDeLaFicha()
     if (l && l.card_id === cartaAbierta) void sumarCopia(l, 1)
-    else abrirAnadir(cartaAbierta)
+    else abrirAnadir(cartaAbierta, versionDeLaFicha)
   })
   $('mcEdMenos')?.addEventListener('click', () => {
     const l = lineaDeLaFicha()
@@ -7143,8 +7166,9 @@ function enganchar() {
       fijarVecindario(zona, selector, 'carta', enlace.dataset.carta)
       // La carta crece desde su hueco (720, N6) si la ficha no está ya
       // abierta: con ella abierta no hay hueco del que salir.
-      if ($('mcEditor').open) abrirCarta(enlace.dataset.carta)
-      else crecerDesde(enlace.querySelector('img'), () => abrirCarta(enlace.dataset.carta))
+      const variante = enlace.dataset.variante || null
+      if ($('mcEditor').open) abrirCarta(enlace.dataset.carta, null, variante)
+      else crecerDesde(enlace.querySelector('img'), () => abrirCarta(enlace.dataset.carta, null, variante))
     })
   }
   // LAS TRES VISTAS (651). PINGU: «en el móvil, si voy a una expansión y

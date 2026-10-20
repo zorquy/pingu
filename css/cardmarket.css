@@ -1599,6 +1599,143 @@ a.pv-tarjeta-tuya:hover {
   margin-top: var(--e-sm);
 }
 
+/* ── 922: «¿Cuál tienes?» antes de añadir (SCHEMA 922) ──
+   Mientras se elige, la hoja solo enseña la carta y la lista. */
+.vp-eligiendo > :not(.mc-ad-tirador, .mc-ad-cabeza, .vp-lista) {
+  display: none;
+}
+
+.vp-lista {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.vp-lista[hidden],
+.vp-fija[hidden] {
+  display: none;
+}
+
+.vp-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+}
+
+.vp-aviso {
+  margin: 0;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.vp-opciones {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.vp-opcion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vp-opcion:hover {
+  background: var(--ice);
+}
+
+.vp-opcion-texto {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.vp-opcion-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.vp-opcion-precio {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.vp-check {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+
+.vp-check.si {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+/* La elegida, en una fila encima del resto. */
+.vp-fija {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 48px;
+  padding: var(--e-xs) var(--e-xs) var(--e-xs) var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.vp-fija-texto {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.vp-fija-texto small,
+.vp-fija-nota {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.vp-fija-nota {
+  padding-right: var(--e-md);
+}
+
+.vp-cambiar {
+  min-height: 40px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .vp-cambiar {
+    min-height: 44px;
+  }
+}
+
 /* ── 712: «añadida», con Deshacer ── (js/mi-coleccion/deshacer.js; aquí desde la 916, que lo saca también /carta) */
 .mc-deshacer {
   position: fixed;

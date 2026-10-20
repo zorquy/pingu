@@ -11636,6 +11636,304 @@ button.mc-fila:hover {
   }
 }
 
+/* ── 923: en el ordenador, todo dentro y sin desplazarse (SCHEMA 923) ──
+   PINGU: «que entre en un pop-up toda la información… no quiero scrolls».
+   Más pequeño todo lo que hace falta: la gráfica se dibuja más baja, los
+   precios en una fila de cifras, los atributos en tres columnas. */
+@media (min-width: 761px) {
+  .mc-editor {
+    height: min(720px, calc(100vh - 32px));
+  }
+
+  .mc-editor .mc-ficha-datos {
+    gap: var(--e-sm) var(--e-lg);
+    padding: var(--e-md) var(--e-lg) var(--e-md) var(--e-xl);
+  }
+
+  .mc-editor .mc-ficha-cabecera h2 {
+    font-size: var(--t-2xl);
+  }
+
+  .mc-editor .mc-ficha-bloque h3 {
+    margin-bottom: var(--e-xs);
+  }
+
+  /* Sin copia, «+ Añadir a mi colección» entero, no metido en 44 px. */
+  .mc-editor .mc-ficha-datos > #mcEdAcciones.mc-sin-copias {
+    grid-template-columns: auto;
+  }
+
+  .mc-editor #mcEdAcciones.mc-sin-copias .mc-ficha-mas {
+    min-height: 44px;
+    padding: 0 var(--e-lg);
+    font-size: var(--t-md);
+    white-space: nowrap;
+  }
+
+  /* El precio: el título y «Avísame si baja» en la misma fila. */
+  .mc-editor #mcEdPrecioSeccion {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--e-md);
+  }
+
+  .mc-editor #mcEdPrecioSeccion > * {
+    grid-column: 1 / -1;
+  }
+
+  .mc-editor #mcEdPrecioSeccion > h3 {
+    grid-row: 1;
+    grid-column: 1;
+    margin: 0;
+  }
+
+  .mc-editor #mcEdPrecioSeccion > .mc-ficha-mini {
+    grid-row: 1;
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .mc-editor .pv-tarjetas {
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--e-xs);
+    margin-top: var(--e-xs);
+  }
+
+  .mc-editor .pv-tarjeta {
+    min-width: 0;
+    max-width: none;
+    padding: var(--e-sm);
+    gap: 0;
+  }
+
+  .mc-editor .pv-tarjeta .pv-de,
+  .mc-editor .pv-tarjeta .pv-t-nombre {
+    display: none;
+  }
+
+  .mc-editor .pv-tarjeta .pv-t-cab {
+    flex-wrap: wrap;
+    gap: 2px var(--e-xs);
+  }
+
+  .mc-editor .pv-chapa-tuya {
+    margin-left: 0;
+  }
+
+  .mc-editor .pv-t-cifra,
+  .mc-editor .pv-tarjeta-tuya .pv-cifra {
+    overflow: hidden;
+    font-size: var(--t-lg);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mc-editor .pv-tarjeta-sin .pv-t-cifra,
+  .mc-editor .pv-tarjeta-tuya .pv-cifra.pv-sin {
+    font-size: var(--t-sm);
+  }
+
+  /* La gráfica: título, cambios y rangos en una fila; el dibujo, más bajo
+     (se le pide a `montarHistorial` con `alto`). */
+  .mc-editor .carta-historial {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--e-sm);
+    margin-top: var(--e-sm);
+    padding: var(--e-sm) var(--e-md);
+  }
+
+  .mc-editor .carta-historial.hidden {
+    display: none;
+  }
+
+  .mc-editor .carta-historial > * {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  .mc-editor .carta-historial svg {
+    max-width: none;
+  }
+
+  .mc-editor .carta-historial-titulo {
+    grid-row: 1;
+    grid-column: 1;
+    margin: 0;
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .carta-historial-chips {
+    grid-row: 1;
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .mc-editor .carta-historial-rangos {
+    grid-row: 1;
+    grid-column: 3;
+    gap: 2px;
+    margin: 0;
+  }
+
+  .mc-editor .carta-historial-rango {
+    flex: none;
+    min-height: 28px;
+    padding: 0 var(--e-sm);
+  }
+
+  .mc-editor .carta-historial-leyenda {
+    margin-top: 2px;
+    font-size: var(--t-2xs);
+  }
+
+  /* Los atributos en tres columnas, el nombre encima del dato. */
+  .mc-editor .mc-atributos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mc-editor .mc-atrib {
+    min-height: 0;
+    border-bottom: 0;
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto {
+    display: grid;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto small {
+    font-size: var(--t-2xs);
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto b {
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* «Ficha completa», abajo en la columna de la carta, y el sitio en la
+     lista a su derecha: en la de los datos no queda sitio. */
+  .mc-editor .mc-ficha-datos > #mcEdFicha {
+    position: absolute;
+    bottom: var(--e-md);
+    left: var(--e-lg);
+    z-index: 2;
+    min-height: 32px;
+    margin: 0;
+    padding: 0 var(--e-sm) 0 var(--e-md);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--blanco-fijo);
+    gap: var(--e-xs);
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdFicha:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdFicha {
+    width: auto;
+  }
+
+  .mc-editor #mcEdFicha .mc-fila-ico,
+  .mc-editor #mcEdFicha .mc-fila-texto small,
+  .mc-editor .mc-atrib .mc-fila-flecha {
+    display: none;
+  }
+
+  .mc-editor #mcEdCarpetasBloque .mc-ficha-caja {
+    padding: var(--e-sm);
+  }
+
+  .mc-editor #mcEdCarpetas .mc-chip-filtro,
+  .mc-editor #mcEdCarpetas a,
+  .mc-editor #mcEdCarpetas button {
+    min-height: 32px;
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .mc-quien-nombre {
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor #mcEdFicha .mc-fila-texto b {
+    color: inherit;
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor #mcEdFicha .mc-fila-flecha {
+    color: inherit;
+  }
+
+  .mc-editor .mc-ficha-sitio {
+    left: calc(var(--ficha-izq) - var(--e-lg));
+    transform: translateX(-100%);
+  }
+
+  /* Las versiones en una fila con «− Tienes N +» a la derecha: el chip
+     dice el nombre y lleva el check si la tienes. */
+  .mc-editor .mc-ficha-datos > #mcEdVersiones {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    padding-right: 208px;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdAcciones {
+    grid-row: 2;
+  }
+
+  .mc-editor .mc-versiones .mc-version {
+    min-height: 32px;
+    padding: 0 var(--e-sm);
+  }
+
+  .mc-editor .mc-version-texto small {
+    display: none;
+  }
+
+  .mc-editor .mc-version-check.si {
+    display: inline;
+  }
+
+  /* El álbum ya sale en «En tus álbumes». */
+  .mc-editor .mc-ficha-datos:has(> #mcEdCarpetasBloque:not(.hidden)) > #mcEdCopiaAlbum {
+    display: none;
+  }
+
+  /* Quién la tiene: una fila por persona. */
+  .mc-editor .mc-quien {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--e-xs);
+  }
+
+  .mc-editor .mc-quien-persona {
+    display: flex;
+    align-items: center;
+    gap: var(--e-xs);
+    padding: var(--e-xs) var(--e-sm);
+  }
+
+  .mc-editor .mc-quien-arriba {
+    flex: 1;
+  }
+
+  .mc-editor .mc-quien-cuantas {
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .mc-quien-da,
+  .mc-editor .mc-quien-sigues {
+    display: none;
+  }
+}
+
 @media (min-width: 761px) and (pointer: coarse) {
   .mc-editor .mc-versiones .mc-version {
     min-height: 44px;

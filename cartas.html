@@ -1657,8 +1657,14 @@
         <!-- Estado y versión, de un toque (712): el select se queda como
              fuente del valor y los botones se pintan desde él
              (js/mi-coleccion/segmentado.js). -->
+        <!-- La versión, ANTES que lo demás (922, como Dex): «¿Cuál tienes?»
+             si hay varias, o una fila con la elegida. El desplegable de
+             debajo sigue siendo quien guarda el valor
+             (js/mi-coleccion/elegir-version.js). -->
+        <div class="vp-lista" id="mcAdElegir" hidden></div>
+        <div class="vp-fija" id="mcAdVersionFija" hidden></div>
         <div class="mc-ad-campo"><span class="mc-ad-rotulo">Estado</span> <select id="mcAdEstado"></select></div>
-        <div class="mc-ad-campo" id="mcAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="mcAdVariante"></select></div>
+        <div class="mc-ad-campo hidden" id="mcAdVarianteLabel"><span class="mc-ad-rotulo">Versión</span> <select id="mcAdVariante"></select></div>
         <div class="mc-ad-fila">
           <span class="mc-contador-mando">
             <button type="button" class="mc-contador-btn" data-paso="-1" aria-label="Una copia menos">−</button>

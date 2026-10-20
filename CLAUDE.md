@@ -107,6 +107,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la carta a la izquierda, los datos en dos columnas a la derecha. Una hoja
   que se abra DENTRO de la ficha en el móvil (versión, tus copias) lleva
   `data-sin-arrastre`, o el arrastre de hojas (804) cierra la ficha entera.
+- **Las versiones que se ofrecen son las que EXISTEN** (tanda 922): las que
+  la carta dice y, si no dice, `variantesDeducidas` (set y rareza: el 30
+  aniversario solo holo, la 1.ª edición solo en Wizards); las cuatro solo
+  cuando de verdad no se sabe (`seSabenVariantes`), y avisándolo. Un camino
+  nuevo para añadir pasa por `variantesDeCarta` y por la lista «¿Cuál
+  tienes?» (`montarEleccion`); si ya se sabe la versión (una casilla de
+  «Variantes»), se le pasa como `puesta` y no se pregunta.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

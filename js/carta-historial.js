@@ -119,8 +119,10 @@ export function chipsHtml(filas, idioma) {
 //
 // `todas`: una línea por idioma con cifra propia (el elegido, gorda).
 // `marcas`: [{ dia, codigo, nombre }] de expansiones a marcar; solo las
-// que caen dentro del tramo.
-export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [] } = {}) {
+// que caen dentro del tramo. `alto`: el dibujo más bajo para la ficha del
+// ordenador (923), que tiene que caber sin desplazarse; el texto no se
+// deforma porque el SVG no se estira, se dibuja con otra proporción.
+export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [], alto = ALTO } = {}) {
   const cm = serieDe(filas, (f) => valorDeFila(f, idioma))
   const tp = serieDe(filas, (f) => num(f?.tp_market_eur))
   const otras = todas ? idiomasConSerie(filas).filter((id) => id !== idioma).map((id) => ({ id, serie: serieDe(filas, (f) => num(f?.[`cm_low_${id}`])) })) : []
@@ -133,7 +135,7 @@ export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [
   const min = Math.min(...valores)
   const max = Math.max(...valores)
   const anchoUtil = ANCHO - MARGEN.izquierda - MARGEN.derecha
-  const altoUtil = ALTO - MARGEN.arriba - MARGEN.abajo
+  const altoUtil = alto - MARGEN.arriba - MARGEN.abajo
   const x = (dia) => (t1 === t0 ? MARGEN.izquierda + anchoUtil / 2 : MARGEN.izquierda + ((ms(dia) - t0) / (t1 - t0)) * anchoUtil)
   const y = (v) => (max === min ? MARGEN.arriba + altoUtil / 2 : MARGEN.arriba + (1 - (v - min) / (max - min)) * altoUtil)
   const linea = (serie, clase, extra = '') => (serie.length < 2 ? '' : `<polyline class="${clase}"${extra} points="${serie.map((p) => `${x(p.dia).toFixed(1)},${y(p.valor).toFixed(1)}`).join(' ')}"/>`)
@@ -154,15 +156,15 @@ export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [
   }).join('')
   // Los puntos de lectura del idioma elegido (o de TCGplayer si no hay
   // Cardmarket): [dia, valor, x %, y %], para `engancharLectura`.
-  const lectura = (cm.length >= 2 ? cm : tp).map((p) => [p.dia, Number(p.valor.toFixed(2)), Number(((x(p.dia) / ANCHO) * 100).toFixed(2)), Number(((y(p.valor) / ALTO) * 100).toFixed(2))])
+  const lectura = (cm.length >= 2 ? cm : tp).map((p) => [p.dia, Number(p.valor.toFixed(2)), Number(((x(p.dia) / ANCHO) * 100).toFixed(2)), Number(((y(p.valor) / alto) * 100).toFixed(2))])
   return (
-    `<svg viewBox="0 0 ${ANCHO} ${ALTO}" role="img" data-puntos="${escapeHtml(JSON.stringify(lectura))}" aria-label="${escapeHtml(`Histórico: de ${euros(min)} a ${euros(max)} entre el ${fecha(dias[0])} y el ${fecha(dias[dias.length - 1])}`)}">` +
+    `<svg viewBox="0 0 ${ANCHO} ${alto}" role="img" data-puntos="${escapeHtml(JSON.stringify(lectura))}" aria-label="${escapeHtml(`Histórico: de ${euros(min)} a ${euros(max)} entre el ${fecha(dias[0])} y el ${fecha(dias[dias.length - 1])}`)}">` +
     rejaY.map((yy) => `<line class="carta-historial-reja" x1="${MARGEN.izquierda}" x2="${ANCHO - MARGEN.derecha}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}"/>`).join('') +
     marcasSvg +
     `<text class="carta-historial-eje" x="${MARGEN.izquierda - 6}" y="${(MARGEN.arriba + 4).toFixed(1)}" text-anchor="end">${escapeHtml(euros(max))}</text>` +
     `<text class="carta-historial-eje" x="${MARGEN.izquierda - 6}" y="${(MARGEN.arriba + altoUtil + 4).toFixed(1)}" text-anchor="end">${escapeHtml(euros(min))}</text>` +
-    `<text class="carta-historial-eje" x="${MARGEN.izquierda}" y="${ALTO - 6}">${escapeHtml(fecha(dias[0]))}</text>` +
-    `<text class="carta-historial-eje" x="${ANCHO - MARGEN.derecha}" y="${ALTO - 6}" text-anchor="end">${escapeHtml(fecha(dias[dias.length - 1]))}</text>` +
+    `<text class="carta-historial-eje" x="${MARGEN.izquierda}" y="${alto - 6}">${escapeHtml(fecha(dias[0]))}</text>` +
+    `<text class="carta-historial-eje" x="${ANCHO - MARGEN.derecha}" y="${alto - 6}" text-anchor="end">${escapeHtml(fecha(dias[dias.length - 1]))}</text>` +
     linea(tp, 'carta-historial-linea carta-historial-linea-tp') +
     otras.map((o) => linea(o.serie, 'carta-historial-linea carta-historial-linea-otra', ` data-idioma="${o.id}"`)).join('') +
     linea(cm, 'carta-historial-linea', IDIOMAS_CON_PRECIO.includes(idioma) && cm.some((p, i) => num(filas?.[i]?.[`cm_low_${idioma}`])) ? ` data-idioma="${idioma}"` : '') +
@@ -264,7 +266,7 @@ export function engancharLectura(lienzo) {
 // hasta)` trae los lanzamientos del tramo; sin ella, sin marcas.
 // `url` (769): la de un producto sellado, que tiene su propia función; la
 // gráfica es la misma.
-export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', { marcas = null, rango = RANGO_POR_DEFECTO, url = null } = {}) {
+export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', { marcas = null, rango = RANGO_POR_DEFECTO, url = null, alto = ALTO } = {}) {
   if (!caja || !cardId) return () => {}
   let filas = []
   try {
@@ -280,7 +282,7 @@ export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', {
     const idioma = idiomaActual()
     const elegido = rangoElegido(filas, rangoPuesto)
     const tramo = elegido ? elegido.filas : filas
-    const svg = svgDeHistorial(tramo, { idioma, todas: true, marcas: marcasTodas || [] })
+    const svg = svgDeHistorial(tramo, { idioma, todas: true, marcas: marcasTodas || [], alto })
     if (!svg) {
       caja.classList.add('hidden')
       caja.innerHTML = ''

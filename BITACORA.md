@@ -4,6 +4,96 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (157) — PINGU-Claude (923 — la ficha del ordenador, toda dentro y sin desplazarse)
+
+**Hecho** (PINGU, con una captura a 1.152 × 711: «botones que sobresalen,
+cosas demasiado grandes… hay un scroll y no quiero scrolls»):
+- «+ Añadir a mi colección» se metía en un hueco de 44 px y la letra salía
+  por fuera: ahora es el botón entero.
+- Los seis precios en una sola fila de cifras (bandera, idioma y precio;
+  el detalle largo va en el título de cada tarjeta).
+- «Avísame si baja» en la fila del título del precio.
+- La gráfica, más baja (se dibuja a 600 × 120 en vez de 600 × 200, sin
+  deformar el texto) y con el título, los cambios y los rangos en una fila.
+- Los atributos en tres columnas, el nombre encima del dato.
+- Las versiones en chips pequeños en una fila con «− Tienes N +».
+- Quién la tiene, una fila por persona.
+- «Ficha completa» baja a la columna de la carta, al lado de «2 de 12».
+- Sin copia, ya no salen las chapas «ES · NM · Holo» de una copia que no
+  existe (en el móvil tampoco).
+
+**Ficheros**: `css/mi-coleccion.css` (bloque 923), `js/carta-historial.js`
+(`alto` en `svgDeHistorial` y `montarHistorial`), `js/mi-coleccion.js`
+(la ficha pide `alto: 120` en el ordenador; chapas sin copia fuera),
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-923.mjs` (1.152 × 711, 1.366 × 768 y
+1.920 × 1.080; sin copia, sin copia con tres versiones y la más cargada:
+la columna cabe, ningún botón se sale, seis precios en una fila, la gráfica
+a 120, «Ficha completa» en la columna de la carta). Contra la web de antes
+da 52 fallos.
+
+Tras la 923, 31 pruebas de la ficha, /carta y las hojas (imports, 299,
+305, 309, 311, 312, 313, 368, 369, 383, 392, 563, 564, 586, 589, 643, 645,
+650, 661, 662, 712, 740, 748, 915, 916, 917, 920, 921, 922, 923): verdes
+salvo 653 y «Las que más se mueven» de 748, que ya estaban. 915, 921 y 589
+puestas al día (atributos en tres columnas, chips con check, tarjetas sin
+el texto largo).
+
+**Pendiente**:
+- Nada de la tanda. Con muchas más personas que la tengan o muchos álbumes
+  se podría volver a pasar del alto: «Quién la tiene» ya enseña unos pocos y
+  «Ver N más».
+
+## 2026-10-20 (156) — PINGU-Claude (922 — solo las versiones que existen, y «¿Cuál tienes?» al añadir)
+
+**Hecho** (PINGU dijo «todo lo recomendado, adelante» a la propuesta
+https://claude.ai/artifact/NBcpp8kh5K3suxAS6Hhw93):
+- **Solo se ofrecen las versiones que existen.** Si la carta no trae sus
+  versiones, se deducen del set y de la rareza: el 30 aniversario y
+  Celebrations, solo holo; una Rara Doble, Ultra, de Ilustración, Secreta,
+  V, ex…, solo holo; una Rara Holo, holo y reverse; una común, infrecuente
+  o rara, normal y reverse. La 1.ª edición solo en los sets de Wizards que la
+  tuvieron (Base, Jungla, Fósil, Gym, Neo), y en esos tampoco hay reverse.
+  En el japonés solo se deduce lo que es holo seguro. Lo que la carta dice
+  (TCGdex, TCGGO) manda sobre la regla.
+- **«¿Cuál tienes?» al añadir**, como en Dex: si hay más de una versión, la
+  hoja de añadir abre con la lista (con cuántas tienes y el precio) y el
+  resto del formulario espera; al tocar una, queda arriba con «Cambiar».
+  Con una sola va directa y dice «la única que existe». Si de verdad no se
+  sabe (promos sin datos), salen las cuatro con el aviso «No sabemos qué
+  versiones tiene esta carta: elige la tuya». Igual en Mi colección y en
+  /carta.
+- **«Variantes» mete la versión exacta**: la casilla de una versión abre la
+  ficha EN esa versión (aunque tengas otra de la misma carta), su botón dice
+  «Añadir Reverse holo» y añade esa, sin volver a preguntar.
+- La migración 915 ya está ejecutada (PINGU): fuera de pendientes.
+
+**Ficheros**: `js/mi-coleccion/variantes.js` (`variantesDeducidas`,
+`seSabenVariantes`), `js/mi-coleccion/elegir-version.js` (nuevo, la lista
+«¿Cuál tienes?»), `js/mi-coleccion.js` (hoja de añadir, `abrirCarta` con
+versión, `versionDeLaFicha`), `js/carta-mercado.js` (la misma lista en
+/carta), `mi-coleccion.html` y `cartas.html` (generado),
+`css/cardmarket.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-922.mjs` (las reglas, el Exeggutor del 30,
+un Ivysaur, una promo, la casilla Reverse en Variantes y el Venusaur de
+/carta).
+
+Subconjunto de Mi colección y /carta con la 922 (263): 242 verdes y 21
+rojos. De la tanda eran 368, 383, 563, 564, 650, 712, 748 y 916: pruebas
+que añadían sin elegir versión (ahora la lista «¿Cuál tienes?» va antes) o
+miraban el desplegable viejo; puestas al día, y la 563 con un Snorlax sin
+rareza para el caso «no se sabe». 440 y 747 pasan solas (carga de los
+carriles). Los demás ya estaban (385, 461, 467, 475, 651, 653, 723, 748 en
+«Las que más se mueven», 780, 829, 893).
+
+**Pendiente**:
+- Nada de la tanda. Si alguna carta concreta sale con una versión que no
+  tiene (o le falta una), se arregla con una corrección en /admin, que
+  manda sobre la deducción porque lo que la carta dice gana.
+
 ## 2026-10-20 (155) — PINGU-Claude (921 — la ficha en el ordenador, un pop-up ancho como el de Dex)
 
 **Hecho** (PINGU, con el Dex del PC delante; dijo «sí a todo lo recomendado»
