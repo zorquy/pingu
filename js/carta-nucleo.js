@@ -283,6 +283,10 @@ function bloqueCombate(carta) {
         : Array.from({ length: carta.retreat }, () => puntoDeEnergia('Colorless')).join('')
     retirada = `<div><dt>Retirada</dt><dd class="carta-combate-dato">${dentro}</dd></div>`
   }
+  // Si no hay NADA que enseñar (ni debilidad ni resistencia ni retirada),
+  // el bloque no sale: dos «—» en una caja no dicen nada (926, PINGU).
+  const hay = (f) => Array.isArray(f) && f.length > 0
+  if (!hay(carta.weaknesses) && !hay(carta.resistances) && !retirada) return ''
   const dentro = `${uno('Debilidad', carta.weaknesses)}${uno('Resistencia', carta.resistances)}${retirada}`
   return dentro ? `<dl class="carta-combate">${dentro}</dl>` : ''
 }
@@ -391,7 +395,7 @@ function bloqueLegalidad(carta, legalidad) {
         ? `Esta copia ${ley.marca ? `lleva la marca ${ley.marca}` : 'no lleva marca de regulación'} y se ha quedado fuera, pero hay otra impresión de la misma carta con una marca legal (${legalidad.marcas.join(', ')}).`
         : `Esta temporada solo valen las marcas ${legalidad.marcas.join(', ')} (la letra pequeña de la esquina), y esta carta no tiene ninguna impresión que las lleve.`
   return (
-    `<p class="carta-legal carta-legal-${ley.estado}">` +
+    `<p class="carta-legal carta-legal-${ley.estado}" title="${escapeHtml(porQue)}">` +
     `<span class="carta-legal-titulo">${escapeHtml(TEXTO_LEGALIDAD[ley.estado])}</span>` +
     `<span class="carta-legal-porque">${escapeHtml(porQue)}</span>` +
     '</p>'

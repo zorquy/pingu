@@ -1502,3 +1502,283 @@
 #cmPrecios a.pv-tarjeta:not(.pv-tarjeta-tuya):hover {
   background: var(--ice);
 }
+
+/* ── 926: en el ordenador, la ficha del pop-up en grande (SCHEMA 926) ──
+   La carta a la izquierda sobre sus colores difuminados (`--arte`, que lo
+   pone js/carta.js), y a la derecha el nombre, el precio en una fila, la
+   gráfica baja, los botones en fila y los datos en tres columnas. Solo
+   desde 1.100 px, que es donde el precio ya va al lado (788). */
+@media (min-width: 1100px) {
+  .carta-articulo {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--white);
+  }
+
+  .carta-cuerpo {
+    display: contents;
+  }
+
+  .carta-cabecera {
+    grid-row: 1;
+    grid-column: 2;
+    padding: var(--e-xl) var(--e-xl) var(--e-sm);
+  }
+
+  .carta-cabecera h1 {
+    font-size: var(--t-3xl);
+  }
+
+  .carta-scan {
+    position: relative;
+    top: auto;
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    isolation: isolate;
+    overflow: hidden;
+    padding: var(--e-2xl) var(--e-xl);
+    background: var(--navy-solid-dark);
+  }
+
+  .carta-scan::before {
+    position: absolute;
+    z-index: -1;
+    inset: -48px;
+    background: var(--arte, none) center / cover no-repeat;
+    filter: blur(40px) saturate(1.3);
+    opacity: 0.75;
+    content: '';
+  }
+
+  .carta-scan::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.35));
+    content: '';
+  }
+
+  .carta-scan .carta-scan-holo,
+  .carta-scan .carta-acciones,
+  .carta-scan .carta-anadir-otra {
+    width: 100%;
+    max-width: 316px;
+  }
+
+  .carta-scan .carta-anadir-otra {
+    color: var(--blanco-fijo);
+  }
+
+  .carta-datos {
+    grid-row: 2;
+    grid-column: 2;
+    min-width: 0;
+    padding: 0 var(--e-xl) var(--e-xl);
+  }
+
+  /* El precio: el título y las impresiones arriba, las tarjetas en UNA
+     fila de cifras (923), y debajo una fila de botones suaves. */
+  .carta-mercado-al-lado .section-title {
+    font-size: var(--t-2xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+
+  .carta-mercado-al-lado .carta-mercado {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e-sm);
+  }
+
+  .carta-mercado-al-lado .carta-mercado > * {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .carta-mercado-al-lado .carta-mercado > #cmAvisoSitio,
+  .carta-mercado-al-lado .carta-mercado > #cmComparar,
+  .carta-mercado-al-lado .carta-mercado > .carta-mercado-pie {
+    flex: 0 0 auto;
+    order: 1;
+  }
+
+  .carta-mercado-al-lado .carta-mercado > #cmHistorial {
+    order: 2;
+  }
+
+  .carta-mercado-al-lado .carta-mercado > #cmCambios,
+  .carta-mercado-al-lado .carta-mercado > #cmVersiones {
+    order: 3;
+  }
+
+  .carta-mercado-al-lado .carta-mercado > .pv-select-oculto {
+    flex: 0 0 auto;
+  }
+
+  #cmPrecios .pv-tarjetas {
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--e-xs);
+  }
+
+  #cmPrecios .pv-tarjeta {
+    min-width: 0;
+    max-width: none;
+    padding: var(--e-sm) var(--e-md);
+    gap: 0;
+    background: var(--bg);
+  }
+
+  #cmPrecios .pv-tarjeta-tuya {
+    grid-column: auto;
+    background: var(--navy-solid);
+  }
+
+  .carta-mercado-al-lado #cmComparar,
+  .carta-mercado-al-lado .carta-mercado-pie .link-btn {
+    font-size: var(--t-sm);
+  }
+
+  #cmPrecios .pv-tarjeta .pv-de,
+  #cmPrecios .pv-tarjeta .pv-t-nombre {
+    display: none;
+  }
+
+  #cmPrecios .pv-t-cab {
+    flex-wrap: wrap;
+    gap: 2px var(--e-xs);
+  }
+
+  #cmPrecios .pv-chapa-tuya {
+    margin-left: 0;
+  }
+
+  #cmPrecios .pv-t-cifra,
+  #cmPrecios .pv-tarjeta-tuya .pv-cifra {
+    overflow: hidden;
+    font-size: var(--t-lg);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* La gráfica, con título, cambios y rangos en una fila (923). */
+  #cmHistorial:not(.hidden) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--e-sm);
+    padding: var(--e-sm) var(--e-md);
+  }
+
+  #cmHistorial > *,
+  #cmHistorial svg {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  #cmHistorial .carta-historial-titulo {
+    grid-row: 1;
+    grid-column: 1;
+    margin: 0;
+    font-size: var(--t-sm);
+  }
+
+  #cmHistorial .carta-historial-chips {
+    grid-row: 1;
+    grid-column: 2;
+    margin: 0;
+  }
+
+  #cmHistorial .carta-historial-rangos {
+    grid-row: 1;
+    grid-column: 3;
+    gap: 2px;
+    margin: 0;
+  }
+
+  #cmHistorial .carta-historial-rango {
+    flex: none;
+    min-height: 28px;
+    padding: 0 var(--e-sm);
+  }
+
+  #cmHistorial .carta-historial-leyenda {
+    margin-top: 2px;
+    font-size: var(--t-2xs);
+  }
+
+  /* Los datos en tres columnas, el nombre encima del dato (923). */
+  .carta-ficha {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--e-xs) var(--e-lg);
+    margin: var(--e-md) 0;
+    padding: var(--e-sm) var(--e-md);
+    border: 0;
+    background: var(--bg);
+  }
+
+  .carta-ficha > div,
+  .carta-ficha > div:first-child,
+  .carta-ficha > div:nth-child(2) {
+    display: grid;
+    align-content: center;
+    gap: 0;
+    min-height: 0;
+    padding: var(--e-xs) 0;
+    border-top: 0;
+  }
+
+  .carta-ficha dt {
+    font-size: var(--t-2xs);
+  }
+
+  .carta-ficha dd {
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* La legalidad, una chapa; el porqué va en su `title`. */
+  .carta-legal {
+    display: inline-flex;
+    width: fit-content;
+    margin: 0 var(--e-sm) var(--e-md) 0;
+    padding: 2px var(--e-md);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--success-bg);
+  }
+
+  .carta-legal-fuera,
+  .carta-legal-reimpresion {
+    background: var(--warning-bg);
+  }
+
+  .carta-legal-fuera {
+    --chapa-legal: var(--warning);
+  }
+
+  .carta-legal-porque {
+    display: none;
+  }
+
+  .carta-combate {
+    margin: 0 0 var(--e-md);
+    padding: var(--e-sm) var(--e-md);
+    border: 0;
+    background: var(--bg);
+  }
+}

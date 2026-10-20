@@ -22,6 +22,7 @@ import { logClientError } from './error-log.js'
 // El precio de Cardmarket y «Añadir a mi colección» (tanda 365).
 import { pintarMercado } from './carta-mercado.js'
 import { escapeHtml } from './app.js'
+import { urlParaCss } from './html.js'
 import { nombreDeSet, nombreDeCarta } from './catalogo-series.js'
 import {
   candidatosDeRuta,
@@ -134,7 +135,28 @@ async function cargar() {
   // `import()`: el escritorio no lo descarga.
   if (window.matchMedia?.('(max-width: 900px)').matches) {
     import('./carta-movil.js').then((m) => m.montarFichaMovil()).catch(() => {})
+  } else {
+    ponerArteDeLaCarta()
   }
+}
+
+// En el ordenador la carta va sobre sus propios colores difuminados, como
+// en el pop-up de Mi colección (926). Es la misma variable que pone el
+// móvil (`--arte`); se lee de la foto cuando llega, que puede cambiar de
+// fuente por la cadena de escaneos.
+function ponerArteDeLaCarta() {
+  const nucleo = $('cartaNucleo')
+  const img = nucleo?.querySelector('.carta-scan img')
+  if (!img) return
+  const poner = () => {
+    const src = img.currentSrc || img.src
+    if (src && nucleo.dataset.arte !== src) {
+      nucleo.dataset.arte = src
+      nucleo.style.setProperty('--arte', `url("${urlParaCss(src)}")`)
+    }
+  }
+  if (img.complete) poner()
+  img.addEventListener('load', poner)
 }
 
 // La ficha que falta, pedida a TCGdex en el momento.

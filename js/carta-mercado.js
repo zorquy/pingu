@@ -168,7 +168,7 @@ export async function pintarMercado(carta) {
       <div class="carta-cambios hidden" id="cmCambios"></div>
       <!-- Las otras versiones de TCGGO (822): js/carta-versiones.js. -->
       <div class="carta-versiones hidden" id="cmVersiones"></div>
-      <p class="carta-mercado-pie">${enlaceDeEspecie(carta)}</p>
+      <div class="carta-mercado-pie">${enlaceDeEspecie(carta)}</div>
     </div>`
   caja.classList.remove('hidden')
   colocarPrecioAlLado(caja)
@@ -210,7 +210,7 @@ export async function pintarMercado(carta) {
 
   let repintarHistorial = null
   import('./carta-historial.js')
-    .then(({ montarHistorial, cargadorDeMarcas }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma, { marcas: cargadorDeMarcas(supabase, carta.market || MERCADO) }))
+    .then(({ montarHistorial, cargadorDeMarcas }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma, { marcas: cargadorDeMarcas(supabase, carta.market || MERCADO), ...(window.matchMedia?.('(min-width: 1100px)').matches ? { alto: 120 } : {}) }))
     .then((r) => { repintarHistorial = r })
     .catch(() => {})
 

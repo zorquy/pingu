@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (160) — PINGU-Claude (926 — /carta en el ordenador, la ficha del pop-up en grande; la A)
+
+**Hecho** (PINGU: «la A me gusta, sí»):
+- Desde 1.100 px, /carta tiene la forma del pop-up de Mi colección: la
+  carta a la izquierda, arriba, sobre sus colores difuminados, con «−
+  Tienes N +» debajo; a la derecha, el nombre, el precio con las seis
+  tarjetas en una fila, «Avísame si baja», «Comparar» y «Todas las cartas
+  de…» en una fila de botones suaves, la gráfica más baja con sus rangos
+  en la fila del título, quién la da, y los datos en tres columnas.
+- La legalidad es una chapa (ámbar si no es legal, verde si lo es) con el
+  porqué al pasar el ratón, en vez de la caja roja.
+- Sin la caja de «Debilidad — / Resistencia —» cuando la carta no trae
+  ninguna de las tres cosas (en el móvil tampoco).
+- En el móvil no cambia nada más.
+
+**Lo que NO es** (dicho en la propuesta y no hecho): el pop-up y /carta
+siguen siendo dos dibujos (`mi-coleccion.js` y `carta-nucleo.js`, que
+además pinta el servidor). Ahora se PARECEN por CSS; unirlos en uno es
+otra tanda grande y no la he empezado.
+
+**Ficheros**: `css/carta.css` (bloque 926), `js/carta.js`
+(`ponerArteDeLaCarta`), `js/carta-nucleo.js` (combate vacío fuera; `title`
+en la legalidad), `js/carta-mercado.js` (pie en `div`; `alto: 120`),
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-926.mjs` (1.366, 1.920 y el móvil); al día
+334 (no se pega desde 1.100), 335 (la chapa), 737 (pasar a la columna de
+la derecha no es un salto), 916 (tres columnas) y 917 (el pie es un botón
+suave). Las de /carta (61): verdes salvo 780, 385 y 305, que ya estaban.
+
+**Pendiente**:
+- D rehecha y E: esperando a PINGU.
+- Unir el dibujo del pop-up y el de /carta (ver arriba).
+
 ## 2026-10-20 (159) — PINGU-Claude (925 — el Panel tipo cartera, la B de la propuesta)
 
 **Hecho** (propuesta https://claude.ai/artifact/GTJvBnbB2WvQW2GCU75gid; PINGU:

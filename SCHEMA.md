@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 926 — /carta en el ordenador, la ficha del pop-up en grande
+
+La A de la propuesta de la 925.
+
+- **Solo CSS para la forma** (`@media (min-width: 1100px)` en
+  `css/carta.css`, que es donde `colocarPrecioAlLado` ya mete el precio en
+  `.carta-datos`): `.carta-articulo` es una rejilla de `380px 1fr`,
+  `.carta-cuerpo` va `display: contents`, la cabecera y los datos van a la
+  columna 2 y `.carta-scan` ocupa las dos filas de la 1, con `::before`
+  difuminando `var(--arte)` (la misma variable que pone el móvil, 716) y
+  la carta arriba (`justify-content: flex-start`). Deja de ser `sticky`.
+- `--arte` en el PC lo pone `ponerArteDeLaCarta()` (js/carta.js) con
+  `urlParaCss` de la foto que de verdad cargó.
+- `.carta-mercado` era una COLUMNA flex: en el PC pasa a fila con
+  `flex-wrap`, y `#cmAvisoSitio`, `#cmComparar` y `.carta-mercado-pie` van
+  con `order: 1` en la misma fila; lo demás ocupa el 100 %.
+- `.carta-mercado-pie` es un `div` (era un `p`): un `.link-btn` dentro de
+  un párrafo es un enlace subrayado (917), y aquí es un botón suave.
+- La gráfica se pide con `alto: 120` desde 1.100 px (923).
+- `bloqueCombate` (carta-nucleo.js, lo pinta también el servidor) no sale
+  si no hay debilidad, ni resistencia, ni retirada; con alguna de ellas,
+  la que falte sigue diciendo «—», como la carta (324).
+- `.carta-legal` lleva su porqué en `title`; en el PC es una chapa (fondo
+  `--success-bg`/`--warning-bg`, el punto de color delante) y
+  `.carta-legal-porque` no se ve.
+- El pop-up y /carta siguen siendo DOS dibujos que se parecen por CSS.
+
 ## Tanda 925 — El Panel tipo cartera
 
 La B de la propuesta de la 925 (PINGU: «la normal»).
