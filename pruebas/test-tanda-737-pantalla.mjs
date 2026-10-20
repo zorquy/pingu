@@ -81,7 +81,7 @@ const medir = () => {
     e.focus({ focusVisible: true })
     deCaja = con.some((v, i) => v !== sin[i])
   }
-  return { desc, visible: r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0.05, nota: propio || deCaja, y: Math.round(r.top + scrollY), fijo }
+  return { desc, visible: r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0.05, nota: propio || deCaja, y: Math.round(r.top + scrollY), lado: e.closest('.carta-scan') ? 'carta' : e.closest('.carta-datos') ? 'datos' : '', fijo }
 }
 
 const PAGINAS = ['/index.html', '/cartas', '/mi-coleccion.html', '/foro.html', '/torneos.html', '/carta.html?id=base1-4', '/aprender.html', '/buscar.html', '/noticias', '/perfil.html', '/meta.html', '/lanzamientos.html']
@@ -102,7 +102,10 @@ for (const ruta of PAGINAS) {
     if (antes && /salta-al-contenido/.test(r.desc)) vueltas++
     // Un desplegable de cuatro entradas (Glosario, 865) vuelve arriba al
     // pasar al grupo siguiente: eso es el menú, no un salto del orden.
-    else if (antes && !antes.fijo && !r.fijo && r.y < antes.y - 200) saltos.push(`${antes.desc} → ${r.desc}`)
+    // Y pasar a la columna de la DERECHA (la ficha de /carta en el PC, 926:
+    // la carta y sus botones a la izquierda, los datos a la derecha) sube
+    // arriba porque es otra columna, no un salto del orden.
+    else if (antes && !antes.fijo && !r.fijo && r.y < antes.y - 200 && !(antes.lado === 'carta' && r.lado === 'datos')) saltos.push(`${antes.desc} → ${r.desc}`)
     antes = r
     if (vistos.has(r.desc)) continue
     vistos.add(r.desc)

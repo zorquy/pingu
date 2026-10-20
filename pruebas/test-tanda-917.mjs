@@ -85,7 +85,9 @@ console.log('── 3. En /carta: suelto suave, en una frase subrayado ──')
     }
   })
   check('«Comparar con otra carta» es un botón suave, sin subrayar y de su ancho (no a lo ancho de la columna)', r.comparar && r.comparar.fondo === ice && r.comparar.subr === 'none' && r.comparar.ancho < r.comparar.caja / 2, JSON.stringify(r))
-  check('«Todas las cartas de Drakloak», dentro de su párrafo, sigue siendo un enlace subrayado', r.pie && r.pie.subr === 'underline' && /rgba\(0, 0, 0, 0\)|transparent/.test(r.pie.fondo), JSON.stringify(r.pie))
+  // Desde la 926 (la A de la propuesta: «Todas las cartas de…», «Comparar» y
+  // «Quién la da» como botones suaves en una fila) ya no va en un párrafo.
+  check('«Todas las cartas de Drakloak» es un botón suave en la fila de Comparar (926)', r.pie && r.pie.subr === 'none' && r.pie.fondo === ice, JSON.stringify(r.pie))
   check('y debajo de las tarjetas ya no hay botón de Cardmarket (920: la tarjeta es el enlace)', r.cm === 0, String(r.cm))
   await ctx.close()
 }

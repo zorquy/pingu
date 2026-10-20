@@ -101,7 +101,9 @@ console.log('── 2. En el PC, con dos copias ──')
     const cs = getComputedStyle(document.querySelector('.carta-ficha'))
     return { n: filas.length, flex: filas.every((f) => getComputedStyle(f).display === 'flex'), mayus: getComputedStyle(dt).textTransform, columnas: cs.gridTemplateColumns.split(' ').length, dd: getComputedStyle(document.querySelector('.carta-ficha dd')).textAlign }
   })
-  check('la ficha en filas (rótulo y dato a los lados), sin mayúsculas, a dos columnas en el PC', ficha.n >= 4 && ficha.flex && ficha.mayus === 'none' && ficha.columnas === 2 && ficha.dd === 'right', JSON.stringify(ficha))
+  // Desde la 926 en el PC son tres columnas con el rótulo ENCIMA del dato,
+  // como los atributos del pop-up (923).
+  check('la ficha sin mayúsculas, a tres columnas en el PC y el rótulo encima', ficha.n >= 4 && !ficha.flex && ficha.mayus === 'none' && ficha.columnas === 3 && ficha.dd === 'left', JSON.stringify(ficha))
 
   console.log('── 3. «+», Deshacer y «−» ──')
   await page.click('#cmAnadir')

@@ -309,8 +309,9 @@ console.log('\n── 6. En la página: nombre español, datos de juego ingleses
     await chapa.evaluate((n) => n.classList.contains('carta-legal-fuera')).catch(() => false))
   // Y con estilo de verdad: si `css/carta.css` no llegara, la chapa
   // saldría como un párrafo suelto y nadie se enteraría.
+  // En el PC es una chapa desde la 926 (sin borde, con fondo y redonda).
   check('la hoja de la ficha llega',
-    (await chapa.evaluate((n) => getComputedStyle(n).borderStyle).catch(() => '')) === 'solid')
+    (await chapa.evaluate((n) => { const s = getComputedStyle(n); return s.borderStyle === 'solid' || (s.display === 'inline-flex' && parseFloat(s.borderTopLeftRadius) > 100) }).catch(() => false)) === true)
   await page.close()
 }
 
@@ -421,9 +422,10 @@ console.log('\n── 8. Y la chapa se LEE, en los dos temas ──')
     }
     // Y que el color del estado siga estando: en el borde y en el punto,
     // que es donde no tiene que pelearse con ninguna letra.
-    const borde = await page.locator('.carta-legal').evaluate((n) => getComputedStyle(n).borderTopColor)
+    // Desde la 926 en el PC no hay borde: el color va en el punto.
+    const borde = await page.locator('.carta-legal').evaluate((n) => { const s = getComputedStyle(n); return s.borderTopStyle === 'none' ? getComputedStyle(n.querySelector('.carta-legal-titulo'), '::before').backgroundColor : s.borderTopColor })
     const texto = await page.locator('.carta-legal-titulo').evaluate((n) => getComputedStyle(n).color)
-    check(`${tema}: el color del estado va al borde`, borde !== texto, `${borde} / ${texto}`)
+    check(`${tema}: el color del estado va al borde (o al punto)`, borde !== texto, `${borde} / ${texto}`)
     await page.close()
   }
 }

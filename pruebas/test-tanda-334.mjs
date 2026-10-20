@@ -153,7 +153,9 @@ console.log('\n── 5. En el móvil el escaneo NO se queda pegado ──')
   // Se comprueba el EFECTO y no el texto de la hoja: `position` calculado
   // y dónde acaba la imagen después de bajar. Una prueba que busque
   // «position: static» en el CSS pasaría aunque otra regla lo pisara.
-  for (const [nombre, ancho, esperado] of [['móvil', 390, 'static'], ['escritorio', 1280, 'sticky']]) {
+  // Desde la 926, a partir de 1.100 la carta es la columna de la izquierda de
+  // la ficha (la forma del pop-up) y no se pega: la ficha cabe a su lado.
+  for (const [nombre, ancho, esperado] of [['móvil', 390, 'static'], ['portátil', 1000, 'sticky'], ['escritorio', 1280, 'relative']]) {
     const page = await browser.newPage({ viewport: { width: ancho, height: 800 }, isMobile: ancho < 720 })
     // El escaneo, servido de mentira (tanda 370): aquí se MIDE la imagen,
     // y en este entorno la CDN de TCGdex no contesta nunca.
