@@ -51,6 +51,7 @@ import {
 } from '../../js/carta-nucleo.js'
 import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta } from '../../js/catalogo-series.js'
 import { numeroDelDia } from '../../js/reto-compartir.js'
+import { rutaDeArticulo } from '../../js/articulos.js'
 import { RETOS } from '../../js/retos-xp.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -506,11 +507,23 @@ async function contar(ruta) {
   return /^\d+$/.test(total) ? Number(total) : null
 }
 
-function urlCanonica(url) {
+// UNA dirección por página (tanda 906). Search Console tenía la guía de
+// pull rates tres veces —/guia/x, /guia/x?slug=x y /guia.html?slug=x—,
+// otra con el `fbclid` de Facebook pegado, y /sobre y /sobre.html: la
+// canónica copiaba la query entera, así que cada variante se declaraba
+// canónica de sí misma y Google repartía la fuerza entre las copias. Ahora
+// se queda solo con los parámetros que ELIGEN el contenido de la página y
+// sin el `.html`, que Netlify sirve igual.
+const PARAMETROS_CANONICOS = ['tema', 'slug', 'reto']
+export function urlCanonica(url) {
   // Se reconstruye a partir del dominio bueno: si alguien llega por el
   // subdominio de Netlify, la canónica tiene que seguir apuntando a
   // pokedoc.es.
-  return `${SITIO}${url.pathname}${url.search}`
+  const ruta = url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '')
+  const quedan = new URLSearchParams()
+  for (const k of PARAMETROS_CANONICOS) if (url.searchParams.has(k)) quedan.set(k, url.searchParams.get(k))
+  const q = quedan.toString()
+  return `${SITIO}${ruta || '/'}${q ? `?${q}` : ''}`
 }
 
 async function metaDeGuia(url, esCurso, esNoticia = false) {
@@ -545,7 +558,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   // guía, desde un enlace viejo o desde la búsqueda). La canónica es
   // SIEMPRE la limpia: si no, Google ve dos páginas con el mismo texto y
   // reparte entre las dos lo que debería ir a una.
-  const canonica = esNoticia ? `${SITIO}/noticias/${encodeURIComponent(slug)}` : urlCanonica(url)
+  const canonica = esNoticia || !esCurso ? `${SITIO}${rutaDeArticulo(esNoticia ? 'news' : 'guide', slug)}` : urlCanonica(url)
   const categoria = guia.categories
 
   const camino = [{ nombre: 'Inicio', url: `${SITIO}/` }]
@@ -640,7 +653,7 @@ async function metaDeCategoria(url) {
         },
         migas([
           { nombre: 'Inicio', url: `${SITIO}/` },
-          { nombre: 'Aprender', url: `${SITIO}/aprender.html` },
+          { nombre: 'Aprender', url: `${SITIO}/aprender` },
           { nombre: cat.name, url: canonica },
         ]),
       ],
@@ -767,7 +780,7 @@ async function metaDeTema(url) {
         },
         migas([
           { nombre: 'Inicio', url: `${SITIO}/` },
-          { nombre: 'Foro', url: `${SITIO}/foro.html` },
+          { nombre: 'Foro', url: `${SITIO}/foro` },
           { nombre: tema.title, url: canonica },
         ]),
       ],
@@ -807,7 +820,7 @@ async function metaDeForo(url) {
         },
         migas([
           { nombre: 'Inicio', url: `${SITIO}/` },
-          { nombre: 'Foro', url: `${SITIO}/foro.html` },
+          { nombre: 'Foro', url: `${SITIO}/foro` },
           { nombre: foro.name, url: canonica },
         ]),
       ],

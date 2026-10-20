@@ -41785,6 +41785,48 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 906 — Una dirección por página para Google
+
+PINGU pasó los datos de Search Console (2026-10-20, tres meses): 217 clics,
+606 impresiones, y el 88 % de los clics de búsquedas de la marca
+(«pokedoc»). Indexadas, **51**; «Descubierta: actualmente sin indexar»,
+**851**; «Rastreada sin indexar», 9; noindex, 2.
+
+### Lo que dicen
+
+- **El freno NO es el noindex de las cartas.** Google conoce 851 páginas
+  del sitemap y aún no ha entrado a verlas: es lo normal en un dominio de
+  dos meses, que va con cuentagotas. Abrir ahora las ~20.000 fichas de
+  carta (la 324 las tiene en noindex salvo las que se juegan) sería meter
+  20.000 más en la misma cola y diluir las buenas. Se decide más adelante,
+  cuando el ritmo de indexación suba.
+- **La misma página con varias direcciones.** La guía de pull rates salía
+  como /guia/x, /guia/x?slug=x y /guia.html?slug=x; otra con el `fbclid`
+  de Facebook; /sobre y /sobre.html. `urlCanonica` copiaba la query entera
+  y las páginas fijas se anunciaban con `.html`, así que cada copia se
+  declaraba canónica de sí misma.
+- Lo que asoma fuera de la marca son guías y noticias (pull rate, 30
+  aniversario, cartas chinas, mejores mazos), hacia la posición 8–10.
+
+### Qué cambia
+
+- `urlCanonica` (meta-social.js, exportada para probarla) se queda solo
+  con los parámetros que ELIGEN la página (`tema`, `slug`, `reto`), sin
+  `.html` y siempre en pokedoc.es. La de una guía es `rutaDeArticulo`
+  (/guia/<slug>, /noticias/<slug>) sin query; la de un curso, la limpia.
+- Las páginas fijas (aprender, foro, lanzamientos, privacidad, sobre,
+  terminos, usuarios y /cartas en `generar-cartas.mjs`) declaran su
+  canónica y su og:url sin `.html`; carta, coleccion y tema son plantillas
+  y las sustituye el servidor. El sitemap, igual.
+- /auth y /buscar (entrar y la búsqueda interna) van en `noindex,follow` y
+  fuera del sitemap: sacaban impresiones sin traer a nadie.
+
+### Pruebas
+
+`test-tanda-906.mjs` (la canónica con fbclid, utm, .html y dominio de
+Netlify; ninguna página fija con .html; el sitemap). 649 al día con la
+canónica nueva de /cartas.
+
 ## Tanda 905 — Una gradeada vale lo que vale su nota
 
 TCGbycharlie, en el foro («Si pongo una gradeada…?»): «cuando añado mis

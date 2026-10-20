@@ -595,6 +595,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mes, tres `destacadas` con su `dibujo` (los de `js/novedades.js`) —las
   elige quien escribe; si PINGU prefiere otras, se cambian—. La bitácora
   sigue siendo para nosotros; esto es para la gente.
+- **Una página tiene UNA dirección para Google** (tanda 906). La canónica
+  la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
+  con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de
+  un artículo es `rutaDeArticulo`. Una página fija nueva declara su
+  canónica sin `.html` (lo vigila `test-tanda-906.mjs`), y lo que no debe
+  salir en Google (entrar, buscar) va en `noindex,follow` y fuera del
+  sitemap. Y antes de abrir miles de páginas a Google, mira en Search
+  Console cuántas tiene «descubiertas sin indexar»: si la cola ya es
+  larga, abrir más la alarga.
 - **Una era con `grupo` no es una era: cuelga de «Otros sets», al fondo**
   (tanda 904). `tcg_eras.grupo` (`NULL` / `'otros'`) manda sobre el
   `orden`: la estantería la pinta detrás de TODAS las eras bajo el rótulo

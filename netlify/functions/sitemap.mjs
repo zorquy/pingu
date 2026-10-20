@@ -38,7 +38,7 @@ const ESTATICAS = [
   // La portada de noticias se actualiza a diario: es la que más interesa
   // que un buscador vuelva a mirar.
   ['/noticias', '0.9'],
-  ['/aprender.html', '0.9'],
+  ['/aprender', '0.9'],
   // Los retos diarios (tanda 569): el índice de los minijuegos, que es a
   // lo que apunta el texto que la gente comparte.
   ['/retos', '0.7'],
@@ -54,13 +54,12 @@ const ESTATICAS = [
   // El índice del catálogo: es la puerta a las colecciones y, por ellas,
   // a las fichas de carta.
   ['/cartas', '0.8'],
-  ['/buscar.html', '0.6'],
-  ['/usuarios.html', '0.6'],
+  ['/usuarios', '0.6'],
   // Quién quiere echar una mano (tanda 361). Pública y sin cuenta: el
   // formulario pide sesión, pero la página es un escaparate y quien
   // todavía no tiene cuenta es justo a quien hay que convencer.
   ['/colabora', '0.5'],
-  ['/foro.html', '0.8'],
+  ['/foro', '0.8'],
   // El constructor de mazos: pública e indexable (los mazos concretos no,
   // van por parámetro y son de cada usuario).
   ['/constructor', '0.7'],
@@ -75,9 +74,9 @@ const ESTATICAS = [
   ['/repeticiones', '0.6'],
   // La página que explica el proyecto: es a la que apuntan el vídeo y el
   // enlace de la biografía, así que conviene que Google la tenga.
-  ['/sobre.html', '0.7'],
-  ['/terminos.html', '0.3'],
-  ['/privacidad.html', '0.3'],
+  ['/sobre', '0.7'],
+  ['/terminos', '0.3'],
+  ['/privacidad', '0.3'],
 ]
 
 const escapar = (s) =>

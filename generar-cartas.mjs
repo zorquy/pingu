@@ -35,8 +35,8 @@ const CAMBIOS = [
     '  <meta name="robots" content="noindex" />\n',
     `  <meta name="description" content="${DESCRIPCION}" />
   <!-- meta-social:inicio -->
-  <link rel="canonical" href="https://pokedoc.es/cartas.html" />
-  <meta property="og:url" content="https://pokedoc.es/cartas.html" />
+  <link rel="canonical" href="https://pokedoc.es/cartas" />
+  <meta property="og:url" content="https://pokedoc.es/cartas" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />

@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (140) — PINGU-Claude (906 — una dirección por página para Google)
+
+**Hecho** (PINGU: «vamos a arreglar el tema de las visitas de Google»; con
+los datos de Search Console). 51 indexadas y 851 «descubiertas sin
+indexar»: el freno es la cola de Google, no nuestro noindex. Arreglado lo
+que sí era nuestro: la canónica copiaba la query (`?slug=`, `fbclid`) y las
+páginas fijas se anunciaban con `.html`, así que una guía salía dos o tres
+veces. Ahora una dirección por página, el sitemap sin `.html`, y /auth y
+/buscar fuera de Google.
+
+**Ficheros**: `netlify/edge-functions/meta-social.js`,
+`netlify/functions/sitemap.mjs`, `generar-cartas.mjs`, `cartas.html`,
+`aprender.html`, `auth.html`, `buscar.html`, `foro.html`,
+`lanzamientos.html`, `privacidad.html`, `sobre.html`, `terminos.html`,
+`usuarios.html`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-906.mjs` y la 649 al día.
+
+**Pendiente**: PINGU, en Search Console, pide la indexación de las
+mejores guías una a una (Inspección de URLs → Solicitar indexación) y
+vuelve a enviar el sitemap. Abrir las fichas de carta, más adelante. La
+794 («Tú» lleva al modo feria) sale roja y no es de aquí.
+
 ## 2026-10-19 (139) — PINGU-Claude (903 bis: el carrusel pide `name_en`; repaso de la 905)
 
 **Hecho**: `js/redes-carrusel.js` pedía `name_es` sin `name_en` en sus dos
