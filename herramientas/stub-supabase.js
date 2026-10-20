@@ -1544,6 +1544,13 @@ export const supabase = {
     // El tablón del torneo (878): la función de la base escribe la fila y
     // avisa a los inscritos. Aquí se hace lo mismo con las tablas del doble,
     // con la misma regla de quién puede (mando o juez aprobado).
+    // Los idiomas de un set (911): los da la prueba. Lo que la base calcula
+    // (precios + ficha de TCGdex) se prueba contra PostgreSQL de verdad.
+    if (nombre === 'idiomas_de_set') {
+      const mapa = (typeof window !== 'undefined' && window.__FAKE_IDIOMAS_SET__) || null
+      if (!mapa) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.idiomas_de_set' } }
+      return { data: mapa[args.p_set] || [], error: null }
+    }
     if (nombre === 'torneos_tablon_escribir') {
       const yo = sesion?.user?.id || null
       if (!yo) return { data: null, error: { code: '28000', message: 'Hace falta iniciar sesión.' } }
