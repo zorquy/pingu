@@ -237,7 +237,7 @@ console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
 console.log('\n── 6. Con las versiones separadas, cada casilla es la suya ──')
 {
   const { page, errores } = await abrir()
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(900)
   await porElMenu(page, '#mcMarcarAbrir')
   await page.waitForTimeout(400)

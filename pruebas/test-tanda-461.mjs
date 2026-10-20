@@ -75,7 +75,7 @@ console.log('\n── 1. La chapa de la versión SE VE, no solo existe ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   await abrirSet(page)
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(1000)
   const chapas = await page.locator('.mc-album-rejilla .mc-chapa-variante').allTextContents()
   check('cada casilla lleva su chapa', chapas.length === 24, String(chapas.length))
@@ -110,7 +110,7 @@ console.log('\n── 2. El velo del reverse, solo en las reverse ──')
 {
   const { page } = await abrir()
   await abrirSet(page)
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(1000)
   const velos = await page.locator('.mc-album-rejilla .mc-bolsillo').evaluateAll((ns) =>
     ns.slice(0, 4).map((n) => ({

@@ -78,65 +78,18 @@ for (const ancho of [414, 1280]) {
   await page.close()
 }
 
-console.log('\n── 2. La tira se desliza DE VERDAD ──')
+console.log('\n── 2. La tira se fue en la 919: arriba, una barra ──')
+// PINGU aprobó en la propuesta «PokeDoc más sencillo» cambiar el carrusel
+// de tres tarjetas (lo que esta prueba defendía desde la 467: que se
+// deslizara y que sus puntos dijeran la verdad) por una barra de progreso.
+// Lo que queda que comprobar es que el carrusel no vuelve a medias.
 {
   const { page } = await abrir(414)
-  const m = await page.evaluate(() => {
-    const t = document.querySelector('#mcAlbumProgreso .mc-diapos')
-    return {
-      desliza: t.scrollWidth > t.clientWidth + 4,
-      anchos: [...t.children].map((c) => Math.round(c.getBoundingClientRect().width)),
-      // Lo que lo hace posible, y lo que faltaba: ninguna tarjeta cede.
-      ceden: [...t.children].filter((c) => getComputedStyle(c).flexShrink !== '0').length,
-    }
-  })
-  check('se desliza', m.desliza, JSON.stringify(m))
-  check('  …sin que ninguna tarjeta ceda', m.ceden === 0, JSON.stringify(m))
-  check('  …todas del mismo ancho', new Set(m.anchos).size === 1, JSON.stringify(m.anchos))
-  // 97 px era el síntoma del fallo de la 459: si vuelve, vuelve aquí.
-  check('  …y ninguna aplastada', m.anchos.every((a) => a >= 260), JSON.stringify(m.anchos))
-  await page.close()
-}
-
-console.log('\n── 3. Los puntos dicen cuántas hay y en cuál estás ──')
-{
-  const { page } = await abrir(414)
-  const puntos = page.locator('.mc-punto')
-  check('hay un punto por tarjeta', (await puntos.count()) === 3, String(await puntos.count()))
-  const activo = () => page.evaluate(() => [...document.querySelectorAll('.mc-punto')].findIndex((x) => x.classList.contains('activo')))
-  check('  …y empieza en el primero', (await activo()) === 0, String(await activo()))
-  // Pulsar un punto LLEVA a su tarjeta: son botones, no adornos.
-  await puntos.nth(2).click()
-  await page.waitForTimeout(800)
-  check('  …pulsar el último lleva al último', (await activo()) === 2, String(await activo()))
-  // Y al deslizar con el dedo los puntos siguen a la tira, que es el otro
-  // sentido de la misma pareja: si solo funcionara al pulsar, los puntos
-  // mentirían en cuanto alguien arrastrara.
-  await page.locator('#mcAlbumProgreso .mc-diapos').evaluate((n) => n.scrollTo({ left: 0, behavior: 'instant' }))
-  await page.waitForTimeout(600)
-  check('  …y al deslizar vuelven con ella', (await activo()) === 0, String(await activo()))
-  // Lo que se pulsa, 24 px: el punto mide 6, su caja no.
-  const caja = await puntos.first().evaluate((n) => Math.round(n.getBoundingClientRect().width))
-  check('  …y se pueden pulsar', caja >= 24, `${caja}px`)
-  await page.close()
-}
-
-console.log('\n── 4. Con sitio de sobra no hay nada que deslizar ──')
-{
-  const { page } = await abrir(1280)
-  const m = await page.evaluate(() => {
-    const t = document.querySelector('#mcAlbumProgreso .mc-diapos')
-    return {
-      display: getComputedStyle(t).display,
-      desliza: t.scrollWidth > t.clientWidth + 4,
-      puntos: getComputedStyle(document.querySelector('.mc-puntos')).display,
-      anchos: [...t.children].map((c) => Math.round(c.getBoundingClientRect().width)),
-    }
-  })
-  check('las tres en fila', m.display === 'grid' && new Set(m.anchos).size === 1, JSON.stringify(m))
-  check('  …sin deslizarse', !m.desliza, JSON.stringify(m))
-  // Unos puntos que no se pueden mover no dicen nada: son tres adornos.
-  check('  …y sin puntos, que no dirían nada', m.puntos === 'none', JSON.stringify(m))
+  const m = await page.evaluate(() => ({
+    tira: document.querySelectorAll('#mcAlbumProgreso .mc-diapos, .mc-punto').length,
+    barra: Boolean(document.querySelector('#mcAlbumProgreso .mc-avance-barra')),
+  }))
+  check('sin tira ni puntos, con su barra', m.tira === 0 && m.barra, JSON.stringify(m))
   await page.close()
 }
 

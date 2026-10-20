@@ -118,8 +118,10 @@ console.log('── 4. iPhone: el botón, el gesto y la barra pegada ──')
   await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await caja(page, '#mcAlbumVolver')
-  check('«‹ Expansiones» se ve en el móvil, 44 px, encima del logo', b.visible && b.alto >= 44, JSON.stringify(b))
-  check('  …en su propia línea (ocupa el ancho de la fila)', await page.evaluate(() => { const m = document.querySelector('#mcAlbumMigas'); const l = document.querySelector('#mcAlbumLogo, .mc-album-nombre'); return m && l && Math.round(m.getBoundingClientRect().bottom) <= Math.round(l.getBoundingClientRect().top) + 1 }))
+  // Desde la 919 (propuesta «PokeDoc más sencillo»): en el móvil volver es un
+  // icono EN LA FILA del nombre, no una línea suya.
+  check('«‹ Expansiones» se ve en el móvil, 44 px', b.visible && b.alto >= 44, JSON.stringify(b))
+  check('  …en la fila del nombre, como icono (919)', await page.evaluate(() => { const m = document.querySelector('#mcAlbumVolver').getBoundingClientRect(); const t = document.querySelector('#mcAlbumTitulo').getBoundingClientRect(); return Math.abs((m.top + m.height / 2) - (t.top + t.height / 2)) < 16 && m.width <= 52 }))
   check('la barra pegada no está al principio', !(await page.locator('#mcAlbumPegada').isVisible()))
   await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }))
   await page.waitForTimeout(700)

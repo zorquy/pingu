@@ -123,7 +123,8 @@ async function abrir(opciones = {}) {
     // cuántos bolsillos llevas, que es lo que mira esto.
     // Desde la 417 el progreso vive en la tira de la colección, y la
     // primera tarjeta se llama «Conjunto completo».
-    /Conjunto completo 3 de 18/.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
+    // Desde la 919, una barra: «3 de 18 · 17 %».
+    /^3 de 18 · /.test(limpio(await page.locator('#mcAlbumProgreso').textContent())),
     limpio(await page.locator('#mcAlbumProgreso').textContent()))
 
   await page.selectOption('#mcAlbumRareza', '')

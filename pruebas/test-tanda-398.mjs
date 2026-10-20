@@ -77,10 +77,11 @@ const abrir = async () => {
 {
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const barras = (await page.locator('#mcAlbumProgreso').textContent())?.replace(/\s+/g, ' ').trim() || ''
+  // Desde la 919: la cifra grande en la barra de arriba, las tres barras dentro del «⋯».
+  const barras = `${await page.locator('#mcAlbumProgreso').textContent()} ${await page.locator('#mcAlbumCifras').textContent()}`.replace(/\s+/g, ' ').trim()
   // El set tiene 2 oficiales y 3 cartas: la tercera es secreta, y cada
   // carta tiene dos versiones.
-  check('la cifra grande cuenta TODAS las del set (669) y la barra «Set completo» deja fuera la secreta', /Conjunto completo 1 de 3/.test(barras) && /Set completo 1 de 2/.test(barras), barras)
+  check('la cifra grande cuenta TODAS las del set (669) y la barra «Set completo» deja fuera la secreta', /^1 de 3/.test(barras) && /Set completo 1 de 2/.test(barras), barras)
   check('el maestro cuenta las seis versiones', /Set maestro 1 de 6/.test(barras), barras)
   check('y la secreta tiene su barra', /Adicionales 0 de 1/.test(barras), barras)
 
@@ -97,7 +98,7 @@ const abrir = async () => {
   // se vieron**. Contar que un elemento existe no es verlo.
   const pies = () => page.locator('.mc-album-rejilla .mc-chapa-variante').count()
   check('de entrada no hay pies de versión', (await pies()) === 0)
-  await page.locator('#mcVistaVariantes').click()
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(1200)
   check('al partir, cada versión tiene su casilla', (await pies()) === 6, `${await pies()}`)
   check('  …y cada una dice cuál es',

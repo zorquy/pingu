@@ -165,7 +165,7 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   await page.waitForTimeout(600)
   await vistazo.locator('[data-set="me02"]').first().click()
   await page.waitForTimeout(1500)
-  check('una expansión del vistazo se abre aquí mismo, con tu progreso', (await page.locator('#mcPanelAlbum').isVisible()) && (await page.locator('#mcAlbum .mc-bolsillo').count()) === 2 && /1 de 2 cartas/.test(limpio(await page.locator('#mcPanelAlbum').innerText())))
+  check('una expansión del vistazo se abre aquí mismo, con tu progreso', (await page.locator('#mcPanelAlbum').isVisible()) && (await page.locator('#mcAlbum .mc-bolsillo').count()) === 2 && /1 de 2/.test(limpio(await page.locator('#mcPanelAlbum').innerText())) /* 919: «1 de 2 · 50 %» */)
   await page.close()
 }
 

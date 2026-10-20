@@ -250,7 +250,8 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
   await page.waitForTimeout(600)
   const a = await page.evaluate(() => ({
     que: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-que button')].map((b) => `${b.textContent}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`).join('|'),
-    primero: document.querySelector('#mcAlbumPanelFiltros .mc-grupo-filtro:not(.hidden) h3')?.textContent,
+    // Desde la 919 va antes «Cómo se ven» (la vista y las variantes).
+    primero: document.querySelector('#mcAlbumPanelFiltros .mc-grupo-filtro:not(.hidden):not(#mcAlbumGrupoVer) h3')?.textContent,
     energias: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-energias .mc-seg-dibujo')].map((b) => b.getAttribute('aria-label')),
     borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-cabecera'),
   }))

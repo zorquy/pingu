@@ -125,7 +125,7 @@ console.log('\n── 3. Los nombres de las dos vistas ──')
   // pulsarlo para saber qué tenías puesto.
   const rotulo = () => page.locator('#mcVistaVariantes').textContent().then((t) => t.trim())
   check('dice cómo están las variantes', (await rotulo()) === 'Variantes juntas', await rotulo())
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(700)
   check('  …y al separarlas lo dice', (await rotulo()) === 'Variantes separadas', await rotulo())
   await page.close()

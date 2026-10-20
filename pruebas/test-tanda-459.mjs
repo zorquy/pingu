@@ -118,46 +118,18 @@ console.log('\n── 2. Una caja que se desliza no encoge a sus hijos ──')
 }
 
 console.log('\n── 3. Los datos de la colección, legibles en 390 px ──')
+// Desde la 919 son una barra y una línea («N de M · P %» y lo que vale lo
+// tuyo), no tres tarjetas: lo que se sigue pidiendo es que no se recorte
+// nada y que no ocupe media pantalla.
 {
   const { page } = await abrir()
   const datos = await page.evaluate(() => {
     const caja = document.querySelector('#mcAlbumProgreso')
-    const tarjetas = [...caja.querySelectorAll('.mc-diapo')]
-    // Un rótulo recortado se lee como un fallo: `scrollWidth` mayor que el
-    // ancho visible es justo eso, un texto que no cabe en su caja.
-    const recortados = [...caja.querySelectorAll('.mc-diapo-titulo, .mc-reparto-nombre, .mc-barra-nombre')]
-      .filter((n) => n.scrollWidth > n.clientWidth + 1)
-      .map((n) => n.textContent.trim())
-    // Y el anillo no puede caer encima del título. Se mide el TEXTO con un
-    // `Range` y no la caja del `<h3>`: la caja llega hasta el borde de la
-    // tarjeta —el hueco del anillo es su `padding`— así que compararlas
-    // daría «se pisan» siempre, aunque la letra se quede a 80 px.
-    const anillo = caja.querySelector('.mc-anillo')?.getBoundingClientRect()
-    const h = caja.querySelector('.mc-diapo-titulo')
-    const r = document.createRange()
-    r.selectNodeContents(h)
-    const titulo = r.getBoundingClientRect()
-    const pisa = anillo && titulo
-      && anillo.left < titulo.right && anillo.right > titulo.left
-      && anillo.top < titulo.bottom && anillo.bottom > titulo.top
-    return {
-      cuantas: tarjetas.length,
-      anchos: tarjetas.map((t) => Math.round(t.getBoundingClientRect().width)),
-      alto: Math.round(caja.getBoundingClientRect().height),
-      recortados,
-      pisa: Boolean(pisa),
-    }
+    const linea = caja.querySelector('.mc-avance-linea')
+    return { recortada: linea ? linea.scrollWidth > linea.clientWidth + 1 : null, alto: Math.round(caja.getBoundingClientRect().height), texto: linea?.textContent.trim() }
   })
-  check('siguen siendo tres tarjetas', datos.cuantas === 3, JSON.stringify(datos.anchos))
-  // DESDE LA 467 SON UNA TIRA QUE SE DESLIZA, que es lo que PINGU pidió
-  // mirando Dex. Lo que esta tanda arregló —que no se encogieran a 97 px
-  // cada una— sigue siendo lo que se comprueba, y es justo lo que hace que
-  // la tira se deslice en vez de caber a la fuerza.
-  check('  …todas del mismo ancho', new Set(datos.anchos).size === 1, JSON.stringify(datos.anchos))
-  check('  …y ninguna aplastada', datos.anchos.every((a) => a >= 260), JSON.stringify(datos.anchos))
-  check('ningún rótulo sale recortado', datos.recortados.length === 0, datos.recortados.join(' | '))
-  check('el anillo no cae encima del título', datos.pisa === false)
-  check('y el bloque entero no pasa de 360 px de alto', datos.alto <= 360, datos.alto)
+  check('la línea de la barra no sale recortada', datos.recortada === false, JSON.stringify(datos))
+  check('y el bloque entero no pasa de 80 px de alto', datos.alto <= 80, JSON.stringify(datos))
   await page.close()
 }
 
@@ -177,7 +149,9 @@ console.log('\n── 4. Los mandos, en UNA fila que se desliza ──')
   // depende de cuántas haya, así que no es lo que hay que comprobar: lo
   // que no puede pasar nunca es que se APLASTEN para caber (la 320), y eso
   // lo miran la comprobación de arriba y la 473.
-  check('  …y puede deslizarse si no caben', fila.overflow === 'auto' || fila.overflow === 'scroll', fila.overflow)
+  // Desde la 919 la fila solo lleva «Filtros» (y el ✕), al lado del
+  // buscador: ya no hay nada que deslizar.
+  check('  …y solo con «Filtros» al lado del buscador (919)', await page.evaluate(() => [...document.querySelectorAll('#mcAlbumFiltros > :not(.hidden)')].map((e) => e.id).join() === 'mcAlbumAbrirFiltros'))
   // Lo que se midió: antes de la 459 había 920 px entre el borde de arriba
   // y la primera carta, de los cuales 264 eran cuatro filas de controles.
   const hasta = await page.evaluate(() => {
@@ -253,13 +227,12 @@ console.log('\n── 6. Nada que se despliegue vive dentro de una tira ──')
   await page.close()
 }
 
-console.log('\n── 7. Y en un escritorio, las tres en fila ──')
+console.log('\n── 7. Y en un escritorio, la línea de debajo del título ──')
 {
-  const { page } = await abrir({ ancho: 1280, alto: 1000, tactil: false })
-  const anchos = await page.locator('#mcAlbumProgreso .mc-diapo').evaluateAll((ns) =>
-    ns.map((n) => Math.round(n.getBoundingClientRect().width)))
-  check('las tres miden lo mismo', new Set(anchos).size === 1, JSON.stringify(anchos))
-  check('  …y ninguna se queda en un palmo', anchos[0] >= 240, JSON.stringify(anchos))
+  // Con la lateral (1400 y ratón), que es cuando la columna lo dice en la línea.
+  const { page } = await abrir({ ancho: 1440, alto: 1000, tactil: false })
+  const r = await page.evaluate(() => ({ linea: (document.getElementById('mcAlbumLinea')?.textContent || '').trim(), barra: getComputedStyle(document.getElementById('mcAlbumProgreso')).display }))
+  check('lo dice la línea («N de M · P %») y la barra no se repite (919)', /\d+ de \d+ · \d+ %/.test(r.linea) && r.barra === 'none', JSON.stringify(r))
   await page.close()
 }
 

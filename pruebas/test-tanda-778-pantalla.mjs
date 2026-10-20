@@ -70,7 +70,7 @@ for (const ancho of [390, 1280]) {
   await abrirSet(page)
   check('la vista es la cuadrícula', await page.isVisible('#mcAlbum .mc-album-cuadricula'))
   check('con las versiones juntas, sin chapa', (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 0)
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(1000)
   const celdas = await page.locator('#mcAlbum .mc-rejilla-celda').evaluateAll((ns) => ns.map((n) => ({
     chapa: n.querySelector('.mc-chapa-variante')?.dataset.var || null,

@@ -61,9 +61,10 @@ const enLaBarra = await page.evaluate(() =>
 // Tres desde la tanda 478, que añadió el de la VISTA (cuadrícula / lista /
 // archivador) — lo que esta prueba defiende es que no vuelvan los cinco
 // controles sueltos, no un número concreto.
-check('«Filtros», la vista y el de variantes', enLaBarra.length === 3, enLaBarra.join(','))
-check('y son esos tres',
-  enLaBarra.includes('mcAlbumAbrirFiltros') && enLaBarra.includes('mcVistaVariantes') && enLaBarra.includes('mcAlbumVista'),
+// Desde la 919 solo «Filtros»: la vista y las variantes entran en su hoja.
+check('solo «Filtros» al lado del buscador (919)', enLaBarra.length === 1 && enLaBarra[0] === 'mcAlbumAbrirFiltros', enLaBarra.join(','))
+check('y la vista y las variantes, dentro de la hoja',
+  await page.evaluate(() => ['mcVistaVariantes', 'mcAlbumVista'].every((id) => document.getElementById(id)?.closest('dialog')?.id === 'mcAlbumPanelFiltros')),
   enLaBarra.join(','))
 // Los desplegables sueltos ya no están EN LA BARRA: están dentro del panel.
 // Se mira dónde VIVEN y no si existen — existir, existen.
@@ -86,6 +87,8 @@ check('empieza en «Variantes juntas»', (await variantes.textContent()).trim() 
   await variantes.textContent())
 check('y sin pulsar', (await variantes.getAttribute('aria-pressed')) === 'false')
 const bolsillosJuntas = await page.locator('.mc-bolsillo').count()
+await page.click('#mcAlbumAbrirFiltros')
+await page.waitForTimeout(300)
 await variantes.click()
 await page.waitForTimeout(700)
 check('al pulsarlo dice «Variantes separadas»', (await variantes.textContent()).trim() === 'Variantes separadas',
@@ -102,6 +105,8 @@ check('se recuerda en el navegador', (await page.evaluate(() => localStorage.get
 await variantes.click()
 await page.waitForTimeout(700)
 check('y vuelve', (await variantes.textContent()).trim() === 'Variantes juntas')
+await page.click('#mcAlbumFiltrosCerrar') // 919: se pulsó dentro de la hoja de filtros
+await page.waitForTimeout(300)
 
 console.log('\n── 3. El panel abre y cierra por los cuatro caminos ──')
 const panel = page.locator('#mcAlbumPanelFiltros')

@@ -47,20 +47,21 @@ console.log('\n── 1. Dentro de una expansión, todas las cartas de una vez �
 }
 
 console.log('\n── 2. Los datos de la colección ──')
+// Desde la 919, una barra con «N de M · P %» en vez de tres tarjetas, y el
+// detalle (set completo, maestro…) dentro del «⋯».
 {
   const { page } = await abrir()
   await page.locator('[data-set="sv1"]').click()
   await page.waitForTimeout(900)
-  const titulos = await page.locator('#mcAlbumProgreso .mc-diapo-titulo').allTextContents()
-  check('hay tres tarjetas', titulos.length === 3, titulos.join(' | '))
-  check('  …y la primera es el conjunto', /conjunto/i.test(titulos[0] || ''), titulos[0])
-  check('  …con su anillo', (await page.locator('#mcAlbumProgreso .mc-anillo').count()) === 1)
-  // Es la misma pieza que la del panel: misma clase, misma rejilla. Las
-  // flechas se fueron en la 459 con la tira —sus tres tarjetas no se
-  // deslizaban, se encogían— y aquí se comprueba que no han vuelto.
-  check('  …en una rejilla y no en una tira', (await page.locator('#mcAlbumProgreso .mc-diapos').count()) === 1)
-  check('  …sin flechas que no llevan a ninguna parte',
-    (await page.locator('#mcAlbumProgreso .mc-tira-flecha, #mcTiraSetDer, #mcTiraSetIzq').count()) === 0)
+  const r = await page.evaluate(() => ({
+    linea: (document.querySelector('#mcAlbumProgreso .mc-avance-linea')?.textContent || '').replace(/\s+/g, ' ').trim(),
+    barra: Boolean(document.querySelector('#mcAlbumProgreso .mc-avance-barra')),
+    tarjetas: document.querySelectorAll('#mcAlbumProgreso .mc-diapo').length,
+    cifras: (document.getElementById('mcAlbumCifras')?.textContent || '').replace(/\s+/g, ' ').trim(),
+  }))
+  check('una barra con «N de M · P %»', r.barra && /^\d+ de \d+ · \d+ %/.test(r.linea), JSON.stringify(r))
+  check('  …sin las tres tarjetas', r.tarjetas === 0, String(r.tarjetas))
+  check('  …y el set completo, dentro del «⋯»', /Set completo/.test(r.cifras), r.cifras)
   await page.close()
 }
 

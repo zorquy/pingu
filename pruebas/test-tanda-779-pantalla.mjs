@@ -104,7 +104,7 @@ console.log('\n── Cambiar de catálogo no la olvida ──')
 {
   const { page, errores } = await abrir({ ruta: '/mi-coleccion.html?ver=album' })
   await abrirSet(page)
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(600)
   const vista = await page.evaluate(() => localStorage.getItem('mc-album-vista'))
   // Al japonés y de vuelta, SIN recargar: con el selector de catálogo, que

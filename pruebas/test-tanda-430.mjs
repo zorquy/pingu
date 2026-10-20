@@ -156,7 +156,7 @@ const dice = async (boton) => (await boton.getAttribute('aria-label') || '').tri
   await page.waitForTimeout(2600)
   await page.locator('.mc-set-tarjeta').first().click()
   await page.waitForTimeout(1500)
-  await page.click('#mcVistaVariantes')
+  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
   await page.waitForTimeout(900)
   const boton = page.locator('#mcFaltanCopiar')
   check('con las versiones separadas cuenta huecos, no cartas',

@@ -59,6 +59,9 @@ const abierta = (page) => page.locator('#mcAlbumVistaHoja').evaluate((n) => n.op
 // de dentro, con un error que parece de la opción y es de la apertura.
 const elegir = async (page, vista) => {
   if (!(await abierta(page))) {
+    // Desde la 919 el botón vive dentro de la hoja de filtros.
+    await page.click('#mcAlbumAbrirFiltros')
+    await page.waitForTimeout(300)
     await page.click('#mcAlbumVista')
     await page.waitForTimeout(300)
   }
@@ -76,6 +79,8 @@ check('empieza en «Archivador»', (await page.locator('#mcAlbumVistaRotulo').te
 check('y lo dice también para quien no lo ve',
   /Archivador/.test(await page.locator('#mcAlbumVista').getAttribute('aria-label')),
   await page.locator('#mcAlbumVista').getAttribute('aria-label'))
+await page.click('#mcAlbumAbrirFiltros')
+await page.waitForTimeout(300)
 await page.click('#mcAlbumVista')
 await page.waitForTimeout(400)
 const opciones = await page.locator('#mcAlbumVistaMenu [data-vista]').evaluateAll((ns) =>
