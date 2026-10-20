@@ -232,8 +232,9 @@ async function guardar() {
   pintarPremios()
 }
 
-// La imagen del resultado (tanda 583): la carta ya resuelta, las filas
-// de casillas y la racha. Se dibuja cuando la hoja la pide (871), en el
+// La imagen del resultado (tanda 583): la carta del día TAPADA (924: la
+// imagen se comparte y la carta es la respuesta), las filas de casillas
+// y la racha; sin su nombre, por lo mismo. Se dibuja cuando la hoja la pide (871), en el
 // formato que se elija.
 async function imagenDelResultado(formato) {
   const [{ pintarResultadoReto }, { fotoParaElLienzo }] = await Promise.all([import('./reto-imagen.js'), import('./imagen-compartir.js')])
@@ -241,7 +242,6 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Qué carta es?',
     cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
-    detalle: nombreDeCarta(respuesta),
     numero: numeroDelDia(dia),
     lema: 'Adivina la carta del día, cada día',
     filas: estado.intentos.map((it) => (esAcierto(it) ? [true, true, true, true] : ORDEN_CASILLAS.map((k) => estadoDe(it, k) === 'si'))),

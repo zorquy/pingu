@@ -159,8 +159,10 @@ function invitacionAbajo(ctx, { cx, y, ancho, alto, texto, enlace, cuerpo }) {
 }
 
 // La foto, girada unos grados, con sombra y, si hay, una chapa blanca que
-// la pisa por abajo diciendo qué es («Pregunta 3 · Precios»).
-function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '', cuerpoChip = 30 }) {
+// la pisa por abajo diciendo qué es («Pregunta 3 · Precios»). `tapada`
+// (924): desenfocada y con un «?» encima, que la imagen se comparte y la
+// carta del día es la respuesta — PINGU: «pueden ser spoiler».
+function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '', cuerpoChip = 30, tapada = false }) {
   ctx.save()
   ctx.translate(cx, y + h / 2)
   ctx.rotate((giro * Math.PI) / 180)
@@ -171,7 +173,21 @@ function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '',
   redondeado(ctx, -w / 2, -h / 2, w, h, 20)
   ctx.fill()
   ctx.shadowColor = 'transparent'
-  dibujarCarta(ctx, foto, { x: -w / 2, y: -h / 2, w, h, r: 20, nombre })
+  dibujarCarta(ctx, tapada && foto ? borrosa(foto, w, h, 24) : foto, { x: -w / 2, y: -h / 2, w, h, r: 20, nombre })
+  if (tapada) {
+    ctx.fillStyle = 'rgba(13,27,42,0.35)'
+    redondeado(ctx, -w / 2, -h / 2, w, h, 20)
+    ctx.fill()
+    const d = Math.min(w, h) * 0.42
+    ctx.fillStyle = 'rgba(255,255,255,0.92)'
+    ctx.beginPath()
+    ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#0d1b2a'
+    ctx.textAlign = 'center'
+    ctx.font = `800 ${Math.round(d * 0.62)}px ${TITULAR}`
+    ctx.fillText('?', 0, d * 0.22)
+  }
   ctx.restore()
   if (chip) {
     ctx.save()
@@ -193,7 +209,7 @@ function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '',
   }
 }
 
-export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia', numero = null, lema = '', invitacion = '¿Lo superas?', medalla = null, tono = null, chip = '' }) {
+export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia', numero = null, lema = '', invitacion = '¿Lo superas?', medalla = null, tono = null, chip = '', tapada = true }) {
   const { w: W, h: H } = medidasDe(formato)
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
@@ -212,7 +228,7 @@ export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario',
     if (foto) {
       const h = 450
       const w = Math.round(h * fotoProporcion)
-      fotoGirada(ctx, foto, { cx: 80 + w / 2, y: (H - h) / 2 - 10, w, h, chip, nombre: fotoNombre, cuerpoChip: 22 })
+      fotoGirada(ctx, foto, { cx: 80 + w / 2, y: (H - h) / 2 - 10, w, h, chip, nombre: fotoNombre, cuerpoChip: 22, tapada })
       cx = (80 + w + W) / 2 + 10
     }
     const izq = foto ? cx - (W - cx) + 40 : 70
@@ -270,7 +286,7 @@ export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario',
     const libre = (H - (lema ? 200 : 150)) - y - 60 - 160 - (detalle ? 56 : 0) - (medallaYRacha ? 60 : 0) - 44 - casillas
     const h = Math.max(260, Math.min(450, libre))
     const w = Math.round(h * fotoProporcion)
-    fotoGirada(ctx, foto, { cx: W / 2, y, w, h, chip, nombre: fotoNombre })
+    fotoGirada(ctx, foto, { cx: W / 2, y, w, h, chip, nombre: fotoNombre, tapada })
     y += h + 60
   } else {
     y += 90

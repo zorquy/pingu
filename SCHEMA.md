@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 924 — La imagen de un reto no destripa la respuesta
+
+PINGU: la imagen de «¿Qué carta es?» enseñaba la carta del día y su nombre,
+y quien la ve en una historia todavía no ha jugado.
+
+- `pintarResultadoReto(…, { tapada = true })` pasa `tapada` a `fotoGirada`,
+  que dibuja `borrosa(foto, w, h, 24)` (la de la imagen de la mañana, sin
+  `ctx.filter`, que Safari no tiene en un lienzo), un velo y un «?» en un
+  círculo blanco. Por defecto SÍ: la foto de un resultado es la respuesta o
+  parte de la pregunta. `tapada: false` existe para un marco que enseñe
+  algo que no es del reto; hoy no lo usa nadie.
+- `carta-del-dia-juego.js` y `quien-es-juego.js` no pasan `detalle` (era el
+  nombre de la carta y del Pokémon).
+- Un reto nuevo con foto en su imagen no tiene que hacer nada: sale tapada.
+  Si pinta el nombre de la respuesta en otro campo, eso sí destripa.
+
 ## Tanda 923 — La ficha del ordenador, toda dentro y sin desplazarse
 
 PINGU, con una captura a 1.152 × 711 (pop-up de 1.024 × 663): el botón de

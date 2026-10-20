@@ -124,9 +124,8 @@ function elegir(dex) {
   if (terminado()) guardar()
 }
 
-// La hoja de compartir (871): el texto y, desde aquí, también la imagen,
-// con el dibujo del Pokémon ya destapado (no desvela nada: se comparte al
-// acabar).
+// La hoja de compartir (871): el texto y la imagen, con el dibujo del
+// Pokémon TAPADO y sin su nombre (924): quien la ve no ha jugado todavía.
 async function compartir() {
   const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   const texto = textoParaCompartir({ dia, fallos: fallos(), acertada: estado.acertada })
@@ -140,7 +139,6 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Quién es ese Pokémon?',
     cuenta: `${estado.acertada ? n + 1 : 'X'}/${INTENTOS}`,
-    detalle: nombre(buena),
     numero: numeroDelDia(dia),
     lema: 'Adivina el Pokémon por su silueta, cada día',
     tira: [...Array.from({ length: n }, () => false), ...(estado.acertada ? [true] : [])],

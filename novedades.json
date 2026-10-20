@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-20", "tipo": "arreglo", "texto": "La imagen que compartes de un reto ya no destripa la respuesta: la carta o el Pokémon salen desenfocados y sin su nombre.", "enlace": "/retos" },
     { "fecha": "2026-10-20", "tipo": "arreglo", "texto": "En el ordenador, la ficha de una carta cabe entera sin desplazarse: el botón de añadir ya no se sale, los precios van en una fila, la gráfica es más baja y los datos en tres columnas.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "arreglo", "texto": "Al añadir una carta solo se ofrecen las versiones que existen (el 30 aniversario, solo holo; la 1.ª edición, solo donde la hubo) y, si hay varias, primero eliges cuál tienes, como en Dex. Y en Variantes, tocar una versión abre y añade esa versión exacta.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "En el ordenador, la ficha de una carta se abre en el centro y ancha, como en Dex: la carta grande a la izquierda sobre sus colores y todo lo demás a la derecha a la vista (versiones, precios, tus álbumes, quién la tiene y los datos), con flechas a los lados para pasar de carta. La expansión ya no se aparta. Y en el móvil, la versión y tus copias se abren en su propia hoja.", "enlace": "/cartas" },

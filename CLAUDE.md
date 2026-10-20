@@ -647,7 +647,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sigue siendo para nosotros; esto es para la gente.
 - **La imagen que se comparte de un reto lleva siempre el marco** (tanda
   907): la marca y el número arriba, qué es (`lema`), la invitación con
-  su enlace y la medalla y la racha (`pintarResultadoReto`). Un reto nuevo
+  su enlace y la medalla y la racha (`pintarResultadoReto`), y la foto
+  TAPADA (924: desenfocada y con «?», que es la respuesta; ni su nombre en
+  `detalle`). Un reto nuevo
   le pasa su `numero` y su `lema`, no un «Reto #N» en el detalle. Lo que
   sale de las preguntas del día (la portada, la chapa) dice el TEMA y no
   el enunciado: el reto es el mismo para todos y no se destripa. Y la

@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (158) — PINGU-Claude (924 — la imagen de un reto no destripa la respuesta)
+
+**Hecho** (PINGU: «en el de la carta de hoy sale la carta y debería salir
+blurreada… los resultados no se deberían poder compartir porque pueden ser
+spoiler»):
+- La imagen que se comparte de un reto pinta la foto DESENFOCADA y con un
+  «?» encima: la carta de «¿Qué carta es?», el Pokémon de «¿Quién es ese
+  Pokémon?» y la carta de portada del reto diario (que ya salía así en la
+  imagen de la mañana de la cuenta).
+- «¿Qué carta es?» y «¿Quién es ese Pokémon?» ya no escriben el nombre de
+  la respuesta debajo de la cuenta.
+- El texto que se comparte ya era solo de casillas: no cambia.
+
+**Ficheros**: `js/reto-imagen.js` (`tapada`, por defecto sí, en
+`pintarResultadoReto` y `fotoGirada`), `js/carta-del-dia-juego.js` y
+`js/quien-es-juego.js` (sin `detalle`), `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-924.mjs` (sin nombre en las dos imágenes;
+con una foto a cuadros, la compartida sale sin un solo salto de color en
+historia y en la de X, y con `tapada: false` se ven los cuadros). Verdes
+imports, 583, 744, 787, 871, 873, 907 y 924; 782 roja en «Mensajes
+también, en sus dos cabeceras», que no es de esta tanda (no toca nada de
+retos).
+
+**Pendiente**:
+- Mirar la 782 (cabeceras de /mensajes).
+
 ## 2026-10-20 (157) — PINGU-Claude (923 — la ficha del ordenador, toda dentro y sin desplazarse)
 
 **Hecho** (PINGU, con una captura a 1.152 × 711: «botones que sobresalen,
