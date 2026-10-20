@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 919 — La cabecera de una expansión, más sencilla
+
+Lo último de la propuesta «PokeDoc más sencillo». En `#mcArchivadorZona`
+(mi-coleccion.html, y cartas.html que sale de ella):
+
+- **Una fila en el móvil**: `.mc-album-migas` deja de ocupar su línea
+  (`flex-basis: auto`) y la miga es un icono de 44 (`font-size: 0` y la
+  flecha dibujada con bordes, que no depende de la letra): el nombre
+  accesible sigue siendo «Expansiones». En el PC la miga sigue con palabra.
+- **La barra** (`pintarTiraDeSet`): `#mcAlbumProgreso` pinta `.mc-avance`
+  — «N de M · P %» y lo que vale lo tuyo— con `.mc-avance-barra`
+  (`role="progressbar"`). Sigue escondido con la lateral (1400 px y
+  ratón), donde lo dice `#mcAlbumLinea`. El «·» va en el texto y no solo en el hueco: es lo que
+  oye un lector de pantalla.
+- **El detalle, en el «⋯»**: `#mcAlbumCifras`, arriba del menú, con las
+  barras de `barrasDeSet` (completo, maestro, adicionales) y lo que vale lo
+  tuyo. `.mc-barra-fila` dentro del menú va a dos líneas (nombre y cuenta,
+  la barra debajo).
+- **Buscador y filtros en una fila**: `.mc-album-busca` envuelve el
+  buscador y `#mcAlbumFiltros`, que ya solo lleva «Filtros» y el ✕ de
+  quitar. `#mcAlbumVista` y `#mcVistaVariantes` se MUDAN (mismos ids y
+  oyentes) a `#mcAlbumGrupoVer`, el primer grupo de `#mcAlbumPanelFiltros`.
+  `#mcAlbumVista` cierra la hoja de filtros antes de abrir
+  `#mcAlbumVistaHoja`: dos modales encima uno de otro dejaban la de debajo
+  tapando la rejilla al volver.
+- Se fue la tarjeta «Tipos de carta» y, con el carrusel, `engancharPuntos`
+  (solo servía a esta tira) y el import de `diapos.js` en mi-coleccion.js.
+  El Panel y la Pokédex siguen usando sus diapositivas.
+
+Las pruebas que pulsaban `#mcVistaVariantes` o `#mcAlbumVista` a pelo abren
+antes «Filtros»: un botón dentro de un `<dialog>` cerrado no se ve y
+Playwright espera hasta que caduca.
+
 ## Tanda 918 — La hoja «Tú», en baldosas
 
 La parte 4 de la propuesta «PokeDoc más sencillo» (aprobada). `pintarMenuTu`

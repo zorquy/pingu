@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (153) — PINGU-Claude (919 — la cabecera de una expansión, más sencilla)
+
+**Hecho** (lo último de la propuesta «PokeDoc más sencillo», aprobada). Al
+abrir una expansión en Mi colección y en Cartas:
+- En el móvil, una sola fila: volver (ahora un icono redondo), el nombre y
+  «⋯». Antes «‹ Expansiones» iba en su propia línea, encima.
+- El carrusel de tres tarjetas con sus puntos pasa a ser una barra de
+  progreso: «4 de 18 · 22 %» y, a la derecha, lo que vale lo tuyo.
+- El detalle —set completo, set maestro, adicionales y lo que vale lo tuyo
+  con la carta que más— va dentro del «⋯», arriba del todo.
+- El buscador con un solo botón de «Filtros» al lado. Archivador y
+  Variantes juntas entran en la hoja de filtros, arriba («Cómo se ven»), y
+  funcionan igual desde ahí; Archivador cierra la de filtros antes de abrir
+  la suya (una hoja a la vez).
+- En el PC con la lateral (1400 px o más) no cambia la línea de debajo del
+  título («4 de 18 · 22 % · …»); por debajo sale la barra.
+- Se va la tarjeta «Tipos de carta» del carrusel: no estaba en la propuesta
+  y no tenía sitio en la barra.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado), `js/mi-coleccion.js`
+(fuera `engancharPuntos` y el import de las diapositivas, que ya no usaba),
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-919.mjs`; al día con la cabecera nueva
+382, 383, 398, 412, 417, 418, 426, 430, 459, 461, 467, 473, 478, 649, 748,
+778, 779 y 856 (las del carrusel —417, 459, 467— pasan a comprobar la barra).
+
+Subconjunto de Mi colección más la 919 (230): 214 verdes y 14 rojos. Los
+de la tanda (417, 459, 473 y 649) ya están en verde, pasados uno a uno con
+todas las de la cabecera; los otros diez ya estaban rojos antes (385, 461,
+467, 475, 651, 653, 723, 780, 829, 893), comprobados contra una copia sin
+cambios.
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915.
+- Con esto se acaba la propuesta «PokeDoc más sencillo» (sin la barra de
+  arriba del PC, que PINGU descartó).
+
 ## 2026-10-20 (152) — PINGU-Claude (918 — la hoja «Tú» en baldosas)
 
 **Hecho** (parte 4 de la propuesta «PokeDoc más sencillo», aprobada). La

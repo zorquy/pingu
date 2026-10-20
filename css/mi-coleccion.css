@@ -11313,3 +11313,120 @@ button.mc-fila:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ── 919: la cabecera de una expansión, más sencilla (SCHEMA 919) ── */
+/* Una barra en vez del carrusel: «4 de 18 · 22 %» y lo que vale lo tuyo. */
+.mc-avance {
+  display: grid;
+  gap: var(--e-xs);
+  margin-bottom: var(--e-md);
+}
+
+.mc-avance-linea {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-avance-linea b {
+  color: var(--text);
+}
+
+.mc-avance-valor {
+  margin-left: auto;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.mc-avance-barra {
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.mc-avance-barra i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--success);
+}
+
+/* El detalle del set, dentro del «⋯». */
+.mc-menu-cifras {
+  display: grid;
+  gap: var(--e-xs);
+  min-width: 260px;
+  padding: var(--e-sm) var(--e-md) 0;
+}
+
+.mc-menu-cifras:empty {
+  display: none;
+}
+
+.mc-menu-cifras-valor {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+/* El buscador y el botón de filtros, en una fila. */
+.mc-album-busca {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-album-busca > .mc-buscador {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.mc-album-busca > .mc-album-filtros {
+  flex: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+/* La vista y las variantes, dentro de la hoja de filtros. */
+.mc-album-ver {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+/* En el móvil, volver es un icono en la fila del nombre: una fila, no dos. */
+@media (max-width: 900px) {
+  .mc-album-barra > .mc-album-migas {
+    flex-basis: auto;
+  }
+
+  .mc-album-barra .mc-miga {
+    justify-content: center;
+    min-width: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+}
+
+/* Cada barra del «⋯»: nombre y cuenta en una línea, la barra debajo. */
+.mc-menu-cifras .mc-barra-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--e-xs) var(--e-sm);
+  align-items: baseline;
+}
+
+.mc-menu-cifras .mc-barra {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  flex: none;
+}

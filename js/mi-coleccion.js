@@ -56,7 +56,6 @@ import * as laQuiero from './la-quiero.js'
 import { preguntarIdioma } from './idioma-deseo.js'
 import * as albumes from './mi-coleccion/albumes.js'
 import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
-import { diapoHtml, tiraHtml } from './mi-coleccion/diapos.js'
 import { migasHtml } from './mi-coleccion/migas.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
 import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta, pasaFiltrosCrudos } from './mi-coleccion/filtros.js'
@@ -3947,14 +3946,6 @@ function pintarTiraDeSet(elSet) {
   const mias = lineas.filter((l) => album.cartas.some((c) => c.id === l.card_id))
   const valor = mias.reduce((n, l) => n + (valorDeLinea(l, precioDe(l)) || 0), 0)
   const caras = masValiosasDe(mias, 2)
-  // De qué va la colección: cuántas de cada clase. Sale de las cartas que
-  // ya están en memoria, sin pedir nada.
-  const tipos = new Map()
-  for (const c of album.cartas) {
-    const t = categoriaEs(c.category) || 'Otras'
-    tipos.set(t, (tipos.get(t) || 0) + 1)
-  }
-  const porTipo = [...tipos.entries()].sort((a, b) => b[1] - a[1])
   // La línea de debajo del título (748, D2): en el ordenador de tres
   // columnas la tira se queda fuera y esto es lo que dice su maqueta,
   // «8 de 12 · 67 %», con lo que valen las tuyas si hay algo que decir.
@@ -3972,112 +3963,36 @@ function pintarTiraDeSet(elSet) {
     ].join(' · ')
   }
 
-  // ── UNA TIRA QUE SE DESLIZA DE VERDAD (tanda 467) ──
+  // ── UNA BARRA EN VEZ DEL CARRUSEL (919, la propuesta «PokeDoc más
+  // sencillo»; antes la tira de tres tarjetas de la 467) ──
   //
-  // PINGU, con Dex al lado: «las estadísticas, en deslizables, ¿ves que se
-  // pueden deslizar? Pues igual».
-  //
-  // La 459 las sacó de una tira y las puso en rejilla, y el motivo que
-  // escribió —«una cifra cortada por el borde se lee como un fallo»— era
-  // el de la 439… pero el síntoma que medí entonces era otro: las tres
-  // tarjetas se encogían a 97 px CADA UNA. No es que la tira estuviera
-  // mal, es que **no se deslizaba**: un hijo de flex cede antes de
-  // desbordar (la 320) y le faltaba el `flex-shrink: 0`. Con él, la tira
-  // hace lo que decía hacer: una tarjeta entera a la vista, la siguiente
-  // asomando y los puntos diciendo cuántas hay.
-  //
-  // Y una cifra ya no se corta, porque lo que asoma es la tarjeta DE AL
-  // LADO y no la mitad de la que estás leyendo. En un escritorio no hay
-  // nada que deslizar y se quedan las tres en fila.
-  caja.innerHTML = tiraHtml([
-        diapoHtml('Conjunto completo', `
-          <p class="mc-diapo-cifra">${completo ? completo.tengo : 0}</p>
-          <p class="mc-diapo-pie">de ${completo ? completo.total : 0} cartas</p>
-          <span class="mc-anillo" style="--pct:${pct}" role="img" aria-label="${pct} % del conjunto"><b>${pct} %</b></span>
-          ${barras
-            .map((b) => `<div class="mc-barra-fila">
-              <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
-              <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
-              <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
-            </div>`)
-            .join('')}`),
-        diapoHtml('Lo que tienes de aquí', `
-          <p class="mc-diapo-cifra">${escapeHtml(euros(valor))}</p>
-          <p class="mc-diapo-pie">${mias.length ? `en ${mias.length} ${mias.length === 1 ? 'carta' : 'cartas'} tuyas` : 'todavía no tienes ninguna'}</p>
-          ${caras.length
-            ? `<ul class="mc-diapo-lista">${caras
-                .map((v) => `<li><span>${escapeHtml(nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
-                .join('')}</ul>`
-            : ''}`),
-        diapoHtml('Tipos de carta', porTipo.length
-          ? `<p class="mc-diapo-cifra">${porTipo.length}</p>
-             <p class="mc-diapo-pie">${porTipo.map(([t]) => escapeHtml(t)).join(', ')}</p>
-             ${barrasHtml(porTipo)}`
-          : '<p class="subtext">El catálogo todavía no dice de qué clase es cada carta.</p>'),
-  ], { idPuntos: 'mcAlbumPuntos' })
-  engancharPuntos('mcAlbumProgreso')
+  // Arriba se queda lo que se mira siempre: cuántas tienes de cuántas, el
+  // tanto por ciento y lo que vale lo tuyo, con su barra. El detalle —set
+  // completo, maestro y adicionales— va dentro del «⋯», que es donde se
+  // busca cuando hace falta. En el PC lo dice la línea de debajo del título.
+  const n = (x) => x.toLocaleString('es-ES', { useGrouping: 'always' })
+  caja.innerHTML = `<div class="mc-avance">
+      <p class="mc-avance-linea"><b>${n(completo.tengo)} de ${n(completo.total)}</b> <span>· ${pct} %</span>${mias.length && valor ? ` <span class="mc-avance-valor">${escapeHtml(euros(valor))}</span>` : ''}</p>
+      <span class="mc-avance-barra" role="progressbar" aria-label="Lo que tienes de esta expansión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="--ancho:${pct}%"></i></span>
+    </div>`
+  const cifras = $('mcAlbumCifras')
+  if (cifras) {
+    cifras.innerHTML = `${barras
+      .map((b) => `<div class="mc-barra-fila">
+          <span class="mc-barra-nombre">${escapeHtml(b.nombre)}</span>
+          <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
+          <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
+        </div>`)
+      .join('')}${mias.length && valor
+      ? `<p class="mc-menu-cifras-valor">Lo tuyo vale <strong>${escapeHtml(euros(valor))}</strong>${caras.length ? ` · la que más, ${escapeHtml(nombreDe(caras[0].carta))}` : ''}</p>`
+      : ''}<hr class="mc-menu-raya" />`
+  }
 }
 
 // La gráfica de «lo que vale esta expansión» (662) vivió aquí dentro
 // hasta la 667: PINGU la quitó de dentro («como vas a ponerlo en el
 // overview de la expansión no tiene sentido meterlo dentro») y va en la
 // tarjeta de la estantería.
-
-// ── LOS PUNTOS DE UNA TIRA (tanda 467) ──
-//
-// Dicen cuántas tarjetas hay y en cuál estás, que es lo que convierte un
-// corte por el borde en «hay más a la derecha». Sin ellos, una tira es
-// indistinguible de una tarjeta mal cortada — que es justo lo que la 439
-// intentó disimular con una máscara.
-//
-// Se pintan DESDE AQUÍ y no en la plantilla porque cuántos hay depende de
-// cuántas tarjetas se hayan pintado, y eso cambia: «Tipos de carta» no
-// sale si el catálogo no sabe de qué clase es ninguna.
-function engancharPuntos(idCaja) {
-  const caja = $(idCaja)
-  const tira = caja?.querySelector('.mc-diapos')
-  const puntos = caja?.querySelector('.mc-puntos')
-  if (!tira || !puntos) return
-  const tarjetas = [...tira.children]
-  if (tarjetas.length < 2) {
-    puntos.innerHTML = ''
-    return
-  }
-  puntos.innerHTML = tarjetas
-    .map((t, i) => {
-      const titulo = t.querySelector('.mc-diapo-titulo')?.textContent || `Dato ${i + 1}`
-      return `<button type="button" class="mc-punto${i === 0 ? ' activo' : ''}" role="tab" aria-selected="${i === 0 ? 'true' : 'false'}" aria-label="${escapeHtml(titulo)}"></button>`
-    })
-    .join('')
-  const marcar = () => {
-    // Por el CENTRO de la tira y no por `scrollLeft / ancho`: con la
-    // última tarjeta el desplazamiento se queda corto —no hay sitio para
-    // llevarla al borde izquierdo— y la cuenta diría que estás en la
-    // penúltima para siempre.
-    const centro = tira.scrollLeft + tira.clientWidth / 2
-    let cual = 0
-    let mejor = Infinity
-    tarjetas.forEach((t, i) => {
-      const medio = t.offsetLeft + t.offsetWidth / 2
-      const d = Math.abs(medio - centro)
-      if (d < mejor) {
-        mejor = d
-        cual = i
-      }
-    })
-    puntos.querySelectorAll('.mc-punto').forEach((p, i) => {
-      p.classList.toggle('activo', i === cual)
-      p.setAttribute('aria-selected', i === cual ? 'true' : 'false')
-    })
-  }
-  tira.addEventListener('scroll', marcar, { passive: true })
-  puntos.addEventListener('click', (e) => {
-    const i = [...puntos.children].indexOf(e.target.closest('.mc-punto'))
-    if (i < 0) return
-    tira.scrollTo({ left: tarjetas[i].offsetLeft - tira.offsetLeft, behavior: 'smooth' })
-  })
-  marcar()
-}
 
 // Lo más valioso de una lista de líneas, por el valor de UNA copia.
 function masValiosasDe(filas, cuantas = 3) {
@@ -7405,7 +7320,12 @@ function enganchar() {
       $('mcAlbumVistaHoja')?.close()
     })
   }
-  $('mcAlbumVista')?.addEventListener('click', () => $('mcAlbumVistaHoja')?.showModal())
+  // Desde la 919 el botón vive DENTRO de la hoja de filtros: una hoja a la
+  // vez, así que se cierra la de filtros antes de abrir la de vistas.
+  $('mcAlbumVista')?.addEventListener('click', () => {
+    if ($('mcAlbumPanelFiltros')?.open) $('mcAlbumPanelFiltros').close()
+    $('mcAlbumVistaHoja')?.showModal()
+  })
   $('mcAlbumVistaCerrar')?.addEventListener('click', () => $('mcAlbumVistaHoja')?.close())
   // El clic en el FONDO cierra, como las otras hojas: se distingue del de
   // dentro porque `e.target` es el propio `<dialog>`.

@@ -530,6 +530,10 @@
             <details class="mc-menu-caja" id="mcAlbumMenu">
               <summary class="mc-icono-mando" data-icono="moreHorizontal" aria-label="Más opciones de esta colección" title="Más opciones"></summary>
               <div class="mc-menu">
+                <!-- Las cifras del set (919): set completo, maestro y
+                     adicionales, y lo que vale lo tuyo. Antes eran un
+                     carrusel encima de las cartas; arriba queda una barra. -->
+                <div class="mc-menu-cifras" id="mcAlbumCifras"></div>
                 <!-- Marcar varias de golpe (tanda 426). Apuntar un sobre son
                      diez cartas, y una a una eran diez búsquedas con el ojo,
                      diez botones pequeños y veinte peticiones.
@@ -614,6 +618,10 @@
                Y es verdad: lo primero que se hace al abrir una expansión de
                200 cartas es BUSCAR una, y para eso había que pasar por tres
                tarjetas de datos. Ahora: buscador, mandos, datos y cartas. -->
+          <!-- EL BUSCADOR Y UN SOLO BOTÓN DE FILTROS (919, la propuesta
+               «PokeDoc más sencillo»): Archivador y Variantes juntas entran
+               en la hoja de filtros, arriba del todo. -->
+          <div class="mc-album-busca">
           <div class="mc-buscador mc-buscador-ancho">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
             <input type="search" enterkeyhint="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
@@ -666,13 +674,8 @@
                  secas, por lo mismo que el botón de ordenar de la 449: un
                  control que guarda un estado tiene que decir el estado, o
                  hay que abrirlo para saber qué pusiste. -->
-            <button type="button" class="mc-chip-mando" id="mcAlbumVista" data-icono="eye" aria-haspopup="dialog">
-              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Archivador</span>
-            </button>
-            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="cards">
-              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
-            </button>
             <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcAlbumQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
+          </div>
           </div>
 
           <!-- LA HOJA DE LA VISTA (tanda 478), y va aquí FUERA de la tira
@@ -706,6 +709,19 @@
               <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
             </div>
             <div class="mc-panel-cuerpo">
+              <!-- CÓMO SE VEN (919): la vista y juntar o separar variantes,
+                   que vivían sueltos al lado del buscador. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoVer">
+                <h3>Cómo se ven</h3>
+                <div class="mc-album-ver">
+            <button type="button" class="mc-chip-mando" id="mcAlbumVista" data-icono="eye" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Archivador</span>
+            </button>
+            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="cards">
+              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
+            </button>
+                </div>
+              </div>
               <!-- QUÉ CARTAS, arriba y segmentado (748, la C6 de su maqueta):
                    todas, las que tienes o las que te faltan. Es lo primero
                    que se decide al mirar una expansión. -->
