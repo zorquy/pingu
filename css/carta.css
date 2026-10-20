@@ -148,6 +148,51 @@
   color: var(--text);
 }
 
+/* 916: la ficha en FILAS, como los atributos del pop-up (915): rótulo a la
+   izquierda, dato a la derecha. Solo CSS: el HTML lo pinta también el
+   servidor (meta-social.js) y no cambia. En el PC, dos columnas. */
+.carta-ficha {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--e-xl);
+  padding: var(--e-xs) var(--e-lg);
+}
+
+.carta-ficha > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  min-height: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.carta-ficha > div:first-child {
+  border-top: 0;
+}
+
+.carta-ficha dt {
+  margin: 0;
+  font-size: var(--t-sm);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.carta-ficha dd {
+  min-width: 0;
+  font-size: var(--t-sm);
+  text-align: right;
+}
+
+@media (min-width: 1100px) {
+  .carta-ficha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .carta-ficha > div:nth-child(2) {
+    border-top: 0;
+  }
+}
+
 /* ── Si se puede jugar hoy (tanda 335) ── */
 /*
    Va pegada debajo de la ficha de coleccionista y antes del combate,
@@ -934,36 +979,30 @@
   font-weight: 400;
 }
 
-/* ── El precio (365, rehecho en la 677) ──
-   Lo pinta js/carta-mercado.js al final de la página: los chips de
-   idioma y el estado arriba, el bloque de precio-vista debajo. Las
-   losetas de Añadir · Editar · Avísame van pegadas a la carta
-   (`.mc-ficha-acciones`, en cardmarket.css). Ver SCHEMA 677. */
+/* ── El precio (365, rehecho en la 677 y en la 916) ──
+   Lo pinta js/carta-mercado.js: las impresiones y las tarjetas por idioma
+   (precio-vista, como el pop-up), y «Avísame si baja» debajo. Las acciones
+   van pegadas a la carta. Ver SCHEMA 916. */
 .carta-mercado {
   display: flex;
   flex-direction: column;
-  gap: var(--e-lg);
-}
-
-.carta-mercado-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   gap: var(--e-md);
 }
 
-.carta-mercado-estado {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-sm);
-  margin-left: auto;
+#cartaMercado .section-title small {
+  margin-left: var(--e-xs);
   color: var(--text-mid);
+  font-family: inherit;
   font-size: var(--t-xs);
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.carta-mercado-estado select {
-  min-height: 44px;
+.carta-mercado-aviso {
+  margin: 0;
+}
+
+.carta-mercado-aviso:empty {
+  display: none;
 }
 
 .carta-mercado-pie {
@@ -989,10 +1028,57 @@
   margin-top: var(--e-sm);
 }
 
-/* Las losetas, dentro del `figure` de la carta: en escritorio acompañan
-   al escaneo pegajoso; en el móvil quedan justo bajo la foto. */
+/* Las acciones (916), dentro del `figure` de la carta: en escritorio
+   acompañan al escaneo pegajoso; en el móvil son la barra de abajo.
+   «− Tienes N +» a lo ancho y, al lado, el corazón y compartir. */
 .carta-scan .carta-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
   margin-top: var(--e-md);
+}
+
+.carta-pasos {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
+  gap: var(--e-sm);
+}
+
+.mc-sin-copias .carta-pasos {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.carta-pasos .mc-paso,
+.carta-pasos .mc-paso-centro {
+  text-decoration: none;
+}
+
+.carta-pasos a.mc-paso {
+  display: grid;
+  place-items: center;
+}
+
+.carta-redondos {
+  display: flex;
+  gap: var(--e-xs);
+}
+
+.carta-redondos .mc-ficha-quiero[aria-pressed='true'] {
+  color: var(--pink);
+}
+
+.carta-anadir-otra {
+  margin-top: var(--e-sm);
+}
+
+/* Sobre el fondo de la página, los pasos y los redondos van en blanco con
+   su borde (en el pop-up, el fondo ya es blanco). */
+.carta-pasos .mc-paso:not(.mc-ficha-mas),
+.carta-pasos .mc-paso-centro,
+.carta-redondos .mc-ficha-redondo {
+  border: 1px solid var(--border);
+  background: var(--white);
 }
 
 /* El histórico (643) vive en css/cardmarket.css desde la 645: lo pintan
@@ -1372,51 +1458,23 @@
     color: var(--danger);
   }
 
-  .carta-tienes {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--e-xs);
-    min-height: 40px;
-    margin-bottom: var(--e-sm);
-    padding: 0 var(--e-md);
-    border-radius: var(--radius-pill);
-    background: var(--success-bg);
-    color: var(--success);
-    font-size: var(--t-sm);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  /* Abajo, «Añadir» a lo ancho y «Avísame» en redondo; editar es la chapa
-     de «Tienes N» y compartir, el botón flotante de arriba. */
+  /* Abajo, «− Tienes N +» a lo ancho y el corazón en redondo (916);
+     compartir es el botón flotante de arriba. */
   html.ficha-movil.con-barra-movil .carta-scan .carta-acciones {
     bottom: calc(env(safe-area-inset-bottom) + var(--e-md));
-    display: flex;
-    gap: var(--e-sm);
   }
 
-  html.ficha-movil .carta-acciones #cmEditar,
-  html.ficha-movil .carta-acciones #cmCompartir {
+  html.ficha-movil .carta-acciones #cmCompartir,
+  html.ficha-movil .carta-otra-largo {
     display: none;
   }
 
-  html.ficha-movil .carta-acciones .mc-ficha-mas {
-    flex: 1 1 auto;
-    flex-direction: row;
-    gap: var(--e-sm);
-    border-radius: var(--radius-md);
-    font-size: var(--t-md);
-  }
-
-  html.ficha-movil .carta-acciones .mc-ficha-tile:not(.mc-ficha-mas) {
-    flex: 0 0 56px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-size: 0;
-  }
-
-  html.ficha-movil .carta-acciones .mc-ficha-tile:not(.mc-ficha-mas) i {
-    font-size: var(--t-md);
+  /* «Añadir otra copia», bajo la carta y centrado: es el único camino a
+     una copia distinta desde aquí (el «+» suma otra igual). */
+  html.ficha-movil .carta-anadir-otra {
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
 
   html.ficha-movil.bm-escondidas.con-barra-movil .carta-scan .carta-acciones {
@@ -1424,7 +1482,7 @@
   }
 }
 
-/* El precio al lado en el PC y «Añadir» como botón principal (788, PA7). */
+/* El precio al lado en el PC (788, PA7). */
 .carta-mercado-al-lado {
   margin: 0 0 var(--e-lg);
 }
@@ -1433,17 +1491,3 @@
   margin-top: 0;
 }
 
-@media (min-width: 1100px) {
-  .carta-acciones {
-    flex-wrap: wrap;
-  }
-
-  .carta-acciones .mc-ficha-mas {
-    flex: 1 0 100%;
-    flex-direction: row;
-    gap: var(--e-sm);
-    border-color: var(--navy-solid);
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
-  }
-}

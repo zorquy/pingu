@@ -4,6 +4,52 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (150) — PINGU-Claude (916 — /carta, con la misma columna que el pop-up)
+
+**Hecho** (lo que quedaba de la propuesta aprobada en la 915: «/carta llega
+en la 916»). La página de una carta (/carta) es ahora como el pop-up:
+- El precio va en una tarjeta por idioma del set: la de tu copia (o tu
+  idioma) primero y en azul, el idioma que nadie vende en gris, y TCGplayer
+  la última. Encima, las impresiones (Normal, Reverse…), que se siguen
+  eligiendo ahí. Se van los chips de idioma, el desplegable de estado
+  (siempre Near Mint, como en el pop-up) y la tabla de Cardmarket.
+- Debajo del precio, «Avísame si baja» (antes era una loseta).
+- Bajo la carta, «− Tienes N +»: el «+» suma otra igual a la tuya con
+  Deshacer, el «−» resta y la última pregunta antes de quitarla. Sin copias,
+  el «+» es el botón grande «Añadir a mi colección» (abre la hoja de
+  siempre). Al lado, el corazón y compartir en redondo. «Tienes N» lleva a
+  tus copias en Mi colección, y «Añadir otra copia» (bajo la carta) abre la
+  hoja de añadir para una distinta: otro idioma, otro estado.
+- En el móvil, la barra de abajo es «− Tienes N +» con el corazón;
+  compartir sigue flotando arriba. Se va la chapa verde «Tienes 2» bajo el
+  precio, que repetía lo de la barra. «Avísame si baja» está en la pestaña
+  Precio (antes era el redondo de la barra).
+- Los datos (número, colección, rareza, ilustración, salió) van en filas,
+  con el rótulo a la izquierda y el dato a la derecha, y en el PC a dos
+  columnas. Es solo CSS: el servidor pinta el mismo HTML.
+- Las clases que comparten el pop-up y /carta («− +», redondos, enlace
+  chico, el aviso con Deshacer) pasan de `mi-coleccion.css` a
+  `cardmarket.css`, que cargan las dos páginas.
+
+**Ficheros**: `js/carta-mercado.js`, `js/carta-movil.js`, `js/la-quiero.js`
+(fuera `losetaHtml`, que ya no pinta nadie), `css/carta.css`,
+`css/cardmarket.css`, `css/mi-coleccion.css`, `css/movil.css`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-916.mjs`; al día con /carta nueva:
+299 (era el aviso con Deshacer sin su CSS en /carta: fallo de verdad), 324, 589-pantalla, 645, 645-pantalla, 665, 707-pantalla, 748-pantalla (cazó que en el móvil no había cómo añadir una copia distinta: ahora sale «Añadir otra copia»), 788, 862 y 899.
+
+Resultado (/carta, Mi colección y la 299/305/311/312/313, 246 pruebas en
+cinco carriles): 224 verdes y 22 rojos; de esos, los once de arriba eran de
+la tanda y ya están en verde (pasados uno a uno después), y los otros once
+ya estaban rojos antes (385, 461, 467, 475, 651, 653, 723, 749, 780, 829,
+893). La 916 nueva, en verde.
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915 (`supabase-migration-915-quien-la-tiene.sql`).
+- Siguientes tandas: los botones (tres clases: principal, suave, icono) y
+  los menús (hoja «Tú» en baldosas, cabecera de expansión con barra).
+
 ## 2026-10-20 (149) — PINGU-Claude (915 — la ficha de carta, como el Dex del móvil)
 
 **Hecho** (PINGU aprobó la segunda propuesta, con las capturas de Dex: «la

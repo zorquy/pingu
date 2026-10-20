@@ -18,10 +18,6 @@ import { nombreDeCarta } from './catalogo-series.js'
 // portada (CLAUDE.md).
 export const corazon = (size = 16) => ICONOS_COLECCION.corazon(size)
 
-export function losetaHtml(id) {
-  return `<button type="button" class="mc-ficha-tile mc-ficha-quiero hidden" id="${id}" aria-pressed="false"><i aria-hidden="true">${corazon(16)}</i><span>La quiero</span></button>`
-}
-
 // `deseos` son las filas de esa carta: [] = no la quieres, null = no se
 // sabe (sin la migración, o sin poder preguntar), y entonces la loseta no
 // sale — un corazón vacío diría «no la quieres» de algo que no sabemos.

@@ -6982,71 +6982,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   opacity: 0.22;
 }
 
-/* ── 712: «añadida», con Deshacer ── (js/mi-coleccion/deshacer.js) */
-.mc-deshacer {
-  position: fixed;
-  z-index: 96;
-  inset-inline: var(--e-md);
-  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  max-width: 480px;
-  margin: 0 auto;
-  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
-  border-radius: var(--radius-lg);
-  background: var(--navy-solid-dark);
-  color: var(--blanco-fijo);
-  box-shadow: var(--shadow-md);
-  font-size: var(--t-sm);
-}
-/* La barra de lo que le queda (780, MV11). */
-.mc-deshacer { overflow: hidden; }
-.mc-deshacer-tiempo {
-  position: absolute;
-  inset: auto 0 0;
-  height: 2px;
-  background: var(--blanco-fijo);
-  opacity: 0.55;
-  transform-origin: left;
-  animation: mc-deshacer-tiempo linear forwards;
-}
-.mc-deshacer.parado .mc-deshacer-tiempo { animation-play-state: paused; }
-@keyframes mc-deshacer-tiempo { to { transform: scaleX(0); } }
-@media (prefers-reduced-motion: reduce) {
-  .mc-deshacer-tiempo { display: none; animation: none; }
-}
-.mc-deshacer-texto {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--e-sm);
-  min-width: 0;
-}
-.mc-deshacer-texto img {
-  flex: 0 0 auto;
-  border-radius: var(--radius-sm);
-}
-.mc-deshacer-boton {
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--blanco-fijo);
-  font: inherit;
-  font-weight: 800;
-  text-decoration: underline;
-  cursor: pointer;
-}
-/* En el móvil, encima de la burbuja de Mi colección y de la barra. */
-@media (max-width: 900px) {
-  .mc-deshacer {
-    bottom: calc(80px + 76px + env(safe-area-inset-bottom) + var(--e-sm));
-  }
-}
-
 .mc-ea-lista {
   display: flex;
   flex-direction: column;
@@ -11051,32 +10986,6 @@ body[data-modo='catalogo'] #mcCargando {
   gap: var(--e-xs);
 }
 
-.mc-ficha-redondo {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--bg);
-  color: var(--text);
-  cursor: pointer;
-}
-
-.mc-ficha-redondo:hover {
-  background: var(--ice);
-}
-
-.mc-ficha-redondo i {
-  display: inline-flex;
-}
-
-.mc-ficha-redondo svg {
-  width: 20px;
-  height: 20px;
-}
-
 .mc-editor .mc-ficha-quiero[aria-pressed='true'] {
   color: var(--pink);
 }
@@ -11265,73 +11174,6 @@ button.mc-fila:hover {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.mc-paso,
-.mc-paso-centro {
-  min-height: 56px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-lg);
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.mc-paso {
-  font-size: var(--t-2xl);
-  font-weight: 600;
-  line-height: 1;
-}
-
-.mc-paso:hover,
-.mc-paso-centro:hover {
-  background: var(--ice);
-}
-
-.mc-paso.mc-ficha-mas {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-.mc-paso.mc-ficha-mas:hover {
-  background: var(--navy-solid-dark);
-}
-
-.mc-paso.mc-ficha-mas i {
-  font-style: normal;
-}
-
-.mc-mas-texto {
-  display: none;
-}
-
-.mc-sin-copias .mc-ficha-mas {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-sm);
-  font-size: var(--t-lg);
-}
-
-.mc-sin-copias .mc-mas-texto {
-  display: inline;
-}
-
-.mc-paso-centro {
-  display: grid;
-  place-content: center;
-  line-height: 1.2;
-}
-
-.mc-paso-centro b {
-  font-size: var(--t-lg);
-}
-
-.mc-paso-centro span {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
 /* Tus copias: la caja de siempre, y debajo «Añadir otra copia». */
 .mc-anadir-otra {
   width: 100%;
@@ -11358,30 +11200,6 @@ button.mc-fila:hover {
 
 .mc-ficha-mini {
   margin: var(--e-xs) 0 0;
-}
-
-.mc-enlace-chico {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--navy);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.mc-enlace-chico i {
-  display: inline-flex;
-}
-
-.mc-enlace-chico svg {
-  width: 16px;
-  height: 16px;
 }
 
 /* Quién la tiene: tarjetas como las de Dex, que se reparten el ancho. */

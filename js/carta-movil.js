@@ -71,8 +71,8 @@ export function montarFichaMovil(doc = document, win = window) {
 
   // El precio en una línea, copiado del bloque de precio cuando llega.
   const precioCorto = () => {
-    const cifra = doc.querySelector('#cmPrecios .pv-burbuja-principal .pv-cifra:not(.pv-sin)')
-    const de = doc.querySelector('#cmPrecios .pv-burbuja-principal .pv-de')
+    const cifra = doc.querySelector('#cmPrecios .pv-tarjeta-tuya .pv-cifra:not(.pv-sin)')
+    const de = doc.querySelector('#cmPrecios .pv-tarjeta-tuya .pv-de')
     return cifra ? { cifra: cifra.textContent.trim(), de: de?.textContent.trim() || '' } : null
   }
 
@@ -96,25 +96,8 @@ export function montarFichaMovil(doc = document, win = window) {
     doc.body.appendChild(flot)
   }
 
-  // «TIENES 2» ES UNA CHAPA (748): lo que decía la loseta de Editar, debajo
-  // del precio, y tocarla lleva a editarla. Se copia de la loseta, que es la
-  // que sabe cuántas tienes (una sola fuente).
-  const pintarTienes = () => {
-    const editar = doc.getElementById('cmEditar')
-    const n = (doc.getElementById('cmTienes')?.textContent || '').trim()
-    let chapa = nucleo.querySelector('.carta-tienes')
-    if (!editar || editar.classList.contains('hidden') || !n) { chapa?.remove(); return }
-    const cabecera = nucleo.querySelector('.carta-cabecera')
-    if (!cabecera) return
-    if (!chapa) {
-      chapa = doc.createElement('a')
-      chapa.className = 'carta-tienes'
-      cabecera.appendChild(chapa)
-    }
-    const html = `${icons.checkCircle(16)}<span>${n}</span>`
-    if (chapa.dataset.html !== html) { chapa.dataset.html = html; chapa.innerHTML = html }
-    chapa.href = editar.getAttribute('href') || '#'
-  }
+  // «Tienes 2» ya no es una chapa bajo el precio (748): desde la 916 lo dice
+  // la barra de abajo, «− Tienes 2 +», como en el pop-up.
 
   // Lo que va DENTRO del núcleo: la línea de precio bajo el nombre y la
   // barra entre la carta y su ficha. Si el núcleo se repintó, se vuelve a
@@ -137,7 +120,6 @@ export function montarFichaMovil(doc = document, win = window) {
       const html = `<small>${p.de || 'Precio'}</small><b>${p.cifra}</b>${mes && /30 d/.test(mes.textContent) ? `<span class="carta-precio-mes ${mes.classList.contains('sube') ? 'sube' : mes.classList.contains('baja') ? 'baja' : ''}">${mes.querySelector('b')?.textContent || ''} <i>en 30 días</i></span>` : ''}`
       if (linea.dataset.html !== html) { linea.dataset.html = html; linea.innerHTML = html }
     }
-    pintarTienes()
     const figura = nucleo.querySelector('.carta-scan')
     if (figura && barra.previousElementSibling !== figura) figura.insertAdjacentElement('afterend', barra)
     const img = nucleo.querySelector('.carta-scan img')

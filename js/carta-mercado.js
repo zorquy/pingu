@@ -35,8 +35,8 @@ import {
   estadoDe,
   varianteDe,
 } from './cardmarket.js'
-import { bloqueDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
-import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, tieneCifras } from './mi-coleccion/datos.js'
+import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
+import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
 import { idiomasDeSet } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
@@ -88,20 +88,6 @@ function recordarIdioma(id) {
 
 function opciones(lista, activo) {
   return lista.map((o) => `<option value="${escapeHtml(o.id)}"${o.id === activo ? ' selected' : ''}>${escapeHtml(o.nombre)}</option>`).join('')
-}
-
-function chipsDeIdioma(idiomas, puesto) {
-  return idiomas
-    .map((i) => `<button type="button" class="mc-idioma-chip${i.id === puesto ? ' activo' : ''}" role="radio" aria-checked="${i.id === puesto ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}">${banderaHtml(i.id)}<span>${escapeHtml(i.nombre)}</span></button>`)
-    .join('')
-}
-
-function marcarChip(caja, id) {
-  for (const x of caja.querySelectorAll('.mc-idioma-chip')) {
-    const puesto = x.dataset.idioma === id
-    x.classList.toggle('activo', puesto)
-    x.setAttribute('aria-checked', puesto ? 'true' : 'false')
-  }
 }
 
 // «Ver los 312 Pikachus» → la Pokédex, abierta en esa especie (384).
@@ -157,16 +143,18 @@ export async function pintarMercado(carta) {
   let ultimoPrecio = null
   const nombre = nombreDeCarta(carta)
 
+  // 916: el precio como en el pop-up (915) — una tarjeta por idioma del
+  // set, la del tuyo primero, y sin los chips de idioma ni el estado: las
+  // tarjetas ya dicen cada idioma. El idioma «tuyo» es el de tu copia o el
+  // recordado; los desplegables escondidos siguen siendo el único camino
+  // para cambiarlo (la gráfica y el aviso lo leen de ahí).
   caja.innerHTML = `
-    <h2 class="section-title">Precio</h2>
+    <h2 class="section-title">Precio <small>Cardmarket · mínimo Near Mint</small></h2>
     <div class="carta-mercado">
-      <div class="carta-mercado-filtros">
-        <div class="mc-idioma-chips" id="cmIdiomas" role="radiogroup" aria-label="Idioma del precio">${chipsDeIdioma(idiomas, estado.idioma)}</div>
-        <label class="carta-mercado-estado">Estado <select id="cmEstado">${opciones(ESTADOS, estado.estado)}</select></label>
-        <select id="cmIdioma" class="pv-select-oculto" aria-label="Idioma">${opciones(idiomas, estado.idioma)}</select>
-        <select id="cmVariante" class="pv-select-oculto" aria-label="Versión">${opciones(listaDeVariantes, estado.variante)}</select>
-      </div>
+      <select id="cmIdioma" class="pv-select-oculto" aria-label="Idioma" tabindex="-1">${opciones(idiomas, estado.idioma)}</select>
+      <select id="cmVariante" class="pv-select-oculto" aria-label="Versión" tabindex="-1">${opciones(listaDeVariantes, estado.variante)}</select>
       <div id="cmPrecios"></div>
+      <p class="carta-mercado-aviso" id="cmAvisoSitio"></p>
       <!-- Comparar con otra (735): un diálogo, js/carta-comparar.js. -->
       <button type="button" class="link-btn carta-comparar-abrir" id="cmComparar">${icons.layers(16)}<span>Comparar con otra carta</span></button>
       <!-- El histórico (643): lo pinta js/carta-historial.js por import()
@@ -192,25 +180,24 @@ export async function pintarMercado(carta) {
     // guardado no dice nada; y sin cifras, el que traiga el enlace (375).
     const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
     ultimoPrecio = precio
-    $('cmPrecios').innerHTML = bloqueDePrecio(precio, {
+    $('cmPrecios').innerHTML = chapasDeImpresiones(listaDeVariantes, estado.variante, { pulsables: true, precio, idioma: estado.idioma }) + tarjetasDePrecio(precio, {
       idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null,
-      variantes: listaDeVariantes, impresionesPulsables: true, rotuloActivo: 'elegido',
+      rotuloActivo: estado.deTuCopia ? 'tu copia' : 'tu idioma', idiomasDelSet,
     })
   }
+  // Los idiomas en los que salió su set (911): llegan después y repintan.
+  let idiomasDelSet = null
   pintarPrecio()
+  void idiomasDeSet(carta.set_id, carta.market || MERCADO).then((lista) => {
+    if (!lista?.length) return
+    idiomasDelSet = lista
+    pintarPrecio()
+  }).catch(() => {})
   $('cmPrecios').addEventListener('click', (e) => {
     const b = e.target.closest('.pv-impresion[data-variante]')
     if (!b || !variantes.includes(b.dataset.variante)) return
     $('cmVariante').value = b.dataset.variante
     $('cmVariante').dispatchEvent(new Event('change'))
-  })
-  // Los chips mandan al desplegable, y el desplegable es quien pinta: así
-  // hay UN camino, se cambie desde donde se cambie.
-  $('cmIdiomas').addEventListener('click', (e) => {
-    const chip = e.target.closest('.mc-idioma-chip')
-    if (!chip) return
-    $('cmIdioma').value = chip.dataset.idioma
-    $('cmIdioma').dispatchEvent(new Event('change'))
   })
 
   $('cmComparar').addEventListener('click', () => {
@@ -223,12 +210,15 @@ export async function pintarMercado(carta) {
     .then((r) => { repintarHistorial = r })
     .catch(() => {})
 
-  for (const [id, campo] of [['cmIdioma', 'idioma'], ['cmEstado', 'estado'], ['cmVariante', 'variante']]) {
+  for (const [id, campo] of [['cmIdioma', 'idioma'], ['cmVariante', 'variante']]) {
     $(id)?.addEventListener('change', (e) => {
       estado[campo] = e.target.value
       if (campo === 'idioma') {
-        marcarChip($('cmIdiomas'), estado.idioma)
-        recordarIdioma(estado.idioma)
+        // Elegido a mano, ya no es «el de tu copia» (lo pone montarAcciones).
+        if (!e.detail?.deTuCopia) {
+          estado.deTuCopia = false
+          recordarIdioma(estado.idioma)
+        }
       }
       pintarPrecio()
       if (campo === 'idioma') repintarHistorial?.()
@@ -237,32 +227,39 @@ export async function pintarMercado(carta) {
 
   pintarQuienLaDa(carta)
 
-  // ── Las losetas bajo la carta ──
+  // ── Las acciones bajo la carta ──
   const sesion = await getSession().catch(() => null)
   montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
 }
 
-// Las tres losetas, pegadas al escaneo (donde las tiene la ficha de
-// /mi-coleccion y donde las pone TCGGO). Van DENTRO del `figure` para
-// que en escritorio acompañen a la carta, que es pegajosa.
+// LAS ACCIONES, COMO EN EL POP-UP (916, la ficha de Dex de la 915): bajo la
+// carta, «− Tienes N +» —el «+» suma otra igual con Deshacer; sin copias es
+// el botón grande «Añadir a mi colección»— y a su lado el corazón y
+// compartir, en redondo. Van DENTRO del `figure` para que en escritorio
+// acompañen a la carta, que es pegajosa; en el móvil son la barra de abajo.
+// «Avísame si baja» va con el precio, que es de lo que avisa.
 function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActual }) {
   const figura = document.querySelector('#cartaNucleo .carta-scan')
   if (!figura || $('cartaAcciones')) return
   const volver = `/auth.html?volver=${encodeURIComponent(location.pathname)}`
   const buscarla = `/mi-coleccion?ver=buscar&q=${encodeURIComponent(nombreDeCarta(carta) || carta.name || '')}`
+  const redondos = `<span class="carta-redondos">${sesion ? `<button type="button" class="mc-ficha-redondo mc-ficha-quiero hidden" id="cmQuiero" aria-pressed="false" title="La quiero"><i aria-hidden="true">${laQuiero.corazon(20)}</i><span class="sr-only">La quiero</span></button>` : ''}<button type="button" class="mc-ficha-redondo" id="cmCompartir" title="Compartir" aria-label="Compartir la carta"><i aria-hidden="true">${icons.share(20)}</i></button></span>`
   figura.insertAdjacentHTML('beforeend', sesion
-    ? `<div class="mc-ficha-acciones carta-acciones" id="cartaAcciones">
-        <button type="button" class="mc-ficha-tile mc-ficha-mas" id="cmAnadir"><i aria-hidden="true">+</i><span>Añadir</span></button>
-        <a class="mc-ficha-tile hidden" id="cmEditar" href="${escapeHtml(buscarla)}"><i aria-hidden="true">${icons.edit(16)}</i><span>Editar</span><small id="cmTienes"></small></a>
-        ${laQuiero.losetaHtml('cmQuiero')}
-        <button type="button" class="mc-ficha-tile" id="cmAviso" data-aviso="${escapeHtml(carta.id)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame</span></button>
-        <button type="button" class="mc-ficha-tile" id="cmCompartir"><i aria-hidden="true">${icons.share(16)}</i><span>Compartir</span></button>
-      </div>`
-    : `<div class="mc-ficha-acciones carta-acciones" id="cartaAcciones">
-        <a class="mc-ficha-tile mc-ficha-mas" href="${escapeHtml(volver)}"><i aria-hidden="true">+</i><span>Añadir</span></a>
-        <a class="mc-ficha-tile" href="${escapeHtml(volver)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame</span></a>
-        <button type="button" class="mc-ficha-tile" id="cmCompartir"><i aria-hidden="true">${icons.share(16)}</i><span>Compartir</span></button>
+    ? `<div class="carta-acciones mc-sin-copias" id="cartaAcciones">
+        <span class="carta-pasos">
+          <button type="button" class="mc-paso hidden" id="cmMenos" aria-label="Una copia menos">−</button>
+          <a class="mc-paso-centro hidden" id="cmEditar" href="${escapeHtml(buscarla)}"><b id="cmTienes"></b><span>Editar</span></a>
+          <button type="button" class="mc-paso mc-ficha-mas" id="cmAnadir" aria-label="Añadir a mi colección"><i aria-hidden="true">+</i><span class="mc-mas-texto">Añadir a mi colección</span></button>
+        </span>
+        ${redondos}
+      </div><button type="button" class="mc-enlace-chico carta-anadir-otra hidden" id="cmAnadirOtra"><i aria-hidden="true">+</i><span>Añadir otra copia<span class="carta-otra-largo"> (otro idioma, estado…)</span></span></button>`
+    : `<div class="carta-acciones mc-sin-copias" id="cartaAcciones">
+        <span class="carta-pasos"><a class="mc-paso mc-ficha-mas" href="${escapeHtml(volver)}"><i aria-hidden="true">+</i><span class="mc-mas-texto">Añadir a mi colección</span></a></span>
+        ${redondos}
       </div>`)
+  $('cmAvisoSitio')?.insertAdjacentHTML('beforeend', sesion
+    ? `<button type="button" class="mc-enlace-chico" id="cmAviso" data-aviso="${escapeHtml(carta.id)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame si baja</span></button>`
+    : `<a class="mc-enlace-chico" href="${escapeHtml(volver)}"><i aria-hidden="true">${icons.bell(16)}</i><span>Avísame si baja</span></a>`)
   // Compartir la carta en una imagen (733, X7): con su precio y, si es
   // tuya, «La tengo». El módulo del lienzo entra al pulsar.
   $('cmCompartir')?.addEventListener('click', async () => {
@@ -280,7 +277,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
   })
   if (!sesion) return
 
-  engancharAvisos($('cartaAcciones'), () => ({ market: carta.market || MERCADO, idioma: estado.idioma, precio: precioActual() }))
+  engancharAvisos($('cmAvisoSitio'), () => ({ market: carta.market || MERCADO, idioma: estado.idioma, precio: precioActual() }))
 
   // «La quiero» (751): el corazón sale cuando se sabe si la quieres; sin
   // poder preguntarlo (sin la migración de los cambios) no sale.
@@ -292,7 +289,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
   $('cmQuiero')?.addEventListener('click', async () => {
     const b = $('cmQuiero')
     if (!Array.isArray(deseos)) return
-    // La loseta cambia ya (899); si la base dice que no, vuelve.
+    // El corazón cambia ya (899); si la base dice que no, vuelve.
     try {
       deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos, carta, alCambiar: (d) => laQuiero.pintarLoseta(b, carta.id, d) })
     } catch (err) {
@@ -301,9 +298,10 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
     laQuiero.pintarLoseta(b, carta.id, deseos)
   })
 
-  // Lo que tienes de ella, para la loseta de Editar y para la primera
-  // cara del diálogo. Se vuelve a pedir al guardar.
+  // Lo que tienes de ella: «Tienes N», la copia que suma el «+» y el idioma
+  // de la primera tarjeta de precio. Se vuelve a pedir al guardar.
   let mias = []
+  let idiomaPuesto = false
   const refrescarTengo = async () => {
     try {
       mias = await lineasDeCarta(sesion.user.id, carta.id)
@@ -312,19 +310,78 @@ function montarAcciones(carta, sesion, { idiomas, variantes, estado, precioActua
       mias = []
     }
     const n = mias.reduce((a, l) => a + (Number(l.cantidad) || 0), 0)
-    $('cmEditar')?.classList.toggle('hidden', n === 0)
+    const con = n > 0
+    $('cartaAcciones').classList.toggle('mc-sin-copias', !con)
+    $('cmEditar')?.classList.toggle('hidden', !con)
+    $('cmMenos')?.classList.toggle('hidden', !con)
+    $('cmAnadirOtra')?.classList.toggle('hidden', !con)
     const tienes = $('cmTienes')
-    if (tienes) tienes.textContent = n ? `Tienes ${n}` : ''
+    if (tienes) tienes.textContent = con ? `Tienes ${n}` : ''
+    const mas = $('cmAnadir')
+    mas.setAttribute('aria-label', con ? 'Una copia más, igual que la tuya' : 'Añadir a mi colección')
+    mas.title = con ? 'Una copia más, igual que la tuya' : 'Añadir a mi colección'
+    // La primera tarjeta es la de TU copia (915), una vez: si luego eliges
+    // otro idioma, manda lo elegido.
+    const primera = laQueSuma()
+    if (primera && !idiomaPuesto && idiomas.some((i) => i.id === primera.idioma)) {
+      idiomaPuesto = true
+      estado.deTuCopia = true
+      const sel = $('cmIdioma')
+      if (sel) {
+        sel.value = primera.idioma
+        sel.dispatchEvent(new CustomEvent('change', { detail: { deTuCopia: true } }))
+      }
+    }
   }
+  // La copia que suma o resta el «− +»: la de la versión que miras, o la
+  // primera. Con varias distintas, «Tienes N» lleva a todas.
+  const laQueSuma = () => mias.find((l) => (l.variante || 'normal') === estado.variante && l.idioma === estado.idioma) || mias.find((l) => (l.variante || 'normal') === estado.variante) || mias[0] || null
   const tengoListo = refrescarTengo()
 
-  $('cmAnadir').addEventListener('click', () => abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar: refrescarTengo }))
+  const pasar = async (paso) => {
+    const l = laQueSuma()
+    if (!l) return
+    const antes = Number(l.cantidad) || 0
+    const total = mias.reduce((a, x) => a + (Number(x.cantidad) || 0), 0)
+    if (antes + paso <= 0) {
+      if (!window.confirm('¿Quitar esta carta de tu colección? No se puede deshacer.')) return
+    }
+    // Cambia ya (896) y se confirma después; si la base dice que no, vuelve.
+    $('cmTienes').textContent = `Tienes ${Math.max(0, total + paso)}`
+    try {
+      if (antes + paso <= 0) await borrar(l.id)
+      else await actualizar(l.id, { cantidad: antes + paso })
+    } catch (err) {
+      showToast(err.message || 'No se ha podido guardar.', 'error')
+      await refrescarTengo()
+      return
+    }
+    await refrescarTengo()
+    if (paso < 0) return
+    const { avisoConDeshacer } = await import('./mi-coleccion/deshacer.js')
+    avisoConDeshacer({
+      html: `<span><b>${escapeHtml(nombreDeCarta(carta) || carta.name || '')}</b>: una más · ya tienes ${total + paso}</span>`,
+      alDeshacer: async () => {
+        try {
+          await actualizar(l.id, { cantidad: antes })
+          showToast(`Deshecho: ${nombreDeCarta(carta)} vuelve a como estaba.`, 'success')
+        } catch (err) {
+          showToast(err.message || 'No se ha podido deshacer.', 'error')
+        }
+        await refrescarTengo()
+      },
+    })
+  }
+  const abrir = () => abrirAnadir(carta, sesion, { idiomas, variantes, mias, alGuardar: refrescarTengo })
+  $('cmAnadir').addEventListener('click', () => (laQueSuma() ? pasar(1) : abrir()))
+  $('cmMenos').addEventListener('click', () => pasar(-1))
+  $('cmAnadirOtra').addEventListener('click', abrir)
   // Mayús+Intro en la paleta (718) llega con #anadir: el diálogo se abre
   // solo, ya sabiendo lo que tienes (si no, diría «añadir» de una que ya
   // es tuya). Se quita de la dirección para que recargar no lo reabra.
   if (location.hash === '#anadir') {
     history.replaceState(null, '', location.pathname + location.search)
-    tengoListo.finally(() => $('cmAnadir')?.click())
+    tengoListo.finally(abrir)
   }
 }
 

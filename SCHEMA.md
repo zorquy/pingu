@@ -41785,6 +41785,59 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 916 — /carta, con la misma columna que el pop-up
+
+La 915 rehízo el pop-up de una carta (Mi colección y /cartas) como el Dex del
+móvil y dejó /carta para después. Esta es /carta con las mismas piezas.
+
+**El precio** (`pintarMercado`, js/carta-mercado.js): `chapasDeImpresiones`
+(pulsables, como siempre) + `tarjetasDePrecio` con los idiomas de SU set
+(`idiomasDeSet`, 911; llegan después y repintan). Se fueron los chips de
+idioma (`#cmIdiomas`) y el desplegable de estado (`#cmEstado`): las tarjetas
+ya dicen cada idioma y el estado es Near Mint, como en el pop-up. Quedan los
+dos desplegables escondidos `#cmIdioma` y `#cmVariante`, que siguen siendo el
+ÚNICO camino que repinta (precio, gráfica, aviso): las impresiones mandan al
+de versión y montarAcciones pone en el de idioma el de tu copia, una vez,
+con un `CustomEvent('change', { detail: { deTuCopia: true } })` para que no
+se apunte como elegido a mano (la tarjeta dice entonces «tu copia» y no «tu
+idioma»). «Avísame si baja» va en `#cmAvisoSitio`, debajo del precio, y
+`engancharAvisos` se engancha ahí.
+
+**Las acciones** (`montarAcciones`): dentro del `figure`, como antes,
+`#cartaAcciones` = `.carta-pasos` («−» `#cmMenos`, «Tienes N» `#cmEditar`
+con `#cmTienes`, «+» `#cmAnadir`) + `.carta-redondos` (`#cmQuiero`,
+`#cmCompartir`). Sin copias lleva `mc-sin-copias` y el «+» es el botón
+grande. La copia que suman y restan es `laQueSuma()`: la de la versión y el
+idioma que miras, o la de la versión, o la primera. El «+» cambia «Tienes N»
+ya, escribe con `actualizar` y saca `avisoConDeshacer` (deshacer = volver a
+la cantidad de antes); el «−» de la última pregunta con el mismo `confirm`
+de Mi colección y `borrar`. Si la base dice que no, se vuelve a pedir lo que
+tienes (896). `#cmAnadirOtra` abre la hoja de añadir: es el único camino a una
+copia DISTINTA, así que sale también en el móvil (corto, sin el paréntesis
+`.carta-otra-largo`; la 748 lo cazó: escondido, en el móvil no había forma).
+Va pegado al `</div>` de la barra, sin salto de línea: un nodo de texto de más
+en el `figure` cambia el texto que la 324 compara con el del servidor.
+`#anadir` en la dirección abre la hoja de añadir, como desde la 718.
+
+**El móvil** (js/carta-movil.js): la línea de precio bajo el nombre lee
+`.pv-tarjeta-tuya` (antes la burbuja principal del bloque viejo), y la chapa
+`.carta-tienes` se fue: «Tienes N» lo dice la barra de abajo, donde compartir
+no sale (flota arriba). «Avísame si baja» queda en la pestaña Precio.
+
+**Los datos en filas**: `dl.carta-ficha` lo pinta también el servidor
+(meta-social.js, la 324 compara los dos), así que el cambio es solo CSS:
+cada `div` es una fila flex con el rótulo a la izquierda y el dato a la
+derecha, una columna y dos desde 1.100 px. Las reglas van DETRÁS de las
+compartidas con `.carta-combate`, que si no les ganan por orden.
+
+**El CSS que comparten las dos fichas** pasó a `cardmarket.css` (la cargan
+/carta, /mi-coleccion y /cartas): `.mc-ficha-redondo`, `.mc-paso`,
+`.mc-paso-centro`, `.mc-mas-texto`, `.mc-sin-copias`, `.mc-enlace-chico` y
+el aviso con Deshacer (`.mc-deshacer`, 712), que la 299 cazó sin hoja en
+/carta. Se fueron las losetas `.mc-ficha-tile` (nadie las pinta) y
+`losetaHtml` de js/la-quiero.js. Sobre el fondo de la página los pasos y los
+redondos van en blanco con borde (en el pop-up el fondo ya es blanco).
+
 ## Tanda 915 — La ficha de una carta, como el Dex del móvil
 
 PINGU, con las capturas de Dex delante: «la vista que tienen en el móvil sí
