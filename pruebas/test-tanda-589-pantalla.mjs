@@ -101,14 +101,15 @@ console.log('── 4. La página de la carta: el mismo bloque, y cambia con el 
   await page.goto(`${BASE}${rutaDeCarta({ id: 'xy5-150', name: 'Groudon-EX', name_es: 'Groudon EX' })}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const caja = page.locator('#cmPrecios')
-  check('en español, 140 €', limpio(await caja.locator('.pv-cifra').innerText()) === '140,00 €', limpio(await caja.innerText()).slice(0, 200))
+  check('en español, 140 €', limpio(await caja.locator('.pv-tarjeta-tuya .pv-cifra').innerText()) === '140,00 €', limpio(await caja.innerText()).slice(0, 200))
   check('  …con los dos botones', (await caja.locator('.btn-cardmarket').count()) === 1 && (await caja.locator('.btn-tcgplayer').count()) === 1)
   await page.selectOption('#cmIdioma', 'en')
   await page.waitForTimeout(300)
-  check('en inglés, 194 € y la fila del inglés marcada', limpio(await caja.locator('.pv-cifra').innerText()) === '194,00 €' && limpio(await caja.locator('.pv-fila.pv-activa').innerText()) === 'Inglés elegido 194,00 €', limpio(await caja.locator('.pv-fila.pv-activa').innerText()))
+  // Desde la 916 son tarjetas por idioma: la de arriba es la del idioma puesto.
+  check('en inglés, 194 € y la tarjeta del inglés la primera', limpio(await caja.locator('.pv-tarjeta-tuya .pv-cifra').innerText()) === '194,00 €' && /^EN/.test(limpio(await caja.locator('.pv-tarjeta-tuya').innerText())), limpio(await caja.innerText()).slice(0, 200))
   await page.selectOption('#cmIdioma', 'it')
   await page.waitForTimeout(300)
-  check('en italiano (sin precio), el general: 39 €', limpio(await caja.locator('.pv-cifra').innerText()) === '39,00 €')
+  check('en italiano (sin precio), el general: 39 €', limpio(await caja.locator('.pv-tarjeta-tuya .pv-cifra').innerText()) === '39,00 €')
   check('las notas largas de antes no están', !/Precio general de la carta|lo ves en Cardmarket con el botón/.test(await page.locator('#cartaMercado').innerText()))
 }
 

@@ -60,7 +60,7 @@ console.log('── 2. Lo estático ──')
   const js = leer('js/mi-coleccion.js')
   check('  …y el JS pinta el resumen al abrir y al guardar, y pide el histórico', (js.match(/pintarResumenDeCopia\(/g) || []).length >= 3 && /import\('\.\/carta-historial\.js'\)/.test(js) && /mcEdQuitarResumen'\)\?\.addEventListener\('click', \(\) => \$\('mcEdQuitar'\)\?\.click\(\)\)/.test(js))
   const cm = leer('js/carta-mercado.js')
-  check('/carta pasa las impresiones pulsables y cambia la versión al pulsar una', /impresionesPulsables: true/.test(cm) && /closest\('\.pv-impresion\[data-variante\]'\)/.test(cm))
+  check('/carta pasa las impresiones pulsables y cambia la versión al pulsar una (desde la 916, con `chapasDeImpresiones` encima de las tarjetas)', /chapasDeImpresiones\(listaDeVariantes, estado\.variante, \{ pulsables: true/.test(cm) && /closest\('\.pv-impresion\[data-variante\]'\)/.test(cm))
 }
 
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')

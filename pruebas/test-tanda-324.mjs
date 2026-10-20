@@ -212,12 +212,12 @@ console.log('\n── 3. Las DOS mitades dicen lo mismo, y no se pisan ──')
   // tienen que decir lo mismo: si algún día alguien duplica el molde,
   // esto se pone rojo.
   const { page: p2 } = await abrir('/carta.html?id=sv5-36')
-  // Sin las losetas de Añadir · Editar · Avísame (677): las pone el
-  // cliente dentro del `figure` porque necesitan sesión, y el molde no
+  // Sin las acciones de la carta (677; «− Tienes N +» desde la 916, y su
+  // «Añadir otra copia»): las pone el cliente dentro del `figure` porque necesitan sesión, y el molde no
   // las conoce. Lo que se compara es el MOLDE.
   // Desde la 788, en el PC el precio (#cartaMercado) se muda al lado de los
   // datos, dentro de #cartaNucleo: el borde no lo pinta, y no cuenta.
-  const delCliente = limpio(await p2.locator('#cartaNucleo').evaluate((n) => { const c = n.cloneNode(true); c.querySelector('#cartaAcciones')?.remove(); c.querySelector('#cartaMercado')?.remove(); return c.textContent }))
+  const delCliente = limpio(await p2.locator('#cartaNucleo').evaluate((n) => { const c = n.cloneNode(true); c.querySelector('#cartaAcciones')?.remove(); c.querySelector('#cmAnadirOtra')?.remove(); c.querySelector('#cartaMercado')?.remove(); return c.textContent }))
   check('el borde y el cliente pintan el mismo texto', delBorde === delCliente,
     `borde: ${delBorde.slice(0, 90)} || cliente: ${delCliente.slice(0, 90)}`)
   await p2.close()

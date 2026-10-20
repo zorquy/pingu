@@ -146,7 +146,8 @@ console.log('── 2. En una expansión ──')
 console.log('── 3. La hoja de añadir, la de su maqueta (C5), en Mi colección y en /carta ──')
 for (const [donde, ruta, abrirla, pre] of [
   ['Mi colección', '/mi-coleccion.html?ver=album&set=xy5', async (page) => { await porLaFicha(page, 'xy5-1') }, 'mcAd'],
-  ['/carta', '/carta.html?id=xy5-1', async (page) => { await page.locator('#cmAnadir').click() }, 'cmAd'],
+  // Desde la 916, con copias el «+» suma una igual: la hoja es «Añadir otra copia».
+  ['/carta', '/carta.html?id=xy5-1', async (page) => { await page.locator((await page.isVisible('#cmAnadirOtra')) ? '#cmAnadirOtra' : '#cmAnadir').click() }, 'cmAd'],
 ]) {
   const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
   await ctx.addInitScript(() => {
@@ -617,16 +618,18 @@ console.log('── 11. La ficha de carta de su maqueta (F1) ──')
       flotan: [...document.querySelectorAll('.carta-flotantes [data-flota]')].map((b) => b.getAttribute('aria-label')),
       orden: r('.carta-scan')?.top < r('.carta-cabecera h1')?.top && r('.carta-cabecera h1')?.top < r('.carta-precio-corto')?.top,
       precio: (document.querySelector('.carta-precio-corto b')?.textContent || '').replace(/[  ]/g, ' '),
-      tienes: (document.querySelector('.carta-tienes')?.textContent || '').trim(),
-      acciones: [...document.querySelectorAll('#cartaAcciones .mc-ficha-tile')].filter((x) => x.getBoundingClientRect().height > 0).map((x) => x.textContent.trim()),
+      chapa: document.querySelectorAll('.carta-tienes').length,
+      tienes: (document.getElementById('cmTienes')?.textContent || '').trim(),
+      acciones: [...document.querySelectorAll('#cartaAcciones button[id], #cartaAcciones a[id]')].filter((x) => x.getBoundingClientRect().height > 0).map((x) => x.id),
     }
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('sin las barras del sitio: volver y compartir flotan sobre el arte', !m.navbar && !m.bm && m.flotan.join(' | ') === 'Volver | Compartir', JSON.stringify(m))
   check('la carta primero, luego el nombre y la tarjeta de precio', m.orden && /12,40/.test(m.precio), JSON.stringify(m))
-  check('«Tienes 2» es una chapa', /^Tienes 2$/.test(m.tienes), m.tienes)
-  // Desde la 751, con el corazón de «La quiero» entre los dos.
-  check('abajo, «Añadir», «La quiero» y «Avísame»', m.acciones.length === 3 && /Añadir/.test(m.acciones[0]) && /La quier/.test(m.acciones[1]) && /Avísame/.test(m.acciones[2]), JSON.stringify(m.acciones))
+  // Desde la 916 «Tienes 2» no es una chapa: lo dice la barra de abajo,
+  // «− Tienes 2 +» con el corazón, como en el pop-up (915).
+  check('«Tienes 2» va en la barra de abajo, sin chapa', m.chapa === 0 && m.tienes === 'Tienes 2', JSON.stringify(m))
+  check('abajo, «−», «Tienes 2», «+» y «La quiero»', m.acciones.join() === 'cmMenos,cmEditar,cmAnadir,cmQuiero', JSON.stringify(m.acciones))
   await ctx.close()
 }
 

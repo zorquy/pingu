@@ -81,7 +81,8 @@ console.log('── 2. /carta: las impresiones se pulsan ──')
   await caja.locator('button.pv-impresion[data-variante="reverse"]').click()
   await page.waitForTimeout(300)
   check('al pulsar la reverse, se marca y el desplegable de versión la sigue', (await caja.locator('.pv-impresion.pv-activa').getAttribute('data-variante')) === 'reverse' && (await page.locator('#cmVariante').inputValue()) === 'reverse')
-  check('la fila del idioma elegido dice «elegido» y no «tu copia»', /elegido/.test(limpio(await caja.locator('.pv-fila.pv-activa').innerText())))
+  // Desde la 916, la primera tarjeta es la de tu copia (español), como en el pop-up.
+  check('la primera tarjeta es la del idioma de tu copia y lo dice', /^ES.*tu copia/.test(limpio(await caja.locator('.pv-tarjeta-tuya').innerText())), limpio(await caja.locator('.pv-tarjeta-tuya').innerText()))
 }
 
 check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))

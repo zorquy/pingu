@@ -167,8 +167,8 @@ console.log('── 5. /carta ──')
   check('la versión se elige entre las cuatro, también en las chapas', r.opciones.join() === 'normal,reverse,energy-symbol-pattern,quick-ball' && r.chapas.length === 4 && r.chapas[3] === 'quick-ball:Quick Ball', JSON.stringify(r))
   await page.click('#cmPrecios .pv-impresion[data-variante="quick-ball"]')
   await page.waitForTimeout(600)
-  const precio = await page.evaluate(() => ({ activa: document.querySelector('#cmPrecios .pv-impresion.pv-activa')?.dataset.variante, texto: document.querySelector('#cmPrecios .pv-impresion.pv-activa')?.textContent.replace(/ /g, ' ').trim(), cuantas: document.querySelectorAll('#cmPrecios .pv-fila').length }))
-  check('elegida la Quick Ball, su precio (0,02 € en español) y su tabla por idioma', precio.activa === 'quick-ball' && /0,02/.test(precio.texto || '') && precio.cuantas >= 1, JSON.stringify(precio))
+  const precio = await page.evaluate(() => ({ activa: document.querySelector('#cmPrecios .pv-impresion.pv-activa')?.dataset.variante, texto: document.querySelector('#cmPrecios .pv-impresion.pv-activa')?.textContent.replace(/ /g, ' ').trim(), cuantas: document.querySelectorAll('#cmPrecios .pv-tarjeta').length }))
+  check('elegida la Quick Ball, su precio (0,02 € en español) y sus tarjetas por idioma (916)', precio.activa === 'quick-ball' && /0,02/.test(precio.texto || '') && precio.cuantas >= 1, JSON.stringify(precio))
   await ctx.close()
 }
 

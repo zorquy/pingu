@@ -127,6 +127,8 @@ console.log('\n── 4. La quiero en /carta y un aviso de precio ──')
   check('a los 200 ms el corazón ya está quitado, sin apagarse', (await b.getAttribute('aria-pressed')) === 'false' && !(await b.isDisabled()))
   await page.waitForTimeout(2000)
   check('  …y al contestar, sigue quitado', (await b.getAttribute('aria-pressed')) === 'false')
+  // Desde la 916 «Avísame si baja» va con el precio: en el móvil, su pestaña.
+  await page.click('.carta-pestanas [data-pestana="precio"]')
   await page.locator('[data-aviso]').first().click()
   await page.waitForTimeout(600)
   await page.fill('#pvAvisoUmbral', '10')
