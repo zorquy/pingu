@@ -25,9 +25,9 @@ console.log('── 1. Lo estático ──')
   check('las páginas tienen su caché y entran por la navegación', /const PAGINAS = 'pokedoc-paginas-\d+'/.test(sw) && /if \(esPaginaDeCache\(new URL\(req\.url\)\)\) \{\s*e\.respondWith\(paginaDeCasa\(req, e\)\)/.test(sw))
   check('  …solo la dirección pelada: sin consulta, un solo trozo', /if \(url\.origin !== self\.location\.origin \|\| url\.search\) return false/.test(sw) && /\^\\\/\(\[a-z0-9-\]\*\)\(\\\.html\)\?\$/.test(sw))
   for (const p of ['feria', 'sin-conexion', 'auth', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria']) check(`  …y /${p} se queda fuera`, new RegExp(`SIN_PAGINA = new Set\\(\\[[^\\]]*'${p}'`).test(sw))
-  check('un cambio en una página o en un fichero vacía LAS DOS cachés', /if \(cambio\) await vaciarTodo\(\)/.test(sw) && /for \(const nombre of \[ASSETS, PAGINAS\]\)/.test(sw))
+  check('un cambio en una página o en un fichero vacía LAS DOS cachés', /if \(cambio\) await vaciarTodo\(\)/.test(sw) && /caches\.delete\(ASSETS\), caches\.delete\(PAGINAS\)/.test(sw))
   check('  …y la de páginas sobrevive al activar', /k !== PAGINAS/.test(sw))
-  check('la copia guardada se sirve ya y la red va por detrás', /const guardada = await cache\.match\(req\.url\)[\s\S]*?if \(guardada\) \{\s*e\.waitUntil\(revision\.catch/.test(sw))
+  check('la copia guardada se sirve ya y la red va por detrás', /const guardada = await \(await caches\.open\(PAGINAS\)\)\.match\(req\.url\)[\s\S]*?if \(guardada\) \{\s*e\.waitUntil\(revision\.catch/.test(sw))
   check('  …una respuesta redirigida no se guarda', /fresca\.redirected\) return fresca/.test(sw))
 }
 
