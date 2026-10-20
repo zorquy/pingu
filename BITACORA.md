@@ -4,6 +4,60 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (149) — PINGU-Claude (915 — la ficha de carta, como el Dex del móvil)
+
+**Hecho** (PINGU aprobó la segunda propuesta, con las capturas de Dex: «la
+vista del móvil sí me gusta», y las cuatro preguntas «como lo harías tú»).
+El pop-up de una carta en Mi colección y en Cartas:
+- La carta sola arriba, y debajo el nombre centrado y la expansión.
+- La barra de arriba lleva cerrar, «‹ 9 de 18 ›», el corazón y compartir
+  (compartir es nuevo: la hoja del sistema o el enlace copiado).
+- La fila «Versión» abre la lista de todas, con un check en las que tienes
+  y su precio cuando lo hay. Tocar una tuya cambia la ficha a esa; una que
+  no, abre la hoja de añadir con esa versión.
+- «− Tienes N +»: el «+» suma otra igual a la que miras, con Deshacer; el
+  «−» resta, y la última pregunta antes de quitarla. Sin copias, el «+» es
+  el botón grande «Añadir a mi colección». Tocar «Tienes N» abre tus copias
+  (los campos de siempre) y «Añadir otra copia» abre la hoja de añadir.
+- Precios: una tarjeta por idioma del set (911). La de tu copia va la
+  primera y en azul, los idiomas que nadie vende salen en gris («sin
+  precio») y TCGplayer va la última. Cada tarjeta abre Cardmarket en su
+  idioma. Debajo, «Avísame si baja». Se va la tabla de Cardmarket.
+- «Quién la tiene» es ahora de todos: los que sigues primero, luego los
+  que la dan («la da», que lleva a sus Cambios) y de una colección privada
+  solo lo que se da. Hace falta la migración 915; sin ella, sale lo de
+  antes (solo los que sigues).
+- Los atributos van en filas (icono, rótulo, dato) y el ilustrador y la
+  expansión llevan a su sitio.
+- En el ordenador, la misma columna al lado de la carta, con los atributos
+  en dos columnas.
+
+/carta no cambia todavía (916).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js` (`quienLaTiene(id, {
+todos })`: «La quiero» sigue pidiendo solo a los que sigues),
+`js/precio-vista.js` (`tarjetasDePrecio`), `css/mi-coleccion.css`,
+`css/cardmarket.css`, `supabase-migration-915-quien-la-tiene.sql`
+(NUEVA), `novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`:
+- Nuevas: `test-tanda-915.mjs` y `sql-tanda-915.sql`.
+- El doble aprende `coleccion_quien_la_tiene_todos`.
+- Al día con la ficha nueva: 392, 403, 408, 586, 589, 645, 650, 665, 692,
+  712, 725 y 748.
+
+Resultado del subconjunto de Mi colección (230): 216 verdes antes de los
+arreglos. Los rojos que quedan ya lo estaban antes (385, 461, 467, 475,
+651, 653, 723, 749, 780, 829, 893). Los tres míos (403, 408 y 766) ya
+están en verde. La 766 cazó un fallo de verdad: «La quiero» habría dicho
+«a quien sigues» de gente que no sigues.
+
+**Pendiente**:
+- PINGU: ejecutar `supabase-migration-915-quien-la-tiene.sql`.
+- Siguientes tandas: /carta con la misma columna (916), los botones y los
+  menús (hoja «Tú», cabecera de expansión).
+
 ## 2026-10-20 (148) — PINGU-Claude (914 — la barra lateral, siempre abierta)
 
 **Hecho** (PINGU: «no quiero que se pliegue la barra y quita el icono de

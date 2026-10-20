@@ -556,7 +556,17 @@ export async function ponerPublica(userId, publica) {
 // lee desde fuera: su política solo deja ver la tuya. La función contesta
 // esa pregunta y ninguna otra, y respeta `coleccion_publica` — seguir a
 // alguien no es permiso para mirarle los cajones.
-export async function quienLaTiene(cardId) {
+// Quién la tiene. Por defecto, los que SIGUES (403): es lo que dice «La
+// quiero» («la tiene @ana, a quien sigues»). Con `todos` (la ficha, 915),
+// todos los que enseñan su colección o la dan, los que sigues primero
+// (supabase-migration-915-quien-la-tiene.sql); sin esa migración, los que
+// sigues, como antes.
+export async function quienLaTiene(cardId, { todos = false } = {}) {
+  if (todos) {
+    const r = await supabase.rpc('coleccion_quien_la_tiene_todos', { p_card_id: cardId, p_limite: 12 })
+    if (!r.error) return r.data || []
+    if (!traducir(r.error).sinMigracion) throw traducir(r.error)
+  }
   const { data, error } = await supabase.rpc('coleccion_quien_la_tiene', { p_card_id: cardId })
   if (error) {
     // Sin la migración, el bloque no sale. No es un fallo que haya que

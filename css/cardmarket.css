@@ -1360,3 +1360,148 @@ a.cv-fila:hover {
 .cv-precio {
   font-weight: 700;
 }
+
+/* ── Las tarjetas de precio por idioma (915, SCHEMA 915) ──
+   Una por idioma que se desliza, como las de tienda de Dex; la de tu copia
+   la primera y en azul, la de TCGplayer la última y aparte. */
+.pv-tarjetas {
+  display: flex;
+  gap: var(--e-sm);
+  overflow-x: auto;
+  padding-bottom: var(--e-xs);
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.pv-tarjeta {
+  display: grid;
+  flex: 0 0 auto;
+  align-content: start;
+  gap: 2px;
+  min-width: 112px;
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  color: var(--text);
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+a.pv-tarjeta:hover {
+  background: var(--ice);
+}
+
+.pv-t-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pv-t-cab b {
+  font-weight: 700;
+}
+
+.pv-t-cifra {
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.pv-t-nombre {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pv-tarjeta-sin .pv-t-cifra {
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+/* La de tu copia, en el azul fijo y con el blanco fijo encima (315). */
+.pv-tarjeta-tuya {
+  min-width: 168px;
+  max-width: 232px;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+a.pv-tarjeta-tuya:hover {
+  background: var(--navy-solid-dark);
+}
+
+.pv-tarjeta-tuya .pv-t-cab,
+.pv-tarjeta-tuya .pv-de,
+.pv-tarjeta-tuya .pv-sin {
+  color: var(--blanco-fijo);
+}
+
+.pv-tarjeta-tuya .pv-cifra {
+  margin: 0;
+}
+
+.pv-tarjeta-tuya .pv-cifra.pv-sin {
+  font-size: var(--t-lg);
+}
+
+.pv-chapa-tuya {
+  margin-left: auto;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pv-tarjeta-tcg {
+  margin-left: var(--e-sm);
+}
+
+/* La de TCGplayer es un enlace con la clase de su botón (los dos dicen «ahí
+   está TCGplayer»), pero se pinta como tarjeta. */
+.pv-tarjeta.btn-tcgplayer {
+  display: grid;
+  min-height: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-weight: inherit;
+}
+
+.pv-tarjeta.btn-tcgplayer:hover {
+  background: var(--ice);
+}
+
+.pv-con-tarjetas .pv-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
+}
+
+/* Cardmarket, botón suave: el azul de la marca, solo en su logo. */
+.pv-con-tarjetas .btn-cardmarket,
+.pv-con-tarjetas .pv-botones .btn-tcgplayer {
+  min-height: 44px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.pv-con-tarjetas .btn-cardmarket .cm-marca path {
+  fill: var(--cm-azul, #00256a);
+  stroke: var(--cm-azul, #00256a);
+}
+
+:root[data-theme='dark'] .pv-con-tarjetas .btn-cardmarket .cm-marca path {
+  fill: var(--text);
+  stroke: var(--text);
+}
+
+.pv-con-tarjetas .pv-gradeadas-fuente {
+  margin-top: var(--e-sm);
+}
+

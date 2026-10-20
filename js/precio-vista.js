@@ -216,3 +216,37 @@ export function bloqueDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = E
     ${chapasDeGradeadas(precio?.gradeadas)}
   </div>`
 }
+
+// LAS TARJETAS POR IDIOMA (915). PINGU, con el Dex del móvil delante: los
+// precios en tarjetas que se deslizan. Dex pone una por tienda; aquí va una
+// por IDIOMA, que es lo que hace que la misma carta valga distinto. Los
+// idiomas son los de SU set (911) —el que salió y nadie vende va en gris,
+// «sin precio», que también es saber algo—; sin saberlo, los que tienen
+// cifra. La de tu copia va la primera y en azul, y TCGplayer la última y
+// aparte: no es un idioma. Cada tarjeta abre Cardmarket con ese idioma.
+export function tarjetasDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '', tcgplayerId = null, rotuloActivo = 'tu idioma', idiomasDelSet = null } = {}) {
+  const enlace = (id) => enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma: id, estado, variante, nombre })
+  const e = estadoDe(estado)
+  const por = precio?.porIdioma || {}
+  const p = precioParaIdioma(precio, idioma)
+  const delSet = Array.isArray(idiomasDelSet) && idiomasDelSet.length ? IDIOMAS_CON_PRECIO.filter((id) => idiomasDelSet.includes(id)) : null
+  const otros = (delSet || IDIOMAS_CON_PRECIO.filter((id) => por[id])).filter((id) => id !== idioma)
+  const cab = (id, extra = '') => `<span class="pv-t-cab">${banderaHtml(id)}<b>${escapeHtml(String(id).toUpperCase())}</b>${extra}</span>`
+  const titulo = (id) => `Cardmarket, ${idiomaDe(id).nombre.toLowerCase()} · ${e.nombre}`
+  const tarjetas = [
+    `<a class="pv-tarjeta pv-tarjeta-tuya" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(titulo(idioma))}">${cab(idioma, `<span class="pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>`)}${
+      p
+        ? `<span class="pv-cifra">${euros(p.valor)}</span><span class="pv-de">${escapeHtml(deQueEs(p, { idioma, estado, precio }))}</span>`
+        : '<span class="pv-cifra pv-sin">Sin precio</span><span class="pv-de">Ni Cardmarket ni TCGplayer la tienen todavía.</span>'
+    }</a>`,
+    ...otros.map((id) => `<a class="pv-tarjeta${por[id] ? '' : ' pv-tarjeta-sin'}" href="${escapeHtml(enlace(id))}" target="_blank" rel="noopener" title="${escapeHtml(titulo(id))}">${cab(id)}<span class="pv-t-cifra">${por[id] ? euros(por[id]) : 'sin precio'}</span><span class="pv-t-nombre">${escapeHtml(idiomaDe(id).nombre)}</span></a>`),
+  ]
+  const tp = enlaceTcgplayer(tcgplayerId)
+  if (precio?.tpEur) {
+    const dentro = `<span class="pv-t-cab"><b>TCGplayer</b></span><span class="pv-t-cifra">${euros(precio.tpEur)}</span><span class="pv-t-nombre">EE. UU., en euros</span>`
+    tarjetas.push(tp ? `<a class="pv-tarjeta pv-tarjeta-tcg btn-tcgplayer" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${dentro}</a>` : `<div class="pv-tarjeta pv-tarjeta-tcg">${dentro}</div>`)
+  }
+  const conProducto = Boolean(precio?.idProduct && !precio?.dudoso)
+  const botones = `<a class="btn-cardmarket pv-boton pv-boton-cm" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(conProducto ? titulo(idioma) : 'Buscar en Cardmarket')}">${marcaCardmarket(16)}<span>Cardmarket</span></a>${!precio?.tpEur && tp ? `<a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.zap(14)}<span>TCGplayer</span></a>` : ''}`
+  return `<div class="pv pv-con-tarjetas"><div class="pv-tarjetas">${tarjetas.join('')}</div>${chapasDeGradeadas(precio?.gradeadas)}<div class="pv-botones">${botones}</div></div>`
+}

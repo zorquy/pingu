@@ -1443,67 +1443,50 @@
 
     <dialog class="mc-editor" id="mcEditor" aria-labelledby="mcEditorTitulo">
       <form id="mcEditorForm" method="dialog">
-        <!-- El mando de la ficha (tanda 422). Dos cosas que faltaban:
-             MOVERSE a la carta de al lado sin cerrar y volver a abrir —si
-             estás repasando un set de 200, cerrar la ficha en cada carta
-             son 400 toques— y un botón de CERRAR a la vista. Hasta ahora
-             esta ficha solo se cerraba con Escape o pulsando fuera: en un
-             teléfono no hay Escape, y «pulsa fuera» no se le ocurre a
-             nadie que no lo sepa ya.
-
-             El sitio («12 de 198») no es adorno: es lo que dice si merece
-             la pena seguir pulsando la flecha o es mejor cerrar y buscar.
-             -->
+        <!-- LA FICHA COMO EL DEX DEL MÓVIL (tanda 915, SCHEMA 915). Arriba la
+             carta sola, con cerrar, el sitio en la lista, el corazón y
+             compartir; debajo, una columna de filas grandes: versión, «− Tienes
+             N +», álbumes, precio por idioma, quién la tiene y atributos. En el
+             ordenador, la misma columna al lado de la carta. Los ids son los de
+             siempre: guardar, añadir y deshacer no cambian. -->
         <div class="mc-ficha-mando">
+          <button type="button" class="mc-panel-cerrar" id="mcEdCerrar" aria-label="Cerrar la ficha">✕</button>
           <div class="mc-ficha-pasos" id="mcEdPasos">
             <button type="button" class="mc-ficha-flecha" id="mcEdAnterior" aria-label="La carta anterior">‹</button>
             <span class="mc-ficha-sitio" id="mcEdSitio" aria-live="polite"></span>
             <button type="button" class="mc-ficha-flecha" id="mcEdSiguiente" aria-label="La carta siguiente">›</button>
           </div>
-          <button type="button" class="mc-panel-cerrar" id="mcEdCerrar" aria-label="Cerrar la ficha">✕</button>
+          <div class="mc-ficha-flotan">
+            <button type="button" class="mc-ficha-redondo mc-ficha-quiero hidden" id="mcEdQuiero" aria-pressed="false" title="La quiero"><i aria-hidden="true" data-icono-quiero></i><span class="sr-only">La quiero</span></button>
+            <button type="button" class="mc-ficha-redondo" id="mcEdCompartir" title="Compartir" aria-label="Compartir la carta"><i aria-hidden="true" data-icono="share"></i></button>
+          </div>
         </div>
-        <!-- La ficha de una carta (tanda 393). La carta MANDA: ocupa su
-             columna entera a la izquierda, porque es lo que has venido a
-             mirar. Antes esto era una cabecera estrecha con el escaneo
-             del tamaño de un sello y el diálogo pegado a una esquina.
-
-             A la derecha, en el orden en el que se lee: de dónde es, cómo
-             se llama, qué versión, cuántas tienes, cuánto vale, y al final
-             la tabla de datos — que no es adorno: la rareza, el tipo y el
-             ilustrador son justo por lo que se filtra. -->
         <div class="mc-ficha">
           <div class="mc-ficha-carta">
             <div class="mc-editor-foto" id="mcEdFoto"></div>
-            <!-- LAS ACCIONES, PEGADAS A LA CARTA (tanda 650). PINGU, con
-                 TCGGO delante: «el botón de añadir debería estar arriba;
-                 podrías poner en la carta unos globos como hay en la API».
-                 El «+» abre el diálogo de añadir (que pregunta el idioma),
-                 y «Tienes N» baja a tu copia. Solo con cuenta y si la
-                 colección es la tuya: el JavaScript lo esconde si no. -->
-            <!-- Desde la 667 son LOSETAS como las de TCGGO (PINGU: «debajo
-                 de la carta tienen unos botones bastante más sutiles y
-                 modernos»): Añadir, Editar (si la tienes) y Avísame. Los
-                 iconos los pone el JavaScript por data-icono. -->
-            <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
-              <button type="button" class="mc-ficha-tile mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span>Añadir</span></button>
-              <button type="button" class="mc-ficha-tile hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaBloque"><i aria-hidden="true" data-icono="edit"></i><span>Editar</span><small id="mcEdTienes"></small></button>
-              <button type="button" class="mc-ficha-tile mc-ficha-quiero hidden" id="mcEdQuiero" aria-pressed="false"><i aria-hidden="true" data-icono-quiero></i><span>La quiero</span></button>
-              <button type="button" class="mc-ficha-tile" id="mcEdAviso"><i aria-hidden="true" data-icono="bell"></i><span>Avísame</span></button>
+          </div>
+          <div class="mc-ficha-datos">
+            <div class="mc-ficha-cabecera">
+              <h2 id="mcEditorTitulo">Editar</h2>
+              <p class="mc-ficha-set" id="mcEdSet"></p>
+              <p class="mc-ficha-chapas" id="mcEdChapas"></p>
             </div>
-            <!-- En qué álbum la tienes (752, Y5): bajo las losetas, a la vista,
-                 y no solo en el bloque de abajo, que hay que ir a buscarlo. -->
+            <!-- La versión, como en Dex: una fila que abre la lista de todas,
+                 con un check en las que tienes y su precio si lo hay. -->
+            <button type="button" class="mc-fila mc-fila-version hidden" id="mcEdVersion" aria-expanded="false" aria-controls="mcEdVersiones"><i class="mc-fila-ico" aria-hidden="true" data-icono="sparkles"></i><span class="mc-fila-texto"><small>Versión</small><b id="mcEdVersionNombre"></b></span><i class="mc-fila-flecha" aria-hidden="true" data-icono="chevronRight"></i></button>
+            <div class="mc-versiones hidden" id="mcEdVersiones"></div>
+            <!-- «− Tienes N +»: el «+» suma otra igual que la que miras (con
+                 Deshacer); tocar «Tienes N» abre tus copias. Sin copias, el
+                 «+» es el botón grande de añadir. -->
+            <div class="mc-ficha-acciones hidden" id="mcEdAcciones">
+              <button type="button" class="mc-paso hidden" id="mcEdMenos" aria-label="Una copia menos">−</button>
+              <button type="button" class="mc-paso-centro hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaBloque"><b id="mcEdTienes"></b><span>Editar</span></button>
+              <button type="button" class="mc-paso mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span class="mc-mas-texto">Añadir a mi colección</span></button>
+            </div>
             <p class="mc-copia-album hidden" id="mcEdCopiaAlbum"></p>
-            <!-- TU COPIA, aquí desde la 667: PINGU pidió lo de editar tu
-                 copia «justo debajo de la foto de la carta». -->
-            <section class="mc-ficha-bloque" id="mcEdCopiaBloque">
-              <h3>Tu copia</h3>
+            <section class="mc-ficha-bloque mc-ficha-tuyas" id="mcEdCopiaBloque">
+              <h3>Tus copias</h3>
               <div class="mc-ficha-caja">
-        <!-- TU COPIA, EN RESUMEN (tanda 645). PINGU: «hay demasiada
-             información, está todo pegado». El formulario entero
-             —ocho campos— estaba siempre abierto en una ficha que casi
-             siempre se abre para MIRAR. Ahora se ve lo que es la copia
-             (las chapas), lo que vale, y dos botones: Editar despliega
-             los campos de siempre; Quitar hace lo que hacía. -->
         <div class="mc-copia-resumen" id="mcEdCopiaResumen">
           <p class="mc-ficha-chapas" id="mcEdCopiaChapas"></p>
           <p class="mc-copia-vale" id="mcEdCopiaVale"></p>
@@ -1575,83 +1558,37 @@
                puerta de salida. Hace lo mismo que el cero: pregunta y quita. -->
           <p class="mc-editor-quitar"><button type="button" class="link-btn mc-chip-peligro" id="mcEdQuitar">Quitar de mi colección</button></p>
         </div>
+                <button type="button" class="mc-anadir-otra" id="mcEdAnadirOtra">＋ Añadir otra copia</button>
               </div>
             </section>
-          </div>
-          <div class="mc-ficha-datos">
-            <!-- La cabecera va agrupada (669) para que en el móvil suba
-                 ENCIMA de la carta: PINGU, «el nombre debería salir encima
-                 de la carta, con la información del set». -->
-            <div class="mc-ficha-cabecera">
-              <p class="mc-ficha-set" id="mcEdSet"></p>
-              <h2 id="mcEditorTitulo">Editar</h2>
-              <p class="mc-ficha-chapas" id="mcEdChapas"></p>
-            </div>
-
-            <section class="mc-ficha-bloque">
-              <h3>Precio</h3>
-              <div class="mc-ficha-caja">
-              <!-- EL PRECIO DE TU COPIA (tanda 589): el mínimo en SU idioma,
-                   las chapas de los demás idiomas, los dos botones
-                   (Cardmarket y TCGplayer) y las gradeadas si las hay. Lo
-                   pinta js/precio-vista.js, el mismo bloque que /carta. -->
+            <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
+              <h3>En tus álbumes</h3>
+              <div class="mc-ficha-caja"><div class="mc-chips-filtro" id="mcEdCarpetas"></div></div>
+            </section>
+            <section class="mc-ficha-bloque mc-ficha-precio" id="mcEdPrecioSeccion">
+              <h3>Precio <small>Cardmarket · mínimo Near Mint</small></h3>
               <div id="mcEdPrecioBloque"></div>
-              <!-- El histórico de precios (643), aquí también desde la 645:
-                   lo pinta js/carta-historial.js y sin filas no se ve. -->
+              <p class="mc-ficha-mini"><button type="button" class="mc-enlace-chico" id="mcEdAviso"><i aria-hidden="true" data-icono="bell"></i><span>Avísame si baja</span></button></p>
               <div class="carta-historial hidden" id="mcEdHistorial"></div>
-              <div class="mc-ficha-enlaces">
-                <!-- La ficha ENTERA sigue siendo una página (tanda 392): es
-                     la que indexa Google, la que se comparte y la que trae
-                     los ataques, las reimpresiones y el tablón. Este
-                     diálogo es el atajo de dentro de tu colección. -->
-                <a class="mc-accion" id="mcEdFicha" href="#">Ficha completa</a>
-              </div>
-              </div>
             </section>
-
-            <!-- Una carta que NO tienes (tanda 418) abre la misma ficha; lo
-                 que cambia es que no hay bloque de «tu copia». Añadirla es
-                 el «+» de debajo de la carta, que abre el diálogo de
-                 #mcAnadirDialogo (tanda 650): la 564 puso aquí un botón
-                 por versión «para no meter un paso», y PINGU pidió el
-                 paso —el diálogo de TCGGO que pregunta el idioma—, porque
-                 sin él añadir una segunda copia en otro idioma acababa en
-                 editar la que había. -->
-
-            <!-- SIN CUENTA (tanda 649): la ficha se abre igual desde el
-                 catálogo público, y en vez del botón de añadir dice cómo
-                 tener dónde añadirla. El enlace vuelve a esta misma página. -->
             <section class="mc-ficha-bloque hidden" id="mcEdEntrarBloque">
               <div class="mc-ficha-caja mc-ficha-entrar">
                 <p class="subtext">¿La tienes? Entra y guárdala en tu colección.</p>
                 <a class="btn-primary" id="mcEdEntrar" href="/auth.html?volver=%2Fcartas">Entrar</a>
               </div>
             </section>
-
-
-
-            <!-- Quién de los que sigues la tiene (tanda 403). El bloque
-                 entero se esconde si no hay nadie: un rótulo encima de un
-                 hueco vacío dice «no tienes amigos» sin querer. -->
+            <!-- Quién la tiene (915): todos los que enseñan su colección, los
+                 que sigues primero. Sin nadie, el bloque no sale. -->
             <section class="mc-ficha-bloque hidden" id="mcEdQuienBloque">
-              <h3>La tienen</h3>
-              <div class="mc-ficha-caja"><div class="mc-quien" id="mcEdQuien"></div></div>
+              <h3>Quién la tiene</h3>
+              <div class="mc-quien" id="mcEdQuien"></div>
             </section>
-
-            <!-- En qué carpetas está esta copia (tanda 402). Va antes de
-                 los datos porque es algo TUYO y se toca; los datos de la
-                 carta son de consulta. -->
-            <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
-              <h3>En tus álbumes</h3>
-              <div class="mc-ficha-caja"><div class="mc-chips-filtro" id="mcEdCarpetas"></div></div>
-            </section>
-
             <section class="mc-ficha-bloque">
-              <h3>Datos de la carta</h3>
-              <div class="mc-ficha-caja"><dl class="mc-ficha-tabla" id="mcEdTabla"></dl></div>
+              <h3>Atributos</h3>
+              <div class="mc-atributos" id="mcEdTabla"></div>
             </section>
-          
-</div>
+            <a class="mc-fila mc-fila-ficha" id="mcEdFicha" href="#"><i class="mc-fila-ico" aria-hidden="true" data-icono="cards"></i><span class="mc-fila-texto"><small>Ataques, gráfica y versiones</small><b>Ficha completa</b></span><i class="mc-fila-flecha" aria-hidden="true" data-icono="chevronRight"></i></a>
+          </div>
         </div>
         <!-- Sin botones (tanda 397). Se guarda solo según tocas, así que
              no hay nada que confirmar ni que cancelar; y para quitarla,

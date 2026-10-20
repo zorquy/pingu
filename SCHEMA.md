@@ -41785,6 +41785,92 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 915 — La ficha de una carta, como el Dex del móvil
+
+PINGU, con las capturas de Dex delante: «la vista que tienen en el móvil sí
+me gusta», «despliegas lo de las variantes y te saca con un check las que
+tienes» y «es muy importante enseñar los precios por idioma». Su versión de
+PC no le gusta, así que en el ordenador va la misma columna al lado de la
+carta. A las cuatro preguntas de la propuesta («¿cómo lo harías tú?»), lo
+que se hizo es lo de cada punto de abajo.
+
+**El pop-up** (`#mcEditor`, Mi colección y /cartas; /carta llega en la 916).
+El HTML se reordenó conservando los ids, porque guardar, añadir y deshacer
+no cambian:
+- La barra de arriba: `#mcEdCerrar`, `#mcEdPasos`, `#mcEdQuiero` (solo
+  icono) y `#mcEdCompartir`.
+- `.mc-ficha-carta` lleva solo `#mcEdFoto`. En el móvil, el nombre va
+  DEBAJO de la carta (la 669 lo había subido encima; el estilo Dex lo baja).
+- `.mc-ficha-datos`, en este orden:
+  1. La cabecera.
+  2. `#mcEdVersion` y su lista `#mcEdVersiones`.
+  3. El contador `#mcEdAcciones`: `#mcEdMenos`, `#mcEdEditar` (con
+     `#mcEdTienes`) y `#mcEdMas`.
+  4. `#mcEdCopiaAlbum`.
+  5. `#mcEdCopiaBloque`, «Tus copias»: el resumen y los campos de siempre,
+     más `#mcEdAnadirOtra`.
+  6. Álbumes.
+  7. `#mcEdPrecioSeccion`: el precio, `#mcEdAviso` y el historial.
+  8. Entrar.
+  9. Quién la tiene.
+  10. Los atributos, `#mcEdTabla`, ahora en filas `.mc-fila`.
+  11. `#mcEdFicha`.
+
+**El contador**:
+- Con copia, el «+» suma otra IGUAL a la línea abierta (`sumarCopia`: el
+  campo de copias más `guardarEditor`) y avisa con Deshacer (`deshacerAnadida`
+  con `tipo: 'cantidad'`).
+- El «−» resta. La última pasa por la pregunta del cero.
+- Sin copia, el «+» es el botón grande que abre `abrirAnadir`.
+- Otra copia distinta (otro idioma, estado o versión) se añade desde «Tus
+  copias» → «Añadir otra copia». **Una prueba que quiera la hoja de añadir
+  de una carta que ya tienes va por ahí, no por `#mcEdMas`.**
+
+**Las versiones** (`pintarVersionDeFicha`):
+- Salen las de `variantesQueExisten`. Con una sola, la fila no se pinta.
+- El check marca las que tienes.
+- El precio es el de su fila de TCGGO (862), o el de la carta para la
+  versión que miras. A las demás impresiones TCGGO no les da precio (645),
+  así que van sin cifra.
+- Tocar una tuya abre esa línea; tocar una que no tienes abre
+  `abrirAnadir(id, versión)`.
+
+**Los precios** (`tarjetasDePrecio`, en `js/precio-vista.js`, para que /carta
+la use en la 916):
+- Una tarjeta por idioma DEL SET (`idiomasDeSet`, recordado por set en
+  `idiomasDeLaFicha`, que repinta cuando llega). Sin saberlo, los idiomas
+  que tienen cifra.
+- La de tu copia va la primera, en `--navy-solid` y con `.pv-cifra` y
+  `.pv-de` (los nombres de siempre).
+- Los idiomas sin anuncios salen en gris («sin precio»): es saber algo.
+- TCGplayer va la última, como tarjeta con la clase `btn-tcgplayer` cuando
+  hay enlace.
+- Debajo, el botón suave de Cardmarket (`.btn-cardmarket.pv-boton-cm`,
+  44 px) y las gradeadas plegadas.
+- La tabla de Cardmarket, las burbujas y las chapas de impresión ya no
+  salen en el pop-up. `bloqueDePrecio` sigue para /carta.
+
+**Quién la tiene** (`supabase-migration-915-quien-la-tiene.sql`,
+`coleccion_quien_la_tiene_todos(card, límite)`):
+- Salen los de colección pública, con todas sus copias, y los de colección
+  privada que la DAN, solo con las que dan (lo dado ya es público por la
+  887). Ni tú ni un baneado.
+- Orden: los que sigues, los que la dan, quien más tiene. Incluye el `total`.
+- Anon puede preguntarla.
+- `datos.quienLaTiene(id, { todos: true })` la usa. **Sin `todos` sigue
+  siendo la de los que sigues (403)**, porque «La quiero» escribe «la tiene
+  @ana, a quien sigues». La primera versión de esta tanda lo cambiaba para
+  todos y la 766 lo cazó.
+- En el pop-up van tarjetas de seis en seis. «La da» lleva a `?ver=cambios`
+  del perfil, y la 408 lo distingue de una pestaña mudada porque va pegado a
+  `profileUrl`.
+
+Pruebas: `test-tanda-915.mjs`. Cubre la migración contra PostgreSQL
+(`sql-tanda-915.sql`), la carta arriba y el nombre debajo, la versión con
+check, el contador con Deshacer y la pregunta del cero, las tarjetas por
+idioma (orden, gris, TCGplayer, enlaces), una carta que no tienes, quién la
+tiene (con y sin migración), los atributos y el ordenador.
+
 ## Tanda 914 — La barra lateral del ordenador, siempre abierta
 
 PINGU: «no quiero que se pliegue la barra… cuando abres las expansiones y

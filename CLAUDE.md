@@ -94,6 +94,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   lo que le falte a la que gane se copia de otra de la misma carta
   (`js/constructor/gemelas.js`), sin inventar: la original de un «129/162»
   o lo que todas dicen igual, y lo de jugar solo con los mismos PS.
+- **La ficha de una carta es la de Dex** (tanda 915): carta arriba, versión
+  con check, «− Tienes N +» (el «+» suma una IGUAL con Deshacer; otra
+  distinta va por «Tus copias» → «Añadir otra copia») y los precios en
+  tarjetas por idioma (`tarjetasDePrecio`). Si pintas un precio de carta
+  en otra pantalla, usa esas tarjetas. Y `quienLaTiene` sin `todos` es la
+  de los que SIGUES: «La quiero» lo dice así.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

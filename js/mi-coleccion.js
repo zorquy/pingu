@@ -43,7 +43,7 @@ import {
   euros,
   valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
 import { idiomasDeSet } from './idiomas-de-set.js'
-import { bloqueDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
+import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
@@ -65,7 +65,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
@@ -638,13 +638,26 @@ async function deshacerAnadida(plan, c) {
 // escribe en cada pintada, y el oyente —delegado y enganchado una vez— lo
 // lee al pulsar. Así la ficha puede cambiar de carta sin reenganchar.
 let avisoDatos = null
+// Los idiomas de cada set (911), recordados por set para repintar las
+// tarjetas de precio cuando llegan: un idioma en el que salió y nadie vende
+// sale en gris (915).
+const idiomasDeLaFicha = new Map()
 function pintarPrecioDeFicha(l, c, tuya) {
   const precio = precioDe(l)
-  avisoDatos = { market: c?.market || l.market || 'WEST', idioma: l.idioma, precio: precioParaIdioma(precio, l.idioma)?.valor ?? null }
-  $('mcEdPrecioBloque').innerHTML = bloqueDePrecio(precio, {
+  const market = c?.market || l.market || 'WEST'
+  avisoDatos = { market, idioma: l.idioma, precio: precioParaIdioma(precio, l.idioma)?.valor ?? null }
+  const clave = c?.set_id ? `${market}:${c.set_id}` : null
+  $('mcEdPrecioBloque').innerHTML = tarjetasDePrecio(precio, {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
-    variantes: variantesQueExisten(c, l.variante), rotuloActivo: tuya ? 'tu copia' : 'tu idioma',
+    rotuloActivo: tuya ? 'tu copia' : 'tu idioma', idiomasDelSet: clave ? idiomasDeLaFicha.get(clave) || null : null,
   })
+  if (clave && !idiomasDeLaFicha.has(clave)) {
+    idiomasDeLaFicha.set(clave, null)
+    void idiomasDeSet(c.set_id, market).then((lista) => {
+      idiomasDeLaFicha.set(clave, lista || null)
+      if (lista?.length && $('mcEditor').open && cartaAbierta === l.card_id) pintarPrecioDeFicha(lineaDeLaFicha() || l, c, tuya)
+    })
+  }
   // El resumen de tu copia (645), con los campos plegados: se abre para
   // mirar, y Editar los despliega.
   if (tuya) pintarResumenDeCopia(l, precio)
@@ -688,15 +701,89 @@ function pintarAccionesDeFicha(l) {
   caja.classList.toggle('hidden', !esMia || !sesion)
   const n = misLineasDe(l.card_id).reduce((a, x) => a + (Number(x.cantidad) || 0), 0)
   const tienes = $('mcEdTienes')
+  // «Tienes N» cuenta todas tus copias de la carta (915: «− Tienes 2 +»,
+  // como en Dex); al lado, cuántas son de la que miras si no son todas.
+  const deEsta = Number(l.cantidad) || 0
   tienes.classList.toggle('hidden', n === 0)
   tienes.textContent = n ? `Tienes ${n}` : ''
   // Editar sale si la línea es TUYA (l.id), aunque la cuenta de este
   // catálogo dé cero: desde el Panel se abre una carta de OTRO catálogo
   // (648) y sus líneas no están en `lineas`.
   $('mcEdEditar')?.classList.toggle('hidden', !l.id)
+  // Sin copia, el «+» es el botón grande de añadir (abre la hoja de
+  // siempre, que pregunta el idioma); con copia, suma otra igual a esta.
+  const conCopia = Boolean(l.id)
+  caja.classList.toggle('mc-sin-copias', !conCopia)
+  $('mcEdMenos')?.classList.toggle('hidden', !conCopia)
+  const mas = $('mcEdMas')
+  if (mas) {
+    mas.setAttribute('aria-label', conCopia ? `Una copia más (${deEsta} de esta)` : 'Añadir a mi colección')
+    mas.title = conCopia ? 'Una copia más, igual que esta' : 'Añadir a mi colección'
+  }
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
   pintarLoseta(l.card_id || null)
+}
+
+// La línea que la ficha tiene abierta, o null si es una carta que no tienes.
+const lineaDeLaFicha = () => lineas.find((x) => x.id === $('mcEditor').dataset.linea) || null
+
+// «− Tienes N +» (915), como en Dex: el «+» suma otra IGUAL a la que miras
+// (idioma, estado y versión) y lo dice con Deshacer; el «−» quita una, y la
+// última pasa por la pregunta de siempre (el cero del contador es quitarla).
+// Para otra distinta se toca «Tienes N» y «Añadir otra copia».
+async function sumarCopia(l, paso) {
+  const antes = Number(l.cantidad) || 0
+  $('mcEdCantidad').value = String(Math.max(0, antes + paso))
+  await guardarEditor()
+  const ahora = lineas.find((x) => x.id === l.id)
+  if (paso < 0 || !ahora || Number(ahora.cantidad) !== antes + paso) return
+  const c = cartaPorId(l.card_id)
+  const total = misLineasDe(l.card_id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
+  avisoConDeshacer({
+    html: `<span><b>${escapeHtml(nombreDe(c) || l.card_id)}</b>: una más · ya tienes ${total}</span>`,
+    alDeshacer: async () => {
+      if (await deshacerAnadida({ tipo: 'cantidad', id: l.id, cantidad: antes }, c)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
+    },
+  })
+}
+
+// El precio de UNA versión en la hoja de versiones (915): el de su fila de
+// TCGGO si la tiene (la Quick Ball, la Reverse de un set viejo, 862), o el
+// de la carta para la versión que miras. Las demás impresiones no tienen
+// cifra propia (TCGGO no la da, 645) y van sin ella, no con una inventada.
+function precioDeVersionEnFicha(l, id) {
+  const propia = datos.versionesRegistradas(l.card_id).some((f) => varianteDeEtiqueta(f.etiqueta) === id)
+  if (!propia && id !== (l.variante || 'normal')) return null
+  return precioParaIdioma(precioDe({ ...l, variante: id }), l.idioma)?.valor ?? null
+}
+
+// LA VERSIÓN, EN UNA FILA (915): dice cuál miras y abre la lista de todas,
+// con un check en las que tienes y su precio cuando lo hay. Con una sola
+// versión, la fila no sale. Tocar una que tienes cambia la ficha a esa
+// copia; una que no, abre la hoja de añadir con esa versión puesta.
+function pintarVersionDeFicha(l, c) {
+  const fila = $('mcEdVersion')
+  const lista = $('mcEdVersiones')
+  if (!fila || !lista) return
+  const actual = l.variante || 'normal'
+  const versiones = variantesQueExisten(c, actual)
+  fila.classList.toggle('hidden', versiones.length < 2)
+  fila.setAttribute('aria-expanded', 'false')
+  lista.classList.add('hidden')
+  $('mcEdVersionNombre').textContent = nombreDeVariante(actual)
+  const mias = misLineasDe(l.card_id)
+  lista.innerHTML = versiones
+    .map((v) => {
+      const tengo = mias.filter((x) => (x.variante || 'normal') === v.id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
+      const precio = precioDeVersionEnFicha(l, v.id)
+      return `<button type="button" class="mc-version${v.id === actual ? ' activa' : ''}" data-version="${escapeHtml(v.id)}" aria-pressed="${v.id === actual}">
+        <span class="mc-version-texto"><b>${escapeHtml(v.nombre)}</b><small>${tengo ? `Tienes ${tengo}` : 'No la tienes'}</small></span>
+        <span class="mc-version-precio">${precio != null ? euros(precio) : ''}</span>
+        <span class="mc-version-check${tengo ? ' si' : ''}" aria-label="${tengo ? 'La tienes' : 'No la tienes'}">${tengo ? '✓' : ''}</span>
+      </button>`
+    })
+    .join('')
 }
 
 // Tus OTRAS líneas de esta carta, para cambiar la ficha a ellas.
@@ -2169,6 +2256,7 @@ function abrirEditor(l) {
   // colección no muestran precio; eso no debería ser así».
   if (!datos.tieneCifras(precio)) void completarPrecioDeFicha(l, c, tuya)
   pintarOtrasCopias(l)
+  pintarVersionDeFicha(l, c)
   $('mcEdCopiaCampos')?.classList.add('hidden')
   $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
   // Y el histórico (643): se pide al abrir y se calla si no hay filas.
@@ -2238,34 +2326,34 @@ function direccionDeIlustrador(c) {
   return `${location.pathname}?${p}`
 }
 
+// LOS ATRIBUTOS EN FILAS (915), como en Dex: un icono, el rótulo pequeño y
+// el dato en grande; las que llevan a otra parte, con su flecha. Lo que no
+// se sabe no se pinta (la regla de los tres estados, tanda 319).
 function tablaDeCarta(c) {
   if (!c) return ''
   const fecha = c.tcg_sets?.release_date
-  const enlace = (href, texto) => `<a href="${escapeHtml(href)}">${escapeHtml(texto)}</a>`
+  const fila = (icono, rotulo, valor, href = null) => {
+    const dentro = `<span class="mc-fila-ico" aria-hidden="true">${icono}</span><span class="mc-fila-texto"><small>${escapeHtml(rotulo)}</small><b>${valor}</b></span>`
+    return href
+      ? `<a class="mc-fila mc-atrib" href="${escapeHtml(href)}">${dentro}<span class="mc-fila-flecha" aria-hidden="true">${icons.chevronRight(16)}</span></a>`
+      : `<div class="mc-fila mc-atrib">${dentro}</div>`
+  }
+  const set = nombreDeSet(c.tcg_sets) || c.set_id
+  const numero = c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? `/${c.tcg_sets.card_count_official}` : ''}` : ''
+  const tipos = Array.isArray(c.types) ? c.types.filter(Boolean) : []
   const filas = [
-    // La expansión, enlazada (667), como el ilustrador: «si le doy, que me
-    // lleve al set; al ilustrador, a todas sus cartas».
-    ['Expansión', nombreDeSet(c.tcg_sets) || c.set_id ? { html: enlace(direccionDeSet(c), nombreDeSet(c.tcg_sets) || c.set_id) } : ''],
-    ['Tipo', categoriaEs(c.category)],
-    ['Energía', Array.isArray(c.types) && c.types.length ? c.types.map(tipoEs).join(', ') : ''],
-    ['Rareza', rarezaDeCarta(c)],
-    ['Número', c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? ` / ${c.tcg_sets.card_count_official}` : ''}` : ''],
-    ['Ilustrador', c.illustrator ? { html: enlace(direccionDeIlustrador(c), c.illustrator) } : ''],
-    ['Salida', fecha ? new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''],
+    c.illustrator ? fila(icons.palette(18), 'Ilustrador', escapeHtml(c.illustrator), direccionDeIlustrador(c)) : '',
+    fecha ? fila(icons.calendar(18), 'Salió', escapeHtml(new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }))) : '',
+    set ? fila(icons.layers(18), 'Expansión', `${escapeHtml(set)}${numero ? ` · ${escapeHtml(numero)}` : ''}`, direccionDeSet(c)) : '',
+    // La rareza lleva su marca impresa (la de la esquina de la carta).
+    rarezaDeCarta(c) ? fila(marcaDeCartaHtml(c) || icons.star(18), 'Rareza', escapeHtml(rarezaDeCarta(c))) : '',
+    tipos.length ? fila(simboloDeTipoHtml(tipos[0], { tam: 20 }) || icons.droplet(18), 'Tipo de energía', escapeHtml(tipos.map(tipoEs).join(', '))) : '',
+    c.category ? fila(icons.cards(18), 'Categoría', escapeHtml(categoriaEs(c.category))) : '',
     // El número nacional solo si la carta es de UNA especie: una TAG TEAM
     // lleva dos y «25, 133» no es un número de Pokédex, es una lista.
-    ['N.º nacional', Array.isArray(c.dex_ids) && c.dex_ids.length === 1 ? String(c.dex_ids[0]) : ''],
+    Array.isArray(c.dex_ids) && c.dex_ids.length === 1 ? fila(icons.hash(18), 'N.º nacional', escapeHtml(String(c.dex_ids[0]))) : '',
   ]
-  return filas
-    .filter(([, v]) => v)
-    .map(([k, v]) => {
-      // La rareza lleva su marca impresa delante: es la que trae la carta
-      // en la esquina de abajo, así que con ella la ficha se compara con
-      // lo que tienes en la mano sin leer nada.
-      const marca = k === 'Rareza' ? marcaDeCartaHtml(c) : ''
-      return `<div><dt>${escapeHtml(k)}</dt><dd>${marca}${v && typeof v === 'object' && v.html ? v.html : escapeHtml(String(v))}</dd></div>`
-    })
-    .join('')
+  return filas.filter(Boolean).join('')
 }
 
 // ── Se guarda SOLO (tanda 397) ──
@@ -2386,6 +2474,9 @@ async function guardarEditor({ retardo = 0 } = {}) {
     // que acabas de poner es justo lo que la chapa no decía.
     $('mcEdChapas').innerHTML = chipsDe(nueva)
     pintarResumenDeCopia(nueva, precioDe(nueva))
+    // Y el «Tienes N» y la versión (915): el contador de arriba es el mismo dato.
+    pintarAccionesDeFicha(nueva)
+    pintarVersionDeFicha(nueva, cartaPorId(nueva.card_id))
     // Y la rejilla de detrás, al día: si cambias la versión o las
     // copias, la casilla lo dice.
     repintar()
@@ -5295,26 +5386,35 @@ async function pintarQuienLaTiene(cardId) {
   bloque.classList.add('hidden')
   let gente = []
   try {
-    gente = await datos.quienLaTiene(cardId)
+    gente = await datos.quienLaTiene(cardId, { todos: true })
   } catch {
     return
   }
   // Puede haber llegado tarde: si mientras tanto se ha abierto otra
-  // carta, esto pintaría la gente de la anterior.
-  const l = lineas.find((x) => x.id === $('mcEditor').dataset.linea)
-  if (!l || l.card_id !== cardId) return
+  // carta, esto pintaría la gente de la anterior. Se mira la CARTA abierta
+  // y no la línea: una que no tienes no tiene línea (915).
+  if (!$('mcEditor').open || cartaAbierta !== cardId) return
   if (!gente.length) return
   bloque.classList.remove('hidden')
-  hueco.innerHTML = gente
-    .map((g) => {
-      const nombre = g.display_name || g.username || 'Alguien'
-      return `<a class="mc-quien-persona" href="${escapeHtml(profileUrl(g))}"${atributosDeRango(g)}>
-        <span class="mini-avatar" style="${avatarStyle(g)}">${g.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-        <span class="mc-quien-nombre">${escapeHtml(nombre)}</span>
-        <span class="mc-quien-cuantas">×${Number(g.copias) || 1}</span>
+  // Tarjetas como las de Dex (915): la persona, cuántas tiene y «la da» si
+  // la cambia. Las seis primeras; el resto, a un toque.
+  const total = Number(gente[0]?.total) || gente.length
+  const persona = (g) => {
+    const nombre = g.display_name || g.username || 'Alguien'
+    const da = Number(g.da) || 0
+    return `<a class="mc-quien-persona" href="${escapeHtml(profileUrl(g) + (da ? `${profileUrl(g).includes('?') ? '&' : '?'}ver=cambios` : ''))}"${atributosDeRango(g)}>
+        <span class="mc-quien-arriba"><span class="mini-avatar" style="${avatarStyle(g)}">${g.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span><span class="mc-quien-nombre">${escapeHtml(nombre)}</span></span>
+        <span class="mc-quien-abajo"><span class="mc-quien-cuantas">×${Number(g.copias) || 1}</span>${da ? '<span class="mc-quien-da">la da</span>' : g.sigues ? '<span class="mc-quien-sigues">la sigues</span>' : ''}</span>
       </a>`
-    })
-    .join('')
+  }
+  const mas = gente.length - 6
+  hueco.innerHTML = gente.slice(0, 6).map(persona).join('')
+    + (mas > 0 ? `<button type="button" class="mc-quien-mas" data-quien-mas>Ver ${mas} más</button>` : '')
+    + (total > gente.length ? `<p class="mc-quien-pie">Y ${total - gente.length} más que la tienen.</p>` : '')
+  hueco.querySelector('[data-quien-mas]')?.addEventListener('click', (e) => {
+    e.currentTarget.insertAdjacentHTML('beforebegin', gente.slice(6).map(persona).join(''))
+    e.currentTarget.remove()
+  }, { once: true })
 }
 
 async function pintarCarpetasDeLaFicha(lineId) {
@@ -6113,7 +6213,49 @@ function enganchar() {
 
   // ── La nota, plegada (tanda 405) ──
   // ── Añadir, como en TCGGO (tanda 650) ──
-  $('mcEdMas')?.addEventListener('click', () => cartaAbierta && abrirAnadir(cartaAbierta))
+  // «− Tienes N +» (915): con copia, el «+» suma otra igual; sin ella, abre
+  // la hoja de añadir (que pregunta el idioma).
+  $('mcEdMas')?.addEventListener('click', () => {
+    if (!cartaAbierta) return
+    const l = lineaDeLaFicha()
+    if (l && l.card_id === cartaAbierta) void sumarCopia(l, 1)
+    else abrirAnadir(cartaAbierta)
+  })
+  $('mcEdMenos')?.addEventListener('click', () => {
+    const l = lineaDeLaFicha()
+    if (l) void sumarCopia(l, -1)
+  })
+  $('mcEdAnadirOtra')?.addEventListener('click', () => cartaAbierta && abrirAnadir(cartaAbierta))
+  $('mcEdVersion')?.addEventListener('click', () => {
+    const lista = $('mcEdVersiones')
+    const abrir = lista.classList.contains('hidden')
+    lista.classList.toggle('hidden', !abrir)
+    $('mcEdVersion').setAttribute('aria-expanded', String(abrir))
+  })
+  $('mcEdVersiones')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-version]')
+    if (!b || !cartaAbierta) return
+    const mia = misLineasDe(cartaAbierta).find((x) => (x.variante || 'normal') === b.dataset.version)
+    if (mia) abrirEditor(mia)
+    else abrirAnadir(cartaAbierta, b.dataset.version)
+  })
+  // Compartir la carta (915): su ficha pública, con la hoja del sistema si
+  // la hay y, si no, el enlace copiado.
+  $('mcEdCompartir')?.addEventListener('click', async () => {
+    const c = cartaPorId(cartaAbierta)
+    if (!c) return
+    const url = new URL(rutaDeCarta(c), location.origin).href
+    const titulo = `${nombreDe(c)} · PokeDoc`
+    try {
+      if (navigator.share) await navigator.share({ title: titulo, url })
+      else {
+        await navigator.clipboard.writeText(url)
+        showToast('Enlace copiado.', 'success')
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') showToast('No se ha podido compartir. Copia la dirección de la ficha completa.', 'error')
+    }
+  })
   $('mcEdOtrasCopias')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-linea-otra]')
     const otra = b && lineas.find((x) => x.id === b.dataset.lineaOtra)
@@ -6158,8 +6300,8 @@ function enganchar() {
   $('mcEdQuitarResumen')?.addEventListener('click', () => $('mcEdQuitar')?.click())
   // Los iconos de las losetas (667) y el «Avísame», delegado una vez: la
   // loseta lleva el id de la carta abierta en data-aviso.
-  for (const i of document.querySelectorAll('#mcEdAcciones [data-icono]')) i.innerHTML = icons[i.dataset.icono]?.(16) || ''
-  engancharAvisos($('mcEdAcciones'), () => avisoDatos || {})
+  for (const i of document.querySelectorAll('#mcEditor [data-icono]')) i.innerHTML = icons[i.dataset.icono]?.(18) || ''
+  engancharAvisos($('mcEdPrecioSeccion'), () => avisoDatos || {})
   // El corazón (751): pone o quita la carta abierta de «La quiero».
   for (const i of document.querySelectorAll('[data-icono-quiero]')) i.innerHTML = laQuiero.corazon(16)
   $('mcEdQuiero')?.addEventListener('click', async () => {
