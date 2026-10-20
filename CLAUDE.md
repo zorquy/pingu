@@ -103,6 +103,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   En el móvil no lleva mando arriba (920): se cierra arrastrando y se pasa
   de carta de lado; lo que se desliza DENTRO de la ficha se desliza
   (`seDesplazaDeLado`), y las tarjetas de precio son los enlaces (sin botón).
+  En el ordenador es un pop-up ANCHO y modal (921): no hay ficha «al lado»;
+  la carta a la izquierda, los datos en dos columnas a la derecha. Una hoja
+  que se abra DENTRO de la ficha en el móvil (versión, tus copias) lleva
+  `data-sin-arrastre`, o el arrastre de hojas (804) cierra la ficha entera.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

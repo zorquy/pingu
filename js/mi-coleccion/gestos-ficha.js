@@ -48,16 +48,22 @@ export function seDesplazaDeLado(el, hasta, { win = window } = {}) {
   return false
 }
 
+// Con una HOJA DENTRO abierta (921: la versión o tus copias, en el móvil),
+// el dedo es de ella: abajo la cierra a ella y no a la ficha, y de lado no
+// pasa de carta. `acciones.subhoja()` dice cuál está abierta; tocar su velo
+// también cuenta como tocarla.
 export function engancharGestos(hoja, acciones, { win = window } = {}) {
   let inicio = null
   let tira = false
   hoja.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1 || e.target.closest?.(AJENO)) {
+    const sub = acciones.subhoja?.() || null
+    if (e.touches.length !== 1 || e.target.closest?.(AJENO) || (sub && !sub.contains(e.target) && !e.target.closest?.('.mc-subvelo'))) {
       inicio = null
       return
     }
     const t = e.touches[0]
-    inicio = { x: t.clientX, y: t.clientY, arriba: hoja.scrollTop <= 0, deLado: seDesplazaDeLado(e.target, hoja, { win }) }
+    const movil = sub || hoja
+    inicio = { x: t.clientX, y: t.clientY, arriba: movil.scrollTop <= 0, deLado: Boolean(sub) || seDesplazaDeLado(e.target, hoja, { win }), sub }
     tira = false
   }, { passive: true })
   hoja.addEventListener('touchmove', (e) => {
@@ -71,7 +77,7 @@ export function engancharGestos(hoja, acciones, { win = window } = {}) {
     if (inicio.arriba && dy > 0 && dy > Math.abs(dx)) {
       tira = true
       if (e.cancelable) e.preventDefault()
-      hoja.style.transform = `translateY(${Math.round(dy)}px)`
+      ;(inicio.sub || hoja).style.transform = `translateY(${Math.round(dy)}px)`
     }
   }, { passive: false })
   const soltar = (e) => {
@@ -79,13 +85,19 @@ export function engancharGestos(hoja, acciones, { win = window } = {}) {
     const t = e.changedTouches[0]
     let gesto = decidirGesto({ dx: t.clientX - inicio.x, dy: t.clientY - inicio.y }, { arriba: inicio.arriba })
     if (inicio.deLado && (gesto === 'anterior' || gesto === 'siguiente')) gesto = null
+    const sub = inicio.sub
     inicio = null
-    if (tira) hoja.style.transform = ''
+    if (tira) (sub || hoja).style.transform = ''
     tira = false
+    if (sub) {
+      if (gesto === 'cerrar') acciones.cerrarSub?.()
+      return
+    }
     if (gesto) acciones[gesto]?.()
   }
   hoja.addEventListener('touchend', soltar)
   hoja.addEventListener('touchcancel', () => {
+    if (inicio?.sub) inicio.sub.style.transform = ''
     inicio = null
     hoja.style.transform = ''
   })

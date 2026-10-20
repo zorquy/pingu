@@ -77,7 +77,6 @@ import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
 import { entenderBusqueda, partirBusqueda } from './mi-coleccion/busqueda.js'
 import { buscarCartas as buscarCartasComun, buscarPorIlustrador as buscarPorIlustradorComun, buscarComoEnCartas } from './buscar-cartas.js'
-import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
 
@@ -757,6 +756,19 @@ function precioDeVersionEnFicha(l, id) {
   return precioParaIdioma(precioDe({ ...l, variante: id }), l.idioma)?.valor ?? null
 }
 
+// La ficha en el ordenador (921): un pop-up ancho, en dos columnas. Lo que
+// en el móvil se abre en su hoja, aquí va a la vista.
+const fichaAncha = () => Boolean(window.matchMedia?.('(min-width: 761px)').matches)
+
+// Con el dedo, la lista de versiones y tus copias se abren en una hoja
+// encima de la ficha (921); esto las cierra por el mismo botón que las
+// abrió, que es quien sabe en qué estado deja su rótulo.
+function cerrarSubhojas() {
+  if (fichaAncha()) return
+  if (!$('mcEdVersiones')?.classList.contains('hidden')) $('mcEdVersion')?.click()
+  if (!$('mcEdCopiaBloque')?.classList.contains('hidden')) $('mcEdEditar')?.click()
+}
+
 // LA VERSIÓN, EN UNA FILA (915): dice cuál miras y abre la lista de todas,
 // con un check en las que tienes y su precio cuando lo hay. Con una sola
 // versión, la fila no sale. Tocar una que tienes cambia la ficha a esa
@@ -769,7 +781,9 @@ function pintarVersionDeFicha(l, c) {
   const versiones = variantesQueExisten(c, actual)
   fila.classList.toggle('hidden', versiones.length < 2)
   fila.setAttribute('aria-expanded', 'false')
-  lista.classList.add('hidden')
+  // En el ordenador (921) la lista va siempre a la vista, en chips; en el
+  // móvil se abre desde la fila, en su propia hoja.
+  lista.classList.toggle('hidden', !(fichaAncha() && versiones.length > 1))
   $('mcEdVersionNombre').textContent = nombreDeVariante(actual)
   const mias = misLineasDe(l.card_id)
   lista.innerHTML = versiones
@@ -2190,6 +2204,19 @@ function abrirEditor(l) {
   // El holo se monta sobre el envoltorio recién pintado. A demanda, como
   // en /carta: con el dedo o con «menos movimiento» puesto no se monta
   // nada, así que tampoco hace falta bajar el módulo.
+  // Detrás de la carta, sus propios colores difuminados (921, como Dex): el
+  // fondo es la foto que acaba de cargar, la que haya salido de la cadena.
+  const fondo = $('mcEdFondo')
+  const foto = $('mcEdFoto').querySelector('img')
+  if (fondo) {
+    fondo.style.backgroundImage = ''
+    const poner = () => {
+      const u = urlParaCss(foto.currentSrc || foto.src)
+      fondo.style.backgroundImage = u ? `url("${u}")` : ''
+    }
+    if (foto?.complete && foto.naturalWidth) poner()
+    else foto?.addEventListener('load', poner, { once: true })
+  }
   const caja = $('mcEdFoto').querySelector('.carta-scan-holo')
   if (caja) import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
   $('mcEditorTitulo').textContent = nombreDe(c)
@@ -2285,14 +2312,11 @@ function abrirEditor(l) {
   // `showModal()` sobre un diálogo YA abierto revienta (InvalidStateError):
   // con las flechas de la 422 se repinta la misma ficha una y otra vez sin
   // cerrarla, así que abrir dejó de ser siempre lo primero que pasa.
-  // En una pantalla ancha, desde la rejilla de Cartas, a la derecha y sin
-  // modal (740): la rejilla sigue a la vista y se puede abrir otra.
+  // Siempre en el centro y modal desde la 921 (PINGU: «antes se abría en un
+  // pop-up central, que es bastante mejor»): la ficha a la derecha de la 740
+  // apartaba la rejilla y la dejaba en cuatro cartas por fila.
   const yaAbierta = d.open
-  const alLado = vaAlLado({ ancha: window.matchMedia?.(FICHA_AL_LADO).matches, anchaExpansion: window.matchMedia?.(FICHA_AL_LADO_EXPANSION).matches, vista: pestania })
-  abrirFichaDonde(d, { alLado })
-  // La abierta se marca en la rejilla (748, D2): con la ficha al lado, la
-  // rejilla sigue a la vista y hay que ver cuál de ellas es la de la derecha.
-  marcarAbierta(alLado && c ? c.id : null)
+  if (!yaAbierta) d.showModal()
   // Y al cambiar de carta, arriba: la ficha es otra, y quedarse a media
   // altura de la anterior deja la carta nueva fuera de la pantalla.
   if (yaAbierta) d.scrollTop = 0
@@ -3171,17 +3195,6 @@ async function cambiarFavorita() {
 }
 
 // ── Abrir y cerrar el archivador ──
-// La ficha de al lado es de la expansión que estabas mirando (748).
-function cerrarFichaAlLado() {
-  if ($('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
-}
-
-function marcarAbierta(id) {
-  for (const e of document.querySelectorAll('.mc-abierta')) e.classList.remove('mc-abierta')
-  if (!id) return
-  for (const e of document.querySelectorAll(`#mcAlbum [data-carta="${CSS.escape(id)}"], #mcRejilla [data-carta="${CSS.escape(id)}"]`)) e.classList.add('mc-abierta')
-}
-
 // LA BARRA PEGADA DEL MÓVIL (856): cuando la cabecera de la expansión se va
 // por arriba, sale una barra fija con la flecha y el nombre; al volver a
 // verse la cabecera, se esconde. Lo decide el `IntersectionObserver` sobre
@@ -3200,7 +3213,6 @@ function vigilarCabeceraDeAlbum() {
 
 function volverALaEstanteria({ push = true } = {}) {
   $('mcAlbumPegada')?.classList.add('hidden')
-  cerrarFichaAlLado()
   if (push) irA({ set: null })
   album.set = null
   album.pagina = 0
@@ -3219,7 +3231,6 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // una rejilla pasa por aquí—, y una guarda con red de repuesto no se
   // puede probar, porque quitarla no cambia nada (CLAUDE.md).
   if (marcadas) modoMarcar(false)
-  if (album.set !== setId) cerrarFichaAlLado()
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -5174,11 +5185,6 @@ function centrarPestaniaActiva() {
 function cambiarPestania(nueva, { push = true } = {}) {
   // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
-  // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña
-  // se quedaría flotando encima de lo que no es suyo.
-  // Y desde la 748 también es de una expansión: se cierra al cambiar de
-  // pestaña, sea a la que sea.
-  if (nueva !== pestania && $('mcEditor')?.classList.contains('mc-ficha-al-lado')) $('mcEditor').close()
   const otra = nueva !== pestania
   // Lo seleccionado es de la rejilla que estabas mirando.
   if (otra && marcadas) modoMarcar(false)
@@ -6152,7 +6158,10 @@ function enganchar() {
     if (!b || !cartaAbierta) return
     const mia = misLineasDe(cartaAbierta).find((x) => (x.variante || 'normal') === b.dataset.version)
     if (mia) abrirEditor(mia)
-    else abrirAnadir(cartaAbierta, b.dataset.version)
+    else {
+      cerrarSubhojas()
+      abrirAnadir(cartaAbierta, b.dataset.version)
+    }
   })
   // Compartir la carta (915): su ficha pública, con la hoja del sistema si
   // la hay y, si no, el enlace copiado.
@@ -6636,12 +6645,19 @@ function enganchar() {
       siguiente: () => deLado(1),
       cerrar: () => $('mcEdCerrar')?.click(),
       subir: () => $('mcEditor').classList.add('mc-editor-entera'),
+      subhoja: () => (fichaAncha() ? null : [$('mcEdVersiones'), $('mcEdCopiaBloque')].find((x) => x && !x.classList.contains('hidden')) || null),
+      cerrarSub: cerrarSubhojas,
     })
+    $('mcEdSubvelo')?.addEventListener('click', cerrarSubhojas)
     $('mcEditor').addEventListener('close', () => $('mcEditor').classList.remove('mc-editor-entera'))
   }
-  // Al cerrar con la «×», la carta vuelve a su hueco (796, MV12); al lado, no.
-  $('mcEdCerrar')?.addEventListener('click', () => ($('mcEditor').classList.contains('mc-ficha-al-lado') ? $('mcEditor').close() : volverAlHueco(() => $('mcEditor').close())))
-  if ($('mcEditor')) engancharFichaAlLado($('mcEditor'), { vecino: (paso) => void abrirVecino(paso) })
+  // Al cerrar con la «×», la carta vuelve a su hueco (796, MV12).
+  $('mcEdCerrar')?.addEventListener('click', () => volverAlHueco(() => $('mcEditor').close()))
+  // En el ordenador, tocar fuera del pop-up lo cierra (921): sin relleno,
+  // un clic en el propio <dialog> solo puede ser en su fondo.
+  $('mcEditor')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget && fichaAncha()) volverAlHueco(() => $('mcEditor').close())
+  })
   document.addEventListener('pokedoc:lateral', () => void montarAlbumesLaterales())
   // Y con el teclado, que es como se repasa una lista larga. Solo cuando
   // el foco NO está en un campo: dentro de un desplegable o de un número
@@ -6723,7 +6739,6 @@ function enganchar() {
   // Y al cerrar, lo que quedara en el aire se manda: si no, escribir una
   // nota y pulsar fuera antes de los 600 ms la perdería.
   $('mcEditor').addEventListener('close', () => {
-    marcarAbierta(null)
     if (guardadoPendiente) {
       clearTimeout(guardadoPendiente)
       guardadoPendiente = null

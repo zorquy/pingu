@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (155) — PINGU-Claude (921 — la ficha en el ordenador, un pop-up ancho como el de Dex)
+
+**Hecho** (PINGU, con el Dex del PC delante; dijo «sí a todo lo recomendado»
+de la propuesta https://claude.ai/artifact/L5wPr1tNDE5XLkCDyDakjQ):
+- En el ordenador la carta ya no se abre pegada a la derecha apartando la
+  rejilla: siempre en un pop-up centrado y ancho (hasta 1.160 × 720), y la
+  expansión de detrás no se mueve. Vale en las expansiones y en Cartas.
+- A la izquierda, la carta grande sobre sus propios colores difuminados, y
+  debajo en qué carta de la lista estás («1 de 15»).
+- A la derecha: set y nombre grande; arriba la X, «La quiero» y compartir;
+  las versiones en chips a la vista con «− Tienes 2 +» en la misma fila; los
+  precios en una fila; álbumes y quién la tiene lado a lado; los atributos
+  en tabla de dos columnas. Si no cabe todo, se desplaza esa columna y la
+  carta se queda quieta.
+- Las flechas para pasar de carta, grandes y fuera del pop-up; ← → y Esc
+  con el teclado. Tocar fuera cierra.
+- En el móvil, «Versión» y «Editar» (tus copias) se abren en su propia hoja
+  encima de la ficha, con su velo; se cierran tocando fuera o arrastrando
+  hacia abajo, y la ficha se queda donde estaba.
+
+**Ficheros**: `js/mi-coleccion.js` (fuera la ficha «al lado» y la marca de
+la abierta; fondo difuminado, versiones en chips, `cerrarSubhojas`, tocar
+fuera), `js/mi-coleccion/gestos-ficha.js` (`subhoja`/`cerrarSub`),
+`js/mi-coleccion/ficha-al-lado.js` (borrado), `mi-coleccion.html` y
+`cartas.html` (generado), `css/mi-coleccion.css`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-921.mjs` (PC a 1.366, 1.440 y 1.680; el
+móvil con el dedo de verdad); al día 740, 748 (14), 645 y 920.
+
+Subconjunto de Mi colección y /carta con la 921 (256): 242 verdes y 14
+rojos. De la tanda eran 392 (la carta a 276 px; ahora 332) y ninguno más:
+422 y 577 pasan solas (carga de los carriles), y 748 falla en «Las que más
+se mueven» del Panel también en la base sin cambios (depende de la hora).
+Los otros diez ya estaban (385, 461, 467, 475, 651, 653, 723, 780, 829,
+893). Tras el último CSS: imports, 299, 305, 309, 311, 312, 313, 392,
+422, 577, 649, 740, 915, 920 y 921 verdes.
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915.
+- La 748 (Panel, «Las que más se mueven») está roja en la base: mirar su
+  fixture de fechas cuando toque el Panel.
+
 ## 2026-10-20 (154) — PINGU-Claude (920 — el pop-up de la carta, como Dex)
 
 **Hecho** (PINGU, comparando con Dex). En la ficha que se abre al tocar una

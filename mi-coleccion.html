@@ -1479,6 +1479,7 @@
         </div>
         <div class="mc-ficha">
           <div class="mc-ficha-carta">
+            <div class="mc-ficha-fondo" id="mcEdFondo" aria-hidden="true"></div>
             <div class="mc-editor-foto" id="mcEdFoto"></div>
           </div>
           <div class="mc-ficha-datos">
@@ -1490,7 +1491,7 @@
             <!-- La versión, como en Dex: una fila que abre la lista de todas,
                  con un check en las que tienes y su precio si lo hay. -->
             <button type="button" class="mc-fila mc-fila-version hidden" id="mcEdVersion" aria-expanded="false" aria-controls="mcEdVersiones"><i class="mc-fila-ico" aria-hidden="true" data-icono="sparkles"></i><span class="mc-fila-texto"><small>Versión</small><b id="mcEdVersionNombre"></b></span><i class="mc-fila-flecha" aria-hidden="true" data-icono="chevronRight"></i></button>
-            <div class="mc-versiones hidden" id="mcEdVersiones"></div>
+            <div class="mc-versiones hidden" id="mcEdVersiones" data-sin-arrastre></div>
             <!-- «− Tienes N +»: el «+» suma otra igual que la que miras (con
                  Deshacer); tocar «Tienes N» abre tus copias. Sin copias, el
                  «+» es el botón grande de añadir. -->
@@ -1500,7 +1501,7 @@
               <button type="button" class="mc-paso mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span class="mc-mas-texto">Añadir a mi colección</span></button>
             </div>
             <p class="mc-copia-album hidden" id="mcEdCopiaAlbum"></p>
-            <section class="mc-ficha-bloque mc-ficha-tuyas" id="mcEdCopiaBloque">
+            <section class="mc-ficha-bloque mc-ficha-tuyas" id="mcEdCopiaBloque" data-sin-arrastre>
               <h3>Tus copias</h3>
               <div class="mc-ficha-caja">
         <div class="mc-copia-resumen" id="mcEdCopiaResumen">
@@ -1610,8 +1611,11 @@
              no hay nada que confirmar ni que cancelar; y para quitarla,
              bajar las copias a cero. Lo único que queda es el aviso de
              que ha ido bien, que se apaga solo. -->
+        <!-- La versión y tus copias se abren en su hoja en el móvil (921): el
+             dedo sobre ellas o su velo es de esa hoja (gestos-ficha.js), no
+             del arrastre de la ficha (hoja-arrastre.js). -->
+        <div class="mc-subvelo" id="mcEdSubvelo" aria-hidden="true" data-sin-arrastre></div>
         <p class="mc-ed-guardado" id="mcEdEstadoGuardado" role="status" aria-live="polite"></p>
-        <p class="mc-ficha-atajos" aria-hidden="true">← → para pasar de carta · Esc para cerrar</p>
       </form>
     </dialog>
 

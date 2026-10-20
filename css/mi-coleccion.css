@@ -7437,68 +7437,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   grid-template-columns: repeat(var(--mc-columnas), minmax(0, 1fr));
 }
 
-/* LA CARTA ABIERTA A LA DERECHA (740, D2). El mismo `<dialog>` de la
-   ficha, sin modal, pegado al borde derecho; la página se aparta. El
-   porqué, en SCHEMA.md: tanda 740. */
-@media (min-width: 1400px) and (pointer: fine) {
-  html.con-ficha-al-lado body {
-    padding-right: 360px;
-  }
-
-  .mc-editor.mc-ficha-al-lado[open] {
-    position: fixed;
-    inset: 0 0 0 auto;
-    z-index: 102;
-    width: 360px;
-    max-width: 360px;
-    height: 100vh;
-    max-height: 100vh;
-    margin: 0;
-    border-width: 0 0 0 1px;
-    border-radius: 0;
-  }
-
-  /* Por dentro, la de una sola columna, como en el móvil (669). */
-  .mc-ficha-al-lado .mc-ficha {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--e-lg);
-  }
-
-  .mc-ficha-al-lado .mc-ficha-datos { display: contents; }
-  .mc-ficha-al-lado .mc-ficha-cabecera { order: -1; }
-
-  .mc-ficha-al-lado .mc-ficha-carta {
-    position: static;
-    width: 100%;
-    max-width: 240px;
-    margin: 0 auto;
-    padding-top: 0;
-  }
-
-  .mc-ficha-al-lado .mc-ficha-atajos {
-    display: block;
-  }
-}
-
-@media (min-width: 1600px) and (pointer: fine) {
-  html.con-ficha-al-lado body {
-    padding-right: 440px;
-  }
-
-  .mc-editor.mc-ficha-al-lado[open] {
-    width: 440px;
-    max-width: 440px;
-  }
-}
-
-.mc-ficha-atajos {
-  display: none;
-  margin: var(--e-md) 0 0;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  text-align: center;
-}
-
 /* ── 748: los filtros como en su maqueta (C6; SCHEMA 748) ── */
 .mc-panel-filtros .mc-panel-cabecera {
   gap: var(--e-sm);
@@ -8323,11 +8261,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   /* La tira de tres tarjetas la dice la línea de debajo del título. */
   #mcAlbumProgreso {
     display: none;
-  }
-
-  #mcAlbum .mc-abierta {
-    outline: 2px solid var(--navy);
-    outline-offset: 2px;
   }
 }
 
@@ -11310,7 +11243,7 @@ button.mc-fila:hover {
 /* 920: con el dedo, sin mando arriba (PINGU: «con los gestos funciona»): ni
    cerrar ni «‹ 1 de 3 ›». Queda el tirador, que dice «arrástrala», y el
    corazón y compartir flotan sobre la esquina de la carta, dentro de la hoja. */
-@media (max-width: 900px) and (pointer: coarse) {
+@media (max-width: 760px) and (pointer: coarse) {
   .mc-editor .mc-ficha-mando {
     position: sticky;
     top: calc(var(--e-md) * -1);
@@ -11363,6 +11296,404 @@ button.mc-fila:hover {
 @media (min-width: 761px) {
   .mc-editor .mc-atributos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── 921: en el ordenador, un pop-up ancho como el de Dex (SCHEMA 921) ──
+   La carta a la izquierda sobre sus colores; a la derecha, los datos en dos
+   columnas que se desplazan solas. Las flechas, fuera; la X y los iconos,
+   arriba a la derecha. */
+.mc-ficha-fondo,
+.mc-subvelo {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  .mc-editor {
+    --ficha-ancho: min(1160px, calc(100vw - 128px));
+    --ficha-izq: 380px;
+    width: var(--ficha-ancho);
+    max-width: none;
+    height: min(720px, calc(100vh - 48px));
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--radius-xl);
+  }
+
+  .mc-editor #mcEditorForm {
+    height: 100%;
+  }
+
+  .mc-editor .mc-ficha-mando,
+  .mc-editor .mc-ficha-pasos:not([hidden]) {
+    display: contents;
+  }
+
+  .mc-editor #mcEdCerrar {
+    position: absolute;
+    top: var(--e-md);
+    right: var(--e-md);
+    z-index: 3;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .mc-editor .mc-ficha-flotan {
+    position: absolute;
+    top: var(--e-md);
+    right: calc(var(--e-md) + 52px);
+    z-index: 3;
+    gap: var(--e-sm);
+  }
+
+  .mc-editor .mc-ficha-flecha {
+    position: fixed;
+    top: 50%;
+    z-index: 3;
+    width: 48px;
+    height: 48px;
+    background: var(--white);
+    box-shadow: var(--shadow-lg);
+    font-size: var(--t-2xl);
+    transform: translateY(-50%);
+  }
+
+  .mc-editor #mcEdAnterior {
+    left: max(var(--e-sm), calc((100vw - var(--ficha-ancho)) / 2 - 64px));
+  }
+
+  .mc-editor #mcEdSiguiente {
+    right: max(var(--e-sm), calc((100vw - var(--ficha-ancho)) / 2 - 64px));
+  }
+
+  .mc-editor .mc-ficha-flecha:disabled {
+    opacity: 0.4;
+  }
+
+  /* El sitio en la lista, debajo de la carta. */
+  .mc-editor .mc-ficha-sitio {
+    position: absolute;
+    bottom: var(--e-md);
+    left: calc(var(--ficha-izq) / 2);
+    z-index: 2;
+    min-width: 0;
+    padding: 2px var(--e-sm);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--blanco-fijo);
+    font-weight: 600;
+    transform: translateX(-50%);
+  }
+
+  .mc-editor .mc-ficha {
+    grid-template-columns: var(--ficha-izq) minmax(0, 1fr);
+    gap: 0;
+    height: 100%;
+  }
+
+  .mc-editor .mc-ficha-carta {
+    position: relative;
+    top: auto;
+    align-self: stretch;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: var(--e-xl) var(--e-lg) 56px;
+    background: var(--navy-solid-dark);
+  }
+
+  .mc-editor .mc-ficha-fondo {
+    display: block;
+    position: absolute;
+    inset: -48px;
+    background: center / cover no-repeat;
+    filter: blur(40px) saturate(1.3);
+    opacity: 0.75;
+  }
+
+  .mc-editor .mc-ficha-carta::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.35));
+    content: '';
+    pointer-events: none;
+  }
+
+  .mc-editor .mc-ficha-carta .mc-editor-foto {
+    position: relative;
+    z-index: 1;
+    max-width: 332px;
+  }
+
+  .mc-editor .mc-ficha-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: var(--e-md) var(--e-lg);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--e-lg) var(--e-xl) var(--e-xl);
+  }
+
+  .mc-editor .mc-ficha-datos > *,
+  .mc-editor .mc-ficha-datos > .mc-ficha-bloque {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .mc-editor .mc-ficha-cabecera {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 168px;
+  }
+
+  .mc-editor .mc-ficha-cabecera h2 {
+    font-size: var(--t-3xl);
+    line-height: 1.1;
+  }
+
+  .mc-editor .mc-ficha-cabecera .mc-ficha-set {
+    order: -1;
+    margin: 0;
+  }
+
+  /* La versión en chips, y «− Tienes N +» a su derecha. */
+  .mc-editor #mcEdVersion {
+    display: none;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdVersiones {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1;
+    align-self: center;
+    gap: var(--e-xs);
+  }
+
+  .mc-editor .mc-versiones .mc-version {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-xs);
+    min-height: 36px;
+    padding: 0 var(--e-md);
+    border-radius: var(--radius-pill);
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .mc-versiones .mc-version.activa {
+    background: var(--navy-solid);
+    box-shadow: none;
+    color: var(--blanco-fijo);
+  }
+
+  .mc-editor .mc-version-texto {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--e-xs);
+  }
+
+  .mc-editor .mc-version-texto small::before {
+    content: '· ';
+  }
+
+  .mc-editor .mc-version.activa .mc-version-texto small {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  .mc-editor .mc-version-precio,
+  .mc-editor .mc-version-check {
+    display: none;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdAcciones {
+    grid-column: 2;
+    grid-template-columns: 44px auto 44px;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .mc-editor .mc-ficha-datos:has(> #mcEdVersiones.hidden) > #mcEdAcciones {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .mc-editor #mcEdAcciones .mc-paso,
+  .mc-editor #mcEdAcciones .mc-paso-centro {
+    min-height: 44px;
+  }
+
+  .mc-editor #mcEdAcciones .mc-paso-centro {
+    padding: 0 var(--e-md);
+  }
+
+  .mc-editor #mcEdAcciones.mc-sin-copias .mc-ficha-mas {
+    padding: 0 var(--e-lg);
+  }
+
+  /* El precio, y debajo los álbumes y quién la tiene, uno al lado del otro. */
+  .mc-editor .mc-ficha-datos > #mcEdPrecioSeccion,
+  .mc-editor .mc-ficha-datos > #mcEdEntrarBloque {
+    order: 1;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdCarpetasBloque {
+    grid-column: 1;
+    order: 2;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdQuienBloque {
+    grid-column: 2;
+    order: 2;
+  }
+
+  .mc-editor .mc-ficha-datos:has(> #mcEdCarpetasBloque.hidden) > #mcEdQuienBloque,
+  .mc-editor .mc-ficha-datos:has(> #mcEdQuienBloque.hidden) > #mcEdCarpetasBloque {
+    grid-column: 1 / -1;
+  }
+
+  .mc-editor .mc-ficha-datos > :has(> #mcEdTabla) {
+    order: 3;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdFicha {
+    order: 4;
+  }
+
+  /* Las seis en una fila: la de tu copia, del ancho de las demás. */
+  .mc-editor .pv-tarjetas {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .mc-editor .pv-tarjeta-tuya {
+    grid-column: auto;
+  }
+
+  .mc-editor .pv-tarjeta-tuya .pv-cifra {
+    font-size: var(--t-xl);
+  }
+
+  .mc-editor .pv-tarjeta-tuya .pv-de {
+    font-size: var(--t-2xs);
+  }
+
+  /* Los detalles, en una tabla de dos columnas (como Dex). */
+  .mc-editor .mc-atributos {
+    gap: 0 var(--e-lg);
+    padding: var(--e-xs) var(--e-md);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+  }
+
+  .mc-editor .mc-atrib {
+    min-height: 40px;
+    padding: var(--e-xs) 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: none;
+    gap: var(--e-sm);
+  }
+
+  .mc-editor .mc-atrib:last-child,
+  .mc-editor .mc-atrib:nth-last-child(2):nth-child(odd) {
+    border-bottom: 0;
+  }
+
+  .mc-editor a.mc-atrib:hover {
+    background: none;
+    color: var(--navy);
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e-sm);
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto small,
+  .mc-editor .mc-atrib .mc-fila-texto b {
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto small {
+    flex: none;
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto b {
+    text-align: right;
+  }
+
+  .mc-editor .mc-ed-guardado {
+    position: absolute;
+    right: var(--e-xl);
+    bottom: var(--e-sm);
+    margin: 0;
+  }
+}
+
+@media (min-width: 761px) and (pointer: coarse) {
+  .mc-editor .mc-versiones .mc-version {
+    min-height: 44px;
+  }
+}
+
+/* En el móvil, la versión y tus copias se abren en su propia hoja encima
+   de la ficha (921): al cerrarla sigues donde estabas. */
+@media (max-width: 760px) {
+  .mc-editor #mcEdVersiones:not(.hidden),
+  .mc-editor #mcEdCopiaBloque:not(.hidden) {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 5;
+    max-height: 78dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0;
+    padding: var(--e-xl) var(--e-md) calc(var(--e-lg) + env(safe-area-inset-bottom));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--white);
+    box-shadow: 0 -12px 32px rgba(13, 27, 42, 0.25);
+    animation: mc-subhoja 0.22s var(--ease);
+  }
+
+  .mc-editor #mcEdVersiones:not(.hidden)::before,
+  .mc-editor #mcEdCopiaBloque:not(.hidden)::before {
+    position: absolute;
+    top: var(--e-sm);
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+    content: '';
+    transform: translateX(-50%);
+  }
+
+  .mc-editor:has(#mcEdVersiones:not(.hidden)) .mc-subvelo,
+  .mc-editor:has(#mcEdCopiaBloque:not(.hidden)) .mc-subvelo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    background: rgba(13, 27, 42, 0.4);
+  }
+}
+
+@keyframes mc-subhoja {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-editor #mcEdVersiones:not(.hidden),
+  .mc-editor #mcEdCopiaBloque:not(.hidden) {
+    animation: none;
   }
 }
 

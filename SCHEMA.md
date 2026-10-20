@@ -41785,6 +41785,67 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 921 — La ficha en el ordenador, un pop-up ancho como el de Dex
+
+PINGU, con el Dex del PC delante («antes se abría en un pop-up central,
+que es bastante mejor… te da un espacio horizontal para mostrarte todo») y
+«sí a todo lo recomendado» de la propuesta.
+
+- **Se fue la ficha «al lado»** (740 y 748): `js/mi-coleccion/ficha-al-lado.js`
+  borrado, su CSS (`html.con-ficha-al-lado`, `.mc-ficha-al-lado`), la marca
+  `.mc-abierta` de la rejilla, `cerrarFichaAlLado` y el `.mc-ficha-atajos`.
+  `abrirEditor` hace `if (!yaAbierta) d.showModal()` y nada más. El Mercado
+  conserva la suya (`#mcPanelMercado.con-ficha-al-lado`), que es otra cosa.
+- **El pop-up** (`@media (min-width: 761px)`, mi-coleccion.css):
+  `--ficha-ancho: min(1160px, 100vw − 128px)` y un alto fijo
+  (`min(720px, 100vh − 48px)`); el diálogo no se desplaza, se desplaza la
+  columna de datos (`.mc-ficha-datos`, `overflow-y: auto`) y la carta se
+  queda quieta. `.mc-ficha` es `var(--ficha-izq) 1fr` (380 px a la
+  izquierda: la carta mide 332, y la 392 pide 300 como mínimo). La
+  tarjeta de tu copia no ocupa dos huecos aquí (`grid-column: auto`, con
+  su cifra a `--t-xl`): así caben las seis en una fila.
+- **La carta sobre sus colores**: `#mcEdFondo`, un `div` con la MISMA foto
+  que acaba de cargar (`foto.currentSrc`, la que haya salido de la cadena
+  de escaneos) como `background-image` —por `urlParaCss`, la 805— con
+  `blur(40px)` y un velo encima; el fondo del hueco es `--navy-solid-dark`,
+  que no cambia con el tema.
+- **El mando, sin caja**: `.mc-ficha-mando` y `.mc-ficha-pasos` son
+  `display: contents` (los pasos solo si no llevan `[hidden]`); la X y el
+  corazón/compartir van `absolute` arriba a la derecha; las flechas
+  `fixed`, a 64 px por fuera del pop-up (`(100vw − ancho) / 2`), y
+  `#mcEdSitio` es una pastilla bajo la carta. Dentro de un `<dialog>`
+  modal sin `transform`, lo `fixed` se mide con la ventana y el
+  `overflow: hidden` del diálogo no lo recorta.
+- **La columna de datos, en rejilla de dos**: todo ocupa las dos salvo
+  `#mcEdVersiones` (columna 1) y `#mcEdAcciones` (columna 2), que quedan en
+  una fila; y `#mcEdCarpetasBloque` | `#mcEdQuienBloque`, lado a lado con
+  `order: 2` (si falta uno, el otro coge las dos con `:has(… .hidden)`).
+  El precio va con `order: 1`, los atributos 3 y la ficha completa 4.
+- **Las versiones, a la vista en chips**: `pintarVersionDeFicha` deja la
+  lista sin `hidden` cuando `fichaAncha()` (≥ 761) y hay más de una; la
+  fila del móvil (`#mcEdVersion`) no se pinta en el PC. El chip activo va
+  en `--navy-solid`; precio y check se esconden (el «· Tienes 2» lo dice).
+- **Los atributos, en tabla**: las mismas `.mc-atrib`, sin fondo, con
+  rótulo a la izquierda y dato a la derecha y una raya entre filas.
+- **Tocar fuera cierra** (solo con `fichaAncha()`: en el móvil el relleno
+  de la hoja también es el propio diálogo).
+- **En el móvil, la versión y tus copias en su hoja** (`max-width: 760px`):
+  `#mcEdVersiones` y `#mcEdCopiaBloque` abiertos son `position: fixed`
+  abajo, con tirador, y `#mcEdSubvelo` detrás. Las cierra el velo
+  (`cerrarSubhojas`, que pulsa el botón que las abrió para que su rótulo
+  quede bien) o arrastrar hacia abajo: `engancharGestos` recibe
+  `subhoja()` y `cerrarSub`, y con una abierta el dedo es de ella (abajo la
+  cierra, de lado no pasa de carta). Llevan `data-sin-arrastre` porque el
+  arrastre genérico de las hojas (804, `hoja-arrastre.js`) se quedaba con
+  el mismo gesto y cerraba la ficha ENTERA: dos oyentes del mismo dedo, y
+  ninguno daba error.
+- La regla de la 920 que quita el mando en el móvil pasa a
+  `max-width: 760px`: entre 761 y 900 con el dedo ya es el pop-up del PC.
+
+Pruebas al día: 740 (sin regla de «al lado»: centrada y modal), 748 (14:
+la expansión no se aparta), 645 (versiones en chips en el PC) y 920 (las
+seis tarjetas en una fila en el pop-up ancho).
+
 ## Tanda 920 — El pop-up de la carta, como Dex
 
 PINGU, con el Dex del móvil delante. Cinco cosas en la ficha
