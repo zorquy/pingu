@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (151) — PINGU-Claude (917 — los botones, en tres clases)
+
+**Hecho** (la parte 3 de la propuesta «PokeDoc más sencillo», que PINGU
+aprobó: «todo lo demás está muy bien»). En toda la web los botones son de
+tres clases:
+- **Principal**, relleno de azul (`.btn-primary`), como estaba.
+- **Suave**: fondo azul claro (`--ice`) y sin borde. Lo son `.btn-secondary`
+  y `.btn-outline` (los ~350 de la web, sin tocar el HTML), el botón de
+  Cardmarket de las tarjetas de precio y el **enlace suelto**: un
+  `.link-btn` que no va dentro de una frase (`p`, `.subtext`, `td`) se pinta
+  como botón suave; dentro de una frase sigue siendo un enlace subrayado.
+  El borde queda transparente para que nada cambie de medida.
+- **Icono**: el círculo de 44 px de las fichas.
+
+**Ficheros**: `css/style.css`, `css/components.css` (el enlace suelto, con
+`:where` para que las medidas de cada pantalla le sigan ganando),
+`css/cardmarket.css`, `css/carta.css` («Comparar con otra carta» de su
+ancho), `css/repeticiones.css` (los enlaces de la cabecera, bajos y
+estrechos: la mesa tiene que caber), `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-917.mjs`; la 446 al día (su guarda era
+justo «no tocar `.link-btn`»).
+
+Suite entera (536): 507 verdes y 29 rojos. Cuatro eran de la tanda y ya
+están en verde: 446, 462 (la mesa de repeticiones bajaba 52 px), 735 (el
+`.link-btn` suelto ganaba por especificidad a los 44 px de «Comparar»: de
+ahí el `:where`) y 577 (pasa sola, iba mal en el carril). El resto ya
+estaba rojo antes, comprobado contra una copia sin cambios: correos, 255,
+269, 308, 310, 385, 386, 391, 461, 467, 475, 543, 651, 653, 723, 749, 780,
+782, 789, 794, 829 y 893, más 493, 514 y 834, que piden ffprobe y qpdf.
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915.
+- Siguen la hoja «Tú» en baldosas (918) y la cabecera de una expansión con
+  su barra de progreso (919); dentro de Mi colección, las pastillas
+  (Filtros, Archivador…), la miga y el «⋯» pasan a suave/icono en la 918.
+
 ## 2026-10-20 (150) — PINGU-Claude (916 — /carta, con la misma columna que el pop-up)
 
 **Hecho** (lo que quedaba de la propuesta aprobada en la 915: «/carta llega

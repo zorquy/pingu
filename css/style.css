@@ -906,25 +906,17 @@ body:has(.nav-menu-mobile.open) {
   background: var(--navy-solid-light);
 }
 
-.btn-secondary {
-  background: var(--white);
-  color: var(--navy);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  border-color: var(--border-strong);
-  background: var(--bg);
-}
-
+/* 917: «suave», sin borde (SCHEMA 917). El borde transparente guarda la medida. */
+.btn-secondary,
 .btn-outline {
-  background: transparent;
+  background: var(--ice);
   color: var(--navy);
-  border: 1px solid var(--navy);
+  border: 1px solid transparent;
 }
 
+.btn-secondary:hover,
 .btn-outline:hover {
-  background: var(--ice);
+  background: var(--ice-dark);
 }
 
 .btn-primary:disabled,

@@ -3221,6 +3221,27 @@ body.portada-compacta .page-content {
   cursor: default;
 }
 
+/* 917: suelto, un botón suave; en una frase, subrayado (SCHEMA 917). Con :where, para
+   que las medidas de cada pantalla le sigan ganando. */
+.link-btn:where(:not(:is(p, .subtext, td) .link-btn)) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  text-decoration: none;
+}
+
+.link-btn:where(:not(:is(p, .subtext, td) .link-btn)):hover { background: var(--ice-dark); color: var(--navy); }
+.link-btn:where(:not(:is(p, .subtext, td) .link-btn))[disabled] { background: var(--bg); }
+
+@media (pointer: coarse) {
+  .link-btn:where(:not(:is(p, .subtext, td) .link-btn)) { min-height: 44px; }
+}
+
 /* S780.157 */
 /* Etiqueta del tema: [Duda], [Oficial]... */
 /* S780.158 */

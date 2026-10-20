@@ -940,6 +940,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Un error de
   import en el panel justo después de un push es esto antes que un export
   que falta: `test-imports` lo distingue en un segundo.
+- **Los botones son tres clases** (tanda 917): principal (`.btn-primary`),
+  suave (`.btn-secondary`/`.btn-outline`: fondo `--ice`, borde transparente)
+  e icono (círculo de 44 px). Un `.link-btn` suelto ya es un botón suave; en
+  una frase (`p`, `.subtext`, `td`), un enlace. Un botón nuevo es de una de
+  las tres: nada de bordes, subtítulos dentro ni enlaces subrayados sueltos.
+  Y una regla global que alcanza media web va con `:where`, o les gana a las
+  medidas de cada pantalla sin que nada avise.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

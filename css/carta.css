@@ -1023,6 +1023,7 @@
 .carta-comparar-abrir {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
   gap: var(--e-xs);
   min-height: 44px;
   margin-top: var(--e-sm);

@@ -135,10 +135,13 @@
 .rep-cab-extra {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e-xs) var(--e-lg);
+  gap: var(--e-xs);
 }
 
-.rep-cab-extra .link-btn {
+.rep-cab-extra .link-btn,
+.rep-momentos-cab .link-btn {
+  min-height: 28px; /* 917: suaves, pero bajos y estrechos: la mesa tiene que caber (462) */
+  padding: 0 var(--e-xs);
   font-size: var(--t-sm);
 }
 
@@ -1195,10 +1198,6 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--e-xs) var(--e-md);
-}
-
-.rep-momentos-cab .link-btn {
-  font-size: var(--t-sm);
 }
 
 .rep-momentos-cab .link-btn:disabled {

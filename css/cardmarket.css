@@ -1579,7 +1579,7 @@ a.pv-tarjeta-tuya:hover {
 .pv-con-tarjetas .btn-cardmarket,
 .pv-con-tarjetas .pv-botones .btn-tcgplayer {
   min-height: 44px;
-  background: var(--bg);
+  background: var(--ice);
   color: var(--text);
 }
 

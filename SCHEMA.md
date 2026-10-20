@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 917 — Los botones, en tres clases
+
+La parte 3 de la propuesta «PokeDoc más sencillo» (aprobada). En una sola
+ficha había seis formas de botón; quedan tres: **principal** (`.btn-primary`,
+relleno), **suave** (fondo `--ice`, sin borde) e **icono** (círculo de 44 px,
+`.mc-ficha-redondo`).
+
+- `.btn-secondary` y `.btn-outline` son el mismo suave (style.css). El borde
+  es `1px solid transparent`, no `0`: así ningún botón cambia de alto ni de
+  ancho, y las reglas locales que tocan `border-color` al pasar por encima
+  no hacen nada raro.
+- El enlace suelto: `.link-btn:where(:not(:is(p, .subtext, td) .link-btn))`
+  en components.css. Dentro de una frase sigue subrayado; fuera, es un botón
+  suave de 36 px (44 con el dedo). Va con `:where` porque sin él la regla
+  pesaba (0,3,0) y les ganaba a las medidas de cada pantalla —«Comparar con
+  otra carta» perdió sus 44 px y la 735 lo cantó—; con `:where` pesa lo que
+  `.link-btn` y, como va después, solo gana a la regla base.
+- Un enlace suelto en una columna flexible se estira a lo ancho: el de
+  «Comparar» lleva `align-self: flex-start`. Un barrido de todas las páginas no
+  encontró más, pero con el doble casi vacío: si sale otro, la misma línea.
+- Repeticiones: los enlaces de su cabecera y de «Momentos» van a 28 px y con
+  4 px de relleno, porque la mesa y los controles tienen que caber en un
+  portátil sin bajar (462); a 36 la cabecera saltaba de línea y la mesa
+  bajaba 52 px.
+- El botón de Cardmarket de las tarjetas de precio pasa de `--bg` a `--ice`:
+  en /carta, sobre el fondo de la página, `--bg` no se veía.
+
 ## Tanda 916 — /carta, con la misma columna que el pop-up
 
 La 915 rehízo el pop-up de una carta (Mi colección y /cartas) como el Dex del
