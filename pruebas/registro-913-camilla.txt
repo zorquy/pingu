@@ -1,0 +1,217 @@
+Preparación
+Rojo ha elegido cruz para el lanzamiento de moneda inicial.
+Azul ha ganado el lanzamiento de moneda.
+Azul ha decidido empezar en segundo lugar.
+Rojo ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+   • Liza, Globo Helio, Dunsparce, Energía Enriquecedora, Pokétableta, Alakazam, Dunsparce
+Azul ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+Azul ha declarado un mulligan.
+- Cartas mostradas por el mulligan número 1
+   • Cass, Helado Colosal, Walkie-talkie del Team Rocket, Energía Metálica Básica, Globo Helio, Energía Metálica Básica, Walkie-talkie del Team Rocket
+Rojo ha robado una carta más porque Azul ha declarado al menos un mulligan.
+- Rojo ha robado Pokochos Gemelos.
+Rojo ha puesto en juego a Dunsparce en el Puesto Activo.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Azul ha puesto en juego a Genesect ex en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Erin.
+Rojo ha unido Energía Enriquecedora al Dunsparce en la Banca.
+Se ha activado Energía Enriquecedora.
+- Rojo ha robado 4 cartas.
+   • Jaula de Combate, Ventilador de Mano, Energía Psíquica Básica, Camilla Nocturna
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Abra, Abra
+- Rojo ha barajado su baraja.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dudunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Carrito Valioso.
+- Azul ha robado 5 cartas y las ha puesto en juego en la Banca.
+   • Beldum, Beldum, Beldum, Drilbur, Beldum
+- Azul ha barajado su baraja.
+El Genesect ex de Azul ha usado Señal Metálica.
+- Azul ha robado 2 cartas.
+   • Metang, Metang
+- Azul ha barajado su baraja.
+Azul ha jugado Petrel del Team Rocket.
+- Azul ha robado Globo Helio.
+- Azul ha barajado su baraja.
+Azul ha unido Globo Helio al Genesect ex en el Puesto Activo.
+Azul ha retirado a Genesect ex a la Banca.
+El Beldum de Azul pasa a estar en el Puesto Activo.
+Azul ha unido Energía Metálica Básica al Genesect ex en la Banca.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Pokochos Gemelos.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado 3 cartas.
+   • Ceniza Sagrada, Kadabra, Dudunsparce
+- Rojo ha puesto 3 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Energía Enriquecedora, Dunsparce
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Abra, Dunsparce
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Kadabra, Alakazam
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Energía Psíquica Telepática, Caramelo Raro
+Rojo ha jugado Liza.
+- Rojo ha robado 2 cartas.
+   • Kadabra, Energía Enriquecedora
+- Rojo ha barajado su baraja.
+Rojo ha unido Energía Psíquica Básica al Kadabra en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+El Genesect ex de Azul ha usado Señal Metálica.
+- Azul ha robado 2 cartas.
+   • Metang, Metagross
+- Azul ha barajado su baraja.
+Azul ha hecho que el Beldum en Banca evolucione a Metang.
+Azul ha hecho que el Beldum en Banca evolucione a Metang.
+Azul ha hecho que el Beldum en Banca evolucione a Metang.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Genesect ex en la Banca.
+- Azul ha unido Energía Metálica Básica al Genesect ex en la Banca.
+- Rojo ha barajado sus cartas.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Metang en la Banca.
+- Azul ha unido Energía Metálica Básica al Metang en la Banca.
+- Rojo ha barajado sus cartas.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Drilbur en la Banca.
+- Rojo ha barajado sus cartas.
+Azul ha unido Energía Metálica Básica al Beldum en el Puesto Activo.
+Azul ha retirado a Beldum a la Banca.
+- Se ha descartado Energía Metálica Básica del Beldum de Azul.
+El Genesect ex de Azul pasa a estar en el Puesto Activo.
+El Genesect ex de Azul ha infligido 150 puntos de daño usando Carga Protectora contra el Dunsparce de Rojo.
+¡El Dunsparce de Rojo ha quedado Fuera de Combate!
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Kadabra de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Energía Psíquica Telepática.
+Rojo ha hecho que el Kadabra del Puesto Activo evolucione a Alakazam.
+El Alakazam de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 3 cartas.
+   • Genesect, Alakazam, Pokochos Gemelos
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado Abra y lo ha puesto en juego en la Banca.
+- Rojo ha barajado su baraja.
+Rojo ha jugado Camilla Nocturna.
+- Rojo ha movido Dunsparce de Rojo a su mano.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Fezandipiti ex, Kadabra
+Rojo ha unido Energía Psíquica Telepática al Kadabra en la Banca.
+Rojo ha puesto en juego la carta de Estadio Jaula de Combate.
+Rojo ha unido Ventilador de Mano al Alakazam en el Puesto Activo.
+El Alakazam de Rojo ha usado Mano Poderosa.
+- El Genesect ex de Rojo ha recibido 22 contadores de daño de Rojo.
+¡El Genesect ex de Azul ha quedado Fuera de Combate!
+- Se han descartado 4 cartas del Genesect ex de Azul.
+   • Energía Metálica Básica, Energía Metálica Básica, Energía Metálica Básica, Globo Helio
+Rojo ha cogido 2 cartas de Premio.
+Se ha añadido Pokétableta a la mano de Rojo.
+Se ha añadido Martillo Mejorado a la mano de Rojo.
+El Metang de Azul pasa a estar en el Puesto Activo.
+
+Turno de Azul
+Azul ha robado una carta.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Metang en el Puesto Activo.
+- Azul ha unido Energía Metálica Básica al Metang en el Puesto Activo.
+- Rojo ha barajado sus cartas.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Drilbur en la Banca.
+- Rojo ha barajado sus cartas.
+Azul ha hecho que el Metang del Puesto Activo evolucione a Metagross.
+El Metagross de Azul ha infligido 150 puntos de daño usando Martillo Metálico contra el Alakazam de Rojo.
+¡El Alakazam de Rojo ha quedado Fuera de Combate!
+- Se han descartado 4 cartas del Alakazam de Rojo.
+   • Energía Psíquica Básica, Kadabra, Abra, Ventilador de Mano
+Se ha activado Ventilador de Mano.
+- Azul ha unido Energía Metálica Básica al Beldum en la Banca.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Kadabra de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Energía Psíquica Telepática.
+Rojo ha puesto en juego a Fezandipiti ex en la Banca.
+Rojo ha unido Energía Psíquica Telepática al Kadabra en la Banca.
+Rojo ha hecho que el Kadabra del Puesto Activo evolucione a Alakazam.
+El Alakazam de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 3 cartas.
+   • Órdenes de Jefes, Maya, Jaula de Combate
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+Rojo ha jugado Erin.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dudunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha unido Globo Helio al Fezandipiti ex en la Banca.
+El Alakazam de Rojo ha usado Mano Poderosa.
+- El Metagross de Rojo ha recibido 20 contadores de daño de Rojo.
+¡El Metagross de Azul ha quedado Fuera de Combate!
+- Se han descartado 5 cartas del Metagross de Azul.
+   • Energía Metálica Básica, Energía Metálica Básica, Energía Metálica Básica, Metang, Beldum
+Rojo ha cogido una carta de Premio.
+Se ha añadido Jaula de Combate a la mano de Rojo.
+El Drilbur de Azul pasa a estar en el Puesto Activo.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha hecho que el Drilbur del Puesto Activo evolucione a Mega-Excadrill ex.
+El Metang de Azul ha usado Creametal.
+- Rojo ha barajado sus cartas.
+El Metang de Azul ha usado Creametal.
+- Azul ha unido Energía Metálica Básica al Mega-Excadrill ex en el Puesto Activo.
+- Rojo ha barajado sus cartas.
+Azul ha unido Energía Metálica Básica al Mega-Excadrill ex en el Puesto Activo.
+Azul ha jugado Órdenes de Jefes.
+- El Dudunsparce de Rojo se ha intercambiado con el Alakazam de Rojo y pasa a ser el Pokémon Activo.
+El Dudunsparce de Rojo pasa a estar en el Puesto Activo.
+El Mega-Excadrill ex de Azul ha infligido 200 puntos de daño usando Perforación Total contra el Dudunsparce de Rojo.
+¡El Dudunsparce de Rojo ha quedado Fuera de Combate!
+Se ha descartado Dunsparce del Dudunsparce de Rojo.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Alakazam de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Caramelo Raro.
+El Fezandipiti ex de Rojo ha usado Giro de Guion.
+- Rojo ha robado 3 cartas.
+   • Pokétableta, Ventilador de Mano, Dedenne
+Rojo ha unido Energía Enriquecedora al Dudunsparce en la Banca.
+Se ha activado Energía Enriquecedora.
+- Rojo ha robado 4 cartas.
+   • Liza, Liza, Maya, Ayuda de Nereida
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado 3 cartas.
+   • Shaymin, Pokétableta, Maya
+- Rojo ha puesto 3 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Energía Enriquecedora, Dunsparce
+El rival se ha rendido. Rojo ha ganado.

@@ -1,0 +1,528 @@
+Preparación
+Rojo ha elegido cruz para el lanzamiento de moneda inicial.
+Azul ha ganado el lanzamiento de moneda.
+Azul ha decidido empezar en primer lugar.
+Rojo ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+   • Pokochos Gemelos, Kadabra, Liza, Kadabra, Maya, Pokétableta, Energía Enriquecedora
+Azul ha robado 7 cartas de la mano inicial.
+- 7 cartas robadas.
+Rojo ha declarado un mulligan.
+- Cartas mostradas por el mulligan número 1
+   • Pokochos Gemelos, Kadabra, Liza, Kadabra, Maya, Pokétableta, Energía Enriquecedora
+Rojo ha declarado 3 mulligans.
+- Cartas mostradas por el mulligan número 2
+   • Maya, Pokétableta, Pokétableta, Pokétableta, Energía Psíquica Telepática, Jaula de Combate, Globo Helio
+- Cartas mostradas por el mulligan número 3
+   • Alakazam, Kadabra, Martillo Mejorado, Pokochos Gemelos, Alakazam, Jaula de Combate, Alakazam
+Azul ha robado 3 cartas más porque Rojo ha declarado al menos un mulligan.
+- Azul ha robado 3 cartas.
+Rojo ha puesto en juego a Abra en el Puesto Activo.
+Azul ha puesto en juego a Articuno del Team Rocket en el Puesto Activo.
+Azul ha puesto en juego a Murkrow del Team Rocket en la Banca.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Protón del Team Rocket.
+- Azul ha robado 3 cartas.
+   • Murkrow del Team Rocket, Murkrow del Team Rocket, Murkrow del Team Rocket
+- Azul ha barajado su baraja.
+Azul ha puesto en juego a Murkrow del Team Rocket en la Banca.
+Azul ha puesto en juego a Murkrow del Team Rocket en la Banca.
+Azul ha puesto en juego a Murkrow del Team Rocket en la Banca.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Shaymin.
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Dunsparce, Dunsparce
+- Rojo ha barajado su baraja.
+Rojo ha jugado Liza.
+- Rojo ha robado 2 cartas.
+   • Dudunsparce, Energía Psíquica Telepática
+- Rojo ha barajado su baraja.
+Rojo ha unido Energía Psíquica Telepática al Abra en el Puesto Activo.
+Se ha activado Energía Psíquica Telepática.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Abra, Abra
+- Rojo ha barajado su baraja.
+El Abra de Rojo ha infligido 10 puntos de daño usando Ataque Teleportador contra el Articuno del Team Rocket de Azul.
+- El Dunsparce de Rojo se ha intercambiado con el Abra de Rojo y pasa a ser el Pokémon Activo.
+El Dunsparce de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha puesto en juego a Porygon del Team Rocket en la Banca.
+Azul ha jugado Petrel del Team Rocket.
+- Azul ha robado Fábrica del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha puesto en juego la carta de Estadio Fábrica del Team Rocket.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha unido Energía del Team Rocket al Murkrow del Team Rocket en la Banca.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Martillo Mejorado.
+Rojo ha jugado Martillo Mejorado.
+- Se ha descartado Energía del Team Rocket del Murkrow del Team Rocket de Azul.
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Genesect, Erin
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Pokochos Gemelos, Ventilador de Mano
+Rojo ha hecho que el Dunsparce del Puesto Activo evolucione a Dudunsparce.
+Rojo ha jugado Dudunsparce.
+- Rojo ha robado 3 cartas.
+   • Pokétableta, Pokochos Gemelos, Kadabra
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+El Dunsparce de Rojo pasa a estar en el Puesto Activo.
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado 2 cartas y las ha puesto en juego en la Banca.
+   • Dedenne, Dunsparce
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Abra en Banca evolucione a Kadabra.
+El Kadabra de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 2 cartas.
+   • Energía Psíquica Telepática, Pokochos Gemelos
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dudunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Dunsparce del Puesto Activo evolucione a Dudunsparce.
+Rojo ha jugado Dudunsparce.
+- Rojo ha robado 3 cartas.
+   • Órdenes de Jefes, Alakazam, Liza
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+Rojo ha unido Energía Psíquica Telepática al Dedenne en el Puesto Activo.
+Se ha activado Energía Psíquica Telepática.
+- Rojo ha barajado su baraja.
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado Dunsparce y lo ha puesto en juego en la Banca.
+- Rojo ha barajado su baraja.
+Rojo ha jugado Erin.
+- Azul ha descartado 2 cartas.
+   • Walkie-talkie del Team Rocket, Paloselfi Rotom
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Martillo Mejorado de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Giovanni del Team Rocket.
+- El Murkrow del Team Rocket de Azul se ha intercambiado con el Articuno del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+- El Kadabra de Rojo se ha intercambiado con el Dedenne de Rojo y pasa a ser el Pokémon Activo.
+El Murkrow del Team Rocket de Azul pasa a estar en el Puesto Activo.
+El Kadabra de Rojo pasa a estar en el Puesto Activo.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha unido Energía del Team Rocket al Murkrow del Team Rocket en el Puesto Activo.
+Azul ha hecho que el Murkrow del Team Rocket del Puesto Activo evolucione a Honchkrow del Team Rocket.
+El Honchkrow del Team Rocket de Azul ha infligido 120 puntos de daño usando Plumas Rocket contra el Kadabra de Rojo. El Kadabra de Rojo ha recibido 60 puntos de daño más por su Debilidad al tipo Oscura.
+- Resumen del daño:
+   • 1 Pokémon: 60 puntos de daño
+   • Debilidad al tipo Oscura: 60 puntos de daño
+
+- Azul ha descartado Protón del Team Rocket.
+¡El Kadabra de Rojo ha quedado Fuera de Combate!
+- Se han descartado 2 cartas del Kadabra de Rojo.
+   • Energía Psíquica Telepática, Abra
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Alakazam.
+Rojo ha puesto en juego a Genesect en la Banca.
+Rojo ha unido Ventilador de Mano al Genesect en la Banca.
+Rojo ha jugado Órdenes de Jefes.
+- El Articuno del Team Rocket de Azul se ha intercambiado con el Honchkrow del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+El Articuno del Team Rocket de Azul pasa a estar en el Puesto Activo.
+Rojo ha jugado Martillo Mejorado.
+- Se ha descartado Energía del Team Rocket del Honchkrow del Team Rocket de Azul.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Martillo Mejorado de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Walkie-talkie del Team Rocket.
+- Azul ha robado Giovanni del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha jugado Giovanni del Team Rocket.
+- El Honchkrow del Team Rocket de Azul se ha intercambiado con el Articuno del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+- El Kadabra de Rojo se ha intercambiado con el Dedenne de Rojo y pasa a ser el Pokémon Activo.
+El Honchkrow del Team Rocket de Azul pasa a estar en el Puesto Activo.
+El Kadabra de Rojo pasa a estar en el Puesto Activo.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha unido Energía Ignición al Honchkrow del Team Rocket en el Puesto Activo.
+El Honchkrow del Team Rocket de Azul ha infligido 120 puntos de daño usando Plumas Rocket contra el Kadabra de Rojo. El Kadabra de Rojo ha recibido 60 puntos de daño más por su Debilidad al tipo Oscura.
+- Resumen del daño:
+   • 1 Pokémon: 60 puntos de daño
+   • Debilidad al tipo Oscura: 60 puntos de daño
+
+- Azul ha descartado Petrel del Team Rocket.
+¡El Kadabra de Rojo ha quedado Fuera de Combate!
+Se ha descartado Abra del Kadabra de Rojo.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+Se ha activado Energía Ignición.
+- Se ha descartado Energía Ignición del Honchkrow del Team Rocket de Azul.
+
+Turno de Rojo
+Rojo ha robado Ayuda de Nereida.
+Rojo ha hecho que el Kadabra en Banca evolucione a Alakazam.
+El Alakazam de Rojo ha usado Robo Psíquico.
+- Rojo ha robado 3 cartas.
+   • Caramelo Raro, Ceniza Sagrada, Maya
+Rojo ha jugado Maya.
+- Rojo ha robado 2 cartas.
+   • Dunsparce, Dudunsparce
+- Rojo ha barajado su baraja.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado 3 cartas.
+   • Liza, Pokétableta, Dudunsparce
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha jugado Dudunsparce.
+- Rojo ha robado 3 cartas.
+   • Dunsparce, Energía Enriquecedora, Kadabra
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha jugado Pokochos Gemelos.
+- Rojo ha robado Dunsparce y lo ha puesto en juego en la Banca.
+- Rojo ha barajado su baraja.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Órdenes de Jefes de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha unido Energía Ignición al Honchkrow del Team Rocket en el Puesto Activo.
+El Honchkrow del Team Rocket de Azul ha infligido 120 puntos de daño usando Plumas Rocket contra el Dedenne de Rojo.
+- Resumen del daño:
+   • 2 Pokémon: 120 puntos de daño
+
+- Azul ha descartado 2 cartas.
+   • Atlas del Team Rocket, Petrel del Team Rocket
+¡El Dedenne de Rojo ha quedado Fuera de Combate!
+Se ha descartado Energía Psíquica Telepática del Dedenne de Rojo.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Dunsparce de Rojo pasa a estar en el Puesto Activo.
+Se ha activado Energía Ignición.
+- Se ha descartado Energía Ignición del Honchkrow del Team Rocket de Azul.
+
+Turno de Rojo
+Rojo ha robado Tarjeta Roja Especial.
+Rojo ha jugado Órdenes de Jefes.
+- El Articuno del Team Rocket de Azul se ha intercambiado con el Honchkrow del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+El Articuno del Team Rocket de Azul pasa a estar en el Puesto Activo.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dudunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Dunsparce del Puesto Activo evolucione a Dudunsparce.
+Rojo ha jugado Dudunsparce.
+- Rojo ha robado 3 cartas.
+   • Martillo Mejorado, Maya, Abra
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+El Dunsparce de Rojo pasa a estar en el Puesto Activo.
+Rojo ha unido Energía Enriquecedora al Dunsparce en el Puesto Activo.
+Se ha activado Energía Enriquecedora.
+- Rojo ha robado 4 cartas.
+   • Pokétableta, Globo Helio, Ventilador de Mano, Jaula de Combate
+Rojo ha jugado Ceniza Sagrada.
+- Rojo ha puesto Dedenne en su baraja y ha barajado todas las cartas.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dudunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha hecho que el Dunsparce del Puesto Activo evolucione a Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado 3 cartas.
+   • Dudunsparce, Energía Psíquica Telepática, Energía Psíquica Telepática
+- Rojo ha puesto 3 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Energía Enriquecedora, Dunsparce
+El Dunsparce de Rojo pasa a estar en el Puesto Activo.
+Rojo ha puesto en juego la carta de Estadio Jaula de Combate.
+- Azul ha descartado Fábrica del Team Rocket.
+Rojo ha jugado Tarjeta Roja Especial.
+- Azul ha barajado las cartas de su mano.
+- Azul ha puesto 6 cartas en la parte inferior de su baraja.
+- Azul ha robado 3 cartas.
+Rojo ha hecho que el Dunsparce del Puesto Activo evolucione a Dudunsparce.
+Rojo ha puesto en juego a Abra en la Banca.
+Rojo ha jugado Dudunsparce.
+- Rojo ha robado 3 cartas.
+   • Camilla Nocturna, Órdenes de Jefes, Dedenne
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+El Alakazam de Rojo pasa a estar en el Puesto Activo.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Paloselfi Rotom.
+- Azul ha robado Petrel del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha jugado Petrel del Team Rocket.
+- Azul ha robado Fábrica del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha puesto en juego la carta de Estadio Fábrica del Team Rocket.
+- Rojo ha descartado Jaula de Combate.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha unido Casco Suerte al Honchkrow del Team Rocket en la Banca.
+Azul ha jugado Walkie-talkie del Team Rocket.
+- Azul ha robado Atenea del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Energía Enriquecedora.
+Rojo ha puesto en juego a Dedenne en la Banca.
+Rojo ha unido Globo Helio al Alakazam en el Puesto Activo.
+Rojo ha unido Energía Psíquica Telepática al Dedenne en la Banca.
+Se ha activado Energía Psíquica Telepática.
+- Rojo ha barajado su baraja.
+Rojo ha retirado a Alakazam a la Banca.
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+Rojo ha jugado Maya.
+- Rojo ha robado 2 cartas.
+   • Dunsparce, Dudunsparce
+- Rojo ha barajado su baraja.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Órdenes de Jefes de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Paloselfi Rotom.
+- Azul ha robado Protón del Team Rocket.
+- Azul ha barajado su baraja.
+Azul ha jugado Atenea del Team Rocket.
+- Azul ha robado 4 cartas.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Pokétableta.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha jugado Pokétableta.
+- Rojo ha robado Dunsparce.
+- Rojo ha barajado su baraja.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Erin de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Caramelo Raro.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha jugado Erin.
+- Azul ha descartado 2 cartas.
+   • Pokétableta, Pokétableta
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Jaula de Combate de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Giovanni del Team Rocket.
+- El Honchkrow del Team Rocket de Azul se ha intercambiado con el Articuno del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+- El Genesect de Rojo se ha intercambiado con el Dedenne de Rojo y pasa a ser el Pokémon Activo.
+El Honchkrow del Team Rocket de Azul pasa a estar en el Puesto Activo.
+El Genesect de Rojo pasa a estar en el Puesto Activo.
+Azul ha unido Energía del Team Rocket al Honchkrow del Team Rocket en el Puesto Activo.
+Azul ha jugado Fábrica del Team Rocket.
+- Azul ha robado 2 cartas.
+El Honchkrow del Team Rocket de Azul ha infligido 120 puntos de daño usando Plumas Rocket contra el Genesect de Rojo.
+- Resumen del daño:
+   • 2 Pokémon: 120 puntos de daño
+
+- Azul ha descartado 2 cartas.
+   • Atlas del Team Rocket, Atlas del Team Rocket
+¡El Genesect de Rojo ha quedado Fuera de Combate!
+Se ha descartado Ventilador de Mano del Genesect de Rojo.
+Se ha activado Ventilador de Mano.
+- Azul ha unido Energía del Team Rocket al Articuno del Team Rocket en la Banca.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+
+Turno de Rojo
+Rojo ha robado Maya.
+Rojo ha jugado Martillo Mejorado.
+- Se ha descartado Energía del Team Rocket del Articuno del Team Rocket de Azul.
+Rojo ha jugado Camilla Nocturna.
+- Rojo ha movido Genesect de Rojo a su mano.
+Rojo ha puesto en juego a Genesect en la Banca.
+Rojo ha unido Ventilador de Mano al Genesect en la Banca.
+Rojo ha jugado Órdenes de Jefes.
+- El Articuno del Team Rocket de Azul se ha intercambiado con el Honchkrow del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+El Articuno del Team Rocket de Azul pasa a estar en el Puesto Activo.
+Rojo ha puesto en juego la carta de Estadio Jaula de Combate.
+- Azul ha descartado Fábrica del Team Rocket.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Órdenes de Jefes de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha puesto en juego la carta de Estadio Fábrica del Team Rocket.
+- Rojo ha descartado Jaula de Combate.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dudunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Ventilador de Mano de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dedenne de Rojo ha usado Sonar Electromagnético.
+- Rojo ha movido Camilla Nocturna de Rojo a su mano.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dudunsparce.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dudunsparce.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dudunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dudunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dudunsparce.
+El Dudunsparce de Rojo ha usado Robo a la Fuga.
+- Rojo ha robado Dunsparce.
+- Rojo ha puesto 2 cartas en su baraja y ha barajado todas las cartas.
+   • Dudunsparce, Dunsparce
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha jugado Giovanni del Team Rocket.
+- El Honchkrow del Team Rocket de Azul se ha intercambiado con el Articuno del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+- El Dudunsparce de Rojo se ha intercambiado con el Dedenne de Rojo y pasa a ser el Pokémon Activo.
+El Honchkrow del Team Rocket de Azul pasa a estar en el Puesto Activo.
+El Dudunsparce de Rojo pasa a estar en el Puesto Activo.
+Azul ha unido Energía Ignición al Honchkrow del Team Rocket en el Puesto Activo.
+El Honchkrow del Team Rocket de Azul ha infligido 180 puntos de daño usando Plumas Rocket contra el Dudunsparce de Rojo.
+- Resumen del daño:
+   • 3 Pokémon: 180 puntos de daño
+
+- Azul ha descartado 3 cartas.
+   • Atlas del Team Rocket, Protón del Team Rocket, Atenea del Team Rocket
+¡El Dudunsparce de Rojo ha quedado Fuera de Combate!
+Se ha descartado Dunsparce del Dudunsparce de Rojo.
+Azul ha cogido una carta de Premio.
+Se ha añadido Una carta a la mano de Azul.
+El Dedenne de Rojo pasa a estar en el Puesto Activo.
+Se ha activado Energía Ignición.
+- Se ha descartado Energía Ignición del Honchkrow del Team Rocket de Azul.
+
+Turno de Rojo
+Rojo ha robado Dunsparce.
+Rojo ha jugado Órdenes de Jefes.
+- El Articuno del Team Rocket de Azul se ha intercambiado con el Honchkrow del Team Rocket de Azul y pasa a ser el Pokémon Activo.
+El Articuno del Team Rocket de Azul pasa a estar en el Puesto Activo.
+Rojo ha jugado Camilla Nocturna.
+- Rojo ha movido Dunsparce de Rojo a su mano.
+Rojo ha puesto en juego a Dunsparce en la Banca.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Rojo ha robado Dudunsparce.
+Rojo ha hecho que el Dunsparce en Banca evolucione a Dudunsparce.
+Rojo ha terminado su turno.
+
+Turno de Azul
+Azul ha robado una carta.
+Azul ha terminado su turno.
+
+Turno de Rojo
+Tu baraja se ha quedado sin cartas. Azul ha ganado.
