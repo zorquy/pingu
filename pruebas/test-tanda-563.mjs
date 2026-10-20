@@ -169,7 +169,7 @@ console.log('── 5. El precio dice de quién es ──')
   if (/Sin precio/.test(precio)) check('sin cifras, no se matiza nada', pie.trim() === '', pie)
   else {
     check('dice que es el de cualquier idioma', /cualquier idioma/i.test(pie), pie)
-    check('  …y manda a Cardmarket para el tuyo', (await page.locator('#mcEdPrecioBloque .btn-cardmarket').count()) === 1)
+    check('  …y manda a Cardmarket para el tuyo', (await page.locator('#mcEdPrecioBloque .pv-tarjeta-tuya[href*="cardmarket"]').count()) === 1)
   }
 }
 

@@ -76,17 +76,17 @@ console.log('── 3. En /carta: suelto suave, en una frase subrayado ──')
   const r = await page.evaluate(() => {
     const c = document.getElementById('cmComparar')
     const pie = document.querySelector('.carta-mercado-pie .link-btn')
-    const cm = document.querySelector('#cmPrecios .btn-cardmarket')
+    const cm = document.querySelectorAll('#cmPrecios .btn-cardmarket, #cmPrecios .pv-botones').length
     const cs = (e) => e && getComputedStyle(e)
     return {
       comparar: c && { fondo: cs(c).backgroundColor, subr: cs(c).textDecorationLine, ancho: Math.round(c.getBoundingClientRect().width), caja: Math.round(c.parentElement.getBoundingClientRect().width) },
       pie: pie && { fondo: cs(pie).backgroundColor, subr: cs(pie).textDecorationLine },
-      cm: cm && cs(cm).backgroundColor,
+      cm,
     }
   })
   check('«Comparar con otra carta» es un botón suave, sin subrayar y de su ancho (no a lo ancho de la columna)', r.comparar && r.comparar.fondo === ice && r.comparar.subr === 'none' && r.comparar.ancho < r.comparar.caja / 2, JSON.stringify(r))
   check('«Todas las cartas de Drakloak», dentro de su párrafo, sigue siendo un enlace subrayado', r.pie && r.pie.subr === 'underline' && /rgba\(0, 0, 0, 0\)|transparent/.test(r.pie.fondo), JSON.stringify(r.pie))
-  check('el botón de Cardmarket de las tarjetas es suave (--ice)', r.cm === ice, JSON.stringify({ ice, cm: r.cm }))
+  check('y debajo de las tarjetas ya no hay botón de Cardmarket (920: la tarjeta es el enlace)', r.cm === 0, String(r.cm))
   await ctx.close()
 }
 

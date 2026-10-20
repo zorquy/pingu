@@ -318,12 +318,11 @@ console.log('\n── 5. Cardmarket con su logo ──')
     },
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  // Desde la 645 la marca va UNA vez, en el botón: el bloque nuevo lleva su
-  // propia cabecera «Cardmarket» y el logo de arriba lo decía dos veces.
-  check('el bloque lleva la marca, en el botón', (await page.locator('.btn-cardmarket .cm-marca').count()) === 1 && (await page.locator('.cm-logo').count()) === 0)
-  const boton = page.locator('.btn-cardmarket')
-  check('y el botón es un botón de Cardmarket', (await boton.count()) === 1)
-  check('  …con la marca dentro', (await boton.locator('.cm-marca').count()) === 1)
+  // Desde la 920 no hay botón ni logo: la tarjeta de tu idioma es el
+  // enlace a Cardmarket (las tarjetas ya llevan, PINGU).
+  check('sin botón ni logo de Cardmarket aparte', (await page.locator('.btn-cardmarket, .cm-logo').count()) === 0)
+  const boton = page.locator('.pv-tarjeta-tuya')
+  check('y la tarjeta de tu idioma lleva a Cardmarket', (await boton.count()) === 1 && /cardmarket\.com/.test((await boton.getAttribute('href')) || ''))
   check('  …y lleva a cardmarket.com', /cardmarket\.com/.test((await boton.getAttribute('href')) || ''),
     await boton.getAttribute('href'))
   // Lo que se pulsa mide 44 (norma de la casa).

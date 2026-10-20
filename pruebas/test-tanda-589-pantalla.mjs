@@ -63,8 +63,8 @@ console.log('── 2. La ficha de la copia en español ──')
   check('las tarjetas: español, inglés y francés (sin alemán ni italiano, que no tienen)', filas.map(limpio).join(' | ') === 'ES tu copia 140,00 € mínimo en español en Cardmarket · NM · 5 oct | EN 194,00 € Inglés | FR 150,00 € Francés', filas.map(limpio).join(' | '))
   check('  …con la española la primera y marcada', /^ES tu copia 140,00 €/.test(limpio(await bloque.locator('.pv-tarjeta-tuya').innerText())))
   check('  …y TCGplayer en su tarjeta, en euros', /TCGplayer 171,08 €/i.test(limpio(await bloque.locator('.pv-tarjeta-tcg').innerText())), limpio(await bloque.locator('.pv-tarjeta-tcg').innerText()))
-  const cm = bloque.locator('.btn-cardmarket.pv-boton-cm')
-  check('el botón de Cardmarket va al producto 273681 en español y NM', /idProduct=273681/.test(await cm.getAttribute('href')) && /language=4/.test(await cm.getAttribute('href')) && /minCondition=2/.test(await cm.getAttribute('href')), await cm.getAttribute('href'))
+  const cm = bloque.locator('.pv-tarjeta-tuya')
+  check('la tarjeta de tu copia (920: sin botón aparte) va al producto 273681 en español y NM', /idProduct=273681/.test(await cm.getAttribute('href')) && /language=4/.test(await cm.getAttribute('href')) && /minCondition=2/.test(await cm.getAttribute('href')), await cm.getAttribute('href'))
   const tp = bloque.locator('.btn-tcgplayer')
   check('y el de TCGplayer al producto 96048', (await tp.count()) === 1 && (await tp.getAttribute('href')) === 'https://www.tcgplayer.com/product/96048')
   // Desde la 673 las gradeadas van plegadas y POR CASA: el resumen enseña la
@@ -79,7 +79,7 @@ console.log('── 2. La ficha de la copia en español ──')
   check('el enlace a la ficha completa sigue', /Ficha completa/.test(await page.locator('#mcEdFicha').innerText()))
   // Los dos botones miden 44.
   const alto = await cm.evaluate((el) => el.getBoundingClientRect().height)
-  check('los botones miden 44 px de alto', alto >= 44, String(alto))
+  check('las tarjetas miden 44 px de alto o más', alto >= 44, String(alto))
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)
 }
@@ -92,7 +92,7 @@ console.log('── 3. La ficha de la copia en alemán: sin mínimo alemán, el 
   const bloque = page.locator('#mcEdPrecioBloque')
   check('la cifra es 39 € (mínimo general), y el renglón lo dice', limpio(await bloque.locator('.pv-cifra').innerText()) === '39,00 €' && /cualquier idioma/.test(await bloque.locator('.pv-tarjeta-tuya .pv-de').innerText()), limpio(await bloque.locator('.pv-tarjeta-tuya .pv-de').innerText()))
   check('  …la tarjeta de tu copia es la alemana (sin mínimo propio, el general)', /^DE tu copia 39,00 €/.test(limpio(await bloque.locator('.pv-tarjeta-tuya').innerText())), limpio(await bloque.locator('.pv-tarjeta-tuya').innerText()))
-  check('  …y Cardmarket va con el alemán (language=3) y Good (minCondition=4)', /language=3/.test(await bloque.locator('.btn-cardmarket.pv-boton-cm').getAttribute('href')) && /minCondition=4/.test(await bloque.locator('.btn-cardmarket.pv-boton-cm').getAttribute('href')))
+  check('  …y Cardmarket va con el alemán (language=3) y Good (minCondition=4)', /language=3/.test(await bloque.locator('.pv-tarjeta-tuya').getAttribute('href')) && /minCondition=4/.test(await bloque.locator('.pv-tarjeta-tuya').getAttribute('href')))
   await page.keyboard.press('Escape')
 }
 
@@ -102,7 +102,7 @@ console.log('── 4. La página de la carta: el mismo bloque, y cambia con el 
   await page.waitForTimeout(2500)
   const caja = page.locator('#cmPrecios')
   check('en español, 140 €', limpio(await caja.locator('.pv-tarjeta-tuya .pv-cifra').innerText()) === '140,00 €', limpio(await caja.innerText()).slice(0, 200))
-  check('  …con los dos botones', (await caja.locator('.btn-cardmarket').count()) === 1 && (await caja.locator('.btn-tcgplayer').count()) === 1)
+  check('  …sin botones debajo (920): Cardmarket y TCGplayer son sus tarjetas', (await caja.locator('.pv-botones, .btn-cardmarket').count()) === 0 && (await caja.locator('.pv-tarjeta-tcg.btn-tcgplayer').count()) === 1)
   await page.selectOption('#cmIdioma', 'en')
   await page.waitForTimeout(300)
   // Desde la 916 son tarjetas por idioma: la de arriba es la del idioma puesto.

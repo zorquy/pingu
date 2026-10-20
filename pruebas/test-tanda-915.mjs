@@ -115,7 +115,8 @@ console.log('\n── 1. Móvil: la carta arriba, la versión, «− Tienes N +�
   const foto = await page.locator('#mcEdFoto').boundingBox()
   const titulo = await page.locator('#mcEditorTitulo').boundingBox()
   check('la carta arriba y el nombre debajo, centrado (como Dex)', titulo.y >= foto.y + foto.height - 1 && (await page.locator('#mcEditorTitulo').evaluate((h) => getComputedStyle(h.parentElement).textAlign)) === 'center', JSON.stringify({ foto: Math.round(foto.y + foto.height), titulo: Math.round(titulo.y) }))
-  check('  …la carta, grande: al menos el 70 % del ancho', foto.width >= 390 * 0.7, String(foto.width))
+  // Desde la 920, «un poquito más pequeña» (PINGU): 264 px como mucho.
+  check('  …la carta, grande pero sin pasarse: entre el 55 % del ancho y 264 px', foto.width >= 390 * 0.55 && foto.width <= 264, String(foto.width))
   check('el corazón y compartir, arriba', (await page.locator('#mcEdQuiero').isVisible()) && (await page.locator('#mcEdCompartir').isVisible()))
   check('la versión en su fila: Normal', limpio(await page.locator('#mcEdVersionNombre').innerText()) === 'Normal')
   await page.click('#mcEdVersion')

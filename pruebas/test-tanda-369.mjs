@@ -160,9 +160,10 @@ console.log('\n── 3. Cardmarket, ahora dentro de la ficha ──')
   await page.locator('.mc-carta-foto').first().click()
   await page.waitForTimeout(500)
   // Desde la 589 el botón vive en el bloque de precio (js/precio-vista.js).
-  const cm = page.locator('#mcEdPrecioBloque .btn-cardmarket')
-  check('Cardmarket va con su marca, no con un enlace de texto',
-    (await cm.locator('.cm-marca').count()) === 1)
+  // Desde la 920 no hay botón: la tarjeta de tu copia es el enlace.
+  const cm = page.locator('#mcEdPrecioBloque .pv-tarjeta-tuya')
+  check('Cardmarket va en la tarjeta de tu copia, que es un enlace',
+    (await cm.evaluate((e) => e.tagName)) === 'A')
   check('  …y sigue llevando a cardmarket.com',
     /cardmarket\.com/.test((await cm.getAttribute('href')) || ''), await cm.getAttribute('href'))
   // Lo que se pulsa mide 44 (norma de la casa); con ratón se deja en 32,
@@ -193,7 +194,7 @@ console.log('\n── 4. La ventana de editar enseña la carta ──')
   check('  …con su nombre', ((await d.locator('#mcEditorTitulo').textContent()) || '').trim().length > 0)
   check('  …y de qué colección es', /Escarlata/.test((await d.locator('#mcEdSet').textContent()) || ''),
     await d.locator('#mcEdSet').textContent())
-  check('  …y su enlace a Cardmarket', (await d.locator('#mcEdPrecioBloque .btn-cardmarket .cm-marca').count()) === 1)
+  check('  …y su enlace a Cardmarket', (await d.locator('#mcEdPrecioBloque .pv-tarjeta-tuya[href*="cardmarket.com"]').count()) === 1)
 
   // Y la foto es la de LA LÍNEA que has pulsado, no la primera que haya:
   // es justo el fallo que esto arregla.
