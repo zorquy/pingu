@@ -30,7 +30,7 @@ console.log('── 0. cartas.html es lo que sale del generador, byte a byte ─
   check('cartas.html == generarCartas(mi-coleccion.html)', generarCartas(leer('mi-coleccion.html')) === leer('cartas.html'),
     'ejecuta `node generar-cartas.mjs`')
   const cartas = leer('cartas.html')
-  check('  …indexable, con su descripción y su canónica', !/name="robots"/.test(cartas) && /<meta name="description"/.test(cartas) && /rel="canonical" href="https:\/\/pokedoc\.es\/cartas\.html"/.test(cartas))
+  check('  …indexable, con su descripción y su canónica (sin .html desde la 906)', !/name="robots"/.test(cartas) && /<meta name="description"/.test(cartas) && /rel="canonical" href="https:\/\/pokedoc\.es\/cartas"/.test(cartas))
   check('  …empieza por el doctype', cartas.startsWith('<!DOCTYPE html>\n'))
   check('  …y en modo catálogo', /<body data-modo="catalogo">/.test(cartas))
   check('  …con dos pestañas: Expansiones y Buscar', /data-pestania="album"[^>]*>[^<]*<span class="mc-menu-texto">Expansiones/.test(cartas) && /data-pestania="buscar"/.test(cartas) && !/data-pestania="resumen"/.test(cartas) && !/data-pestania="cambios"/.test(cartas))
