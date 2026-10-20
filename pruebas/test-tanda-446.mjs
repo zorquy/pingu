@@ -98,17 +98,17 @@ console.log('\n── 3. «Ver todas» no es un enlace pocho ──')
   })
   check('no va subrayado', v.subrayado === 'none', JSON.stringify(v))
   check('  …y tiene cuerpo de control (sin chapa desde la 781: palabra y flecha)', v.borde === '0px' && v.alto >= 32, JSON.stringify(v))
-  // Y la clase global NO se toca: la usa media web y un cambio ahí sería
-  // otra tanda entera.
+  // La clase global la cambió la 917 (botones en tres clases): suelta es
+  // un botón suave; dentro de una frase sigue siendo un enlace subrayado.
   const otro = await page.evaluate(() => {
-    const n = document.createElement('button')
-    n.className = 'link-btn'
-    document.body.appendChild(n)
-    const d = getComputedStyle(n).textDecorationLine
-    n.remove()
+    const p = document.createElement('p')
+    p.innerHTML = 'Una frase con <button class="link-btn">un enlace</button> dentro.'
+    document.body.appendChild(p)
+    const d = getComputedStyle(p.querySelector('.link-btn')).textDecorationLine
+    p.remove()
     return d
   })
-  check('  …sin cambiarle el estilo a `.link-btn` en todo el sitio', otro === 'underline', otro)
+  check('  …y `.link-btn` dentro de una frase sigue subrayado (917)', otro === 'underline', otro)
   await page.close()
 }
 
