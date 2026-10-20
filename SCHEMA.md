@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 918 — La hoja «Tú», en baldosas
+
+La parte 4 de la propuesta «PokeDoc más sencillo» (aprobada). `pintarMenuTu`
+(js/menu-tu.js) pinta tres bloques:
+
+- `.tu-arriba`: la cabecera (`a.tu-cabeza`, al perfil) y el tema
+  (`.tu-tema-boton[data-tema-ciclo]`, redondo, 44 px). El botón no puede ir
+  dentro del `<a>`, por eso hay caja de fuera.
+- `nav.tu-baldosas`: seis, en rejilla de tres. Las dos primeras son las de
+  siempre (`button[data-tu="avisos"]`, `a[data-tu="mensajes"]`) con su
+  chapa `.tu-cuenta[data-cuenta]` copiada de la barra, en rosa y en la
+  esquina; las otras cuatro llevan su número debajo (`.tu-n[data-n]`, que
+  rellena `contarLoTuyo` y esconde si no hay nada: la 319).
+- `nav.tu-lista`: Ajustes, Apoyar PokeDoc (`.tu-apoyar`, en rosa; en el PC
+  ancho con lateral no sale, la 774) y Salir (`#navUserSignOut`, en rojo y
+  sin flecha).
+
+El hueco `.tu-avisos-sitio`, donde se mueve la lista de avisos en el móvil,
+va después de las baldosas. Novedades salió de la hoja, y con ella
+`pintarPuntoDeNovedades`: el punto lo sigue pintando /novedades.
+
+En Mi colección, lo que faltaba de la 917: `.mc-chip-mando` (Filtros,
+Archivador, Variantes…), `.mc-miga` y `.mc-icono-mando` pasan a suave/icono
+(fondo `--ice`, borde transparente, la misma medida). `.mc-chip-peligro` lleva
+su fondo rojo suave en vez del borde.
+
 ## Tanda 917 — Los botones, en tres clases
 
 La parte 3 de la propuesta «PokeDoc más sencillo» (aprobada). En una sola

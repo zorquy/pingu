@@ -757,10 +757,10 @@
   align-items: center;
   min-height: 44px;
   padding: 0 var(--e-md);
-  border: 1px solid var(--border);
+  border: 1px solid transparent; /* 917: suave, sin borde (SCHEMA 917) */
   border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
+  background: var(--ice);
+  color: var(--text);
   font: inherit;
   font-size: var(--t-sm);
   font-weight: 600;
@@ -768,8 +768,7 @@
 }
 
 .mc-chip-mando:hover {
-  border-color: var(--navy);
-  color: var(--text);
+  background: var(--ice-dark);
 }
 
 /* ── LA CHAPA DE PELIGRO (tanda 465) ──
@@ -781,7 +780,7 @@
  * `--danger`, que es el de TEXTO Y BORDES (la 311): aquí el rojo no lleva
  * nada encima, así que no toca el sólido. */
 .mc-chip-peligro {
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  background: var(--danger-bg);
   color: var(--danger);
 }
 
@@ -4498,17 +4497,16 @@ input.mc-alb-titulo:not([readonly]):focus {
   min-width: 36px;
   min-height: 36px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid transparent; /* 917: icono, sin borde */
   border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
+  background: var(--ice);
+  color: var(--text);
   font: inherit;
   cursor: pointer;
 }
 
 .mc-icono-mando:hover:not(:disabled) {
-  border-color: var(--navy);
-  color: var(--text);
+  background: var(--ice-dark);
 }
 
 .mc-icono-mando:disabled {
@@ -6035,9 +6033,9 @@ input.mc-alb-titulo:not([readonly]):focus {
   gap: var(--e-xs);
   min-height: 44px;
   padding: 0 var(--e-md) 0 var(--e-sm);
-  border: 1px solid var(--border);
+  border: 1px solid transparent; /* 917: suave */
   border-radius: var(--radius-pill);
-  background: var(--white);
+  background: var(--ice);
   color: var(--text);
   font-size: inherit;
   font-weight: 700;
@@ -6046,7 +6044,7 @@ input.mc-alb-titulo:not([readonly]):focus {
 }
 
 .mc-miga:hover {
-  background: var(--ice);
+  background: var(--ice-dark);
 }
 
 .mc-miga-flecha {

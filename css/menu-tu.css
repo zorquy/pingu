@@ -9,26 +9,21 @@
   display: none;
 }
 
-.tu-cabeza {
+.tu-arriba {
   display: flex;
   align-items: center;
-  gap: var(--e-md);
+  gap: var(--e-sm);
   padding: var(--e-xs) var(--e-xs) var(--e-md);
-  color: inherit;
-  text-decoration: none;
 }
 
-/* La cabecera entera es el enlace al perfil (869): con su flecha, como las
-   filas de la lista. */
-.tu-cabeza::after {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  margin-right: var(--e-xs);
-  border-top: 2px solid var(--text-dim);
-  border-right: 2px solid var(--text-dim);
-  content: '';
-  transform: rotate(45deg);
+.tu-cabeza {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
 }
 
 .tu-cabeza:hover strong {
@@ -64,49 +59,70 @@
   font-size: var(--t-sm);
 }
 
-.tu-dos {
+/* Las seis baldosas (918): iguales, con su icono, su palabra y su número. */
+.tu-baldosas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e-sm);
   margin-bottom: var(--e-sm);
 }
 
-.tu-dos > * {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-  min-height: 52px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
+.tu-baldosas > * {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--e-xs);
+  min-height: 72px;
+  padding: var(--e-sm) var(--e-xs);
+  border: 0;
   border-radius: var(--radius-lg);
-  background: var(--white);
+  background: var(--ice);
   color: var(--text);
   font: inherit;
-  font-size: var(--t-md);
+  font-size: var(--t-sm);
   font-weight: 700;
+  text-align: center;
   text-decoration: none;
   cursor: pointer;
 }
 
-.tu-dos > :hover {
-  border-color: var(--navy);
+.tu-baldosas > :hover {
+  background: var(--ice-dark);
 }
 
-.tu-dos svg {
-  flex: none;
+.tu-baldosas svg {
   color: var(--navy);
 }
 
+/* Lo tuyo, con su número debajo de la palabra (869). */
+.tu-baldosas .tu-n {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.tu-baldosas .tu-n[hidden] {
+  display: none;
+}
+
+/* Lo que tienes sin leer, en rosa y en la esquina. */
 .tu-cuenta {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
   min-width: 22px;
-  margin-left: auto;
   padding: 0 var(--e-xs);
   border-radius: var(--radius-pill);
-  background: var(--danger-solid);
+  background: var(--pink);
   color: var(--blanco-fijo);
   font-size: var(--t-2xs);
   line-height: 22px;
   text-align: center;
+}
+
+.tu-cuenta[hidden] {
+  display: none;
 }
 
 .tu-avisos-sitio .nav-bell-dropdown {
@@ -126,7 +142,7 @@
   background: var(--white);
 }
 
-.tu-lista a {
+.tu-lista > * {
   display: flex;
   align-items: center;
   gap: var(--e-md);
@@ -137,35 +153,18 @@
   text-decoration: none;
 }
 
-.tu-lista a + a {
+.tu-lista > * + * {
   border-top: 1px solid var(--border);
 }
 
-.tu-lista a svg {
+.tu-lista svg {
   flex: none;
   color: var(--text-mid);
 }
 
-.tu-lista a span {
+.tu-lista span {
   flex: 1 1 auto;
-}
-
-/* Lo que hay dentro de Ajustes, en pequeño (869). */
-.tu-lista a small {
-  display: block;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 400;
-}
-
-/* La cuenta de cada cosa tuya (869): el mismo chip que las pestañas. */
-.tu-lista .tu-n {
-  flex: none;
-  margin-right: var(--e-xs);
-}
-
-.tu-lista .tu-n[hidden] {
-  display: none;
+  text-align: left;
 }
 
 /* La flecha de cada fila, dibujada con dos bordes: no hay icono de
@@ -185,81 +184,50 @@
   color: var(--navy);
 }
 
-.tu-pie {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-}
-
-.tu-pie .tu-salir {
-  margin-left: auto;
-}
-
-/* El tema en UN botón (869): un icono, 44 de ancho. */
+/* El tema en UN botón (869), redondo y al lado de quién eres (918). */
 .tu-tema-boton {
-  display: inline-flex;
+  display: grid;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text-mid);
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
   cursor: pointer;
 }
 
 .tu-tema-boton:hover {
-  border-color: var(--navy);
-  color: var(--navy);
+  background: var(--ice-dark);
 }
 
-/* Apoyar (758, 766: en rosa, con la taza) y Novedades (829, con su punto),
-   pequeños en el pie. */
-.tu-pie .tu-apoyar,
-.tu-pie .tu-novedades {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: 0 var(--e-sm);
-  border-radius: var(--radius-lg);
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.tu-pie .tu-apoyar {
+/* Apoyar (758, 766: en rosa, con la taza) y Salir, en rojo y sin flecha. */
+.tu-lista .tu-apoyar,
+.tu-lista .tu-apoyar svg {
   color: var(--pink);
-  background: var(--pink-bg);
 }
 
-.tu-pie .tu-novedades:hover {
-  color: var(--navy);
-}
-
-.tu-salir {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 48px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
+.tu-lista .tu-salir {
+  width: 100%;
+  padding: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  background: none;
   color: var(--danger);
   font: inherit;
-  font-size: var(--t-sm);
+  font-size: var(--t-md);
   font-weight: 700;
   cursor: pointer;
 }
 
-.tu-salir:hover {
-  border-color: var(--danger);
+.tu-lista .tu-salir svg {
+  color: var(--danger);
+}
+
+.tu-lista .tu-salir::after {
+  display: none;
 }
 
 @media (max-width: 900px) {
@@ -278,11 +246,7 @@
 
 /* 774: con la lateral a la vista, «Apoyar» va en ella, no aquí. */
 @media (min-width: 1400px) and (pointer: fine) {
-  html.con-lateral .tu-pie > .tu-apoyar {
+  html.con-lateral .tu-lista > .tu-apoyar {
     display: none;
   }
 }
-
-/* El punto de Novedades (829): hay alguna desde tu última visita. */
-.tu-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); flex-shrink: 0; }
-.tu-punto[hidden] { display: none; }

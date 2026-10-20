@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-20", "tipo": "mejora", "texto": "El menú de tu avatar, más sencillo: seis baldosas con su número (avisos, mensajes, guardados, la quiero, mazos y partidas), el tema en un botón al lado de tu nombre y, debajo, Ajustes, Apoyar y Salir.", "enlace": "/perfil" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "Los botones, más sencillos y todos iguales: el principal en azul, el resto en azul claro y sin borde, y los enlaces sueltos pasan a ser botones.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "La página de cada carta, como la ficha nueva: el precio en una tarjeta por idioma, «− Tienes 2 +» bajo la carta para sumar o quitar una copia al momento, «Avísame si baja» junto al precio y los datos en filas.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "La ficha de una carta, más sencilla y más visual, como en Dex: la carta en grande, sus versiones con un check en las que tienes, «− Tienes 2 +» para sumar o quitar una copia al momento, el precio en una tarjeta por idioma y quién más la tiene.", "enlace": "/mi-coleccion?ver=album" },

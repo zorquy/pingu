@@ -1,15 +1,12 @@
-// LA HOJA «TÚ» DE SU MAQUETA (748, la N8; de catorce cosas a nueve en la
-// 869). PINGU: «el menú desplegable del perfil… se ve horrible, demasiada
-// información desestructurada», y después «quizá muestra demasiadas cosas
-// y debería ser más sencillo». Cuatro bloques:
-//   · QUIÉN: avatar, nombre y «@usuario · nivel · racha»; la cabecera
-//     entera es el enlace al perfil («Ver perfil» aparte sobraba);
-//   · LO QUE TE ESPERA: avisos y mensajes, con su número;
-//   · LO TUYO: cuatro cosas CON SU CUENTA (guardados, la quiero, mazos,
-//     partidas) y Ajustes. Lo que tiene sitio en una sección (Modo feria,
-//     Escribir una guía) no se repite aquí;
-//   · el PIE: el tema en un botón (claro ↔ oscuro; «el del sistema» está en
-//     Ajustes), «Apoyar», «Novedades» con su punto, y «Salir».
+// LA HOJA «TÚ» (748, la N8; de catorce cosas a nueve en la 869, y en
+// baldosas desde la 918, la propuesta «PokeDoc más sencillo»). Tres bloques:
+//   · QUIÉN: avatar, nombre y «@usuario · nivel · racha» —la cabecera es el
+//     enlace al perfil— y, a su lado, el tema en un botón redondo (claro ↔
+//     oscuro; «el del sistema» está en Ajustes);
+//   · SEIS BALDOSAS IGUALES, cada una con su icono y su número: avisos y
+//     mensajes (sin leer, en rosa) y guardados, la quiero, mazos y partidas;
+//   · TRES RENGLONES: Ajustes, Apoyar PokeDoc y Salir.
+// Novedades salió de la hoja en la 918: está en Inicio y en el pie.
 // Es el mismo `#navUserDropdown` en el ordenador (colgado del avatar) y en
 // el móvil (desde abajo, css/movil.css). Entra por `import()` al tocar el
 // avatar, con su hoja: la portada no paga ni un byte.
@@ -26,18 +23,6 @@ const CLAVE_TEMA = 'pokedoc-theme'
 // hoja no lo repite (menu-tu.css). En el móvil y en un PC estrecho, sin
 // lateral, sigue aquí.
 const taza = (size) => DIBUJOS.taza(size)
-
-async function pintarPuntoDeNovedades(dropdown, win) {
-  try {
-    const [{ hayNovedades, CLAVE_VISTO }, res] = await Promise.all([import('./novedades-datos.js'), win.fetch('/novedades.json')])
-    if (!res.ok) return
-    const { entradas } = await res.json()
-    let visto = null
-    try { visto = win.localStorage.getItem(CLAVE_VISTO) } catch { /* sin almacenamiento */ }
-    const punto = dropdown.querySelector('.tu-punto')
-    if (punto) punto.hidden = !hayNovedades(entradas, visto)
-  } catch { /* sin punto */ }
-}
 
 // Lo que hay guardado: 'light', 'dark' o nada (el del sistema).
 function temaGuardado() {
@@ -100,36 +85,35 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
   hojaInyectada('css/menu-tu.css').then(() => dropdown.style.removeProperty('visibility'))
   const quien = lineaDeQuien({ usuario: profile?.username, nivel, racha: Number(profile?.current_streak) || 0 })
   const oscuro = doc.documentElement.dataset.theme === 'dark'
-  // Lo tuyo (869): cuatro cosas con su cuenta, y Ajustes. Lo que tiene
-  // sitio en una sección (Modo feria, Escribir una guía) no se repite aquí.
-  const fila = (href, icono, texto, cuenta = '', detalle = '') => `<a href="${href}">${icono}<span>${texto}${detalle ? `<small>${detalle}</small>` : ''}</span>${cuenta ? `<b class="pest-cuenta tu-n" data-n="${cuenta}" hidden></b>` : ''}</a>`
+  // Las seis baldosas (918): avisos y mensajes con lo que tienes sin leer
+  // (`data-cuenta`, la chapa de la barra), y lo tuyo con su cuenta (`data-n`).
+  const baldosa = (href, icono, texto, n) => `<a href="${href}">${icono}<span>${texto}</span><b class="tu-n" data-n="${n}" hidden></b></a>`
   dropdown.innerHTML = `
     <span class="tu-tirador" aria-hidden="true"></span>
-    <a class="tu-cabeza" href="/perfil.html" aria-label="Ver tu perfil">
-      <span class="nav-user-avatar-lg tu-avatar" style="${estiloAvatar}">${escapeHtml(inicial || '')}</span>
-      <span class="tu-quien">
-        <strong>${escapeHtml(name || '')}</strong>
-        ${quien ? `<span>${escapeHtml(quien)}</span>` : ''}
-      </span>
-    </a>
-    <div class="tu-dos">
+    <div class="tu-arriba">
+      <a class="tu-cabeza" href="/perfil.html" aria-label="Ver tu perfil">
+        <span class="nav-user-avatar-lg tu-avatar" style="${estiloAvatar}">${escapeHtml(inicial || '')}</span>
+        <span class="tu-quien">
+          <strong>${escapeHtml(name || '')}</strong>
+          ${quien ? `<span>${escapeHtml(quien)}</span>` : ''}
+        </span>
+      </a>
+      <button type="button" class="tu-tema-boton" data-tema-ciclo aria-label="${oscuro ? 'Cambiar al tema claro' : 'Cambiar al tema oscuro'}">${oscuro ? icons.sun(18) : icons.moon(18)}</button>
+    </div>
+    <nav class="tu-baldosas" aria-label="Lo tuyo">
       <button type="button" data-tu="avisos">${icons.bell(20)}<span>Avisos</span><b class="tu-cuenta" data-cuenta="navBellBadge"></b></button>
       <a href="/mensajes.html" data-tu="mensajes">${icons.mail(20)}<span>Mensajes</span><b class="tu-cuenta" data-cuenta="navMsgBadge"></b></a>
-    </div>
-    <div class="tu-avisos-sitio"></div>
-    <nav class="tu-lista" aria-label="Lo tuyo">
-      ${fila('/guardados.html', icons.bookmark(20), 'Guardados', 'guardados')}
-      ${fila('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero', 'quiero')}
-      ${fila('/mazos', icons.layers(20), 'Mis mazos', 'mazos')}
-      ${fila('/mis-partidas', icons.gamepad(20), 'Mis partidas', 'partidas')}
-      ${fila('/ajustes', icons.settings(20), 'Ajustes', '', 'Avisos, cuenta, tema')}
+      ${baldosa('/guardados.html', icons.bookmark(20), 'Guardados', 'guardados')}
+      ${baldosa('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero', 'quiero')}
+      ${baldosa('/mazos', icons.layers(20), 'Mis mazos', 'mazos')}
+      ${baldosa('/mis-partidas', icons.gamepad(20), 'Partidas', 'partidas')}
     </nav>
-    <div class="tu-pie">
-      <button type="button" class="tu-tema-boton" data-tema-ciclo aria-label="${oscuro ? 'Cambiar al tema claro' : 'Cambiar al tema oscuro'}">${oscuro ? icons.sun(18) : icons.moon(18)}</button>
-      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(18)}<span>Apoyar</span></a>
-      <a class="tu-novedades" href="/novedades" data-tu="novedades">${icons.sparkles(18)}<span>Novedades</span><i class="tu-punto" hidden aria-label="Hay novedades"></i></a>
-      <button type="button" class="tu-salir" id="navUserSignOut">${icons.logOut(18)}<span>Salir</span></button>
-    </div>`
+    <div class="tu-avisos-sitio"></div>
+    <nav class="tu-lista" aria-label="Más">
+      <a href="/ajustes">${icons.settings(20)}<span>Ajustes</span></a>
+      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(20)}<span>Apoyar PokeDoc</span></a>
+      <button type="button" class="tu-salir" id="navUserSignOut">${icons.logOut(20)}<span>Salir</span></button>
+    </nav>`
 
   const pintarCuentas = () => {
     for (const b of dropdown.querySelectorAll('[data-cuenta]')) {
@@ -146,10 +130,6 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
       if (!b.hidden) b.textContent = n > 99 ? '99+' : String(n)
     }
   })
-  // El punto de NOVEDADES (829): si hay alguna después de la última vez que
-  // abriste /novedades. Se pregunta al abrir el menú, que ya llega por
-  // `import()`: la portada no paga nada. Sin red o sin almacenamiento, sin punto.
-  pintarPuntoDeNovedades(dropdown, win)
   // Las chapas de la campana y del sobre llegan cuando llegan: se miran
   // mientras viva el menú.
   const derecha = doc.querySelector('.nav-right')

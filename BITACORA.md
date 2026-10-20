@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (152) — PINGU-Claude (918 — la hoja «Tú» en baldosas)
+
+**Hecho** (parte 4 de la propuesta «PokeDoc más sencillo», aprobada). La
+hoja que se abre al tocar tu avatar:
+- Arriba, quién eres (la cabecera sigue siendo el enlace al perfil) y, a
+  su lado, el tema en un botón redondo.
+- Seis baldosas iguales, cada una con su icono y su número: Avisos y
+  Mensajes (lo que tienes sin leer, en rosa y en la esquina), Guardados, La
+  quiero, Mis mazos y Partidas.
+- Debajo, tres renglones: Ajustes, Apoyar PokeDoc y Salir. «Apoyar» sigue
+  sin salir en el PC ancho, donde ya está en la lateral (774).
+- Novedades sale de la hoja: está en Inicio y en el pie.
+- De paso, lo que faltaba de la 917 en Mi colección: las pastillas de
+  mando (Filtros, Archivador, Variantes), la miga «‹ Expansiones» y el «⋯»
+  van en suave, sin borde.
+
+**Ficheros**: `js/menu-tu.js`, `css/menu-tu.css`, `css/mi-coleccion.css`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: al día con las baldosas 309, 717, 748, 758, 766, 774, 829
+(su apartado del punto de Novedades en «Tú» pasa a comprobar que ya no está
+y que hay otro camino) y 869.
+
+Subconjunto de Mi colección (227, con la 299, 305, 309, 311, 312 y 313):
+215 verdes y 12 rojos. Los doce ya estaban rojos antes (385, 461, 467,
+475, 651, 653, 723, 749, 780, 829 —los de «nuevo para ti»—, 893), salvo la
+577, que pasa sola y falla en el carril por tiempo (igual que en la 917).
+
+**Pendiente**:
+- PINGU: sigue pendiente la migración 915.
+- Sigue la cabecera de una expansión con su barra de progreso (919).
+
 ## 2026-10-20 (151) — PINGU-Claude (917 — los botones, en tres clases)
 
 **Hecho** (la parte 3 de la propuesta «PokeDoc más sencillo», que PINGU
