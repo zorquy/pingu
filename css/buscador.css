@@ -381,3 +381,57 @@ input.bs-input[type='search']:focus {
   background: var(--success-bg);
   color: var(--success);
 }
+
+/* Solo cartas, por expansión (909): la cuenta arriba y una cabecera por set. */
+.bs-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-xs) var(--e-md);
+  margin: 0 0 var(--e-xs);
+  padding: 0 var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.bs-cuenta a.bs-mas {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  text-decoration: none;
+}
+
+.bs-set {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: var(--e-lg) 0 var(--e-xs);
+  padding: var(--e-sm) var(--e-md);
+  border-bottom: 1px solid var(--border);
+  font-family: inherit;
+  font-size: var(--t-sm);
+}
+
+.bs-set small {
+  font-weight: 400;
+}
+
+.bs-set-logo:empty {
+  display: none;
+}
+
+.bs-set-logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 36px;
+}
+
+.bs-set-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

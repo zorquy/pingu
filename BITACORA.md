@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (143) — PINGU-Claude (909 — el buscador de arriba es el de Cartas)
+
+**Hecho** (Sergio en el foro: buscando Zapdos no salía el de 151; PINGU:
+que el de arriba use la función del buscador de Cartas). La consulta de
+cartas sale de `mi-coleccion.js` a `js/buscar-cartas.js` y la usan /cartas
+y /buscar (y la paleta). /buscar trae las mismas 120 y las ordena por
+expansión, de la más nueva a la más vieja; «Cartas» las agrupa como /cartas
+con «Verlas en Cartas»; «Todo» dice «Ver las N cartas».
+
+**Ficheros**: `js/buscar-cartas.js` (NUEVO), `js/buscador.js`,
+`js/search.js`, `js/mi-coleccion.js`, `css/buscador.css`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-909.mjs`
+y 718, 827, 874 al día.
+
+**Pendiente**: contestar a Sergio en el foro. Lo de la 142.
+
 ## 2026-10-20 (142) — PINGU-Claude (908 — lo de /admin → Colecciones se ve en la web al momento)
 
 **Hecho** (PINGU: «ordeno las eras y meto las expansiones o cambio cosas y

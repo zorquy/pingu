@@ -4,8 +4,10 @@
 // es `js/buscador.js`, el mismo de la paleta de Ctrl+K.
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
-import { GRUPOS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
+import { GRUPOS, TOPE_CARTAS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
 import { destinoDe, interiorDe, engancharFotos } from './buscador-filas.js'
+import { atributosDeEscaneo } from './escaneo-carta.js'
+import { nombreDeSet } from './catalogo-series.js'
 
 const $ = (id) => document.getElementById(id)
 const input = $('searchInput')
@@ -55,9 +57,43 @@ function seccion(g, estado, q) {
     // sí: «ninguna carta» es la respuesta.
     return grupo ? `<p class="empty-state">Nada en ${NOMBRE[g].toLowerCase()} con «${escapeHtml(q)}».</p>` : ''
   }
-  const filas = estado.filas.map((f) => `<a class="bs-fila bs-${g}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`).join('')
-  const mas = !grupo && estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
+  if (g === 'cartas' && grupo) return seccionDeCartas(estado, q)
+  const filas = estado.filas.map((f) => fila(g, f)).join('')
+  const mas = grupo ? '' : g === 'cartas' ? masCartas(estado) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
   return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
+}
+
+const fila = (g, f) => `<a class="bs-fila bs-${g}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`
+
+// En «Todo» salen las cuatro de la expansión más nueva y el botón dice
+// cuántas hay (909): «Ver más» de 4 cuando son 62 se quedaba corto.
+function masCartas(estado) {
+  if (estado.total <= estado.filas.length) return ''
+  const texto = estado.hayMas ? 'Ver todas las cartas' : `Ver las ${estado.total} cartas`
+  return `<button type="button" class="bs-mas" data-ver="cartas">${texto}</button>`
+}
+
+// Solo cartas (909): como la pestaña Buscar de Cartas, que es el mismo
+// buscador —todas, hasta su tope, por expansión de la más nueva a la más
+// vieja, con el logo y cuántas salen de cada una—, en filas con su precio.
+// Arriba, la cuenta (y si se ha llegado al tope, que lo diga) y el enlace a
+// Cartas con la búsqueda puesta, donde se afina por serie o expansión.
+function seccionDeCartas(estado, q) {
+  const grupos = []
+  for (const c of estado.filas) {
+    const ultimo = grupos.at(-1)
+    if (ultimo?.id === c.set_id) ultimo.cartas.push(c)
+    else grupos.push({ id: c.set_id, set: c.tcg_sets, logos: c.logosDelSet || [], cartas: [c] })
+  }
+  const cuenta = [`${estado.total} ${estado.total === 1 ? 'carta' : 'cartas'}`, estado.porIlustrador ? 'por ilustrador' : '', estado.hayMas ? 'hay más, afina la búsqueda' : ''].filter(Boolean).join(' · ')
+  const cabecera = (s) => {
+    const logo = atributosDeEscaneo(s.logos, 'this.remove()')
+    return `<h3 class="bs-set"><span class="bs-set-logo">${logo ? `<img ${logo} alt="" width="72" height="36" loading="lazy" />` : ''}</span>
+      <span class="bs-texto"><b>${escapeHtml(nombreDeSet(s.set) || s.id)}</b><small>${s.cartas.length} ${s.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span></h3>`
+  }
+  return `<section class="bs-grupo"><h2 class="bs-seccion">Cartas</h2>
+    <p class="bs-cuenta"><span>${escapeHtml(cuenta)}</span><a class="bs-mas" href="/cartas?ver=buscar&amp;q=${encodeURIComponent(q)}">Verlas en Cartas</a></p>
+    ${grupos.map((s) => cabecera(s) + s.cartas.map((c) => fila('cartas', c)).join('')).join('')}</section>`
 }
 
 async function buscar() {
@@ -71,7 +107,8 @@ async function buscar() {
   }
   resultados.classList.add('bs-cargando')
   const grupos = grupo ? [grupo] : GRUPOS.map(([g]) => g)
-  const r = await buscarTodo(q, { limite: grupo ? EN_UNO : EN_TODO, grupos })
+  // Solo cartas, hasta el tope del buscador de Cartas (909): son las mismas.
+  const r = await buscarTodo(q, { limite: grupo === 'cartas' ? TOPE_CARTAS : grupo ? EN_UNO : EN_TODO, grupos })
   if (mia !== secuencia) return
   resultados.classList.remove('bs-cargando')
   resultados.innerHTML = todoVacio(r)

@@ -75,7 +75,8 @@ import { engancharGestos, entrarPorElLado, crecerDesde, volverAlHueco } from './
 import { abrirEnsenar, celebrarSetCompleto, celebrarAnadida } from './mi-coleccion/ensenar.js'
 import { engancharPellizco } from './mi-coleccion/pellizco.js'
 import { montarColumnaFiltros } from './mi-coleccion/filtros-columna.js'
-import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
+import { entenderBusqueda, partirBusqueda } from './mi-coleccion/busqueda.js'
+import { buscarCartas as buscarCartasComun, buscarPorIlustrador as buscarPorIlustradorComun, buscarComoEnCartas } from './buscar-cartas.js'
 import { CONSULTA as FICHA_AL_LADO, CONSULTA_EXPANSION as FICHA_AL_LADO_EXPANSION, vaAlLado, abrirFichaDonde, engancharFichaAlLado } from './mi-coleccion/ficha-al-lado.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
@@ -4354,16 +4355,11 @@ async function buscarEnTodo({ variantes = null } = {}) {
   let lista
   let porIlustrador = false
   try {
-    lista = await buscarCartas(texto, TOPE, { filtros: filtrosCatalogo, variantes, setIds: leida.setIds })
-    // «mew 151» puede ser el set o el Pokémon: si como set no hay nada,
-    // se prueba como nombre, que es lo que hacía antes.
-    if (!lista.length && leida.codigo) lista = await buscarCartas(normalizeSearch(campo.value), TOPE, { filtros: filtrosCatalogo, variantes })
-    // Si por nombre no sale nada, se prueba por ILUSTRADOR. La pasada cara
-    // solo ocurre cuando ya no hay nada que perder.
-    if (!lista.length) {
-      lista = await buscarPorIlustrador(texto, TOPE)
-      porIlustrador = lista.length > 0
-    }
+    // Lo mismo que la barra de arriba (909): «mew 151» como set y si no como
+    // nombre, y si por nombre no sale nada, por ILUSTRADOR.
+    const r = await buscarComoEnCartas(campo.value, TOPE, opcionesDeBuscar({ filtros: filtrosCatalogo, variantes, sets: todosLosSets || [] }))
+    lista = r.lista
+    porIlustrador = r.porIlustrador
   } catch (error) {
     if (mio !== turnoBuscarTodo) return
     caja.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`
@@ -4977,30 +4973,31 @@ const COLUMNAS_BUSCAR = 'id,market,set_id,local_id,name,name_es,name_en,image_pa
 // `partirBusqueda` y `variantesDeNumero` viven en js/mi-coleccion/busqueda.js
 // desde la 851: las usa también el buscador de la barra de arriba.
 
-async function buscarCartas(texto, limite = 60, opciones = {}) {
-  let lista = await buscarCartasUnaVez(texto, limite, opciones)
-  // «Pikachu XY 124» con el prefijo suelto (852): la primera pasada lo toma
-  // por una palabra del nombre. Si no sale nada, otra con los dos pegados.
-  const pegado = lista.length ? null : conPrefijoPegado(texto)
-  if (pegado) lista = await buscarCartasUnaVez(pegado, limite, opciones)
-  // Y «Pikachu XY», las letras solas (853): las de Pikachu cuyo número empieza por XY.
-  const suelto = lista.length ? null : prefijoSuelto(texto)
-  if (suelto) lista = await buscarCartasUnaVez(suelto.texto, limite, { ...opciones, filtroLocal: suelto.filtro })
-  // «Pikachu asc», «hypno rocket» (874): la cola de lo escrito como
-  // EXPANSIÓN. Sin nada por nombre, siempre; con algo pero poco, solo si la
-  // cola son palabras enteras (`tocaProbarExpansion`). Lo de por nombre va
-  // delante. No cuando la expansión ya la ha dicho un código o un total, ni
-  // con las variantes del escáner, que no son un texto que alguien escribió.
-  if (!opciones.setIds?.length && !opciones.variantes?.length) {
-    const sets = opciones.sets || (await setsPara(opciones.market || mercado))
-    const exp = expansionEnBusqueda(texto, sets)
-    if (tocaProbarExpansion(exp, lista.length, limite)) {
-      const mas = await buscarCartasUnaVez(exp.texto, limite, { ...opciones, setIds: exp.setIds })
-      const vistas = new Set(lista.map((c) => c.id))
-      lista = [...lista, ...mas.filter((c) => !vistas.has(c.id))]
-    }
+// La consulta vive en js/buscar-cartas.js desde la 909: la barra de arriba
+// busca con ella también. Aquí van solo lo de esta pantalla: sus columnas,
+// el catálogo puesto, los sets y los filtros del catálogo.
+function opcionesDeBuscar({ filtros: fcat = null, market = mercado, sets = null, ...resto } = {}) {
+  return {
+    ...resto,
+    columnas: COLUMNAS_BUSCAR,
+    market,
+    sets: sets || (() => setsPara(market)),
+    // Los filtros del catálogo van EN LA CONSULTA: el catálogo tiene 21.000
+    // cartas y esto trae 120, así que filtrar lo que vuelve sería filtrar la
+    // muestra y no el catálogo.
+    filtrar: (q) => {
+      for (const g of FILTROS_CATALOGO) {
+        const puestos = [...(fcat?.[g.id] || [])].flatMap(variantesDeValor)
+        if (!puestos.length) continue
+        q = g.array ? q.overlaps(g.columna, puestos) : q.in(g.columna, puestos)
+      }
+      return q
+    },
   }
-  return lista
+}
+
+function buscarCartas(texto, limite = 60, opciones = {}) {
+  return buscarCartasComun(texto, limite, opcionesDeBuscar(opciones))
 }
 
 // Los sets de un catálogo para leer la expansión en lo escrito (874): los
@@ -5011,59 +5008,8 @@ async function setsPara(market) {
   return cargarSetsDeTodos().catch(() => []).then((xs) => xs.filter((s) => (s.market || 'WEST') === market))
 }
 
-async function buscarCartasUnaVez(texto, limite = 60, { filtros: fcat = null, variantes = null, setIds = null, market = mercado, filtroLocal = null } = {}) {
-  const { nombre, numero, prefijo } = partirBusqueda(texto)
-  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', market)
-  // «151/165» y «MEW 151» (765): la expansión ya la ha dicho quien escribe.
-  if (setIds?.length) q = q.in('set_id', setIds)
-  if (variantes?.length) {
-    // ── UNA SOLA CONSULTA PARA TODAS LAS VARIANTES (tanda 561) ──
-    //
-    // Cuando el escáner se come una marca, lo que hay que preguntar es
-    // «¿alguno de estos nombres?». En un `or` es UNA ida y vuelta; en un
-    // bucle serían hasta trece, y esto corre en el móvil de quien acaba de
-    // hacer una foto.
-    //
-    // La coma y el paréntesis se quitan porque son la sintaxis del propio
-    // `or` de PostgREST: un nombre con una coma partiría la condición en
-    // dos y la segunda mitad no querría decir nada.
-    const limpias = variantes.map((x) => String(x).replace(/[%_*,()]/g, '')).filter(Boolean)
-    if (limpias.length) q = q.or(limpias.map((x) => `name_search.like.*${x}*`).join(','))
-  } else {
-    for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-  }
-  if (numero) q = q.or(filtroDeNumero(numero, prefijo))
-  if (filtroLocal) q = q.or(filtroLocal)
-  // Los filtros del catálogo van EN LA CONSULTA, no después: el catálogo
-  // tiene 21.000 cartas y esto trae 120, así que filtrar lo que vuelve
-  // sería filtrar la muestra y no el catálogo.
-  for (const g of FILTROS_CATALOGO) {
-    const puestos = [...(fcat?.[g.id] || [])].flatMap(variantesDeValor)
-    if (!puestos.length) continue
-    if (g.array) q = q.overlaps(g.columna, puestos)
-    else q = q.in(g.columna, puestos)
-  }
-  const { data, error } = await q.order('name_search').limit(limite)
-  if (error) throw error
-  // Ni TCG Pocket (694) ni las cartas de un set escondido (826).
-  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
-}
-
-// Y si por nombre no sale nada, se prueba por ILUSTRADOR. Va como segunda
-// consulta y no como un `or` de la primera a propósito: un `or` entre
-// `name_search` y `illustrator` no puede usar el índice del nombre y
-// obligaría a recorrer las 23.000 cartas EN CADA TECLA. Así el caso
-// normal —buscar un nombre— sigue yendo por su índice, y la pasada cara
-// solo ocurre cuando ya no hay nada que perder.
-async function buscarPorIlustrador(texto, limite = 60, { market = mercado } = {}) {
-  const { nombre } = partirBusqueda(texto)
-  if (!nombre.length) return []
-  let q = supabase.from('tcg_cards').select(COLUMNAS_BUSCAR).eq('market', market)
-  for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(limite)
-  if (error) throw error
-  // Ni TCG Pocket (694) ni las cartas de un set escondido (826).
-  return (data || []).filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
+function buscarPorIlustrador(texto, limite = 60, { market = mercado } = {}) {
+  return buscarPorIlustradorComun(texto, limite, { columnas: COLUMNAS_BUSCAR, market })
 }
 
 // El catálogo que se enseña DEBAJO de tus cartas (tanda 408): mismo

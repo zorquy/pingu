@@ -76,6 +76,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **El buscador de cartas es UNO: `js/buscar-cartas.js`** (tanda 909).
+  /cartas → Buscar y la barra de arriba (/buscar, la paleta) llaman a
+  `buscarComoEnCartas`; la copia «con las mismas reglas» de /buscar tenía
+  otro tope y otro orden (24 por orden alfabético) y el Zapdos ex de 151 no
+  salía buscando «zapdos». Si una pantalla nueva busca cartas por lo que
+  escribe alguien, pasa por ahí con sus columnas y sus filtros; no copies la
+  consulta.
 - **Un nombre de clase COMPUESTO no lo ve ningún barrido** (tanda 498), y
   antes de mudar CSS hay que buscarlo A MANO. `js/medallero.js` escribe
   `class="medalla-chip medalla-${medalla}"`: de ahí se saca «medalla-chip»,

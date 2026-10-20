@@ -41785,6 +41785,63 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 909 — El buscador de arriba ES el de Cartas
+
+Sergio, en el foro: «soy coleccionista de Zapdos y cuando he buscado por
+carta no aparece la de 151. Sin embargo si la buscas de manera individual
+sí». PINGU: «en el buscador general de arriba, si tú buscas Zapdos, debería
+utilizar la función de buscar Zapdos del buscador de cartas».
+
+**El fallo.** `js/buscador.js` (/buscar, la paleta, la comparación de
+cartas) tenía su copia de la consulta «con las mismas reglas» (851) y otro
+tope y otro orden: `order('name_search').limit(limite * 3)` y luego las
+`limite` primeras, con `limite` = 4 en «Todo» y 24 en «Cartas». Por orden
+alfabético, con 60 Zapdos, salían los Galarian, «Moltres & Zapdos…» y los de
+Rocket, y «zapdos ex» no llegaba. En /cartas → Buscar sí, porque allí el
+tope es 120 y se agrupa por expansión. Es otra vez la 471: una copia de algo
+que «hace lo mismo» se separa sin un error.
+
+**El arreglo.** La consulta sale de `js/mi-coleccion.js` a
+`js/buscar-cartas.js` y la usan los dos:
+
+- `buscarCartasUnaVez`, `buscarCartas` (prefijo pegado, letras sueltas,
+  la cola como expansión) y `buscarPorIlustrador`, tal como estaban en Mi
+  colección. Lo de cada pantalla entra por opciones: `columnas`, `market`,
+  `filtrar(q)` (los filtros del catálogo, que van EN la consulta) y `sets`
+  (la lista o una función que la trae, para no pedirla si no hace falta).
+- `buscarComoEnCartas(crudo, tope, opciones)`: lo que pasaba en
+  `buscarEnTodo` —leer código o total de expansión, «mew 151» como nombre si
+  como set no hay nada, ilustrador si por nombre nada—. Devuelve `{ lista,
+  porIlustrador, leida }` (con el número y el prefijo, para el orden de
+  /buscar).
+- En Mi colección, `buscarCartas` y `buscarPorIlustrador` quedan como
+  envoltorios con sus columnas y sus filtros (`opcionesDeBuscar`); el `ctx`
+  de los deseos sigue igual. `buscarEnTodo` llama a `buscarComoEnCartas`.
+- En /buscar, `CONSULTAS.cartas` pide siempre `TOPE_CARTAS` (120, el de
+  Cartas) y las ordena con `ordenarPorExpansion`: por expansión de la más
+  nueva a la más vieja (la fecha del embebido o, si no, la de la lista de
+  sets) y dentro por nombre y número; con un número escrito, primero las
+  expansiones que lo llevan impreso («Pikachu 277»). Devuelve `{ filas,
+  total, hayMas, porIlustrador }`; el precio, solo de las que se enseñan.
+  Para saber cuáles son las más nuevas hay que tenerlas todas, por eso se
+  trae el tope aunque se enseñen cuatro.
+- «Todo» enseña cuatro y el botón dice «Ver las N cartas» («Ver todas las
+  cartas» si se llegó al tope). «Cartas» las enseña todas, agrupadas como
+  /cartas: cabecera por expansión (logo, nombre, «N resultados»), la cuenta
+  arriba («hay más, afina la búsqueda» al tope) y «Verlas en Cartas» →
+  `/cartas?ver=buscar&q=…`. CSS en `css/buscador.css` (`.bs-cuenta`,
+  `.bs-set`).
+
+`js/catalogo-buscar.js` (el buscador de «¿Qué carta es?» y del nueve) sigue
+siendo otro: busca para escribir una respuesta y no lleva número, código ni
+ilustrador a propósito.
+
+**Pruebas**: `test-tanda-909.mjs` (39 Zapdos con 30 «Galarian» delante: salen
+los tres de 151, todas, por expansión; «Todo» y su botón; /buscar y /cartas
+devuelven las mismas; ninguna de las dos pantallas lleva su consulta). Al
+día: 718 (el botón), 827 (el filtro de sets escondidos vive en
+buscar-cartas.js) y 874 (el orden ya no es «lo de por nombre delante»).
+
 ## Tanda 908 — Lo que se cambia en /admin → Colecciones se ve en la web al momento
 
 PINGU: «en el panel de admin, en colecciones, yo ordeno las eras y meto las

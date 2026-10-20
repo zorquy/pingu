@@ -11,16 +11,41 @@
 //   { filas: [...] } → lo que haya.
 // Un `[]` por un fallo diría «no hay» de algo que no se sabe.
 import { supabase } from './supabase.js'
-import { normalizeSearch } from './texto.js'
 import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { precioDeFila, valorDe } from './cardmarket.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, prefijoSuelto, llevaElNumero, expansionEnBusqueda, tocaProbarExpansion } from './mi-coleccion/busqueda.js'
+import { llevaElNumero } from './mi-coleccion/busqueda.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
-import { esDelTCG, deSetVisible } from './catalogo-series.js'
+import { buscarComoEnCartas } from './buscar-cartas.js'
+import { nombreDeCarta } from './catalogo-series.js'
+import { urlDeLogo } from './carta-ruta.js'
 
-// Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket).
-const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, serie_id, oculto)'
+// Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket, y la
+// fecha del set para ordenar por expansión).
+const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, serie_id, release_date, oculto)'
+// El de la pestaña Buscar de Cartas: con 120 de vuelta, «hay más, afina».
+export const TOPE_CARTAS = 120
+
+// Por expansión, de la más nueva a la más vieja, como Cartas
+// (`gruposPorExpansion`); dentro, por nombre y número. Con un número
+// escrito, primero las expansiones que lo llevan IMPRESO y, dentro, esas:
+// «Pikachu 25» es antes la 25 que todos los Pikachu (el 25 de la Pokédex).
+// La fecha sale de la carta o, si no la trae, de la lista de sets.
+export function ordenarPorExpansion(lista, { numero = null, prefijo = null } = {}, sets = []) {
+  const fechaDeSet = new Map(sets.map((s) => [s.id, s.release_date]))
+  const fecha = (c) => String(c.tcg_sets?.release_date || fechaDeSet.get(c.set_id) || '')
+  const impreso = (c) => (numero && llevaElNumero(c.local_id, numero, prefijo) ? 1 : 0)
+  const conNumero = new Set(lista.filter(impreso).map((c) => c.set_id))
+  const enSet = (c) => (conNumero.has(c.set_id) ? 1 : 0)
+  const n = (c) => parseInt(String(c.local_id || '').replace(/\D+/g, ''), 10) || 0
+  return [...lista].sort((x, y) =>
+    enSet(y) - enSet(x) ||
+    fecha(y).localeCompare(fecha(x)) ||
+    String(x.set_id).localeCompare(String(y.set_id)) ||
+    impreso(y) - impreso(x) ||
+    nombreDeCarta(x).localeCompare(nombreDeCarta(y), 'es') ||
+    n(x) - n(y))
+}
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
@@ -33,75 +58,18 @@ export const GRUPOS = [
 // tumba la consulta entera (42703, la 624), así que aquí solo van las que
 // ya piden otras pantallas.
 const CONSULTAS = {
-  // Las cartas, con las MISMAS reglas que el buscador de Cartas (851).
-  // PINGU: «busco Pikachu 277 y no encuentro nada […] en el buscador de
-  // cartas me sale el Pikachu de Ascended Heroes». Aquí cada palabra tenía
-  // que estar en el NOMBRE, y «277» no lo está. Ahora un número suelto es el
-  // número de la carta (o el de Pokédex), «151/165» y «MEW 151» dicen la
-  // expansión, y si por nombre no sale nada se prueba por ilustrador.
+  // Las cartas, con EL buscador de Cartas (909): la misma función, el mismo
+  // tope y por expansión, de la más nueva a la más vieja. Hasta la 909 era
+  // una copia «con las mismas reglas» que se quedaba en las 24 primeras por
+  // orden alfabético: «zapdos» daba los Galarian y los de Rocket, y el Zapdos
+  // ex de 151 no salía (Sergio, en el foro). Se trae siempre el tope entero
+  // —para saber cuáles son las más nuevas hay que tenerlas todas— y se
+  // enseñan las `limite` primeras; el precio, solo de esas.
   async cartas(crudo, limite) {
-    // La lista de sets siempre (874): además del código y el total, la cola
-    // de lo escrito puede ser una expansión. Viene de la CDN y se pide una vez.
     const sets = await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => [])
-    const leida = entenderBusqueda(crudo, sets)
-    const consulta = (aplicar) => {
-      let q = supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', 'WEST')
-      q = aplicar(q)
-      // De más, para quitar las de Pocket y de sets escondidos sin quedarse corto.
-      return q.order('name_search').limit(limite * 3)
-    }
-    const porNombre = async (texto, setIds, filtroLocal = null) => {
-      const { nombre, numero, prefijo } = partirBusqueda(normalizeSearch(texto))
-      if (!nombre.length && !numero) return { filas: [], numero: null, prefijo: null }
-      const { data, error } = await consulta((q) => {
-        if (setIds?.length) q = q.in('set_id', setIds)
-        for (const p of nombre) q = q.like('name_search', `%${p.replace(/[%_]/g, '')}%`)
-        if (numero) q = q.or(filtroDeNumero(numero, prefijo))
-        if (filtroLocal) q = q.or(filtroLocal)
-        return q
-      })
-      if (error) throw error
-      return { filas: data || [], numero, prefijo }
-    }
-    let r = await porNombre(leida.texto, leida.setIds)
-    // «Pikachu XY 124» con el prefijo suelto (852): pegados, segunda pasada.
-    if (!r.filas.length && conPrefijoPegado(leida.texto)) r = await porNombre(conPrefijoPegado(leida.texto), leida.setIds)
-    // Y «Pikachu XY», las letras solas (853): las cartas de Pikachu cuyo número empieza por XY.
-    const suelto = r.filas.length ? null : prefijoSuelto(normalizeSearch(leida.texto))
-    if (suelto) r = await porNombre(suelto.texto, leida.setIds, suelto.filtro)
-    // «mew 151» puede ser el set o el Pokémon: si como set no hay nada, como nombre.
-    if (!r.filas.length && leida.codigo) r = await porNombre(crudo, null)
-    // «Pikachu asc», «hypno rocket» (874): la cola como EXPANSIÓN. Sin nada
-    // por nombre, siempre; con algo pero poco, solo si la cola son palabras
-    // enteras (`tocaProbarExpansion`). Lo de por nombre va delante.
-    if (!leida.setIds?.length) {
-      const exp = expansionEnBusqueda(leida.texto, sets)
-      if (tocaProbarExpansion(exp, r.filas.length, limite)) {
-        const mas = await porNombre(exp.texto, exp.setIds)
-        const vistas = new Set(r.filas.map((c) => c.id))
-        r = { ...r, filas: [...r.filas, ...mas.filas.filter((c) => !vistas.has(c.id))] }
-      }
-    }
-    // Y si por nombre nada, por ilustrador (la pasada cara, solo entonces).
-    if (!r.filas.length) {
-      const { nombre } = partirBusqueda(normalizeSearch(crudo))
-      if (nombre.length) {
-        const { data, error } = await consulta((q) => {
-          for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
-          return q
-        })
-        if (error) throw error
-        r = { filas: data || [], numero: null, prefijo: null }
-      }
-    }
-    // Ni TCG Pocket ni sets escondidos (694, 826). Y con un número, primero
-    // las que lo llevan IMPRESO: «Pikachu 25» es antes la 25 que todos los
-    // Pikachu (que son el 25 de la Pokédex).
-    const impreso = (c) => Number(llevaElNumero(c.local_id, r.numero, r.prefijo))
-    const cartas = r.filas
-      .filter((c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c))
-      .sort((x, y) => (r.numero ? impreso(y) - impreso(x) : 0))
-      .slice(0, limite)
+    const { lista, porIlustrador, leida } = await buscarComoEnCartas(crudo, TOPE_CARTAS, { columnas: COLUMNAS_CARTA, market: 'WEST', sets })
+    const todas = ordenarPorExpansion(lista, leida, sets)
+    const cartas = todas.slice(0, limite)
     // El precio, en una segunda consulta y con la regla de siempre (el
     // mínimo en español, y si no el general: `valorDe`). Si falla, las
     // cartas salen igual y sin cifra: el precio es un extra de la fila.
@@ -110,7 +78,13 @@ const CONSULTAS = {
       const porId = new Map((precios || []).map((p) => [p.card_id, p]))
       for (const c of cartas) c.valor = valorDe(precioDeFila(porId.get(c.id)), 'es')
     }
-    return cartas
+    // El logo de su expansión, para la cabecera de cada grupo en /buscar.
+    const porSet = new Map(sets.map((x) => [x.id, x]))
+    for (const c of cartas) {
+      const set = porSet.get(c.set_id)
+      c.logosDelSet = set ? [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, 'WEST'), set.symbol_scrydex].filter(Boolean) : []
+    }
+    return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador }
   },
   async guias(crudo, limite) {
     const patron = `%${terminoParaFiltro(crudo)}%`
@@ -164,7 +138,8 @@ export async function buscarTodo(crudo, { limite = 4, grupos = GRUPOS.map(([g]) 
   await Promise.all(
     grupos.map(async (g) => {
       try {
-        salida[g] = { filas: await CONSULTAS[g](texto, limite) }
+        const r = await CONSULTAS[g](texto, limite)
+        salida[g] = Array.isArray(r) ? { filas: r } : r
       } catch {
         salida[g] = { error: true }
       }

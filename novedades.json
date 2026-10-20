@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-10-20",
+      "tipo": "arreglo",
+      "texto": "El buscador de arriba encuentra las mismas cartas que el de Cartas: todas, ordenadas por expansión de la más nueva a la más vieja. Antes, con un Pokémon de muchas cartas (Zapdos, Charizard…) se cortaba y faltaban algunas, como el Zapdos ex de 151.",
+      "enlace": "/buscar?q=zapdos&en=cartas"
+    },
+    {
+      "fecha": "2026-10-20",
       "tipo": "mejora",
       "texto": "La imagen para compartir los retos se ha renovado: el reto diario lleva de portada una carta de las preguntas del día, y todas dicen qué es el reto, tu medalla y tu racha, y dónde jugarlo.",
       "enlace": "/retos"
