@@ -98,17 +98,20 @@ for (const [nombre, opc] of [['ordenador', { viewport: { width: 1280, height: 90
   await ctx.close()
 }
 
-console.log('\n── 5. El punto de «Novedades» en el menú «Tú» ──')
+console.log('\n── 5. «Novedades» salió de la hoja «Tú» (918) y sigue en Inicio y en el pie ──')
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
-  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1'; localStorage.setItem('pokedoc-novedades-visto', '2026-10-01') })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1' })
   const page = await ctx.newPage()
   await page.goto(`${BASE}/glosario.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#navUserBtn, .nav-user-btn', { timeout: 15000 }).catch(() => {})
   await page.click('#navUserBtn, .nav-user-btn').catch(() => {})
-  await page.waitForFunction(() => document.querySelector('[data-tu="novedades"] .tu-punto') && !document.querySelector('[data-tu="novedades"] .tu-punto').hidden, null, { timeout: 8000 }).catch(() => {})
-  const r = await page.evaluate(() => ({ fila: Boolean(document.querySelector('[data-tu="novedades"][href="/novedades"]')), punto: document.querySelector('[data-tu="novedades"] .tu-punto')?.hidden === false }))
-  check('«Novedades» en «Tú», con el punto si hay algo desde tu última visita', r.fila && r.punto, JSON.stringify(r))
+  await page.waitForSelector('#navUserDropdown .tu-baldosas', { timeout: 8000 }).catch(() => {})
+  const r = await page.evaluate(() => ({
+    enTu: Boolean(document.querySelector('#navUserDropdown a[href="/novedades"]')),
+    fuera: [...document.querySelectorAll('a[href="/novedades"], a[href="/novedades.html"]')].filter((a) => !a.closest('#navUserDropdown')).length,
+  }))
+  check('«Novedades» ya no está en «Tú», y fuera de la hoja hay al menos un camino (Inicio, el pie)', !r.enTu && r.fuera >= 1, JSON.stringify(r))
   await ctx.close()
 }
 await browser.close()

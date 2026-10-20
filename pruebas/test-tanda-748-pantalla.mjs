@@ -449,8 +449,9 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
     return {
       quien: t('.tu-quien'),
       perfil: d.querySelector('a.tu-cabeza')?.getAttribute('href'),
-      dos: [...d.querySelectorAll('.tu-dos > *')].map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
-      lista: [...d.querySelectorAll('.tu-lista a')].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`),
+      // Desde la 918, en baldosas: avisos y mensajes las dos primeras.
+      dos: [...d.querySelectorAll('.tu-baldosas > *')].slice(0, 2).map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
+      lista: [...d.querySelectorAll('.tu-baldosas > a:not([data-tu]), .tu-lista a[href="/ajustes"]')].map((a) => `${a.querySelector('span').textContent.trim()}>${a.getAttribute('href')}`),
       tema: d.querySelector('[data-tema-ciclo]')?.getAttribute('aria-label') || '',
       salir: t('#navUserSignOut'),
       viejo: !!d.querySelector('.nav-user-stats, .bm-tu-filas'),
@@ -459,8 +460,8 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   })
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   check(`[${nombre}] quién eres en una línea, y la cabecera es el enlace al perfil (869)`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
-  check(`[${nombre}] avisos (con su número) y mensajes en dos losetas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en una lista, con «Ajustes» al final (869: cuatro cosas y Ajustes)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Mis partidas>/mis-partidas | AjustesAvisos, cuenta, tema>/ajustes', m.lista.join(' | '))
+  check(`[${nombre}] avisos (con su número) y mensajes, las dos primeras baldosas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
+  check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
   check(`[${nombre}] el tema en un botón (869) y «Salir» aparte`, /^Cambiar al tema/.test(m.tema) && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
   const temaAntes = await page.evaluate(() => document.documentElement.dataset.theme)

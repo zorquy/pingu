@@ -208,7 +208,7 @@ for (const tema of ['light', 'dark']) {
     document.head.appendChild(l)
     await new Promise((ok) => { l.onload = ok; setTimeout(ok, 1500) })
     const caja = document.createElement('ul')
-    caja.className = 'tu-pie'
+    caja.className = 'tu-lista'
     caja.innerHTML = '<li><a class="tu-apoyar" href="#"><svg></svg><span>Apoyar</span></a></li>'
     document.body.appendChild(caja)
     const ref = document.createElement('i')
@@ -218,7 +218,8 @@ for (const tema of ['light', 'dark']) {
     const a = caja.querySelector('a')
     return { texto: getComputedStyle(a.querySelector('span')).color, icono: getComputedStyle(a.querySelector('svg')).color, fondo: getComputedStyle(a).backgroundColor, rosa: getComputedStyle(ref).color, rosaFondo: getComputedStyle(ref).backgroundColor }
   }, tema)
-  check(`en el tema ${tema === 'light' ? 'claro' : 'oscuro'}, rótulo, taza y fondo en rosa`, c.texto === c.rosa && c.icono === c.rosa && c.fondo === c.rosaFondo, JSON.stringify(c))
+  // Desde la 918 es un renglón más de la lista: rótulo y taza en rosa, sin fondo.
+  check(`en el tema ${tema === 'light' ? 'claro' : 'oscuro'}, rótulo y taza en rosa`, c.texto === c.rosa && c.icono === c.rosa, JSON.stringify(c))
   await ctx.close()
 }
 

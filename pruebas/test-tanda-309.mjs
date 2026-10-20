@@ -161,18 +161,18 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   // Desde la 748 es la hoja «Tú» de su maqueta (N8): «Ver perfil», dos
   // losetas, una lista de cinco y «Salir» aparte, junto al tema.
   await page.waitForTimeout(600)
-  const opciones = (await page.locator('#navUserDropdown .tu-lista a').allTextContents()).map((t) => t.trim())
-  // Seis desde la 751: «La quiero» va la primera.
-  // Cinco desde la 869: Guardados, La quiero, Mis mazos, Mis partidas y Ajustes.
-  check('la lista de lo tuyo tiene cinco (869)', opciones.length === 5, JSON.stringify(opciones))
+  // Desde la 918, en baldosas: seis (avisos, mensajes y lo tuyo) y debajo
+  // Ajustes, Apoyar y Salir.
+  const opciones = (await page.locator('#navUserDropdown .tu-baldosas > * > span, #navUserDropdown .tu-lista a > span').allTextContents()).map((t) => t.trim())
+  check('lo tuyo: seis baldosas y Ajustes y Apoyar debajo (918)', opciones.length === 8, JSON.stringify(opciones))
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   check('  …y sigue estando lo que sí se usa',
-    ['La quiero', 'Guardados', 'Mis partidas', 'Mis mazos', 'Ajustes'].every((x) => opciones.some((o) => o.startsWith(x))) && (await page.locator('#navUserDropdown a.tu-cabeza').count()) === 1,
+    ['La quiero', 'Guardados', 'Partidas', 'Mis mazos', 'Ajustes'].every((x) => opciones.some((o) => o.startsWith(x))) && (await page.locator('#navUserDropdown a.tu-cabeza').count()) === 1,
     JSON.stringify(opciones))
   // «Salir» fuera de la lista: es lo que evita pulsarlo yendo a por lo de
   // arriba.
-  const fuera = await page.locator('#navUserSignOut').evaluate((n) => !n.closest('.tu-lista') && !!n.closest('.tu-pie'))
+  const fuera = await page.locator('#navUserSignOut').evaluate((n) => !n.closest('.tu-baldosas') && n.closest('.tu-lista')?.lastElementChild === n)
   check('  …y «Salir» va aparte, abajo', fuera)
   await page.close()
 }

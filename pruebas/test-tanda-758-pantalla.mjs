@@ -107,10 +107,10 @@ console.log('── 3. En el iPhone ──')
   const t = await abrir('/index.html')
   await t.page.click('#navUserBtn')
   await t.page.waitForTimeout(900)
-  // Desde la 869 va en el pie de la hoja, pequeño («Apoyar»), con la taza.
-  const filas = await t.page.$$eval('#navUserDropdown .tu-pie .tu-apoyar', (as) => as.map((a) => ({ t: a.textContent.trim(), href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel'), alto: a.getBoundingClientRect().height, svg: !!a.querySelector('svg') })))
+  // Desde la 869 iba en el pie; desde la 918 es un renglón, «Apoyar PokeDoc».
+  const filas = await t.page.$$eval('#navUserDropdown .tu-lista .tu-apoyar', (as) => as.map((a) => ({ t: a.textContent.trim(), href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel'), alto: a.getBoundingClientRect().height, svg: !!a.querySelector('svg') })))
   const i = filas.findIndex((f) => f.href === KOFI)
-  check('la hoja Tú lleva «Apoyar» en el pie, a Ko-fi', i === 0 && /^Apoyar/.test(filas[i].t), JSON.stringify(filas.map((f) => f.t)))
+  check('la hoja Tú lleva «Apoyar» debajo de las baldosas, a Ko-fi', i === 0 && /^Apoyar/.test(filas[i].t), JSON.stringify(filas.map((f) => f.t)))
   check('  …en pestaña nueva, con su icono y sus 44', filas[i]?.target === '_blank' && /noopener/.test(filas[i]?.rel) && filas[i].svg && filas[i].alto >= 44, JSON.stringify(filas[i]))
   await t.ctx.close()
 }
