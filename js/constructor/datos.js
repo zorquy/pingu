@@ -17,6 +17,8 @@ import { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConR
 import { canonizarCarta } from '../carta-detalle.js'
 import { claveDeNombre, esEnergiaBasica, idDeEnergiaBasica, letraDeCartaDeEnergia, letraDeEnergia, plano } from './nucleo.js'
 import { canonizarEntradas } from '../impresiones-del-set.js'
+import { esDelTCG } from '../catalogo-series.js'
+import { CAMPOS_DE_FICHA, CAMPOS_DE_JUEGO, faltanDatos, claveDeGemela, completarConGemelas } from './gemelas.js'
 
 // Las marcas legales de la temporada salen del mismo sitio que la ficha
 // de carta (site_settings, con respaldo): se reexportan para que la
@@ -24,8 +26,14 @@ import { canonizarEntradas } from '../impresiones-del-set.js'
 export { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConReimpresionLegal }
 
 // `name` es el inglés y `name_es` el que se enseña (tanda 335).
+// `market` y el set embebido (tanda 913) son los que pide Mi colección para
+// la foto: con ellos `cadenaDeEscaneo(carta)` monta la misma cadena en Jugar
+// que allí —la ruta de TCGdex a mano cuando falta `image_path` (434) sale de
+// la SERIE del set, y una foto puesta a mano desde /admin (885) es una
+// dirección entera que solo `urlDeImagen` deja pasar—. El embebido va el
+// último: `columnasCon` (impresiones-del-set.js) parte esta lista por comas.
 export const COLUMNAS =
-  'id,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,image_tcggo,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types'
+  'id,market,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,image_tcggo,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types,tcg_sets(serie_id,tcg_online_code)'
 
 const MERCADO = 'WEST'
 
@@ -252,7 +260,9 @@ function cartasInglesas(t) {
   return inglesas.get(t)
 }
 
-export async function cartasPorIds(ids) {
+// `completar: false` para quien solo ELIGE entre las filas y completa luego
+// la que gana (resolverLineas): así no se pregunta por las que se descartan.
+export async function cartasPorIds(ids, { completar = true } = {}) {
   const unicos = [...new Set(ids.filter(Boolean))]
   if (!unicos.length) return new Map()
   const fuera = new Map()
@@ -263,7 +273,43 @@ export async function cartasPorIds(ids) {
     if (error) throw error
     for (const c of canonizar(data)) fuera.set(c.id, c)
   }
+  if (completar) for (const c of await completarConOtras([...fuera.values()])) fuera.set(c.id, c)
   return fuera
+}
+
+// ── Lo que le falta a una impresión, de otra de la misma carta (913) ──
+//
+// La regla vive en gemelas.js (pura); aquí, la consulta: las impresiones con
+// la misma clave que SÍ tienen categoría, de ocho en ocho nombres (la Ultra
+// Ball tiene decenas, y Supabase corta a 1.000 filas sin avisar: la 808).
+// Las básicas no: su dibujo y su tipo salen del nombre, y tienen cientos.
+// Si la consulta falla, las cartas vuelven como llegaron: es un extra.
+const GEMELAS_POR_CONSULTA = 8
+async function completarConOtras(cartas, { campos = CAMPOS_DE_FICHA, canonizarGemelas = true } = {}) {
+  const necesitan = (c) => faltanDatos(c, campos) && !esEnergiaBasica(c) && claveDeGemela(c)
+  const claves = [...new Set(cartas.filter(necesitan).map(claveDeGemela))]
+  if (!claves.length) return cartas
+  try {
+    const { porId } = await cargarSets()
+    const gemelas = []
+    for (let i = 0; i < claves.length; i += GEMELAS_POR_CONSULTA) {
+      const { data, error } = await supabase
+        .from('tcg_cards')
+        .select(`id,set_id,local_id,name_key,regulation_mark,${campos.join(',')}`)
+        .eq('market', MERCADO)
+        .in('name_key', claves.slice(i, i + GEMELAS_POR_CONSULTA))
+        .not('category', 'is', null)
+        .limit(1000)
+      if (error) throw error
+      // Ni las de TCG Pocket: se llaman igual y no son del juego de cartas.
+      const delJuego = (data || []).filter((g) => esDelTCG(porId.get(g.set_id) || { id: g.set_id }))
+      gemelas.push(...(canonizarGemelas ? canonizar(delJuego) : delJuego))
+    }
+    const totalDeSet = (id) => porId.get(id)?.card_count_official ?? null
+    return cartas.map((c) => (necesitan(c) ? completarConGemelas(c, gemelas, { campos, totalDeSet }) : c))
+  } catch {
+    return cartas
+  }
 }
 
 // ── Lo que el laboratorio necesita y el buscador no (tanda 384) ──
@@ -273,7 +319,11 @@ export async function cartasPorIds(ids) {
 // abrirse, UNA consulta por el mazo entero (de 100 en 100 como arriba).
 // Las cartas que el engorde aún no ha visitado vuelven con esos campos a
 // null, y el laboratorio lo dice al ver la carta en vez de inventárselos.
-const COLUMNAS_DE_JUEGO = 'id,name_key,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity,rarity_en'
+// `set_id`, `local_id` y `category` (913) son para completar desde otra
+// impresión: el «129/162» de un Prize Pack dice cuál es la original, y la
+// categoría dice si a una carta le faltan ataques o es que no los tiene. Van
+// al detalle tal cual; quien lo junta (prepararEntradas) lo canoniza.
+const COLUMNAS_DE_JUEGO = 'id,set_id,local_id,category,name_key,attacks,abilities,retreat,weaknesses,resistances,hp,types,stage,evolve_from,rarity,rarity_en'
 
 export async function detallesDeJuego(ids) {
   const unicos = [...new Set(ids.filter(Boolean))]
@@ -285,6 +335,11 @@ export async function detallesDeJuego(ids) {
     // puede borrar con un null lo que la carta ya traía.
     for (const c of data || []) fuera.set(c.id, Object.fromEntries(Object.entries(c).filter(([, v]) => v != null)))
   }
+  // Lo que juega una impresión de TCGGO (sin ataques ni PS), de otra de la
+  // misma carta (913). Solo las que no se sabe qué son o son Pokémon: a un
+  // Entrenador no le faltan ataques.
+  const sinJugar = [...fuera.values()].filter((c) => (!c.category || /pok/i.test(String(c.category))) && (!c.hp || !Array.isArray(c.attacks) || !c.attacks.length))
+  for (const c of await completarConOtras(sinJugar, { campos: CAMPOS_DE_JUEGO, canonizarGemelas: false })) fuera.set(c.id, c)
   await completarEvolveFrom(fuera)
   return fuera
 }
@@ -372,7 +427,7 @@ export async function resolverLineas(lineas) {
       }
     }
   }
-  const porId = await cartasPorIds([...candidatos.values()].flat())
+  const porId = await cartasPorIds([...candidatos.values()].flat(), { completar: false })
 
   const porNombre = []
   for (const l of lineas) {
@@ -402,8 +457,10 @@ export async function resolverLineas(lineas) {
     resueltas.map((r) => ({ carta: r.carta, n: r.linea.n, linea: r.linea, exacta: r.exacta })),
     { columnas: COLUMNAS, codigoDeSet: (id) => codigoDeId.get(id) || '' }
   ).catch(() => resueltas.map((r) => ({ carta: r.carta, n: r.linea.n, linea: r.linea, exacta: r.exacta })))
+  // Y a las que ganan, lo que les falte de ficha, de otra impresión (913).
+  const completas = await completarConOtras(juntas.map((e) => canonizarCarta(e.carta)))
   return {
-    resueltas: juntas.map((e) => ({ linea: { ...e.linea, n: e.n }, carta: canonizarCarta(e.carta), exacta: e.exacta })),
+    resueltas: juntas.map((e, k) => ({ linea: { ...e.linea, n: e.n }, carta: completas[k], exacta: e.exacta })),
     sinResolver,
   }
 }
@@ -422,11 +479,25 @@ export function letraDeEnergiaPorNumero(set, numero) {
 // De todas las cartas que se llaman así, la que se juega hoy: marca legal
 // primero, marca más alta después (la marca es cronológica) y, a falta de
 // marca, la colección más nueva.
+//
+// Dos reglas más desde la 913 (PINGU: «en las repeticiones muchas cartas no
+// se reconocen»):
+//   · Ni una de TCG Pocket: «Professor's Research» se resolvía a la P-A-007,
+//     que es de Pocket y no del juego de cartas (la 694, aquí también).
+//   · Entre las legales, antes una impresión CON FICHA (con categoría) que
+//     una sin ella. Las de los Prize Pack y el 30 aniversario las crea TCGGO
+//     sin categoría, sin PS y sin ataques, y como llevan la marca más nueva
+//     (J, I) ganaban siempre: el Dudunsparce, el Budew o la Ultra Ball de una
+//     repetición salían sin vida y sin saber qué eran. Si la única legal es
+//     una de esas (el Mew ex del 30 aniversario, la 633), sigue ganando: la
+//     regla ordena, no quita.
 async function mejorPorNombre(nombre, legales) {
   const objetivo = normalizeSearch(nombre)
-  const { sets } = await cargarSets()
+  const { sets, porId } = await cargarSets()
   const recientes = await coleccionesRecientes()
   const legal = (c) => esLegalPorMarca(c, legales, recientes)
+  const conFicha = (c) => Boolean(c?.category)
+  const delJuego = (c) => esDelTCG(porId.get(c?.set_id) || { id: c?.set_id })
   const orden = new Map(sets.map((s, i) => [s.id, i]))
   // Exacta en cualquiera de los dos idiomas: la lista puede venir de TCG
   // Live (inglés) o escrita a mano en español.
@@ -437,11 +508,16 @@ async function mejorPorNombre(nombre, legales) {
   // filtrarlas aquí las tiraba, y se elegía una impresión vieja.
   const elegir = (lista, yaExactas = false) => {
     const exactas = yaExactas ? lista : lista.filter(esExacta)
-    const pool = exactas.length ? exactas : lista
+    const todas = exactas.length ? exactas : lista
+    const delTcg = todas.filter(delJuego)
+    const pool = delTcg.length ? delTcg : todas
     return [...pool].sort((a, b) => {
       const la = legal(a) ? 1 : 0
       const lb = legal(b) ? 1 : 0
       if (la !== lb) return lb - la
+      const fa = conFicha(a) ? 1 : 0
+      const fb = conFicha(b) ? 1 : 0
+      if (fa !== fb) return fb - fa
       // Dos legales: si alguna va sin letra (TCGGO), manda la colección más
       // nueva; comparar la letra pondría delante cualquiera que la tenga.
       if (la && (!a.regulation_mark || !b.regulation_mark)) return (orden.get(a.set_id) ?? 9999) - (orden.get(b.set_id) ?? 9999)
@@ -457,19 +533,27 @@ async function mejorPorNombre(nombre, legales) {
     // de Jefes» en el espejo, y la única que sigue en inglés es una promo
     // de 2020. Elegir solo entre las de casa se quedaba con la promo
     // (fuera de Estándar) teniendo la legal a un paso.
-    const [{ cartas }, deFuera] = await Promise.all([
+    //
+    // Y las que se llaman EXACTAMENTE así por su clave (913): la búsqueda va
+    // por orden alfabético y con tope de 60, así que de un nombre con muchas
+    // cartas que lo contienen («Pikachu»: los ex, los V, los de pareja…) las
+    // exactas podían quedarse fuera del corte — la lección de la 909.
+    const [{ cartas }, deFuera, porClave] = await Promise.all([
       buscarCartas({ texto: nombre, formato: 'libre', limite: 60 }),
       String(nombre).trim().length >= 3 ? cartasInglesas(String(nombre).trim()) : [],
+      objetivo
+        ? supabase.from('tcg_cards').select(COLUMNAS).eq('market', MERCADO).eq('name_key', objetivo).limit(300).then((r) => canonizar(r.data))
+        : [],
     ])
-    const exactasCasa = cartas.filter(esExacta)
+    const exactasCasa = [...cartas.filter(esExacta), ...porClave]
     const idsIngles = deFuera.filter((c) => normalizeSearch(c.name) === objetivo).map((c) => c.id)
-    const exactasFuera = idsIngles.length ? [...(await cartasPorIds(idsIngles)).values()] : []
+    const exactasFuera = idsIngles.length ? [...(await cartasPorIds(idsIngles, { completar: false })).values()] : []
     const exactas = [...new Map([...exactasCasa, ...exactasFuera].map((c) => [c.id, c])).values()]
     if (exactas.length) return elegir(exactas, true)
     // Nadie se llama exactamente así: lo que más se le parezca.
     if (cartas.length) return elegir(cartas)
     if (deFuera.length) {
-      const todas = [...(await cartasPorIds(deFuera.map((c) => c.id))).values()]
+      const todas = [...(await cartasPorIds(deFuera.map((c) => c.id), { completar: false })).values()]
       if (todas.length) return elegir(todas)
     }
     return null

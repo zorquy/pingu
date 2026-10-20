@@ -18,7 +18,7 @@
 // su nombre (el registro no dice cuál era). Por eso la vida se pinta solo
 // cuando se sabe, y el daño —que sí viene en el registro— siempre.
 import { escapeHtml } from './html.js'
-import { cardImageUrl } from './tcgdex.js'
+import { urlDeImagen } from './carta-ruta.js'
 import { botonPegar } from './boton-pegar.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { resolverLineas, cargarSets, cartasPorIds, misMazos, COLUMNAS } from './constructor/datos.js'
@@ -113,7 +113,12 @@ function imagenHtml(nombre, calidad = 'low') {
     const e = imagenDeEnergiaBasica(c || { name: nombre }, calidad === 'high' ? 'LG' : 'SM')
     if (e) cadena = [e.url, e.respaldo].filter(Boolean)
   } else if (c) {
-    cadena = cadenaDeEscaneo(c, R.codigoDeSet(c.set_id), calidad, cardImageUrl)
+    // La MISMA cadena que Mi colección (913): sin `urlDelEspejo` inyectado,
+    // `cadenaDeEscaneo` usa `urlDeImagen` con el mercado de la carta (que
+    // deja pasar la foto puesta a mano desde /admin) y la fila trae su set
+    // (la serie para la ruta de TCGdex a mano). El código va de respaldo para
+    // Limitless, por si el set no lo trae (cargarSets lo saca de más sitios).
+    cadena = cadenaDeEscaneo(c, R.codigoDeSet(c.set_id), calidad)
   }
   const attrs = atributosDeEscaneo(cadena)
   // El nombre va DEBAJO de la imagen: si no carga ninguna, se queda el
@@ -136,7 +141,7 @@ function fuentesDe(nombre) {
   const fuentes = []
   const codigo = R.codigoDeSet(c.set_id)
   if (codigo && c.local_id) fuentes.push(`/escaneo/${encodeURIComponent(codigo)}/${encodeURIComponent(String(c.local_id).replace(/^0+(?=\d)/, ''))}`)
-  if (c.image_path) fuentes.push(cardImageUrl(c.image_path, 'low'))
+  if (c.image_path) fuentes.push(urlDeImagen(c.image_path, 'low', c.market))
   return fuentes
 }
 
@@ -333,7 +338,9 @@ function slotHtml(slot, { activo = false, dueno }) {
   const energias = slot.energias.map(energiaHtml).join('')
   const herramienta = slot.herramienta ? `<span class="lab-chapa lab-chapa-herramienta" title="${escapeHtml(slot.herramienta)}">${escapeHtml(slot.herramienta)}</span>` : ''
   const evo = slot.cartas.length > 1 ? `<span class="lab-chapa" title="${escapeHtml(slot.cartas.join(' → '))}">evol. ${slot.cartas.length - 1}</span>` : ''
-  const etiqueta = `${escapeHtml(nombre)} de ${escapeHtml(dueno)}${activo ? ', activo' : ''}: ${ps ? `${vida} de ${ps} PS` : `${slot.danio} de daño`}${slot.energias.length ? `, ${slot.energias.length} ${slot.energias.length === 1 ? 'energía' : 'energías'}` : ''}. Ver sus cartas`
+  // Los estados especiales (913), con las mismas chapas que el laboratorio.
+  const estados = (slot.estados || []).map((e) => `<span class="lab-chapa lab-chapa-estado">${escapeHtml(ESTADOS[e] || e)}</span>`).join('')
+  const etiqueta = `${escapeHtml(nombre)} de ${escapeHtml(dueno)}${activo ? ', activo' : ''}: ${ps ? `${vida} de ${ps} PS` : `${slot.danio} de daño`}${slot.energias.length ? `, ${slot.energias.length} ${slot.energias.length === 1 ? 'energía' : 'energías'}` : ''}${slot.estados?.length ? `, ${slot.estados.map((e) => (ESTADOS[e] || e).toLowerCase()).join(' y ')}` : ''}. Ver sus cartas`
   const vidaBloque = ps ? `${vidaHtml(pct, `${vida} / ${ps} PS`)}<p class="lab-ps-texto">${vida}/${ps}</p>` : slot.danio ? `<p class="lab-ps-texto rep-solo-danio">${slot.danio} de daño</p>` : ''
   return `
     <div class="lab-slot${activo ? ' lab-slot-activo' : ''}${ps && slot.danio >= ps ? ' lab-slot-caido' : ''}${clase}" data-slot="${slot.id}">
@@ -341,10 +348,12 @@ function slotHtml(slot, { activo = false, dueno }) {
       <div class="lab-slot-pie">
         ${vidaBloque}
         ${energias ? `<div class="lab-energias">${energias}</div>` : ''}
-        ${herramienta || evo ? `<div class="lab-chapas">${herramienta}${evo}</div>` : ''}
+        ${herramienta || evo || estados ? `<div class="lab-chapas">${estados}${herramienta}${evo}</div>` : ''}
       </div>
     </div>`
 }
+
+const ESTADOS = { envenenado: 'Envenenado', quemado: 'Quemado', dormido: 'Dormido', paralizado: 'Paralizado', confundido: 'Confundido' }
 
 const dorso = () => '<span class="lab-dorso" aria-hidden="true"></span>'
 
@@ -2004,7 +2013,7 @@ function listaDelMazoHtml(n) {
   }
   const fuera = L.fuera.reduce((k, f) => k + f.copias, 0)
   const premios = premiosCogidos(R.lectura.eventos, n)
-  const alFinal = sinVerEnLaFoto(L.entradas, R.fotos.at(-1), n)
+  const alFinal = sinVerEnLaFoto(L.entradas, R.fotos.at(-1), n, cartaDe)
   const lista = (cartas) => cartas.map((c) => `${c.n ?? ''}${c.n ? ' ' : ''}${escapeHtml(c.nombre)}`).join(', ')
   return `<div class="rep-milista">
       <p><strong>Con su lista: ${escapeHtml(L.nombre)}</strong> <button type="button" class="link-btn" data-lista-quitar>Quitar</button></p>
@@ -2025,7 +2034,7 @@ function pintarProbabilidades() {
     caja.classList.add('hidden')
     return
   }
-  const { cartas, total } = sinVerEnLaFoto(L.entradas, foto(), L.jugador)
+  const { cartas, total } = sinVerEnLaFoto(L.entradas, foto(), L.jugador, cartaDe)
   caja.classList.remove('hidden')
   const fila = (c) => `<li><span class="rep-prob-nombre">${escapeHtml(c.nombre)}</span><span class="rep-prob-barra" aria-hidden="true"><span style="--pct: ${Math.round(probabilidadDeRobar(c.n, total) * 100)}%"></span></span><span class="rep-prob-cifra">${c.n} de ${total} · ${porciento(probabilidadDeRobar(c.n, total))}</span></li>`
   poner(

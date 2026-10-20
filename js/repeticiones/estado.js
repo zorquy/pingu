@@ -16,7 +16,7 @@ const plano = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀
 const igual = (a, b) => plano(a) === plano(b)
 
 let semilla = 0
-const nuevoSlot = (carta) => ({ id: `s${++semilla}`, cartas: [carta], energias: [], herramienta: null, danio: 0, ko: false })
+const nuevoSlot = (carta) => ({ id: `s${++semilla}`, cartas: [carta], energias: [], herramienta: null, danio: 0, ko: false, estados: [] })
 export const arriba = (slot) => slot?.cartas[slot.cartas.length - 1] || ''
 
 function jugadorVacio(nombre) {
@@ -83,6 +83,45 @@ function aQuienLeCae(p, nombre, golpeados) {
   const libres = todos.filter((x) => !golpeados.includes(x.id))
   const pool = libres.length ? libres : todos
   return [...pool].sort((a, b) => b.danio - a.danio)[0]
+}
+
+// ── Los estados especiales (913) ──
+//
+// Dormido, Paralizado y Confundido se sustituyen entre sí (giran la carta);
+// Envenenado y Quemado van aparte. Se van al pasar a la banca, al
+// evolucionar y al caer. La parálisis se va sola en el chequeo tras el turno
+// siguiente de su dueño; del sueño y de las curas el registro no da una
+// frase que se haya visto, así que esos se quedan hasta que pase lo de antes.
+const GIRAN = ['dormido', 'paralizado', 'confundido']
+function ponerEstado(slot, estado, turno) {
+  const actuales = slot.estados || []
+  slot.estados = [...(GIRAN.includes(estado) ? actuales.filter((x) => !GIRAN.includes(x)) : actuales.filter((x) => x !== estado)), estado]
+  if (estado === 'paralizado') slot.paralizadoEn = turno
+}
+function sinEstados(slot) {
+  if (!slot) return
+  slot.estados = []
+  delete slot.paralizadoEn
+}
+
+// ¿De quién es el Pokémon al que le caen contadores? El registro lo escribe
+// mal a menudo («El Zorua de N de Azul ha recibido 3 contadores de daño de
+// Azul» siendo el Zorua de Rojo, y «El Abra de A ha recibido 2 contadores de
+// daño de B» con Ruinas Peligrosas, siendo el Abra de B): el primero, por
+// este orden, que tenga uno que se llame así — el rival de quien los pone,
+// el que dice la línea y el que los pone (913: el tercero faltaba).
+function duenoDeContadores(s, quienPone, dice, pokemon) {
+  const rival = s.orden.find((n) => n !== quienPone)
+  for (const n of [rival, dice, quienPone]) if (n && s.jugadores[n] && todosLosQueSeLlaman(s.jugadores[n], pokemon).length) return n
+  return dice || rival
+}
+
+// De los que se llaman así y no han recibido nada todavía de ESTO, el último
+// que llegó a la mesa.
+const numeroDeHueco = (slot) => Number(String(slot?.id || '').replace(/\D/g, '')) || 0
+function masReciente(p, nombre, golpeados = []) {
+  const libres = todosLosQueSeLlaman(p, nombre).filter((x) => !golpeados.includes(x.id))
+  return libres.sort((a, b) => numeroDeHueco(b) - numeroDeHueco(a))[0] || null
 }
 
 function quitarDeMano(p, carta) {
@@ -210,7 +249,15 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       s.deQuien = e.jugador
       s.caido = null
       s.retirado = null
-      s.subio = null
+      s.subio = {}
+      for (const j of Object.values(s.jugadores)) {
+        for (const x of enJuego(j)) {
+          if (x.estados?.includes('paralizado') && x.paralizadoEn != null && s.turno >= x.paralizadoEn + 2) {
+            x.estados = x.estados.filter((y) => y !== 'paralizado')
+            delete x.paralizadoEn
+          }
+        }
+      }
       s.golpeados = []
       s.estadioQuitado = null
       s.foco = { tipo: 'turno', jugador: e.jugador }
@@ -289,7 +336,9 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // (tanda 481).
       const deEfecto = e.sub && e.padre && e.padre.tipo !== 'ataque' && e.padre.jugador === e.jugador
       let deOtro = null
-      if (e.sub && !deEfecto) deOtro = enJuego(p).find((x) => x !== slot && x.energias.some((c) => igual(c, e.carta)))
+      // De los que la llevan, el activo primero (913): el Ventilador de Mano
+      // la quita del que ATACA, que es el activo.
+      if (e.sub && !deEfecto) deOtro = [p.activo, ...p.banca].find((x) => x && x !== slot && x.energias.some((c) => igual(c, e.carta)))
       // Si la línea dice de dónde (los registros del laboratorio), eso.
       if (e.desde === 'mazo') deOtro = null
       const enDescarte = e.desde === 'mazo' ? -1 : deEfecto || e.desde === 'descarte' ? p.descarte.findIndex((c) => igual(c, e.carta)) : -1
@@ -307,6 +356,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       const slot = elDeLugar(p, e.de, e.lugar) || buscar(p, e.de, e.donde)
       if (!slot) break
       slot.cartas.push(e.a)
+      sinEstados(slot)
       quitarDeMano(p, e.a)
       s.foco = { tipo: 'evoluciona', jugador: e.jugador, slot: slot.id, carta: e.a }
       break
@@ -329,19 +379,49 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // «El X de A ha recibido N contadores de daño de B»: el registro le
       // pone a X el dueño equivocado (B, el que los pone). Si el rival de B
       // tiene uno que se llame así, es suyo; si no, el que diga la línea.
-      let dueno = e.deQuien
-      if (!dueno) {
-        const rival = s.orden.find((n) => n !== e.jugador)
-        dueno = todosLosQueSeLlaman(s.jugadores[rival], e.pokemon).length ? rival : e.dice
-      }
+      const dueno = e.deQuien || duenoDeContadores(s, e.jugador, e.dice, e.pokemon)
       const q = s.jugadores[dueno]
       const golpeados = s.golpeados || []
-      const obj = q ? aQuienLeCae(q, e.pokemon, golpeados) : null
+      // Bajo algo que se ACTIVA (Ruinas Peligrosas: «cuando alguien pone en
+      // la banca un Pokémon Básico…»: 913), los contadores son para los que
+      // acaban de llegar, no para el que más daño lleva —esa es la regla de
+      // un ataque que reparte y remata—. Los huecos nacen numerados, así que
+      // el último en llegar es el de número más alto.
+      const reciente = e.padre?.tipo === 'activar' && q ? masReciente(q, e.pokemon, golpeados) : null
+      const obj = reciente || (q ? aQuienLeCae(q, e.pokemon, golpeados) : null)
       if (obj) {
         obj.danio += e.n * 10
         s.golpeados = [...golpeados, obj.id]
       }
       s.foco = { tipo: 'danio', jugador: dueno, slot: obj?.id, danio: e.n * 10 }
+      break
+    }
+    case 'moverContadores': {
+      // Del origen (su dueño, el de la frase; si no lo tiene, el otro) al
+      // destino (el dueño, como con «ha recibido N contadores»: 913).
+      const otro = (n) => s.orden.find((x) => x !== n)
+      const duenoDe = [e.deQuien, otro(e.deQuien)].find((n) => n && s.jugadores[n] && todosLosQueSeLlaman(s.jugadores[n], e.de).length) || e.deQuien
+      const origen = s.jugadores[duenoDe] ? [...todosLosQueSeLlaman(s.jugadores[duenoDe], e.de)].sort((a, b) => b.danio - a.danio)[0] || null : null
+      const duenoA = duenoDeContadores(s, e.jugador, e.dice, e.a)
+      const golpeados = s.golpeados || []
+      const destino = s.jugadores[duenoA] ? aQuienLeCae(s.jugadores[duenoA], e.a, golpeados) : null
+      // Lo que dice la frase, entero: si el origen llevaba menos (algo que la
+      // mesa no supo contar), se queda a cero, pero el destino recibe lo dicho.
+      const n = e.n * 10
+      if (origen) origen.danio = Math.max(0, origen.danio - n)
+      if (destino) {
+        destino.danio += n
+        s.golpeados = [...golpeados, destino.id]
+      }
+      s.foco = { tipo: 'danio', jugador: duenoA, slot: destino?.id, slots: [origen?.id, destino?.id].filter(Boolean), danio: n }
+      break
+    }
+    case 'estado': {
+      // Los estados especiales son del ACTIVO; si el registro nombra a otro
+      // que se llama así, a ese.
+      const slot = buscar(p, e.pokemon, 'activo')
+      if (slot) ponerEstado(slot, e.estado, s.turno)
+      s.foco = slot ? { tipo: 'estado', jugador: e.jugador, slot: slot.id, estado: e.estado } : null
       break
     }
     case 'danio': {
@@ -366,6 +446,7 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       const slot = p.activo
       if (slot) {
         p.activo = null
+        sinEstados(slot)
         p.banca.push(slot)
         // Las energías que paga van en las sublíneas siguientes y nombran
         // al Pokémon por su nombre: si hay dos iguales, es ESTE.
@@ -382,8 +463,13 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // SIEMPRE seguida de «X pasa a estar en el Puesto Activo»: es la misma
       // jugada contada dos veces. Con un gemelo en la banca, la segunda los
       // volvía a cambiar.
-      if (p.activo && p.activo.id === s.subio && casa(p.activo)) {
-        s.subio = null
+      //
+      // Lo que sube se apunta POR JUGADOR (913): Giovanni cambia los dos
+      // activos, y el segundo cambio pisaba la marca del primero; la línea de
+      // «pasa a estar» de ese jugador buscaba entonces en la banca a uno que
+      // ya estaba arriba.
+      if (p.activo && s.subio?.[e.jugador] === p.activo.id && casa(p.activo)) {
+        delete s.subio[e.jugador]
         s.foco = { tipo: 'sube', jugador: e.jugador, slot: p.activo.id }
         break
       }
@@ -398,7 +484,10 @@ export function aplicar(estado, e, { psDe = null } = {}) {
         const ps = psDe?.(arriba(viejo))
         if (!viejo.ko && ps && viejo.danio >= ps) viejo.ko = true
         if (viejo.ko) p.descarte.push(...cartasDe(viejo))
-        else p.banca.push(viejo)
+        else {
+          sinEstados(viejo)
+          p.banca.push(viejo)
+        }
       }
       p.activo = nuevo
       s.foco = { tipo: 'sube', jugador: e.jugador, slot: nuevo.id }
@@ -410,9 +499,12 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       if (!sube) break
       const baja = p.activo
       p.banca = p.banca.filter((x) => x !== sube)
-      if (baja) p.banca.push(baja)
+      if (baja) {
+        sinEstados(baja)
+        p.banca.push(baja)
+      }
       p.activo = sube
-      s.subio = sube.id
+      s.subio = { ...(s.subio || {}), [e.jugador]: sube.id }
       s.foco = { tipo: 'sube', jugador: e.jugador, slot: sube.id }
       break
     }
@@ -492,7 +584,13 @@ export function aplicar(estado, e, { psDe = null } = {}) {
       // cada carta sale del descarte si está ahí (Camilla Nocturna) y si
       // no, del mazo.
       const cartas = e.cartas || []
-      const slot = slotQueSonEstas(p, cartas)
+      // Una carta SOLA que está en el descarte sale del descarte (913):
+      // «Camilla Nocturna · ha movido Dunsparce de J a su mano» recuperaba el
+      // Dunsparce que había caído, y como en la banca había OTRO Dunsparce sin
+      // nada unido, «es exactamente un Pokémon en juego» se lo llevaba de la
+      // mesa. Un Pokémon con lo suyo (Ciclón Levante) son varias cartas.
+      const delDescarte = cartas.length === 1 && p.descarte.some((x) => igual(x, cartas[0]))
+      const slot = delDescarte ? null : slotQueSonEstas(p, cartas)
       if (slot) {
         quitarSlot(p, slot)
         aMano(p, cartas)

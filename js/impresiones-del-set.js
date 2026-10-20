@@ -68,8 +68,28 @@ const reimpresiones = new Map() // `${columnas}|${nombre normalizado}` → filas
 const fechas = new Map() // set_id → { fecha, codigo } (fecha de salida y código de TCG Live)
 const COLUMNAS_DE_RAREZA = 'id,set_id,local_id,name,name_es,name_en,name_key,category,image_path,image_scrydex,image_tcggo,rarity,rarity_en,regulation_mark,hp,attacks'
 
+// Por comas FUERA de paréntesis (913): las columnas del constructor llevan
+// el set embebido, `tcg_sets(serie_id,tcg_online_code)`, y partirlo a secas
+// lo desharía en trozos que no son columnas.
+const trozos = (lista) => {
+  const fuera = []
+  let nivel = 0
+  let actual = ''
+  for (const ch of String(lista || '')) {
+    if (ch === ',' && nivel === 0) {
+      fuera.push(actual)
+      actual = ''
+      continue
+    }
+    if (ch === '(') nivel++
+    else if (ch === ')') nivel = Math.max(0, nivel - 1)
+    actual += ch
+  }
+  fuera.push(actual)
+  return fuera.map((c) => c.trim()).filter(Boolean)
+}
 function columnasCon(columnas) {
-  const todas = new Set([...String(columnas || '').split(','), ...COLUMNAS_DE_RAREZA.split(',')].map((c) => c.trim()).filter(Boolean))
+  const todas = new Set([...trozos(columnas), ...trozos(COLUMNAS_DE_RAREZA)])
   return [...todas].join(',')
 }
 

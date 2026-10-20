@@ -9,7 +9,6 @@
 import { getSession, escapeHtml } from './app.js'
 import { supabase } from './supabase.js'
 import { showToast } from './toast.js'
-import { cardImageUrl } from './tcgdex.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { chipsDeSelect } from './selector-chips.js'
 import { icons } from './icons.js'
@@ -192,7 +191,8 @@ function cadenaDeImagen(carta, calidad = 'low') {
     const e = imagenDeEnergiaBasica(carta, calidad === 'high' ? 'LG' : 'SM')
     if (e) return [e.url, e.respaldo].filter(Boolean)
   }
-  return cadenaDeEscaneo(carta, codigoDeSet(carta.set_id), calidad, cardImageUrl)
+  // La misma cadena que Mi colección (913): ver js/repeticiones.js.
+  return cadenaDeEscaneo(carta, codigoDeSet(carta.set_id), calidad)
 }
 
 function imagenHtml(carta, calidad = 'low') {
