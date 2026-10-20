@@ -78,7 +78,7 @@ console.log('\n── 1. La cabecera de perfil ──')
   // que es la que se ve en la colección de otra persona.
   check('el h1 vive dentro de la cabecera, para quien escucha',
     (await page.locator('.mc-hero h1#mcTitulo.sr-only').count()) === 1)
-  check('  …y las cifras se ven, en la cartera', await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible() && (await page.locator('.mc-cartera-fichas li').count()) === 3 && await page.locator('.mc-cartera-fichas li').first().isVisible())
+  check('  …y las cifras se ven, en la cartera', await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible() && (await page.locator('.mc-cartera-sub > span').count()) === 3 && await page.locator('.mc-cartera-sub > span').first().isVisible())
   // El avatar lleva la inicial cuando no hay foto. Sin ella es un círculo
   // de color y nada más, y no hay ningún otro sitio donde se vea de quién
   // es esta pantalla.
@@ -113,14 +113,14 @@ console.log('\n── 1. La cabecera de perfil ──')
   // Desde la 748 son la cifra grande de la cartera y TRES fichas en una
   // fila (cartas, distintas, expansiones): lo que se defiende es lo mismo,
   // que caben sin deslizarse y que ninguna se sale de su hueco.
-  const r = await page.locator('.mc-cartera-fichas').evaluate((n) => ({
+  const r = await page.locator('.mc-cartera-sub').evaluate((n) => ({
     filas: new Set([...n.children].map((e) => Math.round(e.getBoundingClientRect().top))).size,
     sobra: n.scrollWidth > n.clientWidth + 4 || document.documentElement.scrollWidth > innerWidth,
   }))
-  check('en 390 px las tres fichas caben en una fila', r.filas === 1, JSON.stringify(r))
+  check('en 390 px las tres cifras caben en una línea (925)', r.filas === 1, JSON.stringify(r))
   check('  …y sin deslizarse', !r.sobra, JSON.stringify(r))
-  const dentro = await page.locator('.mc-cartera-fichas li').evaluateAll((ns) => ns.map((x) => ({
-    nombre: x.querySelector('span').textContent,
+  const dentro = await page.locator('.mc-cartera-sub > span').evaluateAll((ns) => ns.map((x) => ({
+    nombre: x.textContent,
     sobra: Math.max(x.scrollWidth - x.clientWidth, x.querySelector('b').scrollWidth - x.clientWidth),
   })))
   check('  …y cada cifra cabe dentro de su hueco',

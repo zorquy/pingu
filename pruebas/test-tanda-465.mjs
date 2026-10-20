@@ -84,16 +84,16 @@ for (const ver of ['resumen', 'cartas', 'album', 'pokedex', 'carpetas', 'buscar'
 console.log('\n── 2. Las cuatro cifras caben, con una colección cara ──')
 for (const ancho of [360, 390, 430, 768, 1280]) {
   const { page } = await abrir('resumen', ancho)
-  // Desde la 748 las cifras son la de la cartera y TRES fichas (la C1 de
-  // su maqueta). Lo que se mide es lo mismo: que nada se sale ni se corta,
+  // Desde la 748 las cifras son la de la cartera y, desde la 925, una línea
+  // con cartas, distintas y expansiones (antes, tres fichas). Lo que se mide es lo mismo: que nada se sale ni se corta,
   // con la cifra larga que rompía.
   const m = await page.evaluate(() => {
     const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-    const fichas = document.querySelector('.mc-cartera-fichas')
+    const fichas = document.querySelector('.mc-cartera-sub')
     return {
       desborda: document.documentElement.scrollWidth > innerWidth + 1 || fichas.scrollWidth > fichas.clientWidth + 2,
       filas: new Set([...fichas.children].map((c) => Math.round(c.getBoundingClientRect().top))).size,
-      cortadas: [cifra, ...fichas.querySelectorAll('li')].filter((d) => d.scrollWidth > d.clientWidth + 1 || d.getBoundingClientRect().right > innerWidth).map((d) => d.textContent),
+      cortadas: [cifra, ...fichas.querySelectorAll(':scope > span')].filter((d) => d.scrollWidth > d.clientWidth + 1 || d.getBoundingClientRect().right > innerWidth).map((d) => d.textContent),
       cifra: cifra.textContent,
     }
   })
