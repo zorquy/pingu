@@ -36,6 +36,18 @@
     {
       "fecha": "2026-10-20",
       "tipo": "arreglo",
+      "texto": "Al crear una cuenta con tu email, ahora se ve bien el aviso de que te hemos mandado el enlace de confirmación; antes el formulario se quedaba a la vista y parecía que no había pasado nada.",
+      "enlace": "/auth?registro=1"
+    },
+    {
+      "fecha": "2026-10-20",
+      "tipo": "arreglo",
+      "texto": "Justo después de una actualización de la web, alguna pantalla podía quedarse sin funcionar hasta recargar. Ahora la app se pone al día sola.",
+      "enlace": "/novedades"
+    },
+    {
+      "fecha": "2026-10-20",
+      "tipo": "arreglo",
       "texto": "El buscador de arriba encuentra las mismas cartas que el de Cartas: todas, ordenadas por expansión de la más nueva a la más vieja. Antes, con un Pokémon de muchas cartas (Zapdos, Charizard…) se cortaba y faltaban algunas, como el Zapdos ex de 151.",
       "enlace": "/buscar?q=zapdos&en=cartas"
     },

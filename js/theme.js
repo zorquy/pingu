@@ -13,7 +13,9 @@ export function conOla(evento, cambiar) {
   raiz.style.setProperty('--ola-y', `${r ? r.top + r.height / 2 : 0}px`)
   raiz.classList.add('ola-tema')
   const t = document.startViewTransition(cambiar)
-  t.finished.finally(() => raiz.classList.remove('ola-tema'))
+  // Si el navegador la salta, `ready` se rechaza y nadie lo mira (910).
+  t.ready.catch(() => {})
+  t.finished.catch(() => {}).finally(() => raiz.classList.remove('ola-tema'))
 }
 
 // El script en línea del <head> de cada página ya deja document.documentElement.dataset.theme

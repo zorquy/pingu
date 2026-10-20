@@ -115,6 +115,8 @@ export function crecerDesde(origen, abrir, { doc = document, win = window, desti
     if (destino) destino.style.viewTransitionName = ''
   }
   t.finished.then(limpiar, limpiar)
+  // Una saltada rechaza `ready`, y sin esto sale en el registro de errores (910).
+  t.ready.catch(() => {})
   return t
 }
 
@@ -141,5 +143,7 @@ export function volverAlHueco(cerrar, { doc = document, win = window } = {}) {
     origen.style.viewTransitionName = ''
   }
   t.finished.then(limpiar, limpiar)
+  // Una saltada rechaza `ready`, y sin esto sale en el registro de errores (910).
+  t.ready.catch(() => {})
   return t
 }

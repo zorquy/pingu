@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (144) — PINGU-Claude (910 — los errores del panel)
+
+**Hecho** (PINGU con la lista de /admin → Errores). Las mezclas de dos
+despliegues (`TOPE_CARTAS`, `deDondeSaleElValor`): el service worker vacía
+sus cachés de una vez y no guarda lo que pidió antes de un vaciado, y si
+aun así pasa la página se recarga sola una vez. El registro con email
+petaba desde la 790 al pintar «Revisa tu email» (el formulario se quedaba a
+la vista): arreglado. Fuera del registro, lo que no dice nada («Script
+error.» sin traza, las transiciones que cancela el navegador); los «Failed
+to fetch» llevan contexto.
+
+**Ficheros**: `sw.js`, `js/error-log.js`, `js/auth.js`, `js/theme.js`,
+`js/mi-coleccion/gestos-ficha.js`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-910.mjs`, 786 y 897
+al día.
+
+**Pendiente**: la traza de un «Failed to fetch» (PINGU, pasando el ratón
+en el panel) para saber qué petición es. Rojos de antes vistos de paso:
+723-pantalla (la tecla «Buscar» de mensajes) y 794 («Tú» ya no lleva a la
+feria desde la 869).
+
 ## 2026-10-20 (143) — PINGU-Claude (909 — el buscador de arriba es el de Cartas)
 
 **Hecho** (Sergio en el foro: buscando Zapdos no salía el de 151; PINGU:

@@ -41785,6 +41785,68 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 910 — Los errores del panel, uno a uno
+
+PINGU, con la lista de /admin → Errores: «mira todos estos errores, seguro
+que puedes revisar más tú y ver por qué pasa». Cinco familias:
+
+**1. «Importing binding name 'TOPE_CARTAS' is not found» (/buscar) y
+«…'deDondeSaleElValor'…» (/mi-coleccion).** Justo después de los pushes
+de la 909 y la 905. No son exports que falten (`test-imports` lo dice): es
+una página con módulos de DOS despliegues, la 510 por el lado de la caché.
+El service worker (786/897) sirve de su caché y revisa por detrás; al ver
+un cambio vaciaba borrando llave a llave con un `await` cada una —cientos
+de vueltas—, y una página que se abría en ese rato bajaba unos módulos de
+la red (nuevos) y otros de lo que quedaba (viejos). Y una revisión que
+había salido antes del despliegue podía guardar lo viejo DESPUÉS del
+vaciado. Ahora:
+- `vaciarTodo` borra las dos cachés con `caches.delete` (de una vez) y
+  sube `generacion`; `revisar` recibe el NOMBRE de la caché, la abre de
+  nuevo para guardar y no guarda si hubo un vaciado mientras preguntaba.
+- `js/error-log.js`: si el error es de mezcla (`DESAJUSTE`: el binding de
+  Safari, el «does not provide an export named» de Chrome y Firefox, y los
+  `import()` que no llegan), `tocaRecargar` deja recargar UNA vez cada
+  cinco minutos y solo con red; se apunta con «(la página se ha recargado
+  sola)», se vacían las cachés `pokedoc-ficheros-*` y `pokedoc-paginas-*`
+  desde la página y `location.reload()`. Si vuelve a salir, es un fallo
+  de verdad y se queda apuntado.
+
+**2. «Cannot set properties of null (setting 'textContent')» y «null is not
+an object (evaluating 'steps.register.querySelector('.subtext')…')» en
+/auth.** Fallo nuestro desde la 790: `showFakeRegisterSuccess` escribía en
+el `.subtext` del paso de registro, que la 790 cambió por la lista de
+ventajas. Cada registro de verdad que pide confirmar el email petaba ahí:
+la cuenta se creaba, el título decía «Revisa tu email» y el formulario
+seguía a la vista sin más. Ahora el aviso va en su párrafo (se crea si no
+está) y se esconden la lista y el «o con tu email».
+
+**3. «Transition was aborted because of invalid state. Viewport size
+changed / Page already revealed».** Las transiciones entre páginas
+(`@view-transition`) que cancela el propio Chrome del móvil cuando la barra
+de direcciones cambia el alto o la página ya se enseñó: la navegación sigue
+sin la animación. No se apuntan (`esRuido`). Y las dos que lanzamos
+nosotros (el tema en `js/theme.js`, la carta que crece en
+`js/mi-coleccion/gestos-ficha.js`) llevan `t.ready.catch`, que si se salta
+se rechaza.
+
+**4. «Script error.»** Lo que el navegador deja ver de un error de un script
+de OTRO origen (una extensión, el navegador de dentro de una app): sin
+fichero ni traza. La web no carga scripts de fuera, así que no es nuestro
+ni se puede seguir; sin traza no se apunta.
+
+**5. «Failed to fetch».** Una petición que no llegó a contestar (Chrome;
+Safari dice «Load failed»), sin decir cuál. El registro que la apunta sí
+llegó, así que la red estaba. Se le añade contexto delante de la traza:
+`[en línea: sí · pestaña: visible · a los N s de abrir]`, para distinguir
+la app que vuelve de segundo plano. Falta la traza de alguno para saber qué
+petición es (PINGU: pasar el ratón por encima en el panel).
+
+**Pruebas**: `test-tanda-910.mjs` (el sw.js de verdad en una caja: el
+vaciado de una vez y la revisión de antes que no guarda —con el sw.js de
+la 909 este punto sale rojo—; `tocaRecargar`, `DESAJUSTE` y `esRuido`; el
+registro en el navegador por el camino del cebo, que pinta la misma
+pantalla). Al día: 786 y 897 (la forma del vaciado).
+
 ## Tanda 909 — El buscador de arriba ES el de Cartas
 
 Sergio, en el foro: «soy coleccionista de Zapdos y cuando he buscado por

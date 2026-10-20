@@ -181,7 +181,18 @@ const btnRegister = document.getElementById('btnRegister')
 function showFakeRegisterSuccess() {
   setError(steps.register, '')
   steps.register.querySelector('h2').textContent = 'Revisa tu email'
-  steps.register.querySelector('.subtext').textContent = 'Te hemos enviado un enlace para confirmar tu cuenta. Ábrelo y luego inicia sesión.'
+  // El párrafo de debajo del título se fue en la 790 (ahora es la lista de
+  // ventajas) y esto escribía en él: cada registro de verdad petaba aquí y
+  // dejaba el formulario a la vista con «Revisa tu email» encima (910). El
+  // aviso va en su párrafo, y la lista y el «o con tu email», fuera.
+  let aviso = steps.register.querySelector('.subtext')
+  if (!aviso) {
+    aviso = document.createElement('p')
+    aviso.className = 'subtext'
+    steps.register.querySelector('h2').after(aviso)
+  }
+  aviso.textContent = 'Te hemos enviado un enlace para confirmar tu cuenta. Ábrelo y luego inicia sesión.'
+  for (const el of steps.register.querySelectorAll('.auth-ventajas, .auth-o')) el.classList.add('hidden')
   document.getElementById('registerName').closest('.form-group').classList.add('hidden')
   document.getElementById('registerEmail').closest('.form-group').classList.add('hidden')
   document.getElementById('registerPassword').closest('.form-group').classList.add('hidden')

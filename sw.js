@@ -68,15 +68,20 @@ function esPaginaDeCache(url) {
 }
 
 // Un despliegue nuevo: fuera todo lo de antes, páginas y ficheros, y entra
-// solo lo que llegue desde ahora.
+// solo lo que llegue desde ahora. DE UNA VEZ (910): borrar llave a llave
+// dejaba la caché a medias durante cientos de vueltas, y una página que se
+// abría en ese rato bajaba unos módulos nuevos y otros viejos —«Importing
+// binding name 'TOPE_CARTAS' is not found» en /buscar, la 510 otra vez—.
+// `generacion` cuenta los vaciados: una revisión que empezó antes de uno
+// no guarda lo suyo, que pudo pedirlo antes del despliegue.
+let generacion = 0
 async function vaciarTodo() {
-  for (const nombre of [ASSETS, PAGINAS]) {
-    const c = await caches.open(nombre)
-    for (const k of await c.keys()) await c.delete(k)
-  }
+  generacion++
+  await Promise.all([caches.delete(ASSETS), caches.delete(PAGINAS)])
 }
 
-async function revisar(peticion, cache, guardada) {
+async function revisar(peticion, nombre, guardada) {
+  const desde = generacion
   const fresca = await fetch(peticion, { cache: 'no-cache' })
   // Una respuesta que viene de una redirección no sirve para una navegación.
   if (!fresca.ok || fresca.type !== 'basic' || fresca.redirected) return fresca
@@ -89,7 +94,9 @@ async function revisar(peticion, cache, guardada) {
     else cambio = (await guardada.clone().text()) !== (await fresca.clone().text())
   }
   if (cambio) await vaciarTodo()
-  await cache.put(peticion, fresca.clone())
+  else if (desde !== generacion) return fresca
+  // Abierta otra vez por su nombre: si se vació, la de antes ya no es la caché.
+  await (await caches.open(nombre)).put(peticion, fresca.clone())
   return fresca
 }
 
@@ -98,9 +105,8 @@ async function revisar(peticion, cache, guardada) {
 // («Cannot construct a Request with mode navigate and a RequestInit»), así
 // que la revisión va por la dirección, que es también la llave.
 async function paginaDeCasa(req, e) {
-  const cache = await caches.open(PAGINAS)
-  const guardada = await cache.match(req.url)
-  const revision = revisar(req.url, cache, guardada)
+  const guardada = await (await caches.open(PAGINAS)).match(req.url)
+  const revision = revisar(req.url, PAGINAS, guardada)
   if (guardada) {
     e.waitUntil(revision.catch(() => {}))
     return guardada
@@ -168,9 +174,8 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || !esFichero(new URL(req.url))) return
   e.respondWith(
     (async () => {
-      const cache = await caches.open(ASSETS)
-      const guardada = await cache.match(req)
-      const revision = revisar(req, cache, guardada)
+      const guardada = await (await caches.open(ASSETS)).match(req)
+      const revision = revisar(req, ASSETS, guardada)
       if (guardada) {
         e.waitUntil(revision.catch(() => {}))
         return guardada

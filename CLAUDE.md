@@ -908,6 +908,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   llega a lo que pide el worker**: un despliegue se simula escribiendo en
   el sitio servido (`PD_SITIO`) con la fecha del fichero adelantada
   (`utimesSync`), no con `fulfill`.
+- **Un vaciado de caché que no es de una vez MEZCLA despliegues** (tanda
+  910): el service worker borraba llave a llave y una página abierta en
+  ese rato bajaba módulos nuevos y viejos («Importing binding name
+  'TOPE_CARTAS' is not found»). `vaciarTodo` borra las cachés enteras y una
+  revisión que salió antes de un vaciado no guarda. Y si aun así llega una
+  mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Un error de
+  import en el panel justo después de un push es esto antes que un export
+  que falta: `test-imports` lo distingue en un segundo.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
