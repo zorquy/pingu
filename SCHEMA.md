@@ -41785,6 +41785,57 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 927 — La expansión como Dex: insignias, una fila de mandos y el archivador por hojas
+
+La D de la propuesta de la 925, rehecha con las capturas de Dex (PINGU:
+«adelante con lo recomendado»).
+
+- **Insignias** (`marcaDeTengoHtml(n, versiones)` en js/mi-coleccion.js): el
+  ✓ (`.mc-tengo-marca`) va en el CENTRO de la carta, un círculo blanco con el
+  ✓ verde; arriba a la derecha, `.mc-insignias` con `.mc-insignia-n` (la
+  cuenta, si son dos o más) y una `.mc-insignia[data-var]` por cada versión
+  tuya que no sea la de la carta (`versionesQueTienes`: mira también las
+  cuatro de siempre aunque la carta no las declare). Las letras: «R+»
+  reverse, «H» holo, «1ª» primera; las de TCGGO, su `cortoDeVariante`. El
+  `aria-label` lo dice en palabras («tienes 2, con Reverse holo»). Con
+  «Apilar» quitado la casilla ya es de una versión: solo ✓, cuenta y su
+  chapa. El mismo ✓ centrado sale en los álbumes y en Buscar, que usan la
+  misma marca. `versionQueTienesHtml` («N + RH» abajo) se fue; la clase
+  `.mc-tengo-version` SE QUEDA porque la pinta `albumes.js` (casi se va su
+  CSS: grepear a mano, la de la 498).
+- **Una fila** (`#mcAlbumFiltros`): «Cuadrícula ▾» (`#mcAlbumVista`, su
+  icono es el de la vista puesta), «Apilar» (`#mcVistaVariantes`, pulsado =
+  juntas: `aria-pressed` es `!album.split`, el rótulo no cambia) y
+  «Filtros». Salen de la hoja de filtros, donde los metió la 919
+  (`#mcAlbumGrupoVer` ya no existe). En el móvil (≤ 700 px) el buscador va
+  encima y los tres debajo, repartidos.
+- **Las vistas**: `cuadricula` es ahora la rejilla de bolsillos de siempre
+  (`.mc-album-rejilla` + `bolsilloHtml`) y es la de por defecto; `lista`
+  lleva además las insignias de versión y el precio (`precioDeCartaDelAlbum`);
+  `archivador` son HOJAS (`archivadorDeExpansionHtml` → `archivadorHtml`, el
+  de los álbumes), dos en el ordenador (≥ 900 px) y una en el móvil, con
+  flechas debajo (`.mc-exp-paginas`, `data-pasar`) y las esquinas.
+  `celdaDeCuadriculaHtml` (la cuadrícula sin funda) se fue; su CSS
+  (`.mc-rejilla-celda`, `.mc-album-cuadricula`) queda sin uso.
+- **Ajustes del archivador** en la hoja de la vista
+  (`#mcAlbumArchivadorAjustes`, solo con el archivador puesto): bolsillos
+  por página (`BOLSILLOS_DE_ARCHIVADOR`: 4, 9, 12, 16, 20, 25) y «Primera
+  página» Usarla/Saltarla. Saltarla pasa `portada` a `archivadorHtml` (nuevo):
+  la primera cara es `.mc-hoja-portada` con el logo y el nombre del set, y
+  las hojas de cartas siguen numerándose desde 1. Se aplica al momento
+  detrás de la hoja; «Aplicar» la cierra. Se guarda en
+  `localStorage['mc-album-archivador']`. Elegir el archivador no cierra la
+  hoja; las otras dos sí.
+- **Filtros**: «Repetidas» en «Qué cartas» (`album.repetidas`, dos o más) y
+  el grupo «Versión» (`#mcAlbumVersion`, segmentado; opciones de las
+  versiones del set; con una sola no sale). Con una versión puesta, «la
+  tengo» es tenerla EN esa versión, y con «Apilar» quitado solo salen las
+  casillas de esa versión. El panel ya era el cajón de la derecha en el
+  ordenador (399) y la hoja de abajo en el móvil (705).
+- El `addEventListener` de los desplegables de la expansión va con `?.`: un
+  `cartas.html` viejo sin `#mcAlbumVersion` dejaba la página entera sin JS
+  (lo cazó la suite con la copia de antes de regenerar).
+
 ## Tanda 926 — /carta en el ordenador, la ficha del pop-up en grande
 
 La A de la propuesta de la 925.

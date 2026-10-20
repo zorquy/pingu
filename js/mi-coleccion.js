@@ -2539,7 +2539,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
 // Lo último que pintó pintarAlbum, para compartirlo (873).
 let albumResumen = null
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false, vista: 'archivador', idioma: '' }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, soloTengo: false, repetidas: false, split: false, vista: 'cuadricula', idioma: '' }
 
 // ── LAS TRES FORMAS DE VER UNA EXPANSIÓN (tanda 478) ──
 //
@@ -2559,11 +2559,31 @@ let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, split: false,
 //
 // El icono de cada una no es adorno: es lo único que distingue tres
 // renglones de menú que dicen tres palabras parecidas.
+//
+// DESDE LA 927 (la D de la propuesta 925, «como Dex»): la CUADRÍCULA es la
+// rejilla de siempre —la que veía todo el mundo, con su ✓ y su «+»— y el
+// ARCHIVADOR es de verdad un archivador: hojas de bolsillos que se pasan,
+// con los bolsillos por página y la primera página que elige quien mira.
+// Es solo para mirar: no crea ningún álbum. Las dos cuadrículas de antes
+// (con funda y sin ella) eran la misma vista con dos dibujos.
 const VISTAS_DE_ALBUM = [
-  { id: 'archivador', nombre: 'Archivador', icono: 'layers' },
-  { id: 'cuadricula', nombre: 'Cuadrícula', icono: 'image' },
-  { id: 'lista', nombre: 'Lista', icono: 'alignLeft' },
+  { id: 'cuadricula', nombre: 'Cuadrícula', icono: 'image', detalle: 'Cada carta en una rejilla' },
+  { id: 'lista', nombre: 'Lista', icono: 'alignLeft', detalle: 'Una fila por carta, con detalles' },
+  { id: 'archivador', nombre: 'Archivador', icono: 'layers', detalle: 'Páginas de bolsillos, como un álbum' },
 ]
+// Los bolsillos de una hoja del archivador (927): los de los binders que
+// se venden, y «3×4» son tres columnas y cuatro filas.
+const BOLSILLOS_DE_ARCHIVADOR = [
+  { n: 4, columnas: 2 },
+  { n: 9, columnas: 3 },
+  { n: 12, columnas: 3 },
+  { n: 16, columnas: 4 },
+  { n: 20, columnas: 4 },
+  { n: 25, columnas: 5 },
+]
+// Gusto de quien mira, en su navegador, como la vista.
+const ajusteDeArchivador = { bolsillos: 9, saltarPrimera: false }
+const CLAVE_ARCHIVADOR = 'mc-album-archivador'
 const CLAVE_VISTA_ALBUM = 'mc-album-vista'
 // Solo las colecciones de las que tienes algo (tanda 443). Fuera del
 // objeto `album` porque no es del álbum abierto, es de la estantería.
@@ -3387,9 +3407,20 @@ function chapaDeVarianteHtml(id) {
 // a color con su ✓ arriba a la derecha —o «×N» si tienes más de una—, y
 // abajo la versión que tienes cuando la carta tiene varias. El color solo
 // no lo distingue todo el mundo.
-function marcaDeTengoHtml(n) {
+//
+// Y desde la 927, como en Dex (la D de la propuesta 925): el ✓ va en el
+// CENTRO, grande, y arriba a la derecha una columna de insignias: cuántas
+// tienes si son dos o más, y una por cada versión tuya que no sea la de
+// la carta («R+» la reverse, «H» la holo de una carta que también es
+// normal, «1ª» la primera edición). La de la carta no lleva insignia: es
+// el ✓. `versiones` solo lo pasa quien junta las versiones en una casilla.
+const INSIGNIA_DE_VERSION = { reverse: 'R+', holo: 'H', primera: '1ª' }
+const insigniaDeVersion = (id) => INSIGNIA_DE_VERSION[id] || cortoDeVariante(id)
+function marcaDeTengoHtml(n, versiones = []) {
   if (!n) return ''
-  return n > 1 ? `<span class="mc-cantidad mc-tengo-marca" aria-hidden="true">×${n}</span>` : '<span class="mc-tengo-marca" aria-hidden="true">✓</span>'
+  const insignias = (n > 1 ? `<i class="mc-insignia mc-insignia-n">${n}</i>` : '') +
+    versiones.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${escapeHtml(insigniaDeVersion(id))}</i>`).join('')
+  return `<span class="mc-tengo-marca" aria-hidden="true">✓</span>${insignias ? `<span class="mc-insignias" aria-hidden="true">${insignias}</span>` : ''}`
 }
 
 // «LA QUIERO» EN LA EXPANSIÓN (911). PINGU: «cartas que tengo como "la
@@ -3418,14 +3449,17 @@ function refrescarCorazones() {
   }
 }
 
-function versionQueTienesHtml(c) {
-  if (!tieneVarias(c)) return ''
-  const mias = variantesDeCarta(c).filter((v) => tengoEnAlbum(c.id, v.nuestro))
-  // Solo la normal no distingue nada: el «Normal» sale en «separar variantes» (781, SI9).
-  if (!mias.length || (mias.length === 1 && mias[0].nuestro === 'normal')) return ''
-  const texto = mias.length === 1 ? mias[0].nombre : mias.map((v) => cortoDeVariante(v.nuestro)).join(' + ')
-  return `<span class="mc-tengo-version" aria-hidden="true">${escapeHtml(texto)}</span>`
+// Las versiones tuyas de una carta que no son la suya (927): las que
+// llevan insignia. Se miran también las cuatro de siempre aunque la carta
+// no las declare: si la tienes apuntada en reverse, la tienes, y callarlo
+// porque el catálogo no lo dice sería esconder una copia.
+function versionesQueTienes(c) {
+  const suya = varianteDeCarta(c)
+  const ids = [...new Set([...variantesDeCarta(c).map((v) => v.nuestro), 'normal', 'reverse', 'holo', 'primera'])]
+  return ids.filter((id) => id !== suya && tengoEnAlbum(c.id, id))
 }
+// Y lo mismo en palabras, para quien no ve las insignias.
+const conVersiones = (vs) => (vs.length ? `, con ${vs.map((id) => nombreDeVariante(id)).join(' y ')}` : '')
 
 // EL VELO DEL REVERSE (tanda 461). PINGU: «sé que la carta es la misma
 // imagen para las dos; en Dex sí las diferencian, las reverse son como más
@@ -3494,9 +3528,10 @@ function bolsilloHtml(c) {
   // huecos que no se distinguen no son cuatro huecos.
   if (c.__variante) return bolsilloDeVariante(c, c.__variante)
   const n = tengoEnAlbum(c.id)
+  const vs = n ? versionesQueTienes(c) : []
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const nombre = nombreDe(c)
-  const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
+  const etiqueta = `${nombre} (${c.local_id})${n ? `, tienes ${n}${conVersiones(vs)}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
   // Igual que el bolsillo de arriba (tanda 458): el nombre siempre debajo.
   // Son DOS pintadores de bolsillo —este y el de las variantes— y arreglar
   // uno solo deja medio álbum con el fallo; ni siquiera se nota, porque
@@ -3505,9 +3540,8 @@ function bolsilloHtml(c) {
     <span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c.local_id)}</span>
-    ${marcaDeTengoHtml(n)}
+    ${marcaDeTengoHtml(n, vs)}
     ${quieroHtml(c.id, n)}
-    ${n ? versionQueTienesHtml(c) : ''}
     ${masHtml(c, nombre)}`
   // La marca lleva la versión DE LA CARTA por lo mismo que el «+» (tanda
   // 564): de esta clave sale lo que `guardarMarcadas` escribe en la base,
@@ -3584,6 +3618,17 @@ function pintarFiltrosDeAlbum() {
     // suelto sobre nada.
     $('mcAlbumGrupoRareza')?.classList.toggle('hidden', rareza.options.length <= 1)
     $('mcAlbumGrupoTipo')?.classList.toggle('hidden', tipo.options.length <= 1)
+    // Las versiones que hay en el set (927), en el orden de siempre. Con una
+    // sola no hay nada que elegir y el grupo no sale.
+    const version = $('mcAlbumVersion')
+    if (version) {
+      const hay = []
+      for (const c of album.cartas) for (const v of variantesDeCarta(c)) if (!hay.some((x) => x.nuestro === v.nuestro)) hay.push(v)
+      const antes = version.value
+      version.innerHTML = '<option value="">Todas</option>' + hay.map((v) => `<option value="${escapeHtml(v.nuestro)}">${escapeHtml(v.nombre)}</option>`).join('')
+      version.value = hay.some((v) => v.nuestro === antes) ? antes : ''
+      $('mcAlbumGrupoVersion')?.classList.toggle('hidden', hay.length < 2)
+    }
   }
 }
 
@@ -3664,9 +3709,15 @@ function cartasDelAlbumFiltradas() {
   // dentro de un set — «la 102» —, que es justo lo que no se podía.
   const texto = normalizeSearch($('mcAlbumBuscar')?.value || '').trim()
   const rango = rangoDelAlbum()
+  // Con una VERSIÓN puesta (927), «la tengo» es tenerla en ESA versión, y
+  // solo salen las cartas que existen en ella (o que tienes en ella).
+  const version = $('mcAlbumVersion')?.value || ''
+  const cuantas = (c) => tengoEnAlbum(c.id, version || null)
   const encajan = album.cartas.filter((c) => {
-    if (album.soloFaltan && tengoEnAlbum(c.id)) return false
-    if (album.soloTengo && !tengoEnAlbum(c.id)) return false
+    if (version && !cuantas(c) && !variantesDeCarta(c).some((v) => v.nuestro === version)) return false
+    if (album.soloFaltan && cuantas(c)) return false
+    if (album.soloTengo && !cuantas(c)) return false
+    if (album.repetidas && cuantas(c) < 2) return false
     if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (energia && !(Array.isArray(c.types) && c.types.map(tipoEs).includes(energia))) return false
@@ -3711,11 +3762,27 @@ function pintarVistaDeAlbum() {
   const rotulo = $('mcAlbumVistaRotulo')
   if (rotulo) rotulo.textContent = actual.nombre
   const boton = $('mcAlbumVista')
-  if (boton) boton.setAttribute('aria-label', `Cómo se ven las cartas: ${actual.nombre}`)
+  if (boton) {
+    boton.setAttribute('aria-label', `Cómo se ven las cartas: ${actual.nombre}`)
+    // El dibujo del botón es el de la vista puesta (927), como en Dex.
+    if (boton.dataset.icono !== actual.icono) {
+      boton.querySelector('svg')?.remove()
+      boton.dataset.icono = actual.icono
+      pintarIconos()
+    }
+  }
   for (const b of document.querySelectorAll('#mcAlbumVistaMenu [data-vista]')) {
     const suya = b.dataset.vista === actual.id
     b.setAttribute('aria-checked', suya ? 'true' : 'false')
     b.classList.toggle('activo', suya)
+  }
+  // Los ajustes del archivador, solo con el archivador (927).
+  $('mcAlbumArchivadorAjustes')?.classList.toggle('hidden', actual.id !== 'archivador')
+  for (const b of document.querySelectorAll('#mcAlbumBolsillos [data-bolsillos]')) {
+    b.setAttribute('aria-checked', Number(b.dataset.bolsillos) === ajusteDeArchivador.bolsillos ? 'true' : 'false')
+  }
+  for (const b of document.querySelectorAll('#mcAlbumPrimera [data-primera]')) {
+    b.setAttribute('aria-checked', (b.dataset.primera === 'saltar') === ajusteDeArchivador.saltarPrimera ? 'true' : 'false')
   }
 }
 
@@ -3727,12 +3794,13 @@ function pintarVistaVariantes() {
     bb.setAttribute('aria-pressed', album.split ? 'true' : 'false')
     bb.textContent = album.split ? 'Variantes separadas' : 'Variantes juntas'
   }
+  // En la expansión, desde la 927, «Apilar» como en Dex: pulsado es
+  // apilado, o sea juntas. El rótulo no cambia; lo dice el botón encendido.
   const b = $('mcVistaVariantes')
   if (!b) return
-  b.classList.toggle('activo', album.split)
-  b.setAttribute('aria-pressed', album.split ? 'true' : 'false')
-  const rotulo = $('mcVistaVariantesRotulo')
-  if (rotulo) rotulo.textContent = album.split ? 'Variantes separadas' : 'Variantes juntas'
+  b.classList.toggle('activo', !album.split)
+  b.setAttribute('aria-pressed', album.split ? 'false' : 'true')
+  b.title = album.split ? 'Cada versión en su casilla' : 'Una casilla por carta, con sus versiones'
 }
 
 // ── La cuenta del botón «Filtros» (tanda 473) ──
@@ -3746,6 +3814,8 @@ function cuantosFiltrosDeAlbum() {
     ($('mcAlbumEnergia')?.value ? 1 : 0) +
     (album.soloFaltan ? 1 : 0) +
     (album.soloTengo ? 1 : 0) +
+    (album.repetidas ? 1 : 0) +
+    ($('mcAlbumVersion')?.value ? 1 : 0) +
     (album.idioma ? 1 : 0) +
     (rangoDelAlbum().puesto ? 1 : 0) +
     // El orden cuenta solo si NO es el de siempre: «por número» es como
@@ -3774,9 +3844,11 @@ function limpiarFiltrosDeAlbum() {
   if ($('mcAlbumEnergia')) $('mcAlbumEnergia').value = ''
   if ($('mcAlbumOrden')) $('mcAlbumOrden').value = 'numero'
   if ($('mcAlbumIdioma')) $('mcAlbumIdioma').value = ''
+  if ($('mcAlbumVersion')) $('mcAlbumVersion').value = ''
   album.idioma = ''
   album.soloFaltan = false
   album.soloTengo = false
+  album.repetidas = false
   album.pagina = 0
   pintarSoloFaltan()
   pintarAlbum()
@@ -3794,58 +3866,87 @@ function pintarSoloFaltan() {
   const t = $('mcAlbumSoloTengo')
   t?.classList.toggle('activo', Boolean(album.soloTengo))
   t?.setAttribute('aria-pressed', album.soloTengo ? 'true' : 'false')
-  // «Todas» (748) está puesta cuando no lo está ninguna de las otras dos.
-  $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo ? 'true' : 'false')
+  $('mcAlbumRepetidas')?.setAttribute('aria-pressed', album.repetidas ? 'true' : 'false')
+  // «Todas» (748) está puesta cuando no lo está ninguna de las otras.
+  $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo && !album.repetidas ? 'true' : 'false')
   for (const b of document.querySelectorAll('#mcAlbumQue [data-que]')) b.setAttribute('aria-pressed', $(b.dataset.que)?.getAttribute('aria-pressed') || 'false')
-}
-
-// La CUADRÍCULA: el escaneo y nada más. Salvo en «separar variantes»
-// (778): la chapa y el velo del reverse van aquí también, que es la vista
-// del móvil, y sin ellos Tropius y Tropius eran dos casillas iguales. Sin
-// mandos a propósito — si
-// quieres apuntar, la vista de apuntar es el archivador; aquí lo que se
-// quiere es ver el set. El nombre se queda de respaldo para la carta sin
-// escaneo (la lección de la 415: un hueco en blanco se lee como un fallo
-// y una carta con su nombre escrito se lee como una carta).
-function celdaDeCuadriculaHtml(c) {
-  const v = c.__variante || null
-  const n = tengoEnAlbum(c.id, v?.nuestro || null)
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const nombre = nombreDe(c)
-  const etiqueta = `${nombre} (${c.local_id})${v ? ` — ${v.nombre}` : ''}${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
-  return `<a class="mc-rejilla-celda${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(etiqueta)}">
-    <span class="mc-carta-sinfoto">${escapeHtml(nombre)}<small>${escapeHtml(c.local_id || '')}</small></span>
-    ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-    ${v ? veloDeVariante(v.nuestro) : ''}
-    ${marcaDeTengoHtml(n)}
-    ${quieroHtml(c.id, n)}
-    ${n && !v ? versionQueTienesHtml(c) : ''}
-    ${v ? chapaDeVarianteHtml(v.nuestro) : ''}
-    ${masHtml(c, nombre, v?.nuestro || null)}
-  </a>`
 }
 
 // La LISTA: un renglón por carta. El número PRIMERO porque es por donde
 // se busca dentro de un set —«la 102»— y porque alineado en una columna
 // se recorre con el ojo sin leer.
+//
+// Desde la 927 lleva también las versiones tuyas (las mismas insignias que
+// la carta) y lo que vale, que es lo que se mira al repasar un set en lista.
 function filaDeAlbumHtml(c) {
   const v = c.__variante || null
   const n = tengoEnAlbum(c.id, v?.nuestro || null)
+  const vs = n && !v ? versionesQueTienes(c) : []
   const nombre = nombreDe(c)
+  const precio = precioDeCartaDelAlbum(c)
   return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
     <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
     <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${escapeHtml(v.nombre)}</small>` : ''}</span>
+    ${vs.length ? `<span class="mc-album-fila-versiones" aria-label="${escapeHtml(`También ${vs.map((id) => nombreDeVariante(id)).join(' y ')}`)}">${vs.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${escapeHtml(insigniaDeVersion(id))}</i>`).join('')}</span>` : ''}
     ${rarezaDeCarta(c) ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaDeCarta(c))}</span>` : ''}
+    <span class="mc-album-fila-precio">${precio != null ? escapeHtml(euros(precio)) : ''}</span>
     <span class="mc-album-fila-cuenta">${n ? `×${n}` : '—'}</span>
   </a>`
 }
 
 // Qué pintor toca. Un objeto y no un `if` en cascada: añadir una vista
 // cuarta tiene que ser una línea en `VISTAS_DE_ALBUM` y otra aquí.
+// El archivador (927) no es una rejilla sino hojas: lo pinta
+// `archivadorDeExpansionHtml`, con los mismos bolsillos que la cuadrícula.
 const PINTOR_DE_VISTA = {
-  archivador: { clase: 'mc-album-rejilla', celda: bolsilloHtml },
-  cuadricula: { clase: 'mc-album-cuadricula', celda: celdaDeCuadriculaHtml },
+  cuadricula: { clase: 'mc-album-rejilla', celda: bolsilloHtml },
   lista: { clase: 'mc-album-lista', celda: filaDeAlbumHtml },
+}
+
+// ── El archivador de una expansión, por hojas (927) ──
+//
+// El mismo `archivadorHtml` que los álbumes —dos hojas abiertas en el
+// ordenador, una en el móvil—, con los bolsillos que elige quien mira y,
+// si se salta la primera página, la tapa por dentro con el logo del set:
+// como un binder de verdad, que se empieza a llenar por la derecha.
+function archivadorDeExpansionHtml(lista, elSet) {
+  const forma = BOLSILLOS_DE_ARCHIVADOR.find((b) => b.n === ajusteDeArchivador.bolsillos) || BOLSILLOS_DE_ARCHIVADOR[1]
+  const deUnaVez = window.matchMedia('(min-width: 900px)').matches ? 2 : 1
+  const logos = elSet ? contexto.logosDeSet(elSet) : []
+  const portada = ajusteDeArchivador.saltarPrimera
+    ? `<span class="mc-hoja-tapa">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" />` : ''}<b>${escapeHtml(elSet?.name || '')}</b></span>`
+    : null
+  const armado = archivadorHtml({
+    lista,
+    pagina: album.pagina,
+    deUnaVez,
+    pintarBolsillo: (c) => bolsilloHtml(c),
+    porPagina: forma.n,
+    columnas: forma.columnas,
+    conEsquinas: true,
+    portada,
+  })
+  album.pagina = armado.pagina
+  const primera = armado.pagina === 0
+  const ultima = armado.pagina + deUnaVez >= armado.paginas
+  // Debajo, las flechas y dónde estás. Una flecha que no lleva a ninguna
+  // parte miente (418): se apaga.
+  return `<div class="mc-exp-archivador" data-de-una-vez="${deUnaVez}">${armado.html}
+    <div class="mc-exp-paginas">
+      <button type="button" class="mc-chip-mando mc-chip-solo-icono" data-pasar="-1" aria-label="Página anterior"${primera ? ' disabled' : ''}>‹</button>
+      <span>${escapeHtml(textoDePaginas(armado.pagina, armado.paginas, deUnaVez))}</span>
+      <button type="button" class="mc-chip-mando mc-chip-solo-icono" data-pasar="1" aria-label="Página siguiente"${ultima ? ' disabled' : ''}>›</button>
+    </div>
+  </div>`
+}
+
+function pasarPaginaDeExpansion(paso) {
+  const caja = $('mcAlbum')?.querySelector('.mc-exp-archivador')
+  if (!caja) return
+  const deUnaVez = Number(caja.dataset.deUnaVez || 1)
+  album.pagina = Math.max(0, album.pagina + paso * deUnaVez)
+  pintarAlbum()
+  $('mcAlbum').querySelector('.mc-exp-archivador')?.scrollIntoView({ block: 'nearest' })
 }
 
 function pintarAlbum() {
@@ -3880,16 +3981,19 @@ function pintarAlbum() {
   // En «una por versión» cada carta se abre en tantas casillas como
   // versiones tenga. Se hace AQUÍ y no en el filtro para que la cuenta
   // de arriba siga siendo la del set y no la de lo que se ve.
+  const version = $('mcAlbumVersion')?.value || ''
   const paraPintar = album.split
-    ? lista.flatMap((c) => variantesDeCarta(c).map((v) => ({ ...c, __variante: v })))
+    ? lista.flatMap((c) => variantesDeCarta(c).filter((v) => !version || v.nuestro === version).map((v) => ({ ...c, __variante: v })))
     : lista
   // Una rejilla y no un archivador (tanda 417): una expansión ya viene
   // ordenada y lo que se quiere es verla entera. El archivador —pliegos,
   // páginas y tapa— se queda para los álbumes soñados, que es donde el
   // orden lo pones tú.
-  const pintor = PINTOR_DE_VISTA[album.vista] || PINTOR_DE_VISTA.archivador
+  const pintor = PINTOR_DE_VISTA[album.vista] || PINTOR_DE_VISTA.cuadricula
   const desdeEsqueleto = Boolean($('mcAlbum').querySelector('.mc-esq'))
-  $('mcAlbum').innerHTML = `<div class="${pintor.clase}">${paraPintar.map(pintor.celda).join('')}</div>`
+  $('mcAlbum').innerHTML = album.vista === 'archivador'
+    ? archivadorDeExpansionHtml(paraPintar, elSet)
+    : `<div class="${pintor.clase}">${paraPintar.map(pintor.celda).join('')}</div>`
   if (desdeEsqueleto) escalonarLlegada($('mcAlbum'))
   // Lo que hay EN PANTALLA, que es de donde sale la lista de «lo que me
   // falta» (tanda 430). Se guarda aquí y no se recalcula allí: recalcular
@@ -7030,8 +7134,10 @@ function enganchar() {
     if (especie) return pintarEspecie(Number(especie.dataset.dex))
     if (e.target.closest('#pdxVolver')) subirNivel()
   })
-  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma']) {
-    $(id).addEventListener('change', () => {
+  for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma', 'mcAlbumVersion']) {
+    // Con `?.`: una página que no lleve uno de ellos (una copia vieja de
+    // cartas.html en caché) no puede quedarse sin JavaScript por él.
+    $(id)?.addEventListener('change', () => {
       // Al filtrar se vuelve a la primera página: seguir en la 7 de una
       // lista que ahora tiene 2 deja el archivador en blanco.
       album.pagina = 0
@@ -7040,7 +7146,7 @@ function enganchar() {
   }
   $('mcAlbumSoloFaltan').addEventListener('click', () => {
     album.soloFaltan = !album.soloFaltan
-    if (album.soloFaltan) album.soloTengo = false
+    if (album.soloFaltan) album.soloTengo = album.repetidas = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -7048,6 +7154,7 @@ function enganchar() {
   $('mcAlbumTodas')?.addEventListener('click', () => {
     album.soloFaltan = false
     album.soloTengo = false
+    album.repetidas = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -7055,7 +7162,15 @@ function enganchar() {
   // La otra mitad (714): las dos a la vez no enseñarían nada.
   $('mcAlbumSoloTengo')?.addEventListener('click', () => {
     album.soloTengo = !album.soloTengo
-    if (album.soloTengo) album.soloFaltan = false
+    if (album.soloTengo) album.soloFaltan = album.repetidas = false
+    pintarSoloFaltan()
+    album.pagina = 0
+    pintarAlbum()
+  })
+  // Las que tienes dos o más veces (927): las que puedes cambiar.
+  $('mcAlbumRepetidas')?.addEventListener('click', () => {
+    album.repetidas = !album.repetidas
+    if (album.repetidas) album.soloFaltan = album.soloTengo = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -7067,6 +7182,7 @@ function enganchar() {
   segmentar($('mcAlbumIdioma'), { etiqueta: 'Idioma en que cuentan tus copias', chips: true })
   segmentar($('mcAlbumEnergia'), { etiqueta: 'Tipo de energía', chips: true, dibujo: (o) => (o.value ? simboloDeTipoHtml(o.value, { tam: 28 }) : ''), soloDibujo: true })
   segmentar($('mcAlbumOrden'), { etiqueta: 'Cómo se ordenan', chips: true })
+  segmentar($('mcAlbumVersion'), { etiqueta: 'Versión', chips: true })
 
   // ── El panel de filtros de una expansión (tanda 473) ──
   //
@@ -7337,8 +7453,8 @@ function enganchar() {
   const menuVista = $('mcAlbumVistaMenu')
   if (menuVista) {
     menuVista.innerHTML = VISTAS_DE_ALBUM.map((v) =>
-      `<button type="button" class="mc-menu-opcion" role="menuitemradio" data-vista="${v.id}" aria-checked="false">
-        <span class="mc-menu-icono" data-icono="${v.icono}" aria-hidden="true"></span>${escapeHtml(v.nombre)}
+      `<button type="button" class="mc-menu-opcion mc-menu-opcion-doble" role="menuitemradio" data-vista="${v.id}" aria-checked="false">
+        <span class="mc-menu-icono" data-icono="${v.icono}" aria-hidden="true"></span><span class="mc-menu-textos"><span class="mc-menu-nombre">${escapeHtml(v.nombre)}</span><small>${escapeHtml(v.detalle)}</small></span>
       </button>`).join('')
     // Los dibujos, aquí mismo: `pintarIconos` corre UNA vez al arrancar y
     // este menú se pinta después, así que sin esta llamada los tres
@@ -7354,11 +7470,53 @@ function enganchar() {
       pintarVistaDeAlbum()
       pintarAlbum()
       // La hoja se cierra al elegir: lo que has venido a ver está debajo.
-      $('mcAlbumVistaHoja')?.close()
+      // Menos con el archivador (927), que tiene sus ajustes y se queda
+      // abierta hasta «Aplicar»: lo de debajo ya va cambiando.
+      if (album.vista !== 'archivador') $('mcAlbumVistaHoja')?.close()
     })
   }
-  // Desde la 919 el botón vive DENTRO de la hoja de filtros: una hoja a la
-  // vez, así que se cierra la de filtros antes de abrir la de vistas.
+  // Los ajustes del archivador (927): se ven al momento detrás de la hoja,
+  // y se recuerdan como la vista.
+  try {
+    const g = JSON.parse(localStorage.getItem(CLAVE_ARCHIVADOR) || 'null')
+    if (BOLSILLOS_DE_ARCHIVADOR.some((b) => b.n === g?.bolsillos)) ajusteDeArchivador.bolsillos = g.bolsillos
+    ajusteDeArchivador.saltarPrimera = g?.saltarPrimera === true
+  } catch {}
+  const guardarAjusteDeArchivador = () => {
+    try { localStorage.setItem(CLAVE_ARCHIVADOR, JSON.stringify(ajusteDeArchivador)) } catch {}
+    album.pagina = 0
+    pintarVistaDeAlbum()
+    pintarAlbum()
+  }
+  const bolsillos = $('mcAlbumBolsillos')
+  if (bolsillos) {
+    bolsillos.innerHTML = BOLSILLOS_DE_ARCHIVADOR.map((b) => `<button type="button" role="radio" data-bolsillos="${b.n}" aria-checked="false">${b.n}</button>`).join('')
+    bolsillos.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-bolsillos]')
+      if (!b) return
+      ajusteDeArchivador.bolsillos = Number(b.dataset.bolsillos)
+      guardarAjusteDeArchivador()
+    })
+  }
+  $('mcAlbumPrimera')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-primera]')
+    if (!b) return
+    ajusteDeArchivador.saltarPrimera = b.dataset.primera === 'saltar'
+    guardarAjusteDeArchivador()
+  })
+  $('mcAlbumArchivadorAplicar')?.addEventListener('click', () => $('mcAlbumVistaHoja')?.close())
+  // Pasar hoja: las flechas de debajo y las esquinas dobladas.
+  $('mcAlbum')?.addEventListener('click', (e) => {
+    const b = e.target.closest('.mc-exp-archivador [data-pasar], .mc-exp-archivador [data-esquina]')
+    if (!b || b.disabled) return
+    e.preventDefault()
+    pasarPaginaDeExpansion(b.dataset.pasar ? Number(b.dataset.pasar) : b.dataset.esquina === 'antes' ? -1 : 1)
+  })
+  // Al cruzar los 900 px cambia de una hoja a dos: se vuelve a pintar.
+  window.matchMedia('(min-width: 900px)').addEventListener?.('change', () => {
+    if (album.vista === 'archivador' && album.set) pintarAlbum()
+  })
+  // Una hoja a la vez: se cierra la de filtros antes de abrir la de vistas.
   $('mcAlbumVista')?.addEventListener('click', () => {
     if ($('mcAlbumPanelFiltros')?.open) $('mcAlbumPanelFiltros').close()
     $('mcAlbumVistaHoja')?.showModal()

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-20", "tipo": "mejora", "texto": "Las expansiones, como en Dex: lo que tienes lleva un ✓ grande en el centro y, arriba, cuántas tienes y si tienes la Reverse («R+»). Buscar, la vista y «Apilar» van en una fila, la lista enseña tus versiones y el precio, y el Archivador son hojas que se pasan, con los bolsillos que quieras por página y la primera página para el logo. En los filtros, nuevas «Repetidas» y «Versión».", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "En el ordenador, la página de cada carta es como la ficha de Mi colección en grande: la carta a la izquierda sobre sus colores, y a la derecha los precios en una fila, la gráfica, los datos en tres columnas y si es legal en una chapa.", "enlace": "/cartas" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "El Panel de tu colección, más claro: la cifra con su cambio en verde o rojo, tus cartas y expansiones en una línea, una tira con las que más valen y, por fin a la vista siempre, las que más se mueven esta semana.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-20", "tipo": "arreglo", "texto": "La imagen que compartes de un reto ya no destripa la respuesta: la carta o el Pokémon salen desenfocados y sin su nombre.", "enlace": "/retos" },

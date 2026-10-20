@@ -4,6 +4,48 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (161) — PINGU-Claude (927 — la expansión como Dex: insignias, una fila y el archivador por hojas; la D)
+
+**Hecho** (PINGU: «adelante con lo recomendado»):
+- En la carta, lo que tienes como en Dex: el ✓ grande en el centro y,
+  arriba a la derecha, cuántas tienes (si son dos o más) y «R+», «H» o «1ª»
+  por cada versión tuya que no sea la de la carta. Con «Apilar» quitado,
+  cada versión en su casilla con su ✓, su número y su chapa.
+- La barra de una expansión en una fila: buscar, «Cuadrícula ▾», «Apilar» y
+  «Filtros». En el móvil, el buscador encima y los tres debajo.
+- «Cuadrícula ▾» abre la hoja de vistas, cada una con su explicación:
+  Cuadrícula (la rejilla de siempre, la de por defecto), Lista (ahora con
+  tus versiones y el precio) y Archivador, que ya son hojas de verdad que se
+  pasan, con bolsillos por página (4, 9, 12, 16, 20, 25) y «Primera página:
+  usarla / saltarla» (saltada, la tapa por dentro lleva el logo del set). Se
+  recuerda. Es solo para mirar: no crea álbumes.
+- En los filtros: «Repetidas» en «Qué cartas» y un grupo «Versión».
+- Los filtros ya eran un cajón a la derecha en el ordenador y la hoja de
+  abajo en el móvil: no ha hecho falta tocarlos.
+
+**Lo que NO es**: la E (añadir en ráfaga) no está hecha: no tenía
+recomendación y falta tu sí o tu no.
+
+**Ficheros**: `js/mi-coleccion.js` (insignias, vistas, archivador por
+hojas, filtros nuevos), `js/mi-coleccion/archivador.js` (`portada`),
+`mi-coleccion.html` + `cartas.html` (generado), `css/mi-coleccion.css`
+(bloque 927), `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-927.mjs` (PC y móvil); al día 398, 412,
+418, 426, 430, 461, 473, 478, 651, 657, 748, 757, 767, 778, 779, 919 y 922
+(la vista por defecto, «Apilar» en la barra con `aria-pressed` = juntas, el ✓
+en el centro con la cuenta en su insignia), 459, 781 y 911. Subconjunto de
+/mi-coleccion (234): verdes salvo 385, 461, 467, 475, 651, 653, 723, 780, 829
+y 893, que ya fallaban, y 586 y 648, que fallan IGUAL con el código de antes
+de la 927 (comprobado con `git stash`): son de la 925 o de antes y quedan para
+mirar.
+
+**Pendiente**:
+- E: esperando a PINGU.
+- Unir el dibujo del pop-up y el de /carta (de la 926).
+- El CSS de `.mc-rejilla-celda` y `.mc-album-cuadricula` se queda sin uso:
+  limpiarlo con calma (grepeando a mano, la de la 498).
+
 ## 2026-10-20 (160) — PINGU-Claude (926 — /carta en el ordenador, la ficha del pop-up en grande; la A)
 
 **Hecho** (PINGU: «la A me gusta, sí»):

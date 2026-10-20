@@ -1081,8 +1081,10 @@
   color: #10141c;
 }
 
-/* En la cuadrícula el «+» va en la esquina de abajo: la chapa, a la otra (778). */
-.mc-rejilla-celda .mc-chapa-variante {
+/* En la cuadrícula el «+» va en la esquina de abajo: la chapa, a la otra
+   (778; y desde la 927 la cuadrícula son los bolsillos). */
+.mc-rejilla-celda .mc-chapa-variante,
+.mc-bolsillo .mc-chapa-variante {
   left: var(--e-xs);
   max-width: calc(100% - 44px);
   transform: none;
@@ -8788,6 +8790,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: none;
 }
 
+/* La versión de una casilla de álbum (la pinta albumes.js). */
 .mc-tengo-version {
   position: absolute;
   z-index: 2;
@@ -12085,13 +12088,6 @@ button.mc-fila:hover {
   overflow: visible;
 }
 
-/* La vista y las variantes, dentro de la hoja de filtros. */
-.mc-album-ver {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-}
-
 /* En el móvil, volver es un icono en la fila del nombre: una fila, no dos. */
 @media (max-width: 900px) {
   .mc-album-barra > .mc-album-migas {
@@ -12118,4 +12114,225 @@ button.mc-fila:hover {
   grid-column: 1 / -1;
   grid-row: 2;
   flex: none;
+}
+
+/* ── 927: la expansión como Dex (la D de la propuesta 925; el porqué, en
+   SCHEMA.md) ── */
+
+/* El ✓ en el centro, grande; las insignias arriba a la derecha. */
+.mc-tengo-marca,
+.mc-bolsillo .mc-tengo-marca {
+  inset: 50% auto auto 50%;
+  width: 36%;
+  min-width: 24px;
+  max-width: 48px;
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  background: rgb(255 255 255 / 90%);
+  box-shadow: var(--shadow-sm);
+  /* Verde oscuro fijo sobre blanco fijo: no cambia con el tema. */
+  color: #0a7a55;
+  font-size: var(--t-lg);
+}
+
+.mc-insignias {
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  display: grid;
+  justify-items: end;
+  gap: var(--e-xs);
+  pointer-events: none;
+}
+
+.mc-insignia {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--blanco-fijo);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+  color: var(--navy-solid);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Cuántas tienes, en verde: es lo primero que se lee de la columna. */
+.mc-insignia-n {
+  background: #0a7a55;
+  color: var(--blanco-fijo);
+}
+
+.mc-album-marcando .mc-insignias {
+  display: none;
+}
+
+/* La barra de una expansión: buscar, la vista, apilar y filtros. */
+.mc-chip-desplegable::after {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 0 var(--e-xs) var(--e-xs);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+#mcVistaVariantes[aria-pressed='true'] {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-album-busca > .mc-album-filtros {
+  gap: var(--e-sm);
+}
+
+/* En el móvil, el buscador encima y los mandos debajo, en una fila. */
+@media (max-width: 700px) {
+  .mc-album-busca {
+    flex-wrap: wrap;
+  }
+
+  .mc-album-busca > .mc-buscador {
+    flex-basis: 100%;
+  }
+
+  .mc-album-busca > .mc-album-filtros {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .mc-album-busca > .mc-album-filtros > .mc-chip-mando:not(.mc-chip-solo-icono) {
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 var(--e-sm);
+  }
+
+  .mc-album-busca > .mc-album-filtros > .mc-chip-mando > svg {
+    flex: none;
+  }
+}
+
+/* La hoja de la vista: cada opción con su línea de explicación. */
+.mc-menu-opcion-doble {
+  min-height: 56px;
+  padding-block: var(--e-sm);
+  white-space: normal;
+}
+
+.mc-menu-textos {
+  display: grid;
+  gap: 2px;
+}
+
+.mc-menu-textos small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.mc-menu-opcion[aria-checked='true'] .mc-menu-textos small {
+  color: var(--blanco-fijo);
+}
+
+.mc-archivador-ajustes {
+  display: grid;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
+.mc-archivador-ajustes h3 {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mc-archivador-ajustes .btn-primary {
+  margin-top: var(--e-sm);
+}
+
+/* El archivador de una expansión: hojas que se pasan. */
+.mc-exp-archivador {
+  margin-bottom: var(--e-lg);
+}
+
+.mc-exp-archivador .mc-hoja:has(> .mc-hoja-esquina) {
+  padding-bottom: 48px;
+}
+
+.mc-exp-archivador .mc-bolsillo {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -2px 4px rgb(13 27 42 / 10%), 0 1px 2px rgb(13 27 42 / 8%);
+}
+
+/* La tapa por dentro, con el logo: «saltarse la primera página». */
+.mc-hoja-portada {
+  min-height: 240px;
+}
+
+.mc-hoja-tapa {
+  display: grid;
+  grid-column: 1 / -1;
+  align-content: center;
+  justify-items: center;
+  gap: var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+.mc-hoja-tapa img {
+  width: 70%;
+  max-width: 240px;
+  height: auto;
+}
+
+.mc-exp-paginas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-md);
+  margin-top: var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-exp-paginas button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* La lista, con tus versiones y lo que vale. */
+.mc-album-fila-versiones {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--e-xs);
+}
+
+.mc-album-fila .mc-insignia {
+  background: var(--ice);
+  box-shadow: none;
+  color: var(--text);
+}
+
+.mc-album-fila-precio {
+  flex: 0 0 64px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }

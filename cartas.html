@@ -650,7 +650,21 @@
                y se olvida —el orden, la rareza, la categoría, «solo las que
                me faltan»— se va dentro. Es el reparto de la 441, dicho
                para esta pantalla. -->
+          <!-- UNA FILA, COMO DEX (927, la D de la propuesta 925): buscar, cómo
+               se ve, apilar y filtros. La vista y las variantes vuelven a
+               salir de la hoja de filtros, donde las metió la 919: son lo
+               que se toca cada dos por tres. -->
           <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
+            <button type="button" class="mc-chip-mando mc-chip-desplegable" id="mcAlbumVista" data-icono="image" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Cuadrícula</span>
+            </button>
+            <!-- APILAR (927): puesto, una casilla por carta con sus insignias;
+                 quitado, una casilla por versión. Es «Variantes juntas» con
+                 el nombre de Dex, y sigue diciendo el estado: pulsado es
+                 apilado (la 473). -->
+            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="true" data-icono="cards">
+              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Apilar</span>
+            </button>
             <button type="button" class="mc-chip-mando" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
               <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcAlbumFiltrosCuenta"></span>
             </button>
@@ -692,6 +706,19 @@
             </div>
             <div class="mc-panel-cuerpo">
               <div class="mc-menu" role="radiogroup" aria-labelledby="mcAlbumVistaTitulo" id="mcAlbumVistaMenu"></div>
+              <!-- EL ARCHIVADOR, A TU GUSTO (927): cuántos bolsillos por hoja y
+                   si la primera página se usa o se salta (la tapa por dentro,
+                   como en Dex). Sale solo con el archivador puesto. -->
+              <div class="mc-archivador-ajustes hidden" id="mcAlbumArchivadorAjustes">
+                <h3 id="mcAlbumBolsillosTitulo">Bolsillos por página</h3>
+                <div class="mc-seg" role="radiogroup" aria-labelledby="mcAlbumBolsillosTitulo" id="mcAlbumBolsillos"></div>
+                <h3 id="mcAlbumPrimeraTitulo">Primera página</h3>
+                <div class="mc-seg" role="radiogroup" aria-labelledby="mcAlbumPrimeraTitulo" id="mcAlbumPrimera">
+                  <button type="button" role="radio" data-primera="usar" aria-checked="true">Usarla</button>
+                  <button type="button" role="radio" data-primera="saltar" aria-checked="false">Saltarla</button>
+                </div>
+                <button type="button" class="btn-primary" id="mcAlbumArchivadorAplicar">Aplicar</button>
+              </div>
             </div>
           </dialog>
 
@@ -706,19 +733,6 @@
               <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
             </div>
             <div class="mc-panel-cuerpo">
-              <!-- CÓMO SE VEN (919): la vista y juntar o separar variantes,
-                   que vivían sueltos al lado del buscador. -->
-              <div class="mc-grupo-filtro" id="mcAlbumGrupoVer">
-                <h3>Cómo se ven</h3>
-                <div class="mc-album-ver">
-            <button type="button" class="mc-chip-mando" id="mcAlbumVista" data-icono="eye" aria-haspopup="dialog">
-              <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Archivador</span>
-            </button>
-            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="false" data-icono="cards">
-              <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Variantes juntas</span>
-            </button>
-                </div>
-              </div>
               <!-- QUÉ CARTAS, arriba y segmentado (748, la C6 de su maqueta):
                    todas, las que tienes o las que te faltan. Es lo primero
                    que se decide al mirar una expansión. -->
@@ -728,7 +742,15 @@
                   <button type="button" id="mcAlbumTodas" aria-pressed="true">Todas</button>
                   <button type="button" id="mcAlbumSoloTengo" aria-pressed="false">Las tengo</button>
                   <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Me faltan</button>
+                  <button type="button" id="mcAlbumRepetidas" aria-pressed="false">Repetidas</button>
                 </div>
+              </div>
+              <!-- LA VERSIÓN (927, la D): solo las que existen en esa versión, y
+                   con «Las tengo» o «Me faltan», en ESA versión. Las opciones
+                   salen de las cartas del set; con una sola, no sale. -->
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoVersion">
+                <h3>Versión</h3>
+                <select id="mcAlbumVersion" aria-label="Filtrar por versión"></select>
               </div>
               <!-- El precio de cada carta, también aquí (750, K6): «enséñame las
                    que me faltan de menos de 2 €» es como se completa un set. Las

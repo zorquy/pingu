@@ -142,18 +142,28 @@ export function archivadorHtml({
   pintarHueco = null,
   // Las esquinas de la hoja, para pasar página tocándolas (760, AL4).
   conEsquinas = false,
+  // 927: «saltarse la primera página», como en Dex. La primera cara es la
+  // de dentro de la tapa y lleva esto (el logo del set); las cartas
+  // empiezan en la de la derecha, que es como se llena un binder de verdad.
+  portada = null,
 }) {
   const POR_PAGINA = porPagina
-  const paginas = Math.max(1, paginasMin, Math.ceil(lista.length / POR_PAGINA))
+  const antes = portada ? 1 : 0
+  const paginas = Math.max(1, paginasMin, antes + Math.ceil(lista.length / POR_PAGINA))
   let p0 = Math.min(Math.max(0, pagina), paginas - 1)
   p0 -= p0 % deUnaVez
   const hojas = []
   for (let p = p0; p < Math.min(paginas, p0 + deUnaVez); p++) {
-    const desde = p * POR_PAGINA
+    if (antes && p === 0) {
+      hojas.push(`<div class="mc-hoja mc-hoja-portada" aria-label="Dentro de la tapa">${portada}${esquinaHtml(conEsquinas, deUnaVez > 1 ? 'antes' : 'despues', p0, deUnaVez, paginas)}</div>`)
+      continue
+    }
+    const desde = (p - antes) * POR_PAGINA
     const trozo = lista.slice(desde, desde + POR_PAGINA)
     hojas.push(
-      `<div class="mc-hoja" aria-label="Página ${p + 1}">` +
-        cabeceraHtml(p + 1, trozo, numeroDe) +
+      // Con la tapa delante, la primera hoja de cartas sigue siendo la 1.
+      `<div class="mc-hoja" aria-label="Página ${p + 1 - antes}">` +
+        cabeceraHtml(p + 1 - antes, trozo, numeroDe) +
         trozo.map((item, i) => pintarBolsillo(item, desde + i)).join('') +
         (pintarHueco
           ? Array.from({ length: POR_PAGINA - trozo.length }, (_, k) => pintarHueco(desde + trozo.length + k)).join('')
