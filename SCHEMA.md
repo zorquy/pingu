@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 914 — La barra lateral del ordenador, siempre abierta
+
+PINGU: «no quiero que se pliegue la barra… cuando abres las expansiones y
+clicas en una expansión, se pliega. No me gusta». La lateral (739) se podía
+plegar a una columna de iconos de 72 px con un botón (633) y se plegaba sola
+al entrar en una expansión de Mi colección (788, PA9). Plegada, abrir un
+submenú pedía desplegarla primero, y el contenido cambiaba de ancho.
+
+- `js/barra-lateral.js`: fuera `CLAVE_PLEGADA`, el botón `.lat-plegar`, su
+  manejador y `DIBUJOS.plegar`. Al montar borra `pokedoc-lateral-plegada` del
+  `localStorage`, para que nada lo lea por otro camino.
+- `js/app.js`: fuera la línea que ponía `html.lat-plegada` antes de pintar.
+- `js/mi-coleccion.js`: fuera `plegarLateralSola` y sus tres llamadas
+  (`abrirAlbum`, `volverALaEstanteria`, `cambiarPestania`).
+- `css/lateral.css` y `css/style.css`: fuera todo lo de `lat-plegada`,
+  `lat-plegar` y `lat-animando`. Los cajones (633) y la barra apretada de una
+  pantalla bajita siguen.
+
+Prueba: `test-tanda-914.mjs` (no hay botón; abrir y cerrar una expansión no
+mueve ni la barra ni el contenido; con la preferencia vieja sale abierta y se
+borra; nada en el código la pliega). 633, 774-pantalla y 788 cambian sus
+comprobaciones de «plegada» por las de «siempre abierta».
+
 ## Tanda 913 — Las repeticiones: las cartas que no se reconocían, los movimientos y las energías
 
 PINGU: «en el apartado de jugar muchas cartas no se reconocen en

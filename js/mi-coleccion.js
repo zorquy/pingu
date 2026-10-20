@@ -3092,21 +3092,6 @@ function marcarAbierta(id) {
   for (const e of document.querySelectorAll(`#mcAlbum [data-carta="${CSS.escape(id)}"], #mcRejilla [data-carta="${CSS.escape(id)}"]`)) e.classList.add('mc-abierta')
 }
 
-// CON UNA EXPANSIÓN ABIERTA, UN SOLO MENÚ (788, PA9). En el PC la lateral de
-// la web y la lista de sets eran dos columnas de navegación y la rejilla se
-// quedaba en el 60 %: la lateral se pliega sola a iconos mientras miras un
-// set y vuelve como la tenías al salir. No toca la preferencia guardada.
-function plegarLateralSola(si) {
-  const raiz = document.documentElement
-  if (si && !raiz.classList.contains('lat-plegada')) {
-    raiz.classList.add('lat-plegada')
-    raiz.dataset.plegadaSola = '1'
-  } else if (!si && raiz.dataset.plegadaSola) {
-    raiz.classList.remove('lat-plegada')
-    delete raiz.dataset.plegadaSola
-  }
-}
-
 // LA BARRA PEGADA DEL MÓVIL (856): cuando la cabecera de la expansión se va
 // por arriba, sale una barra fija con la flecha y el nombre; al volver a
 // verse la cabecera, se esconde. Lo decide el `IntersectionObserver` sobre
@@ -3125,7 +3110,6 @@ function vigilarCabeceraDeAlbum() {
 
 function volverALaEstanteria({ push = true } = {}) {
   $('mcAlbumPegada')?.classList.add('hidden')
-  plegarLateralSola(false)
   cerrarFichaAlLado()
   if (push) irA({ set: null })
   album.set = null
@@ -3146,7 +3130,6 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // puede probar, porque quitarla no cambia nada (CLAUDE.md).
   if (marcadas) modoMarcar(false)
   if (album.set !== setId) cerrarFichaAlLado()
-  plegarLateralSola(true)
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -5183,7 +5166,6 @@ function centrarPestaniaActiva() {
 }
 
 function cambiarPestania(nueva, { push = true } = {}) {
-  if (nueva !== 'album') plegarLateralSola(false)
   // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
   // La ficha de al lado (740) es de la rejilla de Cartas: en otra pestaña

@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (148) — PINGU-Claude (914 — la barra lateral, siempre abierta)
+
+**Hecho** (PINGU: «no quiero que se pliegue la barra y quita el icono de
+plegar… la barra siempre ahí y ya está»). En el ordenador (≥1400 px) la
+lateral ya no se pliega: se va el botón de plegar (633) y el plegado
+automático al abrir una expansión en Mi colección (788, PA9). Quien la tenía
+plegada la ve abierta y su preferencia se borra del navegador. Los cajones de
+cada sección siguen como estaban. Y app.js pierde la línea que la ponía
+plegada antes de pintar (bytes de la portada, a la baja).
+
+**Ficheros**: `js/barra-lateral.js`, `js/app.js`, `js/mi-coleccion.js`,
+`css/lateral.css`, `css/style.css`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-914.mjs` (nueva); 633, 774-pantalla
+y 788 al día. En verde 914, 633, 774, 788, 320, 739, 741, 748, 758, 767, 299,
+305, 312, 313, 856 y 912; el único rojo es 749-pantalla, que ya lo era.
+
+**Pendiente**: la propuesta de la ficha de carta nueva (estilo Dex del móvil,
+precios por idioma, versiones con check) está aprobada por PINGU a falta de
+sus cuatro respuestas; luego, botones y menús (hoja «Tú», cabecera de
+expansión). La lateral se queda como está salvo esto.
+
 ## 2026-10-20 (147) — PINGU-Claude (913 — repeticiones: cartas reconocidas, movimientos y energías)
 
 **Hecho** (PINGU: «en jugar muchas cartas no se reconocen en repeticiones,

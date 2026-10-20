@@ -17,8 +17,8 @@ import { ICONOS, claveDePagina, seccionesDeLaBarra, seccionActual, destinoDe, ic
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
 
-// Los dos dibujos que la barra necesita y js/icons.js no tiene (la flecha
-// del desplegable y el de plegar la barra). Viven aquí y no en icons.js
+// Los dibujos que la barra necesita y js/icons.js no tiene (la flecha del
+// desplegable y la taza). Viven aquí y no en icons.js
 // porque icons.js lo baja la portada, que no tiene ni un byte de margen.
 const svg = (d, t) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
 // «Apoyar PokeDoc» (758; desde la 774, en la lateral, encima de tu cuenta).
@@ -26,7 +26,6 @@ export const KOFI = 'https://ko-fi.com/pokedoc'
 export const DIBUJOS = {
   flecha: (t = 16) => svg('<path d="m6 9 6 6 6-6"/>', t),
   taza: (t = 20) => svg('<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/>', t),
-  plegar: (t = 18) => svg('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>', t),
 }
 
 // El HTML de la barra. Puro: lo prueba node con las secciones a mano.
@@ -117,8 +116,6 @@ export function ajustarAlto(barra) {
   if (barra.scrollHeight > barra.clientHeight + 1) barra.classList.add('lat-prieta')
 }
 
-const CLAVE_PLEGADA = 'pokedoc-lateral-plegada'
-
 export function montarBarraLateral({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   const navbar = doc.getElementById('navbar')
   if (!navbar || doc.querySelector('.lat')) return null
@@ -133,13 +130,12 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // Escondida hasta que llegue su hoja: sin ella es un bloque en el flujo.
   barra.hidden = true
   hoja.then(() => { barra.hidden = false })
-  // PLEGADA (tanda 633): la barra se puede quedar en una columna de iconos
-  // (72 px) con el botón de arriba, y se recuerda. Se pone ANTES de pintar,
-  // para que no se vea abrirse y cerrarse al cargar.
-  let plegada = false
-  try { plegada = localStorage.getItem(CLAVE_PLEGADA) === '1' } catch {}
-  doc.documentElement.classList.toggle('lat-plegada', plegada)
-  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}<button type="button" class="lat-plegar" aria-pressed="${plegada}" aria-label="${plegada ? 'Desplegar la barra' : 'Plegar la barra'}" title="${plegada ? 'Desplegar la barra' : 'Plegar la barra'}">${DIBUJOS.plegar(18)}</button></div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul><a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>`
+  // SIEMPRE ABIERTA (tanda 914). PINGU: «no quiero que se pliegue la barra;
+  // la barra siempre ahí y ya está». Plegada (633) había que desplegarla
+  // para abrir un submenú, y se plegaba sola al entrar en una expansión
+  // (788). Lo que quedara apuntado de antes se olvida.
+  try { localStorage.removeItem('pokedoc-lateral-plegada') } catch {}
+  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul><a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>`
   barra.addEventListener('click', (e) => {
     const flecha = e.target.closest('.lat-flecha')
     if (flecha) {
@@ -147,18 +143,6 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
       // El cajón crece con una transición: se vuelve a medir al acabar.
       setTimeout(() => ajustarAlto(barra), 320)
       return
-    }
-    const plegar = e.target.closest('.lat-plegar')
-    if (plegar) {
-      const ahora = !doc.documentElement.classList.contains('lat-plegada')
-      doc.documentElement.classList.add('lat-animando')
-      setTimeout(() => doc.documentElement.classList.remove('lat-animando'), 400)
-      doc.documentElement.classList.toggle('lat-plegada', ahora)
-      plegar.setAttribute('aria-pressed', String(ahora))
-      plegar.setAttribute('aria-label', ahora ? 'Desplegar la barra' : 'Plegar la barra')
-      plegar.title = ahora ? 'Desplegar la barra' : 'Plegar la barra'
-      try { localStorage.setItem(CLAVE_PLEGADA, ahora ? '1' : '0') } catch {}
-      setTimeout(() => ajustarAlto(barra), 320)
     }
   })
   // Delante de todo en el orden de tabulación, justo después del «Saltar

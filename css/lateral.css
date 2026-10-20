@@ -329,28 +329,8 @@
 
 /* ── 633: desplegable, plegable y que quepa (SCHEMA 633) ── */
 @media (min-width: 1400px) and (pointer: fine) {
-  /* Plegar y desplegar se anima solo al pulsar (`lat-animando`): al
-     cargar una página ya plegada no tiene que verse cerrarse. */
-  html.lat-animando body {
-    transition: padding-left 0.3s ease;
-  }
-
-  html.con-lateral.lat-plegada body {
-    padding-left: 72px;
-  }
-
   .lat {
     overflow-x: hidden;
-  }
-
-  html.lat-animando .lat {
-    transition: width 0.3s ease, padding 0.3s ease;
-  }
-
-  html.lat-plegada .lat {
-    width: 72px;
-    padding-right: var(--e-sm);
-    padding-left: var(--e-sm);
   }
 
   .lat-cabeza {
@@ -361,7 +341,6 @@
     min-height: 44px;
   }
 
-  .lat-plegar,
   .lat-flecha {
     display: grid;
     flex: none;
@@ -376,18 +355,9 @@
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 
-  .lat-plegar:hover,
   .lat-flecha:hover {
     background: var(--ice);
     color: var(--text);
-  }
-
-  .lat-plegar svg {
-    transition: transform 0.3s ease;
-  }
-
-  html.lat-plegada .lat-plegar svg {
-    transform: rotate(180deg);
   }
 
   .lat-fila {
@@ -483,48 +453,10 @@
     width: 32px;
     height: 32px;
   }
-
-  /* PLEGADA: una columna de iconos. Las palabras se van (siguen en el
-     `title` y en la voz), y los cajones, las flechas y el menú de Mi
-     colección también: para ir a una página se pulsa su sección. */
-  html.lat-plegada .lat-cabeza {
-    flex-direction: column;
-  }
-
-  html.lat-plegada .lat-logo {
-    gap: 0;
-    font-size: 0;
-  }
-
-  html.lat-plegada .lat-seccion-enlace {
-    justify-content: center;
-    padding: 0;
-  }
-
-  html.lat-plegada .lat-seccion-enlace span,
-  html.lat-plegada .lat-flecha,
-  html.lat-plegada .lat-cajon,
-  html.lat-plegada .lat-yo-texto,
-  html.lat-plegada .lat-yo > svg {
-    display: none;
-  }
-
-  html.lat-plegada .lat-yo {
-    justify-content: center;
-    padding: var(--e-xs);
-  }
-
-  html.lat-plegada.lat-con-yo #navUserDropdown {
-    left: 84px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.lat-animando body,
-  html.lat-animando .lat,
-  .lat-plegar,
   .lat-flecha,
-  .lat-plegar svg,
   .lat-flecha svg,
   .lat-seccion-enlace,
   .lat-paginas a,
@@ -604,14 +536,5 @@
   .lat.lat-prieta .lat-apoyar + .lat-yo {
     margin-top: auto;
     padding-right: 52px;
-  }
-
-  html.lat-plegada .lat-apoyar {
-    justify-content: center;
-    padding: 0;
-  }
-
-  html.lat-plegada .lat-apoyar-texto {
-    display: none;
   }
 }

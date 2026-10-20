@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-20", "tipo": "mejora", "texto": "En el ordenador, la barra lateral se queda siempre abierta: ya no se pliega sola al entrar en una expansión ni tiene botón de plegar.", "enlace": "/mi-coleccion?ver=album" },
     {
       "fecha": "2026-10-20",
       "tipo": "arreglo",
