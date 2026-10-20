@@ -59,12 +59,11 @@ console.log('── 1. En la lateral, encima de tu cuenta ──')
   await ctx.close()
 }
 
-console.log('── 2. Con la barra plegada, la taza ──')
+console.log('── 2. Con lo de plegar apuntado de antes (914: ya no se pliega), con su texto ──')
 {
   const { ctx, page, errores } = await abrir('/index.html', { plegada: true })
-  const a = await page.$eval('.lat-apoyar', (a) => ({ texto: a.innerText.trim(), w: Math.round(a.getBoundingClientRect().width), svg: !!a.querySelector('svg'), title: a.title }))
-  check('solo el icono, con su nombre en el título', a.texto === '' && a.svg && /Apoyar PokeDoc/.test(a.title) && a.w <= 64, JSON.stringify(a))
-  if (CAPS) await page.screenshot({ path: `${CAPS}/774-plegada.png`, clip: { x: 0, y: 600, width: 120, height: 300 } })
+  const a = await page.$eval('.lat-apoyar', (a) => ({ texto: a.innerText.trim(), svg: !!a.querySelector('svg') }))
+  check('la taza y «Apoyar PokeDoc» a la vista', /Apoyar PokeDoc/.test(a.texto) && a.svg, JSON.stringify(a))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

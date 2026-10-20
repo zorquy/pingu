@@ -24,7 +24,8 @@ check('  …y «Añadir» es el principal, a lo ancho', /\.carta-acciones \.mc-f
 const mc = leer('js/mi-coleccion.js')
 check('PA8: el catálogo usa la fila compacta de Expansiones', /const lista = true/.test(mc))
 check('  …en varias columnas en el PC', /@media \(min-width: 1100px\) \{\s*\.mc-estanteria-lista \{\s*display: grid;/.test(leer('css/mi-coleccion.css')))
-check('PA9: con una expansión abierta, la lateral se pliega sola', /function plegarLateralSola/.test(mc) && /plegarLateralSola\(true\)/.test(mc) && /if \(nueva !== 'album'\) plegarLateralSola\(false\)/.test(mc))
+// PA9 se quitó en la 914 (PINGU: «cuando clicas en una expansión, se pliega. No me gusta»).
+check('PA9 (914): con una expansión abierta, la lateral ya NO se pliega sola', !/plegarLateralSola|lat-plegada/.test(mc))
 check('PA10b: Deseos y cambios y los desplegables de Buscar, en una fila deslizable', /\.mc-deseos-seg,\s*\.mc-bus-afinar \{\s*flex-wrap: nowrap;/.test(leer('css/mi-coleccion.css')))
 check('  …y la píldora centra la activa si el control se desliza', /caja\.scrollWidth > caja\.clientWidth \+ 1/.test(leer('js/pildora.js')))
 

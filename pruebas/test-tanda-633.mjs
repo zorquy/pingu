@@ -195,24 +195,16 @@ const leer = (page) =>
   check('  …con transición', /0\.3s/.test(animado), animado)
   check('a 900 de alto cabe sin desplazarse y no hace falta apretarla', a.cabe && !a.prieta, JSON.stringify(a))
   check('  …y sus enlaces miden 44', await page.$$eval('.lat .lat-seccion-enlace, .lat .lat-cajon.lat-abierto a', (as) => as.every((x) => x.getBoundingClientRect().height >= 44)))
-  // Plegarla.
-  await page.click('.lat-plegar')
-  const alPulsar = await page.evaluate(() => getComputedStyle(document.body).transitionDuration)
-  check('  …plegar se anima al pulsar', /0\.3s/.test(alPulsar), alPulsar)
-  await page.waitForTimeout(450)
-  a = await leer(page)
-  check('«Plegar la barra»: una columna de iconos de 72 y el contenido se arrima', a.plegada && a.ancho === 72 && a.cuerpo === '72px', JSON.stringify(a))
-  check('  …sin palabras ni cajones a la vista', await page.$$eval('.lat .lat-seccion-enlace span, .lat .lat-cajon', (xs) => xs.every((x) => getComputedStyle(x).display === 'none')))
-  check('  …y se recuerda', (await page.evaluate(() => localStorage.getItem('pokedoc-lateral-plegada'))) === '1')
+  // 914: la barra ya no se pliega (PINGU: «la barra siempre ahí y ya está»).
+  check('no hay botón de plegar la barra', !(await page.$('.lat-plegar')))
   check('sin errores', !errores.length, errores[0])
   await ctx.close()
 }
 {
   const { ctx, page } = await abrir(1440, 900, { estado: '1' })
   const a = await leer(page)
-  check('al volver, sigue plegada (72 y el contenido arrimado)', a.plegada && a.ancho === 72 && a.cuerpo === '72px', JSON.stringify(a))
-  const t = await page.evaluate(() => getComputedStyle(document.body).transitionDuration)
-  check('  …y al cargar no se anima (solo al pulsar)', /^0s/.test(t), t)
+  check('quien la tenía plegada la ve abierta (914): 240 y el contenido a su lado', !a.plegada && a.ancho === 240 && a.cuerpo === '240px', JSON.stringify(a))
+  check('  …y lo apuntado de antes se olvida', (await page.evaluate(() => localStorage.getItem('pokedoc-lateral-plegada'))) === null)
   await ctx.close()
 }
 {
