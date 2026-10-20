@@ -181,7 +181,8 @@ for (const [donde, ruta, abrirla, pre] of [
   }, pre)
   check(`[${donde}] sin barra de título ni paso de «Ya en tu colección»: directa al formulario, con su tirador`, m.abierta && !m.titulo && !m.paso && m.tirador, JSON.stringify(m))
   check(`[${donde}]   …la cabecera: nombre, set · número y «Ya tienes 2»`, m.nombre === 'Carta 1' && m.set === 'Duelos Primigenios · 1' && m.tienes === 'Ya tienes 2', JSON.stringify(m))
-  check(`[${donde}]   …los idiomas en UNA fila: el elegido con su nombre, los demás con su sigla`, m.chipsUnaFila && /Español/.test(m.activoNombre) && /^[A-Z]{2}$/.test(m.otro), JSON.stringify(m))
+  // Desde la 912 todos con su sigla, también el elegido (PINGU: «prefiero que sean todos bandera + abreviación»).
+  check(`[${donde}]   …los idiomas en UNA fila, todos con su sigla`, m.chipsUnaFila && m.activoNombre === 'ES' && /^[A-Z]{2}$/.test(m.otro), JSON.stringify(m))
   check(`[${donde}]   …estado y versión segmentados, copias y precio en una fila, nada se sale`, m.segmentados === 2 && m.fila && m.dentro, JSON.stringify(m))
   check(`[${donde}]   …un solo botón, ancho, que dice lo que hará, y la hoja cabe entera`, m.guardar === 'Añadir 1 copia' && m.ancho >= m.hoja - 48 && m.cabe, JSON.stringify(m))
   await page.mouse.click(195, 40)

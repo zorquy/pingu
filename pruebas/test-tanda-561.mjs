@@ -66,8 +66,10 @@ console.log('── 3. Lo que NO puede hacer ──')
 
 console.log('── 4. Una consulta, no trece ──')
 {
+  // Desde la 909 la consulta vive en js/buscar-cartas.js (la usan Cartas y la barra de arriba).
   const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
-  const buscar = mc.split('async function buscarCartasUnaVez')[1]?.split('\n}')[0] || ''
+  const comun = readFileSync('/home/user/pingu/js/buscar-cartas.js', 'utf8')
+  const buscar = comun.split('export async function buscarCartasUnaVez')[1]?.split('\n}')[0] || ''
   check('las variantes van en un `or`', /\.or\(/.test(buscar) && /variantes/.test(buscar), buscar.slice(0, 160))
   // La coma y el paréntesis son la sintaxis del propio `or`: un nombre con
   // una coma partiría la condición en dos.
