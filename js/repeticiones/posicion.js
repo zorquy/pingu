@@ -181,7 +181,9 @@ export function colocarPosicion(mesa, { lectura, fotos, i, idDe, cartaDe = () =>
         energias: x.energias.map(tomar),
         herramienta: x.herramienta ? tomar(x.herramienta) : null,
         danio: x.danio || 0,
-        estados: [],
+        // Los estados que el registro le ha visto (913): los mismos nombres
+        // que usa el laboratorio (envenenado, confundido…).
+        estados: [...(x.estados || [])],
         // Solo cuenta en el turno de quien juega: al otro le llega su
         // turno siguiente con todo ya «de antes».
         entroTurno: k === actual && !viejo ? turno : 0,

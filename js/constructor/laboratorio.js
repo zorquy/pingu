@@ -23,7 +23,6 @@
 import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
-import { cardImageUrl } from '../tcgdex.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { canonizarCarta } from '../carta-detalle.js'
 import { resumen as resumenDelMeta, listasDestacadas } from '../meta/datos.js'
@@ -198,7 +197,13 @@ export async function abrirLaboratorioEnPosicion({ mazos, nombres, colocar, avis
   // La jugada de un KO llega con sus premios por coger y, a veces, con
   // alguien sin activo. La mesa lo resuelve ya, como después de cualquier
   // jugada (y se puede deshacer): así se empieza desde una mesa en regla.
-  if (L.mesa.m.pendientes.length || L.mesa.jugadores.some((j) => !j.s.activo && j.s.banca.length)) await hacer(async () => {})
+  //
+  // SIN esperarlo (913): coger el premio o elegir el activo es obligatorio,
+  // y si se cierra el laboratorio sin hacerlo la promesa no acaba nunca. Quien
+  // lo abrió se quedaba esperando con ella: en la repetición, «Jugar desde
+  // aquí» se quedaba apagado («abriendo») hasta recargar la página. `hacer`
+  // recoge sus propios errores; abrirlo otra vez empieza de cero.
+  if (L.mesa.m.pendientes.length || L.mesa.jugadores.some((j) => !j.s.activo && j.s.banca.length)) hacer(async () => {})
   return resumen
 }
 
@@ -608,7 +613,8 @@ function imagenHtml(carta, calidad = 'low') {
     const e = imagenDeEnergiaBasica(carta, calidad === 'high' ? 'LG' : 'SM')
     if (e) cadena = [e.url, e.respaldo].filter(Boolean)
   } else {
-    cadena = cadenaDeEscaneo(carta, L.codigoDeSet(carta.set_id), calidad, cardImageUrl)
+    // La misma cadena que Mi colección (913): ver js/repeticiones.js.
+    cadena = cadenaDeEscaneo(carta, L.codigoDeSet(carta.set_id), calidad)
   }
   const attrs = atributosDeEscaneo(cadena)
   // El nombre va DEBAJO: si no carga ninguna imagen, se queda el nombre

@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (147) — PINGU-Claude (913 — repeticiones: cartas reconocidas, movimientos y energías)
+
+**Hecho** (PINGU: «en jugar muchas cartas no se reconocen en repeticiones,
+movimientos, energías unidas que salen mal… y a veces da error alguna carta
+al añadir una lista»). Medido sobre sus 13 repeticiones guardadas, dentro de
+producción: el resolutor por nombre elegía las impresiones de los Prize Pack
+y del 30 aniversario que crea TCGGO sin ficha (18 de 125 cartas: sin PS, sin
+categoría, sin ataques) y alguna de TCG Pocket; ahora prefiere una con ficha,
+no coge Pocket, y lo que le falte a una impresión se copia de otra de la
+misma carta (`js/constructor/gemelas.js`: la original de un «129/162» o lo
+que todas dicen igual). La foto en Jugar (repeticiones, laboratorio,
+constructor) sale por la MISMA cadena que en Mi colección: las filas traen
+`market` y el set embebido y `cadenaDeEscaneo` va sin `cardImageUrl` (la ruta
+de TCGdex a mano y la foto de /admin). El lector entiende las 62 líneas que
+no entendía (contadores movidos, veneno, curar, la mano al fondo, «2
+mulligans», estados…) y parte bien «Energía del Team Rocket del Murkrow del
+Team Rocket». La mesa: Camilla Nocturna ya no se lleva el Pokémon de la
+banca, Giovanni no cambia por un gemelo, Ruinas Peligrosas y los contadores
+mal rotulados van a su dueño, el Ventilador de Mano mueve la energía del
+activo y los estados se ven (y pasan a «Jugar desde aquí»). Las 60 cartas
+cuadran en las 13 partidas (antes, 3 descuadradas). La lista asociada casa
+con el registro por los dos idiomas de la carta resuelta. Y «Jugar desde
+aquí» ya no se queda apagado al cerrar el laboratorio con un premio por
+coger (se quedaba hasta recargar). Mi colección no se toca.
+
+**Ficheros**: `js/constructor/gemelas.js` (NUEVO), `js/constructor/datos.js`,
+`js/impresiones-del-set.js`, `js/repeticiones.js`,
+`js/repeticiones/registro.js`, `js/repeticiones/estado.js`,
+`js/repeticiones/lista.js`, `js/repeticiones/posicion.js`,
+`js/constructor/laboratorio.js`, `js/constructor.js`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-913.mjs`,
+`registro-913-camilla.txt`, `registro-913-rocket.txt` (dos partidas de PINGU
+con Rojo y Azul) y `rigor-tanda-913.py` (27 mutaciones, todas detectadas).
+Las 73 pruebas que tocan Jugar, en verde salvo 255 y 782 (rojas ya antes,
+comprobado con el código de antes) y 821 y 844-pantalla (piden un
+PostgreSQL y una foto que no hay en este contenedor).
+
+**Pendiente**: las frases nuevas son las del registro en español (no hay
+partidas en inglés guardadas para ver las suyas); si PINGU juega una en
+inglés, que la pegue y se miran las líneas que salgan sin entender. Del
+Dormido no se ha visto la frase de despertarse: la chapa se queda hasta que
+vaya a la banca, evolucione o caiga.
+
 ## 2026-10-20 (146) — PINGU-Claude (912 — chapas con sigla y Mi colección sin saltos)
 
 **Hecho** (PINGU: «todos bandera + abreviación» y «cuando cargo otra página

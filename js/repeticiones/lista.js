@@ -16,6 +16,19 @@ import { corregirNombreEs } from '../texto.js'
 // «Energía Psychic Telepática» y TCG Live, «Energía Psíquica Telepática».
 const nombresDe = (c) => [...new Set([c?.name_es, c?.name].filter(Boolean).flatMap((n) => [n, corregirNombreEs(n)]).map(plano))]
 
+// Las entradas de la lista que son la carta que el registro llama `nombre`
+// (913): por ese nombre, y si no, por los de la carta que la repetición le
+// ha encontrado (`cartaDe`), que trae los dos idiomas. Por el nombre del
+// registro a secas, un registro en español con una lista cuyas filas solo
+// tienen el inglés («Buddy-Buddy Poffin» frente a «Pokochos Gemelos») avisaba
+// de que la carta «no está en esta lista» estando.
+function buscadorDeEntradas(porNombre, cartaDe) {
+  return (nombre) => {
+    for (const n of [plano(nombre), ...nombresDe(cartaDe(nombre))]) if (porNombre.get(n)?.length) return porNombre.get(n)
+    return []
+  }
+}
+
 // El mazo de la mesa con la lista: las entradas de la lista, y si en la
 // partida se vio algo que la lista NO tiene (o más copias de las que
 // tiene), eso también, para que la mesa cuadre — y se cuenta en `fuera`,
@@ -29,15 +42,26 @@ export function mazoConLista(lista, vistas, cartaDe = () => null) {
   // impresión, la cuarta copia salía como «no está en esta lista».
   const porNombre = new Map()
   for (const e of entradas) for (const n of nombresDe(e.carta)) porNombre.set(n, [...(porNombre.get(n) || []), e])
+  const entradasDe = buscadorDeEntradas(porNombre, cartaDe)
   const copiasDe = (es) => es.reduce((k, e) => k + e.n, 0)
   const fuera = []
+  // Lo que suman las vistas de cada grupo de entradas: dos nombres del
+  // registro que son la misma carta (la de un idioma y la del otro) cuentan
+  // juntos contra sus copias.
+  const usadas = new Map()
   for (const v of vistas || []) {
-    const es = porNombre.get(plano(v.nombre)) || []
-    if (es.length && copiasDe(es) >= v.copias) continue
-    const faltan = v.copias - copiasDe(es)
+    const es = entradasDe(v.nombre)
+    const ya = es.length ? usadas.get(es[0]) || 0 : 0
+    if (es.length && copiasDe(es) >= ya + v.copias) {
+      usadas.set(es[0], ya + v.copias)
+      continue
+    }
+    const faltan = ya + v.copias - copiasDe(es)
     fuera.push({ nombre: v.nombre, copias: faltan })
-    if (es.length) es[0].n += faltan
-    else {
+    if (es.length) {
+      es[0].n += faltan
+      usadas.set(es[0], ya + v.copias)
+    } else {
       const carta = cartaDe(v.nombre) || { id: `suelta:${plano(v.nombre)}`, name: v.nombre, name_es: v.nombre, category: v.tipo === 'pokemon' ? 'Pokemon' : v.tipo === 'energia' ? 'Energy' : 'Trainer' }
       const nueva = { carta, n: faltan }
       entradas.push(nueva)
@@ -48,13 +72,13 @@ export function mazoConLista(lista, vistas, cartaDe = () => null) {
   // necesita las 60, y lo que falta es justo lo que no se sabe.
   const total = entradas.reduce((k, e) => k + e.n, 0)
   if (total < 60) entradas.push({ carta: SIN_VER, n: 60 - total })
-  return { entradas, idDe: (nombre) => porNombre.get(plano(nombre))?.[0]?.carta.id ?? null, fuera }
+  return { entradas, idDe: (nombre) => entradasDe(nombre)[0]?.carta.id ?? null, fuera }
 }
 
 // Lo que de la lista NO se ha visto en la foto `s` (está en el mazo, en los
 // premios o en la parte de la mano que el registro no enseña), carta a
 // carta. `n` es la cuenta; `nombre`, el de la lista.
-export function sinVerEnLaFoto(lista, s, jugador) {
+export function sinVerEnLaFoto(lista, s, jugador, cartaDe = () => null) {
   const p = s?.jugadores?.[jugador]
   const cuenta = new Map()
   const porNombre = new Map()
@@ -63,6 +87,7 @@ export function sinVerEnLaFoto(lista, s, jugador) {
     cuenta.set(e.carta.id, fila)
     for (const n of nombresDe(e.carta)) porNombre.set(n, [...(porNombre.get(n) || []), fila])
   }
+  const filasDe = buscadorDeEntradas(porNombre, cartaDe)
   if (!p) return { cartas: [...cuenta.values()], total: lista.reduce((k, e) => k + e.n, 0) }
   const vistas = [
     ...[p.activo, ...p.banca].filter(Boolean).flatMap((x) => [...x.cartas, ...x.energias, ...(x.herramienta ? [x.herramienta] : [])]),
@@ -73,7 +98,7 @@ export function sinVerEnLaFoto(lista, s, jugador) {
   // Con varias impresiones del mismo nombre, se descuenta de la primera que
   // aún tenga copias: si no, la cuarta Alakazam vista no restaba de nada.
   for (const nombre of vistas) {
-    const fila = (porNombre.get(plano(nombre)) || []).find((f) => f.n > 0)
+    const fila = filasDe(nombre).find((f) => f.n > 0)
     if (fila) fila.n--
   }
   const cartas = [...cuenta.values()].filter((f) => f.n > 0).sort((a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre, 'es'))

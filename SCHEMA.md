@@ -41785,6 +41785,131 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 913 — Las repeticiones: las cartas que no se reconocían, los movimientos y las energías
+
+PINGU: «en el apartado de jugar muchas cartas no se reconocen en
+repeticiones, movimientos, energías unidas que salen mal, errores de ese
+estilo… y a veces da error alguna carta al añadir una lista a una
+repetición». Y: «entiende cómo funciona ahora lo de recoger la imagen de la
+carta en colección; no quiero que líes cómo está hecho en un lado y otro».
+
+Se pasaron sus 13 repeticiones guardadas por el lector y la mesa DENTRO de
+producción (su navegador, sus módulos, su base; los módulos nuevos cargados
+desde una rama temporal), contando: nombres sin carta, cartas sin ficha,
+líneas sin leer, jugadas que no encuentran a quién y las 60 cartas de cada
+uno en cada foto.
+
+**Las cartas que «no se reconocían».** El resolutor por nombre
+(`mejorPorNombre`, constructor/datos.js) elige la impresión legal más nueva,
+y desde la 904 esas son las de los Play! Pokémon Prize Pack (tg-741…743) y
+las del 30 aniversario, que crea TCGGO SIN categoría, PS, ataques ni nombre
+en español: 18 de las 125 cartas de esas partidas (Dudunsparce, Budew,
+Fezandipiti ex, Ultra Ball, Munkidori…). En la mesa salían sin barra de
+vida (y sin PS no se deduce un KO), un Pokémon que solo pasó por la mano
+contaba como Entrenador, y en «Jugar desde aquí» el laboratorio no sabía
+qué hacían. Y «Professor's Research» caía en la P-A-007, de TCG Pocket.
+- `elegir`: entre las legales, antes una CON ficha (`category`); fuera las
+  de Pocket (`esDelTCG` con el set de `cargarSets`). Si la única legal no
+  tiene ficha (el Mew ex del 30 aniversario, la 633), sigue ganando.
+- Y las exactas por la clave (`name_key = objetivo`, una consulta más): la
+  búsqueda de siempre va por orden alfabético con tope de 60.
+- Lo que le falta a una impresión se copia de OTRA de la misma carta
+  (`js/constructor/gemelas.js`, puro): si numera «129/162» (como TCGGO los
+  Prize Pack), de la original —el set con 162 oficiales, la 129—; si no,
+  cada campo solo si todas las que lo tienen dicen lo mismo, y los de jugar
+  (ataques, habilidad, retirada, debilidad, fase, de qué evoluciona) solo si
+  además coinciden los PS; si entre todas no coinciden, entre las modernas
+  (con letra de reglamento). Los ataques se comparan por su forma (coste y
+  daño): unas filas los guardan en español y otras en inglés. La consulta
+  (`completarConOtras`, datos.js) va de 8 en 8 nombres, sin básicas ni
+  Pocket, y si falla las cartas vuelven como llegaron. La usan
+  `cartasPorIds` (salvo `completar: false`, para quien solo elige),
+  `resolverLineas` (a las que ganan) y `detallesDeJuego` (lo de jugar, solo
+  de las que no se sabe qué son o son Pokémon). Medido: el Dudunsparce del
+  Prize Pack llega con 140 PS, Fase 1, «Aterrizaje» y «Robo a la Fuga».
+
+**La foto, la de Mi colección.** Jugar (repeticiones, laboratorio,
+constructor) llamaba a `cadenaDeEscaneo(carta, código, calidad,
+cardImageUrl)` con filas sin set embebido: sin la serie no se monta la ruta
+de TCGdex a mano cuando falta `image_path` (434), y `cardImageUrl` no deja
+pasar la foto subida desde /admin (885: una dirección entera) —salía
+`assets.tcgdex.net/en/https://…/low.webp`—. Ahora `COLUMNAS` trae `market` y
+`tcg_sets(serie_id,tcg_online_code)` (las columnas que pide Mi colección
+para esto) y la llamada va sin el cuarto argumento, como en Mi colección. El
+código del set se sigue pasando de respaldo para Limitless (cargarSets lo
+saca de más sitios que la fila). `columnasCon` (impresiones-del-set.js) parte
+la lista por comas fuera de paréntesis, que ahora lleva un embebido. El
+vídeo usa `urlDeImagen` con el mercado.
+
+**El lector** (registro.js), 62 líneas sin leer → 0: «ha declarado 2
+mulligans», «ha puesto N cartas en la parte inferior de su baraja» (y con
+nombre), «ha puesto Órdenes de Jefes en su baraja y ha barajado todas las
+cartas», «ha barajado sus cartas / las cartas de su mano», «ha movido N
+contadores de daño del X de A al Y de B» (`moverContadores`), «Se ha
+colocado un contador de daño en el X de J por estar afectado por…» (el
+veneno del chequeo), «Se han curado N puntos de daño al X de J», «El X de J
+pasa a estar Confundido/Envenenado/Dormido/Paralizado/Quemado» (`estado`),
+«Se ha evitado el daño infligido a X» (`evitado`) y «Chequeo Pokémon»
+(`chequeo`). Y los «del»: «Se ha descartado Energía del Team Rocket del
+Murkrow del Team Rocket de J» se partía por el último («Energía del Team
+Rocket del Murkrow» + «Team Rocket») y la energía se quedaba puesta. Ahora
+el evento guarda todas las maneras (`partesPorDel`) y `elegirPartes`, al
+final de la lectura, se queda con la que nombra un Pokémon que ese jugador
+tiene en la partida (y a igualdad, algo que se le unió). Las frases son las
+del registro en ESPAÑOL; del inglés solo «Pokémon Checkup» (no hay registros
+en inglés guardados con los que ver las demás).
+
+**La mesa** (estado.js):
+- Camilla Nocturna: «ha movido Dunsparce de J a su mano» con un Dunsparce en
+  el descarte y OTRO en la banca sin nada unido se llevaba el de la banca
+  («es exactamente un Pokémon en juego»). Una carta sola que está en el
+  descarte sale del descarte.
+- Giovanni cambia los dos activos y la marca de lo que sube era una: el
+  cambio de Rojo pisaba la de Azul, y su «pasa a estar» buscaba en la banca
+  —con tres Murkrow, cogía otro—. `s.subio` es por jugador.
+- El dueño de los contadores: el rival de quien los pone, el de la frase y
+  quien los pone (este faltaba: Ruinas Peligrosas pone «El Abra de A ha
+  recibido 2 contadores de B» siendo de B). Bajo algo que se activa, van al
+  último en llegar (`masReciente`), no al que más daño lleva.
+- Los contadores movidos: del origen (su dueño, el de la frase) al destino
+  (el dueño, como con «ha recibido»), lo dicho entero.
+- Ventilador de Mano: la energía que se mueve sale antes del activo.
+- Los estados: `slot.estados` (los nombres del laboratorio), Dormido,
+  Paralizado y Confundido se sustituyen; se curan al ir a la banca, al
+  evolucionar y al caer; la parálisis se pasa al empezar el turno de
+  después del suyo. Del sueño no se ha visto la frase de despertarse: se
+  queda hasta lo de antes. Se pintan con `lab-chapa-estado` y van a
+  «Jugar desde aquí» (posicion.js).
+Con esto las 60 cartas de cada uno cuadran en todas las fotos de las 13
+partidas (antes, 3 partidas y 196 fotos descuadradas).
+
+**La lista asociada** (lista.js): el registro se casaba con la lista por su
+nombre a secas, así que con una fila que solo tiene el inglés («Buddy-Buddy
+Poffin», de TCGGO) y un registro en español («Pokochos Gemelos») avisaba de
+que la carta no estaba en la lista. Ahora casa también por los nombres de
+la carta que la repetición le ha encontrado a ese nombre (`cartaDe`, que
+trae los dos idiomas), en `mazoConLista` y en `sinVerEnLaFoto`, y dos
+nombres que son la misma carta suman contra sus copias.
+
+**«Jugar desde aquí» colgado.** `abrirLaboratorioEnPosicion` esperaba a
+la jugada que resuelve un KO (coger el premio, elegir el activo), y esa
+jugada es OBLIGATORIA: cerrando el laboratorio sin hacerla, la promesa no
+acababa nunca y la repetición se quedaba con el botón en «abriendo» y
+apagado hasta recargar (en la partida de Munkidori, desde la jugada 145).
+Ahora se lanza sin esperarla; `hacer` recoge sus errores y abrir otra vez
+empieza de cero.
+
+**Pruebas** (rama `pruebas`): `test-tanda-913.mjs` con dos registros DE
+VERDAD (`registro-913-camilla.txt`, `registro-913-rocket.txt`: los de PINGU
+con Rojo y Azul, comprobados byte a byte por su hash contra producción) y
+uno corto armado con líneas de verdad; lo puro de gemelas.js y de la lista;
+el resolutor, la ficha completada y la cadena de la foto contra el doble; y
+la página con los estados y las dos fotos (la ruta a mano y la de /admin), y
+«Jugar desde aquí» desde un KO, cerrado sin coger el premio y abierto otra
+vez. `rigor-tanda-913.py`: 27 mutaciones, todas detectadas. Al día y en verde:
+imports, 462, 480, 481, 492, 493, 494, 495, 497, 519, 553, 554, 592, 624,
+629, 633 y la del constructor.
+
 ## Tanda 912 — Las chapas de idioma con su sigla, y Mi colección sin saltos al cargar
 
 PINGU: «siempre parece que algunos o el primero sale nombre completo y luego

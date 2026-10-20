@@ -83,6 +83,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   salía buscando «zapdos». Si una pantalla nueva busca cartas por lo que
   escribe alguien, pasa por ahí con sus columnas y sus filtros; no copies la
   consulta.
+- **En Jugar una carta se pinta como en Mi colección y se resuelve a una
+  impresión CON ficha** (tanda 913). La foto: filas con `market` y
+  `tcg_sets(serie_id,tcg_online_code)` (están en `COLUMNAS` del
+  constructor) y `cadenaDeEscaneo(carta, código, calidad)` SIN inyectar
+  `cardImageUrl`, que no deja pasar la foto de /admin ni monta la ruta de
+  TCGdex a mano. Una pantalla nueva de Jugar que pinte cartas, igual. Y por
+  nombre (`mejorPorNombre`): antes una impresión con categoría que una de
+  TCGGO sin ficha (Prize Pack, 30 aniversario), y nunca una de TCG Pocket;
+  lo que le falte a la que gane se copia de otra de la misma carta
+  (`js/constructor/gemelas.js`), sin inventar: la original de un «129/162»
+  o lo que todas dicen igual, y lo de jugar solo con los mismos PS.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

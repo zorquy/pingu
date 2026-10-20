@@ -54,6 +54,14 @@ export function jugadoresDe(lineas) {
   return vistos
 }
 
+// Todas las maneras de partir «carta del Pokémon» por un « del ».
+export function partesPorDel(texto) {
+  const t = String(texto || '')
+  const fuera = []
+  for (let i = t.indexOf(' del '); i > 0; i = t.indexOf(' del ', i + 1)) fuera.push({ carta: nombreDeCarta(t.slice(0, i)), pokemon: nombreDeCarta(t.slice(i + 5)) })
+  return fuera
+}
+
 function koEnEspanol(linea, P) {
   const todos = [...linea.matchAll(new RegExp(`(?:^|\\s|¡)(?:El|el|al|del) (.+?) de ${P}(?=[\\s.,!]|$)`, 'g'))]
   const m = todos.at(-1)
@@ -78,7 +86,9 @@ function frases(J) {
     [new RegExp(`^${P} ha robado (\\d+) cartas de la mano inicial$`), (m) => ({ tipo: 'manoInicial', jugador: m[1], n: +m[2] })],
     [new RegExp(`^${P} drew (\\d+) cards for the opening hand$`), (m) => ({ tipo: 'manoInicial', jugador: m[1], n: +m[2] })],
     [/^(\d+) cartas robadas$|^(\d+) drawn cards$/, () => ({ tipo: 'nada' })],
-    [new RegExp(`^${P} (?:ha hecho|ha declarado) (?:un )?mulligan`, 'i'), (m) => ({ tipo: 'mulligan', jugador: m[1] })],
+    // «ha declarado un mulligan» y «ha declarado 2 mulligans» (913): con el
+    // número delante no casaba, y el que los hacía jugaba con la mano a cero.
+    [new RegExp(`^${P} (?:ha hecho|ha declarado) (?:(un|\\d+) )?mulligans?`, 'i'), (m) => ({ tipo: 'mulligan', jugador: m[1], n: num(m[2] || 1) })],
     [new RegExp(`^${P} took a mulligan`, 'i'), (m) => ({ tipo: 'mulligan', jugador: m[1] })],
     // La mano del mulligan se ENSEÑA («Cartas mostradas por el mulligan
     // número 1 • …»): es la que vuelve al mazo, no una que llega.
@@ -151,10 +161,37 @@ function frases(J) {
     // Curarse (tanda 592: lo escribe el laboratorio; sin esto, el daño de una
     // repetición solo podía subir).
     [new RegExp(`^El (.+) de ${P} se ha curado (\\d+) puntos? de daño$`), (m) => ({ tipo: 'curar', jugador: m[2], pokemon: nombreDeCarta(m[1]), danio: +m[3] })],
+    // Y como lo escribe TCG Live (913): «- Se han curado 80 puntos de daño al
+    // Metagross de J».
+    [new RegExp(`^Se (?:ha|han) curado (\\d+) puntos? de daño al? (.+) de ${P}$`), (m) => ({ tipo: 'curar', jugador: m[3], pokemon: nombreDeCarta(m[2]), danio: +m[1] })],
+    // Mover contadores de un Pokémon a otro (913: Adrenalina Mental de
+    // Munkidori, el Dunsparce de Robo a la Fuga…). «J ha movido 3 contadores
+    // de daño del Dragapult ex de J al Abra de J»: el ORIGEN lleva su dueño
+    // bien; el DESTINO, como en «ha recibido N contadores», lo lleva a menudo
+    // mal (el Abra era del rival). Se guarda lo que dice y decide estado.js.
+    [new RegExp(`^${P} ha movido (un|una|\\d+) contador(?:es)? de daño del (.+) de ${P} al? (.+) de ${P}$`), (m) => ({ tipo: 'moverContadores', jugador: m[1], n: num(m[2]), de: nombreDeCarta(m[3]), deQuien: m[4], a: nombreDeCarta(m[5]), dice: m[6] })],
+    // El daño del Chequeo Pokémon (913): «Se ha colocado un contador de daño
+    // en el Zoroark ex de N de J por estar afectado por la Condición Especial
+    // Envenenado». Aquí el dueño SÍ es el de la frase.
+    [new RegExp(`^Se (?:ha|han) colocado (un|una|\\d+) contador(?:es)? de daño en el (.+) de ${P}(?: por .*)?$`), (m) => ({ tipo: 'contadores', jugador: m[3], n: num(m[1]), pokemon: nombreDeCarta(m[2]), deQuien: m[3] })],
+    // Los estados especiales (913): «- El Dedenne de J pasa a estar
+    // Confundido». Se enseñan en la mesa y los lleva «Jugar desde aquí».
+    [new RegExp(`^El (.+) de ${P} pasa a estar (Confundid[oa]|Envenenad[oa]|Dormid[oa]|Paralizad[oa]|Quemad[oa])$`, 'i'), (m) => ({ tipo: 'estado', jugador: m[2], pokemon: nombreDeCarta(m[1]), estado: m[3].toLowerCase().replace(/a$/, 'o') })],
+    // Un daño que algo evita (Jaula de Combate): «- Se ha evitado el daño
+    // infligido a Alakazam». No mueve nada, pero se ha entendido.
+    [/^Se ha evitado el daño infligido a (.+)$/, (m) => ({ tipo: 'evitado', pokemon: nombreDeCarta(m[1]) })],
+    // La cabecera del chequeo entre turnos (913).
+    [/^Chequeo Pok[eé]mon$|^Pok[eé]mon Checkup$/i, () => ({ tipo: 'chequeo' })],
 
     // — Energía y cartas que se van —
     [/^Se ha activado (.+)$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
-    [new RegExp(`^Se ha descartado (.+) del (.+) de ${P}$`), (m) => ({ tipo: 'descartarDe', jugador: m[3], carta: nombreDeCarta(m[1]), pokemon: nombreDeCarta(m[2]) })],
+    // «Se ha descartado Energía del Team Rocket del Murkrow del Team Rocket
+    // de J» (913): con «del» dentro de los dos nombres hay tres maneras de
+    // partirla, y la de siempre (el último «del») daba la carta «Energía del
+    // Team Rocket del Murkrow» y el Pokémon «Team Rocket». Se guardan todas
+    // y `elegirPartes` (abajo) se queda con la que nombra un Pokémon que ese
+    // jugador tiene en la partida.
+    [new RegExp(`^Se ha descartado (.+) del (.+) de ${P}$`), (m) => ({ tipo: 'descartarDe', jugador: m[3], carta: nombreDeCarta(m[1]), pokemon: nombreDeCarta(m[2]), partes: partesPorDel(`${m[1]} del ${m[2]}`) })],
     [new RegExp(`^(.+) was discarded from ${P}'s (.+)$`), (m) => ({ tipo: 'descartarDe', jugador: m[2], carta: nombreDeCarta(m[1]), pokemon: nombreDeCarta(m[3]) })],
     // Lo que se descarta sin decir de dónde (tanda 633): el estadio que quita
     // un efecto, o el Pokémon que sobra de la banca cuando el estadio se va.
@@ -174,7 +211,8 @@ function frases(J) {
     [new RegExp(`^${P} ha movido (.+) de ${P} a su mano$`), (m) => ({ tipo: 'aMano', jugador: m[3], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} put (\\d+|a) cards? on the (?:bottom|top) of their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
     [new RegExp(`^${P} put (.+) on (?:the )?(?:top|bottom) of their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
-    [new RegExp(`^${P} ha puesto (una|\\d+) cartas? (?:en el fondo|debajo|encima) de su baraja$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
+    [new RegExp(`^${P} ha puesto (una|\\d+) cartas? (?:en el fondo|debajo|encima|en la parte (?:inferior|superior)) de su baraja$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
+    [new RegExp(`^${P} ha puesto (.+) en la parte (?:inferior|superior) de su baraja$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [/^(.+) was activated$/, (m) => ({ tipo: 'activar', carta: nombreDeCarta(m[1]) })],
     [new RegExp(`^${P} chose (.+)$`), () => ({ tipo: 'nada' })],
     // «- Rojo ha elegido Llama Virtuosa»: el ataque que copia Bromista
@@ -191,6 +229,9 @@ function frases(J) {
     [new RegExp(`^${P} ha descartado (.+)$`), (m) => ({ tipo: 'descartar', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} discarded (.+)$`), (m) => ({ tipo: 'descartar', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} ha puesto (una|\\d+) cartas? en su baraja y ha barajado todas las cartas$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
+    // Con su nombre (913): «- J ha puesto Órdenes de Jefes en su baraja y ha
+    // barajado todas las cartas».
+    [new RegExp(`^${P} ha puesto (.+) en su baraja y ha barajado todas las cartas$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: 1, cartas: [nombreDeCarta(m[2])] })],
     [new RegExp(`^${P} shuffled (\\d+|a) cards? into their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: num(m[2]) })],
     // «Ha barajado su mano» a secas es solo barajarla (E-Nigma: la línea
     // siguiente dice cuántas van debajo del mazo). «…en su baraja» sí la
@@ -198,6 +239,10 @@ function frases(J) {
     [new RegExp(`^${P} ha barajado su mano (?:en|con) su baraja`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: null })],
     [new RegExp(`^${P} shuffled their hand into their deck`), (m) => ({ tipo: 'alMazo', jugador: m[1], n: null })],
     [new RegExp(`^${P} ha barajado su mano$`), (m) => ({ tipo: 'barajar', jugador: m[1] })],
+    // «- J ha barajado las cartas de su mano» (antes de mandarlas al fondo:
+    // Tarjeta Roja Especial) y «- J ha barajado sus cartas» (913): barajar,
+    // sin mover nada; lo que se mueve lo dice la línea siguiente.
+    [new RegExp(`^${P} ha barajado (?:las cartas de su mano|sus cartas)$`), (m) => ({ tipo: 'barajar', jugador: m[1] })],
     [new RegExp(`^${P} shuffled their hand$`), (m) => ({ tipo: 'barajar', jugador: m[1] })],
     [new RegExp(`^${P} moved ${P}'s (\\d+) cards? to their deck$`), (m) => ({ tipo: 'alMazo', jugador: m[2], n: num(m[3]) })],
     [new RegExp(`^${P} ha movido (\\d+) cartas? de ${P} a su baraja$`), (m) => ({ tipo: 'alMazo', jugador: m[3], n: num(m[2]) })],
@@ -307,5 +352,59 @@ export function leerRegistro(texto) {
     delete e.cartasLista
     delete e.seNombraDespues
   }
+  elegirPartes(eventos)
   return { jugadores, eventos, sinLeer }
+}
+
+// ── Qué «del» parte la frase (913) ──
+//
+// De cada jugador, los Pokémon que el registro le nombra EN JUEGO (los que
+// pone, los que evolucionan, a los que une algo…) y lo que le une. Con eso,
+// de las maneras de partir «Se ha descartado X del Y de J», la buena es la
+// que nombra a uno de sus Pokémon; y a igualdad, la que nombra algo que se
+// le unió. Si ninguna, la de siempre.
+const plana = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
+export function elegirPartes(eventos) {
+  const pokemon = new Map()
+  const unidas = new Map()
+  const pon = (mapa, jugador, nombre) => {
+    if (!jugador || !nombre) return
+    if (!mapa.has(jugador)) mapa.set(jugador, new Set())
+    mapa.get(jugador).add(plana(nombre))
+  }
+  for (const e of eventos) {
+    const j = e.jugador
+    if (e.tipo === 'poner') pon(pokemon, j, e.carta)
+    if (e.tipo === 'aBanca') for (const c of e.cartas || []) pon(pokemon, j, c)
+    if (e.tipo === 'evolucionar') {
+      pon(pokemon, j, e.de)
+      pon(pokemon, j, e.a)
+    }
+    if (e.tipo === 'unir') {
+      pon(pokemon, j, e.a)
+      pon(unidas, j, e.carta)
+    }
+    if (['pasaActivo', 'retirar', 'usar', 'ko'].includes(e.tipo)) pon(pokemon, j, e.pokemon)
+    if (e.tipo === 'ataque') {
+      pon(pokemon, j, e.pokemon)
+      pon(pokemon, e.deQuien, e.objetivo)
+    }
+  }
+  for (const e of eventos) {
+    if (!e.partes || e.partes.length < 2) {
+      delete e.partes
+      continue
+    }
+    const suyos = pokemon.get(e.jugador) || new Set()
+    const suyas = unidas.get(e.jugador) || new Set()
+    const nota = (p) => (suyos.has(plana(p.pokemon)) ? 2 : 0) + (suyas.has(plana(p.carta)) ? 1 : 0)
+    let mejor = null
+    for (const p of e.partes) if (nota(p) > (mejor ? nota(mejor) : 0)) mejor = p
+    if (mejor) {
+      e.carta = mejor.carta
+      e.pokemon = mejor.pokemon
+    }
+    delete e.partes
+  }
+  return eventos
 }
