@@ -31,7 +31,7 @@ console.log('── 1. La función ──')
   const cuerpo = await r.json()
   check('a trozos: 1.230 sets en dos peticiones (con .limit(2000) venían 1.000)', cuerpo.sets.length === 1230 && pedidas.length === 2, `${cuerpo.sets.length} en ${pedidas.length}`)
   check('  …del mercado, sin los escondidos y con las columnas de la estantería', /market=eq\.WEST/.test(pedidas[0]) && /oculto=not\.is\.true/.test(pedidas[0]) && pedidas[0].includes(fn.COLUMNAS) && /order=release_date\.desc\.nullslast,id\.asc/.test(pedidas[0]))
-  check('  …y la CDN la guarda (durable, con stale-while-revalidate)', /durable/.test(r.headers.get('netlify-cdn-cache-control') || '') && /stale-while-revalidate/.test(r.headers.get('netlify-cdn-cache-control') || '') && /max-age=60/.test(r.headers.get('cache-control') || ''))
+  check('  …y la CDN la guarda (durable, con stale-while-revalidate y su etiqueta; el navegador no, desde la 908)', /durable/.test(r.headers.get('netlify-cdn-cache-control') || '') && /stale-while-revalidate/.test(r.headers.get('netlify-cdn-cache-control') || '') && /max-age=0, must-revalidate/.test(r.headers.get('cache-control') || '') && r.headers.get('netlify-cache-tag') === 'sets')
   pedidas.length = 0
   await fn.responder(new Request('https://x/f?market=todos'), { fetchImpl })
   check('«todos» no filtra por mercado', !/market=eq/.test(pedidas[0]))
