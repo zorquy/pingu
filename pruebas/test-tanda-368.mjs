@@ -202,6 +202,8 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
   await page.click('#mcEdMas')
   await page.waitForTimeout(400)
   if (await page.locator('#mcAdMas').isVisible()) { await page.click('#mcAdMas'); await page.waitForTimeout(200) }
+  // Desde la 922, con varias versiones se elige primero «¿Cuál tienes?».
+  if (await page.locator('#mcAdElegir .vp-opcion').first().isVisible()) { await page.locator('#mcAdElegir .vp-opcion').first().click(); await page.waitForTimeout(200) }
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   check('al añadir, la carta pasa a «la tengo»', (await bolsillo(1).getAttribute('class'))?.includes('tengo'),

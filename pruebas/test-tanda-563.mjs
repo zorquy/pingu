@@ -51,7 +51,7 @@ await page.addInitScript(() => {
     { id: 'sv8-2', market: 'WEST', set_id: 'sv8', local_id: '2', name: 'Pikachu ex', name_es: 'Pikachu ex', image_path: 'x/2', rarity: 'Rare', category: 'Pokemon', variants: { normal: true, reverse: true } },
     // Y una SIN engordar: `variants` a null es «no se sabe», que no es lo
     // mismo que «solo normal» — ahí se ofrecen todas (variantes.js).
-    { id: 'sv8-3', market: 'WEST', set_id: 'sv8', local_id: '3', name: 'Snorlax', name_es: 'Snorlax', image_path: 'x/3', rarity: 'Rare', category: 'Pokemon', variants: null },
+    { id: 'sv8-3', market: 'WEST', set_id: 'sv8', local_id: '3', name: 'Snorlax', name_es: 'Snorlax', image_path: 'x/3', rarity: null, category: 'Pokemon', variants: null },
   ]
   window.__FAKE_COLECCION__ = [
     { id: 'l1', card_id: 'sv8-1', market: 'WEST', cantidad: 2, idioma: 'es', estado: 'NM', variante: 'holo', gradeo: 'PSA 10', created_at: '2026-10-01T10:00:00Z' },
@@ -143,7 +143,7 @@ console.log('── 3. La versión, la de ESA carta ──')
   check('el Pikachu ofrece sus dos', vs2.join(',') === 'normal,reverse', vs2.join(','))
   await abrir('Snorlax')
   const vs3 = await page.$$eval('#mcEdVariante option', (os) => os.map((o) => o.value))
-  check('y la que no se sabe ofrece todas', vs3.length === 4, vs3.join(','))
+  check('y la que no se sabe (sin versiones ni rareza: 922) ofrece todas', vs3.length === 4, vs3.join(','))
 }
 
 console.log('── 4. Un gradeo viejo no se toca ──')

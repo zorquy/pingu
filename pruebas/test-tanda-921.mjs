@@ -104,15 +104,19 @@ for (const ancho of [1366, 1440]) {
 
   const chips = await page.$$eval('#mcEdVersiones .mc-version', (bs) => bs.map((b) => b.innerText.replace(/\s+/g, ' ').trim()))
   const vers = await caja(page, '#mcEdVersiones')
+  vers.ultimoDer = await page.$eval('#mcEdVersiones .mc-version:last-child', (e) => Math.round(e.getBoundingClientRect().right))
   const acc = await caja(page, '#mcEdAcciones')
-  check('las versiones en chips, a la vista', chips.length === 2 && /^Normal Tienes 2$/.test(chips[0]) && !(await page.locator('#mcEdVersion').isVisible()), JSON.stringify(chips))
-  check('  …y «− Tienes 2 +» en la misma fila, a la derecha', Math.abs(vers.y + vers.h / 2 - (acc.y + acc.h / 2)) <= 12 && acc.x > vers.der, JSON.stringify({ vers, acc }))
+  check('las versiones en chips, a la vista', chips.length === 2 && /^Normal ✓$/.test(chips[0]) && chips[1] === 'Reverse holo' && !(await page.locator('#mcEdVersion').isVisible()), JSON.stringify(chips))
+  // Desde la 923 la fila de versiones ocupa todo el ancho y deja su sitio
+  // a la derecha (`padding-right`) al «− Tienes 2 +»: se mira el último chip.
+  check('  …y «− Tienes 2 +» en la misma fila, a la derecha', Math.abs(vers.y + vers.h / 2 - (acc.y + acc.h / 2)) <= 12 && acc.x > vers.ultimoDer, JSON.stringify({ vers, acc }))
   await page.waitForTimeout(600)
   const alb = await caja(page, '#mcEdCarpetasBloque')
   const quien = await caja(page, '#mcEdQuienBloque')
   check('los álbumes y quién la tiene, uno al lado del otro', alb.h > 0 && quien.h > 0 && Math.abs(alb.y - quien.y) <= 4 && alb.der <= quien.x, JSON.stringify({ alb, quien }))
   const atrib = await page.$$eval('#mcEdTabla .mc-atrib', (fs) => new Set(fs.map((f) => Math.round(f.getBoundingClientRect().left))).size)
-  check('los atributos, en tabla de dos columnas', atrib === 2, String(atrib))
+  // Tres desde la 923, para que la ficha quepa sin desplazarse.
+  check('los atributos, en tabla de tres columnas', atrib === 3, String(atrib))
 
   await page.click('#mcEdSiguiente')
   await page.waitForTimeout(900)

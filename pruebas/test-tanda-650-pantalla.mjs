@@ -77,7 +77,9 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   check('  …con la carta y su nombre', (await page.locator('#mcAdCarta img').count()) === 1 && limpio(await page.locator('#mcAdNombre').innerText()) === 'Weedle')
   const chips = page.locator('#mcAdIdiomas .mc-idioma-chip')
   check('los idiomas son chips con bandera, y el español viene puesto', (await chips.count()) >= 5 && (await chips.locator('.pv-bandera').count()) === (await chips.count()) && (await page.locator('#mcAdIdiomas .mc-idioma-chip.activo').getAttribute('data-idioma')) === 'es')
-  check('la versión se ofrece (normal y reverse)', (await page.locator('#mcAdVarianteLabel').isVisible()) && (await page.$$eval('#mcAdVariante option', (os) => os.map((o) => o.value).join(','))) === 'normal,reverse')
+  // Desde la 922 la versión se elige primero, en «¿Cuál tienes?».
+  check('la versión se ofrece (normal y reverse)', (await page.locator('#mcAdElegir').isVisible()) && (await page.$$eval('#mcAdElegir .vp-opcion', (os) => os.map((o) => o.dataset.vpVersion).join(','))) === 'normal,reverse')
+  await page.click('#mcAdElegir [data-vp-version="normal"]')
   await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]').click()
   await page.locator('#mcAdCantidad').locator('xpath=../button[@data-paso="1"]').click()
   await page.fill('#mcAdCompra', '2,5')
@@ -104,7 +106,7 @@ console.log('\n── 2. Una que ya tienes en español: «Ya tienes 1» arriba, 
   // ya tienes lo dice la cabecera y el formulario está a la vista.
   check('el diálogo abre en el formulario y la cabecera dice «Ya tienes 1»', (await page.locator('#mcAdForm').isVisible()) && limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1', limpio(await page.locator('#mcAdTienes').innerText()))
   check('  …con el idioma otra vez a elegir', (await page.locator('#mcAdIdiomas .mc-idioma-chip').count()) >= 5)
-  check('  …y sin desplegable de versión: solo existe en holo', !(await page.locator('#mcAdVarianteLabel').isVisible()))
+  check('  …y sin elegir versión: solo existe en holo', !(await page.locator('#mcAdVarianteLabel').isVisible()) && !(await page.locator('#mcAdElegir').isVisible()))
   await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]').click()
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)

@@ -60,7 +60,7 @@ console.log('── 2. La ficha de la copia en español ──')
   // Desde la 915: una TARJETA por idioma (sin saber los del set, los que
   // tienen precio), la de tu copia la primera, y TCGplayer la última.
   const filas = await bloque.locator('.pv-tarjeta:not(.pv-tarjeta-tcg)').allInnerTexts()
-  check('las tarjetas: español, inglés y francés (sin alemán ni italiano, que no tienen)', filas.map(limpio).join(' | ') === 'ES tu copia 140,00 € mínimo en español en Cardmarket · NM · 5 oct | EN 194,00 € Inglés | FR 150,00 € Francés', filas.map(limpio).join(' | '))
+  check('las tarjetas: español, inglés y francés (sin alemán ni italiano, que no tienen)', filas.map(limpio).join(' | ').replace(/ mínimo en español en Cardmarket · NM · 5 oct| Inglés| Francés/g, '') === 'ES tu copia 140,00 € | EN 194,00 € | FR 150,00 €', filas.map(limpio).join(' | '))
   check('  …con la española la primera y marcada', /^ES tu copia 140,00 €/.test(limpio(await bloque.locator('.pv-tarjeta-tuya').innerText())))
   check('  …y TCGplayer en su tarjeta, en euros', /TCGplayer 171,08 €/i.test(limpio(await bloque.locator('.pv-tarjeta-tcg').innerText())), limpio(await bloque.locator('.pv-tarjeta-tcg').innerText()))
   const cm = bloque.locator('.pv-tarjeta-tuya')

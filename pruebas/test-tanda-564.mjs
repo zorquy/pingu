@@ -113,14 +113,16 @@ console.log('── 2. La ficha de una que no tienes: la versión en un desplega
   await page.waitForTimeout(400)
   const vs = await page.$$eval('#mcAdVariante option', (os) => os.map((o) => o.value))
   check('dos versiones, un desplegable con las dos', vs.join(',') === 'normal,reverse', vs.join(','))
-  check('  …a la vista', (await page.isVisible('#mcAdVariante')) === true)
+  // Desde la 922, a la vista en la lista «¿Cuál tienes?» (el desplegable
+  // sigue guardando el valor, escondido).
+  check('  …a la vista', (await page.isVisible('#mcAdElegir')) === true && (await page.locator('#mcAdElegir .vp-opcion').count()) === 2)
   const botones = page.locator('#mcAdForm button[type="submit"]')
   check('  …y un solo botón', (await botones.count()) === 1, String(await botones.count()))
   // Y lo que PINGU no veía: con qué idioma y en qué estado entra — ahora
   // se ELIGE, con el español y Near Mint puestos de antemano.
   check('el idioma y el estado se eligen, con español y Near Mint puestos', (await page.locator('#mcAdIdiomas .mc-idioma-chip.activo').getAttribute('data-idioma')) === 'es' && (await page.inputValue('#mcAdEstado')) === 'NM')
   // Elegir reverse y pulsar guarda reverse, no la primera opción.
-  await page.selectOption('#mcAdVariante', 'reverse')
+  await page.click('#mcAdElegir [data-vp-version="reverse"]')
   await botones.first().click()
   await page.waitForTimeout(1500)
   check('al pulsar «reverse holo» entra en reverse', (await page.inputValue('#mcEdVariante')) === 'reverse', await page.inputValue('#mcEdVariante'))
@@ -139,7 +141,7 @@ console.log('── 3. Con una sola versión sigue siendo un botón y un toque �
   const botones = page.locator('#mcAdForm button[type="submit"]')
   check('una sola versión, un solo botón', (await botones.count()) === 1, String(await botones.count()))
   // Y sin desplegable: con una sola versión no hay nada que elegir.
-  check('  …y sin desplegable', (await page.isVisible('#mcAdVariante')) === false)
+  check('  …y sin desplegable ni lista', (await page.isVisible('#mcAdVariante')) === false && (await page.isVisible('#mcAdElegir')) === false)
   // Desde la 712 el botón dice lo que hará («Añadir 1 copia»); lo que se
   // vigila aquí es que no nombre una versión cuando no hay que elegir.
   check('  …y no nombra la versión', /^Añadir \d+ copias?$/.test((await botones.first().innerText()).trim()), await botones.first().innerText())

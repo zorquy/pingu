@@ -165,6 +165,9 @@ for (const [donde, ruta, abrirla, pre] of [
   await page.waitForTimeout(3000)
   await abrirla(page)
   await page.waitForTimeout(800)
+  // Desde la 922, con dos versiones se elige primero «¿Cuál tienes?»; lo
+  // que se mide aquí es el formulario de después.
+  if (await page.locator(`#${pre}Elegir .vp-opcion`).first().isVisible()) { await page.locator(`#${pre}Elegir .vp-opcion`).first().click(); await page.waitForTimeout(300) }
   const m = await page.evaluate((pre) => {
     const $ = (id) => document.getElementById(pre + id)
     const d = document.querySelector('dialog.mc-anadir-dialogo[open]')

@@ -132,7 +132,8 @@ console.log('── 4. Sin copias ──')
   check('el «+» es el botón grande y no hay «Añadir otra copia»; la primera tarjeta es «tu idioma»', r.sin && r.otra === 0 && /tu idioma/.test(r.tuya), JSON.stringify(r))
   await page.click('#cmAnadir')
   await page.waitForTimeout(600)
-  check('  …y abre la hoja de añadir', await page.isVisible('#cmAdIdiomas'))
+  // Desde la 922, con dos versiones abre preguntando «¿Cuál tienes?».
+  check('  …y abre la hoja de añadir', (await page.isVisible('#cmAdIdiomas')) || (await page.isVisible('#cmAdElegir')))
   await ctx.close()
 }
 

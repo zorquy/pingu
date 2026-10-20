@@ -74,6 +74,11 @@ console.log('── 2. Una que no tienes: la hoja corta, añadir dos y deshacer 
   })
   check('la miniatura (64 px, 748) y el nombre en una fila', cab.ancho === 64 && cab.alLado, JSON.stringify(cab))
   check('  …sin «Ya tienes» (no la tienes)', !(await page.locator('#mcAdTienes').isVisible()))
+  // Desde la 922 la versión va PRIMERO: con dos, «¿Cuál tienes?» y el resto
+  // espera; al tocar una queda arriba con «Cambiar».
+  check('la versión: «¿Cuál tienes?» con Normal y Reverse holo', (await page.locator('#mcAdElegir .vp-opcion').count()) === 2 && !(await page.locator('#mcAdGuardar').isVisible()))
+  await page.click('#mcAdElegir [data-vp-version="reverse"]')
+  check('  …al tocar Reverse, queda puesta y sale el formulario', (await page.inputValue('#mcAdVariante')) === 'reverse' && (await page.locator('#mcAdGuardar').isVisible()) && /Reverse holo/.test(await page.locator('#mcAdVersionFija').innerText()))
   const est = page.locator('#mcAdEstado + .mc-seg button')
   // Sin el nombre largo debajo desde la 748 (la maqueta no lo lleva): va
   // en el `title` de cada botón.
@@ -81,8 +86,6 @@ console.log('── 2. Una que no tienes: la hoja corta, añadir dos y deshacer 
   check('  …y cada uno mide 44 de alto', (await est.evaluateAll((bs) => bs.every((b) => b.getBoundingClientRect().height >= 44))))
   await page.locator('#mcAdEstado + .mc-seg button', { hasText: 'EX' }).click()
   check('tocar EX lo pone en el select de verdad', (await page.inputValue('#mcAdEstado')) === 'EX' && (await page.locator('#mcAdEstado + .mc-seg [aria-checked="true"]').innerText()) === 'EX')
-  await page.locator('#mcAdVariante + .mc-seg button', { hasText: 'Reverse' }).click()
-  check('la versión: Normal y Reverse holo de un toque', (await page.locator('#mcAdVariante + .mc-seg button').count()) === 2 && (await page.inputValue('#mcAdVariante')) === 'reverse')
   check('el select ya no se ve ni recibe el foco', (await page.$eval('#mcAdEstado', (s) => s.getBoundingClientRect().width <= 1 && s.tabIndex === -1 && s.getAttribute('aria-hidden') === 'true')))
   check('el botón dice lo que hará: «Añadir 1 copia»', limpio(await page.locator('#mcAdGuardar').innerText()) === 'Añadir 1 copia')
   await page.locator('#mcAdCantidad').locator('xpath=../button[@data-paso="1"]').click()
@@ -126,6 +129,7 @@ console.log('── 4. El aviso se va solo ──')
   const { page, ctx } = await abrir()
   await page.locator('#mcAlbum .mc-mas[data-anadir="xy5-1"]').first().click()
   await page.waitForTimeout(400)
+  await page.click('#mcAdElegir [data-vp-version="normal"]')
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(800)
   check('está', (await page.locator('.mc-deshacer').count()) === 1)
