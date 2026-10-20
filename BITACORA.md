@@ -45,7 +45,10 @@ PostgreSQL y una foto que no hay en este contenedor).
 partidas en inglés guardadas para ver las suyas); si PINGU juega una en
 inglés, que la pegue y se miran las líneas que salgan sin entender. Del
 Dormido no se ha visto la frase de despertarse: la chapa se queda hasta que
-vaya a la banca, evolucione o caiga.
+vaya a la banca, evolucione o caiga. Queda en GitHub la rama `wip-913` (la
+usé para cargar los módulos nuevos en el navegador contra producción; el
+proxy de esta sesión no deja borrarla): PINGU, bórrala cuando quieras, no la
+despliega nadie.
 
 ## 2026-10-20 (146) — PINGU-Claude (912 — chapas con sigla y Mi colección sin saltos)
 
