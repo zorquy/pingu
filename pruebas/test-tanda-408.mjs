@@ -153,7 +153,10 @@ console.log('\n── 2. Lo que se mudó sigue llegando por su enlace viejo ─�
   const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
   const js = ['js/mi-coleccion/albumes.js', 'js/mi-coleccion.js', 'js/carta-mercado.js']
     .map((f) => sinComentarios(leer(f))).join('\n')
-  const escritos = [...js.matchAll(/ver=(anadir|albumes|cambios)\b|'ver', '(anadir|albumes|cambios)'/g)]
+  // El `?ver=cambios` que va al PERFIL de alguien (887, desde «Quién la tiene»
+  // de la ficha, 915) no es la pestaña mudada de Mi colección: va pegado a
+  // `profileUrl`.
+  const escritos = [...js.matchAll(/ver=(anadir|albumes|cambios)\b|'ver', '(anadir|albumes|cambios)'/g)].filter((m) => !/profileUrl\(/.test(js.slice(Math.max(0, m.index - 120), m.index)))
   check('ningún sitio escribe ya un ?ver= mudado', escritos.length === 0,
     escritos.map((m) => m[0]).join(','))
 }

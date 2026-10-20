@@ -24,7 +24,8 @@ console.log('── 0. Lo estático ──')
 {
   const html = readFileSync(`${RAIZ}/mi-coleccion.html`, 'utf8')
   check('el bloque viejo de añadir ya no existe', !/mcEdAnadirBloque|mcEdAnadirVersiones|mcEdAnadirVariante/.test(html))
-  check('las acciones van dentro de la columna de la carta', /id="mcEdFoto"><\/div>\s*<!--[\s\S]*?-->\s*<div class="mc-ficha-acciones hidden" id="mcEdAcciones">/.test(html))
+  // Desde la 915 el contador va en la columna de datos, debajo del nombre y la versión.
+  check('el contador va debajo del nombre, en la columna de datos', /id="mcEditorTitulo"[\s\S]*?id="mcEdVersion"[\s\S]*?<div class="mc-ficha-acciones hidden" id="mcEdAcciones">/.test(html))
   const js = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
   check('guardar pasa por `datos.anadir`, nunca por `actualizar`', /const nueva = await datos\.anadir\(sesion\.user\.id, linea, mercado\)/.test(js) && !/tocarBolsillo\(/.test(js))
   check('cartas.html lleva lo mismo (generado)', /id="mcAnadirDialogo"/.test(readFileSync(`${RAIZ}/cartas.html`, 'utf8')))
@@ -59,6 +60,7 @@ const abrirFicha = async (page, id) => {
 const dialogo = (page) => page.locator('#mcAnadirDialogo')
 // Desde la 669 el bloque de tu copia nace plegado: Editar lo despliega.
 const desplegar = async (page) => { if (!(await page.locator('#mcEdCopiaBloque').isVisible())) { await page.click('#mcEdEditar'); await page.waitForTimeout(250) } }
+const anadirOtra = async (page) => { await desplegar(page); await page.click('#mcEdAnadirOtra'); await page.waitForTimeout(500) }
 
 console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formulario ──')
 {
@@ -66,10 +68,8 @@ console.log('\n── 1. Una que no tienes: el «+» bajo la carta abre el formu
   check('sin errores', errores.length === 0, errores.join(' | '))
   await abrirFicha(page, 'xy5-1')
   check('las acciones se ven debajo de la carta, con el «+» y sin «Tienes»', (await page.locator('#mcEdAcciones').isVisible()) && (await page.locator('#mcEdMas').isVisible()) && !(await page.locator('#mcEdTienes').isVisible()))
-  const foto = await page.locator('#mcEdFoto').boundingBox()
-  const mas = await page.locator('#mcEdMas').boundingBox()
-  // Desde la 667 es la primera de tres losetas: debajo de la carta y dentro de su ancho.
-  check('  …pegado a la carta: justo debajo y dentro de su ancho', mas.y >= foto.y + foto.height && mas.x >= foto.x - 1 && mas.x + mas.width <= foto.x + foto.width + 1, JSON.stringify({ foto, mas }))
+  // Desde la 915, sin copias el «+» es el botón grande de añadir (como Dex).
+  check('  …y sin copias es el botón grande «Añadir a mi colección»', limpio(await page.locator('#mcEdMas').innerText()) === '+ Añadir a mi colección' && !(await page.locator('#mcEdMenos').isVisible()), limpio(await page.locator('#mcEdMas').innerText()))
   check('  …y no hay bloque de «tu copia»', !(await page.locator('#mcEdCopiaBloque').isVisible()))
   await page.click('#mcEdMas')
   await page.waitForTimeout(500)
@@ -97,7 +97,8 @@ console.log('\n── 2. Una que ya tienes en español: «Ya tienes 1» arriba, 
   const { page, errores } = await abrir('/mi-coleccion.html?ver=album&set=xy5')
   await abrirFicha(page, 'xy5-150')
   check('la ficha de tu copia: «Tienes 1» y el «+»', limpio(await page.locator('#mcEdTienes').innerText()) === 'Tienes 1' && (await page.locator('#mcEdMas').isVisible()))
-  await page.click('#mcEdMas')
+  // Desde la 915 el «+» suma una IGUAL; otra distinta, desde tus copias.
+  await anadirOtra(page)
   await page.waitForTimeout(500)
   // Desde la 748 (la C5 de su maqueta) no hay paso de «Añadir más»: lo que
   // ya tienes lo dice la cabecera y el formulario está a la vista.
@@ -118,7 +119,7 @@ console.log('\n── 2. Una que ya tienes en español: «Ya tienes 1» arriba, 
   const lineasEn = await page.evaluate(() => fetch('/rest/v1/user_collection?select=idioma,cantidad').then((r) => r.json()).catch(() => null))
   check('  …y en la base son DOS líneas, una por idioma', Array.isArray(lineasEn) ? lineasEn.length === 2 && lineasEn.some((l) => l.idioma === 'es' && l.cantidad === 1) && lineasEn.some((l) => l.idioma === 'en' && l.cantidad === 1) : true, JSON.stringify(lineasEn))
   // Y otra vez en inglés: no es una tercera línea, es una copia más.
-  await page.click('#mcEdMas')
+  await anadirOtra(page)
   await page.waitForTimeout(400)
   check('la tercera vez dice «Ya tienes 2»', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 2')
   await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]').click()

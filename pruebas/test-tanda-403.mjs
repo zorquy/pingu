@@ -55,13 +55,14 @@ console.log('\n── 2. Lo que hace la pantalla ──')
   // Una respuesta que llega tarde no puede pintar la gente de OTRA carta:
   // la ficha se abre y se cierra más rápido que la consulta.
   check('una respuesta que llega tarde no pinta la carta equivocada',
-    /l\.card_id !== cardId/.test(cuerpo), cuerpo.slice(0, 260))
+    // Desde la 915 mira la CARTA abierta: una que no tienes no tiene línea.
+    /cartaAbierta !== cardId/.test(cuerpo), cuerpo.slice(0, 260))
   // Y el nombre, con el color de su rango.
   check('el nombre lleva el color de su rango', /atributosDeRango\(g\)/.test(cuerpo))
   // Sin la migración no se grita en mitad de una ficha.
   const datos = leer('js/mi-coleccion/datos.js')
   check('sin la migración, el bloque calla',
-    /quienLaTiene[\s\S]{0,400}sinMigracion\) return \[\]/.test(datos))
+    /quienLaTiene[\s\S]{0,1200}sinMigracion\) return \[\]/.test(datos))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

@@ -177,7 +177,7 @@ console.log('\n── 3. La ficha, en un diálogo ──')
   // son por lo que se filtra, y verlos aquí enseña qué se puede pedir.
   const tabla = (await page.locator('#mcEdTabla').textContent())?.replace(/\s+/g, ' ') || ''
   check('la tabla trae los datos de la carta',
-    /Rareza/.test(tabla) && /Ilustrador/.test(tabla) && /Número/.test(tabla), tabla.slice(0, 120))
+    /Rareza/.test(tabla) && /Ilustrador/.test(tabla) && /Expansión.*· \d+\/\d+/.test(tabla), tabla.slice(0, 120))
   await page.close()
 }
 
@@ -191,7 +191,8 @@ console.log('\n── 4. Lo que no se sabe no se pinta ──')
   await page.waitForTimeout(600)
   const tabla = (await page.locator('#mcEdTabla').textContent())?.replace(/\s+/g, ' ') || ''
   check('sin ilustrador, no sale la fila del ilustrador', !/Ilustrador/.test(tabla), tabla.slice(0, 120))
-  check('  …pero sí lo que sí se sabe', /Número/.test(tabla), tabla.slice(0, 120))
+  // Desde la 915 el número va con la expansión («Scarlet & Violet · 1/4»).
+  check('  …pero sí lo que sí se sabe', /Expansión.*· \d+\/\d+/.test(tabla), tabla.slice(0, 120))
   await page.close()
 }
 

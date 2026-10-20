@@ -42,7 +42,9 @@ const porLaFicha = async (page, id) => {
   if (await mas.isVisible().catch(() => false)) return mas.click()
   await page.locator(`#mcAlbum [data-carta="${id}"]`).first().click()
   await page.waitForTimeout(800)
-  await page.click('#mcEdMas')
+  // Desde la 915 la hoja de añadir sale de tus copias, «Añadir otra copia».
+  if (!(await page.locator('#mcEdCopiaBloque').isVisible())) await page.click('#mcEdEditar')
+  await page.click('#mcEdAnadirOtra')
 }
 const anadir = async (page, id) => {
   await porLaFicha(page, id)

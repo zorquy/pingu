@@ -1727,6 +1727,33 @@ export const supabase = {
         .map((c) => ({ card_id: c.card_id, market: c.market || 'WEST', idioma: c.idioma, estado: c.estado, variante: c.variante || null, gradeo: c.gradeo || null, cambio: Number(c.cambio) }))
       return { data: filas.slice(0, args.p_limite || 500), error: null }
     }
+    // Quién la tiene (915): la MISMA cuenta que
+    // supabase-migration-915-quien-la-tiene.sql (probada contra PostgreSQL en
+    // sql-tanda-915.sql): los de colección pública con todas sus copias, los
+    // de colección privada solo con las que dan, sin ti ni un baneado; los que
+    // sigues primero, luego los que la dan, luego quien más tiene.
+    // `window.__SIN_QUIEN_915__` hace como si la migración no estuviera.
+    if (nombre === 'coleccion_quien_la_tiene_todos') {
+      if (typeof window !== 'undefined' && window.__SIN_QUIEN_915__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.coleccion_quien_la_tiene_todos' } }
+      const yo = sesion?.user?.id || null
+      const por = new Map()
+      for (const c of T.user_collection) {
+        if (c.card_id !== args.p_card_id || c.user_id === yo) continue
+        const x = por.get(c.user_id) || { copias: 0, da: 0 }
+        x.copias += Number(c.cantidad) || 0
+        x.da += Math.max(Number(c.cambio) || 0, 0)
+        por.set(c.user_id, x)
+      }
+      const filas = []
+      for (const [id, x] of por) {
+        const p = T.user_profiles.find((u) => u.id === id)
+        if (!p || p.is_banned || !(p.coleccion_publica || x.da > 0)) continue
+        filas.push({ user_id: id, username: p.username, display_name: p.display_name || null, avatar_url: p.avatar_url || null, is_admin: !!p.is_admin, is_moderator: !!p.is_moderator, copias: p.coleccion_publica ? x.copias : x.da, da: x.da, sigues: T.user_follows.some((f) => f.follower_id === yo && f.following_id === id) })
+      }
+      filas.sort((a, b) => (b.sigues - a.sigues) || ((b.da > 0) - (a.da > 0)) || (b.copias - a.copias) || String(a.username).localeCompare(String(b.username)))
+      const tope = Math.max(1, Math.min(args.p_limite || 12, 50))
+      return { data: filas.slice(0, tope).map((f) => ({ ...f, total: filas.length })), error: null }
+    }
     // El Mercado (tanda 770): lo que dan los demás, por carta. La MISMA
     // cuenta que supabase-migration-mercado.sql (probada contra PostgreSQL en
     // sql-mercado.sql): por persona y no por línea, sin lo mío ni lo de un
