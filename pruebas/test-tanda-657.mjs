@@ -66,8 +66,8 @@ console.log('── 1. El «+» en cada carta (657) ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 
-  const cuad = await abrir('/mi-coleccion.html?ver=album&set=xy5', { vista: 'cuadricula', ancho: 390 })
-  const m2 = cuad.page.locator('#mcAlbum .mc-rejilla-celda .mc-mas')
+  const cuad = await abrir('/mi-coleccion.html?ver=album&set=xy5', { vista: 'archivador', ancho: 390 }) // 927: el archivador son hojas; la cuadrícula, los bolsillos de arriba
+  const m2 = cuad.page.locator('#mcAlbum .mc-exp-archivador .mc-mas')
   const caja = await m2.first().boundingBox()
   check('en la cuadrícula del móvil también, y mide 44', (await m2.count()) === 2 && caja && caja.width >= 44 && caja.height >= 44, JSON.stringify(caja))
   await m2.first().tap()

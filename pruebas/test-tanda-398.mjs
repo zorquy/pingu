@@ -98,7 +98,7 @@ const abrir = async () => {
   // se vieron**. Contar que un elemento existe no es verlo.
   const pies = () => page.locator('.mc-album-rejilla .mc-chapa-variante').count()
   check('de entrada no hay pies de versión', (await pies()) === 0)
-  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
+  await (async (p) => { if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) { await p.click('#mcAlbumFiltrosCerrar'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300) })(page) /* 927: «Apilar», en la barra */
   await page.waitForTimeout(1200)
   check('al partir, cada versión tiene su casilla', (await pies()) === 6, `${await pies()}`)
   check('  …y cada una dice cuál es',
@@ -107,7 +107,8 @@ const abrir = async () => {
   check('  …y el interruptor lo dice sin color',
     // Desde la tanda 473 es UN botón con `aria-pressed`, no dos chapas en
     // un grupo: una de las dos estaba siempre de adorno.
-    (await page.locator('#mcVistaVariantes').getAttribute('aria-pressed')) === 'true')
+    // Y desde la 927 es «Apilar»: separadas es «Apilar» SIN pulsar.
+    (await page.locator('#mcVistaVariantes').getAttribute('aria-pressed')) === 'false')
 
   // Una casilla partida es SU versión: la chapa lo dice con `data-var`.
   // (El «+» del bolsillo se fue en la 565: la casilla abre la ficha, como

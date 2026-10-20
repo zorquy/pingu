@@ -67,9 +67,10 @@ console.log('\n── 1. Una que no tienes enseña su precio ──')
 
 console.log('\n── 2. En el móvil, en cuadrícula y en lista, la carta abre el pop-up ──')
 {
-  for (const vista of ['cuadricula', 'lista']) {
+  // Desde la 927 la cuadrícula son los bolsillos y el archivador, hojas.
+  for (const vista of ['cuadricula', 'lista', 'archivador']) {
     const { page, errores } = await abrir('/mi-coleccion.html?ver=album&set=xy5', { ancho: 390, vista })
-    const selector = vista === 'cuadricula' ? '#mcAlbum .mc-rejilla-celda' : '#mcAlbum .mc-album-fila'
+    const selector = vista === 'lista' ? '#mcAlbum .mc-album-fila' : '#mcAlbum .mc-bolsillo-enlace'
     check(`[${vista}] la expansión se ve en ${vista}`, (await page.locator(selector).count()) === 2, String(await page.locator(selector).count()))
     await page.locator(selector).first().tap()
     await page.waitForTimeout(1200)

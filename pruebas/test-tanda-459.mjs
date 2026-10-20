@@ -151,7 +151,8 @@ console.log('\n── 4. Los mandos, en UNA fila que se desliza ──')
   // lo miran la comprobación de arriba y la 473.
   // Desde la 919 la fila solo lleva «Filtros» (y el ✕), al lado del
   // buscador: ya no hay nada que deslizar.
-  check('  …y solo con «Filtros» al lado del buscador (919)', await page.evaluate(() => [...document.querySelectorAll('#mcAlbumFiltros > :not(.hidden)')].map((e) => e.id).join() === 'mcAlbumAbrirFiltros'))
+  // Y desde la 927 (Dex), la vista, «Apilar» y «Filtros», en ese orden.
+  check('  …con la vista, «Apilar» y «Filtros» al lado del buscador (927)', await page.evaluate(() => [...document.querySelectorAll('#mcAlbumFiltros > :not(.hidden)')].map((e) => e.id).join() === 'mcAlbumVista,mcVistaVariantes,mcAlbumAbrirFiltros'))
   // Lo que se midió: antes de la 459 había 920 px entre el borde de arriba
   // y la primera carta, de los cuales 264 eran cuatro filas de controles.
   const hasta = await page.evaluate(() => {

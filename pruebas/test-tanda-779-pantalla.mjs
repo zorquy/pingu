@@ -71,7 +71,8 @@ const resultados = (page) => page.$$eval('#mcBuscarResultados .mc-resultado', (r
   id: r.dataset.carta, v: r.dataset.variante || null,
   chapa: r.querySelector('.mc-chapa-variante')?.textContent || '',
   velo: Boolean(r.querySelector('.mc-velo-reverse')),
-  tengo: r.querySelector('.mc-tengo-marca')?.textContent || '',
+  // Desde la 927 el ✓ va siempre y la cuenta en su insignia.
+  tengo: (r.querySelector('.mc-tengo-marca')?.textContent || '') + (r.querySelector('.mc-insignia-n')?.textContent || ''),
 })))
 
 for (const ancho of [390, 1280]) {
@@ -89,13 +90,13 @@ for (const ancho of [390, 1280]) {
   check('  …con su chapa, N y RH', r[0].chapa.startsWith('N') && r[1].chapa.startsWith('RH'), r.slice(0, 2).map((x) => x.chapa).join(' | '))
   check('  …el velo solo en la reverse', r.every((x) => x.velo === (x.v === 'reverse')))
   const bulba2 = r.filter((x) => x.id === 'sv8-2')
-  check('  …y el ✓ en la versión que tienes (sv8-2 reverse ×2), no en la otra', bulba2.find((x) => x.v === 'reverse')?.tengo === '×2' && !bulba2.find((x) => x.v === 'normal')?.tengo, JSON.stringify(bulba2))
+  check('  …y el ✓ en la versión que tienes (sv8-2 reverse ×2), no en la otra', bulba2.find((x) => x.v === 'reverse')?.tengo === '✓2' && !bulba2.find((x) => x.v === 'normal')?.tengo, JSON.stringify(bulba2))
   check('  …y el botón dice «separadas»', (await boton.textContent()) === 'Variantes separadas' && (await boton.getAttribute('aria-pressed')) === 'true')
   // La misma memoria: la expansión se abre ya separada.
   await page.click('#mcMenu [data-pestania="album"]')
   await page.waitForTimeout(800)
   await abrirSet(page)
-  check('la expansión se abre separada (la misma memoria)', (await page.getAttribute('#mcVistaVariantes', 'aria-pressed')) === 'true' && (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 24)
+  check('la expansión se abre separada (la misma memoria)', (await page.getAttribute('#mcVistaVariantes', 'aria-pressed')) === 'false' && (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 24) // 927: separadas = «Apilar» sin pulsar
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -104,7 +105,7 @@ console.log('\n── Cambiar de catálogo no la olvida ──')
 {
   const { page, errores } = await abrir({ ruta: '/mi-coleccion.html?ver=album' })
   await abrirSet(page)
-  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
+  await (async (p) => { if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) { await p.click('#mcAlbumFiltrosCerrar'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300) })(page) /* 927: «Apilar», en la barra */
   await page.waitForTimeout(600)
   const vista = await page.evaluate(() => localStorage.getItem('mc-album-vista'))
   // Al japonés y de vuelta, SIN recargar: con el selector de catálogo, que

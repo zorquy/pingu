@@ -61,10 +61,11 @@ const enLaBarra = await page.evaluate(() =>
 // Tres desde la tanda 478, que añadió el de la VISTA (cuadrícula / lista /
 // archivador) — lo que esta prueba defiende es que no vuelvan los cinco
 // controles sueltos, no un número concreto.
-// Desde la 919 solo «Filtros»: la vista y las variantes entran en su hoja.
-check('solo «Filtros» al lado del buscador (919)', enLaBarra.length === 1 && enLaBarra[0] === 'mcAlbumAbrirFiltros', enLaBarra.join(','))
-check('y la vista y las variantes, dentro de la hoja',
-  await page.evaluate(() => ['mcVistaVariantes', 'mcAlbumVista'].every((id) => document.getElementById(id)?.closest('dialog')?.id === 'mcAlbumPanelFiltros')),
+// Desde la 919 solo «Filtros», y desde la 927 (Dex) otra vez la vista y
+// «Apilar»: tres, y en ese orden. Lo demás sigue dentro del panel.
+check('la vista, «Apilar» y «Filtros» al lado del buscador (927)', enLaBarra.join(',') === 'mcAlbumVista,mcVistaVariantes,mcAlbumAbrirFiltros', enLaBarra.join(','))
+check('y ninguno de los dos dentro de la hoja',
+  await page.evaluate(() => ['mcVistaVariantes', 'mcAlbumVista'].every((id) => !document.getElementById(id)?.closest('dialog'))),
   enLaBarra.join(','))
 // Los desplegables sueltos ya no están EN LA BARRA: están dentro del panel.
 // Se mira dónde VIVEN y no si existen — existir, existen.
@@ -82,18 +83,18 @@ check('el grupo de dos chapas ya no existe',
 console.log('\n── 2. UN botón de variantes, y dice el ESTADO ──')
 // Un control que guarda un estado tiene que decir el estado, o hay que
 // pulsarlo para saber qué tenías puesto (la lección de la 449).
+// Desde la 927 es «Apilar», como en Dex: el rótulo no cambia y el estado
+// lo dice `aria-pressed` (pulsado = juntas), que es lo que se lee.
 const variantes = page.locator('#mcVistaVariantes')
-check('empieza en «Variantes juntas»', (await variantes.textContent()).trim() === 'Variantes juntas',
+check('empieza en «Apilar»', (await variantes.textContent()).trim() === 'Apilar',
   await variantes.textContent())
-check('y sin pulsar', (await variantes.getAttribute('aria-pressed')) === 'false')
+check('y pulsado (juntas)', (await variantes.getAttribute('aria-pressed')) === 'true')
 const bolsillosJuntas = await page.locator('.mc-bolsillo').count()
-await page.click('#mcAlbumAbrirFiltros')
-await page.waitForTimeout(300)
 await variantes.click()
 await page.waitForTimeout(700)
-check('al pulsarlo dice «Variantes separadas»', (await variantes.textContent()).trim() === 'Variantes separadas',
+check('al pulsarlo sigue diciendo «Apilar»', (await variantes.textContent()).trim() === 'Apilar',
   await variantes.textContent())
-check('y queda pulsado', (await variantes.getAttribute('aria-pressed')) === 'true')
+check('y queda sin pulsar (separadas)', (await variantes.getAttribute('aria-pressed')) === 'false')
 const bolsillosSeparadas = await page.locator('.mc-bolsillo').count()
 // Esto es lo que prueba que el botón HACE algo y no solo cambia de rótulo:
 // en «separadas» cada versión tiene su hueco (la lección de la 313 — una
@@ -104,9 +105,7 @@ check('y el archivador reparte un hueco por versión', bolsillosSeparadas > bols
 check('se recuerda en el navegador', (await page.evaluate(() => localStorage.getItem('mc-split'))) === '1')
 await variantes.click()
 await page.waitForTimeout(700)
-check('y vuelve', (await variantes.textContent()).trim() === 'Variantes juntas')
-await page.click('#mcAlbumFiltrosCerrar') // 919: se pulsó dentro de la hoja de filtros
-await page.waitForTimeout(300)
+check('y vuelve', (await variantes.getAttribute('aria-pressed')) === 'true')
 
 console.log('\n── 3. El panel abre y cierra por los cuatro caminos ──')
 const panel = page.locator('#mcAlbumPanelFiltros')

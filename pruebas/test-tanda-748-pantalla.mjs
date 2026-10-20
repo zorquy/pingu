@@ -258,7 +258,7 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
     energias: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-energias .mc-seg-dibujo')].map((b) => b.getAttribute('aria-label')),
     borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-cabecera'),
   }))
-  check('[Expansión] arriba «Qué cartas»: Todas (puesta), Las tengo, Me faltan', a.primero === 'Qué cartas' && a.que === 'Todas*|Las tengo|Me faltan', JSON.stringify(a))
+  check('[Expansión] arriba «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Repetidas, 927)', a.primero === 'Qué cartas' && a.que === 'Todas*|Las tengo|Me faltan|Repetidas', JSON.stringify(a))
   check('[Expansión]   …el tipo, con los símbolos de las que hay en la expansión', a.energias.sort().join() === 'Agua,Dragón,Fuego,Planta', JSON.stringify(a.energias))
   check('[Expansión]   …y «Borrar todo» arriba', a.borrar)
   await page.click('#mcAlbumSoloFaltan')

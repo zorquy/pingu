@@ -6,6 +6,10 @@
 // cuando la carta tiene varias; el «+» pequeño en la esquina y solo en lo
 // que falta (lo tuyo se suma desde la ficha). Se mira en las dos vistas
 // que pintan cartas (archivador y cuadrícula), en el móvil y con ratón.
+//
+// Desde la 927 (Dex) el ✓ va en el CENTRO y arriba a la derecha una columna
+// de insignias: «2» si tienes dos o más y «R+» si tienes la reverse. La
+// versión escrita abajo («N + RH») se fue: lo dicen las insignias.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -42,7 +46,7 @@ async function abrir({ movil, vista }) {
   return { page, ctx, errores }
 }
 
-for (const [rotulo, movil, vista, sel] of [['móvil · archivador', true, null, '.mc-bolsillo'], ['ratón · archivador', false, null, '.mc-bolsillo'], ['móvil · cuadrícula', true, 'cuadricula', '.mc-rejilla-celda']]) {
+for (const [rotulo, movil, vista, sel] of [['móvil · cuadrícula', true, null, '.mc-bolsillo'], ['ratón · cuadrícula', false, null, '.mc-bolsillo'], ['móvil · archivador', true, 'archivador', '.mc-bolsillo:not(.mc-bolsillo-vacio)']]) {
   console.log(`── ${rotulo} ──`)
   const { page, ctx, errores } = await abrir({ movil, vista })
   const casillas = await page.evaluate((s) => [...document.querySelectorAll(`#mcAlbum ${s}`)].map((c) => {
@@ -50,7 +54,7 @@ for (const [rotulo, movil, vista, sel] of [['móvil · archivador', true, null, 
     const img = c.querySelector('img')
     const mas = c.querySelector('.mc-mas')
     const marca = c.querySelector('.mc-tengo-marca')
-    const version = c.querySelector('.mc-tengo-version')
+    const insignias = [...c.querySelectorAll('.mc-insignia')].map((i) => i.textContent.trim()).join(',')
     const num = c.querySelector('.mc-bolsillo-num')
     const r = c.getBoundingClientRect()
     const rm = mas?.getBoundingClientRect()
@@ -59,8 +63,8 @@ for (const [rotulo, movil, vista, sel] of [['móvil · archivador', true, null, 
       id, tengo: c.classList.contains('tengo'),
       img: img ? { filtro: getComputedStyle(img).filter, opacidad: getComputedStyle(img).opacity } : null,
       mas: mas && getComputedStyle(mas).display !== 'none' ? { ancho: rm.width, dibujo, abajoDerecha: rm.right <= r.right + 0.5 && rm.bottom <= r.bottom + 0.5 && rm.left > r.left + r.width / 2 && rm.top > r.top + r.height / 2 } : null,
-      marca: marca && getComputedStyle(marca).display !== 'none' ? { texto: marca.textContent, arribaDerecha: marca.getBoundingClientRect().top < r.top + 16 && marca.getBoundingClientRect().right > r.right - 16 } : null,
-      version: version ? version.textContent : null,
+      marca: marca && getComputedStyle(marca).display !== 'none' ? { texto: marca.textContent, centro: (() => { const m = marca.getBoundingClientRect(); return Math.abs(m.left + m.width / 2 - (r.left + r.width / 2)) < 4 && Math.abs(m.top + m.height / 2 - (r.top + r.height / 2)) < 4 })() } : null,
+      insignias,
       num: num ? getComputedStyle(num).display !== 'none' : null,
     }
   }), sel)
@@ -68,15 +72,13 @@ for (const [rotulo, movil, vista, sel] of [['móvil · archivador', true, null, 
   check('salen las seis', casillas.length === 6, JSON.stringify(casillas.map((c) => c.id)))
   check('lo que falta, en GRIS y opaco (sin el nombre asomando)', [4].every((n) => /grayscale\(1\)/.test(de(n)?.img?.filtro || '') && de(n).img.opacidad === '1'), JSON.stringify(de(4)?.img))
   check('lo tuyo, a color', [1, 2, 3, 6].every((n) => de(n)?.img?.filtro === 'none'), JSON.stringify([1, 2, 3, 6].map((n) => de(n)?.img)))
-  check('una copia: ✓ arriba a la derecha', de(1)?.marca?.texto === '✓' && de(1).marca.arribaDerecha && de(6)?.marca?.texto === '✓', JSON.stringify([de(1)?.marca, de(6)?.marca]))
-  check('más de una: «×N» en su sitio', de(2)?.marca?.texto === '×2' && de(2).marca.arribaDerecha && de(3)?.marca?.texto === '×2', JSON.stringify([de(2)?.marca, de(3)?.marca]))
+  check('lo tuyo: el ✓ en el centro', [1, 2, 3, 6].every((n) => de(n)?.marca?.texto === '✓' && de(n).marca.centro), JSON.stringify([1, 2, 3, 6].map((n) => de(n)?.marca)))
+  check('una copia normal, sin insignias', de(1)?.insignias === '' && de(6)?.insignias === '', JSON.stringify([de(1)?.insignias, de(6)?.insignias]))
   check('lo que falta no lleva marca', !de(4)?.marca && !de(5)?.marca)
-  if (sel === '.mc-bolsillo' || vista) {
-    check('la versión que tienes, abajo, solo si la carta tiene varias (y no es solo la normal, 781)', de(1)?.version === null && de(2)?.version === 'Reverse holo' && de(3)?.version === 'N + RH' && de(6)?.version === null && de(4)?.version === null, JSON.stringify([1, 2, 3, 4, 6].map((n) => de(n)?.version)))
-  }
+  check('dos reverse: «2» y «R+»; normal + reverse: «2» y «R+»', de(2)?.insignias === '2,R+' && de(3)?.insignias === '2,R+' && de(4)?.insignias === '', JSON.stringify([2, 3, 4].map((n) => de(n)?.insignias)))
   check('el «+» solo en lo que falta, en la esquina de abajo a la derecha', [4, 5].every((n) => de(n)?.mas?.abajoDerecha) && [1, 2, 3, 6].every((n) => !de(n)?.mas), JSON.stringify(casillas.map((c) => [c.id, c.mas])))
   check(movil ? '  …44 px que se tocan, con un círculo dibujado de 28' : '  …de 28 px con el ratón', movil ? de(4)?.mas?.ancho === 44 : de(4)?.mas?.ancho === 28, JSON.stringify(de(4)?.mas))
-  if (sel === '.mc-bolsillo') check('el número de la casilla, solo en la que no tiene foto', de(4)?.num === false && de(5)?.num === true, JSON.stringify([de(4)?.num, de(5)?.num]))
+  if (sel.startsWith('.mc-bolsillo')) check('el número de la casilla, solo en la que no tiene foto', de(4)?.num === false && de(5)?.num === true, JSON.stringify([de(4)?.num, de(5)?.num]))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

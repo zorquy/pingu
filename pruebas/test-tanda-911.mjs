@@ -206,7 +206,8 @@ console.log('\n── 4. /carta ──')
 console.log('\n── 6. Lo estático ──')
 {
   const mc = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
-  for (const f of ['bolsilloDeVariante', 'bolsilloHtml', 'celdaDeCuadriculaHtml']) {
+  // celdaDeCuadriculaHtml se fue en la 927: la cuadrícula son los bolsillos.
+  for (const f of ['bolsilloDeVariante', 'bolsilloHtml']) {
     const cuerpo = mc.slice(mc.indexOf(`function ${f}(`), mc.indexOf('\n}\n', mc.indexOf(`function ${f}(`)))
     check(`${f} pinta el corazón`, /quieroHtml\(c\.id, n\)/.test(cuerpo))
   }

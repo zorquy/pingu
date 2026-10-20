@@ -105,12 +105,13 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
   // La chapa de versión vive en la misma fila que los filtros, no en una
   // suya. Desde la tanda 473 es UNA y no dos: eran «Juntar variantes» y
   // «Separar variantes», y una de las dos estaba siempre de adorno.
-  // Desde la 919 vive dentro de la hoja de filtros, arriba («Cómo se ven»).
+  // Desde la 919 vivió dentro de la hoja de filtros, y desde la 927 (Dex)
+  // vuelve a la fila del buscador como «Apilar».
   const mismaFila = await page.evaluate(() => {
-    const f = document.getElementById('mcAlbumGrupoVer')
+    const f = document.getElementById('mcAlbumFiltros')
     return f.contains(document.getElementById('mcVistaVariantes'))
   })
-  check('la chapa de versión está en la hoja de filtros (919)', mismaFila)
+  check('«Apilar» va en la fila del buscador, con los filtros (927)', mismaFila)
   await page.close()
 }
 

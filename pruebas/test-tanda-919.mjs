@@ -26,7 +26,8 @@ console.log('── 0. Lo estático ──')
 {
   const html = readFileSync(join(RAIZ, 'mi-coleccion.html'), 'utf8')
   const panel = html.slice(html.indexOf('id="mcAlbumPanelFiltros"'), html.indexOf('id="mcAlbumFiltrosVer"'))
-  check('Archivador y Variantes juntas viven dentro de la hoja de filtros', /id="mcAlbumVista"/.test(panel) && /id="mcVistaVariantes"/.test(panel))
+  // La 927 (Dex) los sacó otra vez a la fila del buscador: lo comprueba la 927.
+  check('la vista y Apilar ya no viven dentro de la hoja de filtros (927)', !/id="mcAlbumVista"/.test(panel) && !/id="mcVistaVariantes"/.test(panel))
   check('  …y el buscador y «Filtros» van en una fila', /<div class="mc-album-busca">[\s\S]*id="mcAlbumBuscar"[\s\S]*id="mcAlbumAbrirFiltros"/.test(html))
   check('las cifras del set van dentro del «⋯»', /id="mcAlbumMenu"[\s\S]{0,1200}id="mcAlbumCifras"/.test(html))
   const js = readFileSync(join(RAIZ, 'js/mi-coleccion.js'), 'utf8')
@@ -72,8 +73,9 @@ console.log('── 1–4. En el móvil ──')
     return {
       fila: [volver, titulo, menu].every(Boolean) && Math.abs(centro(volver) - centro(titulo)) < 16 && Math.abs(centro(menu) - centro(titulo)) < 16,
       volver: volver && { ancho: Math.round(r(volver).width), alto: Math.round(r(volver).height), nombre: volver.textContent.trim() },
-      filtrosAlLado: busca && filtros && Math.abs(centro(busca) - centro(filtros)) < 12 && r(filtros).left > r(busca).left,
-      vistaSuelta: Boolean(document.getElementById('mcAlbumVista')?.getBoundingClientRect().height),
+      // En el móvil, desde la 927, el buscador va encima y los mandos debajo.
+      filtrosAlLado: busca && filtros && r(filtros).top >= r(busca).bottom - 1,
+      vistaEnFila: Math.abs(centro(document.getElementById('mcAlbumVista')) - centro(filtros)) < 12,
       linea: (document.querySelector('#mcAlbumProgreso .mc-avance-linea')?.textContent || '').replace(/\s+/g, ' ').trim(),
       barra: document.querySelector('#mcAlbumProgreso .mc-avance-barra')?.getAttribute('aria-valuenow'),
       relleno: document.querySelector('#mcAlbumProgreso .mc-avance-barra i')?.style.getPropertyValue('--ancho'),
@@ -82,7 +84,7 @@ console.log('── 1–4. En el móvil ──')
   })
   check('una fila: volver, el nombre y «⋯»', r.fila, JSON.stringify(r))
   check('  …volver es un icono de 44 que sigue diciendo adónde (para quien no ve)', r.volver && r.volver.ancho >= 44 && r.volver.ancho <= 52 && r.volver.alto >= 44 && /Expansiones/.test(r.volver.nombre), JSON.stringify(r.volver))
-  check('el buscador con «Filtros» al lado, y la vista ya no suelta', r.filtrosAlLado && !r.vistaSuelta, JSON.stringify(r))
+  check('el buscador encima y «Filtros» con la vista debajo, en una fila (927)', r.filtrosAlLado && r.vistaEnFila, JSON.stringify(r))
   check('una barra de progreso: «4 de 18 · 22 %» y lo que vale lo tuyo', /^4 de 18 · 22 %/.test(r.linea) && /€/.test(r.linea) && r.barra === '22' && r.relleno === '22%', JSON.stringify(r))
   check('  …y sin el carrusel ni sus puntos', r.carrusel === 0, String(r.carrusel))
 
@@ -93,17 +95,15 @@ console.log('── 1–4. En el móvil ──')
   await page.click('#mcAlbumMenu > summary')
   await page.waitForTimeout(300)
 
-  await page.click('#mcAlbumAbrirFiltros')
-  await page.waitForTimeout(500)
-  const dentro = await page.evaluate(() => ({ vista: document.getElementById('mcAlbumVista')?.getBoundingClientRect().height > 0, variantes: document.getElementById('mcVistaVariantes')?.getBoundingClientRect().height > 0, rotulo: document.getElementById('mcVistaVariantesRotulo')?.textContent.trim(), cuantas: document.querySelectorAll('#mcAlbum .mc-bolsillo').length }))
-  check('dentro de Filtros, arriba: «Cómo se ven» con Archivador y Variantes juntas', dentro.vista && dentro.variantes, JSON.stringify(dentro))
+  // «Apilar» (927, antes «Variantes juntas»): en la barra, y separa.
+  const antes = await page.evaluate(() => document.querySelectorAll('#mcAlbum .mc-bolsillo').length)
   await page.click('#mcVistaVariantes')
   await page.waitForTimeout(800)
-  const tras = await page.evaluate(() => ({ rotulo: document.getElementById('mcVistaVariantesRotulo')?.textContent.trim(), cuantas: document.querySelectorAll('#mcAlbum .mc-bolsillo').length }))
-  check('  …y Variantes sigue funcionando desde ahí: separa las versiones', tras.rotulo !== dentro.rotulo && tras.cuantas > dentro.cuantas, JSON.stringify({ antes: dentro, tras }))
+  const tras = await page.evaluate(() => ({ pulsado: document.getElementById('mcVistaVariantes').getAttribute('aria-pressed'), cuantas: document.querySelectorAll('#mcAlbum .mc-bolsillo').length }))
+  check('  …y Apilar sigue funcionando: quitado, separa las versiones', tras.pulsado === 'false' && tras.cuantas > antes, JSON.stringify({ antes, tras }))
   await page.click('#mcAlbumVista')
   await page.waitForTimeout(500)
-  check('  …y Archivador abre su hoja de vistas', await page.evaluate(() => document.getElementById('mcAlbumVistaHoja')?.open === true))
+  check('  …y la vista abre su hoja', await page.evaluate(() => document.getElementById('mcAlbumVistaHoja')?.open === true))
   await ctx.close()
 }
 

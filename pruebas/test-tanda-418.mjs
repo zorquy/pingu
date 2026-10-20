@@ -123,9 +123,11 @@ console.log('\n── 3. Los nombres de las dos vistas ──')
   // carta»—, pero desde la tanda 473 es UN botón y dice el ESTADO: un
   // control que guarda un estado tiene que decir el estado, o hay que
   // pulsarlo para saber qué tenías puesto.
-  const rotulo = () => page.locator('#mcVistaVariantes').textContent().then((t) => t.trim())
+  // Desde la 927 el botón es «Apilar» (Dex) y el estado lo dice
+  // `aria-pressed`: pulsado es juntas.
+  const rotulo = () => page.locator('#mcVistaVariantes').getAttribute('aria-pressed').then((p) => (p === 'true' ? 'Variantes juntas' : 'Variantes separadas'))
   check('dice cómo están las variantes', (await rotulo()) === 'Variantes juntas', await rotulo())
-  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
+  await (async (p) => { if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) { await p.click('#mcAlbumFiltrosCerrar'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300) })(page) /* 927: «Apilar», en la barra */
   await page.waitForTimeout(700)
   check('  …y al separarlas lo dice', (await rotulo()) === 'Variantes separadas', await rotulo())
   await page.close()

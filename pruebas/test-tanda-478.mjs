@@ -59,14 +59,14 @@ const abierta = (page) => page.locator('#mcAlbumVistaHoja').evaluate((n) => n.op
 // de dentro, con un error que parece de la opción y es de la apertura.
 const elegir = async (page, vista) => {
   if (!(await abierta(page))) {
-    // Desde la 919 el botón vive dentro de la hoja de filtros.
-    await page.click('#mcAlbumAbrirFiltros')
-    await page.waitForTimeout(300)
+    // Desde la 927 el botón vuelve a la barra, al lado del buscador.
     await page.click('#mcAlbumVista')
     await page.waitForTimeout(300)
   }
   await page.click(`[data-vista="${vista}"]`)
   await page.waitForTimeout(800)
+  // El archivador deja la hoja abierta con sus ajustes (927).
+  if (await abierta(page)) { await page.click('#mcAlbumArchivadorAplicar'); await page.waitForTimeout(300) }
 }
 
 const { page, errores } = await abrir()
@@ -74,26 +74,26 @@ const { page, errores } = await abrir()
 console.log('── 1. El botón dice la vista PUESTA ──')
 // Un control que guarda un estado tiene que decir el estado, o hay que
 // abrirlo para saber qué pusiste (la lección de la 449).
-check('empieza en «Archivador»', (await page.locator('#mcAlbumVistaRotulo').textContent()).trim() === 'Archivador',
+// Desde la 927 la de por defecto es la Cuadrícula: la rejilla de bolsillos
+// de siempre, que es lo que veía todo el mundo.
+check('empieza en «Cuadrícula»', (await page.locator('#mcAlbumVistaRotulo').textContent()).trim() === 'Cuadrícula',
   await page.locator('#mcAlbumVistaRotulo').textContent())
 check('y lo dice también para quien no lo ve',
-  /Archivador/.test(await page.locator('#mcAlbumVista').getAttribute('aria-label')),
+  /Cuadrícula/.test(await page.locator('#mcAlbumVista').getAttribute('aria-label')),
   await page.locator('#mcAlbumVista').getAttribute('aria-label'))
-await page.click('#mcAlbumAbrirFiltros')
-await page.waitForTimeout(300)
 await page.click('#mcAlbumVista')
 await page.waitForTimeout(400)
 const opciones = await page.locator('#mcAlbumVistaMenu [data-vista]').evaluateAll((ns) =>
-  ns.map((n) => ({ id: n.dataset.vista, texto: n.textContent.trim(), marcada: n.getAttribute('aria-checked'), svg: Boolean(n.querySelector('svg')) })))
+  ns.map((n) => ({ id: n.dataset.vista, texto: n.querySelector('.mc-menu-nombre')?.textContent.trim(), marcada: n.getAttribute('aria-checked'), svg: Boolean(n.querySelector('svg')) })))
 check('el menú trae las tres', opciones.length === 3, JSON.stringify(opciones.map((o) => o.id)))
-check('  …con su nombre', opciones.map((o) => o.texto).join(',') === 'Archivador,Cuadrícula,Lista', JSON.stringify(opciones.map((o) => o.texto)))
+check('  …con su nombre', opciones.map((o) => o.texto).join(',') === 'Cuadrícula,Lista,Archivador', JSON.stringify(opciones.map((o) => o.texto)))
 // El icono no es adorno: es lo único que distingue tres renglones de menú
 // que dicen tres palabras parecidas.
 check('  …y su dibujo', opciones.every((o) => o.svg), JSON.stringify(opciones))
 // `menuitemradio` y no tres botones sueltos: son UNA pregunta con tres
 // respuestas, y tres botones la cuentan como tres.
 check('  …marcada la puesta y solo esa',
-  opciones.filter((o) => o.marcada === 'true').map((o) => o.id).join(',') === 'archivador',
+  opciones.filter((o) => o.marcada === 'true').map((o) => o.id).join(',') === 'cuadricula',
   JSON.stringify(opciones.map((o) => `${o.id}:${o.marcada}`)))
 // Y se cierra con su ✕, que es lo que hay.
 await page.click('#mcAlbumVistaCerrar')
@@ -109,7 +109,7 @@ check('  …y es un diálogo, que no se recorta',
   await page.evaluate(() => document.getElementById('mcAlbumVistaHoja')?.tagName) === 'DIALOG')
 check('  …que al cerrarse deja de verse', (await page.locator('#mcAlbumVistaHoja').isHidden()))
 
-console.log('\n── 2. El archivador: la vista de APUNTAR ──')
+console.log('\n── 2. La cuadrícula: los bolsillos de siempre (927) ──')
 {
   const r = await page.evaluate(() => ({
     caja: Boolean(document.querySelector('.mc-album-rejilla')),
@@ -128,46 +128,27 @@ console.log('\n── 2. El archivador: la vista de APUNTAR ──')
   check('  …y cada uno abre su ficha', r.enlaces === 12, JSON.stringify(r))
 }
 
-console.log('\n── 3. La cuadrícula: la vista de MIRAR ──')
-await elegir(page, 'cuadricula')
+console.log('\n── 3. El archivador: hojas que se pasan (927) ──')
+await elegir(page, 'archivador')
 {
-  check('el botón lo dice', (await page.locator('#mcAlbumVistaRotulo').textContent()).trim() === 'Cuadrícula')
-  const r = await page.evaluate(() => {
-    const celdas = [...document.querySelectorAll('.mc-album-cuadricula .mc-rejilla-celda')]
-    const una = celdas[0]?.getBoundingClientRect()
-    return {
-      caja: Boolean(document.querySelector('.mc-album-cuadricula')),
-      celdas: celdas.length,
-      // Sin mandos a propósito: si quieres apuntar, la vista de apuntar es
-      // el archivador.
-      mandos: document.querySelectorAll('.mc-album-cuadricula button').length,
-      bolsillos: document.querySelectorAll('.mc-bolsillo').length,
-      tengo: celdas.filter((c) => c.classList.contains('tengo')).length,
-      ancho: Math.round(una?.width || 0),
-      proporcion: una ? Math.round((una.height / una.width) * 100) / 100 : 0,
-    }
-  })
-  check('son celdas y no bolsillos', r.caja && r.celdas === 12 && r.bolsillos === 0, JSON.stringify(r))
-  check('  …sin un solo mando encima', r.mandos === 0, JSON.stringify(r))
-  check('  …con las cinco que tengo marcadas', r.tengo === 5, JSON.stringify(r))
-  // El hueco reservado ANTES de que llegue la imagen (regla de la casa):
-  // sin él la rejilla da un salto por cada escaneo que entra.
-  check('  …y con la proporción de una carta', Math.abs(r.proporcion - 342 / 245) < 0.05, JSON.stringify(r))
-  // Y es MÁS DENSA que el archivador, que es para lo que existe.
-  check('  …y más densa que el archivador', r.ancho < 150, `${r.ancho}px`)
-
-  // LA LECCIÓN DE LA 470, que vive en cuanto se pinta un hueco con un
-  // nombre debajo de una foto: `opacity` y `filter` crean un contexto de
-  // apilamiento, así que quitárselos a la que SÍ tienes le quita lo único
-  // que mantenía la imagen por encima del nombre — y la carta se ve negra.
-  // No se deduce leyendo el CSS: se le pregunta al navegador qué se pinta
-  // en el centro.
+  check('el botón lo dice', (await page.locator('#mcAlbumVistaRotulo').textContent()).trim() === 'Archivador')
+  const r = await page.evaluate(() => ({
+    hojas: document.querySelectorAll('.mc-exp-archivador .mc-hoja').length,
+    bolsillos: [...document.querySelectorAll('.mc-exp-archivador .mc-hoja')].map((h) => h.querySelectorAll('.mc-bolsillo-enlace').length).join(),
+    tengo: document.querySelectorAll('.mc-exp-archivador .mc-bolsillo.tengo').length,
+    rejilla: document.querySelectorAll('.mc-album-rejilla').length,
+  }))
+  // A 390 px, una hoja a la vez: la primera, de nueve.
+  check('una hoja de nueve bolsillos (en el móvil, de una en una)', r.hojas === 1 && r.bolsillos === '9' && r.rejilla === 0, JSON.stringify(r))
+  check('  …con las cinco que tengo marcadas (están todas en ella)', r.tengo === 5, JSON.stringify(r))
+  // LA LECCIÓN DE LA 470: lo que se pinta en el centro de la que tienes es
+  // la foto (o su ✓ encima, desde la 927), no un hueco negro.
   const encima = await page.evaluate(() => {
-    const c = document.querySelector('.mc-album-cuadricula .mc-rejilla-celda.tengo')
+    const c = document.querySelector('.mc-exp-archivador .mc-bolsillo.tengo .mc-bolsillo-enlace')
     if (!c) return null
     const r = c.getBoundingClientRect()
     if (r.bottom > innerHeight - 150 || r.top < 60) return 'fuera-de-pantalla'
-    const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+    const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 4)
     return el?.tagName
   })
   check('la carta que tienes se ve, no sale en negro', encima === 'IMG' || encima === 'fuera-de-pantalla', String(encima))
@@ -214,9 +195,9 @@ await page.fill('#mcAlbumBuscar', 'Bulbasaur 1')
 await page.waitForTimeout(700)
 const enLista = await page.locator('.mc-album-fila').count()
 await elegir(page, 'cuadricula')
-const enRejilla = await page.locator('.mc-rejilla-celda').count()
+const enRejilla = await page.locator('#mcAlbum .mc-album-rejilla .mc-bolsillo').count()
 await elegir(page, 'archivador')
-const enAlbum = await page.locator('.mc-bolsillo').count()
+const enAlbum = await page.locator('#mcAlbum .mc-exp-archivador .mc-bolsillo-enlace').count()
 check('las tres enseñan lo mismo', enLista === enRejilla && enRejilla === enAlbum && enLista > 0 && enLista < 12,
   `lista ${enLista} · cuadrícula ${enRejilla} · archivador ${enAlbum}`)
 
@@ -227,7 +208,7 @@ await page.close()
 console.log('\n── 8. Y en el móvil no se va de ancho ──')
 {
   const { page: p2 } = await abrir(390)
-  for (const v of ['cuadricula', 'lista']) {
+  for (const v of ['cuadricula', 'lista', 'archivador']) {
     await elegir(p2, v)
     const r = await p2.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }))
     check(`${v} cabe`, r.s <= r.c + 1, `${r.s} > ${r.c}`)

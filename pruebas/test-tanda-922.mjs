@@ -116,12 +116,9 @@ console.log('── 1–2. Añadir en Mi colección ──')
 console.log('── 3. «Variantes»: la casilla que tocas es la que se abre ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=album&set=me1')
-  await page.click('#mcAlbumAbrirFiltros')
-  await page.waitForTimeout(400)
+  // «Apilar» va en la barra desde la 927: quitarlo separa las versiones.
   await page.click('#mcVistaVariantes')
   await page.waitForTimeout(800)
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(400)
   const casilla = page.locator('#mcAlbum .mc-bolsillo-enlace[data-carta="me1-1"][data-variante="reverse"]')
   check('con «Variantes», cada casilla dice su versión', (await casilla.count()) === 1)
   await casilla.click()

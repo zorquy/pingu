@@ -68,11 +68,12 @@ for (const ancho of [390, 1280]) {
   console.log(`\n── ${ancho} px ──`)
   const { page, errores } = await abrir({ ancho })
   await abrirSet(page)
-  check('la vista es la cuadrícula', await page.isVisible('#mcAlbum .mc-album-cuadricula'))
+  // Desde la 927 la cuadrícula son los bolsillos de siempre (`.mc-album-rejilla`).
+  check('la vista es la cuadrícula', await page.isVisible('#mcAlbum .mc-album-rejilla'))
   check('con las versiones juntas, sin chapa', (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 0)
-  await (async (p) => { if (!(await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open))) { await p.click('#mcAlbumAbrirFiltros'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300); if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) await p.click('#mcAlbumFiltrosCerrar') })(page) /* 919: dentro de Filtros */
+  await (async (p) => { if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) { await p.click('#mcAlbumFiltrosCerrar'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300) })(page) /* 927: «Apilar», en la barra */
   await page.waitForTimeout(1000)
-  const celdas = await page.locator('#mcAlbum .mc-rejilla-celda').evaluateAll((ns) => ns.map((n) => ({
+  const celdas = await page.locator('#mcAlbum .mc-bolsillo-enlace').evaluateAll((ns) => ns.map((n) => ({
     chapa: n.querySelector('.mc-chapa-variante')?.dataset.var || null,
     texto: n.querySelector('.mc-chapa-variante')?.textContent || '',
     velo: Boolean(n.querySelector('.mc-velo-reverse')),
@@ -80,7 +81,7 @@ for (const ancho of [390, 1280]) {
   check('separadas: 24 casillas, cada una con su chapa', celdas.length === 24 && celdas.every((c) => c.chapa), JSON.stringify(celdas.slice(0, 2)))
   check('  …y dicen cuál es cada una', celdas[0].texto.startsWith('N') && celdas[1].texto.startsWith('RH'), celdas.slice(0, 2).map((c) => c.texto).join(' | '))
   check('el velo, en las reverse y en ninguna más', celdas.every((c) => c.velo === (c.chapa === 'reverse')), JSON.stringify(celdas.filter((c) => c.velo !== (c.chapa === 'reverse')).slice(0, 2)))
-  const tapadas = await page.locator('#mcAlbum .mc-rejilla-celda .mc-chapa-variante').evaluateAll((ns) =>
+  const tapadas = await page.locator('#mcAlbum .mc-bolsillo-enlace .mc-chapa-variante').evaluateAll((ns) =>
     ns.slice(0, 6).filter((n) => {
       const r = n.getBoundingClientRect()
       if (!r.width || !r.height) return true
@@ -90,7 +91,7 @@ for (const ancho of [390, 1280]) {
       return !(encima === n || n.contains(encima))
     }).length)
   check('ninguna chapa tapada', tapadas === 0, String(tapadas))
-  const pisa = await page.locator('#mcAlbum .mc-rejilla-celda').evaluateAll((ns) => ns.slice(0, 6).filter((n) => {
+  const pisa = await page.locator('#mcAlbum .mc-bolsillo-enlace').evaluateAll((ns) => ns.slice(0, 6).filter((n) => {
     const c = n.querySelector('.mc-chapa-variante')?.getBoundingClientRect()
     const m = n.querySelector('.mc-mas')?.getBoundingClientRect()
     return c && m && c.right > m.left + 1 && c.bottom > m.top + 1 && c.top < m.bottom - 1

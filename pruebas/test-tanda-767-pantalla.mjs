@@ -4,7 +4,7 @@
 //     y un bolsillo vacío la abre en modo ELEGIR (con su franja y Cancelar).
 //   · El buscador del álbum solo miraba el catálogo occidental: ahora es
 //     Buscar, que deja elegir el japonés, y la carta guarda su catálogo.
-//   · En el álbum, lo mismo que en Expansiones: ✓ o «×2», el «+» y la ficha.
+//   · En el álbum, lo mismo que en Expansiones: ✓ (y «2» desde la 927), el «+» y la ficha.
 //   · En el menú del PC, sin la fila «Mi colección»: las partes cuelgan de
 //     Cartas directamente.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
@@ -90,8 +90,9 @@ console.log('── 3. Un álbum de set, como Expansiones ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=carpetas&album=alb-set')
   await page.waitForSelector('#mcAlbArchivador .mc-bolsillo', { timeout: 8000 }).catch(() => {})
-  const b = await page.$$eval('#mcAlbArchivador a.mc-bolsillo', (as) => as.map((a) => `${a.dataset.carta}:${a.querySelector('.mc-tengo-marca')?.textContent || ''}:${a.querySelector('.mc-mas[data-anadir]') ? '+' : ''}`))
-  check('lo que tienes con ✓ (una) o «×2», y cada carta con su «+»', b.includes('sv8-1:✓:+') && b.includes('sv8-2:×2:+') && b.includes('sv8-3::+'), JSON.stringify(b))
+  // Desde la 927 el ✓ va siempre y la cuenta en su insignia («2»).
+  const b = await page.$$eval('#mcAlbArchivador a.mc-bolsillo', (as) => as.map((a) => `${a.dataset.carta}:${a.querySelector('.mc-tengo-marca')?.textContent || ''}${a.querySelector('.mc-insignia-n')?.textContent || ''}:${a.querySelector('.mc-mas[data-anadir]') ? '+' : ''}`))
+  check('lo que tienes con ✓, y con «2» si son dos, y cada carta con su «+»', b.includes('sv8-1:✓:+') && b.includes('sv8-2:✓2:+') && b.includes('sv8-3::+'), JSON.stringify(b))
   if (CAPS) await page.screenshot({ path: `${CAPS}/767-album.png` })
   await page.click('#mcAlbArchivador a.mc-bolsillo[data-carta="sv8-3"] .mc-mas')
   await page.waitForTimeout(600)
