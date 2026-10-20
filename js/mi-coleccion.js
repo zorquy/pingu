@@ -1301,11 +1301,9 @@ function fichasDeCartera() {
   const r = resumenHero
   if (!r) return ''
   const n = (v) => Number(v || 0).toLocaleString('es-ES', { useGrouping: 'always' })
-  return `<ul class="mc-cartera-fichas" aria-label="Tu colección en cifras">
-    <li><b>${n(r.copias)}</b><span>${r.copias === 1 ? 'carta' : 'cartas'}</span></li>
-    <li><b>${n(r.distintas)}</b><span>${r.distintas === 1 ? 'distinta' : 'distintas'}</span></li>
-    <li><b>${n(r.sets)}</b><span>${r.sets === 1 ? 'expansión' : 'expansiones'}</span></li>
-  </ul>`
+  // Una línea debajo de la cifra (925, el Panel tipo cartera): eran tres
+  // casillas grandes con «1 carta · 1 distinta · 1 expansión».
+  return `<p class="mc-cartera-sub" aria-label="Tu colección en cifras"><span><b>${n(r.copias)}</b> ${r.copias === 1 ? 'carta' : 'cartas'}</span><span><b>${n(r.distintas)}</b> ${r.distintas === 1 ? 'distinta' : 'distintas'}</span><span><b>${n(r.sets)}</b> ${r.sets === 1 ? 'expansión' : 'expansiones'}</span></p>`
 }
 
 // LO QUE VALE TODO: CARTAS MÁS PRODUCTOS (766, PR2; era la 762, que los

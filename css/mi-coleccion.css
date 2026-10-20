@@ -7769,36 +7769,44 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-cartera .mc-valor-rango:disabled {
   border-style: dashed;
 }
-.mc-cartera-fichas {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--e-sm);
-  margin: 0 0 var(--e-lg);
-  padding: 0;
-  list-style: none;
-}
-.mc-cartera-fichas li {
+/* Debajo de la cifra, una línea (925): cartas, distintas y expansiones. */
+.mc-cartera-sub {
   display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-.mc-cartera-fichas b {
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-  font-weight: 800;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.mc-cartera-fichas span {
-  overflow: hidden;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+  margin: var(--e-xs) 0 0;
   color: var(--text-mid);
   font-size: var(--t-sm);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.mc-cartera-sub b {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* El cambio, en una chapa de su color (925); el signo sigue delante. */
+.mc-cartera .mc-valor-cambio.sube,
+.mc-cartera .mc-valor-cambio.baja {
+  display: inline-flex;
+  width: fit-content;
+  padding: 2px var(--e-md);
+  border-radius: var(--radius-pill);
+}
+.mc-cartera .mc-valor-cambio.sube {
+  background: var(--success-bg);
+}
+.mc-cartera .mc-valor-cambio.baja {
+  background: var(--danger-bg);
+}
+/* Las que más valen (925): la carta y lo que vale una copia debajo. */
+.mc-valiosa {
+  display: grid;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+.mc-valiosa > b {
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 .mc-esq-grafica {
   height: 128px;

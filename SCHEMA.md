@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 925 — El Panel tipo cartera
+
+La B de la propuesta de la 925 (PINGU: «la normal»).
+
+- `fichasDeCartera()` devuelve `<p class="mc-cartera-sub">` con tres
+  `<span>` (cartas, distintas, expansiones) y va DENTRO de `#mcValorCaja`,
+  justo después de la cifra; las `.mc-cartera-fichas` se fueron con su CSS.
+- El cambio (`.mc-valor-cambio.sube/.baja` dentro de `.mc-cartera`) lleva
+  fondo `--success-bg`/`--danger-bg` en forma de chapa; el signo y la
+  flecha siguen delante (el color no va solo).
+- `vistazoDeValiosas(ctx.masValiosas(DE_VISTAZO, …))` pinta `#mcValiosas`
+  con `.mc-vistazo-cartas` (una fila, el truco de las filas a cero) y cada
+  `.mc-valiosa` lleva la carta (`data-carta`, abre la ficha) y lo que vale
+  UNA copia.
+- **La carrera de «Las que más se mueven»**: `pintarMovidas` cogía
+  `#mcMovidasSitio` al empezar y, tras la consulta, salía si ya no estaba
+  conectado; `pintarResumenPanel` se repinta cuando llegan los precios y
+  crea un hueco nuevo vacío, así que el bloque se perdía casi siempre.
+  Ahora el HTML pintado vive en `movidasHtml` (se repone al repintar el
+  Panel, y el esqueleto no lo pisa) y tras la consulta se busca el hueco
+  de ahora. Es la forma de la 663: lo que llega tarde se pone donde está
+  la pantalla AHORA, no donde estaba cuando se pidió.
+
 ## Tanda 924 — La imagen de un reto no destripa la respuesta
 
 PINGU: la imagen de «¿Qué carta es?» enseñaba la carta del día y su nombre,

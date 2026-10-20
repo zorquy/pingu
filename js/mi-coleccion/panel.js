@@ -55,6 +55,7 @@ export function pintarResumenPanel() {
   const rep = ctx.repetidas(ls, clave, busca)
   const sobran = rep.reduce((n, r) => n + r.sobran, 0)
   const valiosas = ctx.masValiosas(3, ls, clave, busca)
+  const valiosasTira = ctx.masValiosas(DE_VISTAZO, ls, clave, busca)
   const porRareza = ctx.repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
 
   // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
@@ -74,6 +75,7 @@ export function pintarResumenPanel() {
     <section class="mc-cartera" id="mcValorCaja">
       <h2 class="mc-cartera-etiqueta">Lo que vale ${ctx.esMia ? 'tu' : 'esta'} colección</h2>
       <p class="mc-cartera-cifra">${escapeHtml(ctx.eurosConMiles(ctx.valorDeAhora()))}</p>
+      ${ctx.fichasDeCartera()}
       ${ctx.esMia ? '<div class="mc-cartera-reparto hidden" id="mcCarteraReparto"></div>' : ''}
       <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
         <p class="mc-valor-cambio igual"><span class="skeleton mc-cartera-esq-cambio"></span></p>
@@ -81,8 +83,8 @@ export function pintarResumenPanel() {
         <div class="mc-valor-rangos" aria-hidden="true">${'<span class="skeleton mc-cartera-esq-rango"></span>'.repeat(5)}</div>
       </div>
     </section>
-    ${ctx.fichasDeCartera()}
-    ${ctx.esMia ? '<div id="mcMovidasSitio"></div>' : ''}
+    ${vistazoDeValiosas(valiosasTira)}
+    ${ctx.esMia ? `<div id="mcMovidasSitio">${movidasHtml}</div>` : ''}
 `
   if (ctx.esMia && ctx.sesion) void ctx.pintarRepartoProductos()
   // La cifra cuenta desde la de la última vez (783, MV2).
@@ -273,6 +275,24 @@ function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
 // que contesta esta tira, y la carta que acabas de meter no deja de ser lo
 // último porque ahora estés mirando otro catálogo. Era justo el caso de
 // PINGU: añadir una japonesa, volver al Panel y no verla.
+// LAS QUE MÁS VALEN (925, el Panel tipo cartera de Dex): una tira de
+// cartas con lo que vale UNA copia debajo, justo bajo la gráfica. Sale de
+// lo que ya está en memoria, así que se pinta con la cifra.
+function vistazoDeValiosas(valiosas) {
+  if (!valiosas.length) return ''
+  const cuerpo = valiosas.map((v) => {
+    const c = v.carta
+    const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
+    const nombre = ctx.nombreDe(c)
+    return `<span class="mc-valiosa"><a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}: ${euros(v.valor)}`)}">${
+      escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+        : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
+    }</a><b>${escapeHtml(euros(v.valor))}</b></span>`
+  }).join('')
+  return vistazoHtml('Las que más valen', 'cartas', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
+    .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcValiosas">')
+}
+
 function vistazoDeCartas() {
   const [ls, , busca] = ctx.pTodo()
   const ultimas = [...ls]
@@ -499,9 +519,14 @@ export async function pintarVistazos() {
 // precio, y como mucho las 600 más valiosas: es lo que cabe en cuatro
 // consultas sin hacer esperar al Panel. Sin dos fotos de ninguna, no sale.
 const TOPE_MOVIDAS = 600
+// Lo último que se pintó (925): el Panel se repinta entero cuando llegan
+// los precios, DESPUÉS de que esto haya pedido el histórico, y el hueco
+// nuevo nacía vacío — «Las que más se mueven» se perdía casi siempre, sin
+// error. Se repone al repintar, y lo que llega busca el hueco de AHORA.
+let movidasHtml = ''
 async function pintarMovidas(version) {
-  const sitio = $('mcMovidasSitio')
-  if (!ctx.esMia || !sitio) return
+  if (!ctx.esMia || !$('mcMovidasSitio')) return
+  let sitio = $('mcMovidasSitio')
   try {
     const [ls, , busca] = ctx.pTodo()
     const conPrecio = ls
@@ -513,20 +538,21 @@ async function pintarMovidas(version) {
     if (!conPrecio.length) return
     // El hueco, en esqueleto mientras llega (748): tres filas del alto de
     // las de verdad, para que lo de debajo no salte al llegar.
-    sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
+    if (!movidasHtml) sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
     const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     const [filas, movidas] = await Promise.all([
       datos.historicoDeCartas(conPrecio.map((l) => l.card_id), desde),
       import('./movidas.js'),
     ])
-    if (ctx.pestania !== 'resumen' || !sitio.isConnected || version !== vistazosVersion) return
+    sitio = $('mcMovidasSitio')
+    if (ctx.pestania !== 'resumen' || !sitio || version !== vistazosVersion) return
     const { suben, bajan } = movidas.extremos(movidas.movidasDe(conPrecio, filas, busca), 3)
     // Las tres que MÁS se mueven, suban o bajen, como en la maqueta: una
     // lista de tres filas y no dos tiras de seis fotos.
     const tres = [...suben, ...bajan]
       .sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0) || Math.abs(b.cambio) - Math.abs(a.cambio))
       .slice(0, 3)
-    if (!tres.length) { sitio.innerHTML = ''; return }
+    if (!tres.length) { sitio.innerHTML = movidasHtml = ''; return }
     const fila = (m) => {
       const c = m.carta
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
@@ -539,11 +565,12 @@ async function pintarMovidas(version) {
         <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${escapeHtml(pct)}</small></span>
       </a></li>`
     }
-    sitio.innerHTML = vistazoHtml('Las que más se mueven', 'cartas', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
+    sitio.innerHTML = movidasHtml = vistazoHtml('Las que más se mueven', 'cartas', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
       .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
   } catch {
     // Sin histórico (o sin red), el hueco se va y el Panel sigue.
-    sitio.innerHTML = ''
+    const s = $('mcMovidasSitio')
+    if (s) s.innerHTML = movidasHtml = ''
   }
   ctx.guardarPanel()
 }

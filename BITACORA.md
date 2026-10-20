@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (159) — PINGU-Claude (925 — el Panel tipo cartera, la B de la propuesta)
+
+**Hecho** (propuesta https://claude.ai/artifact/GTJvBnbB2WvQW2GCU75gid; PINGU:
+«la B me gusta, la normal», sin la pantalla especial de pocos datos):
+- Debajo de la cifra, una línea con cartas, distintas y expansiones (eran
+  tres casillas grandes debajo de la gráfica).
+- El cambio («▲ 148,70 € · 28,2 % en 29 días») en una chapa verde o roja.
+- «Las que más valen», nueva: una tira de cartas con lo que vale una copia,
+  de la más cara a la más barata; cada una abre su ficha.
+- **«Las que más se mueven» no salía casi nunca**: el Panel se repintaba al
+  llegar los precios, después de pedir el histórico, y el hueco nuevo nacía
+  vacío. Ahora lo último pintado se repone y lo que llega busca el hueco de
+  ahora. Era el rojo de la 748 que se daba por viejo («depende de la hora»):
+  era esto.
+
+**Ficheros**: `js/mi-coleccion/panel.js` (`vistazoDeValiosas`,
+`movidasHtml`), `js/mi-coleccion.js` (`fichasDeCartera` es la línea),
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: nueva `test-tanda-925.mjs` (móvil y PC); al día 440, 465, 715
+y 748 (la línea en vez de las fichas). Panel y colección (31): 29 verdes,
+rojas 653 y 651, que ya estaban. **La 748 pasa entera por primera vez desde
+hace días.**
+
+**Pendiente**:
+- A (una sola ficha, /carta como el pop-up): la siguiente.
+- D rehecha (insignias, barra en una fila, filtros en panel) y E: esperando
+  a PINGU.
+
 ## 2026-10-20 (158) — PINGU-Claude (924 — la imagen de un reto no destripa la respuesta)
 
 **Hecho** (PINGU: «en el de la carta de hoy sale la carta y debería salir
