@@ -9,10 +9,15 @@
 // en la rejilla pasan de carta; Esc cierra y la página vuelve a lo ancho;
 // el menú de Mi colección vive en la barra lateral y funciona; desde una
 // expansión la ficha sigue siendo la de siempre; y a 1.440 también.
+//
+// Desde la 921 (PINGU: «antes se abría en un pop-up central, que es
+// bastante mejor») la carta ya NO se abre a la derecha: siempre en el
+// centro, modal, y la rejilla no se mueve. Lo de la columna de
+// expansiones y el menú en la lateral sigue igual.
+import { readFileSync, existsSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
-const { vaAlLado } = await import(`${RAIZ}/js/mi-coleccion/ficha-al-lado.js`)
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -21,13 +26,9 @@ const check = (l, ok, extra = '') => {
 }
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
-console.log('── 1. La regla ──')
-check('ancha y desde Cartas: al lado', vaAlLado({ ancha: true, vista: 'cartas' }))
-// Desde la 748 (D2 de su maqueta) también desde una expansión, y desde 1.400.
-check('desde una expansión, también', vaAlLado({ ancha: false, anchaExpansion: true, vista: 'album' }))
-check('  …pero no en una expansión estrecha', !vaAlLado({ ancha: false, anchaExpansion: false, vista: 'album' }))
-check('desde la Pokédex, no', !vaAlLado({ ancha: true, vista: 'pokedex' }))
-check('estrecha, no', !vaAlLado({ ancha: false, vista: 'cartas' }))
+console.log('── 1. Ya no hay ficha «al lado» (921) ──')
+check('el módulo de la ficha a la derecha ya no existe', !existsSync(`${RAIZ}/js/mi-coleccion/ficha-al-lado.js`))
+check('  …ni su CSS', !/mc-ficha-al-lado/.test(readFileSync(`${RAIZ}/css/mi-coleccion.css`, 'utf8')))
 
 const browser = await chromium.launch()
 const semilla = () => {
@@ -70,27 +71,21 @@ console.log('── 2. Tus expansiones, a la izquierda ──')
   await page.waitForTimeout(400)
   check('  …y «Todas» lo quita', (await page.locator('#mcCartas .mc-carta').count()) === 24)
 
-  console.log('── 3. La carta, a la derecha ──')
+  console.log('── 3. La carta, en el centro (921) ──')
+  const columnasAntes = (await ficha(page)).columnas
   await page.click('#mcCartas .mc-carta >> nth=2')
   await page.waitForTimeout(800)
   const f = await ficha(page)
-  check('se abre sin modal, pegada a la derecha y sin tapar la rejilla', f.open && !f.modal && f.der === f.ventana && f.izq >= f.rejillaDer && f.ancho <= f.ventana, JSON.stringify(f))
-  check('  …y a la rejilla le quedan cinco columnas', f.columnas >= 5, JSON.stringify(f))
+  check('se abre modal y centrada, y la rejilla no se mueve', f.open && f.modal && Math.abs(f.izq - (f.ventana - f.der)) <= 20 && f.columnas === columnasAntes && f.ancho <= f.ventana, JSON.stringify({ f, columnasAntes }))
   const antes = f.nombre
-  await page.click('#mcCartas .mc-carta >> nth=5')
-  await page.waitForTimeout(700)
-  const otra = await ficha(page)
-  check('con ella abierta se puede pulsar otra carta, y la de la derecha cambia', otra.open && !otra.modal && otra.nombre !== antes, `${antes} → ${otra.nombre}`)
-  await page.focus('#mcCartas .mc-carta >> nth=0').catch(() => {})
-  await page.evaluate(() => document.querySelector('#mcCartas .mc-carta')?.focus?.())
   await page.keyboard.press('ArrowRight')
   await page.waitForTimeout(700)
   const sig = await ficha(page)
-  check('las flechas, con el foco en la rejilla, pasan de carta', sig.nombre !== otra.nombre, `${otra.nombre} → ${sig.nombre}`)
+  check('las flechas del teclado pasan de carta', sig.open && sig.nombre !== antes, `${antes} → ${sig.nombre}`)
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)
   const cerrada = await ficha(page)
-  check('Esc la cierra y la página vuelve a lo ancho', !cerrada.open && !cerrada.visto && !(await page.evaluate(() => document.documentElement.classList.contains('con-ficha-al-lado'))), JSON.stringify(cerrada))
+  check('Esc la cierra', !cerrada.open && !cerrada.visto, JSON.stringify(cerrada))
 
   console.log('── 4. El menú de Mi colección, en la barra lateral ──')
   const menu = await page.evaluate(() => { const m = document.getElementById('mcMenu'); return { enLateral: !!m?.closest('.lat'), visible: !!m && m.getBoundingClientRect().height > 0, opciones: [...(m?.querySelectorAll('[data-pestania]') || [])].map((b) => b.textContent.trim()) } })

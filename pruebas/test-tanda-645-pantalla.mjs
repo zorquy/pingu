@@ -57,11 +57,10 @@ console.log('── 1. La ficha de tu copia ──')
   // Desde la 915: tarjetas por idioma (la de tu copia la primera) y la
   // versión en su fila, que abre la lista con un check en las que tienes.
   check('la tarjeta de tu copia: 140 € en español, y TCGplayer en la suya', /^ES tu copia 140,00 €/.test(limpio(await bloque.locator('.pv-tarjeta-tuya').innerText())) && (await bloque.locator('.pv-tarjeta-tcg').count()) === 1)
-  check('la versión en su fila: Normal', (await page.locator('#mcEdVersion').isVisible()) && limpio(await page.locator('#mcEdVersionNombre').innerText()) === 'Normal')
-  await page.click('#mcEdVersion')
-  await page.waitForTimeout(200)
-  check('  …y al tocarla, las dos, la normal marcada y con su check', (await page.locator('#mcEdVersiones .mc-version').count()) === 2 && (await page.locator('#mcEdVersiones .mc-version.activa').getAttribute('data-version')) === 'normal' && (await page.locator('#mcEdVersiones .mc-version.activa .mc-version-check.si').count()) === 1)
-  await page.click('#mcEdVersion')
+  // Desde la 921, en el ordenador las versiones van a la vista, en chips:
+  // ni fila ni lista que abrir.
+  check('las versiones a la vista, en chips (sin la fila del móvil)', !(await page.locator('#mcEdVersion').isVisible()) && (await page.locator('#mcEdVersiones').isVisible()))
+  check('  …las dos, la normal marcada y con su check', (await page.locator('#mcEdVersiones .mc-version').count()) === 2 && (await page.locator('#mcEdVersiones .mc-version.activa').getAttribute('data-version')) === 'normal' && (await page.locator('#mcEdVersiones .mc-version.activa .mc-version-check.si').count()) === 1)
   const filas = bloque.locator('.pv-tarjeta:not(.pv-tarjeta-tcg)')
   check('una tarjeta por idioma con precio: tres, la del español la primera y marcada como tu copia', (await filas.count()) === 3 && /tu copia/.test(limpio(await filas.first().innerText())))
   const alto = await filas.first().evaluate((el) => el.getBoundingClientRect().height)

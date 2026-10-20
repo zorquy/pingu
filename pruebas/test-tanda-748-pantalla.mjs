@@ -761,7 +761,6 @@ for (const ancho of [1440, 1280]) {
       titulo: document.getElementById('mcAlbumTitulo').textContent,
       cartas: [...document.querySelectorAll('#mcAlbum [data-carta]')].map((a) => a.dataset.carta),
       ficha: { open: d.open, modal: d.matches(':modal'), der: Math.round(d.getBoundingClientRect().right), nombre: d.querySelector('#mcEditorTitulo')?.textContent.trim() },
-      abierta: [...document.querySelectorAll('#mcAlbum .mc-abierta')].map((a) => a.dataset.carta),
       ventana: innerWidth, scroll: document.documentElement.scrollWidth,
     }
   })
@@ -786,8 +785,9 @@ for (const ancho of [1440, 1280]) {
   await page.locator('#mcAlbum [data-carta="sv3-2"]').first().click()
   await page.waitForTimeout(1000)
   const a = await lee()
-  check('la carta se abre a la derecha, sin tapar la rejilla, y se marca en ella', a.ficha.open && !a.ficha.modal && a.ficha.der === a.ventana && a.scroll <= a.ventana && JSON.stringify(a.abierta) === '["sv3-2"]', JSON.stringify(a))
-  await page.evaluate(() => document.body.focus())
+  // Desde la 921 la carta ya no se abre a la derecha: en el centro, modal,
+  // y la expansión no se aparta.
+  check('la carta se abre en el centro, modal, y la expansión no se aparta', a.ficha.open && a.ficha.modal && a.ficha.der < a.ventana - 40 && a.scroll <= a.ventana && JSON.stringify(a.hermanos) === JSON.stringify(m.hermanos), JSON.stringify(a))
   await page.keyboard.press('ArrowRight')
   await page.waitForTimeout(800)
   const b = await lee()
@@ -795,13 +795,11 @@ for (const ancho of [1440, 1280]) {
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)
   const c = await lee()
-  check('  …y Esc la cierra y quita la marca', !c.ficha.open && c.abierta.length === 0, JSON.stringify(c))
-  await page.locator('#mcAlbum [data-carta="sv3-1"]').first().click()
-  await page.waitForTimeout(900)
+  check('  …y Esc la cierra', !c.ficha.open, JSON.stringify(c))
   await page.click('#mcAlbumHermanos [data-hermano="sv2"]')
   await page.waitForTimeout(1200)
   const e = await lee()
-  check('pulsar otra de la izquierda la abre (y cierra la carta, que era de la otra)', e.titulo === 'Evoluciones en Paldea' && e.cartas[0] === 'sv2-1' && !e.ficha.open && /\*$/.test(e.hermanos?.[1] || ''), JSON.stringify(e))
+  check('pulsar otra de la izquierda la abre', e.titulo === 'Evoluciones en Paldea' && e.cartas[0] === 'sv2-1' && !e.ficha.open && /\*$/.test(e.hermanos?.[1] || ''), JSON.stringify(e))
   await ctx.close()
 }
 

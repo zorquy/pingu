@@ -131,7 +131,8 @@ console.log('── 4 y 6. En el ordenador ──')
     return { barra: e.scrollWidth > e.clientWidth + 1, desborda: getComputedStyle(e).overflowX, todas: ts.every((t) => t.right <= caja.right + 1 && t.left >= caja.left - 1), filas: new Set(ts.map((t) => Math.round(t.top))).size, n: ts.length }
   })
   check('las tarjetas de precio caben todas, sin barra de desplazar', !r.barra && r.desborda === 'visible' && r.todas && r.n === 6, JSON.stringify(r))
-  check('  …en rejilla (más de una fila)', r.filas >= 2, JSON.stringify(r))
+  // Desde la 921 el pop-up es ancho: las seis caben en UNA fila.
+  check('  …y en el pop-up ancho (921), las seis en una fila', r.filas === 1, JSON.stringify(r))
   check('  …y sin botón de Cardmarket debajo', (await page.locator('#mcEdPrecioBloque .btn-cardmarket, #mcEdPrecioBloque .pv-botones').count()) === 0)
   await page.click('#mcEdCerrar')
   await page.waitForTimeout(500)
