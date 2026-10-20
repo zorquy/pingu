@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 908 — Lo que se cambia en /admin → Colecciones se ve en la web al momento
+
+PINGU: «en el panel de admin, en colecciones, yo ordeno las eras y meto las
+expansiones o cambio cosas y luego en la web no se ha cambiado». Dos causas:
+
+1. **La caché de la CDN.** Desde la 813 la estantería sale de
+   `/.netlify/functions/sets`, que la CDN guarda diez minutos y después
+   sigue sirviendo la vieja mientras pide la nueva (`stale-while-revalidate`
+   de un día), y el navegador un minuto más. Un cambio de /admin tardaba
+   eso o más. Ahora la respuesta lleva `netlify-cache-tag: sets`
+   (`ETIQUETA_CACHE`), el navegador ya no se la guarda (`max-age=0,
+   must-revalidate`) y Colecciones, un segundo después del último
+   guardado, llama a `sets-purgar` (solo admin), que pide a Netlify tirar
+   esa etiqueta (`netlify/lib/purgar.mjs`, lo mismo que `purgeCache` de
+   @netlify/functions sin la dependencia: `NETLIFY_PURGE_API_TOKEN` y
+   `SITE_ID` los pone Netlify en el entorno de la función). Si no puede,
+   el aviso lo dice: «puede tardar hasta diez minutos».
+2. **Arrastrar a otra era se deshacía solo.** `guardarOrden` escribía
+   `serie_id` a pelo, y la siguiente pasada del catálogo devolvía la era
+   de TCGGO. Ahora la era va por `catalogo_corregir` (885); el orden sigue
+   directo, porque nadie lo reescribe y «Volver al orden del catálogo»
+   (552) lo tiene que poder poner a null.
+
+Las eras (`tcg_eras`) no tenían el problema: se leen de Supabase directo.
+
+`test-tanda-908.mjs` (el vaciado con su token y su sitio, solo admin y por
+POST, la cabecera, quién avisa, la era como corrección y, en pantalla, que
+renombrar una era pide vaciar una vez). La 813 al día con la cabecera nueva.
+
 ## Tanda 907 — La imagen para compartir el reto diario, y las de la cuenta
 
 PINGU: «la captura para compartir es bastante pocha y no se sabe de qué se

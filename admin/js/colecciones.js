@@ -21,7 +21,7 @@
 // hacerlo. Un borrado que no enseña su impacto es un borrado a ciegas, y
 // de eso ya se aprendió en la 543.
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, validateImageFile, uploadGuideImage } from '../../js/app.js'
+import { escapeHtml, validateImageFile, uploadGuideImage, getSession } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
 import { nombreDeSet, eraDeSet } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
@@ -230,6 +230,29 @@ export function pintarColecciones() {
 // Guardar un puñado de columnas de un set. Devuelve si ha ido bien: una
 // escritura que la política rechaza NO da error, así que se mira la fila
 // que vuelve (la lección de los torneos, tanda 252).
+// ── QUE LA WEB LO ENSEÑE YA (tanda 908) ──
+//
+// PINGU: «ordeno las eras, meto las expansiones o cambio cosas y luego en
+// la web no se ha cambiado». La estantería sale de una copia que guarda la
+// CDN (813); después de guardar se le pide a Netlify que la tire. Una vez
+// por tanda de cambios: arrastrar diez colecciones son diez guardados y un
+// solo vaciado, un segundo después del último.
+let vaciado = null
+function avisarALaWeb() {
+  clearTimeout(vaciado)
+  vaciado = setTimeout(async () => {
+    try {
+      const session = await getSession()
+      const res = await fetch('/.netlify/functions/sets-purgar', { method: 'POST', headers: { authorization: `Bearer ${session?.access_token || ''}` } })
+      const r = await res.json().catch(() => ({}))
+      if (!res.ok || !r.ok) throw new Error(r.error || `Error ${res.status}`)
+      showToast('La web ya enseña los cambios.', 'success')
+    } catch (e) {
+      showToast(`Guardado, pero la web puede tardar hasta diez minutos en enseñarlo (${String(e?.message || e).slice(0, 90)}).`, 'error')
+    }
+  }, 1000)
+}
+
 async function guardarSet(id, campos, { comoCorreccion = false } = {}) {
   const s = sets.find((x) => x.id === id)
   let directos = campos
@@ -254,6 +277,7 @@ async function guardarSet(id, campos, { comoCorreccion = false } = {}) {
     if (!data?.length) { showToast('No se ha podido guardar: ¿sigues teniendo permiso de admin?', 'error'); return false }
   }
   if (s) Object.assign(s, campos)
+  avisarALaWeb()
   return true
 }
 
@@ -284,8 +308,14 @@ async function guardarOrden(ids, enLaEra = null) {
     const campos = {}
     if (cambios.has(id)) campos.orden = cambios.get(id)
     // Arrastrar una colección a otra era la MUEVE de era, que es lo que
-    // espera quien la suelta ahí.
-    if (enLaEra !== null && s.serie_id !== enLaEra) campos.serie_id = enLaEra
+    // espera quien la suelta ahí. Y la era va como CORRECCIÓN (908): a
+    // pelo, la siguiente pasada del catálogo le devolvía la suya y el
+    // cambio se deshacía solo. El orden sigue directo: nadie lo reescribe,
+    // y «Volver al orden del catálogo» lo tiene que poder quitar.
+    if (enLaEra !== null && s.serie_id !== enLaEra) {
+      if (!(await guardarSet(s.id, { serie_id: enLaEra }, { comoCorreccion: true }))) continue
+      if (!Object.keys(campos).length) { tocadas++; continue }
+    }
     if (!Object.keys(campos).length) continue
     if (await guardarSet(s.id, campos)) tocadas++
   }
@@ -417,6 +447,7 @@ async function guardarEra(id, campos) {
   const { error } = await supabase.from('tcg_eras').upsert(fila, { onConflict: 'market,id' })
   if (error) { showToast(error.message.slice(0, 120), 'error'); return false }
   eras.set(id, { nombre: fila.nombre, orden: fila.orden, grupo: fila.grupo ?? null })
+  avisarALaWeb()
   return true
 }
 
@@ -543,6 +574,7 @@ function abrirEditor(id) {
         if (error) return showToast(error.message.slice(0, 140), 'error')
       }
       showToast('Corrección quitada: vuelve lo del catálogo', 'success')
+      avisarALaWeb()
       await cargar(); pintarColecciones(); abrirEditor(s.id)
     })
   )
@@ -593,6 +625,7 @@ function abrirEditor(id) {
     const { error } = await supabase.from('tcg_sets').delete().eq('id', s.id).eq('market', mercado)
     if (error) return showToast(error.message.slice(0, 120), 'error')
     sets = sets.filter((x) => x.id !== s.id)
+    avisarALaWeb()
     cerrarHoja(); pintarColecciones(); showToast('Colección borrada')
   })
 }
@@ -670,6 +703,7 @@ function abrirNuevaColeccion() {
     if ($('colNuevoEra').value.trim()) cambios.serie_id = $('colNuevoEra').value.trim().toLowerCase()
     const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_sets', p_id: id, p_market: mercado, p_cambios: cambios, p_crear: true })
     if (error) return showToast(esFaltaDeRpc(error) ? 'Falta ejecutar supabase-migration-885-catalogo-correcciones.sql: sin ella no se pueden crear colecciones a mano.' : error.message.slice(0, 140), 'error')
+    avisarALaWeb()
     await cargar(); pintarColecciones(); showToast('Colección creada', 'success')
     abrirEditor(id)
   })

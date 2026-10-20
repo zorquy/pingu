@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (142) — PINGU-Claude (908 — lo de /admin → Colecciones se ve en la web al momento)
+
+**Hecho** (PINGU: «ordeno las eras y meto las expansiones o cambio cosas y
+luego en la web no se ha cambiado»). La estantería sale de una copia de la
+CDN de diez minutos que luego se sigue sirviendo mientras se renueva: ahora
+lleva etiqueta y /admin la tira al guardar (función `sets-purgar`, solo
+admin). Y mover una colección de era arrastrando iba sin corrección, así
+que la pasada del catálogo la devolvía: ahora va por `catalogo_corregir`.
+
+**Ficheros**: `netlify/functions/sets.mjs`, `netlify/functions/sets-purgar.mjs`
+(NUEVO), `netlify/lib/purgar.mjs` (NUEVO), `admin/js/colecciones.js`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-908.mjs`
+y la 813 al día.
+
+**Pendiente**: comprobar en producción que el aviso dice «La web ya enseña
+los cambios» (si dice que no puede, es que Netlify no le da el token de
+vaciado a la función y hay que mirarlo). Lo de la 141.
+
 ## 2026-10-20 (141) — PINGU-Claude (907 — la imagen del reto diario y las de la cuenta)
 
 **Hecho** (PINGU: la captura del reto «es bastante pocha»; propuesta con

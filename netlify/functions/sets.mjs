@@ -26,12 +26,16 @@ const TROZO = 1000
 const MAX_TROZOS = 5
 
 // Diez minutos en la CDN y, pasados, se sirve lo guardado mientras se pide
-// lo nuevo por detrás. Al navegador, un minuto: lo justo para no repetir la
-// petición al cambiar de pestaña dentro de la misma pantalla.
+// lo nuevo por detrás. Con su ETIQUETA (908), para que /admin la tire al
+// guardar algo de Colecciones (sets-purgar.mjs). Y el navegador ya no se
+// la guarda (era un minuto): la CDN contesta igual de rápido, y así quien
+// acaba de cambiar algo lo ve al recargar.
+export const ETIQUETA_CACHE = 'sets'
 export const CABECERAS = {
   'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'public, max-age=60',
+  'cache-control': 'public, max-age=0, must-revalidate',
   'netlify-cdn-cache-control': 'public, durable, max-age=600, stale-while-revalidate=86400',
+  'netlify-cache-tag': ETIQUETA_CACHE,
 }
 
 export function mercadoDePeticion(url) {

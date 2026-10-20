@@ -580,6 +580,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `SECCION_DE`.
 - **La estantería de sets sale de la CDN** (tanda 813): `setsDelCatalogo`
   (`js/sets-catalogo.js`) pide `/.netlify/functions/sets` y cae a Supabase.
+  Esa copia lleva la etiqueta `sets` y lo que la cambie desde /admin la
+  tira con `sets-purgar` (908): si añades otra escritura de sets o eras en
+  el panel, que llame a `avisarALaWeb()`, o la web lo enseñará tarde. Y
+  una era o un campo que reescribe una pasada (`serie_id`) se guarda como
+  corrección, nunca a pelo.
   Una columna nueva de la estantería va en LOS DOS (`COLUMNAS`), y lo que lea
   `todosLosSets` al abrir una pantalla por su dirección tiene que esperar a
   `cargarSets()`: ahora llega más tarde (la 748 lo cazó). Y el semáforo de
