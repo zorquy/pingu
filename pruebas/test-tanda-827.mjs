@@ -91,10 +91,17 @@ console.log('\n── 2. Las cartas de un set escondido, fuera del catálogo ─
 check('deSetVisible: fuera la de un set escondido; dentro la visible y la que no dice nada', !deSetVisible({ tcg_sets: { oculto: true } }) && deSetVisible({ tcg_sets: { oculto: false } }) && deSetVisible({ tcg_sets: {} }) && deSetVisible({}))
 for (const [f, patron] of [
   ['js/mi-coleccion/datos.js', /return \(data \|\| \[\]\)\.filter\(deSetVisible\)/],
-  ['js/mi-coleccion.js', /&& deSetVisible\(c\)\)/],
   ['js/catalogo-buscar.js', /\.filter\(deSetVisible\)/],
-  // Desde la 851 el buscador de arriba lo hace con `deSetVisible` (la de aquí mismo).
-  ['js/buscador.js', /deSetVisible\(c\)/],
+]) {
+  const src = readFileSync(`${RAIZ}/${f}`, 'utf8')
+  check(`${f}: filtra y pide \`oculto\` en el embebido`, patron.test(src) && /tcg_sets\([^)]*oculto\)/.test(src))
+}
+// Desde la 909 Cartas y el buscador de arriba buscan con js/buscar-cartas.js:
+// el filtro vive ahí y cada pantalla pide `oculto` en sus columnas.
+check('js/buscar-cartas.js: filtra con deSetVisible', /&& deSetVisible\(c\)/.test(readFileSync(`${RAIZ}/js/buscar-cartas.js`, 'utf8')))
+for (const [f, patron] of [
+  ['js/mi-coleccion.js', /const COLUMNAS_BUSCAR = '[^']*tcg_sets\([^)]*oculto\)/],
+  ['js/buscador.js', /const COLUMNAS_CARTA = '[^']*tcg_sets\([^)]*oculto\)/],
 ]) {
   const src = readFileSync(`${RAIZ}/${f}`, 'utf8')
   check(`${f}: filtra y pide \`oculto\` en el embebido`, patron.test(src) && /tcg_sets\([^)]*oculto\)/.test(src))

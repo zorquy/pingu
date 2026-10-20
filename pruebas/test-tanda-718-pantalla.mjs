@@ -58,7 +58,8 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
   const gs = await grupos(page)
   check('cuatro grupos, en orden: Cartas, Guías, Foro, Gente', gs.map((g) => g.titulo).join() === 'Cartas,Guías,Foro,Gente', JSON.stringify(gs.map((g) => g.titulo)))
   const cartas = gs[0]?.filas || []
-  check('las cartas: cuatro, y «Ver más cartas» porque hay más', cartas.length === 4 && gs[0].mas === 'Ver más cartas', JSON.stringify(gs[0]))
+  // Desde la 909 el botón dice cuántas hay.
+  check('las cartas: cuatro, y «Ver las 5 cartas» porque hay más', cartas.length === 4 && gs[0].mas === 'Ver las 5 cartas', JSON.stringify(gs[0]))
   const ch = cartas.find((f) => f.href?.endsWith('-base1-4'))
   check('Charizard lleva a su ficha, con su set, su número y su precio (el mínimo en español)', ch && ch.href === '/carta/charizard-base1-4' && /Charizard/.test(ch.texto) && /Set Básico · 4/.test(ch.texto) && /240,50\s?€/.test(ch.texto), JSON.stringify(ch))
   const foto = await page.$eval('#searchResults .bs-cartas .bs-foto', (i) => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), src: i.getAttribute('src') }))

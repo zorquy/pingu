@@ -102,8 +102,10 @@ console.log('── 1. /buscar: «pikachu asc» y «pikachu ascended heroes» �
 console.log('── 2. /buscar: «hypno rocket», lo de por nombre delante; «pikachu ex» sin los sets EX ──')
 {
   const { page, ctx } = await abrir('/buscar.html?q=hypno%20rocket&en=cartas')
-  const hs = (await cartasDe(page)).map(fin)
-  check('el Hypno de Team Rocket’s (por nombre) y el Hypno de Team Rocket (por expansión), y no el de 151', hs.join() === 'sv10-109,base5-24', hs.join())
+  // Desde la 909 /buscar ordena como Cartas (por expansión, de la más nueva
+  // a la más vieja), no «lo de por nombre delante»: se miran cuáles salen.
+  const hs = (await cartasDe(page)).map(fin).sort()
+  check('el Hypno de Team Rocket’s (por nombre) y el Hypno de Team Rocket (por expansión), y no el de 151', hs.join() === 'base5-24,sv10-109', hs.join())
   await page.fill('#searchInput', 'pikachu ex')
   await page.waitForTimeout(1200)
   const hs2 = (await cartasDe(page)).map(fin)
