@@ -595,6 +595,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mes, tres `destacadas` con su `dibujo` (los de `js/novedades.js`) —las
   elige quien escribe; si PINGU prefiere otras, se cambian—. La bitácora
   sigue siendo para nosotros; esto es para la gente.
+- **La imagen que se comparte de un reto lleva siempre el marco** (tanda
+  907): la marca y el número arriba, qué es (`lema`), la invitación con
+  su enlace y la medalla y la racha (`pintarResultadoReto`). Un reto nuevo
+  le pasa su `numero` y su `lema`, no un «Reto #N» en el detalle. Lo que
+  sale de las preguntas del día (la portada, la chapa) dice el TEMA y no
+  el enunciado: el reto es el mismo para todos y no se destripa. Y la
+  cuenta de PokeDoc no sube el resultado de nadie: sus dos imágenes del
+  día (mañana y noche) salen de /admin → Redes.
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

@@ -212,7 +212,8 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Más caro o más barato?',
     cuenta: `${aciertos}/${RONDAS}`,
-    detalle: `Reto #${numeroDelDia(dia)}`,
+    numero: numeroDelDia(dia),
+    lema: '¿Qué carta vale más? Un reto cada día',
     tira: estado.respuestas,
     racha: rachaDeDias(diasJugados(), dia),
     enlace: ENLACE,

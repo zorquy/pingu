@@ -22,7 +22,7 @@ async function abrir({ titulo, texto, nombre, imagen }) {
     nombre,
     imagen: async (formato) => {
       const { pintarResultadoReto } = await import('./reto-imagen.js')
-      return pintarResultadoReto(document.createElement('canvas'), { ...imagen, enlace: ENLACE, formato })
+      return pintarResultadoReto(document.createElement('canvas'), { invitacion: '¿Te apuntas?', lema: 'La app web del Pokémon TCG en español', ...imagen, enlace: ENLACE, formato })
     },
   })
 }

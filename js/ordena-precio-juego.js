@@ -172,7 +172,8 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: 'Ordena por precio',
     cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
-    detalle: `Reto #${numeroDelDia(dia)}`,
+    numero: numeroDelDia(dia),
+    lema: 'Ordena cartas por su precio, cada día',
     filas: estado.intentos.map((o) => enSuSitio(o, cartas)),
     racha: rachaDeDias(diasAcertados(), dia),
     enlace: ENLACE,

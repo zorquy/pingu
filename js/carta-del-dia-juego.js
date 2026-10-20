@@ -241,7 +241,9 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Qué carta es?',
     cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
-    detalle: `Reto #${numeroDelDia(dia)} · ${nombreDeCarta(respuesta)}`,
+    detalle: nombreDeCarta(respuesta),
+    numero: numeroDelDia(dia),
+    lema: 'Adivina la carta del día, cada día',
     filas: estado.intentos.map((it) => (esAcierto(it) ? [true, true, true, true] : ORDEN_CASILLAS.map((k) => estadoDe(it, k) === 'si'))),
     racha: rachaDeDias(diasAcertados(), dia),
     enlace: ENLACE,

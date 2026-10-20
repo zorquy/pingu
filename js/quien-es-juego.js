@@ -140,7 +140,9 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿Quién es ese Pokémon?',
     cuenta: `${estado.acertada ? n + 1 : 'X'}/${INTENTOS}`,
-    detalle: `Reto #${numeroDelDia(dia)} · ${nombre(buena)}`,
+    detalle: nombre(buena),
+    numero: numeroDelDia(dia),
+    lema: 'Adivina el Pokémon por su silueta, cada día',
     tira: [...Array.from({ length: n }, () => false), ...(estado.acertada ? [true] : [])],
     racha: rachaDeDias(diasAcertados(), dia),
     enlace: ENLACE,

@@ -764,6 +764,12 @@ body {
 .admin-aviso-parada p { margin: 0; flex: 1 1 320px; font-size: var(--t-sm); }
 
 /* Redes (903): las diez diapositivas del carrusel, en rejilla, y su descarga. */
+.redes-sub { margin: var(--e-2xl) 0 var(--e-sm); font-size: var(--t-lg); }
+.redes-reto-mandos { flex-wrap: wrap; align-items: end; margin-bottom: var(--e-md); }
+.redes-reto-mandos label { display: grid; gap: var(--e-xs); font-size: var(--t-sm); }
+.redes-reto-rejilla .redes-lienzo[data-formato="apaisada"] { aspect-ratio: 1200 / 630; }
+.redes-tuit { display: grid; gap: var(--e-sm); max-width: 640px; margin-top: var(--e-md); }
+.redes-tuit textarea { width: 100%; font: inherit; }
 .redes-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: var(--e-md); margin-top: var(--e-md); }
 .redes-diapo { margin: 0; display: grid; gap: var(--e-xs); min-width: 0; }
 .redes-diapo > * { min-width: 0; }

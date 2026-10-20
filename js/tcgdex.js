@@ -238,7 +238,7 @@ export async function cardsByIds(refs) {
         // Y `tcg_online_code` desde la tanda 370: es lo que necesita el
         // segundo sitio donde buscar un escaneo cuando TCGdex no tiene
         // el de esa carta (ver js/escaneo-carta.js).
-        .select('id, market, set_id, local_id, name, name_es, name_en, image_path,image_scrydex,image_tcggo, tcg_sets(name, name_en, tcg_online_code)')
+        .select('id, market, set_id, local_id, name, name_es, name_en, image_path,image_scrydex,image_tcggo, types, tcg_sets(name, name_en, tcg_online_code)')
         .eq('market', market)
         .in('id', ids)
     )

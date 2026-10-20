@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-20 (141) — PINGU-Claude (907 — la imagen del reto diario y las de la cuenta)
+
+**Hecho** (PINGU: la captura del reto «es bastante pocha»; propuesta con
+maquetas y «haz lo que creas conveniente»). La imagen del reto diario
+lleva de portada una carta de las preguntas de hoy (girada, con el tema
+en una chapa y el fondo del color de su tipo), la marca, el número, la
+medalla y la racha, qué es el reto y «¿Lo superas? pokedoc.es/reto». El
+mismo marco para los otros cinco retos y los logros. Y en /admin → Redes,
+«El reto de hoy» para la cuenta: la de la mañana (carta desenfocada y
+temas) y la de la noche (los números de todos), con su tuit.
+
+**Ficheros**: `js/reto-imagen.js`, `js/reto-portada.js` (NUEVO),
+`js/curso.js`, `js/tcgdex.js` (cardsByIds pide `types`),
+`js/carta-del-dia-juego.js`, `js/mas-caro-juego.js`,
+`js/ordena-precio-juego.js`, `js/que-expansion-juego.js`,
+`js/quien-es-juego.js`, `js/logro-compartir.js`, `admin/index.html`,
+`admin/js/redes.js`, `admin/css/admin.css`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-907.mjs`.
+
+**Pendiente**: lo de la 140.
+
 ## 2026-10-20 (140) — PINGU-Claude (906 — una dirección por página para Google)
 
 **Hecho** (PINGU: «vamos a arreglar el tema de las visitas de Google»; con

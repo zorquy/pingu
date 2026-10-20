@@ -34,6 +34,12 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-10-20",
+      "tipo": "mejora",
+      "texto": "La imagen para compartir los retos se ha renovado: el reto diario lleva de portada una carta de las preguntas del día, y todas dicen qué es el reto, tu medalla y tu racha, y dónde jugarlo.",
+      "enlace": "/retos"
+    },
+    {
       "fecha": "2026-10-19",
       "tipo": "mejora",
       "texto": "Tus cartas gradeadas valen lo que vale su nota: si le pones PSA 10 y hay precio de PSA 10, tu colección lo suma así, y la ficha te dice de dónde sale el número.",

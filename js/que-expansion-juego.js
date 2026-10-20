@@ -159,7 +159,8 @@ async function imagenDelResultado(formato) {
   return pintarResultadoReto(document.createElement('canvas'), {
     titulo: '¿De qué expansión es?',
     cuenta: `${t.filter(Boolean).length}/${RONDAS}`,
-    detalle: `Reto #${numeroDelDia(dia)}`,
+    numero: numeroDelDia(dia),
+    lema: 'Adivina de qué expansión es cada carta',
     tira: t,
     racha: rachaDeDias(diasJugados(), dia),
     enlace: ENLACE,

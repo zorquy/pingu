@@ -66,6 +66,8 @@ let mejorAnterior = null
 // porque `cerrarPartida()` suma el bonus de partida perfecta, y llamarla
 // dos veces lo sumaría dos veces.
 let ultimoResumen = null
+// Las preguntas del reto de hoy, para sacar la portada de su imagen (907).
+let preguntasDeHoy = []
 // Días seguidos de reto, contando hoy (tanda 568). Cero hasta que se guarda.
 let rachaDeHoy = 0
 // 'curso' | 'diario' | 'repaso'. El reto diario y el repaso son la misma
@@ -340,6 +342,33 @@ function cartaJugableHtml(id, extraClass = '', extraAttrs = '') {
         : `<span class="carta-opcion-noimg">${escapeHtml(carta.name)}</span>`
     }
   </button>`
+}
+
+// La portada de la imagen del reto de hoy (907): una carta de sus
+// preguntas, o la imagen de una, con su chapa y el color del tipo. Se
+// resuelve una vez y se reutiliza en los dos formatos de la hoja. Lo que
+// no llega (sin red, sin carta) deja la imagen sin foto, nunca sin imagen.
+let portadaResuelta = null
+async function portadaDeHoy({ portadaDelReto, chipDePortada, tonoDeCarta }) {
+  if (portadaResuelta) return portadaResuelta
+  const nada = { foto: null, tono: null, chip: '', proporcion: 245 / 342 }
+  try {
+    const portada = portadaDelReto(preguntasDeHoy)
+    if (!portada) return (portadaResuelta = nada)
+    const [{ fotoParaElLienzo }, { cadenaDeEscaneo }] = await Promise.all([import('./imagen-compartir.js'), import('./escaneo-carta.js')])
+    if (portada.tipo === 'carta') {
+      const carta = cartasPorId[portada.id] || (await cardsByIds([portada.id]).catch(() => []))[0]
+      const foto = carta ? await fotoParaElLienzo(cadenaDeEscaneo(carta, carta.tcg_sets?.tcg_online_code || null, 'high')) : null
+      portadaResuelta = foto ? { foto, tono: tonoDeCarta(carta), chip: chipDePortada(portada), proporcion: 245 / 342 } : nada
+    } else {
+      const foto = await fotoParaElLienzo([portada.url])
+      const p = foto?.naturalWidth && foto?.naturalHeight ? foto.naturalWidth / foto.naturalHeight : 1
+      portadaResuelta = foto ? { foto, tono: null, chip: chipDePortada(portada), proporcion: Math.max(0.6, Math.min(1.3, p)) } : nada
+    }
+  } catch {
+    portadaResuelta = nada
+  }
+  return portadaResuelta
 }
 
 // Carga las cartas que necesita un bloque y repinta lo que ya está en
@@ -1635,14 +1664,22 @@ async function setupBlockLogic(block) {
           texto,
           nombre: `reto-${numeroDelDia(hoyISO())}`,
           imagen: async (formato) => {
-            const { pintarResultadoReto } = await import('./reto-imagen.js')
+            const [{ pintarResultadoReto }, portadaMod] = await Promise.all([import('./reto-imagen.js'), import('./reto-portada.js')])
+            const { foto, tono, chip, proporcion } = await portadaDeHoy(portadaMod)
             return pintarResultadoReto(document.createElement('canvas'), {
+              arriba: 'PokeDoc · reto diario',
               titulo: 'El reto de hoy',
               cuenta: `${ultimoResumen.correct}/${ultimoResumen.total}`,
-              detalle: `Reto #${numeroDelDia(hoyISO())}`,
+              numero: numeroDelDia(hoyISO()),
               tira: ultimoResumen.tira,
               racha: rachaDeHoy,
+              medalla: ultimoResumen.medal,
+              lema: '5 preguntas de Pokémon TCG, cada día',
               enlace: ENLACE_RETO,
+              foto,
+              fotoProporcion: proporcion,
+              tono,
+              chip,
               formato,
             })
           },
@@ -1755,6 +1792,7 @@ async function cargarReto() {
     // Las preguntas del reto vienen de cursos distintos: se cargan sus
     // estadísticas de golpe para poder enseñar el "% de la comunidad".
     estadisticas = {}
+    preguntasDeHoy = preguntas
     empezarPartidaSuelta(preguntas, {
       titular: 'El reto de hoy',
       subtexto: `${preguntas.length} preguntas sacadas de los cursos. Las mismas para todo el mundo.`,

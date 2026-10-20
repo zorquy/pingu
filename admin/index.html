@@ -165,6 +165,21 @@
         <p class="admin-note">El carrusel de presentación para Instagram y X: diez imágenes de 1080 × 1350 que repasan lo que hace la web, dibujadas con las cartas más valiosas del catálogo, la última expansión con logo y las últimas guías. Se descargan y se suben a mano, en ese orden. Lo que no sale del catálogo (los nombres del podio, el ranking del meta) va de ejemplo.</p>
         <p class="admin-warning" id="redesAviso" hidden></p>
         <div class="redes-rejilla" id="redesLienzos"></div>
+
+        <h2 class="redes-sub">El reto de hoy</h2>
+        <p class="admin-note">Para la cuenta, no con tu resultado. <b>Por la mañana</b>, «Ya está el reto de hoy»: la carta del día desenfocada y los temas de las cinco preguntas, sin destripar nada. <b>Por la noche</b>, «Así fue el reto»: cuántos jugaron, la media, los plenos y la pregunta más difícil (cuenta las partidas visibles: quien oculta su actividad no entra). Cada una en historia y en el formato de X, con el texto del tuit.</p>
+        <div class="admin-row-actions redes-reto-mandos">
+          <label for="redesRetoDia">Día <input type="date" id="redesRetoDia"></label>
+          <button class="btn-primary" id="btnRedesRetoManana">La de la mañana</button>
+          <button class="btn-secondary" id="btnRedesRetoNoche">La de la noche</button>
+        </div>
+        <p class="admin-warning" id="redesRetoAviso" hidden></p>
+        <div class="redes-rejilla redes-reto-rejilla" id="redesRetoLienzos"></div>
+        <div class="redes-tuit" id="redesRetoTuit" hidden>
+          <label for="redesRetoTexto">El texto para X</label>
+          <textarea id="redesRetoTexto" rows="6" readonly></textarea>
+          <button class="btn-secondary" id="btnRedesRetoCopiar" type="button">Copiar el texto</button>
+        </div>
       </section>
 
       <section class="admin-section" id="section-guides">

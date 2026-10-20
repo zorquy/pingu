@@ -41785,6 +41785,56 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 907 — La imagen para compartir el reto diario, y las de la cuenta
+
+PINGU: «la captura para compartir es bastante pocha y no se sabe de qué se
+habla… ¿no puedes sacar una imagen de uno de los retos para ponerlo como
+portada?». Y luego: «debería ser compartible de dos maneras, una como
+usuario con el resultado de ese día para picar a la gente a entrar y otra
+para las cuentas de PokeDoc». Propuesta con maquetas en el artifact
+«Portadas del reto diario»; PINGU: «haz lo que creas conveniente».
+
+### El marco común (`pintarResultadoReto`, js/reto-imagen.js)
+
+Lo usan los seis retos y los logros. Lleva SIEMPRE, además del resultado:
+la marca arriba (`cabecera`: la «P», el nombre y `#numero` en amarillo),
+qué es (`lema`), la invitación con el enlace (`invitacion`, «¿Lo
+superas?»; los logros, «¿Te apuntas?») y la medalla con la racha
+(`lineaDeMedalla`). Con foto, la foto va girada con su chapa (`chip`) y el
+fondo puede tomar el color del tipo (`tono`, `fondoConTono`). La foto se
+encoge lo justo para que quepan las casillas (seis filas de «¿Qué carta
+es?»). El número del día salió del `detalle` de los cinco retos: ya va en
+la cabecera.
+
+### La portada del reto diario (js/reto-portada.js, sin dependencias)
+
+`portadaDelReto(preguntas)`: la primera pregunta de hoy con carta (y en
+«elegir la carta», NO la buena), si no la primera con imagen, si no nada.
+La chapa dice el número y el TEMA (`temaDe`: el título de la guía hasta
+los dos puntos), nunca el enunciado: el reto es igual para todos ese día y
+destriparía la partida. `tonoDeCarta` acepta el tipo en inglés o en
+español (la 889). curso.js guarda `preguntasDeHoy` al empezar y resuelve la
+portada una vez (`portadaDeHoy`) para los dos formatos; sin red o sin carta,
+la imagen sale sin foto, nunca sin imagen. `cardsByIds` pide ahora `types`.
+
+### Las de la cuenta (/admin → Redes → «El reto de hoy»)
+
+Sin el resultado de nadie. **Mañana** (`pintarAnuncioReto`): la carta del
+día desenfocada (dibujada diminuta y estirada: Safari no tiene `filter` en
+el lienzo), los temas y «¿Cuántas aciertas?». **Noche**
+(`pintarResumenReto`): jugadores, media, plenos, el reparto y la más
+difícil. Los números salen de `daily_challenge_results` del día, a trozos
+de 1.000 (la 808), y cuentan solo las partidas visibles (la política
+esconde a quien oculta su actividad). La más difícil, de `question_stats`
+(de siempre, con al menos cinco respuestas: `laMasDificil`). Cada una en
+historia y X, con su tuit (`textoDelAnuncio`, `textoDelResumen`).
+
+### Pruebas
+
+`test-tanda-907.mjs`: lo puro, quién pasa qué al marco, las imágenes con su
+logo y las seis filas sin pisar el lema, y /admin con la de la mañana y la
+de la noche y sus textos.
+
 ## Tanda 906 — Una dirección por página para Google
 
 PINGU pasó los datos de Search Console (2026-10-20, tres meses): 217 clics,

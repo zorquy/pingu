@@ -61,106 +61,252 @@ function ajustada(ctx, texto, cuerpo, maxAncho, fuente) {
   return c
 }
 
+// ── EL MARCO DE LA 907 ──
+//
+// PINGU: «la captura para compartir es bastante pocha y no se sabe de qué
+// se habla». Quien ve la imagen en una historia no sabe qué es PokeDoc ni
+// de qué iba el reto. Así que todas llevan lo mismo, además del resultado:
+//   · la MARCA arriba (el logo, el nombre del reto y su número del día);
+//   · QUÉ ES, en una línea (`lema`: «5 preguntas de Pokémon TCG, cada día»);
+//   · una INVITACIÓN con el enlace (`invitacion`: «¿Lo superas?»), que es
+//     lo que hace que alguien entre;
+//   · la MEDALLA y la racha, que ya existían y no salían.
+// Y, si hay foto, va girada y con una chapa (`chip`) que dice qué es; el
+// fondo puede tomar el color del tipo de la carta (`tono`).
+//
 // `filas` manda sobre `tira`: una tira es una sola fila. `fotoProporcion`
 // es ancho/alto de la foto (una carta por defecto; 1 para un dibujo).
-// `arriba` es la línea pequeña de cabecera: la misma pieza sirve para un
-// logro, un nivel o un podio (873), que cambian solo las palabras.
-export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia' }) {
+// `arriba` es el nombre pequeño de la cabecera: la misma pieza sirve para
+// un logro, un nivel o un podio (873), que cambian solo las palabras.
+const ORO = '#ffd166'
+const NOMBRE_MEDALLA = { oro: 'Medalla de oro', plata: 'Medalla de plata', bronce: 'Medalla de bronce' }
+
+export function lineaDeMedalla(medalla, racha) {
+  const partes = []
+  if (NOMBRE_MEDALLA[medalla]) partes.push(NOMBRE_MEDALLA[medalla])
+  if (racha >= 2) partes.push(`${racha} días seguidos`)
+  return partes.join(' · ')
+}
+
+// El fondo con el color de la carta: un foco del tono arriba que se funde
+// con el azul de siempre abajo. Sin tono, el degradado de siempre.
+export function fondoConTono(ctx, w, h, tono) {
+  if (!tono) return fondo(ctx, w, h)
+  ctx.fillStyle = '#0d1b2a'
+  ctx.fillRect(0, 0, w, h)
+  const g = ctx.createRadialGradient(w / 2, h * 0.3, 10, w / 2, h * 0.35, Math.max(w, h) * 0.85)
+  g.addColorStop(0, tono)
+  g.addColorStop(0.45, mezclar(tono, '#0d1b2a', 0.45))
+  g.addColorStop(1, '#0d1b2a')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, w, h)
+}
+
+function mezclar(a, b, t) {
+  const n = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+  const [x, y] = [n(a), n(b)]
+  return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`
+}
+
+// La cabecera: el logo (la «P» de la web), el nombre y el número del día.
+function cabecera(ctx, { x, y, ancho, arriba, numero, cuerpo }) {
+  const lado = Math.round(cuerpo * 1.55)
+  ctx.save()
+  ctx.fillStyle = '#8ec5ea'
+  redondeado(ctx, x, y - lado * 0.78, lado, lado, Math.round(lado / 4))
+  ctx.fill()
+  ctx.fillStyle = '#0d1b2a'
+  ctx.textAlign = 'center'
+  ctx.font = `700 ${Math.round(lado * 0.62)}px ${TITULAR}`
+  ctx.fillText('P', x + lado / 2, y - lado * 0.78 + lado * 0.74)
+  ctx.textAlign = 'left'
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'
+  ctx.font = `600 ${cuerpo}px ${TITULAR}`
+  ctx.fillText(arriba, x + lado + Math.round(cuerpo * 0.45), y)
+  if (numero) {
+    ctx.textAlign = 'right'
+    ctx.fillStyle = ORO
+    ctx.fillText(`#${numero}`, x + ancho, y)
+  }
+  ctx.restore()
+}
+
+// La invitación: una píldora con «¿Lo superas?» y el enlace en amarillo.
+function invitacionAbajo(ctx, { cx, y, ancho, alto, texto, enlace, cuerpo }) {
+  ctx.save()
+  ctx.fillStyle = 'rgba(255,255,255,0.10)'
+  ctx.strokeStyle = 'rgba(255,255,255,0.24)'
+  ctx.lineWidth = 2
+  redondeado(ctx, cx - ancho / 2, y, ancho, alto, alto / 2)
+  ctx.fill()
+  ctx.stroke()
+  ctx.font = `600 ${cuerpo}px ${TEXTO}`
+  const a = texto ? `${texto} ` : ''
+  ctx.font = `700 ${cuerpo}px ${TEXTO}`
+  const anchoEnlace = ctx.measureText(enlace).width
+  ctx.font = `500 ${cuerpo}px ${TEXTO}`
+  const anchoTexto = ctx.measureText(a).width
+  let x = cx - (anchoTexto + anchoEnlace) / 2
+  const base = y + alto / 2 + cuerpo * 0.36
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#fff'
+  ctx.fillText(a, x, base)
+  x += anchoTexto
+  ctx.font = `700 ${cuerpo}px ${TEXTO}`
+  ctx.fillStyle = ORO
+  ctx.fillText(enlace, x, base)
+  ctx.restore()
+}
+
+// La foto, girada unos grados, con sombra y, si hay, una chapa blanca que
+// la pisa por abajo diciendo qué es («Pregunta 3 · Precios»).
+function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '', cuerpoChip = 30 }) {
+  ctx.save()
+  ctx.translate(cx, y + h / 2)
+  ctx.rotate((giro * Math.PI) / 180)
+  ctx.shadowColor = 'rgba(0,0,0,0.45)'
+  ctx.shadowBlur = 40
+  ctx.shadowOffsetY = 16
+  ctx.fillStyle = '#0d1b2a'
+  redondeado(ctx, -w / 2, -h / 2, w, h, 20)
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  dibujarCarta(ctx, foto, { x: -w / 2, y: -h / 2, w, h, r: 20, nombre })
+  ctx.restore()
+  if (chip) {
+    ctx.save()
+    ctx.font = `600 ${cuerpoChip}px ${TEXTO}`
+    const ancho = ctx.measureText(chip).width + cuerpoChip * 1.4
+    const alto = cuerpoChip * 1.8
+    ctx.translate(cx, y + h - alto * 0.2)
+    ctx.rotate((2 * Math.PI) / 180)
+    ctx.shadowColor = 'rgba(0,0,0,0.35)'
+    ctx.shadowBlur = 20
+    ctx.fillStyle = '#ffffff'
+    redondeado(ctx, -ancho / 2, -alto / 2, ancho, alto, alto / 2)
+    ctx.fill()
+    ctx.shadowColor = 'transparent'
+    ctx.fillStyle = '#0d1b2a'
+    ctx.textAlign = 'center'
+    ctx.fillText(chip, 0, cuerpoChip * 0.36)
+    ctx.restore()
+  }
+}
+
+export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia', numero = null, lema = '', invitacion = '¿Lo superas?', medalla = null, tono = null, chip = '' }) {
   const { w: W, h: H } = medidasDe(formato)
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
   lienzo.height = H
-  fondo(ctx, W, H)
+  fondoConTono(ctx, W, H, tono)
   ctx.fillStyle = '#fff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
   const lineas = filas || (tira ? [tira] : [])
+  const medallaYRacha = lineaDeMedalla(medalla, racha)
 
   if (formato === 'apaisada') {
     // La foto a la izquierda (si la hay) y todo lo demás centrado en lo
     // que queda; sin foto, centrado en el lienzo.
     let cx = W / 2
     if (foto) {
-      const h = 470
+      const h = 450
       const w = Math.round(h * fotoProporcion)
-      dibujarCarta(ctx, foto, { x: 80, y: (H - h) / 2, w, h, r: 16, nombre: fotoNombre })
-      cx = (80 + w + W) / 2
+      fotoGirada(ctx, foto, { cx: 80 + w / 2, y: (H - h) / 2 - 10, w, h, chip, nombre: fotoNombre, cuerpoChip: 22 })
+      cx = (80 + w + W) / 2 + 10
     }
+    const izq = foto ? cx - (W - cx) + 40 : 70
+    cabecera(ctx, { x: izq, y: 70, ancho: W - 60 - izq, arriba, numero, cuerpo: 26 })
+    ctx.textAlign = 'center'
     ctx.fillStyle = '#fff'
-    ctx.font = `700 30px ${TITULAR}`
-    ctx.fillText(arriba, cx, 90)
-    ctx.font = `700 46px ${TITULAR}`
+    ctx.font = `700 44px ${TITULAR}`
     ctx.fillText(titulo, cx, 150)
-    ajustada(ctx, cuenta, 130, (foto ? W - cx : W) - 120, TITULAR)
-    ctx.fillText(cuenta, cx, 300)
-    let y = 330
+    ajustada(ctx, cuenta, 120, (foto ? W - cx : W) - 120, TITULAR)
+    ctx.fillText(cuenta, cx, 280)
+    let y = 300
     if (detalle) {
-      ctx.font = `500 28px ${TEXTO}`
+      ctx.font = `500 26px ${TEXTO}`
       ctx.fillStyle = 'rgba(255,255,255,0.85)'
-      ctx.fillText(detalle, cx, y + 10)
-      y += 40
+      ctx.fillText(detalle, cx, y + 16)
+      y += 36
     }
-    const lado = lineas.length > 3 ? 28 : 44
+    if (medallaYRacha) {
+      ctx.font = `700 26px ${TEXTO}`
+      ctx.fillStyle = ORO
+      ctx.fillText(medallaYRacha, cx, y + 20)
+      y += 36
+    }
+    const lado = lineas.length > 3 ? 26 : 40
     const hueco = lineas.length > 3 ? 8 : 12
-    y += 16
-    for (const l of lineas) {
+    y += 14
+    for (const l of lineas.slice(0, 4)) {
       fila(ctx, l, cx, y, lado, hueco)
       y += lado + hueco
     }
-    if (racha >= 2) {
-      ctx.fillStyle = '#ffd166'
-      ctx.font = `700 28px ${TEXTO}`
-      ctx.fillText(`${racha} días seguidos`, cx, Math.max(y + 36, H - 100))
+    if (lema) {
+      ctx.font = `500 22px ${TEXTO}`
+      ctx.fillStyle = 'rgba(255,255,255,0.78)'
+      ctx.fillText(lema, cx, H - 104)
     }
-    ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.font = `700 28px ${TEXTO}`
-    ctx.fillText(enlace, cx, H - 44)
+    invitacionAbajo(ctx, { cx, y: H - 86, ancho: Math.min(W - cx - 40, 520) * 2 - 40, alto: 58, texto: invitacion, enlace, cuerpo: 24 })
     return lienzo
   }
 
-  ctx.font = `700 44px ${TITULAR}`
-  ctx.fillText(arriba, W / 2, 110)
+  cabecera(ctx, { x: 70, y: 100, ancho: W - 140, arriba, numero, cuerpo: 38 })
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#fff'
   ctx.font = `700 64px ${TITULAR}`
-  ctx.fillText(titulo, W / 2, 200)
+  ctx.fillText(titulo, W / 2, 210)
 
+  // Lo que ocupan las casillas, para que la foto se encoja lo justo: «¿Qué
+  // carta es?» puede llegar con seis filas y no caben debajo de una foto
+  // de 450 con la frase y la invitación abajo.
+  const n = lineas.length
+  const lado = n > 3 ? 36 : n > 1 ? 48 : 72
+  const hueco = n > 3 ? 8 : n > 1 ? 12 : 18
+  const casillas = n * (lado + hueco)
   let y = 260
   if (foto) {
-    const h = 496
+    const libre = (H - (lema ? 200 : 150)) - y - 60 - 160 - (detalle ? 56 : 0) - (medallaYRacha ? 60 : 0) - 44 - casillas
+    const h = Math.max(260, Math.min(450, libre))
     const w = Math.round(h * fotoProporcion)
-    dibujarCarta(ctx, foto, { x: (W - w) / 2, y, w, h, r: 20, nombre: fotoNombre })
-    y += h + 70
+    fotoGirada(ctx, foto, { cx: W / 2, y, w, h, chip, nombre: fotoNombre })
+    y += h + 60
   } else {
-    y += 60
+    y += 90
   }
 
   ctx.fillStyle = '#fff'
+  ctx.textAlign = 'center'
   ajustada(ctx, cuenta, 160, W - 160, TITULAR)
   ctx.fillText(cuenta, W / 2, y + 120)
-  y += 170
+  y += 160
   if (detalle) {
-    ctx.font = `500 40px ${TEXTO}`
+    ctx.font = `500 38px ${TEXTO}`
     ctx.fillStyle = 'rgba(255,255,255,0.85)'
-    ctx.fillText(detalle, W / 2, y + 30)
-    y += 70
+    ctx.fillText(detalle, W / 2, y + 26)
+    y += 56
+  }
+  if (medallaYRacha) {
+    ctx.font = `700 40px ${TEXTO}`
+    ctx.fillStyle = ORO
+    ctx.fillText(medallaYRacha, W / 2, y + 30)
+    y += 60
   }
 
-  const lado = lineas.length > 3 ? 48 : 72
-  const hueco = lineas.length > 3 ? 12 : 18
-  y += 30
+  y += 24
   for (const l of lineas) {
     fila(ctx, l, W / 2, y, lado, hueco)
     y += lado + hueco
   }
 
-  if (racha >= 2) {
-    ctx.fillStyle = '#ffd166'
-    ctx.font = `700 44px ${TEXTO}`
-    ctx.fillText(`${racha} días seguidos`, W / 2, y + 60)
+  if (lema) {
+    ctx.font = `500 32px ${TEXTO}`
+    ctx.fillStyle = 'rgba(255,255,255,0.78)'
+    ctx.textAlign = 'center'
+    ctx.fillText(lema, W / 2, H - 150)
   }
-
-  ctx.fillStyle = 'rgba(255,255,255,0.9)'
-  ctx.font = `700 40px ${TEXTO}`
-  ctx.fillText(enlace, W / 2, H - 80)
+  invitacionAbajo(ctx, { cx: W / 2, y: H - 120, ancho: W - 140, alto: 84, texto: invitacion, enlace, cuerpo: 34 })
   return lienzo
 }
 
@@ -312,5 +458,214 @@ export function pintarMiMes(lienzo, { dias = {}, hoy, n = 30, cifras = [], enlac
   ctx.fillStyle = 'rgba(255,255,255,0.9)'
   ctx.font = `700 ${apaisada ? 28 : 40}px ${TEXTO}`
   ctx.fillText(enlace, W / 2, H - (apaisada ? 44 : 80))
+  return lienzo
+}
+
+// ── LAS DE LA CUENTA DE POKEDOC (907) ──
+//
+// Las de arriba son de quien juega: su resultado, para picar a sus amigos.
+// La cuenta no sube el resultado de nadie —se leería como algo personal y
+// destriparía el reto a quien aún no lo ha jugado—, sino dos al día:
+//   · por la mañana, «Ya está el reto de hoy»: la carta del día
+//     DESENFOCADA, los temas de las cinco preguntas y «¿Cuántas aciertas?»;
+//   · por la noche, «Así fue el reto»: cuántos jugaron, la media, los
+//     plenos, el reparto y la pregunta que más se falla.
+// Se generan en /admin → Redes.
+
+// Desenfocar sin `ctx.filter` (Safari no lo tiene en un lienzo): se
+// dibuja la foto diminuta y se estira, que el suavizado la deja borrosa.
+function borrosa(img, w, h, finura = 30) {
+  const c = document.createElement('canvas')
+  c.width = Math.max(4, Math.round(w / finura))
+  c.height = Math.max(4, Math.round(h / finura))
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+  return c
+}
+
+function chapas(ctx, textos, { cx, y, cuerpo, maxAncho }) {
+  // Las chapas en filas centradas: se van llenando hasta `maxAncho`.
+  ctx.font = `600 ${cuerpo}px ${TEXTO}`
+  const alto = cuerpo * 1.9
+  const pad = cuerpo * 0.8
+  const hueco = cuerpo * 0.5
+  const filas = [[]]
+  let ancho = 0
+  for (const t of textos) {
+    const w = ctx.measureText(t).width + pad * 2
+    if (ancho && ancho + hueco + w > maxAncho) { filas.push([]); ancho = 0 }
+    filas[filas.length - 1].push({ t, w })
+    ancho += (ancho ? hueco : 0) + w
+  }
+  for (const f of filas) {
+    const total = f.reduce((n, c) => n + c.w, 0) + hueco * (f.length - 1)
+    let x = cx - total / 2
+    for (const c of f) {
+      ctx.fillStyle = 'rgba(255,255,255,0.12)'
+      ctx.strokeStyle = 'rgba(255,255,255,0.24)'
+      ctx.lineWidth = 2
+      redondeado(ctx, x, y, c.w, alto, alto / 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.fillStyle = '#fff'
+      ctx.textAlign = 'center'
+      ctx.fillText(c.t, x + c.w / 2, y + alto / 2 + cuerpo * 0.36)
+      x += c.w + hueco
+    }
+    y += alto + hueco
+  }
+  return y
+}
+
+export function pintarAnuncioReto(lienzo, { numero, temas = [], foto = null, tono = null, enlace = 'pokedoc.es/reto', formato = 'historia' }) {
+  const { w: W, h: H } = medidasDe(formato)
+  const ctx = lienzo.getContext('2d')
+  lienzo.width = W
+  lienzo.height = H
+  fondoConTono(ctx, W, H, tono || '#4a3a8a')
+  ctx.textBaseline = 'alphabetic'
+  const apaisada = formato === 'apaisada'
+  const misterio = (cx, y, w, h) => {
+    // La carta borrosa con un «?» encima: se ve que es una carta y su
+    // color, no cuál es.
+    ctx.save()
+    ctx.translate(cx, y + h / 2)
+    ctx.rotate((-4 * Math.PI) / 180)
+    ctx.shadowColor = 'rgba(0,0,0,0.45)'
+    ctx.shadowBlur = 40
+    ctx.shadowOffsetY = 16
+    ctx.fillStyle = '#0d1b2a'
+    redondeado(ctx, -w / 2, -h / 2, w, h, 20)
+    ctx.fill()
+    ctx.shadowColor = 'transparent'
+    redondeado(ctx, -w / 2, -h / 2, w, h, 20)
+    ctx.clip()
+    if (foto) {
+      ctx.imageSmoothingEnabled = true
+      ctx.drawImage(borrosa(foto, w, h), -w / 2, -h / 2, w, h)
+      ctx.fillStyle = 'rgba(13,27,42,0.25)'
+      ctx.fillRect(-w / 2, -h / 2, w, h)
+    } else {
+      ctx.fillStyle = '#24405c'
+      ctx.fillRect(-w / 2, -h / 2, w, h)
+    }
+    ctx.fillStyle = ORO
+    ctx.textAlign = 'center'
+    ctx.font = `700 ${Math.round(h * 0.42)}px ${TITULAR}`
+    ctx.fillText('?', 0, h * 0.15)
+    ctx.restore()
+  }
+  if (apaisada) {
+    misterio(250, 90, 300, 420)
+    const cx = 790
+    cabecera(ctx, { x: 470, y: 70, ancho: W - 530, arriba: 'PokeDoc · reto diario', numero, cuerpo: 26 })
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#fff'
+    ctx.font = `700 54px ${TITULAR}`
+    ctx.fillText('¡Ya está el reto de hoy!', cx, 165)
+    let y = chapas(ctx, temas, { cx, y: 200, cuerpo: 22, maxAncho: 620 })
+    ctx.font = `500 24px ${TEXTO}`
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'
+    ctx.fillText('5 preguntas · un par de minutos · gratis', cx, Math.max(y + 30, 380))
+    invitacionAbajo(ctx, { cx, y: H - 100, ancho: 620, alto: 62, texto: '¿Cuántas aciertas?', enlace, cuerpo: 26 })
+    return lienzo
+  }
+  cabecera(ctx, { x: 70, y: 100, ancho: W - 140, arriba: 'PokeDoc · reto diario', numero, cuerpo: 38 })
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#fff'
+  ctx.font = `700 76px ${TITULAR}`
+  ctx.fillText('¡Ya está el reto', W / 2, 230)
+  ctx.fillText('de hoy!', W / 2, 315)
+  misterio(W / 2, 370, 360, 500)
+  let y = chapas(ctx, temas, { cx: W / 2, y: 930, cuerpo: 32, maxAncho: W - 160 })
+  ctx.font = `500 34px ${TEXTO}`
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'
+  ctx.textAlign = 'center'
+  ctx.fillText('5 preguntas · un par de minutos · gratis', W / 2, Math.min(y + 50, H - 160))
+  invitacionAbajo(ctx, { cx: W / 2, y: H - 120, ancho: W - 140, alto: 84, texto: '¿Cuántas aciertas?', enlace, cuerpo: 34 })
+  return lienzo
+}
+
+// `resumen` es el de `resumenDeResultados` (reto-portada.js); `dificil`,
+// el de `laMasDificil` o null.
+export function pintarResumenReto(lienzo, { numero, resumen, dificil = null, enlace = 'pokedoc.es/reto', formato = 'historia' }) {
+  const { w: W, h: H } = medidasDe(formato)
+  const ctx = lienzo.getContext('2d')
+  lienzo.width = W
+  lienzo.height = H
+  fondo(ctx, W, H)
+  ctx.textBaseline = 'alphabetic'
+  const apaisada = formato === 'apaisada'
+  const k = apaisada ? 0.55 : 1
+  const coma = (v) => String(v).replace('.', ',')
+  const cifras = [
+    [resumen.jugadores.toLocaleString('es-ES'), resumen.jugadores === 1 ? 'ha jugado' : 'han jugado'],
+    [resumen.media == null ? '—' : coma(resumen.media), 'aciertos de media'],
+    [`${resumen.pctPlenos ?? 0} %`, 'hizo pleno'],
+  ]
+  const x0 = apaisada ? 60 : 70
+  const anchoUtil = apaisada ? 520 : W - 140
+  cabecera(ctx, { x: x0, y: apaisada ? 70 : 100, ancho: apaisada ? W - 120 : W - 140, arriba: 'PokeDoc · reto diario', numero, cuerpo: Math.round(38 * (apaisada ? 0.7 : 1)) })
+  ctx.textAlign = apaisada ? 'left' : 'center'
+  ctx.fillStyle = '#fff'
+  ctx.font = `700 ${Math.round(72 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
+  ctx.fillText(`Así fue el reto #${numero}`, apaisada ? x0 : W / 2, apaisada ? 150 : 230)
+  // Las tres cifras.
+  const yc = apaisada ? 250 : 380
+  cifras.forEach(([v, t], i) => {
+    const cx = x0 + (anchoUtil / 3) * i + anchoUtil / 6
+    ctx.textAlign = 'center'
+    ctx.fillStyle = ORO
+    ctx.font = `700 ${Math.round(96 * k)}px ${TITULAR}`
+    ctx.fillText(v, cx, yc)
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'
+    ctx.font = `500 ${Math.round(30 * k)}px ${TEXTO}`
+    ctx.fillText(t, cx, yc + Math.round(46 * k))
+  })
+  // El reparto: una barra por nota, de la mejor a la peor.
+  const barras = (resumen.reparto || []).filter((r) => r.aciertos > 0 || r.personas > 0)
+  const bx = apaisada ? 640 : 160
+  const bAncho = apaisada ? 470 : W - 320
+  let y = apaisada ? 120 : 520
+  const alto = apaisada ? 26 : 56
+  const paso = apaisada ? 44 : (dificil ? 76 : 96)
+  for (const r of barras) {
+    ctx.textAlign = 'right'
+    ctx.fillStyle = '#fff'
+    ctx.font = `700 ${Math.round(32 * (apaisada ? 0.75 : 1))}px ${TEXTO}`
+    ctx.fillText(`${r.aciertos}/${r.de}`, bx - 20, y + alto * 0.75)
+    ctx.fillStyle = 'rgba(255,255,255,0.12)'
+    redondeado(ctx, bx, y, bAncho, alto, 8)
+    ctx.fill()
+    if (r.pct > 0) {
+      ctx.fillStyle = r.aciertos === r.de ? ORO : COLOR.si
+      redondeado(ctx, bx, y, Math.max(alto, (bAncho * r.pct) / 100), alto, 8)
+      ctx.fill()
+    }
+    ctx.textAlign = 'left'
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'
+    ctx.font = `600 ${Math.round(28 * (apaisada ? 0.75 : 1))}px ${TEXTO}`
+    ctx.fillText(`${r.pct} %`, bx + bAncho + 14, y + alto * 0.75)
+    y += paso
+  }
+  if (dificil) {
+    const dy = apaisada ? 360 : Math.min(Math.max(y + 30, 960), H - 300)
+    const dx = apaisada ? 60 : 100
+    const dw = apaisada ? 520 : W - 200
+    const dh = apaisada ? 110 : 150
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'
+    redondeado(ctx, dx, dy, dw, dh, 20)
+    ctx.fill()
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#fff'
+    ctx.font = `700 ${Math.round(36 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
+    ctx.fillText('La más difícil', dx + 30, dy + dh * 0.42)
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'
+    ctx.font = `500 ${Math.round(30 * (apaisada ? 0.75 : 1))}px ${TEXTO}`
+    const tema = dificil.tema ? `${dificil.tema} · ` : ''
+    ctx.fillText(`Pregunta ${dificil.indice + 1} · ${tema}solo la acierta el ${dificil.pct} %`, dx + 30, dy + dh * 0.75)
+  }
+  invitacionAbajo(ctx, apaisada
+    ? { cx: W / 2, y: H - 90, ancho: W - 120, alto: 58, texto: 'Mañana, otro.', enlace, cuerpo: 24 }
+    : { cx: W / 2, y: H - 120, ancho: W - 140, alto: 84, texto: 'Mañana, otro.', enlace, cuerpo: 34 })
   return lienzo
 }
