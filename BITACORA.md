@@ -4,6 +4,53 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (183) — PINGU-Claude (948 — la 1.ª edición de las japonesas antiguas) · MIGRACIÓN NUEVA
+
+**Hecho** (en el foro: «Wind from the Sea, existe 1.ª Edición y Unlimited, no
+me deja añadir 1.ª edición», y Flight of Legends, Rocket Gang Strikes Back,
+Galactic's Conquest, el Steelix Constructed Standard Deck y el Scyther de
+Golden Sky, Silvery Ocean con «Versión: Normal — la única que existe».
+PINGU: «yo creo que las variantes las cogemos de TCGdex y al añadir solo coge
+de TCGGO»). Es eso: desde la 806 el catálogo japonés es entero de TCGGO, que
+no dice si una carta tuvo 1.ª edición, y su «Standard» deja una sola versión.
+- **`supabase-migration-948-ediciones-japonesas.sql`**: las ediciones de
+  1.370 cartas de 16 sets (e-Card E1–E5, PCG1–PCG9, VS1, web1) sacadas de los
+  ficheros de tcgdex/cards-database (`data-asia`, `stamp: ["1st edition"]` +
+  la Unlimited), como filas `origen = 'edicion'`: «1st Edition» y
+  «Unlimited», igual que la 935 con Wizards. La Unlimited lleva el producto de
+  la carta (su precio es el de la carta); la 1.ª edición va sin cifra.
+- **Casar los sets** (los nuestros son de TCGGO, con otros ids): por id o
+  código; si no, por día de salida y, si ese día salió más de uno, por la
+  cuenta de cartas. Un empate o nada se salta y lo dice. El nombre NO se usa:
+  TCGdex tiene mal los de estos sets («奇妙な», «vileplume»). Las cartas, por
+  número («003» = «3» = «003/106»), y al menos la mitad tienen que casar.
+- Las copias «Normal» u «Holo» de esas cartas pasan a «Unlimited»; las de
+  «1.ª edición» se quedan. El informe (un renglón por set) queda en
+  `scrydex_estado` (`ediciones_jp_948`) y la migración lo enseña al final.
+- **El «+» de una carta con ediciones** ponía la primera de la lista (la 1.ª
+  edición) y no la Unlimited, también en las de Wizards occidentales: ahora
+  pone `varianteDeCarta` (`js/mi-coleccion.js`, `prepararAnadir`).
+
+**Ficheros**: `supabase-migration-948-ediciones-japonesas.sql` (nueva),
+`js/mi-coleccion.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+En `pruebas`: `herramientas/ediciones-japonesas/` (`leer.mjs`,
+`generar-sql.mjs`), `sql-tanda-948.sql`, `sql-tanda-948-casos.sql` (23 casos
+contra PostgreSQL) y `test-tanda-948.mjs` (base, datos, lo puro y la
+pantalla: antes «normal» sola, ahora 1.ª edición y Unlimited con la Unlimited
+puesta). Pasadas: 948, 935, 945, 947, 922, 915, 927, 930, 650, 712, 719,
+747, 767, 862, 383, 564, 657, 692 y `test-imports`: todas verdes.
+
+**Pendiente**:
+- PINGU: ejecutar la 948 y mirar la tabla del final (qué set nuestro casó con
+  cada uno de TCGdex y cuántas cartas). Si alguno sale «empate» o «ningún set
+  nuestro de ese día», se le dice a mano con qué set va.
+- **Galactic's Conquest (Pt1) y el Steelix Constructed Standard Deck no
+  entran**: TCGdex no tiene ni una carta de ellos (nada de DP/DPt japonés).
+  Si PINGU confirma qué sets japoneses tuvieron 1.ª edición en TODAS sus
+  cartas, se hace por set; si no, a mano desde /admin (934).
+
 ## 2026-10-22 (182) — PINGU-Claude (947 — Chaos Rising y Pitch Black con su Reverse)
 
 **Hecho** (PINGU: «parece que Pitch Black no tiene las variantes correctas…

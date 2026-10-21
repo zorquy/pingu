@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 948 — Las ediciones de las japonesas antiguas
+
+- `supabase-migration-948-ediciones-japonesas.sql`: filas `tcg_card_versions`
+  `origen = 'edicion'`, `market = 'JP'`, «1st Edition» (sin producto) y
+  «Unlimited» (con `cm_id_product_propio` de la carta), clase `impresion`.
+  Datos dentro (jsonb: set de TCGdex, nombre, día, cuenta oficial, números),
+  de `herramientas/ediciones-japonesas/` (rama `pruebas`) sobre un clon de
+  tcgdex/cards-database con `data-asia`: una carta entra si tiene una variante
+  con sello «1st edition» y otra sin sello.
+- Casado de set: `lower(id)` o `lower(tcg_online_code)` = el de TCGdex; si no,
+  `release_date` igual y, con varios, `card_count_official`/`card_count_total`
+  igual a la cuenta de TCGdex. Solo sets japoneses visibles (`oculto` falso).
+  Elegido, al menos la mitad de los números tienen que estar. Nunca por
+  nombre (los de TCGdex en estos sets no son los de la carta).
+- Informe en `scrydex_estado.ediciones_jp_948` (`sets`: `tcgdex`, `set`,
+  `por`, `casan`, `ediciones_nuevas`, `copias_a_unlimited`).
+- La web no cambia para leerlas: `variantesDeCarta` ya da las ediciones de
+  cualquier mercado (935). `precioDeLinea`: la Unlimited, mismo producto que
+  la carta → su precio; la 1.ª edición, sin cifra. La pasada de precios solo
+  pide ediciones del occidental, y no hace falta para estas.
+- `prepararAnadir` (mi-coleccion.js): la versión puesta, sin una pedida, es
+  `varianteDeCarta(c)` si está en la lista (con ediciones, la Unlimited).
+
 ## Tanda 947 — Los sets de los que TCGGO no tiene versiones
 
 - `SETS_SIN_VERSIONES_TCGGO` (variantes.js, exportada): ids nuestros de

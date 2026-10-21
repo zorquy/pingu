@@ -123,6 +123,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de cada una llega por su producto de Cardmarket (`preciosDeEdiciones`).
   Una «tcggo-…» que repita el número de una de estas cartas es una edición
   que se coló: se funde, no se borra a secas.
+  Y en el japonés antiguo igual (948): e-Card, PCG, VS y web, de los ficheros
+  `data-asia` de TCGdex, casando el set por id, código o día y cuenta (nunca
+  por nombre: los de TCGdex ahí están mal). Lo que TCGdex no tiene (DP y
+  DPt japoneses) no entra.
 - **Una versión que en Cardmarket es OTRO producto sale de TCGdex** (tanda
   945): las Poké Ball y Master Ball de Black Bolt, White Flare y Prismatic,
   y las Ball de Ascended Heroes, son filas `origen = 'tcgdex'` con su

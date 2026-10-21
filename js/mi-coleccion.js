@@ -543,7 +543,10 @@ function prepararAnadir() {
   $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
   // Las versiones de ESA carta (563): con una sola no hay nada que elegir.
   const vs = variantesParaEditar(c, anadir.variante || null)
-  const puesta = anadir.variante && vs.some((v) => v.id === anadir.variante) ? anadir.variante : vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id
+  // Sin una pedida, la de la carta (948: con ediciones, la Unlimited y no la
+  // 1.ª, que es la primera de la lista).
+  const propia = varianteDeCarta(c)
+  const puesta = anadir.variante && vs.some((v) => v.id === anadir.variante) ? anadir.variante : vs.some((v) => v.id === propia) ? propia : vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id
   $('mcAdVariante').innerHTML = opciones(vs, puesta)
   // Y se elige ANTES (922): «¿Cuál tienes?» si hay varias y nadie ha dicho
   // cuál; directa si solo hay una o si se viene de una versión.
