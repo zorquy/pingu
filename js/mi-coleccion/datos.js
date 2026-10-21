@@ -8,7 +8,7 @@ import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from 
 // buscando cartas con una clave que no existe.
 import { MERCADO_POR_DEFECTO } from '../mercados.js'
 import { deSetVisible } from '../catalogo-series.js'
-import { varianteDeEtiqueta, esFilaDeLaCarta } from './variantes.js'
+import { varianteDeEtiqueta, esFilaDeLaCarta, esClasica } from './variantes.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
@@ -409,6 +409,11 @@ export function precioDeLinea(linea, guardados, vivos) {
       const mismo = version.cm_id_product && Number(fila?.cm_id_product) === Number(version.cm_id_product) && variante !== 'primera'
       if (!mismo) return p
     }
+    // Una versión que no es de las de siempre (la Poké Ball, la Master Ball,
+    // un patrón) tampoco (945): mientras no llega su precio, la del Pansage
+    // de Black Bolt salía a 0,02 €, lo que vale la normal, y en Cardmarket es
+    // otro producto que vale otra cosa. Sin cifra, como manda la 645.
+    if (version.origen !== 'edicion' && !esClasica(variante)) return p
   }
   const guardado = precioDeFila(guardados.get(linea.card_id), { reverse, variante })
   if (tieneCifras(guardado)) return guardado

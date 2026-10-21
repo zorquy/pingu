@@ -41809,6 +41809,9 @@ antes de esta tanda (analítica contra el PostgreSQL local).
   las versiones de TCGGO (`extras` en `variantesDeCarta`); como llevan
   `origen`, no cuentan para la regla de la 931 (quitar la Reverse) ni son
   ediciones.
+- `precioDeLinea` (945b): una versión que no es clásica (`esClasica`) ni
+  edición y no tiene cifras devuelve lo suyo (sin cifra), en vez de caer al
+  precio de la carta: la Poké Ball del Pansage salía a 0,02 €.
 - La Cosmos, la tinsel y el patrón Rocket no entran: no hay etiqueta de
   TCGGO conocida para ellas y sin ella saldrían repetidas.
 

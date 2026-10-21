@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (180) — PINGU-Claude (945b — una versión sin precio propio no toma el de la normal)
+
+**Hecho** (PINGU, con la ficha del Pansage de Black Bolt: Normal 0,02 €,
+Reverse 0,03 €, Poké Ball 0,02 € y Master Ball 0,02 €): las versiones ya
+salen, pero la Poké Ball y la Master Ball enseñaban el precio de la Normal.
+Una versión que no es de las de siempre (Normal, Reverse, Holo, 1.ª edición)
+y que aún no tiene precio propio ya no toma prestado el de la carta: va sin
+cifra hasta que la pasada de precios le pone el suyo (por su producto con la
+945, o el que dé TCGGO). Las ediciones de Wizards siguen con su regla (la
+Unlimited, mismo producto que la carta, sí lleva el de la carta).
+
+**Ficheros**: `js/mi-coleccion/datos.js` (`precioDeLinea`), `SCHEMA.md`,
+`BITACORA.md`.
+
+En `pruebas`: la 945 con el precio del Pansage (salta sin el arreglo) y la
+900 al día (contaba dos llamadas de antes de la 941). Verdes 861, 862, 915,
+916, 921, 923, 929, 930, 931, 934, 935, 937, 940–942 y test-imports.
+
+**Pendiente**:
+- PINGU: ejecutar la 945 si no lo has hecho (con ella llega el precio de
+  cada Poké Ball y Master Ball por su producto).
+
 ## 2026-10-22 (179) — PINGU-Claude (945 — las Poké Ball y Master Ball de Black Bolt, de TCGdex) · MIGRACIÓN NUEVA
 
 **Hecho** (Cosadfrikiis en el foro, con la captura de PINGU: «en Black Bolt
