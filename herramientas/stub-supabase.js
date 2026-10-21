@@ -1590,13 +1590,35 @@ export const supabase = {
         vitrina: (T.user_showcase || []).filter((x) => x.card_id === id).length,
       }
     }
-    if (nombre === 'catalogo_quien_tiene_carta' || nombre === 'catalogo_version_mano' || nombre === 'catalogo_borrar_version_mano') {
+    if (nombre === 'catalogo_quien_tiene_carta' || nombre === 'catalogo_version_mano' || nombre === 'catalogo_borrar_version_mano' || nombre === 'catalogo_version_foto') {
       const yo = sesion?.user?.id || null
       const perfil = T.user_profiles.find((p) => p.id === yo) || {}
       if (!yo || !perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
       T.tcg_card_versions ||= []
       if (nombre === 'catalogo_quien_tiene_carta') return { data: quienTieneCarta(args.p_id), error: null }
       const idDe = (e) => String(e || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)
+      // La foto de una versión (935), con la regla de la base: en la fila de
+      // esa versión (la que ya tenga foto, o la de edición) o, si es una de
+      // siempre sin fila, en una nueva «foto»; sin foto, esa fila se va.
+      if (nombre === 'catalogo_version_foto') {
+        const CLAS = { 'reverse-holo': 'reverse', reverse: 'reverse', 'reverse-holofoil': 'reverse', holo: 'holo', holofoil: 'holo', standard: 'normal', normal: 'normal', '1st-edition': 'primera', 'first-edition': 'primera' }
+        const idV = (e) => { const x = idDe(e); return x ? CLAS[x] || x : 'reverse' }
+        const carta = (T.tcg_cards || []).find((c) => c.id === args.p_card_id && (c.market || 'WEST') === args.p_market)
+        if (!carta) return { data: null, error: { code: 'P0002', message: 'No existe la carta.' } }
+        const imagen = String(args.p_imagen || '').trim() || null
+        const filas = T.tcg_card_versions.filter((v) => v.card_id === carta.id && idV(v.etiqueta) === args.p_variante)
+        const fila = filas.find((v) => v.imagen) || filas.find((v) => v.origen === 'edicion') || filas[0]
+        if (!fila) {
+          if (!imagen) return { data: null, error: null }
+          const NOMBRES = { normal: 'Normal', holo: 'Holo', reverse: 'Reverse Holo', primera: '1st Edition' }
+          const nueva = { tcggo_id: Math.min(0, ...T.tcg_card_versions.map((x) => x.tcggo_id)) - 1, market: args.p_market, card_id: carta.id, set_id: carta.set_id, nombre: carta.name, etiqueta: NOMBRES[args.p_variante] || args.p_variante, imagen, origen: 'foto', actualizado_at: new Date().toISOString() }
+          T.tcg_card_versions.push(nueva)
+          return { data: { ...nueva }, error: null }
+        }
+        if (!imagen && fila.origen === 'foto') { T.tcg_card_versions = T.tcg_card_versions.filter((x) => x !== fila); return { data: null, error: null } }
+        fila.imagen = imagen
+        return { data: { ...fila }, error: null }
+      }
       if (nombre === 'catalogo_borrar_version_mano') {
         const v = T.tcg_card_versions.find((x) => x.tcggo_id === args.p_tcggo_id)
         if (!v) return { data: null, error: { code: 'P0002', message: 'Esa versión no existe.' } }

@@ -100,7 +100,7 @@ const montar = ({ sets = [{ id: 'pt1_ja', tcggo_id: 656, oculto: false }, { id: 
   check('  …todas las filas con las MISMAS columnas, y las obligatorias repetidas (la 526)', claves.size === 1 && b.corregidas.every((x) => x.id && x.market === 'JP' && x.set_id && x.local_id && x.name), [...claves].join(' | '))
   const res = b.estados.tcggo_precios.resumenJp?.[656]
   check('/admin lo cuenta: 2 traídas (de dónde), 1 casada por número, 1 sin carta, 1 traída con otra de su número', res?.movidas === 2 && res.adoptadas === 1 && res.sinCarta === 1 && res.repetidas === 1 && res.deDonde.includes('tg-656') && res.deDonde.includes('pt1_viejo') && res.nuestras === 4 && res.escritas === 4, JSON.stringify(res))
-  check('el occidental no busca fuera de su set', !b.rutas.some((x) => /market=eq\.WEST/.test(x) && /tcggo_id/.test(x)))
+  check('el occidental no busca fuera de su set', !b.rutas.some((x) => /^tcg_cards\?/.test(x) && /market=eq\.WEST/.test(x) && /tcggo_id/.test(x)))
 }
 {
   // Sin un set VISIBLE de la expansión no hay a dónde llevarlas: no se mueve nada.

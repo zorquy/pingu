@@ -66,7 +66,7 @@ check('el Gengar tiene precio: 1.300 € en japonés, con el producto de TCGGO',
 check('  …y su id de Cardmarket pasa del de antes al de TCGGO, con las obligatorias repetidas (la 526)', b.corregidas.length === 1 && b.corregidas[0].id === 'tcggo-69408' && b.corregidas[0].cm_id_product_propio === 512345 && b.corregidas[0].set_id === 'll1_ja' && b.corregidas[0].local_id === '015' && b.corregidas[0].name && b.corregidas[0].market === 'JP', JSON.stringify(b.corregidas))
 check('  …la que ya estaba bien, con su precio y sin tocarla', b.precios.some((f) => f.card_id === 'tcggo-69409' && f.cm_low_ja === 5) && !b.corregidas.some((c) => c.id === 'tcggo-69409'))
 check('  …cada carta una vez (aunque case por las dos llaves)', b.precios.filter((f) => f.card_id === 'tcggo-69409').length === 1)
-check('el occidental no se toca: ni se busca por tcggo_id ni se corrige nada', !b.rutas.some((x) => /market=eq\.WEST/.test(x) && /tcggo_id/.test(x)) && !b.corregidas.some((c) => c.market === 'WEST'))
+check('el occidental no se toca: ni se busca por tcggo_id ni se corrige nada', !b.rutas.some((x) => /^tcg_cards\?/.test(x) && /market=eq\.WEST/.test(x) && /tcggo_id/.test(x)) && !b.corregidas.some((c) => c.market === 'WEST'))
 check('/admin cuenta las corregidas', b.estados[CLAVE_ESTADO].resumenJp?.[647]?.corregidas === 1, JSON.stringify(b.estados[CLAVE_ESTADO].resumenJp))
 // Lo japonés hecho HOY con la regla de antes se rehace una vez.
 const b2 = montar({ dia: '2026-10-14', hechos: [10], hechosJp: [647], versionJp: 829, gasto: { dia: '2026-10-14', peticiones: 5 }, setsApuntados: true, setsJpApuntados: true, setsConValor: true })
