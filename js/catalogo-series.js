@@ -99,6 +99,10 @@ export const COLECCIONES_JUNTAS = [
   { padre: 'bw11', hijos: ['rc'] },
   // Y las «Yellow A Alternate» son promos de XY.
   { padre: 'xyp', hijos: ['xya'] },
+  // Y la Shiny Vault de Hidden Fates va DENTRO (954, PINGU: «es Hidden
+  // Fates en total, ordenado como en TCGGO: primero las normales y luego la
+  // Shiny Vault»). Las Trainer Gallery siguen aparte (la 534).
+  { padre: 'sm115', hijos: ['sma'] },
 
   // ── LAS TRAINER GALLERY ESTÁN DOS VECES (tandas 534 y 536) ──
   //

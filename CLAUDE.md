@@ -120,7 +120,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   una que brilla SIEMPRE no tiene Reverse. TCGdex a veces no escribe versiones
   (Lost Thunder) y su API da «normal + reverse» por defecto: no te fíes de eso
   contra la rareza. Un fixture con una SIR «normal + reverse» prueba una carta
-  que no existe.
+  que no existe. La regla de la Rare mira el DÍA del set: una lista de
+  columnas que embebe `tcg_sets` pide `release_date` (953). Una promo dice
+  «Promo»: brilla por su NOMBRE (EX, GX, V, ex, ◇…), y una rareza que no está
+  en el vocabulario, por sus palabras, sin traducirla (954).
 - **En la era de Wizards las versiones son las EDICIONES** (tanda 935):
   filas `tcg_card_versions` con `origen = 'edicion'` (1.ª edición,
   Shadowless, Unlimited, sellos y errores con su clase), sacadas de los

@@ -203,10 +203,27 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
 // Thunder). Se quita, salvo que TCGGO la dé como versión suya. La «Rare
 // Holo» sí tiene Reverse (475 de 608) y se queda.
 const RARA_HOLO_DESDE = { WEST: '2023-03-31', JP: '2016-12-09' }
+// Lo que dice una rareza que el vocabulario no conoce (954: las de TCGGO
+// para el Shiny Vault, «Rare Shiny GX»): no se traduce —una etiqueta
+// inventada miente—, pero sus palabras sí dicen si brilla.
+const BRILLA_SIEMPRE_EN = /shiny|secret|ultra|rainbow|illustration|hyper|double|radiant|amazing|prism|gold|full art|gallery|\b(gx|v|vmax|vstar|ex|break|lv\.?x|prime|legend|ace)\b/i
+const CONOCIDA = /^(Común|Infrecuente|Rara|Promo|Sin rareza)$|^Rara /
+// Y una promo no trae rareza que diga nada («Promo»): lo dice su NOMBRE. Una
+// EX, GX, V, VMAX, VSTAR, ex, BREAK, LV.X, LEGEND, Prime, ◇ o ☆ brilla
+// siempre, también de promo (954, el Mewtwo GX y los EX de las Black Star).
+const MECANICA_QUE_BRILLA = /(?:^|[\s-])(EX|GX|V|VMAX|VSTAR|V-UNION|BREAK|LV\.X|LEGEND|Prime)$|\sex$|[◇☆]|^(Radiant|Shining)\s/
+function brillaSiempre(carta) {
+  const r = rarezaEs(carta?.rarity_en || carta?.rarity)
+  if (r && SOLO_HOLO.has(r)) return true
+  if (r && !CONOCIDA.test(r)) return BRILLA_SIEMPRE_EN.test(r)
+  if (r && r !== 'Promo' && r !== 'Sin rareza') return false
+  return MECANICA_QUE_BRILLA.test(String(carta?.name_en || carta?.name || '').trim())
+}
 export function brillaDeSerie(carta) {
+  if (brillaSiempre(carta)) return true
   const r = rarezaEs(carta?.rarity_en || carta?.rarity)
   if (!r) return false
-  if (SOLO_HOLO.has(r) || /^Rara Holo\b/.test(r)) return true
+  if (/^Rara Holo\b/.test(r) || (!CONOCIDA.test(r) && /holo/i.test(r))) return true
   if (r !== 'Rara') return false
   const desde = RARA_HOLO_DESDE[carta?.market || 'WEST']
   const dia = String(carta?.tcg_sets?.release_date || carta?.release_date || '').slice(0, 10)
@@ -219,9 +236,8 @@ function conSuBrillo(lista, carta) {
     const holo = EQUIVALE.find((e) => e.nuestro === 'holo')
     fuera = fuera.map((e) => (e?.nuestro === 'normal' ? holo : e))
   }
-  const siempre = SOLO_HOLO.has(rarezaEs(carta?.rarity_en || carta?.rarity))
   const reverseDeTcggo = (carta?.versiones || []).some((f) => !f.origen && varianteDeEtiqueta(f.etiqueta) === 'reverse')
-  if (siempre && !reverseDeTcggo && fuera.length > 1) {
+  if (brillaSiempre(carta) && !reverseDeTcggo && fuera.length > 1) {
     const sin = fuera.filter((e) => e?.nuestro !== 'reverse')
     if (sin.length) fuera = sin
   }

@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 954 — Promos y Shiny Vault Holo; Hidden Fates en uno
+
+`brillaSiempre(carta)` (variantes.js) junta lo que brilla siempre: las de
+`SOLO_HOLO`; una rareza fuera del vocabulario (no casa `CONOCIDA`) cuyas
+palabras lo dicen (`BRILLA_SIEMPRE_EN`: shiny, secret, ultra, GX, V…), sin
+traducirla; y una «Promo», «Sin rareza» o sin rareza cuyo nombre lleva una
+mecánica (`MECANICA_QUE_BRILLA`: EX, GX, V, VMAX, VSTAR, V-UNION, BREAK, LV.X,
+LEGEND, Prime al final, « ex», ◇, ☆, Radiant/Shining delante). Una rareza
+conocida que no brilla (Común) manda sobre el nombre. `brillaDeSerie` suma la
+Rare Holo, una desconocida con «holo» (con Reverse) y la Rare por fecha.
+`conSuBrillo` quita la Reverse con `brillaSiempre`. Vocabulario: «Secret
+Rare», «Shiny Holo Rare», «Holo Rare». Hidden Fates: `sm115` ← `sma` en
+`COLECCIONES_JUNTAS`, que también lo hace hermano para `tcggo-catalogo` y
+`tcggo-precios` (853); el orden ya era el de TCGGO (`porNumero`, tramo con
+letras detrás).
+
 ## Tanda 953 — El día del set con las cartas de una expansión
 
 La 950 decide si una «Rare» brilla por el día de su set (`RARA_HOLO_DESDE`), y

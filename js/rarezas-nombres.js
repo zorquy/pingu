@@ -119,6 +119,12 @@ const RAREZAS_SCRYDEX = {
   // justo para lo que existe ese informe. Las dos formas conviven en su
   // catálogo, así que se quedan las dos.
   'Shiny Rare': 'Rara Brillante',
+  // El mismo nombre con otro orden o una palabra más (954): «Secret Rare» es
+  // el de TCGdex en Hidden Fates, y «Shiny Holo Rare» y «Holo Rare» los de
+  // Cardmarket que trae TCGGO.
+  'Secret Rare': 'Rara Secreta',
+  'Shiny Holo Rare': 'Rara Brillante',
+  'Holo Rare': 'Rara Holo',
   'Rare Ultra': 'Rara Ultra',
   'Double Rare': 'Rara Doble',
   'Illustration Rare': 'Rara Ilustración',

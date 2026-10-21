@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (189) — PINGU-Claude (954 — promos y Shiny Vault Holo; Hidden Fates en uno)
+
+**Hecho** (PINGU: «las promo son las únicas que no tienen holo… porque las
+promo no traen rareza»; «el Mewtwo GX del Shiny Vault de Hidden Fates»,
+Normal; «se llama Hidden Fates Shiny Vault y no: es Hidden Fates, ordenado
+como en TCGGO, primero las normales y luego el Shiny Vault»):
+- `brillaDeSerie` (`js/mi-coleccion/variantes.js`): una promo (o una carta
+  sin rareza) brilla si su NOMBRE lleva una mecánica que solo se imprime en
+  holo (EX, GX, V, VMAX, VSTAR, ex, BREAK, LV.X, LEGEND, Prime, ◇, ☆); y
+  como esas brillan siempre, sin Reverse. Una promo sin mecánica (el Snorlax)
+  se queda con lo que diga TCGdex (en SM/SWSH/SV lo dice carta a carta; en
+  XY no dice nada: ahí va «Versiones de todas» de /admin).
+- Rarezas que no conocíamos: «Secret Rare» (TCGdex, Hidden Fates), «Shiny
+  Holo Rare» y «Holo Rare» (Cardmarket, por TCGGO) entran en el vocabulario
+  (`js/rarezas-nombres.js`). Una que siga sin estar (`Rare Shiny GX`) no se
+  traduce, pero sus palabras deciden si brilla (shiny, secret, ultra, GX…).
+- Hidden Fates: `{ padre: 'sm115', hijos: ['sma'] }` en `COLECCIONES_JUNTAS`
+  (`js/catalogo-series.js`). Se ve UNA expansión, «Hidden Fates», con las del set
+  y detrás las SV1–SV94 (`porNumero` ya ponía las de letras detrás). Y con
+  eso `setsHermanos('sm115')` da `sma`: el catálogo de TCGGO casa sus SV con
+  las del Shiny Vault antes de crear una `tcggo-N` repetida en Hidden Fates.
+  Si ya se crearon desde el 15 de octubre, se funden volviendo a ejecutar
+  `supabase-migration-trainer-gallery-duplicados.sql` (853, re-ejecutable),
+  que ya tenía esta pareja.
+
+**Ficheros**: `js/mi-coleccion/variantes.js`, `js/rarezas-nombres.js`,
+`js/catalogo-series.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+En `pruebas`: `test-tanda-954.mjs` (promos por nombre, Snorlax y Exeggcute
+quietos, rarezas nuevas y desconocidas, Hidden Fates plegado y ordenado, las
+Trainer Gallery aparte), y la 536 sin `sma` en su lista de «colección propia» (la plegué yo por mi cuenta en la 534; ahora lo pide PINGU).
+
+**Pendiente**: que PINGU vuelva a ejecutar la de duplicadas de la 853 si en
+Hidden Fates sale alguna SV dos veces; las promos XY sin mecánica, con
+«Versiones de todas» si son holo.
+
 ## 2026-10-22 (188) — PINGU-Claude (952 — L-P Promos y LEGEND Promos, un solo set; 953 — la R japonesa abierta desde su expansión, Holo) · MIGRACIÓN NUEVA
 
 **Hecho**:
