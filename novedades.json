@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las versiones de cada carta son las que existen en Cardmarket: una carta de Prize Pack o cualquiera que solo tiene una versión ya no ofrece una «Reverse holo» que no existe, y donde hay Master Ball o Poké Ball salen.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "En la ficha de una carta, las flechas pasan de versión en versión con su foto (de la 1.ª edición a la Shadowless, por ejemplo), y la Pokédex ya enseña todas las versiones de cada carta, también las especiales.", "enlace": "/mi-coleccion?ver=pokedex" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las cartas de la época de Wizards (Base Set, Jungle, Fossil, Team Rocket, Gym y Neo) salen una sola vez, con sus ediciones de verdad para elegir: 1.ª edición, Shadowless, Unlimited y las especiales. Se acabaron los Charizard repetidos y las versiones que no existen, y lo que ya tenías apuntado pasa a su edición.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "nuevo", "texto": "Las cartas que no tiene ninguna base de datos (la metálica del Charizard de Celebrations, los sellos de Pokémon Day) ya pueden estar: salen como una versión más de su carta original, con su foto, dónde salió y cuándo. Los sellos y las cartas adicionales no cuentan para el set maestro.", "enlace": "/mi-coleccion?ver=album" },

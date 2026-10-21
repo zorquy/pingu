@@ -8,7 +8,7 @@ import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from 
 // buscando cartas con una clave que no existe.
 import { MERCADO_POR_DEFECTO } from '../mercados.js'
 import { deSetVisible } from '../catalogo-series.js'
-import { varianteDeEtiqueta } from './variantes.js'
+import { varianteDeEtiqueta, esFilaDeLaCarta } from './variantes.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
@@ -389,7 +389,9 @@ export function precioDeLinea(linea, guardados, vivos) {
   // carta; si se ha traído, manda sobre la cuenta de la reverse.
   // Con varias filas para la misma versión (la «1st Edition» de TCGGO y la
   // de edición, 935), manda la que tenga precio.
-  const suyas = (versionesPorCarta.get(linea.card_id) || []).filter((f) => varianteDeEtiqueta(f.etiqueta) === variante)
+  // Sin la fila «Standard» (937): es la carta misma con el precio general, y
+  // la de la carta lleva el de cada idioma.
+  const suyas = (versionesPorCarta.get(linea.card_id) || []).filter((f) => !esFilaDeLaCarta(f) && varianteDeEtiqueta(f.etiqueta) === variante)
   const version = suyas.find((f) => tieneCifras(precioDeFila(f, { reverse: false, variante: 'normal' }))) || suyas[0]
   if (version) {
     const p = precioDeFila(version, { reverse: false, variante: 'normal' })

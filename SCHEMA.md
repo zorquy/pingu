@@ -41785,6 +41785,20 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 937 — La fila «Standard»: TCGGO ha mirado la carta
+
+- `filaDeLaCarta(suya, carta)` (lib/tcggo.mjs): una fila de
+  `tcg_card_versions` con `tcggo_id` = el de la carta en TCGGO y `etiqueta =
+  'Standard'`, las mismas columnas que `filasDeVariantes`. La escriben
+  `tcggo-precios` (cada carta casada) y la sonda `versiones`.
+  `VERSION_VARIANTES = 937` rehace el día.
+- `esFilaDeLaCarta(f)` (variantes.js): sin `origen` y etiqueta «Standard».
+  En `variantesDeCarta` cuenta para la regla de la 931 (su id es `normal`)
+  pero no entra en las extras; si la carta no dice nada de TCGdex y TCGGO la
+  ha mirado, una sola versión (la normal) y no `siNoSeSabe`.
+  `precioDeLinea` no la usa (la de la carta lleva los idiomas).
+- `tcggo-versiones` (refresco): `or=(etiqueta.is.null,etiqueta.neq.Standard)`.
+
 ## Tanda 936 — La flecha entre versiones y las versiones de la Pokédex
 
 - `fijarVecindario(zona, selector, atributo, actual, variante)`: en modo

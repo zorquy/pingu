@@ -142,9 +142,12 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // Ni las filas que solo llevan una foto (935).
   const deTcggo = (carta?.versiones || []).filter((f) => !f.origen).map((f) => varianteDeEtiqueta(f.etiqueta))
   if (deTcggo.length && !deTcggo.includes('reverse')) base = base.filter((e) => e.nuestro !== 'reverse')
-  // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir.
+  // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir. La fila
+  // «Standard» (937) es la carta misma: dice que TCGGO la ha mirado (y con
+  // eso la regla de arriba), pero no es una versión más.
   const extras = []
   for (const f of carta?.versiones || []) {
+    if (esFilaDeLaCarta(f)) continue
     const id = varianteDeEtiqueta(f.etiqueta)
     if (base.some((e) => e.nuestro === id) || extras.some((e) => e.nuestro === id)) continue
     const e = EQUIVALE.find((x) => x.nuestro === id)
@@ -153,9 +156,11 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
     extras.push(e ? { ...e, clase: f.clase || null } : { suyo: null, nuestro: id, corto: cortoDeVariante(id), nombre: nombreDeVariante(id), clase: f.clase || null })
   }
   if (base.length) return [...base, ...extras]
-  if (!extras.length) return siNoSeSabe
+  // Si TCGGO la ha mirado (937), ya se sabe: la carta misma y lo que él dé.
+  const mirada = (carta?.versiones || []).some(esFilaDeLaCarta)
+  if (!extras.length) return mirada ? [EQUIVALE[0]] : siNoSeSabe
   // Solo versiones de TCGGO: la Standard (la carta misma) existe seguro.
-  const sin = Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
+  const sin = !mirada && Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
   return [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
 }
 
@@ -189,6 +194,10 @@ function edicionesDe(carta) {
   }
   return fuera
 }
+
+// La fila de la carta misma que escribe la pasada de precios (937,
+// `filaDeLaCarta` en netlify/lib/tcggo.mjs).
+export const esFilaDeLaCarta = (f) => !f?.origen && f?.etiqueta === 'Standard'
 
 // ¿Cuenta para el set maestro? (934, lo recomendado): una impresión sí (la
 // Reverse, las de Ball); un sello (Pokémon Day, prerelease) o una adicional

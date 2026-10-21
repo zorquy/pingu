@@ -242,7 +242,9 @@ export async function procesar({
   try {
     if (modo === 'refresco') {
       const limite = new Date(ahora.getTime() - DIAS_DE_FRESCURA * 86_400_000).toISOString()
-      refresco = (await pedir(`tcg_card_versions?select=tcggo_id,card_id,set_id&actualizado_at=lt.${limite}&order=actualizado_at.asc&limit=${POR_PASADA}`)) || []
+      // La fila de la carta misma (937) no es una versión: la refresca la
+      // pasada de precios. Como `or`, que un `neq` contra NULL no es verdadero.
+      refresco = (await pedir(`tcg_card_versions?select=tcggo_id,card_id,set_id&actualizado_at=lt.${limite}&or=(etiqueta.is.null,etiqueta.neq.Standard)&order=actualizado_at.asc&limit=${POR_PASADA}`)) || []
     } else {
       // Los que fallaron antes van primero.
       lote = estado.reintentar.filter((id) => (Number(estado.fallos[id]) || 0) < FALLOS_PARA_SALTAR).slice(0, POR_PASADA)

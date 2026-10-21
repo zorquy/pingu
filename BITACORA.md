@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (171) — PINGU-Claude (937 — las versiones las dice TCGGO también cuando no da ninguna)
+
+**Hecho** (PINGU, con el Dracloak: «en el Prize Pack debería tener solo una
+versión, la del sello, y le ponemos normal y reverse… deberíamos estar
+mirando las versiones que trae cada carta de TCGGO»):
+- La respuesta real de TCGGO trae `variants: []` cuando la carta no tiene
+  más que ella misma, así que «TCGGO no da versiones» y «no se le ha
+  preguntado» eran lo mismo, y salían las de TCGdex (normal y reverse).
+  Ahora la pasada de precios escribe, por cada carta que mira, una fila
+  «Standard» con el id de TCGGO de la carta (`filaDeLaCarta`): dice «TCGGO
+  la ha mirado». Con ella la Reverse solo sale si TCGGO la da (la regla de
+  la 931) y una carta sin versiones en TCGGO tiene UNA (Prize Pack). La
+  fila no se enseña como versión ni da el precio (el de la carta lleva los
+  idiomas).
+- `VERSION_VARIANTES = 937`: la pasada rehace HOY lo ya hecho, para que la
+  fila llegue a todo el catálogo hoy y no mañana (una vuelta más de
+  peticiones, con el tope de siempre). La sonda «traer ya las versiones de
+  una expansión» también la escribe.
+- El refresco de versiones (807) no gasta peticiones en esa fila.
+- La rareza: ya sale de TCGGO (`rarity_en`) siempre que TCGGO la tiene, y la
+  traducimos nosotros; la de TCGdex (`rarity`) queda solo de respaldo para
+  las cartas que TCGGO no conoce.
+
+**Ficheros**: `netlify/lib/tcggo.mjs` (`filaDeLaCarta`),
+`netlify/functions/tcggo-precios.mjs`, `netlify/functions/tcggo-sonda.mjs`,
+`netlify/functions/tcggo-versiones.mjs`, `js/mi-coleccion/variantes.js`
+(`esFilaDeLaCarta`), `js/mi-coleccion/datos.js`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-937.mjs` (Prize Pack, Twilight Masquerade,
+Prismatic Evolutions, la holo, la que TCGGO aún no ha mirado, el precio y la
+pasada; probado que salta sin la fila y si la fila se cuela como versión),
+la 929, la 931 y la 807 (su doble aprende `or=(…)`) al día.
+
+**Pendiente**:
+- PINGU: si mañana el Dracloak de Prismatic Evolutions sigue sin la Master
+  Ball y la Poké Ball (TCGGO las da), dímelo: entonces no vienen en
+  `variants` y hay que mirarlo con la sonda «una carta, con versiones».
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (170) — PINGU-Claude (936 — la flecha de la ficha entre versiones, y las versiones en la Pokédex)
 
 **Hecho** (PINGU, con las migraciones 934 y 935 ya ejecutadas):

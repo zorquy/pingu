@@ -972,6 +972,31 @@ export function etiquetaDeTipo(tipo) {
   return ETIQUETA_DE_TIPO[t] || t.split(/[_\s]+/).filter(Boolean).map((p) => p[0].toUpperCase() + p.slice(1)).join(' ')
 }
 
+// LA CARTA MISMA, COMO FILA DE VERSIÓN (937). PINGU, con el Dracloak del
+// Prize Pack: TCGGO no le da ninguna versión y nosotros le ofrecíamos Normal
+// y Reverse (las de TCGdex). Su `variants` llega VACÍO cuando no hay más que
+// la carta, así que «TCGGO no dice nada» y «no se le ha preguntado» eran lo
+// mismo. Esta fila, con la etiqueta «Standard» y el id de TCGGO de la carta,
+// dice «TCGGO la ha mirado»: con ella la Reverse sale solo si TCGGO la da (la
+// regla de la 931). Las mismas columnas que las de `filasDeVariantes`, para ir
+// en el mismo lote.
+export const ETIQUETA_DE_LA_CARTA = 'Standard'
+export function filaDeLaCarta(suya, carta, { ahora = new Date(), mercado = 'WEST' } = {}) {
+  const id = Number(suya?.id)
+  if (!Number.isInteger(id) || id <= 0 || !carta?.id) return []
+  return [{
+    tcggo_id: id,
+    market: mercado,
+    card_id: carta.id,
+    set_id: carta.set_id ?? null,
+    numero: suya.card_number != null ? String(suya.card_number) : null,
+    nombre: suya.name ?? null,
+    etiqueta: ETIQUETA_DE_LA_CARTA,
+    cm_low: positivo(suya?.prices?.cardmarket?.lowest_near_mint),
+    actualizado_at: ahora.toISOString(),
+  }]
+}
+
 export function filasDeVariantes(suya, carta, { ahora = new Date(), mercado = 'WEST' } = {}) {
   if (!Array.isArray(suya?.variants) || !carta?.id) return []
   const vistas = new Set()

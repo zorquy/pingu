@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, sinVersionesRepetidas, preciosDeEdiciones,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinVersionesRepetidas, preciosDeEdiciones,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -40,8 +40,9 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_precios'
 // Sube cuando cambia cómo se escribe el japonés: la pasada lo rehace ese día.
 export const VERSION_JP = 832
-// Sube cuando las páginas traen algo nuevo que hay que tener hoy (932).
-export const VERSION_VARIANTES = 929
+// Sube cuando las páginas traen algo nuevo que hay que tener hoy (932). La
+// 937 escribe además la fila «Standard» de cada carta: se rehace el día.
+export const VERSION_VARIANTES = 937
 const MS_DE_MARGEN = 20_000
 
 async function rest(ruta, clave, opciones = null) {
@@ -520,7 +521,7 @@ export async function procesar({
           // que una búsqueda.
           if (mercado === 'JP' && !('cm_id_product' in fila)) fila.cm_id_product = null
           filas.push(fila)
-          versiones.push(...filasDeVariantes(s, c, { ahora, mercado }))
+          versiones.push(...filaDeLaCarta(s, c, { ahora, mercado }), ...filasDeVariantes(s, c, { ahora, mercado }))
         }
         // Las ediciones de Wizards (935), por su producto: la Shadowless del
         // Charizard ya no es una carta nuestra, es una edición. Sin la

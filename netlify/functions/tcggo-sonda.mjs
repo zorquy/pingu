@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY (TCGGO_BASE
 // opcional).
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
-import { baseDe, baseJpDe, cabeceras, urlCarta, urlCartasDeEpisodio, urlCartasPorIds, urlEpisodios, hayMasPaginas, separarVersiones, filasDeVariantes, sinVersionesRepetidas } from '../lib/tcggo.mjs'
+import { baseDe, baseJpDe, cabeceras, urlCarta, urlCartasDeEpisodio, urlCartasPorIds, urlEpisodios, hayMasPaginas, separarVersiones, filasDeVariantes, filaDeLaCarta, sinVersionesRepetidas } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const MAXIMO = 60_000
@@ -84,7 +84,7 @@ export async function versionesDeExpansion({ episodio, mercado, raiz, host, clav
     const s = porTcggo.get(Number(c.tcggo_id)) || porCm.get(Number(c.cm_id_product_propio))
     if (!s) continue
     emparejadas++
-    filas.push(...filasDeVariantes(s, c, { ahora, mercado }))
+    filas.push(...filaDeLaCarta(s, c, { ahora, mercado }), ...filasDeVariantes(s, c, { ahora, mercado }))
   }
   const unicas = sinVersionesRepetidas(filas)
   for (let k = 0; k < unicas.length; k += 500) await guardar(unicas.slice(k, k + 500))
