@@ -102,6 +102,18 @@ const montarPrecios = ({ fallaVersiones = false } = {}) => {
   check('si guardar las versiones falla, el precio de las cartas se escribe igual', r2.ok && b2.escritas.length === DOC.data.length && /tcg_card_versions/.test(b2.estados[precios.CLAVE_ESTADO].versiones?.error || '') && !b2.estados[precios.CLAVE_ESTADO].versionesUltimaVista, JSON.stringify(b2.estados[precios.CLAVE_ESTADO].versiones))
 }
 
+{
+  // 932: lo que ya se hizo HOY antes de las versiones se repite una vez.
+  const b = montarPrecios()
+  b.estados[precios.CLAVE_ESTADO] = { dia: AHORA.toISOString().slice(0, 10), hechos: [431], hechosJp: [] }
+  await precios.procesar({ env: ENV, ...b, pausa: sinPausa, ahora: AHORA })
+  check('lo hecho hoy sin versiones se vuelve a pedir (una vez)', b.urls.some((u) => /episode_id=431.*include_variants=1/.test(u)) && b.estados[precios.CLAVE_ESTADO].versionVariantes === precios.VERSION_VARIANTES, b.urls.join(' | '))
+  const c = montarPrecios()
+  c.estados[precios.CLAVE_ESTADO] = { dia: AHORA.toISOString().slice(0, 10), hechos: [431], hechosJp: [], versionVariantes: precios.VERSION_VARIANTES }
+  await precios.procesar({ env: ENV, ...c, pausa: sinPausa, ahora: AHORA })
+  check('  …y la segunda vez ya no', !c.urls.some((u) => /episode_id=431/.test(u)), c.urls.join(' | '))
+}
+
 console.log('── 3. El recorrido de ids se retira mientras lleguen ──')
 {
   const montar = (vista) => ({
