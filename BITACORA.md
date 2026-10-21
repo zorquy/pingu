@@ -4,6 +4,66 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (163) — PINGU-Claude (929 — las versiones de TCGGO con su precio, el símbolo de cada set y la sonda de /admin)
+
+**Hecho** (PINGU: «adelante con lo recomendado en TCGGO», sobre la
+documentación nueva de su API):
+- La pasada de precios (`tcggo-precios`) pide cada página con
+  `include_variants=1`: cada carta trae sus versiones (Reverse Holo, Poké
+  Ball, Master Ball, Energy Symbol…) con su id y su mínimo de Cardmarket, y
+  se guardan en `tcg_card_versions` colgando de NUESTRA carta. No cuesta ni
+  una petición más. Si guardar las versiones falla, el precio de las cartas
+  se escribe igual y el error queda en el estado (`versiones.error`).
+- `tcggo-versiones` (el recorrido de ids de la 807) se salta solo mientras
+  las versiones lleguen con los precios (`versionesUltimaVista` de hace
+  menos de 3 días). Si dejan de llegar, vuelve.
+- `tcggo-versiones-idioma` (nueva, cada 10 min, tope 300 al día, 6 lotes
+  de 20 por pasada): el precio POR IDIOMA, solo de las versiones que alguien
+  tiene en su colección, con `/cards?ids=`. Las demás se quedan con el
+  general, que es el que da el listado. Para con 429/403 del plan hasta
+  mañana, y si el fallo es de nuestra base se sale antes de pedir nada.
+- El símbolo de cada expansión (`symbol` de TCGGO) en `tcg_sets.symbol_tcggo`
+  (**migración `supabase-migration-929-simbolos.sql`, sin ejecutar**). La web
+  lo pinta en la estantería, la cabecera de la expansión y la ficha; se pide
+  con respaldo, así que sin la migración no se rompe nada.
+- En la expansión, cada versión con su precio (la Lista separada, el
+  `title` de cada bolsillo) y, en el «⋯», «Completar el maestro: unos X €»
+  (lo que cuesta cada versión que te falta; las que no tienen precio, aparte).
+- La sonda de TCGGO en /admin → Cartas: una petición y su respuesta tal cual
+  (una carta con `include_variants`, una expansión, un lote de ids, las
+  expansiones con su `symbol`) y «Repetidas por número», que NO pide nada a
+  TCGGO: las cartas de un set (y de los que comparten su expansión) que se
+  repiten por número, con su origen. Es para el reporte de Black Bolt.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`tcggo-versiones.mjs`, `tcggo-versiones-idioma.mjs` (nueva),
+`tcggo-sonda.mjs` (nueva), `sets.mjs`, `js/sets-catalogo.js`,
+`js/mi-coleccion.js`, `js/mi-coleccion/datos.js` (las versiones del set,
+por trozos: 1.000 filas cortaban), `css/mi-coleccion.css`, `admin/index.html`,
+`admin/js/admin.js`, `admin/js/semaforo.js` (`PASADAS`),
+`supabase-migration-929-simbolos.sql`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`.
+
+En `pruebas`: `test-tanda-929.mjs` (+ `fixtures-929/`, sacados byte a byte
+de los ejemplos de la documentación) y la 817 al día (`PASADAS` lleva una
+más). Las 103 que tocan esto (TCGGO, sets, la expansión, el semáforo y las
+de CSS): 97 verdes; rojas la 461, 467, 475 y 651, que ya lo estaban, y la
+305, que pasa sola. La suite entera NO se ha pasado: la paré a medias para
+no tener la tanda parada tres horas; queda pendiente.
+
+**Lo que NO es**: el precio por idioma de una versión que nadie tiene. TCGGO
+lo da solo pidiendo la carta (o un lote de 20), y pedirlo para todas las
+versiones del catálogo no cabe; se enseña el general.
+
+**Pendiente**:
+- PINGU: ejecutar `supabase-migration-929-simbolos.sql`.
+- PINGU: /admin → Cartas → sonda «Repetidas por número» con el set de Black
+  Bolt, para ver de dónde salen los dos Escavalier 60 y el Antique Cover
+  Fossil (reporte de Cosadfrikiis en el foro).
+- PINGU: sonda «Una carta» con cualquier carta, para comprobar que
+  `variants` y `symbol` llegan como dice la documentación.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (162) — PINGU-Claude (928 — la «normal» que no existe, «Separar» y la hoja de añadir sin barra)
 
 **Hecho** (PINGU, con el 30 aniversario: «¿por qué me marca que tengo la

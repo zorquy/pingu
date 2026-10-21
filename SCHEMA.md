@@ -41785,6 +41785,58 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 929 — Las versiones de TCGGO con su precio, el símbolo y la sonda
+
+La documentación nueva de TCGGO (api 1.4) dice cómo vienen las versiones:
+con `include_variants=1`, cada carta de `/cards?episode_id=` y de
+`/cards/{id}` trae `variants: [{ type, label, id, prices: { cardmarket: {
+currency, lowest_near_mint } } }]`. Un solo precio, el general: el de cada
+idioma solo sale pidiendo la versión por id (`/cards?ids=`, 20 por lote).
+Los fixtures (`pruebas/fixtures-929/`) son los ejemplos de esa
+documentación, byte a byte (la 501).
+
+- `netlify/lib/tcggo.mjs`: `urlCartasDeEpisodio(id, pagina, base, {
+  versiones })`, `urlCartasPorIds(ids, base)` (`POR_LOTE_DE_IDS = 20`),
+  `etiquetaDeTipo(type)` (para cuando no hay `label`),
+  `filasDeVariantes(suya, carta, { ahora, mercado })` (filas de
+  `tcg_card_versions` SIN columnas por idioma: un upsert con
+  `merge-duplicates` solo pisa lo que manda, así que el precio por idioma que
+  escriba la otra pasada se queda) y `filaDeIdiomasDeVersion` (solo las
+  columnas de precio). `resumirEpisodio` y `filaDeSetTcggo` llevan `simbolo`.
+- `tcggo-precios`: las páginas con versiones; el `select` de las cartas
+  occidentales lleva `set_id` (la fila de versión lo necesita). Las
+  versiones se escriben DESPUÉS del precio y en su `try`: lo de siempre no
+  se queda sin escribir por lo nuevo. Estado: `versiones = { dia, vistas,
+  escritas, error? }` y, fuera del día, `versionesUltimaVista`.
+- `tcggo-versiones` lee `versionesUltimaVista` de `tcggo_precios` y se salta
+  si es de hace menos de `DIAS_SIN_VERSIONES_PARA_VOLVER` (3). No se borra:
+  si TCGGO deja de mandar las versiones, vuelve sola.
+- `tcggo-versiones-idioma` (cada 10 min): `versionesQueAlguienTiene(copias,
+  filas)` cruza `user_collection` (variante ≠ normal) con las versiones por
+  `varianteDeEtiqueta`; `lotesPorPedir` las agrupa por mercado de 20 en 20.
+  Coste: tope 300 al día (`TCGGO_TOPE_IDIOMAS`), 6 por pasada; con el día
+  hecho (`hecho = dia`) no pide nada. Los frenos de la casa: lo nuestro
+  falla → sale antes de gastar (526), 429/403 → `planBloqueado` hasta mañana,
+  un lote que falla tres veces se salta ese día. Clave en `PASADAS`.
+- `tcggo-sonda` (admin): `{ modo, valor, mercado }` → la URL pedida, el
+  estado y el cuerpo (hasta 60.000 caracteres). `duplicados` no gasta: lee
+  el set, sus hermanos por `tcggo_id` y `repetidasPorNumero` de sus cartas.
+- El símbolo: `tcg_sets.symbol_tcggo` (migración 929, que reescribe
+  `tcggo_guardar_sets` con `simbolo`). `sets.mjs` (`COLUMNA_SIMBOLO`) y
+  `sets-catalogo.js` lo piden y, si la base contesta 42703, repiten sin él y
+  no lo vuelven a pedir en esa vida del módulo (la 624). La web:
+  `simboloDeSetHtml(set)` (16 × 16, con su hueco) en las dos estanterías,
+  `#mcAlbumMeta` y `#mcEdSet`.
+- Mi colección: `precioDeCartaDelAlbum(c, variante)`; la Lista separada y el
+  `title` de los bolsillos llevan el de su versión; `faltaMaestro()` suma
+  cada versión que no tienes (`variantesDeCarta`) en el «⋯». Una reverse sin
+  fila de versión usa el precio PRESTADO de la normal (`prestado`, como en
+  el resto de la web desde la 585). `cargarPreciosDelAlbum` repinta la tira
+  al llegar los precios: sin eso «Completar el maestro» se quedaba con la
+  cuenta de antes. `conVersion` (la lista de líneas con versión) ya no mira
+  `esClasica`: entra toda copia que no sea normal. `versionesDeSets` va por
+  `.range()` (la 808: 1.000 filas y sin error).
+
 ## Tanda 928 — La «normal» que no existe, «Separar» y la hoja de añadir
 
 - `versionPosible(variante, carta)` (js/mi-coleccion/variantes.js): una
