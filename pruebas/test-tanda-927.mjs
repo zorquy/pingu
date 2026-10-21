@@ -282,6 +282,64 @@ console.log('── 6. En el móvil ──')
   await m.ctx.close()
 }
 
+console.log('── 7. Una «normal» que no existe (PINGU, con el 30 aniversario) ──')
+{
+  // El 30 aniversario solo existe en holo (922), y las copias de antes de la
+  // 564 se guardaron en «normal». Tienen que contar como la holo: sin la «N»
+  // y con su ✓ también al separar. Y el botón dice «Separar» separado.
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'es-ES', serviceWorkers: 'block' })
+  await ctx.addInitScript(() => {
+    window.__FAKE_SESSION__ = 'user-1'
+    try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch {}
+    window.__FAKE_SETS__ = [{ id: '30th', name: '30th Celebration', serie_id: 'me', market: 'WEST', release_date: '2026-09-16', card_count_official: 6, card_count_total: 6 }]
+    window.__FAKE_CARTAS__ = Array.from({ length: 6 }, (_, i) => ({ id: `30th-${i + 1}`, market: 'WEST', set_id: '30th', local_id: String(i + 1), name: `Carta ${i + 1}`, name_es: `Carta ${i + 1}`, image_path: `me/30th/${i + 1}`, rarity: 'Rare Holo', category: 'Pokemon', dex_ids: [i + 1], tcg_sets: { id: '30th', name: '30th Celebration', serie_id: 'me' } }))
+    window.__FAKE_COLECCION__ = [
+      { id: 'a', user_id: 'user-1', card_id: '30th-1', market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: 1 },
+      { id: 'b', user_id: 'user-1', card_id: '30th-2', market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: 1 },
+      { id: 'c', user_id: 'user-1', card_id: '30th-2', market: 'WEST', idioma: 'es', estado: 'NM', variante: 'holo', cantidad: 1 },
+    ]
+  })
+  await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com|r2\.limitlesstcg|raw\.githubusercontent|api\.tcgdex\.net/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"/>' }))
+  await ctx.route(/\/\.netlify\/functions\//, (r) => r.fulfill({ status: 404, contentType: 'application/json', body: '{}' }))
+  const page = await ctx.newPage()
+  const errores = []
+  page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await page.goto(`${BASE}/mi-coleccion.html?ver=album&set=30th`, { waitUntil: 'domcontentloaded' })
+  await page.waitForFunction(() => document.querySelectorAll('#mcAlbum [data-carta]').length > 0, null, { timeout: 10000 }).catch(() => {})
+  await page.waitForTimeout(1000)
+  const ap = await page.evaluate(() => {
+    const de = (n) => document.querySelector(`#mcAlbum .mc-bolsillo-enlace[data-carta="30th-${n}"]`)
+    const ins = (n) => [...(de(n)?.querySelectorAll('.mc-insignia') || [])].map((i) => i.textContent.trim()).join()
+    return { t1: Boolean(de(1)?.querySelector('.mc-tengo-marca')), i1: ins(1), i2: ins(2), rotulo: document.getElementById('mcVistaVariantesRotulo').textContent.trim() }
+  })
+  check('apilado: la «normal» de una carta solo holo es la holo, sin insignia «N»', ap.t1 && ap.i1 === '' && ap.i2 === '2' && ap.rotulo === 'Apilar', JSON.stringify(ap))
+  await page.click('#mcVistaVariantes')
+  await page.waitForTimeout(500)
+  const sep = await page.evaluate(() => ({
+    rotulo: document.getElementById('mcVistaVariantesRotulo').textContent.trim(),
+    pulsado: document.getElementById('mcVistaVariantes').getAttribute('aria-pressed'),
+    casillas: [...document.querySelectorAll('#mcAlbum .mc-bolsillo-enlace')].map((a) => `${a.dataset.carta.split('-')[1]}:${a.dataset.variante}:${a.closest('.mc-bolsillo').classList.contains('tengo') ? 'si' : 'no'}:${a.querySelector('.mc-insignia-n')?.textContent || ''}`).join(' '),
+  }))
+  check('separado, el botón dice «Separar» (y no está pulsado)', sep.rotulo === 'Separar' && sep.pulsado === 'false', JSON.stringify(sep))
+  check('  …una casilla holo por carta, y las tuyas con su ✓ (la 2, con «2»)', sep.casillas === '1:holo:si: 2:holo:si:2 3:holo:no: 4:holo:no: 5:holo:no: 6:holo:no:', sep.casillas)
+  await page.click('#mcAlbum .mc-bolsillo-enlace[data-carta="30th-1"]')
+  await page.waitForTimeout(1200)
+  const ficha = await page.evaluate(() => [...document.querySelectorAll('#mcEditor .mc-version-check')].map((c) => c.closest('[data-version]')?.dataset.version + ':' + (c.classList.contains('si') ? 'si' : 'no')).join())
+  check('  …y la ficha marca la holo como tuya', /holo:si/.test(ficha) && !/normal/.test(ficha), ficha)
+  // La hoja de añadir en el PC (PINGU, con la Illumise): la fila de
+  // idiomas la ensanchaba y salía una barra de desplazamiento debajo.
+  await page.click('#mcEdCerrar').catch(() => page.keyboard.press('Escape'))
+  await page.waitForTimeout(500)
+  await page.click('#mcAlbum .mc-bolsillo-enlace[data-carta="30th-3"]')
+  await page.waitForTimeout(1200)
+  await page.click('#mcEdMas')
+  await page.waitForTimeout(900)
+  const hoja = await page.evaluate(() => { const d = document.getElementById('mcAnadirDialogo'); return { open: d.open, sw: d.scrollWidth, cw: d.clientWidth, idiomas: document.querySelectorAll('#mcAdIdiomas .mc-idioma-chip').length, version: document.getElementById('mcAdElegir')?.offsetParent ? 'eligiendo' : 'puesta' } })
+  check('la hoja de añadir no se ensancha: sin barra debajo', hoja.open && hoja.sw <= hoja.cw + 1 && hoja.idiomas >= 6, JSON.stringify(hoja))
+  check('sin errores (30 aniversario)', errores.length === 0, errores.join(' | '))
+  await ctx.close()
+}
+
 await browser.close()
 console.log(fails ? `\n✗ ${fails} fallos` : '\n✓ Todo bien')
 process.exit(fails ? 1 : 0)

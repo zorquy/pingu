@@ -92,7 +92,7 @@ check('y pulsado (juntas)', (await variantes.getAttribute('aria-pressed')) === '
 const bolsillosJuntas = await page.locator('.mc-bolsillo').count()
 await variantes.click()
 await page.waitForTimeout(700)
-check('al pulsarlo sigue diciendo «Apilar»', (await variantes.textContent()).trim() === 'Apilar',
+check('al pulsarlo dice «Separar» (927, PINGU)', (await variantes.textContent()).trim() === 'Separar',
   await variantes.textContent())
 check('y queda sin pulsar (separadas)', (await variantes.getAttribute('aria-pressed')) === 'false')
 const bolsillosSeparadas = await page.locator('.mc-bolsillo').count()
