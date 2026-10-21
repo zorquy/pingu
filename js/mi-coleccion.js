@@ -41,8 +41,8 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn } from './cardmarket.js'
-import { idiomasDeSet } from './idiomas-de-set.js'
+  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones } from './cardmarket.js'
+import { idiomasDeSet, versionesQueNoSalieron } from './idiomas-de-set.js'
 import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -391,7 +391,8 @@ function idiomasDeLaVista() {
   // ninguna a la que ponerle esa etiqueta.
   // Y el coreano igual (671): tiene precio, pero no hay carta coreana a la
   // que ponérselo en estos catálogos.
-  return IDIOMAS.filter((i) => i.id !== 'zh' && i.id !== 'ko')
+  // Y el neerlandés solo donde el set lo dice (956): llega por `idiomasParaAnadirEn`.
+  return IDIOMAS.filter((i) => i.id !== 'zh' && i.id !== 'ko' && i.id !== 'nl')
 }
 
 // El idioma por defecto es EL DE LA VISTA. Los cuatro identificadores de
@@ -435,7 +436,7 @@ function idiomaDeLaVista() {
 // La puerta es el «+» pegado a la carta, que abre este diálogo. Desde la
 // 748 (la C5 de su maqueta) va SIEMPRE al formulario: lo que ya tienes lo
 // dice la cabecera («Ya tienes 2»), sin un paso de «Añadir más» delante.
-const anadir = { carta: null, variante: null, idiomas: null }
+const anadir = { carta: null, variante: null, idiomas: null, noSalieron: new Map(), nombreSet: '' }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
@@ -484,12 +485,14 @@ function abrirAnadir(cardId, variante = null) {
   if (!sesion || !esMia) { showToast('Inicia sesión para añadir cartas a tu colección.', 'error'); return }
   anadir.carta = c
   anadir.variante = variante
+  anadir.noSalieron = new Map()
   const d = $('mcAnadirDialogo')
   pintarCartaDeAnadir(variante)
   // El set por su NOMBRE: las cartas de una expansión abierta traen de
   // `tcg_sets` solo el código y la serie, así que se busca en la lista.
   const set = c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets
   $('mcAdNombre').textContent = nombreDe(c)
+  anadir.nombreSet = nombreDeSet(set) || ''
   $('mcAdSet').textContent = [nombreDeSet(set) || c.set_id, c.local_id].filter(Boolean).join(' · ')
   const copias = misLineasDe(cardId).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
   $('mcAdTienes').textContent = copias ? `Ya tienes ${copias}` : ''
@@ -504,16 +507,48 @@ function abrirAnadir(cardId, variante = null) {
     const puesto = idiomaDeAnadir()
     anadir.idiomas = lista
     pintarIdiomasDeAnadir(lista, lista.some((i) => i.id === puesto) ? puesto : lista[0]?.id)
+    aplicarVersionesDelIdioma()
+  })
+  // Las versiones que no salieron en un idioma (956), también después.
+  void versionesQueNoSalieron(c.set_id, c.market || mercado).then((mapa) => {
+    if (anadir.carta !== c || !d.open || !mapa.size) return
+    anadir.noSalieron = mapa
+    aplicarVersionesDelIdioma()
   })
   // Las versiones de TCGGO llegan después y amplían el desplegable (862).
   void completarVersionesDe(c).then((hay) => {
     if (!hay || anadir.carta !== c || !d.open) return
-    const puesta = $('mcAdVariante').value
-    const vs = variantesParaEditar(c, puesta)
-    $('mcAdVariante').innerHTML = opciones(vs, puesta)
-    eleccionDeVersion().actualizar(vs)
-    pintarCartaDeAnadir()
+    aplicarVersionesDelIdioma()
   })
+}
+
+// LAS VERSIONES DEL IDIOMA ELEGIDO (956): las de la carta menos las que su
+// set no tuvo en ese idioma (Stormfront sin Reverse en español), con la
+// frase que lo dice. La versión pedida (la de la casilla) entra en la lista
+// aunque no se ofrezca (la 472), y la de aquí la quita si no salió.
+function versionesParaAnadir(c) {
+  const idioma = idiomaDeAnadir()
+  const r = versionesDelIdioma(variantesParaEditar(c, anadir.variante || null), anadir.noSalieron, idioma)
+  const aviso = $('mcAdAvisoIdioma')
+  if (aviso) {
+    const texto = avisoDeVersiones(r.quitadas, idioma, anadir.nombreSet)
+    aviso.textContent = texto
+    aviso.hidden = !texto
+  }
+  return r.versiones
+}
+// Y al cambiar de idioma (o llegar un dato tarde), se repinta la versión: si
+// la puesta sigue, se queda; si no, la de la carta o la primera.
+function aplicarVersionesDelIdioma() {
+  const c = anadir.carta
+  if (!c) return
+  const puesta = $('mcAdVariante').value
+  const vs = versionesParaAnadir(c)
+  const propia = varianteDeCarta(c)
+  const sigue = vs.some((v) => v.id === puesta) ? puesta : vs.some((v) => v.id === propia) ? propia : vs[0]?.id
+  $('mcAdVariante').innerHTML = opciones(vs, sigue)
+  eleccionDeVersion().actualizar(vs)
+  pintarCartaDeAnadir()
 }
 
 // La lista «¿Cuál tienes?» de la hoja de añadir (922), montada la primera
@@ -542,7 +577,8 @@ function prepararAnadir() {
   pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
   $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
   // Las versiones de ESA carta (563): con una sola no hay nada que elegir.
-  const vs = variantesParaEditar(c, anadir.variante || null)
+  // Y las del idioma puesto (956).
+  const vs = versionesParaAnadir(c)
   // Sin una pedida, la de la carta (948: con ediciones, la Unlimited y no la
   // 1.ª, que es la primera de la lista).
   const propia = varianteDeCarta(c)
@@ -6497,6 +6533,7 @@ function enganchar() {
     if (!chip) return
     pintarIdiomasDeAnadir(anadir.idiomas || idiomasDeLaVista(), chip.dataset.idioma)
     $('mcAdIdiomas').querySelector(`[data-idioma="${CSS.escape(chip.dataset.idioma)}"]`)?.focus()
+    aplicarVersionesDelIdioma()
   })
   $('mcAdForm')?.addEventListener('submit', (e) => void guardarAnadir(e))
 

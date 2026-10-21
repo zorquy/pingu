@@ -41785,6 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 956 — Idiomas del set y versiones por idioma, a mano
+
+Dos tablas que se leen con `select` libre y solo se escriben por funciones de
+admin: `tcg_set_idiomas_mano (set_id, market, idioma, hay)` y
+`tcg_version_idioma (set_id, market, variante, idioma, hay)` (solo se guarda
+`hay = false`: «sí salió» es lo de por defecto y devolverlo borra la fila).
+`idiomas_de_set_calculados` es la 911 de siempre; `idiomas_de_set` le suma lo
+puesto y le quita lo quitado. En la web, `idiomasParaAnadirEn` deja fuera los
+de `SOLO_SI_EL_SET_LO_DICE` (`nl`) salvo que el set los traiga, y la hoja de
+añadir (Mi colección y /carta) pasa sus versiones por `versionesDelIdioma`
+cada vez que cambia el idioma o llega un dato tarde (`aplicarVersionesDelIdioma`),
+con el aviso `#mcAdAvisoIdioma` / `#cmAdAvisoIdioma`. El panel:
+`estadoDeIdiomas` (auto / quitado / puesto y lo que hace tocarlo),
+`versionesDelSet` (la unión de `variantesDeCarta` de las cartas del set, con
+sus versiones de `tcg_card_versions`) y `salio`. Editar una copia ya guardada
+no filtra nada (la 472: se respeta lo que la línea tiene).
+
 ## Tanda 955 — La galería no es el padre
 
 `padresPorEpisodio` ordena el grupo de un `tcggo_id` por `esGaleria` antes que

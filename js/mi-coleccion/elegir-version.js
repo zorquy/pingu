@@ -78,7 +78,10 @@ export function montarEleccion({ form, select, lista, fija }) {
     actualizar(versiones) {
       if (!estado) return
       estado.versiones = versiones
-      if (!lista.hidden) abrirLista()
+      // Si se queda en una (el idioma de la 956 quita las demás), no hay
+      // nada que preguntar: se elige sola, como al abrir.
+      if (!lista.hidden && versiones.length < 2) elegir(versiones[0]?.id || 'normal')
+      else if (!lista.hidden) abrirLista()
       else pintarFija()
     },
   }

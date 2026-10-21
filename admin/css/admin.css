@@ -992,3 +992,21 @@ body {
    cardmarket.css, que es donde viven para la web. */
 .icono-version { flex: 0 0 auto; vertical-align: middle; }
 img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated; }
+
+/* Idiomas del set y versiones por idioma (956). */
+.idi-caja { display: grid; gap: var(--e-sm); margin: 0 0 var(--e-md); }
+.lote-rotulo { font-weight: 600; font-size: var(--t-sm); }
+.idi-fila { display: flex; flex-wrap: wrap; gap: var(--e-xs); align-items: center; }
+.idi-chapa { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 36px; padding: 0 var(--e-sm); border-radius: var(--radius-pill); border: 0; font: inherit; font-size: var(--t-xs); font-weight: 600; cursor: pointer; }
+.idi-auto { background: var(--ice); color: var(--navy); }
+.idi-puesto { background: var(--success-bg); color: var(--success); }
+.idi-quitado { background: var(--danger-bg); color: var(--danger); text-decoration: line-through; }
+.idi-fila select { min-height: 36px; border-radius: var(--radius-pill); }
+.vpi-caja { overflow-x: auto; }
+.vpi-matriz { border-collapse: collapse; font-size: var(--t-sm); }
+.vpi-matriz th, .vpi-matriz td { padding: var(--e-xs) var(--e-sm); border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.vpi-matriz th[scope='row'] { text-align: left; font-weight: 500; }
+.vpi-celda { min-width: 44px; min-height: 36px; border-radius: var(--radius-md); border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.vpi-si { background: var(--success-bg); color: var(--success); }
+.vpi-no { background: var(--danger-bg); color: var(--danger); }
+@media (pointer: coarse) { .idi-chapa, .vpi-celda, .idi-fila select { min-height: 44px; } }

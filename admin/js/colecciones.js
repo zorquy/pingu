@@ -493,6 +493,7 @@ function abrirEditor(id) {
     <h3>${escapeHtml(nombreDeSet(s) || s.id)}</h3>
     <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.tcggo_id ? ` · TCGGO ${escapeHtml(String(s.tcggo_id))}` : ''}${s.origen === 'mano' ? ' · escrita a mano' : ''}${corr.size ? ` · ${corr.size} ${corr.size === 1 ? 'corrección' : 'correcciones'}` : ''}</p>
     <p><button class="btn-secondary btn-small" id="colCartas">Ver y editar sus cartas →</button></p>
+    <div class="idi-caja" id="colIdiomas"></div>
     <label${clase('name')}>Nombre${quitar('name')}<input id="colNombre" type="text" value="${escapeHtml(s.name || '')}"></label>
     <label${clase('name_en')}>Nombre occidental <small>(el que se enseña si el de arriba lleva kanji)</small>${quitar('name_en')}
       <input id="colNombreEn" type="text" value="${escapeHtml(s.name_en || '')}"></label>
@@ -558,6 +559,14 @@ function abrirEditor(id) {
       e.target.value = ''
     }
   })
+
+  // Los idiomas del set y sus versiones por idioma (956), en su módulo.
+  void import('./idiomas-set.js').then((m) => m.pintarIdiomasDeSet({
+    set: s,
+    mercado,
+    caja: $('colIdiomas'),
+    abrirVersiones: () => m.abrirVersionesPorIdioma({ set: s, mercado, hoja: { abrir: abrirHoja }, volver: () => abrirEditor(s.id) }),
+  }))
 
   $('colCartas').addEventListener('click', async () => {
     const { abrirCartasDeSet } = await import('./catalogo-cartas.js')

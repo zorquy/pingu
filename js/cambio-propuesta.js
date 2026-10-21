@@ -224,7 +224,7 @@ function itemHtml(it) {
   const c = ed.cartaDe?.(it)
   const nombre = c ? nombreDeCarta(c) : it.card_id
   const idiomas = it.pedida
-    ? `<select class="cp-idioma" data-cp-idioma="${it.key}" aria-label="Idioma que le pides">${IDIOMAS.filter((i) => i.id !== 'ja' || it.market === 'JP').map((i) => `<option value="${i.id}"${i.id === it.idioma ? ' selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select>`
+    ? `<select class="cp-idioma" data-cp-idioma="${it.key}" aria-label="Idioma que le pides">${IDIOMAS.filter((i) => (i.id !== 'ja' || it.market === 'JP') && (i.id !== 'nl' || it.idioma === 'nl')).map((i) => `<option value="${i.id}"${i.id === it.idioma ? ' selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select>`
     : ''
   return `<li class="cp-item${it.pedida ? ' pedida' : ''}" data-cp-item="${it.key}">
     ${miniHtml(c, it)}

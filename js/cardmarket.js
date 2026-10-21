@@ -46,6 +46,10 @@ export const IDIOMAS = [
   { id: 'de', cm: 3, nombre: 'Alemán' },
   { id: 'it', cm: 5, nombre: 'Italiano' },
   { id: 'pt', cm: 8, nombre: 'Portugués' },
+  // El neerlandés (956: Jungle salió también en él). Sin precio propio y sin
+  // filtro sabido en Cardmarket; se ofrece solo en los sets que lo tienen
+  // puesto a mano (`SOLO_SI_EL_SET_LO_DICE`).
+  { id: 'nl', cm: null, nombre: 'Neerlandés' },
   { id: 'ja', cm: 7, nombre: 'Japonés' },
   // El coreano (671): una impresión que TCGGO cotiza al lado de la japonesa.
   { id: 'ko', cm: 10, nombre: 'Coreano' },
@@ -80,10 +84,36 @@ export function acotarIdiomas(lista, delSet, { siempre = [] } = {}) {
 // En el occidental, los de siempre (`base`) acotados a su set. En el
 // japonés, la japonesa y —si su set los tiene— la coreana y la china, que
 // Cardmarket vende en el mismo producto; sin saberlo, solo la japonesa.
+export const SOLO_SI_EL_SET_LO_DICE = ['nl']
+export const sinLosDeSet = (lista) => lista.filter((i) => !SOLO_SI_EL_SET_LO_DICE.includes(i.id))
 export function idiomasParaAnadirEn(market, base, delSet) {
-  if (market !== 'JP') return acotarIdiomas(base, delSet)
+  if (market !== 'JP') {
+    const conSet = Array.isArray(delSet) ? IDIOMAS.filter((i) => SOLO_SI_EL_SET_LO_DICE.includes(i.id) && delSet.includes(i.id) && !base.some((b) => b.id === i.id)) : []
+    return acotarIdiomas(sinLosDeSet(base).concat(conSet), delSet)
+  }
   const asia = IDIOMAS.filter((i) => ['ja', 'ko', 'zh'].includes(i.id))
   return Array.isArray(delSet) && delSet.length ? acotarIdiomas(asia, delSet, { siempre: ['ja'] }) : asia.filter((i) => i.id === 'ja')
+}
+
+// LAS VERSIONES DE UN IDIOMA (956). Stormfront no salió en Reverse en
+// español: al elegir español en la hoja de añadir, la Reverse no se ofrece.
+// `noSalieron` es lo de `tcg_version_idioma` (idioma → versiones que no). Si
+// las quitara todas se queda la lista entera: una hoja sin versiones no deja
+// añadir nada, y es más probable un dato mal puesto que una carta sin versión.
+export function versionesDelIdioma(versiones, noSalieron, idioma) {
+  const fuera = noSalieron?.get?.(idioma)
+  if (!fuera?.size) return { versiones, quitadas: [] }
+  const quedan = versiones.filter((v) => !fuera.has(v.id))
+  if (!quedan.length) return { versiones, quitadas: [] }
+  return { versiones: quedan, quitadas: versiones.filter((v) => fuera.has(v.id)) }
+}
+// Y la frase que lo dice, debajo del idioma.
+export function avisoDeVersiones(quitadas, idioma, nombreDeSet) {
+  if (!quitadas?.length) return ''
+  const nombres = quitadas.map((v) => v.nombre)
+  const lista = nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} ni en ${nombres[nombres.length - 1]}` : nombres[0]
+  const lengua = (IDIOMAS.find((i) => i.id === idioma)?.nombre || idioma).toLowerCase()
+  return `En ${lengua}${nombreDeSet ? `, ${nombreDeSet}` : ''} no salió en ${lista}.`
 }
 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.

@@ -4,6 +4,58 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (191) — PINGU-Claude (956 — los idiomas de un set y las versiones de cada idioma, a mano; el neerlandés) · MIGRACIÓN NUEVA
+
+**Hecho** (la lista de Sergio.M en el foro; PINGU: «adelante con lo
+recomendado», la opción B de la propuesta «Correcciones del catálogo»):
+- `supabase-migration-956-idiomas-y-versiones-a-mano.sql`:
+  · el neerlandés (`nl`) admitido en la colección y en «La quiero»;
+  · `tcg_set_idiomas_mano` (un idioma puesto o quitado a mano) y
+    `tcg_version_idioma` (una versión que NO salió en un idioma de un set),
+    con su política de lectura;
+  · `idiomas_de_set` = lo de la 911 (ahora `idiomas_de_set_calculados`) + lo
+    puesto − lo quitado (manda aunque Cardmarket tenga un anuncio);
+  · `catalogo_idioma_de_set` y `catalogo_version_de_idioma`, solo el admin;
+  · lo de Sergio: Jungle + neerlandés, Undaunted − portugués, Dark Explorers
+    − español; sin Reverse: Stormfront en español, Dark Explorers y Boundaries
+    Crossed en portugués.
+- /admin → Colecciones → un set: «Idiomas en los que salió» (azul lo
+  calculado, tachado lo quitado, verde lo puesto; se toca y se guarda, y se
+  deshace si la base dice que no) y «Versiones por idioma →», una matriz
+  versión × idioma de ✓/✕ (`admin/js/idiomas-set.js`, por `import()`; lo puro
+  en `idiomas-set-puro.js`). /admin carga ahora `css/cardmarket.css` por las
+  banderas.
+- La hoja de añadir de Mi colección y la de /carta quitan la versión que no
+  salió en el idioma elegido y lo dicen debajo («En español, Stormfront no
+  salió en Reverse holo.»): `versionesDelIdioma` y `avisoDeVersiones`
+  (`js/cardmarket.js`), `versionesQueNoSalieron` (`js/idiomas-de-set.js`).
+  Si quitara todas, se queda la lista entera. Y la lista «¿Cuál tienes?» se
+  elige sola si al actualizarse se queda en una (`elegir-version.js`).
+- El neerlandés solo se ofrece en los sets que lo tienen
+  (`SOLO_SI_EL_SET_LO_DICE`): ni sin saber nada del set ni en las listas de
+  siempre (Mi colección, /carta, propuestas de cambio). Bandera en
+  `cardmarket.css`; sin precio propio, como el portugués.
+
+**Ficheros**: `supabase-migration-956-idiomas-y-versiones-a-mano.sql`,
+`js/cardmarket.js`, `js/idiomas-de-set.js`, `js/mi-coleccion.js`,
+`js/carta-mercado.js`, `js/cambio-propuesta.js`,
+`js/mi-coleccion/elegir-version.js`, `mi-coleccion.html`, `cartas.html`
+(generado), `css/cardmarket.css`, `admin/index.html`, `admin/css/admin.css`,
+`admin/js/colecciones.js`, `admin/js/idiomas-set.js`,
+`admin/js/idiomas-set-puro.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`.
+
+En `pruebas`: `test-tanda-956.mjs` + `sql-tanda-956.sql` +
+`sql-tanda-956-casos.sql` (contra PostgreSQL: la 911 y la 956 dos veces, lo
+de Sergio, el admin sí y otro no, el neerlandés guardable; y lo puro) y
+`test-tanda-956-pantalla.mjs` (Stormfront en español sin Reverse en las dos
+hojas, Jungle con neerlandés, y /admin escribiendo por sus funciones). El
+doble aprende las dos tablas y las tres funciones.
+
+**Pendiente**: que PINGU ejecute la 956. Luego la 957 (set nuevo con lista
+pegada, Lucario VSTAR y McDonald's 2019 en francés, los sellos del Scyther) y
+la 958 (las listas de BKZ, smL, CLF/CLV, svG y WCD08, para enseñarlas antes).
+
 ## 2026-10-22 (190) — PINGU-Claude (955 — Hidden Fates y Shining Fates con su nombre y en su orden; el Shiny Vault sin parejas)
 
 **Hecho** (PINGU, con la captura: la expansión salía «Hidden Fates Shiny Vault

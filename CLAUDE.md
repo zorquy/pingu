@@ -124,6 +124,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   columnas que embebe `tcg_sets` pide `release_date` (953). Una promo dice
   «Promo»: brilla por su NOMBRE (EX, GX, V, ex, ◇…), y una rareza que no está
   en el vocabulario, por sus palabras, sin traducirla (954).
+- **Los idiomas de un set y las versiones de cada idioma se corrigen a
+  mano en /admin** (tanda 956): `tcg_set_idiomas_mano` manda sobre lo
+  calculado de la 911, y `tcg_version_idioma` dice qué versión NO salió en un
+  idioma (Stormfront sin Reverse en español). Un camino nuevo para añadir una
+  carta pasa sus versiones por `versionesDelIdioma` al cambiar de idioma, y un
+  idioma que no tiene todo set (`nl`) va en `SOLO_SI_EL_SET_LO_DICE`.
 - **En la era de Wizards las versiones son las EDICIONES** (tanda 935):
   filas `tcg_card_versions` con `origen = 'edicion'` (1.ª edición,
   Shadowless, Unlimited, sellos y errores con su clase), sacadas de los
