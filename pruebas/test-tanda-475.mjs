@@ -81,8 +81,8 @@ await page.waitForTimeout(400)
 const opciones = await page.locator('#mcAlbumMenu .mc-menu-opcion').evaluateAll((ns) =>
   ns.filter((n) => n.getBoundingClientRect().height > 0).map((n) => ({ id: n.id, texto: n.textContent.trim() })))
 // Y desde la 725, el cuarto: «Enseñar las que tengo», al final.
-check('salen los cuatro', opciones.length === 4, JSON.stringify(opciones.map((o) => o.id)))
-check('  …en el orden de Dex, y enseñar al final', opciones.map((o) => o.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumEnsenar',
+check('salen los cinco (con «Compartir la expansión»)', opciones.length === 5, JSON.stringify(opciones.map((o) => o.id)))
+check('  …en el orden de Dex, y enseñar al final', opciones.map((o) => o.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar',
   JSON.stringify(opciones.map((o) => o.id)))
 // LO QUE ARREGLA EL MENÚ: cuatro iconos seguidos no dicen qué hacen. Aquí
 // cada uno lleva su frase, y la de compartir dice CUÁNTAS son — que era lo

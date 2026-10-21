@@ -33,7 +33,7 @@ check('  …sin el botón con borde del foro', !/foro-vivo-boton/.test(leer('js/
 const mc = leer('js/mi-coleccion.js')
 check('SI9: la «N» solo si no es la normal', /varianteDe\(l\.variante\)\.id === 'normal' \? '' : chapaDeVarianteHtml\(l\.variante\)/.test(mc))
 // Desde la 927 la versión de la carta no lleva insignia (es el ✓): solo las otras.
-check('  …y el «Normal» de la expansión, solo separando', /return ids\.filter\(\(id\) => id !== suya && tengoEnAlbum\(c\.id, id\)\)/.test(mc))
+check('  …y el «Normal» de la expansión, solo separando', /return ids\.filter\(\(id\) => id !== suya && tengo\(c\.id, id\)\)/.test(mc))
 check('  …y «Novato» fuera del foro y de Gente', /esPrimerNivel\(nivel\) \? \[\]/.test(leer('js/tema.js')) && /esPrimerNivel\(calculateLevel/.test(leer('js/usuarios.js')))
 
 console.log('── 2. En el navegador ──')

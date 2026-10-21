@@ -176,9 +176,9 @@ console.log('\n── 4. La cabecera, con sus iconos ──')
     alto: Math.round(n.getBoundingClientRect().height),
   })))
   // Desde la 725, un cuarto al final: «Enseñar las que tengo».
-  check('están los cuatro mandos dentro', iconos.length === 4, JSON.stringify(iconos.map((i) => i.id)))
+  check('están los cinco (con «Compartir la expansión») mandos dentro', iconos.length === 5, JSON.stringify(iconos.map((i) => i.id)))
   check('  …en el orden de Dex: marcar, favorita y compartir, y enseñar al final',
-    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumEnsenar', JSON.stringify(iconos.map((i) => i.id)))
+    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar', JSON.stringify(iconos.map((i) => i.id)))
   check('  …cada uno con su dibujo', iconos.every((i) => i.svg), JSON.stringify(iconos))
   // Y aquí dentro SÍ llevan palabra, que es la gracia del menú: cuatro
   // iconos seguidos sin un rótulo al lado son un acertijo.
