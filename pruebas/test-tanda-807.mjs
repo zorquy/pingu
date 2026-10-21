@@ -100,6 +100,13 @@ const montar = (datos) => {
     let out = filas
     for (const [k, v] of params) {
       if (['select', 'limit', 'order'].includes(k)) continue
+      // `or=(col.is.null,col.neq.X)` (937: el refresco salta la fila
+      // «Standard»), con la regla de Postgres: un neq contra NULL no pasa.
+      if (k === 'or') {
+        const conds = v.replace(/^\(|\)$/g, '').split(',').map((c) => { const [col, o, ...x] = c.split('.'); return { col, o, val: x.join('.') } })
+        out = out.filter((f) => conds.some(({ col, o, val }) => (o === 'is' && val === 'null' ? f[col] == null : o === 'neq' ? f[col] != null && String(f[col]) !== val : o === 'eq' ? String(f[col]) === val : (() => { throw new Error(`el doble no sabe or ${col}.${o}`) })())))
+        continue
+      }
       const [op, ...resto] = v.split('.')
       const val = resto.join('.')
       const de = (f) => (k === 'market' ? f.market || 'WEST' : f[k])
@@ -240,6 +247,8 @@ console.log('\n── 3c. Con todo recorrido: el refresco ──')
     { tcggo_id: 43552, card_id: 'bw8-101', set_id: 'bw8', cm_low: 50, actualizado_at: '2026-09-01T00:00:00Z' },
     { tcggo_id: 49999, card_id: 'bw8-1', set_id: 'bw8', cm_low: 1, actualizado_at: '2026-09-02T00:00:00Z' },
     { tcggo_id: 43551, card_id: 'bw8-100', set_id: 'bw8', cm_low: 1, actualizado_at: '2026-10-12T00:00:00Z' },
+    // La fila de la carta misma (937), vieja también: no es una versión.
+    { tcggo_id: 12774, card_id: 'bw8-101', set_id: 'bw8', etiqueta: 'Standard', cm_low: 50, actualizado_at: '2026-08-01T00:00:00Z' },
   ]
   const b = montar(datos)
   const t = tcggo()

@@ -94,9 +94,12 @@ const montarPrecios = ({ fallaVersiones = false } = {}) => {
   check('la página de la expansión se pide con include_variants=1', b.urls.some((u) => /episode_id=431.*include_variants=1/.test(u)), b.urls.join(' | '))
   check('  …y es UNA petición (las versiones no cuestan nada más)', b.urls.filter((u) => /cards\?/.test(u)).length === 1, String(b.urls.length))
   check('los precios de las cartas, como siempre', r.ok && b.escritas.length === DOC.data.length, JSON.stringify(r).slice(0, 200))
+  // Desde la 937 va también la fila «Standard» de cada carta (la carta misma):
+  // aquí se miran las versiones.
+  b.vers.splice(0, b.vers.length, ...b.vers.filter((v) => v.etiqueta !== 'Standard'))
   check('las versiones, guardadas colgando de NUESTRA carta', b.vers.length === CON_VERSIONES && b.vers.every((v) => v.etiqueta === 'Reverse Holo' && /^por-\d+$/.test(v.card_id) && v.set_id === 'por') && b.vers[0].tcggo_id === 35162, JSON.stringify(b.vers.slice(0, 2)))
   const e = b.estados[precios.CLAVE_ESTADO]
-  check('  …y el estado lo cuenta y apunta cuándo llegó la última', e.versiones?.escritas === CON_VERSIONES && e.versionesUltimaVista === AHORA.toISOString(), JSON.stringify(e).slice(0,600))
+  check('  …y el estado lo cuenta y apunta cuándo llegó la última', e.versiones?.escritas === CON_VERSIONES + DOC.data.length && e.versionesUltimaVista === AHORA.toISOString(), JSON.stringify(e).slice(0,600))
   const b2 = montarPrecios({ fallaVersiones: true })
   const r2 = await precios.procesar({ env: ENV, ...b2, pausa: sinPausa, ahora: AHORA })
   check('si guardar las versiones falla, el precio de las cartas se escribe igual', r2.ok && b2.escritas.length === DOC.data.length && /tcg_card_versions/.test(b2.estados[precios.CLAVE_ESTADO].versiones?.error || '') && !b2.estados[precios.CLAVE_ESTADO].versionesUltimaVista, JSON.stringify(b2.estados[precios.CLAVE_ESTADO].versiones))

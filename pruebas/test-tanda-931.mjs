@@ -187,7 +187,9 @@ console.log('\n── 7. La sonda trae YA las versiones de una expansión (932) 
     guardarVersiones: async (f) => { guardadas.push(...f) },
   })
   check('del id de nuestro set saca su expansión y pide sus páginas con versiones', r.episodio === 396 && urls.length === 1 && /episode_id=396.*include_variants=1/.test(urls[0]), JSON.stringify(r))
-  check('  …y guarda las del Oddish de Erika colgando de NUESTRA carta', guardadas.map((g) => `${g.card_id}:${g.etiqueta}`).join() === 'me02.5-001:Energy Symbol Pattern,me02.5-001:Poké Ball' && r.escritas === 2 && r.emparejadas === 2, JSON.stringify(guardadas))
+  // Desde la 937 va también la fila «Standard» de cada carta mirada.
+  check('  …y guarda las del Oddish de Erika colgando de NUESTRA carta', guardadas.filter((g) => g.etiqueta !== 'Standard').map((g) => `${g.card_id}:${g.etiqueta}`).join() === 'me02.5-001:Energy Symbol Pattern,me02.5-001:Poké Ball' && r.emparejadas === 2, JSON.stringify(guardadas))
+  check('  …y la fila «Standard» de cada carta, con su id de TCGGO', guardadas.filter((g) => g.etiqueta === 'Standard').map((g) => g.card_id).sort().join() === 'me02.5-001,me02.5-002' && r.escritas === guardadas.length, JSON.stringify(guardadas.filter((g) => g.etiqueta === 'Standard')))
   check('sin set nuestro que apunte a esa expansión, lo dice y no pide nada', /Ningún set/.test((await sonda.sondear({ modo: 'versiones', valor: '999' }, { env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') }, pedir: async () => [] })).error || ''))
   check('una versión UNA vez por lote (si no, Postgres rechaza el lote entero)', sinVersionesRepetidas([{ tcggo_id: 1, card_id: 'a' }, { tcggo_id: 1, card_id: 'b' }, { tcggo_id: 2, card_id: 'a' }]).map((f) => `${f.tcggo_id}${f.card_id}`).join() === '1a,2a')
 }
