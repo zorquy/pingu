@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (188) — PINGU-Claude (952 — L-P Promos y LEGEND Promos, un solo set; 953 — la R japonesa abierta desde su expansión, Holo) · MIGRACIÓN NUEVA
+
+**Hecho**:
+- **952** (PINGU: «estos dos sets… son lo mismo»):
+  `supabase-migration-952-legend-promos-juntas.sql`. Busca un set japonés
+  «L-P Promos» y uno «LEGEND Promos» (por el nombre inglés; si no hay
+  exactamente uno de cada, no toca nada y lo dice). Se queda el de más cartas
+  (con las mismas, el que tiene logo). Carta a carta del otro: mismo número
+  (solo las cifras: «001», «1» y «L-P 001» casan) y mismo nombre, japonés o
+  inglés → se FUNDE en la que se queda (copias, deseos sin duplicar, avisos,
+  vitrina, álbumes y las versiones que no tenga; la repetida con lápida de la
+  934); si no casa → se MUDA, con la mudanza como corrección de la 885; un
+  número que casa con otro nombre se muda y se cuenta como «dudosa». El que
+  sobra se esconde, también como corrección. Informe en `scrydex_estado`
+  (`legend_promos_952`) y en la tabla final. Idempotente.
+- **953** (PINGU: «el Serperior de Nihil Zero pone versión normal y no holo»):
+  la regla de la 950 mira el día del set para la «R» japonesa, y
+  `cartasDeSet` (las cartas de una expansión abierta) no pedía
+  `release_date`: llegaba `undefined` y la R salía «Normal». Ahora lo pide. Y
+  si de la carta no se sabe nada, la única de por defecto también sale Holo
+  cuando la rareza dice que brilla (las cuatro de «no se sabe», tal cual).
+
+**Ficheros**: `supabase-migration-952-legend-promos-juntas.sql`,
+`js/mi-coleccion/datos.js`, `js/mi-coleccion/variantes.js`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-952.mjs` + `sql-tanda-952-casos.sql` (contra
+PostgreSQL: sin sets no toca nada; fusión por japonés y por inglés, copias,
+deseo repetido, aviso, vitrina, álbum, versiones, precio fuera, mudanza con
+corrección, escondido, informe, segunda vez sin cambios) y `test-tanda-953.mjs`
+(las listas de columnas de Mi colección con el set embebido piden el día; la
+fila del Serperior da Holo). Pasadas 922, 931, 935, 937, 915, 921, 645, 385,
+947, 949, 950 e imports, en verde.
+
+**Pendiente**: que PINGU ejecute la 952 y pegue la tabla del final.
+
 ## 2026-10-22 (187) — PINGU-Claude (950 — la carta que brilla de serie es «Holo», no «Normal»)
 
 **Hecho** (PINGU, con Dex al lado: en Lost Thunder el Meganium es Holo y

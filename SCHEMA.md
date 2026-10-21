@@ -41785,6 +41785,30 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 953 — El día del set con las cartas de una expansión
+
+La 950 decide si una «Rare» brilla por el día de su set (`RARA_HOLO_DESDE`), y
+`cartasDeSet` pedía `tcg_sets(tcg_online_code,serie_id)`: la R japonesa de una
+expansión abierta llegaba sin día y salía «Normal» (el Serperior de Nihil
+Zero). Es la 523 otra vez: una columna que no se pide llega `undefined` y
+`brillaDeSerie` contesta «no se sabe» sin error. `test-tanda-953.mjs` exige
+`release_date` en toda lista de columnas de Mi colección que embebe el set.
+Y la única de por defecto (`[EQUIVALE[0]]`, cuando de la carta no se sabe
+nada) pasa también por `conSuBrillo`: una carta que brilla seguro no es
+«Normal». Las cuatro de «no se sabe» se quedan las cuatro.
+
+## Tanda 952 — L-P Promos y LEGEND Promos, juntos
+
+Dos sets japoneses de 2009 que son el mismo (el calco de TCGGO y el viejo).
+`supabase-migration-952-legend-promos-juntas.sql` (un `do`, sin tablas
+temporales): se queda el de más cartas; las del otro se funden si casan por
+número (solo cifras, sin ceros delante) y nombre (japonés o inglés), y si no,
+se mudan con corrección `set_id` (885) para que ninguna pasada las devuelva.
+La fusión es la de la 935: copias, deseos sin duplicar, avisos, vitrina,
+álbumes (jsonb) y versiones que la buena no tenga; la repetida con lápida
+`__borrada` (934). El que sobra, `oculto` con su corrección. Informe en
+`scrydex_estado.legend_promos_952`.
+
 ## Tanda 950 — La que brilla de serie
 
 - `brillaDeSerie(carta)` (variantes.js, exportada): rareza (`rarity_en ||

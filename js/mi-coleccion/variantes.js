@@ -168,7 +168,10 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   if (base.length) return conSuBrillo([...base, ...extras], carta)
   // Si TCGGO la ha mirado (937), ya se sabe: la carta misma y lo que él dé.
   const mirada = (carta?.versiones || []).some(esFilaDeLaCarta)
-  if (!extras.length) return mirada ? conSuBrillo([EQUIVALE[0]], carta) : siNoSeSabe
+  // Sin saber nada, la de por defecto es una sola «Normal»; si la rareza dice
+  // que brilla, esa una es la «Holo» (953). Las cuatro de «no se sabe», tal cual.
+  const soloNormal = Array.isArray(siNoSeSabe) && siNoSeSabe.length === 1 && siNoSeSabe[0] === EQUIVALE[0]
+  if (!extras.length) return mirada || soloNormal ? conSuBrillo([EQUIVALE[0]], carta) : siNoSeSabe
   // Solo versiones de TCGGO: la Standard (la carta misma) existe seguro.
   const sin = !mirada && Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
   const todas = [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]

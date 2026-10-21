@@ -305,7 +305,9 @@ export async function cartasDeSet(setId, mercado = 'WEST') {
     // daría ningún error, que es lo de siempre.
     // `serie_id` desde la 434: hace falta para montar a mano la ruta del
     // asset de TCGdex cuando `image_path` está a null.
-    .select('id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,cm_id_product_propio,tp_id_product_propio,tcg_sets(tcg_online_code,serie_id)')
+    // `release_date` desde la 953: sin ella la R de un set japonés nuevo
+    // salía «Normal» y no «Holo» (la regla de la 950 mira el día del set).
+    .select('id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,cm_id_product_propio,tp_id_product_propio,tcg_sets(tcg_online_code,serie_id,release_date)')
     .eq('market', mercado)
     .eq('set_id', setId)
     .limit(1000)

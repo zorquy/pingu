@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "«L-P Promos» y «LEGEND Promos» eran el mismo set japonés repetido: ahora es uno solo, con tus copias dentro.", "enlace": "/cartas?catalogo=JP" },
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las R japonesas de los sets nuevos salen como Holo también al abrirlas desde su expansión (salían «Normal»).", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las cartas que brillan de serie (las Rare Holo, las GX, V, ex, ilustraciones y las R japonesas modernas) salen ahora como «Holo» y no como «Normal», y las que siempre brillan ya no ofrecen una Reverse que no existe.", "enlace": "/cartas?ver=album&set=sm8" },
     { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Llega al catálogo japonés la baraja de Treecko (Treecko Constructed Starter Deck, 2003), con sus 19 cartas.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Todas las cartas japonesas de 2001 a 2016 (de VS y e-Card hasta XY) se pueden apuntar en 1.ª edición o Unlimited.", "enlace": "/cartas?catalogo=JP" },
