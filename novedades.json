@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Hidden Fates y Shining Fates se llaman así (no «Shiny Vault»), salen primero las cartas normales y las Shiny Vault ya no aparecen dos veces.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las promos EX, GX, V, ex y demás salen como Holo, y también las Shiny Vault de Hidden Fates.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Hidden Fates es una sola expansión: primero las cartas normales y luego las de Shiny Vault, como en el sobre.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "«L-P Promos» y «LEGEND Promos» eran el mismo set japonés repetido: ahora es uno solo, con tus copias dentro.", "enlace": "/cartas?catalogo=JP" },

@@ -41785,6 +41785,17 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 955 — La galería no es el padre
+
+`padresPorEpisodio` ordena el grupo de un `tcggo_id` por `esGaleria` antes que
+por tamaño: un set que es hijo en `COLECCIONES_JUNTAS`, hermano de otro del
+grupo por `setsHermanos` (`<id>(.5)?(tg|gg|sv)`) o cuyo nombre dice Shiny
+Vault, Trainer Gallery, Galarian Gallery o Radiant Collection va detrás. El
+orden de la expansión plegada (`cartasDelAlbumFiltradas`, bloque a bloque en
+el orden de `idsDeColeccion`) y su nombre salen de ahí. En `conSuBrillo`, con
+`brillaSiempre` se quita la «Normal» además de la Reverse (que se queda si es
+de TCGGO).
+
 ## Tanda 954 — Promos y Shiny Vault Holo; Hidden Fates en uno
 
 `brillaSiempre(carta)` (variantes.js) junta lo que brilla siempre: las de

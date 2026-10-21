@@ -152,10 +152,24 @@ export function padresPorEpisodio(sets) {
   const tam = (s) => s.card_count_official || s.card_count_total || 0
   for (const grupo of porEpisodio.values()) {
     if (grupo.length < 2) continue
-    const [padre] = [...grupo].sort((a, b) => tam(b) - tam(a) || String(a.id).length - String(b.id).length || String(a.id).localeCompare(String(b.id)))
+    // Una GALERÍA no es el padre aunque sea más grande (955): el Shiny Vault
+    // de Hidden Fates (94) le ganaba a Hidden Fates (68) y la expansión
+    // salía rotulada «Shiny Vault», con sus cartas delante.
+    const galeria = (s) => (esGaleria(s, grupo) ? 1 : 0)
+    const [padre] = [...grupo].sort((a, b) => galeria(a) - galeria(b) || tam(b) - tam(a) || String(a.id).length - String(b.id).length || String(a.id).localeCompare(String(b.id)))
     for (const s of grupo) if (s !== padre) padres.set(String(s.id).toLowerCase(), String(padre.id).toLowerCase())
   }
   return padres
+}
+
+// Si un set es la galería de otro del mismo grupo: hijo en la lista a mano,
+// `<otro>(.5)?(tg|gg|sv)` o, por el nombre, una Shiny Vault, Trainer o
+// Galarian Gallery o la Radiant Collection.
+function esGaleria(s, grupo) {
+  const id = String(s?.id || '').toLowerCase()
+  if (COLECCIONES_JUNTAS.some((c) => c.hijos?.some((h) => h.toLowerCase() === id))) return true
+  if (grupo.some((o) => o !== s && setsHermanos(String(o.id).toLowerCase(), [id]).length)) return true
+  return /shiny vault|trainer gallery|galarian gallery|radiant collection/i.test(`${s?.name_en || ''} ${s?.name || ''}`)
 }
 
 // ── LOS SETS QUE VAN DENTRO DE UNA EXPANSIÓN DE TCGGO (tanda 853) ──

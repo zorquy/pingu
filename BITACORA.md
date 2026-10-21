@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (190) — PINGU-Claude (955 — Hidden Fates y Shining Fates con su nombre y en su orden; el Shiny Vault sin parejas)
+
+**Hecho** (PINGU, con la captura: la expansión salía «Hidden Fates Shiny Vault
+· 94 cartas», con las SV delante y cada una dos veces; «Shining Fates igual:
+primero el Shiny Vault y luego la 1, debería ser al revés, y llamarse Shining
+Fates»):
+- El padre de una expansión de TCGGO (`padresPorEpisodio`,
+  `js/catalogo-series.js`) era el set MÁS GRANDE de su `tcggo_id`, y el Shiny
+  Vault (94, 122) es más grande que su set (68, 72). Ahora una galería no es
+  padre nunca (`esGaleria`: hija en `COLECCIONES_JUNTAS`, `<otro>(.5)?(tg|gg|sv)`
+  o, por el nombre, Shiny Vault / Trainer / Galarian Gallery / Radiant
+  Collection). Con eso la expansión se llama Hidden Fates / Shining Fates y,
+  como el orden «por número» va bloque a bloque empezando por el padre, salen
+  primero las normales y luego las SV. Lo de la 954 en `COLECCIONES_JUNTAS`
+  se queda de respaldo.
+- Las parejas eran «Separar» puesto: cada SV salía con DOS versiones, «Normal»
+  y «Holo» (la Holo de TCGGO al lado de la Normal de TCGdex). Una carta que
+  brilla siempre no tiene Normal: `conSuBrillo` la quita (y la Reverse, salvo
+  que la dé TCGGO, como en la 950).
+
+**Ficheros**: `js/catalogo-series.js`, `js/mi-coleccion/variantes.js`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-955.mjs` (los dos padres, el resto de reglas igual,
+el orden por bloques, la estantería con las 162, galería por nombre, y las
+versiones de las que brillan siempre).
+
+**Pendiente**: la lista de Sergio.M en el foro (sets que faltan, idiomas y
+versiones por idioma): va como propuesta con maquetas.
+
 ## 2026-10-22 (189) — PINGU-Claude (954 — promos y Shiny Vault Holo; Hidden Fates en uno)
 
 **Hecho** (PINGU: «las promo son las únicas que no tienen holo… porque las

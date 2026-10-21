@@ -237,8 +237,10 @@ function conSuBrillo(lista, carta) {
     fuera = fuera.map((e) => (e?.nuestro === 'normal' ? holo : e))
   }
   const reverseDeTcggo = (carta?.versiones || []).some((f) => !f.origen && varianteDeEtiqueta(f.etiqueta) === 'reverse')
-  if (brillaSiempre(carta) && !reverseDeTcggo && fuera.length > 1) {
-    const sin = fuera.filter((e) => e?.nuestro !== 'reverse')
+  if (brillaSiempre(carta) && fuera.length > 1) {
+    // La que brilla siempre no tiene «Normal» (955): con la «Holo» que da
+    // TCGGO al lado, el Shiny Vault salía dos veces al separar versiones.
+    const sin = fuera.filter((e) => e?.nuestro !== 'normal' && (reverseDeTcggo || e?.nuestro !== 'reverse'))
     if (sin.length) fuera = sin
   }
   return fuera
