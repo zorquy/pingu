@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Llega al catálogo japonés la baraja de Treecko (Treecko Constructed Starter Deck, 2003), con sus 19 cartas.", "enlace": "/cartas?catalogo=JP" },
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Todas las cartas japonesas de 2001 a 2016 (de VS y e-Card hasta XY) se pueden apuntar en 1.ª edición o Unlimited.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las cartas japonesas antiguas (las e-Card, Flight of Legends, Rocket Gang Strikes Back, Golden Sky, Silvery Ocean y el resto de esa época) ya se pueden añadir en 1.ª edición o Unlimited: antes solo dejaba la normal.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En Caos Creciente (Chaos Rising) y Oscuridad Absoluta (Pitch Black) ya se puede añadir la Reverse de las cartas que la tienen: antes solo salía la normal.", "enlace": "/cartas?ver=album&set=me04" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "La portada es ahora pokedoc.es a secas: ya no sale «/index.html» en la barra de direcciones, ni al entrar ni al volver a Inicio.", "enlace": "/" },

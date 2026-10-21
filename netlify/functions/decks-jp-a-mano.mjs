@@ -79,6 +79,46 @@ export const DECKS = [
       { n: '020', ja: 'Rエネルギー', en: 'R Energy', de: 'ex7-95' },
     ],
   },
+  // LA BARAJA DE TREECKO (950). En el foro: «Treecko Constructed Starter
+  // Deck, set no añadido (hay primera edición y unlimited)». キモリデッキ,
+  // 2003-01-31, salió con el Expansion Pack; 19 cartas (las tres energías
+  // básicas 020–022 van fuera de la cuenta). La lista sale de Bulbapedia,
+  // TCGCollector y PokéCardex, que coinciden (desde el contenedor no se
+  // llega a ninguna: se leyó por la búsqueda). Las reimpresiones son de EX
+  // Ruby & Sapphire (`ex1`), pero allí hay dos Treecko, dos Grovyle, dos
+  // Sceptile, tres Makuhita, dos Hariyama, tres Skitty y dos Delcatty: la
+  // ficha se copia SOLO donde se sabe cuál es (el Treecko 003 es el 76, dice
+  // Bulbapedia; Scyther ex y los entrenadores solo tienen una). Las demás
+  // nacen con número y nombre, sin ficha ni foto inventada (la 441).
+  {
+    clave: 'adv-treecko_ja',
+    set: {
+      id: 'adv-treecko_ja', name: 'キモリデッキ', name_en: 'Treecko Constructed Starter Deck',
+      release_date: '2003-01-31', card_count_official: 19, card_count_total: 19,
+      serieDe: { name_en: 'Expansion Pack', release_date: '2003-01-31' },
+    },
+    cartas: [
+      { n: '001', ja: 'ストライクex', en: 'Scyther ex', de: 'ex1-102', holo: true },
+      { n: '002', ja: 'キモリ', en: 'Treecko' },
+      { n: '003', ja: 'キモリ', en: 'Treecko', de: 'ex1-76' },
+      { n: '004', ja: 'ジュプトル', en: 'Grovyle' },
+      { n: '005', ja: 'ジュプトル', en: 'Grovyle' },
+      { n: '006', ja: 'ジュカイン', en: 'Sceptile' },
+      { n: '007', ja: 'マクノシタ', en: 'Makuhita' },
+      { n: '008', ja: 'マクノシタ', en: 'Makuhita' },
+      { n: '009', ja: 'ハリテヤマ', en: 'Hariyama' },
+      { n: '010', ja: 'エネコ', en: 'Skitty' },
+      { n: '011', ja: 'エネコ', en: 'Skitty' },
+      { n: '012', ja: 'エネコロロ', en: 'Delcatty' },
+      { n: '013', ja: 'エネルギーサーチ', en: 'Energy Search', de: 'ex1-90' },
+      { n: '014', ja: 'エネルギーリムーブ2', en: 'Energy Removal 2', de: 'ex1-80' },
+      { n: '015', ja: 'キズぐすり', en: 'Potion', de: 'ex1-91' },
+      { n: '016', ja: 'ポケナビ', en: 'PokéNav', de: 'ex1-88' },
+      { n: '017', ja: 'モンスターボール', en: 'Poké Ball', de: 'ex1-86' },
+      { n: '018', ja: 'オダマキ博士', en: 'Professor Birch', de: 'ex1-89' },
+      { n: '019', ja: 'ラムのみ', en: 'Lum Berry', de: 'ex1-84' },
+    ],
+  },
 ]
 
 async function rest(ruta, clave, opciones = null) {

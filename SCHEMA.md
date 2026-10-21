@@ -41785,6 +41785,21 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 951 — Ediciones en todo el japonés de 2001 a 2016
+
+- `supabase-migration-951-ediciones-japonesas-hasta-2016.sql`: un `do` que
+  recorre `tcg_sets` JP visibles con `release_date` en [2001-07-01,
+  2016-09-30], sin «promo» en el nombre, con cartas y sin ninguna fila de
+  edición; a cada carta, «1st Edition» (sin producto) y «Unlimited»
+  (`cm_id_product_propio`), clase impresión, ids de
+  `tcg_card_versions_mano_seq`. `user_collection` normal/holo → unlimited en
+  esos sets. Informe `scrydex_estado.ediciones_jp_951` (`sets`: set, nombre,
+  salio, cartas, ediciones_nuevas, copias_a_unlimited); una segunda pasada sin
+  sets no lo pisa.
+- `decks-jp-a-mano`: entrada `adv-treecko_ja` (serie del set del mismo día,
+  «Expansion Pack» 2003-01-31). Las cartas sin `de` ni `buscar` nacen con
+  `name`/`name_en` y sin ficha (salen en `sinFuente`).
+
 ## Tanda 949 — Versiones a muchas cartas de un set
 
 - `catalogo_versiones_lote(p_market, p_cartas text[], p_etiquetas text[],

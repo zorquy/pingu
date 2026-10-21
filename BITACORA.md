@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (186) — PINGU-Claude (951 — 1.ª edición y Unlimited en todo el japonés de 2001 a 2016, y la baraja de Treecko) · MIGRACIÓN NUEVA
+
+**Hecho**:
+- PINGU: «todas las cartas japonesas hasta septiembre de 2016 (XY Evoluciones
+  y CP6)… a partir de Sol y Luna ya no existe la primera edición. ¿Por qué no
+  lo haces tú automáticamente para todos los sets previos?».
+  `supabase-migration-951-ediciones-japonesas-hasta-2016.sql`: a cada carta de
+  cada set japonés visible salido entre el 1-7-2001 (VS y web, las primeras con
+  1.ª edición; Base–neo japoneses no la tuvieron) y el 30-9-2016, «1st
+  Edition» + «Unlimited» como filas de edición (la Unlimited con el producto de
+  la carta). Fuera: promos, escondidos, sets sin cartas y los que ya tienen
+  alguna edición (la 948, o lo puesto con «Versiones de todas»). Copias
+  «Normal»/«Holo» → Unlimited. Informe en `scrydex_estado.ediciones_jp_951`,
+  enseñado al final. Idempotente.
+- En el foro: «Treecko Constructed Starter Deck, set no añadido». Va en
+  `decks-jp-a-mano` (884), detrás del Silver Deck Kit: キモリデッキ, 31-1-2003,
+  19 cartas (lista de Bulbapedia, TCGCollector y PokéCardex, que coinciden;
+  leída por la búsqueda, el contenedor no llega a ninguna). La ficha se copia
+  solo donde la occidental es UNA (Scyther ex = ex1-102 holo, el Treecko 003 =
+  ex1-76 según Bulbapedia, y los siete entrenadores); las demás (dos Treecko…
+  tres Makuhita en Ruby & Sapphire) nacen con número y nombre, sin ficha ni
+  foto. La crea la función en su siguiente pasada (cada 10 min), salvo que ya
+  exista un set de ese día y esa cuenta.
+
+**Ficheros**: `supabase-migration-951-ediciones-japonesas-hasta-2016.sql`
+(nueva), `netlify/functions/decks-jp-a-mano.mjs`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `sql-tanda-951-casos.sql` + `test-tanda-951.mjs` (15 casos
+contra PostgreSQL: el tramo por los dos lados, promos, escondidos, lo de la
+948 intacto, copias, idempotencia) y la 884 con la baraja de Treecko (sus
+comprobaciones del Silver Deck Kit, fijadas a esa baraja). Verdes.
+
+**Pendiente**:
+- PINGU: ejecutar la 951 (después de la 948b) y mirar la tabla.
+- Los sets LEGEND (Reviving Legends…) tienen además Reverse: se añaden con
+  «Versiones de todas» (949). Y un set que fue solo 1.ª edición se queda con
+  una Unlimited de más: «Quitar estas versiones».
+- La baraja de Treecko: fotos y logo a mano en /admin; las fichas sin copiar.
+- «Wizards Black Star Promos, set no añadido»: el occidental (`basep`) existe;
+  falta saber si se refiere a otro.
+- En curso: la regla de Holo/Normal por rareza (950), con su pasada.
+
 ## 2026-10-22 (185) — PINGU-Claude (949 — «Versiones de todas» en /admin) · MIGRACIÓN NUEVA
 
 **Hecho** (PINGU: «méteme en admin para poner las versiones de todas las
