@@ -426,9 +426,16 @@ export const versionesRegistradas = (cardId) => versionesPorCarta.get(cardId) ||
 export async function versionesDeSets(setIds, mercado = MERCADO_POR_DEFECTO) {
   const ids = [...new Set((setIds || []).filter(Boolean))]
   if (!ids.length) return []
-  const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).eq('market', mercado).in('set_id', ids).order('tcggo_id').limit(1000)
-  if (error) return []
-  return registrarVersiones(data || [])
+  // A trozos de 1.000 (la 808: Supabase corta ahí sin avisar). Con
+  // `include_variants` (929) una expansión grande pasa de las mil versiones.
+  const todas = []
+  for (let desde = 0; desde < 20000; desde += 1000) {
+    const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).eq('market', mercado).in('set_id', ids).order('tcggo_id').range(desde, desde + 999)
+    if (error) break
+    todas.push(...(data || []))
+    if (!data || data.length < 1000) break
+  }
+  return registrarVersiones(todas)
 }
 
 export async function versionesDeCartas(cardIds) {

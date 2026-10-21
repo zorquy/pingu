@@ -12336,3 +12336,13 @@ button.mc-fila:hover {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
+/* ── 929: el símbolo de la expansión, delante de su nombre ── */
+.mc-simbolo {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: var(--e-xs);
+  object-fit: contain;
+  vertical-align: -2px;
+}

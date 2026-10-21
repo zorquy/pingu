@@ -3533,6 +3533,43 @@ async function sondaOrigenes() {
   }
 }
 
+// La sonda de TCGGO (929): lo que contesta, tal cual, en la caja de
+// diagnóstico; las repetidas de un set, una línea por número.
+async function tcggoSonda() {
+  const caja = document.getElementById('cardsDiagnostico')
+  const boton = document.getElementById('btnTcggoSonda')
+  const modo = document.getElementById('tcggoSondaModo')?.value || 'carta'
+  const valor = (document.getElementById('tcggoSondaValor')?.value || '').trim()
+  const mercado = document.getElementById('tcggoSondaMercado')?.value || 'WEST'
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session) return
+  boton.disabled = true
+  caja.classList.remove('hidden')
+  caja.value = 'Preguntando…'
+  try {
+    const res = await fetch('/.netlify/functions/tcggo-sonda', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: JSON.stringify({ modo, valor, mercado }) })
+    const r = await res.json().catch(() => ({}))
+    if (!res.ok || r.error) throw new Error(r.error || `Error ${res.status}`)
+    if (modo === 'duplicados') {
+      caja.value = [
+        `Set ${r.set?.id} (${r.set?.name}) · tcggo_id ${r.set?.tcggo_id ?? '—'} · ${r.cartas} cartas`,
+        `Sets con esa expansión: ${(r.sets || []).map((s) => `${s.id}${s.oculto ? ' (oculto)' : ''}${s.origen ? ` [${s.origen}]` : ''}`).join(', ')}`,
+        '',
+        r.repetidas?.length ? `${r.repetidas.length} números repetidos:` : 'Ningún número repetido.',
+        ...(r.repetidas || []).map((x) => `  ${x.numero}: ${x.cartas.map((c) => `${c.id} «${c.name}» set ${c.set_id}${c.origen ? ` [${c.origen}]` : ''} tcggo ${c.tcggo_id ?? '—'} cm ${c.cm_id_product_propio ?? '—'}`).join('  ·  ')}`),
+      ].join('\n')
+    } else {
+      let cuerpo = r.cuerpo
+      try { cuerpo = JSON.stringify(JSON.parse(r.cuerpo), null, 2) } catch { /* no es JSON: tal cual */ }
+      caja.value = `${r.url} → ${r.estado}${r.recortado ? ' (recortado)' : ''}\n\n${cuerpo}`
+    }
+  } catch (err) {
+    caja.value = `Error: ${err.message}`
+  } finally {
+    boton.disabled = false
+  }
+}
+
 // programada cada diez minutos, pero sin esperar. Enseña lo que ha hecho.
 async function tcggoPrecios() {
   const caja = document.getElementById('cardsDiagnostico')
@@ -3696,6 +3733,7 @@ function initCardsSection() {
   document.getElementById('btnTcggoEstado')?.addEventListener('click', tcggoEstado)
   document.getElementById('btnTcggoPrecios')?.addEventListener('click', tcggoPrecios)
   document.getElementById('btnSondaOrigenes')?.addEventListener('click', sondaOrigenes)
+  document.getElementById('btnTcggoSonda')?.addEventListener('click', tcggoSonda)
   document.getElementById('btnImportPending')?.addEventListener('click', () =>
     importarSets(tcgSetsLocales.filter((s) => !s.imported_at).map((s) => ({ id: s.id, market: s.market })))
   )

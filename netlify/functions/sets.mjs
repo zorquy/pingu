@@ -20,6 +20,11 @@ const SUPABASE_KEY = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
 // Las columnas que pide la estantería. Una columna que no se pide llega
 // `undefined` (la 523): si una pantalla necesita otra, va AQUÍ.
 export const COLUMNAS = 'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id'
+// El símbolo de TCGGO (929) va APARTE y con respaldo: es una columna nueva, y
+// una consulta que nombra una columna que todavía no existe falla ENTERA (la
+// 624). Se pide con ella; si la base dice que no existe, se repite sin ella.
+export const COLUMNA_SIMBOLO = 'symbol_tcggo'
+let sinSimbolo = false
 
 // Supabase corta a 1.000 filas sin avisar (la 808): se pide a trozos.
 const TROZO = 1000
@@ -48,11 +53,17 @@ export async function leerSets(mercado, { fetchImpl = fetch } = {}) {
   const filtro = mercado === 'todos' ? '' : `&market=eq.${mercado}`
   const filas = []
   for (let i = 0; i < MAX_TROZOS; i++) {
-    const ruta = `tcg_sets?select=${COLUMNAS}${filtro}&oculto=not.is.true&order=release_date.desc.nullslast,id.asc&offset=${i * TROZO}&limit=${TROZO}`
+    const columnas = sinSimbolo ? COLUMNAS : `${COLUMNAS},${COLUMNA_SIMBOLO}`
+    const ruta = `tcg_sets?select=${columnas}${filtro}&oculto=not.is.true&order=release_date.desc.nullslast,id.asc&offset=${i * TROZO}&limit=${TROZO}`
     const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/${ruta}`, {
       headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}`, accept: 'application/json' },
       signal: AbortSignal.timeout(8000),
     })
+    if (!res.ok && !sinSimbolo) {
+      const texto = await res.text().catch(() => '')
+      if (/symbol_tcggo|42703/.test(texto)) { sinSimbolo = true; i--; continue }
+      throw new Error(`supabase ${res.status}`)
+    }
     if (!res.ok) throw new Error(`supabase ${res.status}`)
     const trozo = await res.json()
     filas.push(...trozo)

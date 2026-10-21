@@ -64,7 +64,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
@@ -2242,8 +2242,9 @@ function abrirEditor(l) {
   // Y desde la 667 el nombre del set LLEVA a la expansión (PINGU: «que
   // sea clicable todo»): un enlace de verdad, que vale en las dos
   // pantallas y en una pestaña nueva.
+  const suSet = c ? (todosLosSets || []).find((s) => s.id === c.set_id && (s.market || mercado) === (c.market || mercado)) : null
   $('mcEdSet').innerHTML = c
-    ? `<a href="${escapeHtml(direccionDeSet(c))}">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id || '')}</a>${c.local_id ? ` · ${escapeHtml(c.local_id)}` : ''}`
+    ? `<a href="${escapeHtml(direccionDeSet(c))}">${simboloDeSetHtml(suSet)}${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id || '')}</a>${c.local_id ? ` · ${escapeHtml(c.local_id)}` : ''}`
     : escapeHtml(l.card_id)
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
@@ -3009,6 +3010,14 @@ function anilloDeSet(tengo, total) {
 // Y el logo, con el alto Y el ancho topados: antes solo tenía alto, así
 // que los logos anchos —Roaring Skies, Primal Clash— se salían de la
 // tarjeta. Un `max-height` no contiene nada a lo ancho.
+// EL SÍMBOLO DE LA EXPANSIÓN (929, de TCGGO): pequeño, delante del nombre,
+// en la estantería, la cabecera de una expansión y la ficha. Sin él (o si
+// no carga) no sale nada: el nombre ya dice cuál es.
+function simboloDeSetHtml(set) {
+  const url = typeof set?.symbol_tcggo === 'string' && /^https:\/\//.test(set.symbol_tcggo) ? set.symbol_tcggo : null
+  return url ? `<img class="mc-simbolo" ${atributosDeEscaneo([url], 'this.remove()')} alt="" width="16" height="16" loading="lazy" />` : ''
+}
+
 function tarjetaDeSet(set, tengo) {
   const total = totalDe(set)
   const pct = total ? Math.round((tengo / total) * 100) : 0
@@ -3092,7 +3101,7 @@ function tarjetaDeSet(set, tengo) {
         <span class="mc-set-mini"><span class="mc-set-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span></span>
         <span class="mc-set-info">
           <span class="mc-set-titulo">
-            <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
+            <span class="mc-set-nombre">${simboloDeSetHtml(set)}${escapeHtml(nombreDeSet(set) || set.id)}</span>
             ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
           </span>
           ${era || fecha ? `<span class="mc-set-sub">${escapeHtml([era, fecha].filter(Boolean).join(' · '))}</span>` : ''}
@@ -3167,7 +3176,7 @@ function filaDeSet(set, tengo) {
       ${logo ? `<span class="mc-set-fondo" aria-hidden="true"><img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" width="96" height="48" /></span>` : ''}
       ${marca}
       <span class="mc-set-info">
-        <span class="mc-set-nombre">${escapeHtml(nombreDeSet(set) || set.id)}</span>
+        <span class="mc-set-nombre">${simboloDeSetHtml(set)}${escapeHtml(nombreDeSet(set) || set.id)}</span>
         <span class="mc-set-corta">${codigoEnLinea}${escapeHtml(corta)}${completo && mia ? ' · <b class="mc-set-completa">Completa</b>' : ''}${valorEnLinea(set)}</span>
         ${pct !== null ? `<span class="mc-set-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}
       </span>
@@ -3344,7 +3353,7 @@ function pintarLogoDeAlbum(set) {
   if (con && $('mcAlbumMeta')) {
     const fecha = set.release_date ? new Date(`${String(set.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : ''
     const total = totalDe(set)
-    $('mcAlbumMeta').textContent = [set.tcg_online_code, fecha, total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} cartas` : ''].filter(Boolean).join(' · ')
+    $('mcAlbumMeta').innerHTML = simboloDeSetHtml(set) + escapeHtml([set.tcg_online_code, fecha, total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} cartas` : ''].filter(Boolean).join(' · '))
   }
 }
 
@@ -3514,7 +3523,9 @@ function bolsilloDeVariante(c, v) {
     ${quieroHtml(c.id, n)}
     ${chapaDeVarianteHtml(v.nuestro)}
     ${masHtml(c, nombre, v.nuestro)}`
-  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" data-variante="${escapeHtml(v.nuestro)}" aria-label="${escapeHtml(etiqueta)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
+  // Su precio al pasar el ratón (929): el de ESA versión.
+  const precio = precioDeCartaDelAlbum(c, v.nuestro)
+  const enlace = `<a class="mc-bolsillo-enlace" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" data-variante="${escapeHtml(v.nuestro)}" aria-label="${escapeHtml(etiqueta)}" title="${escapeHtml(`${v.nombre}${precio ? ` · ${euros(precio)}` : ''}`)}"${marcaDeBolsillo(c.id, v.nuestro)}>${dentro}</a>`
   // SIN MANDO (tanda 565). PINGU, con Dex delante: «Dex no tiene botón de
   // agregar desde ahí: le das a una, te sale la ficha, y ahí eliges la
   // versión y sumas». La casilla era más botones que carta —dos filas de
@@ -3642,8 +3653,8 @@ function pintarFiltrosDeAlbum() {
 // de tus líneas (la 651), así que los de la expansión entera se piden al
 // abrirla, una vez, y se suman al mapa: tus sumas no cambian, porque solo
 // se suman tus líneas.
-function precioDeCartaDelAlbum(c) {
-  const linea = { card_id: c.id, cantidad: 1, variante: 'normal' }
+function precioDeCartaDelAlbum(c, variante = 'normal') {
+  const linea = { card_id: c.id, cantidad: 1, variante }
   return valorDeLinea(linea, precioDe(linea)) ?? null
 }
 function rangoDelAlbum() {
@@ -3660,7 +3671,10 @@ async function cargarPreciosDelAlbum(setId) {
     if (album.set !== setId) return
     for (const [id, fila] of mapa) if (!guardados.has(id)) guardados.set(id, fila)
     pintarTiradoresDelAlbum()
+    // «Completar el maestro» (929) suma estos precios: sin repintar la tira
+    // se quedaba con la cuenta de antes de que llegaran.
     if (rangoDelAlbum().puesto) pintarAlbum()
+    else pintarTiraDeSet((todosLosSets || []).find((x) => x.id === setId) || null)
   } catch {}
 }
 function topeDelAlbum() {
@@ -3890,7 +3904,8 @@ function filaDeAlbumHtml(c) {
   const n = tengoEnAlbum(c.id, v?.nuestro || null)
   const vs = n && !v ? versionesQueTienes(c) : []
   const nombre = nombreDe(c)
-  const precio = precioDeCartaDelAlbum(c)
+  // Separadas (929), cada fila con el precio de SU versión.
+  const precio = precioDeCartaDelAlbum(c, v?.nuestro || varianteDeCarta(c))
   return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
     <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
     <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${escapeHtml(v.nombre)}</small>` : ''}</span>
@@ -4126,10 +4141,33 @@ function pintarTiraDeSet(elSet) {
           <span class="mc-barra" aria-hidden="true"><i style="--ancho:${porcentaje(b) ?? 0}%"></i></span>
           <span class="mc-barra-cuenta"><strong>${b.tengo}</strong> de ${b.total}</span>
         </div>`)
-      .join('')}${mias.length && valor
+      .join('')}${faltaMaestro()}${mias.length && valor
       ? `<p class="mc-menu-cifras-valor">Lo tuyo vale <strong>${escapeHtml(euros(valor))}</strong>${caras.length ? ` · la que más, ${escapeHtml(nombreDe(caras[0].carta))}` : ''}</p>`
       : ''}<hr class="mc-menu-raya" />`
   }
+}
+
+// LO QUE CUESTA COMPLETAR EL SET MAESTRO (929): cada versión que te falta,
+// a su precio (el de la Reverse, la Poké Ball… desde `include_variants`).
+// Las que no tienen precio se cuentan aparte: «unos 312 €» con diez sin
+// precio no es lo mismo que «unos 312 €».
+function faltaMaestro() {
+  if (!esMia || !sesion || !album.cartas?.length) return ''
+  let suma = 0
+  let faltan = 0
+  let sinPrecio = 0
+  for (const c of album.cartas) {
+    for (const v of variantesDeCarta(c)) {
+      if (tengoEnAlbum(c.id, v.nuestro)) continue
+      faltan++
+      const p = precioDeCartaDelAlbum(c, v.nuestro)
+      if (p) suma += p
+      else sinPrecio++
+    }
+  }
+  if (!faltan) return ''
+  if (!suma) return ''
+  return `<p class="mc-menu-cifras-valor">Completar el maestro: unos <strong>${escapeHtml(euros(Math.round(suma)).replace(',00', ''))}</strong>${sinPrecio ? ` · ${sinPrecio} sin precio` : ''}</p>`
 }
 
 // La gráfica de «lo que vale esta expansión» (662) vivió aquí dentro
@@ -7974,7 +8012,9 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     ])
     // Las copias que son una VERSIÓN de TCGGO (862) valen lo de su fila:
     // se traen solo las de esas (pocas), no las de toda la colección.
-    const conVersion = [...new Set(lineas.filter((l) => l.variante && !esClasica(l.variante)).map((l) => l.card_id))]
+    // Y desde la 929 también la Reverse, la Holo y la 1.ª: TCGGO las trae con
+    // su precio (`include_variants`), y una Reverse no vale lo que la normal.
+    const conVersion = [...new Set(lineas.filter((l) => l.variante && l.variante !== 'normal').map((l) => l.card_id))]
     if (conVersion.length) pegarVersiones([...cartas.values()], await datos.versionesDeCartas(conVersion).catch(() => []))
     // Una copia en «normal» de una carta que solo existe en holo es la holo
     // (927): si no, sale la insignia «N» y al separar se pierde su ✓.

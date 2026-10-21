@@ -59,6 +59,7 @@ export const ID_DE_SONDA = 43552
 export const VACIOS_PARA_PARAR = 2000
 export const SIN_VERSION_PARA_PARAR = 3000
 export const DIAS_DE_FRESCURA = 7
+export const DIAS_SIN_VERSIONES_PARA_VOLVER = 3
 const VENTANA = 200
 const VENTANAS_POR_PASADA = 10
 const MS_DE_MARGEN = 20_000
@@ -151,6 +152,19 @@ export async function procesar({
     try { await pedir('tcg_card_versions?select=tcggo_id&limit=1'); estado.parado = null; estado.fallosBase = 0 } catch { /* sigue faltando */ }
   }
   if (estado.parado?.dia === dia) return { ok: true, saltado: `parado hoy: ${estado.parado.motivo}` }
+  // RETIRADO MIENTRAS LAS VERSIONES LLEGUEN CON LOS PRECIOS (929, PINGU:
+  // «adelante con lo recomendado»). Con `include_variants=1`, la pasada de
+  // precios trae cada versión con su id y su precio sin gastar nada más, y
+  // este recorrido de ids a ciegas (hasta 5.000 peticiones al día) sobra.
+  // Si un día dejan de llegar (el plan baja de Ultra, cambia la API), a los
+  // tres días vuelve a recorrer solo: no hay que acordarse de encenderlo.
+  try {
+    const precios = (await pedir('scrydex_estado?select=valor&clave=eq.tcggo_precios&limit=1'))?.[0]?.valor || {}
+    const vista = Date.parse(precios.versionesUltimaVista || '')
+    if (Number.isFinite(vista) && ahora.getTime() - vista < DIAS_SIN_VERSIONES_PARA_VOLVER * 864e5) {
+      return { ok: true, saltado: `las versiones llegan con los precios (la última, ${precios.versionesUltimaVista.slice(0, 16)})` }
+    }
+  } catch { /* sin el estado de los precios, se recorre como siempre */ }
   if (estado.planBloqueado?.dia === dia) return { ok: true, saltado: `el plan de TCGGO no da más hoy: ${estado.planBloqueado.motivo}` }
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
   const persistir = async () => { try { await guardarEstado(estado) } catch { /* el estado se vuelve a escribir en la pasada siguiente */ } }

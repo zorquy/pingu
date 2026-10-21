@@ -6,6 +6,10 @@
 // mismo orden, así que quien llama no sabe ni le importa de dónde vino.
 // Los sets escondidos NO vienen (la 550): no los pinta nadie de los que usan esto.
 const COLUMNAS = 'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,symbol_url,release_date,card_count_official,card_count_total,tcg_online_code,orden,oculto,tcggo_id'
+// El símbolo de TCGGO (929), aparte y con respaldo (la 624): sin la
+// migración la columna no existe y la consulta fallaría entera.
+const COLUMNA_SIMBOLO = 'symbol_tcggo'
+let sinSimbolo = false
 const TROZO = 1000
 const ESPERA_MS = 4000
 
@@ -23,12 +27,17 @@ async function desdeLaCdn(mercado, fetchImpl) {
 async function desdeSupabase(mercado, cliente) {
   const filas = []
   for (let desde = 0; desde < 5 * TROZO; desde += TROZO) {
-    let q = cliente.from('tcg_sets').select(COLUMNAS)
+    let q = cliente.from('tcg_sets').select(sinSimbolo ? COLUMNAS : `${COLUMNAS},${COLUMNA_SIMBOLO}`)
     if (mercado !== 'todos') q = q.eq('market', mercado)
     const { data, error } = await q
       .order('release_date', { ascending: false, nullsFirst: false })
       .order('id')
       .range(desde, desde + TROZO - 1)
+    if (error && !sinSimbolo && /symbol_tcggo|42703/.test(`${error.code} ${error.message}`)) {
+      sinSimbolo = true
+      desde -= TROZO
+      continue
+    }
     if (error) throw error
     filas.push(...(data || []).filter((s) => !s.oculto))
     if ((data || []).length < TROZO) break

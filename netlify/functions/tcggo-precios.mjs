@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -61,7 +61,7 @@ async function rest(ruta, clave, opciones = null) {
 export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 
 export async function procesar({
-  env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, corregirImpl = null, guardarSetsImpl = null, fotoImpl = null, estadoImpl = null, guardarEstadoImpl = null,
+  env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, corregirImpl = null, guardarSetsImpl = null, fotoImpl = null, estadoImpl = null, guardarEstadoImpl = null, guardarVersionesImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
   peticiones = 60,
 } = {}) {
@@ -78,6 +78,12 @@ export async function procesar({
   const quedaTiempo = () => reloj() - arranque < MS_DE_MARGEN
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = guardarImpl || ((filas) => rest('tcg_card_prices', clave, { method: 'POST', body: JSON.stringify(filas) }))
+  // LAS VERSIONES, EN LA MISMA PETICIÓN (929). Con `include_variants=1`
+  // cada carta trae su Reverse, su Poké Ball y su Master Ball con su id y
+  // un precio (el de todos los idiomas): se guardan en `tcg_card_versions`
+  // sin gastar una petición más. Es lo que hacía, recorriendo ids a ciegas,
+  // `tcggo-versiones` (hasta 5.000 peticiones al día).
+  const guardarVersiones = guardarVersionesImpl || ((filas) => rest('tcg_card_versions', clave, { method: 'POST', body: JSON.stringify(filas) }))
   // Las cartas japonesas con el id de Cardmarket de antes (830): upsert con
   // las columnas obligatorias repetidas (la 526: tiene que poder formar la fila).
   const corregirCartas = corregirImpl || ((filas) => rest('tcg_cards?on_conflict=id,market', clave, { method: 'POST', body: JSON.stringify(filas) }))
@@ -344,7 +350,7 @@ export async function procesar({
     let planJp = false
     let fallo = null
     for (;;) {
-      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, enCurso.pagina, bases[mercado]))
+      const r = await pedirTcggo(urlCartasDeEpisodio(idEpisodio, enCurso.pagina, bases[mercado], { versiones: true }))
       if (r.fin === 'plan-jp') { planJp = true; break }
       if (!r.datos) break
       const pagina = r.datos.data || []
@@ -388,7 +394,7 @@ export async function procesar({
         try {
           cartas = (await pedir(mercado === 'JP'
             ? `tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.JP&${enSets}&or=(${porProducto},tcggo_id.in.(${[...porTcggo.keys()].join(',') || '0'}))&limit=1000`
-            : `tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&${enSets}&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+            : `tcg_cards?select=id,set_id,cm_id_product_propio&market=eq.${mercado}&${enSets}&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
         } catch (e) {
           fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
           break
@@ -471,6 +477,7 @@ export async function procesar({
           }
         }
         const filas = []
+        const versiones = []
         const corregir = []
         const yaVan = new Set()
         for (const c of cartas) {
@@ -500,6 +507,7 @@ export async function procesar({
           // que una búsqueda.
           if (mercado === 'JP' && !('cm_id_product' in fila)) fila.cm_id_product = null
           filas.push(fila)
+          versiones.push(...filasDeVariantes(s, c, { ahora, mercado }))
         }
         if (corregir.length) {
           try {
@@ -519,6 +527,23 @@ export async function procesar({
             fallo = `nuestra base al escribir: ${m.slice(0, 160)}`
             break
           }
+        }
+        // Las versiones, después del precio y SIN parar la pasada si fallan:
+        // el precio de la carta es lo de siempre y no puede quedarse sin
+        // escribir por lo nuevo. El fallo queda en el estado para /admin.
+        if (versiones.length) {
+          const v = estado.versiones?.dia === dia ? estado.versiones : { dia, vistas: 0, escritas: 0 }
+          v.vistas += versiones.length
+          try {
+            for (let k = 0; k < versiones.length; k += 500) await guardarVersiones(versiones.slice(k, k + 500))
+            v.escritas += versiones.length
+            // Fuera del día: `tcggo-versiones` lo mira para no recorrer ids.
+            estado.versionesUltimaVista = ahora.toISOString()
+            delete v.error
+          } catch (e) {
+            v.error = String(e?.message || e).slice(0, 200)
+          }
+          estado.versiones = v
         }
         enCurso.nuestras += cartas.length
         enCurso.escritas += filas.length

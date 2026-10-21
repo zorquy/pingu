@@ -624,6 +624,21 @@
           <label>Sonda de orígenes <input type="text" id="sondaCartaId" placeholder="base1-4" size="12" /></label>
           <select id="sondaMercado" aria-label="Mercado de la carta"><option value="WEST">occidental</option><option value="JP">japonés</option></select>
           <button class="btn-outline" id="btnSondaOrigenes">¿Qué tiene cada sitio?</button>
+          <!-- LA SONDA DE TCGGO (929): UNA petición y su respuesta tal cual
+               (una carta con sus versiones, una página de expansión, un
+               lote por ids, la lista de expansiones con su símbolo), o las
+               cartas repetidas por número de un set nuestro, que no pide
+               nada a TCGGO. -->
+          <label>Sonda de TCGGO <select id="tcggoSondaModo" aria-label="Qué preguntar a TCGGO">
+            <option value="carta">una carta, con versiones</option>
+            <option value="expansion">una expansión (5 cartas)</option>
+            <option value="lote">un lote de ids</option>
+            <option value="episodios">la lista de expansiones</option>
+            <option value="duplicados">repetidas por número (nuestro set)</option>
+          </select></label>
+          <input type="text" id="tcggoSondaValor" placeholder="id o set" size="14" aria-label="Id de TCGGO, id nuestro o set" />
+          <select id="tcggoSondaMercado" aria-label="Catálogo"><option value="WEST">occidental</option><option value="JP">japonés</option></select>
+          <button class="btn-outline" id="btnTcggoSonda">Preguntar</button>
           <label>Solo estos sets <input type="text" id="tcggoSolo" placeholder="ex7, base1" size="16" /></label>
           <label><input type="checkbox" id="tcggoReiniciar" /> empezar de cero (vuelve a pedir los sets ya hechos)</label>
         </div>

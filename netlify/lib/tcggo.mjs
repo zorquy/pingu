@@ -49,7 +49,12 @@ export const urlEpisodios = (pagina = 1, base = URL_BASE) => `${base}/episodes?p
 // `/cards?episode_id=` y no `/episodes/{id}/cards`: en su documentación el
 // primero es el que enseña `cardmarket_id` en la respuesta; el ejemplo del
 // segundo no lo trae, y no se da por hecho lo que un ejemplo no enseña.
-export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE) => `${base}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}`
+export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE, { versiones = false } = {}) => `${base}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}${versiones ? '&include_variants=1' : ''}`
+// Hasta 20 cartas por su id de TCGGO en una petición (la «batch lookup»
+// de su documentación, 929): así se piden los precios por idioma de las
+// versiones que alguien tiene.
+export const POR_LOTE_DE_IDS = 20
+export const urlCartasPorIds = (ids, base = URL_BASE) => `${base}/cards?ids=${ids.slice(0, POR_LOTE_DE_IDS).join(',')}&per_page=${POR_LOTE_DE_IDS}`
 
 // ¿Quedan páginas? Su `paging` es { current, total, per_page }.
 export function hayMasPaginas(respuesta) {
@@ -69,6 +74,9 @@ const palabrasDe = (n) => nombreComparable(n).split(' ').filter(Boolean)
 export function resumirEpisodio(e) {
   return {
     id: e.id, nombre: e.name || '', codigo: e.code || null, cartas: e.cards_total ?? null, fecha: e.released_at || null, logo: typeof e.logo === 'string' ? e.logo : null,
+    // El símbolo (929, su anuncio: «symbol next to logo», una dirección
+    // entera de images.tcggo.com, null si no hay).
+    simbolo: typeof e.symbol === 'string' && /^https?:\/\//.test(e.symbol) ? e.symbol : null,
     // Lo IMPRESO en la carta («120» de «125/120») y la serie a la que
     // pertenece (tanda 644): sin la serie un set nuevo caía en «Sin
     // clasificar» en /cartas.
@@ -422,6 +430,9 @@ export function filaDeSetTcggo(setId, episodio) {
     id: setId,
     tcggo_id: Number.isInteger(episodio?.id) ? episodio.id : null,
     logo: typeof episodio?.logo === 'string' && /^https?:\/\//.test(episodio.logo) ? episodio.logo : null,
+    // Lo ignora la función de la base hasta la migración 929 (lee sus
+    // columnas por nombre): mandarlo antes no rompe nada.
+    simbolo: typeof episodio?.simbolo === 'string' && /^https?:\/\//.test(episodio.simbolo) ? episodio.simbolo : null,
     fecha: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
     cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
     impresas: Number.isInteger(episodio?.impresas) && episodio.impresas > 0 ? episodio.impresas : null,
@@ -942,6 +953,62 @@ export function decidirVersion(suya, candidatas = []) {
   const carta = delProducto[0]
   if (!Number.isInteger(Number(carta.principal)) || !Number(carta.principal)) return { tipo: 'sinPrincipal', carta }
   return { tipo: 'version', carta }
+}
+
+// ── Las versiones que vienen con la carta (929, `include_variants=1`) ──
+//
+// Su documentación (la 1.4, la que pasó PINGU): cada carta trae
+// `variants: [{ type: 'reverse_holo', label: 'Reverse Holo', id: 35162,
+// prices: { cardmarket: { currency: 'EUR', lowest_near_mint: 0.03 } } }]`.
+// Un solo precio, el de TODOS los idiomas juntos («slim CM lows»): el de
+// cada idioma lo pone después `tcggo-versiones-idioma` con el lote por ids,
+// y solo para las versiones que alguien tiene. Por eso esta fila NO lleva
+// las columnas por idioma: se escribe con `merge-duplicates`, y las que ya
+// estaban se quedan.
+const ETIQUETA_DE_TIPO = { reverse_holo: 'Reverse Holo', poke_ball: 'Poké Ball', master_ball: 'Master Ball' }
+export function etiquetaDeTipo(tipo) {
+  const t = String(tipo || '').trim()
+  if (!t) return null
+  return ETIQUETA_DE_TIPO[t] || t.split(/[_\s]+/).filter(Boolean).map((p) => p[0].toUpperCase() + p.slice(1)).join(' ')
+}
+
+export function filasDeVariantes(suya, carta, { ahora = new Date(), mercado = 'WEST' } = {}) {
+  if (!Array.isArray(suya?.variants) || !carta?.id) return []
+  const vistas = new Set()
+  const filas = []
+  for (const v of suya.variants) {
+    const id = Number(v?.id)
+    // La que es la carta misma, o una repetida, no es otra versión.
+    if (!Number.isInteger(id) || id <= 0 || id === Number(suya.id) || vistas.has(id)) continue
+    vistas.add(id)
+    const etiqueta = typeof v.label === 'string' && v.label.trim() ? v.label.trim() : etiquetaDeTipo(v.type)
+    filas.push({
+      tcggo_id: id,
+      market: mercado,
+      card_id: carta.id,
+      set_id: carta.set_id ?? null,
+      numero: suya.card_number != null ? String(suya.card_number) : null,
+      nombre: suya.name ?? null,
+      etiqueta,
+      cm_low: positivo(v?.prices?.cardmarket?.lowest_near_mint),
+      actualizado_at: ahora.toISOString(),
+    })
+  }
+  return filas
+}
+
+// Los precios por idioma de una versión pedida por su id (929): solo las
+// columnas de precio, para no pisar la etiqueta que puso la lista.
+export function filaDeIdiomasDeVersion(suya, { cardId, market = 'WEST', ahora = new Date() } = {}) {
+  const p = filaDePreciosTcggo(cardId, suya, { ahora, mercado: market })
+  return {
+    tcggo_id: suya.id, market, card_id: cardId,
+    cm_low: p.cm_low, cm_low_en: p.cm_low_en, cm_low_de: p.cm_low_de, cm_low_fr: p.cm_low_fr,
+    cm_low_es: p.cm_low_es, cm_low_it: p.cm_low_it, cm_low_ja: p.cm_low_ja,
+    cm_avg7: p.cm_avg7, cm_avg30: p.cm_avg30, cm_disponibles: p.cm_disponibles,
+    tp_market_eur: p.tp_market_eur, tp_mid_eur: p.tp_mid_eur,
+    actualizado_at: ahora.toISOString(),
+  }
 }
 
 // La fila de `tcg_card_versions` de una versión, con los precios que da

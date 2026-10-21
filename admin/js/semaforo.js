@@ -13,6 +13,8 @@ export const PASADAS = [
   ['tcggo_calco_jp', 'Japonés'],
   ['tcggo_sueltas', 'Sueltas'],
   ['tcggo_versiones', 'Versiones'],
+  // El precio por idioma de las versiones que alguien tiene (929).
+  ['tcggo_versiones_idioma', 'Versiones por idioma'],
   ['tcggo_productos', 'Productos'],
   ['jp_lineas_viejas', 'Líneas JP viejas'],
   // Lo de Scrydex y a mano (883, 884, 886): sin estar aquí, /admin no lo
