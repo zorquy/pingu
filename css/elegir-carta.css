@@ -144,6 +144,54 @@
   text-overflow: ellipsis;
 }
 
+/* La cabecera de cada expansión (939), pegada arriba mientras se baja por
+   sus cartas: la de «¿Qué carta es?» va por expansión, como Cartas. */
+.nv-grupo {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 48px;
+  margin-top: var(--e-sm);
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.nv-grupo-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 32px;
+}
+
+.nv-grupo-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.nv-grupo-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.nv-grupo-texto b {
+  overflow: hidden;
+  font-size: var(--t-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nv-grupo-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
 .nv-resultados .subtext {
   grid-column: 1 / -1;
   padding: var(--e-lg) 0;

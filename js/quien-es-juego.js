@@ -147,6 +147,7 @@ async function imagenDelResultado(formato) {
     foto,
     fotoNombre: '',
     fotoProporcion: 1,
+    tapada: 'silueta',
     formato,
   })
 }

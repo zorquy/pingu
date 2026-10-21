@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-21", "tipo": "mejora", "texto": "En «¿Qué carta es?» las cartas salen agrupadas por expansión, de la más nueva a la más vieja, y el buscador se vacía después de cada intento. Y al compartir un reto ya no se adivina la respuesta: «¿Quién es ese Pokémon?» enseña solo la silueta y la carta del día va mucho más borrosa.", "enlace": "/carta-del-dia" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las versiones de cada carta son las que existen en Cardmarket: una carta de Prize Pack o cualquiera que solo tiene una versión ya no ofrece una «Reverse holo» que no existe, y donde hay Master Ball o Poké Ball salen.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "En la ficha de una carta, las flechas pasan de versión en versión con su foto (de la 1.ª edición a la Shadowless, por ejemplo), y la Pokédex ya enseña todas las versiones de cada carta, también las especiales.", "enlace": "/mi-coleccion?ver=pokedex" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las cartas de la época de Wizards (Base Set, Jungle, Fossil, Team Rocket, Gym y Neo) salen una sola vez, con sus ediciones de verdad para elegir: 1.ª edición, Shadowless, Unlimited y las especiales. Se acabaron los Charizard repetidos y las versiones que no existen, y lo que ya tenías apuntado pasa a su edición.", "enlace": "/mi-coleccion?ver=album" },

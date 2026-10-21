@@ -161,7 +161,10 @@ function invitacionAbajo(ctx, { cx, y, ancho, alto, texto, enlace, cuerpo }) {
 // La foto, girada unos grados, con sombra y, si hay, una chapa blanca que
 // la pisa por abajo diciendo qué es («Pregunta 3 · Precios»). `tapada`
 // (924): desenfocada y con un «?» encima, que la imagen se comparte y la
-// carta del día es la respuesta — PINGU: «pueden ser spoiler».
+// carta del día es la respuesta — PINGU: «pueden ser spoiler». Y aun así
+// se adivinaba (939): ahora son unos pocos manchones de color. Con
+// `tapada: 'silueta'` (¿Quién es?) va la sombra negra del dibujo sobre
+// fondo claro y nada más: PINGU, «debería ser solo la silueta».
 function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '', cuerpoChip = 30, tapada = false }) {
   ctx.save()
   ctx.translate(cx, y + h / 2)
@@ -173,8 +176,16 @@ function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '',
   redondeado(ctx, -w / 2, -h / 2, w, h, 20)
   ctx.fill()
   ctx.shadowColor = 'transparent'
-  dibujarCarta(ctx, tapada && foto ? borrosa(foto, w, h, 24) : foto, { x: -w / 2, y: -h / 2, w, h, r: 20, nombre })
-  if (tapada) {
+  if (tapada === 'silueta') {
+    const fondo = ctx.createRadialGradient(0, 0, Math.min(w, h) * 0.1, 0, 0, Math.max(w, h) * 0.7)
+    fondo.addColorStop(0, '#f4fbff')
+    fondo.addColorStop(1, '#8cc4ec')
+    ctx.fillStyle = fondo
+    redondeado(ctx, -w / 2, -h / 2, w, h, 20)
+    ctx.fill()
+    if (foto) ctx.drawImage(silueta(foto, w, h), -w / 2, -h / 2, w, h)
+  } else dibujarCarta(ctx, tapada && foto ? borrosa(foto, w, h, 64) : foto, { x: -w / 2, y: -h / 2, w, h, r: 20, nombre })
+  if (tapada && tapada !== 'silueta') {
     ctx.fillStyle = 'rgba(13,27,42,0.35)'
     redondeado(ctx, -w / 2, -h / 2, w, h, 20)
     ctx.fill()
@@ -492,9 +503,26 @@ export function pintarMiMes(lienzo, { dias = {}, hoy, n = 30, cifras = [], enlac
 // dibuja la foto diminuta y se estira, que el suavizado la deja borrosa.
 function borrosa(img, w, h, finura = 30) {
   const c = document.createElement('canvas')
-  c.width = Math.max(4, Math.round(w / finura))
-  c.height = Math.max(4, Math.round(h / finura))
+  c.width = Math.max(3, Math.round(w / finura))
+  c.height = Math.max(3, Math.round(h / finura))
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+  return c
+}
+
+// La sombra del dibujo: lo que no es transparente, en negro. El dibujo va
+// entero dentro de su caja (sin recortar), con un margen alrededor.
+function silueta(img, w, h) {
+  const c = document.createElement('canvas')
+  c.width = Math.round(w)
+  c.height = Math.round(h)
+  const x = c.getContext('2d')
+  const iw = img.naturalWidth || img.width || w
+  const ih = img.naturalHeight || img.height || h
+  const k = Math.min((w * 0.84) / iw, (h * 0.84) / ih)
+  x.drawImage(img, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k)
+  x.globalCompositeOperation = 'source-in'
+  x.fillStyle = '#0d1b2a'
+  x.fillRect(0, 0, w, h)
   return c
 }
 

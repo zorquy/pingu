@@ -41785,6 +41785,19 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 939 — Retos: silueta al compartir, carta más tapada, buscador por expansión
+
+- `pintarResultadoReto({ tapada })`: `true` (por defecto) = la foto
+  reducida a w/64 × h/64 y estirada, con velo y «?»; `'silueta'` = fondo
+  radial claro y `silueta(foto)` (lo opaco del dibujo en `#0d1b2a`, con un
+  8 % de margen); `false` = nítida. ¿Quién es? pasa `'silueta'`.
+- ¿Qué carta es?: `buscar()` usa `buscarComoEnCartas` con `filtrar`
+  (`category = 'Pokemon'` y el set elegido) o, sin texto,
+  `buscarCartasUnaVez('', 400)` del set; orden `ordenarPorExpansion` y
+  `gruposHtml` (`.nv-grupo`, sticky dentro de `.nv-resultados`). Los logos
+  salen de `setsDelCatalogo('WEST')`. `turnoBusqueda` descarta respuestas
+  viejas; `vaciarBuscador()` al intentar.
+
 ## Tanda 938 — Los sets de la pasada de precios, una vez cada uno
 
 - `sinSetsRepetidos(filas, propias)` (lib/tcggo.mjs): antes de

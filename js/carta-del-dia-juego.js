@@ -4,14 +4,17 @@
 import { escapeHtml, getSession } from './app.js'
 import { icons } from './icons.js'
 import { supabase } from './supabase.js'
-import { cadenaDeEscaneo } from './escaneo-carta.js'
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 // `rarezaDeCarta` por `carta-traducciones.js` y no por `rarezas-nombres.js`:
 // este último arrastra el holo (carta-holo.js) y con él las clases de
 // carta-holo.css, que esta página no carga — lo cazó el barrido de la 299.
 import { tipoEs, rarezaDeCarta } from './carta-traducciones.js'
-import { setsDelMercado, buscarEnCatalogo } from './catalogo-buscar.js'
-import { rutaDeCarta } from './carta-ruta.js'
+import { setsDelMercado } from './catalogo-buscar.js'
+import { rutaDeCarta, urlDeLogo } from './carta-ruta.js'
+import { buscarComoEnCartas, buscarCartasUnaVez } from './buscar-cartas.js'
+import { ordenarPorExpansion, TOPE_CARTAS } from './buscador.js'
+import { setsDelCatalogo } from './sets-catalogo.js'
 import {
   INTENTOS, DESENFOQUES, PISTAS, ORDEN_CASILLAS, compararDetallado, comoBooleanas, textoParaCompartir, rachaDeDias, numeroDelDia, ENLACE,
 } from './carta-del-dia.js'
@@ -311,38 +314,111 @@ function intentar(carta) {
   if (terminado()) apuntarHistorial()
   guardarEstado()
   $('nvElegir').close()
+  // Lo buscado, fuera (939): PINGU, «buscas algo, fallas y cuando vuelves a
+  // buscar sigue estando el texto anterior».
+  vaciarBuscador()
   pintarTodo()
   if (terminado()) abrirSobre($('cdRecorte'))
   if (terminado()) guardar()
 }
 
-// ── El buscador (el de /nueve, con el catálogo occidental fijo) ──
+// ── El buscador (939): el de Cartas, por expansión ──
+//
+// Era el de /nueve: 60 cartas por orden alfabético en una rejilla seguida,
+// «muy apiladas» (PINGU), y con «pikachu» la de hoy podía no salir. Ahora
+// es EL buscador de cartas (`buscarComoEnCartas`, la 909) con su tope y su
+// orden: por expansión, de la más nueva a la más vieja, con la cabecera de
+// cada una pegada arriba mientras bajas. Con solo la expansión elegida, la
+// expansión entera.
 let esperaBusqueda = null
-async function buscar() {
-  let data
-  try {
-    data = await buscarEnCatalogo({ mercado: 'WEST', set: $('nvSet').value, texto: $('nvBuscar').value, soloTCG: true, columnas: COLUMNAS_INTENTO, categoria: 'Pokemon' })
-  } catch (error) {
-    $('nvResultados').innerHTML = `<p class="subtext">No se ha podido buscar: ${escapeHtml(error.message)}</p>`
-    return
-  }
-  if (data === null) {
-    $('nvResultados').innerHTML = '<p class="subtext">Escribe el nombre que crees que es.</p>'
-    return
-  }
-  if (!data.length) {
-    $('nvResultados').innerHTML = '<p class="subtext">No encuentro ninguna carta así.</p>'
-    return
-  }
-  buscar.ultimas = new Map(data.map((c) => [c.id, c]))
-  $('nvResultados').innerHTML = data.map((c) => {
-    const [primera, ...resto] = cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null)
-    const salto = "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}else{this.remove()}"
-    return `<button type="button" class="nv-resultado" data-elegir="${escapeHtml(c.id)}" aria-label="${escapeHtml(nombreDeCarta(c))}, ${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} ${escapeHtml(c.local_id)}">
+let turnoBusqueda = 0
+let setsDeLogos = null
+const soloPokemon = (q) => q.eq('category', 'Pokemon')
+
+async function setsConLogo() {
+  if (!setsDeLogos) setsDeLogos = await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => [])
+  return setsDeLogos
+}
+
+function resultadoHtml(c) {
+  const [primera, ...resto] = cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null)
+  const salto = "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}else{this.remove()}"
+  return `<button type="button" class="nv-resultado" data-elegir="${escapeHtml(c.id)}" aria-label="${escapeHtml(nombreDeCarta(c))}, ${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} ${escapeHtml(c.local_id)}">
       ${primera ? `<img src="${primera}"${resto.length ? ` data-respaldos="${resto.join(' ')}"` : ''} onerror="${salto}" alt="" width="245" height="342" loading="lazy" />` : ''}
       <span class="nv-resultado-pie">${escapeHtml(nombreDeCarta(c))} · ${escapeHtml(c.local_id)}</span>
     </button>`
-  }).join('')
+}
+
+// Las cartas ya ordenadas, con una cabecera cada vez que cambia la expansión.
+export function gruposHtml(lista, sets = []) {
+  const porSet = new Map(sets.map((x) => [x.id, x]))
+  const cuantas = new Map()
+  for (const c of lista) cuantas.set(c.set_id, (cuantas.get(c.set_id) || 0) + 1)
+  let actual = null
+  const partes = []
+  for (const c of lista) {
+    if (c.set_id !== actual) {
+      actual = c.set_id
+      const set = porSet.get(c.set_id) || { id: c.set_id, ...(c.tcg_sets || {}) }
+      const logos = [set.logo_tcggo, set.logo_scrydex, set.logo_path ? urlDeLogo(set.logo_path, 'WEST') : null].filter(Boolean)
+      const anio = String(set.release_date || c.tcg_sets?.release_date || '').slice(0, 4)
+      const n = cuantas.get(c.set_id)
+      partes.push(`<div class="nv-grupo" data-grupo-set="${escapeHtml(c.set_id)}">
+        <span class="nv-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos)} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
+        <span class="nv-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || nombreDeSet(c.tcg_sets) || c.set_id)}</b><small>${escapeHtml([anio, `${n} ${n === 1 ? 'carta' : 'cartas'}`].filter(Boolean).join(' · '))}</small></span>
+      </div>`)
+    }
+    partes.push(resultadoHtml(c))
+  }
+  return partes.join('')
+}
+
+async function buscar() {
+  const mio = ++turnoBusqueda
+  const texto = $('nvBuscar').value.trim()
+  const set = $('nvSet').value
+  const caja = $('nvResultados')
+  if (!texto && !set) {
+    caja.innerHTML = '<p class="subtext">Escribe el nombre que crees que es, o elige una expansión.</p>'
+    return
+  }
+  let lista
+  let leida = {}
+  let sets = []
+  try {
+    sets = await setsConLogo()
+    if (!texto) {
+      // La expansión entera, por número: aquí no hay nombre que leer.
+      lista = await buscarCartasUnaVez('', 400, { columnas: COLUMNAS_INTENTO, market: 'WEST', filtrar: (q) => soloPokemon(q).eq('set_id', set) })
+    } else {
+      const r = await buscarComoEnCartas(texto, TOPE_CARTAS, { columnas: COLUMNAS_INTENTO, market: 'WEST', sets, filtrar: (q) => (set ? soloPokemon(q).eq('set_id', set) : soloPokemon(q)) })
+      lista = r.lista
+      leida = r.leida
+    }
+  } catch (error) {
+    if (mio !== turnoBusqueda) return
+    caja.innerHTML = `<p class="subtext">No se ha podido buscar: ${escapeHtml(error.message)}</p>`
+    return
+  }
+  if (mio !== turnoBusqueda) return
+  if (!lista.length) {
+    caja.innerHTML = '<p class="subtext">No encuentro ninguna carta así.</p>'
+    return
+  }
+  const enOrden = ordenarPorExpansion(lista, leida, sets)
+  buscar.ultimas = new Map(enOrden.map((c) => [c.id, c]))
+  caja.innerHTML = gruposHtml(enOrden, sets) +
+    (lista.length >= TOPE_CARTAS ? '<p class="subtext">Hay más: escribe más del nombre o elige la expansión.</p>' : '')
+  caja.scrollTop = 0
+}
+
+function vaciarBuscador() {
+  clearTimeout(esperaBusqueda)
+  turnoBusqueda++
+  $('nvBuscar').value = ''
+  $('nvSet').value = ''
+  $('nvResultados').innerHTML = ''
+  buscar.ultimas = null
 }
 
 async function init() {

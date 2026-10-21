@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (173) — PINGU-Claude (939 — los retos compartidos no se dejan adivinar, y «¿Qué carta es?» busca por expansión)
+
+**Hecho** (PINGU: «cuando compartes qué Pokémon es, se ve demasiado…
+debería ser solo la silueta. La carta debería estar muy borrosa»; «buscas,
+fallas y sigue el texto anterior»; «las cartas están muy apiladas… el
+buscador por colecciones»):
+- La imagen de «¿Quién es ese Pokémon?» lleva la SILUETA del dibujo (negro
+  sobre un fondo azul claro), sin color y sin «?»: `tapada: 'silueta'` en
+  `pintarResultadoReto`, que dibuja `silueta()` (`source-in`).
+- La carta tapada de los demás retos, mucho más borrosa: `borrosa(…, 64)`
+  (era 24; con cuadros de 24 px el contraste baja de 43 a 13).
+- «¿Qué carta es?» busca con EL buscador de cartas (`buscarComoEnCartas`,
+  la 909, tope 120, solo Pokémon) y pinta por expansión de la más nueva a
+  la más vieja (`ordenarPorExpansion` de buscador.js), con la cabecera de
+  cada una (logo, nombre, año, cuántas) pegada arriba al bajar. Con solo la
+  expansión elegida, la expansión entera.
+- Tras cada intento el buscador se vacía (texto, expansión y resultados).
+
+**Ficheros**: `js/reto-imagen.js`, `js/quien-es-juego.js`,
+`js/carta-del-dia-juego.js`, `css/elegir-carta.css`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-939.mjs` (silueta sin un píxel del color, carta
+tapada sin contraste, grupos, vaciado; con mutación del desenfoque viejo y
+del vaciado, las dos cantan). Verdes 924, 570, 583, 835, 841, 857, 860,
+871, 907, 299, 312, 305, 311, 313 y más; la 310 sigue en su rojo viejo.
+
+**Pendiente**:
+- Cambios: PINGU dijo «adelante con lo recomendado» a la propuesta
+  (artifact «Cambios en PokeDoc»). Empiezo por la tanda 1: fallo al
+  recargar, ficha lateral y «Cruce» por persona. TOCO `js/mi-coleccion/
+  mercado.js`, `deseos.js`, `mi-coleccion.js` y `css/mi-coleccion.css`.
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (172) — PINGU-Claude (938 — un set en dos expansiones paraba la pasada de precios)
 
 **Hecho** (PINGU pulsó «Precios de TCGGO ahora» y salió «Supabase 500:
