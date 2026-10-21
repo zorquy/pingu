@@ -4,6 +4,60 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (176) — PINGU-Claude (942 — la propuesta de cambio, con el dinero aparte y las cartas que se mueven solas) · MIGRACIÓN NUEVA
+
+**Hecho** (tandas 3 y 4 de «Cambios en PokeDoc», todo lo recomendado):
+- **Proponer**: desde Cruces («Proponer cambio» en cada persona, relleno con
+  lo que os cruzáis), desde la ficha del Mercado (con esa carta puesta),
+  desde el cruce del perfil y desde Mensajes. El editor (a un lado en el
+  PC, desde abajo en el móvil): lo que das y lo que te da copia a copia
+  (idioma, estado, versión, cuántas), con el precio de hoy en su idioma;
+  «De las que doy», «Otra de mi colección», «De las que da» y «Pedirle
+  otra» (del catálogo, marcada «se la pides»). **El dinero**: quién paga,
+  cuánto (con la diferencia propuesta) y cómo (Bizum, en mano, PayPal,
+  otro), que se APUNTA y PokeDoc no cobra ni comprueba. La balanza dice si
+  cuadra. Un mensaje opcional.
+- **Contestar**: la propuesta llega como mensaje y aviso, y su tarjeta va
+  encima de la conversación: Aceptar, Cambiar algo (contraoferta: la vieja
+  queda «cambiada» y la nueva es la versión 2), Rechazar; quien la manda,
+  Cambiar algo o Anular. Una sola viva entre dos personas.
+- **Cerrar**: aceptada, cada uno dice «Lo tengo»; con los dos, antes de
+  mover se enseña lo que sale, lo que entra y el dinero; las cartas cambian
+  de colección (la copia concreta), se tacha lo que buscabas, cuenta para
+  la confianza (trade_confirmations) y se puede **deshacer durante un día**.
+- **Reservadas**: lo que está en un cambio aceptado sale «Reservada» en el
+  Mercado y no se puede prometer dos veces.
+- **Tus cambios**, arriba de Cruces: los vivos en tarjeta y los anteriores
+  en una lista.
+
+**MIGRACIÓN**: `supabase-migration-942-propuestas-cambio.sql` (PINGU: hay
+que ejecutarla en el SQL Editor; se puede pasar dos veces). Sin ella la web
+no se rompe: «Proponer cambio» dice qué falta y Mensajes no enseña nada.
+
+**Ficheros**: `supabase-migration-942-propuestas-cambio.sql`,
+`js/cambio-propuesta.js`, `js/cambio-propuesta-puro.js`,
+`css/cambio-propuesta.css`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion/tablon.js`, `js/mi-coleccion/mercado.js`,
+`js/cruce-persona.js`, `js/mensajes.js`, `mi-coleccion.html` (+
+`cartas.html` generado), `css/mi-coleccion.css`, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `sql-tanda-942.sql` (36 casos contra PostgreSQL: proponer,
+lo que no se puede, RLS, aceptar con la pedida casada, reservadas, «Lo
+tengo» de los dos y cada línea que se mueve, deshacer línea a línea,
+contraoferta, rechazar y anular, y que `cambio_mover` no se llama desde
+fuera; con mutación de la reserva, canta), `test-tanda-942-pantalla.mjs`
+(el cambio de punta a punta con dos personas; con mutación de quién paga,
+cantan tres), el doble con las mismas funciones, y la 887 y la 941 al día.
+Verdes 940, 941, 887, 770, 771, 772, 763, 798, 795, 891, 649, 299, 305,
+311, 312, 313, 631 y test-imports.
+
+**Pendiente**:
+- PINGU: ejecutar la migración 942.
+- El corazón de «La quiero» y las insignias en todas partes (la Pokédex
+  no lo tiene), y la colección pública en el perfil (pedidas hoy).
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (175) — PINGU-Claude (941 — el perfil › Cambios en dos filas)
 
 **Hecho** (tanda 2 de «Cambios en PokeDoc»; PINGU: «tiene un montón de

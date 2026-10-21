@@ -77,9 +77,16 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
         ${leDas.length ? `<div><h3>Le puedes dar · ${new Set(leDas.map((f) => f.card_id)).size}</h3><ul${conMiniaturas ? ' class="perfil-cruce-minis"' : ''}>${(conMiniaturas ? miniaturas : lista)(leDas, cartas)}</ul></div>` : ''}
       </div>
       <div class="perfil-cruce-acciones">
-        ${escribir && (teDa.length || leDas.length) ? `<a class="btn-primary" href="${escapeHtml(await enlaceParaEscribir(persona, teDa, leDas, cartas))}">Escribir a ${nombre}</a>` : ''}
+        ${escribir ? '<button type="button" class="btn-primary" data-cruce-proponer>Proponer cambio</button>' : ''}
+        ${escribir && (teDa.length || leDas.length) ? `<a class="btn-secondary" href="${escapeHtml(await enlaceParaEscribir(persona, teDa, leDas, cartas))}">Escribir a ${nombre}</a>` : ''}
         ${teDa.length || leDas.length ? '<a class="btn-secondary" href="/mi-coleccion?ver=cruces">Ver todos tus cruces</a>' : ''}
       </div>`
+    // «Proponer cambio» (942), ya relleno con lo que os cruzáis.
+    caja.querySelector('[data-cruce-proponer]')?.addEventListener('click', async () => {
+      const fila = (f) => ({ card_id: f.card_id, market: f.market || cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null })
+      const m = await import('./cambio-propuesta.js')
+      await m.abrirPropuesta({ sesion, otro: persona, prefill: { suyas: teDa.map(fila), mias: leDas.map(fila) } })
+    })
   } catch (e) {
     if (soloSiHay) return
     caja.innerHTML = `<h2>Vuestro cruce</h2><p class="subtext">${escapeHtml(e.sinMigracion ? 'Los cambios todavía no están puestos en la base.' : 'No se ha podido mirar ahora. Prueba otra vez en un momento.')}</p>`

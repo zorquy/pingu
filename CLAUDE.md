@@ -538,6 +538,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   tocado el cuadro lo enfoca con el `mousedown`, el editor crece y el botón
   se va de debajo del ratón, así que el clic cae en el formulario y no
   envía nada. Se escribe como la gente: enfocar el cuadro primero.
+- **Un cambio entre dos personas es una PROPUESTA** (tanda 942): las cartas
+  de cada lado (la copia concreta, con su línea), el dinero APUNTADO (quién,
+  cuánto y cómo; PokeDoc no cobra ni comprueba) y su estado. Todo pasa por
+  las funciones de `supabase-migration-942-propuestas-cambio.sql`; al
+  cerrarse, `cambio_mover` mueve las líneas y lo apunta para deshacerlo un
+  día. Un camino nuevo para proponer llama a `abrirPropuesta`
+  (`js/cambio-propuesta.js`); lo que mueva o reserve cartas de un cambio
+  respeta `cambio_reservadas_linea`.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

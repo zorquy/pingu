@@ -226,6 +226,7 @@ async function renderThread(session, conversationId) {
       </div>
       <div class="msg-scroll" id="msgScroll">
         <div class="msg-cambio" id="msgCambio"></div>
+        <div id="msgPropuestas" hidden aria-live="polite"></div>
         <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
         <div class="msg-mensajes" id="threadMessages" aria-live="polite"><div class="skeleton msg-esqueleto"></div></div>
       </div>
@@ -256,6 +257,9 @@ async function renderThread(session, conversationId) {
 
   // «Cambio hecho» (795, NU4): solo si la migración está; si no, nada.
   import('./cambio-boton.js').then((m) => m.pintarBotonDeCambio(document.getElementById('msgCambio'), miId, otherProfile.id, name)).catch(() => {})
+  // Las propuestas de cambio con esta persona (942): las vivas, con sus
+  // botones, y «Proponer un cambio». Si la migración no está, nada.
+  import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile })).catch(() => {})
   // Lo que os podéis cambiar, encima de la conversación (798, PA13): solo si hay algo.
   import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('msgCruce'), otherProfile, session, { soloSiHay: true })).catch(() => {})
 

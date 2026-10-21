@@ -1,0 +1,264 @@
+/* La propuesta de cambio (942/943): el editor, las tarjetas y «Tus cambios».
+   La inyecta js/cambio-propuesta.js; el porqué en SCHEMA 942. Lo de abrir y
+   cerrar los diálogos va en [open] (la 473). */
+
+.cp-dialogo {
+  box-sizing: border-box;
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: none;
+  inset: 72px 16px 16px auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.cp-dialogo[open] { position: fixed; display: flex; flex-direction: column; }
+.cp-dialogo::backdrop { background: rgb(0 0 0 / 35%); }
+
+.cp-cab {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.cp-cab-texto { flex: 1; min-width: 0; }
+.cp-cab h2 { margin: 0; font-size: var(--t-lg); }
+.cp-cab .mc-confianza { margin: 0; font-size: var(--t-xs); color: var(--text-mid); }
+.cp-cerrar {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+.cp-cuerpo { display: grid; gap: var(--e-md); padding: var(--e-md) var(--e-lg) var(--e-lg); }
+.cp-esqueleto { height: 240px; }
+.cp-esqueleto-fila { height: 56px; list-style: none; }
+
+.cp-lados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-md); }
+.cp-lado { display: grid; gap: var(--e-sm); align-content: start; min-width: 0; padding: var(--e-md); border-radius: var(--radius-lg); background: var(--bg); }
+.cp-lado-cab { display: flex; justify-content: space-between; align-items: baseline; gap: var(--e-sm); }
+.cp-lado-cab h3, .cp-dinero h3 {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cp-items, .cp-opciones { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+.cp-vacio { padding: var(--e-sm) 0; color: var(--text-mid); font-size: var(--t-sm); list-style: none; }
+.cp-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+.cp-item.pedida { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.cp-mini {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  aspect-ratio: 63 / 88;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  text-align: center;
+}
+.cp-mini img { width: 100%; height: 100%; object-fit: cover; }
+.cp-item-txt { display: grid; min-width: 0; font-size: var(--t-xs); color: var(--text-mid); }
+.cp-item-txt b, .cp-item-txt small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cp-item-txt b { color: var(--text); font-size: var(--t-sm); }
+.cp-item-der { display: flex; align-items: center; gap: var(--e-xs); }
+.cp-precio { color: var(--text); font-size: var(--t-sm); white-space: nowrap; }
+.cp-paso { display: inline-flex; align-items: center; gap: 2px; }
+.cp-paso button, .cp-quitar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cp-paso button:disabled { opacity: 0.4; cursor: default; }
+.cp-paso span { min-width: 24px; text-align: center; font-weight: 700; }
+.cp-idioma { min-height: 28px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--text); font: inherit; font-size: var(--t-xs); }
+.cp-anadir { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.cp-anadir .link-btn, .cp-sugerir { font-size: var(--t-sm); }
+
+.cp-dinero { display: grid; gap: var(--e-sm); padding: var(--e-md); border-radius: var(--radius-lg); background: var(--warning-bg); }
+.cp-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.cp-chip {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cp-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-dinero-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.cp-cantidad { display: inline-flex; align-items: center; gap: var(--e-xs); font-weight: 700; }
+.cp-cantidad input {
+  width: 120px;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cp-aviso-dinero { margin: 0; }
+.cp-sugerir { justify-self: start; }
+
+.cp-balanza { display: grid; gap: var(--e-xs); }
+.cp-barra { display: flex; height: 12px; overflow: hidden; border-radius: var(--radius-pill); background: var(--ice); }
+.cp-barra i { display: block; height: 100%; }
+.cp-barra .a { background: var(--navy-solid); }
+.cp-barra .b { background: var(--success); }
+.cp-barra .m { background: var(--warning); }
+.cp-balanza-texto { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.cp-balanza-texto .ok { color: var(--success); }
+.cp-balanza-texto .no { color: var(--warning); }
+
+.cp-nota-campo { display: grid; gap: var(--e-xs); color: var(--text-mid); font-size: var(--t-sm); }
+.cp-nota-campo textarea {
+  min-height: 64px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+.cp-pie { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--e-sm); }
+.cp-error { flex: 1; margin: 0; color: var(--danger); font-size: var(--t-sm); }
+
+.cp-sel-cab { display: flex; align-items: center; gap: var(--e-sm); }
+.cp-sel-cab h3 { margin: 0; font-size: var(--t-md); }
+.cp-buscar {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+.cp-opcion {
+  display: grid;
+  grid-template-columns: 24px 40px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  width: 100%;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cp-opcion[data-cp-pedir] { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.cp-opcion.marcada { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); }
+.cp-opcion:disabled { opacity: 0.55; cursor: default; }
+.cp-check { display: grid; place-items: center; width: 22px; height: 22px; border: 2px solid var(--border-strong); border-radius: var(--radius-sm); font-size: var(--t-xs); font-weight: 800; }
+.cp-opcion.marcada .cp-check { border-color: var(--navy-solid); background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-mas { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ice); color: var(--navy); font-weight: 800; }
+
+/* La tarjeta de una propuesta: en Mensajes, encima de la conversación, y
+   en «Tus cambios». */
+.cp-tarjeta { display: grid; gap: var(--e-sm); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.cp-tarjeta.tono-toca { border: 2px solid var(--navy); }
+.cp-tarjeta.tono-hecho { border-color: var(--success); }
+.cp-t-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--e-sm); font-size: var(--t-sm); }
+.cp-estado { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--navy); font-size: var(--t-xs); font-weight: 700; white-space: nowrap; }
+.tono-toca .cp-estado, .cp-estado.tono-toca { background: var(--warning-bg); color: var(--warning); }
+.tono-hecho .cp-estado, .cp-estado.tono-hecho { background: var(--success-bg); color: var(--success); }
+.tono-fin .cp-estado, .cp-estado.tono-fin { background: var(--bg); color: var(--text-mid); }
+.cp-t-lados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.cp-t-lado h4 { margin: 0 0 var(--e-xs); color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.cp-minis { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+.cp-minis li { position: relative; }
+.cp-mini-n { position: absolute; right: -4px; bottom: -4px; padding: 0 4px; border-radius: var(--radius-pill); background: var(--navy-solid); color: var(--blanco-fijo); font-size: var(--t-2xs); font-weight: 700; }
+.cp-t-dinero { display: flex; align-items: center; gap: var(--e-xs); margin: 0; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-md); background: var(--warning-bg); color: var(--text); font-size: var(--t-sm); font-weight: 600; }
+.cp-t-nota { margin: 0; color: var(--text-mid); font-size: var(--t-sm); font-style: italic; }
+.cp-t-ayuda { margin: 0; }
+.cp-t-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-sm); }
+.cp-pasos { display: flex; margin: 0; padding: 0; list-style: none; color: var(--text-mid); font-size: var(--t-2xs); text-align: center; }
+.cp-pasos li { position: relative; flex: 1; padding-top: var(--e-md); }
+.cp-pasos li::before { content: ''; position: absolute; top: 0; left: 50%; width: 12px; height: 12px; transform: translateX(-50%); border-radius: 50%; background: var(--border-strong); }
+.cp-pasos li.hecho::before { background: var(--success); }
+.cp-pasos li.ahora { color: var(--text); font-weight: 700; }
+.cp-pasos li.ahora::before { background: var(--navy-solid); box-shadow: 0 0 0 3px var(--ice); }
+
+.cp-proponer-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.cp-caja { display: grid; gap: var(--e-sm); margin-bottom: var(--e-md); }
+
+.cp-mis { display: grid; gap: var(--e-sm); margin-bottom: var(--e-lg); }
+.cp-mis-titulo { margin: 0; }
+.cp-con { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--e-sm); margin-top: var(--e-sm); }
+.cp-con-quien { display: inline-flex; align-items: center; gap: var(--e-sm); color: var(--text); font-weight: 600; text-decoration: none; }
+.cp-pasadas summary { color: var(--text-mid); font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+.cp-pasadas ul { display: grid; gap: var(--e-xs); margin: var(--e-sm) 0 0; padding: 0; list-style: none; }
+.cp-pasada { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--e-sm); font-size: var(--t-sm); color: var(--text-mid); }
+.cp-pasada .mini-avatar { width: 24px; height: 24px; vertical-align: middle; }
+
+/* Antes de mover las cartas: lo que sale, lo que entra y el dinero. */
+.cp-confirmar {
+  width: min(460px, calc(100vw - 32px));
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+.cp-confirmar[open] { display: grid; gap: var(--e-md); }
+.cp-confirmar h2 { margin: 0; font-size: var(--t-lg); }
+.cp-confirmar::backdrop { background: rgb(0 0 0 / 45%); }
+.cp-mueve { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; font-size: var(--t-sm); }
+.cp-mueve li { display: grid; grid-template-columns: 24px 1fr; gap: var(--e-sm); align-items: center; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-md); background: var(--bg); }
+.cp-mueve i { font-style: normal; font-weight: 800; text-align: center; }
+.cp-mueve .sale i { color: var(--danger); }
+.cp-mueve .entra i { color: var(--success); }
+.cp-mueve .din i { color: var(--warning); }
+
+@media (max-width: 640px) {
+  .cp-dialogo { inset: auto 0 0; width: 100%; max-height: 92dvh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .cp-lados, .cp-t-lados { grid-template-columns: minmax(0, 1fr); }
+}

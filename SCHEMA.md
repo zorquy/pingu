@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 942 — Propuestas de cambio
+
+- Tablas `trade_offers` (de, para, estado enviada|aceptada|rechazada|
+  anulada|cambiada|hecha, version, anterior, dinero + dinero_paga 'de'|
+  'para' + dinero_como, nota, conversacion, recibido_de_at/para_at,
+  hecha_at, deshacer_hasta, movimientos, confirmacion) y
+  `trade_offer_items` (quien da, linea, card_id, market, idioma, estado,
+  variante, gradeo, cantidad, precio de ese día, pedida). RLS: SELECT para
+  los dos; nadie escribe directo.
+- RPC: `cambio_proponer(p_para, p_items, p_dinero, p_paga, p_como, p_nota,
+  p_anterior)` (valida líneas, «doy», copias libres = cantidad − reservadas
+  en aceptadas; supera la «enviada» de la pareja; mensaje y aviso por
+  `cambio_avisar`), `cambio_contestar(p_oferta, 'aceptar'|'rechazar'|
+  'anular')` (al aceptar, una pedida se casa con una línea suya si la
+  tiene), `cambio_lo_tengo` (con los dos llama a `cambio_mover`: resta o
+  borra la línea de quien da, suma o crea la de quien recibe con la misma
+  copia, borra sus deseos de esa carta, y lo apunta todo en `movimientos`;
+  inserta en trade_confirmations), `cambio_deshacer` (un día; recorre
+  `movimientos` al revés), `cambio_lo_que_da(p_user)` (con `id` y
+  `libres`), `cambios_reservadas(p_cards)` (anon). Las de dentro
+  (`cambio_mover`, `cambio_avisar`, `cambio_conversacion`,
+  `cambio_reservadas_linea`) con `revoke`.
+- Cliente: `js/cambio-propuesta.js` (`abrirPropuesta`, `tarjetaHtml`,
+  `pintarPropuestasCon` para Mensajes, `pintarMisCambios` para
+  `#mcMisCambios`, `reservadasDe`) y lo puro en `cambio-propuesta-puro.js`
+  (balance desde quien mira, diferencia propuesta, estado y acciones,
+  `itemsParaRpc`). Los oyentes de las tarjetas leen el contexto de la
+  última pintada (`contextosDeCaja`); el de «Proponer un cambio» va en el
+  propio botón (en la caja recogía el clic de «Aceptar» al repintarse).
+
 ## Tanda 941 — Perfil › Cambios: una fila por lista y «Ver todas»
 
 - `DE_PRIMERAS = 24` es lo que lleva la fila (`.pc-rejilla.pc-tira`:

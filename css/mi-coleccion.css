@@ -10347,6 +10347,16 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
+.mc-merf-reservada {
+  margin-left: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
 .mc-merf-cruce {
   padding: 2px var(--e-sm);
   border-radius: var(--radius-pill);

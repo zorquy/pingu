@@ -135,6 +135,7 @@ async function pintarCambios() {
              ? 'Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.'
              : 'Todavía nadie encaja contigo. Mira el Mercado: ahí está todo lo que se da.'}</p>`}`
   engancharCambios()
+  void pintarMisCambiosArriba()
   // «12 cambios · todos bien» al lado de cada persona (798, NU4).
   import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces'))).catch(() => {})
 }
@@ -224,6 +225,9 @@ function engancharCambios() {
   caja.addEventListener('click', async (e) => {
     const escribir = e.target.closest('[data-escribir]')
     if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
+    // «Proponer cambio» (942): la propuesta ya rellena con lo que os cruzáis.
+    const proponer = e.target.closest('[data-proponer]')
+    if (proponer) return void proponerA(proponer.dataset.proponer)
     const filtro = e.target.closest('[data-cruces-filtro]')
     if (filtro) {
       crucesFiltro = filtro.dataset.crucesFiltro
@@ -245,6 +249,28 @@ function engancharCambios() {
     // Lo que buscas vive en «La quiero» desde la 751.
     if (e.target.closest('[data-ir-quiero]')) return ctx.cambiarPestania('quiero')
   })
+}
+
+async function proponerA(userId) {
+  const p = tablon.cruzarPorPersona(tablonTiene.filter((f) => f.user_id === userId), tablonBusca.filter((f) => f.user_id === userId))[0]
+  const otro = { id: userId, username: p?.username, display_name: p?.display_name, avatar_url: p?.avatar_url }
+  const fila = (f) => ({ card_id: f.card_id, market: f.market || ctx.cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null })
+  try {
+    const m = await import('../cambio-propuesta.js')
+    await m.abrirPropuesta({ sesion: ctx.sesion, otro, prefill: { suyas: (p?.teDa || []).map(fila), mias: (p?.leDas || []).map(fila) }, alEnviar: () => void pintarMisCambiosArriba() })
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+}
+
+// «Tus cambios» (942), arriba de los cruces: lo que está en curso.
+async function pintarMisCambiosArriba() {
+  const caja = $('mcMisCambios')
+  if (!caja || !ctx.sesion) return
+  try {
+    const m = await import('../cambio-propuesta.js')
+    await m.pintarMisCambios(caja, { sesion: ctx.sesion })
+  } catch { caja.hidden = true }
 }
 
 // El mensaje se deja ESCRITO, no enviado: quien lo manda lo lee antes.

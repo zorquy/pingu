@@ -96,7 +96,8 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
     </div>
     <div class="mc-cruce-acciones">
-      <button type="button" class="btn-primary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir a ${escapeHtml(nombre)}</button>
+      <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}Proponer cambio</button>
+      <button type="button" class="btn-secondary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir</button>
       <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
       ${p.perfecto && recibes && das ? `<span class="mc-cruce-balanza">${Math.abs(recibes - das) < 1 ? 'Valen lo mismo' : `Diferencia: unos ${escapeHtml(euros(Math.abs(recibes - das)))}`}</span>` : ''}
     </div>

@@ -189,13 +189,14 @@ function personaHtml(p, carta, modo = 'da') {
   return `<li class="mc-merf-persona${suyas ? ' con-cruce' : ''}">
     <a class="mini-avatar${suyas ? ' cruce' : ''}" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
     <div class="mc-merf-quien">
-      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce contigo</span>' : ''}</p>
+      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce contigo</span>' : ''}${p.reservada ? '<span class="mc-merf-reservada">Reservada</span>' : ''}</p>
       <p class="subtext">${modo === 'busca' ? '' : `${banderaHtml(p.idioma || 'es')} `}${escapeHtml(senas)}</p>
       ${suyas ? `<p class="mc-merf-busca">${modo === 'busca' ? `Da ${suyas === 1 ? '1 de las que buscas' : `${suyas} de las que buscas`}` : `Busca ${suyas === 1 ? '1 de las tuyas' : `${suyas} de las tuyas`}`}</p>` : ''}
       <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
     </div>
     <div class="mc-merf-acciones">
-      <button type="button" class="btn-primary" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.mail(15)}<span>Escribir</span></button>
+      ${ctx.sesion && !p.reservada ? `<button type="button" class="btn-primary" data-merf-proponer="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.refreshCw(15)}<span>Proponer cambio</span></button>` : ''}
+      <button type="button" class="${ctx.sesion && !p.reservada ? 'btn-secondary' : 'btn-primary'}" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.mail(15)}<span>Escribir</span></button>
       <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
     </div>
   </li>`
@@ -287,6 +288,11 @@ async function abrirFicha(cardId, { modo = 'da', desde = null } = {}) {
   } catch {
     gente = null
   }
+  // Lo que ya está en un cambio aceptado (942): «Reservada», sin proponer.
+  if (gente && modo === 'da' && gente.length) {
+    const reservadas = await import('../cambio-propuesta.js').then((m) => m.reservadasDe([cardId])).catch(() => null)
+    if (reservadas) gente = gente.map((p) => ({ ...p, reservada: (reservadas.get(`${p.user_id}|${cardId}`) || 0) >= (Number(p.cambio) || 1) }))
+  }
   // Ordenadas con los cruces primero: es con quien se cierra antes.
   const cruces = modo === 'busca' ? tienenLoQueBusco : buscanLoMio
   if (gente) gente = [...gente].sort((a, b) => (cruces?.get(b.user_id) || 0) - (cruces?.get(a.user_id) || 0))
@@ -324,6 +330,23 @@ function escribir(userId, cardId, modo = 'da') {
   const mia = modo === 'busca' ? (ctx.loQueDoy?.() || []).find((l) => l.card_id === cardId) : null
   const texto = borradorDe(persona, [{ ...(mia || p), carta: ctx.cartas.get(cardId) }], modo === 'busca' ? 'busca' : 'tiene')
   location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
+}
+
+// «Proponer cambio» desde la ficha (942): con esa carta ya puesta, de su
+// lado (la da) o del tuyo (la busca).
+async function proponer(userId, cardId, modo = 'da') {
+  if (!ctx.sesion) return void (location.href = ctx.urlDeRegistro())
+  const p = (gentePorCarta.get(cardId) || []).find((x) => x.user_id === userId)
+  if (!p) return
+  const c = ctx.cartas.get(cardId)
+  const fila = { card_id: cardId, market: c?.market || 'WEST', idioma: p.idioma || null }
+  cerrarFicha()
+  const m = await import('../cambio-propuesta.js')
+  await m.abrirPropuesta({
+    sesion: ctx.sesion,
+    otro: { id: userId, username: p.username, display_name: p.display_name, avatar_url: p.avatar_url },
+    prefill: modo === 'busca' ? { mias: [{ ...fila, idioma: null }] } : { suyas: [fila] },
+  })
 }
 
 async function alternarQuiero(cardId, boton) {
@@ -395,6 +418,8 @@ function enganchar() {
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
     const w = e.target.closest('[data-merf-escribir]')
     if (w) return escribir(w.dataset.merfEscribir, w.dataset.carta, w.dataset.modo)
+    const pr = e.target.closest('[data-merf-proponer]')
+    if (pr) return void proponer(pr.dataset.merfProponer, pr.dataset.carta, pr.dataset.modo)
   })
   d?.addEventListener('close', () => {
     abierta = null
