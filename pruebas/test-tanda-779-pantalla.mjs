@@ -97,7 +97,7 @@ for (const ancho of [390, 1280]) {
   await page.click('#mcMenu [data-pestania="album"]')
   await page.waitForTimeout(800)
   await abrirSet(page)
-  check('la expansión se abre separada (la misma memoria)', (await page.getAttribute('#mcVistaVariantes', 'aria-pressed')) === 'false' && (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 24) // 927: separadas = «Apilar» sin pulsar
+  check('la expansión se abre separada (la misma memoria)', (await page.getAttribute('#mcVistaVariantes', 'aria-pressed')) === 'false' && (await page.locator('#mcAlbum .mc-chapa-variante').count()) === 25) // 931: 25, la holo tuya de la 3; 927: separadas = «Apilar» sin pulsar
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

@@ -79,7 +79,7 @@ for (const ancho of [390, 1280]) {
     dibujo: n.querySelector('.mc-chapa-variante [data-dibujo]')?.dataset.dibujo || '',
     velo: Boolean(n.querySelector('.mc-velo-reverse')),
   })))
-  check('separadas: 24 casillas, cada una con su chapa', celdas.length === 24 && celdas.every((c) => c.chapa), JSON.stringify(celdas.slice(0, 2)))
+  check('separadas: 25 casillas (la holo de la 3 es tuya: sale aunque la carta no la declare, 931), cada una con su chapa', celdas.length === 25 && celdas.every((c) => c.chapa), JSON.stringify(celdas.slice(0, 2)))
   check('  …y dicen cuál es cada una, con su dibujo (930)', celdas[0].texto === 'Normal' && celdas[0].dibujo === 'normal' && celdas[1].texto === 'Reverse holo' && celdas[1].dibujo === 'reverse', celdas.slice(0, 2).map((c) => `${c.dibujo}:${c.texto}`).join(' | '))
   check('el velo, en las reverse y en ninguna más', celdas.every((c) => c.velo === (c.chapa === 'reverse')), JSON.stringify(celdas.filter((c) => c.velo !== (c.chapa === 'reverse')).slice(0, 2)))
   const tapadas = await page.locator('#mcAlbum .mc-bolsillo-enlace .mc-chapa-variante').evaluateAll((ns) =>

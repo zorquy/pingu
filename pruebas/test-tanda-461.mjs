@@ -78,8 +78,10 @@ console.log('\n── 1. La chapa de la versión SE VE, no solo existe ──')
   await (async (p) => { if (await p.locator('#mcAlbumPanelFiltros').evaluate((d) => d.open)) { await p.click('#mcAlbumFiltrosCerrar'); await p.waitForTimeout(300) } await p.click('#mcVistaVariantes'); await p.waitForTimeout(300) })(page) /* 927: «Apilar», en la barra */
   await page.waitForTimeout(1000)
   const chapas = await page.locator('.mc-album-rejilla .mc-chapa-variante').allTextContents()
-  check('cada casilla lleva su chapa', chapas.length === 24, String(chapas.length))
-  check('  …y dicen cuál es cada una', chapas[0] === 'NNormal' && chapas[1] === 'RHReverse holo', chapas.slice(0, 2).join(' | '))
+  // 25 desde la 931: la holo de la 3 es tuya y la carta no la declara; lo
+  // que tienes sale siempre.
+  check('cada casilla lleva su chapa', chapas.length === 25, String(chapas.length))
+  check('  …y dicen cuál es cada una', chapas[0] === 'Normal' && chapas[1] === 'Reverse holo' /* 930: el código es un dibujo */, chapas.slice(0, 2).join(' | '))
   // ESTO es lo que fallaba: el rótulo estaba pintado DEBAJO del enlace que
   // cubre el bolsillo entero. Un `textContent` lo encontraba igual.
   const tapadas = await page.locator('.mc-album-rejilla .mc-chapa-variante').evaluateAll((ns) =>

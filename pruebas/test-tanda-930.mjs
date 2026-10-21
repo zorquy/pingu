@@ -59,7 +59,9 @@ console.log('── 3. En la web ──')
 const SETS = [{ id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', market: 'WEST', release_date: '2024-11-08', card_count_official: 4, card_count_total: 4 }]
 const CARTAS = [1, 2, 3, 4].map((n) => ({ id: `sv8-${n}`, market: 'WEST', set_id: 'sv8', local_id: String(n), name: `Carta ${n}`, name_es: `Carta ${n}`, image_path: `sv/sv8/${n}`, rarity: 'Common', category: 'Pokemon', dex_ids: [n], variants: { normal: true, reverse: true }, tcg_sets: { id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv' } }))
 const PRECIOS = CARTAS.map((c) => ({ card_id: c.id, cm_low: 1, cm_low_es: 1, checked_at: '2026-10-21T10:00:00Z' }))
+// Con su Reverse en TCGGO: desde la 931 la reverse es la que diga TCGGO.
 const VERSIONES = [
+  { tcggo_id: 901, market: 'WEST', card_id: 'sv8-2', set_id: 'sv8', etiqueta: 'Reverse Holo', cm_low: 0.5 },
   { tcggo_id: 902, market: 'WEST', card_id: 'sv8-2', set_id: 'sv8', etiqueta: 'Poké Ball', cm_low: 2.9 },
   { tcggo_id: 952, market: 'WEST', card_id: 'sv8-2', set_id: 'sv8', etiqueta: 'Energy Symbol Pattern', cm_low: 1.4 },
 ]
