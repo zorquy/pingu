@@ -353,7 +353,7 @@ async function versiones(carta) {
       const img = urlDeImagen(v.image_path, 'low')
       const pie = [v.local_id, rarezaDeCarta(v)].filter(Boolean).join(' · ')
       return (
-        `<a class="carta-version" href="${escapeHtml(rutaDeCarta(v))}">` +
+        `<a class="carta-version" href="${escapeHtml(rutaDeCarta(v))}" data-marca-carta="${escapeHtml(v.id)}">` +
         (img
           ? `<img src="${escapeHtml(img)}" alt="" width="245" height="337" loading="lazy" decoding="async">`
           : '<span class="carta-version-vacia"></span>') +
@@ -364,6 +364,8 @@ async function versiones(carta) {
     })
     .join('')
   $('cartaVersiones')?.classList.remove('hidden')
+  // Cuáles de las otras versiones tienes o quieres (943).
+  import('./marcas-carta.js').then((m) => m.marcarCartas(caja)).catch(() => {})
 }
 
 // ── Dónde más se habla de esta carta ──

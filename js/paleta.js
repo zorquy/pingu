@@ -133,6 +133,8 @@ function montar() {
       ? bloques.map(([titulo, xs]) => `<p class="bs-seccion" role="presentation">${escapeHtml(titulo)}</p>${xs.map((it) => fila(it, i++)).join('')}`).join('')
       : `<p class="paleta-nada">${q.length >= 2 && Object.keys(remotos).length ? `Nada con «${escapeHtml(q)}».` : 'Buscando…'}</p>`
     marcar()
+    // «La tienes» y «La quieres» en cada carta (943).
+    if (lista.querySelector('[data-marca-carta]')) import('./marcas-carta.js').then((m) => m.marcarCartas(lista)).catch(() => {})
   }
 
   function marcar() {

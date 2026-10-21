@@ -3512,30 +3512,54 @@ function marcaDeTengoHtml(n, versiones = []) {
 const laQuieres = (cardId) => esMia && Array.isArray(deseos) && deseos.some((d) => d.card_id === cardId)
 const CORAZON_QUIERO = () => `<span class="mc-quiero-marca" aria-hidden="true">${laQuiero.corazon(14)}</span>`
 const quieroHtml = (cardId, n) => (!n && laQuieres(cardId) ? CORAZON_QUIERO() : '')
+// Desde la 943, en TODAS las vistas de cartas de la página, no solo en la
+// expansión. PINGU: «debería estar en cualquier lado de la web». Cada vista
+// dice dónde está su casilla (la que lleva `tengo`) y dónde va el corazón.
+const VISTAS_CON_CORAZON = [
+  // La expansión: el bolsillo del archivador y la celda de la cuadrícula.
+  { sel: '#mcAlbum .mc-bolsillo-enlace[data-carta]', casilla: (a) => a.closest('.mc-bolsillo'), hueco: (a) => a },
+  { sel: '#mcAlbum .mc-rejilla-celda[data-carta]', casilla: (a) => a, hueco: (a) => a },
+  // La especie de la Pokédex y los resultados de Buscar: sobre la foto.
+  { sel: '#mcPokedexPanel .pdx-carta[data-carta]', casilla: (a) => a, hueco: (a) => a.querySelector('.pdx-carta-foto') },
+  { sel: '#mcBuscarResultados .mc-resultado[data-carta]', casilla: (a) => a, hueco: (a) => a.querySelector('.mc-resultado-foto') },
+  // Los bolsillos de Mis álbumes (los pinta albumes.js).
+  { sel: '#mcAlbumesDetalle a.mc-bolsillo[data-carta]', casilla: (a) => a, hueco: (a) => a },
+]
 function refrescarCorazones() {
-  const raiz = $('mcAlbum')
-  if (!raiz) return
-  for (const a of raiz.querySelectorAll('.mc-bolsillo-enlace[data-carta], .mc-rejilla-celda[data-carta]')) {
-    const casilla = a.classList.contains('mc-rejilla-celda') ? a : a.closest('.mc-bolsillo')
-    const quiere = !casilla?.classList.contains('tengo') && laQuieres(a.dataset.carta)
-    const marca = a.querySelector('.mc-quiero-marca')
-    if (quiere && !marca) a.insertAdjacentHTML('beforeend', CORAZON_QUIERO())
-    else if (!quiere && marca) marca.remove()
-    // Y lo que se lee en voz alta, igual que lo que se ve.
-    const etiqueta = a.getAttribute('aria-label') || ''
-    const nueva = quiere ? etiqueta.replace(/, te falta$/, ', te falta y la quieres') : etiqueta.replace(/, te falta y la quieres$/, ', te falta')
-    if (nueva !== etiqueta) a.setAttribute('aria-label', nueva)
+  for (const vista of VISTAS_CON_CORAZON) {
+    for (const a of document.querySelectorAll(vista.sel)) {
+      const hueco = vista.hueco(a)
+      if (!hueco) continue
+      const quiere = !vista.casilla(a)?.classList.contains('tengo') && laQuieres(a.dataset.carta)
+      const marca = hueco.querySelector(':scope > .mc-quiero-marca')
+      if (quiere && !marca) hueco.insertAdjacentHTML('beforeend', CORAZON_QUIERO())
+      else if (!quiere && marca) marca.remove()
+      // Y lo que se lee en voz alta, igual que lo que se ve.
+      const etiqueta = a.getAttribute('aria-label') || ''
+      const nueva = quiere ? etiqueta.replace(/, te falta$/, ', te falta y la quieres') : etiqueta.replace(/, te falta y la quieres$/, ', te falta')
+      if (nueva !== etiqueta) a.setAttribute('aria-label', nueva)
+    }
+  }
+  // La lista de la expansión lleva el corazón en la columna de la cuenta.
+  for (const fila of document.querySelectorAll('#mcAlbum .mc-album-fila[data-carta]:not(.tengo)')) {
+    const cuenta = fila.querySelector('.mc-album-fila-cuenta')
+    if (cuenta) cuenta.innerHTML = cuentaDeFilaHtml(fila.dataset.carta, 0)
   }
 }
+// Lo que dice la columna de la cuenta en la lista (943): cuántas, el
+// corazón si te falta y la quieres, o la raya.
+const cuentaDeFilaHtml = (cardId, n) => (n ? `×${n}` : laQuieres(cardId) ? `<span class="mc-album-fila-quiero" title="La quieres">${laQuiero.corazon(14)}</span>` : '—')
 
 // Las versiones tuyas de una carta que no son la suya (927): las que
 // llevan insignia. Se miran también las cuatro de siempre aunque la carta
 // no las declare: si la tienes apuntada en reverse, la tienes, y callarlo
 // porque el catálogo no lo dice sería esconder una copia.
-function versionesQueTienes(c) {
+// `tengo` es quién cuenta (943): el álbum con su idioma, o la Pokédex con
+// el suyo.
+function versionesQueTienes(c, tengo = tengoEnAlbum) {
   const suya = varianteDeCarta(c)
   const ids = [...new Set([...variantesDeCarta(c).map((v) => v.nuestro), 'normal', 'reverse', 'holo', 'primera'])]
-  return ids.filter((id) => id !== suya && tengoEnAlbum(c.id, id))
+  return ids.filter((id) => id !== suya && tengo(c.id, id))
 }
 // Y lo mismo en palabras, para quien no ve las insignias.
 const conVersiones = (vs) => (vs.length ? `, con ${vs.map((id) => nombreDeVariante(id)).join(' y ')}` : '')
@@ -3980,7 +4004,7 @@ function filaDeAlbumHtml(c) {
     ${vs.length ? `<span class="mc-album-fila-versiones" aria-label="${escapeHtml(`También ${vs.map((id) => nombreDeVariante(id)).join(' y ')}`)}">${vs.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${insigniaDeVersion(id)}</i>`).join('')}</span>` : ''}
     ${rarezaDeCarta(c) ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaDeCarta(c))}</span>` : ''}
     <span class="mc-album-fila-precio">${precio != null ? escapeHtml(euros(precio)) : ''}</span>
-    <span class="mc-album-fila-cuenta">${n ? `×${n}` : '—'}</span>
+    <span class="mc-album-fila-cuenta">${cuentaDeFilaHtml(c.id, n)}</span>
   </a>`
 }
 
@@ -4693,12 +4717,18 @@ let afinar = { serie: '', set: '', soloMias: false }
 // como la casilla de una expansión en «separar variantes».
 function resultadoHtml(c, v = null) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const n = v ? tengoDe(c.id, v.nuestro) : 0
-  return `<a class="mc-resultado" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.nuestro)}" aria-label="${escapeHtml(`${nombreDe(c)} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : ''}`)}"` : ''}>
+  // Las marcas de la expansión también sin separar (943): el ✓ con sus
+  // insignias y el corazón. Solo en tu colección: en la de otro, Buscar
+  // no es tuyo.
+  const n = esMia ? tengoDe(c.id, v?.nuestro || null) : 0
+  const vs = n && !v ? versionesQueTienes(c, tengoDe) : []
+  const marcas = esMia ? marcaDeTengoHtml(n, vs) + quieroHtml(c.id, n) : ''
+  const etiqueta = `${nombreDe(c)} (${c.local_id})${v ? `, ${v.nombre}` : ''}${n ? `, tienes ${n}${conVersiones(vs)}` : esMia ? (laQuieres(c.id) ? ', te falta y la quieres' : ', te falta') : ''}`
+  return `<a class="mc-resultado${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.nuestro)}"` : ''} aria-label="${escapeHtml(etiqueta)}">
           <span class="mc-resultado-foto">
             <span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}</span>
             ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}
-            ${v ? `${veloDeVariante(v.nuestro)}${marcaDeTengoHtml(n)}${chapaDeVarianteHtml(v.nuestro)}` : ''}
+            ${v ? `${veloDeVariante(v.nuestro)}${chapaDeVarianteHtml(v.nuestro)}` : ''}${marcas}
           </span>
           <span class="mc-resultado-nombre">${escapeHtml(nombreDe(c))}</span>
           <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
@@ -5852,6 +5882,16 @@ function pintarEspecieFiltrada() {
     versionesDe,
     tengoVersion,
     masDe: (c, variante) => masHtml(c, nombreDe(c), variante),
+    // Las marcas de la expansión, también aquí (943). PINGU: «en la Pokédex
+    // no tenemos el corazoncito… debería estar en cualquier lado de la web».
+    // Cuentan en el idioma del filtro de la especie, como el «la tengo».
+    marcasDe: (c, variante) => {
+      const enIdioma = (id, v = null) => tengoDe(id, v, pdxIdioma || null)
+      const n = variante ? tengoVersion(c, variante) : enIdioma(c.id)
+      const vs = n && !variante ? versionesQueTienes(c, enIdioma) : []
+      return marcaDeTengoHtml(n, vs) + quieroHtml(c.id, n)
+    },
+    quiereDe: (c) => laQuieres(c.id),
   })
   // El selector de catálogo se repinta porque la cabecera entera es HTML
   // nuevo: sus `<option>` los pone `pintarVistas`, y sin esta llamada
@@ -7724,9 +7764,12 @@ function enganchar() {
 // avatar ya lo dice la barra de abajo. Si es de otra persona, se queda el
 // QUIÉN (de quién es lo que miras), pero no las cifras, que las dice la
 // cartera de debajo. El `<h1>`, en `sr-only` cuando no se ve (444).
+// Y desde la 944 el QUIÉN va en TODAS las pestañas de la de otro: el perfil
+// manda a sus Cartas («Ver su colección») y sin él la página no decía de
+// quién eran.
 function pintarCabecera(nueva = pestania) {
   const panel = !modoCatalogo && nueva === 'resumen'
-  const mini = !modoCatalogo && (nueva !== 'resumen' || esMia)
+  const mini = !modoCatalogo && esMia
   $('mcHero')?.classList.toggle('mc-hero-mini', mini)
   $('mcHero')?.classList.toggle('mc-hero-panel', panel)
   $('mcTitulo')?.classList.toggle('sr-only', mini)
@@ -7816,6 +7859,10 @@ const contexto = {
   // Lo de Expansiones, para los bolsillos de un álbum (767): el ✓ o «×2»,
   // el «+», la hoja de añadir y la ficha.
   marcaDeTengo: (n) => marcaDeTengoHtml(n),
+  // Y el corazón de «La quiero» en las que te faltan (943), y cuántas
+  // tienes de una carta para el Mercado.
+  quiero: (id) => quieroHtml(id, 0),
+  tengo: (id) => (esMia ? tengoDe(id) : 0),
   masDe: (c, variante = null) => masHtml(c, nombreDe(c), variante),
   anadirCarta: (c, variante = null) => {
     cartasDeFuera.set(c.id, c)
@@ -7954,6 +8001,13 @@ async function iniciar() {
     const quien = dueno.display_name || dueno.username
     $('mcTitulo').textContent = `Colección de ${quien}`
     document.title = `Colección de ${quien} — PokeDoc`
+    // El buscador es de SU colección (944): «Buscar en tu colección» en la
+    // de otro afirmaba que buscabas en la tuya.
+    const caja = $('mcBuscar')
+    if (caja) {
+      caja.placeholder = `Buscar en la colección de ${quien}`
+      caja.setAttribute('aria-label', caja.placeholder)
+    }
     // Lo que era una pestaña escondida ahora es un BLOQUE escondido
     // dentro de otra (tanda 408): el catálogo para añadir, los álbumes
     // soñados y los cambios. Los cambios son de QUIEN MIRA, no de la

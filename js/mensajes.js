@@ -65,7 +65,7 @@ function filaDeConversacion(c, miId, actual = null) {
 // mismo, sin consulta.
 function buscadorHtml(cuantas) {
   if (cuantas < 10) return ''
-  return `<div class="search-input-wrap msg-buscar"><input type="search" class="search-input" id="msgBuscar" placeholder="Buscar conversación" aria-label="Buscar conversación" /></div>`
+  return `<div class="search-input-wrap msg-buscar"><input type="search" enterkeyhint="search" class="search-input" id="msgBuscar" placeholder="Buscar conversación" aria-label="Buscar conversación" /></div>`
 }
 function engancharBuscador(caja) {
   const campo = caja.querySelector('#msgBuscar')

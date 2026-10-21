@@ -114,6 +114,8 @@ async function buscar() {
   resultados.innerHTML = todoVacio(r)
     ? `<p class="empty-state">Nada con «${escapeHtml(q)}». Prueba con menos letras o con otra palabra.</p>`
     : grupos.map((g) => seccion(g, r[g], q)).join('')
+  // «La tienes» y «La quieres» en cada carta (943).
+  import('./marcas-carta.js').then((m) => m.marcarCartas(resultados)).catch(() => {})
 }
 
 input.addEventListener('input', () => {

@@ -389,10 +389,14 @@ export function gruposDeEspecieHtml(grupos, puestos) {
 // Una casilla de la especie (692): la carta entera o UNA de sus versiones,
 // con la chapa de la versión, el velo de la reverse y el «+» de esa
 // versión, como en el álbum de una expansión.
-function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '' }) {
+//
+// Las marcas (943) las pone quien sabe de la colección: el ✓ con sus
+// insignias y el corazón de «La quiero», los mismos que en la expansión.
+// Sin `marcas` queda el «×N» de antes.
+function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '', marcas = null, quiere = false }) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const set = nombreDeSet(c.tcg_sets) || c.set_id
-  const rotulo = `${nombreDe(c)}${version ? ` — ${version.nombre}` : ''} — ${set}${mia ? (copias > 1 ? `, tienes ${copias}` : ', la tienes') : ', te falta'}`
+  const rotulo = `${nombreDe(c)}${version ? ` — ${version.nombre}` : ''} — ${set}${mia ? (copias > 1 ? `, tienes ${copias}` : ', la tienes') : quiere ? ', te falta y la quieres' : ', te falta'}`
   return `<a class="pdx-carta${mia ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}"${version ? ` data-version="${escapeHtml(version.id)}"` : ''} title="${escapeHtml(rotulo)}" aria-label="${escapeHtml(rotulo)}">
     <span class="pdx-carta-foto">
       ${
@@ -401,7 +405,7 @@ function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '' }) {
           : `<span class="mc-carta-sinfoto">${escapeHtml(nombreDe(c))}${c.local_id ? `<small>${escapeHtml(c.local_id)}</small>` : ''}</span>`
       }
       ${version?.id === 'reverse' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''}
-      ${copias > 1 ? `<span class="mc-cantidad" aria-hidden="true">×${copias}</span>` : ''}
+      ${marcas != null ? marcas : copias > 1 ? `<span class="mc-cantidad" aria-hidden="true">×${copias}</span>` : ''}
       ${version ? `<span class="mc-chapa-variante" data-var="${escapeHtml(version.id)}" aria-hidden="true"><b>${iconoDeVersion(version.id, 12)}</b><span>${escapeHtml(version.nombre)}</span></span>` : ''}
       ${mas}
     </span>
@@ -409,7 +413,7 @@ function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '' }) {
   </a>`
 }
 
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [], separadas = false, versionesDe = null, tengoVersion = null, masDe = null }) {
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [], separadas = false, versionesDe = null, tengoVersion = null, masDe = null, marcasDe = null, quiereDe = null }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
@@ -420,13 +424,13 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
           if (conVersiones) {
             return versionesDe(c)
               .filter((v) => !soloFaltan || tengoVersion(c, v.id) === 0)
-              .map((v) => casillaDeEspecie(c, { version: v, mia: tengoVersion(c, v.id) > 0, copias: tengoVersion(c, v.id), mas: masDe ? masDe(c, v.id) : '' }))
+              .map((v) => casillaDeEspecie(c, { version: v, mia: tengoVersion(c, v.id) > 0, copias: tengoVersion(c, v.id), mas: masDe ? masDe(c, v.id) : '', marcas: marcasDe ? marcasDe(c, v.id) : null, quiere: !!quiereDe?.(c) }))
               .join('')
           }
           // Sin escaneo, la casilla pinta el nombre y el número en el hueco
           // (tanda 415): un sitio en blanco se lee como un fallo.
           const mia = tuyas.has(c.id)
-          return casillaDeEspecie(c, { mia, mas: masDe ? masDe(c, null) : '' })
+          return casillaDeEspecie(c, { mia, mas: masDe ? masDe(c, null) : '', marcas: marcasDe ? marcasDe(c, null) : null, quiere: !!quiereDe?.(c) })
         })
         .join('')}</div>`
     : sinCatalogo

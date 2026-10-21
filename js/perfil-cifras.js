@@ -6,18 +6,21 @@
 // puesta a ti. La racha ya no es una cifra: es un estado, y va en la línea
 // de la cabecera con el nivel y el rango.
 //
-// Cada cifra lleva a un sitio: Cartas a tu colección (solo en la tuya: la de
-// otro no se puede abrir), Guías y Torneos a su pestaña. Lo que no se ha
+// Cada cifra lleva a un sitio: Cartas a tu colección (y a la de otro si la
+// tiene pública, 944: `coleccion`), Guías y Torneos a su pestaña. Lo que no se ha
 // podido contar sale «—», no un cero (la 319): la RLS de otra persona puede
 // no dejar contar su colección o sus torneos, y un cero diría que no tiene
 // ninguno.
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 
+// La colección entera de alguien, en la vista con buscador y filtros (944).
+export const urlDeColeccion = (username) => `/mi-coleccion?u=${encodeURIComponent(username)}&ver=cartas`
+
 const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('es-ES', { useGrouping: 'always' }) : '—')
 
 // Puro: lo prueba node.
-export function cifrasHtml({ cartas = null, guias = null, nota = null, votos = 0, torneos = null, propia = false } = {}) {
+export function cifrasHtml({ cartas = null, guias = null, nota = null, votos = 0, torneos = null, propia = false, coleccion = '' } = {}) {
   const conNota = typeof nota === 'number' && nota > 0
   const cifra = (valor, rotulo, { href = '', ver = '', title = '' } = {}) => {
     const dentro = `<span class="valor">${valor}</span><span class="rotulo">${rotulo}</span>`
@@ -27,7 +30,7 @@ export function cifrasHtml({ cartas = null, guias = null, nota = null, votos = 0
     return `<div class="perfil-cifra"${t}>${dentro}</div>`
   }
   return (
-    cifra(n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : '' }) +
+    cifra(n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion }) +
     cifra(`${n(guias)}${conNota ? ` <small class="perfil-cifra-nota">${icons.star(12)} ${nota.toFixed(1)}</small>` : ''}`, 'Guías', {
       ver: 'guides',
       title: conNota ? `Nota de sus guías: ${nota.toFixed(1)} (${votos} ${votos === 1 ? 'voto' : 'votos'})` : '',

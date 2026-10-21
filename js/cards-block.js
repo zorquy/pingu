@@ -78,7 +78,7 @@ function cartaHtml(carta) {
   const esOccidental = !carta.market || carta.market === 'WEST'
   return `<li class="deck-card" title="${escapeHtml(pie)}">` +
     (esOccidental
-      ? `<a class="deck-card-enlace" href="${escapeHtml(rutaDeCarta(carta))}">${dentro}</a>`
+      ? `<a class="deck-card-enlace" href="${escapeHtml(rutaDeCarta(carta))}" data-marca-carta="${escapeHtml(carta.id)}">${dentro}</a>`
       : dentro) +
     '</li>'
 }
@@ -127,4 +127,6 @@ export async function hydrateDecks(raiz) {
     el.setAttribute('contenteditable', 'false')
     el.innerHTML = renderDeckHtml(ids.map((id) => porId[id]).filter(Boolean), ids)
   })
+  // «La tienes» y «La quieres» en cada carta de la guía (943).
+  import('./marcas-carta.js').then((m) => m.marcarCartas(raiz)).catch(() => {})
 }

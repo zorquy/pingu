@@ -41785,6 +41785,50 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 944 — «Colección de @usuario» en el perfil
+
+- `js/perfil-coleccion.js` (por `import()` desde usuario.js y perfil.js):
+  `pintarColeccionDe(caja, perfil, { propia, avisar })` pinta
+  `#perfilColeccion` (debajo de `#perfilVitrina`) y devuelve si ha salido
+  algo, que es lo que decide (con la vitrina) si la pestaña Vitrina se
+  enseña. De otro solo si `coleccion_publica`; la consulta la protege igual
+  la RLS (`coleccion_es_publica`). Lee 80 líneas por `created_at` y se queda
+  con 18 cartas distintas (`ultimasDistintas`, por mercado e id), más la
+  cuenta (`count: exact`, que sin dato no se pinta: `null` no es cero).
+  Las cartas llevan `data-marca-carta` y pasan por `marcarCartas` (943).
+- `urlDeColeccion(username)` vive en `js/perfil-cifras.js` (la usan la cifra
+  «Cartas», que ya baja la página, y el módulo): `/mi-coleccion?u=…&ver=cartas`.
+- El botón «Ver su colección» va fuera de `.pcol-cab`: `.perfil-coleccion`
+  es una rejilla con áreas (`cab ver / fila fila / nota nota`) y en el móvil
+  pasa debajo de la fila, sin duplicarlo.
+- En la colección de otro, `pintarCabecera` ya no esconde el QUIÉN fuera del
+  Panel (`mini` solo si es tuya), y `#mcBuscar` se rotula con su nombre.
+
+## Tanda 943 — «La tienes» y «La quieres» en todas partes
+
+- Dentro de /mi-coleccion las marcas son las de la expansión:
+  `marcaDeTengoHtml(n, versiones)` + `quieroHtml(id, n)`. La Pokédex las
+  recibe por `especieHtml({ marcasDe, quiereDe })` (sin ellas, el «×N» de
+  antes); Buscar las pinta siempre (junta: con insignias de las otras
+  versiones; separada: la de esa versión); la lista lleva
+  `cuentaDeFilaHtml`; los álbumes, `ctx.quiero(id)`; el Mercado,
+  `ctx.tengo(id)` + `ctx.marcaDeTengo(n)`. `versionesQueTienes(c, tengo)`
+  acepta quién cuenta (el álbum con su idioma, la Pokédex con el suyo).
+- `refrescarCorazones` recorre `VISTAS_CON_CORAZON`: por vista, el selector,
+  la casilla (la que lleva `tengo`) y el hueco donde va el corazón. Una vista
+  nueva de cartas en la página entra en esa lista, o el corazón puesto desde
+  la ficha no sale hasta recargar.
+- Fuera: `js/marcas-carta.js`. `data-marca-carta="<id>"` en la caja de la
+  foto (posicionada por la hoja) o con `data-marca-forma="fila"` en un
+  hueco vacío de la fila (`.bs-marca:empty` no ocupa). `marcarCartas(raíz)`
+  mira la sesión, pregunta lo que falta (lo preguntado se guarda en la
+  página: `preguntadas`), mete `css/marcas-carta.css` y pinta `.mk-tengo`
+  (✓ y cuántas, arriba a la derecha: la carta no va en gris como en la
+  expansión, así que no se tapa) o `.mk-quiero`. Si una consulta falla, esas
+  cartas no se apuntan como preguntadas y no se pinta nada: no saber no es
+  un «no la tienes». `olvidarCarta(id)` para quien cambie la colección sin
+  recargar.
+
 ## Tanda 942 — Propuestas de cambio
 
 - Tablas `trade_offers` (de, para, estado enviada|aceptada|rechazada|

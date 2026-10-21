@@ -67,7 +67,7 @@ const foto = (c, ancho) => {
 export function vitrinaHtml(cartas, { propia = false } = {}) {
   if (!propia && !cartas.length) return ''
   const llenos = cartas
-    .map((c) => `<a class="vitrina-carta" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(`${nombreDeCarta(c)} · ${nombreDeSet(c.tcg_sets) || ''}`)}">${foto(c, 120)}<span>${escapeHtml(nombreDeCarta(c))}</span></a>`)
+    .map((c) => `<a class="vitrina-carta" href="${escapeHtml(rutaDeCarta(c))}"${propia ? '' : ` data-marca-carta="${escapeHtml(c.id)}"`} title="${escapeHtml(`${nombreDeCarta(c)} · ${nombreDeSet(c.tcg_sets) || ''}`)}">${foto(c, 120)}<span>${escapeHtml(nombreDeCarta(c))}</span></a>`)
     .join('')
   const vacios = propia ? Array.from({ length: HUECOS - cartas.length }, () => '<button type="button" class="vitrina-hueco" data-vitrina-elegir aria-label="Elegir una carta para la vitrina">+</button>').join('') : ''
   // «Compartir» (873) solo en la tuya y con cartas: una vitrina vacía no se enseña.
@@ -106,6 +106,9 @@ export async function montarVitrina(caja, userId, { propia = false, avisar = () 
   }
   pintar()
   engancharFotos(caja)
+  // En la de otro, si tú la tienes o la quieres (943): es lo que hace que
+  // una vitrina ajena sirva para un cambio.
+  if (!propia && cartas.length) import('./marcas-carta.js').then((m) => m.marcarCartas(caja)).catch(() => {})
   if (propia) {
     caja.addEventListener('click', async (e) => {
       if (e.target.closest('[data-vitrina-compartir]')) {

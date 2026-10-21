@@ -29,7 +29,8 @@ export function interiorDe(grupo, f) {
     const numero = f.local_id ? ` · ${escapeHtml(f.local_id)}` : ''
     return `<img class="bs-foto" src="${escapeHtml(cadena[0] || '')}" data-cadena="${escapeHtml(JSON.stringify(cadena.slice(1)))}" width="36" height="50" loading="lazy" alt="">
       <span class="bs-texto"><b>${escapeHtml(nombreDeCarta(f))}</b><small>${escapeHtml(nombreDeSet(f.tcg_sets))}${numero}</small></span>
-      ${f.valor ? `<span class="bs-precio">${escapeHtml(euros(f.valor))}</span>` : ''}`
+      ${f.valor ? `<span class="bs-precio">${escapeHtml(euros(f.valor))}</span>` : ''}
+      <span class="bs-marca" data-marca-carta="${escapeHtml(f.id)}" data-marca-forma="fila"></span>`
   }
   if (grupo === 'guias') {
     return `<span class="bs-icono" aria-hidden="true">${icons.bookOpen(18)}</span>

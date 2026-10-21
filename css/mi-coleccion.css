@@ -10892,6 +10892,17 @@ input.mc-alb-titulo:not([readonly]):focus {
   display: none;
 }
 
+/* 943: el corazón también en la lista de la expansión, en la cuenta. */
+.mc-album-fila-quiero {
+  display: inline-grid;
+  place-items: center;
+  color: var(--pink);
+}
+
+.mc-album-fila-quiero svg {
+  fill: currentColor;
+}
+
 /* ── 912: el esqueleto del Panel, solo en el Panel (SCHEMA 912) ── */
 .mc-sin-esq-panel #mcCargando,
 body[data-modo='catalogo'] #mcCargando {

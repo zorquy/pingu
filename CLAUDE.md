@@ -546,6 +546,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   día. Un camino nuevo para proponer llama a `abrirPropuesta`
   (`js/cambio-propuesta.js`); lo que mueva o reserve cartas de un cambio
   respeta `cambio_reservadas_linea`.
+- **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
+  PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
+  y el corazón de «La quiero». Dentro de /mi-coleccion, con
+  `marcaDeTengoHtml` + `quieroHtml`, y la vista entra en
+  `VISTAS_CON_CORAZON` para que el corazón puesto desde la ficha salga sin
+  recargar. Fuera, `data-marca-carta` en la caja de la foto y
+  `marcarCartas(raíz)` de `js/marcas-carta.js` (por `import()`), que solo
+  pregunta por las cartas que hay en pantalla.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

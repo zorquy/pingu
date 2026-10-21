@@ -452,6 +452,7 @@ function bolsilloHtml(item, indice) {
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" draggable="false" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
     ${marcar && mia ? ctx.marcaDeTengo?.(copiasDelBolsillo(item, ctx.lineas())) || '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}
+    ${marcar && !mia && c ? ctx.quiero?.(c.id) || '' : ''}
     ${marcar && !editando && c ? ctx.masDe?.(c, item.v || null) || '' : ''}
     ${item.v ? `<span class="mc-tengo-version">${escapeHtml(nombreCortoDeVersion(item.v))}</span>` : ''}
     ${actual.portada && actual.portada === item.id && !esDeSet(actual) ? '<span class="mc-alb-es-portada" title="La portada">★</span>' : ''}`
@@ -469,7 +470,7 @@ function bolsilloHtml(item, indice) {
   }
   // Como en Expansiones (767, PINGU: «todo igual»): tocar la carta abre su
   // ficha aquí mismo, y el «+» abre la hoja de añadir.
-  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ', te falta') : ''}`)}">${dentro}</a>`
+  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ctx.quiero?.(c?.id) ? ', te falta y la quieres' : ', te falta') : ''}`)}">${dentro}</a>`
 }
 
 function pintarDetalle() {

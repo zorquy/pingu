@@ -732,6 +732,9 @@ async function init() {
   // cuanto existe (867: aunque esté vacía, que invita a elegir).
   // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.
   import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), { ...(currentProfile || {}), id: session.user.id }, session, { propia: true })).catch(() => {})
+  // Debajo, tu colección (944): lo último que has añadido, y si es privada,
+  // que lo diga y deje hacerla pública.
+  import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), { ...(currentProfile || {}), id: session.user.id }, { propia: true, avisar: showToast })).catch(() => {})
   import('./vitrina.js')
     .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
     .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))

@@ -6,7 +6,7 @@ import { contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } 
 import { pintarTorneosDe } from './perfil-torneos.js'
 import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
-import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
+import { cifrasHtml, contarCartasYTorneos, urlDeColeccion } from './perfil-cifras.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
@@ -112,7 +112,9 @@ async function loadReputationAndGuides() {
   // su pestaña. Seguidores y siguiendo ya vienen en el HTML.
   const { cartas, torneos } = await contarCartasYTorneos(supabase, profileId)
   const lote = document.getElementById('profileStats')
-  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, nota: avgRating, votos: totalNotas, torneos })
+  // Con la colección pública, «Cartas» la abre entera (944).
+  const coleccion = profile?.coleccion_publica && profile.username ? urlDeColeccion(profile.username) : ''
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, nota: avgRating, votos: totalNotas, torneos, coleccion })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
   contarPestania('torneos', torneos || 0)
 
@@ -350,10 +352,14 @@ async function init() {
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()
   // La vitrina (743), la de esta persona: solo lo que hay.
   // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
-  import('./vitrina.js')
-    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId))
-    .then((r) => vitrinaLista({ visible: r?.estado === 'ok' && (r.cartas.length > 0), conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
-    .catch(() => vitrinaLista({ visible: false, conCartas: false }))
+  // Debajo, su colección si la tiene pública (944): con ella la pestaña
+  // sale aunque la vitrina esté vacía.
+  const vitrina = import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => null)
+  const coleccion = import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), profile)).catch(() => false)
+  Promise.all([vitrina, coleccion]).then(([r, hayColeccion]) => {
+    const conCartas = (r?.estado === 'ok' && r.cartas.length > 0) || hayColeccion
+    vitrinaLista({ visible: conCartas, conCartas })
+  })
 
   // Con las cuentas ya puestas, se abre la que tenga algo — y solo si
   // quien mira no ha tocado nada todavía ni ha llegado con un #hash.

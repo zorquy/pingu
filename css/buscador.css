@@ -88,6 +88,10 @@ button.bs-fila {
   font-size: var(--t-sm);
 }
 
+.bs-marca:empty {
+  display: none;
+}
+
 .bs-precio {
   flex: none;
   font-weight: 700;

@@ -1,0 +1,109 @@
+/* «Colección de @usuario» en el perfil (tanda 944, SCHEMA 944). La mete
+   js/perfil-coleccion.js cuando hay algo que pintar. */
+
+.perfil-coleccion:not([hidden]) {
+  display: grid;
+  grid-template-areas: 'cab ver' 'fila fila' 'nota nota';
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-top: var(--e-xl);
+}
+
+.pcol-cab {
+  display: flex;
+  grid-area: cab;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-xs) var(--e-sm);
+  min-width: 0;
+}
+
+.pcol-cab .section-title {
+  margin: 0;
+}
+
+.pcol-cuantas {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pcol-ver {
+  grid-area: ver;
+}
+
+/* En el móvil el botón va debajo de la fila, a todo lo ancho: al lado del
+   título no cabe y se quedaba en una línea suelta encima de las cartas. */
+@media (max-width: 599px) {
+  .perfil-coleccion:not([hidden]) {
+    grid-template-areas: 'cab' 'fila' 'ver' 'nota';
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Una fila que se desliza de lado, como las de Cambios (941). */
+.pcol-fila {
+  display: grid;
+  grid-area: fila;
+  grid-auto-columns: 112px;
+  grid-auto-flow: column;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0 0 var(--e-xs);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  list-style: none;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.pcol-carta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.pcol-foto {
+  display: block;
+  position: relative;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  box-shadow: var(--shadow-sm);
+}
+
+.pcol-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pcol-sinfoto {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  text-align: center;
+}
+
+.pcol-nombre {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcol-privada {
+  grid-area: nota;
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}

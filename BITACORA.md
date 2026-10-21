@@ -4,6 +4,102 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (178) — PINGU-Claude (944 — «Colección de @usuario» en el perfil)
+
+**Hecho** (PINGU: «cuando entras al perfil de alguien no ves su colección…
+debajo de la vitrina, "Colección de" y el arroba, y que le dé a "Ver más" y
+me abra su colección con búsqueda, con filtros, con todo»):
+- En el perfil de otra persona con la colección PÚBLICA, debajo de la
+  vitrina: «Colección de @usuario», cuántas cartas tiene, una fila que se
+  desliza con lo último que ha añadido (cada carta una vez) con TUS marcas
+  encima (✓ si la tienes, corazón si la quieres) y «Ver su colección», que
+  abre `/mi-coleccion?u=…&ver=cartas`: su colección entera con buscador y
+  filtros (esa página ya existía; faltaba la puerta). La cifra «Cartas» del
+  perfil lleva al mismo sitio. La pestaña Vitrina sale aunque la vitrina
+  esté vacía si hay colección que enseñar.
+- Con la colección privada no sale nada (ni se pregunta).
+- En TU perfil, «Tu colección»; si es privada lo dice («Solo la ves tú») y
+  deja hacerla pública ahí mismo.
+- En la colección de otro, la cabecera con su nombre sale en todas las
+  pestañas (antes solo en el Panel: en Cartas no se sabía de quién era) y
+  el buscador dice «Buscar en la colección de …», no «en tu colección».
+
+**No se ha cambiado**: que la colección nazca PRIVADA. Es lo que dice la
+base desde siempre (`coleccion_publica default false`) y lo que pide el
+RGPD («protección de datos por defecto»): ponerla pública por defecto, o
+peor, a la gente que ya la tiene privada, lo tiene que decidir PINGU. Si
+se quiere, es una migración de una línea para las cuentas nuevas.
+
+**Ficheros**: `js/perfil-coleccion.js` y `css/perfil-coleccion.css`
+(nuevos), `js/perfil-cifras.js` (`urlDeColeccion`), `js/usuario.js`,
+`js/perfil.js`, `usuario.html`, `perfil.html`, `js/mi-coleccion.js`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-944-pantalla.mjs` (pública: título, cuántas, el
+orden, tus marcas, los dos enlaces, una fila; privada: nada; su vista de
+Cartas con su nombre, su buscador y sus líneas; tu perfil privado y
+«Hacerla pública»; lo puro). Con la guarda de «privada» quitada, canta.
+Verdes también 867, 887, 941, 873, 743, 299, 305, 311, 312, 313, 737, 906
+y test-imports.
+
+**Pendiente**:
+- PINGU: decidir si la colección nace pública (ver arriba).
+
+## 2026-10-21 (177) — PINGU-Claude (943 — «la tienes» y «la quieres» en todas partes)
+
+**Hecho** (PINGU: «en la Pokédex no tenemos el corazoncito… los iconos de
+que la tienes, todo eso debería estar en todos los lados de la web»):
+- **Dentro de Mi colección**, las mismas marcas que en la expansión (el ✓
+  en el centro con sus insignias —cuántas y la otra versión— y el corazón
+  rosa en la que te falta y quieres) en: la **Pokédex** de un Pokémon (junta
+  y separada por versiones, contando en el idioma de su filtro), **Buscar**
+  (ahora también sin separar versiones), la **lista** de una expansión (el
+  corazón en la columna de la cuenta), los bolsillos de **Mis álbumes** (el
+  corazón en las que te faltan) y el **Mercado** (el ✓ en la que da otro y
+  tú ya tienes). Ponerle o quitarle el corazón desde la ficha lo cambia en
+  todas esas vistas sin recargar (`refrescarCorazones`, ahora con una lista
+  de vistas: `VISTAS_CON_CORAZON`).
+- **Fuera de Mi colección**, un módulo nuevo, `js/marcas-carta.js`: quien
+  pinta cartas pone `data-marca-carta` y llama a `marcarCartas(raíz)`; el
+  módulo pregunta SOLO por esas cartas (de 150 en 150, `user_collection` y
+  `user_wants`), pinta el ✓ verde con cuántas o el corazón, y lo añade a
+  lo que se lee en voz alta. Sin cuenta no pregunta nada ni baja su hoja
+  (`css/marcas-carta.css`, inyectada). Lo usan /buscar y la paleta Ctrl+K
+  (chapa al final de la fila), la **vitrina de otra persona**, las cartas
+  de una **guía** y las **otras versiones** de /carta.
+
+**Ficheros**: `js/marcas-carta.js` y `css/marcas-carta.css` (nuevos),
+`js/mi-coleccion.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion/albumes.js`, `js/mi-coleccion/mercado.js`,
+`css/mi-coleccion.css`, `js/buscador-filas.js`, `css/buscador.css`,
+`js/search.js`, `js/paleta.js`, `js/vitrina.js`, `js/cards-block.js`,
+`js/carta.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-943-pantalla.mjs` (Pokédex junta y separada y el
+corazón puesto desde la ficha sin recargar, Buscar, la lista, el Mercado,
+/buscar, la vitrina ajena, sin cuenta nada; con dos mutaciones —quitar la
+Pokédex de `VISTAS_CON_CORAZON` y saltarse la guarda de la sesión—,
+cantan).
+
+**La pasada** (277 pruebas: las de /mi-coleccion, las de las páginas que
+pintan cartas y las globales, en cinco carriles): 257 verdes. De los 20
+rojos, CUATRO eran míos y están arreglados: la 743 (el ✓ era un `<span>` y
+la vitrina lee sus rótulos por `span`: ahora es `<i>`), la 781 (miraba el
+nombre viejo de `versionesQueTienes`), la 723 (las cajas de búsqueda de la
+941 y la 942 no pedían la tecla «Buscar») y la 385 (vieja desde la 935).
+Y el ✓ salía gris en la vitrina (`.vitrina-carta span` le ganaba): la hoja
+lleva el atributo delante y la 943 lo mira. La 461 y la 475 contaban
+cuatro mandos donde desde la 873 hay cinco: al día. Los demás YA ESTABAN
+ROJOS antes de esta tanda (pasados uno a uno contra el código de antes):
+648, 651, 653, 586, 780, 467, 789, 829, 893 y 895 (este último es el peso
+de `js/mi-coleccion.js`: 134,7 KB gzip antes, 135,8 ahora, con el tope en
+130 — hay que sacar algo a un módulo). 440, 577 y 748 salieron rojos solo
+con la máquina cargada; solos, verdes.
+
+**Pendiente**:
+- PINGU: ejecutar la migración 942 si no lo ha hecho.
+- Los rojos viejos de arriba, y bajar `js/mi-coleccion.js` de 130 KB.
+
 ## 2026-10-21 (176) — PINGU-Claude (942 — la propuesta de cambio, con el dinero aparte y las cartas que se mueven solas) · MIGRACIÓN NUEVA
 
 **Hecho** (tandas 3 y 4 de «Cambios en PokeDoc», todo lo recomendado):

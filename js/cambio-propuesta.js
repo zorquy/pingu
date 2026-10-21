@@ -313,7 +313,7 @@ function pintarSelector() {
   $('cpCuerpo').innerHTML = `
     <div class="cp-sel-cab"><button type="button" class="link-btn" data-cp="volver">‹ Volver</button><h3>${escapeHtml(titulo)}</h3></div>
     <label class="sr-only" for="cpBuscar">Buscar</label>
-    <input type="search" id="cpBuscar" class="cp-buscar" placeholder="${pedir ? 'Busca la carta: Charizard, Iono, 151/165…' : 'Busca por nombre o expansión'}" autocomplete="off" value="${escapeHtml(ed.buscar || '')}" />
+    <input type="search" enterkeyhint="search" id="cpBuscar" class="cp-buscar" placeholder="${pedir ? 'Busca la carta: Charizard, Iono, 151/165…' : 'Busca por nombre o expansión'}" autocomplete="off" value="${escapeHtml(ed.buscar || '')}" />
     ${pedir ? '<p class="subtext">Una que no tiene en «doy»: se la pides y él dice si la tiene.</p>' : ''}
     <ul class="cp-opciones" id="cpOpciones"></ul>
     ${pedir ? '' : '<div class="cp-pie"><button type="button" class="btn-primary" data-cp="anadir" id="cpAnadir" disabled>Añadir</button></div>'}`

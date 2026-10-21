@@ -1,0 +1,83 @@
+/* «La tienes» y «La quieres» fuera de Mi colección (tanda 943, SCHEMA 943).
+   La mete js/marcas-carta.js al pintar la primera marca. */
+
+[data-marca-carta]:not([data-marca-forma='fila']) {
+  position: relative;
+}
+
+/* El ✓ verde arriba a la derecha (la carta no está en gris, como en la
+   expansión: aquí el ✓ va en la esquina y no tapa la carta). Con el
+   atributo delante: las hojas de quien pinta tienen reglas como
+   `.vitrina-carta span` (gris y pequeño) que a `.mk-tengo` sola le ganan. */
+[data-marca-carta] > .mk-tengo {
+  display: inline-flex;
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  /* Verde oscuro fijo: lleva blanco encima en los dos temas (911). */
+  background: #0a7a55;
+  box-shadow: 0 0 0 2px var(--blanco-fijo), var(--shadow-sm);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+[data-marca-carta] > .mk-tengo b {
+  font-style: normal;
+}
+
+/* El corazón, arriba a la izquierda, como en la expansión. */
+[data-marca-carta] > .mk-quiero {
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--pink);
+  pointer-events: none;
+}
+
+.mk-quiero svg,
+.mk-fila-quiero svg {
+  fill: currentColor;
+}
+
+/* En una fila (el buscador), al final, como una chapa. */
+.mk-fila {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+
+.mk-fila-tengo {
+  background: #0a7a55;
+  color: var(--blanco-fijo);
+}
+
+.mk-fila-quiero {
+  color: var(--pink);
+}

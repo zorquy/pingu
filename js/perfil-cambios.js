@@ -146,7 +146,7 @@ function hojaTodas() {
     </div>
     <div class="pc-todas-mandos">
       <label class="sr-only" for="pcTodasBuscar">Buscar en la lista</label>
-      <input type="search" id="pcTodasBuscar" placeholder="Busca por nombre o expansión" autocomplete="off" />
+      <input type="search" enterkeyhint="search" id="pcTodasBuscar" placeholder="Busca por nombre o expansión" autocomplete="off" />
       <button type="button" class="pc-todas-chip" id="pcTodasSolo" aria-pressed="false"></button>
     </div>
     <p class="subtext pc-todas-cuenta" id="pcTodasCuenta" aria-live="polite"></p>

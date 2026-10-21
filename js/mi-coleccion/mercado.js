@@ -89,9 +89,12 @@ function baldosaHtml(f) {
   const busco = deseosDe(f.card_id).length > 0
   const chapa = chapaDeBaldosa({ busco })
   const precio = ctx.precioDeCarta(f.card_id)
+  // Si ya la tienes, su ✓ como en la expansión (943): «la tienes» se ve en
+  // todas partes donde sale una carta.
+  const tengo = ctx.tengo?.(f.card_id) || 0
   return `<article class="mc-merc${busco ? ' buscada' : ''}${abierta === f.card_id ? ' abierta' : ''}" data-merc="${escapeHtml(f.card_id)}">
-    <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}`)}">
-      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+    <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}${tengo ? ` (tienes ${tengo})` : ''}`)}">
+      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${tengo ? ctx.marcaDeTengo?.(tengo) || '' : ''}</span>
       ${chapa ? `<span class="mc-merc-chapa ${chapa.clase}">${chapa.texto}</span>` : ''}
     </button>
     <button type="button" class="mc-merc-corazon${busco ? ' puesto' : ''}" data-merc-quiero="${escapeHtml(f.card_id)}" aria-pressed="${busco}" aria-label="${escapeHtml(`${busco ? 'Ya buscas' : 'La quiero:'} ${nombre}`)}">${ICONOS_COLECCION.corazon(16)}</button>
