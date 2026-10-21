@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En Black Bolt y White Flare ya se pueden añadir las versiones Poké Ball y Master Ball de todas las cartas que las tienen (antes faltaban en varias, como el Pansage), y también las que faltaban de Prismatic Evolutions y Ascended Heroes.", "enlace": "/cartas?ver=album&set=sv10.5b" },
     { "fecha": "2026-10-21", "tipo": "nuevo", "texto": "En el perfil de alguien con la colección pública sale ahora «Colección de @usuario» debajo de su vitrina, con lo último que ha añadido (y tu ✓ o tu corazón encima) y «Ver su colección» para verla entera, con buscador y filtros. En tu perfil puedes hacer la tuya pública ahí mismo.", "enlace": "/perfil" },
     { "fecha": "2026-10-21", "tipo": "mejora", "texto": "El ✓ de «la tienes» y el corazón de «La quiero» salen ahora en todas partes: en la Pokédex, en el buscador, en la lista de una expansión, en tus álbumes, en el Mercado, en la vitrina de otra persona, en las cartas de las guías y en las otras versiones de una carta.", "enlace": "/mi-coleccion?ver=pokedex" },
     { "fecha": "2026-10-21", "tipo": "nuevo", "texto": "Propuestas de cambio: monta el cambio carta a carta (con su idioma y su estado), apunta la diferencia en dinero si la hay (Bizum, en mano…) y mándala. La otra persona la acepta, la cambia o la rechaza en vuestra conversación, y cuando los dos decís «Lo tengo», las cartas pasan solas de una colección a la otra. Se puede deshacer durante un día.", "enlace": "/mi-coleccion?ver=cambios" },

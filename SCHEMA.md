@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 945 — Las versiones de Ball de TCGdex (Black Bolt y compañía)
+
+- En Cardmarket la Poké Ball y la Master Ball de Black Bolt, White Flare y
+  Prismatic Evolutions (y las Ball y el patrón de energía de Ascended Heroes)
+  son PRODUCTOS aparte. TCGGO las da a veces en `variants` y a veces como
+  otra carta con su producto, que la pasada de precios no casa con ninguna.
+- `supabase-migration-945-versiones-ball.sql`, generada por
+  `herramientas/versiones-ball/generar-sql.mjs` (rama `pruebas`) desde un
+  clon de tcgdex/cards-database: `variants` con `foil` (`pokeball`,
+  `masterball`, `duskball`, `loveball`, `friendball`, `quickball`, `energy`)
+  → filas de `tcg_card_versions` con `origen = 'tcgdex'`, `clase =
+  'impresion'`, `cm_id_product` y la ETIQUETA DE TCGGO («Poké Ball»,
+  «Energy Symbol Pattern»…), de forma que `catalogo_id_de_version` da el
+  mismo id que lo que TCGGO cuelga y no se repite. La carta: WEST, del set o
+  de uno con su mismo `tcggo_id`, mismo número (sin ceros) y nombre inglés
+  que empieza igual, y que no tenga el producto de una de esas versiones.
+  Lo que ya existe gana el producto si no lo tenía.
+- La colada (`tcggo-…` del mismo set con el producto de una versión) se
+  funde como en la 935, con lápida.
+- `tcggo-precios` pide `origen=in.(edicion,tcgdex)` por producto y
+  `preciosDeEdiciones` les pone el precio. En la web van por el camino de
+  las versiones de TCGGO (`extras` en `variantesDeCarta`); como llevan
+  `origen`, no cuentan para la regla de la 931 (quitar la Reverse) ni son
+  ediciones.
+- La Cosmos, la tinsel y el patrón Rocket no entran: no hay etiqueta de
+  TCGGO conocida para ellas y sin ella saldrían repetidas.
+
 ## Tanda 944 — «Colección de @usuario» en el perfil
 
 - `js/perfil-coleccion.js` (por `import()` desde usuario.js y perfil.js):

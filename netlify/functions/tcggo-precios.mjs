@@ -533,11 +533,14 @@ export async function procesar({
         // Las ediciones de Wizards (935), por su producto: la Shadowless del
         // Charizard ya no es una carta nuestra, es una edición. Sin la
         // migración la columna `origen` no existe y no hay ediciones.
+        // Y las versiones de TCGdex (945): la Poké Ball de Black Bolt es otro
+        // producto de Cardmarket, y TCGGO a veces la da como otra carta.
+        // Con el `in.(…)`, sin la 945 simplemente no hay filas `tcgdex`.
         let deEdiciones = []
         if (mercado === 'WEST' && ahoraVan.size) {
           let ediciones = []
           try {
-            ediciones = (await pedir(`tcg_card_versions?select=tcggo_id,card_id,set_id,etiqueta,clase,cm_id_product&market=eq.WEST&origen=eq.edicion&cm_id_product=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+            ediciones = (await pedir(`tcg_card_versions?select=tcggo_id,card_id,set_id,etiqueta,clase,cm_id_product&market=eq.WEST&origen=in.(edicion,tcgdex)&cm_id_product=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
           } catch {
             ediciones = []
           }

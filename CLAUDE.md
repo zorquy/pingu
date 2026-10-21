@@ -123,6 +123,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de cada una llega por su producto de Cardmarket (`preciosDeEdiciones`).
   Una «tcggo-…» que repita el número de una de estas cartas es una edición
   que se coló: se funde, no se borra a secas.
+- **Una versión que en Cardmarket es OTRO producto sale de TCGdex** (tanda
+  945): las Poké Ball y Master Ball de Black Bolt, White Flare y Prismatic,
+  y las Ball de Ascended Heroes, son filas `origen = 'tcgdex'` con su
+  producto, metidas por la migración 945 desde tcgdex/cards-database (TCGGO
+  a veces las da como otra carta y la pasada de precios no las casaba). Su
+  etiqueta es la de TCGGO, para que no salgan dos; el precio llega por el
+  producto, como el de las ediciones. Para otro set así, una entrada más en
+  `herramientas/versiones-ball/leer.mjs` (rama `pruebas`) y otra migración.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

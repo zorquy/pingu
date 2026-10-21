@@ -4,6 +4,57 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (179) — PINGU-Claude (945 — las Poké Ball y Master Ball de Black Bolt, de TCGdex) · MIGRACIÓN NUEVA
+
+**Hecho** (Cosadfrikiis en el foro, con la captura de PINGU: «en Black Bolt
+no se puede añadir Poké Ball o Master Ball… el Pansage 004 no sale… no son
+todas pero hay en varias»):
+- **Por qué**: en Cardmarket esas versiones son OTRO producto (el Pansage
+  es el 835910, su Poké Ball el 836261 y su Master Ball el 836271). TCGGO a
+  veces las da dentro de la carta (`variants`, la 929) y a veces como otra
+  carta con su producto; la pasada de precios busca nuestras cartas por
+  producto, así que esas no casaban con ninguna y la versión no llegaba. Y
+  la 931, al limpiar los repetidos de Black Bolt, se llevó las que habían
+  entrado como carta.
+- **El arreglo**: TCGdex sí las tiene todas en sus ficheros
+  (tcgdex/cards-database, `variants` con `foil` y producto de Cardmarket).
+  La migración 945 las mete como versiones (`tcg_card_versions`, `origen =
+  'tcgdex'`, impresión) colgadas de nuestra carta (mismo set —o uno de su
+  expansión de TCGGO—, número y nombre): Black Bolt y White Flare (80 con
+  Poké Ball y 72 con Master Ball cada uno), Prismatic Evolutions y las Ball y
+  el patrón de energía de Ascended Heroes. La etiqueta es la de TCGGO, así
+  que lo que TCGGO ya da no se repite (solo gana su producto). Una «tcggo-…»
+  colada como carta con el producto de una de esas versiones se funde (sus
+  copias pasan a esa versión, deseos/álbumes/vitrina/avisos a la carta, su
+  foto a la versión) y se borra con lápida, como en la 935.
+- **El precio**: la pasada de precios pregunta por `origen in (edicion,
+  tcgdex)` por producto, como las ediciones de la 935; la Poké Ball se lleva
+  el de su producto.
+
+**MIGRACIÓN**: `supabase-migration-945-versiones-ball.sql` (PINGU: hay que
+ejecutarla en el SQL Editor, DESPUÉS de la 934 y la 935; se puede pasar dos
+veces; al final enseña por set cuántas cartas tienen Poké Ball y Master
+Ball). Sin ella no cambia nada.
+
+**Ficheros**: `supabase-migration-945-versiones-ball.sql` (nueva),
+`netlify/functions/tcggo-precios.mjs`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `herramientas/versiones-ball/` (leer y generar la migración
+desde el clon de tcgdex/cards-database), `sql-tanda-945.sql`,
+`sql-tanda-945-casos.sql` y `test-tanda-945.mjs` (contra PostgreSQL: el
+Pansage con las dos y su colada fundida, el Snivy sin repetir la de TCGGO,
+otra carta en el número de Servine sin tocar, el set hermano, el Escavalier
+de la 934 y el Charizard de la 935 intactos, dos pasadas; los datos vueltos
+a generar del clon; la web y el precio). Con la guarda de «ya la tiene»
+quitada, canta. La 935 al día (la consulta), y verdes la 929, 930, 931, 937,
+862, 807, 943 y test-imports.
+
+**Pendiente**:
+- PINGU: ejecutar la 945 y contestar a Cosadfrikiis en el foro.
+- Lo que siga sin salir después (la tabla del final lo dice por set): será
+  una carta nuestra con otro nombre o en otro set.
+
 ## 2026-10-21 (178) — PINGU-Claude (944 — «Colección de @usuario» en el perfil)
 
 **Hecho** (PINGU: «cuando entras al perfil de alguien no ves su colección…
