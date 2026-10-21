@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 934 — Versiones a mano y borrar cartas
+
+- `tcg_card_versions` (supabase-migration-934): columnas `imagen`, `icono`,
+  `salio_en`, `lanzamiento` (date), `clase` (`impresion`/`sello`/`adicional`)
+  y `origen` (`mano` o null). Sin id de TCGGO, el de una a mano es NEGATIVO
+  (`tcg_card_versions_mano_seq`), así que no choca con los suyos.
+- Funciones (solo el admin): `catalogo_version_mano(p_card_id, p_market,
+  p_datos jsonb, p_tcggo_id)` crea (sin `p_tcggo_id`) o edita; nombre
+  obligatorio y no el de una de siempre; renombrar mueve las
+  `user_collection.variante` al id nuevo (`catalogo_id_de_version`, la misma
+  regla que `varianteDeEtiqueta`). `catalogo_borrar_version_mano` solo las de
+  mano y sin copias (23503). `catalogo_quien_tiene_carta` → `{personas,
+  copias, deseos, albumes, avisos, vitrina}`.
+- `catalogo_borrar_carta(p_id, p_market, p_destino)` sustituye a la de la 885
+  (dos argumentos): cualquier carta. Apuntada y sin destino, 23503; con
+  destino pasan las líneas, los deseos (sin repetir el índice único), los
+  avisos, la vitrina y las entradas de los álbumes. Se borran precios,
+  histórico, versiones y correcciones; si no es de mano, la lápida
+  `__borrada` en `tcg_correcciones`, y `catalogo_aplicar_correcciones`
+  devuelve NULL con ella: el insert de cualquier pasada se salta sin error.
+- La web: las columnas nuevas se piden con respaldo (`columnasDeVersion`,
+  42703 → sin ellas). `variantesDeCarta` no deja que una de mano dispare la
+  regla de la 931 y le pone `clase` a las extras; `cuentaParaMaestro` las
+  saca del maestro (progreso-set y «Completar el maestro»).
+  `registrarDibujo(id, icono)` (iconos-version.js) manda sobre el dibujo
+  deducido. `escaneoDeVersion(c, variante)` pone la `imagen` de la versión
+  delante de la cadena (ficha, casilla separada, hoja de añadir);
+  `tablaDeCarta(c, variante)` pinta «Salió en», «Versión» (la clase), y su
+  fecha y su número. `precioDeLinea`: una de mano sin cifras devuelve sin
+  cifra y con su `link_cm`, nunca el de la carta.
+- /admin (catalogo-cartas.js): «Borrar» en cada fila y en la ficha
+  (`abrirBorrado`), la caja «Versiones» de la ficha
+  (`pintarVersionesDeLaCarta`, `select('*')` para no nombrar columnas que no
+  existan) y el formulario `abrirVersion`.
+
 ## Tanda 933 — Traer ya las versiones de una expansión
 
 - `tcggo-sonda`, modo `versiones` (ESCRIBE): `versionesDeExpansion({ episodio,

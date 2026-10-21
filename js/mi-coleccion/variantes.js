@@ -32,6 +32,7 @@
 // colección es la etiqueta en minúsculas con guiones (`quick-ball`), y la
 // que no tiene etiqueta —o dice «Reverse Holo»— ES la reverse de siempre.
 import { normalizeSearch } from '../texto.js'
+import { registrarDibujo } from './iconos-version.js'
 import { rarezaEs } from '../rarezas-nombres.js'
 
 // De cómo lo llama TCGdex a cómo lo llamamos nosotros
@@ -74,6 +75,8 @@ export function pegarVersiones(cartas, filas) {
     por.set(f.card_id, (por.get(f.card_id) || []).concat([f]))
     const id = varianteDeEtiqueta(f.etiqueta)
     if (f.etiqueta && !esClasica(id)) NOMBRES.set(id, String(f.etiqueta).trim())
+    // El dibujo elegido a mano (934).
+    if (f.icono) registrarDibujo(id, f.icono)
   }
   for (const c of cartas || []) if (c && por.has(c.id)) c.versiones = por.get(c.id)
   return por
@@ -120,14 +123,19 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // además una «Reverse holo» era ofrecer una carta que no se imprimió.
   // Solo la reverse: la normal, la holo y la 1.ª edición TCGGO las da como
   // la carta misma, no como versión.
-  const deTcggo = (carta?.versiones || []).map((f) => varianteDeEtiqueta(f.etiqueta))
+  // Las de a mano (934) no cuentan: un sello de Pokémon Day no dice nada de
+  // si la carta tiene Reverse.
+  const deTcggo = (carta?.versiones || []).filter((f) => f.origen !== 'mano').map((f) => varianteDeEtiqueta(f.etiqueta))
   if (deTcggo.length && !deTcggo.includes('reverse')) base = base.filter((e) => e.nuestro !== 'reverse')
   // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir.
   const extras = []
   for (const f of carta?.versiones || []) {
     const id = varianteDeEtiqueta(f.etiqueta)
     if (base.some((e) => e.nuestro === id) || extras.some((e) => e.nuestro === id)) continue
-    extras.push(EQUIVALE.find((e) => e.nuestro === id) || { suyo: null, nuestro: id, corto: cortoDeVariante(id), nombre: nombreDeVariante(id) })
+    const e = EQUIVALE.find((x) => x.nuestro === id)
+    // La clase (934): una de a mano dice si es una impresión, un sello o una
+    // adicional; las de TCGGO no la dicen y son impresiones.
+    extras.push(e ? { ...e, clase: f.clase || null } : { suyo: null, nuestro: id, corto: cortoDeVariante(id), nombre: nombreDeVariante(id), clase: f.clase || null })
   }
   if (base.length) return [...base, ...extras]
   if (!extras.length) return siNoSeSabe
@@ -135,6 +143,12 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   const sin = Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
   return [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
 }
+
+// ¿Cuenta para el set maestro? (934, lo recomendado): una impresión sí (la
+// Reverse, las de Ball); un sello (Pokémon Day, prerelease) o una adicional
+// (la metálica de la UPC) no, o completar el maestro de Base Set pediría una
+// carta de 2021.
+export const cuentaParaMaestro = (v) => v?.clase !== 'adicional' && v?.clase !== 'sello'
 
 // ── LO QUE NO SE SABE, DEDUCIDO (tanda 922) ──
 //

@@ -391,6 +391,10 @@ export function precioDeLinea(linea, guardados, vivos) {
   if (version) {
     const p = precioDeFila(version, { reverse: false, variante: 'normal' })
     if (tieneCifras(p)) return p
+    // Una versión A MANO sin cifras (934: la metálica de la UPC) no toma
+    // prestado el precio de la carta: el Charizard de Base Set no vale lo
+    // que su metálica. Va sin cifra y con su enlace a Cardmarket.
+    if (version.origen === 'mano') return p || (version.link_cm ? { idProduct: null, url: version.link_cm, desde: null, tendencia: null, media30: null, media7: null, actualizado: null, reverse: false, prestado: false, usd: null, dudoso: false } : null)
   }
   const guardado = precioDeFila(guardados.get(linea.card_id), { reverse, variante })
   if (tieneCifras(guardado)) return guardado
@@ -411,6 +415,13 @@ export function precioDeLinea(linea, guardados, vivos) {
 // aquí para el precio de las líneas. Sin la tabla (la migración de la 807
 // sin ejecutar) no hay versiones, no hay error.
 const COLUMNAS_VERSION = 'tcggo_id,card_id,set_id,etiqueta,cm_id_product,link_cm,cm_low,cm_low_en,cm_low_de,cm_low_fr,cm_low_es,cm_low_it,cm_avg7,cm_avg30,cm_disponibles,tp_market_eur,tp_mid_eur,actualizado_at'
+// Las de las versiones a mano (934), con respaldo (la 624): sin la migración
+// no existen, y una consulta que las nombra falla ENTERA. Se piden y, si la
+// base dice que no existen, se repite sin ellas y no se vuelven a pedir.
+const COLUMNAS_A_MANO = ',numero,imagen,icono,salio_en,lanzamiento,clase,origen'
+let sinColumnasAMano = false
+const columnasDeVersion = () => (sinColumnasAMano ? COLUMNAS_VERSION : COLUMNAS_VERSION + COLUMNAS_A_MANO)
+const faltanColumnasAMano = (error) => !sinColumnasAMano && /42703|imagen|salio_en|lanzamiento|clase|origen|icono|numero/.test(`${error?.code} ${error?.message}`)
 const versionesPorCarta = new Map()
 export function registrarVersiones(filas) {
   for (const f of filas || []) {
@@ -430,7 +441,8 @@ export async function versionesDeSets(setIds, mercado = MERCADO_POR_DEFECTO) {
   // `include_variants` (929) una expansión grande pasa de las mil versiones.
   const todas = []
   for (let desde = 0; desde < 20000; desde += 1000) {
-    const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).eq('market', mercado).in('set_id', ids).order('tcggo_id').range(desde, desde + 999)
+    const { data, error } = await supabase.from('tcg_card_versions').select(columnasDeVersion()).eq('market', mercado).in('set_id', ids).order('tcggo_id').range(desde, desde + 999)
+    if (error && faltanColumnasAMano(error)) { sinColumnasAMano = true; desde -= 1000; continue }
     if (error) break
     todas.push(...(data || []))
     if (!data || data.length < 1000) break
@@ -442,7 +454,8 @@ export async function versionesDeCartas(cardIds) {
   const ids = [...new Set((cardIds || []).filter(Boolean))]
   const todas = []
   for (let i = 0; i < ids.length; i += 150) {
-    const { data, error } = await supabase.from('tcg_card_versions').select(COLUMNAS_VERSION).in('card_id', ids.slice(i, i + 150)).order('tcggo_id').limit(1000)
+    const { data, error } = await supabase.from('tcg_card_versions').select(columnasDeVersion()).in('card_id', ids.slice(i, i + 150)).order('tcggo_id').limit(1000)
+    if (error && faltanColumnasAMano(error)) { sinColumnasAMano = true; i -= 150; continue }
     if (error) break
     todas.push(...(data || []))
   }

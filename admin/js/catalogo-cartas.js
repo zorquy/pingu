@@ -21,6 +21,8 @@ import { supabase } from '../../js/supabase.js'
 import { escapeHtml, validateImageFile, uploadGuideImage } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
+import { iconoDeVersion, ICONOS_A_ELEGIR } from '../../js/mi-coleccion/iconos-version.js'
+import { varianteDeEtiqueta } from '../../js/mi-coleccion/variantes.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -98,6 +100,7 @@ function filaDeCarta(c) {
       <small>${escapeHtml(c.id)}${c.rarity ? ` · ${escapeHtml(c.rarity)}` : ''}${c.hp ? ` · ${c.hp} PS` : ''} ${chapaDe(c)}</small>
     </span>
     <button class="btn-outline btn-small" data-editar-carta="${escapeHtml(c.id)}">Editar</button>
+    <button class="btn-danger btn-small" data-borrar-carta="${escapeHtml(c.id)}">Borrar</button>
   </li>`
 }
 
@@ -131,6 +134,68 @@ function escucharLista() {
   document.querySelectorAll('[data-editar-carta]').forEach((b) =>
     b.addEventListener('click', () => abrirFicha(b.dataset.editarCarta))
   )
+  document.querySelectorAll('[data-borrar-carta]').forEach((b) =>
+    b.addEventListener('click', () => abrirBorrado(b.dataset.borrarCarta))
+  )
+}
+
+// ── Borrar una carta (934) ──
+//
+// PINGU: «al editar cartas también deberíamos poder eliminar una carta». La
+// de la 885 solo borraba las de a mano sin dueño. Ahora cualquiera: primero
+// se pregunta quién la tiene apuntada y, si alguien, a qué carta pasan sus
+// copias, deseos, álbumes, avisos y vitrina. Una de las APIs deja una lápida
+// para que ninguna pasada la vuelva a crear (supabase-migration-934).
+async function abrirBorrado(id) {
+  const c = cartas.find((x) => x.id === id)
+  if (!c) return
+  hoja.abrir('<p class="admin-note">Mirando quién la tiene…</p>')
+  const { data: quien, error } = await supabase.rpc('catalogo_quien_tiene_carta', { p_id: c.id, p_market: mercado })
+  if (error) {
+    showToast(/catalogo_quien_tiene_carta|PGRST202|42883/.test(`${error.code} ${error.message}`) ? 'Falta ejecutar supabase-migration-934-versiones-a-mano.sql.' : error.message.slice(0, 140), 'error')
+    return pintarLista()
+  }
+  const apuntada = ['copias', 'deseos', 'albumes', 'avisos', 'vitrina'].some((k) => Number(quien?.[k]) > 0)
+  const partes = [
+    quien?.copias ? `la tienen ${quien.personas} ${quien.personas === 1 ? 'persona' : 'personas'} (${quien.copias} ${quien.copias === 1 ? 'copia' : 'copias'})` : '',
+    quien?.deseos ? `${quien.deseos} la ${quien.deseos === 1 ? 'quiere' : 'quieren'}` : '',
+    quien?.albumes ? `está en ${quien.albumes} ${quien.albumes === 1 ? 'álbum' : 'álbumes'}` : '',
+    quien?.avisos ? `${quien.avisos} ${quien.avisos === 1 ? 'aviso' : 'avisos'} de precio` : '',
+    quien?.vitrina ? `en ${quien.vitrina} ${quien.vitrina === 1 ? 'vitrina' : 'vitrinas'}` : '',
+  ].filter(Boolean)
+  const otras = cartas.filter((x) => x.id !== c.id)
+  // La de destino, primero las del mismo número (el repetido de Black Bolt).
+  const mismas = otras.filter((x) => String(parseInt(x.local_id, 10)) === String(parseInt(c.local_id, 10)))
+  const resto = otras.filter((x) => !mismas.includes(x))
+  const opcion = (x) => `<option value="${escapeHtml(x.id)}">${escapeHtml(`${x.local_id} · ${nombreDe(x)} · ${x.id}`)}</option>`
+  hoja.abrir(`
+    <div class="cat-cab">
+      <button class="btn-secondary btn-small" id="catAtras">← Cartas</button>
+      <h3>Borrar ${escapeHtml(`${c.local_id} · ${nombreDe(c)}`)}</h3>
+    </div>
+    <p class="admin-note"><code>${escapeHtml(c.id)}</code>${c.origen ? ` · origen ${escapeHtml(c.origen)}` : ''}. Se borra con sus precios, su histórico y sus versiones${c.origen === 'mano' ? '' : ', y queda apuntada como borrada: ninguna pasada (TCGdex, TCGGO) la vuelve a crear'}.</p>
+    ${apuntada
+      ? `<p class="admin-note cat-aviso-borrar"><strong>${escapeHtml(partes.join(' · '))}.</strong> Antes de borrarla, todo eso pasa a otra carta.</p>
+         <label class="cat-campo">Pasar sus copias a
+           <select id="catDestino"><option value="">Elige la carta…</option>${mismas.length ? `<optgroup label="Con el mismo número">${mismas.map(opcion).join('')}</optgroup>` : ''}<optgroup label="Las demás del set">${resto.map(opcion).join('')}</optgroup></select>
+         </label>`
+      : '<p class="admin-note">Nadie la tiene apuntada.</p>'}
+    <div class="col-hoja-pie">
+      <span style="flex:1"></span>
+      <button class="btn-secondary" id="catCancelar">Cancelar</button>
+      <button class="btn-danger" id="catBorrarYa">${apuntada ? 'Mover y borrar' : 'Borrar carta'}</button>
+    </div>`)
+  $('catAtras').addEventListener('click', pintarLista)
+  $('catCancelar').addEventListener('click', pintarLista)
+  $('catBorrarYa').addEventListener('click', async () => {
+    const destino = $('catDestino')?.value || null
+    if (apuntada && !destino) return showToast('Elige a qué carta pasan sus copias.', 'error')
+    const { error: e } = await supabase.rpc('catalogo_borrar_carta', { p_id: c.id, p_market: mercado, p_destino: destino })
+    if (e) return showToast(faltaLaMigracion(e) ? AVISO_MIGRACION : e.message.slice(0, 140), 'error')
+    showToast(destino ? 'Copias movidas y carta borrada' : 'Carta borrada', 'success')
+    await cargar()
+    pintarLista()
+  })
 }
 
 // ── La ficha ──
@@ -183,11 +248,12 @@ function abrirFicha(id) {
       ${[['normal', 'Normal'], ['reverse', 'Reverse'], ['holo', 'Holo'], ['firstEdition', '1.ª edición']].map(([k, r]) =>
         `<label class="col-check"><input type="checkbox" id="catVar_${k}"${variantes[k] ? ' checked' : ''}> ${r}</label>`).join('')}
     </fieldset>
+    <section class="cat-versiones-caja" id="catVersiones">${nueva ? '' : '<p class="admin-note">Cargando sus versiones…</p>'}</section>
     <details class="cat-avanzado"><summary>Ataques, habilidades, debilidades y resistencias (JSON)</summary>
       <div class="cat-campos">${avanzados.map((f) => cajaDe(f, c, corr.has(f.col))).join('')}</div>
     </details>
     <div class="col-hoja-pie">
-      ${!nueva && c.origen === 'mano' ? '<button class="btn-danger btn-small" id="catBorrar">Borrar la carta…</button>' : ''}
+      ${!nueva ? '<button class="btn-danger btn-small" id="catBorrar">Borrar la carta…</button>' : ''}
       <span style="flex:1"></span>
       <button class="btn-secondary" id="catCancelar">Cancelar</button>
       <button class="btn-primary" id="catGuardar">${nueva ? 'Crear' : 'Guardar'}</button>
@@ -262,14 +328,122 @@ function abrirFicha(id) {
     pintarLista()
   })
 
-  $('catBorrar')?.addEventListener('click', async () => {
-    const dicho = window.prompt(`Se va a borrar «${nombreDe(c)}» (${c.id}). Solo se puede si nadie la tiene apuntada.\n\nEscribe el número (${c.local_id}) para confirmar:`)
-    if (dicho !== String(c.local_id)) return showToast('No se ha borrado nada.')
-    const { error } = await supabase.rpc('catalogo_borrar_carta', { p_id: c.id, p_market: mercado })
-    if (error) return showToast(faltaLaMigracion(error) ? AVISO_MIGRACION : error.message.slice(0, 140), 'error')
-    showToast('Carta borrada', 'success')
-    await cargar()
-    pintarLista()
+  $('catBorrar')?.addEventListener('click', () => abrirBorrado(c.id))
+
+  // Las versiones de la carta (934), debajo: se piden aparte.
+  if (!nueva) void pintarVersionesDeLaCarta(c)
+}
+
+// ── Las versiones a mano (934) ──
+//
+// PINGU, con el Charizard metálico de Dex: «meterlo como reprint de la
+// carta original, como una versión extra». Cuelgan de la carta (la tabla
+// de las versiones de TCGGO, con `origen = 'mano'`) y llevan su foto, su
+// icono, dónde salió, cuándo, su clase y su Cardmarket. Las de TCGGO se
+// enseñan sin poder tocarlas: las trae y las pisa su pasada.
+const CLASES = [['adicional', 'Adicional (no cuenta para el set maestro)'], ['sello', 'Sello: Pokémon Day, prerelease, staff (no cuenta)'], ['impresion', 'Impresión (cuenta, como la Reverse)']]
+
+async function pintarVersionesDeLaCarta(c) {
+  const caja = $('catVersiones')
+  if (!caja) return
+  // `*` a propósito, como las cartas: sin la migración no hay columnas nuevas
+  // que nombrar.
+  const { data, error } = await supabase.from('tcg_card_versions').select('*').eq('card_id', c.id).order('tcggo_id')
+  if (!$('catVersiones')) return
+  if (error) { caja.innerHTML = `<p class="admin-note">No se han podido leer sus versiones: ${escapeHtml(error.message.slice(0, 120))}</p>`; return }
+  const filas = data || []
+  const sinMigracion = filas.length ? !('origen' in filas[0]) : false
+  caja.innerHTML = `
+    <h4>Versiones</h4>
+    ${filas.length ? `<ul class="cat-versiones">${filas.map((v) => `<li class="cat-version">
+        <span class="cat-version-ico">${iconoDeVersion(v.icono || varianteDeEtiqueta(v.etiqueta), 18)}</span>
+        <span class="cat-carta-nombre"><strong>${escapeHtml(v.etiqueta || '(sin nombre)')}</strong>
+          <small>${v.origen === 'mano' ? 'a mano' : 'de TCGGO'} · id ${escapeHtml(String(v.tcggo_id))}${v.salio_en ? ` · ${escapeHtml(v.salio_en)}` : ''}${v.cm_low ? ` · ${escapeHtml(String(v.cm_low))} €` : ''}</small></span>
+        ${v.origen === 'mano' ? `<button type="button" class="btn-outline btn-small" data-editar-version="${escapeHtml(String(v.tcggo_id))}">Editar</button>` : ''}
+      </li>`).join('')}</ul>` : '<p class="admin-note">Ninguna versión de TCGGO ni a mano.</p>'}
+    ${sinMigracion ? '<p class="admin-note">Para meter versiones a mano falta ejecutar <code>supabase-migration-934-versiones-a-mano.sql</code>.</p>' : '<button type="button" class="btn-primary btn-small" id="catNuevaVersion">Nueva versión a mano</button>'}`
+  $('catNuevaVersion')?.addEventListener('click', () => abrirVersion(c, null))
+  caja.querySelectorAll('[data-editar-version]').forEach((b) =>
+    b.addEventListener('click', () => abrirVersion(c, filas.find((v) => String(v.tcggo_id) === b.dataset.editarVersion)))
+  )
+}
+
+function abrirVersion(c, v) {
+  const nueva = !v
+  const campo = (id, rotulo, valor, { tipo = 'text', pista = '', ancho = false } = {}) =>
+    `<label class="cat-campo${ancho ? '' : ' cat-campo-medio'}">${escapeHtml(rotulo)}<input id="${id}" type="${tipo}" value="${escapeHtml(valor ?? '')}" placeholder="${escapeHtml(pista)}"></label>`
+  hoja.abrir(`
+    <div class="cat-cab">
+      <button class="btn-secondary btn-small" id="catAtras">← ${escapeHtml(nombreDe(c))}</button>
+      <h3>${nueva ? 'Nueva versión a mano' : escapeHtml(v.etiqueta || 'Versión')}</h3>
+    </div>
+    <p class="admin-note">De <strong>${escapeHtml(`${c.local_id} · ${nombreDe(c)}`)}</strong> (${escapeHtml(set.name_en || set.name || set.id)}). Sale como una versión más de la carta, con su foto y sus datos.</p>
+    <div class="cat-foto-caja">
+      <span class="cat-foto-ver" id="catVerFotoVer">${v?.imagen ? `<img src="${escapeHtml(v.imagen)}" alt="">` : '<span class="col-set-sinlogo">sin foto</span>'}</span>
+      <span class="cat-foto-acciones">
+        <input type="file" id="catVerFotoFichero" accept="image/*" aria-label="Subir la foto de la versión">
+        <input id="catVer_imagen" type="url" value="${escapeHtml(v?.imagen || '')}" placeholder="…o pega la dirección de una foto" aria-label="Dirección de la foto">
+      </span>
+    </div>
+    <div class="cat-campos">
+      ${campo('catVer_etiqueta', 'Nombre de la versión', v?.etiqueta, { pista: 'Metálica, Pokémon Day…' })}
+      <label class="cat-campo cat-campo-medio">Icono
+        <select id="catVer_icono">${ICONOS_A_ELEGIR.map(([k, r]) => `<option value="${k}"${(v?.icono || 'metalica') === k ? ' selected' : ''}>${escapeHtml(r)}</option>`).join('')}</select>
+        <span class="cat-version-ico" id="catVerIconoVer" aria-hidden="true">${iconoDeVersion(v?.icono || 'metalica', 20)}</span>
+      </label>
+      ${campo('catVer_salio_en', 'Salió en (producto o colección)', v?.salio_en, { pista: 'Celebrations Ultra-Premium Collection', ancho: true })}
+      ${campo('catVer_lanzamiento', 'Lanzamiento', v?.lanzamiento, { tipo: 'date' })}
+      <label class="cat-campo cat-campo-medio">Clase
+        <select id="catVer_clase">${CLASES.map(([k, r]) => `<option value="${k}"${(v?.clase || 'adicional') === k ? ' selected' : ''}>${escapeHtml(r)}</option>`).join('')}</select>
+      </label>
+      ${campo('catVer_numero', 'Número, si no es el de la carta', v?.numero, { pista: c.local_id })}
+      ${campo('catVer_link_cm', 'Cardmarket (enlace)', v?.link_cm, { tipo: 'url', pista: 'https://www.cardmarket.com/…', ancho: true })}
+      ${campo('catVer_cm_id_product', 'Cardmarket (número de producto)', v?.cm_id_product, { tipo: 'number' })}
+      ${campo('catVer_tcggo_id', 'Id de TCGGO, si la tiene', v && v.tcggo_id > 0 ? v.tcggo_id : '', { tipo: 'number', pista: 'con él, el precio llega solo' })}
+    </div>
+    <div class="col-hoja-pie">
+      ${nueva ? '' : '<button class="btn-danger btn-small" id="catVerBorrar">Borrar versión</button>'}
+      <span style="flex:1"></span>
+      <button class="btn-secondary" id="catCancelar">Cancelar</button>
+      <button class="btn-primary" id="catVerGuardar">${nueva ? 'Crear versión' : 'Guardar versión'}</button>
+    </div>`)
+  const volver = () => abrirFicha(c.id)
+  $('catAtras').addEventListener('click', volver)
+  $('catCancelar').addEventListener('click', volver)
+  $('catVer_icono').addEventListener('change', (e) => { $('catVerIconoVer').innerHTML = iconoDeVersion(e.target.value, 20) })
+  $('catVerFotoFichero').addEventListener('change', async (e) => {
+    const fichero = e.target.files?.[0]
+    if (!fichero) return
+    const ver = $('catVerFotoVer')
+    try {
+      validateImageFile(fichero)
+      ver.innerHTML = '<span class="col-set-sinlogo">subiendo…</span>'
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      if (!session) throw new Error('Hay que entrar para subir una imagen.')
+      const url = await uploadGuideImage(session.user.id, fichero)
+      $('catVer_imagen').value = url
+      ver.innerHTML = `<img src="${escapeHtml(url)}" alt="">`
+    } catch (err) {
+      ver.innerHTML = v?.imagen ? `<img src="${escapeHtml(v.imagen)}" alt="">` : '<span class="col-set-sinlogo">sin foto</span>'
+      showToast(String(err?.message || err).slice(0, 140), 'error')
+    } finally {
+      e.target.value = ''
+    }
+  })
+  $('catVerGuardar').addEventListener('click', async () => {
+    const leer = (k) => ($(`catVer_${k}`)?.value || '').trim()
+    const datos = Object.fromEntries(['etiqueta', 'icono', 'imagen', 'salio_en', 'lanzamiento', 'clase', 'numero', 'link_cm', 'cm_id_product', 'tcggo_id'].map((k) => [k, leer(k)]))
+    if (!datos.etiqueta) return showToast('La versión necesita un nombre.', 'error')
+    const { error } = await supabase.rpc('catalogo_version_mano', { p_card_id: c.id, p_market: mercado, p_datos: datos, p_tcggo_id: nueva ? null : v.tcggo_id })
+    if (error) return showToast(/catalogo_version_mano|PGRST202|42883/.test(`${error.code} ${error.message}`) ? 'Falta ejecutar supabase-migration-934-versiones-a-mano.sql.' : error.message.slice(0, 160), 'error')
+    showToast(nueva ? 'Versión creada' : 'Versión guardada', 'success')
+    volver()
+  })
+  $('catVerBorrar')?.addEventListener('click', async () => {
+    const { error } = await supabase.rpc('catalogo_borrar_version_mano', { p_tcggo_id: v.tcggo_id })
+    if (error) return showToast(error.message.slice(0, 160), 'error')
+    showToast('Versión borrada', 'success')
+    volver()
   })
 }
 

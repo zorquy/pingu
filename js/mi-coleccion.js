@@ -64,7 +64,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, cuentaParaMaestro, versionDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
@@ -478,8 +478,7 @@ function abrirAnadir(cardId, variante = null) {
   anadir.carta = c
   anadir.variante = variante
   const d = $('mcAnadirDialogo')
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  $('mcAdCarta').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="eager" />` : ''
+  pintarCartaDeAnadir(variante)
   // El set por su NOMBRE: las cartas de una expansión abierta traen de
   // `tcg_sets` solo el código y la serie, así que se busca en la lista.
   const set = c.tcg_sets?.name ? c.tcg_sets : (todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets
@@ -506,12 +505,21 @@ function abrirAnadir(cardId, variante = null) {
     const vs = variantesParaEditar(c, puesta)
     $('mcAdVariante').innerHTML = opciones(vs, puesta)
     eleccionDeVersion().actualizar(vs)
+    pintarCartaDeAnadir()
   })
 }
 
 // La lista «¿Cuál tienes?» de la hoja de añadir (922), montada la primera
 // vez que se abre.
 let eleccion = null
+// La carta de la hoja de añadir, con la foto de la versión elegida (934):
+// la metálica se ve metálica.
+function pintarCartaDeAnadir(variante = $('mcAdVariante')?.value) {
+  const c = anadir.carta
+  if (!c) return
+  const escaneo = atributosDeEscaneo(escaneoDeVersion(c, variante))
+  $('mcAdCarta').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="eager" />` : ''
+}
 const eleccionDeVersion = () => (eleccion ||= montarEleccion({ form: $('mcAdForm'), select: $('mcAdVariante'), lista: $('mcAdElegir'), fija: $('mcAdVersionFija') }))
 const copiasDeVersion = (cardId, id) => misLineasDe(cardId).filter((x) => (x.variante || 'normal') === id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
 
@@ -2179,6 +2187,43 @@ function abrirCarta(cardId, carta = null, variante = null) {
 
 let versionDeLaFicha = null
 
+// La foto de la ficha, en su función (934) para repintarla cuando llegan las
+// versiones de la carta: una versión a mano trae la suya (la metálica de la
+// UPC no se parece a su Charizard de Base Set).
+function pintarFotoDeFicha(c, l) {
+  const escaneo = atributosDeEscaneo(escaneoDeVersion(c, l?.variante, 'high'))
+  const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
+  $('mcEdFoto').innerHTML = escaneo
+    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}${varianteDe(l?.variante).id === 'reverse' ? ' data-impresion="reverse"' : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" fetchpriority="high" /></span>`
+    : ''
+  // El holo se monta sobre el envoltorio recién pintado. A demanda, como
+  // en /carta: con el dedo o con «menos movimiento» puesto no se monta
+  // nada, así que tampoco hace falta bajar el módulo.
+  // Detrás de la carta, sus propios colores difuminados (921, como Dex): el
+  // fondo es la foto que acaba de cargar, la que haya salido de la cadena.
+  const fondo = $('mcEdFondo')
+  const foto = $('mcEdFoto').querySelector('img')
+  if (fondo) {
+    fondo.style.backgroundImage = ''
+    const poner = () => {
+      const u = urlParaCss(foto.currentSrc || foto.src)
+      fondo.style.backgroundImage = u ? `url("${u}")` : ''
+    }
+    if (foto?.complete && foto.naturalWidth) poner()
+    else foto?.addEventListener('load', poner, { once: true })
+  }
+  const caja = $('mcEdFoto').querySelector('.carta-scan-holo')
+  if (caja) import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
+}
+
+// La cadena de fotos de una carta en una versión (934): la de la versión
+// primero, si la tiene, y detrás la de la carta, por si aquella no carga.
+function escaneoDeVersion(c, variante, calidad = 'low') {
+  const propia = c && variante ? versionDeVariante(c, variante)?.imagen : null
+  const cadena = cadenaDeEscaneo(c, null, calidad)
+  return propia ? [propia, ...cadena.filter((u) => u !== propia)] : cadena
+}
+
 function abrirEditor(l) {
   // La carta del catálogo que se mira, o la de la colección ENTERA (648):
   // desde el Panel se abre cualquiera de tus cartas, y si estabas mirando
@@ -2230,29 +2275,7 @@ function abrirEditor(l) {
   // rejilla: es la carta que ACABAS de pulsar, así que diferirla es
   // retrasar lo único que has pedido. Es la misma excepción que el
   // lightbox, y va escrita en el atributo para que se lea aquí.
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c, null, 'high'))
-  const brillo = c ? familiaDeBrillo(rarezaCrudaDeCarta(c)) : null
-  $('mcEdFoto').innerHTML = escaneo
-    ? `<span class="carta-scan-holo"${brillo ? ` data-brillo="${brillo}"` : ''}${varianteDe(l?.variante).id === 'reverse' ? ' data-impresion="reverse"' : ''}><img ${escaneo} alt="" width="600" height="825" decoding="async" loading="eager" fetchpriority="high" /></span>`
-    : ''
-  // El holo se monta sobre el envoltorio recién pintado. A demanda, como
-  // en /carta: con el dedo o con «menos movimiento» puesto no se monta
-  // nada, así que tampoco hace falta bajar el módulo.
-  // Detrás de la carta, sus propios colores difuminados (921, como Dex): el
-  // fondo es la foto que acaba de cargar, la que haya salido de la cadena.
-  const fondo = $('mcEdFondo')
-  const foto = $('mcEdFoto').querySelector('img')
-  if (fondo) {
-    fondo.style.backgroundImage = ''
-    const poner = () => {
-      const u = urlParaCss(foto.currentSrc || foto.src)
-      fondo.style.backgroundImage = u ? `url("${u}")` : ''
-    }
-    if (foto?.complete && foto.naturalWidth) poner()
-    else foto?.addEventListener('load', poner, { once: true })
-  }
-  const caja = $('mcEdFoto').querySelector('.carta-scan-holo')
-  if (caja) import('./carta-holo.js').then(({ montarHolo }) => montarHolo(caja)).catch(() => {})
+  pintarFotoDeFicha(c, l)
   $('mcEditorTitulo').textContent = nombreDe(c)
   // El set va ARRIBA del nombre y el número con él, como una miga de pan:
   // «de dónde es» antes que «cómo se llama» (tanda 393).
@@ -2273,7 +2296,7 @@ function abrirEditor(l) {
   // ilustrador son justo por lo que se filtra, así que verlos aquí es lo
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
-  $('mcEdTabla').innerHTML = tablaDeCarta(c)
+  $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
   // Las carpetas cuelgan de una LÍNEA, así que sin ella no hay nada que
   // enseñar; el «quién la tiene» es de la carta y sí vale siempre.
   if (l.id) pintarCarpetasDeLaFicha(l.id)
@@ -2297,6 +2320,11 @@ function abrirEditor(l) {
     if (!hay || !$('mcEditor')?.open) return
     const puesta = $('mcEdVariante').value
     $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, puesta), puesta)
+    // Una versión a mano trae su foto y sus datos (934).
+    if (cartaAbierta === l.card_id && versionDeVariante(c, l.variante)?.origen === 'mano') {
+      pintarFotoDeFicha(c, l)
+      $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
+    }
   })
   $('mcEdCantidad').value = l.cantidad
   // `?? 0` y no `|| 0`: son lo mismo hoy, pero el día que la columna no
@@ -2394,9 +2422,15 @@ function direccionDeIlustrador(c) {
 // LOS ATRIBUTOS EN FILAS (915), como en Dex: un icono, el rótulo pequeño y
 // el dato en grande; las que llevan a otra parte, con su flecha. Lo que no
 // se sabe no se pinta (la regla de los tres estados, tanda 319).
-function tablaDeCarta(c) {
+// Una versión a mano (934) trae lo suyo: dónde salió, cuándo, su número y
+// su clase. «Salió en: Celebrations Ultra-Premium Collection» va primero,
+// que es lo que hace distinta a la metálica de su Charizard de Base Set.
+const CLASES_DE_VERSION = { impresion: 'Impresión', sello: 'Sello', adicional: 'Adicional' }
+function tablaDeCarta(c, variante = null) {
   if (!c) return ''
-  const fecha = c.tcg_sets?.release_date
+  const suya = variante ? versionDeVariante(c, variante) : null
+  const aMano = suya?.origen === 'mano' ? suya : null
+  const fecha = aMano?.lanzamiento || c.tcg_sets?.release_date
   const fila = (icono, rotulo, valor, href = null) => {
     const dentro = `<span class="mc-fila-ico" aria-hidden="true">${icono}</span><span class="mc-fila-texto"><small>${escapeHtml(rotulo)}</small><b>${valor}</b></span>`
     return href
@@ -2404,9 +2438,11 @@ function tablaDeCarta(c) {
       : `<div class="mc-fila mc-atrib">${dentro}</div>`
   }
   const set = nombreDeSet(c.tcg_sets) || c.set_id
-  const numero = c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? `/${c.tcg_sets.card_count_official}` : ''}` : ''
+  const numero = aMano?.numero || (c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? `/${c.tcg_sets.card_count_official}` : ''}` : '')
   const tipos = Array.isArray(c.types) ? c.types.filter(Boolean) : []
   const filas = [
+    aMano?.salio_en ? fila(icons.cards(18), 'Salió en', escapeHtml(aMano.salio_en)) : '',
+    aMano?.clase ? fila(iconoDeVersion(variante, 18), 'Versión', escapeHtml(CLASES_DE_VERSION[aMano.clase] || aMano.clase)) : '',
     c.illustrator ? fila(icons.palette(18), 'Ilustrador', escapeHtml(c.illustrator), direccionDeIlustrador(c)) : '',
     fecha ? fila(icons.calendar(18), 'Salió', escapeHtml(new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }))) : '',
     set ? fila(icons.layers(18), 'Expansión', `${escapeHtml(set)}${numero ? ` · ${escapeHtml(numero)}` : ''}`, direccionDeSet(c)) : '',
@@ -3512,7 +3548,8 @@ function veloDeVariante(id) {
 
 function bolsilloDeVariante(c, v) {
   const n = tengoEnAlbum(c.id, v.nuestro)
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  // Con la foto de su versión, si la tiene (934).
+  const escaneo = atributosDeEscaneo(escaneoDeVersion(c, v.nuestro))
   const nombre = nombreDe(c)
   const etiqueta = `${nombre} (${c.local_id}), ${v.nombre}${n ? `, tienes ${n}` : laQuieres(c.id) ? ', te falta y la quieres' : ', te falta'}`
   // EL NOMBRE SE PINTA SIEMPRE, DEBAJO (tanda 458), y la imagen encima.
@@ -4174,7 +4211,7 @@ function faltaMaestro() {
   let faltan = 0
   let sinPrecio = 0
   for (const c of album.cartas) {
-    for (const v of variantesDeCarta(c)) {
+    for (const v of variantesDeCarta(c).filter(cuentaParaMaestro)) {
       if (tengoEnAlbum(c.id, v.nuestro)) continue
       faltan++
       const p = precioDeCartaDelAlbum(c, v.nuestro)
@@ -6380,6 +6417,7 @@ function enganchar() {
   // (NM, EX…) y el nombre entero debajo; la versión, con su nombre.
   segmentar($('mcAdEstado'), { etiqueta: 'Estado de la copia', corto: (o) => o.value })
   segmentar($('mcAdVariante'), { etiqueta: 'Versión de la copia' })
+  $('mcAdVariante')?.addEventListener('change', () => pintarCartaDeAnadir())
   for (const ev of ['input', 'change']) $('mcAdCantidad')?.addEventListener(ev, rotularGuardar)
   $('mcAdIdiomas')?.addEventListener('click', (e) => {
     const chip = e.target.closest('.mc-idioma-chip')

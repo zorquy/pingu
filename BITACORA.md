@@ -4,6 +4,53 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (168) — PINGU-Claude (934 — versiones a mano y borrar cartas desde /admin)
+
+**Hecho** (PINGU, con un amigo echando en falta la metálica del Charizard de
+la UPC de Celebrations y el sello de Pokémon Day: «meterlo como reprint de
+la carta original, como una versión extra… y al editar cartas también
+deberíamos poder eliminar una carta»; eligió lo recomendado de la propuesta
+https://claude.ai/artifact/W5pFGFtsxcSNLA8tm148JQ):
+- /admin → Colecciones → un set → «Ver y editar sus cartas» → una carta:
+  abajo, sus **Versiones** (las de TCGGO y las de a mano) y «Nueva versión a
+  mano»: nombre, icono (metálica, sello, estrella y los de siempre), foto
+  (se sube o se pega), «Salió en», lanzamiento, clase (impresión, sello o
+  adicional), número si es otro, Cardmarket (enlace e id) y el id de TCGGO
+  si lo tiene (con él el precio llega solo). Se editan y se borran; la que
+  alguien tiene apuntada no se borra.
+- En Mi colección la versión a mano sale como una más de la carta, con su
+  dibujo; su casilla del álbum, la ficha y la hoja de añadir enseñan SU
+  foto, y la ficha lleva «Salió en», la clase y SU fecha. Sin precio propio
+  va «Sin precio» con su enlace: no toma el del Charizard de Base Set.
+- La clase decide el maestro: un sello y una adicional no cuentan.
+- **Borrar cualquier carta**: el botón está en la lista y en la ficha. Antes
+  dice quién la tiene (personas, copias, deseos, álbumes, avisos, vitrina) y,
+  si alguien, pide a qué carta pasa todo (primero las del mismo número). Una
+  de TCGdex o TCGGO deja una «lápida» en `tcg_correcciones` para que ninguna
+  pasada la vuelva a crear; una de a mano se va sin más.
+
+**MIGRACIÓN**: `supabase-migration-934-versiones-a-mano.sql` (sin ella la
+web sigue igual y /admin dice que falta). Probada en PostgreSQL dos veces
+seguidas, 22 casos.
+
+**Ficheros**: `supabase-migration-934-versiones-a-mano.sql` (nueva),
+`admin/js/catalogo-cartas.js`, `admin/css/admin.css`,
+`js/mi-coleccion/iconos-version.js`, `js/mi-coleccion/variantes.js`,
+`js/mi-coleccion/progreso-set.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion.js`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-934.mjs` (+ `sql-tanda-934.sql` y
+`sql-tanda-934-casos.sql`; probado que salta si el maestro cuenta la
+adicional, si la casilla pinta la foto de la carta o si una de a mano quita
+la Reverse), la 885 al día (borrar ya no es solo de a mano) y el doble con
+las tres funciones nuevas.
+
+**Pendiente**:
+- PINGU: ejecutar la migración 934 y meter la metálica: Base Set → sus
+  cartas → Charizard 4/102 → Nueva versión a mano.
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (167) — PINGU-Claude (933 — traer ya las versiones de una expansión, desde /admin)
 
 **Hecho** (PINGU, con la sonda: «Set me02.5 · tcggo_id 396 · 295 cartas.

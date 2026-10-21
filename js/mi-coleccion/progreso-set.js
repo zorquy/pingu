@@ -18,7 +18,7 @@
 // tres cuentas se prueban en Node. Lo de «cuántas tengo» entra como
 // función, que es lo que ya sabe la pantalla.
 
-import { variantesDeCarta } from './variantes.js'
+import { variantesDeCarta, cuentaParaMaestro } from './variantes.js'
 
 // Una carta es ADICIONAL si su número impreso pasa del recuento oficial
 // del set. Solo se mira cuando el número es un número: las promos y las
@@ -49,7 +49,9 @@ export function progresoDeSet({ cartas = [], set = null, tengo = () => 0 } = {})
   let maestroTengo = 0
   let maestroTotal = 0
   for (const c of cartas) {
-    for (const v of variantesDeCarta(c)) {
+    // Un sello o una adicional (934: la metálica de la UPC colgada de Base
+    // Set) no cuenta: es una carta aparte del set, no una impresión suya.
+    for (const v of variantesDeCarta(c).filter(cuentaParaMaestro)) {
       maestroTotal++
       if (tengo(c.id, v.nuestro) > 0) maestroTengo++
     }
