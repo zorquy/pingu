@@ -41,6 +41,9 @@ const T = {
   tcg_card_prices: [],
   // Las otras versiones de TCGGO (807; la web las pinta desde la 822).
   tcg_card_versions: [],
+  // Los idiomas de un set y las versiones de cada idioma, a mano (956).
+  tcg_set_idiomas_mano: [],
+  tcg_version_idioma: [],
   // Las CARPETAS (tandas 402 y 411), que el doble no tenia hasta la 477:
   // `listarCarpetas` daba un 42P01, el cliente lo lee como «falta la
   // migracion» y la pestaña salia vacia en TODAS las pruebas. O sea que
@@ -604,6 +607,8 @@ sembrar('__FAKE_NOTIFICACIONES__', 'user_notifications', (i) => ({
 sembrar('__FAKE_VITRINA__', 'user_showcase', (i) => ({
   user_id: 'user-1', posicion: i + 1, card_id: `carta-${i}`, market: 'WEST', created_at: new Date().toISOString(),
 }))
+sembrar('__FAKE_IDIOMAS_MANO__', 'tcg_set_idiomas_mano', () => ({ market: 'WEST' }))
+sembrar('__FAKE_VERSION_IDIOMA__', 'tcg_version_idioma', () => ({ market: 'WEST', hay: false }))
 sembrar('__FAKE_VERSIONES__', 'tcg_card_versions', (i) => ({
   tcggo_id: 90000 + i, market: 'WEST', card_id: `set1-${i + 1}`, set_id: 'set1', numero: String(i + 1), nombre: null, etiqueta: null,
   cm_id_product: null, link_cm: null, cm_low: null, cm_low_es: null, actualizado_at: new Date().toISOString(),
@@ -1546,10 +1551,29 @@ export const supabase = {
     // con la misma regla de quién puede (mando o juez aprobado).
     // Los idiomas de un set (911): los da la prueba. Lo que la base calcula
     // (precios + ficha de TCGdex) se prueba contra PostgreSQL de verdad.
-    if (nombre === 'idiomas_de_set') {
+    // Desde la 956, lo calculado (la prueba) más lo de a mano, quitado lo
+    // quitado: la misma cuenta que la base.
+    if (nombre === 'idiomas_de_set' || nombre === 'idiomas_de_set_calculados') {
       const mapa = (typeof window !== 'undefined' && window.__FAKE_IDIOMAS_SET__) || null
-      if (!mapa) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.idiomas_de_set' } }
-      return { data: mapa[args.p_set] || [], error: null }
+      if (!mapa) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      const calc = mapa[args.p_set] || []
+      if (nombre === 'idiomas_de_set_calculados') return { data: calc, error: null }
+      const mano = T.tcg_set_idiomas_mano.filter((f) => f.set_id === args.p_set && (f.market || 'WEST') === (args.p_market || 'WEST'))
+      const todos = [...new Set([...calc, ...mano.filter((f) => f.hay).map((f) => f.idioma)])].filter((x) => !mano.some((f) => !f.hay && f.idioma === x)).sort()
+      return { data: todos, error: null }
+    }
+    if (nombre === 'catalogo_idioma_de_set' || nombre === 'catalogo_version_de_idioma') {
+      const perfil = T.user_profiles.find((x) => x.id === sesion?.user?.id) || {}
+      if (!perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
+      const mk = args.p_market || 'WEST'
+      if (nombre === 'catalogo_idioma_de_set') {
+        T.tcg_set_idiomas_mano = T.tcg_set_idiomas_mano.filter((f) => !(f.set_id === args.p_set && (f.market || 'WEST') === mk && f.idioma === args.p_idioma))
+        if (args.p_hay !== null && args.p_hay !== undefined) T.tcg_set_idiomas_mano.push({ set_id: args.p_set, market: mk, idioma: args.p_idioma, hay: args.p_hay })
+        return { data: { ok: true }, error: null }
+      }
+      T.tcg_version_idioma = T.tcg_version_idioma.filter((f) => !(f.set_id === args.p_set && (f.market || 'WEST') === mk && f.variante === args.p_variante && f.idioma === args.p_idioma))
+      if (args.p_hay === false) T.tcg_version_idioma.push({ set_id: args.p_set, market: mk, variante: args.p_variante, idioma: args.p_idioma, hay: false })
+      return { data: { ok: true }, error: null }
     }
     if (nombre === 'torneos_tablon_escribir') {
       const yo = sesion?.user?.id || null
