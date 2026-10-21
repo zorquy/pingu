@@ -1590,6 +1590,43 @@ export const supabase = {
         vitrina: (T.user_showcase || []).filter((x) => x.card_id === id).length,
       }
     }
+    // Versiones a muchas cartas de una vez (949), con las reglas de la base:
+    // solo el admin, etiquetas sin repetir (sin caja), solo filas de edición
+    // al quitar, la Unlimited con el producto de la carta y las copias
+    // «normal»/«holo» a Unlimited con `p_mover`.
+    if (nombre === 'catalogo_versiones_lote') {
+      const yo = sesion?.user?.id || null
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      if (!yo || !perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
+      T.tcg_card_versions ||= []
+      const etiquetas = []
+      for (const t of args.p_etiquetas || []) { const e = String(t || '').trim(); if (e && !etiquetas.some((x) => x.toLowerCase() === e.toLowerCase())) etiquetas.push(e) }
+      if (!etiquetas.length) return { data: null, error: { code: '22023', message: 'Elige al menos una versión.' } }
+      const ids = [...new Set((args.p_cartas || []).filter(Boolean))]
+      if (!ids.length) return { data: null, error: { code: '22023', message: 'No hay ninguna carta elegida.' } }
+      const cartasL = (T.tcg_cards || []).filter((c) => (c.market || 'WEST') === args.p_market && ids.includes(c.id))
+      if (!cartasL.length) return { data: null, error: { code: 'P0002', message: 'Ninguna de esas cartas existe en ese catálogo.' } }
+      const bajas = etiquetas.map((e) => e.toLowerCase())
+      const esEd = (v, c) => v.card_id === c.id && (v.market || 'WEST') === args.p_market && v.origen === 'edicion'
+      if (args.p_quitar) {
+        const antes = T.tcg_card_versions.length
+        T.tcg_card_versions = T.tcg_card_versions.filter((v) => !(cartasL.some((c) => esEd(v, c)) && bajas.includes(String(v.etiqueta).toLowerCase())))
+        return { data: { cartas: cartasL.length, quitadas: antes - T.tcg_card_versions.length }, error: null }
+      }
+      let nuevas = 0, ya = 0, copias = 0
+      for (const c of [...cartasL].sort((x, y) => (x.id < y.id ? -1 : 1))) {
+        for (const e of etiquetas) {
+          if (T.tcg_card_versions.some((v) => esEd(v, c) && String(v.etiqueta).toLowerCase() === e.toLowerCase())) { ya++; continue }
+          const id = Math.min(0, ...T.tcg_card_versions.map((x) => x.tcggo_id)) - 1
+          T.tcg_card_versions.push({ tcggo_id: id, market: args.p_market, card_id: c.id, set_id: c.set_id, nombre: c.name, etiqueta: e, clase: 'impresion', cm_id_product: e.toLowerCase() === 'unlimited' ? c.cm_id_product_propio ?? null : null, origen: 'edicion', actualizado_at: new Date().toISOString() })
+          nuevas++
+        }
+      }
+      if (args.p_mover && bajas.includes('unlimited')) {
+        for (const l of T.user_collection || []) if (ids.includes(l.card_id) && (l.market || 'WEST') === args.p_market && ['normal', 'holo'].includes(l.variante || 'normal')) { l.variante = 'unlimited'; copias++ }
+      }
+      return { data: { cartas: cartasL.length, nuevas, ya, copias }, error: null }
+    }
     if (nombre === 'catalogo_quien_tiene_carta' || nombre === 'catalogo_version_mano' || nombre === 'catalogo_borrar_version_mano' || nombre === 'catalogo_version_foto') {
       const yo = sesion?.user?.id || null
       const perfil = T.user_profiles.find((p) => p.id === yo) || {}
