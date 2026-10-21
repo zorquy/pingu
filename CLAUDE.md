@@ -114,6 +114,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nuevo para añadir pasa por `variantesDeCarta` y por la lista «¿Cuál
   tienes?» (`montarEleccion`); si ya se sabe la versión (una casilla de
   «Variantes»), se le pasa como `puesta` y no se pregunta.
+- **En la era de Wizards las versiones son las EDICIONES** (tanda 935):
+  filas `tcg_card_versions` con `origen = 'edicion'` (1.ª edición,
+  Shadowless, Unlimited, sellos y errores con su clase), sacadas de los
+  ficheros de tcgdex/cards-database —su API no lo dice— y metidas por la
+  migración 935. Con ellas, `variantesDeCarta` ofrece solo esas (no hay
+  «Holo» ni «Normal» suelta) y la de por defecto es la Unlimited. El precio
+  de cada una llega por su producto de Cardmarket (`preciosDeEdiciones`).
+  Una «tcggo-…» que repita el número de una de estas cartas es una edición
+  que se coló: se funde, no se borra a secas.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

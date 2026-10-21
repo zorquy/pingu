@@ -32,7 +32,6 @@
 // colección es la etiqueta en minúsculas con guiones (`quick-ball`), y la
 // que no tiene etiqueta —o dice «Reverse Holo»— ES la reverse de siempre.
 import { normalizeSearch } from '../texto.js'
-import { registrarDibujo } from './iconos-version.js'
 import { rarezaEs } from '../rarezas-nombres.js'
 
 // De cómo lo llama TCGdex a cómo lo llamamos nosotros
@@ -66,6 +65,12 @@ export const esClasica = (id) => EQUIVALE.some((e) => e.nuestro === id)
 const NOMBRES = new Map()
 const deId = (id) => String(id || '').split('-').map((p) => (p ? p[0].toUpperCase() + p.slice(1) : p)).join(' ')
 
+// El dibujo elegido para una versión (934), por su id: lo lee
+// iconos-version.js. Aquí y no allí: este módulo lo baja medio sitio y los
+// iconos solo Mi colección (la 299).
+const DIBUJOS_ELEGIDOS = new Map()
+export const dibujoElegido = (id) => DIBUJOS_ELEGIDOS.get(id) || null
+
 // Las filas de `tcg_card_versions` de unas cartas, pegadas a cada una
 // (`carta.versiones`). Devuelve el mapa por carta.
 export function pegarVersiones(cartas, filas) {
@@ -76,7 +81,7 @@ export function pegarVersiones(cartas, filas) {
     const id = varianteDeEtiqueta(f.etiqueta)
     if (f.etiqueta && !esClasica(id)) NOMBRES.set(id, String(f.etiqueta).trim())
     // El dibujo elegido a mano (934).
-    if (f.icono) registrarDibujo(id, f.icono)
+    if (f.icono) DIBUJOS_ELEGIDOS.set(id, f.icono)
   }
   for (const c of cartas || []) if (c && por.has(c.id)) c.versiones = por.get(c.id)
   return por
@@ -85,7 +90,10 @@ export function pegarVersiones(cartas, filas) {
 // La fila de TCGGO de una versión de esta carta, o null (la normal no
 // tiene: es la carta misma).
 export function versionDeVariante(carta, id) {
-  return (carta?.versiones || []).find((f) => varianteDeEtiqueta(f.etiqueta) === id) || null
+  // Con dos filas para la misma (la «1st Edition» de TCGGO y la de edición,
+  // 935), la que lleva foto primero: es la que alguien eligió.
+  const todas = (carta?.versiones || []).filter((f) => varianteDeEtiqueta(f.etiqueta) === id)
+  return todas.find((f) => f.imagen) || todas[0] || null
 }
 
 // Todas las que existen en el TCG, para quien quiera ofrecerlas cuando
@@ -112,6 +120,12 @@ export const TODAS = EQUIVALE.slice()
 // defecto habría enterrado la diferencia otra vez, así que se pide: que
 // cada pantalla diga en voz alta qué prefiere.
 export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
+  // Una carta de Wizards con sus EDICIONES (935) no tiene más versiones que
+  // esas: el «holo» y la «1.ª edición» de TCGdex son propiedades de la
+  // carta, no impresiones aparte (Chansey ofrecía una «Normal» que no
+  // existe).
+  const ediciones = edicionesDe(carta)
+  if (ediciones.length) return ediciones
   const v = carta?.variants
   const dichas = v && typeof v === 'object' ? EQUIVALE.filter((e) => v[e.suyo] === true) : []
   // Lo que la carta no dice se deduce de su expansión y su rareza (922).
@@ -125,7 +139,8 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // la carta misma, no como versión.
   // Las de a mano (934) no cuentan: un sello de Pokémon Day no dice nada de
   // si la carta tiene Reverse.
-  const deTcggo = (carta?.versiones || []).filter((f) => f.origen !== 'mano').map((f) => varianteDeEtiqueta(f.etiqueta))
+  // Ni las filas que solo llevan una foto (935).
+  const deTcggo = (carta?.versiones || []).filter((f) => !f.origen).map((f) => varianteDeEtiqueta(f.etiqueta))
   if (deTcggo.length && !deTcggo.includes('reverse')) base = base.filter((e) => e.nuestro !== 'reverse')
   // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir.
   const extras = []
@@ -142,6 +157,37 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // Solo versiones de TCGGO: la Standard (la carta misma) existe seguro.
   const sin = Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
   return [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
+}
+
+// ── LAS EDICIONES DE WIZARDS (935) ──
+//
+// Las filas `origen = 'edicion'` (supabase-migration-935, de los ficheros de
+// tcgdex/cards-database): la 1.ª edición, la Shadowless, la Unlimited y lo
+// demás, en ese orden; la migración las mete así y sus ids van hacia abajo.
+// Detrás, lo que no es de siempre y tenga su fila (una a mano, una Ball de
+// TCGGO); la holo o la normal de TCGGO sobran, que no son una edición.
+const RANGO_EDICION = { primera: 0, shadowless: 1, unlimited: 2 }
+function edicionesDe(carta) {
+  const filas = (carta?.versiones || []).filter((f) => f.origen === 'edicion')
+  if (!filas.length) return []
+  const vistas = new Set()
+  const fuera = []
+  const poner = (f) => {
+    const id = varianteDeEtiqueta(f.etiqueta)
+    if (vistas.has(id)) return
+    vistas.add(id)
+    const e = EQUIVALE.find((x) => x.nuestro === id)
+    fuera.push(e ? { ...e, clase: f.clase || null } : { suyo: null, nuestro: id, corto: cortoDeVariante(id), nombre: nombreDeVariante(id), clase: f.clase || null })
+  }
+  const rango = (f) => RANGO_EDICION[varianteDeEtiqueta(f.etiqueta)] ?? 9
+  for (const f of [...filas].sort((a, b) => rango(a) - rango(b) || Number(b.tcggo_id) - Number(a.tcggo_id))) poner(f)
+  for (const f of carta.versiones) {
+    if (f.origen === 'edicion' || f.origen === 'foto') continue
+    const id = varianteDeEtiqueta(f.etiqueta)
+    if (id === 'normal' || id === 'holo') continue
+    poner(f)
+  }
+  return fuera
 }
 
 // ¿Cuenta para el set maestro? (934, lo recomendado): una impresión sí (la
@@ -256,6 +302,9 @@ export function cortoDeVariante(id) {
 //
 // Lo que NO se sabe sigue siendo normal: una carta sin engordar no dice
 // nada de sus versiones, y la normal es la que existe casi siempre.
+// Y en una de Wizards (935), la Unlimited: es la que tiene casi todo el
+// mundo, aunque la lista empiece por la 1.ª edición.
 export function varianteDeCarta(carta) {
-  return variantesDeCarta(carta)[0]?.nuestro || VARIANTE_POR_DEFECTO
+  const vs = variantesDeCarta(carta)
+  return (vs.find((v) => v.nuestro === 'unlimited') || vs[0])?.nuestro || VARIANTE_POR_DEFECTO
 }

@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, sinVersionesRepetidas,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, sinVersionesRepetidas, preciosDeEdiciones,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -522,6 +522,21 @@ export async function procesar({
           filas.push(fila)
           versiones.push(...filasDeVariantes(s, c, { ahora, mercado }))
         }
+        // Las ediciones de Wizards (935), por su producto: la Shadowless del
+        // Charizard ya no es una carta nuestra, es una edición. Sin la
+        // migración la columna `origen` no existe y no hay ediciones.
+        let deEdiciones = []
+        if (mercado === 'WEST' && ahoraVan.size) {
+          let ediciones = []
+          try {
+            ediciones = (await pedir(`tcg_card_versions?select=tcggo_id,card_id,set_id,etiqueta,clase,cm_id_product&market=eq.WEST&origen=eq.edicion&cm_id_product=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+          } catch {
+            ediciones = []
+          }
+          const ed = preciosDeEdiciones(Array.isArray(ediciones) ? ediciones : [], ahoraVan, { ahora, mercado })
+          deEdiciones = ed.filas
+          versiones.push(...ed.variantes)
+        }
         if (corregir.length) {
           try {
             for (const lote of porColumnas(corregir)) await corregirCartas(lote)
@@ -544,13 +559,16 @@ export async function procesar({
         // Las versiones, después del precio y SIN parar la pasada si fallan:
         // el precio de la carta es lo de siempre y no puede quedarse sin
         // escribir por lo nuevo. El fallo queda en el estado para /admin.
-        if (versiones.length) {
+        if (versiones.length || deEdiciones.length) {
           const v = estado.versiones?.dia === dia ? estado.versiones : { dia, vistas: 0, escritas: 0 }
           v.vistas += versiones.length
           try {
             const unicas = sinVersionesRepetidas(versiones)
             for (let k = 0; k < unicas.length; k += 500) await guardarVersiones(unicas.slice(k, k + 500))
             v.escritas += unicas.length
+            // Las ediciones, en su propio lote: llevan otras columnas.
+            for (let k = 0; k < deEdiciones.length; k += 500) await guardarVersiones(deEdiciones.slice(k, k + 500))
+            if (deEdiciones.length) v.ediciones = (v.ediciones || 0) + deEdiciones.length
             // Fuera del día: `tcggo-versiones` lo mira para no recorrer ids.
             estado.versionesUltimaVista = ahora.toISOString()
             delete v.error

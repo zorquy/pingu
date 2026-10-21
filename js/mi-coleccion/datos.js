@@ -387,7 +387,10 @@ export function precioDeLinea(linea, guardados, vivos) {
   // Una VERSIÓN de TCGGO (862: la Quick Ball, la Reverse de un set viejo)
   // tiene su propia fila de precio, con las mismas columnas que la de la
   // carta; si se ha traído, manda sobre la cuenta de la reverse.
-  const version = versionesPorCarta.get(linea.card_id)?.find((f) => varianteDeEtiqueta(f.etiqueta) === variante)
+  // Con varias filas para la misma versión (la «1st Edition» de TCGGO y la
+  // de edición, 935), manda la que tenga precio.
+  const suyas = (versionesPorCarta.get(linea.card_id) || []).filter((f) => varianteDeEtiqueta(f.etiqueta) === variante)
+  const version = suyas.find((f) => tieneCifras(precioDeFila(f, { reverse: false, variante: 'normal' }))) || suyas[0]
   if (version) {
     const p = precioDeFila(version, { reverse: false, variante: 'normal' })
     if (tieneCifras(p)) return p
@@ -395,6 +398,15 @@ export function precioDeLinea(linea, guardados, vivos) {
     // prestado el precio de la carta: el Charizard de Base Set no vale lo
     // que su metálica. Va sin cifra y con su enlace a Cardmarket.
     if (version.origen === 'mano') return p || (version.link_cm ? { idProduct: null, url: version.link_cm, desde: null, tendencia: null, media30: null, media7: null, actualizado: null, reverse: false, prestado: false, usd: null, dudoso: false } : null)
+    // Una EDICIÓN (935) toma el de la carta solo si es su mismo producto de
+    // Cardmarket (la Unlimited del Charizard es el 273699, como la carta) y
+    // no es la 1.ª edición, que en Cardmarket va dentro del mismo producto
+    // pero vale otra cosa. Si no, sin cifra y con el enlace a su producto.
+    if (version.origen === 'edicion') {
+      const fila = guardados.get(linea.card_id)
+      const mismo = version.cm_id_product && Number(fila?.cm_id_product) === Number(version.cm_id_product) && variante !== 'primera'
+      if (!mismo) return p
+    }
   }
   const guardado = precioDeFila(guardados.get(linea.card_id), { reverse, variante })
   if (tieneCifras(guardado)) return guardado

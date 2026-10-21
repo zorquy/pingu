@@ -22,7 +22,7 @@ import { escapeHtml, validateImageFile, uploadGuideImage } from '../../js/app.js
 import { showToast } from '../../js/toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
 import { iconoDeVersion, ICONOS_A_ELEGIR } from '../../js/mi-coleccion/iconos-version.js'
-import { varianteDeEtiqueta } from '../../js/mi-coleccion/variantes.js'
+import { varianteDeEtiqueta, variantesDeCarta, pegarVersiones, nombreDeVariante } from '../../js/mi-coleccion/variantes.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -353,19 +353,108 @@ async function pintarVersionesDeLaCarta(c) {
   if (error) { caja.innerHTML = `<p class="admin-note">No se han podido leer sus versiones: ${escapeHtml(error.message.slice(0, 120))}</p>`; return }
   const filas = data || []
   const sinMigracion = filas.length ? !('origen' in filas[0]) : false
+  // LAS VERSIONES QUE LA WEB OFRECE (935), no solo las filas: la Reverse de
+  // siempre no tiene fila y también puede llevar su foto. Cada una con la
+  // fila que la lleva, si la hay (la de foto, la primera).
+  const conVersiones = { ...c, versiones: filas }
+  pegarVersiones([conVersiones], filas)
+  const ofrecidas = variantesDeCarta(conVersiones, [])
+  const filaDe = (id) => {
+    const todas = filas.filter((v) => varianteDeEtiqueta(v.etiqueta) === id)
+    return todas.find((v) => v.imagen) || todas.find((v) => v.origen === 'mano') || todas.find((v) => v.origen === 'edicion') || todas[0] || null
+  }
+  const ORIGENES = { mano: 'a mano', edicion: 'edición (TCGdex)', foto: 'de siempre' }
+  const linea = (o) => {
+    const v = filaDe(o.nuestro)
+    const sub = v
+      ? `${ORIGENES[v.origen] || 'de TCGGO'} · id ${escapeHtml(String(v.tcggo_id))}${v.salio_en ? ` · ${escapeHtml(v.salio_en)}` : ''}${v.cm_id_product ? ` · Cardmarket ${escapeHtml(String(v.cm_id_product))}` : ''}${v.cm_low ? ` · ${escapeHtml(String(v.cm_low))} €` : ''}`
+      : 'de siempre (TCGdex)'
+    return `<li class="cat-version">
+        <span class="cat-version-ico">${iconoDeVersion(v?.icono || o.nuestro, 18)}</span>
+        <span class="cat-version-foto">${v?.imagen ? `<img src="${escapeHtml(v.imagen)}" alt="" width="36" height="50" loading="lazy">` : ''}</span>
+        <span class="cat-carta-nombre"><strong>${escapeHtml(o.nombre || nombreDeVariante(o.nuestro))}</strong>
+          <small>${sub}${v?.imagen ? ' · foto propia' : ''}</small></span>
+        ${v?.origen === 'mano'
+          ? `<button type="button" class="btn-outline btn-small" data-editar-version="${escapeHtml(String(v.tcggo_id))}">Editar</button>`
+          : sinMigracion ? '' : `<button type="button" class="btn-outline btn-small" data-foto-version="${escapeHtml(o.nuestro)}">Foto</button>`}
+      </li>`
+  }
   caja.innerHTML = `
     <h4>Versiones</h4>
-    ${filas.length ? `<ul class="cat-versiones">${filas.map((v) => `<li class="cat-version">
-        <span class="cat-version-ico">${iconoDeVersion(v.icono || varianteDeEtiqueta(v.etiqueta), 18)}</span>
-        <span class="cat-carta-nombre"><strong>${escapeHtml(v.etiqueta || '(sin nombre)')}</strong>
-          <small>${v.origen === 'mano' ? 'a mano' : 'de TCGGO'} · id ${escapeHtml(String(v.tcggo_id))}${v.salio_en ? ` · ${escapeHtml(v.salio_en)}` : ''}${v.cm_low ? ` · ${escapeHtml(String(v.cm_low))} €` : ''}</small></span>
-        ${v.origen === 'mano' ? `<button type="button" class="btn-outline btn-small" data-editar-version="${escapeHtml(String(v.tcggo_id))}">Editar</button>` : ''}
-      </li>`).join('')}</ul>` : '<p class="admin-note">Ninguna versión de TCGGO ni a mano.</p>'}
+    ${ofrecidas.length ? `<ul class="cat-versiones">${ofrecidas.map(linea).join('')}</ul>` : '<p class="admin-note">La web no ofrece ninguna versión de esta carta.</p>'}
     ${sinMigracion ? '<p class="admin-note">Para meter versiones a mano falta ejecutar <code>supabase-migration-934-versiones-a-mano.sql</code>.</p>' : '<button type="button" class="btn-primary btn-small" id="catNuevaVersion">Nueva versión a mano</button>'}`
   $('catNuevaVersion')?.addEventListener('click', () => abrirVersion(c, null))
   caja.querySelectorAll('[data-editar-version]').forEach((b) =>
     b.addEventListener('click', () => abrirVersion(c, filas.find((v) => String(v.tcggo_id) === b.dataset.editarVersion)))
   )
+  caja.querySelectorAll('[data-foto-version]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = b.dataset.fotoVersion
+      abrirFotoDeVersion(c, id, ofrecidas.find((o) => o.nuestro === id)?.nombre || nombreDeVariante(id), filaDe(id))
+    })
+  )
+}
+
+// LA FOTO DE UNA VERSIÓN (935). PINGU: «para cada versión me gustaría poder
+// meterle una imagen… imagínate que tú escoges la del First Edition, pero en
+// la Unlimited yo no voy a mostrar la First Edition». Va por
+// `catalogo_version_foto`: en la fila de la versión (las pasadas no escriben
+// `imagen`, así que se queda) o, si es una de siempre sin fila, en una nueva.
+function abrirFotoDeVersion(c, variante, nombre, fila) {
+  const actual = fila?.imagen || ''
+  hoja.abrir(`
+    <div class="cat-cab">
+      <button class="btn-secondary btn-small" id="catAtras">← ${escapeHtml(nombreDe(c))}</button>
+      <h3>Foto de «${escapeHtml(nombre)}»</h3>
+    </div>
+    <p class="admin-note">De <strong>${escapeHtml(`${c.local_id} · ${nombreDe(c)}`)}</strong>. Es la foto que sale en la ficha, en su casilla del álbum y al añadirla. Sin foto propia, sale la de la carta.</p>
+    <div class="cat-foto-caja">
+      <span class="cat-foto-ver" id="catFotoVerVer">${actual ? `<img src="${escapeHtml(actual)}" alt="">` : '<span class="col-set-sinlogo">la de la carta</span>'}</span>
+      <span class="cat-foto-acciones">
+        <input type="file" id="catFotoVerFichero" accept="image/*" aria-label="Subir la foto de la versión">
+        <input id="catFotoVer_imagen" type="url" value="${escapeHtml(actual)}" placeholder="…o pega la dirección de una foto" aria-label="Dirección de la foto">
+      </span>
+    </div>
+    <div class="col-hoja-pie">
+      ${actual ? '<button class="btn-secondary btn-small" id="catFotoVerQuitar">Quitar la foto</button>' : ''}
+      <span style="flex:1"></span>
+      <button class="btn-secondary" id="catCancelar">Cancelar</button>
+      <button class="btn-primary" id="catFotoVerGuardar">Guardar foto</button>
+    </div>`)
+  const volver = () => abrirFicha(c.id)
+  $('catAtras').addEventListener('click', volver)
+  $('catCancelar').addEventListener('click', volver)
+  $('catFotoVerFichero').addEventListener('change', async (e) => {
+    const fichero = e.target.files?.[0]
+    if (!fichero) return
+    const ver = $('catFotoVerVer')
+    try {
+      validateImageFile(fichero)
+      ver.innerHTML = '<span class="col-set-sinlogo">subiendo…</span>'
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      if (!session) throw new Error('Hay que entrar para subir una imagen.')
+      const url = await uploadGuideImage(session.user.id, fichero)
+      $('catFotoVer_imagen').value = url
+      ver.innerHTML = `<img src="${escapeHtml(url)}" alt="">`
+    } catch (err) {
+      ver.innerHTML = actual ? `<img src="${escapeHtml(actual)}" alt="">` : '<span class="col-set-sinlogo">la de la carta</span>'
+      showToast(String(err?.message || err).slice(0, 140), 'error')
+    } finally {
+      e.target.value = ''
+    }
+  })
+  const guardar = async (imagen) => {
+    const { error } = await supabase.rpc('catalogo_version_foto', { p_card_id: c.id, p_market: mercado, p_variante: variante, p_imagen: imagen })
+    if (error) return showToast(/catalogo_version_foto|PGRST202|42883/.test(`${error.code} ${error.message}`) ? 'Falta ejecutar supabase-migration-935-ediciones-wizards.sql.' : error.message.slice(0, 160), 'error')
+    showToast(imagen ? 'Foto guardada' : 'Foto quitada', 'success')
+    volver()
+  }
+  $('catFotoVerGuardar').addEventListener('click', () => {
+    const url = $('catFotoVer_imagen').value.trim()
+    if (!url) return showToast('Sube una foto o pega su dirección.', 'error')
+    guardar(url)
+  })
+  $('catFotoVerQuitar')?.addEventListener('click', () => guardar(null))
 }
 
 function abrirVersion(c, v) {

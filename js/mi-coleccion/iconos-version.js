@@ -15,6 +15,7 @@
 // TCGGO («Poké Ball» → `poke-ball`). Una Ball nueva es un fichero más y una
 // línea en `BOLAS`.
 import { icon } from '../icons.js'
+import { dibujoElegido } from './variantes.js'
 
 // Un destello de cuatro puntas, relleno: a 16 px una estrella de trazo se
 // empasta.
@@ -37,6 +38,10 @@ const DIBUJOS = {
   // Las de las versiones a mano (934): la metálica (la carta rayada en
   // diagonal, el brillo del metal), un sello (Pokémon Day, prerelease,
   // staff: un tampón redondo) y una estrella (lo demás que merece una).
+  // Las ediciones de Wizards (935): la Unlimited con su infinito y la
+  // Shadowless con la sombra del recuadro que le falta, a rayas.
+  unlimited: '<circle cx="12" cy="12" r="8.5"></circle><path d="M8 12c0-1 .8-1.8 1.8-1.8 1.7 0 2.7 3.6 4.4 3.6 1 0 1.8-.8 1.8-1.8s-.8-1.8-1.8-1.8c-1.7 0-2.7 3.6-4.4 3.6-1 0-1.8-.8-1.8-1.8z"></path>',
+  shadowless: CARTA + '<path d="M16.8 7v6.8H9.6" stroke-dasharray="1.6 1.6"></path>',
   metalica: CARTA + '<path d="M7.5 8.5l9 9M7.5 13.5l5.5 5.5M11 6l6.5 6.5"></path>',
   sello: '<circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5" stroke-dasharray="2 2"></circle>',
   estrella: '<path d="M12 4.5l2.2 4.6 5 .6-3.7 3.4 1 5-4.5-2.5-4.5 2.5 1-5-3.7-3.4 5-.6z" fill="currentColor" stroke="none"></path>',
@@ -48,15 +53,14 @@ const DIBUJOS = {
 // Los que se eligen para una versión a mano en /admin (934), con su nombre.
 export const ICONOS_A_ELEGIR = [
   ['metalica', 'Metálica'], ['sello', 'Sello'], ['estrella', 'Estrella'], ['holo', 'Holo'], ['reverse', 'Reverse'],
-  ['primera', '1.ª edición'], ['cosmos', 'Cosmos'], ['energia', 'Energía'], ['normal', 'Normal'], ['otra', 'Destello'],
+  ['primera', '1.ª edición'], ['unlimited', 'Unlimited'], ['shadowless', 'Shadowless'], ['cosmos', 'Cosmos'], ['energia', 'Energía'], ['normal', 'Normal'], ['otra', 'Destello'],
 ]
 
 // El dibujo que eligió quien la hizo a mano manda sobre lo que se deduce del
-// nombre: «Metal Card» no dice «metálica» a ninguna regla.
-const ELEGIDOS = new Map()
-export function registrarDibujo(id, clave) {
-  if (id && (DIBUJOS[clave] || BOLAS.includes(clave))) ELEGIDOS.set(id, clave)
-}
+// nombre: «Metal Card» no dice «metálica» a ninguna regla. Lo apunta
+// `pegarVersiones` en variantes.js (935: allí y no aquí, para que quien
+// pide la lista de versiones no arrastre los iconos y sus clases a páginas
+// que no cargan su hoja, la 299).
 
 export const BOLAS = ['poke-ball', 'great-ball', 'ultra-ball', 'master-ball', 'quick-ball', 'friend-ball', 'love-ball', 'dusk-ball', 'premier-ball', 'heal-ball', 'luxury-ball']
 
@@ -68,14 +72,17 @@ export const BOLAS = ['poke-ball', 'great-ball', 'ultra-ball', 'master-ball', 'q
 const BOLAS_POR_LARGO = [...BOLAS].sort((a, b) => b.length - a.length)
 export function dibujoDeVersion(id) {
   const v = String(id || 'normal').toLowerCase()
-  const elegido = ELEGIDOS.get(v)
-  if (elegido) return BOLAS.includes(elegido) ? { tipo: 'bola', clave: elegido } : { tipo: 'svg', clave: elegido }
+  const elegido = dibujoElegido(v)
+  if (elegido && (DIBUJOS[elegido] || BOLAS.includes(elegido))) return BOLAS.includes(elegido) ? { tipo: 'bola', clave: elegido } : { tipo: 'svg', clave: elegido }
   if (DIBUJOS[v] && v !== 'otra') return { tipo: 'svg', clave: v }
   const bola = BOLAS_POR_LARGO.find((b) => v.includes(b))
   if (bola) return { tipo: 'bola', clave: bola }
   if (/cosmos/.test(v)) return { tipo: 'svg', clave: 'cosmos' }
   if (/energy|energia/.test(v)) return { tipo: 'svg', clave: 'energia' }
   if (/(^|-)1st|first-edition|primera/.test(v)) return { tipo: 'svg', clave: 'primera' }
+  if (/unlimited/.test(v)) return { tipo: 'svg', clave: 'unlimited' }
+  if (/shadowless/.test(v)) return { tipo: 'svg', clave: 'shadowless' }
+  if (/stamp|prerelease|winner|celebration|poketour/.test(v)) return { tipo: 'svg', clave: 'sello' }
   if (/reverse/.test(v)) return { tipo: 'svg', clave: 'reverse' }
   if (/holo/.test(v)) return { tipo: 'svg', clave: 'holo' }
   return { tipo: 'svg', clave: 'otra' }

@@ -997,6 +997,49 @@ export function filasDeVariantes(suya, carta, { ahora = new Date(), mercado = 'W
   return filas
 }
 
+// LAS EDICIONES DE WIZARDS (935). Cada edición de una carta vieja es una fila
+// de `tcg_card_versions` con `origen = 'edicion'` y su producto de Cardmarket
+// (supabase-migration-935). TCGGO no las conoce como versiones: para él, la
+// Shadowless del Charizard es OTRA carta (el producto 660224) que ya no
+// tenemos como carta. Así que su precio se escribe en la edición por el
+// producto. Si varias ediciones comparten producto (en Cardmarket la 1.ª
+// edición va dentro del de la Shadowless o el de la Unlimited), el precio es
+// de la que no lleva sello; la 1.ª edición toma el suyo de las versiones que
+// TCGGO dé de ese producto (su «1st Edition»), que se cuelgan de la carta.
+const RANGO_EDICION = (e) => [e.etiqueta === '1st Edition' ? 1 : 0, e.clase === 'impresion' ? 0 : 1, /^(Unlimited|Shadowless)$/.test(e.etiqueta || '') ? 0 : 1]
+export function preciosDeEdiciones(ediciones, porProducto, { ahora = new Date(), mercado = 'WEST' } = {}) {
+  const grupos = new Map()
+  for (const e of ediciones || []) {
+    const cm = Number(e?.cm_id_product)
+    if (!e?.card_id || !Number.isInteger(cm) || cm <= 0 || !porProducto.has(cm)) continue
+    const k = `${e.card_id}#${cm}`
+    grupos.set(k, (grupos.get(k) || []).concat([e]))
+  }
+  const filas = []
+  const variantes = []
+  for (const lista of grupos.values()) {
+    const [e] = [...lista].sort((a, b) => {
+      const ra = RANGO_EDICION(a)
+      const rb = RANGO_EDICION(b)
+      for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i]
+      return Number(b.tcggo_id) - Number(a.tcggo_id)
+    })
+    const suya = porProducto.get(Number(e.cm_id_product))
+    const p = filaDePreciosTcggo(e.card_id, suya, { ahora, mercado })
+    // Con las columnas que la fila ya tiene repetidas (la 526: un upsert
+    // tiene que poder formar la fila aunque vaya a ser un update).
+    filas.push({
+      tcggo_id: e.tcggo_id, market: mercado, card_id: e.card_id, set_id: e.set_id ?? null, etiqueta: e.etiqueta ?? null,
+      cm_id_product: Number(e.cm_id_product),
+      cm_low: p.cm_low, cm_low_en: p.cm_low_en, cm_low_de: p.cm_low_de, cm_low_fr: p.cm_low_fr, cm_low_es: p.cm_low_es, cm_low_it: p.cm_low_it,
+      cm_avg7: p.cm_avg7, cm_avg30: p.cm_avg30, cm_disponibles: p.cm_disponibles, tp_market_eur: p.tp_market_eur, tp_mid_eur: p.tp_mid_eur,
+      actualizado_at: ahora.toISOString(),
+    })
+    variantes.push(...filasDeVariantes(suya, { id: e.card_id, set_id: e.set_id ?? null }, { ahora, mercado }))
+  }
+  return { filas, variantes }
+}
+
 // Una versión UNA vez por lote (932). Si dos cartas nuestras casan con la
 // misma de TCGGO, sus versiones salen dos veces, y un upsert que toca la
 // misma fila dos veces lo rechaza Postgres ENTERO (21000): se perdían todas

@@ -4,6 +4,72 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (169) — PINGU-Claude (935 — en la era de Wizards, cada carta una vez y sus ediciones como versiones)
+
+**Hecho** (PINGU: «el Arcanine de Gym Challenge tiene en TCGGO la First
+Edition y la Unlimited… el Charizard de Base Set tres… yo pondría la carta
+una sola vez y esas versiones como variantes», y Chansey ofrecía una «Normal»
+que no existe; eligió lo recomendado de la propuesta
+https://claude.ai/artifact/AS4UWqem7PNhTm3Z99bbuF):
+- **Por qué pasaba**: TCGGO da un producto de Cardmarket por carta, y en Base
+  Set la Shadowless es OTRO producto (Charizard Unlimited 273699, Shadowless
+  660224): el catálogo de TCGGO creaba una «tcggo-…» al lado de la nuestra.
+  Y la API de TCGdex solo dice «holo» y «1.ª edición».
+- **De dónde salen las ediciones**: de los ficheros de
+  tcgdex/cards-database (su `variants` con subtipo, sellos e ids de
+  Cardmarket), que sí lo saben: 939 cartas de Base Set a Neo Destiny, 2.178
+  ediciones. 1.ª edición, Shadowless y Unlimited son impresiones; la de
+  1999-2000, la «sin símbolo» y los errores, adicionales; prerelease, W,
+  WotC y demás, sellos. Base Set 2 y Southern Islands no llevan (una sola
+  impresión).
+- **La migración** (`supabase-migration-935-ediciones-wizards.sql`, después
+  de la 934) las crea como versiones de la carta de TCGdex y funde las
+  repetidas de TCGGO: sus copias a su edición (por su producto), sus deseos,
+  álbumes, avisos y vitrina a la carta, su foto a la edición, y la carta se
+  borra con lápida. «Holo» y «Normal» pasan a «Unlimited»; «1.ª edición» se
+  queda. La que no sabe a qué edición va (un producto que ninguna tiene) no
+  se toca. Al acabar enseña cuántas ediciones hay, cuántas lápidas y
+  cuántas «tcggo-…» quedan en esos sets.
+- **La web**: una carta con ediciones ofrece solo sus ediciones (1.ª
+  edición, Shadowless, Unlimited y lo demás detrás), sin «Holo»; la que se
+  pone sola al añadir es la Unlimited; el maestro no cuenta sellos ni
+  adicionales; dibujos nuevos para Unlimited y Shadowless.
+- **El precio**: la pasada de TCGGO escribe el de cada producto en su
+  edición (la Shadowless con el de la 660224) y la «1st Edition» que TCGGO
+  dé de ese producto se cuelga de la carta con su precio. Una edición sin
+  precio no toma el de la carta salvo que sea su mismo producto.
+- **La foto de cada versión**, desde /admin → la carta → Versiones → «Foto»
+  (de edición, de TCGGO o de siempre como la Reverse). Se queda aunque pasen
+  las pasadas; «Quitar la foto» vuelve a la de la carta.
+- De paso, la 299 cantaba desde la 934: `variantes.js` importaba los iconos y
+  sus clases llegaban a páginas sin su hoja. El registro del dibujo elegido
+  vive ahora en `variantes.js`, y /admin lleva sus dos reglas.
+
+**MIGRACIÓN**: `supabase-migration-935-ediciones-wizards.sql` (127 KB, lleva
+las ediciones dentro). Pide la 934 antes. Probada en PostgreSQL dos veces
+seguidas, 25 casos.
+
+**Ficheros**: `supabase-migration-935-ediciones-wizards.sql` (nueva),
+`js/mi-coleccion/variantes.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/iconos-version.js`, `netlify/lib/tcggo.mjs`
+(`preciosDeEdiciones`), `netlify/functions/tcggo-precios.mjs`,
+`admin/js/catalogo-cartas.js`, `admin/css/admin.css`, `novedades.json`,
+`CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-935.mjs` (+ `sql-tanda-935.sql`,
+`sql-tanda-935-casos.sql`; probado que salta si la lista vuelve a «Holo»,
+si la de por defecto es la 1.ª edición, si el precio compartido va a la 1.ª
+edición o si una edición toma el precio de la carta), el generador
+`herramientas/ediciones-wizards/` (sobre un clon de tcgdex/cards-database
+en /tmp/tcgdex-db), el doble con `catalogo_version_foto`, y la 830 y la 831
+con su guarda mirando solo `tcg_cards`.
+
+**Pendiente**:
+- PINGU: ejecutar la 934 (si no) y la 935, y pegarme la tabla que sale al
+  final (si quedan «tcggo-…» en esos sets, miro cuáles).
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (168) — PINGU-Claude (934 — versiones a mano y borrar cartas desde /admin)
 
 **Hecho** (PINGU, con un amigo echando en falta la metálica del Charizard de

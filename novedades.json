@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las cartas de la época de Wizards (Base Set, Jungle, Fossil, Team Rocket, Gym y Neo) salen una sola vez, con sus ediciones de verdad para elegir: 1.ª edición, Shadowless, Unlimited y las especiales. Se acabaron los Charizard repetidos y las versiones que no existen, y lo que ya tenías apuntado pasa a su edición.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "nuevo", "texto": "Las cartas que no tiene ninguna base de datos (la metálica del Charizard de Celebrations, los sellos de Pokémon Day) ya pueden estar: salen como una versión más de su carta original, con su foto, dónde salió y cuándo. Los sellos y las cartas adicionales no cuentan para el set maestro.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las versiones de cada carta son las que existen de verdad: en Ascended Heroes ya no sale una «Reverse holo» a secas, porque allí las reverse son las de Ball y la de energía. Si ya tenías alguna apuntada, se queda. Y Black Bolt se vuelve a traer de TCGGO para quitarle las cartas repetidas.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "mejora", "texto": "Cada versión de una carta con su dibujo, como en Dex: la Normal, la Holo, la Reverse y las de Poké Ball, Master Ball, Quick Ball y compañía con su Ball. Sale en la expansión, en la ficha y al elegir cuál tienes.", "enlace": "/mi-coleccion?ver=album" },

@@ -41785,6 +41785,47 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 935 — Las ediciones de Wizards
+
+- `supabase-migration-935-ediciones-wizards.sql` lleva dentro (jsonb) las
+  ediciones de 939 cartas de base1–base5, gym1–gym2 y neo1–neo4, generadas
+  por `herramientas/ediciones-wizards/` (rama `pruebas`) de
+  tcgdex/cards-database: `variants` como lista (tipo, `subtype`, `stamp`,
+  `thirdParty.cardmarket`). `edicionDe`: subtipo → «Unlimited»,
+  «Shadowless», «Unlimited (1999-2000)»…; sello «1st-edition» → «1st
+  Edition»; otros sellos → clase `sello`; errores y variantes raras →
+  `adicional`. La Unlimited sin producto toma el de la primera no sellada.
+- Filas `tcg_card_versions` con `origen = 'edicion'`, id negativo de
+  `tcg_card_versions_mano_seq`, `clase` y `cm_id_product`. Las «tcggo-…» del
+  mismo set con el producto de una edición (o su número y nombre) se funden:
+  `user_collection` a la edición (`primera` se queda), versiones de TCGGO a la
+  carta, `image_tcggo` a la edición y a las de su mismo producto, deseos,
+  avisos, vitrina y álbumes a la carta, lápida y borrado. Holo/normal →
+  `unlimited`. `origen` admite `mano`, `edicion`, `foto`.
+- `catalogo_id_de_version` mapea las de siempre como `varianteDeEtiqueta`
+  (1st Edition → primera, Reverse Holo → reverse, Standard → normal, Holofoil
+  → holo, vacío → reverse). `catalogo_version_foto(p_card_id, p_market,
+  p_variante, p_imagen)`: la foto en la fila de esa versión (la que ya tenga
+  foto, luego la de edición) o en una fila `foto` nueva; sin foto, la fila
+  `foto` se borra.
+- La web: `variantesDeCarta` → `edicionesDe` si hay filas de edición
+  (orden primera, shadowless, unlimited, el resto por id desc; detrás las
+  extras que no son normal/holo). `varianteDeCarta` prefiere `unlimited`. La
+  regla de la 931 solo mira filas sin `origen`. `versionDeVariante` prefiere
+  la fila con foto. `precioDeLinea`: entre varias filas de la misma versión,
+  la que tenga cifras; una de edición sin cifras toma la de la carta solo si
+  es su mismo `cm_id_product` y no es `primera`. El dibujo elegido
+  (`dibujoElegido`) se apunta en variantes.js. Dibujos `unlimited` y
+  `shadowless`.
+- `tcggo-precios` (WEST): tras las cartas, `tcg_card_versions` con `origen =
+  edicion` y `cm_id_product` de la página; `preciosDeEdiciones` (lib) escribe
+  el precio en una edición por producto (sin sello antes) con las columnas
+  que forman la fila, y cuelga de la carta las versiones de TCGGO de ese
+  producto. `estado.versiones.ediciones` las cuenta.
+- /admin: la caja Versiones de la ficha lista lo que la web ofrece
+  (`variantesDeCarta` sobre las filas), cada una con su foto y «Foto»
+  (`abrirFotoDeVersion`); las de mano siguen con «Editar».
+
 ## Tanda 934 — Versiones a mano y borrar cartas
 
 - `tcg_card_versions` (supabase-migration-934): columnas `imagen`, `icono`,

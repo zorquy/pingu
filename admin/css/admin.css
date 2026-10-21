@@ -980,3 +980,9 @@ body {
 .cat-version-ico { width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: var(--radius-md); background: var(--ice); color: var(--navy); }
 .cat-version-ico img { image-rendering: pixelated; }
 .cat-aviso-borrar { padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--danger-bg); color: var(--text); }
+.cat-version-foto { width: 36px; display: inline-flex; justify-content: center }
+.cat-version-foto img { width: 36px; height: auto; aspect-ratio: 63 / 88; object-fit: cover; border-radius: var(--radius-sm) }
+/* Los dibujos de las versiones (930) en el editor de cartas: /admin no carga
+   cardmarket.css, que es donde viven para la web. */
+.icono-version { flex: 0 0 auto; vertical-align: middle; }
+img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated; }
