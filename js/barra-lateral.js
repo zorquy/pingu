@@ -135,7 +135,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // para abrir un submenú, y se plegaba sola al entrar en una expansión
   // (788). Lo que quedara apuntado de antes se olvida.
   try { localStorage.removeItem('pokedoc-lateral-plegada') } catch {}
-  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/index.html">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul><a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>`
+  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul><a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>`
   barra.addEventListener('click', (e) => {
     const flecha = e.target.closest('.lat-flecha')
     if (flecha) {

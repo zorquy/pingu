@@ -41785,6 +41785,25 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 946 — La portada es «/»
+
+- Los enlaces de la casa a la portada son `href="/"` (páginas, barra de
+  abajo generada, lateral, paleta, atajos, migas). `claveDePagina('/')` ya
+  daba `index`, así que «Inicio» sigue marcado como activo.
+- `index.html` lleva en la cabeza, antes de cualquier módulo:
+  `if (location.pathname === '/index.html') history.replaceState(history.state,
+  '', '/' + location.search + location.hash)`. Sustituye la entrada del
+  historial (volver atrás no da /index.html), no recarga, y deja la consulta
+  y el `#`: Supabase devuelve los tokens de Google en el `#` y lee
+  `location.hash` después, al arrancar el cliente.
+- La vuelta del inicio de sesión sigue siendo `${origin}/index.html`
+  (`js/auth.js`): Supabase solo redirige a lo que está en su lista de Redirect
+  URLs, y una dirección que no está manda a la Site URL sin tokens. Cuando
+  `https://pokedoc.es/` esté en la lista se puede cambiar a `/`.
+- Sin regla en `netlify.toml`: `/` se sirve de `index.html` por ser el
+  fichero de la carpeta, y forzar `/index.html → /` es el bucle de siempre.
+- `test-tanda-946.mjs` lo vigila (enlaces, limpieza, `#`, historial).
+
 ## Tanda 945 — Las versiones de Ball de TCGdex (Black Bolt y compañía)
 
 - En Cardmarket la Poké Ball y la Master Ball de Black Bolt, White Flare y

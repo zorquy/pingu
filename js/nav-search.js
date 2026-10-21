@@ -94,7 +94,7 @@ export function renderNavSearch() {
 // para pasar de carta y Esc para cerrar ya funcionaban (422 y el propio
 // `<dialog>`). Va aquí, que lo baja toda página, para que la tecla actúe
 // en el momento; solo la ayuda espera a cargarse.
-export const SECCIONES = { i: '/index.html', n: '/noticias', a: '/aprender.html', c: '/cartas', m: '/mi-coleccion', f: '/foro.html', j: '/torneos.html', b: '/buscar.html' }
+export const SECCIONES = { i: '/', n: '/noticias', a: '/aprender.html', c: '/cartas', m: '/mi-coleccion', f: '/foro.html', j: '/torneos.html', b: '/buscar.html' }
 
 const visible = (b) => (b && !b.hidden && !b.disabled && b.getClientRects().length ? b : null)
 

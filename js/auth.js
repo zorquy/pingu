@@ -78,7 +78,7 @@ function validEmail(value) {
 // otra cosa se ignora y se va a la portada de siempre.
 export function destinoTrasEntrar(bruto) {
   const v = String(bruto ?? '')
-  if (!v.startsWith('/') || v.startsWith('//') || v.startsWith('/\\')) return 'index.html'
+  if (!v.startsWith('/') || v.startsWith('//') || v.startsWith('/\\')) return '/'
   return v
 }
 

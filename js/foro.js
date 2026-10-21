@@ -350,7 +350,7 @@ async function pintarIndice() {
     for (const sec of principal.querySelectorAll('section.foro-seccion')) sec.hidden = !!elegida && sec.dataset.seccion !== elegida
   })
 
-  migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro' }])
+  migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
   // foro, así que para quitarte el "todo sin leer" de encima tenías que
   // entrar en uno cualquiera y buscarlo allí.
@@ -539,7 +539,7 @@ async function pintarForo() {
   if (faltaElForo(error)) return sinActivar()
   if (!foro) {
     principal.innerHTML = `<p class="empty-state">Este foro no existe o ya no está.</p>`
-    migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/index.html' }, { texto: 'Foro', url: '/foro.html' }, { texto: 'No encontrado' }])
+    migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/' }, { texto: 'Foro', url: '/foro.html' }, { texto: 'No encontrado' }])
     return
   }
 
@@ -556,7 +556,7 @@ async function pintarForo() {
 
   migas.innerHTML = migasHtml(
     [
-      { texto: 'Inicio', url: '/index.html' },
+      { texto: 'Inicio', url: '/' },
       { texto: 'Foro', url: '/foro.html' },
       seccion ? { texto: seccion.name, url: '/foro.html' } : null,
       padre ? { texto: padre.name, url: urlForo(padre.slug) } : null,

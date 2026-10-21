@@ -151,7 +151,7 @@ async function cargar() {
   document.title = `${tema.title} — Foro de PokeDoc`
   elMigas.innerHTML = migasHtml(
     [
-      { texto: 'Inicio', url: '/index.html' },
+      { texto: 'Inicio', url: '/' },
       { texto: 'Foro', url: '/foro.html' },
       seccion ? { texto: seccion.name, url: '/foro.html' } : null,
       foro ? { texto: foro.name, url: urlForo(foro.slug) } : null,

@@ -118,7 +118,7 @@ async function checkAccess() {
   }
   const { data: profile } = await supabase.from('user_profiles').select('is_admin').eq('id', session.user.id).single()
   if (!profile?.is_admin) {
-    window.location.href = '/index.html'
+    window.location.href = '/'
     return null
   }
   document.getElementById('adminGate').classList.add('hidden')

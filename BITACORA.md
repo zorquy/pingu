@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (181) — PINGU-Claude (946 — la portada es pokedoc.es/, sin «index.html»)
+
+**Hecho** (PINGU: «¿no está un poco feo que cuando entras a la web te meta en
+pokedoc.es/index.html? … todos son /aprender, /mi-coleccion; el index solo
+está ahí»):
+- **Todos los enlaces de la casa a la portada son `/`**: el logo y el
+  «Inicio» de la barra de arriba y del pie en las 49 páginas de la raíz (y el
+  panel de /admin, solo los absolutos), la barra de abajo del móvil
+  (regenerada), la lateral, la paleta Ctrl+K y el atajo «G I», las migas del
+  foro y de la guía, y los `location.href` de salir de la cuenta y de echar a
+  quien no es admin. `cartas.html` regenerada.
+- **Quien llega a `/index.html`** (un marcador viejo, un enlace de fuera, la
+  vuelta del inicio de sesión) ve `/` en la barra de direcciones: un renglón
+  en la cabeza de `index.html` hace `history.replaceState` antes de que cargue
+  nada, SIN recargar y conservando la consulta y el `#` (por el `#` vuelven
+  los tokens del inicio de sesión con Google; perderlo sería no poder entrar).
+- **No toqué**: la vuelta del inicio de sesión (`redirectTo` y
+  `emailRedirectTo` en `js/auth.js`) sigue en `/index.html`, porque Supabase
+  solo deja volver a las direcciones de su lista y desde aquí no se puede ver
+  si `/` está. Con el renglón de arriba ya no se nota. Tampoco los
+  `index.html` RELATIVOS de /admin (editor-guia), que son el propio panel. Y
+  no hay redirección en Netlify: `/` se sirve de `index.html`, y una regla
+  forzada de `/index.html` a `/` es la forma clásica de un bucle.
+
+**Ficheros**: las 49 `*.html` de la raíz, `admin/index.html`,
+`admin/js/admin.js`, `admin/js/editor-guia.js`, `js/app.js`, `js/auth.js`,
+`js/barra-lateral.js`, `js/barra-movil.js`, `js/foro.js`, `js/tema.js`,
+`js/guia.js`, `js/nav-search.js`, `js/paleta.js`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-946.mjs` (ningún enlace a /index.html en páginas ni
+módulos; abrir /index.html deja «/» con la consulta y el `#`, sin recargar;
+volver atrás da «/»; otra página no se toca); la 704 y la 724 miraban
+`/index.html` y ahora miran `/`. Pasadas: 704, 753, 649, 312, 299, 305, 311,
+313, 758, 869, 737, 718, 724, 739, 804, 866, 892, 906, la 946 y
+`test-imports`: todas verdes.
+
+**Pendiente**:
+- PINGU (opcional): añadir `https://pokedoc.es/` en Supabase → Authentication
+  → URL Configuration → Redirect URLs; entonces se puede cambiar la vuelta
+  del inicio de sesión a `/` y ni siquiera hará falta el renglón.
+- Lo de la 943: los rojos viejos y bajar `js/mi-coleccion.js` de 130 KB.
+
 ## 2026-10-22 (180) — PINGU-Claude (945b — una versión sin precio propio no toma el de la normal)
 
 **Hecho** (PINGU, con la ficha del Pansage de Black Bolt: Normal 0,02 €,

@@ -58,7 +58,7 @@ export function seccionesDeLaBarra(doc = document) {
 export function seccionesDe(grupos, sueltos) {
   const deCartas = sueltos.filter((e) => claveDePagina(e.href) === 'mi-coleccion')
   const deInicio = sueltos.filter((e) => !deCartas.includes(e))
-  const inicio = { nombre: 'Inicio', enlaces: [{ href: '/index.html', texto: 'Inicio' }, ...deInicio] }
+  const inicio = { nombre: 'Inicio', enlaces: [{ href: '/', texto: 'Inicio' }, ...deInicio] }
   const cartas = deCartas.length && !grupos.some((g) => g.nombre === 'Cartas') ? [{ nombre: 'Cartas', enlaces: deCartas }] : []
   return [inicio, ...grupos, ...cartas].filter((s) => ORDEN.includes(s.nombre)).sort((a, b) => ORDEN.indexOf(a.nombre) - ORDEN.indexOf(b.nombre))
 }

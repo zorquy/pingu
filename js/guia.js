@@ -269,7 +269,7 @@ async function init() {
 
   main.innerHTML = `
     <nav class="breadcrumb" aria-label="Dónde estás">
-      <a href="/index.html">Inicio</a> <span>›</span>
+      <a href="/">Inicio</a> <span>›</span>
       ${
         // Con la sección delante (857): «Inicio › Guías › Mazos › Título». Sin
         // tema, el paso del tema no se pinta: salía «Inicio › › Título», con un

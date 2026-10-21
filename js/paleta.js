@@ -17,7 +17,7 @@ const NOMBRE = Object.fromEntries(GRUPOS)
 // lista se quedaría vieja el día que alguien añada una sección (la 323).
 export function paginasDeLaBarra(doc = document) {
   const vistas = new Set()
-  const salida = [{ nombre: 'Inicio', detalle: 'Portada', icono: 'home', href: '/index.html' }]
+  const salida = [{ nombre: 'Inicio', detalle: 'Portada', icono: 'home', href: '/' }]
   for (const a of doc.querySelectorAll('.nav-links > a[href], .nav-links .nav-sub a[href]')) {
     const href = a.getAttribute('href')
     if (vistas.has(href)) continue
