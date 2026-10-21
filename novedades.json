@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-21", "tipo": "mejora", "texto": "Cada versión de una carta con su dibujo, como en Dex: la Normal, la Holo, la Reverse y las de Poké Ball, Master Ball, Quick Ball y compañía con su Ball. Sale en la expansión, en la ficha y al elegir cuál tienes.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "mejora", "texto": "Cada versión de una carta con su precio: la Reverse, la Poké Ball o la Master Ball ya no valen lo mismo que la normal. Y en el «⋯» de una expansión, lo que te costaría completar el set maestro.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-21", "tipo": "arreglo", "texto": "Las cartas que solo existen en holo (como las del 30 aniversario) ya no salen como «normal» en tu colección: llevan su ✓ también con las versiones separadas. El botón dice «Separar» cuando las separas, y la hoja de añadir en el ordenador ya no sale con una barra debajo.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-10-20", "tipo": "mejora", "texto": "Las expansiones, como en Dex: lo que tienes lleva un ✓ grande en el centro y, arriba, cuántas tienes y si tienes la Reverse («R+»). Buscar, la vista y «Apilar» van en una fila, la lista enseña tus versiones y el precio, y el Archivador son hojas que se pasan, con los bolsillos que quieras por página y la primera página para el logo. En los filtros, nuevas «Repetidas» y «Versión».", "enlace": "/mi-coleccion?ver=album" },

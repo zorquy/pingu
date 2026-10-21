@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (164) — PINGU-Claude (930 — el dibujo de cada versión: normal, holo, reverse y las Ball)
+
+**Hecho** (PINGU, con Dex delante: «hazme iconos para las variantes más
+míticas… y para las reverse de Poké Ball, Quick Ball»; eligió lo
+recomendado de la propuesta https://claude.ai/artifact/EHLQGiBnF6Tx7441pYBTo4):
+- Cada versión de una carta se pinta con su dibujo: la Normal, la Holo (la
+  ventana del dibujo rellena), la Reverse (el marco relleno), la 1.ª
+  edición, la Cosmos, el patrón de energía y una estrella para la que no
+  tiene dibujo propio. Las Ball son los sprites de objetos de PokeAPI
+  copiados a `assets/versiones/` (once, unos 3 KB): Poké, Great, Ultra,
+  Master, Quick, Friend, Love, Dusk, Premier, Heal y Luxury.
+- Salen en las insignias de la expansión (solo el dibujo, sin «R+»), en la
+  chapa al separar versiones (sin «RH»), en la Lista, en la ficha (la lista
+  de versiones y la fila «Versión») y en «¿Cuál tienes?» al añadir (también
+  en /carta) y en la chapa de la Pokédex.
+- La respuesta REAL de TCGGO que pegaste (el Lunatone, 31556) es el fixture
+  de las pruebas: confirma la forma de `variants` y que en Ascended Heroes
+  no hay «Reverse Holo» a secas, son la Dusk Ball y el patrón de energía.
+
+**Un cambio sobre la propuesta**: los iconos no van en `js/icons.js` (lo
+baja la portada) sino en `js/mi-coleccion/iconos-version.js`, como el de la
+Pokédex de la 452.
+
+**Ficheros**: `js/mi-coleccion/iconos-version.js` (nuevo),
+`assets/versiones/*.png` (nuevos), `js/mi-coleccion.js`,
+`js/mi-coleccion/elegir-version.js`, `js/mi-coleccion/pokedex.js`,
+`css/cardmarket.css`, `css/mi-coleccion.css`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-930.mjs` (+ `fixtures-930/`; probado que salta si
+el sprite se estira) y al día la 692, 757, 778, 779, 862 y 927, que leían las
+letras. Las 114 de las pantallas que tocan (expansión, ficha, añadir,
+Pokédex, CSS): verdes salvo la 305, 310, 385, 391, 461, 467, 475, 543 y
+651, que ya lo estaban.
+
+**Pendiente**:
+- PINGU: Black Bolt con la sonda «Repetidas por número» (lo de la 929).
+- Ascended Heroes: TCGdex dice que esas cartas tienen «Reverse holo» y TCGGO
+  que no (sus reverse son los patrones). La web ofrece las dos cosas; si
+  quieres que en esos sets no salga la «Reverse holo» a secas, es una regla
+  más en `variantesDeCarta`. Esperando a PINGU.
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (163) — PINGU-Claude (929 — las versiones de TCGGO con su precio, el símbolo de cada set y la sonda de /admin)
 
 **Hecho** (PINGU: «adelante con lo recomendado en TCGGO», sobre la

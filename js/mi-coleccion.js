@@ -64,8 +64,9 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
+import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
@@ -794,12 +795,17 @@ function pintarVersionDeFicha(l, c) {
   // móvil se abre desde la fila, en su propia hoja.
   lista.classList.toggle('hidden', !(fichaAncha() && versiones.length > 1))
   $('mcEdVersionNombre').textContent = nombreDeVariante(actual)
+  // La fila dice la versión también con su dibujo (930), en el hueco del
+  // icono de la fila.
+  const icoFila = $('mcEdVersion')?.querySelector('.mc-fila-ico')
+  if (icoFila) icoFila.innerHTML = iconoDeVersion(actual, 18)
   const mias = misLineasDe(l.card_id)
   lista.innerHTML = versiones
     .map((v) => {
       const tengo = mias.filter((x) => (x.variante || 'normal') === v.id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
       const precio = precioDeVersionEnFicha(l, v.id)
       return `<button type="button" class="mc-version${v.id === actual ? ' activa' : ''}" data-version="${escapeHtml(v.id)}" aria-pressed="${v.id === actual}">
+        <span class="mc-version-icono">${iconoDeVersion(v.id, 20)}</span>
         <span class="mc-version-texto"><b>${escapeHtml(v.nombre)}</b><small>${tengo ? `Tienes ${tengo}` : 'No la tienes'}</small></span>
         <span class="mc-version-precio">${precio != null ? euros(precio) : ''}</span>
         <span class="mc-version-check${tengo ? ' si' : ''}" aria-label="${tengo ? 'La tienes' : 'No la tienes'}">${tengo ? '✓' : ''}</span>
@@ -3408,10 +3414,10 @@ const claseMarcada = (cardId, variante = 'normal') =>
 // entienda sin tener que aprenderse las siglas.
 function chapaDeVarianteHtml(id) {
   const v = { id: id || 'normal', nombre: nombreDeVariante(id || 'normal') }
-  const corto = cortoDeVariante(v.id)
   // El nombre va en su propia caja para que pueda recortarse sin empujar al
-  // código: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
-  return `<span class="mc-chapa-variante" data-var="${escapeHtml(v.id)}" aria-hidden="true"><b>${escapeHtml(corto)}</b><span>${escapeHtml(v.nombre)}</span></span>`
+  // icono: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
+  // Desde la 930 el redondel lleva el DIBUJO de la versión y no su código.
+  return `<span class="mc-chapa-variante" data-var="${escapeHtml(v.id)}" aria-hidden="true"><b>${iconoDeVersion(v.id, 12)}</b><span>${escapeHtml(v.nombre)}</span></span>`
 }
 
 // LO TUYO SE DICE CON UNA MARCA, NO SOLO CON EL COLOR (757). PINGU, con
@@ -3423,15 +3429,15 @@ function chapaDeVarianteHtml(id) {
 // Y desde la 927, como en Dex (la D de la propuesta 925): el ✓ va en el
 // CENTRO, grande, y arriba a la derecha una columna de insignias: cuántas
 // tienes si son dos o más, y una por cada versión tuya que no sea la de
-// la carta («R+» la reverse, «H» la holo de una carta que también es
-// normal, «1ª» la primera edición). La de la carta no lleva insignia: es
-// el ✓. `versiones` solo lo pasa quien junta las versiones en una casilla.
-const INSIGNIA_DE_VERSION = { reverse: 'R+', holo: 'H', primera: '1ª' }
-const insigniaDeVersion = (id) => INSIGNIA_DE_VERSION[id] || cortoDeVariante(id)
+// la carta. La de la carta no lleva insignia: es el ✓. `versiones` solo lo
+// pasa quien junta las versiones en una casilla. Desde la 930 cada insignia
+// es el DIBUJO de su versión (`iconoDeVersion`), sin letras: «R+» aquí y
+// «RH» en la chapa eran dos nombres para la misma Reverse.
+const insigniaDeVersion = (id) => iconoDeVersion(id, 14)
 function marcaDeTengoHtml(n, versiones = []) {
   if (!n) return ''
   const insignias = (n > 1 ? `<i class="mc-insignia mc-insignia-n">${n}</i>` : '') +
-    versiones.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${escapeHtml(insigniaDeVersion(id))}</i>`).join('')
+    versiones.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${insigniaDeVersion(id)}</i>`).join('')
   return `<span class="mc-tengo-marca" aria-hidden="true">✓</span>${insignias ? `<span class="mc-insignias" aria-hidden="true">${insignias}</span>` : ''}`
 }
 
@@ -3908,8 +3914,8 @@ function filaDeAlbumHtml(c) {
   const precio = precioDeCartaDelAlbum(c, v?.nuestro || varianteDeCarta(c))
   return `<a class="mc-album-fila${n ? ' tengo' : ''}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}">
     <span class="mc-album-fila-num">${escapeHtml(c.local_id || '')}</span>
-    <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${escapeHtml(v.nombre)}</small>` : ''}</span>
-    ${vs.length ? `<span class="mc-album-fila-versiones" aria-label="${escapeHtml(`También ${vs.map((id) => nombreDeVariante(id)).join(' y ')}`)}">${vs.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${escapeHtml(insigniaDeVersion(id))}</i>`).join('')}</span>` : ''}
+    <span class="mc-album-fila-nombre">${escapeHtml(nombre)}${v ? ` <small>${iconoDeVersion(v.nuestro || v.id, 14)}${escapeHtml(v.nombre)}</small>` : ''}</span>
+    ${vs.length ? `<span class="mc-album-fila-versiones" aria-label="${escapeHtml(`También ${vs.map((id) => nombreDeVariante(id)).join(' y ')}`)}">${vs.map((id) => `<i class="mc-insignia" data-var="${escapeHtml(id)}">${insigniaDeVersion(id)}</i>`).join('')}</span>` : ''}
     ${rarezaDeCarta(c) ? `<span class="mc-album-fila-rareza">${escapeHtml(rarezaDeCarta(c))}</span>` : ''}
     <span class="mc-album-fila-precio">${precio != null ? escapeHtml(euros(precio)) : ''}</span>
     <span class="mc-album-fila-cuenta">${n ? `×${n}` : '—'}</span>

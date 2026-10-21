@@ -10,6 +10,7 @@
 // guardar de cada una); este módulo solo decide qué se ve encima.
 import { escapeHtml } from '../html.js'
 import { euros } from '../cardmarket.js'
+import { iconoDeVersion } from './iconos-version.js'
 
 // `form`: el formulario de la hoja; `select`: su desplegable de versión;
 // `lista` y `fija`: los dos huecos de la hoja para la lista y la fila.
@@ -18,7 +19,7 @@ export function montarEleccion({ form, select, lista, fija }) {
   const pintarFija = () => {
     const v = estado.versiones.find((x) => x.id === select.value) || estado.versiones[0]
     const sola = estado.versiones.length < 2
-    fija.innerHTML = `<span class="vp-fija-texto"><small>Versión</small><b>${escapeHtml(v?.nombre || '')}</b></span>${
+    fija.innerHTML = `<span class="vp-fija-icono">${iconoDeVersion(v?.id, 20)}</span><span class="vp-fija-texto"><small>Versión</small><b>${escapeHtml(v?.nombre || '')}</b></span>${
       sola && estado.seSabe ? '<span class="vp-fija-nota">la única que existe</span>' : '<button type="button" class="vp-cambiar" data-vp-cambiar>Cambiar</button>'
     }`
   }
@@ -44,6 +45,7 @@ export function montarEleccion({ form, select, lista, fija }) {
         const n = tienes?.(v.id) || 0
         const p = precio?.(v.id)
         return `<button type="button" class="vp-opcion" role="radio" aria-checked="${n > 0}" data-vp-version="${escapeHtml(v.id)}">
+          <span class="vp-opcion-icono">${iconoDeVersion(v.id, 20)}</span>
           <span class="vp-opcion-texto"><b>${escapeHtml(v.nombre)}</b><small>${n ? `Tienes ${n}` : 'No la tienes'}</small></span>
           <span class="vp-opcion-precio">${p != null ? euros(p) : ''}</span>
           <span class="vp-check${n ? ' si' : ''}" aria-hidden="true">${n ? '✓' : ''}</span>

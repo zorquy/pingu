@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 930 — El dibujo de cada versión
+
+- `js/mi-coleccion/iconos-version.js`: `dibujoDeVersion(id)` → `{ tipo:
+  'svg' | 'bola', clave }` e `iconoDeVersion(id, size)` → el HTML (siempre
+  `aria-hidden`: el nombre lo pone quien lo pinta). Los SVG salen de `icon()`
+  de `js/icons.js` (el mismo trazo) pero viven aquí, no en icons.js, porque
+  ese lo baja la portada (la 452). Claves: `normal`, `holo` (ventana
+  rellena), `reverse` (marco relleno, `fill-rule="evenodd"`), `primera`,
+  `cosmos`, `energia` y `otra` (el destello genérico). Con relleno al 28 % y
+  un destello, la holo y la reverse no se distinguían de la normal a 16 px:
+  el relleno va macizo.
+- Las Ball: `BOLAS` (11) ↔ `assets/versiones/<id>.png`, los sprites de
+  objetos de PokeAPI copiados (no enlazados: la 321). El id es el que da
+  `varianteDeEtiqueta` («Poké Ball» → `poke-ball`), y una Ball dentro de un
+  id más largo también cuenta (la más larga primero). El `<img>` lleva su
+  tamaño también en `style`: `.mc-bolsillo img` pone `width: 100%` y la
+  proporción de una carta, y el sprite salía a 30 px fuera de su insignia;
+  `img.icono-bola.icono-version` (cardmarket.css) le quita la proporción y
+  las esquinas.
+- Dónde: `chapaDeVarianteHtml` (el redondel lleva el dibujo; el nombre al
+  lado, que la 565 quita en casillas estrechas), `marcaDeTengoHtml` y la
+  fila de la Lista (`insigniaDeVersion` = el dibujo a 14 px; se fueron
+  `INSIGNIA_DE_VERSION` y las letras «R+»/«RH»), la Lista separada (el
+  `<small>`), la ficha (`.mc-version-icono`, y la `.mc-fila-ico` de
+  `#mcEdVersion`), `montarEleccion` (`.vp-opcion-icono`, `.vp-fija-icono`;
+  /carta incluido) y la chapa de la Pokédex. `cortoDeVariante` se queda: lo
+  usa `variantesDeCarta`.
+- La respuesta real de `/cards/31556?include_variants=1` (Lunatone, ASC 105)
+  es `pruebas/fixtures-930/carta-real-lunatone.json`: `variants` llega como
+  decía la documentación, y en Ascended Heroes no hay `reverse_holo`.
+
 ## Tanda 929 — Las versiones de TCGGO con su precio, el símbolo y la sonda
 
 La documentación nueva de TCGGO (api 1.4) dice cómo vienen las versiones:
