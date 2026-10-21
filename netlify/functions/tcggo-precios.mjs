@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinVersionesRepetidas, preciosDeEdiciones,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinSetsRepetidos, sinVersionesRepetidas, preciosDeEdiciones,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -273,13 +273,20 @@ export async function procesar({
       }
       if (filas.length) {
         try {
-          setsApuntados = Number(await guardarSets(filas, 'WEST')) || 0
+          setsApuntados = Number(await guardarSets(sinSetsRepetidos(filas, hechosPares), 'WEST')) || 0
           estado.setsApuntados = true
+          delete estado.errorSets
           if (lista.some((e) => e.valorCm != null)) estado.setsConValor = true
         } catch (e) {
           const m = String(e?.message || e)
           if (/tcggo_guardar_sets|42883|PGRST202/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-tcggo-precios.sql (tcggo_guardar_sets)' }
-          return { ok: false, error: m.slice(0, 200) }
+          // El logo, la fecha y el total de los sets NO paran los precios
+          // (938): antes un fallo aquí devolvía el error y la pasada no
+          // llegaba a ninguna expansión, todo el día. Se apunta para /admin
+          // y se da por intentado hoy (sin eso, si la lista hay que pedirla,
+          // serían nueve peticiones a TCGGO en cada pasada).
+          estado.setsApuntados = true
+          estado.errorSets = { dia, error: m.slice(0, 200) }
         }
       }
     }
@@ -296,7 +303,7 @@ export async function procesar({
       }
       if (filasJp.length) {
         try {
-          setsApuntados += Number(await guardarSets(filasJp, 'JP')) || 0
+          setsApuntados += Number(await guardarSets(sinSetsRepetidos(filasJp), 'JP')) || 0
           estado.setsJpApuntados = true
         } catch { /* los japoneses no paran la pasada de precios */ }
       }
@@ -641,7 +648,7 @@ export async function procesar({
   await persistir()
   return {
     ok: true, dia, hecho: !quedan && !parado, fotoHistorial, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
-    episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado, ...(saltadasSinCm.length ? { saltadasSinCm } : {}),
+    episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado, ...(saltadasSinCm.length ? { saltadasSinCm } : {}), ...(estado.errorSets?.dia === dia ? { errorSets: estado.errorSets.error } : {}),
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
   }
 }

@@ -41785,6 +41785,15 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 938 — Los sets de la pasada de precios, una vez cada uno
+
+- `sinSetsRepetidos(filas, propias)` (lib/tcggo.mjs): antes de
+  `tcggo_guardar_sets`, una fila por set; gana la de su propio par
+  (`hechosPares[set].episodio`) sobre la que llega como hermano (853).
+- Un fallo al apuntar los sets ya no devuelve error: `estado.setsApuntados =
+  true` y `estado.errorSets = { dia, error }`; la respuesta lleva `errorSets`
+  y /admin lo pinta en la caja de «Precios de TCGGO ahora».
+
 ## Tanda 937 — La fila «Standard»: TCGGO ha mirado la carta
 
 - `filaDeLaCarta(suya, carta)` (lib/tcggo.mjs): una fila de

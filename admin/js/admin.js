@@ -3609,6 +3609,7 @@ async function tcggoPrecios() {
       r.dia ? `Día ${r.dia} · expansiones con sets: ${r.episodios} · hechas hoy: ${r.hechasHoy} · quedan: ${r.quedan}` : '',
       r.dia ? `Pasadas en este clic: ${total.pasadas} · peticiones: ${total.peticiones} (hoy ${r.peticionesHoy} de ${r.topeDiario}) · pausa ${r.pausaMs} ms · puerta ${r.puerta}` : '',
       r.dia ? `Filas de precios escritas en este clic: ${total.escritas} · sets apuntados (logo, fecha): ${r.setsApuntados}` : '',
+      r.errorSets ? `⚠ El logo y la fecha de los sets no se han podido apuntar hoy (los precios siguen): ${r.errorSets}` : '',
       r.parado ? `⚠ PARADO: ${r.parado}` : r.hecho ? '✓ Los precios de hoy están puestos.' : r.nota ? `→ ${r.nota}` : '',
       '',
       ...total.hechasAhora.map((h) => `  · expansión #${h.episodio} (${h.sets.join(', ')}): ${h.escritas} filas de ${h.nuestras} nuestras, ${h.suyas} suyas`),

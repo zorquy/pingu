@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (172) — PINGU-Claude (938 — un set en dos expansiones paraba la pasada de precios)
+
+**Hecho** (PINGU pulsó «Precios de TCGGO ahora» y salió «Supabase 500:
+21000 … ON CONFLICT DO UPDATE command cannot affect row a second time»):
+- Era el paso de apuntar el logo, la fecha y el total de los sets
+  (`tcggo_guardar_sets`). Un set puede colgar de dos expansiones de TCGGO:
+  la de su propio par y otra de la que es HERMANO (853, la Trainer
+  Gallery…). Iba dos veces en la misma sentencia, la base la rechaza entera,
+  y la pasada devolvía el error ANTES de escribir un precio: sin el arreglo
+  se repetía en cada pasada del día.
+- `sinSetsRepetidos(filas, pares)` (lib/tcggo.mjs): un set una vez, con la
+  expansión de su propio par si la tiene. Para el occidental y el japonés.
+- Y apuntar los sets ya no para los precios: si falla por otra cosa, se
+  apunta (`estado.errorSets`), /admin lo enseña con un aviso en la caja del
+  botón y se da por intentado hoy (si no, con la lista de expansiones sin
+  logo serían nueve peticiones a TCGGO por pasada).
+
+**Ficheros**: `netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-precios.mjs`,
+`admin/js/admin.js`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: la 937 con la sección 5 (un set con par propio y hermano de
+otra; la base del doble da 21000 con dos filas iguales, como la de verdad;
+probado que salta sin el arreglo).
+
+**Pendiente**:
+- PINGU: volver a pulsar «Precios de TCGGO ahora» cuando acabe el
+  despliegue.
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (171) — PINGU-Claude (937 — las versiones las dice TCGGO también cuando no da ninguna)
 
 **Hecho** (PINGU, con el Dracloak: «en el Prize Pack debería tener solo una

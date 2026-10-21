@@ -425,6 +425,18 @@ export function filaDePreciosTcggo(cardId, carta, { ahora = new Date(), mercado 
 // Lo que se escribe de un set a partir de SU expansión: el logo, su id, y
 // la fecha y el total solo si los nuestros están vacíos (lo decide la
 // función de la base).
+// Un set UNA vez por lote (938). Un set puede colgar de dos expansiones —su
+// propio par y como hermano (853) de otra—, y un upsert que toca la misma
+// fila dos veces lo rechaza Postgres entero (21000): la pasada de precios se
+// paraba ahí, antes de escribir un solo precio. Gana la de su propio par
+// (`propias`: set → expansión), y si no, la primera.
+export function sinSetsRepetidos(filas, propias = {}) {
+  const suya = (f) => Number(propias?.[f.id]?.episodio) === Number(f.tcggo_id)
+  const orden = [...(filas || [])].sort((a, b) => Number(suya(b)) - Number(suya(a)))
+  const vistos = new Set()
+  return orden.filter((f) => (vistos.has(f.id) ? false : (vistos.add(f.id), true)))
+}
+
 export function filaDeSetTcggo(setId, episodio) {
   return {
     id: setId,
