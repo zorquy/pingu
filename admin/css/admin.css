@@ -720,6 +720,12 @@ body {
 .cat-cab h3 { margin: 0; flex: 1; min-width: 0; font-size: var(--t-md); }
 .cat-barra { display: flex; gap: var(--e-xs); align-items: center; margin-bottom: var(--e-sm); }
 .cat-barra input[type="search"] { flex: 1; min-width: 0; min-height: 36px; }
+/* «Versiones de todas» (949, SCHEMA). */
+.lote-caja { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--e-sm); margin: 0 0 var(--e-sm); }
+.lote-caja legend { font-weight: 700; padding: 0 var(--e-xs); }
+.lote-opciones { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-sm); margin-bottom: var(--e-xs); }
+.lote-version { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 32px; }
+.lote-rango { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
 .cat-lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
 .cat-carta { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; border-bottom: 1px solid var(--border); }
 .cat-carta-foto { width: 36px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 4px; overflow: hidden; }

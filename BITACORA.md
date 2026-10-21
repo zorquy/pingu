@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (185) — PINGU-Claude (949 — «Versiones de todas» en /admin) · MIGRACIÓN NUEVA
+
+**Hecho** (PINGU: «méteme en admin para poner las versiones de todas las
+cartas. Pero no son todas las cartas… las japonesas muchas veces no tienen
+reverse… para esos momentos que me dicen "este tenía primera edición y
+unlimited", se arregla en un momento»):
+- /admin → Colecciones → un set → «Ver y editar sus cartas» → **«Versiones
+  de todas»**. Se marcan las versiones (1.ª edición, Unlimited, 1.ª edición
+  Reverse, Unlimited Reverse, Normal, Holo, Reverse Holo, u otras escritas
+  como las escribe TCGGO) y a qué cartas: por rareza (las del set, con
+  cuántas tiene cada una) y por números desde/hasta. Antes de tocar nada dice
+  «N cartas: se crean M versiones (K ya estaban)». «Poner versiones» las crea
+  y «Quitar estas versiones» las quita (solo las de edición; las de TCGGO,
+  TCGdex y a mano no se tocan, ni las copias de la gente).
+- Con «Unlimited» marcada, las copias «Normal»/«Holo» de esas cartas pasan a
+  Unlimited (casilla, puesta por defecto), como en la 935 y la 948.
+- `supabase-migration-949-versiones-en-lote.sql`: `catalogo_versiones_lote`
+  (solo el admin; etiquetas sin repetir y en orden; filas `origen =
+  'edicion'`, clase impresión; la Unlimited con el producto de la carta).
+- Para Reviving Legends del foro: marcar las cuatro y quitar la rareza holo.
+
+**Ficheros**: `supabase-migration-949-versiones-en-lote.sql` (nueva),
+`admin/js/versiones-lote.js` y `admin/js/versiones-lote-puro.js` (nuevos),
+`admin/js/catalogo-cartas.js` (el botón), `admin/css/admin.css`,
+`SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `sql-tanda-949-casos.sql` (15 casos contra PostgreSQL),
+`test-tanda-949.mjs` (base, lo puro y la pantalla de /admin: filtros,
+resumen, poner, quitar), el doble con `catalogo_versiones_lote`. Pasadas:
+949, 948, 945, 935, 934, 885, 908, 817, 299, 305, 311, 312, 313 y
+`test-imports`: todas verdes.
+
+**Pendiente**:
+- PINGU: ejecutar la 949 (y la 948b si no está).
+- En curso: crear los sets japoneses que faltan (Treecko Constructed Starter
+  Deck, Wizards Black Star Promos japonesas).
+
 ## 2026-10-22 (184) — PINGU-Claude (948b — los tres sets japoneses que la 948 no casó) · MIGRACIÓN NUEVA
 
 **Hecho**: PINGU ejecutó la 948 y pegó su tabla: 13 de 16 casados, con todas

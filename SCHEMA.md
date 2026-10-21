@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 949 — Versiones a muchas cartas de un set
+
+- `catalogo_versiones_lote(p_market, p_cartas text[], p_etiquetas text[],
+  p_quitar bool, p_mover bool)` → `{cartas, nuevas, ya, copias}` o
+  `{cartas, quitadas}`. Solo `is_admin()`; etiquetas recortadas, sin vacías,
+  sin repetir sin caja, ≤ 60 letras; hasta 2.000 cartas. Inserta por carta y
+  en el orden dado filas `origen = 'edicion'`, `clase = 'impresion'`, id
+  negativo de `tcg_card_versions_mano_seq`; la de id `unlimited` lleva
+  `cm_id_product_propio`. Quitar borra solo `origen = 'edicion'` con esas
+  etiquetas. `p_mover` (con Unlimited): `user_collection.variante` normal/holo
+  → `unlimited` en esas cartas.
+- /admin: `admin/js/versiones-lote.js` (por `import()` desde el botón
+  `#catLote` de la lista de cartas) y lo puro en `versiones-lote-puro.js`
+  (`VERSIONES_LOTE`, `rarezasDelSet`, `cartasDelLote` —rareza
+  `rarity_en || rarity`, número de delante de la barra—, `etiquetasElegidas`,
+  `resumenDelLote`). Lo que ya tiene el set se lee de `tcg_card_versions` por
+  `set_id` a trozos de 1.000.
+
 ## Tanda 948b — Casar por «_ja» y por el nombre inglés
 
 - El paso 1 casa `lower(id)` con el de TCGdex o con el de TCGdex + «_ja» (los

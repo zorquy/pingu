@@ -116,6 +116,7 @@ export function pintarLista() {
     <p class="admin-note">${cartas.length} cartas${corregidas ? ` · ${corregidas} con correcciones` : ''}${aMano ? ` · ${aMano} a mano` : ''}. Lo que corrijas aquí manda sobre lo que traigan las pasadas automáticas.</p>
     <div class="cat-barra">
       <input type="search" id="catFiltro" placeholder="Número o nombre…" aria-label="Buscar una carta" value="${escapeHtml(filtro)}">
+      <button class="btn-secondary btn-small" id="catLote">Versiones de todas</button>
       <button class="btn-primary btn-small" id="catNueva">Nueva carta</button>
     </div>
     <ul class="cat-lista" id="catLista">${visibles.map(filaDeCarta).join('') || '<li class="empty-state">Ninguna carta coincide.</li>'}</ul>`)
@@ -126,6 +127,11 @@ export function pintarLista() {
     escucharLista()
   })
   $('catNueva').addEventListener('click', () => abrirFicha(null))
+  // Las versiones de muchas cartas a la vez (949), en su módulo.
+  $('catLote').addEventListener('click', async () => {
+    const { abrirVersionesDeTodas } = await import('./versiones-lote.js')
+    abrirVersionesDeTodas({ set, mercado, cartas, hoja, volver: pintarLista })
+  })
   escucharLista()
   $('catFiltro').focus()
 }
