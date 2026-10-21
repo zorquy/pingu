@@ -20,7 +20,9 @@ page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
 await page.addInitScript(() => {
   window.__FAKE_SESSION__ = 'admin-1'
   window.__FAKE_SETS__ = [{ id: 'xy5', name: 'Duelos Primigenios', name_en: 'Primal Clash', serie_id: 'xy', market: 'WEST', card_count_official: 160, card_count_total: 164, tcg_online_code: 'PRC' }]
-  window.__FAKE_CARTAS__ = [{ id: 'xy5-150', market: 'WEST', set_id: 'xy5', local_id: '150', name: 'Groudon-EX', name_es: 'Groudon EX', image_path: 'x/1', rarity: 'Ultra Rare', category: 'Pokemon', variants: { normal: true, reverse: true }, cm_id_product_propio: 273681, tp_id_product_propio: 96048 }]
+  // Rara a secas (de 2015, sin brillo de serie): con «Ultra Rare» la 950 la
+  // deja en Holo y sin Reverse, y aquí se prueban las dos impresiones.
+  window.__FAKE_CARTAS__ = [{ id: 'xy5-150', market: 'WEST', set_id: 'xy5', local_id: '150', name: 'Groudon-EX', name_es: 'Groudon EX', image_path: 'x/1', rarity: 'Rare', category: 'Pokemon', variants: { normal: true, reverse: true }, cm_id_product_propio: 273681, tp_id_product_propio: 96048 }]
   window.__FAKE_COLECCION__ = [{ id: 'l1', card_id: 'xy5-150', market: 'WEST', cantidad: 2, idioma: 'es', estado: 'NM', variante: 'normal', precio_compra: 100, created_at: '2026-10-01T10:00:00Z' }]
   window.__FAKE_PRECIOS__ = [{ card_id: 'xy5-150', cm_id_product: 273681, cm_low: 39, cm_low_es: 140, cm_low_en: 194, cm_low_fr: 150, tp_market_eur: 171.08, cm_gradeadas: { psa: { psa10: 2621 } }, tcggo_updated: '2026-10-05T12:00:00Z', origen: 'tcggo' }]
 })

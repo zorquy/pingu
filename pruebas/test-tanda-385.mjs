@@ -70,7 +70,7 @@ async function ficha(nombre) {
     window.__FAKE_SETS__ = [{ id: 'sv1', name: 'SV', market: 'WEST', tcg_online_code: 'SVI', release_date: '2023-03-31' }]
     window.__FAKE_CARTAS__ = [{
       id: 'sv1-25', set_id: 'sv1', local_id: '25', name: n, name_es: n, image_path: 'x/25',
-      market: 'WEST', category: 'Pokémon', hp: 60, types: ['Rayo'], rarity: 'Ultra Rare', dex_ids: [25],
+      market: 'WEST', category: 'Pokémon', hp: 60, types: ['Rayo'], rarity: 'Common', dex_ids: [25],
     }]
     window.__FAKE_COLECCION__ = []
   }, nombre)
@@ -88,7 +88,9 @@ async function ficha(nombre) {
     (await enlace.textContent())?.trim())
   check('  …y va a la especie, no a la rejilla', (await enlace.getAttribute('href')) === '/mi-coleccion?ver=pokedex&dex=25',
     await enlace.getAttribute('href'))
-  // La ficha ofrece SOLO las versiones que la API dice que existen.
+  // La ficha ofrece SOLO las versiones que la API dice que existen. La carta
+  // es una común: con «Ultra Rare» la 950 la pone Holo y sin Reverse, que es
+  // lo que es un ex, y «normal + reverse» ya no sería lo que existe.
   const vs = await page.locator('#cmVariante option').allTextContents()
   check('  …y las versiones son las que existen', vs.join('+') === 'Normal+Reverse holo', vs.join('+'))
   await page.close()

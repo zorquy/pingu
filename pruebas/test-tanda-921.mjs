@@ -35,7 +35,9 @@ console.log('── 0. Lo estático ──')
 }
 
 const SETS = [{ id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', market: 'WEST', release_date: '2024-11-08', card_count_official: 191, card_count_total: 252 }]
-const carta = (n, nombre) => ({ id: `sv8-${n}`, market: 'WEST', set_id: 'sv8', local_id: String(n), name: nombre, name_es: nombre, image_path: `sv/sv8/${n}`, rarity: 'Special Illustration Rare', category: 'Pokemon', types: ['Lightning'], dex_ids: [25], illustrator: 'Mitsuhiro Arita', variants: { normal: true, reverse: true }, tcg_sets: { id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', release_date: '2024-11-08', card_count_official: 191 } })
+// Una común: con una rareza que brilla siempre (la SIR de antes) la 950 la
+// deja en Holo y sin Reverse, que es lo que es, y aquí se prueba la fila de dos.
+const carta = (n, nombre) => ({ id: `sv8-${n}`, market: 'WEST', set_id: 'sv8', local_id: String(n), name: nombre, name_es: nombre, image_path: `sv/sv8/${n}`, rarity: 'Common', category: 'Pokemon', types: ['Lightning'], dex_ids: [25], illustrator: 'Mitsuhiro Arita', variants: { normal: true, reverse: true }, tcg_sets: { id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', release_date: '2024-11-08', card_count_official: 191 } })
 const CARTAS = [carta(238, 'Pikachu ex'), carta(239, 'Raichu'), carta(240, 'Zapdos'), ...Array.from({ length: 12 }, (_, i) => carta(241 + i, `Carta ${241 + i}`))]
 const PRECIOS = [{ card_id: 'sv8-238', cm_id_product: 777, cm_low: 20, cm_low_es: 28.8, cm_low_en: 24.5, cm_low_it: 27.4, cm_low_fr: 26, cm_low_de: 25, tp_market_eur: 31.2, checked_at: '2026-10-19T10:00:00Z' }]
 const COLECCION = [
