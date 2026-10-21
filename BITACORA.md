@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (184) — PINGU-Claude (948b — los tres sets japoneses que la 948 no casó) · MIGRACIÓN NUEVA
+
+**Hecho**: PINGU ejecutó la 948 y pegó su tabla: 13 de 16 casados, con todas
+sus cartas (1.135 cartas, 2.270 ediciones, 6 copias a Unlimited). Faltaban
+E4 («ningún set nuestro de ese día»), VS1 (igual) y PCG3 («empate el mismo
+día»: sale con la media baraja de los Rocket). La tabla enseñó por qué: los
+sets de antes se llaman «pcg4_ja», con el «_ja», y el id no casaba nunca.
+- `supabase-migration-948b-ediciones-japonesas-faltan.sql`: la 948 con dos
+  pasos más al casar, el id con «_ja» y el NOMBRE INGLÉS OFICIAL de cada set
+  (escrito a mano en el generador, `EN`: son los de TCGGO, la tabla de la 948
+  los enseñó). Idempotente: en los trece ya hechos no crea nada. El nombre de
+  TCGdex sigue sin usarse; todo pasa por la comprobación de los números.
+
+**Ficheros**: `supabase-migration-948b-ediciones-japonesas-faltan.sql`
+(nueva), `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: el generador con `EN`, la base de pruebas con PCG3 como
+«pcg3_ja» contra la media baraja, E4 casado por nombre con otro día y VS1
+casado por nombre pero con 10 cartas (se salta); `test-tanda-948.mjs` prueba
+la 948b. Todo verde.
+
+**Pendiente**:
+- PINGU: ejecutar la 948b y mirar la tabla (E4, VS1 y PCG3).
+- En curso: la herramienta de /admin «versiones para todas las cartas de un
+  set» y crear los sets japoneses que faltan.
+
 ## 2026-10-22 (183) — PINGU-Claude (948 — la 1.ª edición de las japonesas antiguas) · MIGRACIÓN NUEVA
 
 **Hecho** (en el foro: «Wind from the Sea, existe 1.ª Edición y Unlimited, no

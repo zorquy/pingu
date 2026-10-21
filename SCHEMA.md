@@ -41785,6 +41785,14 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 948b — Casar por «_ja» y por el nombre inglés
+
+- El paso 1 casa `lower(id)` con el de TCGdex o con el de TCGdex + «_ja» (los
+  sets japoneses de antes se llaman «pcg4_ja»). Un paso 1b nuevo: el nombre
+  inglés OFICIAL de cada set (`EN` en `generar-sql.mjs`, varios por set; se
+  comparan sin acentos ni signos contra `name_en`/`name`), único entre los
+  sets japoneses visibles. Después, el día y la cuenta como antes.
+
 ## Tanda 948 — Las ediciones de las japonesas antiguas
 
 - `supabase-migration-948-ediciones-japonesas.sql`: filas `tcg_card_versions`
