@@ -119,6 +119,16 @@ export const TODAS = EQUIVALE.slice()
 // suponía normal + reverse y el bolsillo solo normal). Un valor por
 // defecto habría enterrado la diferencia otra vez, así que se pide: que
 // cada pantalla diga en voz alta qué prefiere.
+// LAS EXPANSIONES DE LAS QUE TCGGO NO TIENE VERSIONES (947). La sonda de
+// Chaos Rising: «122 cartas suyas, 0 con versiones», ni la Reverse de una
+// común. Ahí su fila «Standard» no dice «no hay Reverse», dice «no lo sé», y
+// mandan las de TCGdex (o las deducidas, que en un set principal aciertan).
+// PINGU: «las variantes las traemos de TCGGO; solo para esos dos sets, de
+// otro sitio». Solo sets PRINCIPALES: en uno especial (Ascended Heroes,
+// Prismatic) la Reverse de TCGdex puede no existir y la regla de la 931 tiene
+// razón. Otro set así: la sonda «versiones» de /admin lo dice, y se añade aquí.
+export const SETS_SIN_VERSIONES_TCGGO = new Set(['me04', 'me05'])
+
 export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // Una carta de Wizards con sus EDICIONES (935) no tiene más versiones que
   // esas: el «holo» y la «1.ª edición» de TCGdex son propiedades de la
@@ -141,7 +151,7 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   // si la carta tiene Reverse.
   // Ni las filas que solo llevan una foto (935).
   const deTcggo = (carta?.versiones || []).filter((f) => !f.origen).map((f) => varianteDeEtiqueta(f.etiqueta))
-  if (deTcggo.length && !deTcggo.includes('reverse')) base = base.filter((e) => e.nuestro !== 'reverse')
+  if (deTcggo.length && !deTcggo.includes('reverse') && !SETS_SIN_VERSIONES_TCGGO.has(String(carta?.set_id || ''))) base = base.filter((e) => e.nuestro !== 'reverse')
   // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir. La fila
   // «Standard» (937) es la carta misma: dice que TCGGO la ha mirado (y con
   // eso la regla de arriba), pero no es una versión más.

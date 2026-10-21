@@ -41785,6 +41785,16 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 947 — Los sets de los que TCGGO no tiene versiones
+
+- `SETS_SIN_VERSIONES_TCGGO` (variantes.js, exportada): ids nuestros de
+  expansiones donde TCGGO no da ninguna versión (la sonda «versiones»: «0 con
+  versiones»). En `variantesDeCarta` la regla de la 931 (las filas de TCGGO
+  sin Reverse quitan la de TCGdex) no corre para ellas: su «Standard» es «no
+  lo sé». Solo sets principales, donde la Reverse de TCGdex o la deducida es
+  la real; en uno especial (Ascended Heroes) la regla tiene razón.
+- Hoy: `me04` (Chaos Rising) y `me05` (Pitch Black), por decisión de PINGU.
+
 ## Tanda 946 — La portada es «/»
 
 - Los enlaces de la casa a la portada son `href="/"` (páginas, barra de

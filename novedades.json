@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En Caos Creciente (Chaos Rising) y Oscuridad Absoluta (Pitch Black) ya se puede añadir la Reverse de las cartas que la tienen: antes solo salía la normal.", "enlace": "/cartas?ver=album&set=me04" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "La portada es ahora pokedoc.es a secas: ya no sale «/index.html» en la barra de direcciones, ni al entrar ni al volver a Inicio.", "enlace": "/" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En Black Bolt y White Flare ya se pueden añadir las versiones Poké Ball y Master Ball de todas las cartas que las tienen (antes faltaban en varias, como el Pansage), y también las que faltaban de Prismatic Evolutions y Ascended Heroes.", "enlace": "/cartas?ver=album&set=sv10.5b" },
     { "fecha": "2026-10-21", "tipo": "nuevo", "texto": "En el perfil de alguien con la colección pública sale ahora «Colección de @usuario» debajo de su vitrina, con lo último que ha añadido (y tu ✓ o tu corazón encima) y «Ver su colección» para verla entera, con buscador y filtros. En tu perfil puedes hacer la tuya pública ahí mismo.", "enlace": "/perfil" },

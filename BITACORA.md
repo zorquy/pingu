@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (182) — PINGU-Claude (947 — Chaos Rising y Pitch Black con su Reverse)
+
+**Hecho** (PINGU: «parece que Pitch Black no tiene las variantes correctas…
+Chaos Rising también falla»). La sonda «versiones» de /admin sobre Chaos
+Rising: «122 cartas suyas, 0 con versiones». TCGGO no tiene NINGUNA versión de
+esas dos expansiones, ni la Reverse de una común, así que la fila «Standard»
+de la 937 hacía que la regla de la 931 («si TCGGO no da Reverse, no hay
+Reverse») se la quitara a todas sus cartas. PINGU: «las variantes las traemos
+de TCGGO; solo para esos dos sets, de otro sitio».
+- `SETS_SIN_VERSIONES_TCGGO` (`js/mi-coleccion/variantes.js`): `me04` y
+  `me05`. En ellos la «Standard» no veta la Reverse y mandan las de TCGdex
+  (comunes e infrecuentes Normal + Reverse, raras Holo + Reverse, ex e
+  ilustraciones solo Holo), o las deducidas si la carta no se ha engordado.
+- No cambia nada fuera de esos dos: Ascended Heroes (931), Prize Pack (937) y
+  el resto siguen con las de TCGGO.
+
+**Ficheros**: `js/mi-coleccion/variantes.js`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`.
+
+En `pruebas`: `test-tanda-947.mjs`. Pasadas: 947, 945, 937, 935, 931, 929,
+922, 900, 915, 921, 927, 930, 934, 943 y `test-imports`, todas verdes.
+
+**Pendiente**:
+- Las versiones que en Cardmarket son OTRO producto y TCGGO no da (13, de
+  TCGdex): en Pitch Black la Normal sin holo de las raras 028, 035, 062, 070
+  y 084 y la Cosmos de la 056; en Chaos Rising la Normal de la 013, 029, 051,
+  068 y 085, el sello del logo de la 013 y la 019 y los de GameStop y EB Games
+  de la 010. Se meten como la 945 si PINGU quiere.
+- Un set más en el mismo caso: la sonda «versiones» lo dice («0 con
+  versiones») y se añade a la lista.
+
 ## 2026-10-22 (181) — PINGU-Claude (946 — la portada es pokedoc.es/, sin «index.html»)
 
 **Hecho** (PINGU: «¿no está un poco feo que cuando entras a la web te meta en
