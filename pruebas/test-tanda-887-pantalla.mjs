@@ -128,7 +128,7 @@ const ve = (page, sel) => page.locator(sel).first().isVisible().catch(() => fals
   await page.waitForTimeout(800)
   const cruce = await page.locator('#pcCruce').innerText().catch(() => '')
   check('arriba, vuestro cruce: te puede dar 1 y le puedes dar 1', /Te puede dar · 1/.test(cruce) && /Le puedes dar · 1/.test(cruce), cruce.slice(0, 200))
-  const escribir = await page.locator('#pcCruce a.btn-primary').getAttribute('href').catch(() => '')
+  const escribir = await page.locator('#pcCruce a[href*="mensajes.html"]').getAttribute('href').catch(() => '')
   check('  …con «Escribir» a la conversación y el mensaje redactado (las dos listas)', /mensajes\.html\?with=user-2&texto=/.test(escribir || '') && /Das%20estas%20cartas/.test(escribir || '') && /que%20tengo%20para%20cambio/.test(escribir || ''), escribir)
   // La chapa abre la pestaña.
   await page.locator('[data-ptab="guides"]').click()

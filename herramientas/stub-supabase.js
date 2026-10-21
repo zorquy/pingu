@@ -1805,6 +1805,175 @@ export const supabase = {
       )
       return { data: filas.slice(0, args.p_limite || 200), error: null }
     }
+    // ── Las propuestas de cambio (942) ──
+    // La MISMA lógica que supabase-migration-942-propuestas-cambio.sql
+    // (probada contra PostgreSQL en sql-tanda-942.sql): validar, mover las
+    // cartas, apuntar lo movido y deshacerlo. `window.__SIN_942__` hace como
+    // si la migración no estuviera.
+    if (/^cambio_|^cambios_reservadas$/.test(nombre) && nombre !== 'cambio_marcar' && nombre !== 'cambio_valorar') {
+      if (typeof window !== 'undefined' && window.__SIN_942__) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      for (const t of ['trade_offers', 'trade_offer_items', 'conversations', 'conversation_participants', 'private_messages', 'trade_confirmations']) T[t] ||= []
+      const yo = sesion?.user?.id || null
+      const mal = (m) => ({ data: null, error: { code: 'P0001', message: m } })
+      const ahora = () => new Date().toISOString()
+      const nuevoId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `id-${Math.random().toString(36).slice(2)}`)
+      const reservadas = (linea) => T.trade_offer_items.filter((i) => i.linea === linea && T.trade_offers.find((o) => o.id === i.oferta)?.estado === 'aceptada').reduce((n, i) => n + i.cantidad, 0)
+      const avisar = (o, de, para, tipo, titulo, texto) => {
+        let conv = T.conversation_participants.filter((c) => c.user_id === de).map((c) => c.conversation_id).find((id) => T.conversation_participants.some((c) => c.conversation_id === id && c.user_id === para))
+        if (!conv) {
+          conv = nuevoId()
+          T.conversations.push({ id: conv, created_at: ahora() })
+          T.conversation_participants.push({ conversation_id: conv, user_id: de }, { conversation_id: conv, user_id: para })
+        }
+        if (!o.conversacion) o.conversacion = conv
+        T.private_messages.push({ id: nuevoId(), conversation_id: conv, sender_id: de, body: texto, adjuntos: [], deleted_at: null, created_at: ahora() })
+        T.user_notifications.push({ id: nuevoId(), recipient_id: para, type: tipo, title: titulo, body: texto, link: `/mensajes.html?c=${conv}`, read_at: null, created_at: ahora() })
+      }
+      const oferta = (id) => T.trade_offers.find((o) => o.id === id)
+      if (nombre === 'cambios_reservadas') {
+        const por = new Map()
+        for (const i of T.trade_offer_items) {
+          if (!i.linea || !(args.p_cards || []).includes(i.card_id) || oferta(i.oferta)?.estado !== 'aceptada') continue
+          const k = `${i.quien}|${i.card_id}`
+          por.set(k, (por.get(k) || 0) + i.cantidad)
+        }
+        return { data: [...por].map(([k, n]) => ({ user_id: k.split('|')[0], card_id: k.split('|')[1], cantidad: n })), error: null }
+      }
+      if (!yo) return mal('Hace falta entrar con tu cuenta.')
+      if (nombre === 'cambio_lo_que_da') {
+        const filas = T.user_collection.filter((c) => c.user_id === args.p_user && Number(c.cambio) > 0)
+          .map((c) => ({ id: c.id, card_id: c.card_id, market: c.market || 'WEST', idioma: c.idioma, estado: c.estado, variante: c.variante || 'normal', gradeo: c.gradeo || null, cambio: Number(c.cambio), libres: Math.max(0, Math.min(Number(c.cambio), Number(c.cantidad) - reservadas(c.id))) }))
+        return { data: filas, error: null }
+      }
+      if (nombre === 'cambio_proponer') {
+        const para = args.p_para
+        if (!para || para === yo) return mal('Un cambio es entre dos personas.')
+        const items = Array.isArray(args.p_items) ? args.p_items : []
+        if (!items.length) return mal('Una propuesta lleva al menos una carta.')
+        const dinero = Number(args.p_dinero) || 0
+        if (dinero > 0 && !['de', 'para'].includes(args.p_paga)) return mal('Di quién paga la diferencia.')
+        let version = 1
+        if (args.p_anterior) {
+          const ant = oferta(args.p_anterior)
+          if (!ant || ant.estado !== 'enviada' || ![ant.de, ant.para].includes(yo) || ![ant.de, ant.para].includes(para)) return mal('Esa propuesta ya no se puede cambiar.')
+          version = ant.version + 1
+        }
+        const filas = []
+        let doy = 0
+        let recibo = 0
+        for (const it of items) {
+          const quien = it.de === 'yo' ? yo : it.de === 'otro' ? para : null
+          if (!quien) return mal('Cada carta dice quién la da.')
+          const n = Math.max(1, Math.min(99, Number(it.cantidad) || 1))
+          if (it.linea) {
+            const l = T.user_collection.find((c) => c.id === it.linea)
+            if (!l || l.user_id !== quien) return mal('Una de las cartas ya no está en su colección.')
+            if (quien === para && !(Number(l.cambio) > 0)) return mal('Una de sus cartas ya no la da.')
+            if (n > Number(l.cantidad) - reservadas(l.id)) return mal(`De ${l.card_id} no quedan tantas copias libres.`)
+            filas.push({ quien, linea: l.id, card_id: l.card_id, market: l.market || 'WEST', idioma: l.idioma, estado: l.estado, variante: l.variante || 'normal', gradeo: l.gradeo || null, cantidad: n, precio: it.precio ?? null, pedida: false })
+          } else {
+            if (quien === yo) return mal('Lo que das tiene que salir de tu colección.')
+            if (!it.card_id) return mal('Falta la carta que le pides.')
+            filas.push({ quien, linea: null, card_id: it.card_id, market: it.market || 'WEST', idioma: it.idioma || 'es', estado: it.estado || 'NM', variante: it.variante || 'normal', gradeo: null, cantidad: n, precio: it.precio ?? null, pedida: true })
+          }
+          if (quien === yo) doy += n
+          else recibo += n
+        }
+        for (const o of T.trade_offers) if (o.estado === 'enviada' && ((o.de === yo && o.para === para) || (o.de === para && o.para === yo))) o.estado = 'cambiada'
+        const o = { id: nuevoId(), de: yo, para, estado: 'enviada', version, anterior: args.p_anterior || null, dinero, dinero_paga: dinero > 0 ? args.p_paga : null, dinero_como: dinero > 0 ? args.p_como || null : null, nota: args.p_nota || null, conversacion: null, aceptada_at: null, recibido_de_at: null, recibido_para_at: null, hecha_at: null, deshacer_hasta: null, movimientos: null, confirmacion: null, created_at: ahora(), updated_at: ahora() }
+        T.trade_offers.push(o)
+        for (const f of filas) T.trade_offer_items.push({ id: nuevoId(), oferta: o.id, ...f })
+        const euros = (x) => `${Number(x).toFixed(2).replace('.', ',')} €`
+        avisar(o, yo, para, 'cambio_propuesta', 'Propuesta de cambio', `${args.p_anterior ? 'He cambiado la propuesta de cambio: ' : 'Te he mandado una propuesta de cambio: '}doy ${doy} ${doy === 1 ? 'carta' : 'cartas'} y recibo ${recibo} ${recibo === 1 ? 'carta' : 'cartas'}${dinero > 0 ? (args.p_paga === 'de' ? ` y te pago ${euros(dinero)}` : ` y me pagas ${euros(dinero)}`) : ''}. La tienes arriba de la conversación.`)
+        return { data: o.id, error: null }
+      }
+      const o = oferta(args.p_oferta)
+      if (!o || ![o.de, o.para].includes(yo)) return mal('Esa propuesta no es tuya.')
+      const otro = yo === o.de ? o.para : o.de
+      if (nombre === 'cambio_contestar') {
+        if (args.p_accion === 'aceptar') {
+          if (o.estado !== 'enviada' || yo !== o.para) return mal('Esa propuesta ya no se puede aceptar.')
+          for (const it of T.trade_offer_items.filter((i) => i.oferta === o.id)) {
+            if (it.linea) {
+              const l = T.user_collection.find((c) => c.id === it.linea && c.user_id === it.quien)
+              if (!l || Number(l.cantidad) - reservadas(l.id) < it.cantidad) return mal(`Ya no quedan copias libres de ${it.card_id} para este cambio: cámbiala o recházala.`)
+            } else if (it.pedida) {
+              const l = T.user_collection.filter((c) => c.user_id === it.quien && c.card_id === it.card_id).sort((a, b) => Number(b.idioma === it.idioma) - Number(a.idioma === it.idioma))[0]
+              if (l) Object.assign(it, { linea: l.id, idioma: l.idioma, estado: l.estado, variante: l.variante || 'normal', gradeo: l.gradeo || null })
+            }
+          }
+          Object.assign(o, { estado: 'aceptada', aceptada_at: ahora(), updated_at: ahora() })
+          avisar(o, yo, otro, 'cambio_aceptado', 'Han aceptado tu cambio', 'He aceptado tu propuesta de cambio. Cuando te llegue lo mío, dale a «Lo tengo».')
+        } else if (args.p_accion === 'rechazar') {
+          if (o.estado !== 'enviada' || yo !== o.para) return mal('Esa propuesta ya no se puede rechazar.')
+          o.estado = 'rechazada'
+          avisar(o, yo, otro, 'cambio_rechazado', 'Han rechazado tu cambio', 'No me cuadra esta propuesta de cambio.')
+        } else if (args.p_accion === 'anular') {
+          if (!((o.estado === 'enviada' && yo === o.de) || o.estado === 'aceptada')) return mal('Esa propuesta ya no se puede anular.')
+          o.estado = 'anulada'
+          avisar(o, yo, otro, 'cambio_anulado', 'Un cambio se ha anulado', 'He anulado la propuesta de cambio.')
+        } else return mal('No sé hacer eso con una propuesta.')
+        return { data: { ...o }, error: null }
+      }
+      if (nombre === 'cambio_lo_tengo') {
+        if (o.estado !== 'aceptada') return mal('Ese cambio no está aceptado.')
+        if (yo === o.de) o.recibido_de_at ||= ahora()
+        else o.recibido_para_at ||= ahora()
+        if (!o.recibido_de_at || !o.recibido_para_at) {
+          avisar(o, yo, otro, 'cambio_recibido', 'Ya tiene lo tuyo', 'Ya me ha llegado lo tuyo.')
+          return { data: { ...o }, error: null }
+        }
+        const hecho = []
+        for (const it of T.trade_offer_items.filter((i) => i.oferta === o.id)) {
+          const rec = it.quien === o.de ? o.para : o.de
+          let n = it.cantidad
+          const l = it.linea ? T.user_collection.find((c) => c.id === it.linea && c.user_id === it.quien) : null
+          if (!l) hecho.push({ op: 'faltaba', card_id: it.card_id })
+          else {
+            n = Math.min(n, Number(l.cantidad))
+            if (Number(l.cantidad) - n <= 0) {
+              hecho.push({ op: 'borrada', fila: { ...l } })
+              T.user_collection.splice(T.user_collection.indexOf(l), 1)
+            } else {
+              hecho.push({ op: 'restada', id: l.id, n, cambio: Number(l.cambio) })
+              l.cambio = Math.max(0, Math.min(Number(l.cambio) - n, Number(l.cantidad) - n))
+              l.cantidad = Number(l.cantidad) - n
+            }
+          }
+          const dest = T.user_collection.find((c) => c.user_id === rec && c.card_id === it.card_id && (c.market || 'WEST') === it.market && c.idioma === it.idioma && c.estado === it.estado && (c.variante || 'normal') === it.variante && (c.gradeo || null) === (it.gradeo || null))
+          if (dest) { dest.cantidad = Math.min(999, Number(dest.cantidad) + n); hecho.push({ op: 'sumada', id: dest.id, n }) }
+          else {
+            const id = nuevoId()
+            T.user_collection.push({ id, user_id: rec, card_id: it.card_id, market: it.market, idioma: it.idioma, estado: it.estado, variante: it.variante, gradeo: it.gradeo, cantidad: n, cambio: 0, created_at: ahora(), updated_at: ahora() })
+            hecho.push({ op: 'creada', id })
+          }
+          for (const w of T.user_wants.filter((x) => x.user_id === rec && x.card_id === it.card_id && (!x.idioma || x.idioma === it.idioma))) {
+            hecho.push({ op: 'deseo', fila: { ...w } })
+            T.user_wants.splice(T.user_wants.indexOf(w), 1)
+          }
+        }
+        const conf = { id: nuevoId(), user_a: [o.de, o.para].sort()[0], user_b: [o.de, o.para].sort()[1], hecho_a_at: ahora(), hecho_b_at: ahora() }
+        T.trade_confirmations.push(conf)
+        Object.assign(o, { movimientos: hecho, estado: 'hecha', hecha_at: ahora(), deshacer_hasta: new Date(Date.now() + 864e5).toISOString(), confirmacion: conf.id })
+        avisar(o, yo, otro, 'cambio_hecho', 'Cambio hecho', 'Cambio hecho: las cartas ya están en la colección de cada uno.')
+        return { data: { ...o }, error: null }
+      }
+      if (nombre === 'cambio_deshacer') {
+        if (o.estado !== 'hecha' || !o.deshacer_hasta || new Date(o.deshacer_hasta) < new Date()) return mal('Ese cambio ya no se puede deshacer.')
+        for (const m of [...(o.movimientos || [])].reverse()) {
+          const l = m.id ? T.user_collection.find((c) => c.id === m.id) : null
+          if (m.op === 'creada' && l) T.user_collection.splice(T.user_collection.indexOf(l), 1)
+          if (m.op === 'sumada' && l) { if (Number(l.cantidad) <= m.n) T.user_collection.splice(T.user_collection.indexOf(l), 1); else l.cantidad -= m.n }
+          if (m.op === 'restada' && l) { l.cambio = Math.min(m.cambio, Number(l.cantidad) + m.n); l.cantidad = Math.min(999, Number(l.cantidad) + m.n) }
+          if (m.op === 'borrada' && !T.user_collection.some((c) => c.id === m.fila.id)) T.user_collection.push({ ...m.fila })
+          if (m.op === 'deseo' && !T.user_wants.some((w) => w.id === m.fila.id)) T.user_wants.push({ ...m.fila })
+        }
+        T.trade_confirmations = T.trade_confirmations.filter((c) => c.id !== o.confirmacion)
+        Object.assign(o, { estado: 'aceptada', recibido_de_at: null, recibido_para_at: null, hecha_at: null, deshacer_hasta: null, movimientos: null, confirmacion: null })
+        avisar(o, yo, otro, 'cambio_deshecho', 'Un cambio se ha deshecho', 'He deshecho el cambio.')
+        return { data: { ...o }, error: null }
+      }
+    }
     // Lo que da UNA persona (887), para su perfil: la misma cuenta que
     // supabase-migration-887-cambios-perfil.sql (sin lo de un baneado; se
     // ve sin cuenta).

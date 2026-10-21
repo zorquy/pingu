@@ -101,7 +101,7 @@ const fila = (page, id) => page.$$eval(`#${id} > .pc-carta`, (ls) => ls.map((l) 
 
   console.log('\n── 4. Vuestro cruce ──')
   check('arriba, con las cartas en pequeño (te da 2, le das 1)', (await page.locator('#pcCruce .perfil-cruce-minis').count()) === 2 && (await page.locator('#pcCruce .perfil-cruce-mini img').count()) === 3, `${await page.locator('#pcCruce .perfil-cruce-mini').count()} minis`)
-  check('  …y «Escribir» sigue', (await page.locator('#pcCruce a.btn-primary').count()) === 1)
+  check('  …y «Escribir» sigue', (await page.locator('#pcCruce a[href*="mensajes.html"]').count()) === 1)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
