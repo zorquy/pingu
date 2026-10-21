@@ -124,6 +124,18 @@ export const REEMPLAZOS = [
   // que el calco ya escribió); entera, y lo que alguien tenga de una carta
   // que no case se queda (como en el calco: `borrarSinDestino: false`).
   { clave: 's12a-jp', sets: ['s12a'], destino: 's12a', mercado: 'JP', entero: true, recolocarPorNumero: true, borrarSinDestino: false },
+  // Black Bolt (931). Cosadfrikiis en el foro: «Escavalier 60 sale duplicado
+  // y Antique Cover Fossil también, los dos Escavalier y un Antique Cover
+  // Fossil salen con número 60». PINGU: «tráete todo el set de nuevo, así lo
+  // traes bien y sin repetir». NO entero: el entero vuelve «tcggo-…» todas
+  // las cartas, y una carta de TCGGO no la visita TCGdex, así que el set
+  // entero se quedaría sin su español (nombres, ataques). Así, la lista de
+  // TCGGO manda: lo que casa por su id o por número conserva el suyo; lo
+  // repetido (dos de nuestras con el mismo número no casan con nada) se
+  // va, y lo que alguien tenga de ello pasa a la carta buena por el nombre;
+  // y el número es el de TCGGO (`numerosDeTcggo`), por si el Antique Cover
+  // Fossil lleva un 60 que no es el suyo.
+  { clave: 'sv10.5b-limpio', sets: ['sv10.5b'], destino: 'sv10.5b', mercado: 'WEST', conservarPorNumero: true, numerosDeTcggo: true },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
@@ -228,6 +240,21 @@ export function setsQueNoCubre(cartasQueSeVan, suyas) {
 // sus cartas son las mismas que las de TCGGO, pero sin su id, y sin esto
 // entraban todas como «tcggo-…» y las nuestras se borraban —con la Pokédex,
 // los ataques y la URL— o se quedaban duplicadas si alguien las tenía.
+// Las que se conservan y llevan OTRO número que el de TCGGO (931): id
+// nuestro → el número suyo, escrito como el nuestro (con sus ceros: «060»
+// sigue siendo de tres cifras). Puro.
+export function numerosNuevos(suyas, porTcggoId) {
+  const m = new Map()
+  for (const s of suyas || []) {
+    const n = porTcggoId.get(s.id)
+    const suyo = s?.card_number == null ? '' : String(s.card_number).trim()
+    if (!n || !suyo || numeroComparable(n.local_id) === numeroComparable(suyo)) continue
+    const nuestro = String(n.local_id ?? '')
+    m.set(n.id, /^\d+$/.test(nuestro) && /^\d+$/.test(suyo) ? suyo.padStart(nuestro.length, '0') : suyo)
+  }
+  return m
+}
+
 export function paresPorNumero(nuestras, suyas) {
   const pares = []
   const usadasNuestras = new Set()
@@ -285,6 +312,9 @@ export async function procesar({
   // destino, así que es TCGGO quien dice que son la misma expansión y no
   // se comprueba por el nombre (en japonés no casaría).
   recolocarPorNumero = false, borrarSinDestino = entero, mismaExpansion = false,
+  // Black Bolt (931): a una carta que se conserva se le pone el NÚMERO de
+  // TCGGO si el suyo dice otro (con los ceros de delante que llevara).
+  numerosDeTcggo = false,
   reloj = () => Date.now(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -367,6 +397,14 @@ export async function procesar({
       porNumero = paresDelDestino
       for (const p of porNumero) porTcggoId.set(p.suya.id, p.nuestra)
     }
+  }
+  // Una lista A MEDIAS no manda (931, la de la 886: de VSTAR Universe TCGGO
+  // daba 90 de 262). Sin el modo entero, lo que no está en su lista se
+  // borra, así que si TCGGO trae menos del 90 % de los números distintos que
+  // tenemos, no se toca nada.
+  if (conservarPorNumero && !entero) {
+    const nuestrosNumeros = new Set(nuestras.filter((c) => c.set_id === setDestino).map((c) => numeroComparable(c.local_id)).filter(Boolean))
+    if (nuestrosNumeros.size && suyas.length < Math.ceil(nuestrosNumeros.size * 0.9)) return { ok: false, peticiones, error: `TCGGO da ${suyas.length} cartas de «${setDestino}» y nosotros tenemos ${nuestrosNumeros.size} números distintos: lista a medias, no se toca nada.` }
   }
   const filas = []
   const conservadas = []
@@ -459,12 +497,13 @@ export async function procesar({
   // `name_en` que ya hubiera, y el que había era el japonés copiado tal cual.
   const inglesNuevo = (c, f) => entero && f.name_en && f.name_en !== c.name_en && (!c.name_en || tieneCJK(c.name_en))
   const casadasPorNumero = new Set(porNumero.map((p) => p.nuestra.id))
+  const renumeradas = numerosDeTcggo ? numerosNuevos(suyas, porTcggoId) : new Map()
   const ajustes = filas.filter((f) => {
     const c = nuestraPorId.get(f.id)
-    return c && (c.set_id !== f.set_id || (casadasPorNumero.has(f.id) && f.name_en && f.name_en !== c.name_en) || inglesNuevo(c, f))
+    return c && (c.set_id !== f.set_id || (casadasPorNumero.has(f.id) && f.name_en && f.name_en !== c.name_en) || inglesNuevo(c, f) || renumeradas.has(f.id))
   }).map((f) => {
     const c = nuestraPorId.get(f.id)
-    return { id: f.id, market: mercado, set_id: f.set_id, local_id: c.local_id, name: c.name, name_en: casadasPorNumero.has(f.id) || inglesNuevo(c, f) ? f.name_en : c.name_en ?? f.name_en }
+    return { id: f.id, market: mercado, set_id: f.set_id, local_id: renumeradas.get(f.id) ?? c.local_id, name: c.name, name_en: casadasPorNumero.has(f.id) || inglesNuevo(c, f) ? f.name_en : c.name_en ?? f.name_en }
   })
   try {
     for (let k = 0; k < ajustes.length; k += 200) await pedir('tcg_cards?on_conflict=id,market', { method: 'POST', body: JSON.stringify(ajustes.slice(k, k + 200)) })
@@ -521,7 +560,7 @@ export async function procesar({
 
   return {
     ok: true, mercado, episodio: idEpisodio, destino: setDestino, sets: idsSets, peticiones, entero,
-    suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
+    suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, renumeradas: renumeradas.size, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
     seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: c.origen === 'relleno' ? 'rellenada desde Scrydex (TCGGO no la lista)' : aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
@@ -625,10 +664,10 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   // Las opciones del entero que lleve la entrada (881): recolocar por
   // número y no borrar lo que alguien tiene, como hace el calco japonés.
   const opciones = {}
-  for (const k of ['recolocarPorNumero', 'borrarSinDestino']) if (k in pendiente) opciones[k] = pendiente[k]
+  for (const k of ['recolocarPorNumero', 'borrarSinDestino', 'conservarPorNumero', 'numerosDeTcggo']) if (k in pendiente) opciones[k] = pendiente[k]
   const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...opciones, ...resto })
   if (r.ok) {
-    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
+    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, renumeradas: r.renumeradas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
   } else {
     estado.intentos[pendiente.clave] = (Number(estado.intentos[pendiente.clave]) || 0) + 1
     estado.ultimo = { clave: pendiente.clave, fecha: ahora.toISOString(), error: r.error }

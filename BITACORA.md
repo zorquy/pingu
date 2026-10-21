@@ -4,6 +4,58 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (165) — PINGU-Claude (931 — las versiones las dice TCGGO, y Black Bolt traído de nuevo)
+
+**Hecho** (PINGU: «tú siempre saca en todos los sets las variantes que diga
+TCGGO, ¿no? De Black Bolt simplemente tráete todo el set de nuevo, así lo
+traes bien y sin repetir»):
+- Cuando TCGGO ha dado versiones de una carta y ninguna es la Reverse Holo,
+  la web ya no ofrece la «Reverse holo» de TCGdex: en Ascended Heroes las
+  reverse son los patrones (Dusk Ball, energía…), que es lo que contaba
+  Cosadfrikiis en el foro. La normal, la holo y la 1.ª edición siguen siendo
+  las de TCGdex (TCGGO las da como la carta misma). Una carta de la que TCGGO
+  aún no ha dicho nada se queda como estaba. La pasada de precios trae las
+  versiones de todas las cartas desde la 929, así que en un día está todo.
+- Lo que TIENES sale siempre: una copia apuntada como Reverse (o como Holo)
+  de una carta que ya no la ofrece sigue teniendo su casilla al separar
+  versiones y su sitio en la lista de la ficha (`variantesConLasTuyas`).
+  Antes de esto, una copia en una versión que la carta no declaraba no salía
+  al separar: la tenías y no la veías.
+- Black Bolt (`sv10.5b`) entra en `tcggo-reemplazar-set` (`REEMPLAZOS`,
+  clave `sv10.5b-limpio`), que lo hace solo en los próximos cinco minutos:
+  la lista de TCGGO manda, se conserva lo que casa por id o por número (con
+  su español), lo repetido se va y lo que alguien tenía de ello pasa a la
+  carta buena, y el número de cada carta es el de TCGGO (opción nueva
+  `numerosDeTcggo`). NO en modo entero: el entero vuelve «tcggo-…» todas las
+  cartas y TCGdex no las visita, así que el set se quedaba sin su español.
+  Freno nuevo: si TCGGO trae menos del 90 % de nuestros números (lista a
+  medias, la de la 886), no se toca nada.
+
+**Ficheros**: `js/mi-coleccion/variantes.js` (`variantesDeCarta`),
+`js/mi-coleccion.js` (`variantesConLasTuyas`),
+`netlify/functions/tcggo-reemplazar-set.mjs` (la entrada, `numerosNuevos`,
+`numerosDeTcggo`, el freno de lista a medias, y `pasada` pasa
+`conservarPorNumero` y `numerosDeTcggo`), `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`.
+
+En `pruebas`: `test-tanda-931.mjs` (probado que salta sin
+`variantesConLasTuyas`), la 862 al día (el Drakloak de Ascended Heroes abre
+en tres casillas, no en cuatro), la 461, 778 y 779 (25 casillas: la holo
+tuya de la 3) y la 930 (su carta lleva su Reverse en TCGGO). Las 37 que
+tocan versiones, separar y reemplazos: verdes salvo la 385 y los mandos de
+la 461, que ya lo estaban; las once del reemplazo (654 a 886), verdes.
+
+**Lo que NO es**: si los repetidos de Black Bolt vienen de OTRO set que
+comparte su expansión de TCGGO (la estantería los junta), este reemplazo no
+lo toca. Al acabar, el estado `tcggo_reemplazos` → `sv10.5b-limpio` dice
+cuántas se fueron y cuántas cambiaron de número; si sigue saliendo
+repetido, es eso y lo miro con la sonda.
+
+**Pendiente**:
+- PINGU: mirar Black Bolt dentro de un rato.
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (164) — PINGU-Claude (930 — el dibujo de cada versión: normal, holo, reverse y las Ball)
 
 **Hecho** (PINGU, con Dex delante: «hazme iconos para las variantes más

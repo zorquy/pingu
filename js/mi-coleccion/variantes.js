@@ -112,7 +112,16 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
   const v = carta?.variants
   const dichas = v && typeof v === 'object' ? EQUIVALE.filter((e) => v[e.suyo] === true) : []
   // Lo que la carta no dice se deduce de su expansión y su rareza (922).
-  const base = dichas.length ? dichas : variantesDeducidas(carta) || []
+  let base = dichas.length ? dichas : variantesDeducidas(carta) || []
+  // Y cuando TCGGO ha hablado de la carta, la Reverse es la SUYA (931,
+  // PINGU: «saca en todos los sets las variantes que diga TCGGO»). TCGdex
+  // marca `reverse` en sets donde la reverse no existe a secas: en Ascended
+  // Heroes las reverse SON los patrones (Dusk Ball, energía), y ofrecer
+  // además una «Reverse holo» era ofrecer una carta que no se imprimió.
+  // Solo la reverse: la normal, la holo y la 1.ª edición TCGGO las da como
+  // la carta misma, no como versión.
+  const deTcggo = (carta?.versiones || []).map((f) => varianteDeEtiqueta(f.etiqueta))
+  if (deTcggo.length && !deTcggo.includes('reverse')) base = base.filter((e) => e.nuestro !== 'reverse')
   // Y las de TCGGO (862), detrás de las de TCGdex y sin repetir.
   const extras = []
   for (const f of carta?.versiones || []) {

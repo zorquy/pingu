@@ -830,9 +830,20 @@ function pintarOtrasCopias(l) {
 // salen). Las cuatro siguen en el desplegable de EDITAR, que es donde lo
 // sabes tú mejor que nosotros.
 function variantesQueExisten(carta, variante) {
-  const hay = variantesDeCarta(carta, []).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
+  const hay = variantesConLasTuyas(carta, []).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
   if (!variante || hay.some((v) => v.id === variante)) return hay
   return [...hay, { id: variante, nombre: nombreDeVariante(variante) }]
+}
+
+// LAS VERSIONES DE UNA CARTA, MÁS LAS QUE TIENES (931). Desde que la Reverse
+// la dice TCGGO (`variantesDeCarta`), una carta de Ascended Heroes ya no la
+// ofrece; pero quien la apuntó como Reverse antes la sigue teniendo, y al
+// separar versiones su copia se quedaba sin casilla —tenerla y no verla—.
+// Lo que tienes sale siempre, detrás de las que existen.
+function variantesConLasTuyas(carta, siNoSeSabe) {
+  const hay = variantesDeCarta(carta, siNoSeSabe)
+  const tuyas = [...new Set(misLineasDe(carta?.id).map((l) => l.variante || 'normal'))].filter((id) => !hay.some((v) => v.nuestro === id))
+  return [...hay, ...tuyas.map((id) => ({ suyo: null, nuestro: id, nombre: nombreDeVariante(id) }))]
 }
 
 function variantesParaEditar(carta, variante) {
@@ -4011,7 +4022,7 @@ function pintarAlbum() {
   // de arriba siga siendo la del set y no la de lo que se ve.
   const version = $('mcAlbumVersion')?.value || ''
   const paraPintar = album.split
-    ? lista.flatMap((c) => variantesDeCarta(c).filter((v) => !version || v.nuestro === version).map((v) => ({ ...c, __variante: v })))
+    ? lista.flatMap((c) => variantesConLasTuyas(c).filter((v) => !version || v.nuestro === version).map((v) => ({ ...c, __variante: v })))
     : lista
   // Una rejilla y no un archivador (tanda 417): una expansión ya viene
   // ordenada y lo que se quiere es verla entera. El archivador —pliegos,

@@ -41785,6 +41785,30 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 931 — Las versiones las dice TCGGO, y Black Bolt de nuevo
+
+- `variantesDeCarta` (js/mi-coleccion/variantes.js): si la carta trae
+  `versiones` de TCGGO y ninguna es `reverse` (por `varianteDeEtiqueta`), la
+  `reverse` de TCGdex sale de la base. Solo la reverse: normal, holo y 1.ª
+  edición TCGGO no las da como versión. Sin `versiones` (la carta no las ha
+  pegado, o TCGGO no ha hablado de ella) no cambia nada; las pantallas que
+  pegan versiones son la expansión (`versionesDeSets`), la ficha
+  (`versionesDeCartas`) y Cartas (solo las que tienes en otra versión).
+  Y lo que la colección tiene sale siempre: `variantesConLasTuyas(carta)`
+  (js/mi-coleccion.js) suma detrás las versiones de las líneas de esa carta
+  que la lista no trae; lo usan las casillas al separar y
+  `variantesQueExisten` (la lista de la ficha). Buscar sigue con
+  `variantesDeCarta`.
+- `tcggo-reemplazar-set`: entrada `sv10.5b-limpio` (no entera,
+  `conservarPorNumero`, `numerosDeTcggo`). `numerosNuevos(suyas,
+  porTcggoId)` (pura): id nuestro → el número de TCGGO cuando el nuestro
+  dice otro (`numeroComparable`), con los ceros de delante del nuestro; los
+  `ajustes` lo escriben en `local_id` (la RPC no lo toca en una fila que ya
+  existe). Freno: con `conservarPorNumero` y sin `entero`, menos del 90 % de
+  nuestros números distintos en la lista de TCGGO → no se toca nada. `pasada`
+  copia de la entrada `recolocarPorNumero`, `borrarSinDestino`,
+  `conservarPorNumero` y `numerosDeTcggo`; el resumen lleva `renumeradas`.
+
 ## Tanda 930 — El dibujo de cada versión
 
 - `js/mi-coleccion/iconos-version.js`: `dibujoDeVersion(id)` → `{ tipo:
