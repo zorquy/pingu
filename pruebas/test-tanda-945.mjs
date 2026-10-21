@@ -107,6 +107,20 @@ console.log('\n── 3. La web ──')
   const solo = { id: 'sv10.5b-006', set_id: 'sv10.5b', rarity: 'Common', variants: { normal: true, reverse: true } }
   v.pegarVersiones([solo], [{ tcggo_id: -4, card_id: 'sv10.5b-006', etiqueta: 'Poké Ball', origen: 'tcgdex' }])
   check('una fila de TCGdex no le quita la Reverse a la carta (la regla de la 931 es de TCGGO)', v.variantesDeCarta(solo).map((x) => x.nuestro).join() === 'normal,reverse,poke-ball', v.variantesDeCarta(solo).map((x) => x.nuestro).join())
+  // El precio (PINGU, con la captura del Pansage: la Poké Ball y la Master
+  // Ball a 0,02 €, lo de la normal). Sin precio propio, sin cifra.
+  const datos = await import(`${RAIZ}/js/mi-coleccion/datos.js`)
+  datos.registrarVersiones([
+    { tcggo_id: -1, card_id: 'sv10.5b-004', etiqueta: 'Poké Ball', origen: 'tcgdex', cm_id_product: 836261 },
+    { tcggo_id: 70006, card_id: 'sv10.5b-004', etiqueta: 'Master Ball' },
+    { tcggo_id: 70007, card_id: 'sv10.5b-004', etiqueta: 'Quick Ball', cm_low: 3.5 },
+  ])
+  const guardados = new Map([['sv10.5b-004', { card_id: 'sv10.5b-004', cm_low: 0.02, cm_id_product: 835910 }]])
+  const cifra = (variante) => datos.precioDeLinea({ card_id: 'sv10.5b-004', variante, cantidad: 1 }, guardados, new Map())?.desde ?? null
+  check('la Poké Ball de TCGdex sin precio todavía NO sale con el de la normal', cifra('poke-ball') == null, String(cifra('poke-ball')))
+  check('  …ni la Master Ball de TCGGO sin cifra', cifra('master-ball') == null, String(cifra('master-ball')))
+  check('  …la que tiene el suyo, con el suyo', cifra('quick-ball') === 3.5, String(cifra('quick-ball')))
+  check('  …y la normal, con el de la carta', cifra('normal') === 0.02, String(cifra('normal')))
   const iv = await import(`${RAIZ}/js/mi-coleccion/iconos-version.js`)
   const html = iv.iconoDeVersion('poke-ball', 16) + iv.iconoDeVersion('master-ball', 16)
   check('la Poké Ball y la Master Ball se pintan con su sprite (930)', /poke-ball/.test(html) && /master-ball/.test(html), html.slice(0, 200))

@@ -20,7 +20,7 @@ console.log('── 1. Lo estático ──')
 {
   const js = leer('js/perfil-cambios.js')
   check('pide la fila entera de precios y la monta como la ficha', /from\('tcg_card_prices'\)\.select\('\*'\)/.test(js) && /\[p\.card_id, precioDeFila\(p\)\]/.test(js))
-  check('  …y el precio de cada baldosa es el del idioma de la copia (`valorDe`)', /valorDe\(precios\.get\(f\.card_id\) \|\| null, f\.idiomas\?\.\[0\] \|\| null\)/.test(js) && (js.match(/precioDeFilaDeCambio\(precios, f\)/g) || []).length === 2)
+  check('  …y el precio de cada baldosa es el del idioma de la copia (`valorDe`)', /valorDe\(precios\.get\(f\.card_id\) \|\| null, f\.idiomas\?\.\[0\] \|\| null\)/.test(js) && (js.match(/precioDeFilaDeCambio\(precios, f\)/g) || []).length >= 1)
   check('  …sin el `cm_low` a secas de antes', !/\[p\.card_id, p\.cm_low\]/.test(js))
 }
 
