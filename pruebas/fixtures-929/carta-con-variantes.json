@@ -1,0 +1,98 @@
+{
+ "data": {
+  "id": 31799,
+  "name": "Spinarak",
+  "name_numbered": "Spinarak 1",
+  "slug": "spinarak",
+  "type": "singles",
+  "lang": "en",
+  "card_number": 1,
+  "card_code_number": "POR 1",
+  "hp": 60,
+  "rarity": "Common",
+  "supertype": null,
+  "tcgid": "POR-1",
+  "flavor_text": null,
+  "abilities": null,
+  "attacks": null,
+  "prices": {
+   "cardmarket": {
+    "currency": "EUR",
+    "lowest_near_mint": 0.03,
+    "lowest_near_mint_EU_only": 0.02,
+    "lowest_near_mint_DE": 0.02,
+    "lowest_near_mint_DE_EU_only": 0.02,
+    "lowest_near_mint_FR": 0.02,
+    "lowest_near_mint_FR_EU_only": 0.02,
+    "lowest_near_mint_ES": 0.02,
+    "lowest_near_mint_ES_EU_only": 0.02,
+    "lowest_near_mint_IT": 0.02,
+    "lowest_near_mint_IT_EU_only": 0.02,
+    "30d_average": 0.03,
+    "7d_average": 0.02,
+    "available_items": 14328,
+    "graded": []
+   },
+   "tcg_player": {
+    "currency": "EUR",
+    "market_price": 0.15
+   }
+  },
+  "variants": [
+   {
+    "type": "reverse_holo",
+    "label": "Reverse Holo",
+    "id": 35162,
+    "prices": {
+     "cardmarket": {
+      "currency": "EUR",
+      "lowest_near_mint": 0.03
+     }
+    }
+   }
+  ],
+  "episode": {
+   "id": 399,
+   "name": "Perfect Order",
+   "slug": "perfect-order",
+   "lang": "en",
+   "released_at": "2026-03-27",
+   "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+   "code": "POR",
+   "cards_total": 124,
+   "cards_printed_total": 88,
+   "prices": {
+    "cardmarket": {
+     "total": 475.77,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 395.36,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   }
+  },
+  "artist": {
+   "id": 367,
+   "name": "Katsunori Sato",
+   "slug": "katsunori-sato"
+  },
+  "image": "https://images.tcggo.com/tcggo/storage/32187/spinarak.webp",
+  "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/spinarak",
+  "links": {
+   "cardmarket": "https://www.tcggo.com/external/cm/31799",
+   "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31799"
+  },
+  "cardmarket_id": 877413,
+  "tcgplayer_id": 684397
+ }
+}

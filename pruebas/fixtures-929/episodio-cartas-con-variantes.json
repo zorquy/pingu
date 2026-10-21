@@ -1,0 +1,4588 @@
+{
+ "data": [
+  {
+   "id": 31799,
+   "name": "Spinarak",
+   "name_numbered": "Spinarak 1",
+   "slug": "spinarak",
+   "card_code_number": "POR 1",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 1,
+   "hp": 60,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-1",
+   "cardmarket_id": 877413,
+   "tcgplayer_id": 684397,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 14328,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35162,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 367,
+    "name": "Katsunori Sato",
+    "slug": "katsunori-sato"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32187/spinarak.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/spinarak",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31799",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31799"
+   }
+  },
+  {
+   "id": 31800,
+   "name": "Ariados",
+   "name_numbered": "Ariados 2",
+   "slug": "ariados",
+   "card_code_number": "POR 2",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 2,
+   "hp": 110,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-2",
+   "cardmarket_id": 877414,
+   "tcgplayer_id": 684398,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.02,
+     "available_items": 12970,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.18
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35163,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 764,
+    "name": "svlt",
+    "slug": "svlt"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32188/ariados.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/ariados",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31800",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31800"
+   }
+  },
+  {
+   "id": 31801,
+   "name": "Shaymin",
+   "name_numbered": "Shaymin 3",
+   "slug": "shaymin",
+   "card_code_number": "POR 3",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 3,
+   "hp": 70,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-3",
+   "cardmarket_id": 877415,
+   "tcgplayer_id": 684399,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 16754,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35164,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 391,
+    "name": "saino misaki",
+    "slug": "saino-misaki"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32189/shaymin.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/shaymin",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31801",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31801"
+   }
+  },
+  {
+   "id": 31802,
+   "name": "Snivy",
+   "name_numbered": "Snivy 4",
+   "slug": "snivy",
+   "card_code_number": "POR 4",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 4,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-4",
+   "cardmarket_id": 877416,
+   "tcgplayer_id": 684400,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 13635,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.17
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35165,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 406,
+    "name": "Narumi Sato",
+    "slug": "narumi-sato"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32190/snivy.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/snivy",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31802",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31802"
+   }
+  },
+  {
+   "id": 31803,
+   "name": "Servine",
+   "name_numbered": "Servine 5",
+   "slug": "servine",
+   "card_code_number": "POR 5",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 5,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-5",
+   "cardmarket_id": 877417,
+   "tcgplayer_id": 684401,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 13499,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.16
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35166,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 397,
+    "name": "Kurata So",
+    "slug": "kurata-so"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32191/servine.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/servine",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31803",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31803"
+   }
+  },
+  {
+   "id": 31804,
+   "name": "Serperior",
+   "name_numbered": "Serperior 6",
+   "slug": "serperior",
+   "card_code_number": "POR 6",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 6,
+   "hp": 160,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-6",
+   "cardmarket_id": 877418,
+   "tcgplayer_id": 684402,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.05,
+     "7d_average": 0.05,
+     "available_items": 7966,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.17
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35151,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 414,
+    "name": "kodama",
+    "slug": "kodama"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32192/serperior.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/serperior",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31804",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31804"
+   }
+  },
+  {
+   "id": 31805,
+   "name": "Scatterbug",
+   "name_numbered": "Scatterbug 7",
+   "slug": "scatterbug",
+   "card_code_number": "POR 7",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 7,
+   "hp": 40,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-7",
+   "cardmarket_id": 877419,
+   "tcgplayer_id": 684363,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 13961,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.12
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35167,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 394,
+    "name": "OKACHEKE",
+    "slug": "okacheke"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32193/scatterbug.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/scatterbug",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31805",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31805"
+   }
+  },
+  {
+   "id": 31806,
+   "name": "Spewpa",
+   "name_numbered": "Spewpa 8",
+   "slug": "spewpa",
+   "card_code_number": "POR 8",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 8,
+   "hp": 80,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-8",
+   "cardmarket_id": 877420,
+   "tcgplayer_id": 684364,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 12792,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35168,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 361,
+    "name": "Ounishi",
+    "slug": "ounishi"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32194/spewpa.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/spewpa",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31806",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31806"
+   }
+  },
+  {
+   "id": 31807,
+   "name": "Vivillon",
+   "name_numbered": "Vivillon 9",
+   "slug": "vivillon",
+   "card_code_number": "POR 9",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 9,
+   "hp": 120,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-9",
+   "cardmarket_id": 877421,
+   "tcgplayer_id": 684366,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 15198,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.23
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35169,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 423,
+    "name": "mingo",
+    "slug": "mingo"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32195/vivillon.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/vivillon",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31807",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31807"
+   }
+  },
+  {
+   "id": 31808,
+   "name": "Rowlet",
+   "name_numbered": "Rowlet 10",
+   "slug": "rowlet",
+   "card_code_number": "POR 10",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 10,
+   "hp": 80,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-10",
+   "cardmarket_id": 877422,
+   "tcgplayer_id": 684367,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 12361,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35170,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 413,
+    "name": "Atsuya Uki",
+    "slug": "atsuya-uki"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32196/rowlet.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/rowlet",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31808",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31808"
+   }
+  },
+  {
+   "id": 31809,
+   "name": "Dartrix",
+   "name_numbered": "Dartrix 11",
+   "slug": "dartrix",
+   "card_code_number": "POR 11",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 11,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-11",
+   "cardmarket_id": 877423,
+   "tcgplayer_id": 684369,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 12537,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.17
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35171,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 404,
+    "name": "aspara",
+    "slug": "aspara"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32197/dartrix.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/dartrix",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31809",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31809"
+   }
+  },
+  {
+   "id": 31810,
+   "name": "Decidueye ex",
+   "name_numbered": "Decidueye ex 12",
+   "slug": "decidueye-ex",
+   "card_code_number": "POR 12",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 12,
+   "hp": 320,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-12",
+   "cardmarket_id": 877424,
+   "tcgplayer_id": 684370,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.08,
+     "lowest_near_mint_EU_only": 0.08,
+     "lowest_near_mint_DE": 0.1,
+     "lowest_near_mint_DE_EU_only": 0.1,
+     "lowest_near_mint_FR": 0.1,
+     "lowest_near_mint_FR_EU_only": 0.1,
+     "lowest_near_mint_ES": 0.2,
+     "lowest_near_mint_ES_EU_only": 0.2,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.45,
+     "7d_average": 0.4,
+     "available_items": 2138,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.53
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 371,
+    "name": "aky CG Works",
+    "slug": "aky-cg-works"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32198/decidueye-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/decidueye-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31810",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31810"
+   }
+  },
+  {
+   "id": 31811,
+   "name": "Fletchinder",
+   "name_numbered": "Fletchinder 13",
+   "slug": "fletchinder",
+   "card_code_number": "POR 13",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 13,
+   "hp": 90,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-13",
+   "cardmarket_id": 877425,
+   "tcgplayer_id": 684404,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.02,
+     "available_items": 12775,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.18
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35172,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 530,
+    "name": "Sumiyoshi Kizuki",
+    "slug": "sumiyoshi-kizuki"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32199/fletchinder.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/fletchinder",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31811",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31811"
+   }
+  },
+  {
+   "id": 31812,
+   "name": "Talonflame",
+   "name_numbered": "Talonflame 14",
+   "slug": "talonflame",
+   "card_code_number": "POR 14",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 14,
+   "hp": 150,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-14",
+   "cardmarket_id": 877426,
+   "tcgplayer_id": 684405,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 14810,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35173,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 421,
+    "name": "Shinji Kanda",
+    "slug": "shinji-kanda"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32200/talonflame.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/talonflame",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31812",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31812"
+   }
+  },
+  {
+   "id": 31813,
+   "name": "Salandit",
+   "name_numbered": "Salandit 15",
+   "slug": "salandit",
+   "card_code_number": "POR 15",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 15,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-15",
+   "cardmarket_id": 877427,
+   "tcgplayer_id": 684382,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 10176,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.17
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35174,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 1069,
+    "name": "Kazuhisa Uragami",
+    "slug": "kazuhisa-uragami"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32201/salandit.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/salandit",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31813",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31813"
+   }
+  },
+  {
+   "id": 31814,
+   "name": "Salazzle ex",
+   "name_numbered": "Salazzle ex 16",
+   "slug": "salazzle-ex",
+   "card_code_number": "POR 16",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 16,
+   "hp": 260,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-16",
+   "cardmarket_id": 877428,
+   "tcgplayer_id": 684376,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.05,
+     "lowest_near_mint_EU_only": 0.05,
+     "lowest_near_mint_DE": 0.1,
+     "lowest_near_mint_DE_EU_only": 0.1,
+     "lowest_near_mint_FR": 0.03,
+     "lowest_near_mint_FR_EU_only": 0.03,
+     "lowest_near_mint_ES": 0.08,
+     "lowest_near_mint_ES_EU_only": 0.08,
+     "lowest_near_mint_IT": 0.03,
+     "lowest_near_mint_IT_EU_only": 0.03,
+     "30d_average": 0.36,
+     "7d_average": 0.34,
+     "available_items": 2680,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.44
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 380,
+    "name": "5ban Graphics",
+    "slug": "5ban-graphics"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32202/salazzle-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/salazzle-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31814",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31814"
+   }
+  },
+  {
+   "id": 31815,
+   "name": "Turtonator",
+   "name_numbered": "Turtonator 17",
+   "slug": "turtonator",
+   "card_code_number": "POR 17",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 17,
+   "hp": 120,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-17",
+   "cardmarket_id": 877429,
+   "tcgplayer_id": 684407,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.03,
+     "available_items": 12445,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.25
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35175,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 447,
+    "name": "Hasuno",
+    "slug": "hasuno"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32203/turtonator.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/turtonator",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31815",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31815"
+   }
+  },
+  {
+   "id": 31816,
+   "name": "Seel",
+   "name_numbered": "Seel 18",
+   "slug": "seel",
+   "card_code_number": "POR 18",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 18,
+   "hp": 80,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-18",
+   "cardmarket_id": 877430,
+   "tcgplayer_id": 684372,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 9932,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35176,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 768,
+    "name": "Kanami Ogata",
+    "slug": "kanami-ogata"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32204/seel.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/seel",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31816",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31816"
+   }
+  },
+  {
+   "id": 31817,
+   "name": "Dewgong",
+   "name_numbered": "Dewgong 19",
+   "slug": "dewgong",
+   "card_code_number": "POR 19",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 19,
+   "hp": 130,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-19",
+   "cardmarket_id": 877431,
+   "tcgplayer_id": 684373,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.05,
+     "7d_average": 0.06,
+     "available_items": 7874,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.2
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35177,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 504,
+    "name": "Yoshioka",
+    "slug": "yoshioka"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32205/dewgong.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/dewgong",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31817",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31817"
+   }
+  },
+  {
+   "id": 31818,
+   "name": "Staryu",
+   "name_numbered": "Staryu 20",
+   "slug": "staryu",
+   "card_code_number": "POR 20",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 20,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-20",
+   "cardmarket_id": 877432,
+   "tcgplayer_id": 684374,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.06,
+     "7d_average": 0.04,
+     "available_items": 8354,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35178,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 436,
+    "name": "Takeshi Nakamura",
+    "slug": "takeshi-nakamura"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32206/staryu.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/staryu",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31818",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31818"
+   }
+  },
+  {
+   "id": 31819,
+   "name": "Mega Starmie ex",
+   "name_numbered": "Mega Starmie ex 21",
+   "slug": "mega-starmie-ex",
+   "card_code_number": "POR 21",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 21,
+   "hp": 330,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-21",
+   "cardmarket_id": 877433,
+   "tcgplayer_id": 684360,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.25,
+     "lowest_near_mint_EU_only": 0.25,
+     "lowest_near_mint_DE": 0.45,
+     "lowest_near_mint_DE_EU_only": 0.45,
+     "lowest_near_mint_FR": 0.5,
+     "lowest_near_mint_FR_EU_only": 0.5,
+     "lowest_near_mint_ES": 0.8,
+     "lowest_near_mint_ES_EU_only": 0.8,
+     "lowest_near_mint_IT": 0.1,
+     "lowest_near_mint_IT_EU_only": 0.1,
+     "30d_average": 0.9,
+     "7d_average": 0.86,
+     "available_items": 1905,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.62
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 380,
+    "name": "5ban Graphics",
+    "slug": "5ban-graphics"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32207/mega-starmie-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/mega-starmie-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31819",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31819"
+   }
+  },
+  {
+   "id": 31820,
+   "name": "Lapras ex",
+   "name_numbered": "Lapras ex 22",
+   "slug": "lapras-ex",
+   "card_code_number": "POR 22",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 22,
+   "hp": 210,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-22",
+   "cardmarket_id": 877434,
+   "tcgplayer_id": 684329,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.05,
+     "lowest_near_mint_EU_only": 0.05,
+     "lowest_near_mint_DE": 0.04,
+     "lowest_near_mint_DE_EU_only": 0.04,
+     "lowest_near_mint_FR": 0.3,
+     "lowest_near_mint_FR_EU_only": 0.3,
+     "lowest_near_mint_ES": 0.13,
+     "lowest_near_mint_ES_EU_only": 0.13,
+     "lowest_near_mint_IT": 0.05,
+     "lowest_near_mint_IT_EU_only": 0.05,
+     "30d_average": 0.51,
+     "7d_average": 0.48,
+     "available_items": 2401,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.55
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 380,
+    "name": "5ban Graphics",
+    "slug": "5ban-graphics"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32208/lapras-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/lapras-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31820",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31820"
+   }
+  },
+  {
+   "id": 31821,
+   "name": "Amaura",
+   "name_numbered": "Amaura 23",
+   "slug": "amaura",
+   "card_code_number": "POR 23",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 23,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-23",
+   "cardmarket_id": 877435,
+   "tcgplayer_id": 684355,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 9355,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35179,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 402,
+    "name": "Hitoshi Ariga",
+    "slug": "hitoshi-ariga"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32209/amaura.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/amaura",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31821",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31821"
+   }
+  },
+  {
+   "id": 31822,
+   "name": "Aurorus",
+   "name_numbered": "Aurorus 24",
+   "slug": "aurorus",
+   "card_code_number": "POR 24",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 24,
+   "hp": 170,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-24",
+   "cardmarket_id": 877437,
+   "tcgplayer_id": 684356,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.06,
+     "7d_average": 0.05,
+     "available_items": 7562,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35180,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 1242,
+    "name": "HACCAN",
+    "slug": "haccan"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32210/aurorus.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/aurorus",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31822",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31822"
+   }
+  },
+  {
+   "id": 31823,
+   "name": "Volcanion",
+   "name_numbered": "Volcanion 25",
+   "slug": "volcanion",
+   "card_code_number": "POR 25",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 25,
+   "hp": 130,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-25",
+   "cardmarket_id": 877438,
+   "tcgplayer_id": 684408,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.03,
+     "available_items": 12454,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.2
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35181,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 434,
+    "name": "AKIRA EGAWA",
+    "slug": "akira-egawa"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32211/volcanion.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/volcanion",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31823",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31823"
+   }
+  },
+  {
+   "id": 31824,
+   "name": "Shinx",
+   "name_numbered": "Shinx 26",
+   "slug": "shinx",
+   "card_code_number": "POR 26",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 26,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-26",
+   "cardmarket_id": 877439,
+   "tcgplayer_id": 684409,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.04,
+     "available_items": 9788,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.17
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35150,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 370,
+    "name": "Saboteri",
+    "slug": "saboteri"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32212/shinx.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/shinx",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31824",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31824"
+   }
+  },
+  {
+   "id": 31825,
+   "name": "Luxio",
+   "name_numbered": "Luxio 27",
+   "slug": "luxio",
+   "card_code_number": "POR 27",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 27,
+   "hp": 90,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-27",
+   "cardmarket_id": 877440,
+   "tcgplayer_id": 684410,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.04,
+     "available_items": 12272,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.2
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35182,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 514,
+    "name": "Atsuko Nishida",
+    "slug": "atsuko-nishida"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32213/luxio.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/luxio",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31825",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31825"
+   }
+  },
+  {
+   "id": 31826,
+   "name": "Luxray",
+   "name_numbered": "Luxray 28",
+   "slug": "luxray",
+   "card_code_number": "POR 28",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 28,
+   "hp": 150,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-28",
+   "cardmarket_id": 877441,
+   "tcgplayer_id": 684411,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.05,
+     "7d_average": 0.04,
+     "available_items": 8005,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35183,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 480,
+    "name": "Taiga Kasai",
+    "slug": "taiga-kasai"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32214/luxray.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/luxray",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31826",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31826"
+   }
+  },
+  {
+   "id": 31827,
+   "name": "Dedenne",
+   "name_numbered": "Dedenne 29",
+   "slug": "dedenne",
+   "card_code_number": "POR 29",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 29,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-29",
+   "cardmarket_id": 877442,
+   "tcgplayer_id": 684412,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 9728,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35184,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 381,
+    "name": "sowsow",
+    "slug": "sowsow"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32215/dedenne.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/dedenne",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31827",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31827"
+   }
+  },
+  {
+   "id": 31828,
+   "name": "Clefairy",
+   "name_numbered": "Clefairy 30",
+   "slug": "clefairy",
+   "card_code_number": "POR 30",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 30,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-30",
+   "cardmarket_id": 877444,
+   "tcgplayer_id": 684414,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 9327,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35185,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 528,
+    "name": "Natsumi Yoshida",
+    "slug": "natsumi-yoshida"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32216/clefairy.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/clefairy",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31828",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31828"
+   }
+  },
+  {
+   "id": 31829,
+   "name": "Mega Clefable ex",
+   "name_numbered": "Mega Clefable ex 31",
+   "slug": "mega-clefable-ex",
+   "card_code_number": "POR 31",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 31,
+   "hp": 320,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-31",
+   "cardmarket_id": 877445,
+   "tcgplayer_id": 684383,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.09,
+     "lowest_near_mint_EU_only": 0.09,
+     "lowest_near_mint_DE": 0.25,
+     "lowest_near_mint_DE_EU_only": 0.25,
+     "lowest_near_mint_FR": 0.29,
+     "lowest_near_mint_FR_EU_only": 0.29,
+     "lowest_near_mint_ES": 0.4,
+     "lowest_near_mint_ES_EU_only": 0.4,
+     "lowest_near_mint_IT": 0.03,
+     "lowest_near_mint_IT_EU_only": 0.03,
+     "30d_average": 0.58,
+     "7d_average": 0.54,
+     "available_items": 2297,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.41
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 371,
+    "name": "aky CG Works",
+    "slug": "aky-cg-works"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32217/mega-clefable-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/mega-clefable-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31829",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31829"
+   }
+  },
+  {
+   "id": 31830,
+   "name": "Mawile",
+   "name_numbered": "Mawile 32",
+   "slug": "mawile",
+   "card_code_number": "POR 32",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 32,
+   "hp": 110,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-32",
+   "cardmarket_id": 877446,
+   "tcgplayer_id": 684416,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.04,
+     "7d_average": 0.03,
+     "available_items": 6936,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35186,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 394,
+    "name": "OKACHEKE",
+    "slug": "okacheke"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32218/mawile.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/mawile",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31830",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31830"
+   }
+  },
+  {
+   "id": 31831,
+   "name": "Espurr",
+   "name_numbered": "Espurr 33",
+   "slug": "espurr",
+   "card_code_number": "POR 33",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 33,
+   "hp": 60,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-33",
+   "cardmarket_id": 877447,
+   "tcgplayer_id": 684417,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.02,
+     "available_items": 9817,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35187,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 787,
+    "name": "Terada Tera",
+    "slug": "terada-tera"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32219/espurr.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/espurr",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31831",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31831"
+   }
+  },
+  {
+   "id": 31832,
+   "name": "Meowstic",
+   "name_numbered": "Meowstic 34",
+   "slug": "meowstic",
+   "card_code_number": "POR 34",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 34,
+   "hp": 100,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-34",
+   "cardmarket_id": 877448,
+   "tcgplayer_id": 684419,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 12353,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35188,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 1247,
+    "name": "Kannnu",
+    "slug": "kannnu"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32220/meowstic.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/meowstic",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31832",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31832"
+   }
+  },
+  {
+   "id": 31833,
+   "name": "Spritzee",
+   "name_numbered": "Spritzee 35",
+   "slug": "spritzee",
+   "card_code_number": "POR 35",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 35,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-35",
+   "cardmarket_id": 877449,
+   "tcgplayer_id": 684420,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 6589,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35189,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 516,
+    "name": "Pani Kobayashi",
+    "slug": "pani-kobayashi"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32221/spritzee.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/spritzee",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31833",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31833"
+   }
+  },
+  {
+   "id": 31834,
+   "name": "Aromatisse",
+   "name_numbered": "Aromatisse 36",
+   "slug": "aromatisse",
+   "card_code_number": "POR 36",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 36,
+   "hp": 120,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-36",
+   "cardmarket_id": 877450,
+   "tcgplayer_id": 684421,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 11900,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35190,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 783,
+    "name": "Mori Yuu",
+    "slug": "mori-yuu"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32222/aromatisse.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/aromatisse",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31834",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31834"
+   }
+  },
+  {
+   "id": 31835,
+   "name": "Nosepass",
+   "name_numbered": "Nosepass 37",
+   "slug": "nosepass",
+   "card_code_number": "POR 37",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 37,
+   "hp": 90,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-37",
+   "cardmarket_id": 877451,
+   "tcgplayer_id": 684422,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.02,
+     "available_items": 10320,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35191,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 386,
+    "name": "Jerky",
+    "slug": "jerky"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32223/nosepass.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/nosepass",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31835",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31835"
+   }
+  },
+  {
+   "id": 31836,
+   "name": "Probopass",
+   "name_numbered": "Probopass 38",
+   "slug": "probopass",
+   "card_code_number": "POR 38",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 38,
+   "hp": 140,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-38",
+   "cardmarket_id": 877452,
+   "tcgplayer_id": 684423,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.02,
+     "available_items": 10313,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35192,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 510,
+    "name": "Nurikabe",
+    "slug": "nurikabe"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32224/probopass.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/probopass",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31836",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31836"
+   }
+  },
+  {
+   "id": 31837,
+   "name": "Hippopotas",
+   "name_numbered": "Hippopotas 39",
+   "slug": "hippopotas",
+   "card_code_number": "POR 39",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 39,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-39",
+   "cardmarket_id": 877453,
+   "tcgplayer_id": 684425,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.02,
+     "7d_average": 0.02,
+     "available_items": 10196,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35193,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 484,
+    "name": "Kagemaru Himeno",
+    "slug": "kagemaru-himeno"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32225/hippopotas.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/hippopotas",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31837",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31837"
+   }
+  },
+  {
+   "id": 31838,
+   "name": "Hippowdon",
+   "name_numbered": "Hippowdon 40",
+   "slug": "hippowdon",
+   "card_code_number": "POR 40",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 40,
+   "hp": 150,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-40",
+   "cardmarket_id": 877454,
+   "tcgplayer_id": 684426,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 12590,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.2
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35194,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 377,
+    "name": "Souichirou Gunjima",
+    "slug": "souichirou-gunjima"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32226/hippowdon.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/hippowdon",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31838",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31838"
+   }
+  },
+  {
+   "id": 31839,
+   "name": "Landorus",
+   "name_numbered": "Landorus 41",
+   "slug": "landorus",
+   "card_code_number": "POR 41",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 41,
+   "hp": 120,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-41",
+   "cardmarket_id": 877455,
+   "tcgplayer_id": 684427,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.05,
+     "7d_average": 0.06,
+     "available_items": 8774,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.16
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35195,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 529,
+    "name": "aoki",
+    "slug": "aoki"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32227/landorus.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/landorus",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31839",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31839"
+   }
+  },
+  {
+   "id": 31840,
+   "name": "Binacle",
+   "name_numbered": "Binacle 42",
+   "slug": "binacle",
+   "card_code_number": "POR 42",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 42,
+   "hp": 80,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-42",
+   "cardmarket_id": 877456,
+   "tcgplayer_id": 684334,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.04,
+     "7d_average": 0.05,
+     "available_items": 8966,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35196,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 405,
+    "name": "nagimiso",
+    "slug": "nagimiso"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32228/binacle.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/binacle",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31840",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31840"
+   }
+  },
+  {
+   "id": 31841,
+   "name": "Barbaracle",
+   "name_numbered": "Barbaracle 43",
+   "slug": "barbaracle",
+   "card_code_number": "POR 43",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 43,
+   "hp": 130,
+   "rarity": "Uncommon",
+   "supertype": null,
+   "tcgid": "POR-43",
+   "cardmarket_id": 877457,
+   "tcgplayer_id": 684335,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 13554,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35197,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 439,
+    "name": "Kazumasa Yasukuni",
+    "slug": "kazumasa-yasukuni"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32229/barbaracle.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/barbaracle",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31841",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31841"
+   }
+  },
+  {
+   "id": 31842,
+   "name": "Tyrunt",
+   "name_numbered": "Tyrunt 44",
+   "slug": "tyrunt",
+   "card_code_number": "POR 44",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 44,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-44",
+   "cardmarket_id": 877458,
+   "tcgplayer_id": 684358,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 9838,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.19
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35198,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 481,
+    "name": "Tomomi Kaneko",
+    "slug": "tomomi-kaneko"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32230/tyrunt.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/tyrunt",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31842",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31842"
+   }
+  },
+  {
+   "id": 31843,
+   "name": "Tyrantrum",
+   "name_numbered": "Tyrantrum 45",
+   "slug": "tyrantrum",
+   "card_code_number": "POR 45",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 45,
+   "hp": 180,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-45",
+   "cardmarket_id": 877459,
+   "tcgplayer_id": 684359,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.07,
+     "7d_average": 0.07,
+     "available_items": 9314,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.21
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35199,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 422,
+    "name": "Dsuke",
+    "slug": "dsuke"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32231/tyrantrum.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/tyrantrum",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31843",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31843"
+   }
+  },
+  {
+   "id": 31844,
+   "name": "Hawlucha",
+   "name_numbered": "Hawlucha 46",
+   "slug": "hawlucha",
+   "card_code_number": "POR 46",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 46,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-46",
+   "cardmarket_id": 877460,
+   "tcgplayer_id": 684428,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 11054,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35200,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 389,
+    "name": "osare",
+    "slug": "osare"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32232/hawlucha.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/hawlucha",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31844",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31844"
+   }
+  },
+  {
+   "id": 31845,
+   "name": "Mega Zygarde ex",
+   "name_numbered": "Mega Zygarde ex 47",
+   "slug": "mega-zygarde-ex",
+   "card_code_number": "POR 47",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 47,
+   "hp": 310,
+   "rarity": "Double Rare",
+   "supertype": null,
+   "tcgid": "POR-47",
+   "cardmarket_id": 877461,
+   "tcgplayer_id": 684336,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.1,
+     "lowest_near_mint_EU_only": 0.1,
+     "lowest_near_mint_DE": 0.3,
+     "lowest_near_mint_DE_EU_only": 0.26,
+     "lowest_near_mint_FR": 0.3,
+     "lowest_near_mint_FR_EU_only": 0.3,
+     "lowest_near_mint_ES": 0.2,
+     "lowest_near_mint_ES_EU_only": 0.2,
+     "lowest_near_mint_IT": 0.2,
+     "lowest_near_mint_IT_EU_only": 0.2,
+     "30d_average": 0.61,
+     "7d_average": 0.69,
+     "available_items": 2270,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.51
+    }
+   },
+   "variants": [],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 490,
+    "name": "takuyoa",
+    "slug": "takuyoa"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32233/mega-zygarde-ex.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/mega-zygarde-ex",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31845",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31845"
+   }
+  },
+  {
+   "id": 31846,
+   "name": "Gastly",
+   "name_numbered": "Gastly 48",
+   "slug": "gastly",
+   "card_code_number": "POR 48",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 48,
+   "hp": 70,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-48",
+   "cardmarket_id": 877463,
+   "tcgplayer_id": 684429,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.03,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.03,
+     "7d_average": 0.03,
+     "available_items": 9416,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.15
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35201,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.02
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 455,
+    "name": "MARINA Chikazawa",
+    "slug": "marina-chikazawa"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32234/gastly.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/gastly",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31846",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31846"
+   }
+  },
+  {
+   "id": 31847,
+   "name": "Haunter",
+   "name_numbered": "Haunter 49",
+   "slug": "haunter",
+   "card_code_number": "POR 49",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 49,
+   "hp": 100,
+   "rarity": "Common",
+   "supertype": null,
+   "tcgid": "POR-49",
+   "cardmarket_id": 877464,
+   "tcgplayer_id": 684430,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.03,
+     "lowest_near_mint_EU_only": 0.03,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.02,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.04,
+     "7d_average": 0.03,
+     "available_items": 6092,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.16
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35202,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.03
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 393,
+    "name": "Kedamahadaitai Yawarakai",
+    "slug": "kedamahadaitai-yawarakai"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32235/haunter.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/haunter",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31847",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31847"
+   }
+  },
+  {
+   "id": 31848,
+   "name": "Gengar",
+   "name_numbered": "Gengar 50",
+   "slug": "gengar",
+   "card_code_number": "POR 50",
+   "type": "singles",
+   "lang": "en",
+   "card_number": 50,
+   "hp": 130,
+   "rarity": "rare",
+   "supertype": null,
+   "tcgid": "POR-50",
+   "cardmarket_id": 877465,
+   "tcgplayer_id": 684431,
+   "prices": {
+    "cardmarket": {
+     "currency": "EUR",
+     "lowest_near_mint": 0.02,
+     "lowest_near_mint_EU_only": 0.02,
+     "lowest_near_mint_DE": 0.02,
+     "lowest_near_mint_DE_EU_only": 0.03,
+     "lowest_near_mint_FR": 0.02,
+     "lowest_near_mint_FR_EU_only": 0.02,
+     "lowest_near_mint_ES": 0.02,
+     "lowest_near_mint_ES_EU_only": 0.02,
+     "lowest_near_mint_IT": 0.02,
+     "lowest_near_mint_IT_EU_only": 0.02,
+     "30d_average": 0.39,
+     "7d_average": 0.41,
+     "available_items": 2315,
+     "graded": []
+    },
+    "tcg_player": {
+     "currency": "EUR",
+     "market_price": 0.73
+    }
+   },
+   "variants": [
+    {
+     "type": "reverse_holo",
+     "label": "Reverse Holo",
+     "id": 35203,
+     "prices": {
+      "cardmarket": {
+       "currency": "EUR",
+       "lowest_near_mint": 0.1
+      }
+     }
+    }
+   ],
+   "episode": {
+    "id": 399,
+    "name": "Perfect Order",
+    "slug": "perfect-order",
+    "lang": "en",
+    "released_at": "2026-03-27",
+    "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+    "code": "POR",
+    "cards_total": 124,
+    "cards_printed_total": 88,
+    "prices": {
+     "cardmarket": {
+      "total": 475.77,
+      "currency": "EUR"
+     },
+     "tcgplayer": {
+      "total": 395.36,
+      "currency": "EUR"
+     }
+    },
+    "game": {
+     "name": "Pokémon",
+     "slug": "pokemon"
+    },
+    "series": {
+     "id": 17,
+     "name": "Mega Evolution",
+     "slug": "mega-evolution"
+    }
+   },
+   "artist": {
+    "id": 420,
+    "name": "Masako Tomii",
+    "slug": "masako-tomii"
+   },
+   "image": "https://images.tcggo.com/tcggo/storage/32236/gengar.webp",
+   "tcggo_url": "https://www.tcggo.com/pokemon/perfect-order/gengar",
+   "links": {
+    "cardmarket": "https://www.tcggo.com/external/cm/31848",
+    "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31848"
+   }
+  }
+ ],
+ "paging": {
+  "current": 1,
+  "total": 3,
+  "per_page": 50
+ },
+ "results": 124
+}
