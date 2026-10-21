@@ -40,6 +40,8 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_precios'
 // Sube cuando cambia cómo se escribe el japonés: la pasada lo rehace ese día.
 export const VERSION_JP = 832
+// Sube cuando las páginas traen algo nuevo que hay que tener hoy (932).
+export const VERSION_VARIANTES = 929
 const MS_DE_MARGEN = 20_000
 
 async function rest(ruta, clave, opciones = null) {
@@ -122,6 +124,17 @@ export async function procesar({
     estado.resumenJp = {}
     if (estado.enCurso?.mercado === 'JP') estado.enCurso = null
     estado.versionJp = VERSION_JP
+  }
+  // Las versiones (929, 932) se piden con la página desde la 929, pero lo
+  // que ya se había hecho HOY antes no se volvía a mirar hasta mañana: en
+  // Ascended Heroes seguían faltando la Poké Ball y el patrón de energía
+  // (PINGU, con el Oddish de Erika). Lo hecho hoy se repite UNA vez, con
+  // versiones. Cuesta una vuelta más y la frena el tope diario de siempre.
+  if (estado.versionVariantes !== VERSION_VARIANTES) {
+    estado.hechos = []
+    estado.hechosJp = []
+    estado.enCurso = null
+    estado.versionVariantes = VERSION_VARIANTES
   }
   if (estado.gasto?.dia !== dia) estado.gasto = { dia, peticiones: 0 }
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)

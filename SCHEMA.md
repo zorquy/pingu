@@ -41785,6 +41785,15 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 932 — Las versiones de hoy, también en lo ya pasado
+
+- `tcggo-precios`: `VERSION_VARIANTES = 929`. Si `estado.versionVariantes` no
+  es ese, se vacían `hechos`, `hechosJp` y `enCurso` (una vez) y se apunta:
+  lo que ya se había pasado hoy sin `include_variants` vuelve con versiones
+  en el mismo día, y no mañana. Mismo patrón que `VERSION_JP` (832); la
+  próxima vez que las páginas traigan algo nuevo que haya que tener HOY, se
+  sube el número.
+
 ## Tanda 931 — Las versiones las dice TCGGO, y Black Bolt de nuevo
 
 - `variantesDeCarta` (js/mi-coleccion/variantes.js): si la carta trae

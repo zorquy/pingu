@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (166) — PINGU-Claude (932 — las versiones de hoy, también en lo que ya se había pasado)
+
+**Hecho** (PINGU: «Black Bolt ya está bien. ¿Qué pasa con Ascended? Siguen
+faltando versiones», con el Oddish de Erika enseñando solo Normal y Reverse
+holo, y TCGGO con Standard, Energy Symbol Pattern y Poké Ball):
+- La pasada de precios pide las versiones desde la 929, pero lo que ya había
+  hecho HOY antes de la 929 no lo volvía a mirar hasta mañana: Ascended
+  Heroes era de esas. `VERSION_VARIANTES` (como `VERSION_JP` de la 832): lo
+  hecho hoy se repite UNA vez, ya con versiones. Cuesta una vuelta más del
+  catálogo y la frena el tope diario de siempre.
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`, `SCHEMA.md`,
+`BITACORA.md`.
+
+En `pruebas`: la 929 con la vuelta repetida (una vez sí, la segunda no). Las
+trece que leen `tcggo-precios`: verdes.
+
+**Lo que NO sé todavía**: la ficha del Oddish ponía «me02.5 · 001» en vez del
+nombre del set, o sea que `me02.5` no está en la estantería (escondido). Si
+Ascended Heroes está en DOS sets (`me02.5` de TCGdex y `me2pt5`), cada
+versión de TCGGO se guarda colgando de UNA carta (la llave es su id de
+TCGGO), así que la mitad se quedaría sin versiones aunque la pasada las
+traiga. PINGU: sonda «Repetidas por número» con `me02.5` y con `me2pt5`.
+
+**Pendiente**:
+- Ascended: mirar dentro de un rato y pasar la sonda.
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (165) — PINGU-Claude (931 — las versiones las dice TCGGO, y Black Bolt traído de nuevo)
 
 **Hecho** (PINGU: «tú siempre saca en todos los sets las variantes que diga
