@@ -66,7 +66,10 @@ console.log('── 3. Las Trainer Gallery vuelven, pero sin la copia ──')
     check(`  …y «${copia}» es la copia`, padreDeColeccion(copia) === bueno, padreDeColeccion(copia))
   }
   // Y las otras cuatro que plegué por mi cuenta vuelven enteras.
-  for (const id of ['sma', 'swsh4.5sv', 'swsh12.5gg', 'cel25cc']) {
+  // (La Shiny Vault de Hidden Fates, `sma`, salía en esta lista: la 954 la
+  // pliega porque ahora SÍ lo pide PINGU —«es Hidden Fates en total»—. Manda
+  // lo último, y lo vigila test-tanda-954.mjs.)
+  for (const id of ['swsh4.5sv', 'swsh12.5gg', 'cel25cc']) {
     check(`«${id}» vuelve a ser su propia colección`, padreDeColeccion(id) === null, padreDeColeccion(id))
   }
 }
