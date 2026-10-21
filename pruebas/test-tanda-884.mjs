@@ -63,6 +63,8 @@ function montar({ sets = [], deScrydex = {}, estado = {}, west = {} } = {}) {
       return []
     },
     ahora: new Date('2026-10-18T12:00:00Z'),
+    // Solo el Silver Deck Kit: desde la 950 hay más barajas en la lista.
+    decks: [SILVER],
   }
   return { b, estados, llamadas, e: () => estados[mano.CLAVE_ESTADO] }
 }
@@ -109,6 +111,22 @@ const HERMANO = { id: 'tcggo-500', name_en: 'Rocket Gang Strikes Back', release_
   m.b.restImpl = async (ruta, o) => { if (o && ruta === 'tcg_sets') throw new Error('Supabase 500'); return orig(ruta, o) }
   const r = await mano.pasada(m.b)
   check('un fallo nuestro cuenta intento y se apunta', r.ok === false && m.e().intentos['pcg-silver_ja'] === 1 && /500/.test(m.e().ultimoError.error))
+}
+
+console.log('\n── 5. La baraja de Treecko (950) ──')
+{
+  const TREECKO = mano.DECKS.find((d) => d.clave === 'adv-treecko_ja')
+  check('está en la lista, DETRÁS del Silver Deck Kit', TREECKO && mano.DECKS.indexOf(TREECKO) > mano.DECKS.indexOf(SILVER))
+  check('  …19 cartas numeradas 001–019, del 31 de enero de 2003', TREECKO.cartas.length === 19 && TREECKO.cartas.every((c, i) => c.n === String(i + 1).padStart(3, '0')) && TREECKO.set.release_date === '2003-01-31' && TREECKO.set.card_count_total === 19)
+  check('  …la ficha se copia solo donde la occidental es una (Scyther ex, el Treecko 003 = R&S 76, los entrenadores)', TREECKO.cartas.filter((c) => c.de).map((c) => c.n).join() === '001,003,013,014,015,016,017,018,019')
+  check('  …y el Scyther ex es la holo', TREECKO.cartas.find((c) => c.n === '001').holo === true && TREECKO.cartas.filter((c) => c.holo).length === 1)
+  const HERMANO_ADV = { id: 'adv1_ja', name_en: 'Expansion Pack', release_date: '2003-01-31', card_count_total: 55, serie_id: 'adv', serie_name: 'ADV', serie_name_en: 'ADV', oculto: false }
+  const m = montar({ sets: [HERMANO_ADV], deScrydex: { lista: { expansiones: [] } }, west: { 'ex1-102': { id: 'ex1-102', name_en: 'Scyther ex', hp: 80 } } })
+  m.b.decks = [TREECKO]
+  const r = await mano.pasada(m.b)
+  check('la pasada la crea con sus 19 cartas y la serie del Expansion Pack', r.ok && r.creado?.set === 'adv-treecko_ja' && r.creado.cartas === 19 && m.llamadas.find((l) => l.metodo === 'POST' && l.ruta === 'tcg_sets')?.cuerpo?.[0]?.serie_id === 'adv', JSON.stringify(r))
+  const cartas = m.llamadas.find((l) => l.metodo === 'POST' && l.ruta.startsWith('tcg_cards?on_conflict'))?.cuerpo || []
+  check('  …con el Scyther ex copiado y las de sin ficha solo con su nombre', cartas.find((c) => c.id === 'adv-treecko_ja-001')?.hp === 80 && cartas.find((c) => c.id === 'adv-treecko_ja-007')?.name === 'マクノシタ' && cartas.find((c) => c.id === 'adv-treecko_ja-007')?.hp == null)
 }
 
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
