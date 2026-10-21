@@ -1576,6 +1576,61 @@ export const supabase = {
     // El catálogo corregible (885): las tres funciones de la base, con la
     // misma regla (solo el admin, solo las columnas de la lista) y la misma
     // forma de escribir: la fila se toca y la corrección se apunta aparte.
+    // Las versiones a mano (934), con las reglas de la base: solo el admin,
+    // nombre obligatorio y no el de una de siempre, id negativo sin el de
+    // TCGGO, y no se borra la que alguien tiene.
+    const quienTieneCarta = (id) => {
+      const lineas = (T.user_collection || []).filter((l) => l.card_id === id)
+      return {
+        personas: new Set(lineas.map((l) => l.user_id)).size,
+        copias: lineas.reduce((n, l) => n + (Number(l.cantidad) || 0), 0),
+        deseos: (T.user_wants || []).filter((w) => w.card_id === id).length,
+        albumes: (T.user_albums || []).filter((a) => (a.cartas || []).some((e) => e?.id === id)).length,
+        avisos: (T.user_price_alerts || []).filter((x) => x.card_id === id).length,
+        vitrina: (T.user_showcase || []).filter((x) => x.card_id === id).length,
+      }
+    }
+    if (nombre === 'catalogo_quien_tiene_carta' || nombre === 'catalogo_version_mano' || nombre === 'catalogo_borrar_version_mano') {
+      const yo = sesion?.user?.id || null
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      if (!yo || !perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
+      T.tcg_card_versions ||= []
+      if (nombre === 'catalogo_quien_tiene_carta') return { data: quienTieneCarta(args.p_id), error: null }
+      const idDe = (e) => String(e || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)
+      if (nombre === 'catalogo_borrar_version_mano') {
+        const v = T.tcg_card_versions.find((x) => x.tcggo_id === args.p_tcggo_id)
+        if (!v) return { data: null, error: { code: 'P0002', message: 'Esa versión no existe.' } }
+        if (v.origen !== 'mano') return { data: null, error: { code: '42501', message: 'Solo se borran las versiones hechas a mano; las de TCGGO las trae su pasada.' } }
+        const copias = (T.user_collection || []).filter((l) => l.card_id === v.card_id && l.variante === idDe(v.etiqueta)).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
+        if (copias) return { data: null, error: { code: '23503', message: `Hay ${copias} copias apuntadas en esa versión: no se borra.` } }
+        T.tcg_card_versions = T.tcg_card_versions.filter((x) => x !== v)
+        return { data: true, error: null }
+      }
+      const carta = (T.tcg_cards || []).find((c) => c.id === args.p_card_id && (c.market || 'WEST') === args.p_market)
+      if (!carta) return { data: null, error: { code: 'P0002', message: 'No existe la carta.' } }
+      const d = args.p_datos || {}
+      const etiqueta = String(d.etiqueta || '').trim()
+      if (!etiqueta) return { data: null, error: { code: '22023', message: 'La versión necesita un nombre.' } }
+      if (['normal', 'reverse', 'holo', 'primera', 'reverse-holo', 'standard', '1st-edition', 'first-edition'].includes(idDe(etiqueta))) return { data: null, error: { code: '22023', message: 'Ese nombre es el de una versión de siempre.' } }
+      const nada = (x) => (x === undefined || x === null || String(x).trim() === '' ? null : String(x).trim())
+      const campos = { numero: nada(d.numero), etiqueta, icono: nada(d.icono), imagen: nada(d.imagen), salio_en: nada(d.salio_en), lanzamiento: nada(d.lanzamiento), clase: nada(d.clase) || 'adicional', link_cm: nada(d.link_cm), cm_id_product: nada(d.cm_id_product) ? Number(d.cm_id_product) : null }
+      const nuevo = nada(d.tcggo_id) ? Number(d.tcggo_id) : null
+      if (args.p_tcggo_id == null) {
+        // La secuencia de la base no repite; aquí, la siguiente a la más
+        // baja que haya (las sembradas por la prueba incluidas).
+        const id = nuevo ?? Math.min(0, ...T.tcg_card_versions.map((x) => x.tcggo_id)) - 1
+        if (T.tcg_card_versions.some((x) => x.tcggo_id === id)) return { data: null, error: { code: '23505', message: `Ya hay una versión con el id ${id}.` } }
+        const fila = { tcggo_id: id, market: args.p_market, card_id: carta.id, set_id: carta.set_id, nombre: carta.name, origen: 'mano', actualizado_at: new Date().toISOString(), ...campos }
+        T.tcg_card_versions.push(fila)
+        return { data: { ...fila }, error: null }
+      }
+      const fila = T.tcg_card_versions.find((x) => x.tcggo_id === args.p_tcggo_id && x.card_id === carta.id && x.origen === 'mano')
+      if (!fila) return { data: null, error: { code: 'P0002', message: 'Esa versión no es de esta carta o no está hecha a mano.' } }
+      const vieja = idDe(fila.etiqueta)
+      Object.assign(fila, campos, { tcggo_id: nuevo ?? fila.tcggo_id, actualizado_at: new Date().toISOString() })
+      if (vieja !== idDe(etiqueta)) for (const l of T.user_collection || []) if (l.card_id === carta.id && l.variante === vieja) l.variante = idDe(etiqueta)
+      return { data: { ...fila }, error: null }
+    }
     if (nombre === 'catalogo_corregir' || nombre === 'catalogo_descorregir' || nombre === 'catalogo_borrar_carta') {
       const yo = sesion?.user?.id || null
       const perfil = T.user_profiles.find((p) => p.id === yo) || {}
@@ -1583,13 +1638,25 @@ export const supabase = {
       const tabla = nombre === 'catalogo_borrar_carta' ? 'tcg_cards' : args.p_tabla
       const filas = T[tabla] || []
       const fila = filas.find((f) => f.id === args.p_id && (f.market || 'WEST') === args.p_market)
+      // Desde la 934, cualquier carta: lo apuntado pasa antes a `p_destino`, y
+      // una de las APIs deja su lápida (la de supabase-migration-934).
       if (nombre === 'catalogo_borrar_carta') {
         if (!fila) return { data: null, error: { code: 'P0002', message: 'Esa carta no existe.' } }
-        if (fila.origen !== 'mano') return { data: null, error: { code: '42501', message: 'Solo se borran las cartas hechas a mano; las demás las trae y quita su pasada.' } }
-        if (T.user_collection.some((l) => l.card_id === fila.id)) return { data: null, error: { code: '23503', message: 'Alguien tiene esa carta apuntada: no se borra.' } }
+        const quien = quienTieneCarta(fila.id)
+        const apuntada = quien.copias || quien.deseos || quien.albumes || quien.avisos || quien.vitrina
+        if (apuntada && !args.p_destino) return { data: null, error: { code: '23503', message: 'Alguien la tiene apuntada: elige a qué carta pasa antes de borrarla.' } }
+        if (args.p_destino) {
+          if (args.p_destino === fila.id || !filas.some((f) => f.id === args.p_destino)) return { data: null, error: { code: 'P0002', message: 'La carta a la que pasan las copias no existe (o es la misma).' } }
+          for (const l of T.user_collection || []) if (l.card_id === fila.id) l.card_id = args.p_destino
+          T.user_wants = (T.user_wants || []).filter((w) => !(w.card_id === fila.id && T.user_wants.some((o) => o.user_id === w.user_id && o.card_id === args.p_destino && (o.idioma || '*') === (w.idioma || '*'))))
+          for (const w of T.user_wants) if (w.card_id === fila.id) w.card_id = args.p_destino
+          for (const a of T.user_albums || []) a.cartas = (a.cartas || []).map((e) => (e?.id === fila.id ? { ...e, id: args.p_destino } : e))
+        }
+        T.tcg_card_versions = (T.tcg_card_versions || []).filter((v) => v.card_id !== fila.id)
         T.tcg_correcciones = T.tcg_correcciones.filter((c) => !(c.tabla === 'tcg_cards' && c.id === fila.id && c.market === args.p_market))
+        if (fila.origen !== 'mano') T.tcg_correcciones.push({ tabla: 'tcg_cards', id: fila.id, market: args.p_market, columna: '__borrada', valor: true, anterior: null, autor: yo, updated_at: new Date().toISOString() })
         T.tcg_cards = T.tcg_cards.filter((f) => f !== fila)
-        return { data: true, error: null }
+        return { data: { ...quien, borrada: fila.id, destino: args.p_destino || null }, error: null }
       }
       if (nombre === 'catalogo_descorregir') {
         const i = T.tcg_correcciones.findIndex((c) => c.tabla === tabla && c.id === args.p_id && c.market === args.p_market && c.columna === args.p_columna)
