@@ -26,8 +26,9 @@ import { contarPestania, pestaniaLista, abrirPestania, abrirLaQueTengaAlgo } fro
 
 // Lo puro (qué es una baldosa, la chapa, los sellos) vive aparte y sin
 // dependencias, para que la prueba lo importe en Node (la 471).
-import { FICHERO_MIGRACION, DE_PRIMERAS, porCarta, textoDeChapa, selloDeLoQueDa, selloDeLoQueBusca } from './perfil-cambios-puro.js'
-export { FICHERO_MIGRACION, DE_PRIMERAS, porCarta, textoDeChapa, selloDeLoQueDa, selloDeLoQueBusca }
+import { FICHERO_MIGRACION, DE_PRIMERAS, porCarta, textoDeChapa, selloDeLoQueDa, selloDeLoQueBusca, ordenarParaTira } from './perfil-cambios-puro.js'
+import { normalizeSearch } from './texto.js'
+export { FICHERO_MIGRACION, DE_PRIMERAS, porCarta, textoDeChapa, selloDeLoQueDa, selloDeLoQueBusca, ordenarParaTira }
 
 const esRpcQueFalta = (e) => e && (e.code === 'PGRST202' || e.code === '42883' || /could not find the function|does not exist/i.test(String(e.message || '')))
 
@@ -114,10 +115,70 @@ function baldosaHtml(fila, carta, { sello = null, precio = null, cuanto = '' } =
   </li>`
 }
 
-function rejillaHtml(id, baldosas, total) {
-  const resto = total - Math.min(total, DE_PRIMERAS)
-  return `<ul class="pc-rejilla" id="${id}">${baldosas.join('')}</ul>
-    ${resto > 0 ? `<button type="button" class="btn-secondary pc-ver-todas" data-ver-todas="${id}">Ver las ${total}</button>` : ''}`
+// UNA fila que se desliza de lado (939), con flechas en el PC y «Ver todas»
+// cuando no caben. La cabecera va con el título de la lista.
+function tiraHtml(id, titulo, orden, baldosas, total) {
+  return `<div class="pc-tira-cab">
+      <h2 class="section-title">${escapeHtml(titulo)}</h2>
+      ${orden ? `<span class="pc-orden">${escapeHtml(orden)}</span>` : ''}
+      <span class="pc-tira-mandos">
+        <button type="button" class="pc-flecha" data-tira="${id}" data-paso="-1" aria-label="Anteriores">‹</button>
+        <button type="button" class="pc-flecha" data-tira="${id}" data-paso="1" aria-label="Siguientes">›</button>
+        ${total > 4 ? `<button type="button" class="btn-secondary pc-ver-todas" data-ver-todas="${id}">Ver todas${total > DE_PRIMERAS ? ` (${total.toLocaleString('es-ES')})` : ''}</button>` : ''}
+      </span>
+    </div>
+    <ul class="pc-rejilla pc-tira" id="${id}">${baldosas.slice(0, DE_PRIMERAS).join('')}</ul>`
+}
+
+// «Ver todas»: la lista entera en una hoja (a un lado en el PC, desde
+// abajo en el móvil), con buscador y, si has entrado, «las que buscas» o
+// «las que das». Se crea la primera vez.
+function hojaTodas() {
+  let d = document.getElementById('pcTodas')
+  if (d) return d
+  d = document.createElement('dialog')
+  d.id = 'pcTodas'
+  d.className = 'pc-todas'
+  d.setAttribute('aria-labelledby', 'pcTodasTitulo')
+  d.innerHTML = `<div class="pc-todas-cab">
+      <h2 id="pcTodasTitulo"></h2>
+      <button type="button" class="pc-todas-cerrar" data-cerrar aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pc-todas-mandos">
+      <label class="sr-only" for="pcTodasBuscar">Buscar en la lista</label>
+      <input type="search" id="pcTodasBuscar" placeholder="Busca por nombre o expansión" autocomplete="off" />
+      <button type="button" class="pc-todas-chip" id="pcTodasSolo" aria-pressed="false"></button>
+    </div>
+    <p class="subtext pc-todas-cuenta" id="pcTodasCuenta" aria-live="polite"></p>
+    <ul class="pc-rejilla" id="pcTodasRejilla"></ul>`
+  document.body.appendChild(d)
+  d.addEventListener('click', (e) => {
+    if (e.target === d || e.target.closest('[data-cerrar]')) d.close()
+  })
+  return d
+}
+
+function abrirTodas(lista) {
+  const d = hojaTodas()
+  const buscar = d.querySelector('#pcTodasBuscar')
+  const solo = d.querySelector('#pcTodasSolo')
+  let soloMias = false
+  d.querySelector('#pcTodasTitulo').textContent = lista.titulo
+  buscar.value = ''
+  solo.hidden = !lista.textoSolo
+  solo.textContent = lista.textoSolo || ''
+  const pintar = () => {
+    const q = normalizeSearch(buscar.value || '').trim()
+    const vistas = lista.items.filter((x) => (!q || x.texto.includes(q)) && (!soloMias || x.sello))
+    d.querySelector('#pcTodasRejilla').innerHTML = vistas.map((x) => x.html).join('') || '<li class="pc-vacio">Ninguna con eso.</li>'
+    d.querySelector('#pcTodasCuenta').textContent = `${vistas.length.toLocaleString('es-ES')} de ${lista.items.length.toLocaleString('es-ES')}`
+    solo.setAttribute('aria-pressed', String(soloMias))
+  }
+  buscar.oninput = pintar
+  solo.onclick = () => { soloMias = !soloMias; pintar() }
+  pintar()
+  if (!d.open) d.showModal()
+  buscar.focus()
 }
 
 function vaciaHtml(propia, { daVacio, buscaVacio }) {
@@ -191,33 +252,58 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   const quien = propia ? 'Das' : 'Da'
   const quienBusca = propia ? 'Buscas' : 'Busca'
 
-  const baldosasDa = filasDa.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null, precio: euros(precioDeFilaDeCambio(precios, f)), cuanto: `${f.total === 1 ? 'Da 1' : `Da ${f.total}`} · ` }))
-  const baldosasBusca = filasBusca.map((f) => baldosaHtml(f, cartaDe(f), { sello: miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null, precio: euros(precioDeFilaDeCambio(precios, f)) }))
+  const valor = (f) => precioDeFilaDeCambio(precios, f)
+  const selloDa = (f) => (miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null)
+  const selloBusca = (f) => (miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null)
+  // Lo que te importa primero, y lo de más valor delante (939).
+  const enOrdenDa = ordenarParaTira(filasDa, { sello: selloDa, precio: valor })
+  const enOrdenBusca = ordenarParaTira(filasBusca, { sello: selloBusca, precio: valor })
+  const item = (f, sello, extra = {}) => {
+    const c = cartaDe(f)
+    return {
+      sello,
+      html: baldosaHtml(f, c, { sello, precio: euros(valor(f)), ...extra }),
+      texto: normalizeSearch([c ? nombreDeCarta(c) : f.card_id, c ? nombreDeSet(c.tcg_sets) || c.set_id : '', c?.local_id || ''].join(' ')),
+    }
+  }
+  const itemsDa = enOrdenDa.map((f) => item(f, selloDa(f), { cuanto: `${f.total === 1 ? 'Da 1' : `Da ${f.total}`} · ` }))
+  const itemsBusca = enOrdenBusca.map((f) => item(f, selloBusca(f)))
+  const baldosasDa = itemsDa.map((x) => x.html)
+  const baldosasBusca = itemsBusca.map((x) => x.html)
+  const hayDeLoMio = (items) => miId && !propia && items.some((x) => x.sello)
 
   caja.innerHTML = `
     ${miId && !propia ? '<section class="perfil-cruce pc-cruce" id="pcCruce" aria-label="Vuestro cruce"></section>' : ''}
     ${!miId && !propia ? `<p class="pc-entra subtext"><a href="/auth.html?volver=${encodeURIComponent(location.pathname + location.search)}">Entra</a> y te digo qué te puede dar ${escapeHtml(nombre)} y qué le puedes dar tú.</p>` : ''}
     <section class="pc-bloque" aria-label="${escapeHtml(`${quien} ${cuentas.da} cartas`)}">
-      <h2 class="section-title">${quien} ${cuentas.da === 1 ? '1 carta' : `${cuentas.da} cartas`}</h2>
+      ${cuentas.da
+        ? tiraHtml('pcRejillaDa', `${quien} ${cuentas.da === 1 ? '1 carta' : `${cuentas.da} cartas`}`, hayDeLoMio(itemsDa) ? 'Las que buscas, primero' : '', baldosasDa, cuentas.da)
+        : `<h2 class="section-title">${quien} 0 cartas</h2>`}
       ${da.sinMigracion ? `<p class="subtext">Lo que da todavía no se puede enseñar: falta ejecutar <code>${FICHERO_MIGRACION}</code>.</p>` : ''}
-      ${cuentas.da ? rejillaHtml('pcRejillaDa', baldosasDa, cuentas.da) : (!da.sinMigracion ? vaciaHtml(propia, { daVacio: true, buscaVacio: false }) : '')}
+      ${cuentas.da ? '' : (!da.sinMigracion ? vaciaHtml(propia, { daVacio: true, buscaVacio: false }) : '')}
     </section>
     <section class="pc-bloque" aria-label="${escapeHtml(`${quienBusca} ${cuentas.busca} cartas`)}">
-      <h2 class="section-title">${quienBusca} ${cuentas.busca === 1 ? '1 carta' : `${cuentas.busca} cartas`}</h2>
-      ${cuentas.busca ? rejillaHtml('pcRejillaBusca', baldosasBusca, cuentas.busca) : vaciaHtml(propia, { daVacio: false, buscaVacio: true })}
+      ${cuentas.busca
+        ? tiraHtml('pcRejillaBusca', `${quienBusca} ${cuentas.busca === 1 ? '1 carta' : `${cuentas.busca} cartas`}`, hayDeLoMio(itemsBusca) ? 'Las que das, primero' : '', baldosasBusca, cuentas.busca)
+        : `<h2 class="section-title">${quienBusca} 0 cartas</h2>${vaciaHtml(propia, { daVacio: false, buscaVacio: true })}`}
     </section>`
 
-  // Las que pasan de DE_PRIMERAS nacen escondidas; «Ver las N» las enseña.
-  for (const ul of caja.querySelectorAll('.pc-rejilla')) [...ul.children].forEach((li, i) => { if (i >= DE_PRIMERAS) li.hidden = true })
-  caja.querySelectorAll('[data-ver-todas]').forEach((b) => b.addEventListener('click', () => {
-    for (const li of document.getElementById(b.dataset.verTodas)?.children || []) li.hidden = false
-    b.remove()
+  // Las flechas pasan una «pantalla» de la fila; «Ver todas», la hoja.
+  const listas = {
+    pcRejillaDa: { titulo: `Lo que ${propia ? 'das' : `da ${nombre}`}`, items: itemsDa, textoSolo: hayDeLoMio(itemsDa) ? 'Las que buscas' : '' },
+    pcRejillaBusca: { titulo: `Lo que ${propia ? 'buscas' : `busca ${nombre}`}`, items: itemsBusca, textoSolo: hayDeLoMio(itemsBusca) ? 'Las que das o tienes' : '' },
+  }
+  const quieto = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  caja.querySelectorAll('[data-tira]').forEach((b) => b.addEventListener('click', () => {
+    const ul = document.getElementById(b.dataset.tira)
+    if (ul) ul.scrollBy({ left: Number(b.dataset.paso) * ul.clientWidth * 0.85, behavior: quieto ? 'auto' : 'smooth' })
   }))
+  caja.querySelectorAll('[data-ver-todas]').forEach((b) => b.addEventListener('click', () => abrirTodas(listas[b.dataset.verTodas])))
 
   // Vuestro cruce, arriba: el de la 794, siempre y no solo por el QR, con
   // «Escribir» y el mensaje redactado.
   if (miId && !propia) {
-    import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('pcCruce'), persona, sesion, { escribir: true })).catch(() => {})
+    import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('pcCruce'), persona, sesion, { escribir: true, miniaturas: true })).catch(() => {})
   }
   return cuentas
 }

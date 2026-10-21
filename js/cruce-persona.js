@@ -6,6 +6,7 @@ import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { nombreDeCarta } from './catalogo-series.js'
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 
 export function cruceCon(personaId, tiene, busca) {
   const suyo = (f) => f.user_id === personaId
@@ -20,6 +21,19 @@ function lista(filas, cartas) {
   }).join('')
 }
 
+// En el perfil (939), las cartas en pequeño: se reconocen antes que un
+// nombre. Hasta ocho y «+N».
+function miniaturas(filas, cartas) {
+  const vistas = new Set()
+  const unicas = filas.filter((f) => !vistas.has(f.card_id) && vistas.add(f.card_id))
+  return `${unicas.slice(0, 8).map((f) => {
+    const c = cartas.get(f.card_id) || { id: f.card_id }
+    const nombre = nombreDeCarta(c) || f.card_id
+    const escaneo = c.set_id ? atributosDeEscaneo(cadenaDeEscaneo(c)) : null
+    return `<li><a class="perfil-cruce-mini" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(nombre)}" aria-label="${escapeHtml(nombre)}">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : `<span>${escapeHtml(nombre)}</span>`}</a></li>`
+  }).join('')}${unicas.length > 8 ? `<li class="perfil-cruce-mas">+${unicas.length - 8}</li>` : ''}`
+}
+
 // El mensaje redactado con las dos listas (887): el mismo borrador que
 // escribe Cruces (`borradorDeCruce`), abierto en la conversación.
 async function enlaceParaEscribir(persona, teDa, leDas, cartas) {
@@ -32,7 +46,7 @@ async function enlaceParaEscribir(persona, teDa, leDas, cartas) {
   return `/mensajes.html?with=${encodeURIComponent(persona.id)}${texto ? `&texto=${encodeURIComponent(texto)}` : ''}`
 }
 
-export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, escribir = false } = {}) {
+export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, escribir = false, miniaturas: conMiniaturas = false } = {}) {
   if (!caja || !persona) return
   hojaInyectada('css/cruce-persona.css')
   if (!soloSiHay) caja.classList.remove('hidden')
@@ -59,8 +73,8 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
     caja.innerHTML = `<h2>Vuestro cruce</h2>
       ${!teDa.length && !leDas.length ? `<p class="subtext">Ahora mismo no os cuadra nada: ni ${nombre} da algo de tu lista ni busca algo que tú des.</p>` : ''}
       <div class="perfil-cruce-lados">
-        ${teDa.length ? `<div><h3>Te puede dar · ${new Set(teDa.map((f) => f.card_id)).size}</h3><ul>${lista(teDa, cartas)}</ul></div>` : ''}
-        ${leDas.length ? `<div><h3>Le puedes dar · ${new Set(leDas.map((f) => f.card_id)).size}</h3><ul>${lista(leDas, cartas)}</ul></div>` : ''}
+        ${teDa.length ? `<div><h3>Te puede dar · ${new Set(teDa.map((f) => f.card_id)).size}</h3><ul${conMiniaturas ? ' class="perfil-cruce-minis"' : ''}>${(conMiniaturas ? miniaturas : lista)(teDa, cartas)}</ul></div>` : ''}
+        ${leDas.length ? `<div><h3>Le puedes dar · ${new Set(leDas.map((f) => f.card_id)).size}</h3><ul${conMiniaturas ? ' class="perfil-cruce-minis"' : ''}>${(conMiniaturas ? miniaturas : lista)(leDas, cartas)}</ul></div>` : ''}
       </div>
       <div class="perfil-cruce-acciones">
         ${escribir && (teDa.length || leDas.length) ? `<a class="btn-primary" href="${escapeHtml(await enlaceParaEscribir(persona, teDa, leDas, cartas))}">Escribir a ${nombre}</a>` : ''}

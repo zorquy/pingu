@@ -3,8 +3,21 @@
 // Sin DOM ni Supabase: lo importa js/perfil-cambios.js y las pruebas.
 
 export const FICHERO_MIGRACION = 'supabase-migration-887-cambios-perfil.sql'
-// Cuántas se enseñan de cada lista antes de «Ver las N».
-export const DE_PRIMERAS = 18
+// Cuántas van en la FILA de cada lista (939, PINGU: «hay gente que tiene un
+// montón de cartas apuntadas… salen hacia abajo y no paran»): una fila que
+// se desliza de lado, y el resto en «Ver todas».
+export const DE_PRIMERAS = 24
+
+// El orden de cada fila: lo que te importa primero. En lo que da, las que
+// TÚ buscas; en lo que busca, las que das y luego las que tienes. Dentro,
+// las de más valor. `sello(f)` y `precio(f)` los pone quien pinta.
+const RANGO_SELLO = { 'La buscas': 0, 'La das': 0, 'La tienes': 1 }
+export function ordenarParaTira(filas, { sello = () => null, precio = () => null } = {}) {
+  return filas
+    .map((f, i) => ({ f, i, r: RANGO_SELLO[sello(f)] ?? 2, p: Number(precio(f)) || 0 }))
+    .sort((a, b) => a.r - b.r || b.p - a.p || a.i - b.i)
+    .map((x) => x.f)
+}
 
 // ── Lo puro ──
 

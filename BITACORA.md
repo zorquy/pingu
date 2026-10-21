@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (175) — PINGU-Claude (941 — el perfil › Cambios en dos filas)
+
+**Hecho** (tanda 2 de «Cambios en PokeDoc»; PINGU: «tiene un montón de
+cartas… salen hacia abajo, scroll, y no paran»):
+- Lo que da y lo que busca son UNA fila cada una, que se desliza de lado
+  (flechas en el PC, el dedo en el móvil): 24 baldosas, y el resto en «Ver
+  todas (N)», una hoja (a un lado en el PC, desde abajo en el móvil) con
+  buscador y «Las que buscas» / «Las que das o tienes».
+- El orden es lo que te importa: en lo que da, las que TÚ buscas primero; en
+  lo que busca, las que das y luego las que tienes; dentro, las de más valor
+  (`ordenarParaTira`, perfil-cambios-puro.js). Lo dice al lado del título.
+- Vuestro cruce, arriba, con las cartas en pequeño (`pintarCruce(…, {
+  miniaturas: true })`); en la feria y en Mensajes sigue la lista de nombres.
+
+**Ficheros**: `js/perfil-cambios.js`, `js/perfil-cambios-puro.js`,
+`js/cruce-persona.js`, `css/perfil-cambios.css`, `css/cruce-persona.css`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-941-pantalla.mjs` (40 que da y 30 que busca: una
+fila a la misma altura, el orden, flechas, «Ver todas» con buscador y filtro,
+el cruce con miniaturas, el iPhone). Verdes 887, 306, 752, 795, 798, 867 y
+las de CSS; la 794 roja de antes (busca `fila('/feria'` en la hoja «Tú»,
+que cambió en la 918).
+
+**Pendiente**:
+- Tandas 3 y 4: proponer y cerrar un cambio. Migración nueva.
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (174) — PINGU-Claude (940 — Deseos y cambios: recargar ya no rompe nada, la ficha va a un lado y el cruce es de la persona)
 
 **Hecho** (tanda 1 de la propuesta «Cambios en PokeDoc», PINGU: «adelante

@@ -83,11 +83,124 @@
 }
 .pc-carta-set, .pc-carta-senas { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pc-carta-precio { font-weight: 600; color: var(--text); }
-.pc-ver-todas { margin-top: var(--e-sm); }
+
+/* Cada lista, UNA fila que se desliza de lado (939): en un perfil con 200
+   apuntadas eran seis filas antes de llegar a «Busca». */
+.pc-tira-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+.pc-tira-cab .section-title { margin: 0; }
+.pc-orden { color: var(--text-mid); font-size: var(--t-xs); }
+.pc-tira-mandos { display: flex; align-items: center; gap: var(--e-xs); margin-left: auto; }
+.pc-flecha {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-lg);
+  font-weight: 700;
+  cursor: pointer;
+}
+.pc-rejilla.pc-tira {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 128px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding-bottom: var(--e-xs);
+  scrollbar-width: thin;
+}
+.pc-tira > .pc-carta { scroll-snap-align: start; }
+@media (pointer: coarse) {
+  .pc-flecha { display: none; }
+}
+
+/* «Ver todas»: la lista entera, con buscador. A un lado en el PC y desde
+   abajo en el móvil; lo de abrir y cerrar, en [open] (la 473). */
+.pc-todas {
+  box-sizing: border-box;
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  max-height: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  inset: 72px 16px 16px auto;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.pc-todas[open] { position: fixed; display: flex; flex-direction: column; height: auto; }
+.pc-todas::backdrop { background: rgb(0 0 0 / 30%); }
+.pc-todas-cab {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.pc-todas-cab h2 { margin: 0; font-size: var(--t-lg); }
+.pc-todas-cerrar {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+.pc-todas-mandos { display: flex; flex-wrap: wrap; gap: var(--e-sm); padding: var(--e-md) var(--e-lg) 0; }
+.pc-todas-mandos input {
+  flex: 1 1 200px;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+.pc-todas-chip {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pc-todas-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.pc-todas-cuenta { margin: var(--e-sm) var(--e-lg) 0; }
+.pc-todas .pc-rejilla { padding: var(--e-sm) var(--e-lg) var(--e-lg); }
+@media (max-width: 600px) {
+  .pc-todas { inset: auto 0 0; width: 100%; max-height: 90dvh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+}
 
 .pc-vacio { padding: var(--e-md) 0; color: var(--text-mid); }
 .pc-vacio-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin-top: var(--e-sm); }
 
 @media (max-width: 600px) {
   .pc-rejilla { grid-template-columns: repeat(3, 1fr); gap: var(--e-xs); }
+  .pc-rejilla.pc-tira { grid-auto-columns: 104px; }
 }

@@ -41785,6 +41785,20 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 941 — Perfil › Cambios: una fila por lista y «Ver todas»
+
+- `DE_PRIMERAS = 24` es lo que lleva la fila (`.pc-rejilla.pc-tira`:
+  `grid-auto-flow: column`, 128 px, 104 en el móvil, `overflow-x`); las
+  flechas `[data-tira][data-paso]` hacen `scrollBy` de un 85 % y se esconden
+  con `pointer: coarse`.
+- `ordenarParaTira(filas, { sello, precio })`: «La buscas»/«La das» (0),
+  «La tienes» (1), el resto (2); dentro, por valor.
+- «Ver todas»: `#pcTodas` (dialog creado una vez, `showModal`), con
+  `#pcTodasBuscar` (contra `normalizeSearch` de nombre, set y número) y
+  `#pcTodasSolo` (las que tienen sello).
+- `pintarCruce(caja, persona, sesion, { miniaturas })`: `.perfil-cruce-minis`
+  con hasta 8 cartas y «+N».
+
 ## Tanda 940 — Deseos y cambios: cartas de fuera, ficha encima, cruce por persona
 
 - `cartasDeFuera` y `preciosDeFuera` (mi-coleccion.js) guardan lo que traen

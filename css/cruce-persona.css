@@ -36,3 +36,41 @@
   flex-wrap: wrap;
   gap: var(--e-sm);
 }
+
+/* En el perfil (939), las cartas en pequeño y en fila. */
+.perfil-cruce ul.perfil-cruce-minis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  padding: 0;
+  list-style: none;
+}
+
+.perfil-cruce-mini {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  aspect-ratio: 63 / 88;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  text-align: center;
+}
+
+.perfil-cruce-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.perfil-cruce-mas {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
