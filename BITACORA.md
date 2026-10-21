@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (187) — PINGU-Claude (950 — la carta que brilla de serie es «Holo», no «Normal»)
+
+**Hecho** (PINGU, con Dex al lado: en Lost Thunder el Meganium es Holo y
+Reverse y le poníamos Normal y Reverse; el Shuckle GX y el Celebi ◇, Normal;
+en un set japonés de Mega la Serperior R, Normal donde Dex dice Holo. «Si son
+cartas de más de X rareza, ya sabemos que brilla… ese dato lo tenemos»):
+- `variantesDeCarta` (`js/mi-coleccion/variantes.js`): si la rareza dice que
+  la carta brilla (`brillaDeSerie`: las que brillan siempre —GX, V, ex,
+  ilustraciones, Prisma Estelar…—, las «Rare Holo», y la «Rare» a secas desde
+  Escarlata y Púrpura en el occidental y desde Sol y Luna en el japonés, por
+  el día del set), su «Normal» pasa a ser la «Holo». Si la lista ya trae las
+  dos (la Normal de baraja de Pitch Black), no se toca.
+- Y una rareza que brilla SIEMPRE no tiene Reverse: en los ficheros de TCGdex,
+  de unas 3.000 cartas así con versiones escritas, ninguna; la «Rare Holo» sí
+  (475 de 608). Se quita la que viene de las de por defecto de su API, salvo
+  que TCGGO la dé. Lost Thunder queda como Dex: Meganium Holo + Reverse,
+  Heracross Normal + Reverse, Shuckle GX Holo, Celebi Holo.
+- Las copias viejas apuntadas «normal» de esas cartas se leen como Holo
+  (`versionPosible`, de la 927), sin tocar la base.
+- Y el ejemplo entre comillas de «Versiones de todas» (949) se reescribe sin
+  ellas: la 524 lo leía como el nombre de un control.
+
+**Ficheros**: `js/mi-coleccion/variantes.js`, `admin/js/versiones-lote.js`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-950.mjs` (los ejemplos de las capturas, el japonés
+por época, lo que no se toca). Pasada de 248 (las de /mi-coleccion y las de
+versiones, cinco carriles): 233 verdes. De las 15 rojas, cinco eran de esta
+tanda y están al día: la 385, la 645, la 915 y la 921 usaban cartas que no
+existen (una SIR o una Ultra Rare con Normal + Reverse; ahora una común o una
+infrecuente) y la 524 (el ejemplo de arriba). La 446 pasa sola (máquina
+cargada). Las otras nueve ya estaban rojas: 467, 586, 648, 651, 653, 780, 829,
+893 y 895.
+
+**Pendiente**:
+- PINGU: ejecutar la 948b, la 949 y la 951.
+- Los rojos viejos de arriba, y bajar `js/mi-coleccion.js` de 130 KB.
+
 ## 2026-10-22 (186) — PINGU-Claude (951 — 1.ª edición y Unlimited en todo el japonés de 2001 a 2016, y la baraja de Treecko) · MIGRACIÓN NUEVA
 
 **Hecho**:

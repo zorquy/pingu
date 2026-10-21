@@ -114,6 +114,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nuevo para añadir pasa por `variantesDeCarta` y por la lista «¿Cuál
   tienes?» (`montarEleccion`); si ya se sabe la versión (una casilla de
   «Variantes»), se le pasa como `puesta` y no se pregunta.
+- **La carta que brilla de serie es «Holo», no «Normal»** (tanda 950): lo
+  dice la rareza (`brillaDeSerie`: las que brillan siempre, las Rare Holo y la
+  Rare a secas desde SV en el occidental y desde Sol y Luna en el japonés), y
+  una que brilla SIEMPRE no tiene Reverse. TCGdex a veces no escribe versiones
+  (Lost Thunder) y su API da «normal + reverse» por defecto: no te fíes de eso
+  contra la rareza. Un fixture con una SIR «normal + reverse» prueba una carta
+  que no existe.
 - **En la era de Wizards las versiones son las EDICIONES** (tanda 935):
   filas `tcg_card_versions` con `origen = 'edicion'` (1.ª edición,
   Shadowless, Unlimited, sellos y errores con su clase), sacadas de los

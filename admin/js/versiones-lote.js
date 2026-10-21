@@ -47,7 +47,7 @@ export async function abrirVersionesDeTodas({ set, mercado, cartas, hoja, volver
       <button class="btn-secondary btn-small" id="loteVolver">← Cartas</button>
       <h3>Versiones de todas · ${escapeHtml(set.name_en || set.name || set.id)}</h3>
     </div>
-    <p class="admin-note">Para cuando se sabe que el set entero tuvo unas versiones («tenía 1.ª edición y Unlimited»). Elige cuáles y a qué cartas: antes de tocar nada te digo cuántas se crean. ${tiene ? '' : '<strong>No se ha podido leer lo que ya tiene: el resumen no sabrá cuáles están.</strong>'}</p>
+    <p class="admin-note">Para cuando se sabe que el set entero tuvo unas versiones (por ejemplo, 1.ª edición y Unlimited). Elige cuáles y a qué cartas: antes de tocar nada te digo cuántas se crean. ${tiene ? '' : '<strong>No se ha podido leer lo que ya tiene: el resumen no sabrá cuáles están.</strong>'}</p>
     <fieldset class="lote-caja">
       <legend>Versiones</legend>
       <div class="lote-opciones">${VERSIONES_LOTE.map(casilla).join('')}</div>

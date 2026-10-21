@@ -165,13 +165,64 @@ export function variantesDeCarta(carta, siNoSeSabe = [EQUIVALE[0]]) {
     // adicional; las de TCGGO no la dicen y son impresiones.
     extras.push(e ? { ...e, clase: f.clase || null } : { suyo: null, nuestro: id, corto: cortoDeVariante(id), nombre: nombreDeVariante(id), clase: f.clase || null })
   }
-  if (base.length) return [...base, ...extras]
+  if (base.length) return conSuBrillo([...base, ...extras], carta)
   // Si TCGGO la ha mirado (937), ya se sabe: la carta misma y lo que él dé.
   const mirada = (carta?.versiones || []).some(esFilaDeLaCarta)
-  if (!extras.length) return mirada ? [EQUIVALE[0]] : siNoSeSabe
+  if (!extras.length) return mirada ? conSuBrillo([EQUIVALE[0]], carta) : siNoSeSabe
   // Solo versiones de TCGGO: la Standard (la carta misma) existe seguro.
   const sin = !mirada && Array.isArray(siNoSeSabe) && siNoSeSabe.length ? siNoSeSabe : [EQUIVALE[0]]
-  return [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
+  const todas = [...sin, ...extras.filter((e) => !sin.some((s) => s.nuestro === e.nuestro))]
+  return sin === siNoSeSabe ? todas : conSuBrillo(todas, carta)
+}
+
+// ── LA QUE BRILLA DE SERIE ES «HOLO», NO «NORMAL» (tanda 950) ──
+//
+// PINGU, con Dex delante: el Meganium de Lost Thunder es holo y nosotros
+// decíamos «Normal y Reverse»; el Shuckle GX y el Celebi ◇, «Normal»; y en
+// el japonés, la Serperior R de un set de Mega, «Normal» donde Dex dice
+// «Holo». TCGdex no dice versiones de Lost Thunder (su API da las de por
+// defecto, normal y reverse) y TCGGO no da ninguna del japonés (su
+// «Standard» es «la carta»), pero la RAREZA sí lo sabe: una «Rare Holo»,
+// una GX, una Prisma Estelar brillan siempre. Así que si la rareza dice que
+// brilla, la carta misma es la Holo, y la «Normal» de la lista se cambia por
+// ella; la Reverse y lo demás se quedan. Si la lista ya trae las dos (una
+// rara con su no holo de baraja, Pitch Black), no se toca.
+//
+// La «Rara» a secas brilla según la ÉPOCA, no siempre: en Lost Thunder hay
+// raras sin brillo. Desde Escarlata y Púrpura todas las raras son holo en
+// el occidental, y en el japonés desde Sol y Luna (SM1, 2016). Sin el día
+// del set no se aplica: no saber no es un «brilla».
+//
+// Y una rareza que brilla SIEMPRE (GX, V, ex, ilustraciones, Prisma Estelar,
+// Radiant, ACE SPEC…) no tiene Reverse: en los ficheros de TCGdex, de unas
+// 3.000 cartas de esas rarezas con versiones escritas, NINGUNA la tiene; la
+// Reverse les llega de las de por defecto de su API (el Celebi ◇ de Lost
+// Thunder). Se quita, salvo que TCGGO la dé como versión suya. La «Rare
+// Holo» sí tiene Reverse (475 de 608) y se queda.
+const RARA_HOLO_DESDE = { WEST: '2023-03-31', JP: '2016-12-09' }
+export function brillaDeSerie(carta) {
+  const r = rarezaEs(carta?.rarity_en || carta?.rarity)
+  if (!r) return false
+  if (SOLO_HOLO.has(r) || /^Rara Holo\b/.test(r)) return true
+  if (r !== 'Rara') return false
+  const desde = RARA_HOLO_DESDE[carta?.market || 'WEST']
+  const dia = String(carta?.tcg_sets?.release_date || carta?.release_date || '').slice(0, 10)
+  return Boolean(desde && /^\d{4}-\d{2}-\d{2}$/.test(dia) && dia >= desde)
+}
+function conSuBrillo(lista, carta) {
+  if (!Array.isArray(lista) || !brillaDeSerie(carta)) return lista
+  let fuera = lista
+  if (fuera.some((e) => e?.nuestro === 'normal') && !fuera.some((e) => e?.nuestro === 'holo')) {
+    const holo = EQUIVALE.find((e) => e.nuestro === 'holo')
+    fuera = fuera.map((e) => (e?.nuestro === 'normal' ? holo : e))
+  }
+  const siempre = SOLO_HOLO.has(rarezaEs(carta?.rarity_en || carta?.rarity))
+  const reverseDeTcggo = (carta?.versiones || []).some((f) => !f.origen && varianteDeEtiqueta(f.etiqueta) === 'reverse')
+  if (siempre && !reverseDeTcggo && fuera.length > 1) {
+    const sin = fuera.filter((e) => e?.nuestro !== 'reverse')
+    if (sin.length) fuera = sin
+  }
+  return fuera
 }
 
 // ── LAS EDICIONES DE WIZARDS (935) ──

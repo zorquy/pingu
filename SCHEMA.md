@@ -41785,6 +41785,18 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 950 — La que brilla de serie
+
+- `brillaDeSerie(carta)` (variantes.js, exportada): rareza (`rarity_en ||
+  rarity`, traducida) en `SOLO_HOLO`, o que empiece por «Rara Holo», o «Rara»
+  con el día del set (`tcg_sets.release_date`) desde `RARA_HOLO_DESDE` (WEST
+  2023-03-31, JP 2016-12-09). Sin día, no.
+- `conSuBrillo(lista, carta)` se aplica a las salidas de `variantesDeCarta`
+  que salen de algo sabido (la base, la «Standard» de TCGGO), nunca a
+  `siNoSeSabe` ni a las ediciones: la «normal» → «holo» si no hay holo ya; y
+  con rareza de `SOLO_HOLO`, fuera la «reverse» salvo que TCGGO tenga fila
+  suya de Reverse.
+
 ## Tanda 951 — Ediciones en todo el japonés de 2001 a 2016
 
 - `supabase-migration-951-ediciones-japonesas-hasta-2016.sql`: un `do` que
