@@ -116,5 +116,62 @@ console.log('\n── 4. En la expansión ──')
   await b.close()
 }
 
+console.log('\n── 5. Un set en dos expansiones no para la pasada (938) ──')
+{
+  // PINGU pulsó «Precios de TCGGO ahora» y salió «Supabase 500: 21000 …
+  // ON CONFLICT DO UPDATE command cannot affect row a second time». Un set
+  // cuelga de su par y además es hermano (853) de otra expansión: iba dos
+  // veces en la escritura de los sets, que la base rechaza ENTERA, y la
+  // pasada se paraba ahí, antes de escribir un solo precio.
+  const precios = await import(`${RAIZ}/netlify/functions/tcggo-precios.mjs`)
+  const { CLAVE_ESTADO: CLAVE_PARES } = await import(`${RAIZ}/netlify/functions/tcggo-emparejar.mjs`)
+  const montar = ({ fallaSets = null } = {}) => {
+    const estados = {
+      [CLAVE_PARES]: { episodios: { fecha: '2026-10-21T10:00:00Z', lista: [
+        { id: 11, nombre: 'Lost Origin', codigo: 'LOR', cartas: 200, fecha: '2022-09-09', logo: 'https://images.tcggo.com/lor.png', valorCm: 10 },
+        { id: 12, nombre: 'Lost Origin Trainer Gallery', codigo: 'LOR', cartas: 30, fecha: '2022-09-09', logo: 'https://images.tcggo.com/lortg.png', valorCm: 5 },
+      ] }, hechos: { swsh11: { episodio: 11, pares: 3 }, swsh11tg: { episodio: 12, pares: 3 } } },
+      tcggo_catalogo: {}, [precios.CLAVE_ESTADO]: {},
+    }
+    const sets = []
+    const escritas = []
+    return {
+      estados, sets, escritas,
+      base: {
+        env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k', TCGGO_PAUSA_MS: '0', TCGGO_TOPE_DIARIO: '14000' },
+        fetchImpl: async (url) => (/episode_id=1[12]/.test(url) ? { ok: true, status: 200, text: async () => JSON.stringify({ ...DOC, paging: { current: 1, total: 1, per_page: 100 } }) } : { ok: false, status: 404, text: async () => 'no' }),
+        restImpl: async (ruta) => {
+          if (/^tcg_sets\?select=id&market=eq\.WEST/.test(ruta)) return [{ id: 'swsh11' }, { id: 'swsh11tg' }]
+          if (/^tcg_cards\?select=id,set_id,cm_id_product_propio/.test(ruta)) return DOC.data.map((c, i) => ({ id: `swsh11-${i + 1}`, set_id: 'swsh11', cm_id_product_propio: c.cardmarket_id }))
+          return []
+        },
+        guardarImpl: async (f) => { escritas.push(...f) },
+        // La base de verdad: dos filas con el mismo id en una sentencia, 21000.
+        guardarSetsImpl: async (f, mercado) => {
+          if (fallaSets) throw new Error(fallaSets)
+          const ids = f.map((x) => x.id)
+          if (new Set(ids).size < ids.length) throw new Error('Supabase 500: {"code":"21000","message":"ON CONFLICT DO UPDATE command cannot affect row a second time"}')
+          sets.push(...f.map((x) => ({ ...x, mercado })))
+          return f.length
+        },
+        fotoImpl: async () => null, guardarVersionesImpl: async () => {},
+        estadoImpl: async (k) => estados[k], guardarEstadoImpl: async (k, x) => { estados[k] = JSON.parse(JSON.stringify(x)) },
+        pausa: async () => {}, ahora: AHORA,
+      },
+    }
+  }
+  const m = montar()
+  const r = await precios.procesar(m.base)
+  check('con un set en dos expansiones, la pasada sigue y escribe precios', r.ok && !r.error && m.escritas.length > 0, JSON.stringify(r).slice(0, 300))
+  const tg = m.sets.filter((x) => x.id === 'swsh11tg')
+  check('  …el set va UNA vez, con la expansión de su propio par', tg.length === 1 && tg[0].tcggo_id === 12 && m.sets.length === 2, JSON.stringify(m.sets.map((x) => [x.id, x.tcggo_id])))
+  const m2 = montar({ fallaSets: 'Supabase 500: algo de los sets' })
+  const r2 = await precios.procesar(m2.base)
+  check('si apuntar los sets falla por otra cosa, los precios se escriben igual', r2.ok && m2.escritas.length > 0, JSON.stringify(r2).slice(0, 300))
+  check('  …y el fallo se ve en /admin (no se calla)', /algo de los sets/.test(r2.errorSets || '') && /errorSets/.test(readFileSync(join(RAIZ, 'admin/js/admin.js'), 'utf8')), JSON.stringify(r2.errorSets))
+  check('  …y se da por intentado hoy (no vuelve a pedir la lista a TCGGO en cada pasada)', m2.estados[precios.CLAVE_ESTADO].setsApuntados === true)
+  check('sinSetsRepetidos: el de su par gana aunque llegue detrás', lib.sinSetsRepetidos([{ id: 'a', tcggo_id: 1 }, { id: 'a', tcggo_id: 2 }, { id: 'b', tcggo_id: 1 }], { a: { episodio: 2 } }).map((x) => `${x.id}${x.tcggo_id}`).sort().join() === 'a2,b1')
+}
+
 console.log(fails ? `\n${fails} FALLAN` : '\nTodo en verde')
 process.exit(fails ? 1 : 0)
