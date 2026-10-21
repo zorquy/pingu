@@ -164,7 +164,7 @@ console.log('\n── 4. La pasada de precios ──')
       if (/^tcg_sets\?select=id&market=eq\.WEST/.test(ruta)) return [{ id: 'base1' }]
       // Solo la nuestra: la Shadowless de TCGGO ya está fundida.
       if (/^tcg_cards\?select=id,set_id,cm_id_product_propio/.test(ruta)) return [{ id: 'base1-4', set_id: 'base1', cm_id_product_propio: 273699 }]
-      if (/^tcg_card_versions\?select=tcggo_id,card_id,set_id,etiqueta,clase,cm_id_product&market=eq\.WEST&origen=eq\.edicion/.test(ruta)) return EDICIONES
+      if (/^tcg_card_versions\?select=tcggo_id,card_id,set_id,etiqueta,clase,cm_id_product&market=eq\.WEST&origen=in\.\(edicion,tcgdex\)/.test(ruta)) return EDICIONES
       if (/^tcg_cards/.test(ruta)) return []
       throw new Error(`ruta inesperada ${ruta}`)
     },
@@ -176,7 +176,7 @@ console.log('\n── 4. La pasada de precios ──')
     guardarEstadoImpl: async (clave, valor) => { estados[clave] = JSON.parse(JSON.stringify(valor)) },
     pausa: async () => {}, ahora: AHORA,
   })
-  check('la pasada pregunta por las ediciones de los productos de la página', rutas.some((x) => /origen=eq\.edicion&cm_id_product=in\.\(.*660224/.test(x)), rutas.filter((x) => /versions/.test(x)).join(' | '))
+  check('la pasada pregunta por las ediciones de los productos de la página', rutas.some((x) => /origen=in\.\(edicion,tcgdex\)&cm_id_product=in\.\(.*660224/.test(x)), rutas.filter((x) => /versions/.test(x)).join(' | '))
   check('la carta lleva su precio, como siempre', r.ok && escritas.length === 1 && escritas[0].card_id === 'base1-4' && escritas[0].cm_low === 600, JSON.stringify(escritas.map((f) => [f.card_id, f.cm_low])))
   const porEtiqueta = Object.fromEntries(vers.filter((f) => f.tcggo_id < 0).map((f) => [f.etiqueta, f.cm_low]))
   check('  …la Shadowless y la Unlimited, el suyo', porEtiqueta.Shadowless === 2500 && porEtiqueta.Unlimited === 600 && !('1st Edition' in porEtiqueta), JSON.stringify(porEtiqueta))
