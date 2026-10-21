@@ -41785,6 +41785,20 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 933 — Traer ya las versiones de una expansión
+
+- `tcggo-sonda`, modo `versiones` (ESCRIBE): `versionesDeExpansion({ episodio,
+  mercado, raiz, host, claveTcggo, fetchImpl, pedir, guardar })`. Los sets
+  nuestros con ese `tcggo_id`; sus páginas con `include_variants` (tope
+  `MAXIMO_PAGINAS_VERSIONES` = 15); `separarVersiones` para quedarse con las
+  principales; nuestras cartas a trozos de 1.000; casa por `tcggo_id` y, si
+  no, por `cm_id_product_propio` (como `tcggo-precios`); `filasDeVariantes` y
+  upsert a `tcg_card_versions` (merge-duplicates). `valor` es el número de la
+  expansión o el id de un set nuestro (se lee su `tcggo_id`).
+- `sinVersionesRepetidas(filas)` (lib/tcggo.mjs): una fila por `tcggo_id`, la
+  primera. La pasada de precios y la sonda la pasan antes de guardar: un
+  upsert que toca la misma fila dos veces lo rechaza Postgres entero (21000).
+
 ## Tanda 932 — Las versiones de hoy, también en lo ya pasado
 
 - `tcggo-precios`: `VERSION_VARIANTES = 929`. Si `estado.versionVariantes` no

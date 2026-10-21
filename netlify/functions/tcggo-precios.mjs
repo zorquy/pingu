@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, sinVersionesRepetidas,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -548,8 +548,9 @@ export async function procesar({
           const v = estado.versiones?.dia === dia ? estado.versiones : { dia, vistas: 0, escritas: 0 }
           v.vistas += versiones.length
           try {
-            for (let k = 0; k < versiones.length; k += 500) await guardarVersiones(versiones.slice(k, k + 500))
-            v.escritas += versiones.length
+            const unicas = sinVersionesRepetidas(versiones)
+            for (let k = 0; k < unicas.length; k += 500) await guardarVersiones(unicas.slice(k, k + 500))
+            v.escritas += unicas.length
             // Fuera del día: `tcggo-versiones` lo mira para no recorrer ids.
             estado.versionesUltimaVista = ahora.toISOString()
             delete v.error

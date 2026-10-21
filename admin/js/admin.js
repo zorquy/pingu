@@ -3550,7 +3550,13 @@ async function tcggoSonda() {
     const res = await fetch('/.netlify/functions/tcggo-sonda', { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: JSON.stringify({ modo, valor, mercado }) })
     const r = await res.json().catch(() => ({}))
     if (!res.ok || r.error) throw new Error(r.error || `Error ${res.status}`)
-    if (modo === 'duplicados') {
+    if (modo === 'versiones') {
+      caja.value = [
+        `Expansión ${r.episodio} de TCGGO → ${(r.sets || []).join(', ')}`,
+        `${r.peticiones} peticiones · ${r.suyas} cartas suyas, ${r.conVersiones} con versiones`,
+        `${r.emparejadas} de nuestras ${r.nuestras} casadas · ${r.escritas} versiones guardadas`,
+      ].join('\n')
+    } else if (modo === 'duplicados') {
       caja.value = [
         `Set ${r.set?.id} (${r.set?.name}) · tcggo_id ${r.set?.tcggo_id ?? '—'} · ${r.cartas} cartas`,
         `Sets con esa expansión: ${(r.sets || []).map((s) => `${s.id}${s.oculto ? ' (oculto)' : ''}${s.origen ? ` [${s.origen}]` : ''}`).join(', ')}`,

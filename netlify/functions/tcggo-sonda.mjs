@@ -12,6 +12,12 @@
 //   · 'expansion'  → `/cards?episode_id=…&include_variants=1&per_page=5`.
 //   · 'lote'       → `/cards?ids=…` (hasta 20 ids separados por comas).
 //   · 'episodios'  → `/episodes?page=1`: el `symbol` de cada expansión.
+//   · 'versiones'  → ESCRIBE (932): las versiones de una expansión entera,
+//                    ahora, sin esperar a la pasada de precios. `valor` es el
+//                    id de la expansión de TCGGO o el de un set nuestro. Es
+//                    lo que hace la pasada, solo para esa expansión y sin
+//                    tocar su estado del día (PINGU, para cerrar lo de
+//                    Ascended Heroes en el foro). Una petición por página.
 //   · 'duplicados' → SIN pedir nada a TCGGO: las cartas de un set nuestro
 //                    (y de los que comparten su expansión de TCGGO) que se
 //                    repiten por número, con de dónde sale cada una. Es para
@@ -22,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY (TCGGO_BASE
 // opcional).
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
-import { baseDe, baseJpDe, cabeceras, urlCarta, urlCartasDeEpisodio, urlCartasPorIds, urlEpisodios } from '../lib/tcggo.mjs'
+import { baseDe, baseJpDe, cabeceras, urlCarta, urlCartasDeEpisodio, urlCartasPorIds, urlEpisodios, hayMasPaginas, separarVersiones, filasDeVariantes, sinVersionesRepetidas } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const MAXIMO = 60_000
@@ -31,6 +37,62 @@ async function rest(ruta, clave) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, { headers: { apikey: clave, authorization: `Bearer ${clave}` } })
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 200)}`)
   return res.json()
+}
+
+// Las versiones, como las guarda la pasada de precios: upsert por su id.
+async function guardarVersionesRest(filas, clave) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/tcg_card_versions`, {
+    method: 'POST',
+    headers: { apikey: clave, authorization: `Bearer ${clave}`, 'content-type': 'application/json', prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(filas),
+  })
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 200)}`)
+}
+
+export const MAXIMO_PAGINAS_VERSIONES = 15
+
+// Las versiones de una expansión entera (932). Puro salvo lo que se le pasa.
+export async function versionesDeExpansion({ episodio, mercado, raiz, host, claveTcggo, fetchImpl, pedir, guardar, ahora = new Date() }) {
+  const sets = (await pedir(`tcg_sets?select=id&market=eq.${mercado}&tcggo_id=eq.${episodio}`)) || []
+  if (!sets.length) return { error: `Ningún set nuestro del catálogo ${mercado} apunta a la expansión ${episodio} de TCGGO.` }
+  const suyas = []
+  let peticiones = 0
+  for (let pagina = 1; pagina <= MAXIMO_PAGINAS_VERSIONES; pagina++) {
+    const res = await fetchImpl(urlCartasDeEpisodio(episodio, pagina, raiz, { versiones: true }), { headers: cabeceras(claveTcggo, host) })
+    peticiones++
+    const texto = await res.text()
+    if (!res.ok) return { error: `TCGGO ${res.status}: ${texto.slice(0, 160)}`, peticiones }
+    const datos = JSON.parse(texto)
+    suyas.push(...(datos.data || []))
+    if (!hayMasPaginas(datos) || !(datos.data || []).length) break
+  }
+  const { principales } = separarVersiones(suyas)
+  // Nuestras cartas, a trozos (la 808: 1.000 filas y sin error).
+  const lista = sets.map((s) => `"${encodeURIComponent(s.id)}"`).join(',')
+  const nuestras = []
+  for (let desde = 0; desde < 20_000; desde += 1000) {
+    const trozo = (await pedir(`tcg_cards?select=id,set_id,cm_id_product_propio,tcggo_id&market=eq.${mercado}&set_id=in.(${lista})&order=id&offset=${desde}&limit=1000`)) || []
+    nuestras.push(...trozo)
+    if (trozo.length < 1000) break
+  }
+  // Como la pasada: por su id de TCGGO y, si no, por el producto de Cardmarket.
+  const porTcggo = new Map(principales.map((s) => [Number(s.id), s]))
+  const porCm = new Map(principales.filter((s) => Number(s.cardmarket_id) > 0).map((s) => [Number(s.cardmarket_id), s]))
+  const filas = []
+  let emparejadas = 0
+  for (const c of nuestras) {
+    const s = porTcggo.get(Number(c.tcggo_id)) || porCm.get(Number(c.cm_id_product_propio))
+    if (!s) continue
+    emparejadas++
+    filas.push(...filasDeVariantes(s, c, { ahora, mercado }))
+  }
+  const unicas = sinVersionesRepetidas(filas)
+  for (let k = 0; k < unicas.length; k += 500) await guardar(unicas.slice(k, k + 500))
+  return {
+    episodio, sets: sets.map((s) => s.id), peticiones, suyas: principales.length,
+    conVersiones: principales.filter((s) => Array.isArray(s.variants) && s.variants.length).length,
+    nuestras: nuestras.length, emparejadas, escritas: unicas.length,
+  }
 }
 
 // Las repetidas por número, de las filas de unas cartas. Puro.
@@ -45,7 +107,7 @@ export function repetidasPorNumero(cartas) {
   return [...por.entries()].filter(([, l]) => l.length > 1).map(([numero, l]) => ({ numero, cartas: l }))
 }
 
-export async function sondear({ modo, valor, mercado = 'WEST' }, { env = process.env, fetchImpl = fetch, pedir = null } = {}) {
+export async function sondear({ modo, valor, mercado = 'WEST' }, { env = process.env, fetchImpl = fetch, pedir = null, guardarVersiones = null, ahora = new Date() } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   const base = pedir || ((ruta) => rest(ruta, clave))
   const v = String(valor || '').trim()
@@ -63,6 +125,13 @@ export async function sondear({ modo, valor, mercado = 'WEST' }, { env = process
   if (!claveTcggo) return { error: 'Falta TCGGO_API_KEY en Netlify.' }
   const { base: b, host } = baseDe(env)
   const raiz = mercado === 'JP' ? baseJpDe(b) : b
+  if (modo === 'versiones') {
+    let episodio = /^\d+$/.test(v) ? Number(v) : null
+    if (!episodio && v) episodio = Number((await base(`tcg_sets?select=tcggo_id&market=eq.${mercado}&id=eq.${encodeURIComponent(v)}&limit=1`))?.[0]?.tcggo_id) || null
+    if (!episodio) return { error: `No sé la expansión de TCGGO de «${v || '(vacío)'}»: escribe su número o el id de un set nuestro emparejado.` }
+    const r = await versionesDeExpansion({ episodio, mercado, raiz, host, claveTcggo, fetchImpl, pedir: base, guardar: guardarVersiones || ((f) => guardarVersionesRest(f, clave)), ahora })
+    return { modo, ...r }
+  }
   let url
   if (modo === 'carta') {
     let id = /^\d+$/.test(v) ? v : ''

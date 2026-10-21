@@ -997,6 +997,15 @@ export function filasDeVariantes(suya, carta, { ahora = new Date(), mercado = 'W
   return filas
 }
 
+// Una versión UNA vez por lote (932). Si dos cartas nuestras casan con la
+// misma de TCGGO, sus versiones salen dos veces, y un upsert que toca la
+// misma fila dos veces lo rechaza Postgres ENTERO (21000): se perdían todas
+// las de la página. Gana la primera.
+export function sinVersionesRepetidas(filas) {
+  const vistas = new Set()
+  return (filas || []).filter((f) => !vistas.has(f.tcggo_id) && vistas.add(f.tcggo_id))
+}
+
 // Los precios por idioma de una versión pedida por su id (929): solo las
 // columnas de precio, para no pisar la etiqueta que puso la lista.
 export function filaDeIdiomasDeVersion(suya, { cardId, market = 'WEST', ahora = new Date() } = {}) {

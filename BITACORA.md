@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (167) — PINGU-Claude (933 — traer ya las versiones de una expansión, desde /admin)
+
+**Hecho** (PINGU, con la sonda: «Set me02.5 · tcggo_id 396 · 295 cartas.
+Ningún número repetido… ¿Puedes hacer la pasada ahora solo para el set de
+Ascended? Es para cerrar el tema en el foro»):
+- Ascended Heroes es UN set (`me02.5`), sin repetidas: lo de los dos sets de
+  la 932 queda descartado.
+- /admin → Cartas → sonda, modo nuevo «traer ya las versiones de una
+  expansión (escribe)»: con el id de un set nuestro (`me02.5`) o el de su
+  expansión de TCGGO (396), pide sus páginas con versiones (una petición por
+  página: tres para Ascended), casa cada carta como la pasada de precios (su
+  id de TCGGO o su producto de Cardmarket) y guarda las versiones. No toca el
+  estado del día de la pasada.
+- Y un fallo que podía comerse lotes enteros: si dos cartas nuestras casaban
+  con la misma de TCGGO, sus versiones iban dos veces en el mismo upsert, y
+  Postgres lo rechaza entero (21000). `sinVersionesRepetidas` en la pasada y
+  en la sonda.
+
+**Ficheros**: `netlify/lib/tcggo.mjs` (`sinVersionesRepetidas`),
+`netlify/functions/tcggo-precios.mjs`, `netlify/functions/tcggo-sonda.mjs`
+(`versionesDeExpansion`, modo `versiones`), `admin/index.html`,
+`admin/js/admin.js`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: la 931 con la sección 7 (la sonda con el Oddish de Erika y las
+repetidas en el lote). 929 y 931 verdes.
+
+**Pendiente**:
+- PINGU: sonda «traer ya las versiones…» con `me02.5`, y mirar el Oddish.
+- La suite entera, que no se pasa desde la 928.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-21 (166) — PINGU-Claude (932 — las versiones de hoy, también en lo que ya se había pasado)
 
 **Hecho** (PINGU: «Black Bolt ya está bien. ¿Qué pasa con Ascended? Siguen
