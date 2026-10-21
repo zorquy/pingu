@@ -165,5 +165,32 @@ console.log('\n── 6. En la web: la Reverse que TCGGO no da, salvo la que ya 
   await browser.close()
 }
 
+console.log('\n── 7. La sonda trae YA las versiones de una expansión (932) ──')
+{
+  const sonda = await import(`${RAIZ}/netlify/functions/tcggo-sonda.mjs`)
+  const { sinVersionesRepetidas } = await import(`${RAIZ}/netlify/lib/tcggo.mjs`)
+  const suyas = [
+    { id: 31452, name: "Erika's Oddish", card_number: 1, cardmarket_id: 869612, variants: [{ type: 'energy_symbol_pattern', label: 'Energy Symbol Pattern', id: 50001, prices: { cardmarket: { lowest_near_mint: null } } }, { type: 'poke_ball', label: 'Poké Ball', id: 50002, prices: { cardmarket: { lowest_near_mint: 0.03 } } }] },
+    { id: 31453, name: 'Gloom', card_number: 2, cardmarket_id: 869613, variants: [] },
+  ]
+  const guardadas = []
+  const urls = []
+  const r = await sonda.sondear({ modo: 'versiones', valor: 'me02.5' }, {
+    env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' },
+    fetchImpl: async (u) => { urls.push(u); return { ok: true, status: 200, text: async () => JSON.stringify({ data: suyas, paging: { current: 1, total: 1 } }) } },
+    pedir: async (ruta) => {
+      if (/^tcg_cards/.test(ruta)) return [{ id: 'me02.5-001', set_id: 'me02.5', cm_id_product_propio: 869612, tcggo_id: null }, { id: 'me02.5-002', set_id: 'me02.5', cm_id_product_propio: 869613, tcggo_id: 31453 }]
+      if (/select=tcggo_id/.test(ruta)) return [{ tcggo_id: 396 }]
+      if (/^tcg_sets\?select=id&/.test(ruta)) return [{ id: 'me02.5' }]
+      return []
+    },
+    guardarVersiones: async (f) => { guardadas.push(...f) },
+  })
+  check('del id de nuestro set saca su expansión y pide sus páginas con versiones', r.episodio === 396 && urls.length === 1 && /episode_id=396.*include_variants=1/.test(urls[0]), JSON.stringify(r))
+  check('  …y guarda las del Oddish de Erika colgando de NUESTRA carta', guardadas.map((g) => `${g.card_id}:${g.etiqueta}`).join() === 'me02.5-001:Energy Symbol Pattern,me02.5-001:Poké Ball' && r.escritas === 2 && r.emparejadas === 2, JSON.stringify(guardadas))
+  check('sin set nuestro que apunte a esa expansión, lo dice y no pide nada', /Ningún set/.test((await sonda.sondear({ modo: 'versiones', valor: '999' }, { env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k' }, fetchImpl: async () => { throw new Error('no') }, pedir: async () => [] })).error || ''))
+  check('una versión UNA vez por lote (si no, Postgres rechaza el lote entero)', sinVersionesRepetidas([{ tcggo_id: 1, card_id: 'a' }, { tcggo_id: 1, card_id: 'b' }, { tcggo_id: 2, card_id: 'a' }]).map((f) => `${f.tcggo_id}${f.card_id}`).join() === '1a,2a')
+}
+
 console.log(fails ? `\n✗ ${fails} fallos` : '\n✓ Todo bien')
 process.exit(fails ? 1 : 0)
