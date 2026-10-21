@@ -11,10 +11,16 @@ insert into public.tcg_sets (id, market, name, name_en, release_date, card_count
   ('tg-901', 'JP', 'Constructed Starter Deck', 'Constructed Starter Deck', '2005-04-08', 30, 30, 901, false),
   -- 海からの風 (E3): por el código, con otro día (TCGGO lo fecha distinto).
   ('e3', 'JP', 'Wind from the Sea', 'Wind from the Sea', '2002-06-01', 87, 87, 902, false),
-  -- ロケット団の逆襲 (PCG3): por el día, pero TCGGO solo tiene 10 cartas.
-  ('tg-903', 'JP', 'Rocket Gang Strikes Back', 'Rocket Gang Strikes Back', '2004-10-15', 84, 10, 903, false),
+  -- ロケット団の逆襲 (PCG3, 948b): «pcg3_ja», y ese día sale también una media
+  -- baraja (el empate de la 948).
+  ('pcg3_ja', 'JP', 'Rocket Gang Strikes Back', 'Rocket Gang Strikes Back', '2004-10-15', 84, 84, 903, false),
+  ('tg-913', 'JP', 'Rocket Gang Half Deck', 'Rocket Gang Half Deck', '2004-10-15', 20, 20, 913, false),
+  -- 裂けた大地 (E4, 948b): otro día en TCGGO; casa por su nombre inglés.
+  ('tg-711', 'JP', 'Split Earth', 'Split Earth', '2002-09-01', 88, 88, 711, false),
+  -- ポケモンカード★VS (VS1, 948b): casa por el nombre, pero TCGGO solo tiene 10.
+  ('tg-920', 'JP', 'Pokémon VS', 'Pokémon VS', '2001-08-01', 141, 10, 920, false),
   -- 蒼空の激突 (PCG2): dos sets ese día y ninguno con su cuenta → empate.
-  ('tg-904', 'JP', 'Clash of the Blue Sky', 'Clash of the Blue Sky', '2004-07-01', 80, 80, 904, false),
+  ('tg-904', 'JP', 'Blue Sky Deck A', 'Blue Sky Deck A', '2004-07-01', 80, 80, 904, false),
   ('tg-905', 'JP', 'Otra cosa', 'Otra cosa', '2004-07-01', 81, 81, 905, false),
   -- El viejo de TCGdex, escondido por el calco: no se toca aunque se llame igual.
   ('PCG4', 'JP', '金の空、銀の海', null, '2005-04-08', 106, 106, null, true),
@@ -26,8 +32,9 @@ insert into public.tcg_cards (id, market, set_id, local_id, name, name_en, orige
   ('tcggo-50001', 'JP', 'tg-900', '1', 'カードA', 'Card A', 'tcggo', null),
   ('tcggo-60001', 'JP', 'tg-901', '003', 'ストライク', 'Scyther', 'tcggo', 700103),
   ('tcggo-61003', 'JP', 'e3', '003', 'ラフレシア', 'Vileplume', 'tcggo', 710003),
-  ('tcggo-62001', 'JP', 'tg-903', '001', 'エカン', 'Ekans', 'tcggo', 720001),
-  ('tcggo-63001', 'JP', 'tg-904', '001', 'X', 'X', 'tcggo', 730001),
+  ('tcggo-62001', 'JP', 'tg-913', '001', 'エカン', 'Ekans', 'tcggo', 720001),
+  ('tcggo-64001', 'JP', 'tg-920', '001', 'X', 'X', 'tcggo', 740001),
+  ('tcggo-66001', 'JP', 'tg-904', '001', 'X', 'X', 'tcggo', 730001),
   ('PCG4-003', 'JP', 'PCG4', '003', 'スキスター', null, null, null),
   ('ex-uf-3', 'WEST', 'ex-uf', '3', 'Scyther', 'Scyther', null, 800003);
 -- El resto de cada set, como lo trae TCGGO: «005» … «106» en PCG4 y «1» … «87» en E3.
@@ -35,6 +42,10 @@ insert into public.tcg_cards (id, market, set_id, local_id, name, origen)
 select 'tcggo-5' || lpad(n::text, 4, '0'), 'JP', 'tg-900', lpad(n::text, 3, '0'), 'カード' || n, 'tcggo' from generate_series(2, 106) as n where n not in (3, 4);
 insert into public.tcg_cards (id, market, set_id, local_id, name, origen)
 select 'tcggo-61' || lpad(n::text, 3, '0'), 'JP', 'e3', n::text, 'カード' || n, 'tcggo' from generate_series(1, 87) as n where n <> 3;
+insert into public.tcg_cards (id, market, set_id, local_id, name, origen)
+select 'tcggo-63' || lpad(n::text, 3, '0'), 'JP', 'pcg3_ja', lpad(n::text, 3, '0'), 'カード' || n, 'tcggo' from generate_series(1, 85) as n;
+insert into public.tcg_cards (id, market, set_id, local_id, name, origen)
+select 'tcggo-65' || lpad(n::text, 3, '0'), 'JP', 'tg-711', n::text, 'カード' || n, 'tcggo' from generate_series(1, 91) as n;
 -- Las de un usuario del foro: una 1.ª edición, una normal, una holo y una reverse.
 insert into public.user_collection (card_id, user_id, cantidad, variante, market) values
   ('tcggo-50003', '00000000-0000-0000-0000-0000000000c1', 1, 'primera', 'JP'),

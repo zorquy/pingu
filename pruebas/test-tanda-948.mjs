@@ -28,7 +28,8 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
-const MIGRACION = join(RAIZ, 'supabase-migration-948-ediciones-japonesas.sql')
+// La 948b es la 948 con dos pasos más al casar: se prueba la que va a correr.
+const MIGRACION = join(RAIZ, 'supabase-migration-948b-ediciones-japonesas-faltan.sql')
 const SQL = readFileSync(MIGRACION, 'utf8')
 const DATOS = JSON.parse(SQL.match(/d jsonb := '(.*)'::jsonb;/)[1].replace(/''/g, "'"))
 const v = await import(`${RAIZ}/js/mi-coleccion/variantes.js`)
@@ -64,6 +65,7 @@ console.log('── 1. La base ──')
     psql(['-c', 'drop database if exists prueba_948'])
   }
   check('la migración no usa tablas temporales entre sentencias (la 631)', !/create\s+temp/i.test(SQL))
+  check('  …casa también el id con «_ja» (los sets de antes, como «pcg4_ja»)', /lower\(r\.s\) \|\| '_ja'/.test(SQL))
   check('  …pide la 935 antes de tocar nada', /Falta ejecutar antes supabase-migration-935/.test(SQL))
   check('  …y no casa por el nombre (en estos sets TCGdex lo tiene mal)', !/normalize\(/.test(SQL))
 }
@@ -78,7 +80,8 @@ console.log('\n── 2. Los datos ──')
   if (existsSync('/tmp/tcgdex-db/data-asia/PCG')) {
     const { sets } = await import(join(AQUI, '..', 'herramientas', 'ediciones-japonesas', 'leer.mjs'))
     const otra = sets().map((s) => ({ s: s.s, nombre: s.nombre, fecha: s.fecha, oficial: s.oficial, cartas: s.cartas.map((c) => c.n) }))
-    check('generada otra vez desde el clon, la lista de la migración es la misma', JSON.stringify(otra) === JSON.stringify(DATOS))
+    check('generada otra vez desde el clon, la lista de la migración es la misma', JSON.stringify(otra) === JSON.stringify(DATOS.map(({ en, ...x }) => x)))
+    check('  …y cada set lleva su nombre inglés oficial para casar', DATOS.every((x) => x.en.length > 0) && DATOS.find((x) => x.s === 'E4').en.includes('splitearth'))
   } else console.log('  (sin el clon de tcgdex/cards-database en /tmp/tcgdex-db: no se regenera)')
 }
 

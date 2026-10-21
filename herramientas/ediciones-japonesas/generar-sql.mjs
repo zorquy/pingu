@@ -3,14 +3,34 @@
 import { writeFileSync } from 'node:fs'
 import { sets } from './leer.mjs'
 
-const datos = sets().map((s) => ({ s: s.s, nombre: s.nombre, fecha: s.fecha, oficial: s.oficial, cartas: s.cartas.map((c) => c.n) }))
+// El nombre inglés OFICIAL de cada set (948b): TCGdex solo trae el japonés, y
+// los de TCGGO —los nuestros— son estos (la tabla de la 948 los enseñó para
+// los trece que casaron). Varios para VS1 y E4, que no se han visto.
+const EN = {
+  E1: ['Base Expansion Pack'], E2: ['The Town on No Map'], E3: ['Wind from the Sea'], E4: ['Split Earth', 'The Split Earth'], E5: ['Mysterious Mountains'],
+  PCG1: ['Flight of Legends'], PCG2: ['Clash of the Blue Sky'], PCG3: ['Rocket Gang Strikes Back'], PCG4: ['Golden Sky, Silvery Ocean'], PCG5: ['Mirage Forest'],
+  PCG6: ['Holon Research Tower'], PCG7: ['Holon Phantom'], PCG8: ['Miracle Crystal'], PCG9: ['Offense and Defense of the Furthest Ends'],
+  VS1: ['Pokémon VS', 'Pokémon Card VS', 'Pokémon Card ★VS'], web1: ['Pokémon Web', 'Pokémon Card Web', 'Pokémon Card ★web'],
+}
+const comparable = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '')
+const datos = sets().map((s) => ({ s: s.s, nombre: s.nombre, en: (EN[s.s] || []).map(comparable), fecha: s.fecha, oficial: s.oficial, cartas: s.cartas.map((c) => c.n) }))
 const json = JSON.stringify(datos).replace(/'/g, "''")
-const destino = process.argv[2] || '/home/user/pingu/supabase-migration-948-ediciones-japonesas.sql'
+const destino = process.argv[2] || '/home/user/pingu/supabase-migration-948b-ediciones-japonesas-faltan.sql'
 const cartas = datos.reduce((n, s) => n + s.cartas.length, 0)
 
 const sql = `-- ============================================================
--- Tanda 948: la 1.ª edición y la Unlimited de las japonesas antiguas.
+-- Tanda 948b: la 1.ª edición y la Unlimited de las japonesas antiguas, con
+-- los tres sets que la 948 no casó (E4, VS1 y PCG3).
 --
+-- La tabla de la 948 casó 13 de 16 y enseñó por qué faltaban: muchos sets
+-- japoneses nuestros se llaman «pcg4_ja» (el «_ja» de cuando venían de
+-- TCGdex), así que el id no casaba y todo fue por el día; y E4 y VS1 tienen
+-- en TCGGO otro día. Esta es LA MISMA migración con dos pasos más al casar:
+-- el id con «_ja» y el nombre inglés OFICIAL de cada set (escrito a mano, el
+-- que TCGGO usa: la tabla de la 948 los enseñó). Es idempotente: en los trece
+-- ya hechos no crea nada (sus «ediciones_nuevas» salen a 0).
+--
+-- Lo de la 948, tal cual:
 -- En el foro: «Wind from the Sea, existe 1.ª Edición y Unlimited, no me deja
 -- añadir 1.ª edición» (y Flight of Legends, Rocket Gang Strikes Back, Golden
 -- Sky Silvery Ocean…). Y PINGU: «yo creo que es porque las variantes las
@@ -31,7 +51,8 @@ const sql = `-- ============================================================
 -- 1.ª edición va sin él, sin cifra, como en la 935.
 --
 -- CASAR LOS SETS. Los nuestros son los de TCGGO, con otros ids. Por orden:
---  1. el id o el código del set igual al de TCGdex («PCG4»);
+--  1. el id o el código del set igual al de TCGdex («PCG4» o «pcg4_ja»);
+--  1b. si no, su nombre inglés oficial (sin acentos ni signos);
 --  2. si no, el mismo día de salida; si ese día salió más de uno (en Japón
 --     una expansión y sus barajas salen juntas), el que tenga la cuenta de
 --     cartas de TCGdex.
@@ -75,7 +96,7 @@ begin
   end if;
 
   for r in
-    select x->>'s' as s, x->>'nombre' as nombre, nullif(x->>'fecha', '')::date as fecha, nullif(x->>'oficial', '')::int as oficial, x->'cartas' as cartas
+    select x->>'s' as s, x->>'nombre' as nombre, coalesce(x->'en', '[]'::jsonb) as en, nullif(x->>'fecha', '')::date as fecha, nullif(x->>'oficial', '')::int as oficial, x->'cartas' as cartas
       from jsonb_array_elements(d) as x
   loop
     v_cartas := jsonb_array_length(r.cartas);
@@ -84,9 +105,20 @@ begin
     -- 1. El id o el código.
     select array_agg(id) into v_ids from public.tcg_sets
      where market = 'JP' and not coalesce(oculto, false)
-       and (lower(id) = lower(r.s) or lower(coalesce(tcg_online_code, '')) = lower(r.s));
+       and (lower(id) in (lower(r.s), lower(r.s) || '_ja') or lower(coalesce(tcg_online_code, '')) = lower(r.s));
     if coalesce(array_length(v_ids, 1), 0) = 1 then
       v_set := v_ids[1]; v_por := 'id o código';
+    end if;
+
+    -- 1b. El nombre inglés oficial.
+    if v_set is null and jsonb_array_length(r.en) > 0 then
+      select array_agg(id) into v_ids from public.tcg_sets
+       where market = 'JP' and not coalesce(oculto, false)
+         and regexp_replace(lower(public.immutable_unaccent(coalesce(name_en, name, ''))), '[^a-z0-9]+', '', 'g')
+             in (select jsonb_array_elements_text(r.en));
+      if coalesce(array_length(v_ids, 1), 0) = 1 then
+        v_set := v_ids[1]; v_por := 'nombre inglés';
+      end if;
     end if;
 
     -- 2. El día de salida.
