@@ -41785,6 +41785,16 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 957 — Lo que faltaba y tiene fuente; la lista pegada
+
+`2019sm-fr` (WEST, `origen = 'mano'`) con 41 cartas `2019sm-fr-<n>` de los
+ficheros de TCGdex; el inglés por `POKEMON_POR_DEX`. Sellos del Scyther
+`bw5-4`: filas de `tcg_card_versions` con id negativo de
+`tcg_card_versions_mano_seq`, `clase = 'sello'`, sin repetir por etiqueta.
+`decks-jp-a-mano` gana `sll_ja` y `bkz_ja` (sin `de`). En /admin,
+`cartasDeLista(texto)` → `{ cartas, errores }` y `idDeCartaAMano(set, n)`
+(`mano-<set>-<n>`, el de «Nueva carta»).
+
 ## Tanda 956 — Idiomas del set y versiones por idioma, a mano
 
 Dos tablas que se leen con `select` libre y solo se escriben por funciones de

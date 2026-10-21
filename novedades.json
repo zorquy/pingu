@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Nuevas colecciones: el McDonald's 2019 en francés y, del japonés, las barajas de Lucario VSTAR y de Zekrom-EX. Y el Scyther de Dark Explorers con sus sellos del 1.º al 4.º puesto.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al añadir una carta solo salen las versiones que existieron en ese idioma: Stormfront en español ya no ofrece Reverse, y te lo dice.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Idiomas corregidos gracias al foro: Jungle también en neerlandés, Undaunted sin portugués y Dark Explorers sin español.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Hidden Fates y Shining Fates se llaman así (no «Shiny Vault»), salen primero las cartas normales y las Shiny Vault ya no aparecen dos veces.", "enlace": "/cartas" },

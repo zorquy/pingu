@@ -28,6 +28,7 @@ import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
 import { moverEnLista, loQueCambia, dondeCae } from './orden-arrastrable.js'
 import { TITULOS_DE_GRUPO } from '../../js/mi-coleccion/estanteria.js'
 import { loQueCambia as cambiosDe, faltaLaMigracion as esFaltaDeRpc } from './catalogo-puro.js'
+import { cartasDeLista, idDeCartaAMano } from './lista-cartas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -681,7 +682,7 @@ async function volverAlOrdenDelCatalogo() {
 function abrirNuevaColeccion() {
   abrirHoja(`
     <h3>Nueva colección</h3>
-    <p class="admin-note">Para una colección que ninguna API tiene. Nace «a mano»: ninguna pasada automática la esconderá ni la borrará. Las cartas se le añaden después desde «Ver y editar sus cartas».</p>
+    <p class="admin-note">Para una colección que ninguna API tiene. Nace «a mano»: ninguna pasada automática la esconderá ni la borrará. Las cartas se pueden pegar abajo, o añadirlas después desde «Ver y editar sus cartas».</p>
     <label>Identificador <small>(minúsculas, sin espacios; será su dirección)</small><input id="colNuevoId" type="text" placeholder="pcg-silver_ja"></label>
     <label>Nombre<input id="colNuevoNombre" type="text" placeholder="ロケット団ハーフデッキW -silver-"></label>
     <label>Nombre occidental<input id="colNuevoNombreEn" type="text" placeholder="Silver Deck Kit"></label>
@@ -692,12 +693,23 @@ function abrirNuevaColeccion() {
       <label class="cat-campo-medio">Era<input id="colNuevoEra" type="text" list="colErasLista" placeholder="pcg"></label>
     </div>
     <datalist id="colErasLista">${[...new Set(sets.map((x) => x.serie_id).filter(Boolean))].sort().map((e) => `<option value="${escapeHtml(e)}">`).join('')}</datalist>
+    <label>Las cartas <small>(opcional: una por línea con su número, su nombre y, si quieres, el nombre en inglés, separados por ·)</small>
+      <textarea id="colNuevoLista" rows="8" placeholder="001 · ストライク · Scyther&#10;002 · アサナン · Meditite"></textarea></label>
+    <p class="admin-note" id="colNuevoListaResumen" aria-live="polite"></p>
     <div class="col-hoja-pie">
       <span style="flex:1"></span>
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colNuevoCrear">Crear</button>
     </div>`)
+  // Lo que se va a crear, al escribir la lista: una línea mala se ve antes.
+  const leerLista = () => cartasDeLista($('colNuevoLista').value)
+  $('colNuevoLista').addEventListener('input', () => {
+    const { cartas, errores } = leerLista()
+    $('colNuevoListaResumen').textContent = !cartas.length && !errores.length ? '' : `${cartas.length} ${cartas.length === 1 ? 'carta' : 'cartas'}${errores.length ? ` · ${errores.join(' · ')}` : ''}`
+  })
   $('colNuevoCrear').addEventListener('click', async () => {
+    const lista = leerLista()
+    if (lista.errores.length) return showToast(`Corrige la lista antes: ${lista.errores[0]}`, 'error')
     const id = $('colNuevoId').value.trim().toLowerCase()
     const name = $('colNuevoNombre').value.trim()
     if (!/^[a-z0-9][a-z0-9_-]*$/.test(id)) return showToast('El identificador va en minúsculas, sin espacios (letras, números, guion y guion bajo).', 'error')
@@ -709,11 +721,23 @@ function abrirNuevaColeccion() {
     if ($('colNuevoFecha').value) cambios.release_date = $('colNuevoFecha').value
     if ($('colNuevoCodigo').value.trim()) cambios.tcg_online_code = $('colNuevoCodigo').value.trim()
     if (cuenta !== '') { cambios.card_count_total = Number(cuenta); cambios.card_count_official = Number(cuenta) }
+    else if (lista.cartas.length) { cambios.card_count_total = lista.cartas.length; cambios.card_count_official = lista.cartas.length }
     if ($('colNuevoEra').value.trim()) cambios.serie_id = $('colNuevoEra').value.trim().toLowerCase()
     const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_sets', p_id: id, p_market: mercado, p_cambios: cambios, p_crear: true })
     if (error) return showToast(esFaltaDeRpc(error) ? 'Falta ejecutar supabase-migration-885-catalogo-correcciones.sql: sin ella no se pueden crear colecciones a mano.' : error.message.slice(0, 140), 'error')
+    // Las cartas de la lista, una a una por la misma función que «Nueva
+    // carta». Una que falle no para las demás, y se dice cuántas.
+    let hechas = 0
+    const fallos = []
+    for (const c of lista.cartas) {
+      const { error: e } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_cards', p_id: idDeCartaAMano(id, c.local_id), p_market: mercado, p_cambios: { ...c, set_id: id }, p_crear: true })
+      if (e) fallos.push(`${c.local_id}: ${e.message.slice(0, 60)}`)
+      else hechas++
+    }
     avisarALaWeb()
-    await cargar(); pintarColecciones(); showToast('Colección creada', 'success')
+    await cargar(); pintarColecciones()
+    if (fallos.length) showToast(`Colección creada con ${hechas} de ${lista.cartas.length} cartas. No se han podido crear: ${fallos.slice(0, 3).join(' · ')}`, 'error')
+    else showToast(lista.cartas.length ? `Colección creada con ${hechas} ${hechas === 1 ? 'carta' : 'cartas'}` : 'Colección creada', 'success')
     abrirEditor(id)
   })
 }

@@ -118,6 +118,72 @@ export const DECKS = [
       { n: '018', ja: 'オダマキ博士', en: 'Professor Birch', de: 'ex1-89' },
       { n: '019', ja: 'ラムのみ', en: 'Lum Berry', de: 'ex1-84' },
     ],
+  },  // ── Las de Sergio.M en el foro (957) ──
+  // スターターセットVSTAR ルカリオ (sLL): la lista es la de TCGdex
+  // (data-asia/S/SLL, nombres en japonés y chino) con el inglés de Bulbapedia;
+  // la Energía Lucha básica no lleva número. Sin `de`: no hay una ficha
+  // occidental comprobada de la que copiar, y se pone a mano.
+  {
+    clave: 'sll_ja',
+    set: {
+      id: 'sll_ja', name: 'スターターセットVSTAR ルカリオ', name_en: 'Starter Set VSTAR Lucario',
+      release_date: '2022-02-25', card_count_official: 21, card_count_total: 21,
+      serieDe: { name_en: 'Star Birth', release_date: '2022-01-14' },
+    },
+    cartas: [
+      { n: '001', ja: 'ストライク', en: 'Scyther' },
+      { n: '002', ja: 'アサナン', en: 'Meditite' },
+      { n: '003', ja: 'チャーレム', en: 'Medicham' },
+      { n: '004', ja: 'ルカリオV', en: 'Lucario V', holo: true },
+      { n: '005', ja: 'ルカリオVSTAR', en: 'Lucario VSTAR', holo: true },
+      { n: '006', ja: 'ランドロス', en: 'Landorus' },
+      { n: '007', ja: 'イワンコ', en: 'Rockruff' },
+      { n: '008', ja: 'タイレーツ', en: 'Falinks' },
+      { n: '009', ja: 'バサギリ', en: 'Kleavor' },
+      { n: '010', ja: 'クロバットV', en: 'Crobat V', holo: true },
+      { n: '011', ja: 'ガッツのつるはし', en: 'Gutsy Pickaxe' },
+      { n: '012', ja: 'クイックボール', en: 'Quick Ball' },
+      { n: '013', ja: 'ハイパーボール', en: 'Ultra Ball' },
+      { n: '014', ja: 'ポケモンいれかえ', en: 'Switch' },
+      { n: '015', ja: 'こだわりベルト', en: 'Choice Belt' },
+      { n: '016', ja: 'サナ', en: 'Shauna' },
+      { n: '017', ja: 'ジュン', en: 'Barry' },
+      { n: '018', ja: 'シロナの覇気', en: "Cynthia's Ambition" },
+      { n: '019', ja: '博士の研究（ナナカマド博士）', en: "Professor's Research (Professor Rowan)" },
+      { n: '020', ja: 'ボスの指令（アカギ）', en: "Boss's Orders (Cyrus)" },
+      { n: '021', ja: 'ダブルターボエネルギー', en: 'Double Turbo Energy' },
+    ],
+  },
+  // バトル強化デッキ ゼクロムEX (BKZ): la lista de Bulbapedia (18 con número;
+  // las Energías básicas no llevan). La fecha no la pongo: Bulbapedia y
+  // PokeInvesting no dicen la misma, y se pone desde /admin.
+  {
+    clave: 'bkz_ja',
+    set: {
+      id: 'bkz_ja', name: 'バトル強化デッキ ゼクロムEX', name_en: 'Zekrom-EX Battle Strength Deck',
+      release_date: null, card_count_official: 18, card_count_total: 18,
+      serieDe: { name_en: 'Dark Rush', release_date: '2011-12-16' },
+    },
+    cartas: [
+      { n: '001', ja: 'ストライク', en: 'Scyther' },
+      { n: '002', ja: 'リーフィア', en: 'Leafeon' },
+      { n: '003', ja: 'イシズマイ', en: 'Dwebble' },
+      { n: '004', ja: 'イワパレス', en: 'Crustle' },
+      { n: '005', ja: 'コリンク', en: 'Shinx' },
+      { n: '006', ja: 'ルクシオ', en: 'Luxio' },
+      { n: '007', ja: 'エモンガ', en: 'Emolga' },
+      { n: '008', ja: 'シビシラス', en: 'Tynamo' },
+      { n: '009', ja: 'ゼクロムEX', en: 'Zekrom-EX', holo: true },
+      { n: '010', ja: 'イーブイ', en: 'Eevee' },
+      { n: '011', ja: 'ハイパーボール', en: 'Ultra Ball' },
+      { n: '012', ja: 'ポケモンいれかえ', en: 'Switch' },
+      { n: '013', ja: 'ポケモンキャッチャー', en: 'Pokémon Catcher' },
+      { n: '014', ja: 'ランダムレシーバー', en: 'Random Receiver' },
+      { n: '015', ja: 'アララギ博士', en: 'Professor Juniper' },
+      { n: '016', ja: 'N', en: 'N' },
+      { n: '017', ja: 'チェレン', en: 'Cheren' },
+      { n: '018', ja: 'ダブル無色エネルギー', en: 'Double Colorless Energy' },
+    ],
   },
 ]
 

@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (192) — PINGU-Claude (957 — McDonald's 2019 en francés, sellos del Scyther, barajas de Lucario VSTAR y Zekrom-EX, y la lista pegada al crear) · MIGRACIÓN NUEVA
+
+**Hecho** (la lista de Sergio.M, lo que tiene fuente):
+- `supabase-migration-957-mcdonalds-fr-y-sellos.sql` (después de la 956):
+  · «McDonald's Collection 2019 (francés)», `2019sm-fr`: 40 cartas y la 33b,
+    de tcgdex/cards-database (número, PS, tipo, Pokédex, ilustrador); el
+    inglés sale del número de Pokédex («Alolan X», en español «X de Alola»).
+    Sin foto (no se inventa una dirección), a mano, en la era del McDonald's
+    inglés, y solo en francés (956);
+  · el Scyther de Dark Explorers (`bw5-4`) con sus cuatro sellos de liga, del
+    1.er al 4.º puesto (versiones a mano de la 934, clase sello);
+  · coreano (y chino) para las dos barajas japonesas de abajo.
+- `decks-jp-a-mano`: Starter Set VSTAR Lucario (`sll_ja`, 21 cartas: la lista
+  de TCGdex `data-asia/S/SLL` con el inglés de Bulbapedia, 25-2-2022) y
+  Zekrom-EX Battle Strength Deck (`bkz_ja`, 18, de Bulbapedia; SIN fecha:
+  Bulbapedia y PokeInvesting no dicen la misma). Solo nombres: ninguna ficha
+  occidental comprobada de la que copiar. Las crea su pasada (cada 10 min).
+- /admin → Colecciones → Nueva colección: un cuadro para PEGAR la lista de
+  cartas («número · nombre · inglés», o con «;», «|», tabulador o un espacio
+  tras el número), que avisa de una línea mala o un número repetido antes de
+  crear nada y luego crea cada carta por `catalogo_corregir` como «Nueva
+  carta» (`admin/js/lista-cartas-puro.js`).
+
+**Ficheros**: `supabase-migration-957-mcdonalds-fr-y-sellos.sql`,
+`netlify/functions/decks-jp-a-mano.mjs`, `admin/js/colecciones.js`,
+`admin/js/lista-cartas-puro.js`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-957.mjs` + `sql-tanda-957.sql` (contra PostgreSQL
+encima de 885, 934 y 956, dos veces; lo puro de la lista y de las barajas; y
+/admin creando con la lista). Pasadas 884, 885, 524 e imports. La 391 sigue
+roja como antes: su barrido no ve que `filasDelDeck` sí pone `local_id`.
+
+**Pendiente**: que PINGU ejecute la 957 (después de la 956) y ponga la fecha
+de la de Zekrom-EX. Y la 958: Sun & Moon Family (smL), la Special Deck Set ex
+(svG), las de TCG Classic (CLF/CLV) y las WCD 2008 no tienen una lista entera
+a mano en las fuentes que se alcanzan desde aquí.
+
 ## 2026-10-22 (191) — PINGU-Claude (956 — los idiomas de un set y las versiones de cada idioma, a mano; el neerlandés) · MIGRACIÓN NUEVA
 
 **Hecho** (la lista de Sergio.M en el foro; PINGU: «adelante con lo
