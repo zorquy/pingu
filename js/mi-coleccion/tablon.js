@@ -75,7 +75,7 @@ export function cruceHtml(p, { cartas, valor, euros }) {
   const suma = (filas) => filas.reduce((a, f) => a + (valor(f) || 0), 0)
   const recibes = suma(p.teDa)
   const das = suma(p.leDas)
-  const lado = (titulo, filas, total, vacio) => `<div class="mc-cruce-lado">
+  const lado = (titulo, filas, total, vacio, modo) => `<div class="mc-cruce-lado" data-cruce-lado="${modo}">
       <p class="mc-cruce-titulo">${titulo}</p>
       ${filas.length ? tiraHtml(filas, cartas) : `<p class="subtext">${vacio}</p>`}
       <p class="mc-cruce-total">${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
@@ -91,9 +91,9 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
     </header>
     <div class="mc-cruce-lados">
-      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista')}
+      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista', 'da')}
       <span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>
-      ${lado('Le das', p.leDas, das, 'Nada de su lista')}
+      ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
     </div>
     <div class="mc-cruce-acciones">
       <button type="button" class="btn-primary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir a ${escapeHtml(nombre)}</button>

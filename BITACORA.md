@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (174) — PINGU-Claude (940 — Deseos y cambios: recargar ya no rompe nada, la ficha va a un lado y el cruce es de la persona)
+
+**Hecho** (tanda 1 de la propuesta «Cambios en PokeDoc», PINGU: «adelante
+con lo recomendado»):
+- **El fallo de recargar o volver atrás** (cartas sin foto y el pop-up en
+  blanco): el Mercado, La quiero y Cruces ponían sus cartas y precios en
+  `cartas` y `guardados`, y `cargarColeccion` los SUSTITUYE; al recargar la
+  colección llegaba después y se las llevaba. Ahora van también a
+  `cartasDeFuera` / `preciosDeFuera` (deseos.js: `ponerCarta`,
+  `ponerPrecio`) y `cargarColeccion` las vuelve a poner. Reproducido con la
+  colección retrasada 1,5 s: sin el arreglo, «swsh7-215» en vez del nombre,
+  sin foto y la ficha «Carta» vacía.
+- **La ficha, encima y a un lado** desde 900 px (antes, a un lado solo con
+  1.400 px y ratón, y quitándole 456 px a la rejilla): no es modal, no mueve
+  ni una baldosa, marca la abierta, cambia al tocar otra, ← → pasan de carta,
+  Esc o tocar fuera la cierran. En el móvil, la hoja de siempre.
+- **La misma ficha en La quiero, Las que doy y Cruces**, sin salir de la
+  página (antes te llevaba a /carta): `abrirFichaDe(ctx, id, { modo, desde })`.
+  En Las que doy (y en la mitad «Le das» de Cruces) el modo es `busca`: quién
+  la busca, con lo que das tú y «Escribir» con el borrador de «la doy».
+- **El cruce es de la persona**: la baldosa del Mercado ya no dice «Cruce»
+  (solo «La buscas»); el avatar de quien tiene cruce contigo va primero y
+  con aro verde, y en la ficha «Cruce contigo» con lo que os cruzáis en los
+  dos sentidos (`tienenLoQueBusco` para el modo `busca`).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/deseos.js`, `js/mi-coleccion/tablon.js`,
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-940-pantalla.mjs` (con mutación del arreglo:
+canta igual que la captura de PINGU), la 770 y la 798 al día. Verdes las
+22 que tocan Deseos y cambios y 299/305/311/312/313. Roja la 895 pero de
+antes: `mi-coleccion.js` ya pasaba de 130 KB gzip en la 939 (134.096).
+
+**Pendiente**:
+- Tanda 2 (el perfil en dos filas), ahora. EN CURSO: `js/perfil-cambios.js`,
+  `css/perfil-cambios.css`, `js/cruce-persona.js`.
+- Tandas 3 y 4 (proponer y cerrar), con migración.
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (173) — PINGU-Claude (939 — los retos compartidos no se dejan adivinar, y «¿Qué carta es?» busca por expansión)
 
 **Hecho** (PINGU: «cuando compartes qué Pokémon es, se ve demasiado…

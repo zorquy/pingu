@@ -9787,7 +9787,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   position: fixed;
   inset: 72px 16px 16px auto;
   z-index: 150;
-  width: 440px;
+  width: min(420px, calc(100vw - 32px));
   max-height: none;
   margin: 0;
   box-shadow: var(--shadow-lg);
@@ -9994,11 +9994,27 @@ input.mc-alb-titulo:not([readonly]):focus {
   margin: 0 0 var(--e-sm);
 }
 
-/* Con la ficha al lado, la rejilla le deja su sitio. */
-#mcPanelMercado.con-ficha-al-lado,
-#mcPanelQuiero.con-ficha-al-lado,
-#mcPanelCambios.con-ficha-al-lado {
-  padding-right: 456px;
+/* La ficha va ENCIMA de la rejilla (939): la rejilla no se toca, y la
+   carta que se ha abierto lleva su marco. Y el aro del cruce, en el avatar
+   de la persona (el cruce es con ella, no con la carta). */
+.mc-merc.abierta .mc-merc-abrir,
+.mc-cruce-carta.abierta {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.mc-gente-av.cruce,
+.mini-avatar.cruce {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.mc-merf-doy {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
 }
 
 .mc-merf .mc-prodf-arriba {

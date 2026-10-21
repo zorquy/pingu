@@ -31,6 +31,16 @@ let ctx = null
 export function montar(c) {
   ctx = c
 }
+// Una carta o un precio traído de fuera de tu colección va también a su
+// sitio aparte (939), que la carga de la colección no borra.
+function ponerCarta(k, v) {
+  ctx.cartas.set(k, v)
+  ctx.cartasDeFuera?.set(k, v)
+}
+function ponerPrecio(k, v) {
+  ctx.guardados.set(k, v)
+  ctx.preciosDeFuera?.set(k, v)
+}
 
 let tablon = null
 let cambiosCargados = false
@@ -91,7 +101,7 @@ async function pintarCambios() {
   const faltan = [...tiene, ...busca, ...ctx.deseos].map((f) => f.card_id).filter((id) => !ctx.cartas.has(id))
   if (faltan.length) await completarCartasDeFuera(faltan, ctx.mercado)
   const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !ctx.guardados.has(id))
-  if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) ctx.guardados.set(k, v)
+  if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) ponerPrecio(k, v)
   const seguidos = await pedirSeguidos().catch(() => null)
   const vacio = !doy.length && !ctx.deseos.length
   const gente = tablon.cruzarPorPersona(tiene, busca)
@@ -194,7 +204,7 @@ async function buscarParaDesear() {
       }).join('')
     : '<p class="subtext">Ninguna carta así en este catálogo. Prueba con menos letras, o en el otro catálogo.</p>'
   // Y al mapa, que es de donde lo saca la lista al repintarse.
-  for (const c of lista) if (!ctx.cartas.has(c.id)) ctx.cartas.set(c.id, { ...c, market: c.market || market })
+  for (const c of lista) if (!ctx.cartas.has(c.id)) ponerCarta(c.id, { ...c, market: c.market || market })
 }
 function pintarCatalogoDeDeseo() {
   const market = deseoMercado || ctx.mercado
@@ -278,13 +288,13 @@ export async function completarCartasDeFuera(ids, market) {
     sinCarta.length ? datos.cartasPorIds(sinCarta, market).catch(() => new Map()) : new Map(),
     sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
   ])
-  for (const [k, v] of nuevas) ctx.cartas.set(k, { ...v, market: v.market || market })
-  for (const [k, v] of precios) ctx.guardados.set(k, v)
+  for (const [k, v] of nuevas) ponerCarta(k, { ...v, market: v.market || market })
+  for (const [k, v] of precios) ponerPrecio(k, v)
   // Los cruces y las listas no dicen de qué catálogo es cada carta (777):
   // la que no está en el elegido se busca en el otro, o sale sin foto.
   const otro = market === 'JP' ? 'WEST' : 'JP'
   const siguen = sinCarta.filter((id) => !ctx.cartas.has(id))
-  if (siguen.length) for (const [k, v] of await datos.cartasPorIds(siguen, otro).catch(() => new Map())) ctx.cartas.set(k, { ...v, market: v.market || otro })
+  if (siguen.length) for (const [k, v] of await datos.cartasPorIds(siguen, otro).catch(() => new Map())) ponerCarta(k, { ...v, market: v.market || otro })
 }
 
 // Las dos direcciones del cambio, pedidas UNA vez y compartidas. Se olvidan
@@ -511,12 +521,12 @@ async function completarQuiero() {
     sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
     pedirAvisosDeQuiero(ids).catch(() => null),
   ])
-  for (const [k, v] of nuevas) ctx.cartas.set(k, v)
+  for (const [k, v] of nuevas) ponerCarta(k, v)
   // Lo que no está en el catálogo que miras puede ser del otro (768): la
   // lista mezcla occidentales y japonesas.
   const deOtro = sinCarta.filter((id) => !ctx.cartas.has(id))
-  if (deOtro.length) for (const [k, v] of await datos.cartasPorIds(deOtro, ctx.mercado === 'JP' ? 'WEST' : 'JP').catch(() => new Map())) ctx.cartas.set(k, v)
-  for (const [k, v] of precios) ctx.guardados.set(k, v)
+  if (deOtro.length) for (const [k, v] of await datos.cartasPorIds(deOtro, ctx.mercado === 'JP' ? 'WEST' : 'JP').catch(() => new Map())) ponerCarta(k, v)
+  for (const [k, v] of precios) ponerPrecio(k, v)
   avisosDeQuiero = avisos
 }
 
@@ -705,7 +715,7 @@ async function pintarDoy() {
       sinPrecio.length ? datos.preciosGuardados(sinPrecio).catch(() => new Map()) : new Map(),
       pedirQuienBusca().catch(() => null),
     ])
-    for (const [k, v] of precios) ctx.guardados.set(k, v)
+    for (const [k, v] of precios) ponerPrecio(k, v)
     // `null` = no se sabe (sin la migración): la baldosa no dice «nadie».
     if (quien) buscan = dantesPorCarta(quien)
   } catch {

@@ -8,8 +8,13 @@
 // Una baldosa por CARTA, no por persona: se viene a mirar cartas. Cada una
 // dice quién la da (avatares), en qué idiomas y por cuánto sale; las que
 // buscas llevan el corazón lleno y «La buscas», y si alguien que la da busca
-// algo tuyo, «Cruce». Tocarla abre su ficha con la lista de personas, al
-// lado en el PC (como la de un producto, la 769) y desde abajo en el móvil.
+// algo tuyo, su avatar lleva un aro (939: el cruce es con una PERSONA, no
+// con la carta; antes la baldosa decía «Cruce» de una carta que no buscas).
+// Tocarla abre su ficha con la lista de personas: en el PC, ENCIMA de la
+// rejilla por la derecha y sin moverla (939: al lado le quitaba sitio y las
+// cartas cambiaban de columna); en el móvil, desde abajo. La misma ficha
+// abren La quiero, Las que doy y Cruces (`abrirFichaDe`), con `modo`:
+// 'da' (quién la da) o 'busca' (quién la busca, para lo que das tú).
 //
 // Entra por un `import()` al abrir la pestaña, y su CSS va en
 // css/mi-coleccion.css (el barrido de la 299 sigue los dinámicos). Lo que es
@@ -32,11 +37,9 @@ import { senasDe, borradorDe } from './tablon.js'
 
 const $ = (id) => document.getElementById(id)
 const POR_PAGINA = 60
-// Al lado, con ratón y sitio: la misma regla que la ficha de un producto.
-export const CONSULTA_AL_LADO = '(min-width: 1400px) and (pointer: fine)'
+// A un lado, encima de la rejilla, en cuanto no es un móvil (939).
+export const CONSULTA_AL_LADO = '(min-width: 900px)'
 
-// Las vistas desde las que se abre la ficha: al lado, le dejan su sitio.
-const PANELES = ['mcPanelMercado', 'mcPanelQuiero', 'mcPanelCambios']
 let ctx = null
 const estado = { market: 'WEST', idioma: '', orden: 'nuevo', soloMias: false, texto: '' }
 let filas = []
@@ -44,22 +47,32 @@ let total = 0
 let turno = 0
 let enganchado = false
 let abierta = null // la carta de la ficha abierta
+let modoAbierto = 'da'
+// Las cartas de la vista desde la que se abrió, en orden: ← y → pasan de una
+// a otra sin cerrar la ficha.
+let vecinas = []
 // Quién busca algo que tú das: user_id → cuántas de tus cartas. `null` = no
 // se sabe (sin sesión o sin la migración): entonces no se marca «Cruce», en
 // vez de decir que no lo hay.
 let buscanLoMio = null
+// Y quién tiene algo de lo que buscas tú (para el cruce de la ficha de una
+// carta que das): user_id → cuántas.
+let tienenLoQueBusco = null
 
 const nombreDe = (c) => nombreDeCarta(c) || ''
 const nombreDePersona = (p) => p?.display_name || p?.username || 'Alguien'
 export const textoDeGente = (n) => (n === 1 ? 'La da 1' : `La dan ${n}`)
 
-export function avataresHtml(gente = [], max = 4) {
-  return `<span class="mc-gente" aria-hidden="true">${gente.slice(0, max).map((p) => `<span class="mc-gente-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombreDePersona(p)))}</span>`).join('')}</span>`
+// `cruces`: los user_id con los que tienes cruce; esos van primero y con aro.
+export function avataresHtml(gente = [], max = 4, cruces = null) {
+  const conCruce = (p) => Boolean(cruces?.has(p.user_id))
+  const orden = [...gente].sort((a, b) => Number(conCruce(b)) - Number(conCruce(a)))
+  return `<span class="mc-gente" aria-hidden="true">${orden.slice(0, max).map((p) => `<span class="mc-gente-av${conCruce(p) ? ' cruce' : ''}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombreDePersona(p)))}</span>`).join('')}</span>`
 }
 
-// Lo que dice la baldosa debajo del precio. Pura, para la prueba.
-export function chapaDeBaldosa({ busco, cruce }) {
-  if (cruce) return { clase: 'cruce', texto: 'Cruce' }
+// Lo que dice la baldosa de la CARTA. Pura, para la prueba. El cruce no va
+// aquí (939): es de la persona, y va en su avatar y en la ficha.
+export function chapaDeBaldosa({ busco }) {
   if (busco) return { clase: 'busca', texto: 'La buscas' }
   return null
 }
@@ -74,10 +87,9 @@ function baldosaHtml(f) {
   const nombre = nombreDe(c) || f.card_id
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const busco = deseosDe(f.card_id).length > 0
-  const cruce = Boolean(buscanLoMio && (f.dan || []).some((u) => buscanLoMio.has(u)))
-  const chapa = chapaDeBaldosa({ busco, cruce })
+  const chapa = chapaDeBaldosa({ busco })
   const precio = ctx.precioDeCarta(f.card_id)
-  return `<article class="mc-merc${busco ? ' buscada' : ''}" data-merc="${escapeHtml(f.card_id)}">
+  return `<article class="mc-merc${busco ? ' buscada' : ''}${abierta === f.card_id ? ' abierta' : ''}" data-merc="${escapeHtml(f.card_id)}">
     <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
       ${chapa ? `<span class="mc-merc-chapa ${chapa.clase}">${chapa.texto}</span>` : ''}
@@ -86,7 +98,7 @@ function baldosaHtml(f) {
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
     <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
     <span class="mc-merc-fila"><b class="mc-merc-precio">${precio == null ? '' : escapeHtml(euros(precio))}</b><span class="mc-merc-idiomas">${(f.idiomas || []).slice(0, 4).map((i) => banderaHtml(i)).join('')}</span></span>
-    <span class="mc-merc-fila">${avataresHtml(f.gente || [])}<span class="mc-merc-dan">${textoDeGente(Number(f.personas) || 0)}</span></span>
+    <span class="mc-merc-fila">${avataresHtml(f.gente || [], 4, buscanLoMio)}<span class="mc-merc-dan">${textoDeGente(Number(f.personas) || 0)}</span></span>
   </article>`
 }
 
@@ -166,19 +178,24 @@ function pintarMandos() {
 
 // ── La ficha ──
 
-function personaHtml(p, carta) {
+function personaHtml(p, carta, modo = 'da') {
   const nombre = nombreDePersona(p)
-  const suyas = buscanLoMio?.get(p.user_id) || 0
-  return `<li class="mc-merf-persona">
-    <a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
+  // El cruce, al revés según lo que se mira: quien DA esta carta tiene cruce
+  // si además busca algo tuyo; quien la BUSCA, si además da algo que buscas.
+  const suyas = (modo === 'busca' ? tienenLoQueBusco : buscanLoMio)?.get(p.user_id) || 0
+  const senas = modo === 'busca'
+    ? `Busca ${p.idioma ? `en ${idiomaDe(p.idioma).nombre.toLowerCase()}` : 'en cualquier idioma'}`
+    : `${senasDe(p)}${Number(p.cambio) > 1 ? ` · da ${Number(p.cambio)}` : ''}`
+  return `<li class="mc-merf-persona${suyas ? ' con-cruce' : ''}">
+    <a class="mini-avatar${suyas ? ' cruce' : ''}" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
     <div class="mc-merf-quien">
-      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce</span>' : ''}</p>
-      <p class="subtext">${banderaHtml(p.idioma || 'es')} ${escapeHtml(senasDe(p))}${Number(p.cambio) > 1 ? ` · da ${Number(p.cambio)}` : ''}</p>
-      ${suyas ? `<p class="mc-merf-busca">Busca ${suyas === 1 ? '1 de las tuyas' : `${suyas} de las tuyas`}</p>` : ''}
+      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce contigo</span>' : ''}</p>
+      <p class="subtext">${modo === 'busca' ? '' : `${banderaHtml(p.idioma || 'es')} `}${escapeHtml(senas)}</p>
+      ${suyas ? `<p class="mc-merf-busca">${modo === 'busca' ? `Da ${suyas === 1 ? '1 de las que buscas' : `${suyas} de las que buscas`}` : `Busca ${suyas === 1 ? '1 de las tuyas' : `${suyas} de las tuyas`}`}</p>` : ''}
       <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
     </div>
     <div class="mc-merf-acciones">
-      <button type="button" class="btn-primary" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}">${icons.mail(15)}<span>Escribir</span></button>
+      <button type="button" class="btn-primary" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.mail(15)}<span>Escribir</span></button>
       <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
     </div>
   </li>`
@@ -189,6 +206,14 @@ function botonQuieroHtml(c) {
   if (!mios.length) return `<button type="button" class="btn-primary mc-merf-quiero" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="false">${ICONOS_COLECCION.corazon(16)}<span>La quiero</span></button>`
   const idiomas = mios.map((d) => (d.idioma ? idiomaDe(d.idioma).nombre.toLowerCase() : 'cualquier idioma')).join(', ')
   return `<button type="button" class="btn-secondary mc-merf-quiero puesto" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="true">${ICONOS_COLECCION.corazon(16)}<span>La quieres · ${escapeHtml(idiomas)}</span></button>`
+}
+
+// Lo que das de ESA carta, en la ficha en modo 'busca'.
+function doyHtml(c) {
+  const mias = (ctx.loQueDoy?.() || []).filter((l) => l.card_id === c.id)
+  if (!mias.length) return ''
+  const das = mias.reduce((n, l) => n + (Number(l.cambio) || 0), 0)
+  return `<p class="mc-merf-doy">${icons.refreshCw(15)}<span>Das ${das === 1 ? '1 copia' : `${das} copias`} · ${escapeHtml(mias.map((l) => senasDe(l)).join(' / '))}</span></p>`
 }
 
 let gentePorCarta = new Map()
@@ -210,47 +235,94 @@ async function pintarFicha(cardId) {
         <a class="link-btn" href="${escapeHtml(rutaDeCarta(c))}">Ver la carta</a>
       </div>
     </div>
-    <div id="mcMercadoFichaQuiero">${botonQuieroHtml(c)}</div>
+    ${modoAbierto === 'busca' ? doyHtml(c) : `<div id="mcMercadoFichaQuiero">${botonQuieroHtml(c)}</div>`}
     ${gente === undefined
       ? '<div class="skeleton" style="height:120px"></div>'
       : gente === null
-        ? '<p class="subtext">No se ha podido preguntar quién la da.</p>'
-        : `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La da 1 persona' : `La dan ${gente.length} personas`}</h3>
-           <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c)).join('')}</ul>`}`
+        ? `<p class="subtext">No se ha podido preguntar quién la ${modoAbierto === 'busca' ? 'busca' : 'da'}.</p>`
+        : modoAbierto === 'busca'
+          ? gente.length
+            ? `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La busca 1 persona' : `La buscan ${gente.length} personas`}</h3>
+               <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c, 'busca')).join('')}</ul>`
+            : '<p class="subtext">Nadie la busca todavía. En cuanto alguien la apunte, saldrá aquí.</p>'
+          : gente.length
+            ? `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La da 1 persona' : `La dan ${gente.length} personas`}</h3>
+               <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c)).join('')}</ul>`
+            : '<p class="subtext">Ahora mismo nadie la da. Con el corazón te avisamos cuando alguien la ponga.</p>'}`
   import('../cambios-hechos.js').then((m) => m.ponerConfianza(cuerpo)).catch(() => {})
 }
 
-async function abrirFicha(cardId) {
+// La baldosa de la carta abierta, marcada en la vista de la que sale.
+function marcarAbierta() {
+  for (const el of document.querySelectorAll('.abierta')) if (el.matches(BALDOSAS)) el.classList.remove('abierta')
+  if (!abierta) return
+  for (const el of document.querySelectorAll('.mc-merc, .mc-cruce-carta')) if (idDeBaldosa(el) === abierta) el.classList.add('abierta')
+}
+const BALDOSAS = '.mc-merc, .mc-cruce-carta'
+const idDeBaldosa = (el) => el.dataset.merc || el.dataset.deseoCarta || el.dataset.carta || el.querySelector('[data-carta]')?.dataset.carta || null
+
+async function abrirFicha(cardId, { modo = 'da', desde = null } = {}) {
   const d = $('mcMercadoFicha')
   if (!d) return
   abierta = cardId
+  modoAbierto = modo
+  if (desde) vecinas = [...new Set([...desde.querySelectorAll(BALDOSAS)].map(idDeBaldosa).filter(Boolean))]
   gentePorCarta.delete(cardId)
   void pintarFicha(cardId)
+  marcarAbierta()
+  // Encima y a un lado (939): no es modal y la rejilla no se toca, así que
+  // nada cambia de sitio. En el móvil, la hoja de siempre.
   const alLado = window.matchMedia(CONSULTA_AL_LADO).matches
   d.classList.toggle('mc-prodf-al-lado', alLado)
-  for (const id of PANELES) $(id)?.classList.toggle('con-ficha-al-lado', alLado)
   if (!d.open) {
     if (alLado) d.show()
     else d.showModal()
   }
+  // Arriba del todo: al abrirse, el navegador baja hasta lo primero que se
+  // puede pulsar y la foto se quedaba cortada bajo la cabecera.
+  d.scrollTop = 0
   let gente
   try {
-    gente = await quienDaEsta(cardId, 50)
+    gente = modo === 'busca' ? await quienBuscaEsta(cardId) : await quienDaEsta(cardId, 50)
   } catch {
     gente = null
   }
   // Ordenadas con los cruces primero: es con quien se cierra antes.
-  if (gente) gente = [...gente].sort((a, b) => (buscanLoMio?.get(b.user_id) || 0) - (buscanLoMio?.get(a.user_id) || 0))
+  const cruces = modo === 'busca' ? tienenLoQueBusco : buscanLoMio
+  if (gente) gente = [...gente].sort((a, b) => (cruces?.get(b.user_id) || 0) - (cruces?.get(a.user_id) || 0))
   gentePorCarta.set(cardId, gente)
   if (abierta === cardId) void pintarFicha(cardId)
 }
 
-function escribir(userId, cardId) {
+// Quién busca una carta tuya: de lo que ya se pidió para los cruces (una
+// fila por persona e idioma), sin otra consulta.
+async function quienBuscaEsta(cardId) {
+  const filas = await ctx.quienBusca()
+  const vistas = new Set()
+  return (filas || []).filter((f) => f.card_id === cardId && !vistas.has(f.user_id) && vistas.add(f.user_id))
+}
+
+function cerrarFicha() {
+  const d = $('mcMercadoFicha')
+  if (d?.open) d.close()
+}
+
+// ← y → con la ficha abierta: la carta de al lado en la vista de origen.
+function pasarDeCarta(paso) {
+  const i = vecinas.indexOf(abierta)
+  if (i < 0) return
+  const otra = vecinas[i + paso]
+  if (otra) void abrirFicha(otra, { modo: modoAbierto })
+}
+
+function escribir(userId, cardId, modo = 'da') {
   if (!ctx.sesion) return void (location.href = ctx.urlDeRegistro())
   const p = (gentePorCarta.get(cardId) || []).find((x) => x.user_id === userId)
   if (!p) return
-  const persona = { reciproco: Boolean(buscanLoMio?.get(userId)) }
-  const texto = borradorDe(persona, [{ ...p, carta: ctx.cartas.get(cardId) }], 'tiene')
+  const persona = { reciproco: Boolean((modo === 'busca' ? tienenLoQueBusco : buscanLoMio)?.get(userId)) }
+  // En 'busca' la copia que se nombra es la TUYA (la que das), no su deseo.
+  const mia = modo === 'busca' ? (ctx.loQueDoy?.() || []).find((l) => l.card_id === cardId) : null
+  const texto = borradorDe(persona, [{ ...(mia || p), carta: ctx.cartas.get(cardId) }], modo === 'busca' ? 'busca' : 'tiene')
   location.href = `/mensajes.html?with=${encodeURIComponent(userId)}&texto=${encodeURIComponent(texto)}`
 }
 
@@ -271,6 +343,7 @@ export function repintar() {
   if (!ctx) return
   if (filas.length) pintarRejilla()
   if (abierta && $('mcMercadoFicha')?.open) void pintarFicha(abierta)
+  marcarAbierta()
   void pintarAviso()
 }
 
@@ -312,7 +385,8 @@ function enganchar() {
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
     const f = e.target.closest('[data-merc-ficha]')
     // La carta crece desde su hueco hasta la ficha (798, MV12), si no está ya al lado.
-    if (f) return void (window.matchMedia(CONSULTA_AL_LADO).matches || $('mcMercadoFicha')?.open ? abrirFicha(f.dataset.mercFicha) : crecerDesde(f.querySelector('img'), () => abrirFicha(f.dataset.mercFicha), { destino: '#mcMercadoFicha .mc-prodf-foto img' }))
+    const desde = { modo: 'da', desde: $('mcMercadoRejilla') }
+    if (f) return void (window.matchMedia(CONSULTA_AL_LADO).matches || $('mcMercadoFicha')?.open ? abrirFicha(f.dataset.mercFicha, desde) : crecerDesde(f.querySelector('img'), () => abrirFicha(f.dataset.mercFicha, desde), { destino: '#mcMercadoFicha .mc-prodf-foto img' }))
   })
   const d = $('mcMercadoFicha')
   d?.addEventListener('click', (e) => {
@@ -320,35 +394,59 @@ function enganchar() {
     const q = e.target.closest('[data-merc-quiero]')
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
     const w = e.target.closest('[data-merf-escribir]')
-    if (w) return escribir(w.dataset.merfEscribir, w.dataset.carta)
+    if (w) return escribir(w.dataset.merfEscribir, w.dataset.carta, w.dataset.modo)
   })
   d?.addEventListener('close', () => {
     abierta = null
-    for (const id of PANELES) $(id)?.classList.remove('con-ficha-al-lado')
+    marcarAbierta()
+  })
+  // Al lado no es modal: Esc y tocar fuera los pone la página. Tocar otra
+  // carta no cuenta como «fuera» (cambia la ficha), ni lo que abre otra
+  // hoja encima (el aviso de precio, el idioma del corazón).
+  document.addEventListener('keydown', (e) => {
+    if (!d?.open || !d.classList.contains('mc-prodf-al-lado')) return
+    if (e.target.closest?.('input, textarea, select, [contenteditable]')) return
+    if (e.key === 'Escape') { e.preventDefault(); cerrarFicha() }
+    if (e.key === 'ArrowRight') { e.preventDefault(); pasarDeCarta(1) }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); pasarDeCarta(-1) }
+  })
+  document.addEventListener('click', (e) => {
+    if (!d?.open || !d.classList.contains('mc-prodf-al-lado')) return
+    if (d.contains(e.target) || e.target.closest(`${BALDOSAS}, dialog[open]`)) return
+    cerrarFicha()
   })
 }
 
-// Quién busca lo tuyo, una vez por visita: es lo que marca «Cruce».
+// Por persona, cuántas cartas DISTINTAS: de las filas de quién busca lo
+// tuyo, o de quién tiene lo que buscas.
+export function cuentaPorPersona(filas) {
+  const m = new Map()
+  const vistas = new Set()
+  for (const f of filas || []) {
+    const k = `${f.user_id}|${f.card_id}`
+    if (vistas.has(k)) continue
+    vistas.add(k)
+    m.set(f.user_id, (m.get(f.user_id) || 0) + 1)
+  }
+  return m
+}
+
+// Quién busca lo tuyo y quién tiene lo que buscas, una vez por visita: es
+// lo que marca el cruce de cada persona.
 async function preparar(contexto) {
   ctx = contexto
   enganchar()
   if (!ctx.sesion || buscanLoMio !== null) return
-  const busca = await ctx.quienBusca().catch(() => null)
-  if (!busca) return
-  buscanLoMio = new Map()
-  const vistas = new Set()
-  for (const f of busca) {
-    const k = `${f.user_id}|${f.card_id}`
-    if (vistas.has(k)) continue
-    vistas.add(k)
-    buscanLoMio.set(f.user_id, (buscanLoMio.get(f.user_id) || 0) + 1)
-  }
+  const [busca, tiene] = await Promise.all([ctx.quienBusca().catch(() => null), ctx.quienTiene().catch(() => null)])
+  if (busca) buscanLoMio = cuentaPorPersona(busca)
+  if (tiene) tienenLoQueBusco = cuentaPorPersona(tiene)
 }
 
-// La ficha de una carta desde otra vista («Ver quién» de «La quiero»).
-export async function abrirFichaDe(contexto, cardId) {
+// La ficha de una carta desde otra vista: La quiero (quién la da), Las que
+// doy (quién la busca) y Cruces. `desde`: la caja con sus baldosas, para ← →.
+export async function abrirFichaDe(contexto, cardId, { modo = 'da', desde = null } = {}) {
   await preparar(contexto)
-  return abrirFicha(cardId)
+  return abrirFicha(cardId, { modo, desde })
 }
 
 // La primera vez se pide; las siguientes se repinta lo que hay (volver de

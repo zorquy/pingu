@@ -445,6 +445,13 @@ const anadir = { carta: null, variante: null, idiomas: null }
 // Las cartas de un álbum que no son tuyas (767): las pasa albumes.js al
 // tocar su «+», para que la hoja de añadir las encuentre.
 const cartasDeFuera = new Map()
+// Y las que piden Deseos y cambios (el Mercado, La quiero, Cruces), con sus
+// precios (939): se ponen también en `cartas` y `guardados`, que es donde
+// las leen, pero esos dos los SUSTITUYE `cargarColeccion`. Al recargar o al
+// volver atrás la colección llegaba después que el Mercado y se las llevaba
+// por delante: baldosas sin foto y la ficha en blanco. Aquí no las toca
+// nadie, y `cargarColeccion` las vuelve a poner.
+const preciosDeFuera = new Map()
 function cartaPorId(cardId) {
   return cartas.get(cardId) || cartasDeFuera.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecie.find((x) => x.id === cardId) || null
 }
@@ -5919,6 +5926,14 @@ const loQueDoy = () => lineasDeTodas().filter((l) => Number(l.cambio) > 0)
 const cartaDeDoy = (l) => (lineasTodo.length ? cartaDeLineaTodo(l) : null) || cartas.get(l.card_id)
 
 let mercadoMod = null
+async function abrirFichaDeCambios(cardId, opciones) {
+  try {
+    mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
+    await mercadoMod.abrirFichaDe(contexto, cardId, opciones)
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+}
 function iniciarMercadoSinCuenta() {
   dueno = null
   esMia = false
@@ -5940,6 +5955,8 @@ function precioDeDeseo(d) {
 // de abajo, que cargan el módulo la primera vez.
 const ctxDeseos = {
   pTodo,
+  cartasDeFuera,
+  preciosDeFuera,
   get cambios() {
     return cambios
   },
@@ -7454,6 +7471,20 @@ function enganchar() {
       if (b) ponerVistaDeseos(b.dataset.deseosVista)
     })
   }
+  // Una carta de La quiero, Las que doy o Cruces abre la ficha del Mercado
+  // a un lado (939), y no la página de la carta: salir de aquí para mirar
+  // quién la da y volver era justo lo que hacía perder el sitio. Con Ctrl o
+  // Cmd sigue siendo un enlace.
+  for (const id of ['mcPanelQuiero', 'mcPanelCambios']) {
+    $(id)?.addEventListener('click', (e) => {
+      const a = e.target.closest('#mcQuieroPanel .mc-merc-abrir[data-carta], #mcDoyPanel .mc-merc-abrir[data-carta], .mc-cruce-carta[data-carta]')
+      if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return
+      e.preventDefault()
+      const modo = a.closest('#mcDoyPanel') || a.closest('[data-cruce-lado="busca"]') ? 'busca' : 'da'
+      const desde = a.closest('.mc-mercado-rejilla, .mc-quiero-rejilla, .mc-cruce-tira') || a.closest('.tab-panel, section') || null
+      void abrirFichaDeCambios(a.dataset.carta, { modo, desde })
+    })
+  }
   $('mcDoyPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#mcDoyCompartir')) return void compartirLoQueDoy()
     if (e.target.closest('#mcDoyPoner')) return ponerMasParaCambio()
@@ -7801,6 +7832,7 @@ const contexto = {
   quitarDeseos: (id) => quitarDeseosDe(id),
   quienBusca: () => pedirQuienBusca(),
   quienTiene: () => pedirQuienTiene(),
+  loQueDoy: () => loQueDoy(),
   alContar: (n) => pintarCuentasDeDeseos(n),
   urlDeRegistro: () => `/auth.html?registro=1&volver=${encodeURIComponent(location.pathname + location.search)}`,
   carpetasCambiadas: () => {
@@ -8078,6 +8110,8 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
       datos.cartasPorClaves(lineasTodo).catch(() => new Map()),
       datos.preciosGuardados(idsTodo),
     ])
+    for (const [k, v] of cartasDeFuera) if (!cartas.has(k)) cartas.set(k, v)
+    for (const [k, v] of preciosDeFuera) if (!guardados.has(k)) guardados.set(k, v)
     // Las copias que son una VERSIÓN de TCGGO (862) valen lo de su fila:
     // se traen solo las de esas (pocas), no las de toda la colección.
     // Y desde la 929 también la Reverse, la Holo y la 1.ª: TCGGO las trae con

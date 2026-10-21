@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 940 — Deseos y cambios: cartas de fuera, ficha encima, cruce por persona
+
+- `cartasDeFuera` y `preciosDeFuera` (mi-coleccion.js) guardan lo que traen
+  los módulos de Deseos y cambios (`ponerCarta`/`ponerPrecio` en deseos.js);
+  `cargarColeccion` los vuelve a poner en `cartas`/`guardados` después de
+  sustituirlos.
+- Ficha del Mercado: `CONSULTA_AL_LADO = '(min-width: 900px)'`, `show()`
+  (no modal) sin tocar la rejilla; `.abierta` en la baldosa;
+  `vecinas` (las baldosas de `desde`) para ← →; Esc y clic fuera desde
+  `document`. `abrirFichaDe(ctx, id, { modo: 'da'|'busca', desde })`:
+  `busca` lista `ctx.quienBusca()` de esa carta, y el cruce de cada persona
+  sale de `tienenLoQueBusco` (`cuentaPorPersona(quienTiene)`).
+- `chapaDeBaldosa({ busco })`: solo «La buscas». `avataresHtml(gente, max,
+  cruces)` pone primero y con `.cruce` (aro `--success`) a quien tiene cruce.
+- Cruces: cada mitad lleva `data-cruce-lado="da"|"busca"`.
+
 ## Tanda 939 — Retos: silueta al compartir, carta más tapada, buscador por expansión
 
 - `pintarResultadoReto({ tapada })`: `true` (por defecto) = la foto
