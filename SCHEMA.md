@@ -41785,6 +41785,16 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 936 — La flecha entre versiones y las versiones de la Pokédex
+
+- `fijarVecindario(zona, selector, atributo, actual, variante)`: en modo
+  carta la llave es `carta|variante` (`llaveDeVecino`) cuando la casilla lleva
+  `data-variante`; `abrirVecino` la parte y llama a `abrirCarta(carta, null,
+  variante)`. Antes, con «Separar versiones», la flecha reabría la misma copia.
+- `pintarEspecie`: `pegarVersiones(lista, versionesDeCartas(ids))` antes de
+  pintar, y si mientras tanto se abrió otra especie, se sale. La Pokédex solo
+  tenía lo de TCGdex.
+
 ## Tanda 935 — Las ediciones de Wizards
 
 - `supabase-migration-935-ediciones-wizards.sql` lleva dentro (jsonb) las

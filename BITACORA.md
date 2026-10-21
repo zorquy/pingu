@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (170) — PINGU-Claude (936 — la flecha de la ficha entre versiones, y las versiones en la Pokédex)
+
+**Hecho** (PINGU, con las migraciones 934 y 935 ya ejecutadas):
+- «Clico en la 1.ª edición del Charizard, le doy a la derecha, a la
+  Shadowless, y la imagen no cambia; si cierro y la abro, sí». La flecha (y
+  el deslizar) iba por la lista de CARTAS y con «Separar versiones» la misma
+  carta sale una vez por versión: abría otra vez la misma copia. Ahora la
+  lista es carta + versión y cada paso abre la carta EN su versión, con su
+  foto.
+- «El Pikachu de Pokémon Day sale en la ficha y no en la Pokédex»: la
+  Pokédex pintaba las versiones con lo que dice TCGdex y nunca pedía las
+  filas de versiones (ni las de TCGGO, ni las de a mano, ni las ediciones
+  de Wizards). Ahora las pide al abrir la especie. En la expansión salen en
+  «Separar versiones» (probado con el doble: con y sin copias tuyas); en la
+  vista junta solo salen como insignia las que tienes, como cualquier
+  versión.
+
+**Ficheros**: `js/mi-coleccion.js` (`fijarVecindario`, `abrirVecino`,
+`pintarEspecie`), `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: la 935 con la flecha (1.ª edición → Shadowless → Unlimited y
+vuelta, cada una con su foto) y la Pokédex del Charizard con sus ediciones;
+probado que las dos saltan sin el arreglo.
+
+**Pendiente**:
+- PINGU: si en la expansión de Temporal Forces, con «Separar versiones»
+  puesto, sigue sin salir el Pokémon Day, dime el número de la carta.
+- Las rarezas (PINGU las va a mirar).
+- La suite entera, que no se pasa desde la 928.
+
 ## 2026-10-21 (169) — PINGU-Claude (935 — en la era de Wizards, cada carta una vez y sus ediciones como versiones)
 
 **Hecho** (PINGU: «el Arcanine de Gym Challenge tiene en TCGGO la First

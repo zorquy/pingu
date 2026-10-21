@@ -2111,9 +2111,15 @@ function pintarColumnaSets() {
 // no estarían en la página.
 let vecindario = null // { modo: 'linea' | 'carta', ids: [], i }
 
-function fijarVecindario(zona, selector, atributo, actual) {
-  const ids = [...($(zona)?.querySelectorAll(selector) || [])].map((x) => x.dataset[atributo]).filter(Boolean)
-  const i = ids.indexOf(actual)
+// Con «Separar versiones» la misma carta sale una vez por versión (las tres
+// ediciones del Charizard, 935): la llave es carta y versión, o la flecha
+// volvía a abrir la misma copia y la foto no cambiaba.
+const llaveDeVecino = (carta, variante) => (variante ? `${carta}|${variante}` : carta)
+function fijarVecindario(zona, selector, atributo, actual, variante = null) {
+  const ids = [...($(zona)?.querySelectorAll(selector) || [])]
+    .map((x) => (atributo === 'carta' && x.dataset.carta ? llaveDeVecino(x.dataset.carta, x.dataset.variante) : x.dataset[atributo]))
+    .filter(Boolean)
+  const i = ids.indexOf(atributo === 'carta' ? llaveDeVecino(actual, variante) : actual)
   vecindario = i < 0 ? null : { modo: atributo === 'linea' ? 'linea' : 'carta', ids, i }
 }
 
@@ -2133,7 +2139,8 @@ async function abrirVecino(paso) {
     if (l) abrirEditor(l)
     return
   }
-  abrirCarta(id)
+  const [carta, variante] = id.split('|')
+  abrirCarta(carta, null, variante || null)
 }
 
 // El mando de la ficha: dónde estás y si hay a dónde ir. Con UNA sola
@@ -5874,6 +5881,12 @@ async function pintarEspecie(dex, { push = true } = {}) {
     if (c && !porId.has(id) && pokedex.esDeLaEspecie(c, dex)) porId.set(id, c)
   }
   const lista = [...porId.values()].sort(porSetYNumero)
+  // Sus versiones de verdad (935): las de TCGGO, las de a mano (el Pikachu de
+  // Pokémon Day) y las ediciones de Wizards. Sin ellas la especie solo sabía
+  // lo que dice TCGdex, y PINGU veía la versión en la ficha y no aquí.
+  pegarVersiones(lista, await datos.versionesDeCartas(lista.map((c) => c.id)).catch(() => []))
+  // Otra especie abierta mientras llegaban: esta ya no se pinta.
+  if (especieAbierta !== dex) return
   // Se guardan para la ficha (tanda 418): al pulsar una carta de aquí
   // hay que poder pintarla, y las que no son tuyas no están en `cartas`.
   cartasDeLaEspecie = lista
@@ -7377,10 +7390,10 @@ function enganchar() {
       }
       if (abreLaPagina(e)) return
       e.preventDefault()
-      fijarVecindario(zona, selector, 'carta', enlace.dataset.carta)
+      const variante = enlace.dataset.variante || null
+      fijarVecindario(zona, selector, 'carta', enlace.dataset.carta, variante)
       // La carta crece desde su hueco (720, N6) si la ficha no está ya
       // abierta: con ella abierta no hay hueco del que salir.
-      const variante = enlace.dataset.variante || null
       if ($('mcEditor').open) abrirCarta(enlace.dataset.carta, null, variante)
       else crecerDesde(enlace.querySelector('img'), () => abrirCarta(enlace.dataset.carta, null, variante))
     })
