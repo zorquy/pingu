@@ -186,6 +186,7 @@ console.log('\n── 4. La pasada de precios ──')
 
 // ── La pantalla ──
 const SHADOW = 'https://ejemplo.supabase.co/storage/v1/object/public/guide-images/admin-1/shadowless.png'
+const PRIMERA = 'https://ejemplo.supabase.co/storage/v1/object/public/guide-images/admin-1/primera.png'
 const SETS = [{ id: 'base1', name: 'Base Set', name_en: 'Base Set', serie_id: 'base', market: 'WEST', release_date: '1999-01-09', card_count_official: 102, card_count_total: 102 }]
 const CARTAS = [
   { id: 'base1-4', market: 'WEST', set_id: 'base1', local_id: '4', name: 'Charizard', name_es: 'Charizard', image_path: 'base/base1/4', rarity: 'Rare Holo', category: 'Pokemon', dex_ids: [6], variants: { holo: true, firstEdition: true }, cm_id_product_propio: 273699, tcg_sets: { id: 'base1', name: 'Base Set', serie_id: 'base', release_date: '1999-01-09', card_count_official: 102 } },
@@ -194,7 +195,7 @@ const CARTAS = [
 const PRECIOS = [{ card_id: 'base1-4', cm_id_product: 273699, cm_low: 600, cm_low_es: 600, checked_at: '2026-10-21T10:00:00Z' }]
 const edicion = (tcggo_id, card_id, etiqueta, clase, cm, imagen = null) => ({ tcggo_id, market: 'WEST', card_id, set_id: 'base1', numero: null, etiqueta, clase, cm_id_product: cm, imagen, origen: 'edicion', icono: null, salio_en: null, lanzamiento: null, cm_low: null })
 const VERSIONES = [
-  edicion(-1, 'base1-4', '1st Edition', 'impresion', 660224, SHADOW), edicion(-2, 'base1-4', 'Shadowless', 'impresion', 660224, SHADOW), edicion(-3, 'base1-4', 'Unlimited', 'impresion', 273699), edicion(-4, 'base1-4', 'Unlimited (1999-2000)', 'adicional', null),
+  edicion(-1, 'base1-4', '1st Edition', 'impresion', 660224, PRIMERA), edicion(-2, 'base1-4', 'Shadowless', 'impresion', 660224, SHADOW), edicion(-3, 'base1-4', 'Unlimited', 'impresion', 273699), edicion(-4, 'base1-4', 'Unlimited (1999-2000)', 'adicional', null),
   edicion(-5, 'base1-5', '1st Edition', 'impresion', 660223), edicion(-6, 'base1-5', 'Shadowless', 'impresion', 660223), edicion(-7, 'base1-5', 'Unlimited', 'impresion', 273700),
 ]
 const COLECCION = [
@@ -236,6 +237,27 @@ console.log('\n── 5. La pantalla ──')
   const sep = await p.evaluate(() => [...document.querySelectorAll('#mcAlbum .mc-bolsillo-enlace[data-carta="base1-4"]')].map((a) => ({ v: a.dataset.variante, src: a.querySelector('img')?.getAttribute('src') || '' })))
   check('separadas: el Charizard en sus cuatro ediciones, sin «Holo» ni «Normal»', sep.map((x) => x.v).join() === 'primera,shadowless,unlimited,unlimited-1999-2000', sep.map((x) => x.v).join())
   check('  …la Shadowless con su foto y la Unlimited con la de la carta', sep.find((x) => x.v === 'shadowless')?.src === SHADOW && sep.find((x) => x.v === 'unlimited')?.src !== SHADOW, JSON.stringify(sep))
+  // PINGU: «clico en la 1.ª edición y es su imagen; le doy a la derecha, a
+  // la Shadowless, y la imagen no cambia». La flecha va de casilla en
+  // casilla, y cada una es la carta EN su versión.
+  const fotoDeLaFicha = () => p.evaluate(() => document.querySelector('#mcEdFoto img')?.getAttribute('src') || '')
+  await p.click('#mcAlbum .mc-bolsillo-enlace[data-carta="base1-4"][data-variante="primera"]', { position: { x: 20, y: 60 } })
+  await p.waitForFunction(() => document.getElementById('mcEditor')?.open, null, { timeout: 5000 }).catch(() => {})
+  await p.waitForTimeout(800)
+  const f1 = await fotoDeLaFicha()
+  await p.click('#mcEdSiguiente')
+  await p.waitForTimeout(800)
+  const f2 = await fotoDeLaFicha()
+  await p.click('#mcEdSiguiente')
+  await p.waitForTimeout(800)
+  const f3 = await fotoDeLaFicha()
+  await p.click('#mcEdAnterior')
+  await p.waitForTimeout(800)
+  const f4 = await fotoDeLaFicha()
+  check('en la ficha, la flecha pasa de la 1.ª edición a la Shadowless y cambia la foto', f1 === PRIMERA && f2 === SHADOW, `${f1} → ${f2}`)
+  check('  …a la Unlimited (la de la carta) y de vuelta a la Shadowless', f3 !== SHADOW && f3 !== PRIMERA && f3 !== '' && f4 === SHADOW, `${f3} → ${f4}`)
+  await p.keyboard.press('Escape')
+  await p.waitForTimeout(500)
   // El «+» de una carta sin copias: la que se elige sola es la Unlimited.
   await p.click('#mcVistaVariantes')
   await p.waitForTimeout(400)
@@ -247,6 +269,14 @@ console.log('\n── 5. La pantalla ──')
     puesta: document.getElementById('mcAdVariante')?.value,
   }))
   check('al añadir, las ediciones que existen', anadir.abierta && anadir.opciones === 'primera,shadowless,unlimited', JSON.stringify(anadir))
+  // La Pokédex (PINGU: «el Pikachu de Pokémon Day sale en la ficha y no en
+  // la Pokédex»): la especie también pide sus versiones de verdad.
+  await p.evaluate(() => { try { localStorage.setItem('mc-split', '1') } catch {} })
+  await p.goto(`${BASE}/mi-coleccion.html?ver=pokedex&dex=6`, { waitUntil: 'domcontentloaded' })
+  await p.waitForFunction(() => document.querySelectorAll('.pdx-carta').length > 0, null, { timeout: 10000 }).catch(() => {})
+  await p.waitForTimeout(800)
+  const pdx = await p.evaluate(() => [...document.querySelectorAll('.pdx-carta[data-carta="base1-4"]')].map((a) => a.dataset.version || '-').join())
+  check('la Pokédex del Charizard, separada, enseña sus ediciones (y no «Holo»)', pdx === 'primera,shadowless,unlimited,unlimited-1999-2000', pdx)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -278,7 +308,7 @@ console.log('\n── 5. La pantalla ──')
   await p.waitForTimeout(800)
   const ll = await rpcs('catalogo_version_foto')
   check('guardar llama a catalogo_version_foto con la versión y la foto subida', ll.length === 1 && ll[0].args.p_card_id === 'base1-4' && ll[0].args.p_variante === 'unlimited' && ll[0].args.p_imagen === url && /guide-images\/admin-1\//.test(url), JSON.stringify(ll))
-  check('  …y la Unlimited ya tiene SU foto (la de la 1.ª edición no se toca)', (await tabla('tcg_card_versions')).find((x) => x.tcggo_id === -3)?.imagen === url && (await tabla('tcg_card_versions')).find((x) => x.tcggo_id === -1)?.imagen === SHADOW)
+  check('  …y la Unlimited ya tiene SU foto (la de la 1.ª edición no se toca)', (await tabla('tcg_card_versions')).find((x) => x.tcggo_id === -3)?.imagen === url && (await tabla('tcg_card_versions')).find((x) => x.tcggo_id === -1)?.imagen === PRIMERA)
   check('  …y la ficha vuelve con ella', /Unlimited\+foto\+img/.test(await p.evaluate(() => [...document.querySelectorAll('#catVersiones .cat-version')].map((li) => `${li.querySelector('strong')?.textContent}${li.querySelector('[data-foto-version]') ? '+foto' : ''}${li.querySelector('.cat-version-foto img') ? '+img' : ''}`).join(' | '))))
   // Quitarla.
   await p.locator('[data-foto-version="shadowless"]').click()
