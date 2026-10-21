@@ -966,6 +966,9 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 }
 
 .mc-ad-idiomas-caja {
+  /* Un fieldset mide al menos lo que su contenido (927): sin esto, la fila
+     de idiomas no se desliza y ensancha la hoja con una barra debajo. */
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -1136,6 +1139,16 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 
 .mc-anadir-dialogo .mc-idioma-chip {
   flex-shrink: 0;
+}
+
+/* Con ratón no se desliza con el dedo (927): los idiomas bajan de línea. */
+@media (pointer: fine) {
+  .mc-anadir-dialogo .mc-idioma-chips {
+    flex-wrap: wrap;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow-x: visible;
+  }
 }
 
 .mc-anadir-dialogo .mc-ad-campo .mc-seg {

@@ -64,7 +64,7 @@ import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
 import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
-import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, seSabenVariantes, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, tieneVarias, nombreDeVariante, cortoDeVariante, varianteDeCarta, pegarVersiones, esClasica, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
@@ -1154,6 +1154,7 @@ function albumCompleto() {
 }
 
 function meterLineaSinMirar(l, carta = null) {
+  corregirVersionesImposibles([l], () => carta || cartas.get(l.card_id))
   for (const lista of [lineas, lineasTodo]) {
     const i = lista.findIndex((x) => x.id === l.id)
     if (i >= 0) lista[i] = l
@@ -1167,6 +1168,8 @@ function meterLineaSinMirar(l, carta = null) {
 }
 
 function cambiarLinea(id, nueva) {
+  // Lo que vuelve de la base puede traer la «normal» de antes (927).
+  corregirVersionesImposibles([nueva], (l) => cartas.get(l.card_id))
   lineas = lineas.map((l) => (l.id === id ? nueva : l))
   lineasTodo = lineasTodo.map((l) => (l.id === id ? nueva : l))
 }
@@ -3801,6 +3804,10 @@ function pintarVistaVariantes() {
   b.classList.toggle('activo', !album.split)
   b.setAttribute('aria-pressed', album.split ? 'false' : 'true')
   b.title = album.split ? 'Cada versión en su casilla' : 'Una casilla por carta, con sus versiones'
+  // Y el rótulo dice lo que hay puesto (PINGU: «cuando le clique, que ponga
+  // separar»): «Apilar» con las versiones juntas, «Separar» separadas.
+  const rotulo = $('mcVistaVariantesRotulo')
+  if (rotulo) rotulo.textContent = album.split ? 'Separar' : 'Apilar'
 }
 
 // ── La cuenta del botón «Filtros» (tanda 473) ──
@@ -7969,6 +7976,10 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // se traen solo las de esas (pocas), no las de toda la colección.
     const conVersion = [...new Set(lineas.filter((l) => l.variante && !esClasica(l.variante)).map((l) => l.card_id))]
     if (conVersion.length) pegarVersiones([...cartas.values()], await datos.versionesDeCartas(conVersion).catch(() => []))
+    // Una copia en «normal» de una carta que solo existe en holo es la holo
+    // (927): si no, sale la insignia «N» y al separar se pierde su ✓.
+    corregirVersionesImposibles(lineas, (l) => cartas.get(l.card_id))
+    corregirVersionesImposibles(lineasTodo, (l) => cartasTodo.get(datos.claveDeLineaEnMercado(l)))
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
     if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)

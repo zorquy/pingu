@@ -43,7 +43,7 @@ import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
 import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
-import { variantesDeCarta, versionDeVariante, TODAS, seSabenVariantes } from './mi-coleccion/variantes.js'
+import { variantesDeCarta, versionDeVariante, TODAS, seSabenVariantes, corregirVersionesImposibles } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { versionesDe as versionesDeTcggo } from './carta-versiones.js'
 import { especiesPorNombres, especiePorDex } from './pokedex-especies.js'
@@ -308,7 +308,8 @@ function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, esta
   let idiomaPuesto = false
   const refrescarTengo = async () => {
     try {
-      mias = await lineasDeCarta(sesion.user.id, carta.id)
+      // La «normal» que esta carta no tiene es su versión (927).
+      mias = corregirVersionesImposibles(await lineasDeCarta(sesion.user.id, carta.id), () => carta)
     } catch {
       // Sin la migración no hay colección: el botón lo dirá al pulsarlo.
       mias = []

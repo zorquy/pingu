@@ -174,6 +174,30 @@ export function seSabenVariantes(carta) {
   return Boolean((carta?.versiones || []).length || variantesDeducidas(carta))
 }
 
+// UNA «NORMAL» QUE NO EXISTE (tanda 927, PINGU con el 30 aniversario:
+// «¿por qué me marca que tengo la normal? Es imposible, no existe»). Hasta
+// la 564 una copia se guardaba en «normal» cuando nadie decía cuál, y hay
+// colecciones enteras así de cartas que solo existen en holo. Se lee como la
+// versión de la carta. Solo la «normal» y solo si se sabe qué versiones
+// tiene: una reverse que el catálogo no declara puede ser real (el catálogo
+// se queda corto), y esa no se toca.
+export function versionPosible(variante, carta) {
+  const v = variante || VARIANTE_POR_DEFECTO
+  if (v !== VARIANTE_POR_DEFECTO || !carta || !seSabenVariantes(carta)) return v
+  const hay = variantesDeCarta(carta).map((e) => e.nuestro)
+  return hay.length && !hay.includes(v) ? hay[0] : v
+}
+
+// Lo mismo sobre una lista de copias, en el sitio: se cargan una vez y todo
+// lo que cuenta versiones (insignias, «Separar», la ficha, el Panel) las lee.
+export function corregirVersionesImposibles(lineas, cartaDe) {
+  for (const l of lineas || []) {
+    const v = versionPosible(l.variante, cartaDe(l))
+    if (v !== (l.variante || VARIANTE_POR_DEFECTO)) l.variante = v
+  }
+  return lineas
+}
+
 // ¿Merece la pena enseñar el selector? Con una sola versión no: sería
 // una casilla que solo se puede marcar de una manera.
 export function tieneVarias(carta) {

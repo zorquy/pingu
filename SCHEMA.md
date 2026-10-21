@@ -41785,6 +41785,25 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 928 — La «normal» que no existe, «Separar» y la hoja de añadir
+
+- `versionPosible(variante, carta)` (js/mi-coleccion/variantes.js): una
+  copia en «normal» (o sin versión) de una carta cuyas versiones se SABEN
+  (`seSabenVariantes`) y que no tiene normal se lee como la primera de la
+  carta (`variantesDeCarta(c)[0]`). Las demás versiones no se tocan: el
+  catálogo puede quedarse corto y una reverse apuntada puede ser real.
+  `corregirVersionesImposibles(lineas, cartaDe)` lo aplica en el sitio, al
+  cargar (`lineas` con `cartas`, `lineasTodo` con `cartasTodo`), en
+  `meterLineaSinMirar` y en `cambiarLinea` (lo que vuelve de la base trae la
+  «normal» de antes), y en /carta (`carta-mercado.js`, `mias`). La base no
+  se cambia.
+- `#mcVistaVariantesRotulo`: «Apilar» con `album.split` falso, «Separar»
+  con él verdadero; `aria-pressed` sigue siendo «apilado».
+- `.mc-ad-idiomas-caja` lleva `min-width: 0`: un `fieldset` tiene
+  `min-inline-size: min-content` y la fila de idiomas (que se desliza,
+  `nowrap`) ensanchaba `#mcAnadirDialogo`. Con `pointer: fine` la fila
+  pasa a `flex-wrap: wrap`.
+
 ## Tanda 927 — La expansión como Dex: insignias, una fila de mandos y el archivador por hojas
 
 La D de la propuesta de la 925, rehecha con las capturas de Dex (PINGU:

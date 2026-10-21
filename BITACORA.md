@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-21 (162) — PINGU-Claude (928 — la «normal» que no existe, «Separar» y la hoja de añadir sin barra)
+
+**Hecho** (PINGU, con el 30 aniversario: «¿por qué me marca que tengo la
+normal? Es imposible, no existe»):
+- Las copias guardadas en «normal» de una carta que no tiene normal (las de
+  antes de la 564, cuando nadie decía cuál) se leen como la versión de la
+  carta: sin la insignia «N», y con su ✓ también al separar. Solo la
+  «normal» y solo si se sabe qué versiones tiene la carta; una reverse que
+  el catálogo no declara se deja como está. En Mi colección y en /carta.
+- El botón de la expansión dice «Separar» con las versiones separadas y
+  «Apilar» con ellas juntas.
+- La hoja de añadir en el PC ya no sale con barra de desplazamiento debajo:
+  el `fieldset` de los idiomas no encogía y la ensanchaba a 497 px; y con
+  ratón los idiomas bajan de línea en vez de deslizarse.
+
+**Ficheros**: `js/mi-coleccion/variantes.js` (`versionPosible`,
+`corregirVersionesImposibles`), `js/mi-coleccion.js` (al cargar, al meter y
+al cambiar una copia; el rótulo de «Apilar»), `js/carta-mercado.js`,
+`css/cardmarket.css`, `novedades.json`, `SCHEMA.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-927.mjs` con la sección 7 (el 30 aniversario y la
+hoja de añadir; probado que salta sin el arreglo) y 473 («Separar»). Las de
+versiones, la hoja de añadir y CSS (28): verdes salvo la 780, que ya estaba.
+
+**Lo que NO es**: la base sigue diciendo «normal» en esas copias; la web las
+lee bien. Si se quiere limpiar el dato, es una migración (no la he hecho).
+
+**Pendiente**:
+- TCGGO: la documentación nueva dice cómo vienen las versiones (ver la
+  propuesta); esperando tus decisiones.
+- E y la Pokédex: esperando a PINGU.
+
 ## 2026-10-20 (161) — PINGU-Claude (927 — la expansión como Dex: insignias, una fila y el archivador por hojas; la D)
 
 **Hecho** (PINGU: «adelante con lo recomendado»):
