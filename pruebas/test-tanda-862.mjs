@@ -123,9 +123,9 @@ console.log('── 4. La expansión, con las variantes separadas ──')
   const casillas = await page.evaluate(() => [...document.querySelectorAll('#mcAlbum [data-carta="me2pt5-159"]')].map((a) => {
     const caja = a.closest('.mc-bolsillo') || a
     const chapa = caja.querySelector('.mc-chapa-variante')
-    return { var: chapa?.dataset.var, corto: chapa?.querySelector('b')?.textContent, nombre: chapa?.querySelector('span')?.textContent, tengo: caja.classList.contains('tengo') || /tienes/.test(a.getAttribute('aria-label') || ''), mas: caja.querySelector('.mc-mas')?.dataset.variante, velo: Boolean(caja.querySelector('.mc-velo-reverse')) }
+    return { var: chapa?.dataset.var, corto: chapa?.querySelector('b') && ((el) => el.querySelector('[data-dibujo]')?.dataset.dibujo || el.querySelector('img.icono-bola')?.getAttribute('src').match(/([\w-]+)\.png/)?.[1] || el.textContent.trim())(chapa.querySelector('b')), nombre: chapa?.querySelector('span')?.textContent, tengo: caja.classList.contains('tengo') || /tienes/.test(a.getAttribute('aria-label') || ''), mas: caja.querySelector('.mc-mas')?.dataset.variante, velo: Boolean(caja.querySelector('.mc-velo-reverse')) }
   }))
-  check('el Drakloak abre en CUATRO casillas: N, RH, ESP y QB, cada una con su chapa', casillas.map((c) => c.var).join() === 'normal,reverse,energy-symbol-pattern,quick-ball' && casillas.map((c) => c.corto).join() === 'N,RH,ESP,QB' && casillas[3].nombre === 'Quick Ball', JSON.stringify(casillas))
+  check('el Drakloak abre en CUATRO casillas: normal, reverse, energía y Quick Ball, cada una con su chapa y su dibujo (930)', casillas.map((c) => c.var).join() === 'normal,reverse,energy-symbol-pattern,quick-ball' && casillas.map((c) => c.corto).join() === 'normal,reverse,energia,quick-ball' && casillas[3].nombre === 'Quick Ball', JSON.stringify(casillas))
   check('  …la Energy Symbol Pattern, que tienes, marcada; la Quick Ball no; y las de TCGGO con velo, como la reverse', casillas[2]?.tengo && !casillas[3]?.tengo && casillas[2].velo && casillas[3].velo && !casillas[0].velo, JSON.stringify(casillas))
   check('  …y el «+» de cada casilla lleva su versión', casillas[3]?.mas === 'quick-ball')
   const dreepy = await page.evaluate(() => document.querySelectorAll('#mcAlbum [data-carta="me2pt5-158"]').length)
@@ -149,10 +149,10 @@ console.log('── 4. La expansión, con las variantes separadas ──')
   // En «Cartas», la copia dice su versión.
   await page.goto(`${BASE}/mi-coleccion.html?ver=cartas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
-  const fila = await page.evaluate(() => [...document.querySelectorAll('.mc-chapa-variante')].map((c) => `${c.dataset.var}:${c.textContent.trim()}`))
+  const fila = await page.evaluate(() => [...document.querySelectorAll('.mc-chapa-variante')].map((c) => `${c.dataset.var}:${c.querySelector('[data-dibujo]')?.dataset.dibujo || ''}:${c.textContent.trim()}`))
   // (La Quick Ball recién añadida no está: el doble vuelve a sembrar la
   // colección al recargar. Lo guardado se ha comprobado arriba.)
-  check('en Cartas, la copia lleva la chapa «ESP Energy Symbol Pattern»', fila.some((f) => /^energy-symbol-pattern:ESP\s*Energy Symbol Pattern$/.test(f)), JSON.stringify(fila))
+  check('en Cartas, la copia lleva la chapa con el dibujo de la energía y «Energy Symbol Pattern» (930)', fila.some((f) => f === 'energy-symbol-pattern:energia:Energy Symbol Pattern'), JSON.stringify(fila))
   await ctx.close()
 }
 

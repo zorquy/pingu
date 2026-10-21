@@ -1,0 +1,109 @@
+{
+  "data": {
+    "id": 31556,
+    "name": "Lunatone",
+    "name_numbered": "Lunatone 105",
+    "slug": "lunatone",
+    "type": "singles",
+    "lang": "en",
+    "card_number": 105,
+    "card_code_number": "ASC 105",
+    "hp": 110,
+    "rarity": "rare",
+    "supertype": "Pokémon",
+    "tcgid": "me2pt5-105",
+    "flavor_text": "It was discovered at the site of a meteor strike 40 years ago. Its stare can lull its foes to sleep.",
+    "abilities": null,
+    "attacks": null,
+    "prices": {
+      "cardmarket": {
+        "currency": "EUR",
+        "lowest_near_mint": 0.02,
+        "lowest_near_mint_EU_only": 0.02,
+        "lowest_near_mint_DE": 0.02,
+        "lowest_near_mint_DE_EU_only": 0.02,
+        "lowest_near_mint_FR": 0.02,
+        "lowest_near_mint_FR_EU_only": 0.02,
+        "lowest_near_mint_ES": 0.02,
+        "lowest_near_mint_ES_EU_only": 0.02,
+        "lowest_near_mint_IT": 0.02,
+        "lowest_near_mint_IT_EU_only": 0.02,
+        "30d_average": 0.07,
+        "7d_average": 0.11,
+        "available_items": 5910,
+        "graded": []
+      },
+      "tcg_player": {
+        "currency": "EUR",
+        "market_price": 0.2
+      }
+    },
+    "variants": [
+      {
+        "type": "dusk_ball",
+        "label": "Dusk Ball",
+        "id": 50858,
+        "prices": {
+          "cardmarket": {
+            "currency": "EUR",
+            "lowest_near_mint": 0.03
+          }
+        }
+      },
+      {
+        "type": "energy_symbol_pattern",
+        "label": "Energy Symbol Pattern",
+        "id": 50857,
+        "prices": {
+          "cardmarket": {
+            "currency": "EUR",
+            "lowest_near_mint": 0.1
+          }
+        }
+      }
+    ],
+    "episode": {
+      "id": 396,
+      "name": "Ascended Heroes",
+      "slug": "ascended-heroes",
+      "lang": "en",
+      "released_at": "2026-01-30",
+      "logo": "https://images.tcggo.com/tcggo/storage/34000/ascended_heroes.png",
+      "code": "ASC",
+      "cards_total": 295,
+      "cards_printed_total": 217,
+      "prices": {
+        "cardmarket": {
+          "total": 3973.83,
+          "currency": "EUR"
+        },
+        "tcgplayer": {
+          "total": 3456.77,
+          "currency": "EUR"
+        }
+      },
+      "game": {
+        "name": "Pokémon",
+        "slug": "pokemon"
+      },
+      "series": {
+        "id": 17,
+        "name": "Mega Evolution",
+        "slug": "mega-evolution"
+      }
+    },
+    "artist": {
+      "id": 432,
+      "name": "Whisker",
+      "slug": "whisker"
+    },
+    "image": "https://images.tcggo.com/tcggo/storage/31746/lunatone-asc-105-ascended-heroes.png",
+    "tcggo_url": "https://www.tcggo.com/pokemon/ascended-heroes/lunatone-105",
+    "links": {
+      "cardmarket": "https://www.tcggo.com/external/cm/31556",
+      "tcgplayer": "https://www.tcggo.com/external/tcgplayer/31556"
+    },
+    "cardmarket_id": 869716,
+    "tcgplayer_id": 675917
+  }
+}

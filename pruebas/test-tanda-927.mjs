@@ -86,7 +86,7 @@ const pc = await abrir()
     const centro = (el) => { const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 } }
     const marca = de(1).querySelector('.mc-tengo-marca')
     const c1 = centro(de(1)), m1 = centro(marca)
-    const ins = (n) => [...(de(n)?.querySelectorAll('.mc-insignia') || [])].map((i) => i.textContent.trim())
+    const ins = (n) => [...(de(n)?.querySelectorAll('.mc-insignia') || [])].map(((el) => el.querySelector('[data-dibujo]')?.dataset.dibujo || el.querySelector('img.icono-bola')?.getAttribute('src').match(/([\w-]+)\.png/)?.[1] || el.textContent.trim()))
     return {
       rotulo: document.getElementById('mcAlbumVistaRotulo')?.textContent.trim(),
       casillas: document.querySelectorAll('#mcAlbum .mc-album-rejilla .mc-bolsillo').length,
@@ -103,8 +103,8 @@ const pc = await abrir()
   check('el ✓ va en el centro de la carta, grande', r.centrada && r.tamMarca >= 24, JSON.stringify(r))
   check('con una sola copia, ninguna insignia', r.ins1.length === 0, JSON.stringify(r.ins1))
   check('con dos, la insignia «2» (en verde, la de la cuenta)', r.n2 === '2' && r.ins2.join() === '2', JSON.stringify(r.ins2))
-  check('normal + reverse: «2» y «R+»', r.ins5.join() === '2,R+', JSON.stringify(r.ins5))
-  check('solo la reverse: el ✓ y «R+»', r.ins7.join() === 'R+', JSON.stringify(r.ins7))
+  check('normal + reverse: «2» y el dibujo de la reverse (930)', r.ins5.join() === '2,reverse', JSON.stringify(r.ins5))
+  check('solo la reverse: el ✓ y su dibujo', r.ins7.join() === 'reverse', JSON.stringify(r.ins7))
   check('la que no tienes, sin marca', !r.marca3 && r.ins3.length === 0)
   check('lo que se lee en voz alta lo dice: «con Reverse holo»', /tienes 2, con Reverse holo/.test(r.etiqueta5) && /tienes 1, con Reverse holo/.test(r.etiqueta7), `${r.etiqueta5} | ${r.etiqueta7}`)
 }
@@ -136,10 +136,11 @@ console.log('── 4. Apilar ──')
     rev7: document.querySelector('#mcAlbum .mc-bolsillo-enlace[data-carta="sv8-7"][data-variante="reverse"]')?.closest('.mc-bolsillo')?.classList.contains('tengo'),
     nor7: document.querySelector('#mcAlbum .mc-bolsillo-enlace[data-carta="sv8-7"][data-variante="normal"]')?.closest('.mc-bolsillo')?.classList.contains('tengo'),
     chapa: document.querySelector('#mcAlbum .mc-bolsillo-enlace[data-carta="sv8-7"][data-variante="reverse"] .mc-chapa-variante')?.textContent.trim(),
+    chapaDibujo: document.querySelector('#mcAlbum .mc-bolsillo-enlace[data-carta="sv8-7"][data-variante="reverse"] .mc-chapa-variante [data-dibujo]')?.dataset.dibujo,
     insV: document.querySelectorAll('#mcAlbum .mc-bolsillo-enlace[data-variante] .mc-insignia:not(.mc-insignia-n)').length,
   }))
   check('quitado: una casilla por versión (18 + 10 reverse)', r.p === 'false' && r.casillas === 28, JSON.stringify(r))
-  check('  …la reverse de la 7 es tuya y la normal no, cada una con su chapa', r.rev7 === true && r.nor7 === false && /RH/.test(r.chapa || ''), JSON.stringify(r))
+  check('  …la reverse de la 7 es tuya y la normal no, cada una con su chapa', r.rev7 === true && r.nor7 === false && r.chapa === 'Reverse holo' && r.chapaDibujo === 'reverse', JSON.stringify(r))
   check('  …y sin insignias de versión: la casilla YA es de una versión', r.insV === 0, JSON.stringify(r))
   await page.click('#mcVistaVariantes')
   await page.waitForTimeout(300)
@@ -162,13 +163,13 @@ console.log('── 3. La vista ──')
       abierta: document.getElementById('mcAlbumVistaHoja').open,
       filas: document.querySelectorAll('#mcAlbum .mc-album-lista .mc-album-fila').length,
       precio: fila(3)?.querySelector('.mc-album-fila-precio')?.textContent.trim(),
-      ins5: [...(fila(5)?.querySelectorAll('.mc-insignia') || [])].map((i) => i.textContent.trim()).join(),
+      ins5: [...(fila(5)?.querySelectorAll('.mc-insignia') || [])].map(((el) => el.querySelector('[data-dibujo]')?.dataset.dibujo || el.querySelector('img.icono-bola')?.getAttribute('src').match(/([\w-]+)\.png/)?.[1] || el.textContent.trim())).join(),
       cuenta5: fila(5)?.querySelector('.mc-album-fila-cuenta')?.textContent.trim(),
       rotulo: document.getElementById('mcAlbumVistaRotulo').textContent.trim(),
     }
   })
   check('Lista: se cierra la hoja y sale una fila por carta', !l.abierta && l.filas === 18 && l.rotulo === 'Lista', JSON.stringify(l))
-  check('  …con lo que vale y tus versiones', /€/.test(l.precio || '') && l.ins5 === 'R+' && l.cuenta5 === '×2', JSON.stringify(l))
+  check('  …con lo que vale y tus versiones', /€/.test(l.precio || '') && l.ins5 === 'reverse' && l.cuenta5 === '×2', JSON.stringify(l))
 
   await page.click('#mcAlbumVista')
   await page.waitForTimeout(300)
@@ -309,7 +310,7 @@ console.log('── 7. Una «normal» que no existe (PINGU, con el 30 aniversari
   await page.waitForTimeout(1000)
   const ap = await page.evaluate(() => {
     const de = (n) => document.querySelector(`#mcAlbum .mc-bolsillo-enlace[data-carta="30th-${n}"]`)
-    const ins = (n) => [...(de(n)?.querySelectorAll('.mc-insignia') || [])].map((i) => i.textContent.trim()).join()
+    const ins = (n) => [...(de(n)?.querySelectorAll('.mc-insignia') || [])].map(((el) => el.querySelector('[data-dibujo]')?.dataset.dibujo || el.querySelector('img.icono-bola')?.getAttribute('src').match(/([\w-]+)\.png/)?.[1] || el.textContent.trim())).join()
     return { t1: Boolean(de(1)?.querySelector('.mc-tengo-marca')), i1: ins(1), i2: ins(2), rotulo: document.getElementById('mcVistaVariantesRotulo').textContent.trim() }
   })
   check('apilado: la «normal» de una carta solo holo es la holo, sin insignia «N»', ap.t1 && ap.i1 === '' && ap.i2 === '2' && ap.rotulo === 'Apilar', JSON.stringify(ap))

@@ -70,6 +70,7 @@ const buscar = async (page, texto) => {
 const resultados = (page) => page.$$eval('#mcBuscarResultados .mc-resultado', (rs) => rs.map((r) => ({
   id: r.dataset.carta, v: r.dataset.variante || null,
   chapa: r.querySelector('.mc-chapa-variante')?.textContent || '',
+  dibujo: r.querySelector('.mc-chapa-variante [data-dibujo]')?.dataset.dibujo || '',
   velo: Boolean(r.querySelector('.mc-velo-reverse')),
   // Desde la 927 el ✓ va siempre y la cuenta en su insignia.
   tengo: (r.querySelector('.mc-tengo-marca')?.textContent || '') + (r.querySelector('.mc-insignia-n')?.textContent || ''),
@@ -87,7 +88,7 @@ for (const ancho of [390, 1280]) {
   await page.waitForTimeout(600)
   r = await resultados(page)
   check('separadas: uno por versión (24)', r.length === 24, `${r.length}`)
-  check('  …con su chapa, N y RH', r[0].chapa.startsWith('N') && r[1].chapa.startsWith('RH'), r.slice(0, 2).map((x) => x.chapa).join(' | '))
+  check('  …con su chapa: la normal y la reverse, con su dibujo (930)', r[0].chapa === 'Normal' && r[0].dibujo === 'normal' && r[1].chapa === 'Reverse holo' && r[1].dibujo === 'reverse', r.slice(0, 2).map((x) => `${x.dibujo}:${x.chapa}`).join(' | '))
   check('  …el velo solo en la reverse', r.every((x) => x.velo === (x.v === 'reverse')))
   const bulba2 = r.filter((x) => x.id === 'sv8-2')
   check('  …y el ✓ en la versión que tienes (sv8-2 reverse ×2), no en la otra', bulba2.find((x) => x.v === 'reverse')?.tengo === '✓2' && !bulba2.find((x) => x.v === 'normal')?.tengo, JSON.stringify(bulba2))
