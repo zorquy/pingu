@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (195) — PINGU-Claude (960 — los idiomas del set sin precio, en la ficha)
+
+**Hecho** (PINGU, con el Jolteon de Jungle: el añadir ofrece NL y PT y la
+ficha no los enseña): las tarjetas son de los idiomas que TCGGO cotiza, y el
+portugués y el neerlandés no lo están. Ahora, debajo de las tarjetas, «También
+salió en portugués y neerlandés. De esos no hay precio todavía.», con el
+portugués enlazado a Cardmarket con su idioma. Vale para la ficha de Mi
+colección y /carta (es `tarjetasDePrecio`). No como tarjetas vacías: en el PC
+la fila es de columnas iguales y con ocho no caben las cifras.
+
+**Ficheros**: `js/precio-vista.js`, `css/cardmarket.css`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-960.mjs`. Pasadas 915,
+916, 920, 923, 926, 959, 959-pantalla, 299, 305, 311–313, 737 e imports.
+
+**Pendiente**: lo de la 959 (que PINGU la ejecute); las listas de la 960
+pasan a la 961.
+
 ## 2026-10-22 (194) — PINGU-Claude (959 — idiomas y SH de Platino; sin precio en un idioma en que el set no salió) · MIGRACIÓN NUEVA
 
 **Hecho** (PINGU, set a set, y con el Bulbasaur de Dark Explorers: «el español

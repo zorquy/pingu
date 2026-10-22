@@ -25,7 +25,7 @@
 // Sin DOM: devuelve HTML. El CSS vive en css/cardmarket.css, que cargan
 // las dos páginas y nadie más.
 import { escapeHtml } from './html.js'
-import { euros, dolares, precioParaIdioma, idiomaDe, estadoDe, enlaceCardmarket, enlaceTcgplayer, IDIOMAS_CON_PRECIO, IDIOMA_POR_DEFECTO, ESTADO_POR_DEFECTO, idiomaDePrecioDelSet } from './cardmarket.js'
+import { euros, dolares, precioParaIdioma, idiomaDe, estadoDe, enlaceCardmarket, enlaceTcgplayer, IDIOMAS, IDIOMAS_CON_PRECIO, IDIOMA_POR_DEFECTO, ESTADO_POR_DEFECTO, idiomaDePrecioDelSet } from './cardmarket.js'
 import { marcaCardmarket } from './cardmarket-marca.js'
 import { icons } from './icons.js'
 
@@ -254,5 +254,18 @@ export function tarjetasDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado =
     const dentro = `<span class="pv-t-cab"><b>TCGplayer</b></span><span class="pv-t-cifra">${precio?.tpEur ? euros(precio.tpEur) : 'ver precio'}</span><span class="pv-t-nombre">EE. UU.${precio?.tpEur ? ', en euros' : ''}</span>`
     tarjetas.push(tp ? `<a class="pv-tarjeta pv-tarjeta-tcg btn-tcgplayer${precio?.tpEur ? '' : ' pv-tarjeta-sin'}" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${dentro}</a>` : `<div class="pv-tarjeta pv-tarjeta-tcg">${dentro}</div>`)
   }
-  return `<div class="pv pv-con-tarjetas"><div class="pv-tarjetas">${tarjetas.join('')}</div>${chapasDeGradeadas(precio?.gradeadas)}</div>`
+  return `<div class="pv pv-con-tarjetas"><div class="pv-tarjetas">${tarjetas.join('')}</div>${tambienSalioEn(idiomasDelSet, idioma, enlace)}${chapasDeGradeadas(precio?.gradeadas)}</div>`
+}
+// Los idiomas del set sin precio que dar (portugués, neerlandés: TCGGO no los
+// cotiza), en una línea debajo y no como tarjetas vacías (Jungle, 960). Con
+// filtro de Cardmarket, enlazan.
+function tambienSalioEn(idiomasDelSet, idioma, enlace) {
+  const sin = IDIOMAS.map((i) => i.id).filter((id) => (idiomasDelSet || []).includes?.(id) && id !== idioma && !IDIOMAS_CON_PRECIO.includes(id))
+  if (!sin.length) return ''
+  const uno = (id) => {
+    const dentro = `${banderaHtml(id)}${escapeHtml(idiomaDe(id).nombre.toLowerCase())}`
+    return idiomaDe(id).cm ? `<a href="${escapeHtml(enlace(id))}" target="_blank" rel="noopener">${dentro}</a>` : `<span>${dentro}</span>`
+  }
+  const lista = sin.length > 1 ? `${sin.slice(0, -1).map(uno).join(', ')} y ${uno(sin[sin.length - 1])}` : uno(sin[0])
+  return `<p class="pv-tambien">También salió en ${lista}. De ${sin.length > 1 ? 'esos' : 'ese'} no hay precio todavía.</p>`
 }

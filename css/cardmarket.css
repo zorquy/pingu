@@ -1531,6 +1531,24 @@ a.pv-tarjeta:hover {
   font-size: var(--t-xs);
 }
 
+.pv-tambien {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pv-tambien a,
+.pv-tambien span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  white-space: nowrap;
+}
+
+.pv-tambien a {
+  color: inherit;
+}
+
 .pv-tarjeta-sin .pv-t-cifra {
   color: var(--text-mid);
   font-size: var(--t-md);

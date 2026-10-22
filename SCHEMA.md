@@ -41785,6 +41785,17 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 960 — Los idiomas del set sin precio, en una línea
+
+`tarjetasDePrecio` pinta una tarjeta por idioma de `IDIOMAS_CON_PRECIO` (lo
+que TCGGO cotiza: es, en, de, fr, it, ja, ko, zh). Los otros idiomas del set
+(pt, nl) van en `.pv-tambien` debajo («También salió en portugués y
+neerlandés. De esos no hay precio todavía.»), en el orden de `IDIOMAS`, sin
+el de la tarjeta azul, y enlazados a Cardmarket solo si tienen filtro (`cm`:
+el portugués, 8; el neerlandés no). Sin saber los del set, no sale. Se
+descartaron dos tarjetas vacías más: en el PC la fila es de columnas iguales
+y con ocho las cifras no caben.
+
 ## Tanda 959 — Platino a mano y el precio de un idioma que no salió
 
 `supabase-migration-959-platino-idiomas-y-sh.sql`: `tcg_set_idiomas_mano` de
