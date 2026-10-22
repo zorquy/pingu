@@ -41785,6 +41785,42 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 983 — Menos esperas en fila (propuesta «Rápida al volver», B)
+
+Con `herramientas/medir-esperas.mjs` (qué fichero pide cada consulta y en qué
+«ola»: una consulta pedida cuando la anterior ya había vuelto es una espera
+más) salían cadenas largas: el foro no pedía su índice hasta tener las marcas
+de leído (ola 4), tu perfil pintaba la vitrina en la ola 5 y el de otra
+persona en la 8. Ahora:
+
+- **Tu perfil, una vez por página**: `getProfile` (app.js) guarda la promesa
+  por usuario y da una copia a cada quien; la barra, el arranque, la racha, la
+  portada, Mi colección y /perfil comparten la misma consulta. `{ fresco:
+  true }` la vuelve a pedir (lo usa /perfil justo después de guardar).
+- **La racha**: `checkDailyStreak` mira primero ese perfil; si ya se contó
+  hoy (todas las páginas menos la primera del día), no pregunta nada.
+  CORRECCIÓN a la propuesta: las «diez consultas de racha y logros por
+  página» eran del doble, que no guarda la visita entre páginas; en la web de
+  verdad era una por página (ahora, ninguna).
+- **El foro** pide secciones y foros a la vez que el rol y las marcas
+  (`lecturas`), y solo los espera para pintar.
+- **/perfil**: vitrina, colección y cambios salen en cuanto hay perfil; los
+  logros, con las cifras; «a cuántos les ha servido», a la vez que lo demás.
+- **/usuario**: la fila de la persona viene entera al buscarla por nombre (no
+  se vuelve a pedir por id), el perfil de quien mira va a la vez, los logros
+  salen mientras se pinta la cabecera, las cuatro cuentas de guías y cifras
+  van juntas y la vitrina no espera a las cifras. `getAllAchievements` da la
+  misma promesa a dos que preguntan a la vez.
+- **La portada**: el saludo usa el perfil de la barra (con los escudos: ya no
+  van en otra consulta detrás) y «Hoy» se baja mientras.
+- **Mi colección**: el dueño es el perfil de la barra; los valores de las
+  expansiones se piden a la vez que los sets y una vez por minuto (se pedían
+  cuatro veces al abrir).
+
+Resultado, en qué ola llega lo último de cada pantalla: portada 3 → 2, foro
+4 → 2, perfil 5 → 2, el de otra persona 8 → 3; Mi colección, de cuatro
+consultas de valores a una. Prueba: `test-tanda-983.mjs`; 646 al día.
+
 ## Tanda 982 — Un despliegue no tira la caché (propuesta «Rápida al volver», A)
 
 PINGU: «quiero agilizar la web… si carga lento la primera vez, ni tan mal,

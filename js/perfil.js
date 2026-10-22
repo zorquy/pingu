@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { escapeHtml, getInitial, requireAuth, signOut, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
+import { escapeHtml, getInitial, requireAuth, signOut, getProfile, uploadProfileImage, slugify, uniqueUsername, profileUrl, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
 import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
@@ -37,8 +37,9 @@ function applyHeroVisuals(profile, name) {
   applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 }
 
-async function loadProfile(session) {
-  const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
+async function loadProfile(session, { fresco = false } = {}) {
+  // El mismo que ya pidió la barra (983), salvo justo después de guardar.
+  const profile = await getProfile(session.user.id, { fresco })
   currentProfile = profile
   // «Ajustes» de la hoja «Tú» (748) llega con `?editar=1`: el editor se abre
   // solo, y se quita el parámetro para que recargar no lo vuelva a abrir.
@@ -68,17 +69,17 @@ async function loadProfile(session) {
 }
 
 async function loadStats(session, profile) {
-  const [{ count: approvedGuidesCount }, { cartas, torneos }] = await Promise.all([
+  // A cuántos les han servido SUS GUÍAS (974), no una nota puesta a la
+  // persona; a la vez que lo demás (983).
+  const [{ count: approvedGuidesCount }, { cartas, torneos }, servido] = await Promise.all([
     supabase
       .from('guides')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', session.user.id)
       .eq('review_status', 'approved'),
     contarCartasYTorneos(supabase, session.user.id),
+    servidoDeAutor(session.user.id),
   ])
-
-  // A cuántos les han servido SUS GUÍAS (974), no una nota puesta a la persona.
-  const servido = await servidoDeAutor(session.user.id)
   const tier = contributorTier(approvedGuidesCount || 0)
 
   // Las cifras (867): cartas, guías y torneos; seguidores y siguiendo ya
@@ -687,7 +688,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
     }
     closeModal()
     currentProfile = { ...currentProfile, ...payload }
-    await loadProfile(currentSession)
+    await loadProfile(currentSession, { fresco: true })
     loadAchievements(currentProfile)
   })
 })
@@ -714,6 +715,19 @@ async function init() {
   currentSession = session
 
   const profile = await loadProfile(session)
+  // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez
+  // (983). Antes los logros esperaban a las cifras, y la vitrina, a los logros.
+  // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.
+  import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), { ...(currentProfile || {}), id: session.user.id }, session, { propia: true })).catch(() => {})
+  // Debajo, tu colección (944): lo último que has añadido, y si es privada,
+  // que lo diga y deje hacerla pública.
+  import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), { ...(currentProfile || {}), id: session.user.id }, { propia: true, avisar: showToast })).catch(() => {})
+  // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
+  // cuanto existe (867: aunque esté vacía, que invita a elegir).
+  import('./vitrina.js')
+    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
+    .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
+    .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   await Promise.all([
     loadStats(session, profile),
     loadCompletedCourses(session),
@@ -722,22 +736,11 @@ async function init() {
     contarElForo(session),
     contarMisTorneos(session),
     loadMedallero(session),
+    loadAchievements(profile),
   ])
-  await loadAchievements(profile)
   // Si se llegó con la pestaña de torneos puesta, el clic corrió ANTES de
   // tener sesión y la carga se quedó esperando: ahora que la hay, va.
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarMisTorneosUnaVez()
-  // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
-  // cuanto existe (867: aunque esté vacía, que invita a elegir).
-  // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.
-  import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), { ...(currentProfile || {}), id: session.user.id }, session, { propia: true })).catch(() => {})
-  // Debajo, tu colección (944): lo último que has añadido, y si es privada,
-  // que lo diga y deje hacerla pública.
-  import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), { ...(currentProfile || {}), id: session.user.id }, { propia: true, avisar: showToast })).catch(() => {})
-  import('./vitrina.js')
-    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
-    .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
-    .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   abrirLaQueTengaAlgo()
 }
 

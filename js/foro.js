@@ -65,6 +65,8 @@ let marcas = null
 // distinguir un foro con novedades de uno que ya te has leído: antes los
 // dos se veían igual y había que entrar en todos para saberlo.
 let nuevosPorForo = {}
+// Lo de arriba, cuando ha llegado (983): el índice pide lo suyo sin esperarlo.
+let lecturas = Promise.resolve()
 
 function migasHtml(trozos) {
   return trozos
@@ -254,7 +256,7 @@ async function pintarIndice() {
   const foros = (forosRes.data || []).filter((f) => !f.is_hidden)
   // Los perfiles del último que escribió y la franja de lo que se está
   // hablando, a la vez: las dos salen de la lista de foros (894, R3).
-  const [perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id))])
+  const [perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id)), lecturas])
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
 
@@ -1156,16 +1158,23 @@ async function init() {
     pintarUltimaVista(claveDeVista('foro', sesion?.user?.id))
   }
   if (sesion) {
-    // El rol y las marcas no dependen una de otra: a la vez (894, R3).
-    let rol
-    ;[rol, marcas] = await Promise.all([rolEnElEquipo(sesion), marcasDeLectura(sesion.user.id)])
-    ;({ staff: soyStaff, admin: soyAdmin } = rol)
-    nuevosPorForo = await sinLeerPorForo(marcas)
+    // El rol y las marcas no dependen una de otra: a la vez (894, R3). Y el
+    // índice no los espera para pedir lo suyo (983): solo para pintarlo.
+    lecturas = (async () => {
+      let rol
+      ;[rol, marcas] = await Promise.all([rolEnElEquipo(sesion), marcasDeLectura(sesion.user.id)])
+      ;({ staff: soyStaff, admin: soyAdmin } = rol)
+      nuevosPorForo = await sinLeerPorForo(marcas)
+    })()
   }
   engancharBuscador()
-  if (consulta) await pintarBusqueda()
-  else if (slugForo) await pintarForo()
-  else await pintarIndice()
+  if (consulta) {
+    await lecturas
+    await pintarBusqueda()
+  } else if (slugForo) {
+    await lecturas
+    await pintarForo()
+  } else await pintarIndice()
 }
 
 init().catch(() => {

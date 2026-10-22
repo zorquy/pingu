@@ -10,7 +10,7 @@
 //
 // /mi-coleccion?u=<usuario> enseña la de otra persona si la ha hecho
 // pública, sin nada que se pueda tocar.
-import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './app.js'
+import { escapeHtml, getSession, getProfile, profileUrl, avatarStyle, getInitial } from './app.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { claveDeSet, leerGuardado, guardar as guardarCartasDeSet } from './mi-coleccion/cartas-guardadas.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
@@ -2843,20 +2843,38 @@ export function fechasDeValor(ahora = new Date(), { semanas = 39, dias = 8 } = {
   for (let s = 1; s <= semanas; s++) fechas.add(dia(s * 7))
   return [...fechas].sort()
 }
+// La estantería se pinta varias veces al abrir (sesión, catálogo, Panel) y
+// cada vez pedía lo mismo (983): la misma pregunta durante un minuto es una.
+// Cada llamada pone lo suyo igualmente, que el Panel pide los de todos.
+const valoresPedidos = new Map()
 async function cargarValoresDeSets({ todos = false } = {}) {
+  const clave = todos ? '*' : mercado
+  let ya = valoresPedidos.get(clave)
+  if (!ya || Date.now() - ya.desde >= 60_000) {
+    ya = { pedido: pedirValoresDeSets({ todos }), desde: Date.now() }
+    valoresPedidos.set(clave, ya)
+  }
+  const filas = await ya.pedido
+  if (!filas) {
+    valoresPedidos.delete(clave)
+    variacionDeSets = new Map()
+    seriesDeSets = new Map()
+    return
+  }
+  const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+  variacionDeSets = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8))
+  seriesDeSets = seriesDeValor(filas)
+}
+async function pedirValoresDeSets({ todos = false } = {}) {
   try {
     // El Panel (672) los pide de todos los mercados: enseña expansiones de
     // cualquier catálogo. Los ids de set no chocan entre mercados.
     let consulta = supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').in('dia', fechasDeValor()).order('dia').limit(20000)
     if (!todos) consulta = consulta.eq('market', mercado)
-    const { data } = await consulta
-    const filas = data || []
-    const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
-    variacionDeSets = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8))
-    seriesDeSets = seriesDeValor(filas)
+    const { data, error } = await consulta
+    return error ? null : data || []
   } catch {
-    variacionDeSets = new Map()
-    seriesDeSets = new Map()
+    return null
   }
 }
 
@@ -2921,11 +2939,11 @@ async function pintarEstanteria() {
   // Sin los sets en memoria (al entrar, al cambiar de catálogo) la
   // estantería enseña su esqueleto hasta que lleguen (675).
   if (!todosLosSets && $('mcEstanteriaRejilla')) $('mcEstanteriaRejilla').innerHTML = esqueletoDeSets(6)
-  const sets = await cargarSets()
+  // Los sets y sus valores no dependen uno de otro: a la vez (983).
+  const [sets] = await Promise.all([cargarSets(), cargarValoresDeSets()])
   // Qué sets son una expansión de TCGGO (646), antes de contar nada: las
   // cartas del hijo se cuentan en el padre.
   registrarEpisodios(sets)
-  await cargarValoresDeSets()
   // Cuántas DISTINTAS tienes de cada colección. Distintas y no copias:
   // el progreso de un álbum es cuántos bolsillos has llenado, y tres
   // Charizards llenan uno.
@@ -8198,8 +8216,9 @@ async function iniciar() {
       // anteriores, así que el comentario de la 458 la empujó fuera y la
       // prueba se puso roja sin que la consulta hubiera cambiado.
       // sin rango: el nombre del dueño de la colección va en el título de la
-      // pantalla («La colección de Ash»), como texto (tanda 386).
-      const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
+      // pantalla («La colección de Ash»), como texto (tanda 386). Es el perfil
+      // que ya pidió la barra (983): sin otra espera antes de pedir tus cartas.
+      const data = await getProfile(sesion.user.id).catch(() => null)
       dueno = data || { id: sesion.user.id }
       esMia = true
     }

@@ -266,13 +266,24 @@ export async function getSession() {
   return session
 }
 
-export async function getProfile(userId) {
-  const { data } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
-  return data
+// Una vez por página (983): la barra, el arranque, la racha y la pantalla lo
+// pedían cada uno, y el de la pantalla esperaba al de la barra. Cada quien
+// recibe su copia; lo que no llega no se guarda.
+const perfilesPedidos = new Map()
+export function getProfile(userId, { fresco = false } = {}) {
+  // `fresco`: justo después de guardarlo, lo de antes ya no vale.
+  if (fresco) perfilesPedidos.delete(userId)
+  if (!perfilesPedidos.has(userId)) {
+    const pedido = supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+      .then(({ data }) => data)
+    perfilesPedidos.set(userId, pedido)
+    pedido.then((d) => { if (!d) perfilesPedidos.delete(userId) }, () => perfilesPedidos.delete(userId))
+  }
+  return perfilesPedidos.get(userId).then((d) => (d ? { ...d } : d))
 }
 
 const MAX_IMAGE_MB = 5

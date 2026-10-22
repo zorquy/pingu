@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (216) — PINGU-Claude (983 — menos esperas en fila)
+
+**Hecho**: la B de «Rápida al volver». Tu perfil se pide una vez por página
+(la barra, la racha, la portada, Mi colección y /perfil comparten); la racha
+ya contada hoy no pregunta nada; el foro, /perfil, /usuario, la portada y Mi
+colección piden lo suyo a la vez en vez de en fila. Lo último de cada
+pantalla llega en la ola 2 (portada, foro, perfil) o 3 (otro perfil); antes,
+3, 4, 5 y 8. Corrijo la propuesta: lo de «10 consultas de racha y logros por
+página» era cosa del doble; en la web era una. Sin migración.
+
+**Ficheros**: `js/app.js`, `js/gamification.js`, `js/foro.js`, `js/perfil.js`,
+`js/usuario.js`, `js/home.js`, `js/mi-coleccion.js`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-983.mjs`, 646 al día;
+el doble apunta `__QUIEN__`/`__LINEA__` (ya subido).
+Suite entera en carriles (con PostgreSQL arrancado a mitad, así que las de la
+base se repitieron en serie): todos los rojos salen igual sin la tanda (los de
+la 214 y además 848, que depende de la fecha); la 646 la puse al día.
+
+**Pendiente**: 984 y 985. En curso por mí: `sw.js` (985).
+
 ## 2026-10-22 (215) — PINGU-Claude (982 — un despliegue no tira la caché)
 
 **Hecho**: propuesta «Rápida al volver» (artifact con la medición de 32

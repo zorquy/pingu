@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { burstConfetti, achievementIconHtml, escapeHtml } from './app.js'
+import { burstConfetti, achievementIconHtml, escapeHtml, getProfile } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { logClientError } from './error-log.js'
@@ -7,16 +7,22 @@ import { logClientError } from './error-log.js'
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
 let achievementsCache = null
+// Dos que piden a la vez esperan a la misma consulta (983).
+let achievementsPedidos = null
 
 export async function getAllAchievements() {
   if (achievementsCache) return achievementsCache
-  const { data } = await supabase
+  achievementsPedidos ??= supabase
     .from('achievement_definitions')
     .select('*')
     .eq('is_active', true)
     .order('xp_reward')
-  achievementsCache = data || []
-  return achievementsCache
+    .then(({ data }) => {
+      achievementsCache = data || []
+      return achievementsCache
+    })
+    .finally(() => { achievementsPedidos = null })
+  return achievementsPedidos
 }
 
 export function invalidateAchievementsCache() {
@@ -286,6 +292,10 @@ export const CLAVE_RACHA_PROTEGIDA = 'pokedoc-racha-protegida'
 // Devuelve la racha vigente de HOY (contando la visita de ahora mismo),
 // que es lo que enseña el chip de la navbar. Null si no hay perfil.
 export async function checkDailyStreak(userId) {
+  // Lo normal (todas las páginas menos la primera del día): ya se contó hoy,
+  // y eso lo dice el perfil que la barra ya pidió (983), sin otra consulta.
+  const yaPedido = await getProfile(userId).catch(() => null)
+  if (yaPedido?.last_active_date === todayISO()) return yaPedido.current_streak || 0
   // Entre el despliegue y la migración del protector, streak_shields no
   // existe y el select entero fallaría — y con él, la racha. Si la
   // columna falta, se repliega al camino de siempre, sin escudos.

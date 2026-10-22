@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, avatarStyle, getInitial } from './app.js'
+import { escapeHtml, getSession, getProfile, avatarStyle, getInitial } from './app.js'
 import { icons } from './icons.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
 
@@ -232,27 +232,21 @@ async function cargarBienvenida(session) {
   const seccion = document.getElementById('bienvenidaSeccion')
   const hueco = document.getElementById('bienvenida')
   if (!seccion || !hueco) return
+  // Lo de hoy se baja ya, mientras llega el perfil (983).
+  const hoyMod = import('./hoy.js')
+  hoyMod.catch(() => {})
   try {
-    // sin rango: el «Hola, X» es TEXTO, no un enlace al perfil.
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('id, username, display_name, avatar_url, current_streak, total_xp')
-      .eq('id', session.user.id)
-      .maybeSingle()
+    // sin rango: el «Hola, X» es TEXTO, no un enlace al perfil. Es el perfil
+    // que ya pidió la barra (983), entero: con los escudos de la racha, que
+    // antes iban en otra consulta detrás (sin la migración del protector la
+    // columna no viene y son cero).
+    const profile = await getProfile(session.user.id)
     if (!profile) return document.documentElement.classList.remove('con-sesion')
 
     const nombre = profile.display_name || profile.username || ''
     // En el PC la racha ya va en la barra de arriba (780, LO6): aquí, solo en el móvil.
     const racha = profile.current_streak || 0
-
-    // El protector de racha: los escudos guardados van en consulta
-    // aparte y silenciosa — antes de la migración la columna no existe
-    // y meterla en el select principal tumbaría la bienvenida entera.
-    let escudos = 0
-    try {
-      const { data: p2 } = await supabase.from('user_profiles').select('streak_shields').eq('id', session.user.id).single()
-      escudos = p2?.streak_shields || 0
-    } catch {}
+    const escudos = profile.streak_shields || 0
     // Y el aviso de «te ha salvado»: lo deja checkDailyStreak en
     // sessionStorage al gastarse el escudo; se enseña una vez y fuera.
     let salvada = false
@@ -285,7 +279,7 @@ async function cargarBienvenida(session) {
     document.documentElement.classList.add('con-sesion')
     seccion.style.display = ''
     // Lo de hoy, debajo del saludo (SCHEMA 744).
-    import('./hoy.js').then((m) => m.montarHoy(session)).catch(() => {})
+    hoyMod.then((m) => m.montarHoy(session)).catch(() => {})
   } catch {}
 }
 

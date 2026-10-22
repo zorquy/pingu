@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Tu perfil, el de los demás, el foro y la portada piden todo a la vez en vez de una cosa detrás de otra: salen enteros antes.", "enlace": "/perfil" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Cuando subimos una mejora, tu móvil ya no vuelve a bajarse la web entera: solo lo que ha cambiado. La segunda página que abres cada día sale al momento.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las páginas ya no suben y bajan mientras cargan: cada cosa sale en su sitio desde el principio, sobre todo en el móvil.", "enlace": "/torneos" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Abrir una expansión es más rápido: la pantalla sale montada al momento, la segunda vez las cartas ya están, y en el móvil entra deslizando como en una app.", "enlace": "/cartas?ver=album" },

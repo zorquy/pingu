@@ -27,8 +27,11 @@ let followerCache = []
 async function resolveProfileId() {
   if (profileId) return true
   if (!usernameParam) return false
-  const { data } = await supabase.from('user_profiles').select('id').ilike('username', usernameParam).maybeSingle()
+  // La fila entera, no solo el id (983): la cabecera la usa tal cual y se
+  // ahorra otra espera.
+  const { data } = await supabase.from('user_profiles').select('*').ilike('username', usernameParam).maybeSingle()
   profileId = data?.id || null
+  if (data) profile = data
   return !!profileId
 }
 
@@ -55,9 +58,13 @@ document.addEventListener('keydown', (e) => {
 })
 
 async function loadHeader() {
-  const { data } = await supabase.from('user_profiles').select('*').eq('id', profileId).single()
-  profile = data
+  if (profile?.id !== profileId) {
+    const { data } = await supabase.from('user_profiles').select('*').eq('id', profileId).single()
+    profile = data
+  }
   if (!profile) return false
+  // Los logros (para la chapa del destacado) salen ya, mientras se pinta.
+  const logros = getAllAchievements()
 
   const name = profile.display_name || profile.username || 'Usuario'
   const miga = document.getElementById('migaNombre')
@@ -77,7 +84,7 @@ async function loadHeader() {
 
   applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
 
-  const achievements = await getAllAchievements()
+  const achievements = await logros
   const showcase = achievements.find((a) => a.id === profile.showcase_achievement)
 
   document.getElementById('heroInfo').innerHTML = `
@@ -96,21 +103,28 @@ async function loadHeader() {
 }
 
 async function loadReputationAndGuides() {
-  const { count: approvedCount } = await supabase
-    .from('guides')
-    .select('*', { count: 'exact', head: true })
-    .eq('author_id', profileId)
-    .eq('review_status', 'approved')
-
-  // A cuántos les ha servido lo que ESCRIBE (974), no una nota puesta a la
-  // persona: eso último se quitó (ver SCHEMA.md).
-  const servido = await servidoDeAutor(profileId)
+  // Las cuatro cosas a la vez (983): antes iban de una en una. A cuántos les
+  // ha servido lo que ESCRIBE (974), no una nota puesta a la persona.
+  const [{ count: approvedCount }, servido, { cartas, torneos }, { data: guides }] = await Promise.all([
+    supabase
+      .from('guides')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', profileId)
+      .eq('review_status', 'approved'),
+    servidoDeAutor(profileId),
+    contarCartasYTorneos(supabase, profileId),
+    supabase
+      .from('guides')
+      .select('title, slug, cover_emoji, categories(name)')
+      .eq('author_id', profileId)
+      .eq('review_status', 'approved')
+      .order('published_at', { ascending: false }),
+  ])
 
   const tier = contributorTier(approvedCount || 0)
 
   // Las cifras (867), las mismas que en tu perfil; Guías y Torneos abren
   // su pestaña. Seguidores y siguiendo ya vienen en el HTML.
-  const { cartas, torneos } = await contarCartasYTorneos(supabase, profileId)
   const lote = document.getElementById('profileStats')
   // Con la colección pública, «Cartas» la abre entera (944).
   const coleccion = profile?.coleccion_publica && profile.username ? urlDeColeccion(profile.username) : ''
@@ -127,13 +141,6 @@ async function loadReputationAndGuides() {
     hueco.outerHTML = `<button type="button" class="perfil-rango" id="btnTierInfo">${tier.icon}${escapeHtml(tier.title)}</button>`
     document.getElementById('btnTierInfo').addEventListener('click', () => openModal(tierLadderHtml(approvedCount || 0)))
   } else hueco?.remove()
-
-  const { data: guides } = await supabase
-    .from('guides')
-    .select('title, slug, cover_emoji, categories(name)')
-    .eq('author_id', profileId)
-    .eq('review_status', 'approved')
-    .order('published_at', { ascending: false })
 
   contarPestania('guides', approvedCount || 0)
 
@@ -329,9 +336,10 @@ async function init() {
   }
 
   currentSession = await getSession()
-  isViewerAdmin = currentSession ? !!(await getProfile(currentSession.user.id))?.is_admin : false
+  // Quien mira y a quién se mira, a la vez (983).
+  const [ok, yo] = await Promise.all([loadHeader(), currentSession ? getProfile(currentSession.user.id) : null])
+  isViewerAdmin = !!yo?.is_admin
 
-  const ok = await loadHeader()
   if (!ok) {
     document.querySelector('main').innerHTML = `<p class="empty-state">Usuario no encontrado.</p>`
     return
@@ -348,18 +356,18 @@ async function init() {
   }
   // Lo que da y lo que busca (887): la pestaña Cambios y la chapa de arriba.
   import('./perfil-cambios.js').then((m) => m.pintarCambiosDe(document.getElementById('perfilCambios'), profile, currentSession)).catch(() => {})
-  await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
-  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()
   // La vitrina (743), la de esta persona: solo lo que hay.
   // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
   // Debajo, su colección si la tiene pública (944): con ella la pestaña
-  // sale aunque la vitrina esté vacía.
+  // sale aunque la vitrina esté vacía. Sale ya, sin esperar a las cifras (983).
   const vitrina = import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => null)
   const coleccion = import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), profile)).catch(() => false)
   Promise.all([vitrina, coleccion]).then(([r, hayColeccion]) => {
     const conCartas = (r?.estado === 'ok' && r.cartas.length > 0) || hayColeccion
     vitrinaLista({ visible: conCartas, conCartas })
   })
+  await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
+  if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()
 
   // Con las cuentas ya puestas, se abre la que tenga algo — y solo si
   // quien mira no ha tocado nada todavía ni ha llegado con un #hash.
