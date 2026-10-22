@@ -41785,6 +41785,49 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 982 — Un despliegue no tira la caché (propuesta «Rápida al volver», A)
+
+PINGU: «quiero agilizar la web… si carga lento la primera vez, ni tan mal,
+pero que luego vaya rápido». Antes de proponer se MIDIÓ
+(`herramientas/medir-tiempos.mjs`, rama `pruebas`: 32 páginas en un iPhone
+con 4G, CPU a la mitad y 250 ms por consulta; la propuesta con las cifras es
+el artifact «Rápida al volver»). La segunda visita ya iba bien en casi todas
+(0,6 s de media), salvo por una cosa que el laboratorio no veía: la rama se
+despliega unas 20 veces al día y el service worker vaciaba las dos cachés al
+primer cambio (la 897 y la 910). Quien entra a diario se lo encontraba casi
+siempre: la primera página salía de la caché vieja y la segunda iba como la
+primera vez. Medido con 100 ms de red (`herramientas/medir-despliegue.mjs`):
+foro 0,1 → 0,8 s, Mi colección 0,4 → 2,2 s, torneos 0,1 → 0,6 s.
+
+Ahora las dos cachés van por GENERACIÓN (`pokedoc-ficheros-N`,
+`pokedoc-paginas-N`; la 1 son las de siempre) y la que se sirve la apunta
+`pokedoc-estado-1` (`/__generacion`). Al ver un cambio (`revisar` →
+`distintas`), `renovar(g)`:
+
+1. mete lo que cambió en la generación g+1;
+2. pregunta por cada llave de la g con su firma (`if-none-match` o
+   `if-modified-since`, `cache: 'no-store'`): un 304 copia lo guardado sin
+   bajar nada; un 200, lo nuevo; un fallo no entra (se pedirá a la red);
+3. si más de la mitad no contesta (la red se fue a mitad), no cambia: tira la
+   a medias y se queda la de antes. A la tercera renovación que revienta
+   seguida, vacía como antes, que nunca sirve lo viejo;
+4. escribe el puntero (UNA escritura) y borra las generaciones de antes de
+   la g, que ya no sirve nadie. La g se queda para las pestañas que la usan.
+
+No mezclar dos despliegues (la 510, la 910) se cumple por PESTAÑA: `genDe`
+apunta la generación de cada una (`resultingClientId` al navegar, `clientId`
+al pedir un fichero). Una página que sale de la caché es de su generación;
+una que llega de la red mientras se renueva ya es de la nueva, y sus módulos
+no salen de la vieja. Lo que se pide desde una generación pasada no se
+guarda ni renueva. Si el worker se durmió y no sabe de quién es una pestaña,
+la activa; y si aun así llega una mezcla, error-log.js recarga (910).
+
+Después, con el mismo medidor: foro 0,15 s, Mi colección 0,3 s y torneos 0,1 s
+tras un despliegue (lo mismo que sin él).
+
+Prueba: `test-tanda-982.mjs` (el sw.js de verdad en una caja, con pestañas);
+786, 897 y 910 al día.
+
 ## Tanda 981 — Que la web no suba y baje al cargar
 
 PINGU: «quiero que cargue más al instante, sin que cargue con el esqueleto

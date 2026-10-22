@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Cuando subimos una mejora, tu móvil ya no vuelve a bajarse la web entera: solo lo que ha cambiado. La segunda página que abres cada día sale al momento.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las páginas ya no suben y bajan mientras cargan: cada cosa sale en su sitio desde el principio, sobre todo en el móvil.", "enlace": "/torneos" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Abrir una expansión es más rápido: la pantalla sale montada al momento, la segunda vez las cartas ya están, y en el móvil entra deslizando como en una app.", "enlace": "/cartas?ver=album" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "«¿De qué expansión es?» ya no ofrece la Trainer Gallery como si fuera otra expansión: la respuesta es la expansión en la que sale la carta.", "enlace": "/que-expansion" },

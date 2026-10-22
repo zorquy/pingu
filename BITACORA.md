@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (215) — PINGU-Claude (982 — un despliegue no tira la caché)
+
+**Hecho**: propuesta «Rápida al volver» (artifact con la medición de 32
+páginas); PINGU: «adelante con las propuestas» (todo lo recomendado: A–E, E
+solo en wifi, D al tocar o con el ratón encima, Mensajes fuera de C). Esta es
+la A: el service worker ya no vacía sus cachés en cada despliegue; llena la
+generación siguiente por detrás (solo baja lo que cambió) y cambia de golpe,
+con cada pestaña en su generación. Segunda página tras un despliegue: Mi
+colección 2,2 → 0,3 s. Sin migración.
+
+**Ficheros**: `sw.js`, `CLAUDE.md`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-982.mjs`; 786, 897 y 910 al día;
+`herramientas/medir-tiempos.mjs`, `medir-despliegue.mjs`, `medir-esperas.mjs`
+y `servir-gzip.py` (ya subidas).
+
+**Pendiente**: 983 (menos esperas en fila), 984 (lo de la última vez en las
+pantallas que faltan) y 985 (adelantarse a la página siguiente y guardar las
+secciones). En curso por mí: `sw.js` (la 985 lo vuelve a tocar).
+
 ## 2026-10-22 (214) — PINGU-Claude (981 — que la web no suba y baje al cargar)
 
 **Hecho**: medido página a página con `herramientas/medir-saltos.mjs` (CLS en

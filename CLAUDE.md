@@ -1041,22 +1041,27 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   todas las páginas. Lo vigila `test-tanda-805.mjs`. Y una columna nueva de
   `user_profiles` que no deba escribirse uno mismo va en
   `perfil_guarda_columnas` (supabase-migration-seguridad-perfil.sql).
-- **El service worker sirve FICHEROS y PÁGINAS desde dos cachés ATADAS**
-  (tanda 897): un cambio visto en cualquiera vacía las dos (`vaciarTodo` en
-  `sw.js`), que es lo que garantiza que lo guardado sea del mismo
-  despliegue y que lo viejo dure una pantalla como mucho. Si añades una
-  caché de cosas de la web, o entra en el vaciado o no es de la web. Solo
+- **El service worker sirve FICHEROS y PÁGINAS desde dos cachés por
+  GENERACIÓN** (tandas 897 y 982): un cambio visto en cualquiera no vacía
+  nada; `renovar` llena por detrás la generación siguiente preguntando
+  fichero a fichero (un 304 no baja nada) y cambia el puntero
+  (`pokedoc-estado-1`) de una vez; cada pestaña sigue con la suya (`genDe`,
+  por `clientId`/`resultingClientId`). Con ~20 despliegues al día, vaciarlo
+  todo era bajarlo todo casi en cada visita. Si añades una caché de cosas de
+  la web, o va por generaciones o no es de la web. Solo
   la dirección PELADA de una página se guarda (`esPaginaDeCache`): una
   página nueva que meta-social reescriba por su consulta, o que no deba
   abrirse al momento, va en `SIN_PAGINA`. Y **`route` de Playwright NO
   llega a lo que pide el worker**: un despliegue se simula escribiendo en
   el sitio servido (`PD_SITIO`) con la fecha del fichero adelantada
   (`utimesSync`), no con `fulfill`.
-- **Un vaciado de caché que no es de una vez MEZCLA despliegues** (tanda
+- **Un cambio de caché que no es de una vez MEZCLA despliegues** (tanda
   910): el service worker borraba llave a llave y una página abierta en
   ese rato bajaba módulos nuevos y viejos («Importing binding name
-  'TOPE_CARTAS' is not found»). `vaciarTodo` borra las cachés enteras y una
-  revisión que salió antes de un vaciado no guarda. Y si aun así llega una
+  'TOPE_CARTAS' is not found»). Desde la 982 el cambio es UNA escritura (el
+  puntero de generación), una página que llega de la red durante una
+  renovación ya es de la nueva, y lo que se escribe desde una generación
+  pasada no se guarda (`test-tanda-982.mjs`). Y si aun así llega una
   mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Un error de
   import en el panel justo después de un push es esto antes que un export
   que falta: `test-imports` lo distingue en un segundo.

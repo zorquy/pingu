@@ -3,8 +3,8 @@
 //
 // La regla de siempre sigue en pie: un fallo aquí jamás puede dejar la web
 // sirviendo ficheros viejos. La página «Sin conexión» solo se sirve cuando
-// una NAVEGACIÓN no llega a la red; los ficheros de la web, desde la 786,
-// con la caché que se vacía entera al primer cambio (abajo).
+// una NAVEGACIÓN no llega a la red; los ficheros y las páginas de la web,
+// desde la 786 y la 897, desde su caché, por generaciones (982, abajo).
 const CACHE = 'pokedoc-sin-conexion-1'
 const PAGINA = '/sin-conexion.html'
 
@@ -15,11 +15,12 @@ self.addEventListener('install', (e) => {
 })
 
 self.addEventListener('activate', (e) => {
-  // Las cachés de versiones anteriores de esta página, fuera.
+  // Las cachés de versiones anteriores de esta página, fuera. Las de cada
+  // generación de la web (982) no: esas las recoge `renovar`.
   e.waitUntil(
     caches
       .keys()
-      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== ASSETS && k !== LECTURA && k !== PAGINAS).map((k) => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== LECTURA && k !== ESTADO && !DE_GENERACION.test(k)).map((k) => caches.delete(k))))
       .catch(() => {})
       .then(() => self.clients.claim())
   )
@@ -29,37 +30,17 @@ self.addEventListener('activate', (e) => {
 // las imágenes propias se sirven desde la caché y se revisan por detrás
 // («stale-while-revalidate»): con `max-age=0` cada pantalla preguntaba por
 // sus 25 o 30 ficheros antes de pintar, y en la app instalada con 4G regular
-// era medio segundo en blanco. Las páginas siguen yendo a la red primero.
-//
-// La regla de arriba (nunca servir la web VIEJA) se cumple así: en cuanto la
-// revisión de UN fichero ve que ha cambiado, se vacía la caché ENTERA. Lo
-// viejo se sirve como mucho en una pantalla —y de una vez, todo del mismo
-// despliegue—, y la siguiente lo baja todo nuevo. Mezclar módulos de dos
-// despliegues es lo que rompe una página entera (la 510), y por eso no se
-// guarda uno nuevo junto a otros viejos. Si una tanda no puede convivir ni
-// una pantalla con la anterior, sube ASSETS_VERSION.
-const ASSETS_VERSION = 1
-const ASSETS = `pokedoc-ficheros-${ASSETS_VERSION}`
+// era medio segundo en blanco.
 const esFichero = (url) => url.origin === self.location.origin && /^\/(css|js|assets)\//.test(url.pathname)
 
-// LAS PÁGINAS, TAMBIÉN AL MOMENTO (897, R5). La página HTML iba siempre a
-// la red primero: 150–400 ms en blanco en 4G antes de empezar, con los
-// ficheros ya en caché. Ahora las páginas de la casa se sirven de su caché
-// y se revisan por detrás, como los ficheros. Y la regla de no servir la
-// web vieja se cumple ATANDO las dos cachés: un cambio visto en cualquier
-// fichero o en cualquier página vacía LAS DOS (`vaciarTodo`), así que lo que
-// hay guardado entró siempre después del último cambio visto —del mismo
-// despliegue que lo demás— y lo viejo dura, como mucho, una pantalla.
-//
-// Solo la dirección pelada de una página (`/foro`, `/aprender.html`): con
-// consulta o con más trozos no se guarda, que ahí el servidor puede
-// contestar otra cosa (meta-social reescribe la cabecera de /guia, /carta,
-// /coleccion, /curso y /categoria según lo que se pide; /usuario y /tema
-// llegan por reescritura). Y se quedan fuera las que son otra cosa: la
-// feria y las de leer tienen su propia caché, /sin-conexion es el respaldo,
-// y /auth, /reset-password, /onboarding y /admin no se abren «al momento»
-// desde ninguna barra.
-const PAGINAS = 'pokedoc-paginas-1'
+// LAS PÁGINAS, TAMBIÉN AL MOMENTO (897, R5): las páginas de la casa se
+// sirven de su caché y se revisan por detrás, como los ficheros. Solo la
+// dirección pelada (`/foro`, `/aprender.html`): con consulta o con más trozos
+// el servidor puede contestar otra cosa (meta-social reescribe /guia, /carta,
+// /coleccion, /curso y /categoria; /usuario y /tema llegan por reescritura).
+// Fuera también las que son otra cosa: la feria y las de leer tienen su
+// caché, /sin-conexion es el respaldo, y /auth, /reset-password, /onboarding
+// y /admin no se abren «al momento» desde ninguna barra.
 const SIN_PAGINA = new Set(['feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
 function esPaginaDeCache(url) {
   if (url.origin !== self.location.origin || url.search) return false
@@ -67,36 +48,130 @@ function esPaginaDeCache(url) {
   return !!m && !SIN_PAGINA.has(m[1])
 }
 
-// Un despliegue nuevo: fuera todo lo de antes, páginas y ficheros, y entra
-// solo lo que llegue desde ahora. DE UNA VEZ (910): borrar llave a llave
-// dejaba la caché a medias durante cientos de vueltas, y una página que se
-// abría en ese rato bajaba unos módulos nuevos y otros viejos —«Importing
-// binding name 'TOPE_CARTAS' is not found» en /buscar, la 510 otra vez—.
-// `generacion` cuenta los vaciados: una revisión que empezó antes de uno
-// no guarda lo suyo, que pudo pedirlo antes del despliegue.
-let generacion = 0
-async function vaciarTodo() {
-  generacion++
-  await Promise.all([caches.delete(ASSETS), caches.delete(PAGINAS)])
+// UN DESPLIEGUE, POR GENERACIONES (982). Ficheros y páginas van en dos
+// cachés por GENERACIÓN (`pokedoc-ficheros-N`, `pokedoc-paginas-N`), y la que
+// se sirve es la que apunta ESTADO. La regla de siempre —nunca mezclar
+// módulos de dos despliegues, que rompe la página entera (la 510, la 910)—
+// se cumplía vaciando las dos al primer cambio visto; con ~20 despliegues al
+// día eso era bajarlo todo casi en cada visita (medido: la segunda página,
+// de 0,4 a 2,2 s en Mi colección). Ahora, al ver un cambio, `renovar` llena
+// la generación siguiente por detrás preguntando fichero a fichero «¿ha
+// cambiado?» (un 304 no baja nada) y al acabar cambia el puntero DE UNA VEZ.
+// Mientras tanto la de antes sigue entera.
+//
+// Y cada pestaña se queda con SU generación (`genDe`): una página que llegó
+// de la red durante la renovación ya es del despliegue nuevo y sus módulos
+// no salen de la caché vieja; una que salió de la caché vieja sigue con lo
+// viejo aunque el puntero cambie. Si el worker se ha dormido y no sabe de
+// quién es una pestaña, la activa (y si aun así llega una mezcla, la página
+// se recarga sola: error-log.js, la 910).
+const ESTADO = 'pokedoc-estado-1'
+const DE_GENERACION = /^pokedoc-(ficheros|paginas)-(\d+)$/
+const ficheros = (g) => `pokedoc-ficheros-${g}`
+const paginas = (g) => `pokedoc-paginas-${g}`
+let activa = null
+const genActiva = () =>
+  (activa ??= caches.open(ESTADO).then((c) => c.match('/__generacion')).then(async (r) => (r ? Number(await r.text()) || 1 : 1)).catch(() => 1))
+const genDe = new Map()
+function apuntar(id, g) {
+  if (!id) return
+  genDe.set(id, g)
+  // Las pestañas cerradas no avisan: se olvidan las más viejas.
+  if (genDe.size > 100) genDe.delete(genDe.keys().next().value)
+}
+const genDelCliente = async (id) => (id && genDe.get(id)) || genActiva()
+let renovando = null
+let renovandoA = 0
+// Tres renovaciones fallidas seguidas (sin red a medias, una caché que no
+// deja escribir): se vuelve a lo de antes, vaciar, que nunca sirve lo viejo.
+let fallos = 0
+
+const firma = (r) => r.headers.get('etag') || r.headers.get('last-modified')
+async function distintas(guardada, fresca) {
+  // La firma es el `etag` (Netlify lo pone) o la fecha; sin ninguna, el contenido.
+  if (firma(guardada) && firma(fresca)) return firma(guardada) !== firma(fresca)
+  return (await guardada.clone().text()) !== (await fresca.clone().text())
+}
+const sirve = (r) => r.ok && r.type === 'basic' && !r.redirected
+
+// ¿Ha cambiado esto? Con la firma de lo guardado: un 304 es «no», sin bajar nada.
+async function comoQuedaEn(req, guardada) {
+  const cab = {}
+  if (guardada.headers.get('etag')) cab['if-none-match'] = guardada.headers.get('etag')
+  else if (guardada.headers.get('last-modified')) cab['if-modified-since'] = guardada.headers.get('last-modified')
+  const r = await fetch(new Request(req.url, { headers: cab, cache: 'no-store', credentials: 'same-origin' }))
+  if (r.status === 304) return guardada
+  return sirve(r) ? r : null
 }
 
-async function revisar(peticion, nombre, guardada) {
-  const desde = generacion
+function renovar(g, disparo, fresca) {
+  if (renovando) return renovando
+  const n = g + 1
+  renovandoA = n
+  renovando = (async () => {
+    const pares = [
+      [await caches.open(ficheros(g)), await caches.open(ficheros(n))],
+      [await caches.open(paginas(g)), await caches.open(paginas(n))],
+    ]
+    if (disparo) await pares[esFichero(new URL(disparo.url || disparo, self.location.href)) ? 0 : 1][1].put(disparo, fresca)
+    let preguntadas = 0
+    let sinRespuesta = 0
+    for (const [vieja, nueva] of pares) {
+      const claves = await vieja.keys()
+      // De seis en seis, como un navegador por servidor.
+      for (let i = 0; i < claves.length; i += 6) {
+        await Promise.all(claves.slice(i, i + 6).map(async (req) => {
+          if (await nueva.match(req)) return
+          const guardada = await vieja.match(req)
+          if (!guardada) return
+          preguntadas++
+          const r = await comoQuedaEn(req, guardada).catch(() => null)
+          // Lo que no se ha podido preguntar no entra: se pedirá a la red.
+          if (r) await nueva.put(req, r)
+          else sinRespuesta++
+        }))
+      }
+    }
+    // Si se ha ido la red a mitad, cambiar dejaría una caché medio vacía (y
+    // sin nada para cuando no haya cobertura): se queda la de antes.
+    if (sinRespuesta > preguntadas / 2) throw new Error('sin red para renovar')
+    await (await caches.open(ESTADO)).put('/__generacion', new Response(String(n)))
+    activa = Promise.resolve(n)
+    fallos = 0
+    // La de antes se queda para las pestañas que aún la usan; las anteriores, fuera.
+    for (const k of await caches.keys()) {
+      const m = DE_GENERACION.exec(k)
+      if (m && Number(m[2]) < g) await caches.delete(k)
+    }
+  })()
+    .catch(async () => {
+      if (++fallos >= 3) {
+        fallos = 0
+        await Promise.all([caches.delete(ficheros(g)), caches.delete(paginas(g)), caches.delete(ficheros(n)), caches.delete(paginas(n))]).catch(() => {})
+      } else await Promise.all([caches.delete(ficheros(n)), caches.delete(paginas(n))]).catch(() => {})
+    })
+    .finally(() => {
+      renovando = null
+      renovandoA = 0
+    })
+  return renovando
+}
+
+// Pide a la red lo de la generación `g` y lo guarda donde toca: en la suya si
+// es la activa (o la que se está llenando); en una vieja, no se escribe.
+async function revisar(peticion, tipo, guardada, g) {
   const fresca = await fetch(peticion, { cache: 'no-cache' })
   // Una respuesta que viene de una redirección no sirve para una navegación.
-  if (!fresca.ok || fresca.type !== 'basic' || fresca.redirected) return fresca
-  // La firma es el `etag` (Netlify lo pone) o la fecha; sin ninguna de las
-  // dos, se compara el contenido, que sin firma no hay otra forma de saberlo.
-  const firma = (r) => r.headers.get('etag') || r.headers.get('last-modified')
-  let cambio = false
-  if (guardada) {
-    if (firma(guardada) && firma(fresca)) cambio = firma(guardada) !== firma(fresca)
-    else cambio = (await guardada.clone().text()) !== (await fresca.clone().text())
+  if (!sirve(fresca)) return fresca
+  // Con copia, quien espera esto es la revisión por detrás: puede esperar a
+  // que se llene la generación nueva.
+  const actual = await genActiva()
+  if (guardada && (await distintas(guardada, fresca))) {
+    // Desde una generación ya pasada no se renueva: esa la renovó otra.
+    if (g === actual) await renovar(g, peticion, fresca.clone())
+    return fresca
   }
-  if (cambio) await vaciarTodo()
-  else if (desde !== generacion) return fresca
-  // Abierta otra vez por su nombre: si se vació, la de antes ya no es la caché.
-  await (await caches.open(nombre)).put(peticion, fresca.clone())
+  if (g === actual || g === renovandoA) await (await caches.open(tipo === 'ficheros' ? ficheros(g) : paginas(g))).put(peticion, fresca.clone())
   return fresca
 }
 
@@ -105,13 +180,27 @@ async function revisar(peticion, nombre, guardada) {
 // («Cannot construct a Request with mode navigate and a RequestInit»), así
 // que la revisión va por la dirección, que es también la llave.
 async function paginaDeCasa(req, e) {
-  const guardada = await (await caches.open(PAGINAS)).match(req.url)
-  const revision = revisar(req.url, PAGINAS, guardada)
+  const g = await genActiva()
+  const guardada = await (await caches.open(paginas(g))).match(req.url)
   if (guardada) {
-    e.waitUntil(revision.catch(() => {}))
+    apuntar(e.resultingClientId, g)
+    e.waitUntil(revisar(req.url, 'paginas', guardada, g).catch(() => {}))
     return guardada
   }
-  return revision.catch(async () => (await caches.match(PAGINA)) || Response.error())
+  // De la red: si hay una renovación en marcha, esta página ya es del despliegue nuevo.
+  const de = renovandoA || g
+  apuntar(e.resultingClientId, de)
+  return revisar(req.url, 'paginas', null, de).catch(async () => (await caches.match(PAGINA)) || Response.error())
+}
+
+async function ficheroDeCasa(req, e) {
+  const g = await genDelCliente(e.clientId)
+  const guardada = await (await caches.open(ficheros(g))).match(req)
+  if (guardada) {
+    e.waitUntil(revisar(req, 'ficheros', guardada, g).catch(() => {}))
+    return guardada
+  }
+  return revisar(req, 'ficheros', null, g)
 }
 
 // LAS PÁGINAS DE LEER (819, VE4): una guía o una noticia ya leída se abre
@@ -172,17 +261,7 @@ self.addEventListener('fetch', (e) => {
     return
   }
   if (req.method !== 'GET' || !esFichero(new URL(req.url))) return
-  e.respondWith(
-    (async () => {
-      const guardada = await (await caches.open(ASSETS)).match(req)
-      const revision = revisar(req, ASSETS, guardada)
-      if (guardada) {
-        e.waitUntil(revision.catch(() => {}))
-        return guardada
-      }
-      return revision
-    })().catch(() => fetch(req))
-  )
+  e.respondWith(ficheroDeCasa(req, e).catch(() => fetch(req)))
 })
 
 self.addEventListener('push', (e) => {
