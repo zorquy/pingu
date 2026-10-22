@@ -6,17 +6,19 @@ import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
 import { avatarStyle, getInitial, profileUrl } from './app.js'
 import { rutaDeCarta } from './carta-ruta.js'
-import { cadenaDeEscaneo } from './escaneo-carta.js'
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { euros } from './cardmarket.js'
 import { atributosDeRango } from './rangos.js'
 import { nombreDeTipo, precioDeProducto, rutaDeProducto } from './productos.js'
+import { rutaDeExpansion } from './buscador-puro.js'
 
 // Adónde lleva cada fila. Va aparte del HTML porque la paleta navega con
 // el teclado y necesita la dirección sin pintar nada.
 export function destinoDe(grupo, f) {
   if (grupo === 'cartas') return rutaDeCarta(f)
   if (grupo === 'productos') return rutaDeProducto(f)
+  if (grupo === 'expansiones') return rutaDeExpansion(f)
   if (grupo === 'guias') return `/guia/${encodeURIComponent(f.slug)}`
   if (grupo === 'temas') return `/tema/${encodeURIComponent(f.id)}`
   if (grupo === 'gente') return profileUrl(f)
@@ -42,6 +44,15 @@ export function interiorDe(grupo, f) {
     return `<img class="bs-foto bs-foto-producto" src="${escapeHtml(f.image || '')}" data-cadena="[]" width="36" height="50" loading="lazy" alt="">
       <span class="bs-texto"><b>${escapeHtml(f.name)}</b><small>${escapeHtml(nombreDeTipo(f.tipo))}${japones}</small></span>
       ${p ? `<span class="bs-precio">${escapeHtml(euros(p.valor))}</span>` : ''}`
+  }
+  // Una expansión (972): su logo, su nombre, su día y cuántas cartas tiene.
+  if (grupo === 'expansiones') {
+    const logo = atributosDeEscaneo(f.logosDelSet || [], "this.remove()")
+    const dia = f.release_date ? new Date(`${String(f.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+    const cartas = Number(f.card_count_total || f.card_count_official) || 0
+    const detalle = [dia, cartas ? `${cartas} cartas` : '', f.market === 'JP' ? 'Japón' : ''].filter(Boolean).join(' · ')
+    return `<span class="bs-logo">${logo ? `<img ${logo} alt="" width="48" height="28" loading="lazy" />` : ''}</span>
+      <span class="bs-texto"><b>${escapeHtml(nombreDeSet(f))}</b>${detalle ? `<small>${escapeHtml(detalle)}</small>` : ''}</span>`
   }
   if (grupo === 'guias') {
     return `<span class="bs-icono" aria-hidden="true">${icons.bookOpen(18)}</span>

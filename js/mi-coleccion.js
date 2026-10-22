@@ -2271,8 +2271,8 @@ function pintarFotoDeFicha(c, l) {
   if (fondo) {
     fondo.style.backgroundImage = ''
     const poner = () => {
-      const u = urlParaCss(foto.currentSrc || foto.src)
-      fondo.style.backgroundImage = u ? `url("${u}")` : ''
+      const src = foto.currentSrc || foto.src
+      fondo.style.backgroundImage = urlParaCss(src) ? `url("${urlParaCss(src)}")` : ''
     }
     if (foto?.complete && foto.naturalWidth) poner()
     else foto?.addEventListener('load', poner, { once: true })

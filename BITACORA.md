@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (207) — PINGU-Claude (972 — el buscador de arriba, B1–B6)
+
+**Hecho** (PINGU: «sigue con tus propuestas»): /buscar y la paleta buscan
+también EXPANSIONES (por código, id o nombre, en español, inglés y japonés),
+ponen arriba «Lo más probable» cuando lo escrito señala una carta concreta
+(«mew 151»), cuentan en cada chapa, avisan de las cartas japonesas y «@»
+busca solo gente. La chapa «Cartas» lleva a Cartas › Buscar: una sola
+pantalla de cartas. Y en `js/mi-coleccion.js` la guarda de la 805 veía un
+`url(${u})` con `urlParaCss` una línea antes: ahora va en la misma.
+
+**Ficheros**: `js/buscador-puro.js` (nuevo), `js/buscador.js`,
+`js/buscador-filas.js`, `js/paleta.js`, `js/search.js`, `buscar.html`,
+`css/buscador.css`, `js/mi-coleccion.js`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-972.mjs`,
+`test-tanda-972-pantalla.mjs`; 909 y 718 al día; 968, 524, 299, 305,
+311–313, 737, 753, 805, 906 e imports en verde. Portada: 114,8 KB (no cambia).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-22 (206) — PINGU-Claude (971 — en una liga, cada jornada se empareja de cero)
 
 **Hecho** (PINGU eligió la A de la propuesta): la ronda 1 de cada jornada,

@@ -82,7 +82,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   otro tope y otro orden (24 por orden alfabético) y el Zapdos ex de 151 no
   salía buscando «zapdos». Si una pantalla nueva busca cartas por lo que
   escribe alguien, pasa por ahí con sus columnas y sus filtros; no copies la
-  consulta.
+  consulta. Y /buscar NO pinta su propia lista de cartas (972): la chapa
+  «Cartas» y `?en=cartas` llevan a `/cartas?ver=buscar&q=`; lo puro de
+  arriba (expansiones que casan, el mejor resultado, las cuentas, «@») vive
+  en `js/buscador-puro.js`.
   Los productos sellados, con `buscarProductos` (`js/productos-valor.js`,
   968): un `or` por palabra con su traducción (`terminosDeProducto`: «lata»
   es «tin»). Y desde fuera, un producto se abre en `/cartas?ver=productos&

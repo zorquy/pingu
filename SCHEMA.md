@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 972 — El buscador de arriba: expansiones, el mejor resultado y una sola pantalla de cartas
+
+PINGU eligió B1–B6 de la propuesta (Sergio: «el buscador es horroroso para
+buscar cartas»; tres pasos para llegar a Cartas › Buscar). Lo puro vive en
+`js/buscador-puro.js`, sin red, para /buscar, la paleta y las pruebas:
+
+- **B1 · Expansiones** (grupo nuevo, entre Cartas y Productos):
+  `expansionesQueCasan(sets, q, límite)` sobre `setsDelCatalogo` (WEST y JP,
+  la CDN de la 813). Grados: código o id tal cual («MEW», «sv3») → nombre
+  igual («151») → empieza por → todas las palabras; dentro de cada grado, la
+  más nueva primero. Ni TCG Pocket (`esDelTCG`) ni las `oculto`, y dos filas
+  con el mismo nombre en el mismo catálogo son una. Lleva a su estantería
+  (`rutaDeExpansion`, `&catalogo=JP` para la japonesa).
+- **B2 · Lo más probable**: `mejorResultado(todas, leida)` con lo que
+  `leerBusqueda` saca de lo escrito: si un número impreso lo lleva UNA sola
+  de las que salen, o lo lleva alguna y la expansión se ha dicho («MEW
+  151»), esa va arriba en grande. Si «25» lo llevan veinte, no hay mejor.
+- **B3 · Una pantalla de cartas**: la chapa «Cartas» y `?en=cartas` llevan a
+  `/cartas?ver=buscar&q=…` (con `location.replace` la segunda, para no dejar
+  una entrada en el historial). /buscar ya no pinta su lista de cartas por
+  expansión (`seccionDeCartas` se fue): la de Cartas es la que manda.
+- **B4 · Cuentas en las chapas**: `cuentaDeGrupo(estado, pedidos)`: el total
+  si se sabe, «4+» si se llegó a lo pedido, sin número si falló o no se
+  preguntó. Se guardan por `q`, así que cambiar de chapa no las borra.
+- **B5 · También en Japón**: la consulta de cartas pregunta en paralelo al
+  catálogo japonés (`name_search` lleva `name_en`, así que «charizard» casa)
+  y si hay, una línea «También en Pokémon Japón · N cartas» que lleva a
+  Cartas › Buscar con `catalogo=JP`. Cuenta para `todoVacio`.
+- **B6 · «@» es gente**: `esPersona(q)` → solo se pregunta a la gente, con
+  `sinArroba(q)`.
+
+Solo se pintan los grupos que se han preguntado (con una chapa puesta, ese).
+Prueba: `test-tanda-972.mjs` (lo puro) y `test-tanda-972-pantalla.mjs`; la
+909 y la 718 siguen a la chapa hasta Cartas › Buscar.
+
 ## Tanda 971 — En una liga, cada jornada se empareja de cero
 
 PINGU, por un jugador («siempre me toca con los buenos»), y eligió la opción

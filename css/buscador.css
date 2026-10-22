@@ -444,3 +444,50 @@ input.bs-input[type='search']:focus {
 .bs-foto-producto {
   object-fit: contain;
 }
+
+/* 972: expansiones, el mejor resultado, Japón y la cuenta de las chapas
+   (SCHEMA 972). */
+.bs-logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 36px;
+}
+
+.bs-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.bs-mejor {
+  border: 2px solid var(--navy);
+  background: var(--white);
+}
+
+.bs-mejor .bs-foto {
+  width: 64px;
+  height: 90px;
+}
+
+.bs-mejor .bs-texto b {
+  font-size: var(--t-lg);
+}
+
+.bs-japon {
+  justify-content: space-between;
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.bs-chip-n {
+  margin-left: var(--e-xs);
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+[aria-pressed="true"] > .bs-chip-n {
+  color: inherit;
+}

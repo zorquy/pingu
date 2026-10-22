@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "El buscador de arriba encuentra expansiones (por nombre o por su código, como «MEW»), pone arriba la carta que buscas si escribes su número («mew 151»), dice cuántos resultados hay en cada pestaña y avisa si también hay cartas japonesas. «Cartas» te lleva directo a Cartas › Buscar, y con «@» delante busca solo gente.", "enlace": "/buscar?q=151" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "En las ligas, cada jornada empieza de cero: la primera ronda va al azar y las siguientes emparejan por lo que llevas en esa jornada, no por la clasificación general. La clasificación sigue sumándolo todo.", "enlace": "/torneos.html" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Los jueces de un torneo pueden llevarlo como el organizador: generar pareos, empezar y cerrar rondas, saltar jornada y resolver mesas.", "enlace": "/torneos.html" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al añadir un producto sellado eliges su idioma, como con una carta, y vale lo de ese idioma. Puedes tener la misma lata en inglés y en español.", "enlace": "/mi-coleccion?ver=productos" },

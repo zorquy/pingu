@@ -57,8 +57,12 @@ export function casan(lista, q) {
 // Cartas y luego «Verlas en Cartas»); debajo de los productos, a su pestaña.
 export function masDe(grupo, r, q) {
   const enc = encodeURIComponent(q)
-  if (grupo === 'cartas' && (r.hayMas || r.total > r.filas.length)) {
-    return [{ fila: { nombre: r.hayMas ? 'Ver todas las cartas' : `Ver las ${r.total} cartas`, detalle: 'En Cartas, por expansión', icono: 'cards' }, href: `/cartas?ver=buscar&q=${enc}` }]
+  if (grupo === 'cartas') {
+    const mas = []
+    if (r.hayMas || r.total > (r.filas?.length || 0)) mas.push({ fila: { nombre: r.hayMas ? 'Ver todas las cartas' : `Ver las ${r.total} cartas`, detalle: 'En Cartas, por expansión', icono: 'cards' }, href: `/cartas?ver=buscar&q=${enc}` })
+    // B3 (972): las japonesas, en su catálogo.
+    if (r.japon?.total) mas.push({ clase: 'bs-japon', fila: { nombre: 'También en Pokémon Japón', detalle: `${r.japon.hayMas ? `${r.japon.total}+` : r.japon.total} ${r.japon.total === 1 ? 'carta' : 'cartas'}`, icono: 'cards' }, href: `/cartas?catalogo=JP&ver=buscar&q=${enc}` })
+    return mas
   }
   if (grupo === 'productos' && r.hayMas) {
     return [{ fila: { nombre: 'Ver más productos', detalle: 'En Cartas › Productos', icono: 'package' }, href: `/cartas?ver=productos&q=${enc}` }]
@@ -114,7 +118,7 @@ function montar() {
   const fila = (it, i) => {
     const id = `paleta-${i}`
     const sel = i === elegido
-    const clase = `bs-fila${it.grupo ? ` bs-${it.grupo}` : ''}`
+    const clase = `bs-fila${it.grupo ? ` bs-${it.grupo}` : ''}${it.mejor ? ' bs-mejor' : ''}${it.clase ? ` ${it.clase}` : ''}`
     const dentro = interiorDe(it.grupo || '', it.fila)
     return it.href
       ? `<a class="${clase}" id="${id}" role="option" aria-selected="${sel}" data-i="${i}" href="${escapeHtml(it.href)}" tabindex="-1">${dentro}</a>`
@@ -133,10 +137,16 @@ function montar() {
     // «Buscando «tema»» en el detalle, añadir casaría con cualquier cosa.
     const acciones = casan(accionesDisponibles(q), q).map((a) => ({ fila: a, href: a.href, hacer: a.hacer }))
     if (acciones.length) bloques.push(['Acciones', acciones])
+    // B2 (972): la carta que lo escrito señala, la primera y en grande.
+    const mejor = remotos.cartas?.mejor || null
+    if (mejor) bloques.unshift(['Lo más probable', [{ grupo: 'cartas', mejor: true, fila: mejor, href: destinoDe('cartas', mejor) }]])
     for (const [g] of GRUPOS) {
       const r = remotos[g]
-      if (r?.error) bloques.push([NOMBRE[g], [{ fila: { nombre: `No se ha podido buscar en ${NOMBRE[g].toLowerCase()}`, detalle: 'Pulsa para reintentar', icono: 'refreshCw' }, hacer: () => buscar(true) }]])
-      else if (r?.filas?.length) bloques.push([NOMBRE[g], [...r.filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f) })), ...masDe(g, r, q)]])
+      if (r?.error) { bloques.push([NOMBRE[g], [{ fila: { nombre: `No se ha podido buscar en ${NOMBRE[g].toLowerCase()}`, detalle: 'Pulsa para reintentar', icono: 'refreshCw' }, hacer: () => buscar(true) }]]); continue }
+      if (!r) continue
+      const filas = (r.filas || []).filter((f) => f !== mejor)
+      const mas = masDe(g, r, q)
+      if (filas.length || mas.length) bloques.push([NOMBRE[g], [...filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f) })), ...mas]])
     }
     const paginas = casan(paginasDeLaBarra(), q).map((p) => ({ fila: p, href: p.href }))
     if (paginas.length) bloques.push(['Ir a', q ? paginas : paginas.slice(0, 8)])

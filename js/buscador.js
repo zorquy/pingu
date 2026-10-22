@@ -20,6 +20,7 @@ import { buscarComoEnCartas } from './buscar-cartas.js'
 import { nombreDeCarta } from './catalogo-series.js'
 import { urlDeLogo } from './carta-ruta.js'
 import { buscarProductos } from './productos-valor.js'
+import { expansionesQueCasan, mejorResultado, esPersona, sinArroba } from './buscador-puro.js'
 
 // Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket, y la
 // fecha del set para ordenar por expansión).
@@ -50,6 +51,8 @@ export function ordenarPorExpansion(lista, { numero = null, prefijo = null } = {
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
+  // Las expansiones (972, B1: «151», «obsidiana», «MEW»).
+  ['expansiones', 'Expansiones'],
   // Los productos sellados (968, Sergio: «tampoco busca sellado»).
   ['productos', 'Productos'],
   ['guias', 'Guías'],
@@ -68,11 +71,23 @@ const CONSULTAS = {
   // ex de 151 no salía (Sergio, en el foro). Se trae siempre el tope entero
   // —para saber cuáles son las más nuevas hay que tenerlas todas— y se
   // enseñan las `limite` primeras; el precio, solo de esas.
+  //
+  // Y a la vez, las japonesas (972, B3): solo cuántas, para la línea
+  // «También en Pokémon Japón», que lleva a Cartas › Buscar en ese catálogo.
+  // Si esa consulta falla, la línea no sale (no se sabe), las cartas sí.
   async cartas(crudo, limite) {
     const sets = await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => [])
+    const japonesas = setsDelCatalogo('JP', { cliente: supabase })
+      .catch(() => [])
+      .then((setsJp) => buscarComoEnCartas(crudo, TOPE_CARTAS, { columnas: COLUMNAS_CARTA, market: 'JP', sets: setsJp }))
+      .then((r) => ({ total: r.lista.length, hayMas: r.lista.length >= TOPE_CARTAS }))
+      .catch(() => null)
     const { lista, porIlustrador, leida } = await buscarComoEnCartas(crudo, TOPE_CARTAS, { columnas: COLUMNAS_CARTA, market: 'WEST', sets })
     const todas = ordenarPorExpansion(lista, leida, sets)
+    // B2: la carta que lo escrito señala, arriba y en grande.
+    const mejor = mejorResultado(todas, leida)
     const cartas = todas.slice(0, limite)
+    if (mejor && !cartas.includes(mejor)) cartas.unshift(mejor)
     // El precio, en una segunda consulta y con la regla de siempre (el
     // mínimo en español, y si no el general: `valorDe`). Si falla, las
     // cartas salen igual y sin cifra: el precio es un extra de la fila.
@@ -87,7 +102,17 @@ const CONSULTAS = {
       const set = porSet.get(c.set_id)
       c.logosDelSet = set ? [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, 'WEST'), set.symbol_scrydex].filter(Boolean) : []
     }
-    return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador }
+    return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador, mejor, japon: await japonesas }
+  },
+  // Los dos catálogos; de la lista de sets que ya baja la web (la CDN).
+  async expansiones(crudo, limite) {
+    const [west, jp] = await Promise.all([
+      setsDelCatalogo('WEST', { cliente: supabase }),
+      setsDelCatalogo('JP', { cliente: supabase }).catch(() => []),
+    ])
+    const r = expansionesQueCasan([...(west || []), ...(jp || [])], crudo, limite)
+    for (const s of r.filas) s.logosDelSet = [s.logo_tcggo, s.logo_scrydex, urlDeLogo(s.logo_path, s.market || 'WEST'), s.symbol_scrydex].filter(Boolean)
+    return { filas: r.filas, total: r.total, hayMas: false }
   },
   // Los dos catálogos, los que salen antes primero (`buscarProductos`). Se
   // pide uno de más para saber si hay más que enseñar.
@@ -143,8 +168,13 @@ const CONSULTAS = {
 // Busca en los grupos pedidos a la vez. Menos de dos letras no pregunta:
 // con una sola, «a», saldría media base de datos.
 export async function buscarTodo(crudo, { limite = 4, grupos = GRUPOS.map(([g]) => g) } = {}) {
-  const texto = String(crudo || '').trim()
+  let texto = String(crudo || '').trim()
   const salida = {}
+  // B6: «@ibai» es una persona, y solo se pregunta a la gente.
+  if (esPersona(texto)) {
+    texto = sinArroba(texto)
+    grupos = ['gente']
+  }
   if (texto.length < 2) return salida
   await Promise.all(
     grupos.map(async (g) => {
@@ -170,7 +200,8 @@ export async function buscarTodo(crudo, { limite = 4, grupos = GRUPOS.map(([g]) 
 // fallado no cuenta como vacío: no se sabe.
 export function todoVacio(resultado) {
   const grupos = Object.values(resultado || {})
-  return grupos.length > 0 && grupos.every((g) => !g.error && !g.filas?.length)
+  // Las cartas japonesas (972) también son algo que enseñar.
+  return grupos.length > 0 && grupos.every((g) => !g.error && !g.filas?.length && !g.japon?.total)
 }
 
 // ── Las búsquedas recientes ──

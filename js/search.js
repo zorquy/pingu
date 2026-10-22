@@ -4,10 +4,9 @@
 // es `js/buscador.js`, el mismo de la paleta de Ctrl+K.
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
-import { GRUPOS, TOPE_CARTAS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
+import { GRUPOS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
 import { destinoDe, interiorDe, engancharFotos } from './buscador-filas.js'
-import { atributosDeEscaneo } from './escaneo-carta.js'
-import { nombreDeSet } from './catalogo-series.js'
+import { cuentaDeGrupo, esPersona } from './buscador-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const input = $('searchInput')
@@ -22,6 +21,10 @@ $('bsLupa').innerHTML = icons.search(20)
 const params = new URLSearchParams(location.search)
 let grupo = NOMBRE[params.get('en')] ? params.get('en') : ''
 input.value = params.get('q') || ''
+// B5 (972): las cartas se buscan en UNA pantalla, Cartas › Buscar. Un enlace
+// viejo a /buscar?en=cartas lleva allí con lo escrito.
+const enCartas = (q) => `/cartas?ver=buscar&q=${encodeURIComponent(q)}`
+if (grupo === 'cartas') location.replace(input.value.trim() ? enCartas(input.value.trim()) : '/cartas?ver=buscar')
 let secuencia = 0
 let temporizador = null
 
@@ -52,25 +55,35 @@ function seccion(g, estado, q) {
     return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>
       <p class="bs-aviso">No se ha podido buscar en ${NOMBRE[g].toLowerCase()}. <button type="button" class="link-btn" data-reintentar>Reintentar</button></p></section>`
   }
-  if (!estado.filas.length) {
+  const japon = g === 'cartas' ? lineaDeJapon(estado, q) : ''
+  const lista = g === 'cartas' ? estado.filas.filter((f) => f !== estado.mejor) : estado.filas
+  if (!lista.length && !japon) {
     // En «Todo» un grupo sin nada no sale; si es el único que se mira,
     // sí: «ninguna carta» es la respuesta.
     return grupo ? `<p class="empty-state">Nada en ${NOMBRE[g].toLowerCase()} con «${escapeHtml(q)}».</p>` : ''
   }
-  if (g === 'cartas' && grupo) return seccionDeCartas(estado, q)
-  const filas = estado.filas.map((f) => fila(g, f)).join('')
+  const filas = lista.map((f) => fila(g, f)).join('') + japon
   const mas = g === 'productos' ? masProductos(estado, q) : grupo ? '' : g === 'cartas' ? masCartas(estado, q) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
   return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
 }
 
-const fila = (g, f) => `<a class="bs-fila bs-${g}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`
+const fila = (g, f, extra = '') => `<a class="bs-fila bs-${g}${extra}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`
+
+// B2 (972): la carta que lo escrito señala, arriba y en grande.
+const mejorHtml = (estado) => (estado?.mejor ? `<section class="bs-grupo"><h2 class="bs-seccion">Lo más probable</h2>${fila('cartas', estado.mejor, ' bs-mejor')}</section>` : '')
+
+// B3 (972): cuántas hay en el catálogo japonés, a Cartas › Buscar allí.
+function lineaDeJapon(estado, q) {
+  const j = estado.japon
+  if (!j?.total) return ''
+  return `<a class="bs-fila bs-japon" href="/cartas?catalogo=JP&amp;ver=buscar&amp;q=${encodeURIComponent(q)}"><span class="bs-texto"><b>También en Pokémon Japón</b></span><span>${j.hayMas ? `${j.total}+` : j.total} ${j.total === 1 ? 'carta' : 'cartas'} ›</span></a>`
+}
 
 // En «Todo» salen las cuatro de la expansión más nueva y el botón dice
 // cuántas hay (909): «Ver más» de 4 cuando son 62 se quedaba corto. Y lleva
 // DIRECTO a Cartas › Buscar con la búsqueda puesta (968, Sergio: eran tres
 // pasos —«Ver todo», la chapa Cartas y «Verlas en Cartas»— para llegar a
 // la misma pantalla que buscar allí).
-const enCartas = (q) => `/cartas?ver=buscar&q=${encodeURIComponent(q)}`
 function masCartas(estado, q) {
   if (estado.total <= estado.filas.length) return ''
   const texto = estado.hayMas ? 'Ver todas las cartas' : `Ver las ${estado.total} cartas`
@@ -84,27 +97,20 @@ function masProductos(estado, q) {
   return `<a class="bs-mas" href="/cartas?ver=productos&amp;q=${encodeURIComponent(q)}">Ver más productos</a>`
 }
 
-// Solo cartas (909): como la pestaña Buscar de Cartas, que es el mismo
-// buscador —todas, hasta su tope, por expansión de la más nueva a la más
-// vieja, con el logo y cuántas salen de cada una—, en filas con su precio.
-// Arriba, la cuenta (y si se ha llegado al tope, que lo diga) y el enlace a
-// Cartas con la búsqueda puesta, donde se afina por serie o expansión.
-function seccionDeCartas(estado, q) {
-  const grupos = []
-  for (const c of estado.filas) {
-    const ultimo = grupos.at(-1)
-    if (ultimo?.id === c.set_id) ultimo.cartas.push(c)
-    else grupos.push({ id: c.set_id, set: c.tcg_sets, logos: c.logosDelSet || [], cartas: [c] })
+// B4 (972): cuántos hay en cada grupo, en su chapa. Se cuentan en «Todo» y
+// se quedan mientras lo escrito no cambie.
+let cuentas = { q: '', n: {} }
+function pintarCuentas(q, r) {
+  if (q !== cuentas.q) cuentas = { q, n: {} }
+  if (!grupo) for (const [g] of GRUPOS) cuentas.n[g] = cuentaDeGrupo(r[g], g === 'cartas' ? null : EN_TODO)
+  for (const b of document.querySelectorAll('#bsChips [data-grupo]')) {
+    const g = b.dataset.grupo
+    let n = b.querySelector('.bs-chip-n')
+    const valor = g && cuentas.n[g] && cuentas.n[g] !== '0' ? cuentas.n[g] : ''
+    if (!valor) { n?.remove(); continue }
+    if (!n) { n = document.createElement('span'); n.className = 'bs-chip-n'; b.appendChild(n) }
+    n.textContent = valor
   }
-  const cuenta = [`${estado.total} ${estado.total === 1 ? 'carta' : 'cartas'}`, estado.porIlustrador ? 'por ilustrador' : '', estado.hayMas ? 'hay más, afina la búsqueda' : ''].filter(Boolean).join(' · ')
-  const cabecera = (s) => {
-    const logo = atributosDeEscaneo(s.logos, 'this.remove()')
-    return `<h3 class="bs-set"><span class="bs-set-logo">${logo ? `<img ${logo} alt="" width="72" height="36" loading="lazy" />` : ''}</span>
-      <span class="bs-texto"><b>${escapeHtml(nombreDeSet(s.set) || s.id)}</b><small>${s.cartas.length} ${s.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span></h3>`
-  }
-  return `<section class="bs-grupo"><h2 class="bs-seccion">Cartas</h2>
-    <p class="bs-cuenta"><span>${escapeHtml(cuenta)}</span><a class="bs-mas" href="${escapeHtml(enCartas(q))}">Verlas en Cartas</a></p>
-    ${grupos.map((s) => cabecera(s) + s.cartas.map((c) => fila('cartas', c)).join('')).join('')}</section>`
 }
 
 async function buscar() {
@@ -118,13 +124,15 @@ async function buscar() {
   }
   resultados.classList.add('bs-cargando')
   const grupos = grupo ? [grupo] : GRUPOS.map(([g]) => g)
-  // Solo cartas, hasta el tope del buscador de Cartas (909): son las mismas.
-  const r = await buscarTodo(q, { limite: grupo === 'cartas' ? TOPE_CARTAS : grupo ? EN_UNO : EN_TODO, grupos })
+  const r = await buscarTodo(q, { limite: grupo ? EN_UNO : EN_TODO, grupos })
   if (mia !== secuencia) return
   resultados.classList.remove('bs-cargando')
+  // Solo los grupos que se han preguntado: con «@» delante, la gente (B6).
+  const preguntados = GRUPOS.map(([g]) => g).filter((g) => r[g])
   resultados.innerHTML = todoVacio(r)
     ? `<p class="empty-state">Nada con «${escapeHtml(q)}». Prueba con menos letras o con otra palabra.</p>`
-    : grupos.map((g) => seccion(g, r[g], q)).join('')
+    : (grupo ? '' : mejorHtml(r.cartas)) + preguntados.map((g) => seccion(g, r[g], q)).join('')
+  if (!esPersona(q)) pintarCuentas(q, r)
   // «La tienes» y «La quieres» en cada carta (943).
   import('./marcas-carta.js').then((m) => m.marcarCartas(resultados)).catch(() => {})
 }
@@ -142,6 +150,13 @@ $('bsForm').addEventListener('submit', (e) => {
 $('bsChips').addEventListener('click', (e) => {
   const b = e.target.closest('[data-grupo]')
   if (!b) return
+  // B5: las cartas, en Cartas › Buscar.
+  if (b.dataset.grupo === 'cartas') {
+    const q = input.value.trim()
+    if (q) recordarBusqueda(q)
+    location.href = q ? enCartas(q) : '/cartas?ver=buscar'
+    return
+  }
   grupo = b.dataset.grupo
   pintarChips()
   buscar()
