@@ -608,7 +608,7 @@ sembrar('__FAKE_VITRINA__', 'user_showcase', (i) => ({
   user_id: 'user-1', posicion: i + 1, card_id: `carta-${i}`, market: 'WEST', created_at: new Date().toISOString(),
 }))
 sembrar('__FAKE_IDIOMAS_MANO__', 'tcg_set_idiomas_mano', () => ({ market: 'WEST' }))
-sembrar('__FAKE_VERSION_IDIOMA__', 'tcg_version_idioma', () => ({ market: 'WEST', hay: false }))
+sembrar('__FAKE_VERSION_IDIOMA__', 'tcg_version_idioma', () => ({ market: 'WEST', card_id: '', hay: false }))
 sembrar('__FAKE_VERSIONES__', 'tcg_card_versions', (i) => ({
   tcggo_id: 90000 + i, market: 'WEST', card_id: `set1-${i + 1}`, set_id: 'set1', numero: String(i + 1), nombre: null, etiqueta: null,
   cm_id_product: null, link_cm: null, cm_low: null, cm_low_es: null, actualizado_at: new Date().toISOString(),
@@ -1571,8 +1571,11 @@ export const supabase = {
         if (args.p_hay !== null && args.p_hay !== undefined) T.tcg_set_idiomas_mano.push({ set_id: args.p_set, market: mk, idioma: args.p_idioma, hay: args.p_hay })
         return { data: { ok: true }, error: null }
       }
-      T.tcg_version_idioma = T.tcg_version_idioma.filter((f) => !(f.set_id === args.p_set && (f.market || 'WEST') === mk && f.variante === args.p_variante && f.idioma === args.p_idioma))
-      if (args.p_hay === false) T.tcg_version_idioma.push({ set_id: args.p_set, market: mk, variante: args.p_variante, idioma: args.p_idioma, hay: false })
+      // 958: con `p_carta`, lo de esa carta (se guardan el sí y el no).
+      const carta = String(args.p_carta || '').trim()
+      T.tcg_version_idioma = T.tcg_version_idioma.filter((f) => !(f.set_id === args.p_set && (f.market || 'WEST') === mk && (f.card_id || '') === carta && f.variante === args.p_variante && f.idioma === args.p_idioma))
+      const guarda = carta ? args.p_hay === true || args.p_hay === false : args.p_hay === false
+      if (guarda) T.tcg_version_idioma.push({ set_id: args.p_set, market: mk, card_id: carta, variante: args.p_variante, idioma: args.p_idioma, hay: args.p_hay })
       return { data: { ok: true }, error: null }
     }
     if (nombre === 'torneos_tablon_escribir') {
