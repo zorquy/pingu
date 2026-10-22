@@ -695,7 +695,8 @@ body {
 .col-marcar { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--navy); }
 .col-set-marcada { background: var(--ice); }
 /* Las marcadas: una barra pegada abajo con lo que se puede hacer con ellas. */
-.col-seleccion { position: sticky; bottom: var(--e-sm); z-index: 5; margin-top: var(--e-md); display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; background: var(--navy-solid); color: var(--blanco-fijo); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+/* Fija abajo (976): pegada al final de la lista no se veía con 200 filas encima. */
+.col-seleccion { position: fixed; left: 50%; transform: translateX(-50%); bottom: var(--e-md); width: min(640px, calc(100% - 32px)); z-index: 50; display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; background: var(--navy-solid); color: var(--blanco-fijo); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
 .col-seleccion[hidden] { display: none; }
 .col-seleccion b { margin-right: auto; }
 .col-seleccion .btn-primary { background: var(--blanco-fijo); color: var(--navy-solid-dark); }
@@ -735,6 +736,17 @@ body {
 .col-set-nombre { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .col-set-nombre small { color: var(--text-mid); font-size: var(--t-2xs); }
 .col-set-acciones { display: flex; gap: var(--e-xs); flex-shrink: 0; }
+.col-borrar { color: var(--danger); }
+.col-set:has(.col-hijos) { flex-wrap: wrap; }
+.col-hijos { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs); padding-left: 96px; font-size: var(--t-2xs); color: var(--text-mid); }
+.col-hijo { border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg); color: var(--text); font: inherit; font-size: var(--t-2xs); padding: 4px 8px; cursor: pointer; }
+.col-hijo:hover { background: var(--ice); }
+.col-hijo small { color: var(--text-mid); }
+.col-era-escondidas { border-style: dashed; }
+.col-era-nota { margin-left: auto; color: var(--text-mid); font-size: var(--t-2xs); }
+.col-impacto { margin: var(--e-sm) 0; padding-left: var(--e-lg); font-size: var(--t-xs); color: var(--text-mid); }
+.col-nota-padre { background: var(--ice); border-radius: var(--radius-md); padding: var(--e-sm); font-size: var(--t-xs); }
+.col-lista { padding-bottom: 72px; }
 /* La hoja de editar, encima y a la derecha: lo que se edita se ve al lado
    de la lista, que es donde está el contexto. */
 .col-hoja { position: fixed; inset: 0 0 0 auto; width: min(420px, 100%); background: var(--white); border-left: 1px solid var(--border); padding: var(--e-lg); overflow-y: auto; z-index: 60; box-shadow: -8px 0 24px rgba(0,0,0,.25); }
@@ -802,6 +814,8 @@ body {
   .col-era-plegar { flex-basis: calc(100% - 48px); }
   .col-era-mandos { margin-left: auto; }
   .col-set-acciones { width: 100%; justify-content: flex-end; }
+  .col-set-acciones { flex-wrap: wrap; }
+  .col-hijos { padding-left: 0; }
 }
 @media (pointer: coarse) {
   .col-icono, .col-asa { min-width: 44px; min-height: 44px; }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "«¿De qué expansión es?» ya no ofrece la Trainer Gallery como si fuera otra expansión: la respuesta es la expansión en la que sale la carta.", "enlace": "/que-expansion" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las expansiones van todas por eras, sin el apartado de «Otros sets»: POP Series, McDonald's o los Trainer Kits salen en su era, como cualquier otra colección.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las guías tienen un solo botón para decir que te han servido, en vez de dos que preguntaban lo mismo. Toca la cuenta de al lado para ver a quién más le ha servido. En los perfiles ya no sale una media de estrellas: sale a cuántas personas les han servido sus guías.", "enlace": "/aprender" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las noticias ya no se hacen pasar por guías: en el buscador tienen su propio apartado, y cuando a alguien le gusta una noticia el aviso dice «noticia», no «guía».", "enlace": "/buscar?q=pokemon" },

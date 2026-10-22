@@ -29,7 +29,12 @@ const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(
 const escribir = (clave, v) => { try { localStorage.setItem(clave, JSON.stringify(v)) } catch {} }
 const ronda = () => estado.elegidas.length
 const terminado = () => ronda() >= RONDAS
-const tira = () => estado.elegidas.map((id, i) => id === rondas[i]?.carta?.set_id)
+// La respuesta buena es la expansión en la que se VE la carta (`set_id` de
+// la ronda, 976): la de una Trainer Gallery es su expansión. Lo que llegue
+// sin él (de antes) sigue con el set de la carta.
+const buena = (r) => r?.set_id || r?.carta?.set_id
+const nombreBueno = (r) => nombreDeSet(r.opciones?.find((s) => s.id === buena(r)) || r.carta.tcg_sets) || buena(r)
+const tira = () => estado.elegidas.map((id, i) => id === buena(rondas[i]))
 const diasJugados = () => { const d = leer(CLAVE_DIAS, []); return Array.isArray(d) ? d : [] }
 
 const fotoHtml = (c) => {
@@ -61,7 +66,7 @@ function pintarRonda(revelar = null) {
   $('qxCarta').innerHTML = fotoHtml(r.carta)
   const elegida = estado.elegidas[i]
   $('qxOpciones').innerHTML = r.opciones.map((s) => {
-    const clase = elegida ? (s.id === r.carta.set_id ? ' acierto' : s.id === elegida ? ' fallo' : '') : ''
+    const clase = elegida ? (s.id === buena(r) ? ' acierto' : s.id === elegida ? ' fallo' : '') : ''
     const ano = String(s.release_date || '').slice(0, 4)
     return `<button type="button" class="qx-opcion${clase}" data-set="${escapeHtml(s.id)}"${elegida ? ' disabled' : ''}><span class="qx-logo">${logoHtml(s)}</span><span><b>${escapeHtml(nombreDeSet(s) || s.id)}</b>${ano ? `<small>${ano}</small>` : ''}</span>${clase === ' acierto' ? icons.checkCircle(22) : clase === ' fallo' ? icons.xCircle(22) : ''}</button>`
   }).join('')
@@ -78,7 +83,7 @@ function pintarFinal() {
   f.innerHTML = `
     <p class="rj-final-titulo">${aciertos === RONDAS ? '¡Las cinco!' : `${aciertos} de ${RONDAS}`}</p>
     <p class="subtext" style="margin:0" id="qxGente">Reto #${numeroDelDia(dia)}</p>
-    <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r.carta)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreDeSet(r.carta.tcg_sets) || r.carta.set_id)}</span></li>`).join('')}</ol>
+    <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r.carta)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreBueno(r))}</span></li>`).join('')}</ol>
     <div id="qxPremios"></div>
     <div class="rj-botones">
       <button type="button" class="btn-secondary" id="qxCompartir">${icons.share(16)} Compartir</button>
@@ -131,12 +136,12 @@ function elegir(setId) {
     const d = diasJugados()
     if (!d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400))
   }
-  const bien = setId === rondas[i].carta.set_id
+  const bien = setId === buena(rondas[i])
   pintarRonda(i)
   pintarPasos()
   const v = $('qxVeredicto')
   v.className = `qx-veredicto${bien ? '' : ' mal'}`
-  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreDeSet(rondas[i].carta.tcg_sets) || rondas[i].carta.set_id)}`
+  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreBueno(rondas[i]))}`
   pasando = true
   setTimeout(() => {
     pasando = false

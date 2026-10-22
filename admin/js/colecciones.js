@@ -23,7 +23,7 @@
 import { supabase } from '../../js/supabase.js'
 import { escapeHtml, validateImageFile, uploadGuideImage, getSession } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
-import { nombreDeSet } from '../../js/catalogo-series.js'
+import { nombreDeSet, esDelTCG, plegarHermanos, padreDeColeccion } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
 import { moverEnLista, loQueCambia, dondeCae, idDeEraNueva, conEraEn } from './orden-arrastrable.js'
 import { erasDeEstanteria } from '../../js/mi-coleccion/estanteria.js'
@@ -33,7 +33,13 @@ import { cartasDeLista, idDeCartaAMano } from './lista-cartas-puro.js'
 const $ = (id) => document.getElementById(id)
 
 let mercado = 'WEST'
+// TODAS las filas del catálogo (para editar cualquiera por su id)…
 let sets = []
+// …y lo que de ellas enseña la web (976): `repartir()`.
+let principales = []
+let hijosDe = new Map()
+let escondidas = []
+let fueraDelTcg = 0
 let eras = new Map()
 let filtro = ''
 
@@ -69,20 +75,66 @@ let faltaLaMigracion = false
 // ¿Existe `tcg_eras.grupo` (904)? Si no, el editor de eras no lo ofrece.
 let hayGrupo = false
 
+// Supabase corta a 1.000 filas sin avisar (la 808), y el japonés con sus
+// escondidas pasa de ahí: a trozos, como `setsDelCatalogo`.
+const TROZO = 1000
+async function leerSets() {
+  const filas = []
+  for (let desde = 0; desde < 10 * TROZO; desde += TROZO) {
+    const { data, error } = await supabase
+      .from('tcg_sets')
+      .select(COLUMNAS)
+      .eq('market', mercado)
+      .order('release_date', { ascending: false, nullsFirst: false })
+      .order('id')
+      .range(desde, desde + TROZO - 1)
+    if (error) return { error }
+    filas.push(...(data || []))
+    if ((data || []).length < TROZO) break
+  }
+  return { data: filas }
+}
+
+// ── LO QUE SE VE AQUÍ ES LO QUE SE VE EN LA WEB (tanda 976) ──
+//
+// PINGU: «veo duplicado Silver Tempest Trainer Gallery… en la web no
+// están». El panel pintaba la tabla en crudo, y la web (`pintarEstanteria`)
+// hace tres cosas antes: quita lo que no es del TCG (Pocket), quita lo
+// escondido y PLIEGA cada galería, Shiny Vault o set con el mismo
+// `tcggo_id` dentro de su expansión (`plegarHermanos`). Aquí se hacen las
+// mismas tres, con las mismas funciones y sobre las mismas filas: las
+// plegadas salen DENTRO de su expansión (y se editan una a una), y las
+// escondidas en su propio bloque al fondo.
+function repartir() {
+  const delTcg = sets.filter(esDelTCG)
+  fueraDelTcg = sets.length - delTcg.length
+  escondidas = delTcg.filter((s) => s.oculto)
+  const visibles = delTcg.filter((s) => !s.oculto)
+  principales = plegarHermanos(visibles.map((s) => ({ ...s })))
+  const porId = new Map(principales.map((s) => [String(s.id).toLowerCase(), s]))
+  hijosDe = new Map()
+  for (const s of visibles) {
+    const padre = padreDeColeccion(s.id)
+    const suyo = padre ? porId.get(padre) : null
+    if (!suyo) continue
+    if (!hijosDe.has(suyo.id)) hijosDe.set(suyo.id, [])
+    hijosDe.get(suyo.id).push(s)
+  }
+}
+
 async function cargar() {
   faltaLaMigracion = false
-  const { data, error } = await supabase
-    .from('tcg_sets')
-    .select(COLUMNAS)
-    .eq('market', mercado)
-    .limit(1000)
+  const { data, error } = await leerSets()
   if (error && /column|42703/i.test(error.message || '')) {
     faltaLaMigracion = true
     sets = []
     eras = new Map()
+    repartir()
     return
   }
+  if (error) showToast(`No se han podido leer las colecciones: ${String(error.message || error).slice(0, 100)}`, 'error')
   sets = data || []
+  repartir()
   // `grupo` (904) llega con su migración: hasta entonces pedirla tumba la
   // consulta entera (42703), así que se vuelve a pedir sin ella y el
   // editor no la ofrece (`hayGrupo`).
@@ -107,13 +159,15 @@ async function cargar() {
 // que sale. Con las eras sin colecciones también, que una recién creada se
 // tiene que ver para meterle cosas.
 function porEras() {
-  return erasDeEstanteria(sets, eras, { vacias: true }).map((g) => ({ ...g, nombre: g.titulo }))
+  return erasDeEstanteria(principales, eras, { vacias: true }).map((g) => ({ ...g, nombre: g.titulo }))
 }
 
 // Las opciones de un desplegable de era, por su nombre (975: antes había que
 // escribir el identificador a mano).
 function opcionesDeEra(actual) {
   const lista = porEras()
+  // Y las eras que solo tienen escondidas (976), que no salen en la lista.
+  for (const x of escondidas) if (x.serie_id && !lista.some((g) => g.id === x.serie_id)) lista.push({ id: x.serie_id, nombre: x.serie_name || x.serie_id })
   if (actual && !lista.some((g) => g.id === actual)) lista.push({ id: actual, nombre: actual })
   return `<option value=""${actual ? '' : ' selected'}>Sin era</option>` +
     lista.filter((g) => g.id).map((g) => `<option value="${escapeHtml(g.id)}"${g.id === actual ? ' selected' : ''}>${escapeHtml(g.nombre)}</option>`).join('')
@@ -133,13 +187,18 @@ function guardarAbiertas() {
   try { localStorage.setItem(claveAbiertas(), JSON.stringify([...abiertas])) } catch { /* sin almacenamiento, se pliegan al volver */ }
 }
 
+// La clave del bloque de escondidas entre las abiertas: no es una era.
+const ID_ESCONDIDAS = '__escondidas'
+
 // Las marcadas para «Mover a…». Por id de set; se vacían al cambiar de catálogo.
 let marcadas = new Set()
 
 function casa(s) {
   if (!filtro) return true
   const t = filtro.toLowerCase()
-  return [s.id, s.name, s.name_en, s.tcg_online_code].filter(Boolean).some((x) => String(x).toLowerCase().includes(t))
+  const suyo = (x) => [x.id, x.name, x.name_en, x.tcg_online_code].filter(Boolean).some((v) => String(v).toLowerCase().includes(t))
+  // Buscar una galería encuentra la expansión en la que se ve.
+  return suyo(s) || (hijosDe.get(s.id) || []).some(suyo)
 }
 
 function logoDe(s) {
@@ -164,9 +223,9 @@ function filaDeSet(s) {
   // Es un `<button>` y no un adorno porque arrastrar no se puede hacer con
   // el teclado: con el asa enfocada, las flechas mueven la colección.
   const marcada = marcadas.has(s.id)
-  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}${marcada ? ' col-set-marcada' : ''}" data-set="${escapeHtml(s.id)}" draggable="true">
+  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}${marcada ? ' col-set-marcada' : ''}" data-set="${escapeHtml(s.id)}" draggable="${s.oculto ? 'false' : 'true'}">
     <input type="checkbox" class="col-marcar" data-marcar="${escapeHtml(s.id)}" aria-label="Marcar ${escapeHtml(nombreDeSet(s) || s.id)}"${marcada ? ' checked' : ''}>
-    <button class="col-asa" data-asa="${escapeHtml(s.id)}" aria-label="Mover ${escapeHtml(nombreDeSet(s) || s.id)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
+    ${s.oculto ? '' : `<button class="col-asa" data-asa="${escapeHtml(s.id)}" aria-label="Mover ${escapeHtml(nombreDeSet(s) || s.id)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>`}
     <span class="col-set-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
     <span class="col-set-nombre">
       <strong>${escapeHtml(nombreDeSet(s) || s.id)}</strong>
@@ -174,9 +233,42 @@ function filaDeSet(s) {
     </span>
     <span class="col-set-acciones">
       <button class="btn-outline btn-small" data-editar="${escapeHtml(s.id)}">Editar</button>
+      ${s.oculto ? '' : `<button class="btn-outline btn-small" data-mover="${escapeHtml(s.id)}">Mover a…</button>`}
       <button class="btn-outline btn-small" data-ocultar="${escapeHtml(s.id)}">${s.oculto ? 'Mostrar' : 'Esconder'}</button>
+      <button class="btn-outline btn-small col-borrar" data-borrar="${escapeHtml(s.id)}" aria-label="Borrar ${escapeHtml(nombreDeSet(s) || s.id)}">Borrar</button>
     </span>
+    ${hijosHtml(s)}
   </li>`
+}
+
+// Lo que la web enseña DENTRO de esta expansión (976), cada uno con su
+// botón para editarlo: la fila es la misma que en /cartas, y lo de dentro
+// sigue siendo una colección con sus datos.
+function hijosHtml(s) {
+  const hijos = hijosDe.get(s.id) || []
+  if (!hijos.length) return ''
+  return `<div class="col-hijos"><span class="col-hijos-rotulo">Dentro, como en la web:</span>${hijos.map((h) =>
+    `<button class="col-hijo" data-editar="${escapeHtml(h.id)}" title="Editar «${escapeHtml(nombreDeSet(h) || h.id)}» (${escapeHtml(h.id)})">${escapeHtml(nombreDeSet(h) || h.id)} <small>${h.card_count_official || h.card_count_total || 0}</small></button>`).join('')}</div>`
+}
+
+// Las escondidas, al fondo y aparte (976): la web no las enseña, así que
+// mezclarlas con las demás era ver en el panel algo que no está.
+function escondidasHtml() {
+  if (!escondidas.length) return ''
+  const visibles = escondidas.filter(casa)
+  if (filtro && !visibles.length) return ''
+  const abierta = filtro ? true : abiertas.has(ID_ESCONDIDAS)
+  return `<section class="col-era col-era-escondidas${abierta ? ' col-era-abierta' : ''}" data-escondidas>
+    <header class="col-era-cab">
+      <button class="col-era-plegar" data-plegar="${ID_ESCONDIDAS}" aria-expanded="${abierta}">
+        <span class="col-chevron" aria-hidden="true">▸</span>
+        <h3>Escondidas</h3>
+        <span class="col-era-cuenta">${escondidas.length}</span>
+        <span class="col-era-nota">No salen en la web</span>
+      </button>
+    </header>
+    <ul class="col-sets"${abierta ? '' : ' hidden'}>${visibles.map(filaDeSet).join('')}</ul>
+  </section>`
 }
 
 export function pintarColecciones() {
@@ -189,11 +281,13 @@ export function pintarColecciones() {
   const grupos = porEras()
   const resumen = $('coleccionesResumen')
   if (resumen) {
-    const ocultos = sets.filter((s) => s.oculto).length
+    const dentro = [...hijosDe.values()].reduce((n, l) => n + l.length, 0)
     resumen.textContent =
-      `${sets.length} colecciones en ${grupos.filter((g) => g.sets.length).length} eras` +
-      (ocultos ? ` · ${ocultos} escondida${ocultos === 1 ? '' : 's'}` : '') +
-      ` · ${sets.filter((s) => !logoDe(s)).length} sin logo`
+      `${principales.length} colecciones en la web, en ${grupos.filter((g) => g.sets.length).length} eras` +
+      (dentro ? ` · ${dentro} dentro de otra` : '') +
+      (escondidas.length ? ` · ${escondidas.length} escondida${escondidas.length === 1 ? '' : 's'}` : '') +
+      (fueraDelTcg ? ` · ${fueraDelTcg} de TCG Pocket (no salen)` : '') +
+      ` · ${principales.filter((s) => !logoDe(s)).length} sin logo`
   }
   caja.innerHTML = grupos
     .map((g, i) => {
@@ -221,7 +315,7 @@ export function pintarColecciones() {
         <ul class="col-sets"${abierta ? '' : ' hidden'}>${visibles.map(filaDeSet).join('') || '<li class="col-vacia">Sin colecciones. Arrastra aquí, o márcalas y «Mover a…».</li>'}</ul>
       </section>`
     })
-    .join('') || '<p class="empty-state">Ninguna colección coincide con el filtro.</p>'
+    .join('') + escondidasHtml() || '<p class="empty-state">Ninguna colección coincide con el filtro.</p>'
   pintarSeleccion()
   escuchar()
 }
@@ -393,7 +487,8 @@ function escucharArrastre() {
     // Un set se suelta en la lista de sets de CUALQUIER era abierta —que es
     // como se mueve de era arrastrando— y una era entre las eras.
     const destino = esSet ? e.target.closest('.col-sets') : lista
-    if (!destino) return
+    // Las escondidas no son una era: ahí no se suelta nada.
+    if (!destino || destino.closest('[data-escondidas]')) return
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
     const antes = filaDondeCae(destino, e.clientY)
@@ -614,6 +709,12 @@ function escuchar() {
   document.querySelectorAll('[data-editar]').forEach((b) =>
     b.addEventListener('click', () => abrirEditor(b.dataset.editar))
   )
+  document.querySelectorAll('[data-mover]').forEach((b) =>
+    b.addEventListener('click', () => abrirMoverA([b.dataset.mover]))
+  )
+  document.querySelectorAll('[data-borrar]').forEach((b) =>
+    b.addEventListener('click', () => abrirBorrar(b.dataset.borrar))
+  )
   document.querySelectorAll('[data-era-editar]').forEach((b) =>
     b.addEventListener('click', () => abrirEditorDeEra(b.dataset.eraEditar))
   )
@@ -647,15 +748,72 @@ function abrirEditorDeEra(id) {
     <p class="admin-note">${g.sets.length === 1 ? '1 colección' : `${g.sets.length} colecciones`}.</p>
     <label>Cómo se llama<input id="colEraNombre" type="text" maxlength="80" value="${escapeHtml(g.nombre)}"></label>
     <div class="col-hoja-pie">
+      ${id ? '<button class="btn-danger btn-small" id="colEraBorrar">Borrar la era…</button>' : ''}
+      <span style="flex:1"></span>
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colEraGuardar">Guardar</button>
     </div>`)
+  $('colEraBorrar')?.addEventListener('click', () => abrirBorrarEra(id))
   $('colEraGuardar').addEventListener('click', async () => {
     const nombre = $('colEraNombre').value.trim()
     if (!nombre) return showToast('La era necesita un nombre.', 'error')
     if (await guardarEra(id, { nombre })) {
       cerrarHoja(); pintarColecciones(); showToast('Era guardada')
     }
+  })
+}
+
+// ── BORRAR UNA ERA (976) ──
+//
+// Una era es su `serie_id` en las colecciones más su fila de `tcg_eras`
+// (nombre y sitio). Borrarla sin más dejaría sus colecciones con un
+// `serie_id` que ya no se llama de ninguna manera y la era volvería a salir
+// con el nombre del catálogo. Así que primero se llevan TODAS las suyas
+// —también las escondidas y las que se ven dentro de otra— a la era que se
+// elija (como corrección, 908), y después se borra la fila.
+function abrirBorrarEra(id) {
+  const g = porEras().find((x) => x.id === id)
+  if (!g) return
+  const suyas = sets.filter((s) => (s.serie_id || '') === id)
+  const destinos = porEras().filter((x) => x.id && x.id !== id)
+  abrirHoja(`
+    <h3>Borrar la era «${escapeHtml(g.nombre)}»</h3>
+    ${suyas.length
+      ? `<p class="admin-note">Tiene ${suyas.length === 1 ? '1 colección' : `${suyas.length} colecciones`} (contando las escondidas y las que van dentro de otra). Se mueven antes a:</p>
+         <div class="col-destinos" role="radiogroup" aria-label="Era a la que van sus colecciones">
+           ${destinos.map((x, i) => `<label class="col-destino"><input type="radio" name="colEraDestino" value="${escapeHtml(x.id)}"${i === 0 ? ' checked' : ''}><span>${escapeHtml(x.nombre)}</span><small>${x.sets.length}</small></label>`).join('')}
+         </div>`
+      : '<p class="admin-note">No tiene ninguna colección.</p>'}
+    <div class="col-hoja-pie">
+      <span style="flex:1"></span>
+      <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
+      <button class="btn-danger" id="colEraBorrarYa">Borrar la era</button>
+    </div>`)
+  $('colEraBorrarYa').addEventListener('click', async () => {
+    const destino = document.querySelector('input[name="colEraDestino"]:checked')?.value || null
+    if (suyas.length && !destino) return showToast('Elige a qué era van sus colecciones.', 'error')
+    $('colEraBorrarYa').disabled = true
+    for (const s of suyas) {
+      if (!(await guardarSet(s.id, { serie_id: destino }, { comoCorreccion: true }))) {
+        $('colEraBorrarYa').disabled = false
+        return showToast(`Se ha parado en «${nombreDeSet(s) || s.id}»: la era no se ha borrado.`, 'error')
+      }
+      if (s.orden !== null && s.orden !== undefined) await guardarSet(s.id, { orden: null })
+    }
+    if (eras.has(id)) {
+      const { data, error } = await supabase.from('tcg_eras').delete().eq('market', mercado).eq('id', id).select('id')
+      if (error || !data?.length) {
+        $('colEraBorrarYa').disabled = false
+        return showToast(error ? error.message.slice(0, 120) : 'Sus colecciones se han movido, pero la era no se ha podido borrar: ¿sigues teniendo permiso de admin?', 'error')
+      }
+      eras.delete(id)
+    }
+    abiertas.delete(id)
+    if (destino) abiertas.add(destino)
+    guardarAbiertas()
+    avisarALaWeb()
+    cerrarHoja(); await cargar(); pintarColecciones()
+    showToast(`Era «${g.nombre}» borrada${suyas.length ? `; sus colecciones, en «${destinos.find((x) => x.id === destino)?.nombre || destino}»` : ''}`, 'success')
   })
 }
 
@@ -669,6 +827,7 @@ function abrirEditor(id) {
   abrirHoja(`
     <h3>${escapeHtml(nombreDeSet(s) || s.id)}</h3>
     <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.tcggo_id ? ` · TCGGO ${escapeHtml(String(s.tcggo_id))}` : ''}${s.origen === 'mano' ? ' · escrita a mano' : ''}${corr.size ? ` · ${corr.size} ${corr.size === 1 ? 'corrección' : 'correcciones'}` : ''}</p>
+    ${notaDePadre(s)}
     <p><button class="btn-secondary btn-small" id="colCartas">Ver y editar sus cartas →</button></p>
     <div class="idi-caja" id="colIdiomas"></div>
     <label${clase('name')}>Nombre${quitar('name')}<input id="colNombre" type="text" value="${escapeHtml(s.name || '')}"></label>
@@ -785,23 +944,65 @@ function abrirEditor(id) {
     }
   })
 
-  $('colBorrar').addEventListener('click', async () => {
-    // EL IMPACTO, ANTES. Borrar un set se lleva sus cartas por `on delete
-    // cascade`, y con ellas lo que alguien tuviera guardado.
-    const { count: cartas } = await supabase
-      .from('tcg_cards').select('id', { count: 'exact', head: true })
-      .eq('set_id', s.id).eq('market', mercado)
-    const texto = `Se va a borrar «${nombreDeSet(s) || s.id}» y sus ${cartas ?? '?'} cartas.\n\n`
-      + 'Las cartas se van con el set, y con ellas las copias que alguien tuviera guardadas de ese set.\n\n'
-      + 'Si solo quieres que no salga en la biblioteca, cancela y usa «Esconder», que se deshace.\n\n'
-      + `Escribe el identificador (${s.id}) para confirmar:`
-    const dicho = window.prompt(texto)
-    if (dicho !== s.id) return showToast('No se ha borrado nada.')
-    const { error } = await supabase.from('tcg_sets').delete().eq('id', s.id).eq('market', mercado)
+  $('colBorrar').addEventListener('click', () => abrirBorrar(s.id))
+}
+
+// Si esta colección se ve DENTRO de otra en la web (976), se dice: su era y
+// su sitio no cuentan, sale donde salga su expansión.
+function notaDePadre(s) {
+  const padre = principales.find((p) => (hijosDe.get(p.id) || []).some((h) => h.id === s.id))
+  if (!padre) return ''
+  return `<p class="col-nota-padre">En la web se ve <b>dentro de «${escapeHtml(nombreDeSet(padre) || padre.id)}»</b> (${s.tcggo_id && s.tcggo_id === padre.tcggo_id ? 'TCGGO las da como una sola expansión' : 'es su galería'}): su era y su sitio son los de esa expansión.</p>`
+}
+
+// ── BORRAR UNA COLECCIÓN (976) ──
+//
+// PINGU: «ni las expansiones ni las eras se pueden eliminar». Estaba, pero
+// dentro del editor y con un `prompt`. Ahora sale en cada fila, con lo que
+// se lleva por delante a la vista ANTES (la 543) y con la salida que se
+// deshace al lado: esconder. Y se avisa de lo que no se ve: lo que trae un
+// catálogo automático lo puede volver a crear su pasada; esconder, como es
+// una corrección (885), no lo pisa nadie.
+async function abrirBorrar(id) {
+  const s = sets.find((x) => x.id === id)
+  if (!s) return
+  const nombre = nombreDeSet(s) || s.id
+  const { count: cartas } = await supabase
+    .from('tcg_cards').select('id', { count: 'exact', head: true })
+    .eq('set_id', s.id).eq('market', mercado)
+  const hijos = hijosDe.get(s.id) || []
+  const automatica = s.origen !== 'mano'
+  abrirHoja(`
+    <h3>Borrar «${escapeHtml(nombre)}»</h3>
+    <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${cartas ?? '?'} cartas</p>
+    <ul class="col-impacto">
+      <li>Se borran sus <b>${cartas ?? '?'} cartas</b>, y las copias que alguien tenga de ellas se quedan sin carta.</li>
+      ${hijos.length ? `<li>Lo que lleva dentro (${hijos.map((h) => `«${escapeHtml(nombreDeSet(h) || h.id)}»`).join(', ')}) <b>no</b> se borra: saldrá suelto.</li>` : ''}
+      ${automatica ? '<li>Viene de un catálogo automático: su pasada <b>puede volver a crearla</b>. Si lo que quieres es no verla, escóndela.</li>' : ''}
+    </ul>
+    ${s.oculto ? '' : '<p><button class="btn-primary" id="colBorrarEsconder">Mejor esconderla (se deshace)</button></p>'}
+    <label>Para borrarla del todo, escribe <code>${escapeHtml(s.id)}</code><input id="colBorrarConfirma" type="text" autocomplete="off" spellcheck="false"></label>
+    <div class="col-hoja-pie">
+      <span style="flex:1"></span>
+      <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
+      <button class="btn-danger" id="colBorrarYa" disabled>Borrar del todo</button>
+    </div>`)
+  $('colBorrarConfirma').addEventListener('input', (e) => { $('colBorrarYa').disabled = e.target.value.trim() !== s.id })
+  $('colBorrarEsconder')?.addEventListener('click', async () => {
+    if (await guardarSet(s.id, { oculto: true }, { comoCorreccion: true })) {
+      cerrarHoja(); await cargar(); pintarColecciones(); showToast(`«${nombre}» escondida`, 'success')
+    }
+  })
+  $('colBorrarYa').addEventListener('click', async () => {
+    if ($('colBorrarConfirma').value.trim() !== s.id) return
+    // La fila que vuelve dice si se ha borrado: una política que no deja
+    // borrar NO da error, devuelve cero filas (la 252).
+    const { data, error } = await supabase.from('tcg_sets').delete().eq('id', s.id).eq('market', mercado).select('id')
     if (error) return showToast(error.message.slice(0, 120), 'error')
-    sets = sets.filter((x) => x.id !== s.id)
+    if (!data?.length) return showToast('No se ha borrado: ¿sigues teniendo permiso de admin?', 'error')
+    marcadas.delete(s.id)
     avisarALaWeb()
-    cerrarHoja(); pintarColecciones(); showToast('Colección borrada')
+    cerrarHoja(); await cargar(); pintarColecciones(); showToast(`«${nombre}» borrada`, 'success')
   })
 }
 
@@ -942,7 +1143,7 @@ export async function iniciarColecciones() {
   $('coleccionesReordenar')?.addEventListener('click', volverAlOrdenDelCatalogo)
   $('coleccionesNueva')?.addEventListener('click', abrirNuevaColeccion)
   $('coleccionesNuevaEra')?.addEventListener('click', () => abrirNuevaEra([...marcadas]))
-  $('coleccionesDesplegar')?.addEventListener('click', () => { abiertas = new Set(porEras().map((g) => g.id)); guardarAbiertas(); pintarColecciones() })
+  $('coleccionesDesplegar')?.addEventListener('click', () => { abiertas = new Set([...porEras().map((g) => g.id), ID_ESCONDIDAS]); guardarAbiertas(); pintarColecciones() })
   $('coleccionesPlegar')?.addEventListener('click', () => { abiertas.clear(); guardarAbiertas(); pintarColecciones() })
   leerAbiertas()
   await cargar()

@@ -41785,6 +41785,48 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 976 — /admin → Colecciones enseña lo que enseña la web
+
+PINGU: «veo duplicado Silver Tempest Trainer Gallery… en la web no están…
+salió ¿de qué expansión es? y era una Trainer Gallery y la misma Trainer
+Gallery… lo que hay en colecciones es lo que se ve y lo que está bien…
+no te sale un menú de mover… ni las expansiones ni las eras se pueden
+eliminar».
+
+- **Por qué no cuadraba**: el panel leía `tcg_sets` en crudo (`limit(1000)`,
+  que en el japonés con escondidas se queda corto, la 808), y la web hace
+  tres cosas antes de pintar: quita lo que no es del TCG (`esDelTCG`), quita
+  lo escondido y pliega con `plegarHermanos` (galerías y sets del mismo
+  `tcggo_id` dentro de su expansión). Ahora `cargar()` lee a trozos con
+  `.range()` y `repartir()` hace las tres con las mismas funciones:
+  `principales` (lo que la web pinta, con las cuentas sumadas) va a
+  `erasDeEstanteria`; lo plegado (`hijosDe`) sale dentro de la fila de su
+  expansión, como chapas que abren su editor (con la nota «en la web se ve
+  dentro de…»); las escondidas, en su bloque «Escondidas» al fondo (no se
+  arrastran ni se suelta nada ahí); lo de Pocket no sale y el resumen lo
+  cuenta.
+- **El reto «¿De qué expansión es?»** (`netlify/functions/que-expansion.mjs`)
+  elegía entre los sets sin plegar: la Trainer Gallery era una opción más y
+  la respuesta buena de una carta suya era una colección que en /cartas no
+  existe sola. Ahora las opciones salen de `plegarHermanos`, la ronda trae
+  `set_id` (la expansión en la que se ve la carta) y la página corrige con
+  él (`buena(r)`, con respaldo a `carta.set_id` para lo de antes). Lo ya
+  guardado en `retos_reto_del_dia` se pliega al leerlo y sin repetidas, y
+  `opcionesDeExpansion` no junta dos con el mismo nombre.
+- **Mover**: «Mover a…» en cada fila; la barra de las marcadas es
+  `position: fixed` abajo (pegada al final de la lista no se veía).
+- **Borrar una colección**: botón en cada fila (`abrirBorrar`), con lo que se
+  lleva (cartas, lo que lleva dentro, que una automática puede volver con su
+  pasada), «Mejor esconderla» y el id escrito para activar el borrado; se
+  mira la fila devuelta (`.select('id')`), que una RLS que no deja no da error.
+- **Borrar una era** («Renombrar» → «Borrar la era…», `abrirBorrarEra`):
+  TODAS sus colecciones —también escondidas y plegadas— van antes a la era
+  que se elija (como corrección, 908) y después se borra su fila de
+  `tcg_eras` (la política `tcg_eras_write` es `for all`: sin migración).
+- El desplegable de era ofrece también las que solo tienen escondidas.
+
+Prueba: `test-tanda-976-pantalla.mjs`; 551 y 885 al día.
+
 ## Tanda 975 — Colecciones: todo eras, plegadas, y moverlas sin números
 
 PINGU vio la propuesta (https://claude.ai/artifact/VerHVryeJscUJgqMdLRmtE) y

@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (211) — PINGU-Claude (976 — el panel de colecciones enseña lo que la web; mover y borrar)
+
+**Hecho**: /admin → Colecciones lee el catálogo entero (a trozos) y lo
+reparte como la web: sin Pocket, las escondidas en su bloque al fondo y las
+galerías (Trainer Gallery, Shiny Vault, mismo `tcggo_id`) DENTRO de su
+expansión, cada una editable. «Mover a…» en cada fila, barra de marcadas
+fija abajo, borrar colección (con impacto y «mejor esconderla») y borrar era
+(mueve antes sus colecciones). El reto «¿De qué expansión es?» ya no ofrece
+galerías ni dos opciones con el mismo nombre, y la buena es la expansión.
+Sin migración.
+
+**Ficheros**: `admin/js/colecciones.js`, `admin/css/admin.css`,
+`admin/index.html`, `netlify/functions/que-expansion.mjs`,
+`js/que-expansion.js`, `js/que-expansion-juego.js`, `novedades.json`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-976-pantalla.mjs`;
+551 y 885 al día.
+
+Pasadas: 976, 975, 551, 552, 835, 885, 904, 908, 330, 409, 415, 533, 536, 299, 311, 312, 313, 870, 907 e imports en verde. La 829 da dos rojos de «nuevo para ti» que salen igual sin esta tanda (dependen de la fecha).
+
+**Pendiente**: nada de esta tanda. PINGU sigue con la 974 por ejecutar.
+
 ## 2026-10-22 (210) — PINGU-Claude (975 — colecciones: todo eras, plegadas, y moverlas sin números)
 
 **Hecho**: en la web todo son eras al mismo nivel (sin «Otros sets» ni
