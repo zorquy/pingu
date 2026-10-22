@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 969 — El idioma de un producto, y Buscar al cambiar de catálogo
+
+PINGU: «cuando agregas un producto, que te pregunte el idioma, como una
+carta». `supabase-migration-969-productos-idioma.sql`: `user_products.idioma`
+(`not null default 'en'`; lo de antes, en el idioma del producto:
+`tcg_products.lang` → `en` o `ja`) y la fila única pasa a ser
+`(user_id, product_id, idioma)` (`user_products_uno_por_idioma`; fuera
+`user_products_uno`). `misProductos` pide `*` (la 624).
+
+- `js/productos.js`: `idiomasDeProducto` (occidental: es, en, de, fr, it;
+  japonés: ja), `nombreDeIdioma`, `precioDeProductoEnIdioma(f, idioma)` (la
+  cifra de su idioma; si no hay, `precioDeProducto`, que dice cuál) y
+  `valorDeProductos` vale cada línea con su idioma (el Panel y la portada
+  también).
+- La pestaña: `mios` es una LISTA de líneas (`copiasDe`, `cuantosDe`).
+  «+ Añadir» (`data-prod-anadir`) abre `#mcProdIdioma` («¿En qué idioma lo
+  tienes?», con el precio de cada idioma y lo que ya tienes; recuerda el
+  último en `pokedoc-prod-idioma`); un japonés se apunta sin preguntar. Con
+  copias de un idioma, la tarjeta lleva su bandera y su − ×N + (el «+» suma
+  una IGUAL); con varios, «Tus copias · N» abre la ficha, que pinta una fila
+  por idioma y «+ En otro idioma». «Tus productos», una tarjeta por producto.
+- `cambiarCantidad(id, idioma, paso)`: la línea que existe se toca por su
+  `id`; una nueva se inserta con `idioma`, y si la columna aún no existe
+  (42703/PGRST204), la de siempre.
+- Cartas › Buscar: `cambiarVista` vuelve a buscar lo escrito en el catálogo
+  nuevo (antes se quedaban los resultados del otro).
+
 ## Tanda 968 — Productos fuera de expansión, buscarlos, y el buscador corto
 
 Sergio.M: faltaban las latas de Mega Charizard X y Mega Charizard Y; TCGGO

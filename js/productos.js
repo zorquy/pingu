@@ -87,6 +87,29 @@ export function precioDeProducto(f) {
   return null
 }
 
+// EL IDIOMA DE TU COPIA (969): un producto se apunta en un idioma, como una
+// carta. Los que se ofrecen son los que TCGGO da por idioma en el occidental
+// (español, inglés, alemán, francés, italiano) y el japonés en el japonés.
+export function idiomasDeProducto(f) {
+  return idiomaDelProducto(f) === 'ja' || f?.market === 'JP' ? ['ja'] : ['es', 'en', 'de', 'fr', 'it']
+}
+export const nombreDeIdioma = (id) => {
+  const n = NOMBRE_DE_IDIOMA[id] || String(id || '')
+  return n ? n[0].toUpperCase() + n.slice(1) : ''
+}
+
+// Lo que vale UNA copia: el mínimo en SU idioma, como una carta (la 900); si
+// en ese idioma no hay cifra, el de siempre (`precioDeProducto`), que dice
+// de qué idioma es. Sin idioma —una línea de antes de la 969—, el de siempre.
+export function precioDeProductoEnIdioma(f, idioma) {
+  if (!f) return null
+  if (idioma) {
+    const v = preciosPorIdioma(f).find((x) => x.id === idioma)
+    if (v) return { valor: v.valor, donde: NOMBRE_DE_IDIOMA[idioma], idioma }
+  }
+  return precioDeProducto(f)
+}
+
 // En preventa: sale después de hoy (la fecha de su expansión).
 export function esPreventa(f, hoy = new Date().toISOString().slice(0, 10)) {
   return Boolean(f?.release_date) && String(f.release_date) > hoy
@@ -101,7 +124,7 @@ export function valorDeProductos(mios, porId) {
   for (const m of mios || []) {
     const n = Math.max(0, Number(m.cantidad) || 0)
     unidades += n
-    const p = precioDeProducto(porId.get(m.product_id))
+    const p = precioDeProductoEnIdioma(porId.get(m.product_id), m.idioma)
     if (p) total += p.valor * n
     else if (n) sinPrecio += n
   }

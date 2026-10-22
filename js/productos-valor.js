@@ -9,7 +9,9 @@ import { valorDeProductos, terminosDeProducto, filtroDeTermino } from './product
 
 export async function misProductos(userId) {
   if (!userId) return []
-  const { data, error } = await supabase.from('user_products').select('id,product_id,cantidad,pagado').eq('user_id', userId)
+  // Con `*` (969): `idioma` es de una migración que puede no estar todavía, y
+  // pedirla por su nombre haría fallar la consulta entera (la 624).
+  const { data, error } = await supabase.from('user_products').select('*').eq('user_id', userId)
   if (error) return null
   return data || []
 }

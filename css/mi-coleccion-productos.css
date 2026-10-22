@@ -292,3 +292,89 @@
 .mc-prod-baldosa-especial {
   background: var(--ice);
 }
+
+/* 969: ¿en qué idioma lo tienes?, y tus copias por idioma (SCHEMA 969). */
+.mc-prod-mando > .pv-bandera,
+.mc-prod-mando > .mc-prodf-idioma {
+  margin-right: auto;
+}
+
+.mc-prodi {
+  width: min(360px, calc(100vw - var(--e-2xl)));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.mc-prodi::backdrop {
+  background: rgba(13, 27, 42, 0.4);
+}
+
+.mc-prodi[open] {
+  display: block;
+}
+
+.mc-prodi-caja {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+}
+
+.mc-prodi-caja h3 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.mc-prodi-nombre {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-prodi-lista {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.mc-prodi-idioma {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-prodi-idioma:hover,
+.mc-prodi-idioma.recordado {
+  border-color: var(--navy);
+}
+
+.mc-prodi-idioma small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-prodf-copias {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.mc-prodf-copias .mc-prod-mando {
+  padding-top: 0;
+}
+
+.mc-prodf-otro {
+  margin-top: var(--e-xs);
+}

@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (204) — PINGU-Claude (969 — el idioma de un producto, y Buscar al cambiar de catálogo)
+
+**Hecho**: al añadir un producto se elige el idioma («¿En qué idioma lo
+tienes?», con el precio de cada uno); cada idioma es una línea, la ficha
+enseña una fila por idioma con su − y su +, y lo tuyo vale lo de su idioma.
+Lo que ya había queda en el idioma del producto (inglés o japonés). En
+Cartas › Buscar, cambiar de catálogo rehace la búsqueda.
+
+**Ficheros**: `supabase-migration-969-productos-idioma.sql` (**hay que
+ejecutarla**; sin ella la web sigue apuntando sin idioma), `js/productos.js`,
+`js/productos-valor.js`, `js/mi-coleccion/productos.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion-productos.css`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: 969-pantalla nueva, el doble con `idioma` y la
+fila única, 762 y 968 al día (las copias de antes valen en inglés).
+Migración probada en PostgreSQL dos veces.
+
+**Pendiente**: la propuesta del buscador (con maquetas) y los torneos
+(jueces sin permisos de ronda; pareos por jornada).
+
 ## 2026-10-22 (203) — PINGU-Claude (968 — productos fuera de expansión, buscarlos y el buscador corto)
 
 **Hecho** (Sergio.M, por PINGU): las latas de Mega Charizard X e Y no

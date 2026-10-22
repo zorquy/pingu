@@ -8366,6 +8366,9 @@ async function cambiarVista(nuevo) {
   cargandoColeccion = true
   esqueletoDelPanel()
   if (pestania === 'album' && !album.set && $('mcEstanteriaRejilla')) $('mcEstanteriaRejilla').innerHTML = esqueletoDeSets(6)
+  // Lo escrito en Buscar se busca otra vez en el catálogo nuevo (969, PINGU:
+  // «busco Scyther en inglés, cambio a japonés y no se actualiza»).
+  if (pestania === 'buscar' && $('mcBuscarTodo')?.value.trim()) void buscarEnTodo()
   await cargarColeccion(duenoActual)
 }
 

@@ -30,7 +30,7 @@ import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { marcaCardmarket } from '../cardmarket-marca.js'
 import { banderaHtml } from '../precio-vista.js'
-import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto } from '../productos.js'
+import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma } from '../productos.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { misProductos, productosPorIds, buscarProductos } from '../productos-valor.js'
 
@@ -44,7 +44,12 @@ const euros = (n) => `${Number(n).toLocaleString('es-ES', { minimumFractionDigit
 export const CONSULTA_AL_LADO = '(min-width: 1400px) and (pointer: fine)'
 
 let ctx = null
-let mios = null // Map product_id → { id, product_id, cantidad }; null = no se sabe
+// Tus líneas (969: una por producto e IDIOMA, como las copias de una carta);
+// null = no se sabe (sin migración).
+let mios = null
+const copiasDe = (id) => (mios || []).filter((m) => m.product_id === id)
+const cuantosDe = (id) => copiasDe(id).reduce((n, m) => n + (Number(m.cantidad) || 0), 0)
+const CLAVE_IDIOMA = 'pokedoc-prod-idioma'
 let fichas = new Map() // product_id → fila de tcg_products
 let cuentaPorEpisodio = null // episode_id → cuántos productos; null = sin migración
 const cuentasPorCatalogo = new Map() // 'WEST' | 'JP' → su cuentaPorEpisodio (808)
@@ -98,14 +103,26 @@ function cabezaDeSetHtml(s, extra = '') {
     <span class="mc-prod-set-texto"><b>${escapeHtml(nombreDeSet(s) || s.id)}</b>${extra ? `<small>${extra}</small>` : ''}</span>`
 }
 
-function mandoHtml(f, cantidad) {
-  return cantidad
-    ? `<span class="mc-prod-mando"><button type="button" class="mc-prod-boton" data-prod-menos="${f.id}" aria-label="Quitar uno de ${escapeHtml(f.name)}">−</button><b class="mc-prod-cuantos" aria-label="Tienes ${cantidad}">×${cantidad}</b><button type="button" class="mc-prod-boton" data-prod-mas="${f.id}" aria-label="Añadir otro de ${escapeHtml(f.name)}">+</button></span>`
-    : `<span class="mc-prod-mando"><button type="button" class="mc-prod-anadir" data-prod-mas="${f.id}" aria-label="Añadir ${escapeHtml(f.name)} a tu colección">+ Añadir</button></span>`
+// El − y el + de UNA línea, con la bandera de su idioma (969).
+function mandoDeLineaHtml(f, m, { conNombre = false } = {}) {
+  const idioma = m.idioma || ''
+  const n = Number(m.cantidad) || 0
+  const nombre = idioma ? ` en ${nombreDeIdioma(idioma).toLowerCase()}` : ''
+  const rotulo = idioma ? (conNombre ? `<span class="mc-prodf-idioma">${banderaHtml(idioma)}${escapeHtml(nombreDeIdioma(idioma))}</span>` : banderaHtml(idioma)) : ''
+  return `<span class="mc-prod-mando"${idioma ? ` data-idioma-linea="${escapeHtml(idioma)}"` : ''}>${rotulo}<button type="button" class="mc-prod-boton" data-prod-menos="${f.id}" data-idioma="${escapeHtml(idioma)}" aria-label="Quitar uno de ${escapeHtml(f.name)}${nombre}">−</button><b class="mc-prod-cuantos" aria-label="Tienes ${n}${nombre}">×${n}</b><button type="button" class="mc-prod-boton" data-prod-mas="${f.id}" data-idioma="${escapeHtml(idioma)}" aria-label="Añadir otro de ${escapeHtml(f.name)}${nombre}">+</button></span>`
+}
+
+// Sin copias, «+ Añadir» (que pregunta el idioma); con las de un idioma, su
+// − y su +; con varios idiomas, «Tus copias» abre la ficha, donde va cada uno.
+function mandoHtml(f, copias = copiasDe(f.id)) {
+  if (!copias.length) return `<span class="mc-prod-mando"><button type="button" class="mc-prod-anadir" data-prod-anadir="${f.id}" aria-label="Añadir ${escapeHtml(f.name)} a tu colección">+ Añadir</button></span>`
+  if (copias.length === 1) return mandoDeLineaHtml(f, copias[0])
+  const n = copias.reduce((t, m) => t + (Number(m.cantidad) || 0), 0)
+  return `<span class="mc-prod-mando"><button type="button" class="mc-prod-anadir" data-prod-ficha="${f.id}" aria-label="Tus copias de ${escapeHtml(f.name)}: ${n}">Tus copias · ${n}</button></span>`
 }
 
 // La foto y el nombre ABREN la ficha (769): son un botón, el «+» va aparte.
-export function tarjetaDeProductoHtml(f, cantidad = 0, { conMando = true } = {}) {
+export function tarjetaDeProductoHtml(f, cantidad = cuantosDe(f.id), { conMando = true } = {}) {
   const media = f.cm_avg30 != null ? `<span class="mc-prod-media">Media 30 días: ${escapeHtml(euros(f.cm_avg30))}</span>` : ''
   return `<article class="mc-prod${cantidad ? ' tengo' : ''}" data-prod="${f.id}">
     <button type="button" class="mc-prod-abrir" data-prod-ficha="${f.id}" aria-label="Ver la ficha de ${escapeHtml(f.name)}">
@@ -115,7 +132,7 @@ export function tarjetaDeProductoHtml(f, cantidad = 0, { conMando = true } = {})
       ${precioHtml(f)}
       ${media}
     </button>
-    ${conMando ? mandoHtml(f, cantidad) : ''}
+    ${conMando ? mandoHtml(f) : ''}
   </article>`
 }
 
@@ -126,9 +143,9 @@ function pintarTuyos() {
     caja.innerHTML = '<p class="mc-nota">Los productos todavía no están activados en la base. En cuanto lo estén, aquí verás los tuyos y lo que valen.</p>'
     return
   }
-  const lista = [...mios.values()].filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
+  const lista = mios.filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
   if (!lista.length) {
-    caja.innerHTML = mios.size ? '' : '<p class="mc-nota">Todavía no tienes productos. Abre una expansión de abajo y toca «+ Añadir» en los que tengas.</p>'
+    caja.innerHTML = mios.length ? '' : '<p class="mc-nota">Todavía no tienes productos. Abre una expansión de abajo y toca «+ Añadir» en los que tengas.</p>'
     return
   }
   const v = valorDeProductos(lista, fichas)
@@ -136,7 +153,7 @@ function pintarTuyos() {
       <h2 class="mc-subtitulo">Tus productos</h2>
       <p class="mc-prod-valor"><b>${escapeHtml(euros(v.total))}</b> · ${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'}${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</p>
     </div>
-    ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : g.especial ? `<div class="mc-prod-set">${cabezaDeEspecialesHtml()}</div>` : ''}<div class="mc-prod-rejilla">${g.lista.map((m) => tarjetaDeProductoHtml(fichas.get(m.product_id), m.cantidad)).join('')}</div>`).join('')}`
+    ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : g.especial ? `<div class="mc-prod-set">${cabezaDeEspecialesHtml()}</div>` : ''}<div class="mc-prod-rejilla">${[...new Set(g.lista.map((m) => m.product_id))].map((id) => tarjetaDeProductoHtml(fichas.get(id))).join('')}</div>`).join('')}`
 }
 
 // Tus productos, por expansión (766, PR1): la más nueva primero.
@@ -156,7 +173,7 @@ function gruposDeTuyos(lista) {
 // Cuántos de los tuyos son de una expansión (para su baldosa).
 function tuyosDe(ep) {
   let n = 0
-  for (const m of mios?.values() || []) {
+  for (const m of mios || []) {
     const f = fichas.get(m.product_id)
     if (f && mercadoDe(f) === catalogoActual() && Number(f.episode_id) === Number(ep)) n += Number(m.cantidad) || 0
   }
@@ -248,7 +265,7 @@ async function pintarCatalogo() {
     cabeza.classList.toggle('hidden', !s)
   }
   caja.innerHTML = lista.length
-    ? lista.map((f) => tarjetaDeProductoHtml(f, mios?.get(f.id)?.cantidad || 0, { conMando: mios !== null })).join('')
+    ? lista.map((f) => tarjetaDeProductoHtml(f, cuantosDe(f.id), { conMando: mios !== null })).join('')
     : '<p class="empty-state">Todavía no hay productos de esta expansión.</p>'
 }
 
@@ -322,21 +339,36 @@ async function cargarSets() {
   return true
 }
 
-async function cambiarCantidad(id, paso) {
+// Uno más o uno menos de UNA línea: producto + idioma (969). La línea que
+// ya existe se toca por su id (vale con y sin la migración); una nueva se
+// inserta con su idioma, y sin la columna todavía, sin él.
+async function cambiarCantidad(id, idioma, paso) {
   if (!ctx.sesion) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
-  const ahora = mios?.get(id)
-  const nueva = (ahora?.cantidad || 0) + paso
+  const linea = copiasDe(id).find((m) => (m.idioma || '') === (idioma || ''))
+  const nueva = (Number(linea?.cantidad) || 0) + paso
+  const tabla = () => supabase.from('user_products')
   try {
-    if (nueva <= 0) {
-      const { error } = await supabase.from('user_products').delete().eq('product_id', id).eq('user_id', ctx.sesion.user.id)
+    if (linea && nueva <= 0) {
+      const { error } = await tabla().delete().eq('id', linea.id).eq('user_id', ctx.sesion.user.id)
       if (error) throw error
-      mios.delete(id)
-    } else {
-      // El upsert lleva TODA la fila que insertaría (la 526).
-      const { data, error } = await supabase.from('user_products').upsert({ user_id: ctx.sesion.user.id, product_id: id, cantidad: nueva }, { onConflict: 'user_id,product_id' }).select('id,product_id,cantidad,pagado').single()
+      mios = mios.filter((m) => m !== linea)
+    } else if (linea) {
+      const { data, error } = await tabla().update({ cantidad: nueva }).eq('id', linea.id).select('*').single()
       if (error) throw error
-      if (!data) throw new Error('No se ha podido guardar.')
-      mios.set(id, data)
+      mios = mios.map((m) => (m === linea ? data : m))
+    } else if (nueva > 0) {
+      let r = await tabla().insert({ user_id: ctx.sesion.user.id, product_id: id, idioma, cantidad: nueva }).select('*').single()
+      // Sin la migración 969 no hay columna `idioma`: la línea de siempre.
+      if (r.error && /idioma/.test(r.error.message || '') && ['42703', 'PGRST204'].includes(r.error.code)) {
+        const sola = copiasDe(id)[0]
+        r = sola
+          ? await tabla().update({ cantidad: (Number(sola.cantidad) || 0) + paso }).eq('id', sola.id).select('*').single()
+          : await tabla().insert({ user_id: ctx.sesion.user.id, product_id: id, cantidad: nueva }).select('*').single()
+        if (!r.error && sola) mios = mios.filter((m) => m !== sola)
+      }
+      if (r.error) throw r.error
+      if (!r.data) throw new Error('No se ha podido guardar.')
+      mios = [...mios, r.data]
     }
   } catch (err) {
     return showToast(err.message || 'No se ha podido guardar.', 'error')
@@ -345,8 +377,54 @@ async function cambiarCantidad(id, paso) {
   // Se repinta lo que se ha tocado, sin volver a pedir: la tarjeta del
   // catálogo y, si está abierta, su ficha.
   const f = fichas.get(id)
-  if (f) for (const t of document.querySelectorAll(`#mcProdRejilla [data-prod="${id}"], #mcProdResultados [data-prod="${id}"]`)) t.outerHTML = tarjetaDeProductoHtml(f, mios.get(id)?.cantidad || 0)
+  if (f) for (const t of document.querySelectorAll(`#mcProdRejilla [data-prod="${id}"], #mcProdResultados [data-prod="${id}"]`)) t.outerHTML = tarjetaDeProductoHtml(f)
   if (abiertoEnFicha === id) pintarMandoDeFicha(f)
+}
+
+// ── ¿En qué idioma lo tienes? (969) ──
+// Como al añadir una carta: se elige antes de apuntarlo. En el japonés solo
+// hay uno, y no se pregunta. Se recuerda el último que elegiste.
+function idiomaRecordado() {
+  try { return localStorage.getItem(CLAVE_IDIOMA) || 'es' } catch { return 'es' }
+}
+function preguntarIdioma(id) {
+  const f = fichas.get(id)
+  if (!f) return
+  if (!ctx.sesion) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
+  const idiomas = idiomasDeProducto(f)
+  if (idiomas.length === 1) return void cambiarCantidad(id, idiomas[0], 1)
+  let d = $('mcProdIdioma')
+  if (!d) {
+    d = document.createElement('dialog')
+    d.id = 'mcProdIdioma'
+    d.className = 'mc-prodi'
+    d.setAttribute('aria-labelledby', 'mcProdIdiomaTitulo')
+    document.body.appendChild(d)
+    d.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-prodi-idioma]')
+      if (b) {
+        try { localStorage.setItem(CLAVE_IDIOMA, b.dataset.prodiIdioma) } catch {}
+        d.close()
+        return void cambiarCantidad(Number(d.dataset.producto), b.dataset.prodiIdioma, 1)
+      }
+      if (e.target.closest('[data-prodi-cerrar]') || e.target === d) d.close()
+    })
+  }
+  d.dataset.producto = String(id)
+  const ya = new Map(copiasDe(id).map((m) => [m.idioma || '', Number(m.cantidad) || 0]))
+  const recordado = idiomaRecordado()
+  d.innerHTML = `<div class="mc-prodi-caja">
+      <h3 id="mcProdIdiomaTitulo">¿En qué idioma lo tienes?</h3>
+      <p class="mc-prodi-nombre">${escapeHtml(f.name)}</p>
+      <div class="mc-prodi-lista">${idiomas.map((idioma) => {
+        const p = preciosPorIdioma(f).find((x) => x.id === idioma)
+        const tienes = ya.get(idioma)
+        return `<button type="button" class="mc-prodi-idioma${idioma === recordado ? ' recordado' : ''}" data-prodi-idioma="${idioma}">${banderaHtml(idioma)}<b>${escapeHtml(nombreDeIdioma(idioma))}</b><small>${[p ? euros(p.valor) : 'sin precio', tienes ? `tienes ${tienes}` : ''].filter(Boolean).map(escapeHtml).join(' · ')}</small></button>`
+      }).join('')}</div>
+      <button type="button" class="btn-secondary" data-prodi-cerrar>Cancelar</button>
+    </div>`
+  d.showModal()
+  d.querySelector('.recordado')?.focus()
 }
 
 // ── El buscador de la pestaña (968) ──
@@ -374,7 +452,7 @@ async function pintarBusqueda() {
   const n = (data || []).length
   cuenta.textContent = n ? `${n >= 60 ? 'Los 60 primeros' : `${n} ${n === 1 ? 'producto' : 'productos'}`} con «${busqueda}»` : ''
   caja.innerHTML = n
-    ? data.map((f) => tarjetaDeProductoHtml(f, mios?.get(f.id)?.cantidad || 0, { conMando: mios !== null })).join('')
+    ? data.map((f) => tarjetaDeProductoHtml(f, cuantosDe(f.id), { conMando: mios !== null })).join('')
     : `<p class="empty-state">Ningún producto con «${escapeHtml(busqueda)}». Prueba con menos palabras o en inglés («tin», «box»).</p>`
 }
 
@@ -409,8 +487,14 @@ async function deLaDireccion() {
 function pintarMandoDeFicha(f) {
   const sitio = $('mcProdFichaMando')
   if (!sitio || !f) return
-  const n = mios?.get(f.id)?.cantidad || 0
-  sitio.innerHTML = mios === null ? '' : `${n ? `<p class="mc-prodf-tienes">${n === 1 ? 'Lo tienes' : `Tienes ${n}`}</p>` : ''}${mandoHtml(f, n)}`
+  // En la ficha, cada idioma con su − y su +, y añadir en otro (969).
+  const copias = copiasDe(f.id)
+  const n = cuantosDe(f.id)
+  sitio.innerHTML = mios === null
+    ? ''
+    : n
+      ? `<p class="mc-prodf-tienes">${n === 1 ? 'Lo tienes' : `Tienes ${n}`}</p><div class="mc-prodf-copias">${copias.map((m) => mandoDeLineaHtml(f, m, { conNombre: true })).join('')}</div>${idiomasDeProducto(f).length > 1 ? `<button type="button" class="mc-prod-anadir mc-prodf-otro" data-prod-anadir="${f.id}">+ En otro idioma</button>` : ''}`
+      : mandoHtml(f, [])
 }
 
 export function fichaDeProductoHtml(f, s = null) {
@@ -475,10 +559,12 @@ export async function abrir(contexto) {
     // El «+», el «−» y abrir la ficha: en la pestaña y en la propia ficha.
     // Devuelve si el clic era suyo.
     const clicEnProductos = (e) => {
+      const anadir = e.target.closest('[data-prod-anadir]')
+      if (anadir) { preguntarIdioma(Number(anadir.dataset.prodAnadir)); return true }
       const mas = e.target.closest('[data-prod-mas]')
-      if (mas) { void cambiarCantidad(Number(mas.dataset.prodMas), 1); return true }
+      if (mas) { void cambiarCantidad(Number(mas.dataset.prodMas), mas.dataset.idioma || '', 1); return true }
       const menos = e.target.closest('[data-prod-menos]')
-      if (menos) { void cambiarCantidad(Number(menos.dataset.prodMenos), -1); return true }
+      if (menos) { void cambiarCantidad(Number(menos.dataset.prodMenos), menos.dataset.idioma || '', -1); return true }
       const ficha = e.target.closest('[data-prod-ficha]')
       if (ficha) { abrirFicha(Number(ficha.dataset.prodFicha)); return true }
       return false
@@ -533,10 +619,10 @@ export async function abrir(contexto) {
     })
   }
   const lista = ctx.sesion ? await misProductos(ctx.sesion.user.id) : []
-  mios = lista ? new Map(lista.map((m) => [m.product_id, m])) : null
-  if (mios?.size) {
+  mios = lista ? [...lista] : null
+  if (mios?.length) {
     try {
-      for (const [id, f] of await productosPorIds([...mios.keys()])) fichas.set(id, f)
+      for (const [id, f] of await productosPorIds(mios.map((m) => m.product_id))) fichas.set(id, f)
     } catch { /* sin fichas, lo tuyo sale cuando lleguen */ }
   }
   await cargarSets()
