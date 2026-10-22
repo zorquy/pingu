@@ -8,6 +8,9 @@
 // set del que no hay nada—, y quien la usa ofrece entonces todos
 // (`acotarIdiomas`). Se pregunta una vez por set y página.
 import { supabase } from './supabase.js'
+import { sinReglas, reglasDeFilas } from './cardmarket.js'
+
+export { sinReglas }
 
 const enMemoria = new Map()
 
@@ -29,27 +32,22 @@ export function idiomasDeSetSinEsperar(setId, market = 'WEST', ms = 1500) {
   return Promise.race([idiomasDeSet(setId, market), new Promise((ok) => setTimeout(() => ok(null), ms))])
 }
 
-// LAS VERSIONES QUE NO SALIERON EN UN IDIOMA (956): idioma → versiones, de
-// `tcg_version_idioma` (lo pone el admin). Sin la tabla —la migración aún no
-// está— o sin red, un mapa vacío: «no se sabe» es «se ofrecen todas», como
-// antes.
-const noSalieronEnMemoria = new Map()
-export function versionesQueNoSalieron(setId, market = 'WEST', { cliente = supabase } = {}) {
-  if (!setId) return Promise.resolve(new Map())
+// LAS VERSIONES DE CADA IDIOMA (956 y 958), de `tcg_version_idioma` (lo pone
+// el admin): `set` es idioma → las que no salieron en el set, y `cartas`,
+// carta → idioma → versión → sí o no, lo de una carta suelta (el Duskull SH2).
+// Se pide `*` y no `card_id`: antes de la 958 la columna no existe y nombrarla
+// tumbaría la consulta entera (la 624). Sin la tabla o sin red, vacío: «no se
+// sabe» es «se ofrecen todas», como antes.
+const reglasEnMemoria = new Map()
+export function reglasDeVersiones(setId, market = 'WEST', { cliente = supabase } = {}) {
+  if (!setId) return Promise.resolve(sinReglas())
   const clave = `${market}|${setId}`
-  if (!noSalieronEnMemoria.has(clave)) {
-    noSalieronEnMemoria.set(clave, Promise.resolve()
-      .then(() => cliente.from('tcg_version_idioma').select('variante,idioma').eq('set_id', setId).eq('market', market).eq('hay', false))
-      .then(({ data, error }) => {
-        const mapa = new Map()
-        if (error) return mapa
-        for (const f of data || []) {
-          if (!mapa.has(f.idioma)) mapa.set(f.idioma, new Set())
-          mapa.get(f.idioma).add(f.variante)
-        }
-        return mapa
-      })
-      .catch(() => new Map()))
+  if (!reglasEnMemoria.has(clave)) {
+    reglasEnMemoria.set(clave, Promise.resolve()
+      .then(() => cliente.from('tcg_version_idioma').select('*').eq('set_id', setId).eq('market', market))
+      .then(({ data, error }) => (error ? sinReglas() : reglasDeFilas(data)))
+      .catch(() => sinReglas()))
   }
-  return noSalieronEnMemoria.get(clave)
+  return reglasEnMemoria.get(clave)
 }
+export const hayReglas = (r) => Boolean(r?.set?.size || r?.cartas?.size)

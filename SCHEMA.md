@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 958 — Versiones por idioma, carta a carta
+
+`tcg_version_idioma` gana `card_id text not null default ''` y la clave pasa a
+`(set_id, market, card_id, variante, idioma)`. `card_id = ''` es lo de la 956
+(solo `hay = false`: un «sí» del set no se guarda y la web no lo lee, porque
+pondría la versión en todas sus cartas). Con carta se guardan las dos: `true`
+= en ese idioma existe esa versión aunque la carta no la traiga (la Reverse
+del Duskull SH2), `false` = no salió. `catalogo_version_de_idioma(p_set,
+p_market, p_variante, p_idioma, p_hay, p_carta default null)`: en carta, null
+borra la fila; comprueba que la carta es del set. La de cinco argumentos se
+borra (con una sexta con defecto las dos casarían con la misma llamada).
+
+En la web, `reglasDeFilas(filas)` → `{ set: idioma → Set(no), cartas: carta →
+idioma → variante → bool }` y `versionesDelIdioma(versiones, reglas, idioma,
+cardId)` → `{ versiones, quitadas, puestas }`: parte de lo del set, lo de la
+carta quita o devuelve, y lo puesto que la carta no trae se añade con su
+nombre de `VARIANTES`. Si quedaran cero, la lista entera (como en la 956). Un
+`Map` a secas sigue valiendo como «solo lo del set». `reglasDeVersiones`
+pide `*`. En /admin, `versionesDeUnaCarta`, `casillaDeCarta` y
+`alTocarCasilla` (null cuando lo contrario es ya lo que darían el set y la
+carta sin esa fila: no se guarda una fila que repite lo de por defecto).
+
 ## Tanda 957 — Lo que faltaba y tiene fuente; la lista pegada
 
 `2019sm-fr` (WEST, `origen = 'mano'`) con 41 cartas `2019sm-fr-<n>` de los

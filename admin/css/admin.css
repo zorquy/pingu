@@ -1009,4 +1009,6 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .vpi-celda { min-width: 44px; min-height: 36px; border-radius: var(--radius-md); border: 0; font: inherit; font-weight: 700; cursor: pointer; }
 .vpi-si { background: var(--success-bg); color: var(--success); }
 .vpi-no { background: var(--danger-bg); color: var(--danger); }
+.vpi-propia { box-shadow: inset 0 0 0 2px currentColor; }
+#vpiCarta { margin-block: var(--e-sm) var(--e-md); max-width: 100%; }
 @media (pointer: coarse) { .idi-chapa, .vpi-celda, .idi-fila select { min-height: 44px; } }

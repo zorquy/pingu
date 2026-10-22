@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Al añadir una carta, la versión cambia con el idioma también carta a carta: el Duskull SH2 de Stormfront sale Holo en español y Reverse en inglés, francés, alemán e italiano.", "enlace": "/cartas?ver=album&set=dp7" },
     { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Nuevas colecciones: el McDonald's 2019 en francés y, del japonés, las barajas de Lucario VSTAR y de Zekrom-EX. Y el Scyther de Dark Explorers con sus sellos del 1.º al 4.º puesto.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al añadir una carta solo salen las versiones que existieron en ese idioma: Stormfront en español ya no ofrece Reverse, y te lo dice.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Idiomas corregidos gracias al foro: Jungle también en neerlandés, Undaunted sin portugués y Dark Explorers sin español.", "enlace": "/foro" },

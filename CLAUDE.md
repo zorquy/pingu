@@ -130,6 +130,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   idioma (Stormfront sin Reverse en español). Un camino nuevo para añadir una
   carta pasa sus versiones por `versionesDelIdioma` al cambiar de idioma, y un
   idioma que no tiene todo set (`nl`) va en `SOLO_SI_EL_SET_LO_DICE`.
+  Y carta a carta (958): con `card_id`, una fila QUITA o PONE (el Duskull SH2,
+  Holo en español y Reverse en lo demás, que TCGdex da solo Holo); por eso a
+  `versionesDelIdioma` se le pasa el id de la carta, o lo suyo no llega.
 - **En la era de Wizards las versiones son las EDICIONES** (tanda 935):
   filas `tcg_card_versions` con `origen = 'edicion'` (1.ª edición,
   Shadowless, Unlimited, sellos y errores con su clase), sacadas de los

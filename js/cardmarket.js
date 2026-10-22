@@ -95,17 +95,44 @@ export function idiomasParaAnadirEn(market, base, delSet) {
   return Array.isArray(delSet) && delSet.length ? acotarIdiomas(asia, delSet, { siempre: ['ja'] }) : asia.filter((i) => i.id === 'ja')
 }
 
-// LAS VERSIONES DE UN IDIOMA (956). Stormfront no salió en Reverse en
+// LAS VERSIONES DE UN IDIOMA (956 y 958). Stormfront no salió en Reverse en
 // español: al elegir español en la hoja de añadir, la Reverse no se ofrece.
-// `noSalieron` es lo de `tcg_version_idioma` (idioma → versiones que no). Si
-// las quitara todas se queda la lista entera: una hoja sin versiones no deja
-// añadir nada, y es más probable un dato mal puesto que una carta sin versión.
-export function versionesDelIdioma(versiones, noSalieron, idioma) {
-  const fuera = noSalieron?.get?.(idioma)
-  if (!fuera?.size) return { versiones, quitadas: [] }
-  const quedan = versiones.filter((v) => !fuera.has(v.id))
-  if (!quedan.length) return { versiones, quitadas: [] }
-  return { versiones: quedan, quitadas: versiones.filter((v) => fuera.has(v.id)) }
+// Y una carta puede tener las suyas (958): el Duskull SH2 es Holo en español y
+// Reverse en los demás, y la Reverse no está entre las de la carta, así que lo
+// de la carta QUITA y también PONE. `reglas` es lo de `tcg_version_idioma`
+// (`reglasDeVersiones`); un Map a secas es solo lo del set (idioma → las que
+// no). Si las quitara todas se queda la lista entera: una hoja sin versiones
+// no deja añadir nada, y es más probable un dato mal puesto que una carta sin
+// versión.
+export function versionesDelIdioma(versiones, reglas, idioma, cardId = null) {
+  const delSet = reglas instanceof Map ? reglas : reglas?.set
+  const fuera = new Set(delSet?.get?.(idioma) || [])
+  const deCarta = (cardId && reglas?.cartas?.get?.(cardId)?.get?.(idioma)) || new Map()
+  for (const [v, hay] of deCarta) { if (hay) fuera.delete(v); else fuera.add(v) }
+  const puestas = [...deCarta].filter(([v, hay]) => hay && !versiones.some((x) => x.id === v))
+    .map(([v]) => VARIANTES.find((x) => x.id === v) || { id: v, nombre: v })
+  const quedan = [...versiones.filter((v) => !fuera.has(v.id)), ...puestas]
+  if (!quedan.length) return { versiones, quitadas: [], puestas: [] }
+  return { versiones: quedan, quitadas: versiones.filter((v) => fuera.has(v.id)), puestas }
+}
+// Las filas de `tcg_version_idioma`, en la forma que lee lo de arriba (958).
+export const sinReglas = () => ({ set: new Map(), cartas: new Map() })
+// Lo de un set solo QUITA (un «sí» del set entero no pone una versión en
+// todas sus cartas); lo de una carta quita y pone.
+export function reglasDeFilas(filas) {
+  const r = sinReglas()
+  for (const f of filas || []) {
+    if (f.card_id) {
+      if (!r.cartas.has(f.card_id)) r.cartas.set(f.card_id, new Map())
+      const porIdioma = r.cartas.get(f.card_id)
+      if (!porIdioma.has(f.idioma)) porIdioma.set(f.idioma, new Map())
+      porIdioma.get(f.idioma).set(f.variante, f.hay === true)
+    } else if (f.hay === false) {
+      if (!r.set.has(f.idioma)) r.set.set(f.idioma, new Set())
+      r.set.get(f.idioma).add(f.variante)
+    }
+  }
+  return r
 }
 // Y la frase que lo dice, debajo del idioma.
 export function avisoDeVersiones(quitadas, idioma, nombreDeSet) {

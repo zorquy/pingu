@@ -38,7 +38,7 @@ import {
 import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones } from './cardmarket.js'
-import { idiomasDeSet, versionesQueNoSalieron } from './idiomas-de-set.js'
+import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
 import { deseosDeCarta } from './mi-coleccion/cambios.js'
@@ -401,7 +401,7 @@ let idiomasDeLaHoja = []
 // La lista «¿Cuál tienes?» de la hoja (922), montada con la hoja.
 let eleccionDeVersion = null
 // Las versiones de la carta y las que su set no tuvo en cada idioma (956).
-let hojaDeVersiones = { todas: [], noSalieron: new Map(), nombreSet: '' }
+let hojaDeVersiones = { todas: [], reglas: sinReglas(), nombreSet: '' }
 function chipsDeAnadir(idiomas, puesto) {
   return idiomas.map((i) => chipDeIdiomaHtml(i, i.id === puesto)).join('')
 }
@@ -471,10 +471,10 @@ function dialogoDeAnadir() {
 }
 
 // La versión de la hoja con el idioma puesto (956): sin las que no salieron
-// en él, y la frase que lo dice. La puesta se queda si sigue.
+// en él, con las que solo tiene en él esta carta (958), y la frase que lo dice. La puesta se queda si sigue.
 function versionesDeLaHoja() {
   const idioma = $('cmAdIdiomas').querySelector('.mc-idioma-chip.activo')?.dataset.idioma || idiomasDeLaHoja[0]?.id
-  const r = versionesDelIdioma(hojaDeVersiones.todas, hojaDeVersiones.noSalieron, idioma)
+  const r = versionesDelIdioma(hojaDeVersiones.todas, hojaDeVersiones.reglas, idioma, hojaDeVersiones.carta?.id)
   const aviso = $('cmAdAvisoIdioma')
   const texto = avisoDeVersiones(r.quitadas, idioma, hojaDeVersiones.nombreSet)
   aviso.textContent = texto
@@ -514,14 +514,14 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, seSabe = true, mias, a
     $('cmAdIdiomas').innerHTML = chipsDeAnadir(lista, lista.some((i) => i.id === puesto) ? puesto : idiomaRecordado(lista))
     aplicarVersionesDelIdioma()
   })
-  void versionesQueNoSalieron(carta.set_id, market).then((mapa) => {
-    if (!mapa.size || !d.open || hojaDeVersiones.carta !== carta) return
-    hojaDeVersiones.noSalieron = mapa
+  void reglasDeVersiones(carta.set_id, market).then((reglas) => {
+    if (!hayReglas(reglas) || !d.open || hojaDeVersiones.carta !== carta) return
+    hojaDeVersiones.reglas = reglas
     aplicarVersionesDelIdioma()
   })
   $('cmAdEstado').innerHTML = opciones(ESTADOS, ESTADO_POR_DEFECTO)
   // `varianteDe` sabe también de las versiones de TCGGO (862).
-  hojaDeVersiones = { carta, todas: variantes.map((id) => varianteDe(id)), noSalieron: new Map(), nombreSet: nombreDeSet(set) || '' }
+  hojaDeVersiones = { carta, todas: variantes.map((id) => varianteDe(id)), reglas: sinReglas(), nombreSet: nombreDeSet(set) || '' }
   const vs = versionesDeLaHoja()
   $('cmAdVariante').innerHTML = opciones(vs, vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id)
   const deEsa = (id) => mias.filter((l) => (l.variante || 'normal') === id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)

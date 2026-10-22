@@ -12,9 +12,10 @@ import { showToast } from '../../js/toast.js'
 import { banderaHtml } from '../../js/precio-vista.js'
 import { nombreDeSet } from '../../js/catalogo-series.js'
 import { faltaLaMigracion } from './catalogo-puro.js'
-import { estadoDeIdiomas, idiomasParaPoner, versionesDelSet, salio, AVISO_956 } from './idiomas-set-puro.js'
+import { estadoDeIdiomas, idiomasParaPoner, versionesDelSet, salio, versionesDeUnaCarta, casillaDeCarta, alTocarCasilla, AVISO_956 } from './idiomas-set-puro.js'
 
 const $ = (id) => document.getElementById(id)
+const AVISO_958 = 'Falta ejecutar supabase-migration-958-versiones-por-idioma-de-una-carta.sql en el SQL Editor.'
 const ROTULO = { auto: 'lo dicen Cardmarket o TCGdex · tócalo para quitarlo', quitado: 'quitado a mano · tócalo para devolverlo', puesto: 'puesto a mano · tócalo para quitarlo' }
 
 async function leerIdiomas(set, mercado) {
@@ -92,13 +93,15 @@ async function cartasDelSet(set, mercado) {
 }
 
 // La matriz: una fila por versión del set, una columna por idioma en que
-// salió. Un toque cambia ✓ por ✕ y se guarda en el momento.
+// salió. Un toque cambia ✓ por ✕ y se guarda en el momento. Debajo, la de una
+// carta suelta (958).
 export async function abrirVersionesPorIdioma({ set, mercado, hoja, volver }) {
   hoja.abrir('<p class="admin-note">Mirando las versiones del set…</p>')
   const [cartas, idiomas, filasR] = await Promise.all([
     cartasDelSet(set, mercado),
     supabase.rpc('idiomas_de_set', { p_set: set.id, p_market: mercado }),
-    supabase.from('tcg_version_idioma').select('variante,idioma,hay').eq('set_id', set.id).eq('market', mercado),
+    // `*`: antes de la 958 no hay `card_id` y nombrarlo tumbaría la consulta.
+    supabase.from('tcg_version_idioma').select('*').eq('set_id', set.id).eq('market', mercado),
   ])
   if (filasR.error) {
     hoja.abrir(`<p class="admin-note">${escapeHtml(faltaLaMigracion(filasR.error) ? AVISO_956 : filasR.error.message)}</p><p><button class="btn-secondary btn-small" id="vpiVolver">← Colección</button></p>`)
@@ -106,8 +109,21 @@ export async function abrirVersionesPorIdioma({ set, mercado, hoja, volver }) {
     return
   }
   let filas = filasR.data || []
-  const versiones = versionesDelSet(cartas || [], filas)
+  const versiones = versionesDelSet(cartas || [], filas.filter((f) => !f.card_id))
   const lenguas = (idiomas.data || [])
+  let cartaId = ''
+  const porCarta = () => {
+    const carta = (cartas || []).find((c) => c.id === cartaId)
+    if (!carta) return ''
+    return `<div class="vpi-caja"><table class="vpi-matriz">
+      <thead><tr><th scope="col">Versión</th>${lenguas.map((l) => `<th scope="col">${banderaHtml(l)} ${escapeHtml(l.toUpperCase())}</th>`).join('')}</tr></thead>
+      <tbody>${versionesDeUnaCarta(carta, filas).map((v) => `<tr><th scope="row">${escapeHtml(v.nombre)}</th>${lenguas.map((l) => {
+        const { si, propia } = casillaDeCarta(carta, filas, v.id, l)
+        return `<td><button type="button" class="vpi-celda ${si ? 'vpi-si' : 'vpi-no'}${propia ? ' vpi-propia' : ''}" data-vpc-v="${escapeHtml(v.id)}" data-vpc-l="${escapeHtml(l)}" aria-pressed="${si ? 'true' : 'false'}" aria-label="${escapeHtml(`${v.nombre} en ${l.toUpperCase()}: ${si ? 'existe' : 'no existe'}${propia ? ', puesto en esta carta' : ''}`)}">${si ? '✓' : '✕'}</button></td>`
+      }).join('')}</tr>`).join('')}</tbody>
+    </table></div>`
+  }
+  const conPropias = new Set(filas.filter((f) => f.card_id).map((f) => f.card_id))
   const pintar = () => {
     hoja.abrir(`
       <div class="cat-cab">
@@ -123,14 +139,37 @@ export async function abrirVersionesPorIdioma({ set, mercado, hoja, volver }) {
           const si = salio(filas, v.id, l)
           return `<td><button type="button" class="vpi-celda ${si ? 'vpi-si' : 'vpi-no'}" data-vpi-v="${escapeHtml(v.id)}" data-vpi-l="${escapeHtml(l)}" aria-pressed="${si ? 'false' : 'true'}" aria-label="${escapeHtml(`${v.nombre} en ${l.toUpperCase()}: ${si ? 'salió' : 'no salió'}`)}">${si ? '✓' : '✕'}</button></td>`
         }).join('')}</tr>`).join('')}</tbody>
-      </table></div>`)
+      </table></div>
+      ${cartas?.length && lenguas.length ? `<h4>Una carta con sus propias versiones</h4>
+      <p class="admin-note">Para la que no sigue al set: el Duskull SH2 es Holo en español y Reverse en los demás. Aquí salen todas las versiones, también las que la carta no trae: un ✓ en una que no trae la pone en ese idioma. Con borde, lo puesto en esta carta; tocarlo otra vez lo devuelve a lo del set. Si en un idioma quitas todas, se ofrecen todas: pon primero la que sí.</p>
+      <select id="vpiCarta" aria-label="Elegir una carta"><option value="">Elige una carta…</option>${[...cartas].sort((a, b) => Number(conPropias.has(b.id)) - Number(conPropias.has(a.id))).map((c) => `<option value="${escapeHtml(c.id)}"${c.id === cartaId ? ' selected' : ''}>${conPropias.has(c.id) ? '• ' : ''}${escapeHtml([c.local_id, c.name_en || c.name].filter(Boolean).join(' · '))}</option>`).join('')}</select>
+      <div id="vpiDeCarta">${porCarta()}</div>` : ''}`)
     $('vpiVolver').addEventListener('click', () => volver())
     document.querySelectorAll('[data-vpi-v]').forEach((b) => b.addEventListener('click', () => void cambiar(b.dataset.vpiV, b.dataset.vpiL)))
+    $('vpiCarta')?.addEventListener('change', (e) => { cartaId = e.target.value; pintar() })
+    document.querySelectorAll('[data-vpc-v]').forEach((b) => b.addEventListener('click', () => void cambiarEnCarta(b.dataset.vpcV, b.dataset.vpcL)))
+  }
+  // Igual que en el set: cambia YA y deshace si la base dice que no (896).
+  const cambiarEnCarta = async (variante, idioma) => {
+    const carta = (cartas || []).find((c) => c.id === cartaId)
+    if (!carta) return
+    const antes = filas
+    const hay = alTocarCasilla(carta, filas, variante, idioma)
+    const esa = (f) => f.card_id === carta.id && f.variante === variante && f.idioma === idioma
+    filas = [...filas.filter((f) => !esa(f)), ...(hay === null ? [] : [{ card_id: carta.id, variante, idioma, hay }])]
+    if (hay !== null) conPropias.add(carta.id)
+    pintar()
+    const { error } = await supabase.rpc('catalogo_version_de_idioma', { p_set: set.id, p_market: mercado, p_variante: variante, p_idioma: idioma, p_hay: hay, p_carta: carta.id })
+    if (error) {
+      filas = antes
+      pintar()
+      showToast(faltaLaMigracion(error) || /p_carta|function/i.test(error.message || '') ? AVISO_958 : error.message.slice(0, 140), 'error')
+    }
   }
   const cambiar = async (variante, idioma) => {
     const antes = filas
     const ahoraSalio = !salio(filas, variante, idioma)
-    filas = [...filas.filter((f) => !(f.variante === variante && f.idioma === idioma)), ...(ahoraSalio ? [] : [{ variante, idioma, hay: false }])]
+    filas = [...filas.filter((f) => f.card_id || !(f.variante === variante && f.idioma === idioma)), ...(ahoraSalio ? [] : [{ variante, idioma, hay: false }])]
     pintar()
     const { error } = await supabase.rpc('catalogo_version_de_idioma', { p_set: set.id, p_market: mercado, p_variante: variante, p_idioma: idioma, p_hay: ahoraSalio })
     if (error) {

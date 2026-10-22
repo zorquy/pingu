@@ -1,6 +1,6 @@
 // Lo que decide las dos secciones de idiomas de un set en /admin (956), sin
 // tocar la base ni el DOM: así se prueba en Node.
-import { IDIOMAS } from '../../js/cardmarket.js'
+import { IDIOMAS, VARIANTES, versionesDelIdioma, reglasDeFilas } from '../../js/cardmarket.js'
 import { variantesDeCarta } from '../../js/mi-coleccion/variantes.js'
 
 // Cada idioma con su estado: `auto` (lo dicen Cardmarket o TCGdex), `quitado`
@@ -37,9 +37,37 @@ export function versionesDelSet(cartas, filas = []) {
   return [...vistas.values()]
 }
 
-// ¿Salió esta versión en este idioma? Sin fila, sí (es lo de por defecto).
+// ¿Salió esta versión en este idioma, en el set entero? Sin fila, sí (es lo
+// de por defecto). Las filas de una carta (958) no cuentan aquí.
 export function salio(filas, variante, idioma) {
-  return !(filas || []).some((f) => f.variante === variante && f.idioma === idioma && f.hay === false)
+  return !(filas || []).some((f) => !f.card_id && f.variante === variante && f.idioma === idioma && f.hay === false)
+}
+
+// UNA CARTA (958): sus versiones, más las de siempre que no trae (la Reverse
+// del Duskull SH2 no está en TCGdex) y las que ya tengan algo puesto.
+export function versionesDeUnaCarta(carta, filas = []) {
+  const vistas = new Map(variantesDeCarta(carta).map((v) => [v.nuestro, { id: v.nuestro, nombre: v.nombre }]))
+  for (const v of VARIANTES) if (v.id !== 'primera' && !vistas.has(v.id)) vistas.set(v.id, { id: v.id, nombre: v.nombre })
+  for (const f of filas || []) if (f.card_id === carta?.id && !vistas.has(f.variante)) vistas.set(f.variante, { id: f.variante, nombre: f.variante })
+  return [...vistas.values()]
+}
+// Lo que se ofrece de esa carta en un idioma: lo mismo que ve la hoja de añadir.
+function seOfrece(carta, filas, variante, idioma) {
+  const base = variantesDeCarta(carta).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
+  return versionesDelIdioma(base, reglasDeFilas(filas), idioma, carta.id).versiones.some((v) => v.id === variante)
+}
+// Cada casilla: si se ofrece, y si es por algo puesto en ESTA carta.
+export function casillaDeCarta(carta, filas, variante, idioma) {
+  const propia = (filas || []).find((f) => f.card_id === carta?.id && f.variante === variante && f.idioma === idioma)
+  return { si: seOfrece(carta, filas, variante, idioma), propia: Boolean(propia) }
+}
+// Lo que se manda al tocarla (`hay` para la función): lo contrario de lo que
+// se ve, o null si lo contrario es ya lo que darían el set y la carta sin esa
+// fila (así no queda una fila que repite lo de por defecto).
+export function alTocarCasilla(carta, filas, variante, idioma) {
+  const quiero = !casillaDeCarta(carta, filas, variante, idioma).si
+  const sin = (filas || []).filter((f) => !(f.card_id === carta?.id && f.variante === variante && f.idioma === idioma))
+  return seOfrece(carta, sin, variante, idioma) === quiero ? null : quiero
 }
 
 export const AVISO_956 = 'Falta ejecutar supabase-migration-956-idiomas-y-versiones-a-mano.sql en el SQL Editor.'

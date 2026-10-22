@@ -42,7 +42,7 @@ import {
   varianteDe,
   euros,
   valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones } from './cardmarket.js'
-import { idiomasDeSet, versionesQueNoSalieron } from './idiomas-de-set.js'
+import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -436,7 +436,7 @@ function idiomaDeLaVista() {
 // La puerta es el «+» pegado a la carta, que abre este diálogo. Desde la
 // 748 (la C5 de su maqueta) va SIEMPRE al formulario: lo que ya tienes lo
 // dice la cabecera («Ya tienes 2»), sin un paso de «Añadir más» delante.
-const anadir = { carta: null, variante: null, idiomas: null, noSalieron: new Map(), nombreSet: '' }
+const anadir = { carta: null, variante: null, idiomas: null, reglas: sinReglas(), nombreSet: '' }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
@@ -485,7 +485,7 @@ function abrirAnadir(cardId, variante = null) {
   if (!sesion || !esMia) { showToast('Inicia sesión para añadir cartas a tu colección.', 'error'); return }
   anadir.carta = c
   anadir.variante = variante
-  anadir.noSalieron = new Map()
+  anadir.reglas = sinReglas()
   const d = $('mcAnadirDialogo')
   pintarCartaDeAnadir(variante)
   // El set por su NOMBRE: las cartas de una expansión abierta traen de
@@ -509,10 +509,10 @@ function abrirAnadir(cardId, variante = null) {
     pintarIdiomasDeAnadir(lista, lista.some((i) => i.id === puesto) ? puesto : lista[0]?.id)
     aplicarVersionesDelIdioma()
   })
-  // Las versiones que no salieron en un idioma (956), también después.
-  void versionesQueNoSalieron(c.set_id, c.market || mercado).then((mapa) => {
-    if (anadir.carta !== c || !d.open || !mapa.size) return
-    anadir.noSalieron = mapa
+  // Las versiones de cada idioma (956, y las de la carta, 958), también después.
+  void reglasDeVersiones(c.set_id, c.market || mercado).then((reglas) => {
+    if (anadir.carta !== c || !d.open || !hayReglas(reglas)) return
+    anadir.reglas = reglas
     aplicarVersionesDelIdioma()
   })
   // Las versiones de TCGGO llegan después y amplían el desplegable (862).
@@ -528,7 +528,7 @@ function abrirAnadir(cardId, variante = null) {
 // aunque no se ofrezca (la 472), y la de aquí la quita si no salió.
 function versionesParaAnadir(c) {
   const idioma = idiomaDeAnadir()
-  const r = versionesDelIdioma(variantesParaEditar(c, anadir.variante || null), anadir.noSalieron, idioma)
+  const r = versionesDelIdioma(variantesParaEditar(c, anadir.variante || null), anadir.reglas, idioma, c.id)
   const aviso = $('mcAdAvisoIdioma')
   if (aviso) {
     const texto = avisoDeVersiones(r.quitadas, idioma, anadir.nombreSet)

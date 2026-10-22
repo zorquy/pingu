@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (193) — PINGU-Claude (958 — versiones por idioma carta a carta: el Duskull SH2) · MIGRACIÓN NUEVA
+
+**Hecho** (PINGU, con el Duskull SH2 de Stormfront: «en español solo está en
+la holográfica… en inglés, francés, alemán, italiano es reverse»):
+- El porqué: la 956 solo sabía QUITAR versiones al SET entero, y el Duskull
+  trae de TCGdex una sola versión (Holo, «Rare Holo LV.X»): en inglés no había
+  Reverse que dejar, y la fila «Reverse ✕ ES» de Stormfront no le dice nada.
+- `supabase-migration-958-versiones-por-idioma-de-una-carta.sql` (después de
+  la 956): `tcg_version_idioma.card_id` ('' = el set, como antes) dentro de la
+  clave; en una carta se guarda el sí (pone una versión que la carta no trae)
+  y el no. `catalogo_version_de_idioma` gana `p_carta` (la de cinco se va: con
+  la de seis chocaría). Y las tres SH de Stormfront: Reverse sí y Holo no en
+  en/fr/de/it.
+- La web: `versionesDelIdioma(versiones, reglas, idioma, cardId)` quita y pone
+  (lo de la carta manda sobre lo del set) y `reglasDeFilas` en
+  `js/cardmarket.js`; `reglasDeVersiones` (`js/idiomas-de-set.js`) pide `*`
+  (sin la 958 no hay `card_id`, la 624). Las dos hojas de añadir (Mi colección
+  y /carta) le pasan la carta: al cambiar de idioma cambia la versión al
+  momento.
+- /admin → la hoja «Versiones por idioma» de un set: debajo, una carta con sus
+  propias versiones (todas las versiones, también las que no trae; con borde,
+  lo puesto en la carta; tocarlo otra vez vuelve a lo del set).
+
+**Ficheros**: `supabase-migration-958-versiones-por-idioma-de-una-carta.sql`,
+`js/cardmarket.js`, `js/idiomas-de-set.js`, `js/mi-coleccion.js`,
+`js/carta-mercado.js`, `admin/js/idiomas-set.js`, `admin/js/idiomas-set-puro.js`,
+`admin/css/admin.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-958.mjs` + `sql-tanda-958.sql` +
+`sql-tanda-958-casos.sql` (PostgreSQL con la 911, 956 y la 958 dos veces, y los
+casos de la 956 encima), `test-tanda-958-pantalla.mjs` (el Duskull en las dos
+hojas y la matriz de una carta en /admin) y el doble con `p_carta`. Pasadas
+956, 956-pantalla, 524, 299, 305, 311–313, 523, 624 e imports (la 310, roja
+como antes).
+
+**Pendiente**: que PINGU ejecute la 958. Las SH de Platinum, Rising Rivals,
+Supreme Victors y Arceus seguramente van igual: se ponen desde la hoja sin
+migración si Sergio o PINGU lo confirman. Las listas de smL, svG, CLF/CLV y
+WCD08 pasan a la 959.
+
 ## 2026-10-22 (192) — PINGU-Claude (957 — McDonald's 2019 en francés, sellos del Scyther, barajas de Lucario VSTAR y Zekrom-EX, y la lista pegada al crear) · MIGRACIÓN NUEVA
 
 **Hecho** (la lista de Sergio.M, lo que tiene fuente):
