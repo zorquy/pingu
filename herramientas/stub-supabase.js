@@ -1475,6 +1475,9 @@ function consulta(tabla, estado = {}) {
     // arreglos no se pueden probar.
     then: (ok, mal) => {
       const ms = (typeof window !== 'undefined' && window.__FAKE_RETRASO__?.[tabla]) || 0
+      // La línea de tiempo de las consultas (medir-tiempos.mjs): cuándo se
+      // pidió cada una, para contar cuántas esperas van EN FILA.
+      if (typeof window !== 'undefined' && window.__LINEA__) window.__LINEA__.push([tabla, Math.round(performance.now())])
       // `window.__FAKE_FALLA__ = { forum_threads: true }` hace FALLAR esa
       // tabla (tanda 718): «no se ha podido preguntar» es un estado de la
       // pantalla, y una prueba que nunca lo provoca no lo está mirando.
@@ -1530,6 +1533,12 @@ export const supabase = {
     CONSULTAS.n++
     CONSULTAS.porTabla[tabla] = (CONSULTAS.porTabla[tabla] || 0) + 1
     if (!T[tabla]) T[tabla] = []
+    // Quién la pide (medir-tiempos.mjs): el primer fichero de la web en la pila.
+    if (typeof window !== 'undefined' && window.__QUIEN__) {
+      const linea = (new Error().stack || '').split('\n').slice(2).find((l) => /\/js\//.test(l) && !/supabase\.js/.test(l)) || ''
+      const m = /\/(js\/[^:?]+)(?:\?[^:]*)?:(\d+)/.exec(linea)
+      window.__QUIEN__.push([tabla, Math.round(performance.now()), m ? `${m[1]}:${m[2]}` : '?'])
+    }
     return consulta(tabla)
   },
   // Las RPC se apuntan en vez de ejecutarse: a una prueba le interesa
@@ -1545,6 +1554,7 @@ export const supabase = {
     // Hacer TARDAR una función (tanda 596): lo que llega tarde a una
     // ventana que ya no es la suya solo se ve si algo llega tarde.
     const retraso = (typeof window !== 'undefined' && window.__RPC_RETRASO__?.[nombre]) || 0
+    if (typeof window !== 'undefined' && window.__LINEA__) window.__LINEA__.push(['rpc:' + nombre, Math.round(performance.now())])
     if (retraso) await new Promise((ok) => setTimeout(ok, retraso))
     // Los resultados de una encuesta se CALCULAN de las tablas, como en
     // Postgres. Devolverlos a mano desde cada prueba haría que «no se
