@@ -184,6 +184,7 @@
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas del catálogo">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="album" data-icono="layers" aria-selected="true" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="productos" data-icono="package" aria-selected="false" aria-controls="mcPanelProductos"><span class="mc-menu-texto">Productos</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
       </nav>
 
@@ -1272,14 +1273,27 @@
              js/mi-coleccion/productos.js. -->
         <div id="mcProdEstante">
           <div class="mc-prod-barra">
+            <!-- EL BUSCADOR (968, PINGU: «en el apartado de productos también
+                 tendríamos que tener un buscador»): en todo el catálogo que
+                 se mira, en español o en inglés. -->
+            <div class="mc-buscador mc-prod-buscador">
+              <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+              <input type="search" enterkeyhint="search" id="mcProdBuscar" placeholder="Lata Charizard, Elite Trainer Box…" autocomplete="off" aria-label="Buscar productos" />
+            </div>
             <span class="seg mc-prod-catalogo" role="group" aria-label="Qué catálogo se mira">
               <button type="button" class="seg-btn" data-prod-mercado="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
               <button type="button" class="seg-btn" data-prod-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
             </span>
           </div>
-          <div id="mcProdTuyos"></div>
-          <h2 class="mc-subtitulo">Expansiones</h2>
-          <div class="mc-prod-sets" id="mcProdSets"></div>
+          <div id="mcProdBusqueda" class="hidden" aria-live="polite">
+            <p class="mc-nota" id="mcProdBusquedaCuenta"></p>
+            <div class="mc-prod-rejilla" id="mcProdResultados"></div>
+          </div>
+          <div id="mcProdNormal">
+            <div id="mcProdTuyos"></div>
+            <h2 class="mc-subtitulo">Expansiones</h2>
+            <div class="mc-prod-sets" id="mcProdSets"></div>
+          </div>
         </div>
         <div id="mcProdSetVista" class="hidden">
           <button type="button" class="mc-prod-volver" id="mcProdVolver" data-icono="layers">Todas las expansiones</button>

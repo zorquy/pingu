@@ -20,8 +20,16 @@
 // el estado, y lo quita un humano: la 526); 429/403 del plan, hasta mañana.
 // Y antes de gastar una petición se mira, gratis, que la tabla exista.
 //
+// Y LO QUE NO ES DE NINGUNA EXPANSIÓN (968): TCGGO cuelga las latas de Mega
+// Charizard X e Y (y más) de su episodio 226, «Pokémon», que no es ningún
+// set nuestro, así que no se pedía nunca. Va en `EPISODIOS_SUELTOS`, se mira
+// cada día y por tandas de MAX_PAGINAS (`sigue` apunta por dónde va), con un
+// tope de MAX_PAGINAS_SUELTOS por vuelta: si su paginación no acabara nunca,
+// la vuelta acaba igual (la 510).
+//
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
-// opcionales TCGGO_BASE, TCGGO_TOPE_PRODUCTOS, TCGGO_RUTA_PRODUCTOS.
+// opcionales TCGGO_BASE, TCGGO_TOPE_PRODUCTOS, TCGGO_RUTA_PRODUCTOS y
+// TCGGO_EPISODIOS_SUELTOS («226,JP:12»: sustituye a la lista).
 import { cabeceras, baseDe, baseJpDe, hayMasPaginas, esLimiteDelPlan } from '../lib/tcggo.mjs'
 import { filaDeProducto, COLUMNAS_POR_PAIS } from '../../js/productos.js'
 
@@ -48,6 +56,18 @@ const DIAS_SIN_JP = 7
 export const DIAS_CERCA = 1
 export const DIAS_LEJOS = 7
 const CERCA = 60 // días alrededor de su salida
+export const EPISODIOS_SUELTOS = ['226']
+export const MAX_PAGINAS_SUELTOS = 30
+export function episodiosSueltos(env = {}) {
+  const texto = env.TCGGO_EPISODIOS_SUELTOS
+  const lista = texto != null ? String(texto).split(',') : EPISODIOS_SUELTOS
+  const salida = []
+  for (const trozo of lista) {
+    const m = /^\s*(?:(JP):)?(\d+)\s*$/i.exec(trozo)
+    if (m) salida.push({ id: Number(m[2]), mercado: m[1] ? 'JP' : 'WEST' })
+  }
+  return salida
+}
 export const RUTAS = ['/episodes/{id}/products?page={pagina}', '/products?episode_id={id}&page={pagina}']
 
 async function rest(ruta, clave, opciones = null) {
@@ -140,7 +160,13 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
   }
   const jpEnPausa = estado.jpSinRuta?.hasta && estado.jpSinRuta.hasta > hoy
   const sirve = (s) => (s.market === 'JP' ? conMercado && !jpEnPausa : s.market === 'WEST' || !s.market)
-  const toca = expansionesQueTocan((sets || []).filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
+  // Los sueltos van como una expansión que sale hoy: cada día y primero.
+  const claves = new Set((sets || []).map((s) => claveDe(s.market === 'JP' ? 'JP' : 'WEST', Number(s.tcggo_id))))
+  const sueltos = episodiosSueltos(env).filter((e) => !claves.has(claveDe(e.mercado, e.id)))
+  const sueltas = new Set(sueltos.map((e) => claveDe(e.mercado, e.id)))
+  const comoSets = sueltos.map((e) => ({ market: e.mercado, tcggo_id: e.id, release_date: hoy }))
+  estado.sigue = estado.sigue || {}
+  const toca = expansionesQueTocan([...comoSets, ...(sets || [])].filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
   const { base, host } = baseDe(env)
   const bases = { WEST: base, JP: baseJpDe(base) }
   // La ruta de cada catálogo, apuntada por separado: que la occidental
@@ -154,11 +180,15 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     if (estado.peticiones >= tope) break
     if (e.mercado === 'JP' && estado.jpSinRuta?.hasta > hoy) continue
     const filas = []
-    let pagina = 1
+    const suelta = sueltas.has(e.clave)
+    // Un suelto sigue por donde lo dejó la pasada anterior.
+    const desde = suelta ? Math.max(1, Number(estado.sigue[e.clave]) || 1) : 1
+    let pagina = desde
     let ok = false
+    let acabada = true
     const rutas = rutasDe(e.mercado)
     const fija = e.mercado === 'WEST' && env.TCGGO_RUTA_PRODUCTOS
-    for (; pagina <= MAX_PAGINAS && estado.peticiones < tope; pagina++) {
+    for (; pagina < desde + MAX_PAGINAS && estado.peticiones < tope; pagina++) {
       let respuesta = null
       let todas404 = true
       for (const plantilla of rutas) {
@@ -188,7 +218,7 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         // hasta que un humano ponga la ruta; el japonés, una semana, y lo
         // occidental sigue (808): que TCGGO no tenga productos japoneses no
         // es un fallo de nadie.
-        if (todas404 && !estado[campoRuta(e.mercado)] && !fija && pagina === 1) {
+        if (todas404 && !estado[campoRuta(e.mercado)] && !fija && pagina === 1 && !suelta) {
           const k = campoSinRuta(e.mercado)
           estado[k] = (estado[k] || 0) + 1
           if (estado[k] >= 6) {
@@ -216,7 +246,8 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         if (e.mercado === 'JP') fila.id = ID_JP + f.id
         filas.push(fila)
       }
-      if (!hayMasPaginas(respuesta)) break
+      if (!hayMasPaginas(respuesta)) { acabada = true; break }
+      acabada = false
     }
     if (!ok) {
       // Lo del OTRO se salta: a la tercera, se da por mirada hasta la próxima vuelta.
@@ -234,7 +265,13 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         return { ...resumen, error: estado.parado }
       }
     }
-    estado.hechos[e.clave] = hoy
+    // Un suelto a medias no está hecho: la pasada siguiente sigue (hasta el
+    // tope de la vuelta, que lo da por hecho igual).
+    if (suelta && !acabada && pagina <= MAX_PAGINAS_SUELTOS) estado.sigue[e.clave] = pagina
+    else {
+      delete estado.sigue[e.clave]
+      estado.hechos[e.clave] = hoy
+    }
     delete estado.fallidos[e.clave]
     resumen.expansiones++
     resumen.productos += filas.length

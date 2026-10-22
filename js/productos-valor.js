@@ -5,7 +5,7 @@
 // css/mi-coleccion.css, que la portada no carga (lo cantó la 299). Aquí no
 // se pinta nada: se pide y se suma.
 import { supabase } from './supabase.js'
-import { valorDeProductos } from './productos.js'
+import { valorDeProductos, terminosDeProducto, filtroDeTermino } from './productos.js'
 
 export async function misProductos(userId) {
   if (!userId) return []
@@ -34,4 +34,17 @@ export async function valorParaElPanel(userId) {
   const porId = await productosPorIds(lista.map((m) => m.product_id)).catch(() => null)
   if (!porId) return null
   return valorDeProductos(lista, porId)
+}
+
+// Los productos que casan con lo escrito (968), para la pestaña Productos y
+// el buscador de arriba: cada palabra en el nombre (en español o en inglés,
+// `terminosDeProducto`), los que salen antes primero. Con `mercado`, solo
+// ese catálogo. Devuelve `{ data, error }`: un fallo no es «no hay» (la 510).
+export async function buscarProductos(crudo, { mercado = null, limite = 60, cliente = supabase } = {}) {
+  const terminos = terminosDeProducto(crudo)
+  if (!terminos.length) return { data: [], error: null }
+  let q = cliente.from('tcg_products').select('*')
+  for (const t of terminos) q = q.or(filtroDeTermino(t))
+  if (mercado) q = q.eq('market', mercado)
+  return q.order('release_date', { ascending: false, nullsFirst: false }).order('name').limit(limite)
 }

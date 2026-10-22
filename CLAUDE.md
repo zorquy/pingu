@@ -83,6 +83,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   salía buscando «zapdos». Si una pantalla nueva busca cartas por lo que
   escribe alguien, pasa por ahí con sus columnas y sus filtros; no copies la
   consulta.
+  Los productos sellados, con `buscarProductos` (`js/productos-valor.js`,
+  968): un `or` por palabra con su traducción (`terminosDeProducto`: «lata»
+  es «tin»). Y desde fuera, un producto se abre en `/cartas?ver=productos&
+  producto=<id>` (`rutaDeProducto`), que se ve sin cuenta. Lo que TCGGO no
+  cuelga de ninguna expansión nuestra (su episodio 226, «Pokémon») entra por
+  `EPISODIOS_SUELTOS` de `tcggo-productos` y sale en «Productos especiales».
 - **En Jugar una carta se pinta como en Mi colección y se resuelve a una
   impresión CON ficha** (tanda 913). La foto: filas con `market` y
   `tcg_sets(serie_id,tcg_online_code)` (están en `COLUMNAS` del

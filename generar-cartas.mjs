@@ -64,12 +64,14 @@ const CAMBIOS = [
   ],
 ]
 
-// El menú: en el catálogo son dos pestañas, las expansiones y el buscador
-// de todo el catálogo. Lo demás (Panel, Cambios, Pokédex, Álbumes) es de
-// tu colección y vive en /mi-coleccion.
+// El menú: en el catálogo son tres pestañas, las expansiones, los
+// productos sellados (968: el buscador de arriba lleva a un producto aquí,
+// que se ve sin cuenta) y el buscador de todo el catálogo. Lo demás (Panel,
+// Cambios, Pokédex, Álbumes) es de tu colección y vive en /mi-coleccion.
 const MENU = /<nav class="mc-pestanias mc-menu" id="mcMenu"[^>]*>[\s\S]*?<\/nav>/
 const MENU_CATALOGO = `<nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas del catálogo">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="album" data-icono="layers" aria-selected="true" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
+        <button type="button" role="tab" class="mc-pestania" data-pestania="productos" data-icono="package" aria-selected="false" aria-controls="mcPanelProductos"><span class="mc-menu-texto">Productos</span></button>
         <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
       </nav>`
 

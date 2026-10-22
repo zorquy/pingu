@@ -32,7 +32,7 @@ import { marcaCardmarket } from '../cardmarket-marca.js'
 import { banderaHtml } from '../precio-vista.js'
 import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto } from '../productos.js'
 import { nombreDeSet } from '../catalogo-series.js'
-import { misProductos, productosPorIds } from '../productos-valor.js'
+import { misProductos, productosPorIds, buscarProductos } from '../productos-valor.js'
 
 const $ = (id) => document.getElementById(id)
 // Con `*` (769): las columnas por país son de una migración que puede no
@@ -54,6 +54,14 @@ let tipo = ''
 let catalogo = null // 'WEST' | 'JP'; null = el de la página
 let montado = false
 let abiertoEnFicha = null
+let primeraVez = true
+let busqueda = '' // lo escrito en el buscador de la pestaña (968)
+let busquedaVersion = 0
+// Lo que TCGGO no cuelga de ninguna expansión nuestra (968): las latas de
+// Mega Charizard X e Y van en su episodio «Pokémon». Una baldosa para todas.
+export const ESPECIALES = 'especiales'
+const episodiosSinSet = () => [...(cuentaPorEpisodio?.keys() || [])].filter((ep) => !setsPorEpisodio.has(ep))
+const esEspecial = (ep) => ep === ESPECIALES
 
 // ── La base ──
 // La cuenta de lo tuyo vive en js/productos-valor.js (769): la usan también
@@ -118,7 +126,7 @@ function pintarTuyos() {
     caja.innerHTML = '<p class="mc-nota">Los productos todavía no están activados en la base. En cuanto lo estén, aquí verás los tuyos y lo que valen.</p>'
     return
   }
-  const lista = [...mios.values()].filter((m) => fichas.has(m.product_id) && setsPorEpisodio.has(Number(fichas.get(m.product_id).episode_id)))
+  const lista = [...mios.values()].filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
   if (!lista.length) {
     caja.innerHTML = mios.size ? '' : '<p class="mc-nota">Todavía no tienes productos. Abre una expansión de abajo y toca «+ Añadir» en los que tengas.</p>'
     return
@@ -128,7 +136,7 @@ function pintarTuyos() {
       <h2 class="mc-subtitulo">Tus productos</h2>
       <p class="mc-prod-valor"><b>${escapeHtml(euros(v.total))}</b> · ${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'}${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</p>
     </div>
-    ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : ''}<div class="mc-prod-rejilla">${g.lista.map((m) => tarjetaDeProductoHtml(fichas.get(m.product_id), m.cantidad)).join('')}</div>`).join('')}`
+    ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : g.especial ? `<div class="mc-prod-set">${cabezaDeEspecialesHtml()}</div>` : ''}<div class="mc-prod-rejilla">${g.lista.map((m) => tarjetaDeProductoHtml(fichas.get(m.product_id), m.cantidad)).join('')}</div>`).join('')}`
 }
 
 // Tus productos, por expansión (766, PR1): la más nueva primero.
@@ -137,10 +145,11 @@ function gruposDeTuyos(lista) {
   for (const m of lista) {
     const f = fichas.get(m.product_id)
     // Un producto del OTRO catálogo no es de un set de este (808).
-    const ep = f && mercadoDe(f) === catalogoActual() ? f.episode_id ?? null : `otro:${mercadoDe(f)}`
-    if (!grupos.has(ep)) grupos.set(ep, { set: setsPorEpisodio.get(Number(ep)) || null, lista: [] })
+    const ep = setsPorEpisodio.has(Number(f?.episode_id)) ? Number(f.episode_id) : ESPECIALES
+    if (!grupos.has(ep)) grupos.set(ep, { set: setsPorEpisodio.get(ep) || null, especial: esEspecial(ep), lista: [] })
     grupos.get(ep).lista.push(m)
   }
+  // Los especiales, detrás de las expansiones.
   return [...grupos.values()].sort((a, b) => (a.set ? 0 : 1) - (b.set ? 0 : 1) || String(b.set?.release_date || '').localeCompare(String(a.set?.release_date || '')))
 }
 
@@ -167,6 +176,25 @@ function baldosaHtml(ep, s) {
   </button>`
 }
 
+// La de los productos especiales (968): la primera, para que se encuentre
+// (Sergio buscó las latas y no las vio), con su icono en vez de un logo.
+function baldosaEspecialesHtml() {
+  const eps = episodiosSinSet()
+  if (!eps.length) return ''
+  const n = eps.reduce((t, ep) => t + (cuentaPorEpisodio.get(ep) || 0), 0)
+  const tengo = eps.reduce((t, ep) => t + tuyosDe(ep), 0)
+  return `<button type="button" class="mc-prod-baldosa mc-prod-baldosa-especial" data-prod-set="${ESPECIALES}" aria-label="${escapeHtml(`Productos especiales: ${n} productos`)}">
+    <span class="mc-prod-baldosa-logo" aria-hidden="true">${icons.package(40)}</span>
+    <span class="mc-prod-baldosa-texto"><b>Productos especiales</b><small>${escapeHtml(`De ninguna expansión: latas, colecciones… · ${n} ${n === 1 ? 'producto' : 'productos'}`)}</small></span>
+    ${tengo ? `<span class="mc-prod-baldosa-tuyos">Tienes ${tengo}</span>` : ''}
+  </button>`
+}
+
+function cabezaDeEspecialesHtml(extra = 'De ninguna expansión: latas, colecciones…') {
+  return `<span class="mc-prod-set-logo mc-prod-especial-icono" aria-hidden="true">${icons.package(32)}</span>
+    <span class="mc-prod-set-texto"><b>Productos especiales</b>${extra ? `<small>${escapeHtml(extra)}</small>` : ''}</span>`
+}
+
 function pintarEstante() {
   $('mcProdEstante')?.classList.toggle('hidden', episodio != null)
   $('mcProdSetVista')?.classList.toggle('hidden', episodio == null)
@@ -178,8 +206,9 @@ function pintarEstante() {
     return
   }
   const lista = [...setsPorEpisodio.entries()].filter(([ep]) => cuentaPorEpisodio.has(ep)).sort((a, b) => String(b[1].release_date || '').localeCompare(String(a[1].release_date || '')))
-  caja.innerHTML = lista.length
-    ? lista.map(([ep, s]) => baldosaHtml(ep, s)).join('')
+  const especiales = baldosaEspecialesHtml()
+  caja.innerHTML = lista.length || especiales
+    ? especiales + lista.map(([ep, s]) => baldosaHtml(ep, s)).join('')
     : `<p class="empty-state">Todavía no hay productos de las expansiones de ${catalogoActual() === 'JP' ? 'Pokémon Japón' : 'este catálogo'}.</p>`
 }
 
@@ -194,7 +223,9 @@ async function pintarCatalogo() {
   const caja = $('mcProdRejilla')
   if (!caja || episodio == null) return
   caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-  const { data, error } = await productosDeExpansion(supabase, episodio, catalogoActual())
+  const { data, error } = esEspecial(episodio)
+    ? await productosDeEpisodios(supabase, episodiosSinSet(), catalogoActual())
+    : await productosDeExpansion(supabase, episodio, catalogoActual())
   if (error) {
     caja.innerHTML = '<p class="empty-state">No se han podido leer los productos. Prueba otra vez en un rato.</p>'
     return
@@ -207,7 +238,11 @@ async function pintarCatalogo() {
   const lista = (data || []).filter((f) => !tipo || (f.tipo || OTRO.id) === tipo)
   const cabeza = $('mcProdSetCabeza')
   const s = setsPorEpisodio.get(Number(episodio))
-  if (cabeza) {
+  if (cabeza && esEspecial(episodio)) {
+    const n = (data || []).length
+    cabeza.innerHTML = cabezaDeEspecialesHtml(`De ninguna expansión: latas, colecciones… · ${n} ${n === 1 ? 'producto' : 'productos'}`)
+    cabeza.classList.remove('hidden')
+  } else if (cabeza) {
     const preventa = s?.release_date && String(s.release_date) > hoyISO()
     cabeza.innerHTML = cabezaDeSetHtml(s, [preventa ? `Sale el ${fechaLarga(s.release_date)} · preventa` : fechaLarga(s?.release_date), `${(data || []).length} ${(data || []).length === 1 ? 'producto' : 'productos'}`].filter(Boolean).join(' · '))
     cabeza.classList.toggle('hidden', !s)
@@ -251,6 +286,13 @@ export async function productosDeExpansion(cliente, ep, mercado, columnas = COLU
   return r
 }
 
+// Los de varias expansiones de TCGGO a la vez (968: las que no son nuestras).
+export async function productosDeEpisodios(cliente, eps, mercado, columnas = COLUMNAS) {
+  if (!eps.length) return { data: [], error: null }
+  return cliente.from('tcg_products').select(columnas).in('episode_id', eps).eq('market', mercado)
+    .order('release_date', { ascending: false, nullsFirst: false }).order('name').limit(500)
+}
+
 const mercadoDe = (f) => f?.market || 'WEST'
 
 async function cargarSets() {
@@ -276,7 +318,7 @@ async function cargarSets() {
     if (!ya || Number(s.card_count_total || 0) > Number(ya.card_count_total || 0)) porEpisodio.set(id, s)
   }
   setsPorEpisodio = porEpisodio
-  if (episodio != null && !porEpisodio.has(Number(episodio))) episodio = null
+  if (episodio != null && (esEspecial(episodio) ? !episodiosSinSet().length : !porEpisodio.has(Number(episodio)))) episodio = null
   return true
 }
 
@@ -303,9 +345,64 @@ async function cambiarCantidad(id, paso) {
   // Se repinta lo que se ha tocado, sin volver a pedir: la tarjeta del
   // catálogo y, si está abierta, su ficha.
   const f = fichas.get(id)
-  const tarjeta = $('mcProdRejilla')?.querySelector(`[data-prod="${id}"]`)
-  if (f && tarjeta) tarjeta.outerHTML = tarjetaDeProductoHtml(f, mios.get(id)?.cantidad || 0)
+  if (f) for (const t of document.querySelectorAll(`#mcProdRejilla [data-prod="${id}"], #mcProdResultados [data-prod="${id}"]`)) t.outerHTML = tarjetaDeProductoHtml(f, mios.get(id)?.cantidad || 0)
   if (abiertoEnFicha === id) pintarMandoDeFicha(f)
+}
+
+// ── El buscador de la pestaña (968) ──
+// Con algo escrito, la estantería se aparta y salen los productos del
+// catálogo que se mira; vacío, vuelve. Lo que llega tarde de una búsqueda
+// vieja no se pinta encima de la nueva (la 663).
+async function pintarBusqueda() {
+  const enBusqueda = busqueda.length >= 2
+  $('mcProdBusqueda')?.classList.toggle('hidden', !enBusqueda)
+  $('mcProdNormal')?.classList.toggle('hidden', enBusqueda)
+  if (!enBusqueda) return
+  const mia = ++busquedaVersion
+  const caja = $('mcProdResultados')
+  const cuenta = $('mcProdBusquedaCuenta')
+  caja.classList.add('uv-actualizando')
+  const { data, error } = await buscarProductos(busqueda, { mercado: catalogoActual(), limite: 60 })
+  if (mia !== busquedaVersion) return
+  caja.classList.remove('uv-actualizando')
+  if (error) {
+    cuenta.textContent = ''
+    caja.innerHTML = '<p class="empty-state">No se ha podido buscar. Prueba otra vez en un rato.</p>'
+    return
+  }
+  for (const f of data || []) fichas.set(f.id, f)
+  const n = (data || []).length
+  cuenta.textContent = n ? `${n >= 60 ? 'Los 60 primeros' : `${n} ${n === 1 ? 'producto' : 'productos'}`} con «${busqueda}»` : ''
+  caja.innerHTML = n
+    ? data.map((f) => tarjetaDeProductoHtml(f, mios?.get(f.id)?.cantidad || 0, { conMando: mios !== null })).join('')
+    : `<p class="empty-state">Ningún producto con «${escapeHtml(busqueda)}». Prueba con menos palabras o en inglés («tin», «box»).</p>`
+}
+
+// Lo que viene en la dirección, la primera vez (968): `producto` abre su
+// ficha (desde el buscador de arriba) y `q` deja la búsqueda puesta.
+async function deLaDireccion() {
+  const params = new URLSearchParams(location.search)
+  const q = (params.get('q') || '').trim()
+  const id = Number(params.get('producto'))
+  if (Number.isInteger(id) && id > 0) {
+    let f = fichas.get(id)
+    if (!f) {
+      try { f = (await productosPorIds([id])).get(id) } catch { f = null }
+    }
+    if (f) {
+      fichas.set(id, f)
+      if (mercadoDe(f) !== catalogoActual()) {
+        catalogo = mercadoDe(f)
+        await cargarSets()
+      }
+      return () => abrirFicha(id)
+    }
+  }
+  if (q && $('mcProdBuscar')) {
+    $('mcProdBuscar').value = q
+    busqueda = q
+  }
+  return null
 }
 
 // ── La ficha de un producto (769) ──
@@ -395,7 +492,7 @@ export async function abrir(contexto) {
       }
       const set = e.target.closest('[data-prod-set]')
       if (set) {
-        episodio = Number(set.dataset.prodSet)
+        episodio = esEspecial(set.dataset.prodSet) ? ESPECIALES : Number(set.dataset.prodSet)
         tipo = ''
         window.scrollTo({ top: 0, behavior: 'instant' })
         return void pintarCatalogo()
@@ -408,8 +505,16 @@ export async function abrir(contexto) {
       if (m && m.dataset.prodMercado !== catalogoActual()) {
         catalogo = m.dataset.prodMercado
         episodio = null
-        void cargarSets().then(() => { pintarTuyos(); pintarEstante() })
+        void cargarSets().then(() => { pintarTuyos(); pintarEstante(); if (busqueda) void pintarBusqueda() })
       }
+    })
+    let espera = null
+    $('mcProdBuscar')?.addEventListener('input', (e) => {
+      clearTimeout(espera)
+      espera = setTimeout(() => {
+        busqueda = e.target.value.trim()
+        void pintarBusqueda()
+      }, 250)
     })
     const d = $('mcProdFicha')
     d?.addEventListener('click', (e) => {
@@ -435,7 +540,11 @@ export async function abrir(contexto) {
     } catch { /* sin fichas, lo tuyo sale cuando lleguen */ }
   }
   await cargarSets()
+  const alFinal = primeraVez ? await deLaDireccion() : null
+  primeraVez = false
   pintarTuyos()
   if (episodio != null) await pintarCatalogo()
   else pintarEstante()
+  if (busqueda) await pintarBusqueda()
+  alFinal?.()
 }

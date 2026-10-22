@@ -439,3 +439,8 @@ input.bs-input[type='search']:focus {
   max-height: 100%;
   object-fit: contain;
 }
+
+/* 968: la foto de un producto es cuadrada; entera, dentro del hueco. */
+.bs-foto-producto {
+  object-fit: contain;
+}

@@ -52,6 +52,20 @@ export function casan(lista, q) {
   return lista.filter((x) => contienePlegado(`${x.nombre} ${x.detalle || ''} ${x.palabras || ''}`, p))
 }
 
+// Debajo de las cartas, el camino directo a Cartas › Buscar con lo escrito
+// (968, Sergio: para ver más que tres había que ir a /buscar, tocar la chapa
+// Cartas y luego «Verlas en Cartas»); debajo de los productos, a su pestaña.
+export function masDe(grupo, r, q) {
+  const enc = encodeURIComponent(q)
+  if (grupo === 'cartas' && (r.hayMas || r.total > r.filas.length)) {
+    return [{ fila: { nombre: r.hayMas ? 'Ver todas las cartas' : `Ver las ${r.total} cartas`, detalle: 'En Cartas, por expansión', icono: 'cards' }, href: `/cartas?ver=buscar&q=${enc}` }]
+  }
+  if (grupo === 'productos' && r.hayMas) {
+    return [{ fila: { nombre: 'Ver más productos', detalle: 'En Cartas › Productos', icono: 'package' }, href: `/cartas?ver=productos&q=${enc}` }]
+  }
+  return []
+}
+
 let caja = null
 
 // La hoja va ANTES de abrir (874). Se pedía y no se esperaba, así que en el
@@ -122,7 +136,7 @@ function montar() {
     for (const [g] of GRUPOS) {
       const r = remotos[g]
       if (r?.error) bloques.push([NOMBRE[g], [{ fila: { nombre: `No se ha podido buscar en ${NOMBRE[g].toLowerCase()}`, detalle: 'Pulsa para reintentar', icono: 'refreshCw' }, hacer: () => buscar(true) }]])
-      else if (r?.filas?.length) bloques.push([NOMBRE[g], r.filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f) }))])
+      else if (r?.filas?.length) bloques.push([NOMBRE[g], [...r.filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f) })), ...masDe(g, r, q)]])
     }
     const paginas = casan(paginasDeLaBarra(), q).map((p) => ({ fila: p, href: p.href }))
     if (paginas.length) bloques.push(['Ir a', q ? paginas : paginas.slice(0, 8)])

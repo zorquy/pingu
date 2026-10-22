@@ -41785,6 +41785,51 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 968 — Productos fuera de expansión, buscarlos, y el buscador corto
+
+Sergio.M: faltaban las latas de Mega Charizard X y Mega Charizard Y; TCGGO
+las cuelga de su episodio 226, «Pokémon», que no es ningún set nuestro, y
+`tcggo-productos` solo pedía episodios con un set con ese `tcggo_id`. Y del
+buscador: para ver más de tres cartas había que pasar por /buscar, la chapa
+Cartas y «Verlas en Cartas»; tampoco buscaba productos.
+
+- `netlify/functions/tcggo-productos.mjs`: `EPISODIOS_SUELTOS` (`['226']`;
+  `TCGGO_EPISODIOS_SUELTOS` la sustituye, «226,JP:12») entran como sets que
+  salen hoy (cada día y los primeros). Van por tandas de `MAX_PAGINAS`:
+  `estado.sigue[clave]` apunta la página siguiente y no se marcan `hechos`
+  hasta acabar o llegar a `MAX_PAGINAS_SUELTOS` (30) por día, que es el freno
+  de una paginación que no acabe (la 510). Su 404 no cuenta para `sinRuta`.
+  Si un set nuestro llegara a tener ese `tcggo_id`, se pide como el set.
+- Pestaña Productos (`js/mi-coleccion/productos.js`): los episodios que
+  cuenta `productos_por_expansion` y no tienen set (`episodiosSinSet`) son
+  la baldosa `ESPECIALES` («Productos especiales», la PRIMERA de la
+  estantería, con el icono `package`), su vista (`productosDeEpisodios`,
+  `.in('episode_id', …)`) y su grupo en «Tus productos», detrás de las
+  expansiones. Lo tuyo se filtra ahora por catálogo (`mercadoDe`), no por
+  tener set.
+- Buscador de la pestaña (`#mcProdBuscar`): `buscarProductos` de
+  `js/productos-valor.js` — un `.or(name.ilike…)` por palabra (PostgREST los
+  junta con AND), con `terminosDeProducto` (sin acentos ni signos; «lata» →
+  «tin», «caja» → «box», «sobre» → «booster/pack»…, en `EN_INGLES`), del
+  catálogo que se mira, por `release_date` desc con los sin fecha detrás.
+  Con algo escrito, `#mcProdNormal` se esconde y sale `#mcProdBusqueda`; la
+  respuesta vieja no pisa a la nueva (`busquedaVersion`, la 663).
+- La dirección, la primera vez (`deLaDireccion`): `?producto=<id>` abre su
+  ficha (cambiando de catálogo si es japonés) y `?q=` deja la búsqueda.
+- /cartas tiene la pestaña Productos (`PESTANAS_CATALOGO`, `MENU_CATALOGO`
+  en `generar-cartas.mjs`): es adonde lleva un producto desde fuera
+  (`rutaDeProducto` → `/cartas?ver=productos&producto=<id>`), porque
+  /mi-coleccion sin cuenta pide entrar. Sin cuenta, «+ Añadir» lo dice.
+- Buscador de arriba (`js/buscador.js`): grupo `productos` detrás de
+  `cartas` (los dos catálogos, `limite + 1` para saber `hayMas`); su fila en
+  `buscador-filas.js` (foto con `.bs-foto-producto`, tipo, «· Japón» y el
+  precio de `precioDeProducto`). /buscar tiene la chapa «Productos».
+- El camino corto: en «Todo», «Ver las N cartas» es un ENLACE a
+  `/cartas?ver=buscar&q=` (antes cambiaba a la chapa Cartas) y «Ver más
+  productos» a `/cartas?ver=productos&q=`; en la paleta, `masDe` pone las
+  mismas dos filas debajo de su grupo, así que son navegables con el teclado
+  (tres abajo e Intro). La chapa Cartas de /buscar sigue enseñándolas todas.
+
 ## Tanda 967 — Los precios de un producto, por idioma
 
 `js/productos.js`: los campos de TCGGO de un producto son por IDIOMA, como

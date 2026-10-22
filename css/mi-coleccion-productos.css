@@ -276,3 +276,19 @@
   align-items: center;
   gap: var(--e-sm);
 }
+
+/* 968: el buscador de la pestaña y los productos especiales (SCHEMA 968). */
+.mc-prod-buscador {
+  flex: 1 1 240px;
+  margin-right: auto;
+}
+
+.mc-prod-especial-icono,
+.mc-prod-baldosa-especial .mc-prod-baldosa-logo {
+  justify-content: center;
+  color: var(--navy);
+}
+
+.mc-prod-baldosa-especial {
+  background: var(--ice);
+}

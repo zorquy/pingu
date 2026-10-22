@@ -141,3 +141,32 @@ export function enlaceTcgplayerDeProducto(f) {
 // El catálogo de un producto (769): japonés si su idioma o su expansión lo
 // son; occidental si no.
 export const mercadoDeProducto = (f, setMarket = null) => (setMarket || (String(f?.lang || '').toLowerCase() === 'ja' ? 'JP' : 'WEST'))
+
+// BUSCAR UN PRODUCTO POR LO QUE SE ESCRIBE (968). Los nombres de TCGGO van
+// en inglés («Mega Charizard X ex Tin») y quien busca escribe en español
+// («lata charizard»): cada palabra es una condición, y las que tienen
+// traducción valen en los dos idiomas. Sin acentos ni signos: lo que va
+// dentro de un `or` de PostgREST no puede llevar comas ni paréntesis.
+const EN_INGLES = {
+  lata: ['tin'], latas: ['tin'],
+  sobre: ['booster', 'pack'], sobres: ['booster', 'pack'],
+  caja: ['box'], cajas: ['box'],
+  mazo: ['deck'], mazos: ['deck'],
+  coleccion: ['collection'], colecciones: ['collection'],
+  entrenador: ['trainer'], elite: ['elite'],
+  pokemon: ['pokémon'],
+}
+export function terminosDeProducto(crudo) {
+  const palabras = String(crudo || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim().split(' ').filter(Boolean)
+  return [...new Set(palabras)].slice(0, 6).map((p) => [p, ...(EN_INGLES[p] || []).filter((x) => x !== p)])
+}
+// El filtro de cada palabra, para `.or(…)`: una palabra, una llamada (y
+// PostgREST junta las llamadas con AND).
+export const filtroDeTermino = (alternativas) => alternativas.map((a) => `name.ilike.*${a}*`).join(',')
+// Adónde lleva un producto desde fuera de su pestaña: /cartas, que se ve sin
+// cuenta (en /mi-coleccion sin cuenta sale «entra»).
+export const rutaDeProducto = (f) => `/cartas?ver=productos&producto=${encodeURIComponent(f?.id ?? '')}`

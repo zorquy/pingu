@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (203) — PINGU-Claude (968 — productos fuera de expansión, buscarlos y el buscador corto)
+
+**Hecho** (Sergio.M, por PINGU): las latas de Mega Charizard X e Y no
+salían — TCGGO las cuelga de su episodio 226 «Pokémon», que no es ningún set
+nuestro —; ahora `tcggo-productos` lo pide cada día (por tandas, con tope) y
+la pestaña Productos tiene la baldosa «Productos especiales», la primera.
+Productos tiene buscador (español o inglés: «lata charizard»), y /cartas
+tiene la pestaña Productos, que es adonde lleva un producto desde fuera
+(`?producto=`, se ve sin cuenta). El buscador de arriba busca productos (en
+/buscar con su chapa) y «Ver las N cartas» va DIRECTO a Cartas › Buscar con
+lo escrito, también en la paleta (antes eran tres pasos, Sergio).
+
+**Ficheros**: `netlify/functions/tcggo-productos.mjs`, `js/productos.js`,
+`js/productos-valor.js`, `js/mi-coleccion/productos.js`, `js/mi-coleccion.js`
+(`PESTANAS_CATALOGO`), `mi-coleccion.html`, `cartas.html` (generado),
+`generar-cartas.mjs`, `js/buscador.js`, `js/buscador-filas.js`,
+`js/paleta.js`, `js/search.js`, `buscar.html`, `css/buscador.css`,
+`css/mi-coleccion-productos.css`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. Sin migración. En `pruebas`: 968 y
+968-pantalla nuevas; 762, 769 y 808 sin sueltos (prueban otra cosa); 909 y
+718 con el enlace directo.
+
+**Pendiente**: a Sergio «al añadir un producto no pregunta el idioma» — no
+tocado (él mismo dice que no importa mucho). Si TCGGO tiene un episodio
+parecido en el japonés, se pone en `TCGGO_EPISODIOS_SUELTOS` («226,JP:id»)
+sin desplegar. La 965 sigue por ejecutar.
+
 ## 2026-10-22 (202) — PINGU-Claude (967 — los precios de los productos, por idioma)
 
 **Hecho** (Sergio.M, con la web de TCGGO delante: «no pone inglés, pone

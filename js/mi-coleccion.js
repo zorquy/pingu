@@ -150,7 +150,8 @@ let pestania = PESTANAS.includes(pedida) ? pedida : MUDANZAS[pedida] || 'resumen
 // y la estantería enseña tu progreso. Y Mi colección CONSERVA su pestaña
 // de Expansiones: PINGU, «creo que es muy importante».
 const modoCatalogo = document.body.dataset.modo === 'catalogo'
-const PESTANAS_CATALOGO = ['album', 'buscar']
+// Productos (968): adonde lleva un producto el buscador de arriba, sin cuenta.
+const PESTANAS_CATALOGO = ['album', 'productos', 'buscar']
 // La pestaña por defecto es la que NO va en la dirección: compartir
 // /mi-coleccion o /cartas a secas tiene que abrir lo mismo que ve quien
 // lo comparte.

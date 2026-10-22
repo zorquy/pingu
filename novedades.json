@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Productos especiales: las latas y colecciones que no son de ninguna expansión (como las de Mega Charizard X y Mega Charizard Y) tienen su sitio, el primero, en Productos.", "enlace": "/cartas?ver=productos" },
+    { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Productos tiene buscador, en español o en inglés: «lata charizard» encuentra las Tin. Y el buscador de arriba también busca productos sellados.", "enlace": "/buscar?q=lata" },
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Del buscador de arriba a todas las cartas, de un toque: «Ver las N cartas» te lleva directo a Cartas › Buscar con lo que escribiste.", "enlace": "/buscar?q=charizard" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Los precios de los productos sellados van por idioma con su bandera (español, inglés, alemán, francés, italiano), no por país: «España» o «Europa» no eran lo que decían.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "La lista de temas del foro es más limpia: solo el título, sin el trozo del último mensaje.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En el foro ya puedes citar a varias personas en una respuesta (también un mensaje que solo es una foto), y desde el móvil el botón de Imagen abre la galería.", "enlace": "/foro" },

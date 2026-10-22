@@ -59,18 +59,29 @@ function seccion(g, estado, q) {
   }
   if (g === 'cartas' && grupo) return seccionDeCartas(estado, q)
   const filas = estado.filas.map((f) => fila(g, f)).join('')
-  const mas = grupo ? '' : g === 'cartas' ? masCartas(estado) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
+  const mas = g === 'productos' ? masProductos(estado, q) : grupo ? '' : g === 'cartas' ? masCartas(estado, q) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
   return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
 }
 
 const fila = (g, f) => `<a class="bs-fila bs-${g}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`
 
 // En «Todo» salen las cuatro de la expansión más nueva y el botón dice
-// cuántas hay (909): «Ver más» de 4 cuando son 62 se quedaba corto.
-function masCartas(estado) {
+// cuántas hay (909): «Ver más» de 4 cuando son 62 se quedaba corto. Y lleva
+// DIRECTO a Cartas › Buscar con la búsqueda puesta (968, Sergio: eran tres
+// pasos —«Ver todo», la chapa Cartas y «Verlas en Cartas»— para llegar a
+// la misma pantalla que buscar allí).
+const enCartas = (q) => `/cartas?ver=buscar&q=${encodeURIComponent(q)}`
+function masCartas(estado, q) {
   if (estado.total <= estado.filas.length) return ''
   const texto = estado.hayMas ? 'Ver todas las cartas' : `Ver las ${estado.total} cartas`
-  return `<button type="button" class="bs-mas" data-ver="cartas">${texto}</button>`
+  return `<a class="bs-mas" href="${escapeHtml(enCartas(q))}">${texto}</a>`
+}
+
+// Los productos (968): «Ver más» lleva a la pestaña Productos de Cartas con
+// la búsqueda puesta, que tiene su buscador y sus fichas.
+function masProductos(estado, q) {
+  if (!estado.hayMas) return ''
+  return `<a class="bs-mas" href="/cartas?ver=productos&amp;q=${encodeURIComponent(q)}">Ver más productos</a>`
 }
 
 // Solo cartas (909): como la pestaña Buscar de Cartas, que es el mismo
@@ -92,7 +103,7 @@ function seccionDeCartas(estado, q) {
       <span class="bs-texto"><b>${escapeHtml(nombreDeSet(s.set) || s.id)}</b><small>${s.cartas.length} ${s.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span></h3>`
   }
   return `<section class="bs-grupo"><h2 class="bs-seccion">Cartas</h2>
-    <p class="bs-cuenta"><span>${escapeHtml(cuenta)}</span><a class="bs-mas" href="/cartas?ver=buscar&amp;q=${encodeURIComponent(q)}">Verlas en Cartas</a></p>
+    <p class="bs-cuenta"><span>${escapeHtml(cuenta)}</span><a class="bs-mas" href="${escapeHtml(enCartas(q))}">Verlas en Cartas</a></p>
     ${grupos.map((s) => cabecera(s) + s.cartas.map((c) => fila('cartas', c)).join('')).join('')}</section>`
 }
 

@@ -10,11 +10,13 @@ import { cadenaDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { euros } from './cardmarket.js'
 import { atributosDeRango } from './rangos.js'
+import { nombreDeTipo, precioDeProducto, rutaDeProducto } from './productos.js'
 
 // Adónde lleva cada fila. Va aparte del HTML porque la paleta navega con
 // el teclado y necesita la dirección sin pintar nada.
 export function destinoDe(grupo, f) {
   if (grupo === 'cartas') return rutaDeCarta(f)
+  if (grupo === 'productos') return rutaDeProducto(f)
   if (grupo === 'guias') return `/guia/${encodeURIComponent(f.slug)}`
   if (grupo === 'temas') return `/tema/${encodeURIComponent(f.id)}`
   if (grupo === 'gente') return profileUrl(f)
@@ -31,6 +33,15 @@ export function interiorDe(grupo, f) {
       <span class="bs-texto"><b>${escapeHtml(nombreDeCarta(f))}</b><small>${escapeHtml(nombreDeSet(f.tcg_sets))}${numero}</small></span>
       ${f.valor ? `<span class="bs-precio">${escapeHtml(euros(f.valor))}</span>` : ''}
       <span class="bs-marca" data-marca-carta="${escapeHtml(f.id)}" data-marca-forma="fila"></span>`
+  }
+  // Un producto: su foto (cuadrada, dentro del hueco de la carta), su tipo y
+  // el precio que enseña su ficha (`precioDeProducto`).
+  if (grupo === 'productos') {
+    const p = precioDeProducto(f)
+    const japones = f.market === 'JP' ? ' · Japón' : ''
+    return `<img class="bs-foto bs-foto-producto" src="${escapeHtml(f.image || '')}" data-cadena="[]" width="36" height="50" loading="lazy" alt="">
+      <span class="bs-texto"><b>${escapeHtml(f.name)}</b><small>${escapeHtml(nombreDeTipo(f.tipo))}${japones}</small></span>
+      ${p ? `<span class="bs-precio">${escapeHtml(euros(p.valor))}</span>` : ''}`
   }
   if (grupo === 'guias') {
     return `<span class="bs-icono" aria-hidden="true">${icons.bookOpen(18)}</span>

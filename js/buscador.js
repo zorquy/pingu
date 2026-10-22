@@ -19,6 +19,7 @@ import { setsDelCatalogo } from './sets-catalogo.js'
 import { buscarComoEnCartas } from './buscar-cartas.js'
 import { nombreDeCarta } from './catalogo-series.js'
 import { urlDeLogo } from './carta-ruta.js'
+import { buscarProductos } from './productos-valor.js'
 
 // Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket, y la
 // fecha del set para ordenar por expansión).
@@ -49,6 +50,8 @@ export function ordenarPorExpansion(lista, { numero = null, prefijo = null } = {
 
 export const GRUPOS = [
   ['cartas', 'Cartas'],
+  // Los productos sellados (968, Sergio: «tampoco busca sellado»).
+  ['productos', 'Productos'],
   ['guias', 'Guías'],
   ['temas', 'Foro'],
   ['gente', 'Gente'],
@@ -85,6 +88,14 @@ const CONSULTAS = {
       c.logosDelSet = set ? [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, 'WEST'), set.symbol_scrydex].filter(Boolean) : []
     }
     return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador }
+  },
+  // Los dos catálogos, los que salen antes primero (`buscarProductos`). Se
+  // pide uno de más para saber si hay más que enseñar.
+  async productos(crudo, limite) {
+    const { data, error } = await buscarProductos(crudo, { limite: limite + 1 })
+    if (error) throw error
+    const filas = data || []
+    return { filas: filas.slice(0, limite), hayMas: filas.length > limite }
   },
   async guias(crudo, limite) {
     const patron = `%${terminoParaFiltro(crudo)}%`
