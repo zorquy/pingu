@@ -41785,6 +41785,17 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 962 — La tabla de Bulbapedia, pegada tal cual
+
+`cartasDeLista` (admin/js/lista-cartas-puro.js) acepta el número con su
+cuenta («001/049» → «001»), salta la fila de títulos (`TITULOS`: «No. Name
+Type Rarity») y quita de cada línea los trozos vacíos y los de `SOBRAN`
+(tipos de energía en inglés, rarezas en palabras o siglas, tipos de
+entrenador): lo que queda es nombre y, si hay, inglés. El resumen de «Nueva
+colección» enseña las tres primeras y la última para ver que se ha leído
+bien. Desde este contenedor no se alcanza Bulbapedia (ni Serebii, ni
+TCG Collector, ni Limitless): las listas las pega PINGU.
+
 ## Tanda 961 — Las fotos de todas las cartas de un set a la vez
 
 /admin → Colecciones → una colección → «Ver y editar sus cartas» → «Fotos de

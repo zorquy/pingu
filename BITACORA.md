@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (197) — PINGU-Claude (962 — la tabla de Bulbapedia, pegada tal cual al crear una colección)
+
+**Hecho**: PINGU quiere smL, CLF (japonés), CLV (occidental) y svG, y desde
+el contenedor no se abre Bulbapedia ni ninguna web de cartas (solo GitHub, y
+ahí no están). El cuadro de «Nueva colección» entiende ahora la tabla de
+Bulbapedia copiada: «001/049», sin tipo ni rareza ni la fila de títulos, y el
+resumen enseña las primeras cartas leídas.
+
+**Ficheros**: `admin/js/lista-cartas-puro.js`, `admin/js/colecciones.js`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-962.mjs`. Pasadas 957,
+961, 524 e imports.
+
+**Pendiente**: las cuatro listas (que PINGU pegue el texto aquí o en el
+cuadro); smL salió el 15-3 según Bulbapedia (PINGU).
+
 ## 2026-10-22 (196) — PINGU-Claude (961 — las fotos de todas las cartas de un set a la vez, en /admin)
 
 **Hecho** (PINGU: «es un poco tedioso tener que descargarme 60 imágenes y

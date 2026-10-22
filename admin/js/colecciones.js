@@ -705,7 +705,10 @@ function abrirNuevaColeccion() {
   const leerLista = () => cartasDeLista($('colNuevoLista').value)
   $('colNuevoLista').addEventListener('input', () => {
     const { cartas, errores } = leerLista()
-    $('colNuevoListaResumen').textContent = !cartas.length && !errores.length ? '' : `${cartas.length} ${cartas.length === 1 ? 'carta' : 'cartas'}${errores.length ? ` · ${errores.join(' · ')}` : ''}`
+    // Las tres primeras y la última, para ver que se ha leído bien (962).
+    const muestra = cartas.length > 4 ? [...cartas.slice(0, 3), null, cartas[cartas.length - 1]] : cartas
+    const vistas = muestra.map((c) => (c ? `${c.local_id} ${c.name}` : '…')).join(', ')
+    $('colNuevoListaResumen').textContent = !cartas.length && !errores.length ? '' : `${cartas.length} ${cartas.length === 1 ? 'carta' : 'cartas'}${vistas ? `: ${vistas}` : ''}${errores.length ? ` · ${errores.join(' · ')}` : ''}`
   })
   $('colNuevoCrear').addEventListener('click', async () => {
     const lista = leerLista()
