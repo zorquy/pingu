@@ -203,6 +203,59 @@ async function ficheroDeCasa(req, e) {
   return revisar(req, 'ficheros', null, g)
 }
 
+// ADELANTARSE (985): la página le pide al worker que baje una página de la
+// casa (al poner el dedo en un enlace) o las secciones de la barra (en wifi,
+// tras la primera visita), con sus hojas y sus módulos, y lo que importan esos
+// módulos fijos, hasta MAX_PRECARGA ficheros. Lo que ya está guardado no se pide; lo
+// que llega se guarda en la generación activa, y si cambia la generación a
+// mitad, se para (lo bajado podría ser del despliegue de antes).
+const MAX_PRECARGA = 120
+const DE_HTML = /<(?:link|script)\b[^>]*?\b(?:href|src)="((?:\/)?(?:css|js)\/[^"?#]+)"/g
+// Solo las importaciones fijas: las de `import()` son de lo que se abre al tocar.
+const DE_MODULO = /(?:\bfrom\s*|\bimport\s+)['"](\.{1,2}\/[^'"]+\.js)['"]/g
+
+async function precargar(rutas) {
+  const g = await genActiva()
+  const pc = await caches.open(paginas(g))
+  const fc = await caches.open(ficheros(g))
+  const vistos = new Set()
+  const cola = []
+  const pedir = async (url) => {
+    const r = await fetch(url, { cache: 'no-cache', credentials: 'same-origin' }).catch(() => null)
+    return r && sirve(r) ? r : null
+  }
+  for (const ruta of rutas.slice(0, 12)) {
+    const url = new URL(ruta, self.location.origin)
+    if (!esPaginaDeCache(url)) continue
+    let pagina = await pc.match(url.href)
+    if (!pagina) {
+      const r = await pedir(url.href)
+      if (!r || (await genActiva()) !== g) return
+      await pc.put(url.href, r.clone())
+      pagina = r
+    }
+    for (const m of (await pagina.text()).matchAll(DE_HTML)) cola.push(new URL(m[1], url).href)
+  }
+  while (cola.length && vistos.size < MAX_PRECARGA) {
+    const href = cola.shift()
+    if (vistos.has(href)) continue
+    vistos.add(href)
+    const u = new URL(href)
+    if (!esFichero(u)) continue
+    let r = await fc.match(href)
+    if (!r) {
+      r = await pedir(href)
+      if (!r || (await genActiva()) !== g) return
+      await fc.put(href, r.clone())
+    }
+    if (u.pathname.endsWith('.js')) for (const m of (await r.text()).matchAll(DE_MODULO)) cola.push(new URL(m[1], u).href)
+  }
+}
+
+self.addEventListener('message', (e) => {
+  if (e.data?.tipo === 'precargar' && Array.isArray(e.data.paginas)) e.waitUntil(precargar(e.data.paginas).catch(() => {}))
+})
+
 // LAS PÁGINAS DE LEER (819, VE4): una guía o una noticia ya leída se abre
 // aunque la red vaya mal. Red primero; si en dos segundos y medio no ha
 // contestado y hay copia de la última vez, la copia (y la red sigue por

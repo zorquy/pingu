@@ -640,6 +640,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de esa página: `partidas-fila` ya era la fila de una partida —con su
   borde— y la fila de mandos la pisó sin un solo error (de ahí
   `partidas-mandos`).
+- **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la
+  está preparando** (tanda 985): desde la 985 las listas de `PREPARABLES`
+  (`js/precarga.js`) se preparan enteras al tocar su enlace, y una preparada
+  que no se abre no debe contar una visita ni gastar nada. El freno está en el
+  `fetch` del cliente de Supabase (`js/espera-prerender.js`: lo que no es GET
+  espera a `prerenderingchange`); lo que escriba por otro camino (una función
+  de Netlify por POST, una petición de pago como el histórico de TCGGO) no
+  está cubierto, y su página no va en `PREPARABLES`.
 - **Un enlace que navega enseña que navega en el mismo instante** (tanda
   892, R1 de la propuesta «Rápida y limpia»): `js/progreso.js` (por
   `import()` desde app.js) pone la barra de 3 px arriba y atenúa

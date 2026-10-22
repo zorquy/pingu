@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (218) — PINGU-Claude (985 — adelantarse a la página siguiente)
+
+**Hecho**: la D y la E de «Rápida al volver». En Chrome las listas se preparan
+enteras al tocar o con el ratón encima (lo que escribe en la base espera a que
+se abran de verdad: `js/espera-prerender.js` en el cliente de Supabase); en
+todos, el iPhone incluido, al tocar un enlace el service worker baja la página
+y sus módulos; y en wifi se guardan de antemano las secciones de la barra, una
+vez por semana. Sin migración.
+
+**Ficheros**: `js/precarga.js`, `js/espera-prerender.js` (nuevo),
+`js/supabase.js`, `sw.js`, `CLAUDE.md`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-985.mjs`; `medir-tiempos.mjs` cuenta
+ya el texto que se VE (`innerText`): con `textContent` contaba también las
+pestañas escondidas.
+Medición final (la web de antes de la 982 contra la de ahora, mismo
+cronómetro, texto visible): al volver, media 0,7 → 0,5 s (otro perfil 1,9 →
+0,2; tu perfil 1,5 → 0,9; Aprender 0,7 → 0,2; Cartas 1,9 → 1,5); tras un
+despliegue, la segunda página 0,8 → 0,15 s (foro) y 2,2 → 0,3 s (Mi colección);
+tocando un enlace a una página nunca abierta, Mi colección 1,9 → 1,2 s y foro
+1,3 → 0,8 s. La primera vez de todas, igual (1,7 s): eso es bajar los ficheros.
+
+**Pendiente**: nada de la propuesta. Si PINGU quiere que el iPhone también
+guarde las secciones de antemano (Safari no dice si hay wifi), habría que
+hacerlo siempre o con un ajuste.
+
 ## 2026-10-22 (217) — PINGU-Claude (984 — lo de la última vez en las que faltaban)
 
 **Hecho**: la C de «Rápida al volver». `vistaVigilada` (ultima-vista.js)

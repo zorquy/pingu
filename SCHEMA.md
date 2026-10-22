@@ -41785,6 +41785,50 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 985 — Adelantarse a la página siguiente y guardar las secciones (propuesta «Rápida al volver», D y E)
+
+`js/precarga.js` (723) ya pedía la página al posar el dedo: en Chrome con
+`prefetch` en las «speculation rules» y en lo demás con un `<link
+rel="prefetch">`… que Safari no hace, así que en el iPhone no servía de nada.
+Ahora:
+
+- **En Chrome y Edge, las listas se preparan ENTERAS** (`prerender`,
+  `eagerness: 'moderate'`: al tocar, o con el ratón encima un momento; PINGU
+  eligió esta). Solo `PREPARABLES`: listas que solo leen al abrirse. Una
+  ficha de carta no (pide el histórico a TCGGO, que se paga por petición), ni
+  un tema (se marca como leído), ni una guía o un curso. Lo demás sigue con
+  `prefetch` (solo el HTML).
+- **Lo que escribe espera a que la página se abra de verdad**:
+  `fetchQueEspera` (`js/espera-prerender.js`) es el `fetch` del cliente de
+  Supabase; con `document.prerendering`, todo lo que no es GET/HEAD espera a
+  `prerenderingchange`. Así la visita (`page_views`), la racha, «leído» o un
+  voto no cuentan una página que no se llegó a abrir. Las RPC de leer también
+  esperan (van por POST): lo prudente.
+- **En todos, el iPhone incluido**, al tocar un enlace se le manda al service
+  worker `{ tipo: 'precargar', paginas }`: baja la página (si es de las que
+  guarda, `esPaginaDeCache`), sus hojas y sus módulos, y lo que esos módulos
+  importan de forma fija (no lo de `import()`, que es de lo que se abre al
+  tocar), hasta `MAX_PRECARGA` ficheros, en la generación activa (982). Lo ya
+  guardado no se pide.
+- **Las secciones de la barra, de antemano, SOLO EN WIFI** (PINGU): tras la
+  primera visita, con el teléfono quieto (`requestIdleCallback`), sin ahorro de
+  datos y una vez por semana (`tocaGuardarSecciones`), el mismo mensaje con
+  `SECCIONES`. Safari no dice qué red es (`navigator.connection` no existe),
+  así que en el iPhone no se guardan de antemano: ahí funciona lo de tocar.
+
+Prueba: `test-tanda-985.mjs` (el freno, las reglas, el wifi, y el sw.js de
+verdad en una caja bajando una página con sus módulos); 723 sigue en verde.
+
+**Medición final de «Rápida al volver»** (982–985), la web de antes de la 982
+contra la de ahora, con `medir-tiempos.mjs` (que desde aquí cuenta el texto
+VISIBLE: con `textContent` contaba las pestañas escondidas y daba de más),
+`medir-despliegue.mjs` y `medir-tocar.mjs` (rama `pruebas`): al volver, media
+0,7 → 0,5 s; tras un despliegue, la segunda página 0,8 → 0,15 s en el foro y
+2,2 → 0,3 s en Mi colección; tocando un enlace a una página nunca abierta, Mi
+colección 1,9 → 1,2 s y el foro 1,3 → 0,8 s; la primera vez de todas, igual
+(1,7 s de media), porque ahí lo que pesa es bajar los ficheros (Mi colección,
+780 KB: partir `js/mi-coleccion.js` es lo que queda).
+
 ## Tanda 984 — Lo de la última vez, en las pantallas que faltaban (propuesta «Rápida al volver», C)
 
 La 894 lo hizo en el foro, el meta, las noticias, los lanzamientos, los

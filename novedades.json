@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al tocar un enlace la página siguiente empieza a bajarse antes de que levantes el dedo, y en Chrome sale ya hecha. Con wifi, las secciones de la barra de abajo se guardan de antemano.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al volver a la portada, a tu perfil, al de otra persona, a Aprender o a Mis partidas, sale al instante lo que viste la última vez mientras llega lo nuevo.", "enlace": "/perfil" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Tu perfil, el de los demás, el foro y la portada piden todo a la vez en vez de una cosa detrás de otra: salen enteros antes.", "enlace": "/perfil" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Cuando subimos una mejora, tu móvil ya no vuelve a bajarse la web entera: solo lo que ha cambiado. La segunda página que abres cada día sale al momento.", "enlace": "/mi-coleccion" },
