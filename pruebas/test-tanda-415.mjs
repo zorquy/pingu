@@ -7,7 +7,7 @@
 // montón de cartas en la colección que no se muestran»; «en el panel,
 // dale sin scroll y que haya una flechita para moverlo».
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
-import { esEspecial } from '/home/user/pingu/js/mi-coleccion/estanteria.js'
+import { gruposDeEstanteria } from '/home/user/pingu/js/mi-coleccion/estanteria.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -18,19 +18,13 @@ const browser = await chromium.launch()
 
 console.log('\n── 1. Lo que no es un set de su era ──')
 {
-  // LAS POP SALIERON DE AQUÍ EN LA 536. Estaban en esta lista desde la
-  // 415, y PINGU pidió lo contrario el 2026-10-04: «las POP Series tienen
-  // que ir en una era, es como si fuese una era, todas juntas». Son diez
-  // entregas numeradas de la misma línea, no un producto suelto como un
-  // trainer kit o un McDonald's — que esos sí siguen aquí.
-  for (const n of ["McDonald's Collection 2021", 'Pokémon Futsal Collection', 'Battle Academy',
-    'Trick or Trade BOOster Bundle', 'My First Battle', 'XY Trainer Kit: Latias']) {
-    check(`«${n}» va al fondo`, esEspecial({ name: n }))
-  }
-  check('«POP Series 5» YA NO va al fondo (tanda 536)', !esEspecial({ name: 'POP Series 5' }))
-  for (const n of ['Sword & Shield', 'Celebrations', '30th Classic Collection', 'SVP Black Star Promos']) {
-    check(`  …y «${n}» se queda`, !esEspecial({ name: n }))
-  }
+  // DESDE LA 975 NO HAY LISTA DE «ESPECIALES»: PINGU, «que sean todo eras y
+  // yo voy moviendo el orden». McDonald's, Futsal o un Trainer Kit van en la
+  // era que tengan, y se sacan de ella en /admin → Colecciones.
+  const S = (id, name, serie_id) => ({ id, name, serie_id, market: 'WEST', release_date: '2021-01-01' })
+  const g = gruposDeEstanteria([S('mcd21', "McDonald's Collection 2021", 'swsh'), S('swsh1', 'Sword & Shield', 'swsh'), S('tk1', 'XY Trainer Kit: Latias', 'tk')])
+  check("«McDonald's» se queda en la era que tenga, sin «Sets especiales»", !g.some((x) => x.id === 'especiales') && g.find((x) => x.id === 'swsh')?.sets.some((x) => x.id === 'mcd21'), JSON.stringify(g.map((x) => [x.id, x.sets.map((s) => s.id)])))
+  check('  …y un Trainer Kit, en la suya', g.find((x) => x.id === 'tk')?.sets[0]?.id === 'tk1')
 }
 
 const abrir = async (ruta, ancho = 1280) => {

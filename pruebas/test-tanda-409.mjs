@@ -7,7 +7,7 @@
 // arriba solo si la pones como favorito».
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-import { esEspecial, esPromoDeEra, gruposDeEstanteria } from '/home/user/pingu/js/mi-coleccion/estanteria.js'
+import { esPromoDeEra, gruposDeEstanteria } from '/home/user/pingu/js/mi-coleccion/estanteria.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -37,25 +37,14 @@ console.log('\n── 1. La colocación, con datos a mano ──')
   // arriba corría los índices y rompía comprobaciones que no tenían nada
   // que ver.
   const uno = (id) => SETS.find((x) => x.id === id)
-  check('un trainer kit es especial', esEspecial(uno('tk1a')))
-  check('una POP series también', esEspecial(uno('pop1')))
-  // Los promos de una era NO son especiales: son de su era. PINGU, al ver
-  // la primera versión: «las Black Star Promo de cada era tienen que ir en
-  // cada era, la primera».
-  check('los promos de una era NO son especiales', !esEspecial(uno('xyp')))
-  check('  …pero sí se van al fondo de la suya', esPromoDeEra(uno('xyp')))
-  check('un set normal no', !esEspecial(uno('sv8')))
-  // La lista es de lo ESPECIAL y no de lo normal a propósito: al quedarse
-  // vieja, lo que se cuela en medio es una colección de promos nueva y no
-  // una ERA entera cayendo al fondo, que es lo más buscado que hay.
-  check('  …ni un set de una era que todavía no existe',
-    !esEspecial(S('zz1', 'Lo que salga en 2030', 'zz', 'Lo que sea', '2030-01-01')))
+  // Desde la 975 no hay «especiales»: cada colección va en su era y las
+  // eras las coloca PINGU en /admin. Los promos siguen al fondo de la suya.
+  check('los promos de una era se van al fondo de la suya', esPromoDeEra(uno('xyp')) && !esPromoDeEra(uno('sv8')))
 
   const g = gruposDeEstanteria(SETS)
   check('la era más nueva, primero', g[0].titulo === 'Mega Evolución', g[0].titulo)
-  check('los especiales, al final', g.at(-1).titulo === 'Sets especiales', g.at(-1).titulo)
-  check('  …y son solo los que no son de ninguna era',
-    g.at(-1).sets.map((s) => s.id).join() === 'tk1a,pop1', g.at(-1).sets.map((s) => s.id).join())
+  check('sin «Sets especiales» (975): el Trainer Kit y las POP, cada uno en su era', !g.some((x) => x.id === 'especiales') && g.find((x) => x.id === 'tk')?.sets.map((s) => s.id).join() === 'tk1a' && g.find((x) => x.id === 'pop')?.sets.map((s) => s.id).join() === 'pop1', g.map((x) => x.id).join())
+  check('  …y sin colocar a mano, la más vieja al fondo', g.at(-1).id === 'pop', g.at(-1).id)
   const sv = g.find((x) => x.titulo === 'Escarlata y Púrpura')
   check('dentro de una era, lo más nuevo arriba y los promos al fondo',
     sv.sets.map((s) => s.id).join() === 'sv8,sv1,rara,svp', sv.sets.map((s) => s.id).join())
@@ -96,7 +85,7 @@ const titulos = (page) =>
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   const t = await titulos(page)
-  check('los rótulos son las eras', t[0] === 'Mega Evolución' && t.at(-1) === 'Sets especiales', t.join(' | '))
+  check('los rótulos son las eras, y ninguno «Sets especiales» (975)', t[0] === 'Mega Evolución' && !t.includes('Sets especiales'), t.join(' | '))
   // Lo que se QUITA: tener una carta ya no sube una expansión arriba.
   check('  …y ya no hay un «Tus colecciones»', !t.includes('Tus colecciones'), t.join(' | '))
   check('  …ni un «Empezar otra»', !t.includes('Empezar otra'), t.join(' | '))

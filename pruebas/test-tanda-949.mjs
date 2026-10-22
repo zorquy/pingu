@@ -109,6 +109,8 @@ const browser = await chromium.launch()
   await p.waitForTimeout(500)
   await p.locator('#coleccionesMercado').selectOption('JP').catch(() => {})
   await p.waitForTimeout(600)
+  // 975: las eras salen plegadas; se despliegan para tocar «Editar».
+  await p.locator('#coleccionesDesplegar').click()
   await p.locator('[data-editar="l2_ja"]').click()
   await p.waitForTimeout(300)
   await p.locator('#colCartas').click()

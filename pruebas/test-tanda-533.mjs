@@ -90,14 +90,14 @@ console.log('── 2. En la PÁGINA: la fila desaparece y las cartas se cuentan
   check('y la cuenta del padre incluye las del hijo', /165/.test(textoLT), textoLT.replace(/\n/g, ' '))
 
   // ── Las POP, que PINGU quería como colección propia y abajo ──
-  // En la estantería las POP son «Sets especiales» (estanteria.js) y van al
-  // fondo, debajo de las eras.
+  // Desde la 975 no hay «Sets especiales»: las POP van en su era, con su
+  // nombre, y la coloca PINGU en /admin. Sin colocar, por fecha.
   const titulos = await page.locator('.mc-estanteria-titulo').allTextContents()
-  const pops = await page.locator('.mc-estanteria-titulo:has-text("Sets especiales") + .mc-estanteria .mc-set-nombre').allTextContents()
-  check('las POP están, en el grupo de especiales', pops.includes('POP Series 1') && pops.includes('Nintendo Black Star Promos'), pops.join(' | '))
-  const iPop = titulos.findIndex((t) => /Sets especiales/.test(t))
+  const pops = (await page.locator('.mc-estanteria-titulo:text-is("POP") + .mc-estanteria .mc-set-nombre').allTextContents())
+  check('las POP están, en su era (975)', pops.includes('POP Series 1') && pops.includes('Nintendo Black Star Promos') && !titulos.includes('Sets especiales'), pops.join(' | '))
+  const iPop = titulos.findIndex((t) => t.trim() === 'POP')
   const iEx = titulos.findIndex((t) => /^EX$/i.test(t.trim()))
-  check('  …y va por debajo de las eras', iPop > iEx && iEx >= 0, JSON.stringify({ titulos, iPop, iEx }))
+  check('  …y por fecha, debajo de EX', iPop > iEx && iEx >= 0, JSON.stringify({ titulos, iPop, iEx }))
   await page.close()
   await browser.close()
 }

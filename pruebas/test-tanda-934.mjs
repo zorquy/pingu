@@ -178,6 +178,8 @@ console.log('\n── 4. /admin: crear, editar y borrar versiones; borrar una ca
   await p.waitForTimeout(500)
   await p.locator('#coleccionesMercado').selectOption('WEST').catch(() => {})
   await p.waitForTimeout(500)
+  // 975: las eras salen plegadas; se despliegan para tocar «Editar».
+  await p.locator('#coleccionesDesplegar').click()
   await p.locator('[data-editar="base1"]').click()
   await p.waitForTimeout(300)
   await p.locator('#colCartas').click()

@@ -35,8 +35,11 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 
-console.log('── 1. Lo puro: el grupo al fondo ──')
-const { gruposDeEstanteria, TITULOS_DE_GRUPO } = await import(`${RAIZ}/js/mi-coleccion/estanteria.js`)
+console.log('── 1. Lo puro: sin «Otros sets» desde la 975 ──')
+// PINGU (975): «quita el apartado de otros sets… que sean todo eras y yo voy
+// moviendo el orden». `grupo` ya no pinta ningún rótulo; solo deja al fondo a
+// las eras que lo tienen hasta que se coloquen, para que nada se mueva solo.
+const { gruposDeEstanteria } = await import(`${RAIZ}/js/mi-coleccion/estanteria.js`)
 {
   const sets = [
     { id: 'sv1', serie_id: 'sv', name: 'Scarlet & Violet', release_date: '2023-03-31' },
@@ -52,18 +55,11 @@ const { gruposDeEstanteria, TITULOS_DE_GRUPO } = await import(`${RAIZ}/js/mi-col
     ['prize-pack', { nombre: 'Play! Pokémon Prize Pack', orden: 0, grupo: 'otros' }],
   ])
   const g = gruposDeEstanteria(sets, new Set(), eras)
-  check('la era del grupo va detrás de TODAS las eras, aunque su orden sea 0 (más nueva y colocada)', g.map((x) => x.id).join() === 'ecard,base,sv,prize-pack,especiales', g.map((x) => x.id).join())
-  check('  …con el rótulo «Otros sets» en ella, y solo en ella', g[3].grupoTitulo === 'Otros sets' && g.filter((x) => x.grupoTitulo).length === 1 && TITULOS_DE_GRUPO.otros === 'Otros sets')
-  check('  …y los sets especiales caen en el mismo grupo, detrás', g[4].grupo === 'otros' && !g[4].grupoTitulo)
-  check('  …dentro, lo más nuevo arriba, como en cualquier era', g[3].sets.map((s) => s.id).join() === 'pp9,pp1')
-  const sin = gruposDeEstanteria(sets.filter((s) => s.serie_id !== 'tk'), new Set(), eras)
-  check('sin especiales, el rótulo sigue en la era del grupo', sin.at(-1).id === 'prize-pack' && sin.at(-1).grupoTitulo === 'Otros sets')
-  const solo = gruposDeEstanteria(sets.filter((s) => s.serie_id !== 'prize-pack'), new Set(), eras)
-  check('sin eras del grupo, el rótulo lo lleva «Sets especiales»', solo.at(-1).id === 'especiales' && solo.at(-1).grupoTitulo === 'Otros sets')
-  check('y sin nada que caiga ahí, no hay rótulo', !gruposDeEstanteria(sets.slice(0, 3), new Set(), eras).some((x) => x.grupoTitulo))
-  const raro = gruposDeEstanteria(sets, new Set(), new Map([['sv', { nombre: 'SV', orden: 0, grupo: 'loquesea' }]]))
-  check('un grupo que no existe no es un grupo: la era sigue entre las eras', raro[0].id === 'sv' && !raro[0].grupo, raro.map((x) => x.id).join())
-  check('y sin `grupo` en el mapa (antes de la migración), todo como siempre', gruposDeEstanteria(sets, new Set(), new Map([['base', { nombre: 'Base', orden: 170 }]])).map((x) => x.id).join() === 'base,prize-pack,sv,ecard,especiales')
+  check('la era que tenía grupo sigue al fondo (no se mueve nada sola), y el Trainer Kit es una era más', g.map((x) => x.id).join() === 'ecard,base,sv,tk,prize-pack', g.map((x) => x.id).join())
+  check('  …sin rótulo «Otros sets» ni «Sets especiales»', !g.some((x) => x.grupoTitulo || x.id === 'especiales'))
+  check('  …dentro, lo más nuevo arriba, como en cualquier era', g.at(-1).sets.map((s) => s.id).join() === 'pp9,pp1')
+  const sinGrupo = gruposDeEstanteria(sets, new Set(), new Map([...eras].map(([k, v]) => [k, { ...v, grupo: null }])))
+  check('sin grupo (colocadas desde el panel), manda el orden: Prize Pack con orden 0, la primera', sinGrupo[0].id === 'prize-pack', sinGrupo.map((x) => x.id).join())
 }
 
 console.log('\n── 2. La migración, sentencia a sentencia, contra PostgreSQL ──')
@@ -131,13 +127,11 @@ console.log('\n── 3. Lo estático ──')
 {
   const mc = leer('js/mi-coleccion.js')
   check('Mi colección pide `grupo` y, si no está la migración, vuelve a pedir sin ella (624)', /select\('id,nombre,orden,grupo'\)/.test(mc) && /if \(error\) \(\{ data \} = await supabase\.from\('tcg_eras'\)\.select\('id,nombre,orden'\)/.test(mc))
-  check('  …y pinta el rótulo del grupo como un título por encima de la era', /g\.grupoTitulo \? `<h2 class="mc-estanteria-grupo">/.test(mc))
-  check('  …con su CSS en la hoja de Mi colección, no en las comunes', /\.mc-estanteria-grupo \{/.test(leer('css/mi-coleccion.css')) && !/mc-estanteria-grupo/.test(leer('css/components.css')) && !/mc-estanteria-grupo/.test(leer('css/style.css')))
+  check('  …y ya no pinta ningún rótulo de grupo (975)', !/grupoTitulo|mc-estanteria-grupo/.test(mc) && !/\.mc-estanteria-grupo/.test(leer('css/mi-coleccion.css')))
   const ad = leer('admin/js/colecciones.js')
   check('/admin pide `grupo` con el mismo respaldo y se apunta si existe', /select\('id,nombre,orden,grupo'\)/.test(ad) && /hayGrupo = !eg/.test(ad))
   check('  …no escribe la columna si no existe (un upsert con una columna de menos falla ENTERO)', /if \(hayGrupo\) fila\.grupo =/.test(ad))
-  check('  …y el editor de la era ofrece «Dónde va» solo si existe', /hayGrupo \? `<label>Dónde va/.test(ad) && /id="colEraGrupo"/.test(ad))
-  check('  …con los títulos de grupo de la estantería, no una copia', /import \{ TITULOS_DE_GRUPO \} from '\.\.\/\.\.\/js\/mi-coleccion\/estanteria\.js'/.test(ad) && !/'Otros sets'/.test(ad))
+  check('  …y el editor de la era ya no ofrece «Otros sets» (975)', !/colEraGrupo|Otros sets|TITULOS_DE_GRUPO/.test(ad))
   check('la migración existe y su comprobación cuenta los sets de las dos eras', /add column if not exists grupo text/.test(leer('supabase-migration-904-otros-sets.sql')) && /count\(s\.id\) as sets/.test(leer('supabase-migration-904-otros-sets.sql')))
 }
 
@@ -178,18 +172,8 @@ console.log('\n── 4. En pantalla ──')
   // La estantería de Mi colección.
   {
     const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=album')
-    const titulos = await page.$$eval('#mcEstanteriaRejilla h2, #mcEstanteriaRejilla h3', (hs) => hs.map((h) => `${h.tagName}:${h.className}:${h.textContent.trim()}`))
-    check('la estantería: eras, luego «Otros sets» como título, y debajo Prize Pack y los especiales', titulos.join(' / ') === 'H3:mc-estanteria-titulo:Escarlata y Púrpura / H3:mc-estanteria-titulo:e-Card / H3:mc-estanteria-titulo:Base / H2:mc-estanteria-grupo:Otros sets / H3:mc-estanteria-titulo:Play! Pokémon Prize Pack / H3:mc-estanteria-titulo:Sets especiales', titulos.join(' / '))
-    const linea = await page.$eval('.mc-estanteria-grupo', (h) => ({ borde: getComputedStyle(h).borderTopWidth, visible: h.getBoundingClientRect().height > 0 }))
-    check('  …el rótulo se ve y lleva su línea de separación', linea.visible && linea.borde === '1px', JSON.stringify(linea))
-    check('  …sin errores', errores.length === 0, errores.join(' | '))
-    await ctx.close()
-  }
-  // Y sin la columna (antes de la migración): todo como siempre, sin rótulo.
-  {
-    const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=album', { eras: ERAS.map(({ grupo, ...e }) => e) })
-    const titulos = await page.$$eval('#mcEstanteriaRejilla h2, #mcEstanteriaRejilla h3', (hs) => hs.map((h) => h.textContent.trim()))
-    check('sin `grupo`, Prize Pack es una era más (la primera: orden 0) y el rótulo lo lleva «Sets especiales»', titulos.join(' / ') === 'Play! Pokémon Prize Pack / Escarlata y Púrpura / e-Card / Base / Otros sets / Sets especiales', titulos.join(' / '))
+    const titulos = await page.$$eval('#mcEstanteriaRejilla h2, #mcEstanteriaRejilla h3', (hs) => hs.map((h) => `${h.tagName}:${h.textContent.trim()}`))
+    check('la estantería: todo eras, sin «Otros sets» (975), y Prize Pack donde estaba, al fondo', !titulos.some((t) => /^H2|Otros sets|Sets especiales/.test(t)) && titulos.slice(0, 3).join(' / ') === 'H3:Escarlata y Púrpura / H3:e-Card / H3:Base' && titulos.at(-1) === 'H3:Play! Pokémon Prize Pack', titulos.join(' / '))
     check('  …sin errores', errores.length === 0, errores.join(' | '))
     await ctx.close()
   }
@@ -199,15 +183,13 @@ console.log('\n── 4. En pantalla ──')
     await page.locator('[data-section="colecciones"]').click({ timeout: 3000 })
     await page.waitForTimeout(1200)
     const orden = await page.$$eval('#coleccionesLista > *', (xs) => xs.map((x) => x.tagName === 'H2' ? `[${x.textContent.trim()}]` : x.dataset.era))
-    check('/admin: las eras, el rótulo «Otros sets» y debajo Prize Pack (los especiales ahí son una era más)', orden.join(',') === 'sv,ecard,base,[Otros sets],prize-pack,tk' || orden.join(',') === 'sv,ecard,base,tk,[Otros sets],prize-pack', orden.join(','))
-    await page.locator('[data-era-editar="prize-pack"]').click()
-    await page.waitForTimeout(400)
-    check('  …el editor de la era ofrece «Dónde va» con «Otros sets» elegido', await page.locator('#colEraGrupo').isVisible() && (await page.locator('#colEraGrupo').inputValue()) === 'otros')
-    await page.locator('#colEraGrupo').selectOption('')
-    await page.locator('#colEraGuardar').click()
-    await page.waitForTimeout(600)
-    const guardado = await page.evaluate(() => (window.__TABLAS__.tcg_eras || []).find((e) => e.id === 'prize-pack'))
-    check('  …y al sacarla del grupo se guarda `grupo: null` con su nombre y su orden', guardado && guardado.grupo === null && guardado.nombre === 'Play! Pokémon Prize Pack' && guardado.orden === 0, JSON.stringify(guardado))
+    check('/admin: las mismas eras, en el mismo orden que la web y sin rótulo', orden.join(',') === 'sv,ecard,base,tk,prize-pack', orden.join(','))
+    await page.locator('[data-subir-era="prize-pack"]').click()
+    await page.waitForTimeout(800)
+    const guardadas = await page.evaluate(() => (window.__TABLAS__.tcg_eras || []).filter((e) => e.market === 'WEST').map((e) => `${e.id}:${e.orden}:${e.grupo ?? '-'}`).sort())
+    check('  …subir Prize Pack lo coloca encima de «tk» y deja todas sin grupo', guardadas.join() === ['base:30:-', 'ecard:20:-', 'prize-pack:40:-', 'sv:10:-', 'tk:50:-'].join(), guardadas.join())
+    const tras = await page.$$eval('#coleccionesLista > [data-era]', (xs) => xs.map((x) => x.dataset.era))
+    check('  …y se ve así', tras.join(',') === 'sv,ecard,base,prize-pack,tk', tras.join(','))
     check('  …sin errores', errores.length === 0, errores.join(' | '))
     await ctx.close()
   }

@@ -147,12 +147,11 @@ console.log('\n── 3. Qué es una era y qué no ──')
   // set más nuevo, y lo que es una colaboración o un producto suelto —
   // McDonald's entre ellos— al grupo «Sets especiales», al fondo.
   const orden = await page.locator('.mc-estanteria-titulo').allTextContents()
-  check('las eras van primero y de la más nueva a la más vieja',
-    orden.slice(0, 3).join('|') === 'Mega Evolución|Escarlata y Púrpura|Espada y Escudo', orden.join(' → '))
-  check('McDonald\'s baja, aunque su set sea más nuevo que dos eras',
-    !orden.includes("McDonald's Collection") && orden[orden.length - 1] === 'Sets especiales', orden.join(' → '))
-  const especiales = await page.locator('.mc-estanteria-titulo:has-text("Sets especiales") + .mc-estanteria .mc-set-nombre').allTextContents()
-  check('  …y es el único especial', especiales.join('|') === "McDonald's 2025", especiales.join('|'))
+  // Desde la 975 no hay «Sets especiales»: McDonald's es una era más, en
+  // el sitio que le da su set más nuevo hasta que PINGU la coloque en /admin.
+  check('las eras van de la más nueva a la más vieja, McDonald\'s como una más (975)',
+    orden.slice(0, 4).join('|') === "Mega Evolución|McDonald's Collection|Escarlata y Púrpura|Espada y Escudo", orden.join(' → '))
+  check('  …y ya no hay «Sets especiales»', !orden.includes('Sets especiales'), orden.join(' → '))
   check('y lo que no tiene serie va rotulado y detrás de las eras con algo más nuevo',
     orden.indexOf('Sin serie') > orden.indexOf('Espada y Escudo'), orden.join(' → '))
   await page.close()

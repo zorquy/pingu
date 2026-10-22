@@ -143,6 +143,8 @@ console.log('── /admin ──')
   await p.waitForTimeout(1800)
   await p.locator('[data-section="colecciones"]').click()
   await p.waitForTimeout(800)
+  // 975: las eras salen plegadas; se despliegan para tocar «Editar».
+  await p.locator('#coleccionesDesplegar').click()
   await p.locator('[data-editar="dp7"]').click()
   await p.waitForTimeout(1000)
   const estados = () => p.$$eval('#colIdiomas [data-idioma-set]', (bs) => bs.map((b) => `${b.dataset.idiomaSet}:${b.className.replace(/.*idi-/, '')}`).join())

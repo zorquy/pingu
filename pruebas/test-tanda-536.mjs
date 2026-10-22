@@ -40,8 +40,9 @@ console.log('── 1. Las POP son una ERA ──')
   // En la ESTANTERÍA salían al fondo por el nombre: «pop series» estaba en
   // la lista de nombres especiales y por eso no se agrupaban.
   const est = readFileSync('/home/user/pingu/js/mi-coleccion/estanteria.js', 'utf8')
-  check('la estantería ya no las manda al fondo', !/\bpop series\b/i.test(est.split('NOMBRES_ESPECIALES')[1].split('\n')[1] || ''))
-  check('  …pero los trainer kits y McDonald\'s siguen ahí', /trainer kit/.test(est) && /mcdonald/.test(est))
+  // Desde la 975 no queda ninguna lista de «especiales» que las mande al fondo.
+  check('la estantería ya no las manda al fondo', !/NOMBRES_ESPECIALES|SERIES_ESPECIALES/.test(est))
+  // …ni los Trainer Kits ni McDonald's (975): todo es una era y se coloca en /admin.
 }
 
 console.log('── 2. El 30 aniversario, otra vez dos filas ──')
