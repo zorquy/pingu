@@ -103,7 +103,8 @@ console.log('── 4. Lo estático ──')
   // pide `cargarValoresDeSets` de mi-coleccion.js.
   const mc = leer('js/mi-coleccion.js')
   check('la estantería pide los valores y no rompe si la tabla no está', /from\('tcg_set_valor'\)/.test(mc) && /variacionSemanal\(/.test(mc) && /variacionDeSets = new Map\(\)/.test(mc))
-  check('la estantería registra los episodios antes de contar y pide los valores', /registrarEpisodios\(sets\)\n\s*await cargarValoresDeSets\(\)/.test(mc) && /orden,oculto,tcggo_id'/.test(leer('js/sets-catalogo.js')))
+  // Desde la 983 los valores se piden a la vez que los sets.
+  check('la estantería registra los episodios antes de contar y pide los valores', /const \[sets\] = await Promise\.all\(\[cargarSets\(\), cargarValoresDeSets\(\)\]\)[\s\S]{0,200}?registrarEpisodios\(sets\)/.test(mc) && /orden,oculto,tcggo_id'/.test(leer('js/sets-catalogo.js')))
   const col = leer('js/coleccion.js')
   check('la página de una colección registra a sus hermanos por tcggo_id', /\.eq\('tcggo_id', set\.tcggo_id\)/.test(col) && /registrarEpisodios\(hermanos \|\| \[\]\)/.test(col) && /idsDeColeccion\(setId\)\.length > 1/.test(col))
   const css = leer('css/mi-coleccion.css')
