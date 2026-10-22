@@ -186,7 +186,10 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
   await page.click('#mcProdTipos [data-prod-tipo=""]')
   await page.waitForTimeout(600)
   check('sin productos tuyos, lo dice', /Todavía no tienes productos/.test(await page.textContent('#mcProdTuyos')))
-  await page.click('[data-prod-mas="48447"]')
+  // 969: «+ Añadir» pregunta el idioma; el «+» de después suma uno igual.
+  await page.click('[data-prod-anadir="48447"]')
+  await page.waitForTimeout(300)
+  await page.click('#mcProdIdioma [data-prodi-idioma="es"]')
   await page.waitForTimeout(600)
   await page.click('#mcProdRejilla [data-prod-mas="48447"]')
   await page.waitForTimeout(600)
@@ -210,8 +213,9 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
   const r = (await page.innerText('#mcCarteraReparto').catch(() => '')).replace(/\s+/g, ' ')
   // Desde la 766 (PR2) la cifra grande es la SUMA y debajo van la franja y
   // las dos fichas (lo mira entero la 766-pantalla).
-  check('el Panel: debajo de la cifra, «Cartas · Productos»', /Cartas 10,00 €/.test(r) && /Productos 26,34 €/.test(r) && (await page.isVisible('#mcCarteraReparto')), r)
-  check('  …y la cifra grande es la suma (la de la portada también)', /36,34/.test(await page.textContent('.mc-cartera-cifra')), await page.textContent('.mc-cartera-cifra'))
+  // 969: las copias de antes quedan en inglés (el idioma del producto) y valen el inglés, 3 × 10,99.
+  check('el Panel: debajo de la cifra, «Cartas · Productos»', /Cartas 10,00 €/.test(r) && /Productos 32,97 €/.test(r) && (await page.isVisible('#mcCarteraReparto')), r)
+  check('  …y la cifra grande es la suma (la de la portada también)', /42,97/.test(await page.textContent('.mc-cartera-cifra')), await page.textContent('.mc-cartera-cifra'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

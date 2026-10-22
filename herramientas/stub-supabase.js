@@ -220,6 +220,8 @@ const DEFECTOS_AL_INSERTAR = {
   user_release_alerts: { semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-07T00:00:00Z' },
   // 891: un mensaje nace con su hora, sin fotos y sin eliminar.
   private_messages: { adjuntos: [], deleted_at: null },
+  // 969: `idioma not null default 'en'`.
+  user_products: { idioma: 'en', pagado: null },
 }
 
 // Filas a medida en CUALQUIER tabla (tanda 891): `window.__FAKE_FILAS__ =
@@ -307,7 +309,7 @@ sembrar('__FAKE_PRODUCTOS__', 'tcg_products', (i) => ({
   cm_lowest: null, cm_lowest_eu: null, cm_lowest_es: null, cm_avg30: null, release_date: null, updated_at: new Date().toISOString(),
 }))
 sembrar('__FAKE_MIS_PRODUCTOS__', 'user_products', (i) => ({
-  id: `up-${i + 1}`, user_id: 'admin-1', product_id: 9000, cantidad: 1, pagado: null, created_at: new Date().toISOString(),
+  id: `up-${i + 1}`, user_id: 'admin-1', product_id: 9000, idioma: 'en', cantidad: 1, pagado: null, created_at: new Date().toISOString(),
 }))
 
 // Los álbumes soñados (tanda 366).
@@ -1200,6 +1202,10 @@ function consulta(tabla, estado = {}) {
       // 494): la misma repetición no se apunta dos veces en Mis partidas.
       if (tabla === 'match_log' && filas.some((f) => f.replay_id && T.match_log.some((x) => x.user_id === f.user_id && x.replay_id === f.replay_id))) {
         return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "match_log_repeticion"' } }
+      }
+      // La fila única de la 969: persona + producto + idioma.
+      if (tabla === 'user_products' && filas.some((f) => T.user_products.some((x) => x.user_id === f.user_id && x.product_id === f.product_id && x.idioma === f.idioma))) {
+        return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "user_products_uno_por_idioma"' } }
       }
       // Nadie escribe en las tablas del torneo a mano (tanda 252).
       if (tabla === 'tournament_match_replays') {
