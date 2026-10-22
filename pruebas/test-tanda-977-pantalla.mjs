@@ -62,12 +62,14 @@ const semilla = ([n, otros]) => {
   window.__FAKE_COLECCION__ = [1, 2, 5, 17].map((k) => ({ id: `l${k}`, user_id: 'user-1', card_id: `sv8-${k}`, market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: 1 }))
 }
 const browser = await chromium.launch()
-async function contexto({ movil = true, menos = false, cdn = null } = {}) {
+async function contexto({ movil = true, menos = false, cdn = null, cdnTarda = 0, sinIndexedDB = false } = {}) {
   const ctx = await browser.newContext({ ...(movil ? devices['iPhone 13'] : { viewport: { width: 1440, height: 1000 } }), locale: 'es-ES', reducedMotion: menos ? 'reduce' : 'no-preference', serviceWorkers: 'block' })
   await ctx.addInitScript(semilla, [N, 30])
+  // Un IndexedDB que no contesta nunca (980: Safari a veces tarda o se queda).
+  if (sinIndexedDB) await ctx.addInitScript(() => { indexedDB.open = () => ({}) })
   await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com|r2\.limitlesstcg|raw\.githubusercontent|api\.tcgdex\.net/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"/>' }))
   await ctx.route(/\/\.netlify\/functions\//, (r) => {
-    if (cdn && /cartas-set/.test(r.request().url())) return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cdn) })
+    if (cdn && /cartas-set/.test(r.request().url())) return setTimeout(() => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cdn) }).catch(() => {}), cdnTarda)
     return r.fulfill({ status: 404, contentType: 'application/json', body: '{}' })
   })
   return ctx
@@ -152,11 +154,35 @@ console.log('\n── 3. Lo de la última vez, al momento (978) ──')
   await ctx.close()
 }
 
-console.log('\n── 4. Entrar deslizando (979) ──')
+console.log('\n── 3b. Nada de lo nuevo puede atascar la apertura (980) ──')
+{
+  const ctx = await contexto({ sinIndexedDB: true })
+  const { page, errores } = await abrirEstanteria(ctx)
+  await tocar(page)
+  const ms = await esperaLlegada(page)
+  check('con un IndexedDB que no contesta, se abre igual y sin esperarlo', ms < 600, `${ms} ms`)
+  check('  …sin errores', errores.length === 0, errores.join(' | '))
+  await ctx.close()
+}
+{
+  const cartas = Array.from({ length: N }, (_, i) => ({ id: `sv8-${i + 1}`, market: 'WEST', set_id: 'sv8', local_id: String(i + 1), name: `Lenta ${i + 1}`, name_es: `Lenta ${i + 1}`, variants: { normal: true }, tcg_sets: {} }))
+  const ctx = await contexto({ cdn: { cartas, versiones: [] }, cdnTarda: 3500 })
+  const { page } = await abrirEstanteria(ctx)
+  await tocar(page)
+  const ms = await esperaLlegada(page)
+  check('con la CDN lenta, a los 700 ms se pregunta también a la base y gana la que llega', ms < 1300 && /Carta 1/.test(await page.locator('#mcAlbum [data-carta="sv8-1"]').getAttribute('aria-label')), `${ms} ms`)
+  await ctx.close()
+}
+
+console.log('\n── 4. Entrar deslizando (979, sin congelar la pantalla desde la 980) ──')
+{
+  const js = leer('js/mi-coleccion.js')
+  check('sin `startViewTransition` al abrir una expansión (congelaba la pantalla)', !/document\.startViewTransition\(/.test(js.slice(js.indexOf('ENTRAR DESLIZANDO'), js.indexOf('function volverALaEstanteria'))))
+}
 {
   const ctx = await contexto()
   const { page, errores } = await abrirEstanteria(ctx)
-  await page.evaluate(() => window.scrollTo(0, 400))
+  await page.evaluate(() => window.scrollTo({ top: 400, behavior: 'instant' }))
   await page.waitForTimeout(200)
   const sitio = await page.evaluate(() => Math.round(scrollY))
   await page.evaluate(() => {
@@ -187,7 +213,7 @@ for (const [nombre, opciones] of [['con «menos movimiento»', { menos: true }],
 }
 {
   const css = leer('css/mi-coleccion.css')
-  check('la animación se apaga con «menos movimiento»', /prefers-reduced-motion: reduce\)[\s\S]{0,400}html\[data-desliza='entra'\]::view-transition-new\(mc-expansion\)/.test(css))
+  check('la animación se apaga con «menos movimiento»', /prefers-reduced-motion: reduce\)[\s\S]{0,400}html\[data-desliza='entra'\] #mcArchivadorZona/.test(css))
 }
 
 await browser.close()
