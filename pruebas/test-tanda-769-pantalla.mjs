@@ -15,7 +15,7 @@
 // medias, los dos botones, su gráfica y el «+».
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-import { preciosPorSitio, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, filaDeProducto, COLUMNAS_POR_PAIS } from '/home/user/pingu/js/productos.js'
+import { preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, filaDeProducto, COLUMNAS_POR_PAIS } from '/home/user/pingu/js/productos.js'
 import { procesar as procesarHistorial, filasDeProducto, TOPE_DIARIO } from '/home/user/pingu/netlify/functions/tcggo-historial-producto.mjs'
 import { procesar as procesarProductos } from '/home/user/pingu/netlify/functions/tcggo-productos.mjs'
 
@@ -33,9 +33,13 @@ console.log('── 1. Lo puro ──')
 {
   const f = filaDeProducto(REAL.lista.data[0])
   check('la fila guarda el mínimo de Alemania, Francia e Italia', f.cm_lowest_de === 9.99 && f.cm_lowest_fr === 12.89 && f.cm_lowest_it === 8.15, JSON.stringify(f))
-  const sitios = preciosPorSitio(f).map((s) => `${s.nombre}:${s.valor}`)
-  check('los precios por sitio, de lo cercano a lo lejano', sitios.join() === 'España:8.78,Europa:10.99,Alemania:9.99,Francia:12.89,Italia:8.15,Todo Cardmarket:10.99', JSON.stringify(sitios))
-  check('  …y lo que no tiene cifra no sale', preciosPorSitio({ cm_lowest: 400, cm_lowest_eu: 400 }).map((s) => s.id).join() === 'eu,todo')
+  // Por IDIOMA desde la 967 (Sergio.M: son idiomas, no países), y el inglés
+  // es el del propio producto (`lowest_EU_only`, o `lowest` si no hay).
+  const sitios = preciosPorIdioma(f).map((s) => `${s.nombre}:${s.valor}`)
+  check('los precios por idioma: español, el del producto y los demás', sitios.join() === 'Español:8.78,Inglés:10.99,Alemán:9.99,Francés:12.89,Italiano:8.15', JSON.stringify(sitios))
+  check('  …y lo que no tiene cifra no sale', preciosPorIdioma({ cm_lowest: 400, cm_lowest_eu: 400 }).map((s) => s.id).join() === 'en')
+  check('  …sin el de Europa, el inglés es el de todo Cardmarket', preciosPorIdioma({ cm_lowest: 380 }).map((s) => `${s.id}:${s.valor}`).join() === 'en:380')
+  check('  …y un producto japonés dice japonés, no inglés', preciosPorIdioma({ lang: 'ja', cm_lowest: 50 }).map((s) => s.nombre).join() === 'Japonés')
   check('Cardmarket por su id de producto, sin filtro de idioma', enlaceCardmarketDeProducto(f) === 'https://www.cardmarket.com/es/Pokemon/Products?idProduct=890360')
   check('TCGplayer por el suyo', enlaceTcgplayerDeProducto(f) === 'https://www.tcgplayer.com/product/696613')
   check('  …y sin id, sin enlace', enlaceCardmarketDeProducto({}) === null && enlaceTcgplayerDeProducto({ tcgplayer_id: null }) === null)
@@ -185,8 +189,8 @@ const baldosas = (page) => page.$$eval('#mcProdSets [data-prod-set]', (bs) => bs
     }
   })
   check('tocar el nombre abre su ficha, en ventana', ficha.abierta && ficha.modal && ficha.titulo === 'Obsidian Flames Booster', JSON.stringify(ficha))
-  check('  …con el precio de España arriba', /5,50 € mínimo en España/.test(ficha.precio), ficha.precio)
-  check('  …lo que vale en cada sitio y las medias', ficha.filas.join('|') === 'España 5,50 €|Europa 5,00 €|Alemania 4,90 €|Todo Cardmarket 5,00 €|Media de 7 días 5,10 €|Media de 30 días 4,80 €|A la venta ahora 812', JSON.stringify(ficha.filas))
+  check('  …con el precio de España arriba', /5,50 € mínimo en español/.test(ficha.precio), ficha.precio)
+  check('  …lo que vale en cada sitio y las medias', ficha.filas.join('|') === 'Español 5,50 €|Inglés 5,00 €|Alemán 4,90 €|Media de 7 días 5,10 €|Media de 30 días 4,80 €|A la venta ahora 812', JSON.stringify(ficha.filas))
   check('  …los dos botones, directos al producto', ficha.cm === 'https://www.cardmarket.com/es/Pokemon/Products?idProduct=700001' && ficha.tp === 'https://www.tcgplayer.com/product/500001', `${ficha.cm} ${ficha.tp}`)
   check('  …su gráfica, la de las cartas, con Cardmarket y TCGplayer', ficha.grafica && ficha.leyenda.join() === 'Cardmarket,TCGplayer' && pedidas.some((u) => /product=9001/.test(u)), JSON.stringify(ficha.leyenda))
   check('  …y dice que lo tienes', ficha.tienes === 'Lo tienes', ficha.tienes)
